@@ -373,14 +373,17 @@ PEPeerTransportProtocol
 	closeConnection();
 
 	//3. release the read Buffer
-	if (readBuffer != null)
+	if (readBuffer != null) {
 	  ByteBufferPool.getInstance().freeBuffer(readBuffer);
+	  readBuffer = null;
+   }
 
 	//4. release the write Buffer
 	if (writeBuffer != null) {      
 	  if (writeData) {
 		PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
 		ByteBufferPool.getInstance().freeBuffer(writeBuffer);
+		writeBuffer = null;
 	  }
 	}
 
@@ -389,6 +392,7 @@ PEPeerTransportProtocol
 	  DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
 	  if (item.isLoaded()) {
 		ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+		item.setBuffer(null);
 	  }
 	  else if (item.isLoading()) {
 		manager.freeRequest(item);
@@ -471,8 +475,6 @@ PEPeerTransportProtocol
 		  try {
 			int read = readData(lengthBuffer);
       
-			if (read < 4 && read > 0) System.out.println("read<4="+read);
-      
 			if (read < 0)
 			  throw new IOException("End of Stream Reached");
 		  }
@@ -490,13 +492,13 @@ PEPeerTransportProtocol
 		  
 		  if(length < 0) {
 		    closeAll(ip + " : length negative : " + length,true);
-		    System.out.println("PEPeerTransportProtocol:: length negative");
+		    System.out.println("PEPeerTransportProtocol:: length negative: "+ip+" "+client+": "+ length);
 		    return;
 		  }
       
         if(length >= ByteBufferPool.MAX_SIZE) {
           closeAll(ip + " : length greater than max size : " + length,true);
-          System.out.println("PEPeerTransportProtocol: length too large");
+          System.out.println("PEPeerTransportProtocol: length too large: "+ip+" "+client+": "+ length);
           return;
 		  }
         
@@ -513,10 +515,19 @@ PEPeerTransportProtocol
 			    closeAll(ip + " PeerSocket::analyseBuffer:: newbuff null",true);
 			    return;
 			  }
+        
+			  if (newbuff.capacity() < length) {
+			    System.out.println("newbuff.capacity<length: "+newbuff.capacity()+"<"+length);
+			  }
+        
 			  readBuffer = newbuff;
 			  readBuffer.position(0);
 			}
       
+			int pos = readBuffer.position();
+			if (pos !=0) System.out.println("readBuffer.position!=0:"+ pos);
+      
+			readBuffer.position(0);
 			readBuffer.limit(length);
 			readingLength = false;
 		  }
@@ -996,6 +1007,7 @@ PEPeerTransportProtocol
 	  if (item.getRequest().equals(request)) {
 		if (item.isLoaded()) {
 		  ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+		  item.setBuffer(null);
 		}
 		if (item.isLoading()) {
 		  manager.freeRequest(item);
@@ -1082,7 +1094,6 @@ PEPeerTransportProtocol
 	  }
 	  catch (IOException e) {
 	    closeAll("Error while writing to " + ip +" : " + e,true);
-	    System.out.println("PEPeerTransportProtocol:: error writing to socket");
 	    return;
 	  }
     
@@ -1091,6 +1102,7 @@ PEPeerTransportProtocol
 		//If we were sending data, we must free the writeBuffer
 		if (writeData) {
 		  ByteBufferPool.getInstance().freeBuffer(writeBuffer);
+		  writeBuffer = null;
 		  PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
 		}
 		//We set it to null
@@ -1100,7 +1112,7 @@ PEPeerTransportProtocol
     //I'm asking myself the exact same question, and I've got no answer
     //But this solves BOTH hash fails and deconnections
     //Due to invalid packet length sent ....
-    //TODO : Understand why this return is needed here
+    //to do : Understand why this return is needed here
     //return;
 	  } //So if we haven't written the whole buffer, we simply return...
 	}
@@ -1119,12 +1131,21 @@ PEPeerTransportProtocol
 		  return;
 		}
 		
+		//check to make sure we're sending a proper message length
+		if (!verifyLength(writeBuffer)) {
+		  closeAll("OOPS, we're sending a bad protocol message length !!!", true);
+		  System.out.println("OOPS, we're sending a bad protocol message length !!!");
+		  return;
+		}
+		
 		writeBuffer.position(0);
 		writeData = false;
 		//and loop
 		write();
 		return;
 	  }
+    
+     //Check if there's any data to send from the dataQueue
 	  if (dataQueue.size() != 0) {
 		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
 		if (!choking) {
@@ -1154,6 +1175,14 @@ PEPeerTransportProtocol
 			// Assign the current buffer ...
 			keepAlive = 0;
 			writeBuffer = item.getBuffer();
+      
+			//check to make sure we're sending a proper message length
+			if (!verifyLength(writeBuffer)) {
+			  closeAll("OOPS, we're sending a bad data message length !!!", true);
+			  System.out.println("OOPS, we're sending a bad data message length !!!");
+			  return;
+			}
+    
 			writeBuffer.position(0);
 			writeData = true;
 			PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
@@ -1170,6 +1199,7 @@ PEPeerTransportProtocol
 		  if (item.isLoaded()) {
 			dataQueue.remove(item);
 			ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+			item.setBuffer(null);
 		  }
 		  return;
 		}
@@ -1182,6 +1212,25 @@ PEPeerTransportProtocol
 		}
 	  }
 	}
+  }
+  
+  /**
+   * Verifies that the buffer length is correct.
+   * Returns true if the buffer length is OK.
+   */
+  private boolean verifyLength(ByteBuffer buffer) {
+    //check for a handshake message
+    if (buffer.get(0) == (byte)PROTOCOL.length()) {
+      return true;
+    }
+    
+    int length =  buffer.getInt(0);
+    if (length != buffer.limit() - 4) {
+      String header = "PEPeerTransportProtocol::verifyLength:: ";
+      System.out.println(header + "givenLength=" + length + " realLength=" + buffer.limit());
+      return false;
+    }
+    return true;
   }
 
   private int max(int a, int b) {
