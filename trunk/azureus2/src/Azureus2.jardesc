@@ -86,6 +86,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.icons"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web.template.img"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.category"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.utils"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.common.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.internat.update"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.donations"/>
@@ -156,6 +157,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.protocol.udp"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils.xml.simpleparser"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.peer"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.stats"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.category.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.client.classic"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.console"/>
