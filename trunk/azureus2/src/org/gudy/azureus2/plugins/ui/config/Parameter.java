@@ -33,7 +33,13 @@ public interface
 Parameter
 	extends ConfigParameter
 {
-
+	public void
+	setEnabled(
+		boolean	enabled );
+	
+	public boolean
+	isEnabled();
+	
 	public void
 	addListener(
 		ParameterListener	l );

@@ -253,7 +253,7 @@ BasicPluginConfigModelImpl
 		
 		gMainTab.setLayout(layout);
 		
-		Map	comp_map	= new HashMap();
+		final Map	comp_map	= new HashMap();
 		
 		for (int i=0;i<parameters.size();i++){
 			
@@ -384,6 +384,38 @@ BasicPluginConfigModelImpl
 		for (int i=0;i<parameters.size();i++){
 			
 			ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
+			
+			param.addImplListener( 
+				new ParameterImplListener()
+				{
+					public void
+					enabledChanged(
+						ParameterImpl	p )
+					{
+					    Object[] stuff = (Object[])comp_map.get( p );
+					    
+					    if ( stuff != null ){
+					    	
+						    for(int k = 1 ; k < stuff.length ; k++) {
+						    	
+						    	((Control)stuff[k]).setEnabled(p.isEnabled());
+						    }
+					    }
+					}
+				});
+				
+			if ( !param.isEnabled()){
+				
+			    Object[] stuff = (Object[])comp_map.get( param );
+			    
+			    if ( stuff != null ){
+			    	
+				    for(int k = 1 ; k < stuff.length ; k++) {
+				    	
+				    	((Control)stuff[k]).setEnabled(false);
+				    }
+			    }
+			}
 			
 			if ( param instanceof EnablerParameter ){
 				

@@ -42,10 +42,13 @@ ParameterImpl
 	private 	String 			key;
 	private 	String 			label;
 	
+	private	boolean	enabled	= true;
+	
 	private List toDisable	= new ArrayList();
 	private List toEnable	= new ArrayList();
 	  
-	private List	listeners	= new ArrayList();
+	private List	listeners		= new ArrayList();
+	private List	impl_listeners	= new ArrayList();
 	
 	public 
 	ParameterImpl(
@@ -108,6 +111,24 @@ ParameterImpl
 	}
 	
 	public void
+	setEnabled(
+		boolean	e )
+	{
+		enabled	= e;
+		
+		for (int i=0;i<impl_listeners.size();i++){
+
+			((ParameterImplListener)impl_listeners.get(i)).enabledChanged( this );
+		}
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( enabled );
+	}
+	
+	public void
 	addListener(
 		ParameterListener	l )
 	{
@@ -131,6 +152,20 @@ ParameterImpl
 		}
 	}
 	
+	public void
+	addImplListener(
+		ParameterImplListener	l )
+	{
+		impl_listeners.add(l);
+	}
+				
+	public void
+	removeImplListener(
+		ParameterImplListener	l )
+	{
+		impl_listeners.remove(l);
+	}
+		
 	public void
 	addConfigParameterListener(
 		ConfigParameterListener	l )
