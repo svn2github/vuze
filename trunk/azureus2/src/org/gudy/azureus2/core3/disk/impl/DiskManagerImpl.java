@@ -722,8 +722,14 @@ DiskManagerImpl
 
 			File f = new File(tempPath, tempName);
 
-			if (!f.exists() || (f.length() != length))
+			if (!f.exists()) {
+			  errorMessage = tempPath + tempName + " not found.";
+			  return false;
+			}
+			else if (f.length() != length) {
+			  errorMessage = tempPath + tempName + " not corrects size.";
 				return false;
+			}
 		}
 		return true;
 	}
@@ -1639,10 +1645,11 @@ DiskManagerImpl
 			}
 		}
     
-    ByteBufferPool.freeBuffer(allocateAndTestBuffer);
-    allocateAndTestBuffer = null;
-
-	}
+    if (allocateAndTestBuffer != null) {
+      ByteBufferPool.freeBuffer(allocateAndTestBuffer);
+      allocateAndTestBuffer = null;
+    }
+  }
 
 
 	public void computeFilesDone(int pieceNumber) {

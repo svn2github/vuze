@@ -244,7 +244,7 @@ DisplayFormatters
 			tmp = MessageText.getString("ManagerItem.queued"); //$NON-NLS-1$
 			break;
 		  case DownloadManager.STATE_ERROR :
-			tmp = MessageText.getString("ManagerItem.error").concat(" : ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
+			tmp = MessageText.getString("ManagerItem.error").concat(": ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
 		}
 	
@@ -303,7 +303,7 @@ DisplayFormatters
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.queued"); //$NON-NLS-1$
 			break;
 		  case DownloadManager.STATE_ERROR :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.error").concat(" : ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.error").concat(": ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
 		}
 	

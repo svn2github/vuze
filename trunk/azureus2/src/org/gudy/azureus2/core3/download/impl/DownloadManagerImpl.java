@@ -157,7 +157,9 @@ DownloadManagerImpl
 	private boolean 	forceStarted;
 	/**
 	 * Only seed this torrent. Never download or allocate<P>
-	 * Current Functionality:
+	 * Current Implementation:
+	 * - implies that the user completed the download at one point
+	 * - Checks if there's Data Missing when torrent is done (or torrent load)
 	 */
 	protected boolean onlySeeding;
 	
@@ -231,6 +233,19 @@ DownloadManagerImpl
 
   public void initialize() 
   {
+    // If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
+    if (onlySeeding) {
+      String errMessage = filesExistErrorMessage();
+      if (errMessage != "") {
+        errorDetail = MessageText.getString("DownloadManager.error.datamissing") + " " + errMessage; //$NON-NLS-1$
+        setState(STATE_ERROR);
+        return;
+        
+        // If the user wants to re-download the missing files, they must
+        // do a re-check, which will reset the onlySeeding flag.
+      }
+    }
+
 	if ( torrent == null ){
 		
 	  setState( STATE_ERROR );
@@ -431,25 +446,37 @@ DownloadManagerImpl
 		return onlySeeding;
 	}
 	
-	public void setOnlySeeding(boolean onlySeeding) {
-		this.onlySeeding = onlySeeding;
-		if (onlySeeding && !filesExist()) {
-  		setState(STATE_ERROR);
-  		errorDetail = MessageText.getString("DownloadManager.error.datamissing"); //$NON-NLS-1$
-		}
-	}
+  public void setOnlySeeding(boolean onlySeeding) {
+    if (this.onlySeeding != onlySeeding) {
+      this.onlySeeding = onlySeeding;
+      if (onlySeeding) {
+        String errMessage = filesExistErrorMessage();
+        if (errMessage != "") {
+          setState(STATE_ERROR);
+          errorDetail = MessageText.getString("DownloadManager.error.datamissing") + " " + errMessage; //$NON-NLS-1$
+        }
+      }
+    }
+  }
 	
 	public boolean filesExist() {
-		boolean ok;
+	  return (filesExistErrorMessage() == "");
+	}
+
+	private String filesExistErrorMessage() {
+		String strErrMessage = "";
 		// currently can only seed if whole torrent exists
 		if (diskManager == null) {
   		DiskManager dm = DiskManagerFactory.createNoStart( torrent, FileUtil.smartFullName(savePath, name));
-  		ok = dm.filesExist();
+  		if (!dm.filesExist()) 
+  		  strErrMessage = dm.getErrorMessage();
   		dm = null;
-  	} else
-  		ok = diskManager.filesExist();
-  	
-  	return ok;
+  	} else {
+  		if (!diskManager.filesExist()) 
+  		  strErrMessage = diskManager.getErrorMessage();
+  	}
+
+    return strErrMessage;
 	}
 	
 	
@@ -1061,6 +1088,11 @@ DownloadManagerImpl
   	}
   }
   
+  public boolean canForceRecheck() {
+    return (state == STATE_STOPPED) ||
+           (state == STATE_ERROR && diskManager == null);
+  }
+
   public void forceRecheck() {
   	if ( diskManager != null ) {
   		LGLogger.log(0, 0, LGLogger.ERROR, "Trying to force recheck while diskmanager active");
@@ -1086,6 +1118,7 @@ DownloadManagerImpl
 			  if (diskManager.getState() == DiskManager.READY) {
 			    diskManager.dumpResumeDataToDisk(true, false);
 					diskManager.stopIt();
+				  setOnlySeeding(diskManager.getRemaining() == 0);
 					diskManager = null;
 					if (prevState == STATE_ERROR)
 						setState(STATE_STOPPED);
@@ -1095,6 +1128,7 @@ DownloadManagerImpl
 			  else { // Faulty
 			  	setErrorDetail( diskManager.getErrorMessage());
 					diskManager.stopIt();
+					setOnlySeeding(false);
 					diskManager = null;
 					setState(STATE_ERROR);
 			  }

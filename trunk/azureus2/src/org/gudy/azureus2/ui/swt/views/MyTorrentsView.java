@@ -495,10 +495,11 @@ public class MyTorrentsView extends AbstractIView
               remove = remove && ManagerUtils.isRemoveable(dm);
               start = start && ManagerUtils.isStartable(dm);
 
-              if (state != DownloadManager.STATE_STOPPED) {
+              if (state != DownloadManager.STATE_STOPPED)
                 start = false;
+
+              if (!dm.canForceRecheck())
                 recheck = false;
-              }
 
               if (!dm.isMoveableDown())
                 moveDown = false;

@@ -305,6 +305,32 @@ StartStopRulesDefaultPlugin
           else if (state == Download.ST_QUEUED)
             totalIncompleteQueued++;
         }
+
+        // XXX: Old code. Do we really want to remove torrents when the error is "File Not Found"?
+        if (  download.getState() == Download.ST_ERROR &&
+            download.getErrorStateDetails() != null && 
+            download.getErrorStateDetails().equals("File Not Found")){
+
+          try{
+          	Torrent t = download.getTorrent();
+          	if (t == null)
+          		log.log( LoggerChannel.LT_INFORMATION, "Removing ["+download.getName()+"]: torrent file not found" );
+          	else
+            	log.log( LoggerChannel.LT_INFORMATION, "Remove ["+t.getName()+"]: file not found" );
+            
+            // must remove from download_data first, otherwise we end up in infinite wait loop
+            download_data.remove(dl_data);
+            download.remove();
+            
+          }catch( DownloadRemovalVetoException e ){
+            
+            e.printStackTrace();
+            
+          }catch( DownloadException e ){
+            
+            e.printStackTrace();
+          }
+        }
       }
       
       int maxSeeders = (activeDLCount > 0) ? maxSeedingsDL : maxSeedingsNoDL;
@@ -360,11 +386,19 @@ StartStopRulesDefaultPlugin
           }catch (Exception ignore) {/*ignore*/}
         }
         
-        
         //See PREPARING notes in Loop 1 of 2;
         if (download.getState() == Download.ST_PREPARING) {
-          //log.log( LoggerChannel.LT_INFORMATION, "Skipping StartStopRules Process: A download is preparing");
           break;
+        }
+
+        if (enableQR && download.getStats().getCompleted() == 1000 && okToProcessComplete)
+          download.setPosition(++posComplete);
+
+        // Never do anything to stopped entries
+        if (download.getState() == Download.ST_STOPPING ||
+            download.getState() == Download.ST_STOPPED ||
+            download.getState() == Download.ST_ERROR) {
+          continue;
         }
               
         // Handle incomplete DLs
@@ -430,9 +464,6 @@ StartStopRulesDefaultPlugin
           //    c) other
           // 7) Seeding Torrent changes to Queued.  Go to step 1.
           
-          if (enableQR)
-          	download.setPosition(++posComplete);
-  
           int shareRatio = download.getStats().getShareRatio();
           int state = download.getState();
           boolean okToStop = (state == Download.ST_READY || state == Download.ST_SEEDING || state == Download.ST_QUEUED) &&
@@ -522,31 +553,6 @@ StartStopRulesDefaultPlugin
               }
             }
           }
-  
-          if (  download.getState() == Download.ST_ERROR &&
-              download.getErrorStateDetails() != null && 
-              download.getErrorStateDetails().equals("File Not Found")){
-          
-            try{
-            	Torrent t = download.getTorrent();
-            	if (t == null)
-            		log.log( LoggerChannel.LT_INFORMATION, "Removing ["+download.getName()+"]: torrent file not found" );
-            	else
-              	log.log( LoggerChannel.LT_INFORMATION, "Remove ["+t.getName()+"]: file not found" );
-              
-              // must remove from download_data first, otherwise we end up in infinite wait loop
-              download_data.remove(dl_data);
-              download.remove();
-              
-            }catch( DownloadRemovalVetoException e ){
-              
-              e.printStackTrace();
-              
-            }catch( DownloadException e ){
-              
-              e.printStackTrace();
-            }
-          }   
   
           if (download.getState() == Download.ST_QUEUED)
             higherQueued = true;
