@@ -876,7 +876,10 @@ public class DiskManager {
     }
 
     public void dumpResumeDataToDisk(boolean savePartialPieces) {
-        //TODO CLEAN UP
+        boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume",false);
+        if(!useFastResume)
+          return;
+        
         //build the piece byte[] 
         byte[] resumeData = new byte[pieceDone.length];
         for (int i = 0; i < resumeData.length; i++) {
