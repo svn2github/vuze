@@ -55,6 +55,12 @@ PEPieceImpl
   public int completed;
   public boolean isBeingChecked = false;
 
+  //A Flag to indicate that this piece is for slow peers
+  //Slow peers can only continue/create slow pieces
+  //Fast peers can't continue/create slow pieces
+  //In end game mode, this limitation isn't used
+  private boolean slowPiece;
+  
   public PEPeerManager manager;
 
   	// experimental class level lock
@@ -84,7 +90,12 @@ PEPieceImpl
 	this(manager, length);
 	this.pieceNumber = pieceNumber;
   }
- 
+  
+  public PEPieceImpl(PEPeerManager manager, int length, int pieceNumber,boolean slowPiece) {
+	this(manager, length,pieceNumber);
+	this.slowPiece = slowPiece;
+  }
+    
   public void setWritten(PEPeer peer,int blocNumber) {
     writers[blocNumber] = peer;
     written[blocNumber] = true;
@@ -315,6 +326,10 @@ PEPieceImpl
   }
   public PEPeer[] getWriters() {
     return writers;
+  }
+  
+  public boolean isSlowPiece() {
+    return slowPiece;
   }
 
 }

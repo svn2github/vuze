@@ -32,7 +32,15 @@ public class
 PEPeerControlImpl
 	implements 	PEPeerControl, ParameterListener
 {
-  private static final int MAX_REQUESTS = 16;
+  
+  //Min number of requests sent to a peer
+  private static final int MIN_REQUESTS = 2;
+  //Default number of requests sent to a peer
+  //(for each X B/s a new request will be used)
+  private static final int SLOPE_REQUESTS = 2 * 1024;
+  //Max number of request sent to a peer
+  private static final int MAX_REQUESTS = 64;
+  
   private static final int BAD_CHUNKS_LIMIT = 3;
   private static final int WARNINGS_LIMIT = 3;
   
@@ -666,17 +674,27 @@ PEPeerControlImpl
       if (pc.transferAvailable()) {
         boolean found = true;
         //If queue is too low, we will enqueue another request
-        int maxRequests = MAX_REQUESTS;
+        int maxRequests = MIN_REQUESTS + (int) (pc.getStats().getDownloadAverage() / SLOPE_REQUESTS);
+        if(maxRequests > MAX_REQUESTS || maxRequests < 0) maxRequests = MAX_REQUESTS;
+        
+        
+        
         if (endGameMode)
           maxRequests = 2;
         if (pc.isSnubbed())
-          maxRequests = 1;        
-        while ((pc.isReadyToRequest() && pc.getState() == PEPeer.TRANSFERING) && found && (pc.getNbRequests() < maxRequests)) {
-          if(endGameMode)
-            found = findPieceInEndGameMode(pc);
-          else
-            found = findPieceToDownload(pc);
-          //is there anything else to download?
+          maxRequests = 1;  
+        
+        //Only loop when 3/5 of the queue is empty,
+        //in order to make more consecutive requests, and improve
+        //cache efficiency
+        if(pc.getNbRequests() <= (3 * maxRequests) / 5) {        
+	        while ((pc.isReadyToRequest() && pc.getState() == PEPeer.TRANSFERING) && found && (pc.getNbRequests() < maxRequests)) {
+	          if(endGameMode)
+	            found = findPieceInEndGameMode(pc);
+	          else
+	            found = findPieceToDownload(pc);
+	          //is there anything else to download?
+	        }
         }
       }
     }
@@ -963,8 +981,12 @@ PEPeerControlImpl
    * @return true if a request was assigned, false otherwise
    */
   private boolean findPieceToDownload(PEPeerTransport pc) {
+    
+    //Slower than 1KB/s is a slow peer
+    boolean slowPeer = pc.getStats().getDownloadAverage() < 2 * 1024;
+    
     //get the rarest pieces list
-    getRarestPieces(pc,90);
+    getRarestPieces(pc,90,false);
     if (_piecesRarest == null)
       return false;
 
@@ -987,19 +1009,21 @@ PEPeerControlImpl
 
     //For every piece
     for (int i = 0; i < _nbPieces; i++) {
-      //If we're not downloading the piece and if it's available from that peer   
-      if ((_pieces[i] != null) && !_downloading[i] && _piecesRarest[i]) {
+      //If we're not downloading the piece and if it's available from that peer 
+      if (_piecesRarest[i] && (_pieces[i] != null) && !_downloading[i]) {
         //We get and mark the next block number to dl
         //We will either get -1 if no more blocks need to be requested
         //Or a number >= 0 otherwise
         int tempBlock = _pieces[i].getAndMarkBlock();
 
         //SO, if there is a block to request in that piece
+        
         if (tempBlock != -1) {
           //Is it a better piece to dl from?
           //A better piece is a piece which is more completed
           //ie more blocks have already been WRITTEN on disk (not requested)
-          if (_pieces[i].getCompleted() > lastCompleted) {
+          // and the piece corresponds to our class of peer
+          if (_pieces[i].getCompleted() > lastCompleted && (slowPeer == _pieces[i].isSlowPiece())) {
             //If we had marked a block previously, we must unmark it
             if (pieceNumber != -1) {
               //So pieceNumber contains the last piece
@@ -1054,7 +1078,7 @@ PEPeerControlImpl
 
     //If we're not going to continue a piece, then stick with more rarity :
     //Allowing 20% here.
-    getRarestPieces(pc,20);
+    getRarestPieces(pc,20,true);
     
     pieceNumber = _diskManager.getPieceNumberToDownload(_piecesRarest);
 
@@ -1062,12 +1086,13 @@ PEPeerControlImpl
       return false;
     //Now we should have a piece with least presence on network    
     PEPieceImpl piece = null;
-
+    
+    
     //We need to know if it's last piece or not when creating the BtPiece Object
     if (pieceNumber < _nbPieces - 1)
-      piece = new PEPieceImpl(this, _diskManager.getPieceLength(), pieceNumber);
+      piece = new PEPieceImpl(this, _diskManager.getPieceLength(), pieceNumber,slowPeer);
     else
-      piece = new PEPieceImpl(this, _diskManager.getLastPieceLength(), pieceNumber);
+      piece = new PEPieceImpl(this, _diskManager.getLastPieceLength(), pieceNumber,slowPeer);
 
     pieceAdded(piece);
     //Assign the created piece to the pieces array.
@@ -1087,7 +1112,7 @@ PEPeerControlImpl
   
   private static final int FORCE_PIECE	= -1;
   
-  private void getRarestPieces(PEPeerTransport pc,int rangePercent) {
+  private void getRarestPieces(PEPeerTransport pc,int rangePercent,boolean onlyNonAllocatedPieces) {
     boolean[] piecesAvailable = pc.getAvailable();
     Arrays.fill(_piecesRarest, false);
 
@@ -1114,7 +1139,7 @@ PEPeerControlImpl
 
     
     //If availability is greater than 10, then grab any piece avail (999 should be enough)
-    if(pieceMinAvailability > 10 && pieceMinAvailability < 999) pieceMinAvailability = 999;
+    if(pieceMinAvailability > 10 && pieceMinAvailability < 9999) pieceMinAvailability = 9999;
     
     //  We add the range
     pieceMinAvailability = ((100+rangePercent) * pieceMinAvailability) / 100;
@@ -1126,7 +1151,8 @@ PEPeerControlImpl
         //null : special case, to ensure we find at least one piece
         //or if the availability level is lower than the old availablility level
         if (_availability[i] <= pieceMinAvailability) {
-          _piecesRarest[i] = true;
+          if(!onlyNonAllocatedPieces || _pieces[i] == null)
+            _piecesRarest[i] = true;
         }
       }
     }

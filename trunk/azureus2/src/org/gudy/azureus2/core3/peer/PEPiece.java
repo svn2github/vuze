@@ -53,6 +53,8 @@ PEPiece
   
   public boolean[] getDownloaded();
   
+  public boolean isSlowPiece();
+  
   
   /**
    * record details of a piece's blocks that have been completed for bad peer detection purposes

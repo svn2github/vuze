@@ -23,9 +23,7 @@ package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPiece;
@@ -52,7 +50,8 @@ public class PiecesView
     new BlockCountItem(),
     new BlocksItem(),
     new CompletedItem(),
-    new AvailabilityItem()
+    new AvailabilityItem(),
+    new TypeItem()
   };
 
   DownloadManager manager;
@@ -69,13 +68,13 @@ public class PiecesView
     
     super.createLegendComposite(
         	new Color[] {
-        		Colors.blues[Colors.BLUES_DARKEST],    
-    			Colors.blues[Colors.BLUES_MIDLIGHT],
+        		Colors.blues[Colors.BLUES_MIDLIGHT],
+        		Colors.blues[Colors.BLUES_DARKEST],        			
     			Colors.red },
     		new String[] {
-        			"pieceView.legend.written",
-    				"pieceView.legend.requested",
-    				"pieceView.legend.downloaded"}
+        			"PiecesView.legend.requested",
+        			"PiecesView.legend.written",    				
+    				"PiecesView.legend.downloaded"}
         	);
     
     manager.addPeerListener(this);
