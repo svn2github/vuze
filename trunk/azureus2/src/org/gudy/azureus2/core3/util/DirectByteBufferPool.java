@@ -324,7 +324,9 @@ DirectByteBufferPool
    * Force system garbage collection.
    */
   private void runGarbageCollection() {
-    System.out.println( "runGarbageCollection()" );
+    if( DEBUG_PRINT_MEM ) {
+      System.out.println( "runGarbageCollection()" );
+    }
     System.runFinalization();
     System.gc();
   }
