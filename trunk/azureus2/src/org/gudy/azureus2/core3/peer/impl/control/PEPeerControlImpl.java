@@ -1622,27 +1622,10 @@ PEPeerControlImpl
               Iterator iterPeers = peersToDisconnect.iterator();
               while(iterPeers.hasNext()) {
                 PEPeer peer = (PEPeer) iterPeers.next();
-                String ip = peer.getIp();
-                System.out.println("Bar Peer Found : " + peer.getIp());                 
-                int nbBadChunks = peer.getNbBadChunks();
-                if(nbBadChunks > BAD_CHUNKS_LIMIT) {
-                  //Ban fist to avoid a fast reco of the bad peer
-                  int nbWarnings = BadIps.getInstance().addWarningForIp(ip);
-                  if(nbWarnings > WARNINGS_LIMIT) {
-                    IpFilter.getInstance().ban(ip);                    
-                  }
-                  //Close connection in 2nd
-                  ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
-                  //Trace the ban in third
-                  if(nbWarnings > WARNINGS_LIMIT) {
-                    LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
-                  }
-                }
+                badPeerDetected(peer);
                }
-              }
-              
-            }
-            
+              }              
+            }            
           }
         }
         
@@ -1659,12 +1642,21 @@ PEPeerControlImpl
       
     }
     //the piece is corrupt
-    else {      
-      if (_pieces[pieceNumber] != null) {
-        
-        //_pieces[pieceNumber].free();      
-        _pieces[pieceNumber].reset();
-      
+    else { 
+      PEPiece piece = _pieces[pieceNumber];
+      if (piece != null) {            
+        piece.reset();
+        PEPeer[] writers = piece.getWriters();
+        if((writers.length > 0) && writers[0] != null) {
+          PEPeer writer = writers[0];
+          boolean uniqueWriter = true;
+          for(int i = 1 ; i < writers.length ; i++) {
+            uniqueWriter = uniqueWriter && writer.equals(writers[i]);            
+          }
+          if(uniqueWriter) {
+            badPeerDetected(writer);
+          }
+        }        
       }
       //Mark this piece as non downloading
       _downloading[pieceNumber] = false;
@@ -1693,6 +1685,25 @@ PEPeerControlImpl
       _finished = false;
          
       nbHashFails++;
+    }
+  }
+
+  private void badPeerDetected(PEPeer peer) {
+    String ip = peer.getIp();
+    System.out.println("Bar Peer Found : " + peer.getIp());                 
+    int nbBadChunks = peer.getNbBadChunks();
+    if(nbBadChunks > BAD_CHUNKS_LIMIT) {
+      //Ban fist to avoid a fast reco of the bad peer
+      int nbWarnings = BadIps.getInstance().addWarningForIp(ip);
+      if(nbWarnings > WARNINGS_LIMIT) {
+        IpFilter.getInstance().ban(ip);                    
+      }
+      //Close connection in 2nd
+      ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
+      //Trace the ban in third
+      if(nbWarnings > WARNINGS_LIMIT) {
+        LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
+      }
     }
   }
 
