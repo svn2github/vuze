@@ -55,21 +55,25 @@ UpdateManagerImpl
 	public Update
 	addUpdate(
 		String				name,
+		String[]			desc,
 		String				new_version,
 		ResourceDownloader	downloader,
+		boolean				mandatory,
 		int					restart_required )
 	{
-		return( addUpdate( name, new_version, new ResourceDownloader[]{ downloader }, restart_required ));
+		return( addUpdate( name, desc, new_version, new ResourceDownloader[]{ downloader }, mandatory, restart_required ));
 	}
 	
 	public synchronized Update
 	addUpdate(
 		String					name,
+		String[]				desc,
 		String					new_version,
 		ResourceDownloader[]	downloaders,
+		boolean					mandatory,
 		int						restart_required )
 	{
-		UpdateImpl	update = new UpdateImpl( this, name, new_version, downloaders, restart_required );
+		UpdateImpl	update = new UpdateImpl( this, name, desc, new_version, downloaders, mandatory, restart_required );
 		
 		updates.add( update );
 		

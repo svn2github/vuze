@@ -262,11 +262,21 @@ PluginUpdatePlugin
 						
 						log.log( LoggerChannel.LT_INFORMATION, "    Description:" );
 						
-						logMultiLine( "        ", details.getDescription());
+						List	update_desc = new ArrayList();
+						
+						List	desc_lines = splitMultiLine( "", details.getDescription());
+						
+						logMultiLine( "        ", desc_lines );
+						
+						update_desc.addAll( desc_lines );
 						
 						log.log( LoggerChannel.LT_INFORMATION, "    Comment:" );
 						
-						logMultiLine( "        ", details.getComment());
+						List	comment_lines = splitMultiLine( "    ", details.getComment());
+
+						logMultiLine( "    ", comment_lines );
+						
+						update_desc.addAll( comment_lines );
 						
 						String msg =   "A newer version (version " + sf_plugin_version + ") of plugin '" + 
 										plugin_id + "' " +
@@ -334,10 +344,16 @@ PluginUpdatePlugin
 								
 							});
 						
+						String[]	update_d = new String[update_desc.size()];
+						
+						update_desc.toArray( update_d );
+						
 						Update update = plugin_interface.getUpdateManager().addUpdate(
 								plugin_id + "/" + plugin_names,
+								update_d,
 								sf_plugin_version,
 								rdl,
+								false,		// plugin updates aren't mandatory
 								Update.RESTART_REQUIRED_MAYBE );
 						
 						update.addListener(
@@ -392,11 +408,24 @@ PluginUpdatePlugin
 	protected void
 	logMultiLine(
 		String		indent,
+		List		lines )
+	{
+		for (int i=0;i<lines.size();i++){
+			
+			log.log( LoggerChannel.LT_INFORMATION, indent + (String)lines.get(i) );
+		}
+	}
+	
+	protected List
+	splitMultiLine(
+		String		indent,
 		String		text )
 	{
 		int		pos = 0;
 		
 		String	lc_text = text.toLowerCase();
+		
+		List	lines = new ArrayList();
 		
 		while( true ){
 			
@@ -415,12 +444,14 @@ PluginUpdatePlugin
 				pos = p1+4;
 			}
 			
-			log.log( LoggerChannel.LT_INFORMATION, indent + line );
+			lines.add( indent + line );
 			
 			if ( p1 == -1 ){
 				
 				break;
 			}
 		}
+		
+		return( lines );
 	}
 }

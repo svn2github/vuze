@@ -39,11 +39,17 @@ Update
 	public String
 	getName();
 
+	public String[]
+	getDescription();
+	
 	public String
 	getNewVersion();
 	
 	public ResourceDownloader[]
 	getDownloaders();
+	
+	public boolean
+	isMandatory();
 	
 	public void
 	setRestartRequired(

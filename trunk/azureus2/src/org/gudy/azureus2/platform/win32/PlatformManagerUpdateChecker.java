@@ -134,8 +134,10 @@ PlatformManagerUpdateChecker
 
 				UpdateManagerImpl.getSingleton().addUpdate(
 						"Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll",
+						new String[]{"This DLL supports native operations such as file-associations" },
 						target_dll_version,
 						dll_rd,
+						false,		// not mandatory as we can run without it
 						Update.RESTART_REQUIRED_YES );
 			}
 		}catch( Throwable e ){

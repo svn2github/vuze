@@ -39,8 +39,10 @@ UpdateImpl
 {
 	protected UpdateManagerImpl			manager;
 	protected String					name;
+	protected String[]					description;
 	protected String					new_version;
 	protected ResourceDownloader[]		downloaders;
+	protected boolean					mandatory;
 	protected int						restart_required;
 
 	protected List						listeners = new ArrayList();
@@ -49,18 +51,27 @@ UpdateImpl
 	UpdateImpl(
 		UpdateManagerImpl		_manager,
 		String					_name,
+		String[]				_desc,
 		String					_new_version,
 		ResourceDownloader[]	_downloaders,
+		boolean					_mandatory,
 		int						_restart_required )
 	{
 		manager				= _manager;
 		name				= _name;
+		description			= _desc;
 		new_version			= _new_version;
 		downloaders			= _downloaders;
+		mandatory			= _mandatory;
 		restart_required	= _restart_required;
 		
 		/*
-		System.out.println( "Update:" + name + "/" + new_version  );
+		System.out.println( "Update:" + name + "/" + new_version + ", mand=" + mandatory + ", restart = " + restart_required  );
+		
+		for (int i=0;i<description.length;i++){
+			
+			System.out.println( description[i]);
+		}
 		
 		for (int i=0;i<downloaders.length;i++){
 			
@@ -80,6 +91,12 @@ UpdateImpl
 		return( name );
 	}
 
+	public String[]
+	getDescription()
+	{
+		return( description );
+	}
+	
 	public String
 	getNewVersion()
 	{
@@ -90,6 +107,12 @@ UpdateImpl
 	getDownloaders()
 	{
 		return( downloaders );
+	}
+	
+	public boolean
+	isMandatory()
+	{
+		return( mandatory );
 	}
 	
 	public void

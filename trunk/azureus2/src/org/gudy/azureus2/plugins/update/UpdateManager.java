@@ -34,13 +34,16 @@ UpdateManager
 {
 		/**
 		 * Add an update with a single downloader
+		 * @param mandatory indicates that in a group of updates this one must succeed
 		 */
 	
 	public Update
 	addUpdate(
 		String				name,
+		String[]			description,
 		String				new_version,
 		ResourceDownloader	downloader,
+		boolean				mandatory,
 		int					restart_required );
 	
 		/**
@@ -50,8 +53,10 @@ UpdateManager
 	public Update
 	addUpdate(
 		String					name,
+		String[]				description,
 		String					new_version,
 		ResourceDownloader[]	downloaders,
+		boolean					mandatory,
 		int						restart_required );
 	
 		/**
