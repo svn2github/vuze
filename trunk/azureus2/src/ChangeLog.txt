@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 ---------
 
-xx.xx.04 | Azureus 2.0.9.0
+xx.xx.04 | Azureus 2.1.0.0
 
 FEATURE: Core | Ability to limit global download speed [Parg]
 FEATURE: Core | Added ability to automatically exclude files when making torrents (e.g. .DS_Store & Thumbs.db) [Parg]
@@ -53,7 +53,7 @@ CHANGE: UI   | Systray4j removed: system tray support now from SWT built-in code
 CHANGE: UI   | Torrent name shown with IPs in the blocked-IPFilter list [Nolar]
 CHANGE: UI   | The Donation Window is now Closeable using the 'Esc' Key [Gudy]
 CHANGE: UI   | In the Donation Window the OK button should be on top of other Controls [Gudy]
-CHANGE: UI   | Added a "what's new" item in help menu, pointing to changelog for current version [Gudy / Gouss ]
+CHANGE: UI   | Added a "what's new" item in help menu, pointing to changelog for current version [Gudy / Gouss]
 
 BUGFIX: Core | Files incorrectly shared if contents not a torrent when opening [Parg]
 BUGFIX: Core | First Priority rules based on time now work across sessions [TuxPaper]
@@ -63,6 +63,7 @@ BUGFIX: Core | Fix for system clock changes stalling downloads: Bug #918193 [Nol
 BUGFIX: Core | Fix for underlying socket handles not closing under linux ("Too many open files") [Nolar]
 BUGFIX: Core | Individual file priorities remembered after Stop-Start [Nolar]
 BUGFIX: Core | Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
+BUGFIX: Core | Simpler and more reliable file allocation...won't b0rk existing data [Nolar]
 BUGFIX: UI   | Close on OS X should now always be ok [Gudy]
 BUGFIX: UI   | Fix for the General View in a torrent details, not being layout correctly [Gudy]
 BUGFIX: UI   | Fix for the toolbar on linux / OS X [Gudy]
