@@ -80,8 +80,38 @@ XMLHTTPClient
 	
 				String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
 				
+					// IP Filter
+				
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getIPFilter</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+	
+				res.print();
+	
+				
+				String ip_filter_oid	= res.getChild( "_object_id" ).getValue().trim();
+
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
+							"<METHOD>createAndAddRange[String,String,String,boolean]</METHOD>"+
+							"<PARAMS>"+
+								"<ENTRY>XML Test</ENTRY>"+
+								"<ENTRY>1.1.1.1</ENTRY>"+
+								"<ENTRY>1.1.12</ENTRY>"+
+								"<ENTRY>true</ENTRY>"+
+							"</PARAMS>" +
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");				
+				/*
+				
 					// config stuff
-				 
+				
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -92,6 +122,7 @@ XMLHTTPClient
 	
 				res.print();
 	
+				
 				String config_oid	= res.getChild( "_object_id" ).getValue().trim();
 
 				res = sendRequest( 
@@ -107,7 +138,7 @@ XMLHTTPClient
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
-
+				*/
 				
 				/* stuff for adding a torrent
 				 

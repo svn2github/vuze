@@ -60,10 +60,26 @@ IPFilter
 		IPRange		range );
 	
 		/**
-		 * Remove a range
-		 * @param range
+		 * Creates, validates and adds a range
+		 * @param description
+		 * @param start_ip
+		 * @param end_ip
+		 * @param this_session_only	not persisted if true
+		 * @return new range or null if invalid
 		 */
 	
+	public IPRange
+	createAndAddRange(
+		String		description,
+		String		start_ip,
+		String		end_ip,
+		boolean		this_session_only );
+	
+	/**
+	 * Remove a range
+	 * @param range
+	 */
+
 	public void
 	removeRange(
 		IPRange		range );

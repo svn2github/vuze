@@ -92,6 +92,28 @@ RPIPFilter
 		RPRequest	request	)
 	{
 		String	method = request.getMethod();	
+	
+		Object[]	params = request.getParams();
+		
+		if ( 	method.equals( "createAndAddRange[String,String,String,boolean]")){
+		
+			IPRange range = delegate.createAndAddRange(
+								(String)params[0],
+								(String)params[1],
+								(String)params[2],
+								((Boolean)params[3]).booleanValue());
+	
+			if ( range == null ){
+				
+				return( new RPReply(null));
+				
+			}else{
+				
+				RPIPRange rp_range = RPIPRange.create( range );
+			
+				return( new RPReply( rp_range ));
+			}
+		}
 		
 		throw( new RPException( "Unknown method: " + method ));
 	}
@@ -122,6 +144,25 @@ RPIPFilter
 		IPRange		range )
 	{
 		notSupported();
+	}
+	
+	public IPRange
+	createAndAddRange(
+		String		description,
+		String		start_ip,
+		String		end_ip,
+		boolean		this_session_only )
+	{
+		RPIPRange resp = (RPIPRange)_dispatcher.dispatch( 
+							new RPRequest( 
+									this, 
+									"createAndAddRange[String,String,String,boolean]", 
+									new Object[]{description,start_ip,end_ip,new Boolean(this_session_only)})).getResponse();
+		
+		resp._setRemote( _dispatcher );
+		
+		return( resp );
+
 	}
 	
 	public void

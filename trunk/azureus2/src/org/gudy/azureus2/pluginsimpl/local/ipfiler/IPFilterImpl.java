@@ -131,6 +131,33 @@ IPFilterImpl
 		filter.addRange(((IPRangeImpl)range).getRange());
 	}
 	
+	public IPRange
+	createAndAddRange(
+		String		description,
+		String		start_ip,
+		String		end_ip,
+		boolean		this_session_only )
+	{
+		IPRange	range = createRange( this_session_only );
+		
+		range.setDescription( description );
+		
+		range.setStartIP( start_ip );
+		
+		range.setEndIP( end_ip );
+		
+		range.checkValid();
+		
+		if ( range.isValid()){
+			
+			addRange( range );
+			
+			return( range );
+		}
+		
+		return( null );
+	}
+	
 	public void
 	removeRange(
 		IPRange	range )
