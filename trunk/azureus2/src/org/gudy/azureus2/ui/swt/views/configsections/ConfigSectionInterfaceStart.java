@@ -38,7 +38,7 @@ public class ConfigSectionInterfaceStart implements ConfigSectionSWT {
   }
 
 	public String configSectionGetName() {
-		return ConfigSection.SECTION_INTERFACE + ".start";
+		return "start";
 	}
 
   public void configSectionSave() {

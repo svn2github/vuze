@@ -530,9 +530,17 @@ long y = System.currentTimeMillis();
     MainWindow.getWindow().setConfig(null);
     for (int i = 0; i < pluginSections.size(); i++)
       ((ConfigSection)pluginSections.get(i)).configSectionDelete();
+    pluginSections.clear();
     TreeItem[] items = tree.getItems();
-    for (int i = 0; i < items.length; i++)
+    for (int i = 0; i < items.length; i++) {
+      Composite c = (Composite)items[i].getData("Panel");
+      Utils.disposeComposite(c);
       items[i].setData("Panel", null);
+
+      c = (Composite)items[i].getData("ConfigSectionSWT");
+      Utils.disposeComposite(c);
+      items[i].setData("ConfigSectionSWT", null);
+    }
     Utils.disposeComposite(cConfig);
 
   	if (headerFont != null && !headerFont.isDisposed()) {

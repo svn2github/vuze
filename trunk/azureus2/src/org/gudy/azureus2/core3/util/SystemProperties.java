@@ -65,8 +65,11 @@ public class SystemProperties {
     	
       String user_dir_win = null;
       
-      if ( !home_overridden && (OS.indexOf("windows 9") == -1) && 
-           !new File(userhome + SEP + WIN_DEFAULT).exists()){
+      if ( !home_overridden && 
+           !new File(userhome + SEP + WIN_DEFAULT).exists() &&
+          (OS.indexOf("windows 9") == -1) && 
+          (OS.indexOf("windows me") == -1) )
+      {
       		// we'd like to use APPDATA, which is on ascii systems something like
       		// c:\documents and settings\<user>\application data
       		// However, on non-ascii systems chars get mangled when getting APPDATA (something
@@ -77,7 +80,6 @@ public class SystemProperties {
       		// 3) otherwise use the windows default
         try {      	
           user_dir_win = getEnvironmentalVariable( "APPDATA" );
-        	LGLogger.log( "SystemProperties::getUserPath: done getting environment variables");
         
           if ( user_dir_win != null && user_dir_win != "" ){
 
@@ -172,10 +174,7 @@ public class SystemProperties {
     String OS = System.getProperty("os.name").toLowerCase();
 
     try {
-    	if (OS.indexOf("windows 9") > -1) {
-    		p = r.exec( "command.com /c set" );
-    	}
-    	else if ( (OS.indexOf("nt") > -1) || (OS.indexOf("windows") > -1) ) {
+    	if ( (OS.indexOf("nt") > -1) || (OS.indexOf("windows") > -1) ) {
     		p = r.exec( "cmd.exe /c set" );
     	}
     	else { //we assume unix
@@ -198,15 +197,12 @@ public class SystemProperties {
       		envVars.setProperty( key, value );
       	}
     	}
-    	LGLogger.log( "SystemProperties::getUserPath: done getting environment variables1");
       br.close();
-    	LGLogger.log( "SystemProperties::getUserPath: done getting environment variables2");
     }
     catch (Throwable t) {
       if (br != null) try {  br.close();  } catch (Exception ingore) {}
     }
     
-    	LGLogger.log( "SystemProperties::getUserPath: done getting environment variables1");
     return envVars.getProperty( _var, "" );
   }
 

@@ -46,7 +46,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
   }
 
 	public String configSectionGetName() {
-		return ConfigSection.SECTION_INTERFACE + ".display";
+		return "display";
 	}
 
   public void configSectionSave() {

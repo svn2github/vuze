@@ -70,7 +70,8 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 
   public void configSectionSave() {
     try{
-    	filter.save();
+      if (filter != null)
+      	filter.save();
     }catch( Exception e ){
     	LGLogger.logAlert("Save of filter file fails", e);
     }
@@ -87,8 +88,9 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     filter = IpFilter.getInstance();
 
     Composite gFilter = new Composite(parent, SWT.NULL);
-    GridLayout layoutFilter = new GridLayout();
-    gFilter.setLayout(layoutFilter);
+    GridLayout layout = new GridLayout();
+    layout.numColumns = 1;
+    gFilter.setLayout(layout);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gFilter.setLayoutData(gridData);
 
@@ -113,11 +115,11 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 
     table.setHeaderVisible(true);
 
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData = new GridData(GridData.FILL_BOTH);
     table.setLayoutData(gridData);
 
     Composite cArea = new Composite(gFilter, SWT.NULL);
-    GridLayout layout = new GridLayout();
+    layout = new GridLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     layout.numColumns = 3;
@@ -182,9 +184,6 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     enabled.setAdditionalActionPerformer(enabler);
 
     populateTable();
-    table.pack();
-    gFilter.layout();
-        resizeTable();
     
 		table.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
@@ -192,7 +191,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 			}
 		});
 
-		gFilter.addListener(SWT.FocusIn, new Listener() {
+		gFilter.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
         resizeTable();
 			}
@@ -204,7 +203,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   private void resizeTable() {
 	  int iNewWidth = table.getClientArea().width - 
                     table.getColumn(1).getWidth() - 
-                    table.getColumn(2).getWidth();
+                    table.getColumn(2).getWidth() - 20;
     if (iNewWidth > 50)
       table.getColumn(0).setWidth(iNewWidth);
   }

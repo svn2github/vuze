@@ -49,7 +49,6 @@ public class ConfigurationChecker {
   public static synchronized void
   setSystemProperties()
   {
-    LGLogger.log("setSystemProperties");
   	if ( system_properties_set ){
   		
   		return;
@@ -59,7 +58,6 @@ public class ConfigurationChecker {
     
     migrateOldConfigFiles();
   	
-    LGLogger.log("afterMigrateOldConfig");
   	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
   	
   	if ( handlers == null ){
@@ -108,7 +106,6 @@ public class ConfigurationChecker {
       }
     }
   
-    LGLogger.log("b");
   	SESecurityManager.initialise();
   }
   
@@ -248,9 +245,7 @@ public class ConfigurationChecker {
    * Migrates old user files/dirs from application dir to user dir
    */
   private static void migrateOldConfigFiles() {
-    LGLogger.log("migrateOldConfigFiles");
     if ( COConfigurationManager.getBooleanParameter("Already_Migrated", false)) {
-    LGLogger.log("!!");
       return;
     }
     
@@ -264,7 +259,6 @@ public class ConfigurationChecker {
     
     //migrate files/folders
     for (int i=0; i < fileNames.length; i++) {
-      LGLogger.log(fileNames[i]);
       try {
         File oldFile = FileUtil.getApplicationFile( fileNames[i] );
         if ( oldFile.exists() ) {
@@ -284,7 +278,6 @@ public class ConfigurationChecker {
       }
     }
     
-    LGLogger.log("1");
     //migrate from old /.azureus/ dir
     String oldLinuxAndWebStartPath = System.getProperty("user.home") + SystemProperties.SEP + ".azureus" + SystemProperties.SEP;
     File oldLinuxAndWebStartDir = new File( oldLinuxAndWebStartPath );
@@ -299,11 +292,9 @@ public class ConfigurationChecker {
       }
     }
     
-    LGLogger.log("2");
     ConfigurationManager.getInstance().load();
     COConfigurationManager.setParameter("Already_Migrated", true);
     
-    LGLogger.log("3");
     if (successes.length() > 1 || failures.length() > 1) {
     	String[] params = { successes, failures };
     	LGLogger.logAlertUsingResource(LGLogger.INFORMATION, "AutoMigration.useralert", params);
