@@ -116,8 +116,6 @@ DMWriterAndCheckerImpl
 		nbPieces		= disk_manager.getNumberOfPieces();
 		
 		md5 = new Md5Hasher();
-	    md5Result = DirectByteBufferPool.getBuffer( 16 );
-	    
 		hasher = new SHA1Hasher();
 	}
 	
@@ -130,6 +128,8 @@ DMWriterAndCheckerImpl
 		checkQueue			= new LinkedList();
 		writeCheckQueueSem	= new Semaphore();
 		writeCheckQueueLock	= new Object();
+    
+    md5Result = DirectByteBufferPool.getBuffer( 16 );
 				
 		writeThread = new DiskWriteThread();
 		writeThread.start();
@@ -139,6 +139,8 @@ DMWriterAndCheckerImpl
 	stop()
 	{
 		bOverallContinue	= false;
+    
+    md5Result.returnToPool();
 		
 		if (writeThread != null){
 			
