@@ -1102,7 +1102,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	          }
 					}
 					else {
-						//length == 0 : Keep alive message, process next.
+					  //length is 0 : Keep alive message, process next.
+            LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, PEPeerTransportProtocol.this + " sent keep-alive" );
 						readingLength = true;
 					}
 				}
