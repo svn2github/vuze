@@ -396,6 +396,20 @@ Download
   	
   	public int
 	getMaximumDownloadKBPerSecond();
+    
+    
+    /**
+     * Get the max upload rate allowed for this download.
+     * @return upload rate in bytes per second, or -1 if unlimited
+     */
+    public int getUploadRateLimitBytesPerSecond();
+    
+    /**
+     * Set the max upload rate allowed for this download.
+     * @param max_rate_bps limit in bytes per second, or -1 if unlimited
+     */
+    public void setUploadRateLimitBytesPerSecond( int max_rate_bps );
+    
 
   	/**
   	 * indicates if the download has completed or not 

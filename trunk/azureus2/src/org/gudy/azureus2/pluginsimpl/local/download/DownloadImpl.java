@@ -874,6 +874,15 @@ DownloadImpl
   	{
   		return( download_manager.getStats().getMaxDownloadKBSpeed());
   	}
+    
+  	public int getUploadRateLimitBytesPerSecond() {
+      return download_manager.getStats().getUploadRateLimitBytesPerSecond();
+  	}
+
+  	public void setUploadRateLimitBytesPerSecond( int max_rate_bps ) {
+      download_manager.getStats().setUploadRateLimitBytesPerSecond( max_rate_bps );
+  	}
+    
   	
 	public String
 	getSavePath()

@@ -56,6 +56,7 @@ DownloadManagerStatsImpl
 	protected long saved_SecondsDownloading = 0;
 	protected long saved_SecondsOnlySeeding = 0;
 	
+  protected int max_upload_rate_bps = -1;  //-1 for unlimited
   
 
 	protected
@@ -392,4 +393,10 @@ DownloadManagerStatsImpl
 	{
 		max_download_speed	= i;
 	}
+  
+  
+	public int getUploadRateLimitBytesPerSecond() {  return max_upload_rate_bps;  }
+
+	public void setUploadRateLimitBytesPerSecond( int max_rate_bps ) {  max_upload_rate_bps = max_rate_bps;  }
+    
 }
