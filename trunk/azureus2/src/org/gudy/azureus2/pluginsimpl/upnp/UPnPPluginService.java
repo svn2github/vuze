@@ -362,7 +362,7 @@ UPnPPluginService
 				
 			}else{
 				
-				return( mapping.getString());
+				return( mapping.getString( getPort()));
 			}
 		}
 	}

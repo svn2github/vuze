@@ -407,6 +407,8 @@ UPnPPlugin
 	mappingDestroyed(
 		UPnPMapping	mapping )
 	{
+		mappings.remove( mapping );
+		
 		for (int j=0;j<services.size();j++){
 			
 			UPnPPluginService	service = (UPnPPluginService)services.get(j);

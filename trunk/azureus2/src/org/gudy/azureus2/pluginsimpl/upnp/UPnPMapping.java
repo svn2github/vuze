@@ -99,6 +99,13 @@ UPnPMapping
 	public String
 	getString()
 	{
+		return( getString(getPort()));
+	}
+	
+	public String
+	getString(
+		int		port )
+	{
 		String	name;
 		
 		if ( MessageText.keyExists( resource_name )){
@@ -110,7 +117,7 @@ UPnPMapping
 			name = resource_name;
 		}
 		
-		return( name + " (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" );
+		return( name + " (" + (isTCP()?"TCP":"UDP")+"/"+port+")" );
 	}
 	
 	public void
