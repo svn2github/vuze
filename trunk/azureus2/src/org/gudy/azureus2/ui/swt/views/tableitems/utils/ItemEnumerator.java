@@ -45,6 +45,12 @@ public class ItemEnumerator {
     return items;
   }
   
+  public void setPositionByName(String name,int position) {    
+      ItemDescriptor item = (ItemDescriptor) lookUp.get(name);
+      if(item != null)
+        item.setPosition(position);    
+    }
+  
   public int getPositionByName(String name) {    
     ItemDescriptor item = (ItemDescriptor) lookUp.get(name);
     if(item != null)

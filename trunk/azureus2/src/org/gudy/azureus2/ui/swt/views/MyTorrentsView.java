@@ -62,6 +62,8 @@ import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.EnumeratorEditor;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
@@ -71,7 +73,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
  * @author Olivier
  * 
  */
-public class MyTorrentsView extends AbstractIView implements GlobalManagerListener, SortableTable {
+public class MyTorrentsView extends AbstractIView implements GlobalManagerListener, SortableTable, ITableStructureModificationListener {
 
   private GlobalManager globalManager;
 
@@ -87,6 +89,21 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   private ItemEnumerator itemEnumerator;
   private TableSorter sorter;
 
+  private String[] tableItems = {
+       "#;I;25;0"
+      ,"name;S;250;1"
+      ,"size;I;70;2"
+      ,"done;I;55;3"
+      ,"status;I;80;4"
+      ,"seeds;I;45;5"
+      ,"peers;I;45;6"
+      ,"downspeed;I;70;7"
+      ,"upspeed;I;70;8"    
+      ,"eta;I;70;9"
+      ,"tracker;I;70;10"
+      ,"priority;I;70;11"
+  };
+  
 	// table item index, where the drag has started
   private int drag_drop_line_start;
   
@@ -111,6 +128,47 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     if(panel != null) {      
       return;
     }
+    createMainPanel(composite0);   
+    createMenu();    
+    createTable();    
+    createDragDrop();
+    globalManager.addListener(this);
+  }
+  
+  
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificationListener#tableStructureChanged()
+   */
+  public void tableStructureChanged() {
+    //1. Unregister for item creation
+    globalManager.removeListener(this);
+    
+    //2. Clear everything
+    Iterator iter = objectToSortableItem.values().iterator();
+    while(iter.hasNext()) {
+      TorrentRow row = (TorrentRow) iter.next();
+      TableItem tableItem = row.getTableItem();
+      tableItemToObject.remove(tableItem);
+      row.delete();
+      iter.remove();
+    }
+    
+    //3. Dispose the old table
+    table.dispose();
+    menu.dispose();
+    
+    //4. Re-create the table
+    createMenu();
+    createTable();
+    createDragDrop();
+    
+    //5. Re-add as a listener
+    globalManager.addListener(this);
+    panel.layout();
+  }
+  
+
+  private void createMainPanel(Composite composite0) {
     composite = new Composite(composite0, SWT.NULL);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
@@ -130,8 +188,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     layout.verticalSpacing = 0;
     layout.horizontalSpacing = 0;
     panel.setLayout(layout);
-    
-      
+  }
+
+  private void createTable() {
+    GridData gridData;
     table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     gridData = new GridData(GridData.FILL_BOTH); 
     table.setLayoutData(gridData);
@@ -143,20 +203,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       }
     };
     
-    String[] tableItems = {
-           "#;I;25;0"
-          ,"name;S;250;1"
-          ,"size;I;70;2"
-          ,"done;I;55;3"
-          ,"status;I;80;4"
-          ,"seeds;I;45;5"
-          ,"peers;I;45;6"
-          ,"downspeed;I;70;7"
-          ,"upspeed;I;70;8"    
-          ,"eta;I;70;9"
-          ,"tracker;I;70;10"
-          ,"priority;I;70;11"
-        };    
+    
+    
+        
     itemEnumerator = ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems);
     ItemDescriptor[] items = itemEnumerator.getItems();
     
@@ -188,6 +237,40 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     table.setHeaderVisible(true);
     table.addKeyListener(createKeyListener());
 
+    
+    
+    table.addMouseListener(new MouseAdapter() {
+      /* (non-Javadoc)
+       * @see org.eclipse.swt.events.MouseAdapter#mouseDoubleClick(org.eclipse.swt.events.MouseEvent)
+       */
+      public void mouseDoubleClick(MouseEvent mEvent) {
+        TableItem[] tis = table.getSelection();
+        if (tis.length == 0) {
+          return;
+        }
+        TableItem ti = tis[0];
+        DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+        MainWindow.getWindow().openManagerView(dm);
+      }
+    });
+    
+    table.addKeyListener(new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+        String string = "DOWN";
+        string += ": stateMask=0x" + Integer.toHexString(e.stateMask);
+        if ((e.stateMask & SWT.CTRL) != 0) {
+          if(e.keyCode == 0x1000001)
+            moveSelectedTorrents(1, 0);
+          else if(e.keyCode == 0x1000002)
+            moveSelectedTorrents(0, 1);
+        }
+      }
+    });
+
+    table.setMenu(menu);
+  }
+
+  private void createMenu() {
     menu = new Menu(composite.getShell(), SWT.POP_UP);
 
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
@@ -281,7 +364,12 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     final MenuItem itemChangeTracker = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
-    //itemChangeTracker.setImage(ImageRepository.getImage("stop"));
+    
+    new MenuItem(menu, SWT.SEPARATOR);
+
+    final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
+    
     
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
@@ -538,6 +626,12 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         }
       }
     });
+    
+    itemChangeTable.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+          new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems),MyTorrentsView.this,"MyTorrentsView");       
+      }
+    });
 
     itemDetails.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
@@ -550,20 +644,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       }
     });
 
-    table.addMouseListener(new MouseAdapter() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.events.MouseAdapter#mouseDoubleClick(org.eclipse.swt.events.MouseEvent)
-       */
-      public void mouseDoubleClick(MouseEvent mEvent) {
-        TableItem[] tis = table.getSelection();
-        if (tis.length == 0) {
-          return;
-        }
-        TableItem ti = tis[0];
-        DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-        MainWindow.getWindow().openManagerView(dm);
-      }
-    });
+
 
     itemOpen.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
@@ -728,28 +809,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         }
       }
     });
-
-    table.setMenu(menu);
-    table.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
-        String string = "DOWN";
-        string += ": stateMask=0x" + Integer.toHexString(e.stateMask);
-        if ((e.stateMask & SWT.CTRL) != 0) {
-          if(e.keyCode == 0x1000001)
-            moveSelectedTorrents(1, 0);
-          else if(e.keyCode == 0x1000002)
-            moveSelectedTorrents(0, 1);
-        }
-      }
-    });
-
-    //toolBar.setSelection(itemAll);
-    /*DropTarget dt = new DropTarget(table,DND.DROP_LINK);
-    Transfer[] transfers = {FileTransfer.getInstance()};
-    dt.setTransfer(transfers);*/
-
-    globalManager.addListener(this);
-    createDragDrop();
   }
 
   private void createDragDrop() {

@@ -28,12 +28,19 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 
 public class EnumeratorEditor {
   
+  private Display display;
+  private Shell shell;
   private Color blue;
   private Table table;
-  private Shell shell;
+  
+  private String propertiesName;
+  private ConfigBasedItemEnumerator enumerator;
+  private ITableStructureModificationListener listener;
   
   private boolean mousePressed;
   private TableItem selectedItem;
@@ -47,18 +54,35 @@ public class EnumeratorEditor {
     return shell;
   }
 
-  public EnumeratorEditor(final Display display, ItemEnumerator enumerator) {    
+  public EnumeratorEditor(
+    Display _display,
+    ConfigBasedItemEnumerator _enumerator,
+    ITableStructureModificationListener _listener,
+    String _propertiesName
+    ) {    
+    this.display = _display;
+    this.enumerator = _enumerator;
+    this.listener = _listener;
+    this.propertiesName = _propertiesName;
+    
     blue = new Color(display,0,0,128);
-    shell = new Shell (display);
+    
+    shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    shell.setImage(ImageRepository.getImage("azureus"));
+    shell.setText(MessageText.getString("columnChooser.title"));
+    
     GridLayout layout = new GridLayout();
-    layout.numColumns = 3;
+    layout.numColumns = 3;         
+    shell.setLayout (layout);
+    
     GridData gridData;
-    shell.setLayout (layout); 
+    
     Label label = new Label(shell,SWT.NULL);
-    label.setText("Drag rows to re-order them");
+    label.setText(MessageText.getString("columnChooser.move"));
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 3;
     label.setLayoutData(gridData);
+    
     table = new Table (shell, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 3;
@@ -70,37 +94,58 @@ public class EnumeratorEditor {
     table.setFont(new Font(display, fd));
     
     Button bOk = new Button(shell,SWT.PUSH);
-    bOk.setText("Ok");
+    bOk.setText(MessageText.getString("columnChooser.ok"));
     gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.grabExcessHorizontalSpace = true;
     gridData.widthHint = 70;
     bOk.setLayoutData(gridData);
-      
+    bOk.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        saveAndApply();
+        close();
+      }
+    });
+    
     Button bCancel = new Button(shell,SWT.PUSH);
-    bCancel.setText("Cancel");
+    bCancel.setText(MessageText.getString("columnChooser.cancel"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.grabExcessHorizontalSpace = false;
     gridData.widthHint = 70;
-    bCancel.setLayoutData(gridData);
-      
+    bCancel.setLayoutData(gridData);    
+    bCancel.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        close();
+      }
+    });
+    
     Button bApply = new Button(shell,SWT.PUSH);
-    bApply.setText("Apply");
+    bApply.setText(MessageText.getString("columnChooser.apply"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.grabExcessHorizontalSpace = false;
     gridData.widthHint = 70;
     bApply.setLayoutData(gridData);
+    bApply.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        saveAndApply();
+      }
+    });
     
     
     for (int i=0; i<2; i++) {
       TableColumn column = new TableColumn(table, SWT.NONE);    
     }
     ItemDescriptor[] items = enumerator.getItems();
-    for (int i=-1; i<items.length; i++) {
+    for (int i=0; i<items.length; i++) {
       for(int j=0;j<items.length;j++) {
         int position = items[j].getPosition();
         if(position == i)
-          createTableRow(-1,items[i].getName(), (items[i].getPosition() != -1));
+          createTableRow(-1,items[j].getName(), (items[j].getPosition() != -1));
       }
+    }
+    for(int j=0;j<items.length;j++) {
+      int position = items[j].getPosition();
+      if(position == -1)
+        createTableRow(-1,items[j].getName(), (items[j].getPosition() != -1));
     }
     //Hack to get a correct width
     table.getColumn(0).setWidth(20);
@@ -179,9 +224,28 @@ public class EnumeratorEditor {
       }
     });
     shell.pack ();
-    shell.open ();
-    
-}
+    shell.open ();   
+  }
+  
+  private void close() {
+    shell.dispose();
+  }
+  
+  private void saveAndApply() {
+    TableItem[] items = table.getItems();
+    int position = 0;
+    for(int i = 0 ; i < items.length ; i++) {
+      Button btn = (Button)items[i].getData("button");
+      String name = (String) items[i].getData("name");
+      if(btn != null && btn.getSelection()) {
+        enumerator.setPositionByName(name,position++);
+      } else {
+        enumerator.setPositionByName(name,-1);
+      }
+    }
+    enumerator.save();
+    listener.tableStructureChanged();
+  }
   
   private void createTableRow(int index,String name,boolean selected) {
     TableItem item;
@@ -191,7 +255,7 @@ public class EnumeratorEditor {
     else
       item = new TableItem (table, SWT.NONE,index);
     
-    item.setText(1,name);
+    item.setText(1,MessageText.getString(propertiesName + "." + name));
     item.setData("name",name);
     TableEditor editor = new TableEditor (table);
     Button button = new Button (table, SWT.CHECK);
@@ -219,12 +283,20 @@ public class EnumeratorEditor {
               ,"tracker;I;70;10"
               ,"priority;I;70;11"
             };    
-    ItemEnumerator itemEnumerator = ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems);
-    Shell shell = new EnumeratorEditor(display,itemEnumerator).getShell();
+    ConfigBasedItemEnumerator itemEnumerator = ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems);
+    ITableStructureModificationListener listener = new ITableStructureModificationListener() {
+    public void tableStructureChanged() {
+    }
+    };
+    Shell shell = new EnumeratorEditor(
+        display,
+        itemEnumerator,
+        listener,
+        "MyTorrentsView").getShell();
     while (!shell.isDisposed ()) {
-          if (!display.readAndDispatch ()) display.sleep ();
-        }
-        display.dispose ();
+      if (!display.readAndDispatch ()) display.sleep ();
+    }
+    display.dispose ();
   }
 }
 

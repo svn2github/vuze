@@ -1,6 +1,6 @@
 /*
- * File    : ItemDesciptor.java
- * Created : 24 nov. 2003
+ * File    : ITableStructureModificationListener.java
+ * Created : 26 nov. 2003
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -25,42 +25,6 @@ package org.gudy.azureus2.ui.swt.views.tableitems.utils;
  * @author Olivier
  *
  */
-public class ItemDescriptor {
-  
-  private String itemName;
-  private int itemType;
-  
-  private int itemPosition;
-  private int itemWidth;
-  
-  public static final int TYPE_INT = 1;
-  public static final int TYPE_STRING = 2;
-  
-  public ItemDescriptor(String name,int type,int position,int width) {
-    this.itemName = name;
-    this.itemType = type;
-    this.itemPosition = position;
-    this.itemWidth = width;
-  }
-  
-  public String getName() {
-    return itemName;
-  }
-  
-  public int getType() {
-    return itemType;
-  }
-  
-  public int getPosition() {
-    return itemPosition;
-  }
-  
-  public int getWidth() {
-    return itemWidth;
-  }
-  
-  void setPosition(int position) {
-    this.itemPosition = position;
-  }
-  
+public interface ITableStructureModificationListener {
+  public void tableStructureChanged();
 }

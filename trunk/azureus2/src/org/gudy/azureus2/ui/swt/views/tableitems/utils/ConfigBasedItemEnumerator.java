@@ -31,8 +31,11 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
  */
 public class ConfigBasedItemEnumerator extends ItemEnumerator {
 
-  private ConfigBasedItemEnumerator(ItemDescriptor[] items) {
-    super(items);    
+  private String tableName;
+  
+  private ConfigBasedItemEnumerator(String tableName,ItemDescriptor[] items) {
+    super(items);  
+    this.tableName = tableName;
   }
   
   /**
@@ -55,7 +58,16 @@ public class ConfigBasedItemEnumerator extends ItemEnumerator {
       int position = COConfigurationManager.getIntParameter("Table." + tableName + "." + itemName + ".position",dPosition);
       items[i] = new ItemDescriptor(itemName,type,position,width);
     }
-    return new ConfigBasedItemEnumerator(items);
+    return new ConfigBasedItemEnumerator(tableName,items);
+  }
+  
+  public void save() {
+    ItemDescriptor[] items = getItems();
+    for(int i = 0 ; i < items.length ; i++) {
+      String name = items[i].getName();
+      int position = items[i].getPosition();
+      COConfigurationManager.setParameter("Table." + tableName + "." + name + ".position",position);
+    }
   }
 
 }
