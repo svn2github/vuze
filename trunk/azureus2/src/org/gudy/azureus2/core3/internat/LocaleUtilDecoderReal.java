@@ -110,8 +110,11 @@ LocaleUtilDecoderReal
 			
 			return( null );
 			
-		}catch( UnsupportedEncodingException e ){
+		}catch( Throwable e ){
 		
+				// Throwable here as we can get "classdefnotfound" + others if the decoder
+				// isn't available
+			
 			return( null );
 		}
 	}
@@ -159,9 +162,12 @@ LocaleUtilDecoderReal
 					return( str );
 				}
 			}
-		}catch( UnsupportedEncodingException e ){
+		}catch( Throwable e ){
 			
-				// ignore
+			// Throwable here as we can get "classdefnotfound" + others if the decoder
+			// isn't available
+			
+			// ignore
 		}
 		
 		try{
