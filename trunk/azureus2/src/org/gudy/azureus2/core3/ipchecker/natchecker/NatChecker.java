@@ -29,6 +29,7 @@ import java.util.Map;
 
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.*;
@@ -47,7 +48,7 @@ public class NatChecker {
   public static final int NAT_ALREADY_LISTENING = 4;
   
   private static final String[] urls = {
-      "http://www.gudy.org/azureus/checkNat2.php"         
+      Constants.AELITIS_WEB_SITE + "natcheck.php"       
   };
 
   public static int 
@@ -131,7 +132,7 @@ public class NatChecker {
     }
     else {
         if (server.isAlreadyListening()) return NAT_ALREADY_LISTENING;
-        else return NAT_UNABLE;
+        return NAT_UNABLE;
     }
   }
 }
