@@ -191,9 +191,7 @@ public class Utils {
   centreWindow(
   	Shell	shell )
   {
-  	Display display = shell.getDisplay();
-  	
-	Rectangle displayRect = display.getPrimaryMonitor().getClientArea();
+	Rectangle displayRect = shell.getMonitor().getClientArea();
 	
 	Rectangle shellRect = shell.getBounds();
 	

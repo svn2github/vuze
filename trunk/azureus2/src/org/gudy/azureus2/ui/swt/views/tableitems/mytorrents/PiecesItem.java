@@ -248,7 +248,7 @@ public class PiecesItem extends TorrentItem  {
     Rectangle bounds = getBounds();
     if(bounds == null)
       return null;
-    bounds.y += verticalPadding + VerticalAligner.getTableAdjustVerticalBy(getTable());
+    bounds.y += verticalPadding;
     bounds.height -= (verticalPadding * 2);
     return bounds;
   }

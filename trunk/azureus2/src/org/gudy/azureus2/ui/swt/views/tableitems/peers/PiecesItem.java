@@ -243,7 +243,7 @@ public class PiecesItem extends PeerItem  {
     Rectangle bounds = getBounds();
     if(bounds == null)
       return null;
-    bounds.y += verticalPadding + VerticalAligner.getTableAdjustVerticalBy(getTable());
+    bounds.y += verticalPadding;
     bounds.height -= (verticalPadding * 2);
     return bounds;
   }

@@ -69,8 +69,6 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     gridData.horizontalSpan = 2;
     cSection.setLayoutData(gridData);
 
-    Messages.setLanguageText(cSection, "ConfigView.section.file.perf");
-
     label = new Label(cSection, SWT.WRAP);
     Messages.setLanguageText(label, "ConfigView.section.file.perf.explain");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
