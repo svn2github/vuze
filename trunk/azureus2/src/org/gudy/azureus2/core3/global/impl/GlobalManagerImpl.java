@@ -494,7 +494,7 @@ public class GlobalManagerImpl
       DownloadManager dm = (DownloadManager) managers.get(i);
       Map dmMap = new HashMap();
       dmMap.put("torrent", dm.getTorrentFileName());
-      dmMap.put("path", dm.getSavePathForSave());
+      dmMap.put("path", dm.getSavePath());
       dmMap.put("uploads", new Long(dm.getStats().getMaxUploads()));
       int stopped = 0;
       if (dm.getState() == DownloadManager.STATE_STOPPED)

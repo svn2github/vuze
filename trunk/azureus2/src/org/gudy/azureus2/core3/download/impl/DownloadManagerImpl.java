@@ -380,10 +380,6 @@ DownloadManagerImpl
 	return savePath;
   }
 
-  public String getSavePathForSave() {
-    return getSavePath();
-  }
-
   public String getPieceLength() {
 	if (diskManager != null)
 	  return DisplayFormatters.formatByteCountToKBEtc(diskManager.getPieceLength());
