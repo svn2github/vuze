@@ -96,15 +96,24 @@ public class Messages {
   }
 
   public static void setLanguageText(Widget widget, String key) {
+    setLanguageText(widget, key, false);
+  }
+
+  public static void setLanguageText(Widget widget, String key, boolean setTooltipOnly) {
   	widget.setData(key);
-  	updateLanguageFromData(widget);
+  	if(!setTooltipOnly)
+      updateLanguageFromData(widget);
   	updateToolTipFromData(widget);
   }
   
   public static void setLanguageText(BufferedWidget buffered_widget, String key) {
-    setLanguageText(buffered_widget.getWidget(), key);
+    setLanguageText(buffered_widget.getWidget(), key, false);
   }
 
+  public static void setLanguageText(BufferedWidget buffered_widget, String key, boolean setTooltipOnly) {
+    setLanguageText(buffered_widget.getWidget(), key, setTooltipOnly);
+  }
+  
   private static void updateToolTipFromData(Widget widget) {
     if(widget instanceof Control) {
       String key = (String) widget.getData();

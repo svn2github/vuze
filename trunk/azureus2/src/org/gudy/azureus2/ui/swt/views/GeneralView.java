@@ -331,6 +331,7 @@ public class GeneralView extends AbstractIView {
         }
       }
     });
+    Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen", true);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     trackerUrlValue.setLayoutData(gridData);
