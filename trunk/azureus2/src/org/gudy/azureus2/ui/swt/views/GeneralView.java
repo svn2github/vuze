@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Constants;
@@ -84,7 +85,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   BufferedLabel downloadSpeed;
   BufferedLabel upload;
   BufferedLabel uploadSpeed;
-  Combo maxUploads;
+  Text maxUploads;
   BufferedLabel totalSpeed;
   BufferedLabel seeds;
   BufferedLabel peers;
@@ -197,6 +198,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     availabilityPercent.setLayoutData(gridData);
     Messages.setLanguageText(availabilityPercent, "GeneralView.label.status.pieces_available.tooltip");
     
+    LGLogger.log("GeneralView Part 1: " + (System.currentTimeMillis() - lStartTime) + "ms");
+    lStartTime = System.currentTimeMillis();
+
     gTransfer = new Group(genComposite, SWT.SHADOW_OUT);
     Messages.setLanguageText(gTransfer, "GeneralView.section.transfer"); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -250,6 +254,37 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     uploadSpeed.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.maxuploads"); //$NON-NLS-1$
+    maxUploads = new Text(gTransfer, SWT.BORDER);
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    maxUploads.setLayoutData(gridData);
+    maxUploads.setText(String.valueOf(manager.getStats().getMaxUploads()));
+    maxUploads.addListener(SWT.Verify, new Listener() {
+      public void handleEvent(Event e) {
+        String text = e.text;
+        char[] chars = new char[text.length()];
+        text.getChars(0, chars.length, chars, 0);
+        for (int i = 0; i < chars.length; i++) {
+          if (!('0' <= chars[i] && chars[i] <= '9')) {
+            e.doit = false;
+            return;
+          }
+        }
+      }
+    });
+
+    maxUploads.addListener(SWT.Modify, new Listener() {
+      public void handleEvent(Event event) {
+        try {
+          int value = Integer.parseInt(maxUploads.getText());
+          if (value < 2)
+            value = 2;
+          manager.getStats().setMaxUploads(value);
+        }
+        catch (Exception e) {}
+      }
+    });
+/*
     maxUploads = new Combo(gTransfer, SWT.SINGLE | SWT.READ_ONLY);
     for (int i = 2; i < 501; i++)
       maxUploads.add(" " + i); //$NON-NLS-1$
@@ -259,6 +294,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       }
     });
     maxUploads.select(manager.getStats().getMaxUploads() - 2);
+*/
+
+    LGLogger.log("GeneralView Part 2: " + (System.currentTimeMillis() - lStartTime) + "ms");
+    lStartTime = System.currentTimeMillis();
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.seeds"); //$NON-NLS-1$
@@ -496,6 +535,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     });
     
     
+    LGLogger.log("GeneralView Part 3: " + (System.currentTimeMillis() - lStartTime) + "ms");
+    lStartTime = System.currentTimeMillis();
+
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
     creation_date = new BufferedLabel(gInfo, SWT.LEFT);
@@ -545,7 +587,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     comment.setLayoutData(gridData);
  
     
-    LGLogger.log("GeneralView took " + (System.currentTimeMillis() - lStartTime) + "ms to create");
+    LGLogger.log("GeneralView Part 4: " + (System.currentTimeMillis() - lStartTime) + "ms");
     lStartTime = System.currentTimeMillis();
 
     if(System.getProperty("os.name").equals("Mac OS X")) {
