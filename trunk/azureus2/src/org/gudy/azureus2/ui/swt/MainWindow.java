@@ -72,6 +72,7 @@ import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.LocaleUtil;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.ui.swt.maketorrent.Wizard;
 import org.gudy.azureus2.ui.systray.SystemTray;
 
 import snoozesoft.systray4j.SysTrayMenu;
@@ -333,14 +334,15 @@ public class MainWindow implements IComponentListener {
     fileItem.setMenu(fileMenu);
     MenuItem file_new = new MenuItem(fileMenu, SWT.CASCADE);
     Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
-    //MenuItem file_create = new MenuItem(fileMenu, SWT.CASCADE);
-    //Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
+    MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
+    Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
     new MenuItem(fileMenu, SWT.SEPARATOR);
     MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
 
     Menu newMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     file_new.setMenu(newMenu);
+    
     MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
     Messages.setLanguageText(file_new_torrent, "MainWindow.menu.file.open.torrent"); //$NON-NLS-1$
     file_new_torrent.addListener(SWT.Selection, new Listener() {
@@ -371,14 +373,12 @@ public class MainWindow implements IComponentListener {
       }
     });
     
-    /*
-    Menu createMenu = new Menu(mainWindow, SWT.DROP_DOWN);
-    file_create.setMenu(createMenu);
-    MenuItem file_create_file = new MenuItem(createMenu,SWT.NULL);
-    Messages.setLanguageText(file_create_file, "MainWindow.menu.file.create.fromfile");
-    MenuItem file_create_folder = new MenuItem(createMenu,SWT.NULL);
-    Messages.setLanguageText(file_create_folder, "MainWindow.menu.file.create.fromdir");
-    */
+    
+    file_create.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new Wizard(display);
+      }
+    });
 
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -1216,8 +1216,8 @@ public class MainWindow implements IComponentListener {
   }
 
   public static void main(String args[]) {
-  	System.setProperty("sun.net.client.defaultConnectTimeout","120000");
-	System.setProperty("sun.net.client.defaultReadTimeout","60000");
+    System.setProperty("sun.net.client.defaultConnectTimeout","120000");
+    System.setProperty("sun.net.client.defaultReadTimeout","60000");
     LocaleUtil lu = new LocaleUtilSWT();
     LocaleUtil.setLocaleUtilChooser(lu);
     GlobalManager gm = new GlobalManager();
