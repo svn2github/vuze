@@ -1,6 +1,7 @@
  /*
  * Created on Jun 25, 2003
  * Modified Apr 13, 2004 by Alon Rohter
+ * Modified Apr 17, 2004 by Olivier Chalouhi (OSX system menu)
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  * 
  */
@@ -107,6 +108,7 @@ import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.updater.RestartUtil;
 import org.gudy.azureus2.ui.swt.views.*;
@@ -351,6 +353,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
     else {
       display = new Display();
+      if(Constants.isOSX) {
+        new CarbonUIEnhancer();
+      }
     }
 
     ImageRepository.loadImagesForSplashWindow(display);
