@@ -44,6 +44,7 @@ UPnPRootDeviceImpl
 	protected InetAddress	local_address;
 	
 	protected URL			location;
+	protected URL			url_base_for_relative_urls;
 	
 	protected UPnPDevice	root_device;
 	
@@ -63,6 +64,22 @@ UPnPRootDeviceImpl
 		
 		SimpleXMLParserDocument	doc = upnp.downloadXML( location );
 			
+		SimpleXMLParserDocumentNode url_base_node = doc.getChild("URLBase");
+		
+		try{
+			url_base_for_relative_urls = url_base_node==null?null:new URL(url_base_node.getValue().trim());
+			
+			upnp.log( "Relative URL base is " + (url_base_for_relative_urls==null?"unspecified":url_base_for_relative_urls.toString()));
+			
+		}catch(MalformedURLException e ){
+			
+			upnp.log( "Invalid URLBase - " + url_base_node.getValue());
+			
+			upnp.log( e );
+			
+			e.printStackTrace();
+		}
+		
 		root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
 	}
 
@@ -74,18 +91,47 @@ UPnPRootDeviceImpl
 		
 		if ( lc_url.startsWith( "http://") || lc_url.startsWith( "https://" )){
 			
+				// already absolute
+			
 			return( url );
 		}
 		
-		String	prefix = location.toString();
+			// relative URL
 		
-		int	p1 = prefix.indexOf( "://" ) + 3;
+		if ( url_base_for_relative_urls != null ){
+			
+			String	abs_url = url_base_for_relative_urls.toString();
+			
+			if ( !abs_url.endsWith("/")){
+				
+				abs_url += "/";
+			}
+			
+			if ( url.startsWith("/")){
+				
+				abs_url += url.substring(1);
+				
+			}else{
+				
+				abs_url += url;
+			}
+			
+			return( abs_url );
+			
+		}else{
 		
-		p1 = prefix.indexOf( "/", p1 );
+				// base on the root document location
+			
+			String	abs_url = location.toString();
 		
-		prefix = prefix.substring( 0, p1 );
-		
-		return( prefix + (url.startsWith("/")?"":"/") + url );
+			int	p1 = abs_url.indexOf( "://" ) + 3;
+			
+			p1 = abs_url.indexOf( "/", p1 );
+			
+			abs_url = abs_url.substring( 0, p1 );
+			
+			return( abs_url + (url.startsWith("/")?"":"/") + url );
+		}
 	}
 	
 	protected UPnPImpl
