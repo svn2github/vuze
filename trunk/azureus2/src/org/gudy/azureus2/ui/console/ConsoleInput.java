@@ -43,10 +43,12 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.stats.StatsWriterFactory;
 import org.gudy.azureus2.core3.stats.StatsWriterStreamer;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -87,7 +89,7 @@ public class ConsoleInput extends Thread {
     os.println("help [torrents]\t\t\t?\tShow this help. 'torrents' shows info about the show torrents display.");
     os.println("log (on|off)\t\t\tl\tTurn on/off console logging");
     os.println("remove (#|all|hash <hash>)\tr\tRemove torrent(s).");
-    os.println("show torrents\t\t\tsh t\tShow running torrents.");
+    os.println("show (#|torrents)\t\t\tsh t\tShow info (Running torrents or further info on a certain torrent).");
     os.println("start (#|all|hash <hash>)\ts\tStart torrent(s).");
     os.println("stop (#|all|hash <hash>)\th\tStop torrent(s).");
     os.println("ui <interface>\tu\tStart additional user interface.");
@@ -292,7 +294,50 @@ public class ConsoleInput extends Thread {
                 out.println("No Torrents");
               out.println("> -----");
             } else {
-              out.println("> Command 'show': Subcommand '" + subcommand + "' unknown.");
+            	try {
+            		int number = Integer.parseInt(subcommand);
+            		if ((torrents != null) && torrents.isEmpty()) {
+            			out.println("> Command 'show': No torrents in list (try 'show torrents' first).");
+            		} else {
+            			String name;
+            			DownloadManager dm;
+            			if ((number > 0) && (number <= torrents.size())) {
+            				dm = (DownloadManager) this.torrents.get(number - 1);
+            				if (dm.getName() == null)
+            					name = "?";
+            				else
+            					name = dm.getName();
+            				TRTrackerClient trackerclient = dm.getTrackerClient();
+            				out.println("> -----");
+            				out.println("Info on Torrent #" + subcommand + " (" + name + ")");
+            				out.println("- Tracker Info -");
+            				if (trackerclient != null) {
+            					out.println("URL: " + trackerclient.getTrackerUrl());
+            					int time =trackerclient.getTimeUntilNextUpdate();
+            					String timestr;
+            					if ( time < 0 ){
+            						timestr =  MessageText.getString("GeneralView.label.updatein.querying");
+            					}else{
+            						int minutes = time / 60;
+            						int seconds = time % 60;
+            						String strSeconds = "" + seconds;
+            						if (seconds < 10){
+            							strSeconds = "0" + seconds; //$NON-NLS-1$
+            						}
+            						timestr =  minutes + ":" + strSeconds; 
+            					}
+            					out.println("Time till next Update: " + timestr);
+            					out.println("Status: " + trackerclient.getStatusString());
+            				} else
+            					out.println("  Not available");
+            				out.println("> -----");
+            			} else
+            				out.println("> Command 'show': Torrent #" + subcommand + " unknown.");
+            			
+            		}	
+            	} catch (Exception e) {
+					out.println("> Command 'show': Subcommand '" + subcommand + "' unknown.");
+            	}
             }
           } else {
             out.println("> Missing subcommand for 'show'\r\n> show syntax: show torrents");
