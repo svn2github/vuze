@@ -665,8 +665,9 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.movecompleted"); //$NON-NLS-1$
-    BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); //$NON-NLS-1$
+    BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); //$NON-NLS-1$    
     new Label(gFile, SWT.NULL);
+    
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.moveCompletedPath"); //$NON-NLS-1$
@@ -688,6 +689,12 @@ public class ConfigView extends AbstractIView {
         }
       }
     });
+    
+    controls = new Control[2];
+    controls[0] = movePathParameter.getControl();
+    controls[1] = browse3;
+    IAdditionalActionPerformer grayPathAndButton = new ChangeSelectionActionPerformer(controls);
+    moveCompleted.setAdditionalActionPerformer(grayPathAndButton);
     
     
     label = new Label(gFile, SWT.NULL);
