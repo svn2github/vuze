@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -69,33 +68,37 @@ PEPieceImpl
   
   protected static AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
 
-  public PEPieceImpl(PEPeerManager manager, int length) {
+  protected PEPieceImpl(PEPeerManager manager, int length) {
+    
+    
 	this.manager = manager;
 	  
   
 	this.length = length;
 	nbBlocs = (length + PEPeerManager.BLOCK_SIZE - 1) / PEPeerManager.BLOCK_SIZE;
-  this.writes = new ArrayList(0);
+	this.writes = new ArrayList(0);
 	downloaded = new boolean[nbBlocs];
 	requested = new boolean[nbBlocs];
 	written = new boolean[nbBlocs];
-  writers = new PEPeer[nbBlocs];
+	writers = new PEPeer[nbBlocs];
 
 	if ((length % PEPeerManager.BLOCK_SIZE) != 0)
 	  lastBlocSize = length % PEPeerManager.BLOCK_SIZE;
 	else
 	  lastBlocSize = PEPeerManager.BLOCK_SIZE;
+	
+	last_write_time = SystemTime.getCurrentTime();
 
   }
 
-  public PEPieceImpl(PEPeerManager manager, int length, int pieceNumber) {
-	this(manager, length,pieceNumber,true);	
-  }
-  
   public PEPieceImpl(PEPeerManager manager, int length, int pieceNumber,boolean slowPiece) {
     this(manager, length);
 	this.pieceNumber = pieceNumber;
 	this.slowPiece = slowPiece;
+  }
+  
+  public PEPieceImpl(PEPeerManager manager, int length, int pieceNumber) {
+	this(manager, length,pieceNumber,true);	
   }
     
   public void setWritten(PEPeer peer,int blocNumber) {

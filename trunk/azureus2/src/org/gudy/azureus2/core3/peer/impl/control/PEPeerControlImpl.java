@@ -602,15 +602,15 @@ PEPeerControlImpl
    *
    */
   private void checkFastPieces() {
-    long currentTime = System.currentTimeMillis();
+    long currentTime = SystemTime.getCurrentTime();
     //for every piece
     for (int i = 0; i < _nbPieces; i++) {
       PEPiece currentPiece = _pieces[i]; //get the piece
 
       
-      
       //if piece is loaded, fast 
-      if (currentPiece != null && !currentPiece.isSlowPiece() && (currentTime - currentPiece.getLastWriteTime()) > 30 * 1000) {
+      if (currentPiece != null && !currentPiece.isSlowPiece() && ((currentTime - currentPiece.getLastWriteTime()) > (30 * 1000) ) ) {
+        //System.out.println("fast > slow : " + currentTime + " - " + currentPiece.getLastWriteTime());
         currentPiece.setSlowPiece(true);
       }
     }
