@@ -20,15 +20,18 @@
  */
 package org.gudy.azureus2.ui.swt.updater;
 
-import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import org.gudy.azureus2.ui.swt.Main;
 
 /**
  * @author Olivier Chalouhi
@@ -37,9 +40,8 @@ import java.util.zip.ZipFile;
 public class UpdateSWT {
   
   static String userDir;
-  public static void main(String args[]) throws Exception {
-    userDir = System.getProperty("user.dir") + System.getProperty("file.separator");
-    
+  public static void main(String args[]) throws Exception {   
+    userDir = System.getProperty("user.dir") + System.getProperty("file.separator");    
     
     UpdateLogger.log("SWT Updater started with parameters : ");
     for(int i = 0 ; i < args.length ; i++) {
@@ -52,10 +54,21 @@ public class UpdateSWT {
     try {
       
       UpdateLogger.log("user.dir="  + userDir);      
-      UpdateLogger.log("SWT Updater is waiting 1 sec");
-
-      Thread.sleep(1000);
+      UpdateLogger.log("SWT Updater is waiting until bind on 6880 is ok");
+      boolean ok = false;
+      while(!ok) {
+        try{
+          ServerSocket server = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1"));
+          ok = true;
+          server.close();
+        } catch(Exception e) {
+          UpdateLogger.log("Exception while trying to bind on port 6880 : " + e);
+          Thread.sleep(1000);
+        }
+      }
       
+      //Wait 1 sec more anyway.
+      Thread.sleep(1000);
       String platform = args[0];
       
       UpdateLogger.log("SWT Updater has detected platform : " + platform );
@@ -205,14 +218,20 @@ public class UpdateSWT {
   }
   
   public static void restartLinux() throws IOException{
-    
+    Main.main(new String[0]);
   }
   
   public static void restartOSX() throws IOException{
-    
+    Main.main(new String[0]);
   }
   
-  public static void restartWindows() throws IOException{    
+  public static void restartWindows() throws IOException{
+    try {
+    	Main.main(new String[0]);
+    } catch(Throwable t) {
+     UpdateLogger.log("Exception while running Main : " + t);   
+    }
+    /*
     String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$    
     String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
     String libraryPath = System.getProperty("java.library.path");
@@ -248,7 +267,7 @@ public class UpdateSWT {
       }
     } catch(Exception e) {
       UpdateLogger.log("Exception while waiting for process : " + e);
-    }
+    }*/
   }
   
   

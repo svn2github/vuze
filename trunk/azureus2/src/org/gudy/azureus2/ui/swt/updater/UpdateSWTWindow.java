@@ -142,7 +142,8 @@ public class UpdateSWTWindow implements GeneralListener{
     if(display != null && ! display.isDisposed()) {
       display.asyncExec(new Runnable() {
         public void run() {
-         progress.setSelection(percent); 
+          if(!progress.isDisposed())
+            progress.setSelection(percent); 
         }
       });
     }

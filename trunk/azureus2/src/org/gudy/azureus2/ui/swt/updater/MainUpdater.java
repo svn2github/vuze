@@ -119,9 +119,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         LGLogger.log("SWT Updater is about to execute (win32) : " + exec);
         UpdateLogger.log("SWT Updater is about to execute (win32): " + exec);
                         
-        File userDir = new File(userPath);
-        String[] env = {"user.dir=" + userPath};
-        Runtime.getRuntime().exec(exec,env,userDir);
+        Runtime.getRuntime().exec(exec);
       
       }
     } catch(Exception e) {
