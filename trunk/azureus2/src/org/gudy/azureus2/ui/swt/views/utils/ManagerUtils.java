@@ -92,6 +92,22 @@ public class ManagerUtils {
     }
   }
   
+  public static void publish(DownloadManager dm,Composite panel) {
+    if(dm == null)
+     return;
+    TOTorrent torrent = dm.getTorrent();
+    if (torrent != null) {
+      try {
+        TRHostFactory.create().publishTorrent(torrent);
+      } catch (TRHostException e) {
+        MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
+        mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
+        mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message") + "\n" + e.toString());
+        mb.open();
+      }
+    }
+  }
+  
   public static void remove(DownloadManager dm) {
     if (dm != null
         && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {

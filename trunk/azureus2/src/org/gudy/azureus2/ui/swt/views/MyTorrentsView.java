@@ -642,23 +642,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 	 
 	  itemPublish.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          TOTorrent torrent = dm.getTorrent();
-          if (torrent != null) {
-            try {
-              TRHostFactory.create().publishTorrent(torrent);
-            } catch (TRHostException e) {
-              MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
-              mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
-              mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message") + "\n" + e.toString());
-              mb.open();
-            }
-          }
-        }
-        MainWindow.getWindow().showMyTracker();
+        publishSelectedTorrents();
       }
     });
 	 
@@ -1063,6 +1047,16 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
       ManagerUtils.host(dm,panel);
     }
+    MainWindow.getWindow().showMyTracker();  
+  }
+  
+  private void publishSelectedTorrents() {
+    TableItem[] tis = table.getSelection();
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+      ManagerUtils.publish(dm,panel);
+    }
     MainWindow.getWindow().showMyTracker();
   }
   
@@ -1111,24 +1105,31 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
   }
   
-  private boolean up,down,run,host,start,stop,remove;
+  private boolean up,down,run,host,publish,start,stop,remove;
   
   private void computePossibleActions() {
+    if(table == null || table.isDisposed())
+      return;
     TableItem[] tis = table.getSelection();
     up = down = run = host = start = stop = remove = false;
-    if(tis.length > 0) {
-      remove = up = down = true;
-      host = true;
-      run = true;
+    if(tis.length > 0) {      
       for (int i = 0; i < tis.length; i++) {
         TableItem ti = tis[i];
         DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+        if(dm == null)
+          continue;
+        
+        //Safer here, in case the DownloadManager is null
+        remove = up = down = true;
+        host = publish = true;
+        run = true;
+        
         if(ManagerUtils.isStartable(dm))
           start =  true;
         if(ManagerUtils.isStopable(dm))
           stop = true;
         if(! ManagerUtils.isRemoveable(dm))
-          remove = false;
+          remove = false;        
         if(!dm.isMoveableUp())
           up = false;
         if(!dm.isMoveableDown())
@@ -1146,6 +1147,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       return run;
     if(itemKey.equals("host"))
       return host;
+    if(itemKey.equals("publish"))
+      return publish;
     if(itemKey.equals("start"))
       return start;
     if(itemKey.equals("stop"))
@@ -1170,6 +1173,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     }
     if(itemKey.equals("host")){
       hostSelectedTorrents();
+      return;
+    }
+    if(itemKey.equals("host")){
+      publishSelectedTorrents();
       return;
     }
     if(itemKey.equals("start")){

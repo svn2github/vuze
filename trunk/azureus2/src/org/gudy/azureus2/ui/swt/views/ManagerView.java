@@ -166,6 +166,8 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
       return ManagerUtils.isStopable(manager);
     if(itemKey.equals("host"))
       return true;
+    if(itemKey.equals("publish"))
+      return true;
     if(itemKey.equals("remove"))
       return ManagerUtils.isRemoveable(manager);
     return false;
@@ -186,6 +188,11 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  }
 	  if(itemKey.equals("host")) {
 	    ManagerUtils.host(manager,folder);
+	    MainWindow.getWindow().showMyTracker();
+	    return;
+	  }
+	  if(itemKey.equals("publish")) {
+	    ManagerUtils.publish(manager,folder);
 	    MainWindow.getWindow().showMyTracker();
 	    return;
 	  }

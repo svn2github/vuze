@@ -69,6 +69,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/stop.gif", "cb_stop");
     loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/remove.gif", "cb_remove");
     loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/host.gif", "cb_host");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/publish.gif", "cb_publish");
     
   }
 
