@@ -8,7 +8,7 @@ FEATURE: Core | Manual peer upload blocking (when seeding) and kick-banning [Nol
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
-
+BUGFIX: UI   | Fix for window state not being remembered between sessions [Nolar]
 
 
 
