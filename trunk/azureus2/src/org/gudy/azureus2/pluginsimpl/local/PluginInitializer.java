@@ -30,7 +30,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
-import org.gudy.azureus2.core3.global.removerules.DownloadRemoveRulesPlugin;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -41,16 +40,10 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 
-import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.core3.startup.STProgressListener;
-import org.gudy.azureus2.ui.tracker.TrackerDefaultWeb;
-import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
 
-import org.gudy.azureus2.update.CoreUpdateChecker;
-import org.gudy.azureus2.update.CorePatchChecker;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
-import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 
 /**
@@ -66,17 +59,17 @@ PluginInitializer
 	// it you'll need to migrate the config)
 	// "id" is used when checking for updates
 	
-  private Object[][]	builtin_plugins = { 
-   			{	 org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class, "<internal>", "" },
-   			{	 DownloadRemoveRulesPlugin.class, "<internal>", "" },
-    		{	 ShareHosterPlugin.class, "<internal>", "ShareHoster" },
-    		{    TrackerDefaultWeb.class, "<internal>", "TrackerDefault", },
-    		{    UpdateLanguagePlugin.class, "<internal>", "UpdateLanguagePlugin" },
-    		{	 org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin.class, "<internal>", "PluginUpdate" },
-	   		{	 CoreUpdateChecker.class, "<internal>", "CoreUpdater" },
-			{	 CorePatchChecker.class, "<internal>", "CorePatcher" },
-	   		{	 org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker.class, "azplatform", "azplatform" },
-			{	 UPnPPlugin.class, "<internal>", "UPnP" },
+  private String[][]	builtin_plugins = { 
+   			{	 "org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin", "<internal>", "" },
+   			{	 "org.gudy.azureus2.core3.global.removerules.DownloadRemoveRulesPlugin", "<internal>", "" },
+    		{	 "org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin", "<internal>", "ShareHoster" },
+    		{    "org.gudy.azureus2.ui.tracker.TrackerDefaultWeb", "<internal>", "TrackerDefault", },
+    		{    "org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin", "<internal>", "UpdateLanguagePlugin" },
+    		{	 "org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin", "<internal>", "PluginUpdate" },
+	   		{	 "org.gudy.azureus2.update.CoreUpdateChecker", "<internal>", "CoreUpdater" },
+			{	 "org.gudy.azureus2.update.CorePatchChecker", "<internal>", "CorePatcher" },
+	   		{	 "org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", "azplatform", "azplatform" },
+			{	 "com.aelitis.azureus.plugins.upnp.UPnPPlugin", "<internal>", "UPnP" },
         };
  
   
@@ -229,14 +222,20 @@ PluginInitializer
     
     for (int i=0;i<builtin_plugins.length;i++){
     	
+    	String	id 	= builtin_plugins[i][1];
+    	String	key	= builtin_plugins[i][2];
+    	
     	try{
-     		initializePluginFromClass(
-     				(Class)builtin_plugins[i][0], 
-					(String)builtin_plugins[i][1],
-					(String)builtin_plugins[i][2] );
-     		
-		}catch(PluginException e ){
-  				
+    		Class	cla = getClass().getClassLoader().loadClass( builtin_plugins[i][0]);
+			
+     		initializePluginFromClass( cla, id, key );
+	 		 				
+  		}catch( Throwable e ){
+  			
+  			e.printStackTrace();
+  			
+  	    	LGLogger.logAlert( "Initialisation of built in plugin '" + key + "' fails", e );
+  	      
   		}
      }
   }
