@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.systray;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -82,6 +84,12 @@ public class SystemTraySWT {
     final MenuItem itemStopAll = new MenuItem(menu,SWT.NULL);
     Messages.setLanguageText(itemStopAll,"SystemTray.menu.stopalldownloads");
     
+    final MenuItem itemPause = new MenuItem(menu,SWT.NULL);
+    Messages.setLanguageText(itemPause,"SystemTray.menu.pausedownloads");
+    
+    final MenuItem itemResume = new MenuItem(menu,SWT.NULL);
+    Messages.setLanguageText(itemResume,"SystemTray.menu.resumedownloads");
+    
     itemSeparator = new MenuItem(menu,SWT.SEPARATOR);
     
     final MenuItem itemExit = new MenuItem(menu,SWT.NULL);
@@ -104,6 +112,42 @@ public class SystemTraySWT {
         SystemTraySWT.this.mainWindow.getGlobalManager().stopAllDownloads();
       }
     });
+    
+    final Object[] currentPauseData = { null };
+    
+    itemPause.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+        	currentPauseData[0] = SystemTraySWT.this.mainWindow.getGlobalManager().pauseDownloads();
+        }
+      });
+      
+    itemResume.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+          SystemTraySWT.this.mainWindow.getGlobalManager().resumeDownloads(currentPauseData[0]);
+        }
+      });
+      
+    
+    menu.addMenuListener(
+          	new MenuListener()
+    		{
+          		public void
+    			menuShown(
+    				MenuEvent	_menu )
+          		{
+          			boolean	can_resume = 	currentPauseData[0] != null &&
+          			SystemTraySWT.this.mainWindow.getGlobalManager().canResumeDownloads(currentPauseData[0]);
+          			
+          			itemResume.setEnabled(can_resume);
+          		}
+          		
+        		public void
+    			menuHidden(
+    				MenuEvent	_menu )
+          		{
+          			
+          		}
+    		});
     
     itemCloseAll.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
