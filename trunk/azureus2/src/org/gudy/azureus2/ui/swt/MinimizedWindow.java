@@ -240,7 +240,8 @@ public class MinimizedWindow {
       for (int i = 0; i < downloadBars.size(); i++) {
         MinimizedWindow downloadBar = (MinimizedWindow) downloadBars.get(i);
         Point location = downloadBar.getShell().getLocation();
-        // TODO isn't the height always 10?
+        // isn't the height always 10?
+        // Gudy : No it depends on your system font.
         location.y += downloadBar.getShell().getBounds().height;
         //Stucking to someone else
         if (downloadBar != this && downloadBar.getStucked() == null || downloadBar.getStucked() == this) {

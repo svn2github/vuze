@@ -97,7 +97,7 @@ public class GlobalManager extends Component {
             int nbMaxDownloads = ConfigurationManager.getInstance().getIntParameter("max downloads", 4);
             if (manager.getState() == DownloadManager.STATE_READY
               && ((nbMax == 0) || (nbStarted < nbMax))
-              && ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads))) {
+              && (manager.getCompleted() == 1000 ||  ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
               manager.startDownload();
               nbStarted++;
               if (manager.getCompleted() != 1000)
@@ -240,7 +240,17 @@ public class GlobalManager extends Component {
       bin = new BufferedInputStream(fin);
       Map map = BDecoder.decode(bin);
       boolean debug = Boolean.getBoolean("debug");
-      Iterator iter = map.values().iterator();
+      
+      Iterator iter = null;
+      //v2.0.3.0+ vs older mode
+      List downloads = (List) map.get("downloads");
+      if(downloads == null) {
+        //No downloads entry, then use the old way
+        iter = map.values().iterator();
+      } else {
+        //New way, downloads stored in a list
+        iter = downloads.iterator();
+      }
       while (iter.hasNext()) {
         Map mDownload = (Map) iter.next();
         try {
@@ -248,8 +258,12 @@ public class GlobalManager extends Component {
           String savePath = new String((byte[]) mDownload.get("path"), Constants.DEFAULT_ENCODING);
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int stopped = debug ? 1 : ((Long) mDownload.get("stopped")).intValue();
+          Long lPriority = (Long) mDownload.get("priority");          
           DownloadManager dm = new DownloadManager(this, fileName, savePath, stopped == 1);
           dm.setMaxUploads(nbUploads);
+          if(lPriority != null) {
+            dm.setPriority(lPriority.intValue());
+          }
           this.addDownloadManager(dm);
         }
         catch (UnsupportedEncodingException e1) {
@@ -281,6 +295,7 @@ public class GlobalManager extends Component {
     //    if(Boolean.getBoolean("debug")) return;
 
     Map map = new HashMap();
+    List list = new ArrayList(managers.size());
     for (int i = 0; i < managers.size(); i++) {
       DownloadManager dm = (DownloadManager) managers.get(i);
       Map dmMap = new HashMap();
@@ -291,8 +306,12 @@ public class GlobalManager extends Component {
       if (dm.getState() == DownloadManager.STATE_STOPPED)
         stopped = 1;
       dmMap.put("stopped", new Long(stopped));
-      map.put("torrent" + i, dmMap);
+      int priority = dm.getPriority();
+      dmMap.put("priority", new Long(priority));
+      dmMap.put("position", new Long(i));
+      list.add(dmMap);
     }
+    map.put("downloads",list);
     //encode the data
     byte[] torrentData = BEncoder.encode(map);
     //open a file stream
@@ -328,6 +347,46 @@ public class GlobalManager extends Component {
    */
   public TrackerChecker getTrackerChecker() {
     return trackerChecker;
+  }
+  
+  public int getIndexOf(DownloadManager manager) {
+    if(managers != null && manager != null)
+      return managers.indexOf(manager);
+    return -1;
+  }
+  
+  public boolean isMoveableUp(DownloadManager manager) {
+    return getIndexOf(manager) > 0;
+  }
+  
+  public boolean isMoveableDown(DownloadManager manager) {
+    if(managers != null)
+      return getIndexOf(manager) < managers.size() -1;
+    return false;
+  }
+  
+  public void moveUp(DownloadManager manager) {    
+    if(managers != null) {
+      synchronized(managers) {
+        int index = managers.indexOf(manager);
+        if(index > 0) {
+          managers.remove(index);
+          managers.add(index-1,manager);
+        }
+      }
+    }
+  }
+  
+  public void moveDown(DownloadManager manager) {
+    if(managers != null) {
+      synchronized(managers) {
+        int index = managers.indexOf(manager);
+        if(index < managers.size() -1) {
+          managers.remove(index);
+          managers.add(index+1,manager);
+        }
+      }
+    }
   }
 
 }

@@ -26,6 +26,7 @@ public class ManagerItem {
   private TableItem item;
   private DownloadManager manager;
 
+  private String index = ""; //$NON-NLS-1$
   private String name = ""; //$NON-NLS-1$
   private String size = ""; //$NON-NLS-1$
   private String done = ""; //$NON-NLS-1$
@@ -37,6 +38,9 @@ public class ManagerItem {
   private String eta = ""; //$NON-NLS-1$
   private String trackerStatus = ""; //$NON-NLS-1$
   private String priority = ""; //$NON-NLS-1$
+  
+  //Used when sorting
+  public boolean selected;  
 
   public ManagerItem(Table table, DownloadManager manager) {
     this.table = table;
@@ -81,6 +85,13 @@ public class ManagerItem {
       return;
 
     String tmp;
+    
+    tmp = "" + (manager.getIndex()+1);
+    if(!(this.index.equals(tmp))) {
+      index = tmp;
+      item.setText(0,index);
+    }
+    
     tmp = manager.getName();
     if (tmp != null && !(this.name.equals(tmp))) {
       name = tmp;
@@ -89,7 +100,7 @@ public class ManagerItem {
       tmp = tmp.substring(sep);
       Program program = Program.findProgram(tmp);
       Image icon = ImageRepository.getIconFromProgram(program);
-      item.setText(0, name);
+      item.setText(1, name);
       item.setImage(icon);
       
     }
@@ -98,7 +109,7 @@ public class ManagerItem {
     tmp = PeerStats.format(manager.getSize());
     if (tmp != null && !(tmp.equals(this.size))) {
       size = tmp;
-      item.setText(1, tmp);
+      item.setText(2, tmp);
     }
 
     tmp = ""; //$NON-NLS-1$
@@ -106,7 +117,7 @@ public class ManagerItem {
     tmp = (done / 10) + "." + (done % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
     if (!(tmp.equals(this.done))) {
       this.done = tmp;
-      item.setText(2, tmp);
+      item.setText(3, tmp);
     }
 
     tmp = ""; //$NON-NLS-1$
@@ -140,7 +151,7 @@ public class ManagerItem {
     }
     if (!(tmp.equals(this.status))) {
       status = tmp;
-      item.setText(3, tmp);
+      item.setText(4, tmp);
       if (state == DownloadManager.STATE_SEEDING)
         item.setForeground(MainWindow.blues[3]);
       else if (state == DownloadManager.STATE_ERROR)
@@ -159,7 +170,7 @@ public class ManagerItem {
       tmp += " (?)";
     if (!(tmp.equals(this.nbSeeds))) {
       nbSeeds = tmp;
-      item.setText(4, tmp);
+      item.setText(5, tmp);
     }
 
     tmp = "" + manager.getNbPeers(); //$NON-NLS-1$
@@ -169,31 +180,31 @@ public class ManagerItem {
           tmp += " (?)";
     if (!(tmp.equals(this.nbPeers))) {
       nbPeers = tmp;
-      item.setText(5, tmp);
+      item.setText(6, tmp);
     }
 
     tmp = "" + manager.getDownloadSpeed(); //$NON-NLS-1$
     if (!(tmp.equals(this.downSpeed))) {
       downSpeed = tmp;
-      item.setText(6, tmp);
+      item.setText(7, tmp);
     }
 
     tmp = "" + manager.getUploadSpeed(); //$NON-NLS-1$
     if (!(tmp.equals(this.upSpeed))) {
       upSpeed = tmp;
-      item.setText(7, tmp);
+      item.setText(8, tmp);
     }
 
     tmp = "" + manager.getETA(); //$NON-NLS-1$
     if (!(tmp.equals(this.eta))) {
       eta = tmp;
-      item.setText(8, tmp);
+      item.setText(9, tmp);
     }
 
     tmp = "" + manager.getTrackerStatus(); //$NON-NLS-1$
     if (!(tmp.equals(this.trackerStatus))) {
       trackerStatus = tmp;
-      item.setText(9, tmp);
+      item.setText(10, tmp);
     }
 
     if (manager.getPriority() == DownloadManager.HIGH_PRIORITY) {
@@ -204,7 +215,7 @@ public class ManagerItem {
     }
     if (!(tmp.equals(this.priority))) {
       priority = tmp;
-      item.setText(10, tmp);
+      item.setText(11, tmp);
     }
   }
 

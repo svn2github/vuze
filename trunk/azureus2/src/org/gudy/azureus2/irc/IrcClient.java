@@ -65,8 +65,7 @@ public class IrcClient extends PircBot {
     }
   }
   
-  public void close() {
-    //TODO : implement closing ;)
+  public void close() {    
     super.quitServer("Azureus " + MainWindow.VERSION);
     try {
       super.dispose();

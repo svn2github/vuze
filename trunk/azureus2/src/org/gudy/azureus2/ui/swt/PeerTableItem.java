@@ -17,7 +17,7 @@ import org.gudy.azureus2.core.PeerStats;
 import org.gudy.azureus2.core2.PeerSocket;
 
 /**
- * This class (GUI) represents a row into the the peers table.
+ * This class (GUI) represents a row into the peers table.
  * 
  * @author Olivier
  *
@@ -72,7 +72,9 @@ public class PeerTableItem {
         });
       }
     });
-//:: TODO why put only the last item list? could be uninitialized, too
+    // Why put only the last item list? could be uninitialized, too
+    // Gudy : because :D tableItems is used to link item (SWT object) to actual item (this object)
+    //        this is done for all items.
     tableItems.put(item, this);
   }
 

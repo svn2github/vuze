@@ -42,7 +42,10 @@ public class SpeedLimiter {
     int peersToBeAllocated;
 
     public int getNumAllowed() {
-      // TODO what to do when peersToBeAllocated == 0 ?
+      // what to do when peersToBeAllocated == 0 ?
+      // Gudy : shouldn't be accessed, but we'll return toBeAllocated, in case there's an error.
+      if(peersToBeAllocated == 0)
+          return toBeAllocated;       
       return toBeAllocated / peersToBeAllocated;
     }
   }

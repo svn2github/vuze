@@ -550,4 +550,35 @@ public class DownloadManager extends Component {
     return comment;
   }
 
+  /**
+   * @return
+   */
+  public int getIndex() {
+    if(globalManager != null)
+      return globalManager.getIndexOf(this);
+    return -1;
+  }
+  
+  public boolean isMoveableUp() {
+    if(globalManager != null)
+      return globalManager.isMoveableUp(this);
+    return false;
+  }
+  
+  public boolean isMoveableDown() {
+    if(globalManager != null)
+      return globalManager.isMoveableDown(this);
+    return false;
+  }
+  
+  public void moveUp() {
+    if(globalManager != null)
+      globalManager.moveUp(this);
+  }
+  
+  public void moveDown() {
+    if(globalManager != null)
+      globalManager.moveDown(this);
+  }      
+
 }
