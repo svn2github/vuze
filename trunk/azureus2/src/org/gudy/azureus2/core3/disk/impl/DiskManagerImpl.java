@@ -258,7 +258,7 @@ DiskManagerImpl
 		}
 
 		//Create the ByteBuffer for checking (size : pieceLength)
-    allocateAndTestBuffer = ByteBufferPool.getFreeBuffer(pieceLength);
+    allocateAndTestBuffer = DirectByteBufferPool.getFreeBuffer(pieceLength);
     
 		allocateAndTestBuffer.limit(pieceLength);
 		for (int i = 0; i < allocateAndTestBuffer.limit(); i++) {
@@ -653,7 +653,7 @@ DiskManagerImpl
 					  dumpBlockToDisk(elt);
 					  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
 					} else {
-					  ByteBufferPool.freeBuffer(elt.getData());
+					  DirectByteBufferPool.freeBuffer(elt.getData());
 					  elt.data = null;
 					}
 
@@ -694,7 +694,7 @@ DiskManagerImpl
 			this.bContinue = false;
 			while (writeQueue.size() != 0) {
 				QueueElement elt = (QueueElement)writeQueue.remove(0);
-				ByteBufferPool.freeBuffer(elt.data);
+				DirectByteBufferPool.freeBuffer(elt.data);
 				elt.data = null;
 			}
 		}
@@ -1355,7 +1355,7 @@ DiskManagerImpl
 
 	public ByteBuffer readBlock(int pieceNumber, int offset, int length) {
 
-		ByteBuffer buffer = ByteBufferPool.getFreeBuffer(length+13);
+		ByteBuffer buffer = DirectByteBufferPool.getFreeBuffer(length+13);
 
 		if (buffer == null) { // Fix for bug #804874
 			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
@@ -1571,7 +1571,7 @@ DiskManagerImpl
 			previousFilesLength = offset;
 		}
 
-		ByteBufferPool.freeBuffer(buffer);
+		DirectByteBufferPool.freeBuffer(buffer);
 		buffer = null;
 	}
     
@@ -1656,7 +1656,7 @@ DiskManagerImpl
 		}
     
     if (allocateAndTestBuffer != null) {
-      ByteBufferPool.freeBuffer(allocateAndTestBuffer);
+      DirectByteBufferPool.freeBuffer(allocateAndTestBuffer);
       allocateAndTestBuffer = null;
     }
   }
@@ -2092,7 +2092,7 @@ DiskManagerImpl
         ByteBuffer buffer = readBlock(pieceNumber,offset,length);
         buffer.position(13);
         byte[] hash = computeMd5Hash(buffer);
-        ByteBufferPool.freeBuffer(buffer);
+        DirectByteBufferPool.freeBuffer(buffer);
         buffer = null;
         piece.addWrite(i,peer,hash,correct);        
       }

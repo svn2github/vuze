@@ -1946,7 +1946,7 @@ PEPeerControlImpl
         if (item.isLoaded()) {
           requestsToFree.remove(item);
           i--;
-          ByteBufferPool.freeBuffer(item.getBuffer());
+          DirectByteBufferPool.freeBuffer(item.getBuffer());
           item.setBuffer(null);
         }
         if (!item.isLoading()) {
