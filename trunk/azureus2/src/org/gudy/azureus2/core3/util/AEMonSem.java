@@ -167,8 +167,64 @@ AEMonSem
 		
 		active.toArray(x);
 		
+			// sort by name and merge values
+		
 		Arrays.sort(
-			x,
+				x,
+				new Comparator()
+				{
+					public int
+					compare(
+						Object	o1,
+						Object	o2 )
+					{
+						AEMonSem	a1 = (AEMonSem)o1;
+						AEMonSem	a2 = (AEMonSem)o2;
+						
+						return( a1.name.compareTo( a2.name ));
+					}
+					
+				});
+		
+		AEMonSem	current 		= null;
+		long		current_total	= 0;
+		
+		Object[][]	total_x = new Object[x.length][];
+		
+		int	total_pos	= 0;
+		
+		for (int i=0;i<x.length;i++){
+		
+			AEMonSem	ms = x[i];
+			
+			long	diff = ms.entry_count - ms.last_entry_count;
+			
+			if ( current == null ){
+			
+				current	= ms;
+	
+			}else{
+				
+				if( current.name.equals( ms.name )){
+	
+					current_total += diff;
+					
+				}else{
+					total_x[total_pos++] = new Object[]{ ms.name, new Long( current_total )};
+					
+					current 		= ms;
+					current_total	= diff;
+				}
+			}
+		}
+		
+		if (current != null ){
+			
+			total_x[total_pos++] = new Object[]{ current.name, new Long( current_total )};
+		}
+		
+		Arrays.sort(
+			total_x,
 			new Comparator()
 			{
 				public int
@@ -176,19 +232,38 @@ AEMonSem
 					Object	o1,
 					Object	o2 )
 				{
-					AEMonSem	a1 = (AEMonSem)o1;
-					AEMonSem	a2 = (AEMonSem)o2;
+					Object[]	a1 = (Object[])o1;
+					Object[]	a2 = (Object[])o2;
 					
-					return((int)((a2.entry_count - a2.last_entry_count ) - (a1.entry_count - a1.last_entry_count )));
+					if ( a1 == null && a2 == null){
+						
+						return(0);
+						
+					}else if ( a1 == null ){
+						
+						return( 1 );
+						
+					}else if ( a2 == null ){
+						
+						return( -1 );
+					}
+					
+					long	a1_count = ((Long)a1[1]).longValue();
+					long	a2_count = ((Long)a2[1]).longValue();
+					
+					return((int)(a2_count - a1_count ));
 				}
 				
 			});
-				
+			
+		
+
+		
 		String	top_act_str = "    top activity: ";
 		
-		for (int i=0;i<Math.min(10,x.length);i++){
+		for (int i=0;i<Math.min(10,total_x.length);i++){
 			
-			top_act_str +=  (i==0?"":", ") + x[i].name + " = " + (x[i].entry_count - x[i].last_entry_count );
+			top_act_str +=  (i==0?"":", ") + total_x[i][0] + " = " + (total_x[i][1]);
 		}
 		
 		diag_logger.log( top_act_str );
