@@ -1146,22 +1146,20 @@ StartStopRulesDefaultPlugin
           return qr;
         }
   
-        if (shareRatio > minQueueingShareRatio || shareRatio == -1) {
-          //0 means disabled
-          if ((iIgnoreSeedCount != 0) && (numSeeds >= iIgnoreSeedCount)) {
-            setQR(QR_NUMSEEDSMET);
-            return QR_NUMSEEDSMET;
-          }
-  
-          // Skip if Stop Peers Ratio exceeded
-          // (More Peers for each Seed than specified in Config)
-          //0 means never stop
-          if (iIgnoreRatioPeers != 0 && numSeeds != 0) {
-            float ratio = (float) numPeers / numSeeds;
-            if (ratio <= iIgnoreRatioPeers) {
-              setQR(QR_RATIOMET);
-              return QR_RATIOMET;
-            }
+        //0 means disabled
+        if ((iIgnoreSeedCount != 0) && (numSeeds >= iIgnoreSeedCount)) {
+          setQR(QR_NUMSEEDSMET);
+          return QR_NUMSEEDSMET;
+        }
+
+        // Skip if Stop Peers Ratio exceeded
+        // (More Peers for each Seed than specified in Config)
+        //0 means never stop
+        if (iIgnoreRatioPeers != 0 && numSeeds != 0) {
+          float ratio = (float) numPeers / numSeeds;
+          if (ratio <= iIgnoreRatioPeers) {
+            setQR(QR_RATIOMET);
+            return QR_RATIOMET;
           }
         }
       }
