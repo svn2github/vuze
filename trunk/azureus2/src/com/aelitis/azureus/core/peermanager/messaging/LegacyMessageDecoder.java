@@ -57,7 +57,9 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
   
   private final MessageStreamDecoder.DecodeListener decode_listener;
   
-
+  private boolean last_received_was_keepalive = false;
+  
+  
   
   
   
@@ -65,7 +67,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
     this.decode_listener = listener;
   }
                                     
-  
+
   
   public int decodeStream( TCPTransport transport, int max_bytes ) throws IOException {
     int bytes_remaining = max_bytes;
@@ -77,7 +79,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
         System.out.println( "ERROR: bytes_possible < 1" );
         break;
       }
-      
+
       if( reading_length_mode ) {
         transport.read( decode_array, 2, 1 );  //only read into length buffer
       }
@@ -90,6 +92,11 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
       bytes_remaining -= bytes_read;
       
       if( bytes_read < bytes_possible ) {
+        break;
+      }
+      
+      if( reading_length_mode && last_received_was_keepalive ) {  //hack to stop a 0-byte-read after receiving a keep-alive message
+        //otherwise we won't realize there's nothing left on the line until trying to read again
         break;
       }
     }
@@ -274,6 +281,7 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
       
       if( !length_buffer.hasRemaining() ) {  //done reading the length
         reading_length_mode = false;
+        last_received_was_keepalive = true;
         
         length_buffer.position( 0 );
         message_length = length_buffer.getInt();
@@ -292,8 +300,9 @@ public class LegacyMessageDecoder implements MessageStreamDecoder {
           Debug.out( msg );
           throw new IOException( msg );
         }
-        else if( message_length == 0 ) {  //keep-alive message
+        else if( message_length == 0 ) {  //keep-alive message         
           reading_length_mode = true;
+          last_received_was_keepalive = true;
           try{
             Message keep_alive = MessageFactory.createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
             messages.add( keep_alive );
