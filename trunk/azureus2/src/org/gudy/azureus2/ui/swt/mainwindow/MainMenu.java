@@ -27,6 +27,8 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -34,10 +36,10 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.KeyBindings;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Tab;
-import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -65,8 +67,8 @@ public class MainMenu {
   
   private MenuItem menu_plugin;
   private Menu pluginMenu;
-  
-  
+
+
   public MainMenu(MainWindow mainWindow) {
     this.mainWindow = mainWindow;
     this.display = SWTThread.getInstance().getDisplay();
@@ -134,8 +136,10 @@ public class MainMenu {
          }
         });
 
-        MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
-        KeyBindings.setAccelerator(file_exit, "MainWindow.menu.file.exit");
+        final MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
+        if(!COConfigurationManager.getBooleanParameter("Enable System Tray") || !COConfigurationManager.getBooleanParameter("Close To Tray")) {
+            KeyBindings.setAccelerator(file_exit, "MainWindow.menu.file.exit");
+        }
         Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
         
         file_exit.addListener(SWT.Selection, new Listener() {
@@ -143,8 +147,22 @@ public class MainMenu {
             mainWindow.dispose(false,false);
           }
         });
+
+        // let platform decide
+        ParameterListener paramListener = new ParameterListener() {
+          public void parameterChanged(String parameterName) {
+              if(COConfigurationManager.getBooleanParameter("Enable System Tray") && COConfigurationManager.getBooleanParameter("Close To Tray")) {
+                  KeyBindings.removeAccelerator(file_exit, "MainWindow.menu.file.exit");
+              }
+              else {
+                  KeyBindings.setAccelerator(file_exit, "MainWindow.menu.file.exit");
+              }
+          }
+        };
+        COConfigurationManager.addParameterListener("Enable System Tray", paramListener);
+        COConfigurationManager.addParameterListener("Close To Tray", paramListener);
       }
-      
+
       // file->open submenus
       
       Menu newMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);

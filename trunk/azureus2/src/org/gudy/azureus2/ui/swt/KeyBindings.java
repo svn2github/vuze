@@ -112,7 +112,7 @@ import java.util.regex.Pattern;
  * </ul>
  * </p>
  * @author CrazyAlchemist
- * @version 1.2
+ * @version 1.3 Added removeAccelerator
  */
 public final class KeyBindings
 {
@@ -278,6 +278,19 @@ public final class KeyBindings
             return new KeyBindingInfo(displayValue.substring(0, displayValue.length() - 1), swtAccelerator);
         else
             return new KeyBindingInfo(null, SWT.NONE);
+    }
+
+    /**
+     * <p>
+     * Removes the keyboard accelerator for a SWT MenuItem
+     * </p>
+     * @param menu SWT MenuItem
+     * @param localizationKey The MenuItem's localization key for the localization resource bundle
+     */
+    public static void removeAccelerator(final MenuItem menu, String localizationKey)
+    {
+        setAccelerator(menu, new KeyBindingInfo("", SWT.NONE));
+        Messages.setLanguageText(menu, localizationKey);
     }
 
     /**
