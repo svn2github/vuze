@@ -493,6 +493,17 @@ public class MainWindow implements GlobalManagerListener {
     file_new_folder.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
+        
+        if ( COConfigurationManager.getBooleanParameter( "Save Torrent Files", true )){
+        
+			String	default_path = COConfigurationManager.getStringParameter( "General_sDefaultTorrent_Directory", "" );
+		
+			if ( default_path.length() > 0 ){
+        
+				fDialog.setFilterPath(default_path);
+			}
+        }
+
         fDialog.setText(MessageText.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
         String fileName = fDialog.open();
         if (fileName == null)
@@ -1898,6 +1909,17 @@ public class MainWindow implements GlobalManagerListener {
     if (files.length == 0)
       return;
     DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
+
+	if ( COConfigurationManager.getBooleanParameter( "Use default data dir", true )){
+		
+		String	default_path = COConfigurationManager.getStringParameter( "Default save path", "" );
+	
+		if ( default_path.length() > 0 ){
+			
+			dDialog.setFilterPath( default_path );	
+		}
+	}
+	
     dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
     final String savePath = dDialog.open();
     if (savePath == null)
