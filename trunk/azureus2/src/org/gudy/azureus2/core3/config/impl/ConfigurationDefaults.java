@@ -107,7 +107,7 @@ public class ConfigurationDefaults {
     def.put("Max Upload Speed KBs", new Long(0));
     def.put("Use Resume", new Long(1));
     def.put("Save Resume Interval", new Long(5));
-    def.put("Check Pieces on Completion", new Long(0));
+    def.put("Check Pieces on Completion", new Long(1));
     def.put("Stop Ratio", new Float(0));
     def.put("Stop Peers Ratio", new Long(0));
     def.put("Disconnect Seed", new Long(1));
