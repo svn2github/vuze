@@ -55,7 +55,7 @@ public class VirtualChannelSelector {
      * selecting over the given interest-op(s).
      * @param interest_op operation set of OP_ACCEPT, OP_CONNECT, OP_READ, OP_WRITE
      */
-    protected VirtualChannelSelector( int interest_op ) {
+    public VirtualChannelSelector( int interest_op ) {
       this.INTEREST_OP = interest_op;
       selector_guard = new SelectorGuard( SELECTOR_FAIL_COUNT_MAX );
     	try {
@@ -77,7 +77,7 @@ public class VirtualChannelSelector {
      * @param listener op-complete listener
      * @param attachment object to be passed back with listener notification
      */
-    protected void register( SocketChannel channel, VirtualSelectorListener listener, Object attachment ) {
+    public void register( SocketChannel channel, VirtualSelectorListener listener, Object attachment ) {
       try{
       	register_list_mon.enter();
       
@@ -95,7 +95,7 @@ public class VirtualChannelSelector {
      * Once canceled, the channel is unregistered and the listener will never be invoked.
      * @param channel channel originally registered
      */
-    protected void cancel( SocketChannel channel ) {
+    public void cancel( SocketChannel channel ) {
       try {
         cancel_list_mon.enter();
         cancel_list.add( channel );
@@ -116,7 +116,7 @@ public class VirtualChannelSelector {
      * @param timeout in ms
      * @return number of sockets selected
      */
-    protected int select( long timeout ) {
+    public int select( long timeout ) {
       //process cancellations
       try {
         cancel_list_mon.enter();
@@ -232,7 +232,7 @@ public class VirtualChannelSelector {
     /**
      * Listener for notification upon socket channel selection.
      */
-    protected interface VirtualSelectorListener {
+    public interface VirtualSelectorListener {
       /**
        * Called when a channel is successfully selected for readyness.
        * @param attachment originally given with the channel's registration
