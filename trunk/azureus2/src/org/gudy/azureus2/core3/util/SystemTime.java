@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
  */
 public class SystemTime {
   
-  private static final long GRANULARITY = 25;   //internal update time ms
+  public static final long TIME_GRANULARITY_MILLIS = 25;   //internal update time ms
   
   private static final SystemTime instance = new SystemTime();
   private final Thread updater;
@@ -70,11 +70,17 @@ public class SystemTime {
             }
           }
           
-          try{  Thread.sleep( GRANULARITY );  }catch(Exception e) {e.printStackTrace();}
+          try{  Thread.sleep( TIME_GRANULARITY_MILLIS );  }catch(Exception e) {e.printStackTrace();}
         }
       }
     };
     updater.setDaemon( true );
+    
+    	// we don't want this thread to lag much as it'll stuff up the upload/download
+    	// rate mechanisms (for example)
+    
+    updater.setPriority(Thread.MAX_PRIORITY);
+    
     updater.start();
   }
 

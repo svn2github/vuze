@@ -32,19 +32,21 @@ import java.nio.*;
 import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.*;
 
 public class 
 DataReaderSpeedLimiter 
 {
-	protected int	bytes_per_second = 5000;
-	protected int	slot_count		 = 20;
+	protected int	bytes_per_second = 0;
+
+	protected int	slot_period_millis	= (int)(SystemTime.TIME_GRANULARITY_MILLIS+5);
+	protected int	slot_count			= 1000/slot_period_millis;
 	
-	protected int[]	slots = new int[slot_count];
-	protected int	bytes_per_slot	= bytes_per_second/slot_count;
-	protected int	current_slot;
+	protected int	bytes_per_slot;
 	
-	protected int	slot_period_millis	= 1000/slot_count;
-	protected long	last_read_time;
+	protected long	current_slot;
+	protected int	bytes_available;
+	
 	
 	
 	protected static DataReaderSpeedLimiter		singleton = new DataReaderSpeedLimiter();
@@ -55,11 +57,33 @@ DataReaderSpeedLimiter
 		return( singleton );
 	}
 	
+	protected
+	DataReaderSpeedLimiter()
+	{
+		COConfigurationManager.addParameterListener(
+				"Max Download Speed KBs",
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	str )
+					{
+						bytes_per_second = COConfigurationManager.getIntParameter( "Max Download Speed KBs", 0 ) * 1024;						
+					
+						bytes_per_slot	= bytes_per_second/slot_count;
+					}
+				});
+		
+		bytes_per_second = COConfigurationManager.getIntParameter( "Max Download Speed KBs", 0 ) * 1024;
+		
+		bytes_per_slot	= bytes_per_second/slot_count;
+	}
+	
 	public DataReader
 	getDataReader(
 		Object		owner )
 	{
-		return( new unlimitedDataReader());
+		return( new limitedDataReader());
 	}
 	
 	protected class
@@ -95,46 +119,88 @@ DataReaderSpeedLimiter
 		
 			throws IOException
 		{
-			int	bytes_available = 0;
+			ByteBuffer	buffer = direct_buffer.buff;
 			
+			if ( bytes_per_second == 0 ){
+
+					// unlimited
+				
+				return( channel.read(buffer));
+			}
+			
+			int	position	= buffer.position();
+			int limit		= buffer.limit();
+		
+			int bytes_allocated;
+
 			synchronized( DataReaderSpeedLimiter.this ){
 				
 				long	now = SystemTime.getCurrentTime();
 				
+				long	new_slot = now/slot_period_millis;
 				
-				int		slots = (int)( ( now - last_read_time )/slot_period_millis );
+				long	slots = new_slot - current_slot;
+	
+				current_slot	= new_slot;
+				
+				if ( slots < 0 ){
+					
+					// someone must have changed the clock, reset our position in time
+					
+					return( 0 );
+				}
 				
 				if ( slots > slot_count ){
 					
 					slots = slot_count;
 				}
 				
-				last_read_time	= now;
+				bytes_available += slots*bytes_per_slot;
+				
+				if ( bytes_available > bytes_per_second ){
+					
+					bytes_available = bytes_per_second;
+				}
+				
+				if ( bytes_available == 0 ){
+					
+					return( 0 );
+				}
+				
+				int request_read_size = limit - position;
+								
+				if ( request_read_size > bytes_available ){
+					
+					buffer.limit( position + bytes_available );
+					
+					bytes_allocated	= bytes_available;
+					
+				}else{
+					
+					bytes_allocated = request_read_size;
+				}
+				
+				bytes_available	-= bytes_allocated;
 			}
 			
-			if ( bytes_available == 0 ){
-				
-				return( 0 );
-			}
-			
-			ByteBuffer	buffer = direct_buffer.buff;
-				
-			int	position	= buffer.position();
-			int limit		= buffer.limit();
-			
-			if ( limit - position > bytes_available ){
-				
-				buffer.limit( position + bytes_available );
-			}
+			int	bytes_read = 0;
 			
 			try{
 				
-				int	len = channel.read(buffer);
-								
-				return( len );
+				bytes_read = channel.read(buffer);
+
+				return( bytes_read );
 				
 			}finally{
-			
+				
+				if ( bytes_read < bytes_allocated ){
+					
+					synchronized( DataReaderSpeedLimiter.this ){
+
+						bytes_available += ( bytes_allocated - bytes_read );
+					}
+				}
+				
 				buffer.limit( limit );
 			}
 		}

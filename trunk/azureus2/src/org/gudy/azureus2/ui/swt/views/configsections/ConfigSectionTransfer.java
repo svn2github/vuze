@@ -69,6 +69,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     }
     cTransfer.setLayout(layout);
 
+    	// max upload speed
     
     IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED, -1, true);    
     formData = new FormData();
@@ -85,11 +86,28 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
     
+    	// max download speed
     
+    IntParameter paramMaxDownSpeed = new IntParameter(cTransfer, "Max Download Speed KBs", 0, -1, true);    
+    formData = new FormData();
+    formData.top = new FormAttachment(paramMaxUploadSpeed.getControl());
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(0,50);
+    paramMaxDownSpeed.setLayoutData(formData);
+    
+    label = new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxdownloadspeed");
+    formData = new FormData();
+    formData.top = new FormAttachment(paramMaxUploadSpeed.getControl(),5);
+    formData.left = new FormAttachment(paramMaxDownSpeed.getControl());
+    formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
+    label.setLayoutData(formData);
+    
+    	// max uploads
 
     IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false); 
     formData = new FormData();
-    formData.top = new FormAttachment(paramMaxUploadSpeed.getControl());
+    formData.top = new FormAttachment(paramMaxDownSpeed.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.right = new FormAttachment(0,50);
     paramMaxUploads.setLayoutData(formData);
@@ -97,7 +115,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploads");
     formData = new FormData();
-    formData.top = new FormAttachment(paramMaxUploadSpeed.getControl(),5);
+    formData.top = new FormAttachment(paramMaxDownSpeed.getControl(),5);
     formData.left = new FormAttachment(paramMaxUploads.getControl());
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
