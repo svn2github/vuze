@@ -124,7 +124,8 @@ RPPluginConfig
 				
 			delegate.setPluginParameter((String)params[0],((Integer)params[1]).intValue());
 				
-		}else if ( method.equals( "getIntParameter[String,int]")){
+		}else if ( 	method.equals( "getIntParameter[String,int]") ||
+				 	method.equals( "getParameter[String,int]")){
 				
 				return( new RPReply( new Integer( delegate.getIntParameter((String)params[0],((Integer)params[1]).intValue()))));
 				
