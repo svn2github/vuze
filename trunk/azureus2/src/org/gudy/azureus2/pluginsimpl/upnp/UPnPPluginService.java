@@ -347,9 +347,14 @@ UPnPPluginService
 		public String
 		getString()
 		{
-			String	name = mapping==null?"<external>":MessageText.getString(mapping.getResourceName());
-			
-			return(  name + " (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" );
+			if ( mapping==null ){
+				
+				return( "<external> (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" ); 
+				
+			}else{
+				
+				return( mapping.getString());
+			}
 		}
 	}
 }

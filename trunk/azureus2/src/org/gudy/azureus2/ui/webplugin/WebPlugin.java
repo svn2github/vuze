@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 
+import org.gudy.azureus2.pluginsimpl.upnp.UPnPPlugin;
 
 public class 
 WebPlugin
@@ -380,7 +381,7 @@ WebPlugin
 		}
 		
 					
-		int port	= param_port.getValue();
+		final int port	= param_port.getValue();
 
 		String	protocol_str = param_protocol.getValue().trim();
 		
@@ -481,6 +482,35 @@ WebPlugin
 			
 			log.log( "Plugin Initialisation Fails", e );
 		}
+		
+		plugin_interface.addListener(
+			new PluginListener()
+			{
+				public void
+				initializationComplete()
+				{
+					PluginInterface pi_upnp = PluginManager.getPluginInterfaceByClass( UPnPPlugin.class );
+					
+					if ( pi_upnp == null ){
+						
+						log.log( "No UPnP plugin available, not attempting port mapping");
+						
+					}else{
+						
+						((UPnPPlugin)pi_upnp.getPlugin()).addMapping( plugin_interface.getPluginName(), true, port, true );
+					}
+				}
+				
+				public void
+				closedownInitiated()
+				{
+				}
+				
+				public void
+				closedownComplete()
+				{	
+				}
+			});
 	}
 	
 	public boolean

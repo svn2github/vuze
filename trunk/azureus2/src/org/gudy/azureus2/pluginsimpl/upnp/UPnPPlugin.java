@@ -374,9 +374,7 @@ UPnPPlugin
 	{
 		mappings.add( mapping );
 		
-		log.log( "Mapping request: " + 
-					plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(mapping.getResourceName()) +
-					" - " + (mapping.isTCP()?"TCP":"UDP") + "/" + mapping.getPort() + ", enabled = " + mapping.isEnabled());
+		log.log( "Mapping request: " + mapping.getString() + ", enabled = " + mapping.isEnabled());
 		
 		mapping.addListener( this );
 		
@@ -404,5 +402,17 @@ UPnPPlugin
 				service.checkMapping( log, mapping );
 			}
 		}
+	}
+	
+		// for external use, e.g. webui
+	
+	public UPnPMapping
+	addMapping(
+		String		desc_resource,
+		boolean		tcp,
+		int			port,
+		boolean		enabled )
+	{
+		return( UPnPMappingManager.getSingleton().addMapping( desc_resource, tcp, port, enabled ));
 	}
 }

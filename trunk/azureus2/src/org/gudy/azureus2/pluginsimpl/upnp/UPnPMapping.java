@@ -54,12 +54,6 @@ UPnPMapping
 		enabled			= _enabled;
 	}
 	
-	public String
-	getResourceName()
-	{
-		return( resource_name );
-	}
-	
 	public boolean
 	isTCP()
 	{
@@ -105,8 +99,18 @@ UPnPMapping
 	public String
 	getString()
 	{
-		return( MessageText.getString( resource_name ) + 
-				" (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" );
+		String	name;
+		
+		if ( MessageText.keyExists( resource_name )){
+			
+			name = MessageText.getString( resource_name );
+			
+		}else{
+			
+			name = resource_name;
+		}
+		
+		return( name + " (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" );
 	}
 	
 	protected void
