@@ -445,13 +445,16 @@ TRTrackerServerTorrentImpl
 	}
 	
 	protected synchronized Map
-	exportScrapeToMap()
+	exportScrapeToMap(
+		boolean		allow_cache )
 	{
 		stats.addScrape();
 		
 		long	now = System.currentTimeMillis();
 		
-		if ( last_scrape != null && now - last_scrape_calc_time < TRTrackerServerImpl.getScrapeCachePeriod()){
+		if ( 	allow_cache && 
+				last_scrape != null && 
+				now - last_scrape_calc_time < TRTrackerServerImpl.getScrapeCachePeriod()){
 			
 			return( last_scrape );
 		}

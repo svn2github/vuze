@@ -116,7 +116,13 @@ TRTrackerServerProcessor
 				
 				Map	files = new ByteEncodedKeyHashMap();
 				
-				Map	hash_entry = torrent.exportScrapeToMap();
+					// we don't cache local scrapes as if we do this causes the hosting of
+					// torrents to retrieve old values initially. Not a fatal error but not
+					// the best behaviour as the (local) seed isn't initially visible.
+				
+				boolean	local_scrape = client_ip_address.equals( "127.0.0.1" );
+								
+				Map	hash_entry = torrent.exportScrapeToMap( !local_scrape );
 				
 				byte[]	torrent_hash = torrent.getHash().getHash();
 				
@@ -150,7 +156,7 @@ TRTrackerServerProcessor
 				
 				// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
 				
-				Map	hash_entry = this_torrent.exportScrapeToMap();
+				Map	hash_entry = this_torrent.exportScrapeToMap( true );
 				
 				files.put( str_hash, hash_entry );
 			}
