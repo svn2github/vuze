@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.views;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
@@ -64,6 +65,8 @@ public class FilesView
   public FilesView(DownloadManager manager) {
     super(TableManager.TABLE_TORRENT_FILES, "FilesView", 
           basicItems, "firstpiece", SWT.MULTI | SWT.FULL_SELECTION);
+    bSkipFirstColumn = true;
+    ptIconSize = new Point(16, 16);
     this.manager = manager;
   }
 

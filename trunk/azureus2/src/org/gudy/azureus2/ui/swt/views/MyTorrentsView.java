@@ -30,7 +30,7 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-//import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
@@ -107,6 +107,7 @@ public class MyTorrentsView
                           : TableManager.TABLE_MYTORRENTS_INCOMPLETE,
           "MyTorrentsView", basicItems, "#", 
           SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+    ptIconSize = new Point(16, 16);
     this.globalManager = globalManager;
     this.isSeedingView = isSeedingView;
 
