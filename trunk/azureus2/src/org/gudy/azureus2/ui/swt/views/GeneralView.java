@@ -711,63 +711,68 @@ public class GeneralView extends AbstractIView implements ParameterListener {
           allMax = available[i];
       }
       int maxAboveMin = allMax - allMin;
-      for (int i = 0; i < nbPieces; i++) {
-        if (available[i] > allMin)
-          total++;
-      }
-      total = (total * 1000) / nbPieces;
-      sTotal = "" + total; //$NON-NLS-1$
-      if (total < 10)
-        sTotal = "0" + sTotal; //$NON-NLS-1$
-      if (total < 100)
-        sTotal = "0" + sTotal; //$NON-NLS-1$
-
-      for (int i = 0; i < xMax; i++) {
-        int a0 = (i * nbPieces) / xMax;
-        int a1 = ((i + 1) * nbPieces) / xMax;
-        if (a1 == a0)
-          a1++;
-        if (a1 > nbPieces)
-          a1 = nbPieces;
-        int max = 0;
-        int min = available[a0];
-        int Pi = 1000;
-        for (int j = a0; j < a1; j++) {
-          if (available[j] > max)
-            max = available[j];
-          if (available[j] < min)
-            min = available[j];
-          Pi *= available[j];
-          Pi /= (available[j] + 1);
+      if (maxAboveMin == 0) {
+        // all the same.. easy paint
+        gcImage.setBackground(MainWindow.blues[allMin == 0 ? MainWindow.BLUES_LIGHTEST : MainWindow.BLUES_DARKEST]);
+        gcImage.fillRectangle(1, 1, xMax, yMax);
+      } else {
+        for (int i = 0; i < nbPieces; i++) {
+          if (available[i] > allMin)
+            total++;
         }
-        int pond = Pi;
-        if (max == 0)
-          pond = 0;
-        else {
-          int PiM = 1000;
+        total = (total * 1000) / nbPieces;
+        sTotal = "" + total;
+        if (total < 10) sTotal = "0" + sTotal;
+        if (total < 100) sTotal = "0" + sTotal;
+  
+        for (int i = 0; i < xMax; i++) {
+          int a0 = (i * nbPieces) / xMax;
+          int a1 = ((i + 1) * nbPieces) / xMax;
+          if (a1 == a0)
+            a1++;
+          if (a1 > nbPieces)
+            a1 = nbPieces;
+          int max = 0;
+          int min = available[a0];
+          int Pi = 1000;
           for (int j = a0; j < a1; j++) {
-            PiM *= (max + 1);
-            PiM /= max;
+            if (available[j] > max)
+              max = available[j];
+            if (available[j] < min)
+              min = available[j];
+            Pi *= available[j];
+            Pi /= (available[j] + 1);
           }
-          pond *= PiM;
-          pond /= 1000;
-          pond *= (max - min);
-          pond /= 1000;
-          pond += min;
+          int pond = Pi;
+          if (max == 0)
+            pond = 0;
+          else {
+            int PiM = 1000;
+            for (int j = a0; j < a1; j++) {
+              PiM *= (max + 1);
+              PiM /= max;
+            }
+            pond *= PiM;
+            pond /= 1000;
+            pond *= (max - min);
+            pond /= 1000;
+            pond += min;
+          }
+          int index;
+          if (pond <= 0 || allMax == 0) {
+            index = 0;
+          } else {
+            // we will always have allMin, so subtract that
+            index = (pond - allMin) * (MainWindow.BLUES_DARKEST - 1) / maxAboveMin + 1;
+            // just in case?
+            if (index > MainWindow.BLUES_DARKEST) {
+              index = MainWindow.BLUES_DARKEST;
+            }
+          }
+            
+          gcImage.setBackground(MainWindow.blues[index]);
+          gcImage.fillRectangle(i+1, 1, 1, yMax);
         }
-        int index;
-        if (pond <= 0 || allMax == 0) {
-          index = 0;
-        } else {
-          // we will always have allMin, so subtract that
-          index = (pond * (MainWindow.BLUES_DARKEST - 1) / allMax) + 1;
-          // just in case?
-          if (index > MainWindow.BLUES_DARKEST)
-            index = MainWindow.BLUES_DARKEST;
-        }
-          
-        gcImage.setBackground(MainWindow.blues[index]);
-        gcImage.fillRectangle(i+1, 1, 1, yMax);
       }
     }
     gcImage.dispose();
@@ -815,14 +820,14 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       if (pImage != null && !pImage.isDisposed())
         pImage.dispose();
       int xMax = bounds.width - 2;
-      int yMax = bounds.height - 5;
+      int yMax = bounds.height - 2 - 6;
       if (xMax < 10 || yMax < 5)
         return;
       pImage = new Image(display, bounds.width, bounds.height);
       GC gcImage = new GC(pImage);
       gcImage.setForeground(MainWindow.grey);
       gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
-      gcImage.drawLine(1,6,xMax-1,6);
+      gcImage.drawLine(1,6,xMax,6);
 
       int total = 0;
       if (pieces != null) {
