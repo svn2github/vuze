@@ -52,6 +52,8 @@ import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.category.Category;
 
 /**
  * @author Olivier
@@ -237,6 +239,9 @@ public class GlobalManagerImpl
     //Debug.dumpThreadsLoop("Active threads");
   	
   	LGLogger.initialise();
+  	
+  	// XXX: There's probably a better place to load categories!!
+  	CategoryManager.loadCategories();
   	
     stats = new GlobalManagerStatsImpl();
         
@@ -648,6 +653,9 @@ public class GlobalManagerImpl
 	          }
 	        }
           Long lPosition = (Long) mDownload.get("position");
+          String sCategory = null;
+          if (mDownload.containsKey("category"))
+            sCategory = new String((byte[]) mDownload.get("category"), Constants.DEFAULT_ENCODING);
           DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, state, true );
           dm.getStats().setMaxUploads(nbUploads);
           if (lPriority != null) {
@@ -676,6 +684,12 @@ public class GlobalManagerImpl
             dm.setPosition(lPosition.intValue());
           else if (dm.getStats().getCompleted() < 1000)
             dm.setPosition(numDownloading);
+            
+          if (sCategory != null) {
+            Category cat = CategoryManager.getCategory(sCategory);
+            if (cat != null) dm.setCategory(cat);
+          }
+
           this.addDownloadManager(dm, false);
 
           if(lForceStart != null) {
@@ -752,6 +766,9 @@ public class GlobalManagerImpl
 		      dmMap.put("priorityLocked", new Long(0));
 		      dmMap.put("startStopLocked", new Long(0));
 		      dmMap.put("stopped", new Long(1));
+		      Category category = dm.getCategory();
+		      if (category != null && category.getType() == Category.TYPE_USER)
+		        dmMap.put("category", category.getName());
 		      list.add(dmMap);
 	      }
 	    }

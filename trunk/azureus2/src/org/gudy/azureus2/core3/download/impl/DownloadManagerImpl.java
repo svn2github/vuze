@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.category.Category;
 
 import org.gudy.azureus2.core3.logging.*;
 
@@ -182,6 +183,9 @@ DownloadManagerImpl
   
 	// Position in Queue
 	private int position = -1;
+	
+	// Category the user assigned torrent to.
+	private Category category;
   
 	//Used when trackerConnection is not yet created.
 	// private String trackerUrl;
@@ -1187,6 +1191,29 @@ DownloadManagerImpl
   public void setPosition(int newPosition) {
   	position = newPosition;
   }
+
+	public Category getCategory() {
+	  return category;
+	}
+	
+	public void setCategory(Category cat) {
+	  LGLogger.log("SET "+ getName() + " Category = "+cat.getName()+";Type="+cat.getType());
+	  if (cat == category)
+	    return;
+	  if (cat != null && cat.getType() != Category.TYPE_USER)
+	    cat = null;
+
+	  Category oldCategory = category;
+	  category = cat;
+	  if (oldCategory != null) {
+	    if (oldCategory.getType() == Category.TYPE_USER)
+    	  oldCategory.removeManager(this);
+  	}
+  	if (category != null) {
+	    if (category.getType() == Category.TYPE_USER)
+    	  category.addManager(this);
+   	}
+	}
 
   public void
   addTrackerListener(

@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.category.Category;
 
 public interface
 DownloadManager
@@ -273,4 +274,8 @@ DownloadManager
 	 * @return the wealthy status of this download
 	 */
 	public int getHealthStatus();
+	
+	public Category getCategory();
+	
+	public void setCategory(Category cat);
 }

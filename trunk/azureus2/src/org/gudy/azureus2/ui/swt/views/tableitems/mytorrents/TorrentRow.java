@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
@@ -102,6 +103,7 @@ public class TorrentRow implements SortableItem {
         items.add(new MaxUploadsItem(TorrentRow.this,itemEnumerator.getPositionByName("maxuploads")));
         items.add(new TotalSpeedItem(TorrentRow.this,itemEnumerator.getPositionByName("totalspeed")));
         items.add(new SavePathItem(TorrentRow.this,itemEnumerator.getPositionByName("savepath")));
+        items.add(new CategoryItem(TorrentRow.this,itemEnumerator.getPositionByName("category")));
         view.setItem(row.getItem(),manager);
       }
     });
@@ -183,6 +185,11 @@ public class TorrentRow implements SortableItem {
   
     if (field.equals("savepath")) //$NON-NLS-1$
       return manager.getSavePath();
+  
+    if (field.equals("category")) {
+      Category cat = manager.getCategory();
+      return (cat == null) ? "" : cat.getName();
+    }
   
     return ""; //$NON-NLS-1$
   }
