@@ -32,7 +32,8 @@ public class UpdateLogger {
   public static void log(String value) {
     FileOutputStream fos = null;
     try {
-      File logFile = new File("updateSWT.log");
+      String userPath = System.getProperty("user.dir") + System.getProperty("file.separator");
+      File logFile = new File(userPath + "updateSWT.log");
       fos = new FileOutputStream(logFile,true);
       fos.write((value+"\n").getBytes());
       fos.close();

@@ -113,7 +113,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         
       } else {
         
-        String exec = "java -classpath \"" + classPath
+        String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
         + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT win32";
         
         LGLogger.log("SWT Updater is about to execute (win32) : " + exec);

@@ -52,9 +52,9 @@ public class UpdateSWT {
     try {
       
       UpdateLogger.log("user.dir="  + userDir);      
-      UpdateLogger.log("SWT Updater is waiting 3 sec");
+      UpdateLogger.log("SWT Updater is waiting 1 sec");
 
-      Thread.sleep(3000);
+      Thread.sleep(1000);
       
       String platform = args[0];
       
@@ -212,16 +212,23 @@ public class UpdateSWT {
     
   }
   
-  public static void restartWindows() throws IOException{            
+  public static void restartWindows() throws IOException{    
     String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$    
     String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String libraryPath = System.getProperty("java.library.path");
     String javaPath = System.getProperty("java.home")
                     + System.getProperty("file.separator")
                     + "bin"
                     + System.getProperty("file.separator");
     
     //String exec = "\"" + javaPath + "java\" -classpath \"" + classPath + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
-    String exec = "java -classpath \"" + classPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
+    //String exec = "\"" + javaPath + "java\" -classpath \"" + classPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
+    
+    String exec = javaPath + "java -classpath \"" + classPath
+    + "\" -Djava.library.path=\"" + libraryPath
+    + "\" -Duser.dir=\"" + userPath
+    + "\" org.gudy.azureus2.ui.swt.Main";
+    
     UpdateLogger.log("Restarting with command line (win32): " + exec);
 
     Process p = Runtime.getRuntime().exec(exec);
