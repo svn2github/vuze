@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 ---------
 
-xx.xx.04 | Azureus 2.1.0.0
+30.05.04 | Azureus 2.1.0.0
 
 FEATURE: Core | Ability to limit global download speed [Parg]
 FEATURE: Core | Added ability to automatically exclude files when making torrents (e.g. .DS_Store & Thumbs.db) [Parg]
@@ -29,6 +29,8 @@ FEATURE: UI   | Send text in My Torrents to clipboard [TuxPaper]
 FEATURE: UI   | When torrent data is missing, you can change directory via the context menu [TuxPaper]
 FEATURE: UI   | OSX : About and Preferences items are listed under 'Azureus' menu
 FEATURE: UI   | Added an option not to use units bigger than MB [Gudy]
+FEATURE: UI   | Option to show peer host names instead of IP address [Parg]
+FEATURE: UI   | Embedded tracker IP blocks shown in Blocked IPs List [Parg]
 FEATURE: WebUI| Web Plugin now can set upload rate [Parg]
 FEATURE: WebUI| Web Plugin support for uploading torrents [Parg]
 FEATURE: WebUI| Webui + xml/http "access" property support for IP range [Parg]
