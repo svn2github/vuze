@@ -193,11 +193,11 @@ CacheFileManagerImpl
 				
 				log	= true;
 				
-				long	old_cw	= cache_bytes_written;
+				long	old_free	= cache_space_free;
 			
 				oldest_file.flushCache( true, cache_minimum_free_size );
 				
-				LGLogger.log( "DiskCache: cache full, flushed " + ( cache_bytes_written - old_cw ) + " from " + oldest_file.getName());
+				LGLogger.log( "DiskCache: cache full, flushed " + ( cache_space_free - old_free ) + " from " + oldest_file.getName());
 			}
 		}
 		
