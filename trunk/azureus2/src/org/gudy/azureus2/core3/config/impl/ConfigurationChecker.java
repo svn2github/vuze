@@ -24,11 +24,12 @@ package org.gudy.azureus2.core3.config.impl;
 
 import java.util.HashMap;
 import java.io.File;
+import java.net.URI;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
-
+import org.gudy.azureus2.core3.logging.LGLogger;
 
 /**
  * 
@@ -249,6 +250,9 @@ public class ConfigurationChecker {
       return;
     }
     
+    String successes = "";
+    String failures = "";
+    
     String[] fileNames = { "categories.config", "azureus.config",
         "downloads.config", "filters.config", ".certs", ".keystore",
         "azureus.statistics", "tracker.log", "tracker.config",
@@ -259,10 +263,13 @@ public class ConfigurationChecker {
       File oldFile = FileUtil.getApplicationFile( fileNames[i] );
       if ( oldFile.exists() ) {
         File newFile = FileUtil.getUserFile( fileNames[i] );
-        System.out.print("Migrating " + oldFile.getAbsolutePath() + " to " + newFile.getAbsolutePath());
         boolean result = oldFile.renameTo(newFile);
-        if (result) System.out.println(" ...SUCCESS");
-        else System.out.println(" ...FAILED");
+        if (result) {
+          successes += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : OK\n";
+        }
+        else {
+          failures += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : FAILED\n\n";
+        }
       }
     }
     
@@ -271,15 +278,22 @@ public class ConfigurationChecker {
     File oldLinuxAndWebStartDir = new File( oldLinuxAndWebStartPath );
     if ( oldLinuxAndWebStartDir.exists() ) {
       File newDir = new File( SystemProperties.getUserPath());
-      System.out.print("Migrating " + oldLinuxAndWebStartDir.getAbsolutePath() + " to " + newDir.getAbsolutePath());
       boolean result = oldLinuxAndWebStartDir.renameTo(newDir);
-      if (result) System.out.println(" ...SUCCESS");
-      else System.out.println(" ...FAILED");
+      if (result) {
+        successes += oldLinuxAndWebStartDir.toURI().getPath() + "\n---> " + newDir.toURI().getPath() + " : OK\n";
+      }
+      else {
+        failures += oldLinuxAndWebStartDir.toURI().getPath() + "\n---> " + newDir.toURI().getPath() + " : FAILED\n\n";
+      }
     }
     
     ConfigurationManager.getInstance().load();
-    COConfigurationManager.setParameter("Already_Migrated",true);
+    COConfigurationManager.setParameter("Already_Migrated", true);
     
+    if (successes.length() > 1 || failures.length() > 1) {
+    	String[] params = { successes, failures };
+    	LGLogger.logAlertUsingResource(LGLogger.INFORMATION, "AutoMigration.useralert", params);
+    }
   }
   
   
