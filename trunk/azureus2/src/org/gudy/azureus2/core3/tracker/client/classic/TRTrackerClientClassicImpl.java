@@ -1512,6 +1512,7 @@ TRTrackerClientClassicImpl
 								port_copy >>= 8;
 							}
 							
+              //System.out.println("COMPACT PEER: ip=" +ip+ " port=" +port);
 							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));							
 				    	}
 				    }
