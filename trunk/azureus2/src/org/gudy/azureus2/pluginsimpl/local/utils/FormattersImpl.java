@@ -111,4 +111,18 @@ FormattersImpl
 	{
 		return( BDecoder.decode( data ));
 	}	
+	
+	public String
+	base32Encode(
+		byte[]		data )
+	{
+		return( Base32.encode( data ));
+	}
+	
+	public byte[]
+	base32Decode(
+		String		data )
+	{
+		return( Base32.decode( data ));
+	}
 }

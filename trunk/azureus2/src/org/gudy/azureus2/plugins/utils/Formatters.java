@@ -75,4 +75,12 @@ Formatters
 		byte[]	data )
 	
 		throws IOException;
+	
+	public String
+	base32Encode(
+		byte[]		data );
+	
+	public byte[]
+	base32Decode(
+		String		data );
 }
