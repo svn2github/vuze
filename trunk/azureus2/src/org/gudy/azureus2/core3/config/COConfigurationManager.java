@@ -124,4 +124,18 @@ COConfigurationManager
 	{
 		ConfigurationManager.getInstance().save();
 	}
+	
+	public static void
+	addListener(
+		COConfigurationListener		listener )
+	{
+		ConfigurationManager.getInstance().addListener( listener );
+	}
+	
+	public static void
+	removeListener(
+		COConfigurationListener		listener )
+	{
+		ConfigurationManager.getInstance().removeListener( listener );
+	}
 }

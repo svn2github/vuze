@@ -84,6 +84,11 @@ public class ConfigView extends AbstractIView {
       900,
       1000 };
 
+  private static final int statsPeriods[] =
+	  {
+	  	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50, 60, 120, 180, 240, 360, 720, 1440,
+	  };
+
   IpFilter filter;
 
   Composite cConfig;
@@ -115,7 +120,8 @@ public class ConfigView extends AbstractIView {
     initGroupTransfer();
     initGroupDisplay();
     initGroupIrc();
-    initGroupFilter();
+	initGroupFilter();
+	initStats();
     
     initSaveButton(); 
        
@@ -668,6 +674,77 @@ public class ConfigView extends AbstractIView {
     itemFile.setControl(gFile);
     return itemFile;
   }
+  
+  private void initStats() {
+	 GridData gridData;
+	 GridLayout layout;
+	 Label label;
+	 CTabItem itemStats = new CTabItem(ctfConfig, SWT.NULL);
+	 Messages.setLanguageText(itemStats, "ConfigView.section.stats"); //$NON-NLS-1$
+
+	 Group gStats = new Group(ctfConfig, SWT.NULL);
+	 gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+	 gStats.setLayoutData(gridData);
+	 layout = new GridLayout();
+	 layout.numColumns = 3;
+	 gStats.setLayout(layout);
+
+	 label = new Label(gStats, SWT.NULL);
+	 Messages.setLanguageText(label, "ConfigView.section.stats.enable"); //$NON-NLS-1$
+	 new BooleanParameter(gStats, "Stats Enable", false); //$NON-NLS-1$
+
+	label = new Label(gStats, SWT.NULL);
+
+	label = new Label(gStats, SWT.NULL);
+	Messages.setLanguageText(label, "ConfigView.section.stats.defaultsavepath"); //$NON-NLS-1$
+
+	gridData = new GridData();
+	gridData.widthHint = 150;
+	final StringParameter pathParameter = new StringParameter(gStats, "Stats Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
+	pathParameter.setLayoutData(gridData);
+	Button browse = new Button(gStats, SWT.PUSH);
+	Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
+	browse.addListener(SWT.Selection, new Listener() {
+	  /* (non-Javadoc)
+	   * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+	   */
+	  public void handleEvent(Event event) {
+		DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+		dialog.setFilterPath(pathParameter.getValue());
+		dialog.setText(MessageText.getString("ConfigView.section.stats.choosedefaultsavepath")); //$NON-NLS-1$
+		String path = dialog.open();
+		if (path != null) {
+		  pathParameter.setValue(path);
+		}
+	  }
+	});
+
+
+	label = new Label(gStats, SWT.NULL);
+	Messages.setLanguageText(label, "ConfigView.section.stats.savefreq"); 
+	final String spLabels[] = new String[statsPeriods.length];
+	final int spValues[] = new int[statsPeriods.length];
+	for (int i = 0; i < statsPeriods.length; i++) {
+		int	num = statsPeriods[i];
+		
+		if ( num%60 ==0 ){
+	
+			spLabels[i] = " " + (statsPeriods[i]/60) + " " + MessageText.getString("ConfigView.section.stats.hours" );
+		
+		}else{
+	
+			spLabels[i] = " " + statsPeriods[i] + " " + MessageText.getString("ConfigView.section.stats.minutes" );
+		}
+		
+		spValues[i] = statsPeriods[i];
+	}
+	new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues);  
+
+
+
+	 itemStats.setControl(gStats);
+
+   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()

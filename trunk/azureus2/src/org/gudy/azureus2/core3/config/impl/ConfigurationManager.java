@@ -14,8 +14,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * A singleton used to store configuration into a bencoded file.
@@ -28,6 +30,8 @@ public class ConfigurationManager {
   private static ConfigurationManager config;
   
   private Map propertiesMap;
+  
+  private Vector	listeners = new Vector();
   
   private ConfigurationManager() {
     load();
@@ -97,6 +101,14 @@ public class ConfigurationManager {
           fos.close();
       } catch (Exception e) {
       }
+    }
+    
+    synchronized( this  ){
+    	
+    	for (int i=0;i<listeners.size();i++){
+    		
+    		((COConfigurationListener)listeners.elementAt(i)).configurationSaved();
+    	}
     }
   }
   
@@ -222,4 +234,17 @@ public class ConfigurationManager {
     }
   }
   
+  public synchronized void
+  addListener(
+	  COConfigurationListener		listener )
+  {
+	 listeners.addElement( listener ); 
+  }
+	
+  public synchronized void
+  removeListener(
+	  COConfigurationListener		listener )
+  {
+	listeners.removeElement( listener );
+  }
 }

@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -62,6 +63,7 @@ public class GlobalManagerImpl
   private Checker checker;
   private GlobalManagerStatsImpl	stats;
   private TRTrackerScraper 			trackerScraper;
+  private StatsWriter				stats_writer;
   private boolean 					isStopped = false;
 
   public class Checker extends Thread {
@@ -256,6 +258,10 @@ public class GlobalManagerImpl
     loadDownloads();
     checker = new Checker();
     checker.start();
+    
+    stats_writer = StatsWriterFactory.create( this );
+    
+    stats_writer.start();
   }
 
   public boolean addDownloadManager(String fileName, String savePath) {
@@ -371,6 +377,8 @@ public class GlobalManagerImpl
         manager.stopIt();
       }
       isStopped = true;
+      
+      stats_writer.stop();
     }
   }
 
