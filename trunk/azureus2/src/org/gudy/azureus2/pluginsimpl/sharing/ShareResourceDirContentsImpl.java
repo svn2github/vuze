@@ -27,7 +27,7 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  */
 
 import java.io.File;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
 
@@ -38,6 +38,8 @@ ShareResourceDirContentsImpl
 {
 	protected File		root;
 	protected boolean	recursive;
+	
+	protected ShareResource[]		children;
 	
 	protected
 	ShareResourceDirContentsImpl(
@@ -99,13 +101,19 @@ ShareResourceDirContentsImpl
 	{
 		// ensure all shares are defined as per dir contents and recursion flag
 		
-		checkConsistency(root);
+		List	kids = checkConsistency(root);
+		
+		children = new ShareResource[kids.size()];
+		
+		kids.toArray( children );
 	}
 	
-	protected void
+	protected List
 	checkConsistency(
 		File		dir )
 	{
+		List	kids = new ArrayList();
+		
 		File[]	files = dir.listFiles();
 		
 		for (int i=0;i<files.length;i++){
@@ -120,15 +128,22 @@ ShareResourceDirContentsImpl
 					
 					if ( recursive ){
 						
-						checkConsistency( file );
+						List	child = checkConsistency( file );
+						
+						kids.add( new shareNode( file, child ));
 						
 					}else{
 						
 						try{
-							if ( manager.getDir( file ) == null ){
+							ShareResource res = manager.getDir( file );
 							
-								manager.addDir( file );
+							if ( res == null ){
+							
+								res = manager.addDir( file );
 							}
+							
+							kids.add( res );
+							
 						}catch( ShareException e ){
 							
 							e.printStackTrace();
@@ -137,17 +152,24 @@ ShareResourceDirContentsImpl
 				}else{
 	
 					try{
-						if ( manager.getFile( file ) == null ){
+						ShareResource res = manager.getFile( file );
+						
+						if ( res == null ){
 							
-							manager.addFile( file );
+							res = manager.addFile( file );
 						}
+						
+						kids.add( res );
+						
 					}catch( ShareException e ){
 						
 						e.printStackTrace();
 					}
 				}
 			}
-		}		
+		}
+		
+		return( kids );
 	}
 	
 	protected void
@@ -160,6 +182,8 @@ ShareResourceDirContentsImpl
 	serialiseResource(
 		Map		map )
 	{
+		map.put( "type", new Long(getType()));
+		
 		map.put( "recursive", new Long(recursive?1:0));
 		
 		map.put( "file", root.toString());
@@ -196,56 +220,68 @@ ShareResourceDirContentsImpl
 	{
 		return( recursive );
 	}
-	
-	
-	public ShareItem[]
-	getItems()
-	{
-		return( null ); // TODO:
 		
-	}
-	
-	public ShareResourceDirContents[]
-	getSubShares()
+	public ShareResource[]
+	getChildren()
 	{
-		return( null ); // TODO:
+		return( children );
 	}
 	
-	public int
-	compareTo(
-			Object	other )
-	{		
-		if ( other instanceof ShareResourceDirContentsImpl ){
+	protected class
+	shareNode
+		implements ShareResourceDirContents
+	{
+		protected File				node;
+		protected ShareResource[]	children;
+		
+		protected
+		shareNode(
+			File		_node,
+			List		kids )
+		{
+			node	=_node;
 			
-			int res = root.compareTo(((ShareResourceDirContentsImpl)other).getRoot());
+			children = new ShareResource[kids.size()];
 			
-			return( res );
-			
-		}else{
-			
-			return( 1 );
+			kids.toArray( children );
 		}
-	}
-	
-	public boolean
-	equals(
-			Object	other )
-	{
-		if ( other instanceof ShareResourceDirContentsImpl ){
+		
+		public int
+		getType()
+		{
+			return( ShareResource.ST_DIR_CONTENTS );
+		}
+		
+		public String
+		getName()
+		{
+			return( node.toString());
+		}
+		
+		public void
+		delete()
+		
+			throws ShareException
+		{
+			throw( new ShareException( "ShareResourceDirContents: can't delete sub-share" ));
+		}
+		
+		public File
+		getRoot()
+		{
+			return( node );
+		}
 			
-			boolean res = root.equals(((ShareResourceDirContentsImpl)other).getRoot());
+		public boolean
+		isRecursive()
+		{
+			return( recursive );
+		}
 			
-			return( res );
-			
-		}else{
-			
-			return( false );
-		}		
-	}
-	
-	public int
-	hashCode()
-	{
-		return( root.hashCode());
+		public ShareResource[]
+		getChildren()
+		{
+			return( children );
+		}
 	}
 }

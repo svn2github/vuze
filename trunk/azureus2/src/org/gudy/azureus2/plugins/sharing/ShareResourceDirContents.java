@@ -37,10 +37,7 @@ ShareResourceDirContents
 	
 	public boolean
 	isRecursive();
-	
-	public ShareItem[]
-	getItems();
-	
-	public ShareResourceDirContents[]
-	getSubShares();
+		
+	public ShareResource[]
+	getChildren();
 }

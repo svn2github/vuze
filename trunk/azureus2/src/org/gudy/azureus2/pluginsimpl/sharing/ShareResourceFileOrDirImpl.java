@@ -236,42 +236,4 @@ ShareResourceFileOrDirImpl
 	{
 		return( item );
 	}
-	
-	public int
-	compareTo(
-		Object	other )
-	{		
-		if ( other instanceof ShareResourceFileOrDirImpl ){
-			
-			int res = file.compareTo(((ShareResourceFileOrDirImpl)other).getFile());
-						
-			return( res );
-					
-		}else{
-			
-			return( 1 );
-		}
-	}
-	
-	public boolean
-	equals(
-		Object	other )
-	{
-		if ( other instanceof ShareResourceFileOrDirImpl ){
-			
-			boolean res = file.equals(((ShareResourceFileOrDirImpl)other).getFile());
-			
-			return( res );
-			
-		}else{
-			
-			return( false );
-		}		
-	}
-	
-	public int
-	hashCode()
-	{
-		return( file.hashCode());
-	}
 }

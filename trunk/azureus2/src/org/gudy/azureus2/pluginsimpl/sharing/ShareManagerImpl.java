@@ -122,6 +122,28 @@ ShareManagerImpl
 				
 			}finally{
 			
+				Iterator it = shares.values().iterator();
+				
+				while(it.hasNext()){
+				
+					ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+					
+					if ( resource.getType() == ShareResource.ST_DIR_CONTENTS ){
+			
+						for (int i=0;i<listeners.size();i++){
+							
+							try{
+								
+								((ShareManagerListener)listeners.get(i)).resourceAdded( resource );
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+				
 				config.resumeSaving();
 			}
 		}
@@ -135,7 +157,7 @@ ShareManagerImpl
 		try{
 			reportCurrentTask( "Consistency Check Starts");	
 		
-			Iterator	it = new HashSet(shares.keySet()).iterator();
+			Iterator	it = new HashSet(shares.values()).iterator();
 			
 			while(it.hasNext()){
 				
@@ -170,24 +192,30 @@ ShareManagerImpl
 			
 			if ( new_resource != null ){
 				
-				ShareResource	old_resource = (ShareResource)shares.get(new_resource);
+				ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
 				
 				if ( old_resource != null ){
 					
 					old_resource.delete();
 				}
 				
-				shares.put( new_resource, new_resource );
+				shares.put( new_resource.getName(), new_resource );
 				
-				for (int i=0;i<listeners.size();i++){
+					// we delay the reporting of dir_contents until all recovery is complete so that
+					// the resource reported is initialised correctly
+				
+				if ( type != ShareResource.ST_DIR_CONTENTS ){
 					
-					try{
-					
-						((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );
+					for (int i=0;i<listeners.size();i++){
 						
-					}catch( Throwable e ){
-					
-						e.printStackTrace();
+						try{
+						
+							((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );
+							
+						}catch( Throwable e ){
+						
+							e.printStackTrace();
+						}
 					}
 				}
 			}
@@ -297,16 +325,16 @@ ShareManagerImpl
 	{
 		ShareResource[]	res = new ShareResource[shares.size()];
 		
-		shares.keySet().toArray( res );
+		shares.values().toArray( res );
 		
 		return( res );
 	}
 	
 	protected ShareResourceImpl
 	getResource(
-		Object		key )
+		File		file )
 	{
-		return((ShareResourceImpl)shares.get(key));
+		return((ShareResourceImpl)shares.get(file.toString()));
 	}
 	
 	public ShareResourceFile
@@ -368,14 +396,14 @@ ShareManagerImpl
 			new_resource = new ShareResourceDirImpl( this, file );
 		}
 		
-		ShareResource	old_resource = (ShareResource)shares.get(new_resource);
+		ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
 				
 		if ( old_resource != null ){
 			
 			old_resource.delete();
 		}
 		
-		shares.put( new_resource, new_resource );
+		shares.put( new_resource.getName(), new_resource );
 		
 		config.saveConfig();
 		
@@ -409,7 +437,35 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		return( new ShareResourceDirContentsImpl( this, dir, recursive ));
+		reportCurrentTask( "Adding dir contents '" + dir.toString() + "'");
+		
+		ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive );
+
+		ShareResource	old_resource = (ShareResource)shares.get(new_resource.getName());
+		
+		shares.put( new_resource.getName(), new_resource );
+		
+		config.saveConfig();
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				
+				if ( old_resource != null ){
+					
+					((ShareManagerListener)listeners.get(i)).resourceModified( new_resource );
+					
+				}else{
+					
+					((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );				
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( new_resource );
 	}	
 	
 	protected synchronized void
@@ -418,7 +474,7 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		shares.remove(resource);
+		shares.remove(resource.getName());
 		
 		resource.deleteInternal();
 		

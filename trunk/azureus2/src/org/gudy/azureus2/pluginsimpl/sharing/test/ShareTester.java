@@ -99,7 +99,7 @@ ShareTester
 			
 			sm.initialise();
 			
-			ShareResourceDirContents res = sm.addDirContents( new File("C:\\temp\\shares\\contents"), true);
+			// ShareResourceDirContents res = sm.addDirContents( new File("D:\\music\\cd1"), false);
 			
 			//Torrent t = res.getItem().getTorrent();
 			
@@ -120,6 +120,18 @@ ShareTester
 		ShareResource		resource )
 	{
 		System.out.println( "resource added:" + resource.getName());
+		
+		if ( resource.getType() == ShareResource.ST_DIR_CONTENTS ){
+			
+			ShareResourceDirContents c = (ShareResourceDirContents)resource;
+			
+			ShareResource[]	kids = c.getChildren();
+			
+			for (int i=0;i<kids.length;i++){
+				
+				System.out.println( "\t" + kids[i].getName());
+			}
+		}
 	}
 	
 	public void

@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 
 public abstract class 
 ShareResourceImpl
-	implements ShareResource, Comparable
+	implements ShareResource
 {
 	protected static Md5Hasher	hasher = new Md5Hasher();
 	
