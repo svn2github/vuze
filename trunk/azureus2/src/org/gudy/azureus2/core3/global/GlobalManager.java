@@ -33,7 +33,12 @@ GlobalManager
 	addDownloadManager(
 		String			file_name,
 		String			save_path );
-	
+
+  public boolean
+  addDownloadManagerStopped(
+    String fileName,
+    String savePath);
+  
 	public void
 	removeDownloadManager(
 		DownloadManager	dm );

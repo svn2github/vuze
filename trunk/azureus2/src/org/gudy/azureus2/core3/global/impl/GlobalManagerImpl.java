@@ -345,8 +345,15 @@ public class GlobalManagerImpl
     stats_writer.start();
   }
 
-  public boolean addDownloadManager(String fileName, String savePath) 
-  {
+  public boolean addDownloadManagerStopped(String fileName, String savePath) {
+    if(addDownloadManager(fileName, savePath)) {
+      ((DownloadManager)managers.get(managers.size()-1)).setState(DownloadManager.STATE_STOPPED);
+      return true;
+    }
+    return false;
+  }
+
+  public boolean addDownloadManager(String fileName, String savePath) {
 	File torrentDir	= null;
 	File fDest		= null;
 	

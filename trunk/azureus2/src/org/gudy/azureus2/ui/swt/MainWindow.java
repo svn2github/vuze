@@ -34,6 +34,7 @@ import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -70,26 +71,25 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Widget;
-import org.gudy.azureus2.ui.swt.config.ParameterListener;
-import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
-import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
-import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
-import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
-import org.gudy.azureus2.ui.swt.views.*;
-import org.gudy.azureus2.ui.systray.SystemTray;
-
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
-import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.impl.PluginInitializer;
+import org.gudy.azureus2.ui.swt.config.ParameterListener;
+import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
+import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
+import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
+import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.systray.SystemTray;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -214,30 +214,30 @@ public class MainWindow implements GlobalManagerListener {
 
             statusDown.setText("D: " + DisplayFormatters.formatByteCountToKBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
             statusUp.setText("U: " + DisplayFormatters.formatByteCountToKBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
-          }
+					}
+
           if (!mainWindow.isDisposed()) {            
-            try {
-              if(mytorrents != null)
+            if (mytorrents != null) {
+              try {
                 viewMyTorrents = Tab.getView(mytorrents.getTabItem());
-             }
-            catch (Exception e) {
-              viewMyTorrents = null;
+              } catch (Exception e) {
+                viewMyTorrents = null;
+              }
+              if (viewMyTorrents != null && viewMyTorrents != view) {
+                viewMyTorrents.refresh();
+              }
             }
-            if (viewMyTorrents != null && viewMyTorrents != view) {
-              viewMyTorrents.refresh();
+
+            if (my_tracker_tab != null) {
+              try {
+                my_tracker_view = Tab.getView(my_tracker_tab.getTabItem());
+              } catch (Exception e) {
+                my_tracker_view = null;
+              }
+              if (my_tracker_view != null && my_tracker_view != view) {
+                my_tracker_view.refresh();
+              }
             }
-            
-			try {
-			   if(my_tracker_tab != null)
-				 my_tracker_view = Tab.getView(my_tracker_tab.getTabItem());
-			}
-			 catch (Exception e) {
-			   my_tracker_view = null;
-			 }
-			 if (my_tracker_view != null && my_tracker_view != view) {
-				my_tracker_view.refresh();
-			 }
-          
           }
           if (trayIcon != null)
             trayIcon.refresh();
@@ -836,35 +836,26 @@ public class MainWindow implements GlobalManagerListener {
     }
   }
 
-  public void
-	showMyTracker()
-	{
-		if (my_tracker_tab == null){
-			
-		  if( my_tracker_view == null){
-		  	
-			my_tracker_view = new MyTrackerView(globalManager);
-		  }	
-	 
-		  my_tracker_tab = new Tab(my_tracker_view);
-		 
-		}else{
-			my_tracker_tab.setFocus(); 
-		}
-	}
-	
-	public void
-	showMyTorrents()
-	{	
-	if (mytorrents == null) {
-	  if(viewMyTorrents == null)
-		mytorrents = new Tab(new MyTorrentsView(globalManager));
-	  else
-		mytorrents = new Tab(viewMyTorrents);
-	}          
-	else
-	  mytorrents.setFocus();
-	}
+  public void showMyTracker() {
+    if (my_tracker_tab == null) {
+      if (my_tracker_view == null) {
+        my_tracker_view = new MyTrackerView(globalManager);
+      }
+      my_tracker_tab = new Tab(my_tracker_view);
+    } else {
+      my_tracker_tab.setFocus();
+    }
+  }
+
+  public void showMyTorrents() {
+    if (mytorrents == null) {
+      if (viewMyTorrents == null)
+        mytorrents = new Tab(new MyTorrentsView(globalManager));
+      else
+        mytorrents = new Tab(viewMyTorrents);
+    } else
+      mytorrents.setFocus();
+  }
 	
   private void minimizeToTray(ShellEvent event) {
     //Added this test so that we can call this method will null parameter.
@@ -1531,23 +1522,28 @@ public class MainWindow implements GlobalManagerListener {
 
   private void createDropTarget(final Control control) {
     DropTarget dropTarget = new DropTarget(control, DND.DROP_MOVE | DND.DROP_COPY);
-    dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance()});
+    dropTarget.setTransfer(new Transfer[] {FileTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
       public void drop(DropTargetEvent event) {
-        final String[] sourceNames = (String[]) event.data;
-        if (sourceNames == null)
-          event.detail = DND.DROP_NONE;
-        if (event.detail == DND.DROP_NONE)
-          return;
-        for (int i = 0;(i < sourceNames.length); i++) {
-          final File source = new File(sourceNames[i]);
-          if (source.isFile())
-            openTorrent(source.getAbsolutePath());
-          else if (source.isDirectory())
-            openTorrentsFromDirectory(source.getAbsolutePath());
-        }
+        openDroppedTorrents(event);
       }
     });
+  }
+
+  public void openDroppedTorrents(DropTargetEvent event) {
+    final String[] sourceNames = (String[]) event.data;
+    if (sourceNames == null)
+      event.detail = DND.DROP_NONE;
+    if (event.detail == DND.DROP_NONE)
+      return;
+    boolean startInStoppedState = event.detail == DND.DROP_COPY;
+    for (int i = 0;(i < sourceNames.length); i++) {
+      final File source = new File(sourceNames[i]);
+      if (source.isFile())
+        openTorrent(source.getAbsolutePath(), startInStoppedState);
+      else if (source.isDirectory())
+        openTorrentsFromDirectory(source.getAbsolutePath(), startInStoppedState);
+    }
   }
 
   public void waitForClose() {
@@ -1766,29 +1762,35 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   public void openTorrent(final String fileName) {
+    openTorrent(fileName, false);
+  }
+
+  public void openTorrent(final String fileName, final boolean startInStoppedState) {
     try {
-      if (!FileUtil.isTorrentFile(fileName))//$NON-NLS-1$
+      if (!FileUtil.isTorrentFile(fileName)) //$NON-NLS-1$
         return;
     } catch (Exception e) {
       return;
-    }  
+    }
 
-	display.asyncExec(new Runnable() {
-		 public void run()
-		 {
-			mainWindow.setActive();
+    display.asyncExec(new Runnable() {
+      public void run() {
+        mainWindow.setActive();
 
-    		new Thread()
-    			{    
- 			      public void run() {
-        			String savePath = getSavePath(fileName);
-        			if (savePath == null)
-          				return;
-        			globalManager.addDownloadManager(fileName, savePath);
-      			}
-    		}.start();
-		 }
-	});
+        new Thread() {
+          public void run() {
+            String savePath = getSavePath(fileName);
+            if (savePath == null)
+              return;
+            if(startInStoppedState)
+              globalManager.addDownloadManagerStopped(fileName, savePath);
+            else
+              globalManager.addDownloadManager(fileName, savePath);
+}
+        }
+        .start();
+      }
+    });
   }
 
   public String getSavePath(String fileName) {
@@ -1906,6 +1908,10 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   public void openTorrentsFromDirectory(String directoryName) {
+    openTorrentsFromDirectory(directoryName, false);
+  }
+
+  public void openTorrentsFromDirectory(String directoryName, final boolean startInStoppedState) {
     File f = new File(directoryName);
     if (!f.isDirectory())
       return;
@@ -1920,30 +1926,30 @@ public class MainWindow implements GlobalManagerListener {
     });
     if (files.length == 0)
       return;
-    DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
 
-	if ( COConfigurationManager.getBooleanParameter( "Use default data dir", true )){
-		
-		String	default_path = COConfigurationManager.getStringParameter( "Default save path", "" );
-	
-		if ( default_path.length() > 0 ){
-			
-			dDialog.setFilterPath( default_path );	
-		}
-	}
-	
+    DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
+    if (COConfigurationManager.getBooleanParameter("Use default data dir", true)) {
+      String default_path = COConfigurationManager.getStringParameter("Default save path", "");
+      if (default_path.length() > 0) {
+        dDialog.setFilterPath(default_path);
+      }
+    }
+
     dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
     final String savePath = dDialog.open();
     if (savePath == null)
       return;
-      
-	new Thread(){
-	  public void run() 
-	  {
-    	for (int i = 0; i < files.length; i++)
-      		globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath);
-	  }
-	}.start();
+
+    new Thread() {
+      public void run() {
+        for (int i = 0; i < files.length; i++)
+          if (startInStoppedState)
+            globalManager.addDownloadManagerStopped(files[i].getAbsolutePath(), savePath);
+          else
+            globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath);
+      }
+    }
+    .start();
   }
 
   /**
