@@ -65,7 +65,7 @@ public class FilesView implements IView {
     table = new Table(composite, SWT.SINGLE | SWT.FULL_SELECTION);
     table.setLinesVisible(false);
     table.setHeaderVisible(true);
-    String[] titles = { "Name", "Size", "Done", "%", "First piece #", "# of pieces", "Pieces", "Mode", "Priority" };
+    String[] titles = { Messages.getString("FilesView.name"), Messages.getString("FilesView.size"), Messages.getString("FilesView.done"), "%", Messages.getString("FilesView.firstpiece"), Messages.getString("FilesView.numberofpieces"), Messages.getString("FilesView.pieces"), Messages.getString("FilesView.mode"), Messages.getString("FilesView.priority") }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$
     int[] align = { SWT.LEFT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.CENTER, SWT.LEFT, SWT.LEFT };
     for (int i = 0; i < titles.length; i++) {
       TableColumn column = new TableColumn(table, align[i]);
@@ -81,26 +81,26 @@ public class FilesView implements IView {
     table.getColumn(7).setWidth(60);
     table.getColumn(8).setWidth(70);
 
-    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name"));
-    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("size"));
-    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("done"));
-    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("percent"));
-    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("fp"));
-    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("nbp"));
-    table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("percent"));
-    table.getColumn(7).addListener(SWT.Selection, new IntColumnListener("mode"));
+    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$
+    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("size")); //$NON-NLS-1$
+    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
+    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("percent")); //$NON-NLS-1$
+    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("fp")); //$NON-NLS-1$
+    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("nbp")); //$NON-NLS-1$
+    table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("percent")); //$NON-NLS-1$
+    table.getColumn(7).addListener(SWT.Selection, new IntColumnListener("mode")); //$NON-NLS-1$
 
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-    itemOpen.setText("Open");
+    itemOpen.setText(Messages.getString("FilesView.menu.open")); //$NON-NLS-1$
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
-    itemPriority.setText("Set Priority");
+    itemPriority.setText(Messages.getString("FilesView.menu.setpriority")); //$NON-NLS-1$
     final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
-    itemHigh.setText("High");
+    itemHigh.setText(Messages.getString("FilesView.menu.setpriority.high")); //$NON-NLS-1$
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
-    itemLow.setText("Normal");
+    itemLow.setText(Messages.getString("FilesView.menu.setpriority.normal")); //$NON-NLS-1$
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
@@ -230,34 +230,34 @@ public class FilesView implements IView {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return "Files";
+    return Messages.getString("FilesView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return "Files";
+    return Messages.getString("FilesView.title.full"); //$NON-NLS-1$
   }
 
   //Sorting
 
   private String getStringField(FileInfo fileInfo, String field) {
-    if (field.equals("name"))
+    if (field.equals("name")) //$NON-NLS-1$
       return fileInfo.getName();
 
-    return "";
+    return ""; //$NON-NLS-1$
   }
 
   private long getIntField(FileInfo fileInfo, String field) {
 
-    if (field.equals("size"))
+    if (field.equals("size")) //$NON-NLS-1$
       return fileInfo.getLength();
 
-    if (field.equals("done"))
+    if (field.equals("done")) //$NON-NLS-1$
       return fileInfo.getDownloaded();
 
-    if (field.equals("percent")) {
+    if (field.equals("percent")) { //$NON-NLS-1$
       long percent = 0;
       if (fileInfo.getLength() > 0) {
         percent = (1000 * fileInfo.getDownloaded()) / fileInfo.getLength();
@@ -265,20 +265,20 @@ public class FilesView implements IView {
       return percent;
     }
 
-    if (field.equals("fp"))
+    if (field.equals("fp")) //$NON-NLS-1$
       return fileInfo.getFirstPieceNumber();
 
-    if (field.equals("nbp"))
+    if (field.equals("nbp")) //$NON-NLS-1$
       return fileInfo.getNbPieces();
 
-    if (field.equals("mode"))
+    if (field.equals("mode")) //$NON-NLS-1$
       return fileInfo.getAccessmode();
 
     return 0;
   }
 
   private boolean ascending = false;
-  private String lastField = "";
+  private String lastField = ""; //$NON-NLS-1$
 
   private void orderInt(String field) {
     if (lastField.equals(field))

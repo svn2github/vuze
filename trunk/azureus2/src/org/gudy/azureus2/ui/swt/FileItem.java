@@ -51,7 +51,7 @@ public class FileItem {
     valid = false;
     oldTexts = new String[table.getColumnCount()];
     for (int i = 0; i < oldTexts.length; i++)
-      oldTexts[i] = "";
+      oldTexts[i] = ""; //$NON-NLS-1$
     item = new TableItem(table, SWT.NULL);
   }
 
@@ -85,40 +85,40 @@ public class FileItem {
     int percent = 1000;
     if (fileInfo.getLength() > 0)
       percent = (int) ((fileInfo.getDownloaded() * 1000) / fileInfo.getLength());
-    tmp = (percent / 10) + "." + (percent % 10) + " %";
+    tmp = (percent / 10) + "." + (percent % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
     if (!oldTexts[3].equals(tmp)) {
       oldTexts[3] = tmp;
       item.setText(3, tmp);
     }
 
-    tmp = "" + fileInfo.getFirstPieceNumber();
+    tmp = "" + fileInfo.getFirstPieceNumber(); //$NON-NLS-1$
     if (!oldTexts[4].equals(tmp)) {
       oldTexts[4] = tmp;
       item.setText(4, tmp);
     }
 
-    tmp = "" + fileInfo.getNbPieces();
+    tmp = "" + fileInfo.getNbPieces(); //$NON-NLS-1$
     if (!oldTexts[5].equals(tmp)) {
       oldTexts[5] = tmp;
       item.setText(5, tmp);
     }
 
-    tmp = "read";
+    tmp = Messages.getString("FileItem.read"); //$NON-NLS-1$
     if (fileInfo.getAccessmode() == FileInfo.WRITE)
-      tmp = "write";
+      tmp = Messages.getString("FileItem.write"); //$NON-NLS-1$
     if (!oldTexts[7].equals(tmp)) {
       oldTexts[7] = tmp;
       item.setText(7, tmp);
-      if(tmp.equals("read")) {
+      if(tmp.equals(Messages.getString("FileItem.read"))) { //$NON-NLS-1$
         item.setForeground(blues[4]);
       } else {
         item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
       }
     }
     
-    tmp = "normal";
+    tmp = Messages.getString("FileItem.normal"); //$NON-NLS-1$
     if (fileInfo.isPriority())
-      tmp = "high";
+      tmp = Messages.getString("FileItem.high"); //$NON-NLS-1$
     if (!oldTexts[8].equals(tmp)) {
           oldTexts[8] = tmp;
           item.setText(8, tmp);

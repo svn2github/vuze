@@ -71,14 +71,14 @@ public class ConsoleView implements IView, ILoggerListener {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return "Console";
+    return Messages.getString("ConsoleView.title.short"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    return "Console";
+    return Messages.getString("ConsoleView.title.full"); //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
@@ -105,12 +105,12 @@ public class ConsoleView implements IView, ILoggerListener {
         boolean autoScroll = sb.getSelection() == (sb.getMaximum() - sb.getThumb());
         int nbLines = consoleText.getLineCount();
         if (nbLines > 4096 + 256)
-          consoleText.replaceTextRange(0, consoleText.getOffsetAtLine(256), "");
+          consoleText.replaceTextRange(0, consoleText.getOffsetAtLine(256), ""); //$NON-NLS-1$
         Calendar now = GregorianCalendar.getInstance();        
         String timeStamp =
-          "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  ";
+          "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         nbLines = consoleText.getLineCount();
-        consoleText.append(timeStamp + _text + "\n");
+        consoleText.append(timeStamp + _text + "\n"); //$NON-NLS-1$
         consoleText.setLineBackground(nbLines - 1, 1, colors[_color]);
         if (autoScroll)
           consoleText.setTopIndex(nbLines);
@@ -120,8 +120,8 @@ public class ConsoleView implements IView, ILoggerListener {
   
   
   private String format(int n) {
-    if(n < 10) return "0" + n;
-    return "" + n;
+    if(n < 10) return "0" + n; //$NON-NLS-1$
+    return "" + n; //$NON-NLS-1$
   }  
 
 }
