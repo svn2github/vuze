@@ -32,6 +32,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 public class EnumeratorEditor {
   
@@ -61,7 +62,8 @@ public class EnumeratorEditor {
     ConfigBasedItemEnumerator _enumerator,
     ITableStructureModificationListener _listener,
     String _propertiesName
-    ) {    
+  ) {    
+    RowData rd;
     this.display = _display;
     this.enumerator = _enumerator;
     this.listener = _listener;
@@ -83,7 +85,7 @@ public class EnumeratorEditor {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     label.setLayoutData(gridData);
     
-    table = new Table (shell, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
+    table = new Table (shell, SWT.CHECK | SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
     gridData = new GridData(GridData.FILL_BOTH);
     table.setLayoutData(gridData);
     table.setLinesVisible (true);    
@@ -115,7 +117,9 @@ public class EnumeratorEditor {
     
     Button bOk = new Button(cButtonArea,SWT.PUSH);
     bOk.setText(MessageText.getString("Button.ok"));
-    bOk.setLayoutData(new RowData(70, 20));
+    rd = new RowData();
+    rd.width = 70;
+    bOk.setLayoutData(rd);
     bOk.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         saveAndApply();
@@ -125,7 +129,9 @@ public class EnumeratorEditor {
     
     Button bCancel = new Button(cButtonArea,SWT.PUSH);
     bCancel.setText(MessageText.getString("Button.cancel"));
-    bCancel.setLayoutData(new RowData(70, 20));
+    rd = new RowData();
+    rd.width = 70;
+    bCancel.setLayoutData(rd);
     bCancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         close();
@@ -134,7 +140,9 @@ public class EnumeratorEditor {
     
     Button bApply = new Button(cButtonArea,SWT.PUSH);
     bApply.setText(MessageText.getString("columnChooser.apply"));
-    bApply.setLayoutData(new RowData(70, 20));
+    rd = new RowData();
+    rd.width = 70;
+    bApply.setLayoutData(rd);
     bApply.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         saveAndApply();
@@ -142,7 +150,7 @@ public class EnumeratorEditor {
     });
     
     
-    String[] columnsHeader = { "", "columnname", "columndescription" };
+    String[] columnsHeader = { "columnname", "columndescription" };
     for (int i=0; i< columnsHeader.length; i++) {
       TableColumn column = new TableColumn(table, SWT.NONE);    
       if (columnsHeader[i] != "")
@@ -153,16 +161,15 @@ public class EnumeratorEditor {
       for(int j=0;j<items.length;j++) {
         int position = items[j].getPosition();
         if(position == i)
-          createTableRow(-1,items[j].getName(), (items[j].getPosition() != -1));
+          createTableRow(-1,items[j].getName(), true);
       }
     }
     for(int j=0;j<items.length;j++) {
       int position = items[j].getPosition();
       if(position == -1)
-        createTableRow(-1,items[j].getName(), (items[j].getPosition() != -1));
+        createTableRow(-1,items[j].getName(), false);
     }
-    table.getColumn(0).setWidth(30);
-    for (int i = 1; i< columnsHeader.length; i++) {
+    for (int i = 0; i< columnsHeader.length; i++) {
       table.getColumn(i).pack();
     }
     
@@ -194,14 +201,8 @@ public class EnumeratorEditor {
           if(index > oldIndex)
             index++;
           String name = (String) selectedItem.getData("name");
-          Button oldBtn = (Button)selectedItem.getData("button");
-          boolean selected = oldBtn.getSelection();
-          oldBtn.dispose();
-          createTableRow(index,name,selected);
+          createTableRow(index,name,selectedItem.getChecked());
           selectedItem.dispose();        
-          Point size = shell.getSize();
-          shell.setSize(size.x+1,size.y+1);
-          shell.setSize(size);
         }
       }
     });
@@ -213,7 +214,7 @@ public class EnumeratorEditor {
           TableItem item = table.getItem(p);
           if(item != null) {
             GC gc = new GC(table);
-            Rectangle bounds = item.getBounds(1);
+            Rectangle bounds = item.getBounds(0);
             int selectedPosition = table.indexOf(selectedItem);
             int newPosition = table.indexOf(item);
             
@@ -224,6 +225,7 @@ public class EnumeratorEditor {
               oldImage = null;
               oldPoint = null;
             }            
+            bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
             if(newPosition <= selectedPosition)
               oldPoint = new Point(bounds.x,bounds.y);
             else
@@ -258,9 +260,8 @@ public class EnumeratorEditor {
     TableItem[] items = table.getItems();
     int position = 0;
     for(int i = 0 ; i < items.length ; i++) {
-      Button btn = (Button)items[i].getData("button");
       String name = (String) items[i].getData("name");
-      if(btn != null && btn.getSelection()) {
+      if (items[i].getChecked()) {
         enumerator.setPositionByName(name,position++);
       } else {
         enumerator.setPositionByName(name,-1);
@@ -278,17 +279,10 @@ public class EnumeratorEditor {
     else
       item = new TableItem (table, SWT.NONE,index);
     
-    item.setText(1,MessageText.getString(propertiesName + "." + name));
-    item.setText(2,MessageText.getString(propertiesName + "." + name + "." + "info", ""));
+    item.setText(0,MessageText.getString(propertiesName + "." + name));
+    item.setText(1,MessageText.getString(propertiesName + "." + name + "." + "info", ""));
     item.setData("name",name);
-    TableEditor editor = new TableEditor (table);
-    Button button = new Button (table, SWT.CHECK);
-    button.setSelection(selected);
-    button.pack ();
-    editor.minimumWidth = button.getSize ().x;    
-    editor.horizontalAlignment = SWT.CENTER;
-    editor.setEditor (button, item, 0);
-    item.setData("button",button);      
+    item.setChecked(selected);
   }
   
   public static void main(String[] args) {
