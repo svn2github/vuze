@@ -418,17 +418,22 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     LGLogger.log("Allocating Colors..");
     if (instanceCount == 0) {      
-      allocateBlues();
-      
-      black = new Color(display, new RGB(0, 0, 0));
-      blue = new Color(display, new RGB(0, 0, 170));
-      grey = new Color(display, new RGB(170, 170, 170));
-      red = new Color(display, new RGB(255, 0, 0));
-      white = new Color(display, new RGB(255, 255, 255));
-      background = new Color(display , new RGB(248,248,248));
-      red_ConsoleView = new Color(display, new RGB(255, 192, 192));
-      red_ManagerItem = new Color(display, new RGB(255, 68, 68));
-      handCursor = new Cursor(display, SWT.CURSOR_HAND);
+      try {
+        allocateBlues();
+        
+        black = new Color(display, new RGB(0, 0, 0));
+        blue = new Color(display, new RGB(0, 0, 170));
+        grey = new Color(display, new RGB(170, 170, 170));
+        red = new Color(display, new RGB(255, 0, 0));
+        white = new Color(display, new RGB(255, 255, 255));
+        background = new Color(display , new RGB(248,248,248));
+        red_ConsoleView = new Color(display, new RGB(255, 192, 192));
+        red_ManagerItem = new Color(display, new RGB(255, 68, 68));
+        handCursor = new Cursor(display, SWT.CURSOR_HAND);
+      } catch (Exception e) {
+        LGLogger.log(LGLogger.ERROR, "Error allocating colors");
+        e.printStackTrace();
+      }
     }
     instanceCount++;
     LGLogger.log("Done allocating Colors..");
@@ -1097,15 +1102,26 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   public void allocateBlues() {
-    int r = COConfigurationManager.getIntParameter("Color Scheme.red",0);
-    int g = COConfigurationManager.getIntParameter("Color Scheme.green",128);
-    int b = COConfigurationManager.getIntParameter("Color Scheme.blue",255);
-    for(int i = 0 ; i < 5 ; i++) {
-      Color toBeDisposed = blues[i];
-      blues[i] = new Color(display,r+((255-r)*(4-i))/4,g+((255-g)*(4-i))/4,b+((255-b)*(4-i))/4);
-      if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
-        toBeDisposed.dispose();
+    int r = 0;
+    int g = 128;
+    int b = 255;
+    try {
+      r = COConfigurationManager.getIntParameter("Color Scheme.red",r);
+      g = COConfigurationManager.getIntParameter("Color Scheme.green",g);
+      b = COConfigurationManager.getIntParameter("Color Scheme.blue",b);
+      LGLogger.log("r:"+r+";g:"+g+"b:"+b);
+      for(int i = 0 ; i < 5 ; i++) {
+        LGLogger.log("Color "+i);
+        Color toBeDisposed = blues[i];
+        blues[i] = new Color(display,r+((255-r)*(4-i))/4,g+((255-g)*(4-i))/4,b+((255-b)*(4-i))/4);
+        if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
+          LGLogger.log("Disposing old Color "+i);
+          toBeDisposed.dispose();
+        }
       }
+    } catch (Exception e) {
+      LGLogger.log(LGLogger.ERROR, "Error allocating colors");
+      e.printStackTrace();
     }
     try {
       float[] hsb = new float[3];
