@@ -104,7 +104,7 @@ UPnPDeviceImpl
 	protected UPnPImpl
 	getUPnP()
 	{
-		return( root_device.getUPnP());
+		return( (UPnPImpl)root_device.getUPnP());
 	}
 	
 	public UPnPRootDevice

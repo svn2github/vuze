@@ -136,7 +136,7 @@ UPnPRootDeviceImpl
 		}
 	}
 	
-	protected UPnPImpl
+	public UPnP
 	getUPnP()
 	{
 		return( upnp );

@@ -34,6 +34,9 @@ import java.net.InetAddress;
 public interface 
 UPnPRootDevice
 {
+	public UPnP
+	getUPnP();
+	
 	public URL
 	getLocation();
 	

@@ -38,6 +38,15 @@ UPnP
 	public void
 	reset();
 	
+		/**
+		 * Logs a message to all registered log listeners
+		 * @param str
+		 */
+	
+	public void
+	log(
+		String	str );
+	
 	public void
 	addRootDeviceListener(
 		UPnPListener	l );

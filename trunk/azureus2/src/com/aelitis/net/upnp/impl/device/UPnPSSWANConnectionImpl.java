@@ -61,19 +61,25 @@ UPnPSSWANConnectionImpl
 	{
 		UPnPAction act = service.getAction( "AddPortMapping" );
 		
-		UPnPActionInvocation inv = act.getInvocation();
-		
-		inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
-		inv.addArgument( "NewExternalPort", 			"" + port );
-		inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
-		inv.addArgument( "NewInternalPort", 			"" + port );
-		inv.addArgument( "NewInternalClient",			service.getDevice().getRootDevice().getLocalAddress().getHostAddress());
-		inv.addArgument( "NewEnabled", 					"1" );
-		inv.addArgument( "NewPortMappingDescription", 	description );
-		inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
-		
-		inv.invoke();
-		
+		if ( act == null ){
+			
+			service.getDevice().getRootDevice().getUPnP().log( "Action 'AddPortMapping' not supported, binding not established" );
+			
+		}else{
+					
+			UPnPActionInvocation inv = act.getInvocation();
+			
+			inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
+			inv.addArgument( "NewExternalPort", 			"" + port );
+			inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
+			inv.addArgument( "NewInternalPort", 			"" + port );
+			inv.addArgument( "NewInternalClient",			service.getDevice().getRootDevice().getLocalAddress().getHostAddress());
+			inv.addArgument( "NewEnabled", 					"1" );
+			inv.addArgument( "NewPortMappingDescription", 	description );
+			inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
+			
+			inv.invoke();
+		}
 	}
 	
 	public void
@@ -85,13 +91,20 @@ UPnPSSWANConnectionImpl
 	{
 		UPnPAction act = service.getAction( "DeletePortMapping" );
 		
-		UPnPActionInvocation inv = act.getInvocation();
-		
-		inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
-		inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
-		inv.addArgument( "NewExternalPort", 			"" + port );
-		
-		inv.invoke();
+		if ( act == null ){
+			
+			service.getDevice().getRootDevice().getUPnP().log( "Action 'DeletePortMapping' not supported, binding not removed" );
+			
+		}else{	
+
+			UPnPActionInvocation inv = act.getInvocation();
+			
+			inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
+			inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
+			inv.addArgument( "NewExternalPort", 			"" + port );
+			
+			inv.invoke();
+		}
 	}
 	
 	public UPnPWANConnectionPortMapping[]
@@ -110,82 +123,90 @@ UPnPSSWANConnectionImpl
 		
 		UPnPAction act	= service.getAction( "GetGenericPortMappingEntry" );
 
-		List	res = new ArrayList();
-		
-			// I've also seen some routers loop here rather than failing when the index gets too large (they
-			// seem to keep returning the last entry) - check for a duplicate entry and exit if found
-		
-		portMapping	prev_mapping	= null;
-		
-		for (int i=0;i<(entries==0?512:entries);i++){
-					
-			UPnPActionInvocation inv = act.getInvocation();
-
-			inv.addArgument( "NewPortMappingIndex", "" + i );
+		if ( act == null ){
 			
-			try{
-				UPnPActionArgument[] outs = inv.invoke();
-				
-				int		port			= 0;
-				boolean	tcp				= false;
-				String	internal_host	= null;
-				String	description		= "";
-				
-				for (int j=0;j<outs.length;j++){
-					
-					UPnPActionArgument	out = outs[j];
-					
-					String	out_name = out.getName();
-					
-					if ( out_name.equalsIgnoreCase("NewExternalPort")){
-						
-						port	= Integer.parseInt( out.getValue());
-						
-					}else if ( out_name.equalsIgnoreCase( "NewProtocol" )){
-						
-						tcp = out.getValue().equalsIgnoreCase("TCP");
+			service.getDevice().getRootDevice().getUPnP().log( "Action 'GetGenericPortMappingEntry' not supported, can't enumerate bindings" );
+		
+			return( new UPnPWANConnectionPortMapping[0] );
 			
-					}else if ( out_name.equalsIgnoreCase( "NewInternalClient" )){
+		}else{
+			List	res = new ArrayList();
+			
+				// I've also seen some routers loop here rather than failing when the index gets too large (they
+				// seem to keep returning the last entry) - check for a duplicate entry and exit if found
+			
+			portMapping	prev_mapping	= null;
+			
+			for (int i=0;i<(entries==0?512:entries);i++){
 						
-						internal_host = out.getValue();
+				UPnPActionInvocation inv = act.getInvocation();
+	
+				inv.addArgument( "NewPortMappingIndex", "" + i );
+				
+				try{
+					UPnPActionArgument[] outs = inv.invoke();
+					
+					int		port			= 0;
+					boolean	tcp				= false;
+					String	internal_host	= null;
+					String	description		= "";
+					
+					for (int j=0;j<outs.length;j++){
 						
-					}else if ( out_name.equalsIgnoreCase( "NewPortMappingDescription" )){
+						UPnPActionArgument	out = outs[j];
 						
-						description = out.getValue();
+						String	out_name = out.getName();
+						
+						if ( out_name.equalsIgnoreCase("NewExternalPort")){
+							
+							port	= Integer.parseInt( out.getValue());
+							
+						}else if ( out_name.equalsIgnoreCase( "NewProtocol" )){
+							
+							tcp = out.getValue().equalsIgnoreCase("TCP");
+				
+						}else if ( out_name.equalsIgnoreCase( "NewInternalClient" )){
+							
+							internal_host = out.getValue();
+							
+						}else if ( out_name.equalsIgnoreCase( "NewPortMappingDescription" )){
+							
+							description = out.getValue();
+						}
 					}
-				}
-		
-				if ( prev_mapping != null ){
+			
+					if ( prev_mapping != null ){
+						
+						if ( 	prev_mapping.getExternalPort() == port &&
+								prev_mapping.isTCP() == tcp ){
 					
-					if ( 	prev_mapping.getExternalPort() == port &&
-							prev_mapping.isTCP() == tcp ){
-				
-							// repeat, get out
+								// repeat, get out
+							
+							break;
+						}
+					}
+					
+					prev_mapping = new portMapping( port, tcp, internal_host, description );
+					
+					res.add( prev_mapping );
+					
+				}catch( UPnPException e ){
+					
+					if ( entries == 0 ){
 						
 						break;
 					}
-				}
-				
-				prev_mapping = new portMapping( port, tcp, internal_host, description );
-				
-				res.add( prev_mapping );
-				
-			}catch( UPnPException e ){
-				
-				if ( entries == 0 ){
 					
-					break;
+					throw(e);
 				}
-				
-				throw(e);
 			}
+			
+			UPnPWANConnectionPortMapping[]	res2= new UPnPWANConnectionPortMapping[res.size()];
+			
+			res.toArray( res2 );
+	
+			return( res2 );
 		}
-		
-		UPnPWANConnectionPortMapping[]	res2= new UPnPWANConnectionPortMapping[res.size()];
-		
-		res.toArray( res2 );
-
-		return( res2 );
 	}
 	
 	protected class
