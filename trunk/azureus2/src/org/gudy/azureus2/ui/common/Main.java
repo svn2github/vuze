@@ -39,7 +39,7 @@ import org.apache.log4j.PatternLayout;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-
+import org.gudy.azureus2.plugins.PluginManager;
 /**
  *
  * @author  Tobias Minich
@@ -172,7 +172,7 @@ public class Main {
         Logger.getLogger("azureus2").fatal("Azureus started at "+temp.format(UIConst.startTime));
         UIConst.GM = GlobalManagerFactory.create();
         
-        PluginInitializer.getSingleton(UIConst.GM,null).initializePlugins();
+        PluginInitializer.getSingleton(UIConst.GM,null).initializePlugins( PluginManager.UI_NONE );
         
         new Thread("Plugin Init Complete")
         {

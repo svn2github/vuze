@@ -159,8 +159,12 @@ PluginInitializer
     plugin_manager = PluginManagerImpl.getSingleton( this );
   }
   
-  public void initializePlugins() {
-  	
+  public void 
+  initializePlugins(
+  		int		ui_type ) 
+  {
+    PluginManagerImpl.setStartType( ui_type );
+    
   		// first do explicit plugins
   	  	
     File pluginDirectory = FileUtil.getUserFile("plugins");

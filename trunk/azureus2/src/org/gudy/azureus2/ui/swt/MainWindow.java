@@ -747,7 +747,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     splashNextTask();
     setSplashTask( "splash.initializePlugins");
 
-    PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
+    PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins( PluginManager.UI_SWT );        
 
     LGLogger.log("Initializing Plugins complete");
     splashNextTask();

@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local;
 import java.util.*;
 import java.lang.reflect.*;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
@@ -112,12 +113,10 @@ PluginManagerImpl
 		 * For example the CVS updater
 		 */
 		
-		/*
 		if ( !running ){
 			
 			throw( new RuntimeException( "Azureus is not running"));
 		}
-		*/
 		
 		if ( ui_type == PluginManager.UI_NONE ){
 			
@@ -137,13 +136,58 @@ PluginManagerImpl
 			}
 		}else if ( ui_type == PluginManager.UI_SWT ){
 			
-			if ( !MainWindow.getWindow().dispose()){
+			final Semaphore			sem 	= new Semaphore();
+			final PluginException[]	error 	= {null};
+			
+			try{
+				MainWindow.getWindow().getDisplay().asyncExec(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							try{
+						
+								if ( !MainWindow.getWindow().dispose()){
+									
+									error[0] = new PluginException( "PluginManager: Azureus close action failed");
+								}	
+							}finally{
+									
+								sem.release();
+							}
+						}
+					});
+			}catch( Throwable e ){
 				
-				throw( new PluginException( "PluginManager: Azureus close action failed"));
+				error[0]	= new PluginException( "PluginManager: closeAzureus fails", e );
+				
+				sem.release();
+			}
+			
+			sem.reserve();
+			
+			if ( error[0] != null ){
+				
 			}
 		}
 		
 		running	= false;
+	}
+	
+		/**
+		 * When AZ is started directly (i.e. not via a plugin) this method is called
+		 * so that the running state is correctly understood
+		 * @param type
+		 */
+	
+	public static void
+	setStartType(
+		int			_type )
+	{
+		ui_type		= _type;
+		
+		running		= true;
 	}
 	
 	public static void
