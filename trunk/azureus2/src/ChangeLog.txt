@@ -1,6 +1,13 @@
 AZUREUS CHANGELOG
 ---------
 
+2005.01.xx | Azureus 2.2.0.3
+
+
+
+
+
+
 2004.12.18 | Azureus 2.2.0.2
 
 FEATURE: Core | Manual peer upload blocking (when seeding) and kick-banning [Nolar]
