@@ -22,6 +22,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
@@ -159,6 +160,7 @@ PEPeerTransportProtocol
   
   
   private static final boolean	socks_peer_proxy_enable;
+  private static final String	socks_version;
   private static final String	socks_host;
   private static  int			socks_port;
   private static final String	socks_user;
@@ -168,8 +170,10 @@ PEPeerTransportProtocol
   	socks_peer_proxy_enable	= 	
   		COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
   		COConfigurationManager.getBooleanParameter("Enable.SOCKS", false)&&
-  		COConfigurationManager.getBooleanParameter("Enable.SOCKS.peer", false);
+ 		COConfigurationManager.getBooleanParameter("Enable.SOCKS.peer", false);
   	
+	socks_version =	COConfigurationManager.getStringParameter("Proxy.SOCKS.version" );
+		  	
   	socks_host 		= COConfigurationManager.getStringParameter("Proxy.Host");
   	
   	String socks_port_str 		= COConfigurationManager.getStringParameter("Proxy.Port");
@@ -436,46 +440,142 @@ PEPeerTransportProtocol
   	implements PEPeerTransportProtocolState 
   {
     DirectByteBuffer socks_handshake_read_buff;
-    boolean sent_our_handshake = false;
+    
+    int	 	handshake_phase = 0;
+    int 	socks_v5_reply_rem_length;
+    
     
     protected AEMonitor	StateHandshaking_this_mon	= new AEMonitor( "PEPeerTransportProtocol:SOCKSStateHandshaking" );
 
     private SOCKSStateHandshaking() {
       allocateAll();
       startConnectionX();  //sets up the download speed limiter
-      
-      	// 8 bytes is incoming socket response size
-      
-      socks_handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, 8 );
-      
-      if( socks_handshake_read_buff == null ) {
-      	
-        closeAll( toString() + ": SOCKS handshake_read_buff is null", true, false );
-        
-        return;
-      }
     }
     
     public int process() 
     {
     	try{
     		StateHandshaking_this_mon.enter();
-     	      
-    	    if( !sent_our_handshake ){
-    	    	   	    	
-                ByteBuffer	socks_out	= ByteBuffer.allocate(256);
+     	          		
+    	    if ( socks_handshake_read_buff == null ){
+           
+    	    	int	next_handshake_phase	= 100;
+    	    	int	expected_reply_size;
+    	    	
+    	    	ByteBuffer	socks_out	= ByteBuffer.allocate(256);
                 
-                socks_out.put((byte)4);					// socks 4(a)
-                socks_out.put((byte)1);					// command = CONNECT
-                socks_out.putShort((short)port);           // port
-                socks_out.put((byte)0);
-                socks_out.put((byte)0);
-                socks_out.put((byte)0);
-                socks_out.put((byte)1);	// indicates socks 4a
-                socks_out.put((byte)0);	// user id blank
-                socks_out.put( ip.getBytes());
-				socks_out.put((byte)0);
-				 
+   	    	   	  
+    	    	if ( socks_version.equals( "V4" )){
+    	    		   	    		
+                    socks_out.put((byte)4);					// socks 4(a)
+	                socks_out.put((byte)1);					// command = CONNECT
+	                socks_out.putShort((short)port);  
+	                
+	                try{
+	                	
+	                	byte[]	ip_bytes = InetAddress.getByName(ip).getAddress();
+	                
+		                socks_out.put(ip_bytes[0]);
+		                socks_out.put(ip_bytes[1]);
+		                socks_out.put(ip_bytes[2]);
+		                socks_out.put(ip_bytes[3]);
+	                
+	                }catch( Throwable e ){
+	                	
+	                	Debug.printStackTrace(e);
+	                	
+	       				closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking:: " + e, true, false );
+
+	       				return(0);
+	                }
+	                
+	                if ( socks_user.length() > 0 ){
+	                	
+	                	socks_out.put( socks_user.getBytes());
+	                }	
+	                
+	                socks_out.put((byte)0);
+	                
+	                expected_reply_size		= 8;
+	                
+    	    	}else if ( socks_version.equals( "V4a" )){
+    	    		   	    		
+	                socks_out.put((byte)4);					// socks 4(a)
+	                socks_out.put((byte)1);					// command = CONNECT
+	                socks_out.putShort((short)port);        // port
+	                socks_out.put((byte)0);
+	                socks_out.put((byte)0);
+	                socks_out.put((byte)0);
+	                socks_out.put((byte)1);	// indicates socks 4a
+	                
+	                if ( socks_user.length() > 0 ){
+	                	
+	                	socks_out.put( socks_user.getBytes());
+	                }
+	                
+	                socks_out.put((byte)0);
+	                socks_out.put( ip.getBytes());
+					socks_out.put((byte)0);
+					
+					expected_reply_size		= 8;
+					
+    	    	}else{
+    	    		
+    	    		if ( handshake_phase == 0 ){
+    	    			
+    	    				// say hello
+    	    			
+    	    			socks_out.put((byte)5);					// socks 5
+    		            socks_out.put((byte)2);					// 2 methods
+    		            socks_out.put((byte)0);					// no auth
+    		            socks_out.put((byte)2);					// user/pw
+
+    		            next_handshake_phase	= 1;
+    		            
+    		            expected_reply_size		= 2;
+    		            
+    	    		}else if ( handshake_phase == 1 ){
+    	    			
+    	    				// user/password auth
+    	    			
+      	    			socks_out.put((byte)1);							// user/pw version
+       		            socks_out.put((byte)socks_user.length());		// user length
+    		            socks_out.put(socks_user.getBytes());
+       		            socks_out.put((byte)socks_password.length());	// password length
+    		            socks_out.put(socks_password.getBytes());
+ 	
+       		            next_handshake_phase	= 2;
+       		         
+    		            expected_reply_size		= 2;
+    		            
+    	    		}else if ( handshake_phase == 2 ){
+    	    			
+    	    				// request
+    	    			
+     	    			socks_out.put((byte)5);				// version			
+    	    			socks_out.put((byte)1);				// connect			
+      	    			socks_out.put((byte)0);				// reserved			
+     	    			socks_out.put((byte)3);				// address type = domain name			
+     	    			socks_out.put((byte)ip.length());	// address type = domain name			
+     	    			socks_out.put( ip.getBytes()); 	    			    	    			     	    			  	    				
+    	                socks_out.putShort((short)port);    // port
+
+    	                	// reply has to be processed in two parts as it has
+    	                	// a variable length component
+    	                
+      		            next_handshake_phase	= 3;
+
+    	    			expected_reply_size		= 5;
+    	    			
+    	    		}else{
+    	    			
+     		            next_handshake_phase	= 100;
+
+    	    			expected_reply_size		= socks_v5_reply_rem_length;
+  	    			
+    	    		}
+    	    	}
+    	    	
 				socks_out.limit( socks_out.position());
 				 
                 socks_out.position(0);
@@ -485,18 +585,40 @@ PEPeerTransportProtocol
                 SocketChannel	chan = connection.getSocketChannel();
                 
                 try{
-	                int	len_written = chan.write( socks_out );
+	                while( socks_out.position() != socks_out.limit() ){
+	                	
+	                	chan.write( socks_out );
+	                }
 	          	                
-	    	        sent_our_handshake = true;
+	                handshake_phase	= next_handshake_phase;
 	    	        
                 }catch (IOException e) {
     	        	
     				closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking:: " + e, true, false );
     				
-    				socks_handshake_read_buff.returnToPool();
-    	        
+    				if ( socks_handshake_read_buff != null ){
+    				
+    					socks_handshake_read_buff.returnToPool();
+    					
+    					socks_handshake_read_buff	= null;
+    				}
+    				
     				return 0;
     			}  
+                
+            	if ( socks_handshake_read_buff != null ){
+            		
+            		socks_handshake_read_buff.returnToPool();
+            	}
+                
+                socks_handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, expected_reply_size );
+                
+                if ( socks_handshake_read_buff == null ) {
+                	
+                  closeAll( toString() + ": SOCKS handshake_read_buff is null", true, false );
+                  
+                  return(0);
+                }
     	    }
     	  
 	      if ( socks_handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
@@ -524,23 +646,108 @@ PEPeerTransportProtocol
 		}
 	      
 	      if( !socks_handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
-	      		        
-	        socks_handshake_read_buff.position(DirectByteBuffer.SS_PEER ,0);
+	      	
+	      	try{
+	      		socks_handshake_read_buff.position(DirectByteBuffer.SS_PEER ,0);
 	        
-	        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
-	        byte	resp 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+	      		if ( socks_version.equals( "V4" ) || socks_version.equals( "V4a")){
+	      			
+			        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+			        byte	resp 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
 	        
-	        socks_handshake_read_buff.returnToPool();
-	        
-	        if ( ver != 0 || resp != 90 ){
-	        	
-				closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: connection declined (" + resp + ")", true, false );
-	        
-				return 0;
-	        	
-	        }
-	        
-	        currentState = new StateHandshaking( true, null );
+			        if ( ver != 0 || resp != 90 ){
+			        	
+						closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: connection declined (" + resp + ")", true, false );
+			        
+						return 0;
+			        	
+			        }
+	      		}else{
+	      			
+	      				// version 5 replies
+	      			
+	      			if ( handshake_phase == 1 ){
+	      				
+	      					// reply from hello
+	      				
+				        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        byte	method 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+		        
+				        if ( method != 0 && method != 2 ){
+					
+				        	closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: no valid method (" + method + ")", true, false );
+					        
+							return 0;
+				        }
+				        
+				        	// no auth -> go to request phase
+				        
+				        if ( method == 0 ){
+				        	
+				        	handshake_phase	= 2;
+				        }
+	      			}else if ( handshake_phase == 2 ){
+	      				
+	      					// reply from auth
+	      				
+				        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        byte	status 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+		        
+				        if ( status != 0 ){
+					
+				        	closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: authentication fails", true, false );
+					        
+							return 0;
+				        }
+				        
+	      			}else if ( handshake_phase == 3 ){
+	      				
+	      					// reply from request, first part
+	      				
+				        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        byte	rep 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );		        
+				        
+				        if ( rep != 0 ){
+					
+				        	closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: request failure ( " + rep + ")", true, false );
+					        
+							return 0;
+				        }
+				        
+				        byte	reserv 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+				        byte	atype 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+
+				        int	address_len;
+				        
+				        if ( atype == 1 ){
+				        
+				        	address_len = 3;	// already read one
+				        	
+				        }else if ( atype == 3 ){
+				        	
+					        byte	alen 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
+					        
+				        	address_len = alen;
+				        	
+				        }else{
+				        	
+				        	address_len	= 15;	// already read one
+				        }
+				        
+				        socks_v5_reply_rem_length	= address_len + 2; // 2 for port
+	      			}    
+	      		}
+	      	}finally{
+	      		
+		        socks_handshake_read_buff.returnToPool();
+		        
+		        socks_handshake_read_buff	= null;
+	      	}
+	      	
+	      	if ( handshake_phase == 100 ){
+	      		
+	      		currentState = new StateHandshaking( true, null );
+	      	}
 	      }
 	      
 	      return PEPeerControl.NO_SLEEP;
