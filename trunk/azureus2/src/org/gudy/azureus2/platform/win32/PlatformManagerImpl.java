@@ -125,13 +125,46 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		try{
-			String	test = 
+			String	test1 = 
 				access.readStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					"BitTorrent\\shell\\open\\command",
 					"" );
 			
-			return( test.equals( "\"" + az_exe.toString() + "\" \"%1\"" ));
+			if ( !test1.equals( "\"" + az_exe.toString() + "\" \"%1\"" )){
+				
+				return( false );
+			}
+			
+			try{
+				String	mru_list = 
+					access.readStringValue( 
+						AEWin32Access.HKEY_CURRENT_USER,
+						"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.torrent\\OpenWithList",
+						"MRUList" );
+				
+				//System.out.println( "mru_list = " + mru_list );
+
+				if ( mru_list.length() > 0 ){
+				
+					String	mru = 
+						access.readStringValue( 
+							AEWin32Access.HKEY_CURRENT_USER,
+							"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.torrent\\OpenWithList",
+							"" + mru_list.charAt(0) );
+					
+					//System.out.println( "mru = " + mru );
+					
+					return( mru.equalsIgnoreCase("Azureus.exe"));
+				}
+			}catch( Throwable e ){
+				
+				// e.printStackTrace();
+				
+				// failure means things are OK
+			}
+			
+			return( true );
 			
 		}catch( Throwable e ){
 			
