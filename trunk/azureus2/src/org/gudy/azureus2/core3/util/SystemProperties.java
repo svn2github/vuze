@@ -74,29 +74,33 @@ public class SystemProperties {
       		// 2) if it doesn't, try and grab the last component of APPDATA and stick this
       		//    on user.home. If this exists, use it.
       		// 3) otherwise use the windows default
-      	
-        user_dir_win = getEnvironmentalVariable( "APPDATA" );
+        try {      	
+          user_dir_win = getEnvironmentalVariable( "APPDATA" );
         
-        if ( user_dir_win != null ){
-        	
-	        if ( !new File( user_dir_win ).exists()){
-	        	
-		       	int	sp = user_dir_win.lastIndexOf( SEP );
-		        	
-		       	if ( sp == -1 ){
-		        		
-		       		user_dir_win = null;
-		       		
-		       	}else{
-		        		
-		       		user_dir_win = userhome +  user_dir_win.substring( sp );
-		       		
-		       		if ( !new File(user_dir_win).exists()){
-		       			
-		       			user_dir_win	= null;
-		       		}
-		       	}
-	        }
+          if ( user_dir_win != null && user_dir_win != "" ){
+
+            if ( !new File( user_dir_win ).exists()){
+
+              int	sp = user_dir_win.lastIndexOf( SEP );
+
+              if ( sp == -1 ){
+
+                user_dir_win = null;
+
+              }else{
+
+                user_dir_win = userhome +  user_dir_win.substring( sp );
+
+                if ( !new File(user_dir_win).exists()){
+
+                  user_dir_win	= null;
+                }
+              }
+            }
+          }
+        } catch (Exception e) {
+          LGLogger.log(e);
+          e.printStackTrace();
         }
       }
       
@@ -107,7 +111,6 @@ public class SystemProperties {
       user_path = user_dir_win + SEP + AZ_DIR + SEP;
       
       LGLogger.log( "SystemProperties::getUserPath(Win): user_path = " + user_path );
-      
     }else if ( OS.indexOf("mac os x") >= 0 ) {
     	
       user_path = userhome + SEP + OSX_DEFAULT + SEP + AZ_DIR + SEP;
