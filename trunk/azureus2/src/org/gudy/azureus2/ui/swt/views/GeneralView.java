@@ -18,6 +18,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -33,6 +34,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -500,6 +502,13 @@ public class GeneralView extends AbstractIView {
         Arrays.fill(pieces, false);
       }
     });
+    
+    if(System.getProperty("os.name").equals("Mac OS X")) {
+      Shell shell = MainWindow.getWindow().getShell();
+      Point size = shell.getSize();
+      shell.setSize(size.x-1,size.y-1);
+      shell.setSize(size);
+    }
     
     genComposite.layout();
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
