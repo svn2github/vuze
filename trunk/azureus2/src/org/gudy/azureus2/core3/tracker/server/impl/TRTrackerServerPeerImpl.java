@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
 TRTrackerServerPeerImpl
-	implements TRTrackerServerPeer, HostNameToIPResolverListener
+	implements TRTrackerServerPeer, HostNameToIPResolverListener, TRTrackerServerNatCheckerListener
 {	
 	protected HashWrapper	peer_id;
 	protected int			key_hash_code;
@@ -38,6 +38,7 @@ TRTrackerServerPeerImpl
 	protected int			port;
 	protected String		ip_str;
 	protected byte[]		ip_bytes;
+	protected int			NAT_status	= NAT_CHECK_DISABLED;
 	
 	protected long			timeout;
 	
@@ -63,8 +64,8 @@ TRTrackerServerPeerImpl
 		port				= _port;
 		last_contact_time	= _last_contact_time;
 		download_completed	= _download_completed;
-		
-		resolve();
+			
+		resolveAndCheckNAT();
 	}
 	
 	protected boolean
@@ -87,12 +88,50 @@ TRTrackerServerPeerImpl
 	
 			res	= true;	
 		}
+		
+		if ( res ){
 			
+			resolveAndCheckNAT();
+		}
+		
 		return( res );
 	}
 	
+	public void
+	NATCheckComplete(
+		boolean		ok )
+	{
+		if ( ok ){
+			
+			NAT_status = NAT_CHECK_OK;
+			
+		}else{
+			
+			NAT_status	= NAT_CHECK_FAILED;
+		}
+	}
+	
 	protected void
-	resolve()
+	setNATStatus(
+		int		status )
+	{
+		NAT_status	= status;
+	}
+	
+	public int
+	getNATStatus()
+	{
+		return( NAT_status );
+	}
+	
+	protected boolean
+	isNATStatusBad()
+	{
+		return( NAT_status == NAT_CHECK_FAILED || NAT_status == NAT_CHECK_FAILED_AND_REPORTED );
+	}
+	
+	protected void
+	resolveAndCheckNAT()
 	{
 		// default values pending resolution
 		
@@ -100,10 +139,18 @@ TRTrackerServerPeerImpl
 		ip_bytes	= null;
 		
 		HostNameToIPResolver.addResolverRequest( ip_str, this );
+		
+		NAT_status	= NAT_CHECK_INITIATED;
+		
+		if ( !TRTrackerServerNATChecker.getSingleton().addNATCheckRequest( ip_str, port, this )){
+			
+			NAT_status = NAT_CHECK_DISABLED;
+		}
+			
 	}
 	
 	public void
-	completed(
+	hostNameResolutionComplete(
 		InetAddress	address )
 	{
 		if ( address != null ){

@@ -105,7 +105,7 @@ DownloadRemoveRulesPlugin
 	}
 	
 	public void
-	completed(
+	hostNameResolutionComplete(
 		InetAddress	address )
 	{
 		aelitis_ip	= address.getHostAddress();

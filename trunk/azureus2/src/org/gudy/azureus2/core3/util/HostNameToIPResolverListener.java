@@ -38,6 +38,6 @@ HostNameToIPResolverListener
 		 */
 	
 	public void
-	completed(
+	hostNameResolutionComplete(
 		InetAddress	address );
 }

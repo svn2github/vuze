@@ -61,6 +61,8 @@ TRTrackerServerTorrentImpl
 	protected int				seed_count;
 	protected int				removed_count;
 	
+	protected int				bad_NAT_count;	// calculated periodically
+	
 	protected Random			random		= new Random( SystemTime.getCurrentTime());
 	
 	protected long				last_scrape_calc_time;
@@ -450,13 +452,19 @@ TRTrackerServerTorrentImpl
 	
 	public synchronized Map
 	exportAnnounceToMap(
-		boolean		include_seeds,
-		int			num_want,
-		long		interval,
-		boolean		no_peer_id,
-		boolean		compact )
+		TRTrackerServerPeerImpl		requesting_peer,		// maybe null for an initial announce from a stopped peer
+		boolean						include_seeds,
+		int							num_want,
+		long						interval,
+		boolean						no_peer_id,
+		boolean						compact )
 	{
 		long	now = SystemTime.getCurrentTime();
+		
+		// we have to force non-caching for nat_warnings responses as they include
+		// peer-specific data
+
+		boolean	nat_warning = requesting_peer != null && requesting_peer.getNATStatus() == TRTrackerServerPeerImpl.NAT_CHECK_FAILED;
 		
 		int		total_peers			= peer_map.size();
 		int		cache_millis	 	= TRTrackerServerImpl.getAnnounceCachePeriod();
@@ -489,6 +497,7 @@ TRTrackerServerTorrentImpl
 		}
 				
 		if ( 	caching_enabled &&
+				(!nat_warning) &&
 				cache_millis > 0 &&
 				num_want >= MIN_CACHE_ENTRY_SIZE &&
 				total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold()){
@@ -742,6 +751,16 @@ TRTrackerServerTorrentImpl
 		
 		root.put( "interval", new Long( interval ));
 	
+		if ( nat_warning ){
+			
+			requesting_peer.setNATStatus( TRTrackerServerPeerImpl.NAT_CHECK_FAILED_AND_REPORTED );
+			
+			root.put( 
+					"warning message", 
+					("Unable to connect to your incoming data port (" + requesting_peer.getPort() +"). " +
+					 "This will result in slow downloads. Please check your firewall/router settings").getBytes());
+		}
+		
 			// also include scrape details
 		
 		root.put( "complete", new Long( getSeedCount() ));
@@ -786,6 +805,8 @@ TRTrackerServerTorrentImpl
 	{
 		long	now = SystemTime.getCurrentTime();
 		
+		int	new_bad_NAT_count	= 0;
+		
 		try{
 			peer_list_compaction_suspended	= true;
 			
@@ -801,12 +822,21 @@ TRTrackerServerTorrentImpl
 				if ( now > peer.getTimeout()){
 					
 					removePeer( peer, i );
+					
+				}else{
+					
+					if ( peer.isNATStatusBad()){
+						
+						new_bad_NAT_count++;
+					}
 				}
 			}
 		}finally{
 			
 			peer_list_compaction_suspended	= false;
 		}
+		
+		bad_NAT_count	= new_bad_NAT_count;
 		
 		if ( removed_count > 1000 ){
 			
@@ -963,6 +993,12 @@ TRTrackerServerTorrentImpl
 	isCachingEnabled()
 	{
 		return( caching_enabled );
+	}
+	
+	public int
+	getBadNATPeerCount()
+	{
+		return( bad_NAT_count );
 	}
 	
 	protected void

@@ -28,6 +28,12 @@ package org.gudy.azureus2.core3.tracker.server;
 public interface 
 TRTrackerServerPeer 
 {
+	public static final int	NAT_CHECK_DISABLED				= 0;
+	public static final int	NAT_CHECK_INITIATED				= 1;
+	public static final int	NAT_CHECK_OK					= 2;
+	public static final int	NAT_CHECK_FAILED				= 3;
+	public static final int	NAT_CHECK_FAILED_AND_REPORTED	= 4;
+	
 	public long
 	getUploaded();
 	
@@ -42,4 +48,12 @@ TRTrackerServerPeer
 	
 	public String
 	getIPRaw();
+	
+		/**
+		 * returns the current NAT status of the peer
+		 * @return
+		 */
+	
+	public int
+	getNATStatus();
 }

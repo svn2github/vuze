@@ -49,7 +49,7 @@ HostNameToIPResolver
 		if ( bytes != null ){
 		
 			try{
-				l.completed( InetAddress.getByAddress( host, bytes ));
+				l.hostNameResolutionComplete( InetAddress.getByAddress( host, bytes ));
 			
 				return;
 				
@@ -86,11 +86,11 @@ HostNameToIPResolver
 									try{
 										InetAddress addr = InetAddress.getByName( req.getHost());
 										
-										req.getListener().completed( addr );
+										req.getListener().hostNameResolutionComplete( addr );
 											
 									}catch( Throwable e ){
 										
-										req.getListener().completed( null );
+										req.getListener().hostNameResolutionComplete( null );
 										
 									}
 								}catch( Throwable e ){

@@ -71,11 +71,11 @@ IPToHostNameResolver
 									try{
 										InetAddress addr = InetAddress.getByName( req.getIP());
 											
-										req.getListener().completed( addr.getHostName(), true );
+										req.getListener().IPResolutionComplete( addr.getHostName(), true );
 											
 									}catch( Throwable e ){
 										
-										req.getListener().completed( req.getIP(), false );
+										req.getListener().IPResolutionComplete( req.getIP(), false );
 										
 									}
 								}catch( Throwable e ){

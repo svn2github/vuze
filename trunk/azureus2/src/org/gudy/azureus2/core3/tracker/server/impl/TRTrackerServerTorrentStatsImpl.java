@@ -180,4 +180,10 @@ TRTrackerServerTorrentStatsImpl
 	{
 		return( torrent.getLeecherCount());
 	}
+	
+	public int
+	getBadNATPeerCount()
+	{
+		return( torrent.getBadNATPeerCount());
+	}
 }

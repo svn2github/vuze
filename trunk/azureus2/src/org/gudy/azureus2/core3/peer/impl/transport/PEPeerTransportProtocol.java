@@ -1218,7 +1218,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 				new IPToHostNameResolverListener()
 				{
 					public void
-					completed(
+					IPResolutionComplete(
 						String		res,
 						boolean		ok )
 					{

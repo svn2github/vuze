@@ -1,5 +1,5 @@
 /*
- * Created on 27-May-2004
+ * Created on 29-Jul-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.util;
+package org.gudy.azureus2.core3.tracker.server.impl;
 
 /**
  * @author parg
@@ -28,10 +28,9 @@ package org.gudy.azureus2.core3.util;
  */
 
 public interface 
-IPToHostNameResolverListener 
+TRTrackerServerNatCheckerListener 
 {
 	public void
-	IPResolutionComplete(
-		String	result,
-		boolean	succeeded );
+	NATCheckComplete(
+		boolean		ok );
 }

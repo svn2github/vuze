@@ -68,4 +68,7 @@ TRTrackerServerTorrentStats
 	
 	public long
 	getBytesOut();
+	
+	public int
+	getBadNATPeerCount();
 }

@@ -1,5 +1,5 @@
 /*
- * Created on 27-May-2004
+ * Created on 29-Jul-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,18 +20,38 @@
  *
  */
 
-package org.gudy.azureus2.core3.util;
+package org.gudy.azureus2.core3.tracker.server.impl;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-IPToHostNameResolverListener 
+public class 
+TRTrackerServerNATChecker 
 {
-	public void
-	IPResolutionComplete(
-		String	result,
-		boolean	succeeded );
+	protected static TRTrackerServerNATChecker		singleton	= new TRTrackerServerNATChecker();
+	
+	protected static TRTrackerServerNATChecker
+	getSingleton()
+	{
+		return( singleton );
+	}
+	
+	protected
+	TRTrackerServerNATChecker()
+	{
+		
+	}
+
+	protected boolean
+	addNATCheckRequest(
+		String								host,
+		int									port,
+		TRTrackerServerNatCheckerListener	listener )
+	{
+		//listener.NATCheckComplete( false );
+		
+		return( false );
+	}
 }
