@@ -78,7 +78,14 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     gridData.horizontalSpan = 3;
     label.setLayoutData( gridData );
      
-
+    // diskmanager.friendly.hashchecking
+    final BooleanParameter friendly_hashchecking = new BooleanParameter(cSection, "diskmanager.friendly.hashchecking", "ConfigView.section.file.friendly.hashchecking");
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    friendly_hashchecking.setLayoutData(gridData);
+    
+    
+    
     // Max Open Files
     
     label = new Label(cSection, SWT.NULL);

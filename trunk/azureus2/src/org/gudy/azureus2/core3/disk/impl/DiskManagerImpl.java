@@ -1149,8 +1149,10 @@ DiskManagerImpl
 
 	private synchronized boolean checkPiece(int pieceNumber) {
     
-    try{  Thread.sleep( 100 );  }catch(Exception e) {e.printStackTrace();}
-            
+    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ) {
+      try{  Thread.sleep( 100 );  }catch(Exception e) { e.printStackTrace(); }
+    }
+           
     if (bOverallContinue == false) return false;
 
 		allocateAndTestBuffer.position(0);
