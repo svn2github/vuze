@@ -69,7 +69,7 @@ LGLoggerImpl
 			
 			doRedirects();
 			
-			logToFile( "**** Logging starts ****" + NL);
+			LGLogger.log( "**** Logging starts ****" );
 		}
 	}
 	

@@ -26,6 +26,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import sun.misc.BASE64Decoder;
+
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
@@ -90,7 +92,7 @@ TRTrackerServerProcessor
 									
 					header += new String( buffer, 0, len );
 									
-					if ( header.endsWith( NL )){
+					if ( header.endsWith( NL+NL )){
 						
 						break;
 					}
@@ -110,6 +112,12 @@ TRTrackerServerProcessor
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
 				}				
 	
+				OutputStream	os = socket.getOutputStream();
+				
+				if ( !doAuthentication( header, os )){
+					
+					return;
+				}
 				// System.out.println( "got header:" + header );
 				
 				if ( !header.startsWith( "GET " )){
@@ -130,7 +138,7 @@ TRTrackerServerProcessor
 				
 				processRequest( header, 
 								socket.getInetAddress().getHostAddress(),
-								socket.getOutputStream());
+								os );
 				
 			}catch( SocketTimeoutException e ){
 				
@@ -154,6 +162,76 @@ TRTrackerServerProcessor
 		}
 	}
 	
+	protected boolean
+	doAuthentication(
+		String			header,
+		OutputStream	os )
+		
+		throws IOException
+	{
+		if ( server.isPasswordEnabled()){
+			
+			int	x = header.indexOf( "Authorization:" );
+			
+			if ( x != -1 ){
+															
+					//			Authorization: Basic dG9tY2F0OnRvbWNhdA==
+		
+				int	p1 = header.indexOf(' ', x );
+				int p2 = header.indexOf(' ', p1+1 );
+				
+				String	body = header.substring( p2, header.indexOf( '\r', p2 )).trim();
+				
+				String decoded=new String(new BASE64Decoder().decodeBuffer(body));
+
+					// username:password
+									
+				int	cp = decoded.indexOf(':');
+				
+				String	user = decoded.substring(0,cp);
+				String  pw	 = decoded.substring(cp+1);
+				
+				try{
+			
+					SHA1Hasher hasher = new SHA1Hasher();
+					
+					byte[] password = pw.getBytes();
+					
+					byte[] encoded;
+					
+					if( password.length > 0){
+					
+						encoded = hasher.calculateHash(password);
+						
+					}else{
+						
+						encoded = new byte[0];
+					}
+					
+					if ( user.equalsIgnoreCase(server.getUsername()) &&
+						 Arrays.equals(encoded, server.getPassword())){
+						 	
+						 return( true );			 	
+					}
+				}catch( Exception e ){
+					
+					e.printStackTrace();
+				}
+			}
+			
+			os.write( "HTTP/1.1 401 BAD\r\nWWW-Authenticate: Basic realm=\"Azureus\"\r\n\r\n".getBytes() );
+			
+			os.flush();
+				
+			return( false );
+
+		}else{
+		
+			return( true );
+		}
+	}
+			
+
 	protected void
 	processRequest(
 		String			str,

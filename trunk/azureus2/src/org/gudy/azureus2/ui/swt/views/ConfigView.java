@@ -1164,17 +1164,61 @@ public class ConfigView extends AbstractIView {
 
       label = new Label(gTracker, SWT.NULL);
 
-      // row
+	  // row
 			
-      label = new Label(gTracker, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable"); 
+	  label = new Label(gTracker, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable"); 
     
-      BooleanParameter publicPublish = new BooleanParameter(gTracker, "Tracker Public Enable", false);
+	  BooleanParameter publicPublish = new BooleanParameter(gTracker, "Tracker Public Enable", false);
 
-      label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gTracker, SWT.NULL);
+
+	  // row
+			
+	  label = new Label(gTracker, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenable"); 
+    
+	  BooleanParameter passwordEnable = new BooleanParameter(gTracker, "Tracker Password Enable", false);
+
+	  label = new Label(gTracker, SWT.NULL);
+
+		// row
+		
+	  label = new Label(gTracker, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.username"); 
+	  
+	  final StringParameter tracker_username = new StringParameter(gTracker, "Tracker Username", "" );
+	  
+	  gridData = new GridData();
+	  gridData.widthHint = 100;
+
+	  tracker_username.setLayoutData( gridData );
+
+	  label = new Label(gTracker, SWT.NULL);
+
+	 	 // row
+		
+	  label = new Label(gTracker, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.password"); 
+	  
+	  final PasswordParameter tracker_password = new PasswordParameter(gTracker, "Tracker Password" );
+	  
+	  gridData = new GridData();
+	  gridData.widthHint = 100;
+
+	  tracker_password.setLayoutData( gridData );
+
+	  label = new Label(gTracker, SWT.NULL);
 
 
-	 	itemStats.setControl(gTracker);
+ 	  Control[] controls = new Control[2];
+	  controls[0] = tracker_username.getControl();
+	  controls[1] = tracker_password.getControl();
+	
+	  IAdditionalActionPerformer enabler = new ChangeSelectionActionPerformer(controls);
+	  passwordEnable.setAdditionalActionPerformer(enabler); 
+
+	  itemStats.setControl(gTracker);
 	}
 	
 	

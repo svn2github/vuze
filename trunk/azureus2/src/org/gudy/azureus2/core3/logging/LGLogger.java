@@ -39,6 +39,21 @@ LGLogger {
 	
 	public static void 
 	log(
+		int color, 
+		String text ) 
+	{
+		log(0,0,color,text );
+	}	
+	
+	public static void 
+	log(
+		String text ) 
+	{
+		log(0,0,INFORMATION,text );
+	}	
+	
+	public static void 
+	log(
 		int 		componentId, 
 		int 		event, 
 		String		text, 
@@ -56,10 +71,26 @@ LGLogger {
 			pw.close();
 			
 			ex_details = new String(cw.toCharArray());
+			
 		}catch( Throwable f ){
 		}
 		
 		LGLoggerImpl.log(componentId,event,ERROR,text + " ('" + (ex_details==null?e.toString():ex_details) + "')" );
+	}
+	
+	public static void 
+	log(
+		String		text, 
+		Throwable	e )
+	{
+		log( 0, 0, text, e );
+	}
+	
+	public static void 
+	log(
+		Throwable	e )
+	{
+		log( 0, 0, "", e );
 	}
 	
 	public static boolean

@@ -54,6 +54,26 @@ TRTrackerClientClassicImpl
 	 
 	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
 	
+	
+	static{
+		Authenticator.setDefault(
+			new Authenticator()
+			{
+				protected PasswordAuthentication
+				getPasswordAuthentication()
+				{
+					System.out.println( "password auth: " + 
+										getRequestingPrompt() + "/" + 
+										getRequestingScheme() + "/" + 
+										getRequestingHost() + "/" + 
+										getRequestingPort() + "/" + 
+										getRequestingProtocol());
+					
+					return( new PasswordAuthentication( "monkey", "slapper".toCharArray()));
+				}
+			});
+	}
+	
 	private TOTorrent				torrent;
 	private TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;

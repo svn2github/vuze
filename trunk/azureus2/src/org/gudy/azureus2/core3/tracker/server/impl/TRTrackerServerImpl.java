@@ -55,6 +55,10 @@ TRTrackerServerImpl
 	
 	ThreadPool	thread_pool;
 	
+	protected boolean	password_enabled;
+	protected String	password_user;
+	protected byte[]	password_pw;
+	
 	public
 	TRTrackerServerImpl(
 		int		_port )
@@ -62,7 +66,9 @@ TRTrackerServerImpl
 		throws TRTrackerServerException
 	{
 		port					= _port;
-		
+
+		readPasswordSettings();
+				
 		thread_pool = new ThreadPool( "TrackerServer:"+port, THREAD_POOL_SIZE );			
 		current_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 		
@@ -159,6 +165,8 @@ TRTrackerServerImpl
 				
 				time_to_go -= RETRY_MINIMUM_MILLIS;
 	
+				readPasswordSettings();
+				
 					// recalc tracker interval every minute
 					
 				int	min 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
@@ -232,6 +240,35 @@ TRTrackerServerImpl
 			}
 			
 		}
+	}
+	
+	protected void
+	readPasswordSettings()
+	{		
+		password_enabled = COConfigurationManager.getBooleanParameter("Tracker Password Enable", false);
+
+		if ( password_enabled ){
+			
+			password_user	= COConfigurationManager.getStringParameter("Tracker Username", "");
+			password_pw		= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
+		}
+	}
+	
+	public boolean
+	isPasswordEnabled()
+	{
+		return( password_enabled );
+	}
+	
+	public String
+	getUsername()
+	{
+		return( password_user );
+	}
+	public byte[]
+	getPassword()
+	{
+		return( password_pw );
 	}
 	
 	public int
