@@ -199,7 +199,7 @@ PEPeerTransportProtocol
     init();
     
     if( port < 0 || port > 65535 ) {
-      Debug.out( "given remote port invalid: " + port );
+      Debug.out( "Given remote port is invalid: " + port );
       closeAll( "Given remote port is invalid: " + port, false, false );
     }
     
@@ -333,7 +333,9 @@ PEPeerTransportProtocol
       
       changePeerState( PEPeer.CLOSING );
       
-      connection.getIncomingMessageQueue().stopQueueProcessing();
+      if( connection != null ) {  //can be null if closeAll is called within ::<init>::, like when the given port is invalid
+        connection.getIncomingMessageQueue().stopQueueProcessing();
+      }
 
       LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
       
