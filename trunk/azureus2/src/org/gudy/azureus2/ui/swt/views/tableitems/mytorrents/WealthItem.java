@@ -77,6 +77,7 @@ public class WealthItem extends TorrentItem  {
     	image_name = "st_no_remote";   
     }
     
+    /*
     if ( table.getSelectionCount() > 0 ){
     	
     	TableItem[]	rows = table.getSelection();
@@ -90,7 +91,8 @@ public class WealthItem extends TorrentItem  {
     			break;
     		}
     	}
-    }
+    }*/
+    image_name += "_selected";
     
     Image image = ImageRepository.getImage(image_name);
     

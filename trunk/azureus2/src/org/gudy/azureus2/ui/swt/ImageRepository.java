@@ -95,6 +95,8 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped_selected.gif", "st_stopped_selected");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker_selected.gif", "st_no_tracker_selected");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote_selected.gif", "st_no_remote_selected");
+    
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/explain.gif", "st_explain");
     }
 
   

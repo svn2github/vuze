@@ -59,6 +59,7 @@ import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
+import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
@@ -395,6 +396,12 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
     itemChangeTable.setImage(ImageRepository.getImage("columns"));
     
+    final MenuItem itemAboutHealth = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemAboutHealth, "MyTorrentsView.menu.health"); //$NON-NLS-1$
+    itemAboutHealth.setImage(ImageRepository.getImage("st_explain"));
+    
+    
+    
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
@@ -657,6 +664,12 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     itemChangeTable.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
           new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems),MyTorrentsView.this,"MyTorrentsView");       
+      }
+    });
+    
+    itemAboutHealth.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+          HealthHelpWindow.show(table.getDisplay());
       }
     });
 
