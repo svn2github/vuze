@@ -57,7 +57,7 @@ public class TrackerChangerWindow {
        */
       public void handleEvent(Event event) {
         try {
-          trackerConnection.setTrackerUrl(url.getText());
+          trackerConnection.addTrackerUrl(url.getText());
           shell.dispose();
         }
         catch (Exception e) {

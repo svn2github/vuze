@@ -1,6 +1,6 @@
 /*
- * File    : TRHost.java
- * Created : 24-Oct-2003
+ * File    : TRTrackerClientListener.java
+ * Created : 03-Nov-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -18,35 +18,25 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.core3.tracker.host;
+
+package org.gudy.azureus2.core3.tracker.client;
 
 /**
  * @author parg
+ *
  */
-
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.tracker.client.*;
-
 public interface 
-TRHost 
+TRTrackerClientListener 
 {
+	/**
+	 * This callback indicates if the tracker client has change URL. If "explicit" is true then
+	 * this was via a call to the "setTrackerURL" method on TRTrackerClient. If false then the selected
+	 * URL has changed because it is a multi-tracker torrent
+	 * 
+	 * @param explicit as above
+	 */
 	public void
-	addTorrent(
-		TOTorrent		torrent );
-		
-	public void
-	addTorrent(
-		TRTrackerClient	tracker_client );
-		
-	public TRHostTorrent[]
-	getTorrents();
-	
-	public void
-	addListener(
-		TRHostListener	l );
-		
-	public void
-	removeListener(
-		TRHostListener	l );
+	urlChanged(
+		String		url,
+		boolean		explicit );
 }

@@ -62,7 +62,8 @@ PEPeerManager
 	getStats();
 
 	public void 
-	checkTracker();
+	checkTracker(
+		boolean	force );
 
 	public String getTrackerStatus();
 	

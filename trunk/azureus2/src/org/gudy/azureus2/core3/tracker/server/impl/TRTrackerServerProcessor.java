@@ -72,7 +72,7 @@ TRTrackerServerProcessor
 				}
 			}
 	
-			System.out.println( "got header:" + header );
+			// System.out.println( "got header:" + header );
 			
 			if ( !header.startsWith( "GET " )){
 				
@@ -228,7 +228,7 @@ TRTrackerServerProcessor
 					throw( new Exception( "Hash missing from request "));
 				}
 										
-				System.out.println( "request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
+				System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
 																		
 				TRTrackerServerTorrent	torrent = server.getTorrent( hash_str.getBytes(Constants.BYTE_ENCODING));
 					
@@ -294,7 +294,7 @@ TRTrackerServerProcessor
 		
 			byte[] data = BEncoder.encode( root );
 				
-			System.out.println( "sending " + new String(data));
+			System.out.println( "TRTrackerServerProcessor::reply: sending " + new String(data));
 				
 			String header = "HTTP/1.1 200 OK" + NL + 
 							"Content-Type: text/html" + NL +

@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -533,13 +534,24 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 		   TableItem ti = tis[i];
 		 
 			 DownloadManager dm = (DownloadManager) managers.get(ti);
-		 
-			 TOTorrent	torrent = dm.getTorrent();
-		 
-			 if ( torrent != null ){
-		 
-		 		TRHostFactory.create().addTorrent( torrent );
-			 } 
+		 	
+		 		// hack for the moment...
+		 		
+		 	 TRTrackerClient tc = dm.getTrackerClient();
+		 	 
+		 	 if ( tc != null ){	 	
+			 
+				TRHostFactory.create().addTorrent( tc );
+		 	 	
+		 	 }else{
+		 	 
+				 TOTorrent	torrent = dm.getTorrent();
+			 
+				 if ( torrent != null ){
+			 
+			 		TRHostFactory.create().addTorrent( torrent );
+				 } 
+		 	 }
 		 }
 		 
 		 MainWindow.getWindow().showMyTracker();

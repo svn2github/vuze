@@ -37,6 +37,7 @@ TRHostTorrentImpl
 	protected TRHostImpl		host;
 	protected TRTrackerServer	server;
 	protected TOTorrent			torrent;
+	protected int				port;
 	
 	protected int				status	= TS_STOPPED;
 	
@@ -44,11 +45,19 @@ TRHostTorrentImpl
 	TRHostTorrentImpl(
 		TRHostImpl		_host,
 		TRTrackerServer	_server,
-		TOTorrent		_torrent )
+		TOTorrent		_torrent,
+		int				_port )
 	{
 		host		= _host;
 		server		= _server;
 		torrent		= _torrent;
+		port		= _port;
+	}
+	
+	protected int
+	getPort()
+	{
+		return( port );
 	}
 	
 	public synchronized void

@@ -27,15 +27,17 @@ package org.gudy.azureus2.core3.tracker.host.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 
 public class 
 TRHostImpl
 	implements TRHost 
 {
-	public static final int RETRY_DELAY 	= 60;	// seconds
+	public static final int RETRY_DELAY 	= 120;	// seconds
 	public static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
 	
 	protected static TRHostImpl		singleton;
@@ -57,9 +59,47 @@ TRHostImpl
 		return( singleton );
 	}
 	
+	public void
+	addTorrent(
+		TRTrackerClient	tracker_client )
+	{
+		TOTorrent	torrent = tracker_client.getTorrent();	
+		
+		TRHostTorrentImpl	ht = addTorrentSupport( torrent );
+		
+		if ( ht == null ){
+			
+			return;
+		}
+		
+		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+
+		String	url = "http://";
+		
+		if ( bind_ip.length() < 7 ){
+				
+			url += "127.0.0.1";
+				
+		}else{
+				
+			url += bind_ip;
+		}
+
+		tracker_client.setTrackerUrl(url + ":" + ht.getPort() + "/announce");	
+		
+		ht.start();
+	}
+
 	public synchronized void
 	addTorrent(
 		TOTorrent		torrent )
+	{
+		addTorrentSupport( torrent );
+	}
+	
+	protected synchronized TRHostTorrentImpl
+	addTorrentSupport(
+			TOTorrent		torrent )
 	{
 		for (int i=0;i<torrents.size();i++){
 			
@@ -69,7 +109,7 @@ TRHostImpl
 		
 					// already there
 							
-				return;
+				return( null );
 			}
 		}
 		
@@ -96,7 +136,7 @@ TRHostImpl
 			}
 		}
 		
-		TRHostTorrent host_torrent = new TRHostTorrentImpl( this, server, torrent );
+		TRHostTorrentImpl host_torrent = new TRHostTorrentImpl( this, server, torrent, port );
 		
 		torrents.add( host_torrent );
 		
@@ -104,6 +144,8 @@ TRHostImpl
 			
 			((TRHostListener)listeners.get(i)).torrentAdded( host_torrent );
 		}
+		
+		return( host_torrent );
 	}
 	
 	protected synchronized void

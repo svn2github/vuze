@@ -597,16 +597,18 @@ PEPeerControlImpl
     if ((time - _timeLastUpdate) > _timeToWait) //if so...
       {
       _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
-      checkTracker();
+      checkTracker( false );
     }
   }
-
-	public void 
-  	checkTracker()
+  	
+  	public void
+  	checkTracker(
+  		boolean		force )
   	{
 		long time = System.currentTimeMillis() / 1000;
 		
-    	if (time - _timeLastUpdate < 60){
+    	if (	(!force) &&
+    			(time - _timeLastUpdate < 60)){
     		
       		return;
     	}

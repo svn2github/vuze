@@ -48,7 +48,7 @@ import org.gudy.azureus2.core3.download.*;
 
 public class 
 DownloadManagerImpl 
-	implements DownloadManager
+	implements DownloadManager, TRTrackerClientListener
 {
 	private Vector	listeners 		= new Vector();
 	private Vector	current_peers 	= new Vector();
@@ -152,6 +152,8 @@ DownloadManagerImpl
 	try{
 		tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
     
+		tracker_client.addListener( this );
+		
 		diskManager = DiskManagerFactory.create( torrent, savePath);
     
 		this.state = STATE_INITIALIZED;
@@ -309,7 +311,14 @@ DownloadManagerImpl
 			 diskManager.dumpResumeDataToDisk(true);
 		  diskManager.stopIt();
 		}
-		tracker_client = null;
+		
+		if ( tracker_client != null ){
+		
+			tracker_client.removeListener( DownloadManagerImpl.this );
+	
+			tracker_client = null;
+		}
+		
 		peerManager = null;
 		state = DownloadManager.STATE_STOPPED;                
 	  }
@@ -347,7 +356,17 @@ DownloadManagerImpl
 	return( tracker_client );
   }
   
-
+  public void
+  urlChanged(
+  	String		url,
+  	boolean		explicit )
+  {  	
+  	if ( explicit ){
+  		
+  		checkTracker( true );
+  	}
+  }
+  
   /**
    * @return
    */
@@ -516,9 +535,18 @@ DownloadManagerImpl
 	return false;
   }
   
-  public void checkTracker() {
+  public void 
+  checkTracker() 
+  {
+  	checkTracker(false);
+  }
+  
+  protected void
+  checkTracker(
+  	boolean	force )
+  {
 	if(peerManager != null)
-	  peerManager.checkTracker();
+	  peerManager.checkTracker( force );
   }
 
   /**

@@ -78,6 +78,8 @@ TRTrackerClientClassicImpl
 
   private static final byte[] azureus = "Azureus".getBytes();
 
+  private Vector	listeners = new Vector();
+  
   public 
   TRTrackerClientClassicImpl(
   	TOTorrent	_torrent,
@@ -154,10 +156,6 @@ TRTrackerClientClassicImpl
   private TRTrackerResponse 
   update(String evt) 
   {
-	byte[] result = null;
-	boolean failed = false;
-	this.firstIndexUsed = this.listIndex;
-		
 	String	last_failure_reason = "";
 		
 	for (int i = 0 ; i < trackerUrlLists.size() ; i++) {
@@ -175,7 +173,7 @@ TRTrackerClientClassicImpl
 		  try{
 		  
 			  this_url_string = constructUrl(evt,url);
-			  
+			  					  	  
 			  URL reqUrl = new URL(this_url_string);
 			  
 			  TRTrackerResponse resp = decodeTrackerResponse( updateOld(reqUrl,evt));
@@ -190,6 +188,8 @@ TRTrackerClientClassicImpl
 	            	
 	            	trackerUrlLists.add(0,urls);            
 	            
+	            	informURLChange( this_url_string, false );
+	            	
 	            		//and return the result
 	            		
 	            	return( resp );
@@ -209,6 +209,8 @@ TRTrackerClientClassicImpl
 		  	last_failure_reason = "malformed URL '" + this_url_string + "'";
 		  	
 		  }catch( Exception e ){
+		  	
+		  	//e.printStackTrace();
 		  	
 		  	last_failure_reason = e.getMessage();
 		  }
@@ -414,10 +416,52 @@ TRTrackerClientClassicImpl
   /**
    * @param trackerUrl
    */
-  public void setTrackerUrl(String trackerUrl) {
+  
+  public void 
+  addTrackerUrl(
+  	String trackerUrl ) 
+  {
+	trackerUrl = trackerUrl.replaceAll(" ", "");
+	
+  		// put it in at the front of the list if not already present
+  		
+  	for (int i=0;i<trackerUrlLists.size();i++){
+  		
+  		List	list = (List)trackerUrlLists.get(i);
+  		
+  		if ( list.size() == 1 ){
+  	
+  			if (trackerUrl.equalsIgnoreCase((String)list.get(0))){
+  				
+  				return;		
+  			}
+  		}
+  	}
+  	
   	List list = new ArrayList(1);
-  	list.add(trackerUrl.replaceAll(" ", ""));
-  	trackerUrlLists.add(list);
+  	
+  	list.add( trackerUrl );
+  	
+  	trackerUrlLists.add(0, list);
+  	
+	informURLChange( trackerUrl, true );       	
+  }
+  
+  public void 
+  setTrackerUrl(
+	String trackerUrl ) 
+  {
+	trackerUrl = trackerUrl.replaceAll(" ", "");
+	
+	List list = new ArrayList(1);
+  	
+	list.add( trackerUrl );
+  	
+	trackerUrlLists.clear();
+  	
+	trackerUrlLists.add( list );
+	
+	informURLChange( trackerUrl, true );       	
   }
   
   private void 
@@ -616,4 +660,29 @@ TRTrackerClientClassicImpl
 
 		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60, failure_reason ));
   	}
+  	
+  	protected synchronized void
+	informURLChange(
+		String	url,
+		boolean	explicit  )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRTrackerClientListener)listeners.elementAt(i)).urlChanged( url, explicit );
+		}
+	}
+	
+  	public synchronized void
+	addListener(
+		TRTrackerClientListener	l )
+	{
+		listeners.addElement( l );
+	}
+		
+	public synchronized void
+	removeListener(
+		TRTrackerClientListener	l )
+	{
+		listeners.removeElement(l);
+	}
 }

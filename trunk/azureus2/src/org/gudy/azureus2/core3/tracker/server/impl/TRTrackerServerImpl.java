@@ -37,28 +37,51 @@ TRTrackerServerImpl
 	protected int	retry_interval_seconds;
 	
 	protected Map	torrent_map = new HashMap(); 
-	
+		
 	public
 	TRTrackerServerImpl(
 		int		_port,
 		int		_retry_interval )
+		
+		throws TRTrackerServerException
 	{
 		port					= _port;
 		retry_interval_seconds	= _retry_interval;
 		
-		Thread accept_thread = 
-				new Thread()
-				{
-					public void
-					run()
+		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+
+		try{
+			ServerSocket ss;
+			
+			if ( bind_ip.length() < 7 ){
+				
+				ss = new ServerSocket( port );
+				
+			}else{
+				
+				ss = new ServerSocket( port, 128, InetAddress.getByName(bind_ip));
+			}
+		
+			final ServerSocket	f_ss = ss;
+			
+			Thread accept_thread = 
+					new Thread()
 					{
-						acceptLoop();
-					}
-				};
+						public void
+						run()
+						{
+							acceptLoop( f_ss );
+						}
+					};
 		
-		accept_thread.setDaemon( true );
+			accept_thread.setDaemon( true );
 		
-		accept_thread.start();
+			accept_thread.start();									
+	
+		}catch( Throwable e ){
+						
+			throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
+		}			
 		
 		Thread timer_thread = 
 			new Thread()
@@ -76,36 +99,21 @@ TRTrackerServerImpl
 	}
 	
 	protected void
-	acceptLoop()
+	acceptLoop(
+		ServerSocket	ss )
 	{
-		//System.out.println( "TRTrackerServerImpl: starts on port " + port );
-		
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-
-		try{
-			ServerSocket ss;
-			
-			if ( bind_ip.length() < 7 ){
-				
-				ss = new ServerSocket( port );
-				
-			}else{
-				
-				ss = new ServerSocket( port, 128, InetAddress.getByName(bind_ip));
-			}
-			
-			while(true){
-				
+		while(true){
+	
+			try{				
 				Socket socket = ss.accept();
 				
 				new TRTrackerServerProcessor( this, socket );
+
+			}catch( Throwable e ){
+				
+				e.printStackTrace();		
 			}
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
-			//throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()  ));
-		}	
+		}
 	}
 	
 	protected void

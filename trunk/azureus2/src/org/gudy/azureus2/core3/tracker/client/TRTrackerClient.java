@@ -38,6 +38,10 @@ TRTrackerClient
 	getTrackerUrl();
 	
 	public void
+	addTrackerUrl(
+		String		url );
+		
+	public void
 	setTrackerUrl(
 		String		url );
 		
@@ -52,4 +56,12 @@ TRTrackerClient
 	
 	public TRTrackerResponse
 	stop();
+	
+	public void
+	addListener(
+		TRTrackerClientListener	l );
+		
+	public void
+	removeListener(
+		TRTrackerClientListener	l );
 }
