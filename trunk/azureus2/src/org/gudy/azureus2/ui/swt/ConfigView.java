@@ -271,7 +271,7 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.ircchannel"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 150;
-    new StringParameter(gIrc, "Irc Channel", "#azureus").setLayoutData(gridData); //$NON-NLS-1$
+    new StringParameter(gIrc, "Irc Channel", "#azureus-users").setLayoutData(gridData); //$NON-NLS-1$
     
     label = new Label(gIrc, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.irclogin"); //$NON-NLS-1$
