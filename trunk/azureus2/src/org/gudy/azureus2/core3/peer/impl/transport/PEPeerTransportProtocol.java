@@ -161,6 +161,9 @@ PEPeerTransportProtocol
   private int writeSleepTime;
   private long lastReadTime;
   private long lastWriteTime;
+  
+  private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
+  
 	
 		// Protocol Info
 		
@@ -395,6 +398,7 @@ PEPeerTransportProtocol
   
 
   PeerIdentityManager.addIdentity( otherHash, otherPeerId, ip );
+  identityAdded = true;
  
   
 	//decode a client identification string from the given peerID
@@ -467,7 +471,7 @@ PEPeerTransportProtocol
 	}
 
   //remove identity
-  if ( this.id != null ) {
+  if ( this.id != null && identityAdded ) {
   	PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
   }
   
