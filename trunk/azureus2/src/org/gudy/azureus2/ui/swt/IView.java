@@ -16,5 +16,6 @@ public interface IView {
   public void refresh();
   public void delete();
   public String getShortTitle();
-  public String getFullTitle();  
+  public String getFullTitle();
+  public void updateLanguage();  
 }

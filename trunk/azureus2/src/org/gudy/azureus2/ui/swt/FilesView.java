@@ -34,7 +34,7 @@ import org.gudy.azureus2.core.FileInfo;
  * @author Olivier
  * 
  */
-public class FilesView implements IView {
+public class FilesView extends AbstractIView {
 
   DownloadManager manager;
   Table table;
@@ -65,11 +65,11 @@ public class FilesView implements IView {
     table = new Table(composite, SWT.SINGLE | SWT.FULL_SELECTION);
     table.setLinesVisible(false);
     table.setHeaderVisible(true);
-    String[] titles = { Messages.getString("FilesView.name"), Messages.getString("FilesView.size"), Messages.getString("FilesView.done"), "%", Messages.getString("FilesView.firstpiece"), Messages.getString("FilesView.numberofpieces"), Messages.getString("FilesView.pieces"), Messages.getString("FilesView.mode"), Messages.getString("FilesView.priority") }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$
+    String[] columnsHeader = { "name", "size", "done", "%", "firstpiece", "numberofpieces", "pieces", "mode", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$
     int[] align = { SWT.LEFT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.RIGHT, SWT.CENTER, SWT.LEFT, SWT.LEFT };
-    for (int i = 0; i < titles.length; i++) {
+    for (int i = 0; i < columnsHeader.length; i++) {
       TableColumn column = new TableColumn(table, align[i]);
-      column.setText(titles[i]);
+      Messages.setLanguageText(column, "FilesView." + columnsHeader[i]); //$NON-NLS-1$
     }
     table.getColumn(0).setWidth(300);
     table.getColumn(1).setWidth(70);
@@ -92,15 +92,15 @@ public class FilesView implements IView {
 
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-    itemOpen.setText(Messages.getString("FilesView.menu.open")); //$NON-NLS-1$
+    Messages.setLanguageText(itemOpen, "FilesView.menu.open"); //$NON-NLS-1$
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
-    itemPriority.setText(Messages.getString("FilesView.menu.setpriority")); //$NON-NLS-1$
+    Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority"); //$NON-NLS-1$
     final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
-    itemHigh.setText(Messages.getString("FilesView.menu.setpriority.high")); //$NON-NLS-1$
+    Messages.setLanguageText(itemHigh, "FilesView.menu.setpriority.high"); //$NON-NLS-1$
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
-    itemLow.setText(Messages.getString("FilesView.menu.setpriority.normal")); //$NON-NLS-1$
+    Messages.setLanguageText(itemLow, "FilesView.menu.setpriority.normal"); //$NON-NLS-1$
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
@@ -259,7 +259,7 @@ public class FilesView implements IView {
 
     if (field.equals("percent")) { //$NON-NLS-1$
       long percent = 0;
-      if (fileInfo.getLength() > 0) {
+      if (fileInfo.getLength() != 0) {
         percent = (1000 * fileInfo.getDownloaded()) / fileInfo.getLength();
       }
       return percent;

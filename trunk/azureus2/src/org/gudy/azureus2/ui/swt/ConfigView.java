@@ -22,7 +22,7 @@ import org.gudy.azureus2.core.ConfigurationManager;
  * @author Olivier
  * 
  */
-public class ConfigView implements IView {
+public class ConfigView extends AbstractIView {
 
   private static final int upRates[] =
     {
@@ -78,28 +78,33 @@ public class ConfigView implements IView {
     configLayout.numColumns = 2;
     gConfig.setLayout(configLayout);
     Group gFile = new Group(gConfig, SWT.NULL);
+    Messages.setLanguageText(gFile, "ConfigView.section.files"); //$NON-NLS-1$
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gFile.setLayoutData(gridData);
 
-    gFile.setText(Messages.getString("ConfigView.section.files")); //$NON-NLS-1$
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     gFile.setLayout(layout);
-    new Label(gFile, SWT.NULL).setText(Messages.getString("ConfigView.label.usefastresume")); //$NON-NLS-1$
+    Label label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
+
     new BooleanParameter(gFile, "Use Resume", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
 
-    new Label(gFile, SWT.NULL).setText(Messages.getString("ConfigView.label.allocatenewfiles")); //$NON-NLS-1$
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.allocatenewfiles"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Allocate New", true); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
 
-    new Label(gFile, SWT.NULL).setText(Messages.getString("ConfigView.label.defaultsavepath")); //$NON-NLS-1$
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
+
     gridData = new GridData();
     gridData.widthHint = 150;
     final StringParameter pathParameter = new StringParameter(gFile, "Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
     pathParameter.setLayoutData(gridData);
     Button browse = new Button(gFile, SWT.PUSH);
-    browse.setText(Messages.getString("ConfigView.button.browse") + "..."); //$NON-NLS-1$
+    Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
     browse.addListener(SWT.Selection, new Listener() {
       /* (non-Javadoc)
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
@@ -116,62 +121,69 @@ public class ConfigView implements IView {
     });
 
     Group gServer = new Group(gConfig, SWT.NULL);
-    gServer.setText(Messages.getString("ConfigView.section.server")); //$NON-NLS-1$
+    Messages.setLanguageText(gServer, "ConfigView.section.server"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gServer.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     gServer.setLayout(layout);
 
-    new Label(gServer, SWT.NULL).setText(Messages.getString("ConfigView.label.overrideip")); //$NON-NLS-1$
+    label = new Label(gServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.overrideip"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 100;
     new StringParameter(gServer, "Override Ip", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
 
-    new Label(gServer, SWT.NULL).setText(Messages.getString("ConfigView.label.serverportlow")); //$NON-NLS-1$
+    label = new Label(gServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.serverportlow"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gServer, "Low Port", 6881).setLayoutData(gridData); //$NON-NLS-1$
 
-    new Label(gServer, SWT.NULL).setText(Messages.getString("ConfigView.label.serverporthigh")); //$NON-NLS-1$
+    label = new Label(gServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.serverporthigh"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gServer, "High Port", 6889).setLayoutData(gridData); //$NON-NLS-1$
 
     Group gGlobal = new Group(gConfig, SWT.NULL);
-    gGlobal.setText(Messages.getString("ConfigView.section.global")); //$NON-NLS-1$
+    Messages.setLanguageText(gGlobal, "ConfigView.section.global"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gGlobal.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     gGlobal.setLayout(layout);
 
-    new Label(gGlobal, SWT.NULL).setText(Messages.getString("ConfigView.label.disconnetseed")); //$NON-NLS-1$
+    label = new Label(gGlobal, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
     new BooleanParameter(gGlobal, "Disconnect Seed", false); //$NON-NLS-1$
 
-    new Label(gGlobal, SWT.NULL).setText(Messages.getString("ConfigView.label.switchpriority")); //$NON-NLS-1$
+    label = new Label(gGlobal, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
     new BooleanParameter(gGlobal, "Switch Priority", true); //$NON-NLS-1$
 
-    new Label(gGlobal, SWT.NULL).setText(
-      Messages.getString("ConfigView.label.maxactivetorrents")); //$NON-NLS-1$
+    label = new Label(gGlobal, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gGlobal, "max active torrents", 4).setLayoutData(gridData); //$NON-NLS-1$
 
     Group gTransfer = new Group(gConfig, SWT.NULL);
-    gTransfer.setText(Messages.getString("ConfigView.section.transfer")); //$NON-NLS-1$
+    Messages.setLanguageText(gTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gTransfer.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     gTransfer.setLayout(layout);
 
-    new Label(gTransfer, SWT.NULL).setText(Messages.getString("ConfigView.label.maxclients")); //$NON-NLS-1$
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxclients"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 30;
     new IntParameter(gTransfer, "Max Clients", 0).setLayoutData(gridData); //$NON-NLS-1$
 
-    new Label(gTransfer, SWT.NULL).setText(Messages.getString("ConfigView.label.maxuploads")); //$NON-NLS-1$
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxuploads"); //$NON-NLS-1$
     final String upLabels[] = new String[99];
     final int upValues[] = new int[99];
     for (int i = 0; i < 99; i++) {
@@ -180,7 +192,8 @@ public class ConfigView implements IView {
     }
     new IntListParameter(gTransfer, "Max Uploads", 4, upLabels, upValues); //$NON-NLS-1$
 
-    new Label(gTransfer, SWT.NULL).setText(Messages.getString("ConfigView.label.maxuploadspeed")); //$NON-NLS-1$
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed"); //$NON-NLS-1$
     final String upsLabels[] = new String[upRates.length];
     final int upsValues[] = new int[upRates.length];
     upsLabels[0] = Messages.getString("ConfigView.unlimited"); //$NON-NLS-1$
@@ -192,21 +205,23 @@ public class ConfigView implements IView {
     new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$
 
     Group gDisplay = new Group(gConfig, SWT.NULL);
-    gDisplay.setText(Messages.getString("ConfigView.section.display")); //$NON-NLS-1$
+    Messages.setLanguageText(gDisplay, "ConfigView.section.display"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gDisplay.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     gDisplay.setLayout(layout);
-    new Label(gDisplay, SWT.NULL).setText(Messages.getString("ConfigView.label.opendetails")); //$NON-NLS-1$
+
+    label = new Label(gDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.opendetails"); //$NON-NLS-1$
     new BooleanParameter(gDisplay, "Open Details", true); //$NON-NLS-1$
     
-    new Label(gDisplay, SWT.NULL).setText(Messages.getString("ConfigView.label.openbar")); //$NON-NLS-1$
+    label = new Label(gDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.openbar"); //$NON-NLS-1$
     new BooleanParameter(gDisplay, "Open Bar", false); //$NON-NLS-1$
     
-
     Button enter = new Button(gConfig, SWT.PUSH);
-    enter.setText(Messages.getString("ConfigView.button.save")); //$NON-NLS-1$
+    Messages.setLanguageText(enter, "ConfigView.button.save"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.horizontalSpan = 2;
     enter.setLayoutData(gridData);
