@@ -1427,6 +1427,8 @@ PEPeerControlImpl
         index = index >= peer_transports.size() ? 0 : index;
       }
       
+      currentOptimisticUnchoke = null;
+      
       for( int i = index; i < peer_transports.size() + index; i++ ) {
         PEPeerTransport pc = (PEPeerTransport) peer_transports.get( i % peer_transports.size() );
         
