@@ -334,9 +334,9 @@ DMWriterAndCheckerImpl
 			
 		boolean	check_result	= false;
 		
-        DirectByteBuffer	buffer	= null;
+		DirectByteBuffer	buffer	= null;
               
-        boolean	async_request	= false;
+		boolean	async_request	= false;
         
 		try{
 			
@@ -362,26 +362,41 @@ DMWriterAndCheckerImpl
 			
 			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
-				//for each piece
-			
+			//for each piece-part-to-file mapping entry
 			for (int i = 0; i < pieceList.size(); i++) {
-				
-					//get the piece and the file
 				
 				PieceMapEntry tempPiece = pieceList.get(i);
 	            
-
 				try {
 	                    
-						   //if the file is large enough
-					
+				  //if the file is large enough
 					if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
 						
-						tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());
+            //Make sure we only read in this entry-length's worth of data from the file
+            //NOTE: Without this limit the read op will
+            // a) fill the entire buffer with file data if the file length is big enough,
+            //    i.e. the whole piece is contained within the file somewhere, or
+            // b) read the file into the buffer until it reaches EOF,
+            //    i.e. the piece overlaps two different files
+            //Under normal conditions this works ok, because the assumption is that if a piece
+            //is contained within a single file, then there will only be one PieceMapEntry for
+            //that piece, so we can just fill the buffer.  It also assumes that if a piece
+            //overlaps two (or more) files, then there will be multiple PieceMapEntrys, with
+            //each entry ending at the file EOF boundary.  However, if for some reason one of
+            //these files is at least one byte too large, then the read op will read in too
+            //many bytes before hitting EOF, and our piece buffer data will be misaligned,
+            //causing hash failure (and a 99.9% bug).  Better to set the buffer limit explicitly.
+            
+            int entry_read_limit = tempPiece.getLength() + buffer.position( DirectByteBuffer.SS_DW );
+            buffer.limit( DirectByteBuffer.SS_DW, entry_read_limit );
+
+            tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());  //do read
+            
+            buffer.limit( DirectByteBuffer.SS_DW, this_piece_length );  //restore limit
 						
 					}else{
-							// file is too small, therefore required data hasn't been 
-							// written yet -> check fails
+					  // file is too small, therefore required data hasn't been 
+					  // written yet -> check fails
 								
 						return;
 					}
