@@ -37,6 +37,8 @@ import java.util.*;
 public class 
 DirectByteBuffer 
 {	
+		// allocator constants
+	
 	public static final byte		AL_NONE			= 0;
 	public static final byte		AL_EXTERNAL		= 1;
 	public static final byte		AL_OTHER		= 2;
@@ -48,9 +50,12 @@ DirectByteBuffer
 	public static final byte		AL_DM_CHECK		= 8;
 	public static final byte		AL_BT_PIECE		= 9;
 	public static final byte		AL_CACHE_WRITE	= 10;
+	public static final byte		AL_PROXY_RELAY	= 11;
 	
 	public static final String[] AL_DESCS =
-	{ "None", "Ext", "Other", "PeerRead", "PeerLen", "CacheRead", "DiskRead", "DiskZero", "DiskCheck", "BTPiece", "CacheWrite" };
+	{ "None", "Ext", "Other", "PeerRead", "PeerLen", "CacheRead", "DiskRead", "DiskZero", "DiskCheck", "BTPiece", "CacheWrite", "ProxyRelay" };
+	
+		// subsystem ids
 	
 	public static final byte		SS_NONE			= 0;	// not used, required to id cycled buffers
 	public static final byte		SS_EXTERNAL		= 1;
@@ -62,9 +67,10 @@ DirectByteBuffer
 	public static final byte		SS_DR			= 7;
 	public static final byte		SS_DW			= 8;
 	public static final byte		SS_PEER			= 9;
-
+	public static final byte		SS_PROXY		= 10;
+	
 	public static final String[] SS_DESCS = 
-	{ "None", "Ext", "Other", "Cache", "File", "Net", "BT", "DiskRead", "DiskWrite", "Peer" };
+	{ "None", "Ext", "Other", "Cache", "File", "Net", "BT", "DiskRead", "DiskWrite", "Peer", "Proxy" };
 	
 	public static final byte		OP_LIMIT			= 0;
 	public static final byte		OP_LIMIT_INT		= 1;

@@ -25,12 +25,13 @@ package com.aelitis.azureus.core.proxy.socks.impl;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
 import com.aelitis.azureus.core.proxy.AEProxyConnection;
 import com.aelitis.azureus.core.proxy.socks.*;
@@ -51,6 +52,8 @@ AESocksProxyPlugableConnectionDefault
 	protected SocketChannel		source_channel;
 	protected SocketChannel		target_channel;
 
+	protected proxyStateRelayData	relay_data_state;
+	
 	public
 	AESocksProxyPlugableConnectionDefault(
 		AESocksProxyConnection		_socks_connection )
@@ -120,7 +123,12 @@ AESocksProxyPlugableConnectionDefault
 				
 				Debug.printStackTrace(e);
 			}
-		}	
+		}
+		
+		if ( relay_data_state != null ){
+			
+			relay_data_state.destroy();
+		}
 	}
 	
 	
@@ -182,8 +190,8 @@ AESocksProxyPlugableConnectionDefault
 	proxyStateRelayData
 		extends AESocksProxyState
 	{
-		protected ByteBuffer		source_buffer;
-		protected ByteBuffer		target_buffer;
+		protected DirectByteBuffer		source_buffer;
+		protected DirectByteBuffer		target_buffer;
 		
 		protected long				outward_bytes	= 0;
 		protected long				inward_bytes	= 0;
@@ -195,8 +203,17 @@ AESocksProxyPlugableConnectionDefault
 		{		
 			super( socks_connection );
 			
-			source_buffer	= ByteBuffer.allocate( 1024 );
-			target_buffer	= ByteBuffer.allocate( 1024 );
+			source_buffer	= DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PROXY_RELAY, 1024 );
+			target_buffer	= DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PROXY_RELAY, 1024 );
+			
+			relay_data_state	= this;
+			
+			if ( connection.isClosed()){
+				
+				destroy();
+				
+				throw( new IOException( "connection closed" ));
+			}
 			
 			connection.setReadState( this );
 			
@@ -210,6 +227,24 @@ AESocksProxyPlugableConnectionDefault
 		}
 		
 		protected void
+		destroy()
+		{
+			if ( source_buffer != null ){
+				
+				source_buffer.returnToPool();
+				
+				source_buffer	= null;
+			}
+			
+			if ( target_buffer != null ){
+				
+				target_buffer.returnToPool();
+				
+				target_buffer	= null;
+			}		
+		}
+		
+		protected void
 		readSupport(
 			SocketChannel 		sc )
 		
@@ -220,10 +255,10 @@ AESocksProxyPlugableConnectionDefault
 			SocketChannel	chan1 = sc;
 			SocketChannel	chan2 = sc==source_channel?target_channel:source_channel;
 			
-			ByteBuffer	read_buffer = sc==source_channel?source_buffer:target_buffer;
+			DirectByteBuffer	read_buffer = sc==source_channel?source_buffer:target_buffer;
 									
-			int	len = chan1.read( read_buffer );
-	
+			int	len = read_buffer.read( DirectByteBuffer.SS_PROXY, chan1 );
+			
 			if ( len == -1 ){
 				
 					//means that the channel has been shutdown
@@ -232,11 +267,11 @@ AESocksProxyPlugableConnectionDefault
 				
 			}else{
 				
-				if ( read_buffer.position() > 0 ){
+				if ( read_buffer.position( DirectByteBuffer.SS_PROXY ) > 0 ){
 					
-					read_buffer.flip();
+					read_buffer.flip(DirectByteBuffer.SS_PROXY);
 					
-					int	written = chan2.write( read_buffer );
+					int	written = read_buffer.write( DirectByteBuffer.SS_PROXY, chan2 );
 									
 					if ( chan1 == source_channel ){
 						
@@ -247,7 +282,7 @@ AESocksProxyPlugableConnectionDefault
 						inward_bytes += written;
 					}
 					
-					if ( read_buffer.hasRemaining()){
+					if ( read_buffer.hasRemaining(DirectByteBuffer.SS_PROXY)){
 						
 						connection.cancelReadSelect( chan1 );
 						
@@ -255,9 +290,9 @@ AESocksProxyPlugableConnectionDefault
 						
 					}else{
 						
-						read_buffer.position(0);
+						read_buffer.position(DirectByteBuffer.SS_PROXY, 0);
 						
-						read_buffer.limit( read_buffer.capacity());
+						read_buffer.limit( DirectByteBuffer.SS_PROXY, read_buffer.capacity(DirectByteBuffer.SS_PROXY));
 					}
 				}
 			}
@@ -275,9 +310,9 @@ AESocksProxyPlugableConnectionDefault
 			SocketChannel	chan1 = sc;
 			SocketChannel	chan2 = sc==source_channel?target_channel:source_channel;
 			
-			ByteBuffer	read_buffer = sc==source_channel?target_buffer:source_buffer;
+			DirectByteBuffer	read_buffer = sc==source_channel?target_buffer:source_buffer;
 			
-			int written = chan1.write( read_buffer );
+			int written = read_buffer.write( DirectByteBuffer.SS_PROXY, chan1 );
 						
 			if ( chan1 == target_channel ){
 				
@@ -288,15 +323,15 @@ AESocksProxyPlugableConnectionDefault
 				inward_bytes += written;
 			}
 			
-			if ( read_buffer.hasRemaining()){
+			if ( read_buffer.hasRemaining(DirectByteBuffer.SS_PROXY)){
 								
 				connection.requestWriteSelect( chan1 );
 				
 			}else{
 				
-				read_buffer.position(0);
+				read_buffer.position(DirectByteBuffer.SS_PROXY,0);
 				
-				read_buffer.limit( read_buffer.capacity());
+				read_buffer.limit( DirectByteBuffer.SS_PROXY, read_buffer.capacity(DirectByteBuffer.SS_PROXY));
 				
 				connection.requestReadSelect( chan2 );
 			}

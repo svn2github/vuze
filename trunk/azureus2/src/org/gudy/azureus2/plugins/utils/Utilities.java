@@ -40,8 +40,20 @@ Utilities
 	public String
 	getAzureusUserDir();
 	
+	public String
+	getAzureusProgramDir();
+	
 	public boolean
 	isCVSVersion();
+	
+	public boolean
+	isWindows();
+	
+	public boolean
+	isLinux();
+	
+	public boolean
+	isOSX();
 	
 	public InputStream
 	getImageAsStream(

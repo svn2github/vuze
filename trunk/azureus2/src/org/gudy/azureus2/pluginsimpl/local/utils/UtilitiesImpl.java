@@ -75,6 +75,37 @@ UtilitiesImpl
 		return( res );
 	}
 	
+	public String
+	getAzureusProgramDir()
+	{
+		String	res = SystemProperties.getApplicationPath();
+		
+		if ( res.endsWith(File.separator )){
+			
+			res = res.substring(0,res.length()-1);
+		}
+		
+		return( res );	
+	}
+	
+	public boolean
+	isWindows()
+	{
+		return( Constants.isWindows );
+	}
+	
+	public boolean
+	isLinux()
+	{
+		return( Constants.isLinux );
+	}
+	
+	public boolean
+	isOSX()
+	{
+		return( Constants.isOSX );
+	}
+	
 	public boolean
 	isCVSVersion()
 	{

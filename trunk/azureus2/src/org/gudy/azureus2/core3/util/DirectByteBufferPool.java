@@ -253,7 +253,7 @@ DirectByteBufferPool
               
         DirectByteBuffer dbb = new DirectByteBuffer( _allocator, buff, this );
                     
-        if ( DEBUG_PRINT_MEM ){
+        if ( DEBUG_PRINT_MEM || DEBUG_TRACK_HANDEDOUT ){
         	
         	synchronized( handed_out ){
         	        	

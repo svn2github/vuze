@@ -44,7 +44,7 @@ public class
 AESocksProxyConnectionImpl
 	implements AESocksProxyConnection, AEProxyConnectionListener
 {
-	public static final boolean	TRACE	= true;
+	public static final boolean	TRACE	= false;
 	
 	protected AESocksProxy			proxy;
 	protected AEProxyConnection		connection;
