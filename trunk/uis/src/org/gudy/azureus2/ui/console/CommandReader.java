@@ -30,6 +30,8 @@ public class CommandReader extends Reader {
   private String line = null;
   private int state = ENTER;
   
+  public Vector commandargs =null;
+  
   /** Creates a new instance of CommandReader */
   public CommandReader(Reader _in, Writer _out) {
     super();
@@ -128,8 +130,8 @@ public class CommandReader extends Reader {
               default:
                 current.append(c);
             }
-            if ((state != ENTER) && (state != NONQUOTEDESCAPE)) {
-              args.addElement(current.toString());
+            if ((state == ENTER) && ((c==' ') || (c=='\n'))) {
+              args.addElement(current.toString().trim());
               current = new StringBuffer();
             }
             break;
@@ -176,6 +178,7 @@ public class CommandReader extends Reader {
         
       }
       line = line.trim();
+      commandargs = args;
       return line;
     }
   }

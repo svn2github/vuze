@@ -1,5 +1,5 @@
 /*
- * Written and copyright 2001-2003 Tobias Minich. Distributed under the GNU
+ * Written and copyright 2001-2004 Tobias Minich. Distributed under the GNU
  * General Public License; see the README file. This code comes with NO
  * WARRANTY.
  * 
@@ -11,17 +11,21 @@
 
 package org.gudy.azureus2.ui.console;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 
 import java.text.DecimalFormat;
 
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -29,6 +33,7 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Vector;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -44,14 +49,14 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.varia.DenyAllFilter;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
-import org.gudy.azureus2.core3.stats.StatsWriterFactory;
-import org.gudy.azureus2.core3.stats.StatsWriterStreamer;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -59,6 +64,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.common.ExternalUIConst;
 import org.gudy.azureus2.ui.common.UIConst;
+import org.gudy.azureus2.ui.console.commands.IConsoleCommand;
 
 import org.pf.file.FileFinder;
 
@@ -74,14 +80,54 @@ public class ConsoleInput extends Thread {
 	private static final int TORRENTCOMMAND_STARTNOW = 4;
 	private static final int TORRENTCOMMAND_CHECK = 5;
 	
-	GlobalManager gm;
+	public static HashMap commands = new HashMap();
+	public static TreeSet helplines = new TreeSet();
+	public static TreeSet helpextra = new TreeSet();
+
+	public GlobalManager gm;
 	CommandReader br;
-	PrintStream out;
+	public PrintStream out;
 	ArrayList torrents = null;
 	File[] adds = null;
 	boolean controlling;
 	boolean running;
 	String oldcommand = "sh t";
+	
+	static {
+        byte[] buf = new byte[1024];
+        InputStream res = ClassLoader.getSystemResourceAsStream("org/gudy/azureus2/ui/console/commands");
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        while (true) {
+          try {
+            int i = res.read(buf);
+            if (i > 0)
+              bao.write(buf, 0, i);
+            else
+              break;
+          } catch (IOException e) {
+            break;
+          }
+        }
+		String cls[] = bao.toString().split("\n");
+		for (int i=0; i<cls.length;i++) {
+			if (cls[i].indexOf(".class") != -1) {
+				String cl = cls[i].substring(0, cls[i].indexOf(".class"));
+				try {
+					Class regme = Class.forName("org.gudy.azureus2.ui.console.commands."+cl);
+					Class intf[] = regme.getInterfaces();
+					if (intf == null) continue;
+					boolean implemented = false;
+					for (int j=0; j<intf.length;j++)
+						if (intf[j]==IConsoleCommand.class) implemented=true;
+					if (!implemented) continue;
+					Method regit = regme.getMethod("RegisterCommands", null);
+					regit.invoke(null, null);
+				} catch (Exception e) {
+					
+				}
+			}
+		}
+	}
 
 	/** Creates a new instance of ConsoleInput */
 	public ConsoleInput(String con, GlobalManager _gm, Reader _in, PrintStream _out, Boolean _controlling) {
@@ -113,8 +159,10 @@ public class ConsoleInput extends Thread {
 		os.println("start (<torrentoptions>) [now]\ts\tStart torrent(s).");
 		os.println("stop (<torrentoptions>)\t\th\tStop torrent(s).");
 		os.println("ui <interface>\t\t\tu\tStart additional user interface.");
-		os.println("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
 		os.println("quit\t\t\t\t\tShutdown Azureus");
+		Iterator helps = helplines.iterator();
+		while (helps.hasNext())
+			os.println((String) helps.next());
 		os.println();
 		os.println("<torrentoptions> can be one of:");
 		os.println("<#>\t\tNumber of a torrent. You have to use 'show torrents' first. as the number is taken from there.");
@@ -168,41 +216,41 @@ public class ConsoleInput extends Thread {
 
 	private void commandSet(String subcommand) {
 		if (subcommand != null) {
-				String parameter = subcommand;
-				String setto = null;
-				if (subcommand.indexOf(" ") != -1) {
-					parameter = subcommand.substring(0, subcommand.indexOf(" "));
-					setto = subcommand.substring(subcommand.indexOf(" ") + 1);
-				}
-				if (COConfigurationManager.doesParameterExist(ExternalUIConst.parameterlegacy.get(parameter).toString())) {
-					try {
-						if (setto==null) {
-							if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
-								out.println("> "+parameter+": "+COConfigurationManager.getStringParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
-							else
-								out.println("> "+parameter+": "+COConfigurationManager.getIntParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
+			String parameter = subcommand;
+			String setto = null;
+			if (subcommand.indexOf(" ") != -1) {
+				parameter = subcommand.substring(0, subcommand.indexOf(" "));
+				setto = subcommand.substring(subcommand.indexOf(" ") + 1);
+			}
+			if (COConfigurationManager.doesParameterExist(ExternalUIConst.parameterlegacy.get(parameter).toString())) {
+				try {
+					if (setto == null) {
+						if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
+							out.println("> " + parameter + ": " + COConfigurationManager.getStringParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
+						else
+							out.println("> " + parameter + ": " + COConfigurationManager.getIntParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
+					} else {
+						if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s")) {
+							COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), setto);
 						} else {
-							if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s")) {
-								COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), setto);
-							} else {
-								COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), Integer.parseInt(setto));
-							}
-							COConfigurationManager.save();
-							out.println("> Parameter '" + parameter + "' set to '"+setto+"'.");
+							COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), Integer.parseInt(setto));
 						}
-					} catch (Exception e) {
-						out.println("> Command 'set': Exception '" + e.getMessage()+"' on parameter '" + parameter + "'");
+						COConfigurationManager.save();
+						out.println("> Parameter '" + parameter + "' set to '" + setto + "'.");
 					}
-				} else {
-					out.println("> Command 'set': Parameter '" + parameter + "' unknown.");
+				} catch (Exception e) {
+					out.println("> Command 'set': Exception '" + e.getMessage() + "' on parameter '" + parameter + "'");
 				}
+			} else {
+				out.println("> Command 'set': Parameter '" + parameter + "' unknown.");
+			}
 		} else {
 			Iterator I = COConfigurationManager.getAllowedParameters().iterator();
-			Hashtable backmap =new Hashtable();
+			Hashtable backmap = new Hashtable();
 			Enumeration enum = ExternalUIConst.parameterlegacy.keys();
 			while (enum.hasMoreElements()) {
 				Object o = enum.nextElement();
-				backmap.put(ExternalUIConst.parameterlegacy.get(o),o);
+				backmap.put(ExternalUIConst.parameterlegacy.get(o), o);
 			}
 			TreeSet srt = new TreeSet();
 			while (I.hasNext()) {
@@ -211,45 +259,16 @@ public class ConsoleInput extends Thread {
 					parameter = (String) backmap.get(parameter);
 				try {
 					if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s"))
-						srt.add("> "+parameter+": "+COConfigurationManager.getStringParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
+						srt.add("> " + parameter + ": " + COConfigurationManager.getStringParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
 					else
-						srt.add("> "+parameter+": "+COConfigurationManager.getIntParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
+						srt.add("> " + parameter + ": " + COConfigurationManager.getIntParameter(ExternalUIConst.parameterlegacy.get(parameter).toString()));
 				} catch (Exception e) {
-					srt.add("> "+parameter+": Exception '"+e.getMessage()+"' (Probably the parameter type couldn't be deduced from its name).");
+					srt.add("> " + parameter + ": Exception '" + e.getMessage() + "' (Probably the parameter type couldn't be deduced from its name).");
 				}
 			}
 			I = srt.iterator();
 			while (I.hasNext()) {
 				out.println((String) I.next());
-			}
-		}
-	}
-
-	private void commandXML(String subcommand) {
-		StatsWriterStreamer sws = StatsWriterFactory.createStreamer(gm);
-		if (subcommand == null) {
-			try {
-				out.println("> -----");
-				sws.write(out);
-				out.println("> -----");
-			} catch (Exception e) {
-				out.println("> Exception while trying to output xml stats:" + e.getMessage());
-			}
-		} else {
-			try {
-				FileOutputStream os = new FileOutputStream(subcommand);
-
-				try {
-
-					sws.write(os);
-
-				} finally {
-
-					os.close();
-				}
-				out.println("> XML stats successfully written to " + subcommand);
-			} catch (Exception e) {
-				out.println("> Exception while trying to write xml stats:" + e.getMessage());
 			}
 		}
 	}
@@ -264,27 +283,27 @@ public class ConsoleInput extends Thread {
 
 	private void commandShow(String subcommand) {
 		if (subcommand != null) {
-		  String[] sSubcommands = subcommand.split(" ");
-		  for (int i = 0; i < sSubcommands.length; i++)
-		    sSubcommands[i] = sSubcommands[i].trim();
+			String[] sSubcommands = subcommand.split(" ");
+			for (int i = 0; i < sSubcommands.length; i++)
+				sSubcommands[i] = sSubcommands[i].trim();
 			if (sSubcommands[0].equalsIgnoreCase("options") || sSubcommands[0].equalsIgnoreCase("o")) {
 				commandSet(null);
 			} else if (sSubcommands[0].equalsIgnoreCase("torrents") || sSubcommands[0].equalsIgnoreCase("t")) {
 				out.println("> -----");
 				torrents = (ArrayList) ((ArrayList) gm.getDownloadManagers()).clone();
-        Collections.sort(torrents, new Comparator () {
-          public final int compare (Object a, Object b) {
-            DownloadManager aDL = (DownloadManager)a;
-            DownloadManager bDL = (DownloadManager)b;
-            boolean aIsComplete = aDL.getStats().getDownloadCompleted(false) == 1000;
-            boolean bIsComplete = bDL.getStats().getDownloadCompleted(false) == 1000;
-            if (aIsComplete && !bIsComplete)
-              return 1;
-            if (!aIsComplete && bIsComplete)
-              return -1;
-            return aDL.getPosition() - bDL.getPosition();
-          }
-        } );
+				Collections.sort(torrents, new Comparator() {
+					public final int compare(Object a, Object b) {
+						DownloadManager aDL = (DownloadManager) a;
+						DownloadManager bDL = (DownloadManager) b;
+						boolean aIsComplete = aDL.getStats().getDownloadCompleted(false) == 1000;
+						boolean bIsComplete = bDL.getStats().getDownloadCompleted(false) == 1000;
+						if (aIsComplete && !bIsComplete)
+							return 1;
+						if (!aIsComplete && bIsComplete)
+							return -1;
+						return aDL.getPosition() - bDL.getPosition();
+					}
+				});
 
 				DownloadManager dm;
 				int dmstate;
@@ -300,103 +319,97 @@ public class ConsoleInput extends Thread {
 					boolean bShowOnlyActive = false;
 					boolean bShowOnlyComplete = false;
 					boolean bShowOnlyIncomplete = false;
-    		  for (int i = 1; i < sSubcommands.length; i++) {
-    		    if (sSubcommands[i].equalsIgnoreCase("active") || sSubcommands[i].equalsIgnoreCase("a")) {
-    		      bShowOnlyActive = true;
-    		    } else if (sSubcommands[i].equalsIgnoreCase("complete") || sSubcommands[i].equalsIgnoreCase("c")) {
-    		      bShowOnlyComplete = true;
-    		    } else if (sSubcommands[i].equalsIgnoreCase("incomplete") || sSubcommands[i].equalsIgnoreCase("i")) {
-    		      bShowOnlyIncomplete = true;
-    		    }
-    		  }
-					
+					for (int i = 1; i < sSubcommands.length; i++) {
+						if (sSubcommands[i].equalsIgnoreCase("active") || sSubcommands[i].equalsIgnoreCase("a")) {
+							bShowOnlyActive = true;
+						} else if (sSubcommands[i].equalsIgnoreCase("complete") || sSubcommands[i].equalsIgnoreCase("c")) {
+							bShowOnlyComplete = true;
+						} else if (sSubcommands[i].equalsIgnoreCase("incomplete") || sSubcommands[i].equalsIgnoreCase("i")) {
+							bShowOnlyIncomplete = true;
+						}
+					}
+
 					while (torrent.hasNext()) {
 						nrTorrent += 1;
 						dm = (DownloadManager) torrent.next();
- 						DownloadManagerStats stats = dm.getStats();
+						DownloadManagerStats stats = dm.getStats();
 						dmstate = dm.getState();
 
 						boolean bDownloadCompleted = stats.getDownloadCompleted(false) == 1000;
-						boolean bCanShow = ((bShowOnlyComplete == bShowOnlyIncomplete) ||
-                                (bDownloadCompleted && bShowOnlyComplete) ||
-                                (!bDownloadCompleted && bShowOnlyIncomplete));
-						
+						boolean bCanShow = ((bShowOnlyComplete == bShowOnlyIncomplete) || (bDownloadCompleted && bShowOnlyComplete) || (!bDownloadCompleted && bShowOnlyIncomplete));
+
 						if (bCanShow && bShowOnlyActive) {
-  						bCanShow = (dmstate == DownloadManager.STATE_SEEDING) ||
-  						           (dmstate == DownloadManager.STATE_DOWNLOADING) ||
-  						           (dmstate == DownloadManager.STATE_CHECKING) ||
-  						           (dmstate == DownloadManager.STATE_INITIALIZING) ||
-  						           (dmstate == DownloadManager.STATE_ALLOCATING);
-  				  }
-  				  
-  				  if (bCanShow) {
-  						TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
-  						try {
-  							ps = dm.getPeerManager().getStats();
-  						} catch (Exception e) {
-  							ps = null;
-  						}
-  						if (ps != null) {
-  							totalReceived += dm.getStats().getDownloaded();
-  							totalSent += dm.getStats().getUploaded();
-  							totalDiscarded += ps.getTotalDiscarded();
-  							connectedSeeds += dm.getNbSeeds();
-  							connectedPeers += dm.getNbPeers();
-  						}
-  						String tstate = ((nrTorrent < 10) ? " " : "") + Integer.toString(nrTorrent) + " [";
-  						if (dmstate == DownloadManager.STATE_INITIALIZING)
-  							tstate += "I";
-  						else if (dmstate == DownloadManager.STATE_ALLOCATING)
-  							tstate += "A";
-  						else if (dmstate == DownloadManager.STATE_CHECKING)
-  							tstate += "C";
-  						else if (dmstate == DownloadManager.STATE_DOWNLOADING)
-  							tstate += ">";
-  						else if (dmstate == DownloadManager.STATE_ERROR)
-  							tstate += "E";
-  						else if (dmstate == DownloadManager.STATE_SEEDING)
-  							tstate += "*";
-  						else if (dmstate == DownloadManager.STATE_STOPPED)
-  							tstate += "!";
-  						else if (dmstate == DownloadManager.STATE_WAITING)
-  							tstate += ".";
-  						else if (dmstate == DownloadManager.STATE_READY)
-  							tstate += ":";
-  						else if (dmstate == DownloadManager.STATE_QUEUED)
-  							tstate += "-";
-  						else
-  							tstate += "?";
-  						tstate += "] ";
-  						DecimalFormat df = new DecimalFormat("000.0%");
-  
-  						tstate += df.format(stats.getCompleted() / 1000.0);
-  						tstate += "\t";
-  						if (dmstate == DownloadManager.STATE_ERROR)
-  							tstate += dm.getErrorDetails();
-  						else {
-  							if (dm.getName() == null)
-  								tstate += "?";
-  							else
-  								tstate += dm.getName();
-  						}
-  						tstate += " (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "\r\n\t\tSpeed: ";
-  						tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ";
-  						tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
-  						tstate += DisplayFormatters.formatDownloaded(stats) + " / ";
-  						tstate += DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()) + "\tConnections: ";
-  						if (hd == null || !hd.isValid()) {
-  							tstate += Integer.toString(dm.getNbSeeds()) + "(?) / ";
-  							tstate += Integer.toString(dm.getNbPeers()) + "(?)";
-  						} else {
-  							tstate += Integer.toString(dm.getNbSeeds()) + "(" + Integer.toString(hd.getSeeds()) + ") / ";
-  							tstate += Integer.toString(dm.getNbPeers()) + "(" + Integer.toString(hd.getPeers()) + ")";
-  						}
-  						out.println(tstate);
-  						//out.println(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(),
-  						// true));
-  						out.println();
-  					}
-  				}
+							bCanShow = (dmstate == DownloadManager.STATE_SEEDING) || (dmstate == DownloadManager.STATE_DOWNLOADING) || (dmstate == DownloadManager.STATE_CHECKING) || (dmstate == DownloadManager.STATE_INITIALIZING) || (dmstate == DownloadManager.STATE_ALLOCATING);
+						}
+
+						if (bCanShow) {
+							TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
+							try {
+								ps = dm.getPeerManager().getStats();
+							} catch (Exception e) {
+								ps = null;
+							}
+							if (ps != null) {
+								totalReceived += dm.getStats().getDownloaded();
+								totalSent += dm.getStats().getUploaded();
+								totalDiscarded += ps.getTotalDiscarded();
+								connectedSeeds += dm.getNbSeeds();
+								connectedPeers += dm.getNbPeers();
+							}
+							String tstate = ((nrTorrent < 10) ? " " : "") + Integer.toString(nrTorrent) + " [";
+							if (dmstate == DownloadManager.STATE_INITIALIZING)
+								tstate += "I";
+							else if (dmstate == DownloadManager.STATE_ALLOCATING)
+								tstate += "A";
+							else if (dmstate == DownloadManager.STATE_CHECKING)
+								tstate += "C";
+							else if (dmstate == DownloadManager.STATE_DOWNLOADING)
+								tstate += ">";
+							else if (dmstate == DownloadManager.STATE_ERROR)
+								tstate += "E";
+							else if (dmstate == DownloadManager.STATE_SEEDING)
+								tstate += "*";
+							else if (dmstate == DownloadManager.STATE_STOPPED)
+								tstate += "!";
+							else if (dmstate == DownloadManager.STATE_WAITING)
+								tstate += ".";
+							else if (dmstate == DownloadManager.STATE_READY)
+								tstate += ":";
+							else if (dmstate == DownloadManager.STATE_QUEUED)
+								tstate += "-";
+							else
+								tstate += "?";
+							tstate += "] ";
+							DecimalFormat df = new DecimalFormat("000.0%");
+
+							tstate += df.format(stats.getCompleted() / 1000.0);
+							tstate += "\t";
+							if (dmstate == DownloadManager.STATE_ERROR)
+								tstate += dm.getErrorDetails();
+							else {
+								if (dm.getName() == null)
+									tstate += "?";
+								else
+									tstate += dm.getName();
+							}
+							tstate += " (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "\r\n\t\tSpeed: ";
+							tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ";
+							tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
+							tstate += DisplayFormatters.formatDownloaded(stats) + " / ";
+							tstate += DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()) + "\tConnections: ";
+							if (hd == null || !hd.isValid()) {
+								tstate += Integer.toString(dm.getNbSeeds()) + "(?) / ";
+								tstate += Integer.toString(dm.getNbPeers()) + "(?)";
+							} else {
+								tstate += Integer.toString(dm.getNbSeeds()) + "(" + Integer.toString(hd.getSeeds()) + ") / ";
+								tstate += Integer.toString(dm.getNbPeers()) + "(" + Integer.toString(hd.getPeers()) + ")";
+							}
+							out.println(tstate);
+							//out.println(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(),
+							// true));
+							out.println();
+						}
+					}
 					out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getDownloadAverage()) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getUploadAverage()));
 
 					out.println("Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));
@@ -407,7 +420,7 @@ public class ConsoleInput extends Thread {
 			} else {
 				try {
 					int number = Integer.parseInt(subcommand);
-					if ((torrents==null) || (torrents != null) && torrents.isEmpty()) {
+					if ((torrents == null) || (torrents != null) && torrents.isEmpty()) {
 						out.println("> Command 'show': No torrents in list (try 'show torrents' first).");
 					} else {
 						String name;
@@ -422,16 +435,16 @@ public class ConsoleInput extends Thread {
 							out.println("> -----");
 							out.println("Info on Torrent #" + subcommand + " (" + name + ")");
 							out.println("- General Info -");
-							String[] health = {"- no info -", "stopped", "no remote connections", "no tracker", "OK", "ko"};
+							String[] health = { "- no info -", "stopped", "no remote connections", "no tracker", "OK", "ko" };
 							try {
 								out.println("Health: " + health[dm.getHealthStatus()]);
 							} catch (Exception e) {
 								out.println("Health: " + health[0]);
 							}
 							out.println("State: " + Integer.toString(dm.getState()));
-							if (dm.getState()==DownloadManager.STATE_ERROR)
+							if (dm.getState() == DownloadManager.STATE_ERROR)
 								out.println("Error: " + dm.getErrorDetails());
-							out.println("Hash: "+ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
+							out.println("Hash: " + ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
 							out.println("- Torrent file -");
 							out.println("Filename: " + dm.getTorrentFileName());
 							out.println("Created By: " + dm.getTorrentCreatedBy());
@@ -456,6 +469,34 @@ public class ConsoleInput extends Thread {
 								out.println("Status: " + trackerclient.getStatusString());
 							} else
 								out.println("  Not available");
+							out.println("- Files Info -");
+							DiskManager dim = dm.getDiskManager();
+							if (dim != null) {
+								DiskManagerFileInfo files[] = dim.getFiles();
+								if (files != null) {
+									for (int i = 0; i < files.length; i++) {
+										out.print(((i < 10) ? "   " : "  ") + Integer.toString(i) + " (");
+										String tmp = "*";
+										if (files[i].isPriority())
+											tmp = "+";
+										if (files[i].isSkipped())
+											tmp = "-";
+										out.print(tmp + ") ");
+										if (files[i] != null) {
+											long fLen = files[i].getLength();
+											if (fLen > 0) {
+												DecimalFormat df = new DecimalFormat("000.0%");
+												out.print(df.format(files[i].getDownloaded() * 1000.0 / fLen));
+												out.println("\t" + files[i].getName());
+											} else
+												out.println("Info not available.");
+										} else
+											out.println("Info not available.");
+									}
+								} else
+									out.println("  Info not available.");
+							} else
+								out.println("  Info not available.");
 							out.println("> -----");
 						} else
 							out.println("> Command 'show': Torrent #" + subcommand + " unknown.");
@@ -487,11 +528,11 @@ public class ConsoleInput extends Thread {
 			OptionGroup addy = new OptionGroup();
 			options.addOption("o", "output", true, "Output Directory.");
 			addy.addOption(new Option("r", "recurse", false, "Recurse Subdirs."));
-			
+
 			OptionBuilder.hasArgs();
 			OptionBuilder.withDescription("Add found file nr x.");
 			addy.addOption(OptionBuilder.create('n'));
-			
+
 			options.addOption(new Option("f", "find", false, "Only find files, don't add."));
 			options.addOptionGroup(addy);
 			try {
@@ -552,7 +593,7 @@ public class ConsoleInput extends Thread {
 									for (int i = 0; i < toadd.length; i++) {
 										gm.addDownloadManager(toadd[i].getAbsolutePath(), outputDir);
 										out.println("> '" + toadd[i].getAbsolutePath() + "' added.");
-    								torrents = null;
+										torrents = null;
 									}
 								} else {
 									out.println("> Directory '" + whatelse[j] + "' seems to contain no torrent files.");
@@ -649,7 +690,7 @@ public class ConsoleInput extends Thread {
 					}
 					return true;
 				}
-			case TORRENTCOMMAND_CHECK:
+			case TORRENTCOMMAND_CHECK :
 				{
 					try {
 						if (dm.canForceRecheck()) {
@@ -670,7 +711,7 @@ public class ConsoleInput extends Thread {
 		String[] commands = { "start", "stop", "remove", "queue", "start", "check" };
 		String[] actions = { "Starting", "Stopping", "Removing", "Queueing", "Starting", "Initiating recheck of" };
 		if (subcommand != null) {
-			if ((torrents==null) || (torrents != null) && torrents.isEmpty()) {
+			if ((torrents == null) || (torrents != null) && torrents.isEmpty()) {
 				out.println("> Command '" + commands[command] + "': No torrents in list (Maybe you forgot to 'show torrents' first).");
 			} else {
 				String name;
@@ -775,7 +816,7 @@ public class ConsoleInput extends Thread {
 						else
 							name = dm.getName();
 						if (moveto) {
-							gm.moveTo(dm, nmoveto-1);
+							gm.moveTo(dm, nmoveto - 1);
 							gm.fixUpDownloadManagerPositions();
 							out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to #" + Integer.toString(nmoveto) + ".");
 						} else if (ncommand > 0) {
@@ -829,14 +870,21 @@ public class ConsoleInput extends Thread {
 		String s = null;
 		String command;
 		String subcommand = "";
+		Vector comargs = new Vector();
 		running = true;
 		while (running) {
 			try {
 				s = br.readLine();
+				comargs = (Vector) br.commandargs.clone();
 			} catch (Exception e) {
 				running = false;
 			}
 			if (s != null) {
+				/*if (br.commandargs != null) {
+					for (int i=0; i<br.commandargs.size(); i++) {
+						out.println("0> +"+((String) br.commandargs.get(i))+"+");
+					}
+				}*/
 				if (oldcommand != null) {
 					if (s.equals("."))
 						s = oldcommand;
@@ -852,7 +900,16 @@ public class ConsoleInput extends Thread {
 					command = s.substring(0, s.indexOf(" "));
 					subcommand = s.substring(s.indexOf(" ") + 1).trim();
 				}
-				if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("?")) {
+				if (commands.containsKey(command)) {
+					Method inv = (Method) commands.get(command);
+					comargs.removeElementAt(0);
+					Object args[] = {this, comargs};
+					try {
+						inv.invoke(null, args);
+					} catch(Exception e) {
+						out.println("> Invoking Command '"+command+"' failed. Exception: "+e.getMessage());
+					}
+				}else if (command.equalsIgnoreCase("help") || command.equalsIgnoreCase("?")) {
 					commandHelp(subcommand);
 				} else if (command.equalsIgnoreCase("quit")) {
 					commandQuit(subcommand);
@@ -860,8 +917,6 @@ public class ConsoleInput extends Thread {
 					running = false;
 				} else if (command.equalsIgnoreCase("set") || command.equalsIgnoreCase("+")) {
 					commandSet(subcommand);
-				} else if (command.equalsIgnoreCase("xml")) {
-					commandXML(subcommand);
 				} else if (command.equalsIgnoreCase("ui") || command.equalsIgnoreCase("u")) {
 					commandUI(subcommand);
 				} else if (command.equalsIgnoreCase("show") || command.equalsIgnoreCase("sh")) {
