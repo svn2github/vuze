@@ -101,8 +101,15 @@ ConfigurationChecker
 	  	
 	  	System.setProperty("sun.net.inetaddr.ttl", "60");
 	  	System.setProperty("networkaddress.cache.ttl", "60");
-	  	
-	  		// socket connect/read timeouts
+      
+      
+      //see http://developer.apple.com/releasenotes/Java/Java142RN/ResolvedIssues/chapter_3_section_7.html
+      if( Constants.isOSX ) {
+        System.setProperty( "java.nio.preferSelect", "true" );
+      }
+      
+      
+      // socket connect/read timeouts
 	  	
 	  	int	connect_timeout = COConfigurationManager.getIntParameter( "Tracker Client Connect Timeout");
 	  	int	read_timeout 	= COConfigurationManager.getIntParameter( "Tracker Client Read Timeout");
