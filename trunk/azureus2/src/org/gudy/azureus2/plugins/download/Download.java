@@ -93,7 +93,7 @@ Download
 	getErrorStateDetails();
 	
 	/**
-	 * Downloads are kept in priority order - this method gives teh download's current position 
+	 * Index of download. {@link #getPosition()}
 	 * @return	index - 0 based
 	 */
 	public int
