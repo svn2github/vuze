@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 /**
  * @author Olivier Chalouhi
