@@ -292,7 +292,7 @@ public class TrackerStatus {
 	
 	PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( lp );
 	
-	InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort());
+	InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
 	
 	for (int retry_loop=0;retry_loop<PRUDPPacket.DEFAULT_RETRY_COUNT;retry_loop++){
 	
