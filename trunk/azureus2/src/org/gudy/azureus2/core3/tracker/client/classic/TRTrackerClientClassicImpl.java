@@ -1738,6 +1738,11 @@ TRTrackerClientClassicImpl
 			
 			List	peers = (List)map.get( "tracker_peers" );
 	
+			if ( peers == null ){
+				
+				return;
+			}
+			
 			synchronized( tracker_peer_cache ){
 				
 				for (int i=0;i<peers.size();i++){
