@@ -616,6 +616,30 @@ public class ConfigView extends AbstractIView {
       }
     });
     
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.defaultTorrentPath"); //$NON-NLS-1$
+
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    final StringParameter torrentPathParameter = new StringParameter(gFile, "General_sDefaultTorrent_Directory", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    torrentPathParameter.setLayoutData(gridData);
+    Button browse2 = new Button(gFile, SWT.PUSH);
+    Messages.setLanguageText(browse2, "ConfigView.button.browse"); //$NON-NLS-1$
+    browse2.addListener(SWT.Selection, new Listener() {
+      /* (non-Javadoc)
+       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+       */
+      public void handleEvent(Event event) {
+        DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+        dialog.setFilterPath(torrentPathParameter.getValue());
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); //$NON-NLS-1$
+        String path = dialog.open();
+        if (path != null) {
+          torrentPathParameter.setValue(path);
+        }
+      }
+    });
+    
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$

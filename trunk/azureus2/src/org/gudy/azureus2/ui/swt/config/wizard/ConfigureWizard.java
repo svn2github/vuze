@@ -21,7 +21,10 @@
  
 package org.gudy.azureus2.ui.swt.config.wizard;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
@@ -45,6 +48,8 @@ public class ConfigureWizard extends Wizard {
   //Files / Torrents
   String torrentPath;
   boolean fastResume = true;
+  
+  boolean completed = false;
  
 
   public ConfigureWizard(Display display) {
@@ -55,6 +60,19 @@ public class ConfigureWizard extends Wizard {
       torrentPath = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
     } catch(Exception e) {
       torrentPath = ""; 
+    }
+  }
+  
+  public void onClose() {
+    if(!completed && !COConfigurationManager.getBooleanParameter("Wizard Completed",false)) {
+      MessageBox mb = new MessageBox(this.getWizardWindow(),SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+      mb.setText(MessageText.getString("wizard.close.confirmation"));
+      mb.setMessage(MessageText.getString("wizard.close.message"));
+      int result = mb.open();
+      if(result == SWT.NO) {
+        COConfigurationManager.setParameter("Wizard Completed",true);
+        COConfigurationManager.save();
+      }         
     }
   }
 }

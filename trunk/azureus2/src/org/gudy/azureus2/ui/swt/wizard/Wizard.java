@@ -22,6 +22,8 @@
 package org.gudy.azureus2.ui.swt.wizard;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -207,6 +209,12 @@ public class Wizard {
       }
     });
 
+    wizardWindow.addDisposeListener(new DisposeListener() {
+      public void widgetDisposed(DisposeEvent de) {
+        onClose();
+      }
+    });
+
     wizardWindow.setSize(400, 400);
     wizardWindow.open();
 
@@ -297,4 +305,7 @@ public class Wizard {
       }
     });
   }
+  
+  public void onClose() {
+  }  
 }

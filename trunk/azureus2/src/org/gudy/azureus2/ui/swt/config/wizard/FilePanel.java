@@ -21,12 +21,17 @@
  
 package org.gudy.azureus2.ui.swt.config.wizard;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -70,12 +75,45 @@ public class FilePanel extends AbstractWizardPanel {
     label = new Label(panel,SWT.NULL);
     Messages.setLanguageText(label, "configureWizard.file.path");
     
-    Text textPath = new Text(panel,SWT.BORDER);
+    final Text textPath = new Text(panel,SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     textPath.setLayoutData(gridData);
+    textPath.setText(((ConfigureWizard)wizard).torrentPath);
     
     Button browse = new Button(panel,SWT.PUSH);
     Messages.setLanguageText(browse, "configureWizard.file.browse");
+    browse.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event arg0) {
+        DirectoryDialog dd = new DirectoryDialog(wizard.getWizardWindow());
+        dd.setFilterPath(textPath.getText());
+        String path = dd.open();
+        if(path != null) {
+          textPath.setText(path);
+        }     
+      }
+    });
+    
+    textPath.addListener(SWT.Modify, new Listener() {
+      public void handleEvent(Event event) {
+        String path = textPath.getText();
+        ((ConfigureWizard)wizard).torrentPath = path;
+        try {
+          File f = new File(path);
+          if(f.exists() && f.isDirectory()) {
+            wizard.setErrorMessage("");
+            wizard.setFinishEnabled(true);
+          } else {
+            wizard.setErrorMessage(MessageText.getString("configureWizard.file.invalidPath"));
+            wizard.setFinishEnabled(false);
+          }            
+        } catch(Exception e) {
+          wizard.setErrorMessage(MessageText.getString("configureWizard.file.invalidPath"));
+          wizard.setFinishEnabled(false);
+        }
+      }
+    });
+    
+    textPath.setText(((ConfigureWizard)wizard).torrentPath);
     
     label = new Label(panel, SWT.WRAP);
     gridData = new GridData();
@@ -84,11 +122,20 @@ public class FilePanel extends AbstractWizardPanel {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "configureWizard.file.message2");
     
-    Button fastResume = new Button(panel,SWT.CHECK);
-    
+    final Button fastResume = new Button(panel,SWT.CHECK);
+    fastResume.setSelection(((ConfigureWizard)wizard).fastResume);
+    fastResume.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event arg0) {
+        ((ConfigureWizard)wizard).fastResume = fastResume.getSelection();
+      }
+    });
     label = new Label(panel,SWT.NULL);
     Messages.setLanguageText(label, "configureWizard.file.fastResume");
 
+  }
+  
+  public IWizardPanel getFinishPanel() {
+    return new FinishPanel(((ConfigureWizard)wizard),this);
   }
 
 }

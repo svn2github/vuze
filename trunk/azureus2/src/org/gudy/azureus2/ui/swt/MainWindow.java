@@ -611,6 +611,10 @@ public class MainWindow implements IComponentListener {
       mainWindow.setVisible(false);
       PasswordWindow.showPasswordWindow(display);
     }
+    
+    if(!COConfigurationManager.getBooleanParameter("Wizard Completed",false)) {
+      new ConfigureWizard(display);
+    }
   }
 
   private void minimizeToTray(ShellEvent event) {
