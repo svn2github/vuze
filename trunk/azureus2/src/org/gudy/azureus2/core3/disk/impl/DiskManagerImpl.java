@@ -24,7 +24,6 @@
 package org.gudy.azureus2.core3.disk.impl;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -2215,6 +2214,7 @@ DiskManagerImpl
       if (moveOnlyInDefault) {
         String defSaveDir = COConfigurationManager.getStringParameter("Default save path");
 
+        
         if (!rPath.equals(defSaveDir)) {
           LGLogger.log(LGLogger.INFORMATION, "Not moving-on-complete since data is not within default save dir");
           return returnName;
