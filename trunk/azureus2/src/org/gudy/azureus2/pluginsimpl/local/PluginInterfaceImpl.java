@@ -61,6 +61,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 /**
  * @author Olivier
@@ -102,7 +103,7 @@ PluginInterfaceImpl
   	initialiser_key		= _initialiser_key;
   	class_loader		= _class_loader;
   	pluginConfigKey 	= "Plugin." + _key;
-    props 				= _props;
+    props 				= new propertyWrapper(_props );
     pluginDir 			= _pluginDir;
     config 				= new PluginConfigImpl(pluginConfigKey);
     plugin_id			= _plugin_id;
@@ -221,8 +222,9 @@ PluginInterfaceImpl
   	return( id==null?"<none>":id );
   }
   
-  public Properties getPluginProperties() {
-    return props;
+  public Properties getPluginProperties() 
+  {
+    return(props);
   }
   
   public String getPluginDirectoryName() {
@@ -458,5 +460,75 @@ PluginInterfaceImpl
   	PluginEventListener	l )
   {
   	event_listeners.remove(l);
+  }
+  
+  	// unfortunately we need to protect ourselves against the plugin itself trying to set
+  	// plugin.version and plugin.id as this screws things up if they get it "wrong".
+  	// They should be setting these things in the plugin.properties file
+  	// currently the RSSImport plugin does this (version 1.1 sets version as 1.0)
+  
+  protected class
+  propertyWrapper
+  	extends Properties
+  {
+  	protected boolean	initialising	= true;
+  	
+  	protected
+	propertyWrapper(
+		Properties	_props )
+	{
+  		Iterator it = _props.keySet().iterator();
+  		
+  		while( it.hasNext()){
+  			
+  			Object	key = it.next();
+  			
+  			put( key, _props.get(key));
+  		}
+  		
+  		initialising	= false;
+  	}
+  	
+  	public Object
+	setProperty(
+		String		str,
+		String		val )
+	{
+  		if ( str.equalsIgnoreCase( "plugin.id" ) || str.equalsIgnoreCase("plugin.version" )){
+  		 			
+  			LGLogger.log(LGLogger.AT_COMMENT, "Plugin '" + getPluginName() + "' tried to set property '" + str + "' - action ignored" );
+  			
+  			return( null );
+  		}
+  		
+  		return( super.setProperty( str, val ));
+  	}
+  	
+  	public Object
+	put(
+		Object	key,
+		Object	value )
+	{
+  		if ((!initialising ) && key instanceof String ){
+  			
+  			String	k_str = (String)key;
+  			
+  	 		if ( k_str.equalsIgnoreCase( "plugin.id" ) || k_str.equalsIgnoreCase("plugin.version" )){
+  	 	  		
+  	 			LGLogger.log(LGLogger.AT_COMMENT, "Plugin '" + getPluginName() + "' tried to set property '" + k_str + "' - action ignored" );
+  	 		 
+  	 			return( null );
+  	 	  	}
+  		}
+  		
+  		return( super.put( key, value ));
+  	}
+  	
+  	public Object
+	get(
+		Object	key )
+	{
+  		return( super.get(key));
+  	}
   }
 }

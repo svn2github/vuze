@@ -445,6 +445,7 @@ PluginUpdatePlugin
 						String	name = entry.getName();
 						
 						if ( !name.endsWith("/")){
+							
 							if ( common_prefix == null ){
 								
 								common_prefix = name;
@@ -525,24 +526,32 @@ PluginUpdatePlugin
 							
 							OutputStream	entry_os = null;
 							
+							File			initial_target			= null;
+							File			final_target			= null;
+							boolean			is_plugin_properties 	= false;
+							
 							try{
 								if ( 	name.length() >= common_prefix.length() &&
 										!name.endsWith("/")){
 									
 									String	file_name = entry.getName().substring( common_prefix.length());
 									
-									File entry_file = new File( plugin.getPluginDirectoryName() + File.separator + file_name );
-																
-									if ( entry_file.exists()){
+									initial_target 	= new File( plugin.getPluginDirectoryName() + File.separator + file_name );
+									
+									final_target	= initial_target;
+									
+									if ( initial_target.exists()){
 										
 										if ( 	file_name.toLowerCase().endsWith(".properties") ||
 												file_name.toLowerCase().endsWith(".config" )){
 											
+											is_plugin_properties	= file_name.toLowerCase().equals("plugin.properties");
+											
 											String	old_file_name = file_name;
 											
-											file_name = file_name + "." + target_version;
+											file_name = file_name + "_" + target_version;
 											
-											entry_file = new File( plugin.getPluginDirectoryName() + File.separator + file_name );
+											final_target = new File( plugin.getPluginDirectoryName() + File.separator + file_name );
 											
 											log.log( LoggerChannel.LT_INFORMATION,
 														"saving new file '" + old_file_name + "'as '" + file_name +"'" );
@@ -553,7 +562,7 @@ PluginUpdatePlugin
 										}
 									}
 									
-									entry_os = new FileOutputStream( entry_file );
+									entry_os = new FileOutputStream( final_target );
 								}
 								
 								long	rem = entry.getSize();
@@ -584,15 +593,79 @@ PluginUpdatePlugin
 								}
 							}
 							
+							if ( is_plugin_properties ){
+								
+									// we've got to modify the plugin.version in the existing
+									// file (if it exists) otherwise we keep downloading the new 
+									// version!
+									// if we were smarter we could merge values from the
+									// old one into the new one, however this is too much like
+									// hard work
+								
+								System.out.println( "modifying plugin properties" );
+								
+								File	tmp_file 	= new File(initial_target.toString() + ".tmp");
+								File	bak_file	= new File(initial_target.toString() + ".bak");
+								
+								LineNumberReader	lnr = null;
+								
+								PrintWriter			tmp = null;
+								
+								try{
+									lnr = new LineNumberReader(new FileReader(initial_target));
+								
+									tmp = new PrintWriter(new FileWriter( tmp_file ));			
+								
+									while(true){
+										
+										String	line = lnr.readLine();
+										
+										if ( line == null ){
+											
+											break;
+										}
+										
+										if ( line.indexOf( "plugin.version" ) != -1 ){
+											
+											line = "plugin.version=" + target_version;
+										}
+										
+										tmp.println( line );
+									}
+								}finally{
+									
+									lnr.close();
+									
+									if ( tmp != null ){
+										
+										tmp.close();
+									}
+								}
+								
+								if ( bak_file.exists()){
+									
+									bak_file.delete();
+								}
+								
+								if ( !initial_target.renameTo( bak_file)){
+									
+									throw( new IOException( "Failed to rename '" + initial_target.toString() + "' to '" + bak_file.toString() + "'" ));
+								}
+								
+								if ( !tmp_file.renameTo( initial_target )){
+									
+									bak_file.renameTo( initial_target );
+									
+									throw( new IOException( "Failed to rename '" + tmp_file.toString() + "' to '" + initial_target.toString() + "'" ));
+								}
+								
+								bak_file.delete();
+							}
 						}
 					}finally{
 							
 						zis.close();
 					}
-		
-				
-					System.out.println( "common_prefix = " + common_prefix );
-					
 				}
 			}
 			

@@ -346,16 +346,26 @@ PluginInitializer
       		  
     		  		if ( new_props.get( "plugin.id") == null ){
       		  			
-      		  			new_props.put( "plugin.id", default_version_details[j][1]);
+    		  			new_props.put( "plugin.id", default_version_details[j][1]);  
       		  		}
     		  		
     		  		if ( plugin_name == null ){
     		  			
     		  			plugin_name	= default_version_details[j][2];
     		  		}
+    		  		
     		  		if ( new_props.get( "plugin.version") == null ){
-      		  			
-      		  			new_props.put( "plugin.version", default_version_details[j][3]);
+	
+    		  				// no explicit version. If we've derived one then use that, otherwise defaults
+     		  			
+    		  			if ( plugin_version[0] != null ){
+    		  
+    		  				new_props.put( "plugin.version", plugin_version[0]);
+    		     		    		  				
+    		  			}else{
+    		  				
+    		  				new_props.put( "plugin.version", default_version_details[j][3]);
+    		  			}
       		  		}
       		  	}
       		  }
@@ -366,17 +376,7 @@ PluginInitializer
       		  	
       		  	new_props.put( "plugin.name", plugin_name );
       		  }
-      		  
-     		  if ( new_props.get( "plugin.id") == null && plugin_id[0] != null ){
-      		  	
-      		  	new_props.put( "plugin.id", plugin_id[0]);
-      		  }
-     		  
-     		  if ( new_props.get( "plugin.version") == null && plugin_version[0] != null ){
-      		  	
-      		  	new_props.put( "version", plugin_version[0]);
-      		  }
-      		  
+      		       		       		  
 	 	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
 		      
 		      Class c = classLoader.loadClass(plugin_class);
