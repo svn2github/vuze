@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.FileItem;
@@ -85,14 +86,20 @@ public class FilesView extends AbstractIView implements SortableTable {
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "FilesView.menu.open"); //$NON-NLS-1$
+    itemOpen.setImage(ImageRepository.getImage("run"));
+    
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority"); //$NON-NLS-1$
+    
     final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
+    
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
     Messages.setLanguageText(itemHigh, "FilesView.menu.setpriority.high"); //$NON-NLS-1$
+    
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
     Messages.setLanguageText(itemLow, "FilesView.menu.setpriority.normal"); //$NON-NLS-1$
+    
     final MenuItem itemSkipped = new MenuItem(menuPriority, SWT.CASCADE);
     Messages.setLanguageText(itemSkipped, "FilesView.menu.setpriority.skipped"); //$NON-NLS-1$
 
