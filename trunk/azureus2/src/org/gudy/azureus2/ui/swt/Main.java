@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.gudy.azureus2.core.ConfigurationChecker;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
@@ -70,6 +71,7 @@ public class Main implements ILocaleUtilChooser {
       startServer.start();
       gm = new GlobalManager();
       mainWindow = new MainWindow(gm, startServer);
+      ConfigurationChecker.checkConfiguration();
       if (args.length != 0) {
         // Sometimes Windows use filename in 8.3 form and cannot
         // match .torrent extension. To solve this, canonical path

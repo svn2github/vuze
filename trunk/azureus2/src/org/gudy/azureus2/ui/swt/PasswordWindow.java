@@ -5,6 +5,8 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -85,10 +87,8 @@ public class PasswordWindow {
                        tw.setVisible(false);
                        tw.setMoving(false);
                      }
-                     nbInstances--;
                      shell.dispose();                                   
                    } else {
-                     nbInstances--;
                      shell.dispose();
                    }                   
                } catch(Exception e) {
@@ -107,10 +107,17 @@ public class PasswordWindow {
            * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
            */
           public void handleEvent(Event event) {
-             nbInstances--;
+             
              shell.dispose();
           }
         });    
+    
+    
+    shell.addDisposeListener(new DisposeListener() {
+      public void widgetDisposed(DisposeEvent arg0) {
+        nbInstances--;
+      }
+    });
     
     shell.pack();
     shell.open();

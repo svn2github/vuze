@@ -28,10 +28,7 @@ public class ConfigView extends AbstractIView {
 
   private static final int upRates[] =
     {
-      0,
-      2,
-      3,
-      4,
+      0,     
       5,
       6,
       7,
