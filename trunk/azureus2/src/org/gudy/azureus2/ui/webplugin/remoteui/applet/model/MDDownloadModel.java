@@ -50,6 +50,12 @@ MDDownloadModel
 		loadData();
 	}
 	
+	protected Download[]
+	getDownloads()
+	{
+		return( downloads );
+	}
+	
 	public void
 	refresh()
 	{

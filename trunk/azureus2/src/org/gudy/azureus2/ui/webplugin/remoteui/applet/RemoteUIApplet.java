@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.Semaphore;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.ui.webplugin.remoteui.applet.view.*;
 
 public class 
 RemoteUIApplet
@@ -112,7 +113,19 @@ RemoteUIApplet
 			
 			setLayout(new BorderLayout());
 			
-			add(panel, BorderLayout.CENTER );
+			JPanel	outer_panel = new JPanel( new GridBagLayout());
+			
+			outer_panel.setBorder( BorderFactory.createLineBorder(Color.black));
+			
+			outer_panel.add(
+				panel,
+				new VWGridBagConstraints(
+					0, 0, 1, 1, 1.0, 1.0,
+					GridBagConstraints.WEST,
+					GridBagConstraints.BOTH, 
+					new Insets(2, 2, 2, 2), 0, 0 ));
+			
+			add(outer_panel, BorderLayout.CENTER );
 			
 			validate();
 			

@@ -34,6 +34,7 @@ import java.util.zip.*;
 import java.util.jar.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.plugins.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 import org.gudy.azureus2.ui.webplugin.util.*;
@@ -132,9 +133,41 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/plugins/torrent/RPTorrentManager.class",
 		"plugins/torrent/TorrentDownloader.class",
 		"ui/webplugin/remoteui/plugins/torrent/RPTorrentDownloader.class",
+		"plugins/ipfilter/IPFilter.class",
+		"plugins/torrent/TorrentAnnounceURLList.class",
+		"ui/webplugin/remoteui/applet/view/VWStatusAreaView.class",
+		"ui/webplugin/remoteui/applet/view/VWLabel.class",
+		"ui/webplugin/remoteui/applet/model/MDStatusAreaModel.class",
+		"ui/webplugin/remoteui/applet/view/VWStatusEntryBorder.class",
+		"core3/torrentdownloader/TorrentDownloaderException.class",
 	};
 	
+	protected boolean	view_mode;
+	
 	protected Map	reply_cache	= new HashMap();
+	
+	public
+	RemoteUIServlet()
+	{
+		super();
+	}
+	
+	public void 
+	initialize(
+		PluginInterface _plugin_interface )
+	
+		throws PluginException
+	{	
+		super.initialize( _plugin_interface );
+		
+		Properties properties				= _plugin_interface.getPluginProperties();
+
+		String	mode_str = (String)properties.get("mode");
+		
+		view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
+		
+		
+	}
 	
 	public boolean
 	generateSupport(
@@ -266,7 +299,35 @@ RemoteUIServlet
 					return( reply );
 					
 				}else{
+							
+					if ( view_mode ){
+						
+						String	name = object._getName();
+						
+						if ( name.equals( "Download" )){
+							
+							if ( 	method.equals( "start" ) ||
+									method.equals( "stop" ) ||
+									method.equals( "restart" ) ||
+									method.equals( "remove")){
 								
+								throw( new RPException( "Access Denied" ));
+							}
+						}else if ( name.equals( "DownloadManager" )){
+							
+							if ( 	method.startsWith( "addDownload")){
+								
+								throw( new RPException( "Access Denied" ));
+							}
+						}else if ( name.equals( "TorrentManager" )){
+							
+							if ( 	method.startsWith( "getURLDownloader")){
+								
+								throw( new RPException( "Access Denied" ));
+							}
+						}					
+					}
+					
 					return( object._process( request ));
 				}
 			}

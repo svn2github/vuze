@@ -52,6 +52,8 @@ RemoteUIMainPanel
 	protected MDDownloadModel			download_model;
 	protected VWDownloadView			download_view;
 	
+	protected VWStatusAreaView			status_area;
+	
 	protected ArrayList					listeners = new ArrayList();
 	
 	protected JTextArea		log_area;
@@ -150,6 +152,11 @@ RemoteUIMainPanel
 
 			bottom_panel.add( new JScrollPane(log_area), BorderLayout.CENTER );
 			
+			
+			status_area =  new VWStatusAreaView(new MDStatusAreaModel( download_model ));
+			
+			bottom_panel.add( status_area.getComponent(), BorderLayout.SOUTH );
+			
 			add( bottom_panel, BorderLayout.SOUTH );
 			
 			refresh.addActionListener(
@@ -239,6 +246,13 @@ RemoteUIMainPanel
 							try{
 								URL	url = new URL( tf.getText());
 							
+								String protocol = url.getProtocol().toLowerCase();
+								
+								if ( !protocol.startsWith( "http" )){
+									
+									throw( new Exception( "Unsupported URL protocol" ));
+								}
+								
 								TorrentDownloader dl = _pi.getTorrentManager().getURLDownloader( url );
 								
 								Torrent torrent = dl.download();
@@ -250,8 +264,6 @@ RemoteUIMainPanel
 								refresh();
 								
 							}catch( Throwable e ){
-								
-								e.printStackTrace();
 								
 								reportError( e );
 							}
@@ -322,6 +334,8 @@ RemoteUIMainPanel
 			download_model.refresh();
 			
 			download_view.setSelectedRows( old_rows );
+			
+			status_area.refresh();
 			
 		}catch( Throwable e ){
 			

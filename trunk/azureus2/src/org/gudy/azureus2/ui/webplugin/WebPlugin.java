@@ -197,8 +197,11 @@ WebPlugin
 	
 		throws IOException
 	{
-		// System.out.println( "WebPlugin::generate:" + request.getURL());
-		
+		if ( request.getURL().toString().endsWith(".class")){
+			
+			System.out.println( "WebPlugin::generate:" + request.getURL());
+		}
+			
 		if ( generateSupport( request, response )){
 			
 			return(true);

@@ -75,16 +75,16 @@ RPDownloadStats
 	{
 		delegate = (DownloadStats)_delegate;
 		
-		downloaded			= delegate.getDownloaded();
-		uploaded			= delegate.getUploaded();
-		completed			= delegate.getCompleted();
-		downloadCompletedLive			= delegate.getDownloadCompleted(true);
-		downloadCompletedStored			= delegate.getDownloadCompleted(false);
-		status				= delegate.getStatus();
-		upload_average		= delegate.getUploadAverage();
-		download_average	= delegate.getDownloadAverage();
-		eta					= delegate.getETA();
-		share_ratio			= delegate.getShareRatio();
+		downloaded					= delegate.getDownloaded();
+		uploaded					= delegate.getUploaded();
+		completed					= delegate.getCompleted();
+		downloadCompletedLive		= delegate.getDownloadCompleted(true);
+		downloadCompletedStored		= delegate.getDownloadCompleted(false);
+		status						= delegate.getStatus();
+		upload_average				= delegate.getUploadAverage();
+		download_average			= delegate.getDownloadAverage();
+		eta							= delegate.getETA();
+		share_ratio					= delegate.getShareRatio();
 	}
 	
 	public Object
