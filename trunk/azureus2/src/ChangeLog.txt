@@ -41,6 +41,8 @@ BUGFIX: Freeze on exit under OSX [Gudy]
 BUGFIX: Tracker status column sortable [TuxPaper]
 BUGFIX: Fix for system clock changes stalling downloads: Bug #918193 [Nolar]
 BUGFIX: Individual file priorities remembered after Stop [Nolar]
+BUGFIX: Fix for saving of .torrent file in wrong dir: Bug #916137 [Nolar]
+
 
 
 
