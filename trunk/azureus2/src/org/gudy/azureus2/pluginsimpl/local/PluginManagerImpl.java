@@ -100,21 +100,6 @@ PluginManagerImpl
 				
 				azureus_core = AzureusCoreFactory.create();
 				
-				azureus_core.addLifecycleListener(
-					new AzureusCoreLifecycleAdapter()
-					{
-						public boolean
-						stopRequested(
-							AzureusCore		core )
-						
-							throws AzureusCoreException
-						{
-							core.stop();
-							
-							return( true );
-						}						
-					});
-				
 				azureus_core.start();
 				
 			}catch( Throwable e ){
