@@ -46,6 +46,8 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.download.DownloadManagerImpl;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.TorrentManagerImpl;
+import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.pluginsimpl.ui.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.pluginsimpl.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.plugins.utils.Utilities;
@@ -214,6 +216,12 @@ PluginInterfaceImpl
   	return( new UtilitiesImpl());
   }
 
+  public UIManager
+  getUIManager()
+  {
+  	return( UIManagerImpl.getSingleton());
+  }
+  
   public PeerProtocolManager
   getPeerProtocolManager()
   {

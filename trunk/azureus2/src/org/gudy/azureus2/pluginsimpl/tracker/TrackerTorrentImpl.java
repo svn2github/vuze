@@ -42,7 +42,7 @@ TrackerTorrentImpl
 	protected List	listeners 			= new ArrayList();
 	protected List	removal_listeners	= new ArrayList();
 	
-	protected
+	public
 	TrackerTorrentImpl(
 		TRHostTorrent	_host_torrent )
 	{

@@ -32,6 +32,7 @@ import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
@@ -159,6 +160,13 @@ public interface PluginInterface {
    */
   public Utilities
   getUtilities();
+  
+  /**
+   * access to UI extension features 
+   * @return
+   */
+  public UIManager
+  getUIManager();
   
   /**
    * opens a torrent file given its name

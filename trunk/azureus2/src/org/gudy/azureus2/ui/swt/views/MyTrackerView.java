@@ -60,6 +60,8 @@ import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
+import org.gudy.azureus2.pluginsimpl.*;
+import org.gudy.azureus2.pluginsimpl.ui.tables.mytracker.*;
 
 public class 
 MyTrackerView 
@@ -186,7 +188,41 @@ MyTrackerView
 	   Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
 	   itemRemove.setImage(ImageRepository.getImage("delete"));
 
-
+	   MyTrackerImpl pi_my_tracker = (MyTrackerImpl)PluginInitializer.getDefaultInterface().getUIManager().getMyTracker();
+	   
+	   MyTrackerContextMenuItemImpl[]	pi_menus = (MyTrackerContextMenuItemImpl[])pi_my_tracker.getContextMenus();
+	   
+	   for (int i=0;i<pi_menus.length;i++){
+	   	
+	   	   final MyTrackerContextMenuItemImpl	pi_menu = pi_menus[i];
+	   	   
+		   final MenuItem pi_item = new MenuItem(menu, SWT.PUSH);
+		   
+		   Messages.setLanguageText(pi_item, pi_menus[i].getResourceKey());
+		   
+		   pi_item.addListener(
+		   		SWT.Selection, 
+				new Listener() 
+				{
+		   			public void 
+					handleEvent(Event e)
+					{
+		   				TableItem[] tis = table.getSelection();
+		   				
+			   		    for (int i = 0; i < tis.length; i++) {
+			   		    	TableItem ti = tis[i];
+			   		      
+			   		    	TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
+			   		    	
+			   		    	if (torrent != null ){
+			   		        
+			   		    		pi_menu.fire( torrent );
+			   		    	}
+			   		    }			 
+					}
+				});
+	   }
+	   
 	   menu.addListener(SWT.Show, new Listener() {
 		 public void handleEvent(Event e) {
 		   TableItem[] tis = table.getSelection();
