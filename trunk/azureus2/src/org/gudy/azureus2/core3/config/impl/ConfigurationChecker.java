@@ -223,7 +223,19 @@ public class ConfigurationChecker {
       changed = true;
     }
     
-    
+    //remove a trailing slash, due to user manually entering the path in config
+    String[] path_params = { "Default save path",
+                             "General_sDefaultTorrent_Directory",
+                             "Watch Torrent Folder Path",
+                             "Completed Files Directory" };
+    for( int i=0; i < path_params.length; i++ ) {
+      if( path_params[i].endsWith( SystemProperties.SEP ) ) {
+        String new_path = path_params[i].substring( 0, path_params[i].length() - 1 );
+        COConfigurationManager.setParameter( path_params[i], new_path );
+        changed = true;
+      }
+    }
+
     if(changed) {
       COConfigurationManager.save();
     }    
