@@ -487,13 +487,16 @@ DownloadManagerImpl
         }
       }
 
-  	  // we are in a new list, move to the end
+  	  // we are in a new list, move to the top of the list so that we continue seeding
   	  // -1 position means it hasn't been added to the global list.  We shouldn't
   	  // touch it, since it'll get a position once it's adding is complete
       if (globalManager != null && position != -1) {
   		  DownloadManager[] dms = { DownloadManagerImpl.this };
-  		  globalManager.moveEnd(dms);
-  		  // we left a gap, fixup
+  		  // pretend we are at the bottom of the new list
+  		  // so that move top will shift everything down one
+  		  position = globalManager.getDownloadManagers().size() + 1;
+  		  globalManager.moveTop(dms);
+  		  // we left a gap in incomplete list, fixup
         globalManager.fixUpDownloadManagerPositions();
       }
       listeners.dispatch( LDT_COMPLETIONCHANGED, new Boolean( onlySeeding ));

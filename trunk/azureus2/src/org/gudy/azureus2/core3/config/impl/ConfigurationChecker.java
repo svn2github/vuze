@@ -111,13 +111,13 @@ public class ConfigurationChecker {
       return;
     checked = true;
     
-    int nbMinSeeds = COConfigurationManager.getIntParameter("Ignore Seed Count", -1);
+    int nbMinSeeds = COConfigurationManager.getIntParameter("StartStopManager_iIgnoreSeedCount", -1);
     if (nbMinSeeds == -1) {
-    COConfigurationManager.setParameter("Ignore Seed Count", 0);
+    COConfigurationManager.setParameter("StartStopManager_iIgnoreSeedCount", 0);
       // not set yet.. import from "Start Num Peers"
     int nbOldMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", -1);
     if (nbOldMinSeeds != -1)
-      COConfigurationManager.setParameter("Ignore Seed Count", nbOldMinSeeds);
+      COConfigurationManager.setParameter("StartStopManager_iIgnoreSeedCount", nbOldMinSeeds);
     changed = true;
     }
 
@@ -137,6 +137,12 @@ public class ConfigurationChecker {
     if(stopRatio < 0) {
        COConfigurationManager.setParameter("Stop Ratio", 0);
        changed = true;
+    }
+
+    int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
+    if (minQueueingShareRatio < 500) {
+      COConfigurationManager.setParameter("StartStopManager_iFirstPriority_ShareRatio", 500);
+      changed = true;
     }
     
     String uniqueId = COConfigurationManager.getStringParameter("ID",null);

@@ -42,7 +42,7 @@ public class UIConst {
   	parameterlegacy.put("Core_bIncrementalAllocate", "Enable incremental file creation");
   	parameterlegacy.put("Core_bCheckPiecesOnCompletion", "Check Pieces on Completion");
   	parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
-  	parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
+  	parameterlegacy.put("StartStopManager_bIgnoreRatioPeers", "Stop Peers Ratio");
   	parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
   	parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
   	parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");

@@ -768,7 +768,7 @@ public class GlobalManagerImpl
 		      dmMap.put("completed", new Long(dm.getStats().getDownloadCompleted(true)));
 		      dmMap.put("discarded", new Long(dm.getStats().getDiscarded()));
 		      dmMap.put("hashfails", new Long(dm.getStats().getHashFails()));
-		      dmMap.put("forceStart", new Long(dm.isForceStart() ? 1 : 0));
+		      dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));
 		      // Following 3 aren't needed, but save them so older versions still work
 		      // XXX: Maybe remove them after 2.0.7.x release
 		      dmMap.put("priorityLocked", new Long(0));

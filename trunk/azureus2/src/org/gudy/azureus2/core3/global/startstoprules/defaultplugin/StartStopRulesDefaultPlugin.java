@@ -30,7 +30,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
@@ -40,7 +39,6 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.*;
 
 import org.gudy.azureus2.ui.swt.Messages;
@@ -48,7 +46,6 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.TimeFormater;
-import org.gudy.azureus2.core3.util.Debug;
 
 /** Handles Starting and Stopping of torrents */
 public class
@@ -57,25 +54,26 @@ StartStopRulesDefaultPlugin
 {
   // for debugging
   private static final String sStates = " WPRDS.XEQ";
-  // No auto ranking
+
   /** Do not rank completed torrents */  
   public static final int RANK_NONE = 0;
-  // Seeds/Peer Ratio
   /** Rank completed torrents using Seeds:Peer Ratio */  
   public static final int RANK_SPRATIO = 1;
-  // Seed Count (ignore peer count)
   /** Rank completed torrents using Seed Count method */  
   public static final int RANK_SEEDCOUNT = 2;
-  // Timed Rotation based on  minTimeAlive
-  /** Rank completed torrents using a timed rotation */  
+  /** Rank completed torrents using a timed rotation of minTimeAlive */
   public static final int RANK_TIMED = 3;
+  
+  public static final int FIRSTPRIORITY_ALL = 0;
+  public static final int FIRSTPRIORITY_ANY = 1;
   
   private static final int QR_INCOMPLETE_ENDS_AT      = 1000000000; // billion
   private static final int QR_TIMED_QUEUED_ENDS_AT    =   10000000;
-  private static final int QR_NOTQUEUED   = -2;
-  private static final int QR_RATIOMET    = -3;
-  private static final int QR_NUMSEEDSMET = -4;
-  private static final int QR_0PEERS      = -5;
+  private static final int QR_NOTQUEUED       = -2;
+  private static final int QR_RATIOMET        = -3;
+  private static final int QR_NUMSEEDSMET     = -4;
+  private static final int QR_0PEERS          = -5;
+  private static final int QR_SHARERATIOMET   = -6;
 
   protected PluginInterface     plugin_interface;
   protected PluginConfig        plugin_config;
@@ -95,23 +93,31 @@ StartStopRulesDefaultPlugin
   private long startedOn;
 
   // Config Settings
-  int minPeersPerSeed;
   int minPeersToBoostNoSeeds;
   int minSpeedForActiveDL;
-  int minShareRatio;
   int numPeersAsFullCopy;
   int maxActive;
   int maxDownloads;
+
   // Ignore torrent if seed count is at least..
-  int ignoreSeedCount;
+  int     iIgnoreSeedCount;
+  // Ignore even when First Priority
+  boolean bIgnore0Peers;
+  int     iIgnoreShareRatio;
+  int     iIgnoreRatioPeers;
+
   int iRankType;
   int iFakeFullCopySeedStart;
   int iRankTypeSeedFallback;
   boolean bAutoReposition;
   long minTimeAlive;
-  boolean bIgnore0Peers;
+  
   boolean bPreferLargerSwarms;
   boolean bDebugLog;
+  int minQueueingShareRatio;
+  int iFirstPriorityType;
+  int iFirstPrioritySeedingMinutes;
+  int iFirstPriorityDLMinutes;
 
   public void
   initialize(
@@ -151,15 +157,16 @@ StartStopRulesDefaultPlugin
     try {
       plugin_interface.addColumnToMyTorrentsTable("SeedingRank", new SeedingRankColumn());
       plugin_interface.addConfigSection(new ConfigSectionQueue());
-      plugin_interface.addConfigSection(new ConfigSectionStarting());
-      plugin_interface.addConfigSection(new ConfigSectionStartingIgnore());
-      plugin_interface.addConfigSection(new ConfigSectionStopping());
+      plugin_interface.addConfigSection(new ConfigSectionSeeding());
+      plugin_interface.addConfigSection(new ConfigSectionSeedingAutoStarting());
+      plugin_interface.addConfigSection(new ConfigSectionSeedingFirstPriority());
+      plugin_interface.addConfigSection(new ConfigSectionSeedingIgnore());
     } catch (NoClassDefFoundError e) {
       /* Ignore. SWT probably not installed */
       log.log(LoggerChannel.LT_WARNING,
-              "UI Config not loaded for StartStopRulesDefaulPlugin. " +
+              "SWT UI Config not loaded for StartStopRulesDefaulPlugin. " +
               e.getMessage() + " not found.");
-    } catch( Throwable e ){
+    } catch( Exception e ){
       e.printStackTrace();
     }
 
@@ -178,6 +185,10 @@ StartStopRulesDefaultPlugin
           if (dlData != null) {
             if (new_state == Download.ST_SEEDING) {
               dlData.setStartedSeedingOn(System.currentTimeMillis());
+            }
+            if (old_state == Download.ST_PREPARING) {
+              // preparing can change the completion level.
+              dlData.setWasComplete(download.getStats().getDownloadCompleted(false) == 1000);
             }
             // force a QR recalc, so that it gets positiong properly next process()
             dlData.recalcQR();
@@ -228,7 +239,7 @@ StartStopRulesDefaultPlugin
               }
 
               process();
-            }catch( Throwable e ){
+            }catch( Exception e ){
 
               e.printStackTrace();
             }
@@ -256,26 +267,33 @@ StartStopRulesDefaultPlugin
   }
 
   private synchronized void reloadConfigParams() {
+    int iOldIgnoreShareRatio = iIgnoreShareRatio;
     int iNewRankType = plugin_config.getIntParameter("StartStopManager_iRankType");
-    minPeersPerSeed = plugin_config.getIntParameter("Stop Peers Ratio", 0);
     minPeersToBoostNoSeeds = plugin_config.getIntParameter("StartStopManager_iMinPeersToBoostNoSeeds");
     minSpeedForActiveDL = plugin_config.getIntParameter("StartStopManager_iMinSpeedForActiveDL");
-    minShareRatio = 1000 * plugin_config.getIntParameter("Stop Ratio", 0);
     maxActive = plugin_config.getIntParameter("max active torrents");
     maxDownloads = plugin_config.getIntParameter("max downloads");
     numPeersAsFullCopy = plugin_config.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
-    // Ignore torrent if seed count is at least..
-    ignoreSeedCount = plugin_config.getIntParameter("Ignore Seed Count", 0);
     iFakeFullCopySeedStart = plugin_config.getIntParameter("StartStopManager_iFakeFullCopySeedStart");
     iRankTypeSeedFallback = plugin_config.getIntParameter("StartStopManager_iRankTypeSeedFallback");
     bAutoReposition = plugin_config.getBooleanParameter("StartStopManager_bAutoReposition");
     minTimeAlive = plugin_config.getIntParameter("StartStopManager_iMinSeedingTime") * 1000;
-    bIgnore0Peers = plugin_config.getBooleanParameter("StartStopManager_bIgnore0Peers");
     bPreferLargerSwarms = plugin_config.getBooleanParameter("StartStopManager_bPreferLargerSwarms");
     bDebugLog = plugin_config.getBooleanParameter("StartStopManager_bDebugLog");
 
+    // Ignore torrent if seed count is at least..
+    iIgnoreSeedCount = plugin_config.getIntParameter("StartStopManager_iIgnoreSeedCount");
+    bIgnore0Peers = plugin_config.getBooleanParameter("StartStopManager_bIgnore0Peers");
+    iIgnoreShareRatio = 1000 * plugin_config.getIntParameter("Stop Ratio", 0);
+    iIgnoreRatioPeers = plugin_config.getIntParameter("Stop Peers Ratio", 0);
 
-    if (iNewRankType != iRankType) {
+    minQueueingShareRatio = plugin_config.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
+    iFirstPriorityType = plugin_config.getIntParameter("StartStopManager_iFirstPriority_Type");
+    iFirstPrioritySeedingMinutes = plugin_config.getIntParameter("StartStopManager_iFirstPriority_SeedingMinutes");
+    iFirstPriorityDLMinutes = plugin_config.getIntParameter("StartStopManager_iFirstPriority_DLMinutes");
+
+
+    if (iNewRankType != iRankType || iIgnoreShareRatio != iOldIgnoreShareRatio) {
       iRankType = iNewRankType;
       
       // shorted recalc for timed rank type, since the calculation is fast and we want to stop on the second
@@ -287,8 +305,9 @@ StartStopRulesDefaultPlugin
       downloadData[] dlDataArray;
       dlDataArray = (downloadData[])
         downloadDataMap.values().toArray(new downloadData[downloadDataMap.size()]);
-      for (int i = 0; i < dlDataArray.length; i++)
+      for (int i = 0; i < dlDataArray.length; i++) {
         dlDataArray[i].setQR(0);
+      }
       
       process();
     }
@@ -299,7 +318,7 @@ StartStopRulesDefaultPlugin
     return (maxActive == 0) ? 99999 : maxActive - iDLs;
   }
 
-  protected void process() {
+  protected synchronized void process() {
     long  process_time = System.currentTimeMillis();
 
     int totalSeeding = 0;
@@ -605,21 +624,23 @@ StartStopRulesDefaultPlugin
 
         int shareRatio = download.getStats().getShareRatio();
         int state = download.getState();
-        boolean okToStop = (state == Download.ST_READY || state == Download.ST_SEEDING || state == Download.ST_QUEUED) &&
-                           (!download.isForceStart()) &&
-                           (shareRatio > 500 || shareRatio == -1);
-        if (okToStop && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
-          // Min time check
-          long timeAlive = System.currentTimeMillis() - download.getStats().getTimeStarted();
-          okToStop = (timeAlive >= minTimeAlive);
+        boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING) &&
+                            (!download.isForceStart());
+        // in RANK_TIMED mode, we use minTimeAlive for rotation time, so
+        // skip check
+        if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
+          long timeAlive = (System.currentTimeMillis() - download.getStats().getTimeStarted());
+          okToQueue = (timeAlive >= minTimeAlive);
         }
-        // We can stop items queued, but we can't queue items queued ;)
-        boolean okToQueue = okToStop && (state != Download.ST_QUEUED);
+        if (okToQueue && 
+            (iRankType == RANK_NONE || iRankType == RANK_TIMED)) {
+          okToQueue = !dl_data.isFirstPriority();
+        }
         
-        if (download.getState() == Download.ST_READY ||
-            download.getState() == Download.ST_SEEDING ||
-            download.getState() == Download.ST_WAITING ||
-            download.getState() == Download.ST_PREPARING)
+        if (state == Download.ST_READY ||
+            state == Download.ST_SEEDING ||
+            state == Download.ST_WAITING ||
+            state == Download.ST_PREPARING)
           numWaitingOrSeeding++;
 
         if (bDebugLog) {
@@ -628,7 +649,6 @@ StartStopRulesDefaultPlugin
                            "numWorCDing="+numWaitingOrSeeding,
                            "numWorDLing="+numWaitingOrDLing,
                            "okToQ="+okToQueue,
-                           "okToStp="+okToStop,
                            "qr="+dl_data.getQR(),
                            "hgherQd="+higherQueued,
                            "maxCDrs="+maxSeeders
@@ -636,7 +656,7 @@ StartStopRulesDefaultPlugin
         }
 
         // Change to waiting if queued and we have an open slot
-        if ((download.getState() == Download.ST_QUEUED) &&
+        if ((state == Download.ST_QUEUED) &&
             (numWaitingOrSeeding < maxSeeders) &&
             (dl_data.getQR() > -2) &&
             !higherQueued) {
@@ -648,10 +668,11 @@ StartStopRulesDefaultPlugin
             totalWaitingToSeed++;
             numWaitingOrSeeding++;
           } catch (Exception ignore) {/*ignore*/}
+          state = download.getState();
         }
 
-        if ((download.getState() == Download.ST_READY) &&
-            (totalSeeding < maxSeeders)) {
+        if ((state == Download.ST_READY) && (totalSeeding < maxSeeders)) {
+
           if (dl_data.getQR() > -2) {
             try {
               if (bDebugLog)
@@ -659,7 +680,7 @@ StartStopRulesDefaultPlugin
               download.start();
               okToQueue = false;
             } catch (Exception ignore) {/*ignore*/}
-
+            state = download.getState();
             totalSeeding++;
           }
           else if (okToQueue) {
@@ -673,6 +694,7 @@ StartStopRulesDefaultPlugin
               totalWaitingToSeed--;
               numWaitingOrSeeding--;
             } catch (Exception ignore) {/*ignore*/}
+            state = download.getState();
           }
         }
 
@@ -685,7 +707,7 @@ StartStopRulesDefaultPlugin
             if (bDebugLog)
               sDebugLine += "\nstopAndQueue(); > Max";
 
-            if (download.getState() == Download.ST_READY)
+            if (state == Download.ST_READY)
               totalWaitingToSeed--;
 
             download.stopAndQueue();
@@ -694,20 +716,27 @@ StartStopRulesDefaultPlugin
             // we have to reduce counts
             numWaitingOrSeeding--;
           } catch (Exception ignore) {/*ignore*/}
+          state = download.getState();
         }
 
-        //STOP (no auto-starting again) when Share Ratio reaches # in config
+        // ignore when Share Ratio reaches # in config
         //0 means unlimited
-        if (minShareRatio != 0) {
-          if (download.getStats().getShareRatio() > minShareRatio && okToStop)
-            try {
-              if (bDebugLog)
-                sDebugLine += "\nstop() Share Ratio Met";
-              download.stop();
-            } catch (Exception ignore) {/*ignore*/}
+        if (iIgnoreShareRatio != 0) {
+          if (shareRatio > iIgnoreShareRatio && shareRatio != -1) {
+            if (okToQueue) {
+              try {
+                if (bDebugLog)
+                  sDebugLine += "\nstopAndQueue() Share Ratio Met";
+                download.stopAndQueue();
+                bStopAndQueued = true;
+                numWaitingOrSeeding--;
+              } catch (Exception ignore) {/*ignore*/}
+            }
+            dl_data.setQR(QR_SHARERATIOMET);
+          }
         }
 
-        if (okToQueue && (minPeersPerSeed != 0)) {
+        if (okToQueue && (iIgnoreRatioPeers != 0)) {
           int numSeeds = calcSeedsNoUs(download, dl_data.getStartedSeedingOn());
           int numPeers = calcPeersNoUs(download);
           if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
@@ -715,7 +744,7 @@ StartStopRulesDefaultPlugin
           //If there are no seeds, avoid / by 0
           if (numSeeds != 0) {
             float ratio = (float) numPeers / numSeeds;
-            if (ratio <= minPeersPerSeed) {
+            if (ratio <= iIgnoreRatioPeers) {
               try {
                 if (bDebugLog)
                   sDebugLine += "\nstopAndQueue() P:S Met";
@@ -729,7 +758,6 @@ StartStopRulesDefaultPlugin
         
         // move completed timed rank types to bottom of the list
         if (bStopAndQueued && iRankType == RANK_TIMED) {
-          int iNewQR = QR_TIMED_QUEUED_ENDS_AT;
           for (int j = 0; j < dlDataArray.length; j++) {
             int qr = dlDataArray[j].getQR();
             if (qr > 0 && qr < QR_TIMED_QUEUED_ENDS_AT) {
@@ -748,38 +776,12 @@ StartStopRulesDefaultPlugin
         if (download.getState() == Download.ST_QUEUED && dl_data.getQR() >= 0)
           higherQueued = true;
 
-        // XXX: Old code. Do we really want to remove torrents when the error is "File Not Found"?
-        if (  download.getState() == Download.ST_ERROR &&
-            download.getErrorStateDetails() != null &&
-            download.getErrorStateDetails().equals("File Not Found")){
-
-          try{
-          	Torrent t = download.getTorrent();
-          	if (t == null)
-          		log.log( LoggerChannel.LT_INFORMATION, "Removing ["+download.getName()+"]: torrent file not found" );
-          	else
-            	log.log( LoggerChannel.LT_INFORMATION, "Remove ["+t.getName()+"]: file not found" );
-
-            downloadDataMap.remove(download);
-            download.remove();
-
-          }catch( DownloadRemovalVetoException e ){
-
-            e.printStackTrace();
-
-          }catch( DownloadException e ){
-
-            e.printStackTrace();
-          }
-        }
-
         if (bDebugLog) {
           String[] debugEntries2 = new String[] { "state="+sStates.charAt(download.getState()),
                            "shareR="+download.getStats().getShareRatio(),
                            "numWorCDing="+numWaitingOrSeeding,
                            "numWorDLing="+numWaitingOrDLing,
                            "okToQ="+okToQueue,
-                           "okToStp="+okToStop,
                            "qr="+dl_data.getQR(),
                            "hgherQd="+higherQueued,
                            "maxCDrs="+maxSeeders
@@ -859,7 +861,6 @@ StartStopRulesDefaultPlugin
       numSeeds = sr.getSeedCount();
       // If we've scraped after we started seeding
       // Remove ourselves from count
-      long downloadStartedOn = download.getStats().getTimeStarted();
       if ((numSeeds > 0) &&
           (seedingStartedOn > 0) &&
           (download.getState() == Download.ST_SEEDING) &&
@@ -881,6 +882,7 @@ StartStopRulesDefaultPlugin
     protected Download dl;
     protected long startedSeedingOn;
     private boolean bActivelyDownloading;
+    private boolean bWasComplete;
     
     public int compareTo(Object obj)
     {
@@ -891,7 +893,16 @@ StartStopRulesDefaultPlugin
     {
       startedSeedingOn = -1;
       dl = _dl;
+      setWasComplete(dl.getStats().getDownloadCompleted(false) == 1000);
       //recalcQR();
+    }
+    
+    public boolean getWasComplete() {
+      return bWasComplete;
+    }
+
+    public void setWasComplete(boolean b) {
+      bWasComplete = b;
     }
 
     Download getDownloadObject()
@@ -925,6 +936,9 @@ StartStopRulesDefaultPlugin
       startedSeedingOn = time;
     }
 
+    /** Assign Seeding Rank based on RankType
+     * @return New Seeding Rank Value
+     */
     public int recalcQR() {
       DownloadStats stats = dl.getStats();
       int numCompleted = stats.getDownloadCompleted(false);
@@ -944,48 +958,18 @@ StartStopRulesDefaultPlugin
 
       boolean bScrapeResultsOk = (numPeers > 0) || (numSeeds > 0) || scrapeResultOk(dl);
 
-  //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: Peers="+numPeers+"; Seeds="+numSeeds);
+      //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: Peers="+numPeers+"; Seeds="+numSeeds);
 
-      if (numPeers == 0 && bScrapeResultsOk && bIgnore0Peers) {
-        setQR(QR_0PEERS);
-        return QR_0PEERS;
-      }
-
-      if ((numCompleted == 1000) &&
-          (shareRatio > 500 || shareRatio == -1)) {
-            
-        //0 means disabled
-        if ((ignoreSeedCount != 0) && (numSeeds >= ignoreSeedCount)) {
-          setQR(QR_NUMSEEDSMET);
-          return QR_NUMSEEDSMET;
-        }
-
-        // Skip if Stop Peers Ratio exceeded
-        // (More Peers for each Seed than specified in Config)
-        //0 means never stop
-        if (minPeersPerSeed != 0 && numSeeds != 0) {
-          float ratio = (float) numPeers / numSeeds;
-          if (ratio <= minPeersPerSeed) {
-            setQR(QR_RATIOMET);
-            return QR_RATIOMET;
-          }
-        }
-      }
-
-      // The one point adjustments were added just to make the
-      // Queue ranking more varied (less torrents being all at one
-      // ranking)
       int newQR = 0;
 
+      // Never do anything with rank type of none
       if (iRankType == RANK_NONE) {
         // everythink ok!
-        qr = 0;
-        return 0;
-      }if (iRankType == RANK_TIMED) {
-        if (shareRatio <= 500 && shareRatio != -1) {
-          setQR(QR_INCOMPLETE_ENDS_AT - 10000);
-          return getQR();
-        }
+        setQR(newQR);
+        return newQR;
+      }
+
+      if (iRankType == RANK_TIMED) {
         int state = dl.getState();
         if (state == Download.ST_STOPPING ||
             state == Download.ST_STOPPED ||
@@ -1007,28 +991,51 @@ StartStopRulesDefaultPlugin
         }
       }
 
-      // Make torrents with < 1.0 share ratio very important
-      // (but not more important than unfinished downloads)
-      if (shareRatio != -1) {
-        if (shareRatio < 1000) {
-          // Add up to 500
-          newQR += (1000 - shareRatio) / 2;
-          // extra hike for less than .5
-          if (shareRatio <= 500)
-            newQR += 10000000;
-        }
-        else if (shareRatio >= 2000) {
-          // One point less for every 100% uploaded
-          newQR -= (shareRatio / 1000) - 1;
-        }
+
+      // First Priority Calculations
+      if (isFirstPriority()) {
+        newQR += 10000000;
       }
+      
+
+      /** 
+       * Check ignore rules
+       */
+      // never apply ignore rules to First Priority Matches
+      // (we don't want leechers circumventing the 0.5 rule)
       else {
-        long fileSize = dl.getTorrent().getSize();
-        long uploadSize = stats.getUploaded();
-        // one point less for every 100% of total size uploaded
-        if (fileSize > 0 && uploadSize > fileSize)
-          newQR -= (uploadSize / fileSize) - 1;
+        if (numPeers == 0 && bScrapeResultsOk && bIgnore0Peers) {
+          setQR(QR_0PEERS);
+          return QR_0PEERS;
+        }
+  
+        if (shareRatio > minQueueingShareRatio || shareRatio == -1) {
+          if (qr == QR_SHARERATIOMET)
+            return qr;
+  
+          //0 means disabled
+          if ((iIgnoreSeedCount != 0) && (numSeeds >= iIgnoreSeedCount)) {
+            setQR(QR_NUMSEEDSMET);
+            return QR_NUMSEEDSMET;
+          }
+  
+          // Skip if Stop Peers Ratio exceeded
+          // (More Peers for each Seed than specified in Config)
+          //0 means never stop
+          if (iIgnoreRatioPeers != 0 && numSeeds != 0) {
+            float ratio = (float) numPeers / numSeeds;
+            if (ratio <= iIgnoreRatioPeers) {
+              setQR(QR_RATIOMET);
+              return QR_RATIOMET;
+            }
+          }
+        }
       }
+
+      
+      /** 
+       * Add to QR based on Rank Type
+       */
 
       if ((iRankType == RANK_SEEDCOUNT) && 
           (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > numSeeds))
@@ -1038,7 +1045,7 @@ StartStopRulesDefaultPlugin
         if (numSeeds == 0 && numPeers >= minPeersToBoostNoSeeds)
           newQR += 490000000;
 
-      } else if (iRankType == RANK_SPRATIO) {
+      } else { // iRankType == RANK_SPRATIO or we are falling back
         if (numPeers != 0) {
           if (numSeeds == 0) {
             if (numPeers >= minPeersToBoostNoSeeds)
@@ -1070,10 +1077,44 @@ StartStopRulesDefaultPlugin
       return qr;
     } // recalcQR
 
+    /** Does the torrent match First Priority criteria? */
+    public boolean isFirstPriority() {
+      int shareRatio = dl.getStats().getShareRatio();
+      boolean bLastMatched = (shareRatio != -1) && (shareRatio < minQueueingShareRatio);
+      boolean bAnyMatched = bLastMatched;
+      
+      // don't do these rules if we were already complete (at startup)
+      if (!bWasComplete) {
+        if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
+            (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched)) {
+          bLastMatched = (iFirstPrioritySeedingMinutes == 0);
+          if (!bLastMatched) {
+            long timeSeeding = (System.currentTimeMillis() - getStartedSeedingOn()) / 1000 / 60;
+            bLastMatched = (timeSeeding < iFirstPrioritySeedingMinutes);
+          }
+          bAnyMatched |= bLastMatched;
+        }
+  
+        if (iFirstPriorityType == FIRSTPRIORITY_ANY ||
+            (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched)) {
+          bLastMatched = (iFirstPriorityDLMinutes == 0);
+          if (!bLastMatched) {
+            long timeDLing = (System.currentTimeMillis() - dl.getStats().getTimeStarted())  / 1000 / 60;
+            bLastMatched = (timeDLing < iFirstPriorityDLMinutes);
+          }
+          bAnyMatched |= bLastMatched;
+        }
+      }
+      
+      return ((iFirstPriorityType == FIRSTPRIORITY_ANY && bAnyMatched) ||
+              (iFirstPriorityType == FIRSTPRIORITY_ALL && bLastMatched));
+    }
   }
 
-    // ConfigSection Implementation
+  // ConfigSections
 
+  /** General Queueing options
+   */
   class ConfigSectionQueue implements ConfigSection {
     public String configSectionGetParentSection() {
       return ConfigSection.SECTION_ROOT;
@@ -1095,6 +1136,7 @@ StartStopRulesDefaultPlugin
       gMainTab.setLayoutData(gridData);
       layout = new GridLayout();
       layout.numColumns = 2;
+      layout.marginHeight = 0;
       gMainTab.setLayout(layout);
 
       label = new Label(gMainTab, SWT.NULL);
@@ -1111,8 +1153,8 @@ StartStopRulesDefaultPlugin
 
       label = new Label(gMainTab, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveDL"); //$NON-NLS-1$
-      final String activeDLLabels[] = new String[53];
-      final int activeDLValues[] = new int[53];
+      final String activeDLLabels[] = new String[54];
+      final int activeDLValues[] = new int[54];
       int pos = 0;
       for (int i = 0; i < 1024; i += 256) {
         activeDLLabels[pos] = "" + i + " B/s";
@@ -1124,23 +1166,11 @@ StartStopRulesDefaultPlugin
         activeDLValues[pos] = i * 1024;
         pos++;
       }
-      new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveDL", 512, activeDLLabels, activeDLValues);
-
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
-      new BooleanParameter(gMainTab, "Disconnect Seed", true); //$NON-NLS-1$
-
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
-      new BooleanParameter(gMainTab, "Switch Priority", false); //$NON-NLS-1$
+      new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveDL", activeDLLabels, activeDLValues);
 
       label = new Label(gMainTab, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
       new BooleanParameter(gMainTab, "Alert on close", true);
-
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.userSuperSeeding"); //$NON-NLS-1$
-      new BooleanParameter(gMainTab, "Use Super Seeding", false);
 
       label = new Label(gMainTab, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.queue.debuglog"); //$NON-NLS-1$
@@ -1162,9 +1192,207 @@ StartStopRulesDefaultPlugin
   }
 
 
-  class ConfigSectionStarting implements ConfigSection {
+  /** Seeding Automation Specific options
+   */
+  class ConfigSectionSeeding implements ConfigSection {
     public String configSectionGetParentSection() {
       return "queue";
+    }
+
+  	public String configSectionGetName() {
+  		return "queue.seeding";
+  	}
+
+    public void configSectionSave() {
+      reloadConfigParams();
+    }
+
+    public void configSectionDelete() {
+    }
+
+    public Composite configSectionCreate(Composite parent) {
+      // Seeding Automation Setup
+      GridData gridData;
+      GridLayout layout;
+      Label label;
+
+      Composite cSeeding = new Composite(parent, SWT.NULL);
+
+      layout = new GridLayout();
+      layout.numColumns = 2;
+      layout.marginHeight = 0;
+      cSeeding.setLayout(layout);
+      gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+      cSeeding.setLayoutData(gridData);
+
+      // General Seeding Options
+
+      label = new Label(cSeeding, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
+      new BooleanParameter(cSeeding, "Disconnect Seed", true); //$NON-NLS-1$
+
+      label = new Label(cSeeding, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
+      new BooleanParameter(cSeeding, "Switch Priority", false); //$NON-NLS-1$
+
+      label = new Label(cSeeding, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.userSuperSeeding"); //$NON-NLS-1$
+      new BooleanParameter(cSeeding, "Use Super Seeding", false);
+
+      label = new Label(cSeeding, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.minSeedingTime");
+      gridData = new GridData();
+      gridData.widthHint = 40;
+      new IntParameter(cSeeding, "StartStopManager_iMinSeedingTime").setLayoutData(gridData);
+
+      label = new Label(cSeeding, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.autoReposition");
+      new BooleanParameter(cSeeding, "StartStopManager_bAutoReposition");
+
+      return cSeeding;
+    }
+  }
+
+  
+  /** First Priority Specific options.
+   */
+  class ConfigSectionSeedingFirstPriority implements ConfigSection {
+    public String configSectionGetParentSection() {
+      return "queue.seeding";
+    }
+
+  	public String configSectionGetName() {
+  		return "queue.seeding.firstPriority";
+  	}
+
+    public void configSectionSave() {
+      reloadConfigParams();
+    }
+
+    public void configSectionDelete() {
+    }
+
+    public Composite configSectionCreate(Composite parent) {
+      // Seeding Automation Setup
+      GridData gridData;
+      GridLayout layout;
+      Label label;
+      Composite cArea;
+
+      Composite cFirstPriorityArea = new Composite(parent, SWT.NULL);
+      cFirstPriorityArea.addControlListener(new Utils.LabelWrapControlListener());
+
+      layout = new GridLayout();
+      layout.numColumns = 2;
+      layout.marginHeight = 0;
+      cFirstPriorityArea.setLayout(layout);
+      gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+      cFirstPriorityArea.setLayoutData(gridData);
+
+
+      label = new Label(cFirstPriorityArea, SWT.WRAP);
+      gridData = new GridData(GridData.FILL_HORIZONTAL);
+      gridData.horizontalSpan = 2;
+      label.setLayoutData(gridData);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.info");
+
+      // ** Begin No Touch area
+      
+      cArea = new Composite(cFirstPriorityArea, SWT.NULL);
+      layout = new GridLayout();
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
+      layout.numColumns = 3;
+      cArea.setLayout(layout);
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      cArea.setLayoutData(gridData);
+      
+      label = new Label(cArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority");
+
+      String fpLabels[] = { MessageText.getString("ConfigView.text.all"), 
+                                 MessageText.getString("ConfigView.text.any") };
+      int fpValues[] = { FIRSTPRIORITY_ALL, FIRSTPRIORITY_ANY };
+      new IntListParameter(cArea, "StartStopManager_iFirstPriority_Type",
+                           fpLabels, fpValues);
+      
+      label = new Label(cArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.following");
+
+      // row
+      label = new Label(cFirstPriorityArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.shareRatio");
+      String minQueueLabels[] = new String[51];
+      int minQueueValues[] = new int[51];
+      minQueueLabels[0] = "1:2 (" + 0.5 + ")";
+      minQueueValues[0] = 500;
+      for (int i = 1; i < minQueueLabels.length; i++) {
+        minQueueLabels[i] = i + ":1";
+        minQueueValues[i] = i * 1000;
+      }
+      new IntListParameter(cFirstPriorityArea, "StartStopManager_iFirstPriority_ShareRatio",
+                           minQueueLabels, minQueueValues);
+
+      // row
+      label = new Label(cFirstPriorityArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.seedingMinutes");
+
+      String seedTimeLabels[] = new String[15];
+      int seedTimeValues[] = new int[15];
+      String sMinutes = MessageText.getString("ConfigView.text.minutes");
+      String sHours = MessageText.getString("ConfigView.text.hours");
+      seedTimeLabels[0] = MessageText.getString("ConfigView.text.ignore");
+      seedTimeValues[0] = 0;
+      seedTimeLabels[1] = "90 " + sMinutes;
+      seedTimeValues[1] = 90;
+      for (int i = 2; i < seedTimeValues.length; i++) {
+        seedTimeLabels[i] = i + " " + sHours ;
+        seedTimeValues[i] = i * 60;
+      }
+      new IntListParameter(cFirstPriorityArea, "StartStopManager_iFirstPriority_SeedingMinutes", 
+                           seedTimeLabels, seedTimeValues);
+
+      // row
+      label = new Label(cFirstPriorityArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.DLMinutes");
+
+      String dlTimeLabels[] = new String[15];
+      int dlTimeValues[] = new int[15];
+      dlTimeLabels[0] = MessageText.getString("ConfigView.text.ignore");
+      dlTimeValues[0] = 0;
+      dlTimeLabels[1] = "90 " + MessageText.getString("ConfigView.text.minutes");
+      dlTimeValues[1] = 90;
+      for (int i = 2; i < dlTimeValues.length; i++) {
+        dlTimeLabels[i] = i + " " + sHours ;
+        dlTimeValues[i] = i * 60;
+      }
+      new IntListParameter(cFirstPriorityArea, "StartStopManager_iFirstPriority_DLMinutes", 
+                           dlTimeLabels, dlTimeValues);
+
+
+
+      return cFirstPriorityArea;
+    }
+  }
+
+  
+  /** Auto Starting specific options
+   */
+  class ConfigSectionSeedingAutoStarting implements ConfigSection {
+    public String configSectionGetParentSection() {
+  		return "queue.seeding";
+    }
+
+  	public String configSectionGetName() {
+  		return "queue.seeding.autoStarting";
+  	}
+
+    public void configSectionSave() {
+      reloadConfigParams();
+    }
+
+    public void configSectionDelete() {
     }
 
     public Composite configSectionCreate(Composite parent) {
@@ -1184,32 +1412,20 @@ StartStopRulesDefaultPlugin
       gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
       gQR.setLayoutData(gridData);
 
-      label = new Label(gQR, SWT.WRAP);
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      gridData.horizontalSpan = 2;
-      label.setLayoutData(gridData);
-      Messages.setLanguageText(label, "ConfigView.label.autoSeedingInfo"); //$NON-NLS-1$
 
-      label = new Label(gQR, SWT.WRAP);
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      gridData.horizontalSpan = 2;
-      label.setLayoutData(gridData);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.rankType");
+      // ** Begin Rank Type area
+      // Rank Type area.  Encompases the 4 (or more) options groups
 
-      // Rank Type area.  Encompases the two options groups
-
-      Composite cRankType = new Composite(gQR, SWT.NULL);
+      Composite cRankType = new Group(gQR, SWT.NULL);
       layout = new GridLayout();
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
       layout.numColumns = 2;
-      layout.verticalSpacing = 1;
+      layout.verticalSpacing = 2;
       cRankType.setLayout(layout);
-      gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+      gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
       gridData.horizontalSpan = 2;
-      gridData.horizontalIndent = 15;
 
       cRankType.setLayoutData(gridData);
+      Messages.setLanguageText(cRankType, "ConfigView.label.seeding.rankType");
 
       // Seeds:Peer options
       RadioParameter rparamPeerSeed =
@@ -1219,19 +1435,7 @@ StartStopRulesDefaultPlugin
       rparamPeerSeed.setLayoutData(gridData);
 
       new Label(cRankType, SWT.NULL);
-/*
-      Group gPeerSeed = new Group(cRankType, SWT.NULL);
-      layout = new GridLayout();
-      layout.marginHeight = 2;
-      layout.marginWidth = 2;
-      layout.numColumns = 3;
-      gPeerSeed.setLayout(layout);
-      gPeerSeed.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-      Messages.setLanguageText(gPeerSeed, "ConfigView.label.seeding.rankType.peerSeed.options");
 
-//      Control[] controlsPeerSeed = { gPeerSeed };
-//      rparamPeerSeed.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsPeerSeed));
-*/
 
       // Seed Count options
       RadioParameter rparamSeedCount =
@@ -1286,28 +1490,16 @@ StartStopRulesDefaultPlugin
       
       new Label(cRankType, SWT.NULL);
       
+      // ** End Rank Type area
 
 
-
-      // General Seeding Options
-      label = new Label(gQR, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.minSeedingTime"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.widthHint = 40;
-      new IntParameter(gQR, "StartStopManager_iMinSeedingTime").setLayoutData(gridData);
-
-      label = new Label(gQR, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.autoReposition"); //$NON-NLS-1$
-      new BooleanParameter(gQR, "StartStopManager_bAutoReposition");
-
-
-      Composite cNoTimeNone = (Composite)new Group(gQR, SWT.NULL);
+      Composite cNoTimeNone = new Composite(gQR, SWT.NULL);
       layout = new GridLayout();
-//      layout.marginHeight = 0;
-//      layout.marginWidth = 0;
       layout.numColumns = 2;
       cNoTimeNone.setLayout(layout);
       gridData = new GridData();
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
       gridData.horizontalSpan = 2;
       cNoTimeNone.setLayoutData(gridData);
       
@@ -1419,7 +1611,6 @@ StartStopRulesDefaultPlugin
 
       return gQR;
     }
-
     private void controlsSetEnabled(Control[] controls, boolean bEnabled) {
       for(int i = 0 ; i < controls.length ; i++) {
         if (controls[i] instanceof Composite)
@@ -1427,9 +1618,18 @@ StartStopRulesDefaultPlugin
         controls[i].setEnabled(bEnabled);
       }
     }
+  }
+
+
+  /** Config Section for items that make us ignore torrents when seeding 
+   */
+  class ConfigSectionSeedingIgnore implements ConfigSection {
+    public String configSectionGetParentSection() {
+      return "queue.seeding";
+    }
 
   	public String configSectionGetName() {
-  		return "queue.autoSeeding";
+  		return "queue.seeding.ignore";
   	}
 
     public void configSectionSave() {
@@ -1437,13 +1637,6 @@ StartStopRulesDefaultPlugin
     }
 
     public void configSectionDelete() {
-    }
-  }
-
-
-  class ConfigSectionStartingIgnore implements ConfigSection {
-    public String configSectionGetParentSection() {
-      return "queue.autoSeeding";
     }
 
     public Composite configSectionCreate(Composite parent) {
@@ -1451,153 +1644,57 @@ StartStopRulesDefaultPlugin
       GridData gridData;
       GridLayout layout;
       Label label;
-      Composite cArea;
 
-      Composite gQR = new Composite(parent, SWT.NULL);
-      gQR.addControlListener(new Utils.LabelWrapControlListener());
+      Composite cIgnore = new Composite(parent, SWT.NULL);
+      cIgnore.addControlListener(new Utils.LabelWrapControlListener());
 
       layout = new GridLayout();
-      layout.numColumns = 2;
+      layout.numColumns = 3;
       layout.marginHeight = 0;
-      gQR.setLayout(layout);
+      cIgnore.setLayout(layout);
 
-      label = new Label(gQR, SWT.WRAP);
+      label = new Label(cIgnore, SWT.WRAP);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
-      gridData.horizontalSpan = 2;
+      gridData.horizontalSpan = 3;
       label.setLayoutData(gridData);
       Messages.setLanguageText(label, "ConfigView.label.autoSeedingIgnoreInfo"); //$NON-NLS-1$
 
-
-      label = new Label(gQR, SWT.NULL);
+      label = new Label(cIgnore, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.ignoreSeeds"); //$NON-NLS-1$
-      final String ignoreSeedsLabels[] = new String[30];
-      final int ignoreSeedsValues[] = new int[30];
-      ignoreSeedsLabels[0] = MessageText.getString("ConfigView.text.neverIgnore");
-      ignoreSeedsValues[0] = 0;
-      String seeds = MessageText.getString("ConfigView.label.seeds");
-      for (int i = 1; i <= 20; i++) {
-        ignoreSeedsLabels[i] = i + " " + seeds; //$NON-NLS-1$
-        ignoreSeedsValues[i] = i;
-      }
-      int value = 30;
-      for (int i = 21; i < ignoreSeedsValues.length; i++) {
-        ignoreSeedsLabels[i] = value + " " + seeds; //$NON-NLS-1$
-        ignoreSeedsValues[i] = value;
-        value += 10;
-      }
-      // Using old config name
-      new IntListParameter(gQR, "Ignore Seed Count", 0, ignoreSeedsLabels, ignoreSeedsValues);
+      gridData = new GridData();
+      gridData.widthHint = 20;
+      new IntParameter(cIgnore, "StartStopManager_iIgnoreSeedCount").setLayoutData(gridData);
+      label = new Label(cIgnore, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeds");
 
-      label = new Label(gQR, SWT.WRAP);
+      label = new Label(cIgnore, SWT.WRAP);
       Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreRatioPeers"); //$NON-NLS-1$
-      final String stopRatioPeersLabels[] = new String[15];
-      final int stopRatioPeersValues[] = new int[15];
-      stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverIgnore");
-      stopRatioPeersValues[0] = 0;
-      String peers = MessageText.getString("ConfigView.text.peers");
-      for (int i = 1; i < stopRatioPeersValues.length; i++) {
-        stopRatioPeersLabels[i] = i + " " + peers; //$NON-NLS-1$
-        stopRatioPeersValues[i] = i;
-      }
-      new IntListParameter(gQR, "Stop Peers Ratio", 0, stopRatioPeersLabels, stopRatioPeersValues);
+      gridData = new GridData();
+      gridData.widthHint = 20;
+      new IntParameter(cIgnore, "Stop Peers Ratio").setLayoutData(gridData);
+      label = new Label(cIgnore, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.peers");
 
-      label = new Label(gQR, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.ignore0Peers"); //$NON-NLS-1$
-      new BooleanParameter(gQR, "StartStopManager_bIgnore0Peers");
+      label = new Label(cIgnore, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.ignore0Peers");
+      new BooleanParameter(cIgnore, "StartStopManager_bIgnore0Peers");
+      label = new Label(cIgnore, SWT.NULL);
 
-      return gQR;
-    }
+      label = new Label(cIgnore, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreShareRatio");
+      gridData = new GridData();
+      gridData.widthHint = 20;
+      new IntParameter(cIgnore, "Stop Ratio").setLayoutData(gridData);
+      label = new Label(cIgnore, SWT.NULL);
+      label.setText(":1");
 
-  	public String configSectionGetName() {
-  		return "queue.autoSeeding.ignore";
-  	}
-
-    public void configSectionSave() {
-      reloadConfigParams();
-    }
-
-    public void configSectionDelete() {
+      return cIgnore;
     }
   }
 
-  class ConfigSectionStopping implements ConfigSection {
 
-    public String configSectionGetParentSection() {
-      return "queue";
-    }
-
-    public Composite configSectionCreate(Composite parent) {
-      // (Download) Stopping Automation Setup
-      GridData gridData;
-      GridLayout layout;
-      Label label;
-      Composite gStop = new Composite(parent, SWT.NONE);
-      gStop.addControlListener(new Utils.LabelWrapControlListener());
-
-      layout = new GridLayout();
-      layout.numColumns = 2;
-      gStop.setLayout(layout);
-      gridData = new GridData(GridData.FILL_BOTH);
-      gStop.setLayoutData(gridData);
-
-
-      label = new Label(gStop, SWT.WRAP);
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      gridData.horizontalSpan = 2;
-      label.setLayoutData(gridData);
-      Messages.setLanguageText(label, "ConfigView.label.autoStoppingInfo"); //$NON-NLS-1$
-
-      label = new Label(gStop, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.stopRatio"); //$NON-NLS-1$
-      final String stopRatioLabels[] = new String[11];
-      final int stopRatioValues[] = new int[11];
-      stopRatioLabels[0] = MessageText.getString("ConfigView.text.ignoreRule");
-      stopRatioValues[0] = 0;
-      for (int i = 1; i < 11; i++) {
-        stopRatioLabels[i] = i + ":" + 1; //$NON-NLS-1$
-        stopRatioValues[i] = i;
-      }
-      new IntListParameter(gStop, "Stop Ratio", 0, stopRatioLabels, stopRatioValues);
-
-      label = new Label(gStop, SWT.WRAP);
-      Messages.setLanguageText(label, "ConfigView.label.stopAfterMinutes"); //$NON-NLS-1$
-      final String stopAfterLabels[] = new String[15];
-      final int stopAfterValues[] = new int[15];
-      String sMinutes = MessageText.getString("ConfigView.text.minutes");
-      String sHours = MessageText.getString("ConfigView.text.hours");
-      stopAfterLabels[0] = MessageText.getString("ConfigView.text.ignoreRule");
-      stopAfterValues[0] = 0;
-      stopAfterLabels[1] = "90 " + MessageText.getString("ConfigView.text.minutes");
-      stopAfterValues[1] = 90;
-      for (int i = 2; i < stopAfterValues.length; i++) {
-        stopAfterLabels[i] = i + " " + sHours ;
-        stopAfterValues[i] = i * 60;
-      }
-      IntListParameter stopAfterParam = new IntListParameter(gStop, "Stop After Minutes", 0,
-                                                             stopAfterLabels, stopAfterValues);
-      label.setEnabled(false);
-
-
-      label = new Label(gStop, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.removeOnStop"); //$NON-NLS-1$
-      BooleanParameter removeOnStopParam = new BooleanParameter(gStop, "Remove On Stop", false);
-      label.setEnabled(false);
-
-      return gStop;
-    }
-
-  	public String configSectionGetName() {
-  		return "queue.autoStopping";
-  	}
-
-    public void configSectionSave() {
-      reloadConfigParams();
-    }
-
-    public void configSectionDelete() {
-    }
-  }
-
+  /** A "My Torrents" column for displaying Seeding Rank.
+   */
   public class SeedingRankColumn implements PluginMyTorrentsItemFactory {
     public String getName() {
       return "SeedingRank";
@@ -1668,6 +1765,8 @@ StartStopRulesDefaultPlugin
         tableItem.setText("");
       else if (qr == QR_0PEERS)
         tableItem.setText(MessageText.getString("StartStopRules.0Peers"));
+      else if (qr == QR_SHARERATIOMET)
+        tableItem.setText(MessageText.getString("StartStopRules.shareRatioMet"));
       else {
         tableItem.setText("ERR" + qr);
       }
