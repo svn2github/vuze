@@ -89,7 +89,7 @@ DownloadManagerStatsImpl
     
       if (length > 0 && gm != null){
         
-        gm.getStats().dataBytesReceived(length);  //TODO
+        gm.getStats().protocolBytesReceived(length);
       }
   }
   
@@ -126,7 +126,7 @@ DownloadManagerStatsImpl
     
       if (length > 0 && gm != null){
       
-        gm.getStats().dataBytesSent(length);  //TODO
+        gm.getStats().protocolBytesSent(length);
       }
    }
    
