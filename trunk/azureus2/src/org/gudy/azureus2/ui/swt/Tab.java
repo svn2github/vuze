@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.views.*;
-import org.gudy.core3.plugins.PluginView;
+import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author Olivier

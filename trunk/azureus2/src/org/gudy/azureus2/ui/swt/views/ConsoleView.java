@@ -65,13 +65,6 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
   }
 
   /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
-    return MessageText.getString("ConsoleView.title.short"); //$NON-NLS-1$
-  }
-
-  /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {

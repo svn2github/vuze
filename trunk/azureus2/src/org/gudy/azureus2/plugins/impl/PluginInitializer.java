@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.core3.plugins.impl;
+package org.gudy.azureus2.plugins.impl;
 
 import java.io.File;
 import java.net.URL;
@@ -28,10 +28,11 @@ import java.util.Properties;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
-import org.gudy.core3.plugins.Plugin;
-import org.gudy.core3.plugins.PluginInterface;
-import org.gudy.core3.plugins.PluginView;
+import org.gudy.azureus2.plugins.Plugin;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author Olivier
@@ -112,4 +113,13 @@ public class PluginInitializer implements PluginInterface {
   public GlobalManager getGlobalManager() {
     return gm;
   }
+
+  public void openTorrentFile(String fileName) {
+    MainWindow.getWindow().openTorrent(fileName);
+  }
+
+  public void openTorrentURL(String url) {
+    new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url);
+  }
+
 }

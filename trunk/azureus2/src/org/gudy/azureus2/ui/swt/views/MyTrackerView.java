@@ -339,13 +339,6 @@ MyTrackerView
 	 }
 
 	 /* (non-Javadoc)
-	  * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-	  */
-	 public String getShortTitle() {
-	   return MessageText.getString("MyTrackerView.mytracker");
-	 }
-
-	 /* (non-Javadoc)
 	  * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
 	  */
 	 public String getFullTitle() {

@@ -125,26 +125,20 @@ public class IrcView extends AbstractIView implements IrcListener {
   }
 
   /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
-    String result = MessageText.getString("IrcView.title.short");
-    if(client != null) {
-      result += " " + client.getChannel() + " on " + client.getSrvName();
-    }     
-    if(newMessage && (System.currentTimeMillis() / 1000)%2 == 0)
-      result += " !";   
-    else
-      result += "  ";
-    return result; //$NON-NLS-1$
-  }
-
-  /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
-    String result = MessageText.getString("IrcView.title.full") + " ";
-    return  result ; //$NON-NLS-1$
+    String result;
+    if(newMessage && (System.currentTimeMillis() / 1000)%2 == 0)
+          result = "!";   
+        else
+          result = " ";
+    result += MessageText.getString("IrcView.title.short");
+    if(client != null) {
+      result += " " + client.getChannel() + " on " + client.getSrvName();
+    }     
+    
+    return result; //$NON-NLS-1$
   }
 
   public void messageReceived(String sender, String message) {

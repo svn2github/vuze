@@ -764,13 +764,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
 
   /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
-   */
-  public String getShortTitle() {
-    return MessageText.getString("MyTorrentsView.mytorrents");
-  }
-
-  /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {

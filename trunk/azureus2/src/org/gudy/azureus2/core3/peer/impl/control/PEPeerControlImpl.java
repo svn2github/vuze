@@ -1507,6 +1507,12 @@ PEPeerControlImpl
     //the piece is corrupt
     else {
       if (_pieces[pieceNumber] != null) {
+        List list = _pieces[pieceNumber].getPieceWrites();
+        Iterator iter = list.iterator();
+        while(iter.hasNext()) {
+          PEPieceWrite write = (PEPieceWrite) iter.next();
+          System.out.println(write.sender.getIp() + " : " + write.blocNumber + " H: "+ ByteFormatter.nicePrint(write.hash));
+        }
         //_pieces[pieceNumber].free();      
         _pieces[pieceNumber].reset();
       

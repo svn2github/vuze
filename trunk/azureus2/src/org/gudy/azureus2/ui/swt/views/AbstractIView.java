@@ -7,6 +7,7 @@ package org.gudy.azureus2.ui.swt.views;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author René
@@ -17,7 +18,16 @@ public abstract class AbstractIView implements IView {
   public void initialize(Composite composite){}
   public Composite getComposite(){ return null; }
   public void refresh(){}
-  public void delete(){}
+  
+  /**
+   * A basic implementation that disposes the composite
+   * Should be called with super.delete() from any extending class.
+   * Images, Colors and such SWT handles must be disposed by the class itself.
+   */
+  public void delete(){
+    Composite comp = getComposite();
+    Utils.disposeComposite(comp);
+  }
 
   public String getData(){ return null; }
 
@@ -25,7 +35,7 @@ public abstract class AbstractIView implements IView {
     return MessageText.getString(getData());
   }
 
-  public String getShortTitle() {
+  public final String getShortTitle() {
     String shortTitle = getFullTitle();
     if(shortTitle != null && shortTitle.length() > 30) {
       shortTitle = shortTitle.substring(0,30) + "...";

@@ -86,8 +86,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.core3.plugins.PluginView;
-import org.gudy.core3.plugins.impl.PluginInitializer;
+import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.impl.PluginInitializer;
 
 import snoozesoft.systray4j.SysTrayMenu;
 

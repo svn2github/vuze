@@ -1,6 +1,6 @@
 /*
- * File    : Plugin.java
- * Created : 2 nov. 2003 18:43:21
+ * File    : PluginInterface.java
+ * Created : 2 nov. 2003 18:48:47
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -19,12 +19,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.core3.plugins;
+package org.gudy.azureus2.plugins;
+
 
 /**
  * @author Olivier
  * 
  */
-public interface Plugin {  
-  public void initialize(PluginInterface pluginInterface);
+public interface PluginInterface {  
+  public void addView(PluginView view);
+  public void openTorrentFile(String fileName);
+  public void openTorrentURL(String url);
 }
