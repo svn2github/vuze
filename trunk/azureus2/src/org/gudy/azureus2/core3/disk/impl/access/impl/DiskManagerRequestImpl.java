@@ -46,6 +46,9 @@ DiskManagerRequestImpl
   private int offset;
   private int length;
   private long timeCreated;
+  private final int hashcode;
+  
+  
   
   /**
    * Parameters correspond to bittorrent parameters
@@ -59,6 +62,7 @@ DiskManagerRequestImpl
     this.offset = offset;
     this.length = length;
     timeCreated = SystemTime.getCurrentTime();
+    this.hashcode = pieceNumber + offset + length;
   }
   
   /**
@@ -115,9 +119,12 @@ DiskManagerRequestImpl
       
     return true;
   }
-  /**
-   * @return
-   */
+
+  public int hashCode() {
+    return hashcode;
+  }
+  
+  
   public long getTimeCreated() {
     return timeCreated;
   }
