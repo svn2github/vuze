@@ -199,6 +199,7 @@ DHTControlImpl
 							0, 
 							search_concurrency, 
 							1,
+							router.getK()/4,	// decrease search accuracy for refreshes
 							new lookupResultHandler()
 							{
 								public void
@@ -435,6 +436,7 @@ DHTControlImpl
 				0,
 				search_concurrency*4,
 				1,
+				router.getK(),
 				new lookupResultHandler()
 				{
 					public void
@@ -529,6 +531,7 @@ DHTControlImpl
 				timeout,
 				search_concurrency,
 				1,
+				router.getK(),
 				new lookupResultHandler()
 				{
 					public void
@@ -696,9 +699,9 @@ DHTControlImpl
 	
 	public void
 	get(
-		byte[]					unencoded_key,
-		int						max_values,
-		long					timeout,
+		byte[]						unencoded_key,
+		int							max_values,
+		long						timeout,
 		final DHTOperationListener	get_listener )
 	{
 		final byte[]	encoded_key = encodeKey( unencoded_key );
@@ -711,6 +714,7 @@ DHTControlImpl
 				timeout,
 				search_concurrency,
 				max_values,
+				router.getK(),
 				new lookupResultHandler()
 				{
 					private List	found_values	= new ArrayList();
@@ -844,12 +848,13 @@ DHTControlImpl
 		final long					timeout,
 		final int					concurrency,
 		final int					max_values,
+		final int					search_accuracy,
 		final lookupResultHandler	handler )
 	{
 		if ( thread_pool == null ){
 			
 			try{
-				lookupSupport( lookup_id, value_search, timeout, concurrency, max_values, handler );
+				lookupSupport( lookup_id, value_search, timeout, concurrency, max_values, search_accuracy, handler );
 	
 			}catch( Throwable e ){
 				
@@ -869,7 +874,7 @@ DHTControlImpl
 					runSupport()
 					{
 						try{
-							lookupSupport( lookup_id, value_search, timeout, concurrency, max_values, handler );
+							lookupSupport( lookup_id, value_search, timeout, concurrency, max_values, search_accuracy, handler );
 							
 						}catch( Throwable e ){
 							
@@ -892,6 +897,7 @@ DHTControlImpl
 		long						timeout,
 		int							concurrency,
 		int							max_values,
+		int							search_accuracy,
 		final lookupResultHandler	result_handler )
 	{
 		boolean		timeout_occurred	= false;
@@ -995,7 +1001,7 @@ DHTControlImpl
 					contacts_to_query_mon.enter();
 			
 					if ( 	values_found[0] >= max_values ||
-							value_replies[0]>= 3 ){	// all hits should have the same values anyway...	
+							value_replies[0]>= 2 ){	// all hits should have the same values anyway...	
 							
 						break;
 					}						
@@ -1025,7 +1031,7 @@ DHTControlImpl
 						// if the next closest is further away than the furthest successful hit so 
 						// far and we have K hits, we're done
 					
-					if ( ok_contacts.size() == router.getK()){
+					if ( ok_contacts.size() == search_accuracy ){
 						
 						DHTTransportContact	furthest_ok = (DHTTransportContact)ok_contacts.iterator().next();
 						
@@ -1034,7 +1040,7 @@ DHTControlImpl
 						
 						if ( compareDistances( furthest_ok_distance, closest_distance) <= 0 ){
 							
-							DHTLog.log( "lookup: terminates - we've searched the closest K contacts" );
+							DHTLog.log( "lookup: terminates - we've searched the closest " + search_accuracy + " contacts" );
 	
 							break;
 						}
@@ -1181,6 +1187,7 @@ DHTControlImpl
 										byte[]	value_id = new byte[originator_id.length + value_bytes.length];
 										
 										System.arraycopy( originator_id, 0, value_id, 0, originator_id.length );
+										
 										System.arraycopy( value_bytes, 0, value_id, originator_id.length, value_bytes.length );
 										
 										HashWrapper	x = new HashWrapper( value_id );
