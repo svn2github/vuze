@@ -46,6 +46,7 @@ public class ByteBufferPool {
       return buffer;
     }
     catch (OutOfMemoryError e) {
+       System.out.println("Running garbage collector...");
        System.runFinalization();
        System.gc();
        try {
