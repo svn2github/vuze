@@ -198,7 +198,7 @@ TorrentManagerImpl
 			
 			if ( charsets == null ){
 				
-				throw( new TorrentEncodingException(e));
+				throw( new TorrentEncodingException("Failed to set requested encoding", e));
 				
 			}else{
 				
@@ -222,7 +222,7 @@ TorrentManagerImpl
 			
 			if ( charsets == null ){
 				
-				throw( new TorrentEncodingException(e));
+				throw( new TorrentEncodingException("Failed to set default encoding", e));
 				
 			}else{
 				

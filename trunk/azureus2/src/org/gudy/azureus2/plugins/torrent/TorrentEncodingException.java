@@ -31,15 +31,17 @@ public class
 TorrentEncodingException
 	extends TorrentException
 {
-	protected String[]		valid_charsets;
-	protected String[]		valid_names;
+		// needs to be public for xml serialisation
+	
+	public String[]		valid_charsets;
+	public String[]		valid_names;
 	
 	public
 	TorrentEncodingException(
 		String[]		charsets,
 		String[]		names )
 	{
-		super();
+		super("Torrent encoding selection required");
 		
 		valid_charsets	= charsets;
 		valid_names		= names;
@@ -47,9 +49,10 @@ TorrentEncodingException
 	
 	public
 	TorrentEncodingException(
+		String		str,
 		Throwable	cause )
 	{
-		super( cause );
+		super( str, cause );
 	}
 	
 	public String[]

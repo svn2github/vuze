@@ -54,7 +54,8 @@ DownloadRemoveRulesPlugin
 	protected PluginInterface		plugin_interface;
 	protected boolean				closing;
 	
-	protected Map		dm_listener_map	= new HashMap(10);
+	protected Map					dm_listener_map		= new HashMap(10);
+	protected List					monitored_downloads	= new ArrayList();
 	
 	protected LoggerChannel 		log;
 
@@ -112,12 +113,12 @@ DownloadRemoveRulesPlugin
 
 	public void
 	downloadAdded(
-		final Download	dm )
+		final Download	download )
 	{
 			// we don't auto-remove non-persistent downloads as these are managed 
 			// elsewhere (e.g. shares)
 		
-		if ( !dm.isPersistent()){
+		if ( !download.isPersistent()){
 			
 			return;
 		}
@@ -134,7 +135,7 @@ DownloadRemoveRulesPlugin
 						return;
 					}
 
-					handleScrape( dm, response );
+					handleScrape( download, response );
 				}
 				
 				public void
@@ -146,13 +147,15 @@ DownloadRemoveRulesPlugin
 						return;
 					}
 					
-					handleAnnounce( dm, response );
+					handleAnnounce( download, response );
 				}
 			};
 			
-		dm_listener_map.put( dm, listener );
+		monitored_downloads.add( download );
 		
-		dm.addTrackerListener( listener );
+		dm_listener_map.put( download, listener );
+		
+		download.addTrackerListener( listener );
 	}
 		
 	protected void
@@ -195,10 +198,15 @@ DownloadRemoveRulesPlugin
 		Download		download,
 		String			status )
 	{
+		if ( !monitored_downloads.contains( download )){
+			
+			return;
+		}
+		
 		status = status.toLowerCase();
 		
 		boolean	download_completed = download.isComplete();
-		
+				
 		if ( 	status.indexOf( "not authori" ) != -1 ||
 				status.toLowerCase().indexOf( "unauthori" ) != -1 ){
 	
@@ -258,6 +266,8 @@ DownloadRemoveRulesPlugin
 	removeDownloadDelayed(
 		final Download		download )
 	{
+		monitored_downloads.remove( download );
+		
 			// we need to delay this because other actions may be being performed
 			// on the download (e.g. completion may trigger update install)
 		
@@ -285,6 +295,8 @@ DownloadRemoveRulesPlugin
 	removeDownload(
 		final Download		download )
 	{
+		monitored_downloads.remove( download );
+		
 		if ( download.getState() == Download.ST_STOPPED ){
 			
 			try{
@@ -349,13 +361,15 @@ DownloadRemoveRulesPlugin
 	
 	public void
 	downloadRemoved(
-		Download	dm )
+		Download	download )
 	{
-		DownloadTrackerListener	listener = (DownloadTrackerListener)dm_listener_map.remove(dm);
+		monitored_downloads.remove( download );
+		
+		DownloadTrackerListener	listener = (DownloadTrackerListener)dm_listener_map.remove(download);
 		
 		if ( listener != null ){
 			
-			dm.removeTrackerListener( listener );
+			download.removeTrackerListener( listener );
 		}
 	}
 		

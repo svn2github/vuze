@@ -80,6 +80,8 @@ XMLHTTPClient
 	
 				res.print();
 	
+				/* short cuts
+					
 				String sc_oid	= res.getChild( "_object_id" ).getValue().trim();
 			
 				res = sendRequest( 
@@ -107,7 +109,7 @@ XMLHTTPClient
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
-				
+				*/
 
 				res = sendRequest( 
 						"<REQUEST>" +
@@ -258,7 +260,7 @@ XMLHTTPClient
 						"</REQUEST>");
 				*/
 				
-				/* stuff for adding a torrent
+				/* stuff for adding a torrent */
 				 
 				res = sendRequest( 
 						"<REQUEST>" +
@@ -276,7 +278,7 @@ XMLHTTPClient
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + torrent_man_oid + "</_object_id></OBJECT>" +
 							"<METHOD>getURLDownloader[URL]</METHOD>"+
-							"<PARAMS><ENTRY>http://69.50.170.99/sn//torrents/1669/RAR_Password_Cracker_4.12[www.elitetopdown.com]-rar.torrent</ENTRY></PARAMS>" +
+							"<PARAMS><ENTRY>http://www.torrentreactor.net/torrents/download_15835</ENTRY></PARAMS>" +
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
@@ -288,7 +290,11 @@ XMLHTTPClient
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + torrent_downloader_oid + "</_object_id></OBJECT>" +
-							"<METHOD>download</METHOD>"+
+							"<METHOD>download[String]</METHOD>"+
+							"<PARAMS>"+
+   							    "<ENTRY>fallback</ENTRY>"+
+						    "</PARAMS>" +
+	
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
@@ -307,9 +313,8 @@ XMLHTTPClient
 						"</REQUEST>");
 	
 				res.print();
-				*/
 				
-				/*
+				
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
@@ -319,7 +324,7 @@ XMLHTTPClient
 						"</REQUEST>");
 			
 				res.print();
-				*/
+				
 				
 				/*
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();

@@ -34,6 +34,8 @@ public class
 LocaleUtilDecoderFallback 
 	implements LocaleUtilDecoder
 {
+	public static String	NAME	= "Fallback";
+	
 	protected static final String VALID_CHARS = "abcdefghijklmnopqrstuvwxyz1234567890_-.";
 	
 	protected int		index;
@@ -48,7 +50,7 @@ LocaleUtilDecoderFallback
 	public String
 	getName()
 	{
-		return( "Fallback" );
+		return( NAME );
 	}
 
 	public int

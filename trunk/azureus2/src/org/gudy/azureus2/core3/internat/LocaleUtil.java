@@ -435,20 +435,30 @@ LocaleUtil
 		try{
 			LocaleUtilDecoder[]	decoders = getTorrentCandidateDecoders( torrent );
 			
+			String	canonical_requested_name;
+			
 				// "System" means use the system encoding
 			
 			if ( encoding.equalsIgnoreCase("system" )){
 				
-				encoding = getSystemEncoding();
-			}
+				canonical_requested_name	= getSystemEncoding();
 				
-			CharsetDecoder requested_decoder = Charset.forName(encoding).newDecoder();
+			}else if ( encoding.equalsIgnoreCase( LocaleUtilDecoderFallback.NAME )){
+				
+				canonical_requested_name	= LocaleUtilDecoderFallback.NAME;
+				
+			}else{
+				
+				CharsetDecoder requested_decoder = Charset.forName(encoding).newDecoder();
+			
+				canonical_requested_name	= requested_decoder.charset().name();
+			}
 			
 			boolean	 ok = false;
 			
 			for (int i=0;i<decoders.length;i++){
 				
-				if ( decoders[i].getName().equals( requested_decoder.charset().name())){
+				if ( decoders[i].getName().equals( canonical_requested_name )){
 					
 					ok	= true;
 					

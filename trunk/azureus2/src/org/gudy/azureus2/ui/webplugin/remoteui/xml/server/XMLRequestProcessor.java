@@ -80,7 +80,7 @@ XMLRequestProcessor
 				
 			}else{
 				
-				writeTag("ERROR", exceptionToString(e));
+				writeTag("ERROR", e );
 				
 			}
 
@@ -130,17 +130,36 @@ XMLRequestProcessor
 				
 				if ( response != null ){
 					
-					serialiseObject( response, "" );
+					serialiseObject( response, "", 0xffffffff );
 				}
 				
 			}catch( RPException e ){
 				
 				e.printStackTrace();
 				
-				writeTag("ERROR", exceptionToString(e));
+				writeTag("ERROR", e );
 				
 			}
 		}
+	}
+	
+	protected void
+	writeTag(
+		String		tag,
+		Throwable 	e )
+	{
+		writeLineRaw( "<ERROR>");
+
+		writeLineEscaped( exceptionToString(e));
+		
+		if ( e instanceof RPException && e.getCause() != null ){
+			
+			e = e.getCause();
+		}
+		
+		serialiseObject( e, "    ", ~Modifier.PRIVATE );
+		
+		writeLineRaw( "</ERROR>" );
 	}
 	
 	protected String
@@ -395,8 +414,11 @@ XMLRequestProcessor
 	protected void
 	serialiseObject(
 		Object		obj,
-		String		indent )
+		String		indent,
+		int			original_modifier_filter )
 	{
+		int modifier_filter = original_modifier_filter & (~(Modifier.TRANSIENT | Modifier.STATIC));
+		
 		Class	cla = obj.getClass();
 		
 		// System.out.println(indent + "ser:" + cla.getName());
@@ -424,7 +446,7 @@ XMLRequestProcessor
 						
 						indent();
 					
-						serialiseObject( entry, indent+"  ");
+						serialiseObject( entry, indent+"  ", original_modifier_filter);
 						
 					}finally{
 						
@@ -462,7 +484,7 @@ XMLRequestProcessor
 						
 						int	modifiers = field.getModifiers();
 						
-						if (( modifiers & ( Modifier.TRANSIENT | Modifier.STATIC )) == 0 ){
+						if ((( modifiers | modifier_filter ) == modifier_filter )){
 							
 							String	name = field.getName();
 							
@@ -525,7 +547,7 @@ XMLRequestProcessor
 									
 								}else{
 									
-									serialiseObject( field.get(obj), indent + "    " );
+									serialiseObject( field.get(obj), indent + "    ", original_modifier_filter );
 								}
 								
 							}finally{

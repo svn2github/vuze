@@ -656,6 +656,10 @@ DownloadImpl
 				download_manager.addTrackerListener( this );
 			}
 		}
+		
+		l.announceResult( last_announce_result );
+		
+		l.scrapeResult( last_scrape_result );
 	}
 	
 	public void
