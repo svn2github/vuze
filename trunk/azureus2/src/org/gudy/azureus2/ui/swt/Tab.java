@@ -213,7 +213,10 @@ public class Tab {
             }
           }
         }
-        catch (Exception e) {}
+        catch (Exception e){
+        	
+        	Debug.printStackTrace(e);
+        }
       }
     }finally{
     	
@@ -221,57 +224,78 @@ public class Tab {
     }
   }
 
-  public static void updateLanguage() {
+  public static void 
+  updateLanguage() 
+  {
+  	IView[] views;
+  	
     try{
     	class_mon.enter();
       
-      Iterator iter = tabs.keySet().iterator();
-      while (iter.hasNext()) {
-        //TabItem item = (TabItem) iter.next();
-        //CTabItem item = (CTabItem) iter.next();
-        Item item = (Item) iter.next();
-        IView view = (IView) tabs.get(item);
+    	views = (IView[]) tabs.values().toArray(new IView[tabs.size()]);
+    	   	
+    }finally{
+    	
+    	class_mon.exit();
+    }   
+    
+    for (int i = 0; i < views.length; i++) {
+
+    	IView view = views[i];
+    	
         try {
           view.updateLanguage();
           view.refresh();
         }
-        catch (Exception e) {}
-      }
-    }finally{
-    	
-    	class_mon.exit();
+        catch (Exception e) {
+        	Debug.printStackTrace(e);
+        }
     }
   }
 
-  public static void closeAllTabs() {
+
+  public static void 
+  closeAllTabs() 
+  {
+  	Item[] tab_items;
+  	
     try{
     	class_mon.enter();
       
-      Item[] tab_items = (Item[]) tabs.keySet().toArray(new Item[tabs.size()]);
-      for (int i = 0; i < tab_items.length; i++) {
-        closed(tab_items[i]);
-      }
+    	tab_items = (Item[]) tabs.keySet().toArray(new Item[tabs.size()]);
+    	
     }finally{
     	
     	class_mon.exit();
     }
+    
+    for (int i = 0; i < tab_items.length; i++) {
+    	
+        closed(tab_items[i]);
+      }
   }
 
-  public static void closeAllDetails() {
+  public static void 
+  closeAllDetails() 
+  {
+  	Item[] tab_items;
+  	
     try{
     	class_mon.enter();
     	
-      Item[] tab_items = (Item[]) tabs.keySet().toArray(new Item[tabs.size()]);
-      for (int i = 0; i < tab_items.length; i++) {
+    	tab_items = (Item[]) tabs.keySet().toArray(new Item[tabs.size()]);
+
+    }finally{
+    	
+    	class_mon.exit();
+    }
+    
+    for (int i = 0; i < tab_items.length; i++) {
         IView view = (IView) tabs.get(tab_items[i]);
         if (view instanceof ManagerView) {
           closed(tab_items[i]);
         }
       }
-    }finally{
-    	
-    	class_mon.exit();
-    }
   }
 
   public static void closeCurrent() {

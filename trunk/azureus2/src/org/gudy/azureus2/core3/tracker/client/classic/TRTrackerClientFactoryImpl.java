@@ -32,13 +32,14 @@ import org.gudy.azureus2.core3.peer.PEPeerServer;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 TRTrackerClientFactoryImpl 
 {
-	protected static Vector	listeners 	= new Vector();
-	protected static Vector	clients		= new Vector();
+	protected static List	listeners 	= new ArrayList();
+	protected static List	clients		= new ArrayList();
+	
 	protected static AEMonitor 		class_mon 	= new AEMonitor( "TRTrackerClientFactory" );
 
 	public static TRTrackerClient
@@ -50,39 +51,65 @@ TRTrackerClientFactoryImpl
 	{
 		TRTrackerClient	client = new TRTrackerClientClassicImpl( torrent, peer_server );
 		
+		List	listeners_copy	= new ArrayList();
+		
 		try{
 			class_mon.enter();
 			
-			clients.addElement( client );
-			
-			for (int i=0;i<listeners.size();i++){
-			
-				((TRTrackerClientFactoryListener)listeners.elementAt(i)).clientCreated( client );	
-			}
+			clients.add( client );
+		
+			listeners_copy = new ArrayList( listeners );
+	
 		}finally{
 			
 			class_mon.exit();
 		}
 		
+		for (int i=0;i<listeners_copy.size();i++){
+			
+			try{
+				((TRTrackerClientFactoryListener)listeners_copy.get(i)).clientCreated( client );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
 		return( client );
 	}
+	
+		/*
+		 * At least once semantics for this one
+		 */
 	
 	public static void
 	addListener(
 		 TRTrackerClientFactoryListener	l )
 	{
+		List	clients_copy;
+		
 		try{
 			class_mon.enter();
 		
-			listeners.addElement(l);
+			listeners.add(l);
 			
-			for (int i=0;i<clients.size();i++){
-				
-				l.clientCreated((TRTrackerClient)clients.elementAt(i));	
-			}
+			clients_copy = new ArrayList( clients );
+	
 		}finally{
 			
 			class_mon.exit();
+		}
+		
+		for (int i=0;i<clients_copy.size();i++){
+			
+			try{
+				l.clientCreated((TRTrackerClient)clients_copy.get(i));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -93,7 +120,7 @@ TRTrackerClientFactoryImpl
 		try{
 			class_mon.enter();
 		
-			listeners.removeElement(l);
+			listeners.remove(l);
 			
 		}finally{
 			
@@ -105,18 +132,29 @@ TRTrackerClientFactoryImpl
 	destroy(
 		TRTrackerClient	client )
 	{
+		List	listeners_copy	= new ArrayList();
+		
 		try{
 			class_mon.enter();
 		
-			clients.removeElement( client );
+			clients.remove( client );
 			
-			for (int i=0;i<listeners.size();i++){
-				
-				((TRTrackerClientFactoryListener)listeners.elementAt(i)).clientDestroyed( client );	
-			}
+			listeners_copy	= new ArrayList( listeners );
+
 		}finally{
 			
 			class_mon.exit();
+		}
+		
+		for (int i=0;i<listeners_copy.size();i++){
+			
+			try{
+				((TRTrackerClientFactoryListener)listeners_copy.get(i)).clientDestroyed( client );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 }
