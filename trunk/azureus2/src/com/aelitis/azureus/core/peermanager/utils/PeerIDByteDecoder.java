@@ -71,8 +71,9 @@ public class PeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 0, "DansClient", "XanTorrent" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "Deadman Walking-", "Deadman" )) != null ) return decoded;
       
-      if( (decoded = decodeSimpleStyle( peerID, 0, "a00---00", "Swarmy" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "a02---00", "Swarmy" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "a00---0", "Swarmy" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "a02---0", "Swarmy" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "T00---0", "Teeweety" )) != null ) return decoded;
 
       String burst = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
       if( burst.equals( "Mbrst" ) ) {
