@@ -42,7 +42,12 @@ public class Tab {
   public Tab(IView _view) {
     this.view = _view;
     this.folder = _folder;
-    tabItem = new CTabItem(folder, SWT.NULL);
+    if(_view instanceof MyTorrentsView) {
+      tabItem = new CTabItem(folder, SWT.NULL, 0);
+    } else {
+      tabItem = new CTabItem(folder, SWT.NULL);
+    }
+    
     //if(_view instanceof ConfigView) {
     //  composite = new ScrolledComposite(folder, SWT.H_SCROLL | SWT.V_SCROLL);
     //} else {
@@ -64,6 +69,7 @@ public class Tab {
       folder.setSelection(tabItem);
       tabs.put(tabItem, view);
     } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -131,6 +137,11 @@ public class Tab {
     IView view = null;
     synchronized (tabs) {
       view = (IView) tabs.get(item);
+      if(view != null && view instanceof MyTorrentsView) {
+        MainWindow.getWindow().setMytorrents(null);
+        item.dispose();
+        return;
+      }
 	  try {		  
       Control control = item.getControl();
       if(control != null && ! control.isDisposed())

@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
  */
 public class StartServer extends Thread {
 
+  public static final String ACCESS_STRING = "Azureus Start Server Access";
   private ServerSocket socket;
   private int state;
   private Main main;
@@ -52,13 +53,18 @@ public class StartServer extends Thread {
           //System.out.println("received : " + line);
           if (line != null) {
             main.showMainWindow();
-            StringTokenizer st = new StringTokenizer(line, ";");
-            String args[] = new String[st.countTokens()];
+            StringTokenizer st = new StringTokenizer(line, ";");           
             int i = 0;
-            while (st.hasMoreElements()) {
-              args[i++] = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
+            if(st.countTokens() > 1) {
+              String args[] = new String[st.countTokens() - 1];
+              String checker = st.nextToken();
+                if(checker.equals(ACCESS_STRING)) {
+                  while (st.hasMoreElements()) {              
+                    args[i++] = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
+                  }
+                  main.useParam(args);
+              }
             }
-            main.useParam(args);
           }
         }
         sck.close();
@@ -66,8 +72,8 @@ public class StartServer extends Thread {
       }
       catch (Exception e) {
         if(!(e instanceof SocketException))
-          e.printStackTrace();
-        bContinue = false;
+          e.printStackTrace();        
+        //bContinue = false;
       } finally {
         try {
           if (br != null)

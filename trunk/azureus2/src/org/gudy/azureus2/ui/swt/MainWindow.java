@@ -1,6 +1,6 @@
 /*
  * Created on 25 juin 2003
- *
+ *  
  */
 package org.gudy.azureus2.ui.swt;
 
@@ -89,7 +89,7 @@ import snoozesoft.systray4j.SysTrayMenu;
 
 /**
  * @author Olivier
- * 
+ *  
  */
 public class MainWindow implements IComponentListener {
 
@@ -129,6 +129,8 @@ public class MainWindow implements IComponentListener {
   private GlobalManager globalManager;
 
   private Tab mytorrents;
+  private IView viewMyTorrents;
+  
   private Tab console;
   private Tab config;
   private Tab irc;
@@ -167,9 +169,12 @@ public class MainWindow implements IComponentListener {
       if (display != null && !display.isDisposed())
         display.asyncExec(new Runnable() {
         public void run() {
+          view = null;
           if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
+
             try {
               view = Tab.getView(folder.getSelection());
+
             }
             catch (Exception e) {
               view = null;
@@ -178,8 +183,20 @@ public class MainWindow implements IComponentListener {
               view.refresh();
               Tab.refresh();
             }
+
             statusDown.setText("D: " + globalManager.getDownloadSpeed()); //$NON-NLS-1$
             statusUp.setText("U: " + globalManager.getUploadSpeed()); //$NON-NLS-1$
+          }
+          if (!mainWindow.isDisposed()) {            
+            try {
+              viewMyTorrents = Tab.getView(mytorrents.getTabItem());
+            }
+            catch (Exception e) {
+              viewMyTorrents = null;
+            }
+            if (viewMyTorrents != null && viewMyTorrents != view) {
+              viewMyTorrents.refresh();
+            }
           }
           if (trayIcon != null)
             trayIcon.refresh();
@@ -200,9 +217,11 @@ public class MainWindow implements IComponentListener {
   }
 
   private class VersionChecker extends Thread {
-    /* (non-Javadoc)
-     * @see java.lang.Thread#run()
-     */
+    /*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Thread#run()
+		 */
     public void run() {
       ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
 
@@ -335,7 +354,7 @@ public class MainWindow implements IComponentListener {
     }
     instanceCount++;
 
-    //The Main Window    
+    //The Main Window
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
     mainWindow.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
@@ -351,20 +370,20 @@ public class MainWindow implements IComponentListener {
     Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
     MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
-    
+
     MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
-    
-	new MenuItem(fileMenu, SWT.SEPARATOR);
 
-	MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
-	Messages.setLanguageText(file_export, "MainWindow.menu.file.export"); //$NON-NLS-1$
+    new MenuItem(fileMenu, SWT.SEPARATOR);
 
-	MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
-	Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
+    MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
+    Messages.setLanguageText(file_export, "MainWindow.menu.file.export"); //$NON-NLS-1$
 
-	new MenuItem(fileMenu, SWT.SEPARATOR);
-    
+    MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
+    Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
+
+    new MenuItem(fileMenu, SWT.SEPARATOR);
+
     MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
 
@@ -406,24 +425,24 @@ public class MainWindow implements IComponentListener {
         new NewTorrentWizard(display);
       }
     });
-    
-	file_configure.addListener(SWT.Selection, new Listener() {
-	public void handleEvent(Event e) {
-	  new ConfigureWizard(display);
-	}
-  });
-  
-  file_export.addListener(SWT.Selection, new Listener() {
-  	 public void handleEvent(Event e) {
-		 new ExportTorrentWizard(display);
-  	 }
- 	}); 
 
-  file_import.addListener(SWT.Selection, new Listener() {
-	  public void handleEvent(Event e) {
-		new ImportTorrentWizard(display);
-	  }
-	});
+    file_configure.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new ConfigureWizard(display);
+      }
+    });
+
+    file_export.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new ExportTorrentWizard(display);
+      }
+    });
+
+    file_import.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new ImportTorrentWizard(display);
+      }
+    });
 
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -441,8 +460,12 @@ public class MainWindow implements IComponentListener {
     Messages.setLanguageText(view_torrents, "MainWindow.menu.view.mytorrents"); //$NON-NLS-1$
     view_torrents.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        if (mytorrents == null)
-          mytorrents = new Tab(new MyTorrentsView(globalManager));
+        if (mytorrents == null) {
+          if(viewMyTorrents == null)
+            mytorrents = new Tab(new MyTorrentsView(globalManager));
+          else
+            mytorrents = new Tab(viewMyTorrents);
+        }          
         else
           mytorrents.setFocus();
       }
@@ -480,7 +503,6 @@ public class MainWindow implements IComponentListener {
           irc.setFocus();
       }
     });
-    
 
     new MenuItem(viewMenu, SWT.SEPARATOR);
 
@@ -636,8 +658,8 @@ public class MainWindow implements IComponentListener {
       mainWindow.setVisible(false);
       PasswordWindow.showPasswordWindow(display);
     }
-    
-    if(!COConfigurationManager.getBooleanParameter("Wizard Completed",false)) {
+
+    if (!COConfigurationManager.getBooleanParameter("Wizard Completed", false)) {
       new ConfigureWizard(display);
     }
   }
@@ -993,7 +1015,7 @@ public class MainWindow implements IComponentListener {
 
     SelectionAdapter update = new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
-        downloadJar(progressBar,hint);
+        downloadJar(progressBar, hint);
         if (jarDownloaded) {
           if (event.widget == finish) {
             updateJar = true;
@@ -1083,11 +1105,10 @@ public class MainWindow implements IComponentListener {
 
       Runtime.getRuntime().exec(exec);
       /*
-            BufferedReader d = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String text;
-            while((text = d.readLine()) != null && text.length() != 0)
-              System.out.println(text);
-      //*/
+			 * BufferedReader d = new BufferedReader(new
+			 * InputStreamReader(process.getInputStream())); String text; while((text =
+			 * d.readLine()) != null && text.length() != 0) System.out.println(text);
+			 */
     }
     catch (Exception e1) {
       e1.printStackTrace();
@@ -1143,11 +1164,11 @@ public class MainWindow implements IComponentListener {
         in = null;
       }
     }
-    
+
     return result;
   }
 
-  private void downloadJar(final ProgressBar progressBar,final Label hint) {
+  private void downloadJar(final ProgressBar progressBar, final Label hint) {
     if (jarDownloaded) {
       progressBar.setSelection(progressBar.getMaximum());
       return;
@@ -1169,37 +1190,40 @@ public class MainWindow implements IComponentListener {
         List mirrors = new ArrayList();
         String pattern = "/azureus/" + latestVersionFileName + "?use_mirror=";
         int position = mirrorsHtml.indexOf(pattern);
-        while(position > 0) {
-          int end = mirrorsHtml.indexOf(">",position);
-          if(end < 0) {
+        while (position > 0) {
+          int end = mirrorsHtml.indexOf(">", position);
+          if (end < 0) {
             position = -1;
-          } else {
-            String mirror = mirrorsHtml.substring(position,end);
+          }
+          else {
+            String mirror = mirrorsHtml.substring(position, end);
             //System.out.println(mirror);
             mirrors.add(mirror);
-            position = mirrorsHtml.indexOf(pattern,position+1);
-          }  
+            position = mirrorsHtml.indexOf(pattern, position + 1);
+          }
         }
-        
+
         //Grab a random mirror
-        if(mirrors.size() == 0)
+        if (mirrors.size() == 0)
           return;
         int random = (int) (Math.random() * mirrors.size());
         String mirror = (String) (mirrors.get(random));
-        
+
         URL mirrorUrl = new URL("http://prdownloads.sourceforge.net" + mirror);
         String mirrorHtml = readUrl(mirrorUrl);
         pattern = "<META HTTP-EQUIV=\"refresh\" content=\"1; URL=";
         position = mirrorHtml.indexOf("<META HTTP-EQUIV=\"refresh\" content=\"1; URL=");
-        if(position < 0) return;
-        int end = mirrorHtml.indexOf("\">",position);
-        if(end < 0) return;
-        reqUrl = new URL(mirrorHtml.substring(position + pattern.length() ,end));
+        if (position < 0)
+          return;
+        int end = mirrorHtml.indexOf("\">", position);
+        if (end < 0)
+          return;
+        reqUrl = new URL(mirrorHtml.substring(position + pattern.length(), end));
       }
 
       if (reqUrl == null)
         return;
-      hint.setText(MessageText.getString("MainWindow.upgrade.downloadingfrom") + reqUrl);     
+      hint.setText(MessageText.getString("MainWindow.upgrade.downloadingfrom") + reqUrl);
       HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
       con.connect();
       in = con.getInputStream();
@@ -1358,9 +1382,11 @@ public class MainWindow implements IComponentListener {
     mw.waitForClose();
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
-   */
+  /*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
+	 */
   public void objectAdded(Object created) {
     if (!(created instanceof DownloadManager))
       return;
@@ -1395,9 +1421,11 @@ public class MainWindow implements IComponentListener {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
-   */
+  /*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
+	 */
   public void objectRemoved(Object removed) {
     if (!(removed instanceof DownloadManager))
       return;
@@ -1487,36 +1515,36 @@ public class MainWindow implements IComponentListener {
   }
 
   /**
-   * @return
-   */
+	 * @return
+	 */
   public Tab getConsole() {
     return console;
   }
 
   /**
-   * @return
-   */
+	 * @return
+	 */
   public Tab getMytorrents() {
     return mytorrents;
   }
 
   /**
-   * @param tab
-   */
+	 * @param tab
+	 */
   public void setConsole(Tab tab) {
     console = tab;
   }
 
   /**
-   * @param tab
-   */
+	 * @param tab
+	 */
   public void setMytorrents(Tab tab) {
     mytorrents = tab;
   }
 
   /**
-   * @return
-   */
+	 * @return
+	 */
   public static MainWindow getWindow() {
     return window;
   }
@@ -1544,7 +1572,7 @@ public class MainWindow implements IComponentListener {
       try {
         TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile(new File(fileName));
         singleFile = torrent.isSimpleTorrent();
-		singleFileName = LocaleUtil.getCharsetString(torrent.getName());
+        singleFileName = LocaleUtil.getCharsetString(torrent.getName());
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -1611,44 +1639,43 @@ public class MainWindow implements IComponentListener {
   }
 
   /**
-   * @return
-   */
+	 * @return
+	 */
   public HashMap getDownloadBars() {
     return downloadBars;
   }
 
   /**
-   * @return
-   */
+	 * @return
+	 */
   public Tab getConfig() {
     return config;
   }
 
   /**
-   * @param tab
-   */
+	 * @param tab
+	 */
   public void setConfig(Tab tab) {
     config = tab;
   }
-  
 
   /**
-     * @return
-     */
+	 * @return
+	 */
   public Tab getIrc() {
     return irc;
   }
 
   /**
-   * @param tab
-   */
+	 * @param tab
+	 */
   public void setIrc(Tab tab) {
     irc = tab;
   }
 
   /**
-   * @return
-   */
+	 * @return
+	 */
   public TrayWindow getTray() {
     return tray;
   }

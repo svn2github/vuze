@@ -33,7 +33,7 @@ public class Main implements ILocaleUtilChooser {
       try {      
         sck = new Socket("localhost",6880);
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
-        StringBuffer buffer = new StringBuffer("args;");
+        StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING + ";args;");
         for(int i = 0 ; i < args.length ; i++) {
           String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
           buffer.append(arg);

@@ -83,6 +83,10 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
+    if(panel != null && panel.isReparentable()) {
+      panel.setParent(composite);
+      return;
+    }
     panel = new Composite(composite, SWT.NULL);
     GridLayout layout = new GridLayout(1, false);
     layout.marginHeight = 0;
