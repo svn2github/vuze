@@ -925,7 +925,7 @@ DownloadManagerImpl
       
       if( (nbSeeds + nbPeers) == 0) {
         if(isSeed)
-          return WEALTH_NO_REMOTE;        
+          return WEALTH_NO_TRACKER;        
         return WEALTH_KO;        
       }
       if( trackerStatus == TRTrackerResponse.ST_OFFLINE)
