@@ -37,6 +37,7 @@ TOTorrentImpl
 	protected static final String TK_ANNOUNCE_LIST		= "announce-list";
 	protected static final String TK_COMMENT			= "comment";
 	protected static final String TK_CREATION_DATE		= "creation date";
+	protected static final String TK_CREATED_BY			= "created by";
 	
 	protected static final String TK_INFO				= "info";
 	protected static final String TK_NAME				= "name";
@@ -57,9 +58,10 @@ TOTorrentImpl
 	private byte[]		torrent_hash;
 	
 	private boolean				simple_torrent;
-	private TOTorrentFile[]		files;
+	private TOTorrentFileImpl[]	files;
 
 	private long				creation_date;
+	private String				created_by;
 	
 	private Map					additional_properties 		= new HashMap();
 	private Map					additional_info_properties	= new HashMap();
@@ -187,6 +189,11 @@ TOTorrentImpl
 			root.put( TK_CREATION_DATE, new Long( creation_date ));
 		}
 		
+		if ( created_by != null ){
+			
+			writeStringToMetaData( root, TK_CREATED_BY, created_by );						
+		}
+		
 		Map info = new HashMap();
 		
 		root.put( TK_INFO, info );
@@ -218,36 +225,34 @@ TOTorrentImpl
 		
 			for (int i=0;i<files.length;i++){
 				
-				Map	file = new HashMap();
-		
-				meta_files.add( file );
+				TOTorrentFileImpl	file	= files[i];
 				
-				file.put( TK_LENGTH, new Long( files[i].getLength()));
+				Map	file_map = new HashMap();
+		
+				meta_files.add( file_map );
+				
+				file_map.put( TK_LENGTH, new Long( file.getLength()));
 				
 				List path = new ArrayList();
 				
-				file.put( TK_PATH, path );
+				file_map.put( TK_PATH, path );
 				
-				String	str_path = files[i].getPath();
+				String[]	path_comps = file.getPathComponents();
 				
-				int	pos = 0;
-				
-				while(true){
+				for (int j=0;j<path_comps.length;j++){
 					
-					int	p1 = str_path.indexOf( File.separator, pos );
+					path.add( writeStringToMetaData( path_comps[j]));
+				}
+				
+				Map additional_properties = file.getAdditionalProperties();
+				
+				Iterator prop_it = additional_properties.keySet().iterator();
+				
+				while( prop_it.hasNext()){
 					
-					if ( p1 == -1 ){
-						
-						path.add( writeStringToMetaData( str_path.substring(pos)));
-						
-						break;
-						
-					}else{
-						
-						path.add( writeStringToMetaData( str_path.substring(pos,p1)));
-						
-						pos	= p1+1;
-					}
+					String	key = (String)prop_it.next();
+					
+					file_map.put( key, additional_properties.get( key ));
 				}
 			}
 		}
@@ -329,6 +334,13 @@ TOTorrentImpl
 		long		_creation_date )
 	{
 		creation_date 	= _creation_date;
+	}
+	
+	protected void
+	setCreatedBy(
+		String		str )
+	{
+		created_by	= str;
 	}
 	
 	public byte[]
@@ -420,7 +432,7 @@ TOTorrentImpl
 	
 	protected void
 	setFiles(
-		TOTorrentFile[]		_files )
+		TOTorrentFileImpl[]		_files )
 	{
 		files	= _files;
 	}
@@ -610,6 +622,7 @@ TOTorrentImpl
 			System.out.println( "announce url = " + announce_url );
 			System.out.println( "announce group = " + announce_group.getAnnounceURLSets().length );
 			System.out.println( "creation date = " + creation_date );
+			System.out.println( "creation by = " + created_by );
 			System.out.println( "comment = " + comment );
 			System.out.println( "hash = " + ByteFormatter.nicePrint( hash ));
 			System.out.println( "piece length = " + getPieceLength() );

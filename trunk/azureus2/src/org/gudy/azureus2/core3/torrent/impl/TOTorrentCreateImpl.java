@@ -116,6 +116,8 @@ TOTorrentCreateImpl
 	{
 		setCreationDate( System.currentTimeMillis());
 		
+		setCreatedBy( Constants.AZUREUS_NAME + "/" + Constants.AZUREUS_VERSION );
+		
 		setPieceLength( _piece_length );
 		
 		report( MessageText.getString("Torrent.create.progress.piecelength") + DisplayFormatters.formatByteCountToKBEtc(_piece_length ));

@@ -125,7 +125,7 @@ TOTorrentDeserialiseImpl
 											TOTorrentException.RT_DECODE_FAILS ));
 		}
 
-		print( "", "", meta_data );
+		// print( "", "", meta_data );
 		
 		construct( meta_data );
 	}
@@ -204,15 +204,45 @@ TOTorrentDeserialiseImpl
 					}
 				}else if ( key.equalsIgnoreCase( TK_COMMENT )){
 					
-					setComment( readStringFromMetaData( meta_data, TK_COMMENT ));
-					
-				}else if ( key.equalsIgnoreCase( TK_CREATION_DATE )){
-					
-					Long creation_date = (Long)meta_data.get( TK_CREATION_DATE );
-					
-					if ( creation_date != null ){
+						// non standard, don't fail if format wrong
 						
-						setCreationDate( creation_date.longValue());
+					try{
+					
+						setComment( readStringFromMetaData( meta_data, TK_COMMENT ));
+						
+					}catch( Exception e ){
+						
+						System.out.println( "TOTorrentDeserialise: comment extraction fails, ignoring");
+					}
+					
+				}else if ( key.equalsIgnoreCase( TK_CREATED_BY )){
+			
+						// non standard, don't fail if format wrong
+						
+					try{
+									
+						setCreatedBy( readStringFromMetaData( meta_data, TK_CREATED_BY ));
+						
+					}catch( Exception e ){
+						
+						System.out.println( "TOTorrentDeserialise: created_by extraction fails, ignoring");
+					}
+
+				}else if ( key.equalsIgnoreCase( TK_CREATION_DATE )){
+			
+					// non standard, don't fail if format wrong
+						
+					try{
+				
+						Long creation_date = (Long)meta_data.get( TK_CREATION_DATE );
+					
+						if ( creation_date != null ){
+						
+							setCreationDate( creation_date.longValue());
+						}
+					}catch( Exception e ){
+						
+						System.out.println( "TOTorrentDeserialise: creation_date extraction fails, ignoring");
 					}
 									
 				}else if ( key.equalsIgnoreCase( TK_INFO )){
@@ -268,7 +298,7 @@ TOTorrentDeserialiseImpl
 	
 				List	meta_files = (List)info.get( TK_FILES );
 			
-				TOTorrentFile[] files = new TOTorrentFile[ meta_files.size()];
+				TOTorrentFileImpl[] files = new TOTorrentFileImpl[ meta_files.size()];
 			
 				for (int i=0;i<files.length;i++){
 					
@@ -277,7 +307,7 @@ TOTorrentDeserialiseImpl
 					long	len = ((Long)file_map.get( TK_LENGTH )).longValue();
 					
 					List	paths = (List)file_map.get( TK_PATH );
-									
+						
 					String[]	path_comps = new String[paths.size()];
 					
 					for (int j=0;j<paths.size();j++){
@@ -285,7 +315,25 @@ TOTorrentDeserialiseImpl
 						path_comps[j] = new String(readStringFromMetaData((byte[])paths.get(j)));
 					}
 					
-					files[i] = new TOTorrentFileImpl( len, path_comps );
+					TOTorrentFileImpl file = files[i] = new TOTorrentFileImpl( len, path_comps );
+					
+						// preserve any non-standard attributes
+						
+					Iterator file_it = file_map.keySet().iterator();
+					
+					while( file_it.hasNext()){
+						
+						String	key = (String)file_it.next();
+						
+						if ( 	key.equals( TK_LENGTH ) ||
+								key.equals( TK_PATH )){
+									
+							// standard
+						}else{
+							
+							file.setAdditionalProperty( key, file_map.get( key ));
+						}
+					}
 				}
 				
 				setFiles( files );

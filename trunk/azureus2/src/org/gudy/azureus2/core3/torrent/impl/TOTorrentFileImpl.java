@@ -34,6 +34,8 @@ TOTorrentFileImpl
 	protected long		file_length;
 	protected String[]	path_components;
 	
+	protected Map		additional_properties = new HashMap();
+	
 	protected
 	TOTorrentFileImpl(
 		long			_len,
@@ -97,5 +99,19 @@ TOTorrentFileImpl
 	getPathComponents()
 	{
 		return( path_components );
+	}
+	
+	protected void
+	setAdditionalProperty(
+		String		name,
+		Object		value )
+	{
+		additional_properties.put( name, value );
+	}
+	
+	protected Map
+	getAdditionalProperties()
+	{
+		return( additional_properties );
 	}
 }

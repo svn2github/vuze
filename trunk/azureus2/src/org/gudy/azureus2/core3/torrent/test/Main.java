@@ -88,9 +88,8 @@ Main
 				torrent.serialiseToFile( new File("c:\\temp\\test2.torrent"));
 			
 			}else if ( test_type == TT_DECODE ){
-				
-					 
-				File f = new File("c:\\temp\\test2.torrent" );
+							 
+				File f = new File("c:\\temp\\test.torrent" );
 			
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			
