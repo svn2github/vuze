@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -37,6 +38,8 @@ TRTrackerServerTorrent
 	protected HashWrapper			hash;
 
 	protected Map				peer_map = new HashMap();
+	
+	protected TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
 		
 	protected
 	TRTrackerServerTorrent(
@@ -48,21 +51,32 @@ TRTrackerServerTorrent
 	}
 	
 	
-	protected void
+	protected synchronized void
 	peerContact(
+		String		event,
 		String		peer_id,
 		int			port,
-		String		ip_address )
+		String		ip_address,
+		long		uploaded,
+		long		downloaded,
+		long		left,
+		int			num_peers )
 	{
-		TRTrackerServerPeer	peer = (TRTrackerServerPeer)peer_map.get( peer_id );
+		boolean	stopped = event != null && event.equalsIgnoreCase("stopped");
+		
+		TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get( peer_id );
 		
 		if ( peer == null ){
-							
+		
+				// check to see if this peer already has an entry against this torrent
+				// and if so delete it (assumption is that the client has quit and
+				// restarted with new peer id
+									
 			Iterator	it = peer_map.values().iterator();
 							
 			while (it.hasNext()){
 							
-				TRTrackerServerPeer this_peer = (TRTrackerServerPeer)it.next();
+				TRTrackerServerPeerImpl this_peer = (TRTrackerServerPeerImpl)it.next();
 															
 				if (	this_peer.getPort() == port &&
 						new String(this_peer.getIP()).equals( ip_address )){
@@ -72,16 +86,32 @@ TRTrackerServerTorrent
 					it.remove();
 				}
 			}
+				
+			if ( !stopped ){			
+			
+				peer = new TRTrackerServerPeerImpl( peer_id.getBytes(), ip_address.getBytes(), port );
 							
-			peer = new TRTrackerServerPeer( peer_id.getBytes(), ip_address.getBytes(), port );
-							
-			peer_map.put( peer_id, peer );
+				peer_map.put( peer_id, peer );
+			}
+		}else{
+			
+			if ( stopped ){
+				
+				peer_map.remove( peer_id );
+			}
 		}
 		
-		peer.setLastContactTime( System.currentTimeMillis());
+		if ( peer != null ){
+		
+			peer.setLastContactTime( System.currentTimeMillis());
+		
+			peer.setStats( uploaded, downloaded, left, num_peers );
+		}
+		
+		stats.addAnnounce();
 	}
 	
-	protected void
+	protected synchronized void
 	exportPeersToMap(
 		Map		map )
 	{
@@ -95,11 +125,11 @@ TRTrackerServerTorrent
 					
 		while(it.hasNext()){
 	
-			TRTrackerServerPeer	peer = (TRTrackerServerPeer)it.next();
+			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
 							
 			if ( (now - peer.getLastContactTime()) > server.getRetryInterval()*1000*2 ){
 							
-				System.out.println( "removing timedout client '" + peer.getString());
+				System.out.println( "removing timed out client '" + peer.getString());
 								
 				it.remove();
 								
@@ -114,5 +144,21 @@ TRTrackerServerTorrent
 				rep_peer.put( "port", new Long( peer.getPort()));
 			}
 		}
+	}
+	
+	protected TRTrackerServerStats
+	getStats()
+	{
+		return( stats );
+	}
+	
+	protected synchronized TRTrackerServerPeer[]
+	getPeers()
+	{
+		TRTrackerServerPeer[]	res = new TRTrackerServerPeer[peer_map.size()];
+		
+		peer_map.values().toArray( res );
+		
+		return( res );
 	}
 }

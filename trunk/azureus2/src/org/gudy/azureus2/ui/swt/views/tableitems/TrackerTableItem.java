@@ -30,9 +30,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.views.*;
 
 import org.gudy.azureus2.core3.tracker.host.*;
 
@@ -105,11 +104,67 @@ TrackerTableItem
 
 	  	String name = new String(torrent.getTorrent().getName());	// TODO: !!!!
     
-		item.setText(0,name);
+		ViewUtils.setText( item, 0,name);
 		
-		String	status = "" + torrent.getStatus();
+		String	tracker = torrent.getTorrent().getAnnounceURL().toString();
+
+		ViewUtils.setText( item, 1, tracker);
 		
-		item.setText( 1, status );
+		String	status;
+		
+		int	s = torrent.getStatus();
+		
+		if ( s == TRHostTorrent.TS_STARTED ){
+			
+			status = MessageText.getString( "MyTrackerView.status.started");
+			
+		}else if ( s == TRHostTorrent.TS_STOPPED ){
+			
+			status = MessageText.getString( "MyTrackerView.status.stopped");
+			
+		}else{
+			
+			status = "?";
+		}
+		
+		ViewUtils.setText( item, 2, status );
+		
+		TRHostPeer[]	peers = torrent.getPeers();
+		
+		int		peer_count	= 0;
+		int		seed_count	= 0;
+		
+		long	uploaded	= 0;
+		long	downloaded	= 0;
+		long	left		= 0;
+		
+		for (int i=0;i<peers.length;i++){
+			
+			TRHostPeer	peer = peers[i];
+			
+			if ( peer.isSeed()){
+				
+				seed_count++;
+			}else{
+				
+				peer_count++;
+			}
+			
+			uploaded 	+= peer.getUploaded();
+			downloaded	+= peer.getDownloaded();
+			left		+= peer.getAmountLeft();
+		}
+		
+		ViewUtils.setText( item, 3, "" + seed_count );
+		ViewUtils.setText( item, 4, "" + peer_count );
+		
+		ViewUtils.setText( item, 5, "" + torrent.getAnnounceCount());
+		
+		ViewUtils.setText( item, 6, "" + uploaded );
+		
+		ViewUtils.setText( item, 7, "" + downloaded );
+		
+		ViewUtils.setText( item, 8, "" + left );
 	}
 
 	public int 

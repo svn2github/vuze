@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views;
  */
 
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.TableItem;
 
 public class 
 ViewUtils 
@@ -55,5 +56,32 @@ ViewUtils
 		}
 		
 		lab.setText( value==null?"":value );
+	}
+	
+	public static void
+	setText(
+		TableItem	item,
+		int			index,
+		String		value )
+	{
+		if ( item.isDisposed()){
+			return;
+		}
+		
+		String old_value = item.getText( index );
+		
+		if ( old_value == value ){
+			
+			return;
+		}
+		
+		if (	old_value != null && 
+				value != null &&
+				old_value.equals( value )){
+					
+			return;
+		}
+		
+		item.setText( index, value==null?"":value );
 	}
 }

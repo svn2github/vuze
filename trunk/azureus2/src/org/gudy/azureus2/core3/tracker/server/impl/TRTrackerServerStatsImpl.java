@@ -1,7 +1,7 @@
 /*
- * File    : TRTrackerServer.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : TRTrackerServerStatsImpl.java
+ * Created : 31-Oct-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,31 +18,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+ 
+package org.gudy.azureus2.core3.tracker.server.impl;
 
-package org.gudy.azureus2.core3.tracker.server;
+/**
+ * @author parg
+ */
 
+import org.gudy.azureus2.core3.tracker.server.*;
 
-public interface 
-TRTrackerServer 
+public class 
+TRTrackerServerStatsImpl
+	implements TRTrackerServerStats 
 {
-	public int
-	getRetryInterval();
+	protected int	announce_count;
 	
-	public void
-	permit(
-		byte[]		hash );
-		
-	public void
-	deny(
-		byte[]		hash );
-		
-	public TRTrackerServerStats
-	getStats(
-		byte[]		hash );
-		
-	public TRTrackerServerPeer[]
-	getPeers(
-		byte[]		hash );
-
-
+	protected void
+	addAnnounce()
+	{
+		announce_count++;
+	}
+	
+	public int
+	getAnnounceCount()
+	{
+		return( announce_count );
+	}
 }

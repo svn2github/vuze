@@ -248,7 +248,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
           itemOpen.setEnabled(true);
           itemExport.setEnabled(true);
-          //itemHost.setEnabled(true);
+          itemHost.setEnabled(true);
 
           itemMove.setEnabled(true);
           itemPriority.setEnabled(true);
@@ -539,6 +539,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 		 if ( torrent != null ){
 		 
 		 	TRHostFactory.create().addTorrent( torrent );
+		 	
+		 	MainWindow.getWindow().showMyTracker();
 		 }
 	   }
 	 });

@@ -1,5 +1,5 @@
 /*
- * File    : TRTrackerServerPeer.java
+ * File    : TRTrackerServerPeerImpl.java
  * Created : 5 Oct. 2003
  * By      : Parg 
  * 
@@ -21,9 +21,11 @@
 
 package org.gudy.azureus2.core3.tracker.server.impl;
 
+import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
-TRTrackerServerPeer
+TRTrackerServerPeerImpl
+	implements TRTrackerServerPeer
 {
 	protected byte[]		peer_id;
 	protected byte[]		ip;
@@ -31,8 +33,13 @@ TRTrackerServerPeer
 	
 	protected long			last_contact_time;
 	
+	protected long			uploaded;
+	protected long			downloaded;
+	protected long			amount_left;
+	protected int			num_peers;
+	
 	protected
-	TRTrackerServerPeer(
+	TRTrackerServerPeerImpl(
 		byte[]		_peer_id,
 		byte[]		_ip,
 		int			_port )
@@ -71,6 +78,43 @@ TRTrackerServerPeer
 	getLastContactTime()
 	{
 		return( last_contact_time );
+	}
+
+	protected void
+	setStats(
+		long		_uploaded,
+		long		_downloaded,
+		long		_amount_left,
+		int			_num_peers )
+	{
+		uploaded	= _uploaded;
+		downloaded	= _downloaded;
+		amount_left	= _amount_left;
+		num_peers	= _num_peers;
+	}
+	
+	public long
+	getUploaded()
+	{
+		return( uploaded );
+	}
+	
+	public long
+	getDownloaded()
+	{
+		return( downloaded );
+	}
+	
+	public long
+	getAmountLeft()
+	{
+		return( amount_left );
+	}
+	
+	public int
+	getNumberOfPeers()
+	{
+		return( num_peers );
 	}
 	
 	protected String

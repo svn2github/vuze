@@ -59,7 +59,7 @@ public class Tab {
       tabItem = new TabItem(folder, SWT.NULL);
       //tabItem = new CTabItem(folder, SWT.NULL);
     }
-    if(!( _view instanceof MyTorrentsView)) {
+    if(!( _view instanceof MyTorrentsView || _view instanceof MyTrackerView )) {
       composite = new Composite(folder, SWT.NULL);
       GridLayout layout = new GridLayout();
       layout.numColumns = 1;

@@ -132,6 +132,11 @@ TRTrackerServerProcessor
 					int			port	= 0;
 					String		event	= null;
 					
+					long		uploaded		= 0;
+					long		downloaded		= 0;
+					long		left			= 0;
+					int			num_peers		= 0;
+					
 					while(true){
 						
 						int	p1 = str.indexOf( '&', pos );
@@ -176,6 +181,22 @@ TRTrackerServerProcessor
 						}else if ( lhs.equals( "event" )){
 							
 							event = rhs;
+							
+						}else if ( lhs.equals( "uploaded" )){
+							
+							uploaded = Integer.parseInt( rhs );
+						
+						}else if ( lhs.equals( "downloaded" )){
+							
+							downloaded = Integer.parseInt( rhs );
+						
+						}else if ( lhs.equals( "left" )){
+							
+							left = Integer.parseInt( rhs );
+						
+						}else if ( lhs.equals( "num_peers" )){
+							
+							num_peers = Integer.parseInt( rhs );
 						}
 						
 						if ( p1 == -1 ){
@@ -187,24 +208,7 @@ TRTrackerServerProcessor
 					if ( hash != null && peer_id != null ){
 						
 						System.out.println( "event:" + event + " - " + client_ip_address + ":" + port );
-											
-						if ( event != null && event.equalsIgnoreCase( "stopped" )){
-					
-							Map	peer_map = (Map)hash_map.get( hash );
-						
-							if ( peer_map != null ){
-							
-								TRTrackerServerPeer	peer = (TRTrackerServerPeer)peer_map.get( peer_id );
-								
-								if ( peer != null ){
-									
-									peer_map.remove( peer_id );
-								
-									System.out.println( "removing stopped client '" + peer.getString());
-								}
-							}
-						}
-									
+																		
 						TRTrackerServerTorrent	torrent = server.getTorrent( hash.getBytes(Constants.BYTE_ENCODING));
 					
 						if ( torrent == null ){
@@ -212,7 +216,9 @@ TRTrackerServerProcessor
 							throw( new Exception( "torrent unauthorised "));
 						}
 			
-						torrent.peerContact( peer_id, port, client_ip_address );
+						torrent.peerContact( 	event, 
+												peer_id, port, client_ip_address,
+												uploaded, downloaded, left, num_peers );
 					
 						torrent.exportPeersToMap( root );
 					}else{

@@ -30,4 +30,16 @@ TRHostPeer
 {
 	public boolean
 	isSeed();
+	
+	public long
+	getUploaded();
+	
+	public long
+	getDownloaded();
+	
+	public long
+	getAmountLeft();
+	
+	public int
+	getNumberOfPeers();
 }

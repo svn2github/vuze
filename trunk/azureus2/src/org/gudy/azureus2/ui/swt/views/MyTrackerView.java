@@ -32,36 +32,24 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.tracker.host.*;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
 
-import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
 MyTrackerView 
@@ -72,10 +60,13 @@ MyTrackerView
 	private Composite panel;
 	private Table table;
 	
-	private Map 	host_torrent_items = new HashMap();
+	private Map 	host_torrent_items 	= new HashMap();
 	private Map 	host_torrents		= new HashMap();
 
-	public MyTrackerView(GlobalManager globalManager) {
+	public 
+	MyTrackerView(
+		GlobalManager globalManager) 
+	{
 	}
 
 	/* (non-Javadoc)
@@ -83,9 +74,11 @@ MyTrackerView
 	 */
 	 
 	public void 
-	initialize(Composite composite0) 
+	initialize(
+		Composite composite0 ) 
 	{
-	  if(panel != null) {      
+	  if( panel != null ){
+	  	      
 		return;
 	  }
 	  
@@ -115,9 +108,11 @@ MyTrackerView
 	  
 	  table.setLayoutData(gridData);
 	  
-	  String[] columnsHeader = { "name", "status" };
+	  String[] columnsHeader = 	{ 	"name", 	"tracker", 		"status", 	"seeds", 	"peers",	"announces",
+	  								"uploaded", "downloaded", 	"left" };
 	  
-	  int[] columnsSize = { 250, 100 };
+	  int[] columnsSize = 		{ 	250, 		250,			60,			60,			60,			70,
+	  								70,			70,				50 };
 	  
 	  for (int i = 0; i < columnsHeader.length; i++){
 	  	
@@ -317,8 +312,12 @@ MyTrackerView
 	 /* (non-Javadoc)
 	  * @see org.gudy.azureus2.ui.swt.IView#delete()
 	  */
-	 public void delete() {
-	   MainWindow.getWindow().setMyTracker(null);
+	 public void 
+	 delete() 
+	 {
+		TRHostFactory.create().removeListener( this );
+		
+	   	MainWindow.getWindow().setMyTracker(null);
 	 }
 
 	 /* (non-Javadoc)

@@ -202,7 +202,7 @@ public class MainWindow implements GlobalManagerListener {
             try {
               if(mytorrents != null)
                 viewMyTorrents = Tab.getView(mytorrents.getTabItem());
-            }
+             }
             catch (Exception e) {
               viewMyTorrents = null;
             }
@@ -495,14 +495,7 @@ public class MainWindow implements GlobalManagerListener {
     Messages.setLanguageText(view_torrents, "MainWindow.menu.view.mytorrents"); //$NON-NLS-1$
     view_torrents.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        if (mytorrents == null) {
-          if(viewMyTorrents == null)
-            mytorrents = new Tab(new MyTorrentsView(globalManager));
-          else
-            mytorrents = new Tab(viewMyTorrents);
-        }          
-        else
-          mytorrents.setFocus();
+		showMyTorrents();
       }
     });
 
@@ -510,14 +503,7 @@ public class MainWindow implements GlobalManagerListener {
 	Messages.setLanguageText(view_tracker, "MainWindow.menu.view.mytracker"); //$NON-NLS-1$
 	view_tracker.addListener(SWT.Selection, new Listener() {
 	  public void handleEvent(Event e) {
-		if (my_tracker_tab == null) {
-		  if(my_tracker_view == null)
-		  my_tracker_tab = new Tab(new MyTrackerView(globalManager));
-		  else
-		  my_tracker_tab = new Tab(my_tracker_view);
-		}          
-		else
-		my_tracker_tab.setFocus();
+		showMyTracker();
 	  }
 	});
 	
@@ -739,6 +725,36 @@ public class MainWindow implements GlobalManagerListener {
     }
   }
 
+	public void
+	showMyTracker()
+	{
+		if (my_tracker_tab == null){
+			
+		  if( my_tracker_view == null){
+		  	
+			my_tracker_view = new MyTrackerView(globalManager);
+		  }	
+	 
+		  my_tracker_tab = new Tab(my_tracker_view);
+		 
+		}else{
+			my_tracker_tab.setFocus(); 
+		}
+	}
+	
+	public void
+	showMyTorrents()
+	{	
+	if (mytorrents == null) {
+	  if(viewMyTorrents == null)
+		mytorrents = new Tab(new MyTorrentsView(globalManager));
+	  else
+		mytorrents = new Tab(viewMyTorrents);
+	}          
+	else
+	  mytorrents.setFocus();
+	}
+	
   private void minimizeToTray(ShellEvent event) {
     //Added this test so that we can call this method will null parameter.
     if (event != null)

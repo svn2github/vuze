@@ -74,6 +74,7 @@ TRHostTorrentImpl
 			server.deny( torrent.getHash());
 		
 			status = TS_STOPPED;
+			
 		}catch( TOTorrentException e ){
 			
 				e.printStackTrace();
@@ -103,6 +104,45 @@ TRHostTorrentImpl
 	public TRHostPeer[]
 	getPeers()
 	{
-		return( new TRHostPeer[0]); //
+		try{
+		
+			TRTrackerServerPeer[]	peers = server.getPeers( torrent.getHash());
+		
+			if ( peers != null ){
+			
+				TRHostPeer[]	res = new TRHostPeer[peers.length];
+				
+				for (int i=0;i<peers.length;i++){
+					
+					res[i] = new TRHostPeerImpl(peers[i]);
+				}
+				
+				return( res );
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+		
+		return( new TRHostPeer[0] );
+	}	
+	
+	public int
+	getAnnounceCount()
+	{
+		try{
+		
+			TRTrackerServerStats	stats = server.getStats( torrent.getHash());
+		
+			if ( stats != null ){
+			
+				return( stats.getAnnounceCount());
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+		}
+		
+		return( 0 );
 	}
 }

@@ -35,7 +35,8 @@ public class
 TRHostImpl
 	implements TRHost 
 {
-	public static final int RETRY_DELAY = 60*1000;
+	public static final int RETRY_DELAY 	= 60;	// seconds
+	public static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
 	
 	protected static TRHostImpl		singleton;
 	
@@ -61,6 +62,11 @@ TRHostImpl
 		TOTorrent		torrent )
 	{
 		int	port = torrent.getAnnounceURL().getPort();
+		
+		if ( port == -1 ){
+			
+			port = DEFAULT_PORT;
+		}
 		
 		TRTrackerServer	server = (TRTrackerServer)server_map.get( new Integer( port ));
 		
