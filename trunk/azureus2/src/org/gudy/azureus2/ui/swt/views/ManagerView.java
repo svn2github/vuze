@@ -102,31 +102,27 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     itemFiles   = new TabItem(folder, SWT.NULL);
 
     viewGeneral = new GeneralView(manager);
-    viewGeneral.initialize(folder);
-    
     viewDetails = new PeersView(manager);
-    viewDetails.initialize(folder);
-    
     viewPieces = new PiecesView(manager);
-    viewPieces.initialize(folder);
-    
     viewFiles = new FilesView(manager);
-    viewFiles.initialize(folder);
     
     Messages.setLanguageText(itemGeneral, viewGeneral.getData());
-    itemGeneral.setControl(viewGeneral.getComposite());
-    
     Messages.setLanguageText(itemDetails, viewDetails.getData());
-    itemDetails.setControl(viewDetails.getComposite());
-    
     Messages.setLanguageText(itemPieces, viewPieces.getData());
-    itemPieces.setControl(viewPieces.getComposite());
-    
     Messages.setLanguageText(itemFiles, viewFiles.getData());
-    itemFiles.setControl(viewFiles.getComposite());
     
     TabItem items[] = {itemGeneral};
     folder.setSelection(items);
+    viewGeneral.initialize(folder);
+    itemGeneral.setControl(viewGeneral.getComposite());
+    refresh();
+    viewDetails.initialize(folder);
+    itemDetails.setControl(viewDetails.getComposite());
+    viewPieces.initialize(folder);
+    itemPieces.setControl(viewPieces.getComposite());
+    viewFiles.initialize(folder);
+    itemFiles.setControl(viewFiles.getComposite());
+
     manager.addPeerListener((PiecesView)viewPieces);
     manager.addPeerListener((PeersView)viewDetails);
     folder.addSelectionListener(new SelectionListener() {
@@ -136,7 +132,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
       public void widgetDefaultSelected(SelectionEvent e) {
       }
     });
-    refresh();
+
   }
 
   /* (non-Javadoc)
