@@ -208,6 +208,25 @@ DiskManagerImpl
 			setState( FAULTY );
 			return;
 		}
+    
+    //Insure that save folder exists
+    /*
+    File testPath = new File(path);
+    if(testPath.isFile()) {
+      testPath = testPath.getParentFile();
+      if(!testPath.exists()) {
+        this.errorMessage = MessageText.getString("DiskManager.saveNotFound");
+        setState( FAULTY );
+        return;
+      }
+    } else if(testPath.isDirectory()) {
+      if(!testPath.exists()) {
+        this.errorMessage = MessageText.getString("DiskManager.saveNotFound");
+        setState( FAULTY );
+        return;
+      }
+    }*/
+   
 		LocaleUtilDecoder	locale_decoder = null;
 		try{
 			locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
