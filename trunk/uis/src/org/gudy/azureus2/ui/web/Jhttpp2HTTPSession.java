@@ -615,15 +615,6 @@ public class Jhttpp2HTTPSession extends Thread {
   
   private void ProcessAdd(HashMap URIvars) {
     if (URIvars.containsKey("Add_torrent") && !((String) URIvars.get("Add_torrent")).equals("")) {
-      /*  
-      try {
-        HTTPDownloader dl = new HTTPDownloader((String) URIvars.get("Add_torrent"), COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
-        String file = dl.download();
-        server.gm.addDownloadManager(file, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
-        server.loggerWeb.info("Download of "+(String)URIvars.get("Add_torrent")+" succeeded");
-      } catch (Exception e) {
-        server.loggerWeb.error("Download of "+(String)URIvars.get("Add_torrent")+" failed", e);
-      }*/
       TorrentDownloaderFactory.downloadManaged((String) URIvars.get("Add_torrent"));
     }
   }
@@ -861,29 +852,6 @@ public class Jhttpp2HTTPSession extends Thread {
       sendHeader(204);
       endHeader();
       out.flush();
-      /*
-      String fwd;
-      try {
-        HTTPDownloader dl = new HTTPDownloader("http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url, COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
-        String file = dl.download();
-        server.gm.addDownloadManager(file, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
-        server.loggerWeb.info("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" succeeded");
-        fwd=COConfigurationManager.getStringParameter("Server_sProxySuccessRedirect");
-        if (fwd=="") {
-          sendHeader(204);
-        } else {
-          sendHeader(301);
-          write(out,"Location: http://" + COConfigurationManager.getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
-        }
-        endHeader();
-        out.flush();
-      } catch (Exception e) {
-        server.loggerWeb.error("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" failed", e);
-        sendErrorMSG(400, "Torrent download failed: "+e.getMessage());
-      }*/
-      //sendHeader(301);
-      //write(out,"Location: http://" + COConfigurationManager.getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
-      //write(out,"Location: javascript:alert(\"hallo\")\r\n");
   }
   /**
    * @since 0.4.10b

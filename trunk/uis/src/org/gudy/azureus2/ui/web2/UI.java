@@ -187,7 +187,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   }
 
   public void startUI() {
-    TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true);
+    TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true, COConfigurationManager.getStringParameter("Default save path") );
     if ((!isStarted()) || (storm == null)) {
       try {
         this.storm = new Sandstorm(this.cfg);
@@ -212,7 +212,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     }
     if (UIConst.getGlobalManager() != null) {
       try {
-        UIConst.getGlobalManager().addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
+        UIConst.getGlobalManager().addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("Default save path"));
       } catch (Exception e) {
         logger.error("The torrent " + fileName + " could not be added.", e);
       }

@@ -107,7 +107,6 @@ public class TemplateHandler implements httpRequestHandlerIF {
   }
 
   private void handleConfig(Template tmpl) {
-    handleConfigStr(tmpl, "General_sDefaultSave_Directory");
     handleConfigStr(tmpl, "General_sDefaultTorrent_Directory");
     handleConfigStr(tmpl, "Core_sOverrideIP");
     handleConfigBool(tmpl, "Core_bAllocateNew");

@@ -101,15 +101,6 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
 
   private void ProcessAdd(httpRequest req) {
     if (req.getQuery().containsKey("Add_torrent") && !(req.getQuery("Add_torrent")).equals("")) {
-      /*  
-      try {
-        HTTPDownloader dl = new HTTPDownloader((String) URIvars.get("Add_torrent"), COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
-        String file = dl.download();
-        server.gm.addDownloadManager(file, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
-        server.loggerWeb.info("Download of "+(String)URIvars.get("Add_torrent")+" succeeded");
-      } catch (Exception e) {
-        server.loggerWeb.error("Download of "+(String)URIvars.get("Add_torrent")+" failed", e);
-      }*/
       TorrentDownloaderFactory.downloadManaged(req.getQuery("Add_torrent"));
     }
   }

@@ -66,7 +66,7 @@ public class AddFind implements IConsoleCommand {
 				outputDir = commands.getOptionValue('o');
 			else
 				try {
-					outputDir = COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory");
+					outputDir = COConfigurationManager.getDirectoryParameter("Default save path");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
