@@ -468,8 +468,8 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$    
-    final String stopRatioPeersLabels[] = new String[4];
-    final int stopRatioPeersValues[] = new int[4];
+    final String stopRatioPeersLabels[] = new String[5];
+    final int stopRatioPeersValues[] = new int[5];
     stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStop");
     stopRatioPeersValues[0] = 0;
     String peers = MessageText.getString("ConfigView.text.peers");
