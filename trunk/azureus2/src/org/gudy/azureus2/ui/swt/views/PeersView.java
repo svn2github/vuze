@@ -76,7 +76,8 @@ public class PeersView
     new TimeToSendPieceItem(),
     new DLedFromOthersItem(),
     new UpRatioItem(),
-    new StateItem()
+    new StateItem(),
+    new ConnectedTimeItem()
   };
   private DownloadManager manager;
 
