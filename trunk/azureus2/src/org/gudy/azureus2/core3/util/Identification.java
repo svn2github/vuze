@@ -22,7 +22,7 @@ public class Identification {
    * Decodes the given peerID, returning an identification string.
    */  
   public static String decode(byte[] peerID) {
-    final boolean LOG_UNKNOWN = false;
+    final boolean LOG_UNKNOWN = System.getProperty("log.unknown.peerids") != null;
     FileWriter log = null;
     File logFile = FileUtil.getUserFile("identification.log");
     
