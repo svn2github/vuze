@@ -45,22 +45,22 @@ public class PeerSocket extends PeerConnection {
     if (fake)
       return;
       
-    initialize();
-  }
-
-  public void initialize() {
     this.incoming = false;
     allocateAll();
     logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
 
     try {
+      //Construct the peer's address with ip and port     
+      InetSocketAddress peerAddress = new InetSocketAddress(ip, port);
+      //Create a new SocketChannel, left non-connected
       socket = SocketChannel.open();
+      //Configure it so it's non blocking
       socket.configureBlocking(false);
-      socket.connect(new InetSocketAddress(ip, port));
+      //Initiate the connection
+      socket.connect(peerAddress);
       this.currentState = new StateConnecting();
     }
     catch (Exception e) {
-      e.printStackTrace();
       closeAll();
     }
   }
@@ -296,12 +296,7 @@ public class PeerSocket extends PeerConnection {
     public void process() {
       if (readBuffer.hasRemaining()) {
         try {
-          int read = socket.read(readBuffer);
-          
-          //Gudy 31.08.2003 : commented to see if this helps
-          // keeping the connections.
-          // NOT WORKING, uncommented.
-          
+          int read = socket.read(readBuffer);          
           if (read < 0)
             throw new IOException("End of Stream Reached");
         }
@@ -326,16 +321,10 @@ public class PeerSocket extends PeerConnection {
         if (lengthBuffer.hasRemaining()) {
           try {
             int read = socket.read(lengthBuffer);
-            
-            //Gudy 31.08.2003 : commented to see if this helps
-            // keeping the connections.
-            // NOT WORKING, uncommented.
-            
             if (read < 0)
               throw new IOException("End of Stream Reached");
           }
           catch (IOException e) {
-            e.printStackTrace();
             closeAll();
             return;
           }
@@ -386,22 +375,6 @@ public class PeerSocket extends PeerConnection {
       return DISCONNECTED;
     }
   }
-
- /* private int processSocket(ByteBuffer buffer, boolean doRead) {
-    int processedBytes;
-    try {
-      processedBytes = doRead ? socket.read(buffer) : socket.write(buffer);
-      return processedBytes;
-    }
-    catch (Exception e) {
-      logger.log(
-        componentID,
-        evtErrors,
-        Logger.ERROR,
-        "Error in PeerConnection::processSocket (" + ip + " : " + port + " ) : " + e);
-      return -1;
-    }
-  }*/
 
   public void process() {
     loopFactor++;
@@ -833,8 +806,6 @@ public class PeerSocket extends PeerConnection {
         int written = socket.write(writeBuffer);
         if (written < 0)
           throw new IOException("End of Stream Reached");
-        // End of Stream Reached
-        if (written >= 0) {
           writeBuffer.limit(realLimit);
 
           if (writeData) {
@@ -849,14 +820,12 @@ public class PeerSocket extends PeerConnection {
                   maxUpload = max((100 * written) / 100, 20);
               }
             }
-          }
-        }
+          }        
       }
       catch (IOException e) {
         //e.printStackTrace();
         closeAll();
-      }
-      //If we have finished sending this buffer
+      } //If we have finished sending this buffer
       if (!writeBuffer.hasRemaining()) {
         //If we were sending data, we must free the writeBuffer
         if (writeData) {
@@ -945,7 +914,6 @@ public class PeerSocket extends PeerConnection {
 
   private void sendKeepAlive() {
     ByteBuffer buffer = ByteBuffer.allocate(4);
-    buffer.position(0);
     buffer.putInt(0);
     buffer.limit(4);
     buffer.position(0);
@@ -964,7 +932,6 @@ public class PeerSocket extends PeerConnection {
 
   //The SocketChannel associated with this peer
   private SocketChannel socket;
-
   //The reference to the current ByteBuffer used for reading on the socket.
   private ByteBuffer readBuffer;
   //The Buffer for reading the length of the messages

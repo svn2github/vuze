@@ -467,10 +467,11 @@ public class PeerManager extends Thread {
             pc.setSnubbed(true);
           }
           //for every expired request
+          /*
           for (int j = 0; j < expired.size(); j++) {
             Request request = (Request) expired.get(j);
             //get the request object
-            pc.sendCancel(request); //cancel the request object
+            //pc.sendCancel(request); //cancel the request object
             int pieceNumber = request.getPieceNumber();
             //get the piece number
             int pieceOffset = request.getOffset();
@@ -481,7 +482,7 @@ public class PeerManager extends Thread {
             //unmark the block
             _downloading[pieceNumber] = false;
             //set piece to not being downloaded
-          }
+          }*/
         }
       }
     }
