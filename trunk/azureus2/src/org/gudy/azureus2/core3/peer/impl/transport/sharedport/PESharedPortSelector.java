@@ -100,6 +100,7 @@ PESharedPortSelector
 								outstanding_sockets.put( socket, sd );
 	
 								socket.register(selector,SelectionKey.OP_READ);
+								LGLogger.log("NEW CONNECTION END");
 								
 							}catch( Exception e ){
 								
@@ -343,7 +344,7 @@ PESharedPortSelector
 		SocketChannel		_socket )
 	{		
 		synchronized( register_list ){
-			
+			LGLogger.log("NEW CONNECTION START");
 			socketData	sd = new socketData( _socket );
      
 			register_list.add( sd );

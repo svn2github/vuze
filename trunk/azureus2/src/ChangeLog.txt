@@ -17,9 +17,14 @@ FEATURE: Added new columns to MyTorrents : 'Share Ratio', 'Downloaded', 'Uploade
 FEATURE: Details view can now be customized (choice of columns and order) [Gudy]
 FEATURE: SSL now supported for tracker web and tracker updates [Parg]
 FEATURE: Added Drag and Drop of URLs [Rele]
-FEATURE: Multi-Trackers torrent can now be created [Gudy]
+FEATURE: Multi-Trackers torrents can now be created/edited [Gudy]
 FEATURE: Menu option to force a re-check of downloaded data [Nolar]
 FEATURE: End-Game Mode: Completes the last few pieces of a download faster [Gudy]
+FEATURE: Attempts to download the very beginning of a file first - to support previewing [Nolar]
+FEATURE: IPFiltering stats shown in status bar [Gudy]
+FEATURE: Toolbar! [Gudy]
+FEATURE: Logging of console output to disk [Parg]
+FEATURE: Option to confirm on exit [Rele]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
@@ -28,11 +33,12 @@ CHANGE: Under linux, only use ~/.azureus dir if it already exists, otherwise use
 CHANGE: Auto-update: now writes a log to an 'update.log' file [Nolar]
 CHANGE: Option to disconnect seeds when seeding is now checked by default [Gudy]
 CHANGE: FilesView now shows files even in other states than Downloading (configurable) [Rele]
+CHANGE: Updated/additional menu buttons [Gudy]
 
 BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
 BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale encodings in dialog box [Akilgard]
 BUGFIX: System tray icon re-shown after explorer.exe crash [Rele]
-
+BUGFIX: Completed downloads shown in different color when Stopped [Nolar]
 
 
 
