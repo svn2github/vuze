@@ -13,6 +13,9 @@ import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
@@ -101,6 +104,8 @@ public class MyTorrentsView implements IView, IComponentListener {
     table.getColumn(10).addListener(SWT.Selection, new IntColumnListener("priority"));
 
     table.setHeaderVisible(true);
+    table.addKeyListener(createKeyListener());
+    
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
 
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
@@ -574,4 +579,13 @@ public class MyTorrentsView implements IView, IComponentListener {
       }
     }
   }
+
+  private KeyListener createKeyListener() {
+    return new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+        if (0 == e.keyCode && 0x40000 == e.stateMask && 1 == e.character) table.selectAll(); // CTRL+a
+      }
+    };
+  }
 }
+
