@@ -36,6 +36,9 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -56,7 +59,11 @@ public class DonationWindow {
   
   public DonationWindow(Display display) {
    this.display = display;   
-   fullText = MessageText.getString("DonationWindow.text");
+   OverallStats stats = StatsFactory.getStats();
+   fullText = MessageText.getString("DonationWindow.text.time") + (stats.getUpTime() / (60*60))
+              + MessageText.getString("DonationWindow.text.hours_downloaded") + DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes())
+              + MessageText.getString("DonationWindow.text.uploaded") + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n"
+              + MessageText.getString("DonationWindow.text");
    timeToWait = fullText.length() / 25 ;
   }
   
