@@ -40,8 +40,12 @@ public class VerticalAligner implements ParameterListener {
   }
   
   private VerticalAligner() {
-   verticalAlignement = COConfigurationManager.getIntParameter(parameterName,0);
-   COConfigurationManager.addParameterListener(parameterName,this);
+    if(System.getProperty("os.name").equals("Linux") && SWT.getPlatform().equals("GTK")) {
+    	verticalAlignement = COConfigurationManager.getIntParameter(parameterName,0);
+    	COConfigurationManager.addParameterListener(parameterName,this);
+    } else {
+    	verticalAlignement = 0;
+    }
   }
   
 	public void parameterChanged(String parameterName) {
@@ -51,7 +55,7 @@ public class VerticalAligner implements ParameterListener {
 	}
   
   public int getVerticalAlignement() {
-   return verticalAlignement; 
+   return  verticalAlignement; 
   }
   
   public void setVerticalAlignement(int alignement) {
@@ -59,7 +63,7 @@ public class VerticalAligner implements ParameterListener {
   }
   
   public static int getAlignement() {
-   return getInstance().getVerticalAlignement();
+   return - getInstance().getVerticalAlignement();
   }      
    
 }
