@@ -513,7 +513,7 @@ PEPeerControlImpl
 			if ( !peer_transports_cow.contains(transport)){
 				
 				addToPeerTransports( transport );
-				
+								
 			}else{
 			  
 				transport.closeAll("Already Connected",false,false);
@@ -1972,6 +1972,8 @@ PEPeerControlImpl
 	      new_peer_transports.add( peer );
 	      
 	      peer_transports_cow	= new_peer_transports;
+	      
+	      peerAdded( peer );
       }
       
     }finally{
@@ -2010,7 +2012,9 @@ PEPeerControlImpl
 		  	new_peer_transports.remove(peer);
 		  	 
 		  	peer_transports_cow = new_peer_transports;
-	  	
+	  		 	
+		 	peerRemoved( peer );
+
 		  		//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
 	 	 
 		 	peer.closeAll( reason ,false, false);
@@ -2051,6 +2055,8 @@ PEPeerControlImpl
 	      	new_peer_transports.remove(peer);
 	      	 
 	      	peer_transports_cow = new_peer_transports;
+	      	
+	      	peerRemoved( peer );
      	}
     }finally{
     	peer_transports_mon.exit();
@@ -2104,11 +2110,17 @@ PEPeerControlImpl
 
   	// these should be replaced by above methods + listeners
   
-  public void peerAdded(PEPeer pc) {
+  public void 
+  peerAdded(
+  	PEPeer pc) 
+  {
     _downloadManager.addPeer(pc);
   }
 
-  public void peerRemoved(PEPeer pc) {
+  public void 
+  peerRemoved(
+  	PEPeer pc) 
+  {
     int piece = pc.getUniqueAnnounce();
     if(piece != -1 && superSeedMode ) {
       superSeedModeNumberOfAnnounces--;

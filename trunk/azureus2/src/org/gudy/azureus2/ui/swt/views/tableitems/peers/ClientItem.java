@@ -40,11 +40,13 @@ public class ClientItem
   /** Default Constructor */
   public ClientItem() {
     super("client", POSITION_LAST, 100, TableManager.TABLE_TORRENT_PEERS);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
     String sText = (peer == null) ? "" : peer.getClient();
+    // this only changes from "" -> 
     cell.setText(sText);
   }
 }
