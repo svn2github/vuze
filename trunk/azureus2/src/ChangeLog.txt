@@ -16,6 +16,7 @@ FEATURE: Plug | webui support for torrent encoding choice [Parg]
 FEATURE: UI   | 'Download' menu added with start/stop all + pause/resume options [Parg]
 FEATURE: Plug | tracker torrent stats available via xml/http interface [Parg]
 FEATURE: Core | Torrent HTTP urls now accepted as program command line parameter [Nolar]
+FEATURE: Core | Option added to disable system tray [Parg]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]
@@ -27,6 +28,9 @@ CHANGE: Core | Protocol tweaking for significantly reduced discard rates [Nolar]
 CHANGE: Plug | UPnP plugin now only uses plugin interfaces [Parg]
 CHANGE: Plug | Differentiate UDP and TCP mappings in UPnP desc as some routers need this [Parg]
 CHANGE: Core | Tracker now treats port value of 0 as 'explicitly firewalled' [Parg]
+CHANGE: Core | Tracker client will revert to "initialised" state after explicit failure from tracker [Parg]
+CHANGE: Core | Locale selection changed to show more possible encodings [Parg]
+CHANGE: Core | XML stats - downloads ordered by downloading/index then seeding/index [Parg]
 
 BUGFIX: Core | Throw an error message if existing data file length is too large [Nolar]
 BUGFIX: Core | Fix new bug with tracker announce every 10s when no peers were connected [Nolar]
@@ -40,7 +44,7 @@ BUGFIX: Plug | Webui - excessively long status text messing up table [Parg]
 BUGFIX: Plug | azplugins - web tracker pages wasn't picking up "show details" option [Parg]
 BUGFIX: Plug | Webui - fixed bug with re-ordering of columns [Parg]
 BUGFIX: UI   | Labels with '&' displaying incorrectly [Parg]
-
+BUGFIX: Core | Random shuffling of multi-tracker torrent URLs fixed [Parg]
 
 
 2004.07.08 | Azureus 2.1.0.4
