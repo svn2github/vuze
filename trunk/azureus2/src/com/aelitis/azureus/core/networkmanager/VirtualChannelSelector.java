@@ -129,8 +129,6 @@ public class VirtualChannelSelector {
 		Object attachment ) 
     {
     	addRegOrCancel( new RegistrationData( channel, listener, attachment ));
- 
-    	if( selector != null )  selector.wakeup();
     }
     
     
@@ -392,7 +390,6 @@ public class VirtualChannelSelector {
 
           if( key.isValid() ) {
             if( (key.interestOps() & INTEREST_OP) == 0 ) {  //it must have been paused between select and notification
-              System.out.println( "select op PAUSED after select, skipping [" +data.channel+ "]" );
               continue;
             }            
             

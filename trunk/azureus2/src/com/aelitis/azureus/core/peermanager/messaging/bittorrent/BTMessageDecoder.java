@@ -66,8 +66,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private volatile boolean is_paused = false;
 
   
-  private int destroyed_loop_count = 0;
-  private int paused_loop_count = 0;
+  private long destroyed_loop_count = 0;
+  private long paused_loop_count = 0;
   
   private Throwable destroyed_trace;
   
@@ -91,9 +91,14 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       if( destroyed ) {
         destroyed_loop_count++;
         
-        if( destroyed_loop_count > 50 ) {
-          Debug.out( "BTMessageDecoder:: orginal destroy() trace:", destroyed_trace );
-          throw new IOException( "BTMessageDecoder:: already destroyed loop!" );
+        if( destroyed_loop_count % 50 == 0 ) {
+          boolean closed = transport.getSocketChannel() == null ? true : false;
+          
+          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] is closed=" +closed+ ", original destroy() trace:", destroyed_trace );
+          
+          try{  Thread.sleep( 100 );  }catch(Throwable t){}
+          
+          throw new IOException( "BTMessageDecoder:: already destroyed" );
         }
         
         break;

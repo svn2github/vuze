@@ -175,7 +175,7 @@ public class VersionCheckClient {
       final StreamDecoder decoder = new StreamDecoder( "AZR" );
       final ByteBuffer[] reply = new ByteBuffer[1];
          
-      transport.requestReadSelects( new TCPTransport.ReadListener() {
+      transport.startReadSelects( new TCPTransport.ReadListener() {
         public void readyToRead() {
           try {
             reply[0] = decoder.decode( transport );

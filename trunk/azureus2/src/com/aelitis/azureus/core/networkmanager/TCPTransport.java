@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -40,12 +41,10 @@ public class TCPTransport {
   private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private SocketChannel socket_channel;
   private boolean is_connected;
-  
-  private boolean is_write_select_registered = false;
-  private boolean is_ready_for_write = false;
+
+  private boolean is_ready_for_write = false;  
   private Throwable write_select_failure = null;
   
-  private boolean is_read_select_registered = false;
   private Throwable read_select_failure = null;
   private ReadListener read_listener = null;
   
@@ -56,8 +55,7 @@ public class TCPTransport {
   
   private int zero_read_count = 0;
   
-  private final AEMonitor state_mon = new AEMonitor( "TCPTransport" );
-
+  private final AEMonitor connect_state_mon = new AEMonitor( "TCPTransport:connect" );
   
   
   
@@ -84,6 +82,8 @@ public class TCPTransport {
     is_ready_for_write = true;  //assume it is ready
     is_inbound_connection = true;  //well, true only if the given socket was actually accepted
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
+    
+    registerSelectHandling();
   }
   
   
@@ -93,7 +93,6 @@ public class TCPTransport {
    */
   public void setAlreadyRead( ByteBuffer bytes_already_read ) {
     if( bytes_already_read.hasRemaining() ) {
-      //System.out.println( "setAlreadyRead===" +bytes_already_read.remaining()+ " ["+description+"]");
       data_already_read = bytes_already_read;
     }
   }
@@ -208,25 +207,7 @@ public class TCPTransport {
 
   private void requestWriteSelect() {
     is_ready_for_write = false;
-    
-    if( !is_write_select_registered ) {  //register only once
-      is_write_select_registered = true;
-      
-      NetworkManager.getSingleton().getWriteController().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
-        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
-          is_ready_for_write = true;
-          return true;
-        }
-
-        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-          write_select_failure = msg;
-          is_ready_for_write = true;  //set to true so that the next write attempt will throw an exception
-        }
-      }, null );
-    }
-    else {  //just resume
-      NetworkManager.getSingleton().getWriteController().getWriteSelector().resumeSelects( socket_channel );
-    }
+    NetworkManager.getSingleton().getWriteController().getWriteSelector().resumeSelects( socket_channel );
   }
   
   
@@ -235,51 +216,69 @@ public class TCPTransport {
    * Enable transport read selection.
    * @param listener to handle readiness
    */
-  public void requestReadSelects( ReadListener listener ) {
+  public void startReadSelects( ReadListener listener ) {
     read_listener = listener;
-    
-    if( !is_read_select_registered ) {
-      is_read_select_registered = true; 
-      
-      if( !is_connected ) {  //socket isnt established yet
-        System.out.println( "["+System.currentTimeMillis()+"] ERROR: READ SELECT REQUESTED WHILE NOT CONNECTED" );
-        return;
-      }
-
-      if( socket_channel == null ) {
-        System.out.println( "startReadSelects: socket_channel == null" );
-        return;
-      }
-
-      NetworkManager.getSingleton().getReadController().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
-        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
-          read_listener.readyToRead();
-          return true;
-        }
-        
-        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-          read_select_failure = msg;
-          read_listener.readyToRead();  //so that the resulting read attempt will throw an exception
-        }
-      }, null );
-      
-      //ensure select op is enabled, in case channel is already registered with this selector
-      NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
-    }
-    else {
-      NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
-    }
+    NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
   }
 
   
   /**
    * Disable transport read selection.
    */
-  public void cancelReadSelects() {
-    if( is_read_select_registered ) {      
-      NetworkManager.getSingleton().getReadController().getReadSelector().pauseSelects( socket_channel );
-    }
+  public void stopReadSelects() {
+    NetworkManager.getSingleton().getReadController().getReadSelector().pauseSelects( socket_channel );
   }
+  
+  
+  
+  private void registerSelectHandling() {
+    if( !is_connected ) {  //socket isnt established yet
+      Debug.out( "ERROR: registerSelectHandling() called when not connected", new Exception("traceme") );
+      return;
+    }
+
+    if( socket_channel == null ) {
+      System.out.println( "startReadSelects: socket_channel == null" );
+      return;
+    }
+
+    //read selection
+    NetworkManager.getSingleton().getReadController().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+      public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
+        read_listener.readyToRead();
+        return true;
+      }
+      
+      public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
+        read_select_failure = msg;
+        read_listener.readyToRead();  //so that the resulting read attempt will throw an exception
+      }
+    }, null );
+
+    NetworkManager.getSingleton().getReadController().getReadSelector().pauseSelects( socket_channel );
+    
+    
+    //write selection
+    NetworkManager.getSingleton().getWriteController().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+      public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
+        is_ready_for_write = true;
+        return true;
+      }
+
+      public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
+        write_select_failure = msg;
+        is_ready_for_write = true;  //set to true so that the next write attempt will throw an exception
+      }
+    }, null );
+    
+    NetworkManager.getSingleton().getWriteController().getWriteSelector().pauseSelects( socket_channel );
+  }
+  
+  
+  
+  
+  
+  
   
   
 
@@ -377,7 +376,7 @@ public class TCPTransport {
     
     if( bytes_read == 0 ) {
       zero_read_count++;
-      if( zero_read_count % 50 == 0 ) {
+      if( zero_read_count % 10 == 0 ) {
         System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-reads=" +zero_read_count );
       }
     }
@@ -395,9 +394,9 @@ public class TCPTransport {
    * @param listener establishment failure/success listener
    */
   public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ) {
-    try {  state_mon.enter();
+    try {  connect_state_mon.enter();
       if( is_connected ) {
-        System.out.println( "transport already connected" );
+        Debug.out( "transport already connected" );
         listener.connectSuccess();
         return;
       }
@@ -411,21 +410,23 @@ public class TCPTransport {
         }
       
         public void connectSuccess( SocketChannel channel ) {
-          try {  state_mon.enter();
+          try {  connect_state_mon.enter();
             socket_channel = channel;
             is_connected = true;
             connect_request_key = null;
             description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
-            is_ready_for_write = true;           
+            is_ready_for_write = true;
+            
+            registerSelectHandling();
           }
-          finally {  state_mon.exit();  }
+          finally {  connect_state_mon.exit();  }
           
           if( use_proxy ) {  //proxy server connection established, login
-            System.out.println( "Socket connection established to proxy server [" +description+ "], login initiated..." );
+            LGLogger.log( "Socket connection established to proxy server [" +description+ "], login initiated..." );
           
             new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
               public void connectSuccess() {
-                System.out.println( "Proxy login successful." );
+                LGLogger.log( "Proxy [" +description+ "] login successful." );
                 listener.connectSuccess();
               }
               public void connectFailure( Throwable failure_msg ) {  listener.connectFailure( failure_msg );  }
@@ -437,10 +438,14 @@ public class TCPTransport {
         }
 
         public void connectFailure( Throwable failure_msg ) {
-          socket_channel = null;
-          is_connected = false;
-          is_ready_for_write = false;
-          connect_request_key = null;
+          try {  connect_state_mon.enter();
+            socket_channel = null;
+            is_connected = false;
+            is_ready_for_write = false;
+            connect_request_key = null;
+          }
+          finally {  connect_state_mon.exit();  }
+          
           listener.connectFailure( failure_msg );
         }
       };
@@ -451,7 +456,7 @@ public class TCPTransport {
     
       NetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener );
     }
-    finally {  state_mon.exit();  }
+    finally {  connect_state_mon.exit();  }
   }
   
     
@@ -461,31 +466,23 @@ public class TCPTransport {
    * Close the transport connection.
    */
   public void close() {
-    if( is_read_select_registered ) {
-      is_read_select_registered = false;
-      NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
-    }
-    
-    if( is_write_select_registered ) {
-      is_write_select_registered = false;
-      NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
-    }
-    
+    NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
+    NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
     is_ready_for_write = false;
-    
-    try {  state_mon.enter();
+
+    try {  connect_state_mon.enter();
       if( is_connected ) {
-        is_connected = false;
         NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
       }
       else if( connect_request_key != null ) {
         NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
         connect_request_key = null;
       }
-    
+
       socket_channel = null;
+      is_connected = false;
     }
-    finally {  state_mon.exit();  }
+    finally {  connect_state_mon.exit();  }
   }
      
   

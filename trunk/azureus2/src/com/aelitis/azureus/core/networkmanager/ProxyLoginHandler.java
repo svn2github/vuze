@@ -117,13 +117,13 @@ public class ProxyLoginHandler {
     try {
       final ByteBuffer[] data = createSocks4Message();
       
-      proxy_connection.requestReadSelects( new TCPTransport.ReadListener() {
+      proxy_connection.startReadSelects( new TCPTransport.ReadListener() {
         public void readyToRead() {
           try {
             boolean finished = readMessage( data[1] );
             
             if( finished ) {
-              proxy_connection.cancelReadSelects();
+              proxy_connection.stopReadSelects();
               parseSocks4Reply( data[1] );  //will throw exception on error
               proxy_listener.connectSuccess();
             }
@@ -149,13 +149,13 @@ public class ProxyLoginHandler {
     try {
       final ByteBuffer[] data = createSocks4aMessage();
             
-      proxy_connection.requestReadSelects( new TCPTransport.ReadListener() {
+      proxy_connection.startReadSelects( new TCPTransport.ReadListener() {
         public void readyToRead() {
           try {
             boolean finished = readMessage( data[1] );
             
             if( finished ) {
-              proxy_connection.cancelReadSelects();
+              proxy_connection.stopReadSelects();
               parseSocks4Reply( data[1] );  //will throw exception on error
               proxy_listener.connectSuccess();
             }
@@ -185,7 +185,7 @@ public class ProxyLoginHandler {
       data.add( header[0] );  //message
       data.add( header[1] );  //reply buff
       
-      proxy_connection.requestReadSelects( new TCPTransport.ReadListener() {
+      proxy_connection.startReadSelects( new TCPTransport.ReadListener() {
         public void readyToRead() {  //new reply came in
           try {
             boolean finished = readMessage( (ByteBuffer)data.get(1) );  
@@ -194,7 +194,7 @@ public class ProxyLoginHandler {
               boolean done = parseSocks5Reply( (ByteBuffer)data.get(1) );  //will throw exception on error
 
               if( done ) {
-                proxy_connection.cancelReadSelects();
+                proxy_connection.stopReadSelects();
                 proxy_listener.connectSuccess();
               }
               else {
