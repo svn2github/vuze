@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.update;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -63,6 +64,11 @@ public class UpdateWindow implements Runnable{
   
   boolean askingForShow;
   
+  private static final int COL_NAME = 0;
+  private static final int COL_VERSION = 1;
+  private static final int COL_SIZE = 2;
+  
+  
   public UpdateWindow() {
     this.display = SWTThread.getInstance().getDisplay();
     this.updateWindow = null;
@@ -76,7 +82,7 @@ public class UpdateWindow implements Runnable{
     if(display == null || display.isDisposed())
       return;
     
-    updateWindow = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    updateWindow = new Shell(display,(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL) & ~SWT.CLOSE );
     
     updateWindow.setImage(ImageRepository.getImage("azureus"));
     Messages.setLanguageText(updateWindow,"swt.update.window.title");
@@ -98,7 +104,7 @@ public class UpdateWindow implements Runnable{
     
     SashForm sash = new SashForm(updateWindow,SWT.VERTICAL);
        
-    table = new Table(sash,SWT.BORDER | SWT.SINGLE);
+    table = new Table(sash,SWT.CHECK | SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
     String[] names = {"name" , "version" , "size"};
     int[] sizes = {220,80,80};
     for(int i = 0 ; i < names.length ; i++) {
@@ -110,9 +116,10 @@ public class UpdateWindow implements Runnable{
     
     table.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
+        checkMandatory();
         TableItem[] items = table.getSelection();
         if(items.length == 0) return;
-        Update update = (Update) items[0].getData();
+        Update update = (Update) items[0].getData();        
         String[] descriptions = update.getDescription();
         stDescription.setText("");
         for(int i = 0 ; i < descriptions.length ; i++) {
@@ -125,6 +132,12 @@ public class UpdateWindow implements Runnable{
     
     btnCancel = new Button(updateWindow,SWT.PUSH);
     Messages.setLanguageText(btnCancel,"swt.update.window.cancel");
+    btnCancel.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        updateWindow.setVisible(false);
+      }
+    });
+    
     
     btnOk = new Button(updateWindow,SWT.PUSH);
     Messages.setLanguageText(btnOk,"swt.update.window.ok");
@@ -161,10 +174,10 @@ public class UpdateWindow implements Runnable{
         if(table == null || table.isDisposed())
           return;
         
-        TableItem item = new TableItem(table,SWT.NULL);
+        final TableItem item = new TableItem(table,SWT.NULL);
         item.setData(update);
-        item.setText(0,update.getName());  
-        item.setText(1,update.getNewVersion());
+        item.setText(COL_NAME,update.getName());  
+        item.setText(COL_VERSION,update.getNewVersion());
         ResourceDownloader[] rds = update.getDownloaders();
         long totalLength = 0;
         for(int i = 0 ; i < rds.length ; i++) {
@@ -174,9 +187,9 @@ public class UpdateWindow implements Runnable{
           }
         }                
         
-        item.setText(2,DisplayFormatters.formatByteCountToBase10KBEtc(totalLength));                
+        item.setText(COL_SIZE,DisplayFormatters.formatByteCountToBase10KBEtc(totalLength));                
         
-        
+        item.setChecked(true);
         
         updateWindow.open();
       }
@@ -194,5 +207,13 @@ public class UpdateWindow implements Runnable{
       }
     };
     SWTThread.createInstance(app);    
+  }
+  
+  private void checkMandatory() {
+    TableItem[] items = table.getItems();
+    for(int i = 0 ; i < items.length ; i++) {
+      Update update = (Update) items[i].getData();
+      if(update.isMandatory()) items[i].setChecked(true);
+    }
   }
 }
