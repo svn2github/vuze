@@ -34,6 +34,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/close.png", "close");
     loadImage(display, "org/gudy/azureus2/ui/icons/a32.png", "azureus32");
     loadImage(display, "org/gudy/azureus2/ui/icons/a64.png", "azureus64");
+    loadImage(display, "org/gudy/azureus2/ui/icons/a128.png", "azureus128");
     loadImage(display, "org/gudy/azureus2/ui/icons/Azureus_big.png", "tray");
     loadImage(display, "org/gudy/azureus2/ui/icons/dragger.gif", "dragger");
     loadImage(display, "org/gudy/azureus2/ui/icons/folder.gif", "folder");

@@ -216,7 +216,8 @@ MainWindow
     mainWindow.setImages(new Image[] {
         ImageRepository.getImage("azureus"),
         ImageRepository.getImage("azureus32"),
-        ImageRepository.getImage("azureus64")
+        ImageRepository.getImage("azureus64"),
+        ImageRepository.getImage("azureus128"),
     }); //$NON-NLS-1$
     
     
@@ -1573,9 +1574,11 @@ MainWindow
                 try{
                 	downloadBars_mon.enter();
                 
-                	MinimizedWindow mw = new MinimizedWindow(manager, mainWindow);
+                	if(downloadBars.get(manager) == null) {
+                	  MinimizedWindow mw = new MinimizedWindow(manager, mainWindow);
                 	
-                	downloadBars.put(manager, mw);
+                	  downloadBars.put(manager, mw);
+                	}
                 }finally{
                 	
                 	downloadBars_mon.exit();
