@@ -35,6 +35,8 @@ import java.nio.channels.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
+import com.aelitis.azureus.core.networkmanager.SelectorGuard;
+
 
 public class 
 PESharedPortSelector 
@@ -76,7 +78,7 @@ PESharedPortSelector
 		
 		List	sockets_to_handover = new ArrayList();
         
-      SelectorGuard selectorGuard = new SelectorGuard(50, 100);
+    SelectorGuard selectorGuard = new SelectorGuard( 1000 );
 		
 		while (true){
 			
@@ -126,10 +128,12 @@ PESharedPortSelector
 					register_list_mon.exit();
 				}
 				
+        selectorGuard.markPreSelectTime();
+        
 				int select_res = selector.select(500);
                 
             //make sure the selector is OK
-            if (!selectorGuard.isSelectorOK(select_res)) {
+            if (!selectorGuard.isSelectorOK( select_res, 10 )) {
             	selector = selectorGuard.repairSelector(selector);
             }
 			 			
