@@ -119,35 +119,55 @@ UpdateCheckInstanceImpl
 						completed	= true;
 					}	
 					
-						// If there are any manadatory updates then we just go ahead with them and drop the rest
+					boolean	mandatory_failed = false;
 					
-					List	target_updates = new ArrayList();
-					
-					boolean	mandatory_only	= false;
-					
-					for (int i=0;i<updates.size();i++){
+					for (int i=0;i<checkers.length;i++){
 						
-						UpdateImpl	update = (UpdateImpl)updates.get(i);
-						
-						if ( update.isMandatory()){
+						if ( components[i].isMandatory() && checkers[i].getFailed()){
 							
-							mandatory_only	= true;
+							mandatory_failed	= true;
 							
 							break;
 						}
 					}
 					
-					for (int i=0;i<updates.size();i++){
+					List	target_updates = new ArrayList();
+					
+						// if any mandatory checks failed then we can't do any more
+					
+					if ( mandatory_failed ){
 						
-						UpdateImpl	update = (UpdateImpl)updates.get(i);
-													
-						if ( update.isMandatory() || !mandatory_only ){
+						LGLogger.log("Dropping all updates as a mandatory update check failed" );
+
+					}else{
+							// If there are any manadatory updates then we just go ahead with them and drop the rest
+						
+						boolean	mandatory_only	= false;
+						
+						for (int i=0;i<updates.size();i++){
 							
-							target_updates.add( update );
+							UpdateImpl	update = (UpdateImpl)updates.get(i);
 							
-						}else{
+							if ( update.isMandatory()){
+								
+								mandatory_only	= true;
+								
+								break;
+							}
+						}
+						
+						for (int i=0;i<updates.size();i++){
 							
-							LGLogger.log("Dropping update '" + update.getName() + "' as non-mandatory and mandatory updates found" );
+							UpdateImpl	update = (UpdateImpl)updates.get(i);
+														
+							if ( update.isMandatory() || !mandatory_only ){
+								
+								target_updates.add( update );
+								
+							}else{
+								
+								LGLogger.log("Dropping update '" + update.getName() + "' as non-mandatory and mandatory updates found" );
+							}
 						}
 					}
 
