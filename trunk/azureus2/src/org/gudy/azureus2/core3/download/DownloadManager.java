@@ -200,7 +200,7 @@ DownloadManager
 	getStats();
   
 	public void
-   restartDownload();
+   restartDownload(boolean use_fast_resume);
 
 	public int getPrevState();
 
