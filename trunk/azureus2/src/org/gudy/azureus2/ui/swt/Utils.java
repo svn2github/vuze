@@ -21,33 +21,23 @@
  
 package org.gudy.azureus2.ui.swt;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.FontMetrics;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * @author Olivier
@@ -143,7 +133,7 @@ public class Utils {
 
   /**
    * <p>Gets an URL from the clipboard if a valid URL for downloading has been copied.</p>
-   * <p>The supported protocols currently are http and https.</p>
+   * <p>The supported protocols currently are http, https, and magnet.</p>
    * @param display
    * @return first valid link from clipboard, else "http://"
    */
@@ -228,7 +218,7 @@ public class Utils {
    * @param window
    * @param control
    */
-  public static void centreWindowRelativeTo(final Shell window, final Control control)
+  public static void centerWindowRelativeTo(final Shell window, final Control control)
   {
       final Rectangle bounds = control.getBounds();
       final Point controlSize = control.getSize();
