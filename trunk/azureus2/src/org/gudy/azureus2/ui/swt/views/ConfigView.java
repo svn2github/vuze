@@ -859,16 +859,30 @@ public class ConfigView extends AbstractIView {
     
     Label lMoveTorrent = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(lMoveTorrent, "ConfigView.label.movetorrent"); //$NON-NLS-1$
-    BooleanParameter moveTorrent = new BooleanParameter(gFile, "Move Torrent When Done", true); //$NON-NLS-1$    
+    BooleanParameter moveTorrent = new BooleanParameter(gFile, "Move Torrent When Done", true); //$NON-NLS-1$
+
+    new Label(gFile, SWT.NULL);
+    new Label(gFile, SWT.NULL);
+    new Label(gFile, SWT.NULL);
     
-    controls = new Control[4];
+    Label lMoveOnly = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(lMoveOnly, "ConfigView.label.moveonlyusingdefaultsave"); //$NON-NLS-1$
+    BooleanParameter moveOnly = new BooleanParameter(gFile, "Move Only When In Default Save Dir", true); //$NON-NLS-1$
+    
+    
+    controls = new Control[6];
     controls[0] = movePathParameter.getControl();
     controls[1] = browse3;
     controls[2] = lMoveTorrent;
     controls[3] = moveTorrent.getControl();
+    controls[4] = lMoveOnly;
+    controls[5] = moveOnly.getControl();
     IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls);
     moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
 
+    new Label(gFile, SWT.NULL);
+    new Label(gFile, SWT.NULL);
+    
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
