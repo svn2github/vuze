@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.config.IParameter;
+import org.gudy.azureus2.ui.swt.views.TableView;
+
 
 /**
  * @author Arbeiten
@@ -96,6 +98,10 @@ public class Messages {
           updateLanguageFromData(columns[i]);
         }
         updateLanguageForControl(table.getMenu());
+
+        TableView tv = (TableView)widget.getData("TableView");
+        if (tv != null)
+          tv.tableInvalidate();
       }
       else if (widget instanceof Tree) {
         Tree tree = (Tree) widget;
@@ -104,6 +110,7 @@ public class Messages {
           updateLanguageForControl(treeitems[i]);
         }
       }
+        
       group.layout();
     }
     else if (widget instanceof MenuItem) {
