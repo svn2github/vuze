@@ -241,9 +241,11 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         protocol_bytes_read += read;
       }
 
-      if( !payload_buffer.hasRemaining() ) {  //full message received!
+      if( !payload_buffer.hasRemaining() ) {  //full message received!        
         type_buffer.position( 0 );  //prepare for use
         payload_buffer.position( 0 );
+        
+        int payload_size = payload_buffer.remaining();
         
         if( reading_handshake_message ) {  //decode handshake
           reading_handshake_message = false;
@@ -273,7 +275,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           }
           catch( MessageException me ) {
             //Debug.out( me );
-            throw new IOException( "message decode failed: " + me.getMessage() );
+            throw new IOException( "message decode failed [payload_size=" +payload_size+ "]: " + me.getMessage() );
           }
         }
      
