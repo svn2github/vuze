@@ -77,7 +77,8 @@ WebPlugin
 	public              String 	CONFIG_ROOT_RESOURCE_DEFAULT	= "";
 	
 	public static final String 	CONFIG_MODE						= "Mode";
-	public        final String 	CONFIG_MODE_DEFAULT				= "full";
+	public static final String 	CONFIG_MODE_FULL				= "full";
+	public        final String 	CONFIG_MODE_DEFAULT				= CONFIG_MODE_FULL;
 	
 	public static final String 	CONFIG_ACCESS					= "Access";
 	public        final String 	CONFIG_ACCESS_DEFAULT			= "all";

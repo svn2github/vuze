@@ -50,7 +50,8 @@ XMLHTTPServerPlugin
 		defaults.put( WebPlugin.CONFIG_PORT, new Integer( DEFAULT_PORT ));
 	}
 	
-	protected RPRequestHandler		request_handler;
+	protected RPRequestHandler				request_handler;
+	protected RPRequestAccessController		access_controller;
 	
 	public
 	XMLHTTPServerPlugin()
@@ -68,7 +69,9 @@ XMLHTTPServerPlugin
 			
 		BasicPluginConfigModel	config = getConfigModel();
 		
-		request_handler = new RPRequestHandler( _plugin_interface );		
+		request_handler = new RPRequestHandler( _plugin_interface );
+		
+		access_controller = new WebPluginAccessController( _plugin_interface );
 	}
 	
 	public boolean
@@ -86,7 +89,12 @@ XMLHTTPServerPlugin
 						
 			try{
 				XMLRequestProcessor processor = 
-						new XMLRequestProcessor( request_handler, request.getClientAddress(), request.getInputStream(), response.getOutputStream());
+						new XMLRequestProcessor( 
+								request_handler,
+								access_controller,
+								request.getClientAddress(), 
+								request.getInputStream(), 
+								response.getOutputStream());
 
 				return( true );
 								

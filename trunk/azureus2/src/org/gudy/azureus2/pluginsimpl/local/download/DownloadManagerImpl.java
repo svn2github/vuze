@@ -340,7 +340,16 @@ DownloadManagerImpl
 			
 			Download	dl = (Download)downloads.get(i);
 			
-			if ( ((TorrentImpl)dl.getTorrent()).getTorrent().hasSameHashAs( torrent )){
+			TorrentImpl	t = (TorrentImpl)dl.getTorrent();
+			
+				// can be null if broken torrent
+			
+			if ( t == null ){
+				
+				continue;
+			}
+			
+			if ( t.getTorrent().hasSameHashAs( torrent )){
 				
 				return( dl );
 			}

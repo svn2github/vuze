@@ -45,10 +45,11 @@ XMLRequestProcessor
 	
 	protected
 	XMLRequestProcessor(
-		RPRequestHandler		_request_handler,
-		String					_client_ip,
-		InputStream				_request,
-		OutputStream			_reply )
+		RPRequestHandler			_request_handler,
+		RPRequestAccessController	_access_controller,
+		String						_client_ip,
+		InputStream					_request,
+		OutputStream				_reply )
 	{
 		super( _reply );
 			
@@ -63,7 +64,7 @@ XMLRequestProcessor
 						
 			request = SimpleXMLParserDocumentFactory.create( _request );
 				
-			process( _client_ip );
+			process( _client_ip , _access_controller);
 			
 		}catch( Throwable e ){
 					
@@ -91,7 +92,8 @@ XMLRequestProcessor
 	
 	protected void
 	process(
-		String		client_ip )
+		String						client_ip,
+		RPRequestAccessController	access_controller )
 	{
 		// request.print();
 			
@@ -99,7 +101,7 @@ XMLRequestProcessor
 		
 		req_obj.setClientIP( client_ip );
 		
-		RPReply reply = request_handler.processRequest( req_obj );
+		RPReply reply = request_handler.processRequest( req_obj, access_controller );
 
 			// void methods result in null return
 

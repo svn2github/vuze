@@ -92,8 +92,14 @@ RPTracker
 		if ( method.equals( "host[Torrent,boolean]")){
 			
 			try{
-	
-				TrackerTorrent tt = delegate.host((Torrent)((RPTorrent)params[0])._setLocal(),((Boolean)params[1]).booleanValue());
+				Torrent	torrent = (Torrent)((RPTorrent)params[0])._setLocal();
+				
+				if ( torrent == null ){
+					
+					throw( new RPException( "Invalid torrent" ));
+				}
+				
+				TrackerTorrent tt = delegate.host(torrent,((Boolean)params[1]).booleanValue());
 				
 				RPTrackerTorrent res = RPTrackerTorrent.create( tt );
 			

@@ -37,9 +37,7 @@ public class
 RPRequestHandler 
 {
 	protected PluginInterface	plugin_interface;
-	
-	protected boolean	view_mode;
-	
+		
 	protected Map	reply_cache	= new HashMap();
 	
 	public
@@ -47,17 +45,19 @@ RPRequestHandler
 		PluginInterface		_pi )
 	{
 		plugin_interface	= _pi;
-		
-		Properties properties				= plugin_interface.getPluginProperties();
-
-		String	mode_str = (String)properties.get("mode");
-		
-		view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
 	}
 	
 	public RPReply
 	processRequest(
-		RPRequest		request )
+		RPRequest					request )
+	{
+		return( processRequest( request, null));
+	}
+	
+	public RPReply
+	processRequest(
+		RPRequest					request,
+		RPRequestAccessController	access_controller )
 	{
 		Long	connection_id 	= new Long( request.getConnectionId());
 
@@ -71,7 +71,7 @@ RPRequestHandler
 			}
 		}
 		
-		RPReply	reply = processRequestSupport( request );
+		RPReply	reply = processRequestSupport( request, access_controller );
 		
 		reply_cache.put( connection_id, new replyCache( request.getRequestId(), reply ));
 		
@@ -81,7 +81,8 @@ RPRequestHandler
 
 	protected RPReply
 	processRequestSupport(
-		RPRequest		request )
+		RPRequest					request,
+		RPRequestAccessController	access_controller )
 	{
 		try{
 			RPObject		object 	= request.getObject();
@@ -132,57 +133,10 @@ RPRequestHandler
 				}else{
 
 					String	name = object._getName();
-							
-					if ( view_mode ){
 						
-							// this really needs fixing up properly (somehow)
+					if ( access_controller != null ){
 						
-						// System.out.println( "request: " + name + "/" + method );
-						
-						if ( name.equals( "Download" )){
-							
-							if ( 	method.equals( "start" ) ||
-									method.equals( "stop" ) ||
-									method.equals( "restart" ) ||
-									method.equals( "remove" ) ||
-									method.startsWith( "set" )){
-								
-								throw( new RPException( "Access Denied" ));
-							}
-						}else if ( name.equals( "DownloadManager" )){
-							
-							if ( 	method.startsWith( "addDownload")){
-								
-								throw( new RPException( "Access Denied" ));
-							}
-						}else if ( name.equals( "TorrentManager" )){
-							
-							if ( 	method.startsWith( "getURLDownloader")){
-								
-								throw( new RPException( "Access Denied" ));
-							}	
-						}else if ( name.equals( "PluginConfig" )){
-								
-							if ( 	method.startsWith( "setParameter")){
-									
-								throw( new RPException( "Access Denied" ));
-							}
-							
-						}else if ( name.equals( "IPFilter" )){
-							
-							if ( 	method.startsWith( "set") ||
-									method.startsWith( "create" )||
-									method.startsWith( "save" )){
-								
-								throw( new RPException( "Access Denied" ));
-							}
-						}else if ( name.equals( "IPRange" )){
-							
-							if ( 	method.startsWith( "delete" )){
-								
-								throw( new RPException( "Access Denied" ));
-							}
-						}					
+						access_controller.checkAccess( name, request );
 					}
 	
 					RPReply	reply = object._process( request );
