@@ -338,15 +338,12 @@ public class DirectByteBufferPool {
       boolean returned;
       synchronized( refs ) {
         returned = ((Boolean)refs.remove( ref )).booleanValue();
-        if ( !returned ) {
-          //System.out.print(new Date(System.currentTimeMillis())+ ": not returned");
-        }
       }
       synchronized( refMap ) {
         ByteBuffer buff = (ByteBuffer) refMap.remove( ref );
         bytesIn += buff.capacity();
         if ( !returned ) {
-          //System.out.println(" ["+buff.limit()+"]["+buff.capacity()+"]");
+          System.out.println("DirectByteBuffer not returned to pool: size=" +buff.limit());
         }
         free( buff );
       }
