@@ -69,10 +69,6 @@ public class BTHandshake implements BTProtocolMessage {
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
   
-  public void notifySent() {
-    //buffer.returnToPool();
-  }
-  
   public void destroy() {
     //buffer.returnToPool();
   }

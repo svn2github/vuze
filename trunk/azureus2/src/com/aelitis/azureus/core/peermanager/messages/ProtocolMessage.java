@@ -66,12 +66,6 @@ public interface ProtocolMessage {
   public int getPriority();
   
   /**
-   * Called after the message has been written to the transport, for any
-   * post-write actions needed.
-   */
-  public void notifySent();
-  
-  /**
    * Destroy the message; i.e. perform cleanup actions.
    */
   public void destroy();

@@ -60,11 +60,7 @@ public class BTUninterested implements BTProtocolMessage {
   }
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_NORMAL;  }
-  
-  public void notifySent() {
-    //buffer.returnToPool();
-  }
-  
+
   public void destroy() {
     //buffer.returnToPool();
   }

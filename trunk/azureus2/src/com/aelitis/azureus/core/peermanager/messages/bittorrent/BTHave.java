@@ -62,10 +62,6 @@ public class BTHave implements BTProtocolMessage {
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_LOW;  }
   
-  public void notifySent() {
-    //buffer.returnToPool();
-  }
-  
   public void destroy() {
     //buffer.returnToPool();
   }
