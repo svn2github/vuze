@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.Collections;
+import java.util.Comparator;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -261,11 +263,28 @@ public class ConsoleInput extends Thread {
 
 	private void commandShow(String subcommand) {
 		if (subcommand != null) {
-			if (subcommand.equalsIgnoreCase("options") || subcommand.equalsIgnoreCase("o")) {
+		  String[] sSubcommands = subcommand.split(" ");
+		  for (int i = 0; i < sSubcommands.length; i++)
+		    sSubcommands[i] = sSubcommands[i].trim();
+			if (sSubcommands[0].equalsIgnoreCase("options") || sSubcommands[0].equalsIgnoreCase("o")) {
 				commandSet(null);
-			} else if (subcommand.equalsIgnoreCase("torrents") || subcommand.equalsIgnoreCase("t")) {
+			} else if (sSubcommands[0].equalsIgnoreCase("torrents") || sSubcommands[0].equalsIgnoreCase("t")) {
 				out.println("> -----");
 				torrents = (ArrayList) ((ArrayList) gm.getDownloadManagers()).clone();
+        Collections.sort(torrents, new Comparator () {
+          public final int compare (Object a, Object b) {
+            DownloadManager aDL = (DownloadManager)a;
+            DownloadManager bDL = (DownloadManager)b;
+            boolean aIsComplete = aDL.getStats().getDownloadCompleted(false) == 1000;
+            boolean bIsComplete = bDL.getStats().getDownloadCompleted(false) == 1000;
+            if (aIsComplete && !bIsComplete)
+              return 1;
+            if (!aIsComplete && bIsComplete)
+              return -1;
+            return aDL.getPosition() - bDL.getPosition();
+          }
+        } );
+
 				DownloadManager dm;
 				int dmstate;
 				if (!torrents.isEmpty()) {
@@ -277,78 +296,106 @@ public class ConsoleInput extends Thread {
 					int connectedPeers = 0;
 					PEPeerManagerStats ps;
 					int nrTorrent = 0;
+					boolean bShowOnlyActive = false;
+					boolean bShowOnlyComplete = false;
+					boolean bShowOnlyIncomplete = false;
+    		  for (int i = 1; i < sSubcommands.length; i++) {
+    		    if (sSubcommands[i].equalsIgnoreCase("active") || sSubcommands[i].equalsIgnoreCase("a")) {
+    		      bShowOnlyActive = true;
+    		    } else if (sSubcommands[i].equalsIgnoreCase("complete") || sSubcommands[i].equalsIgnoreCase("c")) {
+    		      bShowOnlyComplete = true;
+    		    } else if (sSubcommands[i].equalsIgnoreCase("incomplete") || sSubcommands[i].equalsIgnoreCase("i")) {
+    		      bShowOnlyIncomplete = true;
+    		    }
+    		  }
+					
 					while (torrent.hasNext()) {
-						dm = (DownloadManager) torrent.next();
-						TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
-						dmstate = dm.getState();
-						try {
-							ps = dm.getPeerManager().getStats();
-						} catch (Exception e) {
-							ps = null;
-						}
-						if (ps != null) {
-							totalReceived += dm.getStats().getDownloaded();
-							totalSent += dm.getStats().getUploaded();
-							totalDiscarded += ps.getTotalDiscarded();
-							connectedSeeds += dm.getNbSeeds();
-							connectedPeers += dm.getNbPeers();
-						}
 						nrTorrent += 1;
-						String tstate = ((nrTorrent < 10) ? " " : "") + Integer.toString(nrTorrent) + " [";
-						if (dmstate == DownloadManager.STATE_INITIALIZING)
-							tstate += "I";
-						else if (dmstate == DownloadManager.STATE_ALLOCATING)
-							tstate += "A";
-						else if (dmstate == DownloadManager.STATE_CHECKING)
-							tstate += "C";
-						else if (dmstate == DownloadManager.STATE_DOWNLOADING)
-							tstate += ">";
-						else if (dmstate == DownloadManager.STATE_ERROR)
-							tstate += "E";
-						else if (dmstate == DownloadManager.STATE_SEEDING)
-							tstate += "*";
-						else if (dmstate == DownloadManager.STATE_STOPPED)
-							tstate += "!";
-						else if (dmstate == DownloadManager.STATE_WAITING)
-							tstate += ".";
-						else if (dmstate == DownloadManager.STATE_READY)
-							tstate += ":";
-						else if (dmstate == DownloadManager.STATE_QUEUED)
-							tstate += "-";
-						else
-							tstate += "?";
-						tstate += "] ";
-						DecimalFormat df = new DecimalFormat("000.0%");
+						dm = (DownloadManager) torrent.next();
+ 						DownloadManagerStats stats = dm.getStats();
+						dmstate = dm.getState();
 
-						DownloadManagerStats stats = dm.getStats();
-
-						tstate += df.format(stats.getCompleted() / 1000.0);
-						tstate += "\t";
-						if (dmstate == DownloadManager.STATE_ERROR)
-							tstate += dm.getErrorDetails();
-						else {
-							if (dm.getName() == null)
-								tstate += "?";
-							else
-								tstate += dm.getName();
-						}
-						tstate += " (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "\r\n\t\tSpeed: ";
-						tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ";
-						tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
-						tstate += DisplayFormatters.formatDownloaded(stats) + " / ";
-						tstate += DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()) + "\tConnections: ";
-						if (hd == null || !hd.isValid()) {
-							tstate += Integer.toString(dm.getNbSeeds()) + "(?) / ";
-							tstate += Integer.toString(dm.getNbPeers()) + "(?)";
-						} else {
-							tstate += Integer.toString(dm.getNbSeeds()) + "(" + Integer.toString(hd.getSeeds()) + ") / ";
-							tstate += Integer.toString(dm.getNbPeers()) + "(" + Integer.toString(hd.getPeers()) + ")";
-						}
-						out.println(tstate);
-						//out.println(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(),
-						// true));
-						out.println();
-					}
+						boolean bDownloadCompleted = stats.getDownloadCompleted(false) == 1000;
+						boolean bCanShow = ((bShowOnlyComplete == bShowOnlyIncomplete) ||
+                                (bDownloadCompleted && bShowOnlyComplete) ||
+                                (!bDownloadCompleted && bShowOnlyIncomplete));
+						
+						if (bCanShow && bShowOnlyActive) {
+  						bCanShow = (dmstate == DownloadManager.STATE_SEEDING) ||
+  						           (dmstate == DownloadManager.STATE_DOWNLOADING) ||
+  						           (dmstate == DownloadManager.STATE_CHECKING) ||
+  						           (dmstate == DownloadManager.STATE_INITIALIZING) ||
+  						           (dmstate == DownloadManager.STATE_ALLOCATING);
+  				  }
+  				  
+  				  if (bCanShow) {
+  						TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
+  						try {
+  							ps = dm.getPeerManager().getStats();
+  						} catch (Exception e) {
+  							ps = null;
+  						}
+  						if (ps != null) {
+  							totalReceived += dm.getStats().getDownloaded();
+  							totalSent += dm.getStats().getUploaded();
+  							totalDiscarded += ps.getTotalDiscarded();
+  							connectedSeeds += dm.getNbSeeds();
+  							connectedPeers += dm.getNbPeers();
+  						}
+  						String tstate = ((nrTorrent < 10) ? " " : "") + Integer.toString(nrTorrent) + " [";
+  						if (dmstate == DownloadManager.STATE_INITIALIZING)
+  							tstate += "I";
+  						else if (dmstate == DownloadManager.STATE_ALLOCATING)
+  							tstate += "A";
+  						else if (dmstate == DownloadManager.STATE_CHECKING)
+  							tstate += "C";
+  						else if (dmstate == DownloadManager.STATE_DOWNLOADING)
+  							tstate += ">";
+  						else if (dmstate == DownloadManager.STATE_ERROR)
+  							tstate += "E";
+  						else if (dmstate == DownloadManager.STATE_SEEDING)
+  							tstate += "*";
+  						else if (dmstate == DownloadManager.STATE_STOPPED)
+  							tstate += "!";
+  						else if (dmstate == DownloadManager.STATE_WAITING)
+  							tstate += ".";
+  						else if (dmstate == DownloadManager.STATE_READY)
+  							tstate += ":";
+  						else if (dmstate == DownloadManager.STATE_QUEUED)
+  							tstate += "-";
+  						else
+  							tstate += "?";
+  						tstate += "] ";
+  						DecimalFormat df = new DecimalFormat("000.0%");
+  
+  						tstate += df.format(stats.getCompleted() / 1000.0);
+  						tstate += "\t";
+  						if (dmstate == DownloadManager.STATE_ERROR)
+  							tstate += dm.getErrorDetails();
+  						else {
+  							if (dm.getName() == null)
+  								tstate += "?";
+  							else
+  								tstate += dm.getName();
+  						}
+  						tstate += " (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "\r\n\t\tSpeed: ";
+  						tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ";
+  						tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
+  						tstate += DisplayFormatters.formatDownloaded(stats) + " / ";
+  						tstate += DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()) + "\tConnections: ";
+  						if (hd == null || !hd.isValid()) {
+  							tstate += Integer.toString(dm.getNbSeeds()) + "(?) / ";
+  							tstate += Integer.toString(dm.getNbPeers()) + "(?)";
+  						} else {
+  							tstate += Integer.toString(dm.getNbSeeds()) + "(" + Integer.toString(hd.getSeeds()) + ") / ";
+  							tstate += Integer.toString(dm.getNbPeers()) + "(" + Integer.toString(hd.getPeers()) + ")";
+  						}
+  						out.println(tstate);
+  						//out.println(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(),
+  						// true));
+  						out.println();
+  					}
+  				}
 					out.println("Total Speed (down/up): " + DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getDownloadAverage()) + " / " + DisplayFormatters.formatByteCountToKiBEtcPerSec(gm.getStats().getUploadAverage()));
 
 					out.println("Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));
@@ -420,9 +467,12 @@ public class ConsoleInput extends Thread {
 		} else {
 			out.println("> -----");
 			out.println("'show' options: ");
-			out.println("<#>\t\t\tFurther info on a single torrent. Run 'show torrents' first for the number.");
-			out.println("options\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
-			out.println("torrents\tt\tShow list of torrents.");
+			out.println("<#>\t\t\\ttFurther info on a single torrent. Run 'show torrents' first for the number.");
+			out.println("options\t\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
+			out.println("torrents [options]\tt\tShow list of torrents. torrent options mayb be any (or none) of:");
+			out.println("\t\tactive\t\ta\tShow only active torrents.");
+			out.println("\t\tcomplete\tc\tShow only complete torrents.");
+			out.println("\t\tincomplete\ti\tShow only incomplete torrents.");
 			out.println("> -----");
 		}
 	}
@@ -501,6 +551,7 @@ public class ConsoleInput extends Thread {
 									for (int i = 0; i < toadd.length; i++) {
 										gm.addDownloadManager(toadd[i].getAbsolutePath(), outputDir);
 										out.println("> '" + toadd[i].getAbsolutePath() + "' added.");
+    								torrents = null;
 									}
 								} else {
 									out.println("> Directory '" + whatelse[j] + "' seems to contain no torrent files.");
@@ -508,6 +559,7 @@ public class ConsoleInput extends Thread {
 							} else {
 								gm.addDownloadManager(whatelse[j], outputDir);
 								out.println("> '" + whatelse[j] + "' added.");
+								torrents = null;
 							}
 						} else {
 							adds = FileFinder.findFiles(whatelse[j].substring(0, whatelse[j].lastIndexOf(System.getProperty("file.separator"))), whatelse[j].substring(whatelse[j].lastIndexOf(System.getProperty("file.separator")) + 1), false);
