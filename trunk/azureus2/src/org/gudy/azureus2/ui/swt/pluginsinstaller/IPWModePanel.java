@@ -60,6 +60,7 @@ public class IPWModePanel extends AbstractWizardPanel {
   show() 
   {
 	wizard.setTitle(MessageText.getString("installPluginsWizard.mode.title"));
+	wizard.setErrorMessage("");
 	
 	Composite rootPanel = wizard.getPanel();
 	GridLayout layout = new GridLayout();
@@ -76,16 +77,17 @@ public class IPWModePanel extends AbstractWizardPanel {
 	Button bListMode = new Button(panel,SWT.RADIO);
 	Messages.setLanguageText(bListMode,"installPluginsWizard.mode.list");
 	bListMode.setData("mode",new Integer(MODE_FROM_LIST));
-	bListMode.setSelection(true);
+	if(((InstallPluginWizard)wizard).mode == MODE_FROM_LIST) bListMode.setSelection(true);
 		
 	Button bFileMode = new Button(panel,SWT.RADIO);
 	Messages.setLanguageText(bFileMode,"installPluginsWizard.mode.file");
 	bFileMode.setData("mode",new Integer(MODE_FROM_FILE));
-
+	if(((InstallPluginWizard)wizard).mode == MODE_FROM_FILE) bFileMode.setSelection(true);
 	
 	Listener modeListener = new Listener() {
 	  public void handleEvent(Event e) {
 	    mode = ((Integer) e.widget.getData("mode")).intValue();
+	    ((InstallPluginWizard)wizard).mode = mode;
 	  }
 	};
 

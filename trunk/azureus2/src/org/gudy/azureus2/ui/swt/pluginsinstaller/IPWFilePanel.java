@@ -23,7 +23,6 @@
 package org.gudy.azureus2.ui.swt.pluginsinstaller;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.swt.SWT;
@@ -37,6 +36,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.installer.InstallablePlugin;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -59,6 +59,7 @@ public class IPWFilePanel extends AbstractWizardPanel {
   
   public void show() {
     wizard.setTitle(MessageText.getString("installPluginsWizard.file.title"));
+	wizard.setErrorMessage("");
 	
 	Composite rootPanel = wizard.getPanel();
 	GridLayout layout = new GridLayout();
@@ -109,6 +110,8 @@ public class IPWFilePanel extends AbstractWizardPanel {
         wizard.setErrorMessage("");
         wizard.setNextEnabled(true);
         List list = new ArrayList();
+        InstallablePlugin plugin = wizard.getAzureusCore().getPluginManager().getPluginInstaller().installFromFile(f);
+        list.add(plugin);
         ((InstallPluginWizard)wizard).plugins = list;
         valid = true;
         return;

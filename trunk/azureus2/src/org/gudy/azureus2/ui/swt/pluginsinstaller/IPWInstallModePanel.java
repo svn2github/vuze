@@ -57,6 +57,7 @@ public class IPWInstallModePanel extends AbstractWizardPanel {
   show() 
   {
 	wizard.setTitle(MessageText.getString("installPluginsWizard.installMode.title"));
+	wizard.setErrorMessage("");
 	
 	Composite rootPanel = wizard.getPanel();
 	GridLayout layout = new GridLayout();

@@ -50,7 +50,8 @@ public class FinishPanel extends AbstractWizardPanel {
   
   public void show() {
     wizard.setTitle(MessageText.getString("installPluginsWizard.finish.title"));
-	
+    wizard.setErrorMessage("");
+    
 	Composite rootPanel = wizard.getPanel();
 	GridLayout layout = new GridLayout();
 	layout.numColumns = 1;

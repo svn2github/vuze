@@ -66,7 +66,8 @@ public class IPWListPanel extends AbstractWizardPanel {
   show() 
   {
     wizard.setTitle(MessageText.getString("installPluginsWizard.list.title"));
-	
+    wizard.setErrorMessage("");
+    
 	Composite rootPanel = wizard.getPanel();
 	GridLayout layout = new GridLayout();
 	layout.numColumns = 1;
@@ -85,7 +86,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	pluginList = new Table(panel,SWT.BORDER | SWT.V_SCROLL | SWT.CHECK | SWT.FULL_SELECTION | SWT.SINGLE); 
 	pluginList.setHeaderVisible(true);
 	GridData data = new GridData(GridData.FILL_HORIZONTAL);
-	data.heightHint = 150;
+	data.heightHint = 120;
 	pluginList.setLayoutData(data);
 	
 	
@@ -105,7 +106,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	txtDescription.setEditable(false);
 	
 	data = new GridData(GridData.FILL_HORIZONTAL);
-	data.heightHint = 150;
+	data.heightHint = 100;
 	txtDescription.setLayoutData(data);
 
 	AEThread listLoader = new AEThread("Plugin List Loader") {
