@@ -789,7 +789,7 @@ public class DiskManager {
 
         //get the piece list
         PieceList pieceList = pieceMap[pieceNumber];
-		boolean bDynamicFile=ConfigurationManager.getInstance().getBooleanParameter("Enable incremental file creation", false);
+
         //for each piece
         for (int i = 0; i < pieceList.size(); i++) {
             //get the piece and the file 
@@ -801,17 +801,12 @@ public class DiskManager {
                     FileChannel fc = raf.getChannel();
                     
                     if (fc.isOpen()) {
-                    	if (bDynamicFile) {
-							if (fc.size() >= tempPiece.getOffset()) {
-								fc.position(tempPiece.getOffset());
-								fc.read(allocateAndTestBuffer);
-							} else {
-								allocateAndTestBuffer.clear();
-							}
-                    	} else {
+						if (fc.size() >= tempPiece.getOffset()) {
 							fc.position(tempPiece.getOffset());
 							fc.read(allocateAndTestBuffer);
-                    	}                    	
+						} else {
+							allocateAndTestBuffer.clear();
+						}
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
