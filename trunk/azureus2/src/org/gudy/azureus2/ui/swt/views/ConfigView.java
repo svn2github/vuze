@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.plugins.ui.Parameter;
+import org.gudy.azureus2.plugins.ui.impl.ParameterRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -117,7 +119,8 @@ public class ConfigView extends AbstractIView {
     initGroupDisplay();
     initGroupIrc();
     initGroupFilter();
-    initStats();
+    initGroupPlugins();
+	initStats();
     initStyle();
     initTracker();
     initLogging();
@@ -143,6 +146,39 @@ public class ConfigView extends AbstractIView {
         filter.save();
       }
     });
+  }
+
+  private void initGroupPlugins()
+  {
+  	GridData gridData;
+  	
+	TabItem itemPlugins = new TabItem(tfConfig, SWT.NULL);
+	itemPlugins.setText("Plugins");
+
+	TabFolder tfPlugins = new TabFolder(tfConfig, SWT.TOP | SWT.FLAT);
+	Parameter[] tempParams;
+	ParameterRepository repository = ParameterRepository.getInstance();
+	TabItem tempTab;
+	Group tempGroup;
+	GridLayout tempLayout;
+	
+	for(int i = 0; i < repository.getSize(); i++)
+	{
+		tempParams = repository.getParameterBlock(repository.getNames()[i]);
+		tempTab = new TabItem(tfPlugins, SWT.NULL);
+		tempTab.setText(repository.getNames()[i]);
+		
+		tempGroup = new Group(tfPlugins, SWT.NULL);
+		tempLayout = new GridLayout();
+		tempLayout.numColumns = 2;
+		
+		for(int j = 0; j < tempParams.length; j++)
+		{
+			
+		}
+		tempTab.setControl(tempGroup);
+	}
+	itemPlugins.setControl(tfPlugins);
   }
 
   private void initGroupFilter() {
