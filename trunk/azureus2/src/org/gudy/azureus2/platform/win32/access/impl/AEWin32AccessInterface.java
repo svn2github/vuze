@@ -41,6 +41,11 @@ AEWin32AccessInterface
 		System.loadLibrary( "aereg" );
 	}
 	
+	protected static void
+	load()
+	{	
+	}
+	
 	protected static native String
 	readStringValue(
 		int		type,		// HKEY type from above

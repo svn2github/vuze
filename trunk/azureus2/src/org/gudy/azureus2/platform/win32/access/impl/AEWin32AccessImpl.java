@@ -40,6 +40,8 @@ AEWin32AccessImpl
 	{
 		if ( singleton == null ){
 			
+			AEWin32AccessInterface.load();
+			
 			singleton = new AEWin32AccessImpl();
 		}
 		
