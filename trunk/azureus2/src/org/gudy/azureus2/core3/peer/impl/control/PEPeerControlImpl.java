@@ -313,7 +313,7 @@ PEPeerControlImpl
             
             try {
                /* wait until notified of new connection to slow connect */
-               synchronized (slowQueue) { slowQueue.wait(500); }
+               synchronized (slowQueue) { slowQueue.wait(3000); }
                
                /* dequeue waiting connections and process */
                while ((slowQueue.size() > 0) && bContinue) {
@@ -328,7 +328,7 @@ PEPeerControlImpl
                      }
                   }
                   /* wait */
-                  Thread.sleep(500);
+                  Thread.sleep(3000);
                }
             } catch (Exception e) {
                e.printStackTrace();
