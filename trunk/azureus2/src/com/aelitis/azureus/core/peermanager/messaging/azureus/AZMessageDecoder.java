@@ -223,6 +223,9 @@ public class AZMessageDecoder implements MessageStreamDecoder {
           }
         }
         catch( MessageException me ) {
+          if( direct_payload_buffer != null ) {
+            direct_payload_buffer.returnToPool();
+          }
           throw new IOException( "message decode failed: " + me.getMessage() );
         }
         
