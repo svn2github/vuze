@@ -21,18 +21,22 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
  *
  */
 public class HealthItem extends TorrentItem  {
+  
+  Image image;
   
   /**
    * @param row
@@ -43,20 +47,6 @@ public class HealthItem extends TorrentItem  {
   }
   
   public void refresh() {
-    boolean valid = torrentRow.isValid();    
-    BufferedTableRow row = torrentRow.getRow();
-    
-    if (row == null || row.isDisposed())
-      return;
-    
-    //Compute bounds ...
-    Rectangle bounds = getBounds();
-    //In case item isn't displayed bounds is null
-    if(bounds == null)
-      return;
-    
-    Table	table = row.getTable();
-    
     String	image_name = "st_stopped";
     
     DownloadManager manager = torrentRow.getManager();
@@ -70,28 +60,37 @@ public class HealthItem extends TorrentItem  {
     }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
     	image_name = "st_no_remote";   
     }
-    
-    /*
-    if ( table.getSelectionCount() > 0 ){
-    	
-    	TableItem[]	rows = table.getSelection();
-    	
-    	for (int i=0;i<rows.length;i++){
-    		
-    		if ( rows[i] == row.getItem()){
-    			
-    			image_name += "_selected";
-    			
-    			break;
-    		}
-    	}
-    }*/
     image_name += "_selected";
     
-    Image image = ImageRepository.getImage(image_name);
+    image = ImageRepository.getImage(image_name);        
+  }
+  
+  public boolean needsPainting() {
+   return true; 
+  }
+  
+  public void doPaint() {
+    BufferedTableRow row = torrentRow.getRow();
     
-    if(image != null)
-      setImage(image);
+    if (row == null || row.isDisposed())
+      return;
+    
+    //Compute bounds ...
+    Rectangle bounds = getBounds();
+    //In case item isn't displayed bounds is null
+    if(bounds == null)
+      return;
+    
+    int x0 = bounds.x + 1;
+    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
+    
+    Table table = row.getTable();
+    if(image != null) {
+      GC gc = new GC(row.getTable());
+      gc.setClipping(table.getClientArea());
+      gc.drawImage(image, x0, y0);
+      gc.dispose();     
+    } 
   }
   
   public void dispose() {    

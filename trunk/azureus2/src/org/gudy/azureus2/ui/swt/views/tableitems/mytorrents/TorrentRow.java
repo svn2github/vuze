@@ -130,6 +130,20 @@ public class TorrentRow implements SortableItem {
       BufferedTableItem item = (BufferedTableItem) iter.next();
       item.refresh();
     }
+  }
+  
+  public void doPaint() {
+    if (table == null || table.isDisposed())
+      return;
+    if (row == null || row.isDisposed())
+      return;
+
+    Iterator iter = items.iterator();
+    while(iter.hasNext()) {
+      BufferedTableItem item = (BufferedTableItem) iter.next();
+      if(item.needsPainting())
+      	item.doPaint();
+    }
     this.setValid(true);
   }
 

@@ -72,4 +72,11 @@ public abstract class BufferedTableItem {
   public boolean isShown() {
     return position != -1;
   }
+  
+  public boolean needsPainting() {
+  	return false; 
+  }
+  
+  public void doPaint() {  
+  }
 }

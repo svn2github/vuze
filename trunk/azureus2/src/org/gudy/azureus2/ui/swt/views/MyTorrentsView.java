@@ -31,6 +31,10 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -55,6 +59,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
+import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -272,6 +277,12 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
         MainWindow.getWindow().openManagerView(dm);
       }
+    });  
+    
+    table.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent event) {
+        doPaint();
+			}
     });
     
     table.setMenu(menu);
@@ -959,22 +970,42 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     
     sorter.reOrder(false);
     synchronized(objectToSortableItem) {
-    Iterator iter = objectToSortableItem.keySet().iterator();
-    while (iter.hasNext()) {
-      if (this.panel.isDisposed())
-        return;
-      DownloadManager manager = (DownloadManager) iter.next();
-      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-      if (item != null) {
-        //Every N GUI updates we unvalidate the images
-        if (loopFactor % graphicsUpdate == 0)
-          item.invalidate();
-        
-        item.refresh();
+      Iterator iter = objectToSortableItem.keySet().iterator();
+      while (iter.hasNext()) {
+        if (this.panel.isDisposed())
+          return;
+        DownloadManager manager = (DownloadManager) iter.next();
+        TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
+        if (item != null) {
+          //Every N GUI updates we unvalidate the images
+          if (loopFactor % graphicsUpdate == 0)
+            item.invalidate();
+          
+          item.refresh();
+        }
       }
     }
   }
+  
+  
+  private void doPaint() {
+    if (getComposite() == null || getComposite().isDisposed())
+      return;
+    
+    synchronized(objectToSortableItem) {
+      Iterator iter = objectToSortableItem.keySet().iterator();
+      while (iter.hasNext()) {
+        if (this.panel.isDisposed())
+          return;
+        DownloadManager manager = (DownloadManager) iter.next();
+        TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
+        if (item != null) {          
+          item.doPaint();
+        }
+      }
+    }
   }
+  
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#delete()

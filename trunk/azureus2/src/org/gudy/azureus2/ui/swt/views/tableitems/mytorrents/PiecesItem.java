@@ -48,10 +48,22 @@ public class PiecesItem extends TorrentItem  {
     super(torrentRow, position);
   }
   
-  public void refresh() {
-    boolean valid = torrentRow.isValid();    
-    BufferedTableRow row = torrentRow.getRow();
-    
+  public void refresh() {    
+  }
+  
+  public void dispose() {
+    if(image != null && ! image.isDisposed()) {
+      image.dispose();
+    }
+  }
+  
+	public boolean needsPainting() {
+		return true;
+	}
+  
+  public void doPaint() {
+    boolean valid = torrentRow.isValid();
+    BufferedTableRow row = torrentRow.getRow();    
     if (row == null || row.isDisposed())
       return;
     
@@ -65,22 +77,22 @@ public class PiecesItem extends TorrentItem  {
     int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
     int height = bounds.height - 2;
     if (width < 10 || height < 2)
-      return;
-    //Get the table GC
+      return;    
+    
+    //  Get the table GC
     GC gc = new GC(row.getTable());
-    gc.setClipping(row.getTable().getClientArea());
-    if (valid && image != null) {
+    gc.setClipping(bounds);
+    if (valid && image != null) {      
       //If the image is still valid, simply copy it :)
-      gc.drawImage(image, x0, y0);
+      gc.drawImage(image, x0, y0);      
       gc.dispose();
-    }
-    else {
-    	Image oldImage = null;
+    } else {
+      Image oldImage = null;
       if (image == null || ! imageSize.equals(new Point(width,height))) {
         oldImage = image;
-    		image = new Image(torrentRow.getTableItem().getDisplay(), width, height);
+        image = new Image(torrentRow.getTableItem().getDisplay(), width, height);
         imageSize = new Point(width,height);
-     	}
+      }
       GC gcImage = new GC(image);
       boolean available[] = torrentRow.getManager().getPiecesStatus();
       if (available != null) {
@@ -109,12 +121,6 @@ public class PiecesItem extends TorrentItem  {
       gc.dispose();      
       if (oldImage != null && !oldImage.isDisposed())
         oldImage.dispose();
-    }
-  }
-  
-  public void dispose() {
-    if(image != null && ! image.isDisposed()) {
-      image.dispose();
     }
   }
 }

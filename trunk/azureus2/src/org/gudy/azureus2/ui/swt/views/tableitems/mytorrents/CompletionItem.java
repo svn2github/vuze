@@ -27,6 +27,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
@@ -47,7 +48,14 @@ public class CompletionItem extends TorrentItem  {
     super(torrentRow, position);
   }
   
-  public void refresh() {
+  public void refresh() {    
+  }
+  
+  public boolean needsPainting() {
+   return true; 
+  }
+  
+  public void doPaint() {
     boolean valid = torrentRow.isValid();    
     BufferedTableRow row = torrentRow.getRow();
     
@@ -59,43 +67,44 @@ public class CompletionItem extends TorrentItem  {
     //In case item isn't displayed bounds is null
     if(bounds == null)
       return;
-    int width = bounds.width - 1;
-    int x0 = bounds.x;
-    int y0 = bounds.y + 1;
-    int height = bounds.height - 3;
-    if (width < 10 || height < 3)
+    
+    int width = bounds.width - 2;
+    int x0 = bounds.x + 1;
+    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
+    int height = bounds.height - 2;
+    if (width < 10 || height < 2)
       return;
     //Get the table GC
     GC gc = new GC(row.getTable());
     gc.setClipping(row.getTable().getClientArea());
     if (valid && image != null) {
       //If the image is still valid, simply copy it :)
-      gc.setForeground(MainWindow.grey);
       gc.drawImage(image, x0, y0);
-      gc.drawRectangle(x0, y0, width, height);
       gc.dispose();
     }
     else {
-    	Image oldImage = null;
+      Image oldImage = null;
       if (image == null || ! imageSize.equals(new Point(width,height))) {
         oldImage = image;
-    		image = new Image(torrentRow.getTableItem().getDisplay(), width, height);
+        image = new Image(torrentRow.getTableItem().getDisplay(), width, height);
         imageSize = new Point(width,height);
-     	}
+      }
       GC gcImage = new GC(image);
       int percentDone = torrentRow.getManager().getStats().getCompleted();        
       gcImage.setBackground(MainWindow.blues[0]);
-      gcImage.fillRectangle(0,1,width,1+height);
+      gcImage.fillRectangle(1,1,width,height - 2);
       gcImage.setBackground(MainWindow.blues[4]);
-      gcImage.fillRectangle(0,1,(percentDone*width)/1000,1+height);        
+      gcImage.fillRectangle(1,1,(percentDone*(width-2))/1000,height - 2);
+      gcImage.setForeground(MainWindow.grey);
+      gcImage.drawRectangle(0, 0, width-1, height-1);
       gcImage.dispose();
-      gc.setForeground(MainWindow.grey);
+
       gc.drawImage(image, x0, y0);
-      gc.drawRectangle(x0, y0, width, height);
       gc.dispose();
+      
       if (oldImage != null && !oldImage.isDisposed())
         oldImage.dispose();
-    }
+    } 
   }
   
   public void dispose() {
