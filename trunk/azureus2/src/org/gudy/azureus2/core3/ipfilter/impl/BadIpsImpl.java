@@ -103,4 +103,10 @@ public class BadIpsImpl extends BadIps {
   		return( res );
   	}
   }
+  
+  public int
+  getNbBadIps()
+  {
+  	return( bad_ip_map.size());
+  }
 }

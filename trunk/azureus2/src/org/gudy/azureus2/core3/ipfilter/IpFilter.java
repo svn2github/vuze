@@ -101,6 +101,9 @@ IpFilter
 		String 	ipAddress,
 		String	torrent_name );
 	
+	public abstract int
+	getNbBannedIps();
+	
 	public abstract BannedIp[]
 	getBannedIps();
 	

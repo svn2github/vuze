@@ -353,6 +353,12 @@ IpFilterImpl
 		}	
   	}
 	
+	public int
+	getNbBannedIps()
+	{
+		return( bannedIps.size());
+	}
+	
 	public BlockedIp[] 
 	getBlockedIps() 
 	{

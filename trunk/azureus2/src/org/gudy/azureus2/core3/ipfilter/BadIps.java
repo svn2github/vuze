@@ -28,14 +28,21 @@ import org.gudy.azureus2.core3.ipfilter.impl.BadIpsImpl;
  */
 public abstract class BadIps {
   
-  public static BadIps getInstance() {
+  public static BadIps 
+  getInstance() 
+  {
     return (BadIpsImpl.getInstance());
   }
   
-  public abstract int addWarningForIp(String ip);
+  public abstract int 
+  addWarningForIp(String ip);
   
-  public abstract int getNbWarningForIp(String ip);
+  public abstract int 
+  getNbWarningForIp(String ip);
 
+  public abstract int
+  getNbBadIps();
+  
   public abstract BadIp[]
   getBadIps();
 }

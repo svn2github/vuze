@@ -28,7 +28,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
@@ -95,8 +95,19 @@ public class GUIUpdater extends Thread implements ParameterListener {
               Tab.refresh();
             }
 
-            mainWindow.ipBlocked.setText( "{"+DisplayFormatters.formatDateShort(IpFilter.getInstance().getLastUpdateTime()) + "} IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
-            mainWindow.statusDown.setText(MessageText.getString("ConfigView.download.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
+            mainWindow.ipBlocked.setText( 
+            		"{"+
+					DisplayFormatters.formatDateShort(IpFilter.getInstance().getLastUpdateTime()) + 
+					"} IPs: " + 
+					IpFilter.getInstance().getNbRanges() + 
+					" - " + 
+					IpFilter.getInstance().getNbIpsBlocked() + 
+					"/" +
+					IpFilter.getInstance().getNbBannedIps() +
+					"/" + 
+	      			BadIps.getInstance().getNbBadIps());
+					
+		    mainWindow.statusDown.setText(MessageText.getString("ConfigView.download.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
             mainWindow.statusUp.setText(MessageText.getString("ConfigView.upload.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
           }
           
