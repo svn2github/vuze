@@ -211,27 +211,32 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   }
 
   private void populateTable() {
-   IpRange[] IpRanges = filter.getRanges();
-    Display display = table.getDisplay();
-    if(display == null || display.isDisposed()) {
+    if( table == null || table.isDisposed() ) {
       return;
     }
-      
-     for (int i=0;i<IpRanges.length;i++){
-        final IpRange range = IpRanges[i];
-        display.asyncExec(new AERunnable() {
-          public void runSupport() {
-            if(table == null || table.isDisposed())
-              return;
-            TableItem item = new TableItem(table, SWT.NULL);
-            item.setImage(0, ImageRepository.getImage("ipfilter"));
-            item.setText(0, range.getDescription());
-            item.setText(1, range.getStartIp());
-            item.setText(2, range.getEndIp());
-            item.setData(range);
-          }
-        });
+    
+    Display display = table.getDisplay();
+    
+    if( display == null || display.isDisposed() ) {
+      return;
+    }
+    
+    display.asyncExec( new AERunnable() {
+      public void runSupport() {
+        IpRange[] IpRanges = filter.getRanges();
+        
+        for( int i=0; i < IpRanges.length; i++ ) {
+          IpRange range = IpRanges[i];
+          
+          TableItem item = new TableItem(table, SWT.NULL);
+          //item.setImage(0, ImageRepository.getImage("ipfilter"));
+          item.setText(0, range.getDescription());
+          item.setText(1, range.getStartIp());
+          item.setText(2, range.getEndIp());
+          item.setData(range);
+        }
       }
+    });
   }
 
   public void removeRange(IpRange range) {
