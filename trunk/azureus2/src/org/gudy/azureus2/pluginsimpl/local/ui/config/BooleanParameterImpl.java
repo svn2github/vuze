@@ -63,4 +63,11 @@ BooleanParameterImpl
 	{
 		return( config.getBooleanParameter( getKey(), getDefaultValue()));
 	}
+	
+	public void
+	setValue(
+		boolean	b )
+	{
+		COConfigurationManager.setParameter( getKey(), b );
+	}
 }

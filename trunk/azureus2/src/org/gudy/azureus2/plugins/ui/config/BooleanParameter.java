@@ -32,4 +32,8 @@ BooleanParameter
 {
 	public boolean
 	getValue();
+	
+	public void
+	setValue(
+		boolean	b );
 }

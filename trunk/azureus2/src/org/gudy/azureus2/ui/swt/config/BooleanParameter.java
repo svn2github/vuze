@@ -21,8 +21,9 @@ import org.gudy.azureus2.ui.swt.Messages;
  */
 public class BooleanParameter extends Parameter{
 
-  String name;
-  Button checkBox;
+  String 	name;
+  Button 	checkBox;
+  boolean	defaultValue;
   
   List	performers	= new ArrayList();
   
@@ -43,10 +44,16 @@ public class BooleanParameter extends Parameter{
     this(composite,name,defaultValue,null,null);
   }
   
-  public BooleanParameter(Composite composite, final String name, 
-                          boolean defaultValue,
-                          String textKey,
-                          IAdditionalActionPerformer actionPerformer) {
+  public 
+  BooleanParameter(
+  		Composite composite, 
+		final String _name, 
+        boolean _defaultValue,
+        String textKey,
+        IAdditionalActionPerformer actionPerformer) 
+  {
+  	name			= _name;
+  	defaultValue	= _defaultValue;
     if ( actionPerformer != null ){
     	performers.add( actionPerformer );
     }
@@ -59,24 +66,11 @@ public class BooleanParameter extends Parameter{
     /* (non-Javadoc)
      * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
      */
-    public void handleEvent(Event event) {
-		boolean selected  = checkBox.getSelection();
-    COConfigurationManager.setParameter(name,selected);
-    if(performers.size() > 0 ) {
-    	for (int i=0;i<performers.size();i++){
-    		IAdditionalActionPerformer	performer = (IAdditionalActionPerformer)performers.get(i);
-    	
-    		performer.setSelected(selected);
-    		performer.performAction();
-    	}
-    }
-    
-    if ( change_listeners != null ){
-	   	for (int i=0;i<change_listeners.size();i++){
-			
-			((ParameterChangeListener)change_listeners.get(i)).parameterChanged(BooleanParameter.this,false);
-		}
-    }
+    public void 
+	handleEvent(
+		Event event) 
+    {
+		setSelected( checkBox.getSelection(), true );
     }
   });
   }
@@ -102,5 +96,45 @@ public class BooleanParameter extends Parameter{
   isSelected()
   {
   	return( checkBox.getSelection());
+  }
+  
+  public void
+  setSelected(
+  	boolean	selected )
+  {
+  	setSelected( selected, false );
+  }
+  
+  protected void
+  setSelected(
+  	boolean	selected,
+	boolean	force )
+  {
+   	if ( selected != checkBox.getSelection() || force ){
+ 			
+		COConfigurationManager.setParameter(name,selected);
+		 			
+  		checkBox.setSelection( selected );
+  		
+	    if ( performers.size() > 0 ){
+	    	
+	    	for (int i=0;i<performers.size();i++){
+	    		
+	    		IAdditionalActionPerformer	performer = (IAdditionalActionPerformer)performers.get(i);
+	    	
+	    		performer.setSelected(selected);
+	    		
+	    		performer.performAction();
+	    	}
+	    }
+	    
+	    if ( change_listeners != null ){
+	    	
+		   	for (int i=0;i<change_listeners.size();i++){
+				
+				((ParameterChangeListener)change_listeners.get(i)).parameterChanged(BooleanParameter.this,false);
+			}
+	    } 	
+	 }
   }
 }

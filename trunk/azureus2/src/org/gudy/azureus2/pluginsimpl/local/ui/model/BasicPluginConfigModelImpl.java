@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
@@ -318,12 +319,30 @@ BasicPluginConfigModelImpl
 						
 			//System.out.println( "key = " + key );
 			
-			Parameter	swt_param;
+			final Parameter	swt_param;
 			
 			if ( param instanceof BooleanParameterImpl ){
 				
 				swt_param = new BooleanParameter(current_composite, key, ((BooleanParameterImpl)param).getDefaultValue());
 					
+				param.addListener(
+					new ParameterListener()
+					{
+						public void
+						parameterChanged(
+							org.gudy.azureus2.plugins.ui.config.Parameter	p )
+						{
+							if ( swt_param.getControls()[0].isDisposed()){
+					
+								param.removeListener( this );
+								
+							}else{
+								
+								((BooleanParameter)swt_param).setSelected(((BooleanParameterImpl)param).getValue());
+							}
+						}
+					});
+				
 			}else if ( param instanceof IntParameterImpl ){
 						
 				swt_param = new IntParameter(current_composite, key, ((IntParameterImpl)param).getDefaultValue());
