@@ -67,7 +67,7 @@ public class PeerSocket extends PeerConnection {
       this.currentState = new StateConnecting();
     }
     catch (Exception e) {
-      closeAll(true);
+      closeAll(false);
     }
   }
 
@@ -226,7 +226,7 @@ public class PeerSocket extends PeerConnection {
   public synchronized void closeAll(boolean closedOnError) {
     if (closing)
       return;
-    closing = true;              
+    closing = true;         
     
     //1. Cancel any pending requests (on the manager side)
     cancelRequests();
@@ -277,7 +277,7 @@ public class PeerSocket extends PeerConnection {
       StackTraceElement elts[] = e.getStackTrace();
       for(int i = 0 ; i < elts.length ; i++)
         logger.log(componentID,evtLifeCycle,Logger.INFORMATION,elts[i].toString());
-    }*/
+    }*/        
     
     //In case it was an outgoing connection, established, we can try to reconnect.   
     if((closedOnError) && (this.currentState != null) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 10)) {
@@ -412,10 +412,8 @@ public class PeerSocket extends PeerConnection {
           //After each message has been received, we're not ready to request anymore,
           //Unless we finish the socket's queue, or we start receiving a piece.
           readyToRequest = false;
-          analyseBuffer(readBuffer);
-          if(getState() == TRANSFERING) {
-            if(!readingLength)
-              System.out.println("Not reading lengtht!!!!");
+          analyseBuffer(readBuffer);         
+          if(getState() == TRANSFERING && readingLength) {
             process();
           }
             
