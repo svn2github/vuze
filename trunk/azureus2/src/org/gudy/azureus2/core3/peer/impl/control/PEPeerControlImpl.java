@@ -279,7 +279,7 @@ PEPeerControlImpl
           checkRequests(); //check the requests               
           checkDLPossible(); //look for downloadable pieces          
         }
-        checkSeeds();
+        checkSeeds(false);
         unChoke();
         //prefetchReadOperation();
         //sendReceive(); //Send - Receive data on sockets
@@ -498,6 +498,9 @@ PEPeerControlImpl
           }
         }
       }
+      
+      //Disconnect seeds
+      checkSeeds(true);
       
       boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
       
@@ -1196,9 +1199,9 @@ PEPeerControlImpl
   }
 
   //Methods that checks if we are connected to another seed, and if so, disconnect from him.
-  private void checkSeeds() {
+  private void checkSeeds(boolean forceDisconnect) {
     //If we are not ourself a seed, return
-    if (!_finished || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true)) //$NON-NLS-1$
+    if (!forceDisconnect && (!_finished || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true))) //$NON-NLS-1$
       return;
     synchronized (_connections) {
       for (int i = 0; i < _connections.size(); i++) {
