@@ -180,7 +180,7 @@ PEPeerServerImpl
           
           sckClient.configureBlocking(false);
           
-          sckClient.socket().setSendBufferSize( COConfigurationManager.getIntParameter("MTU.Size") );
+          //sckClient.socket().setSendBufferSize( COConfigurationManager.getIntParameter("MTU.Size") );
           
           adapter.addPeerTransport(sckClient);
           

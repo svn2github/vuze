@@ -73,7 +73,7 @@ public class SocketManager {
           }
           
           channel.socket().setReceiveBufferSize( PEPeerTransport.RECEIVE_BUFF_SIZE );
-          channel.socket().setSendBufferSize( COConfigurationManager.getIntParameter("MTU.Size") );
+          //channel.socket().setSendBufferSize( COConfigurationManager.getIntParameter("MTU.Size") );
           
           channel.configureBlocking( false );
           channel.connect( address );

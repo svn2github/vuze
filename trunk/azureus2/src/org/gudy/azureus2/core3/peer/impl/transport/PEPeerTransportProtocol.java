@@ -129,10 +129,9 @@ PEPeerTransportProtocol
   private boolean queues_empty = true;
   private boolean actively_writing = false;
   private boolean WRITE_DEBUG = System.getProperty("socket.write.debug") == null ? false : true;
-	private int zero_write_count = 0;
   
-  //The client
-		
+  
+  //The client name identification	
 	String client = "";
 
 		//Reader / Writer Loop
@@ -1246,17 +1245,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
             System.out.println( wrote + " [" +poss+ "] F:" + force_flush + " A:" + actively_writing );
           }
           
-          /*
-          if ( wrote == 0 ) {
-            zero_write_count++;
-            if ( zero_write_count == 10 ) {
-            	int size = increaseSendBufferSize();
-            	if (WRITE_DEBUG) System.out.println("increasing send buffer size: " +size);
-              zero_write_count = 0;
-            }
-          }
-          */
-
           if ( !c_buff.hasRemaining() ) { //done writing the cache buffer
             c_buff.position( 0 );
             c_buff.limit( MSS_SIZE );
@@ -1858,7 +1846,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  }
 	    }
 	}
-    
-  protected abstract int increaseSendBufferSize();
+
 		
 }

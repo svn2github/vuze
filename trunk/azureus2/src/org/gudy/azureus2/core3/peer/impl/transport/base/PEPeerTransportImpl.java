@@ -224,15 +224,4 @@ PEPeerTransportImpl
 		}
 	}
   
-  
-  protected int increaseSendBufferSize() {
-    try {
-      int size = socket.socket().getSendBufferSize();
-      if ( size >= 64*1024 ) return size;
-      size = size*2 > 64*1024 ? 64*1024 : size*2;
-      socket.socket().setSendBufferSize( size );
-      return socket.socket().getSendBufferSize();
-    }
-    catch (Throwable t) { t.printStackTrace(); return 0; }
-  }
 }
