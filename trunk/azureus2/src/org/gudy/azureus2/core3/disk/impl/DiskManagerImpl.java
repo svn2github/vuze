@@ -1503,7 +1503,7 @@ DiskManagerImpl
 		Integer pieceInteger;    
 		for (int i = 9; i >= 0; i--) {
       int k = 0;
-			for (int j = 0; j < nbPieces && k < 20; j++) {
+			for (int j = 0; j < nbPieces && k < 50; j++) {
 				if (_piecesRarest[j] && priorityLists[i].get(j)) {
 					pieceInteger = FlyWeightInteger.getInteger(j);
 					pieces.add(pieceInteger);
