@@ -85,7 +85,12 @@ PluginInitializer
   		
   		for (int i=0;i<registration_queue.size();i++){
   			
-  			singleton.initializePluginFromClass((Class)registration_queue.get(i));
+  			try{
+  				singleton.initializePluginFromClass((Class)registration_queue.get(i));
+  				
+  			}catch(PluginException e ){
+  				
+  			}
   		}
   		
   		registration_queue.clear();
@@ -104,7 +109,12 @@ PluginInitializer
  
   	}else{
   		
-  		singleton.initializePluginFromClass( _class );
+  		try{
+  			singleton.initializePluginFromClass( _class );
+  			
+		}catch(PluginException e ){
+  				
+  		}
   	}
   }
   
@@ -149,7 +159,12 @@ PluginInitializer
 	        splash.setCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
 	      }
 	      
-	      initializePluginFromDir(pluginsDirectory[i]);
+	      try{
+	      	initializePluginFromDir(pluginsDirectory[i]);
+	      	
+	      }catch( PluginException e ){
+	      	
+	      }
 	      
 	      if(splash != null) {
 	      	float fPercentagePerTask = splash.getPercentagePerTask();
@@ -166,17 +181,31 @@ PluginInitializer
     
      for (int i=0;i<builtin_plugins.length;i++){
     	
-    	initializePluginFromClass( builtin_plugins[i] );
+     	try{
+     		initializePluginFromClass( builtin_plugins[i] );
+     		
+		}catch(PluginException e ){
+  				
+  		}
     }
   }
   
-  private void initializePluginFromDir(File directory) {
+  private void 
+  initializePluginFromDir(
+  	File directory)
+  
+  	throws PluginException
+  {
   	
   	ClassLoader classLoader = null;
   	
     if(!directory.isDirectory()) return;
     String pluginName = directory.getName();
     File[] pluginContents = directory.listFiles();
+    
+    	// take only the highest version numbers of jars that look versioned
+    
+    pluginContents	= getHighestJarVersions( pluginContents );
     
     for(int i = 0 ; i < pluginContents.length ; i++) {
       classLoader = addFileToClassPath((URLClassLoader)classLoader, pluginContents[i]);
@@ -210,10 +239,13 @@ PluginInitializer
       	}
       }catch (Exception e) {
       	
-      	  LGLogger.logAlert( LGLogger.AT_ERROR, "Can't read 'plugin.properties' for plugin '" + pluginName + "'" );
+      	String	msg =  "Can't read 'plugin.properties' for plugin '" + pluginName + "': file may be missing";
+      	
+      	LGLogger.logAlert( LGLogger.AT_ERROR, msg );
       	  
-          System.out.println("Can't read plugin.properties from plug-in " + pluginName + " : file may be missing.");
-          return;    
+        System.out.println( msg );
+        
+        throw( new PluginException( msg, e ));
       }
 
       plugin_class_string = (String)props.get( "plugin.class");
@@ -237,20 +269,37 @@ PluginInitializer
       			pos = p1+1;
       		}
       
-	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
-	      
-	      Class c = classLoader.loadClass(plugin_class);
-	      
-	      Plugin plugin = (Plugin) c.newInstance();
-	      
-	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
-	      
-	      PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(plugin,this,classLoader,directory.getName(),props,directory.getAbsolutePath());
-	      
-	      plugin.initialize(plugin_interface);
-	      
-	      plugins.add( plugin );
-	      plugin_interfaces.add( plugin_interface );
+      		if ( isPluginLoaded( plugin_class )){
+      			
+      	 		LGLogger.logAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class + "' is already loaded" );
+
+      		}else{
+      			
+      			
+	 	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
+		      
+		      Class c = classLoader.loadClass(plugin_class);
+		      
+		      Plugin plugin = (Plugin) c.newInstance();
+		      
+		      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
+		      
+		      PluginInterfaceImpl plugin_interface = 
+		      		new PluginInterfaceImpl(
+		      					plugin, 
+								this, 
+								directory, 
+								classLoader,
+								directory.getName(),
+								props,
+								directory.getAbsolutePath());
+		      
+		      plugin.initialize(plugin_interface);
+		      
+		      plugins.add( plugin );
+		      
+		      plugin_interfaces.add( plugin_interface );
+      	}
 	      
 	      if ( p1 == -1 ){
 	      	break;
@@ -258,11 +307,21 @@ PluginInitializer
 	      }
       }
     } catch(Throwable e) {
-      e.printStackTrace();
+    	
+    	if ( e instanceof PluginException ){
+    		
+    		throw((PluginException)e);
+    	}
+   
+    	e.printStackTrace();
       
- 	  LGLogger.logAlert( "Error loading plugin '" + pluginName + "'", e );
+    	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+ 	 
+    	LGLogger.logAlert( msg, e );
 
-      System.out.println("Error while loading class " + plugin_class_string + " : " + e);      
+    	System.out.println( msg + " : " + e);
+    	
+    	throw( new PluginException( msg, e ));
     }
   }
   
@@ -294,27 +353,82 @@ PluginInitializer
     return( classLoader );
   }
   
-  protected void initializePluginFromClass(Class plugin_class) {
+  protected void 
+  initializePluginFromClass(
+  	Class 	plugin_class )
   
+  	throws PluginException
+  {
+  
+  	if ( isPluginLoaded( plugin_class )){
+  	
+  		LGLogger.logAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class.getName() + "' is already loaded" );
+  		
+  		return;
+  	}
+  	
   	try{
   		Plugin plugin = (Plugin) plugin_class.newInstance();
   		
-  		PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(plugin, this,plugin_class.getClassLoader(),"",new Properties(),"");
+  		PluginInterfaceImpl plugin_interface = 
+  			new PluginInterfaceImpl(
+  						plugin, 
+						this,
+						plugin_class,
+						plugin_class.getClassLoader(),
+						"",
+						new Properties(),
+						"");
   		
   		plugin.initialize(plugin_interface);
   		
    		plugins.add( plugin );
+   		
    		plugin_interfaces.add( plugin_interface );
    		
-  	} catch(Throwable e) {
+  	}catch(Throwable e){
+  		
   		e.printStackTrace();
   		
-    	LGLogger.logAlert( "Error loading internal plugin '" + plugin_class.getName() + "'", e );
+  		String	msg = "Error loading internal plugin '" + plugin_class.getName() + "'";
+  		
+    	LGLogger.logAlert( msg, e );
 
-  		System.out.println("Error while loading internal plugin class " + plugin_class + " : " + e);      
+  		System.out.println(msg + " : " + e);
+  		
+  		throw( new PluginException( msg, e ));
   	}
   }
   
+  protected void
+  unloadPlugin(
+  	PluginInterfaceImpl		pi )
+  {
+  	plugins.remove( pi.getPlugin());
+  	
+  	plugin_interfaces.remove( pi );
+  }
+  
+  protected void
+  reloadPlugin(
+  	PluginInterfaceImpl		pi )
+  
+  	throws PluginException
+  {
+  	unloadPlugin( pi );
+  	
+  	Object key = pi.getInitializerKey();
+  	
+  	if ( key instanceof File ){
+  		
+  		initializePluginFromDir( (File)key );
+  		
+  	}else{
+  		
+  		initializePluginFromClass( (Class) key );
+  	}
+  }
+ 	
   protected TRHost
   getTrackerHost()
   {
@@ -339,7 +453,15 @@ PluginInitializer
   
   	if ( default_plugin == null ){
   		
-  		default_plugin = new PluginInterfaceImpl(null,this,getClass().getClassLoader(),"default",new Properties(),null);
+  		default_plugin = 
+  			new PluginInterfaceImpl(
+  					null,
+					this,
+					getClass(),
+					getClass().getClassLoader(),
+					"default",
+					new Properties(),
+					null);
   	}
   	
   	return( default_plugin );
@@ -435,4 +557,136 @@ PluginInitializer
   {
   	return( plugin_manager );
   }
+  
+  protected boolean
+  isPluginLoaded(
+  	Class	cla )
+  {
+  	return( isPluginLoaded( cla.getName()));
+  }
+  
+  protected boolean
+  isPluginLoaded(
+  	String	class_name )
+  {  	
+  	for (int i=0;i<plugins.size();i++){
+  		
+  		if ( plugins.get(i).getClass().getName().equals( class_name )){
+  			
+  			return( true );
+  		}
+  	}
+  	
+  	return( false );
+  }
+  
+  	protected File[]
+	getHighestJarVersions(
+		File[]	files )
+	{
+  		List	res 		= new ArrayList();
+  		Map		version_map	= new HashMap();
+  		
+  		for (int i=0;i<files.length;i++){
+  			
+  			File	f = files[i];
+  			
+  			String	name = f.getName().toLowerCase();
+  			
+  			if ( name.endsWith(".jar")){
+  				
+  				int	sep_pos = name.lastIndexOf("_");
+  				
+  				if ( sep_pos == -1 ){
+  					
+  					res.add( f );
+  					
+  				}else{
+  					
+  					String	prefix = name.substring(0,sep_pos);
+					
+					String	version = name.substring(sep_pos+1,name.length()-4);
+					
+					String	prev_version = (String)version_map.get(prefix);
+					
+					if ( prev_version == null ){
+						
+						version_map.put( prefix, version );
+						
+					}else{
+							// versions are a.b.c.d, e.g. 10.2.34
+							
+						boolean	done = false;
+						
+						for (int j=0;j<Math.min(version.length(), prev_version.length());j++){
+							
+							char	t_c	= version.charAt(j);
+							char	p_c	= prev_version.charAt(j);
+							
+							if ( t_c == p_c ){
+								
+								continue;
+							}
+							
+							if ( t_c == '.' ){
+								
+									// prev version higher (e.g. 10.2 -vs- 1.2)
+								
+							}else if ( p_c == '.' ){
+								
+								version_map.put( prefix, version );
+								
+							}else if ( p_c < t_c ){
+								
+								version_map.put( prefix, version );
+							}
+							
+							done	= true;
+							
+							break;
+						}
+						
+						if ( !done ){
+							
+							if ( version.length() > prev_version.length()){
+								
+								version_map.put( prefix, version );
+							}
+						}
+					}
+  				}
+  			}else{
+  				
+  				res.add( f );
+  			}
+  		}
+  		
+  		Iterator	it = version_map.keySet().iterator();
+  		
+  		while(it.hasNext()){
+  			
+  			String	prefix 	= (String)it.next();
+  			String	version	= (String)version_map.get(prefix);
+  			
+  			String	target = prefix + "_" + version + ".";
+  			
+  			for (int i=0;i<files.length;i++){
+  				
+  				File	f = files[i];
+  				
+  				if ( f.getName().toLowerCase().startsWith( target )){
+  					  					
+  					res.add( f );
+  					
+  					break;
+  				}
+  			}
+  		}
+  		
+  		File[]	res_array = new File[res.size()];
+  		
+  		res.toArray( res_array );
+  		
+  		return( res_array );
+  	}
 }

@@ -68,6 +68,7 @@ PluginInterfaceImpl
 {
   protected Plugin				plugin;
   protected PluginInitializer	initialiser;
+  protected Object				initialiser_key;
   protected ClassLoader			class_loader;
   protected List				listeners 		= new ArrayList();
   protected List				event_listeners	= new ArrayList();
@@ -80,6 +81,7 @@ PluginInterfaceImpl
   PluginInterfaceImpl(
   		Plugin				_plugin,
   		PluginInitializer	_initialiser,
+		Object				_initialiser_key,
 		ClassLoader			_class_loader,
 		String 				_key,
 		Properties 			_props,
@@ -87,6 +89,7 @@ PluginInterfaceImpl
   {
   	plugin				= _plugin;
   	initialiser			= _initialiser;
+  	initialiser_key		= _initialiser_key;
   	class_loader		= _class_loader;
   	pluginConfigKey 	= "Plugin." + _key;
     props 				= _props;
@@ -100,6 +103,12 @@ PluginInterfaceImpl
   		return( plugin );
 	}
   
+  	public Object
+	getInitializerKey()
+	{
+  		return( initialiser_key );
+  	}
+  	
   	public PluginManager
 	getPluginManager()
 	{
@@ -252,7 +261,7 @@ PluginInterfaceImpl
   		
   		((UnloadablePlugin)plugin).unload();
   		
-  		throw( new PluginException( "not implemented"));
+  		initialiser.reloadPlugin( this );
   		
   	}else{
   		
