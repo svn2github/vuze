@@ -82,6 +82,7 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
       image.dispose();
     }
     image = img;
+    doPaint();
     return true;
   }
 

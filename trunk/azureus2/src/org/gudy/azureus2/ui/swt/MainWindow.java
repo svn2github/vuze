@@ -1342,8 +1342,15 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   private void setStatusVersion() {
-    if (statusText != null && !statusText.isDisposed())
-      statusText.setText("Azureus " + VERSION + " / " + MessageText.getString("MainWindow.status.latestversion") + " : " + latestVersion); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+    if (statusText != null && !statusText.isDisposed()) {
+      String sText = "";
+      int iSWTVer = SWT.getVersion();
+      if (iSWTVer < 3038) {
+        sText += "SWT v"+ SWT.getVersion() + " is old, please update it. ";
+      }
+      sText += "Azureus " + VERSION + " / " + MessageText.getString("MainWindow.status.latestversion") + " : " + latestVersion;
+      statusText.setText(sText);
+    }
   }
 
   private void setStatusVersionFromOtherThread() {

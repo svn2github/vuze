@@ -126,11 +126,6 @@ public class PiecesItem extends PeerGraphicItem  {
     if (bImageChanged) {
   	  //peerRow.debugOut("refresh()", false);
       setGraphic(image);
-  	  // we could do this:
-      //   getTable().redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
-      // however, that causes "flicker" because first the table row is drawn,
-      // then our image.  So, skip the redraw and paint instead.
-  	  doPaint();
     }
   }
 }

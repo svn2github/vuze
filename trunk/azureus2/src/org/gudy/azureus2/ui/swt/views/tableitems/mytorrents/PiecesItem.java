@@ -130,11 +130,6 @@ public class PiecesItem extends TorrentGraphicItem  {
     if (bImageChanged) {
       setGraphic(image);
   	  //tableRow.debugOut("refresh()", false);
-  	  // we could do this:
-      //   getTable().redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
-      // however, that causes "flicker" because first the table row is drawn,
-      // then our image.  So, skip the redraw and paint instead.
-  	  doPaint();
     }
   }
 }

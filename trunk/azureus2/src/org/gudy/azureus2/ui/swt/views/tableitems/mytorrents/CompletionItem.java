@@ -114,7 +114,6 @@ public class CompletionItem extends TorrentGraphicItem  {
       
     if (!bImageBufferValid) {
       setGraphic(image);
-      doPaint();
     }
   }
 }

@@ -35,7 +35,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
  *
  */
 public class HealthItem extends TorrentGraphicItem  {
-  
+  private String sLastImageName = "";
   /**
    * @param row
    * @param position
@@ -47,9 +47,6 @@ public class HealthItem extends TorrentGraphicItem  {
   }
   
   public void refresh() {
-    boolean valid = torrentRow.isValid();
-    if(valid) return;
-    
     String	image_name = "st_stopped";
     
     DownloadManager manager = torrentRow.getManager();
@@ -65,8 +62,9 @@ public class HealthItem extends TorrentGraphicItem  {
     }
     image_name += "_selected";
     
-    if (setGraphic(ImageRepository.getImage(image_name))) {
-      doPaint();
+    if (!sLastImageName.equals(image_name)) {
+      setGraphic(ImageRepository.getImage(image_name));
+      sLastImageName = image_name;
     }
   }
 }
