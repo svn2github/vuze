@@ -227,6 +227,7 @@ public class PeerSocket extends PeerConnection {
         socket.close();
       }
       catch (Exception e) {
+        System.out.println("PeerSocket::closeAll:: socket.close() EXCEPTION");
         e.printStackTrace();
         // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
       }
