@@ -3,7 +3,6 @@ AZUREUS CHANGELOG
 
 2005.01.xx | Azureus 2.2.0.3
 
-FEATURE: UI | Keyboard shortcut parsing system [CrazyAlchemist]
 FEATURE: Core | Client support for the 'trackerid' announce extension [Nolar]
 FEATURE: Core | Client support for the 'min interval' announce extension [Nolar]
 FEATURE: UI   | Option to disable small fonts under OSX [Nolar]
@@ -17,6 +16,7 @@ FEATURE: Core | RSS Feed parse APIs added to plugin interface [Parg]
 FEATURE: Core | Non-blocking sockets based TCP tracker implementation [Parg]
 FEATURE: UI   | Torrent export option added to SWT UI [Parg]
 FEATURE: Core | Client identification plugin interface [Parg]
+FEATURE: UI | Keyboard shortcut parsing system [CrazyAlchemist]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar]
