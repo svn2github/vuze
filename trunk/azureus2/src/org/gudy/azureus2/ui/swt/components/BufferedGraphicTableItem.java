@@ -120,6 +120,7 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
     if (fillCell) {
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
+/*
         // Enable this for semi-fast visual update with some flicker
         boolean ourGC = (gc == null);
         if (ourGC)
@@ -130,7 +131,6 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
           if (ourGC)
             gc.dispose();
         }
-/*
         // _OR_ enable refresh() for slower visual update with lots of flicker
         //refresh();
         
