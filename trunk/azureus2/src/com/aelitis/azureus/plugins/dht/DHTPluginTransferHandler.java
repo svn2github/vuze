@@ -1,5 +1,5 @@
 /*
- * Created on 18-Feb-2005
+ * Created on 22-Feb-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,9 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ddb;
+package com.aelitis.azureus.plugins.dht;
+
+import java.net.InetSocketAddress;
 
 /**
  * @author parg
@@ -28,23 +30,16 @@ package org.gudy.azureus2.plugins.ddb;
  */
 
 public interface 
-DistributedDatabaseTransferHandler 
+DHTPluginTransferHandler 
 {
-	public DistributedDatabaseValue
-	read(
-		DistributedDatabaseContact			contact,
-		DistributedDatabaseTransferType		type,
-		DistributedDatabaseKey				key )
-	
-		throws DistributedDatabaseException;
+	public byte[]
+	handleRead(
+		InetSocketAddress	originator,
+		byte[]				key );
 	
 	public void
-	write(
-		DistributedDatabaseContact			contact,
-		DistributedDatabaseTransferType		type,
-		DistributedDatabaseKey				key,
-		DistributedDatabaseValue			value )
-	
-		throws DistributedDatabaseException;
-	
+	handleWrite(
+		InetSocketAddress	originator,
+		byte[]				key,
+		byte[]				value );
 }

@@ -28,6 +28,7 @@ package com.aelitis.azureus.core.dht.transport;
  */
 
 import java.io.*;
+import java.net.InetSocketAddress;
 
 public interface 
 DHTTransport 
@@ -57,6 +58,30 @@ DHTTransport
 	
 	public DHTTransportStats
 	getStats();
+	
+		// direct contact-contact communication
+	
+	public void
+	registerTransferHandler(
+		byte[]						handler_key,
+		DHTTransportTransferHandler	handler );
+	
+	public byte[]
+	readTransfer(
+		InetSocketAddress		target,
+		byte[]					handler_key,
+		byte[]					key )
+	
+		throws DHTTransportException;
+	
+	public void
+	writeTransfer(
+		InetSocketAddress		target,
+		byte[]					handler_key,
+		byte[]					key,
+		byte[]					data )
+	
+		throws DHTTransportException;
 	
 	public void
 	addListener(

@@ -1318,6 +1318,40 @@ DHTTransportUDPImpl
 	}
 	
 	public void
+	registerTransferHandler(
+		byte[]						handler_key,
+		DHTTransportTransferHandler	handler )
+	{
+		
+	}
+	
+	public byte[]
+	readTransfer(
+		InetSocketAddress		target,
+		byte[]					handler_key,
+		byte[]					key )
+	
+		throws DHTTransportException
+	{
+		throw( new DHTTransportException( "not imp" ));
+	}
+	
+	public void
+	writeTransfer(
+		InetSocketAddress		target,
+		byte[]					handler_key,
+		byte[]					key,
+		byte[]					data )
+	
+		throws DHTTransportException
+	{
+		
+	}
+	
+	
+	
+	
+	public void
 	process(
 		PRUDPPacketRequest	_request )
 	{

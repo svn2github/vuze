@@ -39,13 +39,16 @@ public class
 DDBaseContactImpl
 	implements DistributedDatabaseContact
 {
+	private DDBaseImpl				ddb;
 	private InetSocketAddress		address;
 	
 	protected
 	DDBaseContactImpl(
+		DDBaseImpl				_ddb,
 		InetSocketAddress		_address )
 	{
-		address	= _address;
+		ddb			= _ddb;
+		address		= _address;
 	}
 	
 	public String
@@ -62,7 +65,7 @@ DDBaseContactImpl
 	
 		throws DistributedDatabaseException
 	{
-		// TODO:
+		throw( new DistributedDatabaseException( "not implemented" ));
 	}
 	
 	public DistributedDatabaseValue
@@ -72,6 +75,16 @@ DDBaseContactImpl
 	
 		throws DistributedDatabaseException
 	{
-		throw( new DistributedDatabaseException(""));	// TODO:
+		byte[]	data = ddb.getDHT().read( 
+							address,
+							DDBaseHelpers.getKey(type.getClass()).getHash(),
+							((DDBaseKeyImpl)key).getBytes());
+							
+		if ( data == null ){
+			
+			return( null );
+		}
+		
+		return( new DDBaseValueImpl( new DDBaseContactImpl( ddb, address ),data));
 	}
 }

@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.transport.loopback;
 
 import java.util.*;
 import java.io.*;
+import java.net.InetSocketAddress;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -542,6 +543,36 @@ DHTTransportLoopbackImpl
 	triggerFailure()
 	{
 		return( Math.random()*100 < FAIL_PERCENTAGE );
+	}
+	
+	public void
+	registerTransferHandler(
+		byte[]						handler_key,
+		DHTTransportTransferHandler	handler )
+	{
+	}
+	
+	public byte[]
+	readTransfer(
+		InetSocketAddress		target,
+		byte[]					handler_key,
+		byte[]					key )
+	
+		throws DHTTransportException
+	{
+		throw( new DHTTransportException("not imp"));
+	}
+	
+	public void
+	writeTransfer(
+		InetSocketAddress		target,
+		byte[]					handler_key,
+		byte[]					key,
+		byte[]					data )
+	
+		throws DHTTransportException
+	{
+		throw( new DHTTransportException("not imp"));
 	}
 	
 	public void

@@ -53,9 +53,11 @@ import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransportTransferHandler;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
@@ -839,5 +841,60 @@ DHTPlugin
 		}
 		
 		return( dht.getTransport().getLocalContact().getAddress());
+	}
+	
+		// direct read/write support
+	
+	public void
+	registerHandler(
+		byte[]							handler_key,
+		final DHTPluginTransferHandler	handler )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		dht.getTransport().registerTransferHandler( 
+				handler_key,
+				new DHTTransportTransferHandler()
+				{
+					public byte[]
+					handleRead(
+						InetSocketAddress	originator,
+						byte[]				key )
+					{
+						return( handler.handleRead( originator, key ));
+					}
+					
+					public void
+					handleWrite(
+						InetSocketAddress	originator,
+						byte[]				key,
+						byte[]				value )
+					{
+						handler.handleWrite( originator, key, value );
+					}
+				});
+	}
+	
+	public byte[]
+	read(
+		InetSocketAddress		target,
+		byte[]					handler_key,
+		byte[]					key )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		try{
+			return( dht.getTransport().readTransfer( target, handler_key, key ));
+			
+		}catch( DHTTransportException e ){
+			
+			throw( new RuntimeException( e ));
+		}
 	}
 }

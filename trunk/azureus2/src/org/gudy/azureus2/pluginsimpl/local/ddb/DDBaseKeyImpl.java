@@ -22,10 +22,6 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
 

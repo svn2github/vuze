@@ -22,9 +22,13 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
+import java.util.*;
+
 import java.net.InetSocketAddress;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
 
@@ -32,6 +36,7 @@ import org.gudy.azureus2.plugins.ddb.*;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
+import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
 
 /**
  * @author parg
@@ -45,6 +50,8 @@ DDBaseImpl
 	private static DDBaseImpl	singleton;
 	
 	protected static AEMonitor		class_mon	= new AEMonitor( "DDBaseImpl:class");
+
+	protected static Map			transfer_map = new HashMap();
 	
 	public static DistributedDatabase
 	getSingleton(
@@ -105,6 +112,16 @@ DDBaseImpl
 		}
 	}
 	
+	protected DHTPlugin
+	getDHT()
+	
+		throws DistributedDatabaseException
+	{
+		throwIfNotAvailable();
+		
+		return( dht );
+	}
+	
 	public DistributedDatabaseKey
 	createKey(
 		Object			key )
@@ -124,7 +141,7 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		return( new DDBaseValueImpl( new DDBaseContactImpl( dht.getLocalAddress()), value ));
+		return( new DDBaseValueImpl( new DDBaseContactImpl( this, dht.getLocalAddress()), value ));
 	}
 	
 	public void
@@ -168,12 +185,67 @@ DDBaseImpl
 	
 	public void
 	addTransferHandler(
-		DistributedDatabaseTransferType		type,
-		DistributedDatabaseTransferHandler	handler )
+		final DistributedDatabaseTransferType		type,
+		final DistributedDatabaseTransferHandler	handler )
 	
 		throws DistributedDatabaseException
 	{
-		// TODO:
+		final HashWrapper	type_key = DDBaseHelpers.getKey( type.getClass());
+		
+		if ( transfer_map.get( type_key ) != null ){
+			
+			throw( new DistributedDatabaseException( "Handler for class '" + type.getClass().getName() + "' already defined" ));
+		}
+		
+		transfer_map.put( type_key, handler );
+		
+		dht.registerHandler(
+			type_key.getHash(),
+			new DHTPluginTransferHandler()
+			{
+				public byte[]
+				handleRead(
+					InetSocketAddress	originator,
+					byte[]				xfer_key )
+				{
+					try{
+						DDBaseValueImpl	res = (DDBaseValueImpl)
+							handler.read(
+									new DDBaseContactImpl( DDBaseImpl.this, originator ),
+									type,
+									new DDBaseKeyImpl( xfer_key ));
+						
+						return( res.getBytes());
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+						
+						return( null );
+					}
+				}
+				
+				public void
+				handleWrite(
+					InetSocketAddress	originator,
+					byte[]				xfer_key,
+					byte[]				value )
+				{
+					try{
+						DDBaseContactImpl	contact = new DDBaseContactImpl( DDBaseImpl.this, originator );
+						
+						handler.write( 
+							contact,
+							type,
+							new DDBaseKeyImpl( xfer_key ),
+							new DDBaseValueImpl( contact, value ));
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			});
 	}
 	
 	protected class
@@ -251,7 +323,7 @@ DDBaseImpl
 			type		= _type;
 			key			= _key;
 			
-			contact	= new DDBaseContactImpl( _address );
+			contact	= new DDBaseContactImpl( DDBaseImpl.this, _address );
 			
 			value	= new DDBaseValueImpl( contact, _value ); 
 		}
