@@ -40,6 +40,7 @@ TimerEvent
 	protected
 	TimerEvent(
 		Timer					_timer,
+		long					_created,
 		long					_when,
 		TimerEventPerformer		_performer )
 	{
@@ -47,7 +48,7 @@ TimerEvent
 		when		= _when;
 		performer	= _performer;
 		
-		created 	= System.currentTimeMillis();
+		created 	= _created;
 	}
 		
 	public long

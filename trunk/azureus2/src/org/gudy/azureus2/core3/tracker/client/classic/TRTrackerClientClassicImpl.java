@@ -50,7 +50,7 @@ TRTrackerClientClassicImpl
 	implements TRTrackerClient 
 {
 	private static final int REFRESH_ERROR_SECS			= 120;
-	private static final int OVERRIDE_PERIOD			= 30*1000;
+	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
 	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
 	
@@ -285,12 +285,13 @@ TRTrackerClientClassicImpl
 								
 					long target_time = start + (secs_to_wait*1000);
 
-					if ( target_time < expiry ){
+					if ( target_time != expiry ){
 						
 						current_timer_event.cancel();
 						
 						current_timer_event = 
 							tracker_timer.addEvent( 
+								start,
 								target_time,
 								timer_event_action );					
 					}			

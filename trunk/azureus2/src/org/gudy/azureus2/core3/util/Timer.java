@@ -118,7 +118,16 @@ public class Timer
 		long				when,
 		TimerEventPerformer	performer )
 	{
-		TimerEvent	event = new TimerEvent( this, when, performer );
+		return( addEvent( System.currentTimeMillis(), when, performer ));
+	}
+	
+	public synchronized TimerEvent
+	addEvent(
+		long				creation_time,
+		long				when,
+		TimerEventPerformer	performer )
+	{
+		TimerEvent	event = new TimerEvent( this, creation_time, when, performer );
 		
 		events.add( event );
 		
