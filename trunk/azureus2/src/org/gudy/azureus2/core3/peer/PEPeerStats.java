@@ -48,6 +48,9 @@ PEPeerStats
  
   public long getStatisticSentAverage();
   
+  /** Bytes the peer downloaded while we have been connected to it (not necessarily from us */
+	public long getBytesDone();
+
   public void
   received(
   	int		bytes );

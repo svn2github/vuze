@@ -104,7 +104,7 @@ PEPeerManager
 
 	public int getPiecesNumber();
 
-	public int getPieceLength();
+  public int getPieceLength(int pieceNumber);
 		
 	public long getRemaining();
 

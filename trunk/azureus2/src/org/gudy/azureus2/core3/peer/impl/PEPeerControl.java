@@ -71,11 +71,9 @@ PEPeerControl
 
 	public void 
 	havePiece(
-		int 		pieceNumber, 
-		PEPeer 		pcOrigin );
-
-	public void 
-	haveNewPiece();
+		int pieceNumber,
+		int pieceLength,
+		PEPeer pcOrigin );
 
 	public boolean 
 	isOptimisticUnchoke(

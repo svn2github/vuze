@@ -33,8 +33,6 @@ public class
 PEPeerManagerStatsImpl 
 	implements PEPeerManagerStats
 {
-	private int pieceLength;
-
 	private long totalReceived;
 	private long totalSent;
 	  
@@ -47,10 +45,8 @@ PEPeerManagerStatsImpl
 
 
 
-	public PEPeerManagerStatsImpl(int pieceLength) {
+	public PEPeerManagerStatsImpl() {
 //		timeCreated = SystemTime.getCurrentTime() / 100;
-
-	  this.pieceLength = pieceLength;
 
 	  //average over 10s, update every 2000ms.
 	  receptionSpeed = Average.getInstance(2000, 15);
@@ -76,7 +72,7 @@ PEPeerManagerStatsImpl
 	  sendingSpeed.addValue(length);
 	}
 
-	public void haveNewPiece() {
+	public void haveNewPiece(int pieceLength) {
 	  totalHave += pieceLength;
 	  overallSpeed.addValue(pieceLength);
 	}

@@ -223,7 +223,7 @@ PEPeerTransportProtocol
 			
 			allocateAll();
 			
-			LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Creating incoming connection from " + ip + " : " + port);
+			LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Creating incoming connection from " + toString());
 			
 			handShake( data_already_read );
 			
@@ -267,7 +267,7 @@ PEPeerTransportProtocol
     
   		readBuffer = DirectByteBufferPool.getBuffer( 68 );
   		if ( readBuffer == null ) {
-  			closeAll(ip + " : PeerSocket::handShake:: readBuffer null", true, false);
+  			closeAll(toString() + " : PeerSocket::handShake:: readBuffer null", true, false);
   			return;
   		}
 
@@ -276,7 +276,7 @@ PEPeerTransportProtocol
   		}
   	}
   	catch (Exception e) {
-  		closeAll(ip + " : Exception in handshake : " + e, true, false);
+  		closeAll(toString() + " : Exception in handshake : " + e, true, false);
   	}
   }
   
@@ -287,26 +287,26 @@ PEPeerTransportProtocol
 
    byte b;
 	if ((b = readBuffer.get()) != (byte) BTHandshake.PROTOCOL.length()) {
-	   closeAll(ip + " has sent handshake, but handshake starts with wrong byte : " + b,true, true);
+	   closeAll(toString() + " has sent handshake, but handshake starts with wrong byte : " + b,true, true);
 	   return;
 	}
 
 	byte[] protocol = BTHandshake.PROTOCOL.getBytes();
 	if (readBuffer.remaining() < protocol.length) {
-	   closeAll(ip + " has sent handshake, but handshake is of wrong size : " + readBuffer.remaining(),true, true);
+	   closeAll(toString() + " has sent handshake, but handshake is of wrong size : " + readBuffer.remaining(),true, true);
 	   return;
 	}
 	else {
 	   readBuffer.get(protocol);
 	   if (!(new String(protocol)).equals(BTHandshake.PROTOCOL)) {
-		  closeAll(ip + " has sent handshake, but protocol is wrong : " + new String(protocol),true, false);
+		  closeAll(toString() + " has sent handshake, but protocol is wrong : " + new String(protocol),true, false);
 		  return;
 	   }
 	}
 
 	byte[] reserved = new byte[8];
 	if (readBuffer.remaining() < reserved.length) {
-	   closeAll(ip + " has sent handshake, but handshake is of wrong size(2) : " + readBuffer.remaining(),true, true);
+	   closeAll(toString() + " has sent handshake, but handshake is of wrong size(2) : " + readBuffer.remaining(),true, true);
 	   return;
 	}
 	else readBuffer.get(reserved);
@@ -316,14 +316,14 @@ PEPeerTransportProtocol
 	byte[] hash = manager.getHash();
 	byte[] otherHash = new byte[20];
 	if (readBuffer.remaining() < otherHash.length) {
-	   closeAll(ip + " has sent handshake, but handshake is of wrong size(3) : " + readBuffer.remaining(),true, true);
+	   closeAll(toString() + " has sent handshake, but handshake is of wrong size(3) : " + readBuffer.remaining(),true, true);
 	   return;
 	}
 	else {
 	   readBuffer.get(otherHash);
 	   for (int i = 0; i < 20; i++) {
 		  if (otherHash[i] != hash[i]) {
-			 closeAll(ip + " has sent handshake, but infohash is wrong",true, false);
+			 closeAll(toString() + " has sent handshake, but infohash is wrong",true, false);
 			 return;
 		  }
 	   }
@@ -332,7 +332,7 @@ PEPeerTransportProtocol
     
 	byte[] otherPeerId = new byte[20];
 	if (readBuffer.remaining() < otherPeerId.length) {
-	   closeAll(ip + " has sent handshake, but handshake is of wrong size(4) : " + readBuffer.remaining(),true, true);
+	   closeAll(toString() + " has sent handshake, but handshake is of wrong size(4) : " + readBuffer.remaining(),true, true);
 	   return;
 	}
 	else readBuffer.get(otherPeerId);
@@ -358,11 +358,11 @@ PEPeerTransportProtocol
     }
   }
   if ( sameIdentity ) {
-    closeAll(ip + " exchanged handshake, but peer matches pre-existing identity", false, false);
+    closeAll(toString() + " exchanged handshake, but peer matches pre-existing identity", false, false);
     return;
   }
   if ( sameIP ) {
-    closeAll(ip + " exchanged handshake, but peer matches pre-existing IP address", false, false);
+    closeAll(toString() + " exchanged handshake, but peer matches pre-existing IP address", false, false);
     return;
   }
   
@@ -375,13 +375,16 @@ PEPeerTransportProtocol
   }
   
   
-
   PeerIdentityManager.addIdentity( otherHash, otherPeerId, ip );
   identityAdded = true;
  
   
 	//decode a client identification string from the given peerID
 	client = Identification.decode(otherPeerId);
+
+  LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
+               toString() + " has sent a handshake");
+
 
 	sendBitField();
 	readMessage(readBuffer);
@@ -410,7 +413,7 @@ PEPeerTransportProtocol
           if ( msg.getType() == BTMessage.BT_CHOKE || msg.getType() == BTMessage.BT_UNCHOKE ) {
             i.remove();
             LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION,
-                         "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " +ip+ ":" +port+ " [" +client+ "]" );
+                         "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " + toString());
           }
         }
       }
@@ -500,7 +503,7 @@ PEPeerTransportProtocol
   	manager.peerRemoved(this);
   	
   	//Send a logger event
-  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
+  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + toString());
   	
   	if ( (attemptReconnect)
 		  && (currentState != null)
@@ -508,7 +511,7 @@ PEPeerTransportProtocol
 			&& (incoming == false)
 			&& (nbConnections < 3)) {
       
-  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
+  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + toString());
   		currentState = new StateConnecting();
   	}
   	else {
@@ -523,7 +526,7 @@ PEPeerTransportProtocol
     private StateConnecting() {
       nbConnections++;
       allocateAll();
-      LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + ip + " : " + port);
+      LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + PEPeerTransportProtocol.this);
 
       startConnection();
     }
@@ -537,7 +540,7 @@ PEPeerTransportProtocol
         return PEPeerControl.WAITING_SLEEP;
   		}
   		catch (IOException e) {
-  			closeAll("Error in StateConnecting: (" + ip + " : " + port + " ) : " + e, false, false);
+  			closeAll("Error in StateConnecting: (" + PEPeerTransportProtocol.this + " ) : " + e, false, false);
   			return PEPeerControl.NO_SLEEP;
   		}
   	}
@@ -559,7 +562,7 @@ PEPeerTransportProtocol
 						throw new IOException("End of Stream Reached");
           }
 				} catch (IOException e) {
-					closeAll(ip + " : StateHandshaking:: " + e, true, false);
+					closeAll(PEPeerTransportProtocol.this + " : StateHandshaking:: " + e, true, false);
 					return 0;
 				}
 			}
@@ -605,7 +608,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           }
         }
         catch (IOException e) {
-          closeAll(ip + " : StateTransfering::" + e.getMessage()+ " (reading length)",true, true);
+          closeAll(PEPeerTransportProtocol.this + " : StateTransfering::" + e.getMessage()+ " (reading length)",true, true);
           return PEPeerControl.NO_SLEEP;
         }
 			}
@@ -614,12 +617,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 				int length = lengthBuffer.getInt(0);
 		  
 				if(length < 0) {
-					closeAll(ip + " : length negative : " + length,true, true);
+					closeAll(PEPeerTransportProtocol.this + " : length negative : " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
 				}
       
 				if(length >= DirectByteBufferPool.MAX_SIZE) {
-					closeAll(ip + " : length greater than max size : " + length,true, true);
+					closeAll(PEPeerTransportProtocol.this + " : length greater than max size : " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
 				}
         
@@ -628,7 +631,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 					if(readBuffer.capacity() < length) {
 						readBuffer.returnToPool();
 						readBuffer = DirectByteBufferPool.getBuffer(length);
-            if (readBuffer == null) { closeAll(ip + " readBuffer null",true, false); }
+            if (readBuffer == null) { closeAll(PEPeerTransportProtocol.this + " readBuffer null",true, false); }
 					}
       			
 					readBuffer.position(0);
@@ -670,7 +673,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	  		}
 	  	}
 	  	catch (IOException e) {
-	  		closeAll(ip + " : StateTransfering::End of Stream Reached (reading data)",true, true);
+	  		closeAll(PEPeerTransportProtocol.this + " : StateTransfering::End of Stream Reached (reading data)",true, true);
 	  		return PEPeerControl.NO_SLEEP;
 	  	}
     
@@ -713,7 +716,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	}
   	catch (Exception e) {
   		e.printStackTrace();
-  		closeAll(ip + " : Exception in process : " + e,true, false);
+  		closeAll(toString() + " : Exception in process : " + e,true, false);
       return PEPeerControl.NO_SLEEP;
   	}
   }
@@ -726,7 +729,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     }
     catch (Exception e) {
       e.printStackTrace();
-      closeAll(ip + " : Exception in process : " + e,true, false);
+      closeAll(toString() + " : Exception in process : " + e,true, false);
       return PEPeerControl.NO_SLEEP;
     }
   }
@@ -760,53 +763,59 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	switch (cmd) {
 	  case BT_CHOKED :
 			if (buffer.limit() != 1) {
-			  closeAll(ip + " choking received, but message of wrong size : " + buffer.limit(),true, true);
+			  closeAll(toString() + " choking received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
+			                                  toString() + " is choking you");
 			choked = true;
 			cancelRequests();
 			readMessage(buffer);
 			break;
 	  case BT_UNCHOKED :
 			if (buffer.limit() != 1) {
-			  closeAll(ip + " unchoking received, but message of wrong size : " + buffer.limit(),true, true);
+			  closeAll(toString() + " unchoking received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
+			                                  toString() + " is unchoking you");
 			choked = false;
 			readMessage(buffer);
 			break;
 	  case BT_INTERESTED :
 			if (buffer.limit() != 1) {
-			  closeAll(ip + " interested received, but message of wrong size : " + buffer.limit(),true, true);
+			  closeAll(toString() + " interested received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
+			                                  toString() + " is interested");
 			interesting = true;
 			readMessage(buffer);
 			break;
 	  case BT_UNINTERESTED :
 			if (buffer.limit() != 1) {
-			  closeAll(ip + " uninterested received, but message of wrong size : " + buffer.limit(),true, true);
+			  closeAll(toString() + " uninterested received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
+			                                  toString() + " is not interested");
 			interesting = false;
 			readMessage(buffer);
 			break;
 	  case BT_HAVE :
 			if (buffer.limit() != 5) {
-			  closeAll(ip + " have received, but message of wrong size : " + buffer.limit(),true, true);
+			  closeAll(toString() + " have received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
 			pieceNumber = buffer.getInt();
-			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has " + pieceNumber);
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
+			                                  toString() + " has " + pieceNumber);
 			have(pieceNumber);
 			readMessage(buffer);
 			break;
 	  case BT_BITFIELD :
-	  	if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent BitField");
+	  	if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
+			                                  toString() + " has sent BitField");
 			setBitField(buffer);
 			checkInterested();
 			checkSeed();
@@ -814,29 +823,23 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			break;
 	  case BT_REQUEST :
 			if (buffer.limit() != 13) {
-			  closeAll(ip + " request received, but message of wrong size : " + buffer.limit(),true, true);
+			  closeAll(toString() + " request received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
 			pieceNumber = buffer.getInt();
 			pieceOffset = buffer.getInt();
 			pieceLength = buffer.getInt();
 			
-			if ( logging_is_on ){
-				LGLogger.log(
-					componentID,
-					evtProtocol,
-					LGLogger.RECEIVED,
-					ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-			}
+			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
+			                                  toString() + " has requested #" + 
+			                                  pieceNumber + ":" + pieceOffset + "->" + 
+			                                  (pieceOffset + pieceLength));
 			
 			if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
 			  if(!choking) {
 			    sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 			  } else {
-			    LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,ip
-          + " ("
-          + client
-          + ")"
+			    LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, toString()
 	        + " has requested #"
 	        + pieceNumber
 	        + ":"
@@ -847,7 +850,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  }
 			}
 			else {
-			  closeAll(ip
+			  closeAll(toString()
 	        + " has requested #"
 	        + pieceNumber
 	        + ":"
@@ -862,7 +865,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			break;
 	  case BT_PIECE :
 			if (buffer.limit() < 9) {
-			   closeAll(ip + " piece block received, but message of wrong size : " + buffer.limit(),true, true);
+			   closeAll(toString() + " piece block received, but message of wrong size : " + buffer.limit(),true, true);
 			   break;
 			}
 			pieceNumber = buffer.getInt();
@@ -873,7 +876,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 					componentID,
 					evtProtocol,
 					LGLogger.RECEIVED,
-					ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+					toString() + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
 			}
 			DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
 			if (alreadyRequested(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
@@ -883,11 +886,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  reSetRequestsTime();
 			  manager.writeBlock(pieceNumber, pieceOffset, buffer,this);
         buffer = DirectByteBufferPool.getBuffer( buffer.limit() );
-        if (buffer == null) { closeAll(ip + " BT_PIECE buffer null",true, false); }
+        if (buffer == null)
+          closeAll(toString() + " BT_PIECE buffer null", true, false);
 			  readMessage(buffer);      
 			}
 			else {
-        String msg = ip + " [" + client + "]" + " has sent #" + pieceNumber + ":"
+        String msg = toString() + " has sent #" + pieceNumber + ":"
                      + pieceOffset + "->" + (pieceOffset + pieceLength);
         if (alreadyRequested(request))
           msg += " but piece block was discarded as invalid";
@@ -902,7 +906,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			break;
 	  case BT_CANCEL :
 			if (buffer.limit() != 13) {
-			  closeAll(ip + " cancel received, but message of wrong size : " + buffer.limit(),true, true);
+			  closeAll(toString() + " cancel received, but message of wrong size : " + buffer.limit(),true, true);
 			  break;
 			}
 			pieceNumber = buffer.getInt();
@@ -913,27 +917,27 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 					componentID,
 					evtProtocol,
 					LGLogger.RECEIVED,
-					ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+					toString() + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
 			}
 			removeRequestFromQueue(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 			readMessage(buffer);
 			break;
 	  default:
-       Debug.out(ip + " [" + client + "] has sent an unknown protocol message id: " + cmd);
-	    closeAll(ip + " has sent a wrong message " + cmd,true, true);
+       Debug.out(toString() + " has sent an unknown protocol message id: " + cmd);
+	    closeAll(toString() + " has sent a wrong message " + cmd,true, true);
 	}
   }
 
   private void have(int pieceNumber) {
 	if ((pieceNumber >= available.length) || (pieceNumber < 0)) {
-	   closeAll(ip + " gave invalid pieceNumber:" + pieceNumber,true, true);
+	   closeAll(toString() + " gave invalid pieceNumber:" + pieceNumber,true, true);
       return;
 	}
 	else {    
 	  available[pieceNumber] = true;
-	  stats.haveNewPiece();
-	  manager.haveNewPiece();
-	  manager.havePiece(pieceNumber, this);
+    int pieceLength = manager.getPieceLength(pieceNumber);
+	  stats.haveNewPiece(pieceLength);
+	  manager.havePiece(pieceNumber, pieceLength, this);
 	  if (!interested)
 		 checkInterested(pieceNumber);
 	  checkSeed();
@@ -1012,7 +1016,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	byte[] dataf = new byte[(manager.getPiecesNumber() + 7) / 8];
    
 	if (buffer.remaining() < dataf.length) {
-     LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent invalid BitField: too short");
+     LGLogger.log(componentID, evtProtocol, LGLogger.ERROR, 
+                  toString() + " has sent invalid BitField: too short");
 	  return;
    }
    
@@ -1227,7 +1232,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   			}
   		}
   		catch (IOException e) {
-  			closeAll("Error while writing to " + ip +" : " + e,true, true);
+  			closeAll("Error while writing to " + toString() +" : " + e,true, true);
   			return PEPeerControl.NO_SLEEP;
   		}
   		
@@ -1263,7 +1268,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   			
       		writeBuffer.position( 0 );
   			  writeData = false;
-          String log = "Sending " +msg.getDescription()+ " message to " +ip+ ":" +port+ " [" +client+ "]";
+          String log = "Sending " +msg.getDescription()+ " message to " + toString();
           LGLogger.log( componentID, evtProtocol, LGLogger.SENT, log );
   			  //and loop
   			  write();
@@ -1292,7 +1297,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       						componentID,
 									evtProtocol,
 									LGLogger.SENT,
-									ip
+									toString()
 									+ " is being sent #"
 									+ request.getPieceNumber()
 									+ ":"
@@ -1738,8 +1743,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           BTMessage msg = (BTMessage)i.next();
           if ( msg.getType() == BTMessage.BT_REQUEST ) {
             i.remove();
-            LGLogger.log(componentID, evtLifeCycle,
-                         LGLogger.INFORMATION, "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " +ip+ ":" +port+ " [" +client+ "]" );
+            LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, 
+                         "Removing previously-unsent " +msg.getDescription()+ 
+                         " message from protocol queue to " + toString());
           }
         }
       }
@@ -1823,5 +1829,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	    }
 	}
 
-		
+	public String toString() {
+    return ip + ":" + port + " [" + client+ "]";
+	}
 }

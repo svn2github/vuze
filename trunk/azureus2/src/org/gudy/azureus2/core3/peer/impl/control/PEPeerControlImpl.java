@@ -1397,11 +1397,6 @@ PEPeerControlImpl
     return _myPeerId;
   }
 
-  //get the piece length
-  public int getPieceLength() {
-    return _diskManager.getPieceLength();
-  }
-
   //get the number of pieces
   public int getPiecesNumber() {
     return _nbPieces;
@@ -1481,13 +1476,9 @@ PEPeerControlImpl
     _availability = new int[_nbPieces];
 
     //the stats
-    _stats = new PEPeerManagerStatsImpl(diskManager.getPieceLength());
+    _stats = new PEPeerManagerStatsImpl();
 
     _server.startServer();	
-  }
-
-  public void haveNewPiece() {
-    _stats.haveNewPiece();
   }
 
   public void blockWritten(int pieceNumber, int offset,PEPeer sender) {
@@ -1532,12 +1523,17 @@ PEPeerControlImpl
   }
 
   public int getAvailability(int pieceNumber) {
+    if (_availability == null)
+      return 0;
     synchronized (_availability) {
       return _availability[pieceNumber];
     }
   }
 
   public float getMinAvailability() {
+    if (_availability == null)
+      return 0;
+
     int total = 0;
     int nbPieces;
     int allMin;
@@ -1560,12 +1556,17 @@ PEPeerControlImpl
   }
 
   public int[] getAvailability() {
+    if (_availability == null)
+      return null;
+
     synchronized (_availability) {
       return _availability;
     }
   }
 
-  public void havePiece(int pieceNumber, PEPeer pcOrigin) {
+  public void havePiece(int pieceNumber, int pieceLength, PEPeer pcOrigin) {
+    _stats.haveNewPiece(pieceLength);
+
     if(superSeedMode) {
       superSeedPieces[pieceNumber].peerHasPiece(pcOrigin);
       if(pieceNumber == pcOrigin.getUniqueAnnounce()) {
@@ -1573,7 +1574,6 @@ PEPeerControlImpl
         superSeedModeNumberOfAnnounces--;
       }      
     }
-    int length = getPieceLength(pieceNumber);
     int availability = _availability[pieceNumber];
     if (availability < 4) {
       if (_downloaded[pieceNumber])
@@ -1587,7 +1587,7 @@ PEPeerControlImpl
           if (pc != null && pc != pcOrigin && pc.getState() == PEPeer.TRANSFERING) {
             boolean[] peerAvailable = pc.getAvailable();
             if (peerAvailable[pieceNumber])
-              ((PEPeerStatsImpl)pc.getStats()).statisticSent(length / availability);
+              ((PEPeerStatsImpl)pc.getStats()).statisticSent(pieceLength / availability);
           }
         }
       }
@@ -1949,7 +1949,7 @@ PEPeerControlImpl
   public PEPeerStats
   createPeerStats()
   {
-  	return( new PEPeerStatsImpl( getPieceLength()));
+  	return( new PEPeerStatsImpl() );
   }
 
   public DiskManagerRequest
