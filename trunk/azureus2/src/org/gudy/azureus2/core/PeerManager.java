@@ -3,11 +3,7 @@ package org.gudy.azureus2.core;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core2.PeerSocket;
@@ -60,9 +56,13 @@ PeerManager
   private DownloadManager _manager;
   private List requestsToFree;
   private PeerUpdater peerUpdater;
-
+  
+  boolean slowConnect;
+  private SlowConnector slowConnector;
+  private List slowQueue;
+  
   private int uploadCount = 0;
-
+  
   private List RequestExpired;
   
   private int nbHashFails;
@@ -124,6 +124,15 @@ PeerManager
 
     peerUpdater = new PeerUpdater();
     peerUpdater.start();
+    
+    /* create new outgoing connections slowly */
+    slowConnect = COConfigurationManager.getBooleanParameter("Slow Connect", false);
+    if (slowConnect) {
+       slowQueue = Collections.synchronizedList(new LinkedList());
+       slowConnector = new SlowConnector();
+       slowConnector.setDaemon(true);
+       slowConnector.start();
+    }
   }
 
   private class PeerUpdater extends Thread {
@@ -178,6 +187,51 @@ PeerManager
       bContinue = false;
     }
   }
+  
+  /* thread to slow connect new outgoing peer connections */
+  private class SlowConnector extends Thread {
+      private boolean bContinue = true;
+
+      public SlowConnector() {
+         super("Slow Connector");
+      }
+
+      public void run() {
+         PeerSocket pc;
+         
+         while (bContinue) {
+            pc = null;
+            
+            try {
+               /* wait until notified of new connection to slow connect */
+               synchronized (slowQueue) { slowQueue.wait(1000); }
+               
+               /* dequeue waiting connections and process */
+               while ((slowQueue.size() > 0) && bContinue) {
+                  /* get next connection */
+                  pc = (PeerSocket)slowQueue.remove(0);
+                  /* add the connection */
+                  if (pc != null) {
+                     synchronized (_connections) {
+                        //System.out.println("new slow connect: " + (System.currentTimeMillis() /1000));
+                        _connections.add(pc);
+                     }
+                  }
+                  /* wait */
+                  Thread.sleep(1000);
+               }
+            } catch (Exception e) {
+               e.printStackTrace();
+            }
+         }
+      }
+
+      public void stopIt() {
+        bContinue = false;
+      }
+    }
+  
+  
 
   //main method
   public void run() {
@@ -223,6 +277,9 @@ PeerManager
 
     //1. Stop the peer updater
     peerUpdater.stopIt();
+    
+    /* stop the slow connector if running */
+    if (slowConnect) slowConnector.stopIt();
 
     //2. Stop itself
     _bContinue = false;
@@ -309,6 +366,7 @@ PeerManager
  	addPeersFromTracker(
  		TRTrackerResponsePeer[]		peers )
  	{
+      
 		for (int i = 0; i < peers.length; i++){
       	
 			TRTrackerResponsePeer	peer = peers[i];
@@ -750,13 +808,21 @@ PeerManager
   private synchronized void insertPeerSocket(PeerSocket pc) {
     //Get the max number of connections allowed
     int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0); //$NON-NLS-1$
-
+        
     synchronized (_connections) {
       //does our list already contain this PeerConnection?  
       if (!_connections.contains(pc)) //if not
         {
         if (maxConnections == 0 || _connections.size() < maxConnections) {
-          _connections.add(pc); //add the connection
+           /* do we need to slow down new connection creation? */
+           if (slowConnect) {
+              /* add connection to be slow-connected */
+              slowQueue.add(pc);
+              synchronized (slowQueue) { slowQueue.notify(); }
+           }
+           else {
+              _connections.add(pc); //add the connection
+           }
         } else {
           pc.closeAll(false);
           pc = null;
