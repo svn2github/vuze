@@ -283,6 +283,7 @@ TRBlockingServerProcessor
 								lowercase_header,
 								url, 
 								socket.getInetAddress().getHostAddress(),
+								false,
 								post_is,
 								head_response );
 						
@@ -315,6 +316,7 @@ TRBlockingServerProcessor
 										lowercase_header,
 										url, 
 										socket.getInetAddress().getHostAddress(),
+										false,
 										post_is,
 										socket.getOutputStream() );
 					}

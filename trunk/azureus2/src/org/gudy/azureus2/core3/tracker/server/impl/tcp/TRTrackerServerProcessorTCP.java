@@ -91,6 +91,7 @@ TRTrackerServerProcessorTCP
 		String			lowercase_input_header,
 		String			url_path,
 		String			client_ip_address,
+		boolean			announce_and_scrape_only,
 		InputStream		is,
 		OutputStream	os )
 		
@@ -127,6 +128,11 @@ TRTrackerServerProcessorTCP
 					str = "";
 				
 				}else{
+					
+					if ( announce_and_scrape_only ){
+						
+						throw( new Exception( "Tracker only supports announce and scrape functions" ));
+					}
 					
 					setTaskState( "external request" );
 

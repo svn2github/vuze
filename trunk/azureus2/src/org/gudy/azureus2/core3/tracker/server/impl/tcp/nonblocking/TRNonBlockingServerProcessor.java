@@ -171,6 +171,7 @@ TRNonBlockingServerProcessor
 							request_header.toLowerCase(),
 							url, 
 							socket_channel.socket().getInetAddress().getHostAddress(),
+							true,
 							new ByteArrayInputStream(new byte[0]),
 							response );
 			
