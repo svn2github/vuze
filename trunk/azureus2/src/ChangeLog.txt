@@ -21,6 +21,8 @@ FEATURE: UI   | New language: Japanese [Gouss]
 
 CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
 CHANGE: Core | Default socket write buffer now a more conservative 1460 bytes for smoother uploading [Nolar]
+CHANGE: Core | Central control of global outgoing peer connection rates...i.e. a better SlowConnect [Nolar]
+CHANGE: Core | Unused potential peer connections are cached for later use [Nolar]
 CHANGE: Plug | Tracker web plugin configuration moved to plugin config from core config  [Parg]
 CHANGE: Plug | Tracker web contexts now have the option to not apply IP Filters - this affects the web plugin and xml/http interface [Parg]
 CHANGE: UI   | About Window is closeable by hitting the 'ESC' key [Gudy]
