@@ -291,6 +291,7 @@ DownloadManagerImpl
 		}      
 		
 		if (diskManager != null){
+      stats.setCompleted(stats.getCompleted());
       
 		  if (diskManager.getState() == DiskManager.READY){
 		    diskManager.dumpResumeDataToDisk(true);
