@@ -14,7 +14,7 @@ public class TorrentDownloaderLoggedImpl extends TorrentDownloaderImpl {
 
     public void notifyListener() {
       super.notifyListener();
-      switch(this.getState()) {
+      switch(this.getDownloadState()) {
           case STATE_INIT:
             org.apache.log4j.Logger.getLogger("azureus2.torrentdownloader").info("Download of '"+this.getFile().getName()+"' queued.");
             break;

@@ -106,7 +106,7 @@ public class StartServer extends Thread {
   /**
    * @return
    */
-  public int getState() {
+  public int getServerState() {
     return state;
   }
 

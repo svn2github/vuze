@@ -114,7 +114,7 @@ public class Main {
 
     start = new StartServer();
       
-    if ((start == null) || (start.getState()==StartServer.STATE_FAULTY)) {
+    if ((start == null) || (start.getServerState()==StartServer.STATE_FAULTY)) {
        new StartSocket(args);
     } else {
       COConfigurationManager.checkConfiguration();
