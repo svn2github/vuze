@@ -138,7 +138,7 @@ public class GlobalManagerImpl
   private TorrentFolderWatcher torrent_folder_watcher;
   
   private ArrayList paused_list = new ArrayList();
-  
+  private final AEMonitor paused_list_mon = new AEMonitor( "GlobalManager:PL" );
   
   
   
@@ -661,7 +661,10 @@ public class GlobalManagerImpl
         
         try {
           manager.stopIt( DownloadManager.STATE_STOPPED );
-          paused_list.add( manager.getTorrent().getHashWrapper() );
+          try {  paused_list_mon.enter();
+            paused_list.add( manager.getTorrent().getHashWrapper() );
+          }
+          finally {  paused_list_mon.exit();  }
         }
         catch( TOTorrentException e ) {  Debug.printStackTrace( e );  }
       }
@@ -692,27 +695,33 @@ public class GlobalManagerImpl
 
 
   public void resumeDownloads() {
-    for( int i=0; i < paused_list.size(); i++ ) {      
-      HashWrapper hash = (HashWrapper)paused_list.get( i );
-      DownloadManager manager = getDownloadManager( hash.getHash() );
+    try {  paused_list_mon.enter();
+      for( int i=0; i < paused_list.size(); i++ ) {      
+        HashWrapper hash = (HashWrapper)paused_list.get( i );
+        DownloadManager manager = getDownloadManager( hash.getHash() );
       
-      if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
-        manager.startDownloadInitialized( true );
+        if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
+          manager.startDownloadInitialized( true );
+        }
       }
+      paused_list.clear();
     }
-    paused_list.clear();
+    finally {  paused_list_mon.exit();  }
   }
 
 
   public boolean canResumeDownloads() {
-    for( int i=0; i < paused_list.size(); i++ ) {      
-      HashWrapper hash = (HashWrapper)paused_list.get( i );
-      DownloadManager manager = getDownloadManager( hash.getHash() );
+    try {  paused_list_mon.enter();
+      for( int i=0; i < paused_list.size(); i++ ) {      
+        HashWrapper hash = (HashWrapper)paused_list.get( i );
+        DownloadManager manager = getDownloadManager( hash.getHash() );
       
-      if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
-        return true;
+        if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
+          return true;
+        }
       }
     }
+    finally {  paused_list_mon.exit();  }
     
     return false;
   }
@@ -927,10 +936,13 @@ public class GlobalManagerImpl
       //load pause/resume state
       ArrayList pause_data = (ArrayList)map.get( "pause_data" );
       if( pause_data != null ) {
-        for( int i=0; i < pause_data.size(); i++ ) {
-          byte[] key = (byte[])pause_data.get( i );
-          paused_list.add( new HashWrapper( key ) );
+        try {  paused_list_mon.enter();
+          for( int i=0; i < pause_data.size(); i++ ) {
+            byte[] key = (byte[])pause_data.get( i );
+            paused_list.add( new HashWrapper( key ) );
+          }
         }
+        finally {  paused_list_mon.exit();  }
       }
       
 
@@ -1019,14 +1031,17 @@ public class GlobalManagerImpl
 	    map.put("downloads", list);
       
       //save pause/resume state
-	    if( !paused_list.isEmpty() ) {
-        ArrayList pause_data = new ArrayList();
-        for( int i=0; i < paused_list.size(); i++ ) {
-          HashWrapper hash = (HashWrapper)paused_list.get( i );
-          pause_data.add( hash.getHash() );
-        }
-        map.put( "pause_data", pause_data );
+      try {  paused_list_mon.enter();
+	      if( !paused_list.isEmpty() ) {
+	        ArrayList pause_data = new ArrayList();
+	        for( int i=0; i < paused_list.size(); i++ ) {
+	          HashWrapper hash = (HashWrapper)paused_list.get( i );
+	          pause_data.add( hash.getHash() );
+	        }
+	        map.put( "pause_data", pause_data );
+	      }
       }
+      finally {  paused_list_mon.exit();  }
       
         
 	    FileUtil.writeResilientConfigFile("downloads.config", map );
