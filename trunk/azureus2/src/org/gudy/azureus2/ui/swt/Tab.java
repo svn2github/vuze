@@ -150,6 +150,11 @@ public class Tab {
         item.dispose();
         return;
       }
+	  if(view != null && view instanceof MyTrackerView) {
+		MainWindow.getWindow().setMyTracker(null);
+		item.dispose();
+		return;
+	  }
 	  try {		  
       Control control = item.getControl();
       if(control != null && ! control.isDisposed())

@@ -127,8 +127,11 @@ public class MainWindow implements GlobalManagerListener {
 
   private GlobalManager globalManager;
 
-  private Tab mytorrents;
+  private Tab 	mytorrents;
   private IView viewMyTorrents;
+  
+  private Tab 	my_tracker_tab;
+  private IView my_tracker_view;
   
   private Tab console;
   private Tab config;
@@ -197,6 +200,18 @@ public class MainWindow implements GlobalManagerListener {
             if (viewMyTorrents != null && viewMyTorrents != view) {
               viewMyTorrents.refresh();
             }
+            
+			try {
+			   if(my_tracker_tab != null)
+				 my_tracker_view = Tab.getView(my_tracker_tab.getTabItem());
+			}
+			 catch (Exception e) {
+			   my_tracker_view = null;
+			 }
+			 if (my_tracker_view != null && my_tracker_view != view) {
+				my_tracker_view.refresh();
+			 }
+          
           }
           if (trayIcon != null)
             trayIcon.refresh();
@@ -331,6 +346,7 @@ public class MainWindow implements GlobalManagerListener {
     this.startServer = server;
     this.globalManager = gm;
     mytorrents = null;
+    my_tracker_tab	= null;
     console = null;
     config = null;
     downloadViews = new HashMap();
@@ -472,6 +488,21 @@ public class MainWindow implements GlobalManagerListener {
       }
     });
 
+	MenuItem view_tracker = new MenuItem(viewMenu, SWT.NULL);
+	Messages.setLanguageText(view_tracker, "MainWindow.menu.view.mytracker"); //$NON-NLS-1$
+	view_tracker.addListener(SWT.Selection, new Listener() {
+	  public void handleEvent(Event e) {
+		if (my_tracker_tab == null) {
+		  if(my_tracker_view == null)
+		  my_tracker_tab = new Tab(new MyTrackerView(globalManager));
+		  else
+		  my_tracker_tab = new Tab(my_tracker_view);
+		}          
+		else
+		my_tracker_tab.setFocus();
+	  }
+	});
+	
     MenuItem view_config = new MenuItem(viewMenu, SWT.NULL);
     Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
     view_config.addListener(SWT.Selection, new Listener() {
@@ -557,7 +588,8 @@ public class MainWindow implements GlobalManagerListener {
       }
     });
 
-    mytorrents = new Tab(new MyTorrentsView(globalManager));
+	mytorrents = new Tab(new MyTorrentsView(globalManager));
+
     if (COConfigurationManager.getBooleanParameter("Open Console", false))
       console = new Tab(new ConsoleView());
     if (COConfigurationManager.getBooleanParameter("Open Config", false))
@@ -1516,7 +1548,11 @@ public class MainWindow implements GlobalManagerListener {
 	 * @return
 	 */
   public Tab getMytorrents() {
-    return mytorrents;
+	return mytorrents;
+  }
+  
+  public Tab getMyTracker() {
+	return my_tracker_tab;
   }
 
   /**
@@ -1530,7 +1566,11 @@ public class MainWindow implements GlobalManagerListener {
 	 * @param tab
 	 */
   public void setMytorrents(Tab tab) {
-    mytorrents = tab;
+	mytorrents = tab;
+  }
+  
+  public void setMyTracker(Tab tab) {
+	my_tracker_tab = tab;
   }
 
   /**
