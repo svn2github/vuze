@@ -41,11 +41,6 @@ PESharedPortSelector
 	public static final long	SOCKET_TIMEOUT	= 30*1000;
 	
 	protected Selector	  selector;
-   protected SelectionKey key;
-   private SocketChannel  socket;
-   private socketData     socket_data;
-   private boolean        remove_this_key;
-   private ByteBuffer     buffer;
 	
 	protected Map		outstanding_sockets	= new HashMap();
 		
@@ -75,6 +70,12 @@ PESharedPortSelector
 	protected void
 	selectLoop()
 	{
+	   SelectionKey   key;
+	   SocketChannel  socket;
+	   socketData     socket_data;
+	   boolean        remove_this_key;
+	   ByteBuffer     buffer;
+   
 		while (true){
 			
 			try {
@@ -98,7 +99,7 @@ PESharedPortSelector
 					      buffer = socket_data.getBuffer();
 					      int len = socket.read(buffer);
               
-					      if ( len <= 0 ){
+					      if ( len < 0 ){  //other end closed the connection
 					        remove_this_key = true;
 					      }
 					      else {
@@ -192,15 +193,13 @@ PESharedPortSelector
 			
 			_socket.register(selector,SelectionKey.OP_READ);
 			
-		}catch( ClosedChannelException e ){
+		}catch( Exception e ){
+			e.printStackTrace();
 			
-			try{
-			
+			try {
 				_socket.close();
-				
-			}catch( IOException f ){
-			  f.printStackTrace();
 			}
+			catch( IOException f ){ f.printStackTrace(); }
 		}
 	}
 	
