@@ -1435,8 +1435,9 @@ PEPeerControlImpl
 
     _piecesRarest = new boolean[_nbPieces];
 
-    //the pieces
-    PEPiece[] dm_pieces = diskManager.getPieces();
+    	//the pieces
+    
+    PEPiece[] dm_pieces = diskManager.getRecoveredPieces();
     
     if (dm_pieces == null){
     

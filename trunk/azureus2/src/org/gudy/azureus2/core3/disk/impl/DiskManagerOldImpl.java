@@ -2185,7 +2185,7 @@ DiskManagerOldImpl
 	/**
 	 * @return
 	 */
-	public PEPiece[] getPieces() {
+	public PEPiece[] getRecoveredPieces() {
 		return pieces;
 	}
 	

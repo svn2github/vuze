@@ -89,13 +89,15 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 	stopIt();
 
 	public void
-   dumpResumeDataToDisk(boolean savePartialPieces, boolean invalidate);
+    dumpResumeDataToDisk(
+    	boolean savePartialPieces, 
+		boolean invalidate );
 
 	public void
 	computePriorityIndicator();
 	
 	public PEPiece[] 
-	getPieces();
+	getRecoveredPieces();
 
 	public void
 	aSyncCheckPiece(

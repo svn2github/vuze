@@ -51,6 +51,8 @@ RDResumeHandler
 	protected DMWriterAndChecker	writer_and_checker;
 	protected TOTorrent				torrent;
 	
+	protected PEPiece[] 			recovered_pieces;
+	
 	protected int					nbPieces;
 	protected int					pieceLength;
 	protected int					lastPieceLength;
@@ -64,7 +66,8 @@ RDResumeHandler
 		DiskManagerHelper	_disk_manager,
 		DMWriterAndChecker	_writer_and_checker )
 	{
-		disk_manager	= _disk_manager;
+		disk_manager		= _disk_manager;
+		writer_and_checker	= _writer_and_checker;
 		
 		torrent			= disk_manager.getTorrent();
 		nbPieces		= disk_manager.getPiecesNumber();
@@ -96,6 +99,12 @@ RDResumeHandler
 	    useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
 	}
 	 
+	public PEPiece[] 
+	getRecoveredPieces()
+	{
+		return( recovered_pieces );
+	}
+	
 	public void 
 	checkAllPieces(
 			boolean newfiles) 
@@ -215,10 +224,9 @@ RDResumeHandler
 				}
 				
 				if (partialPieces != null && resumeValid) {
-					PEPiece[] pieces = new PEPiece[nbPieces];
 					
-					disk_manager.setPieces( pieces );
-					
+					recovered_pieces = new PEPiece[nbPieces];
+									
 					Iterator iter = partialPieces.entrySet().iterator();
 					while (iter.hasNext()) {
 						Map.Entry key = (Map.Entry)iter.next();
@@ -233,7 +241,7 @@ RDResumeHandler
 						while (iterBlock.hasNext()) {
 							piece.setWritten(null,((Long)iterBlock.next()).intValue());
 						}
-						pieces[pieceNumber] = piece;
+						recovered_pieces[pieceNumber] = piece;
 					}
 				}
 			}
@@ -287,19 +295,29 @@ RDResumeHandler
 	  resumeMap.put(disk_manager.getPath(), resumeDirectory);
 	  
 	  resumeDirectory.put("resume data", resumeData);
+	  
 	  Map partialPieces = new HashMap();
 	
 	  if (savePartialPieces  && !invalidate) {
+	  	
+	  		// get the pieces to save - peer manager's are most recent if they exist
+	  	
 	  	PEPeerManager	peer_manager = disk_manager.getPeerManager();
 	  	
-	  	PEPiece[]	pieces = disk_manager.getPieces();
-	    if (pieces == null && peer_manager != null)
-			pieces = peer_manager.getPieces();
-	    if(pieces != null) {
-	      disk_manager.setPieces( pieces );
+	  	if ( peer_manager != null ){
+	  		
+	  		PEPiece[]	pm_pieces = peer_manager.getPieces();
+	  		
+	  		if ( pm_pieces != null ){
+	  			
+	  			recovered_pieces	= pm_pieces;
+	  		}
+	  	}
+	  	
+	    if( recovered_pieces != null) {
 	      
-	      for (int i = 0; i < pieces.length; i++) {
-	        PEPiece piece = pieces[i];
+	      for (int i = 0; i < recovered_pieces.length; i++) {
+	        PEPiece piece = recovered_pieces[i];
 	        if (piece != null && piece.getCompleted() > 0) {
 	          boolean[] downloaded = piece.getWritten();
 	          List blocks = new ArrayList();

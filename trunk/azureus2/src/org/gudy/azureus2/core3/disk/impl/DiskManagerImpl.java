@@ -99,10 +99,10 @@ DiskManagerImpl
 	//private int[][] priorityLists;
 
 	private DiskManagerFileInfoImpl[] files;
-  private DownloadManager dmanager;
+    private DownloadManager dmanager;
 
-  private PEPeerManager manager;
-	private PEPiece[] pieces;
+    private PEPeerManager manager;
+
 	private boolean alreadyMoved = false;
 
 	// DiskManager listeners
@@ -1246,16 +1246,13 @@ DiskManagerImpl
 		return( piecesHash[ piece_number ]);
 	}
 	
-	public PEPiece[] getPieces() {
-		return pieces;
+	public PEPiece[] 
+	getRecoveredPieces() 
+	{
+		return( resume_handler.getRecoveredPieces());
 	}
 	
-	public void
-	setPieces(
-		PEPiece[]		_pieces )
-	{
-		pieces	= _pieces;
-	}
+
 	
 	public DiskManagerRequest
 	createRequest(
