@@ -335,7 +335,11 @@ public class ConfigurationManager {
    * @param parameter to check
    * @return true if exists, false if not present
    */
-  protected boolean doesParameterExist( String parameter ) {
+  
+  public boolean 
+  doesParameterNonDefaultExist( 
+  	String parameter ) 
+  {
     return propertiesMap.containsKey( parameter );
   }
   

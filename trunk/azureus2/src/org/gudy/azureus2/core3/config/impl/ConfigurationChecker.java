@@ -173,6 +173,32 @@ ConfigurationChecker
 	    
 	    boolean	changed	= false;
 	    
+	    String	last_version = COConfigurationManager.getStringParameter( "azureus.version", "" );
+	    
+	    String	this_version	= Constants.AZUREUS_VERSION;
+	    
+	    if ( !last_version.equals( this_version )){
+	    
+	    	COConfigurationManager.setParameter( "azureus.version", this_version );
+	    	
+	    	changed	= true;
+	    }
+	    
+	    	// migration from default-save-dir enable = true to false
+	    	// if the user hadn't explicitly set a value then we want to stick with true
+	    
+	    if ( last_version.length() == 0 ){
+	    	
+	    		// "last version" introduced at same time as the default save dir problem
+	    	
+	    	if ( !COConfigurationManager.doesParameterNonDefaultExist( "Use default data dir" )){
+	    		
+	    		COConfigurationManager.setParameter( "Use default data dir", 1 );
+	    		
+	    		changed	= true;
+	    	}
+	    }
+	    
 	    int nbMinSeeds = COConfigurationManager.getIntParameter("StartStopManager_iIgnoreSeedCount", -1);
 	    if (nbMinSeeds == -1) {
 	    COConfigurationManager.setParameter("StartStopManager_iIgnoreSeedCount", 0);
@@ -202,7 +228,7 @@ ConfigurationChecker
 	    
 	    // migrate to split tracker client/server key config
 	    
-	    if ( !COConfigurationManager.doesParameterExist( "Tracker Key Enable Client")){
+	    if ( !COConfigurationManager.doesParameterDefaultExist( "Tracker Key Enable Client")){
 	    	
 	    	boolean	old_value = COConfigurationManager.getBooleanParameter("Tracker Key Enable");
 	    	
@@ -308,7 +334,7 @@ ConfigurationChecker
       //2105 removed the language file web-update functionality,
       //but old left-over MessagesBundle.properties files in the user dir
       //cause display text problems, so let's delete them.
-	    if( ConfigurationManager.getInstance().doesParameterExist( "General_bEnableLanguageUpdate" ) ) {        
+	    if( ConfigurationManager.getInstance().doesParameterNonDefaultExist( "General_bEnableLanguageUpdate" ) ) {        
         File user_dir = new File( SystemProperties.getUserPath() );
         File[] files = user_dir.listFiles( new FilenameFilter() {
           public boolean accept(File dir, String name) {

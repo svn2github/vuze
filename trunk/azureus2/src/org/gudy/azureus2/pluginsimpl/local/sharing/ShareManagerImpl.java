@@ -40,7 +40,7 @@ import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
 ShareManagerImpl
-	implements ShareManager, TOTorrentProgressListener
+	implements ShareManager, TOTorrentProgressListener, ParameterListener
 {
 	public static final String		TORRENT_STORE 		= "shares";
 	public static final String		TORRENT_SUBSTORE	= "cache";
@@ -153,11 +153,35 @@ ShareManagerImpl
 					
 					config.resumeSaving();
 				}
+				
+				readAZConfig();
 			}
 		}finally{
 			
 			this_mon.exit();
 		}
+	}
+	
+	protected void
+	readAZConfig()
+	{
+		COConfigurationManager.addParameterListener( "Sharing Rescan Enable", this );	
+		COConfigurationManager.addParameterListener( "Sharing Rescan Period", this );	
+		
+		readAZConfigSupport();
+	}
+	
+	public void
+	parameterChanged(
+		String	name )
+	{
+		readAZConfigSupport();
+	}
+	
+	protected void
+	readAZConfigSupport()
+	{
+		
 	}
 	
 	protected void

@@ -25,12 +25,13 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 
 public class ConfigSectionSharing implements ConfigSectionSWT {
@@ -55,16 +56,46 @@ public class ConfigSectionSharing implements ConfigSectionSWT {
     Composite gSharing = new Composite(parent, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gSharing.setLayoutData(gridData);
-    gSharing.setLayout(new GridLayout());
+    GridLayout layout = new GridLayout();
+    layout.numColumns = 2;
+    gSharing.setLayout(layout);
 
-    // row
+    	// row
+    
     new BooleanParameter(gSharing, "Sharing Use SSL", false, 
                          "ConfigView.section.sharing.usessl");
+    
+    new Label(gSharing, SWT.NULL);
 
-    // row
+    	// row
+    
     new BooleanParameter(gSharing, "Sharing Add Hashes", true, 
                          "wizard.createtorrent.extrahashes");
+    
+    new Label(gSharing, SWT.NULL);
 
+    	// row
+    BooleanParameter rescan_enable = 
+    	new BooleanParameter(gSharing, "Sharing Rescan Enable", false, 
+    						"ConfigView.section.sharing.rescanenable");
+    
+    new Label(gSharing, SWT.NULL);
+
+    	//row
+    
+    Label period_label = new Label(gSharing, SWT.NULL );
+    Messages.setLanguageText(period_label, "ConfigView.section.sharing.rescanperiod");
+
+    IntParameter rescan_period = new IntParameter(gSharing, "Sharing Rescan Period", 60 );
+    rescan_period.setMinimumValue(1);
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    rescan_period.setLayoutData( gridData );
+    
+    rescan_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( rescan_period.getControls() ));
+    rescan_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( new Control[]{period_label} ));
+	
     return gSharing;
+       
   }
 }

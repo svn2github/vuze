@@ -217,13 +217,32 @@ COConfigurationManager
   {
   	return ConfigurationDefaults.getInstance().getAllowedParameters();
   }
-        public static boolean
-        doesParameterExist(
-                String                          parameter)
-        {
-                return ConfigurationDefaults.getInstance().doesParameterExist(parameter);
-        }
-        
+  
+  	/**
+  	 * checks if a default is defined for the named parameter
+  	 * @param parameter
+  	 * @return
+  	 */
+  
+  public static boolean
+  doesParameterDefaultExist(
+	 String     parameter)
+  {
+       return ConfigurationDefaults.getInstance().doesParameterDefaultExist(parameter);
+  }
+  
+  	/**
+  	 * checks if the user has explicitly set a value for the named parameter
+  	 * @param parameter
+  	 * @return
+  	 */
+  
+  public static boolean
+  doesParameterNonDefaultExist(
+	 String     parameter)
+  {
+       return ConfigurationManager.getInstance().doesParameterNonDefaultExist(parameter);
+  }
   public static void
   registerExternalDefaults(
   	Map							addmap)

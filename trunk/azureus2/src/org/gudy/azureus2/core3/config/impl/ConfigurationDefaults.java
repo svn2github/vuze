@@ -283,6 +283,8 @@ public class ConfigurationDefaults {
     def.put( "Save Torrent Backup", new Long(0) );
     def.put( "Sharing Use SSL", new Long(0) );
     def.put( "Sharing Add Hashes", new Long(0) );
+    def.put( "Sharing Rescan Enable", new Long(0));
+    def.put( "Sharing Rescan Period", new Long(60));
     def.put( "File.Decoder.Prompt", new Long(0) );
     def.put( "File.Decoder.Default", "" );
     def.put( "File.Decoder.ShowLax", new Long(0));
@@ -382,7 +384,7 @@ public class ConfigurationDefaults {
   	def.putAll(addmap);
   }
   
-  public boolean doesParameterExist(String p) {
+  public boolean doesParameterDefaultExist(String p) {
     return def.containsKey(p);
   }
 }
