@@ -243,7 +243,7 @@ DownloadManagerImpl
   	
 		globalManager = _gm;
 	
-		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads", 4));
+		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
 	 
 		forceStarted = false;
   
@@ -266,93 +266,68 @@ DownloadManagerImpl
   	initial_tracker_response_cache	= null;
   	
     // If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
-    if (onlySeeding) {
-      String errMessage = filesExistErrorMessage();
-      if (errMessage != "") {
-        errorDetail = MessageText.getString("DownloadManager.error.datamissing") + " " + errMessage; //$NON-NLS-1$
-        setState(STATE_ERROR);
-        return;
-        
-        // If the user wants to re-download the missing files, they must
-        // do a re-check, which will reset the onlySeeding flag.
-      }
+    if (onlySeeding && !filesExist()) {
+      // If the user wants to re-download the missing files, they must
+      // do a re-check, which will reset the onlySeeding flag.
+      return;
     }
 
-	if ( torrent == null ){
-		
-	  setState( STATE_ERROR );
-	  
-	  return;
-	}
-	
-	errorDetail = "";
-	
-	setState( STATE_INITIALIZING );
-    
-	startServer();
-    
-	if ( state == STATE_WAITING || state == STATE_ERROR ){
-    	
-		return;
-	}
-    
-	try{
-		if ( tracker_client != null ){
-			
-			tracker_client.destroy();
-		}
-		
-		tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
-    
-		tracker_client.setTrackerResponseCache( tracker_response_cache );
-		
-    	tracker_client_listener = 
-			new TRTrackerClientListener()
-			{
-				public void
-				receivedTrackerResponse(
-					 TRTrackerResponse	response	)
-				{
-					PEPeerManager	pm = peerManager;
-					
-					if ( pm != null ){
-					
-						pm.processTrackerResponse( response );
-					}
-					
-					tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
-				}
-			
-				 public void
-				 urlChanged(
-				   String		url,
-				   boolean		explicit )
-				 {  	
-				   if ( explicit ){
-			  		
-					   checkTracker( true );
-				   }
-				 }
-			  
-				 public void
-				 urlRefresh()
-				 {
-				   checkTracker( true );
-				 }		
-			};
-			
-		tracker_client.addListener( tracker_client_listener );
+    if ( torrent == null ) {
+      setState( STATE_ERROR );
+      return;
+    }
 
-		initializeDiskManager();
+    errorDetail = "";
 
-		setState( STATE_INITIALIZED );
-									
-	}catch( TRTrackerClientException e ){
-		
-		e.printStackTrace();
-		
-		setState( STATE_ERROR );
-	}
+    setState( STATE_INITIALIZING );
+    
+    startServer();
+    
+    if ( state == STATE_WAITING || state == STATE_ERROR ){
+      return;
+    }
+    
+    try{
+      if ( tracker_client != null ){
+
+        tracker_client.destroy();
+      }
+
+      tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
+    
+      tracker_client.setTrackerResponseCache( tracker_response_cache );
+
+      tracker_client_listener = new TRTrackerClientListener() {
+        public void receivedTrackerResponse(TRTrackerResponse	response) {
+          PEPeerManager pm = peerManager;
+          if ( pm != null ) {
+            pm.processTrackerResponse( response );
+          }
+
+          tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
+        }
+
+        public void urlChanged(String url, boolean explicit) {
+          if ( explicit ){
+            checkTracker( true );
+          }
+        }
+
+        public void urlRefresh() {
+          checkTracker( true );
+        }
+      };
+
+      tracker_client.addListener( tracker_client_listener );
+
+      initializeDiskManager();
+
+      setState( STATE_INITIALIZED );
+
+    }catch( TRTrackerClientException e ){
+      e.printStackTrace();
+      setState( STATE_ERROR );
+    }
   }
 
   public void startDownload() {
@@ -524,15 +499,9 @@ DownloadManagerImpl
     if (this.onlySeeding != onlySeeding) {
       this.onlySeeding = onlySeeding;
 
-      if (onlySeeding) {
-        String errMessage = filesExistErrorMessage();
-        if (errMessage != "") {
-          setState(STATE_ERROR);
-          errorDetail = MessageText.getString("DownloadManager.error.datamissing") + " " + errMessage; //$NON-NLS-1$
-        } else {
-          // make sure stats always knows we are completed
-  			  stats.setDownloadCompleted(1000);
-        }
+      if (onlySeeding && filesExist()) {
+        // make sure stats always knows we are completed
+			  stats.setDownloadCompleted(1000);
       }
 
   	  // we are in a new list, move to the top of the list so that we continue seeding
@@ -568,6 +537,11 @@ DownloadManagerImpl
   	} else {
   		if (!diskManager.filesExist()) 
   		  strErrMessage = diskManager.getErrorMessage();
+  	}
+  	
+  	if (!strErrMessage.equals("")) {
+      setState(STATE_ERROR);
+      errorDetail = MessageText.getString("DownloadManager.error.datamissing") + " " + strErrMessage;
   	}
 
     return strErrMessage;
@@ -748,8 +722,12 @@ DownloadManagerImpl
     if ( state != _state ) {
       state = _state;
       // sometimes, downloadEnded() doesn't get called, so we must check here too
-      if (state == STATE_SEEDING)
+      if (state == STATE_SEEDING) {
         setOnlySeeding(true);
+      } else if (state == STATE_QUEUED) {
+        if (!filesExist())
+          return;
+      }
       informStateChanged( state );
     }
   }
@@ -823,6 +801,14 @@ DownloadManagerImpl
 	if (diskManager != null)
 	  return diskManager.getPath();
 	return savePath;
+  }
+
+  public boolean setSavePath(String sPath) {
+  	if (diskManager != null)
+  	  return false;
+
+    savePath = sPath;
+    return true;
   }
 
   public String getPieceLength() {
