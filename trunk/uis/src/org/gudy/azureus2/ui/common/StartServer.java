@@ -70,7 +70,7 @@ public class StartServer extends Thread {
                     for (int j = 1; j < args.length; j++)
                       newargs[j - 1] = args[j];
                   }
-                  Main.processArgs(newargs, false, null);
+                  Main.processArgs(newargs, null, null);
                 } else {
                   Logger.getLogger("azureus2").error("Something strange was sent to the StartServer: " + line);
                 }

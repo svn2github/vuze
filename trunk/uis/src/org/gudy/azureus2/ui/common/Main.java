@@ -36,6 +36,8 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
@@ -52,6 +54,8 @@ public class Main {
   public static String DEFAULT_UI = "swt";
   
   public static StartServer start = null;
+  
+  protected static AzureusCore	core;
   
   private static CommandLine parseCommands(String[] args, boolean constart) {
     
@@ -107,38 +111,70 @@ public class Main {
     }
   }
   
-  public static void main(String[] args) {
-  	COConfigurationManager.setSystemProperties();
-  	
+  public static void main(String[] args) 
+  {
     initRootLogger();
-    CommandLine commands = parseCommands(args, true);
+    
+    try{
+    	core = AzureusCoreFactory.create();
+  
+    	CommandLine commands = parseCommands(args, true);
 
-    start = new StartServer();
+    	start = new StartServer();
       
-    if ((start == null) || (start.getServerState()==StartServer.STATE_FAULTY)) {
-       new StartSocket(args);
-    } else {
-      COConfigurationManager.checkConfiguration();
-      start.start();
-      
-      processArgs(args, true, commands);
+	    if ((start == null) || (start.getServerState()==StartServer.STATE_FAULTY)) {
+	    	
+	 
+	    	new StartSocket(args);
+	    	
+	    }else{
+	    	
+	   
+	      start.start();
+	      
+	      processArgs(args, core, commands);
+	    }
+    }catch( AzureusCoreException e ){
+    	
+    	System.out.println( "Start fails:" );
+    	
+    	e.printStackTrace();
     }
   }
   
   public static void shutdown() {
-    if (start!=null)
+    if (start!=null){
+    	
       start.stopIt();
-    if (UIConst.GM!=null)
-    UIConst.GM.stopAll();
+    }
+    
+    if ( core != null ){
+    	try{
+    		core.stop();
+    		
+    	}catch( AzureusCoreException e ){
+    		
+    		System.out.println( "Stop fails:" );
+    		
+    		e.printStackTrace();
+    	}
+    }
+    
     SimpleDateFormat temp = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     Logger.getLogger("azureus2").fatal("Azureus stopped at "+temp.format(new Date()));
-    System.exit(0);
+    //System.exit(0);	- we don't want to force quit, wait until other threads have completed
+    // so that resume data etc is saved....
   }
   
-  public static void processArgs(String[] args, boolean creategm, CommandLine commands) {
+  public static void 
+  processArgs(
+  	String[] 		args, 
+  	AzureusCore 	new_core, 
+	CommandLine 	commands) 
+  {
     if (commands==null)
       commands = parseCommands(args, false);
-    if (((commands!=null) && (args.length>0)) || creategm) {
+    if (((commands!=null) && (args.length>0)) || (new_core != null)) {
       if (UIConst.UIS == null)
       UIConst.UIS = new HashMap();
       if (commands.hasOption('u')) {
@@ -169,22 +205,24 @@ public class Main {
         isFirst = false;
       }
 
-      if (creategm) {
+      if ( new_core != null ){
+      	
         SimpleDateFormat temp = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+        
         UIConst.startTime = new Date();
+        
         Logger.getLogger("azureus2").fatal("Azureus started at "+temp.format(UIConst.startTime));
-        UIConst.GM = GlobalManagerFactory.create();
         
-        PluginInitializer.getSingleton(UIConst.GM,null).initializePlugins( PluginManager.UI_NONE );
-        
-        new AEThread("Plugin Init Complete")
-        {
-        	public void
-        	run()
-        	{
-        		PluginInitializer.initialisationComplete();
-        	}
-        }.start();      
+        try{
+	        new_core.start();
+	        
+	        UIConst.GM = new_core.getGlobalManager();
+	        
+        }catch( AzureusCoreException e ){
+        	
+      		Logger.getLogger("azureus2").error("Start fails", e);
+       	
+        }
       }
 
       uis = UIConst.UIS.values().iterator();
