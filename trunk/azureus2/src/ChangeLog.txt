@@ -17,6 +17,9 @@ FEATURE: HTTP scrapes to same tracker combined into one request if tracker suppo
 FEATURE: In the Details view, pieces that we don't yet have from a peer are shown in inverse color [Nolar]
 FEATURE: Web Plugin now can set upload rate [Parg]
 FEATURE: Web Plugin support for uploading torrents [Parg]
+FEATURE: added option to show transfer rates in bits/sec [Parg]
+FEATURE: added ability to automatically exclude files when making torrents (e.g. Thumbs.db) [Parg]
+FEATURE: MyTracker row right-click support for copying torrent URL to clipboard [Parg]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]
