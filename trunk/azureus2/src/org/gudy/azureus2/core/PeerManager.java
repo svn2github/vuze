@@ -640,10 +640,11 @@ public class PeerManager extends Thread {
     //Added patch so that we try to complete most advanced files first.
     List pieces = new ArrayList();
     List priorityLists[] = _diskManager.getPriorityLists();
+    Integer pieceInteger; 
     for (int i = 9; i >= 0; i--) {
       for (int j = 0; j < _nbPieces; j++) {
-        if (piecesRarest[j] && priorityLists[i].contains(new Integer(j))) {
-          pieces.add(new Integer(j));
+        if (piecesRarest[j] && priorityLists[i].contains(pieceInteger = new Integer(j))) {
+          pieces.add(pieceInteger);
         }
       }
       if (pieces.size() > 0)

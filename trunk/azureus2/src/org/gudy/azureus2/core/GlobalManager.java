@@ -122,7 +122,7 @@ public class GlobalManager extends Component {
   public void stopAll() {
     checker.stopIt();
     saveDownloads();
-    while (managers.size() > 0) {
+    while (managers.size() != 0) {
       DownloadManager manager = (DownloadManager) managers.remove(0);
       manager.stopIt();
     }

@@ -132,7 +132,7 @@ public class FileInfo {
    * @param l
    */
   public void setLength(long l) {
-    length = l;
+    length = l >= 0L ? l : 0L;
   }
 
   /**
