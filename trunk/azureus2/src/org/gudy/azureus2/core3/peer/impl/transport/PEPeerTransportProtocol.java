@@ -72,23 +72,23 @@ PEPeerTransportProtocol
 	private int hashcode;
 	
 	private PEPeerStatsImpl stats;
-  private List requested;
+  private List requested = new ArrayList();
   private HashMap data;
   
-  private boolean choked;
-  private boolean interested_in_other_peer;
-  private boolean choking;
-  private boolean other_peer_interested_in_me;
-  private boolean snubbed;
+  private boolean choked = true;
+  private boolean interested_in_other_peer = false;
+  private boolean choking = true;
+  private boolean other_peer_interested_in_me = false;
+  private boolean snubbed = false;
   private boolean[] other_peer_has_pieces;
-  private boolean seed;
+  private boolean seed = false;
 
 	//The Buffer for reading the length of the messages
 	private DirectByteBuffer lengthBuffer;
 
 
   private boolean incoming;
-  private volatile boolean closing;
+  private volatile boolean closing = false;
   private PEPeerTransportProtocolState currentState;
   
   private Connection connection;
@@ -222,16 +222,9 @@ PEPeerTransportProtocol
    * Hopefully, that will save some RAM.
    */
   private void allocateAll() {
-  	seed = false;
-  	choked = true;
-  	interested_in_other_peer = false;
-  	requested = new ArrayList();
-  	choking = true;
-  	other_peer_interested_in_me = false;
-  	other_peer_has_pieces = new boolean[manager.getPiecesNumber()];
-  	Arrays.fill(other_peer_has_pieces, false);
+    other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
+  	Arrays.fill( other_peer_has_pieces, false );
   	stats = (PEPeerStatsImpl)manager.createPeerStats();
-  	this.closing = false;
   	this.lengthBuffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_LENGTH,4 );
     
     //attach the new connection to the torrent's pool so that peer messages get processed

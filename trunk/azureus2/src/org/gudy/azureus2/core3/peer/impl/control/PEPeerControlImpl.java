@@ -1097,13 +1097,13 @@ PEPeerControlImpl
     int nbUnchoke = _downloadManager.getStats().getMaxUploads();
 
     // Then, in any case if we have too many unchoked pple we need to choke some
-    while (nbUnchoke < nonChoking.size()) {
+    while( nonChoking.size() > nbUnchoke ) {
       PEPeerTransport pc = (PEPeerTransport) nonChoking.remove(0);
       pc.sendChoke();
     }
 
     // If we lack unchoke pple, find new ones ;)
-    if (nbUnchoke > nonChoking.size()) {
+    if( nonChoking.size() < nbUnchoke ) {
       //Determine the N (nbUnchoke best peers)
       //Maybe we'll need some other test when we are a seed ...
       prepareBestUnChokedPeers(nbUnchoke - nonChoking.size());
