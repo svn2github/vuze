@@ -18,7 +18,7 @@ import java.util.Map;
  * 
  */
 public class TrackerStatus {
-  private URL scrapeURL;
+  private URL scrapeURL = null;
   byte[] data;
 
   private HashMap hashes;
@@ -26,10 +26,8 @@ public class TrackerStatus {
   public TrackerStatus(String trackerUrl) {    
     this.hashes = new HashMap();
     try {
-      int position = trackerUrl.lastIndexOf("/");
-      if(position < 0) 
-        this.scrapeURL = null;
-      if(trackerUrl.substring(position+1,position+9).equals("announce"))
+      int position = trackerUrl.lastIndexOf('/');
+      if(position >= 0 && trackerUrl.substring(position+1,position+9).equals("announce"))
         this.scrapeURL = new URL(trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9));
          /*     
       if(trackerUrl.contains("/announce"))
@@ -47,10 +45,10 @@ public class TrackerStatus {
   }
 
   public synchronized void update() {
+    if(scrapeURL == null)
+      return;
     InputStream is = null;
     try {
-      if(scrapeURL == null)
-        return;
       HttpURLConnection con = (HttpURLConnection) scrapeURL.openConnection();
       con.connect();
       is = con.getInputStream();
