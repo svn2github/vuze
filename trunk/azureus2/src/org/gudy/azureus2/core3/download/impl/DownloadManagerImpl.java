@@ -139,8 +139,8 @@ DownloadManagerImpl
     
 		tracker_client.addListener( this );
 
-      diskManager = DiskManagerFactory.create( torrent, savePath);
-    
+		diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
+
 		this.state = STATE_INITIALIZED;
 									
 	}catch( TRTrackerClientException e ){
