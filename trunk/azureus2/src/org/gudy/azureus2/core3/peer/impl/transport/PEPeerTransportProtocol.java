@@ -842,8 +842,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           manager.received( pieceLength );
           setSnubbed( false );
           reSetRequestsTime();
+          int	buffer_limit	= buffer.limit();	// get this before we hand the buffer over
           manager.writeBlock( pieceNumber, pieceOffset, buffer, this );
-          buffer = DirectByteBufferPool.getBuffer( buffer.limit() );
+          buffer = DirectByteBufferPool.getBuffer( buffer_limit );
           requests_completed++;
         }
         else {  //initial request may have already expired, but check if we can use the data anyway
@@ -856,8 +857,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
               manager.received( pieceLength );
               setSnubbed( false );
               reSetRequestsTime();
+              
+              int	buffer_limit	= buffer.limit();	// get this before we hand the buffer over
+              
               manager.writeBlockAndCancelOutstanding( pieceNumber, pieceOffset, buffer, this );
-              buffer = DirectByteBufferPool.getBuffer( buffer.limit() );
+              buffer = DirectByteBufferPool.getBuffer( buffer_limit );
               msg += ", piece block data recovered as useful";
               requests_recovered++;
               printRequestStats();
