@@ -537,8 +537,8 @@ public class Jhttpp2HTTPSession extends Thread {
         v.addElement(h);
       }
       tmpl.setParam("Torrents_Torrents", v);
-      tmpl.setParam("Torrents_TotalSpeedDown", server.gm.getDownloadSpeed());
-      tmpl.setParam("Torrents_TotalSpeedUp", server.gm.getUploadSpeed());
+      tmpl.setParam("Torrents_TotalSpeedDown", server.gm.getStats().getDownloadSpeed());
+      tmpl.setParam("Torrents_TotalSpeedUp", server.gm.getStats().getUploadSpeed());
       tmpl.setParam("Torrents_TotalSizeDown", DisplayFormatters.formatByteCountToKBEtc(totalReceived));
       tmpl.setParam("Torrents_TotalSizeUp", DisplayFormatters.formatByteCountToKBEtc(totalSent));
       tmpl.setParam("Torrents_TotalSizeDiscarded", DisplayFormatters.formatByteCountToKBEtc(totalDiscarded));

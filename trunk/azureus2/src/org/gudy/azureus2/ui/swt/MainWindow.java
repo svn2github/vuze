@@ -183,8 +183,8 @@ public class MainWindow implements GlobalManagerListener {
               Tab.refresh();
             }
 
-            statusDown.setText("D: " + globalManager.getDownloadSpeed()); //$NON-NLS-1$
-            statusUp.setText("U: " + globalManager.getUploadSpeed()); //$NON-NLS-1$
+            statusDown.setText("D: " + globalManager.getStats().getDownloadSpeed()); //$NON-NLS-1$
+            statusUp.setText("U: " + globalManager.getStats().getUploadSpeed()); //$NON-NLS-1$
           }
           if (!mainWindow.isDisposed()) {            
             try {

@@ -27,6 +27,8 @@ package org.gudy.azureus2.core3.xml.util;
 
 import java.io.*;
 
+import org.gudy.azureus2.core3.util.*;
+
 public class 
 XUXmlWriter 
 {
@@ -44,18 +46,27 @@ XUXmlWriter
 	
 	protected
 	XUXmlWriter(
-		PrintWriter		_writer )
+		OutputStream	_output_stream )
 	{
-		writer	= _writer;
+		setOutputStream( _output_stream );
 		
 		resetIndent();
 	}
 
 	protected void
-	setWriter(
-		PrintWriter	_writer )
+	setOutputStream(
+		OutputStream	_output_stream )
 	{
-		writer	= _writer;
+		try{
+		
+			writer	= new PrintWriter( new OutputStreamWriter(_output_stream , Constants.DEFAULT_ENCODING ));
+
+		}catch( UnsupportedEncodingException e ){
+			
+			e.printStackTrace();
+			
+			writer = new PrintWriter( _output_stream );
+		}
 	}
 	
 	protected void
@@ -112,6 +123,11 @@ XUXmlWriter
 	escapeXML(
 		String	str )
 	{
+		if ( str == null ){
+			
+			return( "" );
+			
+		}
 		str = str.replaceAll( "&", "&amp;" );
 		str = str.replaceAll( ">", "&gt;" );
 		str = str.replaceAll( "<", "&lt;" );
@@ -122,7 +138,7 @@ XUXmlWriter
 	}
 	
 	protected void
-	closeWriter()
+	closeOutputStream()
 	{
 		if ( writer != null ){
 								

@@ -362,7 +362,7 @@ TOTorrentImpl
 		created_by	= str;
 	}
 	
-	protected String
+	public String
 	getCreatedBy()
 	{
 		return( created_by );

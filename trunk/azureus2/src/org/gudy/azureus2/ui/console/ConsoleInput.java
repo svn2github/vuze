@@ -194,7 +194,7 @@ public class ConsoleInput extends Thread {
                   out.println(tstate);
                   out.println();
                 }
-                out.println("Total Speed (down/up): "+gm.getDownloadSpeed()+" / "+gm.getUploadSpeed());
+                out.println("Total Speed (down/up): "+gm.getStats().getDownloadSpeed()+" / "+gm.getStats().getUploadSpeed());
                 out.println("Transferred Volume (down/up/discarded): "+DisplayFormatters.formatByteCountToKBEtc(totalReceived)+" / "+DisplayFormatters.formatByteCountToKBEtc(totalSent)+" / "+DisplayFormatters.formatByteCountToKBEtc(totalDiscarded));
                 out.println("Total Connected Peers (seeds/peers): "+Integer.toString(connectedSeeds)+" / "+Integer.toString(connectedPeers));
               } else

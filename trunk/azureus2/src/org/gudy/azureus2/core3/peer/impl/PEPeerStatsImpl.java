@@ -95,11 +95,11 @@ PEPeerStatsImpl
 		overallSpeed.addValue(pieceLength);
 	  }
 
-	  public void staticticSent(int length) {
+	  public void statisticSent(int length) {
 		statisticSentSpeed.addValue(length);
 	  }
 
-	  public String getReceptionSpeed() { 
+	  public String getDownloadSpeed() { 
 		return DisplayFormatters.formatByteCountToKBEtc(receptionSpeed.getAverage()) + "/s";
 	  }
 
@@ -107,7 +107,7 @@ PEPeerStatsImpl
 		return chokingReceptionSpeed.getAverage();
 	  }
 
-	  public String getSendingSpeed() {
+	  public String getUploadSpeed() {
 		return DisplayFormatters.formatByteCountToKBEtc(sendingSpeed.getAverage()) + "/s";
 	  }
   
@@ -115,7 +115,7 @@ PEPeerStatsImpl
 		return receptionSpeed.getAverage();
 	  }
   
-	  public int getuploadSpeedRaw() {
+	  public int getUploadSpeedRaw() {
 		  return sendingSpeed.getAverage();
 		}
 

@@ -1382,7 +1382,7 @@ PEPeerControlImpl
           if (pc != null && pc != pcOrigin && pc.getState() == PEPeer.TRANSFERING) {
             boolean[] peerAvailable = pc.getAvailable();
             if (peerAvailable[pieceNumber])
-              ((PEPeerStatsImpl)pc.getStats()).staticticSent(length / availability);
+              ((PEPeerStatsImpl)pc.getStats()).statisticSent(length / availability);
           }
         }
       }
@@ -1479,11 +1479,11 @@ PEPeerControlImpl
   }
 
   public String getDownloadSpeed() {
-    return _stats.getReceptionSpeed();
+    return _stats.getDownloadSpeed();
   }
 
   public String getUploadSpeed() {
-    return _stats.getSendingSpeed();
+    return _stats.getUploadSpeed();
   }
 
   public String getTotalSpeed() {

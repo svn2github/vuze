@@ -335,14 +335,26 @@ DownloadManagerImpl
 
   public String getDownloadSpeed() {
 	if (peerManager != null)
-	  return peerManager.getStats().getReceptionSpeed();
-	return ""; //$NON-NLS-1$
+	  return peerManager.getStats().getDownloadSpeed();
+	return "";
+  }
+  
+  public int getDownloadSpeedRaw() {
+	if (peerManager != null)
+	  return peerManager.getStats().getDownloadSpeedRaw();
+	return 0;
   }
 
   public String getUploadSpeed() {
 	if (peerManager != null)
-	  return peerManager.getStats().getSendingSpeed();
+	  return peerManager.getStats().getUploadSpeed();
 	return ""; //$NON-NLS-1$
+  }
+  
+  public int getUploadSpeedRaw() {
+	if (peerManager != null)
+	  return peerManager.getStats().getUploadSpeedRaw();
+	return 0;
   }
 
   public String getTrackerStatus() {
@@ -452,19 +464,19 @@ DownloadManagerImpl
 
   public void received(int length) {
 	if (length > 0 && globalManager != null) {
-	  globalManager.received(length);
+	  globalManager.getStats().received(length);
 	}
   }
   
   public void discarded(int length) {
 	if (length > 0 && globalManager != null) {
-	  globalManager.discarded(length);
+	  globalManager.getStats().discarded(length);
 	}
   }
 
   public void sent(int length) {
 	if (length > 0 && globalManager != null)
-	  globalManager.sent(length);
+	  globalManager.getStats().sent(length);
   }
 
   /**

@@ -382,26 +382,6 @@ public class GlobalManagerImpl
     }
   }
 
-  public void received(int length) {
-    stats.received(length);
-  }
-
-  public void discarded(int length) {
-    stats.discarded(length);
-  }
-
-  public void sent(int length) {
-    stats.sent(length);
-  }
-
-  public String getDownloadSpeed() {
-    return stats.getReceptionSpeed();
-  }
-
-  public String getUploadSpeed() {
-    return stats.getSendingSpeed();
-  }
-
   private void loadDownloads() {
     FileInputStream fin = null;
     BufferedInputStream bin = null;
@@ -525,6 +505,12 @@ public class GlobalManagerImpl
     return trackerScraper;
   }
 
+	public GlobalManagerStats
+	getStats()
+	{
+		return( stats );
+	}
+	
   public int getIndexOf(DownloadManager manager) {
     if (managers != null && manager != null)
       return managers.indexOf(manager);

@@ -57,17 +57,20 @@ TOTorrentXMLSerialiser
 		
 		try{
 			
-			setWriter(new PrintWriter( new FileWriter( file )));
+			setOutputStream( new FileOutputStream( file ));
 			
 			writeRoot();
 			
 		}catch( IOException e ){
+	
+			throw( new TOTorrentException( "TOTorrentXMLSerialiser: file write fails: " + e.toString(),
+											TOTorrentException.RT_WRITE_FAILS ));	
 			
 		}finally{
 			
 			try{
 				
-				closeWriter();
+				closeOutputStream();
 					
 			}catch( Throwable e ){
 			

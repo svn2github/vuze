@@ -322,7 +322,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       return peerSocket.getStats().getDownloadSpeedRaw();
 
     if (field.equals("us")) //$NON-NLS-1$
-      return peerSocket.getStats().getuploadSpeedRaw();
+      return peerSocket.getStats().getUploadSpeedRaw();
 
     if (field.equals("down")) //$NON-NLS-1$
       return peerSocket.getStats().getTotalReceivedRaw();

@@ -256,7 +256,7 @@ public class PeerTableItem {
     String tmp;
     PEPeerStats stats = peerSocket.getStats();
 
-    tmp = stats.getReceptionSpeed();
+    tmp = stats.getDownloadSpeed();
     if (!(oldTexts[7].equals(tmp))) {
       item.setText(7, tmp);
       oldTexts[7] = tmp;
@@ -268,7 +268,7 @@ public class PeerTableItem {
       oldTexts[8] = tmp;
     }
 
-    tmp = stats.getSendingSpeed();
+    tmp = stats.getUploadSpeed();
     if (!(oldTexts[11].equals(tmp))) {
       item.setText(11, tmp);
       oldTexts[11] = tmp;

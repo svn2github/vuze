@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.*;
 
 /**
@@ -134,48 +135,34 @@ StatsWriterImpl
 		last_write_time	= now;
 		
 		try{
-			PrintWriter	writer = null;
+			String	dir = COConfigurationManager.getStringParameter( "Stats Dir", "" );
+
+			dir = dir.trim();
 			
-			try{
-				String	dir = COConfigurationManager.getStringParameter( "Stats Dir", "" );
-	
-				dir = dir.trim();
+			if ( dir.length() == 0 ){
 				
-				if ( dir.length() == 0 ){
-					
-					dir = File.separator;			
-				}
-				
-				String	file_name = dir;
-				
-				if ( !file_name.endsWith( File.separator )){
-					
-					file_name = file_name + File.separator;
-				}
-				
-				file_name += STATS_FILE_NAME;
-			
-				LGLogger.log(0, 0, LGLogger.INFORMATION, "Stats Logged to '" + file_name + "'" );
-				
-				writer = new PrintWriter( new FileOutputStream( file_name ));
-				
-				new statsWriter( global_manager, writer ).write();
-				
-			}catch( IOException e ){
-			
-				LGLogger.log(0, 0, "Stats Logging fails", e );
-				
-			}finally{
-				
-				if ( writer != null ){
-					
-					writer.close();
-				}
+				dir = File.separator;			
 			}
+			
+			String	file_name = dir;
+			
+			if ( !file_name.endsWith( File.separator )){
+				
+				file_name = file_name + File.separator;
+			}
+			
+			file_name += STATS_FILE_NAME;
+		
+			LGLogger.log(0, 0, LGLogger.INFORMATION, "Stats Logged to '" + file_name + "'" );				
+			
+			new statsWriter( global_manager, file_name ).write();
+			
 		}catch( Throwable e ){
 		
-			LGLogger.log(0, 0, "Stats Logging fails", e );		
-		}
+			e.printStackTrace();
+			
+			LGLogger.log(0, 0, "Stats Logging fails", e );
+		}			
 	}
 	
 	public void
@@ -226,94 +213,165 @@ StatsWriterImpl
 		extends XUXmlWriter
 	{
 		protected GlobalManager		global;
+		protected String			file_name;
 		
 		protected
 		statsWriter(
 			GlobalManager		_global,
-			PrintWriter			_writer )
-		{
-			super( _writer );
-			
+			String				_fn )
+		{			
 			global		= _global;
+			file_name	= _fn;
 		}
 		
 		protected void
 		write()
-		{
-			writeLine( "<STATS>");
 		
+			throws IOException
+		{
 			try{
-				indent();
-			
-				writeLine( "<GLOBAL>" );
+				setOutputStream( new FileOutputStream( file_name ));
 				
+				writeLine( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
+
+				writeLine( "<STATS>");
+			
 				try{
 					indent();
-					
-					writeTag( "DOWNLOAD_SPEED", global.getDownloadSpeed());
-					writeTag( "UPLOAD_SPEED", global.getUploadSpeed());
-					
-				}finally{
-					
-					exdent();
-				}
-			
-				writeLine( "</GLOBAL>" );
 				
-				writeLine( "<DOWNLOADS>");
-				
-				try{
+					writeLine( "<GLOBAL>" );
 					
-					indent();
-					
-					List	dms = global.getDownloadManagers();
+					try{
+						indent();
+						
+						GlobalManagerStats	gm_stats = global.getStats();
+											
+						writeRawCookedTag( "DOWNLOAD_SPEED", gm_stats.getDownloadSpeedRaw(), 	gm_stats.getDownloadSpeed());
+						writeRawCookedTag( "UPLOAD_SPEED", 	gm_stats.getUploadSpeedRaw(), 		gm_stats.getUploadSpeed());
+						
+					}finally{
+						
+						exdent();
+					}
 				
-					for (int i=0;i<dms.size();i++){
+					writeLine( "</GLOBAL>" );
+					
+					writeLine( "<DOWNLOADS>");
+					
+					try{
 						
-						DownloadManager	dm = (DownloadManager)dms.get(i);
+						indent();
 						
-						DownloadManagerStats	dm_stats = dm.getStats();
-						
-						writeLine( "<DOWNLOAD>");
-						
-						try{
+						List	dms = global.getDownloadManagers();
+					
+						for (int i=0;i<dms.size();i++){
 							
-							writeTag( "NAME", dm.getName());
-							writeTag( "TORRENT", dm.getTorrentFileName());
-							writeTag( "TRACKER_STATUS", dm.getTrackerStatus());
-						
-							writeTag( "COMPLETED", 		dm_stats.getCompleted());
-							writeTag( "DOWNLOADED",	 	dm_stats.getDownloaded());	
-							writeTag( "UPLOADED", 		dm_stats.getUploaded());
-							writeTag( "SHARE_RATIO", 	dm_stats.getShareRatio());
-							writeTag( "DOWNLOAD_SPEED", dm_stats.getDownloadSpeed());
-							writeTag( "UPLOAD_SPEED", 	dm_stats.getUploadSpeed());
-							writeTag( "ELAPSED", 		dm_stats.getElapsed());
-							writeTag( "ETA", 			dm_stats.getETA());
-							writeTag( "TOTAL_SPEED", 	dm_stats.getTotalSpeed());
-							writeTag( "HASH_FAILS", 	dm_stats.getHashFails());
-				
-							indent();
-						}finally{
+							DownloadManager	dm = (DownloadManager)dms.get(i);
 							
-							exdent();
+							DownloadManagerStats	dm_stats = dm.getStats();
+							
+							writeLine( "<DOWNLOAD>");
+							
+							try{
+								indent();
+								
+								writeLine( "<TORRENT>" );
+								
+								try{
+									indent();
+							
+									writeTag( "NAME", dm.getName());
+									
+									writeTag( "TORRENT_FILE", dm.getTorrentFileName());
+									
+									TOTorrent torrent = dm.getTorrent();
+									
+									if ( torrent != null ){
+										
+										writeTag( "PIECE_LENGTH", torrent.getPieceLength());
+										
+										writeTag( "PIECE_COUNT", torrent.getPieces().length );
+										
+										writeTag( "FILE_COUNT", torrent.getFiles().length );
+										
+										writeTag( "COMMENT", torrent.getComment());
+										
+										writeTag( "CREATED_BY", torrent.getCreatedBy());
+										
+										writeTag( "CREATION_DATE", torrent.getCreationDate());
+									}
+									
+								}finally{
+									
+									exdent();
+								}
+								
+								writeLine( "</TORRENT>");
+								
+								writeTag( "DOWNLOAD_DIR", dm.getSavePath());
+								
+								writeTag( "TRACKER_STATUS", dm.getTrackerStatus());
+							
+								writeTag( "COMPLETED", 		dm_stats.getCompleted());
+								
+								writeRawCookedTag( "DOWNLOADED", 		dm_stats.getDownloadedRaw(), 	dm_stats.getDownloaded());
+								writeRawCookedTag( "UPLOADED", 			dm_stats.getUploadedRaw(), 		dm_stats.getUploaded());
+								writeRawCookedTag( "DOWNLOAD_SPEED", 	dm_stats.getDownloadSpeedRaw(), dm_stats.getDownloadSpeed());
+								writeRawCookedTag( "UPLOAD_SPEED", 		dm_stats.getUploadSpeedRaw(), 	dm_stats.getUploadSpeed());
+																						
+								writeTag( "ELAPSED", 		dm_stats.getElapsed());
+								writeTag( "ETA", 			dm_stats.getETA());
+								writeTag( "TOTAL_SPEED", 	dm_stats.getTotalSpeed());
+								writeTag( "HASH_FAILS", 	dm_stats.getHashFails());
+								writeTag( "SHARE_RATIO", 	dm_stats.getShareRatio());
+					
+							}finally{
+								
+								exdent();
+							}
+							
+							writeLine( "</DOWNLOAD>");
 						}
 						
-						writeLine( "</DOWNLOAD>");
+					}finally{
+						
+						exdent();
 					}
+						
+					writeLine( "</DOWNLOADS>" );
 					
 				}finally{
 					
 					exdent();
 				}
-					
-				writeLine( "</DOWNLOADS>" );
+				writeLine( "</STATS>");	
 				
 			}finally{
 				
+				closeOutputStream();
+			}
+		}
+		
+		protected void
+		writeRawCookedTag(
+			String	tag,
+			long	raw,
+			String	cooked )
+		{
+			writeLine( "<" + tag + ">");
+							
+			try{
+				indent();
+								
+				writeTag( "TEXT",	cooked );
+				writeTag( "RAW",	raw);
+								
+			}finally{
+								
 				exdent();
 			}
-			writeLine( "</STATS>");	
+							
+			writeLine( "</" + tag + ">");
 		}
 	}
 }

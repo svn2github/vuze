@@ -1,6 +1,6 @@
 /*
- * File    : GlobalManager.java
- * Created : 21-Oct-2003
+ * File    : GlobalManagerStats.java
+ * Created : 23-Oct-2003
  * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
@@ -21,60 +21,35 @@
 
 package org.gudy.azureus2.core3.global;
 
-import java.util.List;
-
-import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.download.*;
-
-public interface
-GlobalManager
+/**
+ * @author parg
+ *
+ */
+public interface 
+GlobalManagerStats 
 {
-	public boolean
-	addDownloadManager(
-		String			file_name,
-		String			save_path );
-	
 	public void
-	removeDownloadManager(
-		DownloadManager	dm );
+	sent(
+		int		bytes );
 		
-	public List
-	getDownloadManagers();
-	
 	public void
-	stopAll();
+	received(
+		int		bytes );
+		
+	public void
+	discarded(
+		int		bytes );
+		
+	public String 
+	getDownloadSpeed();
 	
-	public TRTrackerScraper
-	getTrackerScraper();
-	
-	public GlobalManagerStats
-	getStats();
+	public int 
+	getDownloadSpeedRaw();
 
-	public int
-	getIndexOf(
-		DownloadManager	dm );
+	public String 
+	getUploadSpeed();
 	
-	public boolean
-	isMoveableDown(
-		DownloadManager	dm );
-	
-	public boolean
-	isMoveableUp(
-		DownloadManager	dm );
-	
-	public void
-	moveDown(
-		DownloadManager	dm );
-	
-	public void
-	moveUp(
-		DownloadManager	dm );
-		
-	public void
-	addListener(
-		GlobalManagerListener	l );
-		
-	public void
-	removeListener(
-		GlobalManagerListener	l );
+	public int 
+	getUploadSpeedRaw();
+
 }

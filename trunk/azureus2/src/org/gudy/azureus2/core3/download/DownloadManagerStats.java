@@ -65,8 +65,14 @@ DownloadManagerStats
 	public String
 	getDownloadSpeed();
 	
+	public int
+	getDownloadSpeedRaw();
+	
 	public String
 	getUploadSpeed();
+	
+	public int
+	getUploadSpeedRaw();
 	
 	public String
 	getElapsed();

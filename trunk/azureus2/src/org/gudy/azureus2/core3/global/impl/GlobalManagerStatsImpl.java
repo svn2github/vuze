@@ -26,12 +26,13 @@ package org.gudy.azureus2.core3.global.impl;
  *
  */
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.util.*;
 
-// temporary until refactoring sorted
 
 public class 
 GlobalManagerStatsImpl
+	implements GlobalManagerStats
 {
 	  private int pieceLength;
 
@@ -104,65 +105,74 @@ GlobalManagerStatsImpl
 
 	  public String getSendingSpeed() {
 		return DisplayFormatters.formatByteCountToKBEtc(sendingSpeed.getAverage()) + "/s";
-		  }
+	  }
   
-		  public int getDownloadSpeedRaw() {
-			return receptionSpeed.getAverage();
-		  }
+	  public int getDownloadSpeedRaw() {
+		return receptionSpeed.getAverage();
+	  }
   
-		  public int getuploadSpeedRaw() {
-			  return sendingSpeed.getAverage();
-			}
+	  public int getUploadSpeedRaw() {
+		  return sendingSpeed.getAverage();
+		}
 
-		  public String getOverAllDownloadSpeed() {
-			return DisplayFormatters.formatByteCountToKBEtc(overallSpeed.getAverage()) + "/s";
-		  }
+	  public String getOverAllDownloadSpeed() {
+		return DisplayFormatters.formatByteCountToKBEtc(overallSpeed.getAverage()) + "/s";
+	  }
 
-		  public String getTotalSent() {
-			return DisplayFormatters.formatByteCountToKBEtc(totalSent);
-		  }
+	  public String getTotalSent() {
+		return DisplayFormatters.formatByteCountToKBEtc(totalSent);
+	  }
 
-		  public String getTotalReceived() {
-			return DisplayFormatters.formatByteCountToKBEtc(totalReceived);
-		  }
+	  public String getTotalReceived() {
+		return DisplayFormatters.formatByteCountToKBEtc(totalReceived);
+	  }
   
-		  public String getReallyReceived() {
+	  public String getReallyReceived() {
 			if(totalDiscarded == 0)
 			  return DisplayFormatters.formatByteCountToKBEtc(totalReceived);
 			else {
 			  return DisplayFormatters.formatByteCountToKBEtc(totalReceived) + " ( " + DisplayFormatters.formatByteCountToKBEtc(totalDiscarded) + " " + MessageText.getString("discarded") + " )"; 
 			}
-		  }
+	  }
   
-		  public String getTotalDiscarded() {
-			return DisplayFormatters.formatByteCountToKBEtc(totalDiscarded);
-		  }  
+	  public String getTotalDiscarded() {
+		return DisplayFormatters.formatByteCountToKBEtc(totalDiscarded);
+	  }  
 
-		  public long getTotalSentRaw() {
-			return totalSent;
-		  }
+	  public long getTotalSentRaw() {
+		return totalSent;
+	  }
   
-		  public void setTotalSent(long sent) {
-			 totalSent = sent;
-		   }
+	  public void setTotalSent(long sent) {
+		 totalSent = sent;
+	   }
 
-		  public long getTotalReceivedRaw() {
-			return totalReceived;
-		  }
+	  public long getTotalReceivedRaw() {
+		return totalReceived;
+	  }
   
-		  public void setTotalReceivedRaw(long received) {
-			totalReceived = received;
-		  }
+	  public void setTotalReceivedRaw(long received) {
+		totalReceived = received;
+	  }
   
-		  public long getTotalDiscardedRaw() {
-			  return totalDiscarded;
-		  }
+	  public long getTotalDiscardedRaw() {
+		  return totalDiscarded;
+	  }
 
-		  public String getStatisticSent() {
-			return DisplayFormatters.formatByteCountToKBEtc(statisticSentSpeed.getAverage()) + "/s";
-		  }
+	  public String getStatisticSent() {
+		return DisplayFormatters.formatByteCountToKBEtc(statisticSentSpeed.getAverage()) + "/s";
+	  }
 
-		  public int getStatisticSentRaw() {
-			return statisticSentSpeed.getAverage();
-		  }
+	  public int getStatisticSentRaw() {
+		return statisticSentSpeed.getAverage();
+	  }
+	  
+	public String getDownloadSpeed() {
+	  return getReceptionSpeed();
+	}
+
+	public String getUploadSpeed() {
+	  return getSendingSpeed();
+	}
+
 }

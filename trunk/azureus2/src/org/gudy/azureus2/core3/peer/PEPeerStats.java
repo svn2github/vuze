@@ -32,15 +32,15 @@
 public interface 
 PEPeerStats 
 {   
-  public String getReceptionSpeed();
+  public String getDownloadSpeed();
 
   public int getReception();
 
-  public String getSendingSpeed();
+  public String getUploadSpeed();
   
   public int getDownloadSpeedRaw();
   
-  public int getuploadSpeedRaw();
+  public int getUploadSpeedRaw();
  
   public String getOverAllDownloadSpeed();
 
