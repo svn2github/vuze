@@ -144,8 +144,11 @@ public class TableSorter implements ParameterListener {
         Object dataSource = iter.next();
         SortableItem item = (SortableItem) objectToSortableItem.get(dataSource);
         int index = item.getIndex();
+        //Better return in case of a problem.
         if (index == -1)
-          continue;
+          return;
+        if(index > sortableItems.length)
+          return;
         sortableItems[index] = item;
         long value = item.getIntField(field);
         int i;
