@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.*;
 
 public abstract class 
 ExternalIPCheckerServiceImpl 
-	implements ExternalIPCheckerService
+	implements ExternalIPCheckerService, Cloneable
 {
 	protected static final int		MAX_PAGE_SIZE	= 4096;
 	protected static final String	MSG_KEY_ROOT	= "IPChecker.external";
@@ -59,8 +59,30 @@ ExternalIPCheckerServiceImpl
 	
 	public void
 	initiateCheck(
+		long		timeout )
+	{
+		_clone().initiateCheckSupport(timeout);
+	}
+	
+	protected ExternalIPCheckerServiceImpl
+	_clone()
+	{
+		try{
+			return((ExternalIPCheckerServiceImpl)clone());
+			
+		}catch( CloneNotSupportedException e){
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
+	}
+	
+	protected void
+	initiateCheckSupport(
 		final long		timeout )
 	{
+	
 		Thread	t = 
 			new Thread()
 			{
