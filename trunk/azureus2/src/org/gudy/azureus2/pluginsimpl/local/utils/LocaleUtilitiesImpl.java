@@ -70,7 +70,7 @@ LocaleUtilitiesImpl
 	public LocaleDecoder[]
 	getDecoders()
 	{
-		LocaleUtilDecoder[]	decs = LocaleUtil.getDecoders();
+		LocaleUtilDecoder[]	decs = LocaleUtil.getSingleton().getDecoders();
 		
 		LocaleDecoder[]	res = new LocaleDecoder[decs.length];
 		

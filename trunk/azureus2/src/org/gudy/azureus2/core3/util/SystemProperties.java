@@ -165,7 +165,7 @@ public class SystemProperties {
     		p = r.exec( "env" );
     	}
     
-    	String system_encoding = LocaleUtil.getSystemEncoding();
+    	String system_encoding = LocaleUtil.getSingleton().getSystemEncoding();
     	
     	LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getEnvironmentalVariable - " + _var + ", system encoding = " + system_encoding );
 

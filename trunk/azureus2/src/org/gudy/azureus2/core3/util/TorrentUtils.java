@@ -526,7 +526,7 @@ TorrentUtils
 	setDefaultTorrentEncoding(
 		TOTorrent		torrent )
 	{
-		LocaleUtil.setDefaultTorrentEncoding( torrent );
+		LocaleUtil.getSingleton().setDefaultTorrentEncoding( torrent );
 	}
 	
 	public static String
@@ -535,7 +535,7 @@ TorrentUtils
 	{
 		try{
 			
-			LocaleUtilDecoder decoder = LocaleUtil.getTorrentEncodingIfAvailable( torrent );
+			LocaleUtilDecoder decoder = LocaleUtil.getSingleton().getTorrentEncodingIfAvailable( torrent );
 			
 			if ( decoder == null ){
 				

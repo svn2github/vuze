@@ -10,7 +10,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
-public abstract class
+public class
 LocaleUtil 
 {
   
@@ -28,11 +28,24 @@ LocaleUtil
 	Constants.BYTE_ENCODING, Constants.DEFAULT_ENCODING, systemEncoding
   };
   
-   private static LocaleUtilDecoder[] 	charsetDecoders;
-   private static LocaleUtilDecoder		system_decoder;
+   private static LocaleUtil singleton = new LocaleUtil();
+  
+   public static LocaleUtil
+   getSingleton()
+   {
+   	return( singleton );
+   }
    
-  static {
-  	
+   private LocaleUtilDecoder[] 	all_decoders;
+   private LocaleUtilDecoder[]	general_decoders;
+   private LocaleUtilDecoder	system_decoder;
+     
+   private List				listeners	= new ArrayList();
+  
+  
+  private 
+  LocaleUtil() 
+  {
 	List	decoders 		= new ArrayList();
   	List	decoder_names	= new ArrayList();
   	
@@ -56,7 +69,18 @@ LocaleUtil
 	   }catch (Exception ignore) {
 	   }
 	 }
+
+	general_decoders = new LocaleUtilDecoder[generalCharsets.length];
 	
+	for (int i=0;i<general_decoders.length;i++){
+		
+		int	gi = decoder_names.indexOf( generalCharsets[i]);
+		
+		if ( gi != -1 ){
+		
+			general_decoders[i] = (LocaleUtilDecoder)decoders.get(gi);
+		}
+	}
 
 	boolean show_all = COConfigurationManager.getBooleanParameter("File.Decoder.ShowAll" );
 
@@ -87,64 +111,49 @@ LocaleUtil
     
 	decoders.add( new LocaleUtilDecoderFallback());
 
-	charsetDecoders	= new LocaleUtilDecoder[ decoders.size()];
+	all_decoders	= new LocaleUtilDecoder[ decoders.size()];
 	
-	decoders.toArray( charsetDecoders);
+	decoders.toArray( all_decoders); 
   }
   
-  public static String
+  public String
   getSystemEncoding()
   {
   	return( systemEncoding );
   }
   
-  public static LocaleUtilDecoder[]
+  public LocaleUtilDecoder[]
   getDecoders()
   {
-  	return( charsetDecoders );
+  	return( all_decoders );
   }
  
-  private LocaleUtilDecoder lastChosenDecoder = null;
-   
-  private static LocaleUtil chooser = null;
-    
-  public static void setLocaleUtilChooser(LocaleUtil ch) {
-	chooser=ch;
-  }
-   
+    public LocaleUtilDecoder[]
+	getGeneralDecoders()
+	{
+	   	return( general_decoders );
+	}
+  
   public LocaleUtilDecoder
   getSystemDecoder()
   {
   	return( system_decoder );
   }
   
-  public LocaleUtilDecoder
-  getLastChosenDecoder()
-  {
-  	return( lastChosenDecoder );
-  }
-  
-  protected void
-  setLastChosenDecoder(
-  	LocaleUtilDecoder	d )
-  {
-  	lastChosenDecoder	= d;
-  }
-  
-  protected static LocaleUtilDecoderCandidate[] 
+  protected LocaleUtilDecoderCandidate[] 
   getCandidates(
 	byte[] array ) 
   {
-	LocaleUtilDecoderCandidate[] candidates = new LocaleUtilDecoderCandidate[charsetDecoders.length];
+	LocaleUtilDecoderCandidate[] candidates = new LocaleUtilDecoderCandidate[all_decoders.length];
     
 	boolean show_less_likely_conversions = COConfigurationManager.getBooleanParameter("File.Decoder.ShowLax" );
 
-	for (int i = 0; i < charsetDecoders.length; i++){
+	for (int i = 0; i < all_decoders.length; i++){
     	
 	  candidates[i] = new LocaleUtilDecoderCandidate(i);
       
 	  try{
-			LocaleUtilDecoder decoder = charsetDecoders[i];
+			LocaleUtilDecoder decoder = all_decoders[i];
       	      	
 			String str = decoder.tryDecode( array, show_less_likely_conversions );
 
@@ -178,47 +187,62 @@ LocaleUtil
 	
 	return candidates;
   }
-  
-  	// overridden if required to give better behaviour!
-  
-  public String 
+    
+  protected LocaleUtilDecoderCandidate 
   getChoosableCharsetString(
   	byte[] 		array,
 	Object		decision_owner)
   
   	throws UnsupportedEncodingException
   {
-	String	res = new String( array );
-	    
-	setLastChosenDecoder( getSystemDecoder());
-	    
-	return( res );
+    LocaleUtilDecoderCandidate[] candidates = getCandidates(array);
+    
+    for (int i=0;i<listeners.size();i++){
+    	
+    	LocaleUtilDecoderCandidate selected = ((LocaleUtilListener)listeners.get(i)).selectDecoder( this, decision_owner, candidates );
+    	
+    	if ( selected != null ){
+    	    		
+    		return( selected );
+    	}
+    }
+    	    
+	LocaleUtilDecoderCandidate cand = new LocaleUtilDecoderCandidate(0);
+	
+	cand.setDetails( getSystemDecoder(), new String( array ));
+	
+	return( cand );
   }
   
-  public abstract LocaleUtil 
-  getProperLocaleUtil();
-  
-  public 
-  LocaleUtil() 
+  public void
+  addListener(
+  	LocaleUtilListener	l )
   {
+  	listeners.add(l);
   }
   
+  public void
+  removeListener(
+  	LocaleUtilListener	l )
+  {
+  	listeners.remove(l);
+  }
   
-  public static LocaleUtilDecoder
+  public LocaleUtilDecoder
   getTorrentEncodingIfAvailable(
   		TOTorrent		torrent )
   
-  throws TOTorrentException, UnsupportedEncodingException
+  	throws TOTorrentException, UnsupportedEncodingException
   {
   	String	encoding = torrent.getAdditionalStringProperty( "encoding" );
   	
   	if ( encoding != null ){
   		
-  		for (int i=0;i<charsetDecoders.length;i++){
+  		for (int i=0;i<all_decoders.length;i++){
   			
-  			if ( charsetDecoders[i].getName().equals( encoding )){
+  			if ( all_decoders[i].getName().equals( encoding )){
   				
-  				return( charsetDecoders[i] );
+  				return( all_decoders[i] );
   			}
   		}
   	}
@@ -226,7 +250,7 @@ LocaleUtil
   	return( null );
   }
   	
-	public static LocaleUtilDecoder
+	public LocaleUtilDecoder
 	getTorrentEncoding(
   		TOTorrent		torrent )
   		
@@ -236,22 +260,18 @@ LocaleUtil
 		
 		if ( encoding != null ){
 			
-			for (int i=0;i<charsetDecoders.length;i++){
+			for (int i=0;i<all_decoders.length;i++){
 				
-				if ( charsetDecoders[i].getName().equals( encoding )){
+				if ( all_decoders[i].getName().equals( encoding )){
 					
-					return( charsetDecoders[i] );
+					return( all_decoders[i] );
 				}
 			}
 		}
+				
+		LocaleUtilDecoderCandidate	candidate = getChoosableCharsetString( torrent.getName(), torrent );
 		
-		LocaleUtil lut = chooser.getProperLocaleUtil();
-		
-		lut.lastChosenDecoder = null;
-		
-		lut.getChoosableCharsetString( torrent.getName(), torrent );
-		
-		if ( lut.lastChosenDecoder == null ){
+		if ( candidate.getDecoder() == getSystemDecoder() ){
 			
 			TOTorrentFile[]	files = torrent.getFiles();
 			
@@ -263,55 +283,48 @@ LocaleUtil
 				
 				for (int j=0;j<comps.length;j++){
 					
-					lut.getChoosableCharsetString( comps[j], torrent );
+					candidate = getChoosableCharsetString( comps[j], torrent );
 					
-					if ( lut.lastChosenDecoder != null ){
+					if ( candidate.getDecoder() != getSystemDecoder() ){
 						
 						break;
 					}
 				}
 				
-				if ( lut.lastChosenDecoder != null ){
+				if ( candidate.getDecoder() != getSystemDecoder() ){
 					
 					break;
 				}
 			}
 		}
 		
-		if ( lut.lastChosenDecoder == null ){
+		if ( candidate.getDecoder() == getSystemDecoder() ){
 
 			byte[]	comment = torrent.getComment();
 			
 			if ( comment != null ){
 				
-				lut.getChoosableCharsetString(comment, torrent);
+				candidate = getChoosableCharsetString(comment, torrent);
 			}
 		}
-		if ( lut.lastChosenDecoder == null ){
+		if ( candidate.getDecoder() == getSystemDecoder() ){
 
 			byte[]	created = torrent.getCreatedBy();
 			
 			if ( created != null ){
 				
-				lut.getChoosableCharsetString(created, torrent);
+				candidate = getChoosableCharsetString(created, torrent);
 			}
 		}
-		
-		if ( lut.lastChosenDecoder == null ){
-			
-				// no choices required, use system default
-				
-			lut.lastChosenDecoder = charsetDecoders[0];
-		}
 		        	
-		torrent.setAdditionalStringProperty("encoding", lut.lastChosenDecoder.getName());
+		torrent.setAdditionalStringProperty("encoding", candidate.getDecoder().getName());
             
 		TorrentUtils.writeToFile( torrent );
 			
-		return( lut.lastChosenDecoder );
+		return( candidate.getDecoder());
   	}
 	
-	public static void
+	public void
 	setTorrentEncoding(
 		TOTorrent		torrent,
 		String			encoding )
@@ -319,7 +332,7 @@ LocaleUtil
 		torrent.setAdditionalStringProperty("encoding", encoding );
 	}
 	
-	public static void
+	public void
 	setDefaultTorrentEncoding(
 		TOTorrent		torrent )
 	{

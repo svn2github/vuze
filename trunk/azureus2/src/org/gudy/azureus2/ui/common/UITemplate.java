@@ -12,7 +12,6 @@ package org.gudy.azureus2.ui.common;
  */
 public abstract class 
 UITemplate 
-	extends org.gudy.azureus2.core3.internat.LocaleUtil
 	implements IUserInterface 
 {
   
@@ -22,8 +21,6 @@ UITemplate
   }
   
   public void init(boolean first, boolean others) {
-    if (first)
-      org.gudy.azureus2.core3.internat.LocaleUtil.setLocaleUtilChooser(this);
   }
   
   abstract public void openTorrent(String fileName);

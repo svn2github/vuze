@@ -36,11 +36,7 @@ import org.gudy.azureus2.plugins.*;
 
 public interface 
 AzureusCore 
-{
-	public void
-	setLocaleChooser(
-		LocaleUtil		_util );
-	
+{	
 	public void
 	start()
 	
@@ -76,6 +72,9 @@ AzureusCore
 	requestRestart()
 	
 		throws AzureusCoreException;
+	
+	public LocaleUtil
+	getLocaleUtil();
 	
 	public GlobalManager
 	getGlobalManager()

@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -36,9 +37,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 public class 
 LocaleUtilSWT 
-	extends LocaleUtil 
+	implements LocaleUtilListener
 {
-  
   boolean waitForUserInput = true;
     
   protected static boolean 				rememberEncodingDecision = true;
@@ -46,22 +46,19 @@ LocaleUtilSWT
   protected static Object				remembered_on_behalf_of;
   
 
-  public LocaleUtilSWT() {
-    super();
+  public 
+  LocaleUtilSWT(
+  	AzureusCore		core ) 
+  {
+  	core.getLocaleUtil().addListener( this );
   }
   
   
-  public LocaleUtil getProperLocaleUtil() {
-    return new LocaleUtilSWT();
-  }
-
-  
-  	/** Creates a new instance of LocaleUtilSWT */
-  
-  public String 
-  getChoosableCharsetString(
-  	byte[] 		array,
-	Object		decision_owner ) 
+  public LocaleUtilDecoderCandidate
+  selectDecoder(
+  	LocaleUtil						locale_util,
+	Object							decision_owner,
+  	LocaleUtilDecoderCandidate[]	candidates )
   {
   	if ( decision_owner != remembered_on_behalf_of ){
   		
@@ -69,20 +66,19 @@ LocaleUtilSWT
   		rememberedDecoder			= null;
   	}
   	
-    LocaleUtilDecoderCandidate[] candidates = getCandidates(array);
-
     if( rememberEncodingDecision && rememberedDecoder != null) {
     	
       for (int i = 0; i < candidates.length; i++) {
+      	
         if(candidates[i].getValue() != null && rememberedDecoder == candidates[i].getDecoder()) {
-        	
-		  setLastChosenDecoder(rememberedDecoder);
-		  
-          return candidates[i].getValue();
+        			  
+          return( candidates[i] );
         }
       }
     }
 
+    LocaleUtilDecoderCandidate	default_candidate	= candidates[0];
+    
     String defaultString = candidates[0].getValue();
 
     Arrays.sort(candidates);
@@ -98,7 +94,7 @@ LocaleUtilSWT
     	
 	    if (defaultString != null && defaultString.length() == minlength) {
 	    	
-	      return defaultString;
+	      return( default_candidate );
 	    }
 
 	    	// see if we can try and apply a default encoding
@@ -109,9 +105,7 @@ LocaleUtilSWT
 			for (int i = 0; i < candidates.length; i++) {
 			  if(candidates[i].getValue() != null && candidates[i].getDecoder().getName().equals( default_name )) {
 	        	
-				setLastChosenDecoder(candidates[i].getDecoder());
-			  
-				return candidates[i].getValue();
+				return( candidates[i] );
 			  }
 			}
 		}
@@ -121,14 +115,17 @@ LocaleUtilSWT
     
     choosableCandidates.add(candidates[0]);
        
+    LocaleUtilDecoder[]	general_decoders = locale_util.getGeneralDecoders();
+    
     // add all general candidates with names not already in the list
-    for (int j = 0; j < generalCharsets.length; j++) {
+    for (int j = 0; j < general_decoders.length; j++) {
     	
       for (int i = 1; i < candidates.length; i++) {
       	
       	if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) continue;
       	
-        if(generalCharsets[j].equals(candidates[i].getDecoder().getName())){
+        if(		general_decoders[j] != null && 
+        		general_decoders[j].getName().equals(candidates[i].getDecoder().getName())){
         	
         	if (!choosableCandidates.contains(candidates[i])) {
        
@@ -162,7 +159,7 @@ LocaleUtilSWT
     
     if ( window == null ){
     	
-    	return( new String(array));
+    	return( default_candidate );
     }
     
     MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
@@ -201,13 +198,13 @@ LocaleUtilSWT
 
     int choosedIndex = 0;
     for (int i = 1; i < candidatesToChoose.length; i++) {
-      if(candidatesToChoose[i].getValue() != null && getLastChosenDecoder() == candidatesToChoose[i].getDecoder()) {
+      if(candidatesToChoose[i].getValue() != null && rememberedDecoder == candidatesToChoose[i].getDecoder()) {
         choosedIndex = i;
         break;
       }
     }
 
-    return candidatesToChoose[choosedIndex].getValue(); 
+    return ( candidatesToChoose[choosedIndex] ); 
   }    
 
   private void showChoosableEncodingWindow(final Shell shell, final LocaleUtilDecoderCandidate[] candidates) {
@@ -319,12 +316,10 @@ LocaleUtilSWT
     if(-1 == selectedIndex) 
       return;
     rememberEncodingDecision = checkBox.getSelection();
-    
-    setLastChosenDecoder( candidates[selectedIndex].getDecoder());
-    
+        
 	if ( rememberEncodingDecision ){
 		
-		rememberedDecoder = getLastChosenDecoder();
+		rememberedDecoder = candidates[selectedIndex].getDecoder();
 	}else{
 		rememberedDecoder = null;
 	}

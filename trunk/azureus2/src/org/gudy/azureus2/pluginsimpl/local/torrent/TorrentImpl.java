@@ -52,7 +52,7 @@ TorrentImpl
 		torrent	= _torrent;
 		
 		try{
-			decoder = LocaleUtil.getTorrentEncoding( torrent );
+			decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 			
 		}catch( Throwable e ){
 			

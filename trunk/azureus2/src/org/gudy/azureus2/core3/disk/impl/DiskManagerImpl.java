@@ -230,7 +230,7 @@ DiskManagerImpl
    
 		LocaleUtilDecoder	locale_decoder = null;
 		try{
-			locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
+			locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 	
 			fileName = "";
 		
@@ -2473,7 +2473,7 @@ DiskManagerImpl
 		}
 	  	  
 		try{
-			LocaleUtilDecoder locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
+			LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 
 			TOTorrentFile[] files = torrent.getFiles();
 

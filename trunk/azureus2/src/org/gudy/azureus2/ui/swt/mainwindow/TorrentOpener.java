@@ -173,7 +173,7 @@ public class TorrentOpener {
         
         singleFile = torrent.isSimpleTorrent();
         
-        LocaleUtilDecoder locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
+        LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
             
         singleFileName = locale_decoder.decodeString(torrent.getName());
         

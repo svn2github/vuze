@@ -20,7 +20,6 @@ public class Main {
       
     String torrentFile = args[args.length - 2];
     String path = args[args.length - 1];
-    LocaleUtil.setLocaleUtilChooser(new LocaleUtilCL());
     DownloadManager manager = DownloadManagerFactory.create(null, torrentFile, path, false, true, false );
     manager.initialize();    
     while (true) {

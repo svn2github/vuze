@@ -399,7 +399,7 @@ DownloadManagerImpl
 			  	torrent.removeAdditionalProperty("resume");
 			 }
 			 
-			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
+			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 			 	
 			 name = locale_decoder.decodeString( torrent.getName());
                  

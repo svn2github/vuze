@@ -8,7 +8,6 @@ import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
 
@@ -16,8 +15,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
  * @author Olivier
  * 
  */
-public class Main extends LocaleUtil {  
-  
+public class 
+Main 
+{  
   public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";	// values "true" or "false"
 	
   StartServer startServer;
@@ -33,7 +33,9 @@ public class Main extends LocaleUtil {
 	  	
 	  	AzureusCore		core = AzureusCoreFactory.create();
 	
-	    core.setLocaleChooser( this );
+	  		// initialise the SWT locale util
+	  	
+	    new LocaleUtilSWT( core );
 	    
 	    startServer = new StartServer(core,this);
 	
@@ -84,11 +86,6 @@ public class Main extends LocaleUtil {
   		e.printStackTrace(); 		
   	}
   }
-  
-  public LocaleUtil getProperLocaleUtil() {
-    return new LocaleUtilSWT();
-  }
-  
   
   public void 
   useParam(

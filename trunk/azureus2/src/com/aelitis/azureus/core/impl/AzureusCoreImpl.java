@@ -47,7 +47,6 @@ import com.aelitis.azureus.core.*;
 
 public class 
 AzureusCoreImpl 
-	extends		LocaleUtil
 	implements 	AzureusCore, AzureusCoreListener
 {
 	protected static AzureusCore		singleton;
@@ -82,17 +81,12 @@ AzureusCoreImpl
 		COConfigurationManager.checkConfiguration();
 		
 		LGLogger.initialise();
-
-			// set the default locale chooser, can be overridden later
-		
-		LocaleUtil.setLocaleUtilChooser(this);
 	}
 	
-	public void
-	setLocaleChooser(
-		LocaleUtil		_util )
+	public LocaleUtil
+	getLocaleUtil()
 	{
-		LocaleUtil.setLocaleUtilChooser(_util);
+		return( LocaleUtil.getSingleton());
 	}
 	
 	public synchronized void
@@ -239,24 +233,6 @@ AzureusCoreImpl
 		throws AzureusCoreException
 	{
 		return( IpFilterManagerFactory.getSingleton());
-	}
-	
-	public LocaleUtil getProperLocaleUtil() {
-		return this;
-	}
-	
-	public String 
-	getChoosableCharsetString(
-	  	byte[] 	array,
-		Object	decision_owner )
-	
-		throws UnsupportedEncodingException 
-	{
-		String	res = new String( array );
-		    
-		setLastChosenDecoder( getSystemDecoder());
-		    
-		return( res );	
 	}
 	
 	public void 

@@ -204,7 +204,7 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     label = new Label(cTorrent, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.file.decoder.label");
   
-    LocaleUtilDecoder[] decoders = LocaleUtil.getDecoders();
+    LocaleUtilDecoder[] decoders = LocaleUtil.getSingleton().getDecoders();
   
     String decoderLabels[] = new String[decoders.length + 1];
     String decoderValues[] = new String[decoders.length + 1];
