@@ -253,6 +253,25 @@ RDResumeHandler
 					resumeArray	= new byte[pieces.length];
 				}
 				
+					// calculate the current file sizes up front for performance reasons
+				
+				DiskManagerFileInfo[]	files = disk_manager.getFiles();
+				
+				Map	file_sizes = new HashMap();
+				
+				for (int i=0;i<files.length;i++){
+					
+					try{
+						Long	len = new Long(((DiskManagerFileInfoImpl)files[i]).getCacheFile().getLength());
+					
+						file_sizes.put( files[i], len );
+						
+					}catch( CacheFileManagerException e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+				
 				for (int i = 0; i < pieces.length && bOverallContinue; i++){ 
 					
 					DiskManagerPiece	dm_piece	= pieces[i];
@@ -274,23 +293,26 @@ RDResumeHandler
 							
 							PieceMapEntry	entry = list.get(j);
 							
-							try{
-								long	file_size 		= entry.getFile().getCacheFile().getLength();
-								long	expected_size 	= entry.getOffset() + entry.getLength();
+							Long	file_size 		= (Long)file_sizes.get(entry.getFile());
+							
+							if ( file_size == null ){
 								
-								if ( file_size < expected_size ){
-									
-									ok	= false;
-									
-									LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is too small, fails re-check. File size = " + file_size + ", piece needs " + expected_size );
+								ok	= false;
+								
+								LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is missing, fails re-check." );
 
-									break;
-								}
-							}catch( CacheFileManagerException e ){
+								break;
+							}
+							
+							long	expected_size 	= entry.getOffset() + entry.getLength();
+							
+							if ( file_size.longValue() < expected_size ){
 								
-								Debug.printStackTrace(e);
+								ok	= false;
 								
-								ok = false;
+								LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is too small, fails re-check. File size = " + file_size + ", piece needs " + expected_size );
+
+								break;
 							}
 						}
 					}
