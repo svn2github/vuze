@@ -218,7 +218,7 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter seedRetentionLimit = new IntParameter(gMainTab, "Tracker Max Seeds Retained", 0 );
+    IntParameter seedRetentionLimit = new IntParameter(gMainTab, "Tracker Max Seeds Retained");
 
     gridData = new GridData();
     gridData.widthHint = 50;
