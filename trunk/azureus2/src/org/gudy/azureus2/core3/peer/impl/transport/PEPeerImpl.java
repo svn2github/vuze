@@ -26,9 +26,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
  *
  */
 
-import java.util.Arrays;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 
 public class 
@@ -38,12 +36,14 @@ PEPeerImpl
 	protected byte[] id;
 	protected String ip;
 	protected int port;
+  protected int hashcode;
 
 	public PEPeerImpl(PEPeerControl manager, byte[] id, String ip, int port) {
 		this.manager = manager;
 		this.ip = ip;
 		this.port = port;
 	 	this.id = id;
+    this.hashcode = (ip + String.valueOf(port)).hashCode();
 	}
 
 
@@ -75,6 +75,25 @@ PEPeerImpl
 	  return port;
 	}
   
+  
+  public boolean equals( Object obj ) {
+    if (this == obj)  return true;
+    if (obj != null && obj instanceof PEPeerImpl) {
+      PEPeerImpl other = (PEPeerImpl)obj;
+      if ( this.ip.equals(other.ip) && this.port == other.port ) {
+      	return true;
+      }
+    }
+    return false;
+  }
+  
+  public int hashCode() {
+    return hashcode;
+  }
+  
+  
+  
+  /*
 	public boolean equals(Object o) {
 		if (!(o instanceof PEPeerImpl))
 		  return false;
@@ -97,5 +116,6 @@ PEPeerImpl
 		
 		return Arrays.equals(this.id, otherId);
 	  }
+    */
 
 }
