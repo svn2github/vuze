@@ -244,7 +244,11 @@ public class MessageText {
         return name.startsWith(prefix) && name.endsWith(extension);
       }
     });
-    bundleSet.addAll(Arrays.asList(appBundles));
+    
+    if ( appBundles != null ){
+    	
+    	bundleSet.addAll(Arrays.asList(appBundles));
+    }
     // Any duplicates will be ignored
     bundleSet.addAll(Arrays.asList(bundles));
 
