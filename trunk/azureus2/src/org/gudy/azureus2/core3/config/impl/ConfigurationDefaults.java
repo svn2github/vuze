@@ -141,7 +141,7 @@ public class ConfigurationDefaults {
     
     def.put("Logging Enable", new Long(0));
     def.put("Logging Dir", "");
-    def.put("Logging Max Size", new Long(0));
+    def.put("Logging Max Size", new Long(4));
     int[] logComponents = { 0, 1, 2, 4 };
     for (int i = 0; i < logComponents.length; i++)
       for (int j = 0; j <= 3; j++)

@@ -151,7 +151,7 @@ LGLoggerImpl
   		
   		log_dir			= COConfigurationManager.getStringParameter("Logging Dir", "" );
   		
-  		log_file_max	= COConfigurationManager.getIntParameter("Logging Max Size", 1 );
+  		log_file_max	= COConfigurationManager.getIntParameter("Logging Max Size" );
   		for (int i = 0; i < log_types.length; i++) {
     		log_types[i] = 0;
         for (int j = 0; j <= 3; j++)
