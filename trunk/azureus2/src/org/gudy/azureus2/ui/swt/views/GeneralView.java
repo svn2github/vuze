@@ -4,7 +4,6 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,6 +34,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -55,7 +56,7 @@ import org.gudy.azureus2.ui.swt.components.*;
  * @author Olivier
  * 
  */
-public class GeneralView extends AbstractIView {
+public class GeneralView extends AbstractIView implements ParameterListener {
 
   private Display display;
   private DownloadManager manager;
@@ -104,6 +105,8 @@ public class GeneralView extends AbstractIView {
   BufferedLabel shareRatio;
   Button		updateButton;
 
+  private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
     pieces = new boolean[manager.getNbPieces()];
@@ -138,11 +141,6 @@ public class GeneralView extends AbstractIView {
     gridData.heightHint = 30;
     fileImage.setLayoutData(gridData);
 
-    fileImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        updateOverall(true);
-      }
-    });
 
     filePercent = new BufferedLabel(gFile, SWT.RIGHT);
     filePercent.setText("\t"); //$NON-NLS-1$
@@ -160,11 +158,6 @@ public class GeneralView extends AbstractIView {
     gridData.heightHint = 30;
     piecesImage.setLayoutData(gridData);
 
-    piecesImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        updatePiecesInfo(true);
-      }
-    });
 
     piecesPercent = new BufferedLabel(gFile, SWT.RIGHT);
     piecesPercent.setText("\t"); //$NON-NLS-1$
@@ -191,11 +184,6 @@ public class GeneralView extends AbstractIView {
     gridData.heightHint = 30;
     availabilityImage.setLayoutData(gridData);
     Messages.setLanguageText(availabilityImage, "GeneralView.label.status.pieces_available.tooltip");
-    availabilityImage.addListener(SWT.Paint, new Listener() {
-      public void handleEvent(Event e) {
-        updateAvailability();
-      }
-    });
 
     availabilityPercent = new BufferedLabel(gAvailability, SWT.RIGHT);
     availabilityPercent.setText("\t"); //$NON-NLS-1$
@@ -551,6 +539,28 @@ public class GeneralView extends AbstractIView {
     comment.setLayoutData(gridData);
  
     
+    fileImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0) {
+          updateOverall(true);
+        }
+      }
+    });
+    piecesImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0) {
+          updatePiecesInfo(true);
+        }
+      }
+    });
+    availabilityImage.addListener(SWT.Paint, new Listener() {
+      public void handleEvent(Event e) {
+        if (e.count == 0) {
+          updateAvailability();
+        }
+      }
+    });
+
     if(System.getProperty("os.name").equals("Mac OS X")) {
       Shell shell = MainWindow.getWindow().getShell();
       Point size = shell.getSize();
@@ -560,6 +570,8 @@ public class GeneralView extends AbstractIView {
     
     genComposite.layout();
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
+
+    COConfigurationManager.addParameterListener("Graphics Update", this);
   }
 
   /* (non-Javadoc)
@@ -577,9 +589,11 @@ public class GeneralView extends AbstractIView {
       return;
 
     loopFactor++;
-    updateAvailability();
-    updatePiecesInfo(false);
-    updateOverall(false);
+    if ((loopFactor % graphicsUpdate) == 0) {
+      updateAvailability();
+      updatePiecesInfo(false);
+      updateOverall(false);
+    }
     setTime(manager.getStats().getElapsedTime(), DisplayFormatters.formatETA(manager.getStats().getETA()));
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
@@ -641,6 +655,7 @@ public class GeneralView extends AbstractIView {
 		pImage.dispose();
 	pImage = null;
   Utils.disposeComposite(genComposite);    
+    COConfigurationManager.removeParameterListener("Graphics Update", this);
   }
 
   public String getData() {
@@ -992,4 +1007,7 @@ public class GeneralView extends AbstractIView {
   }
  
 
+  public void parameterChanged(String parameterName) {
+    graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+  }
 }
