@@ -33,6 +33,7 @@ import java.io.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.classic.TRTrackerClientClassicImpl;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 
 public class 
 TRTrackerUtilsImpl 
@@ -47,7 +48,9 @@ TRTrackerUtilsImpl
 		{ 81 };
 
 	private static String		tracker_ip;
-	private static String		override_ip;
+	
+	private static Map			override_map;
+	
 	private static String		bind_ip;
 	
 	static{
@@ -70,7 +73,23 @@ TRTrackerUtilsImpl
 	{
 		tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
 	
-		override_ip		= COConfigurationManager.getStringParameter("Override Ip", "");
+		String override_ips		= COConfigurationManager.getStringParameter("Override Ip", "");
+		
+		StringTokenizer	tok = new StringTokenizer( override_ips, ";" );
+		
+		Map	new_override_map = new HashMap();
+		
+		while( tok.hasMoreTokens()){
+			
+			String	ip = tok.nextToken().trim();
+			
+			if ( ip.length() > 0 ){
+				
+				new_override_map.put( HostNameToIPResolver.categoriseAddress( ip ), ip );
+			}
+		}
+		
+		override_map	= new_override_map;
 		
 		bind_ip 		= COConfigurationManager.getStringParameter("Bind IP", "");
 	}
@@ -140,9 +159,11 @@ TRTrackerUtilsImpl
 	{
 		if ( tracker_ip.length() > 0 ){
 				
-			String	target_ip = override_ip;
+			String	address_type = HostNameToIPResolver.categoriseAddress( host_in );
 			
-			if ( target_ip.length() == 0 ){
+			String	target_ip = (String)override_map.get( address_type );
+			
+			if ( target_ip == null ){
 				
 				target_ip	= tracker_ip;
 			}

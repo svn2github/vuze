@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import javax.net.ssl.*;
 
@@ -1511,33 +1512,57 @@ TRTrackerClientClassicImpl
     	// any explicit override takes precedence over any implicit override added 
     	// when hosting torrents
     
-    String explicit_ip = COConfigurationManager.getStringParameter("Override Ip", "");
+    String explicit_ips = COConfigurationManager.getStringParameter( "Override Ip", "" );
     
-    String ip = explicit_ip.length()>0?explicit_ip:(ip_override==null?"":ip_override);
+    String 	ip					= null;
+    String	tracker_category	= HostNameToIPResolver.categoriseAddress( _url.getHost()); 
     
-    if (ip.length() != 0) {
-    	
-    		// gotta try and use the non-dns version 
-    	
-    	String	ip2;
-    	
-    	try{
-    		ip2 = PRHelpers.DNSToIPAddress( ip );
+   	if ( explicit_ips.length() > 0 ){
     		
-    	}catch( UnknownHostException e){
+   			// gotta select an appropriate override based on network type
+	  			
+		StringTokenizer	tok = new StringTokenizer( explicit_ips, ";" );
+				
+		while( tok.hasMoreTokens()){
+			
+			String	this_address = (String)tok.nextToken().trim();
+			
+			if ( this_address.length() > 0 ){
+				
+				String	cat = HostNameToIPResolver.categoriseAddress( this_address );
+				
+				if ( tracker_category == cat ){
+					
+					ip = this_address;
+					
+					break;
+				}
+			}
+		}	
+   	}
+    
+   	if ( ip == null ){
+   		
+   		if ( ip_override != null ){
+   			
+   			ip = ip_override;
+   		}
+   	}
+    
+    if ( ip != null ){
+     	   	
+    	if ( tracker_category == HostNameToIPResolver.HT_NORMAL ){
+    	
+    		try{
+    			ip = PRHelpers.DNSToIPAddress( ip );
     		
-    		if ( 	e instanceof HostNameToIPResolverException &&
-    				((HostNameToIPResolverException)e).isAnonymous()){
-    			
-    		}else{
-    			
+    		}catch( UnknownHostException e){
+    		    			
     			LGLogger.log( LGLogger.ERROR, "IP Override host resolution of '" + ip + "' fails, using unresolved address" );
     		}
-    		
-    		ip2	= ip;
     	}
     	    	
-    	request.append("&ip=").append(ip2);
+    	request.append("&ip=").append(ip);
     }
 	
     if ( COConfigurationManager.getBooleanParameter("Tracker Key Enable Client", true )){

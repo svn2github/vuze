@@ -301,9 +301,23 @@ public class VirtualChannelSelector {
             	
             	data.non_progress_count++;
             	
-            	if ( data.non_progress_count %10 == 0 && data.non_progress_count > 0 ){
+            	if ( data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
             		
-            		System.out.println( "VirtualChannelSelector: No progress for op " + INTEREST_OP + ": " + data.non_progress_count );
+            		System.out.println( 
+            				"VirtualChannelSelector: No progress for op " + INTEREST_OP + ": " + data.non_progress_count +
+            				", socket: open = " + data.channel.isOpen() + ", connected = " + data.channel.isConnected());
+            		
+            		if ( data.non_progress_count == 1000 ){
+            			
+            			Debug.out( "No progress for " + data.non_progress_count + ", closing connection" );
+            			
+            			try{
+            				data.channel.close();
+            				
+            			}catch( Throwable e ){
+            				
+            			}
+            		}
             	}
             }
            }

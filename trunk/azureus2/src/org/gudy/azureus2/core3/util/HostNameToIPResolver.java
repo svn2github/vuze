@@ -35,6 +35,10 @@ import java.util.List;
 public class 
 HostNameToIPResolver 
 {
+	public static final String	HT_NORMAL		= "N";
+	public static final String	HT_I2P			= "I";
+	public static final String	HT_TOR			= "T";
+	
 	static protected Thread			resolver_thread;
 	
 	static protected List			request_queue		= new ArrayList();
@@ -43,13 +47,36 @@ HostNameToIPResolver
 
 	static protected AESemaphore	request_semaphore	= new AESemaphore("HostNameToIPResolver");
 	
+	public static String
+	categoriseAddress(
+		String	str )
+	{
+		int	last_dot = str.lastIndexOf('.');
+		
+		if ( last_dot == -1 ){
+			
+			return( HT_NORMAL );	// no idea really, treat as normal
+		}
+		
+		String	dom = str.substring(last_dot+1).toLowerCase();
+		
+		if ( dom.equals( "i2p" )){
+			
+			return( HT_I2P );
+			
+		}else if ( dom.equals( "onion" )){
+			
+			return( HT_TOR );
+		}
+		
+		return( HT_NORMAL );
+	}
+	
 	public static boolean
 	isNonDNSName(
 		String	host )
 	{
-		String	lc_host	 = host.toLowerCase();
-		
-		return( lc_host.endsWith(".i2p" ) || lc_host.endsWith( ".onion" ));		
+		return( categoriseAddress( host ) != HT_NORMAL );
 	}
 	
 	public static InetAddress
