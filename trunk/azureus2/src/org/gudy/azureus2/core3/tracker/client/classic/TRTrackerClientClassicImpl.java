@@ -318,7 +318,7 @@ TRTrackerClientClassicImpl
 								}
 								
                 
-                String msg = "perform():: New tracker update event scheduled for " +target_time+ " [+" +(target_time - SystemTime.getCurrentTime())+ "sec], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
+                String msg = "perform():: New tracker update event scheduled for " +target_time+ " [+" +(target_time - SystemTime.getCurrentTime())+ "ms], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
                 LGLogger.log( msg );
                 
 								current_timer_event = 
@@ -447,7 +447,7 @@ TRTrackerClientClassicImpl
 						
 						current_timer_event.cancel();
 						
-            String msg = "setRefreshDelayOverrides():: New tracker update event scheduled for " +target_time+ " [+" +(target_time - SystemTime.getCurrentTime())+ "sec], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
+            String msg = "setRefreshDelayOverrides():: New tracker update event scheduled for " +target_time+ " [+" +(target_time - SystemTime.getCurrentTime())+ "ms], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
             LGLogger.log( msg );
             
 						current_timer_event = 
@@ -536,7 +536,7 @@ TRTrackerClientClassicImpl
 				current_timer_event.cancel();
 			}
 			
-      String msg = "requestUpdate():: New tracker update event scheduled for " +SystemTime.getCurrentTime()+ " [+" +(SystemTime.getCurrentTime() - SystemTime.getCurrentTime())+ "sec], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
+      String msg = "requestUpdate():: New tracker update event scheduled for " +SystemTime.getCurrentTime()+ " [+" +(SystemTime.getCurrentTime() - SystemTime.getCurrentTime())+ "ms], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
       LGLogger.log( msg );
       
 			current_timer_event = 
