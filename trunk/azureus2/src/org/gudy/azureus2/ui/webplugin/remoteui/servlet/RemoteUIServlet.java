@@ -114,6 +114,7 @@ RemoteUIServlet
 		"core3/util/DisplayFormatters$1.class",
 		"core3/util/Semaphore.class",
 		"core3/torrentdownloader/TorrentDownloaderException.class",
+		"core3/torrent/TOTorrentException.class",
 		
 		"pluginsremote/RPRequestDispatcher.class",
 		"pluginsremote/RPException.class",
