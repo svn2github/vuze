@@ -33,13 +33,21 @@ public class
 DHTRouterContactImpl
 	implements DHTRouterContact
 {
+	private static final int	MAX_FAIL_COUNT	= 1;	// TODO:
+	
 	private byte[]		node_id;
+	private Object		attachment;
+	
+	private boolean		ping_outstanding;
+	private int			fail_count;
 	
 	protected
 	DHTRouterContactImpl(
-		byte[]	_node_id )
+		byte[]	_node_id,
+		Object	_attachment )
 	{
-		node_id	= _node_id;
+		node_id		= _node_id;
+		attachment	= _attachment;
 	}
 	
 	public byte[]
@@ -47,16 +55,37 @@ DHTRouterContactImpl
 	{
 		return(node_id );
 	}
-	
-	public void
-	ping()
+
+	public Object
+	getAttachment()
 	{
-		
+		return( attachment );
+	}
+	
+	public boolean
+	getPingOutstanding()
+	{
+		return( ping_outstanding );
 	}
 	
 	public void
-	store()
+	setPingOutstanding(
+		boolean		p )
 	{
+		ping_outstanding	= p;
+	}
+	
+	public void
+	alive()
+	{
+		fail_count	= 0;
+	}
+	
+	public boolean
+	failed()
+	{
+		fail_count++;
 		
+		return( fail_count >= MAX_FAIL_COUNT );
 	}
 }

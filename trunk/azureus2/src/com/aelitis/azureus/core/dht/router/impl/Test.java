@@ -30,6 +30,7 @@ package com.aelitis.azureus.core.dht.router.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.router.*;
@@ -53,7 +54,7 @@ Test
 	simpleTest(
 		DHTRouter	router )
 	{
-		router.setNodeID( new byte[]{ 0 });
+		router.setNodeID( new byte[]{ 0 }, null);
 		
 		byte[][]	node_ids ={ 
 				{ toByte( "11111111" ) },		
@@ -65,7 +66,7 @@ Test
 		
 		for (int i=0;i<node_ids.length;i++){
 						
-			router.addContact( node_ids[i] );
+			router.addContact( node_ids[i], null );
 		}
 
 			// byte[]	node_id = new byte[]{ 1,1,1,1 }; //new SHA1Hasher().calculateHash( (""+i).getBytes());
@@ -77,11 +78,20 @@ Test
 	randomTest(
 		DHTRouter	router )
 	{
-		router.setNodeID( getSHA1());
+		router.setNodeID( getSHA1(), null);
 		
-		for (int i=0;i<10000;i++){
+		for (int i=0;i<100000;i++){
 			
-			router.addContact( getSHA1());
+			byte[]	id = getSHA1();
+			
+			DHTRouterContact cont = router.addContact( id, null);
+			
+			DHTRouterContact res = router.findContact( id );
+			
+			if ( cont != res ){
+				
+				Debug.out( "whoops" );
+			}
 		}
 		
 		byte[]	search = getSHA1();

@@ -33,9 +33,6 @@ DHTRouterContact
 	public byte[]
 	getID();
 	
-	public void
-	ping();
-	
-	public void
-	store();
+	public Object
+	getAttachment();
 }

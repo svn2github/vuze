@@ -34,22 +34,32 @@ DHTRouter
 {
 	public void
 	setNodeID(
+		byte[]	node_id,
+		Object	attachment );
+	
+	public DHTRouterContact
+	addContact(
+		byte[]	node_id,
+		Object	attachment );
+	
+	public DHTRouterContact
+	findContact(
 		byte[]	node_id );
 	
-	public void
-	addContact(
-		byte[]	node_id );
+	public DHTRouterContact
+	contactAlive(
+		byte[]	node_id,
+		Object	attachment );
+
+	public DHTRouterContact
+	contactDead(
+		byte[]	node_id,
+		Object	attachment );
 	
 	public List
 	findClosestContacts(
 		byte[]	node_id );
-	
-	public DHTRouterContact
-	findContact();
-	
-	public Object
-	findValue();
-	
+			
 	public void
 	print();
 }

@@ -35,6 +35,15 @@ public interface
 DHT 
 {
 	public void
+	put(
+		byte[]		key,
+		byte[]		value );
+	
+	public byte[]
+	get(
+		byte[]		key );
+	
+	public void
 	addTransport(
 		DHTTransport	transport );
 	

@@ -37,13 +37,13 @@ DHTTransport
 	
 	public static final int	TT_LOOPBACK		= 1;
 	
-	/**
-	 * Gives access to the node ID for this transport 
-	 * @return
-	 */
+		/**
+		 * Gives access to the node ID for this transport 
+		 * @return
+		 */
 	
-	public byte[]
-	getNodeID();
+	public DHTTransportContact
+	getLocalContact();
 	
 	public void
 	importContact(

@@ -54,6 +54,21 @@ DHTImpl
 	}
 	
 	public void
+	put(
+		byte[]		key,
+		byte[]		value )
+	{
+		control.put( key, value );
+	}
+	
+	public byte[]
+	get(
+		byte[]		key )
+	{
+		throw( new RuntimeException(""));
+	}
+	
+	public void
 	addTransport(
 		DHTTransport	transport )
 	{

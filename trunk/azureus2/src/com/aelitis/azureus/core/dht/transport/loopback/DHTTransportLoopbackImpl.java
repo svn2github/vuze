@@ -43,7 +43,9 @@ DHTTransportLoopbackImpl
 	private static long	node_id_seed_next	= 0;
 	private static Map	node_map	= new HashMap();
 	
-	private byte[]		node_id;
+	private byte[]				node_id;
+	private DHTTransportContact	local_contact;
+	
 	private int			id_byte_length;
 	
 	private DHTTransportRequestHandler		request_handler;
@@ -63,13 +65,15 @@ DHTTransportLoopbackImpl
 			System.arraycopy( temp, 0, node_id, 0, id_byte_length );
 			
 			node_map.put( new HashWrapper( node_id ), this );
+			
+			local_contact	= new DHTTransportLoopbackContactImpl( this, node_id );
 		}
 	}
 	
-	public byte[]
-	getNodeID()
+	public DHTTransportContact
+	getLocalContact()
 	{
-		return( node_id );
+		return( local_contact );
 	}
 	
 	protected DHTTransportLoopbackImpl
@@ -132,6 +136,7 @@ DHTTransportLoopbackImpl
 		if ( target == null ){
 			
 			handler.failed(contact);
+			
 		}else{
 			
 			target.getRequestHandler().pingRequest( new DHTTransportLoopbackContactImpl( target, node_id ));
@@ -155,6 +160,21 @@ DHTTransportLoopbackImpl
 		DHTTransportReplyHandler	handler,
 		byte[]						nid )
 	{
+		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
+		
+		if ( target == null ){
+			
+			handler.failed(contact);
+			
+		}else{
+			
+			DHTTransportContact[] res =
+				target.getRequestHandler().findNodeRequest( 
+					new DHTTransportLoopbackContactImpl( target, node_id ),
+					nid );
+			
+			handler.findNodeReply( contact, res );
+		}
 	}
 		
 	public void

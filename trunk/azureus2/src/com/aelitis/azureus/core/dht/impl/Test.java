@@ -56,9 +56,11 @@ Test
 			
 			dht2.addTransport( transport2 );			
 			
-			transport1.importContact( new ByteArrayInputStream( transport2.getNodeID()));
+			transport1.importContact( new ByteArrayInputStream( transport2.getLocalContact().getID()));
 			
 			dht1.print();
+			
+			dht2.put( "fred".getBytes(), new byte[2]);
 			
 		}catch( Throwable e ){
 			

@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.router.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.dht.router.*;
 
@@ -37,8 +38,11 @@ public class
 DHTRouterImpl
 	implements DHTRouter
 {
+	private static final int	SMALLEST_SUBTREE_MAX_EXCESS	= 512;
+	
 	private int		K = 2;
 	private int		B = 5;
+	private int		SMALLEST_SUBTREE_MAX;
 	
 	
 	private byte[]	router_node_id;
@@ -53,30 +57,48 @@ DHTRouterImpl
 	{
 		K		= _K;
 		B		= _B;
+		
+		SMALLEST_SUBTREE_MAX	= 1;
+		
+		for (int i=0;i<B;i++){
+			
+			SMALLEST_SUBTREE_MAX	*= 2;
+		}
+		
+		SMALLEST_SUBTREE_MAX	+= SMALLEST_SUBTREE_MAX_EXCESS;
 	}
 	
 	public void
 	setNodeID(
-		byte[]	_my_node_id )
+		byte[]	_router_node_id,
+		Object	_attachment )
 	{
-		router_node_id	= _my_node_id;
+		router_node_id	= _router_node_id;
 		
 		List	buckets = new ArrayList();
 		
-		buckets.add( new DHTRouterContactImpl( router_node_id ));
+		buckets.add( new DHTRouterContactImpl( router_node_id, _attachment ));
 		
-		root	= new DHTRouterNodeImpl( 0, true, buckets );
+		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
 		
 		smallest_subtree	= root;
 	}
 	
-	public synchronized void
+	public synchronized DHTRouterContact
 	addContact(
-		byte[]	node_id )
+		byte[]	node_id,
+		Object	attachment )
 	{
-		// TODO: check already exists
-		
-		// System.out.println( ByteFormatter.nicePrint( node_id ));
+		return( addContact( node_id, attachment, false ));
+	}
+	
+	public synchronized DHTRouterContact
+	addContact(
+		byte[]	node_id,
+		Object	attachment,
+		boolean	known_to_be_alive )
+	{
+			// System.out.println( ByteFormatter.nicePrint( node_id ));
 		
 		DHTRouterNodeImpl	current_node = root;
 			
@@ -113,7 +135,24 @@ DHTRouterImpl
 				if ( next_node == null ){
 		
 					List	buckets = current_node.getBuckets();
+
+						// see if we already know about it
 					
+					for (int k=0;k<buckets.size();k++){
+						
+						DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(k);
+						
+						if ( Arrays.equals(node_id, contact.getID())){
+
+							if ( known_to_be_alive ){
+								
+								current_node.alive( contact );
+							}
+
+							return( contact );
+						}
+					}
+
 					if ( buckets.size() == K ){
 						
 							// split if either
@@ -124,8 +163,11 @@ DHTRouterImpl
 						boolean	contains_router_node_id = current_node.containsRouterNodeID();
 						int		depth					= current_node.getDepth();
 						
+						boolean	too_deep_to_split = depth % B == 0;	// note this will be true for 0 but other
+																	// conditions will allow the split
+						
 						if ( 	contains_router_node_id ||
-								depth % B != 0 ||
+								(!too_deep_to_split)	||
 								part_of_smallest_subtree ){
 							
 								// the smallest-subtree bit is to ensure that we remember all of
@@ -141,8 +183,16 @@ DHTRouterImpl
 								// However, a possible DOS here would be for a rogue node to 
 								// deliberately try and create such a tree with a large number
 								// of entries.
-								// TODO: worthwhile defending the max size of this subtree?
-							
+								
+							if ( 	part_of_smallest_subtree &&
+									too_deep_to_split &&
+									( !contains_router_node_id ) &&
+									getContactCount( smallest_subtree ) > SMALLEST_SUBTREE_MAX ){
+								
+								Debug.out( "DHTRouter: smallest subtree max size violation" );
+								
+								return( null );	
+							}
 							
 								// split!!!!
 							
@@ -164,7 +214,7 @@ DHTRouterImpl
 									left_buckets.add( contact );
 								}
 							}
-							
+				
 							boolean	right_contains_rid = false;
 							boolean left_contains_rid = false;
 							
@@ -176,8 +226,8 @@ DHTRouterImpl
 								left_contains_rid	= !right_contains_rid;
 							}
 							
-							DHTRouterNodeImpl	new_left 	= new DHTRouterNodeImpl( depth+1, left_contains_rid, left_buckets );
-							DHTRouterNodeImpl	new_right 	= new DHTRouterNodeImpl( depth+1, right_contains_rid, right_buckets );
+							DHTRouterNodeImpl	new_left 	= new DHTRouterNodeImpl( this, depth+1, left_contains_rid, left_buckets );
+							DHTRouterNodeImpl	new_right 	= new DHTRouterNodeImpl( this, depth+1, right_contains_rid, right_buckets );
 							
 							current_node.split( new_left, new_right );
 							
@@ -189,17 +239,21 @@ DHTRouterImpl
 								smallest_subtree = current_node;
 							}
 							
-							// not complete, retry addition 
+								// not complete, retry addition 
 							
 						}else{
+								
+							current_node.addReplacement( new DHTRouterContactImpl( node_id, attachment ));
 							
-							return;
+							return( null );
 						}
 					}else{
+		
+						DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment );
+							
+						buckets.add( new_contact );	// complete - added to bucket
 						
-						buckets.add( new DHTRouterContactImpl( node_id ));	// complete - added to bucket
-						
-						return;
+						return( new_contact );
 					}						
 				}else{
 						
@@ -209,6 +263,10 @@ DHTRouterImpl
 				}
 			}
 		}
+		
+		Debug.out( "DHTRouter inconsistency" );
+		
+		return( null );
 	}
 	
 	public synchronized List
@@ -230,7 +288,40 @@ DHTRouterImpl
 		
 		return( res_l );
 	}
+	
+	public synchronized DHTRouterContact
+	contactAlive(
+		byte[]	node_id,
+		Object	attachment )
+	{
+		return( addContact( node_id, attachment, true ));
+	}
+
+	public synchronized DHTRouterContact
+	contactDead(
+		byte[]	node_id,
+		Object	attachment )
+	{
+		Object[]	res = findContactSupport( node_id );
+		
+		if ( res == null ){
 			
+			return( null );
+		}
+		
+		DHTRouterNodeImpl		node	= (DHTRouterNodeImpl)res[0];
+		DHTRouterContactImpl	contact = (DHTRouterContactImpl)res[1];
+		
+		node.dead( contact );
+		
+		return( contact );
+	}
+	
+	
+	
+	
+	
+	
 	protected int
 	findClosestContacts(
 		byte[]					node_id,
@@ -283,21 +374,130 @@ DHTRouterImpl
 		return( res_pos );
 	}
 	
-	public DHTRouterContact
-	findContact()
+	public synchronized DHTRouterContact
+	findContact(
+		byte[]		node_id )
 	{
+		Object[]	res = findContactSupport( node_id );
+		
+		if ( res == null ){
+			
+			return( null );
+		}
+		
+		return((DHTRouterContact)res[1]);
+	}
+	
+	protected synchronized Object[]
+	findContactSupport(
+		byte[]		node_id )
+	{
+		DHTRouterNodeImpl	current_node	= root;
+		
+		for (int i=0;i<node_id.length;i++){
+			
+			if ( current_node.getBuckets() != null ){
+			
+				break;
+			}
+
+			byte	b = node_id[i];
+			
+			int	j = 7;
+			
+			while( j >= 0 ){
+					
+				boolean	bit = ((b>>j)&0x01)==1?true:false;
+				
+				if ( current_node.getBuckets() != null ){
+					
+					break;
+				}
+								
+				if ( bit ){
+					
+					current_node = current_node.getLeft();
+					
+				}else{
+					
+					current_node = current_node.getRight();
+				}
+				
+				j--;
+			}
+		}
+		
+		List	buckets = current_node.getBuckets();
+		
+		for (int k=0;k<buckets.size();k++){
+			
+			DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(k);
+			
+			if ( Arrays.equals(node_id, contact.getID())){
+
+				return( new Object[]{ current_node, contact });
+			}
+		}
+		
 		return( null );
 	}
 	
-	public Object
-	findValue()
+	public long
+	getNodeCount()
 	{
-		return( null );
+		DHTRouterNodeImpl	current_node	= root;
+		
+		return( getNodeCount( current_node ));
+	}
+	
+	protected long
+	getNodeCount(
+		DHTRouterNodeImpl	node )
+	{
+		if ( node.getBuckets() != null ){
+			
+			return( 1 );
+			
+		}else{
+			
+			return( 1 + getNodeCount( node.getLeft())) + getNodeCount( node.getRight());
+		}
+	}
+	
+	public long
+	getContactCount()
+	{
+		DHTRouterNodeImpl	current_node	= root;
+		
+		return( getContactCount( current_node ));
+	}
+	
+	protected long
+	getContactCount(
+		DHTRouterNodeImpl	node )
+	{
+		if ( node.getBuckets() != null ){
+			
+			return( node.getBuckets().size());
+			
+		}else{
+			
+			return( getContactCount( node.getLeft())) + getContactCount( node.getRight());
+		}
+	}
+	
+	protected void
+	requestPing(
+		DHTRouterContactImpl	contact )
+	{
+		System.out.println( "DHTRouter: requestPing:" + ByteFormatter.nicePrint( contact.getID(), true ));
 	}
 	
 	public void
 	print()
 	{
+		System.out.println( "DHT: node count = " + getNodeCount()+ ", contacts =" + getContactCount());
+		
 		root.print( "", "" );
 	}
 }

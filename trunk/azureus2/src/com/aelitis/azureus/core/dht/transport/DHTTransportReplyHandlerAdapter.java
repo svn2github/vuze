@@ -28,7 +28,7 @@ package com.aelitis.azureus.core.dht.transport;
  */
 
 public class 
-DHTReplyHandlerAdapter
+DHTTransportReplyHandlerAdapter
 	implements DHTTransportReplyHandler
 {
 	public void

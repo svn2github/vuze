@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.router.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 
@@ -36,20 +37,26 @@ import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 public class 
 DHTRouterNodeImpl
 {
-	private int		depth;
-	private boolean	contains_router_node_id;
+	private static final int	MAX_REPLACEMENTS	= 5;	// TODO:
+	
+	private DHTRouterImpl	router;
+	private int				depth;
+	private boolean			contains_router_node_id;
 	
 	private List	buckets;
+	private List	replacements;
 	
 	private DHTRouterNodeImpl	left;
 	private DHTRouterNodeImpl	right;
 	
 	protected
 	DHTRouterNodeImpl(
-		int			_depth,
-		boolean		_contains_router_node_id,
-		List		_buckets )
+		DHTRouterImpl	_router,
+		int				_depth,
+		boolean			_contains_router_node_id,
+		List			_buckets )
 	{
+		router					= _router;
 		depth					= _depth;
 		contains_router_node_id	= _contains_router_node_id;
 		buckets					= _buckets;
@@ -86,6 +93,11 @@ DHTRouterNodeImpl
 	{
 		buckets	= null;
 		
+		if ( replacements != null ){
+			
+			Debug.out( "DHTRouterNode: inconsistenct - splitting a node with replacements" );
+		}
+		
 		left	= new_left;
 		right	= new_right;
 	}
@@ -94,6 +106,102 @@ DHTRouterNodeImpl
 	getBuckets()
 	{
 		return( buckets );
+	}
+	
+	protected List
+	getReplacements()
+	{
+		return( replacements );
+	}
+	
+	protected void
+	addReplacement(
+		DHTRouterContactImpl	replacement )
+	{
+		if ( replacements == null ){
+			
+			replacements = new ArrayList();
+			
+		}else{
+			
+				// check its not already there
+			
+			for (int i=0;i<replacements.size();i++){
+				
+				DHTRouterContactImpl	r = (DHTRouterContactImpl)replacements.get(i);
+				
+				if ( Arrays.equals( replacement.getID(), r.getID())){
+					
+					return;
+				}
+			}
+			
+			if ( replacements.size() == MAX_REPLACEMENTS ){
+			
+				replacements.remove(0);
+			}
+		}
+			
+		replacements.add( replacement );
+		
+			// we need to find a bucket contact to ping - if it fails then it might be replaced with
+			// this one
+		
+		for (int i=0;i<buckets.size();i++){
+			
+			DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
+			
+			if ( !contact.getPingOutstanding()){
+				
+				contact.setPingOutstanding( true );
+				
+				router.requestPing( contact );
+				
+				break;
+			}
+		}
+	}
+	
+	protected void
+	alive(
+		DHTRouterContactImpl	contact )
+	{
+		System.out.println( ByteFormatter.nicePrint( contact.getID(), true ) + ": alive" );
+		
+			// only action this if still present
+		
+		if ( buckets.remove( contact )){
+			
+			contact.setPingOutstanding( false );
+			
+			contact.alive();
+			
+			buckets.add( contact );
+		}
+	}
+	
+	protected void
+	dead(
+		DHTRouterContactImpl	contact )
+	{
+		System.out.println( ByteFormatter.nicePrint( contact.getID(), true ) + ": dead" );
+		
+		if ( contact.failed()){
+			
+				// check the contact is still present
+			
+			if ( buckets.remove( contact )){
+				
+				if ( replacements.size() > 0 ){
+					
+						// take most recent and add to buckets
+					
+					Object	rep = replacements.remove( replacements.size() - 1 );
+					
+					buckets.add( rep );
+				}
+			}
+		}
 	}
 	
 	public void

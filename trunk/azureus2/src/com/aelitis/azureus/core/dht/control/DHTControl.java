@@ -33,6 +33,11 @@ public interface
 DHTControl 
 {
 	public void
+	put(
+		byte[]		key,
+		byte[]		value );
+	
+	public void
 	addTransport(
 		DHTTransport	transport );
 }
