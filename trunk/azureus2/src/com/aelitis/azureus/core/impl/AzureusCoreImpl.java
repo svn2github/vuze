@@ -123,7 +123,28 @@ AzureusCoreImpl
 	        			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).started( AzureusCoreImpl.this );
 	        		}
 	        	}
-	       }.start();   
+	       }.start();
+         
+            
+	    //Catch non-user-initiated VM shutdown
+      //TODO: This does not seem to catch Windows' shutdown events, despite what Sun's
+      //documentation says. See for possible fix:
+      //http://www-106.ibm.com/developerworks/ibm/library/i-signalhandling
+      //http://www.smotricz.com/kabutz/Issue043.html 
+      //http://www.geeksville.com/~kevinh/projects/javasignals/
+      
+	    Runtime.getRuntime().addShutdownHook( new Thread("Shutdown Hook") {
+	      public void run() {
+	        if( running ) {
+	          try{
+              System.out.println( "Forced VM shutdown...auto-stopping..." );
+              stop();
+            }
+            catch( Throwable e ){  e.printStackTrace();  }
+	        }
+	      }
+	    });
+         
 	}
 	
 	public synchronized void
