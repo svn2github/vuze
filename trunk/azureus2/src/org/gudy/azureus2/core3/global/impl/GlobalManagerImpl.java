@@ -616,7 +616,38 @@ public class GlobalManagerImpl
   	public Object
 	pauseDownloads()
   	{
-  		return( null );
+  		List	result = new ArrayList();
+  		
+  		for (Iterator iter = managers.iterator(); iter.hasNext();){
+  			
+  			DownloadManager manager = (DownloadManager) iter.next();
+  			
+  			if ( manager.getTorrent() == null ){
+  				
+  				continue;
+  			}
+  			
+  			int	state = manager.getState();
+  			
+  			if ( 	state != DownloadManager.STATE_STOPPED &&
+  					state != DownloadManager.STATE_ERROR &&
+					state != DownloadManager.STATE_STOPPING ){
+  				
+  		
+  				try{
+  				
+  					manager.stopIt(DownloadManager.STATE_STOPPED);
+  					
+  					result.add( manager.getTorrent().getHashWrapper());
+  					
+  				}catch( TOTorrentException e ){
+  					
+  					e.printStackTrace();
+  				}
+  			}
+  		}
+  		
+  		return( result );
   	}
   
   	public void
@@ -626,6 +657,21 @@ public class GlobalManagerImpl
   		if ( pause_state == null ){
   			
   			return;
+  		}
+  		
+  		List	hashes = (List)pause_state;
+  		
+  		for (int i=0;i<hashes.size();i++){
+  			
+  			HashWrapper	hash = (HashWrapper)hashes.get(i);
+  			
+  			DownloadManager	manager = getDownloadManager( hash.getHash());
+  			
+  			if ( 	manager != null && 
+  					manager.getState() == DownloadManager.STATE_STOPPED ){
+  				
+  				manager.startDownloadInitialized(true);
+  			}
   		}
   	}
   
@@ -638,7 +684,22 @@ public class GlobalManagerImpl
   			return( false );
   		}
   		
-  		return( true );
+ 		List	hashes = (List)pause_state;
+  		
+  		for (int i=0;i<hashes.size();i++){
+  			
+  			HashWrapper	hash = (HashWrapper)hashes.get(i);
+  			
+  			DownloadManager	manager = getDownloadManager( hash.getHash());
+  			
+  			if ( 	manager != null && 
+  					manager.getState() == DownloadManager.STATE_STOPPED ){
+  		
+  				return( true );
+  			}
+  		}
+  		
+  		return( false );
   	}
   
   
