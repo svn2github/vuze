@@ -35,6 +35,10 @@ public class DLedFromOthersItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+  
+  private long prev_value = 0;
+  
+  
   /** Default Constructor */
   public DLedFromOthersItem() {
     super("DLedFromOthers", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_TORRENT_PEERS);
@@ -46,6 +50,9 @@ public class DLedFromOthersItem
     long value = (peer == null) ? 0 : peer.getStats().getTotalBytesDownloadedByPeer() - peer.getStats().getTotalDataBytesSent();
     // Just because we sent data doesn't mean the peer has told us the piece is done yet
     if (value < 0) value = 0;
+    
+    if( value < prev_value )  value = prev_value;  //dont show decrement while we're actively uploading
+    prev_value = value;
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;
