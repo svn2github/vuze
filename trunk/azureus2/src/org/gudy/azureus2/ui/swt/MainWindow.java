@@ -1170,7 +1170,9 @@ public class MainWindow implements IComponentListener {
 
     if (tray != null)
       tray.dispose();
-
+    if(irc != null)
+        irc.dispose();
+        
     display.dispose();
   }
 

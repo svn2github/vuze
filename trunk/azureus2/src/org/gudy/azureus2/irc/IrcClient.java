@@ -6,6 +6,7 @@ package org.gudy.azureus2.irc;
 
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.MessageText;
+import org.jibble.pircbot.Colors;
 import org.jibble.pircbot.PircBot;
 
 /**
@@ -50,7 +51,7 @@ public class IrcClient extends PircBot {
   
   protected void onMessage(String channel, String sender, String login, String hostname, String message) {
     if(listener != null) {
-      listener.messageReceived(sender,message);
+      listener.messageReceived(sender,Colors.removeFormattingAndColors(message));
     }
   }
   
