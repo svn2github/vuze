@@ -1500,12 +1500,14 @@ DiskManagerImpl
 	public int getPiecenumberToDownload(boolean[] _piecesRarest) {
 		//Added patch so that we try to complete most advanced files first.
 		List pieces = new ArrayList();
-		Integer pieceInteger;
+		Integer pieceInteger;    
 		for (int i = 9; i >= 0; i--) {
-			for (int j = 0; j < nbPieces; j++) {
+      int k = 0;
+			for (int j = 0; j < nbPieces && k < 20; j++) {
 				if (_piecesRarest[j] && priorityLists[i].get(j)) {
 					pieceInteger = FlyWeightInteger.getInteger(j);
 					pieces.add(pieceInteger);
+          k++;
 				}
 			}
 			if (pieces.size() != 0)

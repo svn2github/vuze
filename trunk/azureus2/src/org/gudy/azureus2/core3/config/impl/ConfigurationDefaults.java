@@ -123,6 +123,9 @@ public class ConfigurationDefaults {
     //Use or not the ip filtering feature
     def.put("Ip Filter Enabled", new Long(0));
     
+    /** SWT GUI Settings **/
+    def.put("useCustomTab",new Long(1));
+    
     
     /** Headless Server settings **/
     // Server Name

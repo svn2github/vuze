@@ -127,8 +127,10 @@ public class MainWindow implements GlobalManagerListener {
   public static Color red_ManagerItem;
   public static Cursor handCursor;
 
+  private boolean useCustomTab;
+  
   //private TabFolder folder;
-  private CTabFolder folder;
+  private Composite folder;
   
   private CLabel statusText;
   private CLabel statusDown;
@@ -184,8 +186,11 @@ public class MainWindow implements GlobalManagerListener {
           if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
 
             try {
-              //view = Tab.getView(folder.getSelection()[0]);
-              view = Tab.getView(folder.getSelection());
+              if(!useCustomTab) {
+                view = Tab.getView(((TabFolder)folder).getSelection()[0]);
+              } else {
+                view = Tab.getView(((CTabFolder)folder).getSelection());
+              }
 
             }
             catch (Exception e) {
@@ -335,6 +340,9 @@ public class MainWindow implements GlobalManagerListener {
       setVisible(true);
       return;
     }
+    
+    useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
+    
 
     // set to true to enable SWT leak checking
     if (false) {
@@ -584,38 +592,34 @@ public class MainWindow implements GlobalManagerListener {
     
 
     gridData = new GridData(GridData.FILL_BOTH);
-    //folder = new TabFolder(mainWindow, SWT.V_SCROLL);
-    folder = new CTabFolder(mainWindow, SWT.NULL);
+    if(!useCustomTab) {
+      folder = new TabFolder(mainWindow, SWT.V_SCROLL);
+    } else {
+      folder = new CTabFolder(mainWindow, SWT.NULL);
+    }
+    folder.setLayoutData(gridData);
+    
     Tab.setFolder(folder);   
     
-    /*Menu menuFolder = new Menu(mainWindow,SWT.NULL);
-    MenuItem closeTab = new MenuItem(menuFolder,SWT.NULL);
-    Messages.setLanguageText(closeTab,"MainWindow.folder.menu");
-    menuFolder.addListener(SWT.Show,new Listener() {     
-      public void handleEvent(Event event) {
-       if(folder.getSelection().length == 0)
-         event.doit = false;
-      }
-    });
-    folder.setMenu(menuFolder);*/
-    
-    /*folder.addKeyListener(new KeyAdapter() {
-      public void keyReleased(KeyEvent keyEvent) {
-        //System.out.println(keyEvent.keyCode);
-        if(keyEvent.character == SWT.ESC) {
-          Tab.closeCurrent();
+    if(!useCustomTab) {
+      ((TabFolder)folder).addKeyListener(new KeyAdapter() {
+        public void keyReleased(KeyEvent keyEvent) {
+          //System.out.println(keyEvent.keyCode);
+          if(keyEvent.character == SWT.ESC) {
+            Tab.closeCurrent();
+          }
         }
-      }
-    });*/
-    
-    folder.setSelectionBackground(new Color[] { white }, new int[0]);
-    folder.setLayoutData(gridData);
-    folder.addCTabFolderListener(new CTabFolderAdapter() {
-      public void itemClosed(CTabFolderEvent event) {
-        Tab.closed((CTabItem) event.item);
-        event.doit = true;
-      }
-    });
+      });
+    } else {    
+      ((CTabFolder)folder).setSelectionBackground(new Color[] { white }, new int[0]);
+      ((CTabFolder)folder).setLayoutData(gridData);
+      ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {
+        public void itemClosed(CTabFolderEvent event) {
+          Tab.closed((CTabItem) event.item);
+          event.doit = true;
+        }
+      });
+    }
 
     mytorrents = new Tab(new MyTorrentsView(globalManager));
 
@@ -845,8 +849,13 @@ public class MainWindow implements GlobalManagerListener {
     updateMenuText(menuBar);
     if (statusText != null)
       statusText.update();
-    if (folder != null)
-      folder.update();
+    if (folder != null) {
+      if(useCustomTab) {
+        ((CTabFolder)folder).update();
+      } else {
+        ((TabFolder)folder).update();
+      }
+    }
     if (trayIcon != null) {
       trayIcon.updateLanguage();
       trayIcon.refresh();
@@ -1787,6 +1796,13 @@ public class MainWindow implements GlobalManagerListener {
       old.dispose();
     }
     
+  }
+
+  /**
+   * @return Returns the useCustomTab.
+   */
+  public boolean isUseCustomTab() {
+    return useCustomTab;
   }
 
 }

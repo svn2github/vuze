@@ -132,6 +132,7 @@ public class ConfigView extends AbstractIView {
     initGroupIrc();
     initGroupFilter();
     initStats();
+    initStyle();
     
     initSaveButton(); 
     TabItem[] items = {itemFile};
@@ -851,6 +852,29 @@ public class ConfigView extends AbstractIView {
 	itemStats.setControl(gStats);
    }
 
+  private void initStyle() {
+    GridData gridData;
+   GridLayout layout;
+   Label label;
+   TabItem itemStyle = new TabItem(tfConfig, SWT.NULL);
+   //CTabItem itemStats = new CTabItem(ctfConfig, SWT.NULL);
+   Messages.setLanguageText(itemStyle, "ConfigView.section.style"); //$NON-NLS-1$
+
+   Group gStyle = new Group(tfConfig, SWT.NULL);
+   //Group gStats = new Group(ctfConfig, SWT.NULL);
+   gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+   gStyle.setLayoutData(gridData);
+   layout = new GridLayout();
+   layout.numColumns = 2;
+   gStyle.setLayout(layout);
+   
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.useCustomTabs"); //$NON-NLS-1$
+   BooleanParameter useCustomTabs = new BooleanParameter(gStyle, "useCustomTab",true); //$NON-NLS-1$
+   
+   itemStyle.setControl(gStyle);
+  }
+  
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
    */
