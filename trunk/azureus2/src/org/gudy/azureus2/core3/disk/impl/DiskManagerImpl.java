@@ -226,7 +226,8 @@ DiskManagerImpl
 				{
 					startSupport();
 					
-					if (DiskManagerImpl.this.getState() == DiskManager.FAULTY) {
+					if (DiskManagerImpl.this.getState() == DiskManager.FAULTY){
+						
 						stopIt();
 					}
 				}

@@ -202,7 +202,17 @@ DownloadManagerImpl
 	private int nbPieces;
 	
 	private String	display_name;
+	
+	
+		// torrent_save_dir is always the directory within which torrent data is being saved. That is, it
+		// never includes the torrent data itself. In particular it DOESN'T include the dir name of a
+		// non-simple torrent
+	
 	private String	torrent_save_dir;
+	
+		// torrent_save_file is the top level file corresponding to the torrent save data location. This
+		// will be the file name for simple torrents and the folder name for non-simple ones
+	
 	private String	torrent_save_file;
 	
   
@@ -471,6 +481,17 @@ DownloadManagerImpl
 			 save_dir_file	= torrent.isSimpleTorrent()?new File( torrent_save_dir ):new File( torrent_save_dir, torrent_save_file );
 
 			 if ( !save_dir_file.exists()){
+			 	
+			 		// if this isn't a new torrent then we treat the absence of the enclosing folder
+			 		// as a fatal error. This is in particular to solve a problem with the use of
+			 		// externally mounted torrent data on OSX, whereby a re-start with the drive unmounted
+			 		// results in the creation of a local diretory in /Volumes that subsequently stuffs
+			 		// up recovery when the volume is mounted
+			 	
+			 	if ( !new_torrent ){
+			 		
+			 		throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + save_dir_file.toString()));
+			 	}
 			 	
 			 	if ( !save_dir_file.mkdirs()){
 			 	
