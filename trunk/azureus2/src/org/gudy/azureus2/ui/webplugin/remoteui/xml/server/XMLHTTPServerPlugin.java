@@ -65,9 +65,9 @@ XMLHTTPServerPlugin
 	
 		throws IOException
 	{
-		String	url = request.getURL();
+		String	url = request.getURL().toLowerCase();
 		
-		if ( url.equals( "/process.cgi")){
+		if ( url.equals( "process.cgi") || url.equals( "/process.cgi")){
 	
 			InputStream	is = null;
 						
