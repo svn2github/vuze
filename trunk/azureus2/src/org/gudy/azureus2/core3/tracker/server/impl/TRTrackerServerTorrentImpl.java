@@ -84,6 +84,8 @@ TRTrackerServerTorrentImpl
 	
 		throws Exception
 	{
+		// System.out.println( "TRTrackerServerTorrent: peerContact, ip = " + ip_address );
+		
 		boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 		boolean	completed 	= event != null && event.equalsIgnoreCase("completed");
 		

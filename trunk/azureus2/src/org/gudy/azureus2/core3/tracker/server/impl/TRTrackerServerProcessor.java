@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -60,6 +61,10 @@ TRTrackerServerProcessor
 		throws Exception
 	{
 		server	= _server;
+		
+			// translate any 127.0.0.1 local addresses back to the tracker address
+		
+		client_ip_address = TRTrackerUtils.adjustHostFromHosting( client_ip_address );
 		
 		TRTrackerServerTorrentImpl	torrent = null;
 		

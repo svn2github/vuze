@@ -21,6 +21,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+import org.gudy.azureus2.core3.tracker.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -318,9 +319,9 @@ public class TrackerStatus {
   protected void scrapeHTTP(URL reqUrl, ByteArrayOutputStream message)
   	throws IOException
   {
-  	TRTrackerClientUtilsImpl.checkForBlacklistedURLs( reqUrl );
+  	TRTrackerUtils.checkForBlacklistedURLs( reqUrl );
   	
-    reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
+    reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
   	//System.out.println( "trying " + scrape.toString());
   	
@@ -398,7 +399,7 @@ public class TrackerStatus {
   
   		throws Exception
   {
-	reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
+	reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
 	PasswordAuthentication	auth = null;
 			

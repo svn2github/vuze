@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.util.impl;
 
 /**
  * @author parg
@@ -31,9 +31,10 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.tracker.client.classic.TRTrackerClientClassicImpl;
 
 public class 
-TRTrackerClientUtilsImpl 
+TRTrackerUtilsImpl 
 {
 	// author of MakeTorrent has requested we blacklist his site
 	// as people keep embedding it as a tracker in torrents
@@ -44,18 +45,40 @@ TRTrackerClientUtilsImpl
 	private static int[]		BLACKLISTED_PORTS	= 
 		{ 81 };
 
-	protected static URL
+	private static String		tracker_ip;
+	private static String		bind_ip;
+	
+	static{
+	
+		COConfigurationManager.addListener(
+			new COConfigurationListener()
+			{
+				public void
+				configurationSaved()
+				{
+					readConfig();
+				}
+			});
+		
+		readConfig();
+	}
+
+	static void
+	readConfig()
+	{
+		tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+	
+		bind_ip 		= COConfigurationManager.getStringParameter("Bind IP", "");
+	}
+	
+	public static URL
 	adjustURLForHosting(
 		URL		url_in )
 	{
-		String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-		
 		if ( tracker_ip.length() > 0 ){
 			
 			if ( url_in.getHost().equalsIgnoreCase( tracker_ip )){
 		
-				String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-
 				String	url = url_in.getProtocol() + "://";
 		
 				if ( bind_ip.length() < 7 ){
@@ -96,6 +119,30 @@ TRTrackerClientUtilsImpl
 		return( url_in );
 	}
 	
+	public static String
+	adjustHostFromHosting(
+		String		host_in )
+	{
+		if ( tracker_ip.length() > 0 ){
+				
+			if ( host_in.equals( "127.0.0.1")){
+				
+				//System.out.println( "adjustHostFromHosting: " + host_in + " -> " + tracker_ip );
+				
+				return( tracker_ip );
+			}
+			
+			if ( host_in.equals( bind_ip )){
+				
+				//System.out.println( "adjustHostFromHosting: " + host_in +  " -> " + tracker_ip );
+
+				return( tracker_ip );
+			}
+		}
+		
+		return( host_in );
+	}
+	
 	public static void
 	checkForBlacklistedURLs(
 		URL		url )
@@ -113,6 +160,7 @@ TRTrackerClientUtilsImpl
  		}
 	}
 	
+
 	public static Map
 	mergeResponseCache(
 		Map		map1,

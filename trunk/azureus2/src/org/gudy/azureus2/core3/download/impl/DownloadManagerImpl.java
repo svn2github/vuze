@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.tracker.util.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
@@ -1409,7 +1410,7 @@ DownloadManagerImpl
 				tracker_response_cache = client.getTrackerResponseCache();			
 			}
 			
-			tracker_response_cache = TRTrackerClientUtils.mergeResponseCache( tracker_response_cache, other_cache );
+			tracker_response_cache = TRTrackerUtils.mergeResponseCache( tracker_response_cache, other_cache );
 		
 	  		torrent.setAdditionalMapProperty(TRACKER_CACHE_KEY, tracker_response_cache );
 	  		

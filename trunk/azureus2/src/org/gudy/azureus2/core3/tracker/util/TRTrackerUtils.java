@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client;
+package org.gudy.azureus2.core3.tracker.util;
 
 /**
  * @author parg
@@ -27,17 +27,43 @@ package org.gudy.azureus2.core3.tracker.client;
  */
 
 import java.util.Map;
+import java.net.URL;
+import java.io.IOException;
 
-import org.gudy.azureus2.core3.tracker.client.classic.*;
+import org.gudy.azureus2.core3.tracker.util.impl.*;
 
 public class 
-TRTrackerClientUtils 
+TRTrackerUtils 
 {
+	public static void
+	checkForBlacklistedURLs(
+		URL		url )
+	
+		throws IOException
+	{
+		TRTrackerUtilsImpl.checkForBlacklistedURLs( url );
+	}
+
+	public static URL
+	adjustURLForHosting(
+		URL		url_in )
+	{
+		return( TRTrackerUtilsImpl.adjustURLForHosting(url_in ));
+	}
+
+	public static String
+	adjustHostFromHosting(
+		String	host_in )
+	{
+		return( TRTrackerUtilsImpl.adjustHostFromHosting( host_in ));
+		
+	}
+	
 	public static Map
 	mergeResponseCache(
 		Map		map1,
 		Map		map2 )
 	{
-		return( TRTrackerClientUtilsImpl.mergeResponseCache( map1, map2 ));
+		return( TRTrackerUtilsImpl.mergeResponseCache( map1, map2 ));
 	}
 }

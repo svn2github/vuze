@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.peer.util.*;
 
 import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+import org.gudy.azureus2.core3.tracker.util.impl.*;
 
 /**
  * 
@@ -184,6 +185,7 @@ TRTrackerClientClassicImpl
      peerId[i] = (byte)chars.charAt(pos);
 	}
 
+	System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
 	for (int i = 0; i < key_id_length; i++) {
 		int pos = (int) ( Math.random() * chars.length());
 	    key_id +=  chars.charAt(pos);
@@ -777,9 +779,9 @@ TRTrackerClientClassicImpl
  	
  		throws IOException
  	{
- 		TRTrackerClientUtilsImpl.checkForBlacklistedURLs( reqUrl );
+ 		TRTrackerUtilsImpl.checkForBlacklistedURLs( reqUrl );
  		
- 		reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
+ 		reqUrl = TRTrackerUtilsImpl.adjustURLForHosting( reqUrl );
  		
  		String	failure_reason = null;
  		
@@ -922,7 +924,7 @@ TRTrackerClientClassicImpl
  	
  		throws IOException
  	{
- 		reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
+ 		reqUrl = TRTrackerUtilsImpl.adjustURLForHosting( reqUrl );
 
  		String	failure_reason = null;
 		
@@ -1928,7 +1930,7 @@ TRTrackerClientClassicImpl
 		}
 	}
 	
-	protected static Map
+	public static Map
 	mergeResponseCache(
 		Map		map1,
 		Map		map2 )
