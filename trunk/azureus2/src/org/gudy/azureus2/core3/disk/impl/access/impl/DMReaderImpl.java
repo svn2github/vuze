@@ -163,7 +163,7 @@ DMReaderImpl
       int entry_read_limit = buffer.position( DirectByteBuffer.SS_DR ) + map_entry.getLength();
       buffer.limit( DirectByteBuffer.SS_DR, entry_read_limit );
       
-      noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset);
+      noError = readFileInfoIntoBuffer( map_entry.getFile(), buffer, fileOffset );
       
       buffer.limit ( DirectByteBuffer.SS_DR, length );
       if( !noError ) break;
