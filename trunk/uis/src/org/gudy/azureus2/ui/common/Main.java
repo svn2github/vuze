@@ -190,10 +190,7 @@ public class Main {
       uis = UIConst.UIS.values().iterator();
       while (uis.hasNext())
         ((IUserInterface) uis.next()).startUI();
-      
-      if (UIConst.GM != null)
-      	UIConst.GM.startChecker();
-      
+           
       Class clConsoleInput;
       Constructor conConsoleInput =null;
       try {
