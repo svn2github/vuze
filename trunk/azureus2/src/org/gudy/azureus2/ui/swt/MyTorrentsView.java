@@ -205,55 +205,51 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     itemStart.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
-		for (int i = 0; i < tis.length; i++) {
-	        TableItem ti = tis[i];
-	        DownloadManager dm = (DownloadManager) managers.get(ti);
-	        if (dm != null) {
-	          if (dm.getState() == DownloadManager.STATE_WAITING || dm.getState() == DownloadManager.STATE_STOPPED) {
-	            dm.initialize();
-	          }
-	          if (dm.getState() == DownloadManager.STATE_READY) {
-	            dm.startDownload();
-	          }
-	        }
-		}
+        final boolean initStoppedDownloads = true;
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) managers.get(ti);
+          if (dm != null) {
+            dm.startDownloadInitialized(initStoppedDownloads);
+          }
+        }
       }
     });
 
     itemStop.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
-		for (int i = 0; i < tis.length; i++) {
-			TableItem ti = tis[i];
-	        DownloadManager dm = (DownloadManager) managers.get(ti);
-	        if (dm != null) {
-	          dm.stopIt();
-	        }
-		}
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) managers.get(ti);
+          if (dm != null) {
+            dm.stopIt();
+          }
+        }
       }
     });
 
     itemRemove.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
-		for (int i = 0; i < tis.length; i++) {
-			TableItem ti = tis[i];
-	        DownloadManager dm = (DownloadManager) managers.get(ti);
-	        if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
-	          globalManager.removeDownloadManager(dm);
-	        }
-		}
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) managers.get(ti);
+          if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
+            globalManager.removeDownloadManager(dm);
+          }
+        }
       }
     });
 
     itemDetails.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         TableItem[] tis = table.getSelection();
-		for (int i = 0; i < tis.length; i++) {
-			TableItem ti = tis[i];
-	        DownloadManager dm = (DownloadManager) managers.get(ti);
-	        MainWindow.getWindow().openManagerView(dm);
-		}
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) managers.get(ti);
+          MainWindow.getWindow().openManagerView(dm);
+        }
       }
     });
 
