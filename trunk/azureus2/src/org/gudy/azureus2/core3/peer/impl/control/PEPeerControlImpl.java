@@ -2925,12 +2925,24 @@ PEPeerControlImpl
         }
       }
       
-      //load stored peer-infos to be established
-      while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
-        PeerConnectInfoStorage.PeerInfo peer_info = peer_info_storage.getPeerInfo();
-        if( peer_info == null )  break;
-        if( makeNewOutgoingConnection( peer_info.getAddress(), peer_info.getPort() ) ) {
-          num_waiting_establishments++;
+      //pass from storage to connector
+      int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
+      if( allowed != 0 ) {
+        //try and connect only as many as necessary
+        if( allowed != -1 ) {
+          int wanted = ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
+          if( wanted > allowed ) {
+            num_waiting_establishments += wanted - allowed;
+          }
+        }
+           
+        //load stored peer-infos to be established
+        while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
+          PeerConnectInfoStorage.PeerInfo peer_info = peer_info_storage.getPeerInfo();
+          if( peer_info == null )  break;
+          if( makeNewOutgoingConnection( peer_info.getAddress(), peer_info.getPort() ) ) {
+            num_waiting_establishments++;
+          }
         }
       }
 
@@ -2949,9 +2961,11 @@ PEPeerControlImpl
         //keep-alive check
         transport.doKeepAliveCheck();
       }
-      
+
       //update storage capacity
-      peer_info_storage.setMaxCapacity( PeerUtils.numNewConnectionsAllowed( _hash ) * 2 );
+      int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
+      if( allowed == -1 )  allowed = PeerUtils.MAX_CONNECTIONS_PER_TORRENT;
+      peer_info_storage.setMaxCapacity( allowed * 2 );
     }
     
     //every 30 seconds
