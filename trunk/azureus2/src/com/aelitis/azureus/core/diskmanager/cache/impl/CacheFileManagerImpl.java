@@ -30,7 +30,7 @@ package com.aelitis.azureus.core.diskmanager.cache.impl;
 import java.io.File;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 
@@ -68,6 +68,7 @@ CacheFileManagerImpl
 		
 		boolean	enabled	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable" );
 		
+		/*
 		System.out.println( "**** Disk Cache forced on for testing purposes ****" );
 		
 		if ( !enabled ){
@@ -78,8 +79,16 @@ CacheFileManagerImpl
 			
 			enabled	= true;
 		}
+		*/
 		
 		int		size	= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
+		
+		if ( size <= 0 ){
+		
+			Debug.out( "Invalid cache size parameter (" + size + "), caching disabled" );
+			
+			enabled	= false;
+		}
 		
 		initialise( enabled, size );
 	}
