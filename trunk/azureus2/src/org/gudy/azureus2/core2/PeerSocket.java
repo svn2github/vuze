@@ -287,16 +287,10 @@ public class PeerSocket extends PeerConnection {
   private class StateConnecting implements State {
     public void process() {
       try {
-        if(incoming) {
-          while (!socket.finishConnect()) {
-            try {
-              Thread.sleep(30);
-            } catch (InterruptedException e1) {
-            }
-          }
-        }
+        if(socket.finishConnect()) {
         handShake();
         currentState = new StateHandshaking();
+        }
       }
       catch (IOException e) {
         logger.log(
