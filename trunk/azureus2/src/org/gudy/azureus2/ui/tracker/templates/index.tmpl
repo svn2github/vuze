@@ -53,7 +53,7 @@
               <td><tmpl_var torrent_total_left></td>
               <td><tmpl_var torrent_completed></td>
               <tmpl_if torrent_details_allowed> 
-              <td><a href="<tmpl_var torrent_details_url>">...</a></td>
+              <td><a href="details.tmpl?<tmpl_var torrent_details_params>">...</a></td>
               </tmpl_if> </tr>
             </tmpl_loop> 
           </table>
