@@ -83,16 +83,18 @@ PEPeerImpl
 		if (this == p)
 		  return true;
 		if (!(p.ip).equals(this.ip))
-		  return false;
-		//same ip check for config to know if we allow
-		//multiple peers from same ip
-		if(!COConfigurationManager.getBooleanParameter("Allow Same IP Peers",false))
-		  return true;
+		  return false;		
 		//same ip, we'll check peerId
 		byte[] otherId;
 		if (this.id == null || (otherId = p.getId()) == null)
 		  return false;
-        
+    
+		//same ip check for config to know if we allow
+		//multiple peers from same ip
+		if(!COConfigurationManager.getBooleanParameter("Allow Same IP Peers",false))
+		  return true;
+		
+		
 		return Arrays.equals(this.id, otherId);
 	  }
 
