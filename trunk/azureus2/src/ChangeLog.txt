@@ -71,7 +71,7 @@ BUGFIX: Core | Fix occasional 60sec delay on initial tracker announce [Nolar]
 BUGFIX: Core | Fix for reading piece data from a too-long file [Nolar/Parg]
 BUGFIX: Core | Stop scraping all announce URLs in a torrent when removing torrent [Parg]
 BUGFIX: UI   | Fix for clicking the plugins directory and open the folder from the Configuration>Plugins view [Gudy]
-
+BUGFIX: UI   | Fix for animated message windows not being at the right place on dual monitors. [Gudy,Bluelive]
 
 
 2004.07.08 | Azureus 2.1.0.4
