@@ -107,14 +107,10 @@ PlatformManagerUpdateChecker
 						
 			boolean current_az_is_cvs	= Constants.isCVSVersion();
 						
-			String	target_dll_version	= null;
-			
 			String sf_plugin_version	= sf_details.getVersion();
 			
 			String sf_comp_version	 	= sf_plugin_version;
 	
-			String target_download		= sf_details.getDownloadURL();
-			
 			if ( current_az_is_cvs ){
 				
 				String	sf_cvs_version = sf_details.getCVSVersion();
@@ -126,12 +122,17 @@ PlatformManagerUpdateChecker
 					sf_plugin_version	= sf_cvs_version;
 					
 					sf_comp_version = sf_plugin_version.substring(0,sf_plugin_version.length()-4);
-					
-					target_download	= sf_details.getCVSDownloadURL();
 				}
 			}
-						
-			if ( Constants.compareVersions( current_dll_version, sf_comp_version ) < 0 ){
+			
+			String	target_dll_version	= null;			
+
+			if (	 sf_comp_version.length() == 0 ||
+					!Character.isDigit(sf_comp_version.charAt(0))){
+				
+				LGLogger.log( "PlatformManager:Win32 no valid version to check against (" + sf_comp_version + ")" );
+
+			}else if ( Constants.compareVersions( current_dll_version, sf_comp_version ) < 0 ){
 				
 				target_dll_version	= sf_comp_version;
 			}
@@ -139,7 +140,19 @@ PlatformManagerUpdateChecker
 			LGLogger.log( "PlatformManager:Win32 update required = " + (target_dll_version!=null));
 			
 			if ( target_dll_version != null ){
-							
+					
+				String target_download		= sf_details.getDownloadURL();
+		
+				if ( current_az_is_cvs ){
+					
+					String	sf_cvs_version = sf_details.getCVSVersion();
+					
+					if ( sf_cvs_version.length() > 0 ){
+												
+						target_download	= sf_details.getCVSDownloadURL();
+					}
+				}				
+
 				ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 				
 				ResourceDownloader dll_rd = rdf.create( new URL( target_download ));

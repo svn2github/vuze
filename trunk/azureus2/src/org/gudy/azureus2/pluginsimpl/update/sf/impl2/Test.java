@@ -20,62 +20,39 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf;
+package org.gudy.azureus2.pluginsimpl.update.sf.impl2;
 
 /**
  * @author parg
  *
  */
-public interface 
-SFPluginDetails 
+
+import org.gudy.azureus2.pluginsimpl.update.sf.*;
+
+public class 
+Test 
 {
-	public String
-	getName();
-	
-		/**
-		 * 
-		 * @return null if version number unknown
-		 */
-	
-	public String
-	getVersion()
-	
-		throws SFPluginDetailsException;
-
-	
-	public String
-	getDownloadURL()
-	
-		throws SFPluginDetailsException;
-
-	
-	public String
-	getAuthor()
-	
-		throws SFPluginDetailsException;
-
-	
-	public String
-	getCVSVersion()
-	
-		throws SFPluginDetailsException;
-
-	
-	public String
-	getCVSDownloadURL()
-	
-		throws SFPluginDetailsException;
-
-
-	public String
-	getDescription()
-	
-		throws SFPluginDetailsException;
-
-	
-	public String
-	getComment()
-	
-		throws SFPluginDetailsException;
-
+	public static void
+	main(
+		String[]	args )
+	{
+		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.getSingleton();
+		
+		try{
+			String[]	keys = dl.getPluginNames();
+			
+			for (int i=0;i<keys.length;i++){
+				
+				SFPluginDetails det = dl.getPluginDetails( keys[i] );
+				
+				System.out.println( "key = " + keys[i] + ", version = " + det.getVersion());
+			
+				System.out.println( "parp = " + det.getDownloadURL());
+			}
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
 }

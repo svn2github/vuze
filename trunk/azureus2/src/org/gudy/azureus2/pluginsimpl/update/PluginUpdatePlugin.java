@@ -326,7 +326,6 @@ PluginUpdatePlugin
 					String az_plugin_version	= pi_being_checked.getPluginVersion();
 					
 					String sf_plugin_version	= details.getVersion();
-					String sf_plugin_download	= details.getDownloadURL();
 					
 					String sf_comp_version		= sf_plugin_version;
 					
@@ -339,10 +338,17 @@ PluginUpdatePlugin
 								// sf cvs version ALWAYS entry in _CVS
 							
 							sf_plugin_version	= sf_cvs_version;
-							sf_plugin_download	= details.getCVSDownloadURL();
 							
 							sf_comp_version = sf_plugin_version.substring(0,sf_plugin_version.length()-4);
 						}
+					}
+					
+					if (	 sf_comp_version.length() == 0 ||
+							!Character.isDigit(sf_comp_version.charAt(0))){
+						
+						log.log( LoggerChannel.LT_INFORMATION, "Skipping " + plugin_id + " as no valid version to check");
+
+						continue;					
 					}
 					
 					// 	System.out.println("comp version = " + sf_comp_version );
@@ -356,6 +362,18 @@ PluginUpdatePlugin
 							// only update if newer verison + plugin itself doesn't handle
 							// the update
 						
+						String sf_plugin_download	= details.getDownloadURL();
+						
+						if ( az_cvs ){
+							
+							String	sf_cvs_version = details.getCVSVersion();
+							
+							if ( sf_cvs_version.length() > 0 ){
+								
+								sf_plugin_download	= details.getCVSDownloadURL();
+							}
+						}
+
 						log.log( LoggerChannel.LT_INFORMATION, "    Description:" );
 						
 						List	update_desc = new ArrayList();
