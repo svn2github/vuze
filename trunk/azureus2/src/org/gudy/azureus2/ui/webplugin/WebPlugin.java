@@ -137,11 +137,13 @@ WebPlugin
 		
 		config_model = ui_manager.createBasicPluginConfigModel( "plugins", "plugins." + plugin_interface.getPluginID());
 		
+		boolean	save_needed = false;
+		
 		if ( !plugin_config.getPluginBooleanParameter( CONFIG_MIGRATED, false )){
 			
 			plugin_config.setPluginParameter( CONFIG_MIGRATED, true );
 			
-			System.out.println( "migrating tracker config" );
+			save_needed	= true;
 			
 			plugin_config.setPluginParameter(
 					CONFIG_PASSWORD_ENABLE,
@@ -169,6 +171,8 @@ WebPlugin
 				// make sure we've got an old properties file too
 			
 			if ( props.getProperty( "port", "" ).length() > 0 ){
+				
+				save_needed = true;
 				
 				String	prop_port		= props.getProperty( "port",			""+CONFIG_PORT_DEFAULT );
 				String	prop_protocol	= props.getProperty( "protocol", 		CONFIG_PROTOCOL_DEFAULT );
@@ -228,6 +232,11 @@ WebPlugin
 					}
 				}	
 			}
+		}
+		
+		if ( save_needed ){
+			
+			plugin_config.save();
 		}
 		
 		IntParameter	param_port = config_model.addIntParameter2(	CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
