@@ -208,6 +208,12 @@ DisplayFormatters
 		  case DownloadManager.STATE_WAITING :
 			tmp = MessageText.getString("ManagerItem.waiting"); 
 			break;
+      case DownloadManager.STATE_INITIALIZING :
+        tmp = MessageText.getString("ManagerItem.initializing"); 
+        break;
+      case DownloadManager.STATE_INITIALIZED :
+        tmp = MessageText.getString("ManagerItem.initializing"); 
+        break;
 		  case DownloadManager.STATE_ALLOCATING :
 			tmp = MessageText.getString("ManagerItem.allocating"); 
 			break;
@@ -272,6 +278,12 @@ DisplayFormatters
 		  case DownloadManager.STATE_WAITING :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.waiting"); //$NON-NLS-1$
 			break;
+      case DownloadManager.STATE_INITIALIZING :
+        tmp = MessageText.getDefaultLocaleString("ManagerItem.initializing"); 
+        break;
+      case DownloadManager.STATE_INITIALIZED :
+        tmp = MessageText.getDefaultLocaleString("ManagerItem.initializing"); 
+        break;
 		  case DownloadManager.STATE_ALLOCATING :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.allocating"); //$NON-NLS-1$
 			break;
