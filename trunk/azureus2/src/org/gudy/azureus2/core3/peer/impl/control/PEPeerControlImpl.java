@@ -507,7 +507,7 @@ PEPeerControlImpl
 		try{
 			_peer_transports_mon.enter();
 				
-			if ( !_peer_transports.contains(transport)){
+			if ( !_peer_transports.contains(transport)){ //TODO does nothing as peertransport no longer overrides equals()
 				
 				addToPeerTransports( transport.getRealTransport());
 				
@@ -535,7 +535,7 @@ PEPeerControlImpl
 		try{
 			_peer_transports_mon.enter();
 				
-			if ( _peer_transports.contains(transport)){
+			if ( _peer_transports.contains(transport)){//TODO does nothing as peertransport no longer overrides equals()
 				
 				removeFromPeerTransports( transport, "Peer Removed" );			
 			}	
@@ -570,7 +570,7 @@ PEPeerControlImpl
     try{
     	_peer_transports_mon.enter();
     	
-      if( _peer_transports.contains( test ) )  return;
+      if( _peer_transports.contains( test ) )  return;  //TODO does nothing as peertransport no longer overrides equals()
     }finally{
     	
     	_peer_transports_mon.exit();
@@ -1223,7 +1223,7 @@ PEPeerControlImpl
 	       try{
 	       	_peer_transports_mon.enter();
 	       
-	          if (!_peer_transports.contains(ps)) {
+	          if (!_peer_transports.contains(ps)) {//TODO does nothing as peertransport no longer overrides equals()
 	          	/* add connection */
 	          	addToPeerTransports(ps);
 	          }
