@@ -113,6 +113,7 @@ public class SplashWindow {
   public void setCurrentTask(String task) {
     currentTask.setText(task);
     currentTask.update();
+    display.readAndDispatch();
   }
 
 }

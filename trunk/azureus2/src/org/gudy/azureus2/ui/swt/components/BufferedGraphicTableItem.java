@@ -165,8 +165,9 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
       }
     }
     gc.setClipping(clipping);
+    // I believe GTK M8 has a bounds.x bug.. because this works fine in M7
     gc.drawImage(image, bounds.x, bounds.y);
-    //debugOut("doPaint()"+gc+": "+ gc.getClipping()+";bounds:"+bounds+";ca="+table.getClientArea(), false);
+    //debugOut("doPaint()"+gc+": ourGC="+ourGC+"clip:+"+ gc.getClipping()+";bounds:"+bounds+";ca="+table.getClientArea(), false);
     if (ourGC) {
       gc.dispose();
     }

@@ -788,6 +788,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     	}      
     });        
     
+    mainWindow.layout();
     mainWindow.open();
     mainWindow.forceActive();
     updater = new GUIUpdater();
