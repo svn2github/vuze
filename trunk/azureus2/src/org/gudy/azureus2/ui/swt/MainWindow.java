@@ -2351,10 +2351,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       sb.append(bIp.getBlockedIp());
       IpRange range = bIp.getBlockingRange();
       if(range == null) {
-        sb.append(notInRange);
+        sb.append(" " + notInRange);
         sb.append("\n");
       } else {
-        sb.append(inRange);
+        sb.append(" " + inRange);
         sb.append(range.toString());
         sb.append("\n");
       }
