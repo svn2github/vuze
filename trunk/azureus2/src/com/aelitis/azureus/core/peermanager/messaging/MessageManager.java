@@ -115,37 +115,6 @@ public class MessageManager {
   
   
   
-  /**
-   * Determine a message's type via id+version lookup.
-   * @param id of message
-   * @param version of message
-   * @return message type
-   * @throws MessageException if type lookup fails
-   */
-  public int determineMessageType( String id, byte version ) throws MessageException {
-    Object key = new String( id + version );
-    
-    Message message = (Message)message_registrations.get( key );
-    
-    if( message == null ) {
-      throw new MessageException( "message id[" +id+ "] / version[" +version+ "] not registered" );
-    }
-    
-    return message.getType();
-  }
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 /*
   public void registerMessage( Message message ) throws MessageException {
     MessageData md = new MessageData( message );

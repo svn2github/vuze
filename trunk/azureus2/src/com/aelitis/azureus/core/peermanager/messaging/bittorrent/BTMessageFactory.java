@@ -78,43 +78,44 @@ public class BTMessageFactory {
   
   
   /**
-   * Construct a new bt message instance from the given message information.
-   * @param bt_id bt byte message id
-   * @param message_data payload
-   * @return decoded/deserialized legacy message
+   * Construct a new BT message instance from the given message raw byte stream.
+   * @param stream_payload data
+   * @return decoded/deserialized BT message
    * @throws MessageException if message creation failed
    */
-  public static Message createBTMessage( byte bt_id, DirectByteBuffer message_data ) throws MessageException {
-    switch( bt_id ) {
+  public static Message createBTMessage( DirectByteBuffer stream_payload ) throws MessageException {
+    byte id = stream_payload.get( DirectByteBuffer.SS_MSG );
+    
+    switch( id ) {
       case 0:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CHOKE, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CHOKE, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       case 1:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNCHOKE, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNCHOKE, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       case 2:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_INTERESTED, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_INTERESTED, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       case 3:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNINTERESTED, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNINTERESTED, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       case 4:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HAVE, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HAVE, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       case 5:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_BITFIELD, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_BITFIELD, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       case 6:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_REQUEST, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_REQUEST, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       case 7:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_PIECE, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_PIECE, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       case 8:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL, BTMessage.BT_DEFAULT_VERSION, message_data );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
       default:
-        throw new MessageException( "unknown legacy message id [" +bt_id+ "]" );
+        throw new MessageException( "Unknown BT message id [" +id+ "]" );
     }
   }
   
@@ -158,51 +159,8 @@ public class BTMessageFactory {
     return new RawMessageImpl( base_message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );
   }
   
-  
-  
 
   
-  /**
-   * Determine a bt message's type via byte id lookup.
-   * @param bt_id of legacy message
-   * @return message type
-   * @throws MessageException if type lookup fails
-   */
-  public static int determineBTMessageType( byte bt_id ) throws MessageException {
-    switch( bt_id ) {
-      case 0:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_CHOKE, BTMessage.BT_DEFAULT_VERSION );
-        
-      case 1:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_UNCHOKE, BTMessage.BT_DEFAULT_VERSION );
-        
-      case 2:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_INTERESTED, BTMessage.BT_DEFAULT_VERSION );
-        
-      case 3:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_UNINTERESTED, BTMessage.BT_DEFAULT_VERSION );
-        
-      case 4:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_HAVE, BTMessage.BT_DEFAULT_VERSION );
-        
-      case 5:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_BITFIELD, BTMessage.BT_DEFAULT_VERSION );
-        
-      case 6:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_REQUEST, BTMessage.BT_DEFAULT_VERSION );
-        
-      case 7:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_PIECE, BTMessage.BT_DEFAULT_VERSION );
-        
-      case 8:
-        return MessageManager.getSingleton().determineMessageType( BTMessage.ID_BT_CANCEL, BTMessage.BT_DEFAULT_VERSION );
-        
-      default:
-        throw new MessageException( "unknown legacy message id [" +bt_id+ "]" );
-    }
-  }
-  
-
   
   private static class LegacyData {
     private final int priority;
