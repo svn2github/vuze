@@ -23,7 +23,7 @@ public class ByteBufferPool {
   public final static int evtAllocation = 0; // Allocation Info    
 
   private static ByteBufferPool pool;
-  private ArrayList freeBuffers;
+  
 
   // Here's the logic of SIZE, piece packet are assumed to be
   // the biggest packet (only bitfield could be bigger, but that'd require
@@ -31,18 +31,36 @@ public class ByteBufferPool {
   // 4 : length in BT protocol (int)
   // 1 : command in BT protocol (byte)
   // 4 : pieceNumber in BT protocol (int)
-  // 4 : offset in BT protocol (int)    
-  private static final int SIZE = (4 + 1 + 4 + 4 + 65536 + 1);
+  // 4 : offset in BT protocol (int) 
+  
+  private static final int LENGTH_8K = 8192;
+  private static final int LENGTH_16K = 16384;
+  private static final int LENGTH_32K = 32768;
+  private static final int LENGTH_64K = 65536;
+     
+  private static final int SIZE_8K = (4 + 1 + 4 + 4 + LENGTH_8K + 1);
+  private static final int SIZE_16K = (4 + 1 + 4 + 4 + LENGTH_16K + 1);
+  private static final int SIZE_32K = (4 + 1 + 4 + 4 + LENGTH_32K + 1);
+  private static final int SIZE_64K = (4 + 1 + 4 + 4 + LENGTH_64K + 1);
+  
+  public static final int MAX_SIZE = SIZE_64K;
 
   private static final int INITIAL_CAPACITY = 1009;
-
+  private ArrayList freeBuffers8k;
+  private ArrayList freeBuffers16k;
+  private ArrayList freeBuffers32k;
+  private ArrayList freeBuffers64k;  
+  
   private ByteBufferPool() {
-    freeBuffers = new ArrayList(INITIAL_CAPACITY);
+    freeBuffers8k = new ArrayList(INITIAL_CAPACITY);
+    freeBuffers16k = new ArrayList(INITIAL_CAPACITY);
+    freeBuffers32k = new ArrayList(INITIAL_CAPACITY);
+    freeBuffers64k = new ArrayList(INITIAL_CAPACITY);
   }
 
-  private ByteBuffer allocateNewBuffer() {
+  private ByteBuffer allocateNewBuffer(int size) {
     try {
-      ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE);
+      ByteBuffer buffer = ByteBuffer.allocateDirect(size);
       return buffer;
     }
     catch (OutOfMemoryError e) {
@@ -50,10 +68,10 @@ public class ByteBufferPool {
        System.runFinalization();
        System.gc();
        try {
-          ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE);
+          ByteBuffer buffer = ByteBuffer.allocateDirect(size);
           return buffer;
        } catch (OutOfMemoryError ex) {
-          System.out.println("Memory allocation failed: Out of direct memory space");
+         System.out.println("Memory allocation failed: Out of direct memory space");
           System.out.println("TO FIX: Use the -XX:MaxDirectMemorySize=xxxxxx command line option.");
           return null;
        }
@@ -67,14 +85,32 @@ public class ByteBufferPool {
     return pool;
   }
 
-  public ByteBuffer getFreeBuffer() {
-    //return ByteBuffer.allocate(SIZE);
+  public ByteBuffer getFreeBuffer(int length) {
+    int size = 0;
+    ArrayList pool = null;
+    if(length <= SIZE_8K) {
+      size = SIZE_8K;
+      pool = freeBuffers8k;
+    } else if(length <= SIZE_16K) {
+      size = SIZE_16K;
+      pool = freeBuffers16k;
+    } else if(length <= SIZE_32K) {
+      size = SIZE_32K; 
+      pool = freeBuffers32k;
+    } else if(length <= SIZE_64K) {
+      size = SIZE_64K;
+      pool = freeBuffers64k;
+    }
+    
+    if(size == 0 || pool == null)
+        return null;
+    
     synchronized (this) {
-      if (freeBuffers.size() == 0) {
-        return allocateNewBuffer();
+      if (pool.size() == 0) {
+        return allocateNewBuffer(size);
       }
       else {
-        return (ByteBuffer) freeBuffers.remove(freeBuffers.size() - 1);
+        return (ByteBuffer) pool.remove(pool.size() - 1);
       }
     }
     
@@ -83,13 +119,22 @@ public class ByteBufferPool {
   public void freeBuffer(ByteBuffer buffer) {
     
     synchronized (this) {
-      if (buffer.capacity() != SIZE) {
+      if (buffer.capacity() == SIZE_8K) {
+        if(!freeBuffers8k.contains(buffer))
+          freeBuffers8k.add(buffer);
+      } else if(buffer.capacity() == SIZE_16K) {
+        if(!freeBuffers16k.contains(buffer))
+          freeBuffers16k.add(buffer);      
+      } else if(buffer.capacity() == SIZE_32K) {
+        if(!freeBuffers32k.contains(buffer))
+          freeBuffers32k.add(buffer);      
+      } else if(buffer.capacity() == SIZE_64K) {
+        if(!freeBuffers64k.contains(buffer))
+          freeBuffers64k.add(buffer);      
+      } else {
         System.out.println("Wrong buffer passed back to ByteBufferPool::freeBuffer");
         return;
       }       
-
-      if(!freeBuffers.contains(buffer))
-        freeBuffers.add(buffer);
     }
   }
 
