@@ -26,6 +26,9 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -95,18 +98,20 @@ public class IconBar {
   }
   
   private BufferedToolItem createBufferedToolItem(ToolBar toolBar,int style,String key,String imageName,String toolTipKey) {    
-    final BufferedToolItem BufferedToolItem = new BufferedToolItem(toolBar,style);
-    BufferedToolItem.setData("key",key);
-    Messages.setLanguageText(BufferedToolItem,toolTipKey);   
-    BufferedToolItem.setImage(ImageRepository.getImage(imageName));
-    BufferedToolItem.addListener(SWT.Selection,new Listener() {
+    final BufferedToolItem bufferedToolItem = new BufferedToolItem(toolBar,style);
+    bufferedToolItem.setData("key",key);
+    Messages.setLanguageText(bufferedToolItem,toolTipKey);   
+    bufferedToolItem.setImage(ImageRepository.getImage(imageName));
+   
+    
+    bufferedToolItem.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         if(currentEnabler != null)
-          currentEnabler.itemActivated((String)BufferedToolItem.getData("key"));        	
+          currentEnabler.itemActivated((String)bufferedToolItem.getData("key"));        	
       }
     });
-    itemKeyToControl.put(key,BufferedToolItem);
-    return BufferedToolItem;
+    itemKeyToControl.put(key,bufferedToolItem);
+    return bufferedToolItem;
   }  
   
   private void initBar() {
@@ -121,9 +126,9 @@ public class IconBar {
     toolBar.pack(); 
     Point p = toolBar.getSize();
     coolItem.setControl(toolBar);
-    coolItem.setSize(p.x,p.y);
+    coolItem.setSize(coolItem.computeSize (p.x,p.y));
     coolItem.setMinimumSize(p.x,p.y);
-   
+    
     
     coolItem = new CoolItem(coolBar,SWT.NULL); 
     toolBar = new ToolBar(coolBar,SWT.FLAT);    
@@ -153,14 +158,15 @@ public class IconBar {
     Display display = new Display();
     Shell shell = new Shell(display);
     ImageRepository.loadImages(display);
-    GridLayout layout = new GridLayout();
-    layout.horizontalSpacing = 0;
-    layout.verticalSpacing = 0;
+    FormLayout layout = new FormLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     shell.setLayout(layout);
     IconBar ibar = new IconBar(shell);
-    ibar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    FormData formData = new FormData();
+    formData.left = new FormAttachment(0,0);
+    formData.right = new FormAttachment(100,0);
+    ibar.setLayoutData(formData);
     shell.open();
     while (!shell.isDisposed()) {
       if (!display.readAndDispatch ()) display.sleep ();
