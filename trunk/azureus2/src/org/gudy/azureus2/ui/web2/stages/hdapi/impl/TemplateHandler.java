@@ -36,7 +36,6 @@ import org.gudy.azureus2.ui.web2.stages.httpserv.httpNotFoundResponse;
 import org.gudy.azureus2.ui.web2.stages.httpserv.httpOKResponse;
 import org.gudy.azureus2.ui.web2.stages.httpserv.httpRequest;
 import org.gudy.azureus2.ui.web2.stages.httpserv.httpResponse;
-import org.gudy.azureus2.ui.web2.util.LegacyHashtable;
 
 /**
  * @author Tobias Minich
@@ -46,56 +45,6 @@ import org.gudy.azureus2.ui.web2.util.LegacyHashtable;
  */
 public class TemplateHandler implements httpRequestHandlerIF {
 
-	private static Hashtable messagetextmap = null;
-    private static Hashtable parameterlegacy = null;
-    private static Hashtable status = null;
-  
-    static {
-      parameterlegacy = new LegacyHashtable();
-      parameterlegacy.put("Core_sOverrideIP", "Override Ip");
-      parameterlegacy.put("Core_bAllocateNew", "Zero New");
-      parameterlegacy.put("Core_iLowPort", "Low Port");
-      parameterlegacy.put("Core_iHighPort", "High Port");
-      parameterlegacy.put("Core_iMaxActiveTorrents", "max active torrents");
-      parameterlegacy.put("Core_iMaxDownloads", "max downloads");
-      parameterlegacy.put("Core_iMaxClients", "Max Clients");
-      parameterlegacy.put("Core_iMaxUploads", "Max Uploads");
-      parameterlegacy.put("Core_iMaxUploadSpeed", "Max Upload Speed");
-      parameterlegacy.put("Core_bUseResume", "Use Resume");
-      parameterlegacy.put("Core_iSaveResumeInterval", "Save Resume Interval");
-      parameterlegacy.put("Core_bIncrementalAllocate", "Enable incremental file creation");
-      parameterlegacy.put("Core_bCheckPiecesOnCompletion", "Check Pieces on Completion");
-      parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
-      parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
-      parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
-      parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
-      parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
-      parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
-      messagetextmap = new LegacyHashtable();
-      messagetextmap.put("allocatenew", "zeronewfiles");
-      messagetextmap.put("lowport", "serverportlow");
-      messagetextmap.put("highport", "serverporthigh");
-      messagetextmap.put("useresume", "usefastresume");
-      messagetextmap.put("enableincrementalfilecreation", "incrementalfile");
-      messagetextmap.put("checkpiecesoncompletion", "checkOncompletion");
-      messagetextmap.put("stopratio", "stopRatio");
-      messagetextmap.put("stoppeersratio", "stopRatioPeers");
-      messagetextmap.put("startpeersratio", "startRatioPeers");
-      status = new Hashtable();
-      status.put(new Integer(DownloadManager.STATE_WAITING), MessageText.getString("Main.download.state.waiting"));
-      status.put(new Integer(DownloadManager.STATE_INITIALIZING), MessageText.getString("Main.download.state.waiting"));
-      status.put(new Integer(DownloadManager.STATE_INITIALIZED), MessageText.getString("Main.download.state.waiting"));
-      status.put(new Integer(DownloadManager.STATE_ALLOCATING), MessageText.getString("Main.download.state.allocating"));
-      status.put(new Integer(DownloadManager.STATE_CHECKING), MessageText.getString("Main.download.state.checking"));
-      status.put(new Integer(DownloadManager.STATE_READY), MessageText.getString("Main.download.state.ready"));
-      status.put(new Integer(DownloadManager.STATE_DOWNLOADING), MessageText.getString("Main.download.state.downloading"));
-      status.put(new Integer(DownloadManager.STATE_WAITING), MessageText.getString("Main.download.state.waiting"));
-      status.put(new Integer(DownloadManager.STATE_SEEDING), MessageText.getString("Main.download.state.seeding"));
-      status.put(new Integer(DownloadManager.STATE_STOPPING), MessageText.getString("Main.download.state.stopped"));
-      status.put(new Integer(DownloadManager.STATE_STOPPED), MessageText.getString("Main.download.state.stopped"));
-      status.put(new Integer(DownloadManager.STATE_ERROR), MessageText.getString("Main.download.state.error"));
-      status.put(new Integer(DownloadManager.STATE_DUPLICATE), "Duplicate");
-    }      
 	/* (non-Javadoc)
 	 * @see seda.apps.Haboob.hdapi.httpRequestHandlerIF#handleRequest(seda.sandStorm.lib.http.httpRequest)
 	 */
@@ -130,26 +79,26 @@ public class TemplateHandler implements httpRequestHandlerIF {
 		String po =
 			MessageText.getString(
 				"ConfigView.label."
-					+ messagetextmap.get(
+					+ UI.messagetextmap.get(
 						name.substring(name.indexOf('_') + 2).toLowerCase()));
 		if (!po.startsWith("!"))
 			tmpl.setParam("Options_" + name + "_D", po);
 		tmpl.setParam(
 			"Options_" + name,
 			COConfigurationManager.getIntParameter(
-				parameterlegacy.get(name).toString()));
+				UI.parameterlegacy.get(name).toString()));
 	}
 
 	private void handleConfigBool(Template tmpl, String name) {
 		String po =
 			MessageText.getString(
 				"ConfigView.label."
-					+ messagetextmap.get(
+					+ UI.messagetextmap.get(
 						name.substring(name.indexOf('_') + 2).toLowerCase()));
 		if (!po.startsWith("!"))
 			tmpl.setParam("Options_" + name + "_D", po);
 		if (COConfigurationManager
-			.getBooleanParameter(parameterlegacy.get(name).toString()))
+			.getBooleanParameter(UI.parameterlegacy.get(name).toString()))
 			tmpl.setParam("Options_" + name, 1);
 	}
 
@@ -157,14 +106,14 @@ public class TemplateHandler implements httpRequestHandlerIF {
 		String po =
 			MessageText.getString(
 				"ConfigView.label."
-					+ messagetextmap.get(
+					+ UI.messagetextmap.get(
 						name.substring(name.indexOf('_') + 2).toLowerCase()));
 		if (!po.startsWith("!"))
 			tmpl.setParam("Options_" + name + "_D", po);
 		tmpl.setParam(
 			"Options_" + name,
 			COConfigurationManager.getStringParameter(
-				parameterlegacy.get(name).toString()));
+				UI.parameterlegacy.get(name).toString()));
 	}
 
 	private void handleConfig(Template tmpl) {
@@ -307,7 +256,7 @@ public class TemplateHandler implements httpRequestHandlerIF {
 					h.put("Torrents_Torrent_Error", dm.getErrorDetails());
 				h.put(
 					"Torrents_Torrent_Status",
-					status.get(new Integer(dmstate)));
+					UI.status.get(new Integer(dmstate)));
 				h.put("Torrents_Torrent_StatusInt", Integer.toString(dmstate));
 				if (hd == null || !hd.isValid()) {
 					h.put("Torrents_Torrent_Seeds", "?");

@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.common.util.SLevel;
 
 public class Jhttpp2Server implements Runnable, ILoggerListener {
@@ -506,7 +507,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   }*/
   public void shutdownServer() {
     loggerWeb.info("Server shutdown.");
-    org.gudy.azureus2.ui.common.Main.shutdown();
+    UIConst.shutdown();
   }
   
 }

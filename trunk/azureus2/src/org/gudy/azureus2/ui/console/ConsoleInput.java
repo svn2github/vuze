@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.common.UIConst;
 
 import org.pf.file.FileFinder;
 
@@ -94,7 +95,7 @@ public class ConsoleInput extends Thread {
   
   private void quit(boolean finish) {
     if (finish)
-      org.gudy.azureus2.ui.common.Main.shutdown();
+      UIConst.shutdown();
   }
   
   public void run() {

@@ -114,7 +114,7 @@ public class Main {
     }
   }
   
-  public static void shutdown() {
+  protected static void shutdown() {
     if (start!=null)
       start.stopIt();
     if (UIConst.GM!=null)

@@ -31,6 +31,7 @@ import seda.sandStorm.core.TimeStampedEvent;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -39,8 +40,7 @@ import java.util.Vector;
  * 
  * @author Matt Welsh
  */
-public class httpRequest extends TimeStampedEvent 
-  implements httpConst, ClassQueueElementIF {
+public class httpRequest extends TimeStampedEvent implements httpConst, ClassQueueElementIF {
 
   private static final boolean DEBUG = false;
 
@@ -48,6 +48,20 @@ public class httpRequest extends TimeStampedEvent
   public static final int REQUEST_GET = 0;
   /** getRequest() code corresponding to a POST request. */
   public static final int REQUEST_POST = 1;
+  /** getRequest() code corresponding to a HEAD request. */
+  public static final int REQUEST_HEAD = 2;
+  /** getRequest() code corresponding to a CONNECT request. */
+  public static final int REQUEST_CONNECT = 3;
+  /** getRequest() code corresponding to a DELETE request. */
+  public static final int REQUEST_DELETE = 4;
+  /** getRequest() code corresponding to a OPTIONS request. */
+  public static final int REQUEST_OPTIONS = 5;
+  /** getRequest() code corresponding to a PUT request. */
+  public static final int REQUEST_PUT = 6;
+  /** getRequest() code corresponding to a TRACE request. */
+  public static final int REQUEST_TRACE = 7;
+  /** getRequest() code corresponding to a unknown request. */
+  public static final int REQUEST_UNKNOWN = 99;
 
   /** getHttpVer() code corresponding to HTTP/0.9. */
   public static final int HTTPVER_09 = 0;
@@ -62,19 +76,21 @@ public class httpRequest extends TimeStampedEvent
   private httpConnection conn;
   private int request;
   private String url;
+  private byte[] content;
   private int httpver;
   private int user_class = -2;
 
   private Vector rawHeader;
   private Hashtable header;
+  private Hashtable get;
+  private Hashtable post;
   private Hashtable query;
 
   /**
    * Package-internal: Create an httpRequest from the given connection,
    * request string, URL, HTTP version, and header.
    */
-  httpRequest(httpConnection conn, String requestStr, String url, 
-      int httpver, Vector header) throws IOException {
+  httpRequest(httpConnection conn, String requestStr, String url, int httpver, Vector header) throws IOException {
     this.conn = conn;
     this.httpver = httpver;
     this.rawHeader = header;
@@ -83,19 +99,18 @@ public class httpRequest extends TimeStampedEvent
     // Check to see if there is a query string
     int question = url.indexOf('?');
     if (question != -1) {
-      query = new Hashtable();
+      get = new Hashtable();
       this.url = url.substring(0, question);
-      StringTokenizer st = new StringTokenizer(url.substring(question+1), ";&");
+      StringTokenizer st = new StringTokenizer(url.substring(question + 1), ";&");
       while (st.hasMoreTokens()) {
-	String name_value_pair = decodeURL(st.nextToken());
-	int equals = name_value_pair.indexOf('=');
+        String name_value_pair = decodeURL(st.nextToken());
+        int equals = name_value_pair.indexOf('=');
 
-	if (equals == -1) {
-	  putVal(name_value_pair, QUERY_KEY_SET);
-	} else {
-	  putVal(name_value_pair.substring(0,equals), 
-	      name_value_pair.substring(equals+1));
-	}
+        if (equals == -1) {
+          putVal(name_value_pair, QUERY_KEY_SET, get);
+        } else {
+          putVal(name_value_pair.substring(0, equals), name_value_pair.substring(equals + 1), get);
+        }
       }
     } else {
       this.url = url;
@@ -105,9 +120,41 @@ public class httpRequest extends TimeStampedEvent
       request = REQUEST_GET;
     } else if (requestStr.equalsIgnoreCase("post")) {
       request = REQUEST_POST;
+    } else if (requestStr.equalsIgnoreCase("options")) {
+      request = REQUEST_OPTIONS;
+    } else if (requestStr.equalsIgnoreCase("head")) {
+      request = REQUEST_HEAD;
+    } else if (requestStr.equalsIgnoreCase("put")) {
+      request = REQUEST_PUT;
+    } else if (requestStr.equalsIgnoreCase("delete")) {
+      request = REQUEST_DELETE;
+    } else if (requestStr.equalsIgnoreCase("trace")) {
+      request = REQUEST_TRACE;
+    } else if (requestStr.equalsIgnoreCase("connect")) {
+      request = REQUEST_CONNECT;
     } else {
-      throw new IOException("Bad HTTP request: "+request);
+      request = REQUEST_UNKNOWN;
     }
+  }
+
+  httpRequest(httpConnection conn, String requestStr, String url, int httpver, Vector header, byte[] content) throws IOException {
+    this(conn, requestStr, url, httpver, header);
+    this.content = content;
+    if (this.request == REQUEST_POST) {
+      post = new Hashtable();
+      StringTokenizer st = new StringTokenizer(new String(this.content), ";&");
+      while (st.hasMoreTokens()) {
+        String name_value_pair = decodeURL(st.nextToken());
+        int equals = name_value_pair.indexOf('=');
+
+        if (equals == -1) {
+          putVal(name_value_pair, QUERY_KEY_SET, post);
+        } else {
+          putVal(name_value_pair.substring(0, equals), name_value_pair.substring(equals + 1), post);
+        }
+      }
+    }
+
   }
 
   // Decode special characters in URLs 
@@ -119,15 +166,15 @@ public class httpRequest extends TimeStampedEvent
     while (i < encoded.length()) {
       char ch = encoded.charAt(i);
       i++;
-      if (ch == '+') 
-	ch = ' ';
+      if (ch == '+')
+        ch = ' ';
       else if (ch == '%') {
-	try {
-	  ch = (char)Integer.parseInt(encoded.substring(i,i+2), 16);
-	  i+=2;
-	} catch (StringIndexOutOfBoundsException se) {
-	  // If nothing's there, just ignore it
-	}
+        try {
+          ch = (char) Integer.parseInt(encoded.substring(i, i + 2), 16);
+          i += 2;
+        } catch (StringIndexOutOfBoundsException se) {
+          // If nothing's there, just ignore it
+        }
       }
       out.append(ch);
       j++;
@@ -136,8 +183,23 @@ public class httpRequest extends TimeStampedEvent
   }
 
   // Add a key to the query set
-  private void putVal(String key, String val) {
-    Object oldval = query.get(key);
+  private void putVal(String key, String val, Map addto) {
+    Object oldval = addto.get(key);
+    if (oldval == null) {
+      addto.put(key, val);
+    } else if (oldval instanceof String) {
+      addto.remove(key);
+      Vector vec = new Vector(2);
+      vec.addElement(oldval);
+      vec.addElement(val);
+      addto.put(key, vec);
+    } else {
+      Vector vec = (Vector) oldval;
+      vec.addElement(val);
+    }
+    if (query == null)
+      query = new Hashtable();
+    oldval = query.get(key);
     if (oldval == null) {
       query.put(key, val);
     } else if (oldval instanceof String) {
@@ -147,7 +209,7 @@ public class httpRequest extends TimeStampedEvent
       vec.addElement(val);
       query.put(key, vec);
     } else {
-      Vector vec = (Vector)oldval;
+      Vector vec = (Vector) oldval;
       vec.addElement(val);
     }
   }
@@ -158,7 +220,7 @@ public class httpRequest extends TimeStampedEvent
    */
   public int getRequest() {
     return request;
-  } 
+  }
   /**
    * Return the request URL.
    */
@@ -190,15 +252,17 @@ public class httpRequest extends TimeStampedEvent
     if (header == null) {
       parseHeader();
     }
-    if (header == null) return null;
-    return (String)header.get(key);
+    if (header == null)
+      return null;
+    return (String) header.get(key);
   }
 
   /**
    * Return an enumeration of keys in the query string, if any.
    */
   public Enumeration getQueryKeys() {
-    if (query == null) return null;
+    if (query == null)
+      return null;
     return query.keys();
   }
 
@@ -208,36 +272,58 @@ public class httpRequest extends TimeStampedEvent
    * will be returned.
    */
   public String getQuery(String key) {
-    if (query == null) return null;
+    if (query == null)
+      return null;
     Object val = query.get(key);
-    if (val == null) return null;
-    else if (val instanceof String) return (String)val;
+    if (val == null)
+      return null;
+    else if (val instanceof String)
+      return (String) val;
     else {
-      Vector vec = (Vector)val;
-      return (String)vec.elementAt(0);
+      Vector vec = (Vector) val;
+      return (String) vec.elementAt(0);
     }
+  }
+
+  /**
+   * Retrun the query hashmap. 
+   */
+  public Hashtable getQuery() {
+    if (this.query == null)
+      return null;
+    return (this.query.isEmpty()) ? null : this.query;
   }
 
   /**
    * Return the set of values associated with the given query key.
    */
   public String[] getQuerySet(String key) {
-    if (query == null) return null;
+    if (query == null)
+      return null;
     Object val = query.get(key);
-    if (val == null) return null;
+    if (val == null)
+      return null;
     else if (val instanceof String) {
       String ret[] = new String[1];
-      ret[0] = (String)val;
+      ret[0] = (String) val;
       return ret;
     } else {
-      Vector vec = (Vector)val;
+      Vector vec = (Vector) val;
       Object ret[] = vec.toArray();
       String sret[] = new String[ret.length];
       for (int i = 0; i < ret.length; i++) {
-	sret[i] = (String)ret[i];
+        sret[i] = (String) ret[i];
       }
       return sret;
     }
+  }
+
+  /**
+   * Returns the requests contents.
+   * @return
+   */
+  public byte[] getContent() {
+    return this.content;
   }
 
   /**
@@ -254,39 +340,54 @@ public class httpRequest extends TimeStampedEvent
 
   // Convert rawHeader to header (key, value) pairs
   private void parseHeader() {
-    if (rawHeader == null) return;
+    if (rawHeader == null)
+      return;
     header = new Hashtable(1);
     for (int i = 0; i < rawHeader.size(); i++) {
-      String h = (String)rawHeader.elementAt(i);
+      String h = (String) rawHeader.elementAt(i);
       StringTokenizer s = new StringTokenizer(h);
       String k = s.nextToken(":").trim();
       String v = s.nextToken().trim();
-      if (DEBUG) System.err.println("httpRequest: key="+k+", val="+v);
-      header.put(k,v);
+      if (DEBUG)
+        System.err.println("httpRequest: key=" + k + ", val=" + v);
+      header.put(k, v);
     }
   }
 
   public String toString() {
     String s = "httpRequest[";
     switch (request) {
-      case REQUEST_GET: s+="GET "; break;
-      case REQUEST_POST: s+="POST "; break;
-      default: s+="??? "; break;
+      case REQUEST_GET :
+        s += "GET ";
+        break;
+      case REQUEST_POST :
+        s += "POST ";
+        break;
+      default :
+        s += "??? ";
+        break;
     }
-    s += url+" ";
+    s += url + " ";
     switch (httpver) {
-      case HTTPVER_09: s+="HTTP/0.9"; break;
-      case HTTPVER_10: s+="HTTP/1.0"; break;
-      case HTTPVER_11: s+="HTTP/1.1"; break;
+      case HTTPVER_09 :
+        s += "HTTP/0.9";
+        break;
+      case HTTPVER_10 :
+        s += "HTTP/1.0";
+        break;
+      case HTTPVER_11 :
+        s += "HTTP/1.1";
+        break;
     }
 
-    if (header == null) parseHeader(); 
+    if (header == null)
+      parseHeader();
     if (header != null) {
       Enumeration e = header.keys();
       while (e.hasMoreElements()) {
-	String key = (String)e.nextElement();
-	String val = (String)header.get(key);
-	s += "\n\t"+key+" "+val;
+        String key = (String) e.nextElement();
+        String val = (String) header.get(key);
+        s += "\n\t" + key + " " + val;
       }
     }
     s += "]";
@@ -299,21 +400,20 @@ public class httpRequest extends TimeStampedEvent
     if (user_class == -2) {
       String s = getHeader("User-Class");
       if (s != null) {
-	try {
-	  user_class = Integer.parseInt(s);
-	} catch (NumberFormatException e) {
-	  user_class = -1;
-	}
+        try {
+          user_class = Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+          user_class = -1;
+        }
       } else {
-	user_class = -1;
+        user_class = -1;
       }
-    } 
+    }
     return user_class;
   }
 
   public void setRequestClass(int theclass) {
     this.user_class = theclass;
   }
-
 
 }

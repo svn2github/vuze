@@ -21,5 +21,9 @@ public class UIConst {
   public static Date startTime;
   public static HashMap UIS = null;
   public static GlobalManager GM = null;
+  
+  public static void shutdown() {
+    Main.shutdown();
+  }
 
 }

@@ -47,7 +47,7 @@ import seda.sandStorm.api.SinkIF;
  */
 public class HttpSend implements EventHandlerIF, WebConst {
 
-  private static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.HttpSend");
+  private static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.http.HttpSend");
 
   // If true, handle sends from this stage - otherwise inline into
   // sendResponse() call

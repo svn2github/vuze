@@ -46,6 +46,6 @@ public class MainWindowThread extends Thread {
   public void run() {
     mainWindow = new MainWindow(UIConst.GM, null);
     mainWindow.waitForClose();
-    org.gudy.azureus2.ui.common.Main.shutdown();
+    UIConst.shutdown();
   }
 }

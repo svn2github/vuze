@@ -7,5 +7,6 @@ public interface WebConst {
   public static final String BOTTLENECK_STAGE = "BottleneckStage";
   public static final String HTTP_SEND_STAGE = "HttpSend";
   public static final String DYNAMIC_HTTP_STAGE = "DynamicHttp";
+  public static final String COMMAND_STAGE = "HttpCommand";
 }
 

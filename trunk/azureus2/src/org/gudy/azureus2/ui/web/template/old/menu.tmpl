@@ -30,12 +30,12 @@
                     <td class='menuitem' onclick='eCommand("exit", "Exit")' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>K</b>ill server</td>
                 </tr>
             </table>
-            <form name="Command" method=POST action='torrentmain' target='main'>
+            <form name="Command" method=POST action='torrentmain.tmpl' target='main'>
                 <input type=HIDDEN name='command' value=''>
             </FORM>
         <TMPL_ELSE>
             <center>
-                <form name="Command" method=POST action='torrentmain' target='main'>
+                <form name="Command" method=POST action='torrentmain.tmpl' target='main'>
                     <input type=HIDDEN name='command' value=''>
                     <input type=submit value='Torrents'>
                 </form>

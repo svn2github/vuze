@@ -29,7 +29,7 @@ function mOut(src) {
 }
 function eCommand(action, command, target) {
     if (action != undefined)
-        document.Command.action = action
+        document.Command.action = action + ".tmpl"
     if (command != undefined) {
         if (command == "Exit") {
             if (confirm("Are you sure?"))

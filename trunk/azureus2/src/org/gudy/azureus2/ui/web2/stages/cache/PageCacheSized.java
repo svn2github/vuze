@@ -194,13 +194,37 @@ public class PageCacheSized implements EventHandlerIF, WebConst {
 			UI.numRequests++;
 
 			httpRequest req = (httpRequest) item;
-			if (req.getRequest() != httpRequest.REQUEST_GET) {
+            String baddy = null;
+            switch(req.getRequest()) {
+              case httpRequest.REQUEST_GET:
+              case httpRequest.REQUEST_POST:
+              case httpRequest.REQUEST_HEAD:
+                break;
+              case httpRequest.REQUEST_CONNECT:
+                baddy = "CONNECT request not supported.";
+                break;
+              case httpRequest.REQUEST_DELETE:
+                baddy = "DELETE request not supported.";
+                break;
+              case httpRequest.REQUEST_OPTIONS:
+                baddy = "OPTIONS request not supported.";
+                break;
+              case httpRequest.REQUEST_PUT:
+                baddy = "PUT request not supported.";
+                break;
+              case httpRequest.REQUEST_TRACE:
+                baddy = "TRACE request not supported.";
+                break;
+              default:
+                baddy = "Unknown request.";
+            }
+			if (baddy != null) {
 				UI.numErrors++;
 				HttpSend.sendResponse(
 					new httpResponder(
 						new httpBadRequestResponse(
 							req,
-							"Only GET requests supported at this time"),
+							baddy),
 						req,
 						true));
 				return;

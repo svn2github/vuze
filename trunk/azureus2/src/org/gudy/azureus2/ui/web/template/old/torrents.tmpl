@@ -13,7 +13,7 @@
         <TMPL_UNLESS Torrents_Torrents>
             <p> No Torrents
         <TMPL_ELSE>
-          <form name="Torrent" method=post action='torrents' target='torrentlist'>
+          <form name="Torrent" method=post action='torrents.tmpl' target='torrentlist'>
             <input type=hidden name=command value='Torrent'>
             <input type=hidden name=subcommand value='Download'>
             <p>
@@ -153,10 +153,10 @@
                 </TMPL_LOOP>
             </table>
         </TMPL_IF>
-        <form name="Command" method=POST action='torrentmain' target='main'>
+        <form name="Command" method=POST action='torrentmain.tmpl' target='main'>
             <input type=HIDDEN name='command' value=''>
         </FORM>
-        <form name="TorrentInfo" method=POST action="torrentinfo" target="torrentinfo">
+        <form name="TorrentInfo" method=POST action="torrentinfo.tmpl" target="torrentinfo">
             <input type=hidden name=hash value=''>
         </form>
     </body>
