@@ -404,7 +404,7 @@ XMLRequestProcessor
 							
 							Class	type = field.getType();
 											
-							System.out.println( indent + "  field:" + field.getName() + ", type = " + type );
+							// System.out.println( indent + "  field:" + field.getName() + ", type = " + type );
 							
 							try{
 								writeLine( "<" + name + ">" );
