@@ -112,21 +112,20 @@ public class BDecoder {
     }
   }
 
-  private static long getNumberFromStream(InputStream bais, char parseChar)
-    throws IOException {
+  private static long getNumberFromStream(InputStream bais, char parseChar) throws IOException {
     int length = 0;
 
     //place a mark
     bais.mark(Integer.MAX_VALUE);
 
     int tempByte = bais.read();
-    while ((tempByte != parseChar) && (tempByte != -1)) {
+    while ((tempByte != parseChar) && (tempByte >= 0)) {
       tempByte = bais.read();
       length++;
     }
 
     //are we at the end of the stream?
-    if (tempByte == -1) {
+    if (tempByte < 0) {
       return -1;
     }
 
@@ -135,13 +134,13 @@ public class BDecoder {
 
     //get the length
     byte[] tempArray = new byte[length];
-	int count = 0;
-	int len = 0;
-	
-	//get the string
-	while (count != length && (len = bais.read(tempArray, count, length - count)) > 0) {
-	  count += len;
-	}
+    int count = 0;
+    int len = 0;
+
+    //get the string
+    while (count != length && (len = bais.read(tempArray, count, length - count)) > 0) {
+      count += len;
+    }
 
     //jump ahead in the stream to compensate for the :
     bais.skip(1);
@@ -150,11 +149,10 @@ public class BDecoder {
     return Long.parseLong(new String(tempArray));
   }
 
-  private static byte[] getByteArrayFromStream(InputStream bais)
-    throws IOException {
+  private static byte[] getByteArrayFromStream(InputStream bais) throws IOException {
     int length = (int) BDecoder.getNumberFromStream(bais, ':');
 
-    if (length == -1) {
+    if (length < 0) {
       return null;
     }
 

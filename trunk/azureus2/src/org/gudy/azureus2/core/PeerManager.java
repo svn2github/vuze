@@ -19,7 +19,7 @@ public class PeerManager extends Thread {
 
   private int[] _availability;
   private boolean _bContinue;
-//  private List _clients; //:: Try to define by the interface, 
+  //  private List _clients; //:: Try to define by the interface, 
   //makes the code more portable by forcing you to interfaces -Tyler  							
   private List _connections;
   private DiskManager _diskManager;
@@ -39,7 +39,7 @@ public class PeerManager extends Thread {
   private int _timeToWait;
   private TrackerConnection _tracker;
   private String _trackerStatus;
-//  private int _maxUploads;
+  //  private int _maxUploads;
   private int _trackerState;
   private static final int TRACKER_START = 1;
   private static final int TRACKER_UPDATE = 2;
@@ -53,12 +53,7 @@ public class PeerManager extends Thread {
 
   private PeerUpdater peerUpdater;
 
-  public PeerManager(
-    DownloadManager manager,
-    byte[] hash,
-    Server server,
-    TrackerConnection tracker,
-    DiskManager diskManager) {
+  public PeerManager(DownloadManager manager, byte[] hash, Server server, TrackerConnection tracker, DiskManager diskManager) {
     super("Peer Manager"); //$NON-NLS-1$
     this._manager = manager;
     //This torrent Hash
@@ -103,56 +98,54 @@ public class PeerManager extends Thread {
 
   private class PeerUpdater extends Thread {
     private boolean bContinue = true;
-    
+
     private long started[];
-//    private long iter = 0;
-    
+    //    private long iter = 0;
+
     public PeerUpdater() {
       super("Peer Updater"); //$NON-NLS-1$
       started = new long[10];
     }
 
     public void run() {
-      while (bContinue) {        
-        for(int i = 9 ; i > 0 ; i--)
-          started[i] = started[i-1];        
-        started[0] = System.currentTimeMillis();        
+      while (bContinue) {
+        for (int i = 9; i > 0; i--)
+          started[i] = started[i - 1];
+        started[0] = System.currentTimeMillis();
         synchronized (_connections) {
           for (int i = 0; i < _connections.size(); i++) {
             PeerSocket ps = (PeerSocket) _connections.get(i);
             if (ps.getState() == PeerSocket.DISCONNECTED) {
               _connections.remove(ps);
               i--;
-            }
-            else {
+            } else {
               try {
                 ps.process();
-              }
-              catch (Exception e) {
+              } catch (Exception e) {
                 ps.closeAll();
               }
             }
           }
         }
         try {
-          
-          long wait = 20;          
+
+          long wait = 20;
           wait -= (System.currentTimeMillis() - started[0]);
-          if(started[4] != 0)
-            for(int i = 0 ; i < 9 ; i++) {
-              wait += 20 + (started[i+1] - started[i]);
+          if (started[4] != 0)
+            for (int i = 0; i < 9; i++) {
+              wait += 20 + (started[i + 1] - started[i]);
             }
-          
-          if(wait > 30) wait = 30;
-                    
+
+          if (wait > 30)
+            wait = 30;
+
           //System.out.println(wait + "::" + started[0] + "-" + System.currentTimeMillis() + " : " + started[4]);
           //if(iter++ % 50 == 0)
           //  System.out.println(System.currentTimeMillis() % 10000);
-                              
+
           if (wait > 10)
             Thread.sleep(wait);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           e.printStackTrace();
         }
       }
@@ -196,8 +189,7 @@ public class PeerManager extends Thread {
           timeWait = 10;
         Thread.sleep(timeWait); //sleep
 
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -228,17 +220,16 @@ public class PeerManager extends Thread {
       }
 
     //Assynchronous cleaner
-    
-    Thread t = new Thread("Cleaner - Tracker Ender") {     
+
+    Thread t = new Thread("Cleaner - Tracker Ender") {
       public void run() {
-         //1. Send disconnect to Tracker
-        _tracker.stop();
+          //1. Send disconnect to Tracker
+  _tracker.stop();
         try {
-          while(requestsToFree.size() !=  0)
-          {
+          while (requestsToFree.size() != 0) {
             freeRequests();
             Thread.sleep(100);
-          }          
+          }
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -261,8 +252,7 @@ public class PeerManager extends Thread {
       _trackerStatus = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
       _timeToWait = 60; //retry in 60 seconds
       return; //break
-    }
-    else //otherwise
+    } else //otherwise
       {
       try {
         //parse the metadata
@@ -274,8 +264,7 @@ public class PeerManager extends Thread {
         try {
           //set the timeout			
           _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           _trackerStatus = new String((byte[]) metaData.get("failure reason"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
           _timeToWait = 120;
           return;
@@ -301,12 +290,12 @@ public class PeerManager extends Thread {
         for (int i = 0; i < nbPeers; i++) {
           Map peer = (Map) peers.get(i);
           //build a dictionary object				
-          byte [] peerId = (byte[])peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
+          byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer id
           String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer ip address
           int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
-          //get the peer port number          
+          //get the peer port number
 
           if (!Arrays.equals(peerId, _myPeerId))
             //::this should be quicker -Tyler
@@ -322,8 +311,7 @@ public class PeerManager extends Thread {
         _trackerState = TRACKER_UPDATE;
         _trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status		   //$NON-NLS-1$
         return; //break						
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         //TODO:: WE SHOULD CLEAN THIS UP
         //tracker not working		
         System.out.println("Problems with Tracker, will retry in 1 minute");
@@ -372,8 +360,7 @@ public class PeerManager extends Thread {
         PeerSocket pc = null;
         try {
           pc = (PeerSocket) _connections.get(i);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           break;
         }
         if (pc.transfertAvailable()) {
@@ -488,18 +475,18 @@ public class PeerManager extends Thread {
       {
       _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
       _timeLastUpdate = time; //update last checked time
-      Thread t = new Thread("Tracker Checker") { //$NON-NLS-1$
-        public void run() {          
-            try {
-				if (_trackerState == TRACKER_UPDATE)
-				analyseTrackerResponse(_tracker.update().getBytes(Constants.BYTE_ENCODING));
-				//get the tracker response
-				if (_trackerState == TRACKER_START)
-				  analyseTrackerResponse(_tracker.start().getBytes(Constants.BYTE_ENCODING));				
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+        Thread t = new Thread("Tracker Checker") {//$NON-NLS-1$
+  public void run() {
+          try {
+            if (_trackerState == TRACKER_UPDATE)
+              analyseTrackerResponse(_tracker.update().getBytes(Constants.BYTE_ENCODING));
+            //get the tracker response
+            if (_trackerState == TRACKER_START)
+              analyseTrackerResponse(_tracker.start().getBytes(Constants.BYTE_ENCODING));
+          } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
         }
       };
       t.start(); //start the thread
@@ -605,14 +592,12 @@ public class PeerManager extends Thread {
             blockNumber = tempBlock;
             //The new completed level
             lastCompleted = _pieces[i].getCompleted();
-          }
-          else {
+          } else {
             //This piece is not intersting, but we have marked it as
             //being downloaded, we have to unmark it.
             _pieces[i].unmarkBlock(tempBlock);
           }
-        }
-        else {
+        } else {
           //So ..... we have a piece not marked as being downloaded ...
           //but without any free block to request ...
           //let's correct this situation :p
@@ -657,11 +642,11 @@ public class PeerManager extends Thread {
         break;
     }
 
-    if(_priorityPieces[_nbPieces] == 0)
-      System.out.println("Size 0");      
+    if (_priorityPieces[_nbPieces] == 0)
+      System.out.println("Size 0");
 
     int nPiece = (int) (Math.random() * _priorityPieces[_nbPieces]);
-    pieceNumber = _priorityPieces[nPiece];    
+    pieceNumber = _priorityPieces[nPiece];
 
     if (pieceNumber == -1)
       return false;
@@ -687,7 +672,7 @@ public class PeerManager extends Thread {
     return true;
   }
 
-// searches from 0 to searchLength-1
+  // searches from 0 to searchLength-1
   public static int binarySearch(int[] a, int key, int searchLength) {
     int low = 0;
     int high = searchLength - 1;
@@ -753,8 +738,7 @@ public class PeerManager extends Thread {
         if (maxConnections == 0 || _connections.size() < maxConnections) {
           _connections.add(pc); //add the connection
         }
-      }
-      else //our list already contains this connection
+      } else //our list already contains this connection
         {
         pc = null; //do nothing ...
       }
@@ -769,8 +753,7 @@ public class PeerManager extends Thread {
         PeerSocket pc = null;
         try {
           pc = (PeerSocket) _connections.get(i);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           continue;
         }
         if (!pc.isChoking()) {
@@ -802,8 +785,7 @@ public class PeerManager extends Thread {
         PeerSocket pc = null;
         try {
           pc = (PeerSocket) _connections.get(i);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           break;
         }
         if (pc.isInteresting() && pc.isChoking()) {
@@ -843,8 +825,7 @@ public class PeerManager extends Thread {
         PeerSocket pc = null;
         try {
           pc = (PeerSocket) _connections.get(i);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           continue;
         }
         if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
@@ -853,8 +834,7 @@ public class PeerManager extends Thread {
             upRate = pc.getStats().getStatisticSentRaw();
             if (pc.isSnubbed())
               upRate = -1;
-          }
-          else
+          } else
             upRate = pc.getStats().getReception();
           if (upRate > 256)
             testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
@@ -868,8 +848,7 @@ public class PeerManager extends Thread {
           PeerSocket pc = null;
           try {
             pc = (PeerSocket) _connections.get(i);
-          }
-          catch (Exception e) {
+          } catch (Exception e) {
             break;
           }
           if (pc != currentOptimisticUnchoke
@@ -891,8 +870,7 @@ public class PeerManager extends Thread {
           PeerSocket pc = null;
           try {
             pc = (PeerSocket) _connections.get(i);
-          }
-          catch (Exception e) {
+          } catch (Exception e) {
             continue;
           }
           if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
@@ -942,8 +920,7 @@ public class PeerManager extends Thread {
       PeerSocket pc = (PeerSocket) bestUploaders.get(i);
       if (nonChoking.contains(pc)) {
         nonChoking.remove(pc);
-      }
-      else {
+      } else {
         pc.sendUnChoke();
       }
     }
@@ -971,24 +948,24 @@ public class PeerManager extends Thread {
       best.remove(upRates.length);
   }
 
-/*
-  private static void testAndSortWeakest(int upRate, int[] upRates, PeerSocket pc, Vector worst) {
-    int i;
-    for (i = 0; i < upRates.length; i++) {
-      if (upRate <= upRates[i])
-        break;
-    }
-    if (i < upRates.length) {
-      worst.add(i, pc);
-      for (int j = i; j < upRates.length - 1; j++) {
-        upRates[j + 1] = upRates[j];
+  /*
+    private static void testAndSortWeakest(int upRate, int[] upRates, PeerSocket pc, Vector worst) {
+      int i;
+      for (i = 0; i < upRates.length; i++) {
+        if (upRate <= upRates[i])
+          break;
       }
-      upRates[i] = upRate;
+      if (i < upRates.length) {
+        worst.add(i, pc);
+        for (int j = i; j < upRates.length - 1; j++) {
+          upRates[j + 1] = upRates[j];
+        }
+        upRates[i] = upRate;
+      }
+      if (worst.size() > upRates.length)
+        worst.remove(upRates.length);
     }
-    if (worst.size() > upRates.length)
-      worst.remove(upRates.length);
-  }
-*/
+  */
 
   //send the have requests out
   private void sendHave(int pieceNumber) {
@@ -1143,7 +1120,7 @@ public class PeerManager extends Thread {
     _pieces = new Piece[_nbPieces];
 
     // the piece numbers for findPieceToDownload
-    _priorityPieces = new int[_nbPieces+1];
+    _priorityPieces = new int[_nbPieces + 1];
 
     //the availability level of each piece in the network
     _availability = new int[_nbPieces];
@@ -1332,8 +1309,7 @@ public class PeerManager extends Thread {
       //send all clients an have message
       sendHave(pieceNumber);
 
-    }
-    else {
+    } else {
 
       _pieces[pieceNumber].free();
       _pieces[pieceNumber] = null;
@@ -1379,7 +1355,7 @@ public class PeerManager extends Thread {
           i--;
           ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
         }
-        if(!item.isLoading()) {
+        if (!item.isLoading()) {
           requestsToFree.remove(item);
           i--;
         }

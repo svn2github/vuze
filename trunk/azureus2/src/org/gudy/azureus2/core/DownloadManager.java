@@ -85,7 +85,7 @@ public class DownloadManager extends Component {
     if (this.state == STATE_WAITING)
       return;
 
-    trackerConnection = new TrackerConnection(metaData, hash, server.getPort());    
+    trackerConnection = new TrackerConnection(metaData, hash, server.getPort());
     diskManager = new DiskManager(metaData, savePath);
     this.state = STATE_INITIALIZED;
   }
@@ -105,33 +105,28 @@ public class DownloadManager extends Component {
         metaInfo.write(buf, 0, nbRead);
       metaData = BDecoder.decode(metaInfo.toByteArray()); //$NON-NLS-1$
       Map info = (Map) metaData.get("info"); //$NON-NLS-1$
-      name = LocaleUtil.getCharsetString((byte[])info.get("name")); //$NON-NLS-1$ //$NON-NLS-2$
+      name = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$ //$NON-NLS-2$
       byte[] pieces = (byte[]) info.get("pieces"); //$NON-NLS-1$
       nbPieces = pieces.length / 20;
       metaData.put("torrent filename", torrentFileName.getBytes(Constants.DEFAULT_ENCODING)); //$NON-NLS-1$ //$NON-NLS-2$
       SHA1Hasher s = new SHA1Hasher();
-      hash = s.calculateHash(BEncoder.encode((Map)metaData.get("info"))); //$NON-NLS-1$
-    }
-    catch (FileNotFoundException e) {
+      hash = s.calculateHash(BEncoder.encode((Map) metaData.get("info"))); //$NON-NLS-1$
+    } catch (FileNotFoundException e) {
       name = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
       nbPieces = 0;
       hash = new byte[20];
       this.state = STATE_ERROR;
       errorDetail = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
-    }
-    catch (UnsupportedEncodingException e) {
+    } catch (UnsupportedEncodingException e) {
       this.state = STATE_ERROR;
       errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       this.state = STATE_ERROR;
       errorDetail = MessageText.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
-    }
-    catch (NoSuchAlgorithmException e) {
+    } catch (NoSuchAlgorithmException e) {
       this.state = STATE_ERROR;
       errorDetail = MessageText.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       this.state = STATE_ERROR;
       errorDetail = e.getMessage();
     } finally {
@@ -148,7 +143,7 @@ public class DownloadManager extends Component {
     int port = server.getPort();
     if (port == 0) {
       this.state = STATE_WAITING;
-//      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
+      //      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
     }
   }
 
@@ -169,7 +164,7 @@ public class DownloadManager extends Component {
       return STATE_CHECKING;
     if (diskManagerState == DiskManager.READY)
       return STATE_READY;
-    if(diskManagerState == DiskManager.FAULTY)
+    if (diskManagerState == DiskManager.FAULTY)
       return STATE_ERROR;
     return STATE_ERROR;
   }
@@ -183,9 +178,7 @@ public class DownloadManager extends Component {
   public int getCompleted() {
     if (diskManager == null)
       return 0;
-    if (diskManager.getState() == DiskManager.ALLOCATING
-      || diskManager.getState() == DiskManager.CHECKING
-      || diskManager.getState() == DiskManager.INITIALIZING)
+    if (diskManager.getState() == DiskManager.ALLOCATING || diskManager.getState() == DiskManager.CHECKING || diskManager.getState() == DiskManager.INITIALIZING)
       return diskManager.getPercentDone();
     else {
       long remaining = diskManager.getRemaining();
@@ -266,9 +259,9 @@ public class DownloadManager extends Component {
       return peerManager.getTrackerStatus();
     return ""; //$NON-NLS-1$
   }
-  
+
   public String getTrackerUrl() {
-    if(trackerConnection != null)
+    if (trackerConnection != null)
       return trackerConnection.getTrackerUrl();
     return null;
   }
@@ -345,7 +338,7 @@ public class DownloadManager extends Component {
       return diskManager.getPath();
     return savePath;
   }
-  
+
   public String getSavePathForSave() {
     return savePath;
   }
@@ -424,11 +417,12 @@ public class DownloadManager extends Component {
   public void setTorrentFileName(String string) {
     torrentFileName = string;
   }
-  
+
   public HashData getHashData() {
-    if(trackerConnection != null)
-      return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(),hash);
-    else return null;
+    if (trackerConnection != null)
+      return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(), hash);
+    else
+      return null;
   }
 
   /**

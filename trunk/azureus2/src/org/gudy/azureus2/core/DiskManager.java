@@ -33,7 +33,7 @@ public class DiskManager {
 
   private int state;
   private String errorMessage = "";
-  
+
   private int pieceLength;
   private int lastPieceLength;
 
@@ -57,8 +57,8 @@ public class DiskManager {
   private Vector readQueue;
 
   private boolean readWaitFlag = false;
-  private boolean writeWaitFlag = false;  
-  private Object writeCheckLock=new Object();
+  private boolean writeWaitFlag = false;
+  private Object writeCheckLock = new Object();
 
   private DiskWriteThread writeThread;
   private DiskReadThread readThread;
@@ -87,8 +87,7 @@ public class DiskManager {
     Thread init = new Thread() {
       public void run() {
         initialize();
-        if(state == DiskManager.FAULTY)
-        {
+        if (state == DiskManager.FAULTY) {
           stopIt();
         }
       }
@@ -103,28 +102,26 @@ public class DiskManager {
     Map info = (Map) metaData.get("info");
     pieceLength = (int) ((Long) info.get("piece length")).longValue();
 
-
-    piecesHash = (byte[])info.get("pieces");
+    piecesHash = (byte[]) info.get("pieces");
     nbPieces = piecesHash.length / 20;
 
     //  create the pieces map
     pieceMap = new ArrayList[nbPieces];
     pieceCompletion = new int[nbPieces];
-    priorityLists = new int[10][nbPieces+1];
+    priorityLists = new int[10][nbPieces + 1];
 
     pieceDone = new boolean[nbPieces];
 
     fileName = "";
-    try {      
+    try {
       File f = new File(path);
-      if(f.isDirectory()) {
-        fileName = LocaleUtil.getCharsetString((byte[])info.get("name"));
+      if (f.isDirectory()) {
+        fileName = LocaleUtil.getCharsetString((byte[]) info.get("name"));
       } else {
         fileName = f.getName();
-        path = f.getParent();       
-      }      
-    }
-    catch (UnsupportedEncodingException e) {
+        path = f.getParent();
+      }
+    } catch (UnsupportedEncodingException e) {
       this.state = FAULTY;
       this.errorMessage = e.getMessage();
       return;
@@ -156,10 +153,9 @@ public class DiskManager {
       totalLength = ((Long) test).longValue();
       rootPath = "";
       btFileList.add(new BtFile("", fileName, totalLength));
-    }
-    else {
+    } else {
       //define a variable to keep track of what piece we're on
-//      int currentPiece = 0;
+      //      int currentPiece = 0;
 
       //get the root
       rootPath = fileName;
@@ -191,22 +187,19 @@ public class DiskManager {
             {
             try {
               pathBuffer.append(LocaleUtil.getCharsetString((byte[]) fileList.get(j)));
-            }
-            catch (UnsupportedEncodingException e) {
+            } catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
               this.errorMessage = e.getMessage();
               return;
             }
 
             pathBuffer.append(System.getProperty("file.separator"));
-          }
-          else //no, then we must be a part of the path
+          } else //no, then we must be a part of the path
             {
             //add the file entry to the file holder list 
             try {
-              btFileList.add(new BtFile(pathBuffer.toString(), LocaleUtil.getCharsetString((byte[])fileList.get(j)), fileLength));
-            }
-            catch (UnsupportedEncodingException e) {
+              btFileList.add(new BtFile(pathBuffer.toString(), LocaleUtil.getCharsetString((byte[]) fileList.get(j)), fileLength));
+            } catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
               this.errorMessage = e.getMessage();
               return;
@@ -245,7 +238,7 @@ public class DiskManager {
 
     int fileOffset = 0;
     int currentFile = 0;
-    for (int i = 0; (1 == nbPieces && i < nbPieces) || i < nbPieces - 1; i++) {
+    for (int i = 0;(1 == nbPieces && i < nbPieces) || i < nbPieces - 1; i++) {
       ArrayList pieceToFileList = new ArrayList();
       int usedSpace = 0;
       while (pieceLength > usedSpace) {
@@ -260,8 +253,7 @@ public class DiskManager {
         //how much space do we need to use?																
         if (availableSpace < (pieceLength - usedSpace)) {
           //use the rest of the file's space
-            tempPieceEntry =
-              new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int) availableSpace //safe to convert here
+            tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int) availableSpace //safe to convert here
   );
 
           //update the used space
@@ -270,8 +262,7 @@ public class DiskManager {
           fileOffset = 0;
           //move the the next file
           currentFile++;
-        }
-        else //we don't need to use the whole file
+        } else //we don't need to use the whole file
           {
           tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, pieceLength - usedSpace);
 
@@ -322,8 +313,7 @@ public class DiskManager {
         //mark the pieces
         if (resumeArray[i] == 0) {
           pieceDone[i] = false;
-        }
-        else {
+        } else {
           computeFilesDone(i);
           pieceDone[i] = true;
           if (i < nbPieces - 1) {
@@ -334,8 +324,7 @@ public class DiskManager {
           }
         }
       }
-    }
-    else //no resume data.. rebuild it
+    } else //no resume data.. rebuild it
       {
       for (int i = 0; i < nbPieces && bContinue; i++) {
         percentDone = ((i + 1) * 1000) / nbPieces;
@@ -370,8 +359,7 @@ public class DiskManager {
         fileOffset = 0;
         //move the the next file
         currentFile++;
-      }
-      else //we don't need to use the whole file
+      } else //we don't need to use the whole file
         {
         tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, pieceSize - usedSpace);
 
@@ -542,12 +530,12 @@ public class DiskManager {
 
     public void stopIt() {
       this.bContinue = false;
-      synchronized(writeCheckLock) {
-          while (writeQueue.size() != 0) {
-            WriteElement elt = (WriteElement) writeQueue.remove(0);
-            ByteBufferPool.getInstance().freeBuffer(elt.data);
-          }
-          writeCheckLock.notifyAll();
+      synchronized (writeCheckLock) {
+        while (writeQueue.size() != 0) {
+          WriteElement elt = (WriteElement) writeQueue.remove(0);
+          ByteBufferPool.getInstance().freeBuffer(elt.data);
+        }
+        writeCheckLock.notifyAll();
       }
     }
   }
@@ -576,8 +564,7 @@ public class DiskManager {
         try {
           raf = new RandomAccessFile(f, "rw");
           raf.setLength(length);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           this.state = FAULTY;
           this.errorMessage = e.getMessage();
           return false;
@@ -588,12 +575,10 @@ public class DiskManager {
         if (allocateNew)
           clearFile(raf);
         newFiles = true;
-      }
-      else {
+      } else {
         try {
           raf = new RandomAccessFile(f, "rw");
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
           this.state = FAULTY;
           this.errorMessage = e.getMessage();
           return false;
@@ -628,8 +613,7 @@ public class DiskManager {
     long length = 0;
     try {
       length = file.length();
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       this.state = FAULTY;
       this.errorMessage = e.getMessage();
       return;
@@ -648,8 +632,7 @@ public class DiskManager {
           allocated += deltaWriten;
           percentDone = (int) ((allocated * 1000) / totalLength);
         }
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -673,8 +656,7 @@ public class DiskManager {
     int length = 0;
     if (pieceNumber < nbPieces - 1) {
       length = pieceLength;
-    }
-    else {
+    } else {
       length = lastPieceLength;
     }
 
@@ -682,8 +664,7 @@ public class DiskManager {
 
     if (pieceNumber < nbPieces - 1) {
       allocateAndTestBuffer.limit(pieceLength);
-    }
-    else {
+    } else {
       allocateAndTestBuffer.limit(lastPieceLength);
     }
 
@@ -698,7 +679,7 @@ public class DiskManager {
         try {
           RandomAccessFile raf = tempPiece.getFile().getRaf();
           FileChannel fc = raf.getChannel();
-          if(fc.isOpen()) {
+          if (fc.isOpen()) {
             fc.position(tempPiece.getOffset());
             fc.read(allocateAndTestBuffer);
           }
@@ -728,8 +709,7 @@ public class DiskManager {
         }
         return true;
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     return false;
@@ -742,8 +722,7 @@ public class DiskManager {
     for (int i = 0; i < resumeData.length; i++) {
       if (pieceDone[i] == false) {
         resumeData[i] = (byte) 0;
-      }
-      else {
+      } else {
         resumeData[i] = (byte) 1;
       }
     }
@@ -763,8 +742,7 @@ public class DiskManager {
     File torrent = null;
     try {
       torrent = new File(new String((byte[]) metaData.get("torrent filename"), Constants.DEFAULT_ENCODING));
-    }
-    catch (UnsupportedEncodingException e) {
+    } catch (UnsupportedEncodingException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
@@ -776,8 +754,7 @@ public class DiskManager {
       fos = new FileOutputStream(torrent);
       //write the data out
       fos.write(torrentData);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     } finally {
@@ -821,8 +798,7 @@ public class DiskManager {
         //seek to the correct point
         raf.read(data); //read the data
         bos.write(data); //write it to the stream
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         e.printStackTrace();
       }
     }
@@ -854,15 +830,14 @@ public class DiskManager {
     //Now tempPiece points to the first file that contains data for this block
     boolean noError = true;
     while (buffer.hasRemaining() && noError) {
-      tempPiece = (PieceMapEntry) pieceList.get(currentFile);      
+      tempPiece = (PieceMapEntry) pieceList.get(currentFile);
       synchronized (tempPiece.getFile()) {
         RandomAccessFile raf = tempPiece.getFile().getRaf();
         FileChannel fc = raf.getChannel();
         try {
           fc.position(fileOffset + (offset - previousFilesLength));
           fc.read(buffer);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
           System.out.println(path + fileName + " :: " + tempPiece.getFile().getName());
@@ -944,18 +919,17 @@ public class DiskManager {
       //System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "r:" + buffer.remaining());      
       tempPiece = (PieceMapEntry) pieceList.get(currentFile);
       //System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "," + tempPiece.getLength());
-      
+
       synchronized (tempPiece.getFile()) {
         try {
           RandomAccessFile raf = tempPiece.getFile().getRaf();
-                FileChannel fc = raf.getChannel();
+          FileChannel fc = raf.getChannel();
           fc.position(fileOffset + (offset - previousFilesLength));
           //System.out.print(" remaining:" + buffer.remaining());
           //System.out.print(" position:" + buffer.position());
           int realLimit = buffer.limit();
           //System.out.print(" realLimit:" + realLimit);
-          int limit =
-            buffer.position() + (int) ((raf.length() - tempPiece.getOffset()) - (offset - previousFilesLength));
+          int limit = buffer.position() + (int) ((raf.length() - tempPiece.getOffset()) - (offset - previousFilesLength));
           //System.out.print(" limit:" + limit);
           if (limit < realLimit)
             buffer.limit(limit);
@@ -964,8 +938,7 @@ public class DiskManager {
           buffer.limit(realLimit);
           //System.out.print(" remaining:" + buffer.remaining());
           //System.out.println(" position:" + buffer.position());
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
           // TODO Auto-generated catch block
           ex.printStackTrace();
         }
@@ -987,8 +960,7 @@ public class DiskManager {
       for (int i = 0; i < resumeData.length; i++) {
         if (pieceDone[i] == false) {
           resumeData[i] = (byte) 0;
-        }
-        else {
+        } else {
           resumeData[i] = (byte) 1;
         }
       }
@@ -1005,8 +977,7 @@ public class DiskManager {
       fos = new FileOutputStream(torrent);
       //write the data out
       fos.write(torrentData);
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     } finally {
       try {
@@ -1118,18 +1089,17 @@ public class DiskManager {
   }
 
   public void stopIt() {
-    if(writeThread != null)
+    if (writeThread != null)
       writeThread.stopIt();
-    if(readThread != null)
+    if (readThread != null)
       readThread.stopIt();
     this.bContinue = false;
-    if(files != null) {
+    if (files != null) {
       for (int i = 0; i < files.length; i++) {
         try {
           if (files[i] != null)
             files[i].getRaf().close();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
           e.printStackTrace();
         }
       }
@@ -1157,8 +1127,7 @@ public class DiskManager {
                 raf.close();
                 files[i].setAccessmode(FileInfo.READ);
               }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
               e.printStackTrace();
             }
         }
