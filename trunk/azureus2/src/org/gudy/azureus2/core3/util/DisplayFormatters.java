@@ -41,7 +41,7 @@ DisplayFormatters
 {
 	protected static boolean use_si_units;
 	protected static boolean use_units_rate_bits;
-  protected static boolean not_use_GB_TB;
+    protected static boolean not_use_GB_TB;
   
 	protected static String	B_unit;
 	protected static String	KB_unit;
@@ -163,6 +163,12 @@ DisplayFormatters
 		rate_MB_unit 	= rate_MB_unit + "/s";
 		rate_GB_unit 	= rate_GB_unit + "/s";
 		rate_TB_unit 	= rate_TB_unit + "/s";
+	}
+	
+	public static String
+	getKiloBytePerSecUnit()
+	{
+		return( rate_KB_unit.trim());
 	}
 	
 	public static String 

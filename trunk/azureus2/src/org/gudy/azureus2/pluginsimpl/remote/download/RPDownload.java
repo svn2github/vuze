@@ -576,9 +576,25 @@ RPDownload
  		notSupported();
   }
   
-  public boolean isPersistent() {
+  public boolean 
+  isPersistent() 
+  {
  		notSupported();
 		return false;
   }
   
+	public void
+	setMaximumDownloadKBPerSecond(
+		int		kb )
+ 	{
+		notSupported();
+ 	}
+  	
+  	public int
+	getMaximumDownloadKBPerSecond()
+  	{
+  		notSupported();
+  		
+  		return(0);
+  	}
 }

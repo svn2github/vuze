@@ -37,15 +37,16 @@ import org.gudy.azureus2.core3.config.*;
 public class 
 DataReaderSpeedLimiter 
 {
-	protected int	bytes_per_second = 0;
 
-	protected int	slot_period_millis	= (int)(SystemTime.TIME_GRANULARITY_MILLIS+5);
-	protected int	slot_count			= 1000/slot_period_millis;
+	protected final int	slot_period_millis	= (int)(SystemTime.TIME_GRANULARITY_MILLIS+5);
+	protected final int	slot_count			= 1000/slot_period_millis;
 	
-	protected int	bytes_per_slot;
+	protected int	bytes_per_second = 0;	// global bytes-per-second limit
+
+	protected int	bytes_per_slot;			// current global bytes-per-slot
 	
-	protected long	current_slot;
-	protected int	bytes_available;
+	protected long	current_slot;			// current (last) slot used
+	protected int	bytes_available;		// bytes available unused by current slot
 	
 	
 	
@@ -81,9 +82,9 @@ DataReaderSpeedLimiter
 	
 	public DataReader
 	getDataReader(
-		Object		owner )
+		DataReaderOwner		owner )
 	{
-		return( new limitedDataReader());
+		return( new limitedDataReader( owner ));
 	}
 	
 	protected class
@@ -112,6 +113,18 @@ DataReaderSpeedLimiter
 	limitedDataReader
 		implements DataReader
 	{
+		protected DataReaderOwner	owner;
+				
+		protected long	my_current_slot;		
+		protected int	my_bytes_available;
+		
+		protected
+		limitedDataReader(
+		    DataReaderOwner	_owner )
+		{
+			owner		= _owner;
+		}
+		
 		public int
 		read(
 			SocketChannel		channel,
@@ -119,9 +132,11 @@ DataReaderSpeedLimiter
 		
 			throws IOException
 		{
+			int	my_bytes_per_second = owner.getMaximumBytesPerSecond();
+			
 			ByteBuffer	buffer = direct_buffer.buff;
 			
-			if ( bytes_per_second == 0 ){
+			if ( bytes_per_second == 0 && my_bytes_per_second == 0 ){
 
 					// unlimited
 				
@@ -139,52 +154,137 @@ DataReaderSpeedLimiter
 				
 				long	new_slot = now/slot_period_millis;
 				
-				long	slots = new_slot - current_slot;
-	
-				current_slot	= new_slot;
+					// do the global limit first
 				
-				if ( slots < 0 ){
+				if ( bytes_per_second > 0 ){
+		
+					long	slots = new_slot - current_slot;
 					
-					// someone must have changed the clock, reset our position in time
+					current_slot	= new_slot;
 					
-					return( 0 );
+					if ( slots < 0 ){
+						
+						// someone must have changed the clock, reset our position in time
+						
+						return( 0 );
+					}
+					
+					if ( slots > slot_count ){
+						
+						slots = slot_count;
+					}
+					
+					bytes_available += slots*bytes_per_slot;
+					
+						// give a bit of slack for bursty transfers
+					
+					if ( bytes_available > (3*bytes_per_second )){
+						
+						bytes_available = 3*bytes_per_second;
+					}
+					
+					if ( bytes_available == 0 ){
+						
+						return( 0 );
+					}
+				}else{
+					
+					bytes_available	= 0;
 				}
-				
-				if ( slots > slot_count ){
+
+					// we've got access to a "global" amount of bytes we can read
+					// now apply specific policy if required
+			
+				if ( my_bytes_per_second > 0 ){
 					
-					slots = slot_count;
+					long	my_slots = new_slot - my_current_slot;
+					
+					my_current_slot	= new_slot;
+								
+					if ( my_slots < 0 ){
+									
+						// someone must have changed the clock, reset our position in time
+									
+						return( 0 );
+					}
+								
+					if ( my_slots > slot_count ){
+									
+						my_slots = slot_count;
+					}
+						
+					int my_bytes_per_slot	= my_bytes_per_second/slot_count;
+					
+					my_bytes_available += my_slots*my_bytes_per_slot;
+								
+						// give a bit of slack for bursty transfers
+								
+					if (  my_bytes_available > (3*my_bytes_per_second )){
+									
+						my_bytes_available = 3*my_bytes_per_second;
+					}
+								
+					if ( my_bytes_available == 0 ){
+									
+						return( 0 );
+					}
+				}else{
+					
+					my_bytes_available	= 0;
 				}
-				
-				bytes_available += slots*bytes_per_slot;
-				
-					// give a bit of slack for bursty transfers
-				
-				if ( bytes_available > (3*bytes_per_second )){
 					
-					bytes_available = 3*bytes_per_second;
-				}
+					// bytes_available: 	0 -> unlimited
+					// my_bytes_available: 	0 -> unlimited
 				
-				if ( bytes_available == 0 ){
+				int	max_bytes;
+				
+				if ( bytes_available  == 0 && my_bytes_available == 0 ){
 					
-					return( 0 );
+					max_bytes = 0;
+					
+				}else if ( bytes_available == 0 ){
+					
+					max_bytes = my_bytes_available;
+					
+				}else if ( my_bytes_available == 0 ){
+					
+					max_bytes = bytes_available;
+					
+				}else{
+					
+					max_bytes	= bytes_available < my_bytes_available?bytes_available:my_bytes_available;
 				}
 				
 				int request_read_size = limit - position;
-								
-				if ( request_read_size > bytes_available ){
+				
+					// now limit the read based on any restrictions
+				
+				if ( max_bytes != 0 && request_read_size > max_bytes ){
 					
-					buffer.limit( position + bytes_available );
+					buffer.limit( position + max_bytes );
 					
-					bytes_allocated	= bytes_available;
+					bytes_allocated	= max_bytes;
 					
 				}else{
 					
 					bytes_allocated = request_read_size;
 				}
 				
-				bytes_available	-= bytes_allocated;
+				my_bytes_available	-= bytes_allocated;
+				
+				if ( my_bytes_available < 0  ){
+					
+					my_bytes_available	= 0;
+				}
+				
+				bytes_available		-= bytes_allocated;
+				
+				if ( bytes_available < 0 ){
+					
+					bytes_available	= 0;
+				}
 			}
-			
+						
 			int	bytes_read = 0;
 			
 			try{
@@ -194,12 +294,13 @@ DataReaderSpeedLimiter
 				return( bytes_read );
 				
 			}finally{
-				
+								
 				if ( bytes_read < bytes_allocated ){
 					
 					synchronized( DataReaderSpeedLimiter.this ){
 
-						bytes_available += ( bytes_allocated - bytes_read );
+						bytes_available 	+= ( bytes_allocated - bytes_read );
+						my_bytes_available 	+= ( bytes_allocated - bytes_read );
 					}
 				}
 				

@@ -32,6 +32,7 @@ import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 
@@ -43,7 +44,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
  */
 public class 
 PEPeerTransportImpl 
-	extends PEPeerTransportProtocol
+	extends 	PEPeerTransportProtocol
 {
 	private static final boolean	TRACE	= false;
 	
@@ -97,13 +98,37 @@ PEPeerTransportImpl
     			_leading_data,
     			false ) ;
     
-    	socket 			= sck;
+     	socket 			= sck;
     				
-		data_reader = DataReaderSpeedLimiter.getSingleton().getDataReader( this );
+		setupSpeedLimiter();
 	
 		connected = true;
   	}
   
+  	protected synchronized void
+	setupSpeedLimiter()
+  	{
+  		final DownloadManager	dm = getControl().getDownloadManager();
+  		
+  		data_reader = (DataReader)dm.getData( "PEPeerTransport::DataReader" );
+  		
+  		if ( data_reader == null ){
+  			
+  			data_reader = 
+  				DataReaderSpeedLimiter.getSingleton().getDataReader(
+  						new DataReaderOwner()
+						{
+  							public int
+  							getMaximumBytesPerSecond()
+  							{
+  								return( dm.getStats().getMaxDownloadKBSpeed() * 1024 );
+  							}
+						});
+  			
+  			dm.setData( "PEPeerTransport::DataReader", data_reader );
+  		}
+  	}
+  	
 	public PEPeerTransport
 	getRealTransport()
 	{
@@ -124,7 +149,7 @@ PEPeerTransportImpl
           	
             socket = channel;
             
-    		data_reader = DataReaderSpeedLimiter.getSingleton().getDataReader( this );
+    		setupSpeedLimiter();
 
             connected = true;
           }
@@ -233,5 +258,4 @@ PEPeerTransportImpl
 			return(  socket.write(buffer.buff ));
 		}
 	}
-  
 }

@@ -37,7 +37,8 @@ DownloadManagerStatsImpl
 {
 	protected DownloadManagerImpl	download_manager;
 	
-	protected int maxUploads = 4;
+	protected int maxUploads 			= 4;
+	protected int max_download_speed	= 0;
 	
 		//Completed (used for auto-starting purposes)
 		
@@ -370,5 +371,18 @@ DownloadManagerStatsImpl
 	    }
 		
 	    return( pm.getMinAvailability());
+	}
+	
+	public int
+	getMaxDownloadKBSpeed()
+	{
+		return( max_download_speed );
+	}
+	
+	public void
+	setMaxDownloadKBSpeed(
+		int		i )
+	{
+		max_download_speed	= i;
 	}
 }

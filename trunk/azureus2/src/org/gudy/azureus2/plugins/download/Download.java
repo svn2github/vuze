@@ -354,11 +354,25 @@ Download
 	 *
 	 * @return true - persistent<br>
 	 *         false - non-persistent
-   *
-   * @since 2.1.0.0
+     *
+     * @since 2.1.0.0
 	 */
-  public boolean
-  isPersistent();
+	
+    public boolean
+    isPersistent();
+  
+    /**
+     * Sets the maximum download speed in bytes per second. 0 -> unlimited
+     * @since 2.1.0.2
+     * @param kb
+     */
+    
+  	public void
+	setMaximumDownloadKBPerSecond(
+		int		kb );
+  	
+  	public int
+	getMaximumDownloadKBPerSecond();
 
 	/**
 	 * Adds a listener to the download that will be informed of changes in the download's state

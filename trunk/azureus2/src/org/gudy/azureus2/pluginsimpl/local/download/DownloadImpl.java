@@ -742,4 +742,17 @@ DownloadImpl
 	{
 		
 	}
+	
+ 	public void
+	setMaximumDownloadKBPerSecond(
+		int		kb )
+ 	{
+ 		download_manager.getStats().setMaxDownloadKBSpeed( kb<0?0:kb );
+ 	}
+  	
+  	public int
+	getMaximumDownloadKBPerSecond()
+  	{
+  		return( download_manager.getStats().getMaxDownloadKBSpeed());
+  	}
 }

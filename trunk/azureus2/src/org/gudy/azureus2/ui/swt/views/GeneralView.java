@@ -217,9 +217,23 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     uploadSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     uploadSpeed.setLayoutData(gridData);
-    label = new Label(gTransfer, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.maxuploads"); //$NON-NLS-1$
-    maxUploads = new Text(gTransfer, SWT.BORDER);
+    
+    	// editable bit
+    
+    Composite culdl = new Composite(gTransfer, SWT.NULL);
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.horizontalSpan = 2;
+    culdl.setLayoutData(gridData);
+
+    GridLayout layoutInfo = new GridLayout();
+    layoutInfo.numColumns = 4;
+    layoutInfo.marginHeight = 0;
+    layoutInfo.marginWidth = 0;
+    culdl.setLayout(layoutInfo);
+    
+    label = new Label(culdl, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.maxuploads"); 
+    maxUploads = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
     gridData.widthHint = 30;
     maxUploads.setLayoutData(gridData);
@@ -262,6 +276,56 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       }
     });
 
+    	// dl speed
+  
+    label = new Label(culdl, SWT.LEFT);
+    label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + DisplayFormatters.getKiloBytePerSecUnit()+":");
+    
+    final Text maxDLSpeed = new Text(culdl, SWT.BORDER);
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    maxDLSpeed.setLayoutData(gridData);
+    maxDLSpeed.setText(String.valueOf(manager.getStats().getMaxDownloadKBSpeed()));
+    maxDLSpeed.addListener(SWT.Verify, new Listener() {
+      public void handleEvent(Event e) {
+        String text = e.text;
+        char[] chars = new char[text.length()];
+        text.getChars(0, chars.length, chars, 0);
+        for (int i = 0; i < chars.length; i++) {
+          if (!('0' <= chars[i] && chars[i] <= '9')) {
+            e.doit = false;
+            return;
+          }
+        }
+      }
+    });
+
+    maxDLSpeed.addListener(SWT.Modify, new Listener() {
+      public void handleEvent(Event event) {
+        try {
+          int value = Integer.parseInt(maxDLSpeed.getText());
+   
+          manager.getStats().setMaxDownloadKBSpeed(value);
+        }
+        catch (Exception e) {}
+      }
+    });
+
+    maxDLSpeed.addListener(SWT.FocusOut, new Listener() {
+      public void handleEvent(Event event) {
+        try {
+          int value = Integer.parseInt(maxDLSpeed.getText());
+          
+          manager.getStats().setMaxDownloadKBSpeed(value);
+        }
+        catch (Exception e) {}
+      }
+    });
+
+    
+    
+    	// blah
+    
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.seeds"); //$NON-NLS-1$
     seeds = new BufferedLabel(gTransfer, SWT.LEFT);
@@ -285,7 +349,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     gridData = new GridData(GridData.FILL_BOTH);
     gInfo.setLayoutData(gridData);
 
-    GridLayout layoutInfo = new GridLayout();
+    layoutInfo = new GridLayout();
     layoutInfo.numColumns = 4;
     gInfo.setLayout(layoutInfo);
 

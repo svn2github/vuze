@@ -639,6 +639,7 @@ public class GlobalManagerImpl
           }
           String savePath = new String((byte[]) mDownload.get("path"), Constants.DEFAULT_ENCODING);
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
+          int maxDL = mDownload.get("maxdl")==null?0:((Long) mDownload.get("maxdl")).intValue();
           int state = DownloadManager.STATE_WAITING;
           if (debug)
             state = DownloadManager.STATE_STOPPED;
@@ -676,6 +677,7 @@ public class GlobalManagerImpl
           DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, state, true, true );
           DownloadManagerStats stats = dm.getStats();
           stats.setMaxUploads(nbUploads);
+          stats.setMaxDownloadKBSpeed( maxDL );
           if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
           }
@@ -783,6 +785,7 @@ public class GlobalManagerImpl
 		      dmMap.put("torrent", dm.getTorrentFileName());
 		      dmMap.put("path", dm.getFullName());
 		      dmMap.put("uploads", new Long(stats.getMaxUploads()));
+		      dmMap.put("maxdl", new Long(stats.getMaxDownloadKBSpeed()));
           int state = dm.getState();
           if (dm.getOnlySeeding() && !dm.isForceStart() && 
               state != DownloadManager.STATE_STOPPED) {
