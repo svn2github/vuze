@@ -93,11 +93,13 @@ public class GlobalManager extends Component {
               TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
 
               boolean mayStop = false;
-              if (hd != null && hd.isValid() && hd.getSeeds() >= nbMinSeeds) {
-                mayStop = true;
-              }
-              else {
-                mayStop = true;
+              if (hd != null && hd.isValid()) {
+                if (hd.getSeeds() >= nbMinSeeds) {
+                  mayStop = true;
+                }
+                else {
+                  mayStop = true;
+                }
               }
 
               //Checks if any condition to stop seeding is met
@@ -141,8 +143,7 @@ public class GlobalManager extends Component {
                       int ratio = nbPeers / nbSeeds;
                       if (ratio >= minSeedsPerPeersRatio)
                         manager.setState(DownloadManager.STATE_WAITING);
-                    }
-                    {
+                    } else {
                       //No seeds, at least 1 peer, let's start download.
                       manager.setState(DownloadManager.STATE_WAITING);
                     }
@@ -286,8 +287,13 @@ public class GlobalManager extends Component {
       objectAdded(manager);
       saveDownloads();
       return true;
-    } else {
-      LGLogger.log(0, LGLogger.ERROR, LGLogger.ERROR, "Tried to add a DownloadManager after shutdown of GlobalManager.");
+    }
+    else {
+      LGLogger.log(
+        0,
+        LGLogger.ERROR,
+        LGLogger.ERROR,
+        "Tried to add a DownloadManager after shutdown of GlobalManager.");
       return false;
     }
   }
