@@ -26,12 +26,45 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
+import java.io.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
-import  org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.torrent.*;
 
 public class 
 TorrentUtils 
 {
+	public static TOTorrent
+	readFromFile(
+		String		file_name )
+		
+		throws TOTorrentException
+	{
+		TOTorrent torrent	= TOTorrentFactory.deserialiseFromBEncodedFile(new File(file_name));
+
+		torrent.setAdditionalStringProperty("torrent filename", file_name );
+		
+		return( torrent );
+	}
+
+	public static void
+	writeToFile(
+		TOTorrent		torrent )
+		
+		throws TOTorrentException
+	{	
+		String	str = torrent.getAdditionalStringProperty( "torrent filename");
+		
+		if ( str == null ){
+			
+			throw( new TOTorrentException( "TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND ));
+		}
+		
+		File torrent_file = new File( str );
+			
+		torrent.serialiseToBEncodedFile( torrent_file );
+	}
+	
 	public static String
 	exceptionToText(
 		TOTorrentException	e )

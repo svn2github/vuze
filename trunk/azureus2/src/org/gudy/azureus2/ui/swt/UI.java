@@ -19,8 +19,8 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
   public UI() {
   }
   
-  public LocaleUtil getProperLocaleUtil(Object lastEncoding) {
-    return new LocaleUtilSWT(lastEncoding);
+  public LocaleUtil getProperLocaleUtil() {
+    return new LocaleUtilSWT();
   }
   
   /*

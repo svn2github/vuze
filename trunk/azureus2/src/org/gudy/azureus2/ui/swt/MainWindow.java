@@ -81,6 +81,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -1556,17 +1557,30 @@ public class MainWindow implements GlobalManagerListener {
 
   public void 
   downloadManagerAdded(
-  	DownloadManager created) 
+  	final DownloadManager created) 
   {
     if ( created.getState() == DownloadManager.STATE_STOPPED)
       return;
-    if (COConfigurationManager.getBooleanParameter("Open Details", true)) //$NON-NLS-1$
-      openManagerView(created);
-    if (COConfigurationManager.getBooleanParameter("Open Bar", false)) { //$NON-NLS-1$
-      synchronized (downloadBars) {
-        MinimizedWindow mw = new MinimizedWindow(created, mainWindow);
-        downloadBars.put(created, mw);
-      }
+      
+	if (display != null && !display.isDisposed()){
+	
+	   display.asyncExec(new Runnable() {
+			public void
+			run()
+			{
+			    if (COConfigurationManager.getBooleanParameter("Open Details", true)){
+			    
+			      openManagerView(created);
+			    }
+			    
+			    if (COConfigurationManager.getBooleanParameter("Open Bar", false)) {
+			      synchronized (downloadBars) {
+			        MinimizedWindow mw = new MinimizedWindow(created, mainWindow);
+			        downloadBars.put(created, mw);
+			      }
+			    }
+			}
+	   });
     }
   }
 
@@ -1724,90 +1738,149 @@ public class MainWindow implements GlobalManagerListener {
         return;
     } catch (Exception e) {
       return;
-    }      
-    display.asyncExec(new Runnable() {
-      public void run() {
-        String savePath = getSavePath(fileName);
-        if (savePath == null)
-          return;
-        globalManager.addDownloadManager(fileName, savePath);
-      }
-    });
+    }  
+
+	display.asyncExec(new Runnable() {
+		 public void run()
+		 {
+			mainWindow.setActive();
+
+    		new Thread()
+    			{    
+ 			      public void run() {
+        			String savePath = getSavePath(fileName);
+        			if (savePath == null)
+          				return;
+        			globalManager.addDownloadManager(fileName, savePath);
+      			}
+    		}.start();
+		 }
+	});
   }
 
   public String getSavePath(String fileName) {
-    return getSavePath(fileName,true);
+    return getSavePathSupport(fileName,true);
   }
   
-  public String getSavePath(String fileName,boolean useDefault) {
-    String savePath = "";
-    
+  protected String 
+  getSavePathSupport(
+  	String fileName,
+  	boolean useDefault) 
+  {
+  		// This *musn't* run on the swt thread as the torrent decoder stuff can need to 
+  		// show a window...
+  		
+	final String[] savePath = {""};
+
     boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir", true);
-    if (useDefDataDir) savePath = COConfigurationManager.getStringParameter("Default save path", "");
     
-    if (savePath.length() == 0 || ! useDefault) {
-      mainWindow.setActive();
+    if (useDefDataDir) savePath[0] = COConfigurationManager.getStringParameter("Default save path", "");
+    
+    if (savePath[0].length() == 0 || ! useDefault) {
+
       boolean singleFile = false;
+      
       String singleFileName = ""; //$NON-NLS-1$
 
       try {
-        TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile(new File(fileName));
+        TOTorrent torrent = TorrentUtils.readFromFile(fileName);
+        
         singleFile = torrent.isSimpleTorrent();
-        singleFileName = LocaleUtil.getCharsetString(torrent.getName());
+        
+        LocaleUtilDecoder	locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
+        		
+        singleFileName = locale_decoder.decodeString(torrent.getName());
       }
       catch (Exception e) {
         e.printStackTrace();
       }
 
-      if (singleFile) {
-        FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL | SWT.SAVE);
-        fDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
-        fDialog.setFileName(singleFileName);
-        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        savePath = fDialog.open();
-      }
-      else {
-        DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
-        dDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
-        dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        savePath = dDialog.open();
-      }
-      if (savePath == null)
-        return null;
-      COConfigurationManager.setParameter("Default Path", savePath); //$NON-NLS-1$
-      COConfigurationManager.save();
+    
+	  final boolean f_singleFile 		= singleFile;
+      
+	  final String  f_singleFileName 	= singleFileName;
+
+	  final Semaphore	sem = new Semaphore();
+	  
+	  display.asyncExec(new Runnable() {
+		   public void run()
+		   {
+		   	  try{
+			      if (f_singleFile) {
+			        FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL | SWT.SAVE);
+			        fDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
+			        fDialog.setFileName(f_singleFileName);
+			        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + f_singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			        savePath[0] = fDialog.open();
+			      }
+			      else {
+			        DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
+			        dDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
+			        dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + f_singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			        savePath[0] = dDialog.open();
+			      }
+			      if (savePath == null){
+			      
+			        savePath[0] = null;
+			        
+			      }else{
+			      	
+			      	COConfigurationManager.setParameter("Default Path", savePath[0]); //$NON-NLS-1$
+			      	
+			      	COConfigurationManager.save();
+			      }
+		   	  }finally{
+		   	  	sem.release();
+		   	  }
+		   }
+	  });
+ 
+    
+      sem.reserve();
     }
-    return savePath;
+    
+    return savePath[0];
   }
 
   public void openTorrents(final String path, final String fileNames[]) {
     openTorrents(path,fileNames,true);
   }
   
-  public void openTorrents(final String path, final String fileNames[],final boolean useDefault) {
-    display.asyncExec(new Runnable() {
-      public void run() {
-        String separator = System.getProperty("file.separator"); //$NON-NLS-1$
-        for (int i = 0; i < fileNames.length; i++) {
-          if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".torrent")) {
-            if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".tor")) {
-              continue;
-            }
-          }
-          String savePath = getSavePath(path + separator + fileNames[i],useDefault);
-          if (savePath == null)
-            continue;
-          globalManager.addDownloadManager(path + separator + fileNames[i], savePath);
-        }
-      }
-    });
+  public void openTorrents(
+  	final String path, 
+  	final String fileNames[],
+  	final boolean useDefault )
+  {
+	display.asyncExec(new Runnable() {
+		 public void run()
+		 {
+			mainWindow.setActive();
+
+ 			new Thread(){
+		      public void run() {
+		        String separator = System.getProperty("file.separator"); //$NON-NLS-1$
+		        for (int i = 0; i < fileNames.length; i++) {
+		          if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".torrent")) {
+		            if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".tor")) {
+		              continue;
+		            }
+		          }
+		          String savePath = getSavePathSupport(path + separator + fileNames[i],useDefault);
+		          if (savePath == null)
+		            continue;
+		          globalManager.addDownloadManager(path + separator + fileNames[i], savePath);
+		        }
+		      }
+		    }.start();
+		 }
+	});
   }
 
   public void openTorrentsFromDirectory(String directoryName) {
     File f = new File(directoryName);
     if (!f.isDirectory())
       return;
-    File[] files = f.listFiles(new FileFilter() {
+    final File[] files = f.listFiles(new FileFilter() {
       public boolean accept(File arg0) {
         if (FileUtil.getCanonicalFileName(arg0.getName()).endsWith(".torrent")) //$NON-NLS-1$
           return true;
@@ -1820,11 +1893,17 @@ public class MainWindow implements GlobalManagerListener {
       return;
     DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
     dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
-    String savePath = dDialog.open();
+    final String savePath = dDialog.open();
     if (savePath == null)
       return;
-    for (int i = 0; i < files.length; i++)
-      globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath);
+      
+	new Thread(){
+	  public void run() 
+	  {
+    	for (int i = 0; i < files.length; i++)
+      		globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath);
+	  }
+	}.start();
   }
 
   /**

@@ -168,11 +168,13 @@ DownloadManagerImpl
 		nbPieces			= 0;
 		
 		try {
-  	
-			 torrent	= TOTorrentFactory.deserialiseFromBEncodedFile(new File(torrentFileName));
-			
-             name = LocaleUtil.getCharsetString( torrent.getName());
-          
+
+			 torrent = TorrentUtils.readFromFile( torrentFileName );
+			   	
+			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
+			 	
+			 name = locale_decoder.decodeString( torrent.getName());
+                  	 
          	 if (torrent.isSimpleTorrent()){
           	
             	File testFile = new File(savePath);
@@ -184,13 +186,13 @@ DownloadManagerImpl
           
 			 trackerUrl = torrent.getAnnounceURL().toString();
          
-			torrent_comment = LocaleUtil.getCharsetString(torrent.getComment());
+			 torrent_comment = locale_decoder.decodeString(torrent.getComment());
          
 			if ( torrent_comment == null ){
 			   torrent_comment	= "";
 			}
 			
-			torrent_created_by = LocaleUtil.getCharsetString(torrent.getCreatedBy());
+			torrent_created_by = locale_decoder.decodeString(torrent.getCreatedBy());
          
 			if ( torrent_created_by == null ){
 				torrent_created_by	= "";
@@ -198,8 +200,6 @@ DownloadManagerImpl
 			 
 			 nbPieces = torrent.getPieces().length;
 			 
-			 torrent.setAdditionalStringProperty("torrent filename", torrentFileName ); //$NON-NLS-1$ //$NON-NLS-2$
-
 		}catch( TOTorrentException e ){
 		
 			nbPieces = 0;

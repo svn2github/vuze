@@ -2,43 +2,50 @@ package org.gudy.azureus2.core3.internat;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CoderResult;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.Arrays;
 import java.util.ArrayList;
 
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 
-public class LocaleUtil implements ILocaleUtilChooser {
+public abstract class
+LocaleUtil 
+	implements ILocaleUtilChooser 
+{
   
-  private static final String systemEncoding = System.getProperty("file.encoding"); //$NON-NLS-1$
+  private static final String systemEncoding = System.getProperty("file.encoding");
   
   private static final String[] manual_charset = {
-    systemEncoding,
-    "Big5","EUC-JP","EUC-KR","GB18030","GB2312","GBK","ISO-2022-JP","ISO-2022-KR", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$
-    "Shift_JIS","KOI8-R","UTF-8","windows-1251","ISO-8859-1" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+	systemEncoding,
+	"Big5","EUC-JP","EUC-KR","GB18030","GB2312","GBK","ISO-2022-JP","ISO-2022-KR",
+	"Shift_JIS","KOI8-R","UTF-8","windows-1251","ISO-8859-1" 
   };
   
+	// the general ones *must* also be members of the above manual ones
+  	
   protected static final String[] generalCharsets = {
-    "ISO-8859-1", "UTF-8", systemEncoding  //$NON-NLS-1$ //$NON-NLS-2$
+	"ISO-8859-1", "UTF-8", systemEncoding
   };
   
-  private static String[]			charsetNames;
-  private static CharsetDecoder[] 	charsetDecoder;
+   private static LocaleUtilDecoder[] 	charsetDecoders;
   
   static {
   	
-  	ArrayList	decoders 	= new ArrayList();
-  	ArrayList	names		= new ArrayList();
+	ArrayList	decoders 	= new ArrayList();
   	
 	for (int i = 0; i < manual_charset.length; i++) {
 	   try {
-		 CharsetDecoder decoder = Charset.forName(manual_charset[i]).newDecoder();
+		 String	name = manual_charset[i];
 		 
-		 decoders.add( decoder );
+		 CharsetDecoder decoder = Charset.forName(name).newDecoder();
 		 
-		 names.add( manual_charset[i]);
-		 
-	   } catch (Exception ignore) {
+		 decoders.add( new LocaleUtilDecoder(decoder, name));
+		 		 
+	   }catch (Exception ignore) {
 	   }
 	 }
 
@@ -47,11 +54,11 @@ public class LocaleUtil implements ILocaleUtilChooser {
   	
 	Iterator it = m.keySet().iterator();
 
-  	while(it.hasNext()){
+	while(it.hasNext()){
   		
-  		String	charset_name = (String)it.next();
+		String	charset_name = (String)it.next();
   		
-  		if ( !names.contains( charset_name)){
+		if ( !names.contains( charset_name)){
   		
 			try {
 			  CharsetDecoder decoder = Charset.forName(charset_name).newDecoder();
@@ -61,196 +68,262 @@ public class LocaleUtil implements ILocaleUtilChooser {
 			 
 			} catch (Exception ignore) {
 			}
-	  	}
-  	}
-    */
+		}
+	}
+	*/
     
-	charsetDecoder	= new CharsetDecoder[ decoders.size()];
+	charsetDecoders	= new LocaleUtilDecoder[ decoders.size()];
 	
-	decoders.toArray( charsetDecoder);
-	
-	charsetNames = new String[ names.size()];
-	
-	names.toArray( charsetNames );
+	decoders.toArray( charsetDecoders);
   }
   
   protected boolean rememberEncodingDecision = true;
-  protected boolean differentEncodingsChoosed = false;
   
-  protected String lastChoosedEncoding = null;
-  protected boolean waitForUserInput = true;
+  protected LocaleUtilDecoder lastChosenDecoder = null;
   
   private static ILocaleUtilChooser chooser = null;
-  
-  public static LocaleUtil getLocaleUtil(Object lastEncoding) {
-    return (chooser==null)?new LocaleUtil(lastEncoding):chooser.getProperLocaleUtil(lastEncoding);
-  }
-  
-  public static void setLocaleUtilChooser(ILocaleUtilChooser ch) {
-    chooser=ch;
-  }
-  
-  public static String getCharsetString(byte[] array) throws UnsupportedEncodingException 
-  {
-  	if ( array == null ){
-  		
-  		return( null );
-  	}
-  	
-    return new String(array, getCharset(array));
-  }
-  
-  public static String 
-  getCharset(byte[] array) 
-  {
-  	if ( array == null ){
-  		return( null );
-  	}
-    Candidate[] candidates = getCandidates(array);
-  
-    String defaultString = candidates[0].name;
     
-    Arrays.sort(candidates);
+  public static void setLocaleUtilChooser(ILocaleUtilChooser ch) {
+	chooser=ch;
+  }
+   
+  protected static Candidate[] 
+  getCandidates(
+	byte[] array ) 
+  {
+	Candidate[] candidates = new Candidate[charsetDecoders.length];
+    
+	for (int i = 0; i < charsetDecoders.length; i++){
+    	
+	  candidates[i] = new Candidate(i);
+      
+	  try{
+			LocaleUtilDecoder decoder = charsetDecoders[i];
+      	      		
+			ByteBuffer bb = ByteBuffer.wrap(array);
+      		
+			CharBuffer cb = CharBuffer.allocate(array.length);
+      		
+			CoderResult cr = decoder.getDecoder().decode(bb,cb, true);
+			
+			if ( !cr.isError() ){
+							
+				cb.flip();
+				
+				String	str = cb.toString();
+				
+				byte[]	b2 = str.getBytes(decoder.getName() );
+				
+					// make sure the conversion is symetric (there are cases where it appears
+					// to work but in fact converting back to bytes leads to a different
+					// result
+					
+				/*
+				for (int k=0;k<str.length();k++){
+					System.out.print( Integer.toHexString(str.charAt(k)));
+				}
+				System.out.println("");
+				*/
+				
+				if ( Arrays.equals( array, b2 )){
+				
+					candidates[i].value = str;
+        		
+					candidates[i].decoder = decoder;
+				}
+			}
+	  } catch (Exception ignore) {
+      	
+	  }
+	}
     
     /*
-	System.out.println( "num candidates = " + candidates.length );
+	System.out.println( "getCandidates: = " + candidates.length );
+	
 	for (int i=0;i<candidates.length;i++){
+		
 		Candidate	cand = candidates[i];
 		
 		if ( cand != null ){
 		
-			String	name = cand.getName();
+			String	value = cand.getValue();
 			
-			System.out.println( cand.getCharset() + "/" + (name==null?-1:name.length()) + "/" + name );
+			if ( value != null ){
+			
+				System.out.println( cand.getDecoder().getName() + "/" + (value==null?-1:value.length()) + "/" + value );
+			}
 		}  
 	}
 	*/
 	
-    int minlength = candidates[0].name.length();
-    
-                /*
-                int filterCount = 1;
-                for (int i=1;i<candidates.length;i++) {
-                        if (((Candidate)candidates[i]).name.length() > minlength) break;
-                        filterCount++;
-                }
-                 */
-    
-                /*
-                for (int i=0;i<filterCount;i++) {
-                        System.out.println(((Candidate)candidates[i]).charset);
-                }
-                 */
-    
-    // If the default string length == minlength assumes that
-    // the array encoding is from default charset
-    if (defaultString != null && defaultString.length() == minlength) {
-      return systemEncoding;
-    }
-    
-    // Here it is assumed the shorter the string, the more likely is
-    // the correct charset
-    return candidates[0].charset;
+	return candidates;
   }
   
-  protected static Candidate[] getCandidates(byte[] array) {
-    Candidate[] candidates = new Candidate[charsetDecoder.length];
-    int j=0;
-    for (int i = 0; i < charsetDecoder.length; i++) {
-      candidates[i] = new Candidate();
-      try {
-      	if (charsetDecoder[i] != null) {
-        	candidates[j].name = charsetDecoder[i].decode(ByteBuffer.wrap(array)).toString();
-        	candidates[j].charset = charsetNames[i];
-        	j++;
-      	}
-      } catch (Exception ignore) {
-      }
-    }
-    return candidates;
-  }
-  
-  protected static class Candidate implements Comparable {
-    private String name;
-    private String charset;
+  protected static class 
+  Candidate 
+	implements Comparable 
+  {
+	private int					index;
+	private String 				value;
+	private LocaleUtilDecoder	decoder;
     
-    public String getName() {
-      return name;
-    }
-    
-    public String getCharset() {
-      return charset;
-    }
-    
-    public int compareTo(Object o) {
-      Candidate candidate = (Candidate)o;
-      if(null == name || null == candidate.name)
-        return 0;
-      if (candidate.name.hashCode()==name.hashCode() &&
-      candidate.charset.hashCode()==charset.hashCode()) {
-        return 0;
-      }
-      if (name.length() < candidate.name.length()) {
-        return -1;
-      }
-      return 1;
-    }
-    /**
-     * only used for contains()
-     * Warning: this implementation covers not all special cases
-     */
-    public boolean equals(Object obj) {
-      Candidate other = (Candidate) obj;
-      return name.equals(other.name);
-    }
-    
-	public int hashCode() {
-		return 31*name.hashCode()+charset.hashCode();
+	protected
+	Candidate(
+		int	_index )
+	{
+		index	= _index;
+	}
+	
+	public String getValue() {
+	  return value;
 	}
     
+	public LocaleUtilDecoder getDecoder() {
+	  return decoder;
+	}
+    
+	public int 
+	compareTo(Object o) 
+	{
+	  Candidate candidate = (Candidate)o;
+      
+	  int	res;
+      
+	  if( value == null && candidate.value == null){
+      
+		res	= 0;
+        
+	  }else if ( value == null ){
+      	
+		res = 1;
+        
+	  }else if ( candidate.value == null ){
+      	
+		res = -1;
+      	
+	  }else{
+      
+		res = value.length() - candidate.value.length();
+        
+		if ( res == 0 ){
+        	
+			res = index - candidate.index;
+		}
+	  }
+      
+	  // System.out.println( "comp:" + this.name + "/" + candidate.name + " -> " + res );
+      
+	  return( res );
+	}
+	/**
+	 * only used for contains()
+	 * Warning: this implementation covers not all special cases
+	 */
+	public boolean equals(Object obj) {
+	  Candidate other = (Candidate) obj;
+     
+	 if ( value == null && other.value == null ){
+		return( true );
+	 }else if ( value == null || other.value == null ){
+		return( false );
+	 }else{
+		return( value.equals( other.value ));
+	 }
+	}
   }
   
-  /**
-   * @param lastEncoding the last (saved) encoding, which was used for the torrent
-   */
-  public LocaleUtil(Object lastEncoding) {
-    super();
-    if(lastEncoding != null) {
-      String encoding = lastEncoding instanceof byte[] ? new String((byte[]) lastEncoding) : (String) lastEncoding;
-      for (int i = 0; i < charsetNames.length; i++) {
-        if(charsetNames[i].equals(encoding)) {
-          lastChoosedEncoding = encoding;
-          return;
-        }
-      }
-    }
-  }
   
   public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {
-    throw new UnsupportedEncodingException("Hello, this is your base class speaking. You need to implement an ILocaleUtilChooser interface. This method is abstract here.");
+	throw new UnsupportedEncodingException("Hello, this is your base class speaking. You need to implement an ILocaleUtilChooser interface. This method is abstract here.");
   }
 
   
   public LocaleUtil() {
-    this(null);
   }
   
-  /**
-   * @return true, if the lastChoosedEncoding should be remembered and only one encoding was always choosed
-   */
-  public boolean canEncodingBeSaved() {
-    return !differentEncodingsChoosed && rememberEncodingDecision && lastChoosedEncoding != null;
-  }
   
-  /**
-   * @return the last encoding choosed by the user; can be null
-   */
-  public String getLastChoosedEncoding() {
-    return lastChoosedEncoding;
-  }
-  
-  public LocaleUtil getProperLocaleUtil(Object lastEncoding) {
-    return new LocaleUtil(lastEncoding);
-  }
-  
+	public static LocaleUtilDecoder
+	getTorrentEncoding(
+  		TOTorrent		torrent )
+  		
+  		throws TOTorrentException, UnsupportedEncodingException
+  	{
+		String	encoding = torrent.getAdditionalStringProperty( "encoding" );
+		
+		if ( encoding != null ){
+			
+			for (int i=0;i<charsetDecoders.length;i++){
+				
+				if ( charsetDecoders[i].getName().equals( encoding )){
+					
+					return( charsetDecoders[i] );
+				}
+			}
+		}
+		
+		LocaleUtil lut = chooser.getProperLocaleUtil();
+		
+		lut.lastChosenDecoder = null;
+		
+		lut.getChoosableCharsetString( torrent.getName());
+		
+		if ( lut.lastChosenDecoder == null ){
+			
+			TOTorrentFile[]	files = torrent.getFiles();
+			
+			for (int i=0;i<files.length;i++){
+				
+				TOTorrentFile	file = files[i];
+				
+				byte[][] comps = file.getPathComponents();
+				
+				for (int j=0;j<comps.length;j++){
+					
+					lut.getChoosableCharsetString( comps[j]);
+					
+					if ( lut.lastChosenDecoder != null ){
+						
+						break;
+					}
+				}
+				
+				if ( lut.lastChosenDecoder != null ){
+					
+					break;
+				}
+			}
+		}
+		
+		if ( lut.lastChosenDecoder == null ){
+
+			byte[]	comment = torrent.getComment();
+			
+			if ( comment != null ){
+				
+				lut.getChoosableCharsetString(comment);
+			}
+		}
+		if ( lut.lastChosenDecoder == null ){
+
+			byte[]	created = torrent.getCreatedBy();
+			
+			if ( created != null ){
+				
+				lut.getChoosableCharsetString(created);
+			}
+		}
+		
+		if ( lut.lastChosenDecoder == null ){
+			
+				// no choices required, use system default
+				
+			lut.lastChosenDecoder = charsetDecoders[0];
+		}
+		        	
+		torrent.setAdditionalStringProperty("encoding", lut.lastChosenDecoder.getName());
+            
+		TorrentUtils.writeToFile( torrent );
+			
+		return( lut.lastChosenDecoder );
+  	}
 }

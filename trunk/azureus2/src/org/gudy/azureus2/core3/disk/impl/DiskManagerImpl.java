@@ -23,9 +23,9 @@ package org.gudy.azureus2.core3.disk.impl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.NoSuchAlgorithmException;
@@ -41,7 +41,7 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -158,34 +158,44 @@ DiskManagerImpl
 		//    _priorityPieces = new int[nbPieces + 1];
 
 		pieceDone = new boolean[nbPieces];
-		LocaleUtil localeUtil = LocaleUtil.getLocaleUtil( torrent.getAdditionalStringProperty( "encoding" ));
-
-		fileName = "";
-		try {
+		
+		LocaleUtilDecoder	locale_decoder = null;
+		
+		try{
+		
+			locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
+	
+			fileName = "";
+		
 			File f = new File(path);
+			
 			if (f.isDirectory()) {
-				fileName = localeUtil.getChoosableCharsetString( torrent.getName());
+				fileName = locale_decoder.decodeString( torrent.getName());
 			} else {
 			  fileName = f.getName();
 			  path = f.getParent();
 			}
-      
-			//if the data file is already in the completed files dir, we want to use it
-			boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
-			String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
-   
-			if (moveWhenDone && completedDir.length() > 0) {
-			  //if the data file already resides in the completed files dir
-			  if (new File(completedDir, fileName).exists()) {
-			    //set the completed dir as the save path
-			    this.path = FileUtil.smartPath(completedDir, fileName);
-			    alreadyMoved = true;
-			  }
-			}
-		} catch (UnsupportedEncodingException e) {
+		}catch( TOTorrentException e ){
+			this.state = FAULTY;
+			this.errorMessage = TorrentUtils.exceptionToText(e);
+			return;
+		}catch( UnsupportedEncodingException e ){
 			this.state = FAULTY;
 			this.errorMessage = e.getMessage();
 			return;
+		}
+      
+		//if the data file is already in the completed files dir, we want to use it
+		boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+		String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+   
+		if (moveWhenDone && completedDir.length() > 0) {
+		  //if the data file already resides in the completed files dir
+		  if (new File(completedDir, fileName).exists()) {
+		    //set the completed dir as the save path
+		    this.path = FileUtil.smartPath(completedDir, fileName);
+		    alreadyMoved = true;
+		  }
 		}
 
 		//build something to hold the filenames/sizes
@@ -237,17 +247,10 @@ DiskManagerImpl
 				rootPath = ""; //null out rootPath
 			}
 
-			buildFileLookupTables( torrent_files, btFileList, localeUtil, separator);
+			buildFileLookupTables( torrent_files, btFileList, locale_decoder, separator);
 
 			if (this.state == FAULTY)
 				return;
-		}
-
-		if (localeUtil.canEncodingBeSaved() && !localeUtil.getLastChoosedEncoding().equals(torrent.getAdditionalStringProperty("encoding"))) {
-        	
-			torrent.setAdditionalStringProperty("encoding", localeUtil.getLastChoosedEncoding());
-            
-			saveTorrent();
 		}
 
 		remaining = totalLength;
@@ -346,13 +349,16 @@ DiskManagerImpl
 	// refactored out of initialize() - Moti
 	private void 
 	buildFileLookupTables(
-		TOTorrentFile[]	torrent_files, ArrayList btFileList, LocaleUtil localeUtil, final char separator) {
+		TOTorrentFile[]	torrent_files, 
+		ArrayList btFileList, 
+		LocaleUtilDecoder locale_decoder, 
+		final char separator) {
  
 		 //for each file
          
 		for (int i = 0; i < torrent_files.length; i++) {
         	
-			long fileLength = buildFileLookupTable(torrent_files[i], btFileList, localeUtil, separator);
+			long fileLength = buildFileLookupTable(torrent_files[i], btFileList, locale_decoder, separator);
 
 			if (this.state == FAULTY)
 				return;
@@ -376,7 +382,7 @@ DiskManagerImpl
 	buildFileLookupTable(
 		TOTorrentFile		torrent_file, 
 		ArrayList 			btFileList, 
-		LocaleUtil 			localeUtil, 
+		LocaleUtilDecoder 	locale_decoder, 
 		final char 			separator) 
 	{
 		long fileLength  = torrent_file.getLength();
@@ -390,26 +396,28 @@ DiskManagerImpl
 		pathBuffer.setLength(0);
 		*/
 		StringBuffer pathBuffer = new StringBuffer(0);
-		try {
+
+	    try{
+
 			int lastIndex = path_components.length - 1;
 			for (int j = 0; j < lastIndex; j++) {
 				//attach every element        
-				pathBuffer.append(localeUtil.getChoosableCharsetString( path_components[j]));
+				pathBuffer.append(locale_decoder.decodeString( path_components[j]));
 				pathBuffer.append(separator);
 			}
-
+	
 			//no, then we must be a part of the path
 			//add the file entry to the file holder list         
 			btFileList.add(
 				new BtFile(
 					pathBuffer.toString(),
-					localeUtil.getChoosableCharsetString(path_components[lastIndex]),
+					locale_decoder.decodeString(path_components[lastIndex]),
 					fileLength));
-
-		} catch (UnsupportedEncodingException e) {
+		}catch( UnsupportedEncodingException e ){
 			this.state = FAULTY;
 			this.errorMessage = e.getMessage();
 		}
+ 
 		return fileLength;
 	}
 
@@ -1006,10 +1014,8 @@ DiskManagerImpl
 	saveTorrent() 
 	{
 		try {
-			File torrent_file = new File( torrent.getAdditionalStringProperty( "torrent filename"));
-			
-			torrent.serialiseToBEncodedFile( torrent_file );
-			
+			TorrentUtils.writeToFile( torrent );
+						
 		} catch (TOTorrentException e) {
 			e.printStackTrace();
 		}

@@ -30,7 +30,7 @@ public abstract class UITemplate implements org.gudy.azureus2.core3.internat.ILo
     started = true;
   }
   
-  abstract public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(Object lastEncoding);
+  abstract public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil();
   
   public boolean isStarted() {
     return started;

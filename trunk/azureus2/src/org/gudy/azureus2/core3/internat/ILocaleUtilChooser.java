@@ -12,6 +12,6 @@ package org.gudy.azureus2.core3.internat;
  */
 public interface ILocaleUtilChooser {
  
-  public LocaleUtil getProperLocaleUtil(Object lastEncoding);
+  public LocaleUtil getProperLocaleUtil();
   
 }

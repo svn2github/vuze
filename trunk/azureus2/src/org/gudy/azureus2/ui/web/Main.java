@@ -47,8 +47,8 @@ public class Main implements ILocaleUtilChooser {
     new Main(args);
   }
   
-  public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(Object lastEncoding) {
-    return new LocaleUtilHeadless(lastEncoding);
+  public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil() {
+    return new LocaleUtilHeadless();
   }
   
 }

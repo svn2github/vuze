@@ -25,13 +25,9 @@ public class LocaleUtilHeadless extends LocaleUtil implements ILocaleUtilChooser
   public LocaleUtilHeadless() {
     super();
   }
-  
-  public LocaleUtilHeadless(Object lastEncoding) {
-    super(lastEncoding);
-  }
-  
-  public LocaleUtil getProperLocaleUtil(Object lastEncoding) {
-    return new LocaleUtilHeadless(lastEncoding);
+
+  public LocaleUtil getProperLocaleUtil(){
+    return new LocaleUtilHeadless();
   }
   
   public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {

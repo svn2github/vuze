@@ -19,9 +19,9 @@ public abstract class UITemplateHeadless
 	extends UITemplate
 	implements org.gudy.azureus2.core3.internat.ILocaleUtilChooser, IUserInterface {
 
-	public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(
-		Object lastEncoding) {
-		return new LocaleUtilHeadless(lastEncoding);
+	public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(){
+	
+		return new LocaleUtilHeadless();
 	}
 
 	/* (non-Javadoc)

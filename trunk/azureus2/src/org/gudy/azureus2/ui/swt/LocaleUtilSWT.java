@@ -39,16 +39,16 @@ import org.gudy.azureus2.core3.internat.MessageText;
 
 public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
   
+  boolean waitForUserInput = true;
+    
+
   public LocaleUtilSWT() {
     super();
   }
   
-  public LocaleUtilSWT(Object lastEncoding) {
-    super(lastEncoding);
-  }
   
-  public LocaleUtil getProperLocaleUtil(Object lastEncoding) {
-    return new LocaleUtilSWT(lastEncoding);
+  public LocaleUtil getProperLocaleUtil() {
+    return new LocaleUtilSWT();
   }
 
   
@@ -56,20 +56,20 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
   public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {
     Candidate[] candidates = getCandidates(array);
 
-    if(rememberEncodingDecision && lastChoosedEncoding != null) {
+    if(rememberEncodingDecision && lastChosenDecoder != null) {
       for (int i = 0; i < candidates.length; i++) {
-        if(candidates[i].getName() != null && lastChoosedEncoding.equals(candidates[i].getCharset())) {
-          return candidates[i].getName();
+        if(candidates[i].getValue() != null && lastChosenDecoder == candidates[i].getDecoder()) {
+          return candidates[i].getValue();
         }
       }
     }
 
-    String defaultString = candidates[0].getName();
+    String defaultString = candidates[0].getValue();
 
     Arrays.sort(candidates);
 
-    int minlength = candidates[0].getName().length();
-    
+    int minlength = candidates[0].getValue().length();
+   
     // If the default string length == minlength assumes that
     // the array encoding is from default charset 
     if (defaultString != null && defaultString.length() == minlength) {
@@ -82,7 +82,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     // add all general candidates with names not already in the list
     for (int j = 0; j < generalCharsets.length; j++) {
       for (int i = 1; i < candidates.length; i++) {
-        if(candidates[i].getName() != null && generalCharsets[j].equals(candidates[i].getCharset()) && !choosableCandidates.contains(candidates[i])) {
+        if(candidates[i].getValue() != null && generalCharsets[j].equals(candidates[i].getDecoder().getName()) && !choosableCandidates.contains(candidates[i])) {
           choosableCandidates.add(candidates[i]);
           break;
         }
@@ -90,16 +90,38 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     }
 
     final Candidate[] candidatesToChoose = (Candidate[]) choosableCandidates.toArray(new Candidate[choosableCandidates.size()]);
-    waitForUserInput = true;
-    String lastChoosedEncodingSaved = lastChoosedEncoding;
+    
+    waitForUserInput	= true;
+    
     MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
       public void run() {
-        showChoosableEncodingWindow(MainWindow.getWindow().getShell(), candidatesToChoose);
-        waitForUserInput = false;
+      	try{
+      	
+        	showChoosableEncodingWindow(MainWindow.getWindow().getShell(), candidatesToChoose);
+        	
+      	}catch( Throwable e ){
+      		
+      		e.printStackTrace();	
+      	}finally{
+      	
+        	synchronized( LocaleUtilSWT.this ){
+        
+        		waitForUserInput = false;
+        	}
+        }
       }
     });
     
-    while(waitForUserInput) {
+    while(true) {
+    
+      synchronized( this ){
+      	
+      	if ( !waitForUserInput ){
+      		
+      		break;
+      	}
+      }
+		
       try {
         Thread.sleep(100);
       } catch (Exception ignore) {
@@ -108,16 +130,13 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
 
     int choosedIndex = 0;
     for (int i = 1; i < candidatesToChoose.length; i++) {
-      if(candidatesToChoose[i].getName() != null && lastChoosedEncoding.equals(candidatesToChoose[i].getCharset())) {
+      if(candidatesToChoose[i].getValue() != null && lastChosenDecoder == candidatesToChoose[i].getDecoder()) {
         choosedIndex = i;
         break;
       }
     }
 
-    if(lastChoosedEncodingSaved != null && !lastChoosedEncodingSaved.equals(lastChoosedEncoding))
-      differentEncodingsChoosed = true;
-
-    return candidatesToChoose[choosedIndex].getName(); 
+    return candidatesToChoose[choosedIndex].getValue(); 
   }    
 
   private void showChoosableEncodingWindow(final Shell shell, final Candidate[] candidates) {
@@ -164,12 +183,12 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     // add candidates to table
     for (int i = 0; i < candidates.length; i++) {
       TableItem item = new TableItem(table, SWT.NULL);
-      item.setText(0, candidates[i].getName());
-      item.setText(1, candidates[i].getCharset());
+      item.setText(0, candidates[i].getValue());
+      item.setText(1, candidates[i].getDecoder().getName());
     }
     int lastSelectedIndex = 0;
     for (int i = 1; i < candidates.length; i++) {
-      if(candidates[i].getName() != null && candidates[i].getCharset().equals(lastChoosedEncoding)) {
+      if(candidates[i].getValue() != null && candidates[i].getDecoder() == lastChosenDecoder ) {
         lastSelectedIndex = i;
         break;
       }
@@ -232,7 +251,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     if(-1 == selectedIndex) 
       return;
     rememberEncodingDecision = checkBox.getSelection();
-    lastChoosedEncoding = candidates[selectedIndex].getCharset();
+    lastChosenDecoder = candidates[selectedIndex].getDecoder();
     s.dispose();
   }
 

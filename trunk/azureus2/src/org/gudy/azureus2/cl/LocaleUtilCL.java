@@ -35,12 +35,12 @@ public class LocaleUtilCL extends LocaleUtil implements ILocaleUtilChooser {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.core3.internat.ILocaleUtilChooser#getProperLocaleUtil(java.lang.Object)
    */
-  public LocaleUtil getProperLocaleUtil(Object lastEncoding) {
+  public LocaleUtil getProperLocaleUtil() {
     return this;
   }
   
   public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {
-    return "ISO-8859-1";
+    return( new String( array ));
  }
 
 }

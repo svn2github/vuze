@@ -84,8 +84,8 @@ public class Main implements ILocaleUtilChooser {
     }
   }
   
-  public LocaleUtil getProperLocaleUtil(Object lastEncoding) {
-    return new LocaleUtilSWT(lastEncoding);
+  public LocaleUtil getProperLocaleUtil() {
+    return new LocaleUtilSWT();
   }
   
   
