@@ -1606,6 +1606,12 @@ public class StartStopRulesDefaultPlugin
         return false;
       }
 
+      //not FP if no peers  //Nolar, 2105
+      if( numPeers == 0 ) {
+        if (bDebugLog) sExplainFP += "Not FP: 0 peers\n";
+        return false;
+      }
+      
       int shareRatio = dl.getStats().getShareRatio();
       boolean bLastMatched = (shareRatio != -1) && (shareRatio < minQueueingShareRatio);
       
