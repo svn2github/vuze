@@ -792,11 +792,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null) {
-            dm.setState(DownloadManager.STATE_WAITING);
-            while (dm.getDiskManager() == null || dm.getDiskManager().getState() == DiskManager.INITIALIZING) {
-              try{ Thread.sleep(500); } catch(Exception ignore) {}
-            }
-            dm.restartDownload(false);
+            dm.forceRecheck();
           }
         } 
       }

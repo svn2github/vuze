@@ -224,4 +224,6 @@ DownloadManager
   public void downloadEnded();
 
   public void initializeDiskManager();
+  
+  public void forceRecheck();
 }

@@ -80,7 +80,8 @@ DownloadManagerImpl
   //Used when trackerConnection is not yet created.
   private String trackerUrl;
   
-
+  private boolean forcedRecheck;
+  
   private PEPeerServer server;
   private TOTorrent			torrent;
   private String torrent_comment;
@@ -111,6 +112,8 @@ DownloadManagerImpl
 	stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads", 4));
 	 
 	this.startStopLocked = false;
+  
+	this.forcedRecheck = false;
   
     setState( STATE_WAITING );
 	
@@ -887,8 +890,22 @@ DownloadManagerImpl
   }
 
   public void initializeDiskManager() {
-    if(diskManager == null)
+    if(diskManager == null) {
       diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
+    }
+    
+    if (forcedRecheck) {
+      forcedRecheck = false;
+      while (diskManager.getState() == DiskManager.INITIALIZING) {
+        try { Thread.sleep(50); } catch (Exception ignore) {}
+      }
+      restartDownload(false);
+    }
+  }
+  
+  public void forceRecheck() {
+    forcedRecheck = true;
+    setState( STATE_WAITING );
   }
   
 }
