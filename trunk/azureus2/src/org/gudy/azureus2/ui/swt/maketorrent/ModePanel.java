@@ -251,7 +251,7 @@ public class ModePanel extends AbstractWizardPanel {
     });
     btnExtraHashes.setSelection(((NewTorrentWizard) wizard).addOtherHashes);
     
-   //Line:
+    //Line:
     // ------------------------------
     
     label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
