@@ -161,7 +161,7 @@ ConfigurationChecker
 	    	
 	    	try{
 	    		AEProxy	proxy = 
-	    			AEProxyFactory.create( 14890, 0, 0 );
+	    			AEProxyFactory.create( 0, 0 );
 	    		
 		        System.setProperty("socksProxyHost", "127.0.0.1");
 		        System.setProperty("socksProxyPort", "" + proxy.getPort());

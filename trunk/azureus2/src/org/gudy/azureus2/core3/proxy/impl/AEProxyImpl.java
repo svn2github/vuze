@@ -184,7 +184,7 @@ AEProxyImpl
 				
 					processors.put( processor, "" );
 	
-					System.out.println( "AEProxy: num processors = " + processors.size());
+					LGLogger.log( "AEProxy: num processors = " + processors.size());
 					
 				}finally{
 					
