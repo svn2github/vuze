@@ -4,6 +4,8 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -52,20 +54,6 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     MainWindow.getWindow().removeManagerView(manager);
     manager.removeListener(this);
     
-    
-    //Don't ask me why, but without this an exception is thrown further
-    // (in folder.dispose() )
-    //TODO : Investigate to see if it's a platform (OSX-Carbon) BUG, and report to SWT team.
-    if(Constants.isOSX) {
-      if(folder != null && !folder.isDisposed()) {
-        TabItem[] items = folder.getItems();
-        for(int i=0 ; i < items.length ; i++) {
-          if (!items[i].isDisposed())
-            items[i].dispose();
-        }
-      }
-    }
-    
     if (viewGeneral != null)
       viewGeneral.delete();
     if (viewDetails != null)
@@ -74,9 +62,6 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
       viewPieces.delete();
     if (viewFiles != null)
       viewFiles.delete();
-    if (folder != null && !folder.isDisposed()) {
-      folder.dispose();
-    }
   }
 
   /* (non-Javadoc)
@@ -102,6 +87,11 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  	if (folder == null) {
 	    folder = new TabFolder(composite, SWT.LEFT);
 	    folder.setBackground(Colors.background);
+	    folder.addListener(SWT.Dispose, new Listener() {
+	      public void handleEvent(Event event) {
+	        System.out.println("folder disposed");
+	      }
+	    });
 	  	} else {
 	  	  System.out.println("ManagerView::initialize : folder isn't null !!!");
 	  	}
