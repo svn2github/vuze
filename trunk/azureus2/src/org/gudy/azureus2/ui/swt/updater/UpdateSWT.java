@@ -34,12 +34,27 @@ import java.util.zip.ZipFile;
  */
 public class UpdateSWT {
   
-  public static void main(String args[]) {
+  static FileOutputStream fosLog;
+  
+  public static void main(String args[]) throws Exception {
+    File f = new File("updateSWT.log");
+    fosLog = new FileOutputStream(f,true);
+    String toLog = "SWT Updater started with parameters : \n";
+    for(int i = 0 ; i < args.length ; i++) {
+      toLog += args[i] + "\n";
+    }
+    toLog += "-----------------\n";
+    fosLog.write(toLog.getBytes());    
     if(args.length < 4)
       return;
     try {
+      toLog = "SWT Updater is waiting 1 sec\n";
+      fosLog.write(toLog.getBytes()); 
       Thread.sleep(1000);
+      
       String platform = args[0];
+      toLog = "SWT Updater has detected platform : " + platform + "\n";
+      fosLog.write(toLog.getBytes()); 
       
       if(platform.equals("carbon"))
         updateSWT_carbon(args[1]);
@@ -48,12 +63,23 @@ public class UpdateSWT {
       }     
       
       restart(args[2],args[3]);
+      
+      toLog = "SWT Updater has finished\n";
+      fosLog.write(toLog.getBytes());    
+      
     } catch(Exception e) {
+      toLog = "SWT Updater has encountered an exception : " + e + "\n";
+      fosLog.write(toLog.getBytes());
       e.printStackTrace();
+    } finally {
+      fosLog.close();
     }
   }
   
   public static void updateSWT_generic(String zipFileName) throws IOException {
+    String toLog = "SWT Updater is doing Generic Update\n";
+    fosLog.write(toLog.getBytes()); 
+    
     ZipFile zipFile = new ZipFile(zipFileName);
     Enumeration enum = zipFile.entries();
     while(enum.hasMoreElements()) {
@@ -68,11 +94,21 @@ public class UpdateSWT {
   }
   
   public static void updateSWT_carbon(String zipFileName) throws IOException{
+    String toLog = "SWT Updater is doing Carbon (OSX) Update\n";
+    fosLog.write(toLog.getBytes());
+    
+    toLog = "SWT Updater is opening zip file : " + zipFileName + "\n";
+    fosLog.write(toLog.getBytes());
+    
     ZipFile zipFile = new ZipFile(zipFileName);
     Enumeration enum = zipFile.entries();
-    while(enum.hasMoreElements()) {
+    while(enum.hasMoreElements()) {     
       ZipEntry zipEntry = (ZipEntry) enum.nextElement();
-      if(zipEntry.getName().equals("java_swt")) {        
+      
+      toLog = "\tSWT Updater is processing : " + zipEntry.getName() + "\n";
+      fosLog.write(toLog.getBytes());
+      
+      if(zipEntry.getName().equals("java_swt")) {                
         writeFile(zipFile,zipEntry,"Azureus.app/Contents/MacOS/");
       }
       if(zipEntry.getName().equals("swt.jar")) {        
@@ -85,15 +121,31 @@ public class UpdateSWT {
   }
    
   public static void writeFile(ZipFile zipFile,ZipEntry zipEntry,String path) throws IOException {
+    String toLog = "";
+    if(path != null) {
+      toLog = "\t\t Unzipping file " + zipFile.getName() + "to path " + path + "\n";
+    } else {
+      toLog = "\t\t Unzipping file " + zipFile.getName() + "\n";
+    }    
+    fosLog.write(toLog.getBytes());
+    
     String fileName = zipEntry.getName();
+        
     File f = openFile(path,fileName);
+    
     
     //If file already exists, rename to .old
     if(f.exists()) {
+      toLog = "\t\tFile exists, renaming to .old\n";
+      fosLog.write(toLog.getBytes());
+      
       String backUpName = fileName + ".old";
       File backup =  openFile(path,backUpName);
       if(backup.exists()) backup.delete();
       if(!f.renameTo(backup)) {
+        toLog = "\t\tCouldn't rename file\n";
+        fosLog.write(toLog.getBytes());
+        
         throw new IOException("File " + fileName + " cannot be renamed into " + backUpName);
       }
     }
@@ -109,14 +161,21 @@ public class UpdateSWT {
     fos.close();
   }
   
-  public static File openFile(String path,String name) {
+  public static File openFile(String path,String name) throws IOException {
+    String fileName = name;
+    
     if(path != null) {
-      return new File(path + System.getProperty("file.separator") + name);
+      fileName = path + System.getProperty("file.separator") + name;            
     }
-    return new File(name);
+    
+    String toLog = "\t\tOpening : " + fileName + "\n";
+    fosLog.write(toLog.getBytes());
+    
+    return new File(fileName);
   }
   
-  public static void restart(String userPath,String libPath) throws IOException{
+  public static void restart(String userPath,String libPath) throws IOException{            
+    
     String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$   
     String javaPath = System.getProperty("java.home")
                     + System.getProperty("file.separator")
@@ -128,13 +187,9 @@ public class UpdateSWT {
     + "\" -Duser.dir=\"" + userPath
     + "\" org.gudy.azureus2.ui.swt.Main";
              
+    String toLog = "Restarting with command line : " + exec + "\n";
+    fosLog.write(toLog.getBytes());
     
-    //File f = new File("updateSWT.log");
-    //FileOutputStream fos = new FileOutputStream(f);
-    //fos.write("Command Line : ".getBytes());
-    //fos.write(exec.getBytes());
-    //fos.write("\n".getBytes());
-    //fos.close();
     Runtime.getRuntime().exec(exec);
   }
 }
