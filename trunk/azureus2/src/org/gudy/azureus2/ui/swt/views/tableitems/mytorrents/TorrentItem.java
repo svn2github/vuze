@@ -34,9 +34,12 @@ public abstract class TorrentItem extends BufferedTableItem {
   /**
    * @param row
    * @param position
+   *
+   * @note Add 1 to position because we make a non resizable 0-sized 1st column
+   *       to fix the 1st column gap problem (Eclipse Bug 43910)
    */
   public TorrentItem(TorrentRow torrentRow, int position) {
-    super(torrentRow.getRow(), position);
+    super(torrentRow.getRow(), position+1);
     this.torrentRow = torrentRow;
   }
 

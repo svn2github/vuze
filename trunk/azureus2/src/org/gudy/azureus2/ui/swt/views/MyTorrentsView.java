@@ -286,6 +286,12 @@ public class MyTorrentsView extends AbstractIView
     itemEnumerator = ConfigBasedItemEnumerator.getInstance(configTableName, tableItems);
     ItemDescriptor[] items = itemEnumerator.getItems();
     
+    // Add 1 to position because we make a non resizable 0-sized 1st column
+    // to fix the 1st column gap problem (Eclipse Bug 43910)
+    TableColumn tc = new TableColumn(table, SWT.NULL);
+    tc.setWidth(0);
+    tc.setResizable(false);
+
     //Create all columns
     for (int i = 0; i < items.length; i++) {
       int position = items[i].getPosition();
@@ -299,7 +305,8 @@ public class MyTorrentsView extends AbstractIView
     for (int i = 0; i < items.length; i++) {
       int position = items[i].getPosition();
       if(position != -1) {
-        TableColumn column = table.getColumn(position);
+        // +1 for Eclipse Bug 43910 (see above)
+        TableColumn column = table.getColumn(position + 1);
         Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
         column.setAlignment(items[i].getAlign());
         column.setWidth(items[i].getWidth());
