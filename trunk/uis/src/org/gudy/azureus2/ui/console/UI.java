@@ -50,6 +50,12 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   }
   
   public void openTorrent(String fileName) {
+    if( fileName.toUpperCase().startsWith( "HTTP://" ) ) {
+      System.out.println( "Downloading torrent from url: " + fileName );
+      TorrentDownloaderFactory.downloadManaged( fileName );
+      return;
+    }
+    
     try {
       if (!FileUtil.isTorrentFile(fileName)) {//$NON-NLS-1$
         Logger.getLogger("azureus2.ui.console").error(fileName+" doesn't seem to be a torrent file. Not added.");

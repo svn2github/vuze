@@ -170,11 +170,13 @@ public class Main {
   	AzureusCore 	new_core, 
 	CommandLine 	commands) 
   {
-    if (commands==null)
+    if (commands==null) {
       commands = parseCommands(args, false);
+    }
     if (((commands!=null) && (args.length>0)) || (new_core != null)) {
-      if (UIConst.UIS == null)
-      UIConst.UIS = new HashMap();
+      if (UIConst.UIS == null) {
+        UIConst.UIS = new HashMap();
+      }
       if (commands.hasOption('u')) {
         String uinames = commands.getOptionValue('u');
         if (uinames.indexOf(',')==-1) {
