@@ -44,29 +44,113 @@ Test
 		PluginInterface pi )
 	{
 		try{
-			ResourceDownloaderFactory	factory = pi.getUtilities().getResourceDownloaderFactory();
+			ResourceDownloaderFactory	rdf = pi.getUtilities().getResourceDownloaderFactory();
 			
-			//ResourceDownloader rd1 = factory.create( new URL("http://localhost:6967/"));
-			//ResourceDownloader rd2 = factory.create( new URL("http://www.microsoft.com/sdsdsd"));
+			ResourceDownloader rd_t = rdf.create(new URL("http://play.aelitis.com/torrents/Azureus2201-B22.jar.torrent"));
 			
-			//ResourceDownloader[]	rds = { rd1, rd2 };
+			//rd_t = rdf.getMetaRefreshDownloader(rd_t);
 			
-			//ResourceDownloader rd = factory.getAlternateDownloader( rds );
+			//rd_t = rdf.getRetryDownloader(rd_t, 3);
 			
-			ResourceDownloader rd = factory.create( new URL("http://66.90.75.92/suprnova//torrents/1822/DivX511-exe.torrent" ));
+			//rd_t = rdf.getTimeoutDownloader(rd_t,1000);
 			
-			rd = factory.getSuffixBasedDownloader( rd );
+			rd_t = rdf.getTorrentDownloader(rd_t, true, new File("C:\\temp"));
+
+			ResourceDownloader rd_u = rdf.create(new URL("http://azureus.sourceforge.net/cvs/Azureus2201-B22.jar"));
+			
+			//rd_u = rdf.getMetaRefreshDownloader(rd_u);
+			
+			rd_u = rdf.getRetryDownloader(rd_u, 3);
+			
+			rd_u = rdf.getSuffixBasedDownloader(rd_u);
+
+			rd_u.addListener(
+					new ResourceDownloaderListener()
+				    {
+						public boolean
+				        completed(
+				        	ResourceDownloader 	downloader,
+				            InputStream 		data )
+						{
+				        	System.out.println( "old - complete" );
+
+							return( true );
+						}
 						
-			rd.addListener( this );
+				        public void 
+						reportPercentComplete(
+							ResourceDownloader 	downloader, 
+							final int 			percentage )
+				        {
+				        	System.out.println( "old - percentage = " + percentage );
+				        }
+				            
+
+				        public void 
+						reportActivity(
+							ResourceDownloader	downloader, 
+							String 				activity) 
+				        {
+				        	System.out.println( "old - activity = " + activity );
+			            }
+
+				        public void 
+						failed(
+							ResourceDownloader 			downloader,
+							ResourceDownloaderException e) 
+				        {
+				        	System.out.println( "old - failed" );
+				        }
+				    });
+
+
+			ResourceDownloader top_downloader =
+				rdf.getAlternateDownloader(
+						new ResourceDownloader[]{rd_t,rd_u,});
+
+			final long totalk = top_downloader.getSize();
 			
-			try{
-				rd.asyncDownload();
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-						
+			top_downloader.addListener(
+				new ResourceDownloaderListener()
+			    {
+					public boolean
+			        completed(
+			        		final ResourceDownloader downloader,
+			                InputStream data )
+					{
+			        	System.out.println( "top - complete" );
+
+						return( true );
+					}
+					
+			        public void 
+					reportPercentComplete(
+						ResourceDownloader 	downloader, 
+						final int 			percentage )
+			        {
+			        	System.out.println( "top - percentage = " + percentage );
+			        }
+			            
+
+			        public void 
+					reportActivity(
+						ResourceDownloader	downloader, 
+						String 				activity) 
+			        {
+			        	System.out.println( "top - activity = " + activity );
+		            }
+
+			        public void 
+					failed(
+						ResourceDownloader 			downloader,
+						ResourceDownloaderException e) 
+			        {
+			        	System.out.println( "top - failed" );
+			        }
+			    });
+					
+			top_downloader.asyncDownload();
+
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
