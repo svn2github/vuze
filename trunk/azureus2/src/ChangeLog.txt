@@ -26,6 +26,11 @@ FEATURE: Toolbar! [Gudy]
 FEATURE: Logging of console output to disk [Parg]
 FEATURE: Option to confirm on exit [Rele]
 FEATURE: Bad Peer detection [Gudy]
+FEATURE: Inclusion of XSL stylesheed tag in stats XML file [Parg]
+FEATURE: Editing and selection of tracker announce URLs from general view [Gudy]
+FEATURE: Plugin interface for tracker web serving [Parg]
+FEATURE: HTML template (http://html-tmpl-java.sourceforge.net/) support for tracker web serving from %az_home%/web folder
+
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
