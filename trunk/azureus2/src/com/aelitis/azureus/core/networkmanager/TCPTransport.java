@@ -221,6 +221,8 @@ public class TCPTransport {
     if( socket_channel != null ) {
       NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
     }
+    
+    read_listener.readyToRead();  //force an initial read op
   }
 
   
