@@ -325,7 +325,11 @@ PEPieceImpl
     slowPiece = _slowPiece;
   }
 
-  public boolean[] getWritten()
+  	// written can be null, in which case if the piece is complete, all blocks are complete
+  	// otherwise no blocks are complete
+  
+  public boolean[] 
+  getWritten()
   {
   	return( dm_piece.getWritten());
   }
