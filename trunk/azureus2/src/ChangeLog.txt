@@ -9,7 +9,7 @@ CHANGE: Core | Support azureus.install.path parameter, used by new linux launche
 
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
 BUGFIX: UI   | Fix for window state not being remembered between sessions [Nolar]
-BUGFIX: UI   | Fix for messages window being closed while animated
+BUGFIX: UI   | Fix for messages window being closed while animated [Gudy]
 
 
 
