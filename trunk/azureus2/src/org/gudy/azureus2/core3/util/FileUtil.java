@@ -191,15 +191,20 @@ public class FileUtil {
 
   public static String
   convertOSSpecificChars(
-  	String	file_name )
+  	String	file_name_in )
   {
+  	String	file_name_out	= file_name_in;
+	
   	boolean mac = System.getProperty("os.name").equals("Mac OS X");
   	
   	if ( !mac ){
   		
   			// '/' is valid in mac file names, replace with space
-  	
-  		file_name = file_name.replace('/',' ');
+  			// so it seems are cr/lf
+  		
+  		file_name_out = file_name_out.replace('/',' ');
+  		file_name_out = file_name_out.replace('\r',' ');
+  		file_name_out = file_name_out.replace('\n',' ');
   	}
 
 	try{
@@ -207,16 +212,19 @@ public class FileUtil {
 			// mac file names can end in space - fix this up by getting
 			// the canonical form which removes this on Windows
 		
-		String str = new File(file_name).getCanonicalFile().toString();
+		String str = new File(file_name_out).getCanonicalFile().toString();
 	
 		int	p = str.lastIndexOf( File.separator );
 		
-		file_name = str.substring(p+1);
+		file_name_out = str.substring(p+1);
 		
 	}catch( Throwable e ){
 		// ho hum, carry on, it'll fail later
+		//e.printStackTrace();
 	}
 	
-	return( file_name );
+	//System.out.println( "convertOSSpecificChars: " + file_name_in + " ->" + file_name_out );
+	
+	return( file_name_out );
   }
 }
