@@ -29,14 +29,12 @@ package org.gudy.azureus2.plugins.ui;
 
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.model.*;
-import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
+import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 public interface 
 UIManager 
 {
-	public MyTracker
-	getMyTracker();
-	
 		/**
 		 * Gets a basic plugin view model that supports simple plugin requirements
 		 * After getting the model create the view using createPluginView
@@ -74,4 +72,20 @@ UIManager
 		String		data )
 	
 		throws UIException;
+
+  public TableManager getTableManager();
+
+  /** Retrieve a class of SWT specific functions */
+  public SWTManager getSWTManager();
+  
+  /* Future
+  public MenuManager getMenuManager();
+  In MenuManager..
+  public Menu addMenu(String resourceKey);
+  public Menu addMenu(String resourceKey, String parentKey);
+  public Menu addMenu(String resourceKey, Menu parent);
+  public MenuItem addMenuItem(String resourceKey);
+  public MenuItem addMenuItem(String resourceKey, String parentKey);
+  public MenuItem addMenuItem(String resourceKey, Menu parent);
+  */
 }
