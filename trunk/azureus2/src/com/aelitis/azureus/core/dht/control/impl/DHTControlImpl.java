@@ -696,6 +696,24 @@ DHTControlImpl
 		}
 	}
 	
+	public DHTTransportValue
+	getLocalValue(
+		byte[]		unencoded_key )
+	{
+		final byte[]	encoded_key = encodeKey( unencoded_key );
+
+		DHTLog.log( "getLocalValue for " + DHTLog.getString( encoded_key ));
+
+		DHTDBValue	res = database.get( new HashWrapper( encoded_key ));
+	
+		if ( res == null ){
+			
+			return( null );
+		}
+		
+		return( res );
+	}
+	
 	public byte[]
 	get(
 		byte[]		unencoded_key,

@@ -332,10 +332,28 @@ Test
 						System.out.println( "Using dht " + dht_index );
 						
 						stats_before = dht.getTransport().getStats().snapshot();
+					
+						dht.get( 
+								rhs.getBytes(), (byte)0, 32, 0,
+								new DHTOperationAdapter()
+								{
+									public void
+									read(
+										DHTTransportContact	contact,
+										DHTTransportValue	value )
+									{
+										System.out.println( "-> " + new String(value.getValue()));
+									}
+																	
+									public void
+									complete(
+										boolean				timeout )
+									{
+										System.out.println( "-> complete" );
+									}		
+								});
 						
-						byte[]	res = dht.get( rhs.getBytes(), 0);
 						
-						System.out.println( "-> " + (res==null?"null":new String(res)));
 						
 					}else if ( command == 'd' ){
 						

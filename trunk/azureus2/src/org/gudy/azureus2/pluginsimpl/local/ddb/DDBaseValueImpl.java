@@ -24,6 +24,8 @@ package org.gudy.azureus2.pluginsimpl.local.ddb;
 
 import org.gudy.azureus2.plugins.ddb.*;
 
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
+
 /**
  * @author parg
  *
@@ -38,6 +40,10 @@ DDBaseValueImpl
 	private Object			value;
 	private byte[]			value_bytes;
 	
+		// we reserve 3 bytes for overflow marker and length encoding for multi-value values
+
+	protected static int MAX_VALUE_SIZE 	= DHTPlugin.MAX_VALUE_SIZE -3;
+	
 	protected 
 	DDBaseValueImpl(
 		DDBaseContactImpl	_contact,
@@ -50,6 +56,10 @@ DDBaseValueImpl
 				
 		value_bytes	= DDBaseHelpers.encode( value );
 
+		if ( value_bytes.length > MAX_VALUE_SIZE ){
+			
+			throw( new DistributedDatabaseException("Value size limited to " + MAX_VALUE_SIZE + " bytes" ));
+		}
 	}
 	
 	protected 

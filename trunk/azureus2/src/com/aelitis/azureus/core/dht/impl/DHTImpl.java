@@ -118,6 +118,13 @@ DHTImpl
 		control.put( key, value, flags, listener );
 	}
 	
+	public DHTTransportValue
+	getLocalValue(
+		byte[]		key )
+	{
+		return( control.getLocalValue( key ));
+	}
+	
 	public byte[]
 	get(
 		byte[]		key,

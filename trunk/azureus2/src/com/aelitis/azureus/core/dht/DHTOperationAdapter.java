@@ -1,5 +1,5 @@
 /*
- * Created on 28-Jan-2005
+ * Created on 05-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,13 +20,8 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.db;
+package com.aelitis.azureus.core.dht;
 
-import java.util.Iterator;
-
-import org.gudy.azureus2.core3.util.HashWrapper;
-
-import com.aelitis.azureus.core.dht.control.DHTControl;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
@@ -35,55 +30,41 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
  *
  */
 
-public interface 
-DHTDB 
+public class 
+DHTOperationAdapter
+	implements DHTOperationListener
 {
 	public void
-	setControl(
-		DHTControl		control );
-	
-	public DHTDBValue
-	store(
-		HashWrapper		key,
-		byte[]			value,
-		byte			flags );
+	searching(
+		DHTTransportContact	contact,
+		int					level,
+		int					active_searches )
+	{
+	}
 	
 	public void
-	store(
-		DHTTransportContact 	sender, 
-		HashWrapper				key,
-		DHTTransportValue[]		values );
-	
-	public DHTDBValue
-	get(
-		HashWrapper		key );
-	
-	public DHTDBValue[]
-	get(
-		HashWrapper		key,
-		int				max_values,
-		boolean			external_request );
-		
-	public DHTDBValue
-	remove(	
-		DHTTransportContact 	sender,
-		HashWrapper				key );
-	
-	public boolean
-	isEmpty();
-	
-	public long
-	getSize();
-	
-		/**
-		 * Returns an iterator over HashWrapper values denoting the snapshot of keys
-		 * Thus by the time a key is used the entry may no longer exist
-		 * @return
-		 */
-	
-	public Iterator
-	getKeys();
+	found(
+		DHTTransportContact	contact )
+	{
+	}
 	
 	public void
-	print();
+	read(
+		DHTTransportContact	contact,
+		DHTTransportValue	value )
+	{
+	}
+	
+	public void
+	wrote(
+		DHTTransportContact	contact,
+		DHTTransportValue	value )
+	{
+	}
+	
+	public void
+	complete(
+		boolean				timeout )
+	{
+	}
 }

@@ -65,6 +65,10 @@ DHTControl
 		byte					flags,
 		DHTOperationListener	listener );
 	
+	public DHTTransportValue
+	getLocalValue(
+		byte[]		key );
+	
 	public byte[]
 	get(
 		byte[]		key,

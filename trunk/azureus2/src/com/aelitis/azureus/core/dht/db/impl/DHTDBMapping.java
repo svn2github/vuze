@@ -312,6 +312,19 @@ DHTDBMapping
 	}
 	
 	protected DHTDBValueImpl
+	get(
+		DHTTransportContact 	originator )
+	{
+			// local get
+		
+		HashWrapper originator_id = new HashWrapper( originator.getID());
+		
+		DHTDBValueImpl	res = (DHTDBValueImpl)direct_originator_map.get( originator_id );
+		
+		return( res );
+	}
+	
+	protected DHTDBValueImpl
 	remove(
 		DHTTransportContact 	originator )
 	{

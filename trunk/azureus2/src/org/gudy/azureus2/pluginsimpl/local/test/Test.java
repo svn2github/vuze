@@ -22,25 +22,30 @@
 
 package org.gudy.azureus2.pluginsimpl.local.test;
 
-import java.net.URL;
-import java.text.SimpleDateFormat;
+
+import java.util.Arrays;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseEvent;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseListener;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeEvent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeListener;
-import org.gudy.azureus2.plugins.utils.xml.rss.RSSChannel;
-import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
-import org.gudy.azureus2.plugins.utils.xml.rss.RSSItem;
-import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
+
 
 /**
  * @author parg
@@ -104,6 +109,128 @@ Test
 		
 		init_sem.release();
 		
+		plugin_interface.addListener(
+				new PluginListener()
+				{
+					public void
+					initializationComplete()
+					{
+						Thread	t  = 
+							new AEThread("test")
+							{
+								public void
+								runSupport()
+								{
+									test();
+								}
+							};
+							
+						t.setDaemon(true);
+						
+						t.start();
+					}
+					
+					public void
+					closedownInitiated()
+					{	
+					}
+					
+					public void
+					closedownComplete()
+					{
+					}
+				});
+	}
+	
+	protected void
+	test()
+	{
+		try{
+			DistributedDatabase	db = plugin_interface.getDistributedDatabase();
+			
+			DistributedDatabaseKey	key = db.createKey( new byte[]{ 4,7,1,2,5,8 });
+
+			boolean	do_write	= false;
+			
+			if ( do_write ){
+				
+				DistributedDatabaseValue[] values = new DistributedDatabaseValue[50];
+				
+				for (int i=0;i<values.length;i++){
+					
+					byte[]	val = new byte[20];
+					
+					Arrays.fill( val, (byte)i );
+					
+					values[i] = db.createValue( val );
+				}
+				
+				
+				db.write(
+					new DistributedDatabaseListener()
+					{
+						public void
+						event(
+							DistributedDatabaseEvent		event )
+						{
+							System.out.println( "Event:" + event.getType());
+							
+							if ( event.getType() == DistributedDatabaseEvent.ET_VALUE_WRITTEN ){
+								
+								try{
+									System.out.println( 
+											"    write - key = " + 
+											ByteFormatter.encodeString((byte[])event.getKey().getKey()) + 
+											", val = " + ByteFormatter.encodeString((byte[]) event.getValue().getValue(byte[].class)));
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+								}
+							}
+						}
+					},
+					key,
+					values );
+			}else{
+				
+				db.read(
+						new DistributedDatabaseListener()
+						{
+							public void
+							event(
+								DistributedDatabaseEvent		event )
+							{
+								System.out.println( "Event:" + event.getType());
+								
+								if ( event.getType() == DistributedDatabaseEvent.ET_VALUE_READ ){
+									
+									try{
+										System.out.println( 
+												"    read - key = " + 
+												ByteFormatter.encodeString((byte[])event.getKey().getKey()) + 
+												", val = " + ByteFormatter.encodeString((byte[]) event.getValue().getValue(byte[].class)));
+										
+									}catch( Throwable e ){
+										
+										e.printStackTrace();
+									}
+								}
+							}
+						},
+						key,
+						60000 );			
+			}
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	protected void
+	taTest()
+	{
 		try{
 			
 			final TorrentAttribute ta = plugin_interface.getTorrentManager().getAttribute(TorrentAttribute.TA_CATEGORY);

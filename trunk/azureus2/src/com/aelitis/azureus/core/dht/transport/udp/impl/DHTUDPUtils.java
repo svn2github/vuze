@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
@@ -398,7 +399,7 @@ DHTUDPUtils
 		
 		// System.out.println( "    Adjusted creation time by " + skew );
 		
-		final byte[]	value_bytes = deserialiseByteArray( is, 256 );
+		final byte[]	value_bytes = deserialiseByteArray( is, DHT.MAX_VALUE_SIZE );
 		
 		final DHTTransportContact	originator		= deserialiseContact( transport, is );
 		
@@ -447,7 +448,7 @@ DHTUDPUtils
 		return( value );
 	}
 	
-	public static final int DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE	= 13 + DHTTRANSPORTCONTACT_SIZE;
+	public static final int DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE	= 15 + DHTTRANSPORTCONTACT_SIZE;
 		
 	protected static void
 	serialiseTransportValue(
@@ -472,11 +473,11 @@ DHTUDPUtils
 		
 		os.writeLong( value.getCreationTime() + skew );	// 12
 		
-		serialiseByteArray( os, value.getValue(), 256 );	// 12+X
+		serialiseByteArray( os, value.getValue(), DHT.MAX_VALUE_SIZE );	// 12+2+X
 		
-		serialiseContact( os, value.getOriginator());	// 12 + X + contact
+		serialiseContact( os, value.getOriginator());	// 12 + 2+X + contact
 		
-		os.writeByte( value.getFlags());	// 13 + X + contact
+		os.writeByte( value.getFlags());	// 13 + 2+ X + contact
 	}
 	
 	protected static void

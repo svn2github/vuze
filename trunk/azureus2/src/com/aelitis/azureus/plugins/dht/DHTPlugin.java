@@ -74,8 +74,12 @@ public class
 DHTPlugin
 	implements Plugin
 {
+	public static final byte		FLAG_SINGLE_VALUE	= DHT.FLAG_SINGLE_VALUE;
 	public static final byte		FLAG_DOWNLOADING	= DHT.FLAG_DOWNLOADING;
 	public static final byte		FLAG_SEEDING		= DHT.FLAG_SEEDING;
+	public static final byte		FLAG_MULTI_VALUE	= DHT.FLAG_MULTI_VALUE;
+	
+	public static final int			MAX_VALUE_SIZE		= DHT.MAX_VALUE_SIZE;
 	
 	private static final String	SEED_ADDRESS	= "aelitis.com";
 	private static final int	SEED_PORT		= 6881;
@@ -688,6 +692,33 @@ DHTPlugin
 							}
 						}
 					});
+	}
+	
+	public DHTPluginValue
+	getLocalValue(
+		byte[]		key )
+	{
+		final DHTTransportValue	val = dht.getLocalValue( key );
+		
+		if ( val == null ){
+			
+			return( null );
+		}
+		return( 
+				new DHTPluginValue()
+				{
+					public byte[]
+					getValue()
+					{
+						return( val.getValue());
+					}
+					
+					public int
+					getFlags()
+					{
+						return( val.getFlags()&0xff);
+					}
+				});
 	}
 	
 	public void

@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
@@ -41,6 +42,7 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
+import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 
 /**
  * @author parg
@@ -202,27 +204,153 @@ DDBaseImpl
 	
 	public void
 	write(
-		final DistributedDatabaseListener		listener,
-		final DistributedDatabaseKey			key,
-		final DistributedDatabaseValue		value )
+		DistributedDatabaseListener		listener,
+		DistributedDatabaseKey			key,
+		DistributedDatabaseValue		value )
+	
+		throws DistributedDatabaseException
+	{
+		write( listener, key, new DistributedDatabaseValue[]{ value } );
+	}
+	
+	public void
+	write(
+		final DistributedDatabaseListener	listener,
+		final DistributedDatabaseKey		key,
+		final DistributedDatabaseValue		values[] )
 	
 		throws DistributedDatabaseException
 	{
 		throwIfNotAvailable();
 		
-		queue(
-			new AERunnable()
-			{
-				public void
-				runSupport()
+		if ( values.length == 0 ){
+			
+			delete( listener, key );
+			
+		}else if ( values.length == 1 ){
+			
+			queue(
+				new AERunnable()
 				{
-					dht.put(	
-							((DDBaseKeyImpl)key).getBytes(),
-							((DDBaseValueImpl)value).getBytes(),
-							(byte)0,
-							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key ));
+					public void
+					runSupport()
+					{
+						dht.put(	
+								((DDBaseKeyImpl)key).getBytes(),
+								((DDBaseValueImpl)values[0]).getBytes(),
+								DHTPlugin.FLAG_SINGLE_VALUE,
+								new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
+					}
+				});
+		}else{
+			
+				
+			// TODO: optimise re-publishing to avoid republishing everything each time
+			/*
+			DHTPluginValue	old_value = dht.getLocalValue( ((DDBaseKeyImpl)key).getBytes());
+			
+			List	old_values = new ArrayList();
+			
+			if ( old_value != null ){
+				
+				if (( old_value.getFlags() & DHTPlugin.FLAG_MULTI_VALUE ) == 0 ){
+			
+					old_values.add( old_value.getValue());
+					
+				}else{
+					
+					byte[]	encoded = old_value.getValue();
+					
+					
 				}
-			});
+			}
+			*/
+		
+			System.out.println( "multi-value-write" );
+
+			byte[]	current_key = ((DDBaseKeyImpl)key).getBytes();
+			
+				// format is: <continuation> <len><len><data>
+			
+			byte[]	payload			= new byte[DHTPlugin.MAX_VALUE_SIZE];
+			int		payload_length	= 1;
+					
+			int	pos = 0;
+			
+			while( pos < values.length ){
+				
+				DDBaseValueImpl	value = (DDBaseValueImpl)values[pos];
+				
+				byte[]	bytes = value.getBytes();
+			
+				int		len = bytes.length;
+				
+				if ( payload_length + len < payload.length - 2 ){
+					
+					payload[payload_length++] = (byte)(( len & 0x0000ff00 ) >> 8);
+					payload[payload_length++] = (byte) ( len & 0x000000ff );
+					
+					System.arraycopy( bytes, 0, payload, payload_length, len );
+					
+					payload_length	+= len;
+					
+					pos++;
+					
+				}else{
+					
+					payload[0]	= 1;
+					
+					final byte[]	copy = new byte[payload_length];
+					
+					System.arraycopy( payload, 0, copy, 0, copy.length );
+					
+					final byte[]					f_current_key	= current_key;
+					
+					queue(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									dht.put(	
+											f_current_key,
+											copy,
+											DHTPlugin.FLAG_MULTI_VALUE,
+											new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
+								}
+							});	
+					
+					payload_length	= 1;
+					
+					current_key = new SHA1Hasher().calculateHash( current_key );
+				}
+			}
+			
+			if ( payload_length > 1 ){
+				
+				payload[0]	= 0;
+				
+				final byte[]	copy = new byte[payload_length];
+				
+				System.arraycopy( payload, 0, copy, 0, copy.length );
+				
+				final byte[]					f_current_key	= current_key;
+				
+				queue(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								dht.put(	
+										f_current_key,
+										copy,
+										DHTPlugin.FLAG_MULTI_VALUE,
+										new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
+							}
+						});					
+			}
+		}
 	}
 		
 	public void
@@ -241,7 +369,12 @@ DDBaseImpl
 				public void
 				runSupport()
 				{
-					dht.get(	((DDBaseKeyImpl)key).getBytes(), (byte)0, 16, timeout, new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key ));
+					dht.get(	
+						((DDBaseKeyImpl)key).getBytes(), 
+						(byte)0, 
+						256, 
+						timeout, 
+						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, timeout ));
 				}
 			});
 	}
@@ -259,7 +392,7 @@ DDBaseImpl
 				public void
 				runSupport()
 				{
-					dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key ));
+					dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0 ));
 				}
 			});
 	}
@@ -412,16 +545,37 @@ DDBaseImpl
 		private DistributedDatabaseListener	listener;
 		private int							type;
 		private DistributedDatabaseKey		key;
+		private byte[]						key_bytes;
+		private long						timeout;
+		private boolean						complete_disabled;
 		
 		protected
 		listenerMapper(
 			DistributedDatabaseListener	_listener,
 			int							_type,
-			DistributedDatabaseKey		_key )
+			DistributedDatabaseKey		_key,
+			long						_timeout )
 		{
 			listener	= _listener;
 			type		= _type;
 			key			= _key;
+			key_bytes	= ((DDBaseKeyImpl)key).getBytes();
+			timeout		= _timeout;
+		}
+		
+		private
+		listenerMapper(
+			DistributedDatabaseListener	_listener,
+			int							_type,
+			DistributedDatabaseKey		_key,
+			byte[]						_key_bytes,
+			long						_timeout )
+		{
+			listener	= _listener;
+			type		= _type;
+			key			= _key;
+			key_bytes	= _key_bytes;
+			timeout		= _timeout;
 		}
 		
 		public void
@@ -431,6 +585,33 @@ DDBaseImpl
 			byte				flags )
 		{
 			listener.event( new dbEvent( type, key, originator, value ));
+			
+			if ( flags == DHTPlugin.FLAG_MULTI_VALUE ){
+				
+				if ( value[0] == 1 ){
+					
+						// continuation exists
+					
+					final	byte[]	next_key_bytes = new SHA1Hasher().calculateHash( key_bytes );
+					
+					complete_disabled	= true;
+					
+					queue(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									dht.get(	
+										next_key_bytes, 
+										(byte)0, 
+										16, 
+										timeout, 
+										new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, next_key_bytes, timeout ));
+								}
+							});
+				}
+			}
 		}
 		
 		public void
@@ -445,10 +626,13 @@ DDBaseImpl
 		complete(
 			boolean	timeout_occurred )
 		{
-			listener.event( 
-				new dbEvent( 
-					timeout_occurred?DistributedDatabaseEvent.ET_OPERATION_TIMEOUT:DistributedDatabaseEvent.ET_OPERATION_COMPLETE,
-					key ));
+			if ( !complete_disabled ){
+				
+				listener.event( 
+					new dbEvent( 
+						timeout_occurred?DistributedDatabaseEvent.ET_OPERATION_TIMEOUT:DistributedDatabaseEvent.ET_OPERATION_COMPLETE,
+						key ));
+			}
 		}
 	}
 	

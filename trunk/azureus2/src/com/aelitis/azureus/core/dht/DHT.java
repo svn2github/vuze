@@ -27,6 +27,7 @@ import java.io.*;
 import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
+import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
  * @author parg
@@ -48,9 +49,14 @@ DHT
 	public static final String	PR_CACHE_REPUBLISH_INTERVAL				= "CacheRepublishInterval";
 	public static final String	PR_MAX_VALUES_STORED					= "MaxValuesStored";
 
+	public static final byte		FLAG_SINGLE_VALUE	= 0x00;
 	public static final byte		FLAG_DOWNLOADING	= 0x01;
 	public static final byte		FLAG_SEEDING		= 0x02;
+	public static final byte		FLAG_MULTI_VALUE	= 0x04;
 
+	public static final int 	MAX_VALUE_SIZE		= 256;
+	
+	
 		/**
 		 * Simple synchronous put
 		 * @param key
@@ -69,6 +75,16 @@ DHT
 		byte[]					value,
 		byte					flags,
 		DHTOperationListener	listener );
+	
+		/**
+		 * Returns value if originated from here for key
+		 * @param key
+		 * @return
+		 */
+	
+	public DHTTransportValue
+	getLocalValue(
+		byte[]		key );
 	
 		/**
 		 * Simple synchronous lookup
@@ -92,10 +108,10 @@ DHT
 	
 	public void
 	get(
-		byte[]			key,
-		byte			flags,
-		int				max_values,
-		long			timeout,
+		byte[]					key,
+		byte					flags,
+		int						max_values,
+		long					timeout,
 		DHTOperationListener	listener );
 	
 	

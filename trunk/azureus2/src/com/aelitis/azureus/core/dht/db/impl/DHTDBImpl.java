@@ -350,6 +350,29 @@ DHTDBImpl
 	}
 	
 	public DHTDBValue
+	get(
+		HashWrapper				key )
+	{
+			// local remove
+		
+		try{
+			this_mon.enter();
+		
+			DHTDBMapping mapping = (DHTDBMapping)stored_values.get( key );
+			
+			if ( mapping != null ){
+				
+				return( mapping.get( local_contact ));
+			}
+			
+			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	public DHTDBValue
 	remove(
 		DHTTransportContact 	originator,
 		HashWrapper				key )

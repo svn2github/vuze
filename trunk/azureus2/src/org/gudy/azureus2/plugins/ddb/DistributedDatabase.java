@@ -44,7 +44,7 @@ DistributedDatabase
 		Object			value )
 	
 		throws DistributedDatabaseException;
-	
+		
 	public void
 	write(
 		DistributedDatabaseListener		listener,
@@ -52,7 +52,15 @@ DistributedDatabase
 		DistributedDatabaseValue		value )
 	
 		throws DistributedDatabaseException;
-		
+	
+	public void
+	write(
+		DistributedDatabaseListener		listener,
+		DistributedDatabaseKey			key,
+		DistributedDatabaseValue[]		values )
+	
+		throws DistributedDatabaseException;
+
 	public void
 	read(
 		DistributedDatabaseListener		listener,
