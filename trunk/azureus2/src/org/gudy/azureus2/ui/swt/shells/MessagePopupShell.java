@@ -72,7 +72,7 @@ public class MessagePopupShell implements AnimableShell {
     detailsShell.setSize(500,300);    
     
     
-    shell = new Shell(display,SWT.ON_TOP | SWT.APPLICATION_MODAL);
+    shell = new Shell(display,SWT.ON_TOP);
     shell.setSize(250,150);
     shell.setImage(ImageRepository.getImage("azureus"));
     FormLayout layout = new FormLayout();
