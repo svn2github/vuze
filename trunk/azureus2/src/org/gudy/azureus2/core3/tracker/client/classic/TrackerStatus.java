@@ -29,14 +29,15 @@ public class TrackerStatus {
  
   private HashMap 					hashes;
    private TRTrackerScraperImpl		scraper;
-  
+    
+
   public 
   TrackerStatus(
   	TRTrackerScraperImpl	_scraper,
   	String 					trackerUrl) 
   {    	
   	scraper		= _scraper;
-  	
+    
     hashes = new HashMap();
     
     try {
@@ -167,6 +168,7 @@ public class TrackerStatus {
       
       ByteArrayOutputStream message = new ByteArrayOutputStream();
       int nbRead = 0;
+      
       while (nbRead >= 0) {
         try {
           nbRead = is.read(data);
@@ -180,11 +182,42 @@ public class TrackerStatus {
           return;
         }
       }
-      
+            
       LGLogger.log(0,0,LGLogger.INFORMATION,"Response from scrape interface : " + message);
       
       Map map = BDecoder.decode(message.toByteArray());
       Map mapFiles = (Map) map.get("files");
+      
+      //retrieve the scrape data for the relevent infohash
+      Map scrapeMap = (Map)mapFiles.get(new String(hash.getHash(), Constants.BYTE_ENCODING));
+      
+      //retrive values
+      int seeds = ((Long)scrapeMap.get("complete")).intValue();
+      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
+
+
+      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
+      Map mapFlags = (Map) map.get("flags");
+      if (mapFlags != null) {
+        int scrapeInterval = ((Long) mapFlags.get("min_request_interval")).intValue();
+        //Debug.out("scrape min_request_interval = " +scrapeInterval);
+      }
+      
+
+      //create the response
+      TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(hash.getHash(), seeds, peers);
+      
+      //update the hash list
+      synchronized( hashes ) {
+        hashes.put(new HashWrapper(hash.getHash()), response);
+      }
+  
+      //notifiy listeners
+      scraper.scrapeReceived( response );
+
+
+
+      /*
       Iterator iter = mapFiles.keySet().iterator();
       while(iter.hasNext()) {
         String strKey = (String)iter.next();
@@ -205,15 +238,9 @@ public class TrackerStatus {
         
         scraper.scrapeReceived( response );
       }
-      
-      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
-      Map mapFlags = (Map) map.get("flags");
-      
-      if (mapFlags != null) {
-      	int scrapeInterval = ((Long) mapFlags.get("min_request_interval")).intValue();
-      	//Debug.out("scrape min_request_interval = " +scrapeInterval);
-      }
-      
+      */
+
+
     } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
     } catch (Exception ignore) {
     } finally {
