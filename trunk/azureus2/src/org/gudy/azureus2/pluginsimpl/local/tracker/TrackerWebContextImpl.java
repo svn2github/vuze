@@ -45,6 +45,7 @@ TrackerWebContextImpl
 	public 
 	TrackerWebContextImpl(
 		TrackerImpl	_tracker,
+		String		name,
 		int			port,
 		int			protocol )
 	
@@ -56,11 +57,11 @@ TrackerWebContextImpl
 			
 			if ( protocol == Tracker.PR_HTTP ){
 				
-				server = TRTrackerServerFactory.create( TRTrackerServerFactory.PR_TCP, port );
+				server = TRTrackerServerFactory.create( name, TRTrackerServerFactory.PR_TCP, port );
 				
 			}else{
 				
-				server = TRTrackerServerFactory.createSSL( TRTrackerServerFactory.PR_TCP, port );
+				server = TRTrackerServerFactory.createSSL( name, TRTrackerServerFactory.PR_TCP, port );
 			}
 			
 			server.addListener( this );
@@ -71,6 +72,12 @@ TrackerWebContextImpl
 		}
 	}
 		
+	public String
+	getName()
+	{
+		return( server.getName());
+	}
+	
 	public int
 	getProtocol()
 	{

@@ -37,7 +37,7 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( protocol, port, false ));
+		return( TRTrackerServerFactoryImpl.create( null, protocol, port, false ));
 	}
 	
 	public static TRTrackerServer
@@ -47,7 +47,29 @@ TRTrackerServerFactory
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( protocol, port, true ));
+		return( TRTrackerServerFactoryImpl.create( null, protocol, port, true ));
+	}
+	
+	public static TRTrackerServer
+	create(
+		String	name,
+		int		protocol,
+		int		port )
+		
+		throws TRTrackerServerException
+	{
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, false ));
+	}
+	
+	public static TRTrackerServer
+	createSSL(
+		String	name,
+		int		protocol,
+		int		port )
+		
+		throws TRTrackerServerException
+	{
+		return( TRTrackerServerFactoryImpl.create( name, protocol, port, true ));
 	}
 	
 	public static void

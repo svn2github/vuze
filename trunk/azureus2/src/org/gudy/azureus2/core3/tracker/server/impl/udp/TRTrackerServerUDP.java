@@ -47,8 +47,11 @@ TRTrackerServerUDP
 	
 	public
 	TRTrackerServerUDP(
+		String	_name,
 		int		_port )
 	{
+		super( _name );
+		
 		port		= _port;
 		
 		thread_pool = new ThreadPool( "TrackerServer:UDP:"+port, THREAD_POOL_SIZE );

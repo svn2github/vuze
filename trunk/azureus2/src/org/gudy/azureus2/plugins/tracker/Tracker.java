@@ -53,6 +53,23 @@ Tracker
     
     	throws TrackerException;
     
+    	/**
+    	 * Create a new web context for the given port and protocol
+    	 * @param name		name of the context - will be used as basic realm for auth
+    	 * @param port
+    	 * @param protocol
+    	 * @return
+    	 * @throws TrackerException
+    	 */
+    
+    public TrackerWebContext
+    createWebContext(
+    	String	name,
+    	int		port,
+		int		protocol )
+    
+    	throws TrackerException;
+    
     public void
     addListener(
    		TrackerListener		listener );

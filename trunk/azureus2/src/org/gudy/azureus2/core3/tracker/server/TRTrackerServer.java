@@ -21,10 +21,13 @@
 
 package org.gudy.azureus2.core3.tracker.server;
 
+import org.gudy.azureus2.core3.util.Constants;
 
 public interface 
 TRTrackerServer 
 {
+	public static final String	DEFAULT_NAME	= Constants.AZUREUS_NAME;
+	
 	public static final int DEFAULT_MIN_RETRY_DELAY 		= 120;
 	public static final int DEFAULT_MAX_RETRY_DELAY 		= 3600;
 	public static final int DEFAULT_INC_BY					= 60;
@@ -38,6 +41,9 @@ TRTrackerServer
 	public static final int DEFAULT_TRACKER_PORT 		= 6969;
 	public static final int DEFAULT_TRACKER_PORT_SSL	= 7000;
 		
+	public String
+	getName();
+	
 	public int
 	getPort();
 	

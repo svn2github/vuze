@@ -171,7 +171,8 @@ TRTrackerServerImpl
 	protected int		current_scrape_retry_interval;
 	
 	protected TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
-	
+		
+	protected String	name;
 	protected boolean	web_password_enabled;
 	protected boolean	tracker_password_enabled;
 	protected String	password_user;
@@ -186,8 +187,11 @@ TRTrackerServerImpl
 
 	
 	protected
-	TRTrackerServerImpl()
+	TRTrackerServerImpl(
+		String		_name )
 	{
+		name		= _name==null?DEFAULT_NAME:_name;
+
 		COConfigurationManager.addListener(
 				new COConfigurationListener()
 				{
@@ -238,6 +242,7 @@ TRTrackerServerImpl
 		
 		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable", true );
 	}
+
 
 	public boolean
 	isWebPasswordEnabled()
@@ -302,6 +307,12 @@ TRTrackerServerImpl
 		}
 		
 		return( null );
+	}
+	
+	public String
+	getName()
+	{
+		return( name );
 	}
 	
 	public boolean

@@ -174,6 +174,12 @@ TRHostImpl
 		config.loadConfig( finder );
 	}
 
+	public String
+	getName()
+	{
+		return( TRTrackerServer.DEFAULT_NAME );
+	}
+	
 	public synchronized TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent )

@@ -40,6 +40,7 @@ TRTrackerServerFactoryImpl
 	
 	public static synchronized TRTrackerServer
 	create(
+		String		name,
 		int			protocol,
 		int			port,
 		boolean		ssl)
@@ -50,7 +51,7 @@ TRTrackerServerFactoryImpl
 		
 		if ( protocol == TRTrackerServerFactory.PR_TCP ){
 			
-			server = new TRTrackerServerTCP( port, ssl );
+			server = new TRTrackerServerTCP( name, port, ssl );
 			
 		}else{
 			
@@ -59,7 +60,7 @@ TRTrackerServerFactoryImpl
 				throw( new TRTrackerServerException( "TRTrackerServerFactory: UDP doesn't support SSL"));
 			}
 			
-			server = new TRTrackerServerUDP( port );
+			server = new TRTrackerServerUDP( name, port );
 		}
 		
 		servers.add( server );

@@ -72,6 +72,12 @@ TrackerImpl
 		host.addListener( this );
 	}
 	
+	public String
+	getName()
+	{
+		return( host.getName());
+	}
+	
 	public TrackerTorrent
 	host(
 		Torrent		_torrent,
@@ -112,7 +118,18 @@ TrackerImpl
 	
 		throws TrackerException
 	{
-		return( new TrackerWebContextImpl( this, port, protocol ));
+		return( new TrackerWebContextImpl( this, null, port, protocol ));
+	}
+	
+	public TrackerWebContext
+	createWebContext(
+		String	name,
+		int		port,
+		int		protocol )
+	
+		throws TrackerException
+	{
+		return( new TrackerWebContextImpl( this, name, port, protocol ));
 	}
 	
 	public synchronized void

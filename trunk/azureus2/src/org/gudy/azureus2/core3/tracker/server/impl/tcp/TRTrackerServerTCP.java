@@ -41,6 +41,7 @@ TRTrackerServerTCP
 {
 	protected static final int THREAD_POOL_SIZE				= 32;
 	
+	protected String	name;
 	protected boolean	ssl;
 	protected int		port;
 	
@@ -50,11 +51,14 @@ TRTrackerServerTCP
 	
 	public
 	TRTrackerServerTCP(
+		String		_name,
 		int			_port,
 		boolean		_ssl  )
 		
 		throws TRTrackerServerException
 	{
+		super( _name );
+		
 		port					= _port;
 		ssl						= _ssl;
 
@@ -202,8 +206,6 @@ TRTrackerServerTCP
 		}
 	}
 		
-
-	
 	public int
 	getPort()
 	{

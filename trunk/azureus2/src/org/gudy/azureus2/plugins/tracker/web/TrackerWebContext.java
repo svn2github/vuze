@@ -28,6 +28,9 @@ package org.gudy.azureus2.plugins.tracker.web;
 public interface 
 TrackerWebContext 
 {
+	public String
+	getName();
+	
 	public void
 	addPageGenerator(
 		TrackerWebPageGenerator	generator );

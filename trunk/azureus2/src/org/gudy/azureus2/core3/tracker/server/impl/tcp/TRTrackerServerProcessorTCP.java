@@ -617,7 +617,7 @@ TRTrackerServerProcessorTCP
 				}
 			}
 			
-			os.write( "HTTP/1.1 401 BAD\r\nWWW-Authenticate: Basic realm=\"Azureus\"\r\n\r\nAccess Denied\r\n".getBytes() );
+			os.write( ("HTTP/1.1 401 BAD\r\nWWW-Authenticate: Basic realm=\"" + server.getName() + "\"\r\n\r\nAccess Denied\r\n").getBytes() );
 			
 			os.flush();
 				

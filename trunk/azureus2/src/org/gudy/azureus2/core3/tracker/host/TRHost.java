@@ -48,6 +48,9 @@ TRHost
 	initialise(
 		TRHostTorrentFinder	finder );
 		
+	public String
+	getName();
+	
 	public TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent )
