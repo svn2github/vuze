@@ -773,6 +773,8 @@ DiskManagerImpl
 							  		// worth the effort as user intervention is no doubt required to
 							  		// fix the problem 
 							  	
+								elt.data.returnToPool();
+										
 								elt.data = null;
 								  
 								stopIt();
@@ -783,6 +785,8 @@ DiskManagerImpl
 							  
 							}else{
 		  
+								elt.data.returnToPool();
+								
 							  elt.data = null;
 							}
 							
@@ -835,6 +839,8 @@ DiskManagerImpl
 				global_write_queue_block_sem.release();
 				
 				QueueElement elt = (QueueElement)writeQueue.remove(0);
+				
+				elt.data.returnToPool();
 				
 				elt.data = null;
 			}
@@ -1814,6 +1820,9 @@ DiskManagerImpl
 				previousFilesLength = offset;
 			}
 			
+			
+			buffer.returnToPool();
+			
 			return( true );
 			
 		}catch( Throwable e ){
@@ -1913,6 +1922,7 @@ DiskManagerImpl
 		}
     
     if (allocateAndTestBuffer != null) {
+    	allocateAndTestBuffer.returnToPool();
       allocateAndTestBuffer = null;
     }
   }
@@ -2406,6 +2416,7 @@ DiskManagerImpl
         DirectByteBuffer buffer = readBlock(pieceNumber,offset,length);
         buffer.buff.position(13);
         byte[] hash = computeMd5Hash(buffer);
+        buffer.returnToPool();
         buffer = null;
         piece.addWrite(i,peer,hash,correct);        
       }

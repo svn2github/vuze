@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 
 /**
@@ -30,8 +31,16 @@ import java.nio.ByteBuffer;
  */
 public class DirectByteBuffer {
   public final ByteBuffer buff;
+  protected Reference ref;
   
   public DirectByteBuffer( ByteBuffer buffer ) {
     this.buff = buffer;
+  }
+  
+  public void returnToPool() {
+    if ( ref != null ) {
+      DirectByteBufferPool.registerReturn( ref );
+      ref.enqueue();
+    }
   }
 }

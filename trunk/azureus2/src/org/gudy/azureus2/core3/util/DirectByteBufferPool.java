@@ -38,8 +38,13 @@ public class DirectByteBufferPool {
   private final ReferenceQueue refQueue = new ReferenceQueue();
   private final Map refMap = new HashMap();
   
-  private static final long COMPACTION_CHECK_PERIOD = 10*60*1000; //10 min
+  private final Map refs = new HashMap();
+  
+  private static final long COMPACTION_CHECK_PERIOD = 5*60*1000; //5 min
   private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
+  
+  private long bytesIn = 0;
+  private long bytesOut = 0;
   
   
   private DirectByteBufferPool() {
@@ -56,7 +61,18 @@ public class DirectByteBufferPool {
         COMPACTION_CHECK_PERIOD,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {
+            reclaimBuffers();
             checkMemoryUsage();
+          }
+        }
+     );
+    
+    Timer printer = new Timer("printer");
+    printer.addPeriodicEvent(
+        20*1000,
+        new TimerEventPerformer() {
+          public void perform( TimerEvent ev ) {
+            System.out.println("Out=" +bytesOut/1024/1024+ ", In=" +bytesIn/1024/1024+ ", diff=" +(bytesOut-bytesIn)/1024/1024);
           }
         }
      );
@@ -112,13 +128,7 @@ public class DirectByteBufferPool {
    */
   private DirectByteBuffer getBufferHelper(final int _length) {
     //Reclaim any unused buffers
-    Reference ref;
-    while ( (ref = refQueue.poll()) != null ) {
-      synchronized( refMap ) {
-        ByteBuffer buff = (ByteBuffer) refMap.remove( ref );
-        free( buff );
-      }
-    }
+    reclaimBuffers();
     
     Integer reqVal = new Integer(_length);
     
@@ -145,11 +155,19 @@ public class DirectByteBufferPool {
           }
         }
         buff.clear();   //scrub the buffer
+        buff.limit( _length );
+        
+        bytesOut += buff.capacity();
         
         //register it for later reclaiming
         DirectByteBuffer dbb = new DirectByteBuffer( buff );
+        WeakReference wr = new WeakReference( dbb, refQueue );
+        synchronized( refs ) {
+          refs.put( wr, new Boolean( false ));
+        }
+        dbb.ref = wr;
         synchronized( refMap ) {
-          refMap.put( new WeakReference( dbb, refQueue ), buff );
+          refMap.put( wr, buff );
         }
         
         return dbb;
@@ -170,6 +188,7 @@ public class DirectByteBufferPool {
   //public static void freeBuffer(ByteBuffer _buffer) {
   //  pool.free(_buffer);
   //}
+  
   
   
   /**
@@ -309,5 +328,34 @@ public class DirectByteBufferPool {
       runGarbageCollection();
     }
   }
-
+  
+   
+  private void reclaimBuffers() {
+    Reference ref;
+    while ( (ref = refQueue.poll()) != null ) {
+      boolean returned;
+      synchronized( refs ) {
+        returned = ((Boolean)refs.remove( ref )).booleanValue();
+        if ( !returned ) {
+          System.out.print("not returned");
+        }
+      }
+      synchronized( refMap ) {
+        ByteBuffer buff = (ByteBuffer) refMap.remove( ref );
+        bytesIn += buff.capacity();
+        if ( !returned ) {
+          System.out.println(" ["+buff.limit()+"]["+buff.capacity()+"]");
+        }
+        free( buff );
+      }
+    }
+  }
+  
+  
+  protected static void registerReturn( Reference ref ) {
+    Map refs = pool.refs;
+    synchronized( refs ) {
+      refs.put( ref, new Boolean( true ));
+    }
+  }
 }

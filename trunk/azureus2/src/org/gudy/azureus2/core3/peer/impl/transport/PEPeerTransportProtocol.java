@@ -248,6 +248,7 @@ PEPeerTransportProtocol
 	this.closing = false;
 	this.protocolQueue = new ArrayList();
 	this.dataQueue = new ArrayList();
+	//TODO
   this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
 
 	this.allowed = 0;
@@ -263,7 +264,7 @@ PEPeerTransportProtocol
 	  byte[] reserved = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
 	  byte[] hash = manager.getHash();
 	  byte[] myPeerId = manager.getPeerId();
-
+//  TODO
     DirectByteBuffer bufferHandshakeS = DirectByteBufferPool.getBuffer( 68 );
 	  bufferHandshakeS.buff.put((byte) PROTOCOL.length()).put(protocol).put(reserved).put(hash).put(myPeerId);
 
@@ -395,10 +396,12 @@ PEPeerTransportProtocol
   }
 
   protected void readMessage(DirectByteBuffer buffer) {
-	lengthBuffer.buff.position(0);
-	if (buffer != null) buffer.buff.position(0);
-	readBuffer = buffer;
-	readingLength = true;
+  	lengthBuffer.buff.position(0);
+    if ( buffer != null ) {
+    	buffer.buff.position(0);
+    }
+  	readingLength = true;
+    readBuffer = buffer;
   }
 
   protected void sendProtocol(DirectByteBuffer buffer) {
@@ -434,15 +437,22 @@ PEPeerTransportProtocol
   	
   	//release the read Buffer
   	if (readBuffer != null) {
+  		readBuffer.returnToPool();
   		readBuffer = null;
   	}
+    
+    if ( lengthBuffer != null ) {
+      lengthBuffer.returnToPool();
+      lengthBuffer = null;
+    }
   	
   	//release the write Buffer
   	if (writeBuffer != null) {      
   		if (writeData) {
   			PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
-  			writeBuffer = null;
   		}
+      writeBuffer.returnToPool();
+      writeBuffer = null;
   	}
   	
   	synchronized( dataQueue ) {
@@ -450,6 +460,7 @@ PEPeerTransportProtocol
   		for (int i = dataQueue.size() - 1; i >= 0; i--) {
   			DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
   			if (item.isLoaded()) {
+  				item.getBuffer().returnToPool();
   				item.setBuffer(null);
   			}
   			else if (item.isLoading()) {
@@ -457,6 +468,13 @@ PEPeerTransportProtocol
   			}
   		}
   	}
+    
+    synchronized( protocolQueue ) {
+      for (int i=0; i < protocolQueue.size(); i++) {
+        DirectByteBuffer dbb = (DirectByteBuffer)protocolQueue.remove( i );
+        dbb.returnToPool();
+      }
+    }
   	
   	//remove identity
   	if ( this.id != null && identityAdded ) {
@@ -592,19 +610,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         
 				if (length > 0) {
 					//return old readBuffer to pool if it's too small
-					if(readBuffer != null && readBuffer.buff.capacity() < length) {
-						readBuffer = null;
+					if(readBuffer.buff.capacity() < length) {
+						readBuffer.returnToPool();
+						readBuffer = DirectByteBufferPool.getBuffer(length);
+            if (readBuffer == null) { closeAll(ip + " readBuffer null",true, false); }
 					}
-      
-					if(readBuffer == null) {
-            readBuffer = DirectByteBufferPool.getBuffer(length);
-            
-						if (readBuffer == null) {				
-							closeAll(ip + " readBuffer null",true, false);
-							return PEPeerControl.NO_SLEEP;
-						}
-					}
-					
+      			
 					readBuffer.buff.position(0);
 					readBuffer.buff.limit(length);
           
@@ -740,7 +751,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
 			choked = true;
 			cancelRequests();
-			readMessage(readBuffer);
+			readMessage(buffer);
 			break;
 	  case BT_UNCHOKED :
 			if (buffer.buff.limit() != 1) {
@@ -749,7 +760,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
 			choked = false;
-			readMessage(readBuffer);
+			readMessage(buffer);
 			break;
 	  case BT_INTERESTED :
 			if (buffer.buff.limit() != 1) {
@@ -758,7 +769,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
 			interesting = true;
-			readMessage(readBuffer);
+			readMessage(buffer);
 			break;
 	  case BT_UNINTERESTED :
 			if (buffer.buff.limit() != 1) {
@@ -767,7 +778,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
 			interesting = false;
-			readMessage(readBuffer);
+			readMessage(buffer);
 			break;
 	  case BT_HAVE :
 			if (buffer.buff.limit() != 5) {
@@ -777,14 +788,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			pieceNumber = buffer.buff.getInt();
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has " + pieceNumber);
 			have(pieceNumber);
-			readMessage(readBuffer);
+			readMessage(buffer);
 			break;
 	  case BT_BITFIELD :
 	  	if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent BitField");
-			setBitField(buffer.buff);
+			setBitField(buffer);
 			checkInterested();
 			checkSeed();
-			readMessage(readBuffer);
+			readMessage(buffer);
 			break;
 	  case BT_REQUEST :
 			if (buffer.buff.limit() != 13) {
@@ -832,7 +843,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	        true, true);
 			  return;
 			}
-			readMessage(readBuffer);
+			readMessage(buffer);
 			break;
 	  case BT_PIECE :
 			if (buffer.buff.limit() < 9) {
@@ -855,8 +866,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  manager.received(pieceLength);
 			  setSnubbed(false);
 			  reSetRequestsTime();
-			  manager.writeBlock(pieceNumber, pieceOffset, buffer,this);                
-			  readMessage(null);      
+			  manager.writeBlock(pieceNumber, pieceOffset, buffer,this);
+        buffer = DirectByteBufferPool.getBuffer( buffer.buff.limit() );
+        if (buffer == null) { closeAll(ip + " BT_PIECE buffer null",true, false); }
+			  readMessage(buffer);      
 			}
 			else {
         String msg = ip + " [" + client + "]" + " has sent #" + pieceNumber + ":"
@@ -869,7 +882,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  LGLogger.log( componentID, evtErrors, LGLogger.ERROR, msg);
 			  stats.discarded(pieceLength);
 			  manager.discarded(pieceLength);
-			  readMessage(readBuffer);
+			  readMessage(buffer);
 			}
 			break;
 	  case BT_CANCEL :
@@ -888,7 +901,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 					ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
 			}
 			removeRequestFromQueue(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
-			readMessage(readBuffer);
+			readMessage(buffer);
 			break;
 	  default:
        Debug.out(ip + " [" + client + "] has sent an unknown protocol message id: " + cmd);
@@ -940,6 +953,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		  LGLogger.SENT,
 		  ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
 		addRequest( request );
+//  TODO
     DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 17 );
 		buffer.buff.putInt(13);
 		buffer.buff.put(BT_REQUEST);
@@ -970,6 +984,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 				+ "->"
 				+ (request.getOffset() + request.getLength()));
 	  removeRequest(request);
+//  TODO
     DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 17 );
 	  buffer.buff.putInt(13);
 	  buffer.buff.put(BT_CANCEL);
@@ -986,7 +1001,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	if (getState() != TRANSFERING)
 	  return;
 	LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is notified you have " + pieceNumber);
-  DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 9 );
+  
+//TODO
+	DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 9 );
 	buffer.buff.putInt(5);
 	buffer.buff.put(BT_HAVE);
 	buffer.buff.putInt(pieceNumber);
@@ -1013,6 +1030,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   private void sendSimpleCommand(byte command) {
+//  TODO
   DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 5 );
 	buffer.buff.putInt(1);
 	buffer.buff.put(command);
@@ -1021,19 +1039,19 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	sendProtocol(buffer);
   }
 
-  private void setBitField(ByteBuffer buffer) {
-	byte[] data = new byte[(manager.getPiecesNumber() + 7) / 8];
+  private void setBitField(DirectByteBuffer buffer) {
+	byte[] dataf = new byte[(manager.getPiecesNumber() + 7) / 8];
    
-	if (buffer.remaining() < data.length) {
+	if (buffer.buff.remaining() < dataf.length) {
      LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent invalid BitField: too short");
 	  return;
    }
    
-	buffer.get(data);
+	buffer.buff.get(dataf);
 	for (int i = 0; i < available.length; i++) {
 	  int index = i / 8;
 	  int bit = 7 - (i % 8);
-	  byte bData = data[index];
+	  byte bData = dataf[index];
 	  byte b = (byte) (bData >> bit);
 	  if ((b & 0x01) == 1) {
 	    available[i] = true;
@@ -1136,6 +1154,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(i);
     		if (item.getRequest().equals(request)) {
     			if (item.isLoaded()) {
+    				item.getBuffer().returnToPool();
     				item.setBuffer(null);
     			}
     			if (item.isLoading()) {
@@ -1201,10 +1220,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		if (!writeBuffer.buff.hasRemaining()) {
   			//If we were sending data, we must free the writeBuffer
   			if (writeData) {
-  				writeBuffer = null;
   				PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
   			}
   			//We set it to null
+        writeBuffer.returnToPool();
   			writeBuffer = null;
   		}
   	}
@@ -1292,6 +1311,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       			}
       			if (item.isLoaded()) {
       				dataQueue.remove(item);
+      				item.getBuffer().returnToPool();
       				item.setBuffer(null);
       			}
       			return PEPeerControl.NO_SLEEP;
@@ -1350,6 +1370,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   private void sendKeepAlive() {
+//  TODO
   	DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 4 );
   	buffer.buff.putInt(0);
   	buffer.buff.limit(4);
