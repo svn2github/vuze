@@ -454,7 +454,12 @@ TorrentUtils
 	{
 		try{
 			
-			LocaleUtilDecoder decoder = LocaleUtil.getTorrentEncoding( torrent );
+			LocaleUtilDecoder decoder = LocaleUtil.getTorrentEncodingIfAvailable( torrent );
+			
+			if ( decoder == null ){
+				
+				return( new String(torrent.getName(),Constants.DEFAULT_ENCODING));
+			}
 			
 			return( decoder.decodeString(torrent.getName()));
 			

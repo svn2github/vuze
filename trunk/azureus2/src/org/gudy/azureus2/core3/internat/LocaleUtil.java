@@ -248,6 +248,28 @@ LocaleUtil
   }
   
   
+  public static LocaleUtilDecoder
+  getTorrentEncodingIfAvailable(
+  		TOTorrent		torrent )
+  
+  throws TOTorrentException, UnsupportedEncodingException
+  {
+  	String	encoding = torrent.getAdditionalStringProperty( "encoding" );
+  	
+  	if ( encoding != null ){
+  		
+  		for (int i=0;i<charsetDecoders.length;i++){
+  			
+  			if ( charsetDecoders[i].getName().equals( encoding )){
+  				
+  				return( charsetDecoders[i] );
+  			}
+  		}
+  	}
+  	
+  	return( null );
+  }
+  	
 	public static LocaleUtilDecoder
 	getTorrentEncoding(
   		TOTorrent		torrent )
