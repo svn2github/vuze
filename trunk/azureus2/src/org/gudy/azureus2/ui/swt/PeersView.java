@@ -163,7 +163,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
     });
     table.setMenu(menu);
 
-    manager.addListener(this);
+//    manager.addListener(this);
 
   }
 

@@ -96,6 +96,8 @@ public class ManagerView extends AbstractIView {
     Messages.setLanguageText(itemFiles, viewFiles.getData());
     itemFiles.setControl(viewFiles.getComposite());
     folder.setSelection(itemGeneral);
+    manager.addListener((IComponentListener) viewPieces);
+    manager.addListener((IComponentListener) viewDetails);
   }
 
   /* (non-Javadoc)

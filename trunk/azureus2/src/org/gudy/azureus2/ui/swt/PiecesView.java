@@ -53,7 +53,7 @@ public class PiecesView extends AbstractIView implements IComponentListener {
     table.getColumn(4).setWidth(80);
     table.getColumn(5).setWidth(80);
 
-    manager.addListener(this);
+//    manager.addListener(this);
   }
 
   /* (non-Javadoc)
