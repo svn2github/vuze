@@ -263,6 +263,29 @@ public class GlobalManagerImpl
     trackerScraper.setClientResolver(
     	new TRTrackerScraperClientResolver()
 		{
+    		public int
+			getStatus(
+				byte[]	torrent_hash )
+    		{
+       			DownloadManager	dm = getDownloadManager(torrent_hash);
+    			
+    			if ( dm == null ){
+
+    				return( TRTrackerScraperClientResolver.ST_NOT_FOUND );
+    			}
+    			    			
+    			int	dm_state = dm.getState();
+    			
+    			if ( 	dm_state == DownloadManager.STATE_QUEUED ||
+    					dm_state == DownloadManager.STATE_DOWNLOADING ||
+						dm_state == DownloadManager.STATE_SEEDING ){
+    				
+    				return( TRTrackerScraperClientResolver.ST_RUNNING );
+    			}
+    			
+    			return( TRTrackerScraperClientResolver.ST_OTHER );
+    		}
+    		
     		public TRTrackerClient
 			getClient(
 				byte[]	torrent_hash )

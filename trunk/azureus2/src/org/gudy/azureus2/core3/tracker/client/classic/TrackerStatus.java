@@ -257,7 +257,7 @@ public class TrackerStatus {
           byte[] hash = response.getHash();
           
           if ( 	disable_all_scrapes ||
-          		(disable_stopped_scrapes && !scraper.isTorrentDownloading( hash ))){
+          		(disable_stopped_scrapes && !scraper.isTorrentRunning( hash ))){
           	
 	            response.setNextScrapeStartTime(
 	            		SystemTime.getCurrentTime() + 

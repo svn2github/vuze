@@ -30,6 +30,20 @@ package org.gudy.azureus2.core3.tracker.client;
 public interface 
 TRTrackerScraperClientResolver 
 {
+	public static final int	ST_NOT_FOUND		= 1;
+	public static final int	ST_RUNNING			= 2;	// downloading, seeding or queued
+	public static final int	ST_OTHER			= 3;
+
+		/**
+		 * Gives access to a restricted set of states for this torrent from ST_ set
+		 * @param torrent_hash
+		 * @return
+		 */
+	
+	public int
+	getStatus(
+		byte[]	torrent_hash );
+	
 		/**
 		 * returns the current tracker client for the torrent, if it exists
 		 * @param torrent_hash

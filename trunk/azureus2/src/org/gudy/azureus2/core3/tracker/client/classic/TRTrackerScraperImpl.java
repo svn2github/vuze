@@ -177,6 +177,18 @@ TRTrackerScraperImpl
 		return( client_resolver.getClient( hash ) != null );
 	}
 	
+	protected boolean
+	isTorrentRunning(
+		byte[]		hash )
+	{
+		if ( client_resolver == null ){
+			
+			return( false );
+		}
+		
+		return( client_resolver.getStatus( hash ) == TRTrackerScraperClientResolver.ST_RUNNING );
+	}
+	
 	public void
 	addListener(
 		TRTrackerScraperListener	l )
