@@ -103,4 +103,6 @@ PEPeerManager
 	public void
 	removeListener(
 		PEPeerManagerListener	l );
+  
+  public void pieceAdded(PEPiece piece);
 }

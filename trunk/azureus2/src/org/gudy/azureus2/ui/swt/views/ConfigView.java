@@ -997,8 +997,8 @@ public class ConfigView extends AbstractIView {
    rValues[0] = 0;
    rLabels[0] = MessageText.getString("ConfigView.section.style.reOrderDelay.never");
    for(int i = 1 ; i <= 50 ; i++) {
-     rValues[i-1] = i;
-     rLabels[i-1] = "" + i;
+     rValues[i] = i;
+     rLabels[i] = "" + i;
    }
    new IntListParameter(gStyle, "ReOrder Delay", 0, rLabels, rValues);
    

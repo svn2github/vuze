@@ -64,7 +64,8 @@ public class TableSorter {
   
   public void reOrder(boolean force) {
     int reOrderDelay = COConfigurationManager.getIntParameter("ReOrder Delay");
-    if(!force && loopFactor++ < reOrderDelay)
+    
+    if(!force && (reOrderDelay == 0 || loopFactor++ < reOrderDelay))
       return;
     loopFactor = 0;
     if(lastField != null) {
