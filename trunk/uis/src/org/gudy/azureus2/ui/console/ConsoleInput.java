@@ -11,14 +11,8 @@
 
 package org.gudy.azureus2.ui.console;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.io.Reader;
+import java.io.*;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -205,7 +199,20 @@ public class ConsoleInput extends Thread implements IConsoleCommand {
 	}
 
 	public static void commandLogout(ConsoleInput ci, List args) {
-		ci.running = false;
+		try {
+			if ( !ci.controlling ){
+				
+				ci.out.close();
+					
+				ci.br.close();
+			}
+			
+		}catch (IOException ignored){
+				
+		}finally{
+			
+			ci.running = false;
+		}
 	}
 
 	public static void commandUI(ConsoleInput ci, List args) {

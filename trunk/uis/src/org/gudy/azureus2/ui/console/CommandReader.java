@@ -88,9 +88,21 @@ public class CommandReader extends Reader {
       Vector args = new Vector();
       boolean bailout = false;
       while (!bailout) {
-        char c = (char) in.read();
-        if (c!='\n')
-          line += c;
+      	
+      	int ch = in.read();
+      	
+      	if( ch == -1 ){
+      		
+      	  	throw new IOException("stream closed");
+      	}
+      	
+      	char c = (char) ch;
+      	
+      	if (c!='\n'){
+      		
+      		line += c;
+      	}
+      	
         switch (state) {
           /*case SKIP:
             switch (c) {
