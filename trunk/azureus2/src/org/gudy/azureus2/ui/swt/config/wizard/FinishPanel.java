@@ -67,7 +67,7 @@ public class FinishPanel extends AbstractWizardPanel {
 
   public void finish() {
     ConfigureWizard cfWizard = ((ConfigureWizard)wizard);
-    COConfigurationManager.setParameter("Max Upload Speed",cfWizard.maxUpSpeed * 1024);
+    COConfigurationManager.setParameter("Max Upload Speed KBs",cfWizard.maxUpSpeed);
     COConfigurationManager.setParameter("Max Uploads",cfWizard.nbUploadsPerTorrent);
     COConfigurationManager.setParameter("max active torrents",cfWizard.maxActiveTorrents);
     COConfigurationManager.setParameter("max downloads",cfWizard.maxDownloads);

@@ -28,7 +28,7 @@ package org.gudy.azureus2.plugins;
 public interface 
 PluginConfig 
 {  
-	public static final String CORE_PARAM_INT_MAX_UPLOAD_SPEED_BYTES_PER_SEC	= "Max Upload Speed";
+	public static final String CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC	= "Max Upload Speed KBs";
 	
   /**
    * returns the value of a core int parameter

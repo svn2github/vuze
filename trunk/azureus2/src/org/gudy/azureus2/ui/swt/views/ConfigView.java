@@ -58,6 +58,7 @@ import org.gudy.azureus2.ui.swt.views.configsections.*;
 public class ConfigView extends AbstractIView {
   private static final String sSectionPrefix = "ConfigView.section.";
   
+  /*
   public static final int upRates[] =
     {
       0,
@@ -74,6 +75,7 @@ public class ConfigView extends AbstractIView {
       800,900,1000,1100,1200,1300,1400,1500,
       1750,2000,2250,2500,2750,3000,
       3500,4000,4500,5000 };
+  */
 
   Composite cConfig;
   Composite cConfigSection;

@@ -36,7 +36,7 @@ public class UIConst {
   	parameterlegacy.put("Core_iMaxDownloads", "max downloads");
   	parameterlegacy.put("Core_iMaxClients", "Max Clients");
   	parameterlegacy.put("Core_iMaxUploads", "Max Uploads");
-  	parameterlegacy.put("Core_iMaxUploadSpeed", "Max Upload Speed");
+  	parameterlegacy.put("Core_iMaxUploadSpeed", "Max Upload Speed KBs");
   	parameterlegacy.put("Core_bUseResume", "Use Resume");
   	parameterlegacy.put("Core_iSaveResumeInterval", "Save Resume Interval");
   	parameterlegacy.put("Core_bIncrementalAllocate", "Enable incremental file creation");
