@@ -124,7 +124,7 @@ public class DiskManager {
 //    _priorityPieces = new int[nbPieces + 1];
 
     pieceDone = new boolean[nbPieces];
-    LocaleUtil localeUtil = new LocaleUtil(metaData.get("encoding")); 
+    LocaleUtil localeUtil = LocaleUtil.getLocaleUtil(metaData.get("encoding")); 
 
     fileName = "";
     try {

@@ -9,12 +9,14 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 import org.gudy.azureus2.core.GlobalManager;
+import org.gudy.azureus2.core.ILocaleUtilChooser;
+import org.gudy.azureus2.core.LocaleUtil;
 
 /**
  * @author Olivier
  * 
  */
-public class Main {  
+public class Main implements ILocaleUtilChooser {  
   
   StartServer startServer;
   MainWindow mainWindow;
@@ -56,6 +58,7 @@ public class Main {
   }
   
   public Main(String args[]) {
+    LocaleUtil.setLocaleUtilChooser(this);
     startServer = new StartServer(this);
     if (startServer.getState() == StartServer.STATE_LISTENING) {
       startServer.start();
@@ -77,6 +80,11 @@ public class Main {
       new StartSocket(args);
     }
   }
+  
+  public LocaleUtil getProperLocaleUtil(Object lastEncoding) {
+    return new LocaleUtilSWT(lastEncoding);
+  }
+  
   
   public void useParam(String args[]) {
     if(args.length != 0) {

@@ -272,7 +272,7 @@ public class MainWindow implements IComponentListener {
       setVisible(true);
       return;
     }
-
+    
     //The display
     display = new Display();
     if(ConfigurationManager.getInstance().getBooleanParameter("Show Splash", true)) {
@@ -1139,6 +1139,8 @@ public class MainWindow implements IComponentListener {
   }
 
   public static void main(String args[]) {
+    LocaleUtil lu = new LocaleUtilSWT();
+    LocaleUtil.setLocaleUtilChooser(lu);
     GlobalManager gm = new GlobalManager();
     MainWindow mw = new MainWindow(gm, null);
     mw.waitForClose();
