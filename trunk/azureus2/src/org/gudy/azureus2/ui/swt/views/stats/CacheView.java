@@ -82,6 +82,7 @@ public class CacheView extends AbstractIView {
     generateGeneralGroup();
     generateReadsGroup();
     generateWritesGroup();
+    generateSpeedGroup();
   }
   
   /**
@@ -90,7 +91,7 @@ public class CacheView extends AbstractIView {
   private void generateGeneralGroup() {
     GridData gridData;
     
-    Group gCacheGeneral = new Group(panel,SWT.BORDER);
+    Group gCacheGeneral = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gCacheGeneral,"CacheView.general.title");
     gCacheGeneral.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
@@ -132,7 +133,7 @@ public class CacheView extends AbstractIView {
   private void generateReadsGroup() {
     GridData gridData;
     
-    Group gCacheReads = new Group(panel,SWT.BORDER);
+    Group gCacheReads = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gCacheReads,"CacheView.reads.title");
     gCacheReads.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
@@ -174,7 +175,7 @@ public class CacheView extends AbstractIView {
   private void generateSpeedGroup() {
     GridData gridData;
     
-    Group gCacheSpeeds = new Group(panel,SWT.BORDER);
+    Group gCacheSpeeds = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gCacheSpeeds,"CacheView.reads.title");
     gCacheSpeeds.setLayoutData(new GridData(GridData.FILL_BOTH));
     
@@ -231,7 +232,7 @@ public class CacheView extends AbstractIView {
   private void generateWritesGroup() {
     GridData gridData;
     
-    Group gCacheWrites = new Group(panel,SWT.BORDER);
+    Group gCacheWrites = new Group(panel,SWT.NULL);
     Messages.setLanguageText(gCacheWrites,"CacheView.writes.title");
     gCacheWrites.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
@@ -312,6 +313,12 @@ public class CacheView extends AbstractIView {
       lblPercentWrites.setText(DisplayFormatters.formatPercentFromThousands(perThousands) + " " + MessageText.getString("CacheView.reads.hits"));
       pbWrites.setSelection(perThousands);      
     }
+    
+    //Graphics
+    rfcGraph.refresh();
+    rffGraph.refresh();
+    wtcGraph.refresh();
+    wtfGraph.refresh();    
   }  
   
   public String getData() {
