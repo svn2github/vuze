@@ -83,7 +83,8 @@ DHTControlImpl
 		
 	private ThreadPool	internal_lookup_pool;
 	private ThreadPool	external_lookup_pool;
-	private ThreadPool	put_pool;
+	private ThreadPool	internal_put_pool;
+	private ThreadPool	external_put_pool;
 	
 	private Map			imported_state	= new HashMap();
 	
@@ -123,11 +124,12 @@ DHTControlImpl
 						logger );
 					
 		internal_lookup_pool 	= new ThreadPool("DHTControl:internallookups", lookup_concurrency );
+		internal_put_pool 		= new ThreadPool("DHTControl:internalputs", lookup_concurrency );
 		
 			// external pools queue when full ( as opposed to blocking )
 		
 		external_lookup_pool 	= new ThreadPool("DHTControl:externallookups", EXTERNAL_LOOKUP_CONCURRENCY, true );
-		put_pool 				= new ThreadPool("DHTControl:puts", EXTERNAL_PUT_CONCURRENCY, true );
+		external_put_pool 		= new ThreadPool("DHTControl:puts", EXTERNAL_PUT_CONCURRENCY, true );
 
 		createRouter( transport.getLocalContact());
 
@@ -502,12 +504,18 @@ DHTControlImpl
 				// we don't want this to be blocking as it'll stuff the stats
 			
 			external_lookup_pool.run(
-				new AERunnable()
+				new task()
 				{
 					public void
 					runSupport()
 					{
 						router.refreshRandom();
+					}
+					
+					public String
+					getName()
+					{
+						return( "Random Query" ); 
 					}
 				});
 		}
@@ -533,7 +541,8 @@ DHTControlImpl
 		
 		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value, _flags );
 		
-		put( 	encoded_key, 
+		put( 	external_put_pool,
+				encoded_key, 
 				value, 
 				0, 
 				_listener instanceof DHTOperationListenerDemuxer?
@@ -547,22 +556,24 @@ DHTControlImpl
 		final DHTTransportValue	value,
 		final long				timeout )
 	{
-		put( encoded_key, value, timeout, new DHTOperationListenerDemuxer( new DHTOperationAdapter()));
+		put( internal_put_pool, encoded_key, value, timeout, new DHTOperationListenerDemuxer( new DHTOperationAdapter()));
 	}
 	
 	
 	protected void
 	put(
+		final ThreadPool					thread_pool,
 		final byte[]						initial_encoded_key,
 		final DHTTransportValue				value,
 		final long							timeout,
 		final DHTOperationListenerDemuxer	listener )
 	{
-		put( initial_encoded_key, new DHTTransportValue[]{ value }, timeout, listener );
+		put( thread_pool, initial_encoded_key, new DHTTransportValue[]{ value }, timeout, listener );
 	}
 	
 	protected void
 	put(
+		final ThreadPool					thread_pool,
 		final byte[]						initial_encoded_key,
 		final DHTTransportValue[]			values,
 		final long							timeout,
@@ -579,7 +590,7 @@ DHTControlImpl
 			
 			final byte[]	encoded_key	= encoded_keys[i];
 						
-			lookup( put_pool,
+			lookup( thread_pool,
 					encoded_key, 
 					(byte)0,
 					false, 
@@ -600,7 +611,13 @@ DHTControlImpl
 						closest(
 							List				_closest )
 						{
-							put( new byte[][]{ encoded_key }, new DHTTransportValue[][]{ values }, _closest, timeout, listener, true );		
+							put( 	thread_pool,
+									new byte[][]{ encoded_key }, 
+									new DHTTransportValue[][]{ values }, 
+									_closest, 
+									timeout, 
+									listener, 
+									true );		
 						}
 					});
 		}
@@ -616,7 +633,8 @@ DHTControlImpl
 			// of cached mappings and we maintain these as normal - its up to the original
 			// publisher to diversify as required)
 		
-		put( 	encoded_keys, 
+		put( 	internal_put_pool,
+				encoded_keys, 
 				value_sets, 
 				contacts, 
 				0, 
@@ -626,6 +644,7 @@ DHTControlImpl
 		
 	protected void
 	put(
+		final ThreadPool						thread_pool,
 		final byte[][]							encoded_keys,
 		final DHTTransportValue[][]				value_sets,
 		final List								contacts,
@@ -679,18 +698,20 @@ DHTControlImpl
 									
 									if ( consider_diversification && _diversifications != null ){
 																		
-										for (int i=0;i<_diversifications.length;i++){
+										for (int j=0;j<_diversifications.length;j++){
 											
-											if ( _diversifications[i] != DHT.DT_NONE && !diversified[i] ){
+											if ( _diversifications[j] != DHT.DT_NONE && !diversified[j] ){
 												
-												diversified[i]	= true;
+												diversified[j]	= true;
 												
-												byte[][]	diversified_keys = adapter.diversify( true, false, encoded_keys[i], _diversifications[i] );
+												byte[][]	diversified_keys = 
+													adapter.diversify( true, false, encoded_keys[j], _diversifications[j] );
 											
-												for (int j=0;j<diversified_keys.length;j++){
+												for (int k=0;k<diversified_keys.length;k++){
 												
-													put( 	diversified_keys[j], 
-															value_sets[i], 
+													put( 	thread_pool,
+															diversified_keys[k], 
+															value_sets[j], 
 															timeout, listener );
 												}
 											}
@@ -812,9 +833,9 @@ DHTControlImpl
 										// should return a max of 1 (0 if diversification refused)
 										// however, could change one day to search > 1 
 									
-									for (int i=0;i<diversified_keys.length;i++){
+									for (int j=0;j<diversified_keys.length;j++){
 										
-										getSupport( diversified_keys[i], flags, rem,  timeout, get_listener );
+										getSupport( diversified_keys[j], flags, rem,  timeout, get_listener );
 									}
 								}								
 							}
@@ -909,7 +930,7 @@ DHTControlImpl
 			
 			res.setValue( new byte[0] );
 			
-			put( encoded_key, res, 0, new DHTOperationListenerDemuxer( listener ));
+			put( external_put_pool, encoded_key, res, 0, new DHTOperationListenerDemuxer( listener ));
 			
 			return( res.getValue());
 		}
@@ -934,7 +955,7 @@ DHTControlImpl
 		final lookupResultHandler	handler )
 	{
 		thread_pool.run(
-			new AERunnable()
+			new task()
 			{
 				public void
 				runSupport()
@@ -946,6 +967,12 @@ DHTControlImpl
 						
 						Debug.printStackTrace(e);
 					}
+				}
+				
+				public String
+				getName()
+				{
+					return( DHTLog.getString2(lookup_id)); 
 				}
 			});
 	}
@@ -1830,6 +1857,47 @@ DHTControlImpl
 		return( 0 );
 	}
 	
+	public DHTControlActivity[]
+	getActivities()
+	{
+		List	res = new ArrayList();
+		
+		ThreadPool[]	pools = 
+			new ThreadPool[]{ 
+					internal_lookup_pool, 
+					internal_put_pool,
+					external_lookup_pool,
+					external_put_pool };
+		
+		
+		for (int i=0;i<pools.length;i++){
+			
+				// running tasks first so we don't possibly get the same task twice
+				// due to it starting between calls
+			
+			AERunnable[]	tasks = pools[i].getRunningTasks();
+			
+			for (int j=0;j<tasks.length;j++){
+				
+				res.add( new controlActivity(pools[i], (task)tasks[j], false));
+			}
+			
+			tasks = pools[i].getQueuedTasks();
+			
+			for (int j=0;j<tasks.length;j++){
+				
+				res.add( new controlActivity(pools[i], (task)tasks[j], true));
+			}
+
+		}
+		
+		DHTControlActivity[]	x = new DHTControlActivity[res.size()];
+		
+		res.toArray( x );
+		
+		return( x );
+	}
+	
 	public void
 	print()
 	{
@@ -2066,6 +2134,75 @@ DHTControlImpl
 		getContacts()
 		{
 			return( contacts );
+		}
+	}
+	
+	protected abstract class
+	task
+		extends AERunnable
+	{
+		public abstract String
+		getName();
+	}
+	
+	protected class
+	controlActivity
+		implements DHTControlActivity
+	{
+		protected String		name;
+		protected int			type;
+		protected boolean		queued;
+		
+		protected
+		controlActivity(
+			ThreadPool	_tp,
+			task		_t,
+			boolean		_q )
+		{
+			name	= _t.getName();
+			
+			if ( _tp == internal_lookup_pool ){
+				
+				type	= DHTControlActivity.AT_INTERNAL_GET;
+				
+			}else if ( _tp == external_lookup_pool ){
+				
+				type	= DHTControlActivity.AT_EXTERNAL_GET;
+
+			}else if ( _tp == internal_put_pool ){
+				
+				type	= DHTControlActivity.AT_INTERNAL_PUT;
+
+			}else{
+
+				type	= DHTControlActivity.AT_EXTERNAL_PUT;
+			}
+			
+			queued	= _q;
+		}
+		
+		public String
+		getName()
+		{
+			return( name );
+		}
+		
+		public int
+		getType()
+		{
+			return( type );
+		}
+		
+		public boolean
+		isQueued()
+		{
+			return( queued );
+		}
+		
+		public String
+		getString()
+		{
+			return( type + ":" + getName() + ", q = " + isQueued());
 		}
 	}
 }

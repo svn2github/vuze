@@ -190,6 +190,12 @@ DHTImpl
 		return( control.getRouter());
 	}
 	
+	public DHTControl
+	getControl()
+	{
+		return( control );
+	}
+	
 	public DHTDB
 	getDataBase()
 	{

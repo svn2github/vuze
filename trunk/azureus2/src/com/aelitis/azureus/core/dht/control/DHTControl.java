@@ -86,6 +86,9 @@ DHTControl
 	public DHTDB
 	getDataBase();
 	
+	public DHTControlActivity[]
+	getActivities();
+	
 	public void
 	exportState(
 		DataOutputStream	os,

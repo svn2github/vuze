@@ -49,6 +49,7 @@ import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
+import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
@@ -214,21 +215,37 @@ DHTPlugin
 
 										}else if ( lhs.equals( "stats" )){
 											
-											pos = rhs.indexOf( ":" );
-											
-											String	host = rhs.substring(0,pos);
-											int		port = Integer.parseInt( rhs.substring(pos+1));
-											
 											try{
-												DHTTransportContact	contact = 
-													transport.importContact(
-															new InetSocketAddress( host, port ),
-															DHTTransportUDP.PROTOCOL_VERSION );
+												pos = rhs.indexOf( ":" );
+												
+												DHTTransportContact	contact;
+												
+												if ( pos == -1 ){
+												
+													contact = transport.getLocalContact();
+													
+												}else{
+													
+													String	host = rhs.substring(0,pos);
+													int		port = Integer.parseInt( rhs.substring(pos+1));
+													
+													contact = 
+															transport.importContact(
+																	new InetSocketAddress( host, port ),
+																	DHTTransportUDP.PROTOCOL_VERSION );
+												}
 												
 												DHTTransportFullStats stats = contact.getStats();
-												
+													
 												log.log( "Stats:" + (stats==null?"<null>":stats.getString()));
-												
+													
+												DHTControlActivity[] activities = dht.getControl().getActivities();
+													
+												for (int i=0;i<activities.length;i++){
+														
+													log.log( "    act:" + activities[i].getString());
+												}
+										
 											}catch( Throwable e ){
 												
 												Debug.printStackTrace(e);

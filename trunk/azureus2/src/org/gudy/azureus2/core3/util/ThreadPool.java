@@ -150,6 +150,48 @@ ThreadPool
 		return( queue_when_full?null:allocated_worker );
 	}
 	
+	public AERunnable[]
+	getQueuedTasks()
+	{
+		synchronized( this ){
+
+			AERunnable[]	res = new AERunnable[task_queue.size()];
+			
+			task_queue.toArray(res);
+			
+			return( res );
+		}
+	}
+	
+	public AERunnable[]
+	getRunningTasks()
+	{
+		List	runnables	= new ArrayList();
+		
+		synchronized( this ){
+
+			Iterator	it = busy.iterator();
+			
+			while( it.hasNext()){
+				
+				threadPoolWorker	worker = (threadPoolWorker)it.next();
+				
+				AERunnable	runnable = worker.getRunnable();
+				
+				if ( runnable != null ){
+					
+					runnables.add( runnable );
+				}
+			}
+		}
+		
+		AERunnable[]	res = new AERunnable[runnables.size()];
+			
+		runnables.toArray(res);
+			
+		return( res );
+	}
+	
 	protected void
 	checkTimeouts()
 	{
@@ -379,6 +421,12 @@ outer:
 			runnable	= _runnable;
 			
 			my_sem.release();
+		}
+		
+		protected AERunnable
+		getRunnable()
+		{
+			return( runnable );
 		}
 	}
 	
