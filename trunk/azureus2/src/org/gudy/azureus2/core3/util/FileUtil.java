@@ -1,7 +1,8 @@
-/*
- * FileUtil.java
- *
- * Created on 10. Oktober 2003, 00:40
+ /*
+ * Created on Oct 10, 2003
+ * Modified Apr 14, 2004 by Alon Rohter
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * 
  */
 
 package org.gudy.azureus2.core3.util;
@@ -16,8 +17,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 
 /**
- *
- * @author  Tobias Minich
+ * File utility class.
  */
 public class FileUtil {
   
@@ -135,19 +135,6 @@ public class FileUtil {
     } catch (Exception e) { Debug.out(e.toString()); }
   }
   
-  /*
-  public static void copyFile(File origin, File destination) throws IOException {
-    OutputStream os = new FileOutputStream(destination);
-    InputStream is = new FileInputStream(origin);
-    byte[] buffer = new byte[32768];
-    int nbRead = 0;
-    while ((nbRead = is.read(buffer)) > 0) {
-      os.write(buffer, 0, nbRead);
-    }
-    is.close();
-    os.close();
-  }
-  /*
   
   /**
    * Takes a path and a file/dir name and returns the full path,
