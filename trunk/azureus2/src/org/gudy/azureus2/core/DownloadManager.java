@@ -156,7 +156,7 @@ public class DownloadManager extends Component {
 		
   		try{
   	
-			torrent	= TOTorrentFactory.deserialiseFromFile(new File(torrentFileName));
+			torrent	= TOTorrentFactory.deserialiseFromBEncodedFile(new File(torrentFileName));
 		
 			// torrent.print();
 			
@@ -190,39 +190,7 @@ public class DownloadManager extends Component {
         		
 			this.state = STATE_ERROR;
  			
-  			int	reason = e.getReason();
-  			
- 	     	if ( reason == TOTorrentException.RT_FILE_NOT_FOUND ){
- 	     	        		 		
-        		errorDetail = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
-        		
- 	     	}else if ( reason == TOTorrentException.RT_ZERO_LENGTH ){
-     
-	        	errorDetail = MessageText.getString("DownloadManager.error.fileempty"); //$NON-NLS-1$
-        
- 	     	}else if ( reason == TOTorrentException.RT_TOO_BIG ){
- 	     		
-		        errorDetail = MessageText.getString("DownloadManager.error.filetoobig"); //$NON-NLS-1$
-		        
-			}else if ( reason == TOTorrentException.RT_DECODE_FAILS ){
- 
- 		        errorDetail = MessageText.getString("DownloadManager.error.filewithouttorrentinfo"); //$NON-NLS-1$
- 		        
- 	     	}else if ( reason == TOTorrentException.RT_UNSUPPORTED_ENCODING ){
- 	     		
-				errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
-				
-			}else if ( reason == TOTorrentException.RT_READ_FAILS ){
-
-				errorDetail = MessageText.getString("DownloadManager.error.ioerror"); //$NON-NLS-1$
-				
-			}else if ( reason == TOTorrentException.RT_HASH_FAILS ){
-
- 				errorDetail = MessageText.getString("DownloadManager.error.sha1"); //$NON-NLS-1$
- 	     	}else{
- 	     
-      			errorDetail = e.getMessage();
- 	     	}
+ 			errorDetail = TorrentUtils.exceptionToText( e );
  			
 		}catch( UnsupportedEncodingException e ){
 		

@@ -36,6 +36,9 @@ import org.gudy.azureus2.core.MessageText;
 
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
+
 public class 
 ExportTorrentWizard 
 	extends Wizard 
@@ -121,22 +124,57 @@ ExportTorrentWizard
 			
 			int result = mb.open();
 		
-			if(result == SWT.NO) {
+			if( result == SWT.NO ){
 				
 				return( false );
 			}
 		}
 
-		MessageBox mb = new MessageBox(getWizardWindow(),SWT.ICON_ERROR | SWT.OK );
+		String	error_title;
+		String	error_detail;
 		
-		mb.setText(MessageText.getString("Not Implemented"));
+		try{
 		
-		mb.setMessage(	MessageText.getString("Erm, sorry, this isn't implemented yet" ));
+			TOTorrent	torrent;
+			
+			try{
+				
+				torrent = TOTorrentFactory.deserialiseFromBEncodedFile( input_file );
+	
+				try{
+					
+					torrent.serialiseToXMLFile( output_file );
+					
+					return( true );
+								
+				}catch( TOTorrentException e ){
+				
+					error_title 	= MessageText.getString("exportTorrentWizard.process.exportfail.title");
+				
+					error_detail	= TorrentUtils.exceptionToText( e ); 
+				}
+			}catch( TOTorrentException e ){
+				
+				error_title 	= MessageText.getString("exportTorrentWizard.process.torrentfail.title");
+				
+				error_detail	= TorrentUtils.exceptionToText( e ); 
+			}
+			
+		}catch( Throwable e ){
+
+			error_title 	= MessageText.getString("exportTorrentWizard.process.unknownfail.title");
+		
+			error_detail 	= e.toString();
+		}
+
+		MessageBox mb = new MessageBox(this.getWizardWindow(),SWT.ICON_ERROR | SWT.OK );
+			
+		mb.setText(error_title);
+			
+		mb.setMessage(error_detail);
 			
 		mb.open();
-			
+		
 		return( false );
-	
-		// return( true );
 	}
 }

@@ -24,7 +24,7 @@ public class FileChecker {
     ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
  
     try {
-   		TOTorrent	torrent = TOTorrentFactory.deserialiseFromFile( new File(args[0]));
+   		TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedFile( new File(args[0]));
    		
       DiskManager diskManager = new DiskManager(torrent, args[1]);
       

@@ -178,7 +178,7 @@ TOTorrent
 	  * @throws TOTorrentException
 	  */
 	public void
-	serialiseToFile(
+	serialiseToBEncodedFile(
 		File		file )
 		  
 		throws TOTorrentException;
@@ -193,6 +193,19 @@ TOTorrent
 	serialiseToMap()
 		  
 		throws TOTorrentException;
+
+	/**
+	 * This method will serialise a torrent using an XML encoding to a file
+	 * @param file
+	 * @throws TOTorrentException
+	 */
+	
+   public void
+   serialiseToXMLFile(
+	   File		file )
+		  
+	   throws TOTorrentException;
+
 
 	 /**
 	  * A diagnostic method for dumping the tracker contents to "stdout"

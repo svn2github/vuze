@@ -101,7 +101,7 @@ TOTorrentImpl
 	}
 	
 	public void
-	serialiseToFile(
+	serialiseToBEncodedFile(
 		File		output_file )
 	
 		throws TOTorrentException
@@ -291,6 +291,15 @@ TOTorrentImpl
 		}
 		
 		return( root );
+	}
+	
+	public void
+	serialiseToXMLFile(
+	  File		file )
+		  
+	  throws TOTorrentException
+	{
+		throw( new TOTorrentException("parp", TOTorrentException.RT_WRITE_FAILS));
 	}
 	
 	public byte[]

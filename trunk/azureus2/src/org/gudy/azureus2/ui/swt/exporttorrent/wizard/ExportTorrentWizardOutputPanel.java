@@ -118,6 +118,8 @@ ExportTorrentWizardOutputPanel
 		});
 	
 		textPath.setText(((ExportTorrentWizard)wizard).getExportFile());
+		
+		textPath.setFocus();
 	}
   
 	protected void

@@ -42,7 +42,7 @@ TOTorrentFactory
 		// deserialisation methods
 		
 	public static TOTorrent
-	deserialiseFromFile(
+	deserialiseFromBEncodedFile(
 		File		file )
 		
 		throws TOTorrentException
@@ -53,15 +53,6 @@ TOTorrentFactory
 	public static TOTorrent
 	deserialiseFromMap(
 		Map			data )
-		
-		throws TOTorrentException
-	{
-		return( new TOTorrentDeserialiseImpl( data ));
-	}
-	
-	public static TOTorrent
-	deserialiseFromByteArray(
-		byte[]		data )
 		
 		throws TOTorrentException
 	{

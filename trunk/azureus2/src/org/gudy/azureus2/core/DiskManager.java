@@ -927,7 +927,7 @@ public class DiskManager {
         try {
 			File torrent_file = new File( torrent.getAdditionalStringProperty( "torrent filename"));
 			
-			torrent.serialiseToFile( torrent_file );
+			torrent.serialiseToBEncodedFile( torrent_file );
 			
         } catch (TOTorrentException e) {
             // TODO Auto-generated catch block

@@ -75,7 +75,7 @@ Main
 				
 				File f = new File("C:\\temp\\alias.302.hdtv-lol.[BT].orig.torrent");
 						
-				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
+				TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( f );
 			
 				TOTorrentAnnounceURLSet set = torrent.getAnnounceURLGroup().createAnnounceURLSet(new URL[]{ new URL("http://localhost:6970/announce"), new URL("http://localhost:6969/announce")});
 				
@@ -85,13 +85,13 @@ Main
 				
 				torrent.print();
 			
-				torrent.serialiseToFile( new File("c:\\temp\\test2.torrent"));
+				torrent.serialiseToBEncodedFile( new File("c:\\temp\\test2.torrent"));
 			
 			}else if ( test_type == TT_DECODE ){
 							 
 				File f = new File("c:\\temp\\tunnel_server.poo.torrent" );
 			
-				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
+				TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( f );
 			
 				System.out.println( "\turl group sets = " + torrent.getAnnounceURLGroup().getAnnounceURLSets().length);
 				
@@ -160,7 +160,7 @@ Main
 				
 				t.print();
 				
-				t.serialiseToFile( new File("c:\\temp\\test.torrent" ));						 
+				t.serialiseToBEncodedFile( new File("c:\\temp\\test.torrent" ));						 
 			}
 		}catch( Throwable e ){
 			

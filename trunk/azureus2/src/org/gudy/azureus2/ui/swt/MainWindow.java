@@ -1542,7 +1542,7 @@ public class MainWindow implements IComponentListener {
       String singleFileName = ""; //$NON-NLS-1$
 
       try {
-        TOTorrent torrent = TOTorrentFactory.deserialiseFromFile(new File(fileName));
+        TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile(new File(fileName));
         singleFile = torrent.isSimpleTorrent();
 		singleFileName = LocaleUtil.getCharsetString(torrent.getName());
       }
