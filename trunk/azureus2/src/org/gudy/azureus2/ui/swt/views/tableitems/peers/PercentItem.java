@@ -38,7 +38,7 @@ public class PercentItem
 {
   /** Default Constructor */
   public PercentItem() {
-    super("%", ALIGN_TRAIL, POSITION_INVISIBLE, 55, TableManager.TABLE_TORRENT_PEERS);
+    super("%", ALIGN_TRAIL, POSITION_LAST, 55, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

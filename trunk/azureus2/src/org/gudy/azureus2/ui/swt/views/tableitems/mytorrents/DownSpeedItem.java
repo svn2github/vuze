@@ -47,7 +47,7 @@ public class DownSpeedItem
 
   /** Default Constructor */
   public DownSpeedItem() {
-    super("downspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    super("downspeed", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
     setRefreshInterval(INTERVAL_LIVE);
 
     iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);
@@ -68,14 +68,14 @@ public class DownSpeedItem
 
     public void refresh(TableCell cell) {
       DownloadManager dm = (DownloadManager)cell.getDataSource();
-      long iDLAverage = (dm == null) ? 0 : dm.getStats().getDownloadAverage();
-      cell.setSortValue(iDLAverage);
+      long value = (dm == null) ? 0 : dm.getStats().getUploadAverage();
+      cell.setSortValue(value);
   
       if (dm != null) {
         int iState = dm.getState();
-        if (cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iDLAverage)) || 
+        if (cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)) || 
             (iState != iLastState)) {
-          changeColor(cell, iDLAverage, iState);
+          changeColor(cell, value, iState);
         }
       }
     }
@@ -92,9 +92,9 @@ public class DownSpeedItem
       }
     }
   
-    private void changeColor(TableCell cell, long iDLAverage, int iState) {
+    private void changeColor(TableCell cell, long iSpeed, int iState) {
       try {
-        Color newFG = (iDLAverage < iMinActiveSpeed && 
+        Color newFG = (iSpeed < iMinActiveSpeed && 
                        iState == DownloadManager.STATE_DOWNLOADING) ? Colors.colorWarning 
                                                                     : null;
         ((TableCellCore)cell).setForeground(newFG);

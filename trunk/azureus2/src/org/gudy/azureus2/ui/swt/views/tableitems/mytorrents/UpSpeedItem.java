@@ -21,10 +21,16 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.Color;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 
 /** Upload Speed column
@@ -34,22 +40,73 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class UpSpeedItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellAddedListener, ParameterListener
 {
-  /**
-   * Default Constructor
-   * @param sTableID
-   */
+  private final static String CONFIG_ID = "StartStopManager_iMinSpeedForActiveSeeding";
+  private int iMinActiveSpeed;
+
+  /** Default Constructor */
   public UpSpeedItem(String sTableID) {
-    super("upspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+    super("upspeed", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+
+    iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);
+    COConfigurationManager.addParameterListener(CONFIG_ID, this);
   }
 
-  public void refresh(TableCell cell) {
-    DownloadManager dm = (DownloadManager)cell.getDataSource();
-    long value = (dm == null) ? 0 : dm.getStats().getUploadAverage();
+  protected void finalize() throws Throwable {
+    super.finalize();
+    COConfigurationManager.removeParameterListener(CONFIG_ID, this);
+  }
+  
+  public void cellAdded(TableCell cell) {
+    cell.addRefreshListener(new RefreshListener());
+  }
 
-    cell.setSortValue(value);
-    cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
+  public class RefreshListener implements TableCellRefreshListener {
+    private int iLastState;
+
+    public void refresh(TableCell cell) {
+      DownloadManager dm = (DownloadManager)cell.getDataSource();
+      long value = (dm == null) ? 0 : dm.getStats().getUploadAverage();
+      cell.setSortValue(value);
+  
+      if (dm != null) {
+        int iState = dm.getState();
+        if (cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)) || 
+            (iState != iLastState)) {
+          changeColor(cell, value, iState);
+        }
+      }
+    }
+
+    private void changeColor(TableCell cell) {
+      try {
+        DownloadManager dm = (DownloadManager)cell.getDataSource();
+        if (dm == null) {
+          return;
+        }
+        changeColor(cell, dm.getStats().getDownloadAverage(), dm.getState());
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  
+    private void changeColor(TableCell cell, long iSpeed, int iState) {
+      try {
+        Color newFG = (iSpeed < iMinActiveSpeed && 
+                       iState == DownloadManager.STATE_SEEDING) ? Colors.colorWarning 
+                                                                : null;
+        ((TableCellCore)cell).setForeground(newFG);
+        iLastState = iState;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+
+  public void parameterChanged(String parameterName) {
+    iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);
   }
 }

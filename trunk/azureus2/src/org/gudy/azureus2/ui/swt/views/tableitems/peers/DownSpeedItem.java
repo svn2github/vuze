@@ -37,7 +37,7 @@ public class DownSpeedItem
 {
   /** Default Constructor */
   public DownSpeedItem() {
-    super("downloadspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 65, TableManager.TABLE_TORRENT_PEERS);
+    super("downloadspeed", ALIGN_TRAIL, POSITION_LAST, 65, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
