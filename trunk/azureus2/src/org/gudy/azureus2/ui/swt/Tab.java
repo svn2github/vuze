@@ -87,22 +87,26 @@ public class Tab {
     }
   }
 
-  public static void closeAll() {
+  public static void closeAllDetails() {
 		synchronized (tabs) {
 			CTabItem[] tab_items =
 				(CTabItem[]) tabs.keySet().toArray(new CTabItem[tabs.size()]);
 			for (int i = 0; i < tab_items.length; i++) {
-				Tab.closed(tab_items[i]);
+        IView view = (IView) tabs.get(tab_items[i]);
+        if(view instanceof ManagerView) {
+          view.delete();
+				  tab_items[i].dispose();
+          tabs.remove(tab_items[i]);
+        }
 			}
 		}
-		tabs.clear();
 	}
 
   public static void setFolder(CTabFolder folder) {
     _folder = folder;
   }
 
-  public static void closed(CTabItem item) {
+  public static synchronized void closed(CTabItem item) {
     IView view = null;
     synchronized (tabs) {
       view = (IView) tabs.get(item);
