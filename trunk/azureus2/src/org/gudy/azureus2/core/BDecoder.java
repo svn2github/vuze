@@ -66,8 +66,8 @@ public class BDecoder {
         while ((tempByteArray = (byte[]) BDecoder.decodeInputStream(bais)) != null) {
           //decode some more
           Object value = BDecoder.decodeInputStream(bais);
-          //add the value to the map          
-		  tempMap.put(new String(tempByteArray, "ISO-8859-1"), value);
+          //add the value to the map
+          tempMap.put(new String(tempByteArray, "ISO-8859-1"), value);
         }
 
         //return the map
@@ -153,9 +153,12 @@ public class BDecoder {
     }
 
     byte[] tempArray = new byte[length];
-
+    int count = 0;
+    int len = 0;
     //get the string
-    bais.read(tempArray, 0, length);
+    while (count != length && (len = bais.read(tempArray, count, length - count)) > 0) {
+      count += len;
+    }
 
     return tempArray;
   }
