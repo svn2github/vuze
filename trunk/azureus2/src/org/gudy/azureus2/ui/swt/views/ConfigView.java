@@ -402,7 +402,11 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     gridData.widthHint = 30;
     new IntParameter(gTransfer, "Max Clients", 0).setLayoutData(gridData); //$NON-NLS-1$
-
+    
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.slowconnect"); //$NON-NLS-1$
+    new BooleanParameter(gTransfer, "Slow Connect", false); //$NON-NLS-1$
+    
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploads"); //$NON-NLS-1$
     final String upLabels[] = new String[99];
