@@ -285,7 +285,31 @@ MagnetURIHandlerImpl
 			
 			return( true );
 			
-		}else if ( get.startsWith( "/magnet10/options.js?" )){
+		}else if ( get.startsWith( "/magnet10/canHandle.img?" )){
+
+			String urn = (String)params.get( "xt" );
+
+			if ( urn != null && urn.startsWith( "urn:btih:")){
+			
+				for (int i=0;i<listeners.size();i++){
+					
+					byte[]	data = ((MagnetURIHandlerListener)listeners.get(i)).badge();
+						
+					if ( data != null ){
+						
+						writeReply( os, "image/gif", data );
+						
+						return( true );
+					}
+				}
+			}
+			
+			writeNotFound( os );
+			
+			return( true );
+			
+		}else if ( 	get.startsWith( "/magnet10/options.js?" ) ||
+					get.startsWith( "/magnet10/default.js?" )){
 		
 			String	resp = "";
 			

@@ -58,7 +58,7 @@ DDBaseContactImpl
 	public String
 	getName()
 	{
-		return( contact.getAddress().toString());
+		return( contact.getName());
 	}
 	
 	public boolean

@@ -971,6 +971,12 @@ DHTPlugin
 			return( contact );
 		}
 		
+		public String
+		getName()
+		{
+			return( contact.getName());
+		}
+		
 		public InetSocketAddress
 		getAddress()
 		{

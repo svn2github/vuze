@@ -95,6 +95,11 @@ DHTLog
 	getString2(
 		byte[]	b )
 	{
+		if ( b == null ){
+			
+			return( "<null>" );
+		}
+		
 		String res = ByteFormatter.nicePrint(b);
 		
 		if ( res.length() > 8 ){

@@ -51,6 +51,9 @@ DHTTransportContact
 	public long
 	getClockSkew();
 	
+	public String
+	getName();
+	
 	public InetSocketAddress
 	getAddress();
 	

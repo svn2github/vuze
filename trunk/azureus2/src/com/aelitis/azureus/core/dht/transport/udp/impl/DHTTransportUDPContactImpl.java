@@ -119,6 +119,12 @@ DHTTransportUDPContactImpl
 		return( external_address );
 	}
 	
+	public String
+	getName()
+	{
+		return( DHTLog.getString2( id  ));
+	}
+	
 	public InetSocketAddress
 	getAddress()
 	{

@@ -32,6 +32,9 @@ import java.net.InetSocketAddress;
 public interface 
 DHTPluginContact 
 {
+	public String
+	getName();
+	
 	public InetSocketAddress
 	getAddress();
 	

@@ -84,6 +84,12 @@ DHTTransportLoopbackContactImpl
 		return( 3 );
 	}
 	
+	public String
+	getName()
+	{
+		return( "" );
+	}
+	
 	public InetSocketAddress
 	getAddress()
 	{
