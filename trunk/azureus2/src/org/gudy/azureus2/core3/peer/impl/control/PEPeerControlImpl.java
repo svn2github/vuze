@@ -105,7 +105,6 @@ PEPeerControlImpl
     this._manager = manager;
 	_tracker = tracker;
 	this._diskManager = diskManager;
-  COConfigurationManager.addParameterListener("Max Clients", this);
  }
   
   public void
@@ -504,9 +503,12 @@ PEPeerControlImpl
     _finished = temp;
         
     if (_finished) {
-      endGameMode = false;
-      synchronized(endGameModeChunks) {
-        endGameModeChunks.clear();
+      
+      if(endGameMode) {
+	      synchronized(endGameModeChunks) {
+	        endGameMode = false;
+	        endGameModeChunks.clear();
+	      }
       }
       
       boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);

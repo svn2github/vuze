@@ -697,7 +697,7 @@ PEPeerTransportProtocol
 		  evtProtocol,
 		  LGLogger.RECEIVED,
 		  ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-		if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
+		if (!choking && manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
 		  sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 		}
 		else {
