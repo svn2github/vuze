@@ -192,7 +192,14 @@ DHTTrackerPlugin
 	protected void
 	processRegistrations()
 	{
-		Iterator	it = running_downloads.iterator();
+		ArrayList	rds;
+	
+		synchronized( running_downloads ){
+
+			rds = new ArrayList(running_downloads);
+		}
+		
+		Iterator	it = rds.iterator();
 		
 		while( it.hasNext()){
 			
@@ -226,8 +233,15 @@ DHTTrackerPlugin
 		while( it.hasNext()){
 			
 			final Download	dl = (Download)it.next();
+
+			boolean	unregister;
 			
-			if ( !running_downloads.contains( dl )){
+			synchronized( running_downloads ){
+
+				unregister = !running_downloads.contains( dl );
+			}
+			
+			if ( unregister ){
 				
 				log.log( "Unregistering download '" + dl.getName() + "'" );
 				
@@ -267,7 +281,10 @@ DHTTrackerPlugin
 
 		download.removeListener( this );
 		
-		running_downloads.remove( download );
+		synchronized( running_downloads ){
+
+			running_downloads.remove( download );
+		}
 	}
 	
 	public void
@@ -278,15 +295,18 @@ DHTTrackerPlugin
 	{
 		int	state = download.getState();
 		
-		if ( 	state == Download.ST_DOWNLOADING ||
-				state == Download.ST_SEEDING ||
-				state == Download.ST_QUEUED ){
-			
-			running_downloads.add( download );
-			
-		}else{
-			
-			running_downloads.remove( download );
+		synchronized( running_downloads ){
+
+			if ( 	state == Download.ST_DOWNLOADING ||
+					state == Download.ST_SEEDING ||
+					state == Download.ST_QUEUED ){
+				
+				running_downloads.add( download );
+				
+			}else{
+				
+				running_downloads.remove( download );
+			}
 		}
 	}
  
