@@ -112,7 +112,7 @@ public class AZHandshake implements AZMessage {
     
     if( raw_payload.length > 1200 )  System.out.println( "Generated AZHandshake size = " +raw_payload.length+ " bytes" );
 
-    this.description = getID()+ " from [" +ByteFormatter.nicePrint( peer_identity, true )+ ", " +client+ " " +version+ ", ports " +tcp_port+ "/" +udp_port+ "] supports " +msgs_desc;
+    this.description = getID()+ " from [" +ByteFormatter.nicePrint( peer_identity, true )+ ", " +client+ " " +version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+ "] supports " +msgs_desc;
   }
 
   
