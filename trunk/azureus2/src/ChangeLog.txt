@@ -17,8 +17,8 @@ FEATURE: HTTP scrapes to same tracker combined into one request if tracker suppo
 FEATURE: In the Details view, pieces that we don't yet have from a peer are shown in inverse color [Nolar]
 FEATURE: Web Plugin now can set upload rate [Parg]
 FEATURE: Web Plugin support for uploading torrents [Parg]
-FEATURE: added option to show transfer rates in bits/sec [Parg]
-FEATURE: added ability to automatically exclude files when making torrents (e.g. Thumbs.db) [Parg]
+FEATURE: Added option to show transfer rates in bits/sec [Parg]
+FEATURE: Added ability to automatically exclude files when making torrents (e.g. .DS_Store & Thumbs.db) [Parg]
 FEATURE: MyTracker row right-click support for copying torrent URL to clipboard [Parg]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
@@ -33,7 +33,6 @@ CHANGE: New SHA-1 hasher: up to 25% faster [Gudy / Nolar]
 CHANGE: Currently-connected peer connections are dropped when IPFilter is enabled [Nolar]
 CHANGE: Torrent name shown with IPs in the blocked-IPFilter list [Nolar]
 CHANGE: IRC and Tracker Web Pages moved to separate plugin [Parg]
-CHANGE: Ignore .DS_Store & Thumbs.db files when creating torrents (configurable) [Parg]
 
 BUGFIX: Files incorrectly shared if contents not a torrent when opening [Parg]
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
