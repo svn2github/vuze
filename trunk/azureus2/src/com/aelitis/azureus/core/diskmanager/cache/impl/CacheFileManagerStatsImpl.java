@@ -178,6 +178,9 @@ CacheFileManagerStatsImpl
 		int				offset,
 		long			length )
 	{
-		return( manager.getBytesInCache( torrent, piece_number, offset, length ));
+		
+		long	res = manager.getBytesInCache( torrent, piece_number, offset, length );
+				
+		return( res );
 	}
 }

@@ -638,8 +638,8 @@ CacheFileManagerImpl
 		
 		long	piece_size = torrent.getPieceLength();
 		
-		long	overall_start 	= piece_number*piece_size + offset;
-		long	overall_end		= overall_start + length;
+		long	target_start 	= piece_number*piece_size + offset;
+		long	target_end		= target_start + length;
 		
 		long	pos = 0;
 		
@@ -657,24 +657,24 @@ CacheFileManagerImpl
 			
 			long	this_end	= pos;
 				
-			if ( this_end <= overall_start ){
+			if ( this_end <= target_start ){
 				
 				continue;
 			}
 			
-			if ( overall_end <= this_start ){
+			if ( target_end <= this_start ){
 				
 				break;
 			}
 			
-			long	bit_start	= overall_start<this_start?this_start:overall_start;
-			long	bit_end		= overall_end>=this_end?this_end:overall_end;
+			long	bit_start	= target_start>this_start?target_start:this_start;
+			long	bit_end		= target_end<this_end?target_end:this_end;
 			
 			CacheFileImpl	cache_file = (CacheFileImpl)map.get( tf );
 			
 			if ( cache_file != null ){
 				
-				result	+= cache_file.getBytesInCache( bit_start - this_start, bit_end - this_end );
+				result	+= cache_file.getBytesInCache( bit_start - this_start, bit_end - bit_start );
 			}
 		}
 		

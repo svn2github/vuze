@@ -140,7 +140,7 @@ public class BlocksItem
         int length = piece.getBlockSize(i);
         int offset = PEPeerControl.BLOCK_SIZE * i;        
         long bytes = cacheStats == null ? 0 : cacheStats.getBytesInCache(torrent,pieceNumber,offset,length);
-        System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
+        // System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
         if(bytes == length) {
           gcImage.setBackground(cache);
           gcImage.fillRectangle(i * iPixelsPerBlock + 1,1,nextWidth,4);
