@@ -499,6 +499,29 @@ Test
 											
 						byte[]	res = 
 							dhts[0].getTransport().readTransfer(
+									new DHTTransportProgressListener()
+									{
+										public void
+										reportSize(
+											long	size )
+										{
+											System.out.println( "   size: " + size );
+										}
+										
+										public void
+										reportActivity(
+											String	str )
+										{
+											System.out.println( "   act: " + str );
+										}
+										
+										public void
+										reportCompleteness(
+											int		percent )
+										{
+											System.out.println( "   %: " + percent );
+										}
+									},
 									dhts[1].getTransport().getLocalContact(),
 									th_key,
 									new byte[]{1,2,3,4},

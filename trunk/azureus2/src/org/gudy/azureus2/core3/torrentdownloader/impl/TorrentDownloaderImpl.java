@@ -181,17 +181,51 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
           this.filename = this.filename.substring(1);
       if ((this.filename == null) || !this.filename.toLowerCase().startsWith("attachment") || (this.filename.indexOf('=') == -1)) {
         String tmp = this.url.getFile();
-        if (tmp.lastIndexOf('/') != -1)
-          tmp = tmp.substring(tmp.lastIndexOf('/') + 1);
+        if ( tmp.startsWith("?")){
         
-        // remove any params in the url
-        
-        int	param_pos = tmp.indexOf('?');
-        
-        if ( param_pos != -1 ){
-          tmp = tmp.substring(0,param_pos);
+        	// probably a magnet URI - use the hash
+        	// magnet:?xt=urn:sha1:VGC53ZWCUXUWVGX7LQPVZIYF4L6RXSU6
+        	
+       	
+        	String	query = tmp.toUpperCase();
+        		
+    		int	pos = query.indexOf( "XT=URN:SHA1:");
+    		
+    		if ( pos != -1 ){
+    			
+    			pos += 12;
+    			
+    			int	p2 = query.indexOf( "&", pos );
+    			
+    			if ( p2 == -1 ){
+    				
+    				this.filename = query.substring(pos);
+    				
+    			}else{
+    				
+    				this.filename = query.substring(pos,p2);
+    			}
+        	}else{
+        		
+        		this.filename = "Torrent" + (long)(Math.random()*Long.MAX_VALUE);
+        	}
+    		
+    		
+    		this.filename += ".tmp";
+    		
+        }else{
+	        if (tmp.lastIndexOf('/') != -1)
+	          tmp = tmp.substring(tmp.lastIndexOf('/') + 1);
+	        
+	        // remove any params in the url
+	        
+	        int	param_pos = tmp.indexOf('?');
+	        
+	        if ( param_pos != -1 ){
+	          tmp = tmp.substring(0,param_pos);
+	        }
+	        this.filename = URLDecoder.decode(tmp, Constants.DEFAULT_ENCODING );
         }
-        this.filename = URLDecoder.decode(tmp, Constants.DEFAULT_ENCODING );
       } else {
         this.filename = this.filename.substring(this.filename.indexOf('=') + 1);
         if (this.filename.startsWith("\"") && this.filename.endsWith("\""))
@@ -275,7 +309,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
           this.state = STATE_CANCELLED;
           this.cleanUpFile();
         } else {
-          if (this.readTotal == 0) {
+          if (this.readTotal <= 0) {
             this.error("No data contained in '" + this.url.toString() + "'");
             return;
           }

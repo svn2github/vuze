@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseEvent;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseListener;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
@@ -159,7 +160,7 @@ MagnetPlugin
 										try{
 											boolean	alive = value.getContact().isAlive(10000);
 												
-											System.out.println( "alive = " + alive );
+											System.out.println( value.getContact().getName() + ": alive = " + alive );
 											
 											if ( alive ){
 												
@@ -244,8 +245,31 @@ MagnetPlugin
 					
 					DistributedDatabaseValue	value = 
 						contact.read( 
+								new DistributedDatabaseProgressListener()
+								{
+									public void
+									reportSize(
+										long	size )
+									{
+										System.out.println( "dl:size=" + size );
+									}
+									public void
+									reportActivity(
+										String	str )
+									{
+										System.out.println( "dl:act=" + str );
+									}
+									
+									public void
+									reportCompleteness(
+										int		percent )
+									{
+										System.out.println( "dl:%=" + percent );
+									}
+								},
 								db.getStandardTransferType( DistributedDatabaseTransferType.ST_TORRENT ),
-								db.createKey( hash ));
+								db.createKey( hash ),
+								60000 );
 					
 					System.out.println( "download value = " + value );
 					

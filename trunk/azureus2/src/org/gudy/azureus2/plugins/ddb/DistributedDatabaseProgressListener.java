@@ -1,5 +1,5 @@
 /*
- * Created on 18-Feb-2005
+ * Created on 06-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -28,29 +28,17 @@ package org.gudy.azureus2.plugins.ddb;
  */
 
 public interface 
-DistributedDatabaseContact 
+DistributedDatabaseProgressListener 
 {
-	public String
-	getName();
-	
-	public boolean
-	isAlive(
-		long		timeout );
+	public void
+	reportSize(
+		long	size );
 	
 	public void
-	write(
-		DistributedDatabaseTransferType		type,
-		DistributedDatabaseKey				key,
-		DistributedDatabaseValue			data )
+	reportActivity(
+		String	str );
 	
-		throws DistributedDatabaseException;
-	
-	public DistributedDatabaseValue
-	read(
-		DistributedDatabaseProgressListener	listener,
-		DistributedDatabaseTransferType		type,
-		DistributedDatabaseKey				key,
-		long								timeout )
-	
-		throws DistributedDatabaseException;
+	public void
+	reportCompleteness(
+		int		percent );
 }

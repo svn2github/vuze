@@ -1484,14 +1484,17 @@ DHTTransportUDPImpl
 		
 	public byte[]
 	readTransfer(
-		DHTTransportContact		target,
-		byte[]					handler_key,
-		byte[]					key,
-		long					timeout )
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		byte[]							handler_key,
+		byte[]							key,
+		long							timeout )
 	
 		throws DHTTransportException
 	{
-		long	connection_id = getConnectionID();
+		boolean size_reported	= false;
+		
+		long	connection_id 	= getConnectionID();
 		
 		transferQueue	transfer_queue = new transferQueue( connection_id );
 		
@@ -1514,6 +1517,8 @@ DHTTransportUDPImpl
 		try{
 			long	start = SystemTime.getCurrentTime();
 			
+			listener.reportActivity( "Requesting entire transfer" );
+
 			sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
 
 			while( SystemTime.getCurrentTime() - start <= timeout ){					
@@ -1522,6 +1527,13 @@ DHTTransportUDPImpl
 				
 				if ( reply != null ){
 	
+					if ( !size_reported ){
+						
+						size_reported	= true;
+						
+						listener.reportSize( reply.getTotalLength());
+					}
+					
 					Iterator	it = packets.iterator();
 					
 					boolean	duplicate = false;
@@ -1546,6 +1558,8 @@ DHTTransportUDPImpl
 					
 					if ( !duplicate ){
 						
+						listener.reportActivity( "Received " + reply.getStartPosition() + " to " + (reply.getStartPosition() + reply.getLength()));
+
 						packets.add( reply );
 						
 							// see if we're done				
@@ -1576,6 +1590,8 @@ DHTTransportUDPImpl
 							if ( pos == actual_end ){
 							
 									// huzzah, we got the lot
+							
+								listener.reportActivity( "Complete" );
 								
 								byte[]	result = new byte[actual_end];
 								
@@ -1602,6 +1618,8 @@ DHTTransportUDPImpl
 					
 					if ( packets.size() == 0 ){
 						
+						listener.reportActivity( "Re-requesting entire transfer" );
+						
 						sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
 						
 					}else{
@@ -1622,6 +1640,8 @@ DHTTransportUDPImpl
 							
 							if ( p.getStartPosition() != pos ){
 								
+								listener.reportActivity( "Re-requesting " + pos + " to " + p.getStartPosition());
+								
 								sendReadRequest( 
 										connection_id, 
 										(DHTTransportUDPContactImpl)target, 
@@ -1637,6 +1657,8 @@ DHTTransportUDPImpl
 						
 						if ( pos != actual_end ){
 							
+							listener.reportActivity( "Re-requesting " + pos + " to " + actual_end );
+
 							sendReadRequest( 
 									connection_id, 
 									(DHTTransportUDPContactImpl)target, 

@@ -554,10 +554,11 @@ DHTTransportLoopbackImpl
 	
 	public byte[]
 	readTransfer(
-		DHTTransportContact		target,
-		byte[]					handler_key,
-		byte[]					key,
-		long					timeout )
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		byte[]							handler_key,
+		byte[]							key,
+		long							timeout )
 	
 		throws DHTTransportException
 	{

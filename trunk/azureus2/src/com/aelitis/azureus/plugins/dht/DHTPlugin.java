@@ -56,6 +56,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransportProgressListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportTransferHandler;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
@@ -911,9 +912,11 @@ DHTPlugin
 	
 	public byte[]
 	read(
-		DHTPluginContact		target,
-		byte[]					handler_key,
-		byte[]					key )
+		final DHTPluginProgressListener	listener,
+		DHTPluginContact				target,
+		byte[]							handler_key,
+		byte[]							key,
+		long							timeout )
 	{
 		if ( !isEnabled()){
 			
@@ -921,7 +924,34 @@ DHTPlugin
 		}
 		
 		try{
-			return( dht.getTransport().readTransfer( ((DHTPluginContactImpl)target).getContact(), handler_key, key, 60000 ));
+			return( dht.getTransport().readTransfer(
+						new DHTTransportProgressListener()
+						{
+							public void
+							reportSize(
+								long	size )
+							{
+								listener.reportSize( size );
+							}
+							
+							public void
+							reportActivity(
+								String	str )
+							{
+								listener.reportActivity( str );
+							}
+							
+							public void
+							reportCompleteness(
+								int		percent )
+							{
+								listener.reportCompleteness( percent );
+							}
+						},
+						((DHTPluginContactImpl)target).getContact(), 
+						handler_key, 
+						key, 
+						timeout ));
 			
 		}catch( DHTTransportException e ){
 			

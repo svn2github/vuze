@@ -27,10 +27,12 @@ import java.net.InetSocketAddress;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
 
 /**
  * @author parg
@@ -80,15 +82,41 @@ DDBaseContactImpl
 	
 	public DistributedDatabaseValue
 	read(
-		DistributedDatabaseTransferType		type,
-		DistributedDatabaseKey				key )
+		final DistributedDatabaseProgressListener	listener,
+		DistributedDatabaseTransferType				type,
+		DistributedDatabaseKey						key,
+		long										timeout )
 	
 		throws DistributedDatabaseException
 	{
 		byte[]	data = ddb.getDHT().read( 
+							new DHTPluginProgressListener()
+							{
+								public void
+								reportSize(
+									long	size )
+								{
+									listener.reportSize( size );
+								}
+								
+								public void
+								reportActivity(
+									String	str )
+								{
+									listener.reportActivity( str );
+								}
+								
+								public void
+								reportCompleteness(
+									int		percent )
+								{
+									listener.reportCompleteness( percent );
+								}
+							},
 							contact,
 							DDBaseHelpers.getKey(type.getClass()).getHash(),
-							((DDBaseKeyImpl)key).getBytes());
+							((DDBaseKeyImpl)key).getBytes(),
+							timeout );
 							
 		if ( data == null ){
 			

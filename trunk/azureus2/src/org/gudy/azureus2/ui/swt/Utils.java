@@ -148,7 +148,7 @@ public class Utils {
    * @return first valid link from clipboard, else "http://"
    */
   public static String getLinkFromClipboard(final Display display) {
-    final String[] prefixes = new String[] {"http://", "https://"};
+    final String[] prefixes = new String[] {"http://", "https://", "magnet:?" };
     final Clipboard cb = new Clipboard(display);
     final TextTransfer transfer = TextTransfer.getInstance();
     final String data = (String)cb.getContents(transfer);

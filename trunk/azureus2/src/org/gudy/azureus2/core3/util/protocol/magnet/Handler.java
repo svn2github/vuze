@@ -26,12 +26,8 @@ package org.gudy.azureus2.core3.util.protocol.magnet;
  *
  */
 
-import java.io.IOException;
 import java.net.*;
 
-import org.gudy.azureus2.core3.util.Debug;
-
-import com.aelitis.net.magneturi.MagnetURIHandler;
 
 public class 
 Handler 
@@ -40,24 +36,6 @@ Handler
 	public URLConnection 
 	openConnection(URL u)
 	{			
-		String	str = u.toString();
-				
-		str = "http://127.0.0.1:" + MagnetURIHandler.getSingleton().getPort() + "/download/" + str.substring( 7 );
-		
-		try{
-			return( new URL(str).openConnection());
-			
-		}catch( MalformedURLException e ){
-			
-			Debug.printStackTrace(e);
-			
-			return( null );
-			
-		}catch( IOException  e ){
-			
-			Debug.printStackTrace(e);
-			
-			return( null );
-		}	
+		return( new MagnetConnection( u ));
 	}
 }
