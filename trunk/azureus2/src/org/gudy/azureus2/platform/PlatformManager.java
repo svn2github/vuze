@@ -29,6 +29,12 @@ package org.gudy.azureus2.platform;
 public interface 
 PlatformManager 
 {
+	public static final int	PT_WINDOWS		= 1;
+	public static final int PT_OTHER		= 2;
+	
+	public int
+	getPlatformType();
+	
 	public String
 	getUserDataDirectory()
 	

@@ -29,6 +29,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Event;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -36,6 +39,8 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.platform.*;
 
 public class ConfigSectionInterface implements ConfigSectionSWT {
   Label passwordMatch;
@@ -143,6 +148,49 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
        dropValues[i] = "" + i;
     }
     new StringListParameter(cArea, "config.style.dropdiraction", "", dropLabels, dropValues);
+    
+    
+    	// reset associations
+ 
+    try{
+	    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
+	    
+	    if ( platform != null && platform.getPlatformType() == PlatformManager.PT_WINDOWS ){
+	    	
+		    Composite cResetAssoc = new Composite(cDisplay, SWT.NULL);
+		    layout = new GridLayout();
+		    layout.marginHeight = 0;
+		    layout.marginWidth = 0;
+		    layout.numColumns = 2;
+		    cResetAssoc.setLayout(layout);
+		    cResetAssoc.setLayoutData(new GridData());
+		 
+		    label = new Label(cResetAssoc, SWT.NULL);
+		    Messages.setLanguageText(label, "ConfigView.section.interface.resetassoc");
+
+		    Button reset = new Button(cResetAssoc, SWT.PUSH);
+		    Messages.setLanguageText(reset, "ConfigView.section.interface.resetassocbutton"); //$NON-NLS-1$
+
+		    //browse.setImage(imgOpenFolder);
+		    //imgOpenFolder.setBackground(browse.getBackground());
+		    //browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+		
+		    reset.addListener(SWT.Selection, new Listener() {
+		      public void handleEvent(Event event) {
+		      	
+		      	try{
+		      		platform.registerApplication();
+		      		
+		      	}catch( PlatformManagerException e ){
+		      	
+		      		LGLogger.logAlert("Failed to register application", e );
+		      	}
+		      }
+		    });
+	    }
+    }catch( PlatformManagerException e ){
+    	
+    }
     
     return cDisplay;
   }

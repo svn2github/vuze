@@ -99,6 +99,12 @@ PlatformManagerImpl
 		}
 	}
 	
+	public int
+	getPlatformType()
+	{
+		return( PT_WINDOWS );
+	}
+	
 	public String
 	getUserDataDirectory()
 	
