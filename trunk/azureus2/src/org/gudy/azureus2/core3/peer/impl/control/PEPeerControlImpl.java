@@ -1875,7 +1875,12 @@ PEPeerControlImpl
 		    int pieceNumber = chunk.getPieceNumber();
 		    if(peer.getAvailable()[pieceNumber]) {
 		      peer.request(pieceNumber,chunk.getOffset(),chunk.getLength());
-		      _pieces[pieceNumber].markBlock(chunk.getBlockNumber());
+		      PEPiece piece = _pieces[pieceNumber];
+		      if(piece != null) {
+		       piece.markBlock(chunk.getBlockNumber());
+		      } else {
+		        System.out.println("End Game Mode :: Piece is null");
+		      }
 		      return true;
 		    }
 	    }
