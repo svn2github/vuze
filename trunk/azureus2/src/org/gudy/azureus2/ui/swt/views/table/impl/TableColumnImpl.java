@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
@@ -57,6 +58,7 @@ public class TableColumnImpl
 	private ArrayList cellRefreshListeners;
 	private ArrayList cellAddedListeners;
 	private ArrayList cellDisposeListeners;
+	private ArrayList cellToolTipListeners;
 	private int iConsecutiveErrCount;
   private ArrayList menuItems;
 
@@ -210,6 +212,20 @@ public class TableColumnImpl
 		cellDisposeListeners.remove(listener);
   }
 
+  public synchronized void addCellToolTipListener(TableCellToolTipListener listener) {
+    if (cellToolTipListeners == null)
+      cellToolTipListeners = new ArrayList();
+
+		cellToolTipListeners.add(listener);
+  }
+
+  public synchronized void removeCellToolTipListener(TableCellToolTipListener listener) {
+    if (cellToolTipListeners == null)
+      return;
+
+		cellToolTipListeners.remove(listener);
+  }
+
   public void invalidateCells() {
     TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
     tsed.columnInvalidate(this);
@@ -256,6 +272,18 @@ public class TableColumnImpl
       return;
     for (int i = 0; i < cellDisposeListeners.size(); i++)
       ((TableCellDisposeListener)(cellDisposeListeners.get(i))).dispose(cell);
+  }
+
+  public void invokeCellToolTipListeners(TableCellCore cell, int type) {
+    if (cellToolTipListeners == null)
+      return;
+    if (type == TableCellCore.TOOLTIPLISTENER_HOVER) {
+      for (int i = 0; i < cellToolTipListeners.size(); i++)
+        ((TableCellToolTipListener)(cellToolTipListeners.get(i))).cellHover(cell);
+    } else {
+      for (int i = 0; i < cellToolTipListeners.size(); i++)
+        ((TableCellToolTipListener)(cellToolTipListeners.get(i))).cellHoverComplete(cell);
+    }
   }
 
   public void setPositionNoShift(int position) {

@@ -44,6 +44,9 @@ import org.gudy.azureus2.plugins.ui.tables.TableCell;
 public interface TableCellCore
        extends TableCell, Comparable
 {
+  static final int TOOLTIPLISTENER_HOVER = 0;
+  static final int TOOLTIPLISTENER_HOVERCOMPLETE = 1;
+  
   /** Sets the Validitiliy of the cell
    *
    * @param valid The valid to set.
@@ -100,4 +103,6 @@ public interface TableCellCore
   
   public boolean setGraphic(Image img);
   public Image getGraphicSWT();
+
+  public void invokeToolTipListeners(int type);
 }

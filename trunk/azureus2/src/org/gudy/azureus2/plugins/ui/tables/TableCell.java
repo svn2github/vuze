@@ -243,4 +243,15 @@ public interface TableCell {
    * @param listener Previously added listener
    */
   public void removeDisposeListener(TableCellDisposeListener listener);
+
+  /** Adds a listener related to tooltip actions
+   *
+   * @param listener listener object to be called
+   */
+  public void addToolTipListener(TableCellToolTipListener listener);
+  /** Removed a previously added TableCellToolTipListener
+   *
+   * @param listener Previously added listener
+   */
+  public void removeToolTipListener(TableCellToolTipListener listener);
 }

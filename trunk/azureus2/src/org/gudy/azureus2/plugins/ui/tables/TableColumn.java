@@ -176,11 +176,29 @@ public interface TableColumn {
   public void removeCellRefreshListener(TableCellRefreshListener listener);
 
 
+  /** Adds a listener that triggers when a TableCell that belongs to this column
+   * is being added.
+   *
+   * @param listener Listener Object to be called when refresh is needed.
+   */
   public void addCellAddedListener(TableCellAddedListener listener);
   public void removeCellAddedListener(TableCellAddedListener listener);
 
+  /** Adds a listener that triggers when a TableCell that belongs to this column
+   * is being disposed.
+   *
+   * @param listener Listener Object to be called when refresh is needed.
+   */
   public void addCellDisposeListener(TableCellDisposeListener listener);
   public void removeCellDisposeListener(TableCellDisposeListener listener);
+
+  /** Adds a listener that triggers when a TableCell that belongs to this column
+   * has a tooltip action
+   *
+   * @param listener Listener Object to be called when refresh is needed.
+   */
+  public void addCellToolTipListener(TableCellToolTipListener listener);
+  public void removeCellToolTipListener(TableCellToolTipListener listener);
 
   /** Invalidate all cells in this column.  The cells will be forced to
    * update on the next refresh.

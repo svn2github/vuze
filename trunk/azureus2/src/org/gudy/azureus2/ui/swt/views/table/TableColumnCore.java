@@ -79,6 +79,8 @@ public interface TableColumnCore extends TableColumn {
    */
   public void invokeCellDisposeListeners(TableCellCore cell);
 
+  public void invokeCellToolTipListeners(TableCellCore cell, int type);
+
   /** Sets the position of the column without adjusting the other columns.
    * This will cause duplicate columns, and is only usefull if you are
    * adjusting the positions of multiple columns at once.

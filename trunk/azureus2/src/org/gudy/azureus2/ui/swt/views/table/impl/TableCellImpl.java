@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
@@ -72,6 +73,7 @@ public class TableCellImpl
   private BufferedTableItem bufferedTableItem;
   private ArrayList refreshListeners;
   private ArrayList disposeListeners;
+  private ArrayList tooltipListeners;
   private TableColumnCore tableColumn;
   private boolean valid;
   private int refreshErrLoopCount;
@@ -331,6 +333,20 @@ public class TableCellImpl
     disposeListeners.remove(listener);
   }
   
+  public synchronized void addToolTipListener(TableCellToolTipListener listener) {
+    if (tooltipListeners == null) {
+      tooltipListeners = new ArrayList();
+    }
+    tooltipListeners.add(listener);
+  }
+
+  public synchronized void removeToolTipListener(TableCellToolTipListener listener) {
+    if (tooltipListeners == null)
+      return;
+
+    tooltipListeners.remove(listener);
+  }
+  
   /* Start of Core-Only function */
   //////////////////////////////////
   public void setValid(boolean valid) {
@@ -467,5 +483,19 @@ public class TableCellImpl
 
   public Object getToolTip() {
     return oToolTip;
+  }
+
+  public void invokeToolTipListeners(int type) {
+    tableColumn.invokeCellToolTipListeners(this, type);
+
+    if (tooltipListeners == null)
+      return;
+    if (type == TOOLTIPLISTENER_HOVER) {
+      for (int i = 0; i < tooltipListeners.size(); i++)
+        ((TableCellToolTipListener)(tooltipListeners.get(i))).cellHover(this);
+    } else {
+      for (int i = 0; i < tooltipListeners.size(); i++)
+        ((TableCellToolTipListener)(tooltipListeners.get(i))).cellHoverComplete(this);
+    }
   }
 }

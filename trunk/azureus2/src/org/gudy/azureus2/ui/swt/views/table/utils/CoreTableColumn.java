@@ -96,5 +96,9 @@ public class CoreTableColumn
       addCellAddedListener((TableCellAddedListener)this);
     if (this instanceof TableCellRefreshListener)
       addCellRefreshListener((TableCellRefreshListener)this);
+    if (this instanceof TableCellDisposeListener)
+      addCellDisposeListener((TableCellDisposeListener)this);
+    if (this instanceof TableCellToolTipListener)
+      addCellToolTipListener((TableCellToolTipListener)this);
   }
 }
