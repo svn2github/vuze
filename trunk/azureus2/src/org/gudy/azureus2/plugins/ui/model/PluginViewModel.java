@@ -1,5 +1,5 @@
 /*
- * Created on 19-Apr-2004
+ * Created on 27-Apr-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,47 +20,15 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ui;
+package org.gudy.azureus2.plugins.ui.model;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.plugins.ui.model.*;
-import org.gudy.azureus2.plugins.ui.tables.mytracker.*;
-
 public interface 
-UIManager 
+PluginViewModel 
 {
-	public MyTracker
-	getMyTracker();
-	
-		/**
-		 * Gets a basic plugin view model that supports simple plugin requirements
-		 * After getting the model create the view using createPluginView
-		 * @return
-		 */
-	
-	public BasicPluginViewModel
-	getBasicPluginViewModel(
-		String			name );
-
-		/**
-		 * Creates a view from the model. It is then necessary to add it to the plugin
-		 * as any other PluginView
-		 * @param model
-		 * @return
-		 */
-	
-	public PluginView
-	createPluginView(
-		PluginViewModel	model );
-	
-	public void
-	copyToClipBoard(
-		String		data )
-	
-		throws UIException;
+	public String
+	getName();
 }

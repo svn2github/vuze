@@ -20,34 +20,61 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ui.view;
+package org.gudy.azureus2.pluginsimpl.local.ui.model;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.components.*;
 
-public abstract class 
-BasicPluginView
-	extends PluginView
+public class 
+BasicPluginViewModelImpl 
+	implements BasicPluginViewModel
 {
-		/**
-		 * All UI Components are initially enabled - disable if not required
-		 * @return
-		 */
+	protected String		name;
 	
-	public abstract UITextField
-	getStatus();
+	protected UITextField	status;
+	protected UITextField	activity;
+	protected UITextArea	log;
+	protected UIProgressBar	progress;
 	
-	public abstract UITextField
-	getActivity();
+	public
+	BasicPluginViewModelImpl(
+		String		_name )
+	{
+		name		= _name;
+	}
 	
-	public abstract UITextArea
-	getLogArea();
+	public String
+	getName()
+	{
+		return( name );
+	}
 	
-	public abstract UIProgressBar
-	getProgress();
+	public UITextField
+	getStatus()
+	{
+		return( status );
+	}
+	
+	public UITextField
+	getActivity()
+	{
+		return( activity );
+	}
+	
+	public UITextArea
+	getLogArea()
+	{
+		return( log );
+	}
+	
+	public UIProgressBar
+	getProgress()
+	{
+		return( progress );
+	}
 }
