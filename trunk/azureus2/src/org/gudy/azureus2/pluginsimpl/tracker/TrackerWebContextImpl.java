@@ -71,14 +71,21 @@ TrackerWebContextImpl
 		}
 	}
 	
-	public void
+	public synchronized void
 	addPageGenerator(
-			TrackerWebPageGenerator	generator )
+		TrackerWebPageGenerator	generator )
+	{			
+		generators.add( generator );
+	}
+	
+	public TrackerWebPageGenerator[]
+	getPageGenerators()
 	{
-		synchronized( this ){
-			
-			generators.add( generator );
-		}
+		TrackerWebPageGenerator[]	res = new TrackerWebPageGenerator[generators.size()];
+		
+		generators.toArray( res );
+		
+		return( res );
 	}
 	
 	public boolean

@@ -48,6 +48,25 @@ TrackerDefaultWeb
 	{	
 		plugin_interface	= _plugin_interface;
 		
+		// this is a built in one and hence initialised after the "normal" ones. Check to see if
+		// there's a tracker web one already installed. If so we just do nothing
+		
+		PluginInterface[] plugins = plugin_interface.getPluginManager().getPlugins();
+		
+		for (int i=0;i<plugins.length;i++){
+			
+			PluginInterface	pi = plugins[i];
+			
+			String	plugin_name = (String)pi.getPluginProperties().getProperty( "name" );
+			
+			if ( plugin_name != null && plugin_name.equalsIgnoreCase("TrackerWeb")){
+				
+				return;
+			}
+			
+			System.out.println("got plugin_name = " + plugin_name );
+		}
+		
 		tracker = plugin_interface.getTracker();
 		
 		tracker.addPageGenerator( this );
