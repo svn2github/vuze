@@ -242,4 +242,10 @@ PEPeerServerImpl
   {
     adapter = _adapter;
   }
+  
+  public void
+  clearServerAdapter()
+  {
+  	adapter	= null;
+  }
 }

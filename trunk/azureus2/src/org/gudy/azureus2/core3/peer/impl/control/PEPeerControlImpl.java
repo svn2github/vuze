@@ -408,6 +408,8 @@ PEPeerControlImpl
     //3. Stop the server
     _server.stopServer();
 
+    _server.clearServerAdapter();
+
     for (int i = 0; i < _pieces.length; i++) {
       if (_pieces[i] != null)
         pieceRemoved(_pieces[i]);

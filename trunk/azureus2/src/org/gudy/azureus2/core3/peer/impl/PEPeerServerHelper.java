@@ -36,6 +36,9 @@ PEPeerServerHelper
 	setServerAdapter(
 		PEPeerServerAdapter	adapter );
 		
+	public void
+	clearServerAdapter();
+	
 	public PEPeerTransport
 	createPeerTransport(
 		Object		param );

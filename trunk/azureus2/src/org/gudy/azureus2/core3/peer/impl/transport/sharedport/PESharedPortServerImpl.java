@@ -126,18 +126,31 @@ PESharedPortServerImpl
 		adapter	= _adapter;
 	}
 		
+	public void
+	clearServerAdapter()
+	{
+		adapter	= null;
+	}
+	
 	protected void
 	connectionReceived(
 		SocketChannel		socket,
 		byte[]				data_read )
 	{		
-		adapter.addPeerTransport( new Object[]{ socket, data_read });
+		PEPeerServerAdapter	a = adapter;
+		
+		if ( a != null ){
+			
+			a.addPeerTransport( new Object[]{ socket, data_read });
+		}
 	}
 	
 	public PEPeerTransport
 	createPeerTransport(
 		Object		param )
 	{
+		PEPeerServerAdapter	a = adapter;
+	
 		Object[]	temp = (Object[])param;
 		
 		SocketChannel	channel = (SocketChannel)temp[0];
