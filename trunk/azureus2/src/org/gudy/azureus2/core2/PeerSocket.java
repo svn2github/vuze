@@ -143,7 +143,7 @@ public class PeerSocket extends PeerConnection {
     }
 
     byte[] protocol = PROTOCOL.getBytes();
-    if (readBuffer.limit() < protocol.length) {
+    if (readBuffer.remaining() < protocol.length) {
        closeAll(true);
        return;
     }
@@ -156,7 +156,7 @@ public class PeerSocket extends PeerConnection {
     }
 
     byte[] reserved = new byte[8];
-    if (readBuffer.limit() < reserved.length) {
+    if (readBuffer.remaining() < reserved.length) {
        closeAll(true);
        return;
     }
@@ -166,7 +166,7 @@ public class PeerSocket extends PeerConnection {
 
     byte[] hash = manager.getHash();
     byte[] otherHash = new byte[20];
-    if (readBuffer.limit() < otherHash.length) {
+    if (readBuffer.remaining() < otherHash.length) {
        closeAll(true);
        return;
     }
@@ -182,7 +182,7 @@ public class PeerSocket extends PeerConnection {
 
     
     byte[] otherPeerId = new byte[20];
-    if (readBuffer.limit() < otherPeerId.length) {
+    if (readBuffer.remaining() < otherPeerId.length) {
        closeAll(true);
        return;
     }
@@ -236,8 +236,7 @@ public class PeerSocket extends PeerConnection {
 
   protected void readMessage(ByteBuffer buffer) {
     lengthBuffer.position(0);
-    if(buffer != null)
-      buffer.position(0);
+    buffer.position(0);
     readBuffer = buffer;
     readingLength = true;
   }
@@ -683,6 +682,9 @@ public class PeerSocket extends PeerConnection {
   }
 
   private void have(int pieceNumber) {
+    /* NOLAR: temp debug output - let me know if you see this! */
+    if (pieceNumber >= available.length) System.out.println("pieceNumber="+pieceNumber+" >= length="+available.length);
+    
     available[pieceNumber] = true;
     stats.haveNewPiece();
     manager.haveNewPiece();
@@ -967,6 +969,10 @@ public class PeerSocket extends PeerConnection {
           if (limit > realLimit)
             limit = realLimit;
         }
+        /* NOLAR: temp debug output - let me know if you see this! */
+        if (limit > writeBuffer.capacity()) System.out.println("limit > capacity: limit="+limit+" capacity="+writeBuffer.capacity());
+        if (limit < 0) System.out.println("limit < 0: limit="+limit);
+        
         writeBuffer.limit(limit);
         int written = socket.write(writeBuffer);
         if (written < 0)
