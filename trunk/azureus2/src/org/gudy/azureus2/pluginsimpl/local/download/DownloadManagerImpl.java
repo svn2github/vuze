@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.download.*;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 public class 
 DownloadManagerImpl
@@ -154,7 +155,7 @@ DownloadManagerImpl
 	addDownload(
 		File fileName ) 
 	{
-		MainWindow.getWindow().openTorrent(fileName.toString());
+		TorrentOpener.openTorrent(fileName.toString());
 	}
 
 	public void 

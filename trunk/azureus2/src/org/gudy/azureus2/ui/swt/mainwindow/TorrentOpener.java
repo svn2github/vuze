@@ -41,6 +41,9 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.Semaphore;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.ui.swt.FileDownloadWindow;
+import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
+import org.gudy.azureus2.ui.swt.OpenUrlWindow;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 /**
@@ -298,5 +301,67 @@ public class TorrentOpener {
       }
     }
     .start();
+  }
+
+
+  public static void openDirectory() {
+    DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
+    
+    if ( COConfigurationManager.getBooleanParameter( "Save Torrent Files", true )){
+      
+      String	default_path = COConfigurationManager.getStringParameter( "General_sDefaultTorrent_Directory", "" );
+      
+      if ( default_path.length() > 0 ){
+        
+        fDialog.setFilterPath(default_path);
+      }
+    }
+  
+    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
+    String fileName = fDialog.open();
+    if (fileName == null)
+      return;
+    TorrentOpener.openTorrentsFromDirectory(fileName);
+  }
+
+
+  public static void openTorrent() {
+    FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
+    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
+    String fileName = fDialog.open();
+    if (fileName == null)
+      return;
+    TorrentOpener.openTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
+  }
+
+
+  public static void openTorrentNoDefaultSave(boolean forSeeding) {
+    FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
+    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
+    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
+    String fileName = fDialog.open();
+    if (fileName == null)
+      return;
+    TorrentOpener.openTorrents(fDialog.getFilterPath(), fDialog.getFileNames(),false,forSeeding);
+  }
+  
+  public static void openTorrentWindow() {
+    new OpenTorrentWindow(display, globalManager);
+  }
+
+
+  public static void openUrl() {
+    openUrl(null);
+  }
+
+
+  public static void openUrl(String linkURL) {
+    if(linkURL != null && linkURL.length() > 20 && COConfigurationManager.getBooleanParameter("Add URL Silently", false))
+      new FileDownloadWindow(display, linkURL);
+    else
+      new OpenUrlWindow(display, linkURL);
   }
 }

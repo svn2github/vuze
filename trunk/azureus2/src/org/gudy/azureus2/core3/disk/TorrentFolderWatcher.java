@@ -15,6 +15,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 /**
  * This class can watch folders for new torrents and imports them.
@@ -104,10 +105,10 @@ public class TorrentFolderWatcher {
         if ( !saved || path.length() < 1) {
         	File imported = new File( watchFolderString, file.getName() + ".imported" );
         	file.renameTo( imported );
-        	mainWindow.openTorrent(watchFolderString + imported.getName(), startWatchedTorrentsStopped, false);
+        	TorrentOpener.openTorrent(watchFolderString + imported.getName(), startWatchedTorrentsStopped, false);
         }
         else {
-          mainWindow.openTorrent(watchFolderString + file.getName(), startWatchedTorrentsStopped, false);
+          TorrentOpener.openTorrent(watchFolderString + file.getName(), startWatchedTorrentsStopped, false);
           delList.add( file );  //add file for deletion
         }
         LGLogger.log(LGLogger.INFORMATION, "Imported " + watchFolderString + "/" + currentFileList[i]);

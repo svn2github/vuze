@@ -127,7 +127,7 @@ public class TrayWindow implements GlobalManagerListener {
 
     new MenuItem(menu, SWT.SEPARATOR);
     
-    main.addCloseDownloadBarsToMenu(menu);
+    main.getMenu().addCloseDownloadBarsToMenu(menu);
     
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -237,7 +237,7 @@ public class TrayWindow implements GlobalManagerListener {
 	}				
 	
   public void updateLanguage() {
-    MainWindow.updateMenuText(menu);
+    MainWindow.getWindow().getMenu().updateMenuText(menu);
   }
 
   /**

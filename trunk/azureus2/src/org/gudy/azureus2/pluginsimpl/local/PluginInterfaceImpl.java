@@ -56,6 +56,7 @@ import org.gudy.azureus2.plugins.utils.Utilities;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -139,7 +140,7 @@ PluginInterfaceImpl
   {
     MainWindow window = MainWindow.getWindow();
     if(window != null) {
-      window.addPluginView(view);
+      window.getMenu().addPluginView(view);
     }
   } 
   
@@ -152,7 +153,7 @@ PluginInterfaceImpl
    * @deprecated
    */
   public void openTorrentFile(String fileName) {
-    MainWindow.getWindow().openTorrent(fileName);
+    TorrentOpener.openTorrent(fileName);
   }
 
   /**

@@ -295,7 +295,7 @@ UpdateLanguagePlugin
     
     log.log(LoggerChannel.LT_INFORMATION, "Written to " + fLanguageFile.getAbsolutePath());
     // refresh Azureus
-    MainWindow.getWindow().refreshLanguage();
+    MainWindow.getWindow().getMenu().refreshLanguage();
   }
   
   /* Checks to see if it's okay to retreive the latest bundle.
@@ -415,7 +415,7 @@ UpdateLanguagePlugin
             } catch (Exception e) {}
           }
           ((Button)event.widget).setEnabled(file.exists());
-          MainWindow.getWindow().refreshLanguage();
+          MainWindow.getWindow().getMenu().refreshLanguage();
 	      }
 	    });
       btnRevert.setEnabled(UpdateLanguagePlugin.this.getCurLocaleFile().exists());
