@@ -1,7 +1,7 @@
 CHANGELOG
 ---------
 
-xx.xx.03 | Azureus 2.0.4.1
+20.11.03 | Azureus 2.0.4.2
 
 FEATURE: Added tooltip general support [Gudy]
 FEATURE: Default torrent encoding selection added to Config->File [Parg]
@@ -15,7 +15,8 @@ CHANGE: Moving of .torrent to completed dir now optional [Nolar]
 CHANGE: Additional upload speed options [Nolar]
 CHANGE: Cleanup of Configuration tabs [Nolar]
 CHANGE: Rewrite of locale selection code for torrents. Only one encoding allowed per torrent [Parg]
-CHANGE: added default .torrent and save folders from config when opening folder of torrents [Parg]
+CHANGE: File->Open... now opens to the default download/torrent dirs set in config [Parg]
+CHANGE: ETA/TimeRemaining now just uses two significant measures, and "kB" changed to "KB"  [Nolar] 
 
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
@@ -33,6 +34,7 @@ BUGFIX: Text scroll is now ok in irc view [Gudy]
 BUGFIX: Size is now displayed even when the torrent is stopped [Gudy]
 BUGFIX: Sorting by 'Discarded', 'Overall Down Speed', 'Stat Up' in Details view [Nolar]
 BUGFIX: Torrent 'discarded' and 'hash fails' now remembered between sessions [Nolar]
+BUGFIX: Corrected sorting by DownSpeed, UpSpeed, ETA in MyTorrents view [Nolar]
 
 
 
