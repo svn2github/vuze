@@ -112,7 +112,11 @@ public class SystemProperties {
    * and running from.
    */
   public static String getApplicationPath() {
-    return System.getProperty("user.dir") + SEP;
+    String sDir = System.getProperty("user.dir");
+    if (sDir.endsWith(SEP))
+      return sDir;
+
+    return sDir + SEP;
   }
   
   
