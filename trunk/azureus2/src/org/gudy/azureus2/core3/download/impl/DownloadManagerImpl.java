@@ -1610,17 +1610,30 @@ DownloadManagerImpl
   public boolean 
   canForceRecheck() 
   {
+  	if ( torrent == null ){
+  			// broken torrent, can't force recheck
+  		
+  		return( false );
+  	}
+  	
     return (state == STATE_STOPPED) ||
            (state == STATE_QUEUED) ||
            (state == STATE_ERROR && diskManager == null);
   }
 
-  public void forceRecheck() {
+  public void 
+  forceRecheck() 
+  {
   	if ( diskManager != null ) {
   		LGLogger.log(0, 0, LGLogger.ERROR, "Trying to force recheck while diskmanager active");
   		return;
   	}
-  	
+  
+  	if ( torrent == null ){
+ 		LGLogger.log(0, 0, LGLogger.ERROR, "Trying to force recheck with broken torrent");
+  		return;
+ 		
+  	}
     Thread recheck = 
     	new AEThread("forceRecheck") 
 		{
