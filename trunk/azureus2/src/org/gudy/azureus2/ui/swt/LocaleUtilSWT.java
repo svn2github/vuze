@@ -18,6 +18,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -221,7 +222,6 @@ LocaleUtilSWT
     s.setText(MessageText.getString("LocaleUtil.title")); //$NON-NLS-1$
     GridData gridData;
     s.setLayout(new GridLayout(1, true));
-    s.setLayoutData(gridData = new GridData());
 
 /*
     Label label = new Label(s, SWT.NONE);
@@ -229,19 +229,18 @@ LocaleUtilSWT
     label.setLayoutData(gridData);
     label.setText("Bitte wählen Sie das Encoding, welches am besten passt");
 */
-    Group gChoose = new Group(s, SWT.NULL);
+   /* Group gChoose = new Group(s, SWT.NULL);
     gChoose.setLayout(new GridLayout(3, false));
     Messages.setLanguageText(gChoose, "LocaleUtil.section.chooseencoding"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 3;
-    gChoose.setLayoutData(gridData);
+    gChoose.setLayoutData(gridData);*/
 
-    Label label = new Label(gChoose, SWT.LEFT);
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
-    label.setLayoutData(gridData);
+    Label label = new Label(s, SWT.LEFT);
     Messages.setLanguageText(label, "LocaleUtil.label.chooseencoding"); //$NON-NLS-1$
 
+    /* No need for a scrolled composite here
+    
     ScrolledComposite sc = new ScrolledComposite(gChoose, SWT.H_SCROLL | SWT.V_SCROLL);
     sc.setExpandHorizontal(true);
     sc.setExpandVertical(true);
@@ -251,15 +250,18 @@ LocaleUtilSWT
 
     sc.setSize( 200, 300 );
     
+    
     final Table table = new Table(sc, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER );
     
     sc.setContent( table );
+    */
+    
+    final Table table = new Table(s, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+    gridData = new GridData( GridData.FILL_BOTH );
+    table.setLayoutData(gridData);
     
     table.setLinesVisible(true);
     table.setHeaderVisible(true);
-    gridData = new GridData(SWT.NULL);
-    gridData.horizontalSpan = 1;
-    table.setLayoutData(gridData);
 
     String[] titlesPieces = { "filename", "encoding"}; //$NON-NLS-1$ //$NON-NLS-2$
     for (int i = 0; i < titlesPieces.length; i++) {
@@ -282,29 +284,38 @@ LocaleUtilSWT
     }
     table.select(lastSelectedIndex);
 
-    table.setSize( 200, 300 );
+    //table.setSize( 200, 300 );
     // resize all columns to fit the widest entry 
     table.getColumn(0).pack();
     table.getColumn(1).pack();
 
-    label = new Label(gChoose, SWT.LEFT);
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
-    label.setLayoutData(gridData);
+    label = new Label(s, SWT.LEFT);
     Messages.setLanguageText(label, "LocaleUtil.label.hint.doubleclick"); //$NON-NLS-1$
 
-    final Button ok = new Button(gChoose, SWT.PUSH);
-    ok.setText(" ".concat(MessageText.getString("Button.next")).concat(" ")); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
-    ok.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
-    label = new Label(gChoose, SWT.NULL);
-    label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END));
-    Messages.setLanguageText(label, "LocaleUtil.label.checkbox.rememberdecision"); //$NON-NLS-1$
-
-    final Button checkBox = new Button(gChoose, SWT.CHECK);
-    checkBox.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+    Composite composite = new Composite(s,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    composite.setLayoutData(gridData);
+    
+    GridLayout subLayout  = new GridLayout();
+    subLayout.numColumns = 2;
+    
+    composite.setLayout(subLayout);
+    
+    final Button checkBox = new Button(composite, SWT.CHECK);
+    checkBox.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
     checkBox.setSelection(rememberEncodingDecision);
+    Messages.setLanguageText(checkBox, "LocaleUtil.label.checkbox.rememberdecision"); //$NON-NLS-1$, "LocaleUtil.label.checkbox.rememberdecision"); //$NON-NLS-1$
+       
+    final Button ok = new Button(composite, SWT.PUSH);
+    ok.setText(" ".concat(MessageText.getString("Button.next")).concat(" ")); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
+    gridData = new GridData(GridData.END);
+    gridData.widthHint = 100;
+    ok.setLayoutData(gridData);
+    
 
-    s.pack();
+    
+    s.setSize(500,500);
+    s.layout();
     
     Utils.centreWindow(s);
  
@@ -322,14 +333,6 @@ LocaleUtilSWT
     });
 
     s.open();
-    while (!s.isDisposed()) {
-      try {
-        if (!display.readAndDispatch())
-          display.sleep();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
   }
 
   private void 
