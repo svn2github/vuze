@@ -138,13 +138,25 @@ public class SystemProperties {
   /**
    * Will attempt to retrieve an OS-specific environmental var.
    */
-  public static String getEnvironmentalVariable( final String _var ) {
+  
+  public static String 
+  getEnvironmentalVariable( 
+  		final String _var ) 
+  {
   	Process p = null;
   	Properties envVars = new Properties();
   	Runtime r = Runtime.getRuntime();
     BufferedReader br = null;
     String OS = System.getProperty("os.name").toLowerCase();
 
+    	// this approach doesn't work at all on Windows 95/98/ME - it just hangs
+    	// so get the hell outta here!
+    
+    if ( OS.indexOf("windows 9") != -1 ){
+    	
+    	return( "" );
+    }
+    
     try {
     	if ( (OS.indexOf("nt") > -1) || (OS.indexOf("windows") > -1) ) {
     		p = r.exec( "cmd.exe /c set" );
