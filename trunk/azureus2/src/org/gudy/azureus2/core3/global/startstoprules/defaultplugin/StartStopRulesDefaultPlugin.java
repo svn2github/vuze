@@ -1426,7 +1426,9 @@ public class StartStopRulesDefaultPlugin
 
     /** Does the torrent match First Priority criteria? */
     public boolean isFirstPriority() {
-      if (bDebugLog) sExplainFP = "FP Calculations:\n";
+      if (bDebugLog) sExplainFP = "FP Calculations.  Using " + 
+                                  (iFirstPrioritySeedingMinutes == FIRSTPRIORITY_ALL ? "All": "Any") + 
+                                  ":\n";
       
       if (!dl.isPersistent()) {
         if (bDebugLog) sExplainFP += "Not FP: Download not persistent\n";
@@ -1450,11 +1452,11 @@ public class StartStopRulesDefaultPlugin
       
       if (bDebugLog) sExplainFP += "  shareRatio("+shareRatio+") < "+minQueueingShareRatio+"="+bLastMatched+"\n";
       if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
-        if (bDebugLog) sExplainFP += "..Not FP\n";
+        if (bDebugLog) sExplainFP += "..Not FP.  Exit Early\n";
         return false;
       }
-      if (bLastMatched) {
-        if (bDebugLog) sExplainFP += "..Is FP\n";
+      if (bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ANY) {
+        if (bDebugLog) sExplainFP += "..Is FP.  Exit Early\n";
         return true;
       }
       
@@ -1465,14 +1467,16 @@ public class StartStopRulesDefaultPlugin
           bLastMatched = (timeSeeding < (iFirstPrioritySeedingMinutes * 60));
           if (bDebugLog) sExplainFP += "  SeedingTime("+timeSeeding+") < "+iFirstPrioritySeedingMinutes*60+"="+bLastMatched+"\n";
           if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
-            if (bDebugLog) sExplainFP += "..Not FP\n";
+            if (bDebugLog) sExplainFP += "..Not FP.  Exit Early\n";
             return false;
           }
-          if (bLastMatched) {
-            if (bDebugLog) sExplainFP += "..Is FP\n";
+          if (bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ANY) {
+            if (bDebugLog) sExplainFP += "..Is FP.  Exit Early\n";
             return true;
           }
         }
+      } else if (bDebugLog) {
+        sExplainFP += "  SeedingTime setting == 0:  Ignored");
       }
 
       bLastMatched = (iFirstPriorityDLMinutes == 0);
@@ -1482,14 +1486,16 @@ public class StartStopRulesDefaultPlugin
           bLastMatched = (timeDLing < (iFirstPriorityDLMinutes * 60));
           if (bDebugLog) sExplainFP += "  DLTime("+timeDLing+") < "+iFirstPriorityDLMinutes+"="+bLastMatched+"\n";
           if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
-            if (bDebugLog) sExplainFP += "..Not FP\n";
+            if (bDebugLog) sExplainFP += "..Not FP.  Exit Early\n";
             return false;
           }
-          if (bLastMatched) {
-            if (bDebugLog) sExplainFP += "..Is FP\n";
+          if (bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ANY) {
+            if (bDebugLog) sExplainFP += "..Is FP.  Exit Early\n";
             return true;
           }
         }
+      } else if (bDebugLog) {
+        sExplainFP += "  DLTime setting == 0:  Ignored");
       }
 
       if (iFirstPriorityType == FIRSTPRIORITY_ALL) {
