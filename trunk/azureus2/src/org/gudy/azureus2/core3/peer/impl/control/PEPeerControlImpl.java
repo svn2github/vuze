@@ -495,11 +495,17 @@ PEPeerControlImpl
 
     //set finished
     _finished = temp;
+        
     if (_finished) {
+      boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
+      
+      _manager.setState(DownloadManager.STATE_FINISHING);
       _timeFinished = System.currentTimeMillis() / 1000;
-      _manager.setState(DownloadManager.STATE_SEEDING);
-      //_diskManager.changeToReadOnly();
-      _diskManager.dumpResumeDataToDisk(true);
+      
+      //update resume data
+      if (resumeEnabled) _diskManager.dumpResumeDataToDisk(true);
+      
+      //remove previous snubbing
       synchronized (_connections) {
         for (int i = 0; i < _connections.size(); i++) {
           PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
@@ -508,13 +514,25 @@ PEPeerControlImpl
           }
         }
       }
-      boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion",false);
-      if(checkPieces && (_timeFinished - _timeStarted) > 10) {
-        for(int i = 0 ; i < _downloaded.length ;i++) {
-          //check the piece from the disk
-          _diskManager.aSyncCheckPiece(i);
+      
+      boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
+      //re-check all pieces to make sure they are not corrupt
+      if (checkPieces && (_timeFinished - _timeStarted) > 10) {
+        boolean allPiecesOK = _diskManager.verifyAllPiecesComplete();
+        if (!allPiecesOK) {
+          //if not all ok, restart the download
+          _manager.restartDownload();
+          return;
         }
       }
+      
+      boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+      if (moveWhenDone) {
+        //to be completed ;)
+      }
+      
+      _manager.setState(DownloadManager.STATE_SEEDING);
+      
     }
   }
 

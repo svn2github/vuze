@@ -37,6 +37,7 @@ DownloadManager
 	public static final int STATE_CHECKING = 30;
 	public static final int STATE_READY = 40;
 	public static final int STATE_DOWNLOADING = 50;
+	public static final int STATE_FINISHING = 55;
 	public static final int STATE_SEEDING = 60;
 	public static final int STATE_STOPPING = 65;
 	public static final int STATE_STOPPED = 70;
@@ -187,4 +188,7 @@ DownloadManager
 	
 	public DownloadManagerStats
 	getStats();
+  
+	public void
+   restartDownload();
 }

@@ -76,6 +76,9 @@
 	public void
 	dumpResumeDataToDisk(
 		boolean	savePartialPieces );
+  
+	public boolean
+   verifyAllPiecesComplete(); 
 
 	public void
 	computePriorityIndicator();
@@ -86,7 +89,7 @@
 	public void
 	aSyncCheckPiece(
 		int	pieceNumber );
-	
+  
 	public int 
 	getPiecenumberToDownload(
 		boolean[] 	_piecesRarest );

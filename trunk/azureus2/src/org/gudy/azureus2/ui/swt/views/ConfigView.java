@@ -673,7 +673,7 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
-    new BooleanParameter(gFile, "Check Pieces on Completion", false);
+    new BooleanParameter(gFile, "Check Pieces on Completion", true);
 
     itemFile.setControl(gFile);
     return itemFile;

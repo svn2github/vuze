@@ -435,6 +435,21 @@ DownloadManagerImpl
 	errorDetail = string;
   }
 
+  
+  /**
+   * Stops the current download, then restarts it again.
+   */
+  public void restartDownload() {
+    stopIt();
+    
+    try {
+      while (state != DownloadManager.STATE_STOPPED) Thread.sleep(50);
+    } catch (Exception ignore) {/*ignore*/}
+    
+    startDownloadInitialized(true);
+  }
+    
+  
   public void startDownloadInitialized(boolean initStoppedDownloads) {
 	if (getState() == DownloadManager.STATE_WAITING || initStoppedDownloads && getState() == DownloadManager.STATE_STOPPED) {
 	  initialize();

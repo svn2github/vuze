@@ -101,7 +101,7 @@ public class ConfigurationDefaults {
     def.put("Save Resume Interval", new Long(5));
     // Recheck pices on completed download
     //def.put("Core_bCheckPiecesOnCompletion", new Long(0)); *
-    def.put("Check Pieces on Completion", new Long(0));
+    def.put("Check Pieces on Completion", new Long(1));
     // Stop seeding when share ratio reaches
     //def.put("Core_iSeedingShareStop", new Long(0)); *
     def.put("Stop Ratio", new Long(0));

@@ -463,6 +463,29 @@ DiskManagerImpl
 
 	}
 
+  
+  /**
+   * Scan all the pieces, to make sure nothing is corrupt.
+   * Returns false if the pieces are not all ok.
+   */
+  public boolean verifyAllPiecesComplete() {
+    state = CHECKING;
+    boolean result = true;
+    boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
+        
+    for (int i=0; i < nbPieces && bContinue; i++) {
+      percentDone = ((i + 1) * 1000) / nbPieces;
+      if (!checkPiece(i)) result = false;
+    }
+    
+    if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false);
+    
+    state = READY;
+    return result;
+  }
+  
+
+  
 	private List buildPieceToFileList(List btFileList, int currentFile, int fileOffset, int pieceSize) {
 		ArrayList pieceToFileList = new ArrayList();
 		int usedSpace = 0;
@@ -651,6 +674,8 @@ DiskManagerImpl
 					}
 					manager.blockWritten(elt.getPieceNumber(), elt.getOffset());
 				}
+        
+				
 				if (checkQueue.size() != 0) {
 					WriteElement elt = (WriteElement)checkQueue.remove(0);
 					boolean correct = checkPiece(elt.getPieceNumber());
@@ -660,6 +685,8 @@ DiskManagerImpl
 					} else LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
           
 				}
+				
+        
 				try {
 					Thread.sleep(15);
 				} catch (Exception e) {
@@ -838,9 +865,11 @@ DiskManagerImpl
 		tempFile.mkdirs();
 	}
 
-	public void aSyncCheckPiece(int pieceNumber) {
+  
+   public void aSyncCheckPiece(int pieceNumber) {
 		checkQueue.add(new WriteElement(pieceNumber, 0, null));
 	}
+  
 
 	public synchronized boolean checkPiece(int pieceNumber) {
 		allocateAndTestBuffer.position(0);
