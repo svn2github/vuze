@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
+import com.aelitis.azureus.core.networkmanager.ConnectionPool;
+
 public interface 
 PEPeerManager 
 {
@@ -191,4 +193,7 @@ PEPeerManager
 		int 		offset, 
 		DirectByteBuffer 	data,
 		PEPeer 		sender);		
+  
+  
+  public ConnectionPool getConnectionPool();
 }

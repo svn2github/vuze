@@ -75,6 +75,6 @@ PEPeerControl
   
   public DiskManager getDiskManager();
   
-  public ConnectionPool getConnectionPool();
+  
 	
 }
