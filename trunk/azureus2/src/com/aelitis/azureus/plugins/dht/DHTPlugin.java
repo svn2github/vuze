@@ -565,20 +565,7 @@ DHTPlugin
 							final DHTTransportContact	contact,
 							final DHTTransportValue		value )
 						{
-							Thread t = new AEThread("test")
-								{
-									public void
-									runSupport()
-									{
-										DHTTransportFullStats stats = contact.getStats();
-										
-										log.log( "Get: read " + value.getString() + " from " + contact.getString() + ", originator = " + value.getOriginator().getString() + ", stats=" + (stats==null?"<failed>":stats.getString()));
-									}
-								};
-							
-							t.setDaemon(true);
-								
-							t.start();
+							log.log( "Get: read " + value.getString() + " from " + contact.getString() + ", originator = " + value.getOriginator().getString());
 							
 							if ( listener != null ){
 								

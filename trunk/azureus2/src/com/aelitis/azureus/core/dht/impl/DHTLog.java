@@ -142,7 +142,7 @@ DHTLog
 		DHTTransportContact	contact )
 	{
 		if ( logging_on ){
-			return( getString(contact.getID()));
+			return( contact.getString());
 		}else{
 			return( "" );
 		}

@@ -624,8 +624,8 @@ DHTControlImpl
 						storeReply(
 							DHTTransportContact _contact )
 						{
-							DHTLog.log( "store ok" );
-							
+							DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
+														
 							router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 						}	
 						
@@ -634,7 +634,8 @@ DHTControlImpl
 							DHTTransportContact 	_contact,
 							Throwable 				_error )
 						{
-							DHTLog.log( "store failed" );
+							DHTLog.log( "Store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+							
 														
 							router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 						}
@@ -779,7 +780,7 @@ DHTControlImpl
 											storeReply(
 												DHTTransportContact _contact )
 											{
-												DHTLog.log( "cache store ok" );
+												DHTLog.log( "Cache store OK " + DHTLog.getString( _contact ));
 												
 												router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 											}	
@@ -789,7 +790,7 @@ DHTControlImpl
 												DHTTransportContact 	_contact,
 												Throwable 				_error )
 											{
-												DHTLog.log( "cache store failed" );
+												DHTLog.log( "Cache store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
 												
 												router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 											}
@@ -1243,7 +1244,7 @@ DHTControlImpl
 								Throwable 				error )
 							{
 								try{
-									DHTLog.log( "Reply: findNode/findValue -> failed" );
+									DHTLog.log( "findNode/findValue " + DHTLog.getString( target_contact ) + " -> failed: " + error.getMessage());
 									
 									router.contactDead( target_contact.getID(), new DHTControlContactImpl(target_contact));
 		
@@ -1416,8 +1417,8 @@ DHTControlImpl
 					pingReply(
 						DHTTransportContact _contact )
 					{
-						DHTLog.log( "ping ok" );
-						
+						DHTLog.log( "ping OK " + DHTLog.getString( _contact ));
+											
 						router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 					}	
 					
@@ -1426,8 +1427,8 @@ DHTControlImpl
 						DHTTransportContact 	_contact,
 						Throwable				_error )
 					{
-						DHTLog.log( "ping failed" );
-						
+						DHTLog.log( "ping " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+									
 						router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 					}
 				});
@@ -1596,8 +1597,8 @@ DHTControlImpl
 								
 								if ( ping_replacement ){
 									
-									DHTLog.log( "add store failed" );
-									
+									DHTLog.log( "add store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+																		
 									router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
 								}
 							}
