@@ -58,9 +58,14 @@ public class BlockedIpsWindow {
     window.setLayout(layout);
     FormData formData;
     
-    StyledText text = new StyledText(window,SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+    	// text area
+    
+    final StyledText text = new StyledText(window,SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+    
     Button btnOk = new Button(window,SWT.PUSH);
     
+    Button btnClear = new Button(window,SWT.PUSH);
+            
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
     formData.right = new FormAttachment(100,0);
@@ -69,6 +74,29 @@ public class BlockedIpsWindow {
     text.setLayoutData(formData);
     text.setText(ips);
     text.setEditable(false);
+    
+    	// clear button
+    
+    
+    Messages.setLanguageText(btnClear,"Button.clear");
+    formData = new FormData();
+    formData.top = new FormAttachment(text);    
+    formData.right = new FormAttachment(btnOk);    
+    formData.bottom = new FormAttachment(100,0);
+    formData.width = 70;
+    btnClear.setLayoutData(formData);
+    btnClear.addListener(SWT.Selection,new Listener() {
+
+    public void handleEvent(Event e) {
+     
+    	IpFilter.getInstance().clearBlockedIPs();
+    	
+    	text.setText( "" );
+    }
+    });
+    
+    	// ok button
+    
     
     Messages.setLanguageText(btnOk,"Button.ok");
     formData = new FormData();
@@ -83,6 +111,16 @@ public class BlockedIpsWindow {
     }
     });
         
+    window.setDefaultButton( btnOk );
+    
+    window.addListener(SWT.Traverse, new Listener() {	
+		public void handleEvent(Event e) {
+			if ( e.character == SWT.ESC){
+			     window.dispose();
+			 }
+		}
+    });
+    
     window.setSize(720,320);
     window.layout();
     window.open();    

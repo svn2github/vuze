@@ -50,10 +50,7 @@ IpFilterImpl
   
 	private List ipRanges;
 	private List bannedIps;
-	
-	//Number of ip Blocked
-    private int nbIpsBlocked;
-  
+	 
     //Map ip blocked -> matching range
     private List ipsBlocked;
  
@@ -64,7 +61,6 @@ IpFilterImpl
 	{
 	  ipFilter = this;
 	  
-	  nbIpsBlocked = 0;
 	  bannedIps = new ArrayList();
 	  
 	  ipsBlocked = new ArrayList();
@@ -212,7 +208,6 @@ IpFilterImpl
 			        ipsBlocked.add(new BlockedIpImpl(ipAddress,ipRange, torrent_name));
 			      }
 						LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
-						nbIpsBlocked++;
 						return true;
 			    } else {		      
 			      return false;
@@ -225,7 +220,6 @@ IpFilterImpl
 	      ipsBlocked.add(new BlockedIpImpl(ipAddress,null, torrent_name));
 	    }
 	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
-	    nbIpsBlocked++;
 	    return true;
 	  }
 	  return false;
@@ -311,7 +305,7 @@ IpFilterImpl
 	}
 	
 	public int getNbIpsBlocked() {
-	  return nbIpsBlocked;
+	  return ipsBlocked.size();
 	}
 	
 	public void 
@@ -335,6 +329,15 @@ IpFilterImpl
 			return( res );
 		}	
   	}
+	
+	public void
+	clearBlockedIPs()
+	{
+		synchronized(ipsBlocked){
+			
+			ipsBlocked.clear();
+		}
+	}
 	
 	public boolean
 	isEnabled()

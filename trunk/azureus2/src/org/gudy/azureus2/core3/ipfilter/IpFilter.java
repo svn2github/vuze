@@ -83,6 +83,7 @@ IpFilter
 	
 	public abstract BlockedIp[] getBlockedIps();
 	
+	public abstract void clearBlockedIPs();
 	
 	public abstract void ban(String ipAddress);
 	
