@@ -1274,6 +1274,7 @@ PEPeerControlImpl
    * @param sckClient the incoming connection socket
    */
   public void addPeerTransport(Object param) {
+    LGLogger.log(LGLogger.INFORMATION,"ADDPEERTRANSPORT = " + this.toString());
     
     this.insertPeerSocket( _server.createPeerTransport(param));
   }
