@@ -159,7 +159,7 @@ public class ConfigurationManager {
 	private String getStringParameter(String parameter, byte[] defaultValue)
 	{
 		try {
-			return new String((byte[])this.getByteParameter(parameter, defaultValue), "UTF-16");
+			return new String((byte[])this.getByteParameter(parameter, defaultValue));
 		} catch (Exception e) {			
 			//e.printStackTrace();
 			return null;

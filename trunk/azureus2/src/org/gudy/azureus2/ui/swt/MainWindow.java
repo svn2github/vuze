@@ -194,7 +194,7 @@ public class MainWindow implements IComponentListener {
           Thread.sleep(10);
         }
         Map decoded = BDecoder.decode(message.getBytes("ISO-8859-1")); //$NON-NLS-1$
-        latestVersion = new String((byte[]) decoded.get("version"), "UTF-16"); //$NON-NLS-1$ //$NON-NLS-2$
+        latestVersion = new String((byte[]) decoded.get("version")); //$NON-NLS-1$ //$NON-NLS-2$
         if (display == null || display.isDisposed())
           return;
         display.asyncExec(new Runnable() {
