@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.disk.cache.impl;
  */
 
 import java.io.File;
+import java.util.*;
 
 import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.disk.file.*;
@@ -37,11 +38,26 @@ public class
 CacheFileManagerImpl 
 	implements CacheFileManager
 {
-	protected static boolean	cache_enabled	= false;
+	protected static boolean	cache_enabled			= false;
+	
+	protected static long		cache_size				= 1000000;
+	
+	protected static long		cache_minimum_free_size	= cache_size/4;
+	
+	protected static long		cache_space_free		= cache_size; 
 	
 	protected static CacheFileManagerImpl			singleton = new CacheFileManagerImpl();
 	
 	protected FMFileManager		file_manager;
+
+		// access order
+	
+	protected LinkedHashMap		cache_entries = new LinkedHashMap(1024, 0.75f, true );
+	
+	protected long				cache_bytes_written;
+	protected long				cache_bytes_read;
+	protected long				file_bytes_written;
+	protected long				file_bytes_read;
 	
 	public static CacheFileManager
 	getSingleton()
@@ -84,126 +100,117 @@ CacheFileManagerImpl
 		}
 	}
 	
+	protected boolean
+	isCacheEnabled()
+	{
+		return( cache_enabled );
+	}
 	
-	
-	protected void
-	readCache(
+	protected CacheEntry
+	allocateCacheSpace(
 		CacheFileImpl		file,
 		DirectByteBuffer	buffer,
-		long				position )
+		long				file_position,
+		int					length )
 	
 		throws CacheFileManagerException
 	{
-		if ( cache_enabled ){
-			
-			long	read_length	= buffer.limit() - buffer.position();
+		boolean	ok 	= false;
+		boolean	log	= false;
 		
-			System.out.println( "readCache: " + file.getName() + ", pos = " + position + ", length = " + read_length);
-			
-			// TODO: read from cache!!!!
-			
-		}else{
-			
-			try{			
-				file.getFMFile().read( buffer, position );
-					
-			}catch( FMFileManagerException e ){
-					
-				rethrow(e);
-			}
-		}
-	}
-	
-	protected void
-	writeCache(
-		CacheFileImpl		file,
-		DirectByteBuffer	buffer,
-		long				position,
-		boolean				buffer_handed_over )
-	
-		throws CacheFileManagerException
-	{
-		boolean	buffer_cached	= false;
-		
-		try{
-			long	write_length = buffer.limit() - buffer.position();
-			
-			if ( cache_enabled ){
-				
-				synchronized( this ){
-					
-					System.out.println( "writeCache: " + file.getName() + ", pos = " + position + ", length = " + write_length + ", bho = " + buffer_handed_over );
-				
-						// if we are overwriting stuff already in the cache then force-write overlapped
-						// data (easiest solution as this should only occur on hash-fails
-					
-					flushCache( file, position, write_length );
-				
-					if ( buffer_handed_over ){
-						
-							// cache this write
-		
-						// TODO: cache the write!!!!
-						
-						buffer_cached	= true;
-						
-					}else{
-						
-						long	actual_size = file.getFMFile().write( buffer, position );
-						
-						if ( actual_size != write_length ){
-							
-							throw( new CacheFileManagerException( "Short write: required = " + write_length + ", actual = " + actual_size ));
-						}					
-					}
-				}
-			}else{
-				
-				long	actual_size = file.getFMFile().write( buffer, position );
-				
-				if ( actual_size != write_length ){
-					
-					throw( new CacheFileManagerException( "Short write: required = " + write_length + ", actual = " + actual_size ));
-				}
-			}
-			
-		}catch( FMFileManagerException e ){
-			
-			rethrow(e);
-			
-		}finally{
-			
-			if ( buffer_handed_over && !buffer_cached ){
-				
-				buffer.returnToPool();
-			}
-		}
-	}
-	
-	protected void
-	flushCache(
-		CacheFileImpl		file,
-		long				start,
-		long				length )
-	{
-		// TODO: flush the cache!!!
-	}
-	
-	protected void
-	flushCache(
-		CacheFileImpl		file )
-	
-		throws CacheFileManagerException
-	{
-		if ( cache_enabled ){
+		while( !ok ){
 			
 			synchronized( this ){
+			
+				if ( length < cache_space_free || cache_space_free == cache_size ){
 				
-				System.out.println( "flushCache: " + file.getName());
+					ok	= true;
+				}
+			}
+			
+			if ( !ok ){
 				
-				flushCache( file, 0, file.getLength());
+				log	= true;
+				
+				CacheEntry	oldest = (CacheEntry)cache_entries.keySet().iterator().next();
+				
+				oldest.getFile().flushCache( true, cache_minimum_free_size );
 			}
 		}
+		
+		synchronized( this ){
+			
+			cache_space_free	-= length;
+			
+			// System.out.println( "Total cache space = " + cache_space_free );
+			
+			CacheEntry	entry = new CacheEntry( file, buffer, file_position, length );
+			
+			cache_entries.put( entry, entry );
+			
+			if ( log ){
+				
+				System.out.println( 
+						"cache:cr=" + cache_bytes_read + ",cw=" + cache_bytes_written+
+						",fr=" + file_bytes_read + ",fw=" + file_bytes_written ); 
+			}
+			
+			return( entry );
+		}
+	}
+	
+	protected void
+	cacheEntryUsed(
+		CacheEntry		entry )
+	{
+		synchronized( this ){
+		
+			cache_entries.get( entry );
+		}
+	}
+	
+	protected void
+	releaseCacheSpace(
+		CacheEntry		entry )
+	{
+		entry.getBuffer().returnToPool();
+		
+		synchronized( this ){
+
+			cache_space_free	+= entry.getLength();
+			
+			cache_entries.remove( entry );
+
+			// System.out.println( "Total cache space = " + cache_space_free );
+		}
+	}
+	
+	protected synchronized void
+	cacheBytesWritten(
+		int		num )
+	{
+		cache_bytes_written	+= num;
+	}
+	
+	protected synchronized void
+	cacheBytesRead(
+		int		num )
+	{
+		cache_bytes_read	+= num;
+	}
+	
+	protected synchronized void
+	fileBytesWritten(
+		int		num )
+	{
+		file_bytes_written	+= num;
+	}
+	
+	protected synchronized void
+	fileBytesRead(
+		int		num )
+	{
+		file_bytes_read	+= num;
 	}
 	
 	protected void
