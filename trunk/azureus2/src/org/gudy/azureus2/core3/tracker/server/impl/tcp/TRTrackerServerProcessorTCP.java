@@ -297,7 +297,8 @@ TRTrackerServerProcessorTCP
 				
 				specific_torrent = 
 						processTrackerRequest( 
-							server, root_out, peer_out,
+							server, str,
+							root_out, peer_out,
 							request_type,
 							hash_bytes,
 							peer_id, no_peer_id, compact, key, 
@@ -313,7 +314,7 @@ TRTrackerServerProcessorTCP
 				
 				if ( root.get( "_data" ) == null ){
 	
-					server.postProcess( peer_out[0], specific_torrent, request_type, root );
+					server.postProcess( peer_out[0], specific_torrent, request_type, str, root );
 				}
 				
 			}catch( Exception e ){

@@ -79,6 +79,12 @@ TRHostTorrentRequestImpl
 		}
 	}
 
+	public String
+	getRequest()
+	{
+		return( request.getRequest());
+	}
+	
 	public Map
 	getResponse()
 	{

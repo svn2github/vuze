@@ -44,6 +44,9 @@ TRTrackerServerRequest
 	public TRTrackerServerTorrent
 	getTorrent();
 	
+	public String
+	getRequest();
+	
 	public Map
 	getResponse();
 }

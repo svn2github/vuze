@@ -44,6 +44,9 @@ TRHostTorrentRequest
 	public int
 	getRequestType();
 	
+	public String
+	getRequest();
+	
 	public Map
 	getResponse();
 }

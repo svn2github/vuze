@@ -42,6 +42,7 @@ TRTrackerServerProcessor
 	protected TRTrackerServerTorrentImpl
 	processTrackerRequest(
 		TRTrackerServerImpl			_server,
+		String						request,
 		Map[]						root_out,		// output
 		TRTrackerServerPeerImpl[]	peer_out,		// output
 		int							request_type,
@@ -145,7 +146,7 @@ TRTrackerServerProcessor
 				
 				HashMap	pre_map = new HashMap();
 				
-				server.preProcess( peer, torrent, request_type, pre_map );
+				server.preProcess( peer, torrent, request_type, request, pre_map );
 				
 					// set num_want to 0 for stopped events as no point in returning peers
 				

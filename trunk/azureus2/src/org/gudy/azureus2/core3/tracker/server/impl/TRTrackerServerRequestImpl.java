@@ -35,9 +35,10 @@ TRTrackerServerRequestImpl
 	implements TRTrackerServerRequest
 {
 	protected TRTrackerServerImpl			server;
-	protected TRTrackerServerPeerImpl	peer;
+	protected TRTrackerServerPeerImpl		peer;
 	protected TRTrackerServerTorrentImpl	torrent;
 	protected int							type;
+	protected String						request;
 	protected Map							response;
 	
 	public
@@ -46,12 +47,14 @@ TRTrackerServerRequestImpl
 		TRTrackerServerPeerImpl			_peer,
 		TRTrackerServerTorrentImpl		_torrent,
 		int								_type,
+		String							_request,
 		Map								_response )
 	{
 		server		= _server;
 		peer		= _peer;
 		torrent		= _torrent;
 		type		= _type;
+		request		= _request;
 		response	= _response;
 	}
 	
@@ -71,6 +74,12 @@ TRTrackerServerRequestImpl
 	getTorrent()
 	{
 		return( torrent );	
+	}
+	
+	public String
+	getRequest()
+	{
+		return( request );
 	}
 	
 	public Map

@@ -734,6 +734,7 @@ TRTrackerServerImpl
 		TRTrackerServerPeerImpl		peer,
 		TRTrackerServerTorrentImpl	torrent,
 		int							type,
+		String						request,
 		Map							response )
 	
 		throws TRTrackerServerException
@@ -742,7 +743,7 @@ TRTrackerServerImpl
 
 		if ( request_listeners.size() > 0 ){
 			
-			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, response );
+			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, request, response );
 			
 			for (int i=0;i<request_listeners.size();i++){
 				
@@ -756,13 +757,14 @@ TRTrackerServerImpl
 		TRTrackerServerPeerImpl		peer,
 		TRTrackerServerTorrentImpl	torrent,
 		int							type,
+		String						request,
 		Map							response )
 	
 		throws TRTrackerServerException
 	{
 		if ( request_listeners.size() > 0 ){
 			
-			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, response );
+			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, request, response );
 			
 			for (int i=0;i<request_listeners.size();i++){
 				

@@ -88,6 +88,12 @@ TrackerTorrentRequestImpl
 		return( new TrackerPeerImpl( peer ));	
 	}
 
+	public String
+	getRequest()
+	{
+		return( req.getRequest());
+	}
+	
 	public Map
 	getResponse()
 	{

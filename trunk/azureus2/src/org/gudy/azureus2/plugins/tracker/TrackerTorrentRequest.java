@@ -44,6 +44,9 @@ TrackerTorrentRequest
 	public TrackerPeer
 	getPeer();
 	
+	public String
+	getRequest();
+	
 	public Map
 	getResponse();
 }
