@@ -31,8 +31,8 @@ package org.gudy.azureus2.platform;
 public final class PlatformManagerCapabilities
 {
     public static final PlatformManagerCapabilities CreateCommandLineProcess = new PlatformManagerCapabilities("CreateCommandLineProcess");
-    public static final PlatformManagerCapabilities NativeNotification = new PlatformManagerCapabilities("NativeNotification");
-    public static final PlatformManagerCapabilities NativeScripting = new PlatformManagerCapabilities("NativeScripting");
+    public static final PlatformManagerCapabilities UseNativeNotification = new PlatformManagerCapabilities("UseNativeNotification");
+    public static final PlatformManagerCapabilities UseNativeScripting = new PlatformManagerCapabilities("UseNativeScripting");
 
     public static final PlatformManagerCapabilities PlaySystemAlert = new PlatformManagerCapabilities("PlaySystemAlert");
 

@@ -98,7 +98,7 @@ public class PlatformManagerImpl implements PlatformManager
         capabilitySet.add(PlatformManagerCapabilities.ShowPathInCommandLine);
         capabilitySet.add(PlatformManagerCapabilities.CreateCommandLineProcess);
         capabilitySet.add(PlatformManagerCapabilities.GetUserDataDirectory);
-        capabilitySet.add(PlatformManagerCapabilities.NativeScripting);
+        capabilitySet.add(PlatformManagerCapabilities.UseNativeScripting);
         capabilitySet.add(PlatformManagerCapabilities.PlaySystemAlert);
     }
 
