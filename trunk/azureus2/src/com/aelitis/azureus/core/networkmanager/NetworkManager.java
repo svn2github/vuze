@@ -40,6 +40,9 @@ public class NetworkManager {
   private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
   
   
+  public static final int WRITE_WINDOW_SIZE = 64*1024;
+  
+  
   private NetworkManager() {
     Thread write_processing_thread = new Thread( "NetworkManager:Write" ) {
       public void run() {
@@ -108,16 +111,16 @@ public class NetworkManager {
     try {  Thread.sleep( 1000 );  }catch( Exception e ) {}
     
     while( true ) {
-        long start_time = SystemTime.getCurrentTime();
+        //long start_time = SystemTime.getCurrentTime();
         
-        write_selector.select( 10 );
+        write_selector.select( 25 );
         root_connection_pool.doWrites();
       
-        long processing_time = SystemTime.getCurrentTime() - start_time;
-        //System.out.println("processing_time="+processing_time+"\n");
-        if( processing_time < 50 ) {
-          try{  Thread.sleep( 50 - processing_time );  }catch( Exception e) {e.printStackTrace();}
-        }
+        //long processing_time = SystemTime.getCurrentTime() - start_time;
+        //System.out.println("processing_time="+processing_time);
+        //if( processing_time < 50 ) {
+        //  try{  Thread.sleep( 50 - processing_time );  }catch( Exception e) {e.printStackTrace();}
+        //}
     }
   }
   
