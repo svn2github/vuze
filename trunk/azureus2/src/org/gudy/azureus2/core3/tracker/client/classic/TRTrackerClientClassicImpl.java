@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Random;
 
 import javax.net.ssl.*;
 
@@ -1487,9 +1488,13 @@ TRTrackerClientClassicImpl
 					long	time_to_wait;
 										
 					try {
-							//use 3/4 of what tracker is asking us to wait, in order not to be considered as timed-out by it
-						
-						time_to_wait = (6 * ((Long) metaData.get("interval")).intValue()) / 7; //$NON-NLS-1$
+													
+            if( announce_data_provider.getRemaining() == 0 ) { //is a seed
+              time_to_wait = ((Long) metaData.get("interval")).longValue();
+            }
+            else { // slightly shorten the wait so we don't time out
+              time_to_wait = (6 * ((Long) metaData.get("interval")).intValue()) / 7;
+            }
 						
 							// guard against crazy return values
 						
@@ -1736,7 +1741,9 @@ TRTrackerClientClassicImpl
    * Retrieve the retry interval to use on announce errors.
    */
   private int getErrorRetryInterval() {
+    
     long currentTime = SystemTime.getCurrentTime() /1000;
+        
     
     //use previously calculated interval if it's not time to update
     if ( !SystemTime.isErrorLast1min() &&
@@ -1747,21 +1754,40 @@ TRTrackerClientClassicImpl
     //update previous change time
     failure_time_last_updated = currentTime;
     
-    if (failure_added_time == 0) {
-      failure_added_time = REFRESH_MINIMUM_SECS;
+    if( failure_added_time == 0 ) { //start
+      failure_added_time = 10;
     }
-    else if (failure_added_time < (REFRESH_MINIMUM_SECS * 2)) {
-      //use quicker retry in the very beginning
-      failure_added_time += REFRESH_MINIMUM_SECS / 5;
+    else if( failure_added_time < 30 ) {
+      //three 10-sec retries
+      failure_added_time += 10;
+    }
+    else if( failure_added_time < 60 ) {
+      //two 15-sec retries
+      failure_added_time += 15;
+    }
+    else if( failure_added_time < 120 ) {
+      //two 30-sec retries
+      failure_added_time += 30;
+    }
+    else if( failure_added_time < 600 ) {
+      //eight 60-sec retries
+      failure_added_time += 60;
     }
     else {
-      //increase re-check time after each failure
-      failure_added_time += REFRESH_MINIMUM_SECS;
+      //2-3min random retry 
+      failure_added_time += 120 + new Random().nextInt( 60 );
     }
 
+    boolean is_seed = announce_data_provider.getRemaining() == 0;
+    
+    if( is_seed ) failure_added_time = failure_added_time * 2; //no need to retry as often
+    
     //make sure we're not waiting longer than 20min
-    if (failure_added_time > 1200) {
+    if( !is_seed && failure_added_time > 1200) {
       failure_added_time = 1200;
+    }
+    else if ( is_seed && failure_added_time > 2400) { //or 40min if seed
+      failure_added_time = 2400;
     }
 
     return failure_added_time;
