@@ -25,6 +25,8 @@ import org.gudy.azureus2.core3.config.*;
  */
 public class FileUtil {
   
+  public static final String DIR_SEP = System.getProperty("file.separator");
+  
   public static String getCanonicalFileName(String filename) {
     // Sometimes Windows use filename in 8.3 form and cannot
     // match .torrent extension. To solve this, canonical path
@@ -42,20 +44,20 @@ public class FileUtil {
     
   	// for java web start we use user.home/.azureus as user.dir is no use
     if (System.getProperty("os.name").equals("Linux") || isJavaWebStart()) {
-      String path = System.getProperty("user.home") + System.getProperty("file.separator") + ".azureus";
+      String path = System.getProperty("user.home") + DIR_SEP + ".azureus" + DIR_SEP;
       
-      File file = new File(path);
+      File homedir = new File(path);
       
-      if ( !file.exists()){
-      	file.mkdirs();		
+      if ( !homedir.exists() ){
+        homedir.mkdirs();		
       }
       
-      if (file.isDirectory()) {
-        return path + System.getProperty("file.separator");
+      if (homedir.isDirectory()) {
+        return path;
       }
     }
     
-    return System.getProperty("user.dir") + System.getProperty("file.separator");
+    return System.getProperty("user.dir") + DIR_SEP;
   }
   
   public static File getApplicationFile(String filename) {
