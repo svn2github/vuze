@@ -96,7 +96,11 @@ TRTrackerServerTorrentImpl
 
 		String	reuse_key = ip_address + ":" +port;
 		
+		boolean		new_peer = false;
+		
 		if ( peer == null ){
+			
+			new_peer	= true;
 			
 			// check to see if this peer already has an entry against this torrent
 			// and if so delete it (assumption is that the client has quit and
@@ -169,12 +173,21 @@ TRTrackerServerTorrentImpl
 			
 			peer.setTimeout( SystemTime.getCurrentTime() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
 			
-			ul_diff = uploaded 		- peer.getUploaded();
-			dl_diff = downloaded 	- peer.getDownloaded();
+				// if this is the first time we've heard from this peer then we don't want to
+				// use existing ul/dl value diffs as they will have been reported previously
+				// (either the client's changed peer id by stop/start (in which case the values 
+				// should be 0 anyway as its a per-session total), or the tracker's been 
+				// stopped and started).
 			
-				// when the peer is removed its "left" amount will dealt with
-			
-			le_diff = stopped?0:(left - peer.getAmountLeft());
+			if ( !new_peer ){	
+		
+				ul_diff = uploaded 		- peer.getUploaded();
+				dl_diff = downloaded 	- peer.getDownloaded();
+				
+					// when the peer is removed its "left" amount will dealt with
+				
+				le_diff = stopped?0:(left - peer.getAmountLeft());
+			}
 			
 			peer.setStats( uploaded, downloaded, left, numwant );
 		}
