@@ -110,33 +110,16 @@ public class Main {
   
   public static void main(String[] args) 
   {
-    
-    System.out.println( "INIT: common.Main.main() started" );
-    
-    
+        
     String  mi_str = System.getProperty( "MULTI_INSTANCE" );
     boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
-    
 
     initRootLogger();
     
-    
-    System.out.println( "INIT: root logger init completed" );
-    
-    
     try{
     	core = AzureusCoreFactory.create();
-  
-      
-      System.out.println( "INIT: azureus core created" );
-      
-      
+
     	CommandLine commands = parseCommands(args, true);
-      
-      
-      System.out.println( "INIT: commands parsed" );
-      
-      
 
       if( mi ) {
         System.out.println( "MULTI_INSTANCE enabled" );
