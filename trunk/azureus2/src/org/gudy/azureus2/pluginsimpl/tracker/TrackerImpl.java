@@ -69,14 +69,19 @@ TrackerImpl
 	
 	public void
 	host(
-		Torrent		_torrent )
+		Torrent		_torrent,
+		boolean		_persistent )
+	
+		throws TrackerException
 	{
 		TorrentImpl	torrent = (TorrentImpl)_torrent;
 		
 		try{
-			host.hostTorrent( torrent.getTorrent(), false );
+			host.hostTorrent( torrent.getTorrent(), _persistent );
+			
 		}catch( Throwable e ){
-			e.printStackTrace();
+			
+			throw( new TrackerException( "Tracker: host operation fails", e ));
 		}
 	}
 	

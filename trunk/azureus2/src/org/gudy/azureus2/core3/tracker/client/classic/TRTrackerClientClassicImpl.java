@@ -694,7 +694,9 @@ TRTrackerClientClassicImpl
 				  		
 				  		int	num_read = 0;
 				  		
-				  		while ( num_read < content_length ){
+				  			// some trackers don't return content-length
+				  		
+				  		while ( content_length <= 0 || num_read < content_length ){
 				  			
 							try{
 					  			int	len = is.read(data);
@@ -708,7 +710,9 @@ TRTrackerClientClassicImpl
 					  			}else if ( len == 0 ){
 					  			
 					  				Thread.sleep(20);
+					  				
 					  			}else{
+					  				
 					  				break;
 					  			}
 					  			

@@ -100,7 +100,7 @@ ShareHosterPlugin
 				
 				if ( type == ShareResource.ST_FILE ){
 					
-					tracker.host(((ShareResourceFile)resource).getItem().getTorrent());
+					tracker.host(((ShareResourceFile)resource).getItem().getTorrent(), false );
 				}
 			}catch( Throwable e ){
 				
