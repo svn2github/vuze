@@ -32,12 +32,24 @@ public class TrackerChecker {
   
   public HashData getHashData(String trackerUrl,final Hash hash) {
     if (trackers.containsKey(trackerUrl)) {
-      TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
+      final TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
       HashData data = ts.getHashData(hash);
       if(data != null)
         return data;
-     else
-        ts.update(hash);
+      else {
+        Thread t = new Thread() {
+              /* (non-Javadoc)
+               * @see java.lang.Thread#run()
+               */
+              public void run() {
+                ts.update(hash);
+              }
+            };
+            t.setDaemon(true);
+            t.setPriority(Thread.MIN_PRIORITY);
+            t.start();
+            return null;
+      }        
     }
     final TrackerStatus ts = new TrackerStatus(trackerUrl);
     synchronized (trackers) {
