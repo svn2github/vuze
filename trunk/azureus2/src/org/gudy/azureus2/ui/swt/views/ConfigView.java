@@ -528,9 +528,9 @@ public class ConfigView extends AbstractIView {
     layout.numColumns = 2;
     gDownloads.setLayout(layout);
 
-    label = new Label(gDownloads, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
-    new BooleanParameter(gDownloads, "Disconnect Seed", false); //$NON-NLS-1$
+    //label = new Label(gDownloads, SWT.NULL);
+    //Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
+    //new BooleanParameter(gDownloads, "Disconnect Seed", false); //$NON-NLS-1$
 
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$

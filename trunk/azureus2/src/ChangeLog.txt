@@ -23,6 +23,7 @@ CHANGE: Status now shows when it is re-checking pieces on download completion [N
 CHANGE: URL dialogs are initialized with the first valid link beginning with http:// from clipboard [Rele]
 CHANGE: Under linux, only use ~/.azureus dir if it already exists, otherwise use normal program dir for files [Nolar] 
 CHANGE: Auto-update: now writes a log to an 'update.log' file [Nolar]
+CHANGE: Removed the option to stay connected to other seeds when seeding, as it is unhealthy for the network [Nolar]
 
 BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
 BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale encodings in dialog box [Akilgard]

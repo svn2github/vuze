@@ -91,7 +91,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
     parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
     parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
-    parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
+    //parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
     parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
     parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
     messagetextmap = new LegacyHashtable();

@@ -107,7 +107,7 @@ public class Jhttpp2HTTPSession extends Thread {
         parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
         parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
         parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
-        parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
+        //parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
         parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
         parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
         messagetextmap = new LegacyHashtable();
