@@ -50,9 +50,14 @@ DHT
 		byte[]		key,
 		byte[]		value );
 	
+		/**
+		 * timeout of 0 -> user underlying transport timeouts 
+		 */	
+	
 	public byte[]
 	get(
-		byte[]		key );
+		byte[]		key,
+		long		timeout );
 	
 	public byte[]
 	remove(

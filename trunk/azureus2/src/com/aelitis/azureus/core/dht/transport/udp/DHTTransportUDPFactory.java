@@ -36,9 +36,10 @@ DHTTransportUDPFactory
 	public static DHTTransportUDP
 	create(
 		int			port,
-		int			max_fails )
+		int			max_fails,
+		long		timeout )
 	{
-		return( new DHTTransportUDPImpl( port, max_fails ));
+		return( new DHTTransportUDPImpl( port, max_fails, timeout ));
 	}
 
 }

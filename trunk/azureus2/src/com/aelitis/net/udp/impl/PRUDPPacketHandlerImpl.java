@@ -79,6 +79,18 @@ PRUDPPacketHandlerImpl
 		
 		t.start();
 		
+		SimpleTimer.addPeriodicEvent(
+				5000,
+				new TimerEventPerformer()
+				{
+					public void
+					perform(
+						TimerEvent	event )
+					{
+						checkTimeouts();
+					}
+				});
+		
 		init_sem.reserve();
 	}
 	
@@ -179,11 +191,7 @@ PRUDPPacketHandlerImpl
 						*/
 						
 						break;
-					}
-					
-				}finally{
-					
-					checkTimeouts();
+					}					
 				}
 			}
 		}catch( Throwable e ){
@@ -201,34 +209,44 @@ PRUDPPacketHandlerImpl
 	checkTimeouts()
 	{
 		long	now = SystemTime.getCurrentTime();
-
-		if ( SystemTime.isErrorLast30sec() || now - last_timeout_check >= PRUDPPacket.DEFAULT_UDP_TIMEOUT ){
 			
-			last_timeout_check	= now;
+		List	timed_out = new ArrayList();
+		
+		try{
+			requests_mon.enter();
+			
+			Iterator it = requests.values().iterator();
+			
+			while( it.hasNext()){
+				
+				PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)it.next();
+				
+				if ( now - request.getCreateTime() >= request.getTimeout()){
+				
+					it.remove();
+
+					timed_out.add( request );
+				}
+			}
+		}finally{
+			
+			requests_mon.exit();
+		}
+		
+		for (int i=0;i<timed_out.size();i++){
+			
+			PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)timed_out.get(i);
+			
+			LGLogger.log( LGLogger.ERROR, "PRUDPPacketHandler: request timeout" ); 
+			
+				// don't change the text of this message, it's used elsewhere
 			
 			try{
-				requests_mon.enter();
+				request.setException(new PRUDPPacketHandlerException("timed out"));
 				
-				Iterator it = requests.values().iterator();
+			}catch( Throwable e ){
 				
-				while( it.hasNext()){
-					
-					PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)it.next();
-					
-					if ( now - request.getCreateTime() >= PRUDPPacket.DEFAULT_UDP_TIMEOUT ){
-					
-						it.remove();
-						
-						LGLogger.log( LGLogger.ERROR, "PRUDPPacketHandler: request timeout" ); 
-						
-							// don't change the text of this message, it's used elsewhere
-						
-						request.setException(new PRUDPPacketHandlerException("timed out"));
-					}
-				}
-			}finally{
-				
-				requests_mon.exit();
+				Debug.printStackTrace(e);
 			}
 		}
 	}
@@ -325,7 +343,8 @@ PRUDPPacketHandlerImpl
 	
 		throws PRUDPPacketHandlerException
 	{
-		PRUDPPacketHandlerRequest	request = sendAndReceive( auth, request_packet,destination_address, null );
+		PRUDPPacketHandlerRequest	request = 
+			sendAndReceive( auth, request_packet,destination_address, null, PRUDPPacket.DEFAULT_UDP_TIMEOUT );
 		
 		return( request.getReply());
 	}
@@ -334,11 +353,12 @@ PRUDPPacketHandlerImpl
 	sendAndReceive(
 		PRUDPPacket					request_packet,
 		InetSocketAddress			destination_address,
-		PRUDPPacketReceiver			receiver )
+		PRUDPPacketReceiver			receiver,
+		long						timeout )
 	
 		throws PRUDPPacketHandlerException
 	{
-		sendAndReceive( null, request_packet, destination_address, receiver );
+		sendAndReceive( null, request_packet, destination_address, receiver, timeout );
 	}
 	
 	public PRUDPPacketHandlerRequest
@@ -346,7 +366,8 @@ PRUDPPacketHandlerImpl
 		PasswordAuthentication	auth,
 		PRUDPPacket				request_packet,
 		InetSocketAddress		destination_address,
-		PRUDPPacketReceiver		receiver )
+		PRUDPPacketReceiver		receiver,
+		long					timeout )
 	
 		throws PRUDPPacketHandlerException
 	{
@@ -408,7 +429,7 @@ PRUDPPacketHandlerImpl
 			
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );
 			
-			PRUDPPacketHandlerRequest	request = new PRUDPPacketHandlerRequest( receiver );
+			PRUDPPacketHandlerRequest	request = new PRUDPPacketHandlerRequest( receiver, timeout );
 		
 			try{
 				requests_mon.enter();

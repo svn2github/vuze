@@ -46,6 +46,7 @@ Test
 	static int	num_dhts	= 10;
 	static int	num_stores	= 20;
 	static boolean	udp_protocol	= true;
+	static int		udp_timeout		= 1000;
 	
 
 	static int		K			= 5;
@@ -264,7 +265,7 @@ Test
 					
 					stats_before = dht.getTransport().getStats().snapshot();
 					
-					byte[]	res = dht.get( rhs.getBytes());
+					byte[]	res = dht.get( rhs.getBytes(), 0);
 					
 					System.out.println( "-> " + (res==null?"null":new String(res)));
 					
@@ -334,7 +335,7 @@ Test
 		
 		if ( udp_protocol ){
 			
-			transport = DHTTransportUDPFactory.create( 40000 + i, 5 );
+			transport = DHTTransportUDPFactory.create( 40000 + i, 5, udp_timeout );
 			
 		}else{
 			

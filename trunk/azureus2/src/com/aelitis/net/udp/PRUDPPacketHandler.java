@@ -43,7 +43,8 @@ PRUDPPacketHandler
 	sendAndReceive(
 		PRUDPPacket					request_packet,
 		InetSocketAddress			destination_address,
-		PRUDPPacketReceiver			receiver )
+		PRUDPPacketReceiver			receiver,
+		long						timeout )
 	
 		throws PRUDPPacketHandlerException;
 	

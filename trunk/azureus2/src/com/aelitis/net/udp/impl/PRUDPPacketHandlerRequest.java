@@ -37,20 +37,23 @@ import com.aelitis.net.udp.PRUDPPacketReceiver;
 public class 
 PRUDPPacketHandlerRequest 
 {
-	protected AESemaphore		sem = new AESemaphore("PRUDPPacketHandlerRequest");
+	private AESemaphore		sem = new AESemaphore("PRUDPPacketHandlerRequest");
 	
-	protected PRUDPPacketReceiver			receiver;
+	private long						timeout;
+	private PRUDPPacketReceiver			receiver;
 	
-	protected PRUDPPacketHandlerException	exception;
-	protected PRUDPPacket					reply;
+	private PRUDPPacketHandlerException	exception;
+	private PRUDPPacket					reply;
 	
-	protected long							create_time;
+	private long						create_time;
 	
 	protected
 	PRUDPPacketHandlerRequest(
-		PRUDPPacketReceiver	_receiver )
+		PRUDPPacketReceiver	_receiver,
+		long				_timeout )
 	{
 		receiver	= _receiver;
+		timeout		= _timeout;
 		
 		create_time	= SystemTime.getCurrentTime();
 	}
@@ -59,6 +62,12 @@ PRUDPPacketHandlerRequest
 	getCreateTime()
 	{
 		return( create_time );
+	}
+	
+	protected long
+	getTimeout()
+	{
+		return( timeout );
 	}
 	
 	protected void

@@ -38,18 +38,19 @@ public abstract class
 ExternalIPCheckerServiceImpl 
 	implements ExternalIPCheckerService, Cloneable
 {
-	protected static final int		MAX_PAGE_SIZE	= 4096;
-	protected static final String	MSG_KEY_ROOT	= "IPChecker.external";
+	private static final int		MAX_PAGE_SIZE	= 4096;
+	private static final String	MSG_KEY_ROOT	= "IPChecker.external";
 	
-	protected String		name;
-	protected String		description;
-	protected String		url;
+	private String		name;
+	private String		description;
+	private String		url;
 	
-	protected boolean		completed;
+	private boolean		completed;
 	
-	protected Vector		listeners	= new Vector();
-	protected AEMonitor		this_mon	= new AEMonitor( "ExtIPCheckServ");
+	private Vector		listeners	= new Vector();
+	private AEMonitor		this_mon	= new AEMonitor( "ExtIPCheckServ");
 	
+	private AESemaphore	timeout_sem	= new AESemaphore( "ExtIPCheckServ" );
 	
 	protected
 	ExternalIPCheckerServiceImpl(
@@ -117,16 +118,17 @@ ExternalIPCheckerServiceImpl
 					{
 						try{
 							
-							Thread.sleep( timeout );
+							if ( !timeout_sem.reserve( timeout )){
 							
-							if ( !completed ){
-								
-								informFailure( "timeout" );
-								
-								setComplete();
+								if ( !completed ){
+									
+									informFailure( "timeout" );
+									
+									setComplete();
+								}
 							}
-						}catch( InterruptedException e ){
-							
+						}catch( Throwable e ){
+								
 							Debug.printStackTrace( e );
 						}
 					}
@@ -308,10 +310,12 @@ ExternalIPCheckerServiceImpl
 		String		ip )
 	{
 		try{
-			this_mon.enter();
+			this_mon.enter();			
 			
 			if ( !completed ){
 				
+				timeout_sem.releaseForever();
+
 				for ( int i=0;i<listeners.size();i++){
 					
 					((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkComplete( this, ip );
@@ -348,6 +352,8 @@ ExternalIPCheckerServiceImpl
 	
 			if ( !completed ){
 			
+				timeout_sem.releaseForever();
+				
 				String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
 				
 				if ( extra != null ){
@@ -395,7 +401,7 @@ ExternalIPCheckerServiceImpl
 				
 				if ( extra != null ){
 					
-	        message = message.concat(": ").concat(extra);
+					message = message.concat(": ").concat(extra);
 				}
 				for ( int i=0;i<listeners.size();i++){
 					

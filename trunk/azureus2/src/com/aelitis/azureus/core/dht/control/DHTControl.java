@@ -56,7 +56,8 @@ DHTControl
 	
 	public byte[]
 	get(
-		byte[]		key );
+		byte[]		key,
+		long		timeout );
 	
 	public byte[]
 	remove(

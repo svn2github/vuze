@@ -26,7 +26,12 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
+import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
+import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
+import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -50,7 +55,12 @@ DHTTransportUDPImpl
 		DHTUDPPacket.registerCodecs();
 	}
 	
+	private static String	external_address;
+	
+	
+	private int					port;
 	private int					max_fails;
+	private long				request_timeout;
 	
 	private PRUDPPacketHandler			packet_handler;
 	
@@ -67,9 +77,12 @@ DHTTransportUDPImpl
 	public
 	DHTTransportUDPImpl(
 		int		_port,
-		int		_max_fails )
+		int		_max_fails,
+		long	_timeout )
 	{
-		max_fails	= _max_fails;
+		port			= _port;
+		max_fails		= _max_fails;
+		request_timeout	= _timeout;
 		
 			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
 			// if you change it :)
@@ -78,7 +91,94 @@ DHTTransportUDPImpl
 
 			// TODO: ascertain correct external IP address
 		
-		local_contact = new DHTTransportUDPContactImpl( this, new InetSocketAddress( "127.0.0.1", _port ));
+		InetSocketAddress	address = new InetSocketAddress( getExternalAddress(), port );
+		
+		local_contact = new DHTTransportUDPContactImpl( this, address );
+	}
+	
+	protected static synchronized String
+	getExternalAddress()
+	{
+		if ( external_address == null ){
+			
+			try{
+				ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
+				
+				ExternalIPCheckerService[]	services = checker.getServices();
+				
+				final String[]	ip = new String[]{ null };
+				
+				for (int i=0;i<services.length && ip[0] == null;i++){
+					
+					ExternalIPCheckerService	service = services[i];
+					
+					if ( service.supportsCheck()){
+	
+						final AESemaphore	sem = new AESemaphore("DHTUDP:getExtIP");
+						
+						ExternalIPCheckerServiceListener	listener = 
+							new ExternalIPCheckerServiceListener()
+							{
+								public void
+								checkComplete(
+									ExternalIPCheckerService	_service,
+									String						_ip )
+								{
+									ip[0]	= _ip;
+									
+									sem.release();
+								}
+									
+								public void
+								checkFailed(
+									ExternalIPCheckerService	service,
+									String						reason )
+								{
+									sem.release();
+								}
+									
+								public void
+								reportProgress(
+									ExternalIPCheckerService	service,
+									String						message )
+								{
+								}
+							};
+							
+						services[i].addListener( listener );
+						
+						try{
+							
+							services[i].initiateCheck( 60000 );
+							
+							sem.reserve( 60000 );
+							
+						}finally{
+							
+							services[i].removeListener( listener );
+						}
+					}
+				}
+				
+				if ( ip[0] != null ){
+					
+					System.out.println( "Retrieved external address:" + ip[0] );
+					
+					external_address	= ip[0];
+				}
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+			
+			if ( external_address == null ){
+				
+				external_address =	"127.0.0.1";
+			}
+		}
+		
+		return( external_address );
 	}
 	
 	protected int
@@ -209,7 +309,8 @@ DHTTransportUDPImpl
 									packet_handler.sendAndReceive(
 											request,
 											contact.getAddress(),
-											this );
+											this,
+											request_timeout );
 								}
 							}else{
 								
@@ -235,7 +336,8 @@ DHTTransportUDPImpl
 						
 						handler.failed( contact );
 					}
-				});
+				},
+				request_timeout);
 			
 		}catch( Throwable e ){
 			
@@ -321,7 +423,8 @@ DHTTransportUDPImpl
 									packet_handler.sendAndReceive(
 											request,
 											contact.getAddress(),
-											this );
+											this,
+											request_timeout );
 								}
 							}else{
 								
@@ -348,7 +451,8 @@ DHTTransportUDPImpl
 						
 						handler.failed( contact );
 					}
-				});
+				},
+				request_timeout );
 			
 		}catch( Throwable e ){
 			
@@ -430,7 +534,8 @@ DHTTransportUDPImpl
 									packet_handler.sendAndReceive(
 											request,
 											contact.getAddress(),
-											this );
+											this,
+											request_timeout );
 								}
 							}else{
 								
@@ -459,7 +564,8 @@ DHTTransportUDPImpl
 						
 						handler.failed( contact );
 					}
-				});
+				},
+				request_timeout);
 			
 		}catch( Throwable e ){
 			
@@ -541,7 +647,8 @@ DHTTransportUDPImpl
 									packet_handler.sendAndReceive(
 											request,
 											contact.getAddress(),
-											this );
+											this,
+											request_timeout );
 								}
 							}else{
 								
@@ -578,7 +685,8 @@ DHTTransportUDPImpl
 						
 						handler.failed( contact );
 					}
-				});
+				},
+				request_timeout);
 			
 		}catch( Throwable e ){
 			

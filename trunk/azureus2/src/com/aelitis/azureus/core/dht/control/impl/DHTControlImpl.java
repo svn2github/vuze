@@ -110,7 +110,7 @@ DHTControlImpl
 				requestLookup(
 					byte[]	id )
 				{
-					lookup( id, false );
+					lookup( id, false, 0 );
 				}
 				
 				public void
@@ -244,7 +244,7 @@ DHTControlImpl
 	public void
 	seed()
 	{
-		lookup( router.getID(), false );
+		lookup( router.getID(), false, 0 );
 		
 		router.seed();
 	}
@@ -272,7 +272,7 @@ DHTControlImpl
 				stored_values.put( new HashWrapper( encoded_key ), value );
 			}
 			
-			putSupport( encoded_key, value );		
+			putSupport( encoded_key, value, 0 );		
 
 		}finally{
 			
@@ -283,9 +283,10 @@ DHTControlImpl
 	protected void
 	putSupport(
 		final byte[]		encoded_key,
-		DHTTransportValue	value )
+		DHTTransportValue	value,
+		long				timeout )
 	{
-		List	closest = lookup( encoded_key, false );
+		List	closest = lookup( encoded_key, false, timeout  );
 		
 		putSupport( encoded_key, value, closest );			
 	}
@@ -339,7 +340,8 @@ DHTControlImpl
 	
 	public byte[]
 	get(
-		byte[]		unencoded_key )
+		byte[]		unencoded_key,
+		long		timeout )
 	{
 		try{		
 			DHTLog.indent( router );
@@ -362,7 +364,7 @@ DHTControlImpl
 				}
 			}
 			
-			List	result_and_closest = lookup( encoded_key, true );
+			List	result_and_closest = lookup( encoded_key, true, timeout );
 	
 			DHTTransportValue	value = (DHTTransportValue)result_and_closest.get(0);
 			
@@ -457,7 +459,8 @@ DHTControlImpl
 	protected List
 	lookup(
 		final byte[]	lookup_id,
-		boolean			value_search )
+		boolean			value_search,
+		long			timeout )
 	{
 		try{		
 			DHTLog.indent( router );
@@ -507,11 +510,31 @@ DHTControlImpl
 			
 			final DHTTransportValue[]	value_search_result = {null};
 			
+			long	start = SystemTime.getCurrentTime();
+
 			while( true ){
 				
-					// get permission to kick off another search
-				
-				search_sem.reserve();				
+				if ( timeout > 0 ){
+					
+					long	now = SystemTime.getCurrentTime();
+					
+					long remaining = now - ( start + timeout );
+						
+					if ( now <= 0 ){
+						
+						break;
+						
+					}
+						// get permission to kick off another search
+					
+					if ( !search_sem.reserve( remaining )){
+						
+						break;
+					}
+				}else{
+					
+					search_sem.reserve();
+				}
 
 				if ( value_search_result[0] != null ){
 					
@@ -899,7 +922,7 @@ DHTControlImpl
 			
 			value.setCreationTime();
 			
-			putSupport( key.getHash(), value );
+			putSupport( key.getHash(), value, 0 );
 		}
 	}
 	

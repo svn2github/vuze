@@ -45,11 +45,11 @@ Test
 	Test()
 	{
 		try{
-			DHTTransportUDP	udp1 = DHTTransportUDPFactory.create(6881, 5);
+			DHTTransportUDP	udp1 = DHTTransportUDPFactory.create(6881, 5, 5000);
 		
 			udp1.setRequestHandler( this );
 			
-			DHTTransportUDP	udp2 = DHTTransportUDPFactory.create(6882, 5);
+			DHTTransportUDP	udp2 = DHTTransportUDPFactory.create(6882, 5, 5000);
 		
 			udp2.setRequestHandler( this );
 

@@ -97,9 +97,10 @@ DHTImpl
 	
 	public byte[]
 	get(
-		byte[]		key )
+		byte[]		key,
+		long		timeout )
 	{
-		return( control.get( key ));
+		return( control.get( key, timeout ));
 	}
 	
 	public byte[]
