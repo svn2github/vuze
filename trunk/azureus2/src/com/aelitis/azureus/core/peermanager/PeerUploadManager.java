@@ -80,7 +80,9 @@ public class PeerUploadManager {
     final ConnectionData conn_data = new ConnectionData();
         
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
-      public void messageAdded( Message message ) {
+      public boolean messageAdded( Message message ) {  return true;  }
+      
+      public void messageQueued( Message message ) {
         if( message.getID().equals( BTMessage.ID_BT_PIECE ) || force_upgrade ) {  //is sending piece data
           if( conn_data.state == ConnectionData.STATE_NORMAL ) {  //so upgrade it
             

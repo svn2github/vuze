@@ -263,7 +263,8 @@ PEPeerTransportProtocol
 	    
 	    //register bytes sent listener
 	    connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
-	      public void messageAdded( Message message ) { /*ignore*/ }
+	      public boolean messageAdded( Message message ) {  return true;  }
+        public void messageQueued( Message message ) { /*ignore*/ }
 	      public void messageRemoved( Message message ) { /*ignore*/ }
 	      
 	      public void messageSent( Message message ) {

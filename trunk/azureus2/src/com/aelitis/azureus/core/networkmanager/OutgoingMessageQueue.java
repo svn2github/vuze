@@ -117,6 +117,21 @@ public class OutgoingMessageQueue {
    * @param manual_listener_notify true for manual notification, false for automatic
    */
   public void addMessage( Message message, boolean manual_listener_notify ) {
+    //do message add notifications
+    boolean allowed = true;
+    ArrayList list_ref = listeners;
+    
+    for( int i=0; i < list_ref.size(); i++ ) {
+      MessageQueueListener listener = (MessageQueueListener)list_ref.get( i );
+      allowed = allowed && listener.messageAdded( message );
+    }
+    
+    if( !allowed ) {  //message addition not allowed
+      LGLogger.log( "Message [" +message.getDescription()+ "] not allowed for queueing, message addition skipped." );
+      message.destroy();
+      return;
+    }
+    
     
     RawMessage rmesg = stream_encoder.encodeMessage( message );
     
@@ -168,7 +183,7 @@ public class OutgoingMessageQueue {
     
       for( int i=0; i < listeners_ref.size(); i++ ) {
         MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-        listener.messageAdded( rmesg );
+        listener.messageQueued( rmesg );
       }
     }
   }
@@ -528,7 +543,7 @@ public class OutgoingMessageQueue {
         case NotificationItem.MESSAGE_ADDED:
           for( int i=0; i < listeners_ref.size(); i++ ) {  //for each listener
             MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-            listener.messageAdded( item.message );
+            listener.messageQueued( item.message );
           }
           break;
           
@@ -577,10 +592,19 @@ public class OutgoingMessageQueue {
    */
   public interface MessageQueueListener {
     /**
+     * The given message has just been added to the queue.
+     * @param message added for queuing
+     * @return true if this message addition is allowed, false if it should be immediately removed without being queued or sent
+     */
+    public boolean messageAdded( Message message );
+    
+    
+    /**
      * The given message has just been queued for sending out the transport.
      * @param message queued
      */
-    public void messageAdded( Message message );
+    public void messageQueued( Message message );
+    
     
     /**
      * The given message has just been forcibly removed from the queue,

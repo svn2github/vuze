@@ -194,7 +194,9 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     final PeerData peer_data = new PeerData();
     
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
-      public void messageAdded( Message message ) {  //connection now has more data to send
+      public boolean messageAdded( Message message ) {  return true;  }
+      
+      public void messageQueued( Message message ) {  //connection now has more data to send
         try {
           lists_lock.enter();
           

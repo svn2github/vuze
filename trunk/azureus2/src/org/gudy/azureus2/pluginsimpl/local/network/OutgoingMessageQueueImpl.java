@@ -62,10 +62,12 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
   public void registerListener( final OutgoingMessageQueueListener listener ) {
     com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener core_listener =
       new com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue.MessageQueueListener() {
-        public void messageAdded( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
-          listener.messageAdded( new AdapterMessageImpl( message ) );
+      
+        public boolean messageAdded( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
+          return listener.messageAdded( new AdapterMessageImpl( message ) );
         }
 
+        public void messageQueued( com.aelitis.azureus.core.peermanager.messaging.Message message ) {  /*nothing*/  }
         public void messageRemoved( com.aelitis.azureus.core.peermanager.messaging.Message message ) {  /*nothing*/  }
 
         public void messageSent( com.aelitis.azureus.core.peermanager.messaging.Message message ) {

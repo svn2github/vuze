@@ -84,6 +84,8 @@ public class OutgoingBTPieceMessageHandler {
   
   
   private final OutgoingMessageQueue.MessageQueueListener sent_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
+    public boolean messageAdded( Message message ) {  return true;  }
+    
     public void messageSent( Message message ) {
       if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
         try{
@@ -97,7 +99,7 @@ public class OutgoingBTPieceMessageHandler {
         }
       }
     }
-    public void messageAdded( Message message ) {/*nothing*/}
+    public void messageQueued( Message message ) {/*nothing*/}
     public void messageRemoved( Message message ) {/*nothing*/}
     public void protocolBytesSent( int byte_count ) {/*ignore*/}
     public void dataBytesSent( int byte_count ) {/*ignore*/}
