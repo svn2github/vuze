@@ -8,6 +8,7 @@ package org.gudy.azureus2.core3.internat;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.LineNumberInputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -315,6 +316,8 @@ public class MessageText {
       final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
       final String extension = ".properties";
 
+      
+      
       try {
         File userBundleFile = new File(SystemProperties.getUserPath());
         File appBundleFile = new File(SystemProperties.getApplicationPath());
@@ -328,6 +331,30 @@ public class MessageText {
 
         // User dir overrides app dir which overrides jar file bundles
         URL[] urls = {userBundleFile.toURL(), appBundleFile.toURL(), jarURL};
+        
+        /* This is debugging code, use it when things go wrong :) The line number
+         * is approximate as the input stream is buffered by the reader...
+         
+        {
+        	LineNumberInputStream lnis	= null;
+        	
+            try{
+                ClassLoader fff = new URLClassLoader(urls);
+                
+                java.io.InputStream stream = fff.getResourceAsStream("MessagesBundle_th_TH.properties");
+                
+                lnis = new LineNumberInputStream( stream );
+                
+                new java.util.PropertyResourceBundle(lnis);
+            }catch( Throwable e ){
+            	
+            	System.out.println( lnis.getLineNumber());
+            	
+            	e.printStackTrace();
+            }
+        }
+        */
+        
         newResourceBundle = ResourceBundle.getBundle("MessagesBundle", newLocale, 
                                                       new URLClassLoader(urls));
         // do more searches if getBundle failed, or if the language is not the 
