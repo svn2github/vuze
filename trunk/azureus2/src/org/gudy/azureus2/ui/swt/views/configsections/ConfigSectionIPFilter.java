@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -94,7 +95,9 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     
     
   }
-  IpRange ipRanges[];
+  
+  IpRange 	ipRanges[];
+  Label		percentage_blocked;
   
   public
   ConfigSectionIPFilter(
@@ -136,16 +139,12 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     gFilter.setLayout(layout);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gFilter.setLayoutData(gridData);
+    
+    percentage_blocked  = new Label(gFilter, SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    percentage_blocked.setLayoutData(gridData);
 
-    long nbIPsBlocked = filter.getTotalAddressesInRange();
-    int percentIPsBlocked =  (int) (nbIPsBlocked * 1000l / (255l * 255l * 255l * 255l));
-    
-    String nbIps = "" + nbIPsBlocked;
-    String percentIps = DisplayFormatters.formatPercentFromThousands(percentIPsBlocked);
-    
-    Label lbl  = new Label(gFilter, SWT.NULL);
-    Messages.setLanguageText(lbl,"ConfigView.section.ipfilter.totalIPs",new String[]{nbIps,percentIps});
-    
+    setPercentageBlocked();
     
     // start controls
     BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled",true); //$NON-NLS-1$
@@ -155,6 +154,18 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     BooleanParameter deny = new BooleanParameter(gFilter, "Ip Filter Allow",false); //$NON-NLS-1$
     Messages.setLanguageText(deny.getControl(), "ConfigView.section.ipfilter.allow");
 
+    deny.addChangeListener(
+    	new ParameterChangeListener()
+		{
+    		public void
+    		parameterChanged(
+    			Parameter	p,
+    			boolean		caused_internally )
+			{
+    			setPercentageBlocked();
+			}
+		});
+    
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
     String[] headers = { "ConfigView.section.ipfilter.description", "ConfigView.section.ipfilter.start", "ConfigView.section.ipfilter.end" };
     int[] sizes = { 200, 110, 110 };
@@ -362,5 +373,24 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   	
   	return( ranges );
 	
+  }
+  
+  protected void
+  setPercentageBlocked()
+  {
+    long nbIPsBlocked = filter.getTotalAddressesInRange();
+    
+    if ( COConfigurationManager.getBooleanParameter( "Ip Filter Allow" )){
+    	
+    	nbIPsBlocked = 0x100000000L - nbIPsBlocked;
+    }
+    
+    int percentIPsBlocked =  (int) (nbIPsBlocked * 1000l / (255l * 255l * 255l * 255l));
+    
+    String nbIps = "" + nbIPsBlocked;
+    String percentIps = DisplayFormatters.formatPercentFromThousands(percentIPsBlocked);
+
+    Messages.setLanguageText(percentage_blocked,"ConfigView.section.ipfilter.totalIPs",new String[]{nbIps,percentIps});
+
   }
 }
