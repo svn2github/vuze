@@ -67,8 +67,6 @@ TRTrackerScraperResponse
 	public String
 	getStatusString();
 
-	public void setStatusString(String status);
-
   public boolean isValid();
 		
 }

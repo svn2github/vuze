@@ -5,11 +5,14 @@
 package org.gudy.azureus2.core3.tracker.client.classic;
 
 /**
- * @author Olivier
  * 
+ * @author Olivier
+ * @author TuxPaper
  */
 
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 public class TRTrackerScraperResponseImpl 
   implements TRTrackerScraperResponse
@@ -22,6 +25,7 @@ public class TRTrackerScraperResponseImpl
   private long nextScrapeStartTime;
   private TrackerStatus ts;
   private String sStatus = "";
+  private String sLastStatus = "";
   private int status;
   private int last_status;
 
@@ -41,8 +45,7 @@ public class TRTrackerScraperResponseImpl
     ts = _ts;
     scrapeStartTime = _scrapeStartTime;
     
-    setStatus(TRTrackerScraperResponse.ST_ONLINE);
-    last_status = status;
+    status = (isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
     nextScrapeStartTime = -1;
   }
 
@@ -65,7 +68,7 @@ public class TRTrackerScraperResponseImpl
 	public void setSeedsPeers(int iSeeds, int iPeers) {
 	  seeds = iSeeds;
 	  peers = iPeers;
-	  setStatus(TRTrackerScraperResponse.ST_ONLINE);
+	  status = (isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
     
     // XXX Is this a good idea?
     ts.scrapeReceived(this);
@@ -75,16 +78,40 @@ public class TRTrackerScraperResponseImpl
     return status;
   }
   
-  protected void setStatus(int iStatus) {
+  protected void setStatus(int iStatus, String sStatus) {
+    setStatus(iStatus, sStatus, false);
+  }
+
+  protected void setStatus(int iStatus, String sStatus, 
+                           boolean bAppendNextScrapeTime) {
+    if (last_status != status)
+      last_status = status;
     if (iStatus == TRTrackerScraperResponse.ST_ONLINE) {
       status = (isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
     } else {
       status = iStatus;
     }
+
+    String sNewStatus = sStatus;
+    if (bAppendNextScrapeTime) {
+      if (!sNewStatus.endsWith(".")) {
+        sNewStatus += ".  ";
+      } else if (!sNewStatus.equals("")) {
+        sNewStatus += "  ";
+      }
+      String[] params = { DisplayFormatters.formatTime(nextScrapeStartTime) };
+      sNewStatus += MessageText.getString("Scrape.status.nextScrapeAt", params);
+    }
+
+    if (!sLastStatus.equals(sNewStatus)) {
+      sLastStatus = sStatus;
+      this.sStatus = sNewStatus;
+    }
   }
   
   protected void revertStatus() {
-    setStatus(last_status);
+    status = last_status;
+    sStatus = sLastStatus;
   }
   
   protected void setScrapeStartTime(long time) {
@@ -106,10 +133,6 @@ public class TRTrackerScraperResponseImpl
    
   public String getStatusString() {
     return sStatus;
-  }
-  
-  public void setStatusString(String s) {
-    sStatus = s;
   }
   
   public boolean isValid() {
