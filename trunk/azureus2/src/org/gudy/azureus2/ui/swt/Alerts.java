@@ -294,7 +294,7 @@ public class Alerts {
   						}
   					}
   					
-						showErrorMessageBox( message, exception );
+  					showAlert( message, exception );
 				}
   			});
   }
