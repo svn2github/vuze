@@ -94,13 +94,14 @@ PEPieceImpl
   		return( 0 );
   	}
   	
-  	return( manager.getAvailability( getPieceNumber()));
+  	return( manager.getAvailability( pieceNumber ));
   }
 
   public boolean isComplete() {
 	boolean complete = true;
 	for (int i = 0; i < nbBlocs; i++) {
 	  complete = complete && written[i];
+     if (!complete) return false;
 	}
 	return complete;
   }
