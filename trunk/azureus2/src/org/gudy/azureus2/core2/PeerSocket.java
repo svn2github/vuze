@@ -219,13 +219,10 @@ public class PeerSocket extends PeerConnection {
     closing = true;
     this.currentState = new StateClosed();
 
-    //1. Remove us from the manager, so it will stop asking us for things :p
-    //manager.removePeer(this);
-
-    //2. Cancel any pending requests (on the manager side)
+    //1. Cancel any pending requests (on the manager side)
     cancelRequests();
 
-    //3. Close the socket
+    //2. Close the socket
     if (socket != null) {
       try {
         socket.close();
@@ -237,11 +234,11 @@ public class PeerSocket extends PeerConnection {
       socket = null;
     }
 
-    //4. release the read Buffer
+    //3. release the read Buffer
     if (readBuffer != null)
       ByteBufferPool.getInstance().freeBuffer(readBuffer);
 
-    //5. release the write Buffer
+    //4. release the write Buffer
     if (writeBuffer != null) {
       ByteBufferPool.getInstance().freeBuffer(writeBuffer);
       if (writeData) {
@@ -249,7 +246,7 @@ public class PeerSocket extends PeerConnection {
       }
     }
 
-    //6. release all buffers in dataQueue
+    //5. release all buffers in dataQueue
     for (int i = dataQueue.size() - 1; i >= 0; i--) {
       DataQueueItem item = (DataQueueItem) dataQueue.remove(i);
       if (item.isLoaded()) {
@@ -260,10 +257,10 @@ public class PeerSocket extends PeerConnection {
       }
     }
 
-    //7. Send removed event ...
+    //6. Send removed event ...
     manager.peerRemoved(this);
 
-    //8. Send a logger event
+    //7. Send a logger event
     logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port);
   }
 
@@ -358,7 +355,7 @@ public class PeerSocket extends PeerConnection {
         }
         if (!readBuffer.hasRemaining()) {
           analyseBuffer(readBuffer);
-          process();
+          //process();
         }
       }
     }
@@ -377,11 +374,15 @@ public class PeerSocket extends PeerConnection {
   }
 
   public void process() {
+    try {
     loopFactor++;
     if (currentState != null)
       currentState.process();
     if (getState() != DISCONNECTED)
       write();
+    } catch(Exception e) {
+      closeAll();
+    }
   }
 
   public int getState() {

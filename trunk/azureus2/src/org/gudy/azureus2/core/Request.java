@@ -89,4 +89,11 @@ public class Request
       
     return true;
   }
+  /**
+   * @return
+   */
+  public long getTimeCreated() {
+    return timeCreated;
+  }
+
 }

@@ -46,26 +46,16 @@ public class PeersView extends AbstractIView implements IComponentListener {
     table = new Table(composite, SWT.SINGLE | SWT.FULL_SELECTION);
     table.setLinesVisible(false);
     table.setHeaderVisible(true);
-    String[] titles =
-      {
-        "ip", //$NON-NLS-1$
-        "port", //$NON-NLS-1$
-        "T",
-        "I1",
-        "C1",
-        "pieces", //$NON-NLS-1$
-        "%", //$NON-NLS-1$
-        "downloadspeed", //$NON-NLS-1$
-        "download", //$NON-NLS-1$
-        "I2",
-        "C2",
-        "uploadspeed", //$NON-NLS-1$
-        "upload", //$NON-NLS-1$
-        "statup",
-        "S",
-        "downloadspeedoverall", //$NON-NLS-1$
-        "optunchoke",
-        "client" };
+    String[] titles = { "ip", //$NON-NLS-1$
+      "port", //$NON-NLS-1$
+      "T", "I1", "C1", "pieces", //$NON-NLS-1$
+      "%", //$NON-NLS-1$
+      "downloadspeed", //$NON-NLS-1$
+      "download", //$NON-NLS-1$
+      "I2", "C2", "uploadspeed", //$NON-NLS-1$
+      "upload", //$NON-NLS-1$
+      "statup", "S", "downloadspeedoverall", //$NON-NLS-1$
+      "optunchoke", "client" };
     int[] align =
       {
         SWT.LEFT,
@@ -108,7 +98,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
     table.getColumn(15).setWidth(60);
     table.getColumn(16).setWidth(30);
     table.getColumn(17).setWidth(60);
-    
+
     table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("ip")); //$NON-NLS-1$
     table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("port")); //$NON-NLS-1$
     table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("t")); //$NON-NLS-1$
@@ -127,8 +117,6 @@ public class PeersView extends AbstractIView implements IComponentListener {
     table.getColumn(15).addListener(SWT.Selection, new IntColumnListener("od")); //$NON-NLS-1$
     table.getColumn(16).addListener(SWT.Selection, new IntColumnListener("opt")); //$NON-NLS-1$
     table.getColumn(17).addListener(SWT.Selection, new StringColumnListener("client")); //$NON-NLS-1$
-    
-    
 
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
@@ -163,7 +151,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
     });
     table.setMenu(menu);
 
-//    manager.addListener(this);
+    //    manager.addListener(this);
 
   }
 
@@ -178,7 +166,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    if(getComposite() == null || getComposite().isDisposed())
+    if (getComposite() == null || getComposite().isDisposed())
       return;
 
     loopFactor++;
@@ -230,9 +218,13 @@ public class PeersView extends AbstractIView implements IComponentListener {
     synchronized (items) {
       if (items.containsKey(created))
         return;
-      //System.out.println("adding : " + created.getClass() + ":" + created);
-      PeerTableItem item = new PeerTableItem(table, (PeerSocket) created);
-      items.put(created, item);
+      try {
+        PeerTableItem item = new PeerTableItem(table, (PeerSocket) created);
+        items.put(created, item);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -270,13 +262,13 @@ public class PeersView extends AbstractIView implements IComponentListener {
       return peerSocket.isChoking();
     return false;
   }
-  
+
   private String getStringField(PeerSocket peerSocket, String field) {
     if (field.equals("ip")) //$NON-NLS-1$
       return peerSocket.getIp();
 
     if (field.equals("client")) //$NON-NLS-1$
-      return peerSocket.getClient();    
+      return peerSocket.getClient();
 
     return ""; //$NON-NLS-1$
   }
@@ -288,7 +280,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
 
     if (field.equals("done")) //$NON-NLS-1$
       return peerSocket.getPercentDone();
- 
+
     if (field.equals("ds")) //$NON-NLS-1$
       return peerSocket.getStats().getDownloadSpeedRaw();
 
@@ -299,11 +291,11 @@ public class PeersView extends AbstractIView implements IComponentListener {
       return peerSocket.getStats().getTotalReceivedRaw();
 
     if (field.equals("up")) //$NON-NLS-1$
-      return peerSocket.getStats().getTotalSentRaw();   
+      return peerSocket.getStats().getTotalSentRaw();
 
-    if(getBooleanFiedl(peerSocket,field))
+    if (getBooleanFiedl(peerSocket, field))
       return 1;
-      
+
     return 0;
   }
 
@@ -346,8 +338,8 @@ public class PeersView extends AbstractIView implements IComponentListener {
         PeerSocket peerSocket = (PeerSocket) ordered.get(i);
         psItems[i].setPeerSocket(peerSocket);
         psItems[i].invalidate();
-        items.put(peerSocket, psItems[i]);   
-             
+        items.put(peerSocket, psItems[i]);
+
       }
     }
   }
