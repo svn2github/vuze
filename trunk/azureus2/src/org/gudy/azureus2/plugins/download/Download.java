@@ -297,6 +297,7 @@ Download
    * @return name of the category
    *
    * @since 2.1.0.0
+   * @deprecated Use TorrentAttribute.TA_CATEGORY (2.2.0.3)
    */
   public String getCategoryName();
   
@@ -305,6 +306,7 @@ Download
    * @param sName Category name
    *
    * @since 2.1.0.0
+   * @deprecated Use TorrentAttribute.TA_CATEGORY (2.2.0.3)
    */
   public void setCategory(String sName);
 
