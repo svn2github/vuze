@@ -364,14 +364,13 @@ PEPeerControlImpl
     // Stop the peer updater
     peerUpdater.stopIt();
     
-    //TODO
-    //connection_pool.destroy();
+    connection_pool.destroy();
 
     //clear pieces
     for (int i = 0; i < _pieces.length; i++) {
       if (_pieces[i] != null)
         pieceRemoved(_pieces[i]);
-    }    
+    }
 
     //  Stop itself
     _bContinue = false;
