@@ -1388,16 +1388,11 @@ public class MyTorrentsView
     if ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView)) {
       addDataSource(manager);
     }
-    manager.addListener( this );
   }
 
   public void downloadManagerRemoved(Category category, DownloadManager removed)
   {
-    MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(removed);
-    if (mw != null) mw.close();
-
     removeDataSource(removed);
-    removed.removeListener( this );
   }
 
 
@@ -1412,10 +1407,8 @@ public class MyTorrentsView
     // manager has moved lists
     if ((isSeedingView && bCompleted) || (!isSeedingView && !bCompleted)) {
       addDataSource(manager);
-      manager.addListener( this );
     } else if ((isSeedingView && !bCompleted) || (!isSeedingView && bCompleted)) {
       removeDataSource(manager);
-      manager.removeListener( this );
     }
   }
 
@@ -1445,7 +1438,6 @@ public class MyTorrentsView
       managers = currentCategory.getDownloadManagers();
     else
       managers = globalManager.getDownloadManagers();
-
 
     removeAllTableRows();
 
@@ -1477,6 +1469,8 @@ public class MyTorrentsView
 
   // globalmanagerlistener Functions
   public void downloadManagerAdded( DownloadManager dm ) {
+    dm.addListener( this );
+
     if (skipDMAdding ||
         (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
       return;
@@ -1486,6 +1480,11 @@ public class MyTorrentsView
   }
 
   public void downloadManagerRemoved( DownloadManager dm ) {
+    dm.removeListener( this );
+
+    MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(dm);
+    if (mw != null) mw.close();
+
     if (skipDMAdding ||
         (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
       return;
