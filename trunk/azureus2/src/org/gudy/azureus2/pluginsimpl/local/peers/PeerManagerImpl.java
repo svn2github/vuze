@@ -28,6 +28,9 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.download.*;
+
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.disk.*;
@@ -46,6 +49,8 @@ PeerManagerImpl
 	protected static Map	pm_map	= new WeakHashMap();
 	
 	protected Map		foreign_map	= new WeakHashMap();
+	
+	protected Map		listener_map = new HashMap();
 	
 	public static PeerManagerImpl
 	getPeerManager(
@@ -169,5 +174,88 @@ PeerManagerImpl
 		}
 		
 		return( res );
+	}
+	
+	
+	public synchronized void
+	addListener(
+		final PeerManagerListener	l )
+	{
+		final Map	peer_map = new HashMap();
+		
+		DownloadManagerPeerListener	pml = 
+			new DownloadManagerPeerListener()
+			{
+				public void
+				peerManagerAdded(
+					PEPeerManager	manager )
+				{
+				}
+				
+				public void
+				peerManagerRemoved(
+					PEPeerManager	manager )
+				{
+				}
+								
+				public void
+				peerAdded(
+					PEPeer 	peer )
+				{
+					PeerImpl pi = new PeerImpl( peer );
+										
+					peer_map.put( peer, pi );
+					
+					l.peerAdded( PeerManagerImpl.this, pi );
+				}
+					
+				public void
+				peerRemoved(
+					PEPeer	peer )
+				{	
+					PeerImpl	pi = (PeerImpl)peer_map.get( peer );
+					
+					if ( pi == null ){
+						
+						// somewhat inconsistently we get told here about the removal of
+						// peers that never connected (and weren't added)
+						// Debug.out( "PeerManager: peer not found");
+						
+					}else{
+						
+						l.peerRemoved( PeerManagerImpl.this, pi );
+					}
+				}
+					
+				public void
+				pieceAdded(
+					PEPiece 	piece )
+				{	
+				}
+					
+				public void
+				pieceRemoved(
+					PEPiece		piece )
+				{
+				}
+			};
+
+		listener_map.put( l, pml );
+	
+		manager.getDownloadManager().addPeerListener(pml);
+	}
+	
+	public synchronized void
+	removeListener(
+		PeerManagerListener	l )
+	{
+		DownloadManagerPeerListener	pml = (DownloadManagerPeerListener)listener_map.get( l );
+		
+		if ( pml != null ){
+		
+			manager.getDownloadManager().removePeerListener( pml );
+			
+			listener_map.remove( l );
+		}
 	}
 }

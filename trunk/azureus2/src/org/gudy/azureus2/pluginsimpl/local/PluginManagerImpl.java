@@ -55,18 +55,26 @@ PluginManagerImpl
 		return( singleton );
 	}
 	
-	public static synchronized void
+	public static void
 	startAzureus(
 		int			_ui_type,
 		Properties	properties )
 	{
-		if ( running ){
+		synchronized( PluginManagerImpl.class ){
 			
-			throw( new RuntimeException( "Azureus is already running"));
+			if ( running ){
+				
+				throw( new RuntimeException( "Azureus is already running"));
+			}
+			
+			running	= true;
+			
+			ui_type	= _ui_type;
 		}
 		
-		running	= true;
-		ui_type	= _ui_type;
+			// there's a small window here when an immediate "stop" wouldn't work coz
+			// this code would carry on after the stop and start. However, can't easily
+			// fix this here...
 		
 		if ( ui_type == PluginManager.UI_NONE ){
 		

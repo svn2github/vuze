@@ -29,6 +29,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -57,7 +58,7 @@ ShareTester
 					
 					props.put( PluginManager.PR_MULTI_INSTANCE, "true" );
 					
-					PluginManager.startAzureus( PluginManager.UI_NONE, props );
+					PluginManager.startAzureus( PluginManager.UI_SWT, props );
 				}
 			}.start();
 		
@@ -112,11 +113,11 @@ ShareTester
 									{
 										System.out.println( "statechange:" + old + "-> " + cur + "  (" + download + ")");
 									}
-                  public void
-                  positionChanged(
-                    Download	download, 
-                    int old,
-                    int cur)
+					                public void
+					                positionChanged(
+					                    Download	download, 
+					                    int old,
+					                    int cur)
 									{
 										System.out.println( "statechange:" + old + "-> " + cur + "  (" + download + ")");
 									}
@@ -145,6 +146,43 @@ ShareTester
 											System.out.println( "announceResult:" + result.getError());
 										}
 									}								
+								});
+							
+							download.addPeerListener(
+								new DownloadPeerListener()
+								{
+									public void
+									peerManagerAdded(
+										Download		download,
+										PeerManager		peer_manager )
+									{
+										peer_manager.addListener(
+											new PeerManagerListener()
+											{											
+												public void
+												peerAdded(
+													PeerManager	manager,
+													Peer		peer )
+												{
+													System.out.println( "peerAdded:" + peer.getIp());
+												}
+												
+												public void
+												peerRemoved(
+													PeerManager	manager,
+													Peer		peer )
+												{
+													System.out.println( "peerRemoved:" + peer.getIp());
+												}
+											});
+									}
+									
+									public void
+									peerManagerRemoved(
+										Download		download,
+										PeerManager		peer_manager )
+									{
+									}
 								});
 						}
 						public void

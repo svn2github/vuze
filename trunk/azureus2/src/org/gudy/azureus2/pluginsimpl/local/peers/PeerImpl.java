@@ -46,7 +46,7 @@ PeerImpl
 	{
 		delegate	= _delegate;
 		
-		manager = new PeerManagerImpl( delegate.getManager());
+		manager = PeerManagerImpl.getPeerManager( delegate.getManager());
 		
 	}
 

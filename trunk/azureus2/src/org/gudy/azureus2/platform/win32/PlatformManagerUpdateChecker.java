@@ -64,8 +64,11 @@ PlatformManagerUpdateChecker
 			try{
 				PlatformManagerImpl platform	= (PlatformManagerImpl)PlatformManagerFactory.getPlatformManager();
 			
-				version = platform.getVersion();
-			
+				if ( platform != null ){
+					
+					version = platform.getVersion();
+				}
+				
 			}catch( Throwable e ){
 			
 				e.printStackTrace();

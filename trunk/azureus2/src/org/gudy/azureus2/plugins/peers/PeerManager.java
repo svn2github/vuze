@@ -52,4 +52,12 @@ PeerManager
 	
 	public PeerStats
 	createPeerStats();
+	
+	public void
+	addListener(
+		PeerManagerListener	l );
+	
+	public void
+	removeListener(
+		PeerManagerListener	l );
 }
