@@ -38,7 +38,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
@@ -433,8 +433,19 @@ public class ConfigView extends AbstractIView {
     infoGroup.setLayout(new GridLayout());
     infoGroup.addControlListener(new Utils.LabelWrapControlListener());  
 
-    String sUserPluginDir = SystemProperties.getUserPath() + "plugins" + System.getProperty("file.separator");
-    String sAppPluginDir = SystemProperties.getApplicationPath() + "plugins" + System.getProperty("file.separator");
+    String	sep = System.getProperty("file.separator");
+    
+    String sUserPluginDir 	= FileUtil.getUserFile( "plugins" ).toString(); 
+    
+    if ( !sUserPluginDir.endsWith(sep)){
+    	sUserPluginDir += sep;
+    }
+    
+    String sAppPluginDir 	= FileUtil.getApplicationFile( "plugins" ).toString();
+    
+    if ( !sAppPluginDir.endsWith(sep)){
+    	sAppPluginDir += sep;
+    }
     
     label = new Label(infoGroup, SWT.WRAP);
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
