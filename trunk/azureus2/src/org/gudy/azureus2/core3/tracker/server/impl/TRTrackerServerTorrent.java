@@ -90,7 +90,7 @@ TRTrackerServerTorrent
 				if (	this_peer.getPort() == port &&
 						new String(this_peer.getIP()).equals( ip_address )){
 									
-					System.out.println( "removing dead client '" + this_peer.getString());
+					// System.out.println( "removing dead client '" + this_peer.getString());
 									
 					it.remove();
 				}
@@ -152,7 +152,7 @@ TRTrackerServerTorrent
 							
 			if ( now > peer.getTimeout()){
 							
-				System.out.println( "removing timed out client '" + peer.getString());
+				// System.out.println( "removing timed out client '" + peer.getString());
 								
 				it.remove();
 								
