@@ -36,7 +36,8 @@ BUGFIX: UI   | Fixed up opening of torrent files not ending in ".tor" or ".torre
 BUGFIX: Core | Scrape mult-tracker torrents correctly when download not running [Parg]
 BUGFIX: Core | Upload/download/share ratio frig for newly added seeds made consistent [Parg]
 BUGFIX: Core | Fix for stalls from system clock being set backwards in time [Nolar]
-
+BUGFIX: Core | Fixed up bad behaviour on out-of-disk-space falures [Parg]
+BUGFIX: Core | Fixed torrents getting stuck in READY state [Parg]
 
 
 2004.10.31 | Azureus 2.2.0.0
