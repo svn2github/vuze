@@ -408,25 +408,22 @@ public class DiskManager {
   }
 
   private static class FlyWeightInteger {
-    private static Vector array = new Vector(100);
+    private static Vector array = new Vector(1024);
 
-    public static synchronized Integer getInteger(int value) {
-      Integer tmp = null;
-      synchronized (array) {
-        if (value >= array.size()) {
-          array.setSize(value + 1);
-          tmp = new Integer(value);
-          array.set(value, tmp);
-          return tmp;
-        }
-        tmp = (Integer) array.get(value);
-        if (tmp == null) {
-          tmp = new Integer(value);
-          array.set(value, tmp);
-        }
-        return tmp;
-      }
-    }
+	public static synchronized Integer getInteger(int value) {
+		Integer tmp = null;
+		if (value >= array.size()) {
+			array.setSize(value+256);
+		} else {
+			tmp = (Integer) array.get(value);
+		}
+		if (tmp == null) {
+			tmp = new Integer(value);
+			array.set(value, tmp);
+		}
+		return tmp;
+
+	}
   }
 
   private static class BtFile {
