@@ -210,7 +210,7 @@ DiskManagerImpl
 		
 		for (int i=0;i<pieces.length;i++){
 			
-			pieces[i] = new DiskManagerPieceImpl(this, i, i==pieces.length-1?lastPieceLength:pieceLength);
+			pieces[i] = new DiskManagerPieceImpl( this, i );
 		}
 		
 		reader 				= DMAccessFactory.createReader(this);

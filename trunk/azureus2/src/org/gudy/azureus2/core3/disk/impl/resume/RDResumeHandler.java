@@ -509,9 +509,10 @@ RDResumeHandler
 					// save the partial pieces for any pieces that have not yet been completed
 					// and are in-progress (i.e. have at least one block downloaded)
 				
-				if (( !piece.getDone()) && piece.getCompleteCount() > 0){
+				boolean[] downloaded = piece.getWritten();
+
+				if (( !piece.getDone()) && piece.getCompleteCount() > 0 && downloaded != null ){
 					
-					boolean[] downloaded = piece.getWritten();
 					
 					List blocks = new ArrayList();
 					

@@ -114,6 +114,8 @@ public class BlocksItem
             
       TOTorrent torrent = piece.getManager().getDownloadManager().getTorrent();
       
+      boolean[]	written = piece.getWritten();
+      
       for (int i = 0; i < lNumBlocks; i++) {
         int nextWidth = iPixelsPerBlock;
         if (i == lNumBlocks - 1) {
@@ -121,7 +123,7 @@ public class BlocksItem
         }
         color = Colors.white;
   
-        if (piece.getWritten()[i]) {
+        if ( written==null||written[i]) {
           color = blue;
         }
         

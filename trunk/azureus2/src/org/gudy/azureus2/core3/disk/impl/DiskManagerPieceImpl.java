@@ -39,24 +39,23 @@ DiskManagerPieceImpl
 	protected int				piece_index;
 	protected boolean			done;
 	
-
+		// to save memory the "written" field is only maintained for pieces that are
+		// downloading. A value of "null" means that either the piece hasn't started 
+		// download or that it is complete.
+		// access to "written" is single-threaded (by the peer manager) apart from when
+		// the disk manager is saving resume data.
+	
 	protected boolean[] written;
 
 	protected long		last_write_time;
-	protected short		completed;
 
 	protected
 	DiskManagerPieceImpl(
 		DiskManagerImpl		_disk_manager,
-		int					_piece_index,
-		int					_length )
+		int					_piece_index )
 	{
 		disk_manager	= _disk_manager;
 		piece_index		= _piece_index;
-		
-		int	nbBlocs = (_length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
-
-		written 	= new boolean[nbBlocs];
 	}
 	  
 	public int
@@ -81,7 +80,7 @@ DiskManagerPieceImpl
 	public int
 	getBlockCount()
 	{
-		return( written.length );
+		return((getLength() + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE );
 	}
 	
 	public boolean
@@ -99,41 +98,95 @@ DiskManagerPieceImpl
 			done	= _done;
 		
 			disk_manager.setPieceDone( this );
+			
+			if ( done ){
+				
+				written = null;
+			}
 		}
 	}
 	
-	  public void setWritten(int blocNumber) {
+	public void 
+	setWritten(
+		int blocNumber) 
+	{
+		if ( written == null ){
+			
+			written = new boolean[getBlockCount()];
+		}
+		
 	    written[blocNumber] = true;
-	    completed++;
-	    
+	    	    
 	    last_write_time	= SystemTime.getCurrentTime();
-	  }
+	}
 
-	  public boolean
-	  getWritten(
-	  	int		bn )
-	  {
+	public boolean
+	getWritten(
+	 	int		bn )
+	{
+		if ( done ){
+			
+			return( true );
+		}
+				
+		if ( written == null ){
+			
+			return( false );		
+		}
+		
 	  	return( written[bn]);
-	  }
+	}
 	  
-	  public long
-	  getLastWriteTime()
-	  {
-	  	return( last_write_time );
-	  }
+	public long
+	getLastWriteTime()
+	{
+	 	return( last_write_time );
+	}
 	  
-	  public int getCompleteCount() {
-		return completed;
-	  }
-	  
-	  public boolean getCompleted() {
-	  	boolean complete = true;
+	public int 
+	getCompleteCount() 
+	{
+		if ( done ){
+			
+			return( getBlockCount());
+		}
+		
+		if ( written == null ){
+			
+			return( 0 );
+		}
+		
+		int	res = 0;
+		
 	  	for (int i = 0; i < written.length; i++) {
-	  		complete = complete && written[i];
-	  		if (!complete) return false;
+	  		
+	  		if ( written[i] ){
+	  			
+	  			res++;
+	  		}
 	  	}
-		  return complete;
-	  }
+	  	
+	  	return( res );
+	}
+	  
+	public boolean 
+	getCompleted() 
+	{
+		if ( written == null ){
+			
+			return( done );
+		}
+			  	
+	  	for (int i = 0; i < written.length; i++) {
+	  		
+	  		if ( !written[i] ){
+	  			
+	  			return( false );
+	  		}	  		
+	  	}
+	  	
+		return( true );
+	}
 	  
 	public boolean[]
 	getWritten() 
@@ -144,10 +197,10 @@ DiskManagerPieceImpl
 	public void
 	reset()
 	{
-		written = new boolean[written.length];
+		written = null;
     
-		completed = 0;
-
+		setDone( false );
+		
 		last_write_time = SystemTime.getCurrentTime();
 	}
 	  
