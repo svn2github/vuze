@@ -112,6 +112,14 @@ public class NetworkManager {
   protected ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
   
   
+  /**
+   * Get the virtual selector for socket channel write readyness.
+   * @return selector
+   */
+  protected VirtualChannelSelector getWriteSelector() {  return write_selector;  }
+  
+  
+  
   //////////////////////////////////////////////////////////////
   
   
@@ -120,6 +128,7 @@ public class NetworkManager {
    * @return root pool
    */
   public ConnectionPool getRootConnectionPool() {  return root_connection_pool;  }
+  
   
   
   
@@ -169,7 +178,7 @@ public class NetworkManager {
   }
   
 
-  protected VirtualChannelSelector getWriteSelector() {  return write_selector;  }
+  
 
 
 }

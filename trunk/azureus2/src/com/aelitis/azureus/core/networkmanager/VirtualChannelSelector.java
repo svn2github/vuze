@@ -44,6 +44,9 @@ public class VirtualChannelSelector {
     private final ArrayList register_list 		= new ArrayList();
     private final AEMonitor register_list_mon	= new AEMonitor( "VirtualChannelSelector:RL");
 
+    private final ArrayList cancel_list = new ArrayList();
+    private final AEMonitor cancel_list_mon = new AEMonitor( "VirtualChannelSelector:CL" );
+    
     private final int interest_op;
 
 
@@ -82,17 +85,72 @@ public class VirtualChannelSelector {
     
     
     /**
+     * Cancel the select request.
+     * Once canceled, the channel is unregistered and the listener will never be invoked.
+     * @param channel channel originally registered
+     */
+    protected void cancel( SocketChannel channel ) {
+      try {
+        cancel_list_mon.enter();
+        cancel_list.add( channel );
+      }
+      finally { 
+        cancel_list_mon.exit();
+      }
+    }
+    
+    
+    
+    /**
      * Run a virtual select() operation, with the given selection timeout value;
-     *   (1) new registrations are processed;
+     *   (1) cancellations are processed
      *   (2) the select operation is performed;
      *   (3) listener notification of completed selects
+     *   (4) new registrations are processed;
      * @param timeout in ms
      * @return number of sockets selected
      */
     protected int select( long timeout ) {
-      int count = 0;
-                  
+      //process cancellations
+      try {
+        cancel_list_mon.enter();
+        
+        for( Iterator can_it = cancel_list.iterator(); can_it.hasNext(); ) {
+          SocketChannel canceled_channel = (SocketChannel)can_it.next();
+          boolean found_in_registration_list = false;
+          
+          try{
+            register_list_mon.enter();
+            
+            //check if not yet registered, and cancel immediately
+            for( Iterator reg_it = register_list.iterator(); reg_it.hasNext(); ) {
+              RegistrationData data = (RegistrationData)reg_it.next();
+              if( data.channel == canceled_channel ) {  //canceled before registration with selector
+                reg_it.remove();
+                found_in_registration_list = true;
+                break;
+              }
+            }
+          }
+          finally{
+            register_list_mon.exit();
+          }
+          
+          if( !found_in_registration_list ) {
+            SelectionKey key = canceled_channel.keyFor( selector );
+            if( key != null )  key.cancel();  //cancel the key, since already registered
+            else Debug.out( "null selection key returned for channel" );
+          }
+        }
+        cancel_list.clear();        
+      }
+      finally { 
+        cancel_list_mon.exit();
+      }
+      
+      
       //do the actual select
+      int count = 0;
       selector_guard.markPreSelectTime();
       try {
         count = selector.select( timeout );
@@ -125,25 +183,24 @@ public class VirtualChannelSelector {
       try{
       	register_list_mon.enter();
       
-        if( !register_list.isEmpty() ) {
-          for( int i=0; i < register_list.size(); i++ ) {
-            RegistrationData data = (RegistrationData)register_list.get( i );
-            try {
-              if( data.channel.isOpen() ) {
-                data.channel.register( selector, interest_op, data );
-              }
-              else {
-                data.listener.selectFailure( new Throwable( "channel is closed" ) );
-                Debug.out( "channel is closed" );
-              }
-            }
-            catch (Throwable t) {
-              data.listener.selectFailure( t );
-              t.printStackTrace();
-            }
-          }
-          register_list.clear();
-        }
+      	for( int i=0; i < register_list.size(); i++ ) {
+      	  RegistrationData data = (RegistrationData)register_list.get( i );
+      	  try {
+      	    if( data.channel.isOpen() ) {
+      	      data.channel.register( selector, interest_op, data );
+      	    }
+      	    else {
+      	      data.listener.selectFailure( new Throwable( "channel is closed" ) );
+      	      Debug.out( "channel is closed" );
+      	    }
+      	  }
+      	  catch (Throwable t) {
+      	    data.listener.selectFailure( t );
+      	    t.printStackTrace();
+      	  }
+      	}
+      	register_list.clear();
+        
       }finally{
       	register_list_mon.exit();
       }

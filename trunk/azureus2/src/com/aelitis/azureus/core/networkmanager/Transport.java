@@ -27,6 +27,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 
 
 /**
@@ -36,7 +38,11 @@ public class Transport {
   private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private SocketChannel socket_channel;
   private boolean is_connected;
-  private ConnectDisconnectManager.ConnectListener connect_request_key;
+  private boolean is_ready_for_write;
+  private boolean is_write_select_pending = false;
+  private Throwable write_select_failure = null;
+  private ConnectDisconnectManager.ConnectListener connect_request_key = null;
+  
   
   /**
    * Constructor for disconnected transport.
@@ -44,7 +50,7 @@ public class Transport {
   protected Transport() {
     socket_channel = null;
     is_connected = false;
-    connect_request_key = null;
+    is_ready_for_write = false;
   }
   
   /**
@@ -54,7 +60,7 @@ public class Transport {
   protected Transport( SocketChannel channel ) {
     this.socket_channel = channel;
     is_connected = true;
-    connect_request_key = null;
+    is_ready_for_write = true;  //assume it is ready
   }
   
   /**
@@ -73,6 +79,14 @@ public class Transport {
     return socket_channel.socket().getInetAddress().getHostAddress() + ":" + socket_channel.socket().getPort();
   }
   
+  
+  /**
+   * Is the transport ready to write,
+   * i.e. will a write request result in >0 bytes written.
+   * @return true if the transport is write ready, false if not yet ready
+   */
+  protected boolean isReadyForWrite() {  return is_ready_for_write;  }
+  
     
   /**
    * Write data to the transport from the given buffers.
@@ -84,16 +98,27 @@ public class Transport {
    * @throws IOException
    */
   protected long write( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
+    if( !is_ready_for_write )  return 0;
+    
+    if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
+    
     if( enable_efficient_write ) {
+      long num_bytes_requested = 0;
+      for( int i=array_offset; i < array_length; i++ ) {
+        num_bytes_requested += buffers[ i ].remaining();
+      }
+      
       try {
-        return socket_channel.write( buffers, array_offset, array_length );
+        long written = socket_channel.write( buffers, array_offset, array_length );
+        if( written < num_bytes_requested )  requestWriteSelect();
+        return written;
       }
       catch( IOException e ) {
         //a bug only fixed in Tiger (1.5 series):
         //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
         if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
           enable_efficient_write = false;
-          System.out.println( "ERROR: Multi-buffer socket write failed; switching to single-buffer mode. Upgrade to JRE 1.5 series to fix." );
+          Debug.out( "ERROR: Multi-buffer socket write failed; switching to single-buffer mode. Upgrade to JRE 1.5 series to fix." );
         }
         throw e;
       }
@@ -105,10 +130,36 @@ public class Transport {
       int data_length = buffers[ i ].remaining();
       int written = socket_channel.write( buffers[ i ] );
       written_sofar += written;
-      if( written < data_length )  break;
+      if( written < data_length ) {
+        requestWriteSelect();
+        break;
+      }
     }
+    
     return written_sofar;
   }
+  
+  
+  
+  private void requestWriteSelect() {
+    is_ready_for_write = false;
+    is_write_select_pending = true;
+    
+    NetworkManager.getSingleton().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+      public void selectSuccess( Object attachment ) {
+        is_ready_for_write = true;
+        is_write_select_pending = false;
+      }
+
+      public void selectFailure( Throwable msg ) {
+        is_ready_for_write = true;
+        is_write_select_pending = false;
+        write_select_failure = msg;
+        Debug.out( "~~~ write select failure ~~~" );
+      }
+    }, null);
+  }
+  
   
   
  
@@ -128,6 +179,7 @@ public class Transport {
       public void connectSuccess( SocketChannel channel ) {
         socket_channel = channel;
         is_connected = true;
+        is_ready_for_write = true;
         connect_request_key = null;
         listener.connectSuccess();
       }
@@ -135,6 +187,7 @@ public class Transport {
       public void connectFailure( Throwable failure_msg ) {
         socket_channel = null;
         is_connected = false;
+        is_ready_for_write = false;
         connect_request_key = null;
         listener.connectFailure( failure_msg );
       }
@@ -151,11 +204,19 @@ public class Transport {
   protected void close() {
     if( is_connected ) {
       is_connected = false;
+      if( is_write_select_pending ) {
+        NetworkManager.getSingleton().getWriteSelector().cancel( socket_channel );
+        is_write_select_pending = false;
+      }
       NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
     }
     else if( connect_request_key != null ) {
       NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
+      connect_request_key = null;
     }
+    
+    is_ready_for_write = false;
+    socket_channel = null;
   }
   
   

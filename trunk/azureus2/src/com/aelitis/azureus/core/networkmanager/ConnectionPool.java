@@ -50,15 +50,7 @@ public class ConnectionPool {
   private final ByteBucket write_bytebucket;
   private float write_percent_of_max;
   
-  private static final VirtualChannelSelector.VirtualSelectorListener write_select_listener = new VirtualChannelSelector.VirtualSelectorListener() {
-    public void selectSuccess( Object attachment ) {
-      ((Connection)attachment).setTransportReadyForWrite( true );
-    }
-    public void selectFailure( Throwable msg ) {
-      //TODO
-    }
-  };
-  
+ 
   
   /**
    * Constructor for creating root pool.
@@ -476,7 +468,7 @@ public class ConnectionPool {
       
       Connection conn = (Connection)connections.removeFirst();
       
-      if( conn.isTransportReadyForWrite() ) {
+      if( conn.getTransport().isReadyForWrite() ) {
         OutgoingMessageQueue omq = conn.getOutgoingMessageQueue();
         int size = omq.getTotalSize();
         boolean forced_flush = size > 0 && SystemTime.getCurrentTime() - conn.getLastNewWriteDataAddedTime() > FLUSH_WAIT_TIME ? true : false;
@@ -497,16 +489,12 @@ public class ConnectionPool {
           int written = 0;
           try {
             written = omq.deliverToTransport( conn.getTransport(), num_bytes_to_write );
-            if( written < num_bytes_to_write ) {  //unable to deliver all data....add to selector for readiness notification
-              conn.setTransportReadyForWrite( false );
-              NetworkManager.getSingleton().getWriteSelector().register( conn.getTransport().getSocketChannel(), write_select_listener, conn );
-            }
-            else if( omq.getTotalSize() >= mss_size ) { //there's still data left to send
+            
+            if( omq.getTotalSize() >= mss_size && written >= num_bytes_to_write ) { //there's still data left to send & and it didn't under-write
               num_empty--; //make sure it's not counted as empty
             }
-          } 
+          }
           catch( Throwable t ) {
-            conn.setTransportReadyForWrite( false );
             conn.notifyOfException( t );
           }
           total_bytes_used += written;

@@ -45,7 +45,7 @@ public class ConnectDisconnectManager {
   private final LinkedList 	new_requests 			= new LinkedList();
   private final AEMonitor	new_requests_mon		= new AEMonitor( "ConnectDisconnectManager:NR");
   private final HashMap 	pending_attempts 		= new HashMap();
-  private final HashMap 	canceled_requests 		= new HashMap();
+  private final ArrayList 	canceled_requests 		= new ArrayList();
   private final AEMonitor	canceled_requests_mon	= new AEMonitor( "ConnectDisconnectManager:CR");
   private final LinkedList 	pending_closes 			= new LinkedList();
   private final AEMonitor	pending_closes_mon		= new AEMonitor( "ConnectDisconnectManager:PC");
@@ -78,36 +78,22 @@ public class ConnectDisconnectManager {
   
   private void addNewOutboundRequests() {    
     while( pending_attempts.size() < MIN_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
-      ConnectionRequest cr;
       try{
       	new_requests_mon.enter();
       
         if( new_requests.isEmpty() )  break;
-        
-        cr = (ConnectionRequest)new_requests.removeFirst();
-      }finally{
-      	
+        ConnectionRequest cr = (ConnectionRequest)new_requests.removeFirst();
+        addNewRequest( cr ); 
+      }
+      finally{
       	new_requests_mon.exit();
       }
-      addNewRequest( cr );
     }
   }
   
   
 
-  private void addNewRequest( final ConnectionRequest request ) {
-    try{
-    	canceled_requests_mon.enter();
-    
-      if( canceled_requests.containsKey( request.listener ) ) {  //it's been canceled
-        canceled_requests.remove( request.listener );
-        return;
-      }
-    }finally{
-    	
-    	canceled_requests_mon.exit();
-    }
-    
+  private void addNewRequest( final ConnectionRequest request ) {  
     try {
       request.channel = SocketChannel.open();
       
@@ -129,88 +115,60 @@ public class ConnectDisconnectManager {
       request.channel.connect( request.address );
       
       connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
-        public void selectSuccess( Object attachment ) {
-                    
-          Throwable failure_reason = null;  //used to invoke listener outside of sync block
-          
-          try{
-          	canceled_requests_mon.enter();
-          
-            if( !canceled_requests.containsKey( request.listener ) ) { //check if canceled
-              try {
-                if( request.channel.finishConnect() ) {
+        public void selectSuccess( Object attachment ) {         
+          try {
+            if( request.channel.finishConnect() ) {
                   
-                  if( SHOW_CONNECT_STATS ) {
-                    long queue_wait_time = request.connect_start_time - request.request_start_time;
-                    long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
-                    int num_queued = new_requests.size();
-                    int num_connecting = pending_attempts.size();
-                    System.out.println("S: queue_wait_time="+queue_wait_time+
-                                       ", connect_time="+connect_time+
-                                       ", num_queued="+num_queued+
-                                       ", num_canceled="+canceled_requests.size()+
-                                       ", num_connecting="+num_connecting);
-                  }
-                  
-                  failure_reason = null;  //success
-                }
-                else { //should never happen
-                  Debug.out( "finishConnect() failed" );
-                  failure_reason = new Throwable( "finishConnect() failed" );
-                  try{
-                  	pending_closes_mon.enter();
-                  
-                    pending_closes.addLast( request.channel );
-                  }finally{
-                  	pending_closes_mon.exit();
-                  }
-                }
+              if( SHOW_CONNECT_STATS ) {
+                long queue_wait_time = request.connect_start_time - request.request_start_time;
+                long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+                int num_queued = new_requests.size();
+                int num_connecting = pending_attempts.size();
+                System.out.println("S: queue_wait_time="+queue_wait_time+
+                                    ", connect_time="+connect_time+
+                                    ", num_queued="+num_queued+
+                                    ", num_connecting="+num_connecting);
               }
-              catch( Throwable t ) {
-                
-                if( SHOW_CONNECT_STATS ) {
-                  long queue_wait_time = request.connect_start_time - request.request_start_time;
-                  long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
-                  int num_queued = new_requests.size();
-                  int num_connecting = pending_attempts.size();
-                  System.out.println("F: queue_wait_time="+queue_wait_time+
-                                     ", connect_time="+connect_time+
-                                     ", num_queued="+num_queued+
-                                     ", num_canceled="+canceled_requests.size()+
-                                     ", num_connecting="+num_connecting);
-                }
-                
-                failure_reason = t;
-                try{
-                	pending_closes_mon.enter();
-                
-                	pending_closes.addLast( request.channel );
-                }finally{
-                	
-                	pending_closes_mon.exit();
-                }
-              }
+                  
+              request.listener.connectSuccess( request.channel );
             }
-            else {  //if already canceled, no need to invoke listener
-              canceled_requests.remove( request.listener );
+            else { //should never happen
+              Debug.out( "finishConnect() failed" );
+              request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
               try{
-              	pending_closes_mon.enter();
-              
+                pending_closes_mon.enter();
+                  
                 pending_closes.addLast( request.channel );
               }finally{
-              	
-              	pending_closes_mon.exit();
+                pending_closes_mon.exit();
               }
             }
-          }finally{
-          	
-          	canceled_requests_mon.exit();
           }
+          catch( Throwable t ) {
+                
+            if( SHOW_CONNECT_STATS ) {
+              long queue_wait_time = request.connect_start_time - request.request_start_time;
+              long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+              int num_queued = new_requests.size();
+              int num_connecting = pending_attempts.size();
+              System.out.println("F: queue_wait_time="+queue_wait_time+
+                                  ", connect_time="+connect_time+
+                                  ", num_queued="+num_queued+
+                                  ", num_connecting="+num_connecting);
+            }
+                
+            request.listener.connectFailure( t );
+            try{
+              pending_closes_mon.enter();
+                
+              pending_closes.addLast( request.channel );
+            }finally{
+                	
+              pending_closes_mon.exit();
+            }
+          }
+            
           pending_attempts.remove( request );
-          
-          //notify listener
-          if( failure_reason == null )  request.listener.connectSuccess( request.channel );
-          else  request.listener.connectFailure( failure_reason );
         }
         
         public void selectFailure( Throwable msg ) {
@@ -224,27 +182,10 @@ public class ConnectDisconnectManager {
           	
           	pending_closes_mon.exit();
           }
-          
-          boolean notify_of_failure = false;
-          
-          try{
-          	canceled_requests_mon.enter();
-          
-            if( !canceled_requests.containsKey( request.listener ) ) { //check if canceled
-              notify_of_failure = true;
-            }
-            else {  //if already canceled, no need to invoke listener
-              canceled_requests.remove( request.listener );
-            }
-          }finally{
-          	
-          	canceled_requests_mon.exit();
-          }
-          
+
+          request.listener.connectFailure( msg );
+
           pending_attempts.remove( request );
-          
-          //notify listener
-          if( notify_of_failure )  request.listener.connectFailure( msg );
           
         }
       }, null );
@@ -271,22 +212,57 @@ public class ConnectDisconnectManager {
   
   
   private void runSelect() {
-    connect_selector.select( 100 );
-    int num_stalled_requests = 0;
+    //do cancellations
+    try{
+      canceled_requests_mon.enter();
+      
+      for( Iterator can_it = canceled_requests.iterator(); can_it.hasNext(); ) {
+        ConnectListener key = (ConnectListener)can_it.next();
+        
+        boolean found = false;      
+        for( Iterator pen_it = pending_attempts.keySet().iterator(); pen_it.hasNext(); ) {
+          ConnectionRequest request = (ConnectionRequest)pen_it.next();
+          if( request.listener == key ) {
+            connect_selector.cancel( request.channel );
+            
+            try{
+              pending_closes_mon.enter();
+            
+              pending_closes.addLast( request.channel );
+            }
+            finally{
+              pending_closes_mon.exit();
+            }
+            
+            found = true;
+            pen_it.remove();
+            break;
+          }
+        }
+        
+        if( !found )  Debug.out( "~~~ canceled request not found ~~~" );
+      }
+      
+      canceled_requests.clear();
+    }
+    finally{
+      canceled_requests_mon.exit();
+    }
     
+    
+    //run select
+    connect_selector.select( 100 );
+    
+
     //do connect attempt timeout checks
+    int num_stalled_requests = 0;
     for( Iterator i = pending_attempts.keySet().iterator(); i.hasNext(); ) {
       ConnectionRequest request = (ConnectionRequest)i.next();
       long waiting_time = SystemTime.getCurrentTime() - request.connect_start_time;
       if( waiting_time > CONNECT_ATTEMPT_TIMEOUT ) {
         i.remove();
-        try{
-        	canceled_requests_mon.enter();  //cancel it for when it finally gets selected
-        
-        	canceled_requests.put( request.listener, null );
-        }finally{
-        	canceled_requests_mon.exit();
-        }
+
+        connect_selector.cancel( request.channel );
         
         try{
         	pending_closes_mon.enter();
@@ -306,17 +282,17 @@ public class ConnectDisconnectManager {
     
     //check if our connect queue is stalled, and expand if so
     if( num_stalled_requests == pending_attempts.size() && pending_attempts.size() < MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
-      ConnectionRequest cr = null;
       try{
       	new_requests_mon.enter();
       
         if( !new_requests.isEmpty() ) {
-          cr = (ConnectionRequest)new_requests.removeFirst();
+          ConnectionRequest cr = (ConnectionRequest)new_requests.removeFirst();
+          addNewRequest( cr );
         }
-      }finally{
+      }
+      finally{
       	new_requests_mon.exit();
       }
-      if( cr != null )  addNewRequest( cr );
     }
   }
   
@@ -404,7 +380,7 @@ public class ConnectDisconnectManager {
     try{
     	canceled_requests_mon.enter();
     
-    	canceled_requests.put( listener_key, null );
+    	canceled_requests.add( listener_key );
     }finally{
     	
     	canceled_requests_mon.exit();

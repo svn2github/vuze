@@ -203,7 +203,6 @@ public class Connection {
 
   
   private long last_new_write_data_added_time = 0;
-  private boolean transport_ready_for_write = true;
   
   
   /**
@@ -212,19 +211,7 @@ public class Connection {
    */
   protected long getLastNewWriteDataAddedTime() {  return last_new_write_data_added_time;  }
   
-  /**
-   * Is the underlying transport (socket) ready for a non-blocking write.
-   * @return true if ready
-   */
-  protected boolean isTransportReadyForWrite() {  return transport_ready_for_write;  }
-  
-  /**
-   * Set whether or not the underlying transport is ready for a non-blocking write.
-   * @param is_ready
-   */
-  protected void setTransportReadyForWrite( boolean is_ready ) {  transport_ready_for_write = is_ready;  }
-  
-  
+
 
   
 }
