@@ -30,6 +30,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.disk.*;
 
@@ -76,7 +77,7 @@ DiskManagerImpl
 		int 		offset, 
 		ByteBuffer 	data )
 	{
-		return( peer_manager.getDelegate().checkBlock( pieceNumber, offset, data ));
+		return( peer_manager.getDelegate().checkBlock( pieceNumber, offset, new DirectByteBuffer(data) ));
 	}
 	
 	public void 
@@ -86,6 +87,6 @@ DiskManagerImpl
 		ByteBuffer 	data,
 		Peer 		sender)
 	{
-		peer_manager.getDelegate().writeBlock( pieceNumber, offset, data, peer_manager.mapForeignPeer( sender ));
+		peer_manager.getDelegate().writeBlock( pieceNumber, offset, new DirectByteBuffer(data), peer_manager.mapForeignPeer( sender ));
 	}
 }

@@ -70,14 +70,15 @@ UtilitiesImpl
 	allocateDirectByteBuffer(
 		int		size )
 	{
-		return( DirectByteBufferPool.getFreeBuffer( size ));
+		return( DirectByteBufferPool.getBuffer( size ).buff);
 	}
 	
 	public void
 	freeDirectByteBuffer(
 		ByteBuffer	buffer )
 	{
-		DirectByteBufferPool.freeBuffer( buffer );
+    
+		//DirectByteBufferPool.freeBuffer( buffer );
 	}
 	
 	public Formatters
