@@ -4,27 +4,21 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.util.Vector;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
+
+import java.util.Vector;
 /**
  * @author Olivier
  * 
@@ -57,7 +51,13 @@ public class MinimizedWindow {
     this.stucked = null;
 
     //   The splash Screen setup
-    splash = new Shell(main, SWT.ON_TOP);
+    splash = new Shell(SWT.ON_TOP);
+    main.addDisposeListener(new DisposeListener() {
+        public void widgetDisposed(DisposeEvent event) {
+            close();
+        }
+    });
+
     this.screen = main.getDisplay().getClientArea();
     lDrag = new Label(splash, SWT.NULL);
     if(! Constants.isOSX) {
