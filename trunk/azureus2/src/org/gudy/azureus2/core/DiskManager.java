@@ -536,29 +536,29 @@ public class DiskManager {
 
     public void run() {
       while (bContinue) {
-        while (bContinue) {
-          while (readQueue.size() != 0) {
-            DataQueueItem item = (DataQueueItem) readQueue.remove(0);
-            Request request = item.getRequest();
-            item.setBuffer(readBlock(request.getPieceNumber(), request.getOffset(), request.getLength()));
-          }
-          try {
-            Thread.sleep(15);
-          }
-          catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-      }
+	      while (readQueue.size() != 0) {
+	        DataQueueItem item = (DataQueueItem) readQueue.remove(0);
+	        Request request = item.getRequest();
+	        		
+			// temporary fix for bug 784306
+			ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+			if (buffer != null)
+				item.setBuffer(buffer);
+	      }
+	      try {
+	        Thread.sleep(15);
+	      }
+	      catch (Exception e) {
+	        e.printStackTrace();
+	      }
+       }
     }
 
     public void stopIt() {
       this.bContinue = false;
-      synchronized (readQueue) {
-        while (readQueue.size() != 0) {
-          DataQueueItem item = (DataQueueItem) readQueue.remove(0);
-          item.setLoading(false);
-        }
+      while (readQueue.size() != 0) {
+         DataQueueItem item = (DataQueueItem) readQueue.remove(0);
+         item.setLoading(false);
       }
     }
   }
