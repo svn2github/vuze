@@ -232,18 +232,18 @@ public class Show implements IConsoleCommand {
 								DiskManagerFileInfo files[] = dim.getFiles();
 								if (files != null) {
 									for (int i = 0; i < files.length; i++) {
-										ci.out.print(((i < 10) ? "   " : "  ") + Integer.toString(i) + " (");
-										String tmp = "*";
+										ci.out.print(((i < 10) ? "   " : "  ") + Integer.toString(i+1) + " (");
+										String tmp = ">";
 										if (files[i].isPriority())
 											tmp = "+";
 										if (files[i].isSkipped())
-											tmp = "-";
+											tmp = "!";
 										ci.out.print(tmp + ") ");
 										if (files[i] != null) {
 											long fLen = files[i].getLength();
 											if (fLen > 0) {
 												DecimalFormat df = new DecimalFormat("000.0%");
-												ci.out.print(df.format(files[i].getDownloaded() * 1000.0 / fLen));
+												ci.out.print(df.format(files[i].getDownloaded() * 1.0 / fLen));
 												ci.out.println("\t" + files[i].getName());
 											} else
 												ci.out.println("Info not available.");

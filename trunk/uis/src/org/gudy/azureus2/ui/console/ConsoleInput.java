@@ -47,7 +47,7 @@ public class ConsoleInput extends Thread implements IConsoleCommand {
 	public File[] adds = null;
 	boolean controlling;
 	boolean running;
-	String oldcommand = "sh t";
+	Vector oldcommand = new Vector();
 	
 	static {
 		try {
@@ -114,6 +114,8 @@ public class ConsoleInput extends Thread implements IConsoleCommand {
 	/** Creates a new instance of ConsoleInput */
 	public ConsoleInput(String con, GlobalManager _gm, Reader _in, PrintStream _out, Boolean _controlling) {
 		super("Console Input: " + con);
+		oldcommand.add("sh");
+		oldcommand.add("t");
 		gm = _gm;
 		out = _out;
 		controlling = _controlling.booleanValue();
@@ -213,40 +215,27 @@ public class ConsoleInput extends Thread implements IConsoleCommand {
 	}
 
 	public void run() {
-		String s = null;
 		String command;
-		String subcommand = "";
 		Vector comargs = new Vector();
 		running = true;
 		while (running) {
 			try {
-				s = br.readLine();
+				br.readLine();
 				comargs = (Vector) br.commandargs.clone();
 			} catch (Exception e) {
 				running = false;
 			}
-			if (s != null) {
-				/*if (br.commandargs != null) {
-					for (int i=0; i<br.commandargs.size(); i++) {
-						out.println("0> +"+((String) br.commandargs.get(i))+"+");
-					}
-				}*/
+			if ((comargs != null) && (!comargs.isEmpty())) {
+				command = (String) comargs.get(0);
 				if (oldcommand != null) {
-					if (s.equals("."))
-						s = oldcommand;
+					if (command.equals("."))
+						comargs = oldcommand;
 				} else {
-					if (s.equals("."))
+					if (command.equals("."))
 						out.println("No old command. Remove commands are not repeated to prevent errors");
 				}
-				oldcommand = s;
-				if (s.indexOf(" ") == -1) {
-					command = s;
-					subcommand = null;
-				} else {
-					command = s.substring(0, s.indexOf(" "));
-					subcommand = s.substring(s.indexOf(" ") + 1).trim();
-				}
-				command = command.toLowerCase();
+				oldcommand = (Vector) comargs.clone();
+				command = comargs.get(0).toString().toLowerCase();
 				comargs.removeElementAt(0);
 				if (!invokeCommand(command, comargs)) {
 					out.println("> Command '" + command + "' unknown (or . used without prior command)");

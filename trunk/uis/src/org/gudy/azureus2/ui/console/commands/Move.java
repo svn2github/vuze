@@ -25,9 +25,11 @@ public class Move implements IConsoleCommand {
 
 	public static void command(ConsoleInput ci, List args) {
 		if ((args != null) && (!args.isEmpty())){
-			String subcommand = (String) args.get(0);
+			String[] sSubcommands = new String[args.size()];
+			args.toArray(sSubcommands);
+			//String subcommand = (String) args.get(0);
 			if ((ci.torrents != null) && ci.torrents.isEmpty()) {
-				ci.out.println("> Command 'remove': No torrents in list.");
+				ci.out.println("> Command 'move': No torrents in list.");
 			} else {
 				String name;
 				DownloadManager dm;
@@ -35,12 +37,12 @@ public class Move implements IConsoleCommand {
 					int ncommand;
 					int nmoveto = -1;
 					boolean moveto = false;
-					if (subcommand.indexOf(" ") != -1) {
-						ncommand = Integer.parseInt(subcommand.substring(0, subcommand.indexOf(" ")));
-						nmoveto = Integer.parseInt(subcommand.substring(subcommand.indexOf(" ") + 1));
+					if (sSubcommands.length > 1) {
+						ncommand = Integer.parseInt(sSubcommands[0]);
+						nmoveto = Integer.parseInt(sSubcommands[1]);
 						moveto = true;
 					} else
-						ncommand = Integer.parseInt(subcommand);
+						ncommand = Integer.parseInt(sSubcommands[0]);
 					int number = Math.abs(ncommand);
 					if ((number > 0) && (number <= ci.torrents.size())) {
 						dm = (DownloadManager) ci.torrents.get(number - 1);
@@ -74,7 +76,7 @@ public class Move implements IConsoleCommand {
 					} else
 						ci.out.println("> Command 'move': Torrent #" + Integer.toString(number) + " unknown.");
 				} catch (NumberFormatException e) {
-					ci.out.println("> Command 'move': Subcommand '" + subcommand + "' unknown.");
+					ci.out.println("> Command 'move': Subcommand '" + sSubcommands[0] + "' unknown.");
 				}
 			}
 		} else {
