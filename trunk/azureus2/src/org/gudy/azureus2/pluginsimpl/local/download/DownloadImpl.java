@@ -1097,7 +1097,9 @@ DownloadImpl
  	}
  	
   public byte[] getDownloadPeerId() {
-    return download_manager.getTrackerClient().getPeerId();
+    TRTrackerAnnouncer announcer = download_manager.getTrackerClient();
+    if(announcer == null) return null;
+    return announcer.getPeerId();
   }
   
   
