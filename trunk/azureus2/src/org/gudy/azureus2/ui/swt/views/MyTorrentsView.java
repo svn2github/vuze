@@ -1196,6 +1196,15 @@ public class MyTorrentsView
     String sDefPath = COConfigurationManager.getBooleanParameter("Use default data dir") ?
                       COConfigurationManager.getStringParameter("Default save path", "") :
                       "";
+    
+    if ( sDefPath.length() > 0 ){
+	    File	f = new File(sDefPath);
+	    
+	    if ( !f.exists()){
+	    	f.mkdirs();
+	    }
+    }
+    
     DirectoryDialog dDialog = new DirectoryDialog(cTablePanel.getShell(),
                                                   SWT.SYSTEM_MODAL);
     dDialog.setFilterPath(sDefPath);

@@ -177,6 +177,13 @@ public class TorrentOpener {
     final String[] default_dir = { COConfigurationManager.getStringParameter( "Default save path" ) };
     if( default_dir[0] == null || default_dir[0].length() == 0 ) has_default = false;
       
+    if ( has_default ){
+    	File	f = new File(default_dir[0]);
+    	if ( !f.exists()){
+    		f.mkdirs();
+    	}
+    }
+    
     if ( !useDefault || !has_default ) {
 
       boolean singleFile = false;
@@ -446,7 +453,18 @@ public class TorrentOpener {
     if( before != null && before.length() > 0 ) {
       return before;
     }
-    return COConfigurationManager.getStringParameter("Default save path");
+    String	def = COConfigurationManager.getStringParameter("Default save path");
+    
+    if ( def != null && def.length() > 0 ){
+    	
+    	File	f = new File(def);
+    	
+    	if ( !f.exists()){
+    		f.mkdirs();
+    	}
+    }
+    
+    return( def );
   }
   
   public static String getFilterPathTorrent() {

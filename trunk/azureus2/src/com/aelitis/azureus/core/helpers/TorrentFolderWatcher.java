@@ -84,8 +84,8 @@ public class TorrentFolderWatcher {
    * Start a folder watcher, which will auto-import torrents via the given manager.
    * @param global_manager
    */
-  public TorrentFolderWatcher( GlobalManager global_manager ) {
-    this.global_manager = global_manager;
+  public TorrentFolderWatcher( GlobalManager _global_manager ) {
+    this.global_manager = _global_manager;
     
     if( COConfigurationManager.getBooleanParameter("Watch Torrent Folder") ) {
       running = true;
@@ -143,6 +143,12 @@ public class TorrentFolderWatcher {
 	      LGLogger.log( LGLogger.ERROR, "ERROR: [Use default data dir] not enabled" );
 	      LGLogger.logAlert( LGLogger.ERROR, "'Save to default data dir' [Use default data dir] needs to be enabled for auto-.torrent-import to work." );
 	      return;
+	    }
+
+	    File	f = new File(data_save_path);
+	    
+	    if ( !f.exists()){
+	    	f.mkdirs();
 	    }
 	    
 	    //delete torrents from the previous import run

@@ -339,9 +339,55 @@ DiskManagerImpl
 			root_dir += File.separator + dmanager.getTorrentSaveFile();
 		}
 		
+		File	root_dir_file = new File( root_dir );
+		
+		if ( !root_dir_file.exists()){
+			
+				// look for something sensible to report
+			
+		  File current = root_dir_file;
+		  
+		  while( !current.exists()){
+			
+		  	File	parent = current.getParentFile();
+		  	
+		  	if ( parent == null ){
+		  		
+		  		break;
+		  		
+		  	}else if ( !parent.exists()){
+		  		
+		  		current	= parent;
+		  		
+		  	}else{
+		  		
+		  		if ( parent.isDirectory()){
+		  			
+		  			errorMessage = current.toString() + " not found.";
+		  			
+		  		}else{
+		  			
+		  			errorMessage = parent.toString() + " is not a directory.";
+		  		}
+		  		
+		  		return( false );
+		  	}
+		  }
+		  
+		  errorMessage = current + " not found.";
+			  
+		  return false;
+			  
+		}else if ( !root_dir_file.isDirectory()){
+			
+		  errorMessage = root_dir + " is not a directory.";
+			  
+		  return false;	
+		}
+		
 		root_dir	+= File.separator;
 		
-		//System.out.println( "path=" + path + ", root=" + rootPath + ", base = " + basePath );
+		System.out.println( "root dir = " + root_dir_file );
 		
 		List btFileList	= piece_mapper.getFileList();
 		
@@ -352,7 +398,7 @@ DiskManagerImpl
 			String tempPath = root_dir + tempFile.getPath();
 			//get file name
 			String tempName = tempFile.getName();
-			//System.out.println( "\ttempPath="+tempPath+",tempName="+tempName );
+			System.out.println( "\ttempPath="+tempPath+",tempName="+tempName );
 			//get file length
 			long length = tempFile.getLength();
 

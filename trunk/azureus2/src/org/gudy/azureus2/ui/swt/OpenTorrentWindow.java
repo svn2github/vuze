@@ -117,6 +117,14 @@ public class OpenTorrentWindow {
                           COConfigurationManager.getStringParameter("Default save path", "") :
                           "";
 
+        if ( sDefPath.length() > 0 ){
+    	    File	f = new File(sDefPath);
+    	    
+    	    if ( !f.exists()){
+    	    	f.mkdirs();
+    	    }
+        }
+        
         if (bUseFolderBrowse) {
           DirectoryDialog dDialog = new DirectoryDialog(shell, SWT.SYSTEM_MODAL);
           dDialog.setFilterPath(sDefPath);

@@ -314,6 +314,8 @@ DownloadManagerImpl
 		    }
 		    
 		    data_location = new File(data_dir); 
+		    
+		    data_location.mkdirs();
 		}
 		
 		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
