@@ -33,6 +33,9 @@ DHTTransportValue
 	public int
 	getCacheDistance();
 	
+	public long
+	getCreationTime();
+	
 	public byte[]
 	getValue();
 }

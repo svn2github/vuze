@@ -44,6 +44,10 @@ DHTControl
 	get(
 		byte[]		key );
 	
+	public byte[]
+	remove(
+		byte[]		key );
+		
 	public DHTTransport
 	getTransport();
 	

@@ -71,10 +71,11 @@ DHTImpl
 		return( control.get( key ));
 	}
 	
-	public DHTRouter
-	getRouter()
+	public byte[]
+	remove(
+		byte[]		key )
 	{
-		return( router );
+		return( control.remove( key ));
 	}
 	
 	public DHTTransport

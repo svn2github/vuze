@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
-import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -55,7 +54,9 @@ DHTControlImpl
 	private int			search_concurrency	= 3;	// TODO: fix
 	private int			CACHE_AT_CLOSEST_N	= 1;	// TODO: parameterise
 	
-	private int			ORIGINAL_REPUBLISH_INTERVAL	= 60000;	// TODO:
+	private int			ORIGINAL_REPUBLISH_INTERVAL			= 60000;	// TODO:
+	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 120000;
+	
 	private int			CACHE_REPUBLISH_INTERVAL	= 15000;	// TODO:
 	
 	private long		MAX_VALUES_STORED	= 100000;	// TODO:
@@ -222,7 +223,8 @@ DHTControlImpl
 			
 			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 			
-			DHTTransportValue	value = new DHTControlValueImpl( _value, 0 );
+			DHTTransportValue	value = 
+				new DHTControlValueImpl( SystemTime.getCurrentTime(), _value, 0 );
 
 			synchronized( stored_values ){
 					
@@ -366,8 +368,42 @@ DHTControlImpl
 				}
 			}
 			
+			DHTLog.log( "get reply: " + DHTLog.getString( value ));
+			
 			return( value==null?null:value.getValue());
 			
+		}finally{
+			
+			DHTLog.exdent();
+		}
+	}
+	
+	public byte[]
+	remove(
+		byte[]		unencoded_key )
+	{
+			// TODO: push the deletion out rather than letting values timeout
+		
+		try{		
+			DHTLog.indent( router );
+			
+			final byte[]	encoded_key = encodeKey( unencoded_key );
+
+			DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
+
+				// maybe we've got the value already
+				
+			synchronized( stored_values ){
+			
+				DHTTransportValue val = (DHTTransportValue)stored_values.remove( new HashWrapper( encoded_key ));
+				
+				if ( val == null ){
+					
+					return( null );
+				}
+				
+				return( val.getValue());
+			}
 		}finally{
 			
 			DHTLog.exdent();
@@ -715,7 +751,7 @@ DHTControlImpl
 									
 					stored_values.put(
 						new HashWrapper( key ), 
-						new DHTControlValueImpl( value.getValue(), value.getCacheDistance() + 1 ));
+						new DHTControlValueImpl( value, 1 ));
 				}
 			}
 			
@@ -819,7 +855,11 @@ DHTControlImpl
 			
 			HashWrapper			key		= (HashWrapper)entry.getKey();
 			
-			DHTTransportValue	value	= (DHTTransportValue)entry.getValue();
+			DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
+			
+				// we're republising the data, reset the creation time
+			
+			value.setCreationTime();
 			
 			putSupport( key.getHash(), value );
 		}
@@ -907,7 +947,7 @@ DHTControlImpl
 				
 				putSupport( 
 						lookup_id, 
-						new DHTControlValueImpl( value.getValue(), value.getCacheDistance()-1), 
+						new DHTControlValueImpl(value,-1), 
 						contacts );
 			}
 		}
@@ -1069,7 +1109,7 @@ DHTControlImpl
 						}
 					},
 					key.getHash(), 
-					new DHTControlValueImpl( value.getValue(), value.getCacheDistance()-1));
+					new DHTControlValueImpl( value, -1 ));
 					
 		}
 	}
@@ -1100,7 +1140,18 @@ DHTControlImpl
 			
 			int	distance = value.getCacheDistance();
 			
-			if ( distance > 1 ){
+				// distance = 0 are explicitly published and need to be explicitly removed
+			
+			if ( distance == 1 ){
+				
+				if ( now - value.getCreationTime() > ORIGINAL_REPUBLISH_INTERVAL + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+					
+					DHTLog.log( "removing cache entry at level " + distance );
+					
+					it.remove();
+				}
+				
+			}else if ( distance > 1 ){
 				
 					// distance 2 get 1/2 time, 3 get 1/4 etc.
 				

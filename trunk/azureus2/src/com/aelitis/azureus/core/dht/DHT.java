@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.dht;
 
 import java.io.*;
 
-import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 
 /**
@@ -44,11 +43,13 @@ DHT
 	get(
 		byte[]		key );
 	
+	public byte[]
+	remove(
+		byte[]		key );
+	
+	
 	public DHTTransport
 	getTransport();
-	
-	public DHTRouter
-	getRouter();
 	
 		/**
 		 * externalises information that allows the DHT to be recreated at a later date
@@ -76,8 +77,8 @@ DHT
 		throws IOException;
 	
 		/**
-		 * Initialise the DHT - invoke after all transports have been added and any state
-		 * imported. Can be invoked more than once if additional state is imported
+		 * Integrate the node into the DHT
+		 * Can be invoked more than once if additional state is imported
 		 */
 	
 	public void

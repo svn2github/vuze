@@ -35,6 +35,7 @@ public class
 DHTControlValueImpl
 	implements DHTTransportValue
 {
+	private long	creation_time;
 	private byte[]	value;
 	
 	private int		distance;
@@ -43,13 +44,42 @@ DHTControlValueImpl
 	
 	protected
 	DHTControlValueImpl(
+		long		_creation_time,
 		byte[]		_value,
 		int			_distance )
 	{
-		value		= _value;
-		distance	= _distance;
+		creation_time	= _creation_time;
+		value			= _value;
+		distance		= _distance;
 		
 		store_time	= SystemTime.getCurrentTime();
+		
+			// make sure someone hasn't sent us a stupid creation time
+		
+		if ( creation_time > store_time ){
+			
+			creation_time	= store_time;
+		}
+	}
+	
+	protected 
+	DHTControlValueImpl(
+		DHTTransportValue	other,
+		int					cache_offset )
+	{
+		this( other.getCreationTime(), other.getValue(), other.getCacheDistance()+cache_offset );
+	}
+	
+	public long
+	getCreationTime()
+	{
+		return( creation_time );
+	}
+	
+	protected void
+	setCreationTime()
+	{
+		creation_time = SystemTime.getCurrentTime();
 	}
 	
 	protected void

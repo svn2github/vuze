@@ -42,6 +42,9 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 public class 
 Test 
 {
+	static int	num_dhts	= 100;
+	static int	num_stores	= 10000;
+
 	static int		K			= 5;
 	static int		B			= 1;
 	static int		ID_BYTES	= 4;
@@ -55,7 +58,6 @@ Test
 		DHTLog.setLoggingEnabled( false );
 		
 		try{
-			int	num_dhts	= 100;
 			
 			DHT[]			dhts 		= new DHT[num_dhts*2];
 			DHTTransport[]	transports 	= new DHTTransport[num_dhts*2];
@@ -71,6 +73,11 @@ Test
 				transports[i+1].importContact( new ByteArrayInputStream( transports[i].getLocalContact().getID()));
 				
 				dhts[i].join();
+				
+				if ( i > 0 && i%10 == 0 ){
+					System.out.println( "Integrated " + i + " DHTs" );
+				}
+
 			}
 			
 			transports[num_dhts-1].importContact( new ByteArrayInputStream( transports[0].getLocalContact().getID()));
@@ -92,15 +99,19 @@ Test
 			System.out.println( "get:"  + dhts[77].get( "fred".getBytes()));
 			*/
 			
-			for (int i=0;i<1000;i++){
+			Map	store_index = new HashMap();
+			
+			for (int i=0;i<num_stores;i++){
 				
 				int	dht_index = (int)(Math.random()*num_dhts);
 				
 				DHT	dht = dhts[dht_index];
 
 				dht.put( (""+i).getBytes(), new byte[4] );
+			
+				store_index.put( ""+i, dht );
 				
-				if ( i != 0 && i %1000 == 0 ){
+				if ( i != 0 && i %100 == 0 ){
 					
 					System.out.println( "Stored " + i + " values" );
 				}
@@ -176,6 +187,28 @@ Test
 						
 						dht.put( key.getBytes(), val.getBytes());
 					}
+				}else if ( command == 'x' ){
+					
+					dht = (DHT)store_index.get( rhs );
+					
+					if ( dht == null ){
+						
+						System.out.println( "DHT not found" );
+						
+					}else{
+						
+						stats_before = dht.getTransport().getStats().snapshot();
+						
+						byte[]	res = dht.remove( rhs.getBytes());
+						
+						if ( res != null ){
+							
+							store_index.remove( rhs );
+						}
+						
+						System.out.println( "-> " + (res==null?"null":new String(res)));
+					}
+					
 				}else if ( command == 'g' ){
 					
 					System.out.println( "Using dht " + dht_index );

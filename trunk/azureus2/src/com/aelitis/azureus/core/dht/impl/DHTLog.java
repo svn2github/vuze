@@ -40,45 +40,56 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 public class 
 DHTLog 
 {
+	public static final boolean	ADD_TRACE	= true;
+	
 	private static boolean	LOGGING_DEFAULT	= false;
 	
-	private static ThreadLocal		tls	= 
-		new ThreadLocal()
-		{
-			public Object
-			initialValue()
-			{
-				Object[]	data = new Object[3];
-				
-				data[0] = new Stack();
-				
-				data[1] = "";
-				
-				data[2] = new Boolean(LOGGING_DEFAULT);
-				
-				return( data );
-			}
-		};
-			
+	private static ThreadLocal		tls;
+	
+	static{
+		if (ADD_TRACE ){ 
+	
+			tls = 
+				new ThreadLocal()
+				{
+					public Object
+					initialValue()
+					{
+						Object[]	data = new Object[3];
+						
+						data[0] = new Stack();
+						
+						data[1] = "";
+						
+						data[2] = new Boolean(LOGGING_DEFAULT);
+						
+						return( data );
+					}
+				};
+		}
+	}
+
 	public static void
 	log(
 		String	str )
 	{
-		Object[]	data = (Object[])tls.get();
-		
-		Stack	stack 			= (Stack)data[0];
-		String	indent			= (String)data[1];
-		boolean	logging_enabled = ((Boolean)data[2]).booleanValue();
-		
-		if ( logging_enabled ){
+		if ( ADD_TRACE ){
+			Object[]	data = (Object[])tls.get();
 			
-			if ( stack.isEmpty()){
+			Stack	stack 			= (Stack)data[0];
+			String	indent			= (String)data[1];
+			boolean	logging_enabled = ((Boolean)data[2]).booleanValue();
+			
+			if ( logging_enabled ){
 				
-				System.out.println( str );
-				
-			}else{
-				
-				System.out.println( indent + ":" + getString((byte[])stack.peek()) + ":" + str );
+				if ( stack.isEmpty()){
+					
+					System.out.println( str );
+					
+				}else{
+					
+					System.out.println( indent + ":" + getString((byte[])stack.peek()) + ":" + str );
+				}
 			}
 		}
 	}
@@ -87,121 +98,166 @@ DHTLog
 	setLoggingEnabled(
 		boolean	b )
 	{
-		Object[]	data = (Object[])tls.get();
-
-		data[2] = new Boolean(b);
+		if ( ADD_TRACE ){
+			
+			Object[]	data = (Object[])tls.get();
+	
+			data[2] = new Boolean(b);
+		}
 	}
 	
 	public static void
 	indent(
 		DHTRouter	router )
 	{
-		Object[]	data = (Object[])tls.get();
-			
-		Stack	stack = (Stack)data[0];
-			
-		stack.push( router.getID());
-			
-		data[1] = (String)data[1] + "  ";
+		if ( ADD_TRACE ){
+			Object[]	data = (Object[])tls.get();
+				
+			Stack	stack = (Stack)data[0];
+				
+			stack.push( router.getID());
+				
+			data[1] = (String)data[1] + "  ";
+		}
 	}
 	
 	public static void
 	exdent()
 	{
-		Object[]	data = (Object[])tls.get();
-			
-		Stack	stack = (Stack)data[0];
-			
-		stack.pop();
-			
-		data[1] = ((String)data[1]).substring( 0, ((String)data[1]).length()-2);
+		if ( ADD_TRACE ){
+			Object[]	data = (Object[])tls.get();
+				
+			Stack	stack = (Stack)data[0];
+				
+			stack.pop();
+				
+			data[1] = ((String)data[1]).substring( 0, ((String)data[1]).length()-2);
+		}
 	}
 	
 	public static String
 	getString(
 		byte[]	b )
 	{
-		return( ByteFormatter.nicePrint(b));
+		if ( ADD_TRACE ){
+			
+			return( ByteFormatter.nicePrint(b));
+			
+		}else{
+			
+			return( "" );
+		}
 	}
 	
 	public static String
 	getString(
 		HashWrapper	w )
 	{
-		return( getString( w.getHash()));
+		if ( ADD_TRACE ){
+			
+			return( getString( w.getHash()));
+			
+		}else{
+			return( "" );
+		}
 	}
 	
 	public static String
 	getString(
 		DHTTransportContact[]	contacts )
 	{
-		String	res = "{";
-		
-		for (int i=0;i<contacts.length;i++){
+		if ( ADD_TRACE ){
 			
-			res += (i==0?"":",") + getString(contacts[i].getID());
+			String	res = "{";
+			
+			for (int i=0;i<contacts.length;i++){
+				
+				res += (i==0?"":",") + getString(contacts[i].getID());
+			}
+			
+			return( res + "}" );
+		}else{
+			return( "" );
 		}
-		
-		return( res + "}" );
 	}
 	
 	public static String
 	getString(
 		DHTTransportContact	contact )
 	{
-		return( getString(contact.getID()));
+		if ( ADD_TRACE ){
+			return( getString(contact.getID()));
+		}else{
+			return( "" );
+		}
 	}
 	
 	public static String
 	getString(
 		List		l )
 	{
-		String	res = "{";
-		
-		for (int i=0;i<l.size();i++){
+		if ( ADD_TRACE ){
+			String	res = "{";
 			
-			res += (i==0?"":",") + getString((DHTTransportContact)l.get(i));
+			for (int i=0;i<l.size();i++){
+				
+				res += (i==0?"":",") + getString((DHTTransportContact)l.get(i));
+			}
+			
+			return( res + "}" );
+		}else{
+			return( "" );
 		}
-		
-		return( res + "}" );
 	}
 	
 	public static String
 	getString(
 		Set			s )
 	{
-		String	res = "{";
-		
-		Iterator it = s.iterator();
-		
-		while( it.hasNext()){
+		if ( ADD_TRACE ){
+			String	res = "{";
 			
-			res += (res.length()==1?"":",") + getString((DHTTransportContact)it.next());
+			Iterator it = s.iterator();
+			
+			while( it.hasNext()){
+				
+				res += (res.length()==1?"":",") + getString((DHTTransportContact)it.next());
+			}
+			
+			return( res + "}" );
+		}else{
+			return( "" );
 		}
-		
-		return( res + "}" );
 	}
 	
 	public static String
 	getString(
 		Map			s )
 	{
-		String	res = "{";
-		
-		Iterator it = s.keySet().iterator();
-		
-		while( it.hasNext()){
+		if ( ADD_TRACE ){
+			String	res = "{";
 			
-			res += (res.length()==1?"":",") + getString((HashWrapper)it.next());
+			Iterator it = s.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				res += (res.length()==1?"":",") + getString((HashWrapper)it.next());
+			}
+			
+			return( res + "}" );	
+		}else{
+			return( "" );
 		}
-		
-		return( res + "}" );	
 	}
 	
 	public static String
 	getString(
 		DHTTransportValue	value )
 	{
-		return( getString(value.getValue()) + "<" + value.getCacheDistance() + ">" );
+		if ( ADD_TRACE ){
+			return( getString(value.getValue()) + "<" + value.getCacheDistance() + ">" );
+		}else{
+			return( "" );
+		}
 	}
 }
