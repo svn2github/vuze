@@ -38,17 +38,15 @@ import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
  * single full packet per round.
  */
 public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity {
-  private static final int FLUSH_CHECK_LOOP_TIME = 100;  //100ms
+  private static final int FLUSH_CHECK_LOOP_TIME = 250;  //250ms
   private static final int FLUSH_WAIT_TIME = 3*1000;  //3sec no-new-data wait before forcing write flush
   
   private final RateHandler rate_handler;
   private boolean destroyed = false;
   
-  private final HashMap stalled_connections = new HashMap();
   private final HashMap waiting_connections = new HashMap();
   private final LinkedList ready_connections = new LinkedList();
   private final AEMonitor lists_lock = new AEMonitor( "PacketFillingMultiPeerUploader:lists_lock" );
-  //private long total_bytes_ready = 0; //BUGGY
   
 
   /**
@@ -74,30 +72,36 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
    */
   private void flushCheckLoop() {
     while( !destroyed ) {
-      long current_time = SystemTime.getCurrentTime();
+      long start_time = SystemTime.getCurrentTime();
       
-      try {
-        lists_lock.enter();
+      try {  lists_lock.enter();
+        long current_time = SystemTime.getCurrentTime();
         
         for( Iterator i = waiting_connections.entrySet().iterator(); i.hasNext(); ) {
           Map.Entry entry = (Map.Entry)i.next();
           PeerData peer_data = (PeerData)entry.getValue();
+          
           if( current_time - peer_data.last_message_added_time > FLUSH_WAIT_TIME ) {  //time to force flush
             Connection conn = (Connection)entry.getKey();
-            conn.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
-            i.remove();  //remove from the waiting list
-            addToReadyList( conn );
+            
+            if( conn.getOutgoingMessageQueue().getTotalSize() > 0 ) { //has data to flush
+              conn.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
+              i.remove();  //remove from the waiting list
+              addToReadyList( conn );
+            }
+            else { //no data, so reset flush wait time
+              peer_data.last_message_added_time = current_time;
+            }
           }
         }
       }
-      finally {
-        lists_lock.exit();
-      }
+      finally {  lists_lock.exit();  }
       
-      try {
-        Thread.sleep( FLUSH_CHECK_LOOP_TIME );
+      long total_time = SystemTime.getCurrentTime() - start_time;
+      
+      if( total_time < FLUSH_CHECK_LOOP_TIME ) {
+        try {  Thread.sleep( FLUSH_CHECK_LOOP_TIME - total_time );  }catch( Exception e ) { Debug.printStackTrace( e ); }
       }
-      catch( Exception e ) {  Debug.printStackTrace( e );  }
     }
   }
   
@@ -113,16 +117,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     try {
       lists_lock.enter();
       
-      //remove and cancel all connections
-      
-      for( Iterator i = stalled_connections.entrySet().iterator(); i.hasNext(); ) {
-        Map.Entry entry = (Map.Entry)i.next();
-        Connection conn = (Connection)entry.getKey();
-        OutgoingMessageQueue.MessageQueueListener listener = (OutgoingMessageQueue.MessageQueueListener)entry.getValue();
-        conn.getOutgoingMessageQueue().cancelQueueListener( listener );
-      }
-      stalled_connections.clear();
-      
+      //remove and cancel all connections in waiting list    
       for( Iterator i = waiting_connections.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry)i.next();
         Connection conn = (Connection)entry.getKey();
@@ -131,10 +126,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       }
       waiting_connections.clear();
       
-      for( Iterator i = ready_connections.iterator(); i.hasNext(); ) {
-        PeerData peer_data = (PeerData)i.next();
-        peer_data.connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener );
-      }
+      //remove from ready list
       ready_connections.clear();
     }
     finally {
@@ -150,17 +142,9 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
    * @param peer_connection to be write managed
    */
   public void addPeerConnection( Connection peer_connection ) {
-    //System.out.println( "addPeerConnection: " + peer_connection.getTransport().getDescription() );
-    
-    int num_bytes_ready = peer_connection.getOutgoingMessageQueue().getTotalSize();
-
-    if( num_bytes_ready < 1 ) { //no data to send
-      addToStalledList( peer_connection );
-      return;
-    }
-    
-    boolean has_urgent_data = peer_connection.getOutgoingMessageQueue().hasUrgentMessage();
     int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+    boolean has_urgent_data = peer_connection.getOutgoingMessageQueue().hasUrgentMessage();
+    int num_bytes_ready = peer_connection.getOutgoingMessageQueue().getTotalSize();
     
     if( num_bytes_ready >= mss_size || has_urgent_data ) {  //has a full packet's worth, or has urgent data
       addToReadyList( peer_connection );
@@ -180,35 +164,20 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     try {
       lists_lock.enter();
       
-      //look for the connection in the stalled list and cancel listener if found
-      OutgoingMessageQueue.MessageQueueListener listener = (OutgoingMessageQueue.MessageQueueListener)stalled_connections.remove( peer_connection );
-      if( listener != null ) {
-        peer_connection.getOutgoingMessageQueue().cancelQueueListener( listener );
-        //System.out.println( "removePeerConnectionS: " + peer_connection.getTransport().getDescription() );
-        return true;
-      }
-      
       //look for the connection in the waiting list and cancel listener if found
       PeerData peer_data = (PeerData)waiting_connections.remove( peer_connection );
       if( peer_data != null ) {
         peer_connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener );
-        //System.out.println( "removePeerConnectionW: " + peer_connection.getTransport().getDescription() );
         return true;
       }
       
-      //look for the connection in the ready list, remove and cancel listener if found
-      for( Iterator i = ready_connections.iterator(); i.hasNext(); ) {
-        peer_data = (PeerData)i.next();
-        if( peer_data.connection == peer_connection ) {  //found
-          //total_bytes_ready -= peer_connection.getOutgoingMessageQueue().getTotalSize();
-          peer_connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener );
-          //System.out.println( "removePeerConnectionR: " + peer_connection.getTransport().getDescription() );
-          i.remove();
-          return true;
-        }
+      //look for the connection in the ready list
+      if( ready_connections.remove( peer_connection ) ) {
+        return true;
       }
       
-      //System.out.println( "removePeerConnection: NOT FOUND: " + peer_connection.getTransport().getDescription() );
+      //Debug.out( "removePeerConnection: NOT FOUND: " + peer_connection.getTransport().getDescription() );
+      
       return false;
     }
     finally {
@@ -218,54 +187,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   
   
-  //connections with zero data to write
-  private void addToStalledList( final Connection conn ) {
-    OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
-      public void messageAdded( ProtocolMessage message ) {  //connection now has data to send
-        try {
-          lists_lock.enter();
-          
-          if( stalled_connections.remove( conn ) == null ) {  //connection has already been removed from the stalled list
-            return;  //stop further processing
-          }
-          
-          conn.getOutgoingMessageQueue().cancelQueueListener( this ); //cancel this listener
-          
-          int num_bytes_ready = conn.getOutgoingMessageQueue().getTotalSize();
-          boolean has_urgent_data = conn.getOutgoingMessageQueue().hasUrgentMessage();
-          int mss_size = NetworkManager.getSingleton().getTcpMssSize();
-          
-          if( num_bytes_ready >= mss_size || has_urgent_data ) {  //has a full packet's worth, or has urgent data
-            addToReadyList( conn );
-          }
-          else {  //has data to send, but not enough for a full packet
-            addToWaitingList( conn );
-          }
-        }
-        finally {
-          lists_lock.exit();
-        }
-      }
 
-      public void messageRemoved( ProtocolMessage message ) {/*ignore*/}
-      public void messageSent( ProtocolMessage message ) {/*ignore*/}
-      public void protocolBytesSent( int byte_count ) {/*ignore*/}
-      public void dataBytesSent( int byte_count ) {/*ignore*/}
-    };
-    
-    try {
-      lists_lock.enter();
-      
-      stalled_connections.put( conn, listener ); //add to stalled list
-      conn.getOutgoingMessageQueue().registerQueueListener( listener );  //listen for added data
-      //System.out.println( "addToStalledList: " + conn.getTransport().getDescription() );
-    }
-    finally {
-      lists_lock.exit();
-    }
-  }
-  
-  
   //connections with less than a packet's worth of data
   private void addToWaitingList( final Connection conn ) {
     final PeerData peer_data = new PeerData();
@@ -279,9 +201,9 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
             return;  //stop further processing
           }
           
-          int num_bytes_ready = conn.getOutgoingMessageQueue().getTotalSize();
-          boolean has_urgent_data = conn.getOutgoingMessageQueue().hasUrgentMessage();
           int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+          boolean has_urgent_data = conn.getOutgoingMessageQueue().hasUrgentMessage();
+          int num_bytes_ready = conn.getOutgoingMessageQueue().getTotalSize();
         
           if( num_bytes_ready >= mss_size || has_urgent_data ) {  //has a full packet's worth, or has urgent data
             waiting_connections.remove( conn );  //remove from waiting list
@@ -297,26 +219,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         }
       }
 
-      public void messageRemoved( ProtocolMessage message ) { //connection now has less data to send
-        try {
-          lists_lock.enter();
-          
-          if( waiting_connections.get( conn ) == null ) {  //connection has already been removed from the waiting list
-            return;  //stop further processing
-          }
-          
-          int num_bytes_ready = conn.getOutgoingMessageQueue().getTotalSize();
-          if( num_bytes_ready < 1 ) {  //no data left to send
-            waiting_connections.remove( conn );  //remove from waiting list
-            conn.getOutgoingMessageQueue().cancelQueueListener( this ); //cancel this listener
-            addToStalledList( conn );
-          }
-        }
-        finally {
-          lists_lock.exit();
-        }
-      }
-      
+      public void messageRemoved( ProtocolMessage message ) {/*ignore*/}
       public void messageSent( ProtocolMessage message ) {/*ignore*/}
       public void protocolBytesSent( int byte_count ) {/*ignore*/}
       public void dataBytesSent( int byte_count ) {/*ignore*/}
@@ -330,7 +233,6 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       
       waiting_connections.put( conn, peer_data ); //add to waiting list
       conn.getOutgoingMessageQueue().registerQueueListener( listener );  //listen for added data
-      //System.out.println( "addToWaitingList: " + conn.getTransport().getDescription() );
     }
     finally {
       lists_lock.exit();
@@ -340,69 +242,16 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   
   //connections ready to write
-  private void addToReadyList( final Connection conn ) {
-    final PeerData peer_data = new PeerData();
+  private void addToReadyList( final Connection conn ) {  //TODO
     
-    OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
-      public void messageRemoved( ProtocolMessage message ) { //connection now has less data to send
-        try {
-          lists_lock.enter();
-          
-          if( !ready_connections.contains( peer_data ) ) {  //connection has already been removed from the waiting list
-            return;  //stop further processing
-          }
-          
-          int num_bytes_ready = conn.getOutgoingMessageQueue().getTotalSize();
-          boolean has_urgent_data = conn.getOutgoingMessageQueue().hasUrgentMessage();
-          int mss_size = NetworkManager.getSingleton().getTcpMssSize();
-          
-          if( num_bytes_ready >= mss_size || has_urgent_data ) {
-            //total_bytes_ready -= message.getTotalMessageByteSize();
-            return;  //do nothing, as it still has a full packet's worth, or has urgent data
-          }
-          
-          //connection does not have enough for a full packet, so remove and place into proper list
-          ready_connections.remove( peer_data );  //remove from ready list
-          //total_bytes_ready -= conn.getOutgoingMessageQueue().getTotalSize();
-          conn.getOutgoingMessageQueue().cancelQueueListener( this ); //cancel this listener
-          
-          if( num_bytes_ready < 1 ) {  //no data at all left to send
-            addToStalledList( conn );
-          }
-          else {  //wait to send leftover data
-            addToWaitingList( conn );
-          }
-        }
-        finally {
-          lists_lock.exit();
-        }
-      }
-      
-      public void messageAdded( ProtocolMessage message ) {
-        //try {  lists_lock.enter();
-          //if( !ready_connections.contains( peer_data ) ) {  //connection has already been removed from the waiting list
-            //return;  //stop further processing
-          //}
-          //total_bytes_ready += message.getTotalMessageByteSize();
-        //}
-        //finally {  lists_lock.exit();  }
-      }
-      
-      public void messageSent( ProtocolMessage message ) {/*nothing*/}
-      public void protocolBytesSent( int byte_count ) {/*ignore*/}
-      public void dataBytesSent( int byte_count ) {/*ignore*/}
-    };
-    
-    peer_data.connection = conn;
-    peer_data.queue_listener = listener;
-    
+    if( conn.getOutgoingMessageQueue().getTotalSize() < 1 ) {
+      Debug.out( "~~~ added conn size < 1 " );
+    }
+
     try {
       lists_lock.enter();
       
-      ready_connections.addLast( peer_data );  //add to ready list
-      conn.getOutgoingMessageQueue().registerQueueListener( listener );  //listen for added data
-      //System.out.println( "addToReadyList: " + conn.getTransport().getDescription() );
-      //total_bytes_ready += conn.getOutgoingMessageQueue().getTotalSize();
+      ready_connections.addLast( conn );  //add to ready list
     }
     finally {
       lists_lock.exit();
@@ -412,19 +261,12 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   
   private int write( int num_bytes_to_write ) {
-    if( num_bytes_to_write < 1 )  return 0;  //not allowed to write
-    
-    //if( total_bytes_ready < 1 ) {
-    //  Debug.out( "total_bytes_ready < 1: " + total_bytes_ready );
-    //  return 0;
-    //}
-    
-    //int mss_size = NetworkManager.getSingleton().getTcpMssSize();
-    //if( num_bytes_to_write < mss_size ) {
-    //  return 0;  //don't bother doing a write if we're not allowed to send at least a full packet
-    //}
-    
-    ArrayList connections_to_notify_of_exception = new ArrayList();
+    if( num_bytes_to_write < 1 ) {
+      Debug.out( "num_bytes_to_write < 1" );
+      return 0;  //not allowed to write
+    }
+        
+    HashMap connections_to_notify_of_exception = new HashMap();
     ArrayList manual_notifications = new ArrayList();
     
     int num_bytes_remaining = num_bytes_to_write;    
@@ -435,20 +277,18 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       int num_unusable_connections = 0;
       
       while( num_bytes_remaining > 0 && num_unusable_connections < ready_connections.size() ) {
-        PeerData peer_data = (PeerData)ready_connections.removeFirst();
+        Connection conn = (Connection)ready_connections.removeFirst();
         
-        if( !peer_data.connection.getTransport().isReadyForWrite() ) {  //not yet ready for writing
-          ready_connections.addLast( peer_data );  //re-add to end as currently unusable
+        if( !conn.getTransport().isReadyForWrite() ) {  //not yet ready for writing
+          ready_connections.addLast( conn );  //re-add to end as currently unusable
           num_unusable_connections++;
           continue;  //move on to the next connection
         }
         
-        int total_size = peer_data.connection.getOutgoingMessageQueue().getTotalSize();
+        int total_size = conn.getOutgoingMessageQueue().getTotalSize();
         
-        if( total_size < 1 ) { //this can happen because of our async listener notification
-          System.out.println( "total_size < 1: " +total_size );
-          peer_data.connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
-          addToStalledList( peer_data.connection );
+        if( total_size < 1 ) {  //oops, all messages have been removed
+          addToWaitingList( conn );
           continue;  //move on to the next connection
         }
         
@@ -459,45 +299,32 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         if( num_bytes_allowed >= num_bytes_available ) { //we're allowed enough (for either a full packet or to drain any remaining data)
           int written = 0;
           try {
-            written = peer_data.connection.getOutgoingMessageQueue().deliverToTransport( peer_data.connection.getTransport(), num_bytes_available, true );
+            written = conn.getOutgoingMessageQueue().deliverToTransport( conn.getTransport(), num_bytes_available, true );
                    
             if( written > 0 ) {  
-              //total_bytes_ready -= written;
-              manual_notifications.add( peer_data );  //register it for manual listener notification
+              manual_notifications.add( conn );  //register it for manual listener notification
             }
             
-            int remaining = peer_data.connection.getOutgoingMessageQueue().getTotalSize();
-            boolean has_urgent_data = peer_data.connection.getOutgoingMessageQueue().hasUrgentMessage();
+            boolean has_urgent_data = conn.getOutgoingMessageQueue().hasUrgentMessage();
+            int remaining = conn.getOutgoingMessageQueue().getTotalSize();
             
             if( remaining >= mss_size || has_urgent_data ) {  //still has a full packet's worth, or has urgent data
-              ready_connections.addLast( peer_data );  //re-add to end for further writing
+              ready_connections.addLast( conn );  //re-add to end for further writing
               num_unusable_connections = 0;  //reset the unusable count so that it has a chance to try this connection again in the loop
             }
-            else {  //connection does not have enough for a full packet, so remove and place into proper list
-              //total_bytes_ready -= peer_data.connection.getOutgoingMessageQueue().getTotalSize();
-              peer_data.connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
-              
-              if( remaining < 1 ) {  //no data at all left to send
-                addToStalledList( peer_data.connection );
-              }
-              else {  //wait to send leftover data
-                addToWaitingList( peer_data.connection );
-              }
+            else {  //connection does not have enough for a full packet, so remove and place into waiting list
+              addToWaitingList( conn );
             }
           }
-          catch( IOException e ) {  //write exception, so move to stalled list while it waits for removal
-            //total_bytes_ready -= peer_data.connection.getOutgoingMessageQueue().getTotalSize();
-            peer_data.connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
-            peer_data.exception = e;
-            connections_to_notify_of_exception.add( peer_data );  //do exception notification outside of sync'd block
-            addToStalledList( peer_data.connection );
+          catch( IOException e ) {  //write exception, so move to waiting list while it waits for removal
+            connections_to_notify_of_exception.put( conn, e );  //do exception notification outside of sync'd block
+            addToWaitingList( conn );
           }
           
           num_bytes_remaining -= written;
         }
         else {  //we're not allowed enough to maximize the packet payload
-          //System.out.println( "not full payload" );
-          ready_connections.addLast( peer_data );  //re-add to end as currently unusable
+          ready_connections.addLast( conn );  //re-add to end as currently unusable
           num_unusable_connections++;
           continue;  //move on to the next connection
         }
@@ -509,18 +336,23 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     
     //manual queue listener notifications
     for( int i=0; i < manual_notifications.size(); i++ ) {
-      PeerData peer_data = (PeerData)manual_notifications.get( i );
-      peer_data.connection.getOutgoingMessageQueue().doListenerNotifications();
+      Connection conn = (Connection)manual_notifications.get( i );
+      conn.getOutgoingMessageQueue().doListenerNotifications();
     }
     
     //exception notifications
-    for( int i=0; i < connections_to_notify_of_exception.size(); i++ ) {
-      PeerData peer_data = (PeerData)connections_to_notify_of_exception.get( i );
-      peer_data.connection.notifyOfException( peer_data.exception );
+    for( Iterator i = connections_to_notify_of_exception.entrySet().iterator(); i.hasNext(); ) {
+      Map.Entry entry = (Map.Entry)i.next();
+      Connection conn = (Connection)entry.getKey();
+      IOException exception = (IOException)entry.getValue();
+      conn.notifyOfException( exception );
     }
     
     int num_bytes_written = num_bytes_to_write - num_bytes_remaining;
-    if( num_bytes_written > 0 )  rate_handler.bytesWritten( num_bytes_written );
+    if( num_bytes_written > 0 ) {
+      rate_handler.bytesWritten( num_bytes_written );
+    }
+    
     return num_bytes_written;
   }
   
@@ -530,32 +362,28 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
    * @return true if it has data to send, false if empty
    */
   public boolean hasWriteDataAvailable() {
-    if( ready_connections.size() < 1 )  return false;
+    if( ready_connections.isEmpty() )  return false;
     return true;
   }
   
   
   
   private static class PeerData {
-    private Connection connection;
     private OutgoingMessageQueue.MessageQueueListener queue_listener;
     private long last_message_added_time;
-    private IOException exception;
   }
   
   
   //////////////// RateControlledWriteEntity implementation ////////////////////
   
   public boolean canWrite() {
-    if( ready_connections.size() < 1 )  return false;  //no data to send
+    if( ready_connections.isEmpty() )  return false;  //no data to send
     if( rate_handler.getCurrentNumBytesAllowed() < 1 )  return false;  //not allowed to send
     return true;
   }
   
   public boolean doWrite() {
-    int written = write( rate_handler.getCurrentNumBytesAllowed() );
-    //System.out.println( "M=" +written );
-    return written > 0 ? true : false;
+    return write( rate_handler.getCurrentNumBytesAllowed() ) > 0 ? true : false;
   }
 
   public int getPriority() {
