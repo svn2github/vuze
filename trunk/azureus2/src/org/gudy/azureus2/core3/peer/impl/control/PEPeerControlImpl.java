@@ -23,7 +23,6 @@ import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
-import org.gudy.azureus2.core3.peer.impl.transport.base.DataReaderOwner;
 import org.gudy.azureus2.core3.peer.util.*;
 
 import com.aelitis.azureus.core.networkmanager.ConnectDisconnectManager;
@@ -48,7 +47,6 @@ PEPeerControlImpl
   private static final int BAD_CHUNKS_LIMIT = 3;
   private static final int WARNINGS_LIMIT = 3;
   
-  private static boolean oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style", false);
   private static boolean disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
   
     
@@ -155,7 +153,6 @@ PEPeerControlImpl
   	  this._downloadManager = manager;
   	  _tracker = tracker;
   	  this._diskManager = diskManager;
-  	  COConfigurationManager.addParameterListener("Old.Socket.Polling.Style", this);
       COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
       COConfigurationManager.addParameterListener( "Disconnect Seed", this );
       
@@ -380,7 +377,6 @@ PEPeerControlImpl
 
 	
     // 5. Remove listeners
-    COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
     COConfigurationManager.removeParameterListener("Ip Filter Enabled", this);
     COConfigurationManager.removeParameterListener( "Disconnect Seed", this );
   }
@@ -1219,14 +1215,6 @@ PEPeerControlImpl
     }
   }
   
-  
- /**
-   * private method to add a new incoming peerConnection
-   */
- private void insertPeerSocket(PEPeerTransport ps) {
- 	
- }
-
   
  
  /**
@@ -2430,9 +2418,7 @@ PEPeerControlImpl
   public void 
   parameterChanged(
   		String parameterName)
-  {
-    oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style");
-    
+  {   
     disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
     
     if ( parameterName.equals("Ip Filter Enabled")){
