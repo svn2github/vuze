@@ -19,13 +19,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.util;
+package org.gudy.azureus2.core3.ipchecker.natchecker;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
+
+import org.gudy.azureus2.core3.util.BDecoder;
 
 /**
  * @author Olivier

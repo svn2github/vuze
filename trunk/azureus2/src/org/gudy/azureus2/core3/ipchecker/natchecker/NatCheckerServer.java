@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.core3.util;
+package org.gudy.azureus2.core3.ipchecker.natchecker;
 
 import java.net.ServerSocket;
 import java.net.Socket;
