@@ -176,7 +176,7 @@ ResourceDownloaderFactoryImpl
 			return( _downloader );
 		}
 		
-		if ( target.toString().toLowerCase().endsWith(".torrent")){
+		if ( target.getPath().toLowerCase().endsWith(".torrent")){
 			
 			return( getTorrentDownloader( _downloader, true ));
 			
