@@ -5,6 +5,7 @@ xx.01.04 | Azureus 2.0.6.1
 
 FEATURE: on Linux + GTK, Added an option to setup a vertical offset to re-align graphics [Gudy]
 FEATURE: SSL tracker client now gives option to import certificate rather than manually doing so via "keytool" [Parg]
+FEATURE: Start All Downloads option on tray icon [Nolar]
 
 CHANGE: Azureus now identifies itself via User-Agent in tracker http communications [Nolar]
 CHANGE: Less flickering, on all platforms (tested on both windows and linux+GTK) [Gudy]

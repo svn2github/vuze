@@ -36,7 +36,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 	private static SystemTray systemTray = null; 
 	int refreshFactor = 0;
   
-  private static final String[] menuItems = {"show", "closealldownloadbars", "stopalldownloads", null, "exit"};
+  private static final String[] menuItems = {"show", null, "closealldownloadbars", null, "startalldownloads", "stopalldownloads", null, "exit"};
 
 	public SystemTray(MainWindow main) {
 		this.main = main;
@@ -109,6 +109,8 @@ public class SystemTray extends SysTrayMenuAdapter {
 			dispose();
 		} else if (cmd.equals("show")) { //$NON-NLS-1$
 			show();
+    } else if (cmd.equals("startalldownloads")) { //$NON-NLS-1$
+      main.getGlobalManager().startAllDownloads();
     } else if (cmd.equals("stopalldownloads")) { //$NON-NLS-1$
       main.getGlobalManager().stopAllDownloads();
     } else if (cmd.equals("closealldownloadbars")) { //$NON-NLS-1$

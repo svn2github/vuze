@@ -66,6 +66,12 @@ GlobalManager
    */
   public void
   stopAllDownloads();
+  
+  /**
+   * Starts all downloads
+   */
+  public void
+  startAllDownloads();
     
 	public TRTrackerScraper
 	getTrackerScraper();

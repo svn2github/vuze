@@ -124,8 +124,20 @@ public class TrayWindow implements GlobalManagerListener {
       }
     });
 
+    new MenuItem(menu, SWT.SEPARATOR);
+    
     main.addCloseDownloadBarsToMenu(menu);
+    
+    new MenuItem(menu, SWT.SEPARATOR);
 
+    MenuItem file_startalldownloads = new MenuItem(menu, SWT.NULL);
+    Messages.setLanguageText(file_startalldownloads, "TrayWindow.menu.startalldownloads"); //$NON-NLS-1$
+    file_startalldownloads.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+            globalManager.startAllDownloads();
+        }
+    });    
+    
     MenuItem file_stopalldownloads = new MenuItem(menu, SWT.NULL);
     Messages.setLanguageText(file_stopalldownloads, "TrayWindow.menu.stopalldownloads"); //$NON-NLS-1$
     file_stopalldownloads.addListener(SWT.Selection, new Listener() {

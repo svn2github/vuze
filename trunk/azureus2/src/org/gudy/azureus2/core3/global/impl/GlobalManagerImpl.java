@@ -572,6 +572,18 @@ public class GlobalManagerImpl
       manager.stopIt();
     }
   }
+  
+  
+  /**
+   * Starts all downloads
+   */
+  public void startAllDownloads() {    
+    for (Iterator iter = managers.iterator(); iter.hasNext();) {
+        DownloadManager manager = (DownloadManager) iter.next();
+        manager.startDownloadInitialized(true);
+    }
+  }
+  
 
   private void loadDownloads() {
     FileInputStream fin = null;
