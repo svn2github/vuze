@@ -23,6 +23,11 @@ public class FileUtil {
   
   public static final String DIR_SEP = System.getProperty("file.separator");
   
+  private static final int	RESERVED_FILE_HANDLE_COUNT	= 4;
+	
+  private static List	reserved_file_handles = new ArrayList();
+	
+
   public static String getCanonicalFileName(String filename) {
     // Sometimes Windows use filename in 8.3 form and cannot
     // match .torrent extension. To solve this, canonical path
@@ -229,60 +234,75 @@ public class FileUtil {
   	String		file_name,
 	Map			data )
   {
-    File file = new File( SystemProperties.getUserPath() + file_name );
-    
-  	//backup
-    if ( file.exists() && file.length() > 1L ){
-    	
-      File bakfile = new File( file + ".bak" );
-      
-      if ( bakfile.exists()){
-      	bakfile.delete();
-      }
-      
-      file.renameTo( bakfile );
-    }
+  	try{
+  		getReservedFileHandles();
   	
-    BufferedOutputStream	baos = null;
-    
-    try{
-    	byte[] encoded_data = BEncoder.encode(data);
+	    File file = new File( SystemProperties.getUserPath() + file_name );
 	    
-
-    	baos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
-  	
-    		//write the data out
-    	
-    	baos.write(encoded_data);
-    	
-    	baos.flush();
-    
-    }catch (Exception e) {
-    
-    	LGLogger.logAlert( "Save of '" + file_name + "' fails", e );
-    	
-    }finally{
-    	
-    	try {
-    		if (baos != null){
-    			
-    			baos.close();
-    		}
-    	}catch( Exception e){
-    		
-        	LGLogger.logAlert( "Save of '" + file_name + "' fails", e ); 
-    	}
-    }
+	  	//backup
+	    if ( file.exists() && file.length() > 1L ){
+	    	
+	      File bakfile = new File( file + ".bak" );
+	      
+	      if ( bakfile.exists()){
+	      	bakfile.delete();
+	      }
+	      
+	      file.renameTo( bakfile );
+	    }
+	  	
+	    BufferedOutputStream	baos = null;
+	    
+	    try{
+	    	byte[] encoded_data = BEncoder.encode(data);
+		    
+	
+	    	baos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
+	  	
+	    		//write the data out
+	    	
+	    	baos.write(encoded_data);
+	    	
+	    	baos.flush();
+	    
+	    }catch (Exception e) {
+	    
+	    	LGLogger.logAlert( "Save of '" + file_name + "' fails", e );
+	    	
+	    }finally{
+	    	
+	    	try {
+	    		if (baos != null){
+	    			
+	    			baos.close();
+	    		}
+	    	}catch( Exception e){
+	    		
+	        	LGLogger.logAlert( "Save of '" + file_name + "' fails", e ); 
+	    	}
+	    }
+  	}finally{
+  		
+  		releaseReservedFileHandles();
+  	}
   }
   
   	public static Map
 	readResilientConfigFile(
 		String		file_name )
 	{
-  		return(readResilientConfigFile( file_name, 0 ));
+  		try{
+  			getReservedFileHandles();
+  	
+  			return(readResilientConfigFile( file_name, 0 ));
+  			
+  		}finally{
+  			
+  			releaseReservedFileHandles();
+  		}
   	}
   	
-	protected static Map
+	private static Map
 	readResilientConfigFile(
 		String		file_name,
 		int			fail_count )
@@ -362,10 +382,50 @@ public class FileUtil {
 	    		e.printStackTrace();
 	    	}
 	    }
-  }
+	}
   
-  
-  
+
+	private static synchronized void
+	getReservedFileHandles()
+	{
+		while( reserved_file_handles.size() > 0 ){
+			
+			// System.out.println( "releasing reserved file handle");
+			
+			InputStream	is = (InputStream)reserved_file_handles.remove(0);
+			
+			try{
+				is.close();
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+	}
+			
+	private static synchronized void
+	releaseReservedFileHandles()
+	{
+		try{
+			File	lock_file	= new File(SystemProperties.getUserPath() + ".lock");
+							
+			lock_file.createNewFile();
+		
+			while(  reserved_file_handles.size() < RESERVED_FILE_HANDLE_COUNT ){
+				
+				// System.out.println( "getting reserved file handle");
+				
+				InputStream	is = new FileInputStream( lock_file );
+				
+				reserved_file_handles.add(is);
+			}
+		}catch( Throwable e ){
+		
+			e.printStackTrace();
+		}
+	}
+	
     /**
      * Backup the given file to filename.bak, removing the old .bak file if necessary.
      * If _make_copy is true, the original file will copied to backup, rather than moved.
