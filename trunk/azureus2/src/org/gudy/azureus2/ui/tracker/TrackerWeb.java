@@ -139,11 +139,6 @@ TrackerWeb
 		
 		TrackerTorrent[]	tracker_torrents = tracker.getTorrents();
 		
-		if ( tracker_torrents.length == 0 ){
-			
-			return( torrentNotFound(os) );
-		}
-
 		args.put( "loop_context_vars", "true" );
 		args.put( "global_vars", "true" );
 		
