@@ -40,15 +40,28 @@ public class SystemProperties {
       return user_path;
     }
     
+    	// override for testing purposes
+    
+    String 	userhome 		= System.getProperty("azureus.user.home");
+    boolean home_overridden = false;
+    
+    if ( userhome != null ){
+    	
+    	home_overridden	= true;
+    	
+    }else{
+    	
+    	userhome = System.getProperty("user.home");
+    }
+    
     String OS = System.getProperty("os.name").toLowerCase();
-    String userhome = System.getProperty("user.home");
     
     if ( OS.indexOf("windows") >= 0 ) {
-      if ( user_dir_win == null ) {
+      if ( user_dir_win == null && !home_overridden ) {
         user_dir_win = getEnvironmentalVariable( "APPDATA" );
       }
       
-      if ( user_dir_win.length() < 1 ) {  //couldn't find env var, use default
+      if ( user_dir_win == null || user_dir_win.length() < 1 ) {  //couldn't find env var, use default
         user_dir_win = userhome + SEP + WIN_DEFAULT;
       }
       
