@@ -35,6 +35,9 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.TrackersUtil;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
 /**
@@ -95,7 +98,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     t.start();
   }
 
-  public void makeTorrent() {    
+  public void makeTorrent() {
+    TrackersUtil.getInstance().addTracker(((NewTorrentWizard)wizard).trackerURL);
     File f;
     if (((NewTorrentWizard)wizard).mode) {
       f = new File(((NewTorrentWizard)wizard).directoryPath);

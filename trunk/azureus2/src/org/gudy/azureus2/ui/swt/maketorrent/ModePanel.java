@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.maketorrent;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -30,12 +32,13 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
@@ -68,7 +71,12 @@ public class ModePanel extends AbstractWizardPanel {
 
     Label label = new Label(panel,SWT.NULL);
     Messages.setLanguageText(label,"wizard.tracker");
-    final Text tracker = new Text(panel,SWT.BORDER);
+    final Combo tracker = new Combo(panel,SWT.NULL);
+    List trackers = TrackersUtil.getInstance().getTrackersList();
+    Iterator iter = trackers.iterator();
+    while(iter.hasNext()) {
+      tracker.add((String)iter.next());
+    }
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     tracker.setLayoutData(gridData);
     tracker.addModifyListener(new ModifyListener() {
