@@ -77,6 +77,12 @@ TRTrackerClient
 	public void
 	destroy();
 	
+	public int
+	getStatus();
+	
+	public String
+	getStatusString();
+	
 	/**
 	 * This method forces all listeners to get an explicit "urlChanged" event to get them
 	 * to re-examine the tracker

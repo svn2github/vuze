@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.internat.*;
 
 /**
  * 
@@ -53,7 +54,8 @@ TRTrackerClientClassicImpl
 	private TOTorrent		torrent;
 	private TimerEvent		current_timer_event;
 	
-	private int				tracker_state 		= TS_INITIALISED;
+	private int				tracker_state 			= TS_INITIALISED;
+	private String			tracker_status_str		= "";
 	
 	private boolean			stopped;
 	private boolean			completed;
@@ -131,6 +133,19 @@ TRTrackerClientClassicImpl
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
   }
 	
+	
+	public int
+  	getStatus()
+  	{
+  		return( tracker_state );
+  	}
+	
+  	public String
+  	getStatusString()
+  	{
+  		return( tracker_status_str );
+  	}
+  	
 	public void
 	update()
 	{
@@ -193,7 +208,9 @@ TRTrackerClientClassicImpl
 			
 				update_in_progress = true;
 			}
-			
+	
+			tracker_status_str = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
+		
 			TRTrackerResponse	response = null;
 			
 			if ( stopped ){
@@ -247,11 +264,35 @@ TRTrackerClientClassicImpl
 				// set up next event
 				
 			if ( response != null ){
+
+				int	rs = response.getStatus();
+				
+				if ( rs == TRTrackerResponse.ST_OFFLINE ){
+      
+					tracker_status_str = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
+      		      
+					String	reason = response.getFailureReason();
+      		
+					if ( reason != null ){
+      			
+						tracker_status_str += " (" + reason + ")";		
+					}
+				}else if ( rs == TRTrackerResponse.ST_REPORTED_ERROR ){
+
+					tracker_status_str = response.getFailureReason();
 			
+				}else{
+	    	       	        	
+					tracker_status_str = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
+				}
+				
 				for (int i=0;i<listeners.size();i++){
 					
 					((TRTrackerClientListener)listeners.get(i)).receivedTrackerResponse( response );	
 				}
+			}else{
+				
+				tracker_status_str = "";
 			}
 		}finally{
 			
@@ -262,37 +303,37 @@ TRTrackerClientClassicImpl
 		}
 	}
 	
-  protected TRTrackerResponse 
-  startSupport() 
-  {
-	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a start Request");
+	protected TRTrackerResponse 
+  	startSupport() 
+  	{
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a start Request");
 	
-	return(update("started"));
-  }
+		return(update("started"));
+  	}
 
-  protected TRTrackerResponse 
-  completeSupport() 
-  {	
-	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
+  	protected TRTrackerResponse 
+  	completeSupport() 
+  	{	
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
 		
-	return(update("completed"));
-  }
+		return(update("completed"));
+  	}
 
-  protected TRTrackerResponse 
-  stopSupport() 
-  {
-	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a stopped Request");
+  	protected TRTrackerResponse 
+  	stopSupport() 
+  	{
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a stopped Request");
 	
-	return( update("stopped"));
-  }
+		return( update("stopped"));
+  	}
 
-  protected TRTrackerResponse 
-  updateSupport() 
-  {
-	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending an update Request");
+  	protected TRTrackerResponse 
+  	updateSupport() 
+  	{
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending an update Request");
 	
-	return update("");
-  }
+		return update("");
+  	}
   
   private TRTrackerResponse 
   update(String evt) 
@@ -474,7 +515,14 @@ TRTrackerClientClassicImpl
   		class_name = class_name.substring(pos+1);
   	}
   	
-  	return( class_name + ":" + e.getMessage());
+  	String str = class_name + ":" + e.getMessage();
+  	
+  	if ( str.indexOf( "timed out") != -1 ){
+  		
+  		str  = "timeout";
+  	}
+  	
+  	return( str );
   }
   
   public String constructUrl(String evt,String url) {

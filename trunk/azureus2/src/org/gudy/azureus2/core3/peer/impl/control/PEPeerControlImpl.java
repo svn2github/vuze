@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.impl.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
@@ -68,8 +67,7 @@ PEPeerControlImpl
   private int timeToWait;
   private int origTimeToWait = 120;
   private TRTrackerClient _tracker;
-  private String _trackerStatus;
-  //  private int _maxUploads;
+   //  private int _maxUploads;
   private int _seeds, _peers;
   private long _timeStarted;
   private long _timeFinished;
@@ -142,7 +140,6 @@ PEPeerControlImpl
 
     //The current tracker state
     //this could be start or update
-    _trackerStatus = "..."; //$NON-NLS-1$
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
@@ -368,25 +365,9 @@ PEPeerControlImpl
   		
 		origTimeToWait	= (int)tracker_response.getTimeToWait();
 		
-    	if ( status == TRTrackerResponse.ST_OFFLINE ){
-      
-      		_trackerStatus = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
-      		      
-      		String	reason = tracker_response.getFailureReason();
-      		
-      		if ( reason != null ){
-      			
-      			_trackerStatus += " (" + reason + ")";		
-      		}
-	    }else if ( status == TRTrackerResponse.ST_REPORTED_ERROR ){
-
-			_trackerStatus = tracker_response.getFailureReason();
-			
-	    }else{
-	    	
-        	addPeersFromTracker( tracker_response.getPeers());
-        	        	
-        	_trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
+    	if ( status == TRTrackerResponse.ST_ONLINE ){
+      	    	
+        	addPeersFromTracker( tracker_response.getPeers());       	        	
     	}
   	}
 
@@ -662,7 +643,6 @@ PEPeerControlImpl
     //has the timeout expired?
     if ((time - _timeLastUpdate) > timeToWait) //if so...
       {
-      _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
       checkTracker( false );
     }
   }
@@ -1489,9 +1469,6 @@ PEPeerControlImpl
     return _stats;
   }
 
-  public String getTrackerStatus() {
-    return _trackerStatus;
-  }
 
   
   /**

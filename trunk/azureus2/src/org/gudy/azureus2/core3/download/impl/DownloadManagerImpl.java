@@ -421,8 +421,8 @@ DownloadManagerImpl
   
 
   public String getTrackerStatus() {
-	if (peerManager != null)
-	  return peerManager.getTrackerStatus();
+	if (tracker_client != null)
+	  return tracker_client.getStatusString();
 	return ""; //$NON-NLS-1$
   }
 
