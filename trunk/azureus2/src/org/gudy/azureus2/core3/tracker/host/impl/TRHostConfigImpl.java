@@ -38,7 +38,8 @@ import org.gudy.azureus2.core3.tracker.host.*;
 public class 
 TRHostConfigImpl 
 {
-	public static final String	LOG_FILE_NAME	= "tracker.log";
+	public static final String	LOG_FILE_NAME				= "tracker.log";
+	public static final long	BACKUP_RETENTION_PERIOD		= 7*24*60*60*1000;
 	
 	protected TRHostImpl	host;
 	
@@ -160,7 +161,7 @@ TRHostConfigImpl
 		}
 	}
 	
-	protected void
+	private void
 	recoverStats(
 		TRHostTorrentHostImpl	host_torrent,
 		Map						t_map )
@@ -215,11 +216,17 @@ TRHostConfigImpl
 		   
 		   	List	stats_entries = new ArrayList();
 		   	
+		   	Set	added = new HashSet();
+		   	
+		   	System.out.println( "host save starts" );
+		   	
 		   	for (int i = 0; i < torrents.length; i++){
 		   	
 		  	 	try{
 		  
 					TRHostTorrent torrent = (TRHostTorrent)torrents[i];
+					
+					added.add( torrent.getTorrent().getHashWrapper());
 					
 					StringBuffer	stats_entry = new StringBuffer(2048);
 					
@@ -304,10 +311,45 @@ TRHostConfigImpl
 		  	 		Debug.printStackTrace( e );
 		  	 	}
 		   	}
+		   
+		   		// now save any non-recovered stats for a while in case the torrent
+		   		// gets re-added in the near future
 		   	
+		   	Iterator	it = saved_stats.keySet().iterator();
+		   	
+		   	long	now = SystemTime.getCurrentTime();
+		   	
+		   	while ( it.hasNext()){
+		   		
+		   		HashWrapper	hash = (HashWrapper)it.next();
+		   	
+		   		if ( added.contains( hash )){
+		   			
+		   			continue;
+		   		}
+		   		
+		   		Map	t_map = (Map)saved_stats.get( hash );
+		   		
+		   		Long	backup = (Long)t_map.get("backup_time");
+		   		
+		   		if ( backup == null ){
+		   			
+		   			backup	= new Long( now );
+		   			
+		   			t_map.put( "backup_time", backup );
+		   		}
+		   		
+		   		if ( now - backup.longValue() < BACKUP_RETENTION_PERIOD ){
+		   		
+		   			list.add( t_map );
+		   		
+		   			added.add( hash );
+		   		}
+		   	}
+		   
 		   	map.put("torrents", list);
 		   	
-		   try{
+		   	try{
 		   		save_lock_mon.enter();
 		   		
 		   		FileUtil.writeResilientConfigFile( "tracker.config", map );
@@ -364,10 +406,4 @@ TRHostConfigImpl
 			Debug.printStackTrace( e );
 		}
 	}
-	
-	private static String format(int n) {
-		if(n < 10) return "0".concat(String.valueOf(n)); //$NON-NLS-1$
-		return String.valueOf(n); //$NON-NLS-1$
-	}  
-	
 }
