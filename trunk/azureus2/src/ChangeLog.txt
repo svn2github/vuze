@@ -4,17 +4,29 @@ AZUREUS CHANGELOG
 2004.11.xx | Azureus 2.2.0.1
 
 FEATURE: Core | Manual peer upload blocking (when seeding) and kick-banning [Nolar]
-FEATURE: UI  | Added 'share' support to console UI [Nolar]
+FEATURE: UI   | Added 'share' support to console UI [Nolar]
+FEATURE: Core | Control added to not cache small files (default no cache for < 1MB) [Parg]
+FEATURE: Core | Ability to cancel torrent creation processes added [Parg, Gudy]
+FEATURE: Core | Ability to cancel sharing process added [Parg]
+FEATURE: Core | Ability to pass multiple torrents to Azureus.exe [Parg]
+FEATURE: Core | Added configuration items for tracker processing limits [Parg]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
+CHANGE: UI   | create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
+CHANGE: Core | Moved config items for tracker client overrides + UDP to tracker client config [Parg]
+CHANGE: UI   | Obey "start stopped" config item for dropped torrents [Parg]
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
 BUGFIX: UI   | Fix for window state not being remembered between sessions [Nolar]
 BUGFIX: UI   | Fix for messages window being closed while animated [Gudy]
-BUBFIX: UI   | Fix for BUG 1059432 : Download bars spawning multiple times when set to auto open [Gudy]
-
-
+BUGFIX: UI   | Fix for BUG 1059432 : Download bars spawning multiple times when set to auto open [Gudy]
+BUGFIX: UI   | Fix for BUG 1061538 : /0 error if no pieces
+BUGFIX: Core | Handle passing of torrents to already running but not fully initialised process better [Parg]
+BUGFIX: UI   | Fix create-torrent wizard to remember paths properly [Parg]
+BUGFIX: Core | default save dir was defaulting to ON, changed to OFF [Parg]
+BUGFIX: Core | Tidied up UPnP error handing if action missing [Parg]
+BUGFIX: UI   | Fixed up opening of torrent files not ending in ".tor" or ".torrent" [Parg]
 
 
 2004.10.31 | Azureus 2.2.0.0
