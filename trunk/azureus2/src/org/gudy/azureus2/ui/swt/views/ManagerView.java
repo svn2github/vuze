@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -211,7 +212,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  		
 	  	}catch( GlobalManagerDownloadRemovalVetoException e ){
 	  		
-	  		MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
+	  		Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
 	  	}
 	  	
 	    return;

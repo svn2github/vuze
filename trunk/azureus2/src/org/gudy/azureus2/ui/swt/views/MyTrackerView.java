@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -559,7 +560,7 @@ MyTrackerView
       		
       		String	message = f.getMessage();
       	      	
-      		MainWindow.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
+      		Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", f );
       	}
       }
     }
