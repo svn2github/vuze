@@ -113,4 +113,10 @@ DHTTransportUDPContactImpl
 	{
 		transport.exportContact( this, os );
 	}
+	
+	public String
+	getString()
+	{
+		return( address.toString());
+	}
 }

@@ -27,7 +27,11 @@ package com.aelitis.azureus.core.dht.transport;
  *
  */
 
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+
 import com.aelitis.azureus.core.dht.transport.loopback.*;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
 public class 
 DHTTransportFactory 
@@ -37,5 +41,15 @@ DHTTransportFactory
 		int		id_byte_num )
 	{
 		return( new DHTTransportLoopbackImpl( id_byte_num ));
+	}
+	
+	public static DHTTransportUDP
+	createUDP(
+		int				port,
+		int				max_fails,
+		long			timeout,
+		LoggerChannel	logger )
+	{
+		return( new DHTTransportUDPImpl( port, max_fails, timeout, logger ));
 	}
 }

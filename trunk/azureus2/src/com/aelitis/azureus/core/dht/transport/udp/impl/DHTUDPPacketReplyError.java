@@ -33,8 +33,13 @@ public class
 DHTUDPPacketReplyError
 	extends DHTUDPPacketReply
 {
-	private InetSocketAddress		originator_address;
+	public static final int	ET_UNKNOWN						= 0;
+	public static final int	ET_ORIGINATOR_ADDRESS_WRONG		= 1;
 	
+	private int						error_type	= ET_UNKNOWN;
+	
+	private InetSocketAddress		originator_address;
+
 	public
 	DHTUDPPacketReplyError(
 		int			trans_id,
@@ -52,12 +57,30 @@ DHTUDPPacketReplyError
 	{
 		super( is, DHTUDPPacket.ACT_REPLY_ERROR, trans_id );
 		
-		originator_address	= DHTUDPUtils.deserialiseAddress( is );
+		error_type = is.readInt();
+		
+		if ( error_type == ET_ORIGINATOR_ADDRESS_WRONG ){
+			
+			originator_address	= DHTUDPUtils.deserialiseAddress( is );
+		}
+	}
+
+	protected void
+	setErrorType(
+		int		error )
+	{
+		error_type	= error;
+	}
+	
+	protected int
+	getErrorType()
+	{
+		return( error_type );
 	}
 	
 	protected void
 	setOriginatingAddress(
-			InetSocketAddress	a )
+		InetSocketAddress	a )
 	{
 		originator_address = a;
 	}
@@ -75,7 +98,12 @@ DHTUDPPacketReplyError
 		throws IOException
 	{
 		super.serialise(os);
+	
+		os.writeInt( error_type );
 		
-		DHTUDPUtils.serialiseAddress( os, originator_address );
+		if ( error_type == ET_ORIGINATOR_ADDRESS_WRONG ){
+
+			DHTUDPUtils.serialiseAddress( os, originator_address );
+		}
 	}
 }

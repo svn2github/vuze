@@ -1,5 +1,5 @@
 /*
- * Created on 21-Jan-2005
+ * Created on 24-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,26 +20,17 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport.udp;
-
-import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
+package com.aelitis.azureus.core.dht.transport;
 
 /**
  * @author parg
  *
  */
 
-
-public class 
-DHTTransportUDPFactory 
+public interface 
+DHTTransportListener 
 {
-	public static DHTTransportUDP
-	create(
-		int			port,
-		int			max_fails,
-		long		timeout )
-	{
-		return( new DHTTransportUDPImpl( port, max_fails, timeout ));
-	}
-
+	public void
+	localContactChanged(
+		DHTTransportContact	local_contact );
 }

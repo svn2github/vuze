@@ -32,6 +32,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -42,9 +43,12 @@ DHTLog
 {
 	public static final boolean	ADD_TRACE	= true;
 	
-	private static boolean	LOGGING_DEFAULT	= false;
+	private static boolean	LOGGING_DEFAULT	= true;
 	
 	private static ThreadLocal		tls;
+	
+	private static LoggerChannel	logger;
+	
 	
 	static{
 		if (ADD_TRACE ){ 
@@ -83,15 +87,36 @@ DHTLog
 			if ( logging_enabled ){
 				
 				if ( stack.isEmpty()){
-					
-					System.out.println( str );
-					
+						
+					if ( logger != null ){
+						
+						logger.log( str );
+						
+					}else{
+						
+						System.out.println( str );
+					}
 				}else{
 					
-					System.out.println( indent + ":" + getString((byte[])stack.peek()) + ":" + str );
+					String	log_str = indent + ":" + getString((byte[])stack.peek()) + ":" + str;
+					
+					if ( logger != null ){
+						
+						logger.log( log_str );
+					}else{
+						
+						System.out.println( log_str );
+					}
 				}
 			}
 		}
+	}
+	
+	public static void
+	setLogger(
+		LoggerChannel l )
+	{
+		logger	= l;
 	}
 	
 	public static void

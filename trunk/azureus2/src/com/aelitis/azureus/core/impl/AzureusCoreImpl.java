@@ -76,6 +76,12 @@ AzureusCoreImpl
 		}
 	}
 	
+	public static boolean
+	isCoreAvailable()
+	{
+		return( singleton != null );
+	}
+	
 	public static AzureusCore
 	getSingleton()
 	

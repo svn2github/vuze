@@ -34,11 +34,13 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportStatsImpl;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.net.udp.*;
 
 /**
@@ -50,6 +52,8 @@ public class
 DHTTransportUDPImpl 
 	implements DHTTransportUDP, PRUDPRequestHandler
 {
+	private static boolean TEST_EXTERNAL_IP	= false;
+	
 	static{
 		
 		DHTUDPPacket.registerCodecs();
@@ -61,12 +65,18 @@ DHTTransportUDPImpl
 	private int					port;
 	private int					max_fails;
 	private long				request_timeout;
+	private LoggerChannel		logger;
 	
 	private PRUDPPacketHandler			packet_handler;
 	
 	private DHTTransportRequestHandler	request_handler;
 	
 	private DHTTransportUDPContactImpl		local_contact;
+	
+	private long last_address_change;
+	
+	private List listeners	= new ArrayList();
+	
 	
 	private DHTTransportStatsImpl	stats = new DHTTransportStatsImpl();
 
@@ -76,95 +86,120 @@ DHTTransportUDPImpl
 	
 	public
 	DHTTransportUDPImpl(
-		int		_port,
-		int		_max_fails,
-		long	_timeout )
+		int				_port,
+		int				_max_fails,
+		long			_timeout,
+		LoggerChannel	_logger )
 	{
 		port			= _port;
 		max_fails		= _max_fails;
 		request_timeout	= _timeout;
+		logger			= _logger;
 		
 			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
 			// if you change it :)
 		
 		packet_handler = PRUDPPacketHandlerFactory.getHandler( _port, this );		
 
-			// TODO: ascertain correct external IP address
 		
-		InetSocketAddress	address = new InetSocketAddress( getExternalAddress(), port );
+		InetSocketAddress	address = 
+			new InetSocketAddress( getExternalAddress(false,"127.0.0.1", logger), port );
+
+		logger.log( "Initial external address: " + address );
 		
 		local_contact = new DHTTransportUDPContactImpl( this, address );
 	}
 	
 	protected static synchronized String
-	getExternalAddress()
+	getExternalAddress(
+		boolean				force,
+		String				default_address,
+		final LoggerChannel	log )
 	{
-		if ( external_address == null ){
+		if ( force || external_address == null ){
+			
+			external_address = null;
+			
+			if ( TEST_EXTERNAL_IP ){
+				
+				return( "192.168.0.2" );
+			}
 			
 			try{
-				ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
+				String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
 				
-				ExternalIPCheckerService[]	services = checker.getServices();
-				
-				final String[]	ip = new String[]{ null };
-				
-				for (int i=0;i<services.length && ip[0] == null;i++){
+				if ( vc_ip != null && vc_ip.length() > 0 ){
 					
-					ExternalIPCheckerService	service = services[i];
+					log.log( "External IP address obtained from version-check: " + vc_ip );
 					
-					if ( service.supportsCheck()){
-	
-						final AESemaphore	sem = new AESemaphore("DHTUDP:getExtIP");
+					external_address	= vc_ip;
+					
+				}else{
+					
+					ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
+					
+					ExternalIPCheckerService[]	services = checker.getServices();
+					
+					final String[]	ip = new String[]{ null };
+					
+					for (int i=0;i<services.length && ip[0] == null;i++){
 						
-						ExternalIPCheckerServiceListener	listener = 
-							new ExternalIPCheckerServiceListener()
-							{
-								public void
-								checkComplete(
-									ExternalIPCheckerService	_service,
-									String						_ip )
-								{
-									ip[0]	= _ip;
-									
-									sem.release();
-								}
-									
-								public void
-								checkFailed(
-									ExternalIPCheckerService	service,
-									String						reason )
-								{
-									sem.release();
-								}
-									
-								public void
-								reportProgress(
-									ExternalIPCheckerService	service,
-									String						message )
-								{
-								}
-							};
-							
-						services[i].addListener( listener );
+						final ExternalIPCheckerService	service = services[i];
 						
-						try{
+						if ( service.supportsCheck()){
+		
+							final AESemaphore	sem = new AESemaphore("DHTUDP:getExtIP");
 							
-							services[i].initiateCheck( 60000 );
+							ExternalIPCheckerServiceListener	listener = 
+								new ExternalIPCheckerServiceListener()
+								{
+									public void
+									checkComplete(
+										ExternalIPCheckerService	_service,
+										String						_ip )
+									{
+										log.log( "External IP address obtained from " + service.getName() + ": " + _ip );
+
+										ip[0]	= _ip;
+										
+										sem.release();
+									}
+										
+									public void
+									checkFailed(
+										ExternalIPCheckerService	service,
+										String						reason )
+									{
+										sem.release();
+									}
+										
+									public void
+									reportProgress(
+										ExternalIPCheckerService	service,
+										String						message )
+									{
+									}
+								};
+								
+							services[i].addListener( listener );
 							
-							sem.reserve( 60000 );
-							
-						}finally{
-							
-							services[i].removeListener( listener );
+							try{
+								
+								services[i].initiateCheck( 60000 );
+								
+								sem.reserve( 60000 );
+								
+							}finally{
+								
+								services[i].removeListener( listener );
+							}
 						}
 					}
-				}
-				
-				if ( ip[0] != null ){
 					
-					System.out.println( "Retrieved external address:" + ip[0] );
-					
-					external_address	= ip[0];
+					if ( ip[0] != null ){
+						
+						external_address	= ip[0];
+					}
 				}
 				
 			}catch( Throwable e ){
@@ -174,11 +209,85 @@ DHTTransportUDPImpl
 			
 			if ( external_address == null ){
 				
-				external_address =	"127.0.0.1";
+				external_address =	default_address;
+				
+				log.log( "External IP address defaulted:  " + default_address );
 			}
 		}
 		
 		return( external_address );
+	}
+	
+	protected synchronized boolean
+	externalAddressChange(
+		InetSocketAddress		new_address )
+	{
+			/*
+			 * A node has reported that our external address and the one he's seen a 
+			 * message coming from differ. Natural explanations are along the lines of
+			 * 1) my address is dynamically allocated by my ISP and it has changed
+			 * 2) I have multiple network interfaces 
+			 * 3) there's some kind of proxy going on
+			 * 4) this is a DOS attempting to stuff me up
+			 * 
+			 * We assume that our address won't change more frequently than once every
+			 * 5 minutes
+			 * We assume that if we can successfully obtain an external address by
+			 * using the above explicit check then this is accurate
+			 * Only in the case where the above check fails do we believe the address
+			 * that we've been told about
+			 */
+		
+		if ( new_address.getPort() != port ){
+
+			// port has changed. we don't support anything automatic here as it is
+			// indicative of a configuration problem
+		
+			logger.logAlert( 
+					LoggerChannel.LT_WARNING,
+					"Node has reported differing port (current=" + port + ", reported = " + new_address.getPort() + ") - check configuration" );
+			
+			return( false );
+		}
+		
+		String	new_ip = new_address.getAddress().getHostAddress();
+		
+		if ( new_ip.equals( external_address )){
+			
+				// probably just be a second notification of an address change
+							
+			return( true );
+		}
+
+		long	now = SystemTime.getCurrentTime();
+
+		if ( now - last_address_change < 5*60*1000 ){
+			
+			return( false );
+		}
+		
+		last_address_change	= now;
+		
+		String	a = getExternalAddress( true, new_ip, logger );
+		
+		InetSocketAddress	s_address = new InetSocketAddress( a, port );
+		
+		logger.log( "External address changed: " + s_address );
+		
+		local_contact = new DHTTransportUDPContactImpl( this, s_address );
+
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((DHTTransportListener)listeners.get(i)).localContactChanged( local_contact );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( true );
 	}
 	
 	protected int
@@ -707,12 +816,14 @@ DHTTransportUDPImpl
 			
 			if ( !Arrays.equals( request.getOriginatorID(), originating_contact.getID())){
 				
-				System.out.println( "Peer has reported address mismatch" );
+				logger.log( "Node " + originating_contact.getString() + " has incorrect ID, reporting it to them" );
 				
 				DHTUDPPacketReplyError	reply = 
 					new DHTUDPPacketReplyError(
 							request.getTransactionId(),
 							request.getConnectionId());
+				
+				reply.setErrorType( DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG );
 				
 				reply.setOriginatingAddress( originating_contact.getAddress());
 				
@@ -807,9 +918,21 @@ DHTTransportUDPImpl
 	{
 		if ( reply.getAction() == DHTUDPPacket.ACT_REPLY_ERROR ){
 			
-			System.out.println( "error reply" );
+			DHTUDPPacketReplyError	error = (DHTUDPPacketReplyError)reply;
 			
-			return( true );
+			switch( error.getErrorType()){
+			
+				case DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG:
+				{
+					return( externalAddressChange( error.getOriginatingAddress()));
+				}
+				default:
+				{
+					Debug.out( "Unknown error type received" );
+				}
+			}
+			
+			return( false );
 			
 		}else{
 			

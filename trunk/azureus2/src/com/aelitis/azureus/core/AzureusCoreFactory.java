@@ -46,6 +46,11 @@ AzureusCoreFactory
 		return( AzureusCoreImpl.create());
 	}
 	
+	public static boolean
+	isCoreAvailable()
+	{
+		return( AzureusCoreImpl.isCoreAvailable());
+	}
 		/**
 		 * Once created the singleton can be accessed via this method
 		 * @return

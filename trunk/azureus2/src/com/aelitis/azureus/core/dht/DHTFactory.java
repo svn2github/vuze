@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.dht;
 
 import java.util.Properties;
 
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+
 import com.aelitis.azureus.core.dht.impl.DHTImpl;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 
@@ -38,8 +40,9 @@ DHTFactory
 	public static DHT
 	create(
 		DHTTransport	transport,
-		Properties		properties )
+		Properties		properties,
+		LoggerChannel	logger )
 	{
-		return( new DHTImpl( transport, properties ));
+		return( new DHTImpl( transport, properties, logger ));
 	}
 }

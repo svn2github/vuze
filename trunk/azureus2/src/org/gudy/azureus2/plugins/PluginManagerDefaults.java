@@ -43,6 +43,7 @@ PluginManagerDefaults
 	public static final String	PID_PLATFORM_CHECKER		= "Platform Checker";
 	public static final String	PID_UPNP					= "UPnP";
 	public static final String	PID_CLIENT_ID				= "Client ID";
+	public static final String	PID_DHT						= "DHT";
 	
 	public static final String[] PLUGIN_IDS = {
 			

@@ -25,7 +25,6 @@ package com.aelitis.azureus.core.dht.impl;
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
-import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPFactory;
 
 import java.io.*;
 import java.util.*;
@@ -34,6 +33,8 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 
 /**
  * @author parg
@@ -65,6 +66,93 @@ Test
 	
 	static Map	check = new HashMap();
 
+	public static LoggerChannel	logger = 
+		new LoggerChannel()
+		{
+			public String
+			getName()
+			{
+				return( "" );
+			}
+			
+			public void
+			log(
+				int		log_type,
+				String	data )
+			{
+				log( data );
+			}
+			
+			public void
+			log(
+				String	data )
+			{
+				System.out.println( data );
+			}
+			
+			public void
+			log(
+				Throwable 	error )
+			{
+				error.printStackTrace();
+			}
+			
+			public void
+			log(
+				String		data,
+				Throwable 	error )
+			{
+				log( data );
+				log( error );
+			}
+			
+			public void
+			logAlert(
+				int			alert_type,
+				String		message )
+			{
+				log( message );
+			}
+			
+			public void
+			logAlert(
+				String		message,
+				Throwable 	e )
+			{
+				log( message );
+				log( e );
+			}
+		
+			public void
+			logAlertRepeatable(
+				int			alert_type,
+				String		message )
+			{
+				log( message );
+			}
+			
+			public void
+			logAlertRepeatable(
+				String		message,
+				Throwable 	e )
+			{
+				log( message );
+				log( e );
+			}
+			
+			public void
+			addListener(
+				LoggerChannelListener	l )
+			{
+			}
+			
+			public void
+			removeListener(
+				LoggerChannelListener	l )
+			{
+			}
+		};
+		
 	public static void
 	main(
 		String[]		args )
@@ -335,7 +423,7 @@ Test
 		
 		if ( udp_protocol ){
 			
-			transport = DHTTransportUDPFactory.create( 40000 + i, 5, udp_timeout );
+			transport = DHTTransportFactory.createUDP( 40000 + i, 5, udp_timeout, logger );
 			
 		}else{
 			
@@ -353,7 +441,7 @@ Test
 		
 		check.put(id,"");
 		
-		DHT	dht = DHTFactory.create( transport, dht_props );
+		DHT	dht = DHTFactory.create( transport, dht_props, logger );
 		
 		dhts[i]	= dht;					
 

@@ -63,4 +63,7 @@ DHTTransportContact
 		DataOutputStream	os )
 	
 		throws IOException;
+	
+	public String
+	getString();
 }

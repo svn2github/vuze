@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.transport.loopback;
 
 import java.io.*;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
 
 /**
@@ -99,5 +100,11 @@ DHTTransportLoopbackContactImpl
 		throws IOException
 	{
 		transport.exportContact( this, os );
+	}
+	
+	public String
+	getString()
+	{
+		return( DHTLog.getString( this ));
 	}
 }

@@ -27,6 +27,7 @@ import java.net.InetSocketAddress;
 
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
@@ -44,8 +45,12 @@ DHTUDPUtils
 	getNodeID(
 		InetSocketAddress	address )
 	{		
-		return( new SHA1Hasher().calculateHash(
-					(	address.getAddress().getHostAddress() + ":" + address.getPort()).getBytes()));
+		byte[]	res = new SHA1Hasher().calculateHash(
+					(	address.getAddress().getHostAddress() + ":" + address.getPort()).getBytes());
+		
+		//System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
+		
+		return( res );
 	}
 	
 	protected static byte[]

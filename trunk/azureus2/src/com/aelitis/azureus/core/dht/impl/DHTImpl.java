@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.dht.impl;
 import java.io.*;
 import java.util.Properties;
 
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.transport.*;
@@ -40,13 +42,18 @@ DHTImpl
 {
 	private DHTControl		control;
 	private	Properties		properties;
+	private LoggerChannel	logger;
 	
 	public 
 	DHTImpl(
 		DHTTransport	_transport,
-		Properties		_properties )
+		Properties		_properties,
+		LoggerChannel	_logger )
 	{		
 		properties	= _properties;
+		logger		= _logger;
+		
+		DHTLog.setLogger( logger );
 		
 		int		K 		= getProp( PR_CONTACTS_PER_NODE, 			DHTControl.K_DEFAULT );
 		int		B 		= getProp( PR_NODE_SPLIT_FACTOR, 			DHTControl.B_DEFAULT );
