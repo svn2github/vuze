@@ -48,7 +48,7 @@ TRTrackerServerTorrentImpl
 	protected Map				peer_reuse_map	= new HashMap();
 	protected List				peer_list		= new ArrayList();
 	
-	protected Random			random		= new Random( System.currentTimeMillis());
+	protected Random			random		= new Random( SystemTime.getCurrentTime());
 	
 	protected long				last_scrape_calc_time;
 	protected Map				last_scrape;
@@ -158,7 +158,7 @@ TRTrackerServerTorrentImpl
 		
 		if ( peer != null ){
 			
-			peer.setTimeout( System.currentTimeMillis() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
+			peer.setTimeout( SystemTime.getCurrentTime() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
 			
 			peer.setStats( uploaded, downloaded, left, numwant );
 		}
@@ -246,7 +246,7 @@ TRTrackerServerTorrentImpl
 		boolean		no_peer_id,
 		boolean		compact )
 	{
-		long	now = System.currentTimeMillis();
+		long	now = SystemTime.getCurrentTime();
 		
 		int		total_peers			= peer_map.size();
 		int		cache_millis	 	= TRTrackerServerImpl.getAnnounceCachePeriod();
@@ -545,7 +545,7 @@ TRTrackerServerTorrentImpl
 	public synchronized void
 	checkTimeouts()
 	{
-		long	now = System.currentTimeMillis();
+		long	now = SystemTime.getCurrentTime();
 		
 		Iterator	it = peer_map.values().iterator();
 				
@@ -566,9 +566,9 @@ TRTrackerServerTorrentImpl
 	{
 		stats.addScrape();
 		
-		long	now = System.currentTimeMillis();
+		long	now = SystemTime.getCurrentTime();
 		
-		if ( 	allow_cache && 
+		if ( 	allow_cache && !SystemTime.isErrorLast1min() &&
 				last_scrape != null && 
 				now - last_scrape_calc_time < TRTrackerServerImpl.getScrapeCachePeriod()){
 			
@@ -649,7 +649,7 @@ TRTrackerServerTorrentImpl
 			data			= _data;
 			send_peer_ids	= _send_peer_ids;
 			compact			= _compact;
-			time			= System.currentTimeMillis();
+			time			= SystemTime.getCurrentTime();
 		}
 		
 		protected boolean
