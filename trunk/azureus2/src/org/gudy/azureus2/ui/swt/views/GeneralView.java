@@ -296,9 +296,38 @@ public class GeneralView extends AbstractIView {
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.hash"); //$NON-NLS-1$
     hash = new BufferedLabel(gInfo, SWT.LEFT);
+    Messages.setLanguageText(hash, "GeneralView.label.hash.tooltip", true);
+    
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     hash.setLayoutData(gridData);
-
+    	// click on hash -> copy to clipboard
+    hash.setCursor(MainWindow.handCursor);
+    hash.setForeground(MainWindow.blue);
+    label.addMouseListener(new MouseAdapter() {
+    	public void mouseDoubleClick(MouseEvent arg0) {
+    		String hash_str = hash.getText();
+    		if(hash_str != null && hash_str.length() != 0)
+    			new Clipboard(display).setContents(new Object[] {hash_str.replaceAll(" ","")}, new Transfer[] {TextTransfer.getInstance()});
+    	}
+    	public void mouseDown(MouseEvent arg0) {
+    		String hash_str = hash.getText();
+    		if(hash_str != null && hash_str.length() != 0)
+    			new Clipboard(display).setContents(new Object[] {hash_str.replaceAll(" ","")}, new Transfer[] {TextTransfer.getInstance()});
+    	}
+    });
+    hash.addMouseListener(new MouseAdapter() {
+    	public void mouseDoubleClick(MouseEvent arg0) {
+    		String hash_str = hash.getText();
+    		if(hash_str != null && hash_str.length() != 0)
+    			new Clipboard(display).setContents(new Object[] {hash_str.replaceAll(" ","")}, new Transfer[] {TextTransfer.getInstance()});
+    	}
+    	public void mouseDown(MouseEvent arg0) {
+    		String hash_str = hash.getText();
+    		if(hash_str != null && hash_str.length() != 0)
+    			new Clipboard(display).setContents(new Object[] {hash_str.replaceAll(" ","")}, new Transfer[] {TextTransfer.getInstance()});
+    	}
+    });
+    
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.numberofpieces"); //$NON-NLS-1$
     pieceNumber = new BufferedLabel(gInfo, SWT.LEFT);
