@@ -124,9 +124,9 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
       			int	up_val 		= paramMaxUploadSpeed.getValue();
    				int	down_val 	= paramMaxDownSpeed.getValue();
     			   			
-    			if ( up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED ){
+    			if ( up_val != 0 && up_val < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED ){
     				
-    				if ( ( down_val==0 ) ||down_val > (up_val*2) ){
+    				if ( ( down_val==0 ) || down_val > (up_val*2) ){
     					
     					paramMaxDownSpeed.setValue( up_val*2 );
     				}
