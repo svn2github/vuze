@@ -1,5 +1,5 @@
 /*
- * Created on 07-May-2004
+ * Created on 25-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -27,63 +27,10 @@ package org.gudy.azureus2.plugins.update;
  *
  */
 
-import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-
 public interface 
-Update 
+UpdateListener 
 {
-	public static final int	RESTART_REQUIRED_NO			= 1;
-	public static final int	RESTART_REQUIRED_YES		= 2;
-	public static final int	RESTART_REQUIRED_MAYBE		= 3;
-	
-	public String
-	getName();
-
-	public String[]
-	getDescription();
-	
-	public String
-	getNewVersion();
-	
-	public ResourceDownloader[]
-	getDownloaders();
-	
-	public boolean
-	isMandatory();
-	
 	public void
-	setRestartRequired(
-		int	restart_required );
-	
-	public int
-	getRestartRequired();
-	
-	public void
-	setUserObject(
-		Object		obj );
-	
-	public Object
-	getUserObject();
-	
-		/**
-		 * mark the update as complete and inform any listeners
-		 */
-	
-	public void
-	complete();
-	
-		/**
-		 * cancel this update
-		 */
-	
-	public void
-	cancel();
-	
-	public void
-	addListener(
-		UpdateListener	l );
-	
-	public void
-	removeListener(
-		UpdateListener	l );
+	complete(
+		Update	update );
 }

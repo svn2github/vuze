@@ -164,31 +164,48 @@ UpdateMonitor
 		}
 		
 	    Update[] us = instance.getUpdates();
+	   
+	    boolean	show_window = false;
 	    
-	    if ( us.length > 0 ){
+	    	// updates with zero-length downloaders exist for admin purposes
+	    	// and shoudn't cause the window to be shown if only they exist
+	    
+	    for (int i=0;i<us.length;i++){
 	    	
-	    		// this controls whether or not the update window is displayed
-	    		// note that we just don't show the window if this is set, we still do the
-	    		// update check (as amongst other things we want ot know the latest
-	    		// version of the core anyway
-	    	
-	    	boolean	show_window = COConfigurationManager.getBooleanParameter( "Auto Update", true );
-	    	
-	    	if ( show_window ){
+	    	if (us[i].getDownloaders().length > 0 ){
 	    		
-	    			// don't show another if one's already there!
+	    		show_window	= true;
 	    		
-	    		if ( current_window == null || current_window.isDisposed()){
-	    			
-		    		current_window = new UpdateWindow( instance );
-					
-		    		for(int i = 0 ;  i < us.length ; i++){
-					
-		    			current_window.addUpdate(us[i]);
-		    		}
-	    		}
+	    		break;
 	    	}
 	    }
+	    
+	    	// this controls whether or not the update window is displayed
+	    	// note that we just don't show the window if this is set, we still do the
+	    	// update check (as amongst other things we want ot know the latest
+	    	// version of the core anyway
+	   
+	    show_window = 	show_window && 
+						COConfigurationManager.getBooleanParameter( "Auto Update", true );
+	    
+	    
+    	if ( show_window ){
+    		
+    			// don't show another if one's already there!
+    		
+    		if ( current_window == null || current_window.isDisposed()){
+    			
+	    		current_window = new UpdateWindow( instance );
+				
+	    		for( int i = 0 ;  i < us.length; i++ ){
+				
+	    			if ( us[i].getDownloaders().length > 0 ){
+	    				
+	    				current_window.addUpdate(us[i]);
+	    			}
+	    		}
+    		}
+    	}
 	} 
 	
 	public void

@@ -44,6 +44,8 @@ UpdateImpl
 	protected boolean					mandatory;
 	protected int						restart_required;
 
+	protected Object					user_object;
+	
 	protected List						listeners = new ArrayList();
 	
 	protected
@@ -126,6 +128,19 @@ UpdateImpl
 	}
 	
 	public void
+	setUserObject(
+		Object		obj )
+	{
+		user_object	= obj;
+	}
+	
+	public Object
+	getUserObject()
+	{
+		return( user_object );
+	}
+	
+	public void
 	cancel()
 	{
 		for (int i=0;i<downloaders.length;i++){
@@ -138,5 +153,27 @@ UpdateImpl
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void
+	complete()
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((UpdateListener)listeners.get(i)).complete( this );
+		}
+	}
+	public void
+	addListener(
+		UpdateListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		UpdateListener	l )
+	{
+		listeners.remove(l);
 	}
 }

@@ -35,6 +35,9 @@ UpdateChecker
 	public UpdatableComponent
 	getComponent();
 	
+	public UpdateCheckInstance
+	getCheckInstance();
+	
 		/**
 		 * Add an update with a single downloader
 		 * @param mandatory indicates that in a group of updates this one must succeed

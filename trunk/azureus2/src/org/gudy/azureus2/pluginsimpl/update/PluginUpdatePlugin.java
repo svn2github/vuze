@@ -395,6 +395,19 @@ PluginUpdatePlugin
 						final String	f_sf_plugin_download 	= sf_plugin_download;
 						final String	f_sf_plugin_version		= sf_plugin_version;
 						
+						String[]	update_d = new String[update_desc.size()];
+						
+						update_desc.toArray( update_d );
+						
+						final Update update = checker.addUpdate(
+								plugin_id + "/" + plugin_names,
+								update_d,
+								sf_plugin_version,
+								rdl,
+								plugin_unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
+						
+						update.setUserObject( pi_being_checked );
+
 						rdl.addListener( 
 							new ResourceDownloaderAdapter()
 							{
@@ -431,6 +444,7 @@ PluginUpdatePlugin
 										log.addListener(list);
 											
 										installUpdate( 
+												update,
 												pi_being_checked,
 												plugin_unloadable,
 												f_sf_plugin_download, 
@@ -443,19 +457,8 @@ PluginUpdatePlugin
 										log.removeListener( list );
 									}
 								}
-							});
-						
-						String[]	update_d = new String[update_desc.size()];
-						
-						update_desc.toArray( update_d );
-						
-						Update update = checker.addUpdate(
-								plugin_id + "/" + plugin_names,
-								update_d,
-								sf_plugin_version,
-								rdl,
-								plugin_unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );			
-					}
+							});					
+						}
 				}catch( Throwable e ){
 					
 					log.log("    Plugin check failed", e ); 
@@ -478,6 +481,7 @@ PluginUpdatePlugin
 	
 	protected void
 	installUpdate(
+		Update				update,
 		PluginInterface		plugin,	// note this will be first one if > 1 defined
 		boolean				unloadable,
 		String				download,
@@ -779,7 +783,11 @@ PluginUpdatePlugin
 			log.log( msg, e );
 		
 			log.logAlert( LoggerChannel.LT_ERROR, msg );
-		}	
+			
+		}finally{
+			
+			update.complete();
+		}
 	}
 	
 	protected void

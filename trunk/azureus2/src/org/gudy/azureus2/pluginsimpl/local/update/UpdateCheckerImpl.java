@@ -62,6 +62,12 @@ UpdateCheckerImpl
 		semaphore			= _sem;
 	}
 	
+	public UpdateCheckInstance
+	getCheckInstance()
+	{
+		return( check_instance );
+	}
+	
 	public Update
 	addUpdate(
 		String				name,

@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.tracker.TrackerDefaultWeb;
 import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
 
 import org.gudy.azureus2.update.CoreUpdateChecker;
+import org.gudy.azureus2.update.CorePatchChecker;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
 
@@ -69,6 +70,7 @@ PluginInitializer
     		{    UpdateLanguagePlugin.class, "<internal>", "UpdateLanguagePlugin" },
     		{	 org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin.class, "<internal>", "PluginUpdate" },
 	   		{	 CoreUpdateChecker.class, "<internal>", "CoreUpdater" },
+			{	 CorePatchChecker.class, "<internal>", "CorePatcher" },
 	   		{	 org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker.class, "azplatform", "azplatform" },
         };
  
