@@ -67,7 +67,6 @@ public class SelectorGuard {
    * mark the start time.
    */
   public void markPreSelectTime() {//TODO make protected again
-    if( DISABLED ) return;
     beforeSelectTime = SystemTime.getCurrentTime();
     marked = true;
   }
