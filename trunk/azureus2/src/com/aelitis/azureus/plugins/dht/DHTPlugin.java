@@ -23,6 +23,7 @@
 package com.aelitis.azureus.plugins.dht;
 
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Properties;
@@ -331,9 +332,7 @@ DHTPlugin
 								model.getStatus().setText( "Initialising" );
 								
 								try{
-									storage_manager = new DHTPluginStorageManager( plugin_interface);
-									
-									storage_manager.readRecentAddresses();
+									storage_manager = new DHTPluginStorageManager( getDataDir());
 									
 									transport = 
 										DHTTransportFactory.createUDP( 
@@ -525,6 +524,16 @@ DHTPlugin
 				{
 				}
 			});
+	}
+	
+	protected File
+	getDataDir()
+	{
+		File	dir = new File( plugin_interface.getUtilities().getAzureusUserDir(), "dht" );
+		
+		dir.mkdirs();
+		
+		return( dir );
 	}
 	
 	protected void

@@ -83,5 +83,5 @@ DHTStorageAdapter
 	createNewDiversification(
 		byte[]			key,
 		boolean			put_operation,
-		int				diversification_type );
+		byte			diversification_type );
 }

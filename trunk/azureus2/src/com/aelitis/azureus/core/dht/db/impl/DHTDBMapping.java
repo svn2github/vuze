@@ -567,7 +567,6 @@ DHTDBMapping
 				adapter.valueDeleted( adapter_key, value );
 				
 				diversification_state	= adapter_key.getDiversificationType();
-				
 			}
 		}catch( Throwable e ){
 			
@@ -697,6 +696,8 @@ DHTDBMapping
 					
 					direct_data_size -= value.getValue().length;
 				}
+				
+				informDeleted( value );
 			}
 			
 			it.remove();

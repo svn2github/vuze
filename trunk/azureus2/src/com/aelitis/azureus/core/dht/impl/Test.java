@@ -28,6 +28,7 @@ import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
+import com.aelitis.azureus.plugins.dht.DHTPluginStorageManager;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -49,7 +50,6 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 
 public class 
 Test 
-	implements DHTStorageAdapter
 {
 	static boolean	AELITIS_TEST	= false;
 	static InetSocketAddress	AELITIS_ADDRESS = new InetSocketAddress("213.186.46.164", 6881);
@@ -624,7 +624,9 @@ Test
 		
 		check.put(id,"");
 		
-		DHT	dht = DHTFactory.create( transport, dht_props, this, logger );
+		DHTStorageAdapter	storage_adapter = new DHTPluginStorageManager(new File( "C:\\temp\\dht\\" + i));
+
+		DHT	dht = DHTFactory.create( transport, dht_props, storage_adapter, logger );
 		
 		dhts[i]	= dht;					
 
