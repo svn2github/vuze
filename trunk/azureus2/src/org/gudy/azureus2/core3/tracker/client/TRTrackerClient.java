@@ -29,7 +29,8 @@ public interface
 TRTrackerClient 
 {
 	public static final int REFRESH_MINIMUM_SECS		= 60;
-
+	public static final int DEFAULT_PEERS_TO_CACHE		= 512;
+	
 	public static final int TS_INITIALISED		= 1;
 	public static final int TS_DOWNLOADING		= 2;
 	public static final int TS_COMPLETED		= 3;

@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.DirectoryDialog;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -139,7 +140,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 	    
 	    final Label lblSavePeersMax = new Label(cResumeGroup, SWT.NULL);
 	    Messages.setLanguageText(lblSavePeersMax, "ConfigView.section.file.save.peers.max");
-	    final IntParameter savePeersMax = new IntParameter(cResumeGroup, "File.save.peers.max");
+	    final IntParameter savePeersMax = new IntParameter(cResumeGroup, "File.save.peers.max", TRTrackerClient.DEFAULT_PEERS_TO_CACHE );
 	    gridData = new GridData();
 	    gridData.widthHint = 30;
 	    savePeersMax.setLayoutData(gridData); 

@@ -689,23 +689,26 @@ DownloadManagerImpl
   protected void
   saveTrackerResponseCache()
   {
-  	if ( !BEncoder.mapsAreIdentical(
-  				tracker_response_cache,
-				torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY ))){
+  	if ( COConfigurationManager.getBooleanParameter("File.save.peers.enable", true )){
   		
-  		torrent.setAdditionalMapProperty(TRACKER_CACHE_KEY, tracker_response_cache );
-  	
-  		try{
-  			//System.out.println( "writing tracker_cache");
-  		
-  			TorrentUtils.writeToFile( torrent );
-  		
-  		}catch( Throwable e ){
-  		
-  			e.printStackTrace();
-  		}
-  	}else{
-  		//System.out.println( "maps identical" );
+	  	if ( !BEncoder.mapsAreIdentical(
+	  				tracker_response_cache,
+					torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY ))){
+	  		
+	  		torrent.setAdditionalMapProperty(TRACKER_CACHE_KEY, tracker_response_cache );
+	  	
+	  		try{
+	  			// System.out.println( "writing tracker_cache");
+	  		
+	  			TorrentUtils.writeToFile( torrent );
+	  		
+	  		}catch( Throwable e ){
+	  		
+	  			e.printStackTrace();
+	  		}
+	  	}else{
+	  		// System.out.println( "maps identical" );
+	  	}
   	}
   }
   

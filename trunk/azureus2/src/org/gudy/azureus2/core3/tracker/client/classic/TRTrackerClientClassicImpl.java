@@ -105,8 +105,6 @@ TRTrackerClientClassicImpl
     private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients");
   
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
-
-	private static final int TRACKER_PEER_CACHE_MAX	= 512;
 	
 	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
 	private int tracker_peer_cache_next	= 0;
@@ -1768,6 +1766,10 @@ TRTrackerClientClassicImpl
 	addToTrackerCache(
 		TRTrackerResponsePeer[]		peers )
 	{
+		int	max = COConfigurationManager.getIntParameter( "File.save.peers.max", DEFAULT_PEERS_TO_CACHE );
+		
+		// System.out.println( "max peers= " + max );
+		
 		synchronized( tracker_peer_cache ){
 			
 			for (int i=0;i<peers.length;i++){
@@ -1781,11 +1783,14 @@ TRTrackerClientClassicImpl
 			
 			Iterator	it = tracker_peer_cache.keySet().iterator();
 			
-			while ( tracker_peer_cache.size() > TRACKER_PEER_CACHE_MAX ){
+			if ( max > 0 ){
 					
-				it.next();
-				
-				it.remove();
+				while ( tracker_peer_cache.size() > max ){
+						
+					it.next();
+					
+					it.remove();
+				}
 			}
 		}
 	}
