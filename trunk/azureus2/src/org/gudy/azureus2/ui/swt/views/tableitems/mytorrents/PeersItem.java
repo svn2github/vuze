@@ -41,9 +41,9 @@ public class PeersItem extends TorrentItem {
   public void refresh() {
     TRTrackerScraperResponse hd = torrentRow.getManager().getTrackerScrapeResponse();
     
-    String tmp = "" + torrentRow.getManager().getNbPeers(); //$NON-NLS-1$
+    String tmp = String.valueOf(torrentRow.getManager().getNbPeers()); //$NON-NLS-1$
     if(hd!=null && hd.isValid())
-      tmp += " (" + hd.getPeers() + ")";
+      tmp = tmp.concat(" (").concat(String.valueOf(hd.getPeers())).concat(")");
     setText(tmp);
   }
 
