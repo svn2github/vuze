@@ -99,23 +99,32 @@ public class PluginInitializer {
   public void initializePlugins() {
   	
   		// first do explicit plugins
-  	
+  	  	
     File pluginDirectory = FileUtil.getApplicationFile(System.getProperty("file.separator") + "plugins");
-    if(!pluginDirectory.isDirectory()) return;
-    File[] pluginsDirectory = pluginDirectory.listFiles();
-    for(int i = 0 ; i < pluginsDirectory.length ; i++) {
-      if(splash != null) {        
-        splash.setCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
-      }
-      initializePluginFromDir(pluginsDirectory[i]);
-      if(splash != null) {
-        splash.setPercentDone(50 + (50*(i +1)) / pluginsDirectory.length);        
-      }
+    
+    if( pluginDirectory.isDirectory()){
+    	
+	    File[] pluginsDirectory = pluginDirectory.listFiles();
+	    
+	    for(int i = 0 ; i < pluginsDirectory.length ; i++) {
+	    	
+	      if(splash != null) {
+	      	
+	        splash.setCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
+	      }
+	      
+	      initializePluginFromDir(pluginsDirectory[i]);
+	      
+	      if(splash != null) {
+	      	
+	        splash.setPercentDone(50 + (50*(i +1)) / pluginsDirectory.length);        
+	      }
+	    }
     }
     
     	// now do built in ones
     
-    for (int i=0;i<builtin_plugins.length;i++){
+     for (int i=0;i<builtin_plugins.length;i++){
     	
     	initializePluginFromClass( builtin_plugins[i] );
     }
