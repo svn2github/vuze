@@ -31,11 +31,6 @@ import org.gudy.azureus2.plugins.disk.*;
 public interface 
 PeerManager 
 {
-	/**
-	 * UNSTABLE interface, don't use!!!!
-	 * @return
-	 */
-	
 	public Download
 	getDownload()
 	
