@@ -238,7 +238,10 @@ CacheFileImpl
 								read_length <  read_ahead_size &&
 								file_position + read_ahead_size <= file.getLength()){
 							
-							System.out.println( "\tread ahead hit" );
+							if ( TRACE ){
+								
+								System.out.println( "\tread ahead hit" );
+							}
 							
 							flushCache( file_position, read_ahead_size, true, -1 );
 							
@@ -267,7 +270,10 @@ CacheFileImpl
 							
 						}else{
 							
-							System.out.println( "\tread head miss" );
+							if ( TRACE ){
+								
+								System.out.println( "\tread head miss" );
+							}
 							
 							flushCache( file_position, read_length, true, -1 );
 							

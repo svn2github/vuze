@@ -823,9 +823,16 @@ public class GlobalManagerImpl
 		      dmMap.put("save_dir", dm.getTorrentSaveDir());
 		      dmMap.put("save_file", dm.getTorrentSaveFile());
           
-          //TODO: remove after later release...it makes sure older versions can load this version's downloads.config
-          dmMap.put("path", new File( dm.getTorrentSaveDir(), dm.getTorrentSaveFile() ).getAbsolutePath() );
-          
+		      	//TODO: remove after later release...it makes sure older versions can load this version's downloads.config
+		      
+		      if ( dm.getTorrentSaveFile() == null ){
+		      	
+		      	dmMap.put("path", new File( dm.getTorrentSaveDir()).getAbsolutePath() );
+		      	
+		      }else{
+		      
+		      	dmMap.put("path", new File( dm.getTorrentSaveDir(), dm.getTorrentSaveFile() ).getAbsolutePath() );
+		      }
 		      dmMap.put("uploads", new Long(stats.getMaxUploads()));
 		      dmMap.put("maxdl", new Long(stats.getMaxDownloadKBSpeed()));
           int state = dm.getState();
