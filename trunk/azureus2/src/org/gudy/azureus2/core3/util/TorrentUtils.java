@@ -764,7 +764,19 @@ TorrentUtils
 			return( false );
 		}
 		
-		return( torrent.getAnnounceURL().getProtocol().equalsIgnoreCase( "dht" ));
+		return( isDecentralised( torrent.getAnnounceURL()));
+	}
+	
+	public static boolean
+	isDecentralised(
+		URL		url )
+	{
+		if ( url == null ){
+			
+			return( false );
+		}
+		
+		return( url.getProtocol().equalsIgnoreCase( "dht" ));
 	}
 	
 	public static void

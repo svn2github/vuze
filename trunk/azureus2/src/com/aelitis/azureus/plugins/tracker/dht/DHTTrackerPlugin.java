@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -49,6 +50,8 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
@@ -132,10 +135,22 @@ DHTTrackerPlugin
 			
 		track_normal_when_offline = config.addBooleanParameter2( "dhttracker.tracknormalwhenoffline", "dhttracker.tracknormalwhenoffline", TRACK_NORMAL_DEFAULT );
 
+		track_normal_when_offline.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					configChanged();
+				}
+			});
+		
 		if ( !TRACK_NORMAL_DEFAULT ){
 			// should be TRUE by default
 			System.out.println( "**** DHT Tracker default set for testing purposes ****" );
 		}
+		
 		
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
@@ -556,7 +571,8 @@ DHTTrackerPlugin
 										DownloadAnnounceResult result = download.getLastAnnounceResult();
 										
 										if (	result != null &&
-												result.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
+												(	result.getResponseType() == DownloadAnnounceResult.RT_ERROR ||
+													TorrentUtils.isDecentralised(result.getURL()))){
 											
 											register_it	= true;
 											
@@ -571,7 +587,8 @@ DHTTrackerPlugin
 										DownloadScrapeResult result = download.getLastScrapeResult();
 										
 										if (	result != null &&
-												result.getResponseType() == DownloadScrapeResult.RT_ERROR ){
+												(	result.getResponseType() == DownloadScrapeResult.RT_ERROR ||
+													TorrentUtils.isDecentralised(result.getURL()))){
 											
 											register_it	= true;
 											
@@ -1097,5 +1114,16 @@ DHTTrackerPlugin
 		int 			newPosition )
 	{
 		
+	}
+	
+	protected void
+	configChanged()
+	{
+		Download[] downloads = plugin_interface.getDownloadManager().getDownloads();
+	
+		for (int i=0;i<downloads.length;i++){
+			
+			checkDownloadForRegistration(downloads[i], false );
+		}
 	}
 }
