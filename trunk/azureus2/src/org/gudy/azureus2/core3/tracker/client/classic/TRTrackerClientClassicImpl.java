@@ -1771,6 +1771,12 @@ TRTrackerClientClassicImpl
 									//get the peer port number
 								
 								int peer_port = ((Long) s_port).intValue(); 
+                
+                if( peer_port < 0 || peer_port > 65535 ) {
+                  Debug.out( "received invalid port: " +peer_port );
+                  LGLogger.log( LGLogger.ERROR, "Invalid peer port given: " +ip+ ": " +peer_port );
+                  continue;
+                }
 								
 								byte[] peer_peer_id;
 								
@@ -1821,6 +1827,12 @@ TRTrackerClientClassicImpl
 				    		String	ip 		= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
 				    		int		peer_port 	= po1*256+po2;
 				    		
+                if( peer_port < 0 || peer_port > 65535 ) {
+                  Debug.out( "Creceived invalid port: " +peer_port );
+                  LGLogger.log( LGLogger.ERROR, "Invalid compact peer port given: " +ip+ ": " +peer_port );
+                  continue;
+                }
+                
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
 				    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 

@@ -26,6 +26,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 
 /**
@@ -63,6 +64,10 @@ public class NetworkManager {
    * @return a new connection
    */
   public Connection createNewConnection( String remote_address, int remote_port ) {
+    if( remote_port < 0 || remote_port > 65535 ) {
+      Debug.out( "remove_port invalid: " + remote_port );
+      remote_port = 0;
+    }
     Connection conn = new Connection( new InetSocketAddress( remote_address, remote_port ) );
     return conn;
   }
