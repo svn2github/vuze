@@ -63,7 +63,7 @@ public class WriteController {
   
   private void writeSelectorLoop() {
     while( true ) {
-      write_selector.select( 50 );      
+      write_selector.select( 10 );      
     }
   }
   
@@ -99,7 +99,7 @@ public class WriteController {
           num_failed++;  //increment cumulative failure count
           if( num_failed >= total_entities ) {  //none of the entities wrote anything
             num_failed = 0;  //reset so we dont sleep again before checking all entries
-            sleep_time = 20;  //sleep a bit
+            sleep_time = 10;  //sleep a bit
           }
         }
       }
