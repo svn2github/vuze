@@ -20,6 +20,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 
+import javax.net.ssl.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
@@ -81,8 +83,38 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
 
   public void run() {
     try {
-      this.url = new URL(_url);
-      this.con = (HttpURLConnection) this.url.openConnection();
+      url = new URL(_url);
+      
+      if ( url.getProtocol().equalsIgnoreCase("https")){
+      	
+      	// see ConfigurationChecker for SSL client defaults
+      	
+      	HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+      	
+      	// allow for certs that contain IP addresses rather than dns names
+      	
+      	ssl_con.setHostnameVerifier(
+      			new HostnameVerifier()
+      			{
+      				public boolean
+      				verify(
+      					String		host,
+						SSLSession	session )
+      				{
+      					return( true );
+      				}
+      			});
+      	
+      	con = ssl_con;
+      	
+      }else{
+      	
+      	con = (HttpURLConnection) url.openConnection();
+      	
+      }
+      
+      con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+      
       this.con.connect();
 
       int response = this.con.getResponseCode();
