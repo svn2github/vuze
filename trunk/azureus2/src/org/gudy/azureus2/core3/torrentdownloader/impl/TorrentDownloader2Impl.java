@@ -103,7 +103,7 @@ TorrentDownloader2Impl
 
 			InputStream in = con.getInputStream();
 
-			byte[] buf = new byte[1024];
+			byte[] buf = new byte[4096];
 			
 			int	total_read	= 0;
 			

@@ -45,7 +45,7 @@ public class UpdateSWT {
     }
     UpdateLogger.log("-----------------");
     
-    if(args.length < 4)
+    if(args.length < 2)
       return;
     try {
       
@@ -64,7 +64,7 @@ public class UpdateSWT {
         updateSWT_generic(args[1]);
       }     
       
-      restart(args[2],args[3]);
+      restart();
       
       UpdateLogger.log("SWT Updater has finished");     
       
@@ -183,29 +183,40 @@ public class UpdateSWT {
     return new File(fileName);
   }
   
-  public static void restart(String userPath,String libPath) throws IOException{
+  public static void restart() throws IOException{
     String osName = System.getProperty("os.name");
     if(osName.equalsIgnoreCase("Linux")) {
-      restartLinux(userPath,libPath);
+      restartLinux();
     } else if(osName.equalsIgnoreCase("Mac OS X")) {
-      restartOSX(userPath,libPath);
+      restartOSX();
     } else {
-      restartWindows(userPath,libPath);
+      restartWindows();
     }
   }
   
-  public static void restartLinux(String userPath,String libPath) throws IOException{
+  public static void restartLinux() throws IOException{
     
   }
   
-  public static void restartOSX(String userPath,String libPath) throws IOException{
+  public static void restartOSX() throws IOException{
     
   }
   
-  public static void restartWindows(String userPath,String libPath) throws IOException{            
-    String exec = userPath + "\\Azureus.exe";
-    UpdateLogger.log("Restarting with command line : " + exec);
-    Runtime.getRuntime().exec(exec);
+  public static void restartWindows() throws IOException{            
+    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$    
+    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String javaPath = System.getProperty("java.home")
+                    + System.getProperty("file.separator")
+                    + "bin"
+                    + System.getProperty("file.separator");
+    
+    String exec = "\"" + javaPath + "java\" -classpath \"" + classPath + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
+    
+    UpdateLogger.log("Restarting with command line (win32): " + exec);
+    
+    File userDir = new File(userPath);
+    String[] env = {"user.dir=" + userPath };
+    Runtime.getRuntime().exec(exec,env,userDir);
   }
   
   
