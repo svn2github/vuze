@@ -659,7 +659,7 @@ public class DiskManager {
     private boolean allocateFiles(String rootPath, List fileList) {
         this.state = ALLOCATING;
         allocated = 0;
-        boolean newFiles = false;
+        boolean newFiles = true;
         String basePath = path + System.getProperty("file.separator") + rootPath;
         for (int i = 0; i < fileList.size(); i++) {
             //get the BtFile
@@ -720,10 +720,11 @@ public class DiskManager {
                   }
                   clearFile(raf);
                 }
-                newFiles = true;
-            } else {
+   
+            } else {               
                 try {
                     raf = new RandomAccessFile(f, "rw");
+                    newFiles = false;
                 } catch (FileNotFoundException e) {
                     this.state = FAULTY;
                     this.errorMessage = e.getMessage();

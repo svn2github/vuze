@@ -208,12 +208,12 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$
-    final String stopRatioPeersLabels[] = new String[6];
-    final int stopRatioPeersValues[] = new int[6];
+    final String stopRatioPeersLabels[] = new String[4];
+    final int stopRatioPeersValues[] = new int[4];
     stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStop");
     stopRatioPeersValues[0] = 0;
     String peers = MessageText.getString("ConfigView.text.peers");
-    for (int i = 1; i < 6; i++) {
+    for (int i = 1; i < stopRatioPeersValues.length; i++) {
       stopRatioPeersLabels[i] =  i + " " + peers; //$NON-NLS-1$
       stopRatioPeersValues[i] = i;
     }
@@ -227,14 +227,19 @@ public class ConfigView extends AbstractIView {
     startRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStart");
     startRatioPeersValues[0] = 0;
     for (int i = 1; i < 11; i++) {
-      startRatioPeersLabels[i] = (i+5) + " " + peers; //$NON-NLS-1$
-      startRatioPeersValues[i] = i+5;
+      startRatioPeersLabels[i] = (i+3) + " " + peers; //$NON-NLS-1$
+      startRatioPeersValues[i] = i+3;
     }
     new IntListParameter(gDownloads, "Start Peers Ratio", 0, startRatioPeersLabels, startRatioPeersValues);
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
-    new BooleanParameter(gDownloads, "Check Pieces on Completion",false);    
+    new BooleanParameter(gDownloads, "Check Pieces on Completion",false);
+    
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
+    new BooleanParameter(gDownloads, "Alert on close",true);
+        
     
     
     Group gTransfer = new Group(gConfig, SWT.NULL);
@@ -397,7 +402,7 @@ public class ConfigView extends AbstractIView {
     enter.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
         COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
-		COConfigurationManager.save();
+        COConfigurationManager.save();
       }
     });
 
@@ -434,7 +439,7 @@ public class ConfigView extends AbstractIView {
           }
           if(same) {
             passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchyes"));
-			COConfigurationManager.setParameter("Password enabled",true);
+            COConfigurationManager.setParameter("Password enabled",true);
           } else {
             passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
           }

@@ -91,7 +91,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     int[] columnsSize = { 25, 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
     for (int i = 0; i < columnsHeader.length; i++) {
       columnsSize[i] =
-        COConfigurationManager.getIntParameter("MyTorrentsView." + columnsHeader[i], columnsSize[i]);
+      	COConfigurationManager.getIntParameter("MyTorrentsView." + columnsHeader[i], columnsSize[i]);
     }
 
     ControlListener resizeListener = new ControlAdapter() {
@@ -306,7 +306,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
             if(dm.getState() == DownloadManager.STATE_SEEDING && dm.getShareRatio() >= 0 && dm.getShareRatio() < 1000 && COConfigurationManager.getBooleanParameter("Alert on close",true)) {
               MessageBox mb = new MessageBox(panel.getShell(),SWT.ICON_WARNING | SWT.YES | SWT.NO);
               mb.setText(MessageText.getString("seedmore.title"));
-              mb.setMessage(MessageText.getString("seedmore.shareratio") + (dm.getShareRatio()/10) + "% ." + MessageText.getString("seedmore.uploadmore"));
+              mb.setMessage(MessageText.getString("seedmore.shareratio") + (dm.getShareRatio()/10) + "%.\n" + MessageText.getString("seedmore.uploadmore"));
               int action = mb.open();
               if(action == SWT.YES)
                 dm.stopIt();  
