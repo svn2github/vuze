@@ -19,6 +19,7 @@ FEATURE: SSL now supported for tracker web and tracker updates [Parg]
 FEATURE: Added Drag and Drop of URLs [Rele]
 FEATURE: Multi-Trackers torrent can now be created [Gudy]
 FEATURE: Menu option to force a re-check of downloaded data [Nolar]
+FEATURE: End-Game Mode: Completes the last few pieces of a download faster [Gudy]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
