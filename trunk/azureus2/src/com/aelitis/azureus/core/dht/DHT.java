@@ -55,8 +55,15 @@ DHT
 	public static final byte		FLAG_MULTI_VALUE	= 0x04;
 
 	public static final int 	MAX_VALUE_SIZE		= 256;
+
+		// diversification types
 	
+	public static final byte	DT_NONE			= 1;
+	public static final byte	DT_FREQUENCY	= 2;
+	public static final byte	DT_SIZE			= 3;
+
 	
+
 		/**
 		 * Simple synchronous put
 		 * @param key

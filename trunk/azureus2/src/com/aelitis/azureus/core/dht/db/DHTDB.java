@@ -38,11 +38,6 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 public interface 
 DHTDB 
 {
-	public static final byte	DT_NONE			= 1;
-	public static final byte	DT_FREQUENCY	= 2;
-	public static final byte	DT_SIZE			= 3;
-
-
 	public void
 	setControl(
 		DHTControl		control );
@@ -88,9 +83,10 @@ DHTDB
 	
 	public DHTDBLookupResult
 	get(
-		HashWrapper		key,
-		int				max_values,
-		boolean			external_request );
+		DHTTransportContact		reader,
+		HashWrapper				key,
+		int						max_values,
+		boolean					external_request );
 		
 	public DHTDBValue
 	remove(	

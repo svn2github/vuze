@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,28 +22,14 @@
 
 package com.aelitis.azureus.core.dht;
 
-import java.util.Properties;
-
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
-
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
-import com.aelitis.azureus.core.dht.transport.DHTTransport;
-
 /**
  * @author parg
  *
  */
 
-public class 
-DHTFactory 
+public interface 
+DHTStorageKey 
 {
-	public static DHT
-	create(
-		DHTTransport		transport,
-		Properties			properties,
-		DHTStorageAdapter	storage_adapter,
-		LoggerChannel		logger )
-	{
-		return( new DHTImpl( transport, properties, storage_adapter, logger ));
-	}
+	public byte
+	getDiversificationType();
 }

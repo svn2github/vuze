@@ -49,6 +49,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 
 public class 
 Test 
+	implements DHTStorageAdapter
 {
 	static boolean	AELITIS_TEST	= false;
 	static InetSocketAddress	AELITIS_ADDRESS = new InetSocketAddress("213.186.46.164", 6881);
@@ -58,19 +59,19 @@ Test
 		DHTTransportUDPImpl.TEST_EXTERNAL_IP	= true;
 	}
 	
-	static int num_dhts		= 2;
-	static int num_stores	= 2;
+	int num_dhts		= 2;
+	int num_stores	= 2;
 	static int MAX_VALUES	= 10000;
 	
-	static boolean	udp_protocol	= true;
-	static int		udp_timeout		= 1000;
+	boolean	udp_protocol	= true;
+	int		udp_timeout		= 1000;
 	
 
 	static int		K			= 20;
 	static int		B			= 5;
 	static int		ID_BYTES	= 20;
 	
-	static int		fail_percentage	= 00;
+	int		fail_percentage	= 00;
 	
 	static Properties	dht_props = new Properties();
 
@@ -126,7 +127,12 @@ Test
 	main(
 		String[]		args )
 	{
-		
+		new Test();
+	}
+	
+	protected
+	Test()
+	{
 		try{
 	
 			
@@ -563,7 +569,7 @@ Test
 		}
 	}
 	
-	protected static void
+	protected void
 	createDHT(
 		DHT[]			dhts,
 		DHTTransport[]	transports,
@@ -618,11 +624,88 @@ Test
 		
 		check.put(id,"");
 		
-		DHT	dht = DHTFactory.create( transport, dht_props, logger );
+		DHT	dht = DHTFactory.create( transport, dht_props, this, logger );
 		
 		dhts[i]	= dht;					
 
 		transports[i] = transport;
+	}
+	
+	public DHTStorageKey
+	keyCreated(
+		HashWrapper		key )
+	{
+		System.out.println( "key created" );
+		
+		return( 
+				new DHTStorageKey()
+				{
+					public byte
+					getDiversificationType()
+					{
+						return( DHT.DT_NONE );
+					}
+				});
+	}
+	
+	public void
+	keyDeleted(
+		DHTStorageKey		key )
+	{
+		System.out.println( "key deleted" );
+	}
+	
+	public void
+	keyRead(
+		DHTStorageKey			adapter_key,
+		DHTTransportContact		contact )
+	{
+		System.out.println( "value read" );
+	}
+	
+	public void
+	valueAdded(
+		DHTStorageKey		key,
+		DHTTransportValue	value )
+	{
+		System.out.println( "value added" );
+	}
+	
+	public void
+	valueUpdated(
+		DHTStorageKey		key,
+		DHTTransportValue	value )
+	{
+		System.out.println( "value updated" );
+	}
+	
+	public void
+	valueDeleted(
+		DHTStorageKey		key,
+		DHTTransportValue	value )
+	{
+		System.out.println( "value deleted" );
+	}
+	
+	public byte[][]
+	getExistingDiversification(
+		byte[]			key,
+		boolean			put_operation )
+	{
+		System.out.println( "getExistingDiversification: put = " + put_operation );
+
+		return( new byte[][]{ key });
+	}
+	
+	public byte[][]
+	createNewDiversification(
+		byte[]			key,
+		boolean			put_operation,
+		int				diversification_type )
+	{
+		System.out.println( "createNewDiversification: put = " + put_operation + ", type = " + diversification_type );
+
+		return( new byte[0][] );
 	}
 	
 	protected static void

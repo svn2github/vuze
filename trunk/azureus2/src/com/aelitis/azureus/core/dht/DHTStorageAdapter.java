@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,28 +22,59 @@
 
 package com.aelitis.azureus.core.dht;
 
-import java.util.Properties;
+import org.gudy.azureus2.core3.util.HashWrapper;
 
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
-
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
-import com.aelitis.azureus.core.dht.transport.DHTTransport;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
  * @author parg
  *
  */
 
-public class 
-DHTFactory 
+public interface 
+DHTStorageAdapter 
 {
-	public static DHT
-	create(
-		DHTTransport		transport,
-		Properties			properties,
-		DHTStorageAdapter	storage_adapter,
-		LoggerChannel		logger )
-	{
-		return( new DHTImpl( transport, properties, storage_adapter, logger ));
-	}
+		// local value operations
+	
+	public DHTStorageKey
+	keyCreated(
+		HashWrapper		key );
+	
+	public void
+	keyDeleted(
+		DHTStorageKey	adapter_key );
+	
+	public void
+	keyRead(
+		DHTStorageKey			adapter_key,
+		DHTTransportContact		contact );
+	
+	public void
+	valueAdded(
+		DHTStorageKey		key,
+		DHTTransportValue	value );
+	
+	public void
+	valueUpdated(
+		DHTStorageKey		key,
+		DHTTransportValue	value );
+	
+	public void
+	valueDeleted(
+		DHTStorageKey		key,
+		DHTTransportValue	value );
+	
+		// local lookup/put operations
+	
+	public byte[][]
+	getExistingDiversification(
+		byte[]			key,
+		boolean			put_operation );
+	
+	public byte[][]
+	createNewDiversification(
+		byte[]			key,
+		boolean			put_operation,
+		int				diversification_type );
 }

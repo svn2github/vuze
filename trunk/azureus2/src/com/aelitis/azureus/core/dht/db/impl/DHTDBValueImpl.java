@@ -181,11 +181,12 @@ DHTDBValueImpl
 		flags = _flags;
 	}
 	
-	public void
-	setOriginator(
+	protected void
+	setOriginatorAndSender(
 		DHTTransportContact	_originator )
 	{
 		originator	= _originator;
+		sender		= _originator;
 	}
 	
 	public DHTDBValue

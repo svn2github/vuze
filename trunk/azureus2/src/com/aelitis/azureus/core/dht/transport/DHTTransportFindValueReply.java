@@ -32,10 +32,6 @@ import com.aelitis.azureus.core.dht.db.DHTDB;
 public interface 
 DHTTransportFindValueReply 
 {
-	public static final byte	DT_NONE			= DHTDB.DT_NONE;
-	public static final byte	DT_FREQUENCY	= DHTDB.DT_FREQUENCY;
-	public static final byte	DT_SIZE			= DHTDB.DT_SIZE;
-	
 	public byte
 	getDiversificationType();
 	

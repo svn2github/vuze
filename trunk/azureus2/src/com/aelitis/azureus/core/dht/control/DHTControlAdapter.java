@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.dht.control;
 
+import com.aelitis.azureus.core.dht.DHTStorageAdapter;
+
 /**
  * @author parg
  *
@@ -30,9 +32,13 @@ package com.aelitis.azureus.core.dht.control;
 public interface 
 DHTControlAdapter 
 {
-	public byte[]
+	public DHTStorageAdapter
+	getStorageAdapter();
+
+	public byte[][]
 	diversify(
 		boolean		put_operation,
 		boolean		existing,
-		byte[]		key );
+		byte[]		key,
+		byte		type );
 }

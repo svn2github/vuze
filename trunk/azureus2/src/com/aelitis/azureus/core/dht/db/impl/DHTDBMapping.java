@@ -24,9 +24,10 @@ package com.aelitis.azureus.core.dht.db.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 
-import com.aelitis.azureus.core.dht.db.DHTDB;
+import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 /**
@@ -37,7 +38,9 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 public class 
 DHTDBMapping 
 {
-	private HashWrapper		key;
+	private HashWrapper			key;
+	private DHTStorageAdapter	adapter;
+	private DHTStorageKey		adapter_key;
 	
 		// maps are access order, most recently used at tail, so we cycle values
 		
@@ -50,13 +53,28 @@ DHTDBMapping
 	private int				indirect_data_size;
 	private int				local_size;
 	
-	private byte			diversification_state	= DHTDB.DT_NONE;
+	private byte			diversification_state	= DHT.DT_NONE;
 	
 	protected
 	DHTDBMapping(
-		HashWrapper	_key )
+		DHTStorageAdapter	_adapter,
+		HashWrapper			_key )
 	{
-		key	= _key;
+		adapter		= _adapter;
+		key			= _key;
+		
+		try{
+			adapter_key = adapter.keyCreated( key );
+			
+			if ( adapter_key != null ){
+				
+				diversification_state	= adapter_key.getDiversificationType();
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
 	
 	protected HashWrapper
@@ -82,11 +100,15 @@ DHTDBMapping
 			
 			if ( value.getCacheDistance() == 0 ){
 			
-				value.setOriginator( contact );
+				value.setOriginatorAndSender( contact );
 				
 				changed.add( value );
 				
+				local_size	-= value.getValue().length;
+				
 				it.remove();
+				
+				informDeleted( value );
 			}
 		}
 		
@@ -213,7 +235,7 @@ DHTDBMapping
 			
 					// only add new values if not diversified
 				
-				if ( diversification_state == DHTDB.DT_NONE ){
+				if ( diversification_state == DHT.DT_NONE ){
 				
 					addIndirectValue( originator_value_id, new_value );
 				}
@@ -272,8 +294,9 @@ DHTDBMapping
 	
 	protected DHTDBValueImpl[]
 	get(
-		int			max,
-		boolean		remove_secondary_caches )
+		DHTTransportContact		by_who,
+		int						max,
+		boolean					remove_secondary_caches )
 	{
 		List	res 		= new ArrayList();
 		
@@ -333,6 +356,8 @@ DHTDBMapping
 				map.get( keys_used.get(j));
 			}
 		}
+		
+		informRead( by_who );
 		
 		DHTDBValueImpl[]	v = new DHTDBValueImpl[res.size()];
 		
@@ -409,6 +434,15 @@ DHTDBMapping
 			
 			local_size += value.getValue().length;
 		}
+		
+		if ( old == null ){
+			
+			informAdded( value );
+			
+		}else{
+			
+			informUpdated( value );
+		}
 	}
 	
 	protected DHTDBValueImpl
@@ -425,6 +459,8 @@ DHTDBMapping
 				
 				local_size -= old.getValue().length;
 			}
+			
+			informDeleted( old );
 		}
 		
 		return( old );
@@ -453,6 +489,15 @@ DHTDBMapping
 			
 			local_size += value.getValue().length;
 		}
+		
+		if ( old == null ){
+			
+			informAdded( value );
+			
+		}else{
+			
+			informUpdated( value );
+		}
 	}
 	
 	protected void
@@ -469,6 +514,82 @@ DHTDBMapping
 				
 				local_size -= old.getValue().length;
 			}
+			
+			informDeleted( old );
+		}
+	}
+	
+	protected void
+	destroy()
+	{
+		try{
+			if ( adapter_key != null ){
+				
+				adapter.keyDeleted( adapter_key );
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	private void
+	informDeleted(
+		DHTDBValueImpl		value ){
+		
+		try{
+			if ( adapter_key != null ){
+				
+				adapter.valueDeleted( adapter_key, value );
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	private void
+	informAdded(
+		DHTDBValueImpl		value ){
+		
+		try{
+			if ( adapter_key != null ){
+				
+				adapter.valueAdded( adapter_key, value );
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	private void
+	informUpdated(
+		DHTDBValueImpl		value ){
+		
+		try{
+			if ( adapter_key != null ){
+				
+				adapter.valueUpdated( adapter_key, value );
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	private void
+	informRead(
+		DHTTransportContact		contact ){
+		
+		try{
+			if ( adapter_key != null && contact != null ){
+				
+				adapter.keyRead( adapter_key, contact );
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
 		}
 	}
 	

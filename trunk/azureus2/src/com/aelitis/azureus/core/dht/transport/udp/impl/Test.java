@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.dht.transport.udp.impl;
 
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 
@@ -252,7 +253,7 @@ Test
 					public byte
 					getDiversificationType()
 					{
-						return( DHTTransportFindValueReply.DT_NONE );
+						return( DHT.DT_NONE );
 					}
 					
 					public DHTTransportValue[]

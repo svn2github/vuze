@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -56,6 +57,8 @@ import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
+import com.aelitis.azureus.core.dht.DHTStorageAdapter;
+import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
@@ -432,7 +435,89 @@ DHTPlugin
 									
 									long	start = SystemTime.getCurrentTime();
 									
-									dht = DHTFactory.create( transport, props, log );
+									dht = DHTFactory.create( 
+												transport, 
+												props,
+												new DHTStorageAdapter()
+												{
+													public DHTStorageKey
+													keyCreated(
+														HashWrapper		key )
+													{
+														System.out.println( "DHT key created");
+														
+														return(
+															new DHTStorageKey()
+															{
+																public byte
+																getDiversificationType()
+																{
+																	return( DHT.DT_NONE );
+																}
+															});
+													}
+													
+													public void
+													keyDeleted(
+														DHTStorageKey		key )
+													{
+														System.out.println( "DHT key deleted" );
+													}
+													
+													public void
+													keyRead(
+														DHTStorageKey			key,
+														DHTTransportContact		contact )
+													{
+														System.out.println( "DHT value read" );
+													}
+													
+													public void
+													valueAdded(
+														DHTStorageKey		key,
+														DHTTransportValue	value )
+													{
+														System.out.println( "DHT value added" );
+													}
+													
+													public void
+													valueUpdated(
+														DHTStorageKey		key,
+														DHTTransportValue	value )
+													{
+														System.out.println( "DHT value updated" );
+													}
+													
+													public void
+													valueDeleted(
+														DHTStorageKey		key,
+														DHTTransportValue	value )
+													{
+														System.out.println( "DHT value deleted" );
+													}
+													
+													public byte[][]
+													getExistingDiversification(
+														byte[]			key,
+														boolean			put_operation )
+													{
+														System.out.println( "DHT get existing diversification: put = " + put_operation  );
+														
+														return( new byte[][]{ key });
+													}
+													
+													public byte[][]
+													createNewDiversification(
+														byte[]			key,
+														boolean			put_operation,
+														int				diversification_type )
+													{
+														System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
+																							
+														return( new byte[0][] );
+													}
+												}, 
+												log );
 									
 									dht.setLogging( logging.getValue());
 									

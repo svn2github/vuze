@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.db.*;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
@@ -68,6 +70,7 @@ DHTDBImpl
 	private Map			stored_values = new HashMap();
 	
 	private DHTControl				control;
+	private DHTStorageAdapter		adapter;
 	private DHTRouter				router;
 	private DHTTransportContact		local_contact;
 	private LoggerChannel			logger;
@@ -76,11 +79,13 @@ DHTDBImpl
 
 	public
 	DHTDBImpl(
-		int				_original_republish_interval,
-		int				_cache_republish_interval,
-		int				_max_values_stored,
-		LoggerChannel	_logger )
+		DHTStorageAdapter	_adapter,
+		int					_original_republish_interval,
+		int					_cache_republish_interval,
+		int					_max_values_stored,
+		LoggerChannel		_logger )
 	{
+		adapter							= _adapter;
 		original_republish_interval		= _original_republish_interval;
 		cache_republish_interval		= _cache_republish_interval;
 		max_values_stored				= _max_values_stored;
@@ -193,7 +198,7 @@ DHTDBImpl
 			
 			if ( mapping == null ){
 				
-				mapping = new DHTDBMapping( key );
+				mapping = new DHTDBMapping( adapter, key );
 				
 				stored_values.put( key, mapping );
 			}
@@ -240,7 +245,7 @@ DHTDBImpl
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as key too far away" );
 
-			return( DHTDB.DT_NONE );
+			return( DHT.DT_NONE );
 		}
 		
 			// next, for cache forwards (rather then values coming directly from 
@@ -283,7 +288,7 @@ DHTDBImpl
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as cache forward and sender too far away" );
 			
-			return( DHTDB.DT_NONE );
+			return( DHT.DT_NONE );
 		}
 		
 		try{
@@ -295,7 +300,7 @@ DHTDBImpl
 				
 				logger.log( "Max entries exceeded" );
 				
-				return( DHTDB.DT_NONE );
+				return( DHT.DT_NONE );
 				
 			}else{
 				
@@ -305,7 +310,7 @@ DHTDBImpl
 				
 				if ( mapping == null ){
 					
-					mapping = new DHTDBMapping( key );
+					mapping = new DHTDBMapping( adapter, key );
 					
 					stored_values.put( key, mapping );
 				}
@@ -330,9 +335,10 @@ DHTDBImpl
 	
 	public DHTDBLookupResult
 	get(
-		HashWrapper		key,
-		int				max_values,	// 0 -> all
-		boolean			external_request )	
+		DHTTransportContact		reader,
+		HashWrapper				key,
+		int						max_values,	// 0 -> all
+		boolean					external_request )	
 	{
 		try{
 			this_mon.enter();
@@ -351,7 +357,7 @@ DHTDBImpl
 				mapping.addHit();
 			}
 			
-			final DHTDBValue[]	values = mapping.get( max_values, true );
+			final DHTDBValue[]	values = mapping.get( reader, max_values, true );
 						
 			return(
 				new DHTDBLookupResult()
@@ -746,7 +752,12 @@ DHTDBImpl
 				
 				for (int i=0;i<stop_caching.size();i++){
 					
-					stored_values.remove( stop_caching.get(i));
+					DHTDBMapping	mapping = (DHTDBMapping)stored_values.remove( stop_caching.get(i));
+					
+					if ( mapping != null ){
+						
+						mapping.destroy();
+					}
 				}
 			}finally{
 				
@@ -859,7 +870,7 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping = (DHTDBMapping)entry.getValue();
 				
-				DHTDBValue[]	values = mapping.get(0,false);
+				DHTDBValue[]	values = mapping.get(null,0,false);
 					
 				for (int i=0;i<values.length;i++){
 					

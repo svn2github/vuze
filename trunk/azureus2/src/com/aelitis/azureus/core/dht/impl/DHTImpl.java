@@ -29,6 +29,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
+import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
@@ -43,18 +44,21 @@ public class
 DHTImpl 
 	implements DHT
 {
-	private DHTControl		control;
-	private	Properties		properties;
-	private LoggerChannel	logger;
+	private DHTStorageAdapter	storage_adapter;
+	private DHTControl			control;
+	private	Properties			properties;
+	private LoggerChannel		logger;
 	
 	public 
 	DHTImpl(
-		DHTTransport	_transport,
-		Properties		_properties,
-		LoggerChannel	_logger )
+		DHTTransport		_transport,
+		Properties			_properties,
+		DHTStorageAdapter	_storage_adapter,
+		LoggerChannel		_logger )
 	{		
-		properties	= _properties;
-		logger		= _logger;
+		properties		= _properties;
+		storage_adapter	= _storage_adapter;
+		logger			= _logger;
 		
 		DHTLog.setLogger( logger );
 		
@@ -71,21 +75,27 @@ DHTImpl
 		control = DHTControlFactory.create( 
 				new DHTControlAdapter()
 				{
-					public byte[]
+					public DHTStorageAdapter
+					getStorageAdapter()
+					{
+						return( storage_adapter );
+					}
+					
+					public byte[][]
 					diversify(
 						boolean		put_operation,
 						boolean		existing,
-						byte[]		key )
+						byte[]		key,
+						byte		type )
 					{
-						logger.log( "diversify: op=" + (put_operation?"put":"get") + ",new=" +
-									(existing?"no":"yes")+", key=" + DHTLog.getString2( key ));
-						
 						if ( existing ){
 							
-							return( key );
+							return( storage_adapter.getExistingDiversification( key, put_operation ));
+							
+						}else{
+							
+							return( storage_adapter.createNewDiversification( key, put_operation, type ));						
 						}
-						
-						return( null );
 					}
 				},
 				_transport, 

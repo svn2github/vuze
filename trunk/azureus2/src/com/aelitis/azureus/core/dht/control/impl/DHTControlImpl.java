@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.impl.*;
 import com.aelitis.azureus.core.dht.control.*;
@@ -114,6 +115,7 @@ DHTControlImpl
 		cache_at_closest_n				= _cache_at_closest_n;
 		
 		database = DHTDBFactory.create( 
+						adapter.getStorageAdapter(),
 						_original_republish_interval,
 						_cache_republish_interval,
 						_max_values_stored,
@@ -610,103 +612,110 @@ DHTControlImpl
 		final long					timeout,
 		final DHTOperationListener	listener )
 	{
-		final boolean[]	diversified = { false };
-		
 			// get the initial starting point for the put - may have previously been diversified
 		
-		final byte[]	encoded_key	= adapter.diversify( true, true, initial_encoded_key );
+		byte[][]	encoded_keys	= adapter.diversify( true, true, initial_encoded_key, DHT.DT_NONE );
 		
-		lookup( put_pool,
-				encoded_key, 
-				(byte)0,
-				false, 
-				timeout,
-				search_concurrency,
-				1,
-				router.getK(),
-				new lookupResultHandler()
-				{
-					public void
-					searching(
-						DHTTransportContact	_contact,
-						int					_level,
-						int					_active_searches )
-					{	
-						if ( listener != null ){
-							
-							listener.searching( _contact, _level, _active_searches );
-						}
-					}
-					
-					public void
-					found(
-						DHTTransportContact	contact )
+			// may be > 1 if diversification is replicating (for load balancing) 
+		
+		for (int i=0;i<encoded_keys.length;i++){
+			
+			final boolean[]	diversified = { false };
+			
+			final byte[]	encoded_key	= encoded_keys[i];
+			
+			lookup( put_pool,
+					encoded_key, 
+					(byte)0,
+					false, 
+					timeout,
+					search_concurrency,
+					1,
+					router.getK(),
+					new lookupResultHandler()
 					{
-						if ( listener != null ){
-							
-							listener.found( contact );
-						}
-					}
-					
-					public void
-					diversify(
-						byte		diversification_type )
-					{
-						if ( !diversified[0]){
-							
-							byte[]	diversified_key = adapter.diversify( true, false, encoded_key );
-							
-							if ( diversified_key != null ){
+						public void
+						searching(
+							DHTTransportContact	_contact,
+							int					_level,
+							int					_active_searches )
+						{	
+							if ( listener != null ){
 								
-								put( diversified_key, value, timeout, listener );
-							}
-							
-							diversified[0] = true;
-						}
-					}
-
-					public void
-					read(
-						DHTTransportContact	_contact,
-						DHTTransportValue	_value )
-					{	
-						if ( listener != null ){
-							
-							listener.read( _contact, _value );
-						}
-					}
-					
-					public void
-					wrote(
-						DHTTransportContact	_contact,
-						DHTTransportValue	_value )
-					{	
-						if ( listener != null ){
-							
-							listener.wrote( _contact, _value );
-						}
-					}
-					
-					public void
-					complete(
-						boolean				_timeout )
-					{	
-						if ( listener != null ){
-							
-							if ( !diversified[0] ){
-							
-								listener.complete( _timeout );
+								listener.searching( _contact, _level, _active_searches );
 							}
 						}
-					}
-					
-					public void
-					closest(
-						List				_closest )
-					{
-						put( new byte[][]{ encoded_key }, new DHTTransportValue[][]{{ value }}, _closest, listener );		
-					}
-				});
+						
+						public void
+						found(
+							DHTTransportContact	contact )
+						{
+							if ( listener != null ){
+								
+								listener.found( contact );
+							}
+						}
+						
+						public void
+						diversify(
+							byte		diversification_type )
+						{
+							if ( !diversified[0]){
+								
+								byte[][]	diversified_keys = adapter.diversify( true, false, encoded_key, diversification_type );
+								
+								for (int i=0;i<diversified_keys.length;i++){
+									
+									put( diversified_keys[i], value, timeout, listener );
+								}
+								
+								diversified[0] = true;
+							}
+						}
+	
+						public void
+						read(
+							DHTTransportContact	_contact,
+							DHTTransportValue	_value )
+						{	
+							if ( listener != null ){
+								
+								listener.read( _contact, _value );
+							}
+						}
+						
+						public void
+						wrote(
+							DHTTransportContact	_contact,
+							DHTTransportValue	_value )
+						{	
+							if ( listener != null ){
+								
+								listener.wrote( _contact, _value );
+							}
+						}
+						
+						public void
+						complete(
+							boolean				_timeout )
+						{	
+							if ( listener != null ){
+								
+								if ( !diversified[0] ){
+								
+									listener.complete( _timeout );
+								}
+							}
+						}
+						
+						public void
+						closest(
+							List				_closest )
+						{
+							put( new byte[][]{ encoded_key }, new DHTTransportValue[][]{{ value }}, _closest, listener );		
+						}
+					});
+		}
 	}
 	
 	public void
@@ -871,140 +880,145 @@ DHTControlImpl
 		final long						timeout,
 		final DHTOperationListener		get_listener )
 	{
-		final boolean[]	diversified = { false };
-
 		// get the initial starting point for the put - may have previously been diversified
 		
-		final byte[]	encoded_key	= adapter.diversify( false, true, initial_encoded_key );
+		byte[][]	encoded_keys	= adapter.diversify( false, true, initial_encoded_key, DHT.DT_NONE );
 
-		lookup( external_lookup_pool,
-				encoded_key, 
-				flags,
-				true, 
-				timeout,
-				search_concurrency,
-				max_values,
-				router.getK(),
-				new lookupResultHandler()
-				{
-					private List	found_values	= new ArrayList();
-					
-					public void
-					searching(
-						DHTTransportContact	contact,
-						int					level,
-						int					active_searches )
-					{	
-						get_listener.searching( contact, level, active_searches );
-					}
-					
-					public void
-					found(
-						DHTTransportContact	contact )
-					{
-						get_listener.found( contact );
-					}
+		for (int i=0;i<encoded_keys.length;i++){
+			
+			final boolean[]	diversified = { false };
 
-					public void
-					diversify(
-						byte	diversification_type )
+			final byte[]	encoded_key	= encoded_keys[i];
+			
+			lookup( external_lookup_pool,
+					encoded_key, 
+					flags,
+					true, 
+					timeout,
+					search_concurrency,
+					max_values,
+					router.getK(),
+					new lookupResultHandler()
 					{
-						if ( !diversified[0]){
-							
-							int	rem = max_values - found_values.size();
-							
-							if ( max_values > 0 && rem > 0 ){
-								
-								byte[]	diversified_key = adapter.diversify( false, false, encoded_key );
-								
-								if ( diversified_key != null ){
-									
-									getSupport( diversified_key, flags, rem,  timeout, get_listener );
-								}
-							}
-							
-							diversified[0] = true;
-						}
-					}
-					
-					public void
-					read(
-						DHTTransportContact	contact,
-						DHTTransportValue	value )
-					{	
-						found_values.add( value );
+						private List	found_values	= new ArrayList();
 						
-						get_listener.read( contact, value );
-					}
-					
-					public void
-					wrote(
-						DHTTransportContact	contact,
-						DHTTransportValue	value )
-					{	
-						get_listener.wrote( contact, value );
-					}
-					
-					public void
-					complete(
-						boolean				timeout_occurred )
-					{	
-						if ( !diversified[0] ){
-							
-							get_listener.complete( timeout_occurred );
+						public void
+						searching(
+							DHTTransportContact	contact,
+							int					level,
+							int					active_searches )
+						{	
+							get_listener.searching( contact, level, active_searches );
 						}
-					}
+						
+						public void
+						found(
+							DHTTransportContact	contact )
+						{
+							get_listener.found( contact );
+						}
 	
-					public void
-					closest(
-						List	closest )
-					{
-						if ( found_values.size() > 0 ){
+						public void
+						diversify(
+							byte	diversification_type )
+						{
+							if ( !diversified[0]){
 								
-							DHTTransportValue[]	values = new DHTTransportValue[found_values.size()];
-							
-							found_values.toArray( values );
-							
-								// cache the values at the 'n' closest seen locations
-							
-							for (int i=0;i<Math.min(cache_at_closest_n,closest.size());i++){
+								int	rem = max_values - found_values.size();
 								
-								DHTTransportContact	contact = (DHTTransportContact)(DHTTransportContact)closest.get(i);
-								
-								for (int j=0;j<values.length;j++){
+								if ( max_values > 0 && rem > 0 ){
 									
-									wrote( contact, values[j] );
+									byte[][]	diversified_keys = adapter.diversify( false, false, encoded_key, diversification_type );
+									
+									for (int i=0;i<diversified_keys.length;i++){
+										
+										getSupport( diversified_keys[i], flags, rem,  timeout, get_listener );
+									}
 								}
 								
-								contact.sendStore( 
-										new DHTTransportReplyHandlerAdapter()
-										{
-											public void
-											storeReply(
-												DHTTransportContact _contact,
-												byte[]				_diversifications )
-											{
-												DHTLog.log( "Cache store OK " + DHTLog.getString( _contact ));
-												
-												router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
-											}	
-											
-											public void
-											failed(
-												DHTTransportContact 	_contact,
-												Throwable 				_error )
-											{
-												DHTLog.log( "Cache store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
-												
-												router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
-											}
-										},
-										new byte[][]{ encoded_key }, 
-										new DHTTransportValue[][]{ values });
+								diversified[0] = true;
 							}
 						}
-					}
-				});
+						
+						public void
+						read(
+							DHTTransportContact	contact,
+							DHTTransportValue	value )
+						{	
+							found_values.add( value );
+							
+							get_listener.read( contact, value );
+						}
+						
+						public void
+						wrote(
+							DHTTransportContact	contact,
+							DHTTransportValue	value )
+						{	
+							get_listener.wrote( contact, value );
+						}
+						
+						public void
+						complete(
+							boolean				timeout_occurred )
+						{	
+							if ( !diversified[0] ){
+								
+								get_listener.complete( timeout_occurred );
+							}
+						}
+		
+						public void
+						closest(
+							List	closest )
+						{
+							if ( found_values.size() > 0 ){
+									
+								DHTTransportValue[]	values = new DHTTransportValue[found_values.size()];
+								
+								found_values.toArray( values );
+								
+									// cache the values at the 'n' closest seen locations
+								
+								for (int i=0;i<Math.min(cache_at_closest_n,closest.size());i++){
+									
+									DHTTransportContact	contact = (DHTTransportContact)(DHTTransportContact)closest.get(i);
+									
+									for (int j=0;j<values.length;j++){
+										
+										wrote( contact, values[j] );
+									}
+									
+									contact.sendStore( 
+											new DHTTransportReplyHandlerAdapter()
+											{
+												public void
+												storeReply(
+													DHTTransportContact _contact,
+													byte[]				_diversifications )
+												{
+													DHTLog.log( "Cache store OK " + DHTLog.getString( _contact ));
+													
+													router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
+												}	
+												
+												public void
+												failed(
+													DHTTransportContact 	_contact,
+													Throwable 				_error )
+												{
+													DHTLog.log( "Cache store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+													
+													router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
+												}
+											},
+											new byte[][]{ encoded_key }, 
+											new DHTTransportValue[][]{ values });
+								}
+							}
+						}
+					});
+		}
 	}
 	
 	public byte[]
@@ -1373,7 +1387,7 @@ DHTControlImpl
 								DHTLog.log( "findValueReply: " + DHTLog.getString( values ) + ",mtc=" + more_to_come + ", dt=" + diversification_type );
 
 								try{
-									if ( diversification_type != DHTTransportFindValueReply.DT_NONE ){
+									if ( diversification_type != DHT.DT_NONE ){
 										
 											// diversification instruction									
 	
@@ -1614,7 +1628,7 @@ DHTControlImpl
 	{
 		DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
 		
-		DHTDBLookupResult	result	= database.get( new HashWrapper( key ), max_values, true );
+		DHTDBLookupResult	result	= database.get( originating_contact, new HashWrapper( key ), max_values, true );
 					
 		if ( result != null ){
 			
@@ -1720,7 +1734,7 @@ DHTControlImpl
 			
 			byte[]	encoded_key		= key.getHash();
 			
-			DHTDBLookupResult	result = database.get( key, 0, false );
+			DHTDBLookupResult	result = database.get( null, key, 0, false );
 			
 			if ( result == null  ){
 				
@@ -2040,7 +2054,7 @@ DHTControlImpl
 	DHTTransportFindValueReplyImpl
 		implements DHTTransportFindValueReply
 	{
-		private byte					dt = DHTTransportFindValueReply.DT_NONE;
+		private byte					dt = DHT.DT_NONE;
 		private DHTTransportValue[]		values;
 		private DHTTransportContact[]	contacts;
 		

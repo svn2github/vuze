@@ -28,6 +28,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 import java.io.*;
 
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFindValueReply;
@@ -45,7 +46,7 @@ DHTUDPPacketReplyFindValue
 	private DHTTransportValue[]			values;
 	
 	private boolean						has_continuation;
-	private byte						diversification_type	= DHTTransportFindValueReply.DT_NONE;
+	private byte						diversification_type	= DHT.DT_NONE;
 	
 	public
 	DHTUDPPacketReplyFindValue(
