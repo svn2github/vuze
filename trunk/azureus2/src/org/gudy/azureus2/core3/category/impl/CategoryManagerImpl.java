@@ -42,7 +42,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
-import org.gudy.azureus2.core3.internat.MessageText;
 
 public class CategoryManagerImpl  {
   private static CategoryManagerImpl catMan;
@@ -248,13 +247,13 @@ public class CategoryManagerImpl  {
 
   private void makeSpecialCategories() {
     if (catAll == null) {
-      catAll = new CategoryImpl(MessageText.getString("Categories.all"), Category.TYPE_ALL);
-      categories.put(MessageText.getString("Categories.all"), catAll);
+      catAll = new CategoryImpl("Categories.all", Category.TYPE_ALL);
+      categories.put("Categories.all", catAll);
     }
     
     if (catUncategorized == null) {
-      catUncategorized = new CategoryImpl(MessageText.getString("Categories.uncategorized"), Category.TYPE_UNCATEGORIZED);
-      categories.put(MessageText.getString("Categories.uncategorized"), catUncategorized);
+      catUncategorized = new CategoryImpl("Categories.uncategorized", Category.TYPE_UNCATEGORIZED);
+      categories.put("Categories.uncategorized", catUncategorized);
     }
   }
 }

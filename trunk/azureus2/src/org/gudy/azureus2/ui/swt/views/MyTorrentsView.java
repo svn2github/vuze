@@ -86,11 +86,10 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
-/**
+/** Displays a list of torrents in a table view.
+ *
  * @author Olivier
  * @author TuxPaper
- *
- * TODO:  Auto language change for non-user category buttons
  */
 public class MyTorrentsView extends AbstractIView
   implements GlobalManagerListener, 
@@ -329,7 +328,12 @@ public class MyTorrentsView extends AbstractIView
         rd.height = 17;
         catButton.setLayoutData(rd);
         
-        catButton.setText(categories[i].getName());
+        String name = categories[i].getName();
+        if (categories[i].getType() == Category.TYPE_USER)
+          catButton.setText(name);
+        else
+          Messages.setLanguageText(catButton, name);
+
         catButton.setData("Category", categories[i]);
         if (categories[i] == currentCategory) {
           catButton.setSelection(true);

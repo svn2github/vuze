@@ -140,8 +140,6 @@ public class ConfigView extends AbstractIView {
     | ############################################################## |
     |  [Button]                                                      |
     \----------------------------------------------------------------/
-    
-    TODO:  Auto language change for tree
     */
     cConfig = new Composite(composite, SWT.NONE);
     GridLayout configLayout = new GridLayout();
@@ -256,7 +254,7 @@ public class ConfigView extends AbstractIView {
         Composite c = section.configSectionCreate(cConfigSection);
 
         treeItem.setText(name);
-        treeItem.setData(c);
+        treeItem.setData("Panel", c);
         treeItem.setData("ID", section.configSectionGetID());
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "ConfigSection plugin '" + name + "' caused an error");
@@ -272,7 +270,7 @@ public class ConfigView extends AbstractIView {
   }
 
   private void showSection(TreeItem section) {
-    Composite item = (Composite)section.getData();
+    Composite item = (Composite)section.getData("Panel");
     if (item != null) {
       layoutConfigSection.topControl = item;
       cConfigSection.layout();
@@ -345,7 +343,7 @@ public class ConfigView extends AbstractIView {
 
     treePlugins = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treePlugins, ConfigSection.SECTION_PLUGINS);
-    treePlugins.setData(infoGroup);
+    treePlugins.setData("Panel", infoGroup);
     treePlugins.setData("ID", ConfigSection.SECTION_PLUGINS);
 
 
@@ -387,7 +385,7 @@ public class ConfigView extends AbstractIView {
 
       TreeItem subItem = new TreeItem(treePlugins, SWT.NULL);
       Messages.setLanguageText(subItem, pluginName);
-      subItem.setData(pluginGroup);
+      subItem.setData("Panel", pluginGroup);
 
       Map parameterToPluginParameter = new HashMap();
       //Add all parameters
@@ -455,7 +453,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem itemFilter = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(itemFilter, "ipFilter.shortTitle"); //$NON-NLS-1$
-    itemFilter.setData(gFilter);
+    itemFilter.setData("Panel", gFilter);
 
     // start controls
     gridData = new GridData(GridData.BEGINNING);
@@ -567,7 +565,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeIrc = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treeIrc, "ConfigView.section.irc"); //$NON-NLS-1$
-    treeIrc.setData(gIrc);
+    treeIrc.setData("Panel", gIrc);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gIrc.setLayoutData(gridData);
@@ -606,7 +604,7 @@ public class ConfigView extends AbstractIView {
     // than "Display" in "ConfigView.section.display" because Interface is a
     // much broader term.
     Messages.setLanguageText(treeDisplay, "ConfigView.section.style"); //$NON-NLS-1$
-    treeDisplay.setData(cDisplay);
+    treeDisplay.setData("Panel", cDisplay);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cDisplay.setLayoutData(gridData);
@@ -685,7 +683,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeStart = new TreeItem(treeDisplay, SWT.NULL);
     Messages.setLanguageText(treeStart, "ConfigView.section.start"); //$NON-NLS-1$
-    treeStart.setData(gStart);
+    treeStart.setData("Panel", gStart);
 
     gStart.setLayoutData(new GridData(GridData.FILL_BOTH));
     layout = new GridLayout();
@@ -724,7 +722,7 @@ public class ConfigView extends AbstractIView {
     
     TreeItem treeLook = new TreeItem(treeDisplay, SWT.NULL);
     Messages.setLanguageText(treeLook, "ConfigView.section.display"); //$NON-NLS-1$
-    treeLook.setData(cLook);
+    treeLook.setData("Panel", cLook);
 
     label = new Label(cLook, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.useCustomTabs"); //$NON-NLS-1$
@@ -863,7 +861,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeTransfer = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treeTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$
-    treeTransfer.setData(gTransfer);
+    treeTransfer.setData("Panel", gTransfer);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gTransfer.setLayoutData(gridData);
@@ -929,7 +927,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeServer = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treeServer, "ConfigView.section.server"); //$NON-NLS-1$
-    treeServer.setData(gServer);
+    treeServer.setData("Panel", gServer);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gServer.setLayoutData(gridData);
@@ -967,7 +965,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeFile = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treeFile, "ConfigView.section.files"); //$NON-NLS-1$
-    treeFile.setData(gFile);
+    treeFile.setData("Panel", gFile);
 
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;
@@ -1168,7 +1166,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeTorrent = new TreeItem(treeFile, SWT.NULL);
     Messages.setLanguageText(treeTorrent, "ConfigView.section.torrents");
-    treeTorrent.setData(cTorrent);
+    treeTorrent.setData("Panel", cTorrent);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cTorrent.setLayoutData(gridData);
@@ -1344,7 +1342,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeStats = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treeStats, "ConfigView.section.stats"); //$NON-NLS-1$
-    treeStats.setData(gStats);
+    treeStats.setData("Panel", gStats);
 
     // row
 
@@ -1468,7 +1466,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeTracker = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treeTracker, "ConfigView.section.tracker"); //$NON-NLS-1$
-    treeTracker.setData(gMainTab);
+    treeTracker.setData("Panel", gMainTab);
 
 
     // web tab set up
@@ -1481,7 +1479,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeWeb = new TreeItem(treeTracker, SWT.NULL);
     Messages.setLanguageText(treeWeb, "ConfigView.section.tracker.web");
-    treeWeb.setData(gWebTab);
+    treeWeb.setData("Panel", gWebTab);
 
 
     // extensions tab set up
@@ -1494,7 +1492,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeExt = new TreeItem(treeTracker, SWT.NULL);
     Messages.setLanguageText(treeExt, "ConfigView.section.tracker.extensions");
-    treeExt.setData(gExtTab);
+    treeExt.setData("Panel", gExtTab);
 
 
       // MAIN TAB DATA
@@ -1965,7 +1963,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem treeSharing = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treeSharing, "ConfigView.section.sharing");
-    treeSharing.setData(gSharing);
+    treeSharing.setData("Panel", gSharing);
 
     // row
 
@@ -1993,7 +1991,7 @@ public class ConfigView extends AbstractIView {
 
     TreeItem itemLogging = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(itemLogging, "ConfigView.section.logging"); //$NON-NLS-1$
-    itemLogging.setData(gLogging);
+    itemLogging.setData("Panel", gLogging);
 
     // row
 
@@ -2160,7 +2158,7 @@ public class ConfigView extends AbstractIView {
       ((ConfigSection)pluginSections.get(i)).configSectionDelete();
     TreeItem[] items = tree.getItems();
     for (int i = 0; i < items.length; i++)
-      items[i].setData(null);
+      items[i].setData("Panel", null);
     Utils.disposeComposite(cConfig);
   }
 

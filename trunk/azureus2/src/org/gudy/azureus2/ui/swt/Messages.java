@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.ui.swt.components.*;
@@ -95,6 +96,13 @@ public class Messages {
         }
         updateLanguageForControl(table.getMenu());
       }
+      else if (widget instanceof Tree) {
+        Tree tree = (Tree) widget;
+        TreeItem[] treeitems = tree.getItems();
+        for (int i = 0; i < treeitems.length; i++) {
+          updateLanguageForControl(treeitems[i]);
+        }
+      }
       group.layout();
     }
     else if (widget instanceof MenuItem) {
@@ -109,6 +117,13 @@ public class Messages {
       MenuItem[] items = menu.getItems();
       for (int i = 0; i < items.length; i++) {
         updateLanguageForControl(items[i]);
+      }
+    }
+    else if (widget instanceof TreeItem) {
+      TreeItem treeitem = (TreeItem) widget;
+      TreeItem[] treeitems = treeitem.getItems();
+      for (int i = 0; i < treeitems.length; i++) {
+        updateLanguageFromData(treeitems[i]);
       }
     }
     
@@ -159,31 +174,31 @@ public class Messages {
   
 
   public static void updateLanguageFromData(Widget widget) {
-    if (widget.getData() != null) {
-      String key = (String) widget.getData();
-      if(key.endsWith(".tooltip"))
-        return;
-      if (widget instanceof MenuItem)
-         ((MenuItem) widget).setText(MessageText.getString((String) widget.getData()));
-      else if (widget instanceof TableColumn)
-         ((TableColumn) widget).setText(MessageText.getString((String) widget.getData()));
-      else if (widget instanceof Label)
-         ((Label) widget).setText(MessageText.getString((String) widget.getData()));
-      else if (widget instanceof Group)
-         ((Group) widget).setText(MessageText.getString((String) widget.getData()));
-      else if (widget instanceof Button)
-         ((Button) widget).setText(MessageText.getString((String) widget.getData()));
-      else if (widget instanceof CTabItem)
-         ((CTabItem) widget).setText(MessageText.getString((String) widget.getData()));
-      else if (widget instanceof TabItem)
-         ((TabItem) widget).setText(MessageText.getString((String) widget.getData()));
-      else if (widget instanceof TreeItem)
-        ((TreeItem) widget).setText(MessageText.getString((String) widget.getData()));
-      else if(widget instanceof Shell) 
-        ((Shell) widget).setText(MessageText.getString((String) widget.getData()));
-      else
-        System.out.println("No cast for " + widget.getClass().getName());
-    }
+      if (widget.getData() != null) {
+        String key = (String) widget.getData();
+        if(key.endsWith(".tooltip"))
+          return;
+        if (widget instanceof MenuItem)
+           ((MenuItem) widget).setText(MessageText.getString((String) widget.getData()));
+        else if (widget instanceof TableColumn)
+           ((TableColumn) widget).setText(MessageText.getString((String) widget.getData()));
+        else if (widget instanceof Label)
+           ((Label) widget).setText(MessageText.getString((String) widget.getData()));
+        else if (widget instanceof Group)
+           ((Group) widget).setText(MessageText.getString((String) widget.getData()));
+        else if (widget instanceof Button)
+           ((Button) widget).setText(MessageText.getString((String) widget.getData()));
+        else if (widget instanceof CTabItem)
+           ((CTabItem) widget).setText(MessageText.getString((String) widget.getData()));
+        else if (widget instanceof TabItem)
+           ((TabItem) widget).setText(MessageText.getString((String) widget.getData()));
+        else if (widget instanceof TreeItem)
+          ((TreeItem) widget).setText(MessageText.getString((String) widget.getData()));
+        else if(widget instanceof Shell) 
+          ((Shell) widget).setText(MessageText.getString((String) widget.getData()));
+        else
+          System.out.println("No cast for " + widget.getClass().getName());
+      } 
   }
 
   public static void setLanguageTooltip(Widget widget, String key) {
