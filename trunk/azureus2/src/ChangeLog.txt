@@ -5,9 +5,11 @@ xx.xx.04 | Azureus 2.0.8.5
 
 FEATURE: Added Remaining column to My Torrents [TuxPaper]
 FEATURE: Caching of peer info to disk for quick restarts if tracker is unavailable [Parg]
+FEATURE: Proxy support [Nolar]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]
+CHANGE: Can set per-torrent and global peer connection limits [Nolar]
 
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
 
