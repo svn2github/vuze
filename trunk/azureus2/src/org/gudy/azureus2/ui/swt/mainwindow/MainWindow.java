@@ -257,9 +257,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
                 CTabItem item = (CTabItem) event.item;
                 if(item != null && ! item.isDisposed() && ! folder.isDisposed()) {
                   try {
-                  ((CTabFolder)folder).setTabPosition(((CTabFolder)folder).indexOf(item));
                   ((CTabFolder)folder).setSelection(item);
+                  Control control = item.getControl();
+                  if (control != null) {
+                    control.setVisible(true);
+                    control.setFocus();
+                  }
                   } catch(Throwable e) {
+                    e.printStackTrace();
                     //Do nothing
                   }
                 }
@@ -292,9 +297,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         });
       //}
 
-      try {
-        ((CTabFolder)folder).setUnselectedCloseVisible(false);
-      } catch (NoSuchMethodError e) { /** < SWT 3.0M8 **/ }
       ((CTabFolder)folder).addSelectionListener(selectionAdapter);
 
       try {
