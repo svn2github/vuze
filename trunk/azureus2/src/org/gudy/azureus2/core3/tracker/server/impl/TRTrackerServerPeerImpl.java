@@ -142,17 +142,27 @@ TRTrackerServerPeerImpl
 		
 		HostNameToIPResolver.addResolverRequest( ip_str, this );
 		
-			// only recheck if we haven't already ascertained the state
-		
-		if ( NAT_status == NAT_CHECK_UNKNOWN ){
+			// a port of 0 is taken to mean that the client can't/won't receive incoming
+			// connections - tr
+
+		if ( port == 0 ){
 			
-			NAT_status	= NAT_CHECK_INITIATED;
+			NAT_status = NAT_CHECK_FAILED_AND_REPORTED;
 			
-			if ( !TRTrackerServerNATChecker.getSingleton().addNATCheckRequest( ip_str, port, this )){
+		}else{
+			
+				// only recheck if we haven't already ascertained the state
+			
+			if ( NAT_status == NAT_CHECK_UNKNOWN ){
 				
-				NAT_status = NAT_CHECK_DISABLED;
-			}
-		}	
+				NAT_status	= NAT_CHECK_INITIATED;
+				
+				if ( !TRTrackerServerNATChecker.getSingleton().addNATCheckRequest( ip_str, port, this )){
+					
+					NAT_status = NAT_CHECK_DISABLED;
+				}
+			}	
+		}
 	}
 	
 	public void

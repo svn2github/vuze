@@ -73,7 +73,7 @@ TRTrackerScraperImpl
 	protected
 	TRTrackerScraperImpl()
 	{
-		tracker_checker = new TrackerChecker( this );;
+		tracker_checker = new TrackerChecker( this );
 	}
 
 	public TRTrackerScraperResponse

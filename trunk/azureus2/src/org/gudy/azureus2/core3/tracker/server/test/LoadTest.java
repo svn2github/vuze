@@ -272,9 +272,9 @@ LoadTest
 		start()
 		{
 			try{
-				torrent.peerContact("started", peer_id, 6881, address, false, key, uploaded, downloaded, left, num_want, interval );
+				torrent.peerContact("started", peer_id, 6881, address, false, key, uploaded, downloaded, left, interval );
 				
-				Map m = torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
+				torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
 				
 				/*
 				byte[]	l = (byte[])m.get("peers");
@@ -295,7 +295,7 @@ LoadTest
 		stop()
 		{
 			try{
-				torrent.peerContact("stopped", peer_id, 6881, address, false,  key, uploaded, downloaded, left, num_want, interval );
+				torrent.peerContact("stopped", peer_id, 6881, address, false,  key, uploaded, downloaded, left, interval );
 				
 				state	= ST_STOPPED;
 				
@@ -313,9 +313,9 @@ LoadTest
 				
 				uploaded += 10000;
 				
-				torrent.peerContact(null, peer_id, 6881, address, false,  key, uploaded, downloaded, left, num_want, interval );
+				torrent.peerContact(null, peer_id, 6881, address, false,  key, uploaded, downloaded, left, interval );
 	
-				Map m = torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
+				torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
 			
 				state	= ST_COMPLETED;
 				
@@ -330,9 +330,9 @@ LoadTest
 			try{
 				left	= 0;
 				
-				torrent.peerContact("complete", peer_id, 6881, address, false,  key, uploaded, downloaded, left, num_want, interval );
+				torrent.peerContact("complete", peer_id, 6881, address, false,  key, uploaded, downloaded, left, interval );
 	
-				Map m = torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
+				torrent.exportAnnounceToMap( null, true, num_want, 4, true, true );
 			
 				state	= ST_COMPLETED;
 				

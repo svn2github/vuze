@@ -99,10 +99,10 @@ TRTrackerClientClassicImpl
   
   	private String trackerUrlListString;
   
-  	private byte[]	torrent_hash;
+  	private byte[] torrent_hash;
 	private String info_hash = "info_hash=";
-	private byte[] peerId;
-	private String peer_id = "&peer_id=";
+	private byte[] my_peer_id;
+	private String my_peer_id_str = "&peer_id=";
 	
 	private String 					key_id			= "";
 	private static final int	   	key_id_length	= 8;
@@ -116,7 +116,6 @@ TRTrackerClientClassicImpl
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 	
 	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
-	private int tracker_peer_cache_next	= 0;
 	
 	public final static int componentID = 2;
 	public final static int evtLifeCycle = 0;
@@ -215,7 +214,7 @@ TRTrackerClientClassicImpl
    
 		//Create our unique peerId
 	
-    peerId = createPeerID();
+    my_peer_id = createPeerID();
 
     key_id	= createKeyID();
     
@@ -227,7 +226,7 @@ TRTrackerClientClassicImpl
 		
 		this.info_hash += URLEncoder.encode(new String(torrent_hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
-		this.peer_id += URLEncoder.encode(new String(peerId, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+		this.my_peer_id_str += URLEncoder.encode(new String(my_peer_id, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
 	}catch (UnsupportedEncodingException e){
 		
@@ -674,7 +673,7 @@ TRTrackerClientClassicImpl
 			  					  	  
 			  URL reqUrl = new URL(this_url_string);
 			  
-			  TRTrackerResponse resp = decodeTrackerResponse( updateOld(reqUrl,evt));
+			  TRTrackerResponse resp = decodeTrackerResponse( updateOld(reqUrl));
 			  
 		      if ( resp.getStatus() == TRTrackerResponse.ST_ONLINE ){
 					
@@ -733,8 +732,7 @@ TRTrackerClientClassicImpl
 
  	private byte[] 
  	updateOld(
- 		URL 		reqUrl,
-		String 		evt)
+ 		URL 		reqUrl )
   
   		throws Exception
 	{
@@ -1044,7 +1042,7 @@ TRTrackerClientClassicImpl
 			 				
 			 				announce_request.setDetails(
 			 					torrent_hash,
-			 					peerId,
+			 					my_peer_id,
 								getLongURLParam( url_str, "downloaded" ), 
 								event,
 								ip,
@@ -1097,7 +1095,7 @@ TRTrackerClientClassicImpl
 			 				
 			 				announce_request.setDetails(
 			 					torrent_hash,
-			 					peerId,
+			 					my_peer_id,
 								getLongURLParam( url_str, "downloaded" ), 
 								event,
 								ip,
@@ -1282,7 +1280,7 @@ TRTrackerClientClassicImpl
   	}
   	
   	request.append(info_hash);
-  	request.append(peer_id);
+  	request.append(my_peer_id_str);
   	request.append(port);
   	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
   	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
@@ -1359,7 +1357,7 @@ TRTrackerClientClassicImpl
   public byte[] 
   getPeerId() 
   {
-  	return peerId;
+  	return my_peer_id;
   }
 
  	public void 
@@ -1637,9 +1635,9 @@ TRTrackerClientClassicImpl
 								
 									//get the peer port number
 								
-								int port = ((Long) s_port).intValue(); 
+								int peer_port = ((Long) s_port).intValue(); 
 								
-								byte[] peerId;
+								byte[] peer_peer_id;
 								
 								// extension - if peer id is missing then the tracker isn't sending
 								// peer ids to save on bandwidth. However, we need something "unique" to 
@@ -1649,15 +1647,15 @@ TRTrackerClientClassicImpl
 	                
 									// Debug.out(ip + ": tracker did not give peerID in reply");
 
-									peerId = getAnonymousPeerId( ip, port );
+									peer_peer_id = getAnonymousPeerId( ip, peer_port );
 									
 									// System.out.println("generated peer id" + new String(peerId) + "/" + ByteFormatter.nicePrint( peerId, true ));
 								}else{
 								
-									peerId = (byte[])s_peerid ; 
+									peer_peer_id = (byte[])s_peerid ; 
 								}
 								
-								valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));
+								valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));
 								
 							} 
 						}
@@ -1678,14 +1676,14 @@ TRTrackerClientClassicImpl
 				    		int	po2 = 0xFF & meta_peers[i+5];
 				    		
 				    		String	ip 		= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
-				    		int		port 	= po1*256+po2;
+				    		int		peer_port 	= po1*256+po2;
 				    		
-				    		byte[]	peer_id = getAnonymousPeerId( ip, port );
+				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
                 LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-                             "COMPACT PEER: ip=" +ip+ " port=" +port);
+                             "COMPACT PEER: ip=" +ip+ " port=" +peer_port);
 							
-							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_id, ip, port ));							
+							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));							
 				    	}
 				    }
 				    
@@ -1875,18 +1873,18 @@ TRTrackerClientClassicImpl
   
   	protected byte[]
 	getAnonymousPeerId(
-		String	ip,
-		int		port )
+		String	my_ip,
+		int		my_port )
 	{
-  		byte[] peerId = new byte[20];
+  		byte[] anon_peer_id = new byte[20];
 	
   		// unique initial two bytes to identify this as fake (See Identification.java)
 
-  		peerId[0] = Identification.NON_SUPPLIED_PEER_ID_BYTE1;
-  		peerId[1] = Identification.NON_SUPPLIED_PEER_ID_BYTE2;
+  		anon_peer_id[0] = Identification.NON_SUPPLIED_PEER_ID_BYTE1;
+  		anon_peer_id[1] = Identification.NON_SUPPLIED_PEER_ID_BYTE2;
 
   		try{
-	  		byte[]	ip_bytes 	= ip.getBytes( Constants.DEFAULT_ENCODING );
+	  		byte[]	ip_bytes 	= my_ip.getBytes( Constants.DEFAULT_ENCODING );
 	  		int		ip_len		= ip_bytes.length;
 	
 	  		if ( ip_len > 18 ){
@@ -1894,13 +1892,13 @@ TRTrackerClientClassicImpl
 	  			ip_len = 18;
 	  		}
 	
-	  		System.arraycopy( ip_bytes, 0, peerId, 2, ip_len );
+	  		System.arraycopy( ip_bytes, 0, anon_peer_id, 2, ip_len );
 									
-	  		int	port_copy = port;
+	  		int	port_copy = my_port;
 		
 	  		for (int j=2+ip_len;j<20;j++){
 			
-	  			peerId[j] = (byte)(port_copy&0xff);
+	  			anon_peer_id[j] = (byte)(port_copy&0xff);
 			
 	  			port_copy >>= 8;
 	  		}
@@ -1909,7 +1907,7 @@ TRTrackerClientClassicImpl
   			e.printStackTrace();
   		}
   		
-  		return( peerId );
+  		return( anon_peer_id );
    }
 	 	
   		// NOTE: tracker_cache is cleared out in DownloadManager when opening a torrent for the
@@ -1987,15 +1985,15 @@ TRTrackerClientClassicImpl
 					
 					Map	peer = (Map)peers.get(i);
 					
-					String	ip_address  = new String((byte[])peer.get("ip"));
-					int		port		= ((Long)peer.get("port")).intValue();
-					byte[]	peer_id	 	= getAnonymousPeerId( ip_address, port );
+					String	peer_ip_address = new String((byte[])peer.get("ip"));
+					int		peer_port		= ((Long)peer.get("port")).intValue();
+					byte[]	peer_peer_id	= getAnonymousPeerId( peer_ip_address, peer_port );
 						
 					//System.out.println( "recovered " + ip_address + ":" + port );
 					
 					tracker_peer_cache.put( 
-							ip_address, 
-							new TRTrackerResponsePeerImpl(peer_id, ip_address, port ));
+							peer_ip_address, 
+							new TRTrackerResponsePeerImpl(peer_peer_id, peer_ip_address, peer_port ));
 				}
 				
 				return( tracker_peer_cache.size());

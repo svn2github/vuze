@@ -358,7 +358,6 @@ TRTrackerServerProcessorUDP
 		long		uploaded		= 0;
 		long		downloaded		= 0;
 		long		left			= 0;
-		int			num_peers		= 0;
 		int			num_want		= -1;
 		
 		String		key				= null;
@@ -475,7 +474,7 @@ TRTrackerServerProcessorUDP
 				port,
 				client_ip_address,
 				downloaded, uploaded, left,
-				num_peers, num_want );
+				num_want );
 		
 		Map	root = root_out[0];
 		

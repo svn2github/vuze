@@ -56,7 +56,6 @@ TRTrackerServerProcessor
 		long						downloaded,
 		long						uploaded,
 		long						left,
-		int							num_peers,
 		int							num_want )
 	
 		throws Exception
@@ -117,7 +116,7 @@ TRTrackerServerProcessor
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
 						event, peer_id, port, client_ip_address, loopback, key,
-						uploaded, downloaded, left, num_peers,
+						uploaded, downloaded, left,
 						interval );
 				
 					// set num_want to 0 for stopped events as no point in returning peers

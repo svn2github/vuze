@@ -125,8 +125,12 @@ TRHostExternalTorrent
 		return( null );
 	}
   
-  public void
-  addTorrentAnnounceURLSet( URL[] urls ){}
+	public void
+	addTorrentAnnounceURLSet( 
+		URL[] urls )
+	{
+		if ( urls == null ){}
+	}
   
 	
 	public byte[][]

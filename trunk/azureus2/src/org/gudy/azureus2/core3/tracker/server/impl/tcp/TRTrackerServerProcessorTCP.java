@@ -467,7 +467,6 @@ TRTrackerServerProcessorTCP
 				long		uploaded		= 0;
 				long		downloaded		= 0;
 				long		left			= 0;
-				int			num_peers		= 0;
 				int			num_want		= -1;
 				boolean		no_peer_id		= false;
 				boolean		compact			= false;
@@ -550,11 +549,7 @@ TRTrackerServerProcessorTCP
 					}else if ( lhs.equals( "left" )){
 							
 						left = Long.parseLong( rhs );
-						
-					}else if ( lhs.equals( "num_peers" )){
-						
-						num_peers = Integer.parseInt( rhs );
-						
+												
 					}else if ( lhs.equals( "numwant" )){
 						
 						num_want = Integer.parseInt( rhs );
@@ -586,7 +581,7 @@ TRTrackerServerProcessorTCP
 							port,
 							client_ip_address,
 							downloaded, uploaded, left,
-							num_peers, num_want );
+							num_want );
 				
 				root	= root_out[0];
 				

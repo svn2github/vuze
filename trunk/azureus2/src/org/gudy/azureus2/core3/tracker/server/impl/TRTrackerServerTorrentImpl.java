@@ -103,7 +103,6 @@ TRTrackerServerTorrentImpl
 		long		uploaded,
 		long		downloaded,
 		long		left,
-		int			numwant,
 		long		interval_requested )
 	
 		throws Exception
@@ -181,7 +180,7 @@ TRTrackerServerTorrentImpl
 			}
 			
 			if ( !stopped ){			
-													
+						
 				peer = new TRTrackerServerPeerImpl( 
 								peer_id, 
 								tracker_key_hash_code, 

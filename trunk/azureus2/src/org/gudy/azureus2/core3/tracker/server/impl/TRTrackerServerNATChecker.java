@@ -179,9 +179,7 @@ TRTrackerServerNATChecker
 						run()
 						{
 							boolean	ok = false;
-							
-							long	start = SystemTime.getCurrentTime();
-							
+														
 							try{
 								InetSocketAddress address = new InetSocketAddress( host, port );
 								
@@ -198,11 +196,7 @@ TRTrackerServerNATChecker
 							}catch( Throwable e ){
 								
 							}finally{
-								
-								long	now = SystemTime.getCurrentTime();
-
-								// System.out.println( "NAT Check: " + host + ":" + port + " -> " + ok +", time = " + (now-start) + ", queue = " + check_queue.size());
-								
+																
 								listener.NATCheckComplete( ok );
 								
 								if ( socket != null ){
