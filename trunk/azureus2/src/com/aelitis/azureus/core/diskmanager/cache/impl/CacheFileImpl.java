@@ -74,14 +74,15 @@ CacheFileImpl
 	protected final static boolean	TRACE					= true;
 	protected final static boolean	TRACE_CACHE_CONTENTS	= false;
 	
+	protected final static boolean	READAHEAD_ENABLE		= true;
+	protected final static int		READAHEAD_MAX			= 65536;
 	
 	protected CacheFileManagerImpl		manager;
 	protected FMFile					file;
 	
 	protected TreeSet					cache	= new TreeSet(comparator);
 			
-	protected long read_ahead_offset			= -1;
-	protected long read_ahead_size				= 0;
+	protected int read_ahead_size				= 0;
 	
 	protected
 	CacheFileImpl(
@@ -98,26 +99,11 @@ CacheFileImpl
 			
 			TOTorrentFile[]	torrent_files = torrent.getFiles();
 			
-			long	size_so_far	= 0;
-			long	piece_size	= torrent.getPieceLength();
+			read_ahead_size	= (int)torrent.getPieceLength();
 			
-			for (int i=0;i<torrent_files.length;i++){
+			if ( read_ahead_size > READAHEAD_MAX ){
 				
-				TOTorrentFile	tf = torrent_files[i];
-				
-				if ( tf == _torrent_file ){
-					
-					long	first_piece_offset = size_so_far % piece_size;
-					
-					read_ahead_offset	= first_piece_offset;
-					read_ahead_size		= piece_size;
-					
-					//System.out.println( getName() + ": piece offset = " + first_piece_offset );
-					
-				}else{
-					
-					size_so_far += tf.getLength();
-				}
+				read_ahead_size	= READAHEAD_MAX;
 			}
 		}
 	}
@@ -247,17 +233,53 @@ CacheFileImpl
 							
 					file_buffer.position( file_buffer_position );
 					
-					flushCache( file_position, read_length, true, -1 );
-					
-					try{			
-						getFMFile().read( file_buffer, file_position );
+					try{
+						if ( 	READAHEAD_ENABLE &&
+								read_length <  read_ahead_size &&
+								file_position + read_ahead_size <= file.getLength()){
 							
+							System.out.println( "\tread ahead hit" );
+							
+							flushCache( file_position, read_ahead_size, true, -1 );
+							
+							DirectByteBuffer	cache_buffer = DirectByteBufferPool.getBuffer( read_ahead_size );
+							
+							cache_buffer.position(0);
+							
+							cache_buffer.limit( read_ahead_size );
+							
+							getFMFile().read( cache_buffer, file_position );
+		
+							cache_buffer.position(0);
+							
+							CacheEntry	entry = manager.allocateCacheSpace( this, cache_buffer, file_position, read_ahead_size );
+							
+							entry.setClean();
+							
+							cache.add( entry );
+							
+							if ( TRACE_CACHE_CONTENTS ){
+								
+								printCache();
+							}
+
+							readCache( file_buffer, file_position );
+							
+						}else{
+							
+							System.out.println( "\tread head miss" );
+							
+							flushCache( file_position, read_length, true, -1 );
+							
+							getFMFile().read( file_buffer, file_position );
+							
+							manager.fileBytesRead( read_length );
+						}
+						
 					}catch( FMFileManagerException e ){
 							
 						manager.rethrow(e);
-					}
-					
-					manager.fileBytesRead( read_length );
+					}				
 				}
 			}
 		}else{
