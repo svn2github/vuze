@@ -50,11 +50,18 @@ Restarter
 	  		user_path = user_path.substring(0,user_path.length()-1);
 	  	}
 	  	
+	  	String config_override = System.getProperty( SystemProperties.SYS_PROP_CONFIG_OVERRIDE );
+	  	
+	  	if ( config_override == null ){
+	  		
+	  		config_override = "";
+	  	}
+	  	
 	  	String[]	parameters = {
 	  			"restart",
 	  			app_path,
 	  			user_path,
-				System.getProperty( SystemProperties.SYS_PROP_CONFIG_OVERRIDE ),
+				config_override,
 	  	};
 	  	
 	  	restartAzureus(
