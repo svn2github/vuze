@@ -613,34 +613,45 @@ public class TableView
    *
    * @param dataSource data source to add to the table
    */
-  public void addDataSource(final Object dataSource) {
-    synchronized (objectToSortableItem) {
+  public synchronized void addDataSource(final Object dataSource) {
+    try {
       if (objectToSortableItem.containsKey(dataSource) || panel.isDisposed())
         return;
-      try {
+      synchronized (objectToSortableItem) {
         // Since adding to objectToSortableItem is async, there's a chance
         // the item will not be stored in objectToSortableItem before another
         // call here.  So, add it now and null it
         objectToSortableItem.put(dataSource, null);
-        panel.getDisplay().asyncExec(new Runnable() {
-          public void run() {
-            TableRowCore row = new TableRowImpl(TableView.this, dataSource, 
-                                                bSkipFirstColumn);
+      }
+      Display display = panel.getDisplay();
+      display.asyncExec(new Runnable() {
+        public void run() {
+          TableRowCore row = new TableRowImpl(TableView.this, dataSource, 
+                                              bSkipFirstColumn);
 
-            if (iCellHeight > 0)
-              row.setHeight(iCellHeight);
+          if (iCellHeight > 0)
+            row.setHeight(iCellHeight);
 
-            synchronized (objectToSortableItem) {
-              objectToSortableItem.put(dataSource, row);
-            }
+          synchronized (objectToSortableItem) {
+            objectToSortableItem.put(dataSource, row);
           }
-        });
+        }
+      });
 
+      // Wait for row to be created.  Needed for sort calls right after adding
+      // multiple (or one) row.
+      while (!panel.isDisposed() && objectToSortableItem.get(dataSource) == null) {
+        try {
+          if (!display.readAndDispatch())
+            display.sleep();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
-      catch (Exception e) {
-        System.out.println("Error adding row to " + sTableID + " table");
-        e.printStackTrace();
-      }
+
+    } catch (Exception e) {
+      System.out.println("Error adding row to " + sTableID + " table");
+      e.printStackTrace();
     }
   }
 
