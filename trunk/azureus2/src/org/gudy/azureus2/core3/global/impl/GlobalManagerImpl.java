@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.category.Category;
 
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 
+
 /**
  * @author Olivier
  * 
@@ -922,6 +923,17 @@ public class GlobalManagerImpl
           Debug.printStackTrace( e );
         }
       }
+      
+      //load pause/resume state
+      ArrayList pause_data = (ArrayList)map.get( "pause_data" );
+      if( pause_data != null ) {
+        for( int i=0; i < pause_data.size(); i++ ) {
+          byte[] key = (byte[])pause_data.get( i );
+          paused_list.add( new HashWrapper( key ) );
+        }
+      }
+      
+
       // Someone could have mucked with the config file and set weird positions,
       // so fix them up.
       fixUpDownloadManagerPositions();
@@ -1000,11 +1012,22 @@ public class GlobalManagerImpl
           if ( file_priorities != null ) dmMap.put( "file_priorities" , file_priorities );
 
           dmMap.put( "allocated", new Long( dm.isDataAlreadyAllocated() == true ? 1 : 0 ) );
-          
+
 		      list.add(dmMap);
 	      }
 	    }
 	    map.put("downloads", list);
+      
+      //save pause/resume state
+	    if( !paused_list.isEmpty() ) {
+        ArrayList pause_data = new ArrayList();
+        for( int i=0; i < paused_list.size(); i++ ) {
+          HashWrapper hash = (HashWrapper)paused_list.get( i );
+          pause_data.add( hash.getHash() );
+        }
+        map.put( "pause_data", pause_data );
+      }
+      
         
 	    FileUtil.writeResilientConfigFile("downloads.config", map );
   	}finally{
