@@ -62,6 +62,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   //UI Stuff
   private Composite panel;
   private static final int PEER_SIZE = 15;
+  private static final int PACKET_SIZE = 10;
   private static final int OWN_SIZE = 75;
   
   //Comparator Class
@@ -200,6 +201,12 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
         triangle[5] = y0;        
         gcBuffer.fillPolygon(triangle);        
       }
+      
+      int percentSent = peer.getConnection().getIncomingMessageQueue().getPercentDoneOfCurrentMessage();
+      int r1 = r * percentSent / 100;
+      int x1 = x0 + (int) (r1 * Math.cos(angle));
+      int y1 = y0 + (int) (r1 * Math.sin(angle));
+      PieUtils.drawPie(gcBuffer,x1 - PACKET_SIZE / 2,y1 - PACKET_SIZE / 2,PACKET_SIZE,PACKET_SIZE,100);
       
       PieUtils.drawPie(gcBuffer,x - PEER_SIZE / 2,y - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
       
