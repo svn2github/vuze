@@ -33,7 +33,7 @@ public class AverageBytesInItem
 {
   /** Default Constructor */
   public AverageBytesInItem() {
-    super("bytesinave", POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
+    super("bytesinave", ALIGN_TRAIL, POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

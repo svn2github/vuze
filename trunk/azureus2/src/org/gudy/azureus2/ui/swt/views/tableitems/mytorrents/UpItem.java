@@ -38,7 +38,7 @@ public class UpItem
 {
   /** Default Constructor */
   public UpItem(String sTableID) {
-    super("up", 70, sTableID);
+    super("up", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
 
     if (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE))

@@ -38,7 +38,7 @@ public class SecondsDownloadingItem
 {
   /** Default Constructor */
   public SecondsDownloadingItem(String sTableID) {
-    super("secondsdownloading", 70, sTableID);
+    super("secondsdownloading", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

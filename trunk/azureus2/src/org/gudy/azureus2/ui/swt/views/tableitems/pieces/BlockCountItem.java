@@ -32,7 +32,7 @@ public class BlockCountItem
 {
   /** Default Constructor */
   public BlockCountItem() {
-    super("numberofblocks", POSITION_LAST, 65, TableManager.TABLE_TORRENT_PIECES);
+    super("numberofblocks", ALIGN_TRAIL, POSITION_INVISIBLE, 65, TableManager.TABLE_TORRENT_PIECES);
   }
 
   public void refresh(TableCell cell) {

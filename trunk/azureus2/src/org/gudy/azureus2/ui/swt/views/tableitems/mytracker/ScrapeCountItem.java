@@ -32,7 +32,7 @@ public class ScrapeCountItem
 {
   /** Default Constructor */
   public ScrapeCountItem() {
-    super("scrapes", POSITION_LAST, 60, TableManager.TABLE_MYTRACKER);
+    super("scrapes", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

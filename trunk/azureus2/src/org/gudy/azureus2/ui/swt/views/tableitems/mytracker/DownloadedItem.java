@@ -33,7 +33,7 @@ public class DownloadedItem
 {
   /** Default Constructor */
   public DownloadedItem() {
-    super("downloaded", POSITION_LAST, 70, TableManager.TABLE_MYTRACKER);
+    super("downloaded", ALIGN_TRAIL, POSITION_LAST, 70, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

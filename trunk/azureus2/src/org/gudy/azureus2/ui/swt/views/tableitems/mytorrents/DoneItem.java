@@ -38,7 +38,7 @@ public class DoneItem
 {
   /** Default Constructor */
   public DoneItem(String sTableID) {
-    super("done", 55, sTableID);
+    super("done", ALIGN_TRAIL, POSITION_INVISIBLE, 55, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     if (sTableID.equals(TableManager.TABLE_MYTORRENTS_INCOMPLETE))
       setPosition(POSITION_LAST);

@@ -32,7 +32,7 @@ public class AvailabilityItem
 {
   /** Default Constructor */
   public AvailabilityItem() {
-    super("availability", POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
+    super("availability", ALIGN_TRAIL, POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

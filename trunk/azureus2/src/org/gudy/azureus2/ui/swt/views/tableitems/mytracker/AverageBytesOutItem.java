@@ -33,7 +33,7 @@ public class AverageBytesOutItem
 {
   /** Default Constructor */
   public AverageBytesOutItem() {
-    super("bytesoutave", POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
+    super("bytesoutave", ALIGN_TRAIL, POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

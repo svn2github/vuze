@@ -39,7 +39,7 @@ public class RemainingItem
 {
   /** Default Constructor */
   public RemainingItem() {
-    super("remaining", 70, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    super("remaining", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

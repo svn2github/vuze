@@ -38,7 +38,7 @@ public class StatUpItem
 {
   /** Default Constructor */
   public StatUpItem() {
-    super("statup", 65, TableManager.TABLE_TORRENT_PEERS);
+    super("statup", ALIGN_TRAIL, POSITION_INVISIBLE, 65, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

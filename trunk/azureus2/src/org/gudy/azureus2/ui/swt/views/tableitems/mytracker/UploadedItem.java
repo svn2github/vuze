@@ -33,7 +33,7 @@ public class UploadedItem
 {
   /** Default Constructor */
   public UploadedItem() {
-    super("uploaded", POSITION_LAST, 70, TableManager.TABLE_MYTRACKER);
+    super("uploaded", ALIGN_TRAIL, POSITION_LAST, 70, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -32,7 +32,7 @@ public class PeerCountItem
 {
   /** Default Constructor */
   public PeerCountItem() {
-    super("peers", POSITION_LAST, 60, TableManager.TABLE_MYTRACKER);
+    super("peers", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

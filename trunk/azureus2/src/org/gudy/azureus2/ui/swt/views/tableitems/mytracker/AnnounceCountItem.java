@@ -32,7 +32,7 @@ public class AnnounceCountItem
 {
   /** Default Constructor */
   public AnnounceCountItem() {
-    super("announces", POSITION_LAST, 70, TableManager.TABLE_MYTRACKER);
+    super("announces", ALIGN_TRAIL, POSITION_LAST, 70, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

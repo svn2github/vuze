@@ -37,7 +37,7 @@ public class DownItem
 {
   /** Default Constructor */
   public DownItem() {
-    super("download", 70, TableManager.TABLE_TORRENT_PEERS);
+    super("download", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

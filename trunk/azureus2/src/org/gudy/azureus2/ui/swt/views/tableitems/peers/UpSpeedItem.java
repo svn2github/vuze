@@ -38,7 +38,7 @@ public class UpSpeedItem
 {
   /** Default Constructor */
   public UpSpeedItem() {
-    super("uploadspeed", POSITION_LAST, 65, TableManager.TABLE_TORRENT_PEERS);
+    super("uploadspeed", ALIGN_TRAIL, POSITION_LAST, 65, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

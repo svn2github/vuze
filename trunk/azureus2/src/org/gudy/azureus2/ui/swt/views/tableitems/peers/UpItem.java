@@ -38,7 +38,7 @@ public class UpItem
 {
   /** Default Constructor */
   public UpItem() {
-    super("upload", 70, TableManager.TABLE_TORRENT_PEERS);
+    super("upload", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

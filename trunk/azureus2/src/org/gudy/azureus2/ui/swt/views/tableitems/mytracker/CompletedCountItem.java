@@ -33,7 +33,7 @@ public class CompletedCountItem
 {
   /** Default Constructor */
   public CompletedCountItem() {
-    super("completed", POSITION_LAST, 70, TableManager.TABLE_MYTRACKER);
+    super("completed", ALIGN_TRAIL, POSITION_LAST, 70, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

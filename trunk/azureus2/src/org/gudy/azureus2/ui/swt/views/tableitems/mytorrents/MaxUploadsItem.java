@@ -31,7 +31,7 @@ public class MaxUploadsItem
 {
   /** Default Constructor */
   public MaxUploadsItem(String sTableID) {
-    super("maxuploads", 30, sTableID);
+    super("maxuploads", ALIGN_TRAIL, POSITION_INVISIBLE, 30, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

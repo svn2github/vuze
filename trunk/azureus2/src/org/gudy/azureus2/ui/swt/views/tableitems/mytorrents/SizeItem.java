@@ -38,7 +38,7 @@ public class SizeItem
 {
   /** Default Constructor */
   public SizeItem(String sTableID) {
-    super("size", POSITION_LAST, 70, sTableID);
+    super("size", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
   }
 
   public void refresh(TableCell cell) {

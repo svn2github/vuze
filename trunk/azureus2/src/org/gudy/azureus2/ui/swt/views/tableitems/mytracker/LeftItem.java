@@ -33,7 +33,7 @@ public class LeftItem
 {
   /** Default Constructor */
   public LeftItem() {
-    super("left", POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
+    super("left", ALIGN_TRAIL, POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -33,7 +33,7 @@ public class TotalBytesOutItem
 {
   /** Default Constructor */
   public TotalBytesOutItem() {
-    super("bytesout", POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
+    super("bytesout", ALIGN_TRAIL, POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -41,7 +41,7 @@ public class UpSpeedItem
    * @param sTableID
    */
   public UpSpeedItem(String sTableID) {
-    super("upspeed", POSITION_LAST, 70, sTableID);
+    super("upspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

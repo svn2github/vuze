@@ -38,7 +38,7 @@ public class TotalSpeedItem
 {
   /** Default Constructor */
   public TotalSpeedItem(String sTableID) {
-    super("totalspeed", 70, sTableID);
+    super("totalspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

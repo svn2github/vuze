@@ -32,7 +32,7 @@ public class CompletedItem
 {
   /** Default Constructor */
   public CompletedItem() {
-    super("completed", POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
+    super("completed", ALIGN_TRAIL, POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

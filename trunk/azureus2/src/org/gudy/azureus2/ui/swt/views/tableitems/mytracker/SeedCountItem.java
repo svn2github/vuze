@@ -32,7 +32,7 @@ public class SeedCountItem
 {
   /** Default Constructor */
   public SeedCountItem() {
-    super("seeds", POSITION_LAST, 60, TableManager.TABLE_MYTRACKER);
+    super("seeds", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

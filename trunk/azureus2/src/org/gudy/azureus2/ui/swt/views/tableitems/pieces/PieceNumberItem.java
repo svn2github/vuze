@@ -32,7 +32,7 @@ public class PieceNumberItem
 {
   /** Default Constructor */
   public PieceNumberItem() {
-    super("#", POSITION_LAST, 50, TableManager.TABLE_TORRENT_PIECES);
+    super("#", ALIGN_TRAIL, POSITION_INVISIBLE, 50, TableManager.TABLE_TORRENT_PIECES);
   }
 
   public void refresh(TableCell cell) {

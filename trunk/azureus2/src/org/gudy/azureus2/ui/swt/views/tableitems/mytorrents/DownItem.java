@@ -38,7 +38,7 @@ public class DownItem
 {
   /** Default Constructor */
   public DownItem() {
-    super("down", POSITION_LAST, 70, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    super("down", ALIGN_TRAIL, POSITION_LAST, 70, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -37,7 +37,7 @@ public class AllowedUpItem
 {
   /** Default Constructor */
   public AllowedUpItem() {
-    super("allowedup", 70, TableManager.TABLE_TORRENT_PEERS);
+    super("allowedup", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -37,7 +37,7 @@ public class DiscardedItem
 {
   /** Default Constructor */
   public DiscardedItem() {
-    super("discarded", 60, TableManager.TABLE_TORRENT_PEERS);
+    super("discarded", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

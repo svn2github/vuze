@@ -36,7 +36,7 @@ public class RankItem
 {
   /** Default Constructor */
   public RankItem(String sTableID) {
-    super("#", POSITION_LAST, 50, sTableID);
+    super("#", ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

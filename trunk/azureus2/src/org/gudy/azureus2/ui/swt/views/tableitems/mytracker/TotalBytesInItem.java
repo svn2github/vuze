@@ -33,7 +33,7 @@ public class TotalBytesInItem
 {
   /** Default Constructor */
   public TotalBytesInItem() {
-    super("bytesin", POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
+    super("bytesin", ALIGN_TRAIL, POSITION_LAST, 50, TableManager.TABLE_MYTRACKER);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -38,7 +38,7 @@ public class UniquePieceItem
 {
   /** Default Constructor */
   public UniquePieceItem() {
-    super("uniquepiece", 60, TableManager.TABLE_TORRENT_PEERS);
+    super("uniquepiece", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
@@ -48,6 +48,6 @@ public class UniquePieceItem
 
     cell.setSortValue(value);
     cell.setText((value == -1) ? MessageText.getString("PeersView.uniquepiece.none")
-                                        : "" + value);
+                               : "" + value);
   }
 }

@@ -38,7 +38,7 @@ public class TotalDownSpeedItem
 {
   /** Default Constructor */
   public TotalDownSpeedItem() {
-    super("downloadspeedoverall", 65, TableManager.TABLE_TORRENT_PEERS);
+    super("downloadspeedoverall", ALIGN_TRAIL, 65, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -47,7 +47,7 @@ public class DownSpeedItem
 
   /** Default Constructor */
   public DownSpeedItem() {
-    super("downspeed", POSITION_LAST, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+    super("downspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
     setRefreshInterval(INTERVAL_LIVE);
 
     iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);

@@ -37,7 +37,7 @@ public class SecondsSeedingItem
 {
   /** Default Constructor */
   public SecondsSeedingItem(String sTableID) {
-    super("secondsseeding", 70, sTableID);
+    super("secondsseeding", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -44,7 +44,7 @@ public class AvailabilityItem
   
   /** Default Constructor */
   public AvailabilityItem(String sTableID) {
-    super("availability", 50, sTableID);
+    super("availability", ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
 
     iTimesBy = 1;

@@ -36,7 +36,7 @@ public class PortItem
 {
   /** Default Constructor */
   public PortItem() {
-    super("port", 40, TableManager.TABLE_TORRENT_PEERS);
+    super("port", ALIGN_TRAIL, POSITION_INVISIBLE, 40, TableManager.TABLE_TORRENT_PEERS);
   }
 
   public void refresh(TableCell cell) {
