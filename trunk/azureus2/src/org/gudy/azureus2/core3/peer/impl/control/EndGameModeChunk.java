@@ -20,6 +20,7 @@
  */
 package org.gudy.azureus2.core3.peer.impl.control;
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 
@@ -41,7 +42,7 @@ public class EndGameModeChunk {
     this.blockNumber = blockNumber;
     this.pieceNumber = piece.getPieceNumber();
     this.length = piece.getBlockSize(blockNumber);
-    this.offset = PEPeerManager.BLOCK_SIZE * blockNumber;
+    this.offset = DiskManager.BLOCK_SIZE * blockNumber;
   }
   
   public boolean compare(int pieceNumber,int offset) {

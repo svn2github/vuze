@@ -24,6 +24,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -137,7 +138,7 @@ public class BlocksItem
         
         int pieceNumber = piece.getPieceNumber();
         int length = piece.getBlockSize(i);
-        int offset = PEPeerControl.BLOCK_SIZE * i;        
+        int offset = DiskManager.BLOCK_SIZE * i;        
         long bytes = cacheStats == null ? 0 : cacheStats.getBytesInCache(torrent,pieceNumber,offset,length);
         // System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
         if(bytes == length) {

@@ -11,6 +11,7 @@ import java.util.*;
 import java.math.*;
 
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
@@ -46,7 +47,7 @@ DirectByteBufferPool
   	// 16K data reads result in a buffer slightly bigger than 16K due to protocol header
   	// This means we would bump up to 32K pool entries, hence wasting 16K per 16K entry
   	
-  private static final int[]	EXTRA_BUCKETS = { 128, PEPeerManager.BLOCK_SIZE + 128 };
+  private static final int[]	EXTRA_BUCKETS = { 128, DiskManager.BLOCK_SIZE + 128 };
   
   
   public static final int MAX_SIZE = BigInteger.valueOf(2).pow(END_POWER).intValue();

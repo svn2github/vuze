@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.peer.*;
 
 /**
  * @author parg

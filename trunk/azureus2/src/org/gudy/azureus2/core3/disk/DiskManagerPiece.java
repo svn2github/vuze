@@ -43,6 +43,9 @@ DiskManagerPiece
 	setDone(
 		boolean		done );
 	
+	public int
+	getBlockCount();
+	
 	public boolean
 	getWritten(
 		int		block_number );

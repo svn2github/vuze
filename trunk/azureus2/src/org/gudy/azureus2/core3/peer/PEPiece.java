@@ -88,15 +88,10 @@ PEPiece
   public boolean isBeingChecked();
   
   public int getAndMarkBlock();
-  
-  public void setManager(PEPeerManager manager);
-  
+   
   public PEPeerManager getManager();
   
   public boolean isWritten(int blockNumber);
   
   public void setBlockWritten(int blockNumber);
-  
-  public void free();
-    
 }

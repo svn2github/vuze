@@ -875,7 +875,7 @@ PEPeerControlImpl
               //get the piece offset
               PEPiece piece = _pieces[pieceNumber]; //get the piece
               if (piece != null)
-                piece.unmarkBlock(pieceOffset / BLOCK_SIZE);
+                piece.unmarkBlock(pieceOffset / DiskManager.BLOCK_SIZE);
               //unmark the block
               _downloading[pieceNumber] = false;
               //set piece to not being downloaded
@@ -893,7 +893,7 @@ PEPeerControlImpl
               //get the piece offset
               PEPiece piece = _pieces[pieceNumber]; //get the piece
               if (piece != null)
-                piece.unmarkBlock(pieceOffset / BLOCK_SIZE);
+                piece.unmarkBlock(pieceOffset / DiskManager.BLOCK_SIZE);
               //unmark the block
               _downloading[pieceNumber] = false;
               //set piece to not being downloaded
@@ -1104,7 +1104,7 @@ PEPeerControlImpl
       _pieces[pieceNumber].setSlowPiece(slowPeer);
       
       //We really send the request to the peer
-      pc.request(pieceNumber, blockNumber * BLOCK_SIZE, _pieces[pieceNumber].getBlockSize(blockNumber));
+      pc.request(pieceNumber, blockNumber * DiskManager.BLOCK_SIZE, _pieces[pieceNumber].getBlockSize(blockNumber));
 
       //and return true as we have found a block to request
       return true;
@@ -1141,7 +1141,7 @@ PEPeerControlImpl
     //if (snubbed)
     //  _pieces[pieceNumber].unmarkBlock(blockNumber);
 
-    pc.request(pieceNumber, blockNumber * BLOCK_SIZE, piece.getBlockSize(blockNumber));
+    pc.request(pieceNumber, blockNumber * DiskManager.BLOCK_SIZE, piece.getBlockSize(blockNumber));
     return true;
   }
 
@@ -1572,7 +1572,7 @@ PEPeerControlImpl
     int pieceOffset = request.getOffset(); //get the piece offset    
     PEPiece piece = _pieces[pieceNumber]; //get the piece
     if (piece != null)
-      piece.unmarkBlock(pieceOffset / BLOCK_SIZE);
+      piece.unmarkBlock(pieceOffset / DiskManager.BLOCK_SIZE);
     //set as not being retrieved
     _downloading[pieceNumber] = false; //mark as not downloading
   }
@@ -1683,13 +1683,13 @@ PEPeerControlImpl
   public void blockWritten(int pieceNumber, int offset, Object user_data) {
     PEPiece piece = _pieces[pieceNumber];
     if (piece != null) {
-      piece.setWritten((PEPeer)user_data,offset / BLOCK_SIZE);
+      piece.setWritten((PEPeer)user_data,offset / DiskManager.BLOCK_SIZE);
     }    
   }
 
   public void writeBlock(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender) {
     PEPiece piece = _pieces[pieceNumber];
-    int blockNumber = offset / BLOCK_SIZE;
+    int blockNumber = offset / DiskManager.BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
       _diskManager.enqueueWriteRequest(pieceNumber, offset, data, sender, this );
@@ -1723,7 +1723,7 @@ PEPeerControlImpl
    */
   public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender) {
     PEPiece piece = _pieces[pieceNumber];
-    int blockNumber = offset / BLOCK_SIZE;
+    int blockNumber = offset / DiskManager.BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
       _diskManager.enqueueWriteRequest(pieceNumber, offset, data, sender, this);
@@ -1748,7 +1748,7 @@ PEPeerControlImpl
   
   public boolean isBlockAlreadyWritten( int piece_number, int offset ) {
     PEPiece piece = _pieces[ piece_number ];
-    int block_number = offset / BLOCK_SIZE;
+    int block_number = offset / DiskManager.BLOCK_SIZE;
     if( piece != null && piece.isWritten( block_number ) ) {
       return true;
     }
@@ -1908,7 +1908,7 @@ PEPeerControlImpl
     int writtenNotChecked = 0;
     for (int i = 0; i < _pieces.length; i++) {
       if (_pieces[i] != null) {
-        writtenNotChecked += _pieces[i].getCompleted() * BLOCK_SIZE;
+        writtenNotChecked += _pieces[i].getCompleted() * DiskManager.BLOCK_SIZE;
       }
     }
     
@@ -2159,11 +2159,11 @@ PEPeerControlImpl
     if( result && piece != null ) pieceRemoved(piece);
     
     if( _finished ) {  //this is a recheck, so don't send HAVE msgs
+    	
       if( result) { //piece ok
         
-      }
-      else {  //piece failed
-        //restart the download afresh
+      }else{  	//piece failed
+      			//restart the download afresh
       	
         Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
         
@@ -2174,12 +2174,13 @@ PEPeerControlImpl
         	_downloadManager.restartDownload( false );
         }
       }
+      
       return;
     }
     
-    //  the piece has been written correctly
+    	//  the piece has been written correctly
+    
     if (result) {
-
       
       if(piece != null) {
         
@@ -2224,14 +2225,12 @@ PEPeerControlImpl
             }            
           }
         }
-        
-        
-        piece.free();
       }
            
       _pieces[pieceNumber] = null;
 
-      //send all clients an have message
+      	//send all clients a have message
+      
       sendHave(pieceNumber);
       
     }else{
@@ -2261,26 +2260,30 @@ PEPeerControlImpl
         
         piece.reset();
       }
-      //Mark this piece as non downloading
+       //Mark this piece as non downloading
+       
       _downloading[pieceNumber] = false;
             
-      //if we are in end-game mode, we need to re-add all the piece chunks
-      //to the list of chunks needing to be downloaded
+      	//if we are in end-game mode, we need to re-add all the piece chunks
+      	//to the list of chunks needing to be downloaded
+      
       if(endGameMode && piece != null ) {
         try{
         	endGameModeChunks_mon.enter();
         
-          int nbChunks = piece.getNbBlocs();
-          for(int i = 0 ; i < nbChunks ; i++) {
-            endGameModeChunks.add(new EndGameModeChunk(_pieces[pieceNumber],i));
-          }
+        	int nbChunks = piece.getNbBlocs();
+        	
+        	for(int i = 0 ; i < nbChunks ; i++) {
+        		endGameModeChunks.add(new EndGameModeChunk(_pieces[pieceNumber],i));
+        	}
         }finally{
         	
         	endGameModeChunks_mon.exit();
         }
       }
       
-      //We haven't finished (to recover from a wrong finish state)
+      	//We haven't finished (to recover from a wrong finish state)
+      
       _finished = false;
          
       nbHashFails++;

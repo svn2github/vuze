@@ -27,11 +27,8 @@ package org.gudy.azureus2.core3.disk.impl;
  *
  */
 
-import java.util.ArrayList;
-import java.util.List;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
@@ -59,7 +56,7 @@ DiskManagerPieceImpl
 		piece_index		= _piece_index;
 		length 			= _length;
 		
-		int	nbBlocs = (length + PEPeerManager.BLOCK_SIZE - 1) / PEPeerManager.BLOCK_SIZE;
+		int	nbBlocs = (length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
 
 		written 	= new boolean[nbBlocs];
 
@@ -76,6 +73,12 @@ DiskManagerPieceImpl
 	getLength()
 	{
 		return( length );
+	}
+	
+	public int
+	getBlockCount()
+	{
+		return( written.length );
 	}
 	
 	public boolean
@@ -137,6 +140,7 @@ DiskManagerPieceImpl
 	  reset()
 	  {
 	    written = new boolean[written.length];
+	    
 	    completed = 0;
 	  }
 }

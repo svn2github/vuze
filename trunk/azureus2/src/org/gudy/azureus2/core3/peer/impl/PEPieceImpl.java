@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -39,10 +40,7 @@ PEPieceImpl
 	implements PEPiece
 {  
   protected DiskManagerPiece	dm_piece;
-	
-  public int nbBlocs;
-  public int lastBlocSize;
-
+	 
   public boolean[] downloaded;
   public boolean[] requested;
   
@@ -56,6 +54,7 @@ PEPieceImpl
   //Slow peers can only continue/create slow pieces
   //Fast peers can't continue/create slow pieces
   //In end game mode, this limitation isn't used
+   
   private boolean slowPiece;
   
   public PEPeerManager manager;
@@ -74,20 +73,14 @@ PEPieceImpl
 	dm_piece	= _dm_piece;
 	slowPiece	= _slow_piece;
 	
-	int	length = dm_piece.getLength();
+	int	length 		= dm_piece.getLength();
 	
-	nbBlocs = (length + PEPeerManager.BLOCK_SIZE - 1) / PEPeerManager.BLOCK_SIZE;
-	downloaded = new boolean[nbBlocs];
-	requested = new boolean[nbBlocs];
-	writers = new PEPeer[nbBlocs];
+	int	nbBlocs 	= (length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
+	
+	downloaded 	= new boolean[nbBlocs];
+	requested 	= new boolean[nbBlocs];
+	writers 	= new PEPeer[nbBlocs];
 	writes 		= new ArrayList(0);
-
-	if ((length % PEPeerManager.BLOCK_SIZE) != 0)
-	  lastBlocSize = length % PEPeerManager.BLOCK_SIZE;
-	else
-	  lastBlocSize = PEPeerManager.BLOCK_SIZE;
-	
-
   }
 
   
@@ -124,11 +117,15 @@ PEPieceImpl
 
   // This method will return the first non requested bloc and
   // will mark it as requested
+  
   public int getAndMarkBlock() {
   	try{
 	  	class_mon.enter();
-	  	
+	
+		int	nbBlocs 	= dm_piece.getBlockCount();
+
 		int blocNumber = -1;
+		
 		for (int i = 0; i < nbBlocs; i++) {
 		  if (!requested[i] && !dm_piece.getWritten(i)) {
 			blocNumber = i;
@@ -169,15 +166,22 @@ PEPieceImpl
   	}
   }
 
-  public int getBlockSize(int blocNumber) {
-	if (blocNumber == (nbBlocs - 1))
-	  return lastBlocSize;
-	return PEPeerManager.BLOCK_SIZE;
+  public int 
+  getBlockSize(
+  	int blocNumber) 
+  {
+	if ( blocNumber == (dm_piece.getBlockCount() - 1)){
+	
+		int	length = dm_piece.getLength();
+		
+		if ((length % DiskManager.BLOCK_SIZE) != 0){
+		
+			return( length % DiskManager.BLOCK_SIZE );
+		}
+	}
+	
+	return DiskManager.BLOCK_SIZE;
   }
-
-  public void free() {
-  }
-
 
   public int getPieceNumber(){
   	return( dm_piece.getPieceNumber() );
@@ -186,7 +190,7 @@ PEPieceImpl
   	return( dm_piece.getLength() );
   }
   public int getNbBlocs(){
-  	return( nbBlocs );  
+  	return( dm_piece.getBlockCount() );  
   }
   
   public void setBeingChecked() {
@@ -265,9 +269,13 @@ PEPieceImpl
   
   public void reset() {
   	dm_piece.reset();
-    downloaded = new boolean[nbBlocs];
-    requested = new boolean[nbBlocs];
-     writers = new PEPeer[nbBlocs];
+  	
+  	int	nbBlocs = dm_piece.getBlockCount();
+  	
+    downloaded 	= new boolean[nbBlocs];
+    requested 	= new boolean[nbBlocs];
+    writers 	= new PEPeer[nbBlocs];
+    
     isBeingChecked = false;
  
   }

@@ -43,8 +43,6 @@ PEPeerManager
 	public static final int PS_SEEDING		= 3;
 	public static final int PS_STOPPED		= 4;
 	
-	public static final int BLOCK_SIZE = 16384;
-
 	/**
 	 * get the state from above PS_ set
 	 * @return

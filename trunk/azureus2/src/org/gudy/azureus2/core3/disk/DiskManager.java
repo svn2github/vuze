@@ -34,6 +34,9 @@ DiskManager
 	public static final int CHECKING = 3;
 	public static final int READY = 4;
 	public static final int FAULTY = 10;
+	
+	
+	public static final int BLOCK_SIZE = 16384;
 
 	/**
 	 * Start checking/allocating

@@ -30,6 +30,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.*;
@@ -109,7 +110,7 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     String label_text = 
     	MessageText.getString( 
     		"ConfigView.section.file.write_block_limit", 
-    		new String[]{ DisplayFormatters.formatByteCountToKiBEtc( PEPeerManager.BLOCK_SIZE )});
+    		new String[]{ DisplayFormatters.formatByteCountToKiBEtc( DiskManager.BLOCK_SIZE )});
     label.setText(label_text);
     IntParameter write_block_limit = new IntParameter(cSection, "DiskManager Write Queue Block Limit", 0);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
