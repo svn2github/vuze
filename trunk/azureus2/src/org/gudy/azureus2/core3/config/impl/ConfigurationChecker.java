@@ -245,13 +245,15 @@ public class ConfigurationChecker {
    * Migrates old user files/dirs from application dir to user dir
    */
   private static void migrateOldConfigFiles() {
+    if ( COConfigurationManager.getBooleanParameter("Already_Migrated", false)) {
+      return;
+    }
+    
     String[] fileNames = { "categories.config", "azureus.config",
         "downloads.config", "filters.config", ".certs", ".keystore",
         "azureus.statistics", "tracker.log", "tracker.config",
-        "trackers.config", "sharing.config" };
-    //String[] dirNames = { "plugins", "shares", "web" };
+        "trackers.config", "sharing.config", "plugins", "shares", "web" };
     
-    //migrate files
     for (int i=0; i < fileNames.length; i++) {
       File oldFile = FileUtil.getApplicationFile( fileNames[i] );
       if ( oldFile.exists() ) {
@@ -262,6 +264,9 @@ public class ConfigurationChecker {
         else System.out.println(" ...FAILED");
       }
     }
+    
+    ConfigurationManager.getInstance().load();
+    COConfigurationManager.setParameter("Already_Migrated",true);
     
   }
   
