@@ -120,6 +120,28 @@ public class ByteFormatter
     return out;
   }
 
-
-
+  public static String
+  encodeString(
+  	byte[]		bytes )
+  {
+  	return( nicePrint( bytes, true ));
+  }
+  
+  public static byte[]
+  decodeString(
+  	String		str )
+  {
+  	char[]	chars = str.toCharArray();
+  	
+  	byte[]	res = new byte[chars.length/2];
+  	
+  	for (int i=0;i<chars.length;i+=2){
+ 
+  		String	b = new String(chars,i,2);
+   		
+  		res[i/2] = (byte)Integer.parseInt(b,16);
+  	}
+  	
+  	return( res );
+  }
 }

@@ -72,7 +72,8 @@ TrackerWebDefaultTrackerPlugin
 				
 				String	hash_str = str.substring(pos+1);
 				
-				byte[]	hash = URLDecoder.decode( hash_str, Constants.BYTE_ENCODING ).getBytes( Constants.BYTE_ENCODING );
+				//byte[]	hash = URLDecoder.decode( hash_str, Constants.BYTE_ENCODING ).getBytes( Constants.BYTE_ENCODING );
+				byte[]	hash = ByteFormatter.decodeString( hash_str );
 				
 				synchronized( this ){
 					

@@ -91,26 +91,7 @@ ShareManagerImpl
 			share_dir = FileUtil.getApplicationFile( TORRENT_STORE );
 			
 			share_dir.mkdirs();
-			
-			String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-	
-			if ( tracker_ip.length() == 0 ){
 				
-				throw( new ShareException( "ShareManager: tracker must be configured"));
-			}
-			
-			// port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
-									
-			int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-					
-			try{
-				announce_url = new URL( "http://" + tracker_ip + ":" + port + "/announce" );
-				
-			}catch( MalformedURLException e ){
-				
-				throw( new ShareException( "Announce URL invalid", e ));
-			}
-	
 			reportCurrentTask( "Loading configuration");
 			
 			config = new ShareConfigImpl();
@@ -321,7 +302,32 @@ ShareManagerImpl
 	
 	protected URL
 	getAnnounceURL()
+	
+		throws ShareException
 	{
+		if ( announce_url == null ){
+			
+			String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+			
+			if ( tracker_ip.length() == 0 ){
+				
+				throw( new ShareException( "ShareManager: tracker must be configured"));
+			}
+			
+			// port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+			
+			int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+			
+			try{
+				announce_url = new URL( "http://" + tracker_ip + ":" + port + "/announce" );
+				
+			}catch( MalformedURLException e ){
+				
+				throw( new ShareException( "Announce URL invalid", e ));
+			}
+			
+		}
+		
 		return( announce_url );
 	}
 	

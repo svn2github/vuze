@@ -272,7 +272,8 @@ TrackerWeb
 			
 			Torrent	torrent = tracker_torrent.getTorrent();
 			
-			String	hash_str = URLEncoder.encode( new String( torrent.getHash(), Constants.BYTE_ENCODING ), Constants.BYTE_ENCODING );
+			//String	hash_str = URLEncoder.encode( new String( torrent.getHash(), Constants.BYTE_ENCODING ), Constants.BYTE_ENCODING );
+			String	hash_str = ByteFormatter.encodeString( torrent.getHash());
 			
 			String	torrent_name = torrent.getName();
 			
