@@ -100,11 +100,27 @@ public class DirectoryPanel extends AbstractWizardPanel {
         DirectoryDialog fd = new DirectoryDialog(wizard.getWizardWindow());
         if (wizard.getErrorMessage().equals("") && !((NewTorrentWizard) wizard).directoryPath.equals("")) {
           fd.setFilterPath(((NewTorrentWizard) wizard).directoryPath);
+        }else{
+        	String	def = ((NewTorrentWizard) wizard).getDefaultOpenDir();
+        	
+        	if ( def.length() > 0 ){
+        		
+        		fd.setFilterPath( def );
+        	}
         }
         String f = fd.open();
-        if (f != null)
+        if (f != null){
           file.setText(f);
-
+          
+          File	ff = new File(f);
+          
+          String	parent = ff.getParent();
+          
+          if ( parent != null ){
+          	
+          	((NewTorrentWizard) wizard).setDefaultOpenDir( parent );
+          }
+        }
       }
     });
     Messages.setLanguageText(browse, "wizard.browse");

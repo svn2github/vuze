@@ -100,10 +100,27 @@ public class SingleFilePanel extends AbstractWizardPanel {
         FileDialog fd = new FileDialog(wizard.getWizardWindow());
         if (wizard.getErrorMessage().equals("") && !((NewTorrentWizard) wizard).singlePath.equals("")) {
           fd.setFileName(((NewTorrentWizard) wizard).singlePath);
+        }else{
+        	String	def = ((NewTorrentWizard) wizard).getDefaultOpenDir();
+        	
+        	if ( def.length() > 0 ){
+        		
+        		fd.setFilterPath( def );
+        	}
         }
         String f = fd.open();
-        if (f != null)
-          file.setText(f);
+        if (f != null){
+            file.setText(f);
+            
+            File	ff = new File(f);
+            
+            String	parent = ff.getParent();
+            
+            if ( parent != null ){
+            	
+            	((NewTorrentWizard) wizard).setDefaultOpenDir( parent );
+            }
+          }
 
       }
     });

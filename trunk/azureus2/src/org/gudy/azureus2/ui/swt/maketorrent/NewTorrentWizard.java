@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 import com.aelitis.azureus.core.*;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
@@ -41,8 +42,14 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
  * @author Olivier
  *  
  */
-public class NewTorrentWizard extends Wizard {
+public class 
+NewTorrentWizard 
+	extends Wizard 
+{
 
+	static String	default_open_dir = COConfigurationManager.getStringParameter( "CreateTorrent.default.open", "" );
+	static String	default_save_dir = COConfigurationManager.getStringParameter( "CreateTorrent.default.save", "" );
+	
   //false : singleMode, true: directory
   boolean create_from_dir;
   String singlePath = "";
@@ -74,6 +81,36 @@ public class NewTorrentWizard extends Wizard {
     
   }
 
+  protected String
+  getDefaultOpenDir()
+  {
+  	return( default_open_dir );
+  }
+  
+  protected void
+  setDefaultOpenDir(
+  	String		d )
+  {
+  	default_open_dir	= d;
+  	
+  	COConfigurationManager.setParameter( "CreateTorrent.default.open", default_open_dir );
+  }
+  
+  protected String
+  getDefaultSaveDir()
+  {
+  	return( default_save_dir );
+  }
+  
+  protected void
+  setDefaultSaveDir(
+  	String		d )
+  {
+  	default_save_dir	= d;
+  	
+ 	COConfigurationManager.setParameter( "CreateTorrent.default.save", default_save_dir );
+  }
+  
   void setComment(String s) {
     comment = s;
   }

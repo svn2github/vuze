@@ -53,8 +53,8 @@ public class SavePathPanel extends AbstractWizardPanel {
 	protected long	piece_size;
 	protected long	piece_count;	
 
-  public SavePathPanel(NewTorrentWizard wizard,AbstractWizardPanel previousPanel) {
-    super(wizard,previousPanel);
+  public SavePathPanel(NewTorrentWizard _wizard,AbstractWizardPanel _previousPanel) {
+    super(_wizard,_previousPanel);
   }
   
   /* (non-Javadoc)
@@ -101,11 +101,33 @@ public class SavePathPanel extends AbstractWizardPanel {
         wizard.setFinishEnabled(!((NewTorrentWizard)wizard).savePath.equals("") && error.equals(""));
       }
     });
+    
+    	// if we have a default save dir then use this as the basis for save location
+    
+    String	target_file;
+    
     if(((NewTorrentWizard)wizard).create_from_dir) {
-      ((NewTorrentWizard)wizard).savePath = ((NewTorrentWizard)wizard).directoryPath + ".torrent";
+    	target_file = ((NewTorrentWizard)wizard).directoryPath + ".torrent";
     } else {      
-      ((NewTorrentWizard)wizard).savePath = ((NewTorrentWizard)wizard).singlePath + ".torrent";
+    	target_file = ((NewTorrentWizard)wizard).singlePath + ".torrent";
     }
+    
+    String	default_save = ((NewTorrentWizard)wizard).getDefaultSaveDir();
+    
+    if (default_save.length() > 0 ){
+    
+    	File temp = new File( target_file );
+    	
+    	String	existing_parent = temp.getParent();
+    	
+    	if ( existing_parent != null ){
+    		
+    		target_file	= new File( default_save, temp.getName()).toString();
+    	}
+    }
+    
+    ((NewTorrentWizard)wizard).savePath = target_file;
+    
     file.setText(((NewTorrentWizard)wizard).savePath);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     file.setLayoutData(gridData);
@@ -120,9 +142,18 @@ public class SavePathPanel extends AbstractWizardPanel {
           fd.setFileName(((NewTorrentWizard)wizard).savePath);
         }
         String f = fd.open();
-        if(f != null)
-          file.setText(f);      
-
+        if (f != null){
+            file.setText(f);
+            
+            File	ff = new File(f);
+            
+            String	parent = ff.getParent();
+            
+            if ( parent != null ){
+            	
+            	((NewTorrentWizard) wizard).setDefaultSaveDir( parent );
+            }
+          }
       }
     });   
     Messages.setLanguageText(browse,"wizard.browse");
