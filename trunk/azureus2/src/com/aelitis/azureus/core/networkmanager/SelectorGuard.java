@@ -52,7 +52,7 @@ public class SelectorGuard {
   private int num_keys_selected;
   
   private HashMap conseq_keys = new HashMap();
-  private static final int CONSEQ_SELECT_THRESHOLD = 200;
+  private static final int CONSEQ_SELECT_THRESHOLD = 1000;
   
   
   
