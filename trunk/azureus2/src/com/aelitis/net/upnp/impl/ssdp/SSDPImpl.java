@@ -56,6 +56,7 @@ SSDPImpl
 	protected List			mc_bind_addresses		= new ArrayList();
 		
 	protected boolean		first_response			= true;
+	protected boolean		ttl_problem_reported	= false;
 	
 	protected List			listeners	= new ArrayList();
 	
@@ -124,7 +125,12 @@ SSDPImpl
 							
 						}catch( Throwable e ){
 							
-							Debug.printStackTrace( e );
+							if ( !ttl_problem_reported ){
+								
+								ttl_problem_reported	= true;
+								
+								Debug.printStackTrace( e );
+							}
 						}
 						
 						mc_sock.bind( bind_address );
