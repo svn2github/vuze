@@ -40,12 +40,12 @@ DownloadAnnounceResultImpl
 	implements DownloadAnnounceResult
 {
 	protected DownloadImpl			download;
-	protected TRTrackerResponse		response;
+	protected TRTrackerAnnouncerResponse		response;
 
 	protected
 	DownloadAnnounceResultImpl(
 		DownloadImpl		_download,
-		TRTrackerResponse	_response )
+		TRTrackerAnnouncerResponse	_response )
 	{
 		download	= _download;
 		response	= _response;
@@ -53,7 +53,7 @@ DownloadAnnounceResultImpl
 	
 	protected void
 	setContent(
-		TRTrackerResponse	_response )
+		TRTrackerAnnouncerResponse	_response )
 	{
 		response = _response;
 	}
@@ -74,7 +74,7 @@ DownloadAnnounceResultImpl
 		
 		int status = response.getStatus();
 		
-		if ( status == TRTrackerResponse.ST_ONLINE ){
+		if ( status == TRTrackerAnnouncerResponse.ST_ONLINE ){
 			
 			return( RT_SUCCESS );
 		}else{

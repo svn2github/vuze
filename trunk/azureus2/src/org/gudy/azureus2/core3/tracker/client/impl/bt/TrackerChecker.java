@@ -2,13 +2,14 @@
  * Created on 22 juil. 2003
  *
  */
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.util.*;
 import java.net.*;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -26,7 +27,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
 
   /** TRTrackerScraperImpl object associated with this object.
    */
-  private TRTrackerScraperImpl    scraper;
+  private TRTrackerBTScraperImpl    scraper;
   
   /* Time when next scrape needs to be performed. */
   private long lNextScrapeTime = 0;
@@ -45,9 +46,10 @@ public class TrackerChecker implements TRTrackerScraperListener {
    *
    * XXX: would Timer be better? "Timer tasks should complete quickly"
    */
-  protected TrackerChecker(TRTrackerScraperImpl  _scraper) {
+  protected TrackerChecker(TRTrackerBTScraperImpl  _scraper) {
     scraper   = _scraper;
-    scraper.addListener(this);
+    
+    scraper.getScraper().addListener(this);
     
     trackers  = new HashMap();
     
@@ -71,7 +73,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
   protected 
   TRTrackerScraperResponseImpl 
   getHashData(
-  	TRTrackerClient tracker_client) 
+  	TRTrackerAnnouncer tracker_client) 
   {
     try {
       return getHashData(tracker_client.getTrackerUrl(), 
@@ -135,7 +137,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
       }
     } else {
       //System.out.println( "adding hash for " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
-      final TrackerStatus ts = new TrackerStatus(scraper,trackerUrl);
+      final TrackerStatus ts = new TrackerStatus(scraper.getScraper(),trackerUrl);
       try{
       	trackers_mon.enter();
       	
@@ -264,7 +266,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
   		this_mon.enter();
   	
 	    // search for the next scrape
-	    TRTrackerScraperResponseImpl nextResponse = null;
+	    TRTrackerBTScraperResponseImpl nextResponse = null;
 	    long lNewNextScrapeTime = 0;
 	
 	    try{
@@ -280,7 +282,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
 	        	
 	          Iterator iterHashes = hashmap.values().iterator();
 	          while( iterHashes.hasNext() ) {
-	            TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)iterHashes.next();
+	            TRTrackerBTScraperResponseImpl response = (TRTrackerBTScraperResponseImpl)iterHashes.next();
 	            long lResponseNextScrapeTime = response.getNextScrapeStartTime();
 	            if ((response.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) &&
 	                (nextResponse == null || lResponseNextScrapeTime < lNewNextScrapeTime) && 
@@ -319,15 +321,23 @@ public class TrackerChecker implements TRTrackerScraperListener {
   // TRTrackerScraperListener
   /** Check if the new scrape's next scrape time is next in line.
     */
-  public void scrapeReceived(TRTrackerScraperResponse response) {
-    long lResponseNextScrapeTime = response.getNextScrapeStartTime();
-    if (lResponseNextScrapeTime < lNextScrapeTime) {
-      // next in line
-      nextTrackerStatus = ((TRTrackerScraperResponseImpl)response).getTrackerStatus();
-      nextTrackerHash = response.getHash();
-      lNextScrapeTime = lResponseNextScrapeTime;
-      //System.out.println("Next Scrape Time set to " + lNextScrapeTime);
-      // XXX Timer.schedule(timetask, ..)
-    }
+  public void 
+  scrapeReceived(
+  		TRTrackerScraperResponse _response) 
+  {
+  	if ( _response instanceof TRTrackerBTScraperResponseImpl){
+  		
+  		TRTrackerBTScraperResponseImpl	response = (TRTrackerBTScraperResponseImpl)_response;
+  		
+	    long lResponseNextScrapeTime = response.getNextScrapeStartTime();
+	    if (lResponseNextScrapeTime < lNextScrapeTime) {
+	      // next in line
+	      nextTrackerStatus = response.getTrackerStatus();
+	      nextTrackerHash = response.getHash();
+	      lNextScrapeTime = lResponseNextScrapeTime;
+	      //System.out.println("Next Scrape Time set to " + lNextScrapeTime);
+	      // XXX Timer.schedule(timetask, ..)
+	    }
+  	}
   }
 }

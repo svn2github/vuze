@@ -715,7 +715,7 @@ DownloadImpl
 	
 	public void
 	announceResult(
-		TRTrackerResponse			response )
+		TRTrackerAnnouncerResponse			response )
 	{
 		last_announce_result.setContent( response );
 		
@@ -843,7 +843,7 @@ DownloadImpl
 	public void
 	torrentChanged()
 	{
-		TRTrackerClient	client = download_manager.getTrackerClient();
+		TRTrackerAnnouncer	client = download_manager.getTrackerClient();
 		
 		if ( client != null ){
 			

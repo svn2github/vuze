@@ -1,5 +1,5 @@
 /*
- * File    : TRTrackerClientException.java
+ * File    : TRTrackerResponsePeerImpl.java
  * Created : 5 Oct. 2003
  * By      : Parg 
  * 
@@ -19,25 +19,54 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client;
+package org.gudy.azureus2.core3.tracker.client.impl;
 
+
+import org.gudy.azureus2.core3.tracker.client.*;
 
 public class 
-TRTrackerClientException
-	extends Exception 
+TRTrackerAnnouncerResponsePeerImpl
+	implements TRTrackerAnnouncerResponsePeer
 {
-	public
-	TRTrackerClientException(
-		String	str )
-	{
-		super( str );
-	}
+	private String		source;
+	private byte[]		peer_id;
+	private String		address;
+	private int			port;
 	
 	public
-	TRTrackerClientException(
-		String		str,
-		Throwable	cause )
+	TRTrackerAnnouncerResponsePeerImpl(
+		String		_source,
+		byte[]		_peer_id,
+		String		_address,
+		int			_port )
 	{
-		super( str, cause );
+		source		= _source;
+		peer_id		= _peer_id;
+		address		= _address;
+		port		= _port;
+	}
+	
+	public String
+	getSource()
+	{
+		return( source );
+	}
+	
+	public byte[]
+	getPeerID()
+	{
+		return( peer_id );
+	}
+	
+	public String
+	getAddress()
+	{
+		return( address );
+	}
+	
+	public int
+	getPort()
+	{
+		return( port );
 	}
 }

@@ -37,7 +37,7 @@ PEPeerControlFactory {
 	public static PEPeerControl
 	create(
 		DownloadManager 	manager,
-		TRTrackerClient 	tracker,
+		TRTrackerAnnouncer 	tracker,
 		DiskManager 		diskManager )
 	{
 		return( new PEPeerControlImpl( manager, tracker, diskManager ));

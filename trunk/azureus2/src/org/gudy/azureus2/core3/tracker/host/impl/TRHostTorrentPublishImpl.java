@@ -180,7 +180,7 @@ TRHostTorrentPublishImpl
 	{		
 		TRTrackerScraperResponse resp = null;
 		
-		TRTrackerClient tc = host.getTrackerClient( this );
+		TRTrackerAnnouncer tc = host.getTrackerClient( this );
 		
 		if ( tc != null ){
 			

@@ -85,7 +85,7 @@ PEPeerManager
 
 	public void
 	processTrackerResponse(
-		TRTrackerResponse	response );
+		TRTrackerAnnouncerResponse	response );
 		
 	public int getNbPeers();
 

@@ -75,7 +75,7 @@ PEPeerControlImpl
   private int _nbPieces;
   private PEPieceImpl[] 				_pieces;
   private PEPeerManagerStatsImpl 		_stats;
-  private TRTrackerClient _tracker;
+  private TRTrackerAnnouncer _tracker;
    //  private int _maxUploads;
   private int _seeds, _peers,_remotes;
   private long _timeStarted;
@@ -147,7 +147,7 @@ PEPeerControlImpl
   PEPeerControlImpl
   (
     DownloadManager 	manager,
-	TRTrackerClient 	tracker,
+	TRTrackerAnnouncer 	tracker,
     DiskManager 		diskManager) 
   {
   	  this._downloadManager = manager;
@@ -192,7 +192,7 @@ PEPeerControlImpl
 
     //The connection to the tracker
     _tracker.setAnnounceDataProvider(
-    		new TrackerClientAnnounceDataProvider()
+    		new TRTrackerAnnouncerDataProvider()
     		{
     			public String
 				getName()
@@ -390,11 +390,11 @@ PEPeerControlImpl
   
 	private void 
 	analyseTrackerResponse(
-  		TRTrackerResponse	tracker_response )
+  		TRTrackerAnnouncerResponse	tracker_response )
   	{
   		// tracker_response.print();
   		 				
-    	TRTrackerResponsePeer[]	peers = tracker_response.getPeers();
+    	TRTrackerAnnouncerResponsePeer[]	peers = tracker_response.getPeers();
       	    	
     	if ( peers != null ){
     		
@@ -413,7 +413,7 @@ PEPeerControlImpl
 
 	public void
 	processTrackerResponse(
-		TRTrackerResponse	response )
+		TRTrackerAnnouncerResponse	response )
 	{
 			// only process new peers if we're still running
 		
@@ -499,25 +499,25 @@ PEPeerControlImpl
   
   
   public void addPeer( final String ip_address, final int port ) {
-    TRTrackerResponsePeer peer = new TRTrackerResponsePeer() {
+    TRTrackerAnnouncerResponsePeer peer = new TRTrackerAnnouncerResponsePeer() {
       public String getSource(){ return PEPeerSource.PS_PLUGIN; }
       public byte[] getPeerID() {  return new byte[20];  }     
       public String getAddress() {  return ip_address;  }         
       public int getPort() {  return port;  }
     };
     
-    addPeersFromTracker( new TRTrackerResponsePeer[]{ peer } );
+    addPeersFromTracker( new TRTrackerAnnouncerResponsePeer[]{ peer } );
   }
   
   
   
  	private void 
  	addPeersFromTracker(
- 		TRTrackerResponsePeer[]		peers )
+ 		TRTrackerAnnouncerResponsePeer[]		peers )
  	{
       
 		for (int i = 0; i < peers.length; i++){
-			TRTrackerResponsePeer	peer = peers[i];
+			TRTrackerAnnouncerResponsePeer	peer = peers[i];
       
       ArrayList peer_transports = peer_transports_cow;
       

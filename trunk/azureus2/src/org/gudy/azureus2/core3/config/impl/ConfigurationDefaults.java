@@ -13,7 +13,7 @@ package org.gudy.azureus2.core3.config.impl;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -230,7 +230,7 @@ public class ConfigurationDefaults {
     def.put( "Stats Dir", "" );
     def.put( "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
     def.put( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
-    def.put( "File.save.peers.max", new Long( TRTrackerClient.DEFAULT_PEERS_TO_CACHE ) );
+    def.put( "File.save.peers.max", new Long( TRTrackerAnnouncer.DEFAULT_PEERS_TO_CACHE ) );
     
     	// tracker 
     

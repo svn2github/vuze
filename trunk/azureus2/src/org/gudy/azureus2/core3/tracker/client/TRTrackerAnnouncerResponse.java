@@ -24,10 +24,8 @@ package org.gudy.azureus2.core3.tracker.client;
 import java.net.URL;
 import java.util.Map;
 
-import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
-
 public interface 
-TRTrackerResponse 
+TRTrackerAnnouncerResponse 
 {
 	public static final int	ST_OFFLINE			= 0;
 	public static final int ST_REPORTED_ERROR	= 1;
@@ -63,7 +61,7 @@ TRTrackerResponse
 	 * @return	peers reported by tracker. this will include the local peer as well
 	 */
 	
-	public TRTrackerResponsePeer[]
+	public TRTrackerAnnouncerResponsePeer[]
 	getPeers();
 	
 	public Map

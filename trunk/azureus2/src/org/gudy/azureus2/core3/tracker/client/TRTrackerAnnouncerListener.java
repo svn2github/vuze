@@ -1,7 +1,7 @@
 /*
- * File    : TRTrackerClientFactory.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : TRTrackerClientListener.java
+ * Created : 03-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -21,34 +21,29 @@
 
 package org.gudy.azureus2.core3.tracker.client;
 
-
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.tracker.client.classic.*;
-
-public class 
-TRTrackerClientFactory 
+/**
+ * @author parg
+ *
+ */
+public interface 
+TRTrackerAnnouncerListener 
 {
-	public static TRTrackerClient
-	create(
-		TOTorrent		torrent,
-		String[]		networks )
+	public void
+	receivedTrackerResponse(
+		TRTrackerAnnouncerResponse	response	);
+
+	/**
+	 * This callback indicates if the tracker client has change URL. If "explicit" is true then
+	 * this was via a call to the "setTrackerURL" method on TRTrackerClient. If false then the selected
+	 * URL has changed because it is a multi-tracker torrent
+	 * 
+	 * @param explicit as above
+	 */
+	public void
+	urlChanged(
+		String		url,
+		boolean		explicit );
 		
-		throws TRTrackerClientException
-	{
-		return( TRTrackerClientFactoryImpl.create( torrent, networks ));
-	}
-	
-	public static void
-	addListener(
-		TRTrackerClientFactoryListener	l )
-	{
-		TRTrackerClientFactoryImpl.addListener(l);	
-	}
-		
-	public static void
-	removeListener(
-		TRTrackerClientFactoryListener	l )
-	{
-		TRTrackerClientFactoryImpl.removeListener(l);	
-	}
+	public void
+	urlRefresh();
 }

@@ -31,7 +31,7 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.tracker.client.classic.TRTrackerClientClassicImpl;
+import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
@@ -210,6 +210,6 @@ TRTrackerUtilsImpl
 		Map		map1,
 		Map		map2 )
 	{
-		return( TRTrackerClientClassicImpl.mergeResponseCache( map1, map2 ));
+		return( TRTrackerBTAnnouncerImpl.mergeResponseCache( map1, map2 ));
 	}
 }

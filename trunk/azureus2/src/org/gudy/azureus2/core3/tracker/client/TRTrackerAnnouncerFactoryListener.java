@@ -1,7 +1,7 @@
 /*
- * File    : TRTrackerResponsePeer.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : TRTrackerClientFactoryListener.java
+ * Created : 04-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -21,10 +21,18 @@
 
 package org.gudy.azureus2.core3.tracker.client;
 
-import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
-
+/**
+ * @author parg
+ *
+ */
 public interface 
-TRTrackerResponsePeer
-	extends DownloadAnnounceResultPeer
+TRTrackerAnnouncerFactoryListener 
 {
+	public void
+	clientCreated(
+		TRTrackerAnnouncer	client  );
+		
+	public void
+	clientDestroyed(
+		TRTrackerAnnouncer	client );
 }

@@ -2,7 +2,7 @@
  * Created on 22 juil. 2003
  *
  */
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,6 +23,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperImpl;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
@@ -547,9 +549,13 @@ public class TrackerStatus {
             response.setNextScrapeStartTime(nextScrapeTime);
 
     	      //create the response
-    	      response.setScrapeStartTime(scrapeStartTime);
-    	      response.seeds = seeds;
-    	      response.peers = peers;
+            
+    	    response.setScrapeStartTime(scrapeStartTime);
+    	      
+    	    response.setSeeds( seeds );
+    	      
+    	    response.setPeers( peers );
+    	      
             response.setStatus(TRTrackerScraperResponse.ST_ONLINE, 
                                MessageText.getString("Scrape.status.ok") );
 
@@ -941,7 +947,7 @@ public class TrackerStatus {
 	}finally{
 		if ( auth != null ){
 			
-			SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerClientClassicImpl.UDP_REALM, reqUrl, auth_ok );
+			SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerBTAnnouncerImpl.UDP_REALM, reqUrl, auth_ok );
 		}
 	}
   }
@@ -970,7 +976,7 @@ public class TrackerStatus {
   
 
   protected TRTrackerScraperResponseImpl addHash(byte[] hash) {
-    TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(this, hash);
+    TRTrackerScraperResponseImpl response = new TRTrackerBTScraperResponseImpl(this, hash);
     if (scrapeURL == null)  {
       response.setStatus(TRTrackerScraperResponse.ST_ERROR,
                          MessageText.getString("Scrape.status.error") + 

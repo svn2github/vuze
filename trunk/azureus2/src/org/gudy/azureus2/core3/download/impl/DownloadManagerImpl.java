@@ -110,7 +110,7 @@ DownloadManagerImpl
 					
 					if ( type == LDT_TL_ANNOUNCERESULT ){
 						
-						listener.announceResult((TRTrackerResponse)value);
+						listener.announceResult((TRTrackerAnnouncerResponse)value);
 						
 					}else if ( type == LDT_TL_SCRAPERESULT ){
 						
@@ -230,8 +230,8 @@ DownloadManagerImpl
 	private String 			torrent_comment;
 	private String 			torrent_created_by;
 	
-	private TRTrackerClient 			tracker_client;
-	private TRTrackerClientListener		tracker_client_listener;
+	private TRTrackerAnnouncer 			tracker_client;
+	private TRTrackerAnnouncerListener		tracker_client_listener;
 	
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 	
@@ -321,12 +321,12 @@ DownloadManagerImpl
         tracker_client.destroy();
       }
 
-      tracker_client = TRTrackerClientFactory.create( torrent, download_manager_state.getNetworks());
+      tracker_client = TRTrackerAnnouncerFactory.create( torrent, download_manager_state.getNetworks());
     
       tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
 
-      tracker_client_listener = new TRTrackerClientListener() {
-        public void receivedTrackerResponse(TRTrackerResponse	response) {
+      tracker_client_listener = new TRTrackerAnnouncerListener() {
+        public void receivedTrackerResponse(TRTrackerAnnouncerResponse	response) {
           PEPeerManager pm = peerManager;
           if ( pm != null ) {
             pm.processTrackerResponse( response );
@@ -360,7 +360,7 @@ DownloadManagerImpl
       }
 
 
-    }catch( TRTrackerClientException e ){
+    }catch( TRTrackerAnnouncerException e ){
  		
     	setFailed( e );
 			 
@@ -1019,7 +1019,7 @@ DownloadManagerImpl
   	tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
   }
   
-  public TRTrackerClient 
+  public TRTrackerAnnouncer 
   getTrackerClient() 
   {
 	return( tracker_client );
@@ -1029,7 +1029,7 @@ DownloadManagerImpl
 	setAnnounceResult(
 		DownloadAnnounceResult	result )
 	{
-		TRTrackerClient	cl = getTrackerClient();
+		TRTrackerAnnouncer	cl = getTrackerClient();
 		
 		if ( cl == null ){
 			
@@ -1075,7 +1075,7 @@ DownloadManagerImpl
       }
     }
 	
-    return TRTrackerClient.REFRESH_MINIMUM_SECS;
+    return TRTrackerAnnouncer.REFRESH_MINIMUM_SECS;
   }
 
   /**
@@ -1793,7 +1793,7 @@ DownloadManagerImpl
           return WEALTH_NO_TRACKER;        
         return WEALTH_KO;        
       }
-      if( trackerStatus == TRTrackerResponse.ST_OFFLINE || trackerStatus == TRTrackerResponse.ST_REPORTED_ERROR)
+      if( trackerStatus == TRTrackerAnnouncerResponse.ST_OFFLINE || trackerStatus == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR)
         return WEALTH_NO_TRACKER;
       if( nbRemotes == 0 )
         return WEALTH_NO_REMOTE;

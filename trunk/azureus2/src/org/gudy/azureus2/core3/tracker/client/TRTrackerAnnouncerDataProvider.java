@@ -27,7 +27,7 @@ package org.gudy.azureus2.core3.tracker.client;
  */
 
 public interface 
-TrackerClientAnnounceDataProvider 
+TRTrackerAnnouncerDataProvider 
 {
 	public String
 	getName();

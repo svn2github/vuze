@@ -37,5 +37,5 @@ DownloadManagerTrackerListener
 	
 	public void
 	announceResult(
-		TRTrackerResponse			response );
+		TRTrackerAnnouncerResponse			response );
 }

@@ -2,7 +2,7 @@
  * Created on 22 juil. 2003
  *
  */
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client.impl;
 
 /**
  * 
@@ -10,39 +10,42 @@ package org.gudy.azureus2.core3.tracker.client.classic;
  * @author TuxPaper
  */
 
-import java.net.URL;
 
 import org.gudy.azureus2.core3.tracker.client.*;
 
-public class TRTrackerScraperResponseImpl 
+public abstract class 
+TRTrackerScraperResponseImpl 
   implements TRTrackerScraperResponse
 {
-  protected byte[]  hash;
-  protected int     seeds;
-  protected int     peers;
+	private byte[]  hash;
+	private int     seeds;
+	private int     peers;
   
   private long scrapeStartTime;
   private long nextScrapeStartTime;
-  private TrackerStatus ts;
   private String sStatus = "";
   private String sLastStatus = "";
   private int status;
   private int last_status;
 
-  protected TRTrackerScraperResponseImpl(TrackerStatus _ts,
-                                         byte[] _hash) {
-    this(_ts, _hash, -1, -1, -1);
+  protected 
+  TRTrackerScraperResponseImpl(                                     
+  		byte[] _hash ) 
+  {
+    this( _hash, -1, -1, -1);
   }
 
-  protected TRTrackerScraperResponseImpl(TrackerStatus _ts,
-                                         byte[] _hash,
-                                         int  _seeds, 
-                                         int  _peers,
-                                         long _scrapeStartTime)  {
+  protected 
+  TRTrackerScraperResponseImpl(
+     byte[] _hash,
+     int  _seeds, 
+     int  _peers,
+     long _scrapeStartTime)  
+  {
     hash = _hash;
     seeds = _seeds;
     peers = _peers;
-    ts = _ts;
+
     scrapeStartTime = _scrapeStartTime;
     
     status = (isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
@@ -53,32 +56,42 @@ public class TRTrackerScraperResponseImpl
     return hash;
   }
     
-  public TrackerStatus getTrackerStatus() {
-    return ts;
-  }
 
   public int getSeeds() {
     return seeds ;
+  }
+  
+  public void
+  setSeeds(
+  	int		s )
+  {
+  	seeds	= s;
   }
   
   public int getPeers() {
     return peers;
   }
   
-	public void setSeedsPeers(int iSeeds, int iPeers) {
-	  seeds = iSeeds;
-	  peers = iPeers;
-	  status = (isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
-    
-    // XXX Is this a good idea?
-    ts.scrapeReceived(this);
-	}
+  public void
+  setPeers(
+  	int	p )
+  {
+  	peers	= p;
+  }
+
 
   public int getStatus() {
     return status;
   }
   
-  protected void setStatus(int iNewStatus, String sNewStatus) {
+  public void
+  setStatus(
+  	int	s )
+  {
+  	status	= s;
+  }
+  
+  public void setStatus(int iNewStatus, String sNewStatus) {
     if (last_status != status && iNewStatus != status)
       last_status = status;
     if (iNewStatus == TRTrackerScraperResponse.ST_ONLINE) {
@@ -96,7 +109,7 @@ public class TRTrackerScraperResponseImpl
     sStatus = sNewStatus;
   }
   
-  protected void revertStatus() {
+  public void revertStatus() {
     status = last_status;
     sStatus = sLastStatus;
   }
@@ -128,11 +141,5 @@ public class TRTrackerScraperResponseImpl
   
   public boolean isValid() {
     return !(seeds == -1 && peers == -1);
-  }
-  
-  public URL
-  getURL()
-  {
-  	return( ts.getTrackerURL());
   }
 }

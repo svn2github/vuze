@@ -287,7 +287,7 @@ public class GlobalManagerImpl
     			return( TRTrackerScraperClientResolver.ST_OTHER );
     		}
     		
-    		public TRTrackerClient
+    		public TRTrackerAnnouncer
 			getClient(
 				byte[]	torrent_hash )
     		{

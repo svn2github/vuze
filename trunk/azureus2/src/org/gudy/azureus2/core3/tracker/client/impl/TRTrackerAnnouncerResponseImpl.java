@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client.impl;
 
 import java.net.URL;
 import java.util.Map;
@@ -27,20 +27,20 @@ import java.util.Map;
 import org.gudy.azureus2.core3.tracker.client.*;
 
 public class 
-TRTrackerResponseImpl
-	implements TRTrackerResponse 
+TRTrackerAnnouncerResponseImpl
+	implements TRTrackerAnnouncerResponse 
 {
 	protected URL		url;
 	protected int		status;
 	protected long		time_to_wait;
 	protected String	failure_reason;
 	
-	protected TRTrackerResponsePeer[]	peers;
+	protected TRTrackerAnnouncerResponsePeer[]	peers;
 	
 	protected Map						extensions;
 	
-	protected
-	TRTrackerResponseImpl(
+	public
+	TRTrackerAnnouncerResponseImpl(
 		URL		_url,
 		int		_status,
 		long	_time_to_wait  )
@@ -50,8 +50,8 @@ TRTrackerResponseImpl
 		time_to_wait	= _time_to_wait;
 	}
 	
-	protected
-	TRTrackerResponseImpl(
+	public
+	TRTrackerAnnouncerResponseImpl(
 		URL		_url,
 		int		_status,
 		long	_time_to_wait,
@@ -63,12 +63,12 @@ TRTrackerResponseImpl
 		failure_reason	= _failure_reason;
 	}
 	
-	protected
-	TRTrackerResponseImpl(
+	public
+	TRTrackerAnnouncerResponseImpl(
 		URL						_url,
 		int						_status,
 		long					_time_to_wait,
-		TRTrackerResponsePeer[]	_peers )
+		TRTrackerAnnouncerResponsePeer[]	_peers )
 	{
 		url				= _url;
 		status			= _status;	
@@ -94,20 +94,20 @@ TRTrackerResponseImpl
 		return( failure_reason );
 	}
 	
-	protected void
+	public void
 	setPeers(
-		TRTrackerResponsePeer[]		_peers )
+		TRTrackerAnnouncerResponsePeer[]		_peers )
 	{
 		peers	= _peers;
 	}
 	
-	public TRTrackerResponsePeer[]
+	public TRTrackerAnnouncerResponsePeer[]
 	getPeers()
 	{
 		return( peers );
 	}
 	
-	protected void
+	public void
 	setExtensions(
 		Map		_extensions )
 	{
@@ -138,7 +138,7 @@ TRTrackerResponseImpl
 					
 			for (int i=0;i<peers.length;i++){
 				
-				TRTrackerResponsePeer	peer = peers[i];
+				TRTrackerAnnouncerResponsePeer	peer = peers[i];
 				
 				System.out.println( "\t\t" + peer.getAddress() + ":" + peer.getPort());
 			}

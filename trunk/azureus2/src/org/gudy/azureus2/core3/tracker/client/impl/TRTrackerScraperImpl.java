@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client.impl;
 
 /**
  * @author parg
@@ -29,6 +29,8 @@ package org.gudy.azureus2.core3.tracker.client.classic;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTScraperImpl;
+import org.gudy.azureus2.core3.tracker.client.impl.dht.TRTrackerDHTScraperImpl;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
@@ -37,11 +39,13 @@ public class
 TRTrackerScraperImpl
 	implements TRTrackerScraper 
 {
-	protected static TRTrackerScraperImpl	singleton;
-	protected static AEMonitor 				class_mon 	= new AEMonitor( "TRTrackerScraper" );
+	private static TRTrackerScraperImpl		singleton;
+	private static AEMonitor 				class_mon 	= new AEMonitor( "TRTrackerScraper" );
 
-	protected TrackerChecker						tracker_checker;
-	protected TRTrackerScraperClientResolver		client_resolver;
+	private TRTrackerBTScraperImpl		bt_scraper;
+	private TRTrackerDHTScraperImpl		dht_scraper;
+	
+	private TRTrackerScraperClientResolver		client_resolver;
 	
 	// DiskManager listeners
 	
@@ -84,7 +88,9 @@ TRTrackerScraperImpl
 	protected
 	TRTrackerScraperImpl()
 	{
-		tracker_checker = new TrackerChecker( this );
+		bt_scraper 	= TRTrackerBTScraperImpl.create( this );
+		
+		dht_scraper	= TRTrackerDHTScraperImpl.create( this );
 	}
 
 	public TRTrackerScraperResponse
@@ -117,18 +123,14 @@ TRTrackerScraperImpl
 	{
 		if ( torrent != null ){
 		
-			TRTrackerScraperResponseImpl resp =
-				tracker_checker.getHashData( torrent, torrent.getAnnounceURL());
-			
-			resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
-			
-			resp.setStatus( 
-					result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
-							TRTrackerScraperResponse.ST_ONLINE:
-							TRTrackerScraperResponse.ST_ERROR,
-					result.getStatus()); 
-		
-			scrapeReceived( resp );
+			if ( TorrentUtils.isDecentralised( torrent )){
+				
+				dht_scraper.setScrape( torrent, result );
+				
+			}else{
+				
+				bt_scraper.setScrape( torrent, result );
+			}
 		}
 	}
 	
@@ -138,42 +140,52 @@ TRTrackerScraperImpl
 		URL				target_url,
 		boolean			force )
 	{
-		if (torrent == null){
+		if (torrent == null ){
 			
 			return null;
 		}
 
-		if ( force ){
+		if ( TorrentUtils.isDecentralised( torrent )){
 			
-			tracker_checker.syncUpdate( torrent, target_url );
+			return( dht_scraper.scrape( torrent, target_url, force ));
+			
+		}else{
+			
+			return( bt_scraper.scrape( torrent, target_url, force ));
 		}
-		
-		TRTrackerScraperResponse	res = tracker_checker.getHashData( torrent, target_url );
-		
-		// System.out.println( "scrape: " + torrent + " -> " + (res==null?"null":""+res.getSeeds()));
-		
-		return( res );
 	}
 		
 	public TRTrackerScraperResponse
 	scrape(
-		TRTrackerClient	tracker_client )
+		TRTrackerAnnouncer	tracker_client )
 	{
-		TRTrackerScraperResponse	res = tracker_checker.getHashData( tracker_client );
-		
-		// System.out.println( "scrape: " + tracker_client + " -> " + (res==null?"null":""+res.getSeeds()));
-		
-		return( res );
+		TOTorrent	torrent = tracker_client.getTorrent();
+
+		if ( TorrentUtils.isDecentralised( torrent )){
+
+			return( dht_scraper.scrape( tracker_client ));
+			
+		}else{
+			
+			return( bt_scraper.scrape( tracker_client ));
+		}
 	}
 
 	public void
 	remove(
 		TOTorrent		torrent )
 	{
-		tracker_checker.removeHash( torrent );
+		if ( TorrentUtils.isDecentralised( torrent )){
+
+			dht_scraper.remove( torrent );
+
+		}else{
+		
+			bt_scraper.remove( torrent );
+		}
 	}
 	
-	protected void
+	public void
 	scrapeReceived(
 		TRTrackerScraperResponse		response )
 	{
@@ -187,7 +199,7 @@ TRTrackerScraperImpl
 		client_resolver	= resolver;
 	}
 	
-	protected boolean
+	public boolean
 	isTorrentDownloading(
 		byte[]		hash )
 	{
@@ -199,7 +211,7 @@ TRTrackerScraperImpl
 		return( client_resolver.getClient( hash ) != null );
 	}
 	
-	protected boolean
+	public boolean
 	isTorrentRunning(
 		byte[]		hash )
 	{
@@ -211,7 +223,7 @@ TRTrackerScraperImpl
 		return( client_resolver.getStatus( hash ) == TRTrackerScraperClientResolver.ST_RUNNING );
 	}
 	
-	protected boolean
+	public boolean
 	isNetworkEnabled(
 		byte[]	hash,
 		URL		url )

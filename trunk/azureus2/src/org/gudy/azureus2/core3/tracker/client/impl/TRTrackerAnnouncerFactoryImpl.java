@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client.impl;
 
 /**
  * @author parg
@@ -31,24 +31,35 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
+import org.gudy.azureus2.core3.tracker.client.impl.dht.TRTrackerDHTAnnouncerImpl;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
-TRTrackerClientFactoryImpl 
+TRTrackerAnnouncerFactoryImpl 
 {
 	protected static List	listeners 	= new ArrayList();
 	protected static List	clients		= new ArrayList();
 	
 	protected static AEMonitor 		class_mon 	= new AEMonitor( "TRTrackerClientFactory" );
 
-	public static TRTrackerClient
+	public static TRTrackerAnnouncer
 	create(
 		TOTorrent		torrent,
 		String[]		networks )
 		
-		throws TRTrackerClientException
+		throws TRTrackerAnnouncerException
 	{
-		TRTrackerClient	client = new TRTrackerClientClassicImpl( torrent, networks );
+		TRTrackerAnnouncer	client;
+		
+		if ( TorrentUtils.isDecentralised( torrent )){
+			
+			client	= new TRTrackerDHTAnnouncerImpl( torrent, networks );
+			
+		}else{
+			
+			client = new TRTrackerBTAnnouncerImpl( torrent, networks );
+		}
 		
 		List	listeners_copy	= new ArrayList();
 		
@@ -67,7 +78,7 @@ TRTrackerClientFactoryImpl
 		for (int i=0;i<listeners_copy.size();i++){
 			
 			try{
-				((TRTrackerClientFactoryListener)listeners_copy.get(i)).clientCreated( client );
+				((TRTrackerAnnouncerFactoryListener)listeners_copy.get(i)).clientCreated( client );
 				
 			}catch( Throwable e ){
 				
@@ -84,7 +95,7 @@ TRTrackerClientFactoryImpl
 	
 	public static void
 	addListener(
-		 TRTrackerClientFactoryListener	l )
+		 TRTrackerAnnouncerFactoryListener	l )
 	{
 		List	clients_copy;
 		
@@ -103,7 +114,7 @@ TRTrackerClientFactoryImpl
 		for (int i=0;i<clients_copy.size();i++){
 			
 			try{
-				l.clientCreated((TRTrackerClient)clients_copy.get(i));
+				l.clientCreated((TRTrackerAnnouncer)clients_copy.get(i));
 				
 			}catch( Throwable e ){
 				
@@ -114,7 +125,7 @@ TRTrackerClientFactoryImpl
 	
 	public static void
 	removeListener(
-		 TRTrackerClientFactoryListener	l )
+		 TRTrackerAnnouncerFactoryListener	l )
 	{
 		try{
 			class_mon.enter();
@@ -129,7 +140,7 @@ TRTrackerClientFactoryImpl
 
 	public static void
 	destroy(
-		TRTrackerClient	client )
+		TRTrackerAnnouncer	client )
 	{
 		List	listeners_copy	= new ArrayList();
 		
@@ -148,7 +159,7 @@ TRTrackerClientFactoryImpl
 		for (int i=0;i<listeners_copy.size();i++){
 			
 			try{
-				((TRTrackerClientFactoryListener)listeners_copy.get(i)).clientDestroyed( client );
+				((TRTrackerAnnouncerFactoryListener)listeners_copy.get(i)).clientDestroyed( client );
 				
 			}catch( Throwable e ){
 				

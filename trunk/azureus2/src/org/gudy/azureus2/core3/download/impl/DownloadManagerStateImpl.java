@@ -31,7 +31,7 @@ import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -485,7 +485,7 @@ DownloadManagerStateImpl
 				
 				if ( download_manager != null ){
 					
-					TRTrackerClient	client = download_manager.getTrackerClient();
+					TRTrackerAnnouncer	client = download_manager.getTrackerClient();
 
 					if ( client != null ){
 										

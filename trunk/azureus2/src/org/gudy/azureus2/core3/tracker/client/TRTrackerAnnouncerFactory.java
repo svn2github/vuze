@@ -1,5 +1,5 @@
 /*
- * File    : TRTrackerResponsePeerImpl.java
+ * File    : TRTrackerClientFactory.java
  * Created : 5 Oct. 2003
  * By      : Parg 
  * 
@@ -19,54 +19,36 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client;
 
 
-import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerFactoryImpl;
 
 public class 
-TRTrackerResponsePeerImpl
-	implements TRTrackerResponsePeer
+TRTrackerAnnouncerFactory 
 {
-	private String		source;
-	private byte[]		peer_id;
-	private String		address;
-	private int			port;
-	
-	protected
-	TRTrackerResponsePeerImpl(
-		String		_source,
-		byte[]		_peer_id,
-		String		_address,
-		int			_port )
+	public static TRTrackerAnnouncer
+	create(
+		TOTorrent		torrent,
+		String[]		networks )
+		
+		throws TRTrackerAnnouncerException
 	{
-		source		= _source;
-		peer_id		= _peer_id;
-		address		= _address;
-		port		= _port;
+		return( TRTrackerAnnouncerFactoryImpl.create( torrent, networks ));
 	}
 	
-	public String
-	getSource()
+	public static void
+	addListener(
+		TRTrackerAnnouncerFactoryListener	l )
 	{
-		return( source );
+		TRTrackerAnnouncerFactoryImpl.addListener(l);	
 	}
-	
-	public byte[]
-	getPeerID()
+		
+	public static void
+	removeListener(
+		TRTrackerAnnouncerFactoryListener	l )
 	{
-		return( peer_id );
-	}
-	
-	public String
-	getAddress()
-	{
-		return( address );
-	}
-	
-	public int
-	getPort()
-	{
-		return( port );
+		TRTrackerAnnouncerFactoryImpl.removeListener(l);	
 	}
 }

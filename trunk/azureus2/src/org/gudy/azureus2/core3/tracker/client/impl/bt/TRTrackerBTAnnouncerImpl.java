@@ -1,5 +1,5 @@
 /*
- * File    : TRTrackerClientClassicImpl.java
+ * File    : TRTrackerBTAnnouncerImpl.java
  * Created : 5 Oct. 2003
  * By      : Parg 
  * 
@@ -19,16 +19,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.io.*;
 import java.net.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.LinkedHashMap;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Random;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -42,6 +40,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.tracker.client.impl.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.util.*;
@@ -68,8 +67,9 @@ import com.aelitis.net.udp.*;
  *
  */
 public class 
-TRTrackerClientClassicImpl
-	implements TRTrackerClient, ParameterListener
+TRTrackerBTAnnouncerImpl
+	extends TRTrackerAnnouncerImpl
+	implements ParameterListener
 {
 	
 		
@@ -90,7 +90,7 @@ TRTrackerClientClassicImpl
 	
 	private int					tracker_state 			= TS_INITIALISED;
 	private String				tracker_status_str		= "";
-	private TRTrackerResponse	last_response			= null;
+	private TRTrackerAnnouncerResponse	last_response			= null;
 	private long				last_update_time_secs;
 	private long				current_time_to_wait_secs;
   
@@ -138,12 +138,9 @@ TRTrackerClientClassicImpl
 	
 	private String	last_warning_message	= "";
 	
-	private TrackerClientAnnounceDataProvider 	announce_data_provider;
+	private TRTrackerAnnouncerDataProvider 	announce_data_provider;
 	
-	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
-	private AEMonitor tracker_peer_cache_mon 	= new AEMonitor( "TRTrackerClientClassic:PC" );
-	
-	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerClientClassic" );
+	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerBTAnnouncer" );
 
 	private static final boolean	socks_peer_inform;
 
@@ -156,48 +153,7 @@ TRTrackerClientClassicImpl
 	 		COConfigurationManager.getBooleanParameter("Proxy.Data.SOCKS.inform", true );
 	 }
 	
-	public final static int componentID = 2;
-	public final static int evtLifeCycle = 0;
-	public final static int evtFullTrace = 1;
-	public final static int evtErrors = 2;
 
-	// 	listener
-	
-	private static final int LDT_TRACKER_RESPONSE		= 1;
-	private static final int LDT_URL_CHANGED			= 2;
-	private static final int LDT_URL_REFRESH			= 3;
-	
-	private ListenerManager	listeners 	= ListenerManager.createManager(
-			"TrackerClient:ListenDispatcher",
-			new ListenerManagerDispatcher()
-			{
-				public void
-				dispatch(
-					Object		_listener,
-					int			type,
-					Object		value )
-				{
-					TRTrackerClientListener	listener = (TRTrackerClientListener)_listener;
-					
-					if ( type == LDT_TRACKER_RESPONSE ){
-						
-						listener.receivedTrackerResponse((TRTrackerResponse)value);
-						
-					}else if ( type == LDT_URL_CHANGED ){
-						
-						Object[]	x = (Object[])value;
-						
-						String		url 	= (String)x[0];
-						boolean	explicit	= ((Boolean)x[1]).booleanValue();
-						
-						listener.urlChanged(url, explicit );
-						
-					}else{
-						
-						listener.urlRefresh();
-					}
-				}
-			});
 
 	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -215,11 +171,11 @@ TRTrackerClientClassicImpl
 	}
 	
   public 
-  TRTrackerClientClassicImpl(
+  TRTrackerBTAnnouncerImpl(
    	TOTorrent		_torrent,
 	String[]		_peer_networks ) 
   	
-  	throws TRTrackerClientException
+  	throws TRTrackerAnnouncerException
   {
   	torrent			= _torrent;
   	peer_networks	= _peer_networks;
@@ -243,7 +199,7 @@ TRTrackerClientClassicImpl
 	    }
 	}catch( ClientIDException e ){
 
-		 throw( new TRTrackerClientException( "TRTrackerClient: Peer ID generation fails", e ));
+		 throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: Peer ID generation fails", e ));
 	}
 
     key_id	= createKeyID();
@@ -264,13 +220,13 @@ TRTrackerClientClassicImpl
 		
 		LGLogger.log(componentID, evtLifeCycle,"URL encode fails", e );
 	  
-	  throw( new TRTrackerClientException( "TRTrackerClient: URL encode fails"));
+	  throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));
 	  
 	}catch( TOTorrentException e ){
 	
 		LGLogger.log(componentID, evtLifeCycle,"Torrent hash retrieval fails", e );
 		
-		throw( new TRTrackerClientException( "TRTrackerClient: URL encode fails"));	
+		throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
 	}
 
   
@@ -349,12 +305,12 @@ TRTrackerClientClassicImpl
 			}
 		};
     
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Announcer Created using url : " + trackerUrlListString);
   }
 	
 	public void
 	portChanged(
-		int		new_port )
+		int		_new_port )
 	{
 		setPort();
 		
@@ -403,7 +359,7 @@ TRTrackerClientClassicImpl
 
 	  long		secs_to_wait = current_time_to_wait_secs;
 													
-	  if( last_response != null && last_response.getStatus() != TRTrackerResponse.ST_ONLINE ) {
+	  if( last_response != null && last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ) {
       
 	    secs_to_wait = getErrorRetryInterval();
 							
@@ -618,7 +574,7 @@ TRTrackerClientClassicImpl
 			
 			tracker_status_str = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
 		
-			TRTrackerResponse	response = null;
+			TRTrackerAnnouncerResponse	response = null;
 			
 			if ( stopped ){
 				
@@ -632,7 +588,7 @@ TRTrackerClientClassicImpl
 			
 					response = stopSupport();
 					
-					if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+					if ( response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 												
 						tracker_state = TS_STOPPED;
 						
@@ -651,7 +607,7 @@ TRTrackerClientClassicImpl
 				
 				response = startSupport();
 					
-				if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+				if ( response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 						
 					tracker_state = TS_DOWNLOADING;
 				}
@@ -661,7 +617,7 @@ TRTrackerClientClassicImpl
 					
 					response = completeSupport();
 					
-					if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+					if ( response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 						
 						complete_reported	= true;
 				
@@ -682,7 +638,7 @@ TRTrackerClientClassicImpl
 
 				int	rs = response.getStatus();
 				
-				if ( rs == TRTrackerResponse.ST_OFFLINE ){
+				if ( rs == TRTrackerAnnouncerResponse.ST_OFFLINE ){
       
 					tracker_status_str = MessageText.getString("PeerManager.status.offline"); 
       		      
@@ -692,7 +648,7 @@ TRTrackerClientClassicImpl
       			
 						tracker_status_str += " (" + reason + ")";		
 					}
-				}else if ( rs == TRTrackerResponse.ST_REPORTED_ERROR ){
+				}else if ( rs == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ){
 
 					tracker_status_str = MessageText.getString("PeerManager.status.error"); 
 	      		      
@@ -748,62 +704,62 @@ TRTrackerClientClassicImpl
 		}
 	}
 	
-	protected TRTrackerResponse 
+	protected TRTrackerAnnouncerResponse 
   	startSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Client is sending a start Request");
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a start Request");
 	
 		// System.out.println( "started");
 		
 		return(update("started"));
   	}
 
-  	protected TRTrackerResponse 
+  	protected TRTrackerAnnouncerResponse 
   	completeSupport() 
   	{	
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Client is sending a completed Request");
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a completed Request");
 		
 		// System.out.println( "complete");
 		
 		return(update("completed"));
   	}
 
-  	protected TRTrackerResponse 
+  	protected TRTrackerAnnouncerResponse 
   	stopSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Client is sending a stopped Request");
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a stopped Request");
 
 		// System.out.println( "stop");		
 	
 		return( update("stopped"));
   	}
 
-  	protected TRTrackerResponse 
+  	protected TRTrackerAnnouncerResponse 
   	updateSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Client is sending an update Request");
+		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending an update Request");
 	
 		// System.out.println( "update");
 		
 		return update("");
   	}
   
-  	private TRTrackerResponse 
+  	private TRTrackerAnnouncerResponse 
 	update(
 		String evt )
   	{
   		// this method filters out any responses incompatible with the network selection
   		
-  		TRTrackerResponseImpl	resp = update2( evt );
+  		TRTrackerAnnouncerResponseImpl	resp = update2( evt );
   		
-  		TRTrackerResponsePeer[]	peers = resp.getPeers();
+  		TRTrackerAnnouncerResponsePeer[]	peers = resp.getPeers();
   		
   		if ( peers != null ){
 	  		List	p = new ArrayList();
 	  		
 	  		for (int i=0;i<peers.length;i++){
 	  			
-	  			TRTrackerResponsePeer	peer = peers[i];
+	  			TRTrackerAnnouncerResponsePeer	peer = peers[i];
 	  			
 	  			String	peer_address = peer.getAddress();
 	  			
@@ -825,11 +781,11 @@ TRTrackerClientClassicImpl
 	  			
 	  			if ( !added ){
 	  				
-			  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client dropped peer '" + peer_address + "' as incompatible with network selection" );
+			  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Announcer dropped peer '" + peer_address + "' as incompatible with network selection" );
 	  			}
 	  		}
 	  		
-	  		peers = new TRTrackerResponsePeer[ p.size()];
+	  		peers = new TRTrackerAnnouncerResponsePeer[ p.size()];
 	  		
 	  		p.toArray( peers );
 	  		
@@ -839,10 +795,10 @@ TRTrackerClientClassicImpl
   		return( resp );
   	}
   	
-  private TRTrackerResponseImpl 
+  private TRTrackerAnnouncerResponseImpl 
   update2(String evt) 
   {
-  	TRTrackerResponseImpl	last_failure_resp = null;
+  	TRTrackerAnnouncerResponseImpl	last_failure_resp = null;
 	
   outer:
   	
@@ -862,9 +818,9 @@ TRTrackerClientClassicImpl
 		  
 		  	request_url = constructUrl(evt,url);
 			  					  	  			  
-			TRTrackerResponseImpl resp = decodeTrackerResponse( url, updateOld(request_url));
+			TRTrackerAnnouncerResponseImpl resp = decodeTrackerResponse( url, updateOld(request_url));
 			  
-		    if ( resp.getStatus() == TRTrackerResponse.ST_ONLINE ){
+		    if ( resp.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
 					
 	            urls.remove(j);
 	            	
@@ -889,9 +845,9 @@ TRTrackerClientClassicImpl
 		  	Debug.printStackTrace( e );
 		  	
 		  	last_failure_resp = 
-		  		new TRTrackerResponseImpl( 
+		  		new TRTrackerAnnouncerResponseImpl( 
 		  				url,
-		  				TRTrackerResponse.ST_OFFLINE, 
+		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						"malformed URL '" + (request_url==null?"<null>":request_url.toString()) + "'" );
 		  	
@@ -900,9 +856,9 @@ TRTrackerClientClassicImpl
 		  	//e.printStackTrace();
 		  	
 		  	last_failure_resp = 
-		  		new TRTrackerResponseImpl(
+		  		new TRTrackerAnnouncerResponseImpl(
 		  				url,
-		  				TRTrackerResponse.ST_OFFLINE, 
+		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						e.getMessage());
 		  }
@@ -919,15 +875,21 @@ TRTrackerClientClassicImpl
 		if ( last_failure_resp == null ){
 			
 		  	last_failure_resp = 
-		  		new TRTrackerResponseImpl( 
+		  		new TRTrackerAnnouncerResponseImpl( 
 		  				null,
-		  				TRTrackerResponse.ST_OFFLINE, 
+		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						"Reason Unknown" );
 		
 		}
      
-      TRTrackerResponsePeer[]	cached_peers = getPeersFromCache();
+		// use 4* the num_want as no doubt a fair few connections will fail and
+		// we want to get a decent reconnect rate
+	
+	  int	num_want = calculateNumWant() * 4;
+
+
+      TRTrackerAnnouncerResponsePeer[]	cached_peers = getPeersFromCache(num_want);
       
       if ( cached_peers.length > 0 ){
 
@@ -959,7 +921,7 @@ TRTrackerClientClassicImpl
 			try{  
 				String	protocol = reqUrl.getProtocol();
 				
-		  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
+		  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Announcer is Requesting : " + reqUrl);
 		  
 		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
 		  				
@@ -1174,7 +1136,7 @@ TRTrackerClientClassicImpl
  					}
  				}
  				
- 				LGLogger.log(componentID, evtFullTrace, LGLogger.RECEIVED, "Tracker Client ["+lastUsedUrl+"] has received : " + message);
+ 				LGLogger.log(componentID, evtFullTrace, LGLogger.RECEIVED, "Tracker Announcer ["+lastUsedUrl+"] has received : " + message);
  				
  				
  			}catch (Exception e){
@@ -1704,7 +1666,7 @@ TRTrackerClientClassicImpl
 
  	public void 
  	setAnnounceDataProvider(
- 			TrackerClientAnnounceDataProvider _provider) 
+ 			TRTrackerAnnouncerDataProvider _provider) 
  	{
  		announce_data_provider = _provider;
  	}
@@ -1862,7 +1824,7 @@ TRTrackerClientClassicImpl
 		// System.out.println( trackerUrlListString );
 	}
   
-  	protected TRTrackerResponseImpl
+  	protected TRTrackerAnnouncerResponseImpl
   	decodeTrackerResponse(
   		URL			url,
   		byte[]		data )
@@ -1947,7 +1909,7 @@ TRTrackerClientClassicImpl
 							
 				       System.out.println("Problems with Tracker, will retry in 1 minute");
 											   			
-				       return( new TRTrackerResponseImpl( url, TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval() ));
+				       return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval() ));
 	
 				     }else{
 				     	
@@ -1955,7 +1917,7 @@ TRTrackerClientClassicImpl
 				     	
 				       failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
                             				
-				       return( new TRTrackerResponseImpl( url, TRTrackerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
+				       return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
 				     }
 				   }
 				   
@@ -2051,7 +2013,7 @@ TRTrackerClientClassicImpl
 						    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 						    				"NON-COMPACT PEER: ip=" +ip+ " port=" +peer_port);
 
-									valid_meta_peers.add(new TRTrackerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
+									valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
 								}
 							} 
 						}
@@ -2091,18 +2053,18 @@ TRTrackerClientClassicImpl
     				    				"    Ignoring as peer port is in ignore list" );
     	
                 			}else{
-                				valid_meta_peers.add(new TRTrackerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
+                				valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
                 			}
 				    	}
 				    }
 				    
-					TRTrackerResponsePeer[] peers=new TRTrackerResponsePeer[valid_meta_peers.size()];
+					TRTrackerAnnouncerResponsePeer[] peers=new TRTrackerAnnouncerResponsePeer[valid_meta_peers.size()];
 					
 					valid_meta_peers.toArray(peers);
 					
 					addToTrackerCache( peers);
 					
-					TRTrackerResponseImpl resp = new TRTrackerResponseImpl( url, TRTrackerResponse.ST_ONLINE, time_to_wait, peers );
+					TRTrackerAnnouncerResponseImpl resp = new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_ONLINE, time_to_wait, peers );
           
 						//reset failure retry interval on successful connect
 					
@@ -2170,7 +2132,7 @@ TRTrackerClientClassicImpl
 	 				 				
 	 				String	trace_data = new String(data);
 	 				
-	 				LGLogger.log("TRTrackerClient::invalid reply: " + trace_data );
+	 				LGLogger.log("TRTrackerAnnouncer::invalid reply: " + trace_data );
 	 				
 	 				if ( trace_data.length() > 150 ){
 	 					
@@ -2187,7 +2149,7 @@ TRTrackerClientClassicImpl
 			}
   		}
 
-		return( new TRTrackerResponseImpl( url, TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval(), failure_reason ));
+		return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), failure_reason ));
   	}
   	
 	protected void
@@ -2205,31 +2167,18 @@ TRTrackerClientClassicImpl
 		listeners.dispatch( LDT_URL_REFRESH, null );		
 	}
 	
-	public TRTrackerResponse
+	public TRTrackerAnnouncerResponse
 	getLastResponse()
 	{
 		if( last_response == null ){
 			
-			return new TRTrackerResponseImpl( null, TRTrackerResponse.ST_OFFLINE, TRTrackerClient.REFRESH_MINIMUM_SECS );
+			return new TRTrackerAnnouncerResponseImpl( null, TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS );
 		}
 		
 		return( last_response );
 	}
 	
-  	public void
-	addListener(
-		TRTrackerClientListener	l )
-	{
-		listeners.addListener( l );
-	}
-		
-	public void
-	removeListener(
-		TRTrackerClientListener	l )
-	{
-		listeners.removeListener(l);
-	}
-	
+ 
 	public void
 	destroy()
 	{       
@@ -2237,7 +2186,7 @@ TRTrackerClientClassicImpl
 
 		COConfigurationManager.removeParameterListener("TCP.Announce.Port",this);
 		
-		TRTrackerClientFactoryImpl.destroy( this );
+		TRTrackerAnnouncerFactoryImpl.destroy( this );
 		
 		try{
 			this_mon.enter();
@@ -2316,305 +2265,7 @@ TRTrackerClientClassicImpl
     return failure_added_time;
   }
   
-  	protected byte[]
-	getAnonymousPeerId(
-		String	my_ip,
-		int		my_port )
-	{
-  		byte[] anon_peer_id = new byte[20];
-	
-  		// unique initial two bytes to identify this as fake
-
-  		anon_peer_id[0] = (byte)'[';
-  		anon_peer_id[1] = (byte)']';
-
-  		try{
-	  		byte[]	ip_bytes 	= my_ip.getBytes( Constants.DEFAULT_ENCODING );
-	  		int		ip_len		= ip_bytes.length;
-	
-	  		if ( ip_len > 18 ){
-		
-	  			ip_len = 18;
-	  		}
-	
-	  		System.arraycopy( ip_bytes, 0, anon_peer_id, 2, ip_len );
-									
-	  		int	port_copy = my_port;
-		
-	  		for (int j=2+ip_len;j<20;j++){
-			
-	  			anon_peer_id[j] = (byte)(port_copy&0xff);
-			
-	  			port_copy >>= 8;
-	  		}
-  		}catch( UnsupportedEncodingException e ){
-  			
-  			Debug.printStackTrace( e );
-  		}
-  		
-  		return( anon_peer_id );
-   }
-	 	
-  		// NOTE: tracker_cache is cleared out in DownloadManager when opening a torrent for the
-  		// first time as a DOS prevention measure
-  
-	public Map
-	getTrackerResponseCache()
-	{				
-		return( exportTrackerCache());
-	}
-	
-	
-	public void
-	setTrackerResponseCache(
-		Map		map )
-	{
-		int	num = importTrackerCache( map );
-		
-    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-                 "TRTrackerClient: imported " + num + " cached peers" );
-	}
-	
-	protected Map
-	exportTrackerCache()
-	{
-		Map	res = new HashMap();
-		
-		List	peers = new ArrayList();
-		
-		res.put( "tracker_peers", peers );
-		
-		try{
-			tracker_peer_cache_mon.enter();
-			
-			Iterator it = tracker_peer_cache.values().iterator();
-			
-			while( it.hasNext()){
-				
-				TRTrackerResponsePeer	peer = (TRTrackerResponsePeer)it.next();		
-
-				Map	entry = new HashMap();
-				
-				entry.put( "ip", peer.getAddress().getBytes());
-				entry.put( "src", peer.getSource().getBytes());
-				entry.put( "port", new Long(peer.getPort()));
-				
-				peers.add( entry );
-			}
-		
-			LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-			             "TRTrackerClient: exported " + tracker_peer_cache.size() + " cached peers" );
-		}finally{
-			
-			tracker_peer_cache_mon.exit();
-		}
-		
-		return( res );
-	}
-	
-	protected int
-	importTrackerCache(
-		Map		map )
-	{
-		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
-			
-			return( 0 );
-		}
-		
-		try{
-			if ( map == null ){
-				
-				return( 0 );
-			}
-			
-			List	peers = (List)map.get( "tracker_peers" );
-	
-			if ( peers == null ){
-				
-				return( 0 );
-			}
-			
-			try{
-				tracker_peer_cache_mon.enter();
-				
-				for (int i=0;i<peers.size();i++){
-					
-					Map	peer = (Map)peers.get(i);
-					
-					byte[]	src_bytes = (byte[])peer.get("src");
-					String	peer_source = src_bytes==null?PEPeerSource.PS_BT_TRACKER:new String(src_bytes);
-					String	peer_ip_address = new String((byte[])peer.get("ip"));
-					int		peer_port		= ((Long)peer.get("port")).intValue();
-					byte[]	peer_peer_id	= getAnonymousPeerId( peer_ip_address, peer_port );
-						
-					//System.out.println( "recovered " + ip_address + ":" + port );
-					
-					if ( PeerUtils.ignorePeerPort( peer_port )){
-						
-   			    		LGLogger.log(
-			    				componentID, evtFullTrace, LGLogger.INFORMATION, 
-			    				"Ignoring " + peer_ip_address + ":" + peer_port + " as peer port is in ignore list" );
-
-					}else{
-						tracker_peer_cache.put( 
-							peer_ip_address, 
-							new TRTrackerResponsePeerImpl(peer_source, peer_peer_id, peer_ip_address, peer_port ));
-					}
-				}
-				
-				return( tracker_peer_cache.size());
-				
-			}finally{
-				
-				tracker_peer_cache_mon.exit();
-			}
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			
-			return( tracker_peer_cache.size());
-		}
-	}
-	
-	protected void
-	addToTrackerCache(
-		TRTrackerResponsePeer[]		peers )
-	{
-		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
-			
-			return;
-		}
-		
-		int	max = COConfigurationManager.getIntParameter( "File.save.peers.max", DEFAULT_PEERS_TO_CACHE );
-		
-		// System.out.println( "max peers= " + max );
-		
-		try{
-			tracker_peer_cache_mon.enter();
-			
-			for (int i=0;i<peers.length;i++){
-				
-				TRTrackerResponsePeer	peer = peers[i];
-				
-					// remove and reinsert to maintain most recent last
-				
-				tracker_peer_cache.remove( peer.getAddress());
-				
-				tracker_peer_cache.put( peer.getAddress(), peer );
-			}
-			
-			Iterator	it = tracker_peer_cache.keySet().iterator();
-			
-			if ( max > 0 ){
-					
-				while ( tracker_peer_cache.size() > max ){
-						
-					it.next();
-					
-					it.remove();
-				}
-			}
-		}finally{
-			
-			tracker_peer_cache_mon.exit();
-		}
-	}
-	
-	public static Map
-	mergeResponseCache(
-		Map		map1,
-		Map		map2 )
-	{
-		if ( map1 == null & map2 == null ){
-			return( new HashMap());
-		}else if ( map1 == null ){
-			return( map2 );
-		}else if ( map2 == null ){
-			return( map1 );
-		}
-		
-		Map	res = new HashMap();
-				
-		List	peers = (List)map1.get( "tracker_peers" );
-		
-		if ( peers == null ){
-			
-			peers = new ArrayList();
-		}
-		
-		List	p2 = (List)map2.get( "tracker_peers" );
-		
-		if ( p2 != null ){
-			
-      LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-			             "TRTrackerClient: merged peer sets: p1 = " + peers.size() + ", p2 = " + p2.size());
-		
-			for (int i=0;i<p2.size();i++){
-				
-				peers.add( p2.get( i ));
-			}
-		}
-		
-		res.put( "tracker_peers", peers );
-		
-		return( res );
-	}
-	
-	protected TRTrackerResponsePeer[]
-	getPeersFromCache()
-	{
-			// use double the num_want as no doubt a fair few connections will fail and
-			// we want to get a decent reconnect rate
-		
-		int	num_want = calculateNumWant() * 4;
-	
-		try{
-			tracker_peer_cache_mon.enter();
-
-			if ( tracker_peer_cache.size() <= num_want ){
-				
-				TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[tracker_peer_cache.size()];
-				
-				tracker_peer_cache.values().toArray( res );
-				
-			    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-		                   "TRTrackerClient: returned " + res.length + " cached peers" );
-			    
-				return( res );
-			}
-			
-			TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[num_want];
-			
-			Iterator	it = tracker_peer_cache.keySet().iterator();
-			
-				// take 'em out and put them back in so we cycle through the peers
-				// over time
-			
-			for (int i=0;i<num_want;i++){
-				
-				String	key = (String)it.next();
-				
-				res[i] = (TRTrackerResponsePeer)tracker_peer_cache.get(key);
-				
-				it.remove();
-			}
-			
-			for (int i=0;i<num_want;i++){
-				
-				tracker_peer_cache.put( res[i].getAddress(), res[i] );
-			}
-			
-		    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-	                   "TRTrackerClient: returned " + res.length + " cached peers" );
-		    
-			return( res );
-			
-		}finally{
-			
-			tracker_peer_cache_mon.exit();
-		}
-	} 
-  
+ 
 	public void
 	setAnnounceResult(
 		DownloadAnnounceResult	result )
@@ -2623,7 +2274,7 @@ TRTrackerClientClassicImpl
 			// really should refactor so that "normal" and "external" mechanisms are
 			// just instances of the same generic approach
 		
-		TRTrackerResponseImpl response;
+		TRTrackerAnnouncerResponseImpl response;
 		
 		if ( result.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
 			
@@ -2636,22 +2287,22 @@ TRTrackerClientClassicImpl
 				tracker_status_str += " (" + reason + ")";		
 			}
 			
-	  		response = new TRTrackerResponseImpl(
+	  		response = new TRTrackerAnnouncerResponseImpl(
 				  				result.getURL(),
-				  				TRTrackerResponse.ST_OFFLINE, 
+				  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 								result.getTimeToWait(), 
 								reason );
 		}else{
 			DownloadAnnounceResultPeer[]	ext_peers = result.getPeers();
 			
-			TRTrackerResponsePeer[] peers = new TRTrackerResponsePeer[ext_peers.length];
+			TRTrackerAnnouncerResponsePeer[] peers = new TRTrackerAnnouncerResponsePeer[ext_peers.length];
 				
 			for (int i=0;i<ext_peers.length;i++){
 				
 	    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 	    				"EXTERNAL PEER: ip=" +ext_peers[i].getAddress() + " port=" +ext_peers[i].getPort());
 
-				peers[i] = new TRTrackerResponsePeerImpl( 
+				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
 									ext_peers[i].getSource(),
 									ext_peers[i].getPeerID(),
 									ext_peers[i].getAddress(), 
@@ -2662,7 +2313,7 @@ TRTrackerClientClassicImpl
 		
 			tracker_status_str = MessageText.getString("PeerManager.status.ok") + " (" + result.getURL() + ")";
 
-			response = new TRTrackerResponseImpl( result.getURL(), TRTrackerResponse.ST_ONLINE, result.getTimeToWait(), peers );
+			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
 		}
 		
 		last_response = response;

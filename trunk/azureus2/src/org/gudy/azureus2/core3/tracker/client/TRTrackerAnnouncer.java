@@ -28,7 +28,7 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 
 public interface 
-TRTrackerClient 
+TRTrackerAnnouncer 
 {
 	public static final int REFRESH_MINIMUM_SECS		= 60;
 	public static final int DEFAULT_PEERS_TO_CACHE		= 512;
@@ -41,7 +41,7 @@ TRTrackerClient
 	
 	public void
 	setAnnounceDataProvider(
-		TrackerClientAnnounceDataProvider		provider );
+		TRTrackerAnnouncerDataProvider		provider );
 	
 	public TOTorrent
 	getTorrent();
@@ -97,7 +97,7 @@ TRTrackerClient
 	public String
 	getStatusString();
 	
-	public TRTrackerResponse
+	public TRTrackerAnnouncerResponse
 	getLastResponse();
 	
 		/**
@@ -133,9 +133,9 @@ TRTrackerClient
 	
 	public void
 	addListener(
-		TRTrackerClientListener	l );
+		TRTrackerAnnouncerListener	l );
 		
 	public void
 	removeListener(
-		TRTrackerClientListener	l );
+		TRTrackerAnnouncerListener	l );
 }

@@ -18,14 +18,14 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 
 /**
  * @author Olivier
  * 
  */
 public class TrackerChangerWindow {
-  public TrackerChangerWindow(final Display display, final TRTrackerClient trackerConnection) {
+  public TrackerChangerWindow(final Display display, final TRTrackerAnnouncer trackerConnection) {
     final Shell shell = new Shell(display);
     shell.setText(MessageText.getString("TrackerChangerWindow.title"));
     if(! Constants.isOSX) {

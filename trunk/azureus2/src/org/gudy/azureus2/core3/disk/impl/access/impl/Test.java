@@ -48,8 +48,8 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerResponse;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
@@ -430,7 +430,7 @@ Test
 			
 		}
 		
-		public TRTrackerClient
+		public TRTrackerAnnouncer
 		getTrackerClient()
 		{
 			return( null );
@@ -959,7 +959,7 @@ Test
 
 		public void
 		processTrackerResponse(
-			TRTrackerResponse	response )
+			TRTrackerAnnouncerResponse	response )
 		{
 			
 		}

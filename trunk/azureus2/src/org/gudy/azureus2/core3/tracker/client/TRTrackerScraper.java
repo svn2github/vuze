@@ -51,7 +51,7 @@ TRTrackerScraper
 		
 	public TRTrackerScraperResponse
 	scrape(
-		TRTrackerClient	tracker_client );
+		TRTrackerAnnouncer	tracker_client );
 
 	public void
 	setScrape(

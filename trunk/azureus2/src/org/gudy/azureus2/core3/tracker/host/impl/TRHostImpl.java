@@ -39,7 +39,7 @@ import org.gudy.azureus2.core3.torrent.*;
 
 public class 
 TRHostImpl
-	implements 	TRHost, TRTrackerClientFactoryListener, 
+	implements 	TRHost, TRTrackerAnnouncerFactoryListener, 
 				TRTrackerServerListener, TRTrackerServerFactoryListener,
 				TRTrackerServerRequestListener, TRTrackerServerAuthenticationListener
 {
@@ -132,7 +132,7 @@ TRHostImpl
 					
 			config = new TRHostConfigImpl(this);	
 			
-			TRTrackerClientFactory.addListener( this );
+			TRTrackerAnnouncerFactory.addListener( this );
 			
 			Thread t = new AEThread("TRHost::stats.loop")
 						{
@@ -520,7 +520,7 @@ TRHostImpl
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();
 		
-		TRTrackerClient tc = (TRTrackerClient)tracker_client_map.get( torrent );
+		TRTrackerAnnouncer tc = (TRTrackerAnnouncer)tracker_client_map.get( torrent );
 		
 		if ( tc != null ){
 			
@@ -530,7 +530,7 @@ TRHostImpl
 	
 	protected void
 	startHosting(
-		TRTrackerClient	tracker_client )
+		TRTrackerAnnouncer	tracker_client )
 	{
 		TRHostTorrent	host_torrent = (TRHostTorrent)host_torrent_map.get( tracker_client.getTorrent());
 			
@@ -543,7 +543,7 @@ TRHostImpl
 	protected void
 	startHosting(
 		TRHostTorrentHostImpl	host_torrent,
-		final TRTrackerClient 	tracker_client )
+		final TRTrackerAnnouncer 	tracker_client )
 	{
 		final TOTorrent	torrent = host_torrent.getTorrent();	
 
@@ -555,12 +555,12 @@ TRHostImpl
 			// hook into the client so that when the announce succeeds after the refresh below
 			// we can force a rescrape to pick up the new status 
 		
-		TRTrackerClientListener	listener = 
-			new TRTrackerClientListener()
+		TRTrackerAnnouncerListener	listener = 
+			new TRTrackerAnnouncerListener()
 			{
 				public void
 				receivedTrackerResponse(
-					TRTrackerResponse	response	)
+					TRTrackerAnnouncerResponse	response	)
 				{	
 					try{
 						TRTrackerScraperFactory.getSingleton().scrape( torrent, true );
@@ -636,7 +636,7 @@ TRHostImpl
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();
 		
-		TRTrackerClient tc = (TRTrackerClient)tracker_client_map.get( torrent );
+		TRTrackerAnnouncer tc = (TRTrackerAnnouncer)tracker_client_map.get( torrent );
 		
 		if ( tc != null ){
 			
@@ -646,7 +646,7 @@ TRHostImpl
 	
 	protected void
 	stopHosting(
-		TRTrackerClient	tracker_client )
+		TRTrackerAnnouncer	tracker_client )
 	{
 		TRHostTorrent	host_torrent = (TRHostTorrent)host_torrent_map.get( tracker_client.getTorrent());
 			
@@ -659,7 +659,7 @@ TRHostImpl
 	protected void
 	stopHosting(
 		final TRHostTorrentHostImpl	host_torrent,
-		final TRTrackerClient 		tracker_client )
+		final TRTrackerAnnouncer 		tracker_client )
 	{				
 			// unfortunately a lot of the "stop" operations that occur when a tracker client
 			// connection is closed happen async. In particular the "stopped" message to the
@@ -708,14 +708,14 @@ TRHostImpl
 		thread.start();
 	}
 	
-	protected TRTrackerClient
+	protected TRTrackerAnnouncer
 	getTrackerClient(
 		TRHostTorrent host_torrent )
 	{
 		try{
 			this_mon.enter();
 		
-			return((TRTrackerClient)tracker_client_map.get( host_torrent.getTorrent()));
+			return((TRTrackerAnnouncer)tracker_client_map.get( host_torrent.getTorrent()));
 			
 		}finally{
 			
@@ -732,7 +732,7 @@ TRHostImpl
 		
 			TOTorrent	torrent = host_torrent.getTorrent();
 			
-			TRTrackerClient tc = (TRTrackerClient)tracker_client_map.get( torrent );
+			TRTrackerAnnouncer tc = (TRTrackerAnnouncer)tracker_client_map.get( torrent );
 			
 			if ( tc != null ){
 				
@@ -767,7 +767,7 @@ TRHostImpl
 	
 	public void
 	clientCreated(
-		TRTrackerClient		client )
+		TRTrackerAnnouncer		client )
 	{
 		try{
 			this_mon.enter();
@@ -784,7 +784,7 @@ TRHostImpl
 	
 	public void
 	clientDestroyed(
-		TRTrackerClient		client )
+		TRTrackerAnnouncer		client )
 	{
 		try{
 			this_mon.enter();

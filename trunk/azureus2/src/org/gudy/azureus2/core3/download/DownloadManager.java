@@ -138,7 +138,7 @@ DownloadManager
 	public TOTorrent
 	getTorrent();
 	
-	public TRTrackerClient
+	public TRTrackerAnnouncer
 	getTrackerClient();
 	
 	public void

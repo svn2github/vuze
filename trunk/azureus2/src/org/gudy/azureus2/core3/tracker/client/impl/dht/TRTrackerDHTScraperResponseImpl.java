@@ -1,5 +1,5 @@
 /*
- * Created on 27-Aug-2004
+ * Created on 14-Feb-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,44 +20,45 @@
  *
  */
 
-package org.gudy.azureus2.core3.tracker.client;
+package org.gudy.azureus2.core3.tracker.client.impl.dht;
 
 import java.net.URL;
+
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-TRTrackerScraperClientResolver 
+public class 
+TRTrackerDHTScraperResponseImpl 
+	extends TRTrackerScraperResponseImpl
 {
-	public static final int	ST_NOT_FOUND		= 1;
-	public static final int	ST_RUNNING			= 2;	// downloading, seeding or queued
-	public static final int	ST_OTHER			= 3;
-
-		/**
-		 * Gives access to a restricted set of states for this torrent from ST_ set
-		 * @param torrent_hash
-		 * @return
-		 */
+	private URL		url;
 	
-	public int
-	getStatus(
-		byte[]	torrent_hash );
+	protected
+	TRTrackerDHTScraperResponseImpl(
+		byte[]		hash,
+		URL			_url )
+	{
+		super(hash );
+		
+		url		= _url;
+	}
 	
-		/**
-		 * returns the current tracker client for the torrent, if it exists
-		 * @param torrent_hash
-		 * @return
-		 */
+	public void
+	setSeedsPeers(
+		int	s,
+		int	p )
+	{
+		setSeeds( s );
+		setPeers( p );
+	}
 	
-	public TRTrackerAnnouncer
-	getClient(
-		byte[]	torrent_hash );
-	
-	public boolean
-	isNetworkEnabled(
-		byte[]	hash,
-		URL		url );
+	public URL
+	getURL()
+	{
+		return( url );
+	}
 }

@@ -26,7 +26,7 @@ package org.gudy.azureus2.core3.tracker.client;
  *
  */
 
-import org.gudy.azureus2.core3.tracker.client.classic.*;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperImpl;
 
 public class 
 TRTrackerScraperFactory 

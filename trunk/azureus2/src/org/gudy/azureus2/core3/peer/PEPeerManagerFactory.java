@@ -37,7 +37,7 @@ PEPeerManagerFactory
 	public static PEPeerManager
 	create(
 		DownloadManager 	manager,
-		TRTrackerClient 	tracker,
+		TRTrackerAnnouncer 	tracker,
 	  	DiskManager 		diskManager )
 	{
   		return( PEPeerControlFactory.create( manager, tracker, diskManager ));

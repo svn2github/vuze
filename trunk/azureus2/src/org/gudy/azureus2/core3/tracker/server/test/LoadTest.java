@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.tracker.server.test;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.tracker.client.classic.*;
+import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerRequestListener;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 import org.gudy.azureus2.core3.util.*;
@@ -220,7 +220,7 @@ LoadTest
 				Debug.printStackTrace( e );
 			}
 			
-			key		= TRTrackerClientClassicImpl.createKeyID();
+			key		= TRTrackerBTAnnouncerImpl.createKeyID();
 			
 			changeAddress();
 		}

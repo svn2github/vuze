@@ -44,7 +44,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -520,7 +520,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	    							Debug.printStackTrace( e2 );
 	    						}
 	    						
-	    						TRTrackerClient	tc = manager.getTrackerClient();
+	    						TRTrackerAnnouncer	tc = manager.getTrackerClient();
 	    						
 	    						if ( tc != null ){
 	    							
@@ -553,7 +553,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
           	Debug.printStackTrace( f );
           }
           	
-          TRTrackerClient	tc = manager.getTrackerClient();
+          TRTrackerAnnouncer	tc = manager.getTrackerClient();
           	
           if ( tc != null ){
           		
@@ -1102,7 +1102,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     String	status 	= _manager.getTrackerStatus();
     int		time	= _manager.getTrackerTime();
      
-    TRTrackerClient	trackerClient = _manager.getTrackerClient();
+    TRTrackerAnnouncer	trackerClient = _manager.getTrackerClient();
 	
 	tracker_status.setText( status );
 		
@@ -1157,7 +1157,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     if ( trackerClient != null ){
     	
-    	update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
+    	update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerAnnouncer.REFRESH_MINIMUM_SECS ));
     	
     }else{
     	update_state = false;

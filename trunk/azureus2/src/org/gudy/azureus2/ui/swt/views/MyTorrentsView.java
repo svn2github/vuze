@@ -49,7 +49,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
@@ -599,10 +599,10 @@ public class MyTorrentsView
               moveUp = false;
             }
             
-            TRTrackerClient trackerClient = dm.getTrackerClient();
+            TRTrackerAnnouncer trackerClient = dm.getTrackerClient();
             
             if(trackerClient != null) {
-              boolean update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
+              boolean update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerAnnouncer.REFRESH_MINIMUM_SECS ));
               manualUpdate = manualUpdate & update_state;
             }
            
@@ -747,7 +747,7 @@ public class MyTorrentsView
     itemChangeTracker.addListener(SWT.Selection,
                                   new SelectedTableRowsListener() {
       public void run(TableRowCore row) {
-        TRTrackerClient tc = ((DownloadManager)row.getDataSource(true)).getTrackerClient();
+        TRTrackerAnnouncer tc = ((DownloadManager)row.getDataSource(true)).getTrackerClient();
         if (tc != null)
           new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), tc);
       }

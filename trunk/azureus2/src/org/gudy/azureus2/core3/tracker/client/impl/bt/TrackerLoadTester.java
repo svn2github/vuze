@@ -20,7 +20,7 @@
  * AELITIS, SARL au capital de 30,000 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
-package org.gudy.azureus2.core3.tracker.client.classic;
+package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.net.URL;
 import java.net.URLConnection;
