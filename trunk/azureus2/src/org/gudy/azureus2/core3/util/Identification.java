@@ -78,10 +78,16 @@ public class Identification {
       if (btfans.equals("btfans")) return "btFans";
       
       
-      //check for generic client
       boolean allZero = true;
       for (int i = 0; i < 12; i++) {
         if (peerID[i] != (byte)0) { allZero = false; break; }
+      }
+      
+      if ((allZero) && (peerID[12] == (byte)97) && (peerID[13] == (byte)97)) {
+        return "Experimental 3.2.1b-2";
+      }
+      if ((allZero) && (peerID[12] == (byte)0) && (peerID[13] == (byte)0)) {
+        return "Experimental 3.1";
       }
       if (allZero) return MessageText.getString("PeerSocket.generic");
       
