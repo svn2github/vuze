@@ -1145,8 +1145,10 @@ public class MyTorrentsView
           if (bDeleteData)
             dm.deleteDataFiles();
           if (bDeleteTorrent) {
-            File f = new File(dm.getTorrentFileName());
-            f.delete();
+          	TOTorrent torrent = dm.getTorrent();
+          	if ( torrent != null ){
+              TorrentUtils.delete( torrent );
+          	}
           }
         } catch (GlobalManagerDownloadRemovalVetoException f) {
           Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);

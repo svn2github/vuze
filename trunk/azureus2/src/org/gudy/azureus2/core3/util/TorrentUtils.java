@@ -125,6 +125,30 @@ TorrentUtils
 		writeToFile( torrent );
 	}
 	
+	public static void
+	delete(
+		TOTorrent 		torrent )
+	
+		throws TOTorrentException 
+	{
+	    synchronized( torrent ){
+	    	
+	    	String str = torrent.getAdditionalStringProperty("torrent filename");
+	    	
+	    	if ( str == null ){
+	    		
+	    		throw( new TOTorrentException("TorrentUtils::delete: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
+	    	}
+	    	
+	    	if ( !new File(str).delete()){
+	    		
+	    		throw( new TOTorrentException("TorrentUtils::delete: failed to delete '" + str + "'", TOTorrentException.RT_WRITE_FAILS));
+	    	}
+		
+	    	new File( str + ".bak" ).delete();
+	    }
+	}
+	
 	public static String
 	exceptionToText(
 		TOTorrentException	e )
