@@ -48,7 +48,6 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
   private final ByteBuffer[] decode_array = new ByteBuffer[] { payload_buffer, length_buffer };
   
   private boolean reading_length_mode = true;
-  private boolean reading_data_message = false;
   
   private int message_length;
   private int pre_read_start_buffer;
@@ -60,6 +59,11 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
   private int protocol_bytes_last_read = 0;
   private int data_bytes_last_read = 0;
 
+  private int data_bytes_owed = 0;
+  
+  
+  
+  
   
   public CoreMessageDecoder() {
     /*nothing*/
@@ -194,8 +198,6 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
   
   private int postReadProcess() throws IOException {
     int bytes_read = 0;
-    int data_bytes_read = 0;
-    int protocol_bytes_read = 0;
     
     if( !reading_length_mode ) {  //reading payload data mode
       //ensure-restore proper buffer limits
@@ -205,13 +207,6 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
       int read = payload_buffer.position() - pre_read_start_position;
       
       bytes_read += read;
-      
-      if( reading_data_message ) {
-        data_bytes_read += read;
-      }
-      else {
-        protocol_bytes_read += read;
-      }
 
       if( !payload_buffer.hasRemaining() ) {  //full message received!
         payload_buffer.position( 0 );  //prepare for use
@@ -223,9 +218,13 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
         try {
           Message msg = CoreMessageFactory.createCoreMessage( payload );
           messages_last_read.add( msg );
+
+          //we only learn what type of message it is AFTER we are done decoding it, so we probably need to work off the count post-hoc
+          if( msg.getType() == Message.TYPE_DATA_PAYLOAD ) {
+            data_bytes_owed += message_length;
+          }
         }
         catch( MessageException me ) {
-          //Debug.out( me );
           throw new IOException( "message decode failed [payload_size=" +payload_size+ "]: " + me.getMessage() );
         }
         
@@ -241,13 +240,6 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
       
       int read = (pre_read_start_buffer == 1) ? length_buffer.position() - pre_read_start_position : length_buffer.position();
       bytes_read += read;
-      
-      if( reading_data_message ) {
-        data_bytes_read += read;
-      }
-      else {
-        protocol_bytes_read += read;
-      }
       
       if( !length_buffer.hasRemaining() ) {  //done reading the length
         reading_length_mode = false;        
@@ -272,9 +264,17 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
       }
     }
     
-    protocol_bytes_last_read += protocol_bytes_read;
-    data_bytes_last_read += data_bytes_read;
-    
+    if( bytes_read < data_bytes_owed ) {
+      data_bytes_last_read += bytes_read;
+      data_bytes_owed -= bytes_read;
+    }
+    else {  //bytes_read >= data_bytes_owed
+      data_bytes_last_read += data_bytes_owed;
+      data_bytes_owed = 0;
+      
+      protocol_bytes_last_read += bytes_read - data_bytes_owed;
+    }
+
     return bytes_read;
   }
   
