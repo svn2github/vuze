@@ -237,9 +237,10 @@ public class SystemTraySWT {
         final int speedPartitions = 12;
 
         int maxBandwidth = COConfigurationManager.getIntParameter(configKey);
+        final boolean unlim = (maxBandwidth == 0);
         if(maxBandwidth == 0 && configKey == "Max Download Speed KBs")
         {
-            maxBandwidth = 375;
+            maxBandwidth = 275;
         }
         
         final String unitSuffix = COConfigurationManager.getBooleanParameter("config.style.useSIUnits") ? " KiB/s" : "KB/s";
@@ -247,7 +248,7 @@ public class SystemTraySWT {
         MenuItem item = new MenuItem(parent, SWT.RADIO);
         item.setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
         item.setData("maxkb", new Integer(0));
-        item.setSelection(maxBandwidth == 0);
+        item.setSelection(unlim);
         item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
 
         int delta = 0;
@@ -264,7 +265,7 @@ public class SystemTraySWT {
                   item.setText(valuePair[j] + unitSuffix);
                   item.setData("maxkb", new Integer(valuePair[j]));
                   item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
-                  item.setSelection(valuePair[j] == maxBandwidth);
+                  item.setSelection(!unlim && valuePair[j] == maxBandwidth);
                 }
               }
 
