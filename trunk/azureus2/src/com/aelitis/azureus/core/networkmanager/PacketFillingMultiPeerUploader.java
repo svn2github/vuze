@@ -48,6 +48,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   private final HashMap waiting_connections = new HashMap();
   private final LinkedList ready_connections = new LinkedList();
   private final AEMonitor lists_lock = new AEMonitor( "PacketFillingMultiPeerUploader:lists_lock" );
+  private long total_bytes_ready = 0;
   
 
   /**
@@ -195,6 +196,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       for( Iterator i = ready_connections.iterator(); i.hasNext(); ) {
         peer_data = (PeerData)i.next();
         if( peer_data.connection == peer_connection ) {  //found
+          total_bytes_ready -= peer_connection.getOutgoingMessageQueue().getTotalSize();
           peer_connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener );
           i.remove();
           return true;
@@ -217,8 +219,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         try {
           lists_lock.enter();
           
-          Object removed = stalled_connections.remove( conn );  //remove from stalled list
-          if( removed == null ) {  //connection has already been removed from the stalled list
+          if( stalled_connections.remove( conn ) == null ) {  //connection has already been removed from the stalled list
             return;  //stop further processing
           }
           
@@ -266,8 +267,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         try {
           lists_lock.enter();
           
-          Object contains = waiting_connections.get( conn );
-          if( contains == null ) {  //connection has already been removed from the waiting list
+          if( waiting_connections.get( conn ) == null ) {  //connection has already been removed from the waiting list
             return;  //stop further processing
           }
           
@@ -276,12 +276,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           int mss_size = NetworkManager.getSingleton().getTcpMssSize();
         
           if( num_bytes_ready >= mss_size || has_urgent_data ) {  //has a full packet's worth, or has urgent data
-            Object removed = waiting_connections.remove( conn );  //remove from waiting list
-            if( removed == null ) {  //connection has already been removed from the waiting list
-              System.out.println( "waiting_connections.remove0 gave null" );
-              return;  //stop further processing
-            }
-            
+            waiting_connections.remove( conn );  //remove from waiting list
             conn.getOutgoingMessageQueue().cancelQueueListener( this ); //cancel this listener
             addToReadyList( conn );
           }
@@ -298,14 +293,13 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         try {
           lists_lock.enter();
           
+          if( waiting_connections.get( conn ) == null ) {  //connection has already been removed from the waiting list
+            return;  //stop further processing
+          }
+          
           int num_bytes_ready = conn.getOutgoingMessageQueue().getTotalSize();
           if( num_bytes_ready < 1 ) {  //no data left to send
-            Object removed = waiting_connections.remove( conn );  //remove from waiting list
-            if( removed == null ) {  //connection has already been removed from the waiting list
-              System.out.println( "waiting_connections.remove1 gave null" );
-              return;  //stop further processing
-            }
-            
+            waiting_connections.remove( conn );  //remove from waiting list
             conn.getOutgoingMessageQueue().cancelQueueListener( this ); //cancel this listener
             addToStalledList( conn );
           }
@@ -344,19 +338,22 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         try {
           lists_lock.enter();
           
+          if( !ready_connections.contains( peer_data ) ) {  //connection has already been removed from the waiting list
+            return;  //stop further processing
+          }
+          
           int num_bytes_ready = conn.getOutgoingMessageQueue().getTotalSize();
           boolean has_urgent_data = conn.getOutgoingMessageQueue().hasUrgentMessage();
           int mss_size = NetworkManager.getSingleton().getTcpMssSize();
           
           if( num_bytes_ready >= mss_size || has_urgent_data ) {
+            total_bytes_ready -= message.getTotalMessageByteSize();
             return;  //do nothing, as it still has a full packet's worth, or has urgent data
           }
           
           //connection does not have enough for a full packet, so remove and place into proper list
-          boolean removed = ready_connections.remove( peer_data );  //remove from ready list
-          if( !removed ) {  //connection has already been removed from the ready list
-            return;  //stop further processing
-          }
+          ready_connections.remove( peer_data );  //remove from ready list
+          total_bytes_ready -= conn.getOutgoingMessageQueue().getTotalSize();
           conn.getOutgoingMessageQueue().cancelQueueListener( this ); //cancel this listener
           
           if( num_bytes_ready < 1 ) {  //no data at all left to send
@@ -371,8 +368,18 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         }
       }
       
-      public void messageAdded( ProtocolMessage message ) {/*ignore*/}
+      public void messageAdded( ProtocolMessage message ) {
+        try {  lists_lock.enter();
+          if( !ready_connections.contains( peer_data ) ) {  //connection has already been removed from the waiting list
+            return;  //stop further processing
+          }
+          total_bytes_ready += message.getTotalMessageByteSize();
+        }
+        finally {  lists_lock.exit();  }
+      }
+      
       public void messageSent( ProtocolMessage message ) {/*ignore*/}
+      
       public void bytesSent( int byte_count ) {/*ignore*/}
     };
     
@@ -384,6 +391,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       
       ready_connections.addLast( peer_data );  //add to ready list
       conn.getOutgoingMessageQueue().registerQueueListener( listener );  //listen for added data
+      total_bytes_ready += conn.getOutgoingMessageQueue().getTotalSize();
     }
     finally {
       lists_lock.exit();
@@ -392,7 +400,12 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   
   
-  private int write( int num_bytes_to_write ) {    
+  private int write( int num_bytes_to_write ) {
+    if( total_bytes_ready < 1 ) {
+      Debug.out( "total_bytes_ready < 1: " + total_bytes_ready );
+      return 0;
+    }
+    
     int mss_size = NetworkManager.getSingleton().getTcpMssSize();
     if( num_bytes_to_write < mss_size ) {
       return 0;  //don't bother doing a write if we're not allowed to send at least a full packet
@@ -426,8 +439,9 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           try {
             written = peer_data.connection.getOutgoingMessageQueue().deliverToTransport( peer_data.connection.getTransport(), num_bytes_available, true );
             
-            if( written > 0 ) {  //register it for manual listener notification
-              manual_notifications.add( peer_data );
+            if( written > 0 ) {  
+              total_bytes_ready -= written;
+              manual_notifications.add( peer_data );  //register it for manual listener notification
             }
             
             int remaining = peer_data.connection.getOutgoingMessageQueue().getTotalSize();
@@ -438,6 +452,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
               num_unusable_connections = 0;  //reset the unusable count so that it has a chance to try this connection again in the loop
             }
             else {  //connection does not have enough for a full packet, so remove and place into proper list
+              total_bytes_ready -= peer_data.connection.getOutgoingMessageQueue().getTotalSize();
               peer_data.connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
               
               if( remaining < 1 ) {  //no data at all left to send
@@ -449,6 +464,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
             }
           }
           catch( IOException e ) {  //write exception, so completely remove from this upload entity, as no further writes are possible
+            total_bytes_ready -= peer_data.connection.getOutgoingMessageQueue().getTotalSize();
             peer_data.connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
             peer_data.exception = e;
             connections_to_notify_of_exception.add( peer_data );  //do exception notification outside of sync'd block
@@ -491,12 +507,17 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     private OutgoingMessageQueue.MessageQueueListener queue_listener;
     private long last_message_added_time;
     private IOException exception;
-    
-    private PeerData() {/*nothing*/}
   }
   
   
   //////////////// RateControlledWriteEntity implementation ////////////////////
+  
+  public boolean canWrite() {
+    if( total_bytes_ready < 1 )  return false;  //no data to send
+    int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+    if( rate_handler.getCurrentNumBytesAllowed() < mss_size )  return false; //not allowed to send enough bytes
+    return true;
+  }
   
   public boolean doWrite() {
     int written = write( rate_handler.getCurrentNumBytesAllowed() );
