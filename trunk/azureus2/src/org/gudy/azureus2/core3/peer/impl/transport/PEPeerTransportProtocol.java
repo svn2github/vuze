@@ -246,7 +246,7 @@ PEPeerTransportProtocol
   	allocateAllSupport();
     
     cache_buffer = DirectByteBufferPool.getBuffer( WRITE_CACHE_SIZE );
-
+    
   	this.closing = false;
   	this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
 
@@ -399,6 +399,8 @@ PEPeerTransportProtocol
 
   
   protected void queueProtocolMessage( BTMessage message ) {
+    if ( closing ) return;
+    
   	synchronized( protocolQueue ) { 
   		for (Iterator i = protocolQueue.iterator(); i.hasNext(); ) {
         BTMessage msg = (BTMessage)i.next();
@@ -406,7 +408,7 @@ PEPeerTransportProtocol
         if ( message.getType() == BTMessage.BT_CHOKE || message.getType() == BTMessage.BT_UNCHOKE ) {
           if ( msg.getType() == BTMessage.BT_CHOKE || msg.getType() == BTMessage.BT_UNCHOKE ) {
             i.remove();
-            LGLogger.log(LGLogger.INFORMATION, "Removing previously-unsent" +msg.getDescription()+ " message from protocol queue" );
+            LGLogger.log(LGLogger.INFORMATION, "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " +ip+ ":" +port+ " [" +client+ "]" );
           }
         }
       }
@@ -441,7 +443,28 @@ PEPeerTransportProtocol
   	//Close the socket
   	closeConnection();
   	
-  	//release the read Buffer
+    
+    synchronized( protocolQueue ) {
+      for ( int i=0; i < protocolQueue.size(); i++ ) {
+        BTMessage msg = (BTMessage)protocolQueue.remove( i );
+        msg.getPayload().returnToPool();
+      }
+    }
+    
+    synchronized( dataQueue ) {
+      //release all buffers in dataQueue
+      for (int i=0; i < dataQueue.size(); i++) {
+        DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
+        if (item.isLoaded()) {
+          item.getBuffer().returnToPool();
+          item.setBuffer(null);
+        }
+        else if (item.isLoading()) {
+          manager.freeRequest(item);
+        }
+      }
+    }
+  
   	if (readBuffer != null) {
   		readBuffer.returnToPool();
   		readBuffer = null;
@@ -457,7 +480,6 @@ PEPeerTransportProtocol
       lengthBuffer = null;
     }
   	
-  	//release the write Buffer
   	if (writeBuffer != null) {      
   		if (writeData) {
   			PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
@@ -466,27 +488,7 @@ PEPeerTransportProtocol
       writeBuffer = null;
   	}
   	
-  	synchronized( dataQueue ) {
-  		//release all buffers in dataQueue
-      for (int i=0; i < dataQueue.size(); i++) {
-  			DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
-  			if (item.isLoaded()) {
-  				item.getBuffer().returnToPool();
-  				item.setBuffer(null);
-  			}
-  			else if (item.isLoading()) {
-  				manager.freeRequest(item);
-  			}
-  		}
-  	}
-    
-    synchronized( protocolQueue ) {
-      for ( int i=0; i < protocolQueue.size(); i++ ) {
-        BTMessage msg = (BTMessage)protocolQueue.remove( i );
-        msg.getPayload().returnToPool();
-      }
-    }
-  	
+
   	//remove identity
   	if ( this.id != null && identityAdded ) {
   		PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
@@ -1713,7 +1715,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           BTMessage msg = (BTMessage)i.next();
           if ( msg.getType() == BTMessage.BT_REQUEST ) {
             i.remove();
-            LGLogger.log(LGLogger.INFORMATION, "Removing previously-unsent" +msg.getDescription()+ " message from protocol queue" );
+            LGLogger.log(LGLogger.INFORMATION, "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " +ip+ ":" +port+ " [" +client+ "]" );
           }
         }
       }
