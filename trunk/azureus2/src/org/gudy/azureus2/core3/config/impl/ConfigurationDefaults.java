@@ -319,7 +319,7 @@ public class ConfigurationDefaults {
   }
 
   public void addParameter(String sKey, boolean bParameter) {
-    Long lParameter = new Long(bParameter ? 0 : 1);
+    Long lParameter = new Long(bParameter ? 1 : 0);
     def.put(sKey, lParameter);
   }
   
