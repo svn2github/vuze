@@ -188,7 +188,7 @@ PESharedPortSelector
 		                         				
 		                           				remove_this_key = true;
 		                           				
-		                           				LGLogger.log(0, 0, LGLogger.ERROR, getIP(channel) + " : PESharedPortSelector: failed to find server hash" );
+		                           				LGLogger.log(0, 0, LGLogger.ERROR, getIP(channel) + " : PESharedPortSelector: failed to find matching info hash" );
 		                           				
 										 	}else{
 		                           				outstanding_sockets.remove( channel );
