@@ -175,72 +175,145 @@ public class Show extends IConsoleCommand {
 	}
 
 	/**
-	 * returns the summary details for the specified torrent
+	 * returns the summary details for the specified torrent. - we do this by obtaining
+	 * the summary format and then performing variable substitution 
+	 * NOTE: we currently reprocess
+	 * the summary format string each time however we could pre-parse this once.. its 
+	 * probably not that important though.
 	 * @return
 	 */
-	private static String getTorrentSummary(DownloadManager dm) {
+	protected String getTorrentSummary(DownloadManager dm) {
 		StringBuffer tstate = new StringBuffer();
-		int dmstate = dm.getState();
-		tstate.append("[");
-		tstate.append(getShortStateString(dmstate));
-		tstate.append("] ");
-
-		DecimalFormat df = new DecimalFormat("000.0%");
-		DownloadManagerStats stats = dm.getStats();
-		tstate.append(df.format(stats.getCompleted() / 1000.0));
-		tstate.append("\t");
-		if (dmstate == DownloadManager.STATE_ERROR)
-			tstate.append(dm.getErrorDetails());
-		else {
-			if (dm.getDisplayName() == null)
-				tstate.append("?");
-			else
-				tstate.append(dm.getDisplayName());
-		}
-		tstate.append(" (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()));
-		tstate.append("\r\n");
-		DiskManager dim = dm.getDiskManager();
-		long to = 0;
-		long tot = 0;
-		if (dim != null) {
-			DiskManagerFileInfo files[] = dim.getFiles();
-			if (files != null) {
-				if (files.length>1) { 
-					int c=0;
-					for (int i = 0; i < files.length; i++) {
-						if (files[i] != null) {
-							if (!files[i].isSkipped()) {
-								c += 1;
-								tot += files[i].getLength();
-								to += files[i].getDownloaded();
-							}
-						}
-					}
-					if (c == files.length)
-						tot = 0;
-				}
+		String summaryFormat = getDefaultSummaryFormat();
+		char lastch = '0';
+		char []summaryChars = summaryFormat.toCharArray();
+		for (int i = 0; i < summaryChars.length; i++) {
+			char ch = summaryChars[i];
+			if( ch == '%' && lastch != '\\' )
+			{
+				i++;
+				if( i >= summaryChars.length )
+					tstate.append('%');
+				else
+					tstate.append(expandVariable(summaryChars[i], dm));
 			}
-		}
-		if (tot > 0) {
-			tstate.append("      ("+df.format(to * 1.0 / tot)+")");
-		} else
-			tstate.append("\t");
-		tstate.append("\tSpeed: ");
-		tstate.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ");
-		tstate.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ");
-		tstate.append(DisplayFormatters.formatDownloaded(stats) + " / ");
-		tstate.append(DisplayFormatters.formatByteCountToKiBEtc(stats.getUploaded()) + "\tConnections: ");
-		TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
-		if (hd == null || !hd.isValid()) {
-			tstate.append(Integer.toString(dm.getNbSeeds()) + "(?) / ");
-			tstate.append(Integer.toString(dm.getNbPeers()) + "(?)");
-		} else {
-			tstate.append(Integer.toString(dm.getNbSeeds()) + "(" + Integer.toString(hd.getSeeds()) + ") / ");
-			tstate.append(Integer.toString(dm.getNbPeers()) + "(" + Integer.toString(hd.getPeers()) + ")");
+			else
+				tstate.append(ch);
+			
+			lastch = ch;			
 		}
 		return tstate.toString();
 	}
 
+	/**
+	 * expands the specified variable character into a string. <br>currently available
+	 * variables that can be expanded are:<br>
+	 * <hr>
+	 * %a for state<br>
+	 * %c percentage complete<br>
+	 * %t torrent details - error message if error, otherwise torrent name<br>
+	 * %z size<br>
+	 * %e ETA<br>
+	 * %r progress, if we have disabled some files<br>
+	 * %d download speed<br>
+	 * %u upload speed<br>
+	 * %D amount downloaded<br>
+	 * %U amount uploaded<br>
+	 * %s connected seeds<br>
+	 * %p connected peers<br>
+	 * %S tracker seeds<br>
+	 * %P tracker peers<br>
+	 * @param variable variable character, eg: 'e' for ETA
+	 * @param dm download manager object
+	 * @return string expansion of the variable
+	 */
+	protected String expandVariable( char variable, DownloadManager dm )
+	{
+		switch( variable )
+		{
+			case 'a':
+				return getShortStateString(dm.getState());
+			case 'c':
+				DecimalFormat df = new DecimalFormat("000.0%");
+				return df.format(dm.getStats().getCompleted() / 1000.0);
+			case 't':
+				if (dm.getState() == DownloadManager.STATE_ERROR)
+					return dm.getErrorDetails();
+				else {
+					if (dm.getDisplayName() == null)
+						return "?";
+					else
+						return dm.getDisplayName();
+				}
+			case 'z':
+				return DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
+			case 'e':
+				return DisplayFormatters.formatETA(dm.getStats().getETA());
+			case 'r':
+				long to = 0;
+				long tot = 0;
+				if (dm.getDiskManager() != null) {
+					DiskManagerFileInfo files[] = dm.getDiskManager().getFiles();
+					if (files != null) {
+						if (files.length>1) { 
+							int c=0;
+							for (int i = 0; i < files.length; i++) {
+								if (files[i] != null) {
+									if (!files[i].isSkipped()) {
+										c += 1;
+										tot += files[i].getLength();
+										to += files[i].getDownloaded();
+									}
+								}
+							}
+							if (c == files.length)
+								tot = 0;
+						}
+					}
+				}
+				DecimalFormat df1 = new DecimalFormat("000.0%");
+				if (tot > 0) {
+					return "      ("+df1.format(to * 1.0 / tot)+")";
+				} else
+					return "\t";
+			case 'd':
+				return DisplayFormatters.formatByteCountToKiBEtcPerSec(dm.getStats().getDownloadAverage());
+			case 'u':
+				return DisplayFormatters.formatByteCountToKiBEtcPerSec(dm.getStats().getUploadAverage());
+			case 'D':
+				return DisplayFormatters.formatDownloaded(dm.getStats());
+			case 'U':
+				return DisplayFormatters.formatByteCountToKiBEtc(dm.getStats().getUploaded());
+			case 's':
+				return Integer.toString(dm.getNbSeeds());
+			case 'p':
+				return Integer.toString(dm.getNbPeers());
+			case 'S':
+			case 'P':
+				TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
+				if (hd == null || !hd.isValid())
+					return "?";
+				else
+				{
+					if( variable == 'S' )
+						return Integer.toString(hd.getSeeds());
+					else
+						return Integer.toString(hd.getPeers());
+				}
+			default: 
+				return "??" + variable + "??";
+		}
+	}
+	
+	/**
+	 * returns the format string (in printf style format) to use for displaying the torrent summary
+	 * @return
+	 */
+	protected String getDefaultSummaryFormat()
+	{
+		return "[%a] %c\t%t (%z) ETA: %e\r\n%r\tSpeed: %d / %u\tAmount: %D / %U\tConnections: %s(%S) / %p(%P)";
+	}
+	
 	/**
 	 * returns a string representation of the specified state number
 	 * suitable for inclusion in a torrent summary
