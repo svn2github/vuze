@@ -306,7 +306,8 @@ public class AZMessageDecoder implements MessageStreamDecoder {
         }
         
         if( message_length > 4095 ) {
-          payload_buffer = ByteBuffer.allocateDirect( message_length );
+          direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
+          payload_buffer = direct_payload_buffer.getBuffer( DirectByteBuffer.SS_NET );
         }
         else {
           payload_buffer = ByteBuffer.allocate( message_length );

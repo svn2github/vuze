@@ -55,8 +55,7 @@ DirectByteBufferPool
 
   private final Timer compactionTimer;
   
-  private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents
-  															// hence IdentityHashMap)
+  private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents, hence IdentityHashMap)
   
   private static final long COMPACTION_CHECK_PERIOD = 10*60*1000; //10 min
   private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
@@ -278,7 +277,7 @@ DirectByteBufferPool
       
     Debug.out("Unable to find an appropriate buffer pool");
     
-	throw( new RuntimeException( "Unable to find an appropriate buffer pool" ));	 
+    throw( new RuntimeException( "Unable to find an appropriate buffer pool" ));	 
   }
   
   

@@ -392,10 +392,9 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           throw new IOException( "Invalid message length given for BT message decode: " + message_length );
         }
         else {  //normal message
-          //  direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
-          //  payload_buffer = direct_payload_buffer.getBuffer( DirectByteBuffer.SS_NET );
           if( message_length > 4095 ) {
-            payload_buffer = ByteBuffer.allocateDirect( message_length );
+            direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
+            payload_buffer = direct_payload_buffer.getBuffer( DirectByteBuffer.SS_NET );
           }
           else {
             payload_buffer = ByteBuffer.allocate( message_length );
