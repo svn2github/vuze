@@ -518,6 +518,7 @@ public class Jhttpp2HTTPSession extends Thread {
         if (dmstate == DownloadManager.STATE_ERROR)
           h.put("Torrents_Torrent_Error", dm.getErrorDetails());
         h.put("Torrents_Torrent_Status", Jhttpp2HTTPSession.status.get(new Integer(dmstate)));
+        h.put("Torrents_Torrent_StatusInt", Integer.toString(dmstate));
         if (hd == null || !hd.isValid()) {
           h.put("Torrents_Torrent_Seeds", "?");
           h.put("Torrents_Torrent_Peers", "?");
@@ -815,6 +816,7 @@ public class Jhttpp2HTTPSession extends Thread {
       file_in.close(); // finished!
       in_st.close();
     } else {
+      //tmpl.setParam("Test_Test", "Hallo");
       tmpl.setParam("Global_ServerName", COConfigurationManager.getStringParameter("Server_sName"));
       if (COConfigurationManager.getIntParameter("Server_iRefresh")!=0)
         tmpl.setParam("Global_Refresh", COConfigurationManager.getIntParameter("Server_iRefresh"));

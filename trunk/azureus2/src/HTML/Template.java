@@ -802,6 +802,15 @@ public class Template {
         Util.debug_print("adding branch");
         ((Conditional)e).addBranch();
       }
+      // begin - Added October 2003 by Tobias Minich
+      else if(type.equals("case")) {
+        Util.debug_print("adding branch for select");
+        if (p.containsKey("name"))
+          ((Select)e).addBranch(p.getProperty("name"));
+        else
+          ((Select)e).addBranch(null);
+      }
+      // end - Added October 2003
       else if(p.getProperty("close").equals("true")) {
         Util.debug_print("closing tag");
         if(!type.equals(e.Type()))
@@ -811,7 +820,7 @@ public class Template {
       }
       else {
         // begin - Added August 2003 by Tobias Minich
-        if (type.equals("if") || type.equals("unless") || type.equals("loop"))
+        if (type.equals("if") || type.equals("unless") || type.equals("loop") || type.equals("select"))
           vars.add(p.getProperty("name"));
         // end - Added August 2003
 

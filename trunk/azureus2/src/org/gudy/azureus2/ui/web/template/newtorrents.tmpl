@@ -50,11 +50,13 @@
 	          <TMPL_VAR Torrents_Torrent_FileSize>
 	        </td>
 	        <td class="mytorrents">
-		      <TMPL_IF Torrents_Torrent_Stopped>
-	          	<img src="img/stop.png">
-	          <TMPL_ELSE>
-	          	<img src="img/run.png">
-	          </TMPL_IF>
+		  <TMPL_SELECT Torrents_Torrent_StatusInt>
+                    ?
+                  <TMPL_CASE "70">
+                    <img src="img/stop.png">
+                  <TMPL_CASE "50">
+	            <img src="img/run.png">
+	          </TMPL_SELECT>
 	        </td>
 	        <td class="mytorrents">
 	          <TMPL_VAR Torrents_Torrent_FileSizeDone><br>[<TMPL_VAR Torrents_Torrent_PercentDonePrec>%]

@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.config.*;
  */
 public class TemplateCache {
   
+  private static final boolean CACHE = false;
+  
   private static TemplateCache templatecache;
   
   private Hashtable persistantargs = new Hashtable();
@@ -41,6 +43,10 @@ public class TemplateCache {
   }
   
   public Template get(String path) throws FileNotFoundException, IOException {
+    if (!CACHE) {
+      cache.remove(path);
+      cache_need.remove(path);
+    }
     if (!cacheddir.equals(COConfigurationManager.getStringParameter("Server_sTemplate_Directory")))
       UpdatePersistantArgs();
     Template t;
@@ -90,6 +96,7 @@ public class TemplateCache {
     persistantargs.put("path", paths);
     persistantargs.put("case_sensitive", "true");
     persistantargs.put("loop_context_vars", Boolean.TRUE);
+    persistantargs.put("strict", Boolean.TRUE);
     //persistantargs.put("debug", Boolean.TRUE);
   }
   

@@ -96,6 +96,10 @@ public class Parser
 		else if(type.equals("loop"))
 			return new Loop(p.getProperty("name"), 
 						loop_context_vars, global_vars);
+                // begin - Added October 2003 by Tobias Minich
+                else if(type.equals("select"))
+                        return new Select(p.getProperty("name"), p.getProperty("equals"));
+                // end - Added October 2003
 		else
 			throw new NoSuchElementException(type);
 	}
@@ -266,6 +270,8 @@ public class Parser
 				tag_type.equals("if") ||
 				tag_type.equals("unless") ||
 				tag_type.equals("loop") ||
+                                tag_type.equals("select") || // Added October 2003 by Tobias Minich
+                                tag_type.equals("case") || // Added October 2003 by Tobias Minich
 				tag_type.equals("include") ||
 				tag_type.equals("else")) {
 			return tag_type;
@@ -307,8 +313,34 @@ public class Parser
 		int sp = tag.indexOf(" ");
 		// if we've got so far, this must succeed
 
+                // begin - Added October 2003 by Tobias Minich
+                // Well, not with the case syntax =)
+                if ((sp==-1) && p.getProperty("type").equals("case"))
+                  return p;
+                // end - Added October 2003
+
 		tag = tag.substring(sp).trim();
 		Util.debug_print("checking params: " + tag);
+
+                // begin - Added October 2003 by Tobias Minich
+                // We need a special way to deal with case 
+                if (p.getProperty("type").equals("case")) {
+                  // First remove quotes
+                  if(tag.startsWith("\"") && 
+                                  tag.endsWith("\""))
+                          tag = tag.substring(1,
+                                          tag.length()-1);
+                  else if(tag.startsWith("'") && 
+                                  tag.endsWith("'"))
+                          tag = tag.substring(1,
+                                          tag.length()-1);
+                  // Everything after TMPL_CASE is the value, be it quoted or
+                  // not.
+                  p.put("name", tag);
+                  // Return, since we don't care what characters are used.
+                  return p;
+                } 
+                // end - Added October 2003
 
 		// now, we should have either name=value pairs
 		// or name space escape in case of old style vars
