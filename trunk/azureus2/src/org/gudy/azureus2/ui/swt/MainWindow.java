@@ -96,6 +96,7 @@ import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
+import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
@@ -116,7 +117,7 @@ import snoozesoft.systray4j.SysTrayMenu;
 public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler {
 
   public static final String VERSION = Constants.AZUREUS_VERSION;
-  private static final int DONATIONS_ASK_AFTER = 168;
+  private static final int DONATIONS_ASK_AFTER = 1;
   
   private String latestVersion = ""; //$NON-NLS-1$
   private String latestVersionFileName = null;
@@ -738,7 +739,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate"); //$NON-NLS-1$
     help_donate.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        new DonationWindow(MainWindow.this.display).show();
+        new DonationWindow2(MainWindow.this.display).show();
         //String donationString = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
         //Program.launch(donationString);
       }

@@ -69,7 +69,7 @@ public class DonationWindow {
    OverallStats stats = StatsFactory.getStats();
    headerText = MessageText.getString("DonationWindow.text.time") + " " +(stats.getUpTime() / (60*60))
               + " " + MessageText.getString("DonationWindow.text.hours_downloaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes())
-              + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n";
+              + " " + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n";
               
    mainText = MessageText.getString("DonationWindow.text");
    footerText = MessageText.getString("DonationWindow.text.footer");
@@ -82,18 +82,22 @@ public class DonationWindow {
     
     shell.setImage(ImageRepository.getImage("azureus"));
     shell.setText(MessageText.getString("DonationWindow.title"));
-    
+    //shell.setBackground(MainWindow.white);
     
     FormLayout layout = new FormLayout();
     layout.marginHeight = 5;
     layout.marginWidth = 5;
     layout.spacing = 5;
     FormData formData;
-    shell.setLayout(layout);
-    
+    shell.setLayout(layout);    
     
     final Label textHeader = new Label(shell,SWT.NULL);    
-    textHeader.setText(headerText);
+    formData = new FormData();
+    formData.right = new FormAttachment(100);
+    formData.left = new FormAttachment(0);
+    textHeader.setLayoutData(formData);
+    
+    textHeader.setText(headerText);        
     Font fontHeader = textHeader.getFont();
     FontData fontDataHeader[] = fontHeader.getFontData();
     for(int i=0 ; i < fontDataHeader.length ; i++) {
@@ -101,9 +105,8 @@ public class DonationWindow {
       fontDataHeader[i].setStyle(SWT.BOLD);     
     }
     textHeader.setFont(new Font(display,fontDataHeader));
-    textHeader.setForeground(MainWindow.red);
-     
-    
+    textHeader.setBackground(MainWindow.white);   
+        
     final Label textMain = new Label(shell,SWT.NULL);    
     textMain.setText(mainText);
     Font fontMain = textMain.getFont();
@@ -114,8 +117,11 @@ public class DonationWindow {
     }
     textMain.setFont(new Font(display,fontDataMain));
     textMain.setForeground(MainWindow.blues[4]);
+    //textMain.setBackground(MainWindow.blues[0]);
     formData = new FormData();
     formData.top = new FormAttachment(textHeader);
+    formData.left = new FormAttachment(0);
+    formData.right = new FormAttachment(100);    
     textMain.setLayoutData(formData);
     
     final Button radioDonate = new Button(shell,SWT.RADIO);
@@ -202,8 +208,8 @@ public class DonationWindow {
     
     formData = new FormData();
     formData.top = new FormAttachment(radioAlready);
-    formData.right = new FormAttachment(100,0);
-    formData.width = 70;
+    formData.right = new FormAttachment(95,5);
+    formData.width = 100;
     ok.setLayoutData(formData);
     
     
