@@ -42,13 +42,16 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author Olivier
@@ -240,24 +243,59 @@ public class Utils {
   	public void controlResized(ControlEvent e){
   	  Composite parent = (Composite)e.widget;
   	  Control children[] = parent.getChildren();
+
   	  if (children.length > 0) {
-  	    Point size = parent.getSize();
         GridLayout parentLayout = (GridLayout)parent.getLayout();
-        boolean oneChanged = false;
-    	  for (int i = 0; i < children.length; i++) {
-    	    if ((children[i] instanceof Label) &&
-    	        (children[i].getStyle() & SWT.WRAP) == SWT.WRAP) {
-    	      GridData gd = (GridData)children[i].getLayoutData();
-    	      if (gd != null && 
-    	          gd.horizontalSpan == parentLayout.numColumns && 
-    	          gd.horizontalAlignment == GridData.FILL) {
-    		      gd.widthHint = size.x - 2 * parentLayout.marginWidth;
-    		      oneChanged = true;
-    		    }
-    		  }
-    		}
-    		if (oneChanged)
-    		  parent.layout(true);
+        if (parentLayout != null) {
+    	    Point size;
+          int marginWidth = parentLayout.marginWidth;
+          
+      	  Composite grandParent = parent.getParent();
+      	  if (grandParent instanceof ScrolledComposite) {
+      	    Composite greatGP = grandParent.getParent();
+      	    if (greatGP != null) {
+              size = greatGP.getSize();
+  
+              if (greatGP.getLayout() instanceof GridLayout) {
+                marginWidth += ((GridLayout)greatGP.getLayout()).marginWidth;
+              }
+            } else {
+              // not tested
+              size = grandParent.getSize();
+            }
+
+            if (grandParent.getLayout() instanceof GridLayout) {
+              marginWidth += ((GridLayout)grandParent.getLayout()).marginWidth;
+            }
+
+            ScrollBar sb = grandParent.getVerticalBar();
+            if (sb != null) {
+              // I don't know why, but we have to remove one
+              size.x -= sb.getSize().x + 1;
+            }
+          } else
+            size = parent.getSize();
+         
+          boolean oneChanged = false;
+      	  for (int i = 0; i < children.length; i++) {
+      	    if ((children[i] instanceof Label) &&
+      	        (children[i].getStyle() & SWT.WRAP) == SWT.WRAP) {
+      	      GridData gd = (GridData)children[i].getLayoutData();
+      	      if (gd != null && 
+      	          gd.horizontalSpan == parentLayout.numColumns && 
+      	          gd.horizontalAlignment == GridData.FILL) {
+      		      gd.widthHint = size.x - 2 * marginWidth;
+      		      oneChanged = true;
+      		    }
+      		  }
+      		}
+      		if (oneChanged) {
+      		  parent.layout(true);
+        	  if (grandParent instanceof ScrolledComposite) {
+        	    ((ScrolledComposite)grandParent).setMinSize(parent.computeSize(SWT.DEFAULT, SWT.DEFAULT, true));
+        	  }
+          }
+      	}
     	} // size
   	} // controlResized
   } // class
