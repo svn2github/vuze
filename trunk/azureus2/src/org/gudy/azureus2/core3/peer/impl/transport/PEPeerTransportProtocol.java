@@ -134,7 +134,7 @@ PEPeerTransportProtocol
 
   private List		listeners;
 
-  private long last_bytes_sent_time = 0;
+  private long last_message_sent_time = 0;
   
   
   protected AEMonitor	this_mon	= new AEMonitor( "PEPeerTransportProtocol" );
@@ -284,19 +284,19 @@ PEPeerTransportProtocol
     connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
       public void messageAdded( ProtocolMessage message ) { /*ignore*/ }
       public void messageRemoved( ProtocolMessage message ) { /*ignore*/ }
-      public void messageSent( ProtocolMessage message ) { /*ignore*/ }
+      
+      public void messageSent( ProtocolMessage message ) {
+        //update keep-alive info
+        last_message_sent_time = SystemTime.getCurrentTime();
+      }
 
       public void protocolBytesSent( int byte_count ) {
-        //update keep-alive info
-        last_bytes_sent_time = SystemTime.getCurrentTime();
         //update stats
         stats.protocol_sent( byte_count );
         manager.protocol_sent( byte_count );
       }
       
       public void dataBytesSent( int byte_count ) {
-        //update keep-alive info
-        last_bytes_sent_time = SystemTime.getCurrentTime();
         //update stats
         stats.sent( byte_count );
         manager.sent( byte_count );
@@ -1977,10 +1977,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	}
   
   public void doKeepAliveCheck() {
-    if( last_bytes_sent_time == 0 )  last_bytes_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
-    if( SystemTime.getCurrentTime() - last_bytes_sent_time > 2*60*1000 ) {  //2min keep-alive timer
+    if( last_message_sent_time == 0 )  last_message_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
+    if( SystemTime.getCurrentTime() - last_message_sent_time > 2*60*1000 ) {  //2min keep-alive timer
       sendKeepAlive();
-      last_bytes_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
+      last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
     }
   }
   
