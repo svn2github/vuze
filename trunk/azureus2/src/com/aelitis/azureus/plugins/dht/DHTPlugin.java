@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
+import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
@@ -163,11 +164,32 @@ DHTPlugin
 														rhs.substring(pos+1).getBytes(),
 														null );
 											}
-										}else{
+										}else if ( lhs.equals( "get" )){
 											
 											DHTPlugin.this.get(
 												rhs.getBytes(), 1, 10000, null );
 
+										}else if ( lhs.equals( "stats" )){
+											
+											pos = rhs.indexOf( ":" );
+											
+											String	host = rhs.substring(0,pos);
+											int		port = Integer.parseInt( rhs.substring(pos+1));
+											
+											try{
+												DHTTransportContact	contact = 
+													transport.importContact(
+															new InetSocketAddress( host, port ),
+															DHTTransportUDP.PROTOCOL_VERSION );
+												
+												DHTTransportFullStats stats = contact.getStats();
+												
+												log.log( "Stats:" + (stats==null?"<null>":stats.getString()));
+												
+											}catch( Throwable e ){
+												
+												Debug.printStackTrace(e);
+											}
 										}
 									}
 								}
@@ -224,9 +246,9 @@ DHTPlugin
 									transport = 
 										DHTTransportFactory.createUDP( 
 												port, 
-												5,
-												3,
-												30000, 	// udp timeout - tried less but a significant number of 
+												4,
+												2,
+												20000, 	// udp timeout - tried less but a significant number of 
 														// premature timeouts occurred
 												log );
 									
@@ -513,10 +535,25 @@ DHTPlugin
 						
 						public void
 						found(
-							DHTTransportContact	contact,
-							DHTTransportValue	value )
+							final DHTTransportContact	contact,
+							final DHTTransportValue		value )
 						{
-							log.log( "Get: found " + value.getString() + " from " + contact.getString());
+							Thread t = new AEThread("test")
+								{
+									public void
+									runSupport()
+									{
+										DHTTransportFullStats stats = contact.getStats();
+										
+										log.log( "Get: found " + value.getString() + " from " + contact.getString() + ", stats=" + (stats==null?"<failed>":stats.getString()));
+									}
+								};
+							
+							t.setDaemon(true);
+								
+							t.start();
+							
+							listener.valueFound( value.getValue());
 						}
 						
 						public void

@@ -133,12 +133,9 @@ DHTDBImpl
 			
 			while( it.hasNext()){
 				
-				DHTDBValueImpl	value = (DHTDBValueImpl)it.next();
+				DHTDBMapping	mapping = (DHTDBMapping)it.next();
 				
-				if ( value.getCacheDistance() == 0 ){
-					
-					value.setOriginator( local_contact );
-				}
+				mapping.updateLocalContact( local_contact );
 			}
 		}
 	}
@@ -150,7 +147,7 @@ DHTDBImpl
 	{
 		synchronized( stored_values ){
 			
-			DHTDBValue res =	
+			DHTDBValueImpl res =	
 				new DHTDBValueImpl( 
 						SystemTime.getCurrentTime(), 
 						value, 
@@ -163,7 +160,16 @@ DHTDBImpl
 				// don't police max check for locally stored data
 				// only that received
 			
-			stored_values.put( key, res );
+			DHTDBMapping	mapping = (DHTDBMapping)stored_values.get( key );
+			
+			if ( mapping == null ){
+				
+				mapping = new DHTDBMapping( key );
+				
+				stored_values.put( key, mapping );
+			}
+			
+			mapping.add( res );
 			
 			return( res );
 		}	
@@ -171,35 +177,15 @@ DHTDBImpl
 	
 	public DHTDBValue
 	store(
-		DHTTransportContact 	originating_contact, 
+		DHTTransportContact 	sender, 
 		HashWrapper				key,
 		DHTTransportValue		value )
 	{
-			// All values have
-			//	1) a key
-			//	2) a value
-			//	3) an originator (the contact who originally published it)
-			//	4) an originating contact (the contact who sent it, could be diff for caches)
-		
-			// for a given key
-			//		a) we only hold one entry per originating contact (IP+port) (latest)
-			//		b) we only allow up to 8 entries per originating IP address (excluding port)
-			// 		c) only the originator can delete an entry
-			//		d) if multiple keys have the same value the value is only returned once
-		
-			// a value can be "volatile" - this means that the cacher can ping the originator
-			// periodically and delete the value if it is dead
-		
-		
-			// the aim here is to
-			//	1) 	reduce ability for single contacts to spam the key while supporting up to 8 
-			//		contacts on a given IP (assuming NAT is being used)
-			//	2)	stop one contact deleting or overwriting another contact's entry
-			//	3)	support garbage collection for contacts that don't delete entries on exit
-		
 		synchronized( stored_values ){
 			
-			if ( stored_values.size() >= max_values_stored ){
+				// TODO:size
+			
+			if ( getSize() >= max_values_stored ){
 				
 					// just drop it
 				
@@ -211,25 +197,20 @@ DHTDBImpl
 				
 				checkCacheExpiration( false );
 				
-					// don't replace a closer cache value with a further away one. in particular
-					// we have to avoid the case where the original publisher of a key happens to
-					// be close to it and be asked by another node to cache it!
-								
-				DHTDBValueImpl	existing = (DHTDBValueImpl)stored_values.get( key );
+				DHTDBMapping	existing_mapping = (DHTDBMapping)stored_values.get( key );
 				
-				if ( existing == null || existing.getCacheDistance() > value.getCacheDistance() + 1 ){
+				if ( existing_mapping == null ){
 					
-					stored_values.put(
-							key, 
-							new DHTDBValueImpl( originating_contact, value, 1 ));
-				}else{
+					existing_mapping = new DHTDBMapping( key );
 					
-						// mark it as current 
-					
-					existing.reset();
+					stored_values.put( key, existing_mapping );
 				}
 				
-				return( existing );
+				DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, value, 1 );
+					
+				existing_mapping.add( mapping_value );
+				
+				return( mapping_value );
 			}
 		}
 	}
@@ -242,45 +223,61 @@ DHTDBImpl
 		synchronized( stored_values ){
 			
 			checkCacheExpiration( false );
-						
-			DHTDBValue value = (DHTDBValue)stored_values.get(key);
+					
+			DHTDBMapping mapping = (DHTDBMapping)stored_values.get(key);
 			
-				// TODO: think more on this - secondary caching is open to exploitation for DOS as a single
-				// contact could spam all contacts surrounding the target with bogus information 
-				// current approach is to only allow usage of a secondary cache entry ONCE before
-				// we delete it :P
-			
-			if ( value != null && value.getCacheDistance() > 1 ){
+			if ( mapping == null ){
 				
-				stored_values.remove( key );
+				return( new DHTDBValueImpl[0]);
 			}
 			
-			return( new DHTDBValue[]{ value });
+			return( mapping.get( max_values, true ));
+
 		}
 	}
 	
 	public DHTDBValue
 	remove(
-		HashWrapper		key )
+		DHTTransportContact 	sender,
+		HashWrapper				key )
 	{
 		synchronized( stored_values ){
 		
-			DHTDBValue val = (DHTDBValue)stored_values.remove( key );
+			DHTDBMapping mapping = (DHTDBMapping)stored_values.get( key );
 			
-			return( val );
+			if ( mapping != null ){
+				
+				return( mapping.remove( sender ));
+			}
+			
+			return( null );
 		}
 	}
 	
 	public boolean
 	isEmpty()
 	{
-		return( stored_values.size() == 0 );
+		return( getSize() == 0 );
 	}
 	
 	public long
 	getSize()
 	{
-		return( stored_values.size());
+		synchronized( stored_values ){
+			
+			int	res = 0;
+			
+			Iterator	it = stored_values.values().iterator();
+			
+			while( it.hasNext()){
+				
+				DHTDBMapping	mapping = (DHTDBMapping)it.next();
+				
+				res += mapping.getSize();
+			}
+			
+			return( res );
+		}
 	}
 	
 	public Iterator
@@ -305,13 +302,32 @@ DHTDBImpl
 				
 				Map.Entry	entry = (Map.Entry)it.next();
 				
-				HashWrapper			key		= (HashWrapper)entry.getKey();
+				HashWrapper		key		= (HashWrapper)entry.getKey();
 				
-				DHTTransportValue	value	= (DHTTransportValue)entry.getValue();
+				DHTDBMapping	mapping	= (DHTDBMapping)entry.getValue();
 				
-				if ( value.getCacheDistance() == 0 ){
+				Iterator	it2 = mapping.getKeys();
+				
+				List	values = new ArrayList();
+				
+				while( it2.hasNext()){
 					
-					republish.put( key, value );
+					DHTDBValueImpl	value = (DHTDBValueImpl)mapping.get((HashWrapper)it2.next());
+				
+					if ( value != null && value.getCacheDistance() == 0 ){
+						
+						// we're republising the data, reset the creation time
+						
+						value.setCreationTime();
+
+						values.add( value );
+					}
+				}
+				
+				if ( values.size() > 0 ){
+					
+					republish.put( key, values );
+					
 				}
 			}
 		}
@@ -324,13 +340,14 @@ DHTDBImpl
 			
 			HashWrapper			key		= (HashWrapper)entry.getKey();
 			
-			DHTDBValueImpl	value	= (DHTDBValueImpl)entry.getValue();
+			List		values	= (List)entry.getValue();
 			
-				// we're republising the data, reset the creation time
+				// TODO: multiple values
 			
-			value.setCreationTime();
-			
-			control.put( key.getHash(), value, 0 );
+			for (int i=0;i<values.size();i++){
+				
+				control.put( key.getHash(), (DHTDBValueImpl)values.get(i), 0 );
+			}
 		}
 	}
 	
@@ -358,28 +375,43 @@ DHTDBImpl
 				
 				HashWrapper			key		= (HashWrapper)entry.getKey();
 				
-				DHTDBValueImpl	value	= (DHTDBValueImpl)entry.getValue();
+				DHTDBMapping		mapping	= (DHTDBMapping)entry.getValue();
 				
-				if ( value.getCacheDistance() == 1 ){
+				Iterator	it2 = mapping.getKeys();
+				
+				List	values = new ArrayList();
+				
+				while( it2.hasNext()){
 					
-						// if this value was stored < period ago then we assume that it was
-						// also stored to the other k-1 locations at the same time and therefore
-						// we don't need to re-store it
-					
-					if ( now < value.getStoreTime()){
+					DHTDBValueImpl	value = (DHTDBValueImpl)mapping.get((HashWrapper)it2.next());
+				
+					if ( value.getCacheDistance() == 1 ){
 						
-							// deal with clock changes
+							// if this value was stored < period ago then we assume that it was
+							// also stored to the other k-1 locations at the same time and therefore
+							// we don't need to re-store it
 						
-						value.setStoreTime( now );
-						
-					}else if ( now - value.getStoreTime() <= cache_republish_interval ){
-						
-						// System.out.println( "skipping store" );
-						
-					}else{
+						if ( now < value.getStoreTime()){
 							
-						republish.put( key, value );
+								// deal with clock changes
+							
+							value.setStoreTime( now );
+							
+						}else if ( now - value.getStoreTime() <= cache_republish_interval ){
+							
+							// System.out.println( "skipping store" );
+							
+						}else{
+								
+							values.add( value );
+						}
 					}
+				}
+
+				if ( values.size() > 0 ){
+					
+					republish.put( key, values );
+					
 				}
 			}
 		}
@@ -407,40 +439,48 @@ DHTDBImpl
 				
 				HashWrapper			key		= (HashWrapper)entry.getKey();
 				
-				DHTDBValueImpl	value	= (DHTDBValueImpl)entry.getValue();
+				List				values	= (List)entry.getValue();
 				
-				byte[]	lookup_id	= key.getHash();
-				
-				List	contacts = control.getClosestKContactsList( lookup_id );
+				for (int i=0;i<values.size();i++){
+					
+					DHTDBValueImpl	value	= (DHTDBValueImpl)values.get(i);
+					
+					byte[]	lookup_id	= key.getHash();
+					
+					List	contacts = control.getClosestKContactsList( lookup_id );
+								
+						// if we are no longer one of the K closest contacts then we shouldn't
+						// cache the value
+					
+					boolean	keep_caching	= false;
+					
+					for (int j=0;j<contacts.size();j++){
+					
+						if ( router.isID(((DHTTransportContact)contacts.get(j)).getID())){
 							
-					// if we are no longer one of the K closest contacts then we shouldn't
-					// cache the value
-				
-				boolean	keep_caching	= false;
-				
-				for (int i=0;i<contacts.size();i++){
-				
-					if ( router.isID(((DHTTransportContact)contacts.get(i)).getID())){
-						
-						keep_caching	= true;
-						
-						break;
+							keep_caching	= true;
+							
+							break;
+						}
 					}
-				}
-				
-				if ( !keep_caching ){
 					
-					DHTLog.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
+					if ( !keep_caching ){
+						
+						DHTLog.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
+						
+						stop_caching.add( key );
+					}
 					
-					stop_caching.add( key );
+						// we reduce the cache distance by 1 here as it is incremented by the
+						// recipients
+					
+						// TODO: multiple values
+					
+					control.put( 
+							lookup_id, 
+							(DHTDBValueImpl)value.getValueForRelay(local_contact), 
+							contacts );
 				}
-					// we reduce the cache distance by 1 here as it is incremented by the
-					// recipients
-				
-				control.put( 
-						lookup_id, 
-						(DHTDBValueImpl)value.getValueForRelay(local_contact), 
-						contacts );
 			}
 			
 			synchronized( stored_values ){
@@ -475,40 +515,47 @@ DHTDBImpl
 		
 		while( it.hasNext()){
 			
-			DHTDBValueImpl	value = (DHTDBValueImpl)it.next();
+			DHTDBMapping	mapping = (DHTDBMapping)it.next();
+
+			Iterator	it2 = mapping.getKeys();
 			
-			int	distance = value.getCacheDistance();
-			
-				// distance = 0 are explicitly published and need to be explicitly removed
-			
-			if ( distance == 1 ){
+			while( it2.hasNext()){
 				
-					// distance 1 = initial store location. We use the initial creation date
-					// when deciding whether or not to remove this, plus a bit, as the 
-					// original publisher is supposed to republish these
+				DHTDBValueImpl	value = mapping.get((HashWrapper)it2.next());
 				
-				if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+				int	distance = value.getCacheDistance();
+				
+					// distance = 0 are explicitly published and need to be explicitly removed
+				
+				if ( distance == 1 ){
 					
-					DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+						// distance 1 = initial store location. We use the initial creation date
+						// when deciding whether or not to remove this, plus a bit, as the 
+						// original publisher is supposed to republish these
 					
-					it.remove();
-				}
-				
-			}else if ( distance > 1 ){
-				
-					// distance 2 get 1/2 time, 3 get 1/4 etc.
-					// these are indirectly cached at the nearest location traversed
-					// when performing a lookup. the store time is used when deciding
-					// whether or not to remove these in an ever reducing amount the
-					// further away from the correct cache position that the value is
-				
-				long	permitted = cache_republish_interval >> (distance-1);
-				
-				if ( now - value.getStoreTime() >= permitted ){
+					if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
+						
+						DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+						
+						it2.remove();
+					}
 					
-					DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+				}else if ( distance > 1 ){
 					
-					it.remove();
+						// distance 2 get 1/2 time, 3 get 1/4 etc.
+						// these are indirectly cached at the nearest location traversed
+						// when performing a lookup. the store time is used when deciding
+						// whether or not to remove these in an ever reducing amount the
+						// further away from the correct cache position that the value is
+					
+					long	permitted = cache_republish_interval >> (distance-1);
+					
+					if ( now - value.getStoreTime() >= permitted ){
+						
+						DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+						
+						it2.remove();
+					}
 				}
 			}
 		}
@@ -521,42 +568,49 @@ DHTDBImpl
 		
 		synchronized( stored_values ){
 			
-			logger.log( "Stored values = " + stored_values.size()); 
+			logger.log( "Stored values = " + getSize()); 
 
 			Iterator	it = stored_values.entrySet().iterator();
 			
 			while( it.hasNext()){
 						
-				Map.Entry			entry = (Map.Entry)it.next();
+				Map.Entry		entry = (Map.Entry)it.next();
 				
-				HashWrapper			value_key	= (HashWrapper)entry.getKey();
+				HashWrapper		value_key	= (HashWrapper)entry.getKey();
 				
-				DHTTransportValue	value		= (DHTTransportValue)entry.getValue();
+				DHTDBMapping	mapping = (DHTDBMapping)entry.getValue();
 				
-				Integer key = new Integer( value.getCacheDistance());
+				DHTDBValue[]	values = mapping.get(0,false);
+					
+				for (int i=0;i<values.length;i++){
+					
+					DHTDBValue	value = values[i];
+					
+					Integer key = new Integer( value.getCacheDistance());
+					
+					Object[]	data = (Object[])count.get( key );
+									
+					if ( data == null ){
+						
+						data = new Object[2];
+						
+						data[0] = new Integer(1);
+						
+						data[1] = "";
+									
+						count.put( key, data );
+	
+					}else{
+						
+						data[0] = new Integer(((Integer)data[0]).intValue() + 1 );
+					}
 				
-				Object[]	data = (Object[])count.get( key );
-								
-				if ( data == null ){
+					String	s = (String)data[1];
 					
-					data = new Object[2];
+					s += (s.length()==0?"":", ") + "key=" + DHTLog.getString2(value_key.getHash()) + ",val=" + value.getString();
 					
-					data[0] = new Integer(1);
-					
-					data[1] = "";
-								
-					count.put( key, data );
-
-				}else{
-					
-					data[0] = new Integer(((Integer)data[0]).intValue() + 1 );
+					data[1]	= s;
 				}
-				
-				String	s = (String)data[1];
-				
-				s += (s.length()==0?"":", ") + "key=" + DHTLog.getString2(value_key.getHash()) + ",val=" + value.getString();
-				
-				data[1]	= s;
 			}
 		}
 				
@@ -571,5 +625,4 @@ DHTDBImpl
 			logger.log( "    " + k + " -> " + data[0] + ": " + data[1]);
 		}
 	}
-	
 }

@@ -64,6 +64,7 @@ DHTTrackerPlugin
 	
 	private Set					running_downloads 		= new HashSet();
 	private Set					registered_downloads 	= new HashSet();
+	private Set					querying			 	= new HashSet();
 	
 	private LoggerChannel		log;
 	
@@ -247,6 +248,13 @@ DHTTrackerPlugin
 						new DHTPluginOperationListener()
 						{
 							public void
+							valueFound(
+								byte[]	value )
+							{
+								
+							}
+							
+							public void
 							complete(
 								boolean	timeout_occurred )
 							{
@@ -282,6 +290,13 @@ DHTTrackerPlugin
 						new DHTPluginOperationListener()
 						{
 							public void
+							valueFound(
+								byte[]	value )
+							{
+								
+							}
+							
+							public void
 							complete(
 								boolean	timeout_occurred )
 							{
@@ -290,6 +305,44 @@ DHTTrackerPlugin
 						});
 			}
 		}
+		
+		/*
+		it = rds.iterator();
+		
+		while( it.hasNext()){
+			
+			final Download	dl = (Download)it.next();
+			
+			if ( !querying.contains(dl) ){
+				
+				querying.add( dl );
+			
+				final long	start = SystemTime.getCurrentTime();
+				
+				dht.get(dl.getTorrent().getHash(), 1, 30000,
+						new DHTPluginOperationListener()
+						{
+							String	res = "";
+							
+							public void
+							valueFound(
+								byte[]	value )
+							{
+								res += ( res.length()==0?"":",") + new String(value);
+							}
+							
+							public void
+							complete(
+								boolean	timeout_occurred )
+							{
+								log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), res = " + res );
+								
+								querying.remove( dl );
+							}
+						});
+			}
+		}
+		*/
 	}
 	
 	protected void

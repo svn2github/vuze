@@ -83,4 +83,15 @@ DHTTransportUDPStatsImpl
 		
 		return( res );
 	}
+	
+	public String
+	getString()
+	{
+		return( super.getString() + "," +
+				"packsent:" + getPacketsSent() + "," +
+				"packrecv:" + getPacketsReceived() + "," +
+				"bytesent:" + getBytesSent() + "," +
+				"byterecv:" + getBytesReceived() + "," + 
+				"timeout:" + getRequestsTimedOut());
+	}
 }

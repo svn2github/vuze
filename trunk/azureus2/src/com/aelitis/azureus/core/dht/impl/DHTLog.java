@@ -227,7 +227,9 @@ DHTLog
 		}else{
 			return( "" );
 		}
-	}	public static String
+	}	
+	
+	public static String
 	getString(
 		DHTTransportValue	value )
 	{

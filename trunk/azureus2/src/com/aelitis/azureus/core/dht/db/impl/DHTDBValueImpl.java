@@ -70,7 +70,7 @@ DHTDBValueImpl
 		value			= _value;
 		originator		= _originator;
 		sender			= _sender;
-		distance		= _distance;
+		distance		= _distance<0?0:_distance;
 		flags			= _flags;
 		
 		reset();
@@ -156,6 +156,11 @@ DHTDBValueImpl
 		return( originator);
 	}
 	
+	public DHTTransportContact
+	getSender()
+	{
+		return( sender );
+	}
 	public int
 	getFlags()
 	{

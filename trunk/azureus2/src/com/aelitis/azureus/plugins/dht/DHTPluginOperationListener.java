@@ -31,6 +31,10 @@ public interface
 DHTPluginOperationListener 
 {
 	public void
+	valueFound(
+		byte[]		value );
+	
+	public void
 	complete(
 		boolean	timeout_occurred );
 }

@@ -49,7 +49,7 @@ DHTDB
 	
 	public DHTDBValue
 	store(
-		DHTTransportContact 	originating_contact, 
+		DHTTransportContact 	sender, 
 		HashWrapper				key,
 		DHTTransportValue		value );
 	
@@ -59,8 +59,9 @@ DHTDB
 		int				max_values );
 		
 	public DHTDBValue
-	remove(
-		HashWrapper		key );
+	remove(	
+		DHTTransportContact 	sender,
+		HashWrapper				key );
 	
 	public boolean
 	isEmpty();

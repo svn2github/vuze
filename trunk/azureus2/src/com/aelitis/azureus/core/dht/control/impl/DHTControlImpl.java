@@ -754,7 +754,7 @@ DHTControlImpl
 
 		DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
 
-		DHTDBValue	res = database.remove( new HashWrapper( encoded_key ));
+		DHTDBValue	res = database.remove( local_contact, new HashWrapper( encoded_key ));
 		
 		if ( res == null ){
 			
@@ -887,6 +887,7 @@ DHTControlImpl
 			final int[]	active_searches	= { 0 };
 				
 			final int[]	values_found	= { 0 };
+			final int[]	value_replies	= { 0 };
 			
 			long	start = SystemTime.getCurrentTime();
 	
@@ -922,13 +923,14 @@ DHTControlImpl
 					search_sem.reserve();
 				}
 					
-				if ( values_found[0] >= max_values ){
-					
-					break;
-				}
-				
 				synchronized( contacts_to_query ){
 			
+					if ( 	values_found[0] >= max_values ||
+							value_replies[0]>= 3 ){	// all hits should have the same values anyway...	
+							
+						break;
+					}						
+
 						// if nothing pending then we need to wait for the results of a previous
 						// search to arrive. Of course, if there are no searches active then
 						// we've run out of things to do
@@ -969,6 +971,20 @@ DHTControlImpl
 						}
 					}
 					
+						// randomise over the closest K/4 so that we don't always hit the closest
+						// contact
+					
+					int	rand_max = Math.min( router.getK()/4, contacts_to_query.size());
+					
+					int	rand = (int)(Math.random()*rand_max);
+					
+					Iterator	rand_it = contacts_to_query.iterator();
+					
+					for (int i=0;i<rand+1;i++){
+						
+						closest = (DHTTransportContact)rand_it.next();
+					}
+					
 					contacts_to_query.remove( closest );
 	
 					contacts_queried.put( new HashWrapper( closest.getID()), "" );
@@ -1001,6 +1017,22 @@ DHTControlImpl
 							
 									router.contactAlive( target_contact.getID(), new DHTControlContactImpl(target_contact));
 									
+									for (int i=0;i<reply_contacts.length;i++){
+										
+										DHTTransportContact	contact = reply_contacts[i];
+										
+											// ignore responses that are ourselves
+										
+										if ( compareDistances( router.getID(), contact.getID()) == 0 ){
+											
+											continue;
+										}
+										
+											// dunno if its alive or not, however record its existance
+										
+										router.contactKnown( contact.getID(), new DHTControlContactImpl(contact));
+									}
+									
 									synchronized( contacts_to_query ){
 												
 										ok_contacts.add( target_contact );
@@ -1026,11 +1058,7 @@ DHTControlImpl
 												
 												continue;
 											}
-											
-												// dunno if its alive or not, however record its existance
-											
-											router.contactKnown( contact.getID(), new DHTControlContactImpl(contact));
-											
+																						
 											if (	contacts_queried.get( new HashWrapper( contact.getID())) == null &&
 													!contacts_to_query.contains( contact )){
 												
@@ -1054,7 +1082,10 @@ DHTControlImpl
 									}
 								}finally{
 									
-									active_searches[0]--;								
+									synchronized( contacts_to_query ){
+
+										active_searches[0]--;
+									}
 		
 									search_sem.release();
 								}
@@ -1075,11 +1106,21 @@ DHTControlImpl
 										result_handler.found( contact, values[i] );
 									}
 									
-									values_found[0] += values.length;
+										// TODO: remove duplicates 
+									
+									synchronized( contacts_to_query ){
+
+										value_replies[0]++;
+										
+										values_found[0] += values.length;
+									}
 		
 								}finally{
-														
-									active_searches[0]--;
+									
+									synchronized( contacts_to_query ){
+
+										active_searches[0]--;
+									}
 									
 									search_sem.release();
 							}						
@@ -1103,8 +1144,11 @@ DHTControlImpl
 									router.contactDead( target_contact.getID(), new DHTControlContactImpl(target_contact));
 		
 								}finally{
-																	
-									active_searches[0]--;
+									
+									synchronized( contacts_to_query ){
+
+										active_searches[0]--;
+									}
 									
 									search_sem.release();
 								}
@@ -1136,6 +1180,8 @@ DHTControlImpl
 				// maybe unterminated searches still going on so protect ourselves
 				// against concurrent modification of result set
 			
+			List	closest_res;
+			
 			synchronized( contacts_to_query ){
 	
 				DHTLog.log( "lookup complete for " + DHTLog.getString( lookup_id ));
@@ -1144,8 +1190,11 @@ DHTControlImpl
 				DHTLog.log( "    to query = " + DHTLog.getString( contacts_to_query ));
 				DHTLog.log( "    ok = " + DHTLog.getString( ok_contacts ));
 				
-				result_handler.closest( new ArrayList( ok_contacts ));
+				closest_res	= new ArrayList( ok_contacts );
 			}
+			
+			result_handler.closest( closest_res );
+			
 		}finally{
 			
 			result_handler.complete( timeout_occurred );

@@ -289,6 +289,11 @@ DHTUDPUtils
 	{
 		final int	distance	= is.readInt();
 		
+		if ( distance < 0 ){
+			
+			throw( new IOException( "Invalid distance" ));
+		}
+		
 		final long 	created		= is.readLong() + skew;
 		
 		// System.out.println( "    Adjusted creation time by " + skew );
