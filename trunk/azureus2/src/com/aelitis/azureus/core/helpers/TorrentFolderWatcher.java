@@ -164,7 +164,7 @@ public class TorrentFolderWatcher {
 	      
 	      boolean already_added = false;
 	      try { //make sure it hasn't already been added
-	        if( global_manager.getDownloadManager( TorrentUtils.readFromFile( file )) != null ) {
+	        if( global_manager.getDownloadManager( TorrentUtils.readFromFile( file, false )) != null ) {
 	          already_added = true;
 	          save_torrents = false;
 	          LGLogger.log( LGLogger.INFORMATION, "INFO: " + file.getAbsolutePath()+ " is already being downloaded" );

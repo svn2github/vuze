@@ -67,9 +67,6 @@ DiskManagerImpl
 	private int pieceLength;
 	private int lastPieceLength;
 
-	//  private int[] _priorityPieces;
-
-	private byte[][]	piecesHash;
 	private int 		nbPieces;
 	private long 		totalLength;
 	private int 		percentDone;
@@ -198,9 +195,7 @@ DiskManagerImpl
 		
 		remaining 	= totalLength;
 
-		piecesHash 	= torrent.getPieces();        
-
-		nbPieces 	= piecesHash.length;
+		nbPieces 	= torrent.getNumberOfPieces();
 		
 		pieceLength		 	= (int)torrent.getPieceLength();
 		
@@ -969,12 +964,14 @@ DiskManagerImpl
 	{
 		return( pieceMap[piece_number] );
 	}
-		
+	
 	public byte[]
 	getPieceHash(
 		int	piece_number )
+	
+		throws TOTorrentException
 	{
-		return( piecesHash[ piece_number ]);
+		return( torrent.getPieces()[ piece_number ]);
 	}
 	
 	public DiskManagerReadRequest

@@ -208,7 +208,7 @@ public class TorrentOpener {
       String singleFileName = ""; //$NON-NLS-1$
 
       try {
-        TOTorrent torrent = TorrentUtils.readFromFile(fileName);
+        TOTorrent torrent = TorrentUtils.readFromFile( new File(fileName), false );
         
         singleFile = torrent.isSimpleTorrent();
         

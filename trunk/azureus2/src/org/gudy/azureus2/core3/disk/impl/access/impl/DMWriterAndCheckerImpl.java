@@ -430,9 +430,13 @@ DMWriterAndCheckerImpl
 		final int 						pieceNumber,
 		final CheckPieceResultHandler	_result_handler,
 		final Object					user_data )
+	
+		throws Exception
 	{
 		final int this_piece_length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
 
+		final byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
+		
 		final CheckPieceResultHandler	result_handler =
 			new CheckPieceResultHandler()
 			{
@@ -558,8 +562,6 @@ DMWriterAndCheckerImpl
 		    										    								
 		    								if ( testHash != null ){
 		    											
-			    								byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
-			    								
 			    								async_result = CheckPieceResultHandler.OP_SUCCESS;
 			    								
 			    								for (int i = 0; i < testHash.length; i++){
@@ -594,9 +596,7 @@ DMWriterAndCheckerImpl
     		    }else{
 
 					byte[] testHash = new SHA1Hasher().calculateHash( buffer.getBuffer(DirectByteBuffer.SS_DW ));
-										
-					byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
-										
+																				
 					check_result	= CheckPieceResultHandler.OP_SUCCESS;
 					
 					for (int i = 0; i < testHash.length; i++){
@@ -975,6 +975,8 @@ DMWriterAndCheckerImpl
 						}
 					}catch( Throwable e ){
 						
+						disk_manager.setFailed( "DiskWriteThread: error - " + Debug.getNestedExceptionMessage(e));
+
 						Debug.printStackTrace( e );
 						
 						Debug.out( "DiskWriteThread: error occurred during processing: " + e.toString());

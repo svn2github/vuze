@@ -327,6 +327,8 @@ DMReaderImpl
 						}
 					}catch( Throwable e ){
 						
+						disk_manager.setFailed( "DiskReadThread: error - " + Debug.getNestedExceptionMessage(e));
+						
 						Debug.printStackTrace( e );
 						
 						Debug.out( "DiskReadThread: error occurred during processing: " + e.toString());

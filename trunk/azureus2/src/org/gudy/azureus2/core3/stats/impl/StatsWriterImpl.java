@@ -198,7 +198,7 @@ StatsWriterImpl
 								
 								writeTag( "PIECE_LENGTH", torrent.getPieceLength());
 								
-								writeTag( "PIECE_COUNT", torrent.getPieces().length );
+								writeTag( "PIECE_COUNT", torrent.getNumberOfPieces());
 								
 								writeTag( "FILE_COUNT", torrent.getFiles().length );
 								

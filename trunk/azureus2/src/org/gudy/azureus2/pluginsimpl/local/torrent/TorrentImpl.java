@@ -150,7 +150,7 @@ TorrentImpl
 	public long
 	getPieceCount()
 	{
-		return( torrent.getPieces().length);
+		return( torrent.getNumberOfPieces());
 	}
 	
 	public TorrentFile[]

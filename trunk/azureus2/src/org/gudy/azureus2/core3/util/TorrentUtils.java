@@ -51,18 +51,22 @@ TorrentUtils
 			}
 		};
 		
-	public static TOTorrent
-	readFromFile(
-		String		file_name )
-		
-		throws TOTorrentException
-	{
-		return( readFromFile( new File( file_name )));
-	}
+	
+		/**
+		 * If you set "create_delegate" to true then you must understand that this results
+		 * is piece hashes being discarded and then re-read from the torrent file if needed
+		 * Therefore, if you delete the original torrent file you're going to get errors
+		 * if you access the pieces after this (and they've been discarded)
+		 * @param file
+		 * @param create_delegate
+		 * @return
+		 * @throws TOTorrentException
+		 */
 	
 	public static TOTorrent
 	readFromFile(
-		File		file )
+		File		file,
+		boolean		create_delegate )
 		
 		throws TOTorrentException
 	{
@@ -89,10 +93,17 @@ TorrentUtils
 				throw e;
 			}
 		}
-		
+				
 		torrent.setAdditionalStringProperty("torrent filename", file.toString());
 		
-		return( torrent );
+		if ( create_delegate ){
+			
+			return( new torrentDelegate( torrent, file ));
+			
+		}else{
+			
+			return( torrent );
+		}
 	}
 
 	public static void
@@ -104,6 +115,11 @@ TorrentUtils
 	   try{
 	   		torrent.getMonitor().enter();
 	    	
+	   			// we've got to re-obtain the pieces here in case they've been thrown
+	   			// away to save memory *before* we rename the torrent file!
+	   		
+	   		torrent.getPieces();
+	   		
 	    	String str = torrent.getAdditionalStringProperty("torrent filename");
 	    	
 	    	if (str == null){
@@ -613,5 +629,412 @@ TorrentUtils
 		}
 		
 		return( null );
+	}
+	
+		// this class exists to minimise memory requirements by discarding the piece hash values
+		// when "idle" 
+	
+	static final int	PIECE_HASH_TIMEOUT	= 120*1000;
+	
+	static Map	torrent_delegates = new WeakHashMap();
+	
+	static{
+		SimpleTimer.addPeriodicEvent(
+			PIECE_HASH_TIMEOUT/2,
+			new TimerEventPerformer()
+			{
+				public void
+				perform(
+					TimerEvent	event )
+				{
+					long	now = SystemTime.getCurrentTime();
+					
+					synchronized( torrent_delegates ){
+						
+						Iterator it = torrent_delegates.keySet().iterator();
+						
+						while( it.hasNext()){
+							
+							((torrentDelegate)it.next()).checkTimeout(now);
+						}
+					}
+				}
+			});
+	}
+	
+	protected static class
+	torrentDelegate
+		implements TOTorrent
+	{
+		protected TOTorrent		delegate;
+		protected File			file;
+		
+		protected long			last_pieces_read_time	= SystemTime.getCurrentTime();
+		
+		protected
+		torrentDelegate(
+			TOTorrent		_delegate,
+			File			_file )
+		{
+			delegate		= _delegate;
+			file			= _file;
+			
+			synchronized( torrent_delegates ){
+				
+				torrent_delegates.put( this, null );
+			}
+		}
+		
+		public byte[]
+		getName()
+		{
+			return( delegate.getName());
+		}
+				
+		public boolean
+		isSimpleTorrent()
+		{
+			return( delegate.isSimpleTorrent());
+		}
+				
+		public byte[]
+		getComment()
+		{
+			return( delegate.getComment());		
+		}
+
+		public void
+		setComment(
+			String		comment )
+		{
+			delegate.setComment( comment );
+		}
+				
+		public long
+		getCreationDate()
+		{
+			return( delegate.getCreationDate());
+		}
+		
+		public void
+		setCreationDate(
+			long		date )
+		{
+			delegate.setCreationDate( date );
+		}
+		
+		public byte[]
+		getCreatedBy()
+		{
+			return( delegate.getCreatedBy());
+		}
+		
+		public URL
+		getAnnounceURL()
+		{
+			return( delegate.getAnnounceURL());
+		}
+
+		public void
+		setAnnounceURL(
+			URL		url )
+		{
+			delegate.setAnnounceURL( url );
+		}
+			
+		
+		public TOTorrentAnnounceURLGroup
+		getAnnounceURLGroup()
+		{
+			return( delegate.getAnnounceURLGroup());
+		}
+		 
+		protected void
+		checkTimeout(
+			long		now )
+		{
+				// handle clock changes backwards
+			
+			if ( now < last_pieces_read_time ){
+				
+				last_pieces_read_time	= now;
+				
+			}else{
+			
+				try{
+					if(		now - last_pieces_read_time > PIECE_HASH_TIMEOUT &&
+							delegate.getPieces() != null ){
+						
+						try{
+							getMonitor().enter();
+							
+							// System.out.println( "clearing pieces for '" + new String(getName()) + "'");
+
+							delegate.setPieces( null );
+						}finally{
+							
+							getMonitor().exit();
+						}
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		
+		public byte[][]
+		getPieces()
+		
+			throws TOTorrentException
+		{
+			byte[][]	res = delegate.getPieces();
+			
+			last_pieces_read_time	= SystemTime.getCurrentTime();
+		
+			if ( res == null ){
+						 
+				// System.out.println( "recovering pieces for '" + new String(getName()) + "'");
+				
+				TOTorrent	temp = readFromFile( file, false );
+					
+				res	= temp.getPieces();
+					
+				delegate.setPieces( res );
+			}
+			
+			return( res );
+		}
+
+		public void
+		setPieces(
+			byte[][]	pieces )
+		
+			throws TOTorrentException
+		{
+			throw( new TOTorrentException( "Unsupported Operation", TOTorrentException.RT_WRITE_FAILS ));
+		}
+		
+		public long
+		getPieceLength()
+		{
+			return( delegate.getPieceLength());
+		}
+
+		public int
+		getNumberOfPieces()
+		{
+			return( delegate.getNumberOfPieces());
+		}
+		
+		public long
+		getSize()
+		{
+			return( delegate.getSize());
+		}
+		
+		public TOTorrentFile[]
+		getFiles()
+		{
+			return( delegate.getFiles());
+		}
+				 
+		public byte[]
+		getHash()
+					
+			throws TOTorrentException
+		{
+			return( delegate.getHash());
+		}
+		
+		public HashWrapper
+		getHashWrapper()
+					
+			throws TOTorrentException
+		{
+			return( delegate.getHashWrapper());
+		}
+		
+		public boolean
+		hasSameHashAs(
+			TOTorrent		other )
+		{
+			return( delegate.hasSameHashAs( other ));
+		}
+				
+		public void
+		setAdditionalStringProperty(
+			String		name,
+			String		value )
+		{
+			delegate.setAdditionalStringProperty( name, value );
+		}
+			
+		public String
+		getAdditionalStringProperty(
+			String		name )
+		{
+			return( delegate.getAdditionalStringProperty( name ));
+		}
+			
+		public void
+		setAdditionalByteArrayProperty(
+			String		name,
+			byte[]		value )
+		{
+			delegate.setAdditionalByteArrayProperty( name, value );
+		}
+			
+		public byte[]
+		getAdditionalByteArrayProperty(
+			String		name )
+		{
+			return( delegate.getAdditionalByteArrayProperty( name ));
+		}
+		
+		public void
+		setAdditionalLongProperty(
+			String		name,
+			Long		value )
+		{
+			delegate.setAdditionalLongProperty( name, value );
+		}
+			
+		public Long
+		getAdditionalLongProperty(
+			String		name )
+		{
+			return( delegate.getAdditionalLongProperty( name ));
+		}
+			
+		
+		public void
+		setAdditionalListProperty(
+			String		name,
+			List		value )
+		{
+			delegate.setAdditionalListProperty( name, value );
+		}
+			
+		public List
+		getAdditionalListProperty(
+			String		name )
+		{
+			return( delegate.getAdditionalListProperty( name ));
+		}
+			
+		public void
+		setAdditionalMapProperty(
+			String		name,
+			Map			value )
+		{
+			delegate.setAdditionalMapProperty( name, value );
+		}
+			
+		public Map
+		getAdditionalMapProperty(
+			String		name )
+		{
+			return( delegate.getAdditionalMapProperty( name ));
+		}
+		
+		public Object
+		getAdditionalProperty(
+			String		name )
+		{
+			return( delegate.getAdditionalProperty( name ));
+		}
+
+		public void
+		removeAdditionalProperty(
+			String name )
+		{
+			delegate.removeAdditionalProperty( name );
+		}
+		
+		
+		public void
+		removeAdditionalProperties()
+		{
+			delegate.removeAdditionalProperties();
+		}
+		
+
+		public void
+		serialiseToBEncodedFile(
+			File		target_file )
+			  
+			throws TOTorrentException
+		{
+				// make sure pieces are current
+			
+			try{
+		   		getMonitor().enter();
+		   		
+		   		getPieces();
+			
+		   		delegate.serialiseToBEncodedFile( target_file );
+		   		
+			}finally{
+				
+				getMonitor().exit();
+			}
+		}
+
+
+		public Map
+		serialiseToMap()
+			  
+			throws TOTorrentException
+		{
+				// make sure pieces are current
+			
+			try{
+		   		getMonitor().enter();
+		   		
+		   		getPieces();
+			
+		   		return( delegate.serialiseToMap());
+		   		
+			}finally{
+				
+				getMonitor().exit();
+			}
+		}
+
+
+		public void
+		serialiseToXMLFile(
+				File		target_file )
+			  
+		   throws TOTorrentException
+		{
+				// make sure pieces are current
+			
+			try{
+		   		getMonitor().enter();
+		   		
+		   		getPieces();
+			
+		   		delegate.serialiseToXMLFile( target_file );
+			
+			}finally{
+				
+				getMonitor().exit();
+			}
+		}
+
+		public AEMonitor
+		getMonitor()
+		{
+	   		return( delegate.getMonitor());
+		}
+
+
+		public void
+		print()
+		{
+			delegate.print();
+		}
 	}
 }

@@ -37,10 +37,12 @@ DiskManagerHelper
 	public PieceList
 	getPieceList(
 		int	piece_number );
-	
+		
 	public byte[]
 	getPieceHash(
-		int	piece_number );
+		int	piece_number )
+	
+		throws TOTorrentException;
 	
 	public void
 	setState(

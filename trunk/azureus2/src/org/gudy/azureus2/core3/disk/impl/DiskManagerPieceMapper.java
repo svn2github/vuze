@@ -61,7 +61,7 @@ DiskManagerPieceMapper
 		
 		piece_length	= (int)torrent.getPieceLength();
 		
-		piece_count		= torrent.getPieces().length;
+		piece_count		= torrent.getNumberOfPieces();
 		
 		TOTorrentFile[]	files = torrent.getFiles();
 		

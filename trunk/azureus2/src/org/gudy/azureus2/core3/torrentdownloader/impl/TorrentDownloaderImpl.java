@@ -259,7 +259,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
           try{
           	if ( !filename.toLowerCase().endsWith(".torrent" )){
 
-          		TOTorrent	torrent = TorrentUtils.readFromFile( file );
+          		TOTorrent	torrent = TorrentUtils.readFromFile( file, false );
           		
           		String	name = TorrentUtils.getLocalisedName( torrent ) + ".torrent";
           		

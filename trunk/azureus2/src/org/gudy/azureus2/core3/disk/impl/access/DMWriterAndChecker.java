@@ -48,7 +48,9 @@ DMWriterAndChecker
 	checkPiece(
 		int 					pieceNumber,
 		CheckPieceResultHandler	result_handler,
-		Object					user_data );
+		Object					user_data )
+	
+		throws Exception;
 	
 	public void 
 	enqueueCompleteRecheckRequest(

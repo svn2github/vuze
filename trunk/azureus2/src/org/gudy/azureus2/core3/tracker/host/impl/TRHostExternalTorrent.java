@@ -141,6 +141,17 @@ TRHostExternalTorrent
 		return( new byte[0][] );
 	}
 
+	public void
+	setPieces(
+		byte[][]	b )
+	{
+	}
+	
+	public int
+	getNumberOfPieces()
+	{
+		return( 0);
+	}
 
 	public long
 	getPieceLength()

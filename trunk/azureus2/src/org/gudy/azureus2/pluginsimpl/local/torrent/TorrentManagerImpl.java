@@ -96,7 +96,7 @@ TorrentManagerImpl
 		throws TorrentException
 	{
 		try{
-			return( new TorrentImpl(TorrentUtils.readFromFile(file.toString())));
+			return( new TorrentImpl(TorrentUtils.readFromFile( file, false )));
 			
 		}catch( TOTorrentException e ){
 			

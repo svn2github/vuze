@@ -424,7 +424,7 @@ DownloadManagerImpl
 		
 		try {
 
-			 torrent = TorrentUtils.readFromFile( torrentFileName );
+			 torrent = TorrentUtils.readFromFile( new File(torrentFileName), true );
 		
 			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 			 	
@@ -561,7 +561,7 @@ DownloadManagerImpl
 				torrent_created_by	= "";
 			}
 			 
-			 nbPieces = torrent.getPieces().length;
+			 nbPieces = torrent.getNumberOfPieces();
 			 
 			 tracker_response_cache	= torrent.getAdditionalMapProperty(TRACKER_CACHE_KEY);
 			 
@@ -863,7 +863,12 @@ DownloadManagerImpl
 						  	}
 						  }
 				      
-						  saveTrackerResponseCache();
+						  	// we don't want to update the torrent if we're seeding
+						  
+						  if ( !onlySeeding ){
+						  	
+						  	saveTrackerResponseCache();
+						  }
 						  					  
 						  diskManager.storeFilePriorities();
 						  
@@ -915,7 +920,12 @@ DownloadManagerImpl
     	}
     }
     
-    saveTrackerResponseCache();
+  	// we don't want to update the torrent if we're seeding
+	  
+	  if ( !onlySeeding ){
+	  	
+	  	saveTrackerResponseCache();
+	  }
   }
   
   public void

@@ -232,7 +232,7 @@ public class OpenTorrentWindow {
       if (sFileNames[i] != "") {
         numFiles++;
         try {
-          TOTorrent torrent = TorrentUtils.readFromFile(sFileNames[i]);
+          TOTorrent torrent = TorrentUtils.readFromFile( new File(sFileNames[i]), false);
           if (!bUseFolderBrowse && !torrent.isSimpleTorrent()) {
             bUseFolderBrowse = true;
           }

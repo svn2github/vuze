@@ -57,6 +57,7 @@ TOTorrentImpl
 	private TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl();
 	
 	private long		piece_length;
+	private int			number_of_pieces;
 	private byte[][]	pieces;
 	
 	private byte[]		torrent_hash;
@@ -238,6 +239,11 @@ TOTorrentImpl
 		root.put( TK_INFO, info );
 		
 		info.put( TK_PIECE_LENGTH, new Long( piece_length ));
+		
+		if ( pieces == null ){
+			
+			throw( new TOTorrentException( "Pieces is null", TOTorrentException.RT_WRITE_FAILS ));
+		}
 		
 		byte[]	flat_pieces = new byte[pieces.length*20];
 		
@@ -558,17 +564,28 @@ TOTorrentImpl
 		piece_length	= _length;
 	}
 	
+	public int
+	getNumberOfPieces()
+	{
+		return( number_of_pieces );
+	}
+	
 	public byte[][]
 	getPieces()
 	{
 		return( pieces );
 	}
 	
-	protected void
+	public void
 	setPieces(
 		byte[][]	_pieces )
 	{
 		pieces = _pieces;
+		
+		if ( pieces != null ){
+			
+			number_of_pieces = pieces.length;
+		}
 	}
 	
 	public TOTorrentFile[]
@@ -813,7 +830,7 @@ TOTorrentImpl
 			System.out.println( "comment = " + comment );
 			System.out.println( "hash = " + ByteFormatter.nicePrint( hash ));
 			System.out.println( "piece length = " + getPieceLength() );
-			System.out.println( "pieces = " + getPieces().length );
+			System.out.println( "pieces = " + getNumberOfPieces() );
 			
 			Iterator info_it = additional_info_properties.keySet().iterator();
 			
@@ -849,9 +866,15 @@ TOTorrentImpl
 				}
 			}
 			
-			for (int i=0;i<pieces.length;i++){
+			if ( pieces == null ){
+			
+				System.out.println( "\tpieces = null" );
 				
-				System.out.println( "\t" + ByteFormatter.nicePrint(pieces[i]));
+			}else{
+				for (int i=0;i<pieces.length;i++){
+				
+					System.out.println( "\t" + ByteFormatter.nicePrint(pieces[i]));
+				}
 			}
 											 
 			for (int i=0;i<files.length;i++){

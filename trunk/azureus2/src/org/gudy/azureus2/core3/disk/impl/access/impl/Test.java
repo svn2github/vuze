@@ -158,7 +158,7 @@ Test
 								}
 							}
 							
-							int	pieces  	= torrent.getPieces().length;
+							int	pieces  	= torrent.getNumberOfPieces();
 							int	piece_size	= (int)torrent.getPieceLength();
 							
 							int	blocks_per_piece	= piece_size / BLOCK_SIZE;

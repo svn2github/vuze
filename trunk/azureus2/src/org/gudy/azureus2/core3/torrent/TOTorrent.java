@@ -101,10 +101,26 @@ TOTorrent
 	  * This method provides access to the SHA1 hash values (20 bytes each) that correspond
 	  * to the pieces of the torrent.
 	  * @return
+	  * @exception	can fail if re-reading of piece hashes for space spacing fails 
 	  */
+	
 	public byte[][]
-	getPieces();
+	getPieces()
+	
+		throws TOTorrentException;
 
+		/**
+		 * This method exists to support the temporary discarding of piece hashes to conserver
+		 * memory. It should only be used with care! 
+		 * @param pieces
+		 */
+	
+	public void
+	setPieces(
+		byte[][]	pieces )
+	
+		throws TOTorrentException;
+	
 	/**
 	 * Returns the piece length used for the torrent
 	 * @return
@@ -112,6 +128,9 @@ TOTorrent
 	public long
 	getPieceLength();
 
+	public int
+	getNumberOfPieces();
+	
 	public long
 	getSize();
 	

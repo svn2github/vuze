@@ -328,24 +328,30 @@ RDResumeHandler
 						
 						if ( !resumeValid ){
 						
-							pending_check_num++;
-							
-							writer_and_checker.checkPiece(
-								i,
-								new CheckPieceResultHandler()
-								{
-									public void
-									processResult(
-										int		piece_number,
-										int		result,
-										Object	user_data )
+							try{
+								writer_and_checker.checkPiece(
+									i,
+									new CheckPieceResultHandler()
 									{
-										LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
-	
-										pending_checks_sem.release();
-									}
-								},
-								null );
+										public void
+										processResult(
+											int		piece_number,
+											int		result,
+											Object	user_data )
+										{
+											LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
+		
+											pending_checks_sem.release();
+										}
+									},
+									null );
+								
+								pending_check_num++;
+								
+							}catch( Throwable e ){
+							
+								Debug.printStackTrace(e);
+							}
 						}
 					}
 				}
@@ -378,24 +384,30 @@ RDResumeHandler
 										
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );						
 						
-					pending_check_num++;
-					
-					writer_and_checker.checkPiece(
-						i,
-						new CheckPieceResultHandler()
-						{
-							public void
-							processResult(
-								int		piece_number,
-								int		result,
-								Object	user_data )
+					try{
+						writer_and_checker.checkPiece(
+							i,
+							new CheckPieceResultHandler()
 							{
-								LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
-
-								pending_checks_sem.release();
-							}
-						},
-						null );
+								public void
+								processResult(
+									int		piece_number,
+									int		result,
+									Object	user_data )
+								{
+									LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
+	
+									pending_checks_sem.release();
+								}
+							},
+							null );
+						
+						pending_check_num++;
+						
+					}catch( Throwable e ){
+					
+						Debug.printStackTrace(e);
+					}
 				}								
 			}
 						
@@ -578,7 +590,7 @@ RDResumeHandler
 	{
 		resume_key	= getCanonicalResumeKey( resume_key );
 
-		int	piece_count = torrent.getPieces().length;
+		int	piece_count = torrent.getNumberOfPieces();
 		
 		byte[] resumeData = new byte[piece_count];
 		
@@ -621,9 +633,9 @@ RDResumeHandler
 		
 		resume_key	= getCanonicalResumeKey( resume_key );
 		
-		int	piece_count = torrent.getPieces().length;
+		long	piece_count = torrent.getNumberOfPieces();
 		
-		byte[] resumeData = new byte[piece_count];
+		byte[] resumeData = new byte[(int)piece_count];
 		
 		for (int i = 0; i < resumeData.length; i++) {
 			
@@ -676,7 +688,7 @@ RDResumeHandler
 		resume_key	= getCanonicalResumeKey( resume_key );
 		
 		try{
-			int	piece_count = torrent.getPieces().length;
+			int	piece_count = torrent.getNumberOfPieces();
 		
 			Map resumeMap = torrent.getAdditionalMapProperty("resume");
 		
@@ -747,6 +759,7 @@ RDResumeHandler
 	saveTorrent() 
 	{
 		try{
+			
 			TorrentUtils.writeToFile( torrent );
 						
 		} catch (TOTorrentException e) {
