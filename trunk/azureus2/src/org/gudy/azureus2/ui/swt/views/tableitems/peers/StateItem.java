@@ -46,6 +46,12 @@ public class StateItem
     if( peer != null ) {
       int state = peer.getConnectionState();
       switch( state ) {
+        case PEPeerTransport.CONNECTION_PENDING :
+          state_text = MessageText.getString( "PeersView.state.pending" );
+          break;
+        case PEPeerTransport.CONNECTION_CONNECTING :
+          state_text = MessageText.getString( "PeersView.state.connecting" );
+          break;
         case PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE :
           state_text = MessageText.getString( "PeersView.state.handshake" );
           break;

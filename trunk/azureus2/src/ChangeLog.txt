@@ -16,6 +16,7 @@ FEATURE: Core | Persistence of download and tracker stats for shares [Parg]
 FEATURE: Core | Advanced network settings: MTU, SO_RCVBUF, SO_SNDBUF, IPTOS [Nolar]
 FEATURE: UI   | Option to show confirmation dialog on torrent Removal [Nolar]
 FEATURE: UI   | Added Seed2PeerRatio item to MyTorrents view [Nolar]
+FEATURE: UI   | Added detailed connection State to peers view [Nolar]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]

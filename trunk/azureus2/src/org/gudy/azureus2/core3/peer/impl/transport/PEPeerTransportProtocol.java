@@ -100,7 +100,7 @@ PEPeerTransportProtocol
   private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
   
   
-  private int connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE;
+  private int connection_state = PEPeerTransport.CONNECTION_PENDING;
   
   
   
@@ -233,6 +233,8 @@ PEPeerTransportProtocol
 		
 		if( incoming ) {
       connection = NetworkManager.getSingleton().createNewInboundConnection( this, channel );
+      
+      connection_state = PEPeerTransport.CONNECTION_CONNECTING;
       
       //"fake" a connect request to register our listener
       connection.connect( new Connection.ConnectionListener() {
@@ -449,6 +451,8 @@ PEPeerTransportProtocol
                  };
     	}
 
+      connection_state = PEPeerTransport.CONNECTION_CONNECTING;
+      
       connection.connect( cl );
       
       LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + PEPeerTransportProtocol.this);
@@ -848,7 +852,9 @@ PEPeerTransportProtocol
     boolean sent_our_handshake = false;
   
     private StateHandshaking( boolean already_initialised, byte[] data_already_read ) {
-    	if ( !already_initialised ){
+      connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE;
+      
+      if ( !already_initialised ){
     		allocateAll();
     		startConnectionX();  //sets up the download speed limiter
     	}
