@@ -104,9 +104,12 @@ PEPeerServerImpl
       try {
         sck = ServerSocketChannel.open();
         
-        // Allow the server socket to be released back to OS faster
-        // during shutdown
-        sck.socket().setReuseAddress(true);
+        //this should only be set when using a single shared port config
+        if (COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
+          // Allow the server socket to be immediately re-used, if not yet released by the OS
+          sck.socket().setReuseAddress(true);
+        }
+        
         if (bindIP.length() < 7) {
            sck.socket().bind(new InetSocketAddress(port));
         }
