@@ -23,18 +23,14 @@
 package org.gudy.azureus2.plugins.peers;
 
 /**
- * @author parg
- * @deprecated never implemented
+ * Listener for peer events.
  */
-
-public interface 
-PeerListener 
-{
+public interface PeerListener {
+  
   /**
-   * @deprecated never implemented
-   * @param event
+   * The peer has changed to the given state.
+   * @param new_state of peer
    */
-	public void
-	eventOccurred(
-		PeerEvent	event );
+  public void stateChanged( int new_state );
+  
 }

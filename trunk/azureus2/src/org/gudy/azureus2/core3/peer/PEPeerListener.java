@@ -1,7 +1,7 @@
 /*
- * Created on 21-Jul-2004
- * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Created on Feb 25, 2005
+ * Created by Alon Rohter
+ * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,37 +20,17 @@
  *
  */
 
-package org.gudy.azureus2.plugins.peers;
+package org.gudy.azureus2.core3.peer;
 
 /**
- * @deprecated never implemented
- * @author parg
- *
+ * Listener for peer events.
  */
+public interface PEPeerListener {
+  
+  /**
+   * The peer has changed to the given state.
+   * @param new_state of peer
+   */
+  public void stateChanged( int new_state );
 
-public interface 
-PeerEvent 
-{
-	public static final int ET_PEER_PROTOCOL_BT	= 1;
-	
-  /**
-   * @deprecated never implemented
-   * @return
-   */
-	public Peer
-	getPeer();
-	
-  /**
-   * @deprecated never implemented
-   * @return
-   */
-	public int
-	getEventType();
-	
-  /**
-   * @deprecated never implemented
-   * @return
-   */
-	public Object
-	getEventContent();
 }

@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -217,6 +218,9 @@ PeerForeignDelegate
 		return( foreign.getState());
 	}
 
+  
+
+  
 	public byte[] 
 	getId()
 	{
@@ -367,6 +371,12 @@ PeerForeignDelegate
 	public void setUploadHint(int timeToSpread) {}  
 	
 
+  public void addListener( PEPeerListener listener ) { /* nothing */ }
+
+  public void removeListener( PEPeerListener listener ) { /* nothing */ }
+  
+  
+  
   public NetworkConnection getConnection() {
     return ((ConnectionImpl)foreign.getConnection()).getCoreConnection();
   }

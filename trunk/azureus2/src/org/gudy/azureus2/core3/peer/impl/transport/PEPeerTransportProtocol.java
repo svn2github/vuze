@@ -143,6 +143,9 @@ PEPeerTransportProtocol
   private static int requests_completed = 0;
   
   
+  private ArrayList peer_listeners;
+  
+  
   
 
   
@@ -168,7 +171,7 @@ PEPeerTransportProtocol
       public void connectSuccess() {  //will be called immediately
         LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
         registerForMessageHandling();
-        current_peer_state = PEPeer.HANDSHAKING;
+        changePeerState( PEPeer.HANDSHAKING );
         sendBTHandshake();
       }
       
@@ -201,8 +204,8 @@ PEPeerTransportProtocol
     }
     
     connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder() );
-      
-    current_peer_state = PEPeer.CONNECTING;
+    
+    changePeerState( PEPeer.CONNECTING );
     
     connection.connect( new NetworkConnection.ConnectionListener() {
       public void connectStarted() {
@@ -212,7 +215,7 @@ PEPeerTransportProtocol
       public void connectSuccess() {
         LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
         registerForMessageHandling();
-        current_peer_state = PEPeer.HANDSHAKING;
+        changePeerState( PEPeer.HANDSHAKING );
         sendBTHandshake();
       }
         
@@ -328,7 +331,7 @@ PEPeerTransportProtocol
   		}
   		
       
-      current_peer_state = PEPeer.CLOSING;
+      changePeerState( PEPeer.CLOSING );
       
       connection.getIncomingMessageQueue().stopQueueProcessing();
 
@@ -1031,14 +1034,13 @@ PEPeerTransportProtocol
     */
 
     if( !az_messaging_mode ) {  //otherwise we'll do this after receiving az handshake
-      sendBitField();
-      
-      connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
-       
       //fudge to ensure optimistic-connect code processes connections that have never sent a data message
       last_data_message_received_time = SystemTime.getCurrentTime();
        
-      current_peer_state = PEPeer.TRANSFERING;
+      changePeerState( PEPeer.TRANSFERING );
+      
+      connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+      sendBitField(); 
     }
     
   }
@@ -1067,17 +1069,14 @@ PEPeerTransportProtocol
     supported_messages = (Message[])messages.toArray( new Message[0] );
 
     System.out.println( "Mutually supported messages: [" +mutual+ "]" );
-    
-    
-    
-    sendBitField();
-    
-    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
-     
+
     //fudge to ensure optimistic-connect code processes connections that have never sent a data message
     last_data_message_received_time = SystemTime.getCurrentTime();
      
-    current_peer_state = PEPeer.TRANSFERING;
+    changePeerState( PEPeer.TRANSFERING );
+    
+    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+    sendBitField();
   }
   
   
@@ -1424,5 +1423,29 @@ PEPeerTransportProtocol
     return supported_messages != null;
   }
   
+  
+  
+  public void addListener( PEPeerListener listener ) {
+    if( peer_listeners == null )  peer_listeners = new ArrayList();
+    peer_listeners.add( listener );
+  }
+  
+  public void removeListener( PEPeerListener listener ) {
+    peer_listeners.remove( listener );
+    if( peer_listeners.isEmpty() )  peer_listeners = null;
+  }
+  
+  
+  private void changePeerState( int new_state ) {
+    current_peer_state = new_state;
+    
+    if( peer_listeners != null ) {
+      for( int i=0; i < peer_listeners.size(); i++ ) {
+        PEPeerListener l = (PEPeerListener)peer_listeners.get( i );
+      
+        l.stateChanged( current_peer_state );
+      }
+    }
+  }
   
 }

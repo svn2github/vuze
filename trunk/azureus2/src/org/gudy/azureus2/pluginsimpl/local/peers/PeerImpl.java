@@ -26,7 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
  *
  */
 
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -48,6 +48,7 @@ PeerImpl
   
   private final Connection connection;
   
+  private HashMap peer_listeners;
   
 
 	public
@@ -266,24 +267,27 @@ PeerImpl
 	}
 	
 
-  
-  
-  /**
-   * @deprecated never implemented
-   */
-	public void
-	addListener(
-		PeerListener	l )
-	{
+
+	public void addListener( final PeerListener	l ) {
+    PEPeerListener core_listener = new PEPeerListener() {
+      public void stateChanged( int new_state ) {
+        l.stateChanged( new_state );
+      }
+    };
+    
+    delegate.addListener( core_listener );
+    
+    if( peer_listeners == null )  peer_listeners = new HashMap();
+    peer_listeners.put( l, core_listener );
 	}
 	
-  /**
-   * @deprecated never implemented
-   */
-	public void
-	removeListener(
-		PeerListener	l )
-	{		
+
+	public void	removeListener( PeerListener	l ) {
+    PEPeerListener core_listener = (PEPeerListener)peer_listeners.get( l );
+    
+    if( core_listener != null ) {
+      delegate.removeListener( core_listener );
+    }
 	}
   
 }

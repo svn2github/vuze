@@ -44,6 +44,20 @@ PEPeer
 	public final static int DISCONNECTED 	= 50;
 	
 	
+  /**
+   * Add peer listener.
+   * @param listener
+   */
+  public void addListener( PEPeerListener listener );
+  
+  
+  /**
+   * Remove peer listener.
+   * @param listener
+   */
+  public void removeListener( PEPeerListener listener );
+  
+  
 	public int getPeerState();	// from above set
   
 	public PEPeerManager

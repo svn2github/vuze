@@ -64,6 +64,6 @@ public interface Connection {
    * Get the connection's underyling transport.
    * @return data transport
    */
-  //public Transport getTransport();
+  //public Transport getTransport();  //TODO remove this functionality?
 
 }

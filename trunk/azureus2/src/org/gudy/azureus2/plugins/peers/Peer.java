@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins.peers;
 
 import java.util.List;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
@@ -35,11 +36,13 @@ import org.gudy.azureus2.plugins.network.Connection;
 public interface 
 Peer 
 {
-	public final static int CONNECTING 		= 10;
-	public final static int HANDSHAKING 	= 20;
-	public final static int TRANSFERING 	= 30;
-	public final static int DISCONNECTED 	= 40;
-	
+	public final static int CONNECTING 		= PEPeer.CONNECTING;
+	public final static int HANDSHAKING 	= PEPeer.HANDSHAKING;
+	public final static int TRANSFERING 	= PEPeer.TRANSFERING;
+  public final static int DISCONNECTED  = PEPeer.DISCONNECTED;
+  
+
+  
 	public PeerManager
 	getManager();
 	
@@ -110,21 +113,21 @@ Peer
 		boolean 	closedOnError,
 		boolean 	attemptReconnect );
 	
+
+  
   /**
-   * @deprecated never implemented
-   * @param l
+   * Add peer listener.
+   * @param listener
    */
-	public void
-	addListener(
-		PeerListener	l );
+	public void	addListener( PeerListener	listener );
 	
+
   /**
-   * @deprecated never implemented
-   * @param l
+   * Remove peer listener.
+   * @param listener
    */
-	public void
-	removeListener(
-		PeerListener	l );
+	public void removeListener(	PeerListener listener );
+  
   
   
   /**
