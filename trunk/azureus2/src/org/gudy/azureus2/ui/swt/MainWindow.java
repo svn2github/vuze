@@ -88,14 +88,20 @@ public class MainWindow implements IComponentListener {
 
   private GUIUpdater updater;
 
+  private static int instanceCount = 0;
+
   private Display display;
   private Shell mainWindow;
   private Menu menuBar;
 
+  protected static final Color[] blues = new Color[5];
   public static Color black;
   public static Color blue;
+  protected static Color grey;
   public static Color red;
   public static Color white;
+  protected static Color red_ConsoleView;
+  protected static Color red_ManagerItem;
 
   private CTabFolder folder;
   private CLabel statusText;
@@ -120,57 +126,55 @@ public class MainWindow implements IComponentListener {
 
   private class GUIUpdater extends Thread {
     boolean finished = false;
-    int waitTime = 250;
+    static final int waitTime = 250;
+    IView view;
 
     public GUIUpdater() {
       super("GUI updater"); //$NON-NLS-1$
+      setPriority(Thread.MIN_PRIORITY);
     }
 
     public void run() {
       while (!finished) {
-//        final IView view;
         update();
         try {
           Thread.sleep(waitTime);
         }
-        catch (Exception e) {
-          e.printStackTrace();
+        catch (Exception ignore) {
         }
       }
     }
 
     private void update() {
-      final IView view;
-
-      try {
-        view = Tab.getView(folder.getSelection());
-      }
-      catch (Exception e) {
-        return;
-      }
-
-      if (view != null) {
-        display.asyncExec(new Runnable() {
-          public void run() {
-            if (!mainWindow.isDisposed() && mainWindow.isVisible()) {
+      display.asyncExec(new Runnable() {
+        public void run() {
+          if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
+            try {
+              view = Tab.getView(folder.getSelection());
+            }
+            catch (Exception e) {
+              view = null;
+            }
+            if(view != null) {
               view.refresh();
               Tab.refresh();
-              statusDown.setText("D: " + globalManager.getDownloadSpeed()); //$NON-NLS-1$
-              statusUp.setText("U: " + globalManager.getUploadSpeed()); //$NON-NLS-1$
             }
-            if (trayIcon != null)
-              trayIcon.refresh();
-            synchronized (downloadBars) {
-              Iterator iter = downloadBars.values().iterator();
-              while (iter.hasNext()) {
-                MinimizedWindow mw = (MinimizedWindow) iter.next();
-                mw.refresh();
-              }
+            statusDown.setText("D: " + globalManager.getDownloadSpeed()); //$NON-NLS-1$
+            statusUp.setText("U: " + globalManager.getUploadSpeed()); //$NON-NLS-1$
+          }
+          if (trayIcon != null)
+            trayIcon.refresh();
+          synchronized (downloadBars) {
+            Iterator iter = downloadBars.values().iterator();
+            while (iter.hasNext()) {
+              MinimizedWindow mw = (MinimizedWindow) iter.next();
+              mw.refresh();
             }
           }
-        });
-      }
+        }
+      });
     }
+
     public void stopIt() {
       finished = true;
     }
@@ -184,10 +188,11 @@ public class MainWindow implements IComponentListener {
       ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
 
       int nbRead = 0;
+      HttpURLConnection con = null; 
       InputStream is = null;
       try {
         URL reqUrl = new URL("http://azureus.sourceforge.net/version.php"); //$NON-NLS-1$
-        HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
+        con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
         is = con.getInputStream();
 //        int length = con.getContentLength();
@@ -199,8 +204,8 @@ public class MainWindow implements IComponentListener {
             message.write(data, 0, nbRead);
           }
         }
-        Map decoded = BDecoder.decode(message.toByteArray()); //$NON-NLS-1$
-        latestVersion = new String((byte[])decoded.get("version")); //$NON-NLS-1$ //$NON-NLS-2$
+        Map decoded = BDecoder.decode(message.toByteArray());
+        latestVersion = new String((byte[])decoded.get("version")); //$NON-NLS-1$
 
         if (display == null || display.isDisposed())
           return;
@@ -225,11 +230,17 @@ public class MainWindow implements IComponentListener {
           }
         });
       } finally {
-        if (is != null)
+        if (is != null) {
           try {
             is.close();
           } catch (IOException e1) {
           }
+          is = null;
+        }
+        if(con != null) {
+          con.disconnect();
+          con = null;
+        }
       }
     }
   }
@@ -250,13 +261,24 @@ public class MainWindow implements IComponentListener {
     display = new Display();
     ImageRepository.loadImages(display);
 
-    black = new Color(display, new RGB(0, 0, 0));
-    blue = new Color(display, new RGB(128, 128, 255));
-    red = new Color(display, new RGB(255, 0, 0));
-    white = new Color(display, new RGB(255, 255, 255));
+    if(instanceCount == 0) {
+      blues[4] = new Color(display, new RGB(0, 128, 255));
+      blues[3] = new Color(display, new RGB(64, 160, 255));
+      blues[2] = new Color(display, new RGB(128, 192, 255));
+      blues[1] = new Color(display, new RGB(192, 224, 255));
+      blues[0] = new Color(display, new RGB(255, 255, 255));
+      black = new Color(display, new RGB(0, 0, 0));
+      blue = new Color(display, new RGB(128, 128, 255));
+      grey = new Color(display, new RGB(170, 170, 170));
+      red = new Color(display, new RGB(255, 0, 0));
+      white = new Color(display, new RGB(255, 255, 255));
+      red_ConsoleView = new Color(display, new RGB(255, 192, 192));
+      red_ManagerItem = new Color(display, new RGB(255, 68, 68));
+    }
+    instanceCount++;
 
     //The Main Window    
-    mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE);
+    mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
     mainWindow.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     //The Main Menu
@@ -351,31 +373,14 @@ public class MainWindow implements IComponentListener {
 
     new MenuItem(viewMenu, SWT.SEPARATOR);
 
-    /*
-    	MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
-    	view_closeDetails.setText("Close all Details");
-    	view_closeDetails.addListener(SWT.Selection, new Listener() {
-    		public void handleEvent(Event e) {
-    			synchronized (downloadViews) {
-    //				Tab.closeAll();
-    
-    //				Iterator iter = downloadViews.values().iterator();
-    //				while (iter.hasNext()) {
-    //					Tab tab = (Tab) iter.next();
-    //					Tab.closed(tab.getTabItem());
-    //				}
-    
-    				Tab[] tab_items =
-    					(Tab[]) downloadViews.values().toArray(new Tab[downloadViews.size()]);
-    				for (int i = 0; i < tab_items.length; i++) {
-    					Tab.closed(tab_items[i].getTabItem());
-    				}
-    
-    				downloadViews.clear();
-    			}
-    		}
-    	});
-    */
+  	MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
+    Messages.setLanguageText(view_closeDetails, "MainWindow.menu.closealldetails"); //$NON-NLS-1$
+  	view_closeDetails.addListener(SWT.Selection, new Listener() {
+  		public void handleEvent(Event e) {
+        Tab.closeAllDetails();
+ 			}
+  	});
+
     addCloseDownloadBarsToMenu(viewMenu);
 
     createLanguageMenu(menuBar);
@@ -488,7 +493,6 @@ public class MainWindow implements IComponentListener {
         }
       }
     });
-
   }
 
   private void createLanguageMenu(Menu menu) {
@@ -945,14 +949,13 @@ public class MainWindow implements IComponentListener {
 
   public void waitForClose() {
     while (!mainWindow.isDisposed()) {
-      if (!display.readAndDispatch())
-        display.sleep();
+      try {
+        if (!display.readAndDispatch())
+          display.sleep();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
-
-    black.dispose();
-    blue.dispose();
-    red.dispose();
-    white.dispose();
 
     if (tray != null)
       tray.dispose();
@@ -1050,6 +1053,27 @@ public class MainWindow implements IComponentListener {
     ConfigurationManager.getInstance().save(); 
 
     mainWindow.dispose();
+
+    if(instanceCount-- == 0) {
+      for (int i = 0; i < blues.length; i++) {
+        if (blues[i] != null && !blues[i].isDisposed())
+          blues[i].dispose();
+      }
+      if(grey != null && !grey.isDisposed())
+        grey.dispose();
+      if(black != null && !black.isDisposed())
+        black.dispose();
+      if(blue != null && !blue.isDisposed())
+        blue.dispose();
+      if(red != null && !red.isDisposed())
+        red.dispose();
+      if(white != null && !white.isDisposed())
+        white.dispose();
+      if(red_ConsoleView != null && !red_ConsoleView.isDisposed())
+        red_ConsoleView.dispose();
+      if(red_ManagerItem != null && !red_ManagerItem.isDisposed())
+        red_ManagerItem.dispose();
+    }
     if(updateJar)
       updateJar();
   }
@@ -1093,14 +1117,15 @@ public class MainWindow implements IComponentListener {
     return window;
   }
 
-  public void openTorrent(String fileName) {
-    final String _fileName = fileName;
+  public void openTorrent(final String fileName) {
+    if (!fileName.endsWith(".torrent")) //$NON-NLS-1$
+      return;
     display.asyncExec(new Runnable() {
       public void run() {
-        String savePath = getSavePath(_fileName);
+        String savePath = getSavePath(fileName);
         if (savePath == null)
           return;
-        globalManager.addDownloadManager(new DownloadManager(globalManager, _fileName, savePath));
+        globalManager.addDownloadManager(fileName, savePath);
       }
     });
   }
@@ -1118,14 +1143,13 @@ public class MainWindow implements IComponentListener {
         ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
         fis = new FileInputStream(fileName);
         while ((nbRead = fis.read(buf)) > 0)
-			metaInfo.write(buf, 0, nbRead);
+          metaInfo.write(buf, 0, nbRead);
 
-        fis.close();
         Map map = BDecoder.decode(metaInfo.toByteArray());
-        Map info = (Map) map.get("info");
-		singleFileName = LocaleUtil.getCharsetString((byte[]) info.get("name"));
-        Object test = info.get("length");        
+        Map info = (Map) map.get("info"); //$NON-NLS-1$
+        singleFileName = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$
 
+        Object test = info.get("length"); //$NON-NLS-1$
         if (test != null) {        
           singleFile = true;          
         }
@@ -1167,11 +1191,12 @@ public class MainWindow implements IComponentListener {
 
         String separator = System.getProperty("file.separator"); //$NON-NLS-1$
         for (int i = 0; i < fileNames.length; i++) {
+          if (!fileNames[i].endsWith(".torrent")) //$NON-NLS-1$
+            continue;
           String savePath = getSavePath(path + separator + fileNames[i]);
           if (savePath == null)
             continue;
-          globalManager.addDownloadManager(
-            new DownloadManager(globalManager, path + separator + fileNames[i], savePath));
+          globalManager.addDownloadManager(path + separator + fileNames[i], savePath);
         }
       }
     });
@@ -1196,7 +1221,7 @@ public class MainWindow implements IComponentListener {
     if (savePath == null)
       return;
     for (int i = 0; i < files.length; i++)
-      globalManager.addDownloadManager(new DownloadManager(globalManager, files[i].getAbsolutePath(), savePath));
+      globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath);
   }
 
   /**
