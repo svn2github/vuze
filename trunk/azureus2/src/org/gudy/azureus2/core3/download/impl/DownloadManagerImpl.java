@@ -1368,11 +1368,11 @@ DownloadManagerImpl
 	  Category oldCategory = category;
 	  category = cat;
 	  if (oldCategory != null) {
-	    if (oldCategory.getType() == Category.TYPE_USER)
+	    if (oldCategory.getType() != Category.TYPE_ALL)
     	  oldCategory.removeManager(this);
   	}
   	if (category != null) {
-	    if (category.getType() == Category.TYPE_USER)
+	    if (category.getType() != Category.TYPE_ALL)
     	  category.addManager(this);
    	}
 	}
