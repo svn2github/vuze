@@ -27,9 +27,12 @@ package org.gudy.azureus2.pluginsimpl.update;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.model.*;
+import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 public class 
@@ -100,13 +103,39 @@ PluginUpdatePlugin
 		
 		log.log( LoggerChannel.LT_INFORMATION, "Currently loaded plugins:");
 
+		List	plugins_to_check 		= new ArrayList();
+		List	plugins_to_check_ids	= new ArrayList();
+		Map		plugins_to_check_names	= new HashMap();
+		
 		for (int i=0;i<plugins.length;i++){
 			
 			PluginInterface	pi = plugins[i];
 			
+			String	id 		= pi.getPluginID();
 			String	version = pi.getPluginVersion();
+			String	name	= pi.getPluginName();
 			
-			log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + (version==null?"":(", version = " + pi.getPluginVersion())));
+			if ( version != null && !id.startsWith("<")){
+				
+				if ( plugins_to_check_ids.contains( id )){
+					
+					String	s = (String)plugins_to_check_names.get(id);
+					
+					if ( !name.equals( id )){
+						
+						plugins_to_check_names.put( id, s+","+name);
+					}
+					
+				}else{
+					plugins_to_check_ids.add( id );
+					
+					plugins_to_check.add( pi );
+					
+					plugins_to_check_names.put( id, name.equals(id)?"":name);
+				}
+			}
+			
+			log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())));
 		}
 		
 		try{
@@ -123,6 +152,41 @@ PluginUpdatePlugin
 			
 			log.log( LoggerChannel.LT_INFORMATION, "Downloaded plugin names = " + name_list );
 			
+			for ( int i=0;i<plugins_to_check.size();i++){
+				
+				PluginInterface	pi = (PluginInterface)plugins_to_check.get(i);
+				
+				String	plugin_id = pi.getPluginID();
+				
+				String	plugin_names	= (String)plugins_to_check_names.get( plugin_id );
+				
+				log.log( LoggerChannel.LT_INFORMATION, "Checking " + plugin_id);
+				
+				try{
+					
+					SFPluginDetails	details = loader.getPluginDetails( plugin_id );
+	
+					int	comp = PluginUtils.comparePluginVersions( pi.getPluginVersion(), details.getVersion());
+					
+					log.log( LoggerChannel.LT_INFORMATION, "    Current: " + pi.getPluginVersion() + ", Latest: " + details.getVersion());
+					
+					if ( comp > 0 ){
+						
+						String msg =   "A newer version (version " + details.getVersion() + ") of plugin '" + 
+										plugin_id + "' " +
+										(plugin_names.length()==0?"":"(" + plugin_names + ") " ) +
+										"is available. ";
+						
+						log.logAlert( LoggerChannel.LT_INFORMATION, msg +"See View->Plugins->Plugin Update");
+						
+						log.log( LoggerChannel.LT_INFORMATION, "        " + msg + "Download from "+
+									details.getDownloadURL());
+					}
+				}catch( SFPluginDetailsException e ){
+					
+					log.log("    Plugin check failed", e ); 
+				}
+			}
 		}catch( SFPluginDetailsException e ){
 			
 			log.log("Failed to load plugin details", e ); 

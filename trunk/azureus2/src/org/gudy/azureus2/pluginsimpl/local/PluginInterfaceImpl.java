@@ -77,6 +77,7 @@ PluginInterfaceImpl
   protected Properties 			props;
   protected String 				pluginDir;
   protected PluginConfig 		config;
+  protected String				plugin_id;
   protected String				plugin_version;
 
   public 
@@ -88,6 +89,7 @@ PluginInterfaceImpl
 		String 				_key,
 		Properties 			_props,
 		String 				_pluginDir,
+		String				_plugin_id,
 		String				_plugin_version ) 
   {
   	plugin				= _plugin;
@@ -98,6 +100,7 @@ PluginInterfaceImpl
     props 				= _props;
     pluginDir 			= _pluginDir;
     config 				= new PluginConfigImpl(pluginConfigKey);
+    plugin_id			= _plugin_id;
     plugin_version		= _plugin_version;
   }
   
@@ -193,6 +196,12 @@ PluginInterfaceImpl
   	return( plugin_version==null?(String)props.get("plugin.version"):plugin_version );
   }
 
+  public String
+  getPluginID()
+  {
+  	return( plugin_id==null?"<none>":plugin_id );
+  }
+  
   public Properties getPluginProperties() {
     return props;
   }

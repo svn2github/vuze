@@ -211,6 +211,14 @@ public interface PluginInterface {
   getPluginVersion();
   
   /**
+   * Returns an identifier used to identify this particular plugin 
+   * @return
+   */
+  
+  public String
+  getPluginID();
+  
+  /**
    * gives access to the plugin config interface
    * @return the PluginConfig object associated with this plugin
    */

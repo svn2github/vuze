@@ -187,7 +187,7 @@ SFPluginDetailsLoaderImpl
 						plugin_download = site_prefix + dl_links[0];
 					}
 					
-					System.out.println( "got plugin:" + plugin_name + "/" + plugin_version + "/" + plugin_download + "/" + plugin_auth );
+					// System.out.println( "got plugin:" + plugin_name + "/" + plugin_version + "/" + plugin_download + "/" + plugin_auth );
 					
 					return(	new SFPluginDetailsImpl(
 									plugin_name,

@@ -324,6 +324,13 @@ RPPluginInterface
 		return( null );
 	}
     
+    public String getPluginID()
+	{
+		notSupported();
+		
+		return( null );
+	}
+    
     public String getPluginVersion()
 	{
 		notSupported();

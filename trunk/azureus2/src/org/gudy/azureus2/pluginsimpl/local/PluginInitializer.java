@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.ui.swt.SplashWindow;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.pluginsimpl.*;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.ui.tracker.TrackerDefaultWeb;
@@ -219,9 +220,10 @@ PluginInitializer
     
     	// take only the highest version numbers of jars that look versioned
     
-    String[]	version = {null};
+    String[]	plugin_version = {null};
+    String[]	plugin_id = {null};
     
-    pluginContents	= getHighestJarVersions( pluginContents, version );
+    pluginContents	= getHighestJarVersions( pluginContents, plugin_version, plugin_id );
     
     for(int i = 0 ; i < pluginContents.length ; i++) {
       classLoader = addFileToClassPath((URLClassLoader)classLoader, pluginContents[i]);
@@ -341,7 +343,8 @@ PluginInitializer
 								directory.getName(),
 								new_props,
 								directory.getAbsolutePath(),
-								version[0] );
+								plugin_id[0],
+								plugin_version[0] );
 		      
 		      plugin.initialize(plugin_interface);
 		      
@@ -428,6 +431,7 @@ PluginInitializer
 						"",
 						new Properties(),
 						"",
+						"<intenal>",
 						null );
   		
   		plugin.initialize(plugin_interface);
@@ -512,6 +516,7 @@ PluginInitializer
 					"default",
 					new Properties(),
 					null,
+					"<internal>",
 					null );
   	}
   	
@@ -634,7 +639,8 @@ PluginInitializer
   	protected File[]
 	getHighestJarVersions(
 		File[]		files,
-		String[]	version_out )	// currently the version of last versioned jar found...
+		String[]	version_out ,
+		String[]	id_out )	// currently the version of last versioned jar found...
 	{
   		List	res 		= new ArrayList();
   		Map		version_map	= new HashMap();
@@ -666,45 +672,11 @@ PluginInitializer
 						version_map.put( prefix, version );
 						
 					}else{
-							// versions are a.b.c.d, e.g. 10.2.34
-							
-						boolean	done = false;
-						
-						for (int j=0;j<Math.min(version.length(), prev_version.length());j++){
-							
-							char	t_c	= version.charAt(j);
-							char	p_c	= prev_version.charAt(j);
-							
-							if ( t_c == p_c ){
-								
-								continue;
-							}
-							
-							if ( t_c == '.' ){
-								
-									// prev version higher (e.g. 10.2 -vs- 1.2)
-								
-							}else if ( p_c == '.' ){
-								
-								version_map.put( prefix, version );
-								
-							}else if ( p_c < t_c ){
-								
-								version_map.put( prefix, version );
-							}
-							
-							done	= true;
-							
-							break;
-						}
-						
-						if ( !done ){
-							
-							if ( version.length() > prev_version.length()){
-								
-								version_map.put( prefix, version );
-							}
-						}
+					
+						if ( PluginUtils.comparePluginVersions( prev_version, version ) > 0 ){
+														
+							version_map.put( prefix, version );
+						}							
 					}
   				}
   			}else{
@@ -722,7 +694,8 @@ PluginInitializer
   			
   			String	target = prefix + "_" + version + ".";
   			
-  			version_out[0] = version;
+  			version_out[0] 	= version;
+  			id_out[0]		= prefix;
   			
   			for (int i=0;i<files.length;i++){
   				
