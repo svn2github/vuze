@@ -32,7 +32,7 @@ import java.util.*;
 public abstract class 
 AEMonSem 
 {
-	protected static boolean	DEBUG					= true;
+	protected static boolean	DEBUG					= AEDiagnostics.DEBUG_MONITOR_SEM_USAGE;
 	protected static boolean	DEBUG_CHECK_DUPLICATES	= false;
 	
 	protected static long		DEBUG_TIMER				= 30000;
@@ -65,8 +65,6 @@ AEMonSem
 	
 	static{
 		if ( DEBUG ){
-			
-			System.out.println( "**** AEMonitor/AESemaphore debug on ****" );
 			
 				// add know and validated exceptions 
 			

@@ -39,6 +39,12 @@ AEDiagnostics
 	public static final boolean	ALWAYS_PASS_HASH_CHECKS			= false;
 	public static final boolean	USE_DUMMY_FILE_DATA				= false;
 	public static final boolean	CHECK_DUMMY_FILE_DATA			= false;
+
+	public static final boolean	DEBUG_MONITOR_SEM_USAGE			= false;
+	
+	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= false;
+	public static final boolean	TRACE_DBB_POOL_USAGE			= false;
+	public static final boolean	PRINT_DBB_POOL_USAGE			= false;
 	
 	static{
 		if ( ALWAYS_PASS_HASH_CHECKS ){
@@ -49,6 +55,18 @@ AEDiagnostics
 		}
 		if ( CHECK_DUMMY_FILE_DATA ){
 			System.out.println( "**** Checking dummy file data ****" );
+		}
+		if ( DEBUG_MONITOR_SEM_USAGE ){
+			System.out.println( "**** AEMonitor/AESemaphore debug on ****" );
+		}
+		if ( TRACE_DIRECT_BYTE_BUFFERS ){
+			System.out.println( "**** DirectByteBuffer tracing on ****" );
+		}
+		if ( TRACE_DBB_POOL_USAGE ){
+			System.out.println( "**** DirectByteBufferPool tracing on ****" );
+		}
+		if ( PRINT_DBB_POOL_USAGE ){
+			System.out.println( "**** DirectByteBufferPool printing on ****" );
 		}
 	}
 	

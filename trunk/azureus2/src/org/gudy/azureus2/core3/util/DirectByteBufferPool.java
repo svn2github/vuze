@@ -10,7 +10,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.math.*;
 
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import com.aelitis.azureus.core.diskmanager.cache.*;
@@ -25,14 +24,9 @@ public class
 DirectByteBufferPool 
 {
 
-	protected static final boolean 	DEBUG_TRACK_HANDEDOUT 	= true;
-	protected static final boolean 	DEBUG_PRINT_MEM 		= true;
+	protected static final boolean 	DEBUG_TRACK_HANDEDOUT 	= AEDiagnostics.TRACE_DBB_POOL_USAGE;
+	protected static final boolean 	DEBUG_PRINT_MEM 		= AEDiagnostics.PRINT_DBB_POOL_USAGE;
 	protected static final int		DEBUG_PRINT_TIME		= 300*1000;
-	static{
-		if ( DEBUG_TRACK_HANDEDOUT || DEBUG_PRINT_MEM ){
-			System.out.println( "**** DirectByteBufferPool debugging on ****" );
-		}
-	}
 	
   // There is no point in allocating buffers smaller than 4K,
   // as direct ByteBuffers are page-aligned to the underlying

@@ -99,14 +99,9 @@ DirectByteBuffer
 			"write(fc)",	"read(sc)",		"write(sc)",	"getBuffer",
 		};
 			
-	protected static final boolean	TRACE				= true;
+	protected static final boolean	TRACE				= AEDiagnostics.TRACE_DIRECT_BYTE_BUFFERS;
 	protected static final int		TRACE_BUFFER_SIZE	= 64;		// must be even
 	
-	static{
-		if ( TRACE ){
-			System.out.println( "**** DirectByteBuffer tracing on ****" );
-		}
-	}
 	
 	private ByteBuffer 				buffer;
 	private DirectByteBufferPool	pool;
