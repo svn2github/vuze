@@ -179,7 +179,7 @@ IpFilterImpl
 	  
 	  	ipRanges 	= new_ipRanges;
 	  	
-	  	last_update_time	= System.currentTimeMillis();
+	  	markAsUpToDate();
 	  }
 	}
   
@@ -265,7 +265,7 @@ IpFilterImpl
 			ipRanges.add( range );
 		}
 		
-	  	last_update_time	= System.currentTimeMillis();
+		markAsUpToDate();
 	}
 	
 	public void
@@ -277,7 +277,7 @@ IpFilterImpl
 			ipRanges.remove( range );
 		}
 		
-	  	last_update_time	= System.currentTimeMillis();
+		markAsUpToDate();
 	}
 	
 	public int getNbRanges() {
@@ -323,6 +323,12 @@ IpFilterImpl
 		COConfigurationManager.setParameter( "Ip Filter Enabled", enabled );
 	}
 	
+	public void
+	markAsUpToDate()
+	{
+	  	last_update_time	= System.currentTimeMillis();		
+	}
+
 	public long
 	getLastUpdateTime()
 	{

@@ -91,6 +91,9 @@ IpFilter
 	setEnabled(
 		boolean	enabled );
 	
+	public abstract void
+	markAsUpToDate();
+	
 	public abstract long
 	getLastUpdateTime();
 }

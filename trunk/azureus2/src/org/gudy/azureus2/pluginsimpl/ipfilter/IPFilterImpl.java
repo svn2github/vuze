@@ -165,4 +165,16 @@ IPFilterImpl
 	{
 		filter.setEnabled( enabled );
 	}
+	
+	public void
+	markAsUpToDate()
+	{
+		filter.markAsUpToDate();
+	}
+	
+	public long
+	getLastUpdateTime()
+	{
+		return( filter.getLastUpdateTime());
+	}
 }

@@ -140,4 +140,20 @@ IPFilter
 	save()
 	
 		throws IPFilterException;
+	
+		/**
+		 * Marks the IPFilter set as being uptodate
+		 *
+		 */
+	
+	public void
+	markAsUpToDate();
+	
+		/**
+		 * Gets the last time the filter set was updated or marked as up to date
+		 * @return
+		 */
+	
+	public long
+	getLastUpdateTime();
 }
