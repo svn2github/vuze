@@ -42,13 +42,13 @@ public class BTBitfield implements BTProtocolMessage {
     bitfield.position( 0 );
     bitfield.limit( bitfield.capacity() );
     
-    buffer.putInt( bitfield.capacity() + 1 );
-    buffer.put( (byte)5 );
-    buffer.put( bitfield );
-    buffer.position( 0 );
-    buffer.limit( bitfield.capacity() + 5 );
+    buffer.putInt( DirectByteBuffer.SS_BT, bitfield.capacity() + 1 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)5 );
+    buffer.put( DirectByteBuffer.SS_BT, bitfield );
+    buffer.position( DirectByteBuffer.SS_BT, 0 );
+    buffer.limit( DirectByteBuffer.SS_BT, bitfield.capacity() + 5 );
     
-    total_byte_size = buffer.limit();
+    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
   public int getType() {  return BTProtocolMessage.BT_BITFIELD;  }

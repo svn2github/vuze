@@ -305,14 +305,14 @@ FMFileImpl
 			throw( new FMFileManagerException( "read - file is closed"));
 		}
 
-		long lRemainingBeforeRead = buffer.remaining();
+		long lRemainingBeforeRead = buffer.remaining(DirectByteBuffer.SS_FILE);
 
 		try{
 			fc.position(offset);
 			
-			while (fc.position() < fc.size() && buffer.hasRemaining()){
+			while (fc.position() < fc.size() && buffer.hasRemaining(DirectByteBuffer.SS_FILE)){
 				
-				buffer.read(fc);
+				buffer.read(DirectByteBuffer.SS_FILE,fc);
 			}
 			
 		}catch ( Exception e ){
@@ -323,7 +323,7 @@ FMFileImpl
 		}
 
     // Recycle handle to clear OS cache
-	  lBytesRead += lRemainingBeforeRead - buffer.remaining();
+	  lBytesRead += lRemainingBeforeRead - buffer.remaining(DirectByteBuffer.SS_FILE);
 	  if (lBytesRead >= REOPEN_EVERY_BYTES) {
 	    lBytesRead = 0;
   	  close();
@@ -366,7 +366,7 @@ FMFileImpl
 				
 					for (int i=0;i<buffers.length;i++){
 						
-						expected_write += buffers[i].limit() - buffers[i].position();
+						expected_write += buffers[i].limit(DirectByteBuffer.SS_FILE) - buffers[i].position(DirectByteBuffer.SS_FILE);
 					}
 				}
 				
@@ -378,7 +378,7 @@ FMFileImpl
 				
 				for (int i=0;i<bbs.length;i++){
 					
-					bbs[i] = buffers[i].getBuffer();
+					bbs[i] = buffers[i].getBuffer(DirectByteBuffer.SS_FILE);
 					
 					if ( bbs[i].position() != bbs[i].limit()){
 						

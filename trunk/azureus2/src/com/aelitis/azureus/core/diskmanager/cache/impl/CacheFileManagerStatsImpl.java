@@ -53,4 +53,28 @@ CacheFileManagerStatsImpl
 	{
 		return( manager.getCacheUsed());
 	}
+	
+	public long
+	getBytesWrittenToCache()
+	{
+		return( manager.getBytesWrittenToCache());
+	}
+	
+	public long
+	getBytesWrittenToFile()
+	{
+		return( manager.getBytesWrittenToFile());
+	}
+	
+	public long
+	getBytesReadFromCache()
+	{
+		return( manager.getBytesReadFromCache());
+	}
+	
+	public long
+	getBytesReadFromFile()
+	{
+		return( manager.getBytesReadFromFile());
+	}
 }

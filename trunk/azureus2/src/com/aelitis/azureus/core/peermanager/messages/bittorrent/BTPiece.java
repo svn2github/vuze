@@ -40,18 +40,18 @@ public class BTPiece implements BTProtocolMessage {
   public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
-    length = data.remaining();
-    buffer = DirectByteBufferPool.getBuffer( length + 13 );
+    length = data.remaining(DirectByteBuffer.SS_BT);
+    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_BT_PIECE,length + 13 );
     
-    buffer.putInt( length + 9 );
-    buffer.put( (byte)7 );
-    buffer.putInt( piece_number );
-    buffer.putInt( piece_offset );
-    buffer.put( data );
-    buffer.position( 0 );
-    buffer.limit( length + 13 );
+    buffer.putInt( DirectByteBuffer.SS_BT, length + 9 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)7 );
+    buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
+    buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
+    buffer.put( DirectByteBuffer.SS_BT, data );
+    buffer.position( DirectByteBuffer.SS_BT, 0 );
+    buffer.limit( DirectByteBuffer.SS_BT, length + 13 );
     
-    total_byte_size = buffer.limit();
+    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
     
     data.returnToPool();
   }

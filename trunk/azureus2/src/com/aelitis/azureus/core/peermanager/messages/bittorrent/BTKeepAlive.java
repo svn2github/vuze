@@ -39,11 +39,11 @@ public class BTKeepAlive implements BTProtocolMessage {
   public BTKeepAlive() {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
     
-    buffer.putInt( 0 );
-    buffer.position( 0 );
-    buffer.limit( 4 );
+    buffer.putInt( DirectByteBuffer.SS_BT, 0 );
+    buffer.position( DirectByteBuffer.SS_BT, 0 );
+    buffer.limit( DirectByteBuffer.SS_BT, 4 );
     
-    total_byte_size = buffer.limit();
+    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
   public int getType() {  return BTProtocolMessage.BT_KEEP_ALIVE;  }

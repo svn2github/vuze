@@ -171,32 +171,32 @@ DMWriterAndCheckerImpl
 					
 				}else{
 						
-			        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(pieceLength);
+			        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_ZERO,pieceLength);
 			    
 			        try{
-				        buffer.limit(pieceLength);
+				        buffer.limit(DirectByteBuffer.SS_DW, pieceLength);
 				        
-						for (int i = 0; i < buffer.limit(); i++){
+						for (int i = 0; i < buffer.limit(DirectByteBuffer.SS_DW); i++){
 							
-							buffer.put((byte)0);
+							buffer.put(DirectByteBuffer.SS_DW, (byte)0);
 						}
 						
-						buffer.position(0);
+						buffer.position(DirectByteBuffer.SS_DW, 0);
 
 						while (written < length && bOverallContinue){
 							
-							int	write_size = buffer.capacity();
+							int	write_size = buffer.capacity(DirectByteBuffer.SS_DW);
 							
 							if ((length - written) < write_size ){
 	            	
 								write_size = (int)(length - written);
 							}
 	            
-							buffer.limit(write_size);
+							buffer.limit(DirectByteBuffer.SS_DW, write_size);
 	             
 							cache_file.write( buffer, written );
 	            
-							buffer.position(0);
+							buffer.position(DirectByteBuffer.SS_DW, 0);
 	            
 							written += write_size;
 	            
@@ -242,7 +242,7 @@ DMWriterAndCheckerImpl
 	checkPiece(
 		int 				pieceNumber )
 	{
-        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(pieceLength);
+        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_CHECK,pieceLength);
         
 		try{
 		    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
@@ -257,11 +257,11 @@ DMWriterAndCheckerImpl
 		    	return false;
 		    }
 
-		    buffer.position(0);
+		    buffer.position(DirectByteBuffer.SS_DW, 0);
 
 			int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
 
-			buffer.limit(length);
+			buffer.limit(DirectByteBuffer.SS_DW, length);
 
 				//get the piece list
 			
@@ -287,7 +287,7 @@ DMWriterAndCheckerImpl
 					}else{
 							   //too small, can't be a complete piece
 						
-						buffer.clear();
+						buffer.clear(DirectByteBuffer.SS_DW);
 						
 						pieceDone[pieceNumber] = false;
 						
@@ -303,7 +303,7 @@ DMWriterAndCheckerImpl
 	      
 				if (bOverallContinue == false) return false;
 	      
-	      		buffer.position(0);
+	      		buffer.position(DirectByteBuffer.SS_DW, 0);
 
 				// byte[] testHash = hasher.calculateHash(buffer.getBuffer());
 	      		
@@ -320,7 +320,7 @@ DMWriterAndCheckerImpl
 	    		    	return false;
 	    		    }
 
-	    		    current_hash_request = ConcurrentHasher.getSingleton().addRequest(buffer.getBuffer(),hash_priority);
+	    		    current_hash_request = ConcurrentHasher.getSingleton().addRequest(buffer.getBuffer(DirectByteBuffer.SS_DW),hash_priority);
 	      		}
 				
 				byte[] testHash = current_hash_request.getResult();
@@ -389,11 +389,11 @@ DMWriterAndCheckerImpl
 	{ 	
 	    md5.reset();
 	    
-	    int position = buffer.position();
+	    int position = buffer.position(DirectByteBuffer.SS_DW);
 	    
-	    md5.update(buffer.getBuffer());
+	    md5.update(buffer.getBuffer(DirectByteBuffer.SS_DW));
 	    
-	    buffer.position(position);
+	    buffer.position(DirectByteBuffer.SS_DW, position);
 	    
 	    ByteBuffer md5Result	= ByteBuffer.allocate(16);
 	    
@@ -448,7 +448,7 @@ DMWriterAndCheckerImpl
 		int pieceNumber 	= queue_entry.getPieceNumber();
 		int offset		 	= queue_entry.getOffset();
 		DirectByteBuffer buffer 	= queue_entry.getData();
-		int	initial_buffer_position = buffer.position();
+		int	initial_buffer_position = buffer.position(DirectByteBuffer.SS_DW);
 
 		PieceMapEntry current_piece = null;
 		
@@ -468,7 +468,7 @@ DMWriterAndCheckerImpl
 			boolean	buffer_handed_over	= false;
 			
 			//Now tempPiece points to the first file that contains data for this block
-			while (buffer.hasRemaining()) {
+			while (buffer.hasRemaining(DirectByteBuffer.SS_DW)) {
 				current_piece = pieceList.get(currentFile);
 	
 				if (current_piece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
@@ -478,18 +478,18 @@ DMWriterAndCheckerImpl
 					current_piece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
 				}
 				
-				int realLimit = buffer.limit();
+				int realLimit = buffer.limit(DirectByteBuffer.SS_DW);
 					
-				long limit = buffer.position() + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
+				long limit = buffer.position(DirectByteBuffer.SS_DW) + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
 	       
 				if (limit < realLimit){
 					
-					buffer.limit((int)limit);
+					buffer.limit(DirectByteBuffer.SS_DW, (int)limit);
 				}
 	
 					// surely we always have remaining here?
 				
-				if ( buffer.hasRemaining() ){
+				if ( buffer.hasRemaining(DirectByteBuffer.SS_DW) ){
 
 					long	pos = fileOffset + (offset - previousFilesLength);
 					
@@ -507,7 +507,7 @@ DMWriterAndCheckerImpl
 					}
 				}
 					
-				buffer.limit(realLimit);
+				buffer.limit(DirectByteBuffer.SS_DW, realLimit);
 				
 				currentFile++;
 				fileOffset = 0;
@@ -536,7 +536,7 @@ DMWriterAndCheckerImpl
 			
 			LGLogger.logAlert( LGLogger.AT_ERROR, disk_manager.getErrorMessage() );
 			
-			buffer.position(initial_buffer_position);
+			buffer.position(DirectByteBuffer.SS_DW, initial_buffer_position);
 			
 			return( false );
 		}
@@ -584,7 +584,7 @@ DMWriterAndCheckerImpl
       LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
 			return false;
     }
-		int size = data.remaining();
+		int size = data.remaining(DirectByteBuffer.SS_DW);
 		if (offset + size > length) {
       LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
 			return false;

@@ -53,8 +53,8 @@ CacheEntry
 		offset		= _offset;
 		size		= _size;
 		
-		buffer_pos		= buffer.position();
-		buffer_limit	= buffer.limit();
+		buffer_pos		= buffer.position(DirectByteBuffer.SS_CACHE);
+		buffer_limit	= buffer.limit(DirectByteBuffer.SS_CACHE);
 		
 		if ( size != buffer_limit - buffer_pos ){
 			
@@ -103,12 +103,12 @@ CacheEntry
 	protected void
 	resetBufferPosition()
 	{
-		buffer.position( buffer_pos );
+		buffer.position( DirectByteBuffer.SS_CACHE, buffer_pos );
 	}
 	
 	protected String
 	getString()
 	{
-		return( "[" + offset + " - " + (offset+size-1) + ":" + buffer.position()+"/"+buffer.limit()+"]" );
+		return( "[" + offset + " - " + (offset+size-1) + ":" + buffer.position(DirectByteBuffer.SS_CACHE)+"/"+buffer.limit(DirectByteBuffer.SS_CACHE)+"]" );
 	}
 }

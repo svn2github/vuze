@@ -82,7 +82,7 @@ CacheFileImpl
 		
 		if ( TRACE ){
 		
-			System.out.println( "Disk Cache tracing enabled" );
+			System.out.println( "**** Disk Cache tracing enabled ****" );
 		}
 	}
 	
@@ -129,12 +129,12 @@ CacheFileImpl
 	
 		throws CacheFileManagerException
 	{
-		if ( manager.isCacheEnabled()){
+		int	file_buffer_position	= file_buffer.position(DirectByteBuffer.SS_CACHE);
+		int	file_buffer_limit		= file_buffer.limit(DirectByteBuffer.SS_CACHE);
 		
-			int	file_buffer_position	= file_buffer.position();
-			int	file_buffer_limit		= file_buffer.limit();
-			
-			int	read_length	= file_buffer_limit - file_buffer_position;
+		int	read_length	= file_buffer_limit - file_buffer_position;
+	
+		if ( manager.isCacheEnabled()){
 		
 			if ( TRACE ){
 				LGLogger.log( 
@@ -193,33 +193,33 @@ CacheFileImpl
 						
 						DirectByteBuffer	entry_buffer = entry.getBuffer();
 						
-						int					entry_buffer_position 	= entry_buffer.position();
-						int					entry_buffer_limit		= entry_buffer.limit();
+						int					entry_buffer_position 	= entry_buffer.position(DirectByteBuffer.SS_CACHE);
+						int					entry_buffer_limit		= entry_buffer.limit(DirectByteBuffer.SS_CACHE);
 						
 						try{
 														
-							entry_buffer.limit( entry_buffer_position + skip + available );
+							entry_buffer.limit( DirectByteBuffer.SS_CACHE, entry_buffer_position + skip + available );
 							
-							entry_buffer.position( entry_buffer_position + skip );
+							entry_buffer.position( DirectByteBuffer.SS_CACHE, entry_buffer_position + skip );
 							
 							if ( TRACE ){
 								LGLogger.log( 
 										"cacheRead: using " + entry.getString() + 
-										"[" + entry_buffer.position()+"/"+entry_buffer.limit()+ "]" +
-										"to write to [" + file_buffer.position() + "/" + file_buffer.limit() + "]" );
+										"[" + entry_buffer.position(DirectByteBuffer.SS_CACHE)+"/"+entry_buffer.limit(DirectByteBuffer.SS_CACHE)+ "]" +
+										"to write to [" + file_buffer.position(DirectByteBuffer.SS_CACHE) + "/" + file_buffer.limit(DirectByteBuffer.SS_CACHE) + "]" );
 							}
 							
 							used_entries++;
 							
-							file_buffer.put( entry_buffer );
+							file_buffer.put( DirectByteBuffer.SS_CACHE, entry_buffer );
 								
 							manager.cacheEntryUsed( entry );
 							
 						}finally{
 							
-							entry_buffer.limit( entry_buffer_limit );
+							entry_buffer.limit( DirectByteBuffer.SS_CACHE, entry_buffer_limit );
 							
-							entry_buffer.position( entry_buffer_position );						
+							entry_buffer.position( DirectByteBuffer.SS_CACHE, entry_buffer_position );						
 						}
 						
 						writing_file_position	+= available;
@@ -245,7 +245,7 @@ CacheFileImpl
 							
 						// reset in case we've done some partial reads
 					
-					file_buffer.position( file_buffer_position );
+					file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
 					
 					try{
 						if ( 	READAHEAD_ENABLE &&
@@ -259,11 +259,12 @@ CacheFileImpl
 							
 							flushCache( file_position, read_ahead_size, true, -1 );
 							
-							DirectByteBuffer	cache_buffer = DirectByteBufferPool.getBuffer( read_ahead_size );
+							DirectByteBuffer	cache_buffer = 
+								DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, read_ahead_size );
 							
-							cache_buffer.position(0);
+							cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
 							
-							cache_buffer.limit( read_ahead_size );
+							cache_buffer.limit( DirectByteBuffer.SS_CACHE, read_ahead_size );
 							
 							boolean	buffer_cached	= false;
 							
@@ -272,7 +273,7 @@ CacheFileImpl
 		
 								manager.fileBytesRead( read_ahead_size );
 								
-								cache_buffer.position(0);
+								cache_buffer.position(DirectByteBuffer.SS_CACHE,0);
 							
 								CacheEntry	entry = manager.allocateCacheSpace( this, cache_buffer, file_position, read_ahead_size );
 							
@@ -328,7 +329,9 @@ CacheFileImpl
 			
 			try{			
 				getFMFile().read( file_buffer, file_position );
-					
+				
+				manager.fileBytesRead( read_length );
+	
 			}catch( FMFileManagerException e ){
 					
 				manager.rethrow(e);
@@ -348,8 +351,8 @@ CacheFileImpl
 		boolean	failed			= false;
 		
 		try{
-			int	file_buffer_position	= file_buffer.position();
-			int file_buffer_limit		= file_buffer.limit();
+			int	file_buffer_position	= file_buffer.position(DirectByteBuffer.SS_CACHE);
+			int file_buffer_limit		= file_buffer.limit(DirectByteBuffer.SS_CACHE);
 			
 			int	write_length = file_buffer_limit - file_buffer_position;
 			
@@ -401,6 +404,8 @@ CacheFileImpl
 			}else{
 				
 				getFMFile().write( file_buffer, file_position );
+				
+				manager.fileBytesWritten( write_length );
 			}
 			
 		}catch( CacheFileManagerException e ){
@@ -604,7 +609,7 @@ CacheFileImpl
 			
 				DirectByteBuffer	buffer = entry.getBuffer();
 				
-				if ( buffer.limit() - buffer.position() != entry.getLength()){
+				if ( buffer.limit(DirectByteBuffer.SS_CACHE) - buffer.position(DirectByteBuffer.SS_CACHE) != entry.getLength()){
 					
 					throw( new CacheFileManagerException( "flush: inconsistent entry length, position wrong" ));
 				}

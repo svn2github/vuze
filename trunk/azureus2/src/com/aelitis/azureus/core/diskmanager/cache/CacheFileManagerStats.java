@@ -34,4 +34,16 @@ CacheFileManagerStats
 	
 	public long
 	getUsedSize();
+	
+	public long
+	getBytesWrittenToCache();
+	
+	public long
+	getBytesWrittenToFile();
+	
+	public long
+	getBytesReadFromCache();
+	
+	public long
+	getBytesReadFromFile();
 }

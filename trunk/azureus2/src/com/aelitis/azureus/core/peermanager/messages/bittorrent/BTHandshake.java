@@ -47,15 +47,15 @@ public class BTHandshake implements BTProtocolMessage {
     this.peer_id = peer_id;
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 68 ) );
     
-    buffer.put( (byte)PROTOCOL.length() );
-    buffer.put( PROTOCOL.getBytes() );
-    buffer.put( RESERVED );
-    buffer.put( data_hash );
-    buffer.put( peer_id );
-    buffer.position( 0 );
-    buffer.limit( 68 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
+    buffer.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
+    buffer.put( DirectByteBuffer.SS_BT, RESERVED );
+    buffer.put( DirectByteBuffer.SS_BT, data_hash );
+    buffer.put( DirectByteBuffer.SS_BT, peer_id );
+    buffer.position( DirectByteBuffer.SS_BT, 0 );
+    buffer.limit( DirectByteBuffer.SS_BT, 68 );
     
-    total_byte_size = buffer.limit();
+    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
   public int getType() {  return BTProtocolMessage.BT_HANDSHAKE;  }

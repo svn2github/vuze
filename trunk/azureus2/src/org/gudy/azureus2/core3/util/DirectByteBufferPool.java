@@ -8,11 +8,11 @@ package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.lang.ref.*;
 import java.math.*;
 
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import com.aelitis.azureus.core.diskmanager.cache.*;
 
 
 /**
@@ -22,9 +22,9 @@ import org.gudy.azureus2.core3.logging.LGLogger;
  */
 public class DirectByteBufferPool {
 
-	protected static final boolean DEBUG_TRACK_HANDEDOUT 	= false;
-	protected static final boolean DEBUG_PRINT_MEM 			= true;
-	
+	protected static final boolean 	DEBUG_TRACK_HANDEDOUT 	= true;
+	protected static final boolean 	DEBUG_PRINT_MEM 		= true;
+	protected static final int		DEBUG_PRINT_TIME		= 30*1000;
 	static{
 		if ( DEBUG_TRACK_HANDEDOUT || DEBUG_PRINT_MEM ){
 			System.out.println( "**** DirectByteBufferPool debugging on ****" );
@@ -110,11 +110,13 @@ public class DirectByteBufferPool {
     if( DEBUG_PRINT_MEM ) {
       Timer printer = new Timer("printer");
       printer.addPeriodicEvent(
-          120*1000,
+          DEBUG_PRINT_TIME,
           new TimerEventPerformer() {
             public void perform( TimerEvent ev ) {
               System.out.println("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, in use=" +(bytesOut-bytesIn)/1024/1024 +"MB, free=" + bytesFree()/1024/1024+ "MB");
+              
               printInUse();
+              
               long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
               long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
               long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
@@ -161,7 +163,11 @@ public class DirectByteBufferPool {
    * Retrieve a buffer from the buffer pool of size at least
    * <b>length</b>, and no larger than <b>DirectByteBufferPool.MAX_SIZE</b>
    */
-  public static DirectByteBuffer getBuffer(final int _length) {
+  public static DirectByteBuffer 
+  getBuffer(
+  	byte	_allocator,
+  	int 	_length) 
+  {
     if (_length < 1) {
         Debug.out("requested length [" +_length+ "] < 1");
         return null;
@@ -172,7 +178,7 @@ public class DirectByteBufferPool {
         return null;
     }
 
-    return pool.getBufferHelper(_length);
+    return pool.getBufferHelper(_allocator,_length);
   }
   
   
@@ -181,7 +187,9 @@ public class DirectByteBufferPool {
    * create a new one if the pool is empty.
    */
   private DirectByteBuffer 
-  getBufferHelper(final int _length) 
+  getBufferHelper(
+  	byte	_allocator,
+  	int 	_length) 
   {
     
     Integer reqVal = new Integer(_length);
@@ -228,13 +236,13 @@ public class DirectByteBufferPool {
         
         bytesOut += buff.capacity();
               
-        DirectByteBuffer dbb = new DirectByteBuffer( buff, this );
+        DirectByteBuffer dbb = new DirectByteBuffer( _allocator, buff, this );
                     
-        if ( DEBUG_TRACK_HANDEDOUT ){
+        if ( DEBUG_PRINT_MEM ){
         	
         	synchronized( handed_out ){
         	        	
-        		if ( handed_out.put( buff, buff ) != null ){
+        		if ( handed_out.put( buff, dbb ) != null ){
           		
         			Debug.out( "buffer handed out twice!!!!");
           		
@@ -245,7 +253,7 @@ public class DirectByteBufferPool {
           	}
         }
         
-        addInUse( dbb.capacity() );
+        // addInUse( dbb.capacity() );
         
         return dbb;
       }
@@ -421,7 +429,7 @@ public class DirectByteBufferPool {
   		}
   	}
   	
-    remInUse( buffer.capacity() );
+    // remInUse( buffer.capacity() );
     
     free( buffer ); 
   }
@@ -445,7 +453,7 @@ public class DirectByteBufferPool {
   }
   
   
-  
+  /*
   private final HashMap in_use_counts = new HashMap();
   
   private void addInUse( int size ) {
@@ -482,5 +490,102 @@ public class DirectByteBufferPool {
       System.out.println();
     }
   }
+  */
   
+  	private void
+	printInUse()
+  	{
+  		synchronized( handed_out ){
+    	
+  			Iterator	it = handed_out.values().iterator();
+  			
+  			Map	cap_map		= new TreeMap();
+  			Map	alloc_map	= new TreeMap();
+  			
+  			while( it.hasNext()){
+  				
+  				DirectByteBuffer	db = (DirectByteBuffer)it.next();
+  				
+  				Integer cap 	= new Integer( db.getBufferInternal().capacity());
+  				Byte	alloc 	= new Byte( db.getAllocator());
+  				
+  				myInteger	c = (myInteger)cap_map.get(cap);
+  				
+  				if ( c == null ){
+  					
+  					c	= new myInteger();
+  					
+  					cap_map.put( cap, c );
+  				}
+  				
+  				c.value++;
+  				
+				myInteger	a = (myInteger)alloc_map.get(alloc);
+  				
+  				if ( a == null ){
+  					
+  					a	= new myInteger();
+  					
+  					alloc_map.put( alloc, a );
+  				}
+  				
+  				a.value++;				
+  			}
+  			
+  			it = cap_map.keySet().iterator();
+  			
+  			while( it.hasNext()){
+  				
+  				Integer		key 	= (Integer)it.next();
+  				myInteger	count 	= (myInteger)cap_map.get( key );
+  				
+  		        if( key.intValue() < 1024 ){
+  		        	
+  		        	System.out.print("[" +key.intValue()+ " x " +count.value+ "] ");
+  		        	
+  		        }else{  
+  		        	
+  		        	System.out.print("[" +key.intValue()/1024+ "K x " +count.value+ "] ");
+  		        }
+  			}
+  			
+  			System.out.print( " - " );
+  			
+			it = alloc_map.keySet().iterator();
+  			
+  			while( it.hasNext()){
+  				
+  				Byte		key 	= (Byte)it.next();
+  				myInteger	count 	= (myInteger)alloc_map.get( key );
+  				
+  	        	System.out.print("[" + DirectByteBuffer.AL_DESCS[key.intValue()]+ " x " +count.value+ "] ");
+  			}
+  			
+  			try{
+  				CacheFileManager cm = CacheFileManagerFactory.getSingleton();
+  				
+  				CacheFileManagerStats stats = cm.getStats();
+  				
+  				System.out.print( " - Cache: " );
+  	  			
+  				
+				System.out.print( "cw=" + stats.getBytesWrittenToCache());
+				System.out.print( ",cr=" + stats.getBytesReadFromCache());
+				System.out.print( ",fw=" + stats.getBytesWrittenToFile());
+				System.out.print( ",fr=" + stats.getBytesReadFromFile());
+				
+  			}catch( Throwable e ){
+  				
+  				e.printStackTrace();
+  			}
+  			
+  			System.out.println();
+  		}
+  	}
+  	
+  	protected static class
+	myInteger
+  	{
+  		int	value;
+  	}
 }

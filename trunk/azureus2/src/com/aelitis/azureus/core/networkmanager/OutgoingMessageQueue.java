@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 
@@ -97,7 +98,7 @@ public class OutgoingMessageQueue {
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         ProtocolMessage msg = (ProtocolMessage)i.next();
         if( message.getPriority() > msg.getPriority() 
-            && msg.getPayload().position() == 0 ) {  //but don't insert in front of a half-sent message
+            && msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
           break;
         }
         pos++;
@@ -106,7 +107,7 @@ public class OutgoingMessageQueue {
         urgent_message = message;
       }
       queue.add( pos, message );
-      total_size += message.getPayload().remaining();
+      total_size += message.getPayload().remaining(DirectByteBuffer.SS_NET);
     } 
     notifyAddListeners( message );
   }
@@ -122,9 +123,9 @@ public class OutgoingMessageQueue {
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         ProtocolMessage msg = (ProtocolMessage)i.next();
         for( int t=0; t < message_types.length; t++ ) {
-        	if( msg.getType() == message_types[ t ] && msg.getPayload().position() == 0 ) {   //dont remove a half-sent message
+        	if( msg.getType() == message_types[ t ] && msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
             if( msg == urgent_message ) urgent_message = null;            
-            total_size -= msg.getPayload().remaining();
+            total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
             msg.destroy();
         		i.remove();
         		LGLogger.log( LGLogger.CORE_NETWORK, "Removing previously-unsent " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
@@ -146,9 +147,9 @@ public class OutgoingMessageQueue {
       int index = queue.indexOf( message );
       if( index != -1 ) {
         ProtocolMessage msg = (ProtocolMessage)queue.get( index );
-        if( msg.getPayload().position() == 0 ) {  //dont remove a half-sent message
+        if( msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
           if( msg == urgent_message ) urgent_message = null;  
-          total_size -= msg.getPayload().remaining();
+          total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
           msg.destroy();
           queue.remove( index );  
           LGLogger.log( LGLogger.CORE_NETWORK, "Removing " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
@@ -175,7 +176,7 @@ public class OutgoingMessageQueue {
         int pos = 0;
     		int total_sofar = 0;
         while( total_sofar < max_bytes && pos < buffers.length ) {
-          buffers[ pos ] = ((ProtocolMessage)queue.get( pos )).getPayload().getBuffer();
+          buffers[ pos ] = ((ProtocolMessage)queue.get( pos )).getPayload().getBuffer(DirectByteBuffer.SS_NET);
           total_sofar += buffers[ pos ].remaining();
           starting_pos[ pos ] = buffers[ pos ].position();
           pos++;
@@ -192,7 +193,7 @@ public class OutgoingMessageQueue {
         pos = 0;
         while( !queue.isEmpty() ) {
           ProtocolMessage msg = (ProtocolMessage)queue.get( 0 );
-          ByteBuffer bb = msg.getPayload().getBuffer();
+          ByteBuffer bb = msg.getPayload().getBuffer(DirectByteBuffer.SS_NET);
           if( !bb.hasRemaining() ) {
             if( msg == urgent_message ) urgent_message = null;
             total_size -= bb.limit() - starting_pos[ pos ];

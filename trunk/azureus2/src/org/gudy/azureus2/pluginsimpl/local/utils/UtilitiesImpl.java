@@ -41,6 +41,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.ui.common.UIImageRepository;
@@ -94,7 +95,7 @@ UtilitiesImpl
 	allocateDirectByteBuffer(
 		int		size )
 	{
-		return( DirectByteBufferPool.getBuffer( size ).getBuffer());
+		return( DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL,size ).getBuffer(DirectByteBuffer.SS_EXTERNAL));
 	}
 	
 	public void

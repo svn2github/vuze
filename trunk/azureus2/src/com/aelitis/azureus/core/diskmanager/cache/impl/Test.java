@@ -109,7 +109,7 @@ Test
 			
 			for (int i=0;i<loop;i++){
 				
-				DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(block);
+				DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER, block);
 				
 				cf.writeAndHandoverBuffer( buffer, i*block);
 			}
@@ -155,9 +155,9 @@ Test
 						}
 					},
 					f );
-			DirectByteBuffer	write_buffer1 = DirectByteBufferPool.getBuffer(512);
-			DirectByteBuffer	write_buffer2 = DirectByteBufferPool.getBuffer(512);
-			DirectByteBuffer	write_buffer3 = DirectByteBufferPool.getBuffer(512);
+			DirectByteBuffer	write_buffer1 = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_OTHER,512);
+			DirectByteBuffer	write_buffer2 = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_OTHER,512);
+			DirectByteBuffer	write_buffer3 = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_OTHER,512);
 			
 			cf.writeAndHandoverBuffer( write_buffer2, 512 );
 				
@@ -168,7 +168,7 @@ Test
 			
 			cf.flushCache();
 			
-			write_buffer1 = DirectByteBufferPool.getBuffer(512);
+			write_buffer1 = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_OTHER,512);
 			cf.writeAndHandoverBuffer( write_buffer1, 0 );
 
 			cf.flushCache();
@@ -215,11 +215,11 @@ Test
 				
 				files[i].setAccessMode( CacheFile.CF_WRITE );
 				
-				DirectByteBuffer bb = DirectByteBufferPool.getBuffer(file_data[i].length);
+				DirectByteBuffer bb = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_OTHER,file_data[i].length);
 				
-				bb.put( file_data[i]);
+				bb.put( DirectByteBuffer.SS_CACHE, file_data[i]);
 				
-				bb.position(0);
+				bb.position(DirectByteBuffer.SS_CACHE, 0);
 				
 				files[i].write(bb,0);
 			}
@@ -260,17 +260,17 @@ Test
 						len = quanitize_to*quanitize_to_max_consec_read;
 					}
 					
-					DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer( len );
+					DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER,len );
 					
 					System.out.println( "read:" + start + "/" + len );
 					
 					cf.read( buffer, start );
 					
-					buffer.position(0);
+					buffer.position(DirectByteBuffer.SS_CACHE, 0);
 					
 					byte[]	data_read = new byte[len];
 					
-					buffer.get( data_read );
+					buffer.get( DirectByteBuffer.SS_CACHE, data_read );
 					
 					for (int i=0;i<data_read.length;i++){
 						
@@ -290,16 +290,16 @@ Test
 					
 					System.out.println( "write:" + start + "/" + len );
 					
-					DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer( len );
+					DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER,len );
 					
 					for (int i=0;i<len;i++){
 						
 						bytes[start+i] = (byte)randomInt(256);
 						
-						buffer.put( bytes[start+i]);
+						buffer.put( DirectByteBuffer.SS_CACHE, bytes[start+i]);
 					}
 					
-					buffer.position(0);
+					buffer.position(DirectByteBuffer.SS_CACHE, 0);
 					
 					cf.writeAndHandoverBuffer( buffer, start );
 					

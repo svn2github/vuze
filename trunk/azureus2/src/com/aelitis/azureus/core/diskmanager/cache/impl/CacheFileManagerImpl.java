@@ -41,7 +41,14 @@ public class
 CacheFileManagerImpl 
 	implements CacheFileManager
 {
-	public static final boolean	DEBUG	= false;
+	public static final boolean	DEBUG	= true;
+	
+	static{
+		if ( DEBUG ){
+			
+			System.out.println( "**** Cache consistency debugging on ****" );
+		}
+	}
 	
 	protected boolean	cache_enabled;
 	protected long		cache_size;
@@ -191,7 +198,7 @@ CacheFileManagerImpl
 					
 				}else{
 					
-					System.out.println( "Cache: file_count = " + my_count );
+					//System.out.println( "Cache: file_count = " + my_count );
 				}
 				
 				if ( total_cache_size != cache_size - cache_space_free ){
@@ -200,7 +207,7 @@ CacheFileManagerImpl
 					
 				}else{
 					
-					System.out.println( "Cache: usage = " + total_cache_size );
+					//System.out.println( "Cache: usage = " + total_cache_size );
 				}
 			}
 		}
@@ -328,6 +335,30 @@ CacheFileManagerImpl
 		int		num )
 	{
 		file_bytes_read	+= num;
+	}
+	
+	protected long
+	getBytesWrittenToCache()
+	{
+		return( cache_bytes_written );
+	}
+	
+	protected long
+	getBytesWrittenToFile()
+	{
+		return( file_bytes_written );
+	}
+	
+	protected long
+	getBytesReadFromCache()
+	{
+		return( cache_bytes_read );
+	}
+	
+	protected long
+	getBytesReadFromFile()
+	{
+		return( file_bytes_read );
 	}
 	
 	protected void

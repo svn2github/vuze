@@ -41,13 +41,13 @@ public class BTHave implements BTProtocolMessage {
     this.piece_number = piece_number;
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 9 ) );
     
-    buffer.putInt( 5 );
-    buffer.put( (byte)4 );
-    buffer.putInt( piece_number );
-    buffer.position( 0 );
-    buffer.limit( 9 );
+    buffer.putInt( DirectByteBuffer.SS_BT, 5 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)4 );
+    buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
+    buffer.position( DirectByteBuffer.SS_BT, 0 );
+    buffer.limit( DirectByteBuffer.SS_BT, 9 );
     
-    total_byte_size = buffer.limit();
+    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
   public int getType() {  return BTProtocolMessage.BT_HAVE;  }

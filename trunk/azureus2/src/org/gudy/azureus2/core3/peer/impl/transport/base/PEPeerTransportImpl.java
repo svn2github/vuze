@@ -222,7 +222,7 @@ PEPeerTransportImpl
 		
 		if ( TRACE ){
 			
-			int	pos = buffer.position();
+			int	pos = buffer.position(DirectByteBuffer.SS_PEER);
 			
 			int	len = data_reader_copy.read( socket_copy, buffer );
 			
@@ -230,9 +230,9 @@ PEPeerTransportImpl
 				
 				byte[]	trace = new byte[len];
 				
-				buffer.position(pos);
+				buffer.position(DirectByteBuffer.SS_PEER,pos);
 				
-				buffer.get( trace );
+				buffer.get( DirectByteBuffer.SS_PEER,trace );
 				
 				System.out.println( "readData:" + ByteFormatter.nicePrint( trace ));
 			}

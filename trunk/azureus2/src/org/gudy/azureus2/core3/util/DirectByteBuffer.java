@@ -38,32 +38,54 @@ import java.util.*;
 public class 
 DirectByteBuffer 
 {	
+	public static final byte		AL_NONE			= 0;
+	public static final byte		AL_EXTERNAL		= 1;
+	public static final byte		AL_OTHER		= 2;
+	public static final byte		AL_PT_READ		= 3;
+	public static final byte		AL_PT_LENGTH	= 4;
+	public static final byte		AL_CACHE_READ	= 5;
+	public static final byte		AL_DM_READ		= 6;
+	public static final byte		AL_DM_ZERO		= 7;
+	public static final byte		AL_DM_CHECK		= 8;
+	public static final byte		AL_BT_PIECE		= 9;
+	
+	public static final String[] AL_DESCS =
+	{ "NO", "EX", "OT", "PR", "PL", "CR", "DR", "DZ", "DC", "BP" };
+	
+	public static final byte		SS_EXTERNAL		= 0;
+	public static final byte		SS_OTHER		= 1;
+	public static final byte		SS_CACHE		= 2;
+	public static final byte		SS_FILE			= 3;
+	public static final byte		SS_NET			= 4;
+	public static final byte		SS_BT			= 4;
+	public static final byte		SS_DR			= 4;
+	public static final byte		SS_DW			= 4;
+	public static final byte		SS_PEER			= 4;
+
+	
+	
 	protected static final boolean	TRACE		= false;
 	
-	//protected List			trace_list;
-	//protected StringBuffer	spare_trace_buffer;
-	//protected traceWrapper	trace_wrapper;
-	//protected static List		global_trace;
-	//protected static Map		trace_buffer_map = new WeakHashMap();
-	
-	private ByteBuffer buffer;
-  
-	private DirectByteBufferPool	 pool;
+	private ByteBuffer 				buffer;
+	private DirectByteBufferPool	pool;
+	private byte					allocator;
   
 	public 
 	DirectByteBuffer( 
-		ByteBuffer _buffer ) 
+		ByteBuffer 	_buffer ) 
 	{
-		this( _buffer, null );
+		this( AL_NONE, _buffer, null );
 	}
 	
 	public 
 	DirectByteBuffer( 
+		byte					_allocator,
 		ByteBuffer 				_buffer,
 		DirectByteBufferPool	_pool ) 
 	{
-		buffer 	= _buffer;
-		pool	= _pool;
+		allocator	= _allocator;
+		buffer 		= _buffer;
+		pool		= _pool;
 		
 		if ( TRACE ){
 			/*
@@ -79,41 +101,7 @@ DirectByteBuffer
 	traceUsage(
 		String	function )
 	{
-		if ( TRACE ){
-		
-			/*
-			Thread	t = Thread.currentThread();
-			
-			StringBuffer	buffer = spare_trace_buffer==null?new StringBuffer(100):spare_trace_buffer;
-			
-			buffer.append( t.getName());
-			buffer.append("/");
-			buffer.append( t.hashCode());
-			buffer.append( ":" );
-			buffer.append( System.currentTimeMillis());
-			buffer.append( ":" );
-			buffer.append( function );
-			
-			trace_list.add( buffer );
-			
-			if ( trace_list.size() > 32 ){
-				
-				spare_trace_buffer = (StringBuffer)trace_list.remove(0);
-				
-				spare_trace_buffer.setLength(0);
-			}
-			
-			synchronized( global_trace ){
-				
-				global_trace.add( this );
-			
-				if ( global_trace.size() > 200 ){
-				
-					global_trace.remove(0);
-				}
-			}
-			*/
-		}
+	
 	}
 	
 	protected void
@@ -121,48 +109,29 @@ DirectByteBuffer
 		Throwable 	e )
 	{
 		if ( TRACE ){
-			/*
-			synchronized( global_trace ){
-	
-				e.printStackTrace();
-				
-				System.out.println( "**** TRACE ****" );
-				
-				for (int i=0;i<trace_list.size();i++){
-					
-					StringBuffer	f = (StringBuffer)trace_list.get(i);
-					
-					System.out.println( "    " + f.toString());
-				}
-				
-				for (int i=0;i<global_trace.size();i++){
-					
-					DirectByteBuffer	dbb = (DirectByteBuffer)global_trace.get(i);
-					
-					if ( dbb != this ){
-						
-						if ( dbb.buffer == buffer ){
-							
-							System.out.println( "**** duplicate buffer ****" );
-														
-							List	other_trace_list = dbb.trace_list; 
-								
-							for (int j=0;j<other_trace_list.size();j++){
-								
-								StringBuffer	f = (StringBuffer)other_trace_list.get(j);
-								
-								System.out.println( "        " + f.toString());
-							}
-						}
-					}
-				}
-			}
-			*/
 		}
 	}
 	
+	protected ByteBuffer
+	getBufferInternal()
+	{
+		return( buffer );
+	}
+	
+	protected byte
+	getAllocator()
+	{
+		return( allocator );
+	}
+	
+	
+	
+	
+		// **** accessor methods  ****
+	
 	public int
-	limit()
+	limit(
+		byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("limit");
@@ -173,7 +142,8 @@ DirectByteBuffer
   
 	public void
 	limit(
-		int	l )
+		byte		subsystem,
+		int			l )
 	{
 		if ( TRACE ){
 			
@@ -184,7 +154,8 @@ DirectByteBuffer
 	}
   
 	public int
-	position()
+	position(
+		byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("position");
@@ -195,7 +166,8 @@ DirectByteBuffer
   
 	public void
 	position(
-		int	l )
+		byte		subsystem,
+		int			l )
 	{
 		if ( TRACE ){
 			traceUsage("position(int)");
@@ -205,7 +177,8 @@ DirectByteBuffer
 	}
   
 	public void
-	clear()
+	clear(
+		byte		subsystem) 
 	{
 		if ( TRACE ){
 			traceUsage("clear");
@@ -215,7 +188,8 @@ DirectByteBuffer
 	}
   
 	public void
-	flip()
+	flip(
+		byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("flip");
@@ -225,7 +199,8 @@ DirectByteBuffer
 	}
   
 	public int
-	remaining()
+	remaining(
+		byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("remaining");
@@ -235,7 +210,8 @@ DirectByteBuffer
 	}
   
 	public int
-	capacity()
+	capacity(
+		 byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("capacity");
@@ -246,7 +222,8 @@ DirectByteBuffer
   
 	public void
 	put(
-		byte[]	data )
+		byte		subsystem,
+		byte[]		data )
 	{
 		if ( TRACE ){
 			traceUsage("put(byte[])");
@@ -257,6 +234,7 @@ DirectByteBuffer
   
 	public void
 	put(
+		byte				subsystem,
 		DirectByteBuffer	data )
 	{
 		if ( TRACE ){
@@ -268,6 +246,7 @@ DirectByteBuffer
   
 	public void
 	put(
+		byte		subsystem,
 		ByteBuffer	data )
 	{
 		if ( TRACE ){
@@ -279,6 +258,7 @@ DirectByteBuffer
   
 	public void
 	put(
+		byte	subsystem,
 		byte	data )
 	{
 		if ( TRACE ){
@@ -290,7 +270,8 @@ DirectByteBuffer
   
 	public void
 	putInt(
-		int	data )
+		byte		subsystem,
+		int			data )
 	{
 		if ( TRACE ){
 			traceUsage("put(int)");
@@ -300,7 +281,8 @@ DirectByteBuffer
 	}
   
 	public byte
-	get()
+	get(
+		byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("get");
@@ -311,7 +293,8 @@ DirectByteBuffer
 	
 	public byte
 	get(
-		int	x )
+		byte	subsystem,
+		int		x )
 	{
 		if ( TRACE ){
 			traceUsage("get(int)");
@@ -322,7 +305,8 @@ DirectByteBuffer
   
 	public void
 	get(
-		byte[]	data )
+		byte		subsystem,
+		byte[]		data )
 	{
 		if ( TRACE ){
 			traceUsage("get(byte[])");
@@ -332,7 +316,8 @@ DirectByteBuffer
 	}
   
 	public int
-	getInt()
+	getInt(
+		byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("getInt");
@@ -343,7 +328,8 @@ DirectByteBuffer
   
 	public int
 	getInt(
-		int		x )
+		byte		subsystem,
+		int			x )
 	{
 		if ( TRACE ){
 			traceUsage("getInt(int)");
@@ -353,7 +339,8 @@ DirectByteBuffer
 	}
   
 	public boolean
-	hasRemaining()
+	hasRemaining(
+		byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("hasRemaining");
@@ -364,6 +351,7 @@ DirectByteBuffer
   
 	public int
 	read(
+		byte		subsystem,
 		FileChannel	chan )
   
 		throws IOException
@@ -385,6 +373,7 @@ DirectByteBuffer
   
 	public int
 	write(
+		byte		subsystem,
 		FileChannel	chan )
   
 		throws IOException
@@ -406,6 +395,7 @@ DirectByteBuffer
   
 	public int
 	read(
+		byte			subsystem,
 		SocketChannel	chan )
   
 		throws IOException
@@ -427,6 +417,7 @@ DirectByteBuffer
   
 	public int
 	write(
+		byte			subsystem,
 		SocketChannel	chan )
   
   		throws IOException
@@ -447,7 +438,8 @@ DirectByteBuffer
 	}
   
 	public ByteBuffer
-	getBuffer()
+	getBuffer(
+		byte		subsystem )
 	{
 		if ( TRACE ){
 			traceUsage("getBuffer");
@@ -456,6 +448,7 @@ DirectByteBuffer
 		return( buffer );
 	}
   
+
 	public void 
 	returnToPool() 
 	{
@@ -499,38 +492,6 @@ DirectByteBuffer
 				}
 				
 			}
-		}
-	}
-	
-	
-	protected class
-	traceWrapper
-	{
-		ByteBuffer	trace_buffer;
-		
-		protected
-		traceWrapper(
-			ByteBuffer	_buffer )
-		{
-			trace_buffer	= _buffer;
-		}
-		
-		public int
-		hashCode()
-		{
-			return( trace_buffer.hashCode());	
-		}
-			
-		public boolean
-		equals(
-			Object	other )
-		{
-			if ( other == null ){
-				
-				return( false);
-			}
-			
-			return( trace_buffer == ((traceWrapper)other).trace_buffer );
 		}
 	}
 }

@@ -45,15 +45,15 @@ public class BTCancel implements BTProtocolMessage {
     this.length = length;
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 17 ) );
     
-    buffer.putInt( 13 );
-    buffer.put( (byte)8 );
-    buffer.putInt( piece_number );
-    buffer.putInt( piece_offset );
-    buffer.putInt( length );
-    buffer.position( 0 );
-    buffer.limit( 17 );
+    buffer.putInt( DirectByteBuffer.SS_BT, 13 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)8 );
+    buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
+    buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
+    buffer.putInt( DirectByteBuffer.SS_BT, length );
+    buffer.position( DirectByteBuffer.SS_BT, 0 );
+    buffer.limit( DirectByteBuffer.SS_BT, 17 );
     
-    total_byte_size = buffer.limit();
+    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
   public int getType() {  return BTProtocolMessage.BT_CANCEL;  }

@@ -39,7 +39,7 @@ public class MemoryMappedFileTester {
   //static long MAX_SIZE = 237*1024*1024;
   static int BUFF_SIZE = 5*1024*1024;
 
-  static DirectByteBuffer dbb = DirectByteBufferPool.getBuffer( BUFF_SIZE );
+  static DirectByteBuffer dbb = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER,BUFF_SIZE );
   static byte[] raw = new byte[ BUFF_SIZE ];
   static Random rand = new Random();
   
@@ -74,7 +74,7 @@ public class MemoryMappedFileTester {
         tchan += System.currentTimeMillis() - start;
 ///////////////////////////////////////////////////////
         start = System.currentTimeMillis();
-        mmf.write( dbb, 0, start_pos, dbb.limit() );
+        mmf.write( dbb, 0, start_pos, dbb.limit(DirectByteBuffer.SS_OTHER) );
         tmmf += System.currentTimeMillis() - start;
 ///////////////////////////////////////////////////////
         written += raw.length;
@@ -95,9 +95,9 @@ public class MemoryMappedFileTester {
 
   private static void refreshBuffers() {
     rand.nextBytes( raw );
-    dbb.clear();
-    dbb.put( raw );
-    dbb.flip();
+    dbb.clear(DirectByteBuffer.SS_OTHER);
+    dbb.put( DirectByteBuffer.SS_OTHER,raw );
+    dbb.flip(DirectByteBuffer.SS_OTHER);
   }
   
 

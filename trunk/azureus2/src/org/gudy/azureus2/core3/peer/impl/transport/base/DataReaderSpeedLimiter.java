@@ -97,7 +97,7 @@ DataReaderSpeedLimiter
 		
 			throws IOException
 		{
-			return( direct_buffer.read(channel));
+			return( direct_buffer.read(DirectByteBuffer.SS_PEER,channel));
 		}
 		
 		public void
@@ -135,11 +135,11 @@ DataReaderSpeedLimiter
 
 					// unlimited
 				
-				return( direct_buffer.read( channel ));
+				return( direct_buffer.read( DirectByteBuffer.SS_PEER, channel ));
 			}
 			
-			int	position	= direct_buffer.position();
-			int limit		= direct_buffer.limit();
+			int	position	= direct_buffer.position(DirectByteBuffer.SS_PEER);
+			int limit		= direct_buffer.limit(DirectByteBuffer.SS_PEER);
 		
 			int bytes_allocated	= 0;
 
@@ -264,7 +264,7 @@ DataReaderSpeedLimiter
 					
 						debug_limit = position + max_bytes;
 						
-						direct_buffer.limit( position + max_bytes );
+						direct_buffer.limit( DirectByteBuffer.SS_PEER, position + max_bytes );
 						
 						bytes_allocated	= max_bytes;
 						
@@ -292,7 +292,7 @@ DataReaderSpeedLimiter
 				
 				try{
 					
-					bytes_read = direct_buffer.read(channel);
+					bytes_read = direct_buffer.read(DirectByteBuffer.SS_PEER,channel);
 	
 					return( bytes_read );
 					
@@ -307,13 +307,13 @@ DataReaderSpeedLimiter
 						}
 					}
 					
-					direct_buffer.limit( limit );
+					direct_buffer.limit( DirectByteBuffer.SS_PEER, limit );
 				}
 			}catch( IllegalArgumentException e ){
 				
 				System.out.println( "Illegal arg exception" );
 				
-				System.out.println( "buffer: " + direct_buffer.position() + "/" + direct_buffer.limit());
+				System.out.println( "buffer: " + direct_buffer.position(DirectByteBuffer.SS_PEER) + "/" + direct_buffer.limit(DirectByteBuffer.SS_PEER));
 				System.out.println( "    start values:" + position + "/" + limit );
 				System.out.println( "    alloc = " + bytes_allocated + ", ba = " + bytes_available + ", mba = " + my_bytes_available );
 				System.out.println( "    max_bytes = " + debug_max_bytes + ", limit = " + debug_limit );

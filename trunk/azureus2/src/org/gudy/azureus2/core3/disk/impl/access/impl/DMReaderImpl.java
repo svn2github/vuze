@@ -108,7 +108,7 @@ DMReaderImpl
 		int offset, 
 		int length ) 
 	{
-		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( length );
+		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ,length );
 
 		if (buffer == null) { // Fix for bug #804874
 			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
@@ -136,7 +136,7 @@ DMReaderImpl
 		fileOffset += offset - previousFilesLength;
 		// noError is only used for error reporting, it could probably be removed
 		boolean noError = true;
-		while (buffer.hasRemaining()
+		while (buffer.hasRemaining(DirectByteBuffer.SS_DR)
 			&& currentFile < pieceList.size()
 			&& (noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset))) {
 
@@ -166,7 +166,7 @@ DMReaderImpl
 			disk_manager.setState( DiskManager.FAULTY );
 		}
 
-		buffer.position(0);
+		buffer.position(DirectByteBuffer.SS_DR,0);
 		return buffer;
 	}
 

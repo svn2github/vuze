@@ -40,12 +40,12 @@ public class BTUnchoke implements BTProtocolMessage {
   public BTUnchoke() {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
     
-    buffer.putInt( 1 );
-    buffer.put( (byte)1 );
-    buffer.position( 0 );
-    buffer.limit( 5 );
+    buffer.putInt( DirectByteBuffer.SS_BT, 1 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)1 );
+    buffer.position( DirectByteBuffer.SS_BT, 0 );
+    buffer.limit( DirectByteBuffer.SS_BT, 5 );
     
-    total_byte_size = buffer.limit();
+    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
   public int getType() {  return BTProtocolMessage.BT_UNCHOKE;  }
