@@ -189,7 +189,8 @@ public class MainWindow implements IComponentListener {
           }
           if (!mainWindow.isDisposed()) {            
             try {
-              viewMyTorrents = Tab.getView(mytorrents.getTabItem());
+              if(mytorrents != null)
+                viewMyTorrents = Tab.getView(mytorrents.getTabItem());
             }
             catch (Exception e) {
               viewMyTorrents = null;
