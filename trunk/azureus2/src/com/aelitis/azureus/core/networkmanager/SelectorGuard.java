@@ -76,9 +76,7 @@ public class SelectorGuard {
   /**
    * Checks whether selector is still OK, and not spinning.
    */
-  public boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {//TODO make protected again
-    if( DISABLED ) return true;
-    
+  public boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {//TODO make protected again    
     if (_num_keys_ready > 0) {
       //non-zero select, so OK
       consecutiveZeroSelects = 0;
@@ -103,6 +101,12 @@ public class SelectorGuard {
     if (consecutiveZeroSelects > countThreshold) {
       //we're over the threshold: reset stats and report error
       consecutiveZeroSelects = 0;
+      
+      if( DISABLED ) {  //this bug should not happen when running under 1.5 JRE
+        LGLogger.log( "WARNING: It looks like the socket selector is spinning, even though you are running JRE 1.5 series." );
+        return true;
+      }
+      
       return false;
     }
     
