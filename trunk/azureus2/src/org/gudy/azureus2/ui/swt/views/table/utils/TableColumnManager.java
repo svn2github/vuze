@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.views.table.utils;
 import java.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -77,8 +78,10 @@ public class TableColumnManager {
           mTypes = new LinkedHashMap();
           items.put(sTableID, mTypes);
         }
-        mTypes.put(name, item);
-        ((TableColumnCore)item).loadSettings();
+        if (!mTypes.containsKey(name)) {
+          mTypes.put(name, item);
+          ((TableColumnCore)item).loadSettings();
+        }
       }
     } catch (Exception e) {
       System.out.println("Error while adding Table Column Extension");
@@ -188,5 +191,19 @@ public class TableColumnManager {
         tableColumns[i].setPositionNoShift(iPos++);
       }
     }
+  }
+
+  /** Saves all the user configurable Table Column settings at once, complete
+   * with a COConfigurationManager.save().
+   *
+   * @param sTableID Table to save settings for
+   */
+  public void saveTableColumns(String sTableID) {
+    TableColumnCore[] tcs = getAllTableColumnCoreAsArray(sTableID);
+    for (int i = 0; i < tcs.length; i++) {
+      if (tcs[i] != null)
+        tcs[i].saveSettings();
+    }
+    COConfigurationManager.save();
   }
 }

@@ -224,13 +224,20 @@ public class TableView
 
     table.setLinesVisible(false);
     table.setMenu(menu);
+    table.setData("Name", sTableID);
 
     sorter = new TableSorter(this, sTableID, sDefaultSortOn, true);
 
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {
+        // OSX doesn't call this!! :(
         TableColumn column = (TableColumn) e.widget;
         int columnNumber = table.indexOf(column);
+        // TODO: Move TableStructureEventDispatcher into tc.setWidth
+        TableColumnManager tcManager = TableColumnManager.getInstance();
+        TableColumnCore tc = tcManager.getTableColumnCore(sTableID, (String)column.getData("Name"));
+        if (tc != null)
+          tc.setWidth(column.getWidth());
         TableStructureEventDispatcher.getInstance(sTableID).columnSizeChanged(columnNumber, column.getWidth());
     		locationChanged(columnNumber);
       }
@@ -285,17 +292,34 @@ public class TableView
     table.addMouseListener(new MouseAdapter() {
       public void mouseDown(MouseEvent e) {
         iMouseX = e.x;
-        // skip if outside client area (ie. scrollbars)
-        Rectangle rTableArea = table.getClientArea();
-        System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
-        Point pMousePosition = new Point(e.x, e.y);
-        if (rTableArea.contains(pMousePosition)) {
-          // Use 1 because of inconsistent behaviour of getItem
-          // when table is scrolled right.
-          pMousePosition.x = 1;
-          TableItem ti = table.getItem(pMousePosition);
-          if (ti == null)
-            table.deselectAll();
+        try {
+          if (table.getItemCount() <= 0)
+            return;
+          // skip if outside client area (ie. scrollbars)
+          Rectangle rTableArea = table.getClientArea();
+          //System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
+          Point pMousePosition = new Point(e.x, e.y);
+          if (rTableArea.contains(pMousePosition)) {
+            TableItem ti = table.getItem(table.getItemCount() - 1);
+            Rectangle cellBounds = ti.getBounds(table.getColumnCount() - 1);
+            // OSX returns 0 size if the cell is not on screen (sometimes? all the time?)
+            if (cellBounds.width <= 0 || cellBounds.height <= 0)
+              return;
+            //System.out.println("cellbounds="+cellBounds);
+            if (e.x > cellBounds.x + cellBounds.width ||
+                e.y > cellBounds.y + cellBounds.height) {
+              table.deselectAll();
+            }
+/*        // This doesn't work because of OS inconsistencies when table is scrolled
+          // Re-enable once SWT fixes the problem
+            TableItem ti = table.getItem(pMousePosition);
+            if (ti == null)
+              table.deselectAll();
+*/
+          }
+        } catch (Exception ex) {
+          System.out.println("MouseDownError");
+          ex.printStackTrace();
         }
       }
     });
@@ -307,7 +331,7 @@ public class TableView
         iMouseX = e.x;
       }
     });
-    
+
     table.setHeaderVisible(true);
   }
 
@@ -345,7 +369,8 @@ public class TableView
             // M8 Fixes SWT GTK Bug 51777:
             //  "TableItem.getBounds(int) returns the wrong values when table scrolled"
             Rectangle cellBounds = ti.getBounds(i);
-            if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width) {
+            //System.out.println("Mouse.x="+iMouseX+";cellbounds="+cellBounds);
+            if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width && cellBounds.width > 0) {
               iColumn = i;
               break;
             }
@@ -519,10 +544,12 @@ public class TableView
    */
   public void delete() {
     TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
-    if (table != null && !table.isDisposed()) {
-      Utils.saveTableColumn(table.getColumns());
-    }
-
+    Utils.saveTableColumn(table.getColumns());
+/*
+    // This is the proper way to save them.. however it does not work yet on OSX
+    for (int i = 0; i < tableColumns.length; i++)
+      tableColumns[i].saveSettings();
+*/
  	  TableRowCoreUtils.delete(objectToSortableItem.values());
     if (table != null && !table.isDisposed())
       table.dispose();
@@ -555,7 +582,7 @@ public class TableView
    */
   public void addDataSource(final Object dataSource) {
     synchronized (objectToSortableItem) {
-      if (objectToSortableItem.containsKey(dataSource))
+      if (objectToSortableItem.containsKey(dataSource) || panel.isDisposed())
         return;
       try {
         // Since adding to objectToSortableItem is async, there's a chance
@@ -641,6 +668,7 @@ public class TableView
     
     //3. Dispose the old table
     if (table != null && !table.isDisposed()) {
+      // this wouldn't be needed if Macs triggered a column resize
       Utils.saveTableColumn(table.getColumns());
       table.dispose();
     }

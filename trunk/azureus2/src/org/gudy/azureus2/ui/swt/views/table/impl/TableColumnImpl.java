@@ -110,9 +110,7 @@ public class TableColumnImpl
   }
 
   public void setWidth(int width) {
-    if (bColumnAdded)
-			throw(new UIRuntimeException("Can't set properties. Column '" + sName + " already added"));
-
+    // TODO: Notify Listeners (TableStructureEventDispatcher)
     iWidth = width;
   }
 
@@ -231,6 +229,7 @@ public class TableColumnImpl
   public void saveSettings() {
     String sItemPrefix = "Table." + sTableID + "." + sName;
     COConfigurationManager.setParameter(sItemPrefix + ".position", iPosition);
+    COConfigurationManager.setParameter(sItemPrefix + ".width", iWidth);
   }
 
   public int getSWTAlign() {
@@ -255,11 +254,3 @@ public class TableColumnImpl
     return sTitleLanguageKey;
   }
 }
-
-/*
-Listeners:
-CellAdded
-CellRemoved (?)
-CellRefresh
-CellDispose (?)
-*/
