@@ -33,12 +33,18 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/folder.gif", "folder");
   }
 
-  private static void loadImage(Display display, String res, String name) {
-    InputStream is;
-    Image im;
-    is = ClassLoader.getSystemResourceAsStream(res);
-    im = new Image(display, is);
-    images.put(name, im);
+  public static Image loadImage(Display display, String res, String name) {
+    Image im = getImage(name);
+    if(null == im) {
+      InputStream is = ClassLoader.getSystemResourceAsStream(res);
+      if(null != is) {
+        im = new Image(display, is);
+        images.put(name, im);
+      } else {
+        System.out.println("ImageRepository:loadImage:: Resource not found: " + res);
+      }
+    }
+    return im;
   }
 
   public static void unLoadImages() {
