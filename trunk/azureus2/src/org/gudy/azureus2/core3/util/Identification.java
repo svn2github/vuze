@@ -102,7 +102,7 @@ public class Identification {
       String libtorrent = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
       if (libtorrent.equals("LT")) {
         String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
-        String name = "LibTorrent ";
+        String name = "libtorrent ";
         for (int i = 0; i < 3; i++) {
           name = name.concat(version.charAt(i) + ".");
         }

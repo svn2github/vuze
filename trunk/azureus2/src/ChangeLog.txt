@@ -26,6 +26,7 @@ BUGFIX: Fix for .torrent file data not being fully written on shutdown [Parg]
 BUGFIX: Fix for OutOfMemoryError in DiskManager: Bug #865553 [TuxPaper]
 BUGFIX: Fix for 'Open a URL' downloading of .torrent file which contains white spaces: Bug #878990 [Parg]
 BUGFIX: Fix for Fast Resume with Chinese torrents: Bug #878015 [Parg]
+BUGFIX: Fix for excess thread creation when tracker does not support single-infohash scrapes [Nolar]
 
 
 
