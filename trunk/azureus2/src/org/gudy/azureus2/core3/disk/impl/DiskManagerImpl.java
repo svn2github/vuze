@@ -657,8 +657,16 @@ DiskManagerImpl
 
 					// temporary fix for bug 784306
 					ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
-					if (buffer != null)
+					if (buffer != null) {
 						item.setBuffer(buffer);
+					} else {
+					  item.setLoading(false);
+					  LGLogger.log(LGLogger.ERROR,"Failed loading piece " + 
+					      item.getRequest().getPieceNumber() + ":" +
+					  		item.getRequest().getOffset() + "->" +
+					  		(item.getRequest().getOffset() + item.getRequest().getLength()));
+					  System.out.println("Read Error");
+					}
 				}
 				try {
 					Thread.sleep(15);
@@ -693,15 +701,14 @@ DiskManagerImpl
 					QueueElement elt = (QueueElement)writeQueue.remove(0);
 					//FIX for bug 814062
 					//Do not allow to write in a piece marked as done.
-					int pieceNumber = elt.getPieceNumber();
-					//byte[] hash = computeMd5Hash(elt);
+					int pieceNumber = elt.getPieceNumber();					
 					if(!pieceDone[pieceNumber]) {
 					  dumpBlockToDisk(elt);
+					  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
 					} else {
 					  ByteBufferPool.getInstance().freeBuffer(elt.getData());
 					  elt.data = null;
-					}
-					manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
+					}					
 				}
         
 				if (checkQueue.size() != 0) {
@@ -710,13 +717,12 @@ DiskManagerImpl
 					
 				  if(!correct) {
 				    MD5CheckPiece(elt.getPieceNumber());
-				  }
-				
-              manager.pieceChecked(elt.getPieceNumber(), correct);
-              
-              if (!correct) {
-                LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
-              } else LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+				    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
+				  } else  {
+            LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+          }
+				  
+          manager.pieceChecked(elt.getPieceNumber(), correct);
 				}
 				
 				isRunning = true;
@@ -1044,7 +1050,7 @@ DiskManagerImpl
 
 		if (buffer == null) { // Fix for bug #804874
 			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
-			return buffer;
+			return null;
 		}
 
 		buffer.position(0);
