@@ -21,20 +21,31 @@
 
 package org.gudy.azureus2.plugins.torrent;
 
-import java.net.*;
-
 /**
  * @author parg
  *
  */
 
 import java.io.File;
+import java.net.URL;
 
 public interface 
 Torrent
 {
 	public String
 	getName();
+	
+	public URL
+	getAnnounceURL();
+	
+		/**
+		 * get the announce list for multi-tracker torrents. Will always be present but
+		 * may contain 0 sets which means that this is not a multi-tracker torrent
+		 * @return
+		 */
+	
+	public TorrentAnnounceURLList
+	getAnnounceURLList();
 	
 	public byte[]
 	getHash();
@@ -72,10 +83,22 @@ Torrent
 	
 		throws TorrentException;
   
-  /**
-   * Add a group of URLs to the end of the torrent's current set of announce urls.
-   * @param urls array of URLs to add
-   */
-  public void addAnnounceURLTrackerGroup( URL[] urls );
-  
+	  /**
+	   * Add a group of URLs to the end of the torrent's current set of announce urls.
+	   * @param urls array of URLs to add
+	   */
+	
+	public void 
+	addAnnounceURLTrackerGroup( 
+		URL[] urls );
+	
+		/**
+		 * Saves the torrent to its persistent location
+		 * @throws TorrentException
+		 */
+	
+	public void
+	save()
+	
+		throws TorrentException;  
 }

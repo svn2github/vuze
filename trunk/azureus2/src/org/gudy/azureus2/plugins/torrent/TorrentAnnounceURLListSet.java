@@ -1,6 +1,6 @@
 /*
- * File    : TorrentManager.java
- * Created : 28-Feb-2004
+ * File    : TorrentAnnounceURLListSet.java
+ * Created : 03-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -27,20 +27,15 @@ package org.gudy.azureus2.plugins.torrent;
  */
 
 import java.net.URL;
-import java.io.File;
 
 public interface 
-TorrentManager 
+TorrentAnnounceURLListSet 
 {
-	public TorrentDownloader
-	getURLDownloader(
-		URL		url )
+	public URL[]
+	getURLs();
 	
-		throws TorrentException;
-	
-	public Torrent
-	createFromBEncodedFile(
-		File		file )
-	
-		throws TorrentException;
+	public void
+	setURLs(
+		URL[]	urls );
+
 }

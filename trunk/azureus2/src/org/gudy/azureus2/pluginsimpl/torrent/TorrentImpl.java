@@ -62,6 +62,18 @@ TorrentImpl
 		return( decode( torrent.getName()));
 	}
 	
+	public URL
+	getAnnounceURL()
+	{
+		return( torrent.getAnnounceURL());
+	}
+	
+	public TorrentAnnounceURLList
+	getAnnounceURLList()
+	{
+		return( new TorrentAnnounceURLListImpl( torrent ));
+	}
+
 	public TOTorrent
 	getTorrent()
 	{
@@ -183,8 +195,24 @@ TorrentImpl
 	}
   
   
-  public void addAnnounceURLTrackerGroup( URL[] urls ) {
-    torrent.addTorrentAnnounceURLSet( urls );
-  }
+	public void 
+	addAnnounceURLTrackerGroup( 
+		URL[] urls ) 
+	{
+		torrent.addTorrentAnnounceURLSet( urls );
+	}
   
+	
+	public void
+	save()
+		throws TorrentException
+	{
+		try{
+			TorrentUtils.writeToFile( torrent );
+			
+		}catch( TOTorrentException e ){
+			
+			throw( new TorrentException( "Torrent::save Fails", e ));
+		}	
+	}
 }

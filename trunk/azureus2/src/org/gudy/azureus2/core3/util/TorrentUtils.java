@@ -290,34 +290,82 @@ TorrentUtils
 		String		first_url )
 	{
 		try{
-		
-			TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
 			
-			TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
-	
-			TOTorrentAnnounceURLSet set1 = group.createAnnounceURLSet(new URL[]{new URL(first_url)});
+			announceGroupsInsertFirst( torrent, new URL( first_url ));
 			
-			
-			if ( sets.length > 0 ){
-				
-				TOTorrentAnnounceURLSet[]	new_sets = new TOTorrentAnnounceURLSet[sets.length+1];
-				
-				new_sets[0] = set1;
-				
-				System.arraycopy( sets, 0, new_sets, 1, sets.length );
-				
-				group.setAnnounceURLSets( new_sets );
-						
-			}else{
-				
-				TOTorrentAnnounceURLSet set2 = group.createAnnounceURLSet(new URL[]{torrent.getAnnounceURL()});
-				
-				group.setAnnounceURLSets(
-					new  TOTorrentAnnounceURLSet[]{ set1, set2 });
-			}
 		}catch( MalformedURLException e ){
 			
 			e.printStackTrace();
+		}
+	}
+	
+	public static void
+	announceGroupsInsertFirst(
+		TOTorrent	torrent,
+		URL			first_url )
+	{
+		announceGroupsInsertFirst( torrent, new URL[]{ first_url });
+	}
+	
+	public static void
+	announceGroupsInsertFirst(
+		TOTorrent	torrent,
+		URL[]		first_urls )
+	{
+		TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+		
+		TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
+
+		TOTorrentAnnounceURLSet set1 = group.createAnnounceURLSet( first_urls );
+		
+		
+		if ( sets.length > 0 ){
+			
+			TOTorrentAnnounceURLSet[]	new_sets = new TOTorrentAnnounceURLSet[sets.length+1];
+			
+			new_sets[0] = set1;
+			
+			System.arraycopy( sets, 0, new_sets, 1, sets.length );
+			
+			group.setAnnounceURLSets( new_sets );
+					
+		}else{
+			
+			TOTorrentAnnounceURLSet set2 = group.createAnnounceURLSet(new URL[]{torrent.getAnnounceURL()});
+			
+			group.setAnnounceURLSets(
+				new  TOTorrentAnnounceURLSet[]{ set1, set2 });
+		}
+	}
+	
+	public static void
+	announceGroupsInsertLast(
+		TOTorrent	torrent,
+		URL[]		first_urls )
+	{
+		TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+		
+		TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
+
+		TOTorrentAnnounceURLSet set1 = group.createAnnounceURLSet( first_urls );
+		
+		
+		if ( sets.length > 0 ){
+			
+			TOTorrentAnnounceURLSet[]	new_sets = new TOTorrentAnnounceURLSet[sets.length+1];
+			
+			new_sets[sets.length] = set1;
+			
+			System.arraycopy( sets, 0, new_sets, 0, sets.length );
+			
+			group.setAnnounceURLSets( new_sets );
+					
+		}else{
+			
+			TOTorrentAnnounceURLSet set2 = group.createAnnounceURLSet(new URL[]{torrent.getAnnounceURL()});
+			
+			group.setAnnounceURLSets(
+				new  TOTorrentAnnounceURLSet[]{ set2, set1 });
 		}
 	}
 		

@@ -1,6 +1,6 @@
 /*
- * File    : TorrentManager.java
- * Created : 28-Feb-2004
+ * File    : TOTorrentAnnounceURLSetImpl.java
+ * Created : 03-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.torrent;
+package org.gudy.azureus2.pluginsimpl.torrent;
 
 /**
  * @author parg
@@ -27,20 +27,39 @@ package org.gudy.azureus2.plugins.torrent;
  */
 
 import java.net.URL;
-import java.io.File;
 
-public interface 
-TorrentManager 
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.plugins.torrent.*;
+
+public class 
+TorrentAnnounceURLListSetImpl 
+	implements TorrentAnnounceURLListSet
 {
-	public TorrentDownloader
-	getURLDownloader(
-		URL		url )
+	protected TOTorrentAnnounceURLSet		set;
 	
-		throws TorrentException;
+	protected
+	TorrentAnnounceURLListSetImpl(
+		TOTorrentAnnounceURLSet		_set )
+	{
+		set		= _set;
+	}
 	
-	public Torrent
-	createFromBEncodedFile(
-		File		file )
+	protected TOTorrentAnnounceURLSet
+	getSet()
+	{
+		return( set );
+	}
 	
-		throws TorrentException;
+	public URL[]
+	getURLs()
+	{
+		return( set.getAnnounceURLs());
+	}
+	
+	public void
+	setURLs(
+		URL[]	urls )
+	{
+		set.setAnnounceURLs( urls );
+	}
 }

@@ -109,6 +109,22 @@ RPTorrent
 		return( name );
 	}
 	
+	public URL
+	getAnnounceURL()
+	{
+		notSupported();
+		
+		return( null );
+	}
+		
+	public TorrentAnnounceURLList
+	getAnnounceURLList()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public byte[]
 	getHash()
 	{
@@ -176,7 +192,17 @@ RPTorrent
 		notSupported();
 	}
   
-  public void addAnnounceURLTrackerGroup( URL[] urls ) {
-    notSupported();
-  }
+	public void 
+	addAnnounceURLTrackerGroup( 
+		URL[] urls ) 
+	{
+		notSupported();
+	}
+	
+	public void
+	save()
+		throws TorrentException
+	{
+		notSupported();
+	}
 }
