@@ -4,15 +4,16 @@ CHANGELOG
 xx.xx.04 | Azureus 2.0.8.1
 
 FEATURE: Show last time IPFilter list was updated in status area [Parg]
-FEATURE: Prelimary support for "compact" announce protocol [Parg]
+FEATURE: Support for "compact" tracker announce protocol [Parg]
+FEATURE: Support for "key" tracker announce protocol [Parg]
 FEATURE: Download Speed column in "My Torrents" turns red if below speed set in Queue config. [TuxPaper]
 
-CHANGE: 
+CHANGE: All config/pref files utilize .bak backup files [Parg]
 
-BUGFIX: 
+BUGFIX: Fix of startup issues under Win95/98/Me [TuxPaper]
+BUGFIX: Locale-specific dir creation [Parg]
 
-PLANNED: Fix of startup issues
-PLANNED: Fix Config Window not opening
+PLANNED: Fix Configuration window and General tab taking a long time to load under linux
 
 
 08.03.04 | Azureus 2.0.8.0
