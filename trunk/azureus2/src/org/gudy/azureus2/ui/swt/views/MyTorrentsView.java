@@ -27,7 +27,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -55,6 +54,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
+import org.gudy.azureus2.ui.swt.components.FlatImageButton;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -94,7 +94,9 @@ public class MyTorrentsView
 
   private Composite cTablePanel;
   private Font fontButton = null;
-  private Composite cCategories;
+  private Combo cCategories;
+  private SelectionListener cCategoriesListener;
+  private Control catRemoveButton;
   private Menu menuCategory;
   private MenuItem menuItemChangeDir = null;
 
@@ -138,7 +140,7 @@ public class MyTorrentsView
 
     super.initialize(composite0);
 
-    createTabs();
+    initCategoryViewList();
 
     createDragDrop();
 
@@ -188,142 +190,145 @@ public class MyTorrentsView
     return panel;
   }
 
-  private void createTabs() {
-    GridData gridData;
-    Category[] categories = CategoryManager.getCategories();
-    Arrays.sort(categories);
+  private void initCategoryViewList() {
+      GridData gridData;
 
-    if (categories.length > 0) {
-      if (cCategories == null) {
-        cCategories = new Composite(getComposite(), SWT.NULL);
-        gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-        cCategories.setLayoutData(gridData);
-        RowLayout rowLayout = new RowLayout();
-        rowLayout.marginTop = 0;
-        rowLayout.marginBottom = 0;
-        rowLayout.marginLeft = 0;
-        rowLayout.marginRight = 0;
-        rowLayout.spacing = (Constants.isOSX) ? 3 : 0; // this fixes display artifacts
-        rowLayout.wrap = true;
-        cCategories.setLayout(rowLayout);
+      final Label l = new Label(getComposite(), SWT.WRAP);
+      gridData = new GridData();
+      gridData.horizontalIndent = 3;
+      l.setLayoutData(gridData);
+      Messages.setLanguageText(l, sTableID + "View.header");
+      l.pack();
 
-        Label l = new Label(getComposite(), SWT.WRAP);
-        gridData = new GridData();
-        gridData.horizontalIndent = 3;
-        l.setLayoutData(gridData);
-        Messages.setLanguageText(l, sTableID + "View.header");
-        cCategories.moveAbove(null);
-        l.moveAbove(null);
-      } else {
-        Control[] controls = cCategories.getChildren();
-        for (int i = 0; i < controls.length; i++) {
-          controls[i].dispose();
-        }
+      final Composite cComp = new Composite(getComposite(), SWT.NONE);
+      final RowLayout rowLayout = new RowLayout();
+      rowLayout.marginTop = (Constants.isOSX) ? 3 : 0; // this fixes display artifacts
+      rowLayout.marginBottom = (Constants.isOSX) ? 3 : 0; // this fixes display artifacts
+      rowLayout.marginLeft = (Constants.isOSX) ? 3 : 0; // this fixes display artifacts
+      rowLayout.marginRight = (Constants.isOSX) ? 3 : 0; // this fixes display artifacts
+      rowLayout.fill = true;
+      cComp.setLayout(new RowLayout());
+
+
+      cComp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+
+      final SelectionAdapter actionButtonListener = new SelectionAdapter() {
+          public void widgetSelected(SelectionEvent event) {
+              final Category cat = addCategory();
+              if(cat  != null && getSelectedRows().length > 0) {
+                  cCategories.select(cCategories.indexOf(cat.getName()));
+              }
+          }
+      };
+
+      final Control actionButton;
+      if(Constants.isOSX) {
+        actionButton = new FlatImageButton(cComp, FlatImageButton.PLUS_BUTTON);
+        ((FlatImageButton)actionButton).addSelectionListener(actionButtonListener);
+      }
+      else {
+        actionButton = new Button(cComp, SWT.PUSH);
+        ((Button)actionButton).setText(" + ");
+        ((Button)actionButton).addSelectionListener(actionButtonListener);
       }
 
-
-
-      int iFontPixelsHeight = 11;
-      int iFontPointHeight = (iFontPixelsHeight * 72) / cCategories.getDisplay().getDPI().y;
-      for (int i = 0; i < categories.length; i++) {
-        final Button catButton = new Button(cCategories, SWT.TOGGLE);
-        if (i == 0 && fontButton == null) {
-          Font f = catButton.getFont();
-          FontData fd = f.getFontData()[0];
-          fd.setHeight(iFontPointHeight);
-          fontButton = new Font(cCategories.getDisplay(), fd);
-        }
-        catButton.setText("|");
-        catButton.setFont(fontButton);
-        catButton.pack(true);
-        if (catButton.computeSize(100,SWT.DEFAULT).y > 0) {
-          RowData rd = new RowData();
-          rd.height = catButton.computeSize(100,SWT.DEFAULT).y - 3 + catButton.getBorderWidth() * 2;
-//          Point pt = catButton.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
-//          rd.height = pt.y;
-          catButton.setLayoutData(rd);
-        }
-
-        String name = categories[i].getName();
-        if (categories[i].getType() == Category.TYPE_USER)
-          catButton.setText(name);
-        else
-          Messages.setLanguageText(catButton, name);
-
-        catButton.setData("Category", categories[i]);
-        if (categories[i] == currentCategory) {
-          catButton.setSelection(true);
-        }
-
-        catButton.addSelectionListener(new SelectionAdapter() {
-          public void widgetSelected(SelectionEvent e) {
-            Button curButton = (Button)e.widget;
-            boolean isEnabled = curButton.getSelection();
-            Control[] controls = cCategories.getChildren();
-            if (!isEnabled)
-              curButton = (Button)controls[0];
-
-            for (int i = 0; i < controls.length; i++) {
-              Button b = (Button)controls[i];
-              if (b != curButton && b.getSelection())
-                b.setSelection(false);
-              else if (b == curButton && !b.getSelection())
-                b.setSelection(true);
-            }
-            activateCategory( (Category)curButton.getData("Category") );
-          }
-        });
-
-        DropTarget tabDropTarget = new DropTarget(catButton, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
-        Transfer[] types = new Transfer[] { TextTransfer.getInstance()};
-        tabDropTarget.setTransfer(types);
-        tabDropTarget.addDropListener(new DropTargetAdapter() {
-          public void dragOver(DropTargetEvent e) {
-            if(drag_drop_line_start >= 0)
-              e.detail = DND.DROP_MOVE;
-            else
-              e.detail = DND.DROP_NONE;
-          }
-
-          public void drop(DropTargetEvent e) {
-            e.detail = DND.DROP_NONE;
-            if(drag_drop_line_start >= 0) {
-              drag_drop_line_start = -1;
-
-              assignSelectedToCategory((Category)catButton.getData("Category"));
-            }
-          }
-        });
-
-        if (categories[i].getType() == Category.TYPE_USER) {
-          Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
-
-          final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
-          Messages.setLanguageText(itemDelete, "MyTorrentsView.menu.category.delete");
-          menu.setDefaultItem(itemDelete);
-
-          itemDelete.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event event) {
-              Category catToDelete = (Category)catButton.getData("Category");
-              if (catToDelete != null) {
+      final SelectionAdapter removeActionListener = new SelectionAdapter() {
+          public void widgetSelected(SelectionEvent event) {
+              final Category catToDelete = (Category)catRemoveButton.getData("Category");
+              if(catToDelete != null) {
                 java.util.List managers = catToDelete.getDownloadManagers();
                 // move to array,since setcategory removed it from the category,
                 // which would mess up our loop
                 DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
                 for (int i = 0; i < dms.length; i++) {
-                  dms[i].getDownloadState().setCategory(null);
+                    dms[i].getDownloadState().setCategory(null);
                 }
-                if (currentCategory == catToDelete)
-                   activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
+                if (currentCategory == catToDelete) {
+                    activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
+                    catRemoveButton.setEnabled(false);
+                }
                 CategoryManager.removeCategory(catToDelete);
               }
-            }
-          });
-          catButton.setMenu(menu);
-        }
+          }
+      };
+
+      if(Constants.isOSX) {
+          catRemoveButton = new FlatImageButton(cComp, FlatImageButton.MINUS_BUTTON);
+          ((FlatImageButton)catRemoveButton).addSelectionListener(removeActionListener);
       }
-      cCategories.layout();
+      else {
+          catRemoveButton = new Button(cComp, SWT.PUSH);
+          ((Button)catRemoveButton).setText(" - ");
+          ((Button)catRemoveButton).addSelectionListener(removeActionListener);
+      }
+
+      cCategories = new Combo(cComp, SWT.READ_ONLY);
+      final RowData rData = new RowData();
+      rData.width = 200;
+      cCategories.setLayoutData(rData);
+      cCategories.pack();
+
+      // layout "hack"
+      if(Constants.isOSX)
+      {
+          actionButton.setLayoutData(new RowData(actionButton.getSize().x,  cCategories.getSize().y));
+          catRemoveButton.setLayoutData(new RowData(catRemoveButton.getSize().x,  cCategories.getSize().y));
+      }
+      catRemoveButton.setEnabled(false);
+
+      cComp.moveAbove(null);
+      l.moveAbove(null);
+
+      cCategoriesListener = null;
+
+      cComp.layout();
       getComposite().layout();
+
+      modifyCategoryViewList();
+  }
+
+  private void modifyCategoryViewList() {
+    final Category[] categories = CategoryManager.getCategories();
+
+    if(cCategoriesListener != null) {
+        cCategories.removeSelectionListener(cCategoriesListener);
+    }
+
+    cCategories.removeAll();
+    if(categories.length == 0) {
+        cCategories.add(MessageText.getString(CategoryManager.getCategory(Category.TYPE_ALL).getName()));
+    }
+    else {
+        Arrays.sort(categories);
+        for (int i = 0; i < categories.length; i++) {
+            final Category cat = categories[i];
+            if(cat.getType() == Category.TYPE_USER)
+                cCategories.add(cat.getName());
+            else
+                cCategories.add(MessageText.getString(cat.getName()));
+        }
+    }
+
+    cCategoriesListener = new SelectionAdapter() {
+        public void widgetSelected(SelectionEvent event) {
+            final Category selCat = categories[cCategories.getSelectionIndex()];
+
+            if(selCat == currentCategory) {return;}
+
+            catRemoveButton.setEnabled(selCat.getType() == Category.TYPE_USER);
+            catRemoveButton.setData("Category", selCat);
+            activateCategory(selCat);
+        }
+    };
+    cCategories.addSelectionListener(cCategoriesListener);
+
+    if(cCategories.getSelectionIndex() == -1) {
+        if(currentCategory.getType() == Category.TYPE_USER) {
+            cCategories.select(cCategories.indexOf(currentCategory.getName()));
+        }
+        else {
+            cCategories.select(cCategories.indexOf(MessageText.getString(currentCategory.getName())));
+        }
     }
   }
 
@@ -341,7 +346,7 @@ public class MyTorrentsView
           MainWindow.getWindow().openManagerView(dm);
       }
     });
-    
+
     cTablePanel.layout();
     return table;
   }
@@ -468,16 +473,16 @@ public class MyTorrentsView
     final MenuItem itemSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
     Messages.setLanguageText(itemSpeed, "MyTorrentsView.menu.setSpeed"); //$NON-NLS-1$
     Utils.setMenuItemImage(itemSpeed, "speed");
-    
+
     final Menu menuSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemSpeed.setMenu(menuSpeed);
-    
+
     final MenuItem itemCurrentSpeed = new MenuItem(menuSpeed,SWT.PUSH);
-    itemCurrentSpeed.setEnabled(false);   
-    
+    itemCurrentSpeed.setEnabled(false);
+
     new MenuItem(menuSpeed,SWT.SEPARATOR);
-    
-    final MenuItem itemsSpeed[] = new MenuItem[12];                
+
+    final MenuItem itemsSpeed[] = new MenuItem[12];
     Listener itemsSpeedListener = new Listener() {
       public void handleEvent(Event e) {
         if(e.widget != null && e.widget instanceof MenuItem) {
@@ -487,9 +492,9 @@ public class MyTorrentsView
         }
       }
     };
-    
-    
-    
+
+
+
     itemsSpeed[1] = new MenuItem(menuSpeed,SWT.PUSH);
     Messages.setLanguageText(itemsSpeed[1],"MyTorrentsView.menu.setSpeed.unlimit");
     itemsSpeed[1].setData("maxul", new Integer(0));    
@@ -1673,11 +1678,12 @@ public class MyTorrentsView
     }
   }
 
-  private void addCategory() {
+  private Category addCategory() {
     CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
     Category newCategory = adderWindow.getNewCategory();
     if (newCategory != null)
       assignSelectedToCategory(newCategory);
+    return newCategory;
   }
 
   // categorymanagerlistener Functions
@@ -1763,7 +1769,7 @@ public class MyTorrentsView
 	  			public void 
 				runSupport() 
 	  			{
-	  				createTabs();
+	  				modifyCategoryViewList();
 	  				addCategorySubMenu();
 	  			}
 			});
@@ -1776,7 +1782,7 @@ public class MyTorrentsView
 	  			public void 
 				runSupport() 
 	  			{
-	  				createTabs();
+	  				modifyCategoryViewList();
 	  				addCategorySubMenu();
 	  			}
 			});
