@@ -155,20 +155,34 @@ DMReaderImpl
 		fileOffset += offset - previousFilesLength;
 		// noError is only used for error reporting, it could probably be removed
 		boolean noError = true;
+		
 		while (buffer.hasRemaining(DirectByteBuffer.SS_DR) && currentFile < pieceList.size() ) {
-      PieceMapEntry map_entry = pieceList.get( currentFile );
+     
+			PieceMapEntry map_entry = pieceList.get( currentFile );
       
-      //explicitly limit the read size to the proper length, rather than relying on the underlying file being correctly-sized
-      //see long DMWriterAndCheckerImpl::checkPiece note
-      int entry_read_limit = buffer.position( DirectByteBuffer.SS_DR ) + map_entry.getLength();
-      buffer.limit( DirectByteBuffer.SS_DR, entry_read_limit );
+				//explicitly limit the read size to the proper length, rather than relying on the underlying file being correctly-sized
+				//see long DMWriterAndCheckerImpl::checkPiece note
+			
+			int entry_read_limit = buffer.position( DirectByteBuffer.SS_DR ) + map_entry.getLength();
+			
+				// now bring down to the required read length if this is shorter than this
+				// map entry
+			
+			entry_read_limit = Math.min( length, entry_read_limit );
+			
+			buffer.limit( DirectByteBuffer.SS_DR, entry_read_limit );
       
-      noError = readFileInfoIntoBuffer( map_entry.getFile(), buffer, fileOffset );
+			noError = readFileInfoIntoBuffer( map_entry.getFile(), buffer, fileOffset );
       
-      buffer.limit ( DirectByteBuffer.SS_DR, length );
-      if( !noError ) break;
+			buffer.limit ( DirectByteBuffer.SS_DR, length );
+      
+			if( !noError ){
+				
+				break;
+			}
       
 			currentFile++;
+			
 			fileOffset = 0;
 		}
 
@@ -197,9 +211,9 @@ DMReaderImpl
 		buffer.position(DirectByteBuffer.SS_DR,0);
 		return buffer;
 	}
-
-		// refactored out of readBlock() - Moti
+	
 		// reads a file into a buffer, returns true when no error, otherwise false.
+	
 	private boolean 
 	readFileInfoIntoBuffer(
 		DiskManagerFileInfoImpl file, 
