@@ -187,7 +187,7 @@ PluginInitializer
     	classLoader = this.getClass().getClassLoader();
     }
     
-    String plugin_class = null;
+    String plugin_class_string = null;
     
     try {
       Properties props = new Properties();
@@ -216,29 +216,53 @@ PluginInitializer
           return;    
       }
 
-      plugin_class = (String)props.get( "plugin.class");
+      plugin_class_string = (String)props.get( "plugin.class");
       
-      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
+      if ( plugin_class_string == null ){
+      	
+      	plugin_class_string = (String)props.get( "plugin.classes");
+      }
       
-      Class c = classLoader.loadClass(plugin_class);
+      int	pos = 0;
       
-      Plugin plugin = (Plugin) c.newInstance();
+      while(true){
+      		int	p1 = plugin_class_string.indexOf( ";", pos );
+      	
+      		String	plugin_class;
+      	
+      		if ( p1 == -1 ){
+      			plugin_class = plugin_class_string.substring(pos).trim();
+      		}else{
+      			plugin_class	= plugin_class_string.substring(pos,p1).trim();
+      			pos = p1+1;
+      		}
       
-      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
-      
-      PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(plugin,this,classLoader,directory.getName(),props,directory.getAbsolutePath());
-      
-      plugin.initialize(plugin_interface);
-      
-      plugins.add( plugin );
-      plugin_interfaces.add( plugin_interface );
-      
+	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
+	      
+	      Class c = classLoader.loadClass(plugin_class);
+	      
+	      Plugin plugin = (Plugin) c.newInstance();
+	      
+	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
+	      
+	      PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(plugin,this,classLoader,directory.getName(),props,directory.getAbsolutePath());
+	      
+	      plugin.initialize(plugin_interface);
+	      
+	      plugins.add( plugin );
+	      plugin_interfaces.add( plugin_interface );
+	      
+	      if ( p1 == -1 ){
+	      	break;
+	      	
+	      }
+      }
     } catch(Throwable e) {
       e.printStackTrace();
       
  	  LGLogger.logAlert( "Error loading plugin '" + pluginName + "'", e );
 
-      System.out.println("Error while loading class " + plugin_class + " : " + e);      
+      System.out.println("Error while loading class " + plugin_class_string + " : " + e);      
     }
   }
   
