@@ -814,8 +814,13 @@ PEPeerControlImpl
         percentage = (int)(currConnectionPercent * 100);
       }
     }
-   
-   	_tracker.setRefreshDelayOverrides( use_minimum_delay, percentage );
+    
+    boolean just_completed = _finished && SystemTime.getCurrentTime() - _timeFinished < 10000;
+        
+    if( !just_completed ) {
+      _tracker.setRefreshDelayOverrides( use_minimum_delay, percentage );
+    }
+
   }
   	
  
