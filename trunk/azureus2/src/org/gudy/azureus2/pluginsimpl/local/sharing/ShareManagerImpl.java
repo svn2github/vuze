@@ -388,21 +388,44 @@ ShareManagerImpl
 				throw( new ShareException( "ShareManager: Tracker must be configured"));
 			}
 			
-			boolean	use_ssl = COConfigurationManager.getBooleanParameter( "Sharing Use SSL", false );
+			String	protocol = COConfigurationManager.getStringParameter( "Sharing Protocol", "HTTP" );
 			
-			int	port;
+			int		port;
+			String	url_protocol;
 			
-			if ( use_ssl ){
+			if ( protocol.equals( "HTTPS" ) ){
 				
 				port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
 				
-			}else{
+				url_protocol	= "https";
+				
+			}else if ( protocol.equals( "HTTP" )){
 				
 				port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+				
+				url_protocol 	= "http";
+				
+			}else if ( protocol.equals( "UDP" )){
+				
+				port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+
+				url_protocol	= "udp";
+				
+			}else{
+				
+				port 			= -1;
+				url_protocol	= null;
 			}
 			
 			try{
-				announce_url = new URL( (use_ssl?"https":"http").concat("://").concat(tracker_ip).concat(":").concat(String.valueOf(port)).concat("/announce") );
+				if ( url_protocol == null ){
+					
+					announce_url	= TorrentUtils.getDecentralisedEmptyURL();
+
+				}else{
+					
+					announce_url = new URL( url_protocol + "://" + tracker_ip + ":"+ port + "/announce" );
+				}
 				
 			}catch( MalformedURLException e ){
 				

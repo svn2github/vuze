@@ -52,7 +52,7 @@ TOTorrentImpl
 	protected static final String TK_COMMENT_UTF8		= "comment.utf-8";
 	
 	protected static final List	TK_ADDITIONAL_OK_ATTRS = 
-		Arrays.asList(new String[]{TK_COMMENT_UTF8});
+		Arrays.asList(new String[]{TK_COMMENT_UTF8, AZUREUS_PROPERTIES });
 	
 	private byte[]							torrent_name;
 	private byte[]							torrent_name_utf8;

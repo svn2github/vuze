@@ -96,6 +96,9 @@ Torrent
 	public boolean
 	isDecentralised();
 	
+	public boolean
+	isDecentralisedBackupEnabled();
+	
 	public Map
 	writeToMap()
 	

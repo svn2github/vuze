@@ -293,11 +293,13 @@ public class ConfigurationDefaults {
     def.put( "config.style.useSIUnits", new Long(0) );
     def.put( "config.style.useUnitsRateBits", new Long(0) );
     def.put( "Save Torrent Backup", new Long(0) );
-    def.put( "Sharing Use SSL", new Long(0) );
+    
+    def.put( "Sharing Protocol", "HTTP" );
     def.put( "Sharing Add Hashes", new Long(0) );
     def.put( "Sharing Rescan Enable", new Long(0));
     def.put( "Sharing Rescan Period", new Long(60));
     def.put( "Sharing Torrent Comment", "" );
+    def.put( "Sharing Permit DHT", new Long(1));
     
     def.put( "File.Decoder.Prompt", new Long(0) );
     def.put( "File.Decoder.Default", "" );

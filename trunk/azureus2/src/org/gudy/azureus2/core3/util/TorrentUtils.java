@@ -767,6 +767,44 @@ TorrentUtils
 		return( torrent.getAnnounceURL().getProtocol().equalsIgnoreCase( "dht" ));
 	}
 	
+	public static void
+	setDHTBackupEnabled(
+		TOTorrent		torrent,
+		boolean			enabled )
+	{
+		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
+		
+		if ( m == null ){
+			
+			m = new HashMap();
+			
+			torrent.setAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES, m );
+		}
+		
+		m.put( "dht_backup_enable", new Long(enabled?1:0));
+	}
+	
+	public static boolean
+	getDHTBackupEnabled(
+		TOTorrent	torrent )
+	{
+		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
+		
+		if ( m == null ){
+			
+			return( true );
+		}
+		
+		Long	l = (Long)m.get( "dht_backup_enable" );
+		
+		if ( l == null ){
+			
+			return( true );
+		}
+		
+		return( l.longValue() == 1 );
+	}
+	
 		// this class exists to minimise memory requirements by discarding the piece hash values
 		// when "idle" 
 	

@@ -62,8 +62,19 @@ public class ConfigSectionSharing implements ConfigSectionSWT {
 
     	// row
     
-    new BooleanParameter(gSharing, "Sharing Use SSL", false, 
-                         "ConfigView.section.sharing.usessl");
+    String[]	protocols = {"HTTP","HTTPS","UDP","DHT" };
+    String[]	descs = {"HTTP","HTTPS (SSL)", "UDP", "Decentralised" };
+    
+    new StringListParameter(gSharing, "Sharing Protocol", "HTTP", descs, protocols );
+    
+    Label protocol_lab = new Label(gSharing, SWT.NULL);
+    Messages.setLanguageText(protocol_lab, "ConfigView.section.sharing.protocol");
+
+
+	// row
+    
+    new BooleanParameter(gSharing, "Sharing Permit DHT", true, 
+                         "ConfigView.section.sharing.permitdht");
     
     new Label(gSharing, SWT.NULL);
 

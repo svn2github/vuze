@@ -180,6 +180,15 @@ ShareResourceFileOrDirImpl
 				to_torrent.setComment( comment );
 			}
 			
+			if ( TorrentUtils.isDecentralised(to_torrent)){
+				
+				TorrentUtils.setDecentralised( to_torrent );
+			}
+			
+			boolean	dht_backup_enabled = COConfigurationManager.getBooleanParameter( "Sharing Permit DHT", true );
+			
+			TorrentUtils.setDHTBackupEnabled( to_torrent, dht_backup_enabled );
+			
 			File	save_dir;
 			
 			if ( type == ST_FILE ){

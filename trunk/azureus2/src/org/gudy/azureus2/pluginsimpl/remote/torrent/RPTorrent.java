@@ -146,6 +146,14 @@ RPTorrent
 		return( false );
 	}
 	
+	public boolean
+	isDecentralisedBackupEnabled()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public byte[]
 	getHash()
 	{

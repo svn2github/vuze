@@ -103,6 +103,11 @@ TorrentImpl
 	{
 		return( TorrentUtils.isDecentralised( torrent ));
 	}
+	public boolean
+	isDecentralisedBackupEnabled()
+	{
+		return( TorrentUtils.getDHTBackupEnabled( torrent ));
+	}
 	
 	public byte[]
 	getHash()

@@ -32,6 +32,13 @@ TOTorrent
 {
 	public static final String	DEFAULT_IGNORE_FILES	= ".DS_Store;Thumbs.db;desktop.ini";
 	
+		/**
+		 * A Map additional property defined for holding AZ specific properties that are
+		 * deemed to be exportable to the world
+		 */
+	
+	public static final String	AZUREUS_PROPERTIES		= "azureus_properties";
+	
 	/**
 	 * Get the name of the torrent
 	 * @return

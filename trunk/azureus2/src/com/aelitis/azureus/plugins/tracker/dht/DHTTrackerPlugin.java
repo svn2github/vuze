@@ -375,8 +375,9 @@ DHTTrackerPlugin
 	protected void
 	initialise()
 	{
-		final TorrentAttribute ta = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
-	
+		final TorrentAttribute tan = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
+		final TorrentAttribute tas = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );
+
 		plugin_interface.getDownloadManager().addListener(
 				new DownloadManagerListener()
 				{
@@ -384,19 +385,66 @@ DHTTrackerPlugin
 					downloadAdded(
 						Download	download )
 					{
-						String[]	networks = download.getListAttribute( ta );
+						String[]	networks = download.getListAttribute( tan );
 						
-						if ( networks != null ){
+						Torrent	torrent = download.getTorrent();
+						
+						if ( torrent != null && networks != null ){
+							
+							boolean	public_net = false;
 							
 							for (int i=0;i<networks.length;i++){
 								
 								if ( networks[i].equalsIgnoreCase( "Public" )){
-							
-									if ( download.getTorrent() != null ){
+										
+									public_net	= true;
 									
-										registerDownload( download );
+									break;
+								}
+							}
+							
+							if ( public_net ){
+								
+								if ( torrent.isDecentralised()){
+									
+									registerDownload( download );
+									
+								}else{
+									
+									if ( torrent.isDecentralisedBackupEnabled()){
+										
+										String[]	sources = download.getListAttribute( tas );
+
+										boolean	ok = false;
+										
+										for (int i=0;i<sources.length;i++){
+											
+											if ( sources[i].equalsIgnoreCase( "DHT")){
+												
+												ok	= true;
+												
+												break;
+											}
+										}
+
+										if ( ok ){
+											
+											registerDownload( download );
+											
+										}else{
+											
+											log.log( "Not registering '" + download.getName() + "' as decentralised peer source disabled" );
+
+										}
+									}else{
+										
+										log.log( "Not registering '" + download.getName() + "' as decentralised backup disabled" );
 									}
 								}
+								
+							}else{
+								
+								log.log( "Not registering '" + download.getName() + "' as not public" );
 							}
 						}
 					}
