@@ -127,6 +127,7 @@ public class PieceTableItem {
   public void remove() {
     if (display == null || display.isDisposed())
       return;
+    try {
     display.syncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
@@ -134,6 +135,9 @@ public class PieceTableItem {
         table.remove(table.indexOf(item));
       }
     });
+    }
+    catch (Exception ignore) {
+    }
   }
 
 }

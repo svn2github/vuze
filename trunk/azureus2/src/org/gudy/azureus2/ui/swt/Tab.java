@@ -130,6 +130,10 @@ public class Tab {
     IView view = null;
     synchronized (tabs) {
       view = (IView) tabs.get(item);
+	  try {
+		item.dispose();
+	  } catch (Exception ignore) {
+	  }
       tabs.remove(item);
     }
     if (view != null) {

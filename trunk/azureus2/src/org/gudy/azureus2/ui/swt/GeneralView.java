@@ -366,6 +366,15 @@ public class GeneralView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
+	if (fImage != null)
+		fImage.dispose();
+	fImage = null;
+	if (aImage != null)
+		aImage.dispose();
+	aImage = null;
+	if (pImage != null)
+		pImage.dispose();
+	pImage = null;
     
   }
 

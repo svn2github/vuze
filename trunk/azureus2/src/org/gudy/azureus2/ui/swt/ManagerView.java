@@ -45,6 +45,8 @@ public class ManagerView extends AbstractIView {
       viewPieces.delete();
     if (viewFiles != null)
       viewFiles.delete();
+    if (folder != null)
+      folder.dispose();
   }
 
   /* (non-Javadoc)
@@ -73,8 +75,10 @@ public class ManagerView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-    folder = new CTabFolder(composite, SWT.TOP | SWT.FLAT);
-    folder.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
+  	if (folder == null) {
+    	folder = new CTabFolder(composite, SWT.TOP | SWT.FLAT);
+    	folder.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
+  	}
     itemGeneral = new CTabItem(folder, SWT.NULL);
     itemDetails = new CTabItem(folder, SWT.NULL);
     itemPieces = new CTabItem(folder, SWT.NULL);

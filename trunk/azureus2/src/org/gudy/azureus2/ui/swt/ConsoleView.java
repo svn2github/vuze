@@ -57,7 +57,9 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
+  	MainWindow.getWindow().getShell().setFocus();
     MainWindow.getWindow().setConsole(null);
+    consoleText.dispose();
     Logger.getLogger().removeListener();
     if (colors != null) {
       for (int i = 3; i < colors.length; i++) {
@@ -65,6 +67,7 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
           colors[i].dispose();
       }
     }
+
   }
 
   /* (non-Javadoc)
