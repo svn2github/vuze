@@ -20,9 +20,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.ipfilter.BadIps;
-import org.gudy.azureus2.core3.ipfilter.IpFilter;
-import org.gudy.azureus2.core3.ipfilter.impl.*;
+import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
@@ -1051,7 +1049,7 @@ PEPeerControlImpl
     * private method to add a new outgoing peerConnection
     */
   private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
-    if (!IpFilterImpl.getInstance().isInRange(ip, _downloadManager.getName())) {
+    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ip, _downloadManager.getName())) {
       //create a 'light' peer transport
       PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
       NewPeerManager.registerNewPeer( new_peer_manager_listener, testPS );
@@ -1066,7 +1064,7 @@ PEPeerControlImpl
     //Get the max number of connections allowed
     boolean addFailed = false;
     String reason = "";
-    if (!IpFilterImpl.getInstance().isInRange(ps.getIp(), _downloadManager.getName())) {
+    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ps.getIp(), _downloadManager.getName())) {
        synchronized (_peer_transports) {
           if (!_peer_transports.contains(ps)) {
           	/* add connection */
@@ -1910,14 +1908,16 @@ PEPeerControlImpl
     //Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");             
     int nbBadChunks = peer.getNbBadChunks();
     if(nbBadChunks > BAD_CHUNKS_LIMIT) {
+    	IpFilterManager	filter_manager = IpFilterManagerFactory.getSingleton();
+    	
       //Ban fist to avoid a fast reco of the bad peer
-      int nbWarnings = BadIps.getInstance().addWarningForIp(ip);
+      int nbWarnings = filter_manager.getBadIps().addWarningForIp(ip);
       
       	// no need to reset the bad chunk count as the peer is going to be disconnected and
       	// if it comes back it'll start afresh
       
       if(nbWarnings > WARNINGS_LIMIT) {
-        IpFilter.getInstance().ban(ip, _downloadManager.getName());                    
+      	IpFilterManagerFactory.getSingleton().getIPFilter().ban(ip, _downloadManager.getName());                    
       }
       //Close connection in 2nd
       ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
@@ -2044,11 +2044,11 @@ PEPeerControlImpl
     oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style");
     
     //if ipfiltering becomes enabled, remove any existing filtered connections
-    if (parameterName.equals("Ip Filter Enabled") && IpFilterImpl.getInstance().isEnabled()) {
+    if (parameterName.equals("Ip Filter Enabled") && IpFilterManagerFactory.getSingleton().getIPFilter().isEnabled()) {
       synchronized( _peer_transports ) {
         for (int i=0; i < _peer_transports.size(); i++) {
           PEPeerTransport conn = (PEPeerTransport)_peer_transports.get( i );
-          if ( IpFilterImpl.getInstance().isInRange( conn.getIp(), _downloadManager.getName() )) {
+          if ( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( conn.getIp(), _downloadManager.getName() )) {
             conn.closeAll( "IPFilter banned IP address", false, false );
           }
         }

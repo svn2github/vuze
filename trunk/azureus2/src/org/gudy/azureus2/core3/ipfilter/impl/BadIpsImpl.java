@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.ipfilter.BadIps;
  * @author Olivier
  *
  */
-public class BadIpsImpl extends BadIps {
+public class BadIpsImpl implements BadIps {
   
   private static BadIps instance; 
   

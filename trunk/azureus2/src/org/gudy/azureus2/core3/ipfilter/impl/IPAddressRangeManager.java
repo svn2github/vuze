@@ -32,7 +32,6 @@ import java.util.*;
 import java.net.UnknownHostException;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 
 public class 

@@ -43,7 +43,7 @@ import org.gudy.azureus2.core3.util.*;
 
 public class 
 IpFilterImpl 
-	extends IpFilter
+	implements IpFilter
 {
 
 	private static IpFilterImpl ipFilter;

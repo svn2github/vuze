@@ -29,6 +29,7 @@ package com.aelitis.azureus.core;
 
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.plugins.*;
 
@@ -92,6 +93,11 @@ AzureusCore
 	
 	public TRHost
 	getTrackerHost()
+	
+		throws AzureusCoreException;
+	
+	public IpFilterManager
+	getIpFilterManager()
 	
 		throws AzureusCoreException;
 	

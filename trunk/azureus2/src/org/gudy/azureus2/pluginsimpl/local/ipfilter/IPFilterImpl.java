@@ -41,7 +41,7 @@ IPFilterImpl
 	public
 	IPFilterImpl()
 	{
-		filter = IpFilter.getInstance();
+		filter = IpFilterManagerFactory.getSingleton().getIPFilter();
 	}
 	
 	public File

@@ -449,7 +449,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
     ipBlocked.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
-       BlockedIpsWindow.showBlockedIps(MainWindow.this.mainWindow);
+       BlockedIpsWindow.showBlockedIps(azureus_core, MainWindow.this.mainWindow);
       }
     });
     
@@ -674,7 +674,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   
     mainWindow.open();
     mainWindow.forceActive();
-    updater = new GUIUpdater(this);
+    updater = new GUIUpdater(azureus_core,this);
     updater.start();
 
     try {

@@ -31,17 +31,10 @@ package org.gudy.azureus2.core3.ipfilter;
 import java.util.List;
 import java.io.File;
 
-import org.gudy.azureus2.core3.ipfilter.impl.*;
 
-public abstract class 
+public interface 
 IpFilter 
 {
-	public static IpFilter
-	getInstance()
-	{
-		return( IpFilterImpl.getInstance());
-	}
-	
 	public abstract File getFile();
 	
 	public abstract void save() throws Exception;

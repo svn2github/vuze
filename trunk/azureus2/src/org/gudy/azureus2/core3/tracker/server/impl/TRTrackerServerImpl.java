@@ -119,7 +119,7 @@ TRTrackerServerImpl
 		return( max_seed_retention );
 	}
 	
-	protected IpFilter	ip_filter	= IpFilter.getInstance();
+	protected IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
 	
 	protected Map		torrent_map = new HashMap(); 
 	

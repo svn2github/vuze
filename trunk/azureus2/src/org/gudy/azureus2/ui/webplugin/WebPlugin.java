@@ -31,9 +31,9 @@ import java.util.*;
 import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.ipfilter.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.ui.*;
@@ -98,7 +98,7 @@ WebPlugin
 	protected String				resource_root;
 	
 	protected boolean				ip_range_all	= false;
-	protected IpRange				ip_range;
+	protected IPRange				ip_range;
 	
 	public 
 	WebPlugin()
@@ -412,21 +412,21 @@ WebPlugin
 		
 		if ( access_str.length() > 7 && Character.isDigit(access_str.charAt(0))){
 			
-			ip_range	= IpFilter.getInstance().createRange(true);
+			ip_range	= plugin_interface.getIPFilter().createRange(true);
 			
 			int	sep = access_str.indexOf("-");
 				
 			if ( sep == -1 ){
 				
-				ip_range.setStartIp( access_str );
+				ip_range.setStartIP( access_str );
 				
-				ip_range.setEndIp( access_str );
+				ip_range.setEndIP( access_str );
 				
 			}else{				
 				
-				ip_range.setStartIp( access_str.substring(0,sep).trim());
+				ip_range.setStartIP( access_str.substring(0,sep).trim());
 				
-				ip_range.setEndIp( access_str.substring( sep+1 ).trim());
+				ip_range.setEndIP( access_str.substring( sep+1 ).trim());
 			}
 			
 			ip_range.checkValid();
@@ -449,7 +449,7 @@ WebPlugin
 					"acceptable IP range = " +
 						( ip_range==null?
 							(ip_range_all?"all":"local"):
-							(ip_range.getStartIp() + " - " + ip_range.getEndIp())));
+							(ip_range.getStartIP() + " - " + ip_range.getEndIP())));
 				
 							
 		try{

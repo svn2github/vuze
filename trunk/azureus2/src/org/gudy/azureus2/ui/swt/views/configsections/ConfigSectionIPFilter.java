@@ -39,6 +39,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Display;
 
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -49,10 +50,18 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 public class ConfigSectionIPFilter implements ConfigSectionSWT {
+  AzureusCore	azureus_core;
+  
   IpFilter filter;
   Table table;
   boolean noChange;
   
+  public
+  ConfigSectionIPFilter(
+  	AzureusCore		_azureus_core )
+  {
+  	azureus_core	= _azureus_core;
+  }
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_ROOT;
   }
@@ -77,7 +86,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
 
-    filter = IpFilter.getInstance();
+    filter = azureus_core.getIpFilterManager().getIPFilter();
 
     Composite gFilter = new Composite(parent, SWT.NULL);
     GridLayout layout = new GridLayout();
@@ -231,13 +240,13 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   }
 
   public void editRange(IpRange range) {
-    new IpFilterEditor(table.getDisplay(), table, range);
+    new IpFilterEditor(azureus_core,table.getDisplay(), table, range);
     noChange = false;
     refresh();
   }
 
   public void addRange() {
-    new IpFilterEditor(table.getDisplay(), table, null);
+    new IpFilterEditor(azureus_core,table.getDisplay(), table, null);
     noChange = false;
     refresh();
   }

@@ -219,7 +219,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionInterface(),
                                          new ConfigSectionInterfaceStart(),
                                          new ConfigSectionInterfaceDisplay(),
-                                         new ConfigSectionIPFilter(),
+                                         new ConfigSectionIPFilter(azureus_core),
                                          new ConfigSectionStats(),
                                          new ConfigSectionTracker(azureus_core),
                                          new ConfigSectionTrackerExt(),

@@ -29,7 +29,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -227,6 +229,14 @@ AzureusCoreImpl
 			// don't test for runnign here, the restart process calls this after terminating the core...
 		
 		return( PluginInitializer.getDefaultInterface().getPluginManager());
+	}
+	
+	public IpFilterManager
+	getIpFilterManager()
+	
+		throws AzureusCoreException
+	{
+		return( IpFilterManagerFactory.getSingleton());
 	}
 	
 	public LocaleUtil getProperLocaleUtil() {

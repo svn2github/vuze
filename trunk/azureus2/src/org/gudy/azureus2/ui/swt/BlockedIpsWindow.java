@@ -31,6 +31,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -39,9 +41,20 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
  * @author Olivier
  *
  */
-public class BlockedIpsWindow {
+public class 
+BlockedIpsWindow 
+{  
+  static AzureusCore	azureus_core;
   
-  public static void show(Display display,String ipsBlocked,String ipsBanned) {
+  public static void 
+  show(
+  		AzureusCore		_azureus_core,
+		Display 		display,
+		String 			ipsBlocked,
+		String 			ipsBanned) 
+  {
+  	azureus_core	= _azureus_core;
+  	
     final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(window,"ConfigView.section.ipfilter.list.title");
     window.setImage(ImageRepository.getImage("azureus"));
@@ -102,7 +115,7 @@ public class BlockedIpsWindow {
 
     public void handleEvent(Event e) {
      
-    	IpFilter.getInstance().clearBlockedIPs();
+    	azureus_core.getIpFilterManager().getIPFilter().clearBlockedIPs();
     	
     	textBlocked.setText( "" );
     }
@@ -139,8 +152,8 @@ public class BlockedIpsWindow {
     btnReset.addListener(SWT.Selection,new Listener() {
 
     public void handleEvent(Event e) {
-      	IpFilter.getInstance().clearBannedIps();
-    	BadIps.getInstance().clearBadIps();
+    	azureus_core.getIpFilterManager().getIPFilter().clearBannedIps();
+    	azureus_core.getIpFilterManager().getBadIps().clearBadIps();
 		
     	textBanned.setText( "" );    
     	}
@@ -175,10 +188,14 @@ public class BlockedIpsWindow {
     window.open();    
   }
   
-  public static void showBlockedIps(Shell mainWindow) {
+  public static void 
+  showBlockedIps(
+  		AzureusCore	azureus_core,
+  		Shell 		mainWindow) 
+  {
     StringBuffer sbBlocked = new StringBuffer();
     StringBuffer sbBanned = new StringBuffer();
-    BlockedIp[] blocked = IpFilter.getInstance().getBlockedIps();
+    BlockedIp[] blocked = azureus_core.getIpFilterManager().getIPFilter().getBlockedIps();
     String inRange = MessageText.getString("ConfigView.section.ipfilter.list.inrange");
     String notInRange = MessageText.getString("ConfigView.section.ipfilter.list.notinrange");   
     String bannedMessage = MessageText.getString( "ConfigView.section.ipfilter.list.banned" );
@@ -204,7 +221,7 @@ public class BlockedIpsWindow {
       }
     }  
     
-    BannedIp[]	banned_ips = IpFilter.getInstance().getBannedIps();    
+    BannedIp[]	banned_ips = azureus_core.getIpFilterManager().getIPFilter().getBannedIps();    
     
     for(int i=0;i<banned_ips.length;i++){
     	BannedIp bIp = banned_ips[i];
@@ -218,7 +235,7 @@ public class BlockedIpsWindow {
       sbBanned.append( "\n");
     }
     
-    BadIp[]	bad_ips = BadIps.getInstance().getBadIps();
+    BadIp[]	bad_ips = azureus_core.getIpFilterManager().getBadIps().getBadIps();
     for(int i=0;i<bad_ips.length;i++){
     	BadIp bIp = bad_ips[i];
         sbBanned.append(DisplayFormatters.formatTimeStamp(bIp.getLastTime()));
@@ -233,6 +250,6 @@ public class BlockedIpsWindow {
     
     if(mainWindow == null || mainWindow.isDisposed())
       return;
-    BlockedIpsWindow.show(mainWindow.getDisplay(),sbBlocked.toString(),sbBanned.toString());
+    BlockedIpsWindow.show(azureus_core,mainWindow.getDisplay(),sbBlocked.toString(),sbBanned.toString());
   }
 }

@@ -35,6 +35,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+
+import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -46,6 +48,7 @@ import org.gudy.azureus2.ui.swt.Messages;
  */
 public class IpFilterEditor {
 
+  AzureusCore	azureus_core;
   Display display;
   Table table;
   
@@ -53,13 +56,20 @@ public class IpFilterEditor {
 
   boolean newRange;
 
-  public IpFilterEditor(Display display,Table _table, final IpRange _range) {
+  public 
+  IpFilterEditor(
+  		AzureusCore		_azureus_core,
+  		Display 		display,
+		Table 			_table, 
+		final IpRange _range) 
+  {
+  	azureus_core	= _azureus_core;
     this.display = display;
     this.table = _table;
     this.range = _range;
     if (range == null) {
       newRange = true;
-      range = IpFilter.getInstance().createRange(false);
+      range = azureus_core.getIpFilterManager().getIPFilter().createRange(false);
     }
 
     final Shell shell = new Shell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
@@ -107,7 +117,7 @@ public class IpFilterEditor {
         range.setEndIp( textEndIp.getText());
         range.checkValid();
         if (newRange) {
-          IpFilter.getInstance().addRange(range);
+          azureus_core.getIpFilterManager().getIPFilter().addRange(range);
           TableItem item = new TableItem(table,SWT.NULL);
           item.setData(range);
           item.setImage(0,ImageRepository.getImage("ipfilter"));

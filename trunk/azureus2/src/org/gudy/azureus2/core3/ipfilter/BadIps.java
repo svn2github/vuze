@@ -20,20 +20,14 @@
  */
 package org.gudy.azureus2.core3.ipfilter;
 
-import org.gudy.azureus2.core3.ipfilter.impl.BadIpsImpl;
-
 /**
  * @author Olivier
  *
  */
-public abstract class BadIps {
-  
-  public static BadIps 
-  getInstance() 
-  {
-    return (BadIpsImpl.getInstance());
-  }
-  
+
+public interface 
+BadIps 
+{  
   public abstract int 
   addWarningForIp(String ip);
   

@@ -25,6 +25,9 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import java.util.Iterator;
 
 import org.eclipse.swt.widgets.Display;
+
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -41,16 +44,22 @@ import org.gudy.azureus2.ui.swt.views.IView;
  */
 public class GUIUpdater extends Thread implements ParameterListener {
   
-  private MainWindow mainWindow;
-  private Display display;
+  private AzureusCore		azureus_core;
+  private MainWindow 		mainWindow;
+  private Display 			display;
   
   boolean finished = false;
   boolean refreshed = true;
   
   int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");   
   
-  public GUIUpdater(MainWindow mainWindow) {       
-    super("GUI updater"); //$NON-NLS-1$
+  public 
+  GUIUpdater(
+  	AzureusCore		_azureus_core,
+	MainWindow 		mainWindow) 
+  {       
+    super("GUI updater");
+    azureus_core		= _azureus_core;
     this.mainWindow = mainWindow;
     this.display = mainWindow.getDisplay();
     
@@ -95,17 +104,19 @@ public class GUIUpdater extends Thread implements ParameterListener {
               Tab.refresh();
             }
 
+            IpFilter ip_filter = azureus_core.getIpFilterManager().getIPFilter();
+            
             mainWindow.ipBlocked.setText( 
             		"{"+
-					DisplayFormatters.formatDateShort(IpFilter.getInstance().getLastUpdateTime()) + 
+					DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime()) + 
 					"} IPs: " + 
-					IpFilter.getInstance().getNbRanges() + 
+					ip_filter.getNbRanges() + 
 					" - " + 
-					IpFilter.getInstance().getNbIpsBlocked() + 
+					ip_filter.getNbIpsBlocked() + 
 					"/" +
-					IpFilter.getInstance().getNbBannedIps() +
+					ip_filter.getNbBannedIps() +
 					"/" + 
-	      			BadIps.getInstance().getNbBadIps());
+					azureus_core.getIpFilterManager().getBadIps().getNbBadIps());
 					
             int	ul_limit = COConfigurationManager.getIntParameter("Max Upload Speed KBs");
             int	dl_limit = COConfigurationManager.getIntParameter("Max Download Speed KBs");
