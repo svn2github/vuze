@@ -77,6 +77,7 @@ PluginInterfaceImpl
   protected Properties 			props;
   protected String 				pluginDir;
   protected PluginConfig 		config;
+  protected String				plugin_version;
 
   public 
   PluginInterfaceImpl(
@@ -86,7 +87,8 @@ PluginInterfaceImpl
 		ClassLoader			_class_loader,
 		String 				_key,
 		Properties 			_props,
-		String 				_pluginDir) 
+		String 				_pluginDir,
+		String				_plugin_version ) 
   {
   	plugin				= _plugin;
   	initialiser			= _initialiser;
@@ -96,6 +98,7 @@ PluginInterfaceImpl
     props 				= _props;
     pluginDir 			= _pluginDir;
     config 				= new PluginConfigImpl(pluginConfigKey);
+    plugin_version		= _plugin_version;
   }
   
   	public Plugin
@@ -161,15 +164,33 @@ PluginInterfaceImpl
   	String	name = null;
   	
   	if ( props != null ){
+  		
   		name = (String)props.get( "plugin.name");
   	}
   	
   	if ( name == null ){
   		
-  		name = new File(pluginDir).getName();
+  		try{
+  			
+  			name = new File(pluginDir).getName();
+  			
+  		}catch( Throwable e ){
+  			
+  		}
+  	}
+  	
+  	if ( name == null || name.length() == 0 ){
+  		
+  		name = plugin.getClass().getName();
   	}
   	
   	return( name );
+  }
+
+  public String
+  getPluginVersion()
+  {
+  	return( plugin_version==null?(String)props.get("plugin.version"):plugin_version );
   }
 
   public Properties getPluginProperties() {

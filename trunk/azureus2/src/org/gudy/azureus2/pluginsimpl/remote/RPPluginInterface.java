@@ -324,6 +324,13 @@ RPPluginInterface
 		return( null );
 	}
     
+    public String getPluginVersion()
+	{
+		notSupported();
+		
+		return( null );
+	}
+    
 	public PluginConfig getPluginconfig()
 	{
 		RPPluginConfig	res = (RPPluginConfig)_dispatcher.dispatch( new RPRequest( this, "getPluginconfig", null )).getResponse();

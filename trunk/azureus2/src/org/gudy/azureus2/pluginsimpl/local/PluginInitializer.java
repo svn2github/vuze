@@ -52,12 +52,16 @@ PluginInitializer
 	implements GlobalManagerListener
 {
 
-  private Class[]	builtin_plugins = 
-    new Class[]{ org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
+  private Class[]	initial_builtin_plugins = 
+    	{ 		org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
                  ShareHosterPlugin.class,
                  TrackerDefaultWeb.class,
                  UpdateLanguagePlugin.class,
-                };
+        };
+  
+  private Class[]	final_builtin_plugins = 
+  		{ 		org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin.class,
+        };
   
   private static PluginInitializer	singleton;
   
@@ -177,12 +181,22 @@ PluginInitializer
     }
     
     	// now do built in ones
-    LGLogger.log("Initializing built-in plugins");
+      LGLogger.log("Initializing built-in plugins");
     
-     for (int i=0;i<builtin_plugins.length;i++){
+     for (int i=0;i<initial_builtin_plugins.length;i++){
     	
      	try{
-     		initializePluginFromClass( builtin_plugins[i] );
+     		initializePluginFromClass( initial_builtin_plugins[i] );
+     		
+		}catch(PluginException e ){
+  				
+  		}
+     }
+     
+     for (int i=0;i<final_builtin_plugins.length;i++){
+    	
+     	try{
+     		initializePluginFromClass( final_builtin_plugins[i] );
      		
 		}catch(PluginException e ){
   				
@@ -255,18 +269,26 @@ PluginInitializer
       	plugin_class_string = (String)props.get( "plugin.classes");
       }
       
-      int	pos = 0;
+      String	plugin_name_string = (String)props.get( "plugin.name");
+      
+      if ( plugin_name_string == null ){
+      	
+      	plugin_name_string = (String)props.get( "plugin.names");
+      }
+ 
+      int	pos1 = 0;
+      int	pos2 = 0;
       
       while(true){
-      		int	p1 = plugin_class_string.indexOf( ";", pos );
+      		int	p1 = plugin_class_string.indexOf( ";", pos1 );
       	
       		String	plugin_class;
       	
       		if ( p1 == -1 ){
-      			plugin_class = plugin_class_string.substring(pos).trim();
+      			plugin_class = plugin_class_string.substring(pos1).trim();
       		}else{
-      			plugin_class	= plugin_class_string.substring(pos,p1).trim();
-      			pos = p1+1;
+      			plugin_class	= plugin_class_string.substring(pos1,p1).trim();
+      			pos1 = p1+1;
       		}
       
       		if ( isPluginLoaded( plugin_class )){
@@ -275,7 +297,31 @@ PluginInitializer
 
       		}else{
       			
-      			
+      		  String	plugin_name = null;
+      		  
+      		  if ( plugin_name_string != null ){
+      		  	
+      		  	int	p2 = plugin_name_string.indexOf( ";", pos2 );
+              	
+          	
+          		if ( p2 == -1 ){
+          			plugin_name = plugin_name_string.substring(pos2).trim();
+          		}else{
+          			plugin_name	= plugin_name_string.substring(pos2,p2).trim();
+          			pos2 = p2+1;
+          		}    
+      		  }
+      		  
+      		  Properties new_props = (Properties)props.clone();
+      		  
+      		  new_props.put( "plugin.class", plugin_class );
+      		  
+      		  if ( plugin_name != null ){
+      		  	
+      		  	new_props.put( "plugin.name", plugin_name );
+      		  }
+      		  
+      		  
 	 	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
 		      
 		      Class c = classLoader.loadClass(plugin_class);
@@ -291,8 +337,9 @@ PluginInitializer
 								directory, 
 								classLoader,
 								directory.getName(),
-								props,
-								directory.getAbsolutePath());
+								new_props,
+								directory.getAbsolutePath(),
+								null );
 		      
 		      plugin.initialize(plugin_interface);
 		      
@@ -378,7 +425,8 @@ PluginInitializer
 						plugin_class.getClassLoader(),
 						"",
 						new Properties(),
-						"");
+						"",
+						null );
   		
   		plugin.initialize(plugin_interface);
   		
@@ -461,7 +509,8 @@ PluginInitializer
 					getClass().getClassLoader(),
 					"default",
 					new Properties(),
-					null);
+					null,
+					null );
   	}
   	
   	return( default_plugin );

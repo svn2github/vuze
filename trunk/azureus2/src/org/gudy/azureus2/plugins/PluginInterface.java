@@ -202,6 +202,15 @@ public interface PluginInterface {
   public String getPluginName();
   
   /**
+   * Returns the version number of the plugin it if can be deduced from either the name of
+   * the jar file it is loaded from or the properties file. null otherwise
+   * @return
+   */
+  
+  public String
+  getPluginVersion();
+  
+  /**
    * gives access to the plugin config interface
    * @return the PluginConfig object associated with this plugin
    */
