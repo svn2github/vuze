@@ -221,7 +221,9 @@ public class FileUtil {
 	return( file_name_out );
   }
   
-  public static void
+  	// synchronize it to prevent concurrent attempts to write the same file
+  
+  public static synchronized void
   writeResilientConfigFile(
   	String		file_name,
 	Map			data )
@@ -270,7 +272,9 @@ public class FileUtil {
   	}
   }
   
-  	public static Map
+  	// synchronized against writes to make sure we get a consistent view
+  
+  	public static synchronized Map
 	readResilientConfigFile(
 		String		file_name )
 	{
