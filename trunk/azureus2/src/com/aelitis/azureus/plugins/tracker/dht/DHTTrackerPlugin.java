@@ -529,15 +529,7 @@ DHTTrackerPlugin
 												public URL
 												getURL()
 												{
-													try{
-														return( new URL( "dht://" + ByteFormatter.encodeString( dl.getTorrent().getHash()) + "/" ));
-														
-													}catch( Throwable e ){
-														
-														Debug.printStackTrace(e);
-														
-														return( null );
-													}
+													return( dl.getTorrent().getAnnounceURL());
 												}
 												
 												public DownloadAnnounceResultPeer[]
@@ -552,70 +544,61 @@ DHTTrackerPlugin
 													return( retry );
 												}
 											});
-								}else{
-									
-									dl.setScrapeResult(
-										new DownloadScrapeResult()
-										{
-											public Download
-											getDownload()
-											{
-												return( dl );
-											}
-											
-											public int
-											getResponseType()
-											{
-												return( RT_SUCCESS );
-											}
-											
-											public int
-											getSeedCount()
-											{
-												return( peers.length/2 );	// !!!! TODO:
-											}
-											
-											public int
-											getNonSeedCount()
-											{
-												return( peers.length/2 );	// TODO:
-											}
-
-											public long
-											getScrapeStartTime()
-											{
-												return( start );
-											}
-												
-											public void 
-											setNextScrapeStartTime(
-												long nextScrapeStartTime)
-											{
-												
-											}
-												  
-											public String
-											getStatus()
-											{
-												return( "OK" );
-											}
-	
-											public URL
-											getURL()
-											{
-												try{
-													return( new URL( "dht://" + ByteFormatter.encodeString( dl.getTorrent().getHash()) + "/" ));
-													
-												}catch( Throwable e ){
-													
-													Debug.printStackTrace(e);
-													
-													return( null );
-												}
-											}
-										});
 								}
-							}
+									
+								dl.setScrapeResult(
+									new DownloadScrapeResult()
+									{
+										public Download
+										getDownload()
+										{
+											return( dl );
+										}
+										
+										public int
+										getResponseType()
+										{
+											return( RT_SUCCESS );
+										}
+										
+										public int
+										getSeedCount()
+										{
+											return( peers.length - (peers.length/2));	// !!!! TODO:
+										}
+										
+										public int
+										getNonSeedCount()
+										{
+											return( peers.length/2 );	// TODO:
+										}
+
+										public long
+										getScrapeStartTime()
+										{
+											return( start );
+										}
+											
+										public void 
+										setNextScrapeStartTime(
+											long nextScrapeStartTime)
+										{
+											
+										}
+											  
+										public String
+										getStatus()
+										{
+											return( "OK" );
+										}
+
+										public URL
+										getURL()
+										{
+											return( dl.getTorrent().getAnnounceURL());
+										}
+									});
+								}
 						});
 			}
 		}

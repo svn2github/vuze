@@ -238,7 +238,7 @@ TRTrackerDHTAnnouncerImpl
 			
 			addToTrackerCache( peers);
 		
-			tracker_status_str = MessageText.getString("PeerManager.status.ok") + " (" + result.getURL() + ")";
+			tracker_status_str = MessageText.getString("PeerManager.status.ok");
 
 			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
 		}

@@ -73,9 +73,7 @@ DHTPlugin
 {
 	private static final String	SEED_ADDRESS	= "aelitis.com";
 	private static final int	SEED_PORT		= 6881;
-	
-	private static final boolean	ENABLE_DHT	= true;
-	
+		
 	private PluginInterface		plugin_interface;
 	
 	private DHT					dht;
@@ -107,6 +105,8 @@ DHTPlugin
 		
 		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "DHT" );
 			
+		final BooleanParameter	enabled_param = config.addBooleanParameter2( "dht.enabled", "dht.enabled", true );
+
 		final StringParameter	command = config.addStringParameter2( "dht.execute.command", "dht.execute.command", "print" );
 		
 		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
@@ -238,8 +238,10 @@ DHTPlugin
 					}
 				});
 
-		if (!ENABLE_DHT){
+		if (!enabled_param.getValue()){
 			
+			model.getStatus().setText( "Disabled" );
+
 			return;
 		}
 		
