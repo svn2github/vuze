@@ -1,6 +1,6 @@
 /*
- * File    : StatsWriterFactory.java
- * Created : 23-Oct-2003
+ * File    : StatsWriterStreamerImpl.java
+ * Created : 30-Oct-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -18,31 +18,38 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.core3.stats;
+
+package org.gudy.azureus2.core3.stats.impl;
 
 /**
  * @author parg
  *
  */
 
+import java.io.*;
+
+import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.core3.stats.impl.*;
 
 public class 
-StatsWriterFactory 
+StatsWriterStreamerImpl
+	implements StatsWriterStreamer 
 {
-	public static StatsWriterPeriodic
-	createPeriodicDumper(
-		GlobalManager	manager )
+	protected GlobalManager	global_manager;
+	
+	public
+	StatsWriterStreamerImpl(
+		GlobalManager		_gm )
 	{
-		return(StatsWriterPeriodicImpl.create( manager ));
+		global_manager	= _gm;
 	}
 	
-	public static StatsWriterStreamer
-	createStreamer(
-		GlobalManager	manager )
+	public void
+	write(
+		OutputStream	output_stream )
+		
+		throws IOException
 	{
-		return( new StatsWriterStreamerImpl( manager ));
+		new StatsWriterImpl( global_manager ).write( output_stream );
 	}
 }

@@ -63,7 +63,7 @@ public class GlobalManagerImpl
   private Checker checker;
   private GlobalManagerStatsImpl	stats;
   private TRTrackerScraper 			trackerScraper;
-  private StatsWriter				stats_writer;
+  private StatsWriterPeriodic				stats_writer;
   private boolean 					isStopped = false;
 
   public class Checker extends Thread {
@@ -260,7 +260,7 @@ public class GlobalManagerImpl
     checker = new Checker();
     checker.start();
     
-    stats_writer = StatsWriterFactory.create( this );
+    stats_writer = StatsWriterFactory.createPeriodicDumper( this );
     
     stats_writer.start();
   }

@@ -138,6 +138,15 @@ XUXmlWriter
 	}
 	
 	protected void
+	flushOutputStream()
+	{
+		if ( writer != null ){
+								
+			writer.flush();					
+		}
+	}	
+	
+	protected void
 	closeOutputStream()
 	{
 		if ( writer != null ){

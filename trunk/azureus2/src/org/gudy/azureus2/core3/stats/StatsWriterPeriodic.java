@@ -1,5 +1,5 @@
 /*
- * File    : StatsWriter.java
+ * File    : StatsWriterPeriodic.java
  * Created : 23-Oct-2003
  * By      : parg
  * 
@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.stats;
 import org.gudy.azureus2.core3.util.Constants;
 
 public interface 
-StatsWriter 
+StatsWriterPeriodic 
 {	
 	public static final String		DEFAULT_STATS_FILE_NAME	= Constants.AZUREUS_NAME + "_Stats.xml";
 
