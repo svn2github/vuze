@@ -131,45 +131,18 @@ PEPeerTransportImpl
 
 	protected void
 	closeConnection() {
-    
-	  if (socket == null) {
-	    Debug.out("socket already null");
-	    return;
-	  }
-    
-	  try {
-	    Socket sck = socket.socket();
-
-	    if (socket.isOpen()) {
-	      socket.close();
-         if (!sck.isInputShutdown()) {
-           Debug.out("shutting down input");
-           sck.shutdownInput();
-         }
-         if (!sck.isOutputShutdown()) {
-           Debug.out("shutting down output");
-           sck.shutdownOutput();
-         }
-	    }
-      
-	    if (!sck.isClosed()){
-	      Debug.out("sck not already closed");
-			sck.close();
-		 } 
-	  }
-	  catch (Exception e){
-	    String msg = "exception trying to close socket:\n";
-       msg = msg + " cOpen=" + socket.isOpen();
-       msg = msg + " cConnected=" + socket.isConnected();
-       msg = msg + " cPending=" + socket.isConnectionPending();
-       msg = msg + " sClosed=" + socket.socket().isClosed();
-       msg = msg + " sConnected=" + socket.socket().isConnected();
-       msg = msg + " sInptShtdwn=" + socket.socket().isInputShutdown();
-       msg = msg + " sOutptShtdwn=" + socket.socket().isOutputShutdown();
-       msg = msg + " sBound=" + socket.socket().isBound();
-       msg = msg + " Exception:\n" + e.getMessage();
-       Debug.out(msg);
-	  }
+    try {  
+      if (socket != null) {
+        //Socket s = socket.socket();
+        //if ( !s.isOutputShutdown() ) s.shutdownOutput();
+        //if ( !s.isInputShutdown() )  s.shutdownInput();
+      	//socket.close();
+        socket.socket().close();
+        socket = null;
+      }
+      else Debug.out("socket already null");
+    }
+    catch (Throwable e) { e.printStackTrace(); }
 	}
 
   
