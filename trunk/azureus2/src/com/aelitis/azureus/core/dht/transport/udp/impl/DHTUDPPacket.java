@@ -203,8 +203,12 @@ DHTUDPPacket
 	
 		throws IOException
 	{
-		if ( version != DHTUDPPacket.VERSION ){
+		if ( version < 4 ){
 		
+			// relax the version checking as from version 4 onwards we aim
+			// to support backwards compatability
+			
+			/*
 			if ( version > DHTUDPPacket.VERSION ){
 				
 				try{
@@ -222,6 +226,7 @@ DHTUDPPacket
 					class_mon.exit();
 				}
 			}
+			*/
 			
 			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
 		}

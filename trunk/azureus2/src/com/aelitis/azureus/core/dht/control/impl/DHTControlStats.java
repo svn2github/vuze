@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.control.impl;
 
 import org.gudy.azureus2.core3.util.Average;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -208,6 +209,12 @@ DHTControlStats
 	}
 	
 	public String
+	getVersion()
+	{
+		return( Constants.AZUREUS_VERSION );
+	}
+	
+	public String
 	getString()
 	{
 		return(	"transport:" + 
@@ -229,6 +236,7 @@ DHTControlStats
 				getRouterLeaves() + "," +
 				getRouterContacts() + 
 				",database:" +
-				getDBValuesStored());
+				getDBValuesStored()+
+				",version:" + getVersion());
 	}
 }

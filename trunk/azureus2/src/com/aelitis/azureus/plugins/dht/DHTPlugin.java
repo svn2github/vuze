@@ -500,6 +500,12 @@ DHTPlugin
 						}
 						
 						public void
+						found(
+							DHTTransportContact	contact )
+						{
+						}
+
+						public void
 						read(
 							DHTTransportContact	_contact,
 							DHTTransportValue	_value )
@@ -560,6 +566,12 @@ DHTPlugin
 							log.log( indent + "Get: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
 						}
 						
+						public void
+						found(
+							DHTTransportContact	contact )
+						{
+						}
+
 						public void
 						read(
 							final DHTTransportContact	contact,
@@ -624,6 +636,12 @@ DHTPlugin
 								log.log( indent + "Remove: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
 							}
 							
+							public void
+							found(
+								DHTTransportContact	contact )
+							{
+							}
+
 							public void
 							read(
 								DHTTransportContact	contact,

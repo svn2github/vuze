@@ -894,13 +894,13 @@ DHTTransportUDPImpl
 		
 		final long	connection_id = getConnectionID();
 		
-		/*
-		int	total_values = 0;
-		for (int i=0;i<keys.length;i++){
-			total_values += value_sets[i].length;
+		if ( false ){
+			int	total_values = 0;
+			for (int i=0;i<keys.length;i++){
+				total_values += value_sets[i].length;
+			}
+			System.out.println( "store: keys = " + keys.length +", values = " + total_values );
 		}
-		System.out.println( "store: keys = " + keys.length +", values = " + total_values );
-		*/
 		
 			// only report to caller the outcome of the first packet
 		

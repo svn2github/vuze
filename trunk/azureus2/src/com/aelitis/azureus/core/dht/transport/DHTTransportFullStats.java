@@ -92,5 +92,8 @@ DHTTransportFullStats
 	getAveragePacketsSent();
 	
 	public String
+	getVersion();
+	
+	public String
 	getString();
 }

@@ -401,6 +401,12 @@ Test
 								}
 								
 								public void
+								found(
+									DHTTransportContact	contact )
+								{
+								}
+								
+								public void
 								read(
 									final DHTTransportContact	contact,
 									final DHTTransportValue		value )

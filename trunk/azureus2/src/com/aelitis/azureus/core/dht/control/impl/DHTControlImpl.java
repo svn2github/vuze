@@ -210,6 +210,12 @@ DHTControlImpl
 								}
 								
 								public void
+								found(
+									DHTTransportContact	contact )
+								{
+								}
+
+								public void
 								read(
 									DHTTransportContact	contact,
 									DHTTransportValue	value )
@@ -448,6 +454,12 @@ DHTControlImpl
 					}
 					
 					public void
+					found(
+						DHTTransportContact	contact )
+					{
+					}
+
+					public void
 					read(
 						DHTTransportContact	contact,
 						DHTTransportValue	value )
@@ -545,6 +557,16 @@ DHTControlImpl
 						}
 					}
 					
+					public void
+					found(
+						DHTTransportContact	contact )
+					{
+						if ( listener != null ){
+							
+							listener.found( contact );
+						}
+					}
+
 					public void
 					read(
 						DHTTransportContact	_contact,
@@ -670,6 +692,12 @@ DHTControlImpl
 				}
 				
 				public void
+				found(
+					DHTTransportContact	contact )
+				{
+				}
+
+				public void
 				read(
 					DHTTransportContact	contact,
 					DHTTransportValue	value )
@@ -728,6 +756,13 @@ DHTControlImpl
 						get_listener.searching( contact, level, active_searches );
 					}
 					
+					public void
+					found(
+						DHTTransportContact	contact )
+					{
+						get_listener.found( contact );
+					}
+
 					public void
 					read(
 						DHTTransportContact	contact,
@@ -939,7 +974,11 @@ DHTControlImpl
 			
 			while( it.hasNext()){
 				
-				level_map.put( it.next(), new Integer(0));
+				DHTTransportContact	contact	= (DHTTransportContact)it.next();
+				
+				result_handler.found( contact );
+				
+				level_map.put( contact , new Integer(0));
 			}
 			
 				// record the set of contacts we've queried to avoid re-queries
@@ -1127,6 +1166,8 @@ DHTControlImpl
 												DHTLog.log( "    new contact for query: " + DHTLog.getString( contact ));
 												
 												contacts_to_query.add( contact );
+												
+												result_handler.found( contact );
 												
 												level_map.put( contact, new Integer( search_level+1));
 				
@@ -1441,7 +1482,7 @@ DHTControlImpl
 		// when a new node is added we must check to see if we need to transfer
 		// any of our values to it.
 		
-		Map	values_to_store	= new HashMap();
+		Map	keys_to_store	= new HashMap();
 		
 		if( database.isEmpty()){
 							
@@ -1500,7 +1541,7 @@ DHTControlImpl
 				continue;
 			}
 			
-				// TODO: store multiple values at once
+			List	values_to_store = new ArrayList();
 			
 			for (int i=0;i<values.length;i++){
 				
@@ -1540,73 +1581,73 @@ DHTControlImpl
 				
 				if ( store_it ){
 		
-					values_to_store.put( key, value );
+					values_to_store.add( value );
 				}
+			}
+			
+			if ( values_to_store.size() > 0 ){
+				
+				keys_to_store.put( key, values_to_store );
 			}
 		}
 		
-		if ( values_to_store.size() > 0 ){
+		if ( keys_to_store.size() > 0 ){
 			
-			it = values_to_store.entrySet().iterator();
+			it = keys_to_store.entrySet().iterator();
 			
 			DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getContact();
 	
-			boolean	first_value	= true;
+			byte[][]				keys 		= new byte[keys_to_store.size()][];
+			DHTTransportValue[][]	value_sets = new DHTTransportValue[keys.length][];
+			
+			int		index = 0;
 			
 			while( it.hasNext()){
-				
+		
 				Map.Entry	entry = (Map.Entry)it.next();
 				
 				HashWrapper	key		= (HashWrapper)entry.getKey();
 				
-				DHTDBValue	value	= (DHTDBValue)entry.getValue();
+				List		values	= (List)entry.getValue();
+		
+				keys[index] 		= key.getHash();
+				value_sets[index]	= new DHTTransportValue[values.size()];
+				
+				
+				for (int i=0;i<values.size();i++){
 					
-				final boolean	ping_replacement = 
-					first_value && !new_contact.hasBeenAlive();
+					value_sets[index][i] = ((DHTDBValue)values.get(i)).getValueForRelay( local_contact );
+				}
 				
-				first_value	= false;
-				
-					// TODO: multiple values
-				
-				t_contact.sendStore( 
-						new DHTTransportReplyHandlerAdapter()
-						{
-							public void
-							storeReply(
-								DHTTransportContact _contact )
-							{
-								DHTLog.log( "add store ok" );
-								
-								router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
-							}	
-							
-							public void
-							failed(
-								DHTTransportContact 	_contact,
-								Throwable				_error )
-							{
-									// we ignore failures when propagating values as there might be
-									// a lot to propagate and one failure would remove the newly added
-									// node. given that the node has just appeared, and can therefore be
-									// assumed to be alive, this is acceptable behaviour. 
-									// If we don't do this then we can get a node appearing and disappearing
-									// and taking up loads of resources
-								
-									// however, for contacts that aren't known to be alive
-									// we use one of the stores in place of a ping to ascertain liveness
-								
-								if ( ping_replacement ){
-									
-									DHTLog.log( "add store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
-																		
-									router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
-								}
-							}
-						},
-						new byte[][]{ key.getHash()}, 
-						new DHTTransportValue[][]{{ value.getValueForRelay( local_contact )}});
-						
+				index++;
 			}
+			
+			t_contact.sendStore( 
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						storeReply(
+							DHTTransportContact _contact )
+						{
+							DHTLog.log( "add store ok" );
+							
+							router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
+						}	
+						
+						public void
+						failed(
+							DHTTransportContact 	_contact,
+							Throwable				_error )
+						{
+							DHTLog.log( "add store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+																	
+							router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
+						}
+					},
+					keys, 
+					value_sets );
+						
+			
 		}else{
 			
 			if ( !new_contact.hasBeenAlive()){

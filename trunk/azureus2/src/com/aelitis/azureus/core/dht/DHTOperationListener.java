@@ -40,6 +40,10 @@ DHTOperationListener
 		int					active_searches );
 	
 	public void
+	found(
+		DHTTransportContact	contact );
+	
+	public void
 	read(
 		DHTTransportContact	contact,
 		DHTTransportValue	value );

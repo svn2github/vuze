@@ -547,6 +547,10 @@ DHTUDPUtils
 		os.writeLong( stats.getAveragePacketsSent());
 		
 		os.writeLong( stats.getIncomingRequests());
+		
+		String	version = stats.getVersion() + "["+DHTUDPPacket.VERSION+"]";
+		
+		serialiseByteArray( os, version.getBytes(), 64);
 	}
 	
 	protected static DHTTransportFullStats
@@ -575,6 +579,8 @@ DHTUDPUtils
 		final long average_packets_sent			= is.readLong();
 		
 		final long incoming_requests			= is.readLong();
+		
+		final String	version = new String( deserialiseByteArray( is, 64 ));
 		
 		DHTTransportFullStats	res = 
 			new DHTTransportFullStats()
@@ -686,6 +692,12 @@ DHTUDPUtils
 				}
 				
 				public String
+				getVersion()
+				{
+					return( version );
+				}
+				
+				public String
 				getString()
 				{
 					return(	"transport:" + 
@@ -707,7 +719,8 @@ DHTUDPUtils
 							getRouterLeaves() + "," +
 							getRouterContacts() + 
 							",database:" +
-							getDBValuesStored());
+							getDBValuesStored()+
+							",version:" + getVersion());
 				}
 			};
 	
