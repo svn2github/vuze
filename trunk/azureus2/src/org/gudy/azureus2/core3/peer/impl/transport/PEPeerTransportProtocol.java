@@ -1005,6 +1005,7 @@ PEPeerTransportProtocol
     byte[] dataf = new byte[ (manager.getPiecesNumber() + 7) / 8 ];
          
     if( field.remaining( DirectByteBuffer.SS_PEER ) < dataf.length ) {
+      Debug.out( toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
       LGLogger.log( componentID, evtProtocol, LGLogger.ERROR, toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
       bitfield.destroy();
       return;
