@@ -53,14 +53,20 @@ public class PeerConnectInfoStorage {
   
   /**
    * Add a new peer info to the storage.
-   * Info is only added if there is remaining capacity
-   * and if the address+port combo is unique.
+   * Info is only added if the address+port combo is unique.
+   * If already at capacity, replace oldest.
    * @param peer_info to add
    */
   public void addPeerInfo( PeerInfo peer_info ) {
     try {  peer_infos_mon.enter();
-      if( peer_infos.size() < capacity && !peer_infos.contains( peer_info ) ) {
-        peer_infos.addLast( peer_info );
+      if( capacity > 0 && !peer_infos.contains( peer_info ) ) {
+        if( peer_infos.size() < capacity ) {
+          peer_infos.addLast( peer_info );
+        }
+        else {  //at capacity, so replace oldest
+          peer_infos.removeFirst();
+          peer_infos.addLast( peer_info );
+        }
       }
     }
     finally {  peer_infos_mon.exit();  }
