@@ -51,7 +51,9 @@ DMPiecePickerImpl
 	private int 	pieceCompletion[];
 	
 	private boolean	has_piece_to_download;
-	private boolean	compute_priority_recalc_outstanding;
+	
+	private volatile boolean	compute_priority_recalc_outstanding;
+	
 	private long	last_priority_computation;
 	
 	private BitSet[] priorityLists;
