@@ -49,7 +49,7 @@ PEServerImpl
   private int port;
   private ServerSocketChannel sck;
   private boolean bContinue;
-  private PEPeerManager manager;
+  private PEPeerManagerImpl manager;
 
   private static int instanceCount = 0;
 
@@ -175,7 +175,7 @@ PEServerImpl
   }
 
   public void setManager(PEPeerManager manager) {
-    this.manager = manager;
+    this.manager = (PEPeerManagerImpl)manager;
   }
 
 }

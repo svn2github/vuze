@@ -24,7 +24,6 @@ package org.gudy.azureus2.core3.peer;
 import java.util.List;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.disk.*;
 
@@ -39,9 +38,6 @@ PEPeerManager
 {
 	public static final int BLOCK_SIZE = 16384;
  
- 	public void
- 	addPeer(
-		SocketChannel		chan);
 		
 	public void peerAdded(PEPeer pc);
 
