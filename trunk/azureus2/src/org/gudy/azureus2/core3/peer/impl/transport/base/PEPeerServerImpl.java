@@ -138,6 +138,9 @@ PEPeerServerImpl
           LGLogger.ERROR,
           "PEPeerServer was unable to bind port " + TCPListenPort + ", reason : " + e);
         //port++;
+        if ( sck != null && sck.isOpen() ) {
+          try {  sck.close();  } catch (Exception ignore){}
+        }
         sck = null;
       }
     //}
