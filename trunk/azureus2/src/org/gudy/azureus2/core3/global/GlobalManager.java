@@ -153,6 +153,4 @@ GlobalManager
    * @author Rene Leonhardt
    */
   public int getNextIndexForCharacter(char c, int lastSelectedIndex);
-  
-  public void startChecker();
 }

@@ -33,21 +33,15 @@ public class
 GlobalManagerFactory 
 {
 	public static GlobalManager
-	create(boolean initializeStarted)
+	create(
+       STProgressListener 	listener)
 	{
-		return( new GlobalManagerImpl(initializeStarted));
-	}
-
-	public static GlobalManager
-	create(boolean initializeStarted,
-	       STProgressListener 	listener)
-	{
-		return( new GlobalManagerImpl(initializeStarted, listener));
+		return( new GlobalManagerImpl( listener));
 	}
   
-  public static GlobalManager
-  create()
-  {
-    return( new GlobalManagerImpl(true));
-  }
+	public static GlobalManager
+	create()
+	{
+		return( new GlobalManagerImpl( null ));
+	}
 }

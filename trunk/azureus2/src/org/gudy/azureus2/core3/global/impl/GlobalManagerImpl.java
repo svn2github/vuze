@@ -213,11 +213,9 @@ public class GlobalManagerImpl
     }
   }
 
-  public GlobalManagerImpl(boolean initialiseStarted) {
-    this(initialiseStarted, null);
-  }
-
-  public GlobalManagerImpl(boolean initialiseStarted, STProgressListener listener)
+  public 
+  GlobalManagerImpl(
+  		STProgressListener listener)
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
@@ -267,11 +265,8 @@ public class GlobalManagerImpl
     }
     
     checker = new Checker();   
-    
-    if ( initialiseStarted ){
-    	
-    	checker.start();
-    }
+       	
+    checker.start();
     
     if ( stats_writer != null ){
     	
@@ -1121,14 +1116,6 @@ public class GlobalManagerImpl
       }
     }
     return -1;
-  }
-  
-  public void startChecker()  {
-    synchronized( checker ){
-      if ( !checker.isAlive()){
-        checker.start(); 
-      }
-    }
   }
 
   // DownloadManagerListener

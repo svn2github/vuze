@@ -102,7 +102,7 @@ public class Initializer implements STProgressListener, Application {
     
     reportCurrentTaskByKey("splash.initializeGM");   
     nextTask();
-    this.gm = GlobalManagerFactory.create(false, this);
+    this.gm = GlobalManagerFactory.create(this);
     new UserAlerts(gm);
     
     

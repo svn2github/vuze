@@ -709,7 +709,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     
     Tab.addTabKeyListenerToComposite(folder);
     
-    globalManager.startChecker();
+    // globalManager.startChecker();
     
     	// check file associations   
     DonationWindow2.checkForDonationPopup();

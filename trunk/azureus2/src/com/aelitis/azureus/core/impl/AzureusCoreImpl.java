@@ -102,8 +102,6 @@ AzureusCoreImpl
 	        		PluginInitializer.initialisationComplete();
 	        	}
 	        }.start();   
-	        
-	    global_manager.startChecker();
 	}
 	
 	public synchronized void
