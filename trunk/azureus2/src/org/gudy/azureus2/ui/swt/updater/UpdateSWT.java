@@ -120,7 +120,8 @@ public class UpdateSWT {
         File f = openFile("Azureus.app/Contents/MacOS/","java_swt");
         String path = f.getAbsolutePath();
         String chgRights = "chmod 755 " + path;
-        Runtime.getRuntime().exec(chgRights);
+        Process p = Runtime.getRuntime().exec(chgRights);
+        p.waitFor();
       }
       if(zipEntry.getName().equals("swt.jar")) {        
         writeFile(zipFile,zipEntry,"Azureus.app/Contents/Resources/Java/");
