@@ -46,6 +46,17 @@ public class IpItem
     PEPeer peer = (PEPeer)cell.getDataSource();
     String sText = (peer == null) ? "" : peer.getIp();
 
-    cell.setText(sText);
+    if (cell.setText(sText)) {
+      String[] sBlocks = sText.split("\\.");
+      if (sBlocks.length == 4) {
+        try {
+          long l = (Long.parseLong(sBlocks[0]) << 24) +
+                   (Long.parseLong(sBlocks[1]) << 16) +
+                   (Long.parseLong(sBlocks[2]) << 8) +
+                   Long.parseLong(sBlocks[3]);
+          cell.setSortValue(l);
+        } catch (Exception e) { /* ignore */ }
+      }
+    }
   }
 }
