@@ -869,20 +869,21 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       return;
 
     sorter.reOrder(false);
-
-    Iterator iter = objectToSortableItem.keySet().iterator();
-    while (iter.hasNext()) {
-      if (this.panel.isDisposed())
-        return;
-      DownloadManager manager = (DownloadManager) iter.next();
-      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-      if (item != null) {
-        //Every N GUI updates we unvalidate the images
-        if (loopFactor % graphicsUpdate == 0)
-          item.invalidate();
-        
-        item.refresh();
-      }
+    synchronized(objectToSortableItem) {
+	    Iterator iter = objectToSortableItem.keySet().iterator();
+	    while (iter.hasNext()) {
+	      if (this.panel.isDisposed())
+	        return;
+	      DownloadManager manager = (DownloadManager) iter.next();
+	      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
+	      if (item != null) {
+	        //Every N GUI updates we unvalidate the images
+	        if (loopFactor % graphicsUpdate == 0)
+	          item.invalidate();
+	        
+	        item.refresh();
+	      }
+	    }
     }
   }
 
@@ -918,8 +919,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     	if (mw != null) {
       		mw.close();
     	}
-
-    	TorrentRow managerItem = (TorrentRow) objectToSortableItem.remove(removed);
+    	TorrentRow managerItem;
+    	synchronized(objectToSortableItem) {
+    	  managerItem = (TorrentRow) objectToSortableItem.remove(removed);
+    	}
     	if (managerItem != null) {
       		TableItem tableItem = managerItem.getTableItem();
       		tableItemToObject.remove(tableItem);
