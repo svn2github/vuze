@@ -18,7 +18,7 @@ BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
 BUGFIX: Renamed file not reused after torrent Stop-Start: Bug #842750 [Nolar]
 BUGFIX: No longer deletes files if the 'completed' dir points to the download dir: Bug #842896 [Nolar]
 BUGFIX: % Completed is now correct again in 'My torrents' view on stopped downloads.
-
+BUGFIX: non-utf8 encoded 'comment' fields in torrents not showing properly
 
 13.11.03 | Azureus 2.0.4.0
 
