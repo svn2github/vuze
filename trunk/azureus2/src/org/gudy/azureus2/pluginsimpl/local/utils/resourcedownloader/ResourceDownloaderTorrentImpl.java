@@ -217,6 +217,12 @@ ResourceDownloaderTorrentImpl
 				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent), temp_file, temp_dir );
 			}
 			
+			download.setPosition(1);
+			
+			download.setPosition( Download.PR_HIGH_PRIORITY );
+			
+			download.setForceStart( true );
+			
 			download_manager.addListener(
 				new DownloadManagerListener()
 				{
