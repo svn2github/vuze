@@ -53,7 +53,7 @@ PEPeerManagerStatsImpl
 	  this.pieceLength = pieceLength;
 
 	  //average over 10s, update every 2000ms.
-	  receptionSpeed = Average.getInstance(2000, 10);
+	  receptionSpeed = Average.getInstance(2000, 15);
 
 	  //average over 5s, update every 100ms.
 	  sendingSpeed = Average.getInstance(1000, 5);
