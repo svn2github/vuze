@@ -63,6 +63,7 @@ PEPeerControl
 	    PEPeer peer,
 	    int pieceNumber);
 	
+  /*
 	public void
 	addListener(
 		PEPeerControlListener	l );
@@ -70,7 +71,7 @@ PEPeerControl
 	public void
 	removeListener(
 		PEPeerControlListener	l );
-  
+  */
   
 	public DiskManager getDiskManager();
 }

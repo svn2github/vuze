@@ -134,7 +134,7 @@ PEPeerControlImpl
   
   
   private List	peer_manager_listeners 		= new ArrayList();
-  private List	peer_transport_listeners 	= new ArrayList();
+  //private List	peer_transport_listeners 	= new ArrayList();
   
   private List 		piece_check_result_list 	= new ArrayList();
   private AEMonitor	piece_check_result_list_mon	= new AEMonitor( "PEPeerControl:PCRL");
@@ -1975,9 +1975,9 @@ PEPeerControlImpl
       peer_transports_mon.exit();
     }
       
-  	for (int i=0;i<peer_transport_listeners.size();i++){
-  		((PEPeerControlListener)peer_transport_listeners.get(i)).peerAdded( peer );
-  	}
+  	//for (int i=0;i<peer_transport_listeners.size();i++){
+  	//	((PEPeerControlListener)peer_transport_listeners.get(i)).peerAdded( peer );
+  	//}
   }
   
   	/**
@@ -1991,7 +1991,7 @@ PEPeerControlImpl
   	PEPeerTransport		peer,
 	String				reason )
   {
-  	boolean	connection_found = false;
+  	//boolean	connection_found = false;
 
   		// copy-on-write semantics
 	try{
@@ -1999,7 +1999,7 @@ PEPeerControlImpl
 		  	
 	  	if ( peer_transports_cow.contains( peer )){
 	 
-			connection_found	= true;
+			//connection_found	= true;
 			
 		  	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
 		  	
@@ -2016,13 +2016,13 @@ PEPeerControlImpl
 		peer_transports_mon.exit();
 	}
 	
-	if ( connection_found ){
-		
-	  	 for (int i=0;i<peer_transport_listeners.size();i++){
-	  	 	
-	  	 	((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
-	  	 }
-  	}
+	//if ( connection_found ){
+	//	
+	//  	 for (int i=0;i<peer_transport_listeners.size();i++){
+	//  	 	
+	//  	 	((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
+	// 	 }
+  //	}
   }
   
   
@@ -2054,9 +2054,9 @@ PEPeerControlImpl
     
     if ( connection_found ){
     	
-	    for( int i=0; i < peer_transport_listeners.size(); i++ ){
-	      ((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
-	    }
+	    //for( int i=0; i < peer_transport_listeners.size(); i++ ){
+	    //  ((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
+	    //}
 	    
 	    String key = peer.getIp() + ":" + peer.getPort();
 	    if( reconnect ) {
@@ -2765,6 +2765,7 @@ PEPeerControlImpl
     }
   }
   
+  /*
   public void
   addListener(
   	PEPeerControlListener	l )
@@ -2798,7 +2799,7 @@ PEPeerControlImpl
   		peer_transports_mon.exit();
   	}
   }
-  
+  */
   
   public DiskManager getDiskManager() {  return _diskManager;   }
   
