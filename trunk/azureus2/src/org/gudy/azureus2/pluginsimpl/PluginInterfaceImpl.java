@@ -48,6 +48,8 @@ import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.pluginsimpl.ui.config.ConfigSectionRepository;
+import org.gudy.azureus2.plugins.utils.Utilities;
+import org.gudy.azureus2.pluginsimpl.utils.UtilitiesImpl;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -171,6 +173,12 @@ public class PluginInterfaceImpl implements PluginInterface {
   getIPFilter()
   {
   	return( new IPFilterImpl());
+  }
+  
+  public Utilities
+  getUtilities()
+  {
+  	return( new UtilitiesImpl());
   }
 
   public PeerProtocolManager

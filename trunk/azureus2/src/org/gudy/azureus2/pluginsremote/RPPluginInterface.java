@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsremote;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
@@ -209,6 +210,14 @@ RPPluginInterface
 	getShareManager()
 	
 		throws ShareException
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
+	public Utilities
+	getUtilities()
 	{
 		notSupported();
 		

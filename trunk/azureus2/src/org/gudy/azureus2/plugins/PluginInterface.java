@@ -26,6 +26,7 @@ import java.util.Properties;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
+import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.download.DownloadManager;
@@ -145,6 +146,13 @@ public interface PluginInterface {
   
   public TorrentManager
   getTorrentManager();
+  
+  /**
+   * access to various utility functions
+   * @return
+   */
+  public Utilities
+  getUtilities();
   
   /**
    * opens a torrent file given its name
