@@ -46,8 +46,9 @@ public class GlobalManager extends Component {
       while (!finished) {
 
         loopFactor++;
-        // TODO is the 100 minutes interval correct?
-        if (loopFactor >= 6000) {
+        // Changed to 2 mins :D
+        // Should be user configurable.
+        if (loopFactor >= 120) {
           loopFactor = 0;
           trackerChecker.update();
         }
