@@ -87,7 +87,8 @@ public class UploadManager {
             data.state = ConnectionData.STATE_UPGRADED;
             main_entity_controller.upgradePeerConnection( connection, new UploadEntityController.RateController() {
               public int getAllowedBytesPerSecondRate() {
-                return UNLIMITED_WRITE_RATE;  //TODO hook in per-torrent values etc
+                //return UNLIMITED_WRITE_RATE;  //TODO hook in per-torrent values etc
+                return 4 * 1024;
               }
             });
           }
