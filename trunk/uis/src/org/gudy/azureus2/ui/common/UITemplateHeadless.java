@@ -19,7 +19,7 @@ import org.gudy.azureus2.ui.common.util.LocaleUtilHeadless;
  */
 public abstract class UITemplateHeadless
 	extends UITemplate
-	implements org.gudy.azureus2.core3.internat.ILocaleUtilChooser, IUserInterface {
+	implements IUserInterface {
 
 	public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(){
 	

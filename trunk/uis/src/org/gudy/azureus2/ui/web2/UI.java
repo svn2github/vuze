@@ -25,7 +25,6 @@ import seda.sandStorm.main.SandstormConfig;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.*;
@@ -40,7 +39,7 @@ import org.gudy.azureus2.ui.web2.util.WebLogAppender;
 /**
  * @author Tobias Minich
  */
-public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implements ILocaleUtilChooser, IUserInterface, WebConst {
+public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implements IUserInterface, WebConst {
 
   public static int numRequests;
   public static int numErrors;

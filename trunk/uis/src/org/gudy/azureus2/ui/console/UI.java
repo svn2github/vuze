@@ -13,7 +13,6 @@ package org.gudy.azureus2.ui.console;
 import org.apache.log4j.Logger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.common.IUserInterface;
@@ -23,7 +22,7 @@ import org.gudy.azureus2.ui.common.UIConst;
  *
  * @author  Tobias Minich
  */
-public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implements ILocaleUtilChooser,IUserInterface {
+public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implements IUserInterface {
   
   private ConsoleInput console = null;
   
