@@ -36,4 +36,18 @@ public interface PluginPeerItem {
    * from PeerTableItem.
    */
   public void refresh();
+  
+  /**
+   * Called by the GUI whenever a sort is done.<br>
+   * Should return null if the item is of type TYPE_INT.
+   * @return the current value
+   */
+  public String getStringValue();
+  
+  /**
+   * Called by the GUI whenever a sort is done.<br>
+   * Should return 0 if the item is of type TYPE_STRING.
+   * @return the current value
+   */
+  public int getIntValue();
 }
