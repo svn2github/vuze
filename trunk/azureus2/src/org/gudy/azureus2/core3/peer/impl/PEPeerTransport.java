@@ -49,10 +49,7 @@ PEPeerTransport
 	
 	public int
 	processRead();
-  
-    public int
-    processWrite();
-	
+  	
 	public void
 	sendChoke();
 	
@@ -104,15 +101,17 @@ PEPeerTransport
 	public PEPeerControl
 	getControl();
   
-    public int getReadSleepTime();
-    public int getWriteSleepTime();
-    public long getLastReadTime();
-    public long getLastWriteTime();
+	public int getReadSleepTime();
+	public long getLastReadTime();
   
-    public void setReadSleepTime(int time);
-    public void setWriteSleepTime(int time);
-    public void setLastReadTime(long time);
-    public void setLastWriteTime(long time);
+	public void setReadSleepTime(int time);
+	public void setLastReadTime(long time);
   
+  
+	/**
+	 * Check if we need to send a keep-alive message.
+	 * A keep-alive is sent if no other message has been sent within the last 2min.
+	 */
+	public void doKeepAliveCheck();
   
 }

@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 public class BTBitfield implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
+  private final int total_byte_size;
   
   public BTBitfield( ByteBuffer bitfield ) {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( bitfield.capacity() + 5 ) );
@@ -46,11 +47,15 @@ public class BTBitfield implements BTProtocolMessage {
     buffer.put( bitfield );
     buffer.position( 0 );
     buffer.limit( bitfield.capacity() + 5 );
+    
+    total_byte_size = buffer.limit();
   }
   
   public int getType() {  return BTProtocolMessage.BT_BITFIELD;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
+  
+  public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
     return "Bitfield";

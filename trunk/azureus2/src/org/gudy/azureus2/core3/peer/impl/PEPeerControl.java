@@ -30,6 +30,8 @@ package org.gudy.azureus2.core3.peer.impl;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.*;
 
+import com.aelitis.azureus.core.networkmanager.ConnectionPool;
+
 public interface
 PEPeerControl
 	extends PEPeerManager, PEPeerServerAdapter
@@ -72,5 +74,7 @@ PEPeerControl
   
   
   public DiskManager getDiskManager();
+  
+  public ConnectionPool getConnectionPool();
 	
 }

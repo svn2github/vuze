@@ -34,18 +34,23 @@ import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 public class BTKeepAlive implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
-  
+  private final int total_byte_size;
+
   public BTKeepAlive() {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
     
     buffer.putInt( 0 );
     buffer.position( 0 );
     buffer.limit( 4 );
+    
+    total_byte_size = buffer.limit();
   }
   
   public int getType() {  return BTProtocolMessage.BT_KEEP_ALIVE;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
+  
+  public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
     return "Keep-alive";

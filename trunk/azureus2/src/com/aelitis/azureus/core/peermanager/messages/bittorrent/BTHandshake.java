@@ -38,6 +38,7 @@ public class BTHandshake implements BTProtocolMessage {
   private final DirectByteBuffer buffer;
   private final byte[] data_hash;
   private final byte[] peer_id;
+  private final int total_byte_size;
   
   public BTHandshake( byte[] data_hash, byte[] peer_id ) {
     this.data_hash = data_hash;
@@ -51,11 +52,15 @@ public class BTHandshake implements BTProtocolMessage {
     buffer.put( peer_id );
     buffer.position( 0 );
     buffer.limit( 68 );
+    
+    total_byte_size = buffer.limit();
   }
   
   public int getType() {  return BTProtocolMessage.BT_HANDSHAKE;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
+  
+  public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
     return "Handshake of DataID: " +ByteFormatter.nicePrint( data_hash, true )

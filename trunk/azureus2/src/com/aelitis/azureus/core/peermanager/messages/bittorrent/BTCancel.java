@@ -37,6 +37,7 @@ public class BTCancel implements BTProtocolMessage {
   private final int piece_number;
   private final int piece_offset;
   private final int length;
+  private final int total_byte_size;
   
   public BTCancel( int piece_number, int piece_offset, int length ) {
     this.piece_number = piece_number;
@@ -52,11 +53,15 @@ public class BTCancel implements BTProtocolMessage {
     buffer.putInt( length );
     buffer.position( 0 );
     buffer.limit( 17 );
+    
+    total_byte_size = buffer.limit();
   }
   
   public int getType() {  return BTProtocolMessage.BT_CANCEL;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
+  
+  public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
     return "Cancel piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length);

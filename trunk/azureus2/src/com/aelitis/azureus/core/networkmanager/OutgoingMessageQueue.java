@@ -21,7 +21,7 @@
  */
 
 
-package com.aelitis.azureus.core.peermanager.messages;
+package com.aelitis.azureus.core.networkmanager;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -30,25 +30,39 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 
-import com.aelitis.azureus.core.networkmanager.PeerConnection;
+import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 
 
 /**
  * Priority-based outbound peer message queue.
  */
 public class OutgoingMessageQueue {
-  private final PeerConnection peer_transport;
+  private final Transport peer_transport;
   private final List queue = new LinkedList();
   private int total_size = 0;
   private final ArrayList add_listeners = new ArrayList();
   private final ArrayList sent_listeners = new ArrayList();
+  private final ArrayList byte_listeners = new ArrayList();
   
   /**
    * Create a new message queue transmitting over the given transport.
    * @param peer_transport
    */
-  public OutgoingMessageQueue( PeerConnection peer_transport ) {
+  protected OutgoingMessageQueue( Transport peer_transport ) {
     this.peer_transport = peer_transport;
+  }
+  
+
+  /**
+   * Destroy this queue; i.e. perform cleanup actions.
+   */
+  protected void destroy() {
+    synchronized( queue ) {
+      while( !queue.isEmpty() ) {
+      	((ProtocolMessage)queue.remove( 0 )).destroy();
+      }
+    }
+    total_size = 0;
   }
   
   
@@ -60,24 +74,10 @@ public class OutgoingMessageQueue {
   
   
   /**
-   * Destroy this queue; i.e. perform cleanup actions.
-   */
-  public void destroy() {
-    synchronized( queue ) {
-      while( !queue.isEmpty() ) {
-      	((ProtocolMessage)queue.remove( 0 )).destroy();
-      }
-    }
-    total_size = 0;
-  }
-  
-  
-  /**
    * Add a message to the message queue.
    * @param message message to add
    */
   public void addMessage( ProtocolMessage message ) {
-    notifyAddListeners( message );
     removeMessagesOfType( message.typesToRemove() );
     synchronized( queue ) {
       int pos = 0;
@@ -89,6 +89,7 @@ public class OutgoingMessageQueue {
       queue.add( pos, message );
       total_size += message.getPayload().remaining();
     }
+    notifyAddListeners( message );
   }
   
   
@@ -144,7 +145,7 @@ public class OutgoingMessageQueue {
    * @return number of bytes delivered
    * @throws IOException
    */
-  public int deliverToTransport( int max_bytes ) throws IOException {
+  protected int deliverToTransport( int max_bytes ) throws IOException {
     int written = 0;
     synchronized( queue ) {     
     	if( !queue.isEmpty() ) {
@@ -164,6 +165,8 @@ public class OutgoingMessageQueue {
     			buffers[ pos ].limit( orig_limit - (total_sofar - max_bytes) );
     		}
         written = new Long( peer_transport.write( buffers, 0, pos + 1 ) ).intValue();
+        notifyByteListeners( written );
+        //System.out.println( peer_transport.getDescription() + " written=" + written );
         buffers[ pos ].limit( orig_limit );
         pos = 0;
         while( !queue.isEmpty() ) {
@@ -211,6 +214,18 @@ public class OutgoingMessageQueue {
      */
     public void messageSent( ProtocolMessage message );
   }
+  
+  
+  /**
+   * Receive notification when bytes are written to the transport.
+   */
+  public interface ByteListener {
+    /**
+     * The given number of bytes has been written to the transport.
+     * @param byte_count number of bytes
+     */
+    public void bytesSent( int byte_count );
+  }
 
   
   /**
@@ -231,6 +246,17 @@ public class OutgoingMessageQueue {
   public void registerSentListener( SentMessageListener listener ) {
     synchronized( sent_listeners ) {
       sent_listeners.add( new WeakReference( listener ) );
+    }
+  }
+  
+  
+  /**
+   * Add a listener to be notified when bytes are sent.
+   * @param listener
+   */
+  public void registerByteListener( ByteListener listener ) {
+    synchronized( byte_listeners ) {
+      byte_listeners.add( new WeakReference( listener ) );
     }
   }
   
@@ -261,6 +287,22 @@ public class OutgoingMessageQueue {
         }
         else {
           listener.messageSent( msg );
+        }
+      }
+    }
+  }
+  
+  
+  private void notifyByteListeners( int byte_count ) {
+    synchronized( byte_listeners ) {
+      for( int i=0; i < byte_listeners.size(); i++ ) {
+        WeakReference wr = (WeakReference)byte_listeners.get( i );
+        ByteListener listener = (ByteListener)wr.get();
+        if ( listener == null ) {
+          byte_listeners.remove( i );
+        }
+        else {
+          listener.bytesSent( byte_count );
         }
       }
     }

@@ -35,6 +35,7 @@ public class BTInterested implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
   private static final int[] to_remove = { BTProtocolMessage.BT_UNINTERESTED };
+  private final int total_byte_size;
   
   public BTInterested() {
     //TODO: make this a true direct buffer, from the pool
@@ -44,11 +45,15 @@ public class BTInterested implements BTProtocolMessage {
     buffer.put( (byte)2 );
     buffer.position( 0 );
     buffer.limit( 5 );
+    
+    total_byte_size = buffer.limit();
   }
   
   public int getType() {  return BTProtocolMessage.BT_INTERESTED;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
+  
+  public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
     return "Interested";

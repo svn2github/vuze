@@ -35,6 +35,7 @@ public class BTUnchoke implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
   private static final int[] to_remove = { BTProtocolMessage.BT_CHOKE };
+  private final int total_byte_size;
   
   public BTUnchoke() {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
@@ -43,11 +44,15 @@ public class BTUnchoke implements BTProtocolMessage {
     buffer.put( (byte)1 );
     buffer.position( 0 );
     buffer.limit( 5 );
+    
+    total_byte_size = buffer.limit();
   }
   
   public int getType() {  return BTProtocolMessage.BT_UNCHOKE;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
+  
+  public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
     return "Unchoke";

@@ -52,7 +52,7 @@ PEPeerManagerStatsImpl
 	  receptionSpeed = Average.getInstance(2000, 15);
 
 	  //average over 5s, update every 100ms.
-	  sendingSpeed = Average.getInstance(1000, 5);
+	  sendingSpeed = Average.getInstance(2000, 15);
 
 	  //average over 100s, update every 5s
 	  overallSpeed = Average.getInstance(5000, 100);

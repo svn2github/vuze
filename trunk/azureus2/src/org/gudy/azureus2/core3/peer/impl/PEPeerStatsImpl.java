@@ -54,7 +54,7 @@ PEPeerStatsImpl
 		receptionSpeed = Average.getInstance(2000, 10);
 
 		//average over 5s, update every 100ms.
-		sendingSpeed = Average.getInstance(1000, 5);
+		sendingSpeed = Average.getInstance(2000, 10);
 
 		//average over 20s, update every 1s.
 		chokingReceptionSpeed = Average.getInstance(1000, 20);

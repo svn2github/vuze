@@ -47,6 +47,12 @@ public interface ProtocolMessage {
   public DirectByteBuffer getPayload();
   
   /**
+   * Get the total size (in bytes) of the message, i.e. headers + data.
+   * @return total size in bytes
+   */
+  public int getTotalMessageByteSize();
+  
+  /**
    * Get the message's textual description.
    * @return description
    */

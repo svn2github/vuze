@@ -35,11 +35,8 @@ public class BTPiece implements BTProtocolMessage {
   private final int piece_number;
   private final int piece_offset;
   private final int length;
+  private final int total_byte_size;
   
-  /**
-   * NOTE: The passed data ByteBuffer is simply copied-from upon instantiation,
-   * so it is safe for reuse.
-   */
   public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
@@ -54,12 +51,16 @@ public class BTPiece implements BTProtocolMessage {
     buffer.position( 0 );
     buffer.limit( length + 13 );
     
+    total_byte_size = buffer.limit();
+    
     data.returnToPool();
   }
   
   public int getType() {  return BTProtocolMessage.BT_PIECE;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
+  
+  public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
     return "Piece data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length);

@@ -35,7 +35,8 @@ public class BTHave implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
   private final int piece_number;
-  
+  private final int total_byte_size;
+
   public BTHave( int piece_number ) {
     this.piece_number = piece_number;
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 9 ) );
@@ -45,11 +46,15 @@ public class BTHave implements BTProtocolMessage {
     buffer.putInt( piece_number );
     buffer.position( 0 );
     buffer.limit( 9 );
+    
+    total_byte_size = buffer.limit();
   }
   
   public int getType() {  return BTProtocolMessage.BT_HAVE;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
+  
+  public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
     return "Have piece #" + piece_number;

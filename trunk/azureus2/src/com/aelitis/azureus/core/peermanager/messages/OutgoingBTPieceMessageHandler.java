@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
+import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
 
 
@@ -50,7 +51,7 @@ public class OutgoingBTPieceMessageHandler {
   private int num_messages_loading = 0;
   private int num_messages_in_queue = 0;
   
-  ReadRequestListener read_req_listener = new ReadRequestListener() {
+  private final ReadRequestListener read_req_listener = new ReadRequestListener() {
     public void readCompleted( DiskManagerRequest request, DirectByteBuffer data ) {
       synchronized( loading_messages ) {
         if( !loading_messages.contains( request ) ) { //was canceled
@@ -69,7 +70,7 @@ public class OutgoingBTPieceMessageHandler {
     }
   };
   
-  OutgoingMessageQueue.SentMessageListener sent_message_listener = new OutgoingMessageQueue.SentMessageListener() {
+  private final OutgoingMessageQueue.SentMessageListener sent_message_listener = new OutgoingMessageQueue.SentMessageListener() {
     public void messageSent( ProtocolMessage message ) {
       if( message.getType() == BTProtocolMessage.BT_PIECE ) {
         synchronized( queued_messages ) {
