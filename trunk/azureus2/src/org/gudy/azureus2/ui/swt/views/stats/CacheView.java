@@ -96,6 +96,9 @@ public class CacheView extends AbstractIView {
     Label lbl;
     
     lbl = new Label(gCacheGeneral,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lbl.setLayoutData(gridData);
     Messages.setLanguageText(lbl,"CacheView.general.inUse");
     
     lblInUse = new Label(gCacheGeneral,SWT.NULL);
@@ -117,6 +120,9 @@ public class CacheView extends AbstractIView {
     lblPercentUsed.setLayoutData(gridData);
     
     lbl = new Label(gCacheGeneral,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lbl.setLayoutData(gridData);
     Messages.setLanguageText(lbl,"CacheView.general.size");
     
     lblSize = new Label(gCacheGeneral,SWT.NULL);
@@ -138,6 +144,9 @@ public class CacheView extends AbstractIView {
     Label lbl;
     
     lbl = new Label(gCacheReads,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lbl.setLayoutData(gridData);
     Messages.setLanguageText(lbl,"CacheView.reads.fromCache");
     
     lblReadsInCache = new Label(gCacheReads,SWT.NULL);
@@ -159,6 +168,9 @@ public class CacheView extends AbstractIView {
     lblPercentReads.setLayoutData(gridData);
     
     lbl = new Label(gCacheReads,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lbl.setLayoutData(gridData);
     Messages.setLanguageText(lbl,"CacheView.reads.fromFile");
     
     lblReadsFromFile = new Label(gCacheReads,SWT.NULL);
@@ -180,9 +192,15 @@ public class CacheView extends AbstractIView {
     Label lbl;
     
     lbl = new Label(gCacheSpeeds,SWT.NULL);
+    
     lbl = new Label(gCacheSpeeds,SWT.NULL);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+    lbl.setLayoutData(gridData);
     Messages.setLanguageText(lbl,"CacheView.speeds.reads");
+    
     lbl = new Label(gCacheSpeeds,SWT.NULL);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+    lbl.setLayoutData(gridData);
     Messages.setLanguageText(lbl,"CacheView.speeds.writes");
     
     lbl = new Label(gCacheSpeeds,SWT.NULL);
@@ -237,6 +255,9 @@ public class CacheView extends AbstractIView {
     Label lbl;
     
     lbl = new Label(gCacheWrites,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lbl.setLayoutData(gridData);    
     Messages.setLanguageText(lbl,"CacheView.writes.toCache");
     
     lblWritesToCache = new Label(gCacheWrites,SWT.NULL);
@@ -258,6 +279,9 @@ public class CacheView extends AbstractIView {
     lblPercentWrites.setLayoutData(gridData);
     
     lbl = new Label(gCacheWrites,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    lbl.setLayoutData(gridData);    
     Messages.setLanguageText(lbl,"CacheView.writes.toFile");
     
     lblWritesToFile = new Label(gCacheWrites,SWT.NULL);
