@@ -9,14 +9,17 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -244,6 +247,17 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  }
 	  if(itemKey.equals("remove")) {
 	  	try{
+        
+        if( COConfigurationManager.getBooleanParameter( "confirm_torrent_removal" ) ) {
+          MessageBox mb = new MessageBox(folder.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
+          mb.setText(MessageText.getString("deletedata.title"));
+          mb.setMessage(MessageText.getString("MyTorrentsView.confirm_torrent_removal") + manager.getDisplayName() );
+          if( mb.open() == SWT.NO ) {
+            return;
+          }
+        }
+        
+        manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
         manager.getGlobalManager().removeDownloadManager( manager );
 	  		
 	  	}catch( GlobalManagerDownloadRemovalVetoException e ){
