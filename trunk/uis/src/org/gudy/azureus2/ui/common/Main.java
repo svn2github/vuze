@@ -229,7 +229,7 @@ public class Main {
       Constructor conConsoleInput =null;
       try {
       	clConsoleInput = Class.forName("org.gudy.azureus2.ui.console.ConsoleInput");
-      	Class params[] = {String.class, GlobalManager.class, Reader.class, PrintStream.class, Boolean.class};
+      	Class params[] = {String.class, AzureusCore.class, Reader.class, PrintStream.class, Boolean.class};
       	conConsoleInput=clConsoleInput.getConstructor(params);
       } catch (Exception e) {
       	e.printStackTrace();
@@ -237,7 +237,7 @@ public class Main {
       if (commands.hasOption('e')) {
       	if (conConsoleInput != null) {
 	        try {
-	        	Object params[] = {commands.getOptionValue('e'), UIConst.getGlobalManager(), new FileReader(commands.getOptionValue('e')), System.out, Boolean.FALSE};
+	        	Object params[] = {commands.getOptionValue('e'), new_core, new FileReader(commands.getOptionValue('e')), System.out, Boolean.FALSE};
 	        	conConsoleInput.newInstance(params);
 	        } catch (java.io.FileNotFoundException e) {
 	          Logger.getLogger("azureus2").error("Script file not found: "+e.toString());
