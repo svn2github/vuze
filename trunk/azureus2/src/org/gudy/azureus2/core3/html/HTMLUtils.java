@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.html;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * @author parg
@@ -117,5 +118,200 @@ HTMLUtils
 	  }
 	  
 	  return result.toString();
+	}
+	
+	public static String
+	convertHTMLToText2(
+		String		content )
+	{
+		int	pos	= 0;
+
+		String	res = "";
+			
+		content = removeTagPairs( content, "script" );
+		
+		content = content.replaceAll( "&nbsp;", " " );
+
+		content = content.replaceAll( "[\\s]+", " " );
+
+		while(true){
+			
+			int	p1 = content.indexOf( "<",  pos );
+			
+			if ( p1 == -1 ){
+				
+				res += content.substring(pos);
+				
+				break;
+			}
+			
+			int	p2 = content.indexOf( ">", p1 );
+			
+			if ( p2 == -1 ){
+				
+				res += content.substring(pos);
+				
+				break;
+			}
+
+			String	tag = content.substring(p1+1,p2).toLowerCase();
+				
+			res += content.substring(pos,p1);
+			
+			if ( tag.equals("p") || tag.equals("br")){
+				
+				if ( res.length() > 0 && res.charAt(res.length()-1) != '\n' ){
+				
+					res += "\n";
+				}
+			}
+		
+			pos	= p2+1;
+		}
+		
+		res = res.replaceAll( "[ \\t\\x0B\\f\\r]+", " " );
+		res = res.replaceAll( "[ \\t\\x0B\\f\\r]+\\n", "\n" );
+		res = res.replaceAll( "\\n[ \\t\\x0B\\f\\r]+", "\n" );
+		
+		if ( res.length() > 0 && Character.isWhitespace(res.charAt(0))){
+			
+			res = res.substring(1);
+		}
+		
+		return( res );
+	}
+	
+	public static String
+	splitWithLineLength(
+		String		str,
+		int			length )
+	{
+		String	res = "";
+		
+		StringTokenizer tok = new StringTokenizer(str, "\n");
+		
+		while( tok.hasMoreTokens()){
+			
+			String	line = tok.nextToken();
+			
+			while( line.length() > length ){
+			
+				if ( res.length() > 0 ){
+					
+					res += "\n";
+				}
+	
+				boolean	done = false;
+				
+				for (int i=length-1;i>=0;i--){
+					
+					if ( Character.isWhitespace( line.charAt(i))){
+						
+						done	= true;
+				
+						res += line.substring(0,i);
+						
+						line = line.substring(i+1);
+						
+						break;
+					}
+				}
+				
+				if ( !done ){
+					
+					res += line.substring(0,length);
+					
+					line = line.substring( length );
+				}
+			}
+		
+			if ( res.length() > 0 && line.length() > 0 ){
+				
+				res += "\n";
+
+				res += line;
+			}
+		}
+		
+		return( res );
+	}
+	
+	public static String
+	removeTagPairs(
+		String	content,
+		String	tag_name )
+	{
+		tag_name = tag_name.toLowerCase();
+		
+		String	lc_content = content.toLowerCase();
+		
+		int	pos	= 0;
+
+		String	res = "";
+		
+		int	level 		= 0;
+		int	start_pos	= -1;
+		
+		while(true){
+			
+			int	start_tag_start = lc_content.indexOf( "<" + tag_name,  pos );
+			int end_tag_start	= lc_content.indexOf( "</" + tag_name, pos );
+			
+			if ( level == 0 ){
+				
+				if ( start_tag_start == -1 ){
+					
+					res += content.substring(pos);
+
+					break;
+				}
+				
+				res += content.substring(pos,start_tag_start);						
+
+				start_pos = start_tag_start;
+				
+				level	= 1;
+				
+				pos		= start_pos+1;
+				
+			}else{
+				
+				if ( end_tag_start == -1 ){
+					
+					res += content.substring(pos);
+
+					break;
+				}
+				
+				if ( start_tag_start == -1 || end_tag_start < start_tag_start ){
+					
+					level--;
+					
+					int	end_end = lc_content.indexOf( '>', end_tag_start );
+					
+					if( end_end == -1 ){
+						
+						break;
+					}
+					
+					pos	= end_end + 1;
+					
+				}else{
+					
+					if ( start_tag_start == -1 ){
+						
+						res += content.substring(pos);
+
+						break;
+					}
+					
+					level++;
+					
+					pos = start_tag_start+1;
+				}
+			}
+		}
+			
+		return( res );
 	}
 }

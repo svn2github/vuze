@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -130,7 +131,7 @@ TOTorrentDeserialiseImpl
 					!(iFirstByte >= '0' && iFirstByte <= '9')){
 				
 					// often people download an HTML file by accident - if it looks like HTML
-					// then produce a more informative 
+					// then produce a more informative error
 				
 				try{
 					metaInfo.write(iFirstByte);
@@ -142,12 +143,21 @@ TOTorrentDeserialiseImpl
 						metaInfo.write(buf, 0, nbRead);
 					}
 					
-					String	char_data = new String( metaInfo.toByteArray()).toLowerCase();
+					String	char_data = new String( metaInfo.toByteArray());
 					
-					if ( char_data.indexOf( "html") != -1 ){
+					if ( char_data.toLowerCase().indexOf( "html") != -1 ){
+						
+						char_data = HTMLUtils.convertHTMLToText2( char_data );
+						
+						char_data = HTMLUtils.splitWithLineLength( char_data, 80 );
+						
+						if ( char_data.length() > 400 ){
+							
+							char_data = char_data.substring(0,400) + "...";
+						}
 						
 						throw( 	new TOTorrentException( 
-									"Contents maybe HTML",
+									"Contents maybe HTML:\n" + char_data,
 									TOTorrentException.RT_DECODE_FAILS ));
 					}
 				}catch( Throwable e ){
