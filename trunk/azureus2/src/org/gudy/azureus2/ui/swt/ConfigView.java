@@ -154,6 +154,18 @@ public class ConfigView extends AbstractIView {
         }
       }
     });
+    
+    
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    new StringParameter(gFile, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$       
+    
+    
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
+    new BooleanParameter(gFile, "Check Pieces on Completion", false);
 
     itemFile.setControl(gFile);
 
@@ -195,38 +207,12 @@ public class ConfigView extends AbstractIView {
     gGlobal.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
-    gGlobal.setLayout(layout);
-
-    label = new Label(gGlobal, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
-    new BooleanParameter(gGlobal, "Disconnect Seed", false); //$NON-NLS-1$
-
-    label = new Label(gGlobal, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
-    new BooleanParameter(gGlobal, "Switch Priority", true); //$NON-NLS-1$
-
-    label = new Label(gGlobal, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 40;
-    new IntParameter(gGlobal, "max active torrents", 4).setLayoutData(gridData); //$NON-NLS-1$
-
-    label = new Label(gGlobal, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxdownloads"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 40;
-    new IntParameter(gGlobal, "max downloads", 4).setLayoutData(gridData); //$NON-NLS-1$
-
-    label = new Label(gGlobal, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 100;
-    new StringParameter(gGlobal, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$       
+    gGlobal.setLayout(layout);         
 
     itemGlobal.setControl(gGlobal);
 
     CTabItem itemDownloads = new CTabItem(ctfConfig, SWT.NULL);
-    Messages.setLanguageText(itemDownloads, "ConfigView.section.downloadManagement"); //$NON-NLS-1$
+    Messages.setLanguageText(itemDownloads, "ConfigView.section.seeding"); //$NON-NLS-1$
 
     Group gDownloads = new Group(ctfConfig, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -234,6 +220,14 @@ public class ConfigView extends AbstractIView {
     layout = new GridLayout();
     layout.numColumns = 2;
     gDownloads.setLayout(layout);
+
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
+    new BooleanParameter(gDownloads, "Disconnect Seed", false); //$NON-NLS-1$
+
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
+    new BooleanParameter(gDownloads, "Switch Priority", true); //$NON-NLS-1$
 
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatio"); //$NON-NLS-1$
@@ -283,11 +277,7 @@ public class ConfigView extends AbstractIView {
       startNumSeedsLabels[i] = i + " " + seeds; //$NON-NLS-1$
       startNumSeedsValues[i] = i;
     }
-    new IntListParameter(gDownloads, "Start Num Peers", 0, startNumSeedsLabels, startNumSeedsValues);
-
-    label = new Label(gDownloads, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
-    new BooleanParameter(gDownloads, "Check Pieces on Completion", false);
+    new IntListParameter(gDownloads, "Start Num Peers", 0, startNumSeedsLabels, startNumSeedsValues);    
 
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
@@ -305,6 +295,18 @@ public class ConfigView extends AbstractIView {
     layout = new GridLayout();
     layout.numColumns = 2;
     gTransfer.setLayout(layout);
+
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    new IntParameter(gTransfer, "max active torrents", 4).setLayoutData(gridData); //$NON-NLS-1$
+
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.maxdownloads"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    new IntParameter(gTransfer, "max downloads", 4).setLayoutData(gridData); //$NON-NLS-1$
 
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxclients"); //$NON-NLS-1$
