@@ -171,17 +171,12 @@ PeerForeignDelegate
 
 	 //nothing to process
 	public int processRead(){ return 0;}
-	public int processWrite(){ return 0;}
 	  
 	  //used for process() timing...not needed
 	public int getReadSleepTime(){ return 0; }
-	public int getWriteSleepTime(){ return 0; }
 	public long getLastReadTime(){ return 0; }
-	public long getLastWriteTime(){ return 0; }
 	public void setReadSleepTime(int time){}
-	public void setWriteSleepTime(int time){}
 	public void setLastReadTime(long time){}
-	public void setLastWriteTime(long time){}
 	
 		// PEPeer stuff
 	
@@ -331,12 +326,6 @@ PeerForeignDelegate
 		return( foreign.getNumberOfBadChunks());
 	}
 	
-	public int 
-	getMaxUpload() 
-	{  
-	    return( foreign.getMaxUpload());
-	}
-	
 
 	public int getUniqueAnnounce() 
 	{
@@ -353,29 +342,8 @@ PeerForeignDelegate
 
 	public void setUploadHint(int timeToSpread) {}  
 	
-	public int getAllowed() 
-	{    
-		return 0;
-	}
-  
-	 // Seeds should never download, and so no limit implementation is needed
-	public void 
-	addLimitIfNotZero(
-		int addToLimit) 
-	{		
-	}
-	
-	public int 
-	getLimit() 
-	{
-		return 0;
-	}
 
-	public void 
-	setLimit(
-		int newLimit) 
-	{	
-	}
+  
     
 	 /** To retreive arbitrary objects against a peer. */
 	  public Object getData (String key) {

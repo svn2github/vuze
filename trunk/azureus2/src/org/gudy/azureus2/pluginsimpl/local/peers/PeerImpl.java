@@ -150,10 +150,6 @@ PeerImpl
 		return( new PeerStatsImpl(((PeerManagerImpl)manager).getDelegate(), delegate.getStats()));
 	}
  	
-	public int getMaxUpload()
-	{
-		return( delegate.getMaxUpload());
-	}
 
 	public boolean isIncoming()
 	{
