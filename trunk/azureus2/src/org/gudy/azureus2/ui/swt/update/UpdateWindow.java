@@ -162,7 +162,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     Messages.setLanguageText(btnCancel,"swt.update.window.quit");
     btnCancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
-        updateWindow.setVisible(false);
+        updateWindow.dispose();
       }
     });
     
@@ -267,7 +267,8 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     }
   }
   
-  private void checkRestartNeeded() {    
+  private void checkRestartNeeded() {  
+    restartRequired = false;
     TableItem[] items = table.getItems();
     for(int i = 0 ; i < items.length ; i++) {
       Update update = (Update) items[i].getData();
@@ -336,8 +337,11 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
             finishUpdate();
           }
         });
-        if(restartRequired)
+        if(restartRequired) {
           Messages.setLanguageText(btnOk,"swt.update.window.restart");
+        } else {
+          Messages.setLanguageText(btnOk,"swt.update.window.close");
+        }
         btnCancel.setEnabled(false);
           }
     });
@@ -413,8 +417,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
       Restarter.restartForUpgrade();
       MainWindow.getWindow().dispose();
     } else {
-      updateWindow.setVisible(false);
-      table.setEnabled(true);
+      updateWindow.dispose();      
     }
   }
 }
