@@ -4,14 +4,11 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class LocaleUtil {
 
   private static final String systemEncoding = System.getProperty("file.encoding");
-  private static final CharsetDecoder systemDecoder = Charset.forName(systemEncoding).newDecoder();
 
 	private static final String[] charset = {
     systemEncoding,
@@ -82,6 +79,8 @@ public class LocaleUtil {
 
     public int compareTo(Object o) {
       Candidate candidate = (Candidate)o;
+      if(null == name || null == candidate.name)
+        return 0;
       if (candidate.name.hashCode()==name.hashCode() &&
         candidate.charset.hashCode()==charset.hashCode()) {
         return 0;
