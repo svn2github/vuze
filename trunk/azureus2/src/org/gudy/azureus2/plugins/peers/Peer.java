@@ -25,6 +25,11 @@ package org.gudy.azureus2.plugins.peers;
  * @author parg
  *
  */
+
+import java.util.List;
+
+import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
+
 public interface 
 Peer 
 {
@@ -58,6 +63,8 @@ Peer
  
 	public boolean isSnubbed();
  
+	public void setSnubbed( boolean snubbed );
+	
 	public PeerStats getStats();
  	
 	public int getMaxUpload();
@@ -71,4 +78,35 @@ Peer
 	public String getClient();
 
 	public boolean isOptimisticUnchoke();
+	
+	public void hasSentABadChunk();
+	
+	public int getNumberOfBadChunks();
+	
+	public Peer
+	getRealPeer();
+	
+	public List
+	getExpiredRequests();
+  		
+	public int
+	getNumberOfRequests();
+
+	public void
+	cancelRequest(
+		DiskManagerRequest	request );
+
+ 
+	public boolean 
+	addRequest(
+		int pieceNumber, 
+		int pieceOffset, 
+		int pieceLength );
+
+
+	public void
+	close(
+		String 		reason,
+		boolean 	closedOnError,
+		boolean 	attemptReconnect );
 }

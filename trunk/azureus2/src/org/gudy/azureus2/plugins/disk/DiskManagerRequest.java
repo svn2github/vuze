@@ -40,6 +40,9 @@ DiskManagerRequest
 	public void
 	resetTime();
 	
+	public boolean
+	isExpired();
+	
 	public void
 	cancel();
 }

@@ -27,6 +27,8 @@ package org.gudy.azureus2.pluginsimpl.disk;
  */
 
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.disk.*;
@@ -38,6 +40,8 @@ DiskManagerImpl
 	implements DiskManager
 {
 	protected PeerManagerImpl		peer_manager;
+	
+	protected Map			map	= new WeakHashMap();
 	
 	public
 	DiskManagerImpl(
@@ -52,7 +56,18 @@ DiskManagerImpl
 	   int offset,
 	   int length )
 	{
-		return( new DiskManagerRequestImpl( peer_manager.getDelegate(), pieceNumber, offset, length ));
+		DiskManagerRequestImpl	res = new DiskManagerRequestImpl( peer_manager.getDelegate(), pieceNumber, offset, length );
+		
+		map.put( res.getDelegate(), res );
+		
+		return(res );
+	}
+	
+	public DiskManagerRequest
+	lookupRequest(
+		org.gudy.azureus2.core3.disk.DiskManagerRequest	r )
+	{
+		return((DiskManagerRequest)map.get(r));
 	}
 	
 	public boolean 

@@ -26,9 +26,12 @@ package org.gudy.azureus2.pluginsimpl.peers;
  *
  */
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.peer.*;
 
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.disk.*;
 
 public class 
 PeerImpl 
@@ -131,6 +134,13 @@ PeerImpl
 		return( delegate.isSnubbed());
 	}
  
+	public void
+	setSnubbed(
+		boolean	b )
+	{
+		delegate.setSnubbed(b);
+	}
+	
 	public PeerStats getStats()
 	{
 		return( new PeerStatsImpl(((PeerManagerImpl)manager).getDelegate(), delegate.getStats()));
@@ -166,8 +176,59 @@ PeerImpl
 		return( delegate.isOptimisticUnchoke());
 	}
 	
-	public int getNbBadChunks()
+	public int getNumberOfBadChunks()
 	{
 	  return( delegate.getNbBadChunks());
+	}
+	
+	public void
+	hasSentABadChunk()
+	{
+		delegate.hasSentABadChunk();
+	}
+	
+	public Peer
+	getRealPeer()
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+	
+	public List
+	getExpiredRequests()
+	{
+		throw( new RuntimeException( "not supported"));
+	}	
+  		
+	public int
+	getNumberOfRequests()
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+
+	public void
+	cancelRequest(
+		DiskManagerRequest	request )
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+
+ 
+	public boolean 
+	addRequest(
+		int pieceNumber, 
+		int pieceOffset, 
+		int pieceLength )
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+
+
+	public void
+	close(
+		String 		reason,
+		boolean 	closedOnError,
+		boolean 	attemptReconnect )
+	{
+		throw( new RuntimeException( "not supported"));
 	}
 }

@@ -26,12 +26,346 @@ package org.gudy.azureus2.pluginsimpl.peers;
  *
  */
 
-import org.gudy.azureus2.core3.peer.PEPeer;
+import java.util.*;
+
+import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.plugins.peers.*;
+
+import org.gudy.azureus2.pluginsimpl.disk.DiskManagerImpl;
 
 public class 
 PeerForeignDelegate
-//	extends 	PEPeerConnectionImpl
-//	implements 	PEPeer, PEPeerTransport
+	implements 	PEPeerTransport
 {
+		// this implementation supports read-only peers (i.e. download only)
+	
+	protected PeerManagerImpl		manager;
+	protected Peer					foreign;
+	
+	protected Map		data;
+	
+	protected
+	PeerForeignDelegate(
+		PeerManagerImpl		_manager,
+		Peer				_foreign )
+	{
+		manager		= _manager;
+		foreign		= _foreign;
+	}
+	
+	public PEPeerTransport
+	getRealTransport()
+	{
+		foreign		= foreign.getRealPeer();
+		
+		return( this );
+	}
+	
+    /**
+     * Should never be called
+     */
+    public void sendChoke() {}
+
+    /**
+     * Nothing to do if called
+     */
+    public void sendHave(int piece) {}
+
+    /**
+     * Should never be called
+     */
+    public void sendUnChoke() {}
+
+    
+    /**
+     * HTTP seeds never choke us
+     */
+    public boolean transferAvailable() {
+      return true;
+    }
+    
+	public void
+	sendCancel(
+		DiskManagerRequest	request )
+	{
+		foreign.cancelRequest(((DiskManagerImpl)manager.getDiskManager()).lookupRequest( request ));
+	}
+	
+  /**
+   * 
+   * @param pieceNumber
+   * @param pieceOffset
+   * @param pieceLength
+   * @return true is the piece is really requested
+   */
+	public boolean 
+	request(
+		int pieceNumber, 
+		int pieceOffset, 
+		int pieceLength )
+	{
+		return( foreign.addRequest( pieceNumber, pieceOffset, pieceLength ));
+	}
+
+	public void
+	closeAll(
+      String reason,
+	  boolean closedOnError,
+	  boolean attemptReconnect)
+	{
+		foreign.close( reason, closedOnError, attemptReconnect );
+	}
+			
+	public boolean isReadyToRequest() {    
+	    return true;
+	 }
+		
+	public List
+	getExpiredRequests()
+	{
+		return( foreign.getExpiredRequests());
+	}
+  		
+	public int
+	getNbRequests()
+	{
+		return( foreign.getNumberOfRequests());
+	}
+		
+	public PEPeerControl
+	getControl()
+	{
+			// bit of a con this
+		
+		return((PEPeerControl)manager.getDelegate());
+	}
+  
+	
+
+	 //nothing to process
+	public int processRead(){ return 0;}
+	public int processWrite(){ return 0;}
+	  
+	  //used for process() timing...not needed
+	public int getReadSleepTime(){ return 0; }
+	public int getWriteSleepTime(){ return 0; }
+	public long getLastReadTime(){ return 0; }
+	public long getLastWriteTime(){ return 0; }
+	public void setReadSleepTime(int time){}
+	public void setWriteSleepTime(int time){}
+	public void setLastReadTime(long time){}
+	public void setLastWriteTime(long time){}
+	
+		// PEPeer stuff
+	
+	public PEPeerManager
+	getManager()
+	{
+		return( manager.getDelegate());
+	}
+	
+	public int 
+	getState()
+	{
+		return( foreign.getState());
+	}
+
+	public byte[] 
+	getId()
+	{
+		return( foreign.getId());
+	}
+
+
+	public String 
+	getIp()
+	{
+		return( foreign.getIp());
+	}
+
+ 
+	public int 
+	getPort()
+	{
+		return( foreign.getPort());
+	}
+
+	
+	public boolean[] 
+	getAvailable()
+	{
+		return( foreign.getAvailable());
+	}
+
+ 
+	public void 
+	setSnubbed(boolean b)
+	{
+		foreign.setSnubbed( b );
+	}
+
+  
+	public boolean 
+	isChoked()
+	{
+		return( foreign.isChoked());
+	}
+
+
+	public boolean 
+	isChoking()
+	{
+		return( foreign.isChoking());
+	}
+
+
+	public boolean 
+	isInterested()
+	{
+		return( foreign.isInterested());
+	}
+
+
+	public boolean 
+	isInteresting()
+	{
+		return( foreign.isInteresting());
+	}
+
+
+	public boolean 
+	isSeed()
+	{
+		return( foreign.isSeed());
+	}
+
+ 
+	public boolean 
+	isSnubbed()
+	{
+		return( foreign.isSnubbed());
+	}
+
+ 
+	public PEPeerStats 
+	getStats()
+	{
+		return( ((PeerStatsImpl)foreign.getStats()).getDelegate());
+	}
+
+ 	
+	public boolean 
+	isIncoming()
+	{
+		return( foreign.isIncoming());
+	}
+
+	public int 
+	getDownloadPriority() 
+	{
+	    return( foreign.getDownloadPriority());
+	}
+
+	public int 
+	getPercentDone()
+	{
+		return( foreign.getPercentDone());
+	}
+
+
+	public String 
+	getClient()
+	{
+		return( foreign.getClient());
+	}
+
+
+	public boolean 
+	isOptimisticUnchoke()
+	{
+		return( foreign.isOptimisticUnchoke());
+	}
+
+	
+	public void 
+	hasSentABadChunk()
+	{
+		foreign.hasSentABadChunk();
+	}
+	
+	public int 
+	getNbBadChunks()
+	{
+		return( foreign.getNumberOfBadChunks());
+	}
+	
+	public int 
+	getMaxUpload() 
+	{  
+	    return( foreign.getMaxUpload());
+	}
+	
+
+	public int getUniqueAnnounce() 
+	{
+	    return -1;
+	}
+
+	public int getUploadHint() 
+	{
+	    return 0;
+	}
+
+
+	public void setUniqueAnnounce(int uniquePieceNumber) {}
+
+	public void setUploadHint(int timeToSpread) {}  
+	
+	public int getAllowed() 
+	{    
+		return 0;
+	}
+  
+	 // Seeds should never download, and so no limit implementation is needed
+	public void 
+	addLimitIfNotZero(
+		int addToLimit) 
+	{		
+	}
+	
+	public int 
+	getLimit() 
+	{
+		return 0;
+	}
+
+	public void 
+	setLimit(
+		int newLimit) 
+	{	
+	}
+    
+	 /** To retreive arbitrary objects against a peer. */
+	  public Object getData (String key) {
+	  	if (data == null) return null;
+	    return data.get(key);
+	  }
+
+	  /** To store arbitrary objects against a peer. */
+	  public synchronized void setData (String key, Object value) {
+	  	if (data == null) {
+	  	  data = new HashMap();
+	  	}
+	    if (value == null) {
+	      if (data.containsKey(key))
+	        data.remove(key);
+	    } else {
+	      data.put(key, value);
+	    }
+	  }
+	  
 }

@@ -49,6 +49,12 @@ DiskManagerRequestImpl
 		request		= manager.createDiskManagerRequest( _pieceNumber, _offset, _length );
 	}
 	
+	protected org.gudy.azureus2.core3.disk.DiskManagerRequest
+	getDelegate()
+	{
+		return( request );
+	}
+	
 	public int
 	getPieceNumber()
 	{
@@ -71,6 +77,12 @@ DiskManagerRequestImpl
 	resetTime()
 	{
 		request.reSetTime();
+	}
+	
+	public boolean
+	isExpired()
+	{
+		return( request.isExpired());
 	}
 	
 	public void

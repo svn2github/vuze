@@ -46,6 +46,12 @@ PeerStatsImpl
 		delegate	= _delegate;
 	}
 	
+	public PEPeerStats
+	getDelegate()
+	{
+		return( delegate );
+	}
+	
 	public int getDownloadAverage()
 	{
 		return( (int)delegate.getDownloadAverage());
