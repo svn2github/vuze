@@ -155,26 +155,37 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
 
     final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
+    
+    new MenuItem(menu, SWT.SEPARATOR);
+
+    final MenuItem itemChangeTracker = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
+
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
         itemOpen.setEnabled(false);
+        itemChangeTracker.setEnabled(false);
         if (tis.length == 0) {
           itemStart.setEnabled(false);
           itemStop.setEnabled(false);
-          itemRemove.setEnabled(false);
+          itemRemove.setEnabled(false);          
           return;
         }
         if (tis.length == 1) {
           itemOpen.setEnabled(true);
           itemStart.setEnabled(false);
           itemStop.setEnabled(true);
+          
           itemRemove.setEnabled(false);
           itemBar.setSelection(false);
+          
           TableItem ti = tis[0];
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null) {
+            if(dm.getTrackerConnection() != null)
+              itemChangeTracker.setEnabled(true);
             if (downloadBars.containsKey(dm))
               itemBar.setSelection(true);
             int state = dm.getState();
@@ -256,6 +267,19 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
             globalManager.removeDownloadManager(dm);
+          }
+        }
+      }
+    });
+    
+    itemChangeTracker.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) managers.get(ti);
+          if (dm != null && dm.getTrackerConnection() != null) {
+            new TrackerChangerWindow(MainWindow.getWindow().getDisplay(),dm.getTrackerConnection());
           }
         }
       }

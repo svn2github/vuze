@@ -220,4 +220,12 @@ public class TrackerConnection {
       this.timeout = timeout;
   }
 
+  /**
+   * @param trackerUrl
+   */
+  public void setTrackerUrl(String trackerUrl) {
+    this.trackerUrl = trackerUrl;
+    trackerUrl = trackerUrl.replaceAll(" ", "");
+  }
+
 }

@@ -431,13 +431,13 @@ public class DownloadManager extends Component {
   }
 
   public void received(int length) {
-    if (length > 0) {
+    if (length > 0 && globalManager != null) {
       globalManager.received(length);
     }
   }
 
   public void sent(int length) {
-    if (length > 0)
+    if (length > 0 && globalManager != null)
       globalManager.sent(length);
   }
 
@@ -470,7 +470,7 @@ public class DownloadManager extends Component {
   }
 
   public HashData getHashData() {
-    if (trackerConnection != null)
+    if (trackerConnection != null  && globalManager != null)
       return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(), hash);
     else
       return null;
@@ -506,6 +506,13 @@ public class DownloadManager extends Component {
   public void checkTracker() {
     if(peerManager != null)
       peerManager.checkTracker();
+  }
+
+  /**
+   * @return
+   */
+  public TrackerConnection getTrackerConnection() {
+    return trackerConnection;
   }
 
 }
