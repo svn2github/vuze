@@ -69,7 +69,7 @@ public class Updater {
           }
           log.write("renamed\n");
         
-          String exec = javaPath + "java -classpath \"" + classPath
+          String exec = javaPath + "javaw -classpath \"" + classPath
                       + "\" -Djava.library.path=\"" + libraryPath
                       + "\" -Duser.dir=\"" + userPath
                       + "\" org.gudy.azureus2.ui.swt.Main";

@@ -1,5 +1,5 @@
 /*
- * File    : SWTDownloadURLsListener.java
+ * File    : GeneralListener.java
  * Created : 3 avr. 2004
  * By      : Olivier
  * 
@@ -24,7 +24,8 @@ package org.gudy.azureus2.ui.swt.updater;
  * @author Olivier Chalouhi
  *
  */
-public interface SWTDownloadURLsListener extends ProgressListener{
+public interface GeneralListener extends ProgressListener{
+  public void processFailed();
   
-  public void reportURLs(String[] urls);
+  public void processSucceeded();
 }

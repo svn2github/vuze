@@ -34,11 +34,14 @@ public class SWTZipDownloader implements DownloadListener{
   SWTZipDownloadListener listener;
   int index;
   
+  boolean canceled;
+  URLDownloader downloader;
   
   public SWTZipDownloader(SWTZipDownloadListener listener,String[] urls) {
     this.urls = urls;
     this.listener = listener;
     this.index = 0;
+    this.canceled = false;
     download();
   }
   
@@ -48,7 +51,7 @@ public class SWTZipDownloader implements DownloadListener{
       this.listener.reportData(is);
     } else {
       index++;
-      if(index < urls.length) {
+      if(index < urls.length && !canceled) {
         download();
       } else {
         this.listener.reportData(null);
@@ -62,7 +65,12 @@ public class SWTZipDownloader implements DownloadListener{
   
   private void download() {
     String url = urls[index];
-    listener.processName(MessageText.getString("swt.updater.downloader.downloading") + " " + url);
-    new URLDownloader(this,url);
+    listener.processName(MessageText.getString("swt.updater.downloader.downloading") + "\n" + url);
+    downloader = new URLDownloader(this,url);
+  }
+  
+  public void cancel() {
+    canceled = true;
+    if(downloader != null) downloader.cancel();
   }
 }

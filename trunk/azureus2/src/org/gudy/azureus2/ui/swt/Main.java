@@ -12,9 +12,9 @@ import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.ui.swt.updater.UpdateSWTWindow;
 
 /**
  * @author Olivier

@@ -45,11 +45,15 @@ public class SWTDownloadURLsGetter implements DownloadListener{
   String platform;
   int index;
   
+  boolean canceled;
+  URLDownloader downloader;
+  
   public SWTDownloadURLsGetter(SWTDownloadURLsListener listener) {
     this.listener = listener;    
     this.platform = SWT.getPlatform();
     this.index = 0;
-    listener.processName(MessageText.getString("swt.updater.urlsgetter.platform") + " " + platform);
+    this.canceled = false;
+    listener.processName(MessageText.getString("swt.updater.urlsgetter.platform") + "\n" + platform);
     download();
   }  
   
@@ -59,7 +63,7 @@ public class SWTDownloadURLsGetter implements DownloadListener{
      processData(is);
    } else {    
      index++;
-     if(index < swtURLProviders.length) {
+     if(index < swtURLProviders.length && !canceled) {
        download();
      }
      else {
@@ -75,7 +79,7 @@ public class SWTDownloadURLsGetter implements DownloadListener{
   private void download() {
     String url = swtURLProviders[index];
     String downloadURL = url + "?platform=" + platform;
-    listener.processName(MessageText.getString("swt.updater.urlsgetter.downloading") + " " + downloadURL);
+    listener.processName(MessageText.getString("swt.updater.urlsgetter.downloading") + "\n" + downloadURL);
     new URLDownloader(this,downloadURL);
   }
   
@@ -91,5 +95,10 @@ public class SWTDownloadURLsGetter implements DownloadListener{
       e.printStackTrace();
     }
     listener.reportURLs((String[])response.toArray(new String[response.size()]));
+  }
+  
+  public void cancel() {
+    canceled = true;
+    if(downloader != null) downloader.cancel();
   }
 }

@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.updater;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -32,21 +32,31 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier Chalouhi
  *
  */
-public class UpdateSWTWindow {
+public class UpdateSWTWindow implements GeneralListener{
+  
   public boolean bIgnored = false;
-
+  
   Shell shell;
   Label status;
   String statusBase;
   ProgressBar progress;
+  Button btnOk;
+  Button btnCancel;
+  Button btnIgnore;
+  Display display;
+  
+  int lastPercent;
+  
+  MainUpdater mainUpdater;
   
   public UpdateSWTWindow() {
-    Display display = new Display();
+    display = new Display();
     shell = new Shell(display);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
@@ -59,9 +69,11 @@ public class UpdateSWTWindow {
     GridData gridData = new GridData(GridData.FILL_BOTH);    
     label.setLayoutData(gridData);
     
-    status = new Label(shell,SWT.NULL);
+    status = new Label(shell,SWT.WRAP);
     statusBase = MessageText.getString("window.updateswt.status") + " : ";
-    status.setText(statusBase);    
+    status.setText(statusBase); 
+    gridData = new GridData(GridData.FILL_HORIZONTAL);    
+    status.setLayoutData(gridData);
         
     progress = new ProgressBar(shell,SWT.HORIZONTAL);
     progress.setMinimum(0);
@@ -71,16 +83,23 @@ public class UpdateSWTWindow {
     Composite composite = new Composite(shell,SWT.NULL);
     composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     layout = new GridLayout();   
-    layout.numColumns = 3;
+    layout.numColumns = 2;
     composite.setLayout(layout);
     
-    Button btnOk = new Button(composite,SWT.PUSH);
+    btnOk = new Button(composite,SWT.PUSH);
     btnOk.setText(MessageText.getString("window.updateswt.ok"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.FILL_HORIZONTAL);
-    gridData.widthHint = 70;
+    gridData.widthHint = 100;
     btnOk.setLayoutData(gridData);
-
-    Button btnIgnore = new Button(composite,SWT.PUSH);
+    btnOk.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        btnOk.setEnabled(false);        
+        mainUpdater = new MainUpdater(UpdateSWTWindow.this);
+        btnIgnore.setEnabled(false);
+      }
+    });
+    
+    btnIgnore = new Button(composite,SWT.PUSH);
     btnIgnore.setText(MessageText.getString("window.updateswt.ignore"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 70;
@@ -91,15 +110,15 @@ public class UpdateSWTWindow {
         shell.dispose();
       }
     });
-
     
-    Button btnCancel = new Button(composite,SWT.PUSH);
+    btnCancel = new Button(composite,SWT.PUSH);
     btnCancel.setText(MessageText.getString("window.updateswt.cancel"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-    gridData.widthHint = 70;
+    gridData.widthHint = 100;
     btnCancel.setLayoutData(gridData);
     btnCancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
+        mainUpdater.cancel();
         shell.dispose();
       }
     });
@@ -114,5 +133,52 @@ public class UpdateSWTWindow {
     }    
     display.dispose ();
     
+  }
+  
+  
+  public void percentDone(final int percent) {
+    if(lastPercent == percent) return;
+    if(display != null && ! display.isDisposed()) {
+      display.asyncExec(new Runnable() {
+        public void run() {
+         progress.setSelection(percent); 
+        }
+      });
+    }
+  }
+  
+  public void processFailed() {
+    if(display != null && ! display.isDisposed()) {
+      display.asyncExec(new Runnable() {
+        public void run() {
+         status.setText(statusBase + MessageText.getString("window.updateswt.failed")); 
+         btnOk.setEnabled(true);
+         btnIgnore.setEnabled(true);
+        }
+      });
+    }
+  }
+  
+
+  public void processName(final String name) {    
+    if(display != null && ! display.isDisposed()) {
+      display.asyncExec(new Runnable() {
+        public void run() {
+         status.setText(statusBase + name);
+         shell.pack();
+        }
+      });
+    }
+  }
+  
+  public void processSucceeded() {
+    if(display != null && ! display.isDisposed()) {
+      display.syncExec(new Runnable() {
+        public void run() {
+          shell.dispose();
+        }
+      });
+    }    
+    mainUpdater.launchSWTUpdate();
   }
 }

@@ -54,17 +54,22 @@ public class URLDownloader implements TorrentDownloader2Listener{
         InputStream inputStream = null;
         try {
           inputStream = downloader.download();
+          URLDownloader.this.listener.reportData(inputStream);
         } catch(Exception e) {
-          //e.printStackTrace();          
-        }
-        URLDownloader.this.listener.reportData(inputStream);
+          //e.printStackTrace();
+          URLDownloader.this.listener.reportData(null);
+        }        
       }
     };
-    //t.setDaemon(true);
+    t.setDaemon(true);
     t.start();
   }
   
   public void percentComplete(int percentage) {
     this.listener.reportPercent(percentage);
+  }
+  
+  public void cancel() {
+    downloader.cancel();
   }
 }
