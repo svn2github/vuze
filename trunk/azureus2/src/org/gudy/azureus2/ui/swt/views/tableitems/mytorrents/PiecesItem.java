@@ -48,6 +48,7 @@ public class PiecesItem extends TorrentGraphicItem  {
   }
 
   public void dispose() {
+    super.dispose();
     //if (torrentRow.getManager() == null) System.out.println("crap! infoObj == null! Graphic possibly == " + getGraphic());
 
     setGraphic(null);
