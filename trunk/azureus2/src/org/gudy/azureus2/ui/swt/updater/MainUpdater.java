@@ -149,7 +149,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         //Runtime.getRuntime().exec(exec,env,userDir);
       
       }*/
-      String exec = javaPath + "java\" -classpath \"" + classPath
+      String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
       + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
       + userPath + "\" \"" + libraryPath + "\"";
       
