@@ -144,6 +144,8 @@ TOTorrentCreateImpl
 	countPieces(
 		File				file,
 		long				piece_length )
+		
+		throws TOTorrentException
 	{
 		return( (getTotalFileLength( file ) + (piece_length-1))/piece_length );
 	}
@@ -151,12 +153,19 @@ TOTorrentCreateImpl
 	protected long
 	getTotalFileLength(
 		File				file )
+		
+		throws TOTorrentException
 	{
 		String	name = file.getName();
 		
 		if ( name.equals( "." ) || name.equals( ".." )){
 																				
 			return( 0 );
+		}
+		
+		if ( !file.exists()){
+			
+			throw( new TOTorrentException( "TOTorrentCreate: file '" + file.getName() + "' doesn't exist" ));
 		}
 		
 		if ( file.isFile()){

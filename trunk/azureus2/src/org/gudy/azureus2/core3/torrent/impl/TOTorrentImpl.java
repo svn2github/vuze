@@ -84,8 +84,10 @@ TOTorrentImpl
 	{				
 		byte[]	res = serialiseToByteArray();
 		
+		FileOutputStream os = null;
+		
 		try{
-			FileOutputStream os = new FileOutputStream( output_file );
+			os = new FileOutputStream( output_file );
 			
 			os.write( res );
 		
@@ -94,6 +96,19 @@ TOTorrentImpl
 		}catch( Throwable e){
 			
 			throw( new TOTorrentException( "TOTorrent::serialise: fails '" + e.toString() + "'" ));
+			
+		}finally{
+			
+			if ( os != null ){
+				
+				try{
+					os.close();
+					
+				}catch( IOException e ){
+				
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
