@@ -22,15 +22,16 @@ import java.util.*;
 
 /**
  * @author Olivier
- * 
+ *
  */
 public class ImageRepository {
 
   private static final HashMap images;
   private static final WeakHashMap weakRegistry;
   private static final String[] noCacheExtList = new String[] {".exe"};
+  private static final boolean doNotUseAWTIcon = Constants.isOSX || (Constants.isWindows && !Constants.isWindowsXP);
 
-  static {
+    static {
     images = new HashMap();
     weakRegistry = new WeakHashMap();
   }
@@ -39,7 +40,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/a16.png", "azureus");
     loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash");
   }
-  
+
   public static void loadImages(Display display) {
     loadImage(display, "org/gudy/azureus2/ui/icons/close.png", "close");
     loadImage(display, "org/gudy/azureus2/ui/icons/a32.png", "azureus32");
@@ -64,7 +65,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/publish.gif", "publish");
     loadImage(display, "org/gudy/azureus2/ui/icons/run.gif", "run");
     loadImage(display, "org/gudy/azureus2/ui/icons/details.gif", "details");
-    loadImage(display, "org/gudy/azureus2/ui/icons/up.gif", "up");    
+    loadImage(display, "org/gudy/azureus2/ui/icons/up.gif", "up");
     loadImage(display, "org/gudy/azureus2/ui/icons/down.gif", "down");
     loadImage(display, "org/gudy/azureus2/ui/icons/top.gif", "top");
     loadImage(display, "org/gudy/azureus2/ui/icons/bottom.gif", "bottom");
@@ -77,9 +78,9 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/speed.gif", "speed");
     loadImage(display, "org/gudy/azureus2/ui/icons/openFolder16x12.gif", "openFolderButton");
     loadImage(display, "org/gudy/azureus2/ui/icons/forcestart.gif", "forcestart");
-    
+
     //ToolBar Icons
-    
+
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open.gif", "cb_open");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open_no_default.gif", "cb_open_no_default");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open_folder.gif", "cb_open_folder");
@@ -95,14 +96,14 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/remove.gif", "cb_remove");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/host.gif", "cb_host");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/publish.gif", "cb_publish");
-        
-    //Status icons    
+
+    //Status icons
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ok.gif", "st_ok");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ko.gif", "st_ko");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped.gif", "st_stopped");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker.gif", "st_no_tracker");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote.gif", "st_no_remote");
-        
+
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ok_shared.gif", "st_ok_shared");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ko_shared.gif", "st_ko_shared");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped_shared.gif", "st_stopped_shared");
@@ -123,22 +124,22 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/subitem.gif","subitem");
     }
 
-  
+
   public static Image loadImage(Display display, String res, String name){
     return loadImage(display,res,name,255);
   }
-  
+
   public static Image loadImage(Display display, String res, String name,int alpha) {
     return loadImage(ImageRepository.class.getClassLoader(),display,res,name,alpha);
   }
-  
+
   public static Image loadImage(ClassLoader loader,Display display, String res, String name,int alpha) {
     Image im = getImage(name);
     if(null == im) {
       InputStream is = loader.getResourceAsStream(res);
       if(null != is) {
         if(alpha == 255) {
-          im = new Image(display, is);          
+          im = new Image(display, is);
         } else {
           ImageData icone = new ImageData(is);
           icone.alpha = alpha;
@@ -151,7 +152,7 @@ public class ImageRepository {
     }
     return im;
   }
-  
+
   public static void unLoadImages() {
     Iterator iter;
     iter = images.values().iterator();
@@ -179,13 +180,13 @@ public class ImageRepository {
      */
   public static Image getIconFromProgram(Program program) {
     Image image = null;
-    
+
     try{
     	image =(Image) images.get(program);
-    
+
 	    if (image == null) {
 	      if (program != null) {
-	
+
 	        ImageData imageData = program.getImageData();
 	        if (imageData != null) {
 	          image = new Image(null, imageData,imageData.getTransparencyMask());
@@ -197,7 +198,7 @@ public class ImageRepository {
     	// seen exceptions thrown here, due to images.get failing in Program.hashCode
     	// ignore and use default icon
     }
-    
+
     if (image == null) {
       image = (Image) images.get("folder");
     }
@@ -222,17 +223,21 @@ public class ImageRepository {
      */
     public static Image getPathIcon(final String path)
     {
-        // temporary workaround
-        if(Constants.isOSX)
-            return getIconFromProgram(Program.findProgram(path));
-
         try
         {
             final File file = new File(path);
 
+            // workaround for unsupported platforms
+            // notes:
+            // Mac OS X - Do not mix AWT with SWT (possible workaround: use IPC/Cocoa)
+            // Windows < XP - Improper Alpha Channel support
+
             String key;
             if(file.isDirectory())
             {
+                if(doNotUseAWTIcon)
+                    return getFolderImage();
+
                 key = file.getPath();
             }
             else
@@ -241,12 +246,18 @@ public class ImageRepository {
 
                 if(lookIndex == -1)
                 {
+                    if(doNotUseAWTIcon)
+                        return getFolderImage();
+
                     key = "?!blank";
                 }
                 else
                 {
                     final String ext =  file.getName().substring(lookIndex);
                     key = ext;
+
+                    if(doNotUseAWTIcon)
+                         getIconFromProgram(Program.findProgram(ext));
 
                     // case-insensitive file systems
                     for (int i = 0; i < noCacheExtList.length; i++)
@@ -293,7 +304,26 @@ public class ImageRepository {
         catch (Exception e)
         {
             //Debug.printStackTrace(e);
-            return getIconFromProgram(Program.findProgram(path));
+
+            // Possible scenario: Method call before file creation
+            final int fileSepIndex = path.lastIndexOf(File.separator);
+            if(fileSepIndex == path.length() - 1)
+            {
+                return getFolderImage();
+            }
+            else
+            {
+                final int extIndex;
+                if(fileSepIndex == -1)
+                    extIndex = path.indexOf('.');
+                else
+                    extIndex = path.substring(fileSepIndex).indexOf('.');
+
+                if(extIndex == -1)
+                    return getFolderImage();
+                else
+                    return getIconFromProgram(Program.findProgram(path.substring(extIndex)));
+            }
         }
     }
 
