@@ -53,7 +53,7 @@ public class ByteBufferPool {
           ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE);
           return buffer;
        } catch (OutOfMemoryError ex) {
-          System.out.println("Memory allocation failed: Out of direct memory space (max=" + sun.misc.VM.maxDirectMemory());
+          System.out.println("Memory allocation failed: Out of direct memory space (max=" + sun.misc.VM.maxDirectMemory() + ")");
           System.out.println("TO FIX: Use the -XX:MaxDirectMemorySize=xxxxxx command line option.");
           return null;
        }
