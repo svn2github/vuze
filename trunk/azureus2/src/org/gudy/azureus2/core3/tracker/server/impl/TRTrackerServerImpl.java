@@ -133,6 +133,8 @@ TRTrackerServerImpl
 		
 	protected String	name;
 	protected boolean	web_password_enabled;
+	protected boolean	web_password_https_only;
+	
 	protected boolean	tracker_password_enabled;
 	protected String	password_user;
 	protected byte[]	password_pw;
@@ -189,18 +191,20 @@ TRTrackerServerImpl
 	protected void
 	readConfigSettings()
 	{		
-		web_password_enabled 		= COConfigurationManager.getBooleanParameter("Tracker Password Enable Web", false);
-		tracker_password_enabled 	= COConfigurationManager.getBooleanParameter("Tracker Password Enable Torrent", false);
+		web_password_enabled 		= COConfigurationManager.getBooleanParameter("Tracker Password Enable Web");
+		tracker_password_enabled 	= COConfigurationManager.getBooleanParameter("Tracker Password Enable Torrent");
 
+		web_password_https_only		= COConfigurationManager.getBooleanParameter("Tracker Password Web HTTPS Only");
+		
 		if ( web_password_enabled || tracker_password_enabled ){
 			
 			password_user	= COConfigurationManager.getStringParameter("Tracker Username", "");
 			password_pw		= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
 		}
 		
-		compact_enabled = COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true );
+		compact_enabled = COConfigurationManager.getBooleanParameter("Tracker Compact Enable" );
 		
-		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable Server", true );
+		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable Server");
 	}
 
 
@@ -214,6 +218,12 @@ TRTrackerServerImpl
 	isTrackerPasswordEnabled()
 	{
 		return( tracker_password_enabled || auth_listeners.size() > 0 );
+	}
+	
+	public boolean
+	isWebPasswordHTTPSOnly()
+	{
+		return( web_password_https_only );
 	}
 	
 	public boolean

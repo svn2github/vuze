@@ -480,12 +480,36 @@ ConfigSectionTrackerServer
     // row
 
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 1;
     final BooleanParameter passwordEnableWeb = 
         new BooleanParameter(gMainTab, "Tracker Password Enable Web", false, 
                              "ConfigView.section.tracker.passwordenableweb");
     passwordEnableWeb.setLayoutData( gridData );
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    final BooleanParameter passwordWebHTTPSOnly = 
+        new BooleanParameter(gMainTab, "Tracker Password Web HTTPS Only", false, 
+                             "ConfigView.section.tracker.passwordwebhttpsonly");
+    passwordWebHTTPSOnly.setLayoutData( gridData );
 
+    IAdditionalActionPerformer web_https_enabler =
+        new GenericActionPerformer(passwordWebHTTPSOnly.getControls())
+            {
+	            public void performAction()
+	            {
+	              boolean selected =  	passwordEnableWeb.isSelected() &&
+				  						sslEnable.isSelected();
+	
+	              for (int i=0;i<controls.length;i++){
+	              	
+	              	controls[i].setEnabled( selected );
+	              }
+	            }
+            };
+
+    passwordEnableWeb.setAdditionalActionPerformer(web_https_enabler);
+    sslEnable.setAdditionalActionPerformer(web_https_enabler);
 
     // row
 

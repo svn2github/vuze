@@ -137,12 +137,6 @@ public class ConfigurationDefaults {
     def.put("update.start",new Long(1));
     def.put("update.periodic",new Long(1));
     def.put("update.opendialog",new Long(1));
-    def.put("Tracker Password Enable Web", new Long(0));
-    def.put("Tracker Username", "");
-    def.put("Tracker Password", "");
-    def.put("Tracker Max GET Time", new Long(20));
-    def.put("Tracker Max POST Time Multiplier", new Long(1));
-    def.put("Tracker Max Threads", new Long( 48 ));
     def.put("Colors.progressBar.override", new Long(0));
     
     def.put("Logging Enable", new Long(0));
@@ -237,13 +231,16 @@ public class ConfigurationDefaults {
     def.put( "Stats Dir", "" );
     def.put( "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
     def.put( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
+    def.put( "File.save.peers.max", new Long( TRTrackerClient.DEFAULT_PEERS_TO_CACHE ) );
+    
+    	// tracker 
+    
     def.put( "Tracker Compact Enable", new Long(1) );
     def.put( "Tracker Key Enable Client", new Long(1) );
     def.put( "Tracker Key Enable Server", new Long(1) );
     def.put( "Tracker Separate Peer IDs", new Long(0));
     def.put( "Tracker Client Connect Timeout", new Long(120));
     def.put( "Tracker Client Read Timeout", new Long(60));
-    def.put( "File.save.peers.max", new Long( TRTrackerClient.DEFAULT_PEERS_TO_CACHE ) );
     def.put( "Tracker Public Enable", new Long(0) );
     def.put( "Tracker Log Enable", new Long(0) );
     def.put( "Tracker Port Enable", new Long(1) );
@@ -263,6 +260,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Poll Interval Max", new Long( TRTrackerServer.DEFAULT_MAX_RETRY_DELAY) );
     def.put( "Tracker Scrape Retry Percentage", new Long( TRTrackerServer.DEFAULT_SCRAPE_RETRY_PERCENTAGE ) );
     def.put( "Tracker Password Enable Web", new Long(0) );
+    def.put( "Tracker Password Web HTTPS Only", new Long(0));
     def.put( "Tracker Password Enable Torrent", new Long(0) );
     def.put( "Tracker Username", "" );
     def.put( "Tracker Password", null );
@@ -271,6 +269,11 @@ public class ConfigurationDefaults {
     def.put( "Tracker NAT Check Enable", new Long(1));
     def.put( "Tracker NAT Check Timeout", new Long(TRTrackerServer.DEFAULT_NAT_CHECK_SECS));
     def.put( "Tracker Max Seeds Retained", new Long( 0 ) );
+    def.put( "Tracker Max GET Time", new Long(20));
+    def.put( "Tracker Max POST Time Multiplier", new Long(1));
+    def.put( "Tracker Max Threads", new Long( 48 ));
+    
+    
     def.put( "config.style.useSIUnits", new Long(0) );
     def.put( "config.style.useUnitsRateBits", new Long(0) );
     def.put( "Save Torrent Backup", new Long(0) );

@@ -714,8 +714,21 @@ TRTrackerServerProcessorTCP
 	{
 		// System.out.println( "doAuth: " + server.isTrackerPasswordEnabled() + "/" + server.isWebPasswordEnabled());
 		
-		if (	( tracker && server.isTrackerPasswordEnabled()) ||
-				( (!tracker) && server.isWebPasswordEnabled())){
+		boolean	apply_web_password 		= (!tracker) && server.isWebPasswordEnabled();
+		boolean apply_torrent_password	= tracker && server.isTrackerPasswordEnabled();
+		
+		if ( 	apply_web_password &&
+				server.isWebPasswordHTTPSOnly() &&
+				!server.isSSL()){
+			
+			os.write( ("HTTP/1.1 403 BAD\r\n\r\nAccess Denied\r\n").getBytes() );
+			
+			os.flush();
+				
+			return( false );
+
+		}else if (	apply_torrent_password ||
+					apply_web_password ){
 			
 			int	x = header.indexOf( "Authorization:" );
 			

@@ -22,6 +22,7 @@ FEATURE: UI   | Added Connected Time item to peers view [Nolar]
 FEATURE: UI   | Option to add torrent downloads silently (without activating main Azureus window) [Nolar]
 FEATURE: UI   | Added download speed limit column to MyTorrents [Parg]
 FEATURE: Core | Added ability to apply updates and shutdown Azureus instead of restarting [Parg]
+FEATURE: Core | Can now specify that password protected tracker web is only available via HTTPS, HTTP access -> access denied [Parg]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
