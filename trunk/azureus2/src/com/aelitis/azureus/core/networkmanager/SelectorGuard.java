@@ -54,7 +54,7 @@ public class SelectorGuard {
   private static final boolean DISABLED = false;//System.getProperty("java.version").startsWith("1.5") ? true : false;
   
   private HashMap conseq_keys = new HashMap();
-  private static final int CONSEQ_SELECT_THRESHOLD = 29;
+  private static final int CONSEQ_SELECT_THRESHOLD = 25;
   
   
   
@@ -182,7 +182,7 @@ public class SelectorGuard {
         
         new_keys.put( key, new Integer( conseq_selects ) );
         
-        if( conseq_selects > CONSEQ_SELECT_THRESHOLD && conseq_selects % 10 == 0 ) {
+        if( conseq_selects >= CONSEQ_SELECT_THRESHOLD && conseq_selects % 25 == 0 ) {
           spin_detected = true;
         }
       }
@@ -207,7 +207,7 @@ public class SelectorGuard {
       
       Integer count = (Integer)entry.getValue();
       
-      if( count.intValue() > CONSEQ_SELECT_THRESHOLD ) {
+      if( count.intValue() >= CONSEQ_SELECT_THRESHOLD ) {
         SelectionKey key = (SelectionKey)entry.getKey();
         
         report += "[" +count.intValue()+ "X, " +key.channel()+ "] ";
