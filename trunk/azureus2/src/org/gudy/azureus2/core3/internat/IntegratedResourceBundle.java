@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.ListResourceBundle;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
@@ -24,23 +25,30 @@ public class IntegratedResourceBundle extends ListResourceBundle {
 
   private Object[][] contents;
 
-  public IntegratedResourceBundle(ResourceBundle main, Vector localizationPaths) {
+  public IntegratedResourceBundle(ResourceBundle main, Map localizationPaths) {
     contents = integrateBundles(main, localizationPaths);
   }
 
-  private static Object[][] integrateBundles(ResourceBundle main, Vector localizationPaths) {
+  private static Object[][] integrateBundles(ResourceBundle main, Map localizationPaths) {
     Hashtable messages = new Hashtable();
     addResourceMessages(main, messages);
 
-    for (Iterator iter = localizationPaths.iterator(); iter.hasNext();) {
+    for (Iterator iter = localizationPaths.keySet().iterator(); iter.hasNext();) {
       String localizationPath = (String) iter.next();
+      ClassLoader classLoader = (ClassLoader) localizationPaths.get(localizationPath);
       ResourceBundle newResourceBundle = null;
       try {
+        if(classLoader != null)
+          newResourceBundle = ResourceBundle.getBundle(localizationPath, main.getLocale(),classLoader);
+        else
         newResourceBundle = ResourceBundle.getBundle(localizationPath, main.getLocale());
       } catch (Exception e) {
         //        System.out.println(localizationPath+": no resource bundle for " +
 				// main.getLocale());
         try {
+          if(classLoader != null)
+            newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,classLoader);
+          else 
           newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT);
         } catch (Exception e2) {
           System.out.println(localizationPath + ": no default resource bundle");

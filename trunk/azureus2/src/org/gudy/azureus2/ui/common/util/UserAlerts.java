@@ -110,7 +110,7 @@ UserAlerts
 			
 			for (int i = 0;	i < threadList.length;	i++){
 			
-				if("Java Sound event dispatcher".equals(threadList[i].getName())){
+				if(threadList[i] != null && "Java Sound event dispatcher".equals(threadList[i].getName())){
 									
 					threadList[i].interrupt();
 				}

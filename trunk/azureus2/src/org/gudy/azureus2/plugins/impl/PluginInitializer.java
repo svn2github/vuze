@@ -83,7 +83,7 @@ public class PluginInitializer {
 
       Class c = classLoader.loadClass((String)props.get("plugin.class"));
       Plugin plugin = (Plugin) c.newInstance();
-      MessageText.integratePluginMessages((String)props.get("plugin.langfile"));
+      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
       plugin.initialize(new PluginInterfaceImpl(directory.getName(),props,directory.getAbsolutePath()));
     } catch(Exception e) {
       e.printStackTrace();

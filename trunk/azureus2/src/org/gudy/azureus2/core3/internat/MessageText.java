@@ -11,11 +11,11 @@ import java.io.FilenameFilter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.Vector;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -31,7 +31,7 @@ public class MessageText {
   public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english
   private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
-  private static Vector pluginLocalizationPaths = new Vector();
+  private static Map pluginLocalizationPaths = new HashMap();
   private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT);
 //  private static ResourceBundle RESOURCE_BUNDLE = new IntegratedResourceBundle(ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT), pluginLocalizationPaths);
   private static ResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
@@ -142,10 +142,10 @@ public class MessageText {
     return false;
   }
 
-  public static boolean integratePluginMessages(String localizationPath) {
+  public static boolean integratePluginMessages(String localizationPath,ClassLoader classLoader) {
     boolean integratedSuccessfully = false;
-    if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.contains(localizationPath)) {
-      pluginLocalizationPaths.add(localizationPath);
+    if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.containsKey(localizationPath)) {
+      pluginLocalizationPaths.put(localizationPath,classLoader);
       RESOURCE_BUNDLE = new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths);
       integratedSuccessfully = true;
     }
