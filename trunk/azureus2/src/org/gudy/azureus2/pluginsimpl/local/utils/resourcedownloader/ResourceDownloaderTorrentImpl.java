@@ -211,6 +211,10 @@ ResourceDownloaderTorrentImpl
 		try{
 			informActivity( getLogIndent() + "Downloading: " + new String( torrent.getName(), Constants.DEFAULT_ENCODING ));
 			
+				// we *don't* want this temporary file to be deleted automatically as we're
+				// going to use it across Azureus restarts to hold the download data and
+				// to seed it afterwards. Therefore we don't use AETemporaryFileHandler!!!!
+			
 			final File	temp_file 	= File.createTempFile("AZU", null );
 			final File	temp_dir	= temp_file.getParentFile();
 			

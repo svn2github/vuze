@@ -202,7 +202,7 @@ CorePatchChecker
 				
 				UpdateInstaller	installer = instance.createInstaller();
 				
-				File	tmp = File.createTempFile("AZU", null );
+				File	tmp = AETemporaryFileHandler.createTempFile("AZU", null );
 								
 				OutputStream	os = new FileOutputStream( tmp );
 				

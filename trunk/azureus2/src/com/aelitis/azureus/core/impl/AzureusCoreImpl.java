@@ -103,6 +103,8 @@ AzureusCoreImpl
 		LGLogger.initialise();
 		
 		AEDiagnostics.startup();
+		
+		AETemporaryFileHandler.startup();
 	}
 	
 	public LocaleUtil

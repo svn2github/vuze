@@ -194,7 +194,7 @@ TRTrackerServerProcessorTCP
 						
 					}else{
 						
-						post_file	= File.createTempFile( "AZU", null );
+						post_file	= AETemporaryFileHandler.createTempFile( "AZU", null );
 						
 						post_file.deleteOnExit();
 						
