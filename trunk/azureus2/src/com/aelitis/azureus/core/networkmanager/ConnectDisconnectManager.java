@@ -178,8 +178,6 @@ public class ConnectDisconnectManager {
               finally{ new_canceled_mon.exit(); }
               
               if( canceled ) {
-                System.out.println( "ConnectDisconnectManager::selectSuccess():: connect request already canceled" );                
-                
                 try{  pending_closes_mon.enter();
                   pending_closes.addLast( request.channel );  //just close it
                 }

@@ -329,7 +329,7 @@ DHTPluginStorageManager
 		byte[]			key,
 		boolean			put_operation )
 	{
-		System.out.println( "DHT get existing diversification: put = " + put_operation  );
+		//System.out.println( "DHT get existing diversification: put = " + put_operation  );
 		
 		return( new byte[][]{ key });
 	}
@@ -340,7 +340,7 @@ DHTPluginStorageManager
 		boolean			put_operation,
 		int				diversification_type )
 	{
-		System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
+		//System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
 											
 		return( new byte[0][] );
 	} 
