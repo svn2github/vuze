@@ -1259,7 +1259,12 @@ public class MainWindow implements GlobalManagerListener {
       String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
       String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
       String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
-
+     
+      //remove any trailing slashes
+      if (libraryPath.endsWith("\\")) {
+        libraryPath = libraryPath.substring(0, libraryPath.length() -1);
+      }
+    
       File updaterJar = FileUtil.getApplicationFile("Updater.jar"); //$NON-NLS-1$
       if (!updaterJar.isFile()) {
         URL reqUrl = new URL("http://azureus.sourceforge.net/Updater.jar"); //$NON-NLS-1$
