@@ -42,7 +42,7 @@ import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
  * does, before passing the messages onto the outgoing message queue for transmission.
  */
 public class OutgoingBTPieceMessageHandler {
-  private static final int MIN_READ_AHEAD = 4;
+  private static final int MIN_READ_AHEAD = 3;
   private final OutgoingMessageQueue outgoing_message_queue;
   private final DiskManager disk_manager;
   private final LinkedList requests = new LinkedList();
