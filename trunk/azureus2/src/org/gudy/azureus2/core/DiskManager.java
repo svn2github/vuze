@@ -609,7 +609,12 @@ public class DiskManager {
         }
         if (checkQueue.size() != 0) {
           WriteElement elt = (WriteElement) checkQueue.remove(0);
-          manager.pieceChecked(elt.getPieceNumber(), checkPiece(elt.getPieceNumber()));
+          boolean correct = checkPiece(elt.getPieceNumber());          
+          manager.pieceChecked(elt.getPieceNumber(), correct);
+          if(!correct)
+            Logger.getLogger().log(0, 0, Logger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
+          else
+            Logger.getLogger().log(0, 0, Logger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
         }
         try {
           Thread.sleep(15);

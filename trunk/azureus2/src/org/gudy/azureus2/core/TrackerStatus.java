@@ -9,32 +9,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 /**
  * @author Olivier
  * 
  */
 public class TrackerStatus {
-  private URL scrapeURL = null;
+  private String scrapeURL = null;
   byte[] data;
 
   private HashMap hashes;
+  private List hashList;
 
   public TrackerStatus(String trackerUrl) {    
     this.hashes = new HashMap();
+    this.hashList = new Vector();
     try {
       trackerUrl = trackerUrl.replaceAll(" ", "");
       int position = trackerUrl.lastIndexOf('/');
       if(position >= 0 && trackerUrl.substring(position+1,position+9).equals("announce"))
-        this.scrapeURL = new URL(trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9));
-         /*     
-      if(trackerUrl.contains("/announce"))
-        this.scrapeURL = new URL(trackerUrl.substring(0,trackerUrl.length()-9)  + "/scrape");
-      else
-        this.scrapeURL = new URL(trackerUrl + "/scrape");*/
+        this.scrapeURL = trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9);
     } catch (Exception e) {
       e.printStackTrace();
     } 
@@ -45,12 +45,20 @@ public class TrackerStatus {
     return (HashData) hashes.get(hash);
   }
 
-  public synchronized void update() {
+  public synchronized void update(Hash hash) {
+    if(!hashList.contains(hash)) {
+      hashList.add(hash);
+    }
+    hashes.put(hash,new HashData(0,0));
     if(scrapeURL == null)
       return;
     InputStream is = null;
     try {
-      HttpURLConnection con = (HttpURLConnection) scrapeURL.openConnection();
+      String info_hash = "?info_hash=";
+      info_hash += URLEncoder.encode(new String(hash.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+      URL scrape = new URL(scrapeURL + info_hash);
+      Logger.getLogger().log(0,0,Logger.INFORMATION,"Accessing scrape interface using url : " + scrape);
+      HttpURLConnection con = (HttpURLConnection) scrape.openConnection();
       con.connect();
       is = con.getInputStream();
       ByteArrayOutputStream message = new ByteArrayOutputStream();
@@ -68,6 +76,7 @@ public class TrackerStatus {
           return;
         }
       }
+      //Logger.getLogger().log(0,0,Logger.INFORMATION,"Response from scrape interface : " + message);
       Map map = BDecoder.decode(message.toByteArray());
       map = (Map) map.get("files");
       Iterator iter = map.keySet().iterator();
@@ -90,5 +99,14 @@ public class TrackerStatus {
         }
     }
   }
+  
+  public Iterator getHashesIterator() {
+    return hashList.iterator();  
+  }
+  
+  public void removeHash(Hash hash) {
+    while(hashList.contains(hash))
+      hashList.remove(hash);
+  }  
 
 }

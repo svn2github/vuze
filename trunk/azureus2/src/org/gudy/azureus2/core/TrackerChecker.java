@@ -23,10 +23,21 @@ public class TrackerChecker {
     return getHashData(trackerUrl,new Hash(hash));
   }
 
-  public HashData getHashData(String trackerUrl, Hash hash) {
+  public void removeHash(String trackerUrl,Hash hash) {
+    TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
+    if(ts != null) {
+      ts.removeHash(hash);
+    }
+  }
+  
+  public HashData getHashData(String trackerUrl,final Hash hash) {
     if (trackers.containsKey(trackerUrl)) {
       TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
-      return ts.getHashData(hash);
+      HashData data = ts.getHashData(hash);
+      if(data != null)
+        return data;
+     else
+        ts.update(hash);
     }
     final TrackerStatus ts = new TrackerStatus(trackerUrl);
     synchronized (trackers) {
@@ -37,7 +48,7 @@ public class TrackerChecker {
        * @see java.lang.Thread#run()
        */
       public void run() {
-        ts.update();
+        ts.update(hash);
       }
     };
     t.setDaemon(true);
@@ -56,7 +67,11 @@ public class TrackerChecker {
            * @see java.lang.Thread#run()
            */
           public void run() {
-            ts.update();            
+            Iterator iter = ts.getHashesIterator();
+            while(iter.hasNext()) {              
+              Hash hash = (Hash) iter.next();
+              ts.update(hash);
+            }           
             }
         };
         t.setDaemon(true);

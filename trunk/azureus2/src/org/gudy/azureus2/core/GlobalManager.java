@@ -40,7 +40,7 @@ public class GlobalManager extends Component {
       super("Global Status Checker");
       loopFactor = 0;
       setPriority(Thread.MIN_PRIORITY);
-      determineSaveResumeDataInterval();
+      //determineSaveResumeDataInterval();
     }
 
     private void determineSaveResumeDataInterval() {
@@ -53,11 +53,11 @@ public class GlobalManager extends Component {
       while (!finished) {
 
         loopFactor++;
-        // Changed to 2 mins :D
+        // Changed to 10 mins :D
         // Should be user configurable.
-        if (loopFactor >= 120) {
+        if (loopFactor >= 600) {
           loopFactor = 0;
-          determineSaveResumeDataInterval();
+          //determineSaveResumeDataInterval();
           trackerChecker.update();
         }
 
@@ -70,7 +70,7 @@ public class GlobalManager extends Component {
               nbStarted++;
               nbDownloading++;
               if (loopFactor % saveResumeLoopCount == 0) {
-                manager.diskManager.dumpResumeDataToDisk(false);
+                //manager.diskManager.dumpResumeDataToDisk(false);
               }
             }
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {
@@ -174,6 +174,7 @@ public class GlobalManager extends Component {
     }
     this.objectRemoved(manager);
     saveDownloads();
+    this.trackerChecker.removeHash(manager.getTrackerUrl(),new Hash(manager.getHash()));
   }
 
   public void startWaitingDownloads() {
