@@ -49,7 +49,7 @@ PEPeerControlImpl
   private static final int MAX_REQUESTS = 16;
   private static final int BAD_CHUNKS_LIMIT = 3;
   private static final int WARNINGS_LIMIT = 3;
-  private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+  private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients");
   
   private int peer_manager_state = PS_INITIALISED;
   
@@ -228,6 +228,7 @@ PEPeerControlImpl
 
     public PeerUpdater() {
       super("Peer Updater"); //$NON-NLS-1$
+      setPriority(Thread.NORM_PRIORITY - 1);
       started = new long[10];
     }
 
@@ -2026,7 +2027,7 @@ PEPeerControlImpl
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+    maxConnections = COConfigurationManager.getIntParameter("Max Clients");
   }
   
   
