@@ -1324,7 +1324,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   
   public void showStats() {
     if (stats_tab == null)
-      stats_tab = new Tab(new SpeedView(globalManager));
+      stats_tab = new Tab(new StatsView(globalManager));
     else
       stats_tab.setFocus();
   }
