@@ -120,11 +120,18 @@ LGLoggerImpl
 	protected static void
 	checkLoggingConfig()
 	{
-		log_to_file 	= COConfigurationManager.getBooleanParameter("Logging Enable", false );
-		
-		log_dir			= COConfigurationManager.getStringParameter("Logging Dir", "" );
-		
-		log_file_max	= COConfigurationManager.getIntParameter("Logging Max Size", 1 );
+	  boolean overrideLog = System.getProperty("azureus.overridelog") != null;
+	  if (overrideLog) {
+	    log_to_file = true;
+	    log_dir = ".";
+	    log_file_max = 2;
+	  } else {
+  		log_to_file 	= COConfigurationManager.getBooleanParameter("Logging Enable", false );
+  		
+  		log_dir			= COConfigurationManager.getStringParameter("Logging Dir", "" );
+  		
+  		log_file_max	= COConfigurationManager.getIntParameter("Logging Max Size", 1 );
+		}
 		
 		for (int i = 0; i < log_types.length; i++) {
   		log_types[i] = 0;
