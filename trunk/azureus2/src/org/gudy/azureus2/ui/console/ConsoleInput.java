@@ -388,7 +388,11 @@ public class ConsoleInput extends Thread {
   						 * Download of "+whatelse[j]+" failed");
   						 */
   						out.println("> Starting Download of " + whatelse[j] + " ...");
-  						TorrentDownloaderFactory.downloadManaged(whatelse[j]);
+  						try {
+  							TorrentDownloaderFactory.downloadManaged(whatelse[j]);
+  						} catch (Exception e) {
+  							e.printStackTrace(out);
+  						}
   					} else {
   						File test = new File(whatelse[j]);
   						if (test.exists()) {
@@ -705,86 +709,48 @@ public class ConsoleInput extends Thread {
   	}*/
   }
   
-  private void commandRemove(String subcommand) {
-	commandTorrentCommand(TORRENTCOMMAND_REMOVE, subcommand);
-  	/*if (subcommand != null) {
+  private void commandMove(String subcommand) {
+  	if (subcommand != null) {
   		if ((torrents != null) && torrents.isEmpty()) {
   			out.println("> Command 'remove': No torrents in list.");
   		} else {
   			String name;
   			DownloadManager dm;
   			try {
-  				int number = Integer.parseInt(subcommand);
+  				int ncommand = Integer.parseInt(subcommand);
+  				int number = Math.abs(ncommand);
   				if ((number > 0) && (number <= torrents.size())) {
   					dm = (DownloadManager) this.torrents.get(number - 1);
   					if (dm.getName() == null)
   						name = "?";
   					else
   						name = dm.getName();
-  					dm.stopIt();
-  					try{
-  						gm.removeDownloadManager(dm);
-  						out.println("> Torrent #" + subcommand + " (" + name + ") removed.");
-  					}catch(GlobalManagerDownloadRemovalVetoException e ){
-  						out.println( "> Exception when removing torrent (" + e.getMessage() + ")");
+  					if (ncommand>0) {
+  						if (dm.isMoveableUp()) {
+  							while (dm.isMoveableUp())
+  								dm.moveUp();
+  							out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to top.");
+  						} else {
+  							out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at top.");
+  						}
+  					} else {
+  						if (dm.isMoveableDown()) {
+  							while (dm.isMoveableDown())
+  								dm.moveUp();
+  							out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to bottom.");
+  						} else {
+  							out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at bottom.");
+  						}
   					}
-  					oldcommand = null;
   				} else
-  					out.println("> Command 'remove': Torrent #" + subcommand + " unknown.");
+  					out.println("> Command 'move': Torrent #" + Integer.toString(number) + " unknown.");
   			} catch (NumberFormatException e) {
-  				if (subcommand.equalsIgnoreCase("all")) {
-  					Iterator torrent = torrents.iterator();
-  					int nr = 0;
-  					while (torrent.hasNext()) {
-  						dm = (DownloadManager) torrent.next();
-  						if (dm.getName() == null)
-  							name = "?";
-  						else
-  							name = dm.getName();
-  						dm.stopIt();
-  						try{
-  							gm.removeDownloadManager(dm);
-  							out.println("> Torrent #" + Integer.toString(++nr) + " (" + name + ") removed.");
-  						}catch(GlobalManagerDownloadRemovalVetoException f ){
-  							out.println( "> Exception when removing torrent (" + f.getMessage() + ")");
-  						}
-  					}
-  				} else if (subcommand.toUpperCase().startsWith("HASH")) {
-  					String hash = subcommand.substring(subcommand.indexOf(" ") + 1);
-  					List torrents = gm.getDownloadManagers();
-  					boolean foundit = false;
-  					if (!torrents.isEmpty()) {
-  						Iterator torrent = torrents.iterator();
-  						while (torrent.hasNext()) {
-  							dm = (DownloadManager) torrent.next();
-  							if (hash.equals(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true))) {
-  								if (dm.getName() == null)
-  									name = "?";
-  								else
-  									name = dm.getName();
-  								dm.stopIt();
-  								try{
-  									gm.removeDownloadManager(dm);
-  									out.println("> Torrent " + hash + " (" + name + ") removed.");
-  								}catch(GlobalManagerDownloadRemovalVetoException f ){
-  									out.println( "> Exception when removing torrent (" + f.getMessage() + ")");
-  								}
-  								
-  								foundit = true;
-  								break;
-  							}
-  						}
-  						if (!foundit)
-  							out.println("> Command 'remove': Hash '" + hash + "' unknown.");
-  					}
-  				} else {
-  					out.println("> Command 'remove': Subcommand '" + subcommand + "' unknown.");
-  				}
+				out.println("> Command 'move': Subcommand '" + subcommand + "' unknown.");
   			}
   		}
   	} else {
-  		out.println("> Missing subcommand for 'remove'\r\n> remove syntax: remove (#|all)");
-  	}*/
+  		out.println("> Missing subcommand for 'move'\r\n> move syntax: move <#>");
+  	}
   }
   
   private void commandLog(String subcommand) {
@@ -851,8 +817,10 @@ public class ConsoleInput extends Thread {
         	commandStart(subcommand);
         } else if (command.equalsIgnoreCase("stop") || command.equalsIgnoreCase("h")) {
         	commandStop(subcommand);
+        } else if (command.equalsIgnoreCase("move") || command.equalsIgnoreCase("m")) {
+        	commandMove(subcommand);
         } else if (command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("r")) {
-        	commandRemove(subcommand);
+        	commandTorrentCommand(TORRENTCOMMAND_REMOVE, subcommand);
         } else if (command.equalsIgnoreCase("queue") || command.equalsIgnoreCase("-")) {
         	commandTorrentCommand(TORRENTCOMMAND_QUEUE, subcommand);
         } else if (command.equalsIgnoreCase("log") || command.equalsIgnoreCase("l")) {
