@@ -109,20 +109,27 @@ public class BlocksItem
       GC gcImage = new GC(image);
       gcImage.setForeground(Colors.grey);
       gcImage.drawRectangle(0, 0, x1 + 1, y1 + 1);
-      int iPixelsPerBlock = (int) ((x1 + 1) / lNumBlocks);
-            
+      int blocksPerPixel = 0;
+      int iPixelsPerBlock = 0;
+      
+      
+      while(iPixelsPerBlock <= 0) {
+        blocksPerPixel++;
+        iPixelsPerBlock = (int) ((x1 + 1) / (lNumBlocks / blocksPerPixel) );        
+      }
+      
       TOTorrent torrent = piece.getManager().getDownloadManager().getTorrent();
       
       boolean[]	written 	= piece.getWritten();
       boolean	piece_done 	= piece.isComplete();
       
-      for (int i = 0; i < lNumBlocks; i++) {
+      for (int i = 0; i < lNumBlocks; i+=blocksPerPixel) {
         int nextWidth = iPixelsPerBlock;
         if (i == lNumBlocks - 1) {
-          nextWidth = (int)( x1 - (iPixelsPerBlock * (lNumBlocks - 1)));
+          nextWidth = (int)( x1 - (iPixelsPerBlock * (lNumBlocks / blocksPerPixel - 1)));
         }
         color = Colors.white;
-  
+        
         if ( written == null ){
         
         	if ( piece_done ){
