@@ -40,6 +40,7 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerImpl;
 import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.TableView;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -121,9 +122,7 @@ public class TableRowImpl
   }
 
   public void delete() {
-    if (isDisposed())
-      return;
-    Display display = getItem().getDisplay();
+    Display display = SWTThread.getInstance().getDisplay();
     if (display == null || display.isDisposed())
       return;
     display.asyncExec(new Runnable() {
