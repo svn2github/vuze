@@ -179,17 +179,6 @@ public class GlobalManager extends Component {
     this.trackerChecker.removeHash(manager.getTrackerUrl(),new Hash(manager.getHash()));
   }
 
-  public void startWaitingDownloads() {
-    synchronized (managers) {
-      for (int i = 0; i < managers.size(); i++) {
-        DownloadManager manager = (DownloadManager) managers.get(i);
-        if (manager.getState() == DownloadManager.STATE_WAITING) {
-          manager.startDownloadInitialized(false);
-        }
-      }
-    }
-  }
-
   public void stopAll() {
     checker.stopIt();
     saveDownloads();
@@ -260,11 +249,16 @@ public class GlobalManager extends Component {
           String savePath = new String((byte[]) mDownload.get("path"), Constants.DEFAULT_ENCODING);
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int stopped = debug ? 1 : ((Long) mDownload.get("stopped")).intValue();
-          Long lPriority = (Long) mDownload.get("priority");          
+          Long lPriority = (Long) mDownload.get("priority");   
+          Long lDownloaded = (Long) mDownload.get("downloaded");
+          Long lUploaded = (Long) mDownload.get("uploaded");
           DownloadManager dm = new DownloadManager(this, fileName, savePath, stopped == 1);
           dm.setMaxUploads(nbUploads);
           if(lPriority != null) {
             dm.setPriority(lPriority.intValue());
+          }
+          if(lDownloaded !=  null && lUploaded != null) {
+            dm.setDownloadedUploaded(lDownloaded.longValue(),lUploaded.longValue());
           }
           this.addDownloadManager(dm);
         }
@@ -311,6 +305,8 @@ public class GlobalManager extends Component {
       int priority = dm.getPriority();
       dmMap.put("priority", new Long(priority));
       dmMap.put("position", new Long(i));
+      dmMap.put("downloaded",new Long(dm.getDownloadedRaw()));
+      dmMap.put("uploaded",new Long(dm.getUploadedRaw()));
       list.add(dmMap);
     }
     map.put("downloads",list);

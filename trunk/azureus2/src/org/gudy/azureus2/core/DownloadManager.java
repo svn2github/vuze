@@ -65,6 +65,10 @@ public class DownloadManager extends Component {
   private TrackerConnection trackerConnection;
   public DiskManager diskManager;
   public PeerManager peerManager;
+  
+  //saved downloaded and uploaded
+  private long downloaded;
+  private long uploaded;
 
   private int maxUploads = 4;
 
@@ -134,6 +138,8 @@ public class DownloadManager extends Component {
   public void startDownload() {
     this.state = STATE_DOWNLOADING;
     peerManager = new PeerManager(this, hash, server, trackerConnection, diskManager);
+    peerManager.getStats().setTotalReceivedRaw(downloaded);
+    peerManager.getStats().setTotalSent(uploaded);
   }
 
   private void extractMetaInfo() {
@@ -592,6 +598,41 @@ public class DownloadManager extends Component {
       return result;
     }
     return "";
+  }
+  
+  public long getDownloadedRaw() {
+    if(peerManager != null)
+      return peerManager.getStats().getTotalReceivedRaw();
+    return this.downloaded;
+  }
+  
+  public long getUploadedRaw() {
+    if(peerManager != null)
+      return peerManager.getStats().getTotalSentRaw();
+    return uploaded;    
+  }
+  
+  public void setDownloadedUploaded(long downloaded,long uploaded) {
+    this.downloaded = downloaded;
+    this.uploaded = uploaded;
+  }
+  
+  public int getShareRatio() {
+    long downloaded,uploaded;
+    if(peerManager != null) {
+      downloaded = peerManager.getStats().getTotalReceivedRaw();
+      uploaded = peerManager.getStats().getTotalSentRaw();
+    } else {
+      downloaded = this.downloaded;
+      uploaded = this.uploaded;
+    }
+        
+    if(downloaded == 0) {
+      return -1;
+    }
+    else {
+      return (int) ((1000 * uploaded) / downloaded);
+    }
   }
 
 }

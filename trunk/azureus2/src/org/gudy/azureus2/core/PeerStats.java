@@ -120,9 +120,17 @@ public class PeerStats {
   public long getTotalSentRaw() {
     return totalSent;
   }
+  
+  public void setTotalSent(long sent) {
+     totalSent = sent;
+   }
 
   public long getTotalReceivedRaw() {
     return totalReceived;
+  }
+  
+  public void setTotalReceivedRaw(long received) {
+    totalReceived = received;
   }
   
   public long getTotalDiscardedRaw() {

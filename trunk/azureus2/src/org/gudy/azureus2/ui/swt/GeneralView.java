@@ -79,6 +79,7 @@ public class GeneralView extends AbstractIView {
   Label pieceSize;
   Label comment;
   Label hashFails;
+  Label shareRatio;
 
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
@@ -179,8 +180,11 @@ public class GeneralView extends AbstractIView {
     timeRemaining = new Label(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     timeRemaining.setLayoutData(gridData);
-    new Label(gTransfer, SWT.LEFT);
-    new Label(gTransfer, SWT.LEFT);
+    label = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.shareRatio");
+    shareRatio = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    shareRatio.setLayoutData(gridData);
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.downloaded"); //$NON-NLS-1$
@@ -358,6 +362,12 @@ public class GeneralView extends AbstractIView {
       seeds += " (?)";
       peers += " (?)";
     }
+    String _shareRatio = "";
+    int sr = manager.getShareRatio();
+    
+    if(sr == -1) _shareRatio = "oo";
+    if(sr >  0) _shareRatio = (sr/1000) + "." + (sr%1000);
+    
     setStats(
       manager.getDownloaded(),
       manager.getUploaded(),
@@ -366,7 +376,8 @@ public class GeneralView extends AbstractIView {
       manager.getTotalSpeed(),
       seeds,
       peers,
-      manager.getHashFails());
+      manager.getHashFails(),
+      _shareRatio);
     setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerUrl());
     setInfos(
       manager.getName(),
@@ -629,7 +640,7 @@ public class GeneralView extends AbstractIView {
     timeRemaining.setText(remaining);
   }
 
-  public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p,String _hashFails) {
+  public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p,String _hashFails,String _shareRatio) {
     if (display == null || display.isDisposed())
       return;
 
@@ -664,6 +675,9 @@ public class GeneralView extends AbstractIView {
     if(hashFails == null || hashFails.isDisposed())
       return;
     hashFails.setText(_hashFails);
+    if(shareRatio == null || shareRatio.isDisposed())
+      return;
+    shareRatio.setText(_shareRatio);     
   }
 
   public void setTracker(final String status, final int time, String trackerUrl) {

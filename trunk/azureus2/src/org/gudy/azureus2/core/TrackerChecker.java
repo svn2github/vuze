@@ -20,7 +20,9 @@ public class TrackerChecker {
   }
 
   public HashData getHashData(String trackerUrl, byte[] hash) {
-    return getHashData(trackerUrl,new Hash(hash));
+    if(trackerUrl != null)
+      return getHashData(trackerUrl,new Hash(hash));
+    return null;
   }
 
   public void removeHash(String trackerUrl,Hash hash) {

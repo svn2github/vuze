@@ -293,7 +293,7 @@ public class TrackerConnection {
             String url; 
             try {
             url = new String((byte[]) urls.get(j), Constants.DEFAULT_ENCODING);
-            url = url.replaceAll(" ", "");
+            url = url.replaceAll(" ", "");                          
             } catch(ClassCastException e) {
               continue;
             }            
@@ -303,6 +303,7 @@ public class TrackerConnection {
             int pos = (int)(Math.random() *  stringUrls.size());
             stringUrls.add(pos,url);
             separatorUrl = ", ";
+            lastUsedUrl = url;
           }
           separatorList = " ; ";
           trackerUrlListString += " } ";         

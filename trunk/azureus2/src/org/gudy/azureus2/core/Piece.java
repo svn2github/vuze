@@ -7,9 +7,7 @@ package org.gudy.azureus2.core;
  * @author Olivier
  *
  */
-public class Piece {
-  private static final int blocSize = 16384;
-
+public class Piece {  
   public int length;
   public int nbBlocs;
   public int pieceNumber;
@@ -30,15 +28,15 @@ public class Piece {
     this.manager = manager;
     //System.out.println("Creating Piece of Size " + length); 
     this.length = length;
-    nbBlocs = (length + blocSize - 1) / blocSize;
+    nbBlocs = (length + PeerManager.BLOCK_SIZE - 1) / PeerManager.BLOCK_SIZE;
     downloaded = new boolean[nbBlocs];
     requested = new boolean[nbBlocs];
     written = new boolean[nbBlocs];
 
-    if ((length % blocSize) != 0)
-      lastBlocSize = length % blocSize;
+    if ((length % PeerManager.BLOCK_SIZE) != 0)
+      lastBlocSize = length % PeerManager.BLOCK_SIZE;
     else
-      lastBlocSize = blocSize;
+      lastBlocSize = PeerManager.BLOCK_SIZE;
 
   }
 
@@ -97,7 +95,7 @@ public class Piece {
   public int getBlockSize(int blocNumber) {
     if (blocNumber == (nbBlocs - 1))
       return lastBlocSize;
-    return blocSize;
+    return PeerManager.BLOCK_SIZE;
   }
 
   public void free() {

@@ -15,8 +15,8 @@ import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core2.PeerSocket;
 
 public class PeerManager extends Thread {
-  private static final int BLOCK_SIZE = 16384;
-  private static final int MAX_REQUESTS = 5;
+  public static final int BLOCK_SIZE = 8192;
+  private static final int MAX_REQUESTS = 10;
   private static final boolean DEBUG = false;
 
   private int[] _availability;
