@@ -47,7 +47,7 @@ public class PercentItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    int value = (peer == null) ? 0 : peer.getPercentDone();
+    int value = (peer == null) ? 0 : peer.getPercentDoneInThousandNotation();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

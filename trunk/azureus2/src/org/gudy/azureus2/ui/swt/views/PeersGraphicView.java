@@ -74,22 +74,22 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       boolean interesting0,interesting1,interested0,interested1;
       
       //Order is : Non Interesting < Interesting
-      interesting0 = peer0.isInteresting();
-      interesting1 = peer1.isInteresting();
+      interesting0 = peer0.isInterestedInMe();
+      interesting1 = peer1.isInterestedInMe();
       
       result =  (interesting0 ? 1 : -1) - (interesting1 ? 1 : -1);
       if(result != 0) return result;
       
       //Order is : Non Interested < Interested
-      interested0 = peer0.isInterested();
-      interested1 = peer1.isInterested();
+      interested0 = peer0.isInterestingToMe();
+      interested1 = peer1.isInterestingToMe();
       
       result =  (interested0 ? 1 : -1) - (interested1 ? 1 : -1);
       if(result != 0) return result;
       
       //Then we sort on %, but depending on interested ...
-      int percent0 = peer0.getPercentDone();
-      int percent1 = peer1.getPercentDone();
+      int percent0 = peer0.getPercentDoneInThousandNotation();
+      int percent1 = peer1.getPercentDoneInThousandNotation();
       
       return interested0 ? percent0 - percent1 : percent1 - percent0;
     }
@@ -175,7 +175,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       int[] triangle = new int[6];
       triangle[0] = x;
       triangle[1] = y;      
-      if(! peer.isChoking()) {
+      if(! peer.isChokedByMe()) {
         gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);
         int x1 = (int) (5 * Math.cos(angle+Math.PI / 2));
         int y1 = (int) (5 * Math.sin(angle+Math.PI / 2));
@@ -188,7 +188,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
         gcBuffer.fillPolygon(triangle);        
       }
       
-      if(! peer.isChoked()) {
+      if(! peer.isChokingMe()) {
         gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
         int x1 = (int) (5 * Math.cos(angle+Math.PI / 2));
         int y1 = (int) (5 * Math.sin(angle+Math.PI / 2));
@@ -201,7 +201,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
         gcBuffer.fillPolygon(triangle);        
       }
       
-      PieUtils.drawPie(gcBuffer,x - PEER_SIZE / 2,y - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDone() / 10);
+      PieUtils.drawPie(gcBuffer,x - PEER_SIZE / 2,y - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
       
       //gcBuffer.drawText(peer.getIp() , x , y , true);
     }

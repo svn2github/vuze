@@ -26,7 +26,6 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
  *
  */
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.peer.*;
@@ -113,22 +112,22 @@ PeerImpl
    
 	public boolean isChoked()
 	{
-		return( delegate.isChoked());
+		return( delegate.isChokingMe());
 	}
 
 	public boolean isChoking()
 	{
-		return( delegate.isChoking());
+		return( delegate.isChokedByMe());
 	}
 
 	public boolean isInterested()
 	{
-		return( delegate.isInterested());
+		return( delegate.isInterestingToMe());
 	}
 
 	public boolean isInteresting()
 	{
-		return( delegate.isInteresting());
+		return( delegate.isInterestedInMe());
 	}
 
 	public boolean isSeed()
@@ -161,7 +160,7 @@ PeerImpl
 
 	public int getPercentDone()
 	{
-		return( delegate.getPercentDone());
+		return( delegate.getPercentDoneInThousandNotation());
 	}
 
 	public String getClient()

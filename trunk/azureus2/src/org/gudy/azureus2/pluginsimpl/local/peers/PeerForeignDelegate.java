@@ -257,28 +257,28 @@ PeerForeignDelegate
 
   
 	public boolean 
-	isChoked()
+	isChokingMe()
 	{
 		return( foreign.isChoked());
 	}
 
 
 	public boolean 
-	isChoking()
+	isChokedByMe()
 	{
 		return( foreign.isChoking());
 	}
 
 
 	public boolean 
-	isInterested()
+	isInterestingToMe()
 	{
 		return( foreign.isInterested());
 	}
 
 
 	public boolean 
-	isInteresting()
+	isInterestedInMe()
 	{
 		return( foreign.isInteresting());
 	}
@@ -312,7 +312,7 @@ PeerForeignDelegate
 	}
 
 	public int 
-	getPercentDone()
+	getPercentDoneInThousandNotation()
 	{
 		return( foreign.getPercentDone());
 	}

@@ -96,7 +96,7 @@ public class PiecesItem
 
       // Named infoObj so code can be copied easily to the other PiecesItem
       PEPeer infoObj = (PEPeer)cell.getDataSource();
-      long lCompleted = (infoObj == null) ? 0 : infoObj.getPercentDone();
+      long lCompleted = (infoObj == null) ? 0 : infoObj.getPercentDoneInThousandNotation();
       
       if( !cell.setSortValue( lCompleted ) && cell.isValid() ) {
         return;
