@@ -252,7 +252,7 @@ PEPeerTransportProtocol
 	readBuffer.position(0);
 	//Now test for data...
 
-  byte b;
+   byte b;
 	if ((b = readBuffer.get()) != (byte) PROTOCOL.length()) {
 	   closeAll(ip + " has sent handshake, but handshake starts with wrong byte : " + b,true);
 	   return;
@@ -360,8 +360,9 @@ PEPeerTransportProtocol
          closedOnError?LGLogger.ERROR:LGLogger.INFORMATION,
          reason);
     
-  if (closing)
-	  return;
+   if (closing) {
+     return;
+   }
 	closing = true;         
     
 	//1. Cancel any pending requests (on the manager side)
@@ -469,6 +470,9 @@ PEPeerTransportProtocol
 		if (lengthBuffer.hasRemaining() ) {          
 		  try {
 			int read = readData(lengthBuffer);
+      
+			if (read < 4 && read > 0) System.out.println("read<4="+read);
+      
 			if (read < 0)
 			  throw new IOException("End of Stream Reached");
 		  }
@@ -483,24 +487,36 @@ PEPeerTransportProtocol
 		} 
 		if (!lengthBuffer.hasRemaining()) {
 		  int length = lengthBuffer.getInt(0);
+		  
 		  if(length < 0) {
-			closeAll(ip + " : length negative : " + length,true);
-		  } else if(length >= ByteBufferPool.MAX_SIZE) {
-			closeAll(ip + " : length greater than max size : " + length,true);
-		  } else if (length > 0) {
+		    closeAll(ip + " : length negative : " + length,true);
+		    System.out.println("PEPeerTransportProtocol:: length negative");
+		    return;
+		  }
+      
+        if(length >= ByteBufferPool.MAX_SIZE) {
+          closeAll(ip + " : length greater than max size : " + length,true);
+          System.out.println("PEPeerTransportProtocol: length too large");
+          return;
+		  }
+        
+        if (length > 0) {
+         //return old readBuffer to pool if it's too small
 			if(readBuffer != null && readBuffer.capacity() < length) {
 			  ByteBufferPool.getInstance().freeBuffer(readBuffer);
 			  readBuffer = null;
 			}
+      
 			if(readBuffer == null) {
 			  ByteBuffer newbuff = ByteBufferPool.getInstance().getFreeBuffer(length);
 			  if (newbuff == null) {				
-				closeAll(ip + " PeerSocket::analyseBuffer:: newbuff null",true);
-				return;
+			    closeAll(ip + " PeerSocket::analyseBuffer:: newbuff null",true);
+			    return;
 			  }
 			  readBuffer = newbuff;
 			  readBuffer.position(0);
 			}
+      
 			readBuffer.limit(length);
 			readingLength = false;
 		  }
@@ -510,11 +526,13 @@ PEPeerTransportProtocol
 		  }
 		}
 	  }
+    
 	  if (!readingLength) {
 		try {
 		  int read = readData(readBuffer);
-		  if (read < 0)
-			throw new IOException("End of Stream Reached");
+		  if (read < 0) {
+		    throw new IOException("End of Stream Reached");
+        }
 		  //hack to statistically determine when we're receving data...
 		  if (readBuffer.limit() > 4069) {
 			stats.received(read);            
@@ -526,14 +544,16 @@ PEPeerTransportProtocol
 		  closeAll(ip + " : StateTransfering::End of Stream Reached(reading data)",true);
 		  return;
 		}
+    
 		if (!readBuffer.hasRemaining()) {
 		  //After each message has been received, we're not ready to request anymore,
 		  //Unless we finish the socket's queue, or we start receiving a piece.
 		  readyToRequest = false;
 		  analyseBuffer(readBuffer);         
 		  if(getState() == TRANSFERING && readingLength) {
-			process();
-		  }            
+		    process();
+		    return;
+		  }
 		}
 	  }
 	}
@@ -741,6 +761,7 @@ PEPeerTransportProtocol
   private void have(int pieceNumber) {
 	if ((pieceNumber >= available.length) || (pieceNumber < 0)) {
 	   closeAll(ip + " gave invalid pieceNumber:" + pieceNumber,true);
+      return;
 	}
 	else {    
 	  available[pieceNumber] = true;
@@ -1060,8 +1081,12 @@ PEPeerTransportProtocol
 		}
 	  }
 	  catch (IOException e) {
-		closeAll("Error while writing to " + ip +" : " + e,true);
-	  } //If we have finished sending this buffer
+	    closeAll("Error while writing to " + ip +" : " + e,true);
+	    System.out.println("PEPeerTransportProtocol:: error writing to socket");
+	    return;
+	  }
+    
+	  //If we have finished sending this buffer
 	  if (!writeBuffer.hasRemaining()) {
 		//If we were sending data, we must free the writeBuffer
 		if (writeData) {
@@ -1089,15 +1114,16 @@ PEPeerTransportProtocol
 		keepAlive = 0;
 		writeBuffer = (ByteBuffer) protocolQueue.remove(0);
 		
-    if (writeBuffer == null){
-      closeAll(ip + " : Empty write Buffer on protocol message !!!",true);
-      return;
-    }
+		if (writeBuffer == null){
+		  closeAll(ip + " : Empty write Buffer on protocol message !!!",true);
+		  return;
+		}
+		
 		writeBuffer.position(0);
 		writeData = false;
 		//and loop
 		write();
-    return;
+		return;
 	  }
 	  if (dataQueue.size() != 0) {
 		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
@@ -1133,7 +1159,7 @@ PEPeerTransportProtocol
 			PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
 			// and loop
 			write();
-      return;
+			return;
 		  }
 		}
 		else {
