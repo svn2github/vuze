@@ -1556,8 +1556,11 @@ TRTrackerClientClassicImpl
     }
     
     if (evt.equals("stopped")){
+    	
     	request.append("&numwant=0");
+    	
     }else {
+    	
       //calculate how many peers we should ask for
     	
       int numwant = calculateNumWant() * 2; //send 2X as usually 50% of peers are firewalled
@@ -1566,15 +1569,17 @@ TRTrackerClientClassicImpl
       request.append("&numwant=" + numwant);
       
       //no_peer_id has been made obsolete by 'compact'
-      //remove this 2.0.9.0 or beyond
-      
-      //request.append("&no_peer_id=1");
+    }
+    
+    	// actually, leave this in, ask PARG why!
+    
+    request.append("&no_peer_id=1");
       
     	// latest space saving measure, a compact return type where peers are returned
     	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
-      request.append( "&compact=1" );
-      
-    }
+    	// leave this as always supplied, ask PARG why
+    
+    request.append( "&compact=1" );
 	
     	// any explicit override takes precedence over any implicit override added 
     	// when hosting torrents
