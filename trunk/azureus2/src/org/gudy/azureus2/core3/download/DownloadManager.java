@@ -203,6 +203,7 @@ DownloadManager
    restartDownload();
 
 	public int getPrevState();
+
 	public void setPrevState(int state);
   
 }

@@ -58,7 +58,7 @@ DownloadManagerImpl
 	
   private boolean startStopLocked;
   private int state;
-  
+  private int prevState = -1;
 
   private boolean priorityLocked;
   private int priority;
@@ -259,6 +259,22 @@ DownloadManagerImpl
 	  return STATE_ERROR;
 	return STATE_ERROR;
   }
+  
+  
+  /**
+   * Returns the 'previous' state.
+   */
+  public int getPrevState() {
+    return prevState;
+  }
+  
+  /**
+   * Sets the 'previous' state.
+   */
+  public void setPrevState(int state) {
+    this.prevState = state;
+  }
+  
 
   public String getName() {
 	if (diskManager == null)
