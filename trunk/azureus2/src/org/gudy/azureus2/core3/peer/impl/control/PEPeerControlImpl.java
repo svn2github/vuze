@@ -1514,7 +1514,8 @@ PEPeerControlImpl
       PEPiece piece = _pieces[pieceNumber];
       
       if(piece != null) {
-      	List list = piece.getPieceWrites();
+        /*
+        List list = piece.getPieceWrites();
         if(list.size() > piece.getNbBlocs()) {
           Iterator iter = list.iterator();
           while(iter.hasNext()) {
@@ -1524,6 +1525,7 @@ PEPeerControlImpl
             } catch(Exception ignore) { }
           }
         }
+        */
         piece.free();
       }
       _pieces[pieceNumber] = null;
