@@ -20,13 +20,19 @@
  *
  */
 
-package org.gudy.azureus2.ui.webplugin.util;
+package org.gudy.azureus2.core3.util.jar;
 
 /**
  * @author parg
  *
  */
 
+public class 
+AEJarSigner 
+{
+}
+
+/*
 import java.io.*;
 import java.security.*;
 import java.security.cert.*;
@@ -419,3 +425,4 @@ WUJarSigner
 		}
 	}
 }
+*/

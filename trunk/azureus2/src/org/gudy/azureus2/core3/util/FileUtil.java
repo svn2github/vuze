@@ -535,7 +535,16 @@ public class FileUtil {
       }
     }
     
-    
+    public static boolean copyFile( final File _source, final OutputStream _dest, boolean closeOutputStream ) {
+        try {
+          copyFile( new FileInputStream( _source ), _dest, closeOutputStream );
+          return true;
+        }
+        catch( Throwable e ) {
+        	Debug.printStackTrace( e );
+          return false;
+        }
+      }
     public static void 
     copyFile( 
       InputStream   is,
@@ -559,7 +568,7 @@ public class FileUtil {
     			is = new BufferedInputStream(is);
     		}
     		
-    		byte[]	buffer = new byte[65536];
+    		byte[]	buffer = new byte[65536*2];
 			
     		while(true){
     			

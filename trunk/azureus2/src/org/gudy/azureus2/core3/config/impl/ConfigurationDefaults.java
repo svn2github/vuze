@@ -314,6 +314,7 @@ public class ConfigurationDefaults {
     def.put( "Enable.SOCKS.peer", new Long(0));
     def.put( "Proxy.SOCKS.version", "V4" );
     def.put( "Proxy.SOCKS.peer.inform", new Long(1));
+    def.put( "Security.JAR.tools.dir", "" );
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

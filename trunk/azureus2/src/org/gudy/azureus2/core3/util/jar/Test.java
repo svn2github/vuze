@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.ui.webplugin.util;
+package org.gudy.azureus2.core3.util.jar;
 
 /**
  * @author parg
@@ -28,8 +28,6 @@ package org.gudy.azureus2.ui.webplugin.util;
  */
 
 import java.io.*;
-import java.util.jar.*;
-import java.security.*;
 
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.Debug;
@@ -48,11 +46,11 @@ Test
 			
 			String	alias = "Azureus"; // SESecurityManager.DEFAULT_ALIAS;
 			
-			SEKeyDetails	kd = SESecurityManager.getKeyDetails( alias );
+			// SEKeyDetails	kd = SESecurityManager.getKeyDetails( alias );
+			// WUJarSigner signer = new WUJarSigner(alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
 			
-			//WUJarSigner signer = new WUJarSigner(alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
-			WUJarSigner2 signer = 
-				new WUJarSigner2(
+			AEJarSigner2 signer = 
+				new AEJarSigner2(
 						alias,
 						SESecurityManager.getKeystoreName(),
 						SESecurityManager.getKeystorePassword());

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.webplugin.util;
+package org.gudy.azureus2.core3.util.jar;
 
 /**
  * @author parg
@@ -29,7 +29,6 @@ package org.gudy.azureus2.ui.webplugin.util;
 import java.io.*;
 import java.net.URL;
 import java.net.URI;
-import java.security.PrivateKey;
 import java.util.jar.*;
 import java.util.*;
 
@@ -39,11 +38,11 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
 public class 
-WUJarBuilder 
+AEJarBuilder 
 {	
 	public static long
 	buildFromPackages(
-		JarOutputStream		jos,
+		OutputStream		os,
 		ClassLoader			class_loader,
 		String[]			package_names,
 		Map					package_map,
@@ -74,35 +73,12 @@ WUJarBuilder
 		
 		resource_names.toArray( res );
 		
-		return( buildFromResources2( jos, class_loader, null, res, sign_alias ));	
+		return( buildFromResources2( os, class_loader, null, res, sign_alias ));	
 	}
 	
 	public static void
 	buildFromResources(
-		JarOutputStream		jos,
-		ClassLoader			class_loader,
-		String[]			resource_names )
-	
-		throws IOException
-	{
-		buildFromResources2( jos, class_loader, null, resource_names );
-	}
-	
-	public static void
-	buildFromResources(
-		JarOutputStream		jos,
-		ClassLoader			class_loader,
-		String				resource_prefix,
-		String[]			resource_names )
-	
-		throws IOException
-	{
-		buildFromResources2( jos, class_loader, resource_prefix, resource_names );	
-	}	
-	
-	public static void
-	buildFromResources(
-		JarOutputStream		jos,
+		OutputStream		os,
 		ClassLoader			class_loader,
 		String				resource_prefix,
 		String[]			resource_names,
@@ -110,35 +86,12 @@ WUJarBuilder
 		
 			throws IOException
 	{
-		buildFromResources2( jos, class_loader, resource_prefix, resource_names, sign_alias );	
+		buildFromResources2( os, class_loader, resource_prefix, resource_names, sign_alias );	
 	}
 	
-	public static long
+	private static long
 	buildFromResources2(
-		JarOutputStream		jos,
-		ClassLoader			class_loader,
-		String[]			resource_names )
-	
-		throws IOException
-	{
-		return( buildFromResources2( jos, class_loader, null, resource_names, null ));
-	}
-	
-	public static long
-	buildFromResources2(
-		JarOutputStream		jos,
-		ClassLoader			class_loader,
-		String				resource_prefix,
-		String[]			resource_names )
-	
-		throws IOException
-	{
-		return( buildFromResources2( jos, class_loader, resource_prefix, resource_names, null ));
-	}
-	
-	public static long
-	buildFromResources2(
-		JarOutputStream		jos,
+		OutputStream		os,
 		ClassLoader			class_loader,
 		String				resource_prefix,
 		String[]			resource_names,
@@ -153,6 +106,8 @@ WUJarBuilder
 			long tim = buildFromResourcesSupport( new JarOutputStream( baos ),class_loader,resource_prefix,resource_names );
 						
 			try{
+					// leave this check in here as we might as well check for the alias
+				
 				SEKeyDetails	kd = SESecurityManager.getKeyDetails( sign_alias );
 			
 				if ( kd == null ){
@@ -166,13 +121,13 @@ WUJarBuilder
 				
 				// WUJarSigner signer = new WUJarSigner(sign_alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
 
-				WUJarSigner2 signer = 
-					new WUJarSigner2(
+				AEJarSigner2 signer = 
+					new AEJarSigner2(
 							sign_alias,
 							SESecurityManager.getKeystoreName(),
 							SESecurityManager.getKeystorePassword());
 							
-				signer.signJarStream( new ByteArrayInputStream(baos.toByteArray()), jos );
+				signer.signJarStream( new ByteArrayInputStream(baos.toByteArray()), os );
 			
 				return( tim );
 				
@@ -184,6 +139,17 @@ WUJarBuilder
 			}
 			
 		}else{
+						
+			JarOutputStream	jos;
+			
+			if ( os instanceof JarOutputStream ){
+				
+				jos	= (JarOutputStream)os;
+				
+			}else{
+								
+				jos = new JarOutputStream( os );
+			}
 			
 			return( buildFromResourcesSupport( jos,class_loader,resource_prefix,resource_names ));
 		}

@@ -23,17 +23,22 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
+import org.gudy.azureus2.ui.swt.config.StringParameter;
 
 /**
  * @author parg
@@ -75,7 +80,7 @@ ConfigSectionSecurity
 	    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 	    gSecurity.setLayoutData(gridData);
 	    GridLayout layout = new GridLayout();
-	    layout.numColumns = 2;
+	    layout.numColumns = 3;
 	    gSecurity.setLayout(layout);
 
 	    // row
@@ -97,7 +102,58 @@ ConfigSectionSecurity
 			        }
 			    });
 	    
+	    new Label(gSecurity, SWT.NULL );
+	    
+	    // row
 
+	    Label	info_label = new Label( gSecurity, SWT.NULL );
+	    Messages.setLanguageText( info_label, "ConfigView.section.security.toolsinfo" );
+	    gridData = new GridData();
+	    gridData.horizontalSpan = 3;
+	    info_label.setLayoutData( gridData );
+	
+	    // row
+	    
+	    Label lStatsPath = new Label(gSecurity, SWT.NULL);
+	    
+	    Messages.setLanguageText(lStatsPath, "ConfigView.section.security.toolsdir"); //$NON-NLS-1$
+
+	    Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
+	    
+	    gridData = new GridData();
+	    
+	    gridData.widthHint = 150;
+	    
+	    final StringParameter pathParameter = new StringParameter(gSecurity, "Security.JAR.tools.dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
+	    
+	    pathParameter.setLayoutData(gridData);
+	    
+	    Button browse = new Button(gSecurity, SWT.PUSH);
+	    
+	    browse.setImage(imgOpenFolder);
+	    
+	    imgOpenFolder.setBackground(browse.getBackground());
+	    
+	    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+	    
+	    browse.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	        DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
+	
+	        dialog.setFilterPath(pathParameter.getValue());
+	      
+	        dialog.setText(MessageText.getString("ConfigView.section.security.choosetoolssavedir")); //$NON-NLS-1$
+	      
+	        String path = dialog.open();
+	      
+	        if (path != null) {
+	        	pathParameter.setValue(path);
+	        }
+	      }
+	    });
+	    
+	   
+	    
 	    return gSecurity;
 	  }
 	}

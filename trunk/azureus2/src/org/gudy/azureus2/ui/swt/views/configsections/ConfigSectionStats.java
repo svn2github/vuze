@@ -77,7 +77,6 @@ public class ConfigSectionStats implements ConfigSectionSWT {
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
     GridData gridData;
     GridLayout layout;
-    Label label;
 
     Composite gStats = new Composite(parent, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -139,7 +138,7 @@ public class ConfigSectionStats implements ConfigSectionSWT {
     final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
     fileParameter.setLayoutData(gridData);
     controls[4] = fileParameter.getControl();
-    label = new Label(gStats, SWT.NULL);
+    new Label(gStats, SWT.NULL);
 
     // row
 
@@ -196,7 +195,7 @@ public class ConfigSectionStats implements ConfigSectionSWT {
 
     controls[9] = lSaveFreq;
     controls[10] = new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues).getControl();
-    label = new Label(gStats, SWT.NULL);
+    new Label(gStats, SWT.NULL);
 
     	// ROW
     
