@@ -28,7 +28,6 @@ package org.gudy.azureus2.core3.peer.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.transport.base.*;
 import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;

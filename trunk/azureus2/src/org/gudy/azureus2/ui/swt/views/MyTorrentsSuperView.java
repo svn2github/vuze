@@ -3,7 +3,6 @@ package org.gudy.azureus2.ui.swt.views;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Listener;

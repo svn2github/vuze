@@ -23,7 +23,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
-import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 /**
  * @author Olivier
  * 

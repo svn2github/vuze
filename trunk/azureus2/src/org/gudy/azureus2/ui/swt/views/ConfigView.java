@@ -41,7 +41,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;

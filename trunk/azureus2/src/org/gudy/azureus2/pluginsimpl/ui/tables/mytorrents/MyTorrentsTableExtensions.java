@@ -23,8 +23,6 @@ package org.gudy.azureus2.pluginsimpl.ui.tables.mytorrents;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 

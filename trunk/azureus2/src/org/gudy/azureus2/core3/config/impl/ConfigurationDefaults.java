@@ -13,7 +13,6 @@ package org.gudy.azureus2.core3.config.impl;
 import java.util.HashMap;
 import java.util.Set;
 
-import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 /**

@@ -33,10 +33,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 
-import org.gudy.azureus2.core3.category.impl.*;
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.download.*;
 
 public class CategoryManagerImpl  {
   private static CategoryManagerImpl catMan;

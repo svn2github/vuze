@@ -29,7 +29,6 @@ import org.gudy.azureus2.core3.category.CategoryListener;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
-import org.gudy.azureus2.core3.logging.*;
 
 public class CategoryImpl implements Category, Comparable {
   private String sName;
