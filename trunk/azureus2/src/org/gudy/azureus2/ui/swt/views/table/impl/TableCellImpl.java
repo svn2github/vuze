@@ -95,11 +95,17 @@ public class TableCellImpl
         public void refresh() {
           TableCellImpl.this.refresh();
         }
+        public void invalidate() {
+          TableCellImpl.this.setValid(false);
+        }
       };
     } else {
       bufferedTableItem = new BufferedGraphicTableItem((BufferedTableRow)tableRow, position) {
         public void refresh() {
           TableCellImpl.this.refresh();
+        }
+        public void invalidate() {
+          TableCellImpl.this.setValid(false);
         }
       };
     }
