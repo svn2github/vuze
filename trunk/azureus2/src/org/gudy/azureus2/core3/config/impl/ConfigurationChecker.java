@@ -39,17 +39,40 @@ import org.gudy.azureus2.core3.logging.LGLogger;
  * @author Olivier
  * 
  */
-public class ConfigurationChecker {
-  
+public class 
+ConfigurationChecker 
+{
+  private static boolean migrated				= false;
+	 
   private static boolean system_properties_set	= false;
-  private static boolean checked 				= false;
-  private static boolean changed 				= false;
   
+  private static boolean checked 				= false;
+   
   private static AEMonitor	class_mon	= new AEMonitor( "ConfigChecker");
   
   
- 
-  public static void
+  protected static void
+  migrateConfig()
+  {
+  	try{
+  		class_mon.enter();
+  	
+	  	if ( migrated ){
+	  		
+	  		return;
+	  	}
+	  	
+	  	migrated	= true;
+	    
+	    migrateOldConfigFiles();
+	    
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
+  }
+  
+  protected static void
   setSystemProperties()
   {
   	try{
@@ -61,9 +84,7 @@ public class ConfigurationChecker {
 	  	}
 	  	
 	  	system_properties_set	= true;
-	    
-	    migrateOldConfigFiles();
-	  	
+	    	  	
 	  	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
 	  	
 	  	if ( handlers == null ){
@@ -123,14 +144,16 @@ public class ConfigurationChecker {
   }
   
   public static void 
-  checkConfiguration() {
-   
+  checkConfiguration() 
+  { 
   	try{
   		class_mon.enter();
 
 	    if(checked)
 	      return;
 	    checked = true;
+	    
+	    boolean	changed	= false;
 	    
 	    int nbMinSeeds = COConfigurationManager.getIntParameter("StartStopManager_iIgnoreSeedCount", -1);
 	    if (nbMinSeeds == -1) {

@@ -22,8 +22,6 @@
  */
 package org.gudy.azureus2.core3.config;
 
-import java.util.List;
-
 /**
  * @author Olivier Chalouhi
  *

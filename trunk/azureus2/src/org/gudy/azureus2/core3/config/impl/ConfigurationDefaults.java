@@ -64,21 +64,29 @@ public class ConfigurationDefaults {
   public String def_String = "";
   public byte[] def_bytes = null;
   
-  public static ConfigurationDefaults getInstance() 
+  public static ConfigurationDefaults 
+  getInstance() 
   {
   	try{
   		class_mon.enter();
   	
-	    if(configdefaults == null)
+	    if(configdefaults == null){
+	    
 	      configdefaults = new ConfigurationDefaults();
+	    }
+	    
 	    return configdefaults;
+	    
   	}finally{
   		
   		class_mon.exit();
   	}
   }
+  
   /** Creates a new instance of Defaults */
-  public ConfigurationDefaults() {
+  protected 
+  ConfigurationDefaults() 
+  {
     def = new HashMap();
     
     

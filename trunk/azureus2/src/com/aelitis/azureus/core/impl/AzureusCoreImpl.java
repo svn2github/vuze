@@ -98,9 +98,7 @@ AzureusCoreImpl
 	protected
 	AzureusCoreImpl()
 	{
-		COConfigurationManager.setSystemProperties();
-		
-		COConfigurationManager.checkConfiguration();
+		COConfigurationManager.initialise();
 		
 		LGLogger.initialise();
 		

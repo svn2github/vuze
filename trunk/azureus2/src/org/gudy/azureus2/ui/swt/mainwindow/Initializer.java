@@ -208,9 +208,7 @@ Initializer
 	    Alerts.init();
 	    
 	    StartupUtils.setLocale();
-	    
-	    COConfigurationManager.checkConfiguration();
-	    
+	    	    
 	    new AuthenticatorWindow();
 	    
 	    new CertificateTrustWindow();

@@ -36,15 +36,9 @@ COConfigurationManager
 	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL		= 1000;
 	
 	public static void
-	setSystemProperties()
+	initialise()
 	{
-		ConfigurationChecker.setSystemProperties();
-	}
-	
-	public static void
-	checkConfiguration()
-	{
-		ConfigurationChecker.checkConfiguration();
+		ConfigurationManager.getInstance();
 	}
 	
 	public static void

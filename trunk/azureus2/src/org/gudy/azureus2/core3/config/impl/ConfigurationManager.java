@@ -32,21 +32,22 @@ public class ConfigurationManager {
   
   private AEMonitor	this_mon	= new AEMonitor( "ConfigMan");
   
-  private ConfigurationManager() {
-  	load();
-  }
+ 
   
-  private ConfigurationManager(Map data) {
-  	propertiesMap	= data;
-  }
-  
+ 
   public static ConfigurationManager getInstance() {
   	try{
   		class_mon.enter();
   	
-	  	if (config == null)
+	  	if (config == null){
+	  		
 	  		config = new ConfigurationManager();
+	  		
+	  		config.initialise();
+	  	}
+	  	
 	  	return config;
+	  	
   	}finally{
   		class_mon.exit();
   	}
@@ -63,6 +64,30 @@ public class ConfigurationManager {
   		
   		class_mon.exit();
   	}
+  }
+  
+  
+  private 
+  ConfigurationManager() 
+  {
+   	load();
+  }
+  
+  private 
+  ConfigurationManager(
+  	Map data ) 
+  {
+  	propertiesMap	= data;
+  }
+  
+  private void
+  initialise()
+  {
+   	ConfigurationChecker.migrateConfig();
+  	
+  	ConfigurationChecker.checkConfiguration();
+
+  	ConfigurationChecker.setSystemProperties();
   }
   
   public void load(String filename) 

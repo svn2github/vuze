@@ -34,8 +34,8 @@ public class StringIteratorImpl implements StringIterator {
 
 	Iterator iterator;
 	
-	public StringIteratorImpl(Iterator iterator) {
-		this.iterator = iterator;
+	public StringIteratorImpl(Iterator _iterator) {
+		iterator = _iterator;
 	}
 	
 	public boolean hasNext() {
