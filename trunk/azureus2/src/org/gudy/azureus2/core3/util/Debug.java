@@ -18,7 +18,25 @@ public class Debug {
    * prefixed by the calling class name, method and
    * line number.
    */
-  public static void out(String debug_message) {
+  public static void out(final String _debug_message) {
+    out( _debug_message, null );
+  }
+  
+  /**
+   * Prints out the given exception stacktrace to System.out,
+   * prefixed by the calling class name, method and
+   * line number.
+   */
+  public static void out(final Throwable _exception) {
+    out( "", _exception );
+  }
+  
+  /**
+   * Prints out the given debug message to System.out,
+   * prefixed by the calling class name, method and
+   * line number, appending the stacktrace of the given exception.
+   */
+  public static void out(final String _debug_msg, final Throwable _exception) {
     String header = "DEBUG::";
     header = header + new Date(System.currentTimeMillis()).toString() + "::";
     String className;
@@ -36,7 +54,12 @@ public class Debug {
     }
     
     System.out.println(header.concat(className).concat(methodName).concat(String.valueOf(lineNumber)).concat(":"));
-    System.out.println("  ".concat(debug_message).concat("\n"));
+    if (_debug_msg.length() > 0) {
+      System.out.println("  " + _debug_msg + " :");
+    }
+    if (_exception != null) {
+      _exception.printStackTrace();
+    }
   }
   
   public static void outStackTrace() {
