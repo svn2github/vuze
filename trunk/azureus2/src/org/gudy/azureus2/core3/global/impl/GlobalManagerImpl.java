@@ -517,7 +517,25 @@ public class GlobalManagerImpl
   }
 
   public void stopAll() {
-    if (!isStopped) {
+    if (!isStopped){
+    		// kick off a 'null' non-daemon task. This will ensure that we hang around
+    		// for at least LINGER_PERIOD to run other non-daemon tasks such as writing
+    		// torrent resume data...
+    	
+    	try{
+	    	NonDaemonTaskRunner.run(
+	    			new NonDaemonTask()
+	    			{
+	    				public Object
+	    				run()
+	    				{	
+	    					return( null );
+	    				}
+	    			});
+    	}catch( Throwable e ){
+    		e.printStackTrace();
+    	}
+    	
       checker.stopIt();
       saveDownloads();
       stopAllDownloads();
@@ -537,6 +555,7 @@ public class GlobalManagerImpl
    * @author Rene Leonhardt
    */
   public void stopAllDownloads() {
+ 
     for (Iterator iter = managers.iterator(); iter.hasNext();) {
       DownloadManager manager = (DownloadManager) iter.next();
       manager.stopIt();
