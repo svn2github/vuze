@@ -144,14 +144,6 @@ DHTImpl
 	
 	public void
 	put(
-		byte[]		key,
-		byte[]		value )
-	{
-		control.put( key, value );
-	}
-	
-	public void
-	put(
 		byte[]					key,
 		byte[]					value,
 		byte					flags,
@@ -166,15 +158,7 @@ DHTImpl
 	{
 		return( control.getLocalValue( key ));
 	}
-	
-	public byte[]
-	get(
-		byte[]		key,
-		long		timeout )
-	{
-		return( control.get( key, timeout ));
-	}
-	
+		
 	public void
 	get(
 		byte[]					key,
@@ -185,14 +169,7 @@ DHTImpl
 	{
 		control.get( key, flags, max_values, timeout, listener );
 	}
-	
-	public byte[]
-	remove(
-		byte[]		key )
-	{
-		return( control.remove( key ));
-	}
-	
+		
 	public byte[]
 	remove(
 		byte[]			key,

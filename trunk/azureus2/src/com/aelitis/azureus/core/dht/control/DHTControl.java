@@ -52,12 +52,7 @@ DHTControl
 	
 	public void
 	seed();
-	
-	public void
-	put(
-		byte[]		key,
-		byte[]		value );
-	
+		
 	public void
 	put(
 		byte[]					key,
@@ -68,12 +63,7 @@ DHTControl
 	public DHTTransportValue
 	getLocalValue(
 		byte[]		key );
-	
-	public byte[]
-	get(
-		byte[]		key,
-		long		timeout );
-	
+		
 	public void
 	get(
 		byte[]					key,
@@ -81,11 +71,7 @@ DHTControl
 		int						max_values,
 		long					timeout,
 		DHTOperationListener	listener );
-	
-	public byte[]
-	remove(
-		byte[]		key );
-	
+		
 	public byte[]
 	remove(
 		byte[]					key,
@@ -127,7 +113,7 @@ DHTControl
 		long				timeout );
 	
 	public void
-	put(
+	putDirect(
 		byte[][]				keys,
 		DHTTransportValue[][]	value_sets,
 		List					contacts );

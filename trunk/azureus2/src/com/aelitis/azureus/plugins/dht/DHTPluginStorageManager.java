@@ -61,7 +61,8 @@ DHTPluginStorageManager
 	
 	private Map					recent_addresses	= new HashMap();
 	
-
+	private Map					diversifications	= new HashMap();
+	
 
 	protected
 	DHTPluginStorageManager(
@@ -324,6 +325,9 @@ DHTPluginStorageManager
 		//System.out.println( "DHT value deleted" );
 	}
 	
+		// get diversifications for put operations must deterministically return the same end points
+		// but gets for gets should be randomised to load balance
+	
 	public byte[][]
 	getExistingDiversification(
 		byte[]			key,
@@ -331,7 +335,26 @@ DHTPluginStorageManager
 	{
 		//System.out.println( "DHT get existing diversification: put = " + put_operation  );
 		
-		return( new byte[][]{ key });
+		HashWrapper	wrapper = new HashWrapper( key );
+		
+			// must always return a value - original if no diversification exists
+		
+		try{
+			this_mon.enter();
+		
+			diversification	div = lookupDiversification( wrapper );
+
+			if ( div == null ){
+				
+				return( new byte[][]{ key });
+			}
+			
+			return( div.getKeys( put_operation ));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public byte[][]
@@ -341,7 +364,73 @@ DHTPluginStorageManager
 		int				diversification_type )
 	{
 		//System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
-											
-		return( new byte[0][] );
+		
+		HashWrapper	wrapper = new HashWrapper( key );
+		
+		try{
+			this_mon.enter();
+		
+			diversification	div = lookupDiversification( wrapper );
+		
+			if ( div == null ){
+				
+				div = createDiversification( wrapper, diversification_type );
+			}
+		
+			return( div.getKeys( put_operation ));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	} 
+	
+	protected diversification
+	lookupDiversification(
+		HashWrapper	wrapper )
+	{
+		return( (diversification)diversifications.get(wrapper));
+	}
+	
+	protected diversification
+	createDiversification(
+		HashWrapper		wrapper,
+		int				type )
+	{
+		diversification	div = new diversification( wrapper, type );
+		
+		diversifications.put( wrapper, div );
+		
+		return( div );
+	}
+	
+	protected class
+	diversification
+	{
+		protected HashWrapper		key;
+		protected int				type;
+		
+		protected
+		diversification(
+			HashWrapper	_key,
+			int			_type )
+		
+		{
+			key		= _key;
+			type	= _type;
+		}
+		
+		protected byte[][]
+		getKeys(
+			boolean		put )
+		{
+			if ( type == DHT.DT_FREQUENCY ){
+				
+			}else{
+				
+			}
+			
+			return( new byte[][]{ key.getHash()});
+		}
+	}
 }

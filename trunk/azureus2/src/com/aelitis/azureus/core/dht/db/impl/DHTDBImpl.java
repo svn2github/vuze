@@ -741,7 +741,7 @@ DHTDBImpl
 				
 				republish_ops++;
 				
-				control.put( 
+				control.putDirect( 
 						store_keys, 
 						store_values,
 						contacts );

@@ -61,20 +61,7 @@ DHT
 	public static final byte	DT_NONE			= 1;
 	public static final byte	DT_FREQUENCY	= 2;
 	public static final byte	DT_SIZE			= 3;
-
 	
-
-		/**
-		 * Simple synchronous put
-		 * @param key
-		 * @param value
-		 */
-	
-	
-	public void
-	put(
-		byte[]		key,
-		byte[]		value );
 	
 	public void
 	put(
@@ -93,20 +80,8 @@ DHT
 	getLocalValue(
 		byte[]		key );
 	
-		/**
-		 * Simple synchronous lookup
-		 * @param key
-		 * @param timeout
-		 * @return
-		 */
-	
-	public byte[]
-	get(
-		byte[]		key,
-		long		timeout );
 	
 		/**
-		 * Async lookup
 		 * @param key
 		 * @param max_values
 		 * @param timeout
@@ -121,11 +96,7 @@ DHT
 		long					timeout,
 		DHTOperationListener	listener );
 	
-	
-	public byte[]
-	remove(
-		byte[]		key );
-	
+		
 	public byte[]
 	remove(
 		byte[]			key,
