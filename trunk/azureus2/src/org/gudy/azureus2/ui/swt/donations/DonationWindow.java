@@ -74,7 +74,7 @@ public class DonationWindow {
    mainText = MessageText.getString("DonationWindow.text");
    footerText = MessageText.getString("DonationWindow.text.footer");
    
-   timeToWait = (headerText.length() + mainText.length()) / 25 ;
+   timeToWait = mainText.length() / 29;
   }
   
   public void show() {
