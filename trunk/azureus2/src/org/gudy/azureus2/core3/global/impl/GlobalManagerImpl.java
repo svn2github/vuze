@@ -134,7 +134,7 @@ public class GlobalManagerImpl
               nbStarted++;
               nbDownloading++;
               if (loopFactor % saveResumeLoopCount == 0) {
-                manager.getDiskManager().dumpResumeDataToDisk(false);
+                manager.getDiskManager().dumpResumeDataToDisk(false, false);
               }
             }
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {
@@ -386,7 +386,6 @@ public class GlobalManagerImpl
       if (!correct) {
         fDest.delete();
       }
- 
       return correct;
     }
     catch (IOException e) {

@@ -519,7 +519,7 @@ PEPeerControlImpl
       }
       
       //update resume data
-      if (resumeEnabled) _diskManager.dumpResumeDataToDisk(true);
+      if (resumeEnabled) _diskManager.dumpResumeDataToDisk(true, false);
       
       
       _manager.setState(DownloadManager.STATE_SEEDING);
@@ -1549,7 +1549,10 @@ PEPeerControlImpl
       _downloaded[pieceNumber] = false;
       
       //if the download has been marked as finish, restart the download
-      if (_finished) _manager.restartDownload();
+      if (_finished) {
+        Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
+        _manager.restartDownload(false);
+      }
       
       //We haven't finished (to recover from a wrong finish state)
       _finished = false;

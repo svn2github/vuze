@@ -495,7 +495,7 @@ DiskManagerImpl
         checkPiece(i);
 		}
 		//dump the newly built resume data to the disk/torrent
-		if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false);
+		if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false, false);
 
 	}
   
@@ -972,7 +972,7 @@ DiskManagerImpl
 		return false;
 	}
 
-	public void dumpResumeDataToDisk(boolean savePartialPieces) {
+	public void dumpResumeDataToDisk(boolean savePartialPieces, boolean invalidate) {
 		boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume",false);
 		if(!useFastResume)
 		  return;
@@ -980,40 +980,43 @@ DiskManagerImpl
 		//build the piece byte[] 
 		byte[] resumeData = new byte[pieceDone.length];
 		for (int i = 0; i < resumeData.length; i++) {
-			resumeData[i] = pieceDone[i] ? (byte)1 : (byte)0;
+		  if (invalidate) resumeData[i] = (byte)0;
+		  else resumeData[i] = pieceDone[i] ? (byte)1 : (byte)0;
 		}
 
 		//Attach the resume data
 		Map resumeMap = new HashMap();
 		torrent.setAdditionalMapProperty("resume", resumeMap);
 
-		Map resumeDirectory = new HashMap();
-		resumeMap.put(path, resumeDirectory);
-		resumeDirectory.put("resume data", resumeData);
-		Map partialPieces = new HashMap();
-		if (savePartialPieces) {
-			if (pieces == null && manager != null)
-				pieces = manager.getPieces();
-			if(pieces != null) {
-			for (int i = 0; i < pieces.length; i++) {
-				PEPiece piece = pieces[i];
-				if (piece != null && piece.getCompleted() > 0) {
-					boolean[] downloaded = piece.getWritten();
-					List blocks = new ArrayList();
-					for (int j = 0; j < downloaded.length; j++) {
-						if (downloaded[j])
-							blocks.add(new Long(j));
-					}
-					partialPieces.put("" + i, blocks);
-				}
-			}
-			resumeDirectory.put("blocks", partialPieces);
-			}
-			resumeDirectory.put("valid", new Long(1));
-		} else {
-			resumeDirectory.put("valid", new Long(0));
-		}
-		saveTorrent();
+	  Map resumeDirectory = new HashMap();
+	  resumeMap.put(path, resumeDirectory);
+	  resumeDirectory.put("resume data", resumeData);
+	  Map partialPieces = new HashMap();
+	
+	  if (savePartialPieces  && !invalidate) {
+	    if (pieces == null && manager != null)
+			pieces = manager.getPieces();
+	    if(pieces != null) {
+	      for (int i = 0; i < pieces.length; i++) {
+	        PEPiece piece = pieces[i];
+	        if (piece != null && piece.getCompleted() > 0) {
+	          boolean[] downloaded = piece.getWritten();
+	          List blocks = new ArrayList();
+	          for (int j = 0; j < downloaded.length; j++) {
+	            if (downloaded[j])
+	              blocks.add(new Long(j));
+	          }
+	          partialPieces.put("" + i, blocks);
+	        }
+	      }
+	      resumeDirectory.put("blocks", partialPieces);
+	    }
+	    resumeDirectory.put("valid", new Long(1));
+	  } else {
+	    resumeDirectory.put("valid", new Long(0));
+	  }
+		
+	  saveTorrent();    
 	}
 
 	private void 

@@ -378,7 +378,7 @@ DownloadManagerImpl
       stats.setCompleted(stats.getCompleted());
       
 		  if (diskManager.getState() == DiskManager.READY){
-		    diskManager.dumpResumeDataToDisk(true);
+		    diskManager.dumpResumeDataToDisk(true, false);
 		  }
       
 		  //update path+name info before termination
@@ -541,14 +541,20 @@ DownloadManagerImpl
   /**
    * Stops the current download, then restarts it again.
    */
-  public void restartDownload() {
+  public void restartDownload(boolean use_fast_resume) {
+    if (!use_fast_resume) {
+      //invalidate resume info
+      diskManager.dumpResumeDataToDisk(false, true);
+      readTorrent();
+    }
+    
     stopIt();
     
     try {
       while (state != DownloadManager.STATE_STOPPED) Thread.sleep(50);
     } catch (Exception ignore) {/*ignore*/}
     
-    startDownloadInitialized(true);
+    initialize();
   }
     
   

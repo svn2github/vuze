@@ -75,8 +75,7 @@
 	stopIt();
 
 	public void
-	dumpResumeDataToDisk(
-		boolean	savePartialPieces );
+   dumpResumeDataToDisk(boolean savePartialPieces, boolean invalidate);
 
 	public void
 	computePriorityIndicator();
