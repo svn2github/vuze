@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.global.removerules;
  *
  */
 
+import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.torrent.*;
@@ -36,10 +37,16 @@ import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.*;
 
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
+import org.gudy.azureus2.core3.util.HostNameToIPResolverListener;
+
 public class 
 DownloadRemoveRulesPlugin 
-	implements Plugin, DownloadManagerListener
+	implements Plugin, DownloadManagerListener, HostNameToIPResolverListener
 {
+	protected static final String	AELITIS_HOST	= "aelitis.com";
+	protected String				aelitis_ip;
+	
 	protected PluginInterface		plugin_interface;
 	protected boolean				closing;
 	
@@ -58,6 +65,8 @@ DownloadRemoveRulesPlugin
 		PluginInterface 	_plugin_interface )
 	{
 		plugin_interface	= _plugin_interface;
+		
+		HostNameToIPResolver.addResolverRequest( AELITIS_HOST, this );
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Download Remove Rules" );
 
@@ -81,6 +90,12 @@ DownloadRemoveRulesPlugin
 		plugin_interface.getDownloadManager().addListener( this );
 	}
 	
+	public void
+	completed(
+		InetAddress	address )
+	{
+		aelitis_ip	= address.getHostAddress();
+	}
 
 	public void
 	downloadAdded(
@@ -177,7 +192,10 @@ DownloadRemoveRulesPlugin
 		
 		if ( torrent != null && torrent.getAnnounceURL() != null ){
 		
-			if ( torrent.getAnnounceURL().toString().toLowerCase().indexOf( "aelitis.com") != -1 ){
+			String	url_string = torrent.getAnnounceURL().toString().toLowerCase();
+			
+			if ( 	url_string.indexOf( AELITIS_HOST ) != -1 ||
+					( aelitis_ip != null && url_string.indexOf( aelitis_ip ) != -1 )){
 	
 					// emergency instruction from tracker
 				

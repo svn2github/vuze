@@ -322,7 +322,7 @@ SSDPImpl
 			
 			first_response	= false;
 			
-			upnp.log( "UPnP:SSDP: first response: " + str );
+			upnp.log( "UPnP:SSDP: first response:\n" + str );
 		}
 		
 		if ( str.startsWith("M-SEARCH")){

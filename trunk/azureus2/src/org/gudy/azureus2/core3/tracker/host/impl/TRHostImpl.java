@@ -114,6 +114,20 @@ TRHostImpl
 												e.printStackTrace();
 											}
 										}
+										
+										if ( COConfigurationManager.getBooleanParameter( "Tracker Port UDP Enable", false )){
+											
+											try{
+														
+												int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+													
+												startServer( TRTrackerServerFactory.PR_UDP, port, false );
+														
+											}catch( Throwable e ){
+													
+												e.printStackTrace();
+											}
+										}
 											
 										if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", false )){
 										

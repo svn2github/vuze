@@ -84,11 +84,18 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     formData.left = new FormAttachment(tcplisten.getControl());
     label.setLayoutData(formData);
     
+//////////////////////
+    
+    BooleanParameter enableUDP = new BooleanParameter(cServer, "Server Enable UDP", true, "ConfigView.section.server.enableudp");
+    formData = new FormData();
+    formData.top = new FormAttachment( tcplisten.getControl());
+    enableUDP.setLayoutData(formData);  
+    
  ///////////////////////
     
     StringParameter overrideip = new StringParameter(cServer, "Override Ip", "");
     formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl());
+    formData.top = new FormAttachment(enableUDP.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     overrideip.setLayoutData(formData);
@@ -96,7 +103,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
     label = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.overrideip");
     formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl(),5);
+    formData.top = new FormAttachment(enableUDP.getControl(),5);
     formData.left = new FormAttachment(overrideip.getControl());
     label.setLayoutData(formData);
     

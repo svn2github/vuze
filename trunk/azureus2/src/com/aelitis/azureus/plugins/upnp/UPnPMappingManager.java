@@ -52,6 +52,8 @@ UPnPMappingManager
 				
 		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port", true );
 		
+		addConfigPort( "upnp.mapping.dataportudp", false, "Server Enable UDP", "TCP.Listen.Port" );
+		
 			// tracker TCP
 		
 		addConfigPort( "upnp.mapping.tcptrackerport", true, "Tracker Port Enable", "Tracker Port" );

@@ -280,6 +280,8 @@ public class ConfigurationDefaults {
     def.put( "Alert on close", new Long(1) );
     def.put( "diskmanager.friendly.hashchecking", new Long(1) );
     def.put( "Default Start Torrents Stopped", new Long(0));
+    def.put( "Server Enable UDP", new Long(1));
+    
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

@@ -225,10 +225,10 @@ public class TrackerStatus {
         }else{
         	scrapeHTTP( reqUrl, message );
         }
-          
-              
+                
         Map map = BDecoder.decode(message.toByteArray());
-        Map mapFiles = (Map) map.get("files");
+        
+        Map mapFiles = map==null?null:(Map) map.get("files");
 
         LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
                      "Response from scrape interface " + scrapeURL + ": " + 
@@ -476,6 +476,7 @@ public class TrackerStatus {
           scraper.scrapeReceived( response );
         }
       } catch (Exception e) {
+      	
         LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
   									"Error from scrape interface " + scrapeURL + " : " + e);
    
@@ -726,6 +727,15 @@ public class TrackerStatus {
 				
 				throw( e );
 			}
+			
+			Map	map = new HashMap();
+			
+			map.put( "failure reason", "Timeout".getBytes());
+			
+			byte[] data = BEncoder.encode( map );
+			
+			message.write( data );
+
 		}
 	}
   }
