@@ -697,8 +697,19 @@ PEPeerTransportProtocol
 		  evtProtocol,
 		  LGLogger.RECEIVED,
 		  ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-		if (!choking && manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
-		  sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
+		if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
+		  if(!choking) {
+		    sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
+		  } else {
+		    LGLogger.log(LGLogger.INFORMATION,ip
+        + " has requested #"
+        + pieceNumber
+        + ":"
+        + pieceOffset
+        + "->"
+        + (pieceOffset + pieceLength)        
+        + " but peer is currently choked. Request dropped");
+		  }
 		}
 		else {
 		  closeAll(ip
@@ -707,8 +718,7 @@ PEPeerTransportProtocol
         + ":"
         + pieceOffset
         + "->"
-        + (pieceOffset + pieceLength)
-        + " choking=" + choking
+        + (pieceOffset + pieceLength)        
         + " which is an invalid request.",
         true);
 		  return;
