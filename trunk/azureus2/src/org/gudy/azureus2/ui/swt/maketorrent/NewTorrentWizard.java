@@ -84,7 +84,7 @@ public class NewTorrentWizard extends Wizard {
       public void drop(DropTargetEvent event) {
         if (event.data instanceof String[]) {
           String[] sourceNames = (String[]) event.data;
-          if (sourceNames == null && sourceNames.length != 1)
+          if (sourceNames == null || sourceNames.length != 1)
             event.detail = DND.DROP_NONE;
           if (event.detail == DND.DROP_NONE)
             return;
