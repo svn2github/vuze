@@ -25,10 +25,14 @@ public class ImageRepository {
     images = new HashMap();
   }
 
+  public static void loadImagesForSplashWindow(Display display) {
+    loadImage(display, "org/gudy/azureus2/ui/icons/azureus.png", "azureus");
+    loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash");
+  }
+  
   public static void loadImages(Display display) {
     loadImage(display, "org/gudy/azureus2/ui/icons/close.png", "close");
-    loadImage(display, "org/gudy/azureus2/ui/icons/tray.png", "tray");
-    loadImage(display, "org/gudy/azureus2/ui/icons/azureus.png", "azureus");
+    loadImage(display, "org/gudy/azureus2/ui/icons/tray.png", "tray");    
     loadImage(display, "org/gudy/azureus2/ui/icons/dragger.gif", "dragger");
     loadImage(display, "org/gudy/azureus2/ui/icons/folder.gif", "folder");
     loadImage(display, "org/gudy/azureus2/ui/icons/root.png", "root");
@@ -42,8 +46,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/stop2.png", "stop");
     loadImage(display, "org/gudy/azureus2/ui/icons/downloadBar.png", "downloadBar");
     loadImage(display, "org/gudy/azureus2/ui/icons/delete.png", "delete");
-    loadImage(display, "org/gudy/azureus2/ui/icons/lock.png", "lock");
-    loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash",64);
+    loadImage(display, "org/gudy/azureus2/ui/icons/lock.png", "lock");    
   }
 
   

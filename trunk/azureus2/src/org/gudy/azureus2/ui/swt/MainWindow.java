@@ -50,7 +50,6 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -102,7 +101,7 @@ public class MainWindow implements GlobalManagerListener {
   private String latestVersionFileName = null;
 
   private static MainWindow window;
-  private static Shell splash;
+  private static SplashWindow splash;
 
   private static boolean jarDownloaded = false;
   private static boolean updateJar = false;
@@ -356,12 +355,21 @@ public class MainWindow implements GlobalManagerListener {
       display = new Display();
     }
 
-    ImageRepository.loadImages(display);
+    ImageRepository.loadImagesForSplashWindow(display);
     
     if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
       showSplashWindow();
     }
-
+    
+    splash.setPercentDone(0);
+    splash.setCurrentTask(MessageText.getString("splash.loadImages"));
+        
+    ImageRepository.loadImages(display);
+    
+    splash.setPercentDone(10);
+    splash.setCurrentTask(MessageText.getString("splash.initializeGui"));
+    
+    
     window = this;
     this.startServer = server;
     this.globalManager = gm;
@@ -620,22 +628,6 @@ public class MainWindow implements GlobalManagerListener {
     mainLayout.marginHeight = 1;
     mainLayout.marginWidth = 0;
     mainWindow.setLayout(mainLayout);
-    //mainWindow.setBackground(white);
-    
-    /*
-    CoolBar cb = new CoolBar(mainWindow,SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    cb.setLayoutData(gridData);
-    CoolItem ci = new CoolItem(cb,SWT.NULL);
-    Composite coolMyTorrents = new Composite(cb,SWT.DROP_DOWN);
-    //coolMyTorrents.setLayout(new ());
-    
-    Button bStart = new Button(coolMyTorrents,SWT.PUSH);
-    bStart.setImage(ImageRepository.getImage("start"));
-    Button bStop = new Button(coolMyTorrents,SWT.PUSH);
-    bStop.setImage(ImageRepository.getImage("stop"));  
-    ci.setControl(coolMyTorrents);
-    coolMyTorrents.pack();*/
     
     gridData = new GridData(GridData.FILL_BOTH);
     if(!useCustomTab) {
@@ -667,12 +659,14 @@ public class MainWindow implements GlobalManagerListener {
       });
     }
 
+    splash.setPercentDone(40);
+    splash.setCurrentTask(MessageText.getString("splash.openViews"));
+    
     showMyTorrents(); // mytorrents = new Tab(new MyTorrentsView(globalManager));
 
-	if ( TRHostFactory.create().getTorrents().length > 0 ){
-		
-		showMyTracker();
-	}
+  	if ( TRHostFactory.create().getTorrents().length > 0 ){  		
+  		showMyTracker();
+  	}
 	
     if (COConfigurationManager.getBooleanParameter("Open Console", false))
       console = new Tab(new ConsoleView());
@@ -732,10 +726,11 @@ public class MainWindow implements GlobalManagerListener {
       catch (Exception e) {}
     }
     
-    new PluginInitializer(globalManager).initializePlugins();
-    
-    closeSplashWindow();
+    splash.setPercentDone(50);        
+    new PluginInitializer(globalManager,splash).initializePlugins();        
 
+    closeSplashWindow();
+    
     mainWindow.open();
     mainWindow.forceActive();
     updater = new GUIUpdater();
@@ -922,27 +917,15 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   private void showSplashWindow() {
-    if (splash == null) {
-      ImageRepository.loadImages(display);
-      splash = new Shell(display, SWT.ON_TOP);
-      splash.setText("Azureus");
-      splash.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
-      Label label = new Label(splash, SWT.NONE);
-      label.setImage(ImageRepository.getImage("azureus_splash"));
-      splash.setLayout(new FormLayout());
-      splash.pack();
-      Rectangle splashRect = splash.getBounds();
-      Rectangle displayRect = display.getBounds();
-      int x = (displayRect.width - splashRect.width) / 2;
-      int y = (displayRect.height - splashRect.height) / 2;
-      splash.setLocation(x, y);
-      splash.open();
+    if (splash == null && display != null) {
+      splash = new SplashWindow();
+      splash.show(display);
     }
   }
 
   private void closeSplashWindow() {
     if (splash != null) {
-      splash.dispose();
+      splash.close();
       splash = null;
     }
   }

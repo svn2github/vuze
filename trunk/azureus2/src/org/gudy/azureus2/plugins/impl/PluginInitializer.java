@@ -27,9 +27,11 @@ import java.net.URLClassLoader;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.SplashWindow;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
@@ -42,9 +44,11 @@ public class PluginInitializer implements PluginInterface {
 
   URLClassLoader classLoader;
   private GlobalManager gm;
+  private SplashWindow splash;
   
-  public PluginInitializer(GlobalManager gm) {
+  public PluginInitializer(GlobalManager gm,SplashWindow splash) {
     this.gm = gm;
+    this.splash = splash;
   }
   
   public void initializePlugins() {
@@ -52,8 +56,14 @@ public class PluginInitializer implements PluginInterface {
     if(!pluginDirectory.exists()) return;
     if(!pluginDirectory.isDirectory()) return;
     File[] pluginsDirectory = pluginDirectory.listFiles();
-    for(int i = 0 ; i < pluginsDirectory.length ; i++) {      
+    for(int i = 0 ; i < pluginsDirectory.length ; i++) {
+      if(splash != null) {        
+        splash.setCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
+      }
       initializePluginFromDir(pluginsDirectory[i]);
+      if(splash != null) {
+        splash.setPercentDone(50 + (50*(i +1)) / pluginsDirectory.length);        
+      }
     }
   }
   
