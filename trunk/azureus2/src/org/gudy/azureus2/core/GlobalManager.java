@@ -36,6 +36,7 @@ public class GlobalManager extends Component {
     public Checker() {
       super("Global Status Checker");
       loopFactor = 0;
+      setPriority(Thread.MIN_PRIORITY);
     }
 
     public void run() {
@@ -101,7 +102,7 @@ public class GlobalManager extends Component {
           }
         }
         try {
-          Thread.sleep(100);
+          Thread.sleep(1000);
         }
         catch (Exception e) {
           e.printStackTrace();
@@ -123,13 +124,23 @@ public class GlobalManager extends Component {
     checker.start();
   }
 
-  public void addDownloadManager(DownloadManager manager) {
+  public boolean addDownloadManager(String fileName, String savePath) {
+    DownloadManager manager = new DownloadManager(this, fileName, savePath);
+    return addDownloadManager(manager);
+  }
+
+  private boolean addDownloadManager(DownloadManager manager) {
     synchronized (managers) {
+      if(managers.contains(manager)) {
+        manager.setState(DownloadManager.STATE_DUPLICATE);
+        return false;
+      }
       managers.add(manager);
     }
 
-    this.objectAdded(manager);
+    objectAdded(manager);
     saveDownloads();
+    return true;
   }
 
   public List getDownloadManagers() {
