@@ -42,7 +42,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Semaphore;
 import org.gudy.azureus2.ui.webplugin.util.*;
 
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.view.*;

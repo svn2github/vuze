@@ -1,5 +1,5 @@
 /*
- * File    : RPFactory.java
+ * File    : RPException.java
  * Created : 28-Jan-2004
  * By      : parg
  * 
@@ -19,29 +19,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote;
+package org.gudy.azureus2.pluginsimpl.remote;
 
 /**
  * @author parg
  *
  */
 public class 
-RPFactory 
+RPException
+	extends RuntimeException
 {
-	public static RPPluginInterface
-	getPlugin(
-		RPRequestDispatcher		dispatcher )
-	
-		throws RPException
+	public 
+	RPException(
+		String		str )
 	{
-		RPRequest	request = new RPRequest( null, "getSingleton", null );
-		
-		RPReply		reply	= dispatcher.dispatch( request );
-		
-		RPPluginInterface	pi = (RPPluginInterface)reply.getResponse();
-		
-		pi._setRemote( dispatcher );
-		
-		return( pi );
+		super(str);
+	}
+	
+	public
+	RPException(
+		String		str,
+		Throwable	e )
+	{
+		super( str, e );
 	}
 }

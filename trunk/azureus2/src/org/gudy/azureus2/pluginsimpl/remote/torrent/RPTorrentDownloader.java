@@ -1,5 +1,5 @@
 /*
- * File    : RPTorrentManager.java
+ * File    : RPTorrentDownloader.java
  * Created : 28-Feb-2004
  * By      : parg
  * 
@@ -19,44 +19,40 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote.torrent;
+package org.gudy.azureus2.pluginsimpl.remote.torrent;
 
 /**
  * @author parg
  *
  */
-
-import java.net.URL;
-import java.io.File;
-
 import org.gudy.azureus2.plugins.torrent.*;
 
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 public class 
-RPTorrentManager
+RPTorrentDownloader
 	extends		RPObject
-	implements 	TorrentManager
+	implements 	TorrentDownloader
 {
-	protected transient TorrentManager		delegate;
+	protected transient TorrentDownloader		delegate;
 
-	public static RPTorrentManager
+	public static RPTorrentDownloader
 	create(
-		TorrentManager		_delegate )
+		TorrentDownloader		_delegate )
 	{
-		RPTorrentManager	res =(RPTorrentManager)_lookupLocal( _delegate );
+		RPTorrentDownloader	res =(RPTorrentDownloader)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new RPTorrentManager( _delegate );
+			res = new RPTorrentDownloader( _delegate );
 		}
 		
 		return( res );
 	}
 	
 	protected
-	RPTorrentManager(
-		TorrentManager		_delegate )
+	RPTorrentDownloader(
+		TorrentDownloader		_delegate )
 	{
 		super( _delegate );
 	}
@@ -65,7 +61,7 @@ RPTorrentManager
 	_setDelegate(
 		Object		_delegate )
 	{
-		delegate = (TorrentManager)_delegate;
+		delegate = (TorrentDownloader)_delegate;
 	}
 	
 	public Object
@@ -83,18 +79,18 @@ RPTorrentManager
 	{
 		String	method = request.getMethod();
 		
-		if ( method.equals( "getURLDownloader")){
+		if ( method.equals( "download")){
 			
 			try{
-				TorrentDownloader dl = delegate.getURLDownloader((URL)request.getParams());
+				Torrent to = delegate.download();
 			
-				RPTorrentDownloader res = RPTorrentDownloader.create( dl );
+				RPTorrent res = RPTorrent.create( to );
 		
 				return( new RPReply( res ));
 				
 			}catch( TorrentException e ){
 				
-				return( new RPReply( e ));
+				return(new RPReply(e));
 			}
 		}			
 		
@@ -103,14 +99,13 @@ RPTorrentManager
 
 	// ************************************************************************
 	
-	public TorrentDownloader
-	getURLDownloader(
-		URL		url )
+	public Torrent
+	download()
 	
 		throws TorrentException
 	{
 		try{
-			RPTorrentDownloader resp = (RPTorrentDownloader)_dispatcher.dispatch( new RPRequest( this, "getURLDownloader", url )).getResponse();
+			RPTorrent resp = (RPTorrent)_dispatcher.dispatch( new RPRequest( this, "download", null )).getResponse();
 			
 			resp._setRemote( _dispatcher );
 			
@@ -125,27 +120,5 @@ RPTorrentManager
 			
 			throw( e );
 		}	
-	}
-	
-	public Torrent
-	createFromBEncodedFile(
-		File		file )
-	
-		throws TorrentException
-	{
-		notSupported();
-		
-		return( null );
-	}
-	
-	public Torrent
-	createFromBEncodedData(
-		byte[]		data )
-	
-		throws TorrentException
-	{
-		notSupported();
-		
-		return( null );
 	}
 }

@@ -29,7 +29,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.ipfilter.*;
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 public class 
 MDStatusAreaModel 

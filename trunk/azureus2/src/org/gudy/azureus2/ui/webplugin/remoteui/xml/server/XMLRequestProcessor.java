@@ -32,7 +32,7 @@ import java.lang.reflect.*;
 
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 import org.gudy.azureus2.core3.xml.util.*;
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 public class 
 XMLRequestProcessor

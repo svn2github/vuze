@@ -1,5 +1,5 @@
 /*
- * File    : RPException.java
+ * File    : RPReply.java
  * Created : 28-Jan-2004
  * By      : parg
  * 
@@ -19,28 +19,60 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote;
+package org.gudy.azureus2.pluginsimpl.remote;
+
+import java.io.Serializable;
 
 /**
  * @author parg
  *
  */
+
+import java.util.*;
+
 public class 
-RPException
-	extends RuntimeException
+RPReply 
+	implements Serializable
 {
-	public 
-	RPException(
-		String		str )
-	{
-		super(str);
-	}
+	public Object	response;
+	
+	transient protected Map		properties	= new HashMap();
 	
 	public
-	RPException(
-		String		str,
-		Throwable	e )
+	RPReply(
+		Object		_response )
 	{
-		super( str, e );
+		response	= _response;
+	}
+	
+	public Object
+	getResponse()
+	
+		throws RPException
+	{
+		if ( response instanceof RPException ){
+			
+			throw((RPException)response);
+			
+		}else if ( response instanceof Throwable ){
+			
+			throw( new RPException("RPReply: exception occurred", (Throwable)response ));
+		}
+		
+		return( response );
+	}
+	
+	public void
+	setProperty(
+		String		name,
+		String		value )
+	{
+		properties.put( name, value );
+	}
+	
+	public Map
+	getProperties()
+	{
+		return( properties );
 	}
 }

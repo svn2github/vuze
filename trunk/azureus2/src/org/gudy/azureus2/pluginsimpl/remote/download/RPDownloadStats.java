@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote.download;
+package org.gudy.azureus2.pluginsimpl.remote.download;
 
 /**
  * @author parg
@@ -27,7 +27,7 @@ package org.gudy.azureus2.pluginsremote.download;
  */
 import org.gudy.azureus2.plugins.download.*;
 
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 
 public class 

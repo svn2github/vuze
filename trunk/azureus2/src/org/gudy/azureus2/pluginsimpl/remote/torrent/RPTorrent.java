@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote.torrent;
+package org.gudy.azureus2.pluginsimpl.remote.torrent;
 
 import java.net.*;
 
@@ -33,7 +33,7 @@ import java.io.File;
 
 import org.gudy.azureus2.plugins.torrent.*;
 
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 
 public class 

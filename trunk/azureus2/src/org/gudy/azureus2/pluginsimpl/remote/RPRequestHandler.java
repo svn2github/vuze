@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote;
+package org.gudy.azureus2.pluginsimpl.remote;
 
 /**
  * @author parg
@@ -29,7 +29,7 @@ package org.gudy.azureus2.pluginsremote;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.pluginsremote.download.*;
+import org.gudy.azureus2.pluginsimpl.remote.download.*;
 
 public class 
 RPRequestHandler 

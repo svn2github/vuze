@@ -37,7 +37,7 @@ import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.torrent.*;
 
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 import org.gudy.azureus2.ui.webplugin.util.*;
 
 public class 
@@ -133,24 +133,24 @@ RemoteUIServlet
 		"core3/util/SystemTime$1.class",
 		"core3/util/DisplayFormatters$2.class",		
 		
-		"pluginsremote/RPRequestDispatcher.class",
-		"pluginsremote/RPException.class",
-		"pluginsremote/RPFactory.class",
-		"pluginsremote/RPRequest.class",
-		"pluginsremote/RPRequestHandler.class",		
-		"pluginsremote/RPObject.class",
-		"pluginsremote/RPReply.class",
-		"pluginsremote/RPPluginInterface.class",
-		"pluginsremote/download/RPDownloadManager.class",
-		"pluginsremote/download/RPDownload.class",
-		"pluginsremote/torrent/RPTorrent.class",
-		"pluginsremote/download/RPDownloadStats.class",
-		"pluginsremote/download/RPDownloadAnnounceResult.class",
-		"pluginsremote/download/RPDownloadScrapeResult.class",
-		"pluginsremote/RPPluginConfig.class",
-		"pluginsremote/torrent/RPTorrentManager.class",
-		"pluginsremote/torrent/RPTorrentDownloader.class",
-		"pluginsremote/ipfilter/RPIPFilter.class",
+		"pluginsimpl/remote/RPRequestDispatcher.class",
+		"pluginsimpl/remote/RPException.class",
+		"pluginsimpl/remote/RPFactory.class",
+		"pluginsimpl/remote/RPRequest.class",
+		"pluginsimpl/remote/RPRequestHandler.class",		
+		"pluginsimpl/remote/RPObject.class",
+		"pluginsimpl/remote/RPReply.class",
+		"pluginsimpl/remote/RPPluginInterface.class",
+		"pluginsimpl/remote/download/RPDownloadManager.class",
+		"pluginsimpl/remote/download/RPDownload.class",
+		"pluginsimpl/remote/torrent/RPTorrent.class",
+		"pluginsimpl/remote/download/RPDownloadStats.class",
+		"pluginsimpl/remote/download/RPDownloadAnnounceResult.class",
+		"pluginsimpl/remote/download/RPDownloadScrapeResult.class",
+		"pluginsimpl/remote/RPPluginConfig.class",
+		"pluginsimpl/remote/torrent/RPTorrentManager.class",
+		"pluginsimpl/remote/torrent/RPTorrentDownloader.class",
+		"pluginsimpl/remote/ipfilter/RPIPFilter.class",
 
 		"plugins/download/DownloadManager.class",
 		"plugins/PluginInterface.class",

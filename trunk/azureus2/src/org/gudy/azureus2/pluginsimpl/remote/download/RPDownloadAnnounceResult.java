@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote.download;
+package org.gudy.azureus2.pluginsimpl.remote.download;
 
 /**
  * @author parg
@@ -27,38 +27,38 @@ package org.gudy.azureus2.pluginsremote.download;
  */
 import org.gudy.azureus2.plugins.download.*;
 
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 
 public class 
-RPDownloadScrapeResult
+RPDownloadAnnounceResult
 	extends		RPObject
-	implements 	DownloadScrapeResult 
+	implements 	DownloadAnnounceResult
 {
-	protected transient DownloadScrapeResult		delegate;
+	protected transient DownloadAnnounceResult		delegate;
 
 		// don't change these field names as they are visible on XML serialisation
-
+	
 	public int				seed_count;
 	public int				non_seed_count;
 	
-	public static RPDownloadScrapeResult
+	public static RPDownloadAnnounceResult
 	create(
-		DownloadScrapeResult		_delegate )
+		DownloadAnnounceResult		_delegate )
 	{
-		RPDownloadScrapeResult	res =(RPDownloadScrapeResult)_lookupLocal( _delegate );
+		RPDownloadAnnounceResult	res =(RPDownloadAnnounceResult)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new RPDownloadScrapeResult( _delegate );
+			res = new RPDownloadAnnounceResult( _delegate );
 		}
 		
 		return( res );
 	}
 	
 	protected
-	RPDownloadScrapeResult(
-		DownloadScrapeResult		_delegate )
+	RPDownloadAnnounceResult(
+		DownloadAnnounceResult		_delegate )
 	{
 		super( _delegate );
 	}
@@ -67,7 +67,7 @@ RPDownloadScrapeResult
 	_setDelegate(
 		Object		_delegate )
 	{
-		delegate = (DownloadScrapeResult)_delegate;
+		delegate = (DownloadAnnounceResult)_delegate;
 		
 		seed_count		= delegate.getSeedCount();
 		non_seed_count	= delegate.getNonSeedCount();	
@@ -108,7 +108,15 @@ RPDownloadScrapeResult
 
 		return( 0 );
 	}
-		
+	
+	public int
+	getReportedPeerCount()
+	{
+		notSupported();
+
+		return( 0 );
+	}
+	
 	public int
 	getSeedCount()
 	{
@@ -121,10 +129,11 @@ RPDownloadScrapeResult
 		return( non_seed_count );
 	}
 	
-	public long getScrapeStartTime() {
+	public String
+	getError()
+	{
 		notSupported();
 
-		return( 0 );
+		return( null );
 	}
-	
 }

@@ -31,7 +31,7 @@ import org.gudy.azureus2.ui.webplugin.*;
 import java.io.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 import org.gudy.azureus2.plugins.*;
 

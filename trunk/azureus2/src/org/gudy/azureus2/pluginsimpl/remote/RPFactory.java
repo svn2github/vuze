@@ -1,5 +1,5 @@
 /*
- * File    : RPRequestDispatcher.java
+ * File    : RPFactory.java
  * Created : 28-Jan-2004
  * By      : parg
  * 
@@ -19,21 +19,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote;
+package org.gudy.azureus2.pluginsimpl.remote;
 
 /**
  * @author parg
  *
  */
-public interface 
-RPRequestDispatcher 
+public class 
+RPFactory 
 {
-	public RPPluginInterface
-	getPlugin();
+	public static RPPluginInterface
+	getPlugin(
+		RPRequestDispatcher		dispatcher )
 	
-	public RPReply
-	dispatch(
-		RPRequest	request )
-	
-		throws RPException;
+		throws RPException
+	{
+		RPRequest	request = new RPRequest( null, "getSingleton", null );
+		
+		RPReply		reply	= dispatcher.dispatch( request );
+		
+		RPPluginInterface	pi = (RPPluginInterface)reply.getResponse();
+		
+		pi._setRemote( dispatcher );
+		
+		return( pi );
+	}
 }

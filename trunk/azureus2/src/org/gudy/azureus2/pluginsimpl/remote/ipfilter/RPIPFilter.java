@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsremote.ipfilter;
+package org.gudy.azureus2.pluginsimpl.remote.ipfilter;
 
 
 /**
@@ -31,7 +31,7 @@ import java.io.*;
 
 import org.gudy.azureus2.plugins.ipfilter.*;
 
-import org.gudy.azureus2.pluginsremote.*;
+import org.gudy.azureus2.pluginsimpl.remote.*;
 
 
 public class 

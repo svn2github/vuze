@@ -31,7 +31,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.pluginsremote.RPException;
+import org.gudy.azureus2.pluginsimpl.remote.RPException;
 
 public class 
 MDConfigModel 
