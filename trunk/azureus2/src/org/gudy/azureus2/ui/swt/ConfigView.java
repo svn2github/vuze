@@ -233,6 +233,10 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.closetotray"); //$NON-NLS-1$
     new BooleanParameter(gDisplay, "Close To Tray", true); //$NON-NLS-1$
 
+    label = new Label(gDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.minimizetotray"); //$NON-NLS-1$
+    new BooleanParameter(gDisplay, "Minimize To Tray", false); //$NON-NLS-1$
+
     Group gStart = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gStart, "ConfigView.section.start"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -276,8 +280,11 @@ public class ConfigView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    // TODO Auto-generated method stub
+  }
 
+  public void updateLanguage() {
+    super.updateLanguage();
+    gConfig.setSize(gConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
   }
 
   /* (non-Javadoc)
