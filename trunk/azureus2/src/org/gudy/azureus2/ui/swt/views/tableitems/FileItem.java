@@ -18,12 +18,13 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
 /**
  * @author Olivier
  * 
  */
-public class FileItem {
+public class FileItem implements SortableItem{
 
   private Display display;
   private Table table;
@@ -216,16 +217,61 @@ public class FileItem {
   public DiskManagerFileInfo getFileInfo() {
     return fileInfo;
   }
-
-  /**
-   * @param info
-   */
-  public void setFileInfo(DiskManagerFileInfo info) {
-    fileInfo = info;
-  }
   
   public void invalidate() {
     valid = false;
+  }
+  
+  /*
+   * SortableItem implementation
+   */
+  
+
+  public String getStringField(String field) {
+    if (field.equals("name")) //$NON-NLS-1$
+      return fileInfo.getName();
+  
+    return ""; //$NON-NLS-1$
+  }
+
+  public long getIntField(String field) {
+  
+    if (field.equals("size")) //$NON-NLS-1$
+      return fileInfo.getLength();
+  
+    if (field.equals("done")) //$NON-NLS-1$
+      return fileInfo.getDownloaded();
+  
+    if (field.equals("percent")) { //$NON-NLS-1$
+      long percent = 0;
+      if (fileInfo.getLength() != 0) {
+        percent = (1000 * fileInfo.getDownloaded()) / fileInfo.getLength();
+      }
+      return percent;
+    }
+  
+    if (field.equals("fp")) //$NON-NLS-1$
+      return fileInfo.getFirstPieceNumber();
+  
+    if (field.equals("nbp")) //$NON-NLS-1$
+      return fileInfo.getNbPieces();
+  
+    if (field.equals("mode")) //$NON-NLS-1$
+      return fileInfo.getAccessmode();
+  
+    if(field.equals("priority")) {
+      int prio = fileInfo.isPriority()?1:0 + 2 * (fileInfo.isSkipped()?1:0);
+      return prio;
+    }
+    return 0;
+  }
+  
+  public TableItem getTableItem() {
+   return item;
+  }
+
+  public void setDataSource(Object dataSource) {
+    fileInfo = (DiskManagerFileInfo) dataSource;
   }
 
 }

@@ -17,12 +17,13 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
 /**
  * @author Olivier
  * 
  */
-public class ManagerItem {
+public class ManagerItem implements SortableItem {
 
   private Display display;
   private Table table;
@@ -200,10 +201,6 @@ public class ManagerItem {
     }
   }
 
-  public void setManager(DownloadManager manager) {
-    this.manager = manager;
-  }
-
   public int getIndex() {
     if(table == null || table.isDisposed() || item == null || item.isDisposed())
       return -1;
@@ -212,6 +209,66 @@ public class ManagerItem {
 
   public DownloadManager getManager() {
     return this.manager;
+  }
+  
+  
+  /*
+   * SortablePeer implementation
+   */
+
+  public String getStringField(String field) {
+    if (field.equals("name")) //$NON-NLS-1$
+      return manager.getName();
+  
+    if (field.equals("tracker")) //$NON-NLS-1$
+      return manager.getTrackerStatus();
+  
+    if (field.equals("priority")) //$NON-NLS-1$
+      return manager.getName();
+  
+    return ""; //$NON-NLS-1$
+  }
+
+  public long getIntField(String field) {
+  
+    if (field.equals("size")) //$NON-NLS-1$
+      return manager.getSize();
+  
+    if (field.equals("done")) //$NON-NLS-1$
+      return manager.getStats().getCompleted();
+    
+    if (field.equals("ds")) //$NON-NLS-1$
+      return manager.getStats().getDownloadAverage();
+  
+    if (field.equals("us")) //$NON-NLS-1$
+      return manager.getStats().getUploadAverage();
+  
+    if (field.equals("status")) //$NON-NLS-1$
+      return manager.getState();
+  
+    if (field.equals("seeds")) //$NON-NLS-1$
+      return manager.getNbSeeds();
+  
+    if (field.equals("peers")) //$NON-NLS-1$
+      return manager.getNbPeers();
+  
+    if (field.equals("priority")) //$NON-NLS-1$
+      return manager.getPriority();
+  
+    if (field.equals("#")) //$NON-NLS-1$
+      return manager.getIndex();
+    
+    if (field.equals("eta")) //$NON-NLS-1$
+      return manager.getStats().getETA();
+  
+    return 0;
   }  
   
+  public void invalidate() {
+  }
+
+  public void setDataSource(Object dataSource) {
+    this.manager = (DownloadManager) dataSource;
+  }
+
 }

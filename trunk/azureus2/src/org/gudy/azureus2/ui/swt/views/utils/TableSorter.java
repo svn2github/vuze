@@ -225,4 +225,11 @@ public class TableSorter {
     return selected;
   }
 
+  /**
+   * @return Returns the lastField.
+   */
+  public String getLastField() {
+    return lastField;
+  }
+
 }

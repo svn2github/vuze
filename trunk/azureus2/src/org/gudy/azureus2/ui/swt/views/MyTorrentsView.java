@@ -5,12 +5,11 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
@@ -46,40 +45,33 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
 import org.gudy.azureus2.ui.swt.views.tableitems.ManagerItem;
+import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
+import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.*;
 
 /**
  * @author Olivier
  * 
  */
-public class MyTorrentsView extends AbstractIView implements GlobalManagerListener {
+public class MyTorrentsView extends AbstractIView implements GlobalManagerListener, SortableTable {
 
-  /* see Download Manager ... too lazy to put all state names ;)
-    private static final int tabStates[][] = { { 0, 5, 10, 20, 30, 40, 50, 60, 70, 100 }, {
-        0, 20, 30, 40 }, {
-        50 }, {
-        60 }, {
-        65, 70 }
-    };
-  */
   private GlobalManager globalManager;
 
   private Composite composite;
   private Composite panel;
   private Table table;
-  private HashMap managerItems;
-  private HashMap managers;
+  private HashMap objectToSortableItem;
+  private HashMap tableItemToObject;
   private Menu menu;
 
   private HashMap downloadBars;
 
+  private TableSorter sorter;
+  
   public MyTorrentsView(GlobalManager globalManager) {
-    this.ascending = true;
-    this.lastField = "#"; //$NON-NLS-1$
-    this.type = INT;
     this.globalManager = globalManager;
-    managerItems = new HashMap();
-    managers = new HashMap();
+    objectToSortableItem = new HashMap();
+    tableItemToObject = new HashMap();
     downloadBars = MainWindow.getWindow().getDownloadBars();
   }
 
@@ -131,18 +123,22 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       column.setWidth(columnsSize[i]);
       column.addControlListener(resizeListener);
     }
-    table.getColumn(0).addListener(SWT.Selection, new IntColumnListener("#")); //$NON-NLS-1$
-    table.getColumn(1).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$
-    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("size")); //$NON-NLS-1$
-    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
-    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("status")); //$NON-NLS-1$
-    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("seeds")); //$NON-NLS-1$
-    table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("peers")); //$NON-NLS-1$
-    table.getColumn(7).addListener(SWT.Selection, new IntColumnListener("ds")); //$NON-NLS-1$
-    table.getColumn(8).addListener(SWT.Selection, new IntColumnListener("us")); //$NON-NLS-1$
-    table.getColumn(9).addListener(SWT.Selection, new IntColumnListener("eta")); //$NON-NLS-1$
-    table.getColumn(10).addListener(SWT.Selection, new StringColumnListener("tracker")); //$NON-NLS-1$
-    table.getColumn(11).addListener(SWT.Selection, new IntColumnListener("priority")); //$NON-NLS-1$
+    
+    sorter = new TableSorter(this,"#",true);
+    
+    sorter.addStringColumnListener(table.getColumn(1),"name");
+    sorter.addStringColumnListener(table.getColumn(10),"tracker");
+    
+    sorter.addIntColumnListener(table.getColumn(0),"#");
+    sorter.addIntColumnListener(table.getColumn(2),"size");
+    sorter.addIntColumnListener(table.getColumn(3),"done");
+    sorter.addIntColumnListener(table.getColumn(4),"status");
+    sorter.addIntColumnListener(table.getColumn(5),"seeds");
+    sorter.addIntColumnListener(table.getColumn(6),"peers");
+    sorter.addIntColumnListener(table.getColumn(7),"ds");
+    sorter.addIntColumnListener(table.getColumn(8),"us");
+    sorter.addIntColumnListener(table.getColumn(9),"eta");
+    sorter.addIntColumnListener(table.getColumn(11),"priority");   
 
     table.setHeaderVisible(true);
     table.addKeyListener(createKeyListener());
@@ -289,7 +285,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = lockPriority = lockStartStop = true;
           for (int i = 0; i < tis.length; i++) {
             TableItem ti = tis[i];
-            DownloadManager dm = (DownloadManager) managers.get(ti);
+            DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
             if (dm != null) {
               if (dm.getTrackerClient() == null)
                 changeUrl = false;
@@ -345,7 +341,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         final boolean initStoppedDownloads = true;
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null) {
             dm.setState(DownloadManager.STATE_WAITING);
           }
@@ -358,7 +354,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null) {
             if (dm.getState() == DownloadManager.STATE_SEEDING
               && dm.getStats().getShareRatio() >= 0
@@ -389,7 +385,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null
             && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
             globalManager.removeDownloadManager(dm);
@@ -403,7 +399,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null
             && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
             globalManager.removeDownloadManager(dm);
@@ -424,7 +420,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null
             && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
             String path = dm.getFullName();
@@ -456,7 +452,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null
             && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
             String path = dm.getFullName();
@@ -490,7 +486,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null && dm.getTrackerClient() != null) {
             new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), dm.getTrackerClient());
           }
@@ -503,7 +499,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           MainWindow.getWindow().openManagerView(dm);
         }
       }
@@ -519,7 +515,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           return;
         }
         TableItem ti = tis[0];
-        DownloadManager dm = (DownloadManager) managers.get(ti);
+        DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
         MainWindow.getWindow().openManagerView(dm);
       }
     });
@@ -531,7 +527,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           return;
         }
         TableItem ti = tis[0];
-        DownloadManager dm = (DownloadManager) managers.get(ti);
+        DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
         Program.launch(dm.getFullName());
       }
     });
@@ -543,7 +539,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 		   return;
 		 }
 		 TableItem ti = tis[0];
-		 DownloadManager dm = (DownloadManager) managers.get(ti);
+		 DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
 		 
 		 new ExportTorrentWizard(itemExport.getDisplay(), dm);
 	   }
@@ -558,7 +554,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
 		   TableItem ti = tis[i];
 		 
-			 DownloadManager dm = (DownloadManager) managers.get(ti);
+			 DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
 		 	
 			 TOTorrent	torrent = dm.getTorrent();
 			 
@@ -595,7 +591,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
 		   TableItem ti = tis[i];
 		 
-			 DownloadManager dm = (DownloadManager) managers.get(ti);
+			 DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
 		 	
 			 TOTorrent	torrent = dm.getTorrent();
 			 
@@ -628,7 +624,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           synchronized (downloadBars) {
             if (downloadBars.containsKey(dm)) {
               MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(dm);
@@ -648,14 +644,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = tis.length - 1; i >= 0; i--) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null && dm.isMoveableDown()) {
             dm.moveDown();
 
           }
         }
-        if (lastField.equals("#"))
-          reOrder(true);
+        if (sorter.getLastField().equals("#"))
+          sorter.reOrder(true);
       }
     });
 
@@ -664,14 +660,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null && dm.isMoveableUp()) {
             dm.moveUp();
 
           }
         }
-        if (lastField.equals("#"))
-          reOrder(true);
+        if (sorter.getLastField().equals("#"))
+          sorter.reOrder(true);
       }
     });
 
@@ -680,7 +676,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           dm.setPriority(DownloadManager.HIGH_PRIORITY);
         }
       }
@@ -691,7 +687,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           dm.setPriority(DownloadManager.LOW_PRIORITY);
         }
       }
@@ -702,7 +698,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           dm.setPriorityLocked(itemLockPriority.getSelection());
         }
       }
@@ -713,7 +709,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) managers.get(ti);
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           dm.setStartStopLocked(itemLockStartStop.getSelection());
         }
       }
@@ -744,14 +740,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     if (getComposite() == null || getComposite().isDisposed())
       return;
 
-    reOrder(false);
+    sorter.reOrder(false);
 
-    Iterator iter = managerItems.keySet().iterator();
+    Iterator iter = objectToSortableItem.keySet().iterator();
     while (iter.hasNext()) {
       if (this.panel.isDisposed())
         return;
       DownloadManager manager = (DownloadManager) iter.next();
-      ManagerItem item = (ManagerItem) managerItems.get(manager);
+      ManagerItem item = (ManagerItem) objectToSortableItem.get(manager);
       if (item != null) {
         item.refresh();
       }
@@ -779,11 +775,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
 
    public void downloadManagerAdded(DownloadManager manager) {
-     synchronized (managerItems) {
-      ManagerItem item = (ManagerItem) managerItems.get(manager);
+     synchronized (objectToSortableItem) {
+      ManagerItem item = (ManagerItem) objectToSortableItem.get(manager);
       if (item == null)
         item = new ManagerItem(this,table, manager);
-        managerItems.put(manager, item);      
+        objectToSortableItem.put(manager, item);      
     }
   }
 
@@ -793,222 +789,25 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       mw.close();
     }
 
-    ManagerItem managerItem = (ManagerItem) managerItems.remove(removed);
+    ManagerItem managerItem = (ManagerItem) objectToSortableItem.remove(removed);
     if (managerItem != null) {
       TableItem tableItem = managerItem.getTableItem();
-      managers.remove(tableItem);
+      tableItemToObject.remove(tableItem);
       managerItem.delete();
     }
   }
 
-  private String getStringField(DownloadManager manager, String field) {
-    if (field.equals("name")) //$NON-NLS-1$
-      return manager.getName();
-
-    if (field.equals("tracker")) //$NON-NLS-1$
-      return manager.getTrackerStatus();
-
-    if (field.equals("priority")) //$NON-NLS-1$
-      return manager.getName();
-
-    return ""; //$NON-NLS-1$
-  }
-
-  private long getIntField(DownloadManager manager, String field) {
-
-    if (field.equals("size")) //$NON-NLS-1$
-      return manager.getSize();
-
-    if (field.equals("done")) //$NON-NLS-1$
-      return manager.getStats().getCompleted();
-    
-    if (field.equals("ds")) //$NON-NLS-1$
-      return manager.getStats().getDownloadAverage();
-
-    if (field.equals("us")) //$NON-NLS-1$
-      return manager.getStats().getUploadAverage();
-
-    if (field.equals("status")) //$NON-NLS-1$
-      return manager.getState();
-
-    if (field.equals("seeds")) //$NON-NLS-1$
-      return manager.getNbSeeds();
-
-    if (field.equals("peers")) //$NON-NLS-1$
-      return manager.getNbPeers();
-
-    if (field.equals("priority")) //$NON-NLS-1$
-      return manager.getPriority();
-
-    if (field.equals("#")) //$NON-NLS-1$
-      return manager.getIndex();
-    
-    if (field.equals("eta")) //$NON-NLS-1$
-      return manager.getStats().getETA();
-
-    return 0;
-  }
-
-  //Ordering
-  private boolean ascending;
-  private String lastField;
-  private int type;
-  private static final int INT = 1;
-  private static final int STRING = 2;
-  private int loopFactor;
-
-  private void reOrder(boolean force) {
-    if (!force && loopFactor++ < 20)
-      return;
-    loopFactor = 0;
-    if (type == INT && lastField != null) {
-      ascending = !ascending;
-      orderInt(lastField);
-    }
-    if (type == STRING && lastField != null) {
-      ascending = !ascending;
-      orderString(lastField);
-    }
-
-  }
-
-  private void orderInt(String field) {
-    computeAscending(field);
-    synchronized (managerItems) {
-      List selected = getSelection();
-      List ordered = new ArrayList(managerItems.size());
-      ManagerItem items[] = new ManagerItem[managerItems.size()];
-      Iterator iter = managerItems.keySet().iterator();
-      while (iter.hasNext()) {
-        DownloadManager manager = (DownloadManager) iter.next();
-        ManagerItem item = (ManagerItem) managerItems.get(manager);
-        int index = item.getIndex();
-        if(index == -1)
-          continue;
-        items[index] = item;
-        long value = getIntField(manager, field);
-        int i;
-        for (i = 0; i < ordered.size(); i++) {
-          DownloadManager manageri = (DownloadManager) ordered.get(i);
-          long valuei = getIntField(manageri, field);
-          if (ascending) {
-            if (valuei >= value)
-              break;
-          }
-          else {
-            if (valuei <= value)
-              break;
-          }
-        }
-        ordered.add(i, manager);
-      }
-
-      sort(items, ordered, selected);
-
-    }
-    refresh();
-  }
+  
 
   private List getSelection() {
     TableItem[] selection = table.getSelection();
     List selected = new ArrayList(selection.length);
     for (int i = 0; i < selection.length; i++) {
-      DownloadManager manager = (DownloadManager) managers.get(selection[i]);
+      DownloadManager manager = (DownloadManager) tableItemToObject.get(selection[i]);
       if (manager != null)
         selected.add(manager);
     }
     return selected;
-  }
-
-  private void sort(ManagerItem[] items, List ordered, List selected) {
-    for (int i = 0; i < ordered.size(); i++) {
-      DownloadManager manager = (DownloadManager) ordered.get(i);
-
-      items[i].setManager(manager);
-
-      managerItems.put(manager, items[i]);
-      managers.put(items[i].getTableItem(), manager);
-      if (selected.contains(manager)) {
-        table.select(i);
-      }
-      else {
-        table.deselect(i);
-      }
-    }
-  }
-
-  private void computeAscending(String field) {
-    if (lastField.equals(field))
-      ascending = !ascending;
-    else {
-      lastField = field;
-      ascending = true;
-    }
-  }
-
-  private class IntColumnListener implements Listener {
-
-    private String field;
-
-    public IntColumnListener(String field) {
-      this.field = field;
-    }
-
-    public void handleEvent(Event e) {
-      type = INT;
-      orderInt(field);
-    }
-  }
-
-  private class StringColumnListener implements Listener {
-
-    private String field;
-
-    public StringColumnListener(String field) {
-      this.field = field;
-    }
-
-    public void handleEvent(Event e) {
-      type = STRING;
-      orderString(field);
-    }
-  }
-
-  private void orderString(String field) {
-    computeAscending(field);
-    synchronized (managerItems) {
-      List selected = getSelection();
-      Collator collator = Collator.getInstance(Locale.getDefault());
-      List ordered = new ArrayList(managerItems.size());
-      ManagerItem items[] = new ManagerItem[managerItems.size()];
-      Iterator iter = managerItems.keySet().iterator();
-      while (iter.hasNext()) {
-        DownloadManager manager = (DownloadManager) iter.next();
-        ManagerItem item = (ManagerItem) managerItems.get(manager);
-        int index = item.getIndex();
-        if(index == -1)
-          continue;
-        items[index] = item;
-        String value = getStringField(manager, field);
-        int i;
-        for (i = 0; i < ordered.size(); i++) {
-          DownloadManager manageri = (DownloadManager) ordered.get(i);
-          String valuei = getStringField(manageri, field);
-          if (ascending) {
-            if (collator.compare(valuei, value) <= 0)
-              break;
-          }
-          else {
-            if (collator.compare(valuei, value) >= 0)
-              break;
-          }
-        }
-        ordered.add(i, manager);
-      }
-
-      sort(items, ordered, selected);
-    }
-    refresh();
   }
 
   private KeyListener createKeyListener() {
@@ -1021,6 +820,23 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
   
   public void setItem(TableItem item,DownloadManager manager) {
-    managers.put(item,manager);
+    tableItemToObject.put(item,manager);
   }
+  
+  /*
+   * SortableTable implementation
+   */
+  
+  public Map getObjectToSortableItemMap() {
+    return objectToSortableItem;
+  }
+
+  public Table getTable() {
+    return table;
+  }
+
+  public Map getTableItemToObjectMap() {
+    return tableItemToObject;
+  }
+
 }

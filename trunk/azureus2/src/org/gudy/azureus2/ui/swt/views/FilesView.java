@@ -4,12 +4,9 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.text.Collator;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -30,27 +27,27 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.FileItem;
+import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
+import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
 /**
  * @author Olivier
  * 
  */
-public class FilesView extends AbstractIView {
+public class FilesView extends AbstractIView implements SortableTable {
 
   DownloadManager manager;
   Table table;
-  HashMap items;
-  HashMap itemsToFile;
+  HashMap objectToSortableItem;
+  HashMap tableItemToObject;
+  TableSorter sorter;
 
   public FilesView(DownloadManager manager) {
     this.manager = manager;
-    items = new HashMap();
-    itemsToFile = new HashMap();
+    objectToSortableItem = new HashMap();
+    tableItemToObject = new HashMap();
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
-   */
   public void initialize(Composite composite) {
 
     table = new Table(composite, SWT.MULTI | SWT.FULL_SELECTION);
@@ -72,14 +69,16 @@ public class FilesView extends AbstractIView {
     table.getColumn(7).setWidth(60);
     table.getColumn(8).setWidth(70);
 
-    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$
-    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("size")); //$NON-NLS-1$
-    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
-    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("percent")); //$NON-NLS-1$
-    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("fp")); //$NON-NLS-1$
-    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("nbp")); //$NON-NLS-1$
-    table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("percent")); //$NON-NLS-1$
-    table.getColumn(7).addListener(SWT.Selection, new IntColumnListener("mode")); //$NON-NLS-1$
+    sorter = new TableSorter(this,"fp",true);
+    sorter.addStringColumnListener(table.getColumn(0),"name");
+    sorter.addIntColumnListener(table.getColumn(1),"size");
+    sorter.addIntColumnListener(table.getColumn(2),"done");
+    sorter.addIntColumnListener(table.getColumn(3),"percent");
+    sorter.addIntColumnListener(table.getColumn(4),"fp");
+    sorter.addIntColumnListener(table.getColumn(5),"nbp");
+    sorter.addIntColumnListener(table.getColumn(6),"percent");
+    sorter.addIntColumnListener(table.getColumn(7),"mode");
+    sorter.addIntColumnListener(table.getColumn(8),"priority");
 
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
@@ -108,7 +107,7 @@ public class FilesView extends AbstractIView {
         boolean open = true;
         for(int i = 0 ; i < tis.length ; i++) {
           TableItem ti = tis[0];
-          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
           if (fileInfo.getAccessmode() != DiskManagerFileInfo.READ)
             open = false;
         }
@@ -124,7 +123,7 @@ public class FilesView extends AbstractIView {
         }
         for(int i = 0 ; i < tis.length ; i++) {
           TableItem ti = tis[i];
-          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
           if (fileInfo != null && fileInfo.getAccessmode() == DiskManagerFileInfo.READ)
             Program.launch(fileInfo.getPath() + fileInfo.getName());
         }
@@ -139,7 +138,7 @@ public class FilesView extends AbstractIView {
             }
             for(int i = 0 ; i < tis.length ; i++) {
               TableItem ti = tis[i];
-              DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+              DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
               if (fileInfo != null) {
                 fileInfo.setPriority(true);
                 fileInfo.setSkipped(false);
@@ -156,7 +155,7 @@ public class FilesView extends AbstractIView {
             }
             for(int i = 0 ; i < tis.length ; i++) {
               TableItem ti = tis[i];
-              DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+              DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
               if (fileInfo != null) {
                 fileInfo.setPriority(false);
                 fileInfo.setSkipped(false);
@@ -173,7 +172,7 @@ public class FilesView extends AbstractIView {
                 }
                 for(int i = 0 ; i < tis.length ; i++) {
                   TableItem ti = tis[i];
-                  DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+                  DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
                   if (fileInfo != null)
                     fileInfo.setSkipped(true);
                 }
@@ -193,7 +192,7 @@ public class FilesView extends AbstractIView {
           return;
         }
         TableItem ti = tis[0];
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(ti);
         if (fileInfo != null && fileInfo.getAccessmode() == DiskManagerFileInfo.READ)
           Program.launch(fileInfo.getPath() + fileInfo.getName());
       }
@@ -225,11 +224,11 @@ public class FilesView extends AbstractIView {
       return;
     for (int i = 0; i < files.length; i++) {
       if (files[i] != null) {
-        FileItem fileItem = (FileItem) items.get(files[i]);
+        FileItem fileItem = (FileItem) objectToSortableItem.get(files[i]);
         if (fileItem == null) {
           fileItem = new FileItem(table, manager, files[i], MainWindow.blues);
-          items.put(files[i], fileItem);
-          itemsToFile.put(fileItem.getItem(), files[i]);
+          objectToSortableItem.put(files[i], fileItem);
+          tableItemToObject.put(fileItem.getItem(), files[i]);
         }
         fileItem.refresh();
       }
@@ -238,15 +237,15 @@ public class FilesView extends AbstractIView {
   
   private void removeInvalidFileItems() {
     DiskManager diskManager = manager.getDiskManager();
-    if(items == null || diskManager == null)
+    if(objectToSortableItem == null || diskManager == null)
       return;
     DiskManagerFileInfo files[] = diskManager.getFiles();
-    Iterator iter = items.values().iterator();
+    Iterator iter = objectToSortableItem.values().iterator();
     while(iter.hasNext()) {        
       FileItem fileItem = (FileItem) iter.next();
-      DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(fileItem.getItem());
+      DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tableItemToObject.get(fileItem.getItem());
       if(! containsFileInfo(files,fileInfo)) {        
-        itemsToFile.remove(fileItem.getItem());
+        tableItemToObject.remove(fileItem.getItem());
         fileItem.delete();
         iter.remove();
       }
@@ -269,7 +268,7 @@ public class FilesView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
-    Iterator iter = items.values().iterator();
+    Iterator iter = objectToSortableItem.values().iterator();
     while (iter.hasNext()) {
       FileItem fileItem = (FileItem) iter.next();
       fileItem.delete();
@@ -291,153 +290,16 @@ public class FilesView extends AbstractIView {
 
   //Sorting
 
-  private String getStringField(DiskManagerFileInfo fileInfo, String field) {
-    if (field.equals("name")) //$NON-NLS-1$
-      return fileInfo.getName();
-
-    return ""; //$NON-NLS-1$
+  public Map getObjectToSortableItemMap() {
+    return objectToSortableItem;
   }
 
-  private long getIntField(DiskManagerFileInfo fileInfo, String field) {
-
-    if (field.equals("size")) //$NON-NLS-1$
-      return fileInfo.getLength();
-
-    if (field.equals("done")) //$NON-NLS-1$
-      return fileInfo.getDownloaded();
-
-    if (field.equals("percent")) { //$NON-NLS-1$
-      long percent = 0;
-      if (fileInfo.getLength() != 0) {
-        percent = (1000 * fileInfo.getDownloaded()) / fileInfo.getLength();
-      }
-      return percent;
-    }
-
-    if (field.equals("fp")) //$NON-NLS-1$
-      return fileInfo.getFirstPieceNumber();
-
-    if (field.equals("nbp")) //$NON-NLS-1$
-      return fileInfo.getNbPieces();
-
-    if (field.equals("mode")) //$NON-NLS-1$
-      return fileInfo.getAccessmode();
-
-    return 0;
+  public Table getTable() {
+    return table;
   }
 
-  private boolean ascending = false;
-  private String lastField = ""; //$NON-NLS-1$
-
-  private void orderInt(String field) {
-    if (lastField.equals(field))
-      ascending = !ascending;
-    else {
-      lastField = field;
-      ascending = true;
-    }
-    synchronized (items) {
-      List ordered = new ArrayList(items.size());
-      FileItem fileItems[] = new FileItem[items.size()];
-      Iterator iter = items.keySet().iterator();
-      while (iter.hasNext()) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) iter.next();
-        FileItem item = (FileItem) items.get(fileInfo);
-        fileItems[item.getIndex()] = item;
-        long value = getIntField(fileInfo, field);
-        int i;
-        for (i = 0; i < ordered.size(); i++) {
-          DiskManagerFileInfo fileInfoi = (DiskManagerFileInfo) ordered.get(i);
-          long valuei = getIntField(fileInfoi, field);
-          if (ascending) {
-            if (valuei >= value)
-              break;
-          }
-          else {
-            if (valuei <= value)
-              break;
-          }
-        }
-        ordered.add(i, fileInfo);
-      }
-
-      for (int i = 0; i < ordered.size(); i++) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ordered.get(i);
-        fileItems[i].setFileInfo(fileInfo);
-        fileItems[i].invalidate();
-        items.put(fileInfo, fileItems[i]);
-        itemsToFile.put(fileItems[i].getItem(), fileInfo);
-      }
-    }
-  }
-
-  private class IntColumnListener implements Listener {
-
-    private String field;
-
-    public IntColumnListener(String field) {
-      this.field = field;
-    }
-
-    public void handleEvent(Event e) {
-      orderInt(field);
-    }
-  }
-
-  private class StringColumnListener implements Listener {
-
-    private String field;
-
-    public StringColumnListener(String field) {
-      this.field = field;
-    }
-
-    public void handleEvent(Event e) {
-      orderString(field);
-    }
-  }
-
-  private void orderString(String field) {
-    if (lastField.equals(field))
-      ascending = !ascending;
-    else {
-      lastField = field;
-      ascending = true;
-    }
-    synchronized (items) {
-      Collator collator = Collator.getInstance(Locale.getDefault());
-      List ordered = new ArrayList(items.size());
-      FileItem fileItems[] = new FileItem[items.size()];
-      Iterator iter = items.keySet().iterator();
-      while (iter.hasNext()) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) iter.next();
-        FileItem item = (FileItem) items.get(fileInfo);
-        fileItems[item.getIndex()] = item;
-        String value = getStringField(fileInfo, field);
-        int i;
-        for (i = 0; i < ordered.size(); i++) {
-          DiskManagerFileInfo fileInfoi = (DiskManagerFileInfo) ordered.get(i);
-          String valuei = getStringField(fileInfoi, field);
-          if (ascending) {
-            if (collator.compare(valuei, value) <= 0)
-              break;
-          }
-          else {
-            if (collator.compare(valuei, value) >= 0)
-              break;
-          }
-        }
-        ordered.add(i, fileInfo);
-      }
-
-      for (int i = 0; i < ordered.size(); i++) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ordered.get(i);
-        fileItems[i].setFileInfo(fileInfo);
-        fileItems[i].invalidate();
-        items.put(fileInfo, fileItems[i]);
-        itemsToFile.put(fileItems[i].getItem(), fileInfo);
-      }
-    }
+  public Map getTableItemToObjectMap() {
+    return tableItemToObject;
   }
 
 }

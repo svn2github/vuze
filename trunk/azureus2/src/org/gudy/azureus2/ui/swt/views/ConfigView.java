@@ -992,13 +992,15 @@ public class ConfigView extends AbstractIView {
    
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay"); //$NON-NLS-1$
-   int[] rValues = new int[50];
-   String[] rLabels = new String[50];   
+   int[] rValues = new int[51];
+   String[] rLabels = new String[51]; 
+   rValues[0] = 0;
+   rLabels[0] = MessageText.getString("ConfigView.section.style.reOrderDelay.never");
    for(int i = 1 ; i <= 50 ; i++) {
      rValues[i-1] = i;
      rLabels[i-1] = "" + i;
    }
-   new IntListParameter(gStyle, "ReOrder Delay", 4, rLabels, rValues);
+   new IntListParameter(gStyle, "ReOrder Delay", 0, rLabels, rValues);
    
    itemStyle.setControl(gStyle);
   }
