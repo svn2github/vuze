@@ -147,7 +147,7 @@ public class TableSorter implements ParameterListener {
         //Better return in case of a problem.
         if (index == -1)
           return;
-        if(index > sortableItems.length)
+        if(index >= sortableItems.length)
           return;
         sortableItems[index] = item;
         long value = item.getIntField(field);
