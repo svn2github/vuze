@@ -41,7 +41,8 @@ public class
 TRHostImpl
 	implements TRHost, TRTrackerClientFactoryListener, TRTrackerServerListener
 {
-	protected static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
+	protected static final int URL_DEFAULT_PORT		= 80;	// port to use if none in announce URL
+	protected static final int URL_DEFAULT_PORT_SSL	= 443;	// port to use if none in announce URL
 	
 	protected static final int STATS_PERIOD_SECS	= 60;
 	
@@ -246,14 +247,14 @@ TRHostImpl
 			ssl	= false;		
 		}else{
 		
+			ssl = torrent.getAnnounceURL().getProtocol().equalsIgnoreCase("https");
+			
 			port = torrent.getAnnounceURL().getPort();
 			
 			if ( port == -1 ){
 				
-				port = DEFAULT_PORT;
+				port = ssl?URL_DEFAULT_PORT_SSL:URL_DEFAULT_PORT;
 			}
-			
-			ssl = torrent.getAnnounceURL().getProtocol().equalsIgnoreCase("https");
 		}
 		
 		TRTrackerServer server = startServer( port, ssl );
@@ -615,6 +616,8 @@ TRHostImpl
 	{
 		String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "127.0.0.1");
 						
+			// external torrents don't care whether ssl or not so just assume non-ssl for simplicity 
+			
 		int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 
 		try{
