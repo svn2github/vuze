@@ -65,7 +65,6 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.*;
@@ -99,7 +98,7 @@ import org.gudy.azureus2.ui.swt.sharing.progress.*;
  * Runnable : so that GUI initialization is done via asyncExec(this)
  * STProgressListener : To make it visible once initialization is done
  */
-public class MainWindow implements GlobalManagerListener, DownloadManagerListener, ParameterListener, IconBarEnabler, STProgressListener, Runnable {
+public class MainWindow implements GlobalManagerListener, DownloadManagerListener, ParameterListener, IconBarEnabler, AzureusCoreListener, Runnable {
   
   private static MainWindow window;
 

@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.ipfilter.*;
-import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.*;
@@ -48,7 +47,7 @@ import com.aelitis.azureus.core.*;
 public class 
 AzureusCoreImpl 
 	extends		LocaleUtil
-	implements 	AzureusCore, STProgressListener
+	implements 	AzureusCore, AzureusCoreListener
 {
 	protected static AzureusCore		singleton;
 	

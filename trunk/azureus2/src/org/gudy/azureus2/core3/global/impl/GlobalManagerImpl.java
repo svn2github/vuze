@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Comparator;
 import java.util.Collections;
 
+import com.aelitis.azureus.core.AzureusCoreListener;
+
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.DiskManager;
@@ -43,7 +45,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.startup.STProgressListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.Category;
@@ -220,7 +221,7 @@ public class GlobalManagerImpl
 
   public 
   GlobalManagerImpl(
-  		STProgressListener listener)
+  		AzureusCoreListener listener)
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
@@ -590,7 +591,7 @@ public class GlobalManagerImpl
   }
   
 
-  private void loadDownloads(STProgressListener listener) 
+  private void loadDownloads(AzureusCoreListener listener) 
   {
   	try{
       int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");

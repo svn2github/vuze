@@ -27,14 +27,14 @@ package org.gudy.azureus2.core3.global;
  */
 
 import org.gudy.azureus2.core3.global.impl.*;
-import org.gudy.azureus2.core3.startup.STProgressListener;
+import com.aelitis.azureus.core.AzureusCoreListener;
 
 public class 
 GlobalManagerFactory 
 {
 	public static GlobalManager
 	create(
-       STProgressListener 	listener)
+       AzureusCoreListener 	listener)
 	{
 		return( new GlobalManagerImpl( listener));
 	}

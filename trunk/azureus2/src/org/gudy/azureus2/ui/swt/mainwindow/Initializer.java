@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.startup.STProgressListener;
+
 import org.gudy.azureus2.core3.util.Semaphore;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -293,13 +293,13 @@ Initializer
     
   }
   
-  public void addListener(STProgressListener listener){
+  public void addListener(AzureusCoreListener listener){
     synchronized(listeners) {
       listeners.add(listener);
     }
   }
   
-  public void removeListener(STProgressListener listener) {
+  public void removeListener(AzureusCoreListener listener) {
     synchronized(listeners) {
       listeners.remove(listener);
     }
@@ -321,7 +321,7 @@ Initializer
      synchronized(listeners) {
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
-	      STProgressListener listener = (STProgressListener) iter.next();
+	    	AzureusCoreListener listener = (AzureusCoreListener) iter.next();
 	      listener.reportCurrentTask(currentTaskString);
 	    }
     }
@@ -331,7 +331,7 @@ Initializer
     synchronized(listeners) {
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
-	      STProgressListener listener = (STProgressListener) iter.next();
+	    	AzureusCoreListener listener = (AzureusCoreListener) iter.next();
 	      listener.reportPercent(overallPercent(percent));
 	    }
     }

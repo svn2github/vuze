@@ -41,8 +41,6 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 
-import org.gudy.azureus2.core3.startup.STProgressListener;
-
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
 
@@ -112,7 +110,7 @@ PluginInitializer
   
   private static List		registration_queue = new ArrayList();
    
-  private STProgressListener listener;
+  private AzureusCoreListener listener;
   
   private AzureusCore		azureus_core;
   
@@ -124,8 +122,8 @@ PluginInitializer
   
   public static synchronized PluginInitializer
   getSingleton(
-  	AzureusCore		 	azureus_core,
-	STProgressListener 	listener )
+  	AzureusCore		 		azureus_core,
+  	AzureusCoreListener 	listener )
   {
   	if ( singleton == null ){
   		
@@ -171,7 +169,7 @@ PluginInitializer
   protected 
   PluginInitializer(
   	AzureusCore 		_azureus_core,
-	STProgressListener listener) 
+  	AzureusCoreListener	listener) 
   {
   	azureus_core	= _azureus_core;
   	
