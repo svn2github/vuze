@@ -1,6 +1,6 @@
 /*
- * File    : PeerManager.java
- * Created : 28-Dec-2003
+ * File    : DiskManagerRequest.java
+ * Created : 22-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,42 +19,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.peers;
-
-import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.plugins.disk.*;
+package org.gudy.azureus2.plugins.disk;
 
 /**
  * @author parg
  *
  */
 public interface 
-PeerManager 
+DiskManagerRequest 
 {
-	/**
-	 * UNSTABLE interface, don't use!!!!
-	 * @return
-	 */
+	public int
+	getPieceNumber();
 	
-	public Download
-	getDownload()
+	public int
+	getOffset();
 	
-		throws DownloadException;
-	
-	public DiskManager
-	getDiskManager();
-	
-	public boolean
-	isSeeding();
-	
-	public PeerStats
-	createPeerStats();
+	public int
+	getLength();
 	
 	public void
-	addPeer(
-		Peer		peer );
+	resetTime();
 	
 	public void
-	removePeer(
-		Peer		peer );
+	cancel();
 }

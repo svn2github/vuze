@@ -26,7 +26,6 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
@@ -41,20 +40,12 @@ PEPeerControl
   public static final int DATA_EXPECTED_SLEEP  = 35;
   public static final int NO_SLEEP             = 10;
    	
-	public DiskManagerRequest
-	createDiskManagerRequest(
-	   int pieceNumber,
-	   int offset,
-	   int length );
+
 	   
 	public DiskManagerDataQueueItem
 	createDiskManagerDataQueueItem(
 	  DiskManagerRequest	req );
 	
-	public void
-	requestCanceled(
-		DiskManagerRequest	item );
-		
 	public void
 	enqueueReadRequest(
 		DiskManagerDataQueueItem	item );
@@ -63,25 +54,14 @@ PEPeerControl
 	freeRequest(
 		DiskManagerDataQueueItem	item );
 		
-	public void 
-	writeBlock(
-		int 		pieceNumber, 
-		int 		offset, 
-		ByteBuffer 	data,
-		PEPeer 		sender);
- 
+
 	public boolean 
 	checkBlock(
 		int pieceNumber, 
 		int offset, 
 		int length );
 
-	public boolean 
-	checkBlock(
-		int 		pieceNumber, 
-		int 		offset, 
-		ByteBuffer 	data );
-		
+
   /*
 	public boolean 
 	validateHandshaking( 

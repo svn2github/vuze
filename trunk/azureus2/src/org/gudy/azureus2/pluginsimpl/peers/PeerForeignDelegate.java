@@ -1,6 +1,6 @@
 /*
- * File    : PeerManager.java
- * Created : 28-Dec-2003
+ * File    : PeerForeignDelegate.java
+ * Created : 22-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,42 +19,20 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.peers;
-
-import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.plugins.disk.*;
+package org.gudy.azureus2.pluginsimpl.peers;
 
 /**
  * @author parg
  *
  */
-public interface 
-PeerManager 
+
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.impl.transport.PEPeerConnectionImpl;
+
+public class 
+PeerForeignDelegate
+//	extends 	PEPeerConnectionImpl
+//	implements 	PEPeer, PEPeerTransport
 {
-	/**
-	 * UNSTABLE interface, don't use!!!!
-	 * @return
-	 */
-	
-	public Download
-	getDownload()
-	
-		throws DownloadException;
-	
-	public DiskManager
-	getDiskManager();
-	
-	public boolean
-	isSeeding();
-	
-	public PeerStats
-	createPeerStats();
-	
-	public void
-	addPeer(
-		Peer		peer );
-	
-	public void
-	removePeer(
-		Peer		peer );
 }

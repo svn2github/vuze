@@ -22,8 +22,7 @@
 package org.gudy.azureus2.plugins.peers.protocol;
 
 import java.util.Map;
-import java.util.List;
-import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.peers.*;
 
 /**
  * @author parg
@@ -33,7 +32,7 @@ import org.gudy.azureus2.plugins.peers.PeerManager;
 public interface 
 PeerProtocolExtensionHandler 
 {
-	public List
+	public Peer[]
 	handleExtension(
 		PeerManager		manager,
 		Map				details );

@@ -26,6 +26,9 @@ package org.gudy.azureus2.core3.peer;
  *
  */
 
+import java.nio.ByteBuffer;
+
+import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
@@ -150,4 +153,27 @@ PEPeerManager
 
 	public void 
 	peerRemoved(PEPeer pc);
+	
+	public DiskManagerRequest
+	createDiskManagerRequest(
+	   int pieceNumber,
+	   int offset,
+	   int length );
+	
+	public void
+	requestCanceled(
+		DiskManagerRequest	item );
+		
+	public boolean 
+	checkBlock(
+		int 		pieceNumber, 
+		int 		offset, 
+		ByteBuffer 	data );
+	
+	public void 
+	writeBlock(
+		int 		pieceNumber, 
+		int 		offset, 
+		ByteBuffer 	data,
+		PEPeer 		sender);		
 }

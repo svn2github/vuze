@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.peers.protocol;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.peers.protocol.*;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.pluginsimpl.peers.*;
 
 import org.gudy.azureus2.core3.peer.impl.*;
@@ -64,12 +65,15 @@ PeerProtocolManagerImpl
 						PEPeerControl	manager,
 						Map				details )
 					{
-					
-						List	res = handler.handleExtension(
-										new PeerManagerImpl(manager),
+							// TODO: create delegates
+						
+						PeerManagerImpl	peer_manager = new PeerManagerImpl(manager);
+						
+						Peer[] peers = handler.handleExtension(
+								peer_manager,
 										details );
 						
-						return( res );
+						return( peer_manager.mapForeignPeers( peers ));
 					}
 				});
 

@@ -26,9 +26,13 @@ package org.gudy.azureus2.pluginsimpl.peers;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.disk.*;
 import org.gudy.azureus2.pluginsimpl.download.*;
+import org.gudy.azureus2.pluginsimpl.disk.*;
 
 
 import org.gudy.azureus2.core3.peer.*;
@@ -46,10 +50,16 @@ PeerManagerImpl
 		manager	= _manager;
 	}
 
-	protected PEPeerManager
+	public PEPeerManager
 	getDelegate()
 	{
 		return( manager );
+	}
+
+	public DiskManager
+	getDiskManager()
+	{
+		return( new DiskManagerImpl( this ));
 	}
 	
 	public boolean
@@ -77,13 +87,27 @@ PeerManagerImpl
 	addPeer(
 		Peer		peer )
 	{
-		//manager.peerAdded( peer );
+		manager.peerAdded( mapForeignPeer( peer ));
 	}
 	
 	public void
 	removePeer(
 		Peer		peer )
 	{
-		//manager.peerRemoved( peer );
+		manager.peerRemoved( mapForeignPeer( peer ));
+	}
+	
+	public PEPeer
+	mapForeignPeer(
+		Peer	_foreign )
+	{
+		return( null );
+	}
+	
+	public List
+	mapForeignPeers(
+		Peer[]	_foreigns )
+	{
+		return( null );
 	}
 }
