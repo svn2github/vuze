@@ -155,6 +155,12 @@ PEPeerControlImpl
     			{
     				return( PEPeerControlImpl.this.getRemaining());
     			}
+                
+          public int
+          getConnectionCount()
+          {
+            return( getNbSeeds() + getNbPeers() );
+          }
     		});
     
     _myPeerId = _tracker.getPeerId();
@@ -1885,7 +1891,7 @@ PEPeerControlImpl
         if (item.isLoaded()) {
           requestsToFree.remove(item);
           i--;
-          ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+          ByteBufferPool.freeBuffer(item.getBuffer());
           item.setBuffer(null);
         }
         if (!item.isLoading()) {
