@@ -40,6 +40,7 @@ TRTrackerServerTorrentImpl
 	protected HashWrapper			hash;
 
 	protected Map				peer_map 		= new HashMap();
+	protected Map				peer_reuse_map	= new HashMap();
 	
 	protected Random			random		= new Random( System.currentTimeMillis());
 	
@@ -73,42 +74,46 @@ TRTrackerServerTorrentImpl
 		boolean	completed 	= event != null && event.equalsIgnoreCase("completed");
 		
 		TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get( peer_id );
+
+		String	reuse_key = ip_address + ":" +port;
 		
 		if ( peer == null ){
-		
-				// check to see if this peer already has an entry against this torrent
-				// and if so delete it (assumption is that the client has quit and
-				// restarted with new peer id
-				
+			
+			// check to see if this peer already has an entry against this torrent
+			// and if so delete it (assumption is that the client has quit and
+			// restarted with new peer id
+			
 			//System.out.println( "new peer" );
-								
-			Iterator	it = peer_map.values().iterator();
-							
-			while (it.hasNext()){
-							
-				TRTrackerServerPeerImpl this_peer = (TRTrackerServerPeerImpl)it.next();
+			
+			
+			TRTrackerServerPeerImpl old_peer	= (TRTrackerServerPeerImpl)peer_reuse_map.get( reuse_key );
+			
+			if ( old_peer != null ){
+				
+				peer_reuse_map.remove( reuse_key );
+				
+				// System.out.println( "removing dead client '" + old_peer.getString());
+				
+				try{
+					peer_map.remove( new String( old_peer.getPeerId(), Constants.BYTE_ENCODING ));
 					
-				//System.out.println( "checking " + new String(this_peer.getIP()) + ":" + this_peer.getPort() + " against " + ip_address + ":" + port );
-														
-				if (	this_peer.getPort() == port &&
-						new String(this_peer.getIPAsRead()).equals( ip_address )){
-									
-					// System.out.println( "removing dead client '" + this_peer.getString());
-									
-					it.remove();
+				}catch( UnsupportedEncodingException e ){
+					
 				}
 			}
-				
-			if ( !stopped ){			
 			
+			if ( !stopped ){			
+				
 				try{
-				
+					
 					byte[]	peer_bytes = peer_id.getBytes( Constants.BYTE_ENCODING );
-				
+					
 					peer = new TRTrackerServerPeerImpl( peer_bytes, ip_address.getBytes(), port );
-							
+					
 					peer_map.put( peer_id, peer );
-										
+					
+					peer_reuse_map.put( reuse_key, peer );
+					
 				}catch( UnsupportedEncodingException e){
 					
 					e.printStackTrace();
@@ -119,13 +124,15 @@ TRTrackerServerTorrentImpl
 			if ( stopped ){
 				
 				peer_map.remove( peer_id );
+				
+				peer_reuse_map.remove( reuse_key );
 			}
 		}
 		
 		if ( peer != null ){
-		
+			
 			peer.setTimeout( System.currentTimeMillis() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
-		
+			
 			peer.setStats( uploaded, downloaded, left, numwant );
 		}
 		
@@ -146,10 +153,17 @@ TRTrackerServerTorrentImpl
 		
 			// num_want < 0 -> not supplied to give them max
 		
-		if ( num_want < 0 || num_want > max_peers ){
+		if ( num_want < 0 ){
 			
-			num_want = max_peers <= 0?peer_map.size():max_peers;
-		}		
+			num_want = peer_map.size();
+		}
+		
+			// trim back to max_peers if specified
+		
+		if ( max_peers > 0 && num_want > max_peers ){
+			
+			num_want	= max_peers;
+		}
 	
 		// System.out.println( "exportPeersToMap: num_want = " + num_want + ", max = " + max_peers );
 		

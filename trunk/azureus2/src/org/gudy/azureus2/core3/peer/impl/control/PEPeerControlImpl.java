@@ -1646,22 +1646,20 @@ PEPeerControlImpl
     }
   }
 
-  public int getNbPeers() {
-    synchronized (_peer_transports) {
+  public int 
+  getNbPeers() 
+  {
       return _peers;
-    }
   }
 
-  public int getNbSeeds() {
-    synchronized (_peer_transports) {
+  public int getNbSeeds() 
+  {
       return _seeds;
-    }
   }
   
-  public int getNbRemoteConnections() {
-    synchronized (_peer_transports) {
+  public int getNbRemoteConnections() 
+  {
       return _remotes;
-    }
   }
 
   public PEPeerManagerStats getStats() {
