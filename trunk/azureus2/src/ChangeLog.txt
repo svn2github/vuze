@@ -35,6 +35,7 @@ CHANGE: Core | NAT check url changed to aelitis server [Nolar]
 CHANGE: Core | Reduce tracker re-announce interval when incoming connections are accepted (unfirewalled) [Nolar]
 CHANGE: Core | Remove old auto-migration code [Nolar]
 CHANGE: Core | Update restart logic now preserves JVM max mem setting for Sun JVMs [Parg]
+CHANGE: UI   | change context menu selection for queue/stop/force start/recheck to be "at least one can be..." rather than "all can be..." [Parg[
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
