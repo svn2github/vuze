@@ -108,7 +108,7 @@ ListenerManager
 				async_thread = new AEThread( name )
 					{
 						public void
-						run()
+						runSupport()
 						{
 							dispatchLoop();
 						}

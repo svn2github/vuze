@@ -57,7 +57,7 @@ IPToHostNameResolver
 					new AEThread("IPToHostNameResolver")
 					{
 						public void
-						run()
+						runSupport()
 						{
 							while(true){
 								

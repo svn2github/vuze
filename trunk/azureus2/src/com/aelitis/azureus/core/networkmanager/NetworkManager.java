@@ -27,7 +27,7 @@ import java.nio.channels.SocketChannel;
 
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 
 /**
@@ -53,8 +53,8 @@ public class NetworkManager {
   private NetworkManager() {
     connect_disconnect_manager = new ConnectDisconnectManager();
     
-    Thread write_processing_thread = new Thread( "NetworkManager:Write" ) {
-      public void run() {
+    Thread write_processing_thread = new AEThread( "NetworkManager:Write" ) {
+      public void runSupport() {
         writeProcessingLoop();
       }
     };

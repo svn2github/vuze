@@ -83,7 +83,7 @@ UpdateCheckInstanceImpl
 				new AEThread( "UpdatableComponent Checker:" + i )
 				{
 					public void
-					run()
+					runSupport()
 					{					
 						try{		
 							checker.getComponent().checkForUpdate( checker );
@@ -104,7 +104,7 @@ UpdateCheckInstanceImpl
 			new AEThread( "UpdatableComponent Completion Waiter" )
 			{
 				public void
-				run()
+				runSupport()
 				{
 					for (int i=0;i<components.length;i++){
 			

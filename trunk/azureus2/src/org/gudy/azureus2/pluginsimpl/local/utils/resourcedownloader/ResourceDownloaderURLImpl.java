@@ -266,7 +266,7 @@ ResourceDownloaderURLImpl
 			new AEThread( "ResourceDownloader:asyncDownload")
 			{
 				public void
-				run()
+				runSupport()
 				{
 					try{
 						download();

@@ -134,7 +134,7 @@ AzureusCoreImpl
 	    new AEThread("Plugin Init Complete")
 	       {
 	        	public void
-	        	run()
+	        	runSupport()
 	        	{
 	        		PluginInitializer.initialisationComplete();
 	        		
@@ -154,10 +154,10 @@ AzureusCoreImpl
       //http://www.geeksville.com/~kevinh/projects/javasignals/
       
 	    Runtime.getRuntime().addShutdownHook( 
-	    		new Thread("Shutdown Hook") 
+	    		new AEThread("Shutdown Hook") 
 				{
 				      public void 
-					  run() 
+				      runSupport() 
 				      {
 				        if ( running ){
 				        	

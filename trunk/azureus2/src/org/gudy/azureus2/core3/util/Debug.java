@@ -251,7 +251,7 @@ public class Debug {
    	new AEThread("Thread Dumper")
 	   {
 		   public void 
-		   run()
+		   runSupport()
 		   {	
 			   while(true){
 				   Debug.dumpThreads(name);

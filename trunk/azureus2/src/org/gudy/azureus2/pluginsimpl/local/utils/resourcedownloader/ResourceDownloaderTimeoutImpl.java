@@ -152,7 +152,7 @@ ResourceDownloaderTimeoutImpl
 				Thread t = new AEThread( "ResourceDownloaderTimeout")
 					{
 						public void
-						run()
+						runSupport()
 						{
 							try{
 								Thread.sleep( timeout_millis );
@@ -206,7 +206,7 @@ ResourceDownloaderTimeoutImpl
 				Thread	size_thread = new AEThread( "ResourceDownloader:size getter" )
 					{
 						public void
-						run()
+						runSupport()
 						{
 							try{
 								long	res = current_downloader.getSize();
@@ -229,7 +229,7 @@ ResourceDownloaderTimeoutImpl
 				Thread t = new AEThread( "ResourceDownloaderTimeout")
 					{
 						public void
-						run()
+						runSupport()
 						{
 							try{
 								Thread.sleep( timeout_millis );

@@ -90,7 +90,7 @@ ExternalIPCheckerServiceImpl
 			new AEThread("IPChecker")
 			{
 				public void
-				run()
+				runSupport()
 				{
 					try{
 						
@@ -113,7 +113,7 @@ ExternalIPCheckerServiceImpl
 				new AEThread("IPChecker2")
 				{
 					public void
-					run()
+					runSupport()
 					{
 						try{
 							

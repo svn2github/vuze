@@ -33,8 +33,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -43,7 +42,7 @@ import org.gudy.azureus2.ui.swt.views.IView;
  * @author Olivier Chalouhi
  *
  */
-public class GUIUpdater extends Thread implements ParameterListener {
+public class GUIUpdater extends AEThread implements ParameterListener {
   
   private AzureusCore		azureus_core;
   private MainWindow 		mainWindow;
@@ -68,7 +67,7 @@ public class GUIUpdater extends Thread implements ParameterListener {
     COConfigurationManager.addParameterListener("GUI Refresh", this);
   }
 
-  public void run() {
+  public void runSupport() {
     while (!finished) {
       if(refreshed)
         update();

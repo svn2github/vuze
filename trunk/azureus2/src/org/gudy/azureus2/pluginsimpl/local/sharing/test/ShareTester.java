@@ -52,10 +52,10 @@ ShareTester
 		
 			if ( singleton == null ){
 				
-				new Thread( "plugin initialiser ")
+				new AEThread( "plugin initialiser ")
 				{
 					public void
-					run()
+					runSupport()
 					{
 						PluginManager.registerPlugin( ShareTester.class );
 		

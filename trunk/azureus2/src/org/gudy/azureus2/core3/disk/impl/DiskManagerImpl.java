@@ -235,7 +235,7 @@ DiskManagerImpl
 			started = true;
 	       
 		    Thread init = new AEThread("DiskManager:start") {
-					public void run() 
+					public void runSupport() 
 					{
 						startSupport();
 						

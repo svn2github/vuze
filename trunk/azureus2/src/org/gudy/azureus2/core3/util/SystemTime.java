@@ -50,8 +50,8 @@ public class SystemTime {
     
     	// don't use AEThread as this pulls in lots of crap in the webui
     
-    updater = new Thread("SystemTime") {
-      public void run() {
+    updater = new AEThread("SystemTime") {
+      public void runSupport() {
         while( true ) {
           currentTime = System.currentTimeMillis();
           

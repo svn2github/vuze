@@ -151,7 +151,7 @@ public class AboutWindow {
     window.open();
     
     Thread updater =  new AEThread("Splash Screen Updater") {
-      public void run() {        
+      public void runSupport() {        
         if(image == null || image.isDisposed())
           return;
         

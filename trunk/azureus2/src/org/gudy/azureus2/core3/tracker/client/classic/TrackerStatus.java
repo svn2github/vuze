@@ -193,7 +193,7 @@ public class TrackerStatus {
     * TODO: Allow handling of multiple TRTrackerScraperResponseImpl objects
     *       on one URL
     */
-  private class ThreadedScrapeRunner extends Thread {
+  private class ThreadedScrapeRunner extends AEThread {
     boolean force;
     ArrayList responses;
 
@@ -210,7 +210,7 @@ public class TrackerStatus {
       }
     }
 
-    public void run() {
+    public void runSupport() {
       if (scrapeURL == null)  {
         return;
       }

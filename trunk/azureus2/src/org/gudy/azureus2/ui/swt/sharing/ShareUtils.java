@@ -48,7 +48,7 @@ ShareUtils
 		new AEThread("shareFile")
 		{
 			public void
-			run()
+			runSupport()
 			{
 				Display display = shell.getDisplay();
 				final String[] path = { null };
@@ -111,7 +111,7 @@ ShareUtils
 		new AEThread("shareDirSupport")
 		{
 			public void
-			run()
+			runSupport()
 			{
 				Display display = shell.getDisplay();
 				final String[] path = { null };
@@ -165,7 +165,7 @@ ShareUtils
 		new AEThread("shareFile")
 		{
 			public void
-			run()
+			runSupport()
 			{
 				try{
 					azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().addFile(new File(file_name));
@@ -186,7 +186,7 @@ ShareUtils
 		new AEThread("shareDir")
 		{
 			public void
-			run()
+			runSupport()
 			{
 				try{
 					azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().addDir(new File(file_name));
@@ -208,7 +208,7 @@ ShareUtils
 		new AEThread("shareDirCntents")
 		{
 			public void
-			run()
+			runSupport()
 			{
 				try{
 					azureus_core.getPluginManager().getDefaultPluginInterface().getShareManager().addDirContents(new File(file_name), recursive);

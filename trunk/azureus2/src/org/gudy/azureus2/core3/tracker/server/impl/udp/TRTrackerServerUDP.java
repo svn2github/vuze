@@ -85,7 +85,7 @@ TRTrackerServerUDP
 				new AEThread("TRTrackerServerUDP:recv.loop")
 				{
 					public void
-					run()
+					runSupport()
 					{
 						recvLoop( f_socket, f_address );
 					}

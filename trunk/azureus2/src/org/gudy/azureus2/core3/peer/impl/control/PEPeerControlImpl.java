@@ -226,7 +226,7 @@ PEPeerControlImpl
     
     new AEThread( "Peer Manager"){
       public void
-      run()
+      runSupport()
       {
         mainLoop();
       }
@@ -241,7 +241,7 @@ PEPeerControlImpl
       setPriority(Thread.NORM_PRIORITY - 1);
     }
 
-    public void run() {
+    public void runSupport() {
       while (bContinue) {
         
         long start_time = SystemTime.getCurrentTime();
@@ -334,7 +334,7 @@ PEPeerControlImpl
     
   	//Asynchronous cleaner
     Thread t = new AEThread("Cleaner - Tracker Ender") {
-      public void run() {
+      public void runSupport() {
           //1. Send disconnect to Tracker
         _tracker.stop();
       }

@@ -1065,7 +1065,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
 		Thread close = new AEThread( "JWS Force Terminate")
 			{
 				public void
-				run()
+				runSupport()
 				{
 					try{
 						Thread.sleep(2500);

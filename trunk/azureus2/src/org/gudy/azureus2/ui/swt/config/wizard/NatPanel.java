@@ -35,6 +35,8 @@ import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
+import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -52,7 +54,7 @@ public class NatPanel extends AbstractWizardPanel {
   Button bCancel;
 
  
-  public class Checker extends Thread {
+  public class Checker extends AEThread {
 
     //private int lowPort;
     //private int highPort;
@@ -69,7 +71,7 @@ public class NatPanel extends AbstractWizardPanel {
       this.bContinue = true;
     }
 
-    public void run() {
+    public void runSupport() {
       //if (lowPort <= highPort && (highPort-lowPort < 10)) {
         //for (int port = lowPort; port <= highPort && bContinue; port++) {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");

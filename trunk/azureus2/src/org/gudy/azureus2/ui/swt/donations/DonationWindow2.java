@@ -184,7 +184,7 @@ public class DonationWindow2 {
      super("Donation animator"); 
     }
     
-    public void run() {
+    public void runSupport() {
     	while(!ended) {
         if(display == null || display.isDisposed())
           return;

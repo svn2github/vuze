@@ -701,7 +701,7 @@ DMWriterAndCheckerImpl
 
 	public class 
 	DiskWriteThread 
-		extends Thread 
+		extends AEThread 
 	{
 		private boolean bWriteContinue = true;
 
@@ -712,7 +712,7 @@ DMWriterAndCheckerImpl
 			setDaemon(true);
 		}
 
-		public void run() 
+		public void runSupport() 
 		{
 			while (bWriteContinue){
 				

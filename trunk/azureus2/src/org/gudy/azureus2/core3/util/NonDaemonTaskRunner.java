@@ -101,7 +101,7 @@ NonDaemonTaskRunner
 				current_thread = new AEThread("NonDaemonTaskRunner" )
 					{
 						public void
-						run()
+						runSupport()
 						{
 							wait_sem.release();
 							

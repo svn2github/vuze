@@ -252,7 +252,7 @@ public class Alerts {
     new AEThread("Init Complete")
     {
     	public void
-    	run()
+    	runSupport()
     	{   		
     		try{
     			alert_queue_mon.enter();

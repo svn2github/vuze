@@ -31,7 +31,7 @@ import org.gudy.azureus2.core3.torrent.*;
 /**
  * @author Tobias Minich
  */
-public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
+public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader {
 
   private String 	url_str;
   private String	referrer;
@@ -101,7 +101,7 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
   	}
   }
 
-  public void run() {
+  public void runSupport() {
     try {
       url = new URL(url_str);
       

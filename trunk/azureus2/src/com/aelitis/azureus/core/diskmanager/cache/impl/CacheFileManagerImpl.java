@@ -125,7 +125,7 @@ CacheFileManagerImpl
 			new AEThread( "CacheStatsAndCleaner")
 			{
 				public void
-				run()
+				runSupport()
 				{
 					cacheStatsAndCleaner();
 				}

@@ -93,7 +93,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
    */
   public void finish() {
     Thread t = new AEThread("Torrent Maker") {
-      public void run() {
+      public void runSupport() {
         makeTorrent();
       }
     };

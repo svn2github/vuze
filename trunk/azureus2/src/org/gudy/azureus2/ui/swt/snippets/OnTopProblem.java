@@ -77,7 +77,7 @@ public class OnTopProblem {
     });
     
     Thread t = new AEThread("OnTopProblem") {
-      public void run() {
+      public void runSupport() {
        while(updateDisplay()) {
         try { Thread.sleep(100); } catch(Exception ignore) {}   
        }

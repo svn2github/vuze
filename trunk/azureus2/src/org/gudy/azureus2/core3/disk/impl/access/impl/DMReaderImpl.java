@@ -210,7 +210,7 @@ DMReaderImpl
 		}
 	}
 
-	public class DiskReadThread extends Thread {
+	public class DiskReadThread extends AEThread {
 		private boolean bReadContinue = true;
 
 		public DiskReadThread() {
@@ -218,7 +218,7 @@ DMReaderImpl
 			setDaemon(true);
 		}
 
-		public void run() {
+		public void runSupport() {
 			
 			while (bReadContinue){	
 		

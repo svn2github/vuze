@@ -300,7 +300,7 @@ ResourceDownloaderTorrentImpl
 				new AEThread( "RDTorrent percentage checker")
 				{
 					public void
-					run()
+					runSupport()
 					{
 						int	last_percentage = 0;
 						

@@ -157,7 +157,7 @@ Main
 				new AEThread( "plugin initialiser ")
 				{
 					public void
-					run()
+					runSupport()
 					{
 						PluginManager.registerPlugin( Main.class );
 		

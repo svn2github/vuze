@@ -124,7 +124,7 @@ public class TorrentOpener {
             mainWindow.setActive();
           
           new AEThread("TorrentOpener::openTorrent") {
-            public void run() {
+            public void runSupport() {
               try{
                 String savePath = getSavePath(fileName);
                 if (savePath == null){
@@ -262,7 +262,7 @@ public class TorrentOpener {
        mainWindow.setActive();
 
       new AEThread("TorrentOpener"){
-          public void run() {
+          public void runSupport() {
             boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
 
             String separator = System.getProperty("file.separator"); //$NON-NLS-1$
@@ -324,7 +324,7 @@ public class TorrentOpener {
     if( path == null ) return;
     
     new AEThread("Torrent Opener") {
-      public void run() {
+      public void runSupport() {
         for (int i = 0; i < files.length; i++)
         	try{
 	          globalManager.addDownloadManager(files[i].getAbsolutePath(), path, 

@@ -175,7 +175,7 @@ TRTrackerServerImpl
 			new AEThread("TrackerServer:timer.loop")
 			{
 				public void
-				run( )
+				runSupport( )
 				{
 					timerLoop();
 				}

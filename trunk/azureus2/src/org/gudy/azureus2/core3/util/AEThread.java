@@ -27,7 +27,7 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
-public class 
+public abstract class 
 AEThread 
 	extends Thread
 {
@@ -37,4 +37,19 @@ AEThread
 	{
 		super(name);
 	}
+	
+	public void
+	run()
+	{
+		try{
+			runSupport();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public abstract void
+	runSupport();
 }

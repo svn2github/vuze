@@ -194,7 +194,7 @@ ThreadPool
 			worker_thread = new AEThread( worker_name )
 				{
 					public void 
-					run()
+					runSupport()
 					{
 						boolean	time_to_die = false;
 			

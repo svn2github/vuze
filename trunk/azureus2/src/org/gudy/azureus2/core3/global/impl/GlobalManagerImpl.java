@@ -142,7 +142,7 @@ public class GlobalManagerImpl
   private boolean					destroyed;
   private boolean needsSaving = false;
   
-  public class Checker extends Thread {
+  public class Checker extends AEThread {
     boolean finished = false;
     int loopFactor;
     private static final int waitTime = 1000;
@@ -163,7 +163,7 @@ public class GlobalManagerImpl
         saveResumeLoopCount = saveResumeInterval * 60000 / waitTime;
     }
 
-    public void run() {
+    public void runSupport() {
       while (!finished) {
 
       	try{

@@ -1528,7 +1528,7 @@ DownloadManagerImpl
     Thread recheck = 
     	new AEThread("forceRecheck") 
 		{
-			public void run() {
+			public void runSupport() {
 				int prevState = DownloadManagerImpl.this.getState();
 				
 				setState(STATE_CHECKING);

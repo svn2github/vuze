@@ -74,7 +74,7 @@ HostNameToIPResolver
 					new AEThread("HostNameToIPResolver")
 					{
 						public void
-						run()
+						runSupport()
 						{
 							while(true){
 								

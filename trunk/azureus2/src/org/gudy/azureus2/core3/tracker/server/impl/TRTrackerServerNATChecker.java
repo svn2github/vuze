@@ -121,7 +121,7 @@ TRTrackerServerNATChecker
 					new AEThread( "Tracker NAT Checker Dispatcher" )
 					{
 						public void
-						run()
+						runSupport()
 						{
 							while(true){
 								

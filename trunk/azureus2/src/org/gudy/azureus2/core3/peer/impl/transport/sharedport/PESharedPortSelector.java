@@ -58,7 +58,7 @@ PESharedPortSelector
 		Thread t = new AEThread("PESharedPortSelector")
 			{
 				public void
-				run()
+				runSupport()
 				{
 					selectLoop();
 				}

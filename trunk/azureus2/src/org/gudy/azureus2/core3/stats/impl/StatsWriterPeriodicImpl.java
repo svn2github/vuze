@@ -223,7 +223,7 @@ StatsWriterPeriodicImpl
 				current_thread = 
 					new AEThread("StatsWriter"){
 						public void
-						run()
+						runSupport()
 						{
 							update();
 						}

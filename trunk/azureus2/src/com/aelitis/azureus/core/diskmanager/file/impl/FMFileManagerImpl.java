@@ -101,7 +101,7 @@ FMFileManagerImpl
 			Thread	t = new AEThread("FMFileManager::closeQueueDispatcher")
 				{
 					public void
-					run()
+					runSupport()
 					{
 						closeQueueDispatch();
 					}

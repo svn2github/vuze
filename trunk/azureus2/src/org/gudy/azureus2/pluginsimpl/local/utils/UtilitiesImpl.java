@@ -134,7 +134,7 @@ UtilitiesImpl
 			new AEThread( pi.getPluginName() + "::" + name )
 			{
 				public void
-				run()
+				runSupport()
 				{
 					target.run();
 				}

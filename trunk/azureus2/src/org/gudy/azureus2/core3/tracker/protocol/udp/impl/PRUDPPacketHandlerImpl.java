@@ -60,7 +60,7 @@ PRUDPPacketHandlerImpl
 		Thread t = new AEThread( "PRUDPPacketReciever:".concat(String.valueOf(port)))
 			{
 				public void
-				run()
+				runSupport()
 				{
 					receiveLoop(init_sem);
 				}

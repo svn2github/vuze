@@ -52,7 +52,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
     trackers  = new HashMap();
     
     Thread t = new AEThread("Tracker Scrape") {
-       public void run() {
+       public void runSupport() {
         runScrapes();
       }
     };

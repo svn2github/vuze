@@ -61,7 +61,7 @@ StartServer
 	    	new AEThread("Start Server")
 			{
 	    		public void 
-				run()
+	    		runSupport()
 				{
 	    			pollForConnectionsSupport();
 	    		}

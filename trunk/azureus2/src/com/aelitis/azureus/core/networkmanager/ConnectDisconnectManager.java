@@ -58,7 +58,7 @@ public class ConnectDisconnectManager {
   
   protected ConnectDisconnectManager() {
     Thread loop = new AEThread( "ConnectDisconnectManager" ) {
-      public void run() {
+      public void runSupport() {
         mainLoop();
       }
     };

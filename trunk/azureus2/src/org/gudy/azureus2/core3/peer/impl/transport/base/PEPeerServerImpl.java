@@ -149,7 +149,7 @@ PEPeerServerImpl
     }
   }
 
-  public void run() {
+  public void runSupport() {
     try {
       LGLogger.log(
         componentID,

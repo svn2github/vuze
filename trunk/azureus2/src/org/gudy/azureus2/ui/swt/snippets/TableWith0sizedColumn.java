@@ -46,7 +46,7 @@ public class TableWith0sizedColumn {
     }
     
     Thread tUpdateValues = new AEThread("TableWith0sizedColumn") {
-      public void run() {
+      public void runSupport() {
         final int[] t = new int[1];
         t[0] = 0;
         while(!display.isDisposed()) {

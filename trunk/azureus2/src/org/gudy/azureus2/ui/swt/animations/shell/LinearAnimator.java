@@ -63,7 +63,7 @@ public class LinearAnimator extends Animator{
     this.interrupted = false;
   }
   
-  public void run() {
+  public void runSupport() {
     shell.animationStarted(this);
     int step = 0;
     while(step <= nbSteps && !interrupted) {

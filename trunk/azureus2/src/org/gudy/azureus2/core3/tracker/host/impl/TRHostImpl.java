@@ -109,7 +109,7 @@ TRHostImpl
 			Thread t = new AEThread("TRHost::stats.loop")
 						{
 							public void
-							run()
+							runSupport()
 							{
 								while(true){
 									
@@ -643,7 +643,7 @@ TRHostImpl
 		Thread thread = new AEThread("StopHosting")
 			{
 				public void
-				run()
+				runSupport()
 				{
 					try{
 						Thread.sleep(2500);

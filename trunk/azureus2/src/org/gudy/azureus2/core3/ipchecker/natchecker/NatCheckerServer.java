@@ -26,12 +26,13 @@ import java.net.Socket;
 import java.io.IOException;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
  * 
  */
-public class NatCheckerServer extends Thread{
+public class NatCheckerServer extends AEThread{
     
     private String check;
     private ServerSocket server;
@@ -61,7 +62,7 @@ public class NatCheckerServer extends Thread{
       }      
     }
     
-    public void run() {
+    public void runSupport() {
       while(bContinue) {
         try {
           if (isAlreadyListening) {

@@ -31,9 +31,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * Watches a folder for new torrents and imports them.
@@ -68,8 +66,8 @@ public class TorrentFolderWatcher {
     }
   };
   
-  private final Thread watch_thread = new Thread( "FolderWatcher" ) {
-    public void run() {
+  private final Thread watch_thread = new AEThread( "FolderWatcher" ) {
+    public void runSupport() {
       while( running ) {
         try {
           Thread.sleep( COConfigurationManager.getIntParameter("Watch Torrent Folder Interval") * 60000 );

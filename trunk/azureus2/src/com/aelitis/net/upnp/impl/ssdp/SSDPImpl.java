@@ -25,8 +25,7 @@ package com.aelitis.net.upnp.impl.ssdp;
 import java.net.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.*;
@@ -139,10 +138,10 @@ SSDPImpl
 						mc_sock.setLoopbackMode(true);
 											
 						Runtime.getRuntime().addShutdownHook(
-								new Thread("SSDP:VMShutdown")
+								new AEThread("SSDP:VMShutdown")
 								{
 									public void
-									run()
+									runSupport()
 									{
 										try{
 											mc_sock.leaveGroup( group_address, network_interface );
@@ -155,10 +154,10 @@ SSDPImpl
 								});
 						
 						Thread	group_thread = 
-							new Thread("SSDP: MC listener")
+							new AEThread("SSDP: MC listener")
 							{
 								public void
-								run()
+								runSupport()
 								{
 									handleSocket( ni_address, mc_sock);
 								}
