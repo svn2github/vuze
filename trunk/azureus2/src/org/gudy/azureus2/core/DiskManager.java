@@ -968,7 +968,6 @@ public class DiskManager {
       fos = new FileOutputStream(torrent);
       //write the data out
       fos.write(torrentData);
-      fos.close();
     }
     catch (Exception e) {
       e.printStackTrace();
