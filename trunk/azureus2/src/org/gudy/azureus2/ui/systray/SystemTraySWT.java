@@ -135,8 +135,13 @@ public class SystemTraySWT {
     			menuShown(
     				MenuEvent	_menu )
           		{
-          			boolean	can_resume = 	currentPauseData[0] != null &&
-          			SystemTraySWT.this.mainWindow.getGlobalManager().canResumeDownloads(currentPauseData[0]);
+           			boolean	can_pause = 	SystemTraySWT.this.mainWindow.getGlobalManager().canPauseDownloads();
+           			
+           		  	itemPause.setEnabled(can_pause);
+           		  
+          			boolean	can_resume = 	
+          				currentPauseData[0] != null &&
+						SystemTraySWT.this.mainWindow.getGlobalManager().canResumeDownloads(currentPauseData[0]);
           			
           			itemResume.setEnabled(can_resume);
           		}

@@ -109,6 +109,14 @@ GlobalManager
 	pauseDownloads();
     
     /**
+     * indicates whether or not there are 1 or more downloads that can be paused
+     * @return
+     */
+    
+ 	public boolean
+	canPauseDownloads();
+  	
+    /**
      * resume (starts) all downloads paused by an earlier pauseDownloads call
      * @param pause_state
      */

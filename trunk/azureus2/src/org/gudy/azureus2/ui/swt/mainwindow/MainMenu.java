@@ -299,6 +299,10 @@ public class MainMenu {
     			menuShown(
     				MenuEvent	menu )
           		{
+         			boolean	can_pause = 	mainWindow.getGlobalManager().canPauseDownloads();
+	
+         			itemPause.setEnabled(can_pause);
+         			
           			boolean	can_resume = 	currentPauseData[0] != null &&
           									mainWindow.getGlobalManager().canResumeDownloads(currentPauseData[0]);
           			

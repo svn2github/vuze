@@ -681,6 +681,33 @@ public class GlobalManagerImpl
   		return( result );
   	}
   
+  	public boolean
+	canPauseDownloads()
+  	{
+  		List	result = new ArrayList();
+  		
+  		for (Iterator iter = managers.iterator(); iter.hasNext();){
+  			
+  			DownloadManager manager = (DownloadManager) iter.next();
+  			
+  			if ( manager.getTorrent() == null ){
+  				
+  				continue;
+  			}
+  			
+  			int	state = manager.getState();
+  			
+  			if ( 	state != DownloadManager.STATE_STOPPED &&
+  					state != DownloadManager.STATE_ERROR &&
+					state != DownloadManager.STATE_STOPPING ){
+  				
+  				return( true );
+  			}
+  		}
+  		
+  		return( false );
+  	}
+  	
   	public void
 	resumeDownloads(
 		Object	pause_state )
