@@ -56,6 +56,7 @@ TRTrackerScraper
 	public void
 	setScrape(
 		TOTorrent				torrent,
+		URL						url,
 		DownloadScrapeResult	result );
 	
 	public void

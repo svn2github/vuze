@@ -119,17 +119,18 @@ TRTrackerScraperImpl
 	public void
 	setScrape(
 		TOTorrent				torrent,
+		URL						url,
 		DownloadScrapeResult	result )
 	{
 		if ( torrent != null ){
 		
 			if ( TorrentUtils.isDecentralised( torrent )){
 				
-				dht_scraper.setScrape( torrent, result );
+				dht_scraper.setScrape( torrent, url, result );
 				
 			}else{
 				
-				bt_scraper.setScrape( torrent, result );
+				bt_scraper.setScrape( torrent, url, result );
 			}
 		}
 	}

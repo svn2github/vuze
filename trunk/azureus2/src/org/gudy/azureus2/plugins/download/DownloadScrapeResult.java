@@ -86,6 +86,9 @@ DownloadScrapeResult
    */
   public void setNextScrapeStartTime(long nextScrapeStartTime);
   
+  public long
+  getNextScrapeStartTime();
+  
   /**
    * returns a string representation of the scrape status
    * @return

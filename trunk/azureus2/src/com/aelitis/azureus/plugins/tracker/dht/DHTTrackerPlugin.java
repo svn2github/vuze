@@ -357,7 +357,13 @@ DHTTrackerPlugin
 											long nextScrapeStartTime)
 										{
 										}
-											  
+
+										public long
+										getNextScrapeStartTime()
+										{
+											return( -1 );
+										}
+										
 										public String
 										getStatus()
 										{
@@ -916,7 +922,12 @@ DHTTrackerPlugin
 										{
 											
 										}
-											  
+										public long
+										getNextScrapeStartTime()
+										{
+											return( SystemTime.getCurrentTime() + retry );
+										}
+										
 										public String
 										getStatus()
 										{

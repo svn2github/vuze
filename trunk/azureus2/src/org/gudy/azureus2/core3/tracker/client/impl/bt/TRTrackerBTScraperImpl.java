@@ -83,12 +83,13 @@ TRTrackerBTScraperImpl
 	public void
 	setScrape(
 		TOTorrent				torrent,
+		URL						url,
 		DownloadScrapeResult	result )
 	{
 		if ( torrent != null ){
 			
 			TRTrackerScraperResponseImpl resp =
-				tracker_checker.getHashData( torrent, torrent.getAnnounceURL());
+				tracker_checker.getHashData( torrent, url );
 			
 				// only override details if underlying scrape is failing
 			
@@ -96,6 +97,11 @@ TRTrackerBTScraperImpl
 				
 				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
 			
+				resp.setScrapeStartTime( result.getScrapeStartTime());
+				
+					// leave nextScrapeStartTime alone as we still want the existing
+					// scraping mechanism to kick in and check the torrent's tracker
+				
 				resp.setStatus( 
 						result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
 								TRTrackerScraperResponse.ST_ONLINE:

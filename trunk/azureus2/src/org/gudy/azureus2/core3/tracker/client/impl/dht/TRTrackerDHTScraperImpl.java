@@ -80,6 +80,7 @@ TRTrackerDHTScraperImpl
 	public void
 	setScrape(
 		TOTorrent				torrent,
+		URL						url,
 		DownloadScrapeResult	result )
 	{
 		if ( torrent != null ){

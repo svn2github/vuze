@@ -1049,7 +1049,20 @@ DownloadManagerImpl
 			
 			TRTrackerScraper	scraper = globalManager.getTrackerScraper();
 		
-			scraper.setScrape( torrent, result );
+			TRTrackerScraperResponse current_resp = getTrackerScrapeResponse();
+			
+			URL	target_url;
+			
+			if ( current_resp != null ){
+				
+				target_url = current_resp.getURL();
+				
+			}else{
+				
+				target_url = torrent.getAnnounceURL();
+			}
+			
+			scraper.setScrape( torrent, target_url, result );
 		}
 	}
 	

@@ -136,6 +136,14 @@ RPDownloadScrapeResult
 		notSupported();		
 	}
 	
+	public long
+	getNextScrapeStartTime()
+	{
+		notSupported();
+		
+		return(0);
+	}
+	
 	public String
 	getStatus()
 	{

@@ -87,24 +87,36 @@ DownloadScrapeResultImpl
 		return( response==null?-1:response.getPeers());
 	}
 
-  public long getScrapeStartTime() {
+	public long 
+	getScrapeStartTime() 
+	{
 		return( response==null?-1:response.getScrapeStartTime());
-  }
+	}
 
-  public void setNextScrapeStartTime(long nextScrapeStartTime) {
-    if (response != null)
-      response.setNextScrapeStartTime(nextScrapeStartTime);
-  }
+	public void 
+	setNextScrapeStartTime(
+		long nextScrapeStartTime) 
+	{
+		if (response != null){
+			response.setNextScrapeStartTime(nextScrapeStartTime);
+		}
+	}
   
-  public String
-  getStatus()
-  {
-  	if ( response != null ){
-  		return( response.getStatusString());
-  	}
+	public long
+	getNextScrapeStartTime()
+	{
+		return( response == null?-1:response.getNextScrapeStartTime());
+	}
+	
+	public String
+	getStatus()
+	{
+		if ( response != null ){
+			return( response.getStatusString());
+		}
   	
-  	return("");
-  }
+		return("");
+	}
   
 	public URL
 	getURL()
