@@ -49,14 +49,14 @@ public class PeerTableItem {
     this.valid = false;
     this.oldTexts = new String[18];
     for (int i = 0; i < oldTexts.length; i++)
-      oldTexts[i] = "";
+      oldTexts[i] = "";	
 
-	item = new TableItem(table, SWT.NULL);
-
-    display.asyncExec(new Runnable() {
+    display.syncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
           return;
+                
+		item = new TableItem(table, SWT.NULL);                
                 
         table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
           public void handleEvent(Event e) {
@@ -70,9 +70,7 @@ public class PeerTableItem {
               image.dispose();
           }
         });
-
       }
-
     });
 //:: TODO why put only the last item list? could be uninitialized, too
     tableItems.put(item, this);
