@@ -259,9 +259,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     table.addKeyListener(createKeyListener());
     
     table.addMouseListener(new MouseAdapter() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.events.MouseAdapter#mouseDoubleClick(org.eclipse.swt.events.MouseEvent)
-       */
       public void mouseDoubleClick(MouseEvent mEvent) {
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
@@ -617,13 +614,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     itemOpen.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        if (tis.length == 0) {
-          return;
-        }
-        TableItem ti = tis[0];
-        DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-        ManagerUtils.run(dm);
+        runSelectedTorrents();
       }
     });
 
@@ -642,13 +633,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
 	  itemHost.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          ManagerUtils.host(dm,panel);
-        }
-        MainWindow.getWindow().showMyTracker();
+        hostSelectedTorrents();
       }
     });
 	 
@@ -696,33 +681,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     itemMoveDown.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = tis.length - 1; i >= 0; i--) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm != null && dm.isMoveableDown()) {
-            dm.moveDown();
-
-          }
-        }
-        if (sorter.getLastField().equals("#"))
-          sorter.reOrder(true);
+        moveSelectedTorrentsDown();
       }
     });
 
     itemMoveUp.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm != null && dm.isMoveableUp()) {
-            dm.moveUp();
-          }
-        }
-        if (sorter.getLastField().equals("#"))
-          sorter.reOrder(true);
-      }
+        moveSelectedTorrentsUp();
+      }     
     });
 
     itemHigh.addListener(SWT.Selection, new Listener() {
@@ -858,7 +824,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         lastIndex = dm.getIndex();
       }
     }
-    sorter.orderField("#", true);
+    if (sorter.getLastField().equals("#"))
+      sorter.reOrder(true);
   }
 
   /* (non-Javadoc)
@@ -874,7 +841,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   public void refresh() {
     if (getComposite() == null || getComposite().isDisposed())
       return;
-
+    
+    computePossibleActions();
+    MainWindow.getWindow().refreshIconBar();
+    
     sorter.reOrder(false);
     synchronized(objectToSortableItem) {
     Iterator iter = objectToSortableItem.keySet().iterator();
@@ -1082,6 +1052,53 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       ManagerUtils.start(dm);      
     }   
   }
+  
+  private void hostSelectedTorrents() {
+    TableItem[] tis = table.getSelection();
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+      ManagerUtils.host(dm,panel);
+    }
+    MainWindow.getWindow().showMyTracker();
+  }
+  
+  private void runSelectedTorrents() {
+    TableItem[] tis = table.getSelection();
+    if (tis.length == 0) {
+      return;
+    }
+    TableItem ti = tis[0];
+    DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+    ManagerUtils.run(dm);
+  }
+  
+  private void moveSelectedTorrentsDown() {
+    TableItem[] tis = table.getSelection();
+    for (int i = tis.length - 1; i >= 0; i--) {
+      TableItem ti = tis[i];
+      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+      if (dm != null && dm.isMoveableDown()) {
+        dm.moveDown();
+
+      }
+    }
+    if (sorter.getLastField().equals("#"))
+      sorter.reOrder(true);
+  }
+  
+  private void moveSelectedTorrentsUp() {
+    TableItem[] tis = table.getSelection();
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+      if (dm != null && dm.isMoveableUp()) {
+        dm.moveUp();
+      }
+    }
+    if (sorter.getLastField().equals("#"))
+      sorter.reOrder(true);
+  }
     
   /**
    * @param parameterName the name of the parameter that has changed
@@ -1090,5 +1107,82 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   public void parameterChanged(String parameterName) {
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
   }
+  
+  private boolean up,down,run,host,start,stop,remove;
+  
+  private void computePossibleActions() {
+    TableItem[] tis = table.getSelection();
+    up = down = run = host = start = stop = remove = false;
+    if(tis.length > 0) {
+      remove = up = down = true;
+      host = true;
+      run = true;
+      for (int i = 0; i < tis.length; i++) {
+        TableItem ti = tis[i];
+        DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+        if(ManagerUtils.isStartable(dm))
+          start =  true;
+        if(ManagerUtils.isStopable(dm))
+          stop = true;
+        if(! ManagerUtils.isRemoveable(dm))
+          remove = false;
+        if(!dm.isMoveableUp())
+          up = false;
+        if(!dm.isMoveableDown())
+          down = false;        
+      }
+    }    
+  }
+  
+  public boolean isEnabled(String itemKey) {
+    if(itemKey.equals("up"))
+      return up;
+    if(itemKey.equals("down"))
+      return down;
+    if(itemKey.equals("run"))
+      return run;
+    if(itemKey.equals("host"))
+      return host;
+    if(itemKey.equals("start"))
+      return start;
+    if(itemKey.equals("stop"))
+      return stop;
+    if(itemKey.equals("remove"))
+      return remove;
+    return false;
+  }
+  
+  public void itemActivated(String itemKey) {
+    if(itemKey.equals("up")) {
+      moveSelectedTorrentsUp();
+      return;
+    }
+    if(itemKey.equals("down")){
+      moveSelectedTorrentsDown();
+      return;
+    }
+    if(itemKey.equals("run")){
+      runSelectedTorrents();
+      return;
+    }
+    if(itemKey.equals("host")){
+      hostSelectedTorrents();
+      return;
+    }
+    if(itemKey.equals("start")){
+      resumeSelectedTorrents();
+      return;
+    }
+    if(itemKey.equals("stop")){
+      stopSelectedTorrents();
+      return;
+    }
+    if(itemKey.equals("remove")){
+      removeSelectedTorrentsIfStoppedOrError();
+      return;
+    }
+    return;
+  }
+  
   
 }

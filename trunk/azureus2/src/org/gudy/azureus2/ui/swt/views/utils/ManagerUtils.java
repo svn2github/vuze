@@ -91,13 +91,13 @@ public class ManagerUtils {
   }
   
   public static void start(DownloadManager dm) {
-    if (dm != null) {
+    if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
       dm.setState(DownloadManager.STATE_WAITING);
     }
   }
   
   public static void stop(DownloadManager dm,Composite panel) {
-    if (dm != null) {
+    if (dm != null && dm.getState() != DownloadManager.STATE_STOPPED) {
       if (dm.getState() == DownloadManager.STATE_SEEDING
           && dm.getStats().getShareRatio() >= 0
           && dm.getStats().getShareRatio() < 1000

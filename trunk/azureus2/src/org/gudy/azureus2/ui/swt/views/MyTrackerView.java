@@ -217,50 +217,20 @@ MyTrackerView
 
 	   itemStart.addListener(SWT.Selection, new Listener() {
 		 public void handleEvent(Event e) {
-		   TableItem[] tis = table.getSelection();
-		   final boolean initStoppedDownloads = true;
-		   for (int i = 0; i < tis.length; i++) {
-			 TableItem ti = tis[i];
-			 
-			TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
-			 if (torrent != null){
-			 	
-				torrent.start();
-			 }
-		   }
-		 }
+		   startSelectedTorrents();
+		 }    
 	   });
 	   
 	   itemStop.addListener(SWT.Selection, new Listener() {
 		 public void handleEvent(Event e) {
-		   TableItem[] tis = table.getSelection();
-		   final boolean initStoppedDownloads = true;
-		   for (int i = 0; i < tis.length; i++) {
-			 TableItem ti = tis[i];
-			 
-			TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
-			 if (torrent != null){
-			 	
-				torrent.stop();
-			 }
-		   }
-		 }
+		   stopSelectedTorrents();
+		 }    
 	   });
 	   
 	   itemRemove.addListener(SWT.Selection, new Listener() {
 		 public void handleEvent(Event e) {
-		   TableItem[] tis = table.getSelection();
-		   final boolean initStoppedDownloads = true;
-		   for (int i = 0; i < tis.length; i++) {
-			 TableItem ti = tis[i];
-			 
-			TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
-			 if (torrent != null){
-			 	
-				torrent.remove();
-			 }
-		   }
-		 }
+		   removeSelectedTorrents();
+		 }   
 	   });
 	   
 		table.setMenu( menu );
@@ -348,6 +318,9 @@ MyTrackerView
 			return;
 	   	}
 		
+		computePossibleActions();
+		MainWindow.getWindow().refreshIconBar();
+		
 		Iterator iter = objectToSortableItem.values().iterator();
 		
 		while (iter.hasNext()){
@@ -400,5 +373,95 @@ MyTrackerView
 
   public Table getTable() {
     return table;
+  }
+  
+  private boolean start,stop,remove;
+  
+  private void computePossibleActions() {
+    start = stop = remove = false;
+    TableItem[] tis = table.getSelection();
+    if(tis.length > 0) {
+      remove = true;
+      for (int i=0;i<tis.length;i++){        
+        TableItem	ti = tis[i];        
+        TRHostTorrent	host_torrent = (TRHostTorrent)tableItemToObject.get( ti );
+        int	status = host_torrent.getStatus();
+        
+        if ( status == TRHostTorrent.TS_STOPPED ){          
+          start	= true;          
+        }
+        
+        if ( status == TRHostTorrent.TS_STARTED ){          
+          stop = true;
+        }
+      }
+    }
+  }
+  
+  public boolean isEnabled(String itemKey) {
+    if(itemKey.equals("start"))
+      return start;
+    if(itemKey.equals("stop"))
+      return stop;
+    if(itemKey.equals("remove"))
+      return remove;
+    return false;
+  }
+  
+
+  public void itemActivated(String itemKey) {
+    if(itemKey.equals("start")) {
+      startSelectedTorrents();
+      return;
+    }
+    if(itemKey.equals("stop")){
+      stopSelectedTorrents();
+      return;
+    }
+    if(itemKey.equals("remove")){
+      removeSelectedTorrents();
+      return;
+    }
+    return;
+  }
+  
+  private void stopSelectedTorrents() {
+    TableItem[] tis = table.getSelection();
+    
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      
+      TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
+      if (torrent != null && torrent.getStatus() == TRHostTorrent.TS_STARTED){
+        
+        torrent.stop();
+      }
+    }
+  }
+  
+  private void startSelectedTorrents() {
+    TableItem[] tis = table.getSelection();		  
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      
+      TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
+      if (torrent != null && torrent.getStatus() == TRHostTorrent.TS_STOPPED){
+        
+        torrent.start();
+      }
+    }
+  }
+  
+  private void removeSelectedTorrents() {
+    TableItem[] tis = table.getSelection();		   
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      
+      TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
+      if (torrent != null){
+        
+        torrent.remove();
+      }
+    }
   }
 }
