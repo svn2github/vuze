@@ -38,7 +38,7 @@ public class HealthItem
   /** Default Constructor */
   public HealthItem(String sTableID) {
     super("health", sTableID);
-    initializeAsGraphic(POSITION_LAST, 200);
+    initializeAsGraphic(POSITION_LAST, 20);
   }
 
   public void cellAdded(TableCell cell) {
