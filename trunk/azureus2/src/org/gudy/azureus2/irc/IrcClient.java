@@ -64,7 +64,11 @@ public class IrcClient extends PircBot {
   public void close() {
     //TODO : implement closing ;)
     super.quitServer("Azureus " + MainWindow.VERSION);
-    super.dispose();
+    try {
+      super.dispose();
+    } catch(Exception e) {
+      
+    }
   }
   
   public void sendMessage(String message) {
@@ -133,5 +137,54 @@ public class IrcClient extends PircBot {
     }    
   }
   
+  protected void onPrivateMessage(String sender, String login, String hostname, String message)
+  {
+    listener.privateMessage(sender,message);
+  }
   
+  protected void onNotice(String sourceNick, String sourceLogin, String sourceHostname, String target, String notice)
+  {
+    listener.notice(sourceNick,notice);
+  } 
+  
+  protected void onServerResponse(int code, String response)  {
+    //No such nick name:
+    if(code == 401)
+      listener.systemMessage(response);
+  }
+  
+  protected void onTopic(String channel, String topic, String setBy, long date, boolean changed) {
+    listener.systemMessage(MessageText.getString("IrcClient.topicforchannel") + " " + channel + " : " + topic);
+  }
+  
+  protected void onDisconnect() {
+    listener.systemMessage(MessageText.getString("IrcClient.disconnected") + " " + srvName);
+  }
+
+  
+  
+  /**
+   * @return
+   */
+  public String getChannel() {
+    return channel;
+  }
+
+  /**
+   * @return
+   */
+  public String getSrvName() {
+    return srvName;
+  }
+  
+  public void changeChannel(String channel) {
+    partChannel(this.channel);    
+    User[] users = super.getUsers(this.channel);
+    for(int i=0 ; i< users.length ; i++) {
+      listener.clientExited(users[i].getNick());
+    }
+    this.channel = channel;
+    joinChannel(this.channel);
+  }
+
 }

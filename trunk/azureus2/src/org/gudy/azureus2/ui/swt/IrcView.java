@@ -8,6 +8,7 @@ import java.text.Collator;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
+import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -40,6 +41,8 @@ public class IrcView extends AbstractIView implements IrcListener {
   Color[] colors;
 
   IrcClient client;
+  
+  private String lastPrivate;
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
@@ -54,9 +57,9 @@ public class IrcView extends AbstractIView implements IrcListener {
     GridData gridData = new GridData(GridData.FILL_BOTH | GridData.CENTER);
     gridData.grabExcessHorizontalSpace = true;
     consoleText.setLayoutData(gridData);
-    users = new List(composite, SWT.MULTI | SWT.BORDER);
+    users = new List(composite, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL );
     gridData = new GridData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_END | GridData.END);
-    gridData.widthHint = 150;
+    gridData.widthHint = 120;
     users.setLayoutData(gridData);
     inputField = new Text(composite, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -76,7 +79,7 @@ public class IrcView extends AbstractIView implements IrcListener {
     });
     userSumUp = new Label(composite, SWT.NONE);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-    gridData.widthHint = 150;
+    gridData.widthHint = 120;
     userSumUp.setLayoutData(gridData);
     colors = new Color[4];
     colors[0] = MainWindow.blues[3];
@@ -116,7 +119,11 @@ public class IrcView extends AbstractIView implements IrcListener {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    return MessageText.getString("IrcView.title.short"); //$NON-NLS-1$
+    String result = MessageText.getString("IrcView.title.short");
+    if(client != null) {
+      result += " " + client.getChannel() + " on " + client.getSrvName();
+    }        
+    return result; //$NON-NLS-1$
   }
 
   /* (non-Javadoc)
@@ -236,17 +243,44 @@ public class IrcView extends AbstractIView implements IrcListener {
 
   private void sendMessage(String text) {
     if (text.equals(""))
-      return;
+      return;  
     if (text.startsWith("/")) {
-      if (text.startsWith("/nick ") || text.startsWith("/name ")) {
+      if(text.equals("/help")) {
+        doLog(0,MessageText.getString("IrcView.help"));
+      } else if (text.startsWith("/nick ") || text.startsWith("/name ")) {
         String newNick = text.substring(6).trim();
         client.setUserName(newNick);
-      }
-      else if (text.startsWith("/me ")) {
+      } else if (text.startsWith("/me ")) {
         String action = text.substring(4).trim();
         client.sendAction(action);
         action(client.getUserName(), action);
-      }
+      } else if(text.startsWith("/msg ") || text.startsWith("/to ")) {
+        StringTokenizer st = new StringTokenizer(text," ");
+        st.nextToken();
+        try {
+        String target = st.nextToken();
+        String message = "";
+        while(st.hasMoreElements()) {
+          message += st.nextElement() + " ";
+        }
+        client.sendMessage(target,message);
+        doLog(3,MessageText.getString("IrcView.privateto") + " *" + target + "* " + message);
+        } catch(Exception e) {
+          doLog(0,MessageText.getString("IrcView.errormsg"));
+        } 
+      } else if(text.startsWith("/r ")) {
+        if(lastPrivate != null) {
+          String message = text.substring(3).trim();
+          client.sendMessage(lastPrivate,message);
+          doLog(3,MessageText.getString("IrcView.privateto") + " *" + lastPrivate + "* " + message);
+        }
+      } 
+      else if(text.startsWith("/join "))
+        {
+          String channel = text.substring(6).trim();
+          client.changeChannel(channel);
+        }
+      
       else {
         systemMessage(MessageText.getString("IrcView.actionnotsupported"));
       }
@@ -254,6 +288,21 @@ public class IrcView extends AbstractIView implements IrcListener {
     else {
       client.sendMessage(text);
     }
+  }
+
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.irc.IrcListener#notice(java.lang.String, java.lang.String)
+   */
+  public void notice(String sender, String message) {
+    doLog(3,MessageText.getString("IrcView.noticefrom") + " -" + sender + "- " + message);
+  }
+
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.irc.IrcListener#privateMessage(java.lang.String, java.lang.String)
+   */
+  public void privateMessage(String sender, String message) {
+    doLog(3,MessageText.getString("IrcView.privatefrom") + " *" + sender + "* " + message);
+    lastPrivate = sender;
   }
 
 }

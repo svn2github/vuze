@@ -15,4 +15,6 @@ public interface IrcListener {
   public void clientEntered(String client);
   public void clientExited(String client);
   public void action(String sender,String action);
+  public void privateMessage(String sender,String message);
+  public void notice(String sender,String message);
 }
