@@ -35,6 +35,7 @@ public class WriteController {
   private final LinkedHashMap high_priority_entities = new LinkedHashMap();
   private final AEMonitor entities_mon = new AEMonitor( "WriteController:EM" );
 
+  private static final int SELECT_TIME = 50;
   private static final int PROCESSOR_SLEEP_TIME = 20;
   
   
@@ -67,7 +68,7 @@ public class WriteController {
   
   private void writeSelectorLoop() {
     while( true ) {
-      write_selector.select( 50 );      
+      write_selector.select( SELECT_TIME );      
     }
   }
   
@@ -197,7 +198,7 @@ public class WriteController {
   
   
   /**
-   * Get the virtual selector for socket channel write readyness.
+   * Get the virtual selector for socket channel write readiness.
    * @return selector
    */
   protected VirtualChannelSelector getWriteSelector() {  return write_selector;  }
