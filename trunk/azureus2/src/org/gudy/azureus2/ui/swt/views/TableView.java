@@ -253,7 +253,7 @@ public class TableView
           tc.setWidth(column.getWidth());
 
         int columnNumber = table.indexOf(column);
-    		locationChanged(columnNumber);
+        locationChanged(columnNumber);
       }
     };
 
@@ -298,10 +298,10 @@ public class TableView
     }
 
     table.addPaintListener(new PaintListener() {
-    	public void paintControl(PaintEvent event) {
+      public void paintControl(PaintEvent event) {
         if(event.width == 0 || event.height == 0) return;
-    		doPaint(event.gc);
-    	}
+        doPaint(event.gc);
+      }
     });
     
     // Deselect rows if user clicks on a black spot (a spot with no row)
@@ -410,7 +410,7 @@ public class TableView
 
       for (int i = 0; i < items.length; i++) {
         final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl)items[i];
-  		  final MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
+        final MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
 
         Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
         menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
@@ -530,6 +530,9 @@ public class TableView
         TableColumnCore tc = (TableColumnCore)tableColumnsSWT[i].getData("TableColumnCore");
         if (tc != null && tc.getWidth() != tableColumnsSWT[i].getWidth()) {
           tc.setWidth(tableColumnsSWT[i].getWidth());
+
+          int columnNumber = table.indexOf(tableColumnsSWT[i]);
+          locationChanged(columnNumber);
         }
       }
     }
@@ -549,8 +552,8 @@ public class TableView
   }
 
   private void locationChanged(final int iStartColumn) {
-  	if (getComposite() == null || getComposite().isDisposed())
-  		return;    
+    if (getComposite() == null || getComposite().isDisposed())
+      return;    
     
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
@@ -560,12 +563,12 @@ public class TableView
   }
 
   private void doPaint(final GC gc) {
-  	if (getComposite() == null || getComposite().isDisposed())
-  		return;    
+    if (getComposite() == null || getComposite().isDisposed())
+      return;    
     
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-    	  row.doPaint(gc);
+        row.doPaint(gc);
       }
     });
   }
@@ -657,18 +660,18 @@ public class TableView
 
   /** Remove all the data sources (table rows) from the table.
    */
-	public void removeAllTableRows() {
-	  // clear all table items first, so that TableRowCore.delete() doesn't remove
-	  // them one by one (slow)
+  public void removeAllTableRows() {
+    // clear all table items first, so that TableRowCore.delete() doesn't remove
+    // them one by one (slow)
     if (table != null && !table.isDisposed())
-  	  table.removeAll();
+      table.removeAll();
 
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-    	  row.delete();
+        row.delete();
       }
     });
- 	  objectToSortableItem.clear();
+    objectToSortableItem.clear();
 /* Old Way.  DELME after new way is verified working :)
     Iterator iter = objectToSortableItem.values().iterator();
     while(iter.hasNext()) {
@@ -678,7 +681,7 @@ public class TableView
     }
 */
   }
-	  
+    
   public Table getTable() {
     return table;
   }
