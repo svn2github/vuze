@@ -938,7 +938,22 @@ public class DiskManager {
     //Now tempPiece points to the first file that contains data for this block
     boolean noError = true;
     while (buffer.hasRemaining() && noError) {
-      tempPiece = (PieceMapEntry) pieceList.get(currentFile);
+      try {
+         tempPiece = (PieceMapEntry) pieceList.get(currentFile);
+      } catch (Exception e) {
+         noError = false;
+         System.out.println("Error in read Block 1: *Debug Information*");
+         System.out.println("PieceNumber: " + pieceNumber);
+         System.out.println("Offset: " + offset);
+         System.out.println("Length  " + length);
+         System.out.println("BufferLimit: " + buffer.limit() + ", BufferRemaining: " + buffer.remaining());
+         System.out.println("PieceListSize: " + pieceList.size());
+         System.out.println("CurrentFile: " + currentFile);
+         System.out.println("TempPieceLength: " + tempPiece.getLength() + ", TempPieceOffset: " + tempPiece.getOffset());
+         System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
+         e.printStackTrace();
+      }
+      
       synchronized (tempPiece.getFile()) {
         RandomAccessFile raf = tempPiece.getFile().getRaf();
         FileChannel fc = raf.getChannel();
@@ -958,15 +973,16 @@ public class DiskManager {
       fileOffset = 0;
       previousFilesLength = offset;
       if (buffer.hasRemaining() && currentFile > pieceList.size()) {
-        noError = false;
-        System.out.println("Error in read Block : *Debug Information*");
-        System.out.println("PieceNumber : " + pieceNumber);
-        System.out.println("Offset : " + offset);
-        System.out.println("Length : " + length);
-        System.out.println("Buffer - limit : " + buffer.limit() + ", remaining : " + buffer.remaining());
-        System.out.println("PieceList - size : " + pieceList.size());
-        System.out.println("currentFile : " + currentFile);
-        System.out.println("tempPiece - length : " + tempPiece.getLength() + ", offset : " + tempPiece.getOffset());      
+         noError = false;
+         System.out.println("Error in read Block 2: *Debug Information*");
+         System.out.println("PieceNumber: " + pieceNumber);
+         System.out.println("Offset: " + offset);
+         System.out.println("Length  " + length);
+         System.out.println("BufferLimit: " + buffer.limit() + ", BufferRemaining: " + buffer.remaining());
+         System.out.println("PieceListSize: " + pieceList.size());
+         System.out.println("CurrentFile: " + currentFile);
+         System.out.println("TempPieceLength: " + tempPiece.getLength() + ", TempPieceOffset: " + tempPiece.getOffset());
+         System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);   
       }
 
     }
