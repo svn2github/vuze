@@ -25,7 +25,7 @@ public class FileChecker {
       while ((nbRead = fis.read(buf)) > 0)
         metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1"));
       Map metaData =
-        BDecoder.decode(metaInfo.toString().getBytes("UTF8"));
+        BDecoder.decode(metaInfo.toString().getBytes("UTF-16"));
       DiskManager diskManager = new DiskManager(metaData,args[1]);
       while(diskManager.getState() != DiskManager.READY)
       {
