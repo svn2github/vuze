@@ -164,6 +164,7 @@ public class MyTorrentsView extends AbstractIView
         ,"tracker;L;I;70;-1"
         ,"shareRatio;R;I;70;-1"
         ,"up;R;I;70;-1"
+        ,"remaining;R;I;70;-1"
         ,"pieces;C;I;100;-1"
         ,"completion;C;I;100;-1"
         ,"maxuploads;R;I;30;-1"

@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -595,7 +596,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       updatePiecesInfo(false);
     }
     
-    setTime(manager.getStats().getElapsedTime(), DisplayFormatters.formatETA(manager.getStats().getETA()));
+    DiskManager dm = manager.getDiskManager();
+    setTime(manager.getStats().getElapsedTime(), 
+            DisplayFormatters.formatETA(manager.getStats().getETA()) +
+            ((dm != null) ? " " + DisplayFormatters.formatByteCountToKiBEtc(dm.getRemaining()) : "")  );
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
     String peers = manager.getNbPeers() +" "+ MessageText.getString("GeneralView.label.connected");

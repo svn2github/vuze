@@ -3,9 +3,10 @@ CHANGELOG
 
 xx.xx.04 | Azureus 2.0.8.5
 
-FEATURE: 
+FEATURE: Added Remaining column to My Torrents. [TuxPaper]
 
-CHANGE: 
+CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
+CHANGE: All progress/piece bars re-done (again) [TuxPaper]
 
 BUGFIX: 
 

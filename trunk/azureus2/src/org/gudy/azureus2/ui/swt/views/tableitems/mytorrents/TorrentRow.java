@@ -16,6 +16,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -114,6 +115,7 @@ public class TorrentRow implements SortableItem {
         items.add(new SavePathItem(TorrentRow.this,itemEnumerator.getPositionByName("savepath")));
         items.add(new CategoryItem(TorrentRow.this,itemEnumerator.getPositionByName("category")));
         items.add(new AvailabilityItem(TorrentRow.this,itemEnumerator.getPositionByName("availability")));
+        items.add(new RemainingItem(TorrentRow.this,itemEnumerator.getPositionByName("remaining")));
 
         Map extensions = MyTorrentsTableExtensions.getInstance().getExtensions();
         Iterator iter = extensions.keySet().iterator();
@@ -293,6 +295,16 @@ public class TorrentRow implements SortableItem {
     if (field.equals("up")) //$NON-NLS-1$
       return manager.getStats().getUploaded();
     
+    if (field.equals("remaining")) {
+      DiskManager dm = manager.getDiskManager();
+      if (dm == null) {
+        return manager.getSize() - 
+               ((long)manager.getStats().getCompleted() * manager.getSize() / 1000L);
+      } else {
+        return dm.getRemaining();
+      }
+    }
+
     if (field.equals("maxuploads")) //$NON-NLS-1$
       return manager.getStats().getMaxUploads();
     
