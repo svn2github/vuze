@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 
@@ -26,7 +27,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
  * @author Olivier
  *
  */
-public class PEPeerTransportSpeedLimiter {
+public final class PEPeerTransportSpeedLimiter implements ParameterListener {
 
   //The instance of the speed Limiter
   private static PEPeerTransportSpeedLimiter limiter;
@@ -77,10 +78,11 @@ public class PEPeerTransportSpeedLimiter {
    *
    */
   private PEPeerTransportSpeedLimiter() {
-    //limit = ConfigurationManager.getInstance().getIntParameter("Max Upload Speed", 0);
     uploaders = new ArrayList();
     peerToLimit = new HashMap();
     lastComputationTime = 0;
+    this.limit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
+    COConfigurationManager.addParameterListener("Max Upload Speed", this);
   }
 
   /**
@@ -124,7 +126,6 @@ public class PEPeerTransportSpeedLimiter {
    * @return true if speed is limited
    */
   public boolean isLimited(PEPeer wt) {
-    this.limit = COConfigurationManager.getIntParameter("Max Upload Speed", 0);
     return (this.limit != 0 && uploaders.contains(wt));
   }
 
@@ -180,7 +181,6 @@ public class PEPeerTransportSpeedLimiter {
       Collections.sort(sortedList);
       
       //2. Allocate bandwith for each levels
-      this.limit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
       int toBeAllowedTotal = limit / 5;      
       //2.1 LOW level uploaders get 50% less than high
       int toBeAllowed = (nbUploadersLowPriority * toBeAllowedTotal) / (nbUploadersLowPriority + 2 * nbUploadersHighPriority );
@@ -188,12 +188,13 @@ public class PEPeerTransportSpeedLimiter {
       toBeAllowedTotal -= toBeAllowed;
       
       Iterator iter = sortedList.iterator();
+      int maxAllocation, allocation;
       while(iter.hasNext()) {        
         UploaderInfo ui = (UploaderInfo) iter.next();
         if(ui.priorityLevel != DownloadManager.LOW_PRIORITY)
           continue;
-        int maxAllocation = toBeAllowed / nbUploadersLowPriority;
-        int allocation = min(maxAllocation,ui.maxUpload);
+        maxAllocation = toBeAllowed / nbUploadersLowPriority;
+        allocation = min(maxAllocation,ui.maxUpload);
         peerToLimit.put(ui.peer,new Integer(allocation));
         toBeAllowed -= allocation;
         nbUploadersLowPriority--;
@@ -207,8 +208,8 @@ public class PEPeerTransportSpeedLimiter {
         UploaderInfo ui = (UploaderInfo) iter.next();
         if(ui.priorityLevel != DownloadManager.HIGH_PRIORITY)
           continue;
-        int maxAllocation = toBeAllowed / nbUploadersHighPriority;
-        int allocation = min(maxAllocation,ui.maxUpload);
+        maxAllocation = toBeAllowed / nbUploadersHighPriority;
+        allocation = min(maxAllocation,ui.maxUpload);
         peerToLimit.put(ui.peer,new Integer(allocation));
         toBeAllowed -= allocation;
         nbUploadersHighPriority--;
@@ -229,7 +230,13 @@ public class PEPeerTransportSpeedLimiter {
     }        
   }
 
- 
+  /**
+   * @param parameterName the name of the parameter that has changed
+   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+   */
+  public void parameterChanged(String parameterName) {
+    this.limit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
+  }
 
   static private int min(int a, int b) {
     return a < b ? a : b;
