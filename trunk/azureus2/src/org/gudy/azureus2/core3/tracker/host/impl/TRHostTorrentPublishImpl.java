@@ -93,29 +93,36 @@ TRHostTorrentPublishImpl
 	protected void
 	updateStats()
 	{		
+		TRTrackerScraperResponse resp = null;
+		
 		TRTrackerClient tc = host.getTrackerClient( this );
 		
 		if ( tc != null ){
 			
-			TRTrackerScraperResponse resp = TRTrackerScraperFactory.create().scrape( tc );
+			resp = TRTrackerScraperFactory.create().scrape( tc );
+		}
+		
+		if ( resp == null ){
 			
-			synchronized( this ){
-			
-				if ( resp != null && resp.isValid()){
-							
-					int peer_count 	= resp.getPeers();
-					int seed_count	= resp.getSeeds();
-					
-					peers = new TRHostPeer[ peer_count + seed_count ];
-					
-					for (int i=0;i<peers.length;i++){
+			resp = TRTrackerScraperFactory.create().scrape( torrent );
+		}
+				
+		synchronized( this ){
+		
+			if ( resp != null && resp.isValid()){
 						
-						peers[i] = new TRHostPeerPublishImpl( i<seed_count );
-					}
-				}else{
+				int peer_count 	= resp.getPeers();
+				int seed_count	= resp.getSeeds();
+				
+				peers = new TRHostPeer[ peer_count + seed_count ];
+				
+				for (int i=0;i<peers.length;i++){
 					
-					peers = new TRHostPeer[0];
+					peers[i] = new TRHostPeerPublishImpl( i<seed_count );
 				}
+			}else{
+				
+				peers = new TRHostPeer[0];
 			}
 		}
 	}
