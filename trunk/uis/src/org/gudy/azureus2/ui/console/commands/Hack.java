@@ -18,7 +18,7 @@ import java.util.List;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
@@ -120,7 +120,7 @@ public class Hack extends TorrentCommand {
 				return false;
 			}
 			String trackercommand = (String) args.remove(0);
-			TRTrackerClient client = dm.getTrackerClient();
+			TRTrackerAnnouncer client = dm.getTrackerClient();
 			//ci.out.println("> Command 'hack': Debug: '"+trackercommand+"'");
 			if (client == null) {
 				ci.out.println("> Command 'hack': Tracker interface not available.");
@@ -210,7 +210,7 @@ public class Hack extends TorrentCommand {
 				ci.out.println("> Command 'hack': Not enough parameters for subcommand parameter 'port'.");
 				return false;
 			}
-			TRTrackerClient client = dm.getTrackerClient();
+			TRTrackerAnnouncer client = dm.getTrackerClient();
 			try {
 				URI uold = new URI(client.getTrackerUrl().toString());
 				String portStr = (String) args.get(0);
@@ -239,7 +239,7 @@ public class Hack extends TorrentCommand {
 				ci.out.println("> Command 'hack': Not enough parameters for subcommand parameter 'host'.");
 				return false;
 			}
-			TRTrackerClient client = dm.getTrackerClient();
+			TRTrackerAnnouncer client = dm.getTrackerClient();
 			try {
 				URI uold = new URI(client.getTrackerUrl().toString());
 				URI unew = new URI(uold.getScheme(), uold.getUserInfo(), (String)args.get(0), uold.getPort(), uold.getPath(), uold.getQuery(), uold.getFragment());
@@ -267,7 +267,7 @@ public class Hack extends TorrentCommand {
 				ci.out.println("> Command 'hack': Not enough parameters for subcommand parameter 'url'.");
 				return false;
 			}
-			TRTrackerClient client = dm.getTrackerClient();
+			TRTrackerAnnouncer client = dm.getTrackerClient();
 			
 			try {
 				String uriStr = (String) args.get(0); 

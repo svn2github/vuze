@@ -24,7 +24,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -377,7 +377,7 @@ public class Show extends IConsoleCommand {
 		out.println("Created By: " + dm.getTorrentCreatedBy());
 		out.println("Comment: " + dm.getTorrentComment());
 		out.println("- Tracker Info -");
-		TRTrackerClient trackerclient = dm.getTrackerClient();
+		TRTrackerAnnouncer trackerclient = dm.getTrackerClient();
 		if (trackerclient != null) {
 			out.println("URL: " + trackerclient.getTrackerUrl());
 			String timestr;
