@@ -125,6 +125,7 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
       
       log = new StyledText(panel,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL);
       gridData = new GridData(GridData.FILL_BOTH);
+      gridData.horizontalSpan = 2;
       log.setLayoutData(gridData);
       model.getLogArea().addPropertyChangeListener(this);
     }
@@ -157,5 +158,9 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
         log.setText(value);
       }
     });
+  }
+  
+  public String getFullTitle() {
+    return pluginName;
   }
 }
