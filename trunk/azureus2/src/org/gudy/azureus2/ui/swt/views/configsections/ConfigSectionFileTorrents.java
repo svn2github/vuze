@@ -194,7 +194,7 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
 
     gridData = new GridData();
     gridData.horizontalSpan = 3;
-    new BooleanParameter(gWatchFolder, "Start Watched Torrents Stopped", true,
+    new BooleanParameter(gWatchFolder, "Start Watched Torrents Stopped", false,
                          "ConfigView.label.startwatchedtorrentsstopped").setLayoutData(gridData);
 
     controls = new Control[]{ gWatchFolder };
