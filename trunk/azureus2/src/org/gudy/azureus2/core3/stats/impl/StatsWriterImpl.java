@@ -126,11 +126,46 @@ StatsWriterImpl
 				
 				indent();
 				
-				List	dms = global.getDownloadManagers();
+				List	_dms = global.getDownloadManagers();
 			
-				for (int i=0;i<dms.size();i++){
+				DownloadManager[]	dms = new DownloadManager[_dms.size()];
+				
+					// sort by index, downloads then seeders
+				
+				_dms.toArray( dms );
+				
+				Arrays.sort(
+					dms,
+					new Comparator()
+					{
+						public int 
+						compare(
+							Object o1, 
+							Object o2)
+						{
+							DownloadManager	d1 = (DownloadManager)o1;
+							DownloadManager	d2 = (DownloadManager)o2;
+							
+							int	d1_index 	= d1.getIndex();
+							int d2_index	= d2.getIndex();
+							
+							if ( d1.getStats().getDownloadCompleted(false) == 1000 ){
+								
+								d1_index	+= 1000000;
+							}
+							
+							if ( d2.getStats().getDownloadCompleted(false) == 1000 ){
+								
+								d2_index	+= 1000000;
+							}
+
+							return( d1_index - d2_index );
+						}
+					});
+				
+				for (int i=0;i<dms.length;i++){
 					
-					DownloadManager	dm = (DownloadManager)dms.get(i);
+					DownloadManager	dm = (DownloadManager)dms[i];
 					
 					DownloadManagerStats	dm_stats = dm.getStats();
 					
