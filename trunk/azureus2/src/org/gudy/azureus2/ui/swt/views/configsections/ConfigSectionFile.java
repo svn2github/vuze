@@ -265,6 +265,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
         }
       });
 
+      	// move when done
 
       BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted, "Move Torrent When Done", true,
                                                           "ConfigView.label.movetorrent");
@@ -272,12 +273,22 @@ public class ConfigSectionFile implements ConfigSectionSWT {
       gridData.horizontalSpan = 2;
       moveTorrent.setLayoutData(gridData);
 
+      	// only in default
+      
       BooleanParameter moveOnly = new BooleanParameter(gMoveCompleted, "Move Only When In Default Save Dir", true,
                                                        "ConfigView.label.moveonlyusingdefaultsave");
       gridData = new GridData();
       gridData.horizontalSpan = 2;
       moveOnly.setLayoutData(gridData);
 
+      	// copy rather than move
+      
+      BooleanParameter copyDontMove = 
+      		new BooleanParameter(	gMoveCompleted, "Copy And Delete Data Rather Than Move", false,
+      								"ConfigView.label.copyanddeleteratherthanmove");
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  copyDontMove.setLayoutData(gridData);
 
       Control[] controls3 = new Control[]{ gMoveCompleted };
       IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls3);

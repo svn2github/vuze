@@ -214,6 +214,7 @@ public class ConfigurationDefaults {
     def.put( "Completed Files Directory", "" );
     def.put( "Zero New", new Long(0) );
     def.put( "Move Only When In Default Save Dir", new Long(1) );
+    def.put( "Copy And Delete Data Rather Than Move", new Long(0));
     def.put( "Move Torrent When Done", new Long(1) );
     def.put( "File.save.peers.enable", new Long(1) );
     

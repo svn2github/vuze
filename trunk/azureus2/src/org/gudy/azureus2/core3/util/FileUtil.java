@@ -788,10 +788,13 @@ public class FileUtil {
     {
     	if ( to_file.exists()){
     		
+    		Debug.out( "renameFile: target file '" + to_file + "' already exists, failing" );
+    		
     		return( false );
     	}
     	
-		if ( from_file.renameTo( to_file )){
+		if ( 	(!COConfigurationManager.getBooleanParameter("Copy And Delete Data Rather Than Move")) &&
+				from_file.renameTo( to_file )){
 	  					
 			return( true );
 

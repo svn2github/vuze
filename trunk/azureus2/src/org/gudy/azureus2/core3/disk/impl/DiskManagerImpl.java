@@ -558,7 +558,7 @@ DiskManagerImpl
 				
 			}catch ( CacheFileManagerException e ){
 				
-				this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles:" + f.toString() + ")";
+				this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles:" + f.toString() + ")";
 				
 				setState( FAULTY );
 				
@@ -638,10 +638,9 @@ DiskManagerImpl
 			  	fileInfo.setAccessMode( DiskManagerFileInfo.READ );
 			  	
 			  }catch (CacheFileManagerException e) {
-			  	this.errorMessage = (e.getCause() != null
-			  				? e.getCause().getMessage()
-			  							: e.getMessage())
-											+ " (allocateFiles existing:" + f.toString() + ")";
+			  	
+			  	this.errorMessage = Debug.getNestedExceptionMessage(e) + 
+											" (allocateFiles existing:" + f.toString() + ")";
 			  	setState( FAULTY );
 			  	
           try {
@@ -709,9 +708,7 @@ DiskManagerImpl
             }
           }
         }catch ( Exception e ) {          
-          this.errorMessage = (e.getCause() != null
-              ? e.getCause().getMessage()
-              : e.getMessage())
+          this.errorMessage = Debug.getNestedExceptionMessage(e)
               + " (allocateFiles new:" + f.toString() + ")";
           
           setState( FAULTY );
@@ -1168,7 +1165,7 @@ DiskManagerImpl
 	            LGLogger.logAlertUsingResource( 
 	            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
 	            		new String[]{ old_file.getName(),
-	            		e.getCause()==null?e.getMessage():e.getCause().getMessage()} );
+	            		Debug.getNestedExceptionMessage(e)});
 	
 	            Debug.out(msg);
 	            
@@ -1186,7 +1183,7 @@ DiskManagerImpl
 	            		LGLogger.logAlertUsingResource( 
 	                    		LGLogger.AT_ERROR, "DiskManager.alert.movefilerecoveryfails", 
 	                    		new String[]{ files[j].toString(),
-	                    		f.getCause()==null?f.getMessage():f.getCause().getMessage()} );
+	                    		Debug.getNestedExceptionMessage(f)} );
 	           		
 	            	}
 	            }
