@@ -54,7 +54,7 @@ public class SelectorGuard {
   private static final boolean DISABLED = false;//System.getProperty("java.version").startsWith("1.5") ? true : false;
   
   private HashMap conseq_keys = new HashMap();
-  private static final int CONSEQ_SELECT_THRESHOLD = 19;
+  private static final int CONSEQ_SELECT_THRESHOLD = 29;
   
   
   
