@@ -74,9 +74,11 @@ public class PluginInterfaceImpl implements PluginInterface {
     return pluginDir;
   }
 
-  /* I think this is the more important one, rather than registerPluginParameter... -epall */
-  public void addConfigUIParameters(Parameter[] parameters) {
-    // TODO Auto-generated method stub
+  /*
+   * I think this is the more important one, rather than registerPluginParameter... -epall 11/20/03
+   * the data needs to be stored between the registration and the actual display, where should it go? -epall 11/20/03
+   */
+  public void addConfigUIParameters(Parameter[] parameters, String displayName) {
   }
 
 
