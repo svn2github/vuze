@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.util;
  */
 
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.internat.*;
@@ -34,21 +35,56 @@ import org.gudy.azureus2.core3.internat.*;
 public class 
 DisplayFormatters 
 {
+	protected static String	k_unit;
+	protected static String	m_unit;
+	protected static String	g_unit;
+	
+	static{
+		boolean si = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
+	
+		COConfigurationManager.addParameterListener( "config.style.useSIUnits",
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	value )
+					{
+						setUnits(COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false));
+					}
+				});
+		
+		setUnits(si);
+	}
+	
+	protected static void
+	setUnits(
+		boolean	si )
+	{
+		if ( si ){
+			k_unit = " KiB";
+			m_unit = " MiB";
+			g_unit = " GiB";
+		}else{
+			k_unit = " KB";
+			m_unit = " MB";
+			g_unit = " GB";
+		}
+	}
 	public static String formatByteCountToKiBEtc(int n) {
 	  if (n < 1024)
 		return n + " B";
 	  if (n < 1024 * 1024)
-		return (n / 1024) + "." + ((n % 1024) / 102) + " KiB";
+		return (n / 1024) + "." + ((n % 1024) / 102) + k_unit;
 	  if (n < 1024 * 1024 * 1024)
 		return (n / (1024 * 1024))
 		  + "."
 		  + ((n % (1024 * 1024)) / 104857)
-		  + " MiB";
+		  + m_unit;
 	  if (n < 1024 * 1024 * 1024 * 1024)
 		return (n / (1024 * 1024 * 1024))
 		  + "."
 		  + ((n % (1024 * 1024 * 1024)) / 107374182)
-		  + " GiB";
+		  + g_unit;
 	  return "A lot";
 	}
 
@@ -56,35 +92,17 @@ DisplayFormatters
 	  if (n < 1024)
 		return n + " B";
 	  if (n < 1024 * 1024)
-		return (n / 1024) + "." + ((n % 1024) / 102) + " KiB";
+		return (n / 1024) + "." + ((n % 1024) / 102) + k_unit;
 	  if (n < 1024 * 1024 * 1024)
 		return (n / (1024 * 1024))
 		  + "."
 		  + ((n % (1024 * 1024)) / 104857)
-		  + " MiB";
+		  + m_unit;
 	  if (n < 1024l * 1024l * 1024l * 1024l)
 		return (n / (1024l * 1024l * 1024l))
 		  + "."
 		  + ((n % (1024l * 1024l * 1024l)) / 107374182l)
-		  + " GiB";
-	  return "A lot !!!";
-	}
-	
-	public static String formatByteCountToKBEtc(long n) {
-	  if (n < 1000)
-	    return n + " B";
-	  if (n < 1000 * 1000)
-	    return (n / 1000) + "." + ((n % 1000) / 100) + " KB";
-	  if (n < 1000 * 1000 * 1000)
-	    return (n / (1000 * 1000))
-	    + "."
-	    + ((n % (1000 * 1000)) / (100 * 1000))
-	    + " MB";
-	  if (n < 1000l * 1000l * 1000l * 1000l)
-	    return (n / (1000l * 1000l * 1000l))
-	    + "."
-	    + ((n % (1000l * 1000l * 1000l)) / (100l * 1000l * 1000l))
-	    + " GB";
+		  + g_unit;
 	  return "A lot !!!";
 	}
 	
@@ -94,15 +112,6 @@ DisplayFormatters
 	{
 		return( formatByteCountToKiBEtc(n) + "/s");
 	}
-	
-	public static String
-	formatByteCountToKBEtcPerSec(
-	    long		n )
-	{
-	  return( formatByteCountToKBEtc(n) + "/s");
-	}
-  
-  
   
    public static String formatETA(long eta) {
      if (eta == 0) return MessageText.getString("PeerManager.status.finished");

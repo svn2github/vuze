@@ -81,6 +81,10 @@ public class MessageText {
 			// here's an example 
 			// jar:file:C:/Documents%20and%20Settings/stuff/.javaws/cache/http/Dparg.homeip.net/P9090/DMazureus-jnlp/DMlib/XMAzureus2.jar1070487037531!/org/gudy/azureus2/internat/MessagesBundle.properties
 			
+    		// also on Mac we don't get the spaces escaped
+    	
+    	urlString = urlString.replaceAll(" ", "%20" );
+    	
     	if ( !urlString.startsWith("jar:file:/")){
     		urlString = "jar:file:/" + urlString.substring(9);
     	}

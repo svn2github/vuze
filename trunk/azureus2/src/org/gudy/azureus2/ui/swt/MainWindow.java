@@ -292,6 +292,17 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
     
 
+    COConfigurationManager.addParameterListener( "config.style.useSIUnits",
+    	new ParameterListener()
+    		{
+    			public void
+    			parameterChanged(
+    				String	value )
+    			{
+    				updateComponents();
+    			}
+    	});
+    
     // set to true to enable SWT leak checking
     if (false) {
       DeviceData data = new DeviceData();
@@ -943,6 +954,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     setStatusVersion();
   }
 
+  private void
+  updateComponents()
+  {
+  	if (statusText != null)
+  		statusText.update();
+  	if (folder != null) {
+  		if(useCustomTab) {
+  			((CTabFolder)folder).update();
+  		} else {
+  			((TabFolder)folder).update();
+  		}
+  	}
+  	if (trayIcon != null) {
+  		trayIcon.refresh();
+  	} 
+  }
+ 
   private void showSplashWindow() {
     if (splash_maybe_null == null && display != null) {
       splash_maybe_null = new SplashWindow();

@@ -968,7 +968,7 @@ public class ConfigView extends AbstractIView {
 
 	label = new Label(gFile, SWT.NULL);
 	Messages.setLanguageText(label, "ConfigView.section.file.decoder.prompt"); 
-	BooleanParameter enableStats = new BooleanParameter(gFile, "File.Decoder.Prompt", false);
+	new BooleanParameter(gFile, "File.Decoder.Prompt", false);
 	new Label(gFile, SWT.NULL);
   new Label(gFile, SWT.NULL);
   new Label(gFile, SWT.NULL);
@@ -1232,6 +1232,10 @@ public class ConfigView extends AbstractIView {
    Messages.setLanguageText(label, "ConfigView.section.style.alwaysShowTorrentFiles"); //$NON-NLS-1$
    new BooleanParameter(gStyle, "Always Show Torrent Files", true); //$NON-NLS-1$
 
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.useSIUnits"); //$NON-NLS-1$
+   new BooleanParameter(gStyle, "config.style.useSIUnits",false); //$NON-NLS-1$
+   
    itemStyle.setControl(gStyle);
   }
   
