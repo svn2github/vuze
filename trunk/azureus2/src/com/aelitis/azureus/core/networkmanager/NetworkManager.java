@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
 
 
 
@@ -81,13 +82,12 @@ public class NetworkManager {
    * Request the acceptance and routing of new incoming connections that match the given initial byte sequence.
    * @param matcher initial byte sequence used for routing
    * @param listener for handling new inbound connections
-   * @param encoder default message stream encoder to use for the outgoing queue
-   * @param decoder default message stream decoder to use for the incoming queue
+   * @param factory to use for creating default stream encoder/decoders
    */
-  public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener, final MessageStreamEncoder encoder, final MessageStreamDecoder decoder ) {
+  public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener, final MessageStreamFactory factory ) {
     incoming_socketchannel_manager.registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
       public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
-        listener.connectionRouted( NetworkConnectionFactory.create( channel, read_so_far, encoder, decoder ) );
+        listener.connectionRouted( NetworkConnectionFactory.create( channel, read_so_far, factory.createEncoder(), factory.createDecoder() ) );
       }
     });
   }

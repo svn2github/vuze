@@ -32,6 +32,9 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageEncoder;
@@ -120,8 +123,10 @@ public class PeerManager {
             manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
           }
         },
-        new BTMessageEncoder(),
-        new BTMessageDecoder() );
+        new MessageStreamFactory() {
+          public MessageStreamEncoder createEncoder() {  return new BTMessageEncoder();  }
+          public MessageStreamDecoder createDecoder() {  return new BTMessageDecoder();  }
+        });
     
     legacy_managers.put( manager, matcher );
   }

@@ -79,7 +79,10 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     int bytes_remaining = max_bytes;
     
     while( bytes_remaining > 0 ) {
-      //if( destroyed )  break;
+      if( destroyed ) {
+        System.out.println( "already destroy()ed" );
+        break;
+      }
       
       int bytes_possible = preReadProcess( bytes_remaining );
       
@@ -143,6 +146,10 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       direct_payload_buffer = null;
     }
  
+    for( int i=0; i < messages_last_read.size(); i++ ) {
+      Message msg = (Message)messages_last_read.get( i );
+      msg.destroy();
+    }
     messages_last_read.clear();
   }
   
