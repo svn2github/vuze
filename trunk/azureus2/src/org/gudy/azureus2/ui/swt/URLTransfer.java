@@ -23,11 +23,11 @@ public class URLTransfer extends ByteArrayTransfer {
 
   private static URLTransfer _instance = new URLTransfer();
 
-  // these types work on Windows XP: IE6 link=49368/49362, IE6 bookmark=49458,
-	// Mozilla link=13, Mozilla bookmark=13
+  // these types work on Windows XP: IE6 link=49367/49362, IE6 bookmark=13,
+	// Mozilla link (text)=13, Mozilla bookmark=13
   // Opera 7 LINK DRAG & DROP IMPOSSIBLE (just inside Opera)
-  private static final String[] supportedTypes = new String[] { "UniformResourceLocator", "UniformResourceLocator", "UniformResourceLocatorW", "CF_UNICODETEXT", "CF_TEXT" };
-  private static final int[] supportedTypeIds = new int[] { 49368, 49362, 49458, 13, 1 };
+  private static final String[] supportedTypes = new String[] { "UniformResourceLocator", "UniformResourceLocator", "CF_UNICODETEXT", "CF_TEXT" };
+  private static final int[] supportedTypeIds = new int[] { 49367, 49362, 13, 1 }; // 15="CF_HDROP" (File), 49368="UniformResourceLocator" (File+IE bookmark), 49458="UniformResourceLocatorW" (IE bookmark)
 
   public static URLTransfer getInstance() {
     return _instance;
@@ -66,8 +66,7 @@ public class URLTransfer extends ByteArrayTransfer {
       URLType myData = null;
       try {
         URLType datum = new URLType();
-        int size = buffer.length;
-        byte[] text = new byte[size];
+        byte[] text = new byte[buffer.length];
         int j = 0;
         for (int i = 0; i < buffer.length; i++) {
           if (buffer[i] != 0)
@@ -98,18 +97,18 @@ public class URLTransfer extends ByteArrayTransfer {
     return supportedTypeIds;
   }
   /**
-	 * @param arg0
+	 * @param transferData
 	 * @see org.eclipse.swt.dnd.Transfer#isSupportedType(org.eclipse.swt.dnd.TransferData)
 	 * @return
 	 */
-  public boolean isSupportedType(TransferData arg0) {
-    if (arg0 != null) {
+  public boolean isSupportedType(TransferData transferData) {
+    if (transferData != null) {
       for (int i = 0; i < supportedTypeIds.length; i++) {
-        if (arg0.type == supportedTypeIds[i])
+        if (transferData.type == supportedTypeIds[i])
           return true;
       }
     }
-    return super.isSupportedType(arg0);
+    return super.isSupportedType(transferData);
   }
 
   public class URLType {
