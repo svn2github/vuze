@@ -87,6 +87,7 @@ public class BDecoder {
         return tempList;
 
       case 'e' :
+      case -1 :
         return null;
 
       case 'i' :
