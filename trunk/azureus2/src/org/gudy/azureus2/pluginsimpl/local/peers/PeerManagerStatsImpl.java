@@ -55,6 +55,6 @@ PeerManagerStatsImpl
 	public int
 	getConnectedLeechers()
 	{
-		return( manager.getNbRemoteConnections());
+		return( manager.getNbPeers());
 	}
 }
