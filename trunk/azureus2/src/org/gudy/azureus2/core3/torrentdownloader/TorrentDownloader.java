@@ -62,6 +62,9 @@ public interface TorrentDownloader {
      * Returns the error string if one occured, "Ok" otherwise.
      */
     public String getError();
+    
+    public String getStatus();
+    
     /**
      * Returns the URL downloaded from.
      */

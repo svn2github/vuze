@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
-import java.net.URLConnection;
+
 
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -43,6 +43,10 @@ MagnetConnection
 	extends HttpURLConnection
 {
 	protected Socket	socket;
+	
+	protected static final String	NL			= "\015\012";
+
+	protected String	status = "";
 	
 	protected
 	MagnetConnection(
@@ -70,6 +74,38 @@ MagnetConnection
 	
 		throws IOException
 	{
+		InputStream	is = socket.getInputStream();
+		
+		String	line = "";
+		
+		byte[]	buffer = new byte[1];
+
+		while(true){
+		
+			int	len = is.read( buffer );
+			
+			if ( len == -1 ){
+				
+				break;
+			}
+			
+			line += (char)buffer[0];
+			
+			if ( line.endsWith( NL )){
+				
+				line = line.trim();
+				
+				if ( line.length() == 0 ){
+					
+					break;
+				}
+				
+				status = line;
+				
+				line	= "";
+			}
+		}
+		
 		return( socket.getInputStream());
 	}
 	
@@ -77,6 +113,12 @@ MagnetConnection
 	getResponseCode()
 	{
 		return( HTTP_OK );
+	}
+	
+	public String
+	getResponseMessage()
+	{
+		return( status );
 	}
 	
 	public boolean

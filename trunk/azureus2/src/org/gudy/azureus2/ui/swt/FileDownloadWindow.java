@@ -232,7 +232,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
           String stateText;
           switch(state) {
             case TorrentDownloader.STATE_DOWNLOADING :
-              stateText = MessageText.getString("fileDownloadWindow.state_downloading");
+              stateText = MessageText.getString("fileDownloadWindow.state_downloading") + " " + downloader.getStatus();
               break;
             case TorrentDownloader.STATE_ERROR :
               stateText = MessageText.getString("fileDownloadWindow.state_error") + downloader.getError();

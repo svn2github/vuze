@@ -23,7 +23,11 @@
 package com.aelitis.net.magneturi.impl;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -50,6 +54,8 @@ MagnetURIHandlerImpl
 	
 	private static MagnetURIHandlerImpl		singleton;
 	
+	protected static final String	NL			= "\015\012";
+
 	public static synchronized MagnetURIHandler
 	getSingleton()
 	{
@@ -110,52 +116,72 @@ MagnetURIHandlerImpl
 							
 							try{
 						
-								Socket sck = f_socket.accept();
+								final Socket sck = f_socket.accept();
 								
-								try{
-									ok++;
-									
-									errors	= 0;
-									
-							        String address = sck.getInetAddress().getHostAddress();
-							        
-							        if ( address.equals("localhost") || address.equals("127.0.0.1")) {
-							        	
-							        	BufferedReader br = new BufferedReader(new InputStreamReader(sck.getInputStream(),Constants.DEFAULT_ENCODING));
-							        	
-							        	String line = br.readLine();
-		
-							        	if ( line != null ){
-							        		
-								        	if ( line.toUpperCase().startsWith( "GET " )){
-								        	
-									        	LGLogger.log("MagentURIHandler: processing '" + line + "'" );
-
-								        		line = line.substring(4);
-								        		
-								        		int	pos = line.lastIndexOf(' ');
-								        		
-								        		line = line.substring( 0, pos );
-								        		
-								        		process( line );
-								        		
-								        	}else{
-								        								        	
-									        	LGLogger.log("MagentURIHandler: invalid command - '" + line + "'" );
-								        	}
-								        }else{
-								        	
-								        	LGLogger.log("MagentURIHandler: connect from invalid address '" + address + "'" );
-								        	
-								        }
-							        }
-								}finally{
-									
-									try{
-										sck.close();
-									}catch( Throwable e ){
-									}
-								}
+								ok++;
+								
+								errors	= 0;
+								
+								Thread t = 
+									new AEThread( "MagnetURIHandler:processor" )
+									{
+										public void
+										runSupport()
+										{
+											try{
+											        String address = sck.getInetAddress().getHostAddress();
+										        
+										        if ( address.equals("localhost") || address.equals("127.0.0.1")) {
+										        	
+										        	BufferedReader br = new BufferedReader(new InputStreamReader(sck.getInputStream(),Constants.DEFAULT_ENCODING));
+										        	
+										        	String line = br.readLine();
+					
+										        	if ( line != null ){
+										        		
+											        	if ( line.toUpperCase().startsWith( "GET " )){
+											        	
+												        	LGLogger.log("MagentURIHandler: processing '" + line + "'" );
+			
+											        		line = line.substring(4);
+											        		
+											        		int	pos = line.lastIndexOf(' ');
+											        		
+											        		line = line.substring( 0, pos );
+											        		
+											        		process( line, sck.getOutputStream() );
+											        		
+											        	}else{
+											        								        	
+												        	LGLogger.log("MagentURIHandler: invalid command - '" + line + "'" );
+											        	}
+											        }else{
+											        	
+											        	LGLogger.log("MagentURIHandler: connect from invalid address '" + address + "'" );
+											        	
+											        }
+										        }
+											}catch( Throwable e ){
+												
+												if ( !(e instanceof IOException )){
+													
+													Debug.printStackTrace(e);
+												}
+											}finally{
+												
+												try{
+													sck.close();
+													
+												}catch( Throwable e ){
+												}
+											}
+										}
+									};
+								
+								t.setDaemon( true );
+								
+								t.start();
+								
 							}catch( Throwable e ){
 								
 								Debug.printStackTrace(e);
@@ -179,7 +205,8 @@ MagnetURIHandlerImpl
 	
 	protected void
 	process(
-		String	get )
+		String			get,
+		OutputStream	os )
 	{
 			// magnet:?xt=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C
 		
@@ -229,24 +256,52 @@ MagnetURIHandlerImpl
 				return;
 			}
 			
-			String	base_32 = urn.substring(9);
-			
-			System.out.println( "base 32 = " + base_32 );
-			
-			byte[] sha1 = Base32.decode( base_32 );
-			
-			byte[]	data = null;
-			
-			for (int i=0;i<listeners.size();i++){
-			
-				data = ((MagnetURIHandlerListener)listeners.get(i)).download( sha1, 60000 );
+			try{
 				
-				break;
-			}
-			
-			if ( data != null ){
+				PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
+				
+				pw.print( "HTTP/1.0 200 OK" + NL ); 
+
+				pw.flush();
+				
+				String	base_32 = urn.substring(9);
+				
+				System.out.println( "base 32 = " + base_32 );
+				
+				byte[] sha1 = Base32.decode( base_32 );
+				
+				byte[]	data = null;
 				
 				
+				for (int i=0;i<listeners.size();i++){
+				
+					data = ((MagnetURIHandlerListener)listeners.get(i)).download( sha1, 60000 );
+					
+					if ( data != null ){
+						
+						break;
+					}
+				}
+				
+				if ( data != null ){
+					
+					pw.println( "Content-Length: " + data.length + NL + NL );
+					
+					pw.flush();
+					
+					os.write( data );
+					
+					os.flush();
+					
+				}else{
+					
+					pw.println( "X-Report: no sources found for download" + NL );
+					
+					pw.flush();
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 			}
 		}
 	}

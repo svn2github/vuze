@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
@@ -1350,6 +1351,8 @@ DHTTransportUDPImpl
 		try{
 			checkAddress( contact );
 			
+			logger.log( "Transfer read request: key = " + DHTLog.getFullString( key ));
+			
 			packet_handler.send(
 				request,
 				contact.getTransportAddress());
@@ -1378,6 +1381,8 @@ DHTTransportUDPImpl
 		try{
 			checkAddress( contact );
 			
+			logger.log( "Transfer write request: key = " + DHTLog.getFullString( key ));
+
 			packet_handler.send(
 				request,
 				contact.getTransportAddress());

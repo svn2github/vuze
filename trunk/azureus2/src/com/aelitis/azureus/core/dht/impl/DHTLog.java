@@ -106,6 +106,13 @@ DHTLog
 	}
 	
 	public static String
+	getFullString(
+		byte[]	b )
+	{
+		return( ByteFormatter.nicePrint(b));
+	}
+	
+	public static String
 	getString(
 		HashWrapper	w )
 	{

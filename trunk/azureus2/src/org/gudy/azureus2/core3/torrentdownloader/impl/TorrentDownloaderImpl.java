@@ -43,6 +43,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   private URL url;
   private HttpURLConnection con;
   private String error = "Ok";
+  private String status = "";
   private TorrentDownloaderCallBackInterface iface;
   private int state = STATE_NON_INIT;
   private int percentDone = 0;
@@ -276,14 +277,90 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     }
     if (this.state != STATE_ERROR) {
       this.state = STATE_START;
+      
       notifyListener();
+      
       this.state = STATE_DOWNLOADING;
+      
+      notifyListener();
+      
       try {
         this.file = new File(this.directoryname, this.filename);
+        
         this.file.createNewFile();
+        
         FileOutputStream fileout = new FileOutputStream(this.file, false);
-        InputStream in = this.con.getInputStream();
-
+        
+        final boolean	status_reader_run[] = { true };
+        
+        Thread	status_reader = 
+        	new AEThread( "TorrentDownloader:statusreader" )
+			{
+        		public void
+				runSupport()
+        		{
+        			boolean changed_status	= false;
+        			
+        			while( true ){
+        				
+        				try{
+        					Thread.sleep(250);
+        					
+        					try{
+        						this_mon.enter();
+        						
+        						if ( !status_reader_run[0] ){
+        						
+        							break;
+        						}
+        					}finally{
+        						
+        						this_mon.exit();
+        					}
+        					
+        					String	s = con.getResponseMessage();
+        					        					
+        					if ( !s.equals( getStatus())){
+        						
+        						setStatus(s);
+        						
+        						changed_status	= true;
+        					}
+        				}catch( Throwable e ){
+        					
+        					break;
+        				}
+        			}
+        			
+        			if ( changed_status ){
+        				
+        				setStatus( "" );
+        			}
+        		}
+			};
+			
+		status_reader.setDaemon( true );
+		
+		status_reader.start();
+		
+		InputStream in;
+		
+		try{
+			in = this.con.getInputStream();
+			
+		}finally{
+			
+			try{ 
+				this_mon.enter();
+				
+				status_reader_run[0]	= false;
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+		}
+		
         byte[] buf = new byte[1020];
         int read = 0;
         int size = this.con.getContentLength();
@@ -366,7 +443,20 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   public void setError(String err) {
     this.error = err;
   }
-
+  protected void
+  setStatus(
+  	String	str )
+  {
+  	status	= str;
+  	notifyListener();
+  }
+  
+  public String
+  getStatus()
+  {
+  	return( status );
+  }
+  
   public java.io.File getFile() {
     if ((!this.isAlive()) || (this.file == null))
       this.file = new File(this.directoryname, this.filename);
