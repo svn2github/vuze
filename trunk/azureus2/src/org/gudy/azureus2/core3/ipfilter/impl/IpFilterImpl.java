@@ -72,7 +72,7 @@ IpFilterImpl
 		Iterator iter = this.ipRanges.iterator();
 		while(iter.hasNext()) {
 		  IpRange range = (IpRange) iter.next();
-		  if(range.isValid()) {
+		  if(range.isValid() && ! range.isSessionOnly()) {
 			String description =  range.getDescription();
 			String startIp = range.getStartIp();
 			String endIp = range.getEndIp();
@@ -113,7 +113,7 @@ IpFilterImpl
 			  String startIp =  new String((byte[])range.get("start"));
 			  String endIp = new String((byte[])range.get("end"));
 	        
-			  IpRange ipRange = new IpRangeImpl(description,startIp,endIp);
+			  IpRange ipRange = new IpRangeImpl(description,startIp,endIp,false);
 			  if(ipRange.isValid())
 				this.ipRanges.add(ipRange);
 			}
@@ -149,8 +149,8 @@ IpFilterImpl
 	}
 	
 	public IpRange
-	createRange()
+	createRange(boolean sessionOnly)
 	{
-		return( new IpRangeImpl("","",""));
+		return( new IpRangeImpl("","","",sessionOnly));
 	}
 }

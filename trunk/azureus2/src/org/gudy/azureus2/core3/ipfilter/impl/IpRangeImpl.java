@@ -44,10 +44,17 @@ IpRangeImpl
    private int[] end;
     
    private boolean valid;
+   
+   private boolean sessionOnly;
     
-   public IpRangeImpl(String description, String startIp, String endIp) {
+  public IpRangeImpl(String description, String startIp, String endIp) {
+    this(description,startIp,endIp,true);
+  }
+   
+   public IpRangeImpl(String description, String startIp, String endIp,boolean sessionOnly) {
      this.valid = false;
-     this.description = description;  
+     this.description = description;
+     this.sessionOnly = sessionOnly;
      if(startIp == null || endIp == null) {        
        return;
      }
@@ -162,4 +169,13 @@ IpRangeImpl
    public String toString() {
      return description + " : " + startIp + " - " + endIp; 
    }
+
+  public boolean isSessionOnly() {
+    return this.sessionOnly;
+  }
+
+  public void setSessionOnly(boolean sessionOnly) {
+    this.sessionOnly = sessionOnly;
+  }
+
  }

@@ -63,7 +63,7 @@ public class IpFilterEditor {
     this.range = _range;
     if (range == null) {
       newRange = true;
-      range = IpFilter.getInstance().createRange();
+      range = IpFilter.getInstance().createRange(false);
     }
 
     final Shell shell = new Shell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);

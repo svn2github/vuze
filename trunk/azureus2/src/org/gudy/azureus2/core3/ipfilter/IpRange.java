@@ -37,6 +37,9 @@ IpRange
 		
 	public boolean
 	isValid();
+  
+  public boolean
+  isSessionOnly();
 	
 	public String
 	getStartIp();
@@ -51,6 +54,10 @@ IpRange
 	public void
 	setEndIp(
 		String	str );
+  
+  public void
+  setSessionOnly(
+    boolean sessionOnly );
 		
 	public boolean isInRange(String ipAddress);
 	

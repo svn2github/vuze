@@ -48,5 +48,5 @@ IpFilter
 	public abstract boolean isInRange(String ipAddress);
 	
 	public abstract IpRange
-	createRange();
+	createRange(boolean sessionOnly);
 }
