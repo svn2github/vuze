@@ -330,6 +330,8 @@ TRTrackerClientClassicImpl
 	  }
 	} catch (Exception e) {
 	  
+	  e.printStackTrace();
+	  
 	  failure_reason = exceptionToString( e );
 	}
 	

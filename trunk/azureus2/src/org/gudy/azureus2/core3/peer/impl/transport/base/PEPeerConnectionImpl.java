@@ -30,8 +30,8 @@ import java.util.Arrays;
 import java.util.Vector;
 
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.PEPeerManagerImpl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerStatsImpl;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 
 public class 
 PEPeerConnectionImpl
@@ -57,7 +57,7 @@ PEPeerConnectionImpl
 	 * @param ip
 	 * @param port
 	 */
-	public PEPeerConnectionImpl(PEPeerManagerImpl manager, String ip, int port) {
+	public PEPeerConnectionImpl(PEPeerControl manager, String ip, int port) {
 	  super(manager, ip, port);
 	}
 
@@ -67,7 +67,7 @@ PEPeerConnectionImpl
 	 * @param ip
 	 * @param port
 	 */
-	public PEPeerConnectionImpl(PEPeerManagerImpl manager, byte[] id, String ip, int port) {
+	public PEPeerConnectionImpl(PEPeerControl manager, byte[] id, String ip, int port) {
 	  super(manager, id, ip, port);
 	}
 

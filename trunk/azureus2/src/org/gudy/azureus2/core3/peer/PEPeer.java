@@ -46,8 +46,6 @@ PEPeer
 	public byte[] getId();
 
 	public String getIp();
-
-	public PEPeerManager getManager();
  
 	public int getPort();
 	

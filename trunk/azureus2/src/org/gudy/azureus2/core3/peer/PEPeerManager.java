@@ -21,36 +21,23 @@
 
 package org.gudy.azureus2.core3.peer;
 
-import java.util.List;
-
-import java.nio.ByteBuffer;
-
-import org.gudy.azureus2.core3.disk.*;
-
 /**
- * @author stuff
+ * @author parg
  *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
+ 
 public interface 
 PEPeerManager 
 {
 	public static final int BLOCK_SIZE = 16384;
- 
-		
+ 		
 	public void peerAdded(PEPeer pc);
 
 	public void peerRemoved(PEPeer pc);
 	
-	public boolean validateHandshaking(PEPeer pc, byte[] peerId);
-
 	public void
 	stopAll();
-	
-	public PEPeerStats
-	createPeerStats();
-	
+		
 	public byte[]
 	getHash();
 	
@@ -58,25 +45,14 @@ PEPeerManager
 	getPeerId();
 	
 	public void blockWritten(int pieceNumber, int offset);
-
-	public boolean checkBlock(int pieceNumber, int offset, int length);
-	public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data);
-	public void enqueueReadRequest(DiskManagerDataQueueItem item);
-	public void writeBlock(int pieceNumber, int offset, ByteBuffer data);
-	public void requestCanceled(DiskManagerRequest request);
- 	
-	public void freeRequest(DiskManagerDataQueueItem item);
+	
+	public void pieceChecked(int pieceNumber, boolean result);
 
 	public int[] getAvailability();
 	
 	public boolean[] getPiecesStatus();
 
-	public void pieceChecked(int pieceNumber, boolean result);
-
 	public PEPiece[] getPieces();
-	public void havePiece(int pieceNumber, PEPeer pcOrigin);
-	
-	public boolean isOptimisticUnchoke(PEPeer pc);
 
 	public PEPeerStats
 	getStats();
@@ -84,15 +60,7 @@ PEPeerManager
 	public void 
 	checkTracker();
 
-	public void discarded( int i );
-	public void	received( int i );
-	public void	sent( int i );
-	
-	public void haveNewPiece();
-
 	public String getTrackerStatus();
-
-	public List get_connections();
 	
 	public int getAvailability(int pieceNumber);
 
@@ -107,7 +75,9 @@ PEPeerManager
 	public int getPieceLength();
 
 	public String getUploaded();
+	
 	public String getTotalSpeed();
+	
 	public int getTrackerTime();
 
 	public long downloaded();

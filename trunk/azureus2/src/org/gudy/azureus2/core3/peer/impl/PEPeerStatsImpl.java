@@ -53,7 +53,7 @@ PEPeerStatsImpl
 
 
 
-	  protected PEPeerStatsImpl(int pieceLength) {
+	  public PEPeerStatsImpl(int pieceLength) {
 //		  timeCreated = System.currentTimeMillis() / 100;
 
 		this.pieceLength = pieceLength;

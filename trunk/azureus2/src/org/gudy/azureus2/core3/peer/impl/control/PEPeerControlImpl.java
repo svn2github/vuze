@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
- package org.gudy.azureus2.core3.peer.impl;
+ package org.gudy.azureus2.core3.peer.impl.control;
 
 
 import java.nio.ByteBuffer;
@@ -36,13 +36,13 @@ import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.transport.base.*;
+import org.gudy.azureus2.core3.peer.impl.*;
 
 
 public class 
-PEPeerManagerImpl
+PEPeerControlImpl
 	extends 	Thread
-	implements 	PEPeerManager
+	implements 	PEPeerControl
 {
   private static final int MAX_REQUESTS = 16;
   private static final boolean DEBUG = false;
@@ -59,9 +59,9 @@ PEPeerManagerImpl
   private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
-  private PEPiece[] _pieces;
-  private PEPeerServerImpl _server;
-  private PEPeerStatsImpl _stats;
+  private PEPieceImpl[] 		_pieces;
+  private PEPeerServerHelper 	_server;
+  private PEPeerStatsImpl 		_stats;
   private long _timeLastUpdate;
   private int _timeToWait;
   private TRTrackerClient _tracker;
@@ -90,11 +90,12 @@ PEPeerManagerImpl
   
   private int nbHashFails;
 
-  public PEPeerManagerImpl(
-    DownloadManager manager,
-    PEPeerServer server,
-	TRTrackerClient tracker,
-    DiskManager diskManager) {
+  public PEPeerControlImpl(
+    DownloadManager 	manager,
+    PEPeerServerHelper 	server,
+	TRTrackerClient 	tracker,
+    DiskManager 		diskManager) {
+    	
     super("Peer Manager"); //$NON-NLS-1$
     this._manager = manager;
     //This torrent Hash
@@ -122,8 +123,8 @@ PEPeerManagerImpl
     _connections = new ArrayList();
 
     //The Server that handle incoming connections
-    _server = (PEPeerServerImpl)server;
-    _server.setManager(this);
+    _server = server;
+    _server.setController(this);
 
     this._diskManager = diskManager;
     _diskManager.setPeerManager(this);
@@ -238,7 +239,7 @@ PEPeerManagerImpl
                      synchronized (_connections) {
                         //System.out.println("new slow connect: " + (System.currentTimeMillis() /1000));
                         /* add connection */
-                        _connections.add(PEPeerTransportFactory.createTransport((PEPeerManagerImpl)testPS.getManager(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));
+                        _connections.add(PEPeerTransportFactory.createTransport(testPS.getManager(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));
                      }
                   }
                   /* wait */
@@ -415,7 +416,7 @@ PEPeerManagerImpl
   private void checkCompletedPieces() {
     //for every piece
     for (int i = 0; i < _nbPieces; i++) {
-      PEPiece currentPiece = _pieces[i]; //get the piece
+      PEPieceImpl currentPiece = _pieces[i]; //get the piece
 
       //if piece is loaded, and completed
       if (currentPiece != null && currentPiece.isComplete() && !currentPiece.isBeingChecked()) {
@@ -772,7 +773,7 @@ PEPeerManagerImpl
     if (pieceNumber == -1)
       return false;
     //Now we should have a piece with least presence on network    
-    PEPiece piece = null;
+    PEPieceImpl piece = null;
 
     //We need to know if it's last piece or not when creating the BtPiece Object
     if (pieceNumber < _nbPieces - 1)
@@ -1285,14 +1286,26 @@ PEPeerManagerImpl
     _piecesRarest = new boolean[_nbPieces];
 
     //the pieces
-    _pieces = diskManager.getPieces();
-    if (_pieces == null)
-      _pieces = new PEPiece[_nbPieces];
-    for (int i = 0; i < _pieces.length; i++) {
-      if (_pieces[i] != null) {
-        _pieces[i].setManager(this);
-        pieceAdded(_pieces[i]);
-      }
+    PEPiece[] dm_pieces = diskManager.getPieces();
+    
+    if (dm_pieces == null){
+    
+      _pieces = new PEPieceImpl[_nbPieces];
+      
+    }else{
+    	_pieces = new PEPieceImpl[ dm_pieces.length ];
+    	
+	    for (int i = 0; i < dm_pieces.length; i++) {
+	    
+	    	_pieces[i] = (PEPieceImpl)dm_pieces[i];
+	    	
+	      	if (_pieces[i] != null){
+	      		
+	        	_pieces[i].setManager(this);
+	        	
+	        	pieceAdded(_pieces[i]);
+	      	}
+	    }
     }
 
     //the availability level of each piece in the network
@@ -1326,7 +1339,7 @@ PEPeerManagerImpl
   }
 
   public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
-    PEPiece piece = _pieces[pieceNumber];
+    PEPieceImpl piece = _pieces[pieceNumber];
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBloc(blockNumber);
@@ -1486,7 +1499,7 @@ PEPeerManagerImpl
     //  the piece has been written correctly
     if (result) {
 
-      PEPiece piece = _pieces[pieceNumber];
+      PEPieceImpl piece = _pieces[pieceNumber];
       if(piece != null)
         piece.free();
       _pieces[pieceNumber] = null;
@@ -1572,7 +1585,7 @@ PEPeerManagerImpl
     return nbHashFails;
   }
   
-  public PEPeerStats
+  public PEPeerStatsImpl
   createPeerStats()
   {
   	return( new PEPeerStatsImpl( getPieceLength()));

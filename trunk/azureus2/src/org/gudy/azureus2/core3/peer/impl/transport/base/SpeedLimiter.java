@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.PEPeer;
 
 /**
@@ -204,7 +204,7 @@ public class SpeedLimiter {
       for (i = 0; i < uploaders.size(); i++) {
         PEPeer wti = (PEPeer) uploaders.get(i);
         maxUpload = wti.getMaxUpload();
-        if (wti.getDownloadPriority() == DownloadManager.HIGH_PRIORITY) {
+        if (wti.getDownloadPriority() == PEPeerTransport.HIGH_PRIORITY) {
           assignUploaderInfo(sortedUploadersHighPriority, sortedUploadersHighPriorityIndex, wti);
           sortedUploadersHighPriorityIndex++;
         }

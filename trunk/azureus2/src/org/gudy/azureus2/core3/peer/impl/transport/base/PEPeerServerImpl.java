@@ -28,7 +28,7 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.PEPeerManagerImpl;
+import org.gudy.azureus2.core3.peer.impl.*;
 
 /**
  * The Bittorrent server to accept incoming connections.
@@ -39,7 +39,7 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerManagerImpl;
 public class 
 PEPeerServerImpl
 	extends 	Thread 
-	implements  PEPeerServer
+	implements  PEPeerServerHelper
 {
   public static final int componentID = 4;
   public static final int evtLyfeCycle = 0;
@@ -50,7 +50,7 @@ PEPeerServerImpl
   private int port;
   private ServerSocketChannel sck;
   private boolean bContinue;
-  private PEPeerManagerImpl manager;
+  private PEPeerControl manager;
 
   private static int instanceCount = 0;
 
@@ -175,8 +175,8 @@ PEPeerServerImpl
     return port;
   }
 
-  public void setManager(PEPeerManager manager) {
-    this.manager = (PEPeerManagerImpl)manager;
+  public void setController(PEPeerControl manager) {
+    this.manager = manager;
   }
 
 }

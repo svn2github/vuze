@@ -34,13 +34,13 @@ PEPeerTransportFactory
 {
 	public static PEPeerTransport
 	createTransport(
-		PEPeerManagerImpl 	manager, 
+		PEPeerControl	 	control, 
 		byte[] 				peerId, 
 		String 				ip, 
 		int 				port, 
 		boolean 			fake )
 	{
-		return( new PEPeerTransportImpl( manager, peerId, ip, port, fake ));
+		return( new PEPeerTransportImpl( control, peerId, ip, port, fake ));
 	}
 
 	public static PEPeerServer

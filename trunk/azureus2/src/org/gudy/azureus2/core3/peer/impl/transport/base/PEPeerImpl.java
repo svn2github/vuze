@@ -28,25 +28,24 @@ package org.gudy.azureus2.core3.peer.impl.transport.base;
 
 import java.util.Arrays;
 
-import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.PEPeerManagerImpl;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 
 public class 
 PEPeerImpl
 {
-	PEPeerManagerImpl manager;
+	PEPeerControl manager;
 	byte[] id;
 	String ip;
 	int port;
 
-	public PEPeerImpl(PEPeerManagerImpl manager, String ip, int port) {
+	public PEPeerImpl(PEPeerControl manager, String ip, int port) {
 	  this.manager = manager;
 	  this.ip = ip;
 	  this.port = port;
 	  this.id = null;
 	}
 
-	public PEPeerImpl(PEPeerManagerImpl manager, byte[] id, String ip, int port) {
+	public PEPeerImpl(PEPeerControl manager, byte[] id, String ip, int port) {
 	  this(manager, ip, port);
 	  this.id = id;
 	}
@@ -69,7 +68,7 @@ PEPeerImpl
 	/**
 	 * @return
 	 */
-	public PEPeerManager getManager() {
+	public PEPeerControl getManager() {
 	  return manager;
 	}
 

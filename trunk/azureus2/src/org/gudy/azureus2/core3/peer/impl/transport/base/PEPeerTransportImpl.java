@@ -134,7 +134,7 @@ PEPeerTransportImpl
    * @param ip the peer Ip Address
    * @param port the peer port
    */
-  public PEPeerTransportImpl(PEPeerManagerImpl manager, byte[] peerId, String ip, int port, boolean fake) {
+  public PEPeerTransportImpl(PEPeerControl manager, byte[] peerId, String ip, int port, boolean fake) {
     super(manager, peerId, ip, port);
     if (fake)
       return;
@@ -171,7 +171,7 @@ PEPeerTransportImpl
    * @param table the graphical table in which this PeerConnection should display its info
    * @param sck the SocketChannel that handles the connection
    */
-  public PEPeerTransportImpl(PEPeerManagerImpl manager, SocketChannel sck) {
+  public PEPeerTransportImpl(PEPeerControl manager, SocketChannel sck) {
     super(manager, sck.socket().getInetAddress().getHostAddress(), sck.socket().getPort());
     this.socket = sck;
     this.incoming = true;

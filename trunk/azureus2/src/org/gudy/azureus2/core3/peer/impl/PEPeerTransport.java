@@ -29,10 +29,13 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 
 public interface
 PEPeerTransport
 {
+	public static final int HIGH_PRIORITY	= DownloadManager.HIGH_PRIORITY;
+	
 	public int
 	getState();
 	
@@ -100,7 +103,7 @@ PEPeerTransport
 	public int
 	getPercentDone();
 	
-	public PEPeerManager
+	public PEPeerControl
 	getManager();
 	
 	public String 
