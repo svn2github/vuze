@@ -46,27 +46,23 @@ IpFilterImpl
 	private static AEMonitor	class_mon	= new AEMonitor( "IpFilter:class" );
  
 	private Set 		all_ip_ranges;
-	private AEMonitor	all_ip_ranges_mon	= new AEMonitor( "IpFilter:all" );
 	
 	private IPAddressRangeManager	range_manager = new IPAddressRangeManager();
 	
 	private Map			bannedIps;
-	private AEMonitor	bannedIps_mon	= new AEMonitor( "IpFilter:banned" );
 	 
     //Map ip blocked -> matching range
 	
     private List		ipsBlocked;
-	private AEMonitor	ipsBlocked_mon	= new AEMonitor( "IpFilter:blocked" );
 
     private long	last_update_time;
     
-	
-	private AEMonitor	this_mon	= new AEMonitor( "IpFilter" );
-
   
 	private IpFilterImpl() 
 	{
 	  ipFilter = this;
+	  
+	  all_ip_ranges	= new HashSet();
 	  
 	  bannedIps = new HashMap();
 	  
@@ -115,11 +111,9 @@ IpFilterImpl
 		throws Exception
 	{
 		try{
-			this_mon.enter();
+			class_mon.enter();
 		
-	      Map map = new HashMap();
-		  try{
-		  	all_ip_ranges_mon.enter(); 
+			Map map = new HashMap();
 		 
 	
 			List filters = new ArrayList();
@@ -138,10 +132,6 @@ IpFilterImpl
 				filters.add(mapRange);
 			  }
 			}
-		  }finally{
-		  	
-		  	all_ip_ranges_mon.exit();
-		  }
 		  
 		  	FileOutputStream fos  = null;
 	    
@@ -164,7 +154,7 @@ IpFilterImpl
 	    	}
 		}finally{
 			
-			this_mon.exit();
+			class_mon.exit();
 		}
 	}
   
@@ -172,7 +162,7 @@ IpFilterImpl
 		throws Exception
 	{
 		try{
-			this_mon.enter();
+			class_mon.enter();
 		
 		  Set new_ipRanges = new HashSet();
 	
@@ -209,7 +199,7 @@ IpFilterImpl
 		  }
 		}finally{
 			
-			this_mon.exit();
+			class_mon.exit();
 		}
 	}
   
@@ -245,12 +235,12 @@ IpFilterImpl
 	  if(match != null) {
 	    if(!allow) {
 	      try{
-	      	ipsBlocked_mon.enter();
+	      	class_mon.enter();
 	     
 	        ipsBlocked.add(new BlockedIpImpl(ipAddress,match, torrent_name));
 	        
 		  }finally{
-		  	ipsBlocked_mon.exit();
+		  	class_mon.exit();
 		  }
 		  
 	      LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + match);
@@ -263,13 +253,13 @@ IpFilterImpl
 	
 	  if(allow) {
 	    try{
-	    	ipsBlocked_mon.enter();
+	    	class_mon.enter();
 	      
 	    	ipsBlocked.add(new BlockedIpImpl(ipAddress,null, torrent_name));
 	    	
 	    }finally{
 	    	
-	    	ipsBlocked_mon.exit();
+	    	class_mon.exit();
 	    }
 	    
 	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
@@ -280,13 +270,13 @@ IpFilterImpl
 	
 	private boolean isBanned(String ipAddress) {
 	  try{
-	  	bannedIps_mon.enter();
+	  	class_mon.enter();
 	  
 	    return( bannedIps.get(ipAddress) != null );
 	    
 	  }finally{
 	  	
-	  	bannedIps_mon.exit();
+	  	class_mon.exit();
 	  }
 	}
   
@@ -320,7 +310,7 @@ IpFilterImpl
 	getRanges()
 	{
 		try{
-			all_ip_ranges_mon.enter();
+			class_mon.enter();
 			
 			IpRange[]	res = new IpRange[all_ip_ranges.size()];
 			
@@ -330,7 +320,7 @@ IpFilterImpl
 			
 		}finally{
 			
-			all_ip_ranges_mon.exit();
+			class_mon.exit();
 		}
 	}
 	
@@ -345,7 +335,7 @@ IpFilterImpl
 		IpRange	range )
 	{
 		try{
-			all_ip_ranges_mon.enter();
+			class_mon.enter();
 		
 			all_ip_ranges.add( range );
 			
@@ -357,7 +347,7 @@ IpFilterImpl
 			
 		}finally{
 			
-			all_ip_ranges_mon.exit();
+			class_mon.exit();
 		}
 		
 		markAsUpToDate();
@@ -368,7 +358,7 @@ IpFilterImpl
 		IpRange	range )
 	{
 		try{
-			all_ip_ranges_mon.enter();
+			class_mon.enter();
 		
 			all_ip_ranges.remove( range );
 			
@@ -376,7 +366,7 @@ IpFilterImpl
 			
 		}finally{
 			
-			all_ip_ranges_mon.exit();
+			class_mon.exit();
 		}
 		
 		markAsUpToDate();
@@ -392,7 +382,7 @@ IpFilterImpl
 		boolean		valid )
 	{
 		try{
-			all_ip_ranges_mon.enter();
+			class_mon.enter();
 
 			if ( !all_ip_ranges.contains( range )){
 				
@@ -401,7 +391,7 @@ IpFilterImpl
 			
 		}finally{
 			
-			all_ip_ranges_mon.exit();
+			class_mon.exit();
 		}
 		
 		if ( valid ){
@@ -426,7 +416,7 @@ IpFilterImpl
 		String	torrent_name ) 
 	{
 		try{
-			ipsBlocked_mon.enter();
+			class_mon.enter();
 			
 			if( bannedIps.get(ipAddress) == null ){
 				
@@ -434,7 +424,7 @@ IpFilterImpl
 			}
 		}finally{
 			
-			ipsBlocked_mon.exit();
+			class_mon.exit();
 		}
 	}
 	
@@ -442,7 +432,7 @@ IpFilterImpl
 	getBannedIps() 
 	{
 		try{
-			bannedIps_mon.enter();
+			class_mon.enter();
 			
 			BannedIp[]	res = new BannedIp[bannedIps.size()];
 		
@@ -452,7 +442,7 @@ IpFilterImpl
 			
 		}finally{
 			
-			bannedIps_mon.exit();
+			class_mon.exit();
 		}
   	}
 	
@@ -466,12 +456,12 @@ IpFilterImpl
 	clearBannedIps()
 	{
 		try{
-			bannedIps_mon.enter();
+			class_mon.enter();
 		
 			bannedIps.clear();
 		}finally{
 			
-			bannedIps_mon.exit();
+			class_mon.exit();
 		}
 	}
 	
@@ -479,7 +469,7 @@ IpFilterImpl
 	getBlockedIps() 
 	{
 		try{
-			ipsBlocked_mon.enter();
+			class_mon.enter();
 			
 			BlockedIp[]	res = new BlockedIp[ipsBlocked.size()];
 		
@@ -488,7 +478,7 @@ IpFilterImpl
 			return( res );
 		}finally{
 			
-			ipsBlocked_mon.exit();
+			class_mon.exit();
 		}
   	}
 	
@@ -496,13 +486,13 @@ IpFilterImpl
 	clearBlockedIPs()
 	{
 		try{
-			ipsBlocked_mon.enter();
+			class_mon.enter();
 			
 			ipsBlocked.clear();
 			
 		}finally{
 			
-			ipsBlocked_mon.exit();
+			class_mon.exit();
 		}
 	}
 	

@@ -107,9 +107,11 @@ IpRangeImpl
    public boolean 
    isValid() 
    {
-   	return(	startIp instanceof Integer && 
-   			endIp instanceof Integer &&
-			((Integer)startIp).compareTo( endIp ) <= 0 );
+   	boolean	res = 	startIp instanceof Integer && 
+   					endIp instanceof Integer &&
+					((Integer)startIp).compareTo( endIp ) <= 0;
+   	
+   	return( res );
    }
     
    public boolean 
