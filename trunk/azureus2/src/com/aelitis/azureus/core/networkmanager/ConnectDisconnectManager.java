@@ -97,15 +97,20 @@ public class ConnectDisconnectManager {
   
   private void addNewOutboundRequests() {    
     while( pending_attempts.size() < MIN_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
+      ConnectionRequest cr = null;
+      
       try{
         new_canceled_mon.enter();
       
         if( new_requests.isEmpty() )  break;
-        ConnectionRequest cr = (ConnectionRequest)new_requests.removeFirst();
-        addNewRequest( cr ); 
+        cr = (ConnectionRequest)new_requests.removeFirst();
       }
       finally{
         new_canceled_mon.exit();
+      }
+      
+      if( cr != null ) {
+        addNewRequest( cr ); 
       }
     }
   }
@@ -178,6 +183,8 @@ public class ConnectDisconnectManager {
               finally{ new_canceled_mon.exit(); }
               
               if( canceled ) {
+                System.out.println( "ConnectDisconnectManager::selectSuccess():: connect request already canceled ["+request.channel+"]" );
+                
                 try{  pending_closes_mon.enter();
                   pending_closes.addLast( request.channel );  //just close it
                 }
@@ -371,16 +378,21 @@ public class ConnectDisconnectManager {
     
     //check if our connect queue is stalled, and expand if so
     if( num_stalled_requests == pending_attempts.size() && pending_attempts.size() < MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
+      ConnectionRequest cr = null;
+      
       try{
         new_canceled_mon.enter();
       
         if( !new_requests.isEmpty() ) {
-          ConnectionRequest cr = (ConnectionRequest)new_requests.removeFirst();
-          addNewRequest( cr );
+          cr = (ConnectionRequest)new_requests.removeFirst();
         }
       }
       finally{
         new_canceled_mon.exit();
+      }
+      
+      if( cr != null ) {
+        addNewRequest( cr );
       }
     }
   }
