@@ -3,9 +3,12 @@ AZUREUS CHANGELOG
 
 2004.11.xx | Azureus 2.2.0.1
 
+FEATURE: Core | Manual peer upload blocking (when seeding) and kick-banning [Nolar]
+
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
+
 
 
 
