@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
@@ -66,6 +67,7 @@ public class ByteBucket {
    */
   protected void setBytesUsed( int bytes_used ) {
     avail_bytes -= bytes_used;
+    //System.out.println("  bytes_used="+bytes_used+", avail_bytes="+avail_bytes);
   }
   
   
@@ -98,6 +100,10 @@ public class ByteBucket {
    * @param burst_rate
    */
   protected void setRate( int rate_bytes_per_sec, int burst_rate ) {
+    if( burst_rate < rate_bytes_per_sec ) {
+      Debug.out("burst_rate [" +burst_rate+ "] < rate_bytes_per_sec [" +rate_bytes_per_sec+ "]");
+      burst_rate = rate_bytes_per_sec;
+    }
     this.rate = rate_bytes_per_sec;
     this.burst_rate = burst_rate;
   }
@@ -105,11 +111,15 @@ public class ByteBucket {
   
   private void update_avail_byte_count() {
     long current_time = SystemTime.getCurrentTime();
+    //long current_time = System.currentTimeMillis();
     long time_diff = current_time - prev_update_time;
-    int num_new_bytes = new Float((time_diff * rate) / 1000).intValue();    
-    prev_update_time = current_time;
-    avail_bytes += num_new_bytes;
-    if( avail_bytes > burst_rate ) avail_bytes = burst_rate;
+    if( time_diff > 0 ) {
+      int num_new_bytes = new Float((time_diff * rate) / 1000).intValue();    
+      prev_update_time = current_time;
+      avail_bytes += num_new_bytes;
+      if( avail_bytes > burst_rate ) avail_bytes = burst_rate;
+    }
+    //System.out.println("time_diff="+time_diff+", rate=" +rate+ ", num_new_bytes=" +num_new_bytes+", avail_bytes="+avail_bytes);
   }
 
 }
