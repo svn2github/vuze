@@ -36,7 +36,7 @@ import org.eclipse.swt.custom.CTabItem;
  */
 public class TabFolder2ListenerAdder extends CTabFolder2Adapter {
   public static void add(CTabFolder folder) {
-    folder.addCTabFolder2Listener(new MainWindowTabFolder2Listener());
+    folder.addCTabFolder2Listener(new TabFolder2ListenerAdder());
   }
 
   public void close(CTabFolderEvent event) {
