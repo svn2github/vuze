@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.plugins.peers.*;
 
-import org.gudy.azureus2.pluginsimpl.disk.DiskManagerImpl;
+import org.gudy.azureus2.pluginsimpl.disk.*;
 
 public class 
 PeerForeignDelegate
@@ -131,7 +131,25 @@ PeerForeignDelegate
 	public List
 	getExpiredRequests()
 	{
-		return( foreign.getExpiredRequests());
+		DiskManagerImpl dm = (DiskManagerImpl)manager.getDiskManager();
+
+		List	reqs = foreign.getExpiredRequests();
+		
+		if ( reqs == null ){
+			
+			return( null );
+		}
+		
+		List	res = new ArrayList();
+		
+		for (int i=0;i<reqs.size();i++){
+			
+			DiskManagerRequestImpl	dmr = (DiskManagerRequestImpl)reqs.get(i);
+			
+			res.add( dmr.getDelegate());
+		}
+		
+		return( res );
 	}
   		
 	public int

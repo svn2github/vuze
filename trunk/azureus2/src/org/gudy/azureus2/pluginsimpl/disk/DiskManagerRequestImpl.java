@@ -49,7 +49,7 @@ DiskManagerRequestImpl
 		request		= manager.createDiskManagerRequest( _pieceNumber, _offset, _length );
 	}
 	
-	protected org.gudy.azureus2.core3.disk.DiskManagerRequest
+	public org.gudy.azureus2.core3.disk.DiskManagerRequest
 	getDelegate()
 	{
 		return( request );
@@ -89,5 +89,17 @@ DiskManagerRequestImpl
 	cancel()
 	{
 		manager.requestCanceled( request );
+	}
+	
+	public boolean
+	equals(
+		Object	other )
+	{
+		if ( other instanceof DiskManagerRequestImpl ){
+			
+			return( request.equals(((DiskManagerRequestImpl)other).request));
+		}
+		
+		return( false );
 	}
 }

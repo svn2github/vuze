@@ -123,8 +123,15 @@ PeerManagerImpl
 		List	res = new ArrayList();
 		
 		for (int i=0;i<_foreigns.length;i++){
+		
+			PEPeer	local = mapForeignPeer( _foreigns[i]);
 			
-			res.add( mapForeignPeer( _foreigns[i]));		
+				// could already be there if torrent contains two identical seeds (for whatever reason)
+			
+			if ( !res.contains( local )){
+				
+				res.add( local );
+			}
 		}
 		
 		return( res );
