@@ -106,16 +106,14 @@ public class TableColumnManager {
       TableColumnCore tci = 
         new OldMyTorrentsPluginItem(TableManager.TABLE_MYTORRENTS_COMPLETE, 
                                     name, item);
-      tci.initialize(iAlign, TableColumnCore.TYPE_TEXT, item.getDefaultPosition(), 
-                     item.getDefaultSize());
+      tci.initialize(iAlign, item.getDefaultPosition(), item.getDefaultSize());
       addColumn(tci);
     }
     if ((iVisibleIn & PluginMyTorrentsItemFactory.TABLE_INCOMPLETE) != 0) {
       TableColumnCore tci = 
         new OldMyTorrentsPluginItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, 
                                     name, item);
-      tci.initialize(iAlign, TableColumnCore.TYPE_TEXT, item.getDefaultPosition(), 
-                     item.getDefaultSize());
+      tci.initialize(iAlign, item.getDefaultPosition(), item.getDefaultSize());
       addColumn(tci);
     }
   }
@@ -124,9 +122,8 @@ public class TableColumnManager {
   public void addExtension(String name, PluginPeerItemFactory item) {
     TableColumnCore tci = new OldPeerPluginItem(TableManager.TABLE_TORRENT_PEERS,
                                             name, item);
-    tci.initialize(TableColumnCore.ALIGN_LEAD, TableColumnCore.TYPE_TEXT, 
-                   TableColumnCore.POSITION_INVISIBLE,
-                   item.getDefaultSize());
+    tci.initialize(TableColumnCore.ALIGN_LEAD, 
+                   TableColumnCore.POSITION_INVISIBLE, item.getDefaultSize());
     addColumn(tci);
   }
 
