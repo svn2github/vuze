@@ -74,6 +74,7 @@ public class PluginInterfaceImpl implements PluginInterface {
     return pluginDir;
   }
 
+  /* I think this is the more important one, rather than registerPluginParameter... -epall */
   public void addConfigUIParameters(Parameter[] parameters) {
     // TODO Auto-generated method stub
   }
@@ -87,10 +88,5 @@ public class PluginInterfaceImpl implements PluginInterface {
   public PluginConfigUIFactory getPluginConfigUIFactory() {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  public void registerPluginParameter(Parameter toRegister)
-  {
-	// TODO Auto-generated method stub	
   }
 }
