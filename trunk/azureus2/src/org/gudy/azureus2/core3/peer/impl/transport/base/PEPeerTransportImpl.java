@@ -52,6 +52,7 @@ PEPeerTransportImpl
   private volatile boolean connect_error = false;
   private volatile String msg = "";
   SocketManager.OutboundConnectionListener listener = null;
+  private DataReader		data_reader;
   
 	
 	  /**
@@ -97,7 +98,10 @@ PEPeerTransportImpl
     			false ) ;
     
     	socket 			= sck;
-      connected = true;
+    				
+		data_reader = DataReaderSpeedLimiter.getSingleton().getDataReader( this );
+	
+		connected = true;
   	}
   
 	public PEPeerTransport
@@ -117,7 +121,11 @@ PEPeerTransportImpl
       listener = new SocketManager.OutboundConnectionListener() {
         public void connectionDone( SocketChannel channel, String error_msg ) {
           if ( channel != null ) {
+          	
             socket = channel;
+            
+    		data_reader = DataReaderSpeedLimiter.getSingleton().getDataReader( this );
+
             connected = true;
           }
           else {
@@ -141,9 +149,11 @@ PEPeerTransportImpl
     if ( connected ) {
     	if (socket == null) System.out.println("socket = null");
     	SocketManager.closeConnection( socket );
-      socket = null;
-      connected = false;
-      return;
+        socket = null;
+		data_reader.destroy();
+		data_reader = null;
+        connected = false;
+        return;
     }
     
     if ( !connect_error && listener != null ) {
@@ -172,7 +182,7 @@ PEPeerTransportImpl
 			
 			int	pos = buffer.buff.position();
 			
-			int	len = socket.read(buffer.buff);
+			int	len = data_reader.read( socket, buffer );
 			
 			if ( len > 0 ){
 				
@@ -188,7 +198,7 @@ PEPeerTransportImpl
 			return( len );
 		}else{
 			
-			return(  socket.read(buffer.buff ));
+			return(  data_reader.read( socket, buffer ));
 		}
 
 	}
