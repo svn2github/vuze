@@ -7,11 +7,16 @@
 package org.gudy.azureus2.ui.swt.snippets;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Tray;
+import org.eclipse.swt.widgets.TrayItem;
 
 /**
  * 
@@ -30,8 +35,19 @@ public class OnTopProblem {
   
   public OnTopProblem() {
     display = new Display();
-    mainShell = new Shell(display,SWT.SHELL_TRIM);
+    mainShell = new Shell(display,SWT.SHELL_TRIM);        
     mainShell.setText("OnTopProblem");
+    
+    mainShell.setLayout(new FillLayout());
+    
+    Button btnClose = new Button(mainShell,SWT.PUSH);
+    btnClose.setText("Close");
+    btnClose.addListener(SWT.Selection,new Listener() {
+    	public void handleEvent(Event arg0) {
+    		mainShell.dispose();
+    	} 
+    });    
+    
     mainShell.setSize(300,200);
     mainShell.open();
     
@@ -39,16 +55,41 @@ public class OnTopProblem {
     onTopShell.setSize(200,30);
     onTopShell.open();
     
-    mainShell.addListener(SWT.Iconify, new Listener(){
+    onTopShell.setLayout(new FillLayout());
+    
+    labelIter = new Label(onTopShell,SWT.NULL);
+    
+    Tray tray = display.getSystemTray();
+    TrayItem trayItem = new TrayItem(tray,SWT.NULL);
+    trayItem.addListener(SWT.DefaultSelection, new Listener() {
+      public void handleEvent(Event e) {
+       mainShell.setVisible(true); 
+      }
+    });
+    
+    mainShell.addListener(SWT.Close, new Listener(){
         public void handleEvent(Event e) {
-        	onTopShell.setVisible(true);
+        	e.doit = false;
+          mainShell.setVisible(false);
+          onTopShell.setVisible(true);
         }
     });
     
+    Thread t = new Thread() {
+      public void run() {
+       while(updateDisplay()) {
+        try { Thread.sleep(100); } catch(Exception ignore) {}   
+       }
+      }
+     };
+     
+     t.start();
     
     waitForDispose();
     display.dispose();
   }
+  
+
   
   public void waitForDispose() {
     while(!mainShell.isDisposed()) {
@@ -57,15 +98,18 @@ public class OnTopProblem {
     }
   }
   
-  public void updateDisplay() {
+  public boolean updateDisplay() {
     if(display != null && ! display.isDisposed() ) {
       display.asyncExec(new Runnable() {
         public void run() {
+          iter++;
           labelIter.setText("" + iter);
           onTopShell.setSize(sizes[iter % sizes.length],20);
         }
       });
+      return true;
     }
+    return false;
   }
   
   public static void main(String args[]) {
