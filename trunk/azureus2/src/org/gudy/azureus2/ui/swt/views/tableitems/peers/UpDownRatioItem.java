@@ -49,7 +49,8 @@ public class UpDownRatioItem
     if (peer != null) {
       lDivisor = peer.getStats().getTotalReceived();
       lDivident = peer.getStats().getTotalSent();
-      if (lDivisor > 0) {
+      // skip if divisor is small (most likely handshake) or 0 (DivisionByZero)
+      if (lDivisor > 1024) {
         value = lDivident / (float)lDivisor;
         if (value == 0)
           value = -1;
