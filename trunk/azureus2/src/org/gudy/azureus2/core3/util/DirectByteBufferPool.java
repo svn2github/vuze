@@ -146,7 +146,7 @@ DirectByteBufferPool
       return ByteBuffer.allocateDirect(_size);
     }
     catch (OutOfMemoryError e) {
-       Debug.out("Running garbage collector...");
+       //Debug.out("Running garbage collector...");
        
        clearBufferPools();
        
