@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -57,6 +58,19 @@ ExportTorrentWizard
 		setFirstPanel(input_panel);
 	}
   
+	public 
+	ExportTorrentWizard(
+		Display 		display,
+		DownloadManager	dm )
+	{
+		super(display,"exportTorrentWizard.title");
+	
+		setTorrentFile( dm.getTorrentFileName());
+		
+		ExportTorrentWizardOutputPanel output_panel = new ExportTorrentWizardOutputPanel(this,null);
+	
+		setFirstPanel(output_panel);
+	}
  	public void 
  	onClose() 
  	{

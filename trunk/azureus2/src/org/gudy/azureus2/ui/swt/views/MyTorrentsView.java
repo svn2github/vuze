@@ -36,6 +36,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -44,6 +46,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
 import org.gudy.azureus2.ui.swt.views.tableitems.ManagerItem;
+import org.gudy.azureus2.ui.swt.exporttorrent.wizard.*;
 
 /**
  * @author Olivier
@@ -155,8 +158,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     new MenuItem(menu, SWT.SEPARATOR);
 
-    final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
+	final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
+
+	final MenuItem itemExport = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
+	
+	final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
+	Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
 
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -481,6 +490,38 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       }
     });
 
+	itemExport.addListener(SWT.Selection, new Listener() {
+	   public void handleEvent(Event event) {
+		 TableItem[] tis = table.getSelection();
+		 if (tis.length == 0) {
+		   return;
+		 }
+		 TableItem ti = tis[0];
+		 DownloadManager dm = (DownloadManager) managers.get(ti);
+		 
+		 new ExportTorrentWizard(itemExport.getDisplay(), dm);
+	   }
+	 });
+
+	itemHost.addListener(SWT.Selection, new Listener() {
+	   public void handleEvent(Event event) {
+		 TableItem[] tis = table.getSelection();
+		 if (tis.length == 0) {
+		   return;
+		 }
+		 TableItem ti = tis[0];
+		 
+		 DownloadManager dm = (DownloadManager) managers.get(ti);
+		 
+		 TOTorrent	torrent = dm.getTorrent();
+		 
+		 if ( torrent != null ){
+		 
+		 	TRHostFactory.create().addTorrent( torrent );
+		 }
+	   }
+	 });
+	 
     itemBar.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         TableItem[] tis = table.getSelection();
