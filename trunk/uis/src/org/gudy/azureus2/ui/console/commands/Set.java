@@ -63,7 +63,7 @@ public class Set implements IConsoleCommand {
             } 
             catch( ClassCastException cce1 ) {
               try {
-                ci.out.println("> " + parameter + ": " + COConfigurationManager.getFloatParameter( parameter ) );
+                ci.out.println("> " + parameter + ": " + COConfigurationManager.getBooleanParameter( parameter ) );
               }
               catch( ClassCastException cce2 ) {
                 try {
@@ -71,7 +71,7 @@ public class Set implements IConsoleCommand {
                 }
                 catch( ClassCastException cce3 ) {
                   try {
-                    ci.out.println("> " + parameter + ": " + COConfigurationManager.getBooleanParameter( parameter ) );
+                    ci.out.println("> " + parameter + ": " + COConfigurationManager.getFloatParameter( parameter ) );
                   }
                   catch( ClassCastException cce4 ) {
                     ci.out.println("Error: cannot determine parameter type");
