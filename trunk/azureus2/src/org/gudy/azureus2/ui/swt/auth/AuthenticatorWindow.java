@@ -209,12 +209,12 @@ AuthenticatorWindow
 		String	user 	= dialog[0].getUsername();
 		String	pw		= dialog[0].getPassword();
 		
-		if ( user == null || pw == null ){
+		if ( user == null ){
 			
 			return( null );
 		}
 		
-		return( new String[]{ user, pw });
+		return( new String[]{ user, pw == null?"":pw });
 	}
 	
 	protected class

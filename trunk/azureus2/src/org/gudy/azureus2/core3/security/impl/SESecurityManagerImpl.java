@@ -80,11 +80,23 @@ SESecurityManagerImpl
 					protected synchronized PasswordAuthentication
 					getPasswordAuthentication()
 					{					
-						return( getAuthentication( 
+						PasswordAuthentication	res =  
+							getAuthentication( 
 									getRequestingPrompt(),
 									getRequestingProtocol(),
 									getRequestingHost(),
-									getRequestingPort()));
+									getRequestingPort());
+						
+						/*
+						System.out.println( "Authenticator:getPasswordAuth: res = " + res );
+						
+						if ( res != null ){
+							
+							System.out.println( "    user = '" + res.getUserName() + "', pw = '" + new String(res.getPassword()) + "'" );
+						}
+						*/
+						
+						return( res );
 					}
 				});
 	}
