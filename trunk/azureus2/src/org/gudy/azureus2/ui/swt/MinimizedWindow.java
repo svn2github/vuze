@@ -13,6 +13,7 @@ import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -311,7 +312,18 @@ public class MinimizedWindow {
   }
 
   public void close() {
-    splash.dispose();
+    if(!splash.isDisposed()) {
+      Display display = splash.getDisplay();
+      if(display != null && ! display.isDisposed()) {
+       display.asyncExec(new Runnable() {
+        public void run() {
+          if(!splash.isDisposed()) {
+            splash.dispose();
+          }
+        }
+       }); 
+      }
+    }    
     downloadBars.remove(this);
   }
 
