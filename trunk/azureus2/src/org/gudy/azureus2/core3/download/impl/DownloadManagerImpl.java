@@ -190,7 +190,6 @@ DownloadManagerImpl
 	protected boolean onlySeeding;
 	
 	private int 		state = -1;
-	private boolean 	download_ended;
   
 	private int prevState = -1;
 
@@ -563,22 +562,27 @@ DownloadManagerImpl
 			 
 			 nbPieces = torrent.getNumberOfPieces();
 			 
-			 tracker_response_cache	= torrent.getAdditionalMapProperty(TRACKER_CACHE_KEY);
-			 
-			 if ( tracker_response_cache == null ){
+			 	// only restore the tracker response cache for non-seeds
+	   
+			 if ( DiskManagerFactory.isTorrentResumeDataComplete(torrent, torrent_save_dir, torrent_save_file )) {
 			 	
-			 	tracker_response_cache	= new HashMap();
-			 }
-     
-			 if (DiskManagerFactory.isTorrentResumeDataComplete(torrent, torrent_save_dir, torrent_save_file )) {
-			 	
-			  stats.setDownloadCompleted(1000);
+				  tracker_response_cache	= new HashMap();
+					
+				  stats.setDownloadCompleted(1000);
 			  
-			  setOnlySeeding(true);
-			 } else {
-			  setOnlySeeding(false);
+				  setOnlySeeding(true);
+			  
+			 }else{
+			 	
+				 tracker_response_cache	= torrent.getAdditionalMapProperty(TRACKER_CACHE_KEY);
+				 
+				 if ( tracker_response_cache == null ){
+				 	
+				 	tracker_response_cache	= new HashMap();
+				 }
+	  
+				 setOnlySeeding(false);
 			}
-			
 		}catch( TOTorrentException e ){
 		
 			Debug.printStackTrace( e );
@@ -644,7 +648,10 @@ DownloadManagerImpl
 		return onlySeeding;
 	}
 	
-  public void setOnlySeeding(boolean _onlySeeding) {
+  public void 
+  setOnlySeeding(
+  	boolean _onlySeeding) 
+  {
      //LGLogger.log(getName()+"] setOnlySeeding("+onlySeeding+") was " + onlySeeding);
     if (onlySeeding != _onlySeeding) {
       onlySeeding = _onlySeeding;
@@ -1379,7 +1386,7 @@ DownloadManagerImpl
   	public boolean
 	isDownloadComplete()
   	{
-  		return( download_ended || onlySeeding );
+  		return( onlySeeding );
   	}
   	
 	public void
@@ -1392,7 +1399,7 @@ DownloadManagerImpl
 		
 		listener.stateChanged( this, state );
 		
-		if ( download_ended ){
+		if ( onlySeeding ){
 				
 			listener.downloadComplete(this);
 		}
@@ -1563,9 +1570,8 @@ DownloadManagerImpl
   public void 
   downloadEnded()
   {
-    download_ended = true;
-
-    if (isForceStart()) {
+    if (isForceStart()){
+    	
       setForceStart(false);
     }
 
