@@ -1045,7 +1045,7 @@ DiskManagerImpl
         
         //make sure it hasn't previously been allocated
         if( dmanager.isDataAlreadyAllocated() ) {
-          this.errorMessage = "Pre-existing file not found: " + f.getAbsolutePath();
+          this.errorMessage = "Data file missing: " + f.getAbsolutePath();
           setState( FAULTY );
           return -1;
         }
