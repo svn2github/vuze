@@ -37,4 +37,10 @@ SEPasswordListener
 	getAuthentication(
 		String		realm,
 		URL			tracker );
+	
+	public void
+	setAuthenticationOutcome(
+		String		realm,
+		URL			tracker,
+		boolean		success );
 }

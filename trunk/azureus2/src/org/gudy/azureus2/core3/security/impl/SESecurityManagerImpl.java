@@ -293,6 +293,18 @@ SESecurityManagerImpl
 		return( null );
 	}
 	
+	public static void
+	setPasswordAuthenticationOutcome(
+		String		realm,
+		URL			tracker,
+		boolean		success )
+	{
+		for (int i=0;i<password_listeners.size();i++){
+			
+			((SEPasswordListener)password_listeners.get(i)).setAuthenticationOutcome( realm, tracker, success );
+		}
+	}
+		
 	public static synchronized void
 	addPasswordListener(
 		SEPasswordListener	l )

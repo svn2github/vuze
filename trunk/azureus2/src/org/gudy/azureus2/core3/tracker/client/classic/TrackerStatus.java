@@ -432,6 +432,11 @@ public class TrackerStatus {
 				
 				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_SCRAPE ){
 					
+ 					if ( auth != null ){
+ 						
+ 						SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerClientClassicImpl.UDP_REALM, reqUrl, true );
+ 					}
+
 					if ( PRUDPPacket.VERSION == 1 ){
 						PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
 						
@@ -527,8 +532,19 @@ public class TrackerStatus {
 						"Response from scrape interface : " +
 						((PRUDPPacketReplyError)reply).getMessage());
 			}
+			
+			if ( auth != null ){
+						
+				SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerClientClassicImpl.UDP_REALM, reqUrl, false );
+			}
+
 		}catch( PRUDPPacketHandlerException e ){
 			
+			if ( auth != null ){
+						
+				SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerClientClassicImpl.UDP_REALM, reqUrl, false );
+			}
+
 			if ( e.getMessage() == null || e.getMessage().indexOf("timed out") == -1 ){
 				
 				throw( e );

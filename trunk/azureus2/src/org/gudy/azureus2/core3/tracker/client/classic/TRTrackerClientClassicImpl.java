@@ -63,6 +63,8 @@ TRTrackerClientClassicImpl
 	 
 	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
 	
+	public static String 	UDP_REALM = "UDP Tracker";
+	
 	private TOTorrent				torrent;
 	private TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;
@@ -923,13 +925,13 @@ TRTrackerClientClassicImpl
  		reqUrl = TRTrackerClientUtilsImpl.adjustURLForHosting( reqUrl );
 
  		String	failure_reason = null;
+		
+ 		PasswordAuthentication	auth = null;	
  		
  		try{
- 			PasswordAuthentication	auth = null;
- 			
  			if ( reqUrl.getQuery().toLowerCase().indexOf("auth") != -1 ){
  				
- 				 auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
+ 				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
  			
  			int lport = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
@@ -1067,6 +1069,11 @@ TRTrackerClientClassicImpl
 		 			
 		 				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_ANNOUNCE ){
 		 					
+		 					if ( auth != null ){
+		 						
+		 						SESecurityManager.setPasswordAuthenticationOutcome( UDP_REALM, reqUrl, true );
+		 					}
+		 					
 		 					if ( PRUDPPacket.VERSION == 1 ){
 			 					PRUDPPacketReplyAnnounce	announce_reply = (PRUDPPacketReplyAnnounce)reply;
 			 					
@@ -1152,6 +1159,11 @@ TRTrackerClientClassicImpl
  			failure_reason = exceptionToString(e);
  		}
  		
+		if ( auth != null ){
+					
+			SESecurityManager.setPasswordAuthenticationOutcome( UDP_REALM, reqUrl, false );
+		}
+
  		return( failure_reason );
  	}
  	

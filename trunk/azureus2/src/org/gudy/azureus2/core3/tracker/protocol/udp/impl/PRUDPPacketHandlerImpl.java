@@ -127,6 +127,11 @@ PRUDPPacketHandlerImpl
 			}
 		}catch( Throwable e ){
 			
+			LGLogger.logAlertUsingResource( 
+					LGLogger.AT_ERROR,
+					"Tracker.alert.listenfail",
+					new String[]{ "UDP:"+port });
+			
 			LGLogger.log( "PRUDPPacketReceiver: DatagramSocket bind failed on port ".concat(String.valueOf(port)), e ); 
 		}
 	}

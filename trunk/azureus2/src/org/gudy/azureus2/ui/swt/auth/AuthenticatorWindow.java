@@ -70,7 +70,7 @@ AuthenticatorWindow
 				});
 	}
 	
-	public PasswordAuthentication
+	public synchronized PasswordAuthentication
 	getAuthentication(
 		String		realm,
 		URL			tracker )
@@ -78,7 +78,36 @@ AuthenticatorWindow
 		return( getAuthentication( realm, tracker.getProtocol(), tracker.getHost(), tracker.getPort()));
 	}
 	
-	public PasswordAuthentication
+	public synchronized void
+	setAuthenticationOutcome(
+		String		realm,
+		URL			tracker,
+		boolean		success )
+	{
+		setAuthenticationOutcome( realm, tracker.getProtocol(), tracker.getHost(), tracker.getPort(), success );	
+	}
+	
+	public synchronized void
+	setAuthenticationOutcome(
+		String		realm,
+		String		protocol,
+		String		host,
+		int			port,
+		boolean		success )
+	{
+		String	tracker = protocol + "://" + host + ":" + port + "/";
+		
+		String auth_key = realm+":"+tracker;
+		
+		authCache	cache = (authCache)auth_cache.get( auth_key );
+
+		if ( cache != null ){
+
+			cache.setOutcome( success );
+		}
+	}
+	
+	public synchronized PasswordAuthentication
 	getAuthentication(
 		String		realm,
 		String		protocol,
@@ -390,12 +419,30 @@ AuthenticatorWindow
 	{
 		protected PasswordAuthentication	auth;
 		protected int						life = 5;
+		protected boolean					succeeded;
 		
 		protected
 		authCache(
 			PasswordAuthentication		_auth )
 		{
 			auth		= _auth;
+		}
+		
+		protected void
+		setOutcome(
+			boolean	success)
+		{
+			if ( success ){
+				
+				succeeded	= true;
+				
+			}else{
+				
+				if ( !succeeded ){
+					
+					auth	= null;
+				}
+			}
 		}
 		
 		protected PasswordAuthentication

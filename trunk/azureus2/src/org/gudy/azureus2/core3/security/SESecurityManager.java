@@ -71,7 +71,17 @@ SESecurityManager
 	{
 		return( SESecurityManagerImpl.getPasswordAuthentication(realm, tracker));	
 	}
+	
+	public static void
+	setPasswordAuthenticationOutcome(
+		String		realm,
+		URL			tracker,
+		boolean		success )
+	{
+		SESecurityManagerImpl.setPasswordAuthenticationOutcome(realm, tracker, success);	
+	}
 		
+	
 	public static synchronized void
 	addPasswordListener(
 		SEPasswordListener	l )
