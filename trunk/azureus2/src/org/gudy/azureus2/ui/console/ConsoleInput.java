@@ -436,7 +436,11 @@ public class ConsoleInput extends Thread {
 			OptionGroup addy = new OptionGroup();
 			options.addOption("o", "output", true, "Output Directory.");
 			addy.addOption(new Option("r", "recurse", false, "Recurse Subdirs."));
-			addy.addOption(OptionBuilder.hasArgs().withDescription("Add found file nr x.").create('n'));
+			
+			OptionBuilder.hasArgs();
+			OptionBuilder.withDescription("Add found file nr x.");
+			addy.addOption(OptionBuilder.create('n'));
+			
 			options.addOption(new Option("f", "find", false, "Only find files, don't add."));
 			options.addOptionGroup(addy);
 			try {

@@ -57,21 +57,25 @@ public class Main {
     CommandLineParser parser = new PosixParser();
     Options options = new Options();
     options.addOption("h", "help", false, "Show this help.");
-    options.addOption(OptionBuilder.withLongOpt("exec")
-                                   .hasArg()
-                                   .withArgName("file")
-                                   .withDescription("Execute script file. The file should end with 'logout', otherwise the parser thread doesn't stop.")
-                                   .create('e'));
-    options.addOption(OptionBuilder.withLongOpt("command")
-                                   .hasArg()
-                                   .withArgName("command")
-                                   .withDescription("Execute single script command. Try '-c help' for help on commands.")
-                                   .create('c'));
-    options.addOption(OptionBuilder.withLongOpt("ui")
-                                   .withDescription("Run <uis>. ',' separated list of user interfaces to run. The first one given will respond to requests without determinable source UI (e.g. further torrents added via command line).")
-                                   .withArgName("uis")
-                                   .hasArg()
-                                   .create('u'));
+ 
+    OptionBuilder.withLongOpt("exec");
+    OptionBuilder.hasArg();
+    OptionBuilder.withArgName("file");
+    OptionBuilder.withDescription("Execute script file. The file should end with 'logout', otherwise the parser thread doesn't stop.");
+    options.addOption( OptionBuilder.create('e'));
+    
+    OptionBuilder.withLongOpt("command");
+    OptionBuilder.hasArg();
+    OptionBuilder.withArgName("command");
+    OptionBuilder.withDescription("Execute single script command. Try '-c help' for help on commands.");
+    options.addOption(OptionBuilder.create('c'));
+    
+    OptionBuilder.withLongOpt("ui");
+    OptionBuilder.withDescription("Run <uis>. ',' separated list of user interfaces to run. The first one given will respond to requests without determinable source UI (e.g. further torrents added via command line).");
+    OptionBuilder.withArgName("uis");
+    OptionBuilder.hasArg();
+    options.addOption(OptionBuilder.create('u'));
+    
     CommandLine commands = null;
     try {
       commands = parser.parse(options, args, true);
