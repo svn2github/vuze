@@ -198,6 +198,8 @@ MySharesView
 
 	    addCategorySubMenu();
 	    
+	    new MenuItem(menu, SWT.SEPARATOR);
+
 	   final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemRemove, "MySharesView.menu.remove"); //$NON-NLS-1$
 	   itemRemove.setImage(ImageRepository.getImage("delete"));

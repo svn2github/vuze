@@ -119,8 +119,11 @@ ShareResourceImpl
 			String	value = (String)attributes.get(ta);
 			
 			try{
-				attrs.put( ta.getName(), value.getBytes( Constants.DEFAULT_ENCODING ));
-				
+				if ( value != null ){
+					
+					attrs.put( ta.getName(), value.getBytes( Constants.DEFAULT_ENCODING ));
+					
+				}
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
