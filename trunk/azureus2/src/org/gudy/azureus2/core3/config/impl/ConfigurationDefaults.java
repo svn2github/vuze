@@ -279,6 +279,14 @@ public class ConfigurationDefaults {
     def.put( "Tracker Client Scrape Enable", new Long(1));
     def.put( "Tracker Client Scrape Stopped Enable", new Long(1));
     
+    def.put( "Network Selection Prompt", new Long(1));
+    def.put( "Network Selection Default.Public", new Long(1));
+    def.put( "Network Selection Default.I2P", new Long(1));
+    def.put( "Network Selection Default.Tor", new Long(1));
+    def.put( "Tracker Network Selection Default.Public", new Long(1));
+    def.put( "Tracker Network Selection Default.I2P", new Long(1));
+    def.put( "Tracker Network Selection Default.Tor", new Long(1));
+    
     def.put( "config.style.useSIUnits", new Long(0) );
     def.put( "config.style.useUnitsRateBits", new Long(0) );
     def.put( "Save Torrent Backup", new Long(0) );

@@ -26,7 +26,6 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.category.Category;
 
 public interface
 DownloadManager

@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
@@ -598,6 +599,55 @@ DownloadManagerStateImpl
 		}
 	}
 		
+	public String[]
+	getNetworks()
+	{
+		List	values = getListAttribute( AT_NETWORKS );
+		
+		List	res = new ArrayList();
+		
+			// map back to the constants to allow == comparisons
+		
+		for (int i=0;i<values.size();i++){
+			
+			String	nw = (String)values.get(i);
+			
+			for (int j=0;j<AENetworkClassifier.AT_NETWORKS.length;j++){
+			
+				String	nn = AENetworkClassifier.AT_NETWORKS[j];
+		
+				if ( nn.equals( nw )){
+					
+					res.add( nn );
+				}
+			}
+		}
+		
+		String[]	x = new String[res.size()];
+		
+		res.toArray(x);
+		
+		return( x );
+	}
+					
+	public void
+	setNetworks(
+		String[]		networks )
+	{
+		if ( networks == null ){
+			
+			networks = new String[0];
+		}
+		
+		List	l = new ArrayList();
+		
+		for (int i=0;i<networks.length;i++){
+			
+			l.add( networks[i]);
+		}
+		
+		setListAttribute( AT_NETWORKS, l );
+	}
 	
 	protected String
 	getStringAttribute(
@@ -677,6 +727,131 @@ DownloadManagerStateImpl
 			}catch( UnsupportedEncodingException e ){
 				
 				Debug.printStackTrace(e);
+			}
+		}
+		
+		if ( changed ){
+			
+			write_required	= true;
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					((DownloadManagerStateListener)listeners.get(i)).stateChanged(
+						this,
+						new DownloadManagerStateEvent()
+						{
+							public int
+							getType()
+							{
+								return( DownloadManagerStateEvent.ET_ATTRIBUTE_CHANGED );
+							}
+							
+							public Object
+							getData()
+							{
+								return( attribute_name );
+							}
+						});
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+	}
+	
+	
+	protected List
+	getListAttribute(
+		String	attribute_name )
+	{
+		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		List	res = new ArrayList();
+
+		if ( attributes != null ){
+			
+			List	values = (List)attributes.get( attribute_name );
+		
+			if ( values != null ){
+				
+				for (int i=0;i<values.size();i++){
+				
+					Object	o = values.get(i);
+					
+					if ( o instanceof byte[] ){
+						
+						byte[]	bytes = (byte[])o;
+						
+						try{
+							res.add( new String( bytes, Constants.DEFAULT_ENCODING ));
+							
+						}catch( UnsupportedEncodingException e ){
+							
+							Debug.printStackTrace(e);					
+						}
+					}else if ( o instanceof String ){
+						
+						res.add( o );
+					}
+				}
+			}
+		}
+	
+		return( res );
+	}
+	
+	protected void
+	setListAttribute(
+		final String	attribute_name,
+		final List		attribute_value )
+	{
+		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		if ( attributes == null ){
+			
+			if ( attribute_value == null ){
+			
+					// nothing to do, no attributes and we're removing a value
+				
+				return;
+			}
+			
+			attributes = new HashMap();
+			
+			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+		}
+	
+		boolean	changed	= false;
+		
+		if ( attribute_value == null ){
+			
+			if ( attributes.containsKey( attribute_name )){
+			
+				attributes.remove( attribute_name );
+			
+				changed	= true;
+			}
+		}else{
+		
+			List old_value = getListAttribute( attribute_name );
+								
+			if ( old_value == null || old_value.size() != attribute_value.size()){
+				
+				attributes.put( attribute_name, attribute_value );
+					
+				changed	= true;
+				
+			}else{
+				
+				changed = !BEncoder.listsAreIdentical( old_value, attribute_value ); 
+				
+				if ( changed ){
+					
+					attributes.put( attribute_name, attribute_value );
+				}
 			}
 		}
 		
@@ -815,6 +990,18 @@ DownloadManagerStateImpl
 		public void 
 		setCategory(
 			Category cat )
+		{
+		}
+		
+		public String[]		
+		getNetworks()
+		{
+			return( new String[0] );
+		}
+						
+		public void
+		setNetworks(
+			String[]		networks )
 		{
 		}
 		

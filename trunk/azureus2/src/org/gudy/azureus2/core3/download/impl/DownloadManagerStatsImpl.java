@@ -161,8 +161,8 @@ DownloadManagerStatsImpl
 	  }
 	}
 
-	public void setCompleted(int completed) {
-	  this.completed = completed;
+	public void setCompleted(int _completed) {
+	  completed = _completed;
 	}
 
 	public int getDownloadCompleted(boolean bLive) {
@@ -184,8 +184,8 @@ DownloadManagerStatsImpl
     return newValue;
   }
   
-  public void setDownloadCompleted(int completed) {
-    downloadCompleted = completed;
+  public void setDownloadCompleted(int _completed) {
+    downloadCompleted = _completed;
   }
 
 

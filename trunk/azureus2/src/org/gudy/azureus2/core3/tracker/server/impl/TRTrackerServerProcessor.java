@@ -66,6 +66,30 @@ TRTrackerServerProcessor
 		
 		client_ip_address = TRTrackerUtils.adjustHostFromHosting( client_ip_address );
 		
+		if ( !TRTrackerServerImpl.getAllNetworksSupported()){
+		
+			String	network = AENetworkClassifier.categoriseAddress( client_ip_address );
+			
+			String[]	permitted_networks = TRTrackerServerImpl.getPermittedNetworks();
+			
+			boolean ok = false;
+			
+			for (int i=0;i<permitted_networks.length;i++){
+				
+				if ( network == permitted_networks[i] ){
+					
+					ok = true;
+					
+					break;
+				}
+			}
+			
+			if ( !ok ){
+				
+				throw( new Exception( "Network '" + network + "' not supported" ));
+			}
+		}
+		
 		boolean	loopback	= client_ip_address.equals( TRTrackerUtils.getTrackerIP());
 		
 		TRTrackerServerTorrentImpl	torrent = null;

@@ -150,7 +150,7 @@ TRTrackerScraperImpl
 	{
 		tracker_checker.removeHash( torrent );
 	}
-		
+	
 	protected void
 	scrapeReceived(
 		TRTrackerScraperResponse		response )
@@ -187,6 +187,19 @@ TRTrackerScraperImpl
 		}
 		
 		return( client_resolver.getStatus( hash ) == TRTrackerScraperClientResolver.ST_RUNNING );
+	}
+	
+	protected boolean
+	isNetworkEnabled(
+		byte[]	hash,
+		URL		url )
+	{
+		if ( client_resolver == null ){
+			
+			return( false );
+		}
+		
+		return( client_resolver.isNetworkEnabled( hash, url ));
 	}
 	
 	public void

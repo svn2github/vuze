@@ -52,6 +52,9 @@ TRTrackerServerImpl
 	public static int		announce_cache_threshold	= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD;
 	public static int		max_seed_retention			= 0;
 	
+	public static boolean	all_networks_permitted		= true;
+	public static String[]	permitted_networks			= {};
+	
 	static{
 
 		COConfigurationManager.addListener(
@@ -81,6 +84,30 @@ TRTrackerServerImpl
 		announce_cache_threshold = COConfigurationManager.getIntParameter( "Tracker Announce Cache Min Peers", TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
 
 		max_seed_retention = COConfigurationManager.getIntParameter( "Tracker Max Seeds Retained", 0 );
+		
+		List	nets = new ArrayList();
+		
+		for (int i=0;i<AENetworkClassifier.AT_NETWORKS.length;i++){
+			
+			String	net = AENetworkClassifier.AT_NETWORKS[i];
+			
+			boolean	enabled = 
+				COConfigurationManager.getBooleanParameter(
+						"Tracker Network Selection Default." + net );
+			
+			if ( enabled ){
+				
+				nets.add( net );
+			}
+		}
+		
+		String[]	s_nets = new String[nets.size()];
+		
+		nets.toArray(s_nets);
+		
+		permitted_networks	= s_nets;
+		
+		all_networks_permitted = s_nets.length == AENetworkClassifier.AT_NETWORKS.length;
 	}
 	
 	protected static boolean
@@ -117,6 +144,18 @@ TRTrackerServerImpl
 	getMaxSeedRetention()
 	{
 		return( max_seed_retention );
+	}
+	
+	protected static boolean
+	getAllNetworksSupported()
+	{
+		return( all_networks_permitted );
+	}
+	
+	protected static String[]
+	getPermittedNetworks()
+	{
+		return( permitted_networks );
 	}
 	
 	protected IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();

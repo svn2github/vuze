@@ -35,6 +35,7 @@ public interface
 DownloadManagerState 
 {
 	public static final String AT_CATEGORY		= "category";
+	public static final String AT_NETWORKS		= "networks";
 	
 	public TOTorrent
 	getTorrent();
@@ -69,14 +70,21 @@ DownloadManagerState
 	setCategory(
 		Category cat );
 	
+	public String[]		// from AENetworkClassifier constants
+	getNetworks();
+	
+	public void
+	setNetworks(
+		String[]		networks );	// from AENetworkClassifier constants
+	
 	public void
 	setAttribute(
-		String		name,
+		String		name,		// make sure you use an AT_ value defined above
 		String		value );
 	
 	public String
 	getAttribute(
-		String		name );
+		String		name );		// make sure you use an AT_ value defined above
 
 	public void
 	save();

@@ -45,11 +45,12 @@ TRTrackerClientFactoryImpl
 	public static TRTrackerClient
 	create(
 		TOTorrent		torrent,
-		PEPeerServer	peer_server )
+		PEPeerServer	peer_server,
+		String[]		networks )
 		
 		throws TRTrackerClientException
 	{
-		TRTrackerClient	client = new TRTrackerClientClassicImpl( torrent, peer_server );
+		TRTrackerClient	client = new TRTrackerClientClassicImpl( torrent, peer_server, networks );
 		
 		List	listeners_copy	= new ArrayList();
 		

@@ -188,6 +188,25 @@ BEncoder
     }
     
     public static boolean
+	listsAreIdentical(
+		List	l1,
+		List	l2 )
+    {
+    	Map	m1 = new HashMap();
+    	
+    	if ( l1 != null ){
+    		m1.put("map", l1);
+    	}
+       	Map	m2 = new HashMap();
+    	
+    	if ( l2 != null ){
+    		m2.put("map", l2);
+    	}
+    	
+    	return( mapsAreIdentical( m1, m2 ));
+    }
+    
+    public static boolean
 	mapsAreIdentical(
 		Map	map1,
 		Map	map2 )

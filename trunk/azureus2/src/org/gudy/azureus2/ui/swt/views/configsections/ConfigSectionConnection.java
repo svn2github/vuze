@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -308,12 +309,54 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     enableSocksPeer.setAdditionalActionPerformer( proxy_peer_enabler );
     sameConfig.setAdditionalActionPerformer( proxy_peer_enabler );
      
+///////////////////////
     
+    Group networks_group = new Group( cServer, SWT.NULL );
+    Messages.setLanguageText( networks_group, "ConfigView.section.connection.group.networks" );
+    GridLayout networks_layout = new GridLayout();
+    networks_layout.numColumns = 2;
+    networks_group.setLayout( networks_layout );
+    
+    formData = new FormData();
+    formData.top = new FormAttachment( proxy_group, 6 );
+    networks_group.setLayoutData( formData );
+        
+    label = new Label(networks_group, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.connection.group.networks.info");
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    label.setLayoutData( grid_data );
+    
+    for (int i=0;i<AENetworkClassifier.AT_NETWORKS.length;i++){
+		
+		String	nn = AENetworkClassifier.AT_NETWORKS[i];
+	
+		String	config_name = "Network Selection Default." + nn;
+		String	msg_text	= "ConfigView.section.connection.networks." + nn;
+		 
+		BooleanParameter network = new BooleanParameter(networks_group, config_name, msg_text );
+				
+	    grid_data = new GridData();
+	    grid_data.horizontalSpan = 2;
+	    network.setLayoutData( grid_data );
+	}
+    
+    label = new Label(networks_group, SWT.NULL);
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    label.setLayoutData( grid_data );
+    
+	BooleanParameter network_prompt = new BooleanParameter(networks_group, "Network Selection Prompt", "ConfigView.section.connection.networks.prompt" );
+	
+	grid_data = new GridData();
+	grid_data.horizontalSpan = 2;
+	network_prompt.setLayoutData( grid_data );
+	
  ///////////////////////   
     
     final BooleanParameter enable_advanced = new BooleanParameter( cServer, "config.connection.show_advanced", false );
     formData = new FormData();
-    formData.top = new FormAttachment( proxy_group, 5 );
+    formData.top = new FormAttachment( networks_group, 5 );
     enable_advanced.setLayoutData( formData );
     
     
@@ -327,7 +370,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     
     formData = new FormData();
     formData.left = new FormAttachment( enable_advanced.getControl() );
-    formData.top = new FormAttachment( proxy_group, 6 );
+    formData.top = new FormAttachment( networks_group, 6 );
     advanced_group.setLayoutData( formData );
     
     GridData advanced_grid_data;

@@ -250,14 +250,25 @@ public class TrackerStatus {
       	
         String info_hash = "";
         
- 	        for (int i = 0; i < responses.size(); i++) {
+ 	    for (int i = 0; i < responses.size(); i++) {
         	
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
           
           byte[] hash = response.getHash();
-          
-          if ( 	disable_all_scrapes ||
-          		(disable_stopped_scrapes && !scraper.isTorrentRunning( hash ))){
+       
+          if ( !scraper.isNetworkEnabled( hash, tracker_url )){
+          	
+		        response.setNextScrapeStartTime(
+		        		SystemTime.getCurrentTime() + 
+		                FAULTY_SCRAPE_RETRY_INTERVAL);
+		
+		        response.setStatus(		TRTrackerScraperResponse.ST_ERROR,
+		        						MessageText.getString("Scrape.status.networkdisabled"));
+		        
+		        scraper.scrapeReceived( response );
+            
+          }else if ( 	disable_all_scrapes ||
+          				(disable_stopped_scrapes && !scraper.isTorrentRunning( hash ))){
           	
 	            response.setNextScrapeStartTime(
 	            		SystemTime.getCurrentTime() + 
@@ -273,15 +284,15 @@ public class TrackerStatus {
 	          response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
 	                             MessageText.getString("Scrape.status.scraping"));
 	          
-	          one_of_the_hashes	= hash;
-	          
 	          	// the client-id stuff RELIES on info_hash being the FIRST parameter added by
 	    		// us to the URL, so don't change it!
 
-	          info_hash += ((i > 0) ? '&' : first_separator) + "info_hash=";
+	          info_hash += ((one_of_the_hashes != null) ? '&' : first_separator) + "info_hash=";
 	          
 	          info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
 	                                         Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+	          
+	          one_of_the_hashes	= hash;
           }
         }
 

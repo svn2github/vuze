@@ -27,6 +27,8 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
@@ -47,6 +49,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
@@ -667,9 +670,41 @@ ConfigSectionTrackerServer
 
     gridData = new GridData();
     gridData.horizontalSpan = 3;
-    new BooleanParameter(gMainTab, "Tracker Log Enable", false, 
-                         "ConfigView.section.tracker.logenable").setLayoutData( gridData );
+    BooleanParameter log_enable = 
+    	new BooleanParameter(gMainTab, "Tracker Log Enable", false, 
+                         "ConfigView.section.tracker.logenable");
+    log_enable.setLayoutData( gridData );
 
+    
+    Group networks_group = new Group( gMainTab, SWT.NULL );
+    Messages.setLanguageText( networks_group, "ConfigView.section.tracker.server.group.networks" );
+    GridData    networks_layout = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    networks_layout.horizontalSpan = 3;
+    networks_group.setLayoutData( networks_layout );
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    networks_group.setLayout(layout);
+        
+    label = new Label(networks_group, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.server.group.networks.info");
+    GridData grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    label.setLayoutData( grid_data );
+    
+    for (int i=0;i<AENetworkClassifier.AT_NETWORKS.length;i++){
+		
+		String	nn = AENetworkClassifier.AT_NETWORKS[i];
+	
+		String	config_name = "Tracker Network Selection Default." + nn;
+		String	msg_text	= "ConfigView.section.connection.networks." + nn;
+		 
+		BooleanParameter network = new BooleanParameter(networks_group, config_name, msg_text );
+				
+	    grid_data = new GridData();
+	    grid_data.horizontalSpan = 2;
+	    network.setLayoutData( grid_data );
+	}
+    
     return gMainTab;
   }
 }

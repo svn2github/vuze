@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.global.impl;
  */
 
 import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -298,6 +299,33 @@ public class GlobalManagerImpl
     			}
     			
     			return( null );
+    		}
+    		
+    		public boolean
+			isNetworkEnabled(
+				byte[]	hash,
+				URL		url )
+    		{
+       			DownloadManager	dm = getDownloadManager(hash);
+    			
+    			if ( dm == null ){
+    				
+    				return( false );
+    			}
+    			
+    			String	nw = AENetworkClassifier.categoriseAddress( url.getHost());
+    			
+    			String[]	networks = dm.getDownloadState().getNetworks();
+    			
+    			for (int i=0;i<networks.length;i++){
+    				
+    				if ( networks[i] ==  nw ){
+    					
+    					return( true );
+    				}
+    			}
+    			
+    			return( false );
     		}
 		});
     

@@ -32,6 +32,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.classic.TRTrackerClientClassicImpl;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 
@@ -85,7 +86,7 @@ TRTrackerUtilsImpl
 			
 			if ( ip.length() > 0 ){
 				
-				new_override_map.put( HostNameToIPResolver.categoriseAddress( ip ), ip );
+				new_override_map.put( AENetworkClassifier.categoriseAddress( ip ), ip );
 			}
 		}
 		
@@ -159,7 +160,7 @@ TRTrackerUtilsImpl
 	{
 		if ( tracker_ip.length() > 0 ){
 				
-			String	address_type = HostNameToIPResolver.categoriseAddress( host_in );
+			String	address_type = AENetworkClassifier.categoriseAddress( host_in );
 			
 			String	target_ip = (String)override_map.get( address_type );
 			

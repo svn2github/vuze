@@ -32,11 +32,12 @@ TRTrackerClientFactory
 	public static TRTrackerClient
 	create(
 		TOTorrent		torrent,
-		PEPeerServer	peer_server )
+		PEPeerServer	peer_server,
+		String[]		networks )
 		
 		throws TRTrackerClientException
 	{
-		return( TRTrackerClientFactoryImpl.create( torrent, peer_server ));
+		return( TRTrackerClientFactoryImpl.create( torrent, peer_server, networks ));
 	}
 	
 	public static void

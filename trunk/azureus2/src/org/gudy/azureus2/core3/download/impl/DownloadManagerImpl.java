@@ -322,7 +322,7 @@ DownloadManagerImpl
         tracker_client.destroy();
       }
 
-      tracker_client = TRTrackerClientFactory.create( torrent, server );
+      tracker_client = TRTrackerClientFactory.create( torrent, server, download_manager_state.getNetworks());
     
       tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
 
@@ -594,10 +594,21 @@ DownloadManagerImpl
 		
 		if ( download_manager_state == null ){
 		
-				// torernt's stuffed - create a dummy "null object" to simplify use
+				// torrent's stuffed - create a dummy "null object" to simplify use
 				// by other code
 			
 			download_manager_state	= DownloadManagerStateImpl.getDownloadState( this );
+			
+		}else{
+			
+				// make sure we know what networks to use for this download
+			
+			if ( download_manager_state.getNetworks().length == 0 ){
+				
+				String[] networks = AENetworkClassifier.getNetworks( torrent, display_name );
+				
+				download_manager_state.setNetworks( networks );
+			}
 		}
 	}
 

@@ -374,8 +374,8 @@ TRNonBlockingServer
 		last_timeouts		= total_timeouts;
 		
 		
-		System.out.println( "Tracker: con/sec = " + con_rate + ", timeout/sec = " + tim_rate + ", tot_con = " + total_connections+ ", total timeouts = " + total_timeouts + 
-							", current connections = " + processors.size() + ", closing = " + connections_to_close.size());
+		//System.out.println( "Tracker: con/sec = " + con_rate + ", timeout/sec = " + tim_rate + ", tot_con = " + total_connections+ ", total timeouts = " + total_timeouts + 
+		//					", current connections = " + processors.size() + ", closing = " + connections_to_close.size());
 	
 		try{
         	this_mon.enter();

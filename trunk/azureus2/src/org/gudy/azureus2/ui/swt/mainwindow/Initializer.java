@@ -37,10 +37,12 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.LocaleUtilSWT;
 import org.gudy.azureus2.ui.swt.StartServer;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
+import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
@@ -160,6 +162,10 @@ Initializer
   run() 
   {
   	try{
+  		// initialise the SWT locale util
+	  	
+	    new LocaleUtilSWT( azureus_core );
+
 	    SWTThread swt = SWTThread.getInstance();
 	    
 	    Display display = swt.getDisplay();
@@ -174,13 +180,15 @@ Initializer
 	    	    
 	    setNbTasks(6);
 	    
-	    nextTask(); 	    
+	    nextTask(); 
 	    reportCurrentTaskByKey("splash.firstMessageNoI18N");
 	    
 	    Alerts.init();
 	    
 	    StartupUtils.setLocale();
-	    	    
+	    	
+	    new SWTNetworkSelection();
+	    
 	    new AuthenticatorWindow();
 	    
 	    new CertificateTrustWindow();

@@ -122,13 +122,14 @@ TRTrackerClientClassicImpl
 	private int						key_udp;
 	
   
-  private String tracker_id = "";
+	private String tracker_id = "";
   
   
   
-	private String port;
-	private String ip_override;
-
+	private String 		port;
+	private String 		ip_override;
+	private String[]	peer_networks;
+	
 	private String	last_warning_message	= "";
 	
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
@@ -210,12 +211,14 @@ TRTrackerClientClassicImpl
   public 
   TRTrackerClientClassicImpl(
    	TOTorrent		_torrent,
-  	PEPeerServer 	_peer_server ) 
+  	PEPeerServer 	_peer_server,
+	String[]		_peer_networks ) 
   	
   	throws TRTrackerClientException
   {
-  	torrent		= _torrent;
-  	peer_server	= _peer_server;
+  	torrent			= _torrent;
+  	peer_server		= _peer_server;
+  	peer_networks	= _peer_networks;
   	
 		//Get the Tracker url
 		
@@ -784,8 +787,59 @@ TRTrackerClientClassicImpl
 		return update("");
   	}
   
-  private TRTrackerResponse 
-  update(String evt) 
+  	private TRTrackerResponse 
+	update(
+		String evt )
+  	{
+  		// this method filters out any responses incompatible with the network selection
+  		
+  		TRTrackerResponseImpl	resp = update2( evt );
+  		
+  		TRTrackerResponsePeer[]	peers = resp.getPeers();
+  		
+  		if ( peers != null ){
+	  		List	p = new ArrayList();
+	  		
+	  		for (int i=0;i<peers.length;i++){
+	  			
+	  			TRTrackerResponsePeer	peer = peers[i];
+	  			
+	  			String	peer_address = peer.getIPAddress();
+	  			
+	  			String	peer_network = AENetworkClassifier.categoriseAddress( peer_address );
+	  			
+	  			boolean	added = false;
+	  			
+	  			for (int j=0;j<peer_networks.length;j++){
+	  				
+	  				if ( peer_networks[j] == peer_network ){
+	  					
+	  					p.add( peer );
+	  					
+	  					added = true;
+	  					
+	  					break;
+	  				}
+	  			}
+	  			
+	  			if ( !added ){
+	  				
+			  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client dropped peer '" + peer_address + "' as incompatible with network selection" );
+	  			}
+	  		}
+	  		
+	  		peers = new TRTrackerResponsePeer[ p.size()];
+	  		
+	  		p.toArray( peers );
+	  		
+	  		resp.setPeers( peers );
+  		}
+  		
+  		return( resp );
+  	}
+  	
+  private TRTrackerResponseImpl 
+  update2(String evt) 
   {
   	TRTrackerResponseImpl	last_failure_resp = null;
 	
@@ -1454,7 +1508,7 @@ TRTrackerClientClassicImpl
   	String 	evt,
 	URL		_url)
   
-  	throws MalformedURLException
+  	throws Exception
   {
   	String	url = _url.toString();
   	
@@ -1515,7 +1569,32 @@ TRTrackerClientClassicImpl
     String explicit_ips = COConfigurationManager.getStringParameter( "Override Ip", "" );
     
     String 	ip					= null;
-    String	tracker_category	= HostNameToIPResolver.categoriseAddress( _url.getHost()); 
+    String	tracker_network	= AENetworkClassifier.categoriseAddress( _url.getHost()); 
+    
+    	// make sure this tracker network is enabled
+    
+    boolean	network_ok			= false;
+    boolean	normal_network_ok	= false;
+    
+    for (int i=0;i<peer_networks.length;i++){
+    
+    	if ( peer_networks[i] == AENetworkClassifier.AT_PUBLIC ){
+    		
+    		normal_network_ok = true;
+    	}
+    	
+    	if ( peer_networks[i] == tracker_network ){
+    		
+    		network_ok	= true;
+    	}
+    }
+    
+    if ( !network_ok ){
+    	
+    	throw( new Exception( "Network not enabled for url '" + _url + "'" ));
+    }
+    
+    String	normal_explicit = null;
     
    	if ( explicit_ips.length() > 0 ){
     		
@@ -1529,9 +1608,14 @@ TRTrackerClientClassicImpl
 			
 			if ( this_address.length() > 0 ){
 				
-				String	cat = HostNameToIPResolver.categoriseAddress( this_address );
+				String	cat = AENetworkClassifier.categoriseAddress( this_address );
 				
-				if ( tracker_category == cat ){
+				if ( cat == AENetworkClassifier.AT_PUBLIC ){
+					
+					normal_explicit	= this_address;
+				}
+				
+				if ( tracker_network == cat ){
 					
 					ip = this_address;
 					
@@ -1543,15 +1627,24 @@ TRTrackerClientClassicImpl
     
    	if ( ip == null ){
    		
-   		if ( ip_override != null ){
+   			// if we have a normal explicit override and this is enabled then use it 
+   		
+   		if ( normal_network_ok && normal_explicit != null ){
    			
-   			ip = ip_override;
+   			ip = normal_explicit;
+   			
+   		}else{
+   			
+	   		if ( ip_override != null ){
+	   			
+	   			ip = ip_override;
+	   		}
    		}
    	}
     
     if ( ip != null ){
      	   	
-    	if ( tracker_category == HostNameToIPResolver.HT_NORMAL ){
+    	if ( tracker_network == AENetworkClassifier.AT_PUBLIC ){
     	
     		try{
     			ip = PRHelpers.DNSToIPAddress( ip );
@@ -1939,6 +2032,9 @@ TRTrackerClientClassicImpl
 
 								}else{
 									
+						    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+						    				"NON-COMPACT PEER: ip=" +ip+ " port=" +peer_port);
+
 									valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_peer_id, ip, peer_port ));
 								}
 							} 

@@ -1,5 +1,5 @@
 /*
- * Created on 27-Aug-2004
+ * Created on 14-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,9 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.tracker.client;
-
-import java.net.URL;
+package org.gudy.azureus2.core3.util;
 
 /**
  * @author parg
@@ -30,34 +28,10 @@ import java.net.URL;
  */
 
 public interface 
-TRTrackerScraperClientResolver 
+AENetworkClassifierListener 
 {
-	public static final int	ST_NOT_FOUND		= 1;
-	public static final int	ST_RUNNING			= 2;	// downloading, seeding or queued
-	public static final int	ST_OTHER			= 3;
-
-		/**
-		 * Gives access to a restricted set of states for this torrent from ST_ set
-		 * @param torrent_hash
-		 * @return
-		 */
-	
-	public int
-	getStatus(
-		byte[]	torrent_hash );
-	
-		/**
-		 * returns the current tracker client for the torrent, if it exists
-		 * @param torrent_hash
-		 * @return
-		 */
-	
-	public TRTrackerClient
-	getClient(
-		byte[]	torrent_hash );
-	
-	public boolean
-	isNetworkEnabled(
-		byte[]	hash,
-		URL		url );
+	public String[]
+	selectNetworks(
+		String		description,
+		String[]	tracker_networks );
 }

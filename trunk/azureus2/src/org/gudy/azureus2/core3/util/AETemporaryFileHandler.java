@@ -56,10 +56,6 @@ AETemporaryFileHandler
 				
 				if ( files != null ){
 					
-					boolean	file_moved	= false;
-					
-					long	now = SystemTime.getCurrentTime();
-					
 					for (int i=0;i<files.length;i++){
 						
 						File	file = files[i];

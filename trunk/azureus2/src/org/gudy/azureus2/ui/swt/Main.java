@@ -33,20 +33,18 @@ Main
 	  	boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
 	  	
 	  	AzureusCore		core = AzureusCoreFactory.create();
-	
-	  		// initialise the SWT locale util
-	  	
-	    new LocaleUtilSWT( core );
-	    
+		    
 	    startServer = new StartServer(core);
 	
 	    boolean debugGUI = Boolean.getBoolean("debug");
 	    
-	    if( mi || debugGUI) {
-	      // create a MainWindow regardless to the server state
+	    if( mi || debugGUI){
+	    	
+	    	// create a MainWindow regardless to the server state
+	    	
 	      new Initializer(core,startServer,args);
-	      return;
 	      
+	      return;
 	    }
 	    
 	    for (int i=0;i<args.length;i++){
