@@ -1864,7 +1864,9 @@ PEPeerControlImpl
     
       if ( !_bContinue ){
       	
-      	throw( new RuntimeException( "PeerTransport added when manager not running" ));
+        peer.closeAll( "PeerTransport added when manager not running", false, false );
+        
+      	return;
       }
       
       if ( peer_transports_cow.contains( peer )){
