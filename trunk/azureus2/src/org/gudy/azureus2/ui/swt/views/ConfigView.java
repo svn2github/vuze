@@ -165,7 +165,7 @@ public class ConfigView extends AbstractIView {
     
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
     String[] headers = { "ipFilter.description", "ipFilter.start", "ipFilter.end" };
-    int[] sizes = { 300, 120, 120 };
+    int[] sizes = { 200, 110, 110 };
     int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER };
     for (int i = 0; i < headers.length; i++) {
       TableColumn tc = new TableColumn(table, aligns[i]);
@@ -177,7 +177,7 @@ public class ConfigView extends AbstractIView {
     table.setHeaderVisible(true);
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.heightHint = 300;
+    gridData.heightHint = 200;
     gridData.verticalSpan = 4;
     gridData.horizontalSpan = 2;
     table.setLayoutData(gridData);
@@ -449,7 +449,7 @@ public class ConfigView extends AbstractIView {
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
     new BooleanParameter(gDownloads, "Switch Priority", true); //$NON-NLS-1$
-
+    
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatio"); //$NON-NLS-1$
     final String stopRatioLabels[] = new String[11];
@@ -461,9 +461,9 @@ public class ConfigView extends AbstractIView {
       stopRatioValues[i] = i;
     }
     new IntListParameter(gDownloads, "Stop Ratio", 0, stopRatioLabels, stopRatioValues);
-
+    
     label = new Label(gDownloads, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$    
     final String stopRatioPeersLabels[] = new String[4];
     final int stopRatioPeersValues[] = new int[4];
     stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStop");
@@ -473,8 +473,12 @@ public class ConfigView extends AbstractIView {
       stopRatioPeersLabels[i] = i + " " + peers; //$NON-NLS-1$
       stopRatioPeersValues[i] = i;
     }
-    new IntListParameter(gDownloads, "Stop Peers Ratio", 0, stopRatioPeersLabels, stopRatioPeersValues);
-
+    gridData = new GridData();
+    gridData.verticalSpan = 2;
+    new IntListParameter(gDownloads, "Stop Peers Ratio", 0, stopRatioPeersLabels, stopRatioPeersValues).setLayoutData(gridData);
+    label = new Label(gDownloads,SWT.NULL);
+    Messages.setLanguageText(label,"ConfigView.label.onlyafter50");
+    
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startRatioPeers"); //$NON-NLS-1$
     final String startRatioPeersLabels[] = new String[11];
@@ -486,7 +490,7 @@ public class ConfigView extends AbstractIView {
       startRatioPeersValues[i] = i + 3;
     }
     new IntListParameter(gDownloads, "Start Peers Ratio", 0, startRatioPeersLabels, startRatioPeersValues);
-
+    
     String seeds = MessageText.getString("ConfigView.label.seeds");
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startNumSeeds"); //$NON-NLS-1$
@@ -498,12 +502,16 @@ public class ConfigView extends AbstractIView {
       startNumSeedsLabels[i] = i + " " + seeds; //$NON-NLS-1$
       startNumSeedsValues[i] = i;
     }
-    new IntListParameter(gDownloads, "Start Num Peers", 0, startNumSeedsLabels, startNumSeedsValues);    
-
+    gridData = new GridData();
+    gridData.verticalSpan = 2;
+    new IntListParameter(gDownloads, "Start Num Peers", 0, startNumSeedsLabels, startNumSeedsValues).setLayoutData(gridData);    
+    label = new Label(gDownloads,SWT.NULL);
+    Messages.setLanguageText(label,"ConfigView.label.override");
+    
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
     new BooleanParameter(gDownloads, "Alert on close", true);
-
+    
     itemDownloads.setControl(gDownloads);
   }
 
