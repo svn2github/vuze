@@ -81,7 +81,7 @@ VWStatusAreaView
 		download_label.setMinimumWidth(100);
 		
 		download_label.setBorder( new VWStatusEntryBorder());
-		
+		 
 		component.add( 
 				download_label,
 				new VWGridBagConstraints(
