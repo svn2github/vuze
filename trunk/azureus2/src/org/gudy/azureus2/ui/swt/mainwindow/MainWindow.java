@@ -473,14 +473,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     
 
-	  	if ( TRHostFactory.create().getTorrents().length > 0 ){  		
-	  		showMyTracker();
-	  	}
-	  	
-	  	showMyTorrents();
-	
-    if (COConfigurationManager.getBooleanParameter("Open Console", false))
-      console = new Tab(new ConsoleView());    
+	  	    
     
     VersionChecker.checkForNewVersion();
     
@@ -507,8 +500,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       catch (Exception e) {}
     }
     
-    if (COConfigurationManager.getBooleanParameter("Open Config", false))
-      config = new Tab(new ConfigView());
+   
     
     //NICO catch the dispose event from file/quit on osx
     mainWindow.addDisposeListener(new DisposeListener() {
@@ -565,6 +557,20 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     //  share progress window    
     new ProgressWindow();
     
+    if ( TRHostFactory.create().getTorrents().length > 0 ){     
+      showMyTracker();
+    }
+    
+    showMyTorrents();
+
+    if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
+      console = new Tab(new ConsoleView());
+    }
+    
+    if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
+      config = new Tab(new ConfigView());
+    }
+  
     mainWindow.open();
     mainWindow.forceActive();
     updater = new GUIUpdater(this);
