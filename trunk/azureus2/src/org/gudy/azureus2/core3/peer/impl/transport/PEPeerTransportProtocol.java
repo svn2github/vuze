@@ -710,7 +710,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       else return PEPeerControl.NO_SLEEP;
   	}
   	catch (Exception e) {
-  		e.printStackTrace();
+  		Debug.printStackTrace( e );
   		closeAll(toString() + " : Exception in process : " + e,true, false);
       return PEPeerControl.NO_SLEEP;
   	}
@@ -1321,7 +1321,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		    		catch (ArrayIndexOutOfBoundsException e) {
 		    			//Keep going, most probably, piece removed...
 		    			//Hopefully we'll find it later :p
-	            e.printStackTrace();
+		    			Debug.printStackTrace( e );
 		    		}
 		    	}
 		    }finally{
@@ -1385,7 +1385,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  	try {
 			  		request = (DiskManagerRequest) requested.get(i);
 			  	}
-			  	catch (Exception e) { e.printStackTrace(); }
+			  	catch (Exception e) { Debug.printStackTrace( e );}
 	        
 			  	if (request != null)
 			  		request.reSetTime();
