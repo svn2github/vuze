@@ -54,7 +54,7 @@ public class Identification {
       if( (decoded = decodeSimpleStyle( peerID, 0, "Deadman Walking-", "Deadman" )) != null ) return decoded;
 
 
-      String burst = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
+      String burst = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
       if( burst.equals( "Mbrst" ) ) {
         String major = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
         String minor = new String(peerID, 7, 1, Constants.BYTE_ENCODING);
