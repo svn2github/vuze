@@ -305,6 +305,10 @@ TRTrackerClientClassicImpl
 									current_timer_event.cancel();
 								}
 								
+                
+                String msg = "perform():: New tracker update event scheduled for " +target_time+ " [+" +(target_time - SystemTime.getCurrentTime())+ "sec], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
+                LGLogger.log( msg );
+                
 								current_timer_event = 
 									tracker_timer.addEvent( target_time, this );
 							}
@@ -411,6 +415,9 @@ TRTrackerClientClassicImpl
 						
 						current_timer_event.cancel();
 						
+            String msg = "setRefreshDelayOverrides():: New tracker update event scheduled for " +target_time+ " [+" +(target_time - SystemTime.getCurrentTime())+ "sec], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
+            LGLogger.log( msg );
+            
 						current_timer_event = 
 							tracker_timer.addEvent( 
 								start,
@@ -497,6 +504,9 @@ TRTrackerClientClassicImpl
 				current_timer_event.cancel();
 			}
 			
+      String msg = "requestUpdate():: New tracker update event scheduled for " +SystemTime.getCurrentTime()+ " [+" +(SystemTime.getCurrentTime() - SystemTime.getCurrentTime())+ "sec], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
+      LGLogger.log( msg );
+      
 			current_timer_event = 
 				tracker_timer.addEvent( 
 					SystemTime.getCurrentTime(),
@@ -510,6 +520,9 @@ TRTrackerClientClassicImpl
 	protected long
 	requestUpdateSupport()
 	{
+    
+    LGLogger.log( "requestUpdateSupport() started" );
+    
 		boolean	clear_progress = true;
 		
 		try{
@@ -518,6 +531,8 @@ TRTrackerClientClassicImpl
 
 				if ( update_in_progress ){
 					
+          LGLogger.log( "requestUpdateSupport():: update_in_progress" );
+          
 					clear_progress = false;
 					
 					return( getErrorRetryInterval() );
