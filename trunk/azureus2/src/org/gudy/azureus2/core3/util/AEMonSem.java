@@ -89,6 +89,7 @@ AEMonSem
 	{
 		List	active				= new ArrayList();
 		List	waiting_monitors	= new ArrayList();
+		List	busy_monitors		= new ArrayList();
 		List	waiting_semaphores	= new ArrayList();
 		
 		synchronized( AEMonSem.class ){
@@ -108,7 +109,7 @@ AEMonSem
 			
 			while (it.hasNext()){
 				
-				AEMonSem	monitor = (AEMonSem)it.next();
+				AEMonitor	monitor = (AEMonitor)it.next();
 							
 				long	diff = monitor.entry_count - monitor.last_entry_count;
 				
@@ -122,6 +123,10 @@ AEMonSem
 				if (monitor.waiting > 0 ){
 					
 					waiting_monitors.add( monitor );
+					
+				}else if ( monitor.owner != null ){
+					
+					busy_monitors.add( monitor );
 				}
 			}
 			
@@ -191,6 +196,18 @@ AEMonSem
 			for (int i=0;i<waiting_monitors.size();i++){
 				
 				AEMonSem	ms = (AEMonSem)waiting_monitors.get(i);
+				
+				diag_logger.log( "        " + ms.name + " - " + ms.last_trace_key );
+			}
+		}
+		
+		if ( busy_monitors.size() > 0 ){
+			
+			diag_logger.log( "    busy monitors" );
+			
+			for (int i=0;i<busy_monitors.size();i++){
+				
+				AEMonSem	ms = (AEMonSem)busy_monitors.get(i);
 				
 				diag_logger.log( "        " + ms.name + " - " + ms.last_trace_key );
 			}
