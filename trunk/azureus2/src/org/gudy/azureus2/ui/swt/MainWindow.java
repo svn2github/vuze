@@ -758,10 +758,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     statusText = new CLabel(statusBar, SWT.SHADOW_IN);
     statusText.setLayoutData(gridData);
 
-	if ( !FileUtil.isJavaWebStart()){
-		
 		checkForNewVersion();
-	}
 
 		gridData = new GridData();
 		gridData.widthHint = 105;
@@ -2533,7 +2530,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   				public void run() {
   					if (statusText.isDisposed())
   						return;
-  					if (VERSION.compareTo(latestVersion) < 0) {
+  					if (!FileUtil.isJavaWebStart() &&  VERSION.compareTo(latestVersion) < 0) {
   						latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
   						setStatusVersion();
   						statusText.setForeground(red);
