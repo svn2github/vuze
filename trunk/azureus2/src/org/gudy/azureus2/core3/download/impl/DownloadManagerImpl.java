@@ -69,7 +69,6 @@ DownloadManagerImpl
 
   private String torrentFileName;
   private String name;
-  // private String nameFromUser = null;
 
   private int nbPieces;
   private String savePath;
@@ -87,25 +86,6 @@ DownloadManagerImpl
   public PEPeerManager peerManager;
   
    
-
-
-  /**
-   * @param nameFromUser the new filename for this torrent 
-   *
-   * @author Rene Leonhardt
-   */
-  /*
-  public boolean setNameFromUser(String nameFromUser) {
-	if(!name.equals(nameFromUser) && nameFromUser != null && nameFromUser.trim().length() != 0) {
-	  if(state == STATE_STOPPED) {
-		this.nameFromUser = nameFromUser;
-		name = nameFromUser;
-		return true;
-	  }
-	}
-	return false;
-  }
-	*/
   public DownloadManagerImpl(GlobalManager gm, String torrentFileName, String savePath, boolean stopped) {
 	this(gm, torrentFileName, savePath);
 	if (this.state == STATE_ERROR)
@@ -185,29 +165,22 @@ DownloadManagerImpl
 		comment		= "";
 		nbPieces	= 0;
 		
-		try{
+		try {
   	
-			torrent	= TOTorrentFactory.deserialiseFromBEncodedFile(new File(torrentFileName));
-		
-			// torrent.print();
+			 torrent	= TOTorrentFactory.deserialiseFromBEncodedFile(new File(torrentFileName));
 			
-			name = LocaleUtil.getCharsetString( torrent.getName());
-			
-			/*
-			if( nameFromUser != null ){
-				
-				name = nameFromUser;
-			   
-				torrent.setName( new String( name.getBytes(LocaleUtil.getCharsetString(name.getBytes())),Constants.DEFAULT_ENCODING )); //$NON-NLS-1$
-			 }
-			 */
-			 
+          name = LocaleUtil.getCharsetString( torrent.getName());
+          
+          if (torrent.isSimpleTorrent()) {
+            File testFile = new File(savePath);
+            if (!testFile.isDirectory()) name = testFile.getName();
+          }
+          
 			 trackerUrl = torrent.getAnnounceURL().toString();
          
 			 comment = torrent.getComment();
          
 			 if ( comment == null ){
-         	
 				comment	= "";
 			 }
 			 
@@ -318,11 +291,14 @@ DownloadManagerImpl
 		}      
 		
 		if (diskManager != null){
-			
+      
 		  if (diskManager.getState() == DiskManager.READY){
-		  
-			diskManager.dumpResumeDataToDisk(true);
+		    diskManager.dumpResumeDataToDisk(true);
 		  }
+      
+		  //update path+name info before termination
+		  savePath = diskManager.getPath();
+		  name = diskManager.getFileName();
 		  
 		  diskManager.stopIt();
 		  	
@@ -434,12 +410,12 @@ DownloadManagerImpl
   public String getFullName() {
 	//if diskmanager is already running, use its values
    if (diskManager != null) {
-    String path = diskManager.getPath();
-    String fname = diskManager.getFileName();
+    String path = savePath = diskManager.getPath();
+    String fname = name = diskManager.getFileName();
     return FileUtil.smartFullName(path, fname); 
 	}
-   //otherwise use downloadmanager's initial value
-   else return savePath;
+   //otherwise use downloadmanager's values
+   else return FileUtil.smartFullName(savePath, name);
   }
 
 
