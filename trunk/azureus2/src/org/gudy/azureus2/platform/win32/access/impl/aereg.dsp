@@ -108,7 +108,7 @@ SOURCE=.\aereg.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\com_aelitis_win32_registry_impl_AEWin32RegistryAccessInterface.h
+SOURCE=.\org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h
 # End Source File
 # Begin Source File
 
