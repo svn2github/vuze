@@ -18,6 +18,7 @@ CHANGE: Confirmation on data deletion now optional in config [Nolar]
 CHANGE: More intelligent announce url '&numwant=' handling [Nolar]
 CHANGE: On tracker announce errors, retry interval now uses exponential backoff [Nolar]
 CHANGE: Removed multi-port listening, as shared single port is far superior [Nolar]
+CHANGE: More reliable .config and .torrent file writing [Nolar]
 
 BUGFIX: Problem with tracker not responding with "Connection: close" causing SSL session maintainance with HttpsURLConnection to stuff up and fail clients with "recv fail" [Parg]
 BUGFIX: Fast resuming with Chinese directories: Bug #869749 [Parg]
@@ -32,7 +33,7 @@ BUGFIX: Fix for excess thread creation when tracker does not support single-info
 BUGFIX: Fix for hash checking 0-byte files: Bug #853126 [Nolar]
 BUGFIX: Fix for opening files via Files tab when using MoveOnComplete: Bugs #860822, #878795 [Nolar] 
 BUGFIX: Fix for 100% cpu usage after network disconnect/reconnect: Bugs #873957, #879498 [Nolar]
-BUGFIX: More reliable .config and .torrent file writing [Nolar]
+
 
 
 
