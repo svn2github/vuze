@@ -104,7 +104,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     t.setDaemon(true);
     t.start();
   }
-
+  
   public void makeTorrent() {
   	NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
   	
@@ -128,13 +128,13 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       if ( _wizard.getPieceSizeComputed()){
       	
-      	TOTorrentCreator c = 
+        _wizard.creator = 
       		TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(
       					f, url, _wizard.getAddHashes());
       	
-      	c.addListener( this );
+        _wizard.creator.addListener( this );
       	
-      	torrent = c.create();
+      	torrent = _wizard.creator.create();
       	
       }else{
       	TOTorrentCreator c = 

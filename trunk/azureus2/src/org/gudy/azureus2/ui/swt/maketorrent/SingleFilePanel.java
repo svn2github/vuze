@@ -62,10 +62,11 @@ public class SingleFilePanel extends AbstractWizardPanel {
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     panel.setLayout(layout);
+    
     Label label = new Label(panel, SWT.NULL);
     Messages.setLanguageText(label, "wizard.file");
+    
     file = new Text(panel, SWT.BORDER);
-
     file.addModifyListener(new ModifyListener() {
       /*
 			 * (non-Javadoc)
@@ -96,6 +97,7 @@ public class SingleFilePanel extends AbstractWizardPanel {
     file.setText(((NewTorrentWizard) wizard).singlePath);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     file.setLayoutData(gridData);
+    
     Button browse = new Button(panel, SWT.PUSH);
     browse.addListener(SWT.Selection, new Listener() {
       /*

@@ -65,7 +65,7 @@ public class Wizard {
   IWizardPanel currentPanel;
   Composite panel;
   Font titleFont;
-  Button previous, next, finish, cancel;
+  protected Button previous, next, finish, cancel;
 
   Listener closeCatcher;
   
@@ -253,9 +253,7 @@ public class Wizard {
    private void
    finishSelected()
    {
-	   if ( currentPanel.isFinishSelectionOK()){
-      	
-		   cancel.setEnabled(false);
+	   if ( currentPanel.isFinishSelectionOK()){      			   
 		   wizardWindow.addListener(SWT.Close, closeCatcher);
 		   clearPanel();
 		   currentPanel = currentPanel.getFinishPanel();

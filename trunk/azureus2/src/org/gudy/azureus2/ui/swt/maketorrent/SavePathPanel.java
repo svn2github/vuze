@@ -251,7 +251,25 @@ public class SavePathPanel extends AbstractWizardPanel {
     });
     
     label = new Label(gFileStuff, SWT.NULL);
-   
+    
+    // ------------------------
+    label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    label.setLayoutData(gridData);
+    
+    final Button bAutoOpen = new Button(panel,SWT.CHECK);
+    Messages.setLanguageText(bAutoOpen,"wizard.maketorrents.autoopen");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    bAutoOpen.setLayoutData(gridData);
+    
+    bAutoOpen.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event event) {
+        _wizard.autoOpen = bAutoOpen.getSelection();
+      }
+    });
+    
   }
   
   public IWizardPanel getFinishPanel() {
