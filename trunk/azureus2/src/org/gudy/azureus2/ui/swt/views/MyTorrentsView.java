@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -539,13 +540,19 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null
             && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
-            globalManager.removeDownloadManager(dm);
-            try {
-              File f = new File(dm.getTorrentFileName());
-              f.delete();
-            }
-            catch (Exception ex) {
-              ex.printStackTrace();
+          	
+          	try{
+          		globalManager.removeDownloadManager(dm);
+          		try {
+          			File f = new File(dm.getTorrentFileName());
+          			f.delete();
+          		}
+          		catch (Exception ex) {
+          			ex.printStackTrace();
+          		}
+            }catch( GlobalManagerDownloadRemovalVetoException f ){
+            	
+            	MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", f );
             }
           }
         }
@@ -1181,7 +1188,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     for (int i = 0; i < tis.length; i++) {
       TableItem ti = tis[i];
       DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      ManagerUtils.remove(dm);
+      try{
+      	ManagerUtils.remove(dm);
+      }catch(GlobalManagerDownloadRemovalVetoException e){
+      	MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", e );
+      }
     }
   }
 

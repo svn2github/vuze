@@ -49,7 +49,9 @@ GlobalManager
   
 	public void
 	removeDownloadManager(
-		DownloadManager	dm );
+		DownloadManager	dm )
+	
+		throws GlobalManagerDownloadRemovalVetoException;
 		
 	public List
 	getDownloadManagers();
@@ -107,6 +109,14 @@ GlobalManager
 	removeListener(
 		GlobalManagerListener	l );
 
+	public void
+	addDownloadWillBeRemovedListener(
+		GlobalManagerDownloadWillBeRemovedListener	l );
+	
+	public void
+	removeDownloadWillBeRemovedListener(
+		GlobalManagerDownloadWillBeRemovedListener	l );
+	
   /**
    * @param c the character to be found 
    * @param lastSelectedIndex the highest selection index; -1 to start from the beginning

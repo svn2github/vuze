@@ -31,6 +31,7 @@ import org.apache.log4j.spi.LoggingEvent;
 import HTML.Template;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
@@ -661,7 +662,11 @@ public class Jhttpp2HTTPSession extends Thread {
                 dm.startDownloadInitialized(true);
               else if (subcommand.equals("Cancel")) {
                 dm.stopIt();
-                server.gm.removeDownloadManager(dm);
+                try{
+                	server.gm.removeDownloadManager(dm);
+                }catch( GlobalManagerDownloadRemovalVetoException e ){
+                	e.printStackTrace();
+                }
               }
             }
           }

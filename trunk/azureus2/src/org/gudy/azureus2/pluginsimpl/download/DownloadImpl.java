@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.download;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -36,12 +38,16 @@ import org.gudy.azureus2.pluginsimpl.torrent.TorrentImpl;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
+import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 
 public class 
 DownloadImpl
 	implements Download
 {
 	protected DownloadManager		download_manager;
+	
+	protected List		removal_listeners = new ArrayList();
 	
 	protected
 	DownloadImpl(
@@ -122,7 +128,13 @@ DownloadImpl
 			
 			GlobalManager globalManager = download_manager.getGlobalManager();
 			
-			globalManager.removeDownloadManager(download_manager);
+			try{
+				globalManager.removeDownloadManager(download_manager);
+				
+			}catch( GlobalManagerDownloadRemovalVetoException e ){
+				
+				throw( new DownloadException( "Download::remove: operation denied", e ));
+			}
 			
 		}else{
 			
@@ -134,5 +146,29 @@ DownloadImpl
 	getStats()
 	{
 		return( new DownloadStatsImpl( download_manager ));
+	}
+	
+	protected void
+	isRemovable()
+		throws DownloadRemovalVetoException
+	{
+		for (int i=0;i<removal_listeners.size();i++){
+			
+			((DownloadWillBeRemovedListener)removal_listeners.get(i)).downloadWillBeRemoved(this);
+		}
+	}
+	
+	public void
+	addDownloadWillBeRemovedListener(
+		DownloadWillBeRemovedListener	l )
+	{
+		removal_listeners.add(l);
+	}
+	
+	public void
+	removeDownloadWillBeRemovedListener(
+		DownloadWillBeRemovedListener	l ) 
+	{
+		removal_listeners.remove(l);
 	}
 }

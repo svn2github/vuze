@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.common.UIConst;
@@ -151,7 +152,11 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
                 dm.startDownloadInitialized(true);
               else if (subcommand.equals("Cancel")) {
                 dm.stopIt();
-                UIConst.GM.removeDownloadManager(dm);
+                try{
+                	UIConst.GM.removeDownloadManager(dm);
+                }catch(GlobalManagerDownloadRemovalVetoException e ){
+                	e.printStackTrace();
+                }
               }
             }
           }

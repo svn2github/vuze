@@ -2491,4 +2491,18 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       return;
     BlockedIpsWindow.show(mainWindow.getDisplay(),sb.toString());
   }
+  
+  public static void
+  showErrorMessageBox(
+  	String		title_key,
+	Throwable	error )
+  {
+  	MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(),SWT.ICON_ERROR | SWT.OK );
+  	
+  	mb.setText(MessageText.getString(title_key));
+  	
+  	mb.setMessage(	error.getMessage());
+  	
+  	mb.open();
+  }
 }

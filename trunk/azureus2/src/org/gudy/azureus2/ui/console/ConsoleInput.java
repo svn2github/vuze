@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.stats.StatsWriterFactory;
 import org.gudy.azureus2.core3.stats.StatsWriterStreamer;
@@ -529,8 +530,12 @@ public class ConsoleInput extends Thread {
                   else
                     name = dm.getName();
                   dm.stopIt();
-                  gm.removeDownloadManager(dm);
-                  out.println("> Torrent #" + subcommand + " (" + name + ") removed.");
+                  try{
+                  	gm.removeDownloadManager(dm);
+                  	out.println("> Torrent #" + subcommand + " (" + name + ") removed.");
+                  }catch(GlobalManagerDownloadRemovalVetoException e ){
+                  	out.println( "> Exception when removing torrent (" + e.getMessage() + ")");
+                  }
                   oldcommand = null;
                 } else
                   out.println("> Command 'remove': Torrent #" + subcommand + " unknown.");
@@ -545,8 +550,12 @@ public class ConsoleInput extends Thread {
                     else
                       name = dm.getName();
                     dm.stopIt();
-                    gm.removeDownloadManager(dm);
-                    out.println("> Torrent #" + Integer.toString(++nr) + " (" + name + ") removed.");
+                    try{
+                    	gm.removeDownloadManager(dm);
+                    	out.println("> Torrent #" + Integer.toString(++nr) + " (" + name + ") removed.");
+                    }catch(GlobalManagerDownloadRemovalVetoException f ){
+                    	out.println( "> Exception when removing torrent (" + f.getMessage() + ")");
+                    }
                   }
                 } else if (subcommand.toUpperCase().startsWith("HASH")) {
                   String hash = subcommand.substring(subcommand.indexOf(" ") + 1);
@@ -562,8 +571,13 @@ public class ConsoleInput extends Thread {
                         else
                           name = dm.getName();
                         dm.stopIt();
-                        gm.removeDownloadManager(dm);
-                        out.println("> Torrent " + hash + " (" + name + ") removed.");
+                        try{
+                        	gm.removeDownloadManager(dm);
+                        	out.println("> Torrent " + hash + " (" + name + ") removed.");
+                        }catch(GlobalManagerDownloadRemovalVetoException f ){
+                        	out.println( "> Exception when removing torrent (" + f.getMessage() + ")");
+                        }
+                        
                         foundit = true;
                         break;
                       }

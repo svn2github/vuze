@@ -1,6 +1,6 @@
 /*
- * File    : Download.java
- * Created : 06-Jan-2004
+ * File    : DownloadManagerRemovalVetoException.java
+ * Created : 10-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,55 +19,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.download;
+package org.gudy.azureus2.core3.global;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
-public interface 
-Download 
+public class 
+GlobalManagerDownloadRemovalVetoException
+	extends Exception
 {
-	public static final int ST_STOPPED		= 1;
-	public static final int ST_STARTED		= 2;
-	
-	/**
-	 * get state from above ST_ set
-	 * @return
-	 */
-	
-	public int
-	getState();
-
-	public Torrent
-	getTorrent();
-	
-	public void
-	start()
-	
-		throws DownloadException;
-	
-	public void
-	stop()
-	
-		throws DownloadException;
-	
-	public void
-	remove()
-	
-		throws DownloadException;
-	
-	public DownloadStats
-	getStats();
-	
-	public void
-	addDownloadWillBeRemovedListener(
-		DownloadWillBeRemovedListener	l );
-	
-	public void
-	removeDownloadWillBeRemovedListener(
-		DownloadWillBeRemovedListener	l );
+	public
+	GlobalManagerDownloadRemovalVetoException(
+		String		str )
+	{
+		super( str );
+	}
 }

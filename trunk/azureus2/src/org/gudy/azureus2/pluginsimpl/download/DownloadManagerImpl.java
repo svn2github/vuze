@@ -34,8 +34,9 @@ import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 
-import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
@@ -60,12 +61,37 @@ DownloadManagerImpl
 	}
 	
 	protected GlobalManager	global_manager;
+	protected Map			download_map	= new HashMap();
 	
 	protected
 	DownloadManagerImpl(
 		GlobalManager	_global_manager )
 	{
 		global_manager	= _global_manager;
+		
+		global_manager.addDownloadWillBeRemovedListener(
+			new GlobalManagerDownloadWillBeRemovedListener()
+			{
+				public void
+				downloadWillBeRemoved(
+					DownloadManager	dm )
+				
+					throws GlobalManagerDownloadRemovalVetoException
+				{
+					DownloadImpl	download = (DownloadImpl)download_map.get( dm );
+				
+					if ( download != null ){
+						
+						try{ 
+							download.isRemovable();
+							
+						}catch( DownloadRemovalVetoException e ){
+													
+							throw( new GlobalManagerDownloadRemovalVetoException( e.getMessage()));
+						}		
+					}
+				}
+			});
 	}
 	
 	public void 
@@ -115,7 +141,13 @@ DownloadManagerImpl
 			throw( new DownloadException( "DownloadManager::addDownload - failed"));
 		}
 		
-		return( new DownloadImpl(dm));
+		Download	res = new DownloadImpl(dm);
+		
+		// TODO: remove from map on removal
+		
+		download_map.put( dm, res );
+		
+		return( res );
 	}
 	
 	public Download

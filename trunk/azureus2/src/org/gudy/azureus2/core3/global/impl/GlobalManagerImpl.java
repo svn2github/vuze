@@ -59,8 +59,9 @@ import org.gudy.azureus2.core3.util.*;
 public class GlobalManagerImpl 
 	implements 	GlobalManager
 {
-  private Vector	listeners = new Vector();
-  private List managers;
+	private Vector	listeners = new Vector();
+	private List	removal_listeners = new ArrayList();
+	private List managers;
   private Checker checker;
   private GlobalManagerStatsImpl	stats;
   private TRTrackerScraper 			trackerScraper;
@@ -261,7 +262,12 @@ public class GlobalManagerImpl
 
             if ((manager.getState() == DownloadManager.STATE_ERROR)
               && (manager.getErrorDetails() != null && manager.getErrorDetails().equals("File Not Found"))) {
-              removeDownloadManager(manager);
+            	
+            	try{
+            		removeDownloadManager(manager);
+            	}catch( GlobalManagerDownloadRemovalVetoException e ){
+            		e.printStackTrace();
+            	}
             }
           }
         }
@@ -471,10 +477,25 @@ public class GlobalManagerImpl
     return managers;
   }
 
-  public void removeDownloadManager(DownloadManager manager) {
-    synchronized (managers) {
+  public void 
+  removeDownloadManager(
+  		DownloadManager manager) 
+  
+  	throws GlobalManagerDownloadRemovalVetoException
+  {
+  	synchronized( removal_listeners ){
+  	
+  		for (int i=0;i<removal_listeners.size();i++){
+  			
+  			((GlobalManagerDownloadWillBeRemovedListener)removal_listeners.get(i)).downloadWillBeRemoved( manager );
+  		}
+  	}
+  	
+    synchronized (managers){
+    	
       managers.remove(manager);
     }
+    
 	synchronized( listeners ){
 	  	
 	  for (int i=0;i<listeners.size();i++){
@@ -829,6 +850,21 @@ public class GlobalManagerImpl
 			listeners.removeElement(listener);
 		}
 	}
+	
+	public void
+	addDownloadWillBeRemovedListener(
+		GlobalManagerDownloadWillBeRemovedListener	l )
+	{
+		removal_listeners.add( l );
+	}
+	
+	public void
+	removeDownloadWillBeRemovedListener(
+		GlobalManagerDownloadWillBeRemovedListener	l )
+	{
+		removal_listeners.remove( l );
+	}
+	
 
   /**
    * @param c the character to be found 

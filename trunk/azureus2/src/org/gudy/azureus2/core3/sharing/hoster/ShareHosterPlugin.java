@@ -33,6 +33,8 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.download.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+
 public class 
 ShareHosterPlugin
 	implements Plugin, PluginListener, ShareManagerListener
@@ -101,6 +103,8 @@ ShareHosterPlugin
 			
 			try{
 				
+				Download	new_download = null;
+				
 				int	type = resource.getType();
 				
 				if ( type == ShareResource.ST_FILE ){
@@ -117,7 +121,7 @@ ShareHosterPlugin
 					
 					if ( download == null ){
 						
-						download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), file_resource.getFile());
+						new_download = download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), file_resource.getFile());
 					}
 				}else if ( type == ShareResource.ST_DIR ){
 				
@@ -133,9 +137,26 @@ ShareHosterPlugin
 					
 					if ( download == null ){
 						
-						download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), dir_resource.getDir());
+						new_download = download_manager.addNonPersistentDownload( torrent, item.getTorrentFile(), dir_resource.getDir());
 					}
 				}
+				
+				if ( new_download != null ){
+					
+					new_download.addDownloadWillBeRemovedListener(
+							new DownloadWillBeRemovedListener()
+							{
+								public void
+								downloadWillBeRemoved(
+										Download	dl )
+								
+								throws DownloadRemovalVetoException
+								{
+									throw( new DownloadRemovalVetoException("jkjkj"));
+								}
+							});
+				}
+				
 			}catch( Throwable e ){
 				
 				e.printStackTrace();

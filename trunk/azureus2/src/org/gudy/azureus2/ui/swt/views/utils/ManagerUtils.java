@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
@@ -108,7 +109,8 @@ public class ManagerUtils {
     }
   }
   
-  public static void remove(DownloadManager dm) {
+  public static void remove(DownloadManager dm)
+  	throws GlobalManagerDownloadRemovalVetoException{
     if (dm != null
         && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
       GlobalManager globalManager = dm.getGlobalManager();
