@@ -83,9 +83,12 @@ UpdateWindow
   StyledText stDescription;
   ProgressBar progress;
   Label status;
+  
   Button btnOk;
   Listener lOk;
+  
   Button btnCancel;
+  Listener lCancel;
   
   
   
@@ -218,12 +221,15 @@ UpdateWindow
     btnCancel = new Button(updateWindow,SWT.PUSH);
     
     Messages.setLanguageText(btnCancel,"swt.update.window.cancel");
-    btnCancel.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event e) {
-        dispose();
-       	check_instance.cancel();
-      }
-    });
+    
+    lCancel = new Listener() {
+	      public void handleEvent(Event e) {
+	        dispose();
+	       	check_instance.cancel();
+	      }
+	   };
+    btnCancel.addListener(SWT.Selection,lCancel);
+    
     updateWindow.addListener(SWT.Traverse, new Listener() {	
 		public void handleEvent(Event e) {
 			if ( e.character == SWT.ESC){
@@ -445,16 +451,23 @@ UpdateWindow
         btnOk.setEnabled(true);
         btnOk.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
-            finishUpdate();
+            finishUpdate(true);
           }
         });
         if(restartRequired) {
           Messages.setLanguageText(btnOk,"swt.update.window.restart");
+          btnCancel.removeListener(SWT.Selection,lCancel);
+          Messages.setLanguageText(btnCancel,"swt.update.window.restartLater");
+          btnCancel.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+              finishUpdate(false);
+            }
+          });
         } else {
           Messages.setLanguageText(btnOk,"swt.update.window.close");
+          btnCancel.setEnabled(false);
         }
-        btnCancel.setEnabled(false);
-          }
+      }
     });
   }
   
@@ -530,7 +543,7 @@ UpdateWindow
   }
   
   
-  private void finishUpdate() {
+  private void finishUpdate(boolean restartNow) {
     //When completing, remove the link in mainWindow :
     MainWindow.getWindow().setUpdateNeeded(null);
     
