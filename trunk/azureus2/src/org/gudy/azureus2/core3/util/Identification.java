@@ -86,6 +86,9 @@ public class Identification {
       String btfans = new String(peerID, 4, 6, Constants.BYTE_ENCODING);
       if (btfans.equals("btfans")) return "BitComet"; // "BitComet"? or "SimpleBT"? 
       
+      String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
+      if (turbobt.equals("turbobt")) return "TurboBT";
+      
       
       boolean allZero = true;
       for (int i = 0; i < 12; i++) {
@@ -106,11 +109,15 @@ public class Identification {
     if (DEBUG_UNKNOWN && !DEBUG_ALL) {
       try {
         System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
-        for (int i=0; i < 19; i++) {
-          System.out.print(i+"=" + peerID[i] + " ");
-        }
-        System.out.println("19=" + peerID[19]);
       } catch (Exception ignore) {/*ignore*/} 
+    }
+    
+    if (DEBUG_UNKNOWN || DEBUG_ALL) {
+      for (int i=0; i < 19; i++) {
+        System.out.print(i+"=" + peerID[i] + " ");
+      }
+      System.out.println("19=" + peerID[19]);
+      System.out.println();
     }
     
     return MessageText.getString("PeerSocket.unknown");
