@@ -898,7 +898,7 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.maxclients"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 30;
-    new IntParameter(gTransfer, "Max Clients", 0).setLayoutData(gridData); //$NON-NLS-1$
+    new IntParameter(gTransfer, "Max Clients", 100).setLayoutData(gridData); //$NON-NLS-1$
 
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.slowconnect"); //$NON-NLS-1$
