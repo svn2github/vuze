@@ -81,7 +81,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.2.3"; //$NON-NLS-1$
+  private static final String VERSION = "2.0.2.4"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
@@ -403,7 +403,7 @@ public class MainWindow implements IComponentListener {
       }
     });
 
-    /*MenuItem view_irc = new MenuItem(viewMenu, SWT.NULL);
+    MenuItem view_irc = new MenuItem(viewMenu, SWT.NULL);
     Messages.setLanguageText(view_irc, "MainWindow.menu.view.irc"); //$NON-NLS-1$
     view_irc.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -412,7 +412,7 @@ public class MainWindow implements IComponentListener {
         else
           irc.setFocus();
       }
-    });*/
+    });
 
     new MenuItem(viewMenu, SWT.SEPARATOR);
 
