@@ -1,7 +1,7 @@
 /*
  * Created on Dec 20, 2004
  * Created by Alon Rohter
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,46 +25,88 @@ package com.aelitis.azureus.core.versioncheck;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
 
 /**
- *
+ * Client for checking version information from a remote server.
  */
 public class VersionCheckClient {
-
-  private static final VersionCheckClient instance = new VersionCheckClient();
+  private static final String SERVER_ADDRESS = "azureus.aelitis.com";
+  private static final int SERVER_PORT = 6868;
   
+  private static final VersionCheckClient instance = new VersionCheckClient();
+  private Map last_check_data = null;
+  private final AEMonitor check_mon = new AEMonitor( "versioncheckclient" );
+  private long last_check_time = 0;
   
   
   private VersionCheckClient() {
-    
+    /* blank */
   }
   
   
+  /**
+   * Get the singleton instance of the version check client.
+   * @return version check client
+   */
   public static VersionCheckClient getSingleton() {  return instance;  }
   
   
   
+  /**
+   * Get the version check reply info.
+   * @return reply data, possibly cached, if the server was already checked within the last minute
+   */
+  public Map getVersionCheckInfo() {
+    try {  check_mon.enter();
+    
+      long time_diff = SystemTime.getCurrentTime() - last_check_time;
+      boolean force = time_diff > 60*1000 || time_diff < 0;
+      
+      if( last_check_data == null || last_check_data.size() == 0 || force ) {
+        try {
+          last_check_data = performVersionCheck( constructVersionCheckMessage() );
+        }
+        catch( Throwable t ) {
+          t.printStackTrace();
+          last_check_data = new HashMap();
+        }
+      }
+      else {
+        LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient is using cached version check info. Using " +last_check_data.size()+ " reply keys." ); 
+      }
+    }
+    finally {  check_mon.exit();  }
+    
+    return last_check_data;
+  }
   
+  
+  
+  /**
+   * Perform the actual version check by connecting to the version server.
+   * @param data_to_send version message
+   * @return version reply
+   * @throws Exception if the server check connection fails
+   */
   private Map performVersionCheck( Map data_to_send ) throws Exception {
+    LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient retrieving version information from " +SERVER_ADDRESS+ ":" +SERVER_PORT ); 
+    
     SocketChannel channel = null;
     
     try{
       channel = SocketChannel.open();
       channel.configureBlocking( true );
-      channel.connect( new InetSocketAddress( "azureus.aelitis.com", 6868 ) );
+      channel.connect( new InetSocketAddress( SERVER_ADDRESS, SERVER_PORT ) );
       channel.finishConnect();
     
       ByteBuffer message = ByteBuffer.wrap( BEncoder.encode( data_to_send ) );
@@ -88,7 +130,11 @@ public class VersionCheckClient {
       }
     
       Map reply_message = BDecoder.decode( reply.array() );
+      
+      LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient server version check successful. Received " +reply_message.size()+ " reply keys." );
 
+      last_check_time = SystemTime.getCurrentTime();
+      
       return reply_message;
     }
     finally {
@@ -98,22 +144,24 @@ public class VersionCheckClient {
   
   
   
-  
-  
-  
+  /**
+   * Construct the default version check message.
+   * @return message to send
+   */
   private Map constructVersionCheckMessage() {
     Map message = new HashMap();
     
-    String id = COConfigurationManager.getStringParameter("ID",null);
+    String id = COConfigurationManager.getStringParameter( "ID", null );
+    boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
     
-    if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
+    if( id != null && send_info ) {
       
       message.put( "id", id );
       message.put( "version", Constants.AZUREUS_VERSION );
       message.put( "os", Constants.OSName );
       
       
-      String  java_version = System.getProperty("java.version");
+      String  java_version = System.getProperty( "java.version" );
       if ( java_version == null ){  java_version = "unknown";  }
       message.put( "java", java_version );
       
@@ -127,7 +175,14 @@ public class VersionCheckClient {
       message.put( "javamx", new Long( max_mem ) );
       
       
-      //TODO total uploaded/download numbers
+      long total_bytes_downloaded = StatsFactory.getStats().getDownloadedBytes();
+      long total_bytes_uploaded = StatsFactory.getStats().getUploadedBytes();
+      long total_uptime = StatsFactory.getStats().getTotalUpTime();
+
+      message.put( "total_bytes_downloaded", new Long( total_bytes_downloaded ) );
+      message.put( "total_bytes_uploaded", new Long( total_bytes_uploaded ) );
+      message.put( "total_uptime", new Long( total_uptime ) );
+      
       
       //installed plugin IDs
       PluginInterface[] plugins = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaces();
@@ -148,8 +203,20 @@ public class VersionCheckClient {
     }
     
     
-    //TODO swt version check
-    
+    //swt stuff
+    try {
+      Class c = Class.forName( "org.eclipse.swt.SWT" );
+      
+      String swt_platform = (String)c.getMethod( "getPlatform", new Class[]{} ).invoke( null, new Object[]{} );
+      message.put( "swt_platform", swt_platform );
+      
+      if( send_info ) {
+        Integer swt_version = (Integer)c.getMethod( "getVersion", new Class[]{} ).invoke( null, new Object[]{} );
+        message.put( "swt_version", new Long( swt_version.longValue() ) );
+      }
+    }
+    catch( ClassNotFoundException e ) {  /* ignore */ }
+    catch( Throwable t ) {  t.printStackTrace();  }
     
     return message;
   }

@@ -29,8 +29,6 @@ package org.gudy.azureus2.update;
 
 import java.util.*;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -44,6 +42,7 @@ import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 import com.aelitis.azureus.core.versioncheck.*;
+
 
 public class 
 CoreUpdateChecker
@@ -79,19 +78,9 @@ CoreUpdateChecker
 	protected void
 	doUsageStatsSupport()
 	{
-		try{
-				// don't do any kind of reporting if the user doesn't want to
-			
-			if ( COConfigurationManager.getBooleanParameter("Send Version Info")){
-				
-        performStatsServerUpdate();
-				
-				log.log( "Anonymous ID usage report ok" );
-			}
-		}catch( Throwable e ){
-			
-			log.log( "Anonymous ID usage report fails", e );
-		}
+	  Map decoded = VersionCheckClient.getSingleton().getVersionCheckInfo();
+    
+    displayUserMessage( decoded );
 	}
 
 	
@@ -155,7 +144,9 @@ CoreUpdateChecker
 				
 			}
 					
-			Map	decoded = performStatsServerUpdate();
+			Map	decoded = VersionCheckClient.getSingleton().getVersionCheckInfo();
+      
+      displayUserMessage( decoded );
 			
 			String latest_version 			= null;
 			String latest_file_name			= null;
@@ -317,105 +308,7 @@ CoreUpdateChecker
 		}
 	}
 	
-  
-  
-  
-  /**
-   * Connect to stats server and send info update.
-   * @return reply message from server
-   * @throws Exception
-   */
-  protected Map performStatsServerUpdate() throws Exception {
-    SocketChannel channel = null;
-    
-    try{
-      channel = SocketChannel.open();
-      channel.configureBlocking( true );
-      channel.connect( new InetSocketAddress( "azureus.aelitis.com", 6868 ) );
-      channel.finishConnect();
-    
-      ByteBuffer message = ByteBuffer.wrap( BEncoder.encode( constructStatsServerMessage() ) );
-    
-      StreamEncoder encoder = new StreamEncoder( "AZH", message );
-    
-      while( true ) {  //send message
-        if( encoder.encode( channel ) ) {
-          break;
-        }
-      }
-    
-      StreamDecoder decoder = new StreamDecoder( "AZR" );
-    
-      ByteBuffer reply;
-      while( true ) {  //receive reply
-        reply = decoder.decode( channel );
-        if( reply != null ) {
-          break;
-        }
-      }
-    
-      Map reply_message = BDecoder.decode( reply.array() );
-    
-      displayUserMessage( reply_message );
       
-      return reply_message;
-    }
-    finally {
-      if( channel != null )  channel.close();
-    }
-  }
-  
-  
-  /**
-   * Get the message to be sent to the stats server
-   * @return map to be bencoded
-   */
-  private Map constructStatsServerMessage() {
-    Map message = new HashMap();
-    
-    String id = COConfigurationManager.getStringParameter("ID",null);
-    
-    if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
-      
-      message.put( "id", id );
-      message.put( "version", Constants.AZUREUS_VERSION );
-      message.put( "os", Constants.OSName );
-      
-      
-      String  java_version = System.getProperty("java.version");
-      if ( java_version == null ){  java_version = "unknown";  }
-      message.put( "java", java_version );
-      
-      
-      String  java_vendor = System.getProperty( "java.vm.vendor" );
-      if ( java_vendor == null ){   java_vendor = "unknown";  }
-      message.put( "javavendor", java_vendor );
-      
-      
-      long  max_mem = Runtime.getRuntime().maxMemory()/(1024*1024);
-      message.put( "javamx", new Long( max_mem ) );
-      
-      
-      //installed plugin IDs
-      PluginInterface[] plugins = plugin_interface.getPluginManager().getPluginInterfaces();
-      List pids = new ArrayList();
-      for (int i=0;i<plugins.length;i++){
-        String  pid = plugins[i].getPluginID();
-        
-          // filter out built-in and core ones
-        if (  !pid.startsWith( "<" ) && 
-            !pid.startsWith( "azupdater" ) &&
-            !pid.startsWith( "azplatform" ) &&
-            !pids.contains( pid )){
-        
-          pids.add( pid );
-        }
-      }
-      message.put( "plugins", pids );
-    }
-    
-    return message;
-  }
   
   
   /**
