@@ -84,6 +84,8 @@ public class DiskManager {
 
   private boolean bContinue = true;
 
+  private boolean processingDumpResume = false;
+
   public DiskManager(Map metaData, String path) {
     this.state = INITIALIZING;
     this.percentDone = 0;
@@ -777,7 +779,10 @@ public class DiskManager {
     return false;
   }
 
-  public void dumpResumeDataToDisk() {
+  public synchronized void dumpResumeDataToDisk() {
+    if(processingDumpResume)
+      return;
+    processingDumpResume = true;
     //TODO CLEAN UP
     //build the piece byte[] 
     byte[] resumeData = new byte[pieceDone.length];
@@ -796,6 +801,7 @@ public class DiskManager {
     resumeDirectory.put("resume data", resumeData);
 
     saveTorrent();
+    processingDumpResume = false;
   }
 
   private void saveTorrent() {

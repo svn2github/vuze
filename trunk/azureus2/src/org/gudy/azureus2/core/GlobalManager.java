@@ -32,6 +32,9 @@ public class GlobalManager extends Component {
   public class Checker extends Thread {
     boolean finished = false;
     int loopFactor;
+    private static final int waitTime = 1000;
+		// 10 minutes dump resume data interval
+    private static final int dumpResumeLoopCount = 600000 / waitTime;
 
     public Checker() {
       super("Global Status Checker");
@@ -43,6 +46,7 @@ public class GlobalManager extends Component {
       while (!finished) {
 
         loopFactor++;
+        // TODO is the 100 minutes interval correct?
         if (loopFactor >= 6000) {
           loopFactor = 0;
           trackerChecker.update();
@@ -56,8 +60,10 @@ public class GlobalManager extends Component {
             if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
               nbStarted++;
               nbDownloading++;
-            }
-            if (manager.getState() == DownloadManager.STATE_SEEDING) {
+              if(loopFactor % dumpResumeLoopCount == 0) {
+                manager.diskManager.dumpResumeDataToDisk();
+              }
+            } else if (manager.getState() == DownloadManager.STATE_SEEDING) {
               nbStarted++;
             }
           }
@@ -102,7 +108,7 @@ public class GlobalManager extends Component {
           }
         }
         try {
-          Thread.sleep(1000);
+          Thread.sleep(waitTime);
         }
         catch (Exception e) {
           e.printStackTrace();
