@@ -290,7 +290,7 @@ ResourceDownloaderImpl
 					input_stream = con.getInputStream();
 				}
 				
-				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+				ByteArrayOutputStream	baos;
 
 				try{
 					byte[] buf = new byte[BUFFER_SIZE];
@@ -300,6 +300,8 @@ ResourceDownloaderImpl
 						// unfortunately not all servers set content length
 					
 					int size = con.getContentLength();					
+					
+					baos = size>0?new ByteArrayOutputStream(size):new ByteArrayOutputStream();
 					
 					while( !cancel_download ){
 						
