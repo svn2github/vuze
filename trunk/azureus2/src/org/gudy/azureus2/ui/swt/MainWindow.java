@@ -106,7 +106,8 @@ public class MainWindow implements IComponentListener {
   public static Color white;
   protected static Color red_ConsoleView;
   protected static Color red_ManagerItem;
-
+  public static Cursor handCursor;
+  
   private CTabFolder folder;
   private CLabel statusText;
   private CLabel statusDown;
@@ -222,7 +223,7 @@ public class MainWindow implements IComponentListener {
               latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
               setStatusVersion();
               statusText.setForeground(red);
-              statusText.setCursor(new Cursor(display, SWT.CURSOR_HAND));
+              statusText.setCursor(handCursor);
               statusText.addMouseListener(new MouseAdapter() {
                 public void mouseDoubleClick(MouseEvent arg0) {
                   showUpgradeWindow();
@@ -301,6 +302,7 @@ public class MainWindow implements IComponentListener {
       white = new Color(display, new RGB(255, 255, 255));
       red_ConsoleView = new Color(display, new RGB(255, 192, 192));
       red_ManagerItem = new Color(display, new RGB(255, 68, 68));
+      handCursor = new Cursor(display, SWT.CURSOR_HAND);
     }
     instanceCount++;
 
@@ -701,6 +703,36 @@ public class MainWindow implements IComponentListener {
     label.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
 
+    Group gInternet = new Group(s, SWT.NULL);
+    gInternet.setLayout(new GridLayout());
+    Messages.setLanguageText(gInternet, "MainWindow.about.section.internet"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gInternet.setLayoutData(gridData);
+
+    final String[][] link = {{"homepage", "sourceforge", "sourceforgedownloads", "bugreports", "featurerequests", "forumdiscussion"},
+    {"http://azureus.sourceforge.net/", "http://sourceforge.net/projects/azureus/",
+      "http://sourceforge.net/project/showfiles.php?group_id=84122",
+      "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
+      "http://sourceforge.net/tracker/?atid=575157&group_id=84122&func=browse",
+      "http://sourceforge.net/forum/forum.php?forum_id=291997"}};
+
+    for (int i = 0; i < link[0].length; i++) {
+      final Label linkLabel = new Label(gInternet, SWT.NULL);
+      linkLabel.setText(MessageText.getString("MainWindow.about.internet."+link[0][i]));
+      linkLabel.setData(link[1][i]);
+      linkLabel.setCursor(handCursor);
+      linkLabel.setForeground(blue);
+      linkLabel.setLayoutData(gridData = new GridData());
+      linkLabel.addMouseListener(new MouseAdapter() {
+        public void mouseDoubleClick(MouseEvent arg0) {
+          Program.launch((String)((Label) arg0.widget).getData());
+        }
+        public void mouseDown(MouseEvent arg0) {
+          Program.launch((String)((Label) arg0.widget).getData());
+        }
+      });
+    }
+
     s.pack();
     Rectangle splashRect = s.getBounds();
     Rectangle displayRect = display.getBounds();
@@ -771,7 +803,7 @@ public class MainWindow implements IComponentListener {
     final String downloadLink = "http://azureus.sourceforge.net/Azureus2.jar";  //$NON-NLS-1$
     final Label linklabel = new Label(gManual, SWT.NULL);
     linklabel.setText(downloadLink);
-    linklabel.setCursor(new Cursor(display, SWT.CURSOR_HAND));
+    linklabel.setCursor(handCursor);
     linklabel.setForeground(blue);
     linklabel.setLayoutData(gridData = new GridData());
             
@@ -1223,6 +1255,8 @@ public class MainWindow implements IComponentListener {
         red_ConsoleView.dispose();
       if(red_ManagerItem != null && !red_ManagerItem.isDisposed())
         red_ManagerItem.dispose();
+      if(handCursor != null && !handCursor.isDisposed())
+        handCursor.dispose();
     }
     if(updateJar)
       updateJar();
