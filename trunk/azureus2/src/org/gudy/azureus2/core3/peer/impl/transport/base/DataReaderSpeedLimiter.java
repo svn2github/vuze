@@ -157,9 +157,11 @@ DataReaderSpeedLimiter
 				
 				bytes_available += slots*bytes_per_slot;
 				
-				if ( bytes_available > bytes_per_second ){
+					// give a bit of slack for bursty transfers
+				
+				if ( bytes_available > (3*bytes_per_second )){
 					
-					bytes_available = bytes_per_second;
+					bytes_available = 3*bytes_per_second;
 				}
 				
 				if ( bytes_available == 0 ){
