@@ -42,4 +42,7 @@ TRHostPeer
 	
 	public int
 	getNumberOfPeers();
+	
+	public String
+	getIP();
 }

@@ -35,4 +35,16 @@ TrackerPeer
 
 	public boolean
 	isSeed();
+	
+	public long
+	getAmountLeft();
+	
+	public long
+	getDownloaded();
+	
+	public long
+	getUploaded();
+	
+	public String
+	getIP();
 }

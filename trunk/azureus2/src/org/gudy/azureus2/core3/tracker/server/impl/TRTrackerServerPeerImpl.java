@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.core3.tracker.server.impl;
 
+import java.net.*;
+
 import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
@@ -30,6 +32,7 @@ TRTrackerServerPeerImpl
 	protected byte[]		peer_id;
 	protected byte[]		ip;
 	protected int			port;
+	protected String		ip_str;
 	
 	protected long			timeout;
 	
@@ -56,9 +59,27 @@ TRTrackerServerPeerImpl
 	}
 	
 	protected byte[]
-	getIP()
+	getIPAsRead()
 	{
 		return( ip );
+	}
+	
+	public String
+	getIP()
+	{
+		if ( ip_str == null ){
+			
+			ip_str = new String(ip);
+		
+			try{
+				ip_str = InetAddress.getByName( ip_str ).getHostAddress();
+			
+			}catch( UnknownHostException e ){
+			
+			}
+		}
+		
+		return( ip_str );
 	}
 	
 	protected int

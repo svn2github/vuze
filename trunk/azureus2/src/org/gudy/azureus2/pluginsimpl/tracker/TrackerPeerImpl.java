@@ -58,5 +58,29 @@ TrackerPeerImpl
 	isSeed()
 	{
 		return( peer.isSeed());
+	}	
+	
+	public long
+	getAmountLeft()
+	{
+		return( peer.getAmountLeft());
+	}	
+	
+	public long
+	getDownloaded()
+	{
+		return( peer.getDownloaded());
+	}	
+	
+	public long
+	getUploaded()
+	{
+		return( peer.getUploaded());
+	}
+	
+	public String
+	getIP()
+	{
+		return( peer.getIP());
 	}
 }

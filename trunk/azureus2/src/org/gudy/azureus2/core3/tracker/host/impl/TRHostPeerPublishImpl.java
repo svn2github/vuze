@@ -70,4 +70,10 @@ TRHostPeerPublishImpl
 	{
 		return( 0 );
 	}
+	
+	public String
+	getIP()
+	{
+		return("");
+	}
 }

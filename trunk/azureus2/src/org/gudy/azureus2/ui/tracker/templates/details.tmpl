@@ -29,18 +29,11 @@
         <table align="center" border="1" cellpadding="2" cellspacing="1" bordercolor="#111111" width="96%" bgcolor="#D7E0FF">
           <thead>
             <tr>
-              <td width="26%" bgcolor="#FFDEAD">Torrent</td>
-              <td width="10%" bgcolor="#FFDEAD">Status</td>
-              <td width="10%" bgcolor="#FFDEAD">Size</td>
-              <td width="6%" bgcolor="#FFDEAD">Seeds</td>
-              <td width="6%" bgcolor="#FFDEAD">Peers</td>
-              <td width="6%" bgcolor="#FFDEAD">Tot Up</td>
-              <td width="6%" bgcolor="#FFDEAD">Tot Down</td>
-              <td width="6%" bgcolor="#FFDEAD">Ave Up</td>
-              <td width="6%" bgcolor="#FFDEAD">Ave Down</td>
-              <td width="6%" bgcolor="#FFDEAD">Left</td>
-              <td width="6%" bgcolor="#FFDEAD">Comp</td>
-              <td width="6%" bgcolor="#FFDEAD">More</td>
+              <td width="20%" bgcolor="#FFDEAD">Seed</td>
+              <td width="20%" bgcolor="#FFDEAD">Uploaded</td>
+              <td width="20%" bgcolor="#FFDEAD">Downloaded</td>
+              <td width="20%" bgcolor="#FFDEAD">Left</td>
+              <td width="20%" bgcolor="#FFDEAD">IP</td>
             </tr>
             </thead>
 
@@ -49,6 +42,10 @@
 			<tmpl_loop peer_info>
 	            <tr>
 	              <td><tmpl_var peer_is_seed></td>
+	              <td><tmpl_var peer_uploaded></td>
+	              <td><tmpl_var peer_downloaded></td>
+	              <td><tmpl_var peer_left></td>
+	              <td><tmpl_var peer_ip></td>
 	            </tr>
 			</tmpl_loop>
 		</tmpl_loop>

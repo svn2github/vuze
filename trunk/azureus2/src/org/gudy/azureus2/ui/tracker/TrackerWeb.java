@@ -275,6 +275,10 @@ TrackerWeb
 					TrackerPeer	peer = peers[j];
 					
 					p_row.put( "peer_is_seed", peer.isSeed()?"1":"0" );
+					p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKBEtc(peer.getUploaded()));
+					p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKBEtc(peer.getDownloaded()));
+					p_row.put( "peer_left", DisplayFormatters.formatByteCountToKBEtc(peer.getAmountLeft()));
+					p_row.put( "peer_ip", peer.getIP() );
 				}
 				
 				t_row.put( "peer_info", peer_info );

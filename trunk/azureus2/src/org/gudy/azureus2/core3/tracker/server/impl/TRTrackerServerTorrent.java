@@ -88,7 +88,7 @@ TRTrackerServerTorrent
 				//System.out.println( "checking " + new String(this_peer.getIP()) + ":" + this_peer.getPort() + " against " + ip_address + ":" + port );
 														
 				if (	this_peer.getPort() == port &&
-						new String(this_peer.getIP()).equals( ip_address )){
+						new String(this_peer.getIPAsRead()).equals( ip_address )){
 									
 					// System.out.println( "removing dead client '" + this_peer.getString());
 									
@@ -163,7 +163,7 @@ TRTrackerServerTorrent
 				rep_peers.add( rep_peer );
 														 
 				rep_peer.put( "peer id", peer.getPeerId() );
-				rep_peer.put( "ip", peer.getIP() );
+				rep_peer.put( "ip", peer.getIPAsRead() );
 				rep_peer.put( "port", new Long( peer.getPort()));
 			}
 		}

@@ -70,4 +70,10 @@ TRHostPeerHostImpl
 	{
 		return( peer.getNumberOfPeers());
 	}
+	
+	public String
+	getIP()
+	{
+		return( peer.getIP());
+	}
 }
