@@ -48,6 +48,9 @@ public class UpdateSWT {
     if(args.length < 4)
       return;
     try {
+      toLog = "user.dir="  + System.getProperty("user.dir") + "\n";
+      fosLog.write(toLog.getBytes());
+      
       toLog = "SWT Updater is waiting 1 sec\n";
       fosLog.write(toLog.getBytes()); 
       Thread.sleep(1000);
@@ -114,6 +117,10 @@ public class UpdateSWT {
       
       if(zipEntry.getName().equals("java_swt")) {                
         writeFile(zipFile,zipEntry,"Azureus.app/Contents/MacOS/");
+        File f = openFile("Azureus.app/Contents/MacOS/","java_swt");
+        String path = f.getAbsolutePath();
+        String chgRights = "chmod 755 " + path;
+        Runtime.getRuntime().exec(chgRights);
       }
       if(zipEntry.getName().equals("swt.jar")) {        
         writeFile(zipFile,zipEntry,"Azureus.app/Contents/Resources/Java/");
@@ -169,7 +176,7 @@ public class UpdateSWT {
     String fileName = name;
     
     if(path != null) {
-      fileName = path + System.getProperty("file.separator") + name;            
+      fileName = path + name;            
     }
     
     String toLog = "\t\t\tOpening : " + fileName + "\n";
