@@ -216,10 +216,12 @@ public class DonationWindow {
     msgThanks.setMessage(MessageText.getString("DonationWindow.thanks.text"));
     msgThanks.open();
     COConfigurationManager.setParameter("donations.donated",true);    
+    COConfigurationManager.save();
   }
   
   private void stopAsking() {
    COConfigurationManager.setParameter("donations.nextAskTime",-1);
    COConfigurationManager.setParameter("donations.lastVersion",Constants.AZUREUS_VERSION);
+   COConfigurationManager.save();
   }
 }

@@ -2858,6 +2858,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     else {
      //Set the re-ask so that we ask in the next %DONATIONS_ASK_AFTER hours
       COConfigurationManager.setParameter("donations.nextAskTime",hours / DONATIONS_ASK_AFTER);
+      COConfigurationManager.save();
+
       return;
     }
    }
@@ -2868,6 +2870,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
    
    //Here we've got to ask !!!
    COConfigurationManager.setParameter("donations.nextAskTime",hours / DONATIONS_ASK_AFTER);
+   COConfigurationManager.save();
+
    if(display != null && !display.isDisposed()) {
     display.asyncExec( new Runnable() {
 			public void run() {
