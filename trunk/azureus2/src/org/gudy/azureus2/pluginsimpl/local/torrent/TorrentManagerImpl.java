@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
  *
  */
 
+import java.util.*;
 import java.net.URL;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -36,7 +37,7 @@ import org.gudy.azureus2.core3.torrent.*;
 
 public class 
 TorrentManagerImpl 
-	implements TorrentManager
+	implements TorrentManager, TOTorrentProgressListener
 {
 	protected static TorrentManagerImpl	singleton;
 	
@@ -50,6 +51,8 @@ TorrentManagerImpl
 		
 		return( singleton );
 	}
+	
+	protected List		listeners = new ArrayList();
 	
 	protected
 	TorrentManagerImpl()
@@ -120,9 +123,65 @@ TorrentManagerImpl
 		}
 	}
 	
+	public Torrent
+	createFromDataFile(
+		File		data,
+		URL			announce_url )
+	
+		throws TorrentException
+	{
+		try{
+			TOTorrent t =  TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( data, announce_url, this );
+			
+			return( new TorrentImpl(t));
+			
+		}catch( TOTorrentException e ){
+			
+			throw( new TorrentException( "TorrentManager::createFromDataFile Fails", e ));
+		}
+	}
+	
 	public TorrentAttribute[]
 	getDefinedAttributes()
 	{
 		return( new TorrentAttribute[]{ new TorrentAttributeImpl()});
+	}
+	
+	public void
+	reportProgress(
+		int		percent_complete )
+	{
+	}
+		
+	public void
+	reportCurrentTask(
+		final String	task_description )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((TorrentManagerListener)listeners.get(i)).event(
+					new TorrentManagerEvent()
+					{
+						public Object
+						getData()
+						{
+							return( task_description );
+						}
+					});
+		}
+	}
+	
+	public void
+	addListener(
+		TorrentManagerListener	l )
+	{
+		listeners.add( l );
+	}
+		
+	public void
+	removeListener(
+		TorrentManagerListener	l )
+	{
+		listeners.remove(l);
 	}
 }

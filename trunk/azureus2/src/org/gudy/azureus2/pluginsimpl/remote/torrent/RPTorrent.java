@@ -158,6 +158,13 @@ RPTorrent
 		return(null);
 	}	
 	
+	public void
+	setComment(
+		String	comment )
+	{
+		notSupported();
+	}
+	
 	public long
 	getCreationDate()
 	{

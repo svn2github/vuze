@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  */
 
 import java.util.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.tracker.*;
@@ -76,6 +77,24 @@ TrackerWebContextImpl
 	getName()
 	{
 		return( server.getName());
+	}
+	
+	public URL[]
+	getURLs()
+	{
+		try{
+			return( 
+				new URL[]{ 
+						new URL(
+							(server.isSSL()?"https":"http") + "://" + 
+							server.getHost() + ":" + server.getPort() + "/" )});
+			
+		}catch( MalformedURLException e ){
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
 	}
 	
 	public int

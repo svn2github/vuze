@@ -122,6 +122,12 @@ TorrentImpl
 		return( decode(torrent.getComment()));
 	}
 	
+	public void
+	setComment(
+		String	comment )
+	{
+		torrent.setComment( comment );
+	}
 	public long
 	getCreationDate()
 	{

@@ -46,15 +46,43 @@ TorrentManager
 	
 		throws TorrentException;
 	
+		/**
+		 * decodes a torrent encoded using the normal "bencoding" rules from a file
+		 * @param file
+		 * @return
+		 * @throws TorrentException
+		 */
+	
 	public Torrent
 	createFromBEncodedFile(
 		File		file )
 	
 		throws TorrentException;
 	
+	/**
+	 * decodes a torrent encoded using the normal "bencoding" rules from a byte array
+	 * @param file
+	 * @return
+	 * @throws TorrentException
+	 */
+	
 	public Torrent
 	createFromBEncodedData(
 		byte[]		data )
+	
+		throws TorrentException;
+	
+		/**
+		 * creates a new torrent from an input file
+		 * @param data
+		 * @return
+		 * @throws TorrentException
+		 */
+	
+	public Torrent
+	createFromDataFile(
+		File		data,
+		URL			announce_url )
 	
 		throws TorrentException;
 	
@@ -68,4 +96,11 @@ TorrentManager
 	public TorrentAttribute[]
 	getDefinedAttributes();
 	
+	public void
+	addListener(
+		TorrentManagerListener	l );
+	
+	public void
+	removeListener(
+		TorrentManagerListener	l );
 }

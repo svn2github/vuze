@@ -189,11 +189,37 @@ RPTorrentManager
 		return( null );
 	}
 	
+	public Torrent
+	createFromDataFile(
+		File		data,
+		URL			announce_url )
+	
+		throws TorrentException
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public TorrentAttribute[]
 	getDefinedAttributes()
 	{
 		notSupported();
 		
 		return( null );
+	}
+	
+	public void
+	addListener(
+		TorrentManagerListener	l )
+	{
+		notSupported();
+	}
+		
+	public void
+	removeListener(
+		TorrentManagerListener	l )
+	{
+		notSupported();
 	}
 }

@@ -28,6 +28,8 @@ package org.gudy.azureus2.pluginsimpl.remote.tracker;
  */
 
 
+import java.net.URL;
+
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.RPTorrent;
 import org.gudy.azureus2.plugins.tracker.*;
@@ -185,6 +187,14 @@ RPTracker
 	   	notSupported();
 		
 		return( null );
+	}
+	
+	public URL[]
+	getURLs()
+	{
+	   	notSupported();
+		
+		return( null );				
 	}
 	
 	public void

@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  *
  */
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
@@ -33,6 +34,7 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
@@ -78,6 +80,49 @@ TrackerImpl
 		return( host.getName());
 	}
 	
+	public URL[]
+	getURLs()
+	{
+		String	tracker_host = COConfigurationManager.getStringParameter( "Tracker IP", "" );
+
+		List	urls = new ArrayList();
+		
+		if ( tracker_host.length() > 0 ){
+			
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", true )){
+										
+				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+				
+				try{
+					urls.add( new URL( "http://" + tracker_host + ":" + port + "/announce" ));
+					
+				}catch( MalformedURLException e ){
+					
+					e.printStackTrace();
+				}
+			}
+			
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", true )){
+				
+				int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+				
+				try{
+					urls.add( new URL( "https://" + tracker_host + ":" + port + "/announce" ));
+				
+				}catch( MalformedURLException e ){
+				
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		URL[]	res = new URL[urls.size()];
+		
+		urls.toArray( res );
+		
+		return( res );
+	}
+
 	public TrackerTorrent
 	host(
 		Torrent		_torrent,

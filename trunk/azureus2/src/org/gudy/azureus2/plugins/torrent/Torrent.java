@@ -67,6 +67,10 @@ Torrent
 	public String
 	getComment();
 	
+	public void
+	setComment(
+		String		comment );
+	
 	public long
 	getCreationDate();
 	

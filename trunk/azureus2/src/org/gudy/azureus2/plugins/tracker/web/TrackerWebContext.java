@@ -25,11 +25,22 @@ package org.gudy.azureus2.plugins.tracker.web;
  * @author parg
  *
  */
+
+import java.net.URL;
+
 public interface 
 TrackerWebContext 
 {
 	public String
 	getName();
+	
+	/**
+	 * returns the context URLS (can be two for the tracker as http + https)
+	 * @return
+	 */
+
+	public URL[]
+	getURLs();
 	
 	public void
 	addPageGenerator(
