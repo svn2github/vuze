@@ -104,6 +104,7 @@ public class ConfigView extends AbstractIView {
   //CTabFolder ctfConfig;
   TabFolder tfConfig;
   Table table;
+  boolean noChange;
   Label passwordMatch;
 
   public ConfigView() {
@@ -1126,8 +1127,9 @@ public class ConfigView extends AbstractIView {
       }
     }
 
-    if (table == null || table.isDisposed())
+    if (table == null || table.isDisposed() || noChange)
       return;
+    noChange = true;
     TableItem[] items = table.getItems();
     for (int i = 0; i < items.length; i++) {
       IpRange range = (IpRange) items[i].getData();
@@ -1191,15 +1193,18 @@ public class ConfigView extends AbstractIView {
     synchronized (ranges) {
       ranges.remove(range);
     }
+    noChange = false;
   }
 
   public void editRange(IpRange range) {
     new IpFilterEditor(tfConfig.getDisplay(), table, filter.getIpRanges(), range);
+    noChange = false;
     //new IpFilterEditor(ctfConfig.getDisplay(), table, filter.getIpRanges(), range);
   }
 
   public void addRange() {
     new IpFilterEditor(tfConfig.getDisplay(), table, filter.getIpRanges(), null);
+    noChange = false;
     //new IpFilterEditor(ctfConfig.getDisplay(), table, filter.getIpRanges(), null);
   }
 

@@ -1076,7 +1076,7 @@ PEPeerTransportProtocol
     //But this solves BOTH hash fails and deconnections
     //Due to invalid packet length sent ....
     //TODO : Understand why this return is needed here
-    return;
+    //return;
 	  } //So if we haven't written the whole buffer, we simply return...
 	}
 
@@ -1096,6 +1096,7 @@ PEPeerTransportProtocol
 		writeData = false;
 		//and loop
 		write();
+    return;
 	  }
 	  if (dataQueue.size() != 0) {
 		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
@@ -1131,6 +1132,7 @@ PEPeerTransportProtocol
 			PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
 			// and loop
 			write();
+      return;
 		  }
 		}
 		else {

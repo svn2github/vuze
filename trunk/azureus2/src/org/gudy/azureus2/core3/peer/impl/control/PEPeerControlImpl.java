@@ -947,16 +947,6 @@ PEPeerControlImpl
     if ((_loopFactor % 100) != 0)
       return;
 
-    //3. if non unchoke possibilities we should cancel all chokes
-    //   and return;              
-    /*if (nbUnchoke < 1) {
-      for (int i = 0; i < nonChoking.size(); i++) {
-        PeerSocket pc = (PeerSocket) nonChoking.get(i);
-        pc.sendChoke();
-      }
-      return;
-    }*/
-
     //4. Determine the N (nbUnchoke best peers)
     //   Maybe we'll need some other test when we are a seed ...
     Vector bestUploaders = getBestUnChokedPeers(nbUnchoke);
@@ -966,7 +956,7 @@ PEPeerControlImpl
       performOptimisticUnChoke(bestUploaders);
     }
     if (currentOptimisticUnchoke != null)
-      bestUploaders.add(currentOptimisticUnchoke);
+      uniqueAdd(bestUploaders,currentOptimisticUnchoke);
 
     for (int i = 0; i < bestUploaders.size(); i++) {
       PEPeerTransport pc = (PEPeerTransport) bestUploaders.get(i);
@@ -982,6 +972,14 @@ PEPeerControlImpl
       PEPeerTransport pc = (PEPeerTransport) nonChoking.get(i);
       pc.sendChoke();
     }
+  }
+  
+  private void uniqueAdd(List list,Object obj) {
+    if(obj == null || list == null)
+      return;
+    if(list.contains(obj))
+      return;
+    list.add(obj);
   }
 
   // refactored out of unChoke() - Moti
@@ -1139,6 +1137,10 @@ PEPeerControlImpl
   }
 
   private void testAndSortBest(int upRate, int[] upRates, PEPeerTransport pc, Vector best, int start) {
+    if(best == null || pc == null)
+      return;
+    if(best.contains(pc))
+      return;
     int i;
     for (i = start; i < upRates.length; i++) {
       if (upRate >= upRates[i])
