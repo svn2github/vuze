@@ -33,9 +33,6 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -60,7 +57,6 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
-import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -982,10 +978,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         if (item != null) {
           //Every N GUI updates we unvalidate the images
           if (loopFactor % graphicsUpdate == 0) {
-            item.invalidate();
-            table.redraw();
-          }
-          
+            item.invalidate();            
+          }          
           item.refresh();
         }
       }

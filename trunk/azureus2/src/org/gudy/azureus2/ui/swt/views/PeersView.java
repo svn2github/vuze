@@ -191,6 +191,7 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
     		if(event.count > 1)
     			return;
     		doPaint();
+        //System.out.println(System.currentTimeMillis() % 10000);
     	}
     });
     
