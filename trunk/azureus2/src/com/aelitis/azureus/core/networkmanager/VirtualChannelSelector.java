@@ -71,7 +71,8 @@ public class VirtualChannelSelector {
      * NOTE: For OP_CONNECT and OP_WRITE -type selectors, once a selection request op
      * completes, the channel's listener registration is automatically canceled; any
      * future selection notification requires re-registration.  For OP_READ selectors,
-     * a registration is valid until actively canceled, no matter how many it is selected.
+     * a registration is valid until actively canceled, no matter how many times it is
+     * selected.
      * @param channel socket to listen for
      * @param listener op-complete listener
      * @param attachment object to be passed back with listener notification
