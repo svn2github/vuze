@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet;
  *
  */
 
+import java.net.*;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -50,41 +51,98 @@ RemoteUIMainPanel
 	RemoteUIMainPanel(
 		PluginInterface	_pi )
 	{
-		pi		= _pi;
-	
-		setLayout( new BorderLayout());
+		try{
+			pi		= _pi;
 		
-		JToolBar tb = new JToolBar();
-		
-		JButton	refresh = new JButton( "Refresh");
-		
-		tb.add( refresh );
-		
-		add( tb, BorderLayout.NORTH );
-		
-		final MDDownloadModel	model 	= new MDDownloadModel( pi.getDownloadManager());
-		
-		final VWDownloadView 	view 	= new VWDownloadView(model);
-		
-		add( view.getComponent(), BorderLayout.CENTER );
-		
-		refresh.addActionListener(
-				new ActionListener()
-				{
-					public void
-					actionPerformed(
-							ActionEvent	ev )
+			setLayout( new BorderLayout());
+			
+			JToolBar tb = new JToolBar();
+			
+			JButton	refresh = new JButton( "Refresh");
+			
+			tb.add( refresh );
+			
+			final JTextField	tf = new JTextField();
+			
+			tf.setColumns(20);
+			
+			tb.add( tf );
+			
+			JButton	open = new JButton( "Open");
+			
+			tb.add( open );
+			
+			add( tb, BorderLayout.NORTH );
+			
+			final MDDownloadModel	model 	= new MDDownloadModel( pi.getDownloadManager());
+			
+			final VWDownloadView 	view 	= new VWDownloadView(model);
+			
+			add( view.getComponent(), BorderLayout.CENTER );
+			
+			refresh.addActionListener(
+					new ActionListener()
 					{
-						for (int i=0;i<listeners.size();i++){
-							
-							((RemoteUIMainPanelListener)listeners.get(i)).refresh();
+						public void
+						actionPerformed(
+								ActionEvent	ev )
+						{
+							try{
+								for (int i=0;i<listeners.size();i++){
+									
+									((RemoteUIMainPanelListener)listeners.get(i)).refresh();
+								}
+								
+								model.refresh();
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+								reportError( e );
+							}
 						}
-						
-						model.refresh();
-						
-						view.refresh();
-					}
-				});
+					});
+			
+			open.addActionListener(
+					new ActionListener()
+					{
+						public void
+						actionPerformed(
+								ActionEvent	ev )
+						{
+							try{
+								URL	url = new URL( tf.getText());
+							
+								pi.getDownloadManager().addDownload( url );
+							
+								model.refresh();
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+								reportError( e );
+							}
+						}
+					});
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			reportError( e );
+		}
+	}
+	
+	public void
+	reportError(
+		final Throwable 	e )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((RemoteUIMainPanelListener)listeners.get(i)).error( e );
+		}
 	}
 	
 	public void

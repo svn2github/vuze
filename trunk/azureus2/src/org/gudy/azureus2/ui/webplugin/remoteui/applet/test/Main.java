@@ -45,7 +45,16 @@ Main
 	
 		throws PluginException
 	{	
-		JFrame	frame = new JFrame( "plop" );
+		try{
+			
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			
+		}catch( Exception e ){
+			
+			e.printStackTrace();
+		}
+		
+		final JFrame	frame = new JFrame( "Azureus Swing UI" );
 
 		frame.addWindowListener(
 			new WindowAdapter()
@@ -64,8 +73,37 @@ Main
 		
 		cont.setLayout( new BorderLayout());
 		
-		cont.add( new RemoteUIMainPanel( _plugin_interface ));
+		RemoteUIMainPanel	panel = new RemoteUIMainPanel( _plugin_interface );
 		
+		cont.add( panel );	
+		
+		panel.addListener(
+				new RemoteUIMainPanelListener()
+				{
+					public void
+					refresh()
+					{
+					}
+					
+					public void
+					error(
+						final Throwable 		e )
+					{
+						SwingUtilities.invokeLater(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										JOptionPane.showMessageDialog( 
+												frame, 
+												e.toString(),
+												"Error Occurred",  
+												JOptionPane.ERROR_MESSAGE );
+									}
+								});
+					}
+				});
 		frame.setVisible(true);
 	}		
 }

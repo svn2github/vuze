@@ -30,6 +30,8 @@ import java.util.*;
 import java.io.File;
 import java.net.URL;
 
+import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -155,9 +157,19 @@ DownloadManagerImpl
 
 	public void 
 	addDownload(
-		URL	url) 
+		final URL	url) 
 	{
-		new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url.toString());
+		Display	display = MainWindow.getWindow().getDisplay();
+		
+		display.syncExec(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url.toString());
+					}
+				});
 	}
 	
 	protected void

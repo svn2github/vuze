@@ -33,6 +33,7 @@ import java.io.*;
 import java.applet.*;
 import java.awt.*;
 
+import javax.swing.*;
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.*;
@@ -51,6 +52,14 @@ RemoteUIApplet
 	public
 	RemoteUIApplet()
 	{	
+		try{
+			
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			
+		}catch( Exception e ){
+			
+			e.printStackTrace();
+		}	
 	}
 	
 	public void
@@ -83,6 +92,17 @@ RemoteUIApplet
 					refresh()
 					{
 						((RPDownloadManager)pi.getDownloadManager())._refresh();
+					}
+					
+					public void
+					error(
+						final Throwable 		e )
+					{
+						JOptionPane.showMessageDialog( 
+								RemoteUIApplet.this, 
+								e.toString(),
+								"Error Occurred",  
+								JOptionPane.ERROR_MESSAGE );
 					}
 				});
 			

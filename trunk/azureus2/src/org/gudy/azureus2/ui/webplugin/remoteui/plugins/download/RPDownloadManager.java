@@ -96,6 +96,16 @@ RPDownloadManager
 			}
 			
 			return( new RPReply( res ));
+			
+		}else if ( method.equals( "addDownload[URL]" )){
+			
+			try{
+				delegate.addDownload((URL)request.getParams());
+				
+			}catch( DownloadException e ){
+				
+				throw( new RPException("DownloadManager::addDownload failed", e ));
+			}
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -117,7 +127,7 @@ RPDownloadManager
 	
 		throws DownloadException
 	{
-		notSupported();
+		RPDownload[]	res = (RPDownload[])dispatcher.dispatch( new RPRequest( this, "addDownload[URL]", url )).getResponse();
 	}
 	
 	

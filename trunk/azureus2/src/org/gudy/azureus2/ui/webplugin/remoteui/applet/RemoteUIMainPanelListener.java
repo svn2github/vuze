@@ -31,4 +31,8 @@ RemoteUIMainPanelListener
 {
 	public void
 	refresh();
+	
+	public void
+	error(
+		Throwable e );
 }
