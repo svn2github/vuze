@@ -141,7 +141,7 @@ FMFileImpl
 		throws FMFileManagerException
 	{
 		try{		
-			raf = new RandomAccessFile( file, access_mode==FM_READ?"r":"rwd");
+			raf = new RandomAccessFile( file, access_mode==FM_READ?"r":"rw");
 			
 		}catch( Throwable e ){
 			
