@@ -1,0 +1,58 @@
+a {
+	text-decoration: none;
+}
+a:active {
+	text-decoration: none;
+}
+a:visited {
+	text-decoration: none;
+}
+a:hover { 
+	text-decoration: underline;
+}
+.azborder {
+	background-color: #526ED6;
+}
+.azcontent {
+	border-color: #111111;
+	background-color: #D7E0FF;
+}
+th{
+	background-color: #FFDEAD;
+	font-weight: normal;
+	text-align: left;
+	border: #111111;
+}
+body {
+	background-color: #EBEFFF;
+	margin: 0px; 
+}
+h1 {
+	font-size: 24pt;
+	font-weight: normal;
+}
+.disclaimer {
+	font-size: 10pt;
+}
+.torrent_0seed {
+	color: #FF0000;
+}
+.torrent_1seed {
+	color: FF8800;
+}
+.torrent_2seed {
+	color: FFCC00;
+}
+.torrent_3seed {
+	color: FFFF00;
+}
+.torrent_4seed {
+	color: #CCFF00;
+}
+.torrent_isseed {
+	color: #00CC00;
+}
+span {
+	font-weight: bold;
+	color: #00FF00;
+}
