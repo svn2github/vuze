@@ -98,7 +98,7 @@ DiskManagerFileInfoImpl
   	cache_file.flushCache();
   }
   
-  protected void
+  protected void 
   moveFile(
   	File	newFile )
   
