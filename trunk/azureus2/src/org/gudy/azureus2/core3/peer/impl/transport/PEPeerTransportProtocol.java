@@ -128,8 +128,6 @@ PEPeerTransportProtocol
   private int readSleepTime;
   private long lastReadTime;
 
-  private List		listeners;
-
   private long last_message_sent_time = 0;
   
   
@@ -1895,43 +1893,6 @@ StateTransfering
     return ip + ":" + port + " [" + client+ "]";
 	}
 	
-	public void
-	addListener(
-		PEPeerListener	l )
-	{
-		try{
-			this_mon.enter();
-			
-			if ( listeners == null ){
-				
-				listeners = new ArrayList(1);
-			}
-			
-			listeners.add(l);
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	public void
-	removeListener(
-		PEPeerListener	l )
-	{
-		try{
-			this_mon.enter();
-			
-			if ( listeners == null ){
-				
-				listeners = new ArrayList(1);
-			}
-			
-			listeners.remove(l);
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
   
 	public TransportOwner
 	getTransportOwner()

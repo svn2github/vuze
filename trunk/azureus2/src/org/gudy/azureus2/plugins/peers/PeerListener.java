@@ -24,12 +24,16 @@ package org.gudy.azureus2.plugins.peers;
 
 /**
  * @author parg
- *
+ * @deprecated never implemented
  */
 
 public interface 
 PeerListener 
 {
+  /**
+   * @deprecated never implemented
+   * @param event
+   */
 	public void
 	eventOccurred(
 		PeerEvent	event );

@@ -106,10 +106,18 @@ Peer
 		boolean 	closedOnError,
 		boolean 	attemptReconnect );
 	
+  /**
+   * @deprecated never implemented
+   * @param l
+   */
 	public void
 	addListener(
 		PeerListener	l );
 	
+  /**
+   * @deprecated never implemented
+   * @param l
+   */
 	public void
 	removeListener(
 		PeerListener	l );

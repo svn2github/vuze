@@ -31,7 +31,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -389,17 +388,4 @@ PeerForeignDelegate
 		return( foreign.hashCode());
 	}
 	
-	public void
-	addListener(
-		PEPeerListener	l )
-	{
-		System.out.println( "PeerForiegn::addListener not implemented" );
-	}
-	
-	public void
-	removeListener(
-		PEPeerListener	l )
-	{
-		System.out.println( "PeerForiegn::removeListener not implemented" );
-	}
 }

@@ -23,6 +23,7 @@
 package org.gudy.azureus2.plugins.peers;
 
 /**
+ * @deprecated never implemented
  * @author parg
  *
  */
@@ -32,12 +33,24 @@ PeerEvent
 {
 	public static final int ET_PEER_PROTOCOL_BT	= 1;
 	
+  /**
+   * @deprecated never implemented
+   * @return
+   */
 	public Peer
 	getPeer();
 	
+  /**
+   * @deprecated never implemented
+   * @return
+   */
 	public int
 	getEventType();
 	
+  /**
+   * @deprecated never implemented
+   * @return
+   */
 	public Object
 	getEventContent();
 }

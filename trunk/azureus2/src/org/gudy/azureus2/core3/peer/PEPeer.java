@@ -105,11 +105,4 @@ PEPeer
   /** To store arbitrary objects against a peer. */
   public void setData (String key, Object value);
   
-  public void
-  addListener(
-  	PEPeerListener	l );
-  
-  public void
-  removeListener(
-  	PEPeerListener	l );
 }

@@ -33,17 +33,17 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import org.gudy.azureus2.plugins.peers.*;
-import org.gudy.azureus2.plugins.peers.protocol.*;
+//import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.plugins.disk.*;
 
 public class 
 PeerImpl 
-	implements Peer, PEPeerListener
+	implements Peer
 {
 	protected PeerManager	manager;
 	protected PEPeer		delegate;
 	
-	protected List			listeners;
+	//protected List			listeners;
 	
     protected AEMonitor	this_mon	= new AEMonitor( "Peer" );
 
@@ -230,6 +230,7 @@ PeerImpl
 		throw( new RuntimeException( "not supported"));
 	}
 	
+  /*
 	public void
 	messageQueued(
 		PEPeer		peer,
@@ -272,11 +273,17 @@ PeerImpl
 			((PeerListener)listeners.get(i)).eventOccurred( event );
 		}
 	}
-	
+	*/
+  
+  
+  /**
+   * @deprecated never implemented
+   */
 	public void
 	addListener(
 		PeerListener	l )
 	{
+    /*
 		try{
 			this_mon.enter();
 			
@@ -291,14 +298,17 @@ PeerImpl
 			
 			this_mon.exit();
 		}
-		
-		delegate.addListener(this);
+    */
 	}
 	
+  /**
+   * @deprecated never implemented
+   */
 	public void
 	removeListener(
 		PeerListener	l )
 	{
+    /*
 		try{
 			this_mon.enter();
 			
@@ -313,7 +323,8 @@ PeerImpl
 			
 			this_mon.exit();
 		}
+    */
 		
-		delegate.removeListener(this);	
 	}
+  
 }
