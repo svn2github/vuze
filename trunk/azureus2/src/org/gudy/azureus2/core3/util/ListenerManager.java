@@ -61,6 +61,7 @@ ListenerManager
 	protected ListenerManagerDispatcherWithException	target_with_exception;
 	
 	protected boolean	async;
+	protected Thread	async_thread;
 	
 	protected List		listeners		= new ArrayList();
 	
@@ -91,19 +92,6 @@ ListenerManager
 				
 				throw( new RuntimeException( "Can't have an async manager with exceptions!"));
 			}
-			
-			Thread	t = new Thread( name )
-			{
-				public void
-				run()
-				{
-					dispatchLoop();
-				}
-			};
-			
-			t.setDaemon( true );
-			
-			t.start();
 		}
 	}
 	
@@ -114,6 +102,22 @@ ListenerManager
 		synchronized( listeners ){
 			
 			listeners.add( listener );
+			
+			if ( async && listeners.size() == 1 ){
+				
+				async_thread = new Thread( name )
+					{
+						public void
+						run()
+						{
+							dispatchLoop();
+						}
+					};
+					
+				async_thread.setDaemon( true );
+				
+				async_thread.start();
+			}
 		}
 	}
 	
@@ -124,6 +128,13 @@ ListenerManager
 		synchronized( listeners ){
 			
 			listeners.remove( listener );
+			
+			if ( async && listeners.size() == 0 ){
+				
+				async_thread = null;
+				
+				dispatch_sem.release();
+			}
 		}
 	}
 	
@@ -134,7 +145,14 @@ ListenerManager
 	{
 		if ( async ){
 			
-			synchronized( dispatch_queue ){
+			synchronized( listeners ){
+				
+					// if there's nobody listening then no point in queueing 
+				
+				if ( listeners.size() == 0 ){
+						
+					return;
+				}
 				
 				dispatch_queue.add(new Object[]{new Integer(type), value});
 				
@@ -175,7 +193,14 @@ ListenerManager
 	{
 		if ( async ){
 			
-			synchronized( dispatch_queue ){
+			synchronized( listeners ){
+				
+					// no point in queueing if no listeners
+				
+				if ( listeners.size() == 0 ){
+					
+					return;
+				}
 				
 				dispatch_queue.add(new Object[]{ listener, new Integer(type), value});
 				
@@ -237,32 +262,49 @@ ListenerManager
 	public void
 	dispatchLoop()
 	{
+		// System.out.println( "ListenerManager::dispatch thread '" + Thread.currentThread() + "' starts");
+		
 		while(true){
 			
 			dispatch_sem.reserve();
 			
-			Object[] data;
+			Object[] data = null;
 			
-			synchronized( dispatch_queue ){
+			synchronized( listeners ){
 				
-				data = (Object[])dispatch_queue.remove(0);
-			}
-			
-			try{
-				if ( data.length == 3 ){
+				if ( async_thread != Thread.currentThread()){
 					
-					target.dispatch(data[0], ((Integer)data[1]).intValue(), data[2] );
+					dispatch_sem.release();
 					
-				}else{
-					
-					dispatchInternal(((Integer)data[0]).intValue(), data[1] );
+					break;
 				}
 				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
+				if ( dispatch_queue.size() > 0 ){
+					
+					data = (Object[])dispatch_queue.remove(0);
+				}
+			}
+			
+			if ( data != null ){
+			
+				try{
+					if ( data.length == 3 ){
+						
+						target.dispatch(data[0], ((Integer)data[1]).intValue(), data[2] );
+						
+					}else{
+						
+						dispatchInternal(((Integer)data[0]).intValue(), data[1] );
+					}
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
 			}
 		}
+		
+		// System.out.println( "ListenerManager::dispatch thread '" + Thread.currentThread() + "' ends");
 	}
 }
 

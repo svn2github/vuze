@@ -104,9 +104,45 @@ DownloadManagerImpl
 					}
 				}
 			});	
+
+	// PeerListeners
 	
+	private static final int LDT_PE_PEER_ADDED		= 1;
+	private static final int LDT_PE_PEER_REMOVED	= 2;
+	private static final int LDT_PE_PIECE_ADDED		= 3;
+	private static final int LDT_PE_PIECE_REMOVED	= 4;
 	
-	private Vector	peer_listeners 	= new Vector();
+	private ListenerManager	peer_listeners 	= ListenerManager.createAsyncManager(
+			"DMM:PeerListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					DownloadManagerPeerListener	listener = (DownloadManagerPeerListener)_listener;
+					
+					if ( type == LDT_PE_PEER_ADDED ){
+						
+						listener.peerAdded((PEPeer)value);
+						
+					}else if ( type == LDT_PE_PEER_REMOVED ){
+						
+						listener.peerRemoved((PEPeer)value);
+						
+					}else if ( type == LDT_PE_PIECE_ADDED ){
+						
+						listener.pieceAdded((PEPiece)value);
+						
+					}else if ( type == LDT_PE_PIECE_REMOVED ){
+						
+						listener.pieceRemoved((PEPiece)value);
+					}
+				}
+			});	
+	
 	private Vector	current_peers 	= new Vector();
 	private Vector	current_pieces	= new Vector();
   
@@ -837,16 +873,16 @@ DownloadManagerImpl
   {
   	synchronized( peer_listeners ){
   		
-  		peer_listeners.addElement( listener );
+  		peer_listeners.addListener( listener );
   		
 		for (int i=0;i<current_peers.size();i++){
   			
-			listener.peerAdded((PEPeer)current_peers.elementAt(i));
+			peer_listeners.dispatch( listener, LDT_PE_PEER_ADDED, current_peers.elementAt(i));
 		}
 		
 		for (int i=0;i<current_pieces.size();i++){
   			
-			listener.pieceAdded((PEPiece)current_pieces.elementAt(i));
+			peer_listeners.dispatch( listener, LDT_PE_PIECE_ADDED, current_pieces.elementAt(i));
 		}
   	}
   }
@@ -855,10 +891,7 @@ DownloadManagerImpl
   removePeerListener(
 	  DownloadManagerPeerListener	listener )
   {
-	synchronized( peer_listeners ){
-  		
-		peer_listeners.removeElement( listener );
-	}
+  	peer_listeners.removeListener( listener );
   }
  
 
@@ -866,15 +899,11 @@ DownloadManagerImpl
   addPeer(
 	  PEPeer 		peer )
   {
-
-  current_peers.addElement( peer );
-  //Moved the synchronised block AFTER the addElement,
-  //as it ended sometimes on a dead-lock situation. Gudy
-  synchronized( peer_listeners ){
-		for (int i=0;i<peer_listeners.size();i++){
-			
-			((DownloadManagerPeerListener)peer_listeners.elementAt(i)).peerAdded( peer );
-		}
+  	synchronized( peer_listeners ){
+  		
+  		current_peers.addElement( peer );
+  		
+  		peer_listeners.dispatch( LDT_PE_PEER_ADDED, peer );
 	}
   }
 		
@@ -882,46 +911,36 @@ DownloadManagerImpl
   removePeer(
 	  PEPeer		peer )
   {
-  	current_peers.removeElement( peer );
-    
-  	//Moved the synchronised block AFTER the removeElement,
-    //as it ended sometimes on a dead-lock situation. Gudy
     synchronized( peer_listeners ){
-		for (int i=0;i<peer_listeners.size();i++){
-			
-			((DownloadManagerPeerListener)peer_listeners.elementAt(i)).peerRemoved( peer );
-		}
-	}
+    	
+    	current_peers.removeElement( peer );
+    	
+    	peer_listeners.dispatch( LDT_PE_PEER_REMOVED, peer );
+    }
  }
 		
   public void
   addPiece(
 	  PEPiece 	piece )
   {
-	synchronized( peer_listeners ){
+  	synchronized( peer_listeners ){
   		
   		current_pieces.addElement( piece );
   		
-		for (int i=0;i<peer_listeners.size();i++){
-			
-			((DownloadManagerPeerListener)peer_listeners.elementAt(i)).pieceAdded( piece );
-		}
-	}
+  		peer_listeners.dispatch( LDT_PE_PIECE_ADDED, piece );
+  	}
  }
 		
   public void
   removePiece(
 	  PEPiece		piece )
   {
-	synchronized( peer_listeners ){
+  	synchronized( peer_listeners ){
   		
   		current_pieces.removeElement( piece );
   		
-		for (int i=0;i<peer_listeners.size();i++){
-			
-			((DownloadManagerPeerListener)peer_listeners.elementAt(i)).pieceRemoved( piece );
-		}
-	}
+  		peer_listeners.dispatch( LDT_PE_PIECE_REMOVED, piece );
+  	}
  }
 
 	public DownloadManagerStats
