@@ -168,6 +168,7 @@ public class SWTUpdateChecker implements UpdatableComponent
         if(name.equals("java_swt")) {
           installer.addResource(name,zip,false);
           installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/MacOS/" + name);
+          installer.addChangeRightsAction("755",installer.getInstallDir() + "/Azureus.app/Contents/MacOS/" + name);
           continue;
         }
         

@@ -16,6 +16,8 @@ http://mirror.tiscali.dk/eclipse/downloads/drops/S-3.0M9-200405211200/swt-3.0M9-
 <?php } else if($platform == "gtk") { ?>
 http://mirror.tiscali.dk/eclipse/downloads/drops/S-3.0M9-200405211200/swt-3.0M9-linux-gtk.zip
 <?php } else if($platform == "carbon") { ?>
+A wrong url to test ;)
+http://notavail/eclipse.zip
 http://192.168.0.101/project1/swt-3.0M9-macosx-carbon.zip
 http://mirror.tiscali.dk/eclipse/downloads/drops/S-3.0M9-200405211200/swt-3.0M9-macosx-carbon.zip
 <?php } ?>

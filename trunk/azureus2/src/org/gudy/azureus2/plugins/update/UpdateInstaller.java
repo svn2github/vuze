@@ -95,4 +95,16 @@ UpdateInstaller
 
 		throws UpdateException;
 
+  
+  /**
+   * Add an installation "change rights" action to change a file rights
+   * @param rights the rights, for example "776"
+   * @param to_file absolute
+   */
+  public void
+  addChangeRightsAction(
+    String    rights,
+    String    to_file )
+
+    throws UpdateException;
 }

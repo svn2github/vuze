@@ -151,6 +151,18 @@ UpdateInstallerImpl
 		
 		appendAction( "move," + from_file_or_resource  + "," + to_file );
 	}
+  
+  
+  public void
+  addChangeRightsAction(
+    String    rights,
+    String    to_file )
+  
+    throws UpdateException
+  { 
+    appendAction( "chmod," + rights  + "," + to_file );
+  }
+  
 	
 	protected void
 	appendAction(
