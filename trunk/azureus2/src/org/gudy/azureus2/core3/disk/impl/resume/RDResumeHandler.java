@@ -138,52 +138,66 @@ RDResumeHandler
 							disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
 					
 				
-					resume_key	= getCanonicalResumeKey( resume_key );
-					
-					// see bug 869749 for explanation of this mangling
-					
-					/*
-					System.out.println( "Resume map");
-					
-					Iterator it = resumeMap.keySet().iterator();
-					
-					while( it.hasNext()){
+					String[]	resume_keys = new String[4];
+			
+						// see bug 869749 for explanation of this mangling
 						
-						System.out.println( "\tmap:" + ByteFormatter.nicePrint((String)it.next()));
-					}
-					*/
-					
-					String mangled_path;
+						// unfortunately, if the torrent hasn't been saved and restored then the
+						// mangling with not yet have taken place. So we have to also try the 
+						// original key (see 878015)
+	
+						// also I've introduced canonicalisation into the resume key (2.1.0.5), so until any migration
+						// issues have been resolved we need to support both original + non-canonicalised forms
+				
+					resume_keys[0]	= resume_key;
 					
 					try{
-						mangled_path = new String( resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+						resume_keys[1]= new String( resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
 						
 						// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
 						
 					}catch( Throwable e ){
 						
 						e.printStackTrace();
-						
-						mangled_path = resume_key;
 					}
 					
-					Map resumeDirectory = (Map)resumeMap.get(mangled_path);
+					resume_keys[2]	= getCanonicalResumeKey( resume_key );
 					
-					if ( resumeDirectory == null ){
+					try{
+						resume_keys[3]= new String( resume_keys[2].getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
 						
-							// unfortunately, if the torrent hasn't been saved and restored then the
-							// mangling with not yet have taken place. So we have to also try the 
-							// original key (see 878015)
+						// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
 						
-						resumeDirectory = (Map)resumeMap.get(resume_key);
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
 					}
+				
+					Map resumeDirectory = null;
 					
+					for (int i=0;i<resume_keys.length;i++){
+						
+						String	rk = resume_keys[i];
+						
+						if ( rk != null ){
+								
+							resumeDirectory	= (Map)resumeMap.get(rk);
+							
+							if ( resumeDirectory != null ){
+								
+								break;
+							}
+						}
+					}
+									
 					if ( resumeDirectory != null ){
 						
 						try {
 							
 							resumeArray = (byte[])resumeDirectory.get("resume data");
+							
 							partialPieces = (Map)resumeDirectory.get("blocks");
+							
 							resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
 							
 								// if the torrent download is complete we don't need to invalidate the
@@ -204,7 +218,8 @@ RDResumeHandler
 							}
 							
 						}catch(Exception ignore){
-							/* ignore */ 
+							
+							// ignore.printStackTrace();
 						}
 						
 					}else{
