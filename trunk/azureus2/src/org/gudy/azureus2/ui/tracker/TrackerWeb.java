@@ -28,7 +28,7 @@ package org.gudy.azureus2.ui.tracker;
 
 import java.io.*;
 import java.util.*;
-import java.net.*;
+//import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
@@ -244,8 +244,8 @@ TrackerWeb
 			start 	= tracker_start;
 			end		= tracker_end;
 			//debug
-			System.out.println("start: "+start+"\n");
-			System.out.println("end: "+end+"\n");
+			//System.out.println("start: "+start+"\n");
+			//System.out.println("end: "+end+"\n");
 
 		}
 
@@ -255,9 +255,42 @@ TrackerWeb
 		{
 			if ( specific_torrent == -1 )
 			{
+				t.setParam( "show_pagenation", "1");
+				System.out.println("debug blah 1");
+				t.setParam( "show_first_link", (tracker_page>1)?"1":"0");
+				t.setParam( "first_link", page_url+"?skip="+tracker_skip+"&page=1" );
+				t.setParam( "show_previous_link", (tracker_page>0)?"1":"0");
+				t.setParam( "previous_link", page_url+"?skip="+tracker_skip+"&page="+(tracker_page) );
+				t.setParam( "show_last_link", (tracker_page<tracker_last_page-2)?"1":"0");
+				t.setParam( "last_link", page_url+"?skip="+tracker_skip+"&page="+tracker_last_page );
+				t.setParam( "show_next_link", (tracker_page<tracker_last_page-1)?"1":"0");
+				t.setParam( "next_link", page_url+"?skip="+tracker_skip+"&page="+(tracker_page+2) );
 				System.out.println("debug blah 2");
+				t.setParam("current_page", tracker_page+1);
+				String pagenation_text = "";
+				
+				for(int i=1; i<=tracker_last_page; i++)
+				{
+					if(i==tracker_page+1)
+					{
+						pagenation_text = pagenation_text+"<span class=\"pagenation\">"+i+"</span> ";
+					}
+					else
+					{	
+						pagenation_text = pagenation_text+"<a href=\""+page_url+"?skip="+tracker_skip+"&page="+i+"\" class=\"pagenation\">"+i+"</a> ";
+					}
+				}
+				
+				t.setParam( "pagenation", pagenation_text);
+				
+				
 			}
 		}
+		else 
+		{
+			t.setParam( "show_pagenation", "0");
+		}
+		System.out.println("debug blah 3");
 		boolean	allow_details = plugin_interface.getPluginconfig().getBooleanParameter("Tracker Publish Enable Details", true );
 		
 		t.setParam( "torrent_details_allowed", allow_details?"1":"0");

@@ -26,7 +26,7 @@ package org.gudy.azureus2.ui.tracker;
  *
  */
 
-import java.net.*;
+//import java.net.*;
 import java.io.*;
 import java.util.*;
 
