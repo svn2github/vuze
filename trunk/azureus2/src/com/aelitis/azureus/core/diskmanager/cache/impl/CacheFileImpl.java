@@ -112,7 +112,7 @@ CacheFileImpl
 					read_ahead_offset	= first_piece_offset;
 					read_ahead_size		= piece_size;
 					
-					System.out.println( getName() + ": piece offset = " + first_piece_offset );
+					//System.out.println( getName() + ": piece offset = " + first_piece_offset );
 					
 				}else{
 					
