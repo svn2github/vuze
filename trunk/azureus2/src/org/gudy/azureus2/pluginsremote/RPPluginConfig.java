@@ -113,7 +113,13 @@ RPPluginConfig
 
 	// ***************************************************
 
-	  public int getIntParameter(String key)
+    public float getFloatParameter(String key) {
+	  	notSupported();
+	  	
+	  	return(0);
+    }
+
+    public int getIntParameter(String key)
 	  {
 	  	notSupported();
 	  	
@@ -233,4 +239,6 @@ RPPluginConfig
 			throw( e );
 		}
 	  }
+    
+    
 }

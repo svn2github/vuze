@@ -233,4 +233,20 @@ RPDownloadStats
 	{
 		return( availability );
 	}
+  
+  public long getSecondsDownloading() {
+		 notSupported();
+		 return ( 0 );
+  }
+  
+  public long getSecondsOnlySeeding() {
+		 notSupported();
+		 return ( 0 );
+  }
+  
+  public long getTimeStartedSeeding() {
+		 notSupported();
+		 return ( 0 );
+  }
+  
 }
