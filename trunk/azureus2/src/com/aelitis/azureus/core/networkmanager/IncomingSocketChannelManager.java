@@ -238,7 +238,16 @@ public class IncomingSocketChannelManager {
                   }
                 }
                 catch( Throwable t ) {
-                  LGLogger.log( "Incoming TCP connection [" +ic.channel+ "] socket read exception: " +t.getMessage() );
+                  try {
+                    LGLogger.log( "Incoming TCP connection [" +ic.channel+ "] socket read exception: " +t.getMessage() );
+                  }
+                  catch( Throwable x ) {
+                    Debug.out( "Caught exception on incoming exception log:" );
+                    x.printStackTrace();
+                    System.out.println( "CAUSED BY:" );
+                    t.printStackTrace();
+                  }
+                  
                   removeConnection( ic, true );
                 }
                 

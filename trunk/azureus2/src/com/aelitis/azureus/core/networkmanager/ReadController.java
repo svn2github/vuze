@@ -22,7 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.*;
+
 
 /**
  * Processes the read selector.
@@ -45,7 +46,12 @@ public class ReadController {
   
   private void readLoop() {
     while( true ) {
-      read_selector.select( 1000 );
+      try {
+        read_selector.select( 1000 );
+      }
+      catch( Throwable t ) {
+        Debug.out( "readLoop() EXCEPTION: ", t );
+      }
     }
   }
   

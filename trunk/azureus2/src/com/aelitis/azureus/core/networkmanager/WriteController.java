@@ -71,7 +71,12 @@ public class WriteController {
   
   private void writeSelectorLoop() {
     while( true ) {
-      write_selector.select( 1000 );      
+      try {
+        write_selector.select( 1000 );
+      }
+      catch( Throwable t ) {
+        Debug.out( "writeSelectorLoop() EXCEPTION: ", t );
+      }
     }
   }
   
@@ -79,22 +84,27 @@ public class WriteController {
   private void writeProcessorLoop() {
     boolean check_high_first = true;
     
-    while( true ) {      
-      if( check_high_first ) {
-        check_high_first = false;
-        if( !doHighPriorityWrite() ) {
+    while( true ) {
+      try {
+        if( check_high_first ) {
+          check_high_first = false;
+          if( !doHighPriorityWrite() ) {
+            if( !doNormalPriorityWrite() ) {
+              try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+            }
+          }
+        }
+        else {
+          check_high_first = true;
           if( !doNormalPriorityWrite() ) {
-            try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+            if( !doHighPriorityWrite() ) {
+              try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+            }
           }
         }
       }
-      else {
-        check_high_first = true;
-        if( !doNormalPriorityWrite() ) {
-          if( !doHighPriorityWrite() ) {
-            try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
-          }
-        }
+      catch( Throwable t ) {
+        Debug.out( "writeProcessorLoop() EXCEPTION: ", t );
       }
     }
   }
