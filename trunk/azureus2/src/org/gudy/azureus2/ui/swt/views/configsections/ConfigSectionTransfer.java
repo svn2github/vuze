@@ -277,7 +277,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.transfer.ignorepeerports");
     formData = new FormData();
-    formData.top = new FormAttachment(firstPiece.getControl(),5);
+    formData.top = new FormAttachment(mostCompletedFiles.getControl(),5);
     formData.left = new FormAttachment(ignore_ports.getControl());
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
