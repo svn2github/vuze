@@ -37,23 +37,31 @@ Download
 	public static final int ST_DOWNLOADING		= 4;	// downloading
 	public static final int ST_SEEDING			= 5;	// seeding
 	public static final int ST_STOPPING			= 6;	// stopping
-	public static final int ST_STOPPED			= 7;	// stopped
+	public static final int ST_STOPPED			= 7;	// stopped, don't auto-start!
 	public static final int ST_ERROR			= 8;	// failed
 	public static final int ST_QUEUED			= 9;	// stopped, but ready for auto-starting
 	
-		/* A download's lifecycle:
-		 * initial state = WAITING
-		 *   execute "initialise" method
-		 * state moves through PREPARING to READY
-		 *   execute "start" method
-		 * state moves to SEEDING or DOWNLOADING
-		 *   execute "stop" method
-		 * state moves to STOPPING to STOPPED
-		 *   execute "restart" method -> WAITING
-		 *   execute "remove" method -> deletes the download
-		 * 
-		 * a "stop" method call can be made when the download is in all states except STOPPED
-		 */
+  /* A download's lifecycle:
+   * torrent gets added
+   *    state -> QUEUED
+   * slot becomes available, queued torrent is picked, "restart" executed
+   *    state -> WAITING
+   * state moves through PREPARING to READY
+   *    state -> PREPARING
+   *    state -> READY
+   * execute "start" method
+   *    state -> SEEDING -or- DOWNLOADING
+   * if torrent is DOWNLOADING, and completes, state changes to SEEDING
+   *
+   * Path 1                                | Path 2
+   * execute "stop" method                 | startstop rules are met, execute "stopandQueue"
+   *    state -> STOPPING                  |     state -> STOPPING
+   *    state -> STOPPED                   |     state -> STOPPED
+   *                                       |     state -> QUEUED
+   *
+   * execute "remove" method -> deletes the download
+   * a "stop" method call can be made when the download is in all states except STOPPED
+   */
 	
 	public static final int	PR_HIGH_PRIORITY	= 1;
 	public static final int	PR_LOW_PRIORITY		= 2;
@@ -156,7 +164,7 @@ Download
 	
 	/**
 	 * Downloads can either be low or high priority (see PR_ constants above)
-	 * @return the download's prioriy
+	 * @return the download's priority
 	 */
 	
 	public int
@@ -181,6 +189,10 @@ Download
 	public boolean
 	isPriorityLocked();
 	
+	/**
+	 * Returns the name of the torrent.  Similar to Torrent.getName() and is usefull
+	 * if getTorrent() returns null and you still need the name.
+	 */
 	public String 
 	getName();
 	

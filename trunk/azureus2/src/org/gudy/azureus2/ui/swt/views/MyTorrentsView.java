@@ -1409,8 +1409,6 @@ public class MyTorrentsView extends AbstractIView
       return publish;
     if(itemKey.equals("start"))
       return start;
-    if(itemKey.equals("queue"))
-      return start;
     if(itemKey.equals("stop"))
       return stop;
     if(itemKey.equals("remove"))
@@ -1456,10 +1454,6 @@ public class MyTorrentsView extends AbstractIView
       return;
     }
     if(itemKey.equals("start")){
-      resumeSelectedTorrents();
-      return;
-    }
-    if(itemKey.equals("queue")){
       queueSelectedTorrents();
       return;
     }

@@ -377,7 +377,7 @@ StartStopRulesDefaultPlugin
         downloadData dl_data  = (downloadData) iter.next();
         Download download = dl_data.getDownloadObject();
   
-        //log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: state="+download.getState()+";qr="+dl_data.getQR());
+        //log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: state="+download.getState()+";qr="+dl_data.getQR()+";compl="+download.getStats().getCompleted());
         // Initialize STATE_WAITING torrents
         if ((download.getState() == Download.ST_WAITING) && 
             !getAlreadyAllocatingOrChecking()) {

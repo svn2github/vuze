@@ -163,7 +163,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("run"))
       return true;
-    if(itemKey.equals("start") || itemKey.equals("queue"))
+    if(itemKey.equals("start"))
       return ManagerUtils.isStartable(manager);
     if(itemKey.equals("stop"))
       return ManagerUtils.isStopable(manager);
@@ -181,12 +181,8 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	    ManagerUtils.run(manager);
 	    return;
 	  }
-	  if(itemKey.equals("queue")) {
-	    ManagerUtils.queue(manager,folder);
-	    return;
-	  }
 	  if(itemKey.equals("start")) {
-	    ManagerUtils.start(manager);
+	    ManagerUtils.queue(manager,folder);
 	    return;
 	  }
 	  if(itemKey.equals("stop")) {
