@@ -62,7 +62,8 @@ public class SWTUpdateChecker implements UpdatableComponent
   
   public void checkForUpdate(final UpdateChecker checker) {
   	try{
-	    SWTVersionGetter versionGetter = new SWTVersionGetter();
+	    SWTVersionGetter versionGetter = new SWTVersionGetter( checker );
+	    
 	    if( versionGetter.needsUpdate() && System.getProperty("azureus.skipSWTcheck") == null ) {
         
         String[] mirrors = versionGetter.getMirrors();

@@ -145,6 +145,8 @@ PlatformManagerUpdateChecker
 				target_version	= sf_comp_version;
 			}
 	
+			checker.reportProgress( "Win32: current = " + current_version + ", latest = " + sf_comp_version );
+			
 			LGLogger.log( "PlatformManager:Win32 update required = " + (target_version!=null));
 			
 			if ( target_version != null ){

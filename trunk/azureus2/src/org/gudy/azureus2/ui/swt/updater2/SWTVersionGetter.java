@@ -32,6 +32,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.update.UpdateChecker;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
@@ -53,22 +54,31 @@ public class SWTVersionGetter {
   
   private int currentVersion;
   private int latestVersion;
+  private UpdateChecker	checker;
   
   private String[] mirrors;
   
-  public SWTVersionGetter() {
+  public 
+  SWTVersionGetter(
+  		UpdateChecker	_checker ) 
+  {
     this.platform = SWT.getPlatform();
     this.index = 0;
     this.currentVersion = SWT.getVersion();
     this.latestVersion = 0;
+    checker	= _checker;
   }
   
   public boolean needsUpdate() {
     try {
       downloadLatestVersion();
 
-      LGLogger.log("SWT: current version =  " + currentVersion + ", latest version = " + latestVersion );
-
+      String msg = "SWT: current version =  " + currentVersion + ", latest version = " + latestVersion;
+      
+      checker.reportProgress( msg );
+      
+      LGLogger.log( msg );
+      
       return latestVersion > currentVersion;
     } catch(Exception e) {
       return false;

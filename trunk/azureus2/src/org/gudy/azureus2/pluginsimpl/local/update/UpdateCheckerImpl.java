@@ -93,6 +93,8 @@ UpdateCheckerImpl
 		ResourceDownloader[]	downloaders,
 		int						restart_required )
 	{
+		reportProgress( "Adding update: " + name );
+		
 		return( check_instance.addUpdate( 
 					component, name, description, new_version,
 					downloaders, restart_required ));

@@ -176,7 +176,11 @@ CoreUpdateChecker
 				latest_file_name = new String( b_filename );
 			}
 			
-			log.log( "Retrieved: latest_version = '" + latest_version + "', file = '" + latest_file_name + "'");
+			String	msg = "Core: latest_version = '" + latest_version + "', file = '" + latest_file_name + "'";
+			
+			checker.reportProgress( msg );
+			
+			log.log( msg );
 			
 			boolean	latest_is_cvs	= Constants.isCVSVersion( latest_version );
 			String	latest_base		= Constants.getBaseVersion( latest_version );
