@@ -313,7 +313,7 @@ TrackerWeb
 					p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKBEtc(peer.getUploaded()));
 					p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKBEtc(peer.getDownloaded()));
 					p_row.put( "peer_left", DisplayFormatters.formatByteCountToKBEtc(peer.getAmountLeft()));
-					p_row.put( "peer_ip", peer.getIP() );
+					p_row.put( "peer_ip", hideLastIpBlock(peer.getIP()) );
 				}
 				
 				t_row.put( "peer_info", peer_info );
@@ -381,5 +381,14 @@ TrackerWeb
 		}
 
 		return( true );				
+	}
+	
+	private String hideLastIpBlock(String ip) {
+	  if(ip == null)
+	    return null;
+	  StringTokenizer st = new StringTokenizer(ip,".");
+	  if(st.countTokens() != 4)
+	    return "*";
+	  return st.nextToken() + "." + st.nextToken() + "." + st.nextToken() + ".*";
 	}
 }
