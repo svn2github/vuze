@@ -60,9 +60,7 @@ TOTorrentCreateImpl
 		throws TOTorrentException
 	{
 		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
-		
-		setIgnoreList();
-		
+				
 		add_other_hashes	= _add_other_hashes;
 		progress_listener 	= _progress_listener;
 		
@@ -101,6 +99,8 @@ TOTorrentCreateImpl
 	
 		throws TOTorrentException
 	{
+		setIgnoreList();
+
 		setCreationDate( SystemTime.getCurrentTime() / 1000);
 		
 		setCreatedBy( Constants.AZUREUS_NAME + "/" + Constants.AZUREUS_VERSION );
@@ -459,7 +459,7 @@ TOTorrentCreateImpl
 				
 				bit	= ignore_list.substring( pos, p1 );
 				
-				p1	= pos+1;
+				pos	= p1+1;
 			}
 			
 			ignore_map.put(bit.toLowerCase(),"");
