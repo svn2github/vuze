@@ -58,7 +58,7 @@ public class UpdateSWT {
       
       UpdateLogger.log("SWT Updater has detected platform : " + platform );
       
-      String file = "updateSWT.zip";
+      String file = "tempSWT.zip";
       
       if(platform.equals("carbon"))
         updateSWT_carbon(file);
@@ -66,7 +66,11 @@ public class UpdateSWT {
         updateSWT_generic(file);
       }     
       
+      File swt = new File(userDir + "tempSWT.zip");
+      if(swt.exists()) swt.delete();
+      
       restart();
+            
       
       UpdateLogger.log("SWT Updater has finished");     
       
