@@ -982,7 +982,7 @@ PEPeerControlImpl
    */
   private boolean findPieceToDownload(PEPeerTransport pc) {
     
-    //Slower than 1KB/s is a slow peer
+    //Slower than 2KB/s is a slow peer
     boolean slowPeer = pc.getStats().getDownloadAverage() < 2 * 1024;
     
     //get the rarest pieces list
