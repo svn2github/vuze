@@ -25,11 +25,13 @@ public class PeerManager extends Thread {
   private boolean[] _downloaded;
   private boolean[] _downloading;
   private boolean _finished;
+  private boolean[] _piecesRarest;
   private byte[] _hash;
   private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
   private Piece[] _pieces;
+  private int[] _priorityPieces;
   private Server _server;
   private PeerStats _stats;
   private long _timeLastUpdate;
@@ -218,7 +220,7 @@ public class PeerManager extends Thread {
     //  4. Close all clients
     if (_connections != null)
       synchronized (_connections) {
-        while (_connections.size() > 0) {
+        while (_connections.size() != 0) {
           PeerSocket pc = (PeerSocket) _connections.remove(0);
           pc.closeAll();
         }
@@ -273,7 +275,7 @@ public class PeerManager extends Thread {
           _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
         }
         catch (Exception e) {
-          _trackerStatus = new String((byte[]) metaData.get("failure reason"), "UTF8"); //$NON-NLS-1$ //$NON-NLS-2$
+          _trackerStatus = new String((byte[]) metaData.get("failure reason"), "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
           _timeToWait = 120;
           return;
         }
@@ -300,7 +302,7 @@ public class PeerManager extends Thread {
           //build a dictionary object				
           String peerId = new String((byte[]) peer.get("peer id"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer id
-          String ip = new String((byte[]) peer.get("ip"), "UTF8"); //$NON-NLS-1$ //$NON-NLS-2$
+          String ip = new String((byte[]) peer.get("ip"), "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer ip address
           int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
           //get the peer port number
@@ -519,7 +521,7 @@ public class PeerManager extends Thread {
 
     //for all clients
     synchronized (_connections) {
-      for (int i = 0; i < _connections.size(); i++) //::Possible optimization to break early when you reach 100%
+      for (int i = _connections.size() - 1; i >= 0; i--) //::Possible optimization to break early when you reach 100%
         {
         //get the peer connection
         PeerSocket pc = (PeerSocket) _connections.get(i);
@@ -528,7 +530,7 @@ public class PeerManager extends Thread {
         boolean[] piecesAvailable = pc.getAvailable();
         if (piecesAvailable != null) //if the list is not null
           {
-          for (int j = 0; j < _nbPieces; j++) //loop for every piece
+          for (int j = _nbPieces - 1; j >= 0; j--) //loop for every piece
             {
             if (piecesAvailable[j]) //set the piece to available
               _availability[j]++;
@@ -538,7 +540,7 @@ public class PeerManager extends Thread {
     }
 
     //Then adds our own availability.
-    for (int i = 0; i < _downloaded.length; i++) {
+    for (int i = _downloaded.length - 1; i >= 0; i--) {
       if (_downloaded[i])
         _availability[i]++;
     }
@@ -550,7 +552,7 @@ public class PeerManager extends Thread {
    * Here is the overall algorithm :
    * 1. It will determine a list of rarest pieces.
    * 2. If one is already being requested but not completely, it will continue it
-   * 3. If not, it will start a new piece dl based on a randomly choosen piece from least available ones.	 
+   * 3. If not, it will start a new piece dl based on a randomly choosen piece from least available ones.  
    * 3. If it can't find a piece then, this means that all pieces are already downloaded/fully requested, and it returns false.
    * 
    * @param pc the PeerConnection we're working on
@@ -559,13 +561,13 @@ public class PeerManager extends Thread {
    */
   private boolean findPieceToDownload(PeerSocket pc, boolean snubbed) {
     //get the rarest pieces list
-    boolean[] piecesRarest = getRarestPieces(pc);
-    if (piecesRarest == null)
+    getRarestPieces(pc);
+    if (_piecesRarest == null)
       return false;
 
     int nbPiecesRarest = 0;
-    for (int i = 0; i < piecesRarest.length; i++) {
-      if (piecesRarest[i])
+    for (int i = 0; i < _piecesRarest.length; i++) {
+      if (_piecesRarest[i])
         nbPiecesRarest++;
     }
 
@@ -583,7 +585,7 @@ public class PeerManager extends Thread {
     //For every piece
     for (int i = 0; i < _nbPieces; i++) {
       //If we're not downloading the piece and if it's available from that peer   
-      if ((_pieces[i] != null) && !_downloading[i] && piecesRarest[i]) {
+      if ((_pieces[i] != null) && !_downloading[i] && _piecesRarest[i]) {
         //We get and mark the next block number to dl
         //We will either get -1 if no more blocks need to be requested
         //Or a number >= 0 otherwise
@@ -620,7 +622,7 @@ public class PeerManager extends Thread {
           //but without any free block to request ...
           //let's correct this situation :p
           _downloading[i] = true;
-          piecesRarest[i] = false;
+          _piecesRarest[i] = false;
           nbPiecesRarest--;
         }
       }
@@ -648,24 +650,23 @@ public class PeerManager extends Thread {
     //Otherwhise, vPieces is not null, we'll 'randomly' choose an element from it.
 
     //Added patch so that we try to complete most advanced files first.
-    List pieces = new ArrayList();
-    List priorityLists[] = _diskManager.getPriorityLists();
-    Integer pieceInteger; 
-    for (int i = 9; i >= 0; i--) {
+    int[][] priorityLists = _diskManager.getPriorityLists();
+    _priorityPieces[_nbPieces] = 0;
+    for (int i = priorityLists.length - 1; i >= 0; i--) {
       for (int j = 0; j < _nbPieces; j++) {
-        if (piecesRarest[j] && priorityLists[i].contains(pieceInteger = new Integer(j))) {
-          pieces.add(pieceInteger);
+        if (_piecesRarest[j] && binarySearch(priorityLists[i], j, priorityLists[i][_nbPieces]) >= 0) {
+          _priorityPieces[_priorityPieces[_nbPieces]++] = j;
         }
       }
-      if (pieces.size() > 0)
+      if (_priorityPieces[_nbPieces] != 0)
         break;
     }
 
-    if(pieces.size() == 0)
+    if(_priorityPieces[_nbPieces] == 0)
       System.out.println("Size 0");      
 
-    int nPiece = (int) (Math.random() * pieces.size());
-    pieceNumber = ((Integer)pieces.get(nPiece)).intValue();    
+    int nPiece = (int) (Math.random() * _priorityPieces[_nbPieces]);
+    pieceNumber = _priorityPieces[nPiece];    
 
     if (pieceNumber == -1)
       return false;
@@ -691,10 +692,28 @@ public class PeerManager extends Thread {
     return true;
   }
 
-  private boolean[] getRarestPieces(PeerSocket pc) {
+// searches from 0 to searchLength-1
+  public static int binarySearch(int[] a, int key, int searchLength) {
+    int low = 0;
+    int high = searchLength - 1;
+
+    while (low <= high) {
+      int mid = (low + high) >> 1;
+      int midVal = a[mid];
+
+      if (midVal < key)
+        low = mid + 1;
+      else if (midVal > key)
+        high = mid - 1;
+      else
+        return mid; // key found
+    }
+    return - (low + 1); // key not found.
+  }
+
+  private void getRarestPieces(PeerSocket pc) {
     boolean[] piecesAvailable = pc.getAvailable();
-    boolean[] piecesRarest = new boolean[_nbPieces];
-    Arrays.fill(piecesRarest, false);
+    Arrays.fill(_piecesRarest, false);
 
     //This will represent the minimum piece availability level.
     int pieceMinAvailability = -1;
@@ -717,11 +736,10 @@ public class PeerManager extends Thread {
         //null : special case, to ensure we find at least one piece
         //or if the availability level is lower than the old availablility level
         if (_availability[i] <= pieceMinAvailability) {
-          piecesRarest[i] = true;
+          _piecesRarest[i] = true;
         }
       }
     }
-    return piecesRarest;
   }
 
   /**
@@ -1122,11 +1140,15 @@ public class PeerManager extends Thread {
 
     //the bitfield indicating if pieces are currently downloading or not
     _downloading = new boolean[_nbPieces];
-    //for(int i = 0 ; i < _nbPieces ; i++) _downloading[i] = false;
     Arrays.fill(_downloading, false);
+
+    _piecesRarest = new boolean[_nbPieces];
 
     //the pieces
     _pieces = new Piece[_nbPieces];
+
+    // the piece numbers for findPieceToDownload
+    _priorityPieces = new int[_nbPieces+1];
 
     //the availability level of each piece in the network
     _availability = new int[_nbPieces];
@@ -1193,7 +1215,7 @@ public class PeerManager extends Thread {
         return;
       //for all peers
       synchronized (_connections) {
-        for (int i = 0; i < _connections.size(); i++) {
+        for (int i = _connections.size() - 1; i >= 0; i--) {
           PeerSocket pc = (PeerSocket) _connections.get(i);
           if (pc != null && pc != pcOrigin && pc.getState() == PeerSocket.TRANSFERING) {
             boolean[] peerAvailable = pc.getAvailable();
@@ -1243,18 +1265,17 @@ public class PeerManager extends Thread {
       }
     }
     long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
-    int averageSpeed = _averageReceptionSpeed.getAverage();
-    if (averageSpeed < 256) {
-      remaining = "oo"; //$NON-NLS-1$
-
-    }
-    else {
-
-      long timeRemaining = dataRemaining / averageSpeed;
-      remaining = TimeFormater.format(timeRemaining);
-    }
-    if (dataRemaining == 0)
+    if (dataRemaining == 0) {
       remaining = MessageText.getString("PeerManager.status.finished"); //$NON-NLS-1$
+    } else {
+      int averageSpeed = _averageReceptionSpeed.getAverage();
+      if (averageSpeed < 256) {
+        remaining = "oo"; //$NON-NLS-1$
+      } else {
+        long timeRemaining = dataRemaining / averageSpeed;
+        remaining = TimeFormater.format(timeRemaining);
+      }
+    }
     return remaining;
   }
 

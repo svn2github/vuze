@@ -37,7 +37,7 @@ public class DiskManager {
   private int pieceLength;
   private int lastPieceLength;
 
-  private String piecesHash;
+  private byte[] piecesHash;
   private int nbPieces;
   private long totalLength;
   private boolean pieceDone[];
@@ -55,6 +55,11 @@ public class DiskManager {
   private Vector writeQueue;
   private Vector checkQueue;
   private Vector readQueue;
+
+  private boolean readWaitFlag = false;
+  private boolean writeWaitFlag = false;  
+  private Object writeCheckLock=new Object();
+
   private DiskWriteThread writeThread;
   private DiskReadThread readThread;
 
@@ -63,7 +68,7 @@ public class DiskManager {
   //The map that associate
   private List[] pieceMap;
   private int pieceCompletion[];
-  private List priorityLists[];
+  private int[][] priorityLists;
 
   private FileInfo[] files;
 
@@ -98,20 +103,13 @@ public class DiskManager {
     Map info = (Map) metaData.get("info");
     pieceLength = (int) ((Long) info.get("piece length")).longValue();
 
-    try {
-      piecesHash = new String((byte[]) info.get("pieces"), "ISO-8859-1");
-    }
-    catch (UnsupportedEncodingException e) {
-      this.state = FAULTY;
-      this.errorMessage = e.getMessage();
-      return;
-    }
+    piecesHash = (byte[]) info.get("pieces");
+    nbPieces = piecesHash.length / 20;
 
-    nbPieces = piecesHash.length() / 20;
     //  create the pieces map
     pieceMap = new ArrayList[nbPieces];
     pieceCompletion = new int[nbPieces];
-    priorityLists = new List[10];
+    priorityLists = new int[10][nbPieces+1];
 
     pieceDone = new boolean[nbPieces];
 
@@ -119,7 +117,7 @@ public class DiskManager {
     try {      
       File f = new File(path);
       if(f.isDirectory()) {
-        fileName = new String((byte[]) info.get("name"), "UTF8");
+        fileName = new String((byte[]) info.get("name"), "UTF-8");
       } else {
         fileName = f.getName();
         path = f.getParent();       
@@ -191,7 +189,7 @@ public class DiskManager {
           if (j != (fileList.size() - 1)) //are we the filename?
             {
             try {
-              pathBuffer.append(new String((byte[]) fileList.get(j), "UTF8"));
+              pathBuffer.append(new String((byte[]) fileList.get(j), "UTF-8"));
             }
             catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
@@ -206,7 +204,7 @@ public class DiskManager {
             //add the file entry to the file holder list 
             try {
               btFileList.add(
-                new BtFile(pathBuffer.toString(), new String((byte[]) fileList.get(j), "UTF8"), fileLength));
+                new BtFile(pathBuffer.toString(), new String((byte[]) fileList.get(j), "UTF-8"), fileLength));
             }
             catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
@@ -476,25 +474,34 @@ public class DiskManager {
 
     public void run() {
       while (bContinue) {
-        while (readQueue.size() != 0) {
+        synchronized (readQueue) {
+          if (readQueue.size() == 0) {
+            try {
+              if (bContinue) {
+                readWaitFlag = true;
+                readQueue.wait();
+                readWaitFlag = false;
+              }
+            } catch (Exception e) {
+            }
+          }
+        }
+        while (bContinue && readQueue.size() != 0) {
           DataQueueItem item = (DataQueueItem) readQueue.remove(0);
           Request request = item.getRequest();
           item.setBuffer(readBlock(request.getPieceNumber(), request.getOffset(), request.getLength()));
-        }
-        try {
-          Thread.sleep(15);
-        }
-        catch (Exception e) {
-          e.printStackTrace();
         }
       }
     }
 
     public void stopIt() {
       this.bContinue = false;
-      while (readQueue.size() != 0) {
-         DataQueueItem item = (DataQueueItem) readQueue.remove(0);
-         item.setLoading(false);
+      synchronized (readQueue) {
+        while (readQueue.size() != 0) {
+          DataQueueItem item = (DataQueueItem) readQueue.remove(0);
+          item.setLoading(false);
+        }
+        readQueue.notifyAll();
       }
     }
   }
@@ -508,7 +515,20 @@ public class DiskManager {
 
     public void run() {
       while (bContinue) {
-        while (writeQueue.size() != 0) {
+        synchronized (writeCheckLock) {
+          if (writeQueue.size() == 0 && checkQueue.size() == 0) {
+            try {
+              if (bContinue) {
+                writeWaitFlag = true;
+                writeCheckLock.wait();
+                writeWaitFlag = false;
+              }
+            } catch (Exception e) {
+            }
+          }
+        }
+
+        while (bContinue && writeQueue.size() != 0) {
           WriteElement elt = (WriteElement) writeQueue.remove(0);
           dumpBlockToDisk(elt);
           manager.blockWritten(elt.getPieceNumber(), elt.getOffset());
@@ -517,21 +537,17 @@ public class DiskManager {
           WriteElement elt = (WriteElement) checkQueue.remove(0);
           manager.pieceChecked(elt.getPieceNumber(), checkPiece(elt.getPieceNumber()));
         }
-        try {
-          Thread.sleep(15);
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-        }
-
       }
     }
 
     public void stopIt() {
       this.bContinue = false;
-      while (writeQueue.size() != 0) {
-        WriteElement elt = (WriteElement) writeQueue.remove(0);
-        ByteBufferPool.getInstance().freeBuffer(elt.data);
+      synchronized(writeCheckLock) {
+          while (writeQueue.size() != 0) {
+            WriteElement elt = (WriteElement) writeQueue.remove(0);
+            ByteBufferPool.getInstance().freeBuffer(elt.data);
+          }
+          writeCheckLock.notifyAll();
       }
     }
   }
@@ -672,16 +688,17 @@ public class DiskManager {
     //for each piece
     for (int i = 0; i < pieceList.size(); i++) {
       //get the piece and the file 
-      PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(i);      
+      PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(i);
       synchronized (tempPiece.getFile()) {
         //grab it's data and return it
         try {
           RandomAccessFile raf = tempPiece.getFile().getRaf();
-                FileChannel fc = raf.getChannel();
-          fc.position(tempPiece.getOffset());
-          fc.read(allocateAndTestBuffer);
-        }
-        catch (IOException e) {
+          FileChannel fc = raf.getChannel();
+          if(fc.isOpen()) {
+            fc.position(tempPiece.getOffset());
+            fc.read(allocateAndTestBuffer);
+          }
+        } catch (IOException e) {
           e.printStackTrace();
         }
       }
@@ -690,9 +707,14 @@ public class DiskManager {
     try {
       SHA1Hasher hasher = new SHA1Hasher();
       allocateAndTestBuffer.position(0);
-      String testHash = new String(hasher.calculateHash(allocateAndTestBuffer), "ISO-8859-1");
-      String correctHash = piecesHash.substring(pieceNumber * 20, pieceNumber * 20 + 20);
-      if (testHash.equals(correctHash)) {
+      byte[] testHash = hasher.calculateHash(allocateAndTestBuffer);
+      int i = 0;
+      int pieceLocation = pieceNumber * 20;
+      for (i = 0; i < 20; i++) {
+        if (testHash[i] != piecesHash[pieceLocation + i])
+          break;
+      }
+      if (i >= 20) {
         //mark the piece as done..
         if (!pieceDone[pieceNumber]) {
           pieceDone[pieceNumber] = true;
@@ -735,7 +757,7 @@ public class DiskManager {
     //open the torrent file    		
     File torrent = null;
     try {
-      torrent = new File(new String((byte[]) metaData.get("torrent filename"), "UTF8"));
+      torrent = new File(new String((byte[]) metaData.get("torrent filename"), "UTF-8"));
     }
     catch (UnsupportedEncodingException e) {
       // TODO Auto-generated catch block
@@ -764,6 +786,13 @@ public class DiskManager {
 
   public void enqueueReadRequest(DataQueueItem item) {
     readQueue.add(item);
+    synchronized (readQueue) {
+      try {
+        if (readWaitFlag)
+          readQueue.notifyAll();
+      } catch (Exception e) {
+      }
+    }
   }
 
   //MODIFY THIS TO WORK WITH PATH/FILES
@@ -845,7 +874,10 @@ public class DiskManager {
   }
 
   public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
-    writeQueue.add(new WriteElement(pieceNumber, offset, data));
+    synchronized (writeCheckLock) {
+      writeQueue.add(new WriteElement(pieceNumber, offset, data));
+      writeCheckLock.notifyAll();
+    }
   }
 
   public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
@@ -961,7 +993,7 @@ public class DiskManager {
 
       //TODO:: CLEAN UP - fix the conversion to a string...
       //open the torrent file       
-      File torrent = new File(new String((byte[]) metaData.get("torrent filename"), "UTF8"));
+      File torrent = new File(new String((byte[]) metaData.get("torrent filename"), "UTF-8"));
       //re-encode the data
       byte[] torrentData = BEncoder.encode(metaData);
       //open a file stream
@@ -1086,13 +1118,15 @@ public class DiskManager {
     if(readThread != null)
       readThread.stopIt();
     this.bContinue = false;
-    for (int i = 0; i < files.length; i++) {
-      try {
-        if (files[i] != null)
-          files[i].getRaf().close();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
+    if(files != null) {
+      for (int i = 0; i < files.length; i++) {
+        try {
+          if (files[i] != null)
+            files[i].getRaf().close();
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     }
   }
@@ -1185,17 +1219,16 @@ public class DiskManager {
     }
 
     for (int i = 0; i < priorityLists.length; i++) {
-      ArrayList list = new ArrayList();
+      priorityLists[i][priorityLists[i][nbPieces]] = 0;
       for (int j = 0; j < pieceCompletion.length; j++) {
         if (pieceCompletion[j] == i) {
-          list.add(new Integer(j));
+          priorityLists[i][priorityLists[i][nbPieces]++] = j;
         }
       }
-      priorityLists[i] = list;
     }
   }
 
-  public List[] getPriorityLists() {
+  public int[][] getPriorityLists() {
     return priorityLists;
   }
 
