@@ -31,6 +31,11 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/azureus.png", "azureus");
     loadImage(display, "org/gudy/azureus2/ui/icons/dragger.gif", "dragger");
     loadImage(display, "org/gudy/azureus2/ui/icons/folder.gif", "folder");
+    loadImage(display, "org/gudy/azureus2/ui/icons/root.png", "root");
+    loadImage(display, "org/gudy/azureus2/ui/icons/dictionary.png", "dict");
+    loadImage(display, "org/gudy/azureus2/ui/icons/list.png", "list");
+    loadImage(display, "org/gudy/azureus2/ui/icons/integer.png", "int");
+    loadImage(display, "org/gudy/azureus2/ui/icons/string.png", "string");
   }
 
   public static Image loadImage(Display display, String res, String name) {
