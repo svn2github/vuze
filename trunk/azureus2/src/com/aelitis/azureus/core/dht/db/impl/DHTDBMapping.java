@@ -341,11 +341,14 @@ DHTDBMapping
 				return( true );
 			}
 			
-			if ( map_index < maps.length ){
+			while( map_index < maps.length ){
 				
 				it = maps[map_index++].values().iterator();
 				
-				return( it.hasNext());
+				if ( it.hasNext()){
+					
+					return( true );
+				}
 			}
 			
 			return( false );
