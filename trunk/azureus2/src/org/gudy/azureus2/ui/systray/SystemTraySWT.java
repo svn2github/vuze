@@ -186,7 +186,16 @@ public class SystemTraySWT {
         uploadSpeedItem.setText(MessageText.getString("GeneralView.label.maxuploadspeed"));
 
         final Menu uploadSpeedMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
-        createLimitMenuItems("Max Upload Speed KBs", uploadSpeedMenu);
+
+        uploadSpeedMenu.addListener(SWT.Show,  new Listener()
+        {
+            public void handleEvent(Event event)
+            {
+                createLimitMenuItems("Max Upload Speed KBs", uploadSpeedMenu);
+            }
+        });
+
+
         uploadSpeedItem.setMenu(uploadSpeedMenu);
     }
 
@@ -200,7 +209,15 @@ public class SystemTraySWT {
         downloadSpeedItem.setText(MessageText.getString("GeneralView.label.maxdownloadspeed"));
 
         final Menu downloadSpeedMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
-        createLimitMenuItems("Max Download Speed KBs", downloadSpeedMenu);
+
+        downloadSpeedMenu.addListener(SWT.Show, new Listener()
+        {
+            public void handleEvent(Event event)
+            {
+                createLimitMenuItems("Max Download Speed KBs", downloadSpeedMenu);
+            }
+        });
+
         downloadSpeedItem.setMenu(downloadSpeedMenu);
     }
 
@@ -210,17 +227,22 @@ public class SystemTraySWT {
      * @param parent Parent menu to populate the items in
      */
     private final void createLimitMenuItems(final String configKey, final Menu parent) {
-        final int speedPartitions = 15;
-        final MenuItem[] items = new MenuItem[speedPartitions + 1];
+        final MenuItem[] oldItems = parent.getItems();
+        for(int i = 0; i < oldItems.length; i++)
+        {
+            oldItems[i].dispose();
+        }
+
+        final int speedPartitions = 12;
 
         final int maxBandwidth = COConfigurationManager.getIntParameter(configKey,0);
         final String unitSuffix = COConfigurationManager.getBooleanParameter("config.style.useSIUnits") ? " KiB/s" : "KB/s";
 
-        items[0] = new MenuItem(parent, SWT.RADIO);
-        items[0].setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
-        items[0].setData("maxkb", new Integer(0));
-        items[0].setSelection(maxBandwidth == 0);
-        items[0].addListener(SWT.Selection, getLimitMenuItemListener(items, configKey));
+        MenuItem item = new MenuItem(parent, SWT.RADIO);
+        item.setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
+        item.setData("maxkb", new Integer(0));
+        item.setSelection(maxBandwidth == 0);
+        item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
 
         int delta = 0;
         for (int i = 0; i < speedPartitions; i++) {
@@ -232,10 +254,10 @@ public class SystemTraySWT {
 
               for (int j = 0; j < valuePair.length; j++) {
                 if (valuePair[j] >= 5) {
-                  final MenuItem item = new MenuItem(parent, SWT.RADIO, (j == 0) ? 1 : parent.getItemCount());
+                  item = new MenuItem(parent, SWT.RADIO, (j == 0) ? 1 : parent.getItemCount());
                   item.setText(valuePair[j] + unitSuffix);
                   item.setData("maxkb", new Integer(valuePair[j]));
-                  item.addListener(SWT.Selection, getLimitMenuItemListener(items, configKey));
+                  item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
                   item.setSelection(valuePair[j] == maxBandwidth);
                 }
               }
@@ -246,14 +268,15 @@ public class SystemTraySWT {
 
     /**
      * Gets the selection listener of a upload or download limit menu item (including unlimited)
-     * @param items The array of limit menu items
+     * @param parent The parent menu
      * @param configKey The configuration key
      * @return The selection listener
      */
-   private final Listener getLimitMenuItemListener(final MenuItem[] items, final String configKey)
+   private final Listener getLimitMenuItemListener(final Menu parent, final String configKey)
    {
        return new Listener() {
            public void handleEvent(Event event) {
+               final MenuItem[] items = parent.getItems();
                for(int i = 0; i < items.length; i++) {
                     if(items[i] == event.widget)
                     {
