@@ -153,16 +153,11 @@ TRHostImpl
 		
 		throws TRHostException
 	{
-		for (int i=0;i<host_torrents.size();i++){
-			
-			TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
-			
-			if ( ht.getTorrent() == torrent ){
+		TRHostTorrent	ht = lookupHostTorrent( torrent );
 		
-					// already there
-							
-				return;
-			}
+		if ( ht != null ){
+			
+			return;	// already hosted
 		}
 				
 		int	port;
@@ -229,6 +224,23 @@ TRHostImpl
 		}
 		
 		config.saveConfig();
+	}
+	
+	protected TRHostTorrent
+	lookupHostTorrent(
+		TOTorrent	torrent )
+	{
+		for (int i=0;i<host_torrents.size();i++){
+			
+			TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
+			
+			if ( ht.getTorrent() == torrent ){
+									
+				return( ht );
+			}
+		}
+		
+		return( null );
 	}
 	
 	protected void
@@ -338,8 +350,8 @@ TRHostImpl
 	
 	protected void
 	stopHosting(
-		TRHostTorrentHostImpl	host_torrent,
-		TRTrackerClient 		tracker_client )
+		final TRHostTorrentHostImpl	host_torrent,
+		final TRTrackerClient 		tracker_client )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();	
 				
@@ -348,12 +360,44 @@ TRHostImpl
 			// tracker. Hence, if we switch the URL back here the "stopped" doesn't get
 			// through.
 			
-			// For the moment leave the torrent in its hosted state - its most likely that
-			// it'll only be restarted or removed anyway.
-					
-		// tracker_client.clearIPOverride();
+		// for the moment stick a delay in to allow any async stuff to complete
 		
-		// tracker_client.resetTrackerUrl();	
+		Thread thread = new Thread()
+			{
+				public void
+				run()
+				{
+					try{
+						Thread.sleep(2500);
+						
+					}catch( InterruptedException e ){
+						
+					}
+					
+					synchronized( TRHostImpl.this ){
+						
+							// got to look up the host torrent again as may have been
+							// removed and re-added
+						
+						TRHostTorrent	ht = lookupHostTorrent( host_torrent.getTorrent());
+						
+							// check it's still in stopped state and hasn't been restarted
+							
+						if ( ht == null || 
+								( 	ht == host_torrent &&
+								 	ht.getStatus() == TRHostTorrent.TS_STOPPED )){
+					
+							tracker_client.clearIPOverride();
+		
+							tracker_client.resetTrackerUrl();							
+						}
+					}
+				}
+			};
+			
+		thread.setDaemon(true);
+		
+		thread.start();
 	}
 	
 	protected synchronized TRTrackerClient

@@ -94,7 +94,7 @@ TRTrackerServerProcessor
 			
 			if ( !header.startsWith( "GET " )){
 				
-				throw( new TRTrackerServerException( "header doesn't start with GET" ));
+				throw( new TRTrackerServerException( "header doesn't start with GET ('" + (header.length()>256?header.substring(0,256):header)+"')" ));
 			}
 			
 			header = header.substring(4).trim();
