@@ -28,8 +28,6 @@ package org.gudy.azureus2.core3.upnp.impl.device;
  */
 
 import java.util.*;
-import java.io.*;
-import java.net.*;
 
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 
@@ -95,67 +93,8 @@ UPnPActionInvocationImpl
 							
 				// try standard POST
 			
-			InputStream	is;
-			
-			URL	control = service.getControlURL();
-			
-			HttpURLConnection	con = (HttpURLConnection)control.openConnection();
-			
-			con.setRequestProperty( "SOAPACTION", "\""+ soap_action + "\"");
-			
-			con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
-			
-			con.setRequestMethod( "POST" );
-			
-			con.setDoInput( true );
-			con.setDoOutput( true );
-			
-			OutputStream	os = con.getOutputStream();
-			
-			PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+			SimpleXMLParserDocument resp_doc	= ((UPnPServiceImpl)action.getService()).getDevice().getUPnP().performSOAPRequest( service, soap_action, request );
 						
-			pw.println( request );
-			
-			pw.flush();
-
-			con.connect();
-			
-			if ( con.getResponseCode() == 405 ){
-				
-					// gotta retry with M-POST method
-								
-				con = (HttpURLConnection)control.openConnection();
-				
-				con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
-				
-				con.setRequestMethod( "M-POST" );
-				
-				con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
-
-				con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
-				
-				con.setDoInput( true );
-				con.setDoOutput( true );
-				
-				os = con.getOutputStream();
-				
-				pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
-							
-				pw.println( request );
-				
-				pw.flush();
-	
-				con.connect();
-			
-				is = con.getInputStream();	
-				
-			}else{
-				
-				is = con.getInputStream();
-			}
-
-			SimpleXMLParserDocument resp_doc = ((UPnPServiceImpl)action.getService()).getDevice().getUPnP().parseXML( is );
-			
 			SimpleXMLParserDocumentNode	body = resp_doc.getChild( "Body" );
 			
 			SimpleXMLParserDocumentNode fault = body.getChild( "Fault" );

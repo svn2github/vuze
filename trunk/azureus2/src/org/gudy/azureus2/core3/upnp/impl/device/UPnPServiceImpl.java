@@ -27,19 +27,15 @@ package org.gudy.azureus2.core3.upnp.impl.device;
  *
  */
 
-import java.io.InputStream;
 import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.upnp.*;
 import org.gudy.azureus2.core3.upnp.services.UPnPSpecificService;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
 public class 
 UPnPServiceImpl
-	extends 	ResourceDownloaderAdapter
 	implements 	UPnPService
 {
 	protected UPnPDeviceImpl	device;
@@ -205,32 +201,11 @@ UPnPServiceImpl
 	
 		throws UPnPException
 	{		
-		try{
-			ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
-			
-			ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( getDescriptionURL()), 3 );
-			
-			rd.addListener( this );
-			
-			try{
-				InputStream	data = rd.download();
-				
-				SimpleXMLParserDocument	doc = device.getUPnP().parseXML( data );
+		SimpleXMLParserDocument	doc = device.getUPnP().downloadXML( getDescriptionURL());
 
-				parseActions( doc.getChild( "ActionList" ));
+		parseActions( doc.getChild( "ActionList" ));
 				
-				parseStateVars( doc.getChild( "ServiceStateTable"));
-				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
-				
-				device.getUPnP().log( e );
-			}
-		}catch( Throwable e ){
-			
-			throw( new UPnPException( "Failed to load service description '" + desc_url + "'", e ));
-		}
+		parseStateVars( doc.getChild( "ServiceStateTable"));
 	}
 	
 	protected void
@@ -260,22 +235,7 @@ UPnPServiceImpl
 			state_vars.add( new UPnPStateVariableImpl( this, kids[i] ));
 		}
 	}
-	public void
-	reportActivity(
-		ResourceDownloader	downloader,
-		String				activity )
-	{
-		device.getUPnP().log( activity );
-	}
-		
-	public void
-	failed(
-		ResourceDownloader			downloader,
-		ResourceDownloaderException e )
-	{
-		device.getUPnP().log( e );
-	}
-	
+
 	public UPnPSpecificService
 	getSpecificService()
 	{

@@ -32,6 +32,7 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 import org.gudy.azureus2.core3.upnp.*;
 import org.gudy.azureus2.core3.upnp.services.UPnPWANConnectionPortMapping;
@@ -39,10 +40,16 @@ import org.gudy.azureus2.core3.upnp.services.UPnPWANIPConnection;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentFactory;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 public class 
 UPnPImpl
-	implements UPnP, SSDPListener
+	extends 	ResourceDownloaderAdapter
+	implements 	UPnP, SSDPListener
 {
 	protected static UPnPImpl	singleton;
 	
@@ -156,6 +163,9 @@ UPnPImpl
 		
 		InputStream	is = new ByteArrayInputStream( bytes_in );
 		
+			// Gudy's router was returning trailing nulls which then stuffed up the
+			// XML parser. Hence this code to try and strip them
+		
 		try{
 			StringBuffer	data = new StringBuffer(1024);
 			
@@ -172,8 +182,12 @@ UPnPImpl
 				
 				data.append( line.trim() + "\n" );	
 			}
-					
-			return( SimpleXMLParserDocumentFactory.create( data.toString()));
+				
+			String	data_str = data.toString();
+			
+			LGLogger.log( "UPnP:Response:" + data_str );
+			
+			return( SimpleXMLParserDocumentFactory.create( data_str ));
 			
 		}catch( Throwable e ){
 			
@@ -198,6 +212,103 @@ UPnPImpl
 		}
 	}
 	
+	public SimpleXMLParserDocument
+	downloadXML(
+		URL		url )
+	
+		throws UPnPException
+	{
+		ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+		
+		ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url ), 3 );
+		
+		rd.addListener( this );
+		
+		try{
+			InputStream	data = rd.download();
+			
+			return( parseXML( data ));
+			
+		}catch( Throwable e ){
+			
+			log( e );
+
+			if (e instanceof UPnPException ){
+				
+				throw((UPnPException)e);
+			}
+			
+			throw( new UPnPException( "Root device location '" + url + "' - data read failed", e ));
+		}	
+	}
+	
+	public SimpleXMLParserDocument
+	performSOAPRequest(
+		UPnPService		service,
+		String			soap_action,
+		String			request )
+	
+		throws SimpleXMLParserDocumentException, UPnPException, IOException
+	{
+		LGLogger.log( "UPnP:Request:" + request );
+
+		URL	control = service.getControlURL();
+		
+		HttpURLConnection	con = (HttpURLConnection)control.openConnection();
+		
+		con.setRequestProperty( "SOAPACTION", "\""+ soap_action + "\"");
+		
+		con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
+		
+		con.setRequestMethod( "POST" );
+		
+		con.setDoInput( true );
+		con.setDoOutput( true );
+		
+		OutputStream	os = con.getOutputStream();
+		
+		PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+					
+		pw.println( request );
+		
+		pw.flush();
+
+		con.connect();
+		
+		if ( con.getResponseCode() == 405 ){
+			
+				// gotta retry with M-POST method
+							
+			con = (HttpURLConnection)control.openConnection();
+			
+			con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
+			
+			con.setRequestMethod( "M-POST" );
+			
+			con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
+
+			con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+			
+			con.setDoInput( true );
+			con.setDoOutput( true );
+			
+			os = con.getOutputStream();
+			
+			pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+						
+			pw.println( request );
+			
+			pw.flush();
+
+			con.connect();
+		
+			return( parseXML(con.getInputStream()));	
+			
+		}else{
+			
+			return( parseXML(con.getInputStream()));
+		}
+	}
 	protected synchronized File
 	getTraceFile()
 	{
@@ -209,6 +320,23 @@ UPnPImpl
 		}
 		
 		return( FileUtil.getUserFile( "upnp_trace" + trace_index + ".log" ));
+	}
+	
+	
+	public void
+	reportActivity(
+		ResourceDownloader	downloader,
+		String				activity )
+	{
+		log( activity );
+	}
+		
+	public void
+	failed(
+		ResourceDownloader			downloader,
+		ResourceDownloaderException e )
+	{
+		log( e );
 	}
 	
 	public void

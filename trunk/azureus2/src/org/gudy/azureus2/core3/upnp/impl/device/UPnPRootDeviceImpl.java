@@ -30,17 +30,13 @@ import org.gudy.azureus2.core3.upnp.impl.UPnPImpl;
  *
  */
 
-import java.io.InputStream;
 import java.net.*;
 
 import org.gudy.azureus2.core3.xml.simpleparser.*;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.core3.upnp.impl.*;
 
 public class 
 UPnPRootDeviceImpl 
-	extends 	ResourceDownloaderAdapter
 	implements  UPnPRootDevice
 {
 	protected UPnPImpl		upnp;
@@ -70,25 +66,9 @@ UPnPRootDeviceImpl
 			throw( new UPnPException( "Root device location '" + _location + "' invalid", e ));
 		}
 		
-		ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
-		
-		ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( location ), 3 );
-		
-		rd.addListener( this );
-		
-		try{
-			InputStream	data = rd.download();
+		SimpleXMLParserDocument	doc = upnp.downloadXML( location );
 			
-			SimpleXMLParserDocument	doc = upnp.parseXML( data );
-			
-			root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
-			
-		}catch( Throwable e ){
-						
-			upnp.log( e );
-			
-			throw( new UPnPException( "Root device location '" + _location + "' - data read failed", e ));
-		}
+		root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
 	}
 
 	protected UPnPImpl
@@ -113,21 +93,5 @@ UPnPRootDeviceImpl
 	getDevice()
 	{
 		return( root_device );
-	}
-	
-	public void
-	reportActivity(
-		ResourceDownloader	downloader,
-		String				activity )
-	{
-		upnp.log( activity );
-	}
-		
-	public void
-	failed(
-		ResourceDownloader			downloader,
-		ResourceDownloaderException e )
-	{
-		upnp.log( e );
 	}
 }
