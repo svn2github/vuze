@@ -16,6 +16,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
 /**
@@ -56,19 +58,21 @@ public class TorrentRow implements SortableItem {
       public void run() {
         if (table == null || table.isDisposed())
           return;
+        ItemEnumerator itemEnumerator = view.getItemEnumerator();
+        
         row = new BufferedTableRow(table, SWT.NULL);
-        items.add(new RankItem(TorrentRow.this,0));
-        items.add(new NameItem(TorrentRow.this,1));
-        items.add(new SizeItem(TorrentRow.this,2));    
-        items.add(new DoneItem(TorrentRow.this,3));
-        items.add(new StatusItem(TorrentRow.this,4));
-        items.add(new SeedsItem(TorrentRow.this,5));
-        items.add(new PeersItem(TorrentRow.this,6));
-        items.add(new DownSpeedItem(TorrentRow.this,7));
-        items.add(new UpSpeedItem(TorrentRow.this,8));
-        items.add(new ETAItem(TorrentRow.this,9));
-        items.add(new TrackerStatusItem(TorrentRow.this,10));
-        items.add(new PriorityItem(TorrentRow.this,11));
+        items.add(new RankItem(TorrentRow.this,itemEnumerator.getPositionByName("#")));
+        items.add(new NameItem(TorrentRow.this,itemEnumerator.getPositionByName("name")));
+        items.add(new SizeItem(TorrentRow.this,itemEnumerator.getPositionByName("size")));    
+        items.add(new DoneItem(TorrentRow.this,itemEnumerator.getPositionByName("done")));
+        items.add(new StatusItem(TorrentRow.this,itemEnumerator.getPositionByName("status")));
+        items.add(new SeedsItem(TorrentRow.this,itemEnumerator.getPositionByName("seeds")));
+        items.add(new PeersItem(TorrentRow.this,itemEnumerator.getPositionByName("peers")));
+        items.add(new DownSpeedItem(TorrentRow.this,itemEnumerator.getPositionByName("downspeed")));
+        items.add(new UpSpeedItem(TorrentRow.this,itemEnumerator.getPositionByName("upspeed")));
+        items.add(new ETAItem(TorrentRow.this,itemEnumerator.getPositionByName("eta")));
+        items.add(new TrackerStatusItem(TorrentRow.this,itemEnumerator.getPositionByName("tracker")));
+        items.add(new PriorityItem(TorrentRow.this,itemEnumerator.getPositionByName("priority")));
         view.setItem(row.getItem(),manager);
       }
     });
@@ -136,10 +140,10 @@ public class TorrentRow implements SortableItem {
     if (field.equals("done")) //$NON-NLS-1$
       return manager.getStats().getCompleted();
     
-    if (field.equals("ds")) //$NON-NLS-1$
+    if (field.equals("downspeed")) //$NON-NLS-1$
       return manager.getStats().getDownloadAverage();
   
-    if (field.equals("us")) //$NON-NLS-1$
+    if (field.equals("upspeed")) //$NON-NLS-1$
       return manager.getStats().getUploadAverage();
   
     if (field.equals("status")) //$NON-NLS-1$

@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -45,7 +42,10 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.MyTorrentsItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.*;
@@ -67,8 +67,16 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
   private HashMap downloadBars;
 
+  private ItemEnumerator itemEnumerator;
   private TableSorter sorter;
   
+  /**
+   * @return Returns the itemEnumerator.
+   */
+  public ItemEnumerator getItemEnumerator() {
+    return itemEnumerator;
+  }
+
   public MyTorrentsView(GlobalManager globalManager) {
     this.globalManager = globalManager;
     objectToSortableItem = new HashMap();
@@ -107,6 +115,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     gridData = new GridData(GridData.FILL_BOTH); 
     table.setLayoutData(gridData);
+    sorter = new TableSorter(this,"#",true);
+    itemEnumerator = MyTorrentsItemEnumerator.getInstance();
+    /*
     String[] columnsHeader = { "#", "name", "size", "done", "status", "seeds", "peers", "downspeed", "upspeed", "eta", "tracker", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
     int[] columnsSize = { 25, 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
     for (int i = 0; i < columnsHeader.length; i++) {
@@ -118,28 +129,30 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         saveTableColumns((TableColumn) e.widget);
       }
     };
-    for (int i = 0; i < columnsHeader.length; i++) {
-      TableColumn column = new TableColumn(table, SWT.NULL);
-      Messages.setLanguageText(column, "MyTorrentsView." + columnsHeader[i]);
-      column.setWidth(columnsSize[i]);
-      column.addControlListener(resizeListener);
+    */
+    ItemDescriptor[] items = itemEnumerator.getItems();
+    //Create all columns
+    for (int i = 0; i < items.length; i++) {
+      int position = items[i].getPosition();
+      if(position != -1) {
+        TableColumn column = new TableColumn(table, SWT.NULL);
+      }
     }
-    
-    sorter = new TableSorter(this,"#",true);
-    
-    sorter.addStringColumnListener(table.getColumn(1),"name");
-    sorter.addStringColumnListener(table.getColumn(10),"tracker");
-    
-    sorter.addIntColumnListener(table.getColumn(0),"#");
-    sorter.addIntColumnListener(table.getColumn(2),"size");
-    sorter.addIntColumnListener(table.getColumn(3),"done");
-    sorter.addIntColumnListener(table.getColumn(4),"status");
-    sorter.addIntColumnListener(table.getColumn(5),"seeds");
-    sorter.addIntColumnListener(table.getColumn(6),"peers");
-    sorter.addIntColumnListener(table.getColumn(7),"ds");
-    sorter.addIntColumnListener(table.getColumn(8),"us");
-    sorter.addIntColumnListener(table.getColumn(9),"eta");
-    sorter.addIntColumnListener(table.getColumn(11),"priority");   
+    //Assign length and titles
+    for (int i = 0; i < items.length; i++) {
+     int position = items[i].getPosition();
+     if(position != -1) {
+       TableColumn column = table.getColumn(position);
+       Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
+       column.setWidth(items[i].getWidth());
+       if(items[i].getType() == ItemDescriptor.TYPE_INT) {
+         sorter.addIntColumnListener(column,items[i].getName());
+       }
+       if(items[i].getType() == ItemDescriptor.TYPE_STRING) {
+         sorter.addStringColumnListener(column,items[i].getName());
+       }
+     }  
+    }   
 
     table.setHeaderVisible(true);
     table.addKeyListener(createKeyListener());
