@@ -16,11 +16,11 @@ FEATURE: Core | RSS Feed parse APIs added to plugin interface [Parg]
 FEATURE: Core | Non-blocking sockets based TCP tracker implementation [Parg]
 FEATURE: UI   | Torrent export option added to SWT UI [Parg]
 FEATURE: Core | Client identification plugin interface [Parg]
-FEATURE: UI | Keyboard shortcut parsing system [CrazyAlchemist]
+FEATURE: UI   | Keyboard shortcut parsing system [CrazyAlchemist]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar]
-
+CHANGE: Core | First piece priority option now also prioritizes last piece of file [Nolar]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]

@@ -43,7 +43,7 @@ DMPiecePickerImpl
 	protected DiskManagerHelper		disk_manager;
 	
 	protected boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-    protected boolean completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
+	protected boolean completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
 	protected int	nbPieces;
 	protected int 	pieceCompletion[];
 	
@@ -64,7 +64,8 @@ DMPiecePickerImpl
 	start()
 	{
 		COConfigurationManager.addParameterListener("Prioritize First Piece", this);
-		
+		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", this);
+    
 		pieceCompletion = new int[nbPieces];
 		
 		priorityLists = new BitSet[100];
@@ -80,6 +81,7 @@ DMPiecePickerImpl
 	stop()
 	{
 		COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
+    COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", this);
 	}
 	
 	public void 
@@ -87,6 +89,7 @@ DMPiecePickerImpl
 		String parameterName ) 
 	{
 	   firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
+     completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
 	}
 	
 	public void 
@@ -114,8 +117,8 @@ DMPiecePickerImpl
 					continue;
 				}
 
-				//if this is the first piece of the file
-				if (firstPiecePriority && i == fileInfo.getFirstPieceNumber()) {
+				//if this is the first or last piece of the file
+				if( firstPiecePriority && (i == fileInfo.getFirstPieceNumber() || i == fileInfo.getLastPieceNumber() ) ) {
 				  if (fileInfo.isPriority()) completion = 99;
 				  else if (completion < 97) completion = 97;
 				}

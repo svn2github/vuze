@@ -48,6 +48,8 @@ DiskManagerFileInfo
 	public String getExtension();
 		
 	public int getFirstPieceNumber();
+  
+  public int getLastPieceNumber();
 	
 	public long getLength();
 	

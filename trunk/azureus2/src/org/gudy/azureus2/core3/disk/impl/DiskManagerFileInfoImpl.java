@@ -160,7 +160,12 @@ DiskManagerFileInfoImpl
    * @return
    */
   public int getFirstPieceNumber() {
-	return firstPieceNumber;
+    return firstPieceNumber;
+  }
+  
+  
+  public int getLastPieceNumber() {
+    return firstPieceNumber + nbPieces - 1;
   }
 
   /**
