@@ -273,6 +273,11 @@ public class VirtualChannelSelector {
         return 0;
       }      
       
+      	// store these when they occur so they can be raised *outside* of the monitor to avoid
+      	// potential deadlocks
+      
+      RegistrationData	select_fail_data	= null;
+      Throwable 		select_fail_excep	= null;
       
       //process cancellations
       try {
@@ -336,20 +341,16 @@ public class VirtualChannelSelector {
               }
               else{
             	
-                data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "select registration: channel is closed" ) );
-                //Debug.out( "channel is closed" );
+              	select_fail_data	= data;
+              	select_fail_excep	= new Throwable( "select registration: channel is closed" );
+              	
               }
             }catch (Throwable t){
               
-              Debug.printStackTrace(t);
+            	Debug.printStackTrace(t);
            	    
-              try{
-                data.listener.selectFailure( this, data.channel, data.attachment, t );
-           			
-              }catch( Throwable e ){
-           			
-                Debug.printStackTrace(e);
-              }
+           		select_fail_data	= data;
+           		select_fail_excep	= new Throwable( "select registration: channel is closed" );
             } 	
           }
         }
@@ -357,9 +358,24 @@ public class VirtualChannelSelector {
         paused_states.clear();  //reset after every registration round
                
       }finally { 
+      	
       	register_cancel_list_mon.exit();
       }
       
+      if ( select_fail_data != null ){
+      	
+      	try{
+	      	select_fail_data.listener.selectFailure(
+	      			this, 
+					select_fail_data.channel, 
+					select_fail_data.attachment, 
+					select_fail_excep );
+	      	
+      	}catch( Throwable e ){
+      		
+      		Debug.printStackTrace( e );
+      	}
+      }
       
       //do the actual select
       int count = 0;
