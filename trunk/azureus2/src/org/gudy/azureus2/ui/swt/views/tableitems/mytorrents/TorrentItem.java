@@ -39,7 +39,10 @@ public abstract class TorrentItem extends BufferedTableItem {
    *       to fix the 1st column gap problem (Eclipse Bug 43910)
    */
   public TorrentItem(TorrentRow torrentRow, int position) {
-    super(torrentRow.getRow(), position+1);
+  		// remembering that columns that have not been selected for viewing 
+  		// have a position of -1 and thus NOT incrementing this to 0!
+  	
+    super(torrentRow.getRow(), position >=0?position+1:position);
     this.torrentRow = torrentRow;
   }
 
