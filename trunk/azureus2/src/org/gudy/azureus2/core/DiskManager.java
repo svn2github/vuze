@@ -789,8 +789,8 @@ public class DiskManager {
   }
 
   public void enqueueReadRequest(DataQueueItem item) {
-    readQueue.add(item);
     synchronized (readQueue) {
+      readQueue.add(item);
       try {
         if (readWaitFlag)
           readQueue.notifyAll();
