@@ -28,6 +28,7 @@ import java.util.Properties;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTGetListener;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.*;
@@ -112,6 +113,16 @@ DHTImpl
 		long		timeout )
 	{
 		return( control.get( key, timeout ));
+	}
+	
+	public void
+	get(
+		byte[]			key,
+		int				max_values,
+		long			timeout,
+		DHTGetListener	listener )
+	{
+		control.get( key, max_values, timeout, listener );
 	}
 	
 	public byte[]

@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
+import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
@@ -201,7 +202,7 @@ DHTUDPUtils
 		
 		final long 	created		= is.readLong() + skew;
 		
-		System.out.println( "    Adjusted creation time by " + skew );
+		// System.out.println( "    Adjusted creation time by " + skew );
 		
 		final byte[]	value_bytes = deserialiseByteArray( is, 256 );
 		
@@ -411,5 +412,22 @@ DHTUDPUtils
 		int	port = is.readShort()&0xffff;
 		
 		return( new InetSocketAddress( InetAddress.getByAddress( bytes ), port ));
+	}
+	
+	protected static void
+	serialiseStats(
+		DataOutputStream		os,
+		DHTTransportFullStats	stats )
+	{
+		
+	}
+	
+	protected static DHTTransportFullStats
+	deserialiseStats(
+		DataInputStream		is )
+	{
+		DHTTransportFullStats	res = new DHTTransportFullStats(){};
+		
+		return( res );
 	}
 }

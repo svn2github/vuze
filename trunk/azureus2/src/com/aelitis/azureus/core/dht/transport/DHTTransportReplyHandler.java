@@ -33,7 +33,12 @@ DHTTransportReplyHandler
 	public void
 	pingReply(
 		DHTTransportContact contact );
-			
+		
+	public void
+	statsReply(
+		DHTTransportContact 	contact,
+		DHTTransportFullStats	stats );
+
 	public void
 	storeReply(
 		DHTTransportContact contact );

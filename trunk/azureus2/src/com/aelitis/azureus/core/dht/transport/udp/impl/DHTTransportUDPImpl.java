@@ -700,6 +700,120 @@ DHTTransportUDPImpl
 		}
 	}
 	
+		// stats
+	
+	protected void
+	sendStats(
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler )
+	{
+		AERunnable	runnable = 
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendStatsSupport( contact, handler );
+				}
+			};
+		
+		dispatch( runnable );
+	}
+	
+	protected void
+	sendStatsSupport(
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler )
+	{
+		stats.statsSent();
+
+		final long	connection_id = getConnectionID();
+		
+		final DHTUDPPacketRequestStats	request = 
+			new DHTUDPPacketRequestStats( connection_id, local_contact );
+			
+		try{
+			checkAddress( contact );
+			
+			packet_handler.sendAndReceive(
+				request,
+				contact.getTransportAddress(),
+				new PRUDPPacketReceiver()
+				{
+					private int	retry_count	= 0;
+					
+					public void
+					packetReceived(
+						PRUDPPacket			_packet,
+						InetSocketAddress	from_address )
+					{
+						try{
+							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
+							
+							if ( packet.getConnectionId() != connection_id ){
+								
+								throw( new Exception( "connection id mismatch" ));
+							}
+							
+							contact.setInstanceID( packet.getTargetInstanceID());
+							
+							if ( handleErrorReply( contact, packet )){
+								
+								retry_count++;
+								
+								if ( retry_count > 1 ){
+									
+									error( new PRUDPPacketHandlerException("retry limit exceeded"));
+									
+								}else{
+									
+									request.setOriginatorAddress(local_contact.getExternalAddress());
+									
+									packet_handler.sendAndReceive(
+											request,
+											contact.getTransportAddress(),
+											this,
+											request_timeout );
+								}
+							}else{
+								
+								DHTUDPPacketReplyStats	reply = (DHTUDPPacketReplyStats)packet;
+
+								stats.statsOK();
+							
+								handler.statsReply( contact, reply.getStats());
+							}
+						}catch( PRUDPPacketHandlerException e ){
+							
+							error( e );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+							
+							error( new PRUDPPacketHandlerException( "stats failed", e ));
+						}
+					}
+					
+					public void
+					error(
+						PRUDPPacketHandlerException	e )
+					{
+						stats.statsFailed();
+						
+						handler.failed( contact );
+					}
+				},
+				request_timeout);
+			
+		}catch( Throwable e ){
+			
+			stats.statsFailed();
+			
+			handler.failed( contact );
+		}
+	}
+	
 		// PING for deducing external IP address
 	
 	protected InetSocketAddress
@@ -1214,6 +1328,20 @@ DHTTransportUDPImpl
 					
 					packet_handler.send( reply, request.getAddress());
 					
+				}else if ( request instanceof DHTUDPPacketRequestStats ){
+					
+					DHTTransportFullStats	full_stats = request_handler.statsRequest( originating_contact );
+					
+					DHTUDPPacketReplyStats	reply = 
+						new DHTUDPPacketReplyStats(
+								request.getTransactionId(),
+								request.getConnectionId(),
+								local_contact );
+					
+					reply.setStats( full_stats );
+					
+					packet_handler.send( reply, request.getAddress());
+
 				}else if ( request instanceof DHTUDPPacketRequestStore ){
 					
 					DHTUDPPacketRequestStore	store_request = (DHTUDPPacketRequestStore)request;

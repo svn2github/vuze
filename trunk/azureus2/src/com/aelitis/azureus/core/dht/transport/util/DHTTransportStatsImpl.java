@@ -37,6 +37,7 @@ DHTTransportStatsImpl
 	private long[]	find_nodes	= new long[4];
 	private long[]	find_values	= new long[4];
 	private long[]	stores		= new long[4];
+	private long[]	stats		= new long[4];
 	
 	public void
 	add(
@@ -46,6 +47,7 @@ DHTTransportStatsImpl
 		add( find_nodes, other.find_nodes );
 		add( find_values, other.find_values );
 		add( stores, other.stores );
+		add( stats, other.stats );
 	}
 	
 	protected void
@@ -182,6 +184,28 @@ DHTTransportStatsImpl
 	{
 		return( stores );
 	}
+		//stats
+	
+	public void
+	statsSent()
+	{
+		stats[0]++;
+	}
+	public void
+	statsOK()
+	{
+		stats[1]++;
+	}
+	public void
+	statsFailed()
+	{
+		stats[2]++;
+	}
+	public void
+	statsReceived()
+	{
+		stats[3]++;
+	}
 	
 	public String
 	getString()
@@ -189,7 +213,8 @@ DHTTransportStatsImpl
 		return( "ping:" + getString( pings ) + "," +
 				"store:" + getString( stores ) + "," +
 				"node:" + getString( find_nodes ) + "," +
-				"value:" + getString( find_values ));
+				"value:" + getString( find_values ) + "," +
+				"stats:" + getString( stats ));
 	}
 	
 	protected String

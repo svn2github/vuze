@@ -85,6 +85,12 @@ DHTTransportLoopbackContactImpl
 	}
 		
 	public void
+	sendStats(
+		DHTTransportReplyHandler	handler )
+	{
+		transport.sendStats( this, handler );
+	}
+	public void
 	sendStore(
 		DHTTransportReplyHandler	handler,
 		byte[]						key,

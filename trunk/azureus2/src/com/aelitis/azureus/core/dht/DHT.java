@@ -61,6 +61,14 @@ DHT
 		byte[]		key,
 		long		timeout );
 	
+	public void
+	get(
+		byte[]			key,
+		int				max_values,
+		long			timeout,
+		DHTGetListener	listener );
+	
+	
 	public byte[]
 	remove(
 		byte[]		key );

@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.transport.util;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportRequestHandler;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
@@ -54,6 +55,15 @@ DHTTransportRequestCounter
 		stats.pingReceived();
 		
 		delegate.pingRequest( contact );
+	}
+	
+	public DHTTransportFullStats
+	statsRequest(
+		DHTTransportContact contact )
+	{
+		stats.statsReceived();
+		
+		return( delegate.statsRequest( contact ));
 	}
 	
 	public void

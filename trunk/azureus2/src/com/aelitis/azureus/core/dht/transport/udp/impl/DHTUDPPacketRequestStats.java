@@ -1,5 +1,5 @@
 /*
- * Created on 12-Jan-2005
+ * Created on 21-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,66 +20,53 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport;
+package com.aelitis.azureus.core.dht.transport.udp.impl;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
-
-public interface 
-DHTTransportContact
+public class 
+DHTUDPPacketRequestStats 
+	extends DHTUDPPacketRequest
 {
-	public int
-	getMaxFailForLiveCount();
+	public
+	DHTUDPPacketRequestStats(
+		long						_connection_id,
+		DHTTransportUDPContactImpl	_contact )
+	{
+		super( DHTUDPPacket.ACT_REQUEST_STATS, _connection_id, _contact );
+	}
 	
-	public int
-	getMaxFailForUnknownCount();
+	protected
+	DHTUDPPacketRequestStats(
+		DataInputStream		is,
+		long				con_id,
+		int					trans_id )
 	
-	public int
-	getInstanceID();
-	
-	public byte[]
-	getID();
-	
-	public byte
-	getProtocolVersion();
-	
-	public long
-	getClockSkew();
-	
-	public void
-	sendPing(
-		DHTTransportReplyHandler	handler );
+		throws IOException
+	{
+		super( is,  DHTUDPPacket.ACT_REQUEST_STATS, con_id, trans_id );
+	}
 	
 	public void
-	sendStats(
-		DHTTransportReplyHandler	handler );
-	
-	public void
-	sendStore(
-		DHTTransportReplyHandler	handler,
-		byte[]						key,
-		DHTTransportValue			value );
-	
-	public void
-	sendFindNode(
-		DHTTransportReplyHandler	handler,
-		byte[]						id );
-		
-	public void
-	sendFindValue(
-		DHTTransportReplyHandler	handler,
-		byte[]						key );
-		
-	public void
-	exportContact(
+	serialise(
 		DataOutputStream	os )
 	
-		throws IOException, DHTTransportException;
+		throws IOException
+	{
+		super.serialise(os);
+	}
 	
 	public String
-	getString();
+	getString()
+	{
+		return( super.getString());
+	}
 }

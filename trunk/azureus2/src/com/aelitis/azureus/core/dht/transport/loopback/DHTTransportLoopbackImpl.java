@@ -288,6 +288,51 @@ DHTTransportLoopbackImpl
 		}
 	}
 		
+		// STATS
+	
+	public void
+	sendStats(
+		final DHTTransportContact			contact,
+		final DHTTransportReplyHandler		handler )
+	{
+		AERunnable	runnable = 
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendStatsSupport( contact, handler );
+				}
+			};
+		
+		run( runnable );
+	}
+	
+	public void
+	sendStatsSupport(
+		DHTTransportContact			contact,
+		DHTTransportReplyHandler	handler )
+	{
+		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
+		
+		stats.statsSent();
+		
+		if ( target == null || triggerFailure()){
+		
+			stats.statsFailed();
+			
+			handler.failed(contact);
+			
+		}else{
+			
+			stats.statsOK();
+			
+			DHTTransportFullStats res = target.getRequestHandler().statsRequest( new DHTTransportLoopbackContactImpl( target, node_id ));
+			
+			handler.statsReply(contact,res);
+		}
+	}
+		
 		// STORE
 	
 	public void

@@ -37,6 +37,14 @@ DHTTransportReplyHandlerAdapter
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}
+	
+	public void
+	statsReply(
+		DHTTransportContact 	contact,
+		DHTTransportFullStats	stats )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
 			
 	public void
 	storeReply(

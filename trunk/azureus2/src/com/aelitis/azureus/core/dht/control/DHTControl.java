@@ -27,6 +27,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.List;
 
+import com.aelitis.azureus.core.dht.DHTGetListener;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -60,6 +61,13 @@ DHTControl
 	get(
 		byte[]		key,
 		long		timeout );
+	
+	public void
+	get(
+		byte[]			key,
+		int				max_values,
+		long			timeout,
+		DHTGetListener	listener );
 	
 	public byte[]
 	remove(

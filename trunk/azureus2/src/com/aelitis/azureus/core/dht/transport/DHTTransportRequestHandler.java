@@ -34,6 +34,10 @@ DHTTransportRequestHandler
 	pingRequest(
 		DHTTransportContact contact );
 		
+	public DHTTransportFullStats
+	statsRequest(	
+		DHTTransportContact contact );
+	
 	public void
 	storeRequest(
 		DHTTransportContact contact, 

@@ -236,4 +236,11 @@ Test
 	{
 		
 	}
+	
+	public DHTTransportFullStats
+	statsRequest(
+		DHTTransportContact	contact )
+	{
+		return( null );
+	}
 }

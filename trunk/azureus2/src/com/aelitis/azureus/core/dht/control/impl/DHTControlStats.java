@@ -1,5 +1,5 @@
 /*
- * Created on 12-Jan-2005
+ * Created on 31-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,66 +20,18 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport;
+package com.aelitis.azureus.core.dht.control.impl;
+
+import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
-
-public interface 
-DHTTransportContact
+public class 
+DHTControlStats 
+	implements DHTTransportFullStats
 {
-	public int
-	getMaxFailForLiveCount();
-	
-	public int
-	getMaxFailForUnknownCount();
-	
-	public int
-	getInstanceID();
-	
-	public byte[]
-	getID();
-	
-	public byte
-	getProtocolVersion();
-	
-	public long
-	getClockSkew();
-	
-	public void
-	sendPing(
-		DHTTransportReplyHandler	handler );
-	
-	public void
-	sendStats(
-		DHTTransportReplyHandler	handler );
-	
-	public void
-	sendStore(
-		DHTTransportReplyHandler	handler,
-		byte[]						key,
-		DHTTransportValue			value );
-	
-	public void
-	sendFindNode(
-		DHTTransportReplyHandler	handler,
-		byte[]						id );
-		
-	public void
-	sendFindValue(
-		DHTTransportReplyHandler	handler,
-		byte[]						key );
-		
-	public void
-	exportContact(
-		DataOutputStream	os )
-	
-		throws IOException, DHTTransportException;
-	
-	public String
-	getString();
+
 }
