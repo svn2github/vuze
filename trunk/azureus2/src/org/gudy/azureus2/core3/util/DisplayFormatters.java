@@ -41,7 +41,8 @@ DisplayFormatters
 {
 	protected static boolean use_si_units;
 	protected static boolean use_units_rate_bits;
-	
+  protected static boolean not_use_GB_TB;
+  
 	protected static String	B_unit;
 	protected static String	KB_unit;
 	protected static String	MB_unit;
@@ -85,6 +86,19 @@ DisplayFormatters
 					}
 				});
 		
+    not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB", false);
+    
+    COConfigurationManager.addParameterListener( "config.style.doNotUseGB",
+        new ParameterListener()
+        {
+          public void
+          parameterChanged(
+            String  value )
+          {
+            not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB", false);
+          }
+        });
+    
 		setUnits();
 	}
 	
@@ -179,7 +193,7 @@ DisplayFormatters
 		
 			return( (n / 1024) + "." + (((n % (1024))*10 ) / (1024)) + (rate?rate_KB_unit:KB_unit));
 			
-		}else if (n < 1024L * 1024L * 1024L){
+		}else if (n < 1024L * 1024L * 1024L || not_use_GB_TB){
 		
 			return( (n / (1024L * 1024L)) + "." + (((n % (1024L * 1024L))*10L) / (1024L*1024L)) +  (rate?rate_MB_unit:MB_unit ));
 			
@@ -212,7 +226,7 @@ DisplayFormatters
 			return String.valueOf(n).concat(" B");
 		if (n < 1000 * 1000)
 			return String.valueOf(n / 1000).concat(".").concat(String.valueOf((n % 1000) / 100)).concat(" KB");
-		if (n < 1000L * 1000L * 1000L)
+		if (n < 1000L * 1000L * 1000L  || not_use_GB_TB)
 			return String.valueOf(n / (1000L * 1000L)).concat(
 			".").concat(
 			String.valueOf((n % (1000L * 1000L)) / (1000L * 100L))).concat(

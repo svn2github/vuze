@@ -171,7 +171,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
 
     new BooleanParameter(cLook, "config.style.useSIUnits",false, "ConfigView.section.style.useSIUnits");
     new BooleanParameter(cLook, "config.style.useUnitsRateBits",false, "ConfigView.section.style.useUnitsRateBits");
-    // new BooleanParameter(cLook, "config.style.showHostNames",false, "ConfigView.section.style.showHostNames");
+    new BooleanParameter(cLook, "config.style.doNotUseGB",false, "ConfigView.section.style.doNotUseGB");
 
     
     Composite cArea = new Composite(cLook, SWT.NULL);
