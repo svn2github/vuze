@@ -55,24 +55,29 @@ Test
 
 			DHTTransportUDPContact	c1 = (DHTTransportUDPContact)udp1.getLocalContact();
 			
-			c1.sendPing(
-				new DHTTransportReplyHandlerAdapter()
-				{
-					public void
-					pingReply(
-						DHTTransportContact contact )
+			for (int i=0;i<10;i++){
+				
+				final int f_i = i;
+				
+				c1.sendPing(
+					new DHTTransportReplyHandlerAdapter()
 					{
-						System.out.println( "ping reply" );
-					}
-					
-					public void
-					failed(
-						DHTTransportContact 	contact )
-					{
-						System.out.println( "ping failed" );
-					}
-				});
-			
+						public void
+						pingReply(
+							DHTTransportContact contact )
+						{
+							System.out.println( "ping reply: " + f_i );
+						}
+						
+						public void
+						failed(
+							DHTTransportContact 	contact )
+						{
+							System.out.println( "ping failed" );
+						}
+					});
+			}
+	
 			c1.sendStore(
 					new DHTTransportReplyHandlerAdapter()
 					{
@@ -132,6 +137,8 @@ Test
 					},
 					new byte[12]);
 			
+			System.out.println( "sending find value" );
+			
 			c1.sendFindValue(
 					new DHTTransportReplyHandlerAdapter()
 					{
@@ -160,6 +167,8 @@ Test
 					},
 					new byte[3]);
 			
+			System.out.println( "sending complete" );
+
 			Thread.sleep(1000000);
 		}catch( Throwable e ){
 			

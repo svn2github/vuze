@@ -170,29 +170,53 @@ DHTTransportUDPImpl
 
 		final long	connection_id = getConnectionID();
 		
+		final DHTUDPPacketRequestPing	request = 
+			new DHTUDPPacketRequestPing( connection_id, local_contact.getID());
+			
 		try{
 			packet_handler.sendAndReceive(
-				new DHTUDPPacketRequestPing( connection_id ),
+				request,
 				contact.getAddress(),
 				new PRUDPPacketReceiver()
 				{
+					private int	retry_count	= 0;
+					
 					public void
 					packetReceived(
-						PRUDPPacket			packet,
+						PRUDPPacket			_packet,
 						InetSocketAddress	from_address )
 					{
 						try{
-							DHTUDPPacketReplyPing	reply = (DHTUDPPacketReplyPing)packet;
+							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
 							
-							if ( reply.getConnectionId() != connection_id ){
+							if ( packet.getConnectionId() != connection_id ){
 								
 								throw( new Exception( "connection id mismatch" ));
 							}
-						
-							stats.pingOK();
 							
-							handler.pingReply( contact );
+							if ( handleErrorReply( packet )){
+								
+								retry_count++;
+								
+								if ( retry_count > 1 ){
+									
+									error( new PRUDPPacketHandlerException("retry limit exceeded"));
+									
+								}else{
+									
+									request.setOriginatorID(local_contact.getID());
+									
+									packet_handler.sendAndReceive(
+											request,
+											contact.getAddress(),
+											this );
+								}
+							}else{
+								
+								stats.pingOK();
 							
+								handler.pingReply( contact );
+							}
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace(e);
@@ -255,7 +279,8 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		try{
-			DHTUDPPacketRequestStore	request = new DHTUDPPacketRequestStore( connection_id );
+			final DHTUDPPacketRequestStore	request = 
+				new DHTUDPPacketRequestStore( connection_id, local_contact.getID());
 			
 			request.setKey( key );
 			
@@ -266,22 +291,44 @@ DHTTransportUDPImpl
 				contact.getAddress(),
 				new PRUDPPacketReceiver()
 				{
+					private int	retry_count	= 0;
+					
 					public void
 					packetReceived(
-						PRUDPPacket			packet,
+						PRUDPPacket			_packet,
 						InetSocketAddress	from_address )
 					{
 						try{
-							DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
+							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
 							
-							if ( reply.getConnectionId() != connection_id ){
+							if ( packet.getConnectionId() != connection_id ){
 								
 								throw( new Exception( "connection id mismatch" ));
 							}
-						
-							stats.storeOK();
 							
-							handler.storeReply( contact );
+							if ( handleErrorReply( packet )){
+								
+								retry_count++;
+								
+								if ( retry_count > 1 ){
+									
+									error( new PRUDPPacketHandlerException("retry limit exceeded"));
+									
+								}else{
+									
+									request.setOriginatorID(local_contact.getID());
+									
+									packet_handler.sendAndReceive(
+											request,
+											contact.getAddress(),
+											this );
+								}
+							}else{
+								
+								stats.storeOK();
+							
+								handler.storeReply( contact );
+							}
 							
 						}catch( Throwable e ){
 							
@@ -343,7 +390,8 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		try{
-			DHTUDPPacketRequestFindNode	request = new DHTUDPPacketRequestFindNode( connection_id );
+			final DHTUDPPacketRequestFindNode	request = 
+				new DHTUDPPacketRequestFindNode( connection_id, local_contact.getID());
 			
 			request.setID( nid );
 			
@@ -352,22 +400,46 @@ DHTTransportUDPImpl
 				contact.getAddress(),
 				new PRUDPPacketReceiver()
 				{
+					private int	retry_count	= 0;
+					
 					public void
 					packetReceived(
-						PRUDPPacket			packet,
+						PRUDPPacket			_packet,
 						InetSocketAddress	from_address )
 					{
 						try{
-							DHTUDPPacketReplyFindNode	reply = (DHTUDPPacketReplyFindNode)packet;
-							
-							if ( reply.getConnectionId() != connection_id ){
+							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
+														
+							if ( packet.getConnectionId() != connection_id ){
 								
 								throw( new Exception( "connection id mismatch" ));
 							}
-						
-							stats.findNodeOK();
+
+							if ( handleErrorReply( packet )){
+								
+								retry_count++;
+								
+								if ( retry_count > 1 ){
+									
+									error( new PRUDPPacketHandlerException("retry limit exceeded"));
+									
+								}else{
+									
+									request.setOriginatorID(local_contact.getID());
+									
+									packet_handler.sendAndReceive(
+											request,
+											contact.getAddress(),
+											this );
+								}
+							}else{
+								
+								DHTUDPPacketReplyFindNode	reply = (DHTUDPPacketReplyFindNode)packet;
 							
-							handler.findNodeReply( contact, reply.getContacts());
+								stats.findNodeOK();
+								
+								handler.findNodeReply( contact, reply.getContacts());
+							}
 							
 						}catch( Throwable e ){
 							
@@ -429,7 +501,8 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		try{
-			DHTUDPPacketRequestFindValue	request = new DHTUDPPacketRequestFindValue( connection_id );
+			final DHTUDPPacketRequestFindValue	request = 
+				new DHTUDPPacketRequestFindValue( connection_id, local_contact.getID());
 			
 			request.setID( key );
 			
@@ -438,30 +511,54 @@ DHTTransportUDPImpl
 				contact.getAddress(),
 				new PRUDPPacketReceiver()
 				{
+					private int	retry_count;
+					
 					public void
 					packetReceived(
-						PRUDPPacket			packet,
+						PRUDPPacket			_packet,
 						InetSocketAddress	from_address )
 					{
 						try{
-							DHTUDPPacketReplyFindValue	reply = (DHTUDPPacketReplyFindValue)packet;
+							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
 							
-							if ( reply.getConnectionId() != connection_id ){
+							if ( packet.getConnectionId() != connection_id ){
 								
 								throw( new Exception( "connection id mismatch" ));
 							}
-						
-							stats.findValueOK();
 							
-							DHTTransportValue	res = reply.getValue();
-							
-							if ( res != null ){
+							if ( handleErrorReply( packet )){
 								
-								handler.findValueReply( contact, res );
+								retry_count++;
 								
+								if ( retry_count > 1 ){
+									
+									error( new PRUDPPacketHandlerException("retry limit exceeded"));
+									
+								}else{
+									
+									request.setOriginatorID(local_contact.getID());
+									
+									packet_handler.sendAndReceive(
+											request,
+											contact.getAddress(),
+											this );
+								}
 							}else{
 								
-								handler.findValueReply( contact, reply.getContacts());
+								DHTUDPPacketReplyFindValue	reply = (DHTUDPPacketReplyFindValue)packet;
+								
+								stats.findValueOK();
+								
+								DHTTransportValue	res = reply.getValue();
+								
+								if ( res != null ){
+									
+									handler.findValueReply( contact, res );
+									
+								}else{
+									
+									handler.findValueReply( contact, reply.getContacts());
+								}
 							}
 						}catch( Throwable e ){
 							
@@ -493,89 +590,122 @@ DHTTransportUDPImpl
 	
 	public void
 	process(
-		PRUDPPacketRequest	request )
+		PRUDPPacketRequest	_request )
 	{
 		try{
+			DHTUDPPacketRequest	request = (DHTUDPPacketRequest)_request;
 			
-			DHTTransportContact	originating_contact = new DHTTransportUDPContactImpl( this, request.getAddress());
+			DHTTransportUDPContactImpl	originating_contact = new DHTTransportUDPContactImpl( this, request.getAddress());
 			
-			if ( request instanceof DHTUDPPacketRequestPing ){
+			if ( !Arrays.equals( request.getOriginatorID(), originating_contact.getID())){
 				
-				request_handler.pingRequest( originating_contact );
+				System.out.println( "Peer has reported address mismatch" );
 				
-				DHTUDPPacketReplyPing	reply = 
-					new DHTUDPPacketReplyPing(
+				DHTUDPPacketReplyError	reply = 
+					new DHTUDPPacketReplyError(
 							request.getTransactionId(),
 							request.getConnectionId());
 				
-				packet_handler.send( reply, request.getAddress());
-				
-			}else if ( request instanceof DHTUDPPacketRequestStore ){
-				
-				DHTUDPPacketRequestStore	store_request = (DHTUDPPacketRequestStore)request;
-				
-				request_handler.storeRequest(
-						originating_contact, 
-						store_request.getKey(), 
-						store_request.getValue());
-				
-				DHTUDPPacketReplyStore	reply = 
-					new DHTUDPPacketReplyStore(
-							request.getTransactionId(),
-							request.getConnectionId());
+				reply.setOriginatingAddress( originating_contact.getAddress());
 				
 				packet_handler.send( reply, request.getAddress());
-				
-			}else if ( request instanceof DHTUDPPacketRequestFindNode ){
-				
-				DHTUDPPacketRequestFindNode	find_request = (DHTUDPPacketRequestFindNode)request;
-				
-				DHTTransportContact[] res = 
-					request_handler.findNodeRequest(
-								originating_contact,
-								find_request.getID());
-				
-				DHTUDPPacketReplyFindNode	reply = 
-					new DHTUDPPacketReplyFindNode(
-							request.getTransactionId(),
-							request.getConnectionId());
-							
-				reply.setContacts( res );
-				
-				packet_handler.send( reply, request.getAddress());
-				
-			}else if ( request instanceof DHTUDPPacketRequestFindValue ){
-				
-				DHTUDPPacketRequestFindValue	find_request = (DHTUDPPacketRequestFindValue)request;
-			
-				Object res = 
-					request_handler.findValueRequest(
-								originating_contact,
-								find_request.getID());
-				
-				DHTUDPPacketReplyFindValue	reply = 
-					new DHTUDPPacketReplyFindValue(
-						request.getTransactionId(),
-						request.getConnectionId());
-				
-				if ( res instanceof DHTTransportValue ){
-					
-					reply.setValue((DHTTransportValue)res);
 
-				}else{
-					
-					reply.setContacts((DHTTransportContact[])res );
-				}
-				
-				packet_handler.send( reply, request.getAddress());
-				
 			}else{
 				
-				Debug.out( "Unexpected packet:" + request.toString());
+				if ( request instanceof DHTUDPPacketRequestPing ){
+					
+					request_handler.pingRequest( originating_contact );
+					
+					DHTUDPPacketReplyPing	reply = 
+						new DHTUDPPacketReplyPing(
+								request.getTransactionId(),
+								request.getConnectionId());
+					
+					packet_handler.send( reply, request.getAddress());
+					
+				}else if ( request instanceof DHTUDPPacketRequestStore ){
+					
+					DHTUDPPacketRequestStore	store_request = (DHTUDPPacketRequestStore)request;
+					
+					request_handler.storeRequest(
+							originating_contact, 
+							store_request.getKey(), 
+							store_request.getValue());
+					
+					DHTUDPPacketReplyStore	reply = 
+						new DHTUDPPacketReplyStore(
+								request.getTransactionId(),
+								request.getConnectionId());
+					
+					packet_handler.send( reply, request.getAddress());
+					
+				}else if ( request instanceof DHTUDPPacketRequestFindNode ){
+					
+					DHTUDPPacketRequestFindNode	find_request = (DHTUDPPacketRequestFindNode)request;
+					
+					DHTTransportContact[] res = 
+						request_handler.findNodeRequest(
+									originating_contact,
+									find_request.getID());
+					
+					DHTUDPPacketReplyFindNode	reply = 
+						new DHTUDPPacketReplyFindNode(
+								request.getTransactionId(),
+								request.getConnectionId());
+								
+					reply.setContacts( res );
+					
+					packet_handler.send( reply, request.getAddress());
+					
+				}else if ( request instanceof DHTUDPPacketRequestFindValue ){
+					
+					DHTUDPPacketRequestFindValue	find_request = (DHTUDPPacketRequestFindValue)request;
+				
+					Object res = 
+						request_handler.findValueRequest(
+									originating_contact,
+									find_request.getID());
+					
+					DHTUDPPacketReplyFindValue	reply = 
+						new DHTUDPPacketReplyFindValue(
+							request.getTransactionId(),
+							request.getConnectionId());
+					
+					if ( res instanceof DHTTransportValue ){
+						
+						reply.setValue((DHTTransportValue)res);
+	
+					}else{
+						
+						reply.setContacts((DHTTransportContact[])res );
+					}
+					
+					packet_handler.send( reply, request.getAddress());
+					
+				}else{
+					
+					Debug.out( "Unexpected packet:" + request.toString());
+				}
 			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+		}
+	}
+	
+	protected boolean
+	handleErrorReply(
+		DHTUDPPacketReply		reply )
+	{
+		if ( reply.getAction() == DHTUDPPacket.ACT_REPLY_ERROR ){
+			
+			System.out.println( "error reply" );
+			
+			return( true );
+			
+		}else{
+			
+			return( false );
 		}
 	}
 	

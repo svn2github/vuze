@@ -44,7 +44,8 @@ DHTUDPUtils
 	getNodeID(
 		InetSocketAddress	address )
 	{		
-		return( new SHA1Hasher().calculateHash( address.toString().getBytes()));
+		return( new SHA1Hasher().calculateHash(
+					(	address.getAddress().getHostAddress() + ":" + address.getPort()).getBytes()));
 	}
 	
 	protected static byte[]
@@ -188,17 +189,11 @@ DHTUDPUtils
 	{
 		if ( contact instanceof DHTTransportUDPContactImpl ){
 			
-			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
-			
-			InetSocketAddress address = c.getAddress();
-			
 			os.writeByte( CT_UDP );
 			
-			os.writeInt( address.getHostName().length());
-			
-			os.write( address.getHostName().getBytes());
-			
-			os.writeShort( address.getPort());
+			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
+						
+			serialiseAddress( os, c.getAddress() );
 			
 		}else{
 			
@@ -219,7 +214,31 @@ DHTUDPUtils
 			
 			throw( new IOException( "Unsupported contact type:" + ct ));
 		}
+	
+		return( new DHTTransportUDPContactImpl( transport, deserialiseAddress( is )));
+	}
+	
+	
+	protected static void
+	serialiseAddress(
+		DataOutputStream	os,
+		InetSocketAddress	address )
+	
+		throws IOException
+	{
+		os.writeInt( address.getHostName().length());
 		
+		os.write( address.getHostName().getBytes());
+		
+		os.writeShort( address.getPort());
+	}
+	
+	protected static InetSocketAddress
+	deserialiseAddress(
+		DataInputStream		is )
+	
+		throws IOException
+	{
 		int	name_len = is.readInt();
 		
 		if ( name_len > 1024 ){
@@ -233,6 +252,6 @@ DHTUDPUtils
 		
 		int	port = is.readShort()&0xffff;
 		
-		return( new DHTTransportUDPContactImpl( transport, new InetSocketAddress(new String(host_name), port )));
+		return( new InetSocketAddress(new String(host_name), port ));
 	}
 }

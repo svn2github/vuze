@@ -38,15 +38,19 @@ DHTUDPPacketRequest
 	extends PRUDPPacketRequest
 {
 	private short	version;
+	private byte[]	originator_id;
 	
 	public
 	DHTUDPPacketRequest(
 		int		_type,
-		long	_connection_id )
+		long	_connection_id,
+		byte[]	_originator_id )
 	{
 		super( _type, _connection_id );
 		
 		version	= DHTUDPPacket.VERSION;
+		
+		originator_id	= _originator_id;
 	}
 	
 	protected
@@ -61,12 +65,27 @@ DHTUDPPacketRequest
 		super( type, con_id, trans_id );
 		
 		version	= is.readShort();
+		
+		originator_id = DHTUDPUtils.deserialiseID( is );
 	}
 	
 	public int
 	getVersion()
 	{
 		return( version );
+	}
+	
+	public void
+	setOriginatorID(
+		byte[]		id )
+	{
+		originator_id	= id;
+	}
+	
+	public byte[]
+	getOriginatorID()
+	{
+		return( originator_id );
 	}
 	
 	public void
@@ -78,5 +97,7 @@ DHTUDPPacketRequest
 		super.serialise(os);
 		
 		os.writeShort( version );
+		
+		DHTUDPUtils.serialiseID( os, originator_id );
 	}
 }

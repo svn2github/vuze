@@ -50,6 +50,7 @@ DHTUDPPacket
 	public static final int		ACT_REPLY_FIND_NODE		= 1029;
 	public static final int		ACT_REQUEST_FIND_VALUE	= 1030;
 	public static final int		ACT_REPLY_FIND_VALUE	= 1031;
+	public static final int		ACT_REPLY_ERROR			= 1032;
 	
 	
 	private static boolean	registered	= false;
@@ -145,6 +146,10 @@ DHTUDPPacket
 						{
 							return( new DHTUDPPacketReplyFindValue(transport, is, transaction_id));
 						}
+						case ACT_REPLY_ERROR:
+						{
+							return( new DHTUDPPacketReplyError( is, transaction_id));
+						}
 						default:
 						{
 							throw( new IOException( "Unknown action type" ));
@@ -159,6 +164,7 @@ DHTUDPPacket
 		reply_decoders.put( new Integer( ACT_REPLY_STORE ), reply_decoder );
 		reply_decoders.put( new Integer( ACT_REPLY_FIND_NODE ), reply_decoder );
 		reply_decoders.put( new Integer( ACT_REPLY_FIND_VALUE ), reply_decoder );
+		reply_decoders.put( new Integer( ACT_REPLY_ERROR ), reply_decoder );
 		
 		PRUDPPacketReply.registerDecoders( reply_decoders );
 	}

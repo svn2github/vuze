@@ -43,8 +43,8 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 public class 
 Test 
 {
-	static int	num_dhts	= 50;
-	static int	num_stores	= 100;
+	static int	num_dhts	= 10;
+	static int	num_stores	= 20;
 	static boolean	udp_protocol	= true;
 	
 
