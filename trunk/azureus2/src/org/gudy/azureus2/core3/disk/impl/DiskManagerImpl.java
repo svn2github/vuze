@@ -1040,6 +1040,9 @@ DiskManagerImpl
 		}
 
 		try {
+      
+      if (bOverallContinue == false) return false;
+      
 			allocateAndTestBuffer.position(0);
 
 			byte[] testHash = hasher.calculateHash(allocateAndTestBuffer);
