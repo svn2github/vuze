@@ -121,11 +121,14 @@ PEPeerTransportImpl
     
 	  try {
 	    Socket sck = socket.socket();
-      
-	    if (!sck.isInputShutdown()) sck.shutdownInput();
-	    if (!sck.isOutputShutdown()) sck.shutdownOutput();
-      
-	    if (socket.isOpen()) socket.close();
+
+	    if (socket.isOpen()) {
+         if (sck.isConnected()) {
+	        if (!sck.isInputShutdown()) sck.shutdownInput();
+	        if (!sck.isOutputShutdown()) sck.shutdownOutput();
+         }
+         socket.close();  
+	    }
       
 	    if (!sck.isClosed()){
 	      Debug.out("sck not already closed");
@@ -153,7 +156,16 @@ PEPeerTransportImpl
   	
   		throws IOException
   	{
-      //if (!socket.finishConnect()) return -1;
+      if (!socket.finishConnect()) {
+        String msg = "socket.finishConnect=false::";
+        msg = msg + " cOpen=" + socket.isOpen();
+        msg = msg + " cConnected=" + socket.isConnected();
+        msg = msg + " cPending=" + socket.isConnectionPending();
+        msg = msg + " sClosed=" + socket.socket().isClosed();
+        msg = msg + " sConnected=" + socket.socket().isConnected();
+        Debug.out(msg);
+        return -1;
+      }
 		return(socket.read(buffer));
   	}
   
@@ -163,7 +175,16 @@ PEPeerTransportImpl
   	
 		throws IOException
   	{
-      //if (!socket.finishConnect()) return -1;
+      if (!socket.finishConnect()) {
+        String msg = "socket.finishConnect=false::";
+        msg = msg + " cOpen=" + socket.isOpen();
+        msg = msg + " cConnected=" + socket.isConnected();
+        msg = msg + " cPending=" + socket.isConnectionPending();
+        msg = msg + " sClosed=" + socket.socket().isClosed();
+        msg = msg + " sConnected=" + socket.socket().isConnected();
+        Debug.out(msg);
+        return -1;
+      }
 		return(socket.write(buffer));
   	}
 }
