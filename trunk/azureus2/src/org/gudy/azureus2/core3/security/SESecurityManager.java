@@ -65,6 +65,17 @@ SESecurityManager
 		return( SESecurityManagerImpl.getSingleton().installServerCertificates(https_url));
 	}
 	
+	public static void
+	createSelfSignedCertificate(
+		String		alias,
+		String		cert_dn,
+		int			strength )
+	
+		throws Exception
+	{
+		SESecurityManagerImpl.getSingleton().createSelfSignedCertificate( alias, cert_dn, strength );
+	}
+	
 	public static SEKeyDetails
 	getKeyDetails(
 		String	alias )

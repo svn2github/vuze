@@ -233,52 +233,49 @@ SESecurityManagerImpl
 	}
 	
 	public void
-	createSelfSignedCertificate()
+	createSelfSignedCertificate(
+		String		alias,
+		String		cert_dn,
+		int			strength )
+	
+		throws Exception
 	{
-		try{
-			KeyPairGenerator	kg = KeyPairGenerator.getInstance( "RSA" );
-			
-			kg.initialize(1024, new SecureRandom());
+		KeyPairGenerator	kg = KeyPairGenerator.getInstance( "RSA" );
+		
+		kg.initialize(strength, new SecureRandom());
 
-			KeyPair pair = kg.generateKeyPair();
-						
-			X509V3CertificateGenerator certificateGenerator = 
-				new X509V3CertificateGenerator();
-			
-			certificateGenerator.setSignatureAlgorithm( "MD5WithRSAEncryption" );
-			
-			certificateGenerator.setSerialNumber( new BigInteger("1234512345"));
-			
-			String xxx = "CN=azureus.sourceforge.net, OU=Azureus, O=SourceForge, L=Unknown, ST=Unknown, C=Unknown";
-			
-			X509Name	issuer_dn = new X509Name(true,xxx);
-			
-			certificateGenerator.setIssuerDN(issuer_dn);
-			
-			X509Name	subject_dn = new X509Name(true,xxx);
-			
-			certificateGenerator.setSubjectDN(subject_dn);
-			
-			Calendar	not_after = Calendar.getInstance();
-			
-			not_after.add(Calendar.YEAR, 1);
-			
-			certificateGenerator.setNotAfter( not_after.getTime());
-			
-			certificateGenerator.setNotBefore(Calendar.getInstance().getTime());
-			
-			certificateGenerator.setPublicKey( pair.getPublic());
-			
-			X509Certificate certificate = certificateGenerator.generateX509Certificate(pair.getPrivate());
-			
-			java.security.cert.Certificate[] certChain = {(java.security.cert.Certificate) certificate };
+		KeyPair pair = kg.generateKeyPair();
+					
+		X509V3CertificateGenerator certificateGenerator = 
+			new X509V3CertificateGenerator();
+		
+		certificateGenerator.setSignatureAlgorithm( "MD5WithRSAEncryption" );
+		
+		certificateGenerator.setSerialNumber( new BigInteger( ""+System.currentTimeMillis()));
+					
+		X509Name	issuer_dn = new X509Name(true,cert_dn);
+		
+		certificateGenerator.setIssuerDN(issuer_dn);
+		
+		X509Name	subject_dn = new X509Name(true,cert_dn);
+		
+		certificateGenerator.setSubjectDN(subject_dn);
+		
+		Calendar	not_after = Calendar.getInstance();
+		
+		not_after.add(Calendar.YEAR, 1);
+		
+		certificateGenerator.setNotAfter( not_after.getTime());
+		
+		certificateGenerator.setNotBefore(Calendar.getInstance().getTime());
+		
+		certificateGenerator.setPublicKey( pair.getPublic());
+		
+		X509Certificate certificate = certificateGenerator.generateX509Certificate(pair.getPrivate());
+		
+		java.security.cert.Certificate[] certChain = {(java.security.cert.Certificate) certificate };
 
-			addCertToKeyStore( "SomeAlias", pair.getPrivate(), certChain );
-
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
+		addCertToKeyStore( alias, pair.getPrivate(), certChain );
 	}
 	
 	public synchronized boolean
@@ -613,6 +610,12 @@ SESecurityManagerImpl
 		
 		man.initialise();
 		
-		man.createSelfSignedCertificate();
+		try{
+			man.createSelfSignedCertificate( "SomeAlias", "CN=fred,OU=wap,O=wip,L=here,ST=there,C=GB", 1000 );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }

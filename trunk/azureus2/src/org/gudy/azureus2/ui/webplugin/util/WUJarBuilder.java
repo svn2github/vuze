@@ -90,7 +90,7 @@ WUJarBuilder
 			
 			long tim = buildFromResourcesSupport( new JarOutputStream( baos ),class_loader,resource_prefix,resource_names );
 			
-			String	alias = SESecurityManager.DEFAULT_ALIAS;
+			String	alias = "SomeAlias"; // SESecurityManager.DEFAULT_ALIAS;
 			
 			try{
 				SEKeyDetails	kd = SESecurityManager.getKeyDetails( alias );

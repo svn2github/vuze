@@ -48,7 +48,7 @@ import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.auth.*;
 
 public class ConfigSectionTracker implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -281,17 +281,12 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
     gridData.widthHint = 50;
     tracker_port_ssl.setLayoutData( gridData );
 
-    Control[] ssl_controls = new Control[1];
-    ssl_controls[0] = tracker_port_ssl.getControl();
-
-    sslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( ssl_controls ));
-
-    label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.sslport.info");
+    Label ssl_faq_label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(ssl_faq_label, "ConfigView.section.tracker.sslport.info");
     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
-    label.setCursor(Cursors.handCursor);
-    label.setForeground(Colors.blue);
-    label.addMouseListener(new MouseAdapter() {
+    ssl_faq_label.setCursor(Cursors.handCursor);
+    ssl_faq_label.setForeground(Colors.blue);
+    ssl_faq_label.addMouseListener(new MouseAdapter() {
        public void mouseDoubleClick(MouseEvent arg0) {
          Program.launch(linkFAQ);
        }
@@ -299,6 +294,34 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
          Program.launch(linkFAQ);
        }
     });
+
+    	// create cert row
+
+    label = new Label(gMainTab, SWT.NULL );
+    
+    Label cert_label = new Label(gMainTab, SWT.NULL );
+    Messages.setLanguageText(cert_label, "ConfigView.section.tracker.createcert");
+
+    Button cert_button = new Button(gMainTab, SWT.PUSH);
+
+    Messages.setLanguageText(cert_button, "ConfigView.section.tracker.createbutton");
+
+    cert_button.addListener(SWT.Selection, 
+    		new Listener() 
+			{
+		        public void 
+				handleEvent(Event event) 
+		        {
+		        	new CertificateCreatorWindow();
+		        }
+		    });
+    
+    
+    Control[] ssl_controls = { 	tracker_port_ssl.getControl(),ssl_faq_label,
+    							cert_label, cert_button };
+ 
+
+    sslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( ssl_controls ));
 
     Control[] f_controls = new Control[1];
     f_controls[0] = forcePortDetails.getControl();
