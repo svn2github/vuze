@@ -20,6 +20,8 @@ import org.apache.log4j.Logger;
  */
 public class StartServer extends Thread {
 
+  public static final String ACCESS_STRING = "Azureus Start Server Access";
+
   private ServerSocket socket;
   private int state;
   private Main main;
@@ -33,8 +35,7 @@ public class StartServer extends Thread {
     try {
       socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
       state = STATE_LISTENING;
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       state = STATE_FAULTY;
     }
   }
@@ -51,30 +52,36 @@ public class StartServer extends Thread {
           String line = br.readLine();
           //System.out.println("received : " + line);
           if (line != null) {
-//            main.showMainWindow();
+            //            main.showMainWindow();
             StringTokenizer st = new StringTokenizer(line, ";");
-            String args[] = new String[st.countTokens()];
-            int i = 0;
-            while (st.hasMoreElements()) {
-              args[i++] = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
-            }
-            if (args[0].equals("args")) {
-              String newargs[] = new String[args.length-1];
-              if (args.length>1) {
-                for(int j=1;j<args.length;j++)
-                  newargs[j-1]=args[j];
+            if (st.countTokens() > 1) {
+              String args[] = new String[st.countTokens()];
+              String checker = st.nextToken();
+              if (checker.equals(ACCESS_STRING)) {
+                int i = 0;
+                while (st.hasMoreElements()) {
+                  args[i++] = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
+                }
+                if (args[0].equals("args")) {
+                  String newargs[] = new String[args.length - 1];
+                  if (args.length > 1) {
+                    for (int j = 1; j < args.length; j++)
+                      newargs[j - 1] = args[j];
+                  }
+                  Main.processArgs(newargs, false, null);
+                } else {
+                  Logger.getLogger("azureus2").error("Something strange was sent to the StartServer: " + line);
+                }
+              } else {
+				Logger.getLogger("azureus2").error("StartServer: Wrong access token.");
               }
-              Main.processArgs(newargs, false, null);
-            } else {
-              Logger.getLogger("azureus2").error("Something strange was sent to the StartServer: "+line);
             }
           }
         }
         sck.close();
 
-      }
-      catch (Exception e) {
-        if(!(e instanceof SocketException))
+      } catch (Exception e) {
+        if (!(e instanceof SocketException))
           e.printStackTrace();
         bContinue = false;
       } finally {
@@ -91,8 +98,8 @@ public class StartServer extends Thread {
     bContinue = false;
     try {
       socket.close();
+    } catch (Exception e) {
     }
-    catch (Exception e) {}
   }
   /**
    * @return
