@@ -31,10 +31,13 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class WriteController {
   private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
-  private final LinkedHashMap normal_priority_entities = new LinkedHashMap();
-  private final LinkedHashMap high_priority_entities = new LinkedHashMap();
+  
+  private volatile ArrayList normal_priority_entities = new ArrayList();  //copied-on-write
+  private volatile ArrayList high_priority_entities = new ArrayList();  //copied-on-write
   private final AEMonitor entities_mon = new AEMonitor( "WriteController:EM" );
-
+  private int next_normal_position = 0;
+  private int next_high_position = 0;
+  
   private static final int SELECT_TIME = 50;
   private static final int PROCESSOR_SLEEP_TIME = 20;
   
@@ -115,50 +118,42 @@ public class WriteController {
   
   
   private RateControlledWriteEntity getNextReadyNormalPriorityEntity() {
-    RateControlledWriteEntity ready_entity = null;
+    ArrayList ref = normal_priority_entities;
     
-    try {  entities_mon.enter();
-      //find the next ready entity
-      for( Iterator i = normal_priority_entities.keySet().iterator(); i.hasNext(); ) {
-        ready_entity = (RateControlledWriteEntity)i.next();
-        if( ready_entity.canWrite() ) {  //is ready
-          i.remove();  //remove from beginning and...
-          break;
-        }
-        ready_entity = null;  //not ready, so leave at beginning for checking next round
-      }
-      
-      if( ready_entity != null ) {
-        normal_priority_entities.put( ready_entity, null );  //...put back at the end
+    int size = ref.size();
+    int num_checked = 0;
+
+    while( num_checked < size ) {
+      next_normal_position = next_normal_position >= size ? 0 : next_normal_position;  //make circular
+      RateControlledWriteEntity entity = (RateControlledWriteEntity)ref.get( next_normal_position );
+      next_normal_position++;
+      num_checked++;
+      if( entity.canWrite() ) {  //is ready
+        return entity;
       }
     }
-    finally {  entities_mon.exit();  }
- 
-    return ready_entity;
+
+    return null;  //none found ready
   }
   
   
   private RateControlledWriteEntity getNextReadyHighPriorityEntity() {
-    RateControlledWriteEntity ready_entity = null;
+    ArrayList ref = high_priority_entities;
     
-    try {  entities_mon.enter();
-      //find the next ready entity
-      for( Iterator i = high_priority_entities.keySet().iterator(); i.hasNext(); ) {
-        ready_entity = (RateControlledWriteEntity)i.next();
-        if( ready_entity.canWrite() ) {  //is ready
-          i.remove();  //remove from beginning and...
-          break;
-        }
-        ready_entity = null;  //not ready, so leave at beginning for checking next round
-      }
+    int size = ref.size();
+    int num_checked = 0;
 
-      if( ready_entity != null ) {
-        high_priority_entities.put( ready_entity, null );  //...put back at the end
+    while( num_checked < size ) {
+      next_high_position = next_high_position >= size ? 0 : next_high_position;  //make circular
+      RateControlledWriteEntity entity = (RateControlledWriteEntity)ref.get( next_high_position );
+      next_high_position++;
+      num_checked++;
+      if( entity.canWrite() ) {  //is ready
+        return entity;
       }
     }
-    finally {  entities_mon.exit();  }
- 
-    return ready_entity;
+
+    return null;  //none found ready
   }
   
   
@@ -169,12 +164,19 @@ public class WriteController {
    */
   protected void addWriteEntity( RateControlledWriteEntity entity ) {
     try {  entities_mon.enter();
-      
       if( entity.getPriority() == RateControlledWriteEntity.PRIORITY_HIGH ) {
-        high_priority_entities.put( entity, entity );
+        //copy-on-write
+        ArrayList high_new = new ArrayList( high_priority_entities.size() + 1 );
+        high_new.addAll( high_priority_entities );
+        high_new.add( entity );
+        high_priority_entities = high_new;
       }
       else {
-        normal_priority_entities.put( entity, entity );
+        //copy-on-write
+        ArrayList norm_new = new ArrayList( normal_priority_entities.size() + 1 );
+        norm_new.addAll( normal_priority_entities );
+        norm_new.add( entity );
+        normal_priority_entities = norm_new;
       }
     }
     finally {  entities_mon.exit();  }
@@ -187,10 +189,17 @@ public class WriteController {
    */
   protected void removeWriteEntity( RateControlledWriteEntity entity ) {
     try {  entities_mon.enter();
-      
-      Object removed = normal_priority_entities.remove( entity );
-      if( removed == null ) {
-        high_priority_entities.remove( entity );
+      if( entity.getPriority() == RateControlledWriteEntity.PRIORITY_HIGH ) {
+        //copy-on-write
+        ArrayList high_new = new ArrayList( high_priority_entities );
+        high_new.remove( entity );
+        high_priority_entities = high_new;
+      }
+      else {
+        //copy-on-write
+        ArrayList norm_new = new ArrayList( normal_priority_entities );
+        norm_new.remove( entity );
+        normal_priority_entities = norm_new;
       }
     }
     finally {  entities_mon.exit();  }
