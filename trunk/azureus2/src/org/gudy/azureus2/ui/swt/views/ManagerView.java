@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -50,6 +51,20 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
   public void delete() {
     MainWindow.getWindow().removeManagerView(manager);
     manager.removeListener(this);
+    
+    
+    //Don't ask me why, but without this an exception is thrown further
+    // (in folder.dispose() )
+    //TODO : Investigate to see if it's a platform (OSX-Carbon) BUG, and report to SWT team.
+    if(Constants.isOSX) {
+      if(folder != null && !folder.isDisposed()) {
+        TabItem[] items = folder.getItems();
+        for(int i=0 ; i < items.length ; i++) {
+          if (!items[i].isDisposed())
+            items[i].dispose();
+        }
+      }
+    }
     
     if (viewGeneral != null)
       viewGeneral.delete();
