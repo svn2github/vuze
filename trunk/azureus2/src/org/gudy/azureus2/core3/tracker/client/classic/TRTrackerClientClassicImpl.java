@@ -60,7 +60,7 @@ import org.gudy.azureus2.core3.tracker.util.impl.*;
  */
 public class 
 TRTrackerClientClassicImpl
-	implements TRTrackerClient, PEPeerServerListener, ParameterListener
+	implements TRTrackerClient, PEPeerServerListener
 {
 	
 		
@@ -102,8 +102,10 @@ TRTrackerClientClassicImpl
   
   	private byte[] torrent_hash;
 	private String info_hash = "info_hash=";
-	private byte[] my_peer_id;
-	private String my_peer_id_str = "&peer_id=";
+	private byte[] tracker_peer_id;
+	private String tracker_peer_id_str = "&peer_id=";
+	
+	private byte[] data_peer_id;
 	
 	private String 					key_id			= "";
 	private static final int	   	key_id_length	= 8;
@@ -221,12 +223,19 @@ TRTrackerClientClassicImpl
 		//Get the Tracker url
 		
 	constructTrackerUrlLists( true );
-    
-    addConfigListeners();  
-   
+       
 		//Create our unique peerId
 	
-    my_peer_id = createPeerID();
+    tracker_peer_id = createPeerID();
+
+    if ( COConfigurationManager.getBooleanParameter("Tracker Separate Peer IDs", false)){
+    	
+    	data_peer_id = createPeerID();
+    	
+    }else{
+    	
+    	data_peer_id	= tracker_peer_id;
+    }
 
     key_id	= createKeyID();
     
@@ -238,7 +247,7 @@ TRTrackerClientClassicImpl
 		
 		this.info_hash += URLEncoder.encode(new String(torrent_hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
-		this.my_peer_id_str += URLEncoder.encode(new String(my_peer_id, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+		this.tracker_peer_id_str += URLEncoder.encode(new String(tracker_peer_id, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
 	}catch (UnsupportedEncodingException e){
 		
@@ -517,9 +526,7 @@ TRTrackerClientClassicImpl
 	stop()
 	{
 		stopped	= true;
-        
-    removeConfigListeners();
-		
+        		
 		requestUpdate();
 	}
 	
@@ -1158,7 +1165,7 @@ TRTrackerClientClassicImpl
 			 				
 			 				announce_request.setDetails(
 			 					torrent_hash,
-			 					my_peer_id,
+			 					tracker_peer_id,
 								getLongURLParam( url_str, "downloaded" ), 
 								event,
 								ip,
@@ -1211,7 +1218,7 @@ TRTrackerClientClassicImpl
 			 				
 			 				announce_request.setDetails(
 			 					torrent_hash,
-			 					my_peer_id,
+			 					tracker_peer_id,
 								getLongURLParam( url_str, "downloaded" ), 
 								event,
 								ip,
@@ -1396,7 +1403,7 @@ TRTrackerClientClassicImpl
   	}
   	
   	request.append(info_hash);
-  	request.append(my_peer_id_str);
+  	request.append(tracker_peer_id_str);
   	request.append(port);
   	request.append("&uploaded=").append(announce_data_provider.getTotalSent());
   	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
@@ -1478,7 +1485,7 @@ TRTrackerClientClassicImpl
   public byte[] 
   getPeerId() 
   {
-  	return my_peer_id;
+  	return( data_peer_id );
   }
 
  	public void 
@@ -1943,23 +1950,11 @@ TRTrackerClientClassicImpl
 	
 	public void
 	destroy()
-	{
-		removeConfigListeners();
-       
+	{       
 		peer_server.removeListener( this );
 		
 		TRTrackerClientFactoryImpl.destroy( this );
 	}
-    
-  
-  private void addConfigListeners() {
-  }
-  
-  private void removeConfigListeners() {
-  }
-  
-  public void parameterChanged(String parameterName) {
-  }
   
   
   /**

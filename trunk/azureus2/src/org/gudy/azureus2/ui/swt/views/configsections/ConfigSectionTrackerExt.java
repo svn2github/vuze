@@ -95,6 +95,14 @@ public class ConfigSectionTrackerExt implements ConfigSectionSWT {
 
     label = new Label(gExtTab, SWT.NULL);
     
+    // row
+
+    new BooleanParameter(gExtTab, "Tracker Separate Peer IDs", false,
+                         "ConfigView.section.tracker.separatepeerids");
+  
+    label = new Label(gExtTab, SWT.WRAP);
+    Messages.setLanguageText(label,  "ConfigView.section.tracker.separatepeerids.info");
+
     return gExtTab;
   }
 }
