@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl;
  */
 
 import java.util.*;
+import java.lang.reflect.*;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -52,8 +53,25 @@ PluginManagerImpl
 		
 		if ( ui_type == PluginManager.UI_NONE ){
 		
-			org.gudy.azureus2.ui.common.Main.main( new String[]{"--ui=console"});
+				// can't invoke directly as the ui.common stuff isn't part of the core distribution
+				// org.gudy.azureus2.ui.common.Main.main( new String[]{"--ui=console"});
 			
+			try{
+				Class	main = Class.forName("org.gudy.azureus2.ui.common.Main");
+				
+				Method method = main.getMethod( "main", new Class[]{ String[].class });
+				
+				method.invoke( null, new Object[]{new String[]{"--ui=console"}});
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+				
+					// some idiot (me) forgot to add the exception to the i/f and now we
+					// can't add it as is stuffs existing plugins...
+				
+				throw( new RuntimeException( "Azureus failed to start", e ));
+			}
 		}else if ( ui_type == PluginManager.UI_SWT ){
 				
 			if ( properties != null ){
