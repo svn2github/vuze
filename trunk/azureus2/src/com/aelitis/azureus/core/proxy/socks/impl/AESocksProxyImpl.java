@@ -57,10 +57,17 @@ AESocksProxyImpl
 		return( proxy.getPort());
 	}
 	
+	public AESocksProxyPlugableConnection
+	getDefaultPlugableConnection(
+		AESocksProxyConnection		basis )
+	{
+		return( new AESocksProxyPlugableConnectionDefault(basis ));
+	}
+	
 	public AEProxyState
 	getInitialState(
 		AEProxyConnection	connection )
 	{
-		return( new AESocksProxyConnectionImpl( connection_factory, connection ).getInitialState());
+		return( new AESocksProxyConnectionImpl( this, connection_factory, connection ).getInitialState());
 	}
 }

@@ -32,4 +32,8 @@ AESocksProxy
 {
 	public int
 	getPort();
+	
+	public AESocksProxyPlugableConnection
+	getDefaultPlugableConnection(
+		AESocksProxyConnection		basis );
 }

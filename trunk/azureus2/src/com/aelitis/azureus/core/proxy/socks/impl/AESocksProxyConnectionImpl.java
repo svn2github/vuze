@@ -44,8 +44,9 @@ public class
 AESocksProxyConnectionImpl
 	implements AESocksProxyConnection, AEProxyConnectionListener
 {
-	public static final boolean	TRACE	= false;
+	public static final boolean	TRACE	= true;
 	
+	protected AESocksProxy			proxy;
 	protected AEProxyConnection		connection;
 	protected boolean				disable_dns_lookups;
 	
@@ -57,9 +58,11 @@ AESocksProxyConnectionImpl
 	
 	protected
 	AESocksProxyConnectionImpl(
+		AESocksProxyImpl						_proxy,
 		AESocksProxyPlugableConnectionFactory	_connection_factory,
 		AEProxyConnection						_connection )
 	{
+		proxy		= _proxy;
 		connection	= _connection;
 		
 		connection.addListener( this );
@@ -74,10 +77,23 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
+	public AESocksProxy
+	getProxy()
+	{
+		return( proxy );
+	}
+	
+	public void
+	setDelegate(
+		AESocksProxyPlugableConnection	target )
+	{
+		plugable_connection = target;
+	}
+	
 	protected String
 	getName()
 	{
-		String	name = connection.getName();
+		String	name = connection.getName() + ", ver = " + socks_version;
 					
 		name += plugable_connection.getName();
 		
@@ -101,6 +117,12 @@ AESocksProxyConnectionImpl
 			
 			Debug.printStackTrace( e );
 		}
+	}
+	
+	public boolean
+	isClosed()
+	{
+		return( connection.isClosed());
 	}
 	
 	public AEProxyConnection
@@ -360,7 +382,7 @@ AESocksProxyConnectionImpl
 				
 				dns_address += (char)data;
 				
-				if ( dns_address.length() > 1024 ){
+				if ( dns_address.length() > 4096 ){
 					
 					throw( new IOException( "DNS name too long" ));
 				}
@@ -702,7 +724,7 @@ AESocksProxyConnectionImpl
 			
 			if ( !got_length){
 				
-				int	length = buffer.get();
+				int	length = ((int)buffer.get()) & 0xff;
 				
 				buffer = ByteBuffer.allocate( length );
 				
@@ -839,6 +861,7 @@ AESocksProxyConnectionImpl
 			connection.setWriteState( this );
 			
 			byte[]	addr = plugable_connection.getLocalAddress().getAddress();
+			
 			int		port = plugable_connection.getLocalPort();
 			
 			buffer	= ByteBuffer.wrap(

@@ -22,7 +22,7 @@
 
 package com.aelitis.azureus.core.proxy;
 
-import com.aelitis.azureus.core.proxy.impl.AEProxyImpl;
+import com.aelitis.azureus.core.proxy.impl.*;
 
 /**
  * @author parg
@@ -50,5 +50,11 @@ AEProxyFactory
 		throws AEProxyException
 	{
 		return( new AEProxyImpl(port,connect_timeout,read_timeout,state_factory));
+	}
+	
+	public static AEProxyAddressMapper
+	getAddressMapper()
+	{
+		return( AEProxyAddressMapperImpl.getSingleton());
 	}
 }

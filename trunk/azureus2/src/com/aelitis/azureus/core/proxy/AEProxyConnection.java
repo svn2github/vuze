@@ -117,6 +117,9 @@ AEProxyConnection
 	public void
 	close();
 	
+	public boolean
+	isClosed();
+	
 	public void
 	addListener(
 		AEProxyConnectionListener	l );

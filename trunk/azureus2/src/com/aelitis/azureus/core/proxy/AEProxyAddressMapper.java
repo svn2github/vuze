@@ -1,5 +1,5 @@
 /*
- * Created on 13-Dec-2004
+ * Created on 15-Dec-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,11 +20,9 @@
  *
  */
 
-package com.aelitis.azureus.core.proxy.socks;
+package com.aelitis.azureus.core.proxy;
 
-import java.io.IOException;
-
-import com.aelitis.azureus.core.proxy.AEProxyConnection;
+import java.net.URL;
 
 /**
  * @author parg
@@ -32,31 +30,31 @@ import com.aelitis.azureus.core.proxy.AEProxyConnection;
  */
 
 public interface 
-AESocksProxyConnection 
+AEProxyAddressMapper 
 {
-	public AESocksProxy
-	getProxy();
+		/**
+		 * SOCKS 5 is limited to 255 char DNS names. So for longer ones (e.g. I2P 'names')
+		 * we have to replace then with somethin shorter to get through the SOCKS layer
+		 * and then remap them on the otherside. 
+		 * These functions are only active if a SOCKS proxy is enabled and looping back
+		 * (in process is the assumption)
+		 * @param address
+		 * @return
+		 */
 	
-	public AEProxyConnection
-	getConnection();
+	public String
+	internalise(
+		String	address );
 	
-	public void
-	disableDNSLookups();
+	public String
+	externalise(
+		String	address );
 	
-	public void
-	connected()
+	public URL
+	internalise(
+		URL		url );
 	
-		throws IOException;
-	
-	public boolean
-	isClosed();
-	
-	public void
-	close()
-	
-		throws IOException;
-	
-	public void
-	setDelegate(
-		AESocksProxyPlugableConnection	target );	
+	public URL
+	externalise(
+		URL		url );
 }

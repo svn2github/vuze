@@ -50,6 +50,8 @@ AEProxyConnectionImpl
 	
 	protected long		time_stamp;
 	protected boolean	is_connected;
+	protected boolean	is_closed;
+	
 	
 	protected List		listeners	= new ArrayList(1);
 	
@@ -202,6 +204,8 @@ AEProxyConnectionImpl
 	public void
 	close()
 	{
+		is_closed	= true;
+		
 		try{
 			try{
 				cancelReadSelect( source_channel );
@@ -227,6 +231,12 @@ AEProxyConnectionImpl
 			
 			server.close( this );
 		}
+	}
+	
+	public boolean
+	isClosed()
+	{
+		return( is_closed );
 	}
 	
 	public void
