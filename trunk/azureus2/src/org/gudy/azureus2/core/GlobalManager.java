@@ -97,9 +97,9 @@ public class GlobalManager extends Component {
                 if (hd.getSeeds() >= nbMinSeeds) {
                   mayStop = true;
                 }
-                else {
-                  mayStop = true;
-                }
+              }
+              else {
+                mayStop = true;
               }
 
               //Checks if any condition to stop seeding is met
@@ -143,7 +143,8 @@ public class GlobalManager extends Component {
                       int ratio = nbPeers / nbSeeds;
                       if (ratio >= minSeedsPerPeersRatio)
                         manager.setState(DownloadManager.STATE_WAITING);
-                    } else {
+                    }
+                    else {
                       //No seeds, at least 1 peer, let's start download.
                       manager.setState(DownloadManager.STATE_WAITING);
                     }
