@@ -114,7 +114,6 @@ public class ByteBufferPool {
       }
       else {
         buff = (ByteBuffer) buffPool.remove(buffPool.size() - 1);
-        //TODO Check to make sure this buffer has no still-existing outside references
       }
       buff.clear();   //scrub the buffer
       return buff;

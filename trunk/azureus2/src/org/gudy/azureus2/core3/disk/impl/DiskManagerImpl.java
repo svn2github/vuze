@@ -479,12 +479,12 @@ DiskManagerImpl
 		          piece = PEPieceFactory.create(null, getPieceLength(), pieceNumber);
 		        else
 		          piece = PEPieceFactory.create(null, getLastPieceLength(), pieceNumber);
-		          List blocks = (List)partialPieces.get(key.getKey());
-		          Iterator iterBlock = blocks.iterator();
-		          while (iterBlock.hasNext()) {
-		            piece.setWritten(null,((Long)iterBlock.next()).intValue());
-		          }
-		          pieces[pieceNumber] = piece;
+		        List blocks = (List)partialPieces.get(key.getKey());
+		        Iterator iterBlock = blocks.iterator();
+		        while (iterBlock.hasNext()) {
+		          piece.setWritten(null,((Long)iterBlock.next()).intValue());
+		        }
+		        pieces[pieceNumber] = piece;
 		      }
 		    }
 		  }
