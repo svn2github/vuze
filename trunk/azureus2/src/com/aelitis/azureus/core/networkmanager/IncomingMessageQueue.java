@@ -42,6 +42,34 @@ public class IncomingMessageQueue {
 
   private MessageStreamDecoder stream_decoder;
   private final NetworkConnection connection;
+
+  private final TCPTransport.ReadListener read_listener = new TCPTransport.ReadListener() {
+    public void readyToRead() {
+      try {
+        receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
+      }
+      catch( Throwable e ) {
+        if( e.getMessage() == null ) {
+          Debug.out( "null read exception message: ", e );
+        }
+        else {
+          if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+              e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+              e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+              e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+              
+            System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+          }
+          
+          if( e.getMessage().indexOf( "Direct buffer memory" ) != -1 ) {
+            Debug.out( "Direct buffer memory exception", e );
+          }
+        }
+            
+        connection.notifyOfException( e );
+      }
+    }
+  };
   
   
   
@@ -204,33 +232,7 @@ public class IncomingMessageQueue {
   public void startQueueProcessing() {
     stream_decoder.resumeDecoding();  //this allows us to resume docoding externally, in case it was auto-paused internally
     
-    connection.getTCPTransport().startReadSelects( new TCPTransport.ReadListener() {
-      public void readyToRead() {
-        try {
-          receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
-        }
-        catch( Throwable e ) {
-          if( e.getMessage() == null ) {
-            Debug.out( "null read exception message: ", e );
-          }
-          else {
-            if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
-                e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-                e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
-                e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
-                
-              System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
-            }
-            
-            if( e.getMessage().indexOf( "Direct buffer memory" ) != -1 ) {
-              Debug.out( "Direct buffer memory exception", e );
-            }
-          }
-              
-          connection.notifyOfException( e );
-        }
-      }
-    });
+    connection.getTCPTransport().startReadSelects( read_listener );
   }
   
   

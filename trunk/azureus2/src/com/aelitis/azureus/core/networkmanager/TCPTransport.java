@@ -222,7 +222,7 @@ public class TCPTransport {
       NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
     }
     
-    read_listener.readyToRead();  //force an initial read op
+    //read_listener.readyToRead();  //force an initial read op
   }
 
   
