@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.proxy.socks;
 
+import com.aelitis.azureus.core.proxy.AEProxyException;
+
 /**
  * @author parg
  *
@@ -32,5 +34,7 @@ AESocksProxyPlugableConnectionFactory
 {
 	public AESocksProxyPlugableConnection
 	create(
-		AESocksProxyConnection	connection );
+		AESocksProxyConnection	connection )
+	
+		throws AEProxyException;
 }

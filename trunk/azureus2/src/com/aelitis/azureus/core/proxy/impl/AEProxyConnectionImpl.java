@@ -65,8 +65,14 @@ AEProxyConnectionImpl
 		source_channel	= _socket;
 		
 		setTimeStamp();
-		
-		proxy_read_state = _handler.getInitialState( this );
+	
+		try{
+			proxy_read_state = _handler.getInitialState( this );
+			
+		}catch( Throwable e ){
+			
+			failed(e);
+		}
 	}
 	
 	public String

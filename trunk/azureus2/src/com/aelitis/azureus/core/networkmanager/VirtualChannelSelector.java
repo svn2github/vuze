@@ -41,8 +41,9 @@ public class VirtualChannelSelector {
     
     private Selector selector;
     private final SelectorGuard selector_guard;
-    private final ArrayList register_cancel_list 		= new ArrayList();
-    private final AEMonitor register_cancel_list_mon	= new AEMonitor( "VirtualChannelSelector:RCL");
+    
+    private final LinkedList 	register_cancel_list 		= new LinkedList();
+    private final AEMonitor 	register_cancel_list_mon	= new AEMonitor( "VirtualChannelSelector:RCL");
 
     
     private final int INTEREST_OP;
@@ -106,9 +107,9 @@ public class VirtualChannelSelector {
     	try{
     		register_cancel_list_mon.enter();
       	
-    		for (int i=0;i<register_cancel_list.size();i++){
+    		for (Iterator it = register_cancel_list.iterator();it.hasNext();){
     			
-    			Object	obj = register_cancel_list.get(i);
+    			Object	obj = it.next();
     			
     			boolean	remove_it	= false;
     			
@@ -139,13 +140,19 @@ public class VirtualChannelSelector {
     			
     			if ( remove_it ){
     				
-    				register_cancel_list.remove(i);
+    				it.remove();
     				
     				if (obj instanceof RegistrationData ){
     					
     					RegistrationData	data = (RegistrationData)obj;
     					
-    	               	data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "registration superceded" ));           
+    					try{
+    						data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "registration superceded" ));
+    						
+    					}catch( Throwable e ){
+    						
+    						Debug.printStackTrace(e);
+    					}
     				}
     				
     				break;
@@ -176,22 +183,38 @@ public class VirtualChannelSelector {
       try {
       	register_cancel_list_mon.enter();
         
-        for( Iterator reg_can_it = register_cancel_list.iterator(); reg_can_it.hasNext(); ){
+      		// don't use an iterator here as it is possible that error notifications to listeners
+      		// can result in the addition of a cancel request.
+      		// Note that this can only happen for registrations, and this *should* only result in
+      		// possibly a cancel being added (i.e. not a further registration), hence this can't
+      		// loop. Also note the approach of removing the entry before processing. This is so
+      		// that the logic used when adding a cancel (the removal of any matching entries) does
+      		// not cause the entry we're processing to be removed
+      	
+        while( register_cancel_list.size() > 0 ){
         	
-         Object	obj = reg_can_it.next();
+         Object	obj = register_cancel_list.remove(0);
          
          if ( obj instanceof SocketChannel ){
          	
+         		// process cancellation
+         	
          	SocketChannel	canceled_channel = (SocketChannel)obj;
   
-         	SelectionKey key = canceled_channel.keyFor( selector );
-            
-            if( key != null ){
-            	
-            	key.cancel();  //cancel the key, since already registered
-            }
+         	try{
+	         	SelectionKey key = canceled_channel.keyFor( selector );
+	            
+	            if( key != null ){
+	            	
+	            	key.cancel();  //cancel the key, since already registered
+	            }
+	            
+         	}catch( Throwable e ){
+         		
+         		Debug.printStackTrace(e);
+         	}
          }else{
-            //process new registrations  
+         		//process new registrations  
  
          	RegistrationData data = (RegistrationData)obj;
             	
@@ -217,16 +240,20 @@ public class VirtualChannelSelector {
             	    //Debug.out( "channel is closed" );
             	}
            	}catch (Throwable t){
-            		
-           	    data.listener.selectFailure( this, data.channel, data.attachment, t );
-            	    
+                     	    
            	    Debug.printStackTrace(t);
-            } 	
+ 
+           		try{
+           			data.listener.selectFailure( this, data.channel, data.attachment, t );
+           			
+           		}catch( Throwable e ){
+           			
+           			Debug.printStackTrace(e);
+           		}
+             } 	
          }
         }
-        
-        register_cancel_list.clear();
-        
+               
       }finally { 
       	register_cancel_list_mon.exit();
       }

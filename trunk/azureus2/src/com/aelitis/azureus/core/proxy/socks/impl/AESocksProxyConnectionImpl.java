@@ -61,6 +61,8 @@ AESocksProxyConnectionImpl
 		AESocksProxyImpl						_proxy,
 		AESocksProxyPlugableConnectionFactory	_connection_factory,
 		AEProxyConnection						_connection )
+	
+		throws IOException
 	{
 		proxy		= _proxy;
 		connection	= _connection;
@@ -69,11 +71,16 @@ AESocksProxyConnectionImpl
 		
 		source_channel	= connection.getSourceChannel();
 		
-		plugable_connection	= _connection_factory.create( this );
+		try{
+			plugable_connection	= _connection_factory.create( this );
 		
-		if ( TRACE ){
+			if ( TRACE ){
 			
-			LGLogger.log( "AESocksProxyProcessor: " + getName());
+				LGLogger.log( "AESocksProxyProcessor: " + getName());
+			}
+		}catch( AEProxyException e ){
+			
+			throw( new IOException( e.getMessage()));
 		}
 	}
 	
@@ -111,7 +118,10 @@ AESocksProxyConnectionImpl
 		AEProxyConnection	con )
 	{
 		try{
-			plugable_connection.close();
+			if ( plugable_connection != null ){
+				
+				plugable_connection.close();
+			}
 			
 		}catch( Throwable e ){
 			

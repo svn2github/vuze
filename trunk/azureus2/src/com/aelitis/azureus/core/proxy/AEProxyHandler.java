@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.proxy;
 
+import java.io.IOException;
+
 /**
  * @author parg
  *
@@ -32,5 +34,7 @@ AEProxyHandler
 {
 	public AEProxyState
 	getInitialState(
-		AEProxyConnection	connection );
+		AEProxyConnection	connection )
+	
+		throws IOException;
 }

@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.proxy.socks.impl;
 
+import java.io.IOException;
+
 import com.aelitis.azureus.core.proxy.socks.*;
 import com.aelitis.azureus.core.proxy.*;
 
@@ -67,6 +69,8 @@ AESocksProxyImpl
 	public AEProxyState
 	getInitialState(
 		AEProxyConnection	connection )
+	
+		throws IOException
 	{
 		return( new AESocksProxyConnectionImpl( this, connection_factory, connection ).getInitialState());
 	}

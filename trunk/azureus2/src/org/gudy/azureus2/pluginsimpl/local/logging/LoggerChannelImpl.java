@@ -134,6 +134,19 @@ LoggerChannelImpl
 		String		message,
 		boolean		repeatable )
 	{
+			// output as log message to any listeners
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((LoggerChannelListener)listeners.get(i)).messageLogged( alert_type, message );
+	
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}	
+		
 		int	at;
 		
 		switch( alert_type ){
