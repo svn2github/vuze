@@ -35,6 +35,7 @@ import java.nio.channels.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
+
 public class 
 PESharedPortSelector 
 {
@@ -74,7 +75,7 @@ PESharedPortSelector
 		
 		List	sockets_to_handover = new ArrayList();
         
-      SelectorGuard selectorGuard = new SelectorGuard(50, 5);
+      SelectorGuard selectorGuard = new SelectorGuard(50, 10);
 		
 		while (true){
 			

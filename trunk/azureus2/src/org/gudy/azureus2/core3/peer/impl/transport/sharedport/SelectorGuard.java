@@ -106,7 +106,7 @@ public class SelectorGuard {
     	//return new
     	return newSelector;
         
-    } catch (Exception e) {e.printStackTrace();}
+    } catch (Exception e) { Debug.out(e.getMessage()); }
       
     Debug.out("Unable to repair bad selector; returning original as still-bad");
     return bad_selector;
