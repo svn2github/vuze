@@ -66,11 +66,6 @@ IpFilterImpl
 	}
   
 	public void save() {
-      
-	  try {
-		//Open the file
-		File filtersFile = FileUtil.getApplicationFile("filters.config");
-		FileOutputStream fos = new FileOutputStream(filtersFile);
 		Map map = new HashMap();
 		List filters = new ArrayList();
 		map.put("ranges",filters);
@@ -88,6 +83,10 @@ IpFilterImpl
 			filters.add(mapRange);
 		  }
 		}
+    try {
+		//  Open the file
+    File filtersFile = FileUtil.getApplicationFile("filters.config");
+    FileOutputStream fos = new FileOutputStream(filtersFile);
 		fos.write(BEncoder.encode(map));
 		fos.close();     
 	  } catch (Exception e) {
@@ -118,6 +117,8 @@ IpFilterImpl
 			  if(ipRange.isValid())
 				this.ipRanges.add(ipRange);
 			}
+      bin.close();
+      fin.close();
 		}
 	  } catch(Exception e) {
 		e.printStackTrace();
