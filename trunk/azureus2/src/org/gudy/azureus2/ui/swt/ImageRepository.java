@@ -143,17 +143,26 @@ public class ImageRepository {
      * @param program the Program
      */
   public static Image getIconFromProgram(Program program) {
-    Image image = (Image) images.get(program);
-    if (image == null) {
-      if (program != null) {
-
-        ImageData imageData = program.getImageData();
-        if (imageData != null) {
-          image = new Image(null, imageData,imageData.getTransparencyMask());
-          images.put(program, image);
-        }
-      }
+    Image image = null;
+    
+    try{
+    	image =(Image) images.get(program);
+    
+	    if (image == null) {
+	      if (program != null) {
+	
+	        ImageData imageData = program.getImageData();
+	        if (imageData != null) {
+	          image = new Image(null, imageData,imageData.getTransparencyMask());
+	          images.put(program, image);
+	        }
+	      }
+	    }
+    }catch( Throwable e ){
+    	// seen exceptions thrown here, due to images.get failing in Program.hashCode
+    	// ignore and use default icon
     }
+    
     if (image == null) {
       image = (Image) images.get("folder");
     }
