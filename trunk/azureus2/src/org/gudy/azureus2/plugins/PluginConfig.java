@@ -33,6 +33,14 @@ public interface PluginConfig {
    * @return the value of the parameter
    */
   public int getIntParameter(String key);
+
+  /**
+   * returns the value of a core int parameter
+   * @param key the parameter name
+   * @param default_value the default return value
+   * @return the value of the parameter
+   */
+  public int getIntParameter(String key, int default_value);
   
   /**
    * returns the value of a core String parameter
