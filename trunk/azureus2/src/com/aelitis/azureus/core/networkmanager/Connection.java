@@ -144,24 +144,7 @@ public class Connection {
     return transport.getSocketChannel();
   }
   
-  
-  
-  
-  ///////////////////////////////////////////////////////////
-  /*
-  public boolean equals( Object obj ) {
-    if( this == obj )  return true;
-    if( obj != null && obj instanceof Connection ) {
-      Connection other = (Connection)obj;
-      if( this.remote_address.equals( other.remote_address ) )  return true;
-    }
-    return false;
-  }
-  public int hashCode() {  return remote_address.hashCode();  }
-  public String toString() {  return remote_address.toString();  }
-  */
-  ////////////////////////////////////////////////////////////
-  
+
   
   
   /**

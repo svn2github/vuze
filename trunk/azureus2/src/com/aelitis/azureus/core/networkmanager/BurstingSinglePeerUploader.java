@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.networkmanager;
 
 import java.io.IOException;
 
-//import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -84,7 +83,6 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
     }
     
     if( written < 1 )  {
-      Debug.out( "written < 1: " +written);
       return false;
     }
     
