@@ -1243,7 +1243,7 @@ PEPeerTransportProtocol
   private void registerForMessageHandling() {
     connection.getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
       public boolean messageReceived( Message message ) {      
-        LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, "Received message [" +message.getID()+ ":" +message.getVersion()+  ":" +message.getDescription()+ "] from " +PEPeerTransportProtocol.this );
+        LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, "Received message [" +message.getDescription()+ "] from " +PEPeerTransportProtocol.this );
         
         last_message_received_time = SystemTime.getCurrentTime();
         
