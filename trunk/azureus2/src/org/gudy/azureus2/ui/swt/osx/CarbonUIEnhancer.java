@@ -36,9 +36,15 @@ public class CarbonUIEnhancer {
       registerTorrentFile();
    }
    
+   
+   
    private void registerTorrentFile() {
-     
-     Application app = new Application();
+   
+     /* Not working cause of SWT, it tries to load AWT, maybe javaswt has a problem with it.
+      * The Thread stalls in the class loader (for awt).
+      */
+     /*
+     Application app = Application.getApplication();     
      app.addApplicationListener(new ApplicationAdapter() {
          public void handleOpenFile(ApplicationEvent evt) {
            String filename = evt.getFilename();
@@ -46,6 +52,7 @@ public class CarbonUIEnhancer {
            evt.setHandled( true );
          }
      });
+     */
    }
 
    /* (non-Javadoc)
