@@ -139,6 +139,12 @@ TRTrackerServerPeerImpl
 		return( amount_left );
 	}
 	
+	protected boolean
+	isSeed()
+	{
+		return( amount_left == 0 );
+	}
+	
 	public int
 	getNumberOfPeers()
 	{

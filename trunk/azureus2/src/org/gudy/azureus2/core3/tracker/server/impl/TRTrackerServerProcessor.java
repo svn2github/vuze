@@ -108,7 +108,7 @@ TRTrackerServerProcessor
 						uploaded, downloaded, left, num_peers,
 						interval );
 				
-				root_out[0] = torrent.exportAnnounceToList( num_want, interval, no_peer_id );
+				root_out[0] = torrent.exportAnnounceToList( left > 0, num_want, interval, no_peer_id );
 								
 			}else{
 				

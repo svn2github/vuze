@@ -212,6 +212,7 @@ TRTrackerServerTorrentImpl
 	
 	public synchronized Map
 	exportAnnounceToList(
+		boolean		include_seeds,
 		int			num_want,
 		long		interval,
 		boolean		no_peer_id )
@@ -318,7 +319,7 @@ TRTrackerServerTorrentImpl
 						
 						removePeer( it, peer );									
 						
-					}else{
+					}else if ( include_seeds || !peer.isSeed()){
 										
 						Map rep_peer = new HashMap();
 			
@@ -352,7 +353,7 @@ TRTrackerServerTorrentImpl
 							
 							removePeer( peer );
 							
-						}else{
+						}else if ( include_seeds || !peer.isSeed()){
 					
 							added++;
 							
@@ -388,7 +389,7 @@ TRTrackerServerTorrentImpl
 							
 							removePeer( peer );
 							
-						}else{
+						}else if ( include_seeds || !peer.isSeed()){
 							
 							added++;
 							
