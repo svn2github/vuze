@@ -64,10 +64,12 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   {
     this.iface = _iface;
     
-    	// it's possible that the URL hasn't been encoded (see Bug 878990)
+    //clean up accidental left-facing slashes
+    _url = _url.replace( (char)92, (char)47 );
     
+    // it's possible that the URL hasn't been encoded (see Bug 878990)
     _url = _url.replaceAll( " ", "%20" );
-    
+
     setName("TorrentDownloader: " + _url);
     
     url_str 	= _url;
@@ -102,7 +104,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   }
 
   public void runSupport() {
-    try {
+    try {      
       url = new URL(url_str);
       
       if ( url.getProtocol().equalsIgnoreCase("https")){
