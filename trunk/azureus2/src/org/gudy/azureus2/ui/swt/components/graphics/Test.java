@@ -24,7 +24,6 @@ package org.gudy.azureus2.ui.swt.components.graphics;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 
 
 
