@@ -661,7 +661,11 @@ public class DiskManager {
   }
 
   public void aSyncCheckPiece(int pieceNumber) {
-    checkQueue.add(new WriteElement(pieceNumber, 0, null));
+    synchronized (writeCheckLock) {
+      checkQueue.add(new WriteElement(pieceNumber, 0, null));
+      if (writeWaitFlag)
+        writeCheckLock.notifyAll();
+    }
   }
 
   public synchronized boolean checkPiece(int pieceNumber) {
