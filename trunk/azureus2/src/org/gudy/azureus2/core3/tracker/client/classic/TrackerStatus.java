@@ -94,15 +94,15 @@ public class TrackerStatus {
   }
 
 
-  protected synchronized void updateSingleHash(HashWrapper hash, boolean force) {
+  protected void updateSingleHash(HashWrapper hash, boolean force) {
     updateSingleHash(hash.getHash(), force, true);
   }
 
-  protected synchronized void updateSingleHash(byte[] hash, boolean force) {
+  protected void updateSingleHash(byte[] hash, boolean force) {
     updateSingleHash(hash, force, true);
   }
 
-  protected synchronized void updateSingleHash(byte[] hash, boolean force, boolean async) {      
+  protected void updateSingleHash(byte[] hash, boolean force, boolean async) {      
     //System.out.println("updateSingleHash:" + force + " " + scrapeURL + " : " + ByteFormatter.nicePrint(hash, true));
     if (scrapeURL == null)  {
       return;
@@ -110,9 +110,14 @@ public class TrackerStatus {
     
     ArrayList responsesToUpdate = new ArrayList();
 
-    TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)hashes.get(hash);
-    if (response == null) {
-      response = addHash(hash);
+    TRTrackerScraperResponseImpl response;
+    
+    synchronized( hashes ){
+	    response = (TRTrackerScraperResponseImpl)hashes.get(hash);
+	    
+	    if (response == null) {
+	      response = addHash(hash);
+	    }
     }
 
     long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
@@ -125,20 +130,33 @@ public class TrackerStatus {
 
     responsesToUpdate.add(response);
     
-    // TODO: Go through hashes and pick out other scrapes that are "close to"
-    //       wanting a new scrape.
-    if (!bSingleHashScrapes) {
-      Iterator iterHashes = hashes.values().iterator();
-      while( iterHashes.hasNext() ) {
-        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
-        if (!r.getHash().equals(hash)) {
-          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
-          if (lTimeDiff <= 30000 && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
-            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING);
-            r.setStatusString(MessageText.getString("Scrape.status.scraping"));
-            responsesToUpdate.add(r);
-          }
-        }
+    	// TODO: Go through hashes and pick out other scrapes that are "close to"
+    	//       wanting a new scrape.
+    
+    if (!bSingleHashScrapes){
+    	
+    	synchronized( hashes ){
+    		
+	      Iterator iterHashes = hashes.values().iterator();
+	      
+	      while( iterHashes.hasNext() ) {
+	      	
+	        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
+	        
+	        if (!r.getHash().equals(hash)) {
+	        	
+	          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
+	          
+	          if (lTimeDiff <= 30000 && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
+	          	
+	            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING);
+	            
+	            r.setStatusString(MessageText.getString("Scrape.status.scraping"));
+	            
+	            responsesToUpdate.add(r);
+	          }
+	        }
+	      }
       }
     }
     
