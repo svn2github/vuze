@@ -48,6 +48,8 @@ TRHostConfigImpl
 	
 	protected boolean		loading	= false;
 
+	protected Map			saved_stats		= new HashMap();
+	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRHostConfig" );
 
 	protected
@@ -83,65 +85,46 @@ TRHostConfigImpl
 		 	
 		   		Map t_map = (Map) iter.next();
 		   
- 				byte[]	hash = (byte[])t_map.get("hash");
+		   		Long	persistent_l = (Long)t_map.get("persistent");
+		   		
+		   		boolean	persistent =  persistent_l==null || persistent_l.longValue() == 1;
+	
+				byte[]	hash = (byte[])t_map.get("hash");
+
+		   		if ( persistent ){	
 			 
-			 	int	state = ((Long)t_map.get("status")).intValue();
-			 	
-			 	long	completed	= 0;
-			 	long	announces	= 0;
-			 	long	scrapes		= 0;
-			 	long	total_up	= 0;
-			 	long	total_down	= 0;
-			 	long	bytes_in	= 0;
-			 	long	bytes_out	= 0;
-			 	
-			 	Map	s_map	= (Map)t_map.get( "stats" );
-			 	
-			 	if ( s_map != null ){
-			 	
-			 		completed 	= ((Long)s_map.get( "completed")).longValue();
-			 		announces	= ((Long)s_map.get( "announces")).longValue();
-			 		total_up	= ((Long)s_map.get( "uploaded")).longValue();
-			 		total_down	= ((Long)s_map.get( "downloaded")).longValue();
+				 	int	state = ((Long)t_map.get("status")).intValue();				 	
+				 	
+				 	if ( state == TRHostTorrent.TS_FAILED ){
+				 		
+				 		state = TRHostTorrent.TS_STOPPED;
+				 	}
+				 	
+				 	TOTorrent	torrent = finder.lookupTorrent( hash );
+				 	
+				 	if ( torrent != null ){
+				 		
+				 		TRHostTorrent	ht = host.addTorrent( torrent, state, true );
+				 		
+				 		if ( ht instanceof TRHostTorrentHostImpl ){
+				 			
+				 			TRHostTorrentHostImpl	hth = (TRHostTorrentHostImpl)ht;
+				 			
+				 			recoverStats( hth, t_map );
+				 		}
+				 	
+				 	}else{
+						if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
 			 		
-			 		Long	scrapes_l = (Long)s_map.get( "scrapes" );
-			 		if ( scrapes_l != null ){		 			
-			 			scrapes	= scrapes_l.longValue();
-			 		}
-			 		Long	bytes_in_l = (Long)s_map.get( "bytesin" );
-			 		if ( bytes_in_l != null ){		 			
-			 			bytes_in	= bytes_in_l.longValue();
-			 		}
-			 		Long	bytes_out_l = (Long)s_map.get( "bytesout" );
-			 		if ( bytes_out_l != null ){		 			
-			 			bytes_out	= bytes_out_l.longValue();
-			 		}
-			 	}
-			 	
-			 	if ( state == TRHostTorrent.TS_FAILED ){
-			 		
-			 		state = TRHostTorrent.TS_STOPPED;
-			 	}
-			 	
-			 	TOTorrent	torrent = finder.lookupTorrent( hash );
-			 	
-			 	if ( torrent != null ){
-			 		
-			 		TRHostTorrent	ht = host.addTorrent( torrent, state, true );
-			 		
-			 		if ( ht instanceof TRHostTorrentHostImpl ){
-			 			
-			 			TRHostTorrentHostImpl	hth = (TRHostTorrentHostImpl)ht;
-			 			
-			 			hth.setStartOfDayValues( completed, announces, scrapes, total_up, total_down, bytes_in, bytes_out );
-			 		}
-			 	
-			 	}else{
-					if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
-		 		
-			 			host.addExternalTorrent( hash, state );
-					}
-			 	}
+				 			host.addExternalTorrent( hash, state );
+						}
+				 	}
+		   		}else{
+		   			
+		   				// store stats for later
+		   			
+		   			saved_stats.put( new HashWrapper( hash ), t_map );
+		   		}
 		   	}
 		 	
 	   	}catch (Exception e) {
@@ -155,6 +138,67 @@ TRHostConfigImpl
 	   	}
 	}
 
+	protected void
+	recoverStats(
+		TRHostTorrentHostImpl	host_torrent )
+	{
+		try{
+			HashWrapper	hash = host_torrent.getTorrent().getHashWrapper();
+		
+			Map	t_map = (Map)saved_stats.get( hash );
+			
+			if ( t_map != null ){
+				
+				saved_stats.remove( hash );
+				
+				recoverStats( host_torrent, t_map );
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	protected void
+	recoverStats(
+		TRHostTorrentHostImpl	host_torrent,
+		Map						t_map )
+	{
+	 	long	completed	= 0;
+	 	long	announces	= 0;
+	 	long	scrapes		= 0;
+	 	long	total_up	= 0;
+	 	long	total_down	= 0;
+	 	long	bytes_in	= 0;
+	 	long	bytes_out	= 0;
+	 	
+	 	Map	s_map	= (Map)t_map.get( "stats" );
+	 	
+	 	if ( s_map != null ){
+	 	
+	 		completed 	= ((Long)s_map.get( "completed")).longValue();
+	 		announces	= ((Long)s_map.get( "announces")).longValue();
+	 		total_up	= ((Long)s_map.get( "uploaded")).longValue();
+	 		total_down	= ((Long)s_map.get( "downloaded")).longValue();
+	 		
+	 		Long	scrapes_l = (Long)s_map.get( "scrapes" );
+	 		if ( scrapes_l != null ){		 			
+	 			scrapes	= scrapes_l.longValue();
+	 		}
+	 		Long	bytes_in_l = (Long)s_map.get( "bytesin" );
+	 		if ( bytes_in_l != null ){		 			
+	 			bytes_in	= bytes_in_l.longValue();
+	 		}
+	 		Long	bytes_out_l = (Long)s_map.get( "bytesout" );
+	 		if ( bytes_out_l != null ){		 			
+	 			bytes_out	= bytes_out_l.longValue();
+	 		}
+	 	}
+	 	
+	 	host_torrent.setStartOfDayValues( completed, announces, scrapes, total_up, total_down, bytes_in, bytes_out );
+	}
+	
 	protected void
 	saveConfig()
 	{
@@ -193,28 +237,28 @@ TRHostConfigImpl
 					int	seed_count 		= torrent.getSeedCount();
 					int non_seed_count	= torrent.getLeecherCount();
 										
-					if ( torrent.isPersistent()){
 				
-						Map t_map = new HashMap();
+					Map t_map = new HashMap();
+				
+					t_map.put("persistent",new Long(torrent.isPersistent()?1:0));
 					
-						t_map.put("hash", hash );
-					
-						t_map.put("status", new Long(status ));
-		
-						list.add(t_map);
-					
-						Map	s_map = new HashMap();
-					
-						t_map.put( "stats", s_map );
-					
-						s_map.put( "completed", new Long(completed));
-						s_map.put( "announces", new Long(announces));
-						s_map.put( "scrapes", new Long(scrapes));
-						s_map.put( "uploaded", new Long(uploaded));
-						s_map.put( "downloaded", new Long(downloaded));
-						s_map.put( "bytesin", new Long(bytes_in));
-						s_map.put( "bytesout", new Long(bytes_out));
-					}
+					t_map.put("hash", hash );
+				
+					t_map.put("status", new Long(status ));
+	
+					list.add(t_map);
+				
+					Map	s_map = new HashMap();
+				
+					t_map.put( "stats", s_map );
+				
+					s_map.put( "completed", new Long(completed));
+					s_map.put( "announces", new Long(announces));
+					s_map.put( "scrapes", new Long(scrapes));
+					s_map.put( "uploaded", new Long(uploaded));
+					s_map.put( "downloaded", new Long(downloaded));
+					s_map.put( "bytesin", new Long(bytes_in));
+					s_map.put( "bytesout", new Long(bytes_out));
 
 					
 					stats_entry.append( new String(name, Constants.DEFAULT_ENCODING ));

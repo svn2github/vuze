@@ -413,10 +413,17 @@ TRHostImpl
 			if ( state != TRHostTorrent.TS_PUBLISHED ){
 			
 				startHosting((TRHostTorrentHostImpl)host_torrent );
-			
+		
 				if ( state == TRHostTorrent.TS_STARTED ){
 						
 					host_torrent.start();
+				}
+				
+					// if not persistent, see if we can recover the stats
+				
+				if ( !persistent ){
+					
+					config.recoverStats( (TRHostTorrentHostImpl)host_torrent );
 				}
 			}
 	
