@@ -397,14 +397,61 @@ UtilitiesImpl
 		return( 
 			new AggregatedDispatcher()
 			{
-				Timer		timer = new Timer( "AggregatedDispatcher" );
+				private AggregatedList	list = 
+					createAggregatedList(
+						new AggregatedListAcceptor()
+						{
+							public void
+							accept(
+								List		l )
+							{
+								for (int i=0;i<l.size();i++){
+									
+									try{
+										((Runnable)l.get(i)).run();
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							}
+						},
+						idle_dispatch_time,
+						max_queue_size );
+				
+				public void
+				add(
+					Runnable	runnable )
+				{
+					list.add( runnable );
+				}
+				
+				public void
+				destroy()
+				{
+					list.destroy();
+				}
+			});
+	}
+	
+	public AggregatedList
+	createAggregatedList(
+		final AggregatedListAcceptor	acceptor,
+		final long						idle_dispatch_time,
+		final long						max_queue_size )
+	{
+		return( 
+			new AggregatedList()
+			{
+				Timer		timer = new Timer( "AggregatedList" );
 				TimerEvent	event;
 				
 				List		list	= new ArrayList();
 				
 				public void
 				add(
-					Runnable	runnable )
+					Object	obj )
 				{
 					
 					List	dispatch_now = null;
@@ -422,7 +469,7 @@ UtilitiesImpl
 							
 						}
 							
-						list.add( runnable );
+						list.add( obj );
 						
 							// set up a timer to wakeup in required time period 
 						
@@ -473,15 +520,12 @@ UtilitiesImpl
 				dispatch(
 					List		l )
 				{
-					for (int i=0;i<l.size();i++){
+					try{
+						acceptor.accept( l );
 						
-						try{
-							((Runnable)l.get(i)).run();
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-						}
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
 					}
 				}
 				

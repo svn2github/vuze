@@ -172,4 +172,12 @@ Utilities
 	createAggregatedDispatcher(
 		long	idle_dispatch_time,
 		long	max_queue_size );
+  	
+ 	public AggregatedList
+	createAggregatedList(
+		AggregatedListAcceptor	acceptor,
+		long					idle_dispatch_time,
+		long					max_queue_size );
 }
+
+
