@@ -481,6 +481,9 @@ DownloadManagerImpl
         if (errMessage != "") {
           setState(STATE_ERROR);
           errorDetail = MessageText.getString("DownloadManager.error.datamissing") + " " + errMessage; //$NON-NLS-1$
+        } else {
+          // make sure stats always knows we are completed
+  			  stats.setDownloadCompleted(1000);
         }
       }
 
