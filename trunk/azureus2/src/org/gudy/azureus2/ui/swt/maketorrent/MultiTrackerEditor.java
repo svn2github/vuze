@@ -33,6 +33,8 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -449,6 +451,13 @@ public class MultiTrackerEditor {
     editor.horizontalAlignment = SWT.LEFT;
     editor.grabHorizontal = true;
     editor.minimumWidth = 50;
+
+    Font f = text.getFont();
+    FontData fd = f.getFontData()[0];
+    int iHeightPoints = fd.getHeight();
+    int iHeightPixels = (iHeightPoints * text.getDisplay().getDPI().y) / 72;
+    editor.minimumHeight = iHeightPixels + text.getBorderWidth() * 2 + 2;
+
 
     // Open the text editor on the selected row.
     editor.setEditor (text, item);
