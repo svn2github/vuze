@@ -271,7 +271,7 @@ DMWriterAndCheckerImpl
 		int 				pieceNumber )
 	{
         DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_CHECK,pieceLength);
-        
+                
 		try{
 		    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
 		    	

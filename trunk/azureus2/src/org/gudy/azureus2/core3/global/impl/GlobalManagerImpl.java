@@ -307,13 +307,23 @@ public class GlobalManagerImpl
   	return( addDownloadManager(fileName, savePath, initialState, true ));
   }
   	
+	public DownloadManager
+	addDownloadManager(
+	    String 		fileName,
+	    String 		savePath,
+	    int         initialState,
+		boolean		persistent )
+	{
+	 	return( addDownloadManager(fileName, savePath, initialState, persistent, false ));
+	}
+	
   /**
    * @return true, if the download was added
    *
    * @author Rene Leonhardt
    */
   public DownloadManager 
-  addDownloadManager(String fileName, String savePath, int initialState, boolean persistent ) {
+  addDownloadManager(String fileName, String savePath, int initialState, boolean persistent, boolean for_seeding ) {
 	File torrentDir	= null;
 	File fDest		= null;
 	
@@ -355,7 +365,7 @@ public class GlobalManagerImpl
       
       String fName = fDest.getCanonicalPath();
       
-      DownloadManager new_manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent, false );
+      DownloadManager new_manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent, false, for_seeding );
       
       DownloadManager manager = addDownloadManager(new_manager, true);
       
@@ -373,12 +383,12 @@ public class GlobalManagerImpl
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       e.printStackTrace();
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false );
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false, for_seeding );
       return addDownloadManager(manager, true);
     }
     catch (Exception e) {
     	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false );
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false, for_seeding );
       return addDownloadManager(manager, true);
     }
   }

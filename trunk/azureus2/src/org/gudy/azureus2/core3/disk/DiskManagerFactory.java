@@ -61,7 +61,7 @@ DiskManagerFactory
 		 * Method to preset resume data to indicate completely valid file. 
 		 * Doesn't save the torrent
 		 * @param torrent
-		 * @param path
+		 * @param path		this must be the parent dir for simple torrents or the data dir for non-simple
 		 */
 	
 	public static void
@@ -72,6 +72,24 @@ DiskManagerFactory
 		RDResumeHandler.setTorrentResumeDataComplete( torrent, data_location );
 	}
 
+		/**
+		 * Sets resume data complete apart from a few random pieces. On torrent start these will be checked
+		 * This is used in the "open for seeding" mode to ensure that there's at least a chance that the
+		 * data they claim represents the data for the torrent is valid
+		 * @param torrent
+		 * @param torrent_save_dir
+		 * @param torrent_save_file
+		 */
+	
+	public static void
+	setTorrentResumeDataNearlyComplete(
+		TOTorrent	torrent,
+		String		torrent_save_dir,
+		String		torrent_save_file )
+	{
+		RDResumeHandler.setTorrentResumeDataNearlyComplete( torrent, torrent_save_dir,torrent_save_file );
+	}
+	
 	public static boolean
 	isTorrentResumeDataComplete(
 		TOTorrent	torrent,

@@ -280,7 +280,9 @@ public class TorrentOpener {
 	              				path + separator + fileNames[i], 
 								savePath,
 								default_start_stopped ? DownloadManager.STATE_STOPPED 
-	                                    : DownloadManager.STATE_QUEUED);
+	                                    : DownloadManager.STATE_QUEUED,
+								true,
+								forSeeding );
 	          }catch( Throwable e ){
 	          	
    	          	LGLogger.logAlert("Torrent open fails for '" + path + separator + fileNames[i] + "'", e );

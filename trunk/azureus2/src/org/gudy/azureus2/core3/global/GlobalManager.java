@@ -42,14 +42,22 @@ GlobalManager
 	addDownloadManager(
 		String			file_name,
 		String			save_path,
-		int         initialState );
+		int        		initialState );
 		
 	public DownloadManager
 	addDownloadManager(
 	    String 		fileName,
 	    String 		savePath,
-	    int       initialState,
+	    int         initialState,
 		boolean		persistent );
+  
+	public DownloadManager
+	addDownloadManager(
+	    String 		fileName,
+	    String 		savePath,
+	    int         initialState,
+		boolean		persistent,
+		boolean		for_seeding );
   
 	public void
 	removeDownloadManager(

@@ -261,7 +261,8 @@ DownloadManagerImpl
 		String			_torrent_save_file,
 		int   			_initialState,
 		boolean			_persistent,
-		boolean			_recovered ) 
+		boolean			_recovered,
+		boolean			_open_for_seeding ) 
 	{
 		persistent	= _persistent;
   	
@@ -282,7 +283,7 @@ DownloadManagerImpl
 	
 			// readTorrent adjusts the save dir and file to be sensible values
 			
-		readTorrent( persistent && !_recovered );
+		readTorrent( persistent && !_recovered, _open_for_seeding );
 		
 			// must be after readTorrent, so that any listeners have a TOTorrent
 		
@@ -398,7 +399,8 @@ DownloadManagerImpl
 
 	private void 
 	readTorrent(
-		boolean		new_torrent )
+		boolean		new_torrent,
+		boolean		open_for_seeding )
 	{
 		display_name				= torrentFileName;	// default if things go wrong decoding it
 		//trackerUrl				= "";
@@ -518,7 +520,14 @@ DownloadManagerImpl
 			 		// also remove resume data incase someone's published a torrent with resume
 			 		// data in it
 			 	
-			  	torrent.removeAdditionalProperty("resume");
+			 	if ( open_for_seeding ){
+			 		
+			 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(torrent, torrent_save_dir, torrent_save_file );
+
+			 	}else{
+			 		
+			 		torrent.removeAdditionalProperty("resume");
+			 	}
 			 }
 			 
 	         
@@ -1074,7 +1083,7 @@ DownloadManagerImpl
 	    	
 	      diskManager.dumpResumeDataToDisk(false, true);
 	      
-	      readTorrent( false );
+	      readTorrent( false, false );
 	    }
 	    
 	    stopIt();

@@ -138,6 +138,8 @@ RDResumeHandler
 							disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
 					
 				
+					resume_key	= getCanonicalResumeKey( resume_key );
+					
 					// see bug 869749 for explanation of this mangling
 					
 					/*
@@ -340,6 +342,7 @@ RDResumeHandler
 				disk_manager.getDownloadManager().getTorrentSaveDir():
 				disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
 		
+	  resume_key	= getCanonicalResumeKey( resume_key );
 
 	  resumeMap.put(resume_key, resumeDirectory);
 	  
@@ -400,11 +403,19 @@ RDResumeHandler
 	  }
 	}
 
+		/**
+		 * data_dir must be the parent folder for a simple torrent or the *actual* folder for non-simple
+		 * @param torrent
+		 * @param data_dir
+		 */
+	
 	public static void
 	setTorrentResumeDataComplete(
 		TOTorrent	torrent,
-		String		data_dir )
+		String		resume_key  )
 	{
+		resume_key	= getCanonicalResumeKey( resume_key );
+
 		int	piece_count = torrent.getPieces().length;
 		
 		byte[] resumeData = new byte[piece_count];
@@ -423,7 +434,7 @@ RDResumeHandler
 		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
 		// currently fixed by mangling such that decode works
 		
-		resumeMap.put(data_dir, resumeDirectory);
+		resumeMap.put(resume_key, resumeDirectory);
 		
 		resumeDirectory.put("resume data", resumeData);
 		
@@ -432,6 +443,58 @@ RDResumeHandler
 		resumeDirectory.put("blocks", partialPieces);
 		
 		resumeDirectory.put("valid", new Long(1));	
+	}
+	
+	public static void
+	setTorrentResumeDataNearlyComplete(
+		TOTorrent	torrent,
+		String		torrent_save_dir,
+		String		torrent_save_file )
+	{
+			// backwards compatability, resume data key is the dir
+		
+		String	resume_key = torrent.isSimpleTorrent()?
+								torrent_save_dir:
+								(torrent_save_dir + File.separator + torrent_save_file );
+		
+		resume_key	= getCanonicalResumeKey( resume_key );
+		
+		int	piece_count = torrent.getPieces().length;
+		
+		byte[] resumeData = new byte[piece_count];
+		
+		for (int i = 0; i < resumeData.length; i++) {
+			
+			resumeData[i] = (byte)1;
+		}
+
+			// randomly clear some pieces
+		
+		for (int i=0;i<3;i++){
+			
+			int	piece_num = (int)(Math.random()*piece_count);
+						
+			resumeData[piece_num]= 0;
+		}
+		
+		Map resumeMap = new HashMap();
+		
+		torrent.setAdditionalMapProperty("resume", resumeMap);
+
+		Map resumeDirectory = new HashMap();
+		
+		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
+		// currently fixed by mangling such that decode works
+		
+		resumeMap.put(resume_key, resumeDirectory);
+		
+		resumeDirectory.put("resume data", resumeData);
+		
+		Map partialPieces = new HashMap();
+		
+		resumeDirectory.put("blocks", partialPieces);
+		
+		resumeDirectory.put("valid", new Long(0));	
 	}
 	
 	public static boolean
@@ -447,6 +510,8 @@ RDResumeHandler
 								(torrent_save_dir + File.separator + torrent_save_file );
 		
 		// System.out.println( "resume key = " + resume_key );
+	
+		resume_key	= getCanonicalResumeKey( resume_key );
 		
 		try{
 			int	piece_count = torrent.getPieces().length;
@@ -528,5 +593,18 @@ RDResumeHandler
 		}
 	}
 
-
+	protected static String
+	getCanonicalResumeKey(
+		String		resume_key )
+	{
+		try{
+			resume_key	= new File( resume_key).getCanonicalFile().toString();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+		return( resume_key );
+	}
 }
