@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.control.*;
+import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -159,6 +160,12 @@ DHTImpl
 	getRouter()
 	{
 		return( control.getRouter());
+	}
+	
+	public DHTDB
+	getDataBase()
+	{
+		return( control.getDataBase());
 	}
 	
 	public void

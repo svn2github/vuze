@@ -244,23 +244,23 @@ DHTPlugin
 														
 														long[]	rs = r_stats.getStats();
 					
-														log.log( "Router Stats    " +
-																	":no=" + rs[DHTRouterStats.ST_NODES] +
-																	",le=" + rs[DHTRouterStats.ST_LEAVES] +
-																	",co=" + rs[DHTRouterStats.ST_CONTACTS] +
-																	",re=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
-																	",cl=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
-																	",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
-																	",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
-																		
 														DHTTransportStats t_stats = transport.getStats();
 														
-														log.log( "Transport Stats" + 
-																	":ps=" + t_stats.getPacketsSent() +
-																	",pr=" + t_stats.getPacketsReceived() +
-																	",bs=" + t_stats.getBytesSent() +
-																	",br=" + t_stats.getBytesReceived() +
-																	",to=" + t_stats.getRequestsTimedOut());
+
+														log.log( "Router" +
+																	":nodes=" + rs[DHTRouterStats.ST_NODES] +
+																	",leaves=" + rs[DHTRouterStats.ST_LEAVES] +
+																	",contacts=" + rs[DHTRouterStats.ST_CONTACTS] +
+																	",replacement=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
+																	",live=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
+																	",unknown=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
+																	",failing=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
+											
+														log.log( 	"Transport" + 
+																	":" + t_stats.getString()); 
+																	
+														log.log( 	"Database" +
+																	":values=" + dht.getDataBase().getSize());
 													}
 												}
 											});

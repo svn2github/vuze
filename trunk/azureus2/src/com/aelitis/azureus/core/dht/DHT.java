@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht;
 
 import java.io.*;
 
+import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 
@@ -111,6 +112,9 @@ DHT
 	
 	public DHTRouter
 	getRouter();
+	
+	public DHTDB
+	getDataBase();
 	
 		/**
 		 * externalises information that allows the DHT to be recreated at a later date
