@@ -141,11 +141,8 @@ public class TrackerChecker {
       Iterator iter = trackers.values().iterator();
       while (iter.hasNext()) {
         TrackerStatus ts = (TrackerStatus) iter.next();
-        Iterator iterHashes = ts.getHashesIterator();
-        while(iterHashes.hasNext()) {              
-          HashWrapper hash = (HashWrapper) iterHashes.next();
-          ts.asyncUpdate(hash);
-        }                      
+ 
+        ts.asyncUpdate();
       }
     }
   }

@@ -28,11 +28,10 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class TrackerStatus {
   private String scrapeURL = null;
-  byte[] data;
-
+ 
   private HashMap 					hashes;
-  private List 						hashList;
-  private TRTrackerScraperImpl		scraper;
+   private TRTrackerScraperImpl		scraper;
+  
   public 
   TrackerStatus(
   	TRTrackerScraperImpl	_scraper,
@@ -40,8 +39,8 @@ public class TrackerStatus {
   {    	
   	scraper		= _scraper;
   	
-    this.hashes = new HashMap();
-    this.hashList = new Vector();
+    hashes = new HashMap();
+    
     try {
       trackerUrl = trackerUrl.replaceAll(" ", "");
       int position = trackerUrl.lastIndexOf('/');
@@ -60,36 +59,52 @@ public class TrackerStatus {
     	
       e.printStackTrace();
     } 
+  }
+
+  protected TRTrackerScraperResponseImpl 
+  getHashData(HashWrapper hash) 
+  {
+  	synchronized( hashes ){
+  		
+  		return (TRTrackerScraperResponseImpl) hashes.get(hash);
+  	}
+  }
+
+  protected void 
+  asyncUpdate(
+  	final HashWrapper hash ) 
+  {
+  	synchronized( hashes ){
+  		
+	    if(hashes.get(hash) == null){
+	    	
+	      hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1));
+	    }
+  	}
     
-    data = new byte[1024];
-  }
-
-  protected TRTrackerScraperResponseImpl getHashData(HashWrapper hash) {
-    return (TRTrackerScraperResponseImpl) hashes.get(hash);
-  }
-
-  protected void asyncUpdate(final HashWrapper hash) {
-    if(hashes.get(hash) == null)
-      hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1));
     Thread t = new Thread("Tracker Checker - Scrape interface") {
-      /* (non-Javadoc)
-       * @see java.lang.Thread#run()
-       */
-      public void run() {
-        update(hash);
+       public void run() 
+       {
+       	updateSingleHash(hash);
       }
     };
+    
     t.setDaemon(true);
     t.setPriority(Thread.MIN_PRIORITY);
     t.start();
   }
 
-  private synchronized void update(HashWrapper hash) {    
-    if(! hashList.contains(hash))
-        hashList.add(hash);
-    if(scrapeURL == null)
-      return;
+  private synchronized void 
+  updateSingleHash(
+  	HashWrapper hash) 
+  {        
+    if(scrapeURL == null){
+     
+    	return;
+    }
+      
     InputStream is = null;
+    
     try {
       String info_hash = "?info_hash=";
       info_hash += URLEncoder.encode(new String(hash.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
@@ -150,6 +165,8 @@ public class TrackerStatus {
       	is = new GZIPInputStream( is );
       }
       
+      byte[]	data = new byte[1024];
+      
       ByteArrayOutputStream message = new ByteArrayOutputStream();
       int nbRead = 0;
       while (nbRead >= 0) {
@@ -184,7 +201,9 @@ public class TrackerStatus {
         
         TRTrackerScraperResponseImpl	response = new TRTrackerScraperResponseImpl(key,seeds,peers);
         
-        hashes.put(new HashWrapper(key),response);   
+        synchronized( hashes ){
+        	hashes.put(new HashWrapper(key),response);
+        }
         
         scraper.scrapeReceived( response );
       }
@@ -208,13 +227,30 @@ public class TrackerStatus {
     }
   }
   
-  protected Iterator getHashesIterator() {
-    return hashList.iterator();  
+  protected void
+  asyncUpdate()
+  {
+  	synchronized( hashes ){
+  		
+  		Iterator iterHashes = hashes.keySet().iterator();
+  	
+  		while(iterHashes.hasNext()) {
+  		
+  			HashWrapper hash = (HashWrapper) iterHashes.next();
+  		
+  			asyncUpdate(hash);
+  		}
+  	}     
   }
-  
-  protected void removeHash(HashWrapper hash) {
-    while(hashList.contains(hash))
-      hashList.remove(hash);
-  }  
 
+  
+  protected void 
+  removeHash(
+  	HashWrapper hash)
+  {
+  	synchronized( hashes ){
+  		
+  		hashes.remove( hash );
+  	}
+  }  
 }
