@@ -70,6 +70,7 @@ PRUDPPacketReply
 	
 	public static PRUDPPacketReply
 	deserialiseReply(
+		PRUDPPacketHandler	handler,
 		DataInputStream		is )
 	
 		throws IOException
@@ -85,7 +86,7 @@ PRUDPPacketReply
 		
 		int		transaction_id	= is.readInt();
 
-		return( decoder.decode( is, action, transaction_id ));
+		return( decoder.decode( handler, is, action, transaction_id ));
 	}
 	
 	public String

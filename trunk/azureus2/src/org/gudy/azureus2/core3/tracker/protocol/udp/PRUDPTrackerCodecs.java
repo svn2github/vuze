@@ -53,9 +53,10 @@ PRUDPTrackerCodecs
 			{
 				public PRUDPPacketReply
 				decode(
-					DataInputStream	is,
-					int				action,
-					int				transaction_id )
+					PRUDPPacketHandler	handler,
+					DataInputStream		is,
+					int					action,
+					int					transaction_id )
 				
 					throws IOException
 				{
@@ -107,10 +108,11 @@ PRUDPTrackerCodecs
 			{
 				public PRUDPPacketRequest
 				decode(
-					DataInputStream	is,
-					long			connection_id,
-					int				action,
-					int				transaction_id )
+					PRUDPPacketHandler	handler,
+					DataInputStream		is,
+					long				connection_id,
+					int					action,
+					int					transaction_id )
 				
 					throws IOException
 				{

@@ -20,24 +20,71 @@
  *
  */
 
-package com.aelitis.net.udp;
+package com.aelitis.azureus.core.dht.transport.udp.impl;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 
 /**
  * @author parg
  *
  */
 
-public interface 
-PRUDPPacketReplyDecoder 
+public class 
+DHTUDPPacketRequestFindNode 
+	extends DHTUDPPacketRequest
 {
-	public PRUDPPacketReply
-	decode(
-		PRUDPPacketHandler	handler,
+	private byte[]		id;
+	
+	public
+	DHTUDPPacketRequestFindNode(
+		long	_connection_id )
+	{
+		super( DHTUDPPacket.ACT_REQUEST_FIND_NODE, _connection_id );
+	}
+	
+	protected
+	DHTUDPPacketRequestFindNode(
 		DataInputStream		is,
-		int					action,
-		int					transaction_id )
-
-		throws IOException;
+		long				con_id,
+		int					trans_id )
+	
+		throws IOException
+	{
+		super( is,  DHTUDPPacket.ACT_REQUEST_FIND_NODE, con_id, trans_id );
+		
+		id = DHTUDPUtils.deserialiseID( is );
+	}
+	
+	public void
+	serialise(
+		DataOutputStream	os )
+	
+		throws IOException
+	{
+		super.serialise(os);
+		
+		DHTUDPUtils.serialiseID( os, id );
+	}
+	
+	protected void
+	setID(
+		byte[]		_id )
+	{
+		id	= _id;
+	}
+	
+	protected byte[]
+	getID()
+	{
+		return( id );
+	}
+	
+	public String
+	getString()
+	{
+		return( super.getString());
+	}
 }

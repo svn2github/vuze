@@ -26,7 +26,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
@@ -53,7 +52,7 @@ DHTTransportUDPContactImpl
 		transport		= _transport;
 		address			= _address;
 		
-		id = new SHA1Hasher().calculateHash( address.toString().getBytes());
+		id = DHTUDPUtils.getNodeID( address );
 	}
 	
 	public InetSocketAddress

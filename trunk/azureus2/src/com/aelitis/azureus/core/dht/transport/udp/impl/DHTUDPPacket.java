@@ -44,6 +44,12 @@ DHTUDPPacket
 	
 	public static final int		ACT_REQUEST_PING		= 1024;
 	public static final int		ACT_REPLY_PING			= 1025;
+	public static final int		ACT_REQUEST_STORE		= 1026;
+	public static final int		ACT_REPLY_STORE			= 1027;
+	public static final int		ACT_REQUEST_FIND_NODE	= 1028;
+	public static final int		ACT_REPLY_FIND_NODE		= 1029;
+	public static final int		ACT_REQUEST_FIND_VALUE	= 1030;
+	public static final int		ACT_REPLY_FIND_VALUE	= 1031;
 	
 	
 	private static boolean	registered	= false;
@@ -63,10 +69,11 @@ DHTUDPPacket
 			{
 				public PRUDPPacketRequest
 				decode(
-					DataInputStream	is,
-					long			connection_id,
-					int				action,
-					int				transaction_id )
+					PRUDPPacketHandler	handler,
+					DataInputStream		is,
+					long				connection_id,
+					int					action,
+					int					transaction_id )
 				
 					throws IOException
 				{
@@ -74,6 +81,18 @@ DHTUDPPacket
 						case ACT_REQUEST_PING:
 						{
 							return( new DHTUDPPacketRequestPing(is, connection_id,transaction_id));
+						}
+						case ACT_REQUEST_STORE:
+						{
+							return( new DHTUDPPacketRequestStore(is, connection_id,transaction_id));
+						}
+						case ACT_REQUEST_FIND_NODE:
+						{
+							return( new DHTUDPPacketRequestFindNode(is, connection_id,transaction_id));
+						}
+						case ACT_REQUEST_FIND_VALUE:
+						{
+							return( new DHTUDPPacketRequestFindValue(is, connection_id,transaction_id));
 						}
 						default:
 						{
@@ -86,6 +105,9 @@ DHTUDPPacket
 		Map	request_decoders = new HashMap();
 		
 		request_decoders.put( new Integer( ACT_REQUEST_PING ), request_decoder );
+		request_decoders.put( new Integer( ACT_REQUEST_STORE ), request_decoder );
+		request_decoders.put( new Integer( ACT_REQUEST_FIND_NODE ), request_decoder );
+		request_decoders.put( new Integer( ACT_REQUEST_FIND_VALUE ), request_decoder );
 		
 		PRUDPPacketRequest.registerDecoders( request_decoders );	
 			
@@ -96,17 +118,32 @@ DHTUDPPacket
 			{
 				public PRUDPPacketReply
 				decode(
-					DataInputStream	is,
-					int				action,
-					int				transaction_id )
+					PRUDPPacketHandler	handler,
+					DataInputStream		is,
+					int					action,
+					int					transaction_id )
 				
 					throws IOException
 				{
+					DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)handler.getRequestHandler();
+					
 					switch( action ){
 					
 						case ACT_REPLY_PING:
 						{
 							return( new DHTUDPPacketReplyPing(is, transaction_id));
+						}
+						case ACT_REPLY_STORE:
+						{
+							return( new DHTUDPPacketReplyStore(is, transaction_id));
+						}
+						case ACT_REPLY_FIND_NODE:
+						{
+							return( new DHTUDPPacketReplyFindNode(transport, is, transaction_id));
+						}
+						case ACT_REPLY_FIND_VALUE:
+						{
+							return( new DHTUDPPacketReplyFindValue(transport, is, transaction_id));
 						}
 						default:
 						{
@@ -119,6 +156,9 @@ DHTUDPPacket
 		Map	reply_decoders = new HashMap();
 		
 		reply_decoders.put( new Integer( ACT_REPLY_PING ), reply_decoder );
+		reply_decoders.put( new Integer( ACT_REPLY_STORE ), reply_decoder );
+		reply_decoders.put( new Integer( ACT_REPLY_FIND_NODE ), reply_decoder );
+		reply_decoders.put( new Integer( ACT_REPLY_FIND_VALUE ), reply_decoder );
 		
 		PRUDPPacketReply.registerDecoders( reply_decoders );
 	}

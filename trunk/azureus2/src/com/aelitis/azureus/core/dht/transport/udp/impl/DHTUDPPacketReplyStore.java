@@ -29,25 +29,25 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 
 public class 
-DHTUDPPacketReplyPing
+DHTUDPPacketReplyStore
 	extends DHTUDPPacketReply
 {
 	public
-	DHTUDPPacketReplyPing(
+	DHTUDPPacketReplyStore(
 		int			trans_id,
 		long		conn_id )
 	{
-		super( DHTUDPPacket.ACT_REPLY_PING, trans_id, conn_id );
+		super( DHTUDPPacket.ACT_REPLY_STORE, trans_id, conn_id );
 	}
 	
 	protected
-	DHTUDPPacketReplyPing(
+	DHTUDPPacketReplyStore(
 		DataInputStream		is,
 		int					trans_id )
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacket.ACT_REPLY_PING, trans_id );
+		super( is, DHTUDPPacket.ACT_REPLY_STORE, trans_id );
 	}
 	
 	public void

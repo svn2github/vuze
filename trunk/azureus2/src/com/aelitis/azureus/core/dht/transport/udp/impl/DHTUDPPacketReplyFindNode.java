@@ -28,26 +28,33 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 import java.io.*;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+
 public class 
-DHTUDPPacketReplyPing
+DHTUDPPacketReplyFindNode
 	extends DHTUDPPacketReply
-{
+{	
+	private DHTTransportContact[]	contacts;
+	
 	public
-	DHTUDPPacketReplyPing(
+	DHTUDPPacketReplyFindNode(
 		int			trans_id,
 		long		conn_id )
 	{
-		super( DHTUDPPacket.ACT_REPLY_PING, trans_id, conn_id );
+		super( DHTUDPPacket.ACT_REPLY_FIND_NODE, trans_id, conn_id );
 	}
 	
 	protected
-	DHTUDPPacketReplyPing(
-		DataInputStream		is,
-		int					trans_id )
+	DHTUDPPacketReplyFindNode(
+		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
+		DataInputStream			is,
+		int						trans_id )
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacket.ACT_REPLY_PING, trans_id );
+		super( is, DHTUDPPacket.ACT_REPLY_FIND_NODE, trans_id );
+		
+		contacts = DHTUDPUtils.deserialiseContacts( transport, is );
 	}
 	
 	public void
@@ -57,5 +64,26 @@ DHTUDPPacketReplyPing
 		throws IOException
 	{
 		super.serialise(os);
+		
+		DHTUDPUtils.serialiseContacts( os, contacts );
+	}
+	
+	protected void
+	setContacts(
+		DHTTransportContact[]	_contacts )
+	{
+		contacts	= _contacts;
+	}
+	
+	protected DHTTransportContact[]
+	getContacts()
+	{
+		return( contacts );
+	}
+	
+	public String
+	getString()
+	{
+		return( super.getString() + ",contacts=" + (contacts==null?"null":(""+contacts.length ))); 
 	}
 }

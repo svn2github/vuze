@@ -73,6 +73,93 @@ Test
 					}
 				});
 			
+			c1.sendStore(
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						storeReply(
+							DHTTransportContact contact )
+						{
+							System.out.println( "store reply" );
+						}
+						
+						public void
+						failed(
+							DHTTransportContact 	contact )
+						{
+							System.out.println( "store failed" );
+						}
+					},
+					new byte[23],
+					new DHTTransportValue()
+					{
+						public int
+						getCacheDistance()
+						{
+							return( 1 );
+						}
+						
+						public long
+						getCreationTime()
+						{
+							return( 2 );
+						}
+						
+						public byte[]
+						getValue()
+						{
+							return( "sdsd".getBytes());
+						}
+					});
+			
+			c1.sendFindNode(
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						findNodeReply(
+							DHTTransportContact 	contact,
+							DHTTransportContact[] 	contacts )
+						{
+							System.out.println( "findNode reply" );
+						}
+						
+						public void
+						failed(
+							DHTTransportContact 	contact )
+						{
+							System.out.println( "findNode failed" );
+						}
+					},
+					new byte[12]);
+			
+			c1.sendFindValue(
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						findValueReply(
+							DHTTransportContact 	contact,
+							DHTTransportContact[] 	contacts )
+						{
+							System.out.println( "findValue contacts reply" );
+						}
+						
+						public void
+						findValueReply(
+							DHTTransportContact 	contact,
+							DHTTransportValue 		value )
+						{
+							System.out.println( "findValue value reply" );
+						}
+						
+						public void
+						failed(
+							DHTTransportContact 	contact )
+						{
+							System.out.println( "findValue failed" );
+						}
+					},
+					new byte[3]);
+			
 			Thread.sleep(1000000);
 		}catch( Throwable e ){
 			
@@ -103,7 +190,7 @@ Test
 	{
 		System.out.println( "TransportHandler: findNode" );
 		
-		return( null );
+		return( new DHTTransportContact[]{ contact } );
 	}
 	
 	public Object
@@ -113,7 +200,7 @@ Test
 	{
 		System.out.println( "TransportHandler: findValue" );
 		
-		return( null );
+		return( new DHTTransportContact[]{ contact } );
 	}
 
 	public void

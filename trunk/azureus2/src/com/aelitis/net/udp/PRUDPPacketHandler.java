@@ -77,4 +77,7 @@ PRUDPPacketHandler
 		InetSocketAddress			destination_address )
 	
 		throws PRUDPPacketHandlerException;
+	
+	public PRUDPRequestHandler
+	getRequestHandler();
 }

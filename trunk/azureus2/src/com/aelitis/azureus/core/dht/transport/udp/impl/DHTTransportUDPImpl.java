@@ -71,6 +71,9 @@ DHTTransportUDPImpl
 	{
 		max_fails	= _max_fails;
 		
+			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
+			// if you change it :)
+		
 		packet_handler = PRUDPPacketHandlerFactory.getHandler( _port, this );		
 
 			// TODO: ascertain correct external IP address
@@ -221,10 +224,10 @@ DHTTransportUDPImpl
 	
 	public void
 	sendStore(
-		final DHTTransportContact		contact,
-		final DHTTransportReplyHandler	handler,
-		final byte[]					key,
-		final DHTTransportValue			value )
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler,
+		final byte[]						key,
+		final DHTTransportValue				value )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -241,23 +244,79 @@ DHTTransportUDPImpl
 	
 	public void
 	sendStoreSupport(
-		DHTTransportContact			contact,
-		DHTTransportReplyHandler	handler,
-		byte[]						key,
-		DHTTransportValue			value )
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler,
+		byte[]								key,
+		DHTTransportValue					value )
 	{
 		stats.storeSent();
 		
-
+		final long	connection_id = getConnectionID();
+		
+		try{
+			DHTUDPPacketRequestStore	request = new DHTUDPPacketRequestStore( connection_id );
+			
+			request.setKey( key );
+			
+			request.setValue( value );
+			
+			packet_handler.sendAndReceive(
+				request,
+				contact.getAddress(),
+				new PRUDPPacketReceiver()
+				{
+					public void
+					packetReceived(
+						PRUDPPacket			packet,
+						InetSocketAddress	from_address )
+					{
+						try{
+							DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
+							
+							if ( reply.getConnectionId() != connection_id ){
+								
+								throw( new Exception( "connection id mismatch" ));
+							}
+						
+							stats.storeOK();
+							
+							handler.storeReply( contact );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+							
+							stats.storeFailed();
+							
+							handler.failed( contact );
+						}
+					}
+					
+					public void
+					error(
+						PRUDPPacketHandlerException	e )
+					{
+						stats.storeFailed();
+						
+						handler.failed( contact );
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			stats.storeFailed();
+			
+			handler.failed( contact );
+		}
 	}
 	
 		// FIND NODE
 	
 	public void
 	sendFindNode(
-		final DHTTransportContact		contact,
-		final DHTTransportReplyHandler	handler,
-		final byte[]					nid )
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler,
+		final byte[]						nid )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -274,22 +333,76 @@ DHTTransportUDPImpl
 	
 	public void
 	sendFindNodeSupport(
-		DHTTransportContact			contact,
-		DHTTransportReplyHandler	handler,
-		byte[]						nid )
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler,
+		byte[]								nid )
 	{
 		stats.findNodeSent();
 		
-
+		final long	connection_id = getConnectionID();
+		
+		try{
+			DHTUDPPacketRequestFindNode	request = new DHTUDPPacketRequestFindNode( connection_id );
+			
+			request.setID( nid );
+			
+			packet_handler.sendAndReceive(
+				request,
+				contact.getAddress(),
+				new PRUDPPacketReceiver()
+				{
+					public void
+					packetReceived(
+						PRUDPPacket			packet,
+						InetSocketAddress	from_address )
+					{
+						try{
+							DHTUDPPacketReplyFindNode	reply = (DHTUDPPacketReplyFindNode)packet;
+							
+							if ( reply.getConnectionId() != connection_id ){
+								
+								throw( new Exception( "connection id mismatch" ));
+							}
+						
+							stats.findNodeOK();
+							
+							handler.findNodeReply( contact, reply.getContacts());
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+							
+							stats.findNodeFailed();
+							
+							handler.failed( contact );
+						}
+					}
+					
+					public void
+					error(
+						PRUDPPacketHandlerException	e )
+					{
+						stats.findNodeFailed();
+						
+						handler.failed( contact );
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			stats.findNodeFailed();
+			
+			handler.failed( contact );
+		}
 	}
 	
 		// FIND VALUE
 	
 	public void
 	sendFindValue(
-		final DHTTransportContact		contact,
-		final DHTTransportReplyHandler	handler,
-		final byte[]					key )
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler,
+		final byte[]						key )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -306,12 +419,75 @@ DHTTransportUDPImpl
 	
 	public void
 	sendFindValueSupport(
-		DHTTransportContact			contact,
-		DHTTransportReplyHandler	handler,
-		byte[]						key )
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler,
+		byte[]								key )
 	{
 		stats.findValueSent();
 
+		final long	connection_id = getConnectionID();
+		
+		try{
+			DHTUDPPacketRequestFindValue	request = new DHTUDPPacketRequestFindValue( connection_id );
+			
+			request.setID( key );
+			
+			packet_handler.sendAndReceive(
+				request,
+				contact.getAddress(),
+				new PRUDPPacketReceiver()
+				{
+					public void
+					packetReceived(
+						PRUDPPacket			packet,
+						InetSocketAddress	from_address )
+					{
+						try{
+							DHTUDPPacketReplyFindValue	reply = (DHTUDPPacketReplyFindValue)packet;
+							
+							if ( reply.getConnectionId() != connection_id ){
+								
+								throw( new Exception( "connection id mismatch" ));
+							}
+						
+							stats.findValueOK();
+							
+							DHTTransportValue	res = reply.getValue();
+							
+							if ( res != null ){
+								
+								handler.findValueReply( contact, res );
+								
+							}else{
+								
+								handler.findValueReply( contact, reply.getContacts());
+							}
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+							
+							stats.findValueFailed();
+							
+							handler.failed( contact );
+						}
+					}
+					
+					public void
+					error(
+						PRUDPPacketHandlerException	e )
+					{
+						stats.findValueFailed();
+						
+						handler.failed( contact );
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			stats.findValueFailed();
+			
+			handler.failed( contact );
+		}
 	}
 	
 	public void
@@ -321,10 +497,12 @@ DHTTransportUDPImpl
 		System.out.println( "got request: " + request.getString() + " from " + request.getAddress());
 		
 		try{
+			
+			DHTTransportContact	originating_contact = new DHTTransportUDPContactImpl( this, request.getAddress());
+			
 			if ( request instanceof DHTUDPPacketRequestPing ){
 				
-				request_handler.pingRequest(
-					new DHTTransportUDPContactImpl( this, request.getAddress()));
+				request_handler.pingRequest( originating_contact );
 				
 				DHTUDPPacketReplyPing	reply = 
 					new DHTUDPPacketReplyPing(
@@ -332,6 +510,66 @@ DHTTransportUDPImpl
 							request.getConnectionId());
 				
 				packet_handler.send( reply, request.getAddress());
+				
+			}else if ( request instanceof DHTUDPPacketRequestStore ){
+				
+				DHTUDPPacketRequestStore	store_request = (DHTUDPPacketRequestStore)request;
+				
+				request_handler.storeRequest(
+						originating_contact, 
+						store_request.getKey(), 
+						store_request.getValue());
+				
+				DHTUDPPacketReplyStore	reply = 
+					new DHTUDPPacketReplyStore(
+							request.getTransactionId(),
+							request.getConnectionId());
+				
+				packet_handler.send( reply, request.getAddress());
+				
+			}else if ( request instanceof DHTUDPPacketRequestFindNode ){
+				
+				DHTUDPPacketRequestFindNode	find_request = (DHTUDPPacketRequestFindNode)request;
+				
+				DHTTransportContact[] res = 
+					request_handler.findNodeRequest(
+								originating_contact,
+								find_request.getID());
+				
+				DHTUDPPacketReplyFindNode	reply = 
+					new DHTUDPPacketReplyFindNode(
+							request.getTransactionId(),
+							request.getConnectionId());
+							
+				reply.setContacts( res );
+				
+				packet_handler.send( reply, request.getAddress());
+				
+			}else if ( request instanceof DHTUDPPacketRequestFindValue ){
+				
+				DHTUDPPacketRequestFindValue	find_request = (DHTUDPPacketRequestFindValue)request;
+			
+				Object res = 
+					request_handler.findValueRequest(
+								originating_contact,
+								find_request.getID());
+				
+				DHTUDPPacketReplyFindValue	reply = 
+					new DHTUDPPacketReplyFindValue(
+						request.getTransactionId(),
+						request.getConnectionId());
+				
+				if ( res instanceof DHTTransportValue ){
+					
+					reply.setValue((DHTTransportValue)res);
+
+				}else{
+					
+					reply.setContacts((DHTTransportContact[])res );
+				}
+				
+				packet_handler.send( reply, request.getAddress());
+				
 			}else{
 				
 				Debug.out( "Unexpected packet:" + request.toString());

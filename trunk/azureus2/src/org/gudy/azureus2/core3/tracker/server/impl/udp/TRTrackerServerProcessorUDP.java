@@ -126,7 +126,7 @@ TRTrackerServerProcessorUDP
 		try{
 			String	client_ip_address = packet.getAddress().getHostAddress();
 			
-			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( is );
+			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( null, is );
 			
 			LGLogger.log( "TRTrackerServerProcessorUDP: packet received: " + request.getString()); 
 			

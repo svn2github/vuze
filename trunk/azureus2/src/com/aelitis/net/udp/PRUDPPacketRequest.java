@@ -97,6 +97,7 @@ PRUDPPacketRequest
 	
 	public static PRUDPPacketRequest
 	deserialiseRequest(
+		PRUDPPacketHandler	handler,
 		DataInputStream		is )
 	
 		throws IOException
@@ -112,7 +113,7 @@ PRUDPPacketRequest
 			throw( new IOException( "No decoder registered for action '" + action + "'" ));
 		}
 
-		return( decoder.decode( is, connection_id, action, transaction_id ));
+		return( decoder.decode( handler, is, connection_id, action, transaction_id ));
 	}
 	
 	public String

@@ -98,6 +98,12 @@ PRUDPPacketHandlerImpl
 		request_handler	= _request_handler;
 	}
 	
+	public PRUDPRequestHandler
+	getRequestHandler()
+	{
+		return( request_handler );
+	}
+	
 	protected void
 	receiveLoop(
 		AESemaphore	init_sem )
@@ -248,6 +254,7 @@ PRUDPPacketHandlerImpl
 				request_packet	= false;
 				
 				packet = PRUDPPacketReply.deserialiseReply( 
+					this,
 					new DataInputStream(new ByteArrayInputStream( packet_data, 0, dg_packet.getLength())));
 				
 			}else{
@@ -255,6 +262,7 @@ PRUDPPacketHandlerImpl
 				request_packet	= true;
 				
 				packet = PRUDPPacketRequest.deserialiseRequest( 
+						this,
 						new DataInputStream(new ByteArrayInputStream( packet_data, 0, dg_packet.getLength())));
 		
 			}
