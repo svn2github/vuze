@@ -279,7 +279,7 @@ public class ConfigView extends AbstractIView {
           sc.setExpandVertical(true);
           sc.setLayoutData(new GridData(GridData.FILL_BOTH));
   
-          //Composite c = ((ConfigSectionSWT)section).configSectionCreate(sc);
+          Composite c = ((ConfigSectionSWT)section).configSectionCreate(sc);
   
           String	section_key = name;
           
@@ -302,7 +302,7 @@ public class ConfigView extends AbstractIView {
           treeItem.setData("ID", name);
           treeItem.setData("ConfigSectionSWT", section);
           
-          //sc.setContent(c);
+          sc.setContent(c);
         } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "ConfigSection plugin '" + name + "' caused an error");
           Debug.printStackTrace( e );
