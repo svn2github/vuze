@@ -2274,17 +2274,18 @@ TRTrackerBTAnnouncerImpl
 			// really should refactor so that "normal" and "external" mechanisms are
 			// just instances of the same generic approach
 		
-		TRTrackerAnnouncerResponseImpl response;
+		TRTrackerAnnouncerResponseImpl 	response;
+		String							status;
 		
 		if ( result.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
 			
-			tracker_status_str = MessageText.getString("PeerManager.status.error"); 
+			status = MessageText.getString("PeerManager.status.error"); 
 		      
 			String	reason = result.getError();
 	
 			if ( reason != null ){
 		
-				tracker_status_str += " (" + reason + ")";		
+				status += " (" + reason + ")";		
 			}
 			
 	  		response = new TRTrackerAnnouncerResponseImpl(
@@ -2311,12 +2312,18 @@ TRTrackerBTAnnouncerImpl
 			
 			addToTrackerCache( peers);
 		
-			tracker_status_str = MessageText.getString("PeerManager.status.ok");
+			status = MessageText.getString("PeerManager.status.ok");
 
 			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
 		}
 		
-		last_response = response;
+			// only make the user aware of the status if the underlying announce is
+			// failing
+		
+		if ( last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ){
+			
+			tracker_status_str	= status + " (" + result.getURL() + ")";
+		}
 		
 		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
 	}

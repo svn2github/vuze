@@ -90,15 +90,20 @@ TRTrackerBTScraperImpl
 			TRTrackerScraperResponseImpl resp =
 				tracker_checker.getHashData( torrent, torrent.getAnnounceURL());
 			
-			resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
+				// only override details if underlying scrape is failing
 			
-			resp.setStatus( 
-					result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
-							TRTrackerScraperResponse.ST_ONLINE:
-							TRTrackerScraperResponse.ST_ERROR,
-					result.getStatus()); 
-		
-			scraper.scrapeReceived( resp );
+			if ( resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
+				
+				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
+			
+				resp.setStatus( 
+						result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
+								TRTrackerScraperResponse.ST_ONLINE:
+								TRTrackerScraperResponse.ST_ERROR,
+						result.getStatus() + " (" + result.getURL() + ")"); 
+			
+				scraper.scrapeReceived( resp );
+			}
 		}
 	}
 	

@@ -74,6 +74,18 @@ DHTTrackerPlugin
 	private static final int	ANNOUNCE_MAX		= 60*60*1000;
 	
 	private static final int	NUM_WANT			= 35;	// Limit to ensure replies fit in 1 packet
+
+	private static URL	DEFAULT_URL;
+	
+	static{
+		try{
+			DEFAULT_URL = new URL( "dht:" );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
 	
 	private PluginInterface		plugin_interface;
 	
@@ -87,6 +99,7 @@ DHTTrackerPlugin
 	private LoggerChannel		log;
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DHTTrackerPlugin" );
+
 
 	public void
 	initialize(
@@ -579,7 +592,11 @@ DHTTrackerPlugin
 				}
 				
 				final long	start = SystemTime.getCurrentTime();
-								
+					
+				Torrent	torrent = dl.getTorrent();
+				
+				final URL	url_to_report = torrent.isDecentralised()?torrent.getAnnounceURL():DEFAULT_URL;
+				
 				dht.get(dl.getTorrent().getHash(), 
 						dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 						NUM_WANT, 
@@ -725,7 +742,7 @@ DHTTrackerPlugin
 												public URL
 												getURL()
 												{
-													return( dl.getTorrent().getAnnounceURL());
+													return( url_to_report );
 												}
 												
 												public DownloadAnnounceResultPeer[]
@@ -791,7 +808,7 @@ DHTTrackerPlugin
 										public URL
 										getURL()
 										{
-											return( dl.getTorrent().getAnnounceURL());
+											return( url_to_report );
 										}
 									});
 								}
@@ -848,7 +865,13 @@ DHTTrackerPlugin
 					state == Download.ST_QUEUED ){	// included queued here for the mo to avoid lots
 													// of thrash for torrents that flip a lot
 				
-				if ( !running_downloads.contains( download )){
+				if ( running_downloads.contains( download )){
+					
+						// force requery
+					
+					query_map.put( download, new Long( SystemTime.getCurrentTime()));
+					
+				}else{
 					
 					running_downloads.add( download );
 				}
