@@ -44,6 +44,8 @@ ResourceDownloaderImpl
 	protected InputStream 	input_stream;
 	protected boolean		cancel_download	= false;
 	
+	protected boolean		download_initiated;
+	
 	public 
 	ResourceDownloaderImpl(
 		String		_url )
@@ -91,6 +93,16 @@ ResourceDownloaderImpl
 		throws ResourceDownloaderException
 	{
 		try{
+			synchronized( this ){
+				
+				if ( download_initiated ){
+					
+					throw( new ResourceDownloaderException("Download already initiated"));
+				}
+				
+				download_initiated	= true;
+			}
+			
 			try{
 				URL	url = new URL( original_url.replaceAll( " ", "%20" ));
 			      

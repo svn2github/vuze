@@ -20,24 +20,39 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf.impl;
+package org.gudy.azureus2.core3.html.impl;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.pluginsimpl.update.sf.*;
+import org.gudy.azureus2.core3.html.*;
 
 public class 
-Test 
+HTMLTableRowImpl
+	extends		HTMLChunkImpl
+	implements 	HTMLTableRow
 {
-	public static void
-	main(
-		String[]	args )
+	protected
+	HTMLTableRowImpl(
+		String	str )
 	{
-		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.create();
+		super(str);
+	}
+	
+	public HTMLTableCell[]
+	getCells()
+	{
+		String[]	rows = getTagPairContent("td");
 		
-		dl.load();
+		HTMLTableCellImpl[]	res = new HTMLTableCellImpl[ rows.length ];
+		
+		for (int i=0;i<rows.length;i++){
+			
+			res[i] = new HTMLTableCellImpl( rows[i] );
+		}
+		
+		return( res );
 	}
 }

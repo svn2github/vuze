@@ -33,10 +33,9 @@ import org.gudy.azureus2.core3.html.*;
 
 public class 
 HTMLPageImpl
+	extends HTMLChunkImpl
 	implements HTMLPage
 {
-	String		content;
-	
 	public
 	HTMLPageImpl(
 		InputStream		is )
@@ -63,7 +62,7 @@ HTMLPageImpl
 				res.append( line );
 			}
 			
-			content	= res.toString();
+			setContent( res.toString());
 			
 		}catch( IOException e ){
 			
@@ -85,9 +84,5 @@ HTMLPageImpl
 		}
 	}
 	
-	public String
-	getContent()
-	{
-		return( content );
-	}
+
 }

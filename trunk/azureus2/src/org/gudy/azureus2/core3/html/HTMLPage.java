@@ -27,8 +27,7 @@ package org.gudy.azureus2.core3.html;
  *
  */
 public interface 
-HTMLPage 
+HTMLPage
+	extends HTMLChunk
 {
-	public String
-	getContent();
 }

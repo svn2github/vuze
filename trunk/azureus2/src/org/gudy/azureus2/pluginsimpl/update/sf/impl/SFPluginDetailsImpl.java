@@ -30,14 +30,21 @@ package org.gudy.azureus2.pluginsimpl.update.sf.impl;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 public class 
-Test 
+SFPluginDetailsImpl
+	implements SFPluginDetails
 {
-	public static void
-	main(
-		String[]	args )
+	protected String		name;
+	protected String		version;
+	
+	public String
+	getName()
 	{
-		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.create();
-		
-		dl.load();
+		return( name );
+	}
+	
+	public String
+	getVersion()
+	{
+		return( version );
 	}
 }

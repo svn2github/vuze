@@ -20,24 +20,21 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf.impl;
+package org.gudy.azureus2.pluginsimpl.update.sf;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.pluginsimpl.update.sf.*;
+import org.gudy.azureus2.pluginsimpl.update.sf.impl.*;
 
 public class 
-Test 
+SFPluginDetailsLoaderFactory 
 {
-	public static void
-	main(
-		String[]	args )
+	public static SFPluginDetailsLoader
+	create()
 	{
-		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.create();
-		
-		dl.load();
+		return( new SFPluginDetailsLoaderImpl());
 	}
 }

@@ -20,36 +20,39 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf.impl;
+package org.gudy.azureus2.core3.html.impl;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.resourcedownloader.*;
 import org.gudy.azureus2.core3.html.*;
 
 public class 
-SFPluginDetailsLoader 
-{
-	public static final String	page_url = "http://azureus.sourceforge.net/plugin_list.php";
-	
-	public
-	SFPluginDetailsLoader()
+HTMLTableImpl
+	extends		HTMLChunkImpl
+	implements 	HTMLTable
+{	
+	protected
+	HTMLTableImpl(
+		String	_content )
 	{
-		ResourceDownloader dl = ResourceDownloaderFactory.create( page_url );
+		super( _content );
+	}
+	
+	public HTMLTableRow[]
+	getRows()
+	{
+		String[]	rows = getTagPairContent("tr");
 		
-		dl = ResourceDownloaderFactory.getRetryDownloader( dl, 5 );
+		HTMLTableRowImpl[]	res = new HTMLTableRowImpl[ rows.length ];
 		
-		try{
-			HTMLPage	page = HTMLPageFactory.loadPage( dl.download());
+		for (int i=0;i<rows.length;i++){
 			
-			System.out.println( "content = " + page.getContent());
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
+			res[i] = new HTMLTableRowImpl( rows[i] );
 		}
+		
+		return( res );
 	}
 }

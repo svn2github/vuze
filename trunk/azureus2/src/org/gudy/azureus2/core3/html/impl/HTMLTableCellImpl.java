@@ -20,24 +20,24 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf.impl;
+package org.gudy.azureus2.core3.html.impl;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.pluginsimpl.update.sf.*;
+import org.gudy.azureus2.core3.html.*;
 
 public class 
-Test 
+HTMLTableCellImpl 
+	extends		HTMLChunkImpl
+	implements 	HTMLTableCell
 {
-	public static void
-	main(
-		String[]	args )
+	protected
+	HTMLTableCellImpl(
+		String	str )
 	{
-		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.create();
-		
-		dl.load();
+		super(str);
 	}
 }

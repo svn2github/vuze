@@ -20,24 +20,17 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf.impl;
+package org.gudy.azureus2.core3.html;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.pluginsimpl.update.sf.*;
-
-public class 
-Test 
+public interface 
+HTMLTable 
+	extends HTMLChunk
 {
-	public static void
-	main(
-		String[]	args )
-	{
-		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.create();
-		
-		dl.load();
-	}
+	public HTMLTableRow[]
+	getRows();
 }
