@@ -156,10 +156,10 @@ public class Torrent implements IConsoleCommand {
 					int number = Integer.parseInt(subcommand);
 					if ((number > 0) && (number <= ci.torrents.size())) {
 						dm = (DownloadManager) ci.torrents.get(number - 1);
-						if (dm.getName() == null)
+						if (dm.getDisplayName() == null)
 							name = "?";
 						else
-							name = dm.getName();
+							name = dm.getDisplayName();
 						if (performTorrentCommand(ci, command, dm))
 							ci.out.println("> " + actions[command] + " Torrent #" + subcommand + " (" + name + ") succeeded.");
 						else
@@ -172,10 +172,10 @@ public class Torrent implements IConsoleCommand {
 						int nr = 0;
 						while (torrent.hasNext()) {
 							dm = (DownloadManager) torrent.next();
-							if (dm.getName() == null)
+							if (dm.getDisplayName() == null)
 								name = "?";
 							else
-								name = dm.getName();
+								name = dm.getDisplayName();
 							if (performTorrentCommand(ci, command, dm))
 								ci.out.println("> " + actions[command] + " Torrent #" + subcommand + " (" + name + ") succeeded.");
 							else
@@ -190,10 +190,10 @@ public class Torrent implements IConsoleCommand {
 							while (torrent.hasNext()) {
 								dm = (DownloadManager) torrent.next();
 								if (hash.equals(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true))) {
-									if (dm.getName() == null)
+									if (dm.getDisplayName() == null)
 										name = "?";
 									else
-										name = dm.getName();
+										name = dm.getDisplayName();
 									if (performTorrentCommand(ci, command, dm))
 										ci.out.println("> " + actions[command] + " Torrent " + hash + " (" + name + ") succeeded.");
 									else

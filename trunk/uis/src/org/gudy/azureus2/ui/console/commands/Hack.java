@@ -184,7 +184,7 @@ public class Hack implements IConsoleCommand {
 							return;
 						}
 						client.setTrackerUrl(sSubcommands[commandoffset+2]);
-						ci.out.println("> Set Tracker URL for '"+dm.getFullName()+"' to '"+sSubcommands[commandoffset+2]+"'");
+						ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+sSubcommands[commandoffset+2]+"'");
 					} else if (trackercommand.equalsIgnoreCase("host") || trackercommand.equalsIgnoreCase("h")) {
 						//ci.out.println("> Command 'hack': Debug: host");
 						if (sSubcommands.length < (commandoffset + 2)) {
@@ -195,7 +195,7 @@ public class Hack implements IConsoleCommand {
 						try {
 							URI unew = new URI(uold.getScheme(), uold.getUserInfo(), sSubcommands[commandoffset+2], uold.getPort(), uold.getPath(), uold.getQuery(), uold.getFragment());
 							client.setTrackerUrl(unew.toString());
-							ci.out.println("> Set Tracker URL for '"+dm.getFullName()+"' to '"+unew.toString()+"'");
+							ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+unew.toString()+"'");
 						} catch (Exception e) {
 							ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
 							return;
@@ -210,7 +210,7 @@ public class Hack implements IConsoleCommand {
 						try {
 							URI unew = new URI(uold.getScheme(), uold.getUserInfo(), uold.getHost(), Integer.parseInt(sSubcommands[commandoffset+2]), uold.getPath(), uold.getQuery(), uold.getFragment());
 							client.setTrackerUrl(unew.toString());
-							ci.out.println("> Set Tracker URL for '"+dm.getFullName()+"' to '"+unew.toString()+"'");
+							ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+unew.toString()+"'");
 						} catch (Exception e) {
 							ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
 							return;
@@ -223,7 +223,7 @@ public class Hack implements IConsoleCommand {
 							return;
 						}
 						client.setTrackerUrl(sSubcommands[commandoffset+1]);
-						ci.out.println("> Set Tracker URL for '"+dm.getFullName()+"' to '"+sSubcommands[commandoffset+1]+"'");
+						ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+sSubcommands[commandoffset+1]+"'");
 					}
 				} catch (Exception e) {
 					ci.out.println("> Command 'hack': Exception while parsing command parameter '" + sSubcommands[commandoffset] + "': " + e.getMessage());

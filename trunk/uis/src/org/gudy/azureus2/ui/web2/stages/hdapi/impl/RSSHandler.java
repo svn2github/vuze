@@ -129,10 +129,10 @@ public class RSSHandler implements httpRequestHandlerIF {
 				if (dmstate == DownloadManager.STATE_ERROR)
 					response += dm.getErrorDetails();
 				else {
-					if (dm.getName() == null)
+					if (dm.getDisplayName() == null)
 						response += "?";
 					else
-						response += dm.getName();
+						response += dm.getDisplayName();
 				}
 				response += "</span> (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") <i><b>ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "</b></i><br>\t\tSpeed: ";
 				response += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ";

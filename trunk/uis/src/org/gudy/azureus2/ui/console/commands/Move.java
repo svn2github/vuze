@@ -46,10 +46,10 @@ public class Move implements IConsoleCommand {
 					int number = Math.abs(ncommand);
 					if ((number > 0) && (number <= ci.torrents.size())) {
 						dm = (DownloadManager) ci.torrents.get(number - 1);
-						if (dm.getName() == null)
+						if (dm.getDisplayName() == null)
 							name = "?";
 						else
-							name = dm.getName();
+							name = dm.getDisplayName();
 						if (moveto) {
 							ci.gm.moveTo(dm, nmoveto - 1);
 							ci.gm.fixUpDownloadManagerPositions();

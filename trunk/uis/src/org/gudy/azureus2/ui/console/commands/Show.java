@@ -144,10 +144,10 @@ public class Show implements IConsoleCommand {
 							if (dmstate == DownloadManager.STATE_ERROR)
 								tstate += dm.getErrorDetails();
 							else {
-								if (dm.getName() == null)
+								if (dm.getDisplayName() == null)
 									tstate += "?";
 								else
-									tstate += dm.getName();
+									tstate += dm.getDisplayName();
 							}
 							tstate += " (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA());
 							tstate += "\r\n";
@@ -212,10 +212,10 @@ public class Show implements IConsoleCommand {
 						DownloadManager dm;
 						if ((number > 0) && (number <= ci.torrents.size())) {
 							dm = (DownloadManager) ci.torrents.get(number - 1);
-							if (dm.getName() == null)
+							if (dm.getDisplayName() == null)
 								name = "?";
 							else
-								name = dm.getName();
+								name = dm.getDisplayName();
 							TRTrackerClient trackerclient = dm.getTrackerClient();
 							ci.out.println("> -----");
 							ci.out.println("Info on Torrent #" + sSubcommands[0] + " (" + name + ")");

@@ -518,10 +518,10 @@ public class Jhttpp2HTTPSession extends Thread {
         try {
           h.put("Torrents_Torrent_FileSizeDone", DisplayFormatters.formatByteCountToKiBEtc((((long) stats.getCompleted())*((long) dm.getSize()))/1000));
         } catch (ArithmeticException e) {}
-        if (dm.getName()==null)
+        if (dm.getDisplayName()==null)
           h.put("Torrents_Torrent_FileName", "?");
         else
-          h.put("Torrents_Torrent_FileName", dm.getName());
+          h.put("Torrents_Torrent_FileName", dm.getDisplayName());
         if (dmstate == DownloadManager.STATE_ERROR)
           h.put("Torrents_Torrent_Error", dm.getErrorDetails());
         h.put("Torrents_Torrent_Status", Jhttpp2HTTPSession.status.get(new Integer(dmstate)));
