@@ -24,6 +24,7 @@ import java.util.StringTokenizer;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Point;
 
 /**
  * @author Olivier Chalouhi
@@ -31,42 +32,69 @@ import org.eclipse.swt.graphics.Rectangle;
  */
 public class GCStringPrinter {
   
-  public static void printString(GC gc,String string,Rectangle printArea) {
+  public static boolean printString(GC gc,String string,Rectangle printArea) {
     int x0 = printArea.x;
     int y0 = printArea.y;
-    int width = printArea.width;
-    int height = printArea.height;
+    int height = 0;
     Rectangle oldClipping = gc.getClipping();
 
     //Protect the GC from drawing outside the drawing area
     gc.setClipping(printArea);    
     
     //We need to add some cariage return ...
-    StringTokenizer st = new StringTokenizer(string," ");
+    String sTabsReplaced = string.replaceAll("\t", "  ");
+
     StringBuffer outputLine = new StringBuffer();
-    String space = "";  
-    int length = 0;
-    while(st.hasMoreElements()) {      
-      String word = st.nextToken();
-      length += getAdvanceWith(gc,word + " ");
-      //System.out.println(outputLine + " : " + word + " : " + length);
-      if(length > width) {
-        length = getAdvanceWith(gc,word);
-        space = "\n";
+
+    // Process string line by line
+    StringTokenizer stLine = new StringTokenizer(sTabsReplaced,"\n");
+    while(stLine.hasMoreElements()) {      
+      int iLineHeight = 0;
+      String sLine = stLine.nextToken();
+      if (gc.stringExtent(sLine).x > printArea.width) {
+        //System.out.println("Line: "+ sLine);
+        StringTokenizer stWord = new StringTokenizer(sLine, " ");
+        String space = "";  
+        int iLineLength = 0;
+        iLineHeight = gc.stringExtent(" ").y;
+  
+        // Process line word by word
+        while(stWord.hasMoreElements()) {      
+          String word = stWord.nextToken();
+          Point ptWordSize = gc.stringExtent(word + " ");
+          iLineLength += ptWordSize.x;
+          //System.out.println(outputLine + " : " + word + " : " + iLineLength);
+          if(iLineLength > printArea.width) {
+            iLineLength = ptWordSize.x;
+            height += iLineHeight;
+            iLineHeight = ptWordSize.y;
+            space = "\n";
+          }
+          if (iLineHeight < ptWordSize.y)
+            iLineHeight = ptWordSize.y;
+           
+          outputLine.append(space + word);            
+          space = " ";
+        }
+      } else {
+        outputLine.append(sLine);
+        iLineHeight = gc.stringExtent(sLine).y;
       }
-      outputLine.append(space + word);            
-      space = " ";
+      outputLine.append("\n");
+      height += iLineHeight;
     }
     
-    gc.drawText(outputLine.toString(),x0,y0,true);        
+    String sOutputLine = outputLine.toString();
+    gc.drawText(sOutputLine,x0,y0,true);        
     gc.setClipping(oldClipping);
+    return height <= printArea.height;
   }
   
-  private static int getAdvanceWith(GC gc,String s) {
+  private static int getAdvanceWidth(GC gc,String s) {
     int result = 0;
     for(int i = 0 ; i < s.length() ; i++) {
       result += gc.getAdvanceWidth(s.charAt(i)) - 1;
     }
     return result;
-  }
+ }
 }
