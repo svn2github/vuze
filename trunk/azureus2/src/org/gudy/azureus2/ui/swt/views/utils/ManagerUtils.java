@@ -39,10 +39,14 @@ import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 public class ManagerUtils {
   
   public static void run(DownloadManager dm) {
-    Program.launch(dm.getFullName());
+    if(dm != null) {
+      Program.launch(dm.getFullName());
+    }
   }
   
   public static boolean isStartable(DownloadManager dm) {
+    if(dm == null)
+      return false;
     int state = dm.getState();
     if (state != DownloadManager.STATE_STOPPED) {
       return false;
@@ -51,6 +55,8 @@ public class ManagerUtils {
   }
   
   public static boolean isStopable(DownloadManager dm) {
+    if(dm == null)
+      return false;
     int state = dm.getState();
     if (state == DownloadManager.STATE_STOPPED) {
       return false;
@@ -59,6 +65,8 @@ public class ManagerUtils {
   }
   
   public static boolean isRemoveable(DownloadManager dm) {
+    if(dm == null)
+      return false;
     int state = dm.getState();
     if (state != DownloadManager.STATE_STOPPED
         && state != DownloadManager.STATE_ERROR
@@ -69,6 +77,8 @@ public class ManagerUtils {
   }
   
   public static void host(DownloadManager dm,Composite panel) {
+    if(dm == null)
+      return;
     TOTorrent torrent = dm.getTorrent();
     if (torrent != null) {
       try {
