@@ -116,9 +116,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             Debug.out( "test read error:", t );
           }
           
-          boolean closed = transport.getSocketChannel() == null ? true : false;
 
-          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] is closed=" +closed+ ", test read bytes="+read+", original destroy() trace:", destroyed_trace );
+          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] channel is null=" +(transport.getSocketChannel() == null)+ ", has_been_closed=" +transport.has_been_closed+ ", test read bytes="+read+", original destroy() trace:", destroyed_trace );
           
           try{  Thread.sleep( 100 );  }catch(Throwable t){}
           

@@ -52,7 +52,11 @@ public class TCPTransport {
   private final boolean is_inbound_connection;
   
   private int zero_read_count = 0;
+  
+  
+  public volatile boolean has_been_closed = false;
 
+  
   
   /**
    * Constructor for disconnected transport.
@@ -292,7 +296,7 @@ public class TCPTransport {
    */
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( read_select_failure != null ) {
-      //stopReadSelects();  //TODO
+      //stopReadSelects();  //TODO enable
       throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
     }
     
@@ -462,6 +466,9 @@ public class TCPTransport {
    * Close the transport connection.
    */
   public void close() {
+    
+    has_been_closed = true;
+    
     is_ready_for_write = false;
 
     if( socket_channel != null ){
