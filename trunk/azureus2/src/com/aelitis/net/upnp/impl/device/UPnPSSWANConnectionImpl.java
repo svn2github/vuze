@@ -107,6 +107,10 @@ UPnPSSWANConnectionImpl
 	private UPnPServiceImpl		service;
 	private List				mappings	= new ArrayList();
 	
+		// start off true to avoid logging first of repetitive failures
+	
+	private boolean				last_mapping_check_failed	= true;
+	
 	protected
 	UPnPSSWANConnectionImpl(
 		UPnPServiceImpl		_service )
@@ -134,7 +138,7 @@ UPnPSSWANConnectionImpl
 	checkMappings()
 	
 		throws UPnPException
-	{
+	{		
 		List	mappings_copy;
 		
 		try{
@@ -169,6 +173,21 @@ UPnPSSWANConnectionImpl
 			}
 		}
 		
+		boolean	log	= false;
+
+		if ( mappings_copy.size() > 0 ){
+			
+			if ( !last_mapping_check_failed ){
+				
+				last_mapping_check_failed	= true;
+				
+				log	= true;
+			}
+		}else{
+			
+			last_mapping_check_failed	= false;
+		}
+
 		it = mappings_copy.iterator();
 		
 		while( it.hasNext()){
@@ -176,7 +195,13 @@ UPnPSSWANConnectionImpl
 			portMapping	mapping = (portMapping)it.next();
 		
 			try{
-				service.getDevice().getRootDevice().getUPnP().log( "Re-establishing mapping " + mapping.getString());
+					// some routers appear to continually fail to report the mappings - avoid 
+					// reporting this
+				
+				if ( log ){
+					
+					service.getDevice().getRootDevice().getUPnP().log( "Re-establishing mapping " + mapping.getString());
+				}
 
 				addPortMapping(  mapping.isTCP(), mapping.getExternalPort(), mapping.getDescription());
 				
