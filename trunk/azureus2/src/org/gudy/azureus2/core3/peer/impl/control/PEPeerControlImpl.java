@@ -742,8 +742,8 @@ PEPeerControlImpl
       if (resumeEnabled) _diskManager.dumpResumeDataToDisk(true, false);
       
       
-      _downloadManager.setState(DownloadManager.STATE_SEEDING);
       _timeStartedSeeding = SystemTime.getCurrentTime();
+      _downloadManager.setState(DownloadManager.STATE_SEEDING);
       
       if ( !looks_like_restart ){
       
