@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
@@ -151,34 +152,45 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemDetails, "MyTorrentsView.menu.showdetails"); //$NON-NLS-1$
     menu.setDefaultItem(itemDetails);
+    itemDetails.setImage(ImageRepository.getImage("stop"));
 
     final MenuItem itemBar = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(itemBar, "MyTorrentsView.menu.showdownloadbar"); //$NON-NLS-1$
-
+    itemBar.setImage(ImageRepository.getImage("stop"));
+    
     new MenuItem(menu, SWT.SEPARATOR);
 
   	final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
   	Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
-  
+    itemOpen.setImage(ImageRepository.getImage("stop"));
+    
   	final MenuItem itemExport = new MenuItem(menu, SWT.PUSH);
   	Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
-  	
+    itemExport.setImage(ImageRepository.getImage("stop"));
+    
   	final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
   	Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
-
+    itemHost.setImage(ImageRepository.getImage("stop"));
+    
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemMove = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemMove, "MyTorrentsView.menu.move"); //$NON-NLS-1$
+    itemMove.setImage(ImageRepository.getImage("stop"));
+    
     final Menu menuMove = new Menu(composite.getShell(), SWT.DROP_DOWN);
-    itemMove.setMenu(menuMove);
+    itemMove.setMenu(menuMove);    
+    
     final MenuItem itemMoveUp = new MenuItem(menuMove, SWT.PUSH);
-    Messages.setLanguageText(itemMoveUp, "MyTorrentsView.menu.moveUp"); //$NON-NLS-1$
+    Messages.setLanguageText(itemMoveUp, "MyTorrentsView.menu.moveUp"); //$NON-NLS-1$    
+    
     final MenuItem itemMoveDown = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveDown, "MyTorrentsView.menu.moveDown"); //$NON-NLS-1$
 
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "MyTorrentsView.menu.setpriority"); //$NON-NLS-1$
+    itemPriority.setImage(ImageRepository.getImage("stop"));
+    
     final Menu menuPriority = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemPriority.setMenu(menuPriority);
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.PUSH);
@@ -192,18 +204,24 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     final MenuItem itemLockStartStop = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(itemLockStartStop, "MyTorrentsView.menu.lockstartstop");
+    itemLockStartStop.setImage(ImageRepository.getImage("stop"));
     
     final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
-
+    itemStart.setImage(ImageRepository.getImage("stop"));
+    
     final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
-
+    itemStop.setImage(ImageRepository.getImage("stop"));
+    
     final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
-
+    itemRemove.setImage(ImageRepository.getImage("stop"));
+    
     final MenuItem itemRemoveAnd = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemRemoveAnd, "MyTorrentsView.menu.removeand"); //$NON-NLS-1$
+    itemRemoveAnd.setImage(ImageRepository.getImage("stop"));
+    
     final Menu menuRemove = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemRemoveAnd.setMenu(menuRemove);
     final MenuItem itemDeleteTorrent = new MenuItem(menuRemove, SWT.PUSH);
@@ -217,7 +235,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     final MenuItem itemChangeTracker = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
-
+    itemChangeTracker.setImage(ImageRepository.getImage("stop"));
+    
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
@@ -538,7 +557,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 			 
 			 if ( torrent != null ){
 			 
-			 	try{
+							 	try{
 			 	
 					TRHostFactory.create().addTorrent( torrent );
 					
