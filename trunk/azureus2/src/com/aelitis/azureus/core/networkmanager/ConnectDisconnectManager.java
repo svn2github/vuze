@@ -108,6 +108,7 @@ public class ConnectDisconnectManager {
 
       String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
       if ( bindIP.length() > 6 ) {
+        System.out.println( "Binding to local IP address: " + bindIP );
         request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
       }
       
@@ -194,7 +195,33 @@ public class ConnectDisconnectManager {
       pending_attempts.put( request, null );
     }
     catch( Throwable t ) {
-      Debug.printStackTrace(t);
+      
+      String full = request.address.toString();
+      String hostname = request.address.getHostName();
+      int port = request.address.getPort();
+      boolean unresolved = request.address.isUnresolved();
+      String full_sub = request.address.getAddress().toString();
+      String host_address = request.address.getAddress().getHostAddress();
+      
+      String msg = "full="+full+ ", hostname="+hostname+ ", port="+port+ ", unresolved="+unresolved+ ", full_sub="+full_sub+ ", host_address="+host_address;
+      if( request.channel != null ) {
+        String channel = request.channel.toString();
+        String socket = request.channel.socket().toString();
+        String local_address = request.channel.socket().getLocalAddress().toString();
+        int local_port = request.channel.socket().getLocalPort();
+           SocketAddress ra = request.channel.socket().getRemoteSocketAddress();
+        String remote_address;
+           if( ra != null )  remote_address = ra.toString();
+           else remote_address = "<null>";
+        int remote_port = request.channel.socket().getPort();
+
+        msg += "\n channel="+channel+ ", socket="+socket+ ", local_address="+local_address+ ", local_port="+local_port+ ", remote_address="+remote_address+ ", remote_port="+remote_port;
+      }
+      
+      Debug.out( msg, t );
+      
+      
+      
       if( request.channel != null ) {
         try{
         	pending_closes_mon.enter();
