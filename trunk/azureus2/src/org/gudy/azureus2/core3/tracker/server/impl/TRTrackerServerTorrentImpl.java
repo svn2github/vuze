@@ -64,7 +64,7 @@ TRTrackerServerTorrentImpl
 		long		uploaded,
 		long		downloaded,
 		long		left,
-		int			num_peers,
+		int			numwant,
 		long		interval_requested )
 	{
 		boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
@@ -124,7 +124,7 @@ TRTrackerServerTorrentImpl
 		
 			peer.setTimeout( System.currentTimeMillis() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
 		
-			peer.setStats( uploaded, downloaded, left, num_peers );
+			peer.setStats( uploaded, downloaded, left, numwant );
 		}
 		
 		stats.addAnnounce();

@@ -881,24 +881,24 @@ TRTrackerClientClassicImpl
     }
     
     if (evt.equals("stopped")){
-    	request.append("&num_peers=0");
+    	request.append("&numwant=0");
     }
     else {
       //calculate how many peers we should ask for
-      int num_peers;
+      int numwant;
       int MAX_PEERS = 100;
       
       if (maxConnections != 0) {
-        num_peers = maxConnections - announce_data_provider.getConnectionCount();
+        numwant = maxConnections - announce_data_provider.getConnectionCount();
         
-        if (num_peers < 0) num_peers = 0;
-        if (num_peers > MAX_PEERS) num_peers = MAX_PEERS;
+        if (numwant < 0) numwant = 0;
+        if (numwant > MAX_PEERS) numwant = MAX_PEERS;
       }
       else {
-        num_peers = MAX_PEERS;
+        numwant = MAX_PEERS;
       }
 
-    	request.append("&num_peers=" + num_peers);
+    	request.append("&numwant=" + numwant);
     }
 	
     String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;

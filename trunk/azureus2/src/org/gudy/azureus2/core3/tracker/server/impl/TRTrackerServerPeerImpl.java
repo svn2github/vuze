@@ -39,7 +39,7 @@ TRTrackerServerPeerImpl
 	protected long			uploaded;
 	protected long			downloaded;
 	protected long			amount_left;
-	protected int			num_peers;
+	protected int			numwant;
 	
 	protected
 	TRTrackerServerPeerImpl(
@@ -106,12 +106,12 @@ TRTrackerServerPeerImpl
 		long		_uploaded,
 		long		_downloaded,
 		long		_amount_left,
-		int			_num_peers )
+		int			_numwant )
 	{
 		uploaded	= _uploaded;
 		downloaded	= _downloaded;
 		amount_left	= _amount_left;
-		num_peers	= _num_peers;
+		numwant	= _numwant;
 	}
 	
 	public long
@@ -135,7 +135,7 @@ TRTrackerServerPeerImpl
 	public int
 	getNumberOfPeers()
 	{
-		return( num_peers );
+		return( numwant );
 	}
 	
 	protected String
