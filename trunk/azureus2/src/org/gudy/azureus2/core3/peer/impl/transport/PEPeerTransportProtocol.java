@@ -164,6 +164,18 @@ PEPeerTransportProtocol
       public void connectSuccess() {  //will be called immediately
         LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
         initializeConnection();
+        
+        /*
+         * Waiting until we've received the initiating-end's full handshake, before sending back our own,
+         * really should be the "proper" behavior.  However, classic BT trackers running NAT checking will
+         * only send the first 48 bytes (up to infohash) of the peer handshake, skipping peerid, which means
+         * we'll never get their complete handshake, and thus never reply, which causes the NAT check to fail.
+         * So, we need to send our handshake earlier, after we've verified the infohash.
+         * NOTE:
+         * This code makes the assumption that the inbound infohash has already been validated,
+         * as we don't check their handshake fully before sending our own.
+         */
+        sendBTHandshake();
       }
       
       public void connectFailure( Throwable failure_msg ) {  //should never happen
@@ -991,9 +1003,17 @@ PEPeerTransportProtocol
     handshake.destroy();
     
     
-    if( incoming ) {  //wait until we've received their handshake before sending ours
-      sendBTHandshake();
-    }
+    /*
+     * Waiting until we've received the initiating-end's full handshake, before sending back our own,
+     * really should be the "proper" behavior.  However, classic BT trackers running NAT checking will
+     * only send the first 48 bytes (up to infohash) of the peer handshake, skipping peerid, which means
+     * we'll never get their complete handshake, and thus never reply, which causes the NAT check to fail.
+     * So, we need to send our handshake earlier, after we've verified the infohash.
+     * 
+      if( incoming ) {  //wait until we've received their handshake before sending ours
+        sendBTHandshake();
+      }
+    */
     
     
     //extended protocol processing
