@@ -95,6 +95,7 @@ PEPeerTransportImpl
     			false ) ;
     
     	socket 			= sck;
+      connected = true;
   	}
   
 	public PEPeerTransport
@@ -129,13 +130,18 @@ PEPeerTransportImpl
 
   
 	protected void closeConnection() {
-	  if ( socket != null ) {
-	    SocketManager.closeConnection( socket );
-	    socket = null;
-	  }
-    else {
+    if ( connected ) {
+    	if (socket == null) System.out.println("socket = null");
+    	SocketManager.closeConnection( socket );
+      socket = null;
+      connected = false;
+      return;
+    }
+    
+    if ( !connect_error && listener != null ) {
       SocketManager.cancelOutboundRequest( listener );
       listener = null;
+      return;
     }
 	}
 
