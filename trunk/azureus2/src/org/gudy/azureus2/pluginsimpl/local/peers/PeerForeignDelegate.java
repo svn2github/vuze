@@ -208,7 +208,12 @@ PeerForeignDelegate
 	{
 		return( foreign.getIp());
 	}
-
+	
+	public String 
+	getIPHostName()
+	{
+		return( foreign.getIp());
+	}
  
 	public int 
 	getPort()

@@ -48,6 +48,14 @@ PEPeer
 
 	public String getIp();
  
+		/**
+		 * Gets the host name for the IP, if possible, ip as string otherwise
+		 * @return
+		 */
+	
+	public String
+	getIPHostName();
+	
 	public int getPort();
 	
 	public boolean[] getAvailable();
