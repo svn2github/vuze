@@ -4,8 +4,6 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -87,11 +85,6 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  	if (folder == null) {
 	    folder = new TabFolder(composite, SWT.LEFT);
 	    folder.setBackground(Colors.background);
-	    folder.addListener(SWT.Dispose, new Listener() {
-	      public void handleEvent(Event event) {
-	        System.out.println("folder disposed");
-	      }
-	    });
 	  	} else {
 	  	  System.out.println("ManagerView::initialize : folder isn't null !!!");
 	  	}
