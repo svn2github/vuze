@@ -11,7 +11,6 @@ package org.gudy.azureus2.core3.disk.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.BitSet;
