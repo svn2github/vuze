@@ -86,7 +86,7 @@ PEPeerManager
 
 	public int getDownloadPriority();
 
-	public String getETA();
+	public long getETA();
 
 	public String getElapsedTime();
 }

@@ -38,7 +38,7 @@ DisplayFormatters
 	  if (n < 1024)
 		return n + " B";
 	  if (n < 1024 * 1024)
-		return (n / 1024) + "." + ((n % 1024) / 103) + " kB";
+		return (n / 1024) + "." + ((n % 1024) / 103) + " KB";
 	  if (n < 1024 * 1024 * 1024)
 		return (n / (1024 * 1024))
 		  + "."
@@ -56,7 +56,7 @@ DisplayFormatters
 	  if (n < 1024)
 		return n + " B";
 	  if (n < 1024 * 1024)
-		return (n / 1024) + "." + ((n % 1024) / 103) + " kB";
+		return (n / 1024) + "." + ((n % 1024) / 103) + " KB";
 	  if (n < 1024 * 1024 * 1024)
 		return (n / (1024 * 1024))
 		  + "."
@@ -76,6 +76,18 @@ DisplayFormatters
 	{
 		return( formatByteCountToKBEtc(n) + "/s");
 	}
+  
+  
+  
+   public static String formatETA(long eta) {
+     if (eta == 0) return MessageText.getString("PeerManager.status.finished");
+     if (eta == -1) return "";
+     if (eta > 0) return TimeFormater.format(eta);
+     
+     return MessageText.getString("PeerManager.status.finishedin")
+            + " " + TimeFormater.format(eta * -1);
+   }
+  
 	
 	public static String
 	formatDownloaded(
@@ -196,4 +208,6 @@ DisplayFormatters
 	
 		return( tmp );
 	}
+  
+  
 }

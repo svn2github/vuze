@@ -1471,37 +1471,34 @@ PEPeerControlImpl
     return _trackerStatus;
   }
 
-  public String getETA() {
-    String remaining;
+  
+  /**
+   * Returns the ETA time in seconds.
+   * If the returned time is 0, the download is complete.
+   * If the returned time is negative, the download
+   * is complete and it took -xxx time to complete.
+   */
+  public long getETA() {
     int writtenNotChecked = 0;
     for (int i = 0; i < _pieces.length; i++) {
       if (_pieces[i] != null) {
         writtenNotChecked += _pieces[i].getCompleted() * BLOCK_SIZE;
       }
     }
+    
     long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
     if (dataRemaining == 0) {
-      
       long timeElapsed = _timeFinished - _timeStarted;
-      if(timeElapsed > 0) {
-        remaining = MessageText.getString("PeerManager.status.finishedin"); //$NON-NLS-1$
-        remaining += " " + TimeFormater.format(timeElapsed);
-      } else {
-        remaining = MessageText.getString("PeerManager.status.finished"); //$NON-NLS-1$
-      }
+      //if time was spent downloading....return the time as negative
+      if(timeElapsed > 1) return timeElapsed * -1;
+      else return 0;
     }
-    else {
-      int averageSpeed = _averageReceptionSpeed.getAverage();
-      if (averageSpeed < 256) {
-        remaining = Constants.INFINITY_STRING;
-      }
-      else {
-        long timeRemaining = dataRemaining / averageSpeed;
-        remaining = TimeFormater.format(timeRemaining);
-      }
-    }
-    return remaining;
+    
+    int averageSpeed = _averageReceptionSpeed.getAverage();
+    return dataRemaining / (averageSpeed + 1);
   }
+  
+  
 
   public void peerAdded(PEPeer pc) {
     _manager.addPeer(pc);

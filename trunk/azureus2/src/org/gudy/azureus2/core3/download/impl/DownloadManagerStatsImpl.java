@@ -118,7 +118,7 @@ DownloadManagerStatsImpl
 	  	return 0;
 	}
 	
-	public String 
+	public long 
 	getETA()
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();
@@ -128,7 +128,7 @@ DownloadManagerStatsImpl
 			return pm.getETA();
 	  }
 	  
-	  return ""; 
+	  return -1;   //return exactly -1 if ETA is unknown
 	}
 
 	public int 

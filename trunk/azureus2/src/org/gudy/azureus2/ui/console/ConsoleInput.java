@@ -266,7 +266,7 @@ public class ConsoleInput extends Thread {
                     else
                       tstate += dm.getName();
                   }
-                  tstate += " (" + DisplayFormatters.formatByteCountToKBEtc(dm.getSize()) + ") ETA:" + stats.getETA() + "\r\n\t\tSpeed: ";
+                  tstate += " (" + DisplayFormatters.formatByteCountToKBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "\r\n\t\tSpeed: ";
                   tstate += DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage()) + " / ";
                   tstate += DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
                   tstate += DisplayFormatters.formatDownloaded(stats) + " / ";

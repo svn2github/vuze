@@ -69,7 +69,7 @@ DownloadManagerStats
 	public String
 	getElapsedTime();
 		
-	public String
+	public long
 	getETA();
 		
 		// set methods
