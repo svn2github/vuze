@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
@@ -76,7 +77,7 @@ public class SWTVersionGetter {
   
   private void downloadLatestVersion() {
     String url = swtURLProviders[index];
-    String downloadURL = url + "?platform=" + platform;
+    String downloadURL = url + "?platform=" + platform + "&version=" + Constants.AZUREUS_VERSION;
     LGLogger.log("Requesting latest SWT version/mirrors by opening URL : " + downloadURL);
     try {
       ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
