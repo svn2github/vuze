@@ -87,15 +87,6 @@ Torrent
 	
 		throws TorrentException;
   
-	  /**
-	   * Add a group of URLs to the end of the torrent's current set of announce urls.
-	   * @param urls array of URLs to add
-	   */
-	
-	public void 
-	addAnnounceURLTrackerGroup( 
-		URL[] urls );
-	
 		/**
 		 * Saves the torrent to its persistent location
 		 * @throws TorrentException

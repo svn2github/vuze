@@ -93,16 +93,7 @@ TOTorrent
 	 */
 	
 	public TOTorrentAnnounceURLGroup
-	getAnnounceURLGroup();
-  
-  
-  /**
-   * Add a set of URLS to the end of the torrent's group of announce urls.
-   */
-  public void
-  addTorrentAnnounceURLSet( URL[] urls );
-  
-  
+	getAnnounceURLGroup();  
 	 
 	 /**
 	  * This method provides access to the SHA1 hash values (20 bytes each) that correspond

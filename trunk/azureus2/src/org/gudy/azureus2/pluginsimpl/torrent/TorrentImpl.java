@@ -205,15 +205,7 @@ TorrentImpl
 		}
 	}
   
-  
-	public void 
-	addAnnounceURLTrackerGroup( 
-		URL[] urls ) 
-	{
-		torrent.addTorrentAnnounceURLSet( urls );
-	}
-  
-	protected void
+ 	protected void
 	updated()
 	{
 		try{

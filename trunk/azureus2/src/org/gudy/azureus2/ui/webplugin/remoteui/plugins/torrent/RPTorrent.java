@@ -198,14 +198,7 @@ RPTorrent
 	{
 		notSupported();
 	}
-  
-	public void 
-	addAnnounceURLTrackerGroup( 
-		URL[] urls ) 
-	{
-		notSupported();
-	}
-	
+  	
 	public void
 	save()
 		throws TorrentException

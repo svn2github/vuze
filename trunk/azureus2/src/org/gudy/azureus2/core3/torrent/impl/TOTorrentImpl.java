@@ -511,7 +511,7 @@ TOTorrentImpl
 		return( announce_group );
 	}
 
-	public void
+	protected void
 	addTorrentAnnounceURLSet(
 		URL[]		urls )
 	{
