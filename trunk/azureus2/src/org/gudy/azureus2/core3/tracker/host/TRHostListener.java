@@ -36,6 +36,10 @@ TRHostListener
 		TRHostTorrent		t );	
 		
 	public void
+	torrentChanged(
+		TRHostTorrent		t );
+	
+	public void
 	torrentRemoved(
 		TRHostTorrent		t );
 	

@@ -33,6 +33,10 @@ TrackerListener
 		TrackerTorrent	torrent );
 	
 	public void
+	torrentChanged(
+		TrackerTorrent	torrent );
+	
+	public void
 	torrentRemoved(
 		TrackerTorrent	torrent );
 }

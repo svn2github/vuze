@@ -244,7 +244,12 @@ TRHostImpl
 							
 								hti.start();
 							}
-						}			
+						}	
+						
+						for (int i=0;i<listeners.size();i++){
+							
+							((TRHostListener)listeners.get(i)).torrentChanged( ht );
+						}
 					}
 				}
 			}catch( TOTorrentException e ){

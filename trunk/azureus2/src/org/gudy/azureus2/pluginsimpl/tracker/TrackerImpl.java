@@ -130,6 +130,17 @@ TrackerImpl
 		}
 	}
 	
+	public void
+	torrentChanged(
+		TRHostTorrent		t )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((TrackerListener)listeners.get(i)).torrentChanged(new TrackerTorrentImpl(t));
+		}
+	}
+	
+
 	public synchronized void
 	torrentRemoved(
 		TRHostTorrent		t )	

@@ -306,6 +306,12 @@ MyTrackerView
 	}
 	
 	public void
+	torrentChanged(
+		TRHostTorrent		t )
+	{
+	}
+
+	public void
 	torrentRemoved(
 		TRHostTorrent		host_torrent )
 	{
