@@ -843,6 +843,8 @@ PEPeerTransportProtocol
     public int process() 
     {
       if( !sent_our_handshake ) {
+        if ( getState() == CLOSING ) return 0;
+        
         connection.getOutgoingMessageQueue().addMessage( new BTHandshake( manager.getHash(), manager.getPeerId() ), false );
         sent_our_handshake = true;
       }
@@ -1190,6 +1192,8 @@ StateTransfering
 
   
   private boolean analyzeIncomingMessage( DirectByteBuffer message_buff ) {
+    if ( getState() == CLOSING ) return false;
+    
     boolean logging_is_on = LGLogger.isLoggingOn();
     
     message_buff.position( DirectByteBuffer.SS_PEER, 0 );
@@ -1567,6 +1571,8 @@ StateTransfering
    * Scans the whole pieces to determine if it's interested or not
    */
   private void checkInterested() {
+    if ( getState() == CLOSING ) return;
+    
 		boolean newInterested = false;
 		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
 		
@@ -1591,7 +1597,9 @@ StateTransfering
    * @param pieceNumber the piece number that has been received
    */
   private void checkInterested( int pieceNumber ) {
-  		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
+    if ( getState() == CLOSING ) return;
+    
+    DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
 		boolean newInterested = !pieces[ pieceNumber ].getDone();
 		if ( newInterested && !interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTInterested(), false );
@@ -1608,6 +1616,8 @@ StateTransfering
    * The bitfield will only be sent if there is at least one piece available.
    */
   private void sendBitField() {
+    if ( getState() == CLOSING ) return;
+    
 		//In case we're in super seed mode, we don't send our bitfield
 		if ( manager.isSuperSeedMode() ) return;
     
@@ -1914,16 +1924,11 @@ StateTransfering
 	}
   
   public void doKeepAliveCheck() {
-  	try{
-	    if( last_message_sent_time == 0 )  last_message_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
-	    if( SystemTime.getCurrentTime() - last_message_sent_time > 2*60*1000 ) {  //2min keep-alive timer
-	      sendKeepAlive();
-	      last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
-	    }
-  	}catch( Throwable e ){
-  		
-  		Debug.printStackTrace(e);
-  	}
+    if( last_message_sent_time == 0 )  last_message_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
+    if( SystemTime.getCurrentTime() - last_message_sent_time > 2*60*1000 ) {  //2min keep-alive timer
+      sendKeepAlive();
+      last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
+    }
   }
   
 }
