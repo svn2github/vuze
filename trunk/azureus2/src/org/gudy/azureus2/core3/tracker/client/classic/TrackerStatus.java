@@ -699,23 +699,47 @@ public class TrackerStatus {
 	  	// System.out.println( "encoding = " + encoding );
 	  	
 	  	if ( gzip ){
+	  		
 	  		is = new GZIPInputStream( is );
 	  	}
 	  	
 	  	byte[]	data = new byte[1024];
 	  	
-	  	int nbRead = 0;
+	  	int num_read = 0;
 	  	
-	  	while (nbRead >= 0) {
+	  	while( true ){
+	  		
 	  		try {
-	  			nbRead = is.read(data);
-	  			if (nbRead >= 0)
-	  				message.write(data, 0, nbRead);
-	  			Thread.sleep(20);
+				int	len = is.read(data);
+					
+				if ( len > 0 ){
+					
+					message.write(data, 0, len);
+					
+					num_read += len;
+					
+					if ( num_read > 128*1024 ){
+						
+							// someone's sending us junk, bail out
+					   
+						message.reset();
+						
+						throw( new Exception( "Tracker response invalid (too large)" ));
+						
+					}
+				}else if ( len == 0 ){
+					
+					Thread.sleep(20);
+					
+				}else{
+					
+					break;
+				}
 	  		} catch (Exception e) {
-	  			// nbRead = -1;
-	  			// message = null;
-	  			// e.printStackTrace();
+	  			
+				LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
+						"Error from scrape interface " + scrapeURL + " : " + Debug.getNestedExceptionMessage(e));
+
 	  			return;
 	  		}
 	  	}

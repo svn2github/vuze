@@ -1146,6 +1146,15 @@ TRTrackerClientClassicImpl
  							
  							num_read += len;
  							
+ 							if ( num_read > 128*1024 ){
+ 								
+ 									// someone's sending us junk, bail out
+ 								
+ 								message.reset();
+ 								
+ 								throw( new Exception( "Tracker response invalid (too large)" ));
+ 								
+ 							}
  						}else if ( len == 0 ){
  							
  							Thread.sleep(20);
@@ -1158,6 +1167,7 @@ TRTrackerClientClassicImpl
  					}catch (Exception e){
  						
  						LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
+ 						
  						LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
  						
  						failure_reason = exceptionToString( e );
