@@ -125,8 +125,6 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     viewFiles.initialize(folder);
     itemFiles.setControl(viewFiles.getComposite());
 
-    manager.addPeerListener((PiecesView)viewPieces);
-    manager.addPeerListener((PeersView)viewDetails);
     folder.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
         refresh();
