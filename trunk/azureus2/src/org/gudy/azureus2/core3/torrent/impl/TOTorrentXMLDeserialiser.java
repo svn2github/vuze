@@ -33,6 +33,7 @@ import java.net.*;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 TOTorrentXMLDeserialiser 
@@ -132,11 +133,11 @@ TOTorrentXMLDeserialiser
 				
 				}else if ( name.equalsIgnoreCase( "COMMENT")){
 					
-					torrent.setComment( kid.getValue());
+					torrent.setComment( readLocalisableString( kid ));
 					
 				}else if ( name.equalsIgnoreCase( "CREATED_BY")){
 					
-					torrent.setCreatedBy( kid.getValue());
+					torrent.setCreatedBy( readLocalisableString(kid));
 					
 				}else if ( name.equalsIgnoreCase( "CREATION_DATE")){
 										
@@ -211,7 +212,7 @@ TOTorrentXMLDeserialiser
 				
 			}else if ( name.equalsIgnoreCase( "NAME")){
 				
-				torrent.setName( readGenericBytes( kid ));
+				torrent.setName( readLocalisableString( kid ));
 				
 			}else if ( name.equalsIgnoreCase( "FILES" )){
 				
@@ -255,7 +256,7 @@ TOTorrentXMLDeserialiser
 							
 							for (int n=0;n<path_nodes.length;n++){
 								
-								path_comps[n] = readGenericBytes( path_nodes[n] );
+								path_comps[n] = readLocalisableString( path_nodes[n] );
 							}
 						}else{
 							
@@ -432,6 +433,29 @@ TOTorrentXMLDeserialiser
 		}
 		
 		return( res );
+	}
+	
+	protected byte[]
+	readLocalisableString(
+		SimpleXMLParserDocumentNode	kid )
+		
+		throws TOTorrentException
+	{
+		SimpleXMLParserDocumentAttribute attr = kid.getAttribute("encoding");
+		
+		if ( attr == null || attr.getValue().equalsIgnoreCase("bytes")){
+		
+			return( readGenericBytes( kid ));
+		}
+		
+		try{
+		
+			return( kid.getValue().getBytes( Constants.DEFAULT_ENCODING ));
+			
+		}catch( UnsupportedEncodingException e ){
+
+			throw( new TOTorrentException( "bytes invalid - unsupported encoding", TOTorrentException.RT_DECODE_FAILS));				
+		}	
 	}
 	
 	protected List

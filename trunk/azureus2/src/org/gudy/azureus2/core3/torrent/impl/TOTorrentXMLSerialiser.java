@@ -137,10 +137,8 @@ TOTorrentXMLSerialiser
 			byte[] comment = torrent.getComment();
 			
 			if ( comment != null ){
-				
-					// for the moment we'll go with a UTF-8 assumption
-					
-				writeTag( "COMMENT", getUTF(comment));	
+									
+				writeLocalisableTag( "COMMENT", comment );	
 			}
 		
 			long creation_date = torrent.getCreationDate();
@@ -153,10 +151,8 @@ TOTorrentXMLSerialiser
 			byte[]	created_by = torrent.getCreatedBy();
 			
 			if ( created_by != null ){
-				
-				// for the moment we'll go with a UTF-8 assumption
-		
-				writeTag( "CREATED_BY", getUTF(created_by));					
+						
+				writeLocalisableTag( "CREATED_BY", created_by );					
 			}
 			
 			writeTag( "TORRENT_HASH", torrent.getHash());
@@ -191,7 +187,7 @@ TOTorrentXMLSerialiser
 		try{
 			indent();
 			
-			writeTag( "NAME", torrent.getName());		
+			writeLocalisableTag( "NAME", torrent.getName());		
 		
 			writeTag( "PIECE_LENGTH", torrent.getPieceLength());
 		
@@ -232,7 +228,7 @@ TOTorrentXMLSerialiser
 							
 								for (int j=0;j<path_comps.length;j++){
 	
-									writeTag( "COMPONENT", path_comps[j] );							
+									writeLocalisableTag( "COMPONENT", path_comps[j] );							
 								}
 						
 							}finally{
@@ -424,6 +420,33 @@ TOTorrentXMLSerialiser
 		writeLine( "<" + tag + ">" + encodeBytes( content ) + "</" + tag + ">" );	
 	}
 		
+	protected void
+	writeLocalisableTag(
+		String		tag,
+		byte[]		content )
+		
+		throws TOTorrentException
+	{
+		boolean	use_bytes = true;
+		
+		String	utf_string = null;
+		
+		try{
+			utf_string = new String(content,Constants.DEFAULT_ENCODING);
+			
+			if ( Arrays.equals(
+					content,
+					utf_string.getBytes( Constants.DEFAULT_ENCODING))){
+
+				use_bytes = false;					
+			}
+		}catch( UnsupportedEncodingException e ){
+		}
+		
+		writeLine( "<" + tag + " encoding=\""+(use_bytes?"bytes":"utf8") + "\">" + 
+					(use_bytes?encodeBytes( content ):utf_string) + "</" + tag + ">" );	
+	}
+	
 	protected String
 	encodeBytes(
 		byte[]	bytes )
