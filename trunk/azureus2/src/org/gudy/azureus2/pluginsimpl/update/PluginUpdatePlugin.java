@@ -728,7 +728,69 @@ PluginUpdatePlugin
 									// if we were smarter we could merge values from the
 									// old one into the new one, however this is too much like
 									// hard work
-																
+														
+									// hmm, we really need to at least merge in the new
+									// predefined values such as 
+									//	plugin.name, plugin.names
+									//	plugin.class, plugin.classes
+									//  plugin.langfile
+								
+								Properties	old_props 	= new Properties();
+								Properties	new_props	= new Properties();
+								
+								List	props_to_delete		= new ArrayList();
+								Map		props_to_replace	= new HashMap();
+								Map		props_to_insert		= new HashMap();
+								
+								try{
+									old_props.load( new FileInputStream( initial_target ));
+									
+									new_props.load( new FileInputStream( final_target ));
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+								}
+								
+								new_props.put( "plugin.version", target_version );
+								
+								String[]	prop_names = 
+									{ 	"plugin.name", "plugin.names",
+										"plugin.class", "plugin.classes",
+										"plugin.version",
+										"plugin.langfile"
+									};
+								
+								for (int z=0;z<prop_names.length;z++){
+									
+									String	prop_name = prop_names[z];
+									
+									String	old_name = old_props.getProperty( prop_name );
+									String	new_name = new_props.getProperty( prop_name );
+										
+									if ( new_name != null ){
+										
+										if ( prop_name.equals( "plugin.name")){
+											props_to_delete.add( "plugin.names" );
+										}else if ( prop_name.equals( "plugin.names")){
+											props_to_delete.add( "plugin.name" );
+										}else if ( prop_name.equals( "plugin.class")){
+											props_to_delete.add( "plugin.classes" );
+										}else if ( prop_name.equals( "plugin.classes")){
+											props_to_delete.add( "plugin.class" );
+										}
+	
+										if ( old_name == null ){
+											
+											props_to_insert.put( prop_name, new_name );
+											
+										}else if ( !new_name.equals( old_name )){
+											
+											props_to_replace.put( prop_name, new_name );									
+										}
+									}
+								}
+								
 								File	tmp_file 	= new File(initial_target.toString() + ".tmp");
 								File	bak_file	= new File(initial_target.toString() + ".bak");
 								
@@ -741,8 +803,18 @@ PluginUpdatePlugin
 								
 									tmp = new PrintWriter(new FileWriter( tmp_file ));			
 								
-									tmp.println( "plugin.version=" + target_version );
+									Iterator	it = props_to_insert.keySet().iterator();
 									
+									while( it.hasNext()){
+										
+										String	pn = (String)it.next();
+										
+										String	pv = (String)props_to_insert.get(pn);
+									
+										log.log("    Inserting property:" + pn + "=" + pv );
+										
+										tmp.println( pn + "=" + pv );
+									}	
 								
 									while(true){
 										
@@ -753,11 +825,33 @@ PluginUpdatePlugin
 											break;
 										}
 										
-										if ( line.indexOf( "plugin.version" ) != -1 ){
+										int	ep = line.indexOf('=');
 										
-												// skip existing entry
+										if( ep != -1 ){
+											
+											String	pn = line.substring(0,ep).trim();
+	
+											if ( props_to_delete.contains(pn)){
+												
+												log.log("    Deleting property:" + pn );
+												
+											}else{
+												
+												String rv = (String)props_to_replace.get( pn );
+												
+												if ( rv != null ){
+													
+													log.log("    Replacing property:" + pn + " with " + rv );
+												
+													tmp.println( pn + "=" + rv );
+													
+												}else{
+													
+													tmp.println( line );
+												}
+											}
 										}else{
-										
+	
 											tmp.println( line );
 										}
 									}
