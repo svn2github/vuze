@@ -26,9 +26,13 @@ package org.gudy.azureus2.core3.stats;
  *
  */
 
+import org.gudy.azureus2.core3.util.Constants;
+
 public interface 
 StatsWriter 
-{
+{	
+	public static final String		DEFAULT_STATS_FILE_NAME	= Constants.AZUREUS_NAME + "_Stats.xml";
+
 	public void
 	start();
 	

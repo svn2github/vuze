@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.IpFilter;
 import org.gudy.azureus2.core3.peer.IpRange;
+import org.gudy.azureus2.core3.stats.StatsWriter;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -692,17 +693,21 @@ public class ConfigView extends AbstractIView {
 	 layout.numColumns = 3;
 	 gStats.setLayout(layout);
 
+		// row
+		
 	 label = new Label(gStats, SWT.NULL);
 	 Messages.setLanguageText(label, "ConfigView.section.stats.enable"); //$NON-NLS-1$
 	 new BooleanParameter(gStats, "Stats Enable", false); //$NON-NLS-1$
 
-	label = new Label(gStats, SWT.NULL);
+	 label = new Label(gStats, SWT.NULL);
 
-	label = new Label(gStats, SWT.NULL);
-	Messages.setLanguageText(label, "ConfigView.section.stats.defaultsavepath"); //$NON-NLS-1$
+		// row
+		
+	 label = new Label(gStats, SWT.NULL);
+	 Messages.setLanguageText(label, "ConfigView.section.stats.defaultsavepath"); //$NON-NLS-1$
 
-	gridData = new GridData();
-	gridData.widthHint = 150;
+	 gridData = new GridData();
+	 gridData.widthHint = 150;
 	final StringParameter pathParameter = new StringParameter(gStats, "Stats Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
 	pathParameter.setLayoutData(gridData);
 	Button browse = new Button(gStats, SWT.PUSH);
@@ -722,8 +727,22 @@ public class ConfigView extends AbstractIView {
 	  }
 	});
 
+	// row
+		
+	label = new Label(gStats, SWT.NULL);
+	Messages.setLanguageText(label, "ConfigView.section.stats.savefile"); //$NON-NLS-1$
+	
+	gridData = new GridData();
+	gridData.widthHint = 150;
+	final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriter.DEFAULT_STATS_FILE_NAME ); 
+	fileParameter.setLayoutData(gridData);
 
 	label = new Label(gStats, SWT.NULL);
+
+		// row
+		
+	label = new Label(gStats, SWT.NULL);
+		
 	Messages.setLanguageText(label, "ConfigView.section.stats.savefreq"); 
 	final String spLabels[] = new String[statsPeriods.length];
 	final int spValues[] = new int[statsPeriods.length];

@@ -44,8 +44,6 @@ StatsWriterImpl
 {
 	private static final int		DEFAULT_SLEEP_PERIOD	= 30*1000;
 	
-	private static final String		STATS_FILE_NAME	= Constants.AZUREUS_NAME + "_Stats.xml";
-	
 	private static StatsWriterImpl	singleton;
 	private static int				start_count;
 	private static Thread			current_thread;
@@ -53,6 +51,10 @@ StatsWriterImpl
 	private long			last_write_time	= 0;
 	private GlobalManager	global_manager;
 	
+	private boolean			config_enabled;
+	private int				config_period;	
+	private String			config_dir;
+	private String			config_file;
 	
 	public static synchronized StatsWriter
 	create(
@@ -78,6 +80,8 @@ StatsWriterImpl
 	protected void
 	update()
 	{
+		readConfigValues();
+		
 		while( true ){
 						
 			synchronized( singleton ){
@@ -93,13 +97,13 @@ StatsWriterImpl
 			try{
 				int	period;
 				
-				if (!COConfigurationManager.getBooleanParameter( "Stats Enable", false )){
+				if ( !config_enabled ){
 					
 					period = DEFAULT_SLEEP_PERIOD;
 								
 				}else{
 				
-				 	period = COConfigurationManager.getIntParameter( "Stats Period", DEFAULT_SLEEP_PERIOD )*1000;
+				 	period = config_period*1000;
 				}
 				
 				if ( period > DEFAULT_SLEEP_PERIOD ){
@@ -117,14 +121,26 @@ StatsWriterImpl
 	}
 	
 	protected void
+	readConfigValues()
+	{
+		config_enabled 	= COConfigurationManager.getBooleanParameter( "Stats Enable", false );
+		
+		config_period	= COConfigurationManager.getIntParameter( "Stats Period", DEFAULT_SLEEP_PERIOD );
+		
+		config_dir		= COConfigurationManager.getStringParameter( "Stats Dir", "" );
+		
+		config_file		= COConfigurationManager.getStringParameter( "Stats File", DEFAULT_STATS_FILE_NAME );
+	}
+	
+	protected void
 	writeStats()
 	{							
-		if ( !COConfigurationManager.getBooleanParameter( "Stats Enable", false )){
+		if ( !config_enabled ){
 			
 			return;
 		}
 
-		int	period = COConfigurationManager.getIntParameter( "Stats Period", DEFAULT_SLEEP_PERIOD );
+		int	period = config_period;
 		
 		long	now = System.currentTimeMillis()/1000;
 		
@@ -136,7 +152,7 @@ StatsWriterImpl
 		last_write_time	= now;
 		
 		try{
-			String	dir = COConfigurationManager.getStringParameter( "Stats Dir", "" );
+			String	dir = config_dir;
 
 			dir = dir.trim();
 			
@@ -152,7 +168,14 @@ StatsWriterImpl
 				file_name = file_name + File.separator;
 			}
 			
-			file_name += STATS_FILE_NAME;
+			String	file = config_file;
+
+			if ( file.trim().length() == 0 ){
+				
+				file = DEFAULT_STATS_FILE_NAME;
+			}
+			
+			file_name += file;
 		
 			LGLogger.log(0, 0, LGLogger.INFORMATION, "Stats Logged to '" + file_name + "'" );				
 			
@@ -169,6 +192,10 @@ StatsWriterImpl
 	public void
 	configurationSaved()
 	{
+			// only pick up configuration changes when saved
+			
+		readConfigValues();
+		
 		writeStats();
 	}
 	
