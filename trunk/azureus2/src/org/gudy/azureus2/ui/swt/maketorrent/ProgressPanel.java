@@ -127,8 +127,11 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       }else{
       	torrent = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(f,url,_wizard.getPieceSizeManual(),this);
       }
+      
       torrent.setComment(_wizard.getComment());
  
+      TorrentUtils.setDefaultTorrentEncoding( torrent );
+      
       	// mark this newly created torrent as complete to avoid rechecking on open
       
       File save_dir;

@@ -139,6 +139,8 @@ ShareResourceFileOrDirImpl
 										file,
 										manager.getAnnounceURL(),
 										manager );
+	
+			TorrentUtils.setDefaultTorrentEncoding( to_torrent );
 			
 			File	save_dir;
 			

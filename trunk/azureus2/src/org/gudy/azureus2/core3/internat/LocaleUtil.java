@@ -332,4 +332,19 @@ LocaleUtil
 			
 		return( lut.lastChosenDecoder );
   	}
+	
+	public static void
+	setTorrentEncoding(
+		TOTorrent		torrent,
+		String			encoding )
+	{
+		torrent.setAdditionalStringProperty("encoding", encoding );
+	}
+	
+	public static void
+	setDefaultTorrentEncoding(
+		TOTorrent		torrent )
+	{
+		setTorrentEncoding( torrent, Constants.DEFAULT_ENCODING );
+	}
 }

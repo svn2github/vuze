@@ -24,12 +24,10 @@ package org.gudy.azureus2.pluginsimpl.sharing.test;
 
 
 import java.util.*;
-import java.io.*;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.sharing.*;
-import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 

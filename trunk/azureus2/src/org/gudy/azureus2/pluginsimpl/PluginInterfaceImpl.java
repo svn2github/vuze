@@ -81,10 +81,16 @@ public class PluginInterfaceImpl implements PluginInterface {
     }
   } 
 
+  /**
+   * @deprecated
+   */
   public void openTorrentFile(String fileName) {
     MainWindow.getWindow().openTorrent(fileName);
   }
 
+  /**
+   * @deprecated
+   */
   public void openTorrentURL(String url) {
     new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url);
   }

@@ -30,6 +30,7 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.torrent.*;
 
 public class 
@@ -171,7 +172,7 @@ TorrentImpl
 		throws TorrentException
 	{
 		try{
-			torrent.serialiseToBEncodedFile( file );
+			TorrentUtils.writeToFile( torrent, file );
 			
 		}catch( TOTorrentException e ){
 			
