@@ -20,23 +20,37 @@ public class Main {
   MainWindow mainWindow;
   GlobalManager gm;
   
-  public class StartSocket {
+  public static class StartSocket {
     public StartSocket(String args[]) {
+      if(args.length == 0)
+        return;
+
+      Socket sck = null;
+      PrintWriter pw = null;
       try {      
-        Socket sck = new Socket("localhost",6880);
-        PrintWriter pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
+        sck = new Socket("localhost",6880);
+        pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
         StringBuffer buffer = new StringBuffer("args;");
         for(int i = 0 ; i < args.length ; i++) {
-          String arg = args[i].replaceAll("&","&&");
-          arg = arg.replaceAll(";","&;");          
+          String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
           buffer.append(arg);
-          buffer.append(";");
+          buffer.append(';');
         }
         pw.println(buffer.toString());
         pw.flush();
-        sck.close();
       } catch(Exception e) {
         e.printStackTrace();
+      } finally {
+        try {
+          if (pw != null)
+            pw.close();
+        } catch (Exception e) {
+        }
+        try {
+          if (sck != null)
+            sck.close();
+        } catch (Exception e) {
+        }
       }
     }
   }
