@@ -35,7 +35,8 @@ DHTPluginOperationListener
 	public void
 	valueFound(
 		InetSocketAddress	originator,
-		byte[]				value );
+		byte[]				value,
+		byte				flags );
 	
 	public void
 	complete(

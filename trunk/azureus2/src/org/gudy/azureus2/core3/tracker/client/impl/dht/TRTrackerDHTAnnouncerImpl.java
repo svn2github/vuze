@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponseImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponsePeerImpl;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
@@ -56,6 +57,9 @@ TRTrackerDHTAnnouncerImpl
 	private byte[]			data_peer_id;
 	
 	private String						tracker_status_str;
+	private long						last_update_time;
+	
+	private int							state = TS_INITIALISED;
 	
 	private TRTrackerAnnouncerResponse	last_response;
 		
@@ -143,30 +147,33 @@ TRTrackerDHTAnnouncerImpl
 	public int
 	getTimeUntilNextUpdate()
 	{
-		return( 0 );	//TODO:
+		return( (int)last_response.getTimeToWait());
 	}
 	
 	public int
 	getLastUpdateTime()
 	{
-		return( 0 );	// TODO:
+		return( (int)(last_update_time/1000));
 	}
 			
 	public void
 	update(
 		boolean	force )
 	{
+		state = TS_DOWNLOADING;
 	}	
 	
 	public void
 	complete(
 		boolean	already_reported )
 	{
+		state	= TS_COMPLETED;
 	}
 	
 	public void
 	stop()
 	{
+		state	= TS_STOPPED;
 	}
 	
 	public void
@@ -177,7 +184,7 @@ TRTrackerDHTAnnouncerImpl
 	public int
 	getStatus()
 	{
-		return( TS_INITIALISED );	// TODO:
+		return( state );
 	}
 	
 	public String
@@ -201,6 +208,8 @@ TRTrackerDHTAnnouncerImpl
 	setAnnounceResult(
 		DownloadAnnounceResult	result )
 	{
+		last_update_time	= SystemTime.getCurrentTime();
+		
 		TRTrackerAnnouncerResponseImpl response;
 		
 		if ( result.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
@@ -244,7 +253,7 @@ TRTrackerDHTAnnouncerImpl
 		}
 		
 		last_response = response;
-		
+				
 		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
 	}
 }

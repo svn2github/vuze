@@ -71,6 +71,9 @@ public class
 DHTPlugin
 	implements Plugin
 {
+	public static final byte		FLAG_DOWNLOADING	= DHT.FLAG_DOWNLOADING;
+	public static final byte		FLAG_SEEDING		= DHT.FLAG_SEEDING;
+	
 	private static final String	SEED_ADDRESS	= "aelitis.com";
 	private static final int	SEED_PORT		= 6881;
 		
@@ -175,6 +178,7 @@ DHTPlugin
 												DHTPlugin.this.put( 
 														rhs.substring(0,pos).getBytes(),
 														rhs.substring(pos+1).getBytes(),
+														(byte)0,
 														null );
 											}
 										}else if ( lhs.equals( "get" )){
@@ -598,6 +602,7 @@ DHTPlugin
 	put(
 		final byte[]						key,
 		final byte[]						value,
+		final byte							flags,
 		final DHTPluginOperationListener	listener)
 	{
 		if ( !isEnabled()){
@@ -607,7 +612,7 @@ DHTPlugin
 				
 		dht.put( 	key, 
 					value,
-					(byte)0,
+					flags,
 					new DHTOperationListener()
 					{
 						public void
@@ -709,7 +714,7 @@ DHTPlugin
 							
 							if ( listener != null ){
 								
-								listener.valueFound( value.getOriginator().getAddress(), value.getValue());
+								listener.valueFound( value.getOriginator().getAddress(), value.getValue(), (byte)value.getFlags());
 							}
 						}
 						

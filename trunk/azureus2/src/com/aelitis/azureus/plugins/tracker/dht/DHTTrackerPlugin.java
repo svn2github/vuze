@@ -80,7 +80,7 @@ DHTTrackerPlugin
 	private DHTPlugin			dht;
 	
 	private Set					running_downloads 		= new HashSet();
-	private Set					registered_downloads 	= new HashSet();
+	private Map					registered_downloads 	= new HashMap();
 	
 	private Map					query_map			 	= new HashMap();
 	
@@ -440,13 +440,32 @@ DHTTrackerPlugin
 			
 			final Download	dl = (Download)it.next();
 			
-			if ( !registered_downloads.contains( dl )){
+			Byte	existing_flags = (Byte)registered_downloads.get( dl );
+			
+			if (  existing_flags != null){
 				
-				log.log( "Registering download '" + dl.getName() + "'" );
+					// state change, force a re-announce
+				
+				try{ 
+					this_mon.enter();
+
+					query_map.put( dl, new Long( now ));
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+			}
+			
+			byte	new_flags = dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING;
+				
+			if ( existing_flags == null || existing_flags.byteValue() != new_flags ){
+				
+				log.log( "Registering download '" + dl.getName() + "' as " + (new_flags == DHTPlugin.FLAG_SEEDING?"Seeding":"Downloading"));
 				
 				final 	long	start = SystemTime.getCurrentTime();
 				
-				registered_downloads.add( dl );
+				registered_downloads.put( dl, new Byte( new_flags ));
 				
 				try{ 
 					this_mon.enter();
@@ -461,14 +480,16 @@ DHTTrackerPlugin
 				int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
 				dht.put( 
-						dl.getTorrent().getHash(), 
-						String.valueOf( port ).getBytes(), 
+						dl.getTorrent().getHash(),
+						String.valueOf( port ).getBytes(),
+						new_flags,
 						new DHTPluginOperationListener()
 						{
 							public void
 							valueFound(
 								InetSocketAddress	originator,
-								byte[]				value )
+								byte[]				value,
+								byte				flags )
 							{
 								
 							}
@@ -483,7 +504,7 @@ DHTTrackerPlugin
 			}
 		}
 		
-		it = registered_downloads.iterator();
+		it = registered_downloads.keySet().iterator();
 		
 		while( it.hasNext()){
 			
@@ -526,7 +547,8 @@ DHTTrackerPlugin
 							public void
 							valueFound(
 								InetSocketAddress	originator,
-								byte[]				value )
+								byte[]				value,
+								byte				flags )
 							{
 								
 							}
@@ -574,7 +596,7 @@ DHTTrackerPlugin
 				final long	start = SystemTime.getCurrentTime();
 								
 				dht.get(dl.getTorrent().getHash(), 
-						(byte)0,
+						dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 						NUM_WANT, 
 						ANNOUNCE_TIMEOUT,
 						new DHTPluginOperationListener()
@@ -582,10 +604,14 @@ DHTTrackerPlugin
 							List	addresses 	= new ArrayList();
 							List	ports		= new ArrayList();
 							
+							int		seed_count;
+							int		peer_count;
+							
 							public void
 							valueFound(
 								InetSocketAddress	originator,
-								byte[]				value )
+								byte[]				value,
+								byte				flags )
 							{
 								String	str_val = new String(value);
 								
@@ -596,6 +622,15 @@ DHTTrackerPlugin
 									
 									ports.add(new Integer(port));
 									
+									if (( flags & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+										
+										peer_count++;
+										
+									}else{
+										
+										seed_count++;
+									}
+									
 								}catch( Throwable e ){
 									
 								}
@@ -605,7 +640,7 @@ DHTTrackerPlugin
 							complete(
 								boolean	timeout_occurred )
 							{
-								log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), addresses = " + addresses.size());
+								log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), addresses = " + addresses.size() + ", seeds = " + seed_count + ", leechers = " + peer_count );
 																
 								final DownloadAnnounceResultPeer[]	peers = new
 									DownloadAnnounceResultPeer[addresses.size()];
@@ -658,9 +693,7 @@ DHTTrackerPlugin
 										};
 									
 								}
-								
-									// TODO: do this properly
-								
+																
 								if ( 	dl.getState() == Download.ST_DOWNLOADING ||
 										dl.getState() == Download.ST_SEEDING ){
 								
@@ -689,13 +722,13 @@ DHTTrackerPlugin
 												public int
 												getSeedCount()
 												{
-													return( 0 );	// TODO:
+													return( seed_count );
 												}
 												
 												public int
 												getNonSeedCount()
 												{
-													return( 0 );	// TODO:
+													return( peer_count );	
 												}
 												
 												public String
@@ -742,13 +775,13 @@ DHTTrackerPlugin
 										public int
 										getSeedCount()
 										{
-											return( peers.length - (peers.length/2));	// !!!! TODO:
+											return( seed_count );
 										}
 										
 										public int
 										getNonSeedCount()
 										{
-											return( peers.length/2 );	// TODO:
+											return( peer_count );
 										}
 
 										public long
@@ -827,7 +860,8 @@ DHTTrackerPlugin
 
 			if ( 	state == Download.ST_DOWNLOADING ||
 					state == Download.ST_SEEDING ||
-					state == Download.ST_QUEUED ){
+					state == Download.ST_QUEUED ){	// included queued here for the mo to avoid lots
+													// of thrash for torrents that flip a lot
 				
 				running_downloads.add( download );
 				

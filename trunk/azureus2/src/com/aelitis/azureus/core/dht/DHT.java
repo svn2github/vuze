@@ -48,6 +48,9 @@ DHT
 	public static final String	PR_CACHE_REPUBLISH_INTERVAL				= "CacheRepublishInterval";
 	public static final String	PR_MAX_VALUES_STORED					= "MaxValuesStored";
 
+	public static final byte		FLAG_DOWNLOADING	= 0x01;
+	public static final byte		FLAG_SEEDING		= 0x02;
+
 		/**
 		 * Simple synchronous put
 		 * @param key
