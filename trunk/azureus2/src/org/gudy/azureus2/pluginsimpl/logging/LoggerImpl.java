@@ -1,5 +1,5 @@
 /*
- * File    : LoggerChannelImpl.java
+ * File    : LoggerImpl.java
  * Created : 28-Dec-2003
  * By      : parg
  * 
@@ -27,52 +27,28 @@ package org.gudy.azureus2.pluginsimpl.logging;
  */
 
 import org.gudy.azureus2.plugins.logging.*;
-import org.gudy.azureus2.core3.logging.*;
 
 public class 
-LoggerChannelImpl 
-	implements LoggerChannel
+LoggerImpl
+	implements Logger
 {
-	protected String	name;
+	protected static LoggerImpl	singleton;
 	
-	protected
-	LoggerChannelImpl(
-		String		_name )
+	public synchronized static Logger
+	getSingleton()
 	{
-		name	= _name;
-	}
-		
-	public String
-	getName()
-	{
-		return( name );
-	}
-	
-	public void
-	log(
-		int		log_type,
-		String	data )
-	{
-		data = "["+name+"]" + ": " + data;
-		
-		if ( log_type == LT_INFORMATION ){
+		if ( singleton == null ){
 			
-			LGLogger.log( LGLogger.INFORMATION, data );
-			
-		}else if ( log_type == LT_WARNING ){
-				
-			LGLogger.log( LGLogger.RECEIVED, data );	// !!!!
-
-		}else if ( log_type == LT_ERROR ){
-				
-			LGLogger.log( LGLogger.ERROR, data );
+			singleton = new LoggerImpl();
 		}
+		
+		return( singleton );
 	}
 	
-	public void
-	log(
-		Throwable 	error )
+	public LoggerChannel
+	getChannel(
+		String		name )
 	{
-		LGLogger.log("["+name+"]", error);
+		return( new LoggerChannelImpl( name ));
 	}
 }
