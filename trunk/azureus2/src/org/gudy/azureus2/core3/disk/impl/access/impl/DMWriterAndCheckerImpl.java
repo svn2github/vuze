@@ -246,8 +246,13 @@ DMWriterAndCheckerImpl
 	public void 
 	aSyncCheckPiece(
 		int pieceNumber ) 
-	{  		
-		global_check_queue_block_sem.reserve();
+	{  	
+			// recursion here will deadlock the write thread
+		
+		if ( Thread.currentThread() != writeThread ){			
+
+			global_check_queue_block_sem.reserve();
+		}
 	   		
 		if ( global_check_queue_block_sem.getValue() < global_check_queue_block_sem_next_report_size ){
 			
@@ -578,7 +583,12 @@ DMWriterAndCheckerImpl
 		DirectByteBuffer data,
 		PEPeer sender) 
 	{		
-		global_write_queue_block_sem.reserve();
+			// recursive entry here will deadlock the writeThread
+		
+		if ( Thread.currentThread() != writeThread ){
+			
+			global_write_queue_block_sem.reserve();
+		}
 		
 		if ( global_write_queue_block_sem.getValue() < global_write_queue_block_sem_next_report_size ){
 			

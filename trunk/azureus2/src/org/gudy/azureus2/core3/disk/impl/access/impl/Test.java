@@ -36,15 +36,23 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 
+import org.gudy.azureus2.core3.logging.ILoggerListener;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerManagerListener;
+import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.*;
+import com.aelitis.azureus.core.diskmanager.cache.*;
+import com.aelitis.azureus.core.networkmanager.ConnectionPool;
 
 /**
  * @author parg
@@ -54,11 +62,43 @@ import com.aelitis.azureus.core.diskmanager.*;
 public class 
 Test 
 {
+	final int		CACHE_SIZE		= 16;
+	final boolean	CACHE_ENABLE	= true;
+	
+	final int 		BLOCK_SIZE		= 16*1024;
+	final boolean	READ_TEST		= true;
+	final boolean	RANDOM_TEST		= false;
+	final boolean	CHECK_WRITES	= false;
+
 	protected
 	Test()
 	{
 		try{						
 			COConfigurationManager.initialiseFromMap( new HashMap() );
+			
+			COConfigurationManager.setParameter( "diskmanager.perf.cache.enable", CACHE_ENABLE );
+			
+			COConfigurationManager.setParameter( "diskmanager.perf.cache.size", CACHE_SIZE );
+
+			if ( false ){
+				
+				System.setProperty("azureus.log.stdout","1");
+				
+				LGLogger.initialise();
+				
+				LGLogger.setListener(
+					new ILoggerListener()
+					{
+						public void log(int componentId,int event,int color,String text)
+						{
+							System.out.println( text );
+						}
+					});
+			}else{
+				
+				LGLogger.initialise();
+				
+			}
 			
 			File	file = new File( "C:\\temp\\dmtest.dat" );
 
@@ -66,7 +106,7 @@ Test
 			
 			RandomAccessFile raf = new RandomAccessFile( file, "rwd" );
 			
-			raf.setLength( 1*1024*1024 );
+			raf.setLength( 100*1024*1024 );
 
 			raf.close();
 			
@@ -74,9 +114,18 @@ Test
 			
 			File	torrent_file = new File( "C:\\temp\\dmtest.torrent" );
 			
+			TorrentUtils.setResumeDataCompletelyValid( torrent, "C:\\temp" );
+			
 			TorrentUtils.writeToFile( torrent, torrent_file );
 			
-			final DiskManager dm = DiskManagerFactory.create( torrent, new DownloadManagerDummy( file ));
+			
+			PEPeerManagerDummy	pm = new PEPeerManagerDummy();
+			
+			final DiskManager dm = DiskManagerFactory.create( torrent, new DownloadManagerDummy( file, pm ));
+			
+			dm.setPeerManager( pm );
+		
+			pm.setDiskManager( dm );
 			
 			dm.addListener(
 				new DiskManagerListener()
@@ -88,43 +137,105 @@ Test
 					{
 						System.out.println( "dm state change: " + newState );
 						
-						int	pieces  = torrent.getPieces().length;
-						
-						if ( newState == DiskManager.READY ){
-								
-							final int[]	done = {0};
+						if ( newState != DiskManager.READY ){
 							
-							for (int i=0;i<10000;i++){
+							return;
+						}
+
+						try{
+							final CacheFileManagerStats	cache_stats = CacheFileManagerFactory.getSingleton().getStats();
+														
+							if ( !READ_TEST ){
 								
-								DiskManagerRequest	res = dm.createRequest( i%pieces, 0, 10 );
+								boolean[]	x = dm.getPiecesDone();
 								
-								dm.enqueueReadRequest(
-									res,
-									new ReadRequestListener()
-									{
-										public void 
-										readCompleted( 
-											DiskManagerRequest 	request, 
-											DirectByteBuffer 	data )
-										{
-										//	System.out.println( "request complete" );
-											
-											data.returnToPool();
-											
-											done[0]++;
-											
-											if ( done[0] %1000 == 0 ){
-												
-												System.out.println( "done = " + done[0]);
-											}
-										}
-									});	
-								
-								if ( i %1000 == 0 ){
+								for (int i=0;i<x.length;i++){
 									
-									System.out.println( i );
+									x[i]	= false;
 								}
 							}
+							
+							int	pieces  	= torrent.getPieces().length;
+							int	piece_size	= (int)torrent.getPieceLength();
+							
+							int	blocks_per_piece	= piece_size / BLOCK_SIZE;
+							
+							final 	int[]	done = {0};
+							final	long[]	bytes = {0};
+							
+							final long	start = System.currentTimeMillis();
+							
+							for (int i=0;i<100000;i++){
+								
+								for (int j=0;j<blocks_per_piece;j++){
+									
+									int	piece_number;
+									int	block_number;
+									
+									if ( RANDOM_TEST ){
+										
+										piece_number	= (int)(Math.random() * pieces);
+										block_number	= (int)(Math.random() * blocks_per_piece);
+									}else{
+										
+										piece_number 	= i%pieces;
+										block_number	= j;
+									}
+									
+									if ( READ_TEST ){
+										
+										DiskManagerRequest	res = dm.createRequest( piece_number, BLOCK_SIZE*block_number, BLOCK_SIZE );
+										
+										dm.enqueueReadRequest(
+											res,
+											new ReadRequestListener()
+											{
+												public void 
+												readCompleted( 
+													DiskManagerRequest 	request, 
+													DirectByteBuffer 	data )
+												{
+												//	System.out.println( "request complete" );
+													
+													data.returnToPool();
+													
+													done[0]++;
+													
+													bytes[0] += BLOCK_SIZE;
+													
+													if ( done[0] %1000 == 0 ){
+														
+														long	now = System.currentTimeMillis();
+		
+														float	bps = (float)(bytes[0]*1000 / (now - start ))/1024;
+														
+														System.out.println( "done = " + done[0] + ", bps = " + bps );
+														
+														System.out.println( "    " + cache_stats.getBytesReadFromCache() + "/" + cache_stats.getBytesReadFromFile());
+													}
+												}
+											});	
+									}else{
+										
+										DirectByteBuffer b = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER, BLOCK_SIZE );
+										
+										dm.writeBlock( piece_number, BLOCK_SIZE*block_number, b, null );	
+									}
+						
+								}
+								
+								if ( i %1000 == 0 ){
+										
+									System.out.println( i );
+									
+									System.out.println( "    " + cache_stats.getBytesWrittenToCache() + "/" + cache_stats.getBytesWrittenToFile() +
+											": av = " + cache_stats.getAverageBytesWrittenToCache() + "/" + cache_stats.getAverageBytesWrittenToFile());
+
+								}
+							}
+						}catch( Throwable e ){
+						
+							e.printStackTrace();
 						}
 					}
 				});
@@ -149,13 +260,15 @@ Test
 	DownloadManagerDummy
 		implements DownloadManager
 	{
-		protected File		file;
-		
+		protected File				file;
+		protected PEPeerManager		peer_manager;
 		protected
 		DownloadManagerDummy(
-			File		_file )
+			File			_file,
+			PEPeerManager	_pm )
 		{
-			file	= _file;
+			file				= _file;
+			peer_manager		= _pm;
 		}
 		
 		public void
@@ -218,7 +331,7 @@ Test
 		public PEPeerManager
 		getPeerManager()
 		{
-			return( null );
+			return( peer_manager );
 			
 		}
 		
@@ -701,6 +814,364 @@ Test
 	}
 	}
 	
+	protected class
+	PEPeerManagerDummy
+		implements PEPeerManager
+	{
+		protected DiskManager	dm;
+		
+		protected void
+		setDiskManager(
+			DiskManager	_dm )
+		{
+			dm	= _dm;
+		}
+		
+		public int
+		getState()
+		{
+			return( 0 );
+		}
+		
+	 	public DownloadManager
+		getDownloadManager()
+	 	{
+	 		return( null );
+	 	}
+	 
+		public void
+		start()
+		{
+			
+		}
+			
+		public void
+		stopAll()
+		{
+			
+		}
+			
+		public byte[]
+		getHash()
+		{
+			return( null );
+		}
+		
+		public byte[]
+		getPeerId()
+		{
+			return( null );
+		}
+		
+		public void 
+		blockWritten(
+			int pieceNumber, 
+			int offset,
+			PEPeer peer)
+		{
+			if ( !RANDOM_TEST ){
+				
+				if ( CHECK_WRITES ){
+					
+					if ( offset == 0 ){
+						
+						dm.aSyncCheckPiece( pieceNumber );
+					}
+				}
+			}
+	
+		}
+		
+		public void 
+		asyncPieceChecked(
+			int pieceNumber, 
+			boolean result )
+		{
+			dm.getPiecesDone()[pieceNumber] = false;
+		}
+
+		public int[] getAvailability()
+		{
+			return( null );
+		}
+
+		public int getAvailability(int pieceNumber)
+		{
+			return( 0 );
+		}
+		
+	    public float getMinAvailability()
+		{
+	    	return( 0 );
+		}
+
+
+		public boolean[] getPiecesStatus()
+		{
+			return( null );
+		}
+
+
+		public PEPiece[] getPieces()
+		{
+			return( null );
+		}
+
+
+		public PEPeerManagerStats
+		getStats()
+		{
+			return( null );
+		}
+
+
+		public void
+		processTrackerResponse(
+			TRTrackerResponse	response )
+		{
+			
+		}
+
+			
+		public int getNbPeers()
+		{
+			return( 0 );
+		}
+
+
+		public int getNbSeeds()
+		{
+			return( 0 );
+		}
+
+		
+		public int getNbHashFails()
+		{
+			return( 0 );
+		}
+
+	  
+		public void setNbHashFails(int fails)
+		{
+			
+		}
+
+
+		public int getPiecesNumber()
+		{
+			return( 0 );
+		}
+
+
+	  public int getPieceLength(int pieceNumber)
+		{
+	  	return( 0 );
+	}
+
+			
+		public long getRemaining()
+		{
+			return( 0 );
+		}
+
+
+		public int getDownloadPriority()
+		{
+			return( 0 );
+		}
+
+
+		public long getETA()
+		{
+			return( 0 );
+		}
+
+
+		public String getElapsedTime()
+		{
+			return( null );
+		}
+
+		
+		// Time Started in ms
+		public long getTimeStarted()
+		{
+			return( 0 );
+		}
+
+
+		public long getTimeStartedSeeding()
+		{
+			return( 0 );
+		}
+
+		
+		public void
+		addListener(
+			PEPeerManagerListener	l )
+		{
+			
+		}
+
+			
+		public void
+		removeListener(
+			PEPeerManagerListener	l )
+		{
+			
+		}
+
+	  
+	  public void pieceAdded(PEPiece piece)
+		{
+		
+	}
+
+	  
+	  public boolean needsMD5CheckOnCompletion(int pieceNumber)
+		{
+	  	return( false );
+	}
+
+	  
+	  public boolean
+	  isSuperSeedMode()
+		{
+	  	return( false );
+	}
+
+	  
+	  public int getNbRemoteConnections()
+		{
+	  	return( 0 );
+	}
+
+	  
+		public void
+		received(
+			int		l )
+		{
+			
+		}
+
+		
+		public void
+		sent(
+			int		l )
+		{
+			
+		}
+
+		
+		public void
+		discarded(
+			int		l )
+		{
+			
+		}
+
+		
+		public PEPeerStats
+		createPeerStats()
+		{
+			return( null );
+		}
+
+		
+		
+		public List
+		getPeers()
+		{
+			return( null );
+		}
+
+		
+		public void
+		addPeer(
+			PEPeer	peer )
+		{
+			
+		}
+
+		
+		public void
+		removePeer(
+			PEPeer	peer )
+		{
+			
+		}
+
+		
+		public void 
+		peerAdded(PEPeer pc)
+		{
+			
+		}
+
+
+		public void 
+		peerRemoved(PEPeer pc)
+		{
+			
+		}
+
+		
+		public DiskManagerRequest
+		createDiskManagerRequest(
+		   int pieceNumber,
+		   int offset,
+		   int length )
+		{
+			return( null );	
+		}
+
+		
+		public void
+		requestCanceled(
+			DiskManagerRequest	item )
+		{
+			
+		}
+
+			
+		public boolean 
+		checkBlock(
+			int 		pieceNumber, 
+			int 		offset, 
+			DirectByteBuffer 	data )
+		{
+			return( false );
+		}
+
+		
+		public void 
+		writeBlock(
+			int 		pieceNumber, 
+			int 		offset, 
+			DirectByteBuffer 	data,
+			PEPeer 		sender)
+		{
+			
+		}
+
+	  
+	  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender)
+		{
+		
+	}
+
+	  
+	  public boolean isBlockAlreadyWritten( int piece_number, int offset )
+		{
+		return( false );
+	}
+
+	  
+	  public ConnectionPool getConnectionPool()
+		{
+	  	return( null );
+	}
+	}
 	/*
 	protected class
 	DiskManagerDummy
