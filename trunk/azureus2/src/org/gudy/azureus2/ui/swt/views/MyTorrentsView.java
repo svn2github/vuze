@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DragSourceAdapter;
@@ -31,6 +32,7 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -39,6 +41,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -55,6 +59,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -117,9 +122,12 @@ public class MyTorrentsView extends AbstractIView
   private Menu menu;
   private Composite cCategories;
   private Menu menuCategory;
+  private Menu menuThisColumn;
+  private MenuItem menuItemChangeDir = null;
 
   private HashMap downloadBars;
 
+  // Contains all the column information (ItemDescriptor for each column)
   private ItemEnumerator itemEnumerator;
   private TableSorter sorter;
 
@@ -131,6 +139,7 @@ public class MyTorrentsView extends AbstractIView
 
 	// table item index, where the drag has started
   private int drag_drop_line_start = -1;
+  private int iMouseX = -1;
 
 
   private int loopFactor;
@@ -145,10 +154,6 @@ public class MyTorrentsView extends AbstractIView
   }
 
   public MyTorrentsView(GlobalManager globalManager, boolean isSeedingView) {
-    // Table rows seem to have a bug
-    // if any column has a image set using setImage, the first column will
-    // reserve a space for an image.
-    // Default Health to first column and no one will notice ;)
     final String[] tableItemsDL = {
         "health;L;I;18;0"
         ,"#;R;I;30;1"
@@ -175,6 +180,8 @@ public class MyTorrentsView extends AbstractIView
         ,"savepath;L;S;150;-1"
         ,"category;L;S;70;-1"
         ,"availability;R;I;50;-1"
+        ,"secondsseeding;R;I;70;-1"
+        ,"secondsdownloading;R;I;70;-1"
 
     };
 
@@ -198,6 +205,8 @@ public class MyTorrentsView extends AbstractIView
         ,"savepath;L;S;150;-1"
         ,"category;L;S;70;-1"
         ,"availability;R;I;50;-1"
+        ,"secondsseeding;R;I;70;-1"
+        ,"secondsdownloading;R;I;70;-1"
     };
 
     this.globalManager = globalManager;
@@ -212,10 +221,12 @@ public class MyTorrentsView extends AbstractIView
       tableItems = tableItemsDL;
       configTableName = "MyTorrents";
     }
+    // turn array into list so we can add to it
     List itemsList = new ArrayList(tableItems.length);
     for(int i=0 ; i < tableItems.length ; i++) {
       itemsList.add(tableItems[i]);
     }
+    // Add Plugin Extensions
     Map extensions = MyTorrentsTableExtensions.getInstance().getExtensions();
     Iterator iter = extensions.keySet().iterator();
     while(iter.hasNext()) {
@@ -232,6 +243,7 @@ public class MyTorrentsView extends AbstractIView
         itemsList.add(sItem + iPosition);
       }
     }
+    // revert back to an array
     tableItems = (String[])itemsList.toArray(new String[itemsList.size()]);
 
     objectToSortableItem = new HashMap();
@@ -464,12 +476,6 @@ public class MyTorrentsView extends AbstractIView
     table.setLayoutData(gridData);
     sorter = new TableSorter(this, configTableName, "#", true);
 
-    ControlListener resizeListener = new ControlAdapter() {
-      public void controlResized(ControlEvent e) {
-        Utils.saveTableColumn((TableColumn) e.widget);
-      }
-    };
-
     // Setup table
     // -----------
     itemEnumerator = ConfigBasedItemEnumerator.getInstance(configTableName, tableItems);
@@ -506,7 +512,7 @@ public class MyTorrentsView extends AbstractIView
           sorter.addStringColumnListener(column, items[i].getName());
         }
         column.setData("configName", "Table." + configTableName + "." + items[i].getName());
-//        column.addControlListener(resizeListener);
+        column.setData("Name", items[i].getName());
       }
     }
 
@@ -523,6 +529,19 @@ public class MyTorrentsView extends AbstractIView
         DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
         MainWindow.getWindow().openManagerView(dm);
       }
+
+      public void mouseDown(MouseEvent e) {
+        iMouseX = e.x;
+        TableItem ti = table.getItem(new Point(e.x, e.y));
+        if (ti == null) {
+          table.deselectAll();
+        }
+      }
+    });
+    table.addMouseMoveListener(new MouseMoveListener() {
+      public void mouseMove(MouseEvent e) {
+        iMouseX = e.x;
+      }
     });
 
     table.addPaintListener(new PaintListener() {
@@ -537,6 +556,10 @@ public class MyTorrentsView extends AbstractIView
 
   private void createMenu() {
     menu = new Menu(composite.getShell(), SWT.POP_UP);
+
+    menuThisColumn = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
+    itemThisColumn.setMenu(menuThisColumn);
 
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemDetails, "MyTorrentsView.menu.showdetails"); //$NON-NLS-1$
@@ -612,6 +635,24 @@ public class MyTorrentsView extends AbstractIView
     
     addCategorySubMenu();
 
+    // Tracker
+    final Menu menuTracker = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    final MenuItem itemTracker = new MenuItem(menu, SWT.CASCADE);
+    Messages.setLanguageText(itemTracker, "MyTorrentsView.menu.tracker");
+    itemTracker.setMenu(menuTracker);
+
+    final MenuItem itemChangeTracker = new MenuItem(menuTracker, SWT.PUSH);
+    Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
+    itemChangeTracker.setImage(ImageRepository.getImage("add_tracker"));
+
+    final MenuItem itemEditTracker = new MenuItem(menuTracker, SWT.PUSH);
+    Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker"); //$NON-NLS-1$
+    itemEditTracker.setImage(ImageRepository.getImage("edit_trackers"));
+
+    final MenuItem itemManualUpdate = new MenuItem(menuTracker,SWT.PUSH);
+    Messages.setLanguageText(itemManualUpdate, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
+    //itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
+    
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
@@ -643,20 +684,6 @@ public class MyTorrentsView extends AbstractIView
     final MenuItem itemDeleteBoth = new MenuItem(menuRemove, SWT.PUSH);
     Messages.setLanguageText(itemDeleteBoth, "MyTorrentsView.menu.removeand.deleteboth");
 
-    new MenuItem(menu, SWT.SEPARATOR);
-
-    final MenuItem itemChangeTracker = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
-    itemChangeTracker.setImage(ImageRepository.getImage("add_tracker"));
-
-    final MenuItem itemEditTracker = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker"); //$NON-NLS-1$
-    itemEditTracker.setImage(ImageRepository.getImage("edit_trackers"));
-
-    final MenuItem itemManualUpdate = new MenuItem(menu,SWT.PUSH);
-    Messages.setLanguageText(itemManualUpdate, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
-    //itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
-    
     final MenuItem itemRecheck = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRecheck, "MyTorrentsView.menu.recheck");
     itemRecheck.setImage(ImageRepository.getImage("recheck"));
@@ -667,10 +694,6 @@ public class MyTorrentsView extends AbstractIView
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
     itemChangeTable.setImage(ImageRepository.getImage("columns"));
 
-    final MenuItem itemAboutHealth = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemAboutHealth, "MyTorrentsView.menu.health"); //$NON-NLS-1$
-    itemAboutHealth.setImage(ImageRepository.getImage("st_explain"));
-
 
 
     menu.addListener(SWT.Show, new Listener() {
@@ -678,6 +701,23 @@ public class MyTorrentsView extends AbstractIView
         TableItem[] tis = table.getSelection();
         boolean hasSelection = (tis.length > 0);
 
+        if (table.getItemCount() > 0) {
+          TableItem ti = table.getItem(0);
+          // Unfortunately, this listener doesn't fill location
+          int x = 0;
+          int iColumn = -1;
+          for (int i = 0; i < table.getColumnCount(); i++) {
+            // M8 Fixes SWT GTK Bug 51777:
+            //  "TableItem.getBounds(int) returns the wrong values when table scrolled"
+            Rectangle cellBounds = ti.getBounds(i);
+            if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width) {
+              iColumn = i;
+              break;
+            }
+          }
+          addThisColumnSubMenu(iColumn);
+        }
+        
         itemDetails.setEnabled(hasSelection);
 
         itemOpen.setEnabled(hasSelection);
@@ -691,7 +731,9 @@ public class MyTorrentsView extends AbstractIView
         
         itemManualUpdate.setEnabled(hasSelection);
 
+        boolean bChangeDir = false;
         if (hasSelection) {
+          bChangeDir = true;
           boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, 
                   forceStart, forceStartEnabled, recheck, top, bottom, manualUpdate;
           moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = 
@@ -733,7 +775,8 @@ public class MyTorrentsView extends AbstractIView
                 boolean update_state = ((System.currentTimeMillis()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
                 manualUpdate = manualUpdate & update_state;
               }
-              
+
+              bChangeDir &= (state == DownloadManager.STATE_ERROR && !dm.filesExist());
             }
           }
           itemBar.setSelection(barsOpened);
@@ -769,6 +812,19 @@ public class MyTorrentsView extends AbstractIView
           itemEditTracker.setEnabled(false);
           itemChangeTracker.setEnabled(false);
           itemRecheck.setEnabled(false);
+        }
+        
+        if (menuItemChangeDir != null && !menuItemChangeDir.isDisposed()) {
+          menuItemChangeDir.dispose();
+        }
+        if (bChangeDir) {
+          menuItemChangeDir = new MenuItem(menu, SWT.PUSH, 0);
+          Messages.setLanguageText(menuItemChangeDir, "MyTorrentsView.menu.changeDirectory");
+          menuItemChangeDir.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+              changeDirSelectedTorrents();
+            }
+          });
         }
       }
     });
@@ -981,12 +1037,6 @@ public class MyTorrentsView extends AbstractIView
       }
     });
 
-    itemAboutHealth.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-          HealthHelpWindow.show(table.getDisplay());
-      }
-    });
-
     itemDetails.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         TableItem[] tis = table.getSelection();
@@ -1175,6 +1225,88 @@ public class MyTorrentsView extends AbstractIView
       }
     });
 
+  }
+  
+  /* SubMenu for column specific tasks. 
+   * @param iColumn Column # that tasks apply to.
+   */
+  private void addThisColumnSubMenu(int iColumn) {
+    MenuItem item;
+
+    // Dispose of the old items
+    MenuItem[] items = menuThisColumn.getItems();
+    for (int i = 0; i < items.length; i++)
+      items[i].dispose();
+      
+    if (iColumn == -1) {
+      return;
+    }
+    
+    menu.setData("ColumnNo", new Long(iColumn));
+
+    TableColumn tcColumn = table.getColumn(iColumn);
+    menuThisColumn.getParentItem().setText("'" + tcColumn.getText() + "' " + 
+                                           MessageText.getString("GenericText.column"));
+
+    String sColumnName = (String)tcColumn.getData("Name");
+    if (sColumnName != null) {
+      if (sColumnName.equals("health")) {
+        item = new MenuItem(menuThisColumn, SWT.PUSH);
+        Messages.setLanguageText(item, "MyTorrentsView.menu.health");
+        item.setImage(ImageRepository.getImage("st_explain"));
+        item.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+            HealthHelpWindow.show(table.getDisplay());
+          }
+        });
+
+      } else if (sColumnName.equals("maxuploads")) {
+        int iStart = COConfigurationManager.getIntParameter("Max Uploads") - 2;
+        if (iStart < 2) iStart = 2;
+        for (int i = iStart; i < iStart + 6; i++) {
+          item = new MenuItem(menuThisColumn, SWT.PUSH);
+          item.setText(String.valueOf(i));
+          item.setData("MaxUploads", new Long(i));
+          item.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+              TableItem[] tis = table.getSelection();
+              for (int i = 0; i < tis.length; i++) {
+                MenuItem item = (MenuItem)e.widget;
+                DownloadManager dm = (DownloadManager) tableItemToObject.get(tis[i]);
+                if (dm != null && item != null) {
+                  int value = ((Long)item.getData("MaxUploads")).intValue();
+                  dm.getStats().setMaxUploads(value);
+                }
+              }
+            }
+          }); // listener
+        } // for
+      }
+    }
+
+    if (menuThisColumn.getItemCount() > 0) {
+      new MenuItem(menuThisColumn, SWT.SEPARATOR);
+    }
+
+    item = new MenuItem(menuThisColumn, SWT.PUSH);
+    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
+    item.setEnabled(false);
+
+    item = new MenuItem(menuThisColumn, SWT.PUSH);
+    Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.toClipboard");
+    item.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        String sToClipboard = "";
+        int iColumn = ((Long)menu.getData("ColumnNo")).intValue();
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          if (i != 0) sToClipboard += "\n";
+          sToClipboard += tis[i].getText(iColumn);
+        }
+        new Clipboard(panel.getDisplay()).setContents(new Object[] { sToClipboard }, 
+                                                      new Transfer[] {TextTransfer.getInstance()});
+      }
+    });
   }
 
   private void createDragDrop() {
@@ -1454,8 +1586,25 @@ public class MyTorrentsView extends AbstractIView
           // CTRL+A select all Torrents
           else if(e.character == 0x1)
             table.selectAll();
+          else if(e.character == 0x3) {
+            String sToClipboard = "";
+            for (int j = 0; j < table.getColumnCount(); j++) {
+              if (j != 0) sToClipboard += "\t";
+              sToClipboard += table.getColumn(j).getText();
+            }
+
+            TableItem[] tis = table.getSelection();
+            for (int i = 0; i < tis.length; i++) {
+              sToClipboard += "\n";
+              for (int j = 0; j < table.getColumnCount(); j++) {
+                if (j != 0) sToClipboard += "\t";
+                sToClipboard += tis[i].getText(j);
+              }
+            }
+            new Clipboard(panel.getDisplay()).setContents(new Object[] { sToClipboard }, 
+                                                          new Transfer[] {TextTransfer.getInstance()});
           // CTRL+R resume/start selected Torrents
-          else if(e.character == 0x12)
+          } else if(e.character == 0x12)
             resumeSelectedTorrents();
           // CTRL+S stop selected Torrents
           else if(e.character == 0x13)
@@ -1495,6 +1644,31 @@ public class MyTorrentsView extends AbstractIView
 
   public Map getTableItemToObjectMap() {
     return tableItemToObject;
+  }
+  
+  private void changeDirSelectedTorrents() {
+    TableItem[] tis = table.getSelection();
+    if (tis.length > 0) {
+      String sDefPath = COConfigurationManager.getBooleanParameter("Use default data dir") ?
+                        COConfigurationManager.getStringParameter("Default save path", "") :
+                        "";
+      DirectoryDialog dDialog = new DirectoryDialog(panel.getShell(), SWT.SYSTEM_MODAL);
+      dDialog.setFilterPath(sDefPath);
+      dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath"));
+      String sSavePath = dDialog.open();
+      if (sSavePath != null) {
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+          if (dm.getState() == DownloadManager.STATE_ERROR &&
+              dm.setSavePath(sSavePath) && 
+              dm.filesExist()) {
+            dm.setState(DownloadManager.STATE_STOPPED);
+            ManagerUtils.queue(dm,panel);
+          }
+        }
+      }
+    }
   }
 
   private void removeSelectedTorrentsIfStoppedOrError() {
