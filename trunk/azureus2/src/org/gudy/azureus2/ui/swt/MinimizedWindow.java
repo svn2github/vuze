@@ -27,6 +27,10 @@ public class MinimizedWindow {
 
   Shell splash;
   Label lDrag;
+  
+  MinimizedWindow stucked;
+  
+  private Rectangle screen;
 
   private static final Vector downloadBars = new Vector(); 
 
@@ -45,9 +49,11 @@ public class MinimizedWindow {
 
   public MinimizedWindow(DownloadManager manager, Shell main) {
     this.manager = manager;
+    this.stucked = null;
     
     //   The splash Screen setup
     splash = new Shell(main, SWT.ON_TOP);
+    this.screen = main.getDisplay().getClientArea();
     lDrag = new Label(splash, SWT.NULL);
     lDrag.setImage(ImageRepository.getImage("dragger")); //$NON-NLS-1$
     lDrag.pack();
@@ -75,7 +81,7 @@ public class MinimizedWindow {
           int dY = yPressed - e.y;
           //System.out.println("dX,dY : " + dX + " , " + dY);
           Point currentLoc = splash.getLocation();
-          currentLoc.x -= dX;
+          currentLoc.x -= dX;          
           currentLoc.y -= dY;
           setSnapLocation(currentLoc);
           //System.out.println("Position : " + xPressed + " , " + yPressed);
@@ -177,11 +183,12 @@ public class MinimizedWindow {
       }
     });
     splash.setSize(xSize + 3, hSize + 2);
-    downloadBars.add(splash);
+    downloadBars.add(this);
     splash.setVisible(true);
   }
 
   private void setSnapLocation(Point currentLoc) {
+    /*
     if (downloadBars.size() > 1) {
       Rectangle snap = splash.getBounds();
       snap.x -= 10;
@@ -207,7 +214,44 @@ public class MinimizedWindow {
         snapped = false;
       }
     }
+    */
+    if(currentLoc.x < 10) currentLoc.x = 0;
+    if(currentLoc.x > screen.width - splash.getBounds().width - 10) currentLoc.x = screen.width - splash.getBounds().width;
+    if(currentLoc.y < 10) currentLoc.y = 0;
+    if(currentLoc.y > screen.height - splash.getBounds().height - 10) currentLoc.y = screen.height - splash.getBounds().height;
+    
+    if (downloadBars.size() > 1) {
+      for(int i = 0 ; i < downloadBars.size() ; i++) {
+        MinimizedWindow downloadBar = (MinimizedWindow) downloadBars.get(i);
+        //Stucking to someone else
+        if(downloadBar != this && downloadBar.getStucked() == null || downloadBar.getStucked() == this)
+        {
+          int x = downloadBar.getShell().getLocation().x;
+          int y = downloadBar.getShell().getLocation().y + downloadBar.getShell().getBounds().height;
+          if(Math.abs(x-currentLoc.x) < 10 && y-currentLoc.y < 10 & y-currentLoc.y > 0) {                     
+            downloadBar.setStucked(this);
+            currentLoc.x = x;
+            currentLoc.y = downloadBar.getShell().getLocation().y + downloadBar.getShell().getBounds().height - 1;
+          }
+        }    
+        //Un stucking from someone
+        if(downloadBar != this && downloadBar.getStucked() == this)
+        {
+          int x = downloadBar.getShell().getLocation().x;
+          int y = downloadBar.getShell().getLocation().y + downloadBar.getShell().getBounds().height;
+          if(Math.abs(x-currentLoc.x) > 10 || Math.abs(y-currentLoc.y) > 10)
+             downloadBar.setStucked(null);
+        }    
+      }
+    }
+    
     splash.setLocation(currentLoc);
+    MinimizedWindow mwCurrent = this;
+    while(mwCurrent != null) {
+      currentLoc.y += mwCurrent.getShell().getBounds().height - 1;
+      mwCurrent = mwCurrent.getStucked();
+      if(mwCurrent != null) mwCurrent.getShell().setLocation(currentLoc);
+    }
   }
 
   public void close() {
@@ -227,5 +271,17 @@ public class MinimizedWindow {
   
   public void setVisible(boolean visible) {
     splash.setVisible(visible);
+  }
+  
+  public Shell getShell() {
+    return this.splash;
+  }
+  
+  public MinimizedWindow getStucked() {
+    return this.stucked;
+  }
+  
+  public void setStucked(MinimizedWindow mw) {
+    this.stucked = mw;
   }
 }
