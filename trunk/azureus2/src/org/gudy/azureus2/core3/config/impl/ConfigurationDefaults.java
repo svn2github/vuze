@@ -297,6 +297,9 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.cache.enable", new Long(1));
     def.put( "diskmanager.perf.cache.size", new Long(4));		// 4 MB
     def.put( "network.tcp.mtu.size", new Long(1500) );
+    def.put( "network.experimental.osx.kernel.panic.fix", new Long(0) );
+    
+    
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

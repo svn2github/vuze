@@ -14,10 +14,8 @@ import java.nio.channels.*;
 import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Constants;
 
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
 /**
  * Handles socket connections.
@@ -33,7 +31,7 @@ public class SocketManager {
   private Selector selector = null;
   private VirtualOutboundSelector v_selector;
   
-  private static final boolean USE_VIRTUAL = false;//Constants.isOSX;
+  private static final boolean USE_VIRTUAL = COConfigurationManager.getBooleanParameter("network.experimental.osx.kernel.panic.fix");
   
   
   private SocketManager() {
@@ -50,6 +48,7 @@ public class SocketManager {
   private void mainLoop() {
     try {
       if( USE_VIRTUAL ) {
+        System.out.println("SocketManager: using experimental osx panic fix mode");
         v_selector = new VirtualOutboundSelector();
       }
       else {
