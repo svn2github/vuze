@@ -10,6 +10,11 @@ import java.util.Iterator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -41,6 +46,8 @@ public class Tab {
   //private TabItem tabItem;
   //private CTabItem tabItem;
   private Item tabItem;
+  private static boolean eventCloseAllowed = true;
+  private static Item selectedItem = null;
 
   private String lastTitle;
   private String lastTooltip;
@@ -80,6 +87,33 @@ public class Tab {
         tabItem = new TabItem((TabFolder) folder, SWT.NULL);
       }
     }
+    folder.addMouseListener(new MouseAdapter() {
+      public void mouseDown(MouseEvent arg0) {
+        if(arg0.button == 2) {
+          if(eventCloseAllowed) { 
+            Rectangle rectangle = useCustomTab ? ((CTabItem)tabItem).getBounds() : ((TabItem)tabItem).getControl().getBounds(); 
+            if(rectangle.contains(arg0.x, arg0.y)) {
+              eventCloseAllowed = false;
+              folder.removeMouseListener(this);
+              closed(tabItem);
+            }
+          }
+        } else {
+          selectedItem = useCustomTab ? (Item) ((CTabFolder) folder).getSelection() : ((TabFolder) folder).getSelection()[0];
+//    System.out.println("selected: "+selectedItem.getText());
+        }
+      }
+      public void mouseUp(MouseEvent arg0) {
+        eventCloseAllowed = true;
+        if(selectedItem != null) {
+          if(_folder instanceof CTabFolder)
+            ((CTabFolder) _folder).setSelection((CTabItem)selectedItem);
+          else
+            ((TabFolder) _folder).setSelection(new TabItem[]{(TabItem)selectedItem});
+        }
+      }
+    });
+
     if (!(_view instanceof MyTorrentsView || _view instanceof MyTrackerView)) {
       composite = new Composite(folder, SWT.NULL);
       GridLayout layout = new GridLayout();
@@ -132,6 +166,8 @@ public class Tab {
       }
     }
     MainWindow.getWindow().refreshIconBar();
+    selectedItem = tabItem;
+//    System.out.println("selected: "+selectedItem.getText());
   }
 
   //public static IView getView(TabItem item) {
@@ -230,6 +266,28 @@ public class Tab {
      }
   }
 
+  public static void selectNextTab() {
+    if (_folder == null || _folder.isDisposed())
+      return;
+    if(_folder instanceof TabFolder) {
+      TabFolder tabFolder = (TabFolder)_folder;
+      int index = tabFolder.getSelectionIndex() + 1;
+      if(index == 0 || tabFolder.getItemCount() < 2)
+        return;
+      if(index == tabFolder.getItemCount())
+        index = 0;
+      tabFolder.setSelection(index);
+    } else {
+      CTabFolder tabFolder = (CTabFolder)_folder;
+      int index = tabFolder.getSelectionIndex() + 1;
+      if(index == 0 || tabFolder.getItemCount() < 2)
+        return;
+      if(index == tabFolder.getItemCount())
+        index = 0;
+      tabFolder.setSelection(index);
+    }
+  }
+
   //public static void setFolder(TabFolder folder) {
   //public static void setFolder(CTabFolder folder) {
   public static void setFolder(Composite folder) {
@@ -309,6 +367,44 @@ public class Tab {
     catch (Exception e) {}
     if (composite != null && !composite.isDisposed()) {
       composite.dispose();
+    }
+  }
+
+  /**
+   * ESC or CTRL+F4 closes current tab, F6 selects next, CTRL+F6 selects previous
+   * @return a KeyListener for Tabs
+   *
+   * @author Rene Leonhardt
+   */
+  public static KeyAdapter createTabKeyListener() {
+    return new KeyAdapter() {
+      public void keyReleased(KeyEvent keyEvent) {
+        // ESC or CTRL+F4 closes current Tab
+        if(keyEvent.character == SWT.ESC || (keyEvent.keyCode == 0x100000d && keyEvent.stateMask == SWT.CTRL)) {
+          closeCurrent();
+        }
+        if(keyEvent.keyCode == 0x100000f && keyEvent.stateMask == 0) {
+          selectNextTab();
+        }
+      }
+
+      public void keyPressed(KeyEvent keyEvent) {
+        // F6 selects next Tab
+//        if(keyEvent.keyCode == 0x100000f && keyEvent.stateMask == 0) {
+//          selectNextTab();
+//        }
+      }
+    };
+  }
+
+  public static void addTabKeyListenerToComposite(Composite folder) {
+    folder.addKeyListener(createTabKeyListener());
+    Control[] children = folder.getChildren();
+    for (int i = 0; i < children.length; i++) {
+      if(children[i] instanceof Composite)
+        addTabKeyListenerToComposite((Composite) children[i]);
+      else
+        children[i].addKeyListener(createTabKeyListener());
     }
   }
 }
