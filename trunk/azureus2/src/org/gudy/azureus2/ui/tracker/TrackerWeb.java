@@ -420,11 +420,15 @@ TrackerWeb
 					
 					if ( torrent.getSize() > 0 ){
 				
-						t_row.put( "torrent_comment", torrent.getComment());
+							// if we put out a normal space for optional bits then the table doesn't draw properly
 						
-						t_row.put( "torrent_created_by", torrent.getCreatedBy());
+						t_row.put( "torrent_comment", torrent.getComment().length()==0?"&nbsp;":torrent.getComment());
 						
-						t_row.put( "torrent_created_on", DisplayFormatters.formatDate(torrent.getCreationDate() * 1000 ));
+						t_row.put( "torrent_created_by", torrent.getCreatedBy().length()==0?"&nbsp;":torrent.getCreatedBy());
+						
+						String	date = DisplayFormatters.formatDate(torrent.getCreationDate() * 1000 );
+						
+						t_row.put( "torrent_created_on", date.length()==0?"&nbsp;":date );
 						
 						t_row.put( "torrent_piece_size", DisplayFormatters.formatByteCountToKiBEtc(torrent.getPieceSize()));
 						
