@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 /**
  * @author Olivier
@@ -193,7 +194,7 @@ public class MinimizedWindow {
     itemClose.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         close();
-        MyTorrentsView viewMyTorrents = (MyTorrentsView) Tab.getView(MainWindow.getWindow().getMytorrents().getTabItem());
+        MyTorrentsSuperView viewMyTorrents = (MyTorrentsSuperView) Tab.getView(MainWindow.getWindow().getMytorrents().getTabItem());
         if(viewMyTorrents != null) {
           viewMyTorrents.removeDownloadBar(MinimizedWindow.this.manager);
         }

@@ -59,7 +59,7 @@ public class IconBar {
     this.coolBar = new CoolBar(parent,SWT.NONE);
     initBar();
     new Label(parent,SWT.SEPARATOR | SWT.HORIZONTAL).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));    
-    //this.coolBar.setLocked(true);
+    this.coolBar.setLocked(true);
   }
   
   public void setEnabled(String itemKey,boolean enabled) {

@@ -105,5 +105,10 @@ public class MyTorrentsSuperView extends AbstractIView  {
     if (currentView != null)
       currentView.itemActivated(itemKey);    
   }
+  
+  public void removeDownloadBar(DownloadManager manager) {
+   torrentview.removeDownloadBar(manager);
+   seedingview.removeDownloadBar(manager);
+  }
 
 }
