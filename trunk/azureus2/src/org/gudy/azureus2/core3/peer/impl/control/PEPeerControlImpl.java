@@ -2018,8 +2018,6 @@ PEPeerControlImpl
   
   
 
-  	// these should be replaced by above methods + listeners
-  
   public void 
   peerAdded(
   	PEPeer pc) 
@@ -2034,6 +2032,7 @@ PEPeerControlImpl
     }
   }
 
+  
   public void 
   peerRemoved(
   	PEPeer pc) 
@@ -2046,9 +2045,17 @@ PEPeerControlImpl
     
     if( pc == currentOptimisticUnchoke )  currentOptimisticUnchoke = null;
     
-    _downloadManager.removePeer(pc);
+    _downloadManager.removePeer(pc);  //async downloadmanager notification
+    
+    //sync peermanager notification
+    ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+    
+    for( int i=0; i < peer_manager_listeners.size(); i++ ) {
+      ((PEPeerManagerListener)peer_manager_listeners.get(i)).peerRemoved( this, pc );
+    }
   }
 
+  
   public void pieceAdded(PEPiece p) {
     _downloadManager.addPiece(p);
   }
