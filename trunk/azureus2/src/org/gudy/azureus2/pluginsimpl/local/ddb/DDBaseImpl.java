@@ -81,13 +81,7 @@ DDBaseImpl
 	
 	
 	private DHTPlugin		dht;
-	
-	private static final int	THREAD_POOL_SIZE	= 8;
-	private AEMonitor			task_mon			= new AEMonitor( "DBase:TaskMon" );
-	private int					tasks_active		= 0;
-	private List				task_queue			= new ArrayList();
-	private ThreadPool			thread_pool;
-	
+		
 	protected
 	DDBaseImpl(
 		final AzureusCore	azureus_core )
@@ -95,9 +89,7 @@ DDBaseImpl
 		PluginInterface dht_pi = 
 			azureus_core.getPluginManager().getPluginInterfaceByClass(
 						DHTPlugin.class );
-		
-		thread_pool = new ThreadPool("DDBase:queue",8);
-		
+				
 		if ( dht_pi != null ){
 			
 			dht = (DHTPlugin)dht_pi.getPlugin();
@@ -240,19 +232,11 @@ DDBaseImpl
 			
 		}else if ( values.length == 1 ){
 			
-			queue(
-				new AERunnable()
-				{
-					public void
-					runSupport()
-					{
-						dht.put(	
-								((DDBaseKeyImpl)key).getBytes(),
-								((DDBaseValueImpl)values[0]).getBytes(),
-								DHTPlugin.FLAG_SINGLE_VALUE,
-								new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
-					}
-				});
+			dht.put(	
+					((DDBaseKeyImpl)key).getBytes(),
+					((DDBaseValueImpl)values[0]).getBytes(),
+					DHTPlugin.FLAG_SINGLE_VALUE,
+					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
 		}else{
 			
 				
@@ -315,19 +299,11 @@ DDBaseImpl
 					
 					final byte[]					f_current_key	= current_key;
 					
-					queue(
-							new AERunnable()
-							{
-								public void
-								runSupport()
-								{
-									dht.put(	
-											f_current_key,
-											copy,
-											DHTPlugin.FLAG_MULTI_VALUE,
-											new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
-								}
-							});	
+					dht.put(	
+							f_current_key,
+							copy,
+							DHTPlugin.FLAG_MULTI_VALUE,
+							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
 					
 					payload_length	= 1;
 					
@@ -345,19 +321,11 @@ DDBaseImpl
 				
 				final byte[]					f_current_key	= current_key;
 				
-				queue(
-						new AERunnable()
-						{
-							public void
-							runSupport()
-							{
-								dht.put(	
-										f_current_key,
-										copy,
-										DHTPlugin.FLAG_MULTI_VALUE,
-										new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
-							}
-						});					
+				dht.put(	
+						f_current_key,
+						copy,
+						DHTPlugin.FLAG_MULTI_VALUE,
+						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
 			}
 		}
 	}
@@ -372,20 +340,12 @@ DDBaseImpl
 	{
 			// TODO: max values?
 		
-		queue(
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					dht.get(	
-						((DDBaseKeyImpl)key).getBytes(), 
-						(byte)0, 
-						256, 
-						timeout, 
-						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, timeout ));
-				}
-			});
+		dht.get(	
+			((DDBaseKeyImpl)key).getBytes(), 
+			(byte)0, 
+			256, 
+			timeout, 
+			new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, timeout ));
 	}
 	
 	public void
@@ -395,89 +355,7 @@ DDBaseImpl
 	
 		throws DistributedDatabaseException
 	{
-		queue(
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0 ));
-				}
-			});
-	}
-	
-	protected void
-	queue(
-		final AERunnable	task )
-	{
-		boolean	run_it;
-		
-		try{
-			task_mon.enter();
-			
-			if ( tasks_active >= THREAD_POOL_SIZE ){
-				
-				task_queue.add( task );
-				
-				run_it	= false;
-				
-			}else{
-				
-				tasks_active++;
-				
-				run_it	= true;
-			}
-		}finally{
-			
-			task_mon.exit();
-		}
-		
-			// note thread pool will block if > thread_pool_size added, however should never block
-			// here due to above logic regarding active tasks
-				
-		if ( run_it ){
-			
-			thread_pool.run( 
-				new AERunnable()
-				{
-					public void
-					runSupport()
-					{
-						AERunnable	current_task	= task;
-
-						while( current_task != null ){
-							
-							try{
-								current_task.runSupport();
-								
-							}catch( Throwable e ){
-								
-								Debug.printStackTrace(e);
-								
-							}finally{
-								
-								try{
-									task_mon.enter();
-								
-									if ( task_queue.size() > 0 ){
-										
-										current_task = (AERunnable)task_queue.remove(0);
-										
-									}else{
-										
-										current_task	= null;
-										
-										tasks_active--;
-									}
-								}finally{
-									
-									task_mon.exit();
-								}
-							}
-						}
-					}
-				});
-		}
+		dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0 ));
 	}
 	
 	public void
@@ -637,21 +515,13 @@ DDBaseImpl
 					final	byte[]	next_key_bytes = new SHA1Hasher().calculateHash( key_bytes );
 					
 					complete_disabled	= true;
-					
-					queue(
-							new AERunnable()
-							{
-								public void
-								runSupport()
-								{
-									dht.get(	
-										next_key_bytes, 
-										(byte)0, 
-										16, 
-										timeout, 
-										new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, next_key_bytes, timeout ));
-								}
-							});
+	
+					dht.get(	
+						next_key_bytes, 
+						(byte)0, 
+						16, 
+						timeout, 
+						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key, next_key_bytes, timeout ));
 				}
 			}else{
 				

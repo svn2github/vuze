@@ -70,6 +70,24 @@ AESemaphore
 		return( reserveSupport( millis, 1 ) == 1 );
 	}
 	
+	public boolean
+	reserveIfAvailable()
+	{
+		synchronized(this){
+
+			if ( released_forever || dont_wait > 0 ){
+
+				reserve();
+				
+				return( true );
+				
+			}else{
+				
+				return( false );
+			}
+		}
+	}
+	
 	public int
 	reserveSet(
 		int	max_to_reserve )

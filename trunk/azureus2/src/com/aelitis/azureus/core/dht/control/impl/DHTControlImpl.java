@@ -51,8 +51,8 @@ public class
 DHTControlImpl 
 	implements DHTControl, DHTTransportRequestHandler
 {
-	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 3;
-	private static final int EXTERNAL_PUT_CONCURRENCY		= 3;
+	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 32;
+	private static final int EXTERNAL_PUT_CONCURRENCY		= 16;
 	
 	private DHTTransport			transport;
 	private DHTTransportContact		local_contact;
@@ -75,7 +75,7 @@ DHTControlImpl
 	
 	private long		router_start_time;
 	private int			router_count;
-	
+		
 	private ThreadPool	internal_lookup_pool;
 	private ThreadPool	external_lookup_pool;
 	private ThreadPool	put_pool;
@@ -111,14 +111,13 @@ DHTControlImpl
 						_cache_republish_interval,
 						_max_values_stored,
 						logger );
+					
+		internal_lookup_pool 	= new ThreadPool("DHTControl:internallookups", lookup_concurrency );
 		
-		if ( lookup_concurrency > 1 ){
-			
-			internal_lookup_pool = new ThreadPool("DHTControl:internallookups", lookup_concurrency );
-		}
+			// external pools queue when full ( as opposed to blocking )
 		
-		external_lookup_pool 	= new ThreadPool("DHTControl:externallookups", EXTERNAL_LOOKUP_CONCURRENCY );
-		put_pool 				= new ThreadPool("DHTControl:puts", EXTERNAL_PUT_CONCURRENCY );
+		external_lookup_pool 	= new ThreadPool("DHTControl:externallookups", EXTERNAL_LOOKUP_CONCURRENCY, true );
+		put_pool 				= new ThreadPool("DHTControl:puts", EXTERNAL_PUT_CONCURRENCY, true );
 
 		createRouter( transport.getLocalContact());
 
@@ -947,47 +946,30 @@ DHTControlImpl
 		final int					search_accuracy,
 		final lookupResultHandler	handler )
 	{
-		if ( thread_pool == null ){
-			
-			try{
-				lookupSupport( lookup_id, flags, value_search, timeout, concurrency, max_values, search_accuracy, handler );
-	
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-				
-				if ( handler != null ){
-					
-					handler.complete( true );
-				}
-			}
-		}else{
-			
-			thread_pool.run(
-				new AERunnable()
+		thread_pool.run(
+			new AERunnable()
+			{
+				public void
+				runSupport()
 				{
-					public void
-					runSupport()
-					{
-						try{
-							lookupSupport( lookup_id, flags, value_search, timeout, concurrency, max_values, search_accuracy, handler );
+					try{
+						lookupSupportSync( lookup_id, flags, value_search, timeout, concurrency, max_values, search_accuracy, handler );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+						
+						if ( handler != null ){
 							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-							
-							if ( handler != null ){
-								
-								handler.complete( true );
-							}
+							handler.complete( true );
 						}
 					}
-				});
-		}
+				}
+			});
 	}
 	
 	protected void
-	lookupSupport(
+	lookupSupportSync(
 		final byte[]				lookup_id,
 		byte						flags,
 		boolean						value_search,
