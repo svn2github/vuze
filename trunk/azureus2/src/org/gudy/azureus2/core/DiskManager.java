@@ -1094,6 +1094,8 @@ public class DiskManager {
             return false;
         if (offset + length > pLength)
             return false;
+        if(!this.pieceDone[pieceNumber])
+            return false;
         return true;
     }
 
