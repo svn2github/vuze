@@ -36,4 +36,7 @@ TrackerClientAnnounceDataProvider
 	
 	public long
 	getRemaining();
+    
+  public int
+  getConnectionCount();
 }
