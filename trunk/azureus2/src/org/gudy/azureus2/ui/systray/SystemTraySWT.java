@@ -236,7 +236,12 @@ public class SystemTraySWT {
 
         final int speedPartitions = 12;
 
-        final int maxBandwidth = COConfigurationManager.getIntParameter(configKey,0);
+        int maxBandwidth = COConfigurationManager.getIntParameter(configKey);
+        if(maxBandwidth == 0 && configKey == "Max Download Speed KBs")
+        {
+            maxBandwidth = 375;
+        }
+        
         final String unitSuffix = COConfigurationManager.getBooleanParameter("config.style.useSIUnits") ? " KiB/s" : "KB/s";
 
         MenuItem item = new MenuItem(parent, SWT.RADIO);
@@ -263,7 +268,7 @@ public class SystemTraySWT {
                 }
               }
 
-              delta += (delta >= 10) ? 10 : (delta >= 6) ? 2 : 1;
+              delta += (valuePair[0] >= 100) ? 50 : (delta >= 10) ? 10 : (delta >= 6) ? 2 : 1;
         }
     }
 

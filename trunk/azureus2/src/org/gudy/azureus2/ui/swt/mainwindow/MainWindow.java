@@ -580,6 +580,8 @@ MainWindow
         }
         
         int downLimit = COConfigurationManager.getIntParameter("Max Download Speed KBs",0);
+        if(downLimit == 0)
+            downLimit = 375;
         
         MenuItem item = new MenuItem(menuDownSpeed,SWT.RADIO);
         item.setText(MessageText.getString("ConfigView.unlimited"));
@@ -622,7 +624,7 @@ MainWindow
             }
           }
           
-          iRel += (iRel >= 10) ? 10 : (iRel >= 6) ? 2 : 1;
+          iRel += (iAboveBelow[0] >= 100) ? 50 : (iRel >= 10) ? 10 : (iRel >= 6) ? 2 : 1;
         }
         
       }
