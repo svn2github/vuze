@@ -37,7 +37,6 @@ import org.gudy.azureus2.plugins.PluginView;
 public class Tab {
 
   private static HashMap 	tabs;
-  private static AEMonitor 	tabs_mon 	= new AEMonitor( "Tab:tabs" );
   private static AEMonitor  class_mon 	= new AEMonitor( "Tab:class" );
 
   private boolean useCustomTab;
@@ -182,7 +181,7 @@ public class Tab {
 
   public static void refresh() {
     try{
-      tabs_mon.enter();
+    	class_mon.enter();
     	
       Iterator iter = tabs.keySet().iterator();
       while (iter.hasNext()) {
@@ -218,13 +217,13 @@ public class Tab {
       }
     }finally{
     	
-    	tabs_mon.exit();
+    	class_mon.exit();
     }
   }
 
   public static void updateLanguage() {
     try{
-      tabs_mon.enter();
+    	class_mon.enter();
       
       Iterator iter = tabs.keySet().iterator();
       while (iter.hasNext()) {
@@ -240,13 +239,13 @@ public class Tab {
       }
     }finally{
     	
-    	tabs_mon.exit();
+    	class_mon.exit();
     }
   }
 
   public static void closeAllTabs() {
     try{
-      tabs_mon.enter();
+    	class_mon.enter();
       
       Item[] tab_items = (Item[]) tabs.keySet().toArray(new Item[tabs.size()]);
       for (int i = 0; i < tab_items.length; i++) {
@@ -254,13 +253,13 @@ public class Tab {
       }
     }finally{
     	
-    	tabs_mon.exit();
+    	class_mon.exit();
     }
   }
 
   public static void closeAllDetails() {
     try{
-      tabs_mon.enter();
+    	class_mon.enter();
     	
       Item[] tab_items = (Item[]) tabs.keySet().toArray(new Item[tabs.size()]);
       for (int i = 0; i < tab_items.length; i++) {
@@ -271,7 +270,7 @@ public class Tab {
       }
     }finally{
     	
-    	tabs_mon.exit();
+    	class_mon.exit();
     }
   }
 
@@ -326,80 +325,74 @@ public class Tab {
     _folder = folder;
   }
 
-  //public static synchronised void closed(TabItem item) {
-  public static void closed(Item item) {
-  	try{
-  		class_mon.enter();
-  	
-	    IView view = null;
-	    try{
-	      tabs_mon.enter();
-	    	
-	      view = (IView) tabs.get(item);
-	      if (view != null) {
-	        try {
-	          if(view instanceof PluginView) {
-	            MainWindow.getWindow().removeActivePluginView((PluginView)view);
-	          }
-	          view.delete();
-	        } catch (Exception e) {
-	        	Debug.printStackTrace( e );
-	        }
-	
-	        if (view instanceof MyTorrentsSuperView) {
-	          MainWindow.getWindow().setMytorrents(null);
-	          //TODO : There is a problem here on OSX when using Normal TABS
-	          /*  org.eclipse.swt.SWTException: Widget is disposed
-	                at org.eclipse.swt.SWT.error(SWT.java:2691)
-	                at org.eclipse.swt.SWT.error(SWT.java:2616)
-	                at org.eclipse.swt.SWT.error(SWT.java:2587)
-	                at org.eclipse.swt.widgets.Widget.error(Widget.java:546)
-	                at org.eclipse.swt.widgets.Widget.checkWidget(Widget.java:296)
-	                at org.eclipse.swt.widgets.Control.setVisible(Control.java:2573)
-	                at org.eclipse.swt.widgets.TabItem.releaseChild(TabItem.java:180)
-	                at org.eclipse.swt.widgets.Widget.dispose(Widget.java:480)
-	                at org.gudy.azureus2.ui.swt.Tab.closed(Tab.java:322)
-	           */
-	          //Tried to add a if(! item.isDisposed()) but it's not fixing it
-	          //Need to investigate...
-	          item.dispose();
-	          return;
-	        }
-	        if (view instanceof MyTrackerView) {
-	          MainWindow.getWindow().setMyTracker(null);
-	          item.dispose();
-	          return;
-	        }
-	        if (view instanceof MySharesView) {
-	        	MainWindow.getWindow().setMyShares(null);
-	        	item.dispose();
-	        	return;
-	        }
-	      }
-	      try {
-	        /*Control control;
-	        if(item instanceof CTabItem) {
-	          control = ((CTabItem)item).getControl();
-	        } else {
-	          control = ((TabItem)item).getControl();
-	        }
-	        if (control != null && !control.isDisposed())
-	          control.dispose();
-	        */
-	        item.dispose();
-	      }
-	      catch (Exception e) {
-	      	Debug.printStackTrace( e );
-	      }
-	      tabs.remove(item);
-	    }finally{
-	    	
-	    	tabs_mon.exit();
-	    }
-  	}finally{
-  		
-  		class_mon.exit();
-  	}
+  public static void 
+  closed(Item item) 
+  {
+    IView view = null;
+    try{
+    	class_mon.enter();
+    	
+    	view = (IView) tabs.remove(item);
+    }finally{
+    	
+    	class_mon.exit();
+    }
+    
+    if (view != null) {
+        try {
+          if(view instanceof PluginView) {
+            MainWindow.getWindow().removeActivePluginView((PluginView)view);
+          }
+          view.delete();
+        } catch (Exception e) {
+        	Debug.printStackTrace( e );
+        }
+
+        if (view instanceof MyTorrentsSuperView) {
+          MainWindow.getWindow().setMytorrents(null);
+          //TODO : There is a problem here on OSX when using Normal TABS
+          /*  org.eclipse.swt.SWTException: Widget is disposed
+                at org.eclipse.swt.SWT.error(SWT.java:2691)
+                at org.eclipse.swt.SWT.error(SWT.java:2616)
+                at org.eclipse.swt.SWT.error(SWT.java:2587)
+                at org.eclipse.swt.widgets.Widget.error(Widget.java:546)
+                at org.eclipse.swt.widgets.Widget.checkWidget(Widget.java:296)
+                at org.eclipse.swt.widgets.Control.setVisible(Control.java:2573)
+                at org.eclipse.swt.widgets.TabItem.releaseChild(TabItem.java:180)
+                at org.eclipse.swt.widgets.Widget.dispose(Widget.java:480)
+                at org.gudy.azureus2.ui.swt.Tab.closed(Tab.java:322)
+           */
+          //Tried to add a if(! item.isDisposed()) but it's not fixing it
+          //Need to investigate...
+          item.dispose();
+          return;
+        }
+        if (view instanceof MyTrackerView) {
+          MainWindow.getWindow().setMyTracker(null);
+          item.dispose();
+          return;
+        }
+        if (view instanceof MySharesView) {
+        	MainWindow.getWindow().setMyShares(null);
+        	item.dispose();
+        	return;
+        }
+      }
+      try {
+        /*Control control;
+        if(item instanceof CTabItem) {
+          control = ((CTabItem)item).getControl();
+        } else {
+          control = ((TabItem)item).getControl();
+        }
+        if (control != null && !control.isDisposed())
+          control.dispose();
+        */
+        item.dispose();
+      }
+      catch (Exception e) {
+      	Debug.printStackTrace( e );
+      }
   }
 
   public void setFocus() {
@@ -416,13 +409,13 @@ public class Tab {
   public void dispose() {
     IView localView = null;
     try{
-      tabs_mon.enter();
+    	class_mon.enter();
       
       localView = (IView) tabs.get(tabItem);
       tabs.remove(tabItem);
     }finally{
     
-    	tabs_mon.exit();
+    	class_mon.exit();
     }
     try {
       if (localView != null) {
