@@ -373,7 +373,9 @@ DownloadManagerImpl
 			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
 			 	
 			 name = locale_decoder.decodeString( torrent.getName());
-                  	 
+                 
+			 name = FileUtil.convertOSSpecificChars( name );
+			 
          	 if (torrent.isSimpleTorrent()){
           	
             	File testFile = new File(savePath);

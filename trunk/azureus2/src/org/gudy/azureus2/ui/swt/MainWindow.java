@@ -2212,6 +2212,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         LocaleUtilDecoder	locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
         		
         singleFileName = locale_decoder.decodeString(torrent.getName());
+        
+        singleFileName = FileUtil.convertOSSpecificChars( singleFileName );
       }
       catch (Exception e) {
         e.printStackTrace();

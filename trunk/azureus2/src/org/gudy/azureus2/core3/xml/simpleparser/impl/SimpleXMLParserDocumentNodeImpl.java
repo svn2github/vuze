@@ -76,7 +76,7 @@ SimpleXMLParserDocumentNodeImpl
 				 type == Node.TEXT_NODE ||
 				 type == Node.NOTATION_NODE ){
 				
-				String str = child.getNodeValue().trim();
+				String str = child.getNodeValue();
 				
 				res += str;
 			}

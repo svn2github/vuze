@@ -189,4 +189,34 @@ public class FileUtil {
     }
   }
 
+  public static String
+  convertOSSpecificChars(
+  	String	file_name )
+  {
+  	boolean mac = System.getProperty("os.name").equals("Mac OS X");
+  	
+  	if ( !mac ){
+  		
+  			// '/' is valid in mac file names, replace with space
+  	
+  		file_name = file_name.replace('/',' ');
+  	}
+
+	try{
+		
+			// mac file names can end in space - fix this up by getting
+			// the canonical form which removes this on Windows
+		
+		String str = new File(file_name).getCanonicalFile().toString();
+	
+		int	p = str.lastIndexOf( File.separator );
+		
+		file_name = str.substring(p+1);
+		
+	}catch( Throwable e ){
+		// ho hum, carry on, it'll fail later
+	}
+	
+	return( file_name );
+  }
 }

@@ -200,6 +200,8 @@ DiskManagerImpl
 			  path = f.getParent();
 			}
 			
+			fileName = FileUtil.convertOSSpecificChars( fileName );
+
 			dm_name	= ByteFormatter.nicePrint(torrent.getHash(),true);
 			
 		}catch( TOTorrentException e ){
@@ -452,17 +454,27 @@ DiskManagerImpl
 
 			int lastIndex = path_components.length - 1;
 			for (int j = 0; j < lastIndex; j++) {
-				//attach every element        
-				pathBuffer.append(locale_decoder.decodeString( path_components[j]));
+				//attach every element  
+				
+				String	comp = locale_decoder.decodeString( path_components[j]);
+				
+				comp = FileUtil.convertOSSpecificChars( comp );
+				
+				pathBuffer.append(comp);
 				pathBuffer.append(separator);
 			}
 	
 			//no, then we must be a part of the path
-			//add the file entry to the file holder list         
+			//add the file entry to the file holder list      
+			
+			String	last_comp = locale_decoder.decodeString(path_components[lastIndex]);
+			
+			last_comp = FileUtil.convertOSSpecificChars( last_comp );
+			
 			btFileList.add(
 				new BtFile(
 					pathBuffer.toString(),
-					locale_decoder.decodeString(path_components[lastIndex]),
+					last_comp,
 					fileLength));
 		}catch( UnsupportedEncodingException e ){
 			this.errorMessage = e.getMessage() + " (buildFileLookupTable)";
@@ -2407,7 +2419,12 @@ DiskManagerImpl
 				for (int j=0;j<path_comps.length;j++){
 					
 					try{
-						path_str += (j==0?"":File.separator) + locale_decoder.decodeString( path_comps[j] );
+						
+						String comp = locale_decoder.decodeString( path_comps[j] );
+						
+						comp = FileUtil.convertOSSpecificChars( comp );
+						
+						path_str += (j==0?"":File.separator) + comp;
 					
 					}catch( UnsupportedEncodingException e ){
 						System.out.println( "file - unsupported encoding!!!!");	

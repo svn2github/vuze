@@ -159,7 +159,7 @@ TorrentImpl
 			
 			for (int j=0;j<comps.length;j++){
 				
-				name += (j==0?"":"/")+decode(comps[j]);
+				name += (j==0?"":File.separator)+decode(comps[j]);
 			}
 			
 			res[i] = new TorrentFileImpl(name, tf.getLength());
