@@ -72,7 +72,7 @@ public class FilesView extends AbstractIView implements SortableTable {
     table.getColumn(7).setWidth(60);
     table.getColumn(8).setWidth(70);
 
-    sorter = new TableSorter(this,"fp",true);
+    sorter = new TableSorter(this,"FilesView","fp",true);
     sorter.addStringColumnListener(table.getColumn(0),"name");
     sorter.addIntColumnListener(table.getColumn(1),"size");
     sorter.addIntColumnListener(table.getColumn(2),"done");

@@ -443,7 +443,7 @@ public class MyTorrentsView extends AbstractIView
     table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     gridData = new GridData(GridData.FILL_BOTH);
     table.setLayoutData(gridData);
-    sorter = new TableSorter(this,"#",true);
+    sorter = new TableSorter(this, configTableName, "#", true);
 
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {

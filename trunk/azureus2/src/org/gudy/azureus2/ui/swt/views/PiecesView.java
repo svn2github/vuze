@@ -61,7 +61,7 @@ public class PiecesView extends AbstractIView implements DownloadManagerPeerList
     table.getColumn(4).setWidth(80);
     table.getColumn(5).setWidth(80);
     
-    sorter = new TableSorter(this,"#",true);
+    sorter = new TableSorter(this, "PiecesView", "#",true);
     
     sorter.addIntColumnListener(table.getColumn(0),"#");
     sorter.addIntColumnListener(table.getColumn(1),"size");

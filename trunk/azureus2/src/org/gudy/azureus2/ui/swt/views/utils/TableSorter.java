@@ -52,21 +52,26 @@ public class TableSorter implements ParameterListener {
   
   private Map objectToSortableItem;
   private Map tableItemToObject;
+  
+  private String configTableName;
+  
 
-  public TableSorter(SortableTable sortableTable, String defaultField,boolean isDefaultInt) {
-  	this(sortableTable, defaultField, isDefaultInt, true);
+  public TableSorter(SortableTable sortableTable, String configTableName, String defaultField,boolean isDefaultInt) {
+  	this(sortableTable, configTableName, defaultField, isDefaultInt, true);
   }
   
-  public TableSorter(SortableTable sortableTable, String defaultField,
-                     boolean isDefaultInt, boolean ascending) {
+  public TableSorter(SortableTable sortableTable, String configTableName, 
+                     String defaultField, boolean isDefaultInt, 
+                     boolean isDefaultAscending) {
     loopFactor = 0;
-    this.ascending = ascending;
-    this.lastField = defaultField;
-    this.lastFieldIsInt = isDefaultInt;
+    this.lastField = COConfigurationManager.getStringParameter(configTableName + ".sortColumn", defaultField);
+    this.lastFieldIsInt = COConfigurationManager.getBooleanParameter(configTableName + ".sortIsInt", isDefaultInt);
+    this.ascending = COConfigurationManager.getBooleanParameter(configTableName + ".sortAsc", isDefaultAscending);
     this.sortableTable = sortableTable;
     this.objectToSortableItem = sortableTable.getObjectToSortableItemMap();
     this.tableItemToObject = sortableTable.getTableItemToObjectMap();
     this.table = sortableTable.getTable();
+    this.configTableName = configTableName;
     COConfigurationManager.addParameterListener("ReOrder Delay", this);
   }
   
@@ -140,6 +145,10 @@ public class TableSorter implements ParameterListener {
 
   private void orderInt(String field) {
     computeAscending(field);
+
+    COConfigurationManager.setParameter(configTableName + ".sortColumn", field);
+    COConfigurationManager.setParameter(configTableName + ".sortIsInt", true);
+    COConfigurationManager.setParameter(configTableName + ".sortAsc", ascending);
     synchronized (objectToSortableItem) {
       List selected = getSelection();
       List ordered = new ArrayList(objectToSortableItem.size());
@@ -180,6 +189,9 @@ public class TableSorter implements ParameterListener {
   
   private void orderString(String field) {
       computeAscending(field);
+      COConfigurationManager.setParameter(configTableName + ".sortColumn", field);
+      COConfigurationManager.setParameter(configTableName + ".sortIsInt", false);
+      COConfigurationManager.setParameter(configTableName + ".sortAsc", ascending);
       synchronized (objectToSortableItem) {
         List selected = getSelection();
         Collator collator = Collator.getInstance(Locale.getDefault());

@@ -139,7 +139,7 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
     table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION);
     table.setLinesVisible(false);
     
-    sorter = new TableSorter(this,"pieces",true);
+    sorter = new TableSorter(this, "PeersView", "pieces",true);
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {
         TableColumn column = (TableColumn) e.widget;

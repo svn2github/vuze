@@ -142,7 +142,7 @@ MySharesView
 		column.addControlListener(resizeListener);
 	  }
 	
-	  sorter = new TableSorter(this,"name",false);
+	  sorter = new TableSorter(this,"MySharesView","name",false);
     
 	  sorter.addStringColumnListener(table.getColumn(0),"name");
 	  sorter.addStringColumnListener(table.getColumn(1),"type");
