@@ -149,8 +149,18 @@ PEPeerTransportProtocol
     }
   };
   
+  private final Map recent_outgoing_requests = new LinkedHashMap( 50, .75F, false ) {
+    public boolean removeEldestEntry(Map.Entry eldest) {
+      return size() > 50;
+    }
+  };
   
- 
+  private static int requests_discarded = 0;
+  private static int requests_recovered = 0;
+  
+  
+  
+
   /*
 	 * This object constructors will let the PeerConnection partially created,
 	 * but hopefully will let us gain some memory for peers not going to be
@@ -371,24 +381,7 @@ PEPeerTransportProtocol
     readBuffer = buffer;
   }
 
-  /*
-  //from parg's changes....not method not used with my refactoring. -Nolar
-  protected void queueProtocolMessage( BTMessage message ) {
-    if ( closing ) return;
-    
-    try{
-    	if ( listeners != null ){
-	    	for (int i=0;i<listeners.size();i++){
-	    		
-	    		((PEPeerListener)listeners.get(i)).messageQueued( this, message.getType());
-	    	}
-    	}
-    }catch( Throwable e ){
-    	// ignore an errors, in particular we aren't synchronized on listeners so there
-    	// is a remote chance that the loop will fail due to listener removal
-    }
-	}
-	*/
+
   
   
   public synchronized void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
@@ -413,6 +406,7 @@ PEPeerTransportProtocol
   	//Send removed event ...
     manager.peerRemoved(this);
     
+    
     if( outgoing_piece_message_handler != null ) {
       outgoing_piece_message_handler.removeAllPieceRequests();
       outgoing_piece_message_handler.destroy();
@@ -432,6 +426,10 @@ PEPeerTransportProtocol
     }
     
     outgoing_message_queue = null;
+    
+    synchronized( recent_outgoing_requests ) {
+      recent_outgoing_requests.clear();
+    }
     
     //Close the socket
     closeConnection();
@@ -831,38 +829,62 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			pieceNumber = buffer.getInt();
 			pieceOffset = buffer.getInt();
 			pieceLength = buffer.limit() - buffer.position();
+      String msg = "";
 			if ( logging_is_on ){
-				LGLogger.log(
-					componentID,
-					evtProtocol,
-					LGLogger.RECEIVED,
-					toString() + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+        msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength);
 			}
 			DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
-			if (alreadyRequested(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
-			  removeRequest( request );
-			  manager.received(pieceLength);
-			  setSnubbed(false);
-			  reSetRequestsTime();
-			  manager.writeBlock(pieceNumber, pieceOffset, buffer,this);
-        buffer = DirectByteBufferPool.getBuffer( buffer.limit() );
-        if (buffer == null)
-          closeAll(toString() + " BT_PIECE buffer null", true, false);
-			  readMessage(buffer);      
-			}
-			else {
-        String msg = toString() + " has sent #" + pieceNumber + ":"
-                     + pieceOffset + "->" + (pieceOffset + pieceLength);
-        if (alreadyRequested(request))
-          msg += " but piece block was discarded as invalid";
-        else 
-          msg += " but piece block was discarded as unrequested";
-        
-			  LGLogger.log( componentID, evtErrors, LGLogger.ERROR, msg);
-			  stats.discarded(pieceLength);
-			  manager.discarded(pieceLength);
-			  readMessage(buffer);
-			}
+      
+      if( manager.checkBlock( pieceNumber, pieceOffset, buffer ) ) {
+        if( alreadyRequested( request ) ) {
+          removeRequest( request );
+          manager.received( pieceLength );
+          setSnubbed( false );
+          reSetRequestsTime();
+          manager.writeBlock( pieceNumber, pieceOffset, buffer, this );
+          buffer = DirectByteBufferPool.getBuffer( buffer.limit() );
+        }
+        else {  //initial request may have already expired, but check if we can use the data anyway
+          if( !manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {
+            boolean ever_requested;
+            synchronized( recent_outgoing_requests ) {
+              ever_requested = recent_outgoing_requests.containsKey( request );
+            }
+            if( ever_requested ) {  //security-measure: we dont want to be accepting any ol' random block
+              manager.received( pieceLength );
+              setSnubbed( false );
+              reSetRequestsTime();
+              manager.writeBlockAndCancelOutstanding( pieceNumber, pieceOffset, buffer, this );
+              buffer = DirectByteBufferPool.getBuffer( buffer.limit() );
+              msg += ", piece block data recovered as useful";
+              requests_recovered++;
+              //System.out.println("recovered="+requests_recovered+", "+(requests_recovered*100) /(requests_recovered+requests_discarded) + "%");
+            }
+            else {
+              msg += ", but piece block discarded as never requested";
+              stats.discarded( pieceLength );
+              manager.discarded( pieceLength );
+              requests_discarded++;
+            }
+          }
+          else {
+            msg += ", but piece block discarded as already written";
+            stats.discarded( pieceLength );
+            manager.discarded( pieceLength );
+            requests_discarded++;
+          }
+        }
+      }
+      else {
+        msg += ", but piece block discarded as invalid";
+        stats.discarded( pieceLength );
+        manager.discarded( pieceLength );
+        requests_discarded++;
+      }
+
+      if( logging_is_on )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, msg );
+      
+      readMessage(buffer);
 			break;
 	  case BT_CANCEL :
 			if (buffer.limit() != 13) {
@@ -924,6 +946,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
   	if ( !alreadyRequested( request ) ) {
   		addRequest( request );
+      synchronized( recent_outgoing_requests ) {
+        recent_outgoing_requests.put( request, null );
+      }
       outgoing_message_queue.addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ) );
   		return true;
   	}
