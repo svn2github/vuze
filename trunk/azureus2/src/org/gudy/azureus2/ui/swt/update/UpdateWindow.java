@@ -351,10 +351,12 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
       ResourceDownloaderException e) {
     downloader.removeListener(this);
     setStatusText(MessageText.getString("swt.update.window.status.failed"));
+    appendDetails(downloader.getName() + " : " + e);
   }
   
   public void reportActivity(ResourceDownloader downloader, final String activity) {
     setStatusText(activity);
+    appendDetails(downloader.getName() + " : " + activity);
   }
   
   private void setStatusText(final String text) {
@@ -365,6 +367,18 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
       public void run() {
         if(status != null && !status.isDisposed())
           status.setText(text);
+      }
+    });  
+  }
+  
+  private void appendDetails(final String text) {
+    if(display == null || display.isDisposed())
+      return;
+    
+    display.asyncExec(new Runnable() {
+      public void run() {
+        if(stDescription != null && !stDescription.isDisposed())
+          stDescription.append(text + "\n");
       }
     });  
   }
