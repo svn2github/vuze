@@ -36,46 +36,57 @@ import org.gudy.azureus2.core3.config.*;
 public class StringListParameter extends Parameter {
 
   Combo list;
+  final String name;
+  final String default_value;
 
-  public StringListParameter(
-	Composite composite,
-	final String name,
-	String defaultValue,
-	final String labels[],
-	final String values[]) {
-	  if(labels.length != values.length)
-		return;
-	  String value = COConfigurationManager.getStringParameter(name,defaultValue);
-	  int index = findIndex(value,values);
-	  list = new Combo(composite,SWT.SINGLE | SWT.READ_ONLY);
-	  for(int i = 0 ; i < labels.length  ;i++) {
-		list.add(labels[i]);
-	  }
+  public StringListParameter( Composite composite, String _name, String defaultValue, final String labels[], final String values[]) {
+    this.name = _name;
+    this.default_value = defaultValue;
+    
+    if(labels.length != values.length) {
+      return;
+    }
+    
+    String value = COConfigurationManager.getStringParameter(name,defaultValue);
+    int index = findIndex(value,values);
+    list = new Combo(composite,SWT.SINGLE | SWT.READ_ONLY);
+    
+    for(int i = 0 ; i < labels.length  ;i++) {
+      list.add(labels[i]);
+    }
       
-	  list.select(index);
+    list.select(index);
       
-	  list.addListener(SWT.Selection, new Listener() {
-		   public void handleEvent(Event e) {
-			COConfigurationManager.setParameter(name, values[list.getSelectionIndex()]);
-		   }
-		 });
-      
-	}
+    list.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        COConfigurationManager.setParameter(name, values[list.getSelectionIndex()]);
+        
+        for (int i=0;i<change_listeners.size();i++){
+          ((ParameterChangeListener)change_listeners.get(i)).parameterChanged(StringListParameter.this,false);
+        }
+      }
+    }); 
+  }
     
   private int findIndex(String value,String values[]) {
-	for(int i = 0 ; i < values.length ;i++) {
-	  if(values[i].equals( value))
-		return i;
-	}
-	return 0;
+    for(int i = 0 ; i < values.length ;i++) {
+      if(values[i].equals( value))
+        return i;
+    }
+    return 0;
   }
   
   
   public void setLayoutData(Object layoutData) {
-	list.setLayoutData(layoutData);
+    list.setLayoutData(layoutData);
    }
    
   public Control getControl() {
-	return list;
+    return list;
   }
+  
+  public String getValue() {
+    return COConfigurationManager.getStringParameter( name, default_value );
+  }
+  
 }

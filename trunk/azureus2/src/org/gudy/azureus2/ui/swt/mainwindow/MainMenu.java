@@ -71,8 +71,6 @@ public class MainMenu {
   private MenuItem menu_plugin;
   private Menu pluginMenu;
   
-  private Menu languageMenu;
-  private MenuItem selectedLanguageItem;
   
   public MainMenu(MainWindow mainWindow) {
     this.mainWindow = mainWindow;
@@ -84,9 +82,12 @@ public class MainMenu {
    */
   public void buildMenu(Locale[] locales) {
     try {
+      
       //The Main Menu
       menuBar = new Menu(mainWindow.getShell(), SWT.BAR);
       mainWindow.getShell().setMenuBar(menuBar);
+      
+      
       //The File Menu
       MenuItem fileItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(fileItem, "MainWindow.menu.file"); //$NON-NLS-1$
@@ -344,10 +345,7 @@ public class MainMenu {
     });
 
   
-    
-    
 
-  
       new MenuItem(viewMenu, SWT.SEPARATOR);
   
       MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
@@ -415,9 +413,6 @@ public class MainMenu {
       menu_plugin.setMenu(pluginMenu);
       
       
-      //Language menu
-      createLanguageMenu(menuBar, mainWindow.getShell(), locales);
-  
       //The Help Menu
       MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
@@ -497,81 +492,6 @@ public class MainMenu {
     });
   }
 
-  private void createLanguageMenuitem(MenuItem language, final Locale locale) {
-    language.setData(locale);
-    language.setText(locale.getDisplayName(locale));
-    language.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        if (isSelectedLanguageDifferent(e.widget)) {
-          if (MessageText.changeLocale(locale)) {
-            COConfigurationManager.setParameter("locale", locale.toString()); //$NON-NLS-1$
-            COConfigurationManager.save();
-            setSelectedLanguageItem((MenuItem) e.widget);
-          }
-          else {
-            ((MenuItem) e.widget).setSelection(false);
-            selectSelectedLanguageItem();
-          }
-        }
-      }
-    });
-    language.setSelection(MessageText.isCurrentLocale(locale));
-    if (language.getSelection())
-      selectedLanguageItem = language;
-  }
-  
-  public void createLanguageMenu() {
-    createLanguageMenu(menuBar,mainWindow.getShell(),MessageText.getLocales());    
-  }
-
-  private void createLanguageMenu(Menu menu, Decorations decoMenu, Locale[] locales) {
-    if (languageMenu != null) {
-      MenuItem[] items = languageMenu.getItems();
-      for (int i = 0; i < items.length; i++)
-        items[i].dispose();
-    } else {
-      MenuItem languageItem = new MenuItem(menu, SWT.CASCADE);
-      Messages.setLanguageText(languageItem, "MainWindow.menu.language"); //$NON-NLS-1$
-      languageMenu = new Menu(decoMenu, SWT.DROP_DOWN);
-      languageItem.setMenu(languageMenu);
-    }
-  
-    MenuItem[] items = new MenuItem[locales.length];
-  
-    for (int i = 0; i < locales.length; i++) {
-      //      System.out.println("found Locale: " + locales[i]);
-      items[i] = new MenuItem(languageMenu, SWT.RADIO);
-      createLanguageMenuitem(items[i], locales[i]);
-    }
-  
-    Locale currentLocale = MessageText.getCurrentLocale();
-      for (int i = 0; i < items.length; i++) {
-        items[i].setSelection(currentLocale.equals(items[i].getData()));
-        }
-        
-    new MenuItem(languageMenu, SWT.SEPARATOR);
-    MenuItem itemRefresh = new MenuItem(languageMenu, SWT.PUSH);
-    Messages.setLanguageText(itemRefresh, "MainWindow.menu.language.refresh");
-    itemRefresh.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {        
-        refreshLanguage();
-      }
-    });
-  }
-
-  private boolean isSelectedLanguageDifferent(Widget newLanguage) {
-    return selectedLanguageItem != newLanguage;
-  }
-  
-  private void selectSelectedLanguageItem() {
-    selectedLanguageItem.setSelection(true);
-  }
-  
-  private void setSelectedLanguageItem(MenuItem mi) {
-    selectedLanguageItem = mi;
-    updateMenuText(menuBar);
-    mainWindow.setSelectedLanguageItem();    
-  }
   
   public void updateMenuText(Object menu) {
     if (menu == null)
@@ -593,16 +513,15 @@ public class MainMenu {
     }
   }
   
+  
   public void refreshLanguage() {
     if (display == null || display.isDisposed())
       return;
 
     display.asyncExec(new AERunnable() {
       public void runSupport() {
-        createLanguageMenu();
-        if (MessageText.changeLocale(MessageText.getCurrentLocale(), true)) {
-          setSelectedLanguageItem(selectedLanguageItem);
-        }
+        updateMenuText(menuBar);
+        mainWindow.setSelectedLanguageItem(); 
       }
     });
   }
