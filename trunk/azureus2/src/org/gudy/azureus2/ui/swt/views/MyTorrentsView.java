@@ -558,10 +558,6 @@ public class MyTorrentsView extends AbstractIView
   private void createMenu() {
     menu = new Menu(composite.getShell(), SWT.POP_UP);
 
-    menuThisColumn = new Menu(composite.getShell(), SWT.DROP_DOWN);
-    final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
-    itemThisColumn.setMenu(menuThisColumn);
-
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemDetails, "MyTorrentsView.menu.showdetails"); //$NON-NLS-1$
     menu.setDefaultItem(itemDetails);
@@ -691,6 +687,10 @@ public class MyTorrentsView extends AbstractIView
 
     new MenuItem(menu, SWT.SEPARATOR);
 
+    menuThisColumn = new Menu(composite.getShell(), SWT.DROP_DOWN);
+    final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
+    itemThisColumn.setMenu(menuThisColumn);
+    
     final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
     itemChangeTable.setImage(ImageRepository.getImage("columns"));
