@@ -19,6 +19,7 @@ public class OutgoingConnector {
   
   private static OutgoingConnector connector;
   private final ArrayList connectionsToAdd;
+  private final ArrayList connectionsToNotify;
   private final HashMap connectionsOutstanding;
   private final SelectorGuard selectorGuard;
   public static final int TIMEOUT = 120*1000;	  //2min
@@ -28,6 +29,7 @@ public class OutgoingConnector {
   
   private OutgoingConnector() {
     connectionsToAdd = new ArrayList();
+    connectionsToNotify = new ArrayList();
     connectionsOutstanding = new HashMap();
     selectorGuard = new SelectorGuard(50, 100);
     
@@ -71,7 +73,7 @@ public class OutgoingConnector {
           }
           catch (Exception e) {
             e.printStackTrace();
-            conn.listener.done();
+            connectionsToNotify.add( conn );
           }
         }
         connectionsToAdd.clear();
@@ -86,15 +88,23 @@ public class OutgoingConnector {
       }
       catch (Exception e) { e.printStackTrace(); }
       
-      //notify of connection operation completed
+      //notify of connection operation completed AFTER after it's been
+      //deregistered from the selector by a select() operation
+      for (int i=0; i < connectionsToNotify.size(); i++) {
+        Connection conn = (Connection)connectionsToNotify.get( i );
+        conn.listener.done();
+      }
+      connectionsToNotify.clear();
+      
+      //add selected connections to the notify list
       for (Iterator i = selector.selectedKeys().iterator(); i.hasNext();) {
         SelectionKey key = (SelectionKey)i.next();  i.remove();
         key.cancel();
         Connection conn = (Connection)connectionsOutstanding.remove( key );
-        conn.listener.done();
+        connectionsToNotify.add( conn );
       }
       
-      //check for timeout'd connection attempts
+      //check for timed out connection attempts
       long currTime = System.currentTimeMillis();
       if ( currTime - prevCheckTime > 1000 ) {
         prevCheckTime = currTime;
@@ -104,7 +114,7 @@ public class OutgoingConnector {
           if ( currTime - conn.startTime > TIMEOUT ) {
             key.cancel();
             connectionsOutstanding.remove( key );
-            conn.listener.done();
+            connectionsToNotify.add( conn );
           }
         }
       }
