@@ -79,19 +79,21 @@ public class MainMenu {
    * <p>This constructor call is intended to be used with platforms that have a singular menu bar,
    * such as Mac OS X</p>
    * @param shell A shell
-   * @throws IllegalStateException If the main window is not initialized or if this constructor is called by the main window
    */
-  public MainMenu(final Shell shell) throws IllegalStateException {
+  public MainMenu(final Shell shell) {
       mainWindow = MainWindow.getWindow();
-      if(mainWindow == null)
+      /*if(mainWindow == null)
           throw new IllegalStateException("MainWindow has not initialized yet; Shell attemped: " + shell.hashCode());
       if(shell == mainWindow.getShell())
-          throw new IllegalStateException("Invalid MainMenu registration with MainWindow shell; use MainMenu._ctor(MainWindow) instead");
+          throw new IllegalStateException("Invalid MainMenu registration with MainWindow shell; use MainMenu._ctor(MainWindow) instead");*/
 
-      this.display = SWTThread.getInstance().getDisplay();
-      attachedShell = shell;
+      if(mainWindow != null && !mainWindow.getShell().isDisposed() && mainWindow.getShell() != shell)
+      {
+          this.display = SWTThread.getInstance().getDisplay();
+          attachedShell = shell;
 
-      buildMenu(MessageText.getLocales(), shell);
+          buildMenu(MessageText.getLocales(), shell);
+      }
   }
 
   public MainMenu(final MainWindow mainWindow) {
