@@ -111,6 +111,8 @@ TRTrackerClientClassicImpl
 	private String port;
 	private String ip_override;
 
+	private String	last_warning_message	= "";
+	
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 	
 	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
@@ -1530,6 +1532,35 @@ TRTrackerClientClassicImpl
 	 			try{
 	 				Map metaData = BDecoder.decode(data); //$NON-NLS-1$
 						
+	 					// handle any user warnings in the response
+	 				try{
+	 					byte[]	b_warning_message = (byte[])metaData.get( "warning message" );
+	 				
+	 					if ( b_warning_message != null ){
+	 						
+	 						String	warning_message = new String(b_warning_message);
+	 						
+	 						if ( !warning_message.equals( last_warning_message )){
+	 							
+	 							last_warning_message	= warning_message;
+	 							
+	 							String	expanded_message = 
+	 								MessageText.getString(
+	 										"TrackerClient.announce.warningmessage",
+											new String[]{
+	 												announce_data_provider.getName(),
+													warning_message });
+	 									
+	 							LGLogger.logAlert(
+	 								LGLogger.AT_WARNING,
+									expanded_message );
+	 						}
+	 					}
+	 				}catch( Throwable e ){
+	 					
+	 					e.printStackTrace();
+	 				}
+	 				
 					long	time_to_wait;
 										
 					try {

@@ -162,6 +162,12 @@ PEPeerControlImpl
     _tracker.setAnnounceDataProvider(
     		new TrackerClientAnnounceDataProvider()
     		{
+    			public String
+				getName()
+    			{
+    				return( getDownloadManager().getName());
+    			}
+    			
     			public long
     			getTotalSent()
     			{
