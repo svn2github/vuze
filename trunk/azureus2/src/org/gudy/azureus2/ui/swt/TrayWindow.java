@@ -62,6 +62,7 @@ public class TrayWindow implements GlobalManagerListener {
     screen = display.getClientArea();
     //System.out.println(screen);
     minimized.setLocation(screen.width - bounds.width - 2, screen.height - bounds.height - 2);
+    minimized.layout();
     minimized.setVisible(false);
     //minimized.open();    
 
