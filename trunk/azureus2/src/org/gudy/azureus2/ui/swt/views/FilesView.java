@@ -199,6 +199,7 @@ public class FilesView extends AbstractIView implements SortableTable {
       }
     });
 
+    manager.initializeDiskManager();
   }
 
   /* (non-Javadoc)

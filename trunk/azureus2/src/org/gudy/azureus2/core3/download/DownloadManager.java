@@ -222,4 +222,6 @@ DownloadManager
    * @author Rene Leonhardt
    */
   public void downloadEnded();
+
+  public void initializeDiskManager();
 }

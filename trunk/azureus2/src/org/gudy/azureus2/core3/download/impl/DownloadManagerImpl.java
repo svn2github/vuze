@@ -176,7 +176,7 @@ DownloadManagerImpl
 			
 		tracker_client.addListener( tracker_client_listener );
 
-		diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
+    initializeDiskManager();
 
 		setState( STATE_INITIALIZED );
 									
@@ -885,4 +885,10 @@ DownloadManagerImpl
   	
 	informDownloadEnded();
   }
+
+  public void initializeDiskManager() {
+    if(diskManager == null)
+      diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
+  }
+  
 }
