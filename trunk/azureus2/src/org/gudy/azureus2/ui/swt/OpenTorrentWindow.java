@@ -113,14 +113,18 @@ public class OpenTorrentWindow {
     browseData.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         String sSavePath;
+        String sDefPath = COConfigurationManager.getBooleanParameter("Use default data dir") ?
+                          COConfigurationManager.getStringParameter("Default save path", "") :
+                          "";
+
         if (bUseFolderBrowse) {
           DirectoryDialog dDialog = new DirectoryDialog(shell, SWT.SYSTEM_MODAL);
-          dDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", ""));
+          dDialog.setFilterPath(sDefPath);
           dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath"));
           sSavePath = dDialog.open();
         } else {
           FileDialog fDialog = new FileDialog(shell, SWT.SYSTEM_MODAL);
-          fDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", ""));
+          fDialog.setFilterPath(sDefPath);
           fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file"));
           sSavePath = fDialog.open();
         }
