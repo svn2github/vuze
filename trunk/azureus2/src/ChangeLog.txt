@@ -3,9 +3,10 @@ CHANGELOG
 
 xx.01.04 | Azureus 2.0.6.1
 
-FEATURE: on Linux + GTK, Added an option to setup a vertical offset to re-align graphics [Gudy]
+FEATURE: Under Linux + GTK, added an option to setup a vertical offset to re-align graphics [Gudy]
 FEATURE: SSL tracker client now gives option to import certificate rather than manually doing so via "keytool" [Parg]
 FEATURE: Start All Downloads option on tray icon [Nolar]
+FEATURE: Support for trackers that do not return peerIDs on announce [Parg]
 
 CHANGE: Azureus now identifies itself via User-Agent in tracker http communications [Nolar]
 CHANGE: Less flickering, on all platforms (tested on both windows and linux+GTK) [Gudy]
@@ -13,7 +14,7 @@ CHANGE: Azureus now responds as Server: Azureus <version> in tracker http comms 
 CHANGE: Unwritten blocks in Pieces view shown in red [Gijs Overvliet]
 CHANGE: Prioritizing first piece of file(s) now optional in config [Nolar]
 CHANGE: Confirmation on data deletion now optional in config [Nolar]
-CHANGE: More intelligent announce url '&num_peers=' handling [Nolar]
+CHANGE: More intelligent announce url '&numwant=' handling [Nolar]
 CHANGE: On tracker announce errors, retry interval now uses exponential backoff [Nolar]
 
 BUGFIX: Problem with tracker not responding with "Connection: close" causing SSL session maintainance with HttpsURLConnection to stuff up and fail clients with "recv fail" [Parg]
