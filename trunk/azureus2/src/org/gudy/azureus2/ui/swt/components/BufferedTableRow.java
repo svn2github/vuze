@@ -124,6 +124,15 @@ BufferedTableRow
 		
 		item.setForeground(foreground);
 	}
+
+	public void
+	setForeground(
+	  int iColumn,
+		Color	c )
+	{
+	  // TODO: buffer
+		item.setForeground(iColumn, c);
+	}
 	
 	public String
 	getText(

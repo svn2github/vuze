@@ -55,6 +55,11 @@ public abstract class BufferedTableItem {
     row.setForeground(color);
   }
   
+  public void setItemForeground(Color color) {
+    if(position != -1)
+      row.setForeground(position, color);
+  }
+
   public Rectangle getBounds() {
     if(position != -1)
       return row.getBounds(position);
