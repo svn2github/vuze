@@ -881,9 +881,9 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploads"); //$NON-NLS-1$
-    final String upLabels[] = new String[99];
-    final int upValues[] = new int[99];
-    for (int i = 0; i < 99; i++) {
+    final String upLabels[] = new String[299];
+    final int upValues[] = new int[299];
+    for (int i = 0; i < 299; i++) {
       upLabels[i] = " " + (i + 2); //$NON-NLS-1$
       upValues[i] = i + 2;
     }
@@ -1633,7 +1633,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    IntParameter maxPeersReturned = new IntParameter(gMainTab, "Tracker Max Peers Returned", 0 );
+    IntParameter maxPeersReturned = new IntParameter(gMainTab, "Tracker Max Peers Returned", 100 );
 
     gridData = new GridData();
     gridData.widthHint = 50;
