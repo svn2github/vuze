@@ -148,7 +148,7 @@ public class EnumeratorEditor {
         createTableRow(-1,items[j].getName(), (items[j].getPosition() != -1));
     }
     //Hack to get a correct width
-    table.getColumn(0).setWidth(20);
+    table.getColumn(0).setWidth(30);
     table.getColumn(1).setWidth(200);
     
     
@@ -223,8 +223,9 @@ public class EnumeratorEditor {
         }
       }
     });
+    table.redraw();
     shell.pack ();
-    shell.open ();   
+    shell.open (); 
   }
   
   private void close() {
@@ -260,6 +261,7 @@ public class EnumeratorEditor {
     TableEditor editor = new TableEditor (table);
     Button button = new Button (table, SWT.CHECK);
     button.setSelection(selected);
+    //button.setText(MessageText.getString(propertiesName + "." + name));
     button.pack ();
     editor.minimumWidth = button.getSize ().x;    
     editor.horizontalAlignment = SWT.CENTER;
