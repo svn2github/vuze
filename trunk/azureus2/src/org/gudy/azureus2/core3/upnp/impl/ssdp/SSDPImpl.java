@@ -78,7 +78,7 @@ SSDPImpl
 				
 				while (ni_addresses.hasMoreElements()){
 					
-					InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
+					final InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
 					
 					if ( ni_address.isLoopbackAddress()){
 						
@@ -130,7 +130,7 @@ SSDPImpl
 								public void
 								run()
 								{
-									handleSocket( mc_sock);
+									handleSocket( ni_address, mc_sock);
 								}
 							};
 							
@@ -152,7 +152,7 @@ SSDPImpl
 								public void
 								run()
 								{
-									handleSocket( control_socket );
+									handleSocket( ni_address, control_socket );
 								}
 							};
 							
@@ -247,6 +247,7 @@ SSDPImpl
 	
 	protected void
 	handleSocket(
+		InetAddress			local_address,
 		DatagramSocket		socket )
 	{
 		while(true){
@@ -258,7 +259,7 @@ SSDPImpl
 								
 				socket.receive( packet );
 											
-				receivePacket( packet );
+				receivePacket( local_address, packet );
 				
 			}catch( Throwable e ){
 				
@@ -269,6 +270,7 @@ SSDPImpl
 	
 	protected synchronized void
 	receivePacket(
+		InetAddress			local_address,
 	    DatagramPacket		packet )
 	{
 		String	str = new String( packet.getData(), 0, packet.getLength());
@@ -362,7 +364,7 @@ SSDPImpl
 			
 			if ( location != null && usn != null && st != null ){
 				
-				gotRoot( location, usn, st );
+				gotRoot( local_address, location, usn, st );
 			}
 		}else{
 			
@@ -372,13 +374,14 @@ SSDPImpl
 	
 	protected void
 	gotRoot(
+		InetAddress	local_address,
 		String		location,
 		String		usn,
 		String		st )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPListener)listeners.get(i)).rootDiscovered( location, usn, st );
+			((SSDPListener)listeners.get(i)).rootDiscovered( local_address, location, usn, st );
 		}
 	}
 	

@@ -20,30 +20,40 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp.impl;
+package org.gudy.azureus2.core3.upnp.impl.device;
 
 /**
  * @author parg
  *
  */
 
-import java.net.InetAddress;
-
-import org.gudy.azureus2.core3.upnp.UPnPException;
-import org.gudy.azureus2.core3.upnp.impl.device.*;
+import org.gudy.azureus2.core3.upnp.*;
 
 public class 
-UPnPDeviceFactory 
+UPnPActionArgumentImpl 
+	implements UPnPActionArgument
 {
-	public static UPnPRootDevice
-	createRootDevice(
-		UPnPImpl	upnp,
-		InetAddress	local_address,
-		String		location,
-		String		usn )
+	protected String		name;
+	protected String		value;
 	
-		throws UPnPException
+	protected
+	UPnPActionArgumentImpl(
+		String		_name,
+		String		_value )
 	{
-		return( new UPnPRootDeviceImpl( upnp, local_address, location, usn ));
+		name		= _name;
+		value		= _value;
+	}
+	
+	public String
+	getName()
+	{
+		return( name );
+	}
+	
+	public String
+	getValue()
+	{
+		return( value );
 	}
 }

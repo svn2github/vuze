@@ -27,11 +27,18 @@ package org.gudy.azureus2.core3.upnp;
  *
  */
 
+import java.net.URL;
+
 public interface 
 UPnPService 
 {
 	public String
 	getServiceType();
+
+	public URL
+	getControlURL()
+	
+		throws UPnPException;
 	
 	public UPnPAction[]
 	getActions()

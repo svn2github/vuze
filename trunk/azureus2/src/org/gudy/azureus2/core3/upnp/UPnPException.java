@@ -33,6 +33,12 @@ UPnPException
 {
 	public 
 	UPnPException(
+		String		str )
+	{
+		super( str );
+	}	
+	public 
+	UPnPException(
 		String		str,
 		Throwable 	cause )
 	{

@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.upnp.impl;
  */
 
 import java.util.*;
+import java.net.*;
 
 import org.gudy.azureus2.core3.upnp.*;
 
@@ -73,6 +74,7 @@ UPnPImpl
 	
 	public void
 	rootDiscovered(
+		InetAddress	local_address,
 		String		location,
 		String		usn,
 		String		st )
@@ -82,10 +84,10 @@ UPnPImpl
 			return;
 		}
 		
-		log( "UPnP: root = " + location + ", USN = " + usn );
+		log( "UPnP: root = " + location + ", USN = " + usn +  ", local = " + local_address.toString() );
 		
 		try{
-			UPnPRootDevice	root_device = UPnPDeviceFactory.createRootDevice( this, location, usn );
+			UPnPRootDevice	root_device = UPnPDeviceFactory.createRootDevice( this, local_address, location, usn );
 		
 			List	listeners;
 			
@@ -225,7 +227,7 @@ UPnPImpl
 					}
 				});
 			
-			Thread.sleep(2000);
+			Thread.sleep(20000);
 			
 		}catch( Throwable e ){
 			
@@ -258,6 +260,34 @@ UPnPImpl
 					for (int j=0;j<actions.length;j++){
 						
 						System.out.println( actions[j].getName());
+					}
+					
+					UPnPAction act = s.getAction( "AddPortMapping" );
+					
+					UPnPActionInvocation inv = act.getInvocation();
+					
+					inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
+					inv.addArgument( "NewExternalPort", 			"7007" );
+					inv.addArgument( "NewProtocol", 				"TCP" );
+					inv.addArgument( "NewInternalPort", 			"7007" );
+					inv.addArgument( "NewInternalClient",			device.getLocalAddress().getHostAddress());
+					inv.addArgument( "NewEnabled", 					"1" );
+					inv.addArgument( "NewPortMappingDescription", 	"AZTest" );
+					inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
+					
+					inv.invoke();
+					
+					act	= s.getAction( "GetGenericPortMappingEntry" );
+					
+					inv = act.getInvocation();
+
+					inv.addArgument( "NewPortMappingIndex", "0" );
+					
+					UPnPActionArgument[] outs = inv.invoke();
+					
+					for (int j=0;j<outs.length;j++){
+						
+						System.out.println( outs[j].getName() + " = " + outs[j].getValue());
 					}
 				}
 			}

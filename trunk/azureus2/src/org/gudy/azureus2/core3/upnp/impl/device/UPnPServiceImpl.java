@@ -108,8 +108,25 @@ UPnPServiceImpl
 		return( null );
 	}
 	
-	protected void
-	loadDescription()
+	public URL
+	getDescriptionURL()
+	
+		throws UPnPException
+	{
+		return( getURL( desc_url ));
+	}
+	
+	public URL
+	getControlURL()
+	
+		throws UPnPException
+	{
+		return( getURL( control_url ));
+	}
+	
+	protected URL
+	getURL(
+		String	basis )
 	
 		throws UPnPException
 	{
@@ -118,22 +135,36 @@ UPnPServiceImpl
 		try{
 			URL	target;
 			
-			if ( desc_url.toLowerCase().startsWith( "http" )){
+			if ( basis.toLowerCase().startsWith( "http" )){
 				
-				target = new URL( desc_url );
+				target = new URL( basis );
 				
 			}else{
 				
 				target = new URL( root_location.getProtocol() + "://" +
 									root_location.getHost() + 
 									(root_location.getPort() == -1?"":":" + root_location.getPort()) + 
-									(desc_url.startsWith( "/" )?"":"/") + desc_url );
+									(basis.startsWith( "/" )?"":"/") + basis );
 				
 			}
 			
+			return( target );
+			
+		}catch( MalformedURLException e ){
+			
+			throw( new UPnPException( "Malformed URL", e ));
+		}
+	}
+	
+	protected void
+	loadDescription()
+	
+		throws UPnPException
+	{		
+		try{
 			ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 			
-			ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( target ), 3 );
+			ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( getDescriptionURL()), 3 );
 			
 			rd.addListener( this );
 			
@@ -166,7 +197,7 @@ UPnPServiceImpl
 		
 		for (int i=0;i<kids.length;i++){
 			
-			actions.add( new UPnPActionImpl( kids[i] ));
+			actions.add( new UPnPActionImpl( this, kids[i] ));
 		}
 	}
 	

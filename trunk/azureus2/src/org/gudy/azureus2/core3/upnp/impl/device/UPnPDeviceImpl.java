@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentNode;
  *
  */
 
+import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.upnp.*;
@@ -84,6 +85,12 @@ UPnPDeviceImpl
 				devices.add( new UPnPDeviceImpl( root_device, indent + "  ", device_nodes[i]));
 			}
 		}
+	}
+	
+	public InetAddress
+	getLocalAddress()
+	{
+		return( root_device.getLocalAddress());
 	}
 	
 	protected UPnPImpl

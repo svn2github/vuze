@@ -44,6 +44,8 @@ UPnPRootDeviceImpl
 	implements  UPnPRootDevice
 {
 	protected UPnPImpl		upnp;
+	protected InetAddress	local_address;
+	
 	protected URL			location;
 	
 	protected UPnPDevice	root_device;
@@ -51,12 +53,14 @@ UPnPRootDeviceImpl
 	public
 	UPnPRootDeviceImpl(
 		UPnPImpl	_upnp,
+		InetAddress	_local_address,
 		String		_location,
 		String		_usn )
 	
 		throws UPnPException
 	{
-		upnp		= _upnp;
+		upnp			= _upnp;
+		local_address	= _local_address;
 		
 		try{
 			location	= new URL( _location );
@@ -91,6 +95,12 @@ UPnPRootDeviceImpl
 	getUPnP()
 	{
 		return( upnp );
+	}
+	
+	public InetAddress
+	getLocalAddress()
+	{
+		return( local_address );
 	}
 	
 	public URL

@@ -34,12 +34,16 @@ public class
 UPnPActionImpl
 	implements UPnPAction
 {
-	protected String		name;
+	protected UPnPServiceImpl		service;
+	protected String				name;
 	
 	protected 
 	UPnPActionImpl(
-		SimpleXMLParserDocumentNode	node )
+		UPnPServiceImpl					_service,
+		SimpleXMLParserDocumentNode		node )
 	{
+		service	= _service;
+		
 		name	= node.getChild( "name" ).getValue();
 	}
 
@@ -47,5 +51,17 @@ UPnPActionImpl
 	getName()
 	{
 		return( name );
+	}
+	
+	public UPnPService
+	getService()
+	{
+		return( service );
+	}
+	
+	public UPnPActionInvocation
+	getInvocation()
+	{
+		return( new UPnPActionInvocationImpl( this ));
 	}
 }

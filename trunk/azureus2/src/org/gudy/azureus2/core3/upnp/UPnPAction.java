@@ -32,4 +32,10 @@ UPnPAction
 {
 	public String
 	getName();
+	
+	public UPnPService
+	getService();
+	
+	public UPnPActionInvocation
+	getInvocation();
 }

@@ -27,11 +27,14 @@ package org.gudy.azureus2.core3.upnp.impl;
  *
  */
 
+import java.net.InetAddress;
+
 public interface 
 SSDPListener 
 {
 	public void
 	rootDiscovered(
+		InetAddress	local_address,
 		String		location,
 		String		usn,
 		String		st );
