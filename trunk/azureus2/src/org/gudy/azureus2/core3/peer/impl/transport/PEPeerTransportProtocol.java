@@ -392,6 +392,8 @@ PEPeerTransportProtocol
   
   
   public synchronized void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
+    //System.out.println(reason + ", " + closedOnError+ ", " + attemptReconnect);
+    
   	LGLogger.log(
   			componentID,
 				evtProtocol,
@@ -456,7 +458,7 @@ PEPeerTransportProtocol
   	
   	if ( (attemptReconnect)
 		  && (currentState != null)
-		  && (currentState.getState() == TRANSFERING || currentState.getState() == HANDSHAKING)
+		  && (currentState.getState() == TRANSFERING || currentState.getState() == HANDSHAKING || currentState.getState() == CLOSING)
 			&& (incoming == false)
 			&& (nbConnections < 3)) {
       
