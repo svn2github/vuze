@@ -90,6 +90,7 @@ import org.gudy.azureus2.ui.swt.TrayWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
 
