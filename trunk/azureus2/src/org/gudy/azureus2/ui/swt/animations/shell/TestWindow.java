@@ -43,11 +43,11 @@ public class TestWindow extends PopupShell implements AnimableShell {
     layout();
     
     Rectangle bounds = display.getClientArea();    
-    x0 = bounds.width - 250;
-    x1 = bounds.width;
-    
-    y0 = bounds.height;
-    y1 = bounds.height - 150;
+    x0 = bounds.x + bounds.width - 250;
+    x1 = bounds.x + bounds.width;
+
+    y0 = bounds.y + bounds.height;
+    y1 = bounds.y + bounds.height - 150;
     
     shell.setLocation(x0,y0);
     shell.open();

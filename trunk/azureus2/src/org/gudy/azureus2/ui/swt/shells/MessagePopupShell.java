@@ -170,11 +170,11 @@ public class MessagePopupShell implements AnimableShell {
     });
     
     Rectangle bounds = display.getClientArea();
-    x0 = bounds.width - 255;
-    x1 = bounds.width;
-    
-    y0 = bounds.height;
-    y1 = bounds.height - 155;
+    x0 = bounds.x + bounds.width - 255;
+    x1 = bounds.x + bounds.width;
+
+    y0 = bounds.y + bounds.height;
+    y1 = bounds.y + bounds.height - 155;
     
     shell.setLocation(x0,y0);
     detailsShell.setLocation(x1-detailsShell.getSize().x,y1-detailsShell.getSize().y);
