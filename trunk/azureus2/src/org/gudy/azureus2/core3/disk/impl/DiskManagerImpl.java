@@ -1637,5 +1637,10 @@ DiskManagerImpl
       offset += length;
     }        
   }
+  
+  public boolean isChecking() {
+    if (checkQueue.size() == 0) return false;
+    else return true;
+  }
 
 }

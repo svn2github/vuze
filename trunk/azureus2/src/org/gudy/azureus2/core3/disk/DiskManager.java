@@ -132,5 +132,8 @@
 	getErrorMessage();
   
   public String
-  moveCompletedFiles();  
+  moveCompletedFiles();
+
+  public boolean isChecking();
+
  }
