@@ -368,13 +368,15 @@ PEPeerTransportProtocol
 	  		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), this.id );
 	  	}
 	
-	    if ( lengthBuffer != null ) {
-	      lengthBuffer.returnToPool();
-	      lengthBuffer = null;
-	    }
+	  		//	Send a logger event
 	  	
-	  	//Send a logger event
 	  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + toString());
+	  	
+	  		// bit crap this. The peer-updater thread can be running async to this process
+	  		// the call to peerConnectionClosed below forces synchronization between the 
+	  		// updater and this code such that when it returns we are guaranteed not
+	  		// to be invoked again. To avoid problems with an already running updated
+	  		// move the lengthBuffer clearing down until after this event
 	  	
 	    if( attemptReconnect && !incoming ) {      
 	  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + toString());
@@ -384,6 +386,10 @@ PEPeerTransportProtocol
 	      manager.peerConnectionClosed( this, false );
 	  	}
 
+	    if ( lengthBuffer != null ) {
+		      lengthBuffer.returnToPool();
+		      lengthBuffer = null;
+		}
   }
 
 	
