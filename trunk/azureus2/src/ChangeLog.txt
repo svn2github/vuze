@@ -5,6 +5,7 @@ xx.xx.03 | Azureus 2.0.4.1
 
 FEATURE: Added tooltip general support [Gudy]
 FEATURE: Default torrent encoding selection added to Config->File [Parg]
+FEATURE: Public tracker support - config item allows external use of tracker [Parg]
 
 CHANGE: Full scrape of embedded tracker now supported as SN requires this for hosting [Parg]
 CHANGE: Better peer client identification [Nolar]
