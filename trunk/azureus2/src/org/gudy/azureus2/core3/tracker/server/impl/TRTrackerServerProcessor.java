@@ -114,7 +114,7 @@ TRTrackerServerProcessor
 			
 		}catch( SocketTimeoutException e ){
 			
-			System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
+			// System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
 			// ignore it
 						
 		}catch( Throwable e ){
