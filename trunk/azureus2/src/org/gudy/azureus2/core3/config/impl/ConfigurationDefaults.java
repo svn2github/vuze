@@ -114,6 +114,7 @@ public class ConfigurationDefaults {
     def.put("Use default data dir", new Long(1));
     def.put("Default save path", "");
     def.put("GUI_SWT_bFancyTab", new Long(1));
+    def.put("GUI_SWT_bAlternateTablePainting", new Long(0));
     
     boolean bGTKTableBug = false;
     try {

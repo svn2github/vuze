@@ -49,26 +49,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
  * @author TuxPaper
  *
  */
-public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
-  // same names as GridLayout
-
-  /** marginHeight specifies the number of pixels of vertical margin that will 
-   * be placed along the top and bottom edges of the layout.
-   * The default is 1.
-   */
-  public int marginHeight = 1;
-
-  /** marginWidth specifies the number of pixels of horizontal margin that will
-   * be placed along the left and right edges of the layout.
-   * The default is 1.
-   */
-  public int marginWidth = 1;
-
-  /** Whether the graphic fills the whole cell.  If true, update() will be
-   * called when the size of the cell has changed.
-   */
-  public boolean fillCell = true;
-
+public abstract class BufferedGraphicTableItem2 extends BufferedGraphicTableItem {
   /** Canvas that image is drawn on */
   Canvas cBlockView = null;
   //The Buffered image

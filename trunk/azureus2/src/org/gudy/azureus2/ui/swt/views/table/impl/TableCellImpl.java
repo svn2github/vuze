@@ -35,6 +35,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.Graphic;
@@ -45,6 +46,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.GraphicSWTImpl;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
+import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem1;
+import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
@@ -99,8 +102,17 @@ public class TableCellImpl
           TableCellImpl.this.setValid(false);
         }
       };
+    } else if (COConfigurationManager.getBooleanParameter("GUI_SWT_bAlternateTablePainting")) {
+      bufferedTableItem = new BufferedGraphicTableItem2((BufferedTableRow)tableRow, position) {
+        public void refresh() {
+          TableCellImpl.this.refresh();
+        }
+        public void invalidate() {
+          TableCellImpl.this.setValid(false);
+        }
+      };
     } else {
-      bufferedTableItem = new BufferedGraphicTableItem((BufferedTableRow)tableRow, position) {
+      bufferedTableItem = new BufferedGraphicTableItem1((BufferedTableRow)tableRow, position) {
         public void refresh() {
           TableCellImpl.this.refresh();
         }

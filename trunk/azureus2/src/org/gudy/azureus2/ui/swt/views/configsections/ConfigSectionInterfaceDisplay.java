@@ -157,6 +157,8 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
       new BooleanParameter(cLook, "SWT_bGTKTableBug", "ConfigView.section.style.verticaloffset");
     }
 
+    new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", 
+                         "ConfigView.section.style.alternateTablePainting");
     
     /**
      * Disabled for the moment because of some side effects
