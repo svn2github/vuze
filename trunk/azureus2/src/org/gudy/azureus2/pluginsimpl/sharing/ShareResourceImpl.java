@@ -26,11 +26,13 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.sharing.*;
 
 public abstract class 
 ShareResourceImpl
-	implements ShareResource
+	implements ShareResource, Comparable
 {
 	protected ShareManagerImpl		manager;
 	protected int					type;
@@ -43,6 +45,10 @@ ShareResourceImpl
 		manager	= _manager;
 		type 	= _type;
 	}
+	
+	protected abstract void
+	serialiseResource(
+		Map		map );
 	
 	public int
 	getType()

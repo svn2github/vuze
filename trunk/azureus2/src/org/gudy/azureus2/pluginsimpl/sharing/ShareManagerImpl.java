@@ -26,8 +26,9 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  *
  */
 
-import java.io.File;
+import java.io.*;
 import java.net.*;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.core3.config.*;
@@ -52,12 +53,15 @@ ShareManagerImpl
 		return( singleton );
 	}
 	
-	protected URL		announce_url;
+	protected URL				announce_url;
+	protected ShareConfigImpl	config;
+	
+	protected Set				shares = new TreeSet();	// ensures uniqueness of resources
 	
 	protected
 	ShareManagerImpl()
 	
-	throws ShareException
+		throws ShareException
 	{
 		String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
 
@@ -77,6 +81,34 @@ ShareManagerImpl
 			
 			throw( new ShareException( "Announce URL invalid", e ));
 		}
+		
+		config = new ShareConfigImpl();
+		
+		config.loadConfig(this);
+	}
+	
+	protected void
+	deserialiseResource(
+		Map					map )
+	{
+		try{
+			ShareResourceImpl	res = null;
+			
+			int	type = ((Long)map.get("type")).intValue();
+			
+			if ( type == ShareResource.ST_FILE ){
+				
+				res = ShareResourceFileImpl.deserialiseResource( this, map );
+			}
+			
+			if ( res != null ){
+				
+				shares.add( res );
+			}
+		}catch( ShareException e ){
+			
+			e.printStackTrace();
+		}
 	}
 	
 	protected URL
@@ -88,7 +120,11 @@ ShareManagerImpl
 	public ShareResource[]
 	getShares()
 	{
-		return( new ShareResource[0]);
+		ShareResource[]	res = new ShareResource[shares.size()];
+		
+		shares.toArray( res );
+		
+		return( res );
 	}
 	
 	public ShareResourceFile
@@ -97,7 +133,13 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		return( new ShareResourceFileImpl( this, file ));
+		ShareResourceFile res = new ShareResourceFileImpl( this, file );
+		
+		shares.add( res );
+		
+		config.saveConfig();
+		
+		return( res );
 	}
 	
 	public ShareResourceDir

@@ -26,7 +26,8 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  *
  */
 
-import java.io.File;
+import java.io.*;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
@@ -55,12 +56,20 @@ ShareResourceFileImpl
 		
 		if ( !file.exists()){
 		
-			throw( new ShareException( "File not found"));
+			throw( new ShareException( "File '" + file.getName() + "' not found"));
 		}
 	
 		if ( !file.isFile()){
 		
 			throw( new ShareException( "Not a file"));
+		}
+		
+		try{
+			file = file.getCanonicalFile();
+						
+		}catch( IOException e ){
+	
+			throw( new ShareException("ShareResourceFile: failed to get canonical file name", e));
 		}
 		
 		try{
@@ -72,8 +81,29 @@ ShareResourceFileImpl
 			
 		}catch( TOTorrentException e ){
 			
-			throw( new ShareException("Torrent create failed", e));
+			throw( new ShareException("ShareResourceFile:Torrent create failed", e));
 		}
+	}
+	
+	protected static ShareResourceImpl
+	deserialiseResource(
+		ShareManagerImpl	manager,
+		Map					map )
+	
+		throws ShareException
+	{
+		File file = new File(new String((byte[])map.get("file")));
+		
+		return( new ShareResourceFileImpl( manager, file ));
+	}
+	
+	protected void
+	serialiseResource(
+		Map		map )
+	{
+		map.put( "type", new Long(getType()));
+		
+		map.put( "file", file.toString());
 	}
 	
 	public File
@@ -86,5 +116,38 @@ ShareResourceFileImpl
 	getItem()
 	{
 		return( item );
+	}
+	
+	public int
+	compareTo(
+		Object	other )
+	{		
+		if ( other instanceof ShareResourceFileImpl ){
+			
+			int res = file.compareTo(((ShareResourceFileImpl)other).getFile());
+						
+			return( res );
+					
+		}else{
+			
+			return( 1 );
+		}
+	}
+	
+	public boolean
+	equals(
+		Object	other )
+	{
+		System.out.println( "equals");
+		if ( other instanceof ShareResourceFileImpl ){
+			
+			boolean res = file.equals(((ShareResourceFileImpl)other).getFile());
+			
+			return( res );
+			
+		}else{
+			
+			return( false );
+		}		
 	}
 }
