@@ -119,4 +119,10 @@ TorrentManagerImpl
 			}
 		}
 	}
+	
+	public TorrentAttribute[]
+	getDefinedAttributes()
+	{
+		return( new TorrentAttribute[]{ new TorrentAttributeImpl()});
+	}
 }

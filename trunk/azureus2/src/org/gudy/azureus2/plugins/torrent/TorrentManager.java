@@ -57,4 +57,15 @@ TorrentManager
 		byte[]		data )
 	
 		throws TorrentException;
+	
+		/**
+		 * Gives access to the currently defined torrent attributes. As of 2.1.0.2
+		 * only "category" is defined, however in the future more could be added
+		 * such as "quality", "bit rate" etc.
+		 * @return
+		 */
+	
+	public TorrentAttribute[]
+	getDefinedAttributes();
+	
 }

@@ -188,4 +188,12 @@ RPTorrentManager
 		
 		return( null );
 	}
+	
+	public TorrentAttribute[]
+	getDefinedAttributes()
+	{
+		notSupported();
+		
+		return( null );
+	}
 }
