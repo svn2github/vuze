@@ -93,19 +93,45 @@ public class Transport {
   /**
    * Write data to the transport from the given buffers.
    * NOTE: Works like GatheringByteChannel.
-   * @param buffers th buffers from which bytes are to be retrieved
+   * @param buffers from which bytes are to be retrieved
    * @param array_offset offset within the buffer array of the first buffer from which bytes are to be retrieved
    * @param array_length maximum number of buffers to be accessed
    * @return number of bytes written
-   * @throws IOException
+   * @throws IOException on write error
    */
   public long write( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
     if( !is_ready_for_write )  return 0;
     
+    
+    //TODO temp debug code
+    if( array_offset < 0 || array_offset >= buffers.length ) {
+      Debug.out( "array_offset < 0 || array_offset >= buffers.length" );
+    }
+    
+    if( array_length < 1  || array_length > buffers.length - array_offset ) {
+      Debug.out( "array_length < 1  || array_length > buffers.length - array_offset" );
+    }
+    
+    if( buffers.length < 1 ) {
+      Debug.out( "buffers.length < 1" );
+    }
+    
+    for( int i=0; i < buffers.length; i++ ) {
+      ByteBuffer bb = buffers[ i ];
+      
+      if( bb == null ) {
+        Debug.out( "bb[" +i+ "] == null" );
+      }
+    }
+    
+    
+    
+    
+    
     try { 
       if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
     
-      if( enable_efficient_write ) {     
+      if( enable_efficient_write ) {
         try {
           long written = transport_debugger==null?
           					socket_channel.write( buffers, array_offset, array_length ):
@@ -115,9 +141,12 @@ public class Transport {
           return written;
         }
         catch( IOException e ) {
+          if( e.getMessage() == null ) {
+            Debug.out( "CAUGHT EXCEPTION WITH NULL MESSAGE", e );
+          }
           //a bug only fixed in Tiger (1.5 series):
           //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-          if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
+          else if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
             enable_efficient_write = false;
             Debug.out( "ERROR: Multi-buffer socket write failed; switching to single-buffer mode. Upgrade to JRE 1.5 series to fix." );
           }
@@ -148,8 +177,7 @@ public class Transport {
     }
   }
   
-  
-  
+
   private void requestWriteSelect() {
     is_ready_for_write = false;
     is_write_select_pending = true;
@@ -173,6 +201,58 @@ public class Transport {
   
   
   
+  
+  /**
+   * Read data from the transport into the given buffers.
+   * NOTE: Works like ScatteringByteChannel.
+   * @param buffers into which bytes are to be placed
+   * @param array_offset offset within the buffer array of the first buffer into which bytes are to be placed
+   * @param array_length maximum number of buffers to be accessed
+   * @return number of bytes read
+   * @throws IOException on read error
+   */
+  public long read( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
+    
+    //TODO temp debug code
+    if( array_offset < 0 || array_offset >= buffers.length ) {
+      Debug.out( "array_offset < 0 || array_offset >= buffers.length" );
+    }
+    
+    if( array_length < 1  || array_length > buffers.length - array_offset ) {
+      Debug.out( "array_length < 1  || array_length > buffers.length - array_offset" );
+    }
+    
+    if( buffers.length < 1 ) {
+      Debug.out( "buffers.length < 1" );
+    }
+    
+    for( int i=0; i < buffers.length; i++ ) {
+      ByteBuffer bb = buffers[ i ];
+      
+      if( bb == null ) {
+        Debug.out( "bb[" +i+ "] == null" );
+      }
+    }
+    
+    
+    
+    
+    long bytes_read = socket_channel.read( buffers, array_offset, array_length );
+    
+    if( bytes_read < 0 ) {
+      throw new IOException( "end of stream on socket read" );
+    }
+    
+    if( bytes_read == 0 ) {
+      Debug.out( "bytes_read == 0" );
+      return 0;
+    }
+    
+    return bytes_read;
+  }
+  
+  
+
  
   /**
    * Request the transport connection be established.
