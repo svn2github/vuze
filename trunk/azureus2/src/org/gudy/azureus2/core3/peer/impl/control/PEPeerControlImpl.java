@@ -1012,12 +1012,18 @@ PEPeerControlImpl
     //   Maybe we'll need some other test when we are a seed ...
     Vector bestUploaders = getBestUnChokedPeers(nbUnchoke);
 
+    
+    
     //  optimistic unchoke
     if ((_loopFactor % 300) == 0 || (currentOptimisticUnchoke == null)) {
       performOptimisticUnChoke(bestUploaders);
     }
-    if (currentOptimisticUnchoke != null)
-      uniqueAdd(bestUploaders,currentOptimisticUnchoke);
+    if(currentOptimisticUnchoke != null) {
+      if(!bestUploaders.contains(currentOptimisticUnchoke)) {
+        bestUploaders.remove(bestUploaders.size()-1);
+        bestUploaders.add(currentOptimisticUnchoke);
+      }
+    }
 
     for (int i = 0; i < bestUploaders.size(); i++) {
       PEPeerTransport pc = (PEPeerTransport) bestUploaders.get(i);
@@ -1074,7 +1080,7 @@ PEPeerControlImpl
 
   // refactored out of unChoke() - Moti
   private Vector getBestUnChokedPeers(int nbUnchoke) {
-    int[] upRates = new int[nbUnchoke - 1];
+    int[] upRates = new int[nbUnchoke];
     Arrays.fill(upRates, 0);
 
     Vector bestUploaders = new Vector();
@@ -1087,10 +1093,12 @@ PEPeerControlImpl
         catch (Exception e) {
           continue;
         }
-        if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
+        if (pc.isInteresting()) {
           int upRate = 0;
           if (_finished) {
             upRate = pc.getStats().getUploadAverage();
+            //int totalUploaded = (int) (pc.getStats().getTotalSent() / (1024l*1024l)) + 1;
+            //upRate = upRate / totalUploaded;
             if (pc.isSnubbed())
               upRate = -1;
           }

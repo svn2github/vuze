@@ -51,7 +51,7 @@ public class SpeedGraphic extends ScaledGraphic {
   public static SpeedGraphic getInstance() {
     return new SpeedGraphic(new Scale(),new ValueFormater() {
       public String format(int value) {
-        return DisplayFormatters.formatByteCountToKiBEtcPerSec(value);
+        return DisplayFormatters.formatByteCountToBase10KBEtcPerSec(value);
       }
     });
   }

@@ -228,34 +228,34 @@ public class PeerRow implements SortableItem {
     
     if(field.equals("timetosend"))
       return peerSocket.getUploadHint();
-    
-    if (getBooleanField(field))
-      return 1;
-
+        
     PluginItem item = (PluginItem)pluginItems.get(field);
     if(item != null)
       return item.pluginItem.getIntValue();
+    
+    if (getBooleanField(field))
+      return 1;
     
     return 0;
   }
   
   private boolean getBooleanField(String field) {
-    if (field.equals("t")) //$NON-NLS-1$
+    if (field.equals("T")) //$NON-NLS-1$
       return peerSocket.isIncoming();
 
-    if (field.equals("i")) //$NON-NLS-1$
+    if (field.equals("I1")) //$NON-NLS-1$
       return peerSocket.isInterested();
 
-    if (field.equals("c")) //$NON-NLS-1$
+    if (field.equals("C1")) //$NON-NLS-1$
       return peerSocket.isChoked();
 
     if (field.equals("optunchoke")) //$NON-NLS-1$
       return peerSocket.isOptimisticUnchoke();
     
-    if (field.equals("i2")) //$NON-NLS-1$
+    if (field.equals("I2")) //$NON-NLS-1$
       return peerSocket.isInteresting();
 
-    if (field.equals("i2")) //$NON-NLS-1$
+    if (field.equals("C2")) //$NON-NLS-1$
       return peerSocket.isChoking();
     
     if (field.equals("S")) //$NON-NLS-1$
