@@ -766,6 +766,11 @@ Test
 			
 		}
 
+		public void
+		saveDownload()
+		{
+		}
+		 
 	 
 	  public Object getData (String key)
 	{

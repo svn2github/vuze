@@ -303,6 +303,14 @@ DownloadManager
 	public void
 	saveResumeData();
 
+		/**
+		 * persist any general download related information, excluding resume data which is
+		 * managed separately by saveResumeData
+		 */
+	
+	public void
+	saveDownload();
+	
   /** To retreive arbitrary objects against this object. */
   public Object getData (String key);
   /** To store arbitrary objects against this object. */

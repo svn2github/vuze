@@ -860,6 +860,16 @@ DownloadManagerImpl
     saveTrackerResponseCache();
   }
   
+  public void
+  saveDownload()
+  {
+    DiskManager disk_manager = this.diskManager;
+    
+    if ( disk_manager != null ){
+    	
+    	disk_manager.storeFilePriorities();
+    }
+  }
   protected void
   saveTrackerResponseCache()
   {
