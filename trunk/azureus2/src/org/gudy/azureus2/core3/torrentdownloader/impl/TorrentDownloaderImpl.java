@@ -71,6 +71,14 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
         String tmp = this.url.getFile();
         if (tmp.lastIndexOf('/') != -1)
           tmp = tmp.substring(tmp.lastIndexOf('/') + 1);
+        
+        	// remove any params in the url
+        	
+        int	param_pos = tmp.indexOf('?');
+        
+        if ( param_pos != -1 ){
+        	tmp = tmp.substring(0,param_pos);
+        }
         this.filename = URLDecoder.decode(tmp, "UTF-8");
       } else {
         this.filename = this.filename.substring(this.filename.indexOf('=') + 1);
@@ -181,6 +189,7 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
         }
         this.notifyListener();
       } catch (Exception e) {
+      	e.printStackTrace();
         this.error("Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
       }
     }
