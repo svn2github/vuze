@@ -54,9 +54,7 @@ XMLRequestProcessor
 			writeLine( "<RESPONSE>" );
 			
 			indent();
-			
-			System.out.println( "got:" + _request );
-			
+						
 			request = SimpleXMLParserDocumentFactory.create( _request );
 				
 			process();

@@ -37,6 +37,9 @@ TrackerWebPageRequest
 	getTracker();
 	
 	public String
+	getClientAddress();
+	
+	public String
 	getURL();
 	
 	public InputStream

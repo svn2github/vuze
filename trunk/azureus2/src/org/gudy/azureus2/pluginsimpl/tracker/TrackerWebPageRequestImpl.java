@@ -35,6 +35,7 @@ TrackerWebPageRequestImpl
 	implements TrackerWebPageRequest
 {
 	protected Tracker		tracker;
+	protected String		client_address;
 	protected String		url;
 	protected String		header;
 	protected InputStream	is;
@@ -42,14 +43,16 @@ TrackerWebPageRequestImpl
 	protected
 	TrackerWebPageRequestImpl(
 		Tracker		_tracker,
+		String		_client_address,
 		String		_url,
 		String		_header,
 		InputStream	_is )
 	{
-		tracker	= _tracker;
-		url		= _url;
-		header	= _header;
-		is		= _is;
+		tracker			= _tracker;
+		client_address	= _client_address;
+		url				= _url;
+		header			= _header;
+		is				= _is;
 	}
 	
 	public Tracker
@@ -64,6 +67,13 @@ TrackerWebPageRequestImpl
 		return( url );
 	}
 	
+	public String
+	getClientAddress()
+	{
+		return( client_address );
+	}
+	
+
 	public InputStream
 	getInputStream()
 	{

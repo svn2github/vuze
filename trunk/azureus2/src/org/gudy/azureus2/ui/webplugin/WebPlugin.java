@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.webplugin;
 
 import java.io.*;
 import java.util.*;
+import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
@@ -42,6 +43,7 @@ WebPlugin
 {
 	public static final String DEFAULT_PORT		= "8089";
 	public static final String DEFAULT_PROTOCOL	= "HTTP";
+	public static final String DEFAULT_ACCESS	= "all";
 	
 	protected static final String	NL			= "\r\n";
 	
@@ -55,6 +57,8 @@ WebPlugin
 	protected String				home_page;
 	protected String				file_root;
 	protected String				resource_root;
+	
+	protected boolean				local_only;
 	
 	public void 
 	initialize(
@@ -169,6 +173,10 @@ WebPlugin
 	
 		log.log( LoggerChannel.LT_INFORMATION, "WebPlugin Initialisation: port = " + port + ", protocol = " + protocol_str + ", root = " + root_dir );
 		
+		String	access_str = props.getProperty( "access", DEFAULT_ACCESS );
+		
+		local_only = access_str.equalsIgnoreCase( "local" );
+		
 		try{
 			TrackerWebContext	context = tracker.createWebContext( port, protocol );
 		
@@ -197,6 +205,27 @@ WebPlugin
 	
 		throws IOException
 	{
+		if ( local_only ){
+		
+			String	client = request.getClientAddress();
+			
+			// System.out.println( "client = " + client );
+			
+			try{
+				if ( !InetAddress.getByName(client).isLoopbackAddress()){
+			
+					System.out.println( "WebPlugin: Client '" + client + "' is not local, rejecting" );
+					
+					return( false );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+				
+				return( false );
+			}
+		}
+		
 		if ( request.getURL().toString().endsWith(".class")){
 			
 			System.out.println( "WebPlugin::generate:" + request.getURL());

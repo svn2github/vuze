@@ -276,6 +276,7 @@ TRTrackerServerTCP
 	
 	protected boolean
 	handleExternalRequest(
+		String			client_address,
 		String			url,
 		String			header,
 		InputStream		is,
@@ -297,7 +298,7 @@ TRTrackerServerTCP
 				listener = (TRTrackerServerListener)listeners.elementAt(i);
 			}
 			
-			if (listener.handleExternalRequest( url, header, is, os )){
+			if (listener.handleExternalRequest( client_address, url, header, is, os )){
 				
 				return( true );
 			}

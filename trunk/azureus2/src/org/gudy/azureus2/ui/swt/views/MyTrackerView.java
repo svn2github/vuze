@@ -327,6 +327,7 @@ MyTrackerView
 
 	public boolean
 	handleExternalRequest(
+		String			client,
 		String			url,
 		String			header,
 		InputStream		is,

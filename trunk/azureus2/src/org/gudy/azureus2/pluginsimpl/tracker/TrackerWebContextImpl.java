@@ -83,6 +83,7 @@ TrackerWebContextImpl
 	
 	public boolean
 	handleExternalRequest(
+		String			_client_address,
 		String			_url,
 		String			_header,
 		InputStream		_is,
@@ -90,7 +91,7 @@ TrackerWebContextImpl
 	
 		throws IOException
 	{	
-		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, _url, _header, _is );
+		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, _client_address, _url, _header, _is );
 		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
 		
 		synchronized( this ){

@@ -153,6 +153,7 @@ TrackerImpl
 	
 	public boolean
 	handleExternalRequest(
+		String			_client_address,
 		String			_url,
 		String			_header,
 		InputStream		_is,
@@ -160,7 +161,7 @@ TrackerImpl
 	
 		throws IOException
 	{	
-		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( this, _url, _header, _is );
+		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( this, _client_address, _url, _header, _is );
 		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
 		
 		for (int i=0;i<generators.size();i++){

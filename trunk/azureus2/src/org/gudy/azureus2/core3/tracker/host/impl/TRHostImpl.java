@@ -725,6 +725,7 @@ TRHostImpl
 	
 	public boolean
 	handleExternalRequest(
+		String			client_address,
 		String			url,
 		String			header,
 		InputStream		is,
@@ -751,7 +752,7 @@ TRHostImpl
 				listener	= (TRHostListener)listeners.get(i);
 			}
 			
-			if ( listener.handleExternalRequest( url, header, is, os )){
+			if ( listener.handleExternalRequest( client_address, url, header, is, os )){
 				
 				return( true );
 			}
