@@ -68,6 +68,7 @@ public class ConfigSectionInterfaceStart implements ConfigSectionSWT {
     new BooleanParameter(cStart, "update.opendialog", true, "ConfigView.label.opendialog");
     new Label(cStart,SWT.NULL);
     new BooleanParameter(cStart, "Open Console", false, "ConfigView.label.openconsole");
+    new BooleanParameter(cStart, "Open Stats On Start", false, "ConfigView.label.openstatsonstart");
     new BooleanParameter(cStart, "Open Config", false, "ConfigView.label.openconfig");
     new BooleanParameter(cStart, "Start Minimized", false, "ConfigView.label.startminimized");
     

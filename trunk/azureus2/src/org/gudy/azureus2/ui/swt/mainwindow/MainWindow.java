@@ -701,11 +701,15 @@ MainWindow
     showMyTorrents();
 
     if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
-      showConsole();
-    }
+        showConsole();
+      }  
     
     if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
-      showConfig();
+        showConfig();
+    }
+    
+    if (COConfigurationManager.getBooleanParameter("Open Stats On Start", false)) {
+      showStats();
     }
   
     mainWindow.open();

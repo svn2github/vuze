@@ -304,6 +304,7 @@ public class ConfigurationDefaults {
     def.put( "window.rectangle", "" );
     def.put( "Open Console", new Long(0) );
     def.put( "Open Config", new Long(0) );
+    def.put( "Open Stats On Start", new Long(0));
     def.put( "Start Minimized", new Long(0) );
     def.put( "Open Bar", new Long(0) );
     def.put( "confirmationOnExit", new Long(0) );
