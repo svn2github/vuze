@@ -223,7 +223,7 @@ public class ConnectDisconnectManager {
       String full_sub = inet_address==null?request.address.toString():inet_address.toString();
       String host_address = inet_address==null?request.address.toString():inet_address.getHostAddress();
       
-      String msg = "full="+full+ ", hostname="+hostname+ ", port="+port+ ", unresolved="+unresolved+ ", full_sub="+full_sub+ ", host_address="+host_address;
+      String msg = "ConnectDisconnectManager::address exception: full="+full+ ", hostname="+hostname+ ", port="+port+ ", unresolved="+unresolved+ ", full_sub="+full_sub+ ", host_address="+host_address;
       if( request.channel != null ) {
         String channel = request.channel.toString();
         String socket = request.channel.socket().toString();
@@ -238,8 +238,7 @@ public class ConnectDisconnectManager {
         msg += "\n channel="+channel+ ", socket="+socket+ ", local_address="+local_address+ ", local_port="+local_port+ ", remote_address="+remote_address+ ", remote_port="+remote_port;
       }
       
-      Debug.out( msg, t );
-      
+      LGLogger.log( msg, t );
       
       
       if( request.channel != null ) {
