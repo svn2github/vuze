@@ -21,13 +21,6 @@
  
 package org.gudy.azureus2.core3.config;
 
-/**
- * @author stuff
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
- */
-
 import org.gudy.azureus2.core.ConfigurationManager;	// TODO: sort this
 
 public class 

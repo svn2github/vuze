@@ -1,17 +1,27 @@
 /*
- * Created on 03-Oct-2003
+ * File    : Main.java
+ * Created : 5 Oct. 2003
+ * By      : Parg 
+ * 
+ * Azureus - a Java Bittorrent client
  *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package org.gudy.azureus2.core3.torrent.test;
 
-/**
- * @author gardnerpar
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
- */
+
 import java.io.*;
 import java.net.*;
 
@@ -98,19 +108,51 @@ Main
 						{
 							System.out.println( "" + p );
 						}
+						public void
+						reportCurrentTask(
+							String	task_description )
+						{
+							System.out.println( "task = " + task_description );
+						}				
 					};
 				
-				boolean	do_file = true;
+				boolean	do_file 	= false;
+				boolean	do_fixed	= false;
 				
 				TOTorrent t;
 				
-				if ( do_file ){
+				if ( do_fixed ){
 					
-					t = TOTorrentFactory.createFromFileOrDir( new File("c:\\temp\\test.wmf"), 1024*10, new URL( "http://localhost:6969/announce" ), list );			
-					
+					if ( do_file ){
+						
+						t = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
+								new File("c:\\temp\\test.wmf"), 
+								new URL( "http://localhost:6969/announce" ),
+								1024*10, list );			
+						
+					}else{
+		
+						t = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
+								new File("c:\\temp\\scans"), 
+								new URL("http://localhost:6969/announce" ), 
+								1024*256, 
+								list);
+					}
 				}else{
-	
-					t = TOTorrentFactory.createFromFileOrDir( new File("c:\\temp\\scans"), 1024*256, new URL("http://localhost:6969/announce" ), list);
+					if ( do_file ){
+						
+						t = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
+								new File("c:\\temp\\test.wmf"), 
+								new URL( "http://localhost:6969/announce" ),
+								list );			
+						
+					}else{
+		
+						t = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
+								new File("c:\\temp\\The.Hulk.DVDRiP.XViD-DEiTY"), 
+								new URL("http://localhost:6969/announce" ), 
+								list);
+					}
 				}
 				
 				t.print();

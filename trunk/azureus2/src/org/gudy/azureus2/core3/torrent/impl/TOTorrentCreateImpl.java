@@ -1,17 +1,25 @@
 /*
- * Created on 03-Oct-2003
+ * File    : TOTorrentCreateImpl.java
+ * Created : 5 Oct. 2003
+ * By      : Parg 
+ * 
+ * Azureus - a Java Bittorrent client
  *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.gudy.azureus2.core3.torrent.impl;
 
-/**
- * @author gardnerpar
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
- */
+package org.gudy.azureus2.core3.torrent.impl;
 
 import java.io.*;
 import java.net.*;
@@ -26,6 +34,9 @@ TOTorrentCreateImpl
 {	
 	protected TOTorrentFileHasher			file_hasher;
 	
+	protected long	total_file_size		= -1;
+	protected long	total_file_count	= 0;
+	
 	protected long	piece_count;
 	
 	protected TOTorrentProgressListener		progress_listener;
@@ -35,19 +46,79 @@ TOTorrentCreateImpl
 	public
 	TOTorrentCreateImpl(
 		File						_torrent_base,
-		long						_piece_length,
 		URL							_announce_url,
+		long						_piece_length,
 		TOTorrentProgressListener	_progress_listener )
 		
 		throws TOTorrentException
 	{
-		super( _torrent_base.getName(), _announce_url, _piece_length, _torrent_base.isFile());
+		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
 		
 		progress_listener = _progress_listener;
 		
+		constructFixed( _torrent_base, _piece_length );
+	}
+	
+	public
+	TOTorrentCreateImpl(	
+		File						_torrent_base,
+		URL							_announce_url,
+		long						_piece_min_size,
+		long						_piece_max_size,
+		long						_piece_num_lower,
+		long						_piece_num_upper,
+		TOTorrentProgressListener	_progress_listener )
+		
+		throws TOTorrentException
+	{
+		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
+		
+		progress_listener = _progress_listener;
+		
+		long	total_size = calculateTotalFileSize( _torrent_base );
+		
+		long	piece_length = -1;
+		
+		long	current_piece_size = _piece_min_size;
+		
+		while( current_piece_size <= _piece_max_size ){
+			
+			long	pieces = total_size / current_piece_size;
+			
+			if ( pieces <= _piece_num_upper ){
+				
+				piece_length = current_piece_size;
+				
+				break;
+			}
+			
+			current_piece_size = current_piece_size << 1;
+		}
+		
+		if ( piece_length == -1 ){
+		
+				// just go for the minimum piece size
+				
+			piece_length = 	_piece_min_size;
+		}
+		
+		constructFixed( _torrent_base, piece_length );
+	}
+	
+	protected void
+	constructFixed(
+		File		_torrent_base,
+		long		_piece_length )
+	
+		throws TOTorrentException
+	{
+		setPieceLength( _piece_length );
+		
+		report( "Piece length: " + _piece_length );
+		
 		TOTorrentFileHasher	hasher = new TOTorrentFileHasher((int)_piece_length, progress_listener==null?null:this );
 		
-		piece_count = countPieces( _torrent_base,_piece_length );
+		piece_count = calculateNumberOfPieces( _torrent_base,_piece_length );
 		
 		if ( piece_count == 0 ){
 			
@@ -143,17 +214,51 @@ TOTorrentCreateImpl
 	}
 	
 	protected long
-	countPieces(
+	calculateNumberOfPieces(
 		File				file,
 		long				piece_length )
 		
 		throws TOTorrentException
 	{
-		return( (getTotalFileLength( file ) + (piece_length-1))/piece_length );
+		long	res = (calculateTotalFileSize( file ) + (piece_length-1))/piece_length;
+		
+		report( "Piece count: " + res );
+		
+		return( res );
 	}
 	
 	protected long
-	getTotalFileLength(
+	calculateTotalFileSize(
+		File				file )
+		
+		throws TOTorrentException
+	{
+		if ( total_file_size == -1 ){
+			
+			total_file_size = getTotalFileSize( file );		
+		}
+		
+		return( total_file_size );
+	}
+	
+	protected long
+	getTotalFileSize(
+		File				file )
+		
+		throws TOTorrentException
+	{
+		report( "Parsing files");
+		
+		long res = getTotalFileSizeSupport( file );
+		
+		report( "Total file size: " + res );
+		report( "Total file count: " + total_file_count );
+		
+		return( res );
+	}
+	
+	protected long
+	getTotalFileSizeSupport(
 		File				file )
 		
 		throws TOTorrentException
@@ -173,6 +278,8 @@ TOTorrentCreateImpl
 		
 		if ( file.isFile()){
 			
+			total_file_count++;
+			
 			return( file.length());
 			
 		}else{
@@ -183,10 +290,20 @@ TOTorrentCreateImpl
 			
 			for (int i=0;i<dir_files.length;i++){
 				
-				length += getTotalFileLength( dir_files[i] );
+				length += getTotalFileSizeSupport( dir_files[i] );
 			}
 			
 			return( length );
+		}
+	}
+	
+	protected void
+	report(
+		String	str )
+	{
+		if ( progress_listener != null ){
+			
+			progress_listener.reportCurrentTask( str );		
 		}
 	}
 }
