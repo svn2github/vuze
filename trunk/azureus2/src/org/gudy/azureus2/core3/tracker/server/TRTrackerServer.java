@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.tracker.server;
 public interface 
 TRTrackerServer 
 {
+	public static final int DEFAULT_RETRY_DELAY 	= 120;	// seconds
+
 	public int
 	getRetryInterval();
 	
@@ -44,5 +46,11 @@ TRTrackerServer
 	getPeers(
 		byte[]		hash );
 
-
+	public void
+	addListener(
+		TRTrackerServerListener	l );
+		
+	public void
+	removeListener(
+		TRTrackerServerListener	l );
 }

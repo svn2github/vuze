@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 
 import java.net.*;
+import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -34,19 +35,18 @@ TRTrackerServerImpl
 	implements TRTrackerServer
 {
 	protected int	port;
-	protected int	retry_interval_seconds;
 	
 	protected Map	torrent_map = new HashMap(); 
 		
+	protected Vector	listeners = new Vector();
+	
 	public
 	TRTrackerServerImpl(
-		int		_port,
-		int		_retry_interval )
+		int		_port )
 		
 		throws TRTrackerServerException
 	{
 		port					= _port;
-		retry_interval_seconds	= _retry_interval;
 		
 		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
 
@@ -149,13 +149,13 @@ TRTrackerServerImpl
 	public int
 	getRetryInterval()
 	{
-		return( retry_interval_seconds );
+		return( COConfigurationManager.getIntParameter("Tracker Poll Interval", DEFAULT_RETRY_DELAY ));
 	}
 	
 	protected long
 	getTimeoutIntervalInMillis()
 	{
-		return( retry_interval_seconds * 1000 * 3 );
+		return( getRetryInterval() * 1000 * 3 );
 	}
 	
 	public synchronized void
@@ -216,5 +216,37 @@ TRTrackerServerImpl
 		}
 		
 		return( torrent.getPeers());
+	}
+	
+	protected synchronized boolean
+	handleExternalRequest(
+		String			header,
+		OutputStream	os )
+		
+		throws IOException
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			if (((TRTrackerServerListener)listeners.elementAt(i)).handleExternalRequest( header, os )){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
+	public synchronized void
+	addListener(
+		TRTrackerServerListener	l )
+	{
+		listeners.addElement( l );
+	}
+		
+	public synchronized void
+	removeListener(
+		TRTrackerServerListener	l )
+	{
+		listeners.removeElement(l);
 	}
 }

@@ -29,11 +29,10 @@ TRTrackerServerFactory
 {
 	public static TRTrackerServer
 	create(
-		int		port,
-		int		retry_delay )
+		int		port )
 		
 		throws TRTrackerServerException
 	{
-		return( new TRTrackerServerImpl( port, retry_delay ));
+		return( new TRTrackerServerImpl( port ));
 	}
 }

@@ -1,7 +1,7 @@
 /*
- * File    : Main.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : TRTrackerServerListener.java
+ * Created : 05-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,41 +19,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.server.test;
+package org.gudy.azureus2.core3.tracker.server;
 
-import org.gudy.azureus2.core3.tracker.server.TRTrackerServerFactory;
+/**
+ * @author parg
+ *
+ */
 
-public class 
-Main 
+import java.io.*;
+
+public interface 
+TRTrackerServerListener 
 {
-	static void
-	usage()
-	{
-		System.err.println( "Usage:" );
+	public boolean
+	handleExternalRequest(
+		String			header,
+		OutputStream	os )
 		
-		System.exit(1);
-	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		int	test_type= 0;
-		
-		if ( args.length != 0 ){
-			
-			usage();
-		}
-		
-		
-		try{
-
-			TRTrackerServerFactory.create( 6969 );
-													 
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
-		}
-	}
+		throws IOException;
 }

@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.tracker.host.impl;
  */
 
 import java.util.*;
+import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -35,10 +36,13 @@ import org.gudy.azureus2.core3.torrent.*;
 
 public class 
 TRHostImpl
-	implements TRHost, TRTrackerClientFactoryListener 
+	implements TRHost, TRTrackerClientFactoryListener, TRTrackerServerListener
 {
-	public static final int RETRY_DELAY 	= 120;	// seconds
 	public static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
+
+	protected static final char		CR			= '\015';
+	protected static final char		FF			= '\012';
+	protected static final String	NL			= "\015\012";
 	
 	protected static TRHostImpl		singleton;
 	
@@ -72,6 +76,8 @@ TRHostImpl
 	public synchronized void
 	addTorrent(
 		TOTorrent		torrent )
+		
+		throws TRHostException
 	{
 		for (int i=0;i<host_torrents.size();i++){
 			
@@ -98,13 +104,15 @@ TRHostImpl
 			
 			try{
 			
-				server = TRTrackerServerFactory.create( port, RETRY_DELAY );
+				server = TRTrackerServerFactory.create( port );
 			
 				server_map.put( new Integer( port ), server );
 				
+				server.addListener( this );
+				
 			}catch( TRTrackerServerException e ){
 				
-				e.printStackTrace();
+				throw( new TRHostException( e.getMessage()));
 			}
 		}
 		
@@ -290,6 +298,47 @@ TRHostImpl
 		stopHosting( client );
 	}
 	
+	public boolean
+	handleExternalRequest(
+		String			url,
+		OutputStream	os )
+		
+		throws IOException
+	{
+		System.out.println( "url = " + url );
+		
+		if ( !COConfigurationManager.getBooleanParameter( "Tracker Publish Enable", true )){
+			
+			return( false );
+		}
+		
+		String	reply_string = "<HTML><BODY>";
+		
+		synchronized( this ){
+		
+			for (int i=0;i<host_torrents.size();i++){
+			
+				TRHostTorrentImpl	torrent = (TRHostTorrentImpl)host_torrents.get(i);
+				
+				reply_string += "<UL>" + new String(torrent.getTorrent().getName()) + "</UL>";
+			}	
+		}
+		
+		reply_string += "</BODY></HTML>";
+		
+		byte[] data = reply_string.getBytes();
+		
+		String reply_header = "HTTP/1.1 200 OK" + NL + 
+						"Content-Type: text/html" + NL +
+						"Content-Length: " + data.length + 
+						NL + NL;
+	
+		os.write( reply_header.getBytes());
+				
+		os.write( data );
+
+		return( true );
+	}
 	public synchronized void
 	addListener(
 		TRHostListener	l )

@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.IpFilter;
 import org.gudy.azureus2.core3.peer.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
+import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -130,6 +131,7 @@ public class ConfigView extends AbstractIView {
     initGroupFilter();
     initStats();
     initStyle();
+    initTracker();
     
     initSaveButton(); 
     TabItem[] items = {itemFile};
@@ -872,6 +874,53 @@ public class ConfigView extends AbstractIView {
    itemStyle.setControl(gStyle);
   }
   
+  
+  
+ 	private void 
+ 	initTracker() 
+  	{
+		GridData gridData;
+		GridLayout layout;
+		Label label;
+		TabItem itemStats = new TabItem(tfConfig, SWT.NULL);
+		Messages.setLanguageText(itemStats, "ConfigView.section.tracker"); //$NON-NLS-1$
+
+		Group gTracker = new Group(tfConfig, SWT.NULL);
+		
+	    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+	    
+		gTracker.setLayoutData(gridData);
+		
+		layout = new GridLayout();
+		
+		layout.numColumns = 3;
+		
+		gTracker.setLayout(layout);
+
+		 // row
+		
+		label = new Label(gTracker, SWT.NULL);
+		
+		Messages.setLanguageText(label, "ConfigView.section.tracker.pollinterval"); 
+		
+	    IntParameter pollInterval = new IntParameter(gTracker, "Tracker Poll Interval", TRHost.DEFAULT_RETRY_DELAY );
+
+		label = new Label(gTracker, SWT.NULL);
+		
+			// row
+			
+		label = new Label(gTracker, SWT.NULL);
+		
+		Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable"); 
+		
+		BooleanParameter enablePublish = new BooleanParameter(gTracker, "Tracker Publish Enable", true);
+
+		label = new Label(gTracker, SWT.NULL);
+
+
+	 	itemStats.setControl(gTracker);
+	}
+	
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
    */

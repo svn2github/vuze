@@ -26,13 +26,18 @@ package org.gudy.azureus2.core3.tracker.host;
  */
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.tracker.server.*;
 
 public interface 
-TRHost 
+TRHost
 {
+	public static final int DEFAULT_RETRY_DELAY 	= TRTrackerServer.DEFAULT_RETRY_DELAY;
+
 	public void
 	addTorrent(
-		TOTorrent		torrent );
+		TOTorrent		torrent )
+		
+		throws TRHostException;
 				
 	public TRHostTorrent[]
 	getTorrents();

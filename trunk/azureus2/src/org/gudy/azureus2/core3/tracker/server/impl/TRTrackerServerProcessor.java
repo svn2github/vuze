@@ -140,6 +140,11 @@ TRTrackerServerProcessor
 				
 				}else{
 					
+					if ( handleExternalRequest( str, os )){
+					
+						return;
+					}
+					
 					throw( new Exception( "Unsupported Request Type"));
 				}
 					
@@ -322,11 +327,21 @@ TRTrackerServerProcessor
 				
 			os.write( data );
 							
-			os.flush();
-			
 		}finally{
 			
+			os.flush();
+				
 			os.close();
 		}
+	}
+	
+	protected boolean
+	handleExternalRequest(
+		String			header,
+		OutputStream	os )
+		
+		throws IOException
+	{
+		return( server.handleExternalRequest(header, os));
 	}
 }

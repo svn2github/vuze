@@ -1,7 +1,7 @@
 /*
- * File    : Main.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * File    : TRHostException.java
+ * Created : 05-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,41 +19,20 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.server.test;
+package org.gudy.azureus2.core3.tracker.host;
 
-import org.gudy.azureus2.core3.tracker.server.TRTrackerServerFactory;
-
+/**
+ * @author parg
+ *
+ */
 public class 
-Main 
+TRHostException 
+	extends Exception
 {
-	static void
-	usage()
+	public 
+	TRHostException(
+		String	str )
 	{
-		System.err.println( "Usage:" );
-		
-		System.exit(1);
-	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		int	test_type= 0;
-		
-		if ( args.length != 0 ){
-			
-			usage();
-		}
-		
-		
-		try{
-
-			TRTrackerServerFactory.create( 6969 );
-													 
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
-		}
+		super( str );
 	}
 }
