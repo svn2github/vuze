@@ -19,23 +19,12 @@
 
 package org.gudy.azureus2.ui.swt.maketorrent;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Iterator;
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
@@ -45,6 +34,11 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Olivier
@@ -97,22 +91,46 @@ public class ModePanel extends AbstractWizardPanel {
         
     //Line :
     //Announce URL : <local announce>
-    
-    final Label labelLocalAnnounce = new Label(panel, SWT.NULL);
-    Messages.setLanguageText(labelLocalAnnounce, "wizard.announceUrl");
-    
+
     final Label localTrackerValue = new Label(panel, SWT.NULL);
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
+
+    final String localTrackerHost = COConfigurationManager.getStringParameter("Tracker IP", "");
+    final int localTrackerPort 	= COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+    final int localTrackerPortSSL = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+    final boolean SSLEnabled = COConfigurationManager.getBooleanParameter("Tracker Port SSL Enable", false );
+
+    final String[] localTrackerUrl = new String[1];
+
+    // there's a potential oversize issue with the howToLocal string, and attemtping to force wrap has no effect -
+    // therefore, provide more room and remove extraneous labeling
+    final boolean showLocal = localTrackerHost != null && !localTrackerHost.equals("");
+    final Label labelLocalAnnounce = (showLocal) ? null : new Label(panel, SWT.NULL);
+    if (showLocal) {
+      localTrackerUrl[0] = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
+      localTrackerValue.setText(localTrackerUrl[0]);
+      btnSSL.setEnabled( SSLEnabled );
+
+      Messages.setLanguageText(labelLocalAnnounce, "wizard.announceUrl");
+
+      gridData = new GridData();
+      gridData.horizontalSpan = 3;
+    } else {
+      localTrackerUrl[0] = "";
+      Messages.setLanguageText(localTrackerValue, "wizard.tracker.howToLocal");
+      btnLocalTracker.setSelection(false);
+      btnSSL.setEnabled(false);
+      btnLocalTracker.setEnabled(false);
+      localTrackerValue.setEnabled(false);
+      ((NewTorrentWizard) wizard).localTracker = false;
+
+      gridData = new GridData();
+      gridData.horizontalSpan = 4;
+    }
     localTrackerValue.setLayoutData(gridData);
-    
-    //Line:
-    //<blank>
-    Label label = new Label(panel,SWT.NULL);
-    label.setText(" ");
-    gridData = new GridData();
-    gridData.horizontalSpan = 4;
-    label.setLayoutData(gridData);
+
+    if (((NewTorrentWizard) wizard).localTracker) {
+      setTrackerUrl(localTrackerUrl[0]);
+    }
 
     //Line:
     // O use external Tracker
@@ -125,38 +143,12 @@ public class ModePanel extends AbstractWizardPanel {
 
     //Line:
     // [External Tracker Url ]V
-    
-    final String localTrackerHost = COConfigurationManager.getStringParameter("Tracker IP", "");
-    final int localTrackerPort 	= COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-    final int localTrackerPortSSL = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
-    final boolean SSLEnabled = COConfigurationManager.getBooleanParameter("Tracker Port SSL Enable", false );
-    
-    final String[] localTrackerUrl = new String[1];    
-    
-    if (localTrackerHost != null && !localTrackerHost.equals("")) {
-      localTrackerUrl[0] = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
-      localTrackerValue.setText(localTrackerUrl[0]);
-	  btnSSL.setEnabled( SSLEnabled );
-    } else {
-      localTrackerUrl[0] = "";
-      Messages.setLanguageText(localTrackerValue, "wizard.tracker.howToLocal");
-      btnLocalTracker.setSelection(false);
-	  btnSSL.setEnabled(false);
-      btnLocalTracker.setEnabled(false);
-      localTrackerValue.setEnabled(false);
-      ((NewTorrentWizard) wizard).localTracker = false;
-    }
-
-    if (((NewTorrentWizard) wizard).localTracker) {
-      setTrackerUrl(localTrackerUrl[0]);
-    }
 
     final Label labelExternalAnnounce = new Label(panel, SWT.NULL);
     Messages.setLanguageText(labelExternalAnnounce, "wizard.announceUrl");
-    
+
     btnLocalTracker.setSelection(((NewTorrentWizard) wizard).localTracker);
     localTrackerValue.setEnabled(((NewTorrentWizard) wizard).localTracker);
-    labelLocalAnnounce.setEnabled(((NewTorrentWizard) wizard).localTracker);
     btnSSL.setEnabled(((NewTorrentWizard) wizard).localTracker);
     
     btnExternalTracker.setSelection(!((NewTorrentWizard) wizard).localTracker);
@@ -217,7 +209,15 @@ public class ModePanel extends AbstractWizardPanel {
     tracker.setEnabled(!((NewTorrentWizard) wizard).localTracker);
     
     new Label(panel,SWT.NULL);
-    
+
+    // add another panel due to control oversize issues
+    panel = new Composite(rootPanel, SWT.NO_RADIO_GROUP);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+    panel.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    panel.setLayout(layout);
+
     //Line:
     // [] add Multi-tracker information
     
@@ -235,7 +235,7 @@ public class ModePanel extends AbstractWizardPanel {
     btnMultiTracker.setSelection(((NewTorrentWizard) wizard).useMultiTracker);
     //Line:
     // include hashes for other networks (
-    
+
     final Button btnExtraHashes = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(btnExtraHashes, "wizard.createtorrent.extrahashes");
     gridData = new GridData();
@@ -248,11 +248,20 @@ public class ModePanel extends AbstractWizardPanel {
     	}
     });
     btnExtraHashes.setSelection(((NewTorrentWizard) wizard).addOtherHashes);
-    
+
+    // add another panel due to control oversize issues
+    // the "hack" is staying until a more satisfactory solution can be found
+    panel = new Composite(rootPanel, SWT.NONE);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+    panel.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    panel.setLayout(layout);
+
     //Line:
     // ------------------------------
     
-    label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
+    Label label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
     label.setLayoutData(gridData);
@@ -315,7 +324,7 @@ public class ModePanel extends AbstractWizardPanel {
         btnLocalTracker.setSelection(true);
         tracker.setEnabled(false);
         btnSSL.setEnabled(SSLEnabled);
-        labelLocalAnnounce.setEnabled(true);
+        if(labelLocalAnnounce != null) {labelLocalAnnounce.setEnabled(true);}
         localTrackerValue.setEnabled(true);
         labelExternalAnnounce.setEnabled(false);
       }
@@ -329,7 +338,7 @@ public class ModePanel extends AbstractWizardPanel {
         btnExternalTracker.setSelection(true);
         tracker.setEnabled(true);
         btnSSL.setEnabled(false);
-        labelLocalAnnounce.setEnabled(false);
+        if(labelLocalAnnounce != null) {labelLocalAnnounce.setEnabled(false);}
         localTrackerValue.setEnabled(false);
         labelExternalAnnounce.setEnabled(true);
       }
@@ -408,7 +417,6 @@ public class ModePanel extends AbstractWizardPanel {
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#isNextEnabled()
 	 */
   public boolean isNextEnabled() {
-    // TODO Auto-generated method stub
     return true;
   }
 
