@@ -91,6 +91,7 @@ import org.gudy.azureus2.ui.swt.PasswordWindow;
 import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.TrayWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
+import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
@@ -125,13 +126,15 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private boolean useCustomTab;
   private Composite folder;
       
+  
+  private UpdateWindow updateWindow;
+  
   private Composite statusArea;
   StackLayout layoutStatusAera;
   
   private CLabel statusText;
   private String statusTextKey = "";
-  
-  
+    
   private Composite statusUpdate;
   private Label statusUpdateLabel;
   private ProgressBar statusUpdateProgressBar;
@@ -353,6 +356,17 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     //Either the Status Text
     statusText = new CLabel(statusArea, SWT.SHADOW_IN);
     int height = statusText.computeSize(150,SWT.DEFAULT).y;
+    
+    Listener listener = new Listener() {
+      public void handleEvent(Event e) {
+        if(updateWindow != null) {
+          updateWindow.show();
+        }
+      }
+    };
+    
+    statusText.addListener(SWT.MouseUp,listener);
+    statusText.addListener(SWT.MouseDoubleClick,listener);
     
     //Or a composite with a label, a progressBar and a button
     statusUpdate = new Composite(statusArea, SWT.NULL);
@@ -758,30 +772,21 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
   
   public void setStatusText(String keyedSentence) {
-    this.statusTextKey = keyedSentence==null?"":keyedSentence;
+    this.statusTextKey = keyedSentence==null?"":keyedSentence;    
+    if(updateWindow != null) {
+      this.statusTextKey += " MainWindow.updateavail";
+    }
+    updateStatusText();
+  }
+  
+  private void updateStatusText() {
     if (display == null || display.isDisposed())
       return;
     display.asyncExec(new Runnable() {
       public void run() {
-    if (statusText != null && !statusText.isDisposed()) {
-      /*String sText = "";
-      int iSWTVer = SWT.getVersion();
-      if (iSWTVer < RECOMMENDED_SWT_VERSION) {
-        String sParam[] = {"SWT v"+ iSWTVer};
-        sText += MessageText.getString("MainWindow.status.tooOld", sParam) + " ";
-        
-        if (!statusText.getForeground().equals(Colors.red)) {
-					statusText.setCursor(Cursors.handCursor);
-					statusText.addMouseListener(new MouseAdapter() {
-						public void mouseDown(MouseEvent arg0) {
-						  String url = "http://azureus.sourceforge.net/wiki/index.php/UpdateSWT";
-	            Program.launch(url);
-						}
-					});
-				}
-      }  */    
-      statusText.setText(MessageText.getStringForSentence(statusTextKey));
-    }
+        if (statusText != null && !statusText.isDisposed()) {      
+          statusText.setText(MessageText.getStringForSentence(statusTextKey));
+        }
       }
     });
   }
@@ -1426,5 +1431,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
     });
   }  
+  
+    
+  /**
+   * MUST be called by the SWT Thread
+   * @param updateWindow the updateWindow or null if no update is available
+   */
+  public void setUpdateNeeded(UpdateWindow updateWindow) {
+    this.updateWindow = updateWindow;
+    if(updateWindow != null) {
+      statusText.setCursor(Cursors.handCursor);    
+      statusText.setForeground(Colors.colorWarning);
+      this.statusTextKey += " MainWindow.updateavail";
+      updateStatusText();
+    } else {
+      statusText.setCursor(null); 
+      statusText.setForeground(null);
+    }
+  }
   
 }

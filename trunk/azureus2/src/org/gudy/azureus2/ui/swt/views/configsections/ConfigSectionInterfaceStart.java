@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
@@ -61,7 +62,11 @@ public class ConfigSectionInterfaceStart implements ConfigSectionSWT {
     cStart.setLayout(layout);
 
     new BooleanParameter(cStart, "Show Splash", true, "ConfigView.label.showsplash");
-    new BooleanParameter(cStart, "Auto Update", true, "ConfigView.label.autoupdate");
+    //new BooleanParameter(cStart, "Auto Update", true, "ConfigView.label.autoupdate");
+    new BooleanParameter(cStart, "update.start", true, "ConfigView.label.checkonstart");
+    new BooleanParameter(cStart, "update.periodic", true, "ConfigView.label.periodiccheck");
+    new BooleanParameter(cStart, "update.opendialog", true, "ConfigView.label.opendialog");
+    new Label(cStart,SWT.NULL);
     new BooleanParameter(cStart, "Open Console", false, "ConfigView.label.openconsole");
     new BooleanParameter(cStart, "Open Config", false, "ConfigView.label.openconfig");
     new BooleanParameter(cStart, "Start Minimized", false, "ConfigView.label.startminimized");

@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -346,15 +347,14 @@ public class MainMenu {
         }
       });
       
-      /*
-      MenuItem testAnimation = new MenuItem(helpMenu, SWT.NULL);
-      testAnimation.setText("Animation Test");
-      testAnimation.addListener(SWT.Selection, new Listener() {
+      
+      MenuItem help_new = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_new, "MainWindow.menu.help.whatsnew"); //$NON-NLS-1$
+      help_new.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          new TestWindow(display);
+          Program.launch("http://azureus.sourceforge.net/changelog.php?version=" + Constants.AZUREUS_VERSION);
         }
       });
-      */
       
       MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$

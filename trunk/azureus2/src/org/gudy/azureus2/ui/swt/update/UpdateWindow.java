@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.update.Update;
@@ -109,7 +110,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     if(display == null || display.isDisposed())
       return;
     
-    updateWindow = new Shell(display,(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL) & ~SWT.CLOSE );
+    updateWindow = new Shell(display,(SWT.DIALOG_TRIM) & ~SWT.CLOSE );
     
     updateWindow.setImage(ImageRepository.getImage("azureus"));
     Messages.setLanguageText(updateWindow,"swt.update.window.title");
@@ -250,9 +251,20 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
         
         checkRestartNeeded();
         
-        updateWindow.open();
+        if(COConfigurationManager.getBooleanParameter("update.opendialog")) {
+          show();
+        } else {
+          MainWindow.getWindow().setUpdateNeeded(UpdateWindow.this);
+        }
       }
     });
+  }
+  
+  public void show() {
+    if(updateWindow == null || updateWindow.isDisposed())
+      return;
+    updateWindow.open();
+    updateWindow.forceActive();       
   }
   
   public static void main(String args[]) throws Exception{
@@ -429,6 +441,9 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   
   
   private void finishUpdate() {
+    //When completing, remove the link in mainWindow :
+    MainWindow.getWindow().setUpdateNeeded(null);
+    
     //If restart is required, then restart
     if(restartRequired) {
     	// this HAS to be done this way around else the restart inherits
