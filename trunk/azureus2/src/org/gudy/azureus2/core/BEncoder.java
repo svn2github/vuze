@@ -31,7 +31,7 @@ public class BEncoder {
             String tempString = (String)object;
             
             try{
-              baos.write((String.valueOf(tempString.length())).getBytes());
+              baos.write((String.valueOf(tempString.getBytes("UTF-8").length)).getBytes());
               baos.write(':');
               baos.write(tempString.getBytes("UTF-8"));
             }catch(IOException e){
