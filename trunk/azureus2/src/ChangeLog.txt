@@ -41,7 +41,7 @@ CHANGE: UI   | Torrents no longer need to be stopped before removal is allowed [
 CHANGE: UI   | Graphical view item refresh optimizations [Nolar]
 CHANGE: Core | Also do dynamic tracker re-announce interval overrides when seeding; uses peer count only [Nolar]
 CHANGE: Core | NAT check url changed to aelitis server [Nolar]
-CHANGE: Core | Reduce tracker re-announce interval when incoming connections are accepted (unfirewalled) [Nolar]
+CHANGE: Core | Reduce tracker re-announce frequency when incoming connections are accepted (unfirewalled) [Nolar]
 CHANGE: Core | Remove old auto-migration code [Nolar]
 CHANGE: Core | Update restart logic now preserves JVM max mem setting for Sun JVMs [Parg]
 CHANGE: Core | Cleanup and optimize choke-unchoke logic [Nolar]
