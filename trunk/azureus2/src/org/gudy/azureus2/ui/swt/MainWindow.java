@@ -34,7 +34,6 @@ import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
-import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -266,6 +265,8 @@ public class MainWindow implements GlobalManagerListener {
       super("Version Checker");
     }
     public void run() {
+      latestVersion = MessageText.getString("MainWindow.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
+      setStatusVersionFromOtherThread();
       ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
 
       int nbRead = 0;
@@ -658,6 +659,14 @@ public class MainWindow implements GlobalManagerListener {
           }
         });
     
+    MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
+    Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
+    help_checkupdate.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        new VersionChecker().start();
+      }
+    });
+
     new MenuItem(helpMenu,SWT.SEPARATOR);
     
     MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
@@ -736,12 +745,9 @@ public class MainWindow implements GlobalManagerListener {
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     statusText = new CLabel(statusBar, SWT.SHADOW_IN);
-    latestVersion = MessageText.getString("MainWindow.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
-    setStatusVersion();
     statusText.setLayoutData(gridData);
 
-    Thread versionChecker = new VersionChecker();
-    versionChecker.start();
+    new VersionChecker().start();
 
     gridData = new GridData();
     gridData.widthHint = 90;
@@ -898,8 +904,18 @@ public class MainWindow implements GlobalManagerListener {
       }
 
   private void setStatusVersion() {
-    if (statusText != null)
+    if (statusText != null && !statusText.isDisposed())
       statusText.setText("Azureus " + VERSION + " / " + MessageText.getString("MainWindow.status.latestversion") + " : " + latestVersion); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  }
+
+  private void setStatusVersionFromOtherThread() {
+    if (display == null || display.isDisposed())
+      return;
+    display.asyncExec(new Runnable() {
+      public void run() {
+        setStatusVersion();
+      }
+    });
   }
 
   private void createLanguageMenuitem(MenuItem language, final Locale locale) {
