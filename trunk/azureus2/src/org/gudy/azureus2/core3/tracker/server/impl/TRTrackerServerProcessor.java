@@ -112,7 +112,7 @@ TRTrackerServerProcessor
 				
 				Map	files = new ByteEncodedKeyHashMap();
 				
-				Map	hash_entry = new HashMap();
+				Map	hash_entry = torrent.exportScrapeToMap();
 				
 				byte[]	torrent_hash = torrent.getHash().getHash();
 				
@@ -122,33 +122,12 @@ TRTrackerServerProcessor
 				
 				files.put( str_hash, hash_entry );
 				
-				TRTrackerServerPeer[]	peers = torrent.getPeers();
-				
-				long	seeds 		= 0;
-				long	non_seeds	= 0;
-				
-				for (int i=0;i<peers.length;i++){
-					
-					if ( peers[i].getAmountLeft() == 0 ){
-						
-						seeds++;
-					}else{
-						non_seeds++;
-					}
-				}
-				
-				hash_entry.put( "complete", new Long( seeds ));
-				hash_entry.put( "incomplete", new Long( non_seeds ));
-				hash_entry.put( "downloaded", new Long(torrent.getStats().getCompletedCount()));
-				
 				root.put( "files", files );
 			}
 		}else{
 			
 			Map	files = new ByteEncodedKeyHashMap();
-			
-			Map	hash_entry = new HashMap();
-			
+						
 			TRTrackerServerTorrentImpl[] torrents = server.getTorrents();
 			
 			for (int i=0;i<torrents.length;i++){
@@ -161,25 +140,9 @@ TRTrackerServerProcessor
 				
 				// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
 				
+				Map	hash_entry = torrent.exportScrapeToMap();
+				
 				files.put( str_hash, hash_entry );
-				
-				TRTrackerServerPeer[]	peers = this_torrent.getPeers();
-				
-				long	seeds 		= 0;
-				long	non_seeds	= 0;
-				
-				for (int j=0;j<peers.length;j++){
-					
-					if ( peers[j].getAmountLeft() == 0 ){
-						
-						seeds++;
-					}else{
-						non_seeds++;
-					}
-				}
-				
-				hash_entry.put( "complete", new Long( seeds ));
-				hash_entry.put( "incomplete", new Long( non_seeds ));
 			}
 			
 			root.put( "files", files );

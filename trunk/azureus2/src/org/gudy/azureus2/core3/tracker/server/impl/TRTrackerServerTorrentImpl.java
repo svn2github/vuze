@@ -36,6 +36,8 @@ public class
 TRTrackerServerTorrentImpl 
 	implements TRTrackerServerTorrent
 {
+	public static final long	SCRAPE_CACHE_PERIOD	= 5000;
+	
 	protected TRTrackerServerImpl	server;
 	protected HashWrapper			hash;
 
@@ -44,6 +46,9 @@ TRTrackerServerTorrentImpl
 	protected List				peer_list		= new ArrayList();
 	
 	protected Random			random		= new Random( System.currentTimeMillis());
+	
+	protected long				last_scrape_calc_time;
+	protected Map				last_scrape;
 	
 	protected TRTrackerServerTorrentStatsImpl	stats;
 		
@@ -362,6 +367,43 @@ TRTrackerServerTorrentImpl
 				removePeer( it, peer );
 			}
 		}
+	}
+	
+	protected synchronized Map
+	exportScrapeToMap()
+	{
+		long	now = System.currentTimeMillis();
+		
+		if ( last_scrape != null && now - last_scrape_calc_time < SCRAPE_CACHE_PERIOD ){
+			
+			return( last_scrape );
+		}
+		
+		last_scrape 			= new HashMap();
+		last_scrape_calc_time	= now;
+		
+		long	seeds 		= 0;
+		long	non_seeds	= 0;
+		
+		for (int i=0;i<peer_list.size();i++){
+			
+			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(i);
+			
+			if ( peer.getAmountLeft() == 0 ){
+				
+				seeds++;
+				
+			}else{
+				
+				non_seeds++;
+			}
+		}
+		
+		last_scrape.put( "complete", new Long( seeds ));
+		last_scrape.put( "incomplete", new Long( non_seeds ));
+		last_scrape.put( "downloaded", new Long(stats.getCompletedCount()));
+		
+		return( last_scrape );
 	}
 	
 	protected TRTrackerServerTorrentStats
