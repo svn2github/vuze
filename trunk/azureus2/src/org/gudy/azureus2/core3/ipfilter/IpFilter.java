@@ -83,4 +83,11 @@ IpFilter
 	
 	
 	public abstract void ban(String ipAddress);
+	
+	public abstract boolean
+	isEnabled();
+
+	public abstract void
+	setEnabled(
+		boolean	enabled );
 }

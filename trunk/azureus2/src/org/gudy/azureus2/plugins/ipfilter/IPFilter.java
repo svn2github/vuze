@@ -113,6 +113,24 @@ IPFilter
 	block(
 		String IPAddress);
 	
+	
+		/**
+		 * Test if ipfilter is enabled or not
+		 * @return
+		 */
+	
+	public boolean
+	isEnabled();
+	
+		/**
+		 * change the enabled status
+		 * @param enabled
+		 */
+	
+	public void
+	setEnabled(
+		boolean	enabled );
+	
 		/**
 		 * saves current setting to file given by getFile
 		 * @throws IPFilterException

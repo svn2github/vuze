@@ -301,4 +301,17 @@ IpFilterImpl
 			return( res );
 		}	
   	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true));	
+	}
+
+	public void
+	setEnabled(
+		boolean	enabled )
+	{
+		COConfigurationManager.setParameter( "Ip Filter Enabled", enabled );
+	}
 }

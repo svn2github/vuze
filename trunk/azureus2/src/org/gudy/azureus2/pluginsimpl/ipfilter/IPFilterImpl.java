@@ -152,4 +152,17 @@ IPFilterImpl
 	{
 		filter.ban( IPAddress );
 	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( filter.isEnabled());
+	}
+		
+	public void
+	setEnabled(
+		boolean	enabled )
+	{
+		filter.setEnabled( enabled );
+	}
 }
