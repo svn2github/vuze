@@ -42,6 +42,7 @@ MDConfigModel
 	
 	protected int		refresh_period;
 	protected int		max_upload;
+	protected int		max_download;
 	protected int		max_connections_per_torrent;
 	protected int		max_connections_global;
 	
@@ -60,7 +61,12 @@ MDConfigModel
 		max_upload = 
 			plugin_config.getIntParameter( 
 				PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC,
-				COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED );
+				COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED );
+		
+		max_download = 
+			plugin_config.getIntParameter( 
+				PluginConfig.CORE_PARAM_INT_MAX_DOWNLOAD_SPEED_KBYTES_PER_SEC,
+				COConfigurationManager.CONFIG_DEFAULT_MAX_DOWNLOAD_SPEED );
 
 		max_connections_per_torrent = 
 			plugin_config.getIntParameter( 
@@ -108,9 +114,9 @@ MDConfigModel
 	setMaxUploadSpeed(
 		int		v )
 	{
-		if ( v > 0 && v < COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED ){
+		if ( v > 0 && v < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED ){
 			
-			throw( new RPException( "Maximum upload speed must be at least " + COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED ));
+			throw( new RPException( "Maximum upload speed must be at least " + COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED ));
 		}
 				
 		plugin_config.setIntParameter( PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC, v );
@@ -123,6 +129,30 @@ MDConfigModel
 		}catch( PluginException e ){
 			
 			throw( new RPException("setMaxUploadSpeed Fails", e ));
+		}
+	
+	}
+	
+	public int
+	getMaxDownloadSpeed()
+	{
+		return( max_download );
+	}
+	
+	public void
+	setMaxDownloadSpeed(
+		int		v )
+	{	
+		plugin_config.setIntParameter( PluginConfig.CORE_PARAM_INT_MAX_DOWNLOAD_SPEED_KBYTES_PER_SEC, v );
+		
+		max_download = v;
+		
+		try{
+			plugin_config.save();
+			
+		}catch( PluginException e ){
+			
+			throw( new RPException("setMaxDownloadSpeed Fails", e ));
 		}
 	
 	}

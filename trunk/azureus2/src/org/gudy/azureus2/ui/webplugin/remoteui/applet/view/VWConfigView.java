@@ -94,6 +94,24 @@ VWConfigView
 				});
 	
 		addIntParameter( 
+				"Max global download speed KB/s [0: unlimited]",
+				new intValueAdapter()
+				{
+					public int
+					getValue()
+					{
+						return( _model.getMaxDownloadSpeed() );
+					}
+					
+					public void
+					setValue(
+						int	value )
+					{
+						_model.setMaxDownloadSpeed(value);
+					}
+				});
+		
+		addIntParameter( 
 				"Max connections per torrent [0: unlimited]",
 				new intValueAdapter()
 				{

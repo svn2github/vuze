@@ -71,7 +71,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
 
     	// max upload speed
     
-    IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED, -1, true);    
+    IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED, -1, true);    
     formData = new FormData();
     formData.top = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
