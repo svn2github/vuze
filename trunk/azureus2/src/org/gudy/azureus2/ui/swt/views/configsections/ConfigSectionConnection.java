@@ -91,7 +91,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     
     StringParameter bindip = new StringParameter(cServer, "Bind IP", "");
     formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl(), 10);
+    formData.top = new FormAttachment(tcplisten.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 105;
     bindip.setLayoutData(formData);
@@ -99,7 +99,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     label = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.bindip");
     formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl(),15);
+    formData.top = new FormAttachment(tcplisten.getControl(),5);
     formData.left = new FormAttachment(bindip.getControl());
     label.setLayoutData(formData);
     
@@ -119,14 +119,6 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.left = new FormAttachment(max_connects.getControl());
     label.setLayoutData(formData);
     
-//////////////////////
-    
-    BooleanParameter enableUDP = new BooleanParameter(cServer, "Server Enable UDP", true, "ConfigView.section.server.enableudp");
-    formData = new FormData();
-    formData.top = new FormAttachment( max_connects.getControl());
-    enableUDP.setLayoutData(formData); 
-    
-
     
  //////////////////////  PROXY GROUP /////////////////
     
@@ -137,7 +129,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     proxy_group.setLayout( proxy_layout );
     
     formData = new FormData();
-    formData.top = new FormAttachment( enableUDP.getControl() );
+    formData.top = new FormAttachment( max_connects.getControl() );
     proxy_group.setLayoutData( formData );
     
     GridData grid_data;
@@ -313,37 +305,6 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     enableProxy.setAdditionalActionPerformer( proxy_enabler );
     enableSocksPeer.setAdditionalActionPerformer( proxy_peer_enabler );
     sameConfig.setAdditionalActionPerformer( proxy_peer_enabler );
-    
-    
-    
- ////////////////////// OVERRIDE GROUP ///////////////////
-    
-    Group overrideGroup = new Group(cServer,SWT.NULL);
-    Messages.setLanguageText(overrideGroup,"ConfigView.group.override");
-    GridLayout gridLayout = new GridLayout();
-    gridLayout.numColumns = 2;
-    overrideGroup.setLayout(gridLayout);
-    
-    formData = new FormData();
-    formData.top = new FormAttachment( proxy_group );
-    overrideGroup.setLayoutData( formData );
-    
-    
-    StringParameter overrideip = new StringParameter(overrideGroup, "Override Ip", "");
-    GridData data = new GridData();
-    data.widthHint = 100;
-    overrideip.setLayoutData(data);
-    label = new Label(overrideGroup, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.overrideip");
-    
-    
-    StringParameter tcpAnnounce = new StringParameter(overrideGroup, "TCP.Announce.Port", "");
-    data = new GridData();
-    data.widthHint = 40;
-    tcpAnnounce.setLayoutData(data);
-    label = new Label(overrideGroup, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.announceport");
-    
      
  ///////////////////////
     

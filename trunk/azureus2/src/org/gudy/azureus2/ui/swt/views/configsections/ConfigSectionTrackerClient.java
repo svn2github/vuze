@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
@@ -96,6 +97,44 @@ ConfigSectionTrackerClient
 
     label = new Label(gMainTab, SWT.NULL);
     
+ 
+//////////////////////
+    
+    BooleanParameter enableUDP = new BooleanParameter(gMainTab, "Server Enable UDP", true, "ConfigView.section.server.enableudp");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    enableUDP.setLayoutData(gridData); 
+    
+    label = new Label(gMainTab, SWT.NULL);
+    
+//////////////////////OVERRIDE GROUP ///////////////////
+    
+    Group overrideGroup = new Group(gMainTab,SWT.NULL);
+    Messages.setLanguageText(overrideGroup,"ConfigView.group.override");
+    GridLayout gridLayout = new GridLayout();
+    gridLayout.numColumns = 2;
+    overrideGroup.setLayout(gridLayout);
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    overrideGroup.setLayoutData( gridData );
+    
+    
+    StringParameter overrideip = new StringParameter(overrideGroup, "Override Ip", "");
+    GridData data = new GridData();
+    data.widthHint = 100;
+    overrideip.setLayoutData(data);
+    label = new Label(overrideGroup, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.overrideip");
+    
+    
+    StringParameter tcpAnnounce = new StringParameter(overrideGroup, "TCP.Announce.Port", "");
+    data = new GridData();
+    data.widthHint = 40;
+    tcpAnnounce.setLayoutData(data);
+    label = new Label(overrideGroup, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.announceport");
+    
     // row
 
     gridData = new GridData();
@@ -106,6 +145,7 @@ ConfigSectionTrackerClient
   
     label = new Label(gMainTab, SWT.WRAP);
     Messages.setLanguageText(label,  "ConfigView.section.tracker.separatepeerids.info");
+
 
     return gMainTab;
   }
