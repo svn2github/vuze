@@ -34,5 +34,7 @@ LocaleUtilListener
 	selectDecoder(
 		LocaleUtil						locale_util,
 		Object							selection_owner,
-		LocaleUtilDecoderCandidate[]	candidates );
+		LocaleUtilDecoderCandidate[]	candidates )
+	
+		throws LocaleUtilEncodingException;
 }

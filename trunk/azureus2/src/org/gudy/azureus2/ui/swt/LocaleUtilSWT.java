@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -59,6 +60,8 @@ LocaleUtilSWT
   	LocaleUtil						locale_util,
 	Object							decision_owner,
   	LocaleUtilDecoderCandidate[]	candidates )
+  
+  	throws LocaleUtilEncodingException
   {
   	if ( decision_owner != remembered_on_behalf_of ){
   		
@@ -150,7 +153,8 @@ LocaleUtilSWT
  
 
     final LocaleUtilDecoderCandidate[] candidatesToChoose = (LocaleUtilDecoderCandidate[]) choosableCandidates.toArray(new LocaleUtilDecoderCandidate[choosableCandidates.size()]);
-       
+    final LocaleUtilDecoderCandidate[] selected_candidate = {null};
+    
     waitForUserInput	= true;
     
     MainWindow window = MainWindow.getWindow();
@@ -165,7 +169,7 @@ LocaleUtilSWT
     MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
       public void run() {
       	try{
-        	showChoosableEncodingWindow(MainWindow.getWindow().getShell(), candidatesToChoose);
+        	showChoosableEncodingWindow(MainWindow.getWindow().getShell(), candidatesToChoose,selected_candidate);
         	
       	}catch( Throwable e ){
       		
@@ -196,20 +200,23 @@ LocaleUtilSWT
       }
     }
 
-    int choosedIndex = 0;
-    for (int i = 1; i < candidatesToChoose.length; i++) {
-      if(candidatesToChoose[i].getValue() != null && rememberedDecoder == candidatesToChoose[i].getDecoder()) {
-        choosedIndex = i;
-        break;
-      }
-    }
+    if ( selected_candidate[0] == null ){
+    
+    	throw( new LocaleUtilEncodingException( true ));
+    }else{
 
-    return ( candidatesToChoose[choosedIndex] ); 
+    	return ( selected_candidate[0] );
+    }
   }    
 
-  private void showChoosableEncodingWindow(final Shell shell, final LocaleUtilDecoderCandidate[] candidates) {
+  private void 
+  showChoosableEncodingWindow(
+  		final Shell shell, 
+		final LocaleUtilDecoderCandidate[] 	candidates,
+		final LocaleUtilDecoderCandidate[]	selected_candidate ) 
+  {
     final Display display = shell.getDisplay();
-    final Shell s = new Shell(shell, SWT.TITLE | SWT.PRIMARY_MODAL);
+    final Shell s = new Shell(shell, SWT.TITLE | SWT.RESIZE | SWT.PRIMARY_MODAL );
     s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     s.setText(MessageText.getString("LocaleUtil.title")); //$NON-NLS-1$
     GridData gridData;
@@ -235,11 +242,23 @@ LocaleUtilSWT
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "LocaleUtil.label.chooseencoding"); //$NON-NLS-1$
 
-    final Table table = new Table(gChoose, SWT.SINGLE | SWT.FULL_SELECTION);
+    ScrolledComposite sc = new ScrolledComposite(gChoose, SWT.H_SCROLL | SWT.V_SCROLL);
+    sc.setExpandHorizontal(true);
+    sc.setExpandVertical(true);
+    gridData = new GridData( GridData.FILL );
+    gridData.horizontalSpan = 3;
+    sc.setLayoutData(gridData);
+
+    sc.setSize( 200, 300 );
+    
+    final Table table = new Table(sc, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER );
+    
+    sc.setContent( table );
+    
     table.setLinesVisible(true);
     table.setHeaderVisible(true);
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData = new GridData(SWT.NULL);
+    gridData.horizontalSpan = 1;
     table.setLayoutData(gridData);
 
     String[] titlesPieces = { "filename", "encoding"}; //$NON-NLS-1$ //$NON-NLS-2$
@@ -263,6 +282,7 @@ LocaleUtilSWT
     }
     table.select(lastSelectedIndex);
 
+    table.setSize( 200, 300 );
     // resize all columns to fit the widest entry 
     table.getColumn(0).pack();
     table.getColumn(1).pack();
@@ -290,13 +310,14 @@ LocaleUtilSWT
  
     ok.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
-        setChoosedIndex(s, table, checkBox, candidates);
+      	//abandonSelection(s);
+        setSelectedIndex(s, table, checkBox, candidates,selected_candidate);
       }
     });
 
     table.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent mEvent) {
-        setChoosedIndex(s, table, checkBox, candidates);
+        setSelectedIndex(s, table, checkBox, candidates,selected_candidate);
       }
     });
 
@@ -311,21 +332,37 @@ LocaleUtilSWT
     }
   }
 
-  private void setChoosedIndex(final Shell s, final Table table, final Button checkBox, LocaleUtilDecoderCandidate[] candidates) {
+  private void 
+  setSelectedIndex(
+  		final Shell 					s, 
+		final Table 					table, 
+		final Button 					checkBox, 
+		LocaleUtilDecoderCandidate[] 	candidates,
+		LocaleUtilDecoderCandidate[] 	selected_candidate )
+  {
     int selectedIndex = table.getSelectionIndex();
+    
     if(-1 == selectedIndex) 
       return;
+    
     rememberEncodingDecision = checkBox.getSelection();
         
+    selected_candidate[0]	= candidates[selectedIndex];
+    
 	if ( rememberEncodingDecision ){
 		
-		rememberedDecoder = candidates[selectedIndex].getDecoder();
+		rememberedDecoder = selected_candidate[0].getDecoder();
 	}else{
 		rememberedDecoder = null;
 	}
 
     s.dispose();
   }
-
   
+  private void 
+  abandonSelection(
+  	final Shell s)
+  {
+    s.dispose();
+  }
 }

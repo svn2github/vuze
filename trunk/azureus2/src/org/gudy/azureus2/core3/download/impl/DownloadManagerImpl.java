@@ -354,8 +354,10 @@ DownloadManagerImpl
 
       initializeDiskManager();
 	
-      setState( STATE_INITIALIZED );
-
+      if ( getState() != STATE_ERROR ){
+      	
+      	setState( STATE_INITIALIZED );
+      }
 
     }catch( TRTrackerClientException e ){
       e.printStackTrace();

@@ -41,7 +41,10 @@ DiskManagerFactory
 	{
 		DiskManagerImpl dm = new DiskManagerImpl( torrent, manager );
 		
-		dm.start();
+		if ( dm.getState() != DiskManager.FAULTY ){
+			
+			dm.start();
+		}
 		
 		return dm;
 	}

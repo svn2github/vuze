@@ -159,7 +159,7 @@ DiskManagerImpl
 			
 			return;
 			
-		}catch( UnsupportedEncodingException e ){
+		}catch( Throwable e ){
 			
 			this.errorMessage = e.getMessage() + " (Constructor)";
 			
@@ -211,10 +211,17 @@ DiskManagerImpl
 		piece_picker		= DMPiecePickerFactory.create( this );
 	}
 
-	public void 
+	public synchronized void 
 	start() 
 	{
-		if (started){
+		if ( started ){
+			
+			return;
+		}
+		
+		if ( getState() == FAULTY ){
+			
+			Debug.out( "starting a faulty disk manager");
 			
 			return;
 		}
@@ -639,8 +646,14 @@ DiskManagerImpl
 	}
 
 	public void stopIt() 
-	{
-        		
+	{	
+		if ( !started ){
+			
+			return;
+		}
+		
+		started	= false;
+		
     	writer_and_checker.stop();
     	
 		reader.stop();

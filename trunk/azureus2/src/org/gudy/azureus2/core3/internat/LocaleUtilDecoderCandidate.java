@@ -88,10 +88,9 @@ LocaleUtilDecoderCandidate
       
 	  return( res );
 	}
-	/**
-	 * only used for contains()
-	 * Warning: this implementation covers not all special cases
-	 */
+	
+	/* removed as this removed valid decoders that happen to decode to the same thing for the current
+	
 	public boolean equals(Object obj) {
 	  LocaleUtilDecoderCandidate other = (LocaleUtilDecoderCandidate) obj;
      
@@ -103,4 +102,5 @@ LocaleUtilDecoderCandidate
 		return( value.equals( other.value ));
 	 }
 	}
+	*/
   }

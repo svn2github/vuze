@@ -265,7 +265,7 @@ LocaleUtil
 	getTorrentEncoding(
   		TOTorrent		torrent )
   		
-  		throws TOTorrentException, UnsupportedEncodingException
+  		throws TOTorrentException, UnsupportedEncodingException, LocaleUtilEncodingException
   	{
 		String	encoding = torrent.getAdditionalStringProperty( "encoding" );
 		

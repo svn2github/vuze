@@ -34,6 +34,8 @@ LocaleUtilEncodingException
 	protected String[]		valid_charsets;
 	protected String[]		valid_names;
 	
+	protected boolean		abandoned;
+	
 	public
 	LocaleUtilEncodingException(
 		String[]		charsets,
@@ -48,6 +50,21 @@ LocaleUtilEncodingException
 		Throwable	cause )
 	{
 		super( cause );
+	}	
+	
+	public
+	LocaleUtilEncodingException(
+		boolean		_abandoned )
+	{
+		super( "Locale selection abandoned" );
+		
+		abandoned	= _abandoned;
+	}
+	
+	public boolean
+	getAbandoned()
+	{
+		return( abandoned );
 	}
 	
 	public String[]
