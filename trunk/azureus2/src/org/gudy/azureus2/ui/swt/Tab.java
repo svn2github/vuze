@@ -41,7 +41,6 @@ public class Tab {
     this.view = _view;
     this.folder = _folder;
     tabItem = new CTabItem(folder, SWT.NULL);
-    tabs.put(tabItem, view);
     composite = new Composite(folder, SWT.NULL);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
@@ -51,11 +50,15 @@ public class Tab {
     layout.marginWidth = 0;
     composite.setLayout(layout);
     GridData gridData = new GridData(GridData.FILL_BOTH);
-    _view.initialize(composite);
-    _view.getComposite().setLayoutData(gridData);
-    tabItem.setControl(composite);
-    tabItem.setText(view.getShortTitle());
-    folder.setSelection(tabItem);
+    try {
+      _view.initialize(composite);
+      _view.getComposite().setLayoutData(gridData);
+      tabItem.setControl(composite);
+      tabItem.setText(view.getShortTitle());
+      folder.setSelection(tabItem);
+      tabs.put(tabItem, view);
+    } catch (Exception e) {
+    }
   }
 
   public static IView getView(CTabItem item) {
@@ -68,9 +71,12 @@ public class Tab {
       while (iter.hasNext()) {
         CTabItem item = (CTabItem) iter.next();
         IView view = (IView) tabs.get(item);
-        if (item.isDisposed())
-          continue;
-        item.setText(view.getShortTitle());
+        try {
+          if (item.isDisposed())
+            continue;
+          item.setText(view.getShortTitle());
+        } catch (Exception e) {
+        }
       }
     }
   }
@@ -81,8 +87,11 @@ public class Tab {
       while (iter.hasNext()) {
         CTabItem item = (CTabItem) iter.next();
         IView view = (IView) tabs.get(item);
-        view.updateLanguage();
-        view.refresh();
+        try {
+          view.updateLanguage();
+          view.refresh();
+        } catch (Exception e) {
+        }
       }
     }
   }
@@ -94,9 +103,12 @@ public class Tab {
 			for (int i = 0; i < tab_items.length; i++) {
         IView view = (IView) tabs.get(tab_items[i]);
         if(view instanceof ManagerView) {
-          view.delete();
-				  tab_items[i].dispose();
-          tabs.remove(tab_items[i]);
+          try {
+            view.delete();
+            tab_items[i].dispose();
+            tabs.remove(tab_items[i]);
+          } catch (Exception e) {
+          }
         }
 			}
 		}
@@ -128,8 +140,11 @@ public class Tab {
       view = (IView) tabs.get(tabItem);
       tabs.remove(tabItem);
     }
-    if (view != null)
-      view.delete();
-    tabItem.dispose();
+    try {
+      if (view != null)
+        view.delete();
+      tabItem.dispose();
+    } catch (Exception e) {
+    }
   }
 }

@@ -107,23 +107,26 @@ public class ManagerView extends AbstractIView {
     if(getComposite() == null || getComposite().isDisposed())
       return;
 
-    switch (folder.getSelectionIndex()) {
-      case 0 :
-        if (viewGeneral != null && !itemGeneral.isDisposed())
-          viewGeneral.refresh();
-        break;
-      case 1 :
-      if (viewDetails != null && !itemDetails.isDisposed())
-        viewDetails.refresh();
-        break;
-      case 2 :
-      if (viewPieces != null && !itemPieces.isDisposed())
-        viewPieces.refresh();
-        break;
-      case 3 :
-      if (viewFiles != null && !itemFiles.isDisposed())
-        viewFiles.refresh();
-        break;
+    try {
+      switch (folder.getSelectionIndex()) {
+        case 0 :
+          if (viewGeneral != null && !itemGeneral.isDisposed())
+            viewGeneral.refresh();
+          break;
+        case 1 :
+        if (viewDetails != null && !itemDetails.isDisposed())
+          viewDetails.refresh();
+          break;
+        case 2 :
+        if (viewPieces != null && !itemPieces.isDisposed())
+          viewPieces.refresh();
+          break;
+        case 3 :
+        if (viewFiles != null && !itemFiles.isDisposed())
+          viewFiles.refresh();
+          break;
+      }
+    } catch (Exception e) {
     }
   }
 
