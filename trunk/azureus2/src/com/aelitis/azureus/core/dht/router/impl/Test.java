@@ -27,6 +27,9 @@ package com.aelitis.azureus.core.dht.router.impl;
  *
  */
 
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.router.*;
@@ -39,7 +42,7 @@ Test
 	main(
 		String[]	args )
 	{
-		DHTRouter	router = DHTRouterFactory.create();
+		DHTRouter	router = DHTRouterFactory.create( 5, 5 );
 		
 		randomTest( router );
 		
@@ -62,7 +65,7 @@ Test
 		
 		for (int i=0;i<node_ids.length;i++){
 						
-			router.addNode( node_ids[i] );
+			router.addContact( node_ids[i] );
 		}
 
 			// byte[]	node_id = new byte[]{ 1,1,1,1 }; //new SHA1Hasher().calculateHash( (""+i).getBytes());
@@ -78,7 +81,18 @@ Test
 		
 		for (int i=0;i<10000;i++){
 			
-			router.addNode( getSHA1());
+			router.addContact( getSHA1());
+		}
+		
+		byte[]	search = getSHA1();
+		
+		List	l = router.findClosestContacts( search );
+		
+		System.out.println( "search: " + ByteFormatter.nicePrint( search ));
+		
+		for (int i=0;i<l.size();i++){
+			
+			System.out.println( "    -> " + ByteFormatter.nicePrint(((DHTRouterContact)l.get(i)).getID()));
 		}
 	}
 	

@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,23 +20,43 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.router;
+package com.aelitis.azureus.core.dht.router.impl;
+
+import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 
 /**
  * @author parg
  *
  */
 
-import com.aelitis.azureus.core.dht.router.impl.*;
-
 public class 
-DHTRouterFactory 
+DHTRouterContactImpl
+	implements DHTRouterContact
 {
-	public static DHTRouter
-	create(
-		int		K,
-		int		B )
+	private byte[]		node_id;
+	
+	protected
+	DHTRouterContactImpl(
+		byte[]	_node_id )
 	{
-		return( new DHTRouterImpl( K, B ));
+		node_id	= _node_id;
+	}
+	
+	public byte[]
+	getID()
+	{
+		return(node_id );
+	}
+	
+	public void
+	ping()
+	{
+		
+	}
+	
+	public void
+	store()
+	{
+		
 	}
 }

@@ -26,7 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
 
-import com.aelitis.azureus.core.dht.router.DHTRouterNode;
+import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 
 /**
  * @author parg
@@ -35,7 +35,6 @@ import com.aelitis.azureus.core.dht.router.DHTRouterNode;
 
 public class 
 DHTRouterNodeImpl
-	implements DHTRouterNode
 {
 	private int		depth;
 	private boolean	contains_router_node_id;
@@ -98,18 +97,6 @@ DHTRouterNodeImpl
 	}
 	
 	public void
-	ping()
-	{
-		
-	}
-	
-	public void
-	store()
-	{
-		
-	}
-	
-	public void
 	print(
 		String	indent,
 		String	prefix )
@@ -135,7 +122,7 @@ DHTRouterNodeImpl
 		
 		for (int i=0;i<buckets.size();i++){
 			
-			res += ByteFormatter.nicePrint((byte[])buckets.get(i));
+			res += ByteFormatter.nicePrint(((DHTRouterContact)buckets.get(i)).getID());
 		}
 		
 		return( res + "}" );

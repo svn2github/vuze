@@ -22,8 +22,7 @@
 
 package com.aelitis.azureus.core.dht.router.impl;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
 
@@ -38,14 +37,23 @@ public class
 DHTRouterImpl
 	implements DHTRouter
 {
-	public static final int	K = 2;
-	public static final int B = 5;
+	private int		K = 2;
+	private int		B = 5;
 	
 	
 	private byte[]	router_node_id;
 	
 	private DHTRouterNodeImpl		root;
 	private DHTRouterNodeImpl		smallest_subtree;
+	
+	public
+	DHTRouterImpl(
+		int		_K,
+		int		_B )
+	{
+		K		= _K;
+		B		= _B;
+	}
 	
 	public void
 	setNodeID(
@@ -55,7 +63,7 @@ DHTRouterImpl
 		
 		List	buckets = new ArrayList();
 		
-		buckets.add( router_node_id );
+		buckets.add( new DHTRouterContactImpl( router_node_id ));
 		
 		root	= new DHTRouterNodeImpl( 0, true, buckets );
 		
@@ -63,12 +71,12 @@ DHTRouterImpl
 	}
 	
 	public synchronized void
-	addNode(
+	addContact(
 		byte[]	node_id )
 	{
 		// TODO: check already exists
 		
-		System.out.println( ByteFormatter.nicePrint( node_id ));
+		// System.out.println( ByteFormatter.nicePrint( node_id ));
 		
 		DHTRouterNodeImpl	current_node = root;
 			
@@ -120,6 +128,22 @@ DHTRouterImpl
 								depth % B != 0 ||
 								part_of_smallest_subtree ){
 							
+								// the smallest-subtree bit is to ensure that we remember all of
+								// our closest neighbours as ultimately they are the ones responsible
+								// for returning our identity to queries (due to binary choppery in
+								// general the query will home in on our neighbours before
+								// hitting us. It is therefore important that we keep ourselves live
+								// in their tree by refreshing. If we blindly chopped at K entries
+								// (down to B levels) then a highly unbalanced tree would result in
+								// us dropping some of them and therefore not refreshing them and
+								// therefore dropping out of their trees. 
+								// Note that it is rare for such an unbalanced tree. 
+								// However, a possible DOS here would be for a rogue node to 
+								// deliberately try and create such a tree with a large number
+								// of entries.
+								// TODO: worthwhile defending the max size of this subtree?
+							
+							
 								// split!!!!
 							
 							List	left_buckets 	= new ArrayList();
@@ -127,15 +151,17 @@ DHTRouterImpl
 							
 							for (int k=0;k<buckets.size();k++){
 								
-								byte[]	bucket_entry = (byte[])buckets.get(k);
+								DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(k);
 								
-								if (((bucket_entry[depth/8]>>(7-(depth%8)))&0x01 ) == 0 ){
+								byte[]	bucket_id = contact.getID();
+								
+								if (((bucket_id[depth/8]>>(7-(depth%8)))&0x01 ) == 0 ){
 									
-									right_buckets.add( bucket_entry );
+									right_buckets.add( contact );
 									
 								}else{
 									
-									left_buckets.add( bucket_entry );
+									left_buckets.add( contact );
 								}
 							}
 							
@@ -171,7 +197,7 @@ DHTRouterImpl
 						}
 					}else{
 						
-						buckets.add( node_id );	// complete - added to bucket
+						buckets.add( new DHTRouterContactImpl( node_id ));	// complete - added to bucket
 						
 						return;
 					}						
@@ -185,8 +211,80 @@ DHTRouterImpl
 		}
 	}
 	
-	public DHTRouterNode
-	findNode()
+	public synchronized List
+	findClosestContacts(
+		byte[]	node_id )
+	{
+			// find the K closest nodes - consider all buckets, not just the closest
+
+		DHTRouterContactImpl[]	res = new DHTRouterContactImpl[K];
+				
+		int res_pos = findClosestContacts( node_id, 0, root, res, 0 );
+			
+		List	res_l = new ArrayList( res_pos );
+		
+		for (int i=0;i<res_pos;i++){
+			
+			res_l.add( res[i] );
+		}
+		
+		return( res_l );
+	}
+			
+	protected int
+	findClosestContacts(
+		byte[]					node_id,
+		int						depth,
+		DHTRouterNodeImpl		current_node,
+		DHTRouterContactImpl[]	res,
+		int						res_pos )
+	{
+		List	buckets = current_node.getBuckets();
+		
+		if ( buckets != null ){
+			
+			for (int i=0;i<buckets.size();i++){
+				
+				if ( res_pos == res.length ){
+					
+					break;
+				}
+				
+				res[res_pos++] = (DHTRouterContactImpl)buckets.get(i);
+			}
+			
+			return( res_pos );
+		}
+		
+		boolean bit = ((node_id[depth/8]>>(7-(depth%8)))&0x01 ) == 1;
+				
+		DHTRouterNodeImpl	best_node;
+		DHTRouterNodeImpl	worse_node;
+				
+		if ( bit ){
+					
+			best_node = current_node.getLeft();
+			
+			worse_node = current_node.getRight();
+		}else{
+					
+			best_node = current_node.getRight();
+			
+			worse_node = current_node.getLeft();
+		}
+
+		res_pos = findClosestContacts( node_id, depth+1, best_node, res, res_pos );
+		
+		if ( res_pos < res.length ){
+			
+			res_pos = findClosestContacts( node_id, depth+1, worse_node, res, res_pos );
+		}
+		
+		return( res_pos );
+	}
+	
+	public DHTRouterContact
+	findContact()
 	{
 		return( null );
 	}

@@ -28,8 +28,10 @@ package com.aelitis.azureus.core.dht.router;
  */
 
 public interface 
-DHTRouterNode 
+DHTRouterContact 
 {
+	public byte[]
+	getID();
 	
 	public void
 	ping();

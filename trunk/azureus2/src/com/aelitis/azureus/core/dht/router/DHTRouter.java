@@ -27,6 +27,8 @@ package com.aelitis.azureus.core.dht.router;
  *
  */
 
+import java.util.*;
+
 public interface 
 DHTRouter 
 {
@@ -35,11 +37,15 @@ DHTRouter
 		byte[]	node_id );
 	
 	public void
-	addNode(
+	addContact(
 		byte[]	node_id );
 	
-	public DHTRouterNode
-	findNode();
+	public List
+	findClosestContacts(
+		byte[]	node_id );
+	
+	public DHTRouterContact
+	findContact();
 	
 	public Object
 	findValue();
