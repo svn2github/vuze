@@ -732,6 +732,7 @@ DownloadManagerImpl
     // note: there is a DIFFERENCE between the state held on the DownloadManager and
     // that reported via getState as getState incorporated DiskManager states when
     // the DownloadManager is INITIALIZED
+  	//System.out.println( "DM:setState - " + _state );
     if ( state != _state ) {
       state = _state;
       // sometimes, downloadEnded() doesn't get called, so we must check here too
@@ -1069,7 +1070,11 @@ DownloadManagerImpl
 		DownloadManagerListener	listener )
 	{
 		listeners.addListener(listener);
-						
+		
+			// pick up the current state
+		
+		listener.stateChanged( this, state );
+		
 		if ( download_ended ){
 				
 			listener.downloadComplete(this);

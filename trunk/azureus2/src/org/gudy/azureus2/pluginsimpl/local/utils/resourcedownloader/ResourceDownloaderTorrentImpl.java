@@ -264,7 +264,9 @@ ResourceDownloaderTorrentImpl
 						Download		download,
 						int				old_state,
 						int				new_state )
-					{						
+					{		
+						// System.out.println( "state change:" + old_state + "->" + new_state );
+						
 						if ( new_state == Download.ST_SEEDING ){
 							
 							downloadSucceeded( temp_file, temp_dir );

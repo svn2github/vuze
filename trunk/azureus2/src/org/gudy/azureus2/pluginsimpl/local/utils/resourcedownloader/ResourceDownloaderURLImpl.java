@@ -83,6 +83,17 @@ ResourceDownloaderURLImpl
 	{
 		super( _parent );
 		
+		/*
+		if ( _url.getHost().equals( "212.159.18.92")){
+			try{
+				_url = new URL(_url.getProtocol() + "://192.168.0.2:" + _url.getPort() + "/" + _url.getPath());
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		*/
+		
 		original_url	= _url;
 		auth_supplied	= _auth_supplied;
 		user_name		= _user_name;

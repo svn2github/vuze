@@ -62,7 +62,7 @@ DownloadImpl
 	protected DownloadStatsImpl		download_stats;
 	
 	protected int		latest_state		= ST_STOPPED;
-	protected boolean latest_forcedStart;
+	protected boolean 	latest_forcedStart;
 	
 	protected DownloadAnnounceResultImpl	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
 	protected DownloadScrapeResultImpl		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
@@ -93,8 +93,16 @@ DownloadImpl
 	public int
 	getState()
 	{
-		int	state = download_manager.getState();
-			
+			// latest_state is maintained by the stateChange listener from
+			// the download manager
+		
+		return( latest_state );
+	}
+	
+	protected int
+	convertState(
+		int		dm_state )
+	{	
 		// dm states: waiting -> initialising -> initialized -> 
 		//		disk states: allocating -> checking -> ready ->
 		// dm states: downloading -> finishing -> seeding -> stopping -> stopped
@@ -104,10 +112,12 @@ DownloadImpl
 		// "startdownload" takes ready -> dl etc.
 		// "stopIt" takes to stopped which is equiv to ready
 		
-		switch( state ){
+		int	our_state;
+		
+		switch( dm_state ){
 			case DownloadManager.STATE_WAITING:
 			{
-				latest_state	= ST_WAITING;
+				our_state	= ST_WAITING;
 				
 				break;
 			}		
@@ -116,60 +126,60 @@ DownloadImpl
 			case DownloadManager.STATE_ALLOCATING:
 			case DownloadManager.STATE_CHECKING:
 			{
-				latest_state	= ST_PREPARING;
+				our_state	= ST_PREPARING;
 					
 				break;
 			}
 			case DownloadManager.STATE_READY:
 			{
-				latest_state	= ST_READY;
+				our_state	= ST_READY;
 					
 				break;
 			}
 			case DownloadManager.STATE_DOWNLOADING:
 			case DownloadManager.STATE_FINISHING:		// finishing download - transit to seeding
 			{
-				latest_state	= ST_DOWNLOADING;
+				our_state	= ST_DOWNLOADING;
 					
 				break;
 			}
 			case DownloadManager.STATE_SEEDING:
 			{
-				latest_state	= ST_SEEDING;
+				our_state	= ST_SEEDING;
 				
 				break;
 			}
 			case DownloadManager.STATE_STOPPING:
 			{
-				latest_state	= ST_STOPPING;
+				our_state	= ST_STOPPING;
 				
 				break;
 			}
 			case DownloadManager.STATE_STOPPED:
 			{
-				latest_state	= ST_STOPPED;
+				our_state	= ST_STOPPED;
 					
 				break;
 			}
 			case DownloadManager.STATE_QUEUED:
 			{
-				latest_state	= ST_QUEUED;
+				our_state	= ST_QUEUED;
 					
 				break;
 			}
 			case DownloadManager.STATE_ERROR:
 			{
-				latest_state	= ST_ERROR;
+				our_state	= ST_ERROR;
 				
 				break;
 			}
 			default:
 			{
-				latest_state	= ST_ERROR;
+				our_state	= ST_ERROR;
 			}
 		}
 		
-		return( latest_state );
+		return( our_state );
 	}
 	
 	public String
@@ -473,22 +483,27 @@ DownloadImpl
 	
 	public void
 	stateChanged(
-      DownloadManager manager,
-		int		state )
+		DownloadManager manager,
+		int				state )
 	{
 		int	prev_state 	= latest_state;
-		int	curr_state	= getState();
+		
+		latest_state	= convertState(state);
+		
+		// System.out.println("Plug:prev = " + prev_state + ", curr = " + latest_state );
+		
 		boolean curr_forcedStart = isForceStart();
 	
-		if ( prev_state != curr_state || latest_forcedStart != curr_forcedStart ){
-		  latest_forcedStart = curr_forcedStart;
+		if ( prev_state != latest_state || latest_forcedStart != curr_forcedStart ){
+			
+			latest_forcedStart = curr_forcedStart;
 			
 			synchronized( listeners ){
 				
 				for (int i=0;i<listeners.size();i++){
 					
 					try{
-						((DownloadListener)listeners.get(i)).stateChanged( this, prev_state, curr_state );
+						((DownloadListener)listeners.get(i)).stateChanged( this, prev_state, latest_state );
 					
 					}catch( Throwable e ){
 						
