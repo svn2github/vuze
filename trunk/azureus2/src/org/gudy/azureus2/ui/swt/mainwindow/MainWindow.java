@@ -480,7 +480,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         item.setText(MessageText.getString("ConfigView.unlimited"));
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
-            COConfigurationManager.setParameter("Max Upload Speed KBs",0); 
+            COConfigurationManager.setParameter("Max Upload Speed KBs",0);
+            COConfigurationManager.save();
           }
         });
         if(upLimit == 0) item.setSelection(true);
@@ -489,6 +490,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
               public void handleEvent(Event e) {
                 int iSpeed = ((Long)((MenuItem)e.widget).getData("speed")).intValue();
                 COConfigurationManager.setParameter("Max Upload Speed KBs", iSpeed);
+                COConfigurationManager.save();
               }
             };
 
@@ -535,6 +537,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
             COConfigurationManager.setParameter("Max Download Speed KBs",0); 
+            COConfigurationManager.save();
           }
         });
         if(downLimit == 0) item.setSelection(true);
@@ -543,6 +546,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
               public void handleEvent(Event e) {
                 int iSpeed = ((Long)((MenuItem)e.widget).getData("speed")).intValue();
                 COConfigurationManager.setParameter("Max Download Speed KBs", iSpeed);
+                COConfigurationManager.save();
               }
             };
 
