@@ -130,6 +130,9 @@ public class ConnectDisconnectManager {
       
       connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
         public void selectSuccess( Object attachment ) {
+                    
+          Throwable failure_reason = null;  //used to invoke listener outside of sync block
+          
           try{
           	canceled_requests_mon.enter();
           
@@ -149,11 +152,11 @@ public class ConnectDisconnectManager {
                                        ", num_connecting="+num_connecting);
                   }
                   
-                  request.listener.connectSuccess( request.channel );
+                  failure_reason = null;  //success
                 }
                 else { //should never happen
-                  System.out.println( "finishConnect() failed" );
-                  request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
+                  Debug.out( "finishConnect() failed" );
+                  failure_reason = new Throwable( "finishConnect() failed" );
                   try{
                   	pending_closes_mon.enter();
                   
@@ -177,7 +180,7 @@ public class ConnectDisconnectManager {
                                      ", num_connecting="+num_connecting);
                 }
                 
-                request.listener.connectFailure( t );
+                failure_reason = t;
                 try{
                 	pending_closes_mon.enter();
                 
@@ -204,10 +207,14 @@ public class ConnectDisconnectManager {
           	canceled_requests_mon.exit();
           }
           pending_attempts.remove( request );
+          
+          //notify listener
+          if( failure_reason == null )  request.listener.connectSuccess( request.channel );
+          else  request.listener.connectFailure( failure_reason );
         }
         
         public void selectFailure( Throwable msg ) {
-          System.out.println( "selectFailure" );
+          Debug.out( "selectFailure" );
           
           try{
           	pending_closes_mon.enter();
@@ -218,11 +225,13 @@ public class ConnectDisconnectManager {
           	pending_closes_mon.exit();
           }
           
+          boolean notify_of_failure = false;
+          
           try{
           	canceled_requests_mon.enter();
           
             if( !canceled_requests.containsKey( request.listener ) ) { //check if canceled
-              request.listener.connectFailure( msg );
+              notify_of_failure = true;
             }
             else {  //if already canceled, no need to invoke listener
               canceled_requests.remove( request.listener );
@@ -233,6 +242,10 @@ public class ConnectDisconnectManager {
           }
           
           pending_attempts.remove( request );
+          
+          //notify listener
+          if( notify_of_failure )  request.listener.connectFailure( msg );
+          
         }
       }, null );
 
