@@ -51,41 +51,46 @@ public class OutgoingBTPieceMessageHandler {
   private int num_messages_loading = 0;
   private int num_messages_in_queue = 0;
   
+  private final Object lock = new Object();
+  
   //TODO
-  private boolean destroyed = false;
+  private volatile boolean destroyed = false;
   
   
   private final ReadRequestListener read_req_listener = new ReadRequestListener() {
     public void readCompleted( DiskManagerRequest request, DirectByteBuffer data ) {
-      synchronized( loading_messages ) {
-        if( !loading_messages.contains( request ) ) { //was canceled
-          data.returnToPool();
-          return;
+      BTPiece msg;
+      synchronized( lock ) {
+        synchronized( loading_messages ) {
+          if( !loading_messages.contains( request ) ) { //was canceled
+            data.returnToPool();
+            return;
+          }
+          loading_messages.remove( request );
         }
-        if( destroyed ) System.out.println("readCompleted 1:: already destroyed");
-        loading_messages.remove( request );
-      }
-      num_messages_loading--;
-      BTPiece msg = new BTPiece( request.getPieceNumber(), request.getOffset(), data );
-      
-      if( destroyed ) System.out.println("readCompleted 2:: already destroyed");
-      
-      synchronized( queued_messages ) {
+        num_messages_loading--; 
+        msg = new BTPiece( request.getPieceNumber(), request.getOffset(), data );
         queued_messages.put( msg, request );
+        num_messages_in_queue++;
       }
-      outgoing_message_queue.addMessage( msg );
-      num_messages_in_queue++;
+      if( destroyed ) {
+        msg.destroy();
+        System.out.println("readCompleted:: already destroyed");
+      }
+      else {
+        outgoing_message_queue.addMessage( msg );//needs to be outside a synchronized(lock) block due to deadlock with outgoing_message_queue methods
+      }
     }
   };
   
   private final OutgoingMessageQueue.SentMessageListener sent_message_listener = new OutgoingMessageQueue.SentMessageListener() {
     public void messageSent( ProtocolMessage message ) {
       if( message.getType() == BTProtocolMessage.BT_PIECE ) {
-        synchronized( queued_messages ) {
+        synchronized( lock ) {
           queued_messages.remove( message );
+          num_messages_in_queue--;
+          doReadAheadLoads();
         }
-        num_messages_in_queue--;
-        doReadAheadLoads();
       }
     }
   };
@@ -116,10 +121,10 @@ public class OutgoingBTPieceMessageHandler {
     
     if( destroyed ) System.out.println("addPieceRequest:: already destroyed");
     
-    synchronized( requests ) {
+    synchronized( lock ) {
       requests.addLast( dmr );
+      doReadAheadLoads();
     }
-    doReadAheadLoads();
   }
   
   
@@ -130,37 +135,37 @@ public class OutgoingBTPieceMessageHandler {
    * @param length
    */
   public void removePieceRequest( int piece_number, int piece_offset, int length ) {
-    boolean removed = false;
     DiskManagerRequest dmr = disk_manager.createRequest( piece_number, piece_offset, length );
-    synchronized( requests ) {
+    
+    synchronized( lock ) {
       if( requests.contains( dmr ) ) {
         requests.remove( dmr );
-        removed = true;
+        return;
       }
-    }
-    if( removed ) return;
-    synchronized( loading_messages ) {
+      
       if( loading_messages.contains( dmr ) ) {
         loading_messages.remove( dmr );
         num_messages_loading--;
-        removed = true;
+        return;
       }
     }
-    if( removed ) return;
     
     Object[] entries;
-    synchronized( queued_messages ) {
+    synchronized( lock ) {
       entries = queued_messages.entrySet().toArray();
     }
     for( int i=0; i < entries.length; i++ ) {
       Map.Entry entry = (Map.Entry)entries[ i ];
       if( entry.getValue().equals( dmr ) ) {
         BTPiece msg = (BTPiece)entry.getKey();
-        if( outgoing_message_queue.removeMessage( msg ) ) {
-          synchronized( queued_messages ) {
+        if( outgoing_message_queue.removeMessage( msg ) ) {//needs to be outside a synchronized(lock) block due to deadlock with outgoing_message_queue methods
+          synchronized( lock ) {
             queued_messages.remove( msg );
           }
           num_messages_in_queue--;
+        }
+        else {
+          //System.out.println("removePieceRequest:: message not removed");
         }
         break;
       }
@@ -172,28 +177,34 @@ public class OutgoingBTPieceMessageHandler {
    * Remove all outstanding piece data requests.
    */
   public void removeAllPieceRequests() {
-    synchronized( requests ) {
-      requests.clear();
-    }
     synchronized( loading_messages ) {
       loading_messages.clear();
+    }
+    
+    synchronized( lock ) {
+      requests.clear();
       num_messages_loading = 0;
     }
-
+    
     Object[] messages;
-    synchronized( queued_messages ) {
+    synchronized( lock ) {
       messages = queued_messages.keySet().toArray();
     }
     for( int i=0; i < messages.length; i++ ) {
       BTPiece msg = (BTPiece)messages[ i ];
-      if( outgoing_message_queue.removeMessage( msg ) ) { //needs to be outside a synchronized(queued_messages) block due to deadlock
-        synchronized( queued_messages ) {
+      if( outgoing_message_queue.removeMessage( msg ) ) { //needs to be outside a synchronized(lock) block due to deadlock with outgoing_message_queue methods
+        synchronized( lock ) {
           queued_messages.remove( msg );
         }
         num_messages_in_queue--;
       }
+      else {
+        //System.out.println("removeAllPieceRequests:: message not removed");
+      }
     }
   }
+      
+
   
   
   public void destroy() {
@@ -202,15 +213,11 @@ public class OutgoingBTPieceMessageHandler {
   
   
   private void doReadAheadLoads() {
-    synchronized( requests ) {
-      while( num_messages_loading + num_messages_in_queue < MIN_READ_AHEAD && !requests.isEmpty() ) {
-        DiskManagerRequest dmr = (DiskManagerRequest)requests.removeFirst();
-        synchronized( loading_messages ) {
-          loading_messages.add( dmr );
-        }
-        disk_manager.enqueueReadRequest( dmr, read_req_listener );
-        num_messages_loading++;
-      }
+    while( num_messages_loading + num_messages_in_queue < MIN_READ_AHEAD && !requests.isEmpty() ) {
+      DiskManagerRequest dmr = (DiskManagerRequest)requests.removeFirst();
+      loading_messages.add( dmr );
+      disk_manager.enqueueReadRequest( dmr, read_req_listener );
+      num_messages_loading++;
     }
   }
 
