@@ -184,10 +184,11 @@ public class FilesView
   }
   
   private void removeInvalidFileItems() {
+    DiskManagerFileInfo files[] = null;
     DiskManager diskManager = manager.getDiskManager();
-    if (diskManager == null)
-      return;
-    DiskManagerFileInfo files[] = diskManager.getFiles();
+    if (diskManager != null)
+      files = diskManager.getFiles();
+
     Object[] dataSources = getSelectedDataSources();
     for (int i = 0; i < dataSources.length; i++) {
       DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)dataSources[i];
@@ -201,7 +202,7 @@ public class FilesView
                                    DiskManagerFileInfo file) {
     //This method works with reference comparision
     if(files == null || file == null) {
-      return true;
+      return false;
     }
     for(int i = 0 ; i < files.length ; i++) {
       if(files[i] == file)
