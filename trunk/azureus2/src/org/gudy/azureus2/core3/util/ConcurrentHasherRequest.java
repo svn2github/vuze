@@ -40,7 +40,7 @@ ConcurrentHasherRequest
 	protected byte[]								result;
 	protected boolean								cancelled;
 	
-	protected Semaphore	sem = new Semaphore();
+	protected AESemaphore	sem = new AESemaphore("ConcHashRequest");
 	
 	protected
 	ConcurrentHasherRequest(

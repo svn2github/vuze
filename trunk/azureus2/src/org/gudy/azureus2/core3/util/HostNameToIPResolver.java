@@ -37,7 +37,7 @@ HostNameToIPResolver
 {
 	static protected Thread			resolver_thread;
 	static protected List			request_queue		= new ArrayList();
-	static protected Semaphore		request_semaphore	= new Semaphore();
+	static protected AESemaphore	request_semaphore	= new AESemaphore("HostNameToIPResolver");
 	
 	public static void
 	addResolverRequest(

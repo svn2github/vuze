@@ -27,17 +27,18 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
  */
 
 import org.gudy.azureus2.plugins.utils.*;
+import org.gudy.azureus2.core3.util.AESemaphore;
 
 public class
 SemaphoreImpl
 	implements Semaphore
 {
-	protected org.gudy.azureus2.core3.util.Semaphore		sem;
+	protected AESemaphore		sem;
 	
 	protected
 	SemaphoreImpl()
 	{
-		sem	= new org.gudy.azureus2.core3.util.Semaphore();
+		sem	= new AESemaphore("PluginSem");
 	}
 	
 	public void

@@ -184,7 +184,7 @@ AuthenticatorWindow
 			return( null );
 		}
 		
-		final Semaphore	sem = new Semaphore();
+		final AESemaphore	sem = new AESemaphore("SWTAuth");
 		
 		final authDialog[]	dialog = new authDialog[1];
 		
@@ -221,14 +221,14 @@ AuthenticatorWindow
 	authDialog
 	{
 		protected Shell			shell;
-		protected Semaphore		sem;
+		protected AESemaphore	sem;
 		
 		protected String		username;
 		protected String		password;
 		
 		protected
 		authDialog(
-			Semaphore		_sem,
+			AESemaphore		_sem,
 			Display			display,
 			String			realm,
 			String			tracker )

@@ -57,7 +57,7 @@ FMFileManagerImpl
 	protected boolean			limited;
 	protected int				limit_size;
 	
-	protected Semaphore			close_queue_sem;
+	protected AESemaphore		close_queue_sem;
 	protected List				close_queue;
 	
 	protected List				files;
@@ -80,7 +80,7 @@ FMFileManagerImpl
 
 		if ( limited ){
 			
-			close_queue_sem	= new Semaphore();
+			close_queue_sem	= new AESemaphore("FMFileManager::closeqsem");
 			
 			close_queue		= new LinkedList();
 			

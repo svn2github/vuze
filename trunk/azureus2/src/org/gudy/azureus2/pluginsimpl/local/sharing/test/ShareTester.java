@@ -36,7 +36,7 @@ public class
 ShareTester
 	implements Plugin, PluginListener, ShareManagerListener
 {
-	protected static Semaphore			init_sem = new Semaphore();
+	protected static AESemaphore		init_sem = new AESemaphore("ShareTester");
 	
 	protected static ShareTester		singleton;
 	

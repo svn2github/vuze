@@ -44,7 +44,7 @@ ResourceDownloaderRetryImpl
 	protected ResourceDownloader		current_downloader;
 	protected int						done_count;
 	protected Object					result;
-	protected Semaphore					done_sem	= new Semaphore();
+	protected AESemaphore				done_sem	= new AESemaphore("RDRretry");
 		
 	protected long						size	= -2;
 	

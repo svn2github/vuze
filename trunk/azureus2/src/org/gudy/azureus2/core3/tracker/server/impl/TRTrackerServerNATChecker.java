@@ -55,7 +55,7 @@ TRTrackerServerNATChecker
 	protected ThreadPool	thread_pool;
 	
 	protected List			check_queue		= new ArrayList();
-	protected Semaphore		check_queue_sem	= new Semaphore();
+	protected AESemaphore	check_queue_sem	= new AESemaphore("TracerServerNATChecker");
 	
 	protected
 	TRTrackerServerNATChecker()

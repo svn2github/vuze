@@ -168,7 +168,7 @@ LocaleUtilSWT
     	return( default_candidate );
     }
     
-    final Semaphore[]	lock = { new Semaphore()};
+    final AESemaphore[]	lock = { new AESemaphore("LocaleUtilSWT")};
     
     MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
       public void run() {
@@ -197,10 +197,10 @@ LocaleUtilSWT
 
   private void 
   showChoosableEncodingWindow(
-  		final Semaphore	lock,
-  		final 			Shell shell, 
-		final 			LocaleUtilDecoderCandidate[] 	candidates,
-		final 			LocaleUtilDecoderCandidate[]	selected_candidate ) 
+  		final AESemaphore	lock,
+  		final 				Shell shell, 
+		final 				LocaleUtilDecoderCandidate[] 	candidates,
+		final 				LocaleUtilDecoderCandidate[]	selected_candidate ) 
   {
     final Shell s = new Shell(shell, SWT.TITLE | SWT.RESIZE | SWT.PRIMARY_MODAL );
     s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$

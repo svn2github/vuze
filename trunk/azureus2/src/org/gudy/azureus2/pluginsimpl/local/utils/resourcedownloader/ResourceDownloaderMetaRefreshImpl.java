@@ -50,7 +50,7 @@ ResourceDownloaderMetaRefreshImpl
 	protected ResourceDownloader		current_downloader;
 	protected Object					result;
 	protected int						done_count;
-	protected Semaphore					done_sem	= new Semaphore();
+	protected AESemaphore				done_sem	= new AESemaphore("RDMetaRefresh");
 			
 	public
 	ResourceDownloaderMetaRefreshImpl(

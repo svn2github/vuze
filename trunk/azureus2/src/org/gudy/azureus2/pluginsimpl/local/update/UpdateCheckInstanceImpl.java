@@ -42,7 +42,7 @@ UpdateCheckInstanceImpl
 	protected List	listeners	= new ArrayList();
 	protected List	updates 	= new ArrayList();
 	
-	protected Semaphore	sem 	= new Semaphore();
+	protected AESemaphore	sem 	= new AESemaphore("UpdateCheckInstance");
 
 	protected UpdatableComponentImpl[]		components;
 	protected UpdateCheckerImpl[]			checkers;

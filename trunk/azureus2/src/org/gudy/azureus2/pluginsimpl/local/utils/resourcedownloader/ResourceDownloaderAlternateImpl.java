@@ -47,7 +47,7 @@ ResourceDownloaderAlternateImpl
 	protected int						current_index;
 	
 	protected Object					result;
-	protected Semaphore					done_sem	= new Semaphore();
+	protected AESemaphore				done_sem	= new AESemaphore("RDAlternate");
 		
 	protected long						size	= -2;
 	

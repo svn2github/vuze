@@ -41,8 +41,8 @@ ConcurrentHasher
 	protected List			requests		= new LinkedList();
 	protected List			hashers			= new ArrayList();
 	
-	protected Semaphore		request_sem		= new Semaphore();
-	protected Semaphore		scheduler_sem	= new Semaphore();
+	protected AESemaphore		request_sem		= new AESemaphore("ConcHashReqQ");
+	protected AESemaphore		scheduler_sem	= new AESemaphore("ConcHashSched");
 		
 	protected
 	ConcurrentHasher()

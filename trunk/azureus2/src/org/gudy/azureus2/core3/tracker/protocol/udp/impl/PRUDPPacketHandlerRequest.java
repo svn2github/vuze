@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 public class 
 PRUDPPacketHandlerRequest 
 {
-	protected Semaphore		sem = new Semaphore();
+	protected AESemaphore		sem = new AESemaphore("PRUDPPacketHandlerRequest");
 	
 	protected PRUDPPacketHandlerException	exception;
 	protected PRUDPPacket					reply;

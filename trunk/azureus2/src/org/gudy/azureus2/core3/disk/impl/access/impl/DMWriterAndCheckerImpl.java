@@ -54,11 +54,11 @@ DMWriterAndCheckerImpl
 	protected static final int	QUEUE_REPORT_CHUNK	= 32;
 	
 	private static int			global_write_queue_block_sem_size;
-	private static Semaphore	global_write_queue_block_sem;
+	private static AESemaphore	global_write_queue_block_sem;
 	private static int			global_write_queue_block_sem_next_report_size;
 	
 	private static int			global_check_queue_block_sem_size;
-	private static Semaphore	global_check_queue_block_sem;
+	private static AESemaphore	global_check_queue_block_sem;
 	private static int			global_check_queue_block_sem_next_report_size;
 	
 	static{
@@ -68,7 +68,7 @@ DMWriterAndCheckerImpl
 		
 		global_write_queue_block_sem_next_report_size	= global_write_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		
-		global_write_queue_block_sem = new Semaphore(global_write_queue_block_sem_size);
+		global_write_queue_block_sem = new AESemaphore("writeQ", global_write_queue_block_sem_size);
 		
 		/*
 		if ( write_limit_blocks == 0 ){
@@ -83,7 +83,7 @@ DMWriterAndCheckerImpl
 		
 		global_check_queue_block_sem_next_report_size	= global_check_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		
-		global_check_queue_block_sem = new Semaphore(global_check_queue_block_sem_size);
+		global_check_queue_block_sem = new AESemaphore("checkQ", global_check_queue_block_sem_size);
 		
 		/*
 		if ( check_limit_pieces == 0 ){
@@ -101,7 +101,7 @@ DMWriterAndCheckerImpl
 	private DiskWriteThread writeThread;
 	private List 			writeQueue;
 	private List 			checkQueue;
-	private Semaphore		writeCheckQueueSem;
+	private AESemaphore		writeCheckQueueSem;
 	private Object			writeCheckQueueLock;
 	
 	protected ConcurrentHasherRequest	current_hash_request;
@@ -140,7 +140,7 @@ DMWriterAndCheckerImpl
 		
 		writeQueue			= new LinkedList();
 		checkQueue			= new LinkedList();
-		writeCheckQueueSem	= new Semaphore();
+		writeCheckQueueSem	= new AESemaphore("writeCheckQ");
 		writeCheckQueueLock	= new Object();
     				
 		writeThread = new DiskWriteThread();

@@ -65,8 +65,8 @@ ListenerManager
 	
 	protected List		listeners		= new ArrayList();
 	
-	protected List		dispatch_queue;
-	protected Semaphore	dispatch_sem;
+	protected List			dispatch_queue;
+	protected AESemaphore	dispatch_sem;
 	
 	protected
 	ListenerManager(
@@ -85,7 +85,7 @@ ListenerManager
 		
 		if ( async ){
 			
-			dispatch_sem	= new Semaphore();
+			dispatch_sem	= new AESemaphore("ListenerManager::"+name);
 			dispatch_queue 	= new LinkedList();
 			
 			if ( target_with_exception != null ){

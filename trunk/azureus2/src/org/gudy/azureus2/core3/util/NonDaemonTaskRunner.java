@@ -35,8 +35,8 @@ NonDaemonTaskRunner
 	
 	protected static NonDaemonTaskRunner	singleton;
 	
-	protected Stack		tasks		= new Stack();
-	protected Semaphore	task_sem	= new Semaphore();
+	protected Stack			tasks		= new Stack();
+	protected AESemaphore	task_sem	= new AESemaphore("NonDaemonTaskRunner");
 	
 	protected List		wait_until_idle_list	= new ArrayList();
 	
@@ -85,7 +85,7 @@ NonDaemonTaskRunner
 			
 			if ( current_thread == null ){
 				
-				final Semaphore wait_sem = new Semaphore();
+				final AESemaphore wait_sem = new AESemaphore("NonDaemonTaskRunnerTask");
 				
 				current_thread = new AEThread("NonDaemonTaskRunner" )
 					{
@@ -108,7 +108,7 @@ NonDaemonTaskRunner
 											
 										for (int i=0;i<wait_until_idle_list.size();i++){
 											
-											((Semaphore)wait_until_idle_list.get(i)).release();
+											((AESemaphore)wait_until_idle_list.get(i)).release();
 										}
 										
 										wait_until_idle_list.clear();
@@ -142,8 +142,8 @@ NonDaemonTaskRunner
 	protected class
 	taskWrapper
 	{
-		protected NonDaemonTask	task;
-		protected Semaphore		sem;
+		protected NonDaemonTask		task;
+		protected AESemaphore		sem;
 		
 		protected Object	  	result;
 		protected Throwable  	exception;
@@ -153,7 +153,7 @@ NonDaemonTaskRunner
 			NonDaemonTask	_task )
 		{
 			task		= _task;
-			sem			= new Semaphore();
+			sem			= new AESemaphore("NonDaemonTaskRunner::taskWrapper");
 		}
 		
 		protected void
@@ -197,7 +197,7 @@ NonDaemonTaskRunner
 	protected void
 	waitUntilIdleSupport()
 	{
-		Semaphore	sem;
+		AESemaphore	sem;
 		
 		synchronized( tasks ){
 			
@@ -206,7 +206,7 @@ NonDaemonTaskRunner
 				return;
 			}
 			
-			sem = new Semaphore();
+			sem = new AESemaphore("NDTR::idleWaiter");
 			
 			wait_until_idle_list.add( sem );
 		}	

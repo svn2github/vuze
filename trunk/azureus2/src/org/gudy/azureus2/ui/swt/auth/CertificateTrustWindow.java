@@ -63,7 +63,7 @@ CertificateTrustWindow
 			return( false );
 		}
 		
-		final Semaphore	sem = new Semaphore();
+		final AESemaphore	sem = new AESemaphore("SWTCert");
 				
 		final trustDialog[]	dialog = new trustDialog[1];
 		
@@ -93,13 +93,13 @@ CertificateTrustWindow
 	trustDialog
 	{
 		protected Shell			shell;
-		protected Semaphore		sem;
+		protected AESemaphore	sem;
 		
 		protected boolean		trusted;
 		
 		protected
 		trustDialog(
-				Semaphore			_sem,
+				AESemaphore			_sem,
 				Display				display,
 				String				resource,
 				X509Certificate		cert )

@@ -51,8 +51,8 @@ ShareUtils
 			run()
 			{
 				Display display = shell.getDisplay();
-        final String[] path = { null };
-				final Semaphore	sem = new Semaphore();
+				final String[] path = { null };
+				final AESemaphore	sem = new AESemaphore("ShareUtils:file");
         
 					
 				display.asyncExec(new Runnable() {
@@ -115,7 +115,7 @@ ShareUtils
 			{
 				Display display = shell.getDisplay();
 				final String[] path = { null };
-				final Semaphore	sem = new Semaphore();
+				final AESemaphore	sem = new AESemaphore("ShareUtils:dir");
 				
 				display.asyncExec(new Runnable() {
 					public void run()

@@ -59,7 +59,7 @@ ResourceDownloaderTorrentImpl
 	protected boolean					cancelled;
 	protected ResourceDownloader		current_downloader;
 	protected Object					result;
-	protected Semaphore					done_sem	= new Semaphore();
+	protected AESemaphore				done_sem	= new AESemaphore("RDTorrent");
 			
 	public
 	ResourceDownloaderTorrentImpl(

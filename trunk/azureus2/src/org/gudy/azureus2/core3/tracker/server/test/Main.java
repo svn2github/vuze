@@ -139,7 +139,7 @@ Main
 		}
 	}
 
-	protected static Semaphore			init_sem = new Semaphore();
+	protected static AESemaphore			init_sem = new AESemaphore("TrackerServerTest");
 	
 	protected static Main		singleton;
 				

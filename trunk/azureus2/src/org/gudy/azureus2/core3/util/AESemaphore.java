@@ -1,22 +1,23 @@
 /*
- * File    : Semaphore.java
- * Created : 03-Nov-2003
- * By      : parg
- * 
- * Azureus - a Java Bittorrent client
+ * Created on 18-Sep-2004
+ * Created by Paul Gardner
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details ( see the LICENSE file ).
- *
+ * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * AELITIS, SARL au capital de 30,000 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
  */
 
 package org.gudy.azureus2.core3.util;
@@ -25,41 +26,32 @@ package org.gudy.azureus2.core3.util;
  * @author parg
  *
  */
-
-/**
- * @deprecated - use AESemaphore
- * @author parg
- *
- */
-
-public class
-Semaphore
+public class 
+AESemaphore 
 {
-	int		waiting		= 0;
-	int		dont_wait	= 0;
+	protected String	name;
+	protected int		waiting		= 0;
+	protected int		dont_wait	= 0;
 
-	int		total_reserve	= 0;
-	int		total_release	= 0;
+	protected int		total_reserve	= 0;
+	protected int		total_release	= 0;
 
-	boolean	released_forever	= false;
+	protected boolean	released_forever	= false;
 
-	/**
-	 * @deprecated = use AESemaphore
-	 */
-	
 	public
-	Semaphore()
+	AESemaphore(
+		String		_name )
 	{
+		name		= _name;
 	}
-	
-	/**
-	 * @deprecated = use AESemaphore
-	 */
-	
+
 	public
-	Semaphore(
-		int		count )
+	AESemaphore(
+		String		_name,
+		int			count )
 	{
+		name		= _name;
+		
 		dont_wait	= count;
 
 		total_release	= count;
@@ -92,6 +84,8 @@ Semaphore
 	{
 		synchronized(this){
 
+			System.out.println( name + "::reserve");
+			
 			if ( released_forever ){
 
 				return(1);
@@ -146,6 +140,7 @@ Semaphore
 	release()
 	{
 		synchronized(this){
+			System.out.println( name + "::release");
 
 			total_release++;
 

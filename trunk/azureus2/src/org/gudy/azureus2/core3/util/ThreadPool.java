@@ -47,7 +47,7 @@ ThreadPool
 	protected Stack		thread_pool;
 	protected List		busy;
 	
-	protected Semaphore	thread_sem;
+	protected AESemaphore	thread_sem;
 	
 	protected static void
 	checkAllTimeouts()
@@ -75,7 +75,7 @@ ThreadPool
 	{
 		name	= _name;
 		
-		thread_sem = new Semaphore( max_size );
+		thread_sem = new AESemaphore( "ThreadPool::" + name, max_size );
 		
 		thread_pool	= new Stack();
 					
@@ -178,7 +178,7 @@ ThreadPool
 		
 		protected Thread	worker_thread;
 		
-		protected Semaphore my_sem = new Semaphore();
+		protected AESemaphore my_sem = new AESemaphore("TPWorker");
 		
 		protected Runnable	runnable;
 		protected long		run_start_time;

@@ -43,7 +43,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.Semaphore;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
@@ -199,7 +199,7 @@ public class TorrentOpener {
       final boolean f_forSeeding = forSeeding;
       final String  f_singleFileName  = singleFileName;
 
-      final Semaphore sem = new Semaphore();
+      final AESemaphore sem = new AESemaphore("TorrentOpener");
     
       display.asyncExec(new Runnable() {
         public void run()

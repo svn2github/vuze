@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
-import org.gudy.azureus2.core3.util.Semaphore;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -87,7 +87,7 @@ Initializer
 				
 					throws AzureusCoreException
 				{
-					final Semaphore			sem 	= new Semaphore();
+					final AESemaphore				sem 	= new AESemaphore("SWTInit::stopReq");
 					final AzureusCoreException[]	error 	= {null};
 					
 					try{
@@ -130,7 +130,7 @@ Initializer
 				restartRequested(
 					AzureusCore		core )
 				{
-					final Semaphore			sem 	= new Semaphore();
+					final AESemaphore				sem 	= new AESemaphore("SWTInit:restart");
 					final AzureusCoreException[]	error 	= {null};
 						
 					try{

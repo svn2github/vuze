@@ -40,7 +40,7 @@ UpdateCheckerImpl
 {
 	protected UpdateCheckInstanceImpl		check_instance;
 	protected UpdatableComponentImpl		component;
-	protected Semaphore						semaphore;
+	protected AESemaphore					semaphore;
 	
 	protected boolean						completed;
 	protected boolean						failed;
@@ -55,7 +55,7 @@ UpdateCheckerImpl
 	UpdateCheckerImpl(
 		UpdateCheckInstanceImpl	_check_instance,
 		UpdatableComponentImpl	_component,
-		Semaphore				_sem )
+		AESemaphore				_sem )
 	{
 		check_instance		= _check_instance;
 		component			= _component;

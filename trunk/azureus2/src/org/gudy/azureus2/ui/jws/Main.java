@@ -39,7 +39,7 @@ Main
 {
 	protected static Main				singleton;
 	
-	protected static Semaphore			init_sem = new Semaphore();
+	protected static AESemaphore		init_sem = new AESemaphore("UIJWS");
 
 	public static synchronized Main
 	getSingleton(
@@ -70,7 +70,7 @@ Main
 	
 	protected PluginInterface		plugin_interface;
 	protected LoggerChannel 		log;
-	protected Semaphore				ready_sem	= new Semaphore();
+	protected AESemaphore			ready_sem	= new AESemaphore("UIJWSReady");
 
 	public void 
 	initialize(

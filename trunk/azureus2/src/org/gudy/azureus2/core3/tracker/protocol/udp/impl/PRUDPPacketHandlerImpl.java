@@ -54,7 +54,7 @@ PRUDPPacketHandlerImpl
 	{
 		port		= _port;
 		
-		final Semaphore init_sem = new Semaphore();
+		final AESemaphore init_sem = new AESemaphore("PRUDPPacketHandler");
 		
 		Thread t = new AEThread( "PRUDPPacketReciever:".concat(String.valueOf(port)))
 			{
@@ -74,7 +74,7 @@ PRUDPPacketHandlerImpl
 	
 	protected void
 	receiveLoop(
-		Semaphore	init_sem )
+		AESemaphore	init_sem )
 	{
 		try{
 			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");

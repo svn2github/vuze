@@ -29,11 +29,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.DirectByteBufferPool;
-import org.gudy.azureus2.core3.util.Semaphore;
-// import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.*;
@@ -51,7 +47,7 @@ DMReaderImpl
 	protected DiskManagerHelper	disk_manager;
 
 	private List		readQueue;
-	private Semaphore	readQueueSem;
+	private AESemaphore	readQueueSem;
 	private int			next_report_size	= 0;
 	
 	private DiskReadThread readThread;
@@ -67,7 +63,7 @@ DMReaderImpl
 	start()
 	{
 		readQueue			= new LinkedList();
-		readQueueSem		= new Semaphore();
+		readQueueSem		= new AESemaphore("readQ");
 		next_report_size	= QUEUE_REPORT_CHUNK;
 		
 		readThread = new DiskReadThread();
