@@ -270,7 +270,8 @@ public class DownloadManager extends Component {
         //globalManager.startWaitingDownloads();
 
         // remove all free buffers to regain memory 
-        ByteBufferPool.getInstance().clearFreeBuffers();
+        // Gudy :SILLY IDEA as those are DIRECT buffers, not managed by GC ... 
+        //ByteBufferPool.getInstance().clearFreeBuffers();
       }
     };
     stopThread.start();

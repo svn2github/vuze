@@ -75,6 +75,7 @@ public class ByteBufferPool {
   }
 
   public synchronized void clearFreeBuffers() {
-    freeBuffers.clear();
+    //Gudy : Really wrong to want to free those ...
+    //freeBuffers.clear();
   }
 }

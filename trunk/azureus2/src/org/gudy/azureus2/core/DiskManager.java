@@ -902,8 +902,19 @@ public class DiskManager {
       currentFile++;
       fileOffset = 0;
       previousFilesLength = offset;
-      if(currentFile > pieceList.size())
-         noError = false;
+      if(buffer.hasRemaining() && currentFile > pieceList.size()) {
+        noError = false;
+        System.out.println("Error in read Block : *Debug Information*");
+        System.out.println("PieceNumber : " + pieceNumber);
+        System.out.println("Offset : " + offset);
+        System.out.println("Length : " + length);
+        System.out.println("Buffer - limit : " + buffer.limit() +", remaining : " + buffer.remaining());
+        System.out.println("PieceList - size : " + pieceList.size());
+        System.out.println("currentFile : " + currentFile);
+        System.out.println("tempPiece - length : " + tempPiece.getLength() + ", offset : " + tempPiece.getOffset());
+        
+      }
+        
     }
 
     buffer.position(0);

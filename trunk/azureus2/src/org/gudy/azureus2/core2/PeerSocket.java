@@ -44,7 +44,7 @@ public class PeerSocket extends PeerConnection {
     super(manager, peerId, ip, port);
     if (fake)
       return;
-      
+
     this.incoming = false;
     allocateAll();
     logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
@@ -180,9 +180,8 @@ public class PeerSocket extends PeerConnection {
       String azureus = new String(otherPeerId, 5, 7, Constants.BYTE_ENCODING);
       if (azureus.equals("Azureus"))
         client = "Azureus";
-      String shadow = new String(otherPeerId,0,1);
-      if(shadow.equals("S"))
-      {
+      String shadow = new String(otherPeerId, 0, 1);
+      if (shadow.equals("S")) {
         client = "Shadow";
       }
     }
@@ -239,10 +238,10 @@ public class PeerSocket extends PeerConnection {
       ByteBufferPool.getInstance().freeBuffer(readBuffer);
 
     //4. release the write Buffer
-    if (writeBuffer != null) {
-      ByteBufferPool.getInstance().freeBuffer(writeBuffer);
+    if (writeBuffer != null) {      
       if (writeData) {
         SpeedLimiter.getLimiter().removeUploader(this);
+        ByteBufferPool.getInstance().freeBuffer(writeBuffer);
       }
     }
 
@@ -293,7 +292,7 @@ public class PeerSocket extends PeerConnection {
     public void process() {
       if (readBuffer.hasRemaining()) {
         try {
-          int read = socket.read(readBuffer);          
+          int read = socket.read(readBuffer);
           if (read < 0)
             throw new IOException("End of Stream Reached");
         }
@@ -375,12 +374,13 @@ public class PeerSocket extends PeerConnection {
 
   public void process() {
     try {
-    loopFactor++;
-    if (currentState != null)
-      currentState.process();
-    if (getState() != DISCONNECTED)
-      write();
-    } catch(Exception e) {
+      loopFactor++;
+      if (currentState != null)
+        currentState.process();
+      if (getState() != DISCONNECTED)
+        write();
+    }
+    catch (Exception e) {
       closeAll();
     }
   }
@@ -412,27 +412,72 @@ public class PeerSocket extends PeerConnection {
     byte cmd = buffer.get();
     switch (cmd) {
       case BT_CHOKED :
+        if (buffer.limit() != 1) {
+          logger.log(
+            componentID,
+            evtProtocol,
+            Logger.ERROR,
+            ip + " choking received, but message of wrong size : " + buffer.limit());
+          closeAll();
+          break;
+        }
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is choking you");
         choked = true;
         cancelRequests();
         readMessage(readBuffer);
         break;
       case BT_UNCHOKED :
+        if (buffer.limit() != 1) {
+          logger.log(
+            componentID,
+            evtProtocol,
+            Logger.ERROR,
+            ip + " unchoking received, but message of wrong size : " + buffer.limit());
+          closeAll();
+          break;
+        }
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is unchoking you");
         choked = false;
         readMessage(readBuffer);
         break;
       case BT_INTERESTED :
+        if (buffer.limit() != 1) {
+          logger.log(
+            componentID,
+            evtProtocol,
+            Logger.ERROR,
+            ip + " interested received, but message of wrong size : " + buffer.limit());
+          closeAll();
+          break;
+        }
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is interested");
         interesting = true;
         readMessage(readBuffer);
         break;
       case BT_UNINTERESTED :
+        if (buffer.limit() != 1) {
+          logger.log(
+            componentID,
+            evtProtocol,
+            Logger.ERROR,
+            ip + " uninterested received, but message of wrong size : " + buffer.limit());
+          closeAll();
+          break;
+        }
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is not interested");
         interesting = false;
         readMessage(readBuffer);
         break;
       case BT_HAVE :
+        if (buffer.limit() != 5) {
+          logger.log(
+            componentID,
+            evtProtocol,
+            Logger.ERROR,
+            ip + " interested received, but message of wrong size : " + buffer.limit());
+          closeAll();
+          break;
+        }
         pieceNumber = buffer.getInt();
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " has " + pieceNumber);
         have(pieceNumber);
@@ -446,6 +491,15 @@ public class PeerSocket extends PeerConnection {
         readMessage(readBuffer);
         break;
       case BT_REQUEST :
+        if (buffer.limit() != 13) {
+          logger.log(
+            componentID,
+            evtProtocol,
+            Logger.ERROR,
+            ip + " request received, but message of wrong size : " + buffer.limit());
+          closeAll();
+          break;
+        }
         pieceNumber = buffer.getInt();
         pieceOffset = buffer.getInt();
         pieceLength = buffer.getInt();
@@ -509,6 +563,15 @@ public class PeerSocket extends PeerConnection {
         }
         break;
       case BT_CANCEL :
+        if (buffer.limit() != 13) {
+          logger.log(
+            componentID,
+            evtProtocol,
+            Logger.ERROR,
+            ip + " cancel received, but message of wrong size : " + buffer.limit());
+          closeAll();
+          break;
+        }
         pieceNumber = buffer.getInt();
         pieceOffset = buffer.getInt();
         pieceLength = buffer.getInt();
@@ -807,21 +870,21 @@ public class PeerSocket extends PeerConnection {
         int written = socket.write(writeBuffer);
         if (written < 0)
           throw new IOException("End of Stream Reached");
-          writeBuffer.limit(realLimit);
+        writeBuffer.limit(realLimit);
 
-          if (writeData) {
-            stats.sent(written);
-            manager.sent(written);
-            if (SpeedLimiter.getLimiter().isLimited(this)) {
-              used += written;
-              if ((loopFactor % 5) == 4) {
-                if (used >= allowed) // (100 * allowed) / 100
-                  maxUpload = max(110 * allowed, 20);
-                if (used < (95 * allowed) / 100)
-                  maxUpload = max((100 * written) / 100, 20);
-              }
+        if (writeData) {
+          stats.sent(written);
+          manager.sent(written);
+          if (SpeedLimiter.getLimiter().isLimited(this)) {
+            used += written;
+            if ((loopFactor % 5) == 4) {
+              if (used >= allowed) // (100 * allowed) / 100
+                maxUpload = max(110 * allowed, 20);
+              if (used < (95 * allowed) / 100)
+                maxUpload = max((100 * written) / 100, 20);
             }
-          }        
+          }
+        }
       }
       catch (IOException e) {
         //e.printStackTrace();
@@ -847,7 +910,7 @@ public class PeerSocket extends PeerConnection {
         writeBuffer.position(0);
         writeData = false;
         //and loop
-        write();
+        //write();
       }
       if (dataQueue.size() != 0) {
         DataQueueItem item = (DataQueueItem) dataQueue.get(0);
@@ -884,7 +947,7 @@ public class PeerSocket extends PeerConnection {
             writeData = true;
             SpeedLimiter.getLimiter().addUploader(this);
             // and loop
-            write();
+            //write();
           }
         }
         else {
