@@ -632,6 +632,11 @@ DiskManagerImpl
 				  		(item.getRequest().getOffset() + item.getRequest().getLength()));
 				  System.out.println("Read Error");
 				}
+        
+				if (readQueue.isEmpty()) {
+          try { Thread.sleep(3000); } catch (Exception ignore) {}
+        }
+        
 			}
 		}
 
@@ -728,6 +733,11 @@ DiskManagerImpl
 
 				  manager.asyncPieceChecked(elt.getPieceNumber(), correct);
 			  }
+        
+        if (writeQueue.isEmpty() && checkQueue.isEmpty()) {
+          try { Thread.sleep(3000); } catch (Exception ignore) {}
+        }
+        
 			}
 		}
 
