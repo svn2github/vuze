@@ -204,7 +204,24 @@ DiskManagerImpl
 		ArrayList btFileList = new ArrayList();
 
 		//Create the ByteBuffer for checking (size : pieceLength)
-		allocateAndTestBuffer = ByteBuffer.allocateDirect(pieceLength);
+    try {
+        allocateAndTestBuffer = ByteBuffer.allocateDirect(pieceLength);
+    }
+    catch (OutOfMemoryError e) {
+        System.out.println("Running garbage collector...");
+        System.runFinalization();
+        System.gc();
+        
+        try {
+            allocateAndTestBuffer = ByteBuffer.allocateDirect(pieceLength);
+        } catch (OutOfMemoryError ex) {
+            System.out.println("Memory allocation failed: Out of direct memory space");
+            this.state = FAULTY;
+            this.errorMessage = "Memory allocation failed: Out of direct memory space";
+            return;
+        }
+    }
+    
 		allocateAndTestBuffer.mark();
 		for (int i = 0; i < allocateAndTestBuffer.limit(); i++) {
 			allocateAndTestBuffer.put((byte)0);
@@ -1380,6 +1397,11 @@ DiskManagerImpl
 				}
 			}
 		}
+        
+    if (allocateAndTestBuffer != null) {
+        allocateAndTestBuffer.clear();
+        allocateAndTestBuffer = null;
+    }
 	}
 
 	public void computeFilesDone(int pieceNumber) {
@@ -1809,7 +1831,12 @@ DiskManagerImpl
   }
   
   public boolean isWriteThreadRunning() {
-    return writeThread.isStillRunning();
+    if (writeThread == null) {
+        return false;
+    }
+    else {
+        return writeThread.isStillRunning();
+    }
   }
 
   /**
