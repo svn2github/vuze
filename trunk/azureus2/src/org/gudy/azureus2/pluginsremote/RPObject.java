@@ -30,6 +30,8 @@ import java.io.Serializable;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
 public class 
 RPObject
 	implements Serializable
@@ -43,7 +45,7 @@ RPObject
 	protected static Map	object_registry			 	= new WeakHashMap();
 	protected static Map	object_registry_reverse 	= new WeakHashMap();
 	
-	protected static long	next_key		= new Random(System.currentTimeMillis()).nextLong();
+	protected static long	next_key		= new Random(SystemTime.getCurrentTime()).nextLong();
 	
 	public Long	_object_id;
 	

@@ -793,7 +793,7 @@ public class MyTorrentsView extends AbstractIView
               
               TRTrackerClient trackerClient = dm.getTrackerClient();
               if(trackerClient != null) {
-                boolean update_state = ((System.currentTimeMillis()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
+                boolean update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
                 manualUpdate = manualUpdate & update_state;
               }
 

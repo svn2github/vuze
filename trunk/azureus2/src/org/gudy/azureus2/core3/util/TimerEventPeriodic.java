@@ -46,7 +46,7 @@ TimerEventPeriodic
 		frequency	= _frequency;
 		performer	= _performer;
 		
-		current_event = timer.addEvent( 	System.currentTimeMillis()+ frequency,
+		current_event = timer.addEvent( 	SystemTime.getCurrentTime()+ frequency,
 											this );
 		
 	}
@@ -63,7 +63,7 @@ TimerEventPeriodic
 				
 				if ( !cancelled ){
 				
-					current_event = timer.addEvent( 	System.currentTimeMillis()+ frequency,
+					current_event = timer.addEvent( 	SystemTime.getCurrentTime()+ frequency,
 														this );
 				}
 			}

@@ -45,7 +45,7 @@ public class Average {
     this.period = period;
 
     this.nbElements = (period * 1000) / refreshRate + 2;
-    this.lastUpdate = System.currentTimeMillis() / refreshRate;
+    this.lastUpdate = SystemTime.getCurrentTime() / refreshRate;
     this.values = new long[this.nbElements];
   }
 
@@ -98,7 +98,7 @@ public class Average {
    */
   public void addValue(long value) {
     //We get the current time factor.
-    long timeFactor = System.currentTimeMillis() / refreshRate;
+    long timeFactor = SystemTime.getCurrentTime() / refreshRate;
     //We first update the buffer.
     update(timeFactor);
     //And then we add our value to current element
@@ -111,7 +111,7 @@ public class Average {
    */
   public long getAverage() {
     //We get the current timeFactor
-    long timeFactor = System.currentTimeMillis() / refreshRate;
+    long timeFactor = SystemTime.getCurrentTime() / refreshRate;
     //We first update the buffer
     update(timeFactor);
 

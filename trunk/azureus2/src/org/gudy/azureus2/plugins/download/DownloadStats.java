@@ -181,7 +181,7 @@ DownloadStats
   /* Time that the torrent started seeding.
    * @return the difference, measured in milliseconds, between the torrent 
    *         started seeding and midnight, January 1, 1970 UTC.  see
-   *         System.currentTimeMillis().
+   *         SystemTime.getCurrentTime().
    *         -1 is not seeding
    */		
 	public long

@@ -75,7 +75,7 @@ public class Timer
 						this.wait();
 						
 					}else{
-						long	now = System.currentTimeMillis();
+						long	now = SystemTime.getCurrentTime();
 						
 						TimerEvent	next_event = (TimerEvent)events.iterator().next();
 						
@@ -89,7 +89,7 @@ public class Timer
 						}
 					}
 				
-					long	now = System.currentTimeMillis();
+					long	now = SystemTime.getCurrentTime();
 					
 					Iterator	it = events.iterator();
 					
@@ -129,7 +129,7 @@ public class Timer
 		long				when,
 		TimerEventPerformer	performer )
 	{
-		return( addEvent( System.currentTimeMillis(), when, performer ));
+		return( addEvent( SystemTime.getCurrentTime(), when, performer ));
 	}
 	
 	public synchronized TimerEvent

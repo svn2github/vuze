@@ -207,7 +207,7 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		Random rand = new Random(System.currentTimeMillis());
+		Random rand = new Random(SystemTime.getCurrentTime());
 		
 		for (int i=1;i<=MAX_DIRS;i++){
 			

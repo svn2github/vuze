@@ -38,7 +38,7 @@ public class Debug {
    */
   public static void out(final String _debug_msg, final Throwable _exception) {
     String header = "DEBUG::";
-    header = header + new Date(System.currentTimeMillis()).toString() + "::";
+    header = header + new Date(SystemTime.getCurrentTime()).toString() + "::";
     String className;
     String methodName;
     int lineNumber;

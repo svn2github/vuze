@@ -522,7 +522,7 @@ TRTrackerServerProcessorUDP
 			String		_address )
 		{
 			address	= _address;
-			time	= System.currentTimeMillis();
+			time	= SystemTime.getCurrentTime();
 		}
 		
 		protected String

@@ -64,7 +64,7 @@ TrackerWebPageResponseImpl
 		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
 		
 		String	formatted_date_now		 = format.format(new Date());
-		//String	formatted_date_bit_later = format.format(new Date( System.currentTimeMillis() + 30000 ));
+		//String	formatted_date_bit_later = format.format(new Date( SystemTime.getCurrentTime() + 30000 ));
 		
 		setHeader( "Last-Modified",	formatted_date_now );
 		
