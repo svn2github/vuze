@@ -260,11 +260,12 @@ public class PeerSocket extends PeerConnection {
     //2. Close the socket
     if (socket != null) {
       try {
-        if (!socket.socket().isClosed()) socket.close();    // See bug #804127
+        if (!socket.socket().isClosed()) socket.socket().close();
+        if (socket.isOpen()) socket.close();
       }
       catch (Exception e) {
         System.out.println("PeerSocket::closeAll:: closing socket failed: " + ip + ":" + port);
-        socket = null;     // See bug #804127
+        socket = null;
       }
       socket = null;
     }
