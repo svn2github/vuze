@@ -138,9 +138,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("status")); //$NON-NLS-1$
     table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("seeds")); //$NON-NLS-1$
     table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("peers")); //$NON-NLS-1$
-    table.getColumn(7).addListener(SWT.Selection, new StringColumnListener("ds")); //$NON-NLS-1$
-    table.getColumn(8).addListener(SWT.Selection, new StringColumnListener("us")); //$NON-NLS-1$
-    table.getColumn(9).addListener(SWT.Selection, new StringColumnListener("eta")); //$NON-NLS-1$
+    table.getColumn(7).addListener(SWT.Selection, new IntColumnListener("ds")); //$NON-NLS-1$
+    table.getColumn(8).addListener(SWT.Selection, new IntColumnListener("us")); //$NON-NLS-1$
+    table.getColumn(9).addListener(SWT.Selection, new IntColumnListener("eta")); //$NON-NLS-1$
     table.getColumn(10).addListener(SWT.Selection, new StringColumnListener("tracker")); //$NON-NLS-1$
     table.getColumn(11).addListener(SWT.Selection, new IntColumnListener("priority")); //$NON-NLS-1$
 
@@ -803,15 +803,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     if (field.equals("name")) //$NON-NLS-1$
       return manager.getName();
 
-    if (field.equals("ds")) //$NON-NLS-1$
-      return DisplayFormatters.formatByteCountToKBEtcPerSec( manager.getStats().getDownloadAverage());
-
-    if (field.equals("us")) //$NON-NLS-1$
-      return DisplayFormatters.formatByteCountToKBEtcPerSec( manager.getStats().getUploadAverage());
-
-    if (field.equals("eta")) //$NON-NLS-1$
-      return manager.getStats().getETA();
-
     if (field.equals("tracker")) //$NON-NLS-1$
       return manager.getTrackerStatus();
 
@@ -828,6 +819,12 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     if (field.equals("done")) //$NON-NLS-1$
       return manager.getStats().getCompleted();
+    
+    if (field.equals("ds")) //$NON-NLS-1$
+      return manager.getStats().getDownloadAverage();
+
+    if (field.equals("us")) //$NON-NLS-1$
+      return manager.getStats().getUploadAverage();
 
     if (field.equals("status")) //$NON-NLS-1$
       return manager.getState();
@@ -843,6 +840,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     if (field.equals("#")) //$NON-NLS-1$
       return manager.getIndex();
+    
+    if (field.equals("eta")) //$NON-NLS-1$
+      return manager.getStats().getETA();
 
     return 0;
   }
