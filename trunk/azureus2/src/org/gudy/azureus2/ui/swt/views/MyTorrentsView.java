@@ -1281,30 +1281,26 @@ public class MyTorrentsView
     confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
   }
 
-  private boolean up,down,run,host,publish,start,stop,remove;
+  private boolean top,bottom,up,down,run,host,publish,start,stop,remove;
 
   private void computePossibleActions() {
     Object[] dataSources = getSelectedDataSources();
-    up = down = run = host = publish = start = stop = remove = false;
-    if (dataSources.length > 0) {
-      remove = up = down = true;
-      host = publish = true;
-      run = true;
+    // enable up and down so that we can do the "selection rotate trick"
+    up = down = run = host = publish = remove = (dataSources.length > 0);
+    top = bottom = start = stop = false;
+    for (int i = 0; i < dataSources.length; i++) {
+      DownloadManager dm = (DownloadManager)dataSources[i];
 
-      for (int i = 0; i < dataSources.length; i++) {
-        DownloadManager dm = (DownloadManager)dataSources[i];
-
-        if(ManagerUtils.isStartable(dm))
-          start =  true;
-        if(ManagerUtils.isStopable(dm))
-          stop = true;
-        if(! ManagerUtils.isRemoveable(dm))
-          remove = false;
-        if(!dm.isMoveableUp())
-          up = false;
-        if(!dm.isMoveableDown())
-          down = false;
-      }
+      if(!start && ManagerUtils.isStartable(dm))
+        start =  true;
+      if(!stop && ManagerUtils.isStopable(dm))
+        stop = true;
+      if(remove && !ManagerUtils.isRemoveable(dm))
+        remove = false;
+      if(!top && dm.isMoveableUp())
+        top = true;
+      if(!bottom && dm.isMoveableDown())
+        bottom = true;
     }
   }
 
@@ -1322,14 +1318,13 @@ public class MyTorrentsView
     if(itemKey.equals("remove"))
       return remove;
     if(itemKey.equals("top"))
-      return up;
+      return top;
     if(itemKey.equals("bottom"))
-      return down;
-    // enable up and down so that we can do the "selection rotate trick"
+      return bottom;
     if(itemKey.equals("up"))
-      return true;
+      return up;
     if(itemKey.equals("down"))
-      return true;
+      return down;
     return false;
   }
 
