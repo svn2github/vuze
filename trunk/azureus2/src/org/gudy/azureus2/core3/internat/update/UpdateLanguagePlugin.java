@@ -73,6 +73,9 @@ import org.gudy.azureus2.ui.swt.Utils;
  * If there was already a bundle in the user's directory that did not have a
  * revision number on the first line, it is renamed, and a "User.x" is placed
  * in its variant name.
+ * 
+ * 
+ * NOTE: Disabled in 2.1.0.5.
  */
 public class
 UpdateLanguagePlugin

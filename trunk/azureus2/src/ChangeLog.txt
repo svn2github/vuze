@@ -33,6 +33,7 @@ CHANGE: Core | Tracker client will revert to "initialised" state after explicit 
 CHANGE: Core | Locale selection changed to show more possible encodings [Parg]
 CHANGE: Core | XML stats - downloads ordered by downloading/index then seeding/index [Parg]
 CHANGE: Core | Reworked connection establishment to conform to new WinXP SP2 limits [Nolar]
+CHANGE: Plug | UpdateLanguagePlugin removed, as no longer maintained [Nolar]
 
 BUGFIX: Core | Throw an error message if existing data file length is too large [Nolar]
 BUGFIX: Core | Fix new bug with tracker announce every 10s when no peers were connected [Nolar]
