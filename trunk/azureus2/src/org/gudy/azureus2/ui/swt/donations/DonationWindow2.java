@@ -103,8 +103,12 @@ public class DonationWindow2 {
     
     tempFont = shell.getFont();
     fontDataMain = tempFont.getFontData();
+    
+    boolean isMac = System.getProperty("os.name").equals("Mac OS X");
+    
     for(int i=0 ; i < fontDataMain.length ; i++) {
-      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.4));
+      if(!isMac)
+      	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.4));
       fontDataMain[i].setStyle(SWT.BOLD);     
     }
     mainFont = new Font(display,fontDataMain);
@@ -112,7 +116,8 @@ public class DonationWindow2 {
     tempFont = shell.getFont();
     fontDataMain= tempFont.getFontData();
     for(int i=0 ; i < fontDataMain.length ; i++) {
-      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
+      if(!isMac)
+      	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
       //fontDataMain[i].setStyle(SWT.BOLD);     
     }
     mediumFont = new Font(display,fontDataMain);
@@ -120,7 +125,10 @@ public class DonationWindow2 {
     tempFont = shell.getFont();
     fontDataMain = tempFont.getFontData();
     for(int i=0 ; i < fontDataMain.length ; i++) {
-      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.90));     
+      if(isMac)
+      	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.70));
+      else
+        fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.90));
     }
     smallFont = new Font(display,fontDataMain);
     
