@@ -200,10 +200,12 @@ public class ConfigurationManager {
   public StringList getStringListParameter(String parameter) {
   	try {  		
   		List rawList = (List) propertiesMap.get(parameter);
+  		if(rawList == null)
+  			return new StringListImpl();  		
   		return new StringListImpl(rawList);  	
   	} catch(Exception e) {
   		Debug.printStackTrace(e);
-  		return null;
+  		return new StringListImpl();
   	}
   }
   

@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -94,20 +95,26 @@ OpenUrlWindow
     gridData = new GridData();
     referrer_label.setLayoutData(gridData);
     
-    final Text referrer_text = new Text(shell, SWT.BORDER);
+    final Combo referrer_combo = new Combo(shell, SWT.BORDER);
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint=150;
 	gridData.grabExcessHorizontalSpace = true;
-    referrer_text.setLayoutData(gridData);
+	referrer_combo.setLayoutData(gridData);
+    
+    final StringList referrers = COConfigurationManager.getStringListParameter("url_open_referrers");
+    StringIterator iter = referrers.iterator();
+    while(iter.hasNext()) {
+    	referrer_combo.add(iter.next());
+    }
     
     if ( referrer != null && referrer.length() > 0 ){
     	
-    	referrer_text.setText( referrer );
+    	referrer_combo.setText( referrer );
     	
     }else if ( last_referrer != null ){
     	
-    	referrer_text.setText( last_referrer );
+    	referrer_combo.setText( last_referrer );
     }
     
     Label referrer_info = new Label(shell, SWT.NULL);
@@ -141,7 +148,13 @@ OpenUrlWindow
     ok.setText(MessageText.getString("Button.ok"));
     ok.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {     
-      	last_referrer	= referrer_text.getText().trim();
+      	last_referrer	= referrer_combo.getText().trim();
+      	
+      	if(! referrers.contains(last_referrer)) {
+      		referrers.add(last_referrer);
+      		COConfigurationManager.setParameter("url_open_referrers",referrers);
+      		COConfigurationManager.save();
+      	}
       	
       	COConfigurationManager.setParameter( CONFIG_REFERRER_DEFAULT, last_referrer );
       	COConfigurationManager.save();
