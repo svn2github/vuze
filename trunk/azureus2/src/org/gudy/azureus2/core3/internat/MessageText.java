@@ -6,37 +6,23 @@
  */
 package org.gudy.azureus2.core3.internat;
 
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;
+
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.LineNumberInputStream;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.FileUtil;
 
 /**
  * @author Arbeiten
  * 
- * To change the template for this generated type comment go to Window -
- * Preferences - Java - Code Generation - Code and Comments
+ * @author CrazyAlchemist Added keyExistsForDefaultLocale
  */
 public class MessageText {
 
@@ -57,6 +43,16 @@ public class MessageText {
       return false;
     }
   }
+
+    public static boolean keyExistsForDefaultLocale(final String key) {
+        try {
+            DEFAULT_BUNDLE.getString(key);
+            return true;
+        } catch (MissingResourceException e) {
+            return false;
+        }
+    }
+
 
   /**
    * @param key

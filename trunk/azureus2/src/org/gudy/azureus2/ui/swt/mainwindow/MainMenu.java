@@ -22,17 +22,11 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.util.Locale;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -40,6 +34,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.ui.swt.KeyBindings;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -53,7 +48,8 @@ import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
-import com.aelitis.azureus.core.AzureusCoreFactory;
+
+import java.util.Locale;
 
 /**
  * @author Olivier Chalouhi
@@ -79,6 +75,7 @@ public class MainMenu {
   }
 
   /**
+   * Populates Azureus' menu bar
    * @param locales
    */
   public void buildMenu(Locale[] locales) {
@@ -107,9 +104,11 @@ public class MainMenu {
       new MenuItem(fileMenu, SWT.SEPARATOR);
   
       MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_export, "MainWindow.menu.file.export");
       Messages.setLanguageText(file_export, "MainWindow.menu.file.export"); //$NON-NLS-1$
   
       MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_import, "MainWindow.menu.file.import");
       Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
        
       new MenuItem(fileMenu, SWT.SEPARATOR);
@@ -128,8 +127,10 @@ public class MainMenu {
       
       //No need for exit on OS X
       if(! Constants.isOSX) {
-
+        new MenuItem(fileMenu, SWT.SEPARATOR);
+  
         MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
+        KeyBindings.setAccelerator(file_exit, "MainWindow.menu.file.exit");
         Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
         
         file_exit.addListener(SWT.Selection, new Listener() {
@@ -145,6 +146,7 @@ public class MainMenu {
       file_new.setMenu(newMenu);
   
       MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_new_torrent, "MainWindow.menu.file.open.torrent");
       Messages.setLanguageText(file_new_torrent, "MainWindow.menu.file.open.torrent"); //$NON-NLS-1$
       file_new_torrent.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -163,6 +165,7 @@ public class MainMenu {
 */
   
       MenuItem file_new_torrent_no_default = new MenuItem(newMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault");
       Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$
       file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -171,6 +174,7 @@ public class MainMenu {
       });
   
       MenuItem file_new_torrent_for_seeding = new MenuItem(newMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding");
       Messages.setLanguageText(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding"); //$NON-NLS-1$
       file_new_torrent_for_seeding.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -179,6 +183,7 @@ public class MainMenu {
       });
   
       MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
+      KeyBindings.setAccelerator(file_new_url, "MainWindow.menu.file.open.url");
       Messages.setLanguageText(file_new_url, "MainWindow.menu.file.open.url"); //$NON-NLS-1$
       file_new_url.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -186,6 +191,7 @@ public class MainMenu {
         }
       });
       MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_new_folder, "MainWindow.menu.file.folder");
       Messages.setLanguageText(file_new_folder, "MainWindow.menu.file.folder"); //$NON-NLS-1$
       file_new_folder.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -199,6 +205,7 @@ public class MainMenu {
       file_share.setMenu(shareMenu);
   
       MenuItem file_share_file = new MenuItem(shareMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_share_file, "MainWindow.menu.file.share.file");
       Messages.setLanguageText(file_share_file, "MainWindow.menu.file.share.file");
       file_share_file.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
@@ -207,6 +214,7 @@ public class MainMenu {
       });
       
       MenuItem file_share_dir = new MenuItem(shareMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_share_dir, "MainWindow.menu.file.share.dir");
       Messages.setLanguageText(file_share_dir, "MainWindow.menu.file.share.dir");
       file_share_dir.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
@@ -215,6 +223,7 @@ public class MainMenu {
       });
       
       MenuItem file_share_dircontents = new MenuItem(shareMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_share_dircontents, "MainWindow.menu.file.share.dircontents");
       Messages.setLanguageText(file_share_dircontents, "MainWindow.menu.file.share.dircontents");
       file_share_dircontents.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
@@ -222,6 +231,7 @@ public class MainMenu {
       	}
       });
       MenuItem file_share_dircontents_rec = new MenuItem(shareMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_share_dircontents_rec, "MainWindow.menu.file.share.dircontentsrecursive");
       Messages.setLanguageText(file_share_dircontents_rec, "MainWindow.menu.file.share.dircontentsrecursive");
       file_share_dircontents_rec.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
@@ -261,15 +271,19 @@ public class MainMenu {
       // new MenuItem(fileMenu,SWT.SEPARATOR);
       
       final MenuItem itemStartAll = new MenuItem(downloadMenu,SWT.NULL);
+      KeyBindings.setAccelerator(itemStartAll, "MainWindow.menu.transfers.startalltransfers");
       Messages.setLanguageText(itemStartAll,"MainWindow.menu.transfers.startalltransfers");
       
-      final MenuItem itemStopAll = new MenuItem(downloadMenu,SWT.NULL); 
+      final MenuItem itemStopAll = new MenuItem(downloadMenu,SWT.NULL);
+      KeyBindings.setAccelerator(itemStopAll, "MainWindow.menu.transfers.stopalltransfers");
       Messages.setLanguageText(itemStopAll,"MainWindow.menu.transfers.stopalltransfers");
 
       final MenuItem itemPause = new MenuItem(downloadMenu,SWT.NULL);
+      KeyBindings.setAccelerator(itemPause, "MainWindow.menu.transfers.pausetransfers");
       Messages.setLanguageText(itemPause,"MainWindow.menu.transfers.pausetransfers");
       
-      final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL); 
+      final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL);
+      KeyBindings.setAccelerator(itemResume, "MainWindow.menu.transfers.resumetransfers");
       Messages.setLanguageText(itemResume,"MainWindow.menu.transfers.resumetransfers");
 
       itemStartAll.addListener(SWT.Selection, new Listener() {
@@ -326,6 +340,7 @@ public class MainMenu {
       viewItem.setMenu(viewMenu);
   
       MenuItem view_torrents = new MenuItem(viewMenu, SWT.NULL);
+      KeyBindings.setAccelerator(view_torrents, "MainWindow.menu.view.mytorrents");
       Messages.setLanguageText(view_torrents, "MainWindow.menu.view.mytorrents"); //$NON-NLS-1$
       view_torrents.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -334,6 +349,7 @@ public class MainMenu {
       });
   
     MenuItem view_tracker = new MenuItem(viewMenu, SWT.NULL);
+    KeyBindings.setAccelerator(view_tracker, "MainWindow.menu.view.mytracker");
     Messages.setLanguageText(view_tracker, "MainWindow.menu.view.mytracker"); //$NON-NLS-1$
     view_tracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
@@ -342,6 +358,7 @@ public class MainMenu {
     });
     
     MenuItem view_shares = new MenuItem(viewMenu, SWT.NULL);
+    KeyBindings.setAccelerator(view_shares, "MainWindow.menu.view.myshares");
     Messages.setLanguageText(view_shares, "MainWindow.menu.view.myshares"); //$NON-NLS-1$
     view_shares.addListener(SWT.Selection, new Listener() {
     	public void handleEvent(Event e) {
@@ -354,6 +371,7 @@ public class MainMenu {
       new MenuItem(viewMenu, SWT.SEPARATOR);
   
       MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
+      KeyBindings.setAccelerator(view_closeDetails, "MainWindow.menu.closealldetails");
       Messages.setLanguageText(view_closeDetails, "MainWindow.menu.closealldetails"); //$NON-NLS-1$
       view_closeDetails.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -371,6 +389,8 @@ public class MainMenu {
       menu_tools.setMenu(toolsMenu);
       
       MenuItem view_console = new MenuItem(toolsMenu, SWT.NULL);
+
+      KeyBindings.setAccelerator(view_console, "MainWindow.menu.view.console");
       Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
       view_console.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -379,6 +399,7 @@ public class MainMenu {
       });
   
       MenuItem view_stats = new MenuItem(toolsMenu, SWT.NULL);
+      KeyBindings.setAccelerator(view_stats, "MainWindow.menu.view.stats");
       Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
       view_stats.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -391,6 +412,7 @@ public class MainMenu {
       new MenuItem(toolsMenu, SWT.SEPARATOR);
       
       MenuItem file_configure = new MenuItem(toolsMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_configure, "MainWindow.menu.file.configure");
       Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
       file_configure.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -402,6 +424,7 @@ public class MainMenu {
       //No need for configuration on OS X
       if(! Constants.isOSX) {                
         MenuItem view_config = new MenuItem(toolsMenu, SWT.NULL);
+        KeyBindings.setAccelerator(view_config, "MainWindow.menu.view.configuration");
         Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
         view_config.addListener(SWT.Selection, new Listener() {
           public void handleEvent(Event e) {
@@ -423,6 +446,7 @@ public class MainMenu {
       new MenuItem(pluginMenu, SWT.SEPARATOR);
       
       MenuItem plugins_install_wizard = new MenuItem(pluginMenu, SWT.NULL);
+      KeyBindings.setAccelerator(plugins_install_wizard, "MainWindow.menu.plugins.installPlugins");
       Messages.setLanguageText(plugins_install_wizard, "MainWindow.menu.plugins.installPlugins"); //$NON-NLS-1$
       plugins_install_wizard.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -431,6 +455,7 @@ public class MainMenu {
       });
       
       MenuItem plugins_uninstall_wizard = new MenuItem(pluginMenu, SWT.NULL);
+      KeyBindings.setAccelerator(plugins_uninstall_wizard, "MainWindow.menu.plugins.uninstallPlugins");
       Messages.setLanguageText(plugins_uninstall_wizard, "MainWindow.menu.plugins.uninstallPlugins"); //$NON-NLS-1$
       plugins_uninstall_wizard.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -456,6 +481,7 @@ public class MainMenu {
       if ( !SystemProperties.isJavaWebStartInstance()){
         
         MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
+        KeyBindings.setAccelerator(help_checkupdate, "MainWindow.menu.help.checkupdate");
         Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
         help_checkupdate.addListener(SWT.Selection, new Listener() {
           public void handleEvent(Event e) {          

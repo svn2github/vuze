@@ -31,17 +31,19 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.config.IParameter;
 import org.gudy.azureus2.ui.swt.views.TableView;
+
+import java.util.regex.Pattern;
 
 
 /**
  * @author Arbeiten
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
 public class Messages {
+
+  private static final Pattern HIG_ELLIP_EXP = Pattern.compile("([\\.]{3})"); // rec. hig style on some platforms
 
   /**
    * 
@@ -226,8 +228,17 @@ public class Messages {
            	message = MessageText.getString((String) widget.getData(), params);         	
         }        
         
-        if (widget instanceof MenuItem)
-           ((MenuItem) widget).setText(message);
+        if (widget instanceof MenuItem) {
+            final MenuItem menuItem = ((MenuItem) widget);
+
+            if(Constants.isOSX)
+                menuItem.setText(HIG_ELLIP_EXP.matcher(message).replaceAll("\u2026")); // hig style - ellipsis
+            else
+                menuItem.setText(message);
+
+            if(menuItem.getAccelerator() != 0) // opt-in only for now; remove this conditional check to allow accelerators for arbitrary MenuItem objects
+                KeyBindings.setAccelerator(menuItem, (String)menuItem.getData()); // update keybinding
+        }
         else if (widget instanceof TableColumn)
            ((TableColumn) widget).setText(message);
         else if (widget instanceof Label)
