@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -71,7 +72,7 @@ public class DiskManager {
   //The map that associate
   private List[] pieceMap;
   private int pieceCompletion[];
-  private List[] priorityLists;
+  private BitSet[] priorityLists;
 //private int[][] priorityLists;
 
   private FileInfo[] files;
@@ -117,7 +118,7 @@ public class DiskManager {
     //  create the pieces map
     pieceMap = new ArrayList[nbPieces];
     pieceCompletion = new int[nbPieces];
-    priorityLists = new List[10];
+    priorityLists = new BitSet[10];
 //    priorityLists = new int[10][nbPieces + 1];
 
     // the piece numbers for getPiecenumberToDownload
@@ -394,6 +395,28 @@ public class DiskManager {
     }
 
     return pieceToFileList;
+  }
+
+  private static class FlyWeightInteger {
+	private static Vector array = new Vector(100);
+  	
+	public static synchronized Integer getInteger(int value) {
+		Integer tmp=null;		
+		synchronized (array) {
+			if (value >= array.size()) {
+				array.setSize(value+1);
+				tmp=new Integer(value);
+				array.set(value,tmp);
+				return tmp;
+			}
+			tmp=(Integer)array.get(value);
+			if (tmp==null) {
+				tmp=new Integer(value);
+				array.set(value,tmp);
+			}
+			return tmp;  			
+		}
+	}
   }
 
   private static class BtFile {
@@ -1241,10 +1264,16 @@ public class DiskManager {
     }
 
     for (int i = 0; i < priorityLists.length; i++) {
-      ArrayList list = new ArrayList();
+	  BitSet list = priorityLists[i];
+	  if (list == null) {
+	  	list = new BitSet(pieceCompletion.length+1);
+	  } else {
+	    list.clear();
+	  }
+      
       for (int j = 0; j < pieceCompletion.length; j++) {
         if (pieceCompletion[j] == i) {
-          list.add(new Integer(j));
+          list.set(j);
         }
       }
       priorityLists[i] = list;
@@ -1312,7 +1341,8 @@ public class DiskManager {
     Integer pieceInteger; 
     for (int i = 9; i >= 0; i--) {
       for (int j = 0; j < nbPieces; j++) {
-        if (_piecesRarest[j] && priorityLists[i].contains(pieceInteger = new Integer(j))) {
+        if (_piecesRarest[j] && priorityLists[i].get(j)) {
+		  pieceInteger = FlyWeightInteger.getInteger(j);
           pieces.add(pieceInteger);
         }
       }
