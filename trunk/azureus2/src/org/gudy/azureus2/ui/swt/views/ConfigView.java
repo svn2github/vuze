@@ -1269,10 +1269,16 @@ public class ConfigView extends AbstractIView {
    }
    new IntListParameter(gStyle, "ReOrder Delay", 0, rLabels, rValues);
    
+   
+   /**
+    * Disabled for the moment because of some side effects
+    */
+   /*
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.alwaysShowTorrentFiles"); //$NON-NLS-1$
    new BooleanParameter(gStyle, "Always Show Torrent Files", true); //$NON-NLS-1$
-
+   */
+   
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.useSIUnits"); //$NON-NLS-1$
    new BooleanParameter(gStyle, "config.style.useSIUnits",false); //$NON-NLS-1$

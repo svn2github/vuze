@@ -102,6 +102,16 @@ public class ConfigurationChecker {
       changed = true;
     }
     
+    /**
+     * Patch to insure that this option is disabled
+     */    
+    boolean astf = COConfigurationManager.getBooleanParameter("Always Show Torrent Files",true);
+    if(astf) {
+      COConfigurationManager.setParameter("Always Show Torrent Files",false);
+      changed = true;
+    }
+    
+    
     if(changed) {
       COConfigurationManager.save();
     }    
