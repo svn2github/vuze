@@ -65,8 +65,8 @@ public class BTHave implements BTMessage {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }
     
-    if( data.remaining( DirectByteBuffer.SS_MSG ) < 4 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 4" );
+    if( data.remaining( DirectByteBuffer.SS_MSG ) != 4 ) {
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 4" );
     }
     
     int number = data.getInt( DirectByteBuffer.SS_MSG );

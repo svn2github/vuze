@@ -43,16 +43,16 @@ public class BTCancel implements BTMessage {
   
   
   public BTCancel( int piece_number, int piece_offset, int length ) {
+    this.piece_number = piece_number;
+    this.piece_offset = piece_offset;
+    this.length = length;
+    description = BTMessage.ID_BT_CANCEL + " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+    
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 12 ) );
     buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
     buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
     buffer.putInt( DirectByteBuffer.SS_BT, length );
     buffer.flip( DirectByteBuffer.SS_BT );
-        
-    this.piece_number = piece_number;
-    this.piece_offset = piece_offset;
-    this.length = length;
-    description = BTMessage.ID_BT_CANCEL + " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
   }
   
   
@@ -80,8 +80,8 @@ public class BTCancel implements BTMessage {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }
     
-    if( data.remaining( DirectByteBuffer.SS_MSG ) < 12 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 12" );
+    if( data.remaining( DirectByteBuffer.SS_MSG ) != 12 ) {
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 12" );
     }
     
     int num = data.getInt( DirectByteBuffer.SS_MSG );

@@ -94,8 +94,8 @@ public class BTRequest implements BTMessage {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }
     
-    if( data.remaining( DirectByteBuffer.SS_MSG ) < 12 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 12" );
+    if( data.remaining( DirectByteBuffer.SS_MSG ) != 12 ) {
+      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 12" );
     }
     
     int num = data.getInt( DirectByteBuffer.SS_MSG );
