@@ -63,8 +63,15 @@ public class ChooseServicePanel extends AbstractWizardPanel {
     layout.numColumns = 2;
     rootPanel.setLayout(layout);
     
+    Label label = new Label(rootPanel,SWT.WRAP);
+    GridData gridData = new GridData();
+    gridData.widthHint = 380;    
+    gridData.horizontalSpan = 2;
+    label.setLayoutData(gridData);
+    label.setText(MessageText.getString("ipCheckerWizard.explanations"));
+    
     this.servicesList = new Combo(rootPanel,SWT.READ_ONLY);
-    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     servicesList.setLayoutData(gridData);
     
@@ -74,7 +81,7 @@ public class ChooseServicePanel extends AbstractWizardPanel {
       servicesList.add(services[i].getName());
     }        
     
-    Label label = new Label(rootPanel,SWT.NULL);
+    label = new Label(rootPanel,SWT.NULL);
     label.setText(MessageText.getString("ipCheckerWizard.service.description"));
     
     this.serviceDescription = new Label(rootPanel,SWT.NULL);
