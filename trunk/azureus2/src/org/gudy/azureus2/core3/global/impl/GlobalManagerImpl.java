@@ -144,9 +144,10 @@ public class GlobalManagerImpl
   
   
   /* Whether the GlobalManager is active (false) or stopped (true) */
-  private boolean 					isStopped = false;
-  private boolean					destroyed;
-  private boolean needsSaving = false;
+  
+  private boolean 	isStopping;
+  private boolean	destroyed;
+  private boolean 	needsSaving = false;
   
   public class Checker extends AEThread {
     boolean finished = false;
@@ -449,7 +450,7 @@ public class GlobalManagerImpl
    		DownloadManager 	download_manager, 
 		boolean 			save) 
    {
-    if (!isStopped) {
+    if (!isStopping) {
       try{
       	managers_mon.enter();
       	
@@ -753,54 +754,65 @@ public class GlobalManagerImpl
   /* Puts GlobalManager in a stopped state.
    * Used when closing down Azureus.
    */
-  public void stopAll() {
-    if (!isStopped){
-    	
-    	informDestroyInitiated();
-    	
-    	if ( host_support != null ){
-    		host_support.destroy();
-    	}
-      
-      torrent_folder_watcher.destroy();
-    	
-    		// kick off a non-daemon task. This will ensure that we hang around
-    		// for at least LINGER_PERIOD to run other non-daemon tasks such as writing
-    		// torrent resume data...
-    	
-    	try{
-	    	NonDaemonTaskRunner.run(
-	    			new NonDaemonTask()
-	    			{
-	    				public Object
-	    				run()
-	    				{	
-	    					return( null );
-	    				}
-	    			});
-    	}catch( Throwable e ){
-    		Debug.printStackTrace( e );
-    	}
-    	
-      checker.stopIt();
-      
-      saveDownloads();
-      
-      stopAllDownloads();
+  public void 
+  stopAll() {
+  	try{
+  		managers_mon.enter();
+  		
+  		if ( isStopping ){
+  			
+  			return;
+  		}
+  		
+  		isStopping	= true;
+  		
+  	}finally{
+  		
+  		managers_mon.exit();
+  	}
+  		
+	informDestroyInitiated();
+	
+	if ( host_support != null ){
+		host_support.destroy();
+	}
+  
+  torrent_folder_watcher.destroy();
+	
+		// kick off a non-daemon task. This will ensure that we hang around
+		// for at least LINGER_PERIOD to run other non-daemon tasks such as writing
+		// torrent resume data...
+	
+	try{
+    	NonDaemonTaskRunner.run(
+    			new NonDaemonTask()
+    			{
+    				public Object
+    				run()
+    				{	
+    					return( null );
+    				}
+    			});
+	}catch( Throwable e ){
+		Debug.printStackTrace( e );
+	}
+	
+  checker.stopIt();
+  
+  saveDownloads();
+  
+  stopAllDownloads();
 
-      if ( stats_writer != null ){
-      	
-      	stats_writer.destroy();
-      }
-      
-      managers_cow	= new ArrayList();
-      
-      manager_map.clear();
-      
-      isStopped = true;
-      
-      informDestroyed();
-    }
+  if ( stats_writer != null ){
+  	
+  	stats_writer.destroy();
+  }
+  
+  managers_cow	= new ArrayList();
+  
+  manager_map.clear();
+  
+  informDestroyed();
   }
 
   /**
@@ -1393,7 +1405,7 @@ public class GlobalManagerImpl
 	addListener(
 		GlobalManagerListener	listener )
 	{
-		if ( isStopped ){
+		if ( isStopping ){
 				
 			listener.destroyed();
 				
