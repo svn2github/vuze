@@ -13,7 +13,6 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details ( see the LICENSE file ).
- *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -45,7 +44,8 @@ FMFileImpl
 	protected static final int 	WRITE_RETRY_LIMIT		= 10;
 	protected static final int	WRITE_RETRY_DELAY		= 100;
 	
-	protected static final boolean	DEBUG	= true;
+	protected static final boolean	DEBUG			= true;
+	protected static final boolean	DEBUG_VERBOSE	= false;
 	
 	protected long lBytesRead = 0;
 	protected long lClosedAt = 0;
@@ -406,7 +406,10 @@ FMFileImpl
 								
 									partial_write	= true;
 									
-									Debug.out( "FMFile::write: **** partial write **** this = " + written + ", total = " + actual_write + ", target = " + expected_write );
+									if ( DEBUG_VERBOSE ){
+										
+										Debug.out( "FMFile::write: **** partial write **** this = " + written + ", total = " + actual_write + ", target = " + expected_write );
+									}
 								}
 							}
 							
@@ -422,8 +425,11 @@ FMFileImpl
 								
 							}else{
 								
-								Debug.out( "FMFile::write: zero length write - retrying" );
-							
+								if ( DEBUG_VERBOSE ){
+									
+									Debug.out( "FMFile::write: zero length write - retrying" );
+								}
+								
 								try{
 									Thread.sleep( WRITE_RETRY_DELAY*loop );
 									
@@ -446,7 +452,7 @@ FMFileImpl
 					
 					}else{
 						
-						if ( partial_write ){
+						if ( partial_write && DEBUG_VERBOSE ){
 							
 							Debug.out( "FMFile::write: **** partial write **** completed ok" );
 						}
