@@ -1274,7 +1274,6 @@ PEPeerControlImpl
    * @param sckClient the incoming connection socket
    */
   public void addPeerTransport(Object param) {
-    LGLogger.log(LGLogger.INFORMATION,"ADDPEERTRANSPORT = " + this.toString());
     
     this.insertPeerSocket( _server.createPeerTransport(param));
   }
@@ -1758,9 +1757,8 @@ PEPeerControlImpl
       return;     
     }    
     computeEndGameModeChunks();
-    endGameMode = true;
-    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode");
-    System.out.println("End-Game Mode activated");
+    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _manager.getName());
+    //System.out.println("End-Game Mode activated");
   }
   
   private void computeEndGameModeChunks() {    
