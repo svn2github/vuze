@@ -1026,7 +1026,16 @@ PEPeerControlImpl
           //ie more blocks have already been WRITTEN on disk (not requested)
           // and the piece corresponds to our class of peer
           // or nothing has happened to the piece in the last 120 secs
-          if (_pieces[i].getCompleted() > lastCompleted && (slowPeer == _pieces[i].isSlowPiece() || (_pieces[i].isSlowPiece() && (SystemTime.getCurrentTime() - _pieces[i].getLastWriteTime() > 120 * 1000))) ) {
+          if (_pieces[i].getCompleted() > lastCompleted &&
+	              (slowPeer == _pieces[i].isSlowPiece() ||
+	                  (_pieces[i].isSlowPiece() && 
+	                      (SystemTime.getCurrentTime() - _pieces[i].getLastWriteTime() > 120 * 1000)
+	                   )
+	               ) && 
+	               ((!pc.isSnubbed()) ||
+	                   (_pieces[i]. getNbBlocs() - _pieces[i].getCompleted() > 1)
+	               )
+              ) {
             //If we had marked a block previously, we must unmark it
             if (pieceNumber != -1) {
               //So pieceNumber contains the last piece
