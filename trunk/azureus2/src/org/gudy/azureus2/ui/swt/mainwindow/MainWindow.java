@@ -61,6 +61,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.TorrentFolderWatcher;
 import org.gudy.azureus2.core3.disk.TorrentFolderWatcher.FolderWatcher;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -100,7 +101,7 @@ import org.gudy.azureus2.ui.swt.sharing.progress.*;
  * Runnable : so that GUI initialization is done via asyncExec(this)
  * STProgressListener : To make it visible once initialization is done
  */
-public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler, STProgressListener, Runnable {
+public class MainWindow implements GlobalManagerListener, DownloadManagerListener, ParameterListener, IconBarEnabler, STProgressListener, Runnable {
   
   private static MainWindow window;
 
@@ -705,6 +706,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
     COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
     COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
+    
     Tab.addTabKeyListenerToComposite(folder);
     
     globalManager.startChecker();
@@ -867,14 +869,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   downloadManagerAdded(
   	final DownloadManager created) 
   {
-    if ( created.getState() == DownloadManager.STATE_STOPPED || 
-         created.getState() == DownloadManager.STATE_QUEUED ||
-         created.getState() == DownloadManager.STATE_ERROR ||
-         created.getState() == DownloadManager.STATE_SEEDING )
-      return;
     
     DonationWindow2.checkForDonationPopup();
       
+    created.addListener(this);
+    /*
 	if (display != null && !display.isDisposed()){
 	
 	   display.asyncExec(new Runnable() {
@@ -895,6 +894,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 			}
 	   });
     }
+    */
   }
 
   public void openManagerView(DownloadManager downloadManager) {
@@ -1199,7 +1199,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       } catch (NoSuchMethodError e) { 
         /** < SWT 3.0RC1 **/ 
       }
-    }     
+    }
   }
   
  
@@ -1455,6 +1455,45 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       statusText.setCursor(null); 
       statusText.setForeground(null);
       updateStatusText();
+    }
+  }
+  
+  //DownloadManagerListener implementation
+
+  public void completionChanged(DownloadManager manager, boolean bCompleted) {
+    // Do Nothing
+  }
+  
+  public void downloadComplete(DownloadManager manager) {
+    // Do Nothing
+
+  }
+
+  public void positionChanged(DownloadManager download, int oldPosition,
+      int newPosition) {
+    // Do Nothing
+
+  }
+
+  public void stateChanged(final DownloadManager manager, int state) {
+    // if state == STARTED, then open the details window (according to config)
+    if(state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING) {
+        if(display != null && !display.isDisposed()) {
+          display.asyncExec(new Runnable() {
+            public void run() {
+              if (COConfigurationManager.getBooleanParameter("Open Details",false)) {
+                openManagerView(manager);
+              }
+              
+              if (COConfigurationManager.getBooleanParameter("Open Bar", false)) {
+                synchronized (downloadBars) {
+                  MinimizedWindow mw = new MinimizedWindow(manager, mainWindow);
+                  downloadBars.put(manager, mw);
+                }
+              }
+            }
+          });
+        }
     }
   }
   
