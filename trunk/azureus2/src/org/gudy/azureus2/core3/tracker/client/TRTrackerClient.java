@@ -67,7 +67,6 @@ TRTrackerClient
 	
 	public void
 	setRefreshDelayOverrides(
-		boolean	use_minimum,
 		int		percentage );
 	
 	public int

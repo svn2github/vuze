@@ -87,7 +87,6 @@ TRTrackerClientClassicImpl
 	private boolean			update_in_progress	= false;
 	
 	private long			rd_last_override;
-	private boolean			rd_override_use_minimum;
 	private int				rd_override_percentage	= 100;
 
   	private List trackerUrlLists;
@@ -308,25 +307,29 @@ TRTrackerClientClassicImpl
 	protected long
 	getAdjustedSecsToWait()
 	{
-  		long		secs_to_wait = current_time_to_wait_secs;
+
+	  long		secs_to_wait = current_time_to_wait_secs;
 													
-  		if ( 	rd_override_use_minimum ||
-  				last_response.getStatus() != TRTrackerResponse.ST_ONLINE ){
+	  if( last_response.getStatus() != TRTrackerResponse.ST_ONLINE ) {
   			
-  			secs_to_wait = getErrorRetryInterval();
+	    secs_to_wait = getErrorRetryInterval();
 										
-  		}else{
+	  }
+    else{
+        
+      if( rd_override_percentage == 0 )  return REFRESH_MINIMUM_SECS;
 							
-	  		secs_to_wait = (secs_to_wait*rd_override_percentage)/100;
+      secs_to_wait = (secs_to_wait * rd_override_percentage) /100;
 									
-	  		if ( secs_to_wait < REFRESH_MINIMUM_SECS ){
+      if ( secs_to_wait < REFRESH_MINIMUM_SECS ){
 	  			
-		  		secs_to_wait = REFRESH_MINIMUM_SECS;
-	  		}
-  		}
+        secs_to_wait = REFRESH_MINIMUM_SECS;
+      }
+    }
   		
-   		return( secs_to_wait );
+	  return( secs_to_wait );
 	}
+  
 	
 	public int
   	getStatus()
@@ -342,31 +345,25 @@ TRTrackerClientClassicImpl
   	
 	public void
 	setRefreshDelayOverrides(
-		boolean	use_minimum,
 		int		percentage )
 	{
 		if ( percentage > 100 ){
 			
 			percentage = 100;
 			
-		}else if ( percentage <= 0 ){
+		}else if ( percentage < 0 ){
 			
-			percentage	= 1;
+			percentage	= 0;
 		}
 		
 		long	now = SystemTime.getCurrentTime();
 
-		if ( ( SystemTime.isErrorLast10sec() || now - rd_last_override > OVERRIDE_PERIOD ) &&
-				(	rd_override_use_minimum != use_minimum ||
-					rd_override_percentage != percentage )){
+		if ( ( SystemTime.isErrorLast10sec() || now - rd_last_override > OVERRIDE_PERIOD ) && rd_override_percentage != percentage ){
 		
 			synchronized(this){
-			
-				// System.out.println( "TRTrackerClient::setRefreshDelayOverrides(" + use_minimum + "/" + percentage + ")");
-				
+
 				rd_last_override	= now;
 				
-				rd_override_use_minimum	= use_minimum;
 				rd_override_percentage	= percentage;
 				
 				if ( current_timer_event != null && !current_timer_event.isCancelled()){

@@ -779,7 +779,6 @@ PEPeerControlImpl
   checkTracker() 
   {
   	int		percentage 			= 100;
-  	boolean	use_minimum_delay	= false;
     final int LIMIT = 100;
   	
     //if we're not downloading, use normal re-check rate
@@ -807,7 +806,7 @@ PEPeerControlImpl
       
       int currConnectionCount = PeerIdentityManager.getIdentityCount( _hash );
       if ( currConnectionCount == 0 ) {
-        use_minimum_delay = true;  //no current connections, recheck in 1 min
+        percentage = 0;  //no current connections, recheck in 1 min
       }
       else if ( maxAllowed > 0 ) {
         float currConnectionPercent = ((float)currConnectionCount) / (currConnectionCount + maxAllowed);
@@ -818,7 +817,7 @@ PEPeerControlImpl
     boolean just_completed = _finished && SystemTime.getCurrentTime() - _timeFinished < 10000;
         
     if( !just_completed ) {
-      _tracker.setRefreshDelayOverrides( use_minimum_delay, percentage );
+      _tracker.setRefreshDelayOverrides( percentage );
     }
 
   }
