@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -72,6 +73,34 @@ public class MessageText {
     } catch (MissingResourceException e) {
       return '!' + key + '!';
     }
+  }
+  
+  
+  /**
+   * Process a sequence of words, and translate the ones containing at least one '.', unless it's an ending dot.
+   * @param sentence 
+   * @return the formated String in the current Locale
+   */
+  public static String getStringForSentence(String sentence) {
+    StringTokenizer st = new StringTokenizer(sentence , " ");
+    StringBuffer result = new StringBuffer(sentence.length());
+    String separator = "";
+    while(st.hasMoreTokens())
+    {
+      result.append(separator);
+      separator = " ";
+      
+      String word = st.nextToken();
+      int length = word.length();
+      int position = word.indexOf(".");
+      if(position == -1 || (position+1) < length) {
+        result.append(word);
+      } else {
+        //We have a key :
+        result.append(getString(word));
+      }         
+    }    
+    return result.toString();
   }
 
   /**
