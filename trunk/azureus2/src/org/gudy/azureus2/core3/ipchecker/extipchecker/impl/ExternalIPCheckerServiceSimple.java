@@ -41,6 +41,12 @@ ExternalIPCheckerServiceSimple
 		url		= _url;
 	}
 	
+	public boolean
+	supportsCheck()
+	{
+		return( true  );
+	}
+
 	public void
 	initiateCheck(
 		long		timeout )

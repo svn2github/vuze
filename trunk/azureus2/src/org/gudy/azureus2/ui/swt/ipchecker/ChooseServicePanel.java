@@ -80,14 +80,7 @@ public class ChooseServicePanel extends AbstractWizardPanel {
     for(int i = 0 ; i < services.length ; i++) {
       servicesList.add(services[i].getName());
     }        
-    
-    label = new Label(rootPanel,SWT.NULL);
-    label.setText(MessageText.getString("ipCheckerWizard.service.description"));
-    
-    this.serviceDescription = new Label(rootPanel,SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    serviceDescription.setLayoutData(gridData);
-    
+        
     label = new Label(rootPanel,SWT.NULL);
     label.setText(MessageText.getString("ipCheckerWizard.service.url"));
 
@@ -113,6 +106,20 @@ public class ChooseServicePanel extends AbstractWizardPanel {
       }
     });
     servicesList.select(0);
+    
+	label = new Label(rootPanel,SWT.NULL);
+	gridData = new GridData();
+	gridData.heightHint = 50;
+	gridData.verticalAlignment = GridData.VERTICAL_ALIGN_BEGINNING;
+	label.setLayoutData(gridData);
+	label.setText(MessageText.getString("ipCheckerWizard.service.description"));
+    
+	this.serviceDescription = new Label(rootPanel,SWT.WRAP);
+	gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.heightHint = 50;
+    gridData.verticalAlignment = GridData.VERTICAL_ALIGN_BEGINNING;
+	serviceDescription.setLayoutData(gridData);
+
     updateInfos();
     
   }
@@ -122,6 +129,7 @@ public class ChooseServicePanel extends AbstractWizardPanel {
     serviceDescription.setText(services[selection].getDescription());
     serviceUrl.setText(services[selection].getURL());
     ((IpCheckerWizard)wizard).selectedService = services[selection];
+	((IpCheckerWizard)wizard).setFinishEnabled( services[selection].supportsCheck());
   }
     
   public boolean isFinishEnabled() {

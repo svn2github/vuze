@@ -1,6 +1,6 @@
 /*
- * File    : ExternalIPCheckerService.java
- * Created : 09-Nov-2003
+ * File    : ExternalIPCheckerServiceNoLookup.java
+ * Created : 19-Nov-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,36 +19,31 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.ipchecker.extipchecker;
+package org.gudy.azureus2.core3.ipchecker.extipchecker.impl;
 
 /**
  * @author parg
  *
  */
-public interface 
-ExternalIPCheckerService 
+public class 
+ExternalIPCheckerServiceNoLookup
+	extends ExternalIPCheckerServiceImpl
 {
-	public String
-	getName();
-	
-	public String
-	getDescription();
-	
-	public String
-	getURL();
+	protected
+	ExternalIPCheckerServiceNoLookup(
+		String		key )
+	{
+		super( key );
+	}
 	
 	public boolean
-	supportsCheck();
+	supportsCheck()
+	{
+		return( false  );
+	}
 	
-	public void
-	initiateCheck(
-		long		timeout	);	// millis
-	
-	public void
-	addListener(
-		ExternalIPCheckerServiceListener	l );
-		
-	public void
-	removeListener(
-		ExternalIPCheckerServiceListener	l );
+	protected void
+	initiateCheckSupport()
+	{
+	}
 }

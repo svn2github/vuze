@@ -38,6 +38,7 @@ ExternalIPCheckerImpl
 		services = new ExternalIPCheckerService[]{
 							new ExternalIPCheckerServiceDynDNS(),
 							new ExternalIPCheckerServiceDiscoveryVIP(),
+							new ExternalIPCheckerServiceNoLookup( "IPChecker.external.service.no-ip" ),
 						};
 	}
 	public ExternalIPCheckerService[]
