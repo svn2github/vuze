@@ -307,7 +307,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
         try {
           int value = Integer.parseInt(maxULSpeed.getText());
    
-          manager.getStats().setMaxDownloadKBSpeed(value * 1024);
+          manager.getStats().setUploadRateLimitBytesPerSecond(value * 1024);
         }
         catch (Exception e) {}
       }
