@@ -116,9 +116,6 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 	public DiskManagerFileInfo[]
 	getFiles();
 
-	public String[][] 
-	getFilesStatus();
- 
 	public int
 	getState();
 	
