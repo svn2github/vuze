@@ -123,9 +123,9 @@ TRTrackerServerImpl
 	
 	protected Map		torrent_map = new HashMap(); 
 	
-	protected int		current_announce_retry_interval;
-	protected int		current_scrape_retry_interval;
-	protected int		current_total_clients;
+	protected long		current_announce_retry_interval;
+	protected long		current_scrape_retry_interval;
+	protected long		current_total_clients;
 	
 	protected int		current_min_poll_interval;
 	
