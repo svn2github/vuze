@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet;
  *
  */
 
+import java.util.*;
 import java.net.*;
 import java.io.*;
 
@@ -35,10 +36,15 @@ import java.awt.*;
 
 import javax.net.ssl.*;
 
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
+
 public class 
 RemoteUIApplet
-	extends Applet
+	extends 	Applet
+	implements 	RPRequestDispatcher
 {
+	protected RPPluginInterface		plugin_interface;
+	
 	public
 	RemoteUIApplet()
 	{	
@@ -55,12 +61,25 @@ RemoteUIApplet
 	public void
 	start()
 	{
-		sendRequest( "hello mum" );
+		try{
+			RPPluginInterface pi = RPFactory.getPlugin( this );
+			
+			System.out.println( "got pi:" + pi );
+			
+			Properties props = pi.getPluginProperties();
+			
+			System.out.println( "props = " + props );
+		}catch( RPException e ){
+			
+			e.printStackTrace();
+		}
 	}
 	
-	protected void
-	sendRequest(
-		Object		request )
+	public RPReply
+	dispatch(
+		RPRequest	request )
+	
+		throws RPException
 	{
 		try{
 			URL	url = this.getDocumentBase();
@@ -104,83 +123,87 @@ RemoteUIApplet
 			con.setDoInput( true );
 			
 			con.setDoOutput( true );
+							
+			con.connect();
+		
+			ObjectOutputStream dos = null;
+			
+			try{
+				dos = new ObjectOutputStream(con.getOutputStream());
+			
+				dos.writeObject( request );
+				
+				dos.flush();
+				
+			}finally{
+			
+				if ( dos != null ){
+					
+					dos.close();
+				}
+			}
+			
+			InputStream is = null;
 			
 			try{
 				
-				con.connect();
-			
-				ObjectOutputStream dos = null;
+				is = con.getInputStream();
 				
-				try{
-					dos = new ObjectOutputStream(con.getOutputStream());
+				int content_length = con.getContentLength();
 				
-					dos.writeObject( request );
+				byte[] data = new byte[1024];
+				
+				int	num_read = 0;
+				
+				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+				
+				while ( num_read < content_length ){
 					
-					dos.flush();
-					
-				}finally{
-				
-					if ( dos != null ){
+					try{
+						int	len = is.read(data);
 						
-						dos.close();
-					}
-				}
-				
-				InputStream is = null;
-				
-				try{
-					
-					is = con.getInputStream();
-					
-					int content_length = con.getContentLength();
-					
-					byte[] data = new byte[1024];
-					
-					int	num_read = 0;
-					
-					while ( num_read < content_length ){
-						
-						try{
-							int	len = is.read(data);
+						if ( len > 0 ){
 							
-							if ( len > 0 ){
-								
-								//message.write(data, 0, len);
-								
-								System.out.println( new String(data,0,len));
-								
-								num_read += len;
-								
-							}else if ( len == 0 ){
-								
-								Thread.sleep(20);
-								
-							}else{
-								
-								break;
-							}
+							baos.write(data, 0, len);
+															
+							num_read += len;
 							
-						}catch (Exception e){
+						}else if ( len == 0 ){
 							
-							e.printStackTrace();
+							Thread.sleep(20);
+							
+						}else{
 							
 							break;
 						}
-					}
-				}finally{
-					
-					if ( is != null ){
 						
-						is.close();
+					}catch (Exception e){
+						
+						e.printStackTrace();
+						
+						break;
 					}
 				}
-			}catch( Exception e ){
 				
-				e.printStackTrace();
+				ObjectInputStream	ois = new ObjectInputStream(new ByteArrayInputStream( baos.toByteArray()));
+				
+				try{
+					return((RPReply)ois.readObject());
+					
+				}finally{
+					
+					ois.close();
+				}
+			}finally{
+				
+				if ( is != null ){
+					
+					is.close();
+				}
 			}
 		}catch( Throwable e ){		
-			
-			e.printStackTrace();
+		
+			throw( new RPException( "RequestDispatch fails", e ));
 		}
 	}
 }

@@ -37,6 +37,8 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
+
 public class 
 RemoteUIServlet
 	extends WebPlugin
@@ -57,9 +59,23 @@ RemoteUIServlet
 			try{
 				dis = new ObjectInputStream( request.getInputStream());
 								
-				Object	obj = dis.readObject();
+				RPRequest	rp_request = (RPRequest)dis.readObject();
 				
-				System.out.println( "got object: " + obj );
+				System.out.println( "got object: " + rp_request );
+				
+				RPReply	reply = processRequest( rp_request );
+				
+				response.setContentType( "application/octet-stream" );
+				
+				ObjectOutputStream	oos = new ObjectOutputStream(response.getOutputStream());
+				
+				try{
+					oos.writeObject( reply );
+				
+				}finally{
+					
+					oos.close();
+				}
 				
 				return( true );
 				
@@ -77,5 +93,35 @@ RemoteUIServlet
 		}
 		
 		return( false );
+	}
+	
+	protected RPReply
+	processRequest(
+		RPRequest		request )
+	{
+		try{
+			RPObject		object 	= request.getObject();
+			String			method	= request.getMethod();
+			
+			if ( method.equals( "getSingleton")){
+				
+				RPReply reply = new RPReply( new RPPluginInterface(plugin_interface));
+				
+				return( reply );
+				
+			}else{
+				
+				object._setLocal();
+				
+				return( object._process( request ));
+			}
+		}catch( RPException e ){
+			
+			return( new RPReply( e ));
+			
+		}catch( Throwable e ){
+			
+			return( new RPReply( new RPException( "server execution fails", e )));
+		}
 	}
 }
