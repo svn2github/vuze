@@ -3295,7 +3295,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
       sb.append("\t[");
       sb.append( bIp.getTorrentName() );
-      sb.append("]\t");
+      sb.append("] \t");
       sb.append(bIp.getBlockedIp());
       IpRange range = bIp.getBlockingRange();
       if(range == null) {
