@@ -300,7 +300,7 @@ DiskManagerImpl
       
 		int newFiles = allocateFiles();
       
-		if ( getState() == FAULTY){
+		if ( getState() == FAULTY || !started ){
 			
 			return;
 		}
@@ -311,6 +311,11 @@ DiskManagerImpl
 		
 		piece_picker.start();
 		
+		if ( getState() == FAULTY || !started ){
+			
+			return;
+		}
+
 		resume_handler.start();
 		  
 		if (newFiles == 0){
