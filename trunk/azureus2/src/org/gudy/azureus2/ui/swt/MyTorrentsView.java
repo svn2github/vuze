@@ -87,7 +87,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
     table.setLayoutData(gridData);
     String[] columnsHeader = { "#", "name", "size", "done", "status", "seeds", "peers", "downspeed", "upspeed", "eta", "tracker", "priority" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$ //$NON-NLS-9$ //$NON-NLS-10$ //$NON-NLS-11$
-    int[] columnsSize = { 15, 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
+    int[] columnsSize = { 25, 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
     for (int i = 0; i < columnsHeader.length; i++) {
       columnsSize[i] =
         ConfigurationManager.getInstance().getIntParameter("MyTorrentsView." + columnsHeader[i], columnsSize[i]);

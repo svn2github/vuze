@@ -32,8 +32,8 @@ public class PeerStats {
 
     this.pieceLength = pieceLength;
 
-    //average over 5s, update every 1000ms.
-    receptionSpeed = Average.getInstance(1000, 5);
+    //average over 10s, update every 2000ms.
+    receptionSpeed = Average.getInstance(2000, 10);
 
     //average over 5s, update every 100ms.
     sendingSpeed = Average.getInstance(1000, 5);
@@ -109,7 +109,7 @@ public class PeerStats {
     if(totalDiscarded == 0)
       return format(totalReceived);
     else {
-      return format(totalReceived-totalDiscarded) + " ( " + format(totalDiscarded) + " " + MessageText.getString("discarded") + ")"; 
+      return format(totalReceived) + " ( " + format(totalDiscarded) + " " + MessageText.getString("discarded") + ")"; 
     }
   }
   

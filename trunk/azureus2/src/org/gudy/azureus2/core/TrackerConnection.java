@@ -4,8 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,7 +23,17 @@ public class TrackerConnection {
   private Thread httpConnecter = null;
   private boolean httpConnected = false;
 
-  private String trackerUrl;
+  private List trackerUrlLists;
+    
+  private int listIndex;
+  private int firstIndexUsed;
+  private int inListIndex;
+  
+  private String lastUsedUrl;
+  
+  private String trackerUrlListString;
+  
+  //private String trackerUrl;
   private String info_hash = "?info_hash=";
   private byte[] peerId;
   private String peer_id = "&peer_id=";
@@ -40,13 +53,12 @@ public class TrackerConnection {
   private static final byte[] azureus = "Azureus".getBytes();
 
   public TrackerConnection(Map metainfo, byte[] hash, int port) {
+
     //Get the Tracker url
-    try {
-      trackerUrl = new String((byte[]) metainfo.get("announce"), Constants.DEFAULT_ENCODING);
-      trackerUrl = trackerUrl.replaceAll(" ", "");
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    constructTrackerUrlLists(metainfo);     
+
+    listIndex = 0;
+    inListIndex = 0;
 
     //Create a peerId
     peerId = new byte[20];
@@ -61,24 +73,14 @@ public class TrackerConnection {
     }
 
     try {
-      //1.3 Version
-      //request += "?info_hash=" + URLEncoder.encode(new String(hash,"ISO-8859-1"));
-      //request += "&peer_id=" + URLEncoder.encode(new String(peerId,"ISO-8859-1"));
-  
       //1.4 Version
       this.info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
       this.peer_id += URLEncoder.encode(new String(peerId, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
     } catch (UnsupportedEncodingException e1) {
       e1.printStackTrace();
     }
-    this.port = "&port=" + port;
-
-    //    uploaded = 0;
-    //    downloaded = 0;
-    //    remaining = 0; 
-
-    Logger.getLogger().log(componentID, evtLifeCycle, Logger.INFORMATION, "Tracker Connection Created using url : " + trackerUrl);
-    //Logger.getLogger().log(componentID,evtFullTrace,Logger.INFORMATION,"PeerId Generated : " + Main.nicePrint(peerId));
+    this.port = "&port=" + port;    
+    Logger.getLogger().log(componentID, evtLifeCycle, Logger.INFORMATION, "Tracker Connection Created using url : " + trackerUrlListString);
   }
 
   public String start() {
@@ -105,10 +107,38 @@ public class TrackerConnection {
     Logger.getLogger().log(componentID, evtLifeCycle, Logger.INFORMATION, "Tracker Connection is sending an update Request");
     return update("");
   }
-
+  
   private String update(String evt) {
+    String result = null;
+    boolean failed = false;
+    this.firstIndexUsed = this.listIndex;
     try {
-      URL reqUrl = new URL(constructURL(evt));
+      for(int i = 0 ; i < trackerUrlLists.size() ; i++) {
+        List urls = (List) trackerUrlLists.get(i);
+        for(int j = 0 ; j < urls.size() ; j++) {
+          String url = (String) urls.get(j);
+          lastUsedUrl = url; 
+          URL reqUrl = new URL(constructUrl(evt,url));
+          result = updateOld(reqUrl,evt);
+          //We have a result, move everything in top of list
+          if(result != null && !result.equals("")) {
+            urls.remove(j);
+            urls.add(0,url);
+            trackerUrlLists.remove(i);
+            trackerUrlLists.add(0,urls);            
+            //and return the result
+            return result;
+          }
+        }
+      }  
+    } catch(MalformedURLException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  private String updateOld(URL reqUrl,String evt) {
+    try {      
       Logger.getLogger().log(componentID, evtFullTrace, Logger.INFORMATION, "Tracker is Requesting : " + reqUrl);
       final HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
       final ByteArrayOutputStream message = new ByteArrayOutputStream();
@@ -178,9 +208,9 @@ public class TrackerConnection {
     }
     return null;
   }
-
-  public String constructURL(String evt) {
-    StringBuffer request = new StringBuffer(trackerUrl);
+  
+  public String constructUrl(String evt,String url) {
+    StringBuffer request = new StringBuffer(url);
     request.append(info_hash);
     request.append(peer_id);
     request.append(port);
@@ -209,7 +239,7 @@ public class TrackerConnection {
   }
 
   public String getTrackerUrl() {
-    return trackerUrl;
+    return lastUsedUrl;
   }
 
   /**
@@ -224,8 +254,65 @@ public class TrackerConnection {
    * @param trackerUrl
    */
   public void setTrackerUrl(String trackerUrl) {
-    this.trackerUrl = trackerUrl;
-    trackerUrl = trackerUrl.replaceAll(" ", "");
+    List list = new ArrayList(1);
+    list.add(trackerUrl.replaceAll(" ", ""));
+    trackerUrlLists.add(list);
+  }
+  
+  private void constructTrackerUrlLists(Map metainfo) {
+    try {
+      trackerUrlLists = new ArrayList();
+      trackerUrlListString = "";
+      
+      //This entry is present on multi-tracker torrents
+      List urlLists = (List) metainfo.get("announce-list");
+      
+      if(urlLists == null) {
+        //If not present, we use the default specification
+        String url = new String((byte[]) metainfo.get("announce"), Constants.DEFAULT_ENCODING);
+        url = url.replaceAll(" ", "");
+        
+        trackerUrlListString = "{ " + url + " }"; 
+        
+        //We then contruct a list of one element, containing this url, and put this list
+        //into the list of lists of urls.
+        List list = new ArrayList();
+        list.add(url);
+        trackerUrlLists.add(list);
+      } else {
+        String separatorList = "";
+        //Ok we have a multi-tracker torrent
+        for(int i = 0 ; i < urlLists.size() ; i++) {
+          //Each list contains a list of urls
+          List urls = (List) urlLists.get(i);
+          List stringUrls = new ArrayList(urls.size());
+          String separatorUrl = "";
+          trackerUrlListString += separatorList + " { ";
+          for(int j = 0 ; j < urls.size() ; j++) {
+            //System.out.println(urls.get(j).getClass());      
+            String url; 
+            try {
+            url = new String((byte[]) urls.get(j), Constants.DEFAULT_ENCODING);
+            url = url.replaceAll(" ", "");
+            } catch(ClassCastException e) {
+              continue;
+            }            
+            
+            trackerUrlListString += separatorUrl + url;
+            //Shuffle
+            int pos = (int)(Math.random() *  stringUrls.size());
+            stringUrls.add(pos,url);
+            separatorUrl = ", ";
+          }
+          separatorList = " ; ";
+          trackerUrlListString += " } ";         
+          //Add this list to the list
+          trackerUrlLists.add(stringUrls);
+        }
+      }      
+    } catch(Exception e) {
+      e.printStackTrace();
+    }
   }
 
 }

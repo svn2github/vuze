@@ -63,19 +63,19 @@ public class PieceTableItem {
     String tmp;
 
     tmp = "" + piece.pieceNumber;
-    if (oldTexts[0].length() == 0) {
+    if (!oldTexts[0].equals(tmp)) {
       item.setText(0, tmp);
       oldTexts[0] = tmp;
     }
 
     tmp = PeerStats.format(piece.length);
-    if (oldTexts[1].length() == 0) {
+    if (!oldTexts[1].equals(tmp)) {
       item.setText(1, tmp);
       oldTexts[1] = tmp;
     }
 
     tmp = "" + piece.nbBlocs;
-    if (oldTexts[2].length() == 0) {
+    if (!oldTexts[2].equals(tmp)) {
       item.setText(2, tmp);
       oldTexts[2] = tmp;
     }
@@ -138,6 +138,19 @@ public class PieceTableItem {
     }
     catch (Exception ignore) {
     }
+  }
+
+  /**
+   * @param piece
+   */
+  public void setPiece(Piece piece) {
+    this.piece = piece;
+  }
+  
+  public int getIndex() {
+    if(table != null && !table.isDisposed())
+      return table.indexOf(item);
+    return 0;
   }
 
 }

@@ -270,13 +270,13 @@ public class PeerSocket extends PeerConnection {
 
     //7. Send a logger event
     logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
-    try{
+    /*try{
       throw new Exception("Peer Closed");
     } catch(Exception e) {
       StackTraceElement elts[] = e.getStackTrace();
       for(int i = 0 ; i < elts.length ; i++)
         logger.log(componentID,evtLifeCycle,Logger.INFORMATION,elts[i].toString());
-    }
+    }*/
     
     //In case it was an outgoing connection, established, we can try to reconnect.   
     if((closedOnError) && (this.currentState != null) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 10)) {
@@ -348,6 +348,11 @@ public class PeerSocket extends PeerConnection {
               throw new IOException("End of Stream Reached");
           }
           catch (IOException e) {
+            logger.log(
+                        componentID,
+                        evtProtocol,
+                        Logger.INFORMATION,
+                        "End of Stream Reached from " + ip);
             closeAll(true);
             return;
           }
@@ -378,9 +383,8 @@ public class PeerSocket extends PeerConnection {
           if (read < 0)
             throw new IOException("End of Stream Reached");
           //hack to statistically determine when we're receving data...
-          if (readBuffer.limit() > 8192) {
-            stats.received(read);
-            manager.received(read);
+          if (readBuffer.limit() > 4069) {
+            stats.received(read);            
             readyToRequest = true;
           }
         }
@@ -583,6 +587,7 @@ public class PeerSocket extends PeerConnection {
         Request request = new Request(pieceNumber, pieceOffset, pieceLength);
         if (requested.contains(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
           requested.remove(request);
+          manager.received(pieceLength);
           setSnubbed(false);
           reSetRequestsTime();
           manager.writeBlock(pieceNumber, pieceOffset, buffer);

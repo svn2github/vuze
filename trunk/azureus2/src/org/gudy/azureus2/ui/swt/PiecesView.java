@@ -4,14 +4,18 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-
+import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Piece;
@@ -29,6 +33,8 @@ public class PiecesView extends AbstractIView implements IComponentListener {
   public PiecesView(DownloadManager manager) {
     this.manager = manager;
     items = new HashMap();
+    lastField = "#";
+    ascending = true;
   }
 
   /* (non-Javadoc)
@@ -52,6 +58,13 @@ public class PiecesView extends AbstractIView implements IComponentListener {
     table.getColumn(3).setWidth(300);
     table.getColumn(4).setWidth(80);
     table.getColumn(5).setWidth(80);
+    
+    table.getColumn(0).addListener(SWT.Selection, new IntColumnListener("#")); //$NON-NLS-1$
+    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("size")); //$NON-NLS-1$
+    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("nbBlocs")); //$NON-NLS-1$
+    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
+    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
+    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("availability")); //$NON-NLS-1$
 
 //    manager.addListener(this);
   }
@@ -69,6 +82,8 @@ public class PiecesView extends AbstractIView implements IComponentListener {
   public void refresh() {
     if(getComposite() == null || getComposite().isDisposed())
       return;
+      
+    reOrder(false);
 
     synchronized (items) {
       Iterator iter = items.values().iterator();
@@ -131,5 +146,125 @@ public class PiecesView extends AbstractIView implements IComponentListener {
       return;
     item.remove();
   }
+  
+  //Ordering
+   private boolean ascending;
+   private String lastField;
+
+   private int loopFactor;
+  
+   private void reOrder(boolean force) {
+     if(!force && loopFactor++ < 20)
+       return;
+     loopFactor = 0;
+     if(lastField != null) {
+       ascending = !ascending;
+       orderInt(lastField);
+     }    
+   }
+
+   private void orderInt(String field) {
+     computeAscending(field);
+     synchronized (items) {      
+       List selected = getSelection();                
+       List ordered = new ArrayList(items.size());
+       PieceTableItem _items[] = new PieceTableItem[items.size()];
+       Iterator iter = items.keySet().iterator();
+       while (iter.hasNext()) {
+         Piece piece = (Piece) iter.next();
+         PieceTableItem item = (PieceTableItem) items.get(piece);
+         int index = item.getIndex();
+         _items[index] = item;
+         long value = getIntField(piece, field);
+         int i;
+         for (i = 0; i < ordered.size(); i++) {
+           Piece piecei = (Piece) ordered.get(i);
+           long valuei = getIntField(piecei, field);
+           if (ascending) {
+             if (valuei >= value)
+               break;
+           }
+           else {
+             if (valuei <= value)
+               break;
+           }
+         }
+         ordered.add(i, piece);
+       }
+
+       sort(_items, ordered, selected);
+           
+     }
+     refresh();
+   }
+  
+   private List getSelection() {
+     TableItem[] selection = table.getSelection();
+     List selected = new ArrayList(selection.length);
+     for(int i = 0 ; i < selection.length ; i++) {                
+       Piece piece = (Piece) items.get(selection[i]);
+       if(piece != null)
+         selected.add(piece);
+     }
+     return selected;
+   }
+
+   private void sort(PieceTableItem[] _items, List ordered, List selected) {
+     for (int i = 0; i < ordered.size(); i++) {
+       Piece piece = (Piece) ordered.get(i);
+
+       _items[i].setPiece(piece);
+
+       items.put(piece, _items[i]);
+       //managers.put(items[i].getTableItem(), manager);
+       if(selected.contains(piece)) {
+         table.select(i);
+       } else {
+         table.deselect(i);
+       }         
+     }
+   }
+
+   private void computeAscending(String field) {
+     if (lastField.equals(field))
+       ascending = !ascending;
+     else {
+       lastField = field;
+       ascending = true;
+     }
+   }
+
+   private class IntColumnListener implements Listener {
+
+     private String field;
+
+     public IntColumnListener(String field) {
+       this.field = field;
+     }
+
+     public void handleEvent(Event e) {
+       orderInt(field);
+     }
+   }
+   
+  private long getIntField(Piece piece, String field) {
+
+      if (field.equals("#")) //$NON-NLS-1$
+        return piece.pieceNumber;
+
+      if (field.equals("size")) //$NON-NLS-1$
+        return piece.length;
+
+      if (field.equals("nbBlocs")) //$NON-NLS-1$
+        return piece.nbBlocs;
+
+      if (field.equals("done")) //$NON-NLS-1$
+        return piece.completed;
+
+      if (field.equals("availability")) //$NON-NLS-1$
+        return piece.manager.getAvailability(piece.pieceNumber);
+
+      return 0;
+    }
 
 }
