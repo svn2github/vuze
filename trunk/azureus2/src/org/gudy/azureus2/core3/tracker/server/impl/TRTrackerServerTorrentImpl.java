@@ -32,6 +32,7 @@ import java.io.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
 
+
 public class 
 TRTrackerServerTorrentImpl 
 	implements TRTrackerServerTorrent
@@ -217,7 +218,8 @@ TRTrackerServerTorrentImpl
 		boolean		include_seeds,
 		int			num_want,
 		long		interval,
-		boolean		no_peer_id )
+		boolean		no_peer_id,
+		boolean		compact )
 	{
 		long	now = System.currentTimeMillis();
 		
@@ -228,7 +230,7 @@ TRTrackerServerTorrentImpl
 		
 			// override if client has explicitly not requested them
 		
-		if ( no_peer_id ){
+		if ( no_peer_id || compact ){
 			
 			send_peer_ids	= false;
 		}
@@ -258,7 +260,8 @@ TRTrackerServerTorrentImpl
 					
 				}else{
 					
-					if ( entry.getSendPeerIds() == send_peer_ids ){
+					if ( 	entry.getSendPeerIds() == send_peer_ids &&
+							entry.getCompact() == compact ){
 						
 						break;
 					}
@@ -325,15 +328,28 @@ TRTrackerServerTorrentImpl
 										
 						Map rep_peer = new HashMap();
 			
-						rep_peers.add( rep_peer );
-												
 						if ( send_peer_ids ){
 							
 							rep_peer.put( "peer id", peer.getPeerId() );
 						}
 						
-						rep_peer.put( "ip", peer.getIPAsRead() );
+						if ( compact ){
+							
+							byte[]	peer_bytes = peer.getIPBytes();
+							
+							if ( peer_bytes == null ){
+								
+								continue;
+							}
+							
+							rep_peer.put( "ip", peer_bytes );
+						}else{
+							rep_peer.put( "ip", peer.getIPAsRead() );
+						}
+						
 						rep_peer.put( "port", new Long( peer.getPort()));
+						
+						rep_peers.add( rep_peer );
 					}
 				}
 			}else{
@@ -361,15 +377,28 @@ TRTrackerServerTorrentImpl
 							
 							Map rep_peer = new HashMap();
 							
-							rep_peers.add( rep_peer );
-							
 							if ( send_peer_ids ){
 								
 								rep_peer.put( "peer id", peer.getPeerId() );
 							}
 							
-							rep_peer.put( "ip", peer.getIPAsRead() );
-							rep_peer.put( "port", new Long( peer.getPort()));					
+							if ( compact ){
+								
+								byte[]	peer_bytes = peer.getIPBytes();
+								
+								if ( peer_bytes == null ){
+									
+									continue;
+								}
+								
+								rep_peer.put( "ip", peer_bytes );
+							}else{
+								rep_peer.put( "ip", peer.getIPAsRead() );
+							}
+							rep_peer.put( "port", new Long( peer.getPort()));	
+							
+							rep_peers.add( rep_peer );
+						
 						}
 					}
 					
@@ -397,15 +426,29 @@ TRTrackerServerTorrentImpl
 							
 							Map rep_peer = new HashMap();
 							
-							rep_peers.add( rep_peer );
-							
 							if ( send_peer_ids ){
 								
 								rep_peer.put( "peer id", peer.getPeerId() );
 							}
 							
-							rep_peer.put( "ip", peer.getIPAsRead() );
+							if ( compact ){
+								
+								byte[]	peer_bytes = peer.getIPBytes();
+								
+								if ( peer_bytes == null ){
+									
+									continue;
+								}
+								
+								rep_peer.put( "ip", peer_bytes );
+							}else{
+								rep_peer.put( "ip", peer.getIPAsRead() );
+							}
+							
 							rep_peer.put( "port", new Long( peer.getPort()));
+							
+							rep_peers.add( rep_peer );
+						
 						}
 					}
 				}
@@ -414,13 +457,38 @@ TRTrackerServerTorrentImpl
 		
 		Map	root = new HashMap();
 		
-		root.put( "peers", rep_peers );
+		if ( compact ){
+			
+			byte[]	compact_peers = new byte[rep_peers.size()*6];
+			
+			for ( int i=0;i<rep_peers.size();i++){
+				
+				Map	rep_peer = (Map)rep_peers.get(i);
+				
+				byte[] 	ip 		= (byte[])rep_peer.get( "ip" );
+				int		port	= ((Long)rep_peer.get( "port" )).intValue();
+				
+				int	pos = i*6;
+				
+				System.arraycopy( ip, 0, compact_peers, pos, 4 );
+				
+				pos += 4;
+				
+				compact_peers[pos++] = (byte)(port>>8);
+				compact_peers[pos++] = (byte)(port&0xff);
+			}
+						
+			root.put( "peers", compact_peers );
+		}else{
+			
+			root.put( "peers", rep_peers );
+		}
 		
 		root.put( "interval", new Long( interval ));
 		
 		if ( add_to_cache ){
 						
-			announce_cache.put( new Integer((num_want+9)/10), new announceCacheEntry( root, send_peer_ids ));
+			announce_cache.put( new Integer((num_want+9)/10), new announceCacheEntry( root, send_peer_ids, compact ));
 		}
 		
 		return( root );
@@ -521,15 +589,18 @@ TRTrackerServerTorrentImpl
 	{
 		protected Map		data;
 		protected boolean	send_peer_ids;
+		protected boolean	compact;
 		protected long		time;
 		
 		protected
 		announceCacheEntry(
 			Map		_data,
-			boolean	_send_peer_ids )
+			boolean	_send_peer_ids,
+			boolean	_compact )
 		{
 			data			= _data;
 			send_peer_ids	= _send_peer_ids;
+			compact			= _compact;
 			time			= System.currentTimeMillis();
 		}
 		
@@ -537,6 +608,12 @@ TRTrackerServerTorrentImpl
 		getSendPeerIds()
 		{
 			return( send_peer_ids );
+		}
+		
+		protected boolean
+		getCompact()
+		{
+			return( compact );
 		}
 		
 		protected long

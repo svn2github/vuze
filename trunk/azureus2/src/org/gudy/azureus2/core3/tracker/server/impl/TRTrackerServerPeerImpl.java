@@ -33,6 +33,7 @@ TRTrackerServerPeerImpl
 	protected byte[]		ip;
 	protected int			port;
 	protected String		ip_str;
+	protected byte[]		ip_bytes;
 	
 	protected long			timeout;
 	
@@ -78,15 +79,30 @@ TRTrackerServerPeerImpl
 			ip_str = new String(ip);
 		
 			try{
-				ip_str = InetAddress.getByName( ip_str ).getHostAddress();
-			
+				InetAddress addr = InetAddress.getByName( ip_str );
+				
+				ip_str 		= addr.getHostAddress();
+				ip_bytes	= addr.getAddress();
+				
 			}catch( UnknownHostException e ){
 			
-				ip_str = new String( ip );
+				ip_str 		= new String( ip );
+				ip_bytes	= null;
 			}
 		}
 		
 		return( ip_str );
+	}
+	
+	public byte[]
+	getIPBytes()
+	{
+		if ( ip_str == null ){
+			
+			getIP();
+		}
+		
+		return( ip_bytes );
 	}
 	
 	protected int

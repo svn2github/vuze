@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 
+import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 
 /**
@@ -947,7 +948,7 @@ TRTrackerClientClassicImpl
 		 				
 		 				if ( ip_str != null ){
 		 					
-		 					ip = PRUDPPacket.addressToInt( ip_str);
+		 					ip = PRHelpers.addressToInt( ip_str);
 		 				}
 		 				
 		 				announce_request.setDetails(
@@ -984,7 +985,7 @@ TRTrackerClientClassicImpl
 		 						
 		 						peers.add( peer );
 		 						
-		 						peer.put( "ip", PRUDPPacket.intToAddress(addresses[i]).getBytes());
+		 						peer.put( "ip", PRHelpers.intToAddress(addresses[i]).getBytes());
 		 						peer.put( "port", new Long( ports[i]));
 		 					}
 		 					
@@ -1112,9 +1113,15 @@ TRTrackerClientClassicImpl
 
     	request.append("&numwant=" + numwant);
       
-      //request the tracker to return a peer list without peerIDs, for bandwidth savings
-      //will be the default in next python core release
+    	//request the tracker to return a peer list without peerIDs, for bandwidth savings
+    	//will be the default in next python core release
+    	
       request.append("&no_peer_id=1");
+      
+      	// latest space saving measure, a compact return type where peers are returned
+      	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
+      
+      request.append( "&compact=1");
     }
 	
     String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
@@ -1325,82 +1332,144 @@ TRTrackerClientClassicImpl
 				   }
 						
 						//build the list of peers
-						
-					List meta_peers = (List) metaData.get("peers"); //$NON-NLS-1$
-					 					 
 					List valid_meta_peers = new ArrayList();
+						
+				    Object	meta_peers_peek = metaData.get( "peers" );
+				    
+				    	// list for non-compact returns
+				    
+				    if ( meta_peers_peek instanceof List ){
+				    	
+				    	
+						List meta_peers = (List)meta_peers_peek;
+						 					 
+						
+							//for every peer
+						int peers_length = meta_peers.size();
+							
+						for (int i = 0; i < peers_length; i++) {
+							 	
+							Map peer = (Map) meta_peers.get(i);
+							   
+							  //build a dictionary object
+							Object s_peerid=peer.get("peer id"); //$NON-NLS-1$
+							Object s_ip=peer.get("ip"); //$NON-NLS-1$
+							Object s_port=peer.get("port"); //$NON-NLS-1$
+													
+								// Assert that all ip and port are available
+							
+							if ( s_ip != null && s_port != null ){
 					
-						//for every peer
-					int peers_length = meta_peers.size();
-						
-					for (int i = 0; i < peers_length; i++) {
-						 	
-						Map peer = (Map) meta_peers.get(i);
-						   
-						  //build a dictionary object
-						Object s_peerid=peer.get("peer id"); //$NON-NLS-1$
-						Object s_ip=peer.get("ip"); //$NON-NLS-1$
-						Object s_port=peer.get("port"); //$NON-NLS-1$
-												
-							// Assert that all ip and port are available
-						
-						if ( s_ip != null && s_port != null ){
-				
-								//get the peer ip address
-							
-							String ip = new String((byte[]) s_ip, Constants.DEFAULT_ENCODING); 
-							
-								//get the peer port number
-							
-							int port = ((Long) s_port).intValue(); 
-							
-							byte[] peerId;
-							
-							// extension - if peer id is missing then the tracker isn't sending
-							// peer ids to save on bandwidth. However, we need something "unique" to 
-							// work on internally so make an ID up from the ip and port
-							
-							if ( s_peerid == null ){
-                
-								// Debug.out(ip + ": tracker did not give peerID in reply");
+									//get the peer ip address
 								
-								peerId = new byte[20];
+								String ip = new String((byte[]) s_ip, Constants.DEFAULT_ENCODING); 
 								
-									// unique initial two bytes to identify this as fake (See Identification.java)
+									//get the peer port number
 								
-								peerId[0] = Identification.NON_SUPPLIED_PEER_ID_BYTE1;
-								peerId[1] = Identification.NON_SUPPLIED_PEER_ID_BYTE2;
+								int port = ((Long) s_port).intValue(); 
 								
-								byte[]	ip_bytes 	= (byte[])s_ip;
-								int		ip_len		= ip_bytes.length;
+								byte[] peerId;
 								
-								if ( ip_len > 18 ){
+								// extension - if peer id is missing then the tracker isn't sending
+								// peer ids to save on bandwidth. However, we need something "unique" to 
+								// work on internally so make an ID up from the ip and port
+								
+								if ( s_peerid == null ){
+	                
+									// Debug.out(ip + ": tracker did not give peerID in reply");
 									
-									ip_len = 18;
+									peerId = new byte[20];
+									
+										// unique initial two bytes to identify this as fake (See Identification.java)
+									
+									peerId[0] = Identification.NON_SUPPLIED_PEER_ID_BYTE1;
+									peerId[1] = Identification.NON_SUPPLIED_PEER_ID_BYTE2;
+									
+									byte[]	ip_bytes 	= (byte[])s_ip;
+									int		ip_len		= ip_bytes.length;
+									
+									if ( ip_len > 18 ){
+										
+										ip_len = 18;
+									}
+									
+									System.arraycopy( ip_bytes, 0, peerId, 2, ip_len );
+																	
+									int	port_copy = port;
+									
+									for (int j=2+ip_len;j<20;j++){
+										
+										peerId[j] = (byte)(port_copy&0xff);
+										
+										port_copy >>= 8;
+									}
+									
+									// System.out.println("generated peer id" + new String(peerId) + "/" + ByteFormatter.nicePrint( peerId, true ));
+								}else{
+								
+									peerId = (byte[])s_peerid ; 
 								}
 								
-								System.arraycopy( ip_bytes, 0, peerId, 2, ip_len );
-																
-								int	port_copy = port;
+								valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));
 								
-								for (int j=2+ip_len;j<20;j++){
-									
-									peerId[j] = (byte)(port_copy&0xff);
-									
-									port_copy >>= 8;
-								}
+							} 
+						}
+				    }else{
+				    	
+				    		// byte[] for compact returns
+				    	
+				    
+				    	byte[]	meta_peers = (byte[])meta_peers_peek;
+				    	
+				    	for (int i=0;i<meta_peers.length;i+=6){
+				    		
+				    		int	ip1 = (int)meta_peers[i];
+				    		int	ip2 = (int)meta_peers[i+1];
+				    		int	ip3 = (int)meta_peers[i+2];
+				    		int	ip4 = (int)meta_peers[i+3];
+				    		int	po1 = (int)meta_peers[i+4];
+				    		int	po2 = (int)meta_peers[i+5];
+				    		
+				    		ip1 = ip1<0?ip1+256:ip1;
+				    		ip2 = ip2<0?ip2+256:ip2;
+				    		ip3 = ip3<0?ip3+256:ip3;
+				    		ip4 = ip4<0?ip4+256:ip4;
+				    		po1 = po1<0?po1+256:po1;
+				    		po2 = po2<0?po2+256:po2;
+				    		
+				    		String	ip 		= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
+				    		int		port 	= po1*256+po2;
+				    		
+							byte[] peerId = new byte[20];
 								
-								// System.out.println("generated peer id" + new String(peerId) + "/" + ByteFormatter.nicePrint( peerId, true ));
-							}else{
+								// unique initial two bytes to identify this as fake (See Identification.java)
 							
-								peerId = (byte[])s_peerid ; 
+							peerId[0] = Identification.NON_SUPPLIED_PEER_ID_BYTE1;
+							peerId[1] = Identification.NON_SUPPLIED_PEER_ID_BYTE2;
+							
+							byte[]	ip_bytes 	= ip.getBytes( Constants.DEFAULT_ENCODING );
+							int		ip_len		= ip_bytes.length;
+							
+							if ( ip_len > 18 ){
+								
+								ip_len = 18;
 							}
 							
-							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));
+							System.arraycopy( ip_bytes, 0, peerId, 2, ip_len );
+															
+							int	port_copy = port;
+								
+							for (int j=2+ip_len;j<20;j++){
+									
+								peerId[j] = (byte)(port_copy&0xff);
+									
+								port_copy >>= 8;
+							}
 							
-						} 
-					}
-					
+							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));							
+				    	}
+				    }
+				    
 					TRTrackerResponsePeer[] peers=new TRTrackerResponsePeer[valid_meta_peers.size()];
 					peers=(TRTrackerResponsePeer[]) valid_meta_peers.toArray(peers);
 					
@@ -1429,7 +1498,7 @@ TRTrackerClientClassicImpl
 	 				
 	 				failure_reason = "invalid reply: " + trace_data;
 	 			}	 				
-	 		}catch( Exception e ){
+	 		}catch( Throwable e ){
 				
 				e.printStackTrace();
 				

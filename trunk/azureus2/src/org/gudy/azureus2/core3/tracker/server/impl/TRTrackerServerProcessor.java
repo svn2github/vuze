@@ -46,6 +46,7 @@ TRTrackerServerProcessor
 		byte[]						hash,
 		String						peer_id,
 		boolean						no_peer_id,
+		boolean						compact,
 		String						event,
 		int							port,
 		String						client_ip_address,
@@ -110,7 +111,7 @@ TRTrackerServerProcessor
 						uploaded, downloaded, left, num_peers,
 						interval );
 				
-				root_out[0] = torrent.exportAnnounceToList( left > 0, num_want, interval, no_peer_id );
+				root_out[0] = torrent.exportAnnounceToList( left > 0, num_want, interval, no_peer_id, compact );
 				peer_out[0]	= peer;				
 			}else{
 				

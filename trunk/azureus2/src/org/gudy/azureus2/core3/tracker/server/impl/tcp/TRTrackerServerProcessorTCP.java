@@ -320,6 +320,7 @@ TRTrackerServerProcessorTCP
 				int			num_peers		= 0;
 				int			num_want		= -1;
 				boolean		no_peer_id		= false;
+				boolean		compact			= false;
 				
 				while(pos < str.length()){
 						
@@ -361,6 +362,10 @@ TRTrackerServerProcessorTCP
 					}else if ( lhs.equals( "no_peer_id" )){
 						
 						no_peer_id = rhs.equals("1");
+						
+					}else if ( lhs.equals( "compact" )){
+						
+						compact = rhs.equals("1");
 						
 					}else if ( lhs.equals( "port" )){
 							
@@ -416,7 +421,7 @@ TRTrackerServerProcessorTCP
 							server, root_out, peer_out,
 							request_type,
 							hash_bytes,
-							peer_id, no_peer_id,
+							peer_id, no_peer_id, compact,
 							event,
 							port,
 							client_ip_address,

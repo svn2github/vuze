@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 
+import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 
 public class 
@@ -288,7 +289,7 @@ TRTrackerServerProcessorUDP
 			
 			if ( i_ip != 0 ){
 				
-				client_ip_address = PRUDPPacket.intToAddress( i_ip );
+				client_ip_address = PRHelpers.intToAddress( i_ip );
 			}
 		}else{
 			
@@ -304,7 +305,7 @@ TRTrackerServerProcessorUDP
 				server, root_out, peer_out, 
 				request_type,
 				hash_bytes,
-				peer_id, false,	// currently no "no_peer_id" in the packet and anyway they aren't returned
+				peer_id, false,	false, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned
 				event,
 				port,
 				client_ip_address,
@@ -328,7 +329,7 @@ TRTrackerServerProcessorUDP
 				
 				Map	peer = (Map)peers.get(i);
 				
-				addresses[i] 	= PRUDPPacket.addressToInt(new String((byte[])peer.get("ip")));
+				addresses[i] 	= PRHelpers.addressToInt(new String((byte[])peer.get("ip")));
 				
 				ports[i]		= (short)((Long)peer.get("port")).shortValue();
 			}
