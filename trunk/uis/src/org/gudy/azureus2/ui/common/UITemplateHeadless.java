@@ -9,7 +9,6 @@ package org.gudy.azureus2.ui.common;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UITemplate;
 import org.gudy.azureus2.ui.common.util.LGLogger2Log4j;
-import org.gudy.azureus2.ui.common.util.LocaleUtilHeadless;
 
 /**
  * @author tobi
@@ -21,11 +20,6 @@ public abstract class UITemplateHeadless
 	extends UITemplate
 	implements IUserInterface {
 
-	public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(){
-	
-		return new LocaleUtilHeadless();
-	}
-
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.common.IUserInterface#init(boolean, boolean)
 	 */
@@ -35,5 +29,4 @@ public abstract class UITemplateHeadless
 			LGLogger2Log4j.set();
 
 	}
-
 }
