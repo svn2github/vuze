@@ -124,7 +124,7 @@ public class MinimizedWindow {
     Label l2 = new Label(splash, SWT.NONE);
     l2.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
     l2.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
-    l2.setText("C:");
+    l2.setText(MessageText.getString("ConfigView.complete.abbreviated"));
     l2.addMouseListener(mListener);
     l2.addMouseMoveListener(mMoveListener);
     l2.pack();
@@ -143,7 +143,7 @@ public class MinimizedWindow {
     Label l3 = new Label(splash, SWT.NONE);
     l3.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
     l3.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
-    l3.setText("D:");
+    l3.setText(MessageText.getString("ConfigView.download.abbreviated"));
     l3.addMouseListener(mListener);
     l3.addMouseMoveListener(mMoveListener);
     l3.pack();
@@ -162,7 +162,7 @@ public class MinimizedWindow {
     Label l4 = new Label(splash, SWT.NONE);
     l4.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
     l4.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
-    l4.setText("U:");
+    l4.setText(MessageText.getString("ConfigView.upload.abbreviated"));
     l4.addMouseListener(mListener);
     l4.addMouseMoveListener(mMoveListener);
     l4.pack();

@@ -83,11 +83,11 @@ public class SystemTray extends SysTrayMenuAdapter {
 			}
 		}
 		toolTip.append(seeding);
-		toolTip.append(MessageText.getString("SystemTray.tooltip.seeding")); //$NON-NLS-1$
+		toolTip.append(MessageText.getString("SystemTray.tooltip.seeding"));
 		toolTip.append(downloading);
-		toolTip.append(MessageText.getString("SystemTray.tooltip.downloading") + "D: "); //$NON-NLS-1$
+		toolTip.append(MessageText.getString("SystemTray.tooltip.downloading") + MessageText.getString("ConfigView.download.abbreviated") + " "); 
 		toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(main.getGlobalManager().getStats().getDownloadAverage()));
-		toolTip.append(", U: ");
+		toolTip.append(", " + MessageText.getString("ConfigView.upload.abbreviated") + " ");
 		toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(main.getGlobalManager().getStats().getUploadAverage()));
 
 		menu.setToolTip(toolTip.toString());

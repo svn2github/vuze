@@ -273,8 +273,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
               }
   
               ipBlocked.setText( "{"+DisplayFormatters.formatDateShort(IpFilter.getInstance().getLastUpdateTime()) + "} IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
-              statusDown.setText("D: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
-              statusUp.setText("U: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
+              statusDown.setText(MessageText.getString("ConfigView.download.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
+              statusUp.setText(MessageText.getString("ConfigView.upload.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
   					}
   
             if (!mainWindow.isDisposed() && alwaysRefreshMyTorrents) {            
@@ -907,13 +907,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     gridData = new GridData();
     gridData.widthHint = 105;
     statusDown = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusDown.setText("D:"); //$NON-NLS-1$
+    statusDown.setText(MessageText.getString("ConfigView.download.abbreviated"));
     statusDown.setLayoutData(gridData);
 
     gridData = new GridData();
     gridData.widthHint = 105;
     statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusUp.setText("U:"); //$NON-NLS-1$
+    statusUp.setText(MessageText.getString("ConfigView.upload.abbreviated"));
     statusUp.setLayoutData(gridData);
     
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
