@@ -2505,23 +2505,26 @@ DiskManagerImpl
     
   
   private void loadFilePriorities() {
-    if ( files == null ) return;
-    Map file_priorities = (Map)dmanager.getData( "file_priorities" );
-    if ( file_priorities == null ) return;
-    for (int i=0; i < files.length; i++) {
-      DiskManagerFileInfo file = files[i];
-      if (file == null) return;
-      String name = file.getPath() + file.getName();
-      int priority = ((Long)file_priorities.get( name )).intValue();
-      if ( priority == 0 ) file.setSkipped( true );
-      else if (priority == 1) file.setPriority( true );
+  	//  TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
+    try {
+    	if ( files == null ) return;
+    	List file_priorities = (List)dmanager.getData( "file_priorities" );
+    	if ( file_priorities == null ) return;
+    	for (int i=0; i < files.length; i++) {
+    		DiskManagerFileInfo file = files[i];
+    		if (file == null) return;
+    		int priority = ((Long)file_priorities.get( i )).intValue();
+    		if ( priority == 0 ) file.setSkipped( true );
+    		else if (priority == 1) file.setPriority( true );
+    	}
     }
+    catch (Throwable t) {t.printStackTrace();}
   }
   
   
   public void storeFilePriorities() {
     if ( files == null ) return;
-    Map file_priorities = new HashMap();
+    List file_priorities = new ArrayList();
     for (int i=0; i < files.length; i++) {
       DiskManagerFileInfo file = files[i];
       if (file == null) return;
@@ -2530,8 +2533,7 @@ DiskManagerImpl
       int value = -1;
       if ( skipped ) value = 0;
       else if ( priority ) value = 1;
-      String name = file.getPath() + file.getName();
-      file_priorities.put( name, new Long(value));            
+      file_priorities.add( i, new Long(value));            
     }
     dmanager.setData( "file_priorities", file_priorities );
   }

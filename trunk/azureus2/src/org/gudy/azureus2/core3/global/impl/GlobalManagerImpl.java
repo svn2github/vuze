@@ -688,10 +688,14 @@ public class GlobalManagerImpl
           if (lSecondsOnlySeeding != null) {
             stats.setSecondsOnlySeeding(lSecondsOnlySeeding.longValue());
           }
-
-          //load file priorities
-          Map file_priorities = (Map) mDownload.get("file_priorities");
-          if ( file_priorities != null ) dm.setData( "file_priorities", file_priorities );
+          
+          //TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
+          try {
+          	//load file priorities
+          	List file_priorities = (List) mDownload.get("file_priorities");
+          	if ( file_priorities != null ) dm.setData( "file_priorities", file_priorities );
+          }
+          catch (Throwable t) { t.printStackTrace(); }
 
           
           this.addDownloadManager(dm, false);
@@ -767,7 +771,7 @@ public class GlobalManagerImpl
 		      //save file priorities
           DiskManager disk_manager = dm.getDiskManager();
           if ( disk_manager != null ) disk_manager.storeFilePriorities();
-          Map file_priorities = (Map)dm.getData( "file_priorities" );
+          List file_priorities = (List)dm.getData( "file_priorities" );
           if ( file_priorities != null ) dmMap.put( "file_priorities" , file_priorities );
 
           
