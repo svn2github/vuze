@@ -228,9 +228,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 
     GridLayout layoutInfo = new GridLayout();
     layoutInfo.numColumns = 4;
-    
-    if( Constants.isLinux ) layoutInfo.horizontalSpacing = 9;
-    else layoutInfo.horizontalSpacing = 6;
+    layoutInfo.horizontalSpacing = 3;
     
     layoutInfo.marginHeight = 0;
     layoutInfo.marginWidth = 0;
@@ -240,12 +238,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     Messages.setLanguageText(label, "GeneralView.label.maxuploads"); 
     maxUploads = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
+    if( Constants.isLinux )  gridData.widthHint = 40;
+    else gridData.widthHint = 35;
     
-    if( Constants.isLinux ){
-    	gridData.widthHint = 45;
-    }else{
-    	gridData.widthHint = 40;
-    }
     
     maxUploads.setLayoutData(gridData);
     maxUploads.setText(String.valueOf(manager.getStats().getMaxUploads()));
@@ -334,8 +329,12 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     label = new Label(culdl, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.totalspeed"); //$NON-NLS-1$
     totalSpeed = new BufferedLabel(culdl, SWT.LEFT);
-    //gridData = new GridData(GridData.FILL_HORIZONTAL);
-    //totalSpeed.setLayoutData(gridData);
+    gridData = new GridData();
+    
+    if( Constants.isLinux )  gridData.widthHint = 70;
+    else gridData.widthHint = 65;
+
+    totalSpeed.setLayoutData(gridData);
     
 //  dl speed
     
