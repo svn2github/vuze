@@ -1,71 +1,95 @@
 /*
  * Created on 24.07.2003
- *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
 package org.gudy.azureus2.update;
 
-import java.io.File;
+import java.io.*;
 
 /**
- * @author Arbeiten
- *
- * To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Generation - Code and Comments
+ * @author Nolar
  */
 public class Updater {
 
-  public static final String VERSION = "1.0";
-
-  public static final char NOT_FOUND = '0';
-  public static final char READY = '1';
-  public static final char FOUND = '2';
+  public static final String VERSION  = "1.1";
+  
+  public static final char NOT_FOUND  = '0';
+  public static final char READY      = '1';
+  public static final char FOUND      = '2';
+    
   
   public static void main(String[] args) {
+    FileWriter log = null;
+    
     if (args.length < 3) {
       System.out.println("Usage: Updater full_classpath full_librarypath full_userpath");
       System.exit(-1);
     }
     
-    File targetFile = new File(args[2], "Azureus2.jar"); //$NON-NLS-1$
-    System.out.println("Old JAR: " + targetFile.getAbsolutePath());
-    if(targetFile.isFile()) {
-      File updateFile = new File(targetFile.getParentFile(), "Azureus2-new.jar");
-      System.out.println("New JAR: " + updateFile.getAbsolutePath());
-      if(updateFile.isFile()) {
-//        System.out.println(FOUND);
-        while(!targetFile.delete()) {
-          try {
-            Thread.sleep(1000);
-          } catch (InterruptedException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-          }
-        }
-        while(!updateFile.renameTo(targetFile)) {
-          try {
-            Thread.sleep(1000);
-          } catch (InterruptedException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-          }
-        }
-        String classPath = args[0]; // targetFile.getAbsolutePath()
-        String libraryPath = args[1];
-        String userPath = args[2];
-//        classPath.replaceAll("Azureus\\.jar", "Azureus-new.jar");
+    String classPath    = args[0];
+    String libraryPath  = args[1];
+    String userPath     = args[2];
 
-        String exec = "java -classpath \"" + classPath + "\" -Djava.library.path=\"" + libraryPath + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
-//        System.out.println("executing: " + exec);
+    File oldFile = new File(userPath, "Azureus2.jar");
+    File updateFile = new File(oldFile.getParentFile(), "Azureus2-new.jar");
+    File logFile = new File( userPath, "update.log" );
+    
+    try {
+      log = new FileWriter( logFile, true );
+      
+      log.write("Updater:: classPath=" + classPath
+                         + " libraryPath=" + libraryPath
+                         + " userPath=" + userPath + "\n");
+      
+      log.write("Updater:: oldFile=" + oldFile.getAbsolutePath()
+                    + " updateFile=" + updateFile.getAbsolutePath() + "\n");
+    
+      log.write("Updater:: testing for " + oldFile.getAbsolutePath() + " .....");
+      if(oldFile.isFile()) {
+        log.write("exists\n");
+        
+        log.write("Updater:: testing for " + updateFile.getAbsolutePath() + " .....");
+        if(updateFile.isFile()) {
+          log.write("exists\n");
+          
+          log.write("Updater:: attempting to delete " + oldFile.getAbsolutePath() + " ...");
+          while(!oldFile.delete()) {
+            log.write(" x");
+            Thread.sleep(1000);
+          }
+          log.write("deleted\n");
 
-        try {
+          
+          log.write("Updater:: attempting to rename " + updateFile.getAbsolutePath() + " ...");
+          while(!updateFile.renameTo(oldFile)) {
+            log.write(" x");
+            Thread.sleep(1000);
+          }
+          log.write("renamed\n");
+        
+          String exec = "java -classpath \"" + classPath
+                      + "\" -Djava.library.path=\"" + libraryPath
+                      + "\" -Duser.dir=\"" + userPath
+                      + "\" org.gudy.azureus2.ui.swt.Main";
+
+          log.write("Updater:: executing command: " + exec + "\n");
+
           Runtime.getRuntime().exec(exec);
-        } catch (Exception e1) {
-          e1.printStackTrace();
         }
+        else log.write("not found\n");
       }
+      else log.write("not found\n");
     }
-//    System.out.println(NOT_FOUND);
+    catch (Exception e) {
+      try {
+        log.write("\nUpdater:: exception:\n" + e.toString());
+      } catch (IOException ignore) {}
+    }
+    finally {
+      try {
+        if (log != null) log.close();
+      } catch (IOException ignore) {}
+    }
   }
 }
+      
+
