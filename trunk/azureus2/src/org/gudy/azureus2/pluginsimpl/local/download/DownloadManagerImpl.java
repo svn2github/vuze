@@ -536,6 +536,30 @@ DownloadManagerImpl
 	}
 
 	public void
+	pauseDownloads()
+	{
+		global_manager.pauseDownloads();
+	}
+		
+	public void
+	resumeDownloads()
+	{
+		global_manager.resumeDownloads();
+	}
+		
+	public void
+	startAllDownloads()
+	{
+		global_manager.startAllDownloads();
+	}
+		
+	public void
+	stopAllDownloads()
+	{
+		global_manager.stopAllDownloads();
+	}
+	
+	public void
 	addListener(
 		DownloadManagerListener	l )
 	{

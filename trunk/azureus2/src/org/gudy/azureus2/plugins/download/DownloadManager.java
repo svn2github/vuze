@@ -159,6 +159,39 @@ DownloadManager
 	getDownloads(boolean bSorted);
 
 	/**
+	 * pause all running downloads
+	 * @since 2.1.0.5
+	 *
+	 */
+	
+	public void
+	pauseDownloads();
+	
+	/**
+	 * resume previously paused downloads
+	 * @since 2.1.0.5
+	 */
+	
+	public void
+	resumeDownloads();
+	
+	/**
+	 * starts all non-running downloads
+	 * @since 2.1.0.5
+	 */
+	
+	public void
+	startAllDownloads();
+	
+	/**
+	 * stops all running downloads
+	 * @since 2.1.0.5
+	 */
+	
+	public void
+	stopAllDownloads();
+	
+	/**
 	 * Add a listener that will be informed when a download is added to/removed from Azureus
 	 * @param l
    *

@@ -156,6 +156,30 @@ RPDownloadManager
 			}
 			
 			return( new RPReply( null ));
+			
+		}else if ( method.equals( "pauseDownloads")){
+			
+			delegate.pauseDownloads();
+			
+			return( null );
+				
+		}else if ( method.equals( "resumeDownloads")){
+			
+			delegate.resumeDownloads();
+			
+			return( null );
+				
+		}else if ( method.equals( "stopAllDownloads")){
+			
+			delegate.stopAllDownloads();
+			
+			return( null );
+				
+		}else if ( method.equals( "startAllDownloads")){
+			
+			delegate.startAllDownloads();
+		
+			return( null );
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -296,6 +320,29 @@ RPDownloadManager
 		return( res );
 	}
 	
+	public void
+	pauseDownloads()
+	{
+		_dispatcher.dispatch( new RPRequest( this, "pauseDownloads", null )).getResponse();
+	}
+		
+	public void
+	resumeDownloads()
+	{
+		_dispatcher.dispatch( new RPRequest( this, "resumeDownloads", null )).getResponse();
+	}
+		
+	public void
+	startAllDownloads()
+	{
+		_dispatcher.dispatch( new RPRequest( this, "startAllDownloads", null )).getResponse();
+	}
+		
+	public void
+	stopAllDownloads()
+	{
+		_dispatcher.dispatch( new RPRequest( this, "stopAllDownloads", null )).getResponse();
+	}
 	
 	public void
 	addListener(
