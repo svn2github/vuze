@@ -2,16 +2,20 @@ AZUREUS CHANGELOG
 ---------
 
 
-2004.07.xx | Azureus 2.1.0.5
+2004.08.xx | Azureus 2.1.0.5
 
 FEATURE: Core | Ability to set IP type-of-service (TOS) field for outbound data [Nolar]
 FEATURE: Core | Show current upload and download limits in status area [Parg]
 FEATURE: Core | Locale selection - options to add in all defined encodings + show lax list [Parg]
 FEATURE: Core | Change the incoming data port without restarting [Parg]
+FEATURE: Core | Display "warning message" responses in announce replies [Parg]
+FEATURE: Core | Added option for tracker to perform a connectability check to peers [Parg]
+FEATURE: Plug | webui support for torrent encoding choice [Parg]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]
 CHANGE: Core | Torrent opener will now report errors opening torrents better [Parg]
+CHANGE: Plug | UPnP plugin now only uses plugin interfaces [Parg]
 
 BUGFIX: Core | Throw an error message if existing data file length is too large [Nolar]
 BUGFIX: Core | Fix new bug with tracker announce every 10s when no peers were connected [Nolar]
@@ -20,7 +24,7 @@ BUGFIX: Core | Torrent auto-import now works with console UI [Nolar]
 BUGFIX: Plug | Netgear WGT624 was crashing when processing UPnP requests [Parg]
 BUGFIX: Plug | Webui 'view' more wasn't working [Parg]
 BUGFIX: Plug | Webui - excessively long status text messing up table [Parg]
-
+BUGFIX: Plug | azplugins - web tracker pages wasn't picking up "show details" option [Parg]
 
 
 2004.07.08 | Azureus 2.1.0.4
