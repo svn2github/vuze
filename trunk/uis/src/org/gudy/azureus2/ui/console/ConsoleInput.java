@@ -13,6 +13,7 @@ package org.gudy.azureus2.ui.console;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,6 +22,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,6 +34,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.AddFind;
+import org.gudy.azureus2.ui.console.commands.Alias;
 import org.gudy.azureus2.ui.console.commands.Hack;
 import org.gudy.azureus2.ui.console.commands.IConsoleCommand;
 import org.gudy.azureus2.ui.console.commands.Log;
@@ -69,7 +72,7 @@ public class ConsoleInput extends Thread {
 	private final Vector oldcommand = new Vector();
 	
 	private final static List pluginCommands = new ArrayList();
-	private final Properties aliases = new Properties();
+	public final Properties aliases = new Properties();
 	private final Map commands = new LinkedHashMap();
 	private final List helpItems = new ArrayList();
 	private final List extraHelpItems = new ArrayList();	
@@ -161,7 +164,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new CommandLogout());
 		registerCommand(new CommandQuit());
 		registerCommand(new CommandHelp());
-//		registerCommand(new Alias());
+		registerCommand(new Alias());
 	}
 
 	/**
@@ -362,25 +365,6 @@ public class ConsoleInput extends Thread {
 		}
 	}
 	
-	private void loadAliases() throws IOException
-	{
-		PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
-		String azureusUserDir = pi.getUtilities().getAzureusUserDir();
-		File aliasesFile = new File(azureusUserDir, ALIASES_CONFIG_FILE);
-		out.println("Attempting to load aliases from: " + aliasesFile.getCanonicalPath());
-		if ( aliasesFile.exists() )
-		{
-			FileInputStream fr = new FileInputStream(aliasesFile);
-			aliases.clear();
-			try {
-				aliases.load(fr);
-			} finally {
-				fr.close();
-			}
-		}
-	}
-	
-	
 	public boolean invokeCommand(String command, List cargs) {
 		if( command.startsWith("\\") )
 			command = command.substring(1);
@@ -388,6 +372,7 @@ public class ConsoleInput extends Thread {
 		{
 			List list = br.parseCommandLine(aliases.getProperty(command));
 			String newCommand = list.remove(0).toString().toLowerCase();
+			list.addAll( cargs );
 			return invokeCommand(newCommand, list);
 		}
 		if (commands.containsKey(command)) {
@@ -437,6 +422,46 @@ public class ConsoleInput extends Thread {
 					out.println("> Command '" + command + "' unknown (or . used without prior command)");
 				}
 			}
+		}
+	}
+
+	private File getAliasesFile()
+	{
+		PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+		String azureusUserDir = pi.getUtilities().getAzureusUserDir();
+		return new File(azureusUserDir, ALIASES_CONFIG_FILE);
+	}
+	/**
+	 * read in the aliases from the alias properties file
+	 * @throws IOException
+	 */
+	private void loadAliases() throws IOException
+	{
+		File aliasesFile = getAliasesFile();
+		out.println("Attempting to load aliases from: " + aliasesFile.getCanonicalPath());
+		if ( aliasesFile.exists() )
+		{
+			FileInputStream fr = new FileInputStream(aliasesFile);
+			aliases.clear();
+			try {
+				aliases.load(fr);
+			} finally {
+				fr.close();
+			}
+		}
+	}
+	
+	/**
+	 * writes the aliases back out to the alias file 
+	 */
+	public void saveAliases() {
+		File aliasesFile = getAliasesFile();
+		try {
+			out.println("Saving aliases to: " + aliasesFile.getCanonicalPath());
+			FileOutputStream fo = new FileOutputStream(aliasesFile);
+			aliases.store(fo, "This aliases file was automatically written by Azureus");
+		} catch (IOException e) {
+			out.println("> Error saving aliases to " + aliasesFile.getPath() + ":" + e.getMessage());
 		}
 	}
 }
