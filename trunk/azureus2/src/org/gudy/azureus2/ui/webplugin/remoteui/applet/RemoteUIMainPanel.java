@@ -153,7 +153,7 @@ RemoteUIMainPanel
 			bottom_panel.add( new JScrollPane(log_area), BorderLayout.CENTER );
 			
 			
-			status_area =  new VWStatusAreaView(new MDStatusAreaModel( download_model ));
+			status_area =  new VWStatusAreaView(new MDStatusAreaModel( _pi, download_model ));
 			
 			bottom_panel.add( status_area.getComponent(), BorderLayout.SOUTH );
 			

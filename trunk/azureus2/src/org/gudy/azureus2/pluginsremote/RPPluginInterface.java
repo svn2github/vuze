@@ -44,6 +44,8 @@ import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 
+import org.gudy.azureus2.core3.util.Constants;
+
 import org.gudy.azureus2.pluginsremote.download.*;
 import org.gudy.azureus2.pluginsremote.torrent.*;
 
@@ -57,6 +59,11 @@ RPPluginInterface
 	protected transient PluginInterface		delegate;
 	protected transient long				request_id_next;
 	
+	// don't change these field names as they are visible on XML serialisation
+	
+	public String			azureus_name		= Constants.AZUREUS_NAME;
+	public String			azureus_version		= Constants.AZUREUS_VERSION;
+
 	public static RPPluginInterface
 	create(
 		PluginInterface		_delegate )
@@ -139,6 +146,19 @@ RPPluginInterface
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
+		// ******************************************
+	
+	public String
+	getAzureusName()
+	{
+		return( azureus_name );
+	}
+	
+	public String
+	getAzureusVersion()
+	{
+		return( azureus_version );
+	}
 	
 	public void 
 	addView(PluginView view)

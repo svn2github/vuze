@@ -26,17 +26,21 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
  *
  */
 
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 
 public class 
 MDStatusAreaModel 
 {
+	protected PluginInterface		pi;
 	protected MDDownloadModel		dl_model;
 	
 	public
 	MDStatusAreaModel(
+		PluginInterface		_pi,
 		MDDownloadModel		_dl_model )
 	{
+		pi			= _pi;
 		dl_model	= _dl_model;
 	}
 	
@@ -72,5 +76,11 @@ MDStatusAreaModel
 		}
 		
 		return( res );		
+	}
+	
+	public String
+	getAzureusVersion()
+	{
+		return( pi.getAzureusName() + " " + pi.getAzureusVersion());
 	}
 }

@@ -54,6 +54,8 @@ import org.gudy.azureus2.pluginsimpl.utils.UtilitiesImpl;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
+import org.gudy.azureus2.core3.util.*;
+
 /**
  * @author Olivier
  *
@@ -83,6 +85,19 @@ public class PluginInterfaceImpl implements PluginInterface {
     pluginDir 			= _pluginDir;
     config 				= new PluginConfigImpl(pluginConfigKey);
   }
+  
+	public String
+	getAzureusName()
+	{
+		return( Constants.AZUREUS_NAME );
+	}
+	
+	public String
+	getAzureusVersion()
+	{
+		return( Constants.AZUREUS_VERSION );
+	}
+	
 
   public void addView(PluginView view)
   {

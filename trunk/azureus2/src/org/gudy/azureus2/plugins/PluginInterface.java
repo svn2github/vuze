@@ -45,6 +45,12 @@ import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactor
  */
 public interface PluginInterface {  
 	
+	public String
+	getAzureusName();
+	
+	public String
+	getAzureusVersion();
+	
   /**
    * A Plugin might call this method to add a View to Azureus's views
    * The View will be accessible from View > Plugins > View name

@@ -50,13 +50,27 @@ VWStatusAreaView
 		
 		component = new JPanel( new GridBagLayout());
 	
+		int	column = 0;
+		
+		VWLabel version  = new VWLabel( " " + model.getAzureusVersion() + " ");
+					
+		version.setBorder( new VWStatusEntryBorder());
+			
+		component.add( 
+				version,
+					new VWGridBagConstraints(
+							column++, 0, 1, 1, 0.0, 0.0,
+							GridBagConstraints.WEST,
+							GridBagConstraints.NONE, 
+							new Insets(0, 0, 0, 0), 0, 0 ));
+		
 		JPanel	pad = new JPanel();
 		
 		component.add( 
 				pad,
 				new VWGridBagConstraints(
-						0, 0, 1, 1, 1.0, 1.0,
-						GridBagConstraints.WEST,
+						column++, 0, 1, 1, 1.0, 1.0,
+						GridBagConstraints.CENTER,
 						GridBagConstraints.BOTH, 
 						new Insets(0, 0, 0, 0), 0, 0 ));
 
@@ -71,7 +85,7 @@ VWStatusAreaView
 		component.add( 
 				download_label,
 				new VWGridBagConstraints(
-						1, 0, 1, 1, 0.0, 0.0,
+						column++, 0, 1, 1, 0.0, 0.0,
 						GridBagConstraints.WEST,
 						GridBagConstraints.NONE, 
 						new Insets(0, 0, 0, 0), 0, 0 ));
@@ -85,7 +99,7 @@ VWStatusAreaView
 		component.add( 
 				upload_label,
 				new VWGridBagConstraints(
-						2, 0, 1, 1, 0.0, 0.0,
+						column++, 0, 1, 1, 0.0, 0.0,
 						GridBagConstraints.WEST,
 						GridBagConstraints.NONE, 
 						new Insets(0, 0, 0, 0), 0, 0 ));
