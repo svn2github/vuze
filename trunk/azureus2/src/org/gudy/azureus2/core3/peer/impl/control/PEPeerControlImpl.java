@@ -1379,7 +1379,7 @@ PEPeerControlImpl
         if( pc == currentOptimisticUnchoke && !refresh_opt_unchoke )  continue;  //skip opt unchoke if not being refreshed
         
         if( pc.isInterestingToMe() && pc.isInterestedInMe() && !pc.isSnubbed() && !best_peers.contains( pc ) ) { 
-          long uploaded_ratio = pc.getStats().getTotalDataBytesSent() / (pc.getStats().getTotalDataBytesReceived() + 16383); //assumes 16KB piece chunks
+          long uploaded_ratio = pc.getStats().getTotalDataBytesSent() / (pc.getStats().getTotalDataBytesReceived() + (DiskManager.BLOCK_SIZE-1));
           if( uploaded_ratio < 10 ) {  //make sure we haven't already uploaded 10 times as much data as they've sent us
             updateLargestValueFirstSort( pc.getStats().getTotalDataBytesReceived(), best_rates, pc, best_peers, sort_start_pos );
           }
