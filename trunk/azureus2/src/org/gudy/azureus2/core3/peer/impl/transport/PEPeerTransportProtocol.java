@@ -260,6 +260,7 @@ PEPeerTransportProtocol
   public void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
   	
 	  	if (closing) {
+        Debug.out( "~~~ already closing ~~~" );
 	  		return;
 	  	}
 	  	closing = true;
