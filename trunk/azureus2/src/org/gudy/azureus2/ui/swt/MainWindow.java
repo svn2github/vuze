@@ -1169,10 +1169,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
       view_config.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          if (config == null)
-            config = new Tab(new ConfigView());
-          else
-            config.setFocus();
+         showConfig();
         }
       });
 
@@ -3478,6 +3475,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       e.printStackTrace();
       return null;
     }
+  }
+  
+  public void showConfig() {
+    if (config == null)
+      config = new Tab(new ConfigView());
+    else
+      config.setFocus();
   }
   
 }
