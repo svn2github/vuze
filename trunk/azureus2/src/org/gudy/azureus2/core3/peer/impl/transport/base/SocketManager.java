@@ -33,7 +33,7 @@ public class SocketManager {
   private Selector selector = null;
   private VirtualOutboundSelector v_selector;
   
-  private static final boolean USE_VIRTUAL = Constants.isOSX;
+  private static final boolean USE_VIRTUAL = false;//Constants.isOSX;
   
   
   private SocketManager() {
@@ -105,7 +105,7 @@ public class SocketManager {
           }
           
           channel.configureBlocking( false );
-          channel.connect( address );  //TODO reverse order with channel registration ???
+
           if( USE_VIRTUAL ) {
             v_selector.register( channel );
             pendingOutboundConnections.put( channel, listener );
@@ -114,6 +114,9 @@ public class SocketManager {
             SelectionKey key = channel.register( selector, SelectionKey.OP_CONNECT );
             pendingOutboundConnections.put( key, listener );
           }
+          
+          channel.connect( address );
+          
         }
         catch (Throwable t) {
           //t.printStackTrace();
