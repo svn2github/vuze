@@ -47,7 +47,7 @@ public class ConfigSectionRepository {
   }
 
   public ArrayList getList() {
-    return items;
+    return (ArrayList)items.clone();
   }
 
 }
