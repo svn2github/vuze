@@ -1,6 +1,6 @@
 /*
- * File    : PluginStatsContext.java
- * Created : 24 oct. 2003 13:13:18
+ * File    : GlobalStats.java
+ * Created : 25 oct. 2003 16:17:15
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -19,25 +19,49 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.core3.plugins.stats;
-
-import org.gudy.core3.plugins.stats.data.DownloadsStats;
-import org.gudy.core3.plugins.stats.data.GlobalStats;
+package org.gudy.core3.plugins.stats.data;
 
 /**
  * @author Olivier
  * 
  */
-public interface PluginStatsContext {
+public interface GlobalStats {
 
-  /** 
-   * @return the global stats
+  /**
+   * 
+   * @return the current download speed in bytes per second
    */
-  public GlobalStats getGlobalStats();
+  public int getDownloadSpeed();
   
   /**
-   * @return the current downloads stats
+   * 
+   * @return the current upload speed in bytes per second
    */
-  public DownloadsStats getDownloadsStats();
-
+  public int getUploadSpeed();
+  
+  /**
+   * 
+   * @return the current number of torrents in azureus
+   */
+  public int getNumberOfLoadedTorrents();
+  
+  /**
+   * 
+   * @return the current number of running torrents in azureus
+   */
+  public int getNumberOfActiveTorrents();
+  
+  /**
+   * 
+   * @return the current number of downloading torrents
+   */
+  public int getNumberOfDownloads();
+  
+  /**
+   * 
+   * @return the current number of seeding torrents
+   */
+  public int getNumberOfUploads();
+  
+  
 }

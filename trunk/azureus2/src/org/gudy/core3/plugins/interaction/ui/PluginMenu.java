@@ -1,6 +1,6 @@
 /*
- * File    : PluginStatsContext.java
- * Created : 24 oct. 2003 13:13:18
+ * File    : PluginMenu.java
+ * Created : 25 oct. 2003 16:49:54
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -19,25 +19,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.core3.plugins.stats;
-
-import org.gudy.core3.plugins.stats.data.DownloadsStats;
-import org.gudy.core3.plugins.stats.data.GlobalStats;
+package org.gudy.core3.plugins.interaction.ui;
 
 /**
  * @author Olivier
  * 
  */
-public interface PluginStatsContext {
-
-  /** 
-   * @return the global stats
-   */
-  public GlobalStats getGlobalStats();
-  
-  /**
-   * @return the current downloads stats
-   */
-  public DownloadsStats getDownloadsStats();
-
-}
+public interface PluginMenu {}
