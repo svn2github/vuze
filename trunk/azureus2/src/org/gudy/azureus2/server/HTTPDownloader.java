@@ -71,7 +71,7 @@ public class HTTPDownloader {
       try {
         read = in.read(buf);
         readtotal += read;
-      } catch (IOException e) {};
+      } catch (IOException e) {}
       if (read>0)
         this.fileout.write(buf, 0, read);
     } while (read > 0);
