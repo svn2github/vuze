@@ -318,6 +318,20 @@ public class Tab {
 
         if (view instanceof MyTorrentsSuperView) {
           MainWindow.getWindow().setMytorrents(null);
+          //TODO : There is a problem here on OSX when using Normal TABS
+          /*  org.eclipse.swt.SWTException: Widget is disposed
+                at org.eclipse.swt.SWT.error(SWT.java:2691)
+                at org.eclipse.swt.SWT.error(SWT.java:2616)
+                at org.eclipse.swt.SWT.error(SWT.java:2587)
+                at org.eclipse.swt.widgets.Widget.error(Widget.java:546)
+                at org.eclipse.swt.widgets.Widget.checkWidget(Widget.java:296)
+                at org.eclipse.swt.widgets.Control.setVisible(Control.java:2573)
+                at org.eclipse.swt.widgets.TabItem.releaseChild(TabItem.java:180)
+                at org.eclipse.swt.widgets.Widget.dispose(Widget.java:480)
+                at org.gudy.azureus2.ui.swt.Tab.closed(Tab.java:322)
+           */
+          //Tried to add a if(! item.isDisposed()) but it's not fixing it
+          //Need to investigate...
           item.dispose();
           return;
         }
