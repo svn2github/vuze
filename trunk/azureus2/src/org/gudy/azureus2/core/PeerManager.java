@@ -52,6 +52,8 @@ public class PeerManager extends Thread {
   private PeerUpdater peerUpdater;
 
   private int uploadCount = 0;
+  
+  private List RequestExpired;
 
   public PeerManager(
     DownloadManager manager,
@@ -471,7 +473,7 @@ public class PeerManager extends Thread {
           for (int j = 1; j < expired.size(); j++) {
             Request request = (Request) expired.get(j);
             //get the request object
-            //pc.sendCancel(request); //cancel the request object
+            pc.sendCancel(request); //cancel the request object
             int pieceNumber = request.getPieceNumber();
             //get the piece number
             int pieceOffset = request.getOffset();
@@ -645,8 +647,8 @@ public class PeerManager extends Thread {
     //Ok, so we may have found a valid (piece;block) to request    
     if (pieceNumber != -1 && blockNumber != -1) {
       //If the peer is snubbed, we unmark the block as being requested
-      if (snubbed)
-        _pieces[pieceNumber].unmarkBlock(blockNumber);
+      //if (snubbed)
+      //  _pieces[pieceNumber].unmarkBlock(blockNumber);
 
       //We really send the request to the peer
       pc.request(pieceNumber, blockNumber * BLOCK_SIZE, _pieces[pieceNumber].getBlockSize(blockNumber));
@@ -682,8 +684,8 @@ public class PeerManager extends Thread {
 
     //We send request ...
     blockNumber = piece.getAndMarkBlock();
-    if (snubbed)
-      _pieces[pieceNumber].unmarkBlock(blockNumber);
+    //if (snubbed)
+    //  _pieces[pieceNumber].unmarkBlock(blockNumber);
 
     pc.request(pieceNumber, blockNumber * BLOCK_SIZE, piece.getBlockSize(blockNumber));
     return true;
