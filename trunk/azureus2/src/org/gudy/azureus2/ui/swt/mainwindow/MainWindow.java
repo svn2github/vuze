@@ -129,7 +129,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   StackLayout layoutStatusAera;
   
   private CLabel statusText;
-  private String statusTextKey;
+  private String statusTextKey = "";
   
   
   private Composite statusUpdate;
@@ -758,7 +758,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
   
   public void setStatusText(String keyedSentence) {
-    this.statusTextKey = keyedSentence;
+    this.statusTextKey = keyedSentence==null?"":keyedSentence;
     if (display == null || display.isDisposed())
       return;
     display.asyncExec(new Runnable() {
