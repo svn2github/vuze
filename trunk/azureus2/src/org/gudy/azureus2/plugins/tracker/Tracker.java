@@ -30,24 +30,7 @@ import org.gudy.azureus2.plugins.tracker.web.*;
 
 public interface 
 Tracker 
-{
-    /**
-     * adds an identificator to the tracker
-     * @param indentificator the Identificator
-     */
-	
-    public void 
-    addTrackerIdentificator(
-    	Identificator identificator);
-    
-    /**
-     * adds a stats listener to the tracker
-     * @param listener
-     */
-    
-    public void 
-    addTrackerStatsListener(StatsListener listener);
-    
+{   
     public TrackerTorrent[]
     getTorrents();
     
