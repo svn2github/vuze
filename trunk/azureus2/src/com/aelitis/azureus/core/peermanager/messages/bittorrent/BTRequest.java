@@ -30,6 +30,7 @@ import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 
 /**
  * BitTorrent request message.
+ * NOTE: Overrides equals()
  */
 public class BTRequest implements BTProtocolMessage {
   
