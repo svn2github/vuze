@@ -37,7 +37,7 @@ public class BTBitfield implements BTProtocolMessage {
   private final int total_byte_size;
   
   public BTBitfield( ByteBuffer bitfield ) {
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( bitfield.capacity() + 5 ) );
+    buffer = DirectByteBufferPool.getBuffer( bitfield.capacity() + 5 );
     
     bitfield.position( 0 );
     bitfield.limit( bitfield.capacity() );
@@ -64,7 +64,7 @@ public class BTBitfield implements BTProtocolMessage {
   public int getPriority() {  return ProtocolMessage.PRIORITY_URGENT;  }
    
   public void destroy() {
-    //buffer.returnToPool();
+    buffer.returnToPool();
   }
   
   public int[] typesToRemove() {  return null;  }

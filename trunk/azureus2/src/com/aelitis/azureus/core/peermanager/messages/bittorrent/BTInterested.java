@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.peermanager.messages.bittorrent;
 
-import java.nio.ByteBuffer;
-
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
@@ -38,8 +36,7 @@ public class BTInterested implements BTProtocolMessage {
   private final int total_byte_size;
   
   public BTInterested() {
-    //TODO: make this a true direct buffer, from the pool
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
+    buffer = DirectByteBufferPool.getBuffer( 5 );
     
     buffer.putInt( 1 );
     buffer.put( (byte)2 );
@@ -62,7 +59,7 @@ public class BTInterested implements BTProtocolMessage {
   public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
   
   public void destroy() {
-    //buffer.returnToPool();
+    buffer.returnToPool();
   }
   
   public int[] typesToRemove() {  return to_remove;  }
