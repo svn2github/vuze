@@ -25,7 +25,8 @@ import javax.net.ssl.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.torrent.*;
 
 /**
  * @author Tobias Minich
@@ -231,6 +232,31 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
             this.error("No data contained in '" + this.url.toString() + "'");
             return;
           }
+          
+          	// if the file has come down with a not-so-useful name then we try to rename
+          	// it to something more useful
+          
+          try{
+          	if ( !filename.toLowerCase().endsWith(".torrent" )){
+
+          		TOTorrent	torrent = TorrentUtils.readFromFile( file );
+          		
+          		String	name = TorrentUtils.getLocalisedName( torrent ) + ".torrent";
+          		
+          		File	new_file	= new File( directoryname, name );
+          		
+          		if ( file.renameTo( new_file )){
+          			
+          			filename	= name;
+				
+          			file	= new_file;
+          		}
+          	}
+          }catch( Throwable e ){
+          		
+          	e.printStackTrace();
+          }
+          
           this.state = STATE_FINISHED;
         }
         this.notifyListener();
