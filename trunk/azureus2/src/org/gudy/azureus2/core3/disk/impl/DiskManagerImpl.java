@@ -85,6 +85,9 @@ DiskManagerImpl
 
 	private ByteBuffer allocateAndTestBuffer;
 
+	public static final int	CHECK_QUEUE_BLOCK_LIMIT	= 1;
+	private Semaphore	check_queue_block_sem;
+	
 	private List 		writeQueue;
 	private List 		checkQueue;
 	private Semaphore	writeCheckQueueSem;
@@ -280,6 +283,8 @@ DiskManagerImpl
 		writeQueue 			= new LinkedList();
 		checkQueue 			= new LinkedList();
 		writeCheckQueueSem	= new Semaphore();
+		
+		check_queue_block_sem	= new Semaphore();
 		
 		readQueue 		= new LinkedList();
 		readQueueSem	= new Semaphore();
@@ -649,6 +654,8 @@ DiskManagerImpl
 			
 			readQueueSem.releaseForever();
 			
+			check_queue_block_sem.releaseForever();
+			
 			while (readQueue.size() != 0) {
 				DiskManagerDataQueueItemImpl item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
 				item.setLoading(false);
@@ -688,9 +695,17 @@ DiskManagerImpl
 							elt	= (QueueElement)writeQueue.remove(0);
 							
 							elt_is_write	= true;
+							
 						}else{
 							
 							elt	= (QueueElement)checkQueue.remove(0);
+							
+							if ( checkQueue.size() >= DiskManagerImpl.CHECK_QUEUE_BLOCK_LIMIT ){
+								
+								System.out.println( "checkQueue: blocking released");
+								
+								check_queue_block_sem.release();
+							}
 							
 							elt_is_write	= false;
 						}
@@ -1000,12 +1015,23 @@ DiskManagerImpl
    aSyncCheckPiece(
    		int pieceNumber) 
    {
+   		boolean	block_required	= false;
+   		
    		synchronized( writeCheckQueueLock ){
+
+   			block_required = checkQueue.size() >= CHECK_QUEUE_BLOCK_LIMIT;
 		
    			checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
-   		}
+    	}
    		
    		writeCheckQueueSem.release();
+   		
+   		if ( block_required ){
+   			
+			System.out.println( "checkQueue: blocking reserved");
+
+   			check_queue_block_sem.reserve();
+   		}
    }
   
 
@@ -1525,7 +1551,7 @@ DiskManagerImpl
 		int offset, 
 		ByteBuffer data,
 		PEPeer sender) 
-	{
+	{		
 		synchronized( writeCheckQueueLock ){
 			
 			writeQueue.add(new QueueElement(pieceNumber, offset, data,sender));
