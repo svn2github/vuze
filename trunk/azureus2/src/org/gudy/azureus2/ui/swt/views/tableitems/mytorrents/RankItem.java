@@ -38,15 +38,18 @@ public class RankItem extends TorrentItem {
   }
 
   public void refresh() {
-    setText("" + (torrentRow.getManager().getIndex()+1));
-    String name = torrentRow.getManager().getName();
-    if (name != null ) {
-      int sep = name.lastIndexOf('.'); //$NON-NLS-1$
-      if(sep < 0) sep = 0;
-      name = name.substring(sep);
-      Program program = Program.findProgram(name);
-      Image icon = ImageRepository.getIconFromProgram(program);
-      setImage(icon);
+    //setText returns true only if the text is updated
+    if(setText("" + (torrentRow.getManager().getIndex()+1))) {
+      //in which case we also update the icon
+      String name = torrentRow.getManager().getName();
+      if (name != null ) {
+        int sep = name.lastIndexOf('.'); //$NON-NLS-1$
+        if(sep < 0) sep = 0;
+        name = name.substring(sep);
+        Program program = Program.findProgram(name);
+        Image icon = ImageRepository.getIconFromProgram(program);
+        setImage(icon);
+      }
     }
   }
 }

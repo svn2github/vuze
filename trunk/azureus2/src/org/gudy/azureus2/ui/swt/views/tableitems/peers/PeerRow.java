@@ -1,10 +1,11 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -17,6 +18,8 @@ import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
+import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.PeersView;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
@@ -33,13 +36,22 @@ public class PeerRow implements SortableItem {
   private Display display;
   private Table table;
   private PEPeer peerSocket;
-  private TableItem item;
+  private BufferedTableRow row;
+  private List items;
+  
   private Listener listener;
   
   //This is used for caching purposes of the Image
   private boolean valid;
   private Image image;
   private String[] oldTexts;
+
+  /**
+   * @return Returns the row.
+   */
+  public BufferedTableRow getRow() {
+    return row;
+  }
 
   public PeerRow(final PeersView view, final Table table,final PEPeer pc) {
     if (table == null || table.isDisposed()) {
@@ -52,6 +64,7 @@ public class PeerRow implements SortableItem {
     this.table = table;
     this.peerSocket = pc;
     this.valid = false;
+    this.items = new ArrayList();
     this.oldTexts = new String[19];
     for (int i = 0; i < oldTexts.length; i++)
       oldTexts[i] = "";	
@@ -61,21 +74,32 @@ public class PeerRow implements SortableItem {
         if (table == null || table.isDisposed())
           return;
                 
-          item = new TableItem(table, SWT.NULL);                
-          view.setItem(item,pc);
-          table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
-            public void handleEvent(Event e) {
-              valid = false;
-            }
-          });
-
-        item.addDisposeListener(new DisposeListener() {
-          public void widgetDisposed(DisposeEvent e) {
-            if (image != null && !image.isDisposed())
-              image.dispose();
+        row = new BufferedTableRow(table, SWT.NULL);
+        items.add(new IpItem(PeerRow.this,0));
+        items.add(new PortItem(PeerRow.this,1));
+        items.add(new TypeItem(PeerRow.this,2));
+        items.add(new InterestedItem(PeerRow.this,3));
+        items.add(new ChokedItem(PeerRow.this,4));
+        
+        items.add(new PercentItem(PeerRow.this,6));
+        items.add(new DownSpeedItem(PeerRow.this,7));
+        items.add(new DownItem(PeerRow.this,8));
+        items.add(new InterestingItem(PeerRow.this,9));
+        items.add(new ChokingItem(PeerRow.this,10));
+        items.add(new UpSpeedItem(PeerRow.this,11));
+        items.add(new UpItem(PeerRow.this,12));
+        items.add(new ClientItem(PeerRow.this,17));
+        
+        
+        
+        view.setItem(row.getItem(),pc);
+        table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
+          public void handleEvent(Event e) {
+            valid = false;
           }
-        });        
-        tableItems.put(item, thisItem);
+        });  
+        
+        tableItems.put(row, thisItem);
       }
     });  
   }
@@ -89,10 +113,10 @@ public class PeerRow implements SortableItem {
     final boolean _valid = this.valid;
     this.valid = true;
 
-    if (item == null || item.isDisposed())
+    if (row == null || row.isDisposed())
       return;
     //Compute bounds ...
-    Rectangle bounds = item.getBounds(5);
+    Rectangle bounds = row.getBounds(5);
     int width = bounds.width - 1;
     int x0 = bounds.x;
     int y0 = bounds.y + 1;
@@ -151,11 +175,14 @@ public class PeerRow implements SortableItem {
 
     if (display == null || display.isDisposed())
       return;
-    /*display.asyncExec( new Runnable() {
-      public void run()
-      {*/
-    if (item == null || item.isDisposed())
+    if (row == null || row.isDisposed())
       return;
+    
+    Iterator iter = items.iterator();
+    while(iter.hasNext()) {
+      BufferedTableItem item = (BufferedTableItem) iter.next();
+      item.refresh();
+    }   
 
     String tmp;
 
@@ -163,86 +190,12 @@ public class PeerRow implements SortableItem {
     if (peerSocket.isSnubbed())
       tmp = "*";
     if (!(oldTexts[14].equals(tmp))) {
-      item.setText(14, tmp);
+      row.setText(14, tmp);
       oldTexts[14] = tmp;
       if (peerSocket.isSnubbed())
-        item.setForeground(MainWindow.grey);
+        row.setForeground(MainWindow.grey);
       else
-        item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-    }
-
-    tmp = peerSocket.getIp();
-    if ((!oldTexts[0].equals(tmp))) {
-      item.setText(0, tmp);
-      oldTexts[0] = tmp;
-    }
-
-    tmp = "" + peerSocket.getPort();
-    if ((!oldTexts[1].equals(tmp))) {
-      item.setText(1, tmp);
-      oldTexts[1] = tmp;
-    }
-
-    tmp = "L";
-    boolean isIcoming = peerSocket.isIncoming();
-    if (isIcoming)
-      tmp = "R";
-    if (!oldTexts[2].equals(tmp)) {
-      item.setText(2, tmp);
-      oldTexts[2] = tmp;
-    }
-
-    tmp = "";
-    if (peerSocket.isInterested())
-      tmp = "*";
-    if (!(oldTexts[3].equals(tmp))) {
-      item.setText(3, tmp);
-      oldTexts[3] = tmp;
-    }
-
-    tmp = "";
-    if (peerSocket.isChoked())
-      tmp = "*";
-    if (!(oldTexts[4].equals(tmp))) {
-      item.setText(4, tmp);
-      oldTexts[4] = tmp;
-    }
-
-    tmp = "";
-    if (peerSocket.isInteresting())
-      tmp = "*";
-    if (!(oldTexts[9].equals(tmp))) {
-      item.setText(9, tmp);
-      oldTexts[9] = tmp;
-    }
-
-    tmp = "";
-    if (peerSocket.isChoking())
-      tmp = "*";
-    if (!(oldTexts[10].equals(tmp))) {
-      item.setText(10, tmp);
-      oldTexts[10] = tmp;
-    }
-
-    boolean available[] = peerSocket.getAvailable();
-    int sum = 0;
-//    int availability[] = peerSocket.getManager().getAvailability();
-    for (int i = 0; i < available.length; i++) {
-      if (available[i]) {
-        sum++;
-      }
-    }
-    sum = (sum * 1000) / (available.length);
-    tmp = (sum / 10) + "." + (sum % 10) + " %";
-    if (!(oldTexts[6].equals(tmp))) {
-      item.setText(6, tmp);
-      oldTexts[6] = tmp;
-    }
-
-    tmp = "" + peerSocket.getClient();
-    if (!(oldTexts[17].equals(tmp))) {
-      item.setText(17, tmp);
-      oldTexts[17] = tmp;
+        row.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
     }        
 
   }
@@ -252,45 +205,20 @@ public class PeerRow implements SortableItem {
     if (display == null || display.isDisposed())
       return;
 
-    if (item == null || item.isDisposed())
+    if (row == null || row.isDisposed())
       return;
     String tmp;
-    PEPeerStats stats = peerSocket.getStats();
-
-    tmp = DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage());
-    if (!(oldTexts[7].equals(tmp))) {
-      item.setText(7, tmp);
-      oldTexts[7] = tmp;
-    }
-
-    tmp = DisplayFormatters.formatByteCountToKBEtc(stats.getTotalReceived());
-    if (!(oldTexts[8].equals(tmp))) {
-      item.setText(8, tmp);
-      oldTexts[8] = tmp;
-    }
-
-    tmp = DisplayFormatters.formatByteCountToKBEtcPerSec( stats.getUploadAverage());
-    if (!(oldTexts[11].equals(tmp))) {
-      item.setText(11, tmp);
-      oldTexts[11] = tmp;
-    }
-
-    tmp = DisplayFormatters.formatByteCountToKBEtc(stats.getTotalSent());
-    if (!(oldTexts[12].equals(tmp))) {
-      item.setText(12, tmp);
-      oldTexts[12] = tmp;
-
-    }
+    PEPeerStats stats = peerSocket.getStats();   
 
     tmp = DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getStatisticSentAverage());
     if (!(oldTexts[13].equals(tmp))) {
-      item.setText(13, tmp);
+      row.setText(13, tmp);
       oldTexts[13] = tmp;
     }
 
     tmp = DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getTotalAverage());
     if (!(oldTexts[15].equals(tmp))) {
-      item.setText(15, tmp);
+      row.setText(15, tmp);
       oldTexts[15] = tmp;
     }
 
@@ -298,13 +226,13 @@ public class PeerRow implements SortableItem {
     if (peerSocket.isOptimisticUnchoke())
       tmp = "*";
     if (!(oldTexts[16].equals(tmp))) {
-      item.setText(16, tmp);
+      row.setText(16, tmp);
       oldTexts[16] = tmp;
     }
     
     tmp = "" + DisplayFormatters.formatByteCountToKBEtc(stats.getTotalDiscarded());
             if (!(oldTexts[18].equals(tmp))) {
-              item.setText(18, tmp);
+              row.setText(18, tmp);
               oldTexts[18] = tmp;
             }
 
@@ -318,14 +246,16 @@ public class PeerRow implements SortableItem {
 	      public void run() {
 	        if (table == null || table.isDisposed())
 	          return;
-	        if (item == null || item.isDisposed())
+	        if (row == null || row.isDisposed())
 	          return;
+          if (image != null && !image.isDisposed())
+            image.dispose();
 	        table.getColumn(5).removeListener(SWT.Resize, listener);
-	        table.remove(table.indexOf(item));
-	        item.dispose();
+	        table.remove(table.indexOf(row.getItem()));
+	        row.dispose();
           if(tableItems == null)
             return;
-	        tableItems.remove(item);
+	        tableItems.remove(row);
 	      }
 	    });
     }
@@ -361,9 +291,9 @@ public class PeerRow implements SortableItem {
   }
 
   public int getIndex() {
-    if(table == null || table.isDisposed() || item == null || item.isDisposed())
+    if(table == null || table.isDisposed() || row == null || row.isDisposed())
       return -1;
-    return table.indexOf(item);
+    return table.indexOf(row.getItem());
   }
   
   /*
@@ -438,7 +368,7 @@ public class PeerRow implements SortableItem {
   }
   
   public TableItem getTableItem() {
-    return item;
+    return row.getItem();
   }
 
 }

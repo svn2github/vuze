@@ -344,7 +344,7 @@ public class BencodedViewer {
 		}
 
 		test.addMetaData(fileName);
-		test.addMetaData(fileName, "Another One");
+		//test.addMetaData(fileName, "Another One");
 		mainWindow.pack();
 		mainWindow.setSize(400,500);	
 		mainWindow.open();		

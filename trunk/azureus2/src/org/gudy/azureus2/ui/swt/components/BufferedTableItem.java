@@ -40,9 +40,10 @@ public abstract class BufferedTableItem {
     this.position = position;
   }
   
-  public void setText(String text) {
+  public boolean setText(String text) {
     if(position != -1)
-      row.setText(position,text);
+      return row.setText(position,text);
+    return false;
   }
   
   public void setImage(Image img) {

@@ -125,13 +125,18 @@ BufferedTableRow
 		item.setForeground(foreground);
 	}
 	
-	public void
+  /**
+   * @param index
+   * @param new_value
+   * @return true if the item has been updated
+   */
+	public boolean
 	setText(
 		int			index,
 		String		new_value )
 	{
 		if ( item.isDisposed()){
-			return;
+			return false;
 		}
 				
 		if ( index >= text_values.length ){
@@ -149,19 +154,21 @@ BufferedTableRow
 		
 		if ( new_value == value ){
 			
-			return;
+			return false;
 		}
 		
 		if (	new_value != null && 
 				value != null &&
 				new_value.equals( value )){
 					
-			return;
+			return false;
 		}
 		
 		text_values[index] = new_value;
 		
 		item.setText( index, new_value==null?"":new_value );
+    
+    return true;
 	}
   
   public Rectangle getBounds(int index) {
