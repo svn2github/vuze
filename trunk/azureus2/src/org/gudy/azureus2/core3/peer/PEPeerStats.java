@@ -32,13 +32,13 @@
 public interface 
 PEPeerStats 
 {   
-  public int getDownloadAverage();
+  public long getDownloadAverage();
 
-  public int getReception();
+  public long getReception();
 
-  public int getUploadAverage();
+  public long getUploadAverage();
    
-  public int getTotalAverage();
+  public long getTotalAverage();
    
   public long getTotalDiscarded();
  
@@ -46,5 +46,5 @@ PEPeerStats
   
   public long getTotalReceived();
  
-  public int getStatisticSentAverage();
+  public long getStatisticSentAverage();
 }

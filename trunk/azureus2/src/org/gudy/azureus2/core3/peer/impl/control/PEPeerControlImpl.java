@@ -574,7 +574,7 @@ PEPeerControlImpl
     //for all peers
     Vector bestUploaders = new Vector();
     synchronized (_peer_transports) {
-      int[] upRates = new int[_peer_transports.size()];
+      long[] upRates = new long[_peer_transports.size()];
       Arrays.fill(upRates, -1);
 
       for (int i = 0; i < _peer_transports.size(); i++) {
@@ -587,7 +587,7 @@ PEPeerControlImpl
           break;
         }
         if (pc.transferAvailable()) {
-          int upRate = pc.getStats().getReception();
+        	long upRate = pc.getStats().getReception();
           testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
         }
       }
@@ -1168,7 +1168,7 @@ PEPeerControlImpl
     if (numUpRates <= 0)
       return;
 
-    int[] upRates = new int[numUpRates];
+    long[] upRates = new long[numUpRates];
     Arrays.fill(upRates, 0);
 
     Vector bestUploaders = new Vector();
@@ -1181,7 +1181,7 @@ PEPeerControlImpl
         break;
       }
       if (pc.isInteresting() && pc.isChoking()) {
-        int upRate = pc.getStats().getReception();
+      	long upRate = pc.getStats().getReception();
         testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
       }
     }
@@ -1194,7 +1194,7 @@ PEPeerControlImpl
 
   // refactored out of unChoke() - Moti
   private Vector getBestUnChokedPeers(int nbUnchoke) {
-    int[] upRates = new int[nbUnchoke];
+    long[] upRates = new long[nbUnchoke];
     Arrays.fill(upRates, 0);
 
     Vector bestUploaders = new Vector();
@@ -1208,7 +1208,7 @@ PEPeerControlImpl
           continue;
         }
         if (pc.isInteresting()) {
-          int upRate = 0;
+        	long upRate = 0;
           if (_finished) {
             upRate = pc.getStats().getUploadAverage();
             //int totalUploaded = (int) (pc.getStats().getTotalSent() / (1024l*1024l)) + 1;
@@ -1258,10 +1258,10 @@ PEPeerControlImpl
             continue;
           }
           if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
-            int upRate = 0;
+            long upRate = 0;
             //If peer we'll use the overall uploaded value
             if (!_finished)
-              upRate = (int) pc.getStats().getTotalReceived();
+              upRate = pc.getStats().getTotalReceived();
             else {
               upRate = pc.getPercentDone();
               if (pc.isSnubbed())
@@ -1319,7 +1319,7 @@ PEPeerControlImpl
     return nonChoking;
   }
 
-  private void testAndSortBest(int upRate, int[] upRates, PEPeerTransport pc, Vector best, int start) {
+  private void testAndSortBest(long upRate, long[] upRates, PEPeerTransport pc, Vector best, int start) {
     if(best == null || pc == null)
       return;
     if(best.contains(pc))
@@ -1690,7 +1690,7 @@ PEPeerControlImpl
       else return 0;
     }
     
-    int averageSpeed = _averageReceptionSpeed.getAverage();
+    long averageSpeed = _averageReceptionSpeed.getAverage();
     return dataRemaining / (averageSpeed + 1);
   }
   

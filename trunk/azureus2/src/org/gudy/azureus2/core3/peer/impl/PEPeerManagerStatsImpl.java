@@ -81,11 +81,11 @@ PEPeerManagerStatsImpl
 	  overallSpeed.addValue(pieceLength);
 	}
 
-	public int getDownloadAverage() { 
+	public long getDownloadAverage() { 
 	  return( receptionSpeed.getAverage());
 	}
 
-	public int getUploadAverage() {
+	public long getUploadAverage() {
 	  return( sendingSpeed.getAverage());
 	}
   
@@ -105,7 +105,7 @@ PEPeerManagerStatsImpl
 	  return totalReceived;
 	}
     
-	public int 
+	public long 
 	getTotalAverage() 
 	{
 	  return( overallSpeed.getAverage());

@@ -45,22 +45,22 @@ PluginPEPeerStatsWrapper
 	
 	public int getDownloadAverage()
 	{
-		return( delegate.getDownloadAverage());
+		return( (int)delegate.getDownloadAverage());
 	}
 
 	public int getReception()
 	{
-		return( delegate.getReception());
+		return( (int)delegate.getReception());
 	}
 
 	public int getUploadAverage()
 	{
-		return( delegate.getUploadAverage());
+		return( (int)delegate.getUploadAverage());
 	}
   
 	public int getTotalAverage()
 	{
-		return( delegate.getTotalAverage());
+		return( (int)delegate.getTotalAverage());
 	}
   
 	public long getTotalDiscarded()
@@ -80,6 +80,6 @@ PluginPEPeerStatsWrapper
  
 	public int getStatisticSentAverage()
 	{
-		return( delegate.getStatisticSentAverage());
+		return( (int)delegate.getStatisticSentAverage());
 	}
 }

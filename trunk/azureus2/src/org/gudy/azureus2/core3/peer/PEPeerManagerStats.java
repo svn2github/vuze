@@ -28,11 +28,11 @@ package org.gudy.azureus2.core3.peer;
 public interface 
 PEPeerManagerStats 
 {
-	public int getDownloadAverage();
+	public long getDownloadAverage();
 
-	public int getUploadAverage();
+	public long getUploadAverage();
    
-	public int getTotalAverage();
+	public long getTotalAverage();
    
 	public long getTotalDiscarded();
   

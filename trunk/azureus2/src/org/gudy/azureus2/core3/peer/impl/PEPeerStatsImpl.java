@@ -95,15 +95,15 @@ PEPeerStatsImpl
 		statisticSentSpeed.addValue(length);
 	  }
 
-	  public int getDownloadAverage() { 
+	  public long getDownloadAverage() { 
 		return( receptionSpeed.getAverage());
 	  }
 
-	  public int getReception() {
+	  public long getReception() {
 		return chokingReceptionSpeed.getAverage();
 	  }
 
-	  public int getUploadAverage() {
+	  public long getUploadAverage() {
 		return( sendingSpeed.getAverage());
 	  }
   
@@ -119,13 +119,13 @@ PEPeerStatsImpl
 		return totalReceived;
 	  }
     
-	  public int 
+	  public long 
 	  getTotalAverage() 
 	  {
 	  	return( overallSpeed.getAverage());
 	  }
 
-	  public int getStatisticSentAverage() {
+	  public long getStatisticSentAverage() {
 		return statisticSentSpeed.getAverage();
 	  }
 }

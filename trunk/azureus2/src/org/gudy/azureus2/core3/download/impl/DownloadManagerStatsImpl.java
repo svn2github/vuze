@@ -92,7 +92,7 @@ DownloadManagerStatsImpl
 	   	}
 	 }
 
-	public int 
+	public long 
 	getDownloadAverage() 
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();
@@ -105,7 +105,7 @@ DownloadManagerStatsImpl
 	  	return 0;
 	}
   
-	public int 
+	public long 
 	getUploadAverage() 
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();
@@ -230,7 +230,7 @@ DownloadManagerStatsImpl
   }
   
 
-	public int getTotalAverage() {
+	public long getTotalAverage() {
 		PEPeerManager	pm = download_manager.getPeerManager();
 	  if (pm != null)
 		return pm.getStats().getTotalAverage();

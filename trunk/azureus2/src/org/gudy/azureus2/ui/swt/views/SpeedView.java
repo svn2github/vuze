@@ -65,8 +65,8 @@ public class SpeedView extends AbstractIView {
       try {
         bContinue = true;
         while(bContinue) {
-          downSpeedGraphic.addIntValue(manager.getStats().getDownloadAverage());
-          upSpeedGraphic.addIntValue(manager.getStats().getUploadAverage());
+          downSpeedGraphic.addIntValue((int)manager.getStats().getDownloadAverage());
+          upSpeedGraphic.addIntValue((int)manager.getStats().getUploadAverage());
           Thread.sleep(1000);
         }
       } catch(Exception e) {

@@ -57,13 +57,13 @@ DownloadManagerStats
 	public int
 	getShareRatio();
 	
-	public int
+	public long
 	getDownloadAverage();
 		
-	public int
+	public long
 	getUploadAverage();
 
-	public int
+	public long
 	getTotalAverage();
 			
 	public String

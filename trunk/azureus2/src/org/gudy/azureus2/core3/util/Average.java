@@ -13,7 +13,7 @@ package org.gudy.azureus2.core3.util;
  */
 public class Average {
   /**
-  * It uses a simple array of integers to store values in a cycling way.
+  * It uses a simple array of longs to store values in a cycling way.
   * The array has 2 more elements than really needed to compute the average.
   * One is the next one to be filled, and its value is always 0,
   * and the other one is the one currently filled,
@@ -33,7 +33,7 @@ public class Average {
   private long lastUpdate;
 
   //The values
-  private int values[];
+  private long values[];
 
   /**
    * Private constructor for an Average
@@ -46,7 +46,7 @@ public class Average {
 
     this.nbElements = (period * 1000) / refreshRate + 2;
     this.lastUpdate = System.currentTimeMillis() / refreshRate;
-    this.values = new int[this.nbElements];
+    this.values = new long[this.nbElements];
   }
 
   /**
@@ -96,7 +96,7 @@ public class Average {
    * the time it is added is the time this method is called.
    * @param value the value to be added to the Average
    */
-  public void addValue(int value) {
+  public void addValue(long value) {
     //We get the current time factor.
     long timeFactor = System.currentTimeMillis() / refreshRate;
     //We first update the buffer.
@@ -109,7 +109,7 @@ public class Average {
    * This method can be called to get the current average value.
    * @return the current Average computed.
    */
-  public int getAverage() {
+  public long getAverage() {
     //We get the current timeFactor
     long timeFactor = System.currentTimeMillis() / refreshRate;
     //We first update the buffer
@@ -126,6 +126,6 @@ public class Average {
     }
 
     //We return the sum divided by the period
-    return (int) (sum / period);
+    return(sum / period);
   }
 }

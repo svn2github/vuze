@@ -73,11 +73,11 @@ GlobalManagerStatsImpl
 
  
 	  public int getDownloadAverage() {
-		return receptionSpeed.getAverage();
+		return (int)receptionSpeed.getAverage();
 	  }
   
 	  public int getUploadAverage() {
-		  return sendingSpeed.getAverage();
+		  return (int)sendingSpeed.getAverage();
 	  }
 
 
