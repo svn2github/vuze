@@ -580,6 +580,19 @@ public class TrackerStatus {
   
   		throws Exception
   {
+  		/* reduce network traffic by only scraping UDP when the torrent isn't running as
+  		 * UDP version 2 contains scrape data in the announce response
+  		 */
+  	
+  	if ( 	PRUDPPacket.VERSION == 2 &&
+  			scraper.isTorrentDownloading( hash )){
+  	
+        LGLogger.log(	componentID, evtLifeCycle, LGLogger.SENT,
+        				"Scrape of " + reqUrl + " skipped as torrent running and therefore scrape data available in announce replies");
+
+  		return;
+  	}
+  	
 	reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
 	PasswordAuthentication	auth 	= null;

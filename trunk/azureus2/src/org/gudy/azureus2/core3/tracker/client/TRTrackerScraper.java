@@ -53,6 +53,10 @@ TRTrackerScraper
 		TRTrackerClient	tracker_client );
 		
 	public void
+	setClientResolver(
+		TRTrackerScraperClientResolver	resolver );
+	
+	public void
 	addListener(
 		TRTrackerScraperListener	l );
 	

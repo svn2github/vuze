@@ -63,7 +63,11 @@ public class TrackerChecker implements TRTrackerScraperListener {
    *
    * @return The cached scrape response.  Can be null.
    */
-  protected TRTrackerScraperResponseImpl getHashData(TRTrackerClient tracker_client) {
+  protected 
+  TRTrackerScraperResponseImpl 
+  getHashData(
+  	TRTrackerClient tracker_client) 
+  {
     try {
       return getHashData(tracker_client.getTrackerUrl(), 
                          tracker_client.getTorrent().getHashWrapper());

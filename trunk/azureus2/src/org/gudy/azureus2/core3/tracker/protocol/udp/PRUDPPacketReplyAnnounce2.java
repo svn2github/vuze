@@ -113,6 +113,18 @@ PRUDPPacketReplyAnnounce2
 		return( ports );
 	}
 	
+	public int
+	getLeechers()
+	{
+		return( leechers );
+	}
+	
+	public int
+	getSeeders()
+	{
+		return( seeders );
+	}
+	
 	public void
 	serialise(
 		DataOutputStream	os )

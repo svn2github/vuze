@@ -1158,7 +1158,8 @@ TRTrackerClientClassicImpl
 			 					int[]	addresses 	= announce_reply.getAddresses();
 			 					short[]	ports		= announce_reply.getPorts();
 			 					
-			 						// not doing anything with leecher/seeder totals
+			 					map.put( "complete", new Long(announce_reply.getSeeders()));
+			 					map.put( "incomplete", new Long(announce_reply.getLeechers()));
 			 					
 			 					List	peers = new ArrayList();
 			 					
@@ -1704,33 +1705,37 @@ TRTrackerClientClassicImpl
 					failure_added_time = 0;
 					
 					Map extensions = (Map)metaData.get( "extensions" );
+					
 					resp.setExtensions(extensions);
 					
 					if (extensions != null && lComplete == null) {
-            lComplete = (Long)extensions.get("complete");
-  				  if (lComplete != null) {
-              lIncomplete = (Long)extensions.get("incomplete");
-              LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-                           "ANNOUNCE SCRAPE2: seeds=" +lComplete+ " peers=" +lIncomplete);
-  				  }
- 				  }
+			            lComplete = (Long)extensions.get("complete");
+			  		
+			            if (lComplete != null) {
+			              lIncomplete = (Long)extensions.get("incomplete");
+			              LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+			                           "ANNOUNCE SCRAPE2: seeds=" +lComplete+ " peers=" +lIncomplete);
+			            }
+					}
 
-          if (lComplete != null && lIncomplete != null) {
-            TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
-            if (scraper != null) {
-              TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
-              if (scrapeResponse != null) {
-                long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
-                long lNewNextScrapeTime = SystemTime.getCurrentTime() + 10*60*1000;
-                if (lNextScrapeTime < lNewNextScrapeTime) {
-                  scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
-                }
-                scrapeResponse.setSeedsPeers(lComplete.intValue(), lIncomplete.intValue());
-              }
-            }
-          }
+		          if (lComplete != null && lIncomplete != null) {
+		            TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
+		            if (scraper != null) {
+		              TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
+		              if (scrapeResponse != null) {
+		                long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
+		                long lNewNextScrapeTime = SystemTime.getCurrentTime() + 10*60*1000;
+		                if (lNextScrapeTime < lNewNextScrapeTime) {
+		                  scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
+		                }
+		                scrapeResponse.setSeedsPeers(lComplete.intValue(), lIncomplete.intValue());
+		              }
+		            }
+       
+		            //resp.setScrapeDetails( lComplete.intValue(), lIncomplete.intValue());
+		          }
             
-					return( resp );  
+		          return( resp );  
 
 				}catch( IOException e ){
 					

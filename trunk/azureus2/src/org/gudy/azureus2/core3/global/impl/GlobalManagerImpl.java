@@ -246,6 +246,24 @@ public class GlobalManagerImpl
     // into one request per tracker
     trackerScraper = TRTrackerScraperFactory.getSingleton();
     
+    trackerScraper.setClientResolver(
+    	new TRTrackerScraperClientResolver()
+		{
+    		public TRTrackerClient
+			getClient(
+				byte[]	torrent_hash )
+    		{
+    			DownloadManager	dm = getDownloadManager(torrent_hash);
+    			
+    			if ( dm != null ){
+    				
+    				return( dm.getTrackerClient());
+    			}
+    			
+    			return( null );
+    		}
+		});
+    
     trackerScraper.addListener(
     	new TRTrackerScraperListener() {
     		public void scrapeReceived(TRTrackerScraperResponse response) {
@@ -441,10 +459,16 @@ public class GlobalManagerImpl
   
   public DownloadManager getDownloadManager(TOTorrent torrent) {
     try {
-      return (DownloadManager)manager_map.get(new HashWrapper(torrent.getHash()));
+      return getDownloadManager(torrent.getHash());
     } catch (TOTorrentException e) {
       return null;
     }
+  }
+
+  protected DownloadManager 
+  getDownloadManager(byte[]	hash) 
+  {
+      return (DownloadManager)manager_map.get(new HashWrapper(hash));
   }
 
   public void 

@@ -36,7 +36,8 @@ TRTrackerScraperImpl
 {
 	protected static TRTrackerScraperImpl	singleton;
 	
-	protected TrackerChecker	tracker_checker;
+	protected TrackerChecker						tracker_checker;
+	protected TRTrackerScraperClientResolver		client_resolver;
 	
 	// DiskManager listeners
 	
@@ -132,6 +133,25 @@ TRTrackerScraperImpl
 		TRTrackerScraperResponse		response )
 	{
 		listeners.dispatch( LDT_SCRAPE_RECEIVED, response );
+	}
+
+	public void
+	setClientResolver(
+		TRTrackerScraperClientResolver	resolver )
+	{
+		client_resolver	= resolver;
+	}
+	
+	protected boolean
+	isTorrentDownloading(
+		byte[]		hash )
+	{
+		if ( client_resolver == null ){
+			
+			return( false );
+		}
+		
+		return( client_resolver.getClient( hash ) != null );
 	}
 	
 	public void
