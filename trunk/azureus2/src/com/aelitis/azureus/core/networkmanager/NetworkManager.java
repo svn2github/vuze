@@ -63,12 +63,12 @@ public class NetworkManager {
    * @param remote_port to connect to
    * @return a new connection
    */
-  public Connection createNewConnection( String remote_address, int remote_port ) {
+  public Connection createNewConnection( ConnectionOwner owner, String remote_address, int remote_port ) {
     if( remote_port < 0 || remote_port > 65535 ) {
       Debug.out( "remove_port invalid: " + remote_port );
       remote_port = 0;
     }
-    Connection conn = new Connection( new InetSocketAddress( remote_address, remote_port ) );
+    Connection conn = new Connection( owner, new InetSocketAddress( remote_address, remote_port ) );
     return conn;
   }
   
@@ -76,8 +76,8 @@ public class NetworkManager {
   /**
    * TEMP METHOD UNTIL INBOUND CONNECTIONS ARE HANDLED INTERNALLY
    */
-  public Connection createNewInboundConnection( SocketChannel channel ) {
-    Connection conn = new Connection( channel );
+  public Connection createNewInboundConnection( ConnectionOwner owner, SocketChannel channel ) {
+    Connection conn = new Connection( owner, channel );
     return conn;
   }
   

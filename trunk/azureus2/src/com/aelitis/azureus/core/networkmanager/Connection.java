@@ -31,6 +31,7 @@ import java.nio.channels.SocketChannel;
  * over which protocol messages can be sent and received.
  */
 public class Connection {
+  private final ConnectionOwner	owner;
   private final InetSocketAddress remote_address;
   private final Transport transport;
   private ConnectionListener connection_listener;
@@ -44,9 +45,10 @@ public class Connection {
    * The connection is not yet established upon instantiation; use connect() to do so.
    * @param remote_address to connect to
    */
-  protected Connection( InetSocketAddress remote_address ) {
-    this.remote_address = remote_address;
-    transport = new Transport();
+  protected Connection( ConnectionOwner	_owner, InetSocketAddress _remote_address ) {
+  	owner = _owner;
+    remote_address = _remote_address;
+    transport = new Transport(owner.getTransportOwner());
     is_connected = false;
   }
   
@@ -56,9 +58,10 @@ public class Connection {
    * The connection is assumed to be already established, by the given already-connected channel.
    * @param remote_channel connected by
    */
-  protected Connection( SocketChannel remote_channel ) {
-    remote_address = new InetSocketAddress( remote_channel.socket().getInetAddress(), remote_channel.socket().getPort() );
-    transport = new Transport( remote_channel );
+  protected Connection( ConnectionOwner _owner, SocketChannel _remote_channel ) {
+  	owner	= _owner;
+    remote_address = new InetSocketAddress( _remote_channel.socket().getInetAddress(), _remote_channel.socket().getPort() );
+    transport = new Transport( owner.getTransportOwner(), _remote_channel );
     is_connected = true;
   }
   

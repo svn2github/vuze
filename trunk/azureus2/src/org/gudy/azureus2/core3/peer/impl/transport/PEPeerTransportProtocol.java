@@ -50,7 +50,7 @@ import com.aelitis.azureus.core.peermanager.utils.*;
  */
 public abstract class 
 PEPeerTransportProtocol
-	implements PEPeerTransport
+	implements PEPeerTransport, ConnectionOwner
 {
 	//TODO xx
 	// these appear in the plugin interface as well so don't renumber without
@@ -226,6 +226,7 @@ PEPeerTransportProtocol
 		manager	= _manager;
 		ip 		= _ip;
 		port 	= _port;
+	 	    
 	 	
 		if ( fake ){
 			return;
@@ -237,7 +238,7 @@ PEPeerTransportProtocol
     
 		
 		if( incoming ) {
-      connection = NetworkManager.getSingleton().createNewInboundConnection( channel );
+      connection = NetworkManager.getSingleton().createNewInboundConnection( this, channel );
       
       //"fake" a connect request to register our listener
       connection.connect( new Connection.ConnectionListener() {
@@ -389,7 +390,7 @@ PEPeerTransportProtocol
     
     	if ( socks_peer_proxy_enable ){
     		
-    		connection = NetworkManager.getSingleton().createNewConnection( socks_host, socks_port );
+    		connection = NetworkManager.getSingleton().createNewConnection( PEPeerTransportProtocol.this, socks_host, socks_port );
  		
      	    cl = 
                 new Connection.ConnectionListener() {
@@ -410,7 +411,7 @@ PEPeerTransportProtocol
     		
     	}else{
     		
-    		connection = NetworkManager.getSingleton().createNewConnection( ip, port );
+    		connection = NetworkManager.getSingleton().createNewConnection( PEPeerTransportProtocol.this, ip, port );
       
     	    cl = 
                 new Connection.ConnectionListener() {
@@ -1941,8 +1942,24 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		}
 	}
   
-    
-  
+	public TransportOwner
+	getTransportOwner()
+	{
+		return( new TransportOwner()
+				{
+					public TransportDebugger
+					getDebugger()
+					{
+						if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
+							
+							return( new PEPeerTransportDebugger( PEPeerTransportProtocol.this ));
+						}
+						
+						return( null );
+					}
+			
+				});
+	}
   
   public void doKeepAliveCheck() {
     if( last_bytes_sent_time == 0 )  last_bytes_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection

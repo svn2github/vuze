@@ -43,24 +43,29 @@ public class Transport {
   private Throwable write_select_failure = null;
   private ConnectDisconnectManager.ConnectListener connect_request_key = null;
   
+  private TransportDebugger		transport_debugger;
   
   /**
    * Constructor for disconnected transport.
    */
-  protected Transport() {
+  protected Transport( TransportOwner _owner ) {
     socket_channel = null;
     is_connected = false;
     is_ready_for_write = false;
+    
+    transport_debugger	= _owner.getDebugger();
   }
   
   /**
    * Constructor for connected transport.
    * @param channel connection
    */
-  protected Transport( SocketChannel channel ) {
+  protected Transport( TransportOwner _owner, SocketChannel channel ) {
     this.socket_channel = channel;
     is_connected = true;
     is_ready_for_write = true;  //assume it is ready
+    
+    transport_debugger = _owner.getDebugger();
   }
   
   /**
@@ -105,7 +110,10 @@ public class Transport {
     
       if( enable_efficient_write ) {     
         try {
-          long written = socket_channel.write( buffers, array_offset, array_length );
+          long written = transport_debugger==null?
+          					socket_channel.write( buffers, array_offset, array_length ):
+          					transport_debugger.write( socket_channel, buffers, array_offset, array_length );
+          					
           if( written < 1 )  requestWriteSelect();
           return written;
         }
@@ -124,7 +132,9 @@ public class Transport {
       long written_sofar = 0;
       for( int i=array_offset; i < array_length; i++ ) {
         int data_length = buffers[ i ].remaining();
-        int written = socket_channel.write( buffers[ i ] );
+        int written = transport_debugger==null?
+        					socket_channel.write( buffers[ i ] ):
+        					transport_debugger.write( socket_channel, buffers[i] );
         written_sofar += written;
         if( written < data_length ) {
           break;
