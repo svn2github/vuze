@@ -28,6 +28,10 @@ FEATURE: Plug | Status mailer support for SMTP port, user + password [Parg]
 FEATURE: UI   | Telnet UI added [Fatal]
 FEATURE: Core | resume data no longer saved to torrent files, stored in %user-dir%/active instead [Parg]
 FEATURE: UI   | Auto-open stats option added [Parg]
+FEATURE: Core | Plugin support for installing and uninstaling plugins [Parg]
+FEATURE: UI   | Plugin install/uninstall wizards [Gudy]
+FEATURE: UI   | Double click on status bar progress area to give details of update/install/uninstall progress [Parg]
+FEATURE: Plug | Status mailer support for plain text notifications [Parg]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
@@ -73,6 +77,7 @@ BUGGIX: UI   | Fixed bug with sharing window re-animating even when opened [Gudy
 BUGFIX: Core | Updater problems with non-ascii chars in user dir (again!) [Parg]
 BUGFIX: Core | Created torrents had name.utf-8 tag in wrong place [Parg]
 BUGFIX: Plug | UPnP plugin support for multi-homed machines improved [Parg]
+BUGFIX: Core | UDP scrape responses being handled incorrectly [Parg]
 
 
 2004.10.31 | Azureus 2.2.0.0
