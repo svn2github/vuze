@@ -120,6 +120,7 @@ public class IrcView extends AbstractIView implements IrcListener {
         client.close();
       }
     };
+    t.setDaemon(true);
     t.start();
     Utils.disposeComposite(cIrc);
   }

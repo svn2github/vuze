@@ -93,6 +93,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       }
     };
     t.setPriority(Thread.MIN_PRIORITY);
+    t.setDaemon(true);
     t.start();
   }
 

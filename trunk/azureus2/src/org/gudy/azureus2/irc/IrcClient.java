@@ -56,6 +56,7 @@ public class IrcClient extends PircBot {
         }
       }
     };
+    t.setDaemon(true);
     t.start();
   }
   

@@ -335,6 +335,7 @@ PEPeerControlImpl
         }
       }
     };
+    t.setDaemon(true);
     t.start();
 
     //  4. Close all clients
