@@ -137,4 +137,15 @@ RPTorrentManager
 		
 		return( null );
 	}
+	
+	public Torrent
+	createFromBEncodedData(
+		byte[]		data )
+	
+		throws TorrentException
+	{
+		notSupported();
+		
+		return( null );
+	}
 }

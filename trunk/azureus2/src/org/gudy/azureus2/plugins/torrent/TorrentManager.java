@@ -43,4 +43,10 @@ TorrentManager
 		File		file )
 	
 		throws TorrentException;
+	
+	public Torrent
+	createFromBEncodedData(
+		byte[]		data )
+	
+		throws TorrentException;
 }

@@ -34,6 +34,7 @@ import java.util.jar.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.pluginsremote.*;
 import org.gudy.azureus2.ui.webplugin.util.*;
@@ -241,6 +242,74 @@ RemoteUIServlet
 					dis.close();
 				}
 			}
+		}else if ( url.equals( "/upload.cgi")){
+
+			// -----------------------------7d4f2a310bca
+			//Content-Disposition: form-data; name="upfile"; filename="C:\Temp\(HH)-Demon Beast Resurrection 1-2.torrent"
+			//Content-Type: application/octet-stream
+			//
+			// <data>
+			// -----------------------------7d4f2a310bca
+			
+		
+			InputStream	is = request.getInputStream();
+			
+			try{
+				
+				String	content = "";
+				
+				while( true ){
+					
+					byte[]	buffer = new byte[1024];
+					
+					int	len = is.read(buffer);
+					
+					if ( len <= 0 ){
+						
+						break;
+					}
+					
+					content += new String(buffer, 0,len, "ISO-8859-1" );
+				}
+				
+				int	sep1 = content.indexOf( "\r\n" );
+				
+				String	tag = content.substring(0,sep1);
+				
+				int	sep2 = content.indexOf( "\r\n\r\n");
+				
+				int	data_start 	= sep2 + 4;
+				int data_end	= content.indexOf(tag, data_start );
+				
+				byte[]	data = content.substring(data_start, data_end).getBytes("ISO-8859-1");
+				
+				PrintWriter pw = new PrintWriter( new OutputStreamWriter( response.getOutputStream()));
+		
+				try{
+					Torrent torrent = plugin_interface.getTorrentManager().createFromBEncodedData( data );
+				
+					plugin_interface.getDownloadManager().addDownload( torrent );
+				
+					pw.println("<HTML><BODY><P>Upload OK</P></BODY></HTML>");
+				
+				}catch( Throwable e ){
+				
+					pw.println("<HTML><BODY><P>Upload Failed " + e.toString() + "</P></BODY></HTML>");
+					
+				}finally{
+					
+					pw.close();
+				}
+				
+				return( true );
+			}finally{
+				
+				if ( is != null ){
+					
+					is.close();
+				}
+			}
+			
 		}
 		
 		return( false );

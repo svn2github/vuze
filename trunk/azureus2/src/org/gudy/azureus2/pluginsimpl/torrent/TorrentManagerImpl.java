@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.torrent;
  */
 
 import java.net.URL;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 
 import org.gudy.azureus2.plugins.torrent.*;
@@ -76,6 +77,35 @@ TorrentManagerImpl
 		}catch( TOTorrentException e ){
 			
 			throw( new TorrentException( "TorrentManager::createFromBEncodedFile Fails", e ));
+		}
+	}
+	
+	public Torrent
+	createFromBEncodedData(
+		byte[]		data )
+	
+		throws TorrentException
+	{
+		ByteArrayInputStream	is = null;
+		
+		try{
+			is = new ByteArrayInputStream( data );
+			
+			return( new TorrentImpl(TOTorrentFactory.deserialiseFromBEncodedInputStream(is)));
+			
+		}catch( TOTorrentException e ){
+			
+			throw( new TorrentException( "TorrentManager::createFromBEncodedFile Fails", e ));
+			
+		}finally{
+			
+			try{
+				is.close();
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
 		}
 	}
 }
