@@ -43,6 +43,12 @@ IPRangeImpl
 		range	= _range;
 	}
 	
+	protected IpRange
+	getRange()
+	{
+		return( range );
+	}
+	
 	public String
 	getDescription()
 	{
@@ -106,6 +112,18 @@ IPRangeImpl
 		String ipAddress )
 	{
 		return( range.isInRange(ipAddress));
+	}
+	
+	public boolean
+	equals(
+		Object		other )
+	{
+		if ( !(other instanceof IPRangeImpl )){
+			
+			return( false );
+		}
+		
+		return( compareTo( other ) == 0 );
 	}
 	
 	public int
