@@ -32,7 +32,7 @@ UIPropertyChangeEvent
 	public UIComponent
 	getSource();
 	
-	public int
+	public String
 	getPropertyType();
 	
 	public Object

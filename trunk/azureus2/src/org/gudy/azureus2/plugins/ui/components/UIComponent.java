@@ -30,9 +30,9 @@ package org.gudy.azureus2.plugins.ui.components;
 public interface 
 UIComponent 
 {
-	public static final int PT_ENABLED		= 1;		// Boolean
-	public static final int PT_VALUE		= 2;		// Depends on component type
-	public static final int PT_VISIBLE		= 3;		// Boolean
+	public static final String PT_ENABLED		= "enabled";		// Boolean
+	public static final String PT_VALUE			= "value";			// Depends on component type
+	public static final String PT_VISIBLE		= "visible";		// Boolean
 	
 	public void
 	setEnabled(
@@ -50,12 +50,12 @@ UIComponent
 	
 	public void
 	setProperty(
-		int		property_type,
+		String	property_type,
 		Object	property_value );
 	
 	public Object
 	getProperty(
-		int		property_type );
+		String		property_type );
 	
 	public void
 	addPropertyChangeListener(
