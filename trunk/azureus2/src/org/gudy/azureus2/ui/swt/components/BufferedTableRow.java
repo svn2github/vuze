@@ -26,11 +26,13 @@ package org.gudy.azureus2.ui.swt.components;
  *
  */
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.RGB;
 
 public class 
 BufferedTableRow 
@@ -45,12 +47,10 @@ BufferedTableRow
 	
 	protected Color		foreground;
 	
-	public
-	BufferedTableRow(
-		Table		_table,
-		int			_i )
+	/** Must be initialized from the Display thread */
+	public BufferedTableRow(Table _table)
 	{
-		item = new TableItem( _table, _i );
+		item = new TableItem( _table, SWT.NULL );
 	}
 
 		// prefer not to have this one but need to introduce BufferedTable to do it...
@@ -72,7 +72,7 @@ BufferedTableRow
    		int 	index,
 		Image	new_image )
 	{
-		if ( item.isDisposed()){
+		if (item == null || item.isDisposed()){
 			return;
 		}
 				
@@ -102,12 +102,14 @@ BufferedTableRow
 	public boolean
 	isDisposed()
 	{
-		return( item.isDisposed());
+		return (item == null || item.isDisposed());
 	}
 	
 	public Color
 	getForeground()
 	{
+  	if (item == null || item.isDisposed())
+  	  return null;
 		return( item.getForeground());
 	}
 	
@@ -115,6 +117,8 @@ BufferedTableRow
 	setForeground(
 		Color	c )
 	{
+  	if (item == null || item.isDisposed())
+  	  return;
 		if (foreground == c ||
 		    (foreground != null && foreground.equals(c)))
 		  return;
@@ -129,7 +133,7 @@ BufferedTableRow
 	  int index,
 		Color	new_color )
 	{
-		if ( item.isDisposed()){
+		if (item == null || item.isDisposed()){
 			return false;
 		}
 				
@@ -168,6 +172,16 @@ BufferedTableRow
     
     return true;
 	}
+
+	public Color getForeground(int index)
+	{
+  	if (item == null || item.isDisposed())
+  	  return null;
+		if (index >= foreground_colors.length)
+		  return item.getForeground();
+
+		return foreground_colors[index];
+	}
 	
 	public String
 	getText(
@@ -175,10 +189,10 @@ BufferedTableRow
 	{
 		if ( index >= text_values.length ){
 			
-			return( null );
+			return "";
 		}
 		
-		return( text_values[index]);
+		return( text_values[index] == null ? "" : text_values[index]);
 	}
   /**
    * @param index
@@ -190,7 +204,7 @@ BufferedTableRow
 		int			index,
 		String		new_value )
 	{
-		if ( item.isDisposed()){
+		if (item == null || item.isDisposed()){
 			return false;
 		}
 				
@@ -233,14 +247,71 @@ BufferedTableRow
   }
 
   public Table getTable() {
-    if(item == null || item.isDisposed())
+    if (item == null || item.isDisposed())
       return null;
-    return item.getParent();
+    Table parent = item.getParent();
+    if (parent == null || parent.isDisposed())
+      return null;
+    return parent;
   }
   
   public Color getBackground() {
     if(item == null || item.isDisposed())
       return null;
     return item.getBackground();
+  }
+
+  /* The Index is this item's the position in list.
+   *
+   * @return Item's Position
+   */
+  public int getIndex() {
+    Table table = getTable();
+    if (table == null)
+      return -1;
+    return table.indexOf(item);
+  }
+  
+  public boolean setIndex(int index) {
+    Table table = getTable();
+    if (table == null)
+      return false;
+    int oldIndex = table.indexOf(item);
+    if (oldIndex == index)
+      return false;
+    
+    if (index > oldIndex)
+       index--;
+    //System.out.println(this+": oldIndex="+oldIndex+"; index="+ index);
+		TableItem newItem = new TableItem( table, SWT.NULL, index );
+		newItem.setText(text_values);
+		newItem.setImage(image_values);
+		newItem.setForeground(foreground);
+		for (int i = 0; i < foreground_colors.length; i++)
+  		newItem.setForeground(i, foreground_colors[i]);
+    if (getSelected())
+      table.select(table.indexOf(newItem));
+		
+		// don't use oldIndex
+		table.remove(table.indexOf(item));
+		item = newItem;
+		return true;
+  }
+  
+  public boolean getSelected() {
+    Table table = getTable();
+    if (table == null)
+      return false;
+    return table.isSelected(table.indexOf(item));
+  }
+
+  public void setSelected(boolean bSelected) {
+    Table table = getTable();
+    if (table == null)
+      return;
+    if (bSelected)
+      table.select(getIndex());
+    else
+      table.deselect(getIndex());
   }
 }

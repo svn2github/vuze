@@ -189,6 +189,7 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
 
   
   public void dispose() {
+    super.dispose();
     image = null;
   }
   
