@@ -37,6 +37,7 @@ public class UpdateSWT {
   static FileOutputStream fosLog;
   static String userDir;
   public static void main(String args[]) throws Exception {
+    userDir = System.getProperty("user.dir") + System.getProperty("file.separator");
     File f = new File(userDir + "updateSWT.log");
     fosLog = new FileOutputStream(f,true);
     String toLog = "SWT Updater started with parameters : \n";
@@ -48,7 +49,7 @@ public class UpdateSWT {
     if(args.length < 4)
       return;
     try {
-      userDir = System.getProperty("user.dir") + System.getProperty("file.separator");
+      
       toLog = "user.dir="  + userDir + "\n";
       fosLog.write(toLog.getBytes());
       
