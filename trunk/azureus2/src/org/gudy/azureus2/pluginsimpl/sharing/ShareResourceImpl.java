@@ -152,16 +152,12 @@ ShareResourceImpl
 			
 				return( finger_print );
 				
-			}else{
+			}else if ( file.isDirectory()){
 				
 				String	res = "";
 				
 				File[]	dir_file_list = file.listFiles();
-						
-				if ( dir_file_list == null ){
-					
-					System.out.println( "dir file list null for " + file.toString());
-				}
+										
 				List file_list = new ArrayList(Arrays.asList(dir_file_list));
 				
 				Collections.sort(file_list);
@@ -179,9 +175,18 @@ ShareResourceImpl
 				}
 				
 				return( res );
+				
+			}else{
+				
+				throw( new ShareException( "ShareResource::getFingetPrint: '" + file.toString() + "' doesn't exist" ));
 			}
 			
 		}catch( Throwable e ){
+			
+			if ( e instanceof ShareException ){
+				
+				throw((ShareException)e);
+			}
 			
 			e.printStackTrace();
 			

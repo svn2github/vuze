@@ -265,15 +265,26 @@ DisplayFormatters
 		  case DownloadManager.STATE_FINISHING :
 		    tmp = MessageText.getDefaultLocaleString("ManagerItem.finishing"); //$NON-NLS-1$
 		    break;  
-        case DownloadManager.STATE_READY :
+         case DownloadManager.STATE_READY :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.ready"); //$NON-NLS-1$
 			break;
 		  case DownloadManager.STATE_DOWNLOADING :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.downloading"); //$NON-NLS-1$
 			break;
 		  case DownloadManager.STATE_SEEDING :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding"); //$NON-NLS-1$
-			break;
+		  	if (manager.getDiskManager().isChecking()) {
+		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding")
+		  		+ " + "
+		  		+ MessageText.getDefaultLocaleString("ManagerItem.checking");
+		  	}
+		  	else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
+		  		
+		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.superseeding"); //$NON-NLS-1$
+		  	}
+		  	else {
+		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding"); //$NON-NLS-1$
+		  	}
+		  	break;
 		  case DownloadManager.STATE_STOPPED :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.stopped"); //$NON-NLS-1$
 			break;
