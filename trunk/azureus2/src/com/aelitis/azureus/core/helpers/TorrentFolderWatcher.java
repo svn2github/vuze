@@ -120,10 +120,15 @@ public class TorrentFolderWatcher {
 	    if( !running ) return;
 	    
 	    boolean save_torrents = COConfigurationManager.getBooleanParameter("Save Torrent Files");
+	    
 	    String torrent_save_path = COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory");
+	    
 	    int start_state = COConfigurationManager.getBooleanParameter("Start Watched Torrents Stopped") ? DownloadManager.STATE_STOPPED : DownloadManager.STATE_QUEUED;
+	    
 	    String folder_path = COConfigurationManager.getStringParameter("Watch Torrent Folder Path");
+	    
 	    String data_save_path = COConfigurationManager.getStringParameter( "Default save path" );
+	    
 	    boolean default_data_dir_enabled = COConfigurationManager.getBooleanParameter("Use default data dir") && data_save_path.length() > 0;
 	    
 	    
@@ -152,9 +157,20 @@ public class TorrentFolderWatcher {
 	    File	f = new File(data_save_path);
 	    
 	    if ( !f.exists()){
+	    	
 	    	f.mkdirs();
 	    }
-	    
+	    	    
+	    	// if we are saving torrents to the same location as we import them from
+	    	// then we can't assume that its safe to delete the torrent after import! 
+	        
+	    if ( 	torrent_save_path.length() == 0				||
+	    		torrent_save_path.equals( folder_path ) 	|| 
+				!new File( torrent_save_path ).isDirectory()){
+	      	
+	      	save_torrents = false;
+	    }
+
 	    	//delete torrents from the previous import run
 	    
 	    for( int i=0; i < to_delete.size(); i++ ) {
@@ -177,69 +193,49 @@ public class TorrentFolderWatcher {
 	    for( int i = 0; i < currentFileList.length; i++ ){
 	    	
 	      File file = new File( folder, currentFileList[i] );
-	      
-	      boolean already_added = false;
-	      
-	      TOTorrent 	torrent = null;
-	      
+	      	      	      
 	      	// make sure we've got a valid torrent file before proceeding
 	      
 	      try{
 	      	
-	      	torrent = TorrentUtils.readFromFile( file, false );
-	      	
+	      	  TOTorrent torrent = TorrentUtils.readFromFile( file, false );
+	      			      			      	
+		      if ( global_manager.getDownloadManager( torrent ) != null ){
+		        			          
+		        LGLogger.log( LGLogger.INFORMATION, "INFO: " + file.getAbsolutePath()+ " is already being downloaded" );
+		        
+		        	// we can't touch the torrent file as it is (probably) being used for the download
+		         
+	          }else{
+		      
+			      if( !save_torrents  ) {
+			      	
+			        File imported = new File( folder, file.getName() + ".imported" );
+			        
+			        TorrentUtils.move( file, imported );
+			        		        	
+			        global_manager.addDownloadManager( 
+			        			imported.getAbsolutePath(), 
+								data_save_path, 
+								start_state );
+			        
+			      }else{
+			      	
+			        global_manager.addDownloadManager( 
+			        		file.getAbsolutePath(), 
+							data_save_path, 
+							start_state );
+			        
+			        to_delete.add( torrent );  //add torrent for deletion, since there will be a saved copy elsewhere
+			      }
+			      
+			      LGLogger.log( LGLogger.INFORMATION, "Auto-imported " + file.getAbsolutePath() );
+	          }
+
 	      }catch( Throwable e ){
 	      	
 	      	Debug.out( "Failed to auto-import torrent file '" + file.getAbsolutePath() + "' - " +
 	      					Debug.getNestedExceptionMessage(e ));
-	      }
-	      
-	      if ( torrent != null ){
-	      	
-		      try { //make sure it hasn't already been added
-		      	
-		        if( global_manager.getDownloadManager( torrent ) != null ){
-		        	
-		          already_added = true;
-		          
-		          save_torrents = false;
-		          
-		          LGLogger.log( LGLogger.INFORMATION, "INFO: " + file.getAbsolutePath()+ " is already being downloaded" );
-		        }
-		      }catch( Throwable t ){  
-		      	
-		      	Debug.printStackTrace( t );  
-		      }
-		      
-		      if( torrent_save_path.equals( folder ) ){
-		      	
-		      	save_torrents = false;
-		      }
-		      
-		      if( !save_torrents || torrent_save_path.length() < 1 ) {
-		      	
-		        File imported = new File( folder, file.getName() + ".imported" );
-		        
-		        file.renameTo( imported );
-		        
-		        if( !already_added ){
-		        	
-		        	global_manager.addDownloadManager( 
-		        			imported.getAbsolutePath(), 
-							data_save_path, 
-							start_state );
-		        }
-		      }else{
-		      	
-		        global_manager.addDownloadManager( 
-		        		file.getAbsolutePath(), 
-						data_save_path, 
-						start_state );
-		        
-		        to_delete.add( torrent );  //add torrent for deletion, since there will be a saved copy elsewhere
-		      }
-		      
-		      LGLogger.log( LGLogger.INFORMATION, "Auto-imported " + file.getAbsolutePath() );
 	      }
 	    }
   	}finally{
