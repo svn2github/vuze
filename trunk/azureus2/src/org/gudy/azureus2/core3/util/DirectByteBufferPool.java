@@ -26,7 +26,7 @@ DirectByteBufferPool
 
 	protected static final boolean 	DEBUG_TRACK_HANDEDOUT 	= true;
 	protected static final boolean 	DEBUG_PRINT_MEM 		= true;
-	protected static final int		DEBUG_PRINT_TIME		= 120*1000;
+	protected static final int		DEBUG_PRINT_TIME		= 300*1000;
 	static{
 		if ( DEBUG_TRACK_HANDEDOUT || DEBUG_PRINT_MEM ){
 			System.out.println( "**** DirectByteBufferPool debugging on ****" );
