@@ -25,6 +25,7 @@ FEATURE: IPFiltering stats shown in status bar [Gudy]
 FEATURE: Toolbar! [Gudy]
 FEATURE: Logging of console output to disk [Parg]
 FEATURE: Option to confirm on exit [Rele]
+FEATURE: Bad Peer detection [Gudy]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]

@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.ipfilter.BadIps;
+import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.impl.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
@@ -46,6 +48,8 @@ PEPeerControlImpl
 {
   private static final int MAX_REQUESTS = 16;
   private static final boolean DEBUG = false;
+  private static final int BAD_CHUNKS_LIMIT = 5;
+  private static final int WARNINGS_LIMIT = 3;
   private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
   
   private int peer_manager_state = PS_INITIALISED;
@@ -1224,7 +1228,7 @@ PEPeerControlImpl
     }
   }
 
-  //Methods that checks if we are connected to another seed, and if so, disconnect from him.
+  //Method that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds(boolean forceDisconnect) {
     //If we are not ourself a seed, return
     if (!forceDisconnect && (!_finished || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true))) //$NON-NLS-1$
@@ -1235,6 +1239,17 @@ PEPeerControlImpl
         if (pc != null && pc.getState() == PEPeer.TRANSFERING && pc.isSeed()) {
           pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false, false);
         }
+      }
+    }
+  }
+  
+  //Method that checks for bad peers
+  //TODO : Remove as not used
+  private void checkBadPeers() {
+    synchronized (_connections) {
+      Iterator iter = _connections.iterator();
+      while(iter.hasNext()) {
+        PEPeer pc = (PEPeer) iter.next();        
       }
     }
   }
@@ -1563,18 +1578,75 @@ PEPeerControlImpl
       PEPiece piece = _pieces[pieceNumber];
       
       if(piece != null) {
-        /*
+        
         List list = piece.getPieceWrites();
-        if(list.size() > piece.getNbBlocs()) {
+        if(list.size() > 0) {
           Iterator iter = list.iterator();
           while(iter.hasNext()) {
             PEPieceWrite write = (PEPieceWrite) iter.next();
             try{
-              System.out.println(write.sender.getIp() + " : " + write.blocNumber + " H: "+ ByteFormatter.nicePrint(write.hash));
+              System.out.println(write.sender.getIp() + " : " + write.blockNumber + " C: "+ write.correct);
             } catch(Exception ignore) { }
           }
+          
+          //For each Block
+          for(int i = 0 ; i < piece.getNbBlocs() ; i++) {
+            System.out.println("Processing block " + i);
+            //Find out the correct hash
+            List listPerBlock = piece.getPieceWrites(i);
+            byte[] correctHash = null;
+            PEPeer correctSender = null;
+            Iterator iterPerBlock = listPerBlock.iterator();
+            while(iterPerBlock.hasNext()) {
+              PEPieceWrite write = (PEPieceWrite) iterPerBlock.next();
+              if(write.correct) {
+                correctHash = write.hash;
+                correctSender = write.sender;
+              }
+            }
+            System.out.println("Correct Hash " + correctHash);
+            //If it's found                       
+            if(correctHash != null) {
+              List peersToDisconnect = new ArrayList();
+              iterPerBlock = listPerBlock.iterator();
+              while(iterPerBlock.hasNext()) {
+                PEPieceWrite write = (PEPieceWrite) iterPerBlock.next();
+                if(! Arrays.equals(write.hash,correctHash)) {
+                  //Bad peer found here
+                  PEPeer peer = write.sender;
+                  peer.hasSentABadChunk();
+                  if(!peersToDisconnect.contains(peer))
+                    peersToDisconnect.add(peer);                  
+              }
+                
+              Iterator iterPeers = peersToDisconnect.iterator();
+              while(iterPeers.hasNext()) {
+                PEPeer peer = (PEPeer) iterPeers.next();
+                String ip = peer.getIp();
+                System.out.println("Bar Peer Found : " + peer.getIp());                 
+                int nbBadChunks = peer.getNbBadChunks();
+                if(nbBadChunks > BAD_CHUNKS_LIMIT) {
+                  //Ban fist to avoid a fast reco of the bad peer
+                  int nbWarnings = BadIps.getInstance().addWarningForIp(ip);
+                  if(nbWarnings > WARNINGS_LIMIT) {
+                    IpFilter.getInstance().ban(ip);                    
+                  }
+                  //Close connection in 2nd
+                  ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false);
+                  //Trace the ban in third
+                  if(nbWarnings > WARNINGS_LIMIT) {
+                    LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
+                  }
+                }
+               }
+              }
+              
+            }
+            
+          }
         }
-        */
+        
+        
         piece.free();
       }
       _pieces[pieceNumber] = null;
@@ -1809,6 +1881,13 @@ PEPeerControlImpl
 	    }
     }
     return false;
+  }
+  
+  public boolean needsMD5CheckOnCompletion(int pieceNumber) {
+    PEPiece piece = _pieces[pieceNumber];    
+    if(piece == null)
+      return false;
+    return piece.getPieceWrites().size() > 0;
   }
 
  }

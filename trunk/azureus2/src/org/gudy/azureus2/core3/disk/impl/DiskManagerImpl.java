@@ -716,11 +716,14 @@ DiskManagerImpl
 				  boolean correct = checkPiece(elt.getPieceNumber());
 					
 				  if(!correct) {
-				    MD5CheckPiece(elt.getPieceNumber());
+				    MD5CheckPiece(elt.getPieceNumber(),false);
 				    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
 				  }
 				  else {
 				    LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+				    if(manager.needsMD5CheckOnCompletion(elt.getPieceNumber())) {
+				      MD5CheckPiece(elt.getPieceNumber(),true);
+				    }
 				  }
 				  
 				  manager.pieceChecked(elt.getPieceNumber(), correct);
@@ -1684,7 +1687,7 @@ DiskManagerImpl
     return result;    
   }
   
-  private void MD5CheckPiece(int pieceNumber) {
+  private void MD5CheckPiece(int pieceNumber,boolean correct) {
     PEPiece piece = manager.getPieces()[pieceNumber];
     if(piece == null) {
       return;

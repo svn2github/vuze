@@ -117,6 +117,9 @@ PEPeerTransportProtocol
 		//Flag to determine when a choke message has really been sent
 		
 	private boolean waitingChokeToBeSent;
+	
+	//Number of bad chunks received from this peer
+	private int nbBadChunks;
 
 	public final static int componentID = 1;
 	public final static int evtProtocol = 0;
@@ -1350,4 +1353,12 @@ PEPeerTransportProtocol
 		ByteBuffer	buffer )
 		
 		throws IOException;
+  
+  public void hasSentABadChunk() {
+    nbBadChunks++;
+  }
+  
+  public int getNbBadChunks() {
+    return nbBadChunks;
+  }
 }
