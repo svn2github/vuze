@@ -2,6 +2,7 @@
  * File    : PluginMyTorrentsItemFactory.java
  * Created : 29 nov. 2003
  * By      : Olivier
+ * Modified from PluginPeersItemFactory by TuxPaper
  *
  * Azureus - a Java Bittorrent client
  *
@@ -26,7 +27,7 @@ package org.gudy.azureus2.plugins.ui.tables.mytorrents;
  * This interface represents the factory responsible of creating PluginMyTorrentsItem.<br>
  * It must also define some methods giving general information about the item. 
  * 
- * @author Olivier
+ * @author TuxPaper
  *
  */
 public interface PluginMyTorrentsItemFactory {
@@ -76,7 +77,7 @@ public interface PluginMyTorrentsItemFactory {
    * The logical name of the column.<br>
    * Note that spaces in the name should be avoid.<br>
    * In order to the plugin to display correctly the column name, a key in the
-   * Plugin language file will need to contain MyTorrentsView.<getName() result>=The column name.<br>
+   * Plugin language file will need to contain MyTorrentsView.<i>getName() result</i>=The column name.<br>
    * @return the column name (identification)
    */
   public String getName();
@@ -109,14 +110,14 @@ public interface PluginMyTorrentsItemFactory {
   
   /**
    * Which tables the column will be visible in
-   * @return TABLE_COMPLETE, TABLE_INCOMPLETE or bot
+   * @return TABLE_COMPLETE, TABLE_INCOMPLETE or both
    */
   public int getTablesVisibleIn();
 
   /**
    * This method is called whenever a new line is created.
    * @param item the MyTorrentsTableItem that is being created
-   * @return the PluginMyTorrentsItem that will have to deal with it
+   * @return the PluginMyTorrentsItem you created
    */
   public PluginMyTorrentsItem getInstance(MyTorrentsTableItem item);
 }

@@ -58,7 +58,7 @@ public interface PluginInterface {
    *
    * @param parameters the Parameter(s) to be edited
    * @param displayName the under which it should display.<br>
-   * Azureus will look-up for ConfigView.section.plugins.&lt;displayName&gt; into the lang files
+   * Azureus will look-up for ConfigView.section.plugins.<i>displayName</i>; into the lang files
    * in order to find the localized displayName. (see i18n)
    */
   public void addConfigUIParameters(Parameter[] parameters, String displayName);
@@ -67,7 +67,7 @@ public interface PluginInterface {
    * adds a column to the peers table.<br>
    * @param columnName the key name of the column
    * @param factory the factory responsible of creating items.
-   * Azureus will look-up for MyTorrentsView.&lt;columnName&gt; into the lang files
+   * Azureus will look-up for PeersView.<i>columnName</i> into the lang files
    * in order to find the localized displayName. (see i18n)
    */
   public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
@@ -76,7 +76,7 @@ public interface PluginInterface {
    * adds a column to the My Torrents table.<br>
    * @param columnName the key name of the column
    * @param factory the factory responsible of creating items.
-   * Azureus will look-up for PeersView.columnName into the lang files
+   * Azureus will look-up for MyTorrentsView.<i>columnName</i> into the lang files
    * in order to find the localized displayName. (see i18n)
    */
   public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory);

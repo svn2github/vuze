@@ -32,8 +32,6 @@ public interface PluginMyTorrentsItem {
   /** Called by the GUI whenever a refresh is needed.<br>
    * The Item should have been created by its associated factory,
    * and been initialiazed with references to a MyTorrentsTableItem.
-   * This class only needs to implement the refresh method using methods
-   * from MyTorrentsTableItem.
    */
   public void refresh();
   
