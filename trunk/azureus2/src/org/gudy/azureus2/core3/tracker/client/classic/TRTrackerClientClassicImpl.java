@@ -123,12 +123,15 @@ TRTrackerClientClassicImpl
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerClientClassic" );
 
-	private static final boolean	socks_proxy_enable;
+	private static final boolean	socks_peer_inform;
 
 	static{
-	  	socks_proxy_enable	= 	COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
-	  							COConfigurationManager.getBooleanParameter("Enable.SOCKS", true);
-	}
+	 	socks_peer_inform	= 	
+	  		COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
+	  		COConfigurationManager.getBooleanParameter("Enable.SOCKS", false)&&
+	  		COConfigurationManager.getBooleanParameter("Enable.SOCKS.peer", false)&&
+	 		COConfigurationManager.getBooleanParameter("Proxy.SOCKS.peer.inform", true );
+	 }
 	
 	public final static int componentID = 2;
 	public final static int evtLifeCycle = 0;
@@ -349,7 +352,7 @@ TRTrackerClientClassicImpl
   		
   		int	port_num;
   		
-  		if ( socks_proxy_enable ){
+  		if ( socks_peer_inform ){
   			
   			port_num	= 0;
   			

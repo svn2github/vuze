@@ -311,6 +311,9 @@ public class ConfigurationDefaults {
     def.put( "Enable System Tray", new Long(1));
     def.put( "config.style.table.sortDefaultAscending", new Long(1));
     def.put( "Ignore.peer.ports", "0" );
+    def.put( "Enable.SOCKS.peer", new Long(0));
+    def.put( "Proxy.SOCKS.version", "V4" );
+    def.put( "Proxy.SOCKS.peer.inform", new Long(1));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

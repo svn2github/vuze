@@ -158,21 +158,23 @@ PEPeerTransportProtocol
   
   
   
-  private static final boolean	socks_proxy_enable;
+  private static final boolean	socks_peer_proxy_enable;
   private static final String	socks_host;
   private static  int			socks_port;
   private static final String	socks_user;
   private static final String	socks_password;
 
   static{
-  	socks_proxy_enable	= 	COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
-  							COConfigurationManager.getBooleanParameter("Enable.SOCKS", true);
+  	socks_peer_proxy_enable	= 	
+  		COConfigurationManager.getBooleanParameter("Enable.Proxy", false)&&
+  		COConfigurationManager.getBooleanParameter("Enable.SOCKS", false)&&
+  		COConfigurationManager.getBooleanParameter("Enable.SOCKS.peer", false);
   	
   	socks_host 		= COConfigurationManager.getStringParameter("Proxy.Host");
   	
   	String socks_port_str 		= COConfigurationManager.getStringParameter("Proxy.Port");
   	
-  	if ( socks_proxy_enable ){
+  	if ( socks_peer_proxy_enable ){
   		
 	  	try{
 	  		socks_port = Integer.parseInt( socks_port_str );
@@ -372,7 +374,7 @@ PEPeerTransportProtocol
     	
         Connection.ConnectionListener	cl;
     
-    	if ( socks_proxy_enable ){
+    	if ( socks_peer_proxy_enable ){
     		
     		connection = NetworkManager.getSingleton().createNewConnection( socks_host, socks_port );
  		
