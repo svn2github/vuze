@@ -54,7 +54,7 @@ import org.gudy.azureus2.core3.category.Category;
  * 
  */
 public class GlobalManagerImpl 
-	implements 	GlobalManager
+	implements 	GlobalManager, DownloadManagerListener
 {
 		// GlobalManagerListener support
 		// Must be an async listener to support the non-synchronized invocation of
@@ -130,8 +130,10 @@ public class GlobalManagerImpl
 	private GlobalManagerStatsImpl	stats;
   private TRTrackerScraper 			trackerScraper;
   private StatsWriterPeriodic		stats_writer;
+  /* Whether the GlobalManager is active (false) or stopped (true) */
   private boolean 					isStopped = false;
   private boolean					destroyed;
+  private boolean needsSaving = false;
   
   public class Checker extends Thread {
     boolean finished = false;
@@ -169,21 +171,13 @@ public class GlobalManagerImpl
 	        
 	
 	        synchronized (managers) {
-	        //  int nbStarted = 0;
-	        //  int nbDownloading = 0;
-	          if (loopFactor % saveResumeLoopCount == 0) {
+	          if ((loopFactor % saveResumeLoopCount == 0) || needsSaving) {
 	            saveDownloads();
+	            needsSaving = false;
 	          }
-	          
-	
+
 	          for (int i = 0; i < managers.size(); i++) {
 	            DownloadManager manager = (DownloadManager) managers.get(i);
-	            
-	            //make sure we update 'downloads.config' on state changes
-	            if (manager.getPrevState() != manager.getState()) {
-	              saveDownloads();
-	              manager.setPrevState(manager.getState());
-	            }
 	            
              	if (loopFactor % saveResumeLoopCount == 0) {
             		manager.saveResumeData();
@@ -204,7 +198,6 @@ public class GlobalManagerImpl
 	                manager.getStats().setSavedHashFails();
 	              }
 	            }
-
 	          }
 	        }
       	}catch( Throwable e ){
@@ -432,6 +425,7 @@ public class GlobalManagerImpl
         }
 
         listeners.dispatch( LDT_MANAGER_ADDED, manager );
+        manager.addListener(this);
       }
  
       if (save)
@@ -496,6 +490,7 @@ public class GlobalManagerImpl
     
     fixUpDownloadManagerPositions();
     listeners.dispatch( LDT_MANAGER_REMOVED, manager );
+    manager.removeListener(this);
     
     saveDownloads();
 
@@ -513,6 +508,9 @@ public class GlobalManagerImpl
       manager.setCategory(null);
   }
 
+  /* Puts GlobalManager in a stopped state.
+   * Used when closing down Azureus.
+   */
   public void stopAll() {
     if (!isStopped){
     	
@@ -543,7 +541,7 @@ public class GlobalManagerImpl
       saveDownloads();
       
       stopAllDownloads();
-      
+
       managers.clear();
       manager_map.clear();
       
@@ -561,10 +559,14 @@ public class GlobalManagerImpl
    * @author Rene Leonhardt
    */
   public void stopAllDownloads() {
+    stopAllDownloads(DownloadManager.STATE_STOPPED);
+  }
+
+  public void stopAllDownloads(int stateAfterStopping) {
  
     for (Iterator iter = managers.iterator(); iter.hasNext();) {
       DownloadManager manager = (DownloadManager) iter.next();
-      manager.stopIt();
+      manager.stopIt(stateAfterStopping);
     }
   }
   
@@ -640,22 +642,23 @@ public class GlobalManagerImpl
           if (mDownload.containsKey("category"))
             sCategory = new String((byte[]) mDownload.get("category"), Constants.DEFAULT_ENCODING);
           DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, state, true, true );
-          dm.getStats().setMaxUploads(nbUploads);
+          DownloadManagerStats stats = dm.getStats();
+          stats.setMaxUploads(nbUploads);
           if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
           }
           if (lDownloaded != null && lUploaded != null) {
-            dm.getStats().setSavedDownloadedUploaded(lDownloaded.longValue(), lUploaded.longValue());
+            stats.setSavedDownloadedUploaded(lDownloaded.longValue(), lUploaded.longValue());
           }
           if (lCompleted != null) {
-            dm.getStats().setDownloadCompleted(lCompleted.intValue());
+            stats.setDownloadCompleted(lCompleted.intValue());
           }
           
           if (lDiscarded != null) {
-            dm.getStats().saveDiscarded(lDiscarded.intValue());
+            stats.saveDiscarded(lDiscarded.longValue());
           }
           if (lHashFails != null) {
-            dm.getStats().saveHashFails(lHashFails.intValue());
+            stats.saveHashFails(lHashFails.longValue());
           }
           
           if (sCategory != null) {
@@ -663,7 +666,7 @@ public class GlobalManagerImpl
             if (cat != null) dm.setCategory(cat);
           }
 
-          boolean bCompleted = dm.getStats().getDownloadCompleted(false) == 1000;
+          boolean bCompleted = stats.getDownloadCompleted(false) == 1000;
           if (bCompleted) 
             ++numCompleted;
           else
@@ -672,8 +675,19 @@ public class GlobalManagerImpl
 
           if (lPosition != null)
             dm.setPosition(lPosition.intValue());
-          else if (dm.getStats().getDownloadCompleted(false) < 1000)
+          else if (stats.getDownloadCompleted(false) < 1000)
             dm.setPosition(bCompleted ? numCompleted : numDownloading);
+
+          Long lSecondsDLing = (Long)mDownload.get("secondsDownloading");
+          if (lSecondsDLing != null) {
+            stats.setSecondsDownloading(lSecondsDLing.longValue());
+          }
+
+          Long lSecondsOnlySeeding = (Long)mDownload.get("secondsOnlySeeding");
+          if (lSecondsOnlySeeding != null) {
+            stats.setSecondsOnlySeeding(lSecondsOnlySeeding.longValue());
+          }
+
 
           this.addDownloadManager(dm, false);
 
@@ -701,17 +715,18 @@ public class GlobalManagerImpl
     //    if(Boolean.getBoolean("debug")) return;
 
   	synchronized( managers ){
+      LGLogger.log("Saving Download List (" + managers.size() + " items)");
 	    Map map = new HashMap();
 	    List list = new ArrayList(managers.size());
 	    for (int i = 0; i < managers.size(); i++) {
 	      DownloadManager dm = (DownloadManager) managers.get(i);
 	      
 	      if ( dm.isPersistent()){
-	      	
+	      	DownloadManagerStats stats = dm.getStats();
 		      Map dmMap = new HashMap();
 		      dmMap.put("torrent", dm.getTorrentFileName());
 		      dmMap.put("path", dm.getFullName());
-		      dmMap.put("uploads", new Long(dm.getStats().getMaxUploads()));
+		      dmMap.put("uploads", new Long(stats.getMaxUploads()));
           int state = dm.getState();
           if (state == DownloadManager.STATE_SEEDING)
             state = DownloadManager.STATE_QUEUED;
@@ -722,23 +737,26 @@ public class GlobalManagerImpl
                   state != DownloadManager.STATE_WAITING)
             state = DownloadManager.STATE_WAITING;
           dmMap.put("state", new Long(state));
-          int priority = dm.getPriority();
-		      dmMap.put("priority", new Long(priority));
+		      dmMap.put("priority", new Long(dm.getPriority()));
 		      dmMap.put("position", new Long(dm.getPosition()));
-		      dmMap.put("downloaded", new Long(dm.getStats().getDownloaded()));
-		      dmMap.put("uploaded", new Long(dm.getStats().getUploaded()));
-		      dmMap.put("completed", new Long(dm.getStats().getDownloadCompleted(true)));
-		      dmMap.put("discarded", new Long(dm.getStats().getDiscarded()));
-		      dmMap.put("hashfails", new Long(dm.getStats().getHashFails()));
+		      dmMap.put("downloaded", new Long(stats.getDownloaded()));
+		      dmMap.put("uploaded", new Long(stats.getUploaded()));
+		      dmMap.put("completed", new Long(stats.getDownloadCompleted(true)));
+		      dmMap.put("discarded", new Long(stats.getDiscarded()));
+		      dmMap.put("hashfails", new Long(stats.getHashFails()));
 		      dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));
+          dmMap.put("secondsDownloading", new Long(stats.getSecondsDownloading()));
+          dmMap.put("secondsOnlySeeding", new Long(stats.getSecondsOnlySeeding()));
+		      Category category = dm.getCategory();
+		      if (category != null && category.getType() == Category.TYPE_USER)
+		        dmMap.put("category", category.getName());
+
 		      // Following 3 aren't needed, but save them so older versions still work
 		      // XXX: Maybe remove them after 2.0.7.x release
 		      dmMap.put("priorityLocked", new Long(0));
 		      dmMap.put("startStopLocked", new Long(0));
 		      dmMap.put("stopped", new Long(1));
-		      Category category = dm.getCategory();
-		      if (category != null && category.getType() == Category.TYPE_USER)
-		        dmMap.put("category", category.getName());
+
 		      list.add(dmMap);
 	      }
 	    }
@@ -912,9 +930,7 @@ public class GlobalManagerImpl
     }
 	}
   
-  	protected void
-  	informDestroyed()
-  	{
+  protected void  informDestroyed() {
   		if ( destroyed )
   		{
   			return;
@@ -956,13 +972,11 @@ public class GlobalManagerImpl
 		*/
 
   		listeners.dispatch( LDT_DESTROYED, null );
-  	}
+  }
   	
-  	public void
-  	informDestroyInitiated()
-  	{
-  		listeners.dispatch( LDT_DESTROY_INITIATED, null );		
-  	}
+  public void informDestroyInitiated()  {
+    listeners.dispatch( LDT_DESTROY_INITIATED, null );		
+  }
   	
  	public void
 	addListener(
@@ -1039,14 +1053,22 @@ public class GlobalManagerImpl
     return -1;
   }
   
-  public void 
-  startChecker() 
-  {
-  	synchronized( checker ){
-	  	if ( !checker.isAlive()){
-	  		
-    checker.start(); 
+  public void startChecker()  {
+    synchronized( checker ){
+      if ( !checker.isAlive()){
+        checker.start(); 
+      }
+    }
   }
-}
-  }
+
+  // DownloadManagerListener
+
+  //make sure we update 'downloads.config' on state changes
+	public void stateChanged(DownloadManager manager, int state) {
+	  needsSaving = true;
+	}
+		
+	public void downloadComplete(DownloadManager manager) { }
+
+  public void completionChanged(DownloadManager manager, boolean bCompleted) { }
 }
