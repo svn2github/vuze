@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.remote;
  *
  */
 
+import java.util.Properties;
 import org.gudy.azureus2.plugins.*;
 
 public class 
@@ -34,7 +35,13 @@ RPPluginConfig
 	implements 	PluginConfig
 {
 	protected transient PluginConfig		delegate;
+	protected transient	Properties			property_cache;
+	
+		// don't change these field names as they are visible on XML serialisation
 
+	public String[]		cached_property_names;
+	public Object[]		cached_property_values;
+	
 	public static PluginConfig
 	create(
 		PluginConfig		_delegate )
@@ -61,6 +68,18 @@ RPPluginConfig
 		Object		_delegate )
 	{
 		delegate = (PluginConfig)_delegate;
+		
+		cached_property_names 	= new String[]{
+				CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC,
+				CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT,
+				CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL,
+			};
+		
+		cached_property_values 	= new Object[]{
+				new Integer( delegate.getIntParameter( cached_property_names[0] )),
+				new Integer( delegate.getIntParameter( cached_property_names[1] )),
+				new Integer( delegate.getIntParameter( cached_property_names[2] )),
+		};		
 	}
 	
 	public Object
@@ -76,6 +95,15 @@ RPPluginConfig
 		RPRequestDispatcher		_dispatcher )
 	{
 		super._setRemote( _dispatcher );
+		
+		property_cache	= new Properties();
+		
+		for (int i=0;i<cached_property_names.length;i++){
+			
+			System.out.println( "cache:" + cached_property_names[i] + "=" + cached_property_values[i] );
+			
+			property_cache.put(cached_property_names[i],cached_property_values[i]);
+		}
 	}
 	
 	public RPReply
@@ -146,7 +174,12 @@ RPPluginConfig
 
 	  public int getIntParameter(String key, int default_value)
 	  {
-		Integer	res = (Integer)_dispatcher.dispatch( new RPRequest( this, "getIntParameter", new Object[]{key,new Integer(default_value)} )).getResponse();
+		Integer	res = (Integer)property_cache.get( key );
+		
+		if ( res == null ){
+			
+			res = (Integer)_dispatcher.dispatch( new RPRequest( this, "getIntParameter", new Object[]{key,new Integer(default_value)} )).getResponse();
+		}
 		
 		return( res.intValue());
 	  }
@@ -156,6 +189,8 @@ RPPluginConfig
 		String	key, 
 		int		value )
 	  {
+	  	property_cache.put( key, new Integer( value ));
+	  	
 		_dispatcher.dispatch( new RPRequest( this, "setParameter[int]", new Object[]{key,new Integer(value)} )).getResponse();
 	  }
 	  

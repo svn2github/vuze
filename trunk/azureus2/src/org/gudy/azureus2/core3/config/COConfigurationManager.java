@@ -33,7 +33,9 @@ import org.gudy.azureus2.core3.config.impl.*;
 public class 
 COConfigurationManager 
 {
-	public static final int CONFIG_MIN_MAX_UPLOAD_SPEED		= 5;
+	public static final int CONFIG_MIN_MAX_UPLOAD_SPEED					= 5;
+	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT	= 100;
+	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL		= 1000;
 	
 	public static void
 	setSystemProperties()

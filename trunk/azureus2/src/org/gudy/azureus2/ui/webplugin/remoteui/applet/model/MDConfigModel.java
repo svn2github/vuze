@@ -38,8 +38,12 @@ MDConfigModel
 {
 	protected PluginInterface	pi;
 	
+	protected PluginConfig		plugin_config;
+	
 	protected int		refresh_period;
 	protected int		max_upload;
+	protected int		max_connections_per_torrent;
+	protected int		max_connections_global;
 	
 	protected List		listeners = new ArrayList();
 	
@@ -49,14 +53,24 @@ MDConfigModel
 	{
 		pi		= _pi;
 		
-		PluginConfig	plugin_config = pi.getPluginconfig();
+		plugin_config = pi.getPluginconfig();
 		
 		refresh_period = plugin_config.getPluginIntParameter( "MDConfigModel:refresh_period", 30 );
 		
-		max_upload = pi.getPluginconfig().getIntParameter( 
+		max_upload = 
+			plugin_config.getIntParameter( 
 				PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC,
 				COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED );
 
+		max_connections_per_torrent = 
+			plugin_config.getIntParameter( 
+				PluginConfig.CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT,
+				COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT );
+
+		max_connections_global = 
+			plugin_config.getIntParameter( 
+				PluginConfig.CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL,
+				COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL );
 	}
 	
 	public int
@@ -70,9 +84,7 @@ MDConfigModel
 		int	v )
 	{
 		refresh_period = v;
-	
-		PluginConfig	plugin_config = pi.getPluginconfig();
-		
+			
 		plugin_config.setPluginParameter( "MDConfigModel:refresh_period", refresh_period );
 		
 		try{
@@ -100,9 +112,7 @@ MDConfigModel
 			
 			throw( new RPException( "Maximum upload speed must be at least " + COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED ));
 		}
-		
-		PluginConfig	plugin_config = pi.getPluginconfig();
-		
+				
 		plugin_config.setIntParameter( PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC, v );
 		
 		max_upload = v;
@@ -115,6 +125,55 @@ MDConfigModel
 			throw( new RPException("setMaxUploadSpeed Fails", e ));
 		}
 	
+	}
+	
+	public int
+	getMaxConnectionsPerTorrent()
+	{
+		return( max_connections_per_torrent );
+	}
+	
+	public void
+	setMaxConnectionsPerTorrent(
+		int		v )
+	{		
+		plugin_config.setIntParameter( 
+				PluginConfig.CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT, v );
+		
+		max_connections_per_torrent = v;
+		
+		try{
+			plugin_config.save();
+			
+		}catch( PluginException e ){
+			
+			throw( new RPException("setMaxConnectionsPerTorrent Fails", e ));
+		}
+	
+	}
+	
+	public int
+	getMaxConnectionsGlobal()
+	{
+		return( max_connections_global );
+	}
+	
+	public void
+	setMaxConnectionsGlobal(
+		int		v )
+	{		
+		plugin_config.setIntParameter( 
+				PluginConfig.CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL, v );
+		
+		max_connections_global = v;
+		
+		try{
+			plugin_config.save();
+			
+		}catch( PluginException e ){
+			
+			throw( new RPException("setMaxConnectionsGlobal Fails", e ));
+		}
 	}
 	
 	protected void

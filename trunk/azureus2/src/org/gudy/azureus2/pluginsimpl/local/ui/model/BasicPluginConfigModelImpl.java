@@ -139,9 +139,7 @@ BasicPluginConfigModelImpl
 			//gridData.widthHint = 40;
 			
 			String	key = (String)x[0];
-			
-			System.out.println( "key = " + key );
-			
+						
 			new BooleanParameter(gMainTab, key, ((Boolean)x[2]).booleanValue());
 		}
 		

@@ -117,7 +117,11 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$14.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$15.class",
 		"ui/webplugin/remoteui/applet/view/VWConfigView$2.class",
-		
+		"ui/webplugin/remoteui/applet/view/VWConfigView$3.class",
+		"ui/webplugin/remoteui/applet/view/VWConfigView$4.class",
+		"ui/webplugin/remoteui/applet/view/VWConfigView$5.class",
+		"ui/webplugin/remoteui/applet/view/VWConfigView$intValueAdapter.class",
+
 		"ui/webplugin/util/WUJarReader.class",
 		
 		"core3/config/COConfigurationManager.class",

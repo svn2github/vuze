@@ -16,7 +16,9 @@ import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.util.SystemProperties;
-;
+
+import org.gudy.azureus2.core3.config.*;
+
 
 /**
  *
@@ -76,8 +78,8 @@ public class ConfigurationDefaults {
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
 
-    def.put("Max.Peer.Connections.Per.Torrent", new Long(100));
-    def.put("Max.Peer.Connections.Total", new Long(1000));
+    def.put("Max.Peer.Connections.Per.Torrent", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
+    def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
 
     def.put("File Max Open", new Long(50));
     def.put("MTU.Size", new Long(1500));    
