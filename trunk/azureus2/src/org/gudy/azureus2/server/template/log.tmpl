@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <title><TMPL_VAR Global_ServerName> Log</title>
+    </head>
+    <body bgcolor="#AA6666">
+        <h1><TMPL_VAR Global_ServerName> Log</h1>
+        Log generated <TMPL_VAR Log_Logtime><br>
+        Server started <TMPL_VAR Log_Starttime><br>
+        Free on disk: <TMPL_VAR Log_Diskfree><p>
+        <table border=1 cellpadding=4 width="100%">
+            <TMPL_LOOP Log_Logs>
+                <TMPL_IF Log_Logs_LevelError>
+                    <tr bgcolor="#FF6666">
+                <TMPL_ELSE>
+                    <TMPL_IF Log_Logs_LevelInfo>
+                        <tr bgcolor="#66DD66">
+                    <TMPL_ELSE>
+                        <tr bgcolor="#FFFF66">
+                    </TMPL_IF>
+                </TMPL_IF>
+		<td nowrap><TMPL_VAR Log_Logs_TimeCode></td>
+                <td width="100%"><TMPL_VAR Log_Logs_Message></td>
+                </tr>
+            </TMPL_LOOP>
+        </table>
+        <TMPL_VAR Log_Count> Log entires.
+    </body>
+</html>

@@ -1,0 +1,128 @@
+<html>
+    <head>
+        <title><TMPL_VAR Global_ServerName> Download Status</title>
+        <META HTTP-EQUIV="Refresh" CONTENT="<TMPL_VAR refresh>">
+    </head>
+    <body bgcolor="#CCCC00">
+        <TMPL_UNLESS Torrents_Torrents>
+            <p> No Torrents
+        <TMPL_ELSE>
+            <table border=1 width="100%" cellpadding=3>
+                <tr bgcolor="#DDDDDD">
+                    <th colspan=2>Incomplete</th>
+                    <th align=left width="100%">File</th>
+                    <th>Status</th>
+                    <th>Downloaded</th>
+                    <th>Size</th>
+                    <th>Speed</th>
+                    <th nowrap>UL/DL</th>
+                    <th>ETA</th>
+                </tr>
+                <TMPL_LOOP Torrents_Torrents>
+                    <form method=POST action="torrents">
+                        <input type=hidden name=nr value="<TMPL_VAR __PASS__>">
+                        <input type=hidden name=seed value=0>
+                        <TMPL_IF Auto>
+                            <tr bgcolor="#CCFFCC">
+                        <TMPL_ELSE>	
+                            <tr bgcolor="#BFD8BC">
+                        </TMPL_IF>
+                        <td><input type=submit name=command value="<TMPL_VAR Torrents_Torrent_Command>"></td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td><input type=submit name=command <TMPL_IF __FIRST__>disabled</TMPL_IF> value="&uarr;" style="font-size:xx-small; font-weight:bold"></td>
+                                </tr>
+                                <tr>
+                                    <td><input type=submit name=command <TMPL_IF __LAST__>disabled</TMPL_IF> value="&darr;" style="font-size:xx-small; font-weight:bold"></td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td align=left nowrap>
+                            <table width="100%">
+                                <tr>
+                                    <TMPL_IF Torrents_Torrent_Seedless>
+                                        <td style="color:red; font-weight:bold">
+                                    <TMPL_ELSE>
+                                        <td>
+                                    </TMPL_IF>
+                                    <TMPL_VAR Torrents_Torrent_FileName></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table width="100%" bordercolor="#0000BB" border=1 cellspacing=0 cellpadding=0><tr><td>
+                                            <table width="100%" height="100%">
+                                                <tr>
+                                                    <TMPL_IF Torrents_Torrent_Initializing>
+                                                        <td bgcolor="#6666CC" width="100%" style="font-size:2px">&nbsp;</td>
+                                                    <TMPL_ELSE>
+                                                        <TMPL_IF Torrents_Torrent_Checking>
+                                                            <td bgcolor="#CC6666" width="<TMPL_VAR Torrents_Torrent_PercentDone>%" style="font-size:2px">&nbsp;</td>
+                                                            <td bgcolor="#6666CC" width="<TMPL_VAR Torrents_Torrent_PercentLeft>%" style="font-size:2px">&nbsp;</td>
+                                                        <TMPL_ELSE>
+                                                            <TMPL_IF Torrents_Torrent_Allocating>
+                                                                <td bgcolor="#CC6666" width="<TMPL_VAR Torrents_Torrent_PercentDone>%" style="font-size:2px">&nbsp;</td>
+                                                                <td bgcolor="#CCCC66" width="<TMPL_VAR Torrents_Torrent_PercentLeft>%" style="font-size:2px">&nbsp;</td>
+                                                            <TMPL_ELSE>
+                                                                <td bgcolor="#66CC66" width="<TMPL_VAR Torrents_Torrent_PercentDone>%" style="font-size:2px">&nbsp;</td>
+                                                                <td bgcolor="#CC6666" width="<TMPL_VAR Torrents_Torrent_PercentLeft>%" style="font-size:2px">&nbsp;</td>
+                                                            </TMPL_IF>
+                                                        </TMPL_IF>
+                                                    </TMPL_IF>
+                                                </tr>
+                                            </table>
+                                        </tr></td></table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td align=center><TMPL_VAR Torrents_Torrent_Status></td>
+                        <td align=center nowrap><TMPL_VAR Torrents_Torrent_FileSizeDone> [<TMPL_VAR Torrents_Torrent_PercentDonePrec>%]</td>
+                        <td align=center nowrap><TMPL_VAR Torrents_Torrent_FileSize></td>
+                        <td align=center nowrap><TMPL_VAR Torrents_Torrent_SpeedDown> <b>down</b><br> <TMPL_VAR Torrents_Torrent_SpeedUp> <b>up</b></td>
+                        <td align=center nowrap>
+                            <TMPL_VAR Torrents_Torrent_Seeds> (<TMPL_VAR Torrents_Torrent_SizeUp>)<br>
+                            <TMPL_VAR Torrents_Torrent_Peers> (<TMPL_VAR Torrents_Torrent_SizeDown>)
+                        </td>
+                        <td align=center nowrap><TMPL_VAR Torrents_Torrent_ETA></td>
+                    </tr>
+                    </form>
+                </TMPL_LOOP>
+            </table>
+        </TMPL_UNLESS>
+		<TMPL_IF Seeds>
+            <p>
+			<table border=1 width=100% cellpadding=3>
+				<tr bgcolor=#DDDDDD>
+					<th>Seeds</th>
+					<th align=left>File</th>
+					<th>Size</th>
+					<th>Speed</th>
+					<th nowrap>UL/DL</th>
+					<th>Status</th>
+				</tr>
+                <TMPL_LOOP Seeds>
+					<form method=POST action="torrents">
+						<input type=hidden name=nr value=<TMPL_VAR __PASS__>>
+						<input type=hidden name=seed value=1>
+						<tr bgcolor=#FFCCCC>
+							<td><input type=submit name=command value=<TMPL_VAR Command>></td>
+							<td align=left nowrap width=100%><TMPL_VAR FileName></td>
+							<td align=center nowrap><TMPL_VAR FileSize></td>
+							<td align=center nowrap><TMPL_VAR SpeedUp></td>
+							<td align=center nowrap>
+                                <TMPL_VAR Uploaders> / <TMPL_VAR Downloaders><br>
+                                <TMPL_VAR SizeUp> uploaded
+                            </td>
+							<td align=center><TMPL_VAR Status></td>
+                        </tr>
+                    </form>
+                </TMPL_LOOP>
+            </table>
+        </TMPL_IF>
+	</body>
+</html>
+							
+
+
+			

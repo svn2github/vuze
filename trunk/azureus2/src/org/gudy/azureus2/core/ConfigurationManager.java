@@ -17,26 +17,26 @@ import java.util.Map;
 
 /**
  * A singleton used to store configuration into a bencoded file.
- * 
+ *
  * @author TdC_VgA
  *
  */
 public class ConfigurationManager {
-
+  
   private static ConfigurationManager config;
-
+  
   private Map propertiesMap;
-
+  
   private ConfigurationManager() {
     load();
   }
-
+  
   public synchronized static ConfigurationManager getInstance() {
     if (config == null)
       config = new ConfigurationManager();
     return config;
   }
-
+  
   public void load(String filename) {
     FileInputStream fin = null;
     BufferedInputStream bin = null;
@@ -70,11 +70,11 @@ public class ConfigurationManager {
       }
     }
   }
-
+  
   public void load() {
     load("azureus.config");
   }
-
+  
   public void save(String filename) {
     //re-encode the data
     byte[] torrentData = BEncoder.encode(propertiesMap);
@@ -94,23 +94,36 @@ public class ConfigurationManager {
       }
     }
   }
-
+  
   public void save() {
     save("azureus.config");
   }
-
-  public boolean getBooleanParameter(String parameter, boolean defaultValue) {
+  
+  public boolean getBooleanParameter(
+  String parameter,
+  boolean defaultValue) {
     int defaultInt = defaultValue ? 1 : 0;
     int result = getIntParameter(parameter, defaultInt);
     return result == 0 ? false : true;
   }
-
+  
+  public boolean getBooleanParameter(String parameter) {
+    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+    int result =
+    getIntParameter(
+    parameter,
+    def.def.containsKey(parameter)
+    ? ((Long) def.def.get(parameter)).intValue()
+    : (def.def_boolean ? 1 : 0));
+    return result == 0 ? false : true;
+  }
+  
   public void setParameter(String parameter, boolean value) {
     int intValue = value ? 1 : 0;
     propertiesMap.put(parameter, new Long(intValue));
   }
-
-  private Long getIntParameter(String parameter) {
+  
+  private Long getIntParameterRaw(String parameter) {
     try {
       return (Long) propertiesMap.get(parameter);
     } catch (Exception e) {
@@ -118,21 +131,30 @@ public class ConfigurationManager {
       return null;
     }
   }
-
+  
   public int getIntParameter(String parameter, int defaultValue) {
-    Long tempValue = getIntParameter(parameter);
+    Long tempValue = getIntParameterRaw(parameter);
     return tempValue != null ? tempValue.intValue() : defaultValue;
   }
-
-  private byte[] getByteParameter(String parameter) {
+  
+  public int getIntParameter(String parameter) {
+    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+    return getIntParameter(
+    parameter,
+    def.def.containsKey(parameter)
+    ? ((Long) def.def.get(parameter)).intValue()
+    : def.def_int);
+  }
+  
+  private byte[] getByteParameterRaw(String parameter) {
     return (byte[]) propertiesMap.get(parameter);
   }
-
+  
   public byte[] getByteParameter(String parameter, byte[] defaultValue) {
-    byte[] tempValue = getByteParameter(parameter);
+    byte[] tempValue = getByteParameterRaw(parameter);
     return tempValue != null ? tempValue : defaultValue;
   }
-
+  
   private String getStringParameter(String parameter, byte[] defaultValue) {
     try {
       return new String(getByteParameter(parameter, defaultValue));
@@ -141,30 +163,61 @@ public class ConfigurationManager {
       return null;
     }
   }
-
+  
   public String getStringParameter(String parameter, String defaultValue) {
     String tempValue = getStringParameter(parameter, (byte[]) null);
     return tempValue != null ? tempValue : defaultValue;
   }
-
+  
+  public String getStringParameter(String parameter) {
+    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+    return getStringParameter(
+    parameter,
+    def.def.containsKey(parameter)
+    ? (String) def.def.get(parameter)
+    : def.def_String);
+  }
+  
+  public String getDirectoryParameter(String parameter) throws IOException {
+    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+    String dir =
+    getStringParameter(
+    parameter,
+    def.def.containsKey(parameter)
+    ? (String) def.def.get(parameter)
+    : def.def_String);
+    File temp = new File(dir);
+    if (!temp.exists())
+      temp.mkdirs();
+    else if (!temp.isDirectory()) {
+      throw new IOException(
+      "Configuration error. This is not a directory: " + dir);
+    }
+    return dir;
+  }
+  
   public void setParameter(String parameter, int defaultValue) {
     propertiesMap.put(parameter, new Long(defaultValue));
   }
-
+  
   public void setParameter(String parameter, byte[] defaultValue) {
     propertiesMap.put(parameter, defaultValue);
   }
-
+  
   public void setParameter(String parameter, String defaultValue) {
     setParameter(parameter, defaultValue.getBytes());
   }
-
+  
   //TODO:: Move this to a FileManager class?
   public static String getApplicationPath() {
     if (System.getProperty("os.name").equals("Linux")) {
-      return System.getProperty("user.home") + System.getProperty("file.separator") + ".azureus" + System.getProperty("file.separator");
+      return System.getProperty("user.home")
+      + System.getProperty("file.separator")
+      + ".azureus"
+      + System.getProperty("file.separator");
     } else {
-      return System.getProperty("user.dir") + System.getProperty("file.separator");
+      return System.getProperty("user.dir")
+      + System.getProperty("file.separator");
     }
   }
 }

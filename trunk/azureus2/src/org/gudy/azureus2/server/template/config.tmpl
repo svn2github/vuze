@@ -1,0 +1,233 @@
+<html>
+    <head>
+        <title><TMPL_VAR Global_ServerName> Configuration</title>
+    </head>
+    <body bgcolor="#6666AA">
+        <form method=post action="torrents">
+            <table width="100%" border=1 bgcolor="#CCCCFF" cellpadding=2>
+                <tr>
+                    <th colspan=2 align=left>Default Directories</th>
+                </tr>
+                <tr>
+                    <td>Torrents</td>
+                    <td width="80%"><input type=text style="width:100%" name=Options_General_sDefaultTorrent_Directory value="<TMPL_VAR Options_General_sDefaultTorrent_Directory>"></td>
+                </tr>
+                <tr>
+                    <td>Downloads</td>
+                    <td width="80%"><input type=text style="width:100%" name=Options_General_sDefaultSave_Directory value="<TMPL_VAR Options_General_sDefaultSave_Directory>"></td>
+                </tr>
+            </table>
+            <p>
+            <table width="100%" border=1 bgcolor="#CCCCFF" cellpadding=2>
+                <tr>
+                    <th align=left>Basic</th>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Automatically start new downloads</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Download_AutoStart  value="0">
+                                <input type=checkbox name=Download_AutoStart <TMPL_IF download_autostart>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Automatically pause downloads (if current>max)</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Download_AutoPause value="0">
+                                <input type=checkbox name=Download_AutoPause <TMPL_IF download_autopause>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Automatically seed completed downloads</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Download_KeepUpload value="0">
+                                <input type=checkbox name=Download_KeepUpload <TMPL_IF download_keepupload>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Maximal simultanous downloads</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Download_MaxSimDown value="<TMPL_VAR download_maxsimdown>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Keep uploading the last x finished files (0 for unlimited)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Seed_MaxSimSeed value="<TMPL_VAR seed_maxsimseed>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Maximal download speed (0=unlimited)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Download_MaxSpeedDown value="<TMPL_VAR download_maxspeeddown>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Maximal upload speed (0=unlimited)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Download_MaxSpeedUp value="<TMPL_VAR download_maxspeedup>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Use background hashing</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Hash_Background  value="0">
+                                <input type=checkbox name=Hash_Background <TMPL_IF hash_background>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Use strict hashing<br>(If checked only the set number of files will be hashed, never more)</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Hash_Strict  value="0">
+                                <input type=checkbox name=Hash_Strict <TMPL_IF hash_strict>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Maximal simultanous files hashed (1-5)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Hash_NumSimHash value="<TMPL_VAR hash_numsimhash>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+            </table>
+            <p>
+            <table width="100%" border=1 bgcolor="#CCCCFF" cellpadding=2>
+                <tr>
+                    <th align=left>Net Config</th>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Bind to IP for BitTorrent (*)</td>
+                            <td width="10%">
+                                <input type=text style="width:100%" name=Bind_Ip value="<TMPL_VAR bind_ip>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>First Port for BitTorrent (*)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Bind_PortMin value="<TMPL_VAR bind_portmin>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Last Port for BitTorrent (*)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Bind_PortMax value="<TMPL_VAR bind_portmax>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Server Name</td>
+                            <td width="10%">
+                                <input type=text style="width:100%" name=Options_Server_sName value="<TMPL_VAR Options_Server_sName>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Bind to IP for webserver (*)</td>
+                            <td width="10%">
+                                <input type=text style="width:100%" name=Options_Server_sBindIP value="<TMPL_VAR Server_sBindIP>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Webserver port (*)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Server_iPort value="<TMPL_VAR Options_Server_iPort>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>HTTP Connection timeout</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Server_iTimeout value="<TMPL_VAR Options_Server_iTimeout>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Maximal # of HTTP Connections</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Server_iMaxHTTPConnections value="<TMPL_VAR Options_Server_iMaxHTTPConnections>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Allow access from localhost</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Access_AllowLocal value="0">
+                                <input type=checkbox name=Access_AllowLocal <TMPL_IF access_allowlocal>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Allow access from external IPs (separated by space)</td>
+                            <td width="30%">
+                                <input type=text style="width:100%" name=Access_ValidIPs value="<TMPL_VAR access_validips>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Refresh torrents every (seconds)<br>
+                                (Applies to the http auto-refresh of the page as well as adding new torrents in the respective dir)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Display_Refresh value="<TMPL_VAR display_refresh>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Refresh info from tracker (UL/DL) every (minutes)<br>
+                                (Please don't make this too low. Each Refresh takes an http request to the tracker)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Display_RefreshInfo value="<TMPL_VAR display_refreshinfo>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Log Level (default = 1) <TMPL_IF Override_Verbosity><div style="color:red"><TMPL_VAR Options_Override_Verbosity></div></TMPL_IF><br>
+                                <table style="font-size:x-small">
+                                    <tr><td width="1%"></td><td align=right>0</td><td width="100%">Only Errors</td></tr>
+                                    <tr><td width="1%"></td><td align=right>1</td><td width="100%">Torrent Info</td></tr>
+                                    <tr><td width="1%"></td><td align=right>2</td><td width="100%">Warnings</td></tr>
+                                    <tr><td width="1%"></td><td align=right>3</td><td width="100%">Trivial Information</td></tr>
+                                </table>
+                            </td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Server_iVerbosity value="<TMPL_VAR Options_Server_iVerbosity>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Number of kept Log entries (default = 200)</td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Server_iLogCount value="<TMPL_VAR Options_Server_iLogCount>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td>Tempate directory</td>
+                            <td width="80%">
+                                <input type=text style="width:100%" name=Options_Server_sTemplate_Directory value="<TMPL_VAR Options_Server_sTemplate_Directory>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
+             </table>
+            (*) changes require restart.
+            <p>
+            <center>
+                <input type=hidden  name=command value=Config>
+                <input type=submit value="Submit Changes">
+            </center>
+        </form>
+    </body>
+</html>
