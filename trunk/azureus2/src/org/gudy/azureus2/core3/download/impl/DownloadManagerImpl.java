@@ -939,7 +939,7 @@ DownloadManagerImpl
       return tracker_client.getStatusString();
     // to tracker, return scrape
     if (torrent != null && globalManager != null) {
-      TRTrackerScraperResponse response = globalManager.getTrackerScraper().scrape(torrent);
+      TRTrackerScraperResponse response = getTrackerScrapeResponse();
       if (response != null) {
         return response.getStatusString();
       }
@@ -978,7 +978,7 @@ DownloadManagerImpl
 
     // no tracker, return scrape
     if (torrent != null && globalManager != null) {
-      TRTrackerScraperResponse response = globalManager.getTrackerScraper().scrape(torrent);
+      TRTrackerScraperResponse response = getTrackerScrapeResponse();
       if (response != null) {
         if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING)
           return -1;
