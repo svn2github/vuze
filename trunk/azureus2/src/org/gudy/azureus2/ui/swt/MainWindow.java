@@ -448,8 +448,13 @@ public class MainWindow implements GlobalManagerListener {
       }
     });
 
-    // MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
-    //file_new_url.setText("URL");
+    MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
+    Messages.setLanguageText(file_new_url, "MainWindow.menu.file.open.url"); //$NON-NLS-1$
+    file_new_url.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        openUrl();
+      }
+    });
     MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
     Messages.setLanguageText(file_new_folder, "MainWindow.menu.file.folder"); //$NON-NLS-1$
     file_new_folder.addListener(SWT.Selection, new Listener() {
@@ -1839,6 +1844,10 @@ public class MainWindow implements GlobalManagerListener {
   
   public void removeActivePluginView(final PluginView view) {
     pluginTabs.remove(view.getPluginViewName());
+  }
+  
+  public void openUrl() {
+    new OpenUrlWindow(display);
   }
 
 }
