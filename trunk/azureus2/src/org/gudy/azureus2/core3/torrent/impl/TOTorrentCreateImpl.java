@@ -158,23 +158,21 @@ TOTorrentCreateImpl
 			
 			File	file = (File)file_list.get(i);;
 			
-			if ( !file.getName().startsWith( "." )){
+			String	file_name = file.getName();
+			
+			if ( !(file_name.equals( "." ) || file_name.equals( ".." ))){
 				
 				if ( file.isDirectory()){
 					
-					String	dir_name = file.getName();
-					
 					if ( root.length() > 0 ){
 						
-						dir_name = root + File.separator + dir_name ;
+						file_name = root + File.separator + file_name ;
 					}
 					
-					processDir( hasher, file, encoded, dir_name );
+					processDir( hasher, file, encoded, file_name );
 					
 				}else{
-					
-					String	file_name = file.getName();
-					
+										
 					if ( root.length() > 0 ){
 					
 						file_name = root + File.separator + file_name;

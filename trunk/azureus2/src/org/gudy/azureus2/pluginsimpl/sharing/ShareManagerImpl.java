@@ -144,6 +144,10 @@ ShareManagerImpl
 					type == ShareResource.ST_DIR ){
 				
 				new_resource = ShareResourceFileOrDirImpl.deserialiseResource( this, map, type );
+				
+			}else{
+				
+				new_resource = ShareResourceDirContentsImpl.deserialiseResource( this, map );
 			}
 			
 			if ( new_resource != null ){
@@ -352,11 +356,12 @@ ShareManagerImpl
 	
 	public synchronized ShareResourceDirContents
 	addDirContents(
-		File	dir,
-		boolean	recursive )
+		File		dir,
+		boolean		recursive )
+	
+		throws ShareException
 	{
-		return( null );
-		
+		return( new ShareResourceDirContentsImpl( this, dir, recursive ));
 	}	
 	
 	protected synchronized void

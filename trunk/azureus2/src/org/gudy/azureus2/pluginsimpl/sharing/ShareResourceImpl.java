@@ -77,19 +77,66 @@ ShareResourceImpl
 		throws ShareException
 	{
 		try{
-			long	mod 	= file.lastModified();
-			long	size	= file.length();
-			
-			String	finger_print = file.getName()+":"+mod+":"+size;
-					
+			String	finger_print = getFingerPrintSupport( file );
+							
 			return( hasher.calculateHash(finger_print.getBytes()));
+			
+		}catch( ShareException e ){
+			
+			throw( e );
+			
+		}catch( Throwable e ){
+			
+			throw( new ShareException( "ShareResource::getFingerPrint: fails", e ));
+		}
+	}
+	
+	protected String
+	getFingerPrintSupport(
+		File		file )
+	
+		throws ShareException
+	{
+		try{
+			if ( file.isFile()){
+				
+				long	mod 	= file.lastModified();
+				long	size	= file.length();
+			
+				String	finger_print = file.getName()+":"+mod+":"+size;
+			
+				return( finger_print );
+				
+			}else{
+				
+				String	res = "";
+				
+				File[]	dir_file_list = file.listFiles();
+								
+				List file_list = new ArrayList(Arrays.asList(dir_file_list));
+				
+				Collections.sort(file_list);
+				
+				for (int i=0;i<file_list.size();i++){
+					
+					File	f = (File)file_list.get(i);;
+					
+					String	file_name = f.getName();
+					
+					if ( !(file_name.equals( "." ) || file_name.equals( ".." ))){
+						
+						res += ":" + getFingerPrintSupport( f );
+					}
+				}
+				
+				return( res );
+			}
 			
 		}catch( Throwable e ){
 			
 			throw( new ShareException( "ShareResource::getFingerPring: fails", e ));
 		}
 	}
-	
 	protected String
 	getNewTorrentLocation()
 	
