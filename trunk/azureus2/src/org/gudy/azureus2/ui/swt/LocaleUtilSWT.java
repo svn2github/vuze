@@ -71,29 +71,38 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
 
     Arrays.sort(candidates);
    
-    int minlength = candidates[0].getValue().length();
-   
-    // If the default string length == minlength assumes that
-    // the array encoding is from default charset 
-    if (defaultString != null && defaultString.length() == minlength) {
-      return defaultString;
-    }
-
-    // see if we can try and apply a default encoding    
-    String	default_name = COConfigurationManager.getStringParameter( "File.Decoder.Default", "" );
+    boolean always_prompt = COConfigurationManager.getBooleanParameter("File.Decoder.Prompt", false );
     
-    if ( default_name.length() > 0 ){
-		for (int i = 0; i < candidates.length; i++) {
-		  if(candidates[i].getValue() != null && candidates[i].getDecoder().getName().equals( default_name )) {
-        	
-			lastChosenDecoder = candidates[i].getDecoder();
-		  
-			return candidates[i].getValue();
-		  }
+    if ( !always_prompt ){
+    	
+    	int minlength = candidates[0].getValue().length();
+   
+	    // If the default string length == minlength assumes that
+	    // the array encoding is from default charset
+    	
+	    if (defaultString != null && defaultString.length() == minlength) {
+	    	
+	      return defaultString;
+	    }
+
+	    	// see if we can try and apply a default encoding
+	    
+	    String	default_name = COConfigurationManager.getStringParameter( "File.Decoder.Default", "" );
+	    
+	    if ( default_name.length() > 0 ){
+			for (int i = 0; i < candidates.length; i++) {
+			  if(candidates[i].getValue() != null && candidates[i].getDecoder().getName().equals( default_name )) {
+	        	
+				lastChosenDecoder = candidates[i].getDecoder();
+			  
+				return candidates[i].getValue();
+			  }
+			}
 		}
-	}
+    }
     
     ArrayList choosableCandidates = new ArrayList(5);
+    
     choosableCandidates.add(candidates[0]);
        
     // add all general candidates with names not already in the list

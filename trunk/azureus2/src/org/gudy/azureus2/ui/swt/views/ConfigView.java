@@ -878,12 +878,11 @@ public class ConfigView extends AbstractIView {
     gridData.horizontalSpan = 6;
     new StringParameter(gFile, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$       
 
-
+    	// locale decoder
+    
 	label = new Label(gFile, SWT.NULL);
 	Messages.setLanguageText(label, "ConfigView.section.file.decoder.label"); //$NON-NLS-1$
-	new Label(gFile, SWT.NULL);
-	new Label(gFile, SWT.NULL);
-  
+ 
 	LocaleUtilDecoder[]	decoders = LocaleUtil.getDecoders();
 	
 	String decoderLabels[] = new String[decoders.length + 1];
@@ -899,11 +898,26 @@ public class ConfigView extends AbstractIView {
 	Control[] decoder_controls = new Control[2];
 	decoder_controls[0] = label;
 	decoder_controls[1] = new StringListParameter(gFile, "File.Decoder.Default", "", decoderLabels, decoderValues).getControl(); //$NON-NLS-1$    
+	gridData = new GridData();
+	gridData.horizontalSpan = 2;
+	decoder_controls[1].setLayoutData(gridData);
 	new Label(gFile, SWT.NULL);
 	new Label(gFile, SWT.NULL);
- 
+	new Label(gFile, SWT.NULL);
+	new Label(gFile, SWT.NULL);
+	
+		// locale always prompt
 
 
+	label = new Label(gFile, SWT.NULL);
+	Messages.setLanguageText(label, "ConfigView.section.file.decoder.prompt"); 
+	BooleanParameter enableStats = new BooleanParameter(gFile, "File.Decoder.Prompt", false);
+	new Label(gFile, SWT.NULL);
+	new Label(gFile, SWT.NULL);
+	new Label(gFile, SWT.NULL);
+	new Label(gFile, SWT.NULL);
+	new Label(gFile, SWT.NULL);
+	
     itemFile.setControl(gFile);
     return itemFile;
   }
