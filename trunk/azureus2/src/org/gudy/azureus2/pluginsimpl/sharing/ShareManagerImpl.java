@@ -71,6 +71,7 @@ ShareManagerImpl
 	protected ShareConfigImpl	config;
 	
 	protected Map				shares 		= new HashMap();
+	
 	protected List				listeners	= new ArrayList();
 	
 	protected

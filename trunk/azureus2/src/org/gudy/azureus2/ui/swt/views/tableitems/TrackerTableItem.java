@@ -267,8 +267,11 @@ implements SortableItem
   public void invalidate() {
   }
 
-  public void setDataSource(Object dataSource) {
-    torrent = (TRHostTorrent) torrent;
+  public void 
+  setDataSource(
+  	Object dataSource) 
+  {
+    torrent = (TRHostTorrent) dataSource;
   }
 
 }

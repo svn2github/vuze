@@ -146,7 +146,9 @@ TRTrackerServerTorrentImpl
 		map.put( "peers", rep_peers );
 	
 		Iterator	it = peer_map.values().iterator();
-					
+				
+		boolean	send_peer_ids = server.getSendPeerIds();
+		
 		while(it.hasNext()){
 	
 			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
@@ -162,8 +164,12 @@ TRTrackerServerTorrentImpl
 				Map rep_peer = new HashMap();
 	
 				rep_peers.add( rep_peer );
-														 
-				rep_peer.put( "peer id", peer.getPeerId() );
+										
+				if ( send_peer_ids ){
+					
+					rep_peer.put( "peer id", peer.getPeerId() );
+				}
+				
 				rep_peer.put( "ip", peer.getIPAsRead() );
 				rep_peer.put( "port", new Long( peer.getPort()));
 			}

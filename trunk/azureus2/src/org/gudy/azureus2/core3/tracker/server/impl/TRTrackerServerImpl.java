@@ -48,6 +48,32 @@ TRTrackerServerImpl
 	protected static final int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
 		
 	
+	protected static boolean	send_peer_ids	= true;
+	
+	static{
+		final String	param = "Tracker Send Peer IDs";
+		
+		send_peer_ids = COConfigurationManager.getBooleanParameter( param, true );
+		
+		COConfigurationManager.addParameterListener(
+			param,
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					String	value )
+				{
+					send_peer_ids = COConfigurationManager.getBooleanParameter( param, true );
+				}
+			});
+	}
+	
+	protected static boolean
+	getSendPeerIds()
+	{
+		return( send_peer_ids );
+	}
+
 	protected IpFilter	ip_filter	= IpFilter.getInstance();
 	
 	protected int	port;
@@ -65,6 +91,7 @@ TRTrackerServerImpl
 	protected boolean	tracker_password_enabled;
 	protected String	password_user;
 	protected byte[]	password_pw;
+	
 	
 	public
 	TRTrackerServerImpl(

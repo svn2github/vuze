@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.sharing.hoster;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.torrent.*;
@@ -44,6 +46,10 @@ ShareHosterPlugin
 	protected Tracker			tracker;
 	protected ShareManager		share_manager;
 	protected DownloadManager	download_manager;
+
+	protected Map				resource_map = new HashMap();
+	
+	protected Download			download_being_removed;
 	
 	protected boolean			initialised	= false;
 	
@@ -149,6 +155,8 @@ ShareHosterPlugin
 				
 				if ( new_download != null ){
 
+					resource_map.put( resource, new_download );
+					
 					Torrent	dl_torrent = new_download.getTorrent();
 					
 					if ( dl_torrent != null ){
@@ -165,7 +173,10 @@ ShareHosterPlugin
 								
 									throws DownloadRemovalVetoException
 								{
-									throw( new DownloadRemovalVetoException(MessageText.getString("plugin.sharing.download.remove.veto")));
+									if ( dl != download_being_removed ){
+										
+										throw( new DownloadRemovalVetoException(MessageText.getString("plugin.sharing.download.remove.veto")));
+									}
 								}
 							});
 				}
@@ -185,6 +196,9 @@ ShareHosterPlugin
 		
 		if ( initialised ){
 			
+			resourceDeleted( resource );
+			
+			resourceAdded( resource );
 		}
 	}
 	
@@ -195,7 +209,27 @@ ShareHosterPlugin
 		log.log( LoggerChannel.LT_INFORMATION, "Resource deleted:" + resource.getName());
 		
 		if ( initialised ){
+		
+			Download	dl = (Download)resource_map.get(resource);
 			
+			if ( dl != null ){
+				
+				try{
+					download_being_removed	= dl;
+					
+					dl.remove();
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+					
+				}finally{
+					
+					download_being_removed	= null;
+				}
+				
+				resource_map.remove( resource );
+			}			
 		}
 	}
 

@@ -28,8 +28,6 @@ package org.gudy.azureus2.ui.swt.views;
  */
 
 import java.util.*;
-import java.io.OutputStream;
-import java.io.IOException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
@@ -50,20 +48,21 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.SharingTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
+import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.pluginsimpl.*;
 
 public class 
 MySharesView 
 	extends AbstractIView
-	implements TRHostListener , SortableTable
+	implements ShareManagerListener , SortableTable
 {
 	private GlobalManager	global_manager;
 	private Composite 		composite; 
@@ -117,11 +116,9 @@ MySharesView
 	  
 	  table.setLayoutData(gridData);
 	  
-	  String[] columnsHeader = 	{ 	"name", 	"tracker", 		"status", 	"seeds", 	"peers",	"announces",
-	  								"completed","uploaded", "downloaded", 	"left" };
+	  String[] columnsHeader = 	{ 	"name", 	"type" 	};
 	  
-	  int[] columnsSize = 		{ 	250, 		250,			60,			60,			60,			70,
-	  								70,			70,				70,				50 };
+	  int[] columnsSize = 		{ 	400, 		100		};
 	  
 	  for (int i = 0; i < columnsHeader.length; i++){
 	  	
@@ -145,33 +142,27 @@ MySharesView
 		column.addControlListener(resizeListener);
 	  }
 	
-    sorter = new TableSorter(this,"name",false);
-    sorter.addStringColumnListener(table.getColumn(0),"name");
-    sorter.addStringColumnListener(table.getColumn(1),"tracker");
+	  sorter = new TableSorter(this,"name",false);
     
-    sorter.addIntColumnListener(table.getColumn(2),"status");    
-    sorter.addIntColumnListener(table.getColumn(3),"seeds");
-    sorter.addIntColumnListener(table.getColumn(4),"peers");
-    sorter.addIntColumnListener(table.getColumn(5),"announces");
-    sorter.addIntColumnListener(table.getColumn(6),"completed");
-    sorter.addIntColumnListener(table.getColumn(7),"uploaded");
-    sorter.addIntColumnListener(table.getColumn(8),"downloaded");
-    sorter.addIntColumnListener(table.getColumn(9),"left");        
-	
+	  sorter.addStringColumnListener(table.getColumn(0),"name");
+	  sorter.addStringColumnListener(table.getColumn(1),"type");
+    
 	  table.setHeaderVisible(true);	 
 
-		Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
-   
+	  Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
+
+		/*
 	   final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
-	   Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
+	   Messages.setLanguageText(itemStart, "MySharesView.menu.start"); //$NON-NLS-1$
 	   itemStart.setImage(ImageRepository.getImage("start"));
 
 	   final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-	   Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
+	   Messages.setLanguageText(itemStop, "MySharesView.menu.stop"); //$NON-NLS-1$
 	   itemStop.setImage(ImageRepository.getImage("stop"));
-
+	   */
+		
 	   final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
-	   Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
+	   Messages.setLanguageText(itemRemove, "MySharesView.menu.remove"); //$NON-NLS-1$
 	   itemRemove.setImage(ImageRepository.getImage("delete"));
 
 
@@ -179,8 +170,8 @@ MySharesView
 		 public void handleEvent(Event e) {
 		   TableItem[] tis = table.getSelection();
 
-		   itemStart.setEnabled(false);
-		   itemStop.setEnabled(false);
+		   //itemStart.setEnabled(false);
+		   //itemStop.setEnabled(false);
 		   itemRemove.setEnabled(false);
 
 		   if (tis.length > 0) {
@@ -192,6 +183,7 @@ MySharesView
 					
 					TableItem	ti = tis[i];
 					
+					/*
 					TRHostTorrent	host_torrent = (TRHostTorrent)tableItemToObject.get( ti );
 					
 					int	status = host_torrent.getStatus();
@@ -206,29 +198,33 @@ MySharesView
 						
 						stop_ok = false;
 					}
+					*/
 				}
-		   		itemStart.setEnabled(start_ok);
-			 	itemStop.setEnabled(stop_ok);
+				
+		   		//itemStart.setEnabled(start_ok);
+			 	//itemStop.setEnabled(stop_ok);
 			 	itemRemove.setEnabled(true);
 		   }
 		 }
 	   });
 
+	   /*
 	   itemStart.addListener(SWT.Selection, new Listener() {
 		 public void handleEvent(Event e) {
-		   startSelectedTorrents();
+		   //startSelectedTorrents();
 		 }    
 	   });
 	   
 	   itemStop.addListener(SWT.Selection, new Listener() {
 		 public void handleEvent(Event e) {
-		   stopSelectedTorrents();
+		   //stopSelectedTorrents();
 		 }    
 	   });
+	   */
 	   
 	   itemRemove.addListener(SWT.Selection, new Listener() {
 		 public void handleEvent(Event e) {
-		   removeSelectedTorrents();
+		   removeSelectedShares();
 		 }   
 	   });
 	   
@@ -242,9 +238,9 @@ MySharesView
 			 }
 			 TableItem ti = tis[0];
 			
-			 TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
+			 ShareResource	share = (ShareResource)tableItemToObject.get(ti);
 			 
-			 if (torrent != null){
+			 if (share != null){
 			 	
 			 	List dms = global_manager.getDownloadManagers();
 			 	
@@ -252,58 +248,100 @@ MySharesView
 			 		
 			 		DownloadManager	dm = (DownloadManager)dms.get(i);
 			 		
-			 		if ( dm.getTorrent() == torrent.getTorrent()){
-			 		
-					 	MainWindow.getWindow().openManagerView(dm);
-					 	
-					 	break;
+			 		try{
+				 		byte[]	share_hash = null;
+				 		
+				 		if ( share.getType() == ShareResource.ST_DIR ){
+				 			
+				 			share_hash = ((ShareResourceDir)share).getItem().getTorrent().getHash();
+				 			
+				 		}else if ( share.getType() == ShareResource.ST_FILE ){
+				 			
+				 			share_hash = ((ShareResourceFile)share).getItem().getTorrent().getHash();
+				 		}
+				 		
+				 		if ( Arrays.equals( share_hash, dm.getTorrent().getHash())){
+				 		
+						 	MainWindow.getWindow().openManagerView(dm);
+						 	
+						 	break;
+				 		}
+			 		}catch( Throwable e ){
+			 			
+			 			e.printStackTrace();
 			 		}
 			 	}
 			 }
 		   }
-		 });	   
-		TRHostFactory.create().addListener( this );
-  }
+		 });	
+		
+		try{
+
+			ShareManager	sm = PluginInitializer.getDefaultInterface().getShareManager();
+			
+			ShareResource[]	shares = sm.getShares();
+			
+			for (int i=0;i<shares.length;i++){
+				
+				resourceAdded(shares[i]);
+			}
+			
+			sm.addListener(this);
+			
+		}catch( ShareException e ){
+			
+			e.printStackTrace();
+		}
+	}
 	
 	public void
-	torrentAdded(
-		TRHostTorrent		host_torrent )
-	{	
+	resourceAdded(
+		ShareResource		resource )
+	{		
 		synchronized ( tableItemToObject ){
 			
-			TrackerTableItem item = (TrackerTableItem)tableItemToObject.get(host_torrent);
-		  
-		  	if (item == null){
-		  	
-				// TODO: item = new TrackerTableItem(this,table, host_torrent);
+			SharingTableItem item = (SharingTableItem)tableItemToObject.get(resource);
+			
+			if (item == null){
 				
-				objectToSortableItem.put(host_torrent, item);		  					
+				item = new SharingTableItem( this, table, resource );
+				
+				objectToSortableItem.put(resource, item);		  					
 			}	
 		}
 	}
 	
 	public void
-	torrentRemoved(
-		TRHostTorrent		host_torrent )
+	resourceModified(
+		ShareResource		resource )
 	{
-		TrackerTableItem item = (TrackerTableItem) objectToSortableItem.remove(host_torrent);
+	}
+	
+	public void
+	resourceDeleted(
+		ShareResource		resource )
+	{
+		SharingTableItem item = (SharingTableItem) objectToSortableItem.remove(resource);
 		
 		if (item != null) {
 			
 			tableItemToObject.remove( item.getTableItem());
+			
 			if(item != null)
-			  item.delete();
-		}		
+				item.delete();
+		}	
 	}
-
-	public boolean
-	handleExternalRequest(
-		String			url,
-		OutputStream	os )
 	
-		throws IOException
+	public void
+	reportProgress(
+		final int		percent_complete )
 	{
-		return( false );
+	}
+	
+	public void
+	reportCurrentTask(
+		final String	task_description )
+	{
 	}
  
 	private void saveTableColumns(TableColumn t)
@@ -338,9 +376,9 @@ MySharesView
 					return;
 			  	}
 			  
-			  	TrackerTableItem item = (TrackerTableItem) iter.next();
+				SharingTableItem item = (SharingTableItem) iter.next();
 			  
-			  	// TODO: item.refresh();
+			  	item.refresh();
 			}
 		}
 	}	 
@@ -351,8 +389,14 @@ MySharesView
 	 public void 
 	 delete() 
 	 {
-		TRHostFactory.create().removeListener( this );
-		
+	 	try{
+	 		PluginInitializer.getDefaultInterface().getShareManager().removeListener(this);
+	 		
+	 	}catch( ShareException e ){
+	 		
+	 		e.printStackTrace();
+	 	}
+	 	
 	   	MainWindow.getWindow().setMyShares(null);
 	 }
 
@@ -363,8 +407,8 @@ MySharesView
 	   return MessageText.getString("MySharesView.myshares");
 	 }
    
-   public void putHost(TableItem item, TRHostTorrent host_torrent) {
-     tableItemToObject.put(item, host_torrent);
+   public void putShare(TableItem item, ShareResource share) {
+     tableItemToObject.put(item, share);
    }
    
    /*
@@ -393,10 +437,11 @@ MySharesView
       remove = true;
       for (int i=0;i<tis.length;i++){        
         TableItem	ti = tis[i];        
-        TRHostTorrent	host_torrent = (TRHostTorrent)tableItemToObject.get( ti );
-        if(host_torrent == null)
+        ShareResource	share = (ShareResource)tableItemToObject.get( ti );
+        if(share == null)
           return;
         
+        /*
         int	status = host_torrent.getStatus();
         
         if ( status == TRHostTorrent.TS_STOPPED ){          
@@ -406,6 +451,7 @@ MySharesView
         if ( status == TRHostTorrent.TS_STARTED ){          
           stop = true;
         }
+        */
       }
     }
   }
@@ -422,21 +468,24 @@ MySharesView
   
 
   public void itemActivated(String itemKey) {
+  	/*
     if(itemKey.equals("start")) {
-      startSelectedTorrents();
+      //startSelectedTorrents();
       return;
     }
     if(itemKey.equals("stop")){
-      stopSelectedTorrents();
+      //stopSelectedTorrents();
       return;
     }
+    */
     if(itemKey.equals("remove")){
-      removeSelectedTorrents();
+      removeSelectedShares();
       return;
     }
     return;
   }
   
+  /*
   private void stopSelectedTorrents() {
     TableItem[] tis = table.getSelection();
     
@@ -463,16 +512,26 @@ MySharesView
       }
     }
   }
+  */
   
-  private void removeSelectedTorrents() {
+  private void 
+  removeSelectedShares()
+  {
     TableItem[] tis = table.getSelection();		   
     for (int i = 0; i < tis.length; i++) {
       TableItem ti = tis[i];
       
-      TRHostTorrent	torrent = (TRHostTorrent)tableItemToObject.get(ti);
-      if (torrent != null){
+      ShareResource	share = (ShareResource)tableItemToObject.get(ti);
+      
+      if (share != null){
         
-        torrent.remove();
+      	try{
+      		share.delete();
+      		
+      	}catch( ShareException e ){
+      		
+      		e.printStackTrace();
+      	}
       }
     }
   }

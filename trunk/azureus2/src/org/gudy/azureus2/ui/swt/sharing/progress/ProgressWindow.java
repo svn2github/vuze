@@ -33,7 +33,6 @@ import org.eclipse.swt.custom.StyledText;
 import org.gudy.azureus2.ui.swt.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.*;
@@ -60,23 +59,6 @@ ProgressWindow
 			
 			return;
 		}
-		
-		/*
-		try{
-			display.asyncExec(
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							dialog = new progressDialog( display );
-						}
-					});
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
-		*/
 		
 		try{
 			dialog = new progressDialog( display );

@@ -130,6 +130,12 @@ public class Identification {
       }
       if (allZero) return MessageText.getString("PeerSocket.generic");
       
+      	// check for internally generated 'ID' when none provided by tracker
+      
+      if( peerID[0]=='[' && peerID[1]==']'){
+      	return( "ID not available");
+      }
+      
     }
     catch (Exception e) { Debug.out(e.toString()); }
     

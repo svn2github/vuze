@@ -1326,7 +1326,8 @@ public class ConfigView extends AbstractIView {
 		TabItem mainTab = new TabItem(tfTracker, SWT.NULL);
 		Messages.setLanguageText(mainTab, "ConfigView.section.tracker.main");
 		
-		// main tab
+		// main tab set up
+		
 		Group gMainTab = new Group(tfTracker, SWT.NULL);
 		
 		mainTab.setControl( gMainTab );
@@ -1337,10 +1338,11 @@ public class ConfigView extends AbstractIView {
 		layout.numColumns = 6;	
 		gMainTab.setLayout(layout);
 
+		// web tab set up
+		
 		TabItem webTab = new TabItem(tfTracker, SWT.NULL);
 		Messages.setLanguageText(webTab, "ConfigView.section.tracker.web");
 		
-		// web tab
 		
 		Group gWebTab = new Group(tfTracker, SWT.NULL);
 		
@@ -1351,7 +1353,26 @@ public class ConfigView extends AbstractIView {
 		layout = new GridLayout();
 		layout.numColumns = 6;	
 		gWebTab.setLayout(layout);
+	
+		// extensions tab set up
 		
+		TabItem extTab = new TabItem(tfTracker, SWT.NULL);
+		Messages.setLanguageText(extTab, "ConfigView.section.tracker.extensions");
+		
+		
+		Group gExtTab = new Group(tfTracker, SWT.NULL);
+		
+		extTab.setControl( gExtTab );
+		
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gExtTab.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 6;	
+		gExtTab.setLayout(layout);
+		
+		
+		
+			// MAIN TAB DATA
 		// row
 		
 		label = new Label(gMainTab, SWT.NULL);
@@ -1538,27 +1559,6 @@ public class ConfigView extends AbstractIView {
 	 sslEnable.setAdditionalActionPerformer(f_enabler); 	   	 
 	 
 	 
-    // row
-			
-	  label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable"); 
-    
-      BooleanParameter enablePublish = new BooleanParameter(gMainTab, "Tracker Publish Enable", true);
-	  gridData = new GridData();
-	  gridData.horizontalSpan = 2;
-	  enablePublish.setLayoutData( gridData );
-
-	  label = new Label(gMainTab, SWT.NULL);
-	  Messages.setLanguageText(label, "ConfigView.section.tracker.publishenabledetails"); 
-	  
-	  BooleanParameter enablePublishDetails = new BooleanParameter(gMainTab, "Tracker Publish Enable Details", true);
-	  label = new Label(gMainTab, SWT.NULL);
-
-	  Control[] publish_controls = new Control[1];
-	  publish_controls[0] = enablePublishDetails.getControl();
-	  
-	  enablePublish.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( publish_controls ));
-	  
       // row
 			
       label = new Label(gMainTab, SWT.NULL);
@@ -1608,30 +1608,8 @@ public class ConfigView extends AbstractIView {
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  label.setLayoutData( gridData );
-
-		// row
-	  //My new Item
 	  
-	  label = new Label(gWebTab, SWT.NULL);
-	  Messages.setLanguageText(label, "ConfigView.section.tracker.torrentsperpage"); 
-	  
-	  final IntParameter tracker_skip = new IntParameter(gWebTab, "Tracker Skip", 0 );
-	  
-	  gridData = new GridData();
-	  gridData.horizontalSpan = 1;
-	  gridData.widthHint = 100;
-	  tracker_skip.setLayoutData( gridData );
-
-	  label = new Label(gWebTab, SWT.NULL);
-	  label = new Label(gWebTab, SWT.NULL);
-	  label = new Label(gWebTab, SWT.NULL);
-	  gridData = new GridData();
-	  gridData.horizontalSpan = 2;
-	  label.setLayoutData( gridData );
-
 		 // row
-	  //My new Item end
-	  
 	  
 	  label = new Label(gMainTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.username"); 
@@ -1685,6 +1663,70 @@ public class ConfigView extends AbstractIView {
   					
 	  passwordEnableWeb.setAdditionalActionPerformer(enabler); 
 	  passwordEnableTorrent.setAdditionalActionPerformer(enabler); 
+	  
+
+	  // **** web tab ****
+	  
+	
+	  // row
+	  
+	  label = new Label(gWebTab, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable"); 
+	  
+	  BooleanParameter enablePublish = new BooleanParameter(gWebTab, "Tracker Publish Enable", true);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  enablePublish.setLayoutData( gridData );
+
+	  label = new Label(gWebTab, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.publishenabledetails"); 
+	  
+	  BooleanParameter enablePublishDetails = new BooleanParameter(gWebTab, "Tracker Publish Enable Details", true);
+	  label = new Label(gWebTab, SWT.NULL);
+
+	  Control[] publish_controls = new Control[1];
+	  publish_controls[0] = enablePublishDetails.getControl();
+	  
+	  enablePublish.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( publish_controls ));
+	  
+	  // row
+	  
+	  label = new Label(gWebTab, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.torrentsperpage"); 
+	  
+	  final IntParameter tracker_skip = new IntParameter(gWebTab, "Tracker Skip", 0 );
+	  
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 1;
+	  gridData.widthHint = 100;
+	  tracker_skip.setLayoutData( gridData );
+
+	  label = new Label(gWebTab, SWT.NULL);
+	  label = new Label(gWebTab, SWT.NULL);
+	  label = new Label(gWebTab, SWT.NULL);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  label.setLayoutData( gridData );
+	 
+	  
+	  // **** extensions tab ****
+	  
+	  // row
+	  
+	  label = new Label(gExtTab, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.sendpeerids"); 
+	  
+	  BooleanParameter sendPeerIDs = new BooleanParameter(gExtTab, "Tracker Send Peer IDs", true);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  enablePublish.setLayoutData( gridData );
+
+	  label = new Label(gExtTab, SWT.NULL);
+	  label = new Label(gExtTab, SWT.NULL);
+	  label = new Label(gExtTab, SWT.NULL);
+	  label = new Label(gExtTab, SWT.NULL);
+	  
+	  
 	}
 	
 	
