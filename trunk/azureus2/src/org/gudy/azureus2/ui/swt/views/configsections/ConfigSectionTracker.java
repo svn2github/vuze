@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
+import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -242,9 +243,33 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
     	// row
 
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 2;
     new BooleanParameter(gMainTab, "Tracker NAT Check Enable", true, 
                          "ConfigView.section.tracker.natcheckenable").setLayoutData( gridData );
+    
+    Composite gNATDetails = new Composite(gMainTab, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 1;
+    gNATDetails.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    layout.marginHeight=0;
+    layout.marginWidth=0;
+    gNATDetails.setLayout(layout);
+    
+    	// row
+    
+    label = new Label(gNATDetails, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.natchecktimeout");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter NATTimeout = new IntParameter(gNATDetails, "Tracker NAT Check Timeout", TRTrackerServer.DEFAULT_NAT_CHECK_SECS );
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    NATTimeout.setLayoutData( gridData );
+
     	// row
 
     label = new Label(gMainTab, SWT.NULL);

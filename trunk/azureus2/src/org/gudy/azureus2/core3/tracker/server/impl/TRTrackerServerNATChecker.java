@@ -30,6 +30,8 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.util.*;
 import java.net.*;
 
+import org.gudy.azureus2.core3.tracker.server.*;
+
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -39,8 +41,9 @@ TRTrackerServerNATChecker
 	protected static TRTrackerServerNATChecker		singleton	= new TRTrackerServerNATChecker();
 	
 	protected static final int THREAD_POOL_SIZE		= 32;
-	protected static final int CHECK_TIME_LIMIT		= 10000;
 	protected static final int CHECK_QUEUE_LIMIT	= 2048; 
+	
+	protected static int check_timeout		= TRTrackerServer.DEFAULT_NAT_CHECK_SECS*1000;
 	
 	protected static TRTrackerServerNATChecker
 	getSingleton()
@@ -57,21 +60,27 @@ TRTrackerServerNATChecker
 	protected
 	TRTrackerServerNATChecker()
 	{
-		String	enable_param = "Tracker NAT Check Enable";
+		final String	enable_param 	= "Tracker NAT Check Enable";
+		final String	timeout_param	= "Tracker NAT Check Timeout";
 		
-		COConfigurationManager.addParameterListener(
-			enable_param,
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					String parameter_name)
+		final String[]	params = { enable_param, timeout_param };
+		
+		for (int i=0;i<params.length;i++){
+			
+			COConfigurationManager.addParameterListener(
+				params[i],
+				new ParameterListener()
 				{
-					checkConfig( parameter_name );
-				}
-			});
+					public void 
+					parameterChanged(
+						String parameter_name)
+					{
+						checkConfig( enable_param, timeout_param );
+					}
+				});
+		}
 		
-		checkConfig( enable_param );
+		checkConfig( enable_param, timeout_param );
 	}
 	
 	protected boolean
@@ -82,15 +91,25 @@ TRTrackerServerNATChecker
 	
 	protected synchronized void
 	checkConfig(
-		String	enable_param )
+		String	enable_param,
+		String	timeout_param )
 	{
 		enabled = COConfigurationManager.getBooleanParameter( enable_param );
+		
+		check_timeout = COConfigurationManager.getIntParameter( timeout_param ) * 1000;
+		
+		if ( check_timeout < 1000 ){
+			
+			Debug.out( "NAT check timeout too small - " + check_timeout );
+			
+			check_timeout	= 1000;
+		}
 		
 		if ( thread_pool == null ){
 			
 			thread_pool	= new ThreadPool("Tracker NAT Checker", THREAD_POOL_SIZE );
 			
-			thread_pool.setExecutionLimit( CHECK_TIME_LIMIT );
+			thread_pool.setExecutionLimit( check_timeout );
 			
 			Thread	dispatcher_thread = 
 				new AEThread( "Tracker NAT Checker Dispatcher" )
@@ -123,6 +142,10 @@ TRTrackerServerNATChecker
 			dispatcher_thread.setDaemon( true );
 			
 			dispatcher_thread.start();
+			
+		}else{
+			
+			thread_pool.setExecutionLimit( check_timeout );
 		}
 	}
 
@@ -164,7 +187,7 @@ TRTrackerServerNATChecker
 								
 								socket = new Socket();
 																
-								socket.connect( address, CHECK_TIME_LIMIT );
+								socket.connect( address, check_timeout );
 							
 								ok	= true;
 								

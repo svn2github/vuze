@@ -41,6 +41,8 @@ TRTrackerServer
 	public static final int DEFAULT_TRACKER_PORT 		= 6969;
 	public static final int DEFAULT_TRACKER_PORT_SSL	= 7000;
 		
+	public static final int DEFAULT_NAT_CHECK_SECS		= 15;
+	
 	public String
 	getName();
 	
