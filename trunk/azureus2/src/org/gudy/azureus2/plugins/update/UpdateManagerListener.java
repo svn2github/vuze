@@ -31,5 +31,6 @@ UpdateManagerListener
 {
 	public void
 	updateAdded(
-		Update		update );
+		UpdateManager	manager,
+		Update			update );
 }
