@@ -99,6 +99,8 @@ public class UpdateSWTWindow implements GeneralListener{
       }
     });
     
+    shell.setDefaultButton(btnOk);
+    
     btnIgnore = new Button(composite,SWT.PUSH);
     btnIgnore.setText(MessageText.getString("window.updateswt.ignore"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);

@@ -89,40 +89,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
   }
   
   public void launchSWTUpdate() {
-    try {
-      String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
-      String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
-      String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
-      String javaPath = System.getProperty("java.home")
-                      + System.getProperty("file.separator")
-                      + "bin"
-                      + System.getProperty("file.separator");
-                    
-      if(System.getProperty("os.name").equalsIgnoreCase("Linux") || System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
-        
-        File fUpdate = new File(userPath + "/updateSWT");
-        String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
-        + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + libraryPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\"";
-        FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
-        fosUpdate.write(exec.getBytes());
-        fosUpdate.close();
-        Process pChMod = Runtime.getRuntime().exec("chmod 755 " + userPath + "/updateSWT");
-        pChMod.waitFor();
-        Process p = Runtime.getRuntime().exec("./updateSWT");
-      } else {
-        
-        String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
-        + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT win32";
-        
-        LGLogger.log("SWT Updater is about to execute (win32) : " + exec);
-        UpdateLogger.log("SWT Updater is about to execute (win32): " + exec);
-                        
-        Runtime.getRuntime().exec(exec);
-      
-      }
-    } catch(Exception e) {
-      e.printStackTrace();
-    }
+    RestartUtil.restartAzureus("org.gudy.azureus2.ui.swt.updater.UpdateSWT",new String[]{platform});
   }
   
   public void cancel() {
