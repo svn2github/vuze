@@ -113,7 +113,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     //Do not use ~SWT.CLOSE cause on some linux/GTK platform it
     //forces the window to be only 200x200
     //catch close event instead, and never do it
-    updateWindow = new Shell(display,(SWT.DIALOG_TRIM) );
+    updateWindow = new Shell(display,(SWT.DIALOG_TRIM | SWT.RESIZE) );
     
     updateWindow.addListener(SWT.Close,new Listener() {
       public void handleEvent(Event e) {
