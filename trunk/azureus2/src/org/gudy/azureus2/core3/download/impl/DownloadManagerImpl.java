@@ -1363,11 +1363,9 @@ DownloadManagerImpl
 			// pick up the current state
 		
 		listener.stateChanged( this, state );
-		
-		if ( onlySeeding ){
-				
-			listener.downloadComplete(this);
-		}
+
+			// we DON'T dispatch a downloadComplete event here as this event is used to mark the
+			// transition between downloading and seeding, NOT purely to inform of seeding status
 	}
 	
 	public void
