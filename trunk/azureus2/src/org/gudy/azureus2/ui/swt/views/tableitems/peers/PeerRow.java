@@ -1,6 +1,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class PeerRow implements SortableItem {
   private PEPeer peerSocket;
   private BufferedTableRow row;
   private List items;
+  private Map pluginItems;
   
   private boolean valid;
 
@@ -60,6 +62,7 @@ public class PeerRow implements SortableItem {
     this.peerSocket = pc;
     this.valid = false;
     this.items = new ArrayList();
+    this.pluginItems = new HashMap();
     display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
@@ -92,7 +95,9 @@ public class PeerRow implements SortableItem {
         while(iter.hasNext()) {
           String name = (String) iter.next();
           PluginPeerItemFactory ppif = (PluginPeerItemFactory) extensions.get(name);
-          items.add(new PluginItem(PeerRow.this,itemEnumerator.getPositionByName(name),ppif));
+          PluginItem pi = new PluginItem(PeerRow.this,itemEnumerator.getPositionByName(name),ppif);
+          items.add(pi);
+          pluginItems.put(name,pi);          
         }
         
         view.setItem(row.getItem(),pc);
@@ -176,6 +181,10 @@ public class PeerRow implements SortableItem {
     if (field.equals("client")) //$NON-NLS-1$
       return peerSocket.getClient();
 
+    PluginItem item = (PluginItem)pluginItems.get(field);
+    if(item != null)
+      return item.pluginItem.getStringValue();
+    
     return ""; //$NON-NLS-1$
   }
 
@@ -214,6 +223,10 @@ public class PeerRow implements SortableItem {
     if (getBooleanField(field))
       return 1;
 
+    PluginItem item = (PluginItem)pluginItems.get(field);
+    if(item != null)
+      return item.pluginItem.getIntValue();
+    
     return 0;
   }
   
