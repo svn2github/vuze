@@ -18,7 +18,7 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.common.util.LocaleUtilHeadless;
 import org.gudy.azureus2.ui.console.ConsoleInput;
-import org.gudy.azureus2.pluginsimpl.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 /**
  *
