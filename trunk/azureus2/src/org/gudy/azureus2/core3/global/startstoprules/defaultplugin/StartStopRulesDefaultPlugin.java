@@ -434,8 +434,6 @@ StartStopRulesDefaultPlugin
           bActivelyDownloading = true;
           activeDLCount++;
         }
-      } else if (state == Download.ST_SEEDING && dl_data.isFirstPriority()) {
-        totalFirstPriority++;
       }
       // since it's based on time, store in dl_data.
       // we check ActivelyDownloding later and want to use the same value
@@ -464,6 +462,10 @@ StartStopRulesDefaultPlugin
         }
         else if (state == Download.ST_QUEUED)
           totalCompleteQueued++;
+
+        if (dl_data.isFirstPriority()) {
+          totalFirstPriority++;
+        }
       } else {
         if (state == Download.ST_READY ||
             state == Download.ST_WAITING ||
@@ -558,6 +560,12 @@ StartStopRulesDefaultPlugin
             return 1;
           if (!aIsComplete && bIsComplete)
             return -1;
+          boolean aIsFP = ((downloadData)a).isFirstPriority();
+          boolean bIsFP = ((downloadData)b).isFirstPriority();
+          if (aIsFP && !bIsFP)
+            return -1;
+          if (!aIsFP && bIsFP)
+            return 1;
           return aDL.getPosition() - bDL.getPosition();
         }
       } );
@@ -1167,6 +1175,11 @@ StartStopRulesDefaultPlugin
       }
 
       if (iRankType == RANK_TIMED) {
+        if (newQR >= QR_FIRST_PRIORITY_STARTS_AT) {
+          setQR(newQR);
+          return newQR;
+        }
+
         int state = dl.getState();
         if (state == Download.ST_STOPPING ||
             state == Download.ST_STOPPED ||
