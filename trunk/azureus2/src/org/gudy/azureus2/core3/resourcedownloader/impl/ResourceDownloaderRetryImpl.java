@@ -55,6 +55,12 @@ ResourceDownloaderRetryImpl
 		retry_count		= _retry_count;
 	}
 	
+	public String
+	getName()
+	{
+		return( delegate.getName() + ", retry=" + retry_count );
+	}
+	
 	public ResourceDownloader
 	getClone()
 	{

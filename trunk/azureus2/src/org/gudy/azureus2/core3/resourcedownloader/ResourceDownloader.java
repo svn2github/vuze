@@ -31,6 +31,9 @@ import java.io.InputStream;
 public interface 
 ResourceDownloader 
 {
+	public String
+	getName();
+	
 	public InputStream
 	download()
 	

@@ -38,11 +38,16 @@ Test
 	protected
 	Test()
 	{
-		ResourceDownloader rd = ResourceDownloaderFactory.create( "http://localhost:6967/");
+		ResourceDownloader rd1 = ResourceDownloaderFactory.create( "http://localhost:6967/");
+		ResourceDownloader rd2 = ResourceDownloaderFactory.create( "http://localhost:6968/");
+		
+		ResourceDownloader[]	rds = { rd1, rd2 };
+		
+		ResourceDownloader rd = ResourceDownloaderFactory.getAlternateDownloader( rds );
 		
 		rd = ResourceDownloaderFactory.getRetryDownloader( rd, 5 );
 		
-		rd = ResourceDownloaderFactory.getTimeoutDownloader( rd, 2000 );
+		rd = ResourceDownloaderFactory.getTimeoutDownloader( rd, 20000 );
 		
 		rd.addListener( this );
 		

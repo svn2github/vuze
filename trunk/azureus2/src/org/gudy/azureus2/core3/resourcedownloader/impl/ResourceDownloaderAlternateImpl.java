@@ -33,38 +33,50 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.resourcedownloader.*;
 
 public class 
-ResourceDownloaderTimeoutImpl 	
+ResourceDownloaderAlternateImpl 	
 	extends 	ResourceDownloaderBaseImpl
 	implements	ResourceDownloaderListener
 {
-	protected ResourceDownloader		delegate;
-	protected int						timeout_millis;
+	protected ResourceDownloader[]		delegates;
 	
 	protected boolean					cancelled;
 	protected ResourceDownloader		current_downloader;
-
+	protected int						current_index;
+	
 	protected Object					result;
 	protected Semaphore					done_sem	= new Semaphore();
 		
 	public
-	ResourceDownloaderTimeoutImpl(
-		ResourceDownloader	_delegate,
-		int					_timeout_millis )
+	ResourceDownloaderAlternateImpl(
+		ResourceDownloader[]	_delegates )
 	{
-		delegate			= _delegate;
-		timeout_millis		= _timeout_millis;
+		delegates		= _delegates;
 	}
 	
 	public String
 	getName()
 	{
-		return( delegate.getName() + ", timeout=" + timeout_millis );
-	}
+		String	res = "[";
+		
+		for (int i=0;i<delegates.length;i++){
+			
+			res += (i==0?"":",") + delegates[i].getName();
+		}
+		
+		return( res );
+	}	
 	
 	public ResourceDownloader
 	getClone()
 	{
-		return( new ResourceDownloaderTimeoutImpl( delegate.getClone(), timeout_millis ));
+		ResourceDownloader[]	clones = new ResourceDownloader[delegates.length];
+		
+		for (int i=0;i<delegates.length;i++){
+			
+			clones[i] = delegates[i].getClone();
+		}
+		
+		return( new ResourceDownloaderAlternateImpl( clones ));
 	}
 	
 	public InputStream
@@ -86,53 +98,37 @@ ResourceDownloaderTimeoutImpl
 	
 	public synchronized void
 	asyncDownload()
-	{		
-		if ( !cancelled ){
+	{
+		if ( current_index == delegates.length || cancelled ){
 			
-			current_downloader = delegate.getClone();
+			done_sem.release();
+			
+			informFailed((ResourceDownloaderException)result);
+			
+		}else{
+		
+			current_index++;
+			
+			current_downloader = delegates[current_index-1].getClone();
+			
+			informActivity( "download attempt using " + current_downloader.getName());
 			
 			current_downloader.addListener( this );
 			
 			current_downloader.asyncDownload();
-		
-			Thread t = new Thread( "ResourceDownloaderTimeout")
-				{
-					public void
-					run()
-					{
-						try{
-							Thread.sleep( timeout_millis );
-							
-							cancel(new ResourceDownloaderException( "Download timeout"));
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-						}
-					}
-				};
-			
-			t.setDaemon(true);
-	
-			t.start();
 		}
 	}
 	
 	public synchronized void
 	cancel()
 	{
-		cancel( new ResourceDownloaderException( "Download cancelled"));
-	}
-	
-	protected synchronized void
-	cancel(
-		ResourceDownloaderException reason )
-	{
-		result	= reason; 
+		result	= new ResourceDownloaderException( "Download cancelled");
 		
 		cancelled	= true;
-	
+		
 		informFailed((ResourceDownloaderException)result );
+		
+		done_sem.release();
 		
 		if ( current_downloader != null ){
 			
@@ -159,8 +155,6 @@ ResourceDownloaderTimeoutImpl
 	{
 		result		= e;
 		
-		done_sem.release();
-		
-		informFailed( e );
+		asyncDownload();
 	}
 }

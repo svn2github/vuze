@@ -39,22 +39,28 @@ public class
 ResourceDownloaderImpl
 	extends ResourceDownloaderBaseImpl
 {
-	protected String		url_str;
+	protected String		original_url;
 	
 	protected InputStream 	input_stream;
 	protected boolean		cancel_download	= false;
 	
 	public 
 	ResourceDownloaderImpl(
-		String		_url_str )
+		String		_url )
 	{
-		url_str = _url_str.replaceAll( " ", "%20" );	   
+		original_url	= _url;
+	}
+	
+	public String
+	getName()
+	{
+		return( original_url );
 	}
 	
 	public ResourceDownloader
 	getClone()
 	{
-		return( new ResourceDownloaderImpl( url_str ));
+		return( new ResourceDownloaderImpl( original_url ));
 	}
 
 	public void
@@ -86,7 +92,7 @@ ResourceDownloaderImpl
 	{
 		try{
 			try{
-				URL	url = new URL( url_str );
+				URL	url = new URL( original_url.replaceAll( " ", "%20" ));
 			      
 				HttpURLConnection	con;
 				
@@ -177,15 +183,15 @@ ResourceDownloaderImpl
 				
 			}catch (java.net.MalformedURLException e){
 				
-				throw( new ResourceDownloaderException("Exception while parsing URL '" + url_str + "':" + e.getMessage(), e));
+				throw( new ResourceDownloaderException("Exception while parsing URL '" + original_url + "':" + e.getMessage(), e));
 				
 			}catch (java.net.UnknownHostException e){
 				
-				throw( new ResourceDownloaderException("Exception while initializing download of '" + url_str + "': Unknown Host '" + e.getMessage() + "'", e));
+				throw( new ResourceDownloaderException("Exception while initializing download of '" + original_url + "': Unknown Host '" + e.getMessage() + "'", e));
 				
 			}catch (java.io.IOException e ){
 				
-				throw( new ResourceDownloaderException("I/O Exception while downloading '" + url_str + "':" + e.toString(), e ));
+				throw( new ResourceDownloaderException("I/O Exception while downloading '" + original_url + "':" + e.toString(), e ));
 			}
 		}catch( Throwable e ){
 			

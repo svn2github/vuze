@@ -53,4 +53,12 @@ ResourceDownloaderFactory
 	{
 		return( new ResourceDownloaderTimeoutImpl( downloader, timeout_millis ));
 	}
+	
+	public static ResourceDownloader
+	getAlternateDownloader(
+		ResourceDownloader[]		downloaders )
+	{
+		return( new ResourceDownloaderAlternateImpl( downloaders ));
+	}
+	
 }
