@@ -1576,7 +1576,6 @@ DiskManagerImpl
     String fullPath;
     String subPath;
     File destDir;
-    File delDir;
     String returnName = "";
     
     //make sure the torrent hasn't already been moved
@@ -1591,7 +1590,7 @@ DiskManagerImpl
     
     String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
     if (moveToDir.length() == 0) return returnName;
-    
+
     try {
       for (int i=0; i < files.length; i++) {
         synchronized (files[i]) {
@@ -1616,8 +1615,6 @@ DiskManagerImpl
           destDir = new File(moveToDir + subPath);
      
           destDir.mkdirs();
-          //points to the file's parent dir, used for later deletion
-          delDir = new File(fullPath);
 
           //create the destination file pointer
           File newFile = new File(destDir, oldFile.getName());
@@ -1638,17 +1635,12 @@ DiskManagerImpl
             files[i].setRaf(newRaf);
             files[i].setAccessmode(DiskManagerFileInfo.READ);
             files[i].setFile(newFile);
-          } else System.out.println("DiskManagerImpl::ERROR: failed to move " + oldFile.getName());
-          
-          //delete the parent dir if empty
-          if (subPath.length() > 0) {
-            if (delDir.listFiles().length == 0) {
-              delDir.delete();
-            }
-          }
-          
+          } else System.out.println("DiskManagerImpl::ERROR: failed to move " + oldFile.getName());          
         }
       }
+      
+      File tFile = new File(path, fileName);
+      if (tFile.isDirectory()) FileUtil.recursiveDelete(tFile);
       
       //update internal path
       path = moveToDir;
