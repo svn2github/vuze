@@ -86,13 +86,13 @@ DiskManagerImpl
 
 	private ByteBuffer allocateAndTestBuffer;
 
-	public static final int	CHECK_QUEUE_BLOCK_LIMIT	= 1000;
-	private Semaphore	check_queue_block_sem;
+	//public static final int	CHECK_QUEUE_BLOCK_LIMIT	= 1000;
+	//private Semaphore	check_queue_block_sem;
 	
 	private List 		writeQueue;
 	private List 		checkQueue;
 	private Semaphore	writeCheckQueueSem;
-	private Object		writeCheckQueueLock	= new Object(){};
+	private Object		writeCheckQueueLock	= new Object();
 	
 	private List		readQueue;
 	private Semaphore	readQueueSem;
@@ -285,7 +285,7 @@ DiskManagerImpl
 		checkQueue 			= new LinkedList();
 		writeCheckQueueSem	= new Semaphore();
 		
-		check_queue_block_sem	= new Semaphore();
+		//check_queue_block_sem	= new Semaphore();
 		
 		readQueue 		= new LinkedList();
 		readQueueSem	= new Semaphore();
@@ -655,7 +655,7 @@ DiskManagerImpl
 			
 			readQueueSem.releaseForever();
 			
-			check_queue_block_sem.releaseForever();
+			//check_queue_block_sem.releaseForever();
 			
 			while (readQueue.size() != 0) {
 				DiskManagerDataQueueItemImpl item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
@@ -701,9 +701,9 @@ DiskManagerImpl
 							
 							elt	= (QueueElement)checkQueue.remove(0);
 							
-							if ( checkQueue.size() >= DiskManagerImpl.CHECK_QUEUE_BLOCK_LIMIT ){			
-								check_queue_block_sem.release();
-							}
+							//if ( checkQueue.size() >= DiskManagerImpl.CHECK_QUEUE_BLOCK_LIMIT ){			
+							//	check_queue_block_sem.release();
+							//}
 							
 							elt_is_write	= false;
 						}
@@ -1054,20 +1054,20 @@ DiskManagerImpl
    aSyncCheckPiece(
    		int pieceNumber) 
    {
-   		boolean	block_required	= false;
+   		//boolean	block_required	= false;
    		
    		synchronized( writeCheckQueueLock ){
 
-   			block_required = checkQueue.size() >= CHECK_QUEUE_BLOCK_LIMIT;
+   			//block_required = checkQueue.size() >= CHECK_QUEUE_BLOCK_LIMIT;
 		
    			checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
     	}
    		
    		writeCheckQueueSem.release();
    		
-   		if ( block_required ){
-   			check_queue_block_sem.reserve();
-   		}
+   		//if ( block_required ){
+   		//	check_queue_block_sem.reserve();
+   		//}
    }
   
 
