@@ -93,6 +93,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
+import com.sun.corba.se.internal.core.Constant;
+
 /** Displays a list of torrents in a table view.
  *
  * @author Olivier
@@ -533,10 +535,16 @@ public class MyTorrentsView extends AbstractIView
         iMouseX = e.x;
         TableItem ti = table.getItem(new Point(e.x, e.y));
         if (ti == null) {
-          table.deselectAll();
+          //Gudy - No idea why you're using this but it 
+          //makes items to be deselected while scrolling on OSX
+          //Testing if the platform isn't OSX before deselecting.
+          if(! Constants.isOSX) {
+            table.deselectAll();
+          }
         }
       }
     });
+    
     // XXX this may not be needed if all platforms process mouseDown
     //     before the menu
     table.addMouseMoveListener(new MouseMoveListener() {

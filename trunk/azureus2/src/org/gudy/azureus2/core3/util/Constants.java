@@ -27,4 +27,12 @@ public class Constants {
   public static final byte[] VERSION_ID       = ("-" + "AZ" + "2085" + "-").getBytes();  //MUST be 8 chars long!
   
   public static final int MINIMAL_SWT_VERSION = 3044;
+  
+  public static final boolean isOSX;
+  public static final boolean isLinux;
+  
+  static {
+    isOSX = System.getProperty("os.name").equalsIgnoreCase("Mac OS X");
+    isLinux = System.getProperty("os.name").equalsIgnoreCase("Linux");
+  }
 }
