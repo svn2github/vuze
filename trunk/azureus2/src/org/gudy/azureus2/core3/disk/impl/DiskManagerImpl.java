@@ -643,16 +643,16 @@ DiskManagerImpl
 
 			while (bContinue) {
             
-            count = 0;
-            sleepTime = 1000;
+			  count = 0;
+			  sleepTime = 1000;
             
-				if (writeQueue.size() > 64) sleepTime = 20;
+			  if (writeQueue.size() > 64) sleepTime = 20;
 
-            //allow up to 64 blocks to be written at once
-            while (writeQueue.size() != 0 && count < 64) {
-					QueueElement elt = (QueueElement)writeQueue.remove(0);
-					//Do not allow to write in a piece marked as done.
-					int pieceNumber = elt.getPieceNumber();					
+			  //allow up to 64 blocks to be written at once
+			  while (writeQueue.size() != 0 && count < 64 && bContinue) {
+			    QueueElement elt = (QueueElement)writeQueue.remove(0);
+			    //Do not allow to write in a piece marked as done.
+			    int pieceNumber = elt.getPieceNumber();					
 					if(!pieceDone[pieceNumber]) {
 					  dumpBlockToDisk(elt);
 					  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
@@ -661,15 +661,15 @@ DiskManagerImpl
 					  elt.data = null;
 					}
 
-               count++;
-				}
+					count++;
+			  }
             
-            count = 0;
+			  count = 0;
 
-            if (checkQueue.size() > 10) sleepTime = 20;
+			  if (checkQueue.size() > 10) sleepTime = 20;
 
-            //allow up to 10 piece checks at once
-				while (checkQueue.size() != 0 && count < 10) {
+			  //allow up to 10 piece checks at once
+			  while (checkQueue.size() != 0 && count < 10 && bContinue) {
 				  QueueElement elt = (QueueElement)checkQueue.remove(0);
 				  boolean correct = checkPiece(elt.getPieceNumber());
 					
@@ -685,12 +685,12 @@ DiskManagerImpl
 				  }
 
 				  manager.asyncPieceChecked(elt.getPieceNumber(), correct);
-              count++;
-				}
+				  count++;
+			  }
             				
 				try {
-                Thread.sleep(sleepTime);
-            } catch (Exception e) { e.printStackTrace(); }
+				  Thread.sleep(sleepTime);
+				} catch (Exception e) { e.printStackTrace(); }
 			}
 		}
 
@@ -944,7 +944,7 @@ DiskManagerImpl
 	}
   
 
-	public synchronized boolean checkPiece(int pieceNumber) {
+	private synchronized boolean checkPiece(int pieceNumber) {
         
       if (this.bContinue == false) return false;
 
