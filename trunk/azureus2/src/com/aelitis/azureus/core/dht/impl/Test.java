@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.impl;
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPFactory;
 
 import java.io.*;
 import java.util.*;
@@ -42,8 +43,10 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 public class 
 Test 
 {
-	static int	num_dhts	= 100;
-	static int	num_stores	= 1000;
+	static int	num_dhts	= 50;
+	static int	num_stores	= 100;
+	static boolean	udp_protocol	= true;
+	
 
 	static int		K			= 5;
 	static int		B			= 1;
@@ -327,7 +330,16 @@ Test
 		DHTTransport[]	transports,
 		int				i )
 	{
-		DHTTransport	transport = DHTTransportFactory.createLoopback(ID_BYTES);
+		DHTTransport	transport;
+		
+		if ( udp_protocol ){
+			
+			transport = DHTTransportUDPFactory.create( 40000 + i, 5 );
+			
+		}else{
+			
+			transport = DHTTransportFactory.createLoopback(ID_BYTES);
+		}
 		
 		HashWrapper	id = new HashWrapper( transport.getLocalContact().getID());
 		

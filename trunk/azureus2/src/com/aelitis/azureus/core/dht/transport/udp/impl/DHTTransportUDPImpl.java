@@ -99,7 +99,8 @@ DHTTransportUDPImpl
 	
 		throws IOException
 	{
-		throw( new RuntimeException(""));
+		request_handler.contactImported( 
+				DHTUDPUtils.deserialiseContact( this, is ));
 	}
 	
 	public void
@@ -117,7 +118,7 @@ DHTTransportUDPImpl
 	
 		throws IOException
 	{
-		throw( new RuntimeException(""));
+		DHTUDPUtils.serialiseContact( os, contact );
 	}
 	
 	public void
@@ -494,8 +495,6 @@ DHTTransportUDPImpl
 	process(
 		PRUDPPacketRequest	request )
 	{
-		System.out.println( "got request: " + request.getString() + " from " + request.getAddress());
-		
 		try{
 			
 			DHTTransportContact	originating_contact = new DHTTransportUDPContactImpl( this, request.getAddress());
