@@ -44,8 +44,6 @@ public class PiecesItem extends PeerGraphicItem  {
    */
   public PiecesItem(PeerRow peerRow, int position) {
     super(peerRow, position);
-    /* We dispose of our own images because we store them against PEPeer */
-    disposeGraphic = false;
   }
 
   public void dispose() {

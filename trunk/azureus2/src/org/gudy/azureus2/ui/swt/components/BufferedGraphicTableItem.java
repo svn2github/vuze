@@ -51,10 +51,6 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
    * called when the size of the cell has changed.
    */
   public boolean fillCell = true;
-  
-  /** Whether BufferedGraphicTableItem is to dispose of the graphic or not.
-   */
-  public boolean disposeGraphic = true;
 
   //The Buffered image
   private Image image;
@@ -76,16 +72,13 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
    * @return true - image was changed.  false = image was the same
    */
   public boolean setGraphic(Image img) {
-    if (image == img) {
-      doPaint();
-      return false;
-    }
-    if (disposeGraphic && image != null && !image.isDisposed()) {
-      image.dispose();
-    }
-    image = img;
+    boolean bImageSet = (image != img);
+
+    if (bImageSet)
+      image = img;
     doPaint();
-    return true;
+
+    return bImageSet;
   }
 
   public boolean needsPainting() {
@@ -148,7 +141,6 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
       clipping.height = tableBounds.height - clipping.y + 1;
 
     //debugOut("doPaint() clipping="+clipping, false);
-
     if (clipping.width <= 0 && clipping.height <= 0) {
       return;
     }
@@ -158,7 +150,7 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
     // Notes/Questions:
     // - GTK's "new GC(table)" starts under header, instead of above
     //   -- so, adjust bounds up
-    // - Appears to apply to new GC(table) AND GC passed by PaintEvent
+    // - Appears to apply to new GC(table) AND GC passed by PaintEvent from a Table PaintListener
     // - Q) .height may be effected (smaller than it should be).  How does this effect clipping?
     // - Q) At what version does this bug start appearing?
     //   A) Reports suggest at least 2.1.1
@@ -182,9 +174,6 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
 
   
   public void dispose() {
-    if(disposeGraphic && image != null && ! image.isDisposed()) {
-      image.dispose();
-    }
     image = null;
   }
   

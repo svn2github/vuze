@@ -39,7 +39,6 @@ public class HealthItem extends TorrentGraphicItem  {
     marginWidth = 0;
     marginHeight = 0;
     fillCell = false;
-    disposeGraphic = false;
   }
   
   public void refresh() {

@@ -45,8 +45,6 @@ public class PiecesItem extends TorrentGraphicItem  {
    */
   public PiecesItem(TorrentRow torrentRow, int position) {
     super(torrentRow, position);
-    /* We dispose of our own images because we store them against DownloadManager */
-    disposeGraphic = false;
   }
 
   public void dispose() {
