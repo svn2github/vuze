@@ -16,6 +16,11 @@ BUGFIX: Fast resuming with Chinese directories: Bug #869749 [Parg]
 BUGFIX: System tray icon re-shown after explorer.exe crash (again) [Rele]
 BUGFIX: Fix for potential memory leaks [Nolar]
 BUGFIX: Fix for stalled piece writing [Gijs Overvliet]
+BUGFIX: Fix for .torrent file data not being fully written on shutdown [Parg]
+BUGFIX: Fix for OutOfMemoryError in DiskManager: Bug #865553 [TuxPaper]
+
+
+
 
 
 19.12.03 | Azureus 2.0.6.0
