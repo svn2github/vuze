@@ -65,7 +65,8 @@ PEPeerTransport
 	public void
 	closeAll(
     String reason,
-		boolean closedOnError );
+	 boolean closedOnError,
+	 boolean attemptReconnect);
 		
 	public void
 	setSnubbed(

@@ -352,7 +352,7 @@ PEPeerControlImpl
       synchronized (_connections) {
         while (_connections.size() != 0) {
           PEPeerTransport pc = (PEPeerTransport) _connections.remove(0);
-          pc.closeAll("Closing all Connections",false);
+          pc.closeAll("Closing all Connections",false, false);
         }
       }
   }
@@ -950,7 +950,7 @@ PEPeerControlImpl
     }
     
     if (addFailed) {
-       ps.closeAll(reason,false);
+       ps.closeAll(reason,false, false);
     }
  }
 
@@ -1233,7 +1233,7 @@ PEPeerControlImpl
       for (int i = 0; i < _connections.size(); i++) {
         PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
         if (pc != null && pc.getState() == PEPeer.TRANSFERING && pc.isSeed()) {
-          pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false);
+          pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false, false);
         }
       }
     }
