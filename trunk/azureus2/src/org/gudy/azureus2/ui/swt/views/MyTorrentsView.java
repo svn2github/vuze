@@ -124,7 +124,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   
   private int loopFactor;
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
-
+  private boolean confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
     
   /**
    * @return Returns the itemEnumerator.
@@ -153,6 +153,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     createTable();    
     createDragDrop();
     COConfigurationManager.addParameterListener("Graphics Update", this);
+    COConfigurationManager.addParameterListener("Confirm Data Delete", this);
     globalManager.addListener(this);
   }
   
@@ -575,7 +576,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
                 + dm.getName() + " :\n"
                 + path 
                 + MessageText.getString("deletedata.message2"));
-            int choice = mb.open();
+            
+            int choice;
+            if (confirmDataDelete) choice = mb.open();
+            else choice = SWT.YES;
+                
             if (choice == SWT.YES) {
               try {
                 globalManager.removeDownloadManager(dm);                
@@ -612,7 +617,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
                 + dm.getName() + " :\n"
                 + path 
                 + MessageText.getString("deletedata.message2"));
-            int choice = mb.open();
+            
+            int choice;
+            if (confirmDataDelete) choice = mb.open();
+            else choice = SWT.YES;
+            
             if (choice == SWT.YES) {
               try {
                 globalManager.removeDownloadManager(dm);                
@@ -1031,6 +1040,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     MainWindow.getWindow().setMytorrents(null);
     COConfigurationManager.removeParameterListener("ReOrder Delay", sorter);
     COConfigurationManager.removeParameterListener("Graphics Update", this);
+    COConfigurationManager.removeParameterListener("Confirm Data Delete", this);
   }
 
   /* (non-Javadoc)
@@ -1311,6 +1321,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
    */
   public void parameterChanged(String parameterName) {
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+    confirmDataDelete = COConfigurationManager.getBooleanParameter("Confirm Data Delete", true);
   }
   
   private boolean up,down,run,host,publish,start,stop,remove;

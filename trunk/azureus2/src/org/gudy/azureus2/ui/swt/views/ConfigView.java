@@ -1024,6 +1024,11 @@ public class ConfigView extends AbstractIView {
   new Label(gFile, SWT.NULL);
   new Label(gFile, SWT.NULL);
 	new Label(gFile, SWT.NULL);
+    
+  label = new Label(gFile, SWT.NULL);
+  Messages.setLanguageText(label, "ConfigView.section.file.confirm_data_delete"); 
+  new BooleanParameter(gFile, "Confirm Data Delete", true);
+    
 	
     itemFile.setControl(gFile);
     return itemFile;
