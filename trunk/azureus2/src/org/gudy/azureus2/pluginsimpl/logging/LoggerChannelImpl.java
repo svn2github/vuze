@@ -121,6 +121,38 @@ LoggerChannelImpl
 	}
 	
 	public void
+	logAlert(
+		int			alert_type,
+		String		message )
+	{
+		int	at;
+		
+		switch( alert_type ){
+			
+			case LoggerChannel.LT_INFORMATION:
+			{
+				at	= LGLogger.AT_COMMENT;
+				
+				break;
+			}	
+			case LoggerChannel.LT_WARNING:
+			{
+				at	= LGLogger.AT_WARNING;
+				
+				break;
+			}	
+			default:
+			{
+				at	= LGLogger.AT_ERROR;
+				
+				break;
+			}	
+		}
+		
+		LGLogger.logAlert( at, message );
+	}
+	
+	public void
 	addListener(
 		LoggerChannelListener	l )
 	{

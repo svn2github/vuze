@@ -31,7 +31,7 @@ LoggerChannel
 	public static final int	LT_INFORMATION	= 1;
 	public static final int LT_WARNING		= 2;
 	public static final int LT_ERROR		= 3;
-	
+		
 	public String
 	getName();
 	
@@ -48,6 +48,17 @@ LoggerChannel
 	log(
 		String		data,
 		Throwable 	error );
+	
+	/**
+	 * raise an alert to the user, if UI present
+	 * @param alert_type
+	 * @param message
+	 */
+	
+	public void
+	logAlert(
+		int			alert_type,
+		String		message );
 	
 	public void
 	addListener(
