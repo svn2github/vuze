@@ -78,27 +78,12 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       int result;
       PEPeer peer0 = (PEPeer) arg0;
       PEPeer peer1 = (PEPeer) arg1;
-      boolean interesting0,interesting1,interested0,interested1;
-      
-      //Order is : Non Interesting < Interesting
-      interesting0 = peer0.isInterestedInMe();
-      interesting1 = peer1.isInterestedInMe();
-      
-      result =  (interesting0 ? -1 : 1) - (interesting1 ? -1 : 1);
-      if(result != 0) return result;
-      
-      //Order is : Non Interested < Interested
-      interested0 = peer0.isInterestingToMe();
-      interested1 = peer1.isInterestingToMe();
-      
-      result =  (interested0 ? 1 : -1) - (interested1 ? 1 : -1);
-      if(result != 0) return result;
-      
+
       //Then we sort on %, but depending on interested ...
       int percent0 = peer0.getPercentDoneInThousandNotation();
       int percent1 = peer1.getPercentDoneInThousandNotation();
       
-      return interested0 ? percent0 - percent1 : percent1 - percent0;
+      return percent0 - percent1;
     }
   }
   
@@ -249,12 +234,15 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       int x1 = x0 + (int) (r * deltaYX);
       int y1 = y0 + (int) (r * deltaYY);
       gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
+      if(peer.isSnubbed()) {
+        gcBuffer.setBackground(Colors.grey);
+      }
       PieUtils.drawPie(gcBuffer,x1 - PEER_SIZE / 2,y1 - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
       
       //gcBuffer.drawText(peer.getIp() , x1 + 8 , y1 , true);
     }
     
-    
+    gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
     PieUtils.drawPie(gcBuffer,x0 - OWN_SIZE / 2 ,y0 - OWN_SIZE / 2,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10);
     
     gcBuffer.dispose();
