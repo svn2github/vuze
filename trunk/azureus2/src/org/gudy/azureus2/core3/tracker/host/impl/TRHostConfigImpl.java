@@ -217,9 +217,7 @@ TRHostConfigImpl
 		   	List	stats_entries = new ArrayList();
 		   	
 		   	Set	added = new HashSet();
-		   	
-		   	System.out.println( "host save starts" );
-		   	
+		   			   	
 		   	for (int i = 0; i < torrents.length; i++){
 		   	
 		  	 	try{
