@@ -53,9 +53,10 @@ DHTDB
 		HashWrapper				key,
 		DHTTransportValue		value );
 	
-	public DHTDBValue
+	public DHTDBValue[]
 	get(
-		HashWrapper		key );
+		HashWrapper		key,
+		int				max_values );
 		
 	public DHTDBValue
 	remove(

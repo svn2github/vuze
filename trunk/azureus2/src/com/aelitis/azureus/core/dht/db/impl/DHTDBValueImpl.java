@@ -36,7 +36,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
 DHTDBValueImpl
-	implements DHTTransportValue, DHTDBValue
+	implements DHTDBValue
 {
 	private long				creation_time;
 	private byte[]				value;
@@ -167,12 +167,6 @@ DHTDBValueImpl
 		DHTTransportContact	_originator )
 	{
 		originator	= _originator;
-	}
-	
-	public DHTTransportValue
-	getTransportValue()
-	{
-		return( this );
 	}
 	
 	public DHTDBValue

@@ -203,137 +203,136 @@ DHTPlugin
 					}
 				});
 		
-			// TODO: When DHT is known to work OK remove this feature!!!! 
-		
-		enabled = VersionCheckClient.getSingleton().DHTEnableAllowed();
-		
-		if ( enabled ){
-			
-			model.getStatus().setText( "Initialising" );
-			
-			Thread t = 
+		Thread t = 
 				new AEThread( "DTDPlugin.init" )
 				{
 					public void
 					runSupport()
 					{
 						try{
-							int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+							// TODO: When DHT is known to work OK remove this feature!!!! 
 							
-							transport = 
-								DHTTransportFactory.createUDP( 
-										port, 
-										5,
-										3,
-										30000, 	// udp timeout - tried less but a significant number of 
-												// premature timeouts occurred
-										log );
+							enabled = VersionCheckClient.getSingleton().DHTEnableAllowed();
 							
-							plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
-									60000,
-									new UTTimerEventPerformer()
-									{
-										public void
-										perform(
-											UTTimerEvent		event )
-										{
-											if ( dht != null ){
-												
-												DHTRouterStats	r_stats = dht.getRouter().getStats();
-												
-												long[]	rs = r_stats.getStats();
+							if ( enabled ){
+								
+								model.getStatus().setText( "Initialising" );
+								
+								try{
+									int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+									
+									transport = 
+										DHTTransportFactory.createUDP( 
+												port, 
+												5,
+												3,
+												30000, 	// udp timeout - tried less but a significant number of 
+														// premature timeouts occurred
+												log );
+									
+									plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
+											60000,
+											new UTTimerEventPerformer()
+											{
+												public void
+												perform(
+													UTTimerEvent		event )
+												{
+													if ( dht != null ){
+														
+														DHTRouterStats	r_stats = dht.getRouter().getStats();
+														
+														long[]	rs = r_stats.getStats();
+					
+														log.log( "Router Stats    " +
+																	":no=" + rs[DHTRouterStats.ST_NODES] +
+																	",le=" + rs[DHTRouterStats.ST_LEAVES] +
+																	",co=" + rs[DHTRouterStats.ST_CONTACTS] +
+																	",re=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
+																	",cl=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
+																	",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
+																	",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
+																		
+														DHTTransportStats t_stats = transport.getStats();
+														
+														log.log( "Transport Stats" + 
+																	":ps=" + t_stats.getPacketsSent() +
+																	",pr=" + t_stats.getPacketsReceived() +
+																	",bs=" + t_stats.getBytesSent() +
+																	",br=" + t_stats.getBytesReceived() +
+																	",to=" + t_stats.getRequestsTimedOut());
+													}
+												}
+											});
+									
+									Properties	props = new Properties();
+									
+									// props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
+									
+									long	start = SystemTime.getCurrentTime();
+									
+									dht = DHTFactory.create( transport, props, log );
+									
+									dht.setLogging( logging.getValue());
+									
+									transport.importContact(
+											new InetSocketAddress( "213.186.46.164", 6881 ),
+											DHTTransportUDP.PROTOCOL_VERSION );
+									
+									importContacts();
+									
+									plugin_interface.getUtilities().createTimer( "DHTExport" ).addPeriodicEvent(
+											10*60*1000,
+											new UTTimerEventPerformer()
+											{
+												public void
+												perform(
+													UTTimerEvent		event )
+												{
+													exportContacts();
+												}
+											});
+									
+									dht.integrate();
+									
+									long	end = SystemTime.getCurrentTime();
 			
-												log.log( "Router Stats    " +
-															":no=" + rs[DHTRouterStats.ST_NODES] +
-															",le=" + rs[DHTRouterStats.ST_LEAVES] +
-															",co=" + rs[DHTRouterStats.ST_CONTACTS] +
-															",re=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
-															",cl=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
-															",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
-															",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
-																
-												DHTTransportStats t_stats = transport.getStats();
-												
-												log.log( "Transport Stats" + 
-															":ps=" + t_stats.getPacketsSent() +
-															",pr=" + t_stats.getPacketsReceived() +
-															",bs=" + t_stats.getBytesSent() +
-															",br=" + t_stats.getBytesReceived() +
-															",to=" + t_stats.getRequestsTimedOut());
-											}
-										}
-									});
-							
-							Properties	props = new Properties();
-							
-							// props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
-							
-							long	start = SystemTime.getCurrentTime();
-							
-							dht = DHTFactory.create( transport, props, log );
-							
-							dht.setLogging( logging.getValue());
-							
-							transport.importContact(
-									new InetSocketAddress( "213.186.46.164", 6881 ),
-									DHTTransportUDP.PROTOCOL_VERSION );
-							
-							importContacts();
-							
-							plugin_interface.getUtilities().createTimer( "DHTExport" ).addPeriodicEvent(
-									10*60*1000,
-									new UTTimerEventPerformer()
-									{
-										public void
-										perform(
-											UTTimerEvent		event )
-										{
-											exportContacts();
-										}
-									});
-							
-							dht.integrate();
-							
-							long	end = SystemTime.getCurrentTime();
-	
-							log.log( "DHT integration complete: elapsed = " + (end-start));
-							
-							dht.print();
-							
-							model.getStatus().setText( "Running" );
-							
-								// test put
-							
-							byte[]	 key = transport.getLocalContact().getString().getBytes();
-							
-							dht.put( key, key );
-							
-							log.log( "Performed test put of '" + new String( key ) + "'" );
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-							
-							log.log( "DHT integrtion fails", e );
-							
-							model.getStatus().setText( "DHT Integration fails: " + Debug.getNestedExceptionMessage( e ));
-							
+									log.log( "DHT integration complete: elapsed = " + (end-start));
+									
+									dht.print();
+									
+									model.getStatus().setText( "Running" );
+									
+										// test put
+									
+									byte[]	 key = transport.getLocalContact().getString().getBytes();
+									
+									dht.put( key, key );
+									
+									log.log( "Performed test put of '" + new String( key ) + "'" );
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+									
+									log.log( "DHT integrtion fails", e );
+									
+									model.getStatus().setText( "DHT Integration fails: " + Debug.getNestedExceptionMessage( e ));
+								}
+							}else{
+								
+								model.getStatus().setText( "Disabled administratively due to network problems" );
+							}
 						}finally{
 							
 							init_sem.releaseForever();
 						}
-						
 					}
 				};
 				
-			t.setDaemon(true);
+		t.setDaemon(true);
 			
-			t.start();
-			
-		}else{
-			
-			model.getStatus().setText( "Disabled administratively due to network problems" );
-		}
+		t.start();
 	}
 	
 	protected File
@@ -423,6 +422,8 @@ DHTPlugin
 	public boolean
 	isEnabled()
 	{
+		init_sem.reserve();
+		
 		return( enabled );
 	}
 	
@@ -436,9 +437,7 @@ DHTPlugin
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
-		
-		init_sem.reserve();
-		
+				
 		dht.put( 	key, 
 					value,
 					new DHTOperationListener()
@@ -492,9 +491,7 @@ DHTPlugin
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
-		
-		init_sem.reserve();
-		
+				
 		dht.get( 	key, max_values, timeout,
 					new DHTOperationListener()
 					{
@@ -545,9 +542,7 @@ DHTPlugin
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
-		
-		init_sem.reserve();
-		
+				
 		dht.remove( 	key,
 						new DHTOperationListener()
 						{

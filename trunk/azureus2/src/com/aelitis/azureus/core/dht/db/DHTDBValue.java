@@ -31,13 +31,11 @@ import com.aelitis.azureus.core.dht.transport.*;
 
 public interface 
 DHTDBValue 
+	extends DHTTransportValue
 {
 	public byte[]
 	getValue();
-	
-	public DHTTransportValue
-	getTransportValue();
-	
+		
 	public DHTDBValue
 	getValueForRelay(
 		DHTTransportContact	new_originator );

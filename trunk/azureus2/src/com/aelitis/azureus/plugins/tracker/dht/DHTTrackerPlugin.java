@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.tracker.dht;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -107,24 +108,51 @@ DHTTrackerPlugin
 					}
 				});
 
+		model.getStatus().setText( "Initialising" );
+		
+		log.log( "Waiting for DHT initialisation" );
+		
 		plugin_interface.addListener(
 			new PluginListener()
 			{
 				public void
 				initializationComplete()
 				{
-					PluginInterface pi = 
+					final PluginInterface dht_pi = 
 						plugin_interface.getPluginManager().getPluginInterfaceByClass(
 									DHTPlugin.class );
 					
-					if ( pi != null ){
+					if ( dht_pi != null ){
 						
-						dht = (DHTPlugin)pi.getPlugin();
-						
-						if ( dht != null && dht.isEnabled()){
+						Thread	t = 
+							new AEThread( "DHTTrackerPlugin:init" )
+							{
+								public void
+								runSupport()
+								{
+									try{
+										dht = (DHTPlugin)dht_pi.getPlugin();
+									
+										if ( dht != null && dht.isEnabled()){
+										
+											model.getStatus().setText( "Running" );
+											
+											initialise();
+											
+										}else{
+											
+											model.getStatus().setText( "Disabled, DHT not available" );
+										}
+									}catch( Throwable e ){
+										
+										model.getStatus().setText( "Failed" );
+									}
+								}
+							};
 							
-							initialise();
-						}
+						t.setDaemon( true );
+						
+						t.start();
 					}
 				}
 				
@@ -271,6 +299,10 @@ DHTTrackerPlugin
 		log.log( "Tracking starts for download ' " + download.getName() + "'" );
 		
 		download.addListener( this );
+		
+			// pick up initial state
+		
+		stateChanged( download, download.getState(), download.getState());
 	}
 	
 	protected void

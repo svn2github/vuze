@@ -488,7 +488,7 @@ DHTControlImpl
 		
 		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value );
 		
-		put( encoded_key, value.getTransportValue(), 0, _listener );		
+		put( encoded_key, value, 0, _listener );		
 	}
 	
 	public void
@@ -1207,13 +1207,13 @@ DHTControlImpl
 	{
 		DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
 
-		DHTDBValue	value	= database.get( new HashWrapper( key ));
+		DHTDBValue[]	values	= database.get( new HashWrapper( key ), max_values);
 					
-		if ( value != null ){
+		if ( values.length > 0 ){
 			
 			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 
-			return( new DHTTransportValue[]{ value.getTransportValue()});
+			return( values );
 			
 		}else{
 			
@@ -1312,50 +1312,57 @@ DHTControlImpl
 			
 			byte[]	encoded_key		= key.getHash();
 			
-			DHTDBValue	value	= database.get( key );
+			DHTDBValue[]	values	= database.get( key, 0 );
 			
-			if ( value == null ){
+			if ( values.length == 0 ){
 				
 					// deleted in the meantime
 				
 				continue;
 			}
 			
+				// TODO: store multiple values at once
+			
+			for (int i=0;i<values.length;i++){
+				
+				DHTDBValue	value = values[i];
+		
 				// we don't consider any cached further away than the initial location, for transfer
 				// however, we *do* include ones we originate as, if we're the closest, we have to
 				// take responsibility for xfer (as others won't)
 			
-			if ( value.getTransportValue().getCacheDistance() > 1 ){
-				
-				continue;
-			}
-			
-			List		sorted_contacts	= getClosestKContactsList( encoded_key ); 
-			
-				// if we're closest to the key, or the new node is closest and
-				// we're second closest, then we take responsibility for storing
-				// the value
-			
-			boolean	store_it	= false;
-			
-			if ( sorted_contacts.size() > 0 ){
-				
-				DHTTransportContact	first = (DHTTransportContact)sorted_contacts.get(0);
-				
-				if ( router.isID( first.getID())){
+				if ( value.getCacheDistance() > 1 ){
 					
-					store_it = true;
-					
-				}else if ( Arrays.equals( first.getID(), new_contact.getID()) && sorted_contacts.size() > 1 ){
-					
-					store_it = router.isID(((DHTTransportContact)sorted_contacts.get(1)).getID());
-					
+					continue;
 				}
-			}
-			
-			if ( store_it ){
-	
-				values_to_store.put( key, value );
+				
+				List		sorted_contacts	= getClosestKContactsList( encoded_key ); 
+				
+					// if we're closest to the key, or the new node is closest and
+					// we're second closest, then we take responsibility for storing
+					// the value
+				
+				boolean	store_it	= false;
+				
+				if ( sorted_contacts.size() > 0 ){
+					
+					DHTTransportContact	first = (DHTTransportContact)sorted_contacts.get(0);
+					
+					if ( router.isID( first.getID())){
+						
+						store_it = true;
+						
+					}else if ( Arrays.equals( first.getID(), new_contact.getID()) && sorted_contacts.size() > 1 ){
+						
+						store_it = router.isID(((DHTTransportContact)sorted_contacts.get(1)).getID());
+						
+					}
+				}
+				
+				if ( store_it ){
+		
+					values_to_store.put( key, value );
+				}
 			}
 		}
 		
@@ -1417,7 +1424,7 @@ DHTControlImpl
 							}
 						},
 						key.getHash(), 
-						new DHTTransportValue[]{ value.getValueForRelay( local_contact ).getTransportValue()});
+						new DHTTransportValue[]{ value.getValueForRelay( local_contact )});
 						
 			}
 		}else{

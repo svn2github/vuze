@@ -234,9 +234,10 @@ DHTDBImpl
 		}
 	}
 	
-	public DHTDBValue
+	public DHTDBValue[]
 	get(
-		HashWrapper		key )
+		HashWrapper		key,
+		int				max_values )	// 0 -> all
 	{
 		synchronized( stored_values ){
 			
@@ -249,12 +250,12 @@ DHTDBImpl
 				// current approach is to only allow usage of a secondary cache entry ONCE before
 				// we delete it :P
 			
-			if ( value != null && value.getTransportValue().getCacheDistance() > 1 ){
+			if ( value != null && value.getCacheDistance() > 1 ){
 				
 				stored_values.remove( key );
 			}
 			
-			return( value );
+			return( new DHTDBValue[]{ value });
 		}
 	}
 	
