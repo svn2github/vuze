@@ -3283,10 +3283,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     for(int i=0;i<blocked.length;i++){
       BlockedIp bIp = blocked[i];
       sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
-      sb.append("\t");
-      sb.append(bIp.getBlockedIp());
-      sb.append("\t");
+      sb.append("\t[");
       sb.append( bIp.getTorrentName() );
+      sb.append("]\t");
+      sb.append(bIp.getBlockedIp());
       IpRange range = bIp.getBlockingRange();
       if(range == null) {
         sb.append(' ');
