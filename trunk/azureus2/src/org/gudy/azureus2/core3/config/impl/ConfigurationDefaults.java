@@ -236,6 +236,7 @@ public class ConfigurationDefaults {
         def.put("bLog" + logComponents[i] + "-" + j, new Long(1));
 
     // Start/Stop Automation Stuff
+    def.put("bRepositionCompleted", new Long(1));
     def.put("numPeersAsFullCopy", new Long(0));
     def.put("iFakeFullCopySeedStart", new Long(1));
     def.put("minPeersToBoostNoSeeds", new Long(1));

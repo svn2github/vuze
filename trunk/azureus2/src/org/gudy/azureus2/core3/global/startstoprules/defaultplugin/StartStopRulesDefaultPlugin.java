@@ -114,10 +114,19 @@ StartStopRulesDefaultPlugin
     plugin_config = plugin_interface.getPluginconfig();
     reloadConfigParams();
     
-    plugin_interface.addConfigSection(new ConfigSectionQueue());
-    plugin_interface.addConfigSection(new ConfigSectionStarting());
-    plugin_interface.addConfigSection(new ConfigSectionStopping());
-    
+    try {
+      plugin_interface.addConfigSection(new ConfigSectionQueue());
+      plugin_interface.addConfigSection(new ConfigSectionStarting());
+      plugin_interface.addConfigSection(new ConfigSectionStopping());
+    } catch (NoClassDefFoundError e) { 
+      /* Ignore. SWT probably not installed */
+      log.log(LoggerChannel.LT_WARNING, 
+              "UI Config not loaded for StartStopRulesDefaulPlugin. " +
+              e.getMessage() + " not found.");
+    } catch( Throwable e ){
+      e.printStackTrace();
+    }    
+
     download_manager = plugin_interface.getDownloadManager();
     
     download_listener = 
@@ -221,7 +230,7 @@ StartStopRulesDefaultPlugin
   }
   
   private void reloadConfigParams() {
-    enableQR = plugin_config.getBooleanParameter("Enable QR", true);
+    enableQR = plugin_config.getBooleanParameter("bRepositionCompleted");
     minPeersPerSeed = plugin_config.getIntParameter("Stop Peers Ratio", 0);
     minPeersToBoostNoSeeds = plugin_config.getIntParameter("minPeersToBoostNoSeeds");
     minSpeedForActiveDL = plugin_config.getIntParameter("minSpeedForActiveDL");
@@ -973,7 +982,7 @@ StartStopRulesDefaultPlugin
   
       label = new Label(gQR, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.enableSeedingQR"); //$NON-NLS-1$
-      new BooleanParameter(gQR, "Enable QR", true);
+      new BooleanParameter(gQR, "bRepositionCompleted");
   
       label = new Label(gQR, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.minSeedingTime"); //$NON-NLS-1$    
