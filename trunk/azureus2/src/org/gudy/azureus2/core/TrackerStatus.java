@@ -80,9 +80,8 @@ public class TrackerStatus {
         int peers = ((Long)hashMap.get("incomplete")).intValue();
         hashes.put(new Hash(key),new HashData(seeds,peers));        
       }
-    }
-    catch (Exception e) {
-      //e.printStackTrace();
+    } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
+    } catch (Exception ignore) {
     } finally {
       if(is != null)
         try {

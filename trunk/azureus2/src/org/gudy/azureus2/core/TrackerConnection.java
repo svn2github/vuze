@@ -160,6 +160,7 @@ public class TrackerConnection {
             }
           }
           Logger.getLogger().log(componentID, evtFullTrace, Logger.INFORMATION, "Tracker Connection has received : " + message);
+        } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
         } catch (Exception ignore) {
         } finally {
           if (is != null) {
