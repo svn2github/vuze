@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
@@ -389,11 +390,21 @@ public class ConfigView extends AbstractIView {
   private void initGroupPlugins()
   {
     GridData gridData;
+    Label label;
 
     Composite infoGroup = createConfigSection(ConfigSection.SECTION_PLUGINS);
     TreeItem treePlugins = findTreeItem(tree, ConfigSection.SECTION_PLUGINS);
     infoGroup.setLayout(new GridLayout());
     infoGroup.addControlListener(new Utils.LabelWrapControlListener());  
+
+    String sPluginDir = SystemProperties.getUserPath() + "plugins" + System.getProperty("file.separator");
+    label = new Label(infoGroup, SWT.WRAP);
+    label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    Messages.setLanguageText(label, "ConfigView.pluginlist.whereToPut");
+
+    label = new Label(infoGroup, SWT.WRAP);
+    label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    label.setText(sPluginDir);
 
     List pluginIFs = PluginInitializer.getPluginInterfaces();
     Label labelInfo = new Label(infoGroup, SWT.WRAP);
@@ -402,19 +413,24 @@ public class ConfigView extends AbstractIView {
     int numPlugins = 0;
     for (int i = 0; i < pluginIFs.size(); i++) {
       PluginInterface pluginIF = (PluginInterface)pluginIFs.get(i);
-      Label label = new Label(infoGroup, SWT.NULL);
+      label = new Label(infoGroup, SWT.NULL);
 
       Properties p = pluginIF.getPluginProperties();
-      String s = p.getProperty("plugin.name", pluginIF.getPluginDirectoryName());
+      String s = p.getProperty("plugin.name", "");
+      String sDirName = pluginIF.getPluginDirectoryName();
+      if (sDirName.length() > sPluginDir.length() && 
+          sDirName.substring(0, sPluginDir.length()).equals(sPluginDir)) {
+        sDirName = sDirName.substring(sPluginDir.length());
+      }
+      
       // Blank means it's internal
-      if (s != "") {
-        label.setText(" - " + s);
+      if (sDirName != "") {
+        label.setText(" - " + s + " (" + sDirName + ")");
         numPlugins++;
       }
     }
     Messages.setLanguageText(labelInfo, (numPlugins == 0) ? "ConfigView.pluginlist.noplugins"
                                                           : "ConfigView.pluginlist.info");
-
 
     ParameterRepository repository = ParameterRepository.getInstance();
 
