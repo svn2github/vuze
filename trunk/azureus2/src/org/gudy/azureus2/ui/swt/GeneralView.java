@@ -380,7 +380,8 @@ public class GeneralView extends AbstractIView {
     GC gc = new GC(availabilityImage);
     if (aImage != null && !aImage.isDisposed())
       aImage.dispose();
-
+    if(width < 10 || height < 5)
+            return;
     aImage = new Image(display, width, height);
     GC gcImage = new GC(aImage);
     int allMin = 0;
@@ -486,6 +487,8 @@ public class GeneralView extends AbstractIView {
     if (!valid) {
       if (pImage != null && !pImage.isDisposed())
         pImage.dispose();
+      if(width < 10 || height < 5)
+        return;
       pImage = new Image(display, width, height);
       GC gcImage = new GC(pImage);
       if (available != null) {
@@ -544,6 +547,8 @@ public class GeneralView extends AbstractIView {
     if (overall != total) {
       if (fImage != null && !fImage.isDisposed())
         fImage.dispose();
+      if(width < 10 || height < 5)
+        return;
       fImage = new Image(display, width, height);
       GC gcImage = new GC(fImage);
       int limit = (width * total) / 1000;

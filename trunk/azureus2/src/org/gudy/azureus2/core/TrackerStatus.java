@@ -62,14 +62,14 @@ public class TrackerStatus {
         String strKey = (String) iter.next();
         byte[] key = (strKey).getBytes("ISO-8859-1");
         Map hashMap = (Map) map.get(strKey);
-        System.out.println(ByteFormater.nicePrint(key) + " :: " + hashMap);
+        //System.out.println(ByteFormater.nicePrint(key) + " :: " + hashMap);
         int seeds = ((Long)hashMap.get("complete")).intValue();
         int peers = ((Long)hashMap.get("incomplete")).intValue();
         hashes.put(new Hash(key),new HashData(seeds,peers));        
       }
     }
     catch (Exception e) {
-      e.printStackTrace();
+      //e.printStackTrace();
     }
   }
 
