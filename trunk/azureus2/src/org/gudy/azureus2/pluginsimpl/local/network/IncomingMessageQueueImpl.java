@@ -66,7 +66,7 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
     
     core_queue.registerQueueListener( core_listener );
     
-    if( registrations.size() < 1 ) {
+    if( registrations.size() == 1 ) {
       core_queue.startQueueProcessing();
     }
   }
