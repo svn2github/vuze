@@ -6,10 +6,12 @@ xx.06.04 | Azureus 2.1.0.1
 FEATURE:
 
 CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
+CHANGE: Plug | Tracker web plugin configuration moved to plugin config from core config
 
 BUGFIX: Core | Fix for Library Paths using single quotes [Parg]
 BUGFIX: Core | Fixed shared plugin dir location on OSX [Parg]
 BUGFIX: Core | File Open dialogs now correctly remember their last path [Nolar]
+BUGFIX: Core | Plugin loader picking up .zip files instead of corresponding .jar files [Parg]
 BUGFIX: UI   | # Column now on by default again [TuxPaper]
 BUGFIX: UI   | Fix for Context Menu not appearing after setting up columns on Linux [TuxPaper]
 BUGFIX: UI   | IP column now sorts by hex groups [TuxPaper]
