@@ -66,6 +66,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
@@ -1696,7 +1697,9 @@ public class MainWindow implements GlobalManagerListener {
     return mainWindow.isVisible();
   }
 
-  public void dispose() {
+  public boolean dispose() {
+    if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation())
+      return false;
     if (this.trayIcon != null)
       SysTrayMenu.dispose();
 
@@ -1737,6 +1740,21 @@ public class MainWindow implements GlobalManagerListener {
     }
     if (updateJar)
       updateJar();
+    return true;
+  }
+
+  /**
+   * @return true, if the user choosed OK in the exit dialog
+   *
+   * @author Rene Leonhardt
+   */
+  private boolean getExitConfirmation() {
+    MessageBox mb = new MessageBox(mainWindow, SWT.ICON_WARNING | SWT.YES | SWT.NO);
+    mb.setText(MessageText.getString("MainWindow.dialog.exitconfirmation.title"));
+    mb.setMessage(MessageText.getString("MainWindow.dialog.exitconfirmation.text"));
+    if(mb.open() == SWT.YES)
+      return true;
+    return false;
   }
 
   public GlobalManager getGlobalManager() {
@@ -1807,10 +1825,7 @@ public class MainWindow implements GlobalManagerListener {
             String savePath = getSavePath(fileName);
             if (savePath == null)
               return;
-            if(startInStoppedState)
-              globalManager.addDownloadManagerStopped(fileName, savePath);
-            else
-              globalManager.addDownloadManager(fileName, savePath);
+            globalManager.addDownloadManagerStopped(fileName, savePath, startInStoppedState);
 }
         }
         .start();
@@ -1968,10 +1983,7 @@ public class MainWindow implements GlobalManagerListener {
     new Thread() {
       public void run() {
         for (int i = 0; i < files.length; i++)
-          if (startInStoppedState)
-            globalManager.addDownloadManagerStopped(files[i].getAbsolutePath(), savePath);
-          else
-            globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath);
+          globalManager.addDownloadManagerStopped(files[i].getAbsolutePath(), savePath, startInStoppedState);
       }
     }
     .start();

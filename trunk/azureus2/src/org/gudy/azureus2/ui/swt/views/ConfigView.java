@@ -994,7 +994,11 @@ public class ConfigView extends AbstractIView {
    
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.useCustomTabs"); //$NON-NLS-1$
-   BooleanParameter useCustomTabs = new BooleanParameter(gStyle, "useCustomTab",true); //$NON-NLS-1$
+   new BooleanParameter(gStyle, "useCustomTab",true); //$NON-NLS-1$
+   
+   label = new Label(gStyle, SWT.NULL);
+   Messages.setLanguageText(label, "ConfigView.section.style.confirmationOnExit"); //$NON-NLS-1$
+   new BooleanParameter(gStyle, "confirmationOnExit",false); //$NON-NLS-1$
    
    String osName = System.getProperty("os.name");
    if (osName.equals("Windows XP")) {
