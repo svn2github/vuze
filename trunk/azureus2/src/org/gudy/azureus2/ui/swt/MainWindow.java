@@ -42,7 +42,7 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
@@ -277,15 +277,17 @@ public class MainWindow implements IComponentListener {
       return;
     }
 
-    // Uncomment this code to enable SWT leak checking
-	// org.eclipse.swt.graphics.DeviceData data = new org.eclipse.swt.graphics.DeviceData();
-	// data.tracking=true;
-	// display = new Display(data);
-	// Sleak sleak = new Sleak();
-	// sleak.open();
-    
-	//The display
-    display = new Display();
+    // set to true to enable SWT leak checking
+    if (false) {
+      DeviceData data = new DeviceData();
+      data.tracking = true;
+      display = new Display(data);
+      Sleak sleak = new Sleak();
+      sleak.open();
+    } else {
+      display = new Display();
+    }
+
     if (ConfigurationManager.getInstance().getBooleanParameter("Show Splash", true)) {
       showSplashWindow();
     }
