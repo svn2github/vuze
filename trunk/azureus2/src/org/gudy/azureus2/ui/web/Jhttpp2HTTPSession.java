@@ -694,7 +694,7 @@ public class Jhttpp2HTTPSession extends Thread {
     if (filename.endsWith("/")) filename+="index"; // add index.html, if ending with /
     File file = null;
     File fileuser = new File(ConfigurationManager.getInstance().getDirectoryParameter("Server_sTemplate_Directory")+ sep + filename); // access only files in "htdocs"
-    String fileres = "org/gudy/azureus2/server/template/"+filename;
+    String fileres = "org/gudy/azureus2/ui/web/template/"+filename;
     //    File filedef = new File("org/gudy/azureus2/server/template/"+filename);
     boolean useres = false;
     if (filename.indexOf("..")!=-1) {
