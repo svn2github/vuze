@@ -231,7 +231,7 @@ public class DiskManager {
 
     int fileOffset = 0;
     int currentFile = 0;
-    for (int i = 0; i < nbPieces - 1; i++) {
+    for (int i = 0; (1 == nbPieces && i < nbPieces) || i < nbPieces - 1; i++) {
       ArrayList pieceToFileList = new ArrayList();
       int usedSpace = 0;
       while (pieceLength > usedSpace) {
