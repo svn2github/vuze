@@ -123,6 +123,18 @@ TRTrackerServerProcessor
 
 				root_out[0] = torrent.exportAnnounceToList( left > 0, stopped?0:num_want, interval, no_peer_id, compact );
 				
+				Map	res = root_out[0];
+				
+				if ( res != null && peer != null && peer.isSeed()){
+					
+					long	total_seeds = ((Long)res.get( "complete")).longValue();
+					
+					if ( total_seeds > 2500 ){
+						
+						torrent.removePeer( peer );
+					}
+				}
+				
 				peer_out[0]	= peer;				
 			}else{
 				
