@@ -54,7 +54,7 @@ ResourceDownloaderTorrentImpl
 	
 		// this + clones *share* the torrent object to avoid downloading more than once
 	
-	protected TOTorrent[]				torrent	 = new TOTorrent[1];
+	protected TOTorrent[]				torrent_holder	 = new TOTorrent[1];
 	
 	protected DownloadManager			download_manager;
 	protected Download					download;
@@ -131,21 +131,21 @@ ResourceDownloaderTorrentImpl
 		throws ResourceDownloaderException
 	{
 		try{
-			if ( torrent[0] == null ){
+			if ( torrent_holder[0] == null ){
 				
 				ResourceDownloader	x = delegate.getClone( this );
 			
 				addReportListener( x );
 			
-				torrent[0] = TOTorrentFactory.deserialiseFromBEncodedInputStream( x.download());
+				torrent_holder[0] = TOTorrentFactory.deserialiseFromBEncodedInputStream( x.download());
 				
-				if( !torrent[0].isSimpleTorrent()){
+				if( !torrent_holder[0].isSimpleTorrent()){
 					
 					throw( new ResourceDownloaderException( "Only simple torrents supported" ));
 				}
 			}
 			
-			return( torrent[0].getSize());
+			return( torrent_holder[0].getSize());
 			
 		}catch( TOTorrentException e ){
 			
@@ -155,11 +155,11 @@ ResourceDownloaderTorrentImpl
 	
 	protected void
 	setSizeAndTorrent(
-		long		_size,
-		TOTorrent[]	_torrent )
+		long			_size,
+		TOTorrent[]		_torrent_holder )
 	{
-		size	= _size;
-		torrent	= _torrent;
+		size			= _size;
+		torrent_holder	= _torrent_holder;
 	}
 	
 	public ResourceDownloader
@@ -168,7 +168,7 @@ ResourceDownloaderTorrentImpl
 	{
 		ResourceDownloaderTorrentImpl c = new ResourceDownloaderTorrentImpl( parent, delegate.getClone( this ), persistent, download_dir );
 		
-		c.setSizeAndTorrent( size, torrent );
+		c.setSizeAndTorrent( size, torrent_holder );
 		
 		return( c );
 	}
@@ -204,7 +204,7 @@ ResourceDownloaderTorrentImpl
 				
 			}else{
 	
-				if ( torrent == null ){
+				if ( torrent_holder[0] == null ){
 					
 					current_downloader = delegate.getClone( this );
 					
@@ -229,7 +229,7 @@ ResourceDownloaderTorrentImpl
 	downloadTorrent()
 	{
 		try{
-			informActivity( getLogIndent() + "Downloading: " + new String( torrent[0].getName(), Constants.DEFAULT_ENCODING ));
+			informActivity( getLogIndent() + "Downloading: " + new String( torrent_holder[0].getName(), Constants.DEFAULT_ENCODING ));
 			
 				// we *don't* want this temporary file to be deleted automatically as we're
 				// going to use it across Azureus restarts to hold the download data and
@@ -244,15 +244,15 @@ ResourceDownloaderTorrentImpl
 			
 			final File	data_dir		= download_dir==null?torrent_file.getParentFile():download_dir;
 			
-			torrent[0].serialiseToBEncodedFile( torrent_file );
+			torrent_holder[0].serialiseToBEncodedFile( torrent_file );
 						
 			if ( persistent ){
 				
-				download = download_manager.addDownload( new TorrentImpl(torrent[0]), torrent_file, data_dir );
+				download = download_manager.addDownload( new TorrentImpl(torrent_holder[0]), torrent_file, data_dir );
 				
 			}else{
 				
-				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent[0]), torrent_file, data_dir );
+				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent_holder[0]), torrent_file, data_dir );
 			}
 			
 			download.setPosition(1);				
@@ -301,8 +301,8 @@ ResourceDownloaderTorrentImpl
 					public void
 					positionChanged(
 						Download	download, 
-						int oldPosition,
-						int newPosition )
+						int 		oldPosition,
+						int 		newPosition )
 					{
 					}
 				});
@@ -319,7 +319,7 @@ ResourceDownloaderTorrentImpl
 														
 							int	this_percentage = download.getStats().getCompleted()/10;
 							
-							long	total	= torrent[0].getSize();
+							long	total	= torrent_holder[0].getSize();
 														
 							if ( this_percentage != last_percentage ){
 								
@@ -368,7 +368,7 @@ ResourceDownloaderTorrentImpl
 			// moved via the "move on complete" options
 		
 		File	target_file = 
-			new File( data_dir,	new String(torrent[0].getFiles()[0].getPathComponents()[0]));
+			new File( data_dir,	new String(torrent_holder[0].getFiles()[0].getPathComponents()[0]));
 		
 		if ( !target_file.exists()){
 	
@@ -377,7 +377,7 @@ ResourceDownloaderTorrentImpl
 				File	moved_target_file = 
 					new File( 
 							COConfigurationManager.getStringParameter("Completed Files Directory", ""),
-							new String(torrent[0].getFiles()[0].getPathComponents()[0]));
+							new String(torrent_holder[0].getFiles()[0].getPathComponents()[0]));
 				
 					// hmm, explicit target location and its moved, copy it back :)
 				
@@ -465,9 +465,9 @@ ResourceDownloaderTorrentImpl
 		InputStream			data )
 	{
 		try{			
-			torrent[0] = TOTorrentFactory.deserialiseFromBEncodedInputStream( data );
+			torrent_holder[0] = TOTorrentFactory.deserialiseFromBEncodedInputStream( data );
 			
-			if( torrent[0].isSimpleTorrent()){
+			if( torrent_holder[0].isSimpleTorrent()){
 				
 				downloadTorrent();
 				

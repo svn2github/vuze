@@ -64,9 +64,9 @@ Test
 			
 			//rd_u = rdf.getSuffixBasedDownloader(rd_u);
 
-			ResourceDownloader rd_u = rdf.create( new URL( "http://12.7.123.37:6969/announcetorrents/MalloyShow-%282004-Dec-13%29.mp3.torrent?3F1ADFDA9F5DD232051B912693E0E23B965CAF4C" ));
+			ResourceDownloader rd_u = rdf.create( new URL( "http://12.7.123.37:6969/torrents/MalloyShow-%282004-Dec-02%29.mp3.torrent?E103C21AB6BD4775BC2866CC2FE0A21649CDA32B" ));
 			
-		
+			rd_u = rdf.getTorrentDownloader( rd_u, true );
 
 			rd_u.addListener(
 					new ResourceDownloaderListener()
