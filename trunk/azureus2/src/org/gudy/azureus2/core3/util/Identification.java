@@ -27,14 +27,16 @@ public class Identification {
 
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
-        if (peerID[8] == (byte)0) return "Shadow";
-        String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
-        String name = "Shadow ";
-        for (int i = 0; i < 2; i++) {
-          name = name.concat(version.charAt(i) + ".");
+        if ((peerID[1] == (byte)0) && (peerID[8] == (byte)0)) return "Shadow";
+        if (peerID[8] == (byte)45) {
+          String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
+          String name = "Shadow ";
+          for (int i = 0; i < 2; i++) {
+            name = name.concat(version.charAt(i) + ".");
+          }
+          name = name + version.charAt(2);
+          return name;
         }
-        name = name + version.charAt(2);
-        return name;
       }
       
       
@@ -56,13 +58,15 @@ public class Identification {
       
       String upnp = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (upnp.equals("U")) {
-        String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
-        String name = "UPnP ";
-        for (int i = 0; i < 2; i++) {
-          name = name.concat(version.charAt(i) + ".");
-        }
-        name = name + version.charAt(2);
-        return name;
+        if (peerID[8] == (byte)45) {
+          String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
+          String name = "UPnP ";
+          for (int i = 0; i < 2; i++) {
+            name = name.concat(version.charAt(i) + ".");
+          }
+          name = name + version.charAt(2);
+          return name;
+        }  
       }
       
       
