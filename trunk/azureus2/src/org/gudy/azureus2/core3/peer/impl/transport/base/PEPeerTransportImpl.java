@@ -94,6 +94,12 @@ PEPeerTransportImpl
     	socket 			= sck;
   	}
   
+	public PEPeerTransport
+	getRealTransport()
+	{
+		return( this );
+	}
+	
 	protected void 
 	startConnection()
 		throws IOException

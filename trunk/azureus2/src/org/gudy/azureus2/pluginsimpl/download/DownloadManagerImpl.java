@@ -256,6 +256,20 @@ DownloadManagerImpl
 		return( dl );
 	}
 
+	public static Download
+	getDownloadStatic(
+		DownloadManager	dm )
+	
+		throws DownloadException
+	{
+		if ( singleton != null ){
+			
+			return( singleton.getDownload( dm ));
+		}
+		
+		throw( new DownloadException( "DownloadManager not initialised"));
+	}
+	
 	public Download
 	getDownload(
 		Torrent		_torrent )

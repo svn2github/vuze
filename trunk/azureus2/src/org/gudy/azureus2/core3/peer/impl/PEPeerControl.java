@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.peer.impl;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 
@@ -41,6 +42,8 @@ PEPeerControl
   public static final int DATA_EXPECTED_SLEEP  = 25;
   public static final int NO_SLEEP             = 0;
   
+  	public DownloadManager
+	getDownloadManager();
   
 	public PEPeerStatsImpl
 	createPeerStats();

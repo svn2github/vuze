@@ -27,7 +27,11 @@ package org.gudy.azureus2.pluginsimpl.peers;
  */
 
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.pluginsimpl.download.*;
 
+
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 
 public class 
@@ -42,6 +46,21 @@ PeerManagerImpl
 	{
 		manager	= _manager;
 	}
+	
+	public boolean
+	isSeeding()
+	{
+		return( manager.getState() == PEPeerManager.PS_SEEDING );
+	}
+	
+	public Download
+	getDownload()
+	
+		throws DownloadException
+	{
+		return( DownloadManagerImpl.getDownloadStatic( manager.getDownloadManager()));
+	}
+	
 	public Object
 	getInternalManager()
 	{

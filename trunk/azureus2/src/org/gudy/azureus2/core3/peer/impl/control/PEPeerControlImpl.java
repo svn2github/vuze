@@ -119,6 +119,18 @@ PEPeerControlImpl
     COConfigurationManager.addParameterListener("Max Clients", this);
  }
   
+	public DownloadManager
+	getDownloadManager()
+	{
+		return( _manager );
+	}
+ 
+	public int
+	getState()
+	{
+		return( peer_manager_state );
+	}
+	
   public void
   start()
   {  
@@ -494,10 +506,11 @@ PEPeerControlImpl
 					
 					if ( !_peer_transports.contains(transport)){
 						
-						addToPeerTransports( transport );
-					} else {
+						addToPeerTransports( transport.getRealTransport());
+						
+					}else{
 					  
-					  transport.closeAll("Already Connected",false,false);
+						transport.closeAll("Already Connected",false,false);
 					}
 				}
 			}

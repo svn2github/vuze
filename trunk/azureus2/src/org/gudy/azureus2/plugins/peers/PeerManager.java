@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.plugins.peers;
 
+import org.gudy.azureus2.plugins.download.*;
 /**
  * @author parg
  *
@@ -32,6 +33,14 @@ PeerManager
 	 * UNSTABLE interface, don't use!!!!
 	 * @return
 	 */
+	
+	public Download
+	getDownload()
+	
+		throws DownloadException;
+	
+	public boolean
+	isSeeding();
 	
 	public Object
 	getInternalManager();

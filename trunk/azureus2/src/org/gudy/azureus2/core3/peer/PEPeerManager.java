@@ -38,6 +38,14 @@ PEPeerManager
 	
 	public static final int BLOCK_SIZE = 16384;
 
+	/**
+	 * get the state from above PS_ set
+	 * @return
+	 */
+	
+	public int
+	getState();
+	
 	public void
 	start();
 		

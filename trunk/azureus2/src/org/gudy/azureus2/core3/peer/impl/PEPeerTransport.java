@@ -41,6 +41,16 @@ PEPeerTransport
 	public int
 	getState();
 	
+	/**
+	 * Fake transports are created to permit equivalence testing prior to adding to 
+	 * the active transport set. This method exists to convert such fake transports into
+	 * real transports if it is found they are new
+	 * @return
+	 */
+	
+	public PEPeerTransport
+	getRealTransport();
+	
 	public int
 	processRead();
   
