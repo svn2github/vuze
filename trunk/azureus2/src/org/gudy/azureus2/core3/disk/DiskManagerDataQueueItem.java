@@ -19,6 +19,8 @@ DiskManagerDataQueueItem
 	public boolean isLoading();
 		
 	public ByteBuffer getBuffer();
+  
+	public void setBuffer(ByteBuffer buffer);
 	
 	public DiskManagerRequest getRequest();
 }
