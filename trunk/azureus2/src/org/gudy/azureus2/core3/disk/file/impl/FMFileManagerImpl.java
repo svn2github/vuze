@@ -64,7 +64,7 @@ FMFileManagerImpl
 	protected 
 	FMFileManagerImpl()
 	{
-		limit_size = COConfigurationManager.getIntParameter( "File Max Open", 0 );
+		limit_size = COConfigurationManager.getIntParameter( "File Max Open" );
 		
 		limited		= limit_size > 0;
 	

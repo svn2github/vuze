@@ -82,7 +82,7 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.section.file.max_open_files");
-    IntParameter file_max_open = new IntParameter(cSection, "File Max Open", 0);
+    IntParameter file_max_open = new IntParameter(cSection, "File Max Open");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.widthHint = 30;
     file_max_open.setLayoutData( gridData );
