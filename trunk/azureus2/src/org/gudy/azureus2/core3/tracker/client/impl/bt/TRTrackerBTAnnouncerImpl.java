@@ -2320,7 +2320,8 @@ TRTrackerBTAnnouncerImpl
 			// only make the user aware of the status if the underlying announce is
 			// failing
 		
-		if ( last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ){
+		if ( 	last_response == null ||
+				last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ){
 			
 			tracker_status_str	= status + " (" + result.getURL() + ")";
 		}
