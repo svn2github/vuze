@@ -38,4 +38,13 @@ TrackerWebContext
 			
 	public TrackerWebPageGenerator[]
 	getPageGenerators();
+	
+	public void
+	addAuthenticationListener(
+		TrackerAuthenticationListener l );
+	
+	public void
+	removeAuthenticationListener(
+		TrackerAuthenticationListener l );
+	
 }

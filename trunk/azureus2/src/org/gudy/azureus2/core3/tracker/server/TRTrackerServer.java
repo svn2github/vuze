@@ -85,9 +85,17 @@ TRTrackerServer
 	
 	public void
 	addRequestListener(
-			TRTrackerServerRequestListener	l );
+		TRTrackerServerRequestListener	l );
 	
 	public void
 	removeRequestListener(
-			TRTrackerServerRequestListener	l );
+		TRTrackerServerRequestListener	l );
+	
+	public void
+	addAuthenticationListener(
+		TRTrackerServerAuthenticationListener	l );
+	
+	public void
+	removeAuthenticationListener(
+		TRTrackerServerAuthenticationListener	l );
 }

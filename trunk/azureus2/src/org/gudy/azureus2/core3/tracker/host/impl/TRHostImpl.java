@@ -41,7 +41,7 @@ public class
 TRHostImpl
 	implements 	TRHost, TRTrackerClientFactoryListener, 
 				TRTrackerServerListener, TRTrackerServerFactoryListener,
-				TRTrackerServerRequestListener
+				TRTrackerServerRequestListener, TRTrackerServerAuthenticationListener
 {
 	protected static final int URL_DEFAULT_PORT		= 80;	// port to use if none in announce URL
 	protected static final int URL_DEFAULT_PORT_SSL	= 443;	// port to use if none in announce URL
@@ -61,6 +61,8 @@ TRHostImpl
 	protected Map	tracker_client_map		= new HashMap();
 	
 	protected List	listeners			= new ArrayList();
+	
+	protected List	auth_listeners		= new ArrayList();
 	
 	protected boolean	server_factory_listener_added;
 	
@@ -381,6 +383,11 @@ TRHostImpl
 					
 				server_map.put( key, server );
 					
+				if ( auth_listeners.size() > 0 ){
+					
+					server.addAuthenticationListener( this );
+				}
+				
 				server.addListener( this );
 						
 			}catch( TRTrackerServerException e ){
@@ -832,5 +839,86 @@ TRHostImpl
 	close()
 	{
 		config.saveConfig();
+	}
+	
+	public boolean
+	authenticate(
+		URL			resource,
+		String		user,
+		String		password )
+	{
+		for (int i=0;i<auth_listeners.size();i++){
+			
+			try{
+				boolean res = ((TRHostAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user, password );
+				
+				if ( res ){
+					
+					return(true );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( false );
+	}
+	
+	public byte[]
+	authenticate(
+		URL			resource,
+		String		user )
+	{
+		for (int i=0;i<auth_listeners.size();i++){
+			
+			try{
+				byte[] res = ((TRHostAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user );
+				
+				if ( res != null ){
+					
+					return( res );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( null );
+	}
+	
+	public synchronized void
+	addAuthenticationListener(
+		TRHostAuthenticationListener	l )
+	{	
+		auth_listeners.add(l);
+		
+		if ( auth_listeners.size() == 1 ){
+			
+			Iterator it = server_map.values().iterator();
+			
+			while( it.hasNext()){
+				
+				((TRTrackerServer)it.next()).addAuthenticationListener( this );
+			}			
+		}
+	}
+	
+	public synchronized void
+	removeAuthenticationListener(
+		TRHostAuthenticationListener	l )
+	{	
+		auth_listeners.remove(l);
+		
+		if ( auth_listeners.size() == 0 ){
+			
+			Iterator it = server_map.values().iterator();
+			
+			while( it.hasNext()){
+				
+				((TRTrackerServer)it.next()).removeAuthenticationListener( this );
+			}
+		}
 	}
 }

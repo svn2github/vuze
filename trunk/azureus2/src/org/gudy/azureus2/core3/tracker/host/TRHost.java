@@ -89,5 +89,13 @@ TRHost
 		TRHostListener	l );
 	
 	public void
+	addAuthenticationListener(
+		TRHostAuthenticationListener	l );
+	
+	public void
+	removeAuthenticationListener(
+		TRHostAuthenticationListener	l );
+	
+	public void
 	close();
 }

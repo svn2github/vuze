@@ -133,11 +133,32 @@ TRTrackerServerProcessorUDP
 				//<parg_home> where <hash> = first 8 bytes of sha1(<old_packet> + <user_padded_to_8> + sha1(pass))
 				//<XTF> Yes
 				
+				byte[] sha1_pw = null;
+				
+				if ( server.hasExternalAuthoriser()){
+					
+					try{
+						URL	resource = new URL( "udp://localhost/" );
+					
+						sha1_pw = server.performExternalAuthorisation( resource, auth_user );
+						
+					}catch( MalformedURLException e ){
+						
+						e.printStackTrace();
+						
+					}
+				}
+				
+				if ( sha1_pw == null ){
+					
+					sha1_pw = server.getPassword();
+				}
+				
 				SHA1Hasher	hasher = new SHA1Hasher();
 				
 				hasher.update( data, 0, packet_data_length);
 				hasher.update( auth_user_bytes );
-				hasher.update( server.getPassword());
+				hasher.update( sha1_pw );
 				
 				byte[]	digest = hasher.getDigest();
 				

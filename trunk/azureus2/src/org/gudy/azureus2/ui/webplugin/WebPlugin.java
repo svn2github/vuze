@@ -73,7 +73,7 @@ WebPlugin
 		
 		log = plugin_interface.getLogger().getChannel("WebPlugin");
 
-		final BasicPluginViewModel model = plugin_interface.getUIManager().getBasicPluginViewModel( plugin_interface.getPluginName());
+		final BasicPluginViewModel model = plugin_interface.getUIManager().createBasicPluginViewModel( plugin_interface.getPluginName());
 		
 		model.getStatus().setText( "Running" );
 		model.getActivity().setVisible( false );
@@ -99,10 +99,6 @@ WebPlugin
 				}
 			});
 		
-		PluginView view = plugin_interface.getUIManager().createPluginView( model );
-		
-		plugin_interface.addView( view );
-
 		tracker = plugin_interface.getTracker();
 	
 		Properties	props = plugin_interface.getPluginProperties();
@@ -254,6 +250,23 @@ WebPlugin
 			TrackerWebContext	context = tracker.createWebContext( port, protocol );
 		
 			context.addPageGenerator( this );
+	
+			/*
+			context.addAuthenticationListener(
+				new TrackerAuthenticationAdapter()
+				{
+					public boolean
+					authenticate(
+						URL			resource,
+						String		user,
+						String		password )
+					{
+						System.out.println( "res:" + resource.toString() + ":" + user + "/" + password );
+						
+						return( false );
+					}
+				});
+			*/
 			
 		}catch( TrackerException e ){
 			

@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 
 import java.util.*;
+import java.net.URL;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
@@ -180,7 +181,9 @@ TRTrackerServerImpl
 	
 
 	protected Vector	listeners 			= new Vector();
-		
+	protected List		auth_listeners		= new ArrayList();
+	
+
 	
 	protected
 	TRTrackerServerImpl()
@@ -239,13 +242,66 @@ TRTrackerServerImpl
 	public boolean
 	isWebPasswordEnabled()
 	{
-		return( web_password_enabled );
+		return( web_password_enabled || auth_listeners.size() > 0 );
 	}
 	
 	public boolean
 	isTrackerPasswordEnabled()
 	{
-		return( tracker_password_enabled );
+		return( tracker_password_enabled || auth_listeners.size() > 0 );
+	}
+	
+	public boolean
+	hasExternalAuthoriser()
+	{
+		return( auth_listeners.size() > 0 );
+	}
+	
+	public boolean
+	performExternalAuthorisation(
+		URL			resource,
+		String		user,
+		String		password )
+	{
+		for (int i=0;i<auth_listeners.size();i++){
+			
+			try{
+				
+				if ( ((TRTrackerServerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user, password )){
+					
+					return( true );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( false );
+	}
+	
+	public byte[]
+	performExternalAuthorisation(
+		URL			resource,
+		String		user )
+	{
+		for (int i=0;i<auth_listeners.size();i++){
+			
+			try{
+				
+				byte[] sha_pw =  ((TRTrackerServerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user );
+					
+				if ( sha_pw != null ){
+					
+					return( sha_pw );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( null );
 	}
 	
 	public boolean
@@ -549,8 +605,23 @@ TRTrackerServerImpl
 	
 	public synchronized void
 	removeListener(
-			TRTrackerServerListener	l )
+		TRTrackerServerListener	l )
 	{
 		listeners.removeElement(l);
+	}
+	
+	
+	public void
+	addAuthenticationListener(
+		TRTrackerServerAuthenticationListener	l )
+	{
+		auth_listeners.add( l );
+	}
+	
+	public void
+	removeAuthenticationListener(
+		TRTrackerServerAuthenticationListener	l )
+	{
+		auth_listeners.remove(l);
 	}
 }

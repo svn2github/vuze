@@ -27,7 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  */
 
 import java.util.*;
-import java.io.*;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
@@ -35,12 +35,12 @@ import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
 TrackerWebContextImpl 
-	implements TrackerWebContext, TRTrackerServerListener
+	extends		TrackerWCHelper
+	implements 	TRTrackerServerListener
 {
 	protected TRTrackerServer		server;
-	protected TrackerImpl			tracker;
 	
-	protected List			generators 	= new ArrayList();
+	protected List					auth_listeners	= new ArrayList();
 	
 	public 
 	TrackerWebContextImpl(
@@ -50,8 +50,8 @@ TrackerWebContextImpl
 	
 		throws TrackerException
 	{
-		tracker	= _tracker;
-		
+		setTracker( _tracker );
+				
 		try{
 			
 			if ( protocol == Tracker.PR_HTTP ){
@@ -70,31 +70,7 @@ TrackerWebContextImpl
 			throw( new TrackerException("TRTrackerServerFactory failed", e ));
 		}
 	}
-	
-	public synchronized void
-	addPageGenerator(
-		TrackerWebPageGenerator	generator )
-	{			
-		generators.add( generator );
-	}
-	
-	public void
-	removePageGenerator(
-		TrackerWebPageGenerator	generator )
-	{
-		generators.remove( generator );
-	}
-	
-	public TrackerWebPageGenerator[]
-	getPageGenerators()
-	{
-		TrackerWebPageGenerator[]	res = new TrackerWebPageGenerator[generators.size()];
 		
-		generators.toArray( res );
-		
-		return( res );
-	}
-	
 	public int
 	getProtocol()
 	{
@@ -112,40 +88,7 @@ TrackerWebContextImpl
 	{
 		return( server.getPort());
 	}
-	
-	public boolean
-	handleExternalRequest(
-		String			_client_address,
-		String			_url,
-		String			_header,
-		InputStream		_is,
-		OutputStream	_os )
-	
-		throws IOException
-	{	
-		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, _client_address, _url, _header, _is );
-		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
 		
-		for (int i=0;i<generators.size();i++){
-	
-			//try{
-				if (((TrackerWebPageGenerator)generators.get(i)).generate( request, reply )){
-					
-					reply.complete();
-					
-					// System.out.println( "process ok for '" + _url + "'" );
-					
-					return( true );
-				}
-			//}catch( Throwable e ){
-				
-				// System.out.println( "processing failed for '" + _url + "'" );
-			//}
-		}
-		
-		return( false );
-	}	
-	
 	public boolean
 	permitted(
 		byte[]	hash,
@@ -160,5 +103,76 @@ TrackerWebContextImpl
 		boolean	explicit )
 	{
 		return( false );
+	}
+	
+	public boolean
+	authenticate(
+		URL			resource,
+		String		user,
+		String		password )
+	{
+		for (int i=0;i<auth_listeners.size();i++){
+			
+			try{
+				boolean res = ((TrackerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user, password );
+				
+				if ( res ){
+					
+					return(true );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( false );
+	}
+	
+	public byte[]
+	authenticate(
+		URL			resource,
+		String		user )
+	{
+		for (int i=0;i<auth_listeners.size();i++){
+			
+			try{
+				byte[] res = ((TrackerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user );
+				
+				if ( res != null ){
+					
+					return( res );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( null );
+	}
+	
+	public synchronized void
+	addAuthenticationListener(
+		TrackerAuthenticationListener	l )
+	{	
+		auth_listeners.add(l);
+		
+		if ( auth_listeners.size() == 1 ){
+			
+			server.addAuthenticationListener( this );
+		}
+	}
+	
+	public synchronized void
+	removeAuthenticationListener(
+		TrackerAuthenticationListener	l )
+	{	
+		auth_listeners.remove(l);
+		
+		if ( auth_listeners.size() == 0 ){
+				
+			server.removeAuthenticationListener( this );
+		}
 	}
 }

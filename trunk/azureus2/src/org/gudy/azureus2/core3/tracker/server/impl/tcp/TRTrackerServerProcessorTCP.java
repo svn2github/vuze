@@ -233,13 +233,15 @@ TRTrackerServerProcessorTCP
 	processRequest(
 		String			input_header,
 		String			lowercase_input_header,
-		String			str,
+		String			url_path,
 		String			client_ip_address,
 		InputStream		is,
 		OutputStream	os )
 		
 		throws IOException
 	{
+		String	str = url_path;
+		
 		try{
 			Map	root = null;
 				
@@ -272,7 +274,7 @@ TRTrackerServerProcessorTCP
 					
 						// check non-tracker authentication
 						
-					if ( !doAuthentication( input_header, os, false )){
+					if ( !doAuthentication( url_path, input_header, os, false )){
 					
 						return;
 					}
@@ -289,7 +291,7 @@ TRTrackerServerProcessorTCP
 				
 					// check tracker authentication
 					
-				if ( !doAuthentication( input_header, os, true )){
+				if ( !doAuthentication( url_path, input_header, os, true )){
 					
 					return;
 				}
@@ -531,6 +533,7 @@ TRTrackerServerProcessorTCP
 	
 	protected boolean
 	doAuthentication(
+		String			url_path,
 		String			header,
 		OutputStream	os,
 		boolean			tracker )
@@ -561,6 +564,22 @@ TRTrackerServerProcessorTCP
 				
 				String	user = decoded.substring(0,cp);
 				String  pw	 = decoded.substring(cp+1);
+				
+				try{
+					String	resource_str = 
+						( server.isSSL()?"https":"http" ) + "://" +
+							server.getHost() + ":" + server.getPort() + url_path;
+					
+					URL	resource = new URL( resource_str );
+				
+					if ( server.performExternalAuthorisation( resource, user, pw )){
+						
+						return( true );
+					}
+				}catch( MalformedURLException e ){
+					
+					e.printStackTrace();
+				}
 				
 				try{
 			

@@ -26,8 +26,8 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  *
  */
 
+import java.net.URL;
 import java.util.*;
-import java.io.*;
 
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
@@ -37,14 +37,17 @@ import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
 TrackerImpl
-	implements Tracker, TRHostListener
+	extends		TrackerWCHelper
+	implements 	Tracker, TRHostListener, TRHostAuthenticationListener
 {
 	protected static TrackerImpl	tracker;
 	
-	protected List	generators 	= new ArrayList();
 	protected List	listeners	= new ArrayList();
 	
 	protected TRHost		host;
+	
+	protected List	auth_listeners	= new ArrayList();
+	
 	
 	public static synchronized Tracker
 	getSingleton(
@@ -62,8 +65,10 @@ TrackerImpl
 	TrackerImpl(
 		TRHost		_host )
 	{
-		host		= _host;
+		setTracker( this );
 		
+		host		= _host;
+				
 		host.addListener( this );
 	}
 	
@@ -111,30 +116,6 @@ TrackerImpl
 	}
 	
 	public synchronized void
-	addPageGenerator(
-		TrackerWebPageGenerator	generator )
-	{			
-		generators.add( generator );
-	}
-	
-	public void
-	removePageGenerator(
-		TrackerWebPageGenerator	generator )
-	{
-		generators.remove( generator );
-	}
-	
-	public TrackerWebPageGenerator[]
-	getPageGenerators()
-	{
-		TrackerWebPageGenerator[]	res = new TrackerWebPageGenerator[generators.size()];
-		
-		generators.toArray( res );
-		
-		return( res );
-	}
-	
-	public synchronized void
 	torrentAdded(
 		TRHostTorrent		t )
 	{
@@ -165,44 +146,7 @@ TrackerImpl
 		}
 	}
 	
-	public boolean
-	handleExternalRequest(
-		String			_client_address,
-		String			_url,
-		String			_header,
-		InputStream		_is,
-		OutputStream	_os )
-	
-		throws IOException
-	{	
-		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( this, _client_address, _url, _header, _is );
-		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
-		
-		for (int i=0;i<generators.size();i++){
 
-			TrackerWebPageGenerator	generator;
-			
-			synchronized( this ){
-				
-				if ( i >= generators.size()){
-					
-					break;
-				}
-				
-				generator = (TrackerWebPageGenerator)generators.get(i);
-			}
-			
-			if ( generator.generate( request, reply )){
-					
-				reply.complete();
-					
-				return( true );
-			}
-		}
-		
-		return( false );
-	}	
-	
 	public synchronized void
 	addListener(
 		TrackerListener		listener )
@@ -222,5 +166,76 @@ TrackerImpl
 		TrackerListener		listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	public boolean
+	authenticate(
+		URL			resource,
+		String		user,
+		String		password )
+	{
+		for (int i=0;i<auth_listeners.size();i++){
+			
+			try{
+				boolean res = ((TrackerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user, password );
+				
+				if ( res ){
+					
+					return(true );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( false );
+	}
+	
+	public byte[]
+	authenticate(
+		URL			resource,
+		String		user )
+	{
+		for (int i=0;i<auth_listeners.size();i++){
+			
+			try{
+				byte[] res = ((TrackerAuthenticationListener)auth_listeners.get(i)).authenticate( resource, user );
+				
+				if ( res != null ){
+					
+					return( res );
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( null );
+	}
+	
+	public synchronized void
+	addAuthenticationListener(
+		TrackerAuthenticationListener	l )
+	{	
+		auth_listeners.add(l);
+		
+		if ( auth_listeners.size() == 1 ){
+			
+			host.addAuthenticationListener( this );
+		}
+	}
+	
+	public synchronized void
+	removeAuthenticationListener(
+		TrackerAuthenticationListener	l )
+	{	
+		auth_listeners.remove(l);
+		
+		if ( auth_listeners.size() == 0 ){
+				
+			host.removeAuthenticationListener( this );
+		}
 	}
 }
