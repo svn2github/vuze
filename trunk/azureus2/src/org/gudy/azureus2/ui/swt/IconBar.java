@@ -37,7 +37,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
+
+import org.gudy.azureus2.ui.swt.components.*;
 
 /**
  * @author Olivier
@@ -62,15 +63,15 @@ public class IconBar {
   }
   
   public void setEnabled(String itemKey,boolean enabled) {
-    ToolItem toolItem = (ToolItem) itemKeyToControl.get(itemKey);
-    if(toolItem != null)
-      toolItem.setEnabled(enabled);
+    BufferedToolItem BufferedToolItem = (BufferedToolItem) itemKeyToControl.get(itemKey);
+    if(BufferedToolItem != null)
+      BufferedToolItem.setEnabled(enabled);
   }
   
   public void setSelection(String itemKey,boolean selection) {
-    ToolItem toolItem = (ToolItem) itemKeyToControl.get(itemKey);
-    if(toolItem != null)
-      toolItem.setSelection(selection);
+    BufferedToolItem BufferedToolItem = (BufferedToolItem) itemKeyToControl.get(itemKey);
+    if(BufferedToolItem != null)
+      BufferedToolItem.setSelection(selection);
   }
   
   public void setCurrentEnabler(IconBarEnabler enabler) {
@@ -82,44 +83,44 @@ public class IconBar {
     Iterator iter = itemKeyToControl.keySet().iterator();
     while(iter.hasNext()) {
       String key = (String) iter.next();
-      ToolItem toolItem = (ToolItem) itemKeyToControl.get(key);
-      if(toolItem == null || toolItem.isDisposed())
+      BufferedToolItem BufferedToolItem = (BufferedToolItem) itemKeyToControl.get(key);
+      if(BufferedToolItem == null )
         continue;
       if(currentEnabler != null) {
-        toolItem.setEnabled(currentEnabler.isEnabled(key));
-        toolItem.setSelection(currentEnabler.isSelected(key));
+        BufferedToolItem.setEnabled(currentEnabler.isEnabled(key));
+        BufferedToolItem.setSelection(currentEnabler.isSelected(key));
       }
       else {        
-        toolItem.setEnabled(false);
-        toolItem.setSelection(false);
+        BufferedToolItem.setEnabled(false);
+        BufferedToolItem.setSelection(false);
       }
     }
   }
   
-  private ToolItem createToolItem(ToolBar toolBar,int style,String key,String imageName,String toolTipKey) {    
-    final ToolItem toolItem = new ToolItem(toolBar,style);
-    toolItem.setData("key",key);
-    Messages.setLanguageText(toolItem,toolTipKey);   
-    toolItem.setImage(ImageRepository.getImage(imageName));
-    toolItem.addListener(SWT.Selection,new Listener() {
+  private BufferedToolItem createBufferedToolItem(ToolBar toolBar,int style,String key,String imageName,String toolTipKey) {    
+    final BufferedToolItem BufferedToolItem = new BufferedToolItem(toolBar,style);
+    BufferedToolItem.setData("key",key);
+    Messages.setLanguageText(BufferedToolItem,toolTipKey);   
+    BufferedToolItem.setImage(ImageRepository.getImage(imageName));
+    BufferedToolItem.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         if(currentEnabler != null)
-          currentEnabler.itemActivated((String)toolItem.getData("key"));        	
+          currentEnabler.itemActivated((String)BufferedToolItem.getData("key"));        	
       }
     });
-    itemKeyToControl.put(key,toolItem);
-    return toolItem;
+    itemKeyToControl.put(key,BufferedToolItem);
+    return BufferedToolItem;
   }  
   
   private void initBar() {
     //The File Menu
     CoolItem coolItem = new CoolItem(coolBar,SWT.NULL); 
     ToolBar toolBar = new ToolBar(coolBar,SWT.FLAT);
-    createToolItem(toolBar,SWT.PUSH,"open","cb_open","iconBar.open.tooltip");    
-    createToolItem(toolBar,SWT.PUSH,"open_no_default","cb_open_no_default","iconBar.openNoDefault.tooltip");    
-    createToolItem(toolBar,SWT.PUSH,"open_url","cb_open_url","iconBar.openURL.tooltip");    
-    createToolItem(toolBar,SWT.PUSH,"open_folder","cb_open_folder","iconBar.openFolder.tooltip");            
-    createToolItem(toolBar,SWT.PUSH,"new","cb_new","iconBar.new.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"open","cb_open","iconBar.open.tooltip");    
+    createBufferedToolItem(toolBar,SWT.PUSH,"open_no_default","cb_open_no_default","iconBar.openNoDefault.tooltip");    
+    createBufferedToolItem(toolBar,SWT.PUSH,"open_url","cb_open_url","iconBar.openURL.tooltip");    
+    createBufferedToolItem(toolBar,SWT.PUSH,"open_folder","cb_open_folder","iconBar.openFolder.tooltip");            
+    createBufferedToolItem(toolBar,SWT.PUSH,"new","cb_new","iconBar.new.tooltip");
     toolBar.pack();
     Point p = toolBar.getSize();
     coolItem.setControl(toolBar);
@@ -129,14 +130,14 @@ public class IconBar {
     
     coolItem = new CoolItem(coolBar,SWT.NULL); 
     toolBar = new ToolBar(coolBar,SWT.FLAT);    
-    createToolItem(toolBar,SWT.PUSH,"up","cb_up","iconBar.up.tooltip");
-    createToolItem(toolBar,SWT.PUSH,"down","cb_down","iconBar.down.tooltip");
-    new ToolItem(toolBar,SWT.SEPARATOR);
-    createToolItem(toolBar,SWT.PUSH,"run","cb_run","iconBar.run.tooltip");
-    createToolItem(toolBar,SWT.PUSH,"host","cb_host","iconBar.host.tooltip");
-    createToolItem(toolBar,SWT.PUSH,"start","cb_start","iconBar.start.tooltip");
-    createToolItem(toolBar,SWT.PUSH,"stop","cb_stop","iconBar.stop.tooltip");
-    createToolItem(toolBar,SWT.PUSH,"remove","cb_remove","iconBar.remove.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"up","cb_up","iconBar.up.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"down","cb_down","iconBar.down.tooltip");
+    new BufferedToolItem(toolBar,SWT.SEPARATOR);
+    createBufferedToolItem(toolBar,SWT.PUSH,"run","cb_run","iconBar.run.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"host","cb_host","iconBar.host.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"start","cb_start","iconBar.start.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"stop","cb_stop","iconBar.stop.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"remove","cb_remove","iconBar.remove.tooltip");
     toolBar.pack();
     p = toolBar.getSize();
     coolItem.setControl(toolBar);

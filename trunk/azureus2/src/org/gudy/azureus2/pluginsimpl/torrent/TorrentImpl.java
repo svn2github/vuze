@@ -1,5 +1,5 @@
 /*
- * File    : TrackerPeerImpl.java
+ * File    : TorrentImpl.java
  * Created : 08-Dec-2003
  * By      : parg
  * 
@@ -19,44 +19,52 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.tracker.impl;
+package org.gudy.azureus2.pluginsimpl.torrent;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.tracker.host.*;
-import org.gudy.azureus2.plugins.tracker.*;
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.plugins.torrent.*;
 
 public class 
-TrackerPeerImpl
-	implements TrackerPeer
+TorrentImpl
+	implements Torrent
 {
-	protected TRHostPeer		peer;
+	protected TOTorrent		torrent;
 	
-	protected
-	TrackerPeerImpl(
-		TRHostPeer		_peer )
+	public
+	TorrentImpl(
+		TOTorrent	_torrent )
 	{
-		peer	= _peer;
+		torrent	= _torrent;
 	}
 	
-	
-	public void associateKeyToPeer(Object peerKey)
+	public byte[]
+	getName()
 	{
-		
+		return( torrent.getName());
 	}
 	
-	public Object 
-	getAssociatedKey()
+	public byte[]
+	getHash()
 	{
-		return( null );
+		try{
+			return( torrent.getHash());
+			
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+			
+			return( null );
+		}
 	}
-
-	public boolean
-	isSeed()
+	
+	public long
+	getSize()
 	{
-		return( peer.isSeed());
+		return( torrent.getSize());
 	}
 }

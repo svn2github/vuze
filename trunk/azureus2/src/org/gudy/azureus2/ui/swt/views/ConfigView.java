@@ -38,8 +38,8 @@ import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.plugins.ui.config.impl2.GenericParameter;
-import org.gudy.azureus2.plugins.ui.config.impl2.ParameterRepository;
+import org.gudy.azureus2.pluginsimpl.ui.config.GenericParameter;
+import org.gudy.azureus2.pluginsimpl.ui.config.ParameterRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -189,9 +189,9 @@ public class ConfigView extends AbstractIView {
 			else
 				tempLabel.setText(String.valueOf(tempParams.length));
 			
-			if(tempParam instanceof org.gudy.azureus2.plugins.ui.config.impl2.StringParameter)
+			if(tempParam instanceof org.gudy.azureus2.pluginsimpl.ui.config.StringParameter)
 			{
-				org.gudy.azureus2.plugins.ui.config.impl2.StringParameter tpar = (org.gudy.azureus2.plugins.ui.config.impl2.StringParameter)(tempParam);
+				org.gudy.azureus2.pluginsimpl.ui.config.StringParameter tpar = (org.gudy.azureus2.pluginsimpl.ui.config.StringParameter)(tempParam);
 //				String defaultVal = tpar.getDefaultValue();
 				String defaultVal = "test";
 				StringParameter uiParam = new StringParameter(tempGroup, tempParam.getKey(), defaultVal);

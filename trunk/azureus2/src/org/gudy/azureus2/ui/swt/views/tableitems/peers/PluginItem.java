@@ -23,10 +23,10 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.peers.*;
-import org.gudy.azureus2.plugins.peers.impl.*;
 import org.gudy.azureus2.plugins.ui.tables.peers.PeerTableItem;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItem;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
+import org.gudy.azureus2.pluginsimpl.peers.*;
 
 /**
  * @author Olivier

@@ -1,7 +1,7 @@
 /*
- * File    : GenericParameter.java
- * Created : Nov 21, 2003
- * By      : epall
+ * File    : TrackerPeerImpl.java
+ * Created : 08-Dec-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,39 +18,45 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.plugins.ui.config.impl2;
 
-import org.gudy.azureus2.plugins.ui.config.Parameter;
+package org.gudy.azureus2.pluginsimpl.tracker;
 
 /**
- * @author epall
+ * @author parg
  *
  */
-public class GenericParameter implements Parameter
+
+import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.plugins.tracker.*;
+
+public class 
+TrackerPeerImpl
+	implements TrackerPeer
 {
-	private String key;
-	private String label;
+	protected TRHostPeer		peer;
 	
-	public GenericParameter(String key, String label)
+	protected
+	TrackerPeerImpl(
+		TRHostPeer		_peer )
 	{
-		this.key = key;
-		this.label = label;
+		peer	= _peer;
 	}
-	/**
-	 * @return Returns the key.
-	 */
-	public String getKey()
+	
+	
+	public void associateKeyToPeer(Object peerKey)
 	{
-		return key;
+		
 	}
-
-	/**
-	 * @return Returns the label.
-	 */
-	public String getLabel()
+	
+	public Object 
+	getAssociatedKey()
 	{
-		return label;
+		return( null );
 	}
 
+	public boolean
+	isSeed()
+	{
+		return( peer.isSeed());
+	}
 }

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.tracker.impl;
+package org.gudy.azureus2.pluginsimpl.tracker;
 
 /**
  * @author parg
@@ -28,7 +28,7 @@ package org.gudy.azureus2.plugins.tracker.impl;
 
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.torrent.*;
-import org.gudy.azureus2.plugins.torrent.impl.*;
+import org.gudy.azureus2.pluginsimpl.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 

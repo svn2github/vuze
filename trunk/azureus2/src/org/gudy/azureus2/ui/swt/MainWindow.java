@@ -77,7 +77,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.plugins.impl.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.PluginInitializer;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;

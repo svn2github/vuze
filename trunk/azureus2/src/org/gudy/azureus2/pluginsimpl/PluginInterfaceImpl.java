@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.plugins.impl;
+package org.gudy.azureus2.pluginsimpl;
 
 import java.util.Properties;
 
@@ -27,12 +27,12 @@ import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.tracker.Tracker;
-import org.gudy.azureus2.plugins.tracker.impl.*;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
-import org.gudy.azureus2.plugins.ui.config.impl2.ParameterRepository;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
-import org.gudy.azureus2.plugins.ui.tables.peers.impl.PeersTableExtensions;
+import org.gudy.azureus2.pluginsimpl.tracker.*;
+import org.gudy.azureus2.pluginsimpl.ui.config.ParameterRepository;
+import org.gudy.azureus2.pluginsimpl.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
 

@@ -1,7 +1,7 @@
 /*
- * File    : TorrentImpl.java
- * Created : 08-Dec-2003
- * By      : parg
+ * File    : GenericParameter.java
+ * Created : Nov 21, 2003
+ * By      : epall
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,53 +18,39 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+ 
+package org.gudy.azureus2.pluginsimpl.ui.config;
 
-package org.gudy.azureus2.plugins.torrent.impl;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
 
 /**
- * @author parg
+ * @author epall
  *
  */
-
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.plugins.torrent.*;
-
-public class 
-TorrentImpl
-	implements Torrent
+public class GenericParameter implements Parameter
 {
-	protected TOTorrent		torrent;
+	private String key;
+	private String label;
 	
-	public
-	TorrentImpl(
-		TOTorrent	_torrent )
+	public GenericParameter(String key, String label)
 	{
-		torrent	= _torrent;
+		this.key = key;
+		this.label = label;
 	}
-	
-	public byte[]
-	getName()
+	/**
+	 * @return Returns the key.
+	 */
+	public String getKey()
 	{
-		return( torrent.getName());
+		return key;
 	}
-	
-	public byte[]
-	getHash()
+
+	/**
+	 * @return Returns the label.
+	 */
+	public String getLabel()
 	{
-		try{
-			return( torrent.getHash());
-			
-		}catch( TOTorrentException e ){
-			
-			e.printStackTrace();
-			
-			return( null );
-		}
+		return label;
 	}
-	
-	public long
-	getSize()
-	{
-		return( torrent.getSize());
-	}
+
 }

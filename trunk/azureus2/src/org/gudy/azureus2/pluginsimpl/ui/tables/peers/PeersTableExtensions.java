@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.plugins.ui.tables.peers.impl;
+package org.gudy.azureus2.pluginsimpl.ui.tables.peers;
 
 import java.util.HashMap;
 import java.util.Map;
