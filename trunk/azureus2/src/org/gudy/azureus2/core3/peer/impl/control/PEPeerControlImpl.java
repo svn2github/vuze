@@ -58,8 +58,10 @@ PEPeerControlImpl
   
   private boolean[] _downloaded;
   private boolean[] _downloading;
-  private boolean _finished;
-  protected boolean[] _piecesRarest;
+  private boolean 	_finished;
+  private boolean	restart_initiated;
+  
+  private boolean[] _piecesRarest;
   private byte[] _hash;
   private int _loopFactor;
   private byte[] _myPeerId;
@@ -595,38 +597,60 @@ PEPeerControlImpl
    * Private method to process the results given by DiskManager's
    * piece checking thread via asyncPieceChecked(..)
    */
-  private void processPieceChecks() {
+  	private void 
+	processPieceChecks() 
+  	{
+  		List	ok_pieces;
+  		
+  			// process complete piece results
+  		
+  		try{
+  			successPieceChecks_mon.enter();
     
-    // process complete piece results
-    try{
-    	successPieceChecks_mon.enter();
-    
-    	Iterator it = successPieceChecks.iterator();
-      while (it.hasNext()) {
-        Integer pieceNum = (Integer)it.next();
-        it.remove();
-        pieceChecked(pieceNum.intValue(), true);
-      }
-    }finally{
-    	successPieceChecks_mon.exit();
-    }
-    
-    // process incomplete piece results
-    try{
-    	failedPieceChecks_mon.enter();
-    
-      Iterator it = failedPieceChecks.iterator();
-      while (it.hasNext()) {
-        Integer pieceNum = (Integer)it.next();
-        it.remove();
-        pieceChecked(pieceNum.intValue(), false);
-      }
-    }finally{
+  			ok_pieces = new ArrayList( successPieceChecks );
+  			
+  			successPieceChecks.clear();
+  			
+  		}finally{
+  			
+  			successPieceChecks_mon.exit();
+  		}
+  		
+    	Iterator it = ok_pieces.iterator();
     	
-    	failedPieceChecks_mon.exit();
-    }
+    	while (it.hasNext()) {
+    		
+    		Integer pieceNum = (Integer)it.next();
+    		
+    		pieceChecked(pieceNum.intValue(), true);
+    	}
+  
     
-  }
+    	// 	process incomplete piece results
+    
+    	List	failed_pieces;
+    
+	    try{
+	    	failedPieceChecks_mon.enter();
+	    
+	    	failed_pieces = new ArrayList(failedPieceChecks);
+	    	
+	    	failedPieceChecks.clear();
+	    	
+	    }finally{
+	    	
+	    	failedPieceChecks_mon.exit();
+	    }
+    
+	    it = failed_pieces.iterator();
+      
+	    while (it.hasNext()) {
+      	
+	    	Integer pieceNum = (Integer)it.next();
+  
+	    	pieceChecked(pieceNum.intValue(), false);
+	    }
+  	}
   
   
 
@@ -2067,8 +2091,15 @@ PEPeerControlImpl
       }
       else {  //piece failed
         //restart the download afresh
+      	
         Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
-        _downloadManager.restartDownload( false );
+        
+        if ( !restart_initiated ){
+        	
+        	restart_initiated	= true;
+        	
+        	_downloadManager.restartDownload( false );
+        }
       }
       return;
     }

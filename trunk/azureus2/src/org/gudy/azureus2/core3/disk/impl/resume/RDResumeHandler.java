@@ -359,18 +359,22 @@ RDResumeHandler
 	{
     
 			// if file caching is enabled then this is an important time to ensure that the cache is
-			// flushed as we are going to record details about the accuracy of written data
+			// flushed as we are going to record details about the accuracy of written data.
+			// First build the resume map from the data (as updates can still be goin on)
+			// Then, flush the cache. This means that on a successful flush the built resume
+			// data matches at least the valid state of the data
+			// Then update the torrent
 		
 		DiskManagerFileInfo[]	files = disk_manager.getFiles();
-		
-		for (int i=0;i<files.length;i++){
-			
-			files[i].flushCache();
-		}
 		
 		if ( !useFastResume ){
 			
 				// flush cache even if resume disable
+			
+			for (int i=0;i<files.length;i++){
+				
+				files[i].flushCache();
+			}
 			
 			return;
 		}
@@ -382,88 +386,117 @@ RDResumeHandler
 		
 		boolean[]	pieceDone	= disk_manager.getPiecesDone();
 
-		//build the piece byte[] 
+			//build the piece byte[]
+		
 		byte[] resumeData = new byte[pieceDone.length];
+		
 		for (int i = 0; i < resumeData.length; i++) {
-		  if (invalidate) resumeData[i] = (byte)0;
-		  else resumeData[i] = pieceDone[i] ? (byte)1 : (byte)0;
+			
+		  if (invalidate){
+		  	
+		  	resumeData[i] = (byte)0;
+		  	
+		  }else{
+		  	
+		  	resumeData[i] = pieceDone[i] ? (byte)1 : (byte)0;
+		  }
 		}
 
-		//Attach the resume data
 		Map resumeMap = new HashMap();
-		torrent.setAdditionalMapProperty("resume", resumeMap);
-
-	  Map resumeDirectory = new HashMap();
 	  
-	  	// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
-	  	// currently fixed by mangling such that decode works
+		Map resumeDirectory = new HashMap();
 	  
-	  // System.out.println( "writing resume data: key = " + ByteFormatter.nicePrint(path));
+	  		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
+	  		// currently fixed by mangling such that decode works
 	  
-	  String resume_key = 
+		// System.out.println( "writing resume data: key = " + ByteFormatter.nicePrint(path));
+	  
+		String resume_key = 
 			torrent.isSimpleTorrent()?
 				disk_manager.getDownloadManager().getTorrentSaveDir():
 				disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
 		
-	  resume_key	= getCanonicalResumeKey( resume_key );
+		resume_key	= getCanonicalResumeKey( resume_key );
 
-	  resumeMap.put(resume_key, resumeDirectory);
+		resumeMap.put(resume_key, resumeDirectory);
 	  
-	  resumeDirectory.put("resume data", resumeData);
+		resumeDirectory.put("resume data", resumeData);
 	  
-	  Map partialPieces = new HashMap();
+		Map partialPieces = new HashMap();
 	
-	  if (savePartialPieces  && !invalidate) {
+		if ( savePartialPieces  && !invalidate ){
 	  	
-	  		// get the pieces to save - peer manager's are most recent if they exist
+	  			// get the pieces to save - peer manager's are most recent if they exist
 	  	
-	  	PEPeerManager	peer_manager = disk_manager.getPeerManager();
+			PEPeerManager	peer_manager = disk_manager.getPeerManager();
 	  	
-	  	if ( peer_manager != null ){
+			if ( peer_manager != null ){
 	  		
-	  		PEPiece[]	pm_pieces = peer_manager.getPieces();
+				PEPiece[]	pm_pieces = peer_manager.getPieces();
 	  		
-	  		if ( pm_pieces != null ){
+				if ( pm_pieces != null ){
 	  			
-	  			recovered_pieces	= pm_pieces;
-	  		}
-	  	}
+					recovered_pieces	= pm_pieces;
+				}
+			}
 	  	
-	    if( recovered_pieces != null) {
+			if( recovered_pieces != null) {
 	      
-	      for (int i = 0; i < recovered_pieces.length; i++) {
-	        PEPiece piece = recovered_pieces[i];
-	        if (piece != null && piece.getCompleted() > 0) {
-	          boolean[] downloaded = piece.getWritten();
-	          List blocks = new ArrayList();
-	          for (int j = 0; j < downloaded.length; j++) {
-	            if (downloaded[j])
-	              blocks.add(new Long(j));
-	          }
-	          partialPieces.put("" + i, blocks);
-	        }
-	      }
-	      resumeDirectory.put("blocks", partialPieces);
-	    }
-	    resumeDirectory.put("valid", new Long(1));
-	  } else {
-	    resumeDirectory.put("valid", new Long(0));
-	  }
+				for (int i = 0; i < recovered_pieces.length; i++) {
+					
+					PEPiece piece = recovered_pieces[i];
+					
+					if (piece != null && piece.getCompleted() > 0){
+						
+						boolean[] downloaded = piece.getWritten();
+						
+						List blocks = new ArrayList();
+						
+						for (int j = 0; j < downloaded.length; j++) {
+							
+							if (downloaded[j]){
+								
+								blocks.add(new Long(j));
+							}
+						}
+	          
+						partialPieces.put("" + i, blocks);
+					}
+				}
+				
+				resumeDirectory.put("blocks", partialPieces);
+			}
+			
+			resumeDirectory.put("valid", new Long(1));
+			
+		}else{
+			
+			resumeDirectory.put("valid", new Long(0));
+		}	
 		
-	  boolean	is_complete = 
-	  	isTorrentResumeDataComplete( 
+		for (int i=0;i<files.length;i++){
+			
+			files[i].flushCache();
+		}
+		
+	  		// OK, we've got valid resume data and flushed the cache
+	  
+		torrent.setAdditionalMapProperty("resume", resumeMap);
+
+		boolean	is_complete = 
+			isTorrentResumeDataComplete( 
 	  			torrent, 
 				disk_manager.getDownloadManager().getTorrentSaveDir(),
 				disk_manager.getDownloadManager().getTorrentSaveFile());
 
-	  if ( was_complete && is_complete ){
+		if ( was_complete && is_complete ){
 	 
 	  		// no change, no point in writing
 	  		  	
-	  }else{
+		}else{
 	  	
-	  	saveTorrent();
-	  }
+			saveTorrent();
+		}
 	}
 
 		/**
