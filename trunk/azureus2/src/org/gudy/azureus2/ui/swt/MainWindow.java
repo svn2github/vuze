@@ -1412,10 +1412,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     FileOutputStream fos = null;
     InputStream in = null;
+    FileWriter log = null;
     try {
       String userPath = System.getProperty("user.dir");
       File logFile = new File( userPath, "update.log" );
-      FileWriter log = new FileWriter( logFile, true );
+      log = new FileWriter( logFile, true );
       
       //File originFile = FileUtil.getApplicationFile("Azureus2.jar"); //$NON-NLS-1$
       File originFile = new File(userPath, "Azureus2.jar");
@@ -1496,7 +1497,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         display.readAndDispatch();
       }
       log.write("done\n");
-      if (log != null) log.close();
       
       jarDownloaded = true;
     }
@@ -1514,6 +1514,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
     finally {
       try {
+      	if (log != null) log.close();
         if (fos != null) fos.close();
         if (in != null) in.close();
       }
