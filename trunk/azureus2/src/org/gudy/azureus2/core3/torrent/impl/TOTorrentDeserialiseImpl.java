@@ -207,8 +207,19 @@ TOTorrentDeserialiseImpl
 						
 					}catch( MalformedURLException e ){
 						
-						bad_announce	= true;
+						if ( announce_url.indexOf( "://" ) == -1 ){
+							
+							announce_url = "http:/" + (announce_url.startsWith("/")?"":"/") + announce_url;
+						}
 						
+						try{
+							
+							setAnnounceURL( new URL( announce_url ));
+								
+						}catch( MalformedURLException f ){
+								
+							bad_announce	= true;
+						}
 					}
 					
 				}else if ( key.equalsIgnoreCase( TK_ANNOUNCE_LIST )){
@@ -232,25 +243,40 @@ TOTorrentDeserialiseImpl
 							Vector urls = new Vector();
 								
 							for (int j=0;j<set.size();j++){
-					
-								try{
-			
-									String url_str = readStringFromMetaData((byte[])set.get(j));
+								
+								String url_str = readStringFromMetaData((byte[])set.get(j));
 									
-									url_str=url_str.replaceAll( " ", "" );
+								url_str=url_str.replaceAll( " ", "" );
                   
-					                 	//check to see if the announce url is somewhere in the announce-list
-									
-					                if ( url_str.equalsIgnoreCase( announce_url )) {
+					                	//check to see if the announce url is somewhere in the announce-list
+																		
+					            try{
+					            	urls.add( new URL( url_str ));		
+						    
+					            	if ( url_str.equalsIgnoreCase( announce_url )) {
 					                	
-					                   announce_url_found = true;
-					                }
-											
-									urls.add( new URL( url_str ));		
-							
-								}catch( MalformedURLException e ){
+					            		announce_url_found = true;
+					            	}
+						
+					            }catch( MalformedURLException e ){
 									
-									e.printStackTrace();
+					            	if ( url_str.indexOf( "://" ) == -1 ){
+											
+					            		url_str = "http:/" + (url_str.startsWith("/")?"":"/") + url_str;
+									}
+							         
+									try{
+						           		urls.add( new URL( url_str ));		
+						          
+						           		if ( url_str.equalsIgnoreCase( announce_url )) {
+						                	
+						            		announce_url_found = true;
+						            	}
+						       
+									}catch( MalformedURLException f ){
+				
+										f.printStackTrace();
+									} 
 								}
 							}
 							
