@@ -123,7 +123,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   public void refresh() {
     
     //Comment the following line to enable the view
-    if(true) return;
+    //if(true) return;
     
     PEPeer[] sortedPeers;
     try {      

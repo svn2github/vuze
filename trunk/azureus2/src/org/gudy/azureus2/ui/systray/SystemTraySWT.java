@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.TrayItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -62,7 +63,9 @@ public class SystemTraySWT {
     tray = display.getSystemTray();
     trayItem = new TrayItem(tray,SWT.NULL);
     
-    trayItem.setImage(ImageRepository.getImage("azureus"));
+    if( ! Constants.isOSX) {
+      trayItem.setImage(ImageRepository.getImage("azureus"));  
+    }    
     trayItem.setVisible(true);
     
     menu = new Menu(mainWindow.getShell(),SWT.POP_UP);

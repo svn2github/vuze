@@ -65,7 +65,9 @@ public class MessagePopupShell implements AnimableShell {
   public MessagePopupShell(Display display,String icon,String title,String errorMessage,String details) {    
     this.display = display;    
     detailsShell = new Shell(display,SWT.BORDER | SWT.ON_TOP);
-    detailsShell.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      detailsShell.setImage(ImageRepository.getImage("azureus"));
+    }
     
     detailsShell.setLayout(new FillLayout());
     StyledText textDetails = new StyledText(detailsShell, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);  
