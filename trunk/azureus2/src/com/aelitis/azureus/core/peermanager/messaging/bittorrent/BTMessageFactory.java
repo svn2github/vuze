@@ -117,6 +117,12 @@ public class BTMessageFactory {
       case 8:
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL, BTMessage.BT_DEFAULT_VERSION, stream_payload );
         
+      case 20:
+        //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
+        //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
+        System.out.println( "Old extended messaging hello received, ignoring and faking as keep-alive." );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
+        
       default:
         throw new MessageException( "Unknown BT message id [" +id+ "]" );
     }
