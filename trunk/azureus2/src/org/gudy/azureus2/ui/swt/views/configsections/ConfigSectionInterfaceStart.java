@@ -50,7 +50,6 @@ public class ConfigSectionInterfaceStart implements ConfigSectionSWT {
   public Composite configSectionCreate(final Composite parent) {
     // "Start" Sub-Section
     // -------------------
-    Label label;
     GridLayout layout;
     Composite cStart = new Composite(parent, SWT.NULL);
 

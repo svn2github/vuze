@@ -192,7 +192,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 	    layout.numColumns = 3;
 	    cSave.setLayout(layout);
 	
-	    BooleanParameter saveDefault = new BooleanParameter(cSave, "Use default data dir", true); 
+	    BooleanParameter saveDefault = new BooleanParameter(cSave, "Use default data dir"); 
 	
 	    gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    final StringParameter pathParameter = new StringParameter(cSave, "Default save path", "");  //$NON-NLS-2$

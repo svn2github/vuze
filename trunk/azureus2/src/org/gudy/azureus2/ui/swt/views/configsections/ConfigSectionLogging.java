@@ -67,7 +67,6 @@ public class ConfigSectionLogging implements ConfigSectionSWT {
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
     GridData gridData;
     GridLayout layout;
-    Label label;
 
     Composite gLogging = new Composite(parent, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
