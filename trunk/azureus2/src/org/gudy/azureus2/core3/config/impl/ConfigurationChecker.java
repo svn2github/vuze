@@ -191,7 +191,11 @@ ConfigurationChecker
 	    	
 	    		// "last version" introduced at same time as the default save dir problem
 	    	
-	    	if ( !COConfigurationManager.doesParameterNonDefaultExist( "Use default data dir" )){
+	    		// only do this on an already existing configuration. Easiest way to test
+	    		// for this is the "diagnostics.tidy_close" flag
+	    	
+	    	if ( 	COConfigurationManager.doesParameterNonDefaultExist( "diagnostics.tidy_close" ) && 
+	    			!COConfigurationManager.doesParameterNonDefaultExist( "Use default data dir" )){
 	    		
 	    		COConfigurationManager.setParameter( "Use default data dir", 1 );
 	    		
