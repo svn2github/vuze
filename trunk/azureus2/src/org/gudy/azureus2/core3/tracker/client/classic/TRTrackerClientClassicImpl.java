@@ -60,7 +60,7 @@ import org.gudy.azureus2.core3.tracker.util.impl.*;
  */
 public class 
 TRTrackerClientClassicImpl
-	implements TRTrackerClient, PEPeerServerListener
+	implements TRTrackerClient, PEPeerServerListener, ParameterListener
 {
 	
 		
@@ -268,13 +268,9 @@ TRTrackerClientClassicImpl
 	
 	peer_server.addListener( this );
 	
-	COConfigurationManager.addParameterListener("TCP.Announce.Port",new ParameterListener() {
-	    public void parameterChanged(String parameterName) {
-	      if("TCP.Announce.Port".equals(parameterName)) {
-	        setPort();
-	      }
-	    }
-	});
+  
+  
+	COConfigurationManager.addParameterListener("TCP.Announce.Port",this);
 	
 	setPort();
 	   
@@ -1970,6 +1966,8 @@ TRTrackerClientClassicImpl
 	destroy()
 	{       
 		peer_server.removeListener( this );
+    
+    COConfigurationManager.removeParameterListener("TCP.Announce.Port",this);
 		
 		TRTrackerClientFactoryImpl.destroy( this );
 	}
@@ -2316,4 +2314,13 @@ TRTrackerClientClassicImpl
 			tracker_peer_cache_mon.exit();
 		}
 	} 
+  
+  
+  
+  // ParameterListener Implementation
+  public void parameterChanged(String parameterName) {
+    if("TCP.Announce.Port".equals(parameterName)) {
+      setPort();
+    }
+  }
 }
