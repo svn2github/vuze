@@ -71,7 +71,7 @@ public class GlobalManager extends Component {
             }
 
             if ((manager.getState() == DownloadManager.STATE_ERROR)
-              && (manager.getErrorDetails().equals("File Not Found"))) {
+              && (manager.getErrorDetails() != null && manager.getErrorDetails().equals("File Not Found"))) {
               removeDownloadManager(manager);
             }
           }
