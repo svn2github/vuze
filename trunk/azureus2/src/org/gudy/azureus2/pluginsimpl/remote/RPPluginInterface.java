@@ -52,6 +52,7 @@ import org.gudy.azureus2.pluginsimpl.remote.download.*;
 import org.gudy.azureus2.pluginsimpl.remote.ipfilter.*;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.*;
 import org.gudy.azureus2.pluginsimpl.remote.utils.*;
+import org.gudy.azureus2.pluginsimpl.remote.tracker.*;
 
 public class 
 RPPluginInterface
@@ -168,6 +169,10 @@ RPPluginInterface
 		}else if ( method.equals( "getShortCuts")){
 			
 			return( new RPReply( RPShortCuts.create(delegate.getShortCuts())));
+			
+		}else if ( method.equals( "getTracker")){
+			
+			return( new RPReply( RPTracker.create(delegate.getTracker())));
 		}
 			
 		throw( new RPException( "Unknown method: " + method ));
@@ -229,11 +234,14 @@ RPPluginInterface
 		notSupported();
 	}
 	
-	public Tracker getTracker()
+	public Tracker 
+	getTracker()
 	{
-		notSupported();
+		RPTracker	res = (RPTracker)_dispatcher.dispatch( new RPRequest( this, "getTracker", null )).getResponse();
 		
-		return( null );
+		res._setRemote( _dispatcher );
+			
+		return( res );	
 	}
 	
 	public Logger getLogger()
