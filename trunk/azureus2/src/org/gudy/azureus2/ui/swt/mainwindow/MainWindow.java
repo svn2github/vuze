@@ -35,6 +35,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -223,7 +224,11 @@ MainWindow
     //The Main Window
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
-    mainWindow.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    mainWindow.setImages(new Image[] {
+        ImageRepository.getImage("azureus"),
+        ImageRepository.getImage("azureus32"),
+        ImageRepository.getImage("azureus64")
+    }); //$NON-NLS-1$
     
     
     //The Torrent Opener
