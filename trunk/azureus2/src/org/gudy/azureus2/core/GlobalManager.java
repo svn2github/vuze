@@ -33,13 +33,20 @@ public class GlobalManager extends Component {
     boolean finished = false;
     int loopFactor;
     private static final int waitTime = 1000;
-    // 10 minutes dump resume data interval
-    private static final int dumpResumeLoopCount = 600000 / waitTime;
+		// 5 minutes save resume data interval (default)
+    private int saveResumeLoopCount = 300000 / waitTime;
 
     public Checker() {
       super("Global Status Checker");
       loopFactor = 0;
       setPriority(Thread.MIN_PRIORITY);
+      determineSaveResumeDataInterval();
+    }
+
+    private void determineSaveResumeDataInterval() {
+      int saveResumeInterval = ConfigurationManager.getInstance().getIntParameter("Save Resume Interval", 5);
+      if(saveResumeInterval > 1 && saveResumeInterval < 21)
+        saveResumeLoopCount = saveResumeInterval * 60000 / waitTime;
     }
 
     public void run() {
@@ -50,6 +57,7 @@ public class GlobalManager extends Component {
         // Should be user configurable.
         if (loopFactor >= 120) {
           loopFactor = 0;
+          determineSaveResumeDataInterval();
           trackerChecker.update();
         }
 
@@ -61,7 +69,7 @@ public class GlobalManager extends Component {
             if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
               nbStarted++;
               nbDownloading++;
-              if (loopFactor % dumpResumeLoopCount == 0) {
+              if (loopFactor % saveResumeLoopCount == 0) {
                 manager.diskManager.dumpResumeDataToDisk(false);
               }
             }
