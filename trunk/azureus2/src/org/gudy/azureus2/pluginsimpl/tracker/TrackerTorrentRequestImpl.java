@@ -1,5 +1,5 @@
 /*
- * File    : PluginManagerImpl.java
+ * File    : TrackerTorrentRequestImpl.java
  * Created : 14-Dec-2003
  * By      : parg
  * 
@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsimpl;
+package org.gudy.azureus2.pluginsimpl.tracker;
 
 /**
  * @author parg
@@ -28,27 +28,26 @@ package org.gudy.azureus2.pluginsimpl;
 
 import java.util.*;
 
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.ui.swt.Main;
+import org.gudy.azureus2.core3.tracker.host.*;
+
+import org.gudy.azureus2.plugins.tracker.*;
 
 public class 
-PluginManagerImpl 
+TrackerTorrentRequestImpl 
+	implements TrackerTorrentRequest
 {
-	public static void
-	startAzureus(
-		int			ui_type,
-		Properties	properties )
+	protected TRHostTorrentRequest		req;
+	
+	protected
+	TrackerTorrentRequestImpl(
+		TRHostTorrentRequest 	_req )
 	{
-		if ( ui_type == PluginManager.UI_SWT ){
-			
-			Main.main(new String[0]);
-		}
+		req	= _req;
 	}
 	
-	public static void
-	registerPlugin(
-		Class		plugin_class )
+	public Map
+	getResponse()
 	{
-		PluginInitializer.queueRegistration( plugin_class );
+		return( req.getResponse());
 	}
 }

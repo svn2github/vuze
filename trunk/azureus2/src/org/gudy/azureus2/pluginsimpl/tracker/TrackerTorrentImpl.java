@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.tracker;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.torrent.*;
@@ -33,9 +35,11 @@ import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
 TrackerTorrentImpl
-	implements TrackerTorrent
+	implements TrackerTorrent, TRHostTorrentListener
 {
 	protected TRHostTorrent		host_torrent;
+
+	protected List	listeners = new ArrayList();
 	
 	protected
 	TrackerTorrentImpl(
@@ -122,5 +126,39 @@ TrackerTorrentImpl
 	getCompletedCount()
 	{
 		return( host_torrent.getCompletedCount());
+	}
+	
+	public synchronized void
+	postProcess(
+		TRHostTorrentRequest	request )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((TrackerTorrentListener)listeners.get(i)).postProcess(new TrackerTorrentRequestImpl(request));
+		}
+	}
+	
+	public synchronized void
+	addListener(
+		TrackerTorrentListener	listener )
+	{
+		listeners.add( listener );
+		
+		if ( listeners.size() == 1 ){
+			
+			host_torrent.addListener( this );
+		}
+	}
+	
+	public synchronized void
+	removeListener(
+		TrackerTorrentListener	listener )
+	{
+		listeners.remove( listener );
+		
+		if ( listeners.size() == 0 ){
+			
+			host_torrent.removeListener(this);
+		}
 	}
 }

@@ -62,4 +62,11 @@ TrackerTorrent
 	public long
 	getCompletedCount();
 	
+	public void
+	addListener(
+		TrackerTorrentListener	listener );
+	
+	public void
+	removeListener(
+		TrackerTorrentListener	listener );
 }

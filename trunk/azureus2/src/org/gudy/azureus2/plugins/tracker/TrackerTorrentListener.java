@@ -1,5 +1,5 @@
 /*
- * File    : PluginManagerImpl.java
+ * File    : TrackerTorrentListener.java
  * Created : 14-Dec-2003
  * By      : parg
  * 
@@ -19,36 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsimpl;
+package org.gudy.azureus2.plugins.tracker;
 
 /**
  * @author parg
  *
  */
-
-import java.util.*;
-
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.ui.swt.Main;
-
-public class 
-PluginManagerImpl 
+public interface 
+TrackerTorrentListener 
 {
-	public static void
-	startAzureus(
-		int			ui_type,
-		Properties	properties )
-	{
-		if ( ui_type == PluginManager.UI_SWT ){
-			
-			Main.main(new String[0]);
-		}
-	}
-	
-	public static void
-	registerPlugin(
-		Class		plugin_class )
-	{
-		PluginInitializer.queueRegistration( plugin_class );
-	}
+	public void
+	postProcess(
+		TrackerTorrentRequest request );
 }

@@ -109,7 +109,7 @@ TrackerImpl
 		}
 	}
 	
-	public void
+	public synchronized void
 	torrentAdded(
 		TRHostTorrent		t )
 	{
@@ -119,7 +119,7 @@ TrackerImpl
 		}
 	}
 	
-	public void
+	public synchronized void
 	torrentRemoved(
 		TRHostTorrent		t )	
 	{	
@@ -155,14 +155,21 @@ TrackerImpl
 		return( false );
 	}	
 	
-	public void
+	public synchronized void
 	addListener(
 		TrackerListener		listener )
 	{
 		listeners.add( listener );
+		
+		TrackerTorrent[] torrents = getTorrents();
+		
+		for (int i=0;i<torrents.length;i++){
+			
+			listener.torrentAdded( torrents[i]);
+		}
 	}
 	
-	public void
+	public synchronized void
 	removeListener(
 		TrackerListener		listener )
 	{

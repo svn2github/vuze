@@ -26,12 +26,24 @@ package org.gudy.azureus2.plugins;
  *
  */
 
+import java.util.Properties;
+
 import org.gudy.azureus2.pluginsimpl.PluginManagerImpl;
 
 
 public class 
 PluginManager
 {
+	public static final int	UI_SWT		= 1;
+	
+	public static void
+	startAzureus(
+		int			ui_type,
+		Properties	properties )
+	{
+		PluginManagerImpl.startAzureus( ui_type, properties );
+	}
+	
 	/**
 	 * Programatic plugin registration interface
 	 * @param plugin_class	this must implement Plugin
