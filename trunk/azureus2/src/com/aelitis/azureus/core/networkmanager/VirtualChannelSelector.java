@@ -146,7 +146,12 @@ public class VirtualChannelSelector {
       }
       
       SelectionKey key = channel.keyFor( selector );
-      if( key != null )  key.interestOps( key.interestOps() & ~INTEREST_OP );
+      if( key != null ) {
+        key.interestOps( key.interestOps() & ~INTEREST_OP );
+      }
+      else {
+        System.out.println( "pauseSelects( " +channel+ " ):: selection key not found" );
+      }
     }
     
     
@@ -162,7 +167,12 @@ public class VirtualChannelSelector {
       }
       
       SelectionKey key = channel.keyFor( selector );
-      if( key != null )  key.interestOps( key.interestOps() | INTEREST_OP );
+      if( key != null ) {
+        key.interestOps( key.interestOps() | INTEREST_OP );
+      }
+      else {
+        System.out.println( "resumeSelects( " +channel+ " ):: selection key not found" );
+      }
     }
 
     
@@ -356,7 +366,7 @@ public class VirtualChannelSelector {
 
           if( key.isValid() ) {
             if( (key.interestOps() & INTEREST_OP) == 0 ) {  //it must have been paused between select and notification
-              System.out.println( "select op PAUSED after select, skipping" );
+              System.out.println( "select op PAUSED after select, skipping [" +data.channel+ "]" );
               continue;
             }            
             
