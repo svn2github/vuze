@@ -134,101 +134,104 @@ public class PeerSocket extends PeerConnection {
   }
 
   protected void handleHandShakeResponse() {
-    boolean bContinue = true;
     readBuffer.position(0);
     //Now test for data...
 
     if (readBuffer.get() != (byte) PROTOCOL.length()) {
-       bContinue = false;
+       closeAll(true);
+       return;
     }
 
-    if (bContinue) {
-       byte[] protocol = PROTOCOL.getBytes();
-       if (readBuffer.limit() < protocol.length) {
-          bContinue = false;
+    byte[] protocol = PROTOCOL.getBytes();
+    if (readBuffer.limit() < protocol.length) {
+       closeAll(true);
+       return;
+    }
+    else {
+       readBuffer.get(protocol);
+       if (!(new String(protocol)).equals(PROTOCOL)) {
+          closeAll(true);
+          return;
        }
-       else {
-          readBuffer.get(protocol);
-          if (!(new String(protocol)).equals(PROTOCOL)) bContinue = false;
+    }
+
+    byte[] reserved = new byte[8];
+    if (readBuffer.limit() < reserved.length) {
+       closeAll(true);
+       return;
+    }
+    else readBuffer.get(reserved);
+    //Ignores reserved bytes
+
+
+    byte[] hash = manager.getHash();
+    byte[] otherHash = new byte[20];
+    if (readBuffer.limit() < otherHash.length) {
+       closeAll(true);
+       return;
+    }
+    else {
+       readBuffer.get(otherHash);
+       for (int i = 0; i < 20; i++) {
+          if (otherHash[i] != hash[i]) {
+             closeAll(true);
+             return;
+          }
        }
     }
 
-    if (bContinue) {
-      byte[] reserved = new byte[8];
-      if (readBuffer.limit() < reserved.length) {
-         bContinue = false;
-      }
-      else readBuffer.get(reserved);
-      //Ignores reserved bytes
-    }
-
-    if (bContinue) {
-      byte[] hash = manager.getHash();
-      byte[] otherHash = new byte[20];
-      if (readBuffer.limit() < otherHash.length) {
-         bContinue = false;
-      }
-      else {
-         readBuffer.get(otherHash);
-         for (int i = 0; i < 20; i++) {
-            if (otherHash[i] != hash[i]) bContinue = false;
-         }
-      }
-    }
     
     byte[] otherPeerId = new byte[20];
-    if (bContinue) {
-       if (readBuffer.limit() < otherPeerId.length) {
-          bContinue = false;
-       }
-       else readBuffer.get(otherPeerId);
+    if (readBuffer.limit() < otherPeerId.length) {
+       closeAll(true);
+       return;
     }
+    else readBuffer.get(otherPeerId);
 
-    if (bContinue && incoming) {
+
+    if (incoming) {
       //HandShaking is ok so far
       //We test if the handshaking is valid (no other connections with that peer)
       if (manager.validateHandshaking(this, otherPeerId)) {
         //Store the peerId
         this.id = otherPeerId;
       }
-      else
-        bContinue = false;
-    }
-
-    if (bContinue && !incoming) {
-      boolean same = true;
-      for (int j = 0; j < this.id.length; j++)
-        same = same && (this.id[j] == otherPeerId[j]);
-
-      if (!same)
-        bContinue = false;
-    }
-
-    if (bContinue) {
-       try {
-         client = MessageText.getString("PeerSocket.generic"); //$NON-NLS-1$
-         String xan = new String(otherPeerId, 0, 11, Constants.BYTE_ENCODING);
-         if (xan.equals("DansClient "))
-            client = "Xan'";
-         String azureus = new String(otherPeerId, 5, 7, Constants.BYTE_ENCODING);
-         if (azureus.equals("Azureus"))
-            client = "Azureus";
-         String shadow = new String(otherPeerId, 0, 1);
-         if (shadow.equals("S")) {
-            client = "Shadow";
-         }
+      else {
+         closeAll(true);
+         return;
       }
-      catch (Exception e) {}
     }
 
-    if (!bContinue)
-      closeAll(true);
-    else {
-      sendBitField();
-      readMessage(readBuffer);
-      manager.peerAdded(this);
-      currentState = new StateTransfering();
+    else if (!incoming) {
+      boolean same = true;
+      for (int j = 0; j < this.id.length; j++) {
+        same = same && (this.id[j] == otherPeerId[j]);
+      }
+      if (!same) {
+         closeAll(true);
+         return;
+      }
     }
+
+    try {
+       client = MessageText.getString("PeerSocket.generic"); //$NON-NLS-1$
+       String xan = new String(otherPeerId, 0, 11, Constants.BYTE_ENCODING);
+       if (xan.equals("DansClient "))
+          client = "Xan'";
+       String azureus = new String(otherPeerId, 5, 7, Constants.BYTE_ENCODING);
+       if (azureus.equals("Azureus"))
+          client = "Azureus";
+       String shadow = new String(otherPeerId, 0, 1);
+       if (shadow.equals("S")) {
+          client = "Shadow";
+       }
+    }
+    catch (Exception e) {}
+
+    sendBitField();
+    readMessage(readBuffer);
+    manager.peerAdded(this);
+    currentState = new StateTransfering();
   }
 
   protected void readMessage(ByteBuffer buffer) {
