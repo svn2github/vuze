@@ -27,6 +27,7 @@ package com.aelitis.azureus.core.diskmanager.cache.impl;
  *
  */
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Average;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
@@ -168,5 +169,15 @@ CacheFileManagerStatsImpl
 	getAverageBytesReadFromFile()
 	{
 		return( file_read_average.getAverage() );
+	}
+	
+	public long
+	getBytesInCache(
+		TOTorrent		torrent,
+		int				piece_number,
+		int				offset,
+		long			length )
+	{
+		return( manager.getBytesInCache( torrent, piece_number, offset, length ));
 	}
 }

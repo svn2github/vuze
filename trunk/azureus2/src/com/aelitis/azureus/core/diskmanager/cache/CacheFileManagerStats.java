@@ -26,6 +26,9 @@ package com.aelitis.azureus.core.diskmanager.cache;
  * @author parg
  *
  */
+
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+
 public interface 
 CacheFileManagerStats 
 {
@@ -58,4 +61,13 @@ CacheFileManagerStats
 	
 	public long
 	getAverageBytesReadFromFile();
+	
+		// returns the number of bytes in the requested range that are in cache
+	
+	public long
+	getBytesInCache(
+		TOTorrent		torrent,
+		int				piece_number,
+		int				offset,
+		long			length );
 }

@@ -30,6 +30,7 @@ package com.aelitis.azureus.core.diskmanager.cache.impl;
 import java.io.File;
 import java.util.*;
 
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -67,6 +68,8 @@ CacheFileManagerImpl
 	protected LinkedHashMap		cache_entries = new LinkedHashMap(1024, 0.75f, true );
 	
 	protected CacheFileManagerStatsImpl	stats;
+	
+	protected Map	torrent_to_cache_file_map	= new HashMap();
 	
 	protected long				cache_bytes_written;
 	protected long				cache_bytes_read;
@@ -157,7 +160,24 @@ CacheFileManagerImpl
 						}
 					}, file );
 				
-			return( new CacheFileImpl( this, fm_file, owner.getCacheFileTorrentFile()));
+			TOTorrentFile	tf = owner.getCacheFileTorrentFile();
+			
+			CacheFile	cf = new CacheFileImpl( this, fm_file, tf );
+			
+			if ( tf != null ){
+				
+				try{
+					this_mon.enter();
+					
+					torrent_to_cache_file_map.put( tf, cf );
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+			}
+			
+			return( cf );
 			
 		}catch( FMFileManagerException e ){
 			
@@ -314,12 +334,23 @@ CacheFileManagerImpl
 					
 					if ( cache_entries.size() > 0 ){
 						
+						Map	t_to_c_file_map	= new HashMap();
+						
 						Iterator it = cache_entries.keySet().iterator();
 						
 						while( it.hasNext()){
 							
 							CacheEntry	entry = (CacheEntry)it.next();
 	
+							CacheFileImpl	file = entry.getFile();
+							
+							TOTorrentFile	tf = file.getTorrentFile();
+							
+							if ( tf != null ){
+								
+								t_to_c_file_map.put( tf, file );
+							}
+							
 							// System.out.println( "oldest entry = " + ( now - entry.getLastUsed()));
 							
 							if ( entry.isDirty()){
@@ -327,6 +358,9 @@ CacheFileManagerImpl
 								dirty_files.add( entry.getFile());
 							}
 						}
+						
+						torrent_to_cache_file_map	= t_to_c_file_map;
+						
 					}
 				}finally{
 					
@@ -589,6 +623,62 @@ CacheFileManagerImpl
 	getBytesReadFromFile()
 	{
 		return( file_bytes_read );
+	}
+	
+	protected long
+	getBytesInCache(
+		TOTorrent		torrent,
+		int				piece_number,
+		int				offset,
+		long			length )
+	{
+		Map	map = torrent_to_cache_file_map;
+		
+		TOTorrentFile[]	files = torrent.getFiles();
+		
+		long	piece_size = torrent.getPieceLength();
+		
+		long	overall_start 	= piece_number*piece_size + offset;
+		long	overall_end		= overall_start + length;
+		
+		long	pos = 0;
+		
+		long	result	= 0;
+		
+		for (int i=0;i<files.length;i++){
+			
+			TOTorrentFile	tf = files[i];
+			
+			long	len = tf.getLength();
+			
+			long	this_start 	= pos;
+			
+			pos	+= len;
+			
+			long	this_end	= pos;
+				
+			if ( this_end <= overall_start ){
+				
+				continue;
+			}
+			
+			if ( overall_end <= this_start ){
+				
+				break;
+			}
+			
+			long	bit_start	= overall_start<this_start?this_start:overall_start;
+			long	bit_end		= overall_end>=this_end?this_end:overall_end;
+			
+			CacheFileImpl	cache_file = (CacheFileImpl)map.get( tf );
+			
+			if ( cache_file != null ){
+				
+				result	+= cache_file.getBytesInCache( bit_start - this_start, bit_end - this_end );
+			}
+		}
+		
+		return( result );
 	}
 	
 	protected void

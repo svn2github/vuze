@@ -92,6 +92,7 @@ CacheFileImpl
 	
 	protected CacheFileManagerImpl		manager;
 	protected FMFile					file;
+	protected TOTorrentFile				torrent_file;
 	
 	protected long[]					read_history		= new long[ READAHEAD_HISTORY ];
 	protected int						read_history_next	= 0;
@@ -120,7 +121,9 @@ CacheFileImpl
 		
 		if ( _torrent_file != null ){
 			
-			TOTorrent	torrent = _torrent_file.getTorrent();
+			torrent_file	= _torrent_file;
+			
+			TOTorrent	torrent = torrent_file.getTorrent();
 					
 			piece_size	= (int)torrent.getPieceLength();
 			
@@ -877,7 +880,53 @@ CacheFileImpl
 		}
 	}
 	
-	
+	protected long
+	getBytesInCache(
+		long	offset,
+		long	length )
+	{
+		try{
+			this_mon.enter();
+			
+			long	result	= 0;
+			
+			Iterator	it = cache.iterator();
+			
+			long	start_pos	= offset;
+			long	end_pos		= offset + length;
+			
+			while( it.hasNext()){
+			
+				CacheEntry	entry = (CacheEntry)it.next();
+				
+				long	this_start 		= entry.getFilePosition();
+				int		entry_length	= entry.getLength();
+				
+				long	this_end	= this_start + entry_length;
+				
+				if ( this_end <= start_pos ){
+					
+					continue;
+				}
+				
+				if ( end_pos <= this_start ){
+					
+					break;
+				}
+				
+				long	bit_start	= start_pos<this_start?this_start:start_pos;
+				long	bit_end		= end_pos>=this_end?this_end:end_pos;
+
+				result	+= bit_end - bit_start;
+			}
+			
+			return( result );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
 	
 		// support methods
 	
@@ -894,6 +943,11 @@ CacheFileImpl
 		return( file );
 	}
 	
+	protected TOTorrentFile
+	getTorrentFile()
+	{
+		return( torrent_file );
+	}
 	
 		// public methods
 	
