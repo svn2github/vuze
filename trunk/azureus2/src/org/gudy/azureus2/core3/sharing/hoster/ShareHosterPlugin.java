@@ -148,11 +148,11 @@ ShareHosterPlugin
 							{
 								public void
 								downloadWillBeRemoved(
-										Download	dl )
+									Download	dl )
 								
 								throws DownloadRemovalVetoException
 								{
-									throw( new DownloadRemovalVetoException("jkjkj"));
+									throw( new DownloadRemovalVetoException(MessageText.getString("plugin.sharing.download.remove.veto")));
 								}
 							});
 				}
