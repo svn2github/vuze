@@ -336,9 +336,11 @@ public class FileUtil {
 	    	return( res );
 	    	
 	    }catch( Throwable e ){
+        e.printStackTrace();
 	    	// Occurs when file is there but b0rked
         
         //rename it in case it actually contains useful data, so it won't be overwritten next save
+        LGLogger.log("Read of '" + file_name + "' failed, b-decoding error. Renaming to *.bad" );      
         File bad = new File( file.getParentFile(), file.getName() + ".bad" );
         file.renameTo( bad );
 	    	
@@ -350,7 +352,7 @@ public class FileUtil {
 	    		return( new HashMap());
 	    	}
 	    	
- 			return( readResilientConfigFile( file_name + ".saving", 1 ));
+	    	return( readResilientConfigFile( file_name + ".saving", 1 ));
  			 
 	    }finally{
 	    	
