@@ -27,7 +27,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.ParameterListener;
-import org.gudy.azureus2.ui.swt.views.tableitems.PeerTableItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeerRow;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
@@ -152,7 +152,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
         }
         item.setEnabled(true);
         TableItem ti = tis[0];
-        PeerTableItem pti = (PeerTableItem) PeerTableItem.tableItems.get(ti);
+        PeerRow pti = (PeerRow) PeerRow.tableItems.get(ti);
         if (pti != null)
           item.setSelection(pti.isSnubbed());
       }
@@ -166,7 +166,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
         }
         for(int i = 0 ; i < tis.length ; i++) {
           TableItem ti = tis[i];
-          PeerTableItem pti = (PeerTableItem) PeerTableItem.tableItems.get(ti);
+          PeerRow pti = (PeerRow) PeerRow.tableItems.get(ti);
           if (pti != null)
             pti.setSnubbed(item.getSelection());
         }
@@ -216,7 +216,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
 
       Iterator iter = objectToSortableItem.values().iterator();
       while (iter.hasNext()) {
-        PeerTableItem pti = (PeerTableItem) iter.next();
+        PeerRow pti = (PeerRow) iter.next();
         pti.updateAll();
         pti.updateStats();
         //Every N GUI updates we unvalidate the images
@@ -234,7 +234,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     manager.removeListener(this);
     Iterator iter = objectToSortableItem.values().iterator();
     while (iter.hasNext()) {
-      PeerTableItem item = (PeerTableItem) iter.next();
+      PeerRow item = (PeerRow) iter.next();
       item.remove();
     }
     if(table != null && ! table.isDisposed())
@@ -262,7 +262,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
       if (objectToSortableItem.containsKey(created))
         return;
       try {
-        PeerTableItem item = new PeerTableItem(this,table, (PEPeer) created);
+        PeerRow item = new PeerRow(this,table, (PEPeer) created);
         objectToSortableItem.put(created, item);
       }
       catch (Exception e) {
@@ -276,9 +276,9 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
    */
   public void peerRemoved(PEPeer removed) {
     //System.out.println("removed : " + removed.getClass() + ":" + removed);
-    PeerTableItem item;
+    PeerRow item;
     synchronized (objectToSortableItem) {
-      item = (PeerTableItem) objectToSortableItem.remove(removed);
+      item = (PeerRow) objectToSortableItem.remove(removed);
     }
     if (item == null)
       return;

@@ -1,4 +1,4 @@
-package org.gudy.azureus2.ui.swt.views.tableitems;
+package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import java.util.HashMap;
 
@@ -26,7 +26,7 @@ import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
  * @author Olivier
  *
  */
-public class PeerTableItem implements SortableItem {
+public class PeerRow implements SortableItem {
 
   public static final HashMap tableItems = new HashMap();
 
@@ -41,7 +41,7 @@ public class PeerTableItem implements SortableItem {
   private Image image;
   private String[] oldTexts;
 
-  public PeerTableItem(final PeersView view, final Table table,final PEPeer pc) {
+  public PeerRow(final PeersView view, final Table table,final PEPeer pc) {
     if (table == null || table.isDisposed()) {
       this.display = null;
       this.table = null;
@@ -55,7 +55,7 @@ public class PeerTableItem implements SortableItem {
     this.oldTexts = new String[19];
     for (int i = 0; i < oldTexts.length; i++)
       oldTexts[i] = "";	
-    final PeerTableItem thisItem = this;
+    final PeerRow thisItem = this;
     display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
