@@ -312,6 +312,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       return;
     }
     
+    LGLogger.log("MainWindow start");
+
     window = this;
 
     try{
@@ -393,10 +395,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     Locale[] locales = MessageText.getLocales();
     String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
-    Locale savedLocale =
-      savedLocaleString.length() > 4
-        ? new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5))
-        : Locale.getDefault();
+    Locale savedLocale;
+    if (savedLocaleString.length() == 5) {
+      savedLocale = new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5));
+    } else if (savedLocaleString.length() == 2) {
+      savedLocale = new Locale(savedLocaleString);
+    } else {
+      savedLocale = Locale.getDefault();
+    }
     MessageText.changeLocale(savedLocale);
 
     setSplashTask("splash.loadingImages");
