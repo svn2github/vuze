@@ -115,9 +115,6 @@ public final class ShellFactory
      */
     private static class AEShell extends Shell
     {
-        private static final String pre = Constants.AZUREUS_NAME + " ";
-        private static final String suf = " - " + Constants.AZUREUS_NAME;
-
         /**
          * {@inheritDoc}
          */
@@ -162,20 +159,6 @@ public final class ShellFactory
          * Does nothing
          */
         protected void checkSubclass() {}
-
-    /**
-     * <p>Sets the platform-sensitive title of a SWT window</p>
-     * <p> For all platforms other than Mac OS X, a suffix of " - %applicationName%"  (i.e. Azureus) is appended</p>
-     * @param shell The SWT window
-     * @param localizationKey Localization key for the title
-     */
-        public void setText(final String s)
-        {
-            if(Constants.isOSX || Constants.AZUREUS_NAME.equalsIgnoreCase(s) || s.length() == 0 || s.startsWith(pre) || s.endsWith(suf))
-                super.setText(s);
-            else
-                super.setText(s + suf);
-        }
 
         /**
          * <p>Sets the iconic representation of a SWT window</p>
