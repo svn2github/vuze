@@ -222,13 +222,11 @@ public class ConfigurationDefaults {
     def.put( "File.save.peers.max", new Long( TRTrackerClient.DEFAULT_PEERS_TO_CACHE ) );
     def.put( "Tracker Public Enable", new Long(0) );
     def.put( "Tracker Log Enable", new Long(0) );
-    def.put( "Tracker Publish Enable", new Long(1) );
     def.put( "Tracker Port Enable", new Long(1) );
     def.put( "Tracker Port", new Long( TRHost.DEFAULT_PORT ) );
     def.put( "Tracker Port SSL Enable", new Long(0) );
     def.put( "Tracker Port SSL", new Long( TRHost.DEFAULT_PORT_SSL ) );
     def.put( "Tracker Port Force External", new Long(0) );
-    def.put( "Tracker Publish Enable Details", new Long(1) );
     def.put( "Tracker IP", "" );
     def.put( "Tracker Port UDP Enable", new Long(0) );
     def.put( "Tracker Port UDP Version", new Long(2) );
@@ -246,7 +244,6 @@ public class ConfigurationDefaults {
     def.put( "Tracker Password", null );
     def.put( "Tracker Poll Inc By", new Long( TRTrackerServer.DEFAULT_INC_BY ) );
     def.put( "Tracker Poll Inc Per", new Long( TRTrackerServer.DEFAULT_INC_PER ) );
-    def.put( "Tracker Skip", new Long(0) );
     def.put( "config.style.useSIUnits", new Long(0) );
     def.put( "config.style.useUnitsRateBits", new Long(0) );
     def.put( "Save Torrent Backup", new Long(0) );

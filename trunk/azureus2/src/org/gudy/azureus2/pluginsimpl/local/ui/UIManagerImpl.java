@@ -26,6 +26,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ui.UIException;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
+import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
@@ -159,15 +160,58 @@ UIManagerImpl
 		String 		key,
 		String 		resource_name,
 		boolean 	defaultValue )
-	{		
+	{	
 	}
-			
+	
+	public BooleanParameter
+	addBooleanParameter2(
+		String 		key,
+		String 		resource_name,
+		boolean 	defaultValue )
+	{	
+		return( 
+			new BooleanParameter()
+			{
+				public void addEnabledOnSelection(Parameter parameter){}
+				public void addDisabledOnSelection(Parameter parameter){}
+			});
+	}
+	
+	
 	public void
 	addStringParameter(
 		String 		key,
 		String 		resource_name,
 		String	 	defaultValue )
 	{
+	}
+	
+	public StringParameter
+	addStringParameter2(
+		String 		key,
+		String 		resource_name,
+		String	 	defaultValue )
+	{
+		return(
+				new StringParameter()
+				{
+					public void addEnabledOnSelection(Parameter parameter){}
+					public void addDisabledOnSelection(Parameter parameter){}
+				});	
+	}
+	
+	public IntParameter
+	addIntParameter2(
+		String 		key,
+		String 		resource_name,
+		int	 		defaultValue )
+	{
+		return(
+				new IntParameter()
+				{
+					public void addEnabledOnSelection(Parameter parameter){}
+					public void addDisabledOnSelection(Parameter parameter){}
+				});		
 	}
   }
 }

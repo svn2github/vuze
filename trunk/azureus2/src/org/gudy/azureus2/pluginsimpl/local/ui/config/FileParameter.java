@@ -26,7 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author epall
  *
  */
-public class FileParameter extends GenericParameter
+public class FileParameter extends ParameterImpl
 {
 	private String defaultValue;
 	public FileParameter(String key, String label, String defaultValue)

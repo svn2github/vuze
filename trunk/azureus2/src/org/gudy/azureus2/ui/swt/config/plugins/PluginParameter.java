@@ -23,13 +23,13 @@ package org.gudy.azureus2.ui.swt.config.plugins;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameter;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ColorParameter;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.DirectoryParameter;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.FileParameter;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.IntParameter;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.IntParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.IntsParameter;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.StringParameter;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.StringParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.StringsParameter;
 import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
 
@@ -42,12 +42,12 @@ public class PluginParameter {
   public PluginParameterImpl implementation;
   
   public PluginParameter(Composite pluginGroup,Parameter parameter) {
-    if(parameter instanceof StringParameter) {
-      implementation = new PluginStringParameter(pluginGroup,(StringParameter)parameter);
-    } else if(parameter instanceof IntParameter) {
-      implementation = new PluginIntParameter(pluginGroup,(IntParameter)parameter);
-    } else if(parameter instanceof BooleanParameter) {
-      implementation = new PluginBooleanParameter(pluginGroup,(BooleanParameter)parameter);
+    if(parameter instanceof StringParameterImpl) {
+      implementation = new PluginStringParameter(pluginGroup,(StringParameterImpl)parameter);
+    } else if(parameter instanceof IntParameterImpl) {
+      implementation = new PluginIntParameter(pluginGroup,(IntParameterImpl)parameter);
+    } else if(parameter instanceof BooleanParameterImpl) {
+      implementation = new PluginBooleanParameter(pluginGroup,(BooleanParameterImpl)parameter);
     } else if(parameter instanceof FileParameter) {
       implementation = new PluginFileParameter(pluginGroup,(FileParameter)parameter);
     } else if(parameter instanceof DirectoryParameter) {

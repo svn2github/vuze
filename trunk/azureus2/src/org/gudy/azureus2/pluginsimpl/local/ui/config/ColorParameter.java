@@ -26,7 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author Olivier
  *
  */
-public class ColorParameter extends GenericParameter
+public class ColorParameter extends ParameterImpl
 {
 	private int defaultRed;
 	private int defaultGreen;

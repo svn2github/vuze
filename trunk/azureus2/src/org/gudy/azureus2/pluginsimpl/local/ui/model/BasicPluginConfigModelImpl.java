@@ -34,8 +34,10 @@ import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.layout.*;
 
 
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+
+import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -108,7 +110,20 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		boolean 	defaultValue )
 	{
-		parameters.add( new Object[]{ key_prefix + key, resource_name, new Boolean(defaultValue) });
+		addBooleanParameter2( key, resource_name, defaultValue );
+	}
+	
+	public org.gudy.azureus2.plugins.ui.config.BooleanParameter
+	addBooleanParameter2(
+		String 		key,
+		String 		resource_name,
+		boolean 	defaultValue )
+	{
+		BooleanParameterImpl res = new BooleanParameterImpl( key_prefix + key, resource_name, defaultValue );
+		
+		parameters.add( res );
+		
+		return( res );
 	}
 	
 	public void
@@ -117,7 +132,33 @@ BasicPluginConfigModelImpl
 		String 		resource_name,
 		String  	defaultValue )
 	{
-		parameters.add( new Object[]{ key_prefix + key, resource_name, defaultValue });
+		addStringParameter2( key, resource_name, defaultValue );
+	}
+	
+	public org.gudy.azureus2.plugins.ui.config.StringParameter
+	addStringParameter2(
+		String 		key,
+		String 		resource_name,
+		String  	defaultValue )
+	{
+		StringParameterImpl res = new StringParameterImpl( key_prefix + key, resource_name, defaultValue );
+	
+		parameters.add( res );
+		
+		return( res );	
+	}
+	
+	public org.gudy.azureus2.plugins.ui.config.IntParameter
+	addIntParameter2(
+		String 		key,
+		String 		resource_name,
+		int	 		defaultValue )
+	{
+		IntParameterImpl res = new IntParameterImpl( key_prefix + key, resource_name, defaultValue );
+		
+		parameters.add( res );
+		
+		return( res );	
 	}
 	
 	public Composite 
@@ -140,28 +181,39 @@ BasicPluginConfigModelImpl
 		gMainTab.setLayout(layout);
 		
 		for (int i=0;i<parameters.size();i++){
-			Object[]	x = (Object[])parameters.get(i);
+			
+			ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
 		
 			label = new Label(gMainTab, SWT.NULL);
-			Messages.setLanguageText(label, (String)x[1]);
+			
+			Messages.setLanguageText(label, param.getLabel());
+			
 			gridData = new GridData();
 			//gridData.widthHint = 40;
 			
-			String	key = (String)x[0];
-			Object	def	= x[2];
-			
+			String	key = param.getKey();
+						
 			//System.out.println( "key = " + key );
 			
-			if ( def instanceof Boolean ){
-			
-				new BooleanParameter(gMainTab, key, ((Boolean)def).booleanValue());
+			if ( param instanceof BooleanParameterImpl ){
 				
+				new BooleanParameter(gMainTab, key, ((BooleanParameterImpl)param).getDefaultValue());
+					
+			}else if ( param instanceof IntParameterImpl ){
+						
+				IntParameter intp = new IntParameter(gMainTab, key, ((IntParameterImpl)param).getDefaultValue());
+				
+				gridData = new GridData();
+				gridData.widthHint = 100;
+				
+				intp.setLayoutData( gridData );
+							
 			}else{
 				gridData = new GridData();
 				
 				gridData.widthHint = 150;
 
-				new StringParameter(gMainTab, key, (String)def ).setLayoutData( gridData );
+				new StringParameter(gMainTab, key, ((StringParameterImpl)param).getDefaultValue() ).setLayoutData( gridData );
 			}
 		}
 		

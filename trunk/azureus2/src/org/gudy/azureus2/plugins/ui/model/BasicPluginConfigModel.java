@@ -26,19 +26,58 @@ package org.gudy.azureus2.plugins.ui.model;
  * @author parg
  *
  */
+
+import org.gudy.azureus2.plugins.ui.config.*;
+
 public interface 
 BasicPluginConfigModel 
 	extends PluginConfigModel
 {
+	/**
+	 * @deprecated use addBooleanParameter2
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @return
+	 */
+	
 	public void
 	addBooleanParameter(
 		String 		key,
 		String 		resource_name,
 		boolean 	defaultValue );
 	
+	/**
+	 * @deprecated user addStringParameter2
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @return
+	 */
+	
 	public void
 	addStringParameter(
 		String 		key,
 		String 		resource_name,
 		String	 	defaultValue );
+	
+	
+	
+	public BooleanParameter
+	addBooleanParameter2(
+		String 		key,
+		String 		resource_name,
+		boolean 	defaultValue );
+	
+	public StringParameter
+	addStringParameter2(
+		String 		key,
+		String 		resource_name,
+		String	 	defaultValue );
+	
+	public IntParameter
+	addIntParameter2(
+		String 		key,
+		String 		resource_name,
+		int	 		defaultValue );
 }

@@ -53,7 +53,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 		String label,
 		boolean defaultValue)
 	{
-	  return new BooleanParameter(pluginKey + "." + key, label, defaultValue);
+	  return new BooleanParameterImpl(pluginKey + "." + key, label, defaultValue);
 	}
 
 	public Parameter createIntParameter(
@@ -61,7 +61,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 		String label,
 		int defaultValue)
 	{
-	  return new IntParameter(pluginKey + "." + key, label, defaultValue);
+	  return new IntParameterImpl(pluginKey + "." + key, label, defaultValue);
 		
 	}
 
@@ -70,7 +70,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 		String label,
 		String defaultValue)
 	{
-		return new StringParameter(pluginKey + "." + key, label, defaultValue);
+		return new StringParameterImpl(pluginKey + "." + key, label, defaultValue);
 	}
 	
 	public Parameter createStringParameter(

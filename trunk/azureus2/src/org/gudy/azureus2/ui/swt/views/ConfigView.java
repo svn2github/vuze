@@ -220,8 +220,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionIPFilter(),
                                          new ConfigSectionStats(),
                                          new ConfigSectionTracker(),
-                                         new ConfigSectionTrackerWeb(),
-                                         new ConfigSectionTrackerExt(),
+                                          new ConfigSectionTrackerExt(),
                                          new ConfigSectionSharing(),
                                          new ConfigSectionLogging()
                                         };
@@ -591,9 +590,9 @@ public class ConfigView extends AbstractIView {
       //Check for dependencies
       for(int j = 0; j < parameters.length; j++) {
         Parameter parameter = parameters[j];
-        if(parameter instanceof org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameter) {
+        if(parameter instanceof org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl) {
           List parametersToEnable =
-            ((org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameter)parameter).getEnabledOnSelectionParameters();
+            ((org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl)parameter).getEnabledOnSelectionParameters();
           List controlsToEnable = new ArrayList();
           Iterator iter = parametersToEnable.iterator();
           while(iter.hasNext()) {
@@ -606,7 +605,7 @@ public class ConfigView extends AbstractIView {
           }
 
           List parametersToDisable =
-          ((org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameter)parameter).getDisabledOnSelectionParameters();
+          ((org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl)parameter).getDisabledOnSelectionParameters();
           List controlsToDisable = new ArrayList();
           iter = parametersToDisable.iterator();
           while(iter.hasNext()) {

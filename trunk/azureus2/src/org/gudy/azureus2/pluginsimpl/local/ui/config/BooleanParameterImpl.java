@@ -21,36 +21,30 @@
  
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-import org.gudy.azureus2.plugins.ui.config.Parameter;
+
+
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+
 
 /**
- * @author epall
+ * @author Olivier
  *
  */
-public class GenericParameter implements Parameter
+public class BooleanParameterImpl extends ParameterImpl implements BooleanParameter
 {
-	private String key;
-	private String label;
+	private boolean defaultValue;
+	public BooleanParameterImpl(String key, String label, boolean defaultValue)
+	{ 
+		super(key, label);
+ 
+		this.defaultValue = defaultValue;
+ 
+	}
 	
-	public GenericParameter(String key, String label)
+	public boolean getDefaultValue()
 	{
-		this.key = key;
-		this.label = label;
-	}
-	/**
-	 * @return Returns the key.
-	 */
-	public String getKey()
-	{
-		return key;
+		return defaultValue;
 	}
 
-	/**
-	 * @return Returns the label.
-	 */
-	public String getLabel()
-	{
-		return label;
-	}
-
+ 
 }

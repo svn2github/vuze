@@ -26,7 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author epall
  *
  */
-public class StringsParameter extends GenericParameter
+public class StringsParameter extends ParameterImpl
 {
 	private String defaultValue;
 	private String[] values;

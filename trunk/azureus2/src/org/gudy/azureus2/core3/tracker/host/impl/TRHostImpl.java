@@ -98,38 +98,34 @@ TRHostImpl
 							{
 								while(true){
 									
-									try{
-	
-										if ( COConfigurationManager.getBooleanParameter( "Tracker Publish Enable", false )){
-											
-											if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", true )){
+									try{											
+										if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", true )){
 										
-												try{
+											try{
 													
-													int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+												int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 												
-													startServer( TRTrackerServerFactory.PR_TCP, port, false );
+												startServer( TRTrackerServerFactory.PR_TCP, port, false );
 													
-												}catch( Throwable e ){
+											}catch( Throwable e ){
 												
-													e.printStackTrace();
-												}
+												e.printStackTrace();
 											}
-											
-											if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", false )){
-										
-													try{
-													
-														int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
-												
-														startServer( TRTrackerServerFactory.PR_TCP, port, true );
-														
-													}catch( Throwable e ){
-												
-														e.printStackTrace();
-													}
-												}
 										}
+											
+										if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", false )){
+										
+											try{
+													
+												int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+												
+												startServer( TRTrackerServerFactory.PR_TCP, port, true );
+														
+											}catch( Throwable e ){
+												
+												e.printStackTrace();
+											}
+										}						
 										
 										Thread.sleep( STATS_PERIOD_SECS*1000 );
 										
@@ -733,11 +729,7 @@ TRHostImpl
 		
 		throws IOException
 	{
-		if ( !COConfigurationManager.getBooleanParameter( "Tracker Publish Enable", true )){
-			
-			return( false );
-		}
-		
+
 		for (int i=0;i<listeners.size();i++){
 
 			TRHostListener	listener;

@@ -26,7 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author epall
  *
  */
-public class DirectoryParameter extends GenericParameter
+public class DirectoryParameter extends ParameterImpl
 {
 	private String defaultValue;
 	public DirectoryParameter(String key, String label, String defaultValue)

@@ -26,7 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author epall
  *
  */
-public class IntsParameter extends GenericParameter
+public class IntsParameter extends ParameterImpl
 {
 	private int defaultValue;
 	private int[] values;

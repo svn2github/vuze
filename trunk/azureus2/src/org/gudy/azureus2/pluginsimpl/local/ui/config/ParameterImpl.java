@@ -21,49 +21,56 @@
  
 package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 
-
 /**
- * @author Olivier
+ * @author epall
  *
  */
-public class BooleanParameter extends GenericParameter implements EnablerParameter
+public class ParameterImpl implements EnablerParameter
 {
-  private List toDisable;
-  private List toEnable;
-  
-	private boolean defaultValue;
-	public BooleanParameter(String key, String label, boolean defaultValue)
-	{ 
-		super(key, label);
-    this.defaultValue = defaultValue;
-    this.toDisable = new ArrayList();
-    this.toEnable = new ArrayList();
-	}
+	private String key;
+	private String label;
 	
-	public boolean getDefaultValue()
+	private List toDisable	= new ArrayList();
+	private List toEnable	= new ArrayList();
+	  
+	public ParameterImpl(String key, String label)
 	{
-		return defaultValue;
+		this.key = key;
+		this.label = label;
+	}
+	/**
+	 * @return Returns the key.
+	 */
+	public String getKey()
+	{
+		return key;
 	}
 
-  public void addDisabledOnSelection(Parameter parameter) {
-    toDisable.add(parameter);
-  }
-  
-  public void addEnabledOnSelection(Parameter parameter) {    
-    toEnable.add(parameter);
-  }
-  
-  public List getDisabledOnSelectionParameters() {
-    return toDisable;
-  }
-  
-  public List getEnabledOnSelectionParameters() {
-    return toEnable;
-  }
+	/**
+	 * @return Returns the label.
+	 */
+	public String getLabel()
+	{
+		return label;
+	}
+	 public void addDisabledOnSelection(Parameter parameter) {
+	    toDisable.add(parameter);
+	  }
+	  
+	  public void addEnabledOnSelection(Parameter parameter) {    
+	    toEnable.add(parameter);
+	  }
+	  
+	  public List getDisabledOnSelectionParameters() {
+	    return toDisable;
+	  }
+	  
+	  public List getEnabledOnSelectionParameters() {
+	    return toEnable;
+	  }
 }

@@ -58,19 +58,19 @@ public class ParameterRepository
 
     for (int i = 0; i < parameters.length; i++) {
       Parameter parameter = parameters[i];
-      if (!(parameter instanceof GenericParameter))
+      if (!(parameter instanceof ParameterImpl))
         continue;
-      String sKey = ((GenericParameter)parameter).getKey();
+      String sKey = ((ParameterImpl)parameter).getKey();
 
-      if(parameter instanceof StringParameter) {
+      if(parameter instanceof StringParameterImpl) {
         def.addParameter(sKey,
-                         ((StringParameter)parameter).getDefaultValue());
-      } else if(parameter instanceof IntParameter) {
+                         ((StringParameterImpl)parameter).getDefaultValue());
+      } else if(parameter instanceof IntParameterImpl) {
         def.addParameter(sKey,
-                         ((IntParameter)parameter).getDefaultValue());
-      } else if(parameter instanceof BooleanParameter) {
+                         ((IntParameterImpl)parameter).getDefaultValue());
+      } else if(parameter instanceof BooleanParameterImpl) {
         def.addParameter(sKey,
-                         ((BooleanParameter)parameter).getDefaultValue());
+                         ((BooleanParameterImpl)parameter).getDefaultValue());
       } else if(parameter instanceof FileParameter) {
         def.addParameter(sKey,
                          ((FileParameter)parameter).getDefaultValue());

@@ -26,10 +26,13 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author Olivier
  *
  */
-public class IntParameter extends GenericParameter
+
+import org.gudy.azureus2.plugins.ui.config.IntParameter;
+
+public class IntParameterImpl extends ParameterImpl implements IntParameter
 {
 	private int defaultValue;
-	public IntParameter(String key, String label, int defaultValue)
+	public IntParameterImpl(String key, String label, int defaultValue)
 	{ 
 		super(key, label);
     this.defaultValue = defaultValue;

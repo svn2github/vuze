@@ -920,8 +920,10 @@ PluginInitializer
   				
   				File	f = files[i];
   				
-  				if ( f.getName().toLowerCase().startsWith( target + "." ) ||
-  				     f.getName().toLowerCase().startsWith( target + "_cvs" )){
+  				String	lc_name = f.getName().toLowerCase();
+  				
+  				if ( lc_name.equals( target + ".jar" ) ||
+  					 lc_name.equals( target + "_cvs.jar" )){
   					  					
   					res.add( f );
   					
