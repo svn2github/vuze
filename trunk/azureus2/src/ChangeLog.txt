@@ -15,6 +15,11 @@ FEATURE: Trackers used in the 'make torrent' wizard are now remembered.
 FEATURE: Embedded tracker [Parg]
 FEATURE: Enhanced peer client identification [Nolar]
 FEATURE: Publishing of torrents to tracker (as opposed to hosting them) [Parg]
+FEATURE: Choosable Colot for the progress bars [Gudy]
+FEATURE: Plugin Support [Gudy]
+FEATURE: Open a torrent file without using the default save location [Gudy]
+FEATURE: Added a FAQ and a Donate link in Help menu [Gudy]
+FEATURE: New languages : Brazilian-Portuguese, Czech, Lithuanian [Gouss - Translators]
 
 CHANGE: Some GUI Changes, so that SWT WinXP theme is better supported [Gudy]
 CHANGE: Saving of torrent files to central dir now optional [Nolar]
