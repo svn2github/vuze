@@ -228,6 +228,7 @@ public class Wizard {
 
 		
  	//Higher, for macOSX needs.
+ 	// TODO Dynamically adjust size
     wizardWindow.setSize(400, 500);
     
 	Utils.centreWindow( wizardWindow );
