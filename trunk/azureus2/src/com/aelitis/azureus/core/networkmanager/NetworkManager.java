@@ -104,7 +104,7 @@ public class NetworkManager {
    * connections, or 1452 (1492-40) for PPPOE connections.
    * @return mss size in bytes
    */
-  protected int getTcpMssSize() {  return tcp_mss_size;  }
+  public int getTcpMssSize() {  return tcp_mss_size;  }
   
 
   private void writeProcessingLoop() {

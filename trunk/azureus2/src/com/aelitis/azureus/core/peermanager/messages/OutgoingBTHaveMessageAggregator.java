@@ -22,9 +22,97 @@
 
 package com.aelitis.azureus.core.peermanager.messages;
 
+import java.util.*;
+
+import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
+
+
 /**
- *
+ * Utility class to enable write aggregation of BT Have messages,
+ * in order to save bandwidth by not wasting a whole network packet
+ * on a single small 9-byte message, and instead pad them onto other
+ * messages.
  */
 public class OutgoingBTHaveMessageAggregator {
+  
+  private final ArrayList pending_haves = new ArrayList();
+  private final OutgoingMessageQueue outgoing_message_q;
+    
+  private final OutgoingMessageQueue.AddedMessageListener added_message_listener = new OutgoingMessageQueue.AddedMessageListener() {
+    public void messageAdded( ProtocolMessage message ) {
+      //if another message is going to be sent anyway, add our haves as well
+      if( message.getType() != BTProtocolMessage.BT_HAVE ) {
+        sendPendingHaves();
+      }
+    }
+  };
+  
+  
+  /**
+   * Create a new aggregator, which will send messages out the given queue.
+   * @param outgoing_message_q
+   */
+  public OutgoingBTHaveMessageAggregator( OutgoingMessageQueue outgoing_message_q ) {
+    this.outgoing_message_q = outgoing_message_q;
+    outgoing_message_q.registerAddedListener( added_message_listener );
+  }
+  
+  
+  /**
+   * Queue a new have message for aggregated sending.
+   * @param piece_number of the have message
+   * @param force if true, send this and any other pending haves right away
+   */
+  public void queueHaveMessage( int piece_number, boolean force ) {
+    synchronized( pending_haves ) {
+      BTHave msg = new BTHave( piece_number );
+      pending_haves.add( msg );
+      if( force ) {
+        sendPendingHaves();
+      }
+      else {
+        int pending_bytes = pending_haves.size() * msg.getTotalMessageByteSize();
+        if( pending_bytes >= NetworkManager.getSingleton().getTcpMssSize() ) {
+          System.out.println("enough pending haves for a full packet!");
+          //there's enough pending bytes to fill a packet payload
+          sendPendingHaves();
+        }
+      }
+    }
+  }
+  
+  
+  /**
+   * Destroy the aggregator, along with any pending messages.
+   */
+  public void destroy() {
+    synchronized( pending_haves ) {
+      for( int i=0; i < pending_haves.size(); i++ ) {
+        BTHave msg = (BTHave)pending_haves.get( i );
+        msg.destroy();
+      }
+      pending_haves.clear();
+    }
+  }
+  
+  
+  /**
+   * Force send of any aggregated/pending have messages.
+   */
+  public void forceSendOfPending() {   
+    sendPendingHaves();
+  }
+  
+  
+  private void sendPendingHaves() {    
+    synchronized( pending_haves ) {
+      for( int i=0; i < pending_haves.size(); i++ ) {
+        BTHave msg = (BTHave)pending_haves.get( i ); 
+        outgoing_message_q.addMessage( msg );
+      }
+      pending_haves.clear();
+    }
+  }
 
 }
