@@ -279,6 +279,15 @@ public class FileUtil {
   	
   			return(readResilientConfigFile( file_name, 0 ));
   			
+  		}catch( Throwable e ){
+  			
+  				// just in case something went wrong, make sure we just return a blank
+  				// map
+  			
+  			e.printStackTrace();
+  			
+  			return( new HashMap());
+  			
   		}finally{
   			
   			releaseReservedFileHandles();

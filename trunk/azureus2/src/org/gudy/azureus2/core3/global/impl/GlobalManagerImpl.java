@@ -599,7 +599,8 @@ public class GlobalManagerImpl
 
   private void loadDownloads(STProgressListener listener) 
   {
-    int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
+  	try{
+      int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
       Map map = FileUtil.readResilientConfigFile("downloads.config");
       
       boolean debug = Boolean.getBoolean("debug");
@@ -757,6 +758,12 @@ public class GlobalManagerImpl
       // so fix them up.
       fixUpDownloadManagerPositions();
       LGLogger.log("Loaded " + managers.size() + " torrents");
+  	}catch( Throwable e ){
+  			// there's been problems with corrupted download files stopping AZ from starting
+  			// added this to try and prevent such foolishness
+  		
+  		e.printStackTrace();
+  	}
   }
 
   private void saveDownloads() 
