@@ -37,9 +37,9 @@ import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.peermanager.UploadManager;
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
-import com.aelitis.azureus.core.peermanager.uploadmanager.UploadManager;
 import com.aelitis.azureus.core.peermanager.utils.*;
 
 
@@ -139,9 +139,7 @@ PEPeerTransportProtocol
   
   
   protected AEMonitor	this_mon	= new AEMonitor( "PEPeerTransportProtocol" );
-  
-  
-  
+
   private final Map recent_outgoing_requests = new LinkedHashMap( 100, .75F, true ) {
     public boolean removeEldestEntry(Map.Entry eldest) {
       return size() > 100;
@@ -292,7 +290,7 @@ PEPeerTransportProtocol
 
       public void messageSent( ProtocolMessage message ) { /*ignore*/ }
 
-      public void bytesSent( int byte_count ) {
+      public void bytesSent( int byte_count ) {        
         //update keep-alive info
         last_bytes_sent_time = SystemTime.getCurrentTime();
         //update stats
@@ -303,7 +301,6 @@ PEPeerTransportProtocol
     
     //register the new connection with the upload manager so that peer messages get processed
     UploadManager.getSingleton().registerStandardPeerConnection( connection );
-    
     connection_registered = true;
   }
 

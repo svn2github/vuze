@@ -41,11 +41,21 @@ public class ByteBucket {
   /**
    * Create a new byte-bucket with the given byte fill (guaranteed) rate.
    * Burst rate is set to default 1.2X of given fill rate.
-   * @param rate_bytes_per_sec
+   * @param rate_bytes_per_sec fill rate
    */
   public ByteBucket( int rate_bytes_per_sec ) {
+    this( rate_bytes_per_sec, rate_bytes_per_sec + (rate_bytes_per_sec/5) );
+  }
+  
+  /**
+   * Create a new byte-bucket with the given byte fill (guaranteed) rate
+   * and the given burst rate.
+   * @param rate_bytes_per_sec fill rate
+   * @param burst_rate max rate
+   */
+  public ByteBucket( int rate_bytes_per_sec, int burst_rate ) {
     this.rate = rate_bytes_per_sec;
-    burst_rate = rate_bytes_per_sec + (rate_bytes_per_sec/5);
+    this.burst_rate = burst_rate;
     avail_bytes = 0; //start bucket empty
     prev_update_time = SystemTime.getCurrentTime();
     ensureByteBucketMinBurstRate();
@@ -68,7 +78,7 @@ public class ByteBucket {
    */
   public void setBytesUsed( int bytes_used ) {
     avail_bytes -= bytes_used;
-    //System.out.println("  bytes_used="+bytes_used+", avail_bytes="+avail_bytes);
+    //TODO check for negative?
   }
   
   
@@ -122,10 +132,9 @@ public class ByteBucket {
       int num_new_bytes = (int)((time_diff * rate) / 1000);
       prev_update_time = current_time;
       avail_bytes += num_new_bytes;
-      if( avail_bytes < 0 )  System.out.println("ERROR: avail_bytes < 0: " + avail_bytes);//TODO
+      if( avail_bytes < 0 )  Debug.out("ERROR: avail_bytes < 0: " + avail_bytes);//TODO
       if( avail_bytes > burst_rate ) avail_bytes = burst_rate;
     }
-    //System.out.println("time_diff="+time_diff+", rate=" +rate+ ", num_new_bytes=" +num_new_bytes+", avail_bytes="+avail_bytes);
   }
 
   

@@ -53,9 +53,7 @@ public class NetworkManager {
    * Get the singleton instance of the network manager.
    * @return the network manager
    */
-  public static NetworkManager getSingleton() {
-    return instance;
-  }
+  public static NetworkManager getSingleton() {  return instance;  }
   
   
   /**

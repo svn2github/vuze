@@ -22,13 +22,51 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import java.io.IOException;
+
+
 
 /**
- * A rate-controlled write entity backed by a single peer connection.
+ * A fast write entity backed by a single peer connection.
  */
 public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
-
-  public boolean doWrite() {
-    return false;
+  
+  private final Connection connection;
+  private final RateHandler rate_handler;
+  
+  public BurstingSinglePeerUploader( Connection connection, RateHandler rate_handler ) {
+    this.connection = connection;
+    this.rate_handler = rate_handler;
   }
+  
+  
+////////////////RateControlledWriteEntity implementation ////////////////////
+  
+  public boolean doWrite() {
+    if( !connection.getTransport().isReadyForWrite() )  return false;
+    
+    int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
+    if( num_bytes_allowed < 1 )  return false;
+    
+    int num_bytes_available = connection.getOutgoingMessageQueue().getTotalSize();
+    if( num_bytes_available < 1 )  return false;
+    
+    int num_bytes_to_write = Math.min( num_bytes_allowed, num_bytes_available );
+    
+    int written = 0;
+    try {
+      written = connection.getOutgoingMessageQueue().deliverToTransport( connection.getTransport(), num_bytes_to_write, false );
+    }
+    catch( IOException e ) {
+      connection.notifyOfException( e );
+    }
+    
+    if( written < 1 )  return false;
+    
+    rate_handler.bytesWritten( written );
+    return true;
+  }
+
+/////////////////////////////////////////////////////////////////////////////
+  
 }

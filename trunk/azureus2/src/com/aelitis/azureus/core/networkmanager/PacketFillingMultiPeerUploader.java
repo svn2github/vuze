@@ -171,8 +171,9 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   /**
    * Remove the given connection from this upload entity.
    * @param peer_connection to be removed
+   * @return true if the connection was found and removed, false if not removed
    */
-  public void removePeerConnection( Connection peer_connection ) {
+  public boolean removePeerConnection( Connection peer_connection ) {
     try {
       lists_lock.enter();
       
@@ -180,14 +181,14 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       OutgoingMessageQueue.MessageQueueListener listener = (OutgoingMessageQueue.MessageQueueListener)stalled_connections.remove( peer_connection );
       if( listener != null ) {
         peer_connection.getOutgoingMessageQueue().cancelQueueListener( listener );
-        return;
+        return true;
       }
       
       //look for the connection in the waiting list and cancel listener if found
       PeerData peer_data = (PeerData)waiting_connections.remove( peer_connection );
       if( peer_data != null ) {
         peer_connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener );
-        return;
+        return true;
       }
       
       //look for the connection in the ready list, remove and cancel listener if found
@@ -196,9 +197,11 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         if( peer_data.connection == peer_connection ) {  //found
           peer_connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener );
           i.remove();
-          return;
+          return true;
         }
       }
+      
+      return false;
     }
     finally {
       lists_lock.exit();
@@ -501,24 +504,5 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   }
 
  ///////////////////////////////////////////////////////////////////////////////
-  
-  
-  /**
-   * Handler to allow external control of the write rate.
-   */
-  public interface RateHandler {
-    /**
-     * Get the current number of bytes allowed to be written by the entity.
-     * @return number of bytes allowed
-     */
-    public int getCurrentNumBytesAllowed();
-    
-    /**
-     * Notification of any bytes written from the entity.
-     * @param num_bytes_written 
-     */
-    public void bytesWritten( int num_bytes_written );
-  }
-
   
 }
