@@ -177,7 +177,7 @@ public class MyTorrentsView implements IView, IComponentListener {
             itemStop.setEnabled(false);
             itemRemove.setEnabled(true);
           }
-          if (state == DownloadManager.STATE_WAITING || state == DownloadManager.STATE_STOPPED) {
+          if (state == DownloadManager.STATE_WAITING || state == DownloadManager.STATE_STOPPED || state == DownloadManager.STATE_READY) {
             itemStart.setEnabled(true);
           }
         }
@@ -196,6 +196,9 @@ public class MyTorrentsView implements IView, IComponentListener {
         if (dm != null) {
           if (dm.getState() == DownloadManager.STATE_WAITING || dm.getState() == DownloadManager.STATE_STOPPED) {
             dm.initialize();
+          }
+          if(dm.getState() == DownloadManager.STATE_READY) {
+            dm.startDownload();
           }
         }
       }

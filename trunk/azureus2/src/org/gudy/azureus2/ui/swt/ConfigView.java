@@ -103,6 +103,11 @@ public class ConfigView implements IView {
     gridData.widthHint = 40;
     new IntParameter(gConfig, "High Port", 6889).setLayoutData(gridData);
 
+    new Label(gConfig, SWT.NULL).setText("Max active torrents (0 : unlimited)\nNew torrents won't start if you are downloading/seeding more");
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    new IntParameter(gConfig, "max active torrents", 4).setLayoutData(gridData);
+    
     new Label(gConfig, SWT.NULL).setText("Maximum number of connections per torrent (0 : unlimited) ");
     gridData = new GridData();
     gridData.widthHint = 30;

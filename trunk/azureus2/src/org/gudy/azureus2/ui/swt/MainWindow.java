@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.Logger;
@@ -445,10 +446,13 @@ public class MainWindow implements IComponentListener {
       public void run() {
         mainWindow.setFocus();
         DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
+        dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path",""));
         dDialog.setText("Choose the save path");
         String savePath = dDialog.open();
         if (savePath == null)
           return;
+        ConfigurationManager.getInstance().setParameter("Default Path",savePath);
+        ConfigurationManager.getInstance().save();        
         globalManager.addDownloadManager(new DownloadManager(globalManager, _fileName, savePath));
       }
     });

@@ -44,7 +44,7 @@ public class GlobalManager extends Component {
               alreadyOneAllocatingOrChecking = true;
             }
             if (manager.getState() == DownloadManager.STATE_READY
-              && nbStarted < ConfigurationManager.getInstance().getIntParameter("max active torrents", 2)) {
+              && nbStarted < ConfigurationManager.getInstance().getIntParameter("max active torrents", 4)) {
               manager.startDownload();
             }
 
