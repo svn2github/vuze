@@ -85,13 +85,15 @@ PRUDPPacketHandlerImpl
 				
 				address = new InetSocketAddress("127.0.0.1",port);
 				
+				socket = new DatagramSocket( port );
+				
 			}else{
 				
 				address = new InetSocketAddress(InetAddress.getByName(bind_ip), port);
+				
+				socket = new DatagramSocket( address );		
 			}
-			
-			socket = new DatagramSocket(address);
-			
+					
 			socket.setReuseAddress(true);
 			
 			socket.setSoTimeout( RECEIVE_TIMEOUT );
@@ -162,11 +164,16 @@ PRUDPPacketHandlerImpl
 		throws IOException
 	{
 		byte[]	packet_data = packet.getData();
+	
 		
 		PRUDPPacket reply = 
 			PRUDPPacketReply.deserialiseReply( 
-				new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet_data.length )));
-			
+				new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet.getLength())));
+
+		System.out.println( "PRUDPPacketHandler: received " + reply.getString());
+		System.out.println( "\tdst:" + socket.getLocalSocketAddress());
+		System.out.println( "\tsrc:" + packet.getSocketAddress());
+		
 		PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)requests.get(new Integer(reply.getTransactionId()));
 		
 		if ( request == null ){
@@ -203,6 +210,10 @@ PRUDPPacketHandlerImpl
 					
 				requests.put( new Integer( request_packet.getTransactionId()), request );
 			}
+			
+			System.out.println( "PRUDPPacketHandler: sending " + request_packet.getString());
+			System.out.println( "\tsrc:" + socket.getLocalSocketAddress());
+			System.out.println( "\tdst:" + packet.getSocketAddress());
 			
 			try{
 				socket.send( packet );

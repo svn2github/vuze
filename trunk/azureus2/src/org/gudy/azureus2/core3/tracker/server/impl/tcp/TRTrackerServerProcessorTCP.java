@@ -31,11 +31,11 @@ import sun.misc.BASE64Decoder;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
 TRTrackerServerProcessorTCP
+	extends 	TRTrackerServerProcessor
 	implements 	Runnable
 {
 	protected static final int SOCKET_TIMEOUT				= 5000;
@@ -215,8 +215,6 @@ TRTrackerServerProcessorTCP
 					
 					return;
 				}
-
-				TRTrackerServerTorrentImpl	torrent = null;
 				
 				int	pos = 0;
 					
@@ -301,137 +299,25 @@ TRTrackerServerProcessorTCP
 						break;
 					}
 				}
-
-				if ( request_type != TRTrackerServerRequest.RT_FULL_SCRAPE ){
 				
-					if ( hash_str == null ){
-						
-						throw( new Exception( "Hash missing from request "));
-					}
-											
-					byte[]	hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
-					
-					// System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
-										
-					// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash_bytes));
-														
-					torrent = server.getTorrent( hash_bytes );
-						
-					if ( torrent == null ){
-							
-						if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
-			
-							throw( new Exception( "Torrent unauthorised "));
-							
-						}else{
-							
-							try{
-							
-								server.permit( hash_bytes, false );
-							
-								torrent = server.getTorrent( hash_bytes );
-								
-							}catch( Throwable e ){
-								
-								throw( new Exception( "Torrent unauthorised "));								
-							}
-						}
-					}
+				byte[]	hash_bytes = null;
 				
-					if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
+				if ( hash_str != null ){
 					
-						if ( peer_id == null ){
-							
-							throw( new Exception( "peer_id missing from request"));
-						}
-						
-						long	interval = server.getRetryInterval();
-						
-						torrent.peerContact( 	event, 
-												peer_id, port, client_ip_address,
-												uploaded, downloaded, left, num_peers,
-												interval );
-						
-						torrent.exportPeersToMap( root );
-		
-						root.put( "interval", new Long( interval ));
-						
-					}else{
-						
-						
-						Map	files = new ByteEncodedKeyHashMap();
-					
-						Map	hash_entry = new HashMap();
-					
-						byte[]	torrent_hash = torrent.getHash().getHash();
-									
-						String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
-				
-						// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
-	
-						files.put( str_hash, hash_entry );
-					
-						TRTrackerServerPeer[]	peers = torrent.getPeers();
-					
-						long	seeds 		= 0;
-						long	non_seeds	= 0;
-					
-						for (int i=0;i<peers.length;i++){
-						
-							if ( peers[i].getAmountLeft() == 0 ){
-							
-								seeds++;
-							}else{
-								non_seeds++;
-							}
-						}
-					
-						hash_entry.put( "complete", new Long( seeds ));
-						hash_entry.put( "incomplete", new Long( non_seeds ));
-					
-						root.put( "files", files );
-					}
-				}else{
-							
-					Map	files = new ByteEncodedKeyHashMap();
-						
-					Map	hash_entry = new HashMap();
-						
-					TRTrackerServerTorrentImpl[] torrents = server.getTorrents();
-						
-					for (int i=0;i<torrents.length;i++){
-						
-						TRTrackerServerTorrentImpl	this_torrent = torrents[i];
-						
-						byte[]	torrent_hash = this_torrent.getHash().getHash();
-											
-						String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
-						
-						// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
-			
-						files.put( str_hash, hash_entry );
-							
-						TRTrackerServerPeer[]	peers = this_torrent.getPeers();
-							
-						long	seeds 		= 0;
-						long	non_seeds	= 0;
-							
-						for (int j=0;j<peers.length;j++){
-								
-							if ( peers[j].getAmountLeft() == 0 ){
-									
-								seeds++;
-							}else{
-								non_seeds++;
-							}
-						}
-							
-						hash_entry.put( "complete", new Long( seeds ));
-						hash_entry.put( "incomplete", new Long( non_seeds ));
-					}
-						
-					root.put( "files", files );
+					hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
 				}
+				
+				TRTrackerServerTorrentImpl	torrent = 
+						processTrackerRequest( 
+							server, root,
+							request_type,
+							hash_bytes,
+							peer_id,
+							event,
+							port,
+							client_ip_address,
+							downloaded, uploaded, left,
+							num_peers );
 				
 				server.postProcess( torrent, request_type, root );
 				

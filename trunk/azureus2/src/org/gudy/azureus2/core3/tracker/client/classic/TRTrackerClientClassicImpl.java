@@ -929,11 +929,21 @@ TRTrackerClientClassicImpl
  					}
  				}
  				
+ 				String	ip_str = getURLParam( url_str, "ip" );
+ 				
+ 				int	ip = 0;
+ 				
+ 				if ( ip_str != null ){
+ 					
+ 					ip = PRUDPPacket.addressToInt( ip_str);
+ 				}
+ 				
  				announce_request.setDetails(
  					torrent_hash,
  					peerId,
 					getLongURLParam( url_str, "downloaded" ), 
 					event,
+					ip,
 					(int)getLongURLParam( url_str, "numwant" ), 
 					getLongURLParam( url_str, "left" ), 
 					(short)getLongURLParam( url_str, "port" ),

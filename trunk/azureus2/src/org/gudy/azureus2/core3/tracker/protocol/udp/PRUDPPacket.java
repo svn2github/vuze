@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
  *
  */
 
+import java.net.*;
 import java.io.*;
 import java.util.*;
 
@@ -91,5 +92,33 @@ PRUDPPacket
 	getString()
 	{
 		return( "type=" + type);
+	}
+	
+	public static int
+	addressToInt(
+		String		address )
+	
+		throws UnknownHostException
+	{
+		InetAddress i_address = InetAddress.getByName(address);
+		
+		byte[]	bytes = i_address.getAddress();
+		
+		int	resp = bytes[0]<<24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3];
+	
+		// System.out.println( "addressToInt: " + address + " -> " + Integer.toHexString(resp));
+		
+		return( resp );
+	}
+	
+	public static String
+	intToAddress(
+		int		value )
+	
+		throws UnknownHostException
+	{
+		byte[]	bytes = { (byte)(value>>24), (byte)(value>>16),(byte)(value>>8),(byte)value };
+		
+		return( InetAddress.getByAddress(bytes).getHostAddress());
 	}
 }

@@ -62,7 +62,7 @@ TRTrackerServerProcessorUDP
 	{
 		System.out.println( "UDPProcessor: packet length = " + packet.getLength() + ", address = " + packet.getAddress() + ", port = " + packet.getPort());
 		
-		DataInputStream is = new DataInputStream(new ByteArrayInputStream(packet.getData()));
+		DataInputStream is = new DataInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
 		
 		try{
 			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( is );

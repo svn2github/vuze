@@ -58,16 +58,20 @@ TRTrackerServerUDP
 			
 			InetSocketAddress	address;
 			
+			DatagramSocket	socket;
+			
 			if ( bind_ip.length() == 0 ){
 				
-				address = new InetSocketAddress("127.0.0.1",port);
+				address = new InetSocketAddress(InetAddress.getByName("127.0.0.1"),port);
+				
+				socket = new DatagramSocket( port );
 				
 			}else{
 				
 				address = new InetSocketAddress(InetAddress.getByName(bind_ip), port);
+
+				socket = new DatagramSocket(address);
 			}
-			
-			DatagramSocket	socket = new DatagramSocket(address);
 			
 			socket.setReuseAddress(true);
 			

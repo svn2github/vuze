@@ -32,6 +32,10 @@ public class
 PRUDPPacketReplyAnnounce
 extends PRUDPPacketReply
 {
+	protected int		interval;
+	protected int[]		addresses;
+	protected short[]	ports;
+	
 	public
 	PRUDPPacketReplyAnnounce(
 		int			trans_id )
@@ -47,16 +51,74 @@ extends PRUDPPacketReply
 		throws IOException
 	{
 		super( ACT_REPLY_ANNOUNCE, trans_id );
+		
+		interval = is.readInt();
+		
+		addresses 	= new int[is.available()/6];
+		ports		= new short[addresses.length];
+		
+		for (int i=0;i<addresses.length;i++){
+			
+			addresses[i] 	= is.readInt();
+			ports[i]		= is.readShort();
+		}
 	}
 	
+	public void
+	setInterval(
+		int		value )
+	{
+		interval	= value;
+	}
+	
+	public int
+	getInterval()
+	{
+		return( interval );
+	}
+	
+	public void
+	setPeers(
+		int[]		_addresses,
+		short[]		_ports )
+	{
+		addresses 	= _addresses;
+		ports		= _ports;
+	}
+	
+	public int[]
+	getAddresses()
+	{
+		return( addresses );
+	}
+	
+	public short[]
+	getPorts()
+	{
+		return( ports );
+	}
 	
 	public void
 	serialise(
 		DataOutputStream	os )
 	
-	throws IOException
+		throws IOException
 	{
 		super.serialise(os);
+		
+		os.writeInt( interval );
+		
+		for (int i=0;i<addresses.length;i++){
+			
+			os.writeInt( addresses[i] );
+			os.writeShort( ports[i] );
+		}
+	}
+	
+	public String
+	getString()
+	{
+		return( super.getString() + "[interval=" + interval + ", addresses=" + addresses.length + "]" );
 	}
 }
 

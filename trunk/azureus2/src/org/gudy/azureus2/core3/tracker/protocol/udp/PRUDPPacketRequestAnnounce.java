@@ -37,18 +37,31 @@ PRUDPPacketRequestAnnounce
 	/*
 	char m_info_hash[20];
 	char m_peer_id[20];
-	__int64 m_downloaded;
-	int m_event;
-	int m_num_want;
-	__int64 m_left;
-	short m_port;
-	__int64 m_uploaded;
+<XTF> 	__int64 m_downloaded;
+<XTF> 	__int64 m_left;
+<XTF> 	__int64 m_uploaded;
+<XTF> 	int m_event;
+<XTF> 	int m_ipa;
+<XTF> 	int m_num_want;
+<XTF> 	short m_port;
 	*/
 	
-	public static final int	EV_STARTED		= 1;
-	public static final int	EV_STOPPED		= 2;
-	public static final int	EV_COMPLETED	= 3;
-	public static final int	EV_UPDATE		= 4;
+	/*
+	enum t_event
+	<XTF> 	{
+		<XTF> 		e_none,
+		<XTF> 		e_completed,
+		<XTF> 		e_started,
+		<XTF> 		e_stopped,
+		<XTF> 	};
+	<pargzzz> heh
+	<XTF> 0, 1, 2, 3
+	*/
+	
+	public static final int	EV_STARTED		= 2;
+	public static final int	EV_STOPPED		= 3;
+	public static final int	EV_COMPLETED	= 1;
+	public static final int	EV_UPDATE		= 0;
 	
 	protected byte[]		hash;
 	protected byte[]		peer_id;
@@ -58,6 +71,7 @@ PRUDPPacketRequestAnnounce
 	protected long			left;
 	protected short			port;
 	protected long			uploaded;
+	protected int			ip_address;
 	
 	public
 	PRUDPPacketRequestAnnounce(
@@ -83,11 +97,12 @@ PRUDPPacketRequestAnnounce
 		is.read( peer_id );
 		
 		downloaded 	= is.readLong();
-		event 		= is.readInt();
-		num_want	= is.readInt();
 		left		= is.readLong();
-		port		= is.readShort();
 		uploaded	= is.readLong();
+		event 		= is.readInt();
+		ip_address	= is.readInt();
+		num_want	= is.readInt();
+		port		= is.readShort();
 	}
 	
 	public void
@@ -96,15 +111,19 @@ PRUDPPacketRequestAnnounce
 		byte[]		_peer_id,
 		long		_downloaded,
 		int			_event,
+		int			_ip_address,
 		int			_num_want,
 		long		_left,
 		short		_port,
 		long		_uploaded )
 	{
+		// TODO: IP Address
+		
 		hash		= _hash;
 		peer_id		= _peer_id;
 		downloaded	= _downloaded;
 		event		= _event;
+		ip_address	= _ip_address;
 		num_want	= _num_want;
 		left		= _left;
 		port		= _port;
@@ -122,11 +141,12 @@ PRUDPPacketRequestAnnounce
 		os.write( hash );
 		os.write( peer_id );
 		os.writeLong( downloaded );
-		os.writeInt( event );
-		os.writeInt( num_want );
-		os.writeLong( left );
-		os.writeShort( port );
 		os.writeLong( uploaded );
+		os.writeLong( left );
+		os.writeInt( event );
+		os.writeInt( ip_address );
+		os.writeInt( num_want );
+		os.writeShort( port );
 	}
 	
 	public String
@@ -137,6 +157,7 @@ PRUDPPacketRequestAnnounce
 					"peer=" + ByteFormatter.nicePrint( peer_id, true ) +
 					"dl=" + downloaded +
 					"ev=" + event +
+					"ip=" + ip_address + 
 					"nw=" + num_want +
 					"left="+left+
 					"port=" + port +
