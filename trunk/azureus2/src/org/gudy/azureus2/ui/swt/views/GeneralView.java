@@ -501,7 +501,8 @@ public class GeneralView extends AbstractIView {
       }
     });
     
-    Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
+    genComposite.layout();
+    //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
   }
 
   /* (non-Javadoc)

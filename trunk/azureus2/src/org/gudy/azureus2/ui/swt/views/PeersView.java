@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeerRow;
@@ -196,7 +197,8 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
 
     final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
-        
+    itemChangeTable.setImage(ImageRepository.getImage("columns"));
+    
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();

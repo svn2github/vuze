@@ -47,6 +47,7 @@ FEATURE: Option to play a sound on download finish [Rele]
 FEATURE: Download Basket: TrayWindow always visible for Drag-n-Drop of .torrents [Rele]
 FEATURE: Clickable Tracker URL in Details/General copies the announce URL into clipboard [Rele]
 FEATURE: Tab hot keys: F6 selects next Tab, Shift+F6 selects previous Tab, ESC or CTRL+F4 closes current Tab [Rele]
+FEATURE: Extended Plugin interface [Parg,Gudy]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
