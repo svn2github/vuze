@@ -350,7 +350,7 @@ SSDPImpl
 		long	successful_accepts 	= 0;
 		long	failed_accepts		= 0;
 
-		int	port = socket.getPort();
+		int	port = socket.getLocalPort();
 		
 		while(true){
 			
@@ -369,7 +369,7 @@ SSDPImpl
 				
 				failed_accepts++;
 				
-				LGLogger.log( "PRUDPPacketReceiver: receive failed on port " + port, e ); 
+				LGLogger.log( "SSDP: receive failed on port " + port, e ); 
 
 				if ( failed_accepts > 100 && successful_accepts == 0 ){
 					

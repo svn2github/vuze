@@ -97,7 +97,7 @@ LGLogger
 		String		text, 
 		Throwable	e )
 	{
-		LGLoggerImpl.log(componentId,event,ERROR, text.concat(" ('").concat(exceptionToString(e)).concat("')") );
+		LGLoggerImpl.log(componentId,event,ERROR, text + " - " + exceptionToString(e));
 	}
 	
 	public static void 
