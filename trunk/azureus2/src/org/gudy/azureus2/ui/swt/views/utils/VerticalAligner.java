@@ -28,39 +28,35 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 
 /** Workaround Eclipse Bug Bug 42416
  *   "[Platform Inconsistency] GC(Table) has wrong origin"
  *
  */
-public class VerticalAligner implements ParameterListener {
-  private static VerticalAligner instance;
+public class 
+VerticalAligner 
+{    
+  private static boolean bFixGTKBug;
   
-  private static AEMonitor	class_mon = new AEMonitor( "VerticalAligner:class" );
-  
-  private boolean bFixGTKBug;
-  
-  public static VerticalAligner getInstance() {
-  	try{
-  		class_mon.enter();
+  static{
+  	COConfigurationManager.addParameterListener(
+  		"SWT_bGTKTableBug",
+		new ParameterListener()
+		{
+  			public void 
+			parameterChanged(String parameterName) 
+  			{
+  				readConfig();
+  			}
+		});
   	
-  		if(instance == null) instance = new VerticalAligner();
-  		
-  		return instance;
-  	}finally{
-  		
-  		class_mon.exit();
-  	}
+  	readConfig();
   }
   
-  private VerticalAligner() {
-  	parameterChanged("");
-  	COConfigurationManager.addParameterListener("SWT_bGTKTableBug",this);
-  }
-  
-	public void parameterChanged(String parameterName) {
+	protected static void 
+	readConfig()
+	{
 	  // some people switch from motif to gtk & back again, so make this
 	  // only apply to GTK, even if it was enabled prior
   	bFixGTKBug = COConfigurationManager.getBooleanParameter("SWT_bGTKTableBug") &&
@@ -68,19 +64,19 @@ public class VerticalAligner implements ParameterListener {
 	}
   
   public static int getTableAdjustVerticalBy(Table t) {
-   return getInstance().COgetTableAdjustVerticalBy(t);
+   return COgetTableAdjustVerticalBy(t);
   }      
   public static int getTableAdjustHorizontallyBy(Table t) {
-   return getInstance().COgetTableAdjustHorizontallyBy(t);
+   return COgetTableAdjustHorizontallyBy(t);
   }      
 
-  public int COgetTableAdjustVerticalBy(Table t) {
+  public static int COgetTableAdjustVerticalBy(Table t) {
     if (!bFixGTKBug || t == null || t.isDisposed())
       return 0;
    return -t.getHeaderHeight(); 
   }      
   
-  public int COgetTableAdjustHorizontallyBy(Table t) {
+  public static int COgetTableAdjustHorizontallyBy(Table t) {
     if (!bFixGTKBug || t == null || t.isDisposed())
       return 0;
     ScrollBar sb = t.getHorizontalBar();
