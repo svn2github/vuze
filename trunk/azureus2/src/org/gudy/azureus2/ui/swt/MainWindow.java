@@ -439,7 +439,7 @@ public class MainWindow implements IComponentListener {
     catch (NoClassDefFoundError e) {}
 
     if (available) {
-      trayIcon = new SystemTray(this)
+      trayIcon = new SystemTray(this);
     }
     else
       tray = new TrayWindow(this);
