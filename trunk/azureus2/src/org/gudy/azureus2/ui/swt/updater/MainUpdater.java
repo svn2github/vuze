@@ -55,7 +55,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
     listener.processName(name);
   }
   
-  public void reportURLs(String[] urls) {
+  public void reportURLs(String[] urls, int x) {
     if(urls != null) {
       LGLogger.log("SWT Updater found " + urls.length + " urls");
       UpdateLogger.log("SWT Updater found " + urls.length + " urls");
