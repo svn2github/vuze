@@ -87,7 +87,7 @@ public class TRTrackerScraperResponseImpl
       status = iStatus;
     }
 
-    if (!sLastStatus.equals(sStatus)) {
+    if (sStatus != null && !sLastStatus.equals(sStatus)) {
       sLastStatus = this.sStatus;
       this.sStatus = sStatus;
     }
