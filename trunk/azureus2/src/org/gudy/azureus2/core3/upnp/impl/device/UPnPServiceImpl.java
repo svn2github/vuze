@@ -32,6 +32,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.upnp.*;
+import org.gudy.azureus2.core3.upnp.services.UPnPSpecificService;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
@@ -171,7 +172,7 @@ UPnPServiceImpl
 			try{
 				InputStream	data = rd.download();
 				
-				SimpleXMLParserDocument	doc = SimpleXMLParserDocumentFactory.create( data );
+				SimpleXMLParserDocument	doc = device.getUPnP().parseXML( data );
 
 				parseActions( doc.getChild( "ActionList" ));
 				
@@ -215,5 +216,22 @@ UPnPServiceImpl
 		ResourceDownloaderException e )
 	{
 		device.getUPnP().log( e );
+	}
+	
+	public UPnPSpecificService
+	getSpecificService()
+	{
+		if ( service_type.equalsIgnoreCase("urn:schemas-upnp-org:service:WANIPConnection:1")){
+			
+			return( new UPnPSSWANIPConnectionImpl( this ));
+			
+		}else if ( service_type.equalsIgnoreCase("urn:schemas-upnp-org:service:WANPPPConnection:1")){
+			
+			return( new UPnPSSWANPPPConnectionImpl( this ));
+			
+		}else{
+			
+			return( null );
+		}
 	}
 }

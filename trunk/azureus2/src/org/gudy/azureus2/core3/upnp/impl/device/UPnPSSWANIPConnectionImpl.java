@@ -20,43 +20,24 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp;
+package org.gudy.azureus2.core3.upnp.impl.device;
 
 /**
  * @author parg
  *
  */
 
-import java.net.URL;
-
 import org.gudy.azureus2.core3.upnp.services.*;
 
-public interface 
-UPnPService 
+public class 
+UPnPSSWANIPConnectionImpl
+	extends		UPnPSSWANConnectionImpl
+	implements 	UPnPWANIPConnection
 {
-	public String
-	getServiceType();
-
-	public URL
-	getControlURL()
-	
-		throws UPnPException;
-	
-	public UPnPAction[]
-	getActions()
-	
-		throws UPnPException;
-	
-	public UPnPAction
-	getAction(
-		String		name )
-	
-		throws UPnPException;
-	
-		/**
-		 * gets a specific service if such is supported
-		 * @return
-		 */
-	public UPnPSpecificService
-	getSpecificService();
+	protected
+	UPnPSSWANIPConnectionImpl(
+		UPnPServiceImpl		_service )
+	{
+		super( _service );
+	}
 }

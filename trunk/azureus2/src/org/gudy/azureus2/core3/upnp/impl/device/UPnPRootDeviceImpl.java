@@ -79,7 +79,7 @@ UPnPRootDeviceImpl
 		try{
 			InputStream	data = rd.download();
 			
-			SimpleXMLParserDocument	doc = SimpleXMLParserDocumentFactory.create( data );
+			SimpleXMLParserDocument	doc = upnp.parseXML( data );
 			
 			root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
 			

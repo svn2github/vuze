@@ -29,8 +29,12 @@ package org.gudy.azureus2.core3.upnp.impl;
 
 import java.util.*;
 import java.net.*;
+import java.io.*;
 
 import org.gudy.azureus2.core3.upnp.*;
+import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocument;
+import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentException;
+import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentFactory;
 
 public class 
 UPnPImpl
@@ -108,6 +112,38 @@ UPnPImpl
 			
 			log( e.toString());
 		}
+	}
+	
+	public SimpleXMLParserDocument
+	parseXML(
+		InputStream		is )
+	
+		throws SimpleXMLParserDocumentException, IOException
+	{
+			// ASSUME UTF-8
+		
+		StringBuffer	data = new StringBuffer(1024);
+		
+		try{
+			LineNumberReader	lnr = new LineNumberReader( new InputStreamReader( is, "UTF-8" ));
+			
+			while( true ){
+				
+				String	line = lnr.readLine();
+				
+				if ( line == null ){
+					
+					break;
+				}
+				
+				data.append( line.trim());	
+			}
+		}catch( UnsupportedEncodingException e ){
+			
+			throw( new IOException( "Unsupported encoding" ));
+		}
+		
+		return( SimpleXMLParserDocumentFactory.create( data.toString()));	
 	}
 	
 	public void

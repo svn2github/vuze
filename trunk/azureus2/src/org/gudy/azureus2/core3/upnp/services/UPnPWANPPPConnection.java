@@ -20,43 +20,15 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp;
+package org.gudy.azureus2.core3.upnp.services;
 
 /**
  * @author parg
  *
  */
 
-import java.net.URL;
-
-import org.gudy.azureus2.core3.upnp.services.*;
-
 public interface 
-UPnPService 
+UPnPWANPPPConnection 
+	extends UPnPSpecificService
 {
-	public String
-	getServiceType();
-
-	public URL
-	getControlURL()
-	
-		throws UPnPException;
-	
-	public UPnPAction[]
-	getActions()
-	
-		throws UPnPException;
-	
-	public UPnPAction
-	getAction(
-		String		name )
-	
-		throws UPnPException;
-	
-		/**
-		 * gets a specific service if such is supported
-		 * @return
-		 */
-	public UPnPSpecificService
-	getSpecificService();
 }
