@@ -36,7 +36,7 @@ PluginManagerDefaults
 	public static final String	PID_REMOVE_RULES			= "Torrent Removal Rules";
 	public static final String	PID_SHARE_HOSTER			= "Share Hoster";
 	public static final String	PID_DEFAULT_TRACKER_WEB		= "Default Tracker Web";
-	public static final String	PID_UPDATE_LANGUAGE			= "Update Language";
+	//public static final String	PID_UPDATE_LANGUAGE			= "Update Language";
 	public static final String	PID_PLUGIN_UPDATE_CHECKER	= "Plugin Update Checker";
 	public static final String	PID_CORE_UPDATE_CHECKER		= "Core Update Checker";
 	public static final String	PID_CORE_PATCH_CHECKER		= "Core Patch Checker";
@@ -49,7 +49,7 @@ PluginManagerDefaults
 			PID_REMOVE_RULES,
 			PID_SHARE_HOSTER,
 			PID_DEFAULT_TRACKER_WEB,
-			PID_UPDATE_LANGUAGE,
+			//PID_UPDATE_LANGUAGE,
 			PID_CORE_UPDATE_CHECKER,
 			PID_CORE_PATCH_CHECKER,
 			PID_PLATFORM_CHECKER,
