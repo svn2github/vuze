@@ -1241,7 +1241,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           int wrote = writeData( cache_buffer );
                    
           if ( WRITE_DEBUG ) {
-            //System.out.println( wrote + " [" +poss+ "] F:" + force_flush + " A:" + actively_writing );
+            System.out.println( wrote + " [" +poss+ "] F:" + force_flush + " A:" + actively_writing );
           }
           
           if ( wrote == 0 ) {

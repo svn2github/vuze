@@ -40,6 +40,7 @@ CHANGE: Torrent name shown with IPs in the blocked-IPFilter list [Nolar]
 CHANGE: IRC and Tracker Web Pages moved to separate plugin [Parg]
 CHANGE: Auto-imported .torrent files are renamed *.imported if default .torrent save dir is not enabled [Nolar]
 CHANGE: Auto-imported .torrent files are moved (not copied) to default .torrent save dir if enabled [Nolar]
+CHANGE: Socket writes now done in full MSS-sized chunks; configurable via MTU setting [Nolar]
 
 BUGFIX: Files incorrectly shared if contents not a torrent when opening [Parg]
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
