@@ -178,7 +178,11 @@ public class ConfigView extends AbstractIView {
       tree.addSelectionListener(new SelectionAdapter() {
         public void widgetSelected(SelectionEvent e) {
           Tree tree = (Tree)e.getSource();
-          showSection(tree.getSelection()[0]);
+          //Check that at least an item is selected
+          //OSX lets you select nothing in the tree for example when a child is selected
+          //and you close its parent.
+          if(tree.getSelection().length > 0)
+            showSection(tree.getSelection()[0]);
         }
       });
       // Double click = expand/contract branch
