@@ -26,6 +26,8 @@ import java.util.Properties;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.pluginsimpl.logging.LoggerImpl;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
@@ -108,4 +110,9 @@ public class PluginInterfaceImpl implements PluginInterface {
   public Tracker getTracker() {
   	return( TrackerImpl.getSingleton( initialiser.getTrackerHost()));
   }
+  
+  public Logger getLogger() {
+  	return( LoggerImpl.getSingleton());
+  }
+  
 }
