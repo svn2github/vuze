@@ -94,21 +94,89 @@ RPShortCuts
 		String		method 	= request.getMethod();
 		Object[]	params	= request.getParams();
 		
-		if ( method.equals( "getDownloadStats[byte[]]")){
+		if ( method.equals( "getDownload[byte[]]")){
 			
 			try{
-				return( new RPReply( RPDownloadStats.create( delegate.getDownloadStats((byte[])params[0]))));
+				return( new RPReply( RPDownload.create( delegate.getDownload((byte[])params[0]))));
 				
 			}catch( DownloadException e ){
 				
 				return( new RPReply(e));
 			}
-		}		
+		}else if ( method.equals( "getDownloadStats[byte[]]")){
+				
+				try{
+					return( new RPReply( RPDownloadStats.create( delegate.getDownloadStats((byte[])params[0]))));
+					
+				}catch( DownloadException e ){
+					
+					return( new RPReply(e));
+				}
+		}else if ( method.equals( "restartDownload[byte[]]")){
+			
+			try{
+				delegate.restartDownload((byte[])params[0]);
+				
+			}catch( DownloadException e ){
+				
+				return( new RPReply(e));
+			}
+			
+			return( null );
+			
+		}else if ( method.equals( "stopDownload[byte[]]")){
+			
+			try{
+				delegate.stopDownload((byte[])params[0]);
+				
+			}catch( DownloadException e ){
+				
+				return( new RPReply(e));
+			}
+			
+			return( null );
+			
+		}else if ( method.equals( "removeDownload[byte[]]")){
+			
+			try{
+				delegate.removeDownload((byte[])params[0]);
+				
+			}catch( Throwable e ){
+				
+				return( new RPReply(e));
+			}
+			
+			return( null );	
+		}
 		
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
 		// ***************************************************
+	
+	public Download
+	getDownload(
+		byte[]		hash )
+	
+		throws DownloadException
+	{
+		try{
+			RPDownload	res = (RPDownload)_dispatcher.dispatch( new RPRequest( this, "getDownload[byte[]]", new Object[]{hash})).getResponse();
+			
+			res._setRemote( _dispatcher );
+			
+			return( res );
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}	
+	}
 	
 	public DownloadStats
 	getDownloadStats(
@@ -123,6 +191,66 @@ RPShortCuts
 			
 			return( res );
 			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}	
+	}
+	
+	public void
+	restartDownload(
+		byte[]		hash )
+	
+		throws DownloadException
+	{
+		try{
+			_dispatcher.dispatch( new RPRequest( this, "restartDownload[byte[]]", new Object[]{hash})).getResponse();
+						
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}	
+	}
+	
+	public void
+	stopDownload(
+		byte[]		hash )
+	
+		throws DownloadException
+	{
+		try{
+			_dispatcher.dispatch( new RPRequest( this, "stopDownload[byte[]]", new Object[]{hash})).getResponse();
+						
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}	
+	}
+	
+	public void
+	removeDownload(
+		byte[]		hash )
+	
+		throws DownloadException
+	{
+		try{
+			_dispatcher.dispatch( new RPRequest( this, "removeDownload[byte[]]", new Object[]{hash})).getResponse();
+						
 		}catch( RPException e ){
 			
 			if ( e.getCause() instanceof DownloadException ){

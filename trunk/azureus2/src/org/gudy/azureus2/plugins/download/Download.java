@@ -72,7 +72,9 @@ Download
   /** stopped, but ready for auto-starting */  
 	public static final int ST_QUEUED      = 9;
 	
-  /** Use more of the upload bandwidth than low priority downloads */  
+  /** Use more of the upload bandwidth than low priority downloads 
+   *  don't change these as they are used by remote clients */
+	
 	public static final int	PR_HIGH_PRIORITY	= 1;
   /** Use less of the upload bandwidth than high priority downloads */  
 	public static final int	PR_LOW_PRIORITY		= 2;

@@ -137,14 +137,15 @@ RPRequestHandler
 						
 							// this really needs fixing up properly (somehow)
 						
-						System.out.println( "request: " + name + "/" + method );
+						// System.out.println( "request: " + name + "/" + method );
 						
 						if ( name.equals( "Download" )){
 							
 							if ( 	method.equals( "start" ) ||
 									method.equals( "stop" ) ||
 									method.equals( "restart" ) ||
-									method.equals( "remove")){
+									method.equals( "remove" ) ||
+									method.startsWith( "set" )){
 								
 								throw( new RPException( "Access Denied" ));
 							}
@@ -203,20 +204,27 @@ RPRequestHandler
 						
 						if ( b ){
 							
-								// we gotta add the client's address range
+							if ( filter.isInRange( client_ip )){
 							
-							for (int i=0;i<channels.length;i++){
+									// we gotta add the client's address range
 								
-								channels[i].log( 
-										LoggerChannel.LT_INFORMATION,
-									"Adding range for client '" + client_ip + "' as allow/deny flag changed to allow" );
+								for (int i=0;i<channels.length;i++){
+									
+									channels[i].log( 
+											LoggerChannel.LT_INFORMATION,
+										"Adding range for client '" + client_ip + "' as allow/deny flag changed to allow" );
+								}
+								
+								filter.createAndAddRange(
+										"auto-added for remote interface",
+										client_ip,
+										client_ip,
+										false );
+								
+								filter.save();
+								
+								plugin_interface.getPluginconfig().save();
 							}
-							
-							filter.createAndAddRange(
-									"auto-added for remote interface",
-									client_ip,
-									client_ip,
-									false );
 							
 						}else{
 							
@@ -236,6 +244,10 @@ RPRequestHandler
 									ranges[i].delete();
 								}
 							}
+							
+							filter.save();
+							
+							plugin_interface.getPluginconfig().save();
 						}
 					}
 					

@@ -83,7 +83,7 @@ XMLHTTPClient
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + sc_oid + "</_object_id></OBJECT>" +
-							"<METHOD>getDownloadStats[byte[]]</METHOD>"+
+							"<METHOD>getDownload[byte[]]</METHOD>"+
 							"<PARAMS>"+
 								"<ENTRY>6495034E54A2B374560389FAE3812A6191C614BA</ENTRY>"+
 							"</PARAMS>" + 
@@ -93,7 +93,20 @@ XMLHTTPClient
 				
 				res.print();
 				
-				/*
+				String dl_oid	= res.getChild( "_object_id" ).getValue().trim();
+				
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + dl_oid + "</_object_id></OBJECT>" +
+							"<METHOD>setPriority[int]</METHOD>"+
+							"<PARAMS>"+
+								"<ENTRY>2</ENTRY>"+
+							"</PARAMS>" + 
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+				
+
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -108,6 +121,7 @@ XMLHTTPClient
 				
 					// IP Filter
 				
+				/*
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -126,7 +140,7 @@ XMLHTTPClient
 							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
 							"<METHOD>setInRangeAddressesAreAllowed[boolean]</METHOD>"+
 							"<PARAMS>"+
-								"<ENTRY>false</ENTRY>"+
+								"<ENTRY>true</ENTRY>"+
 							"</PARAMS>" + 
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
@@ -138,6 +152,19 @@ XMLHTTPClient
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
 							"<METHOD>getInRangeAddressesAreAllowed</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+				
+				res.print();
+				
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + ip_filter_oid + "</_object_id></OBJECT>" +
+							"<METHOD>isInRange[String]</METHOD>"+
+							"<PARAMS>"+
+								"<ENTRY>9.2.3.4</ENTRY>"+
+							"</PARAMS>" + 
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");

@@ -156,8 +156,12 @@ RPIPFilter
 			delegate.setEnabled(((Boolean)params[0]).booleanValue());
 			
 			return( null );
+			
+		}else if ( method.equals( "isInRange[String]")){
+			
+			return( new RPReply( new Boolean( delegate.isInRange((String)params[0]))));
 		}
-		
+				
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
@@ -245,9 +249,9 @@ RPIPFilter
 	isInRange(
 		String IPAddress )
 	{
-		notSupported();
+		Boolean res = (Boolean)_dispatcher.dispatch( new RPRequest( this, "isInRange[String]", new Object[]{IPAddress})).getResponse();
 		
-		return( false );
+		return( res.booleanValue());	
 	}
 
 	public IPBlocked[]

@@ -235,6 +235,12 @@ RPDownload
 			delegate.moveDown();
 			
 			return( null );
+			
+		}else if ( method.equals( "setPriority[int]")){
+			
+			delegate.setPriority(((Integer)request.getParams()[0]).intValue());
+			
+			return( null );
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -369,7 +375,7 @@ RPDownload
 	setPriority(
 		int		priority )
 	{
-		notSupported();
+		_dispatcher.dispatch( new RPRequest( this, "setPriority[int]", new Object[]{new Integer(priority)} )).getResponse();		
 	}
 	
 	/**

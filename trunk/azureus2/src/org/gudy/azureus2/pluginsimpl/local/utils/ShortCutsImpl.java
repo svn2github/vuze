@@ -53,6 +53,42 @@ ShortCutsImpl
 	
 		throws DownloadException
 	{
+		return( getDownload(hash).getStats());
+	}
+	
+	public void
+	restartDownload(
+		byte[]		hash )
+	
+		throws DownloadException
+	{
+		getDownload(hash).restart();
+	}
+	
+	public void
+	stopDownload(
+		byte[]		hash )
+	
+		throws DownloadException
+	{
+		getDownload(hash).stop();
+	}
+	
+	public void
+	removeDownload(
+		byte[]		hash )
+	
+		throws DownloadException, DownloadRemovalVetoException
+	{
+		getDownload(hash).remove();
+	}
+
+	public Download
+	getDownload(
+		byte[]		hash )
+	
+		throws DownloadException
+	{
 		Download	dl = ((DownloadManagerImpl)pi.getDownloadManager()).getDownload( hash );
 		
 		if ( dl == null ){
@@ -60,6 +96,6 @@ ShortCutsImpl
 			throw( new DownloadException("Torrent not found" ));
 		}
 		
-		return( dl.getStats());
+		return( dl );
 	}
 }

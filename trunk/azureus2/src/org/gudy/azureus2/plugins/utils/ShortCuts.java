@@ -32,10 +32,33 @@ import org.gudy.azureus2.plugins.download.*;
 public interface 
 ShortCuts 
 {
+	public Download
+	getDownload(
+		byte[]		hash )
+	
+		throws DownloadException;
+	
 	public DownloadStats
 	getDownloadStats(
 		byte[]		hash )
 	
 		throws DownloadException;
 	
+	public void
+	restartDownload(
+		byte[]		hash )
+	
+		throws DownloadException;
+	
+	public void
+	stopDownload(
+		byte[]		hash )
+	
+		throws DownloadException;
+	
+	public void
+	removeDownload(
+		byte[]		hash )
+	
+		throws DownloadException, DownloadRemovalVetoException;
 }
