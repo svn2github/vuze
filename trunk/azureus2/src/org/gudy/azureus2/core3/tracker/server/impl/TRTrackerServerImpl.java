@@ -44,22 +44,39 @@ TRTrackerServerImpl
 	
 	protected static final int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
 	
-	protected static boolean	send_peer_ids	= true;
+	protected static int		max_peers_to_send	= 0;
+	protected static boolean	send_peer_ids		= true;
 	
 	static{
-		final String	param = "Tracker Send Peer IDs";
+		final String	send_ids_param = "Tracker Send Peer IDs";
 		
-		send_peer_ids = COConfigurationManager.getBooleanParameter( param, true );
+		send_peer_ids = COConfigurationManager.getBooleanParameter( send_ids_param, true );
 		
 		COConfigurationManager.addParameterListener(
-				param,
+				send_ids_param,
 				new ParameterListener()
 				{
 					public void
 					parameterChanged(
 							String	value )
 					{
-						send_peer_ids = COConfigurationManager.getBooleanParameter( param, true );
+						send_peer_ids = COConfigurationManager.getBooleanParameter( send_ids_param, true );
+					}
+				});
+		
+		final String	max_peers_param = "Tracker Max Peers Returned";
+		
+		max_peers_to_send = COConfigurationManager.getIntParameter( max_peers_param, 0 );
+		
+		COConfigurationManager.addParameterListener(
+				max_peers_param,
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	value )
+					{
+						max_peers_to_send = COConfigurationManager.getIntParameter( max_peers_param, 0 );
 					}
 				});
 	}
@@ -68,6 +85,12 @@ TRTrackerServerImpl
 	getSendPeerIds()
 	{
 		return( send_peer_ids );
+	}
+	
+	protected static int
+	getMaxPeersToSend()
+	{
+		return( max_peers_to_send );
 	}
 	
 	protected IpFilter	ip_filter	= IpFilter.getInstance();
@@ -170,14 +193,10 @@ TRTrackerServerImpl
 						Iterator	it = torrent_map.values().iterator();
 						
 						while(it.hasNext()){
-							
-							Map	temp = new HashMap();
-							
-							// this triggers timeouts...
-							
+														
 							TRTrackerServerTorrentImpl	t = (TRTrackerServerTorrentImpl)it.next();
 							
-							t.exportPeersToMap( temp );
+							t.checkTimeouts();
 						}
 					}
 				}

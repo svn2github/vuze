@@ -76,6 +76,7 @@ TRTrackerServerPeerImpl
 			
 			}catch( UnknownHostException e ){
 			
+				ip_str = new String( ip );
 			}
 		}
 		

@@ -48,7 +48,8 @@ TRTrackerServerProcessor
 		long					downloaded,
 		long					uploaded,
 		long					left,
-		int						num_peers )
+		int						num_peers,
+		int						num_want )
 	
 		throws Exception
 	{
@@ -102,7 +103,7 @@ TRTrackerServerProcessor
 						uploaded, downloaded, left, num_peers,
 						interval );
 				
-				torrent.exportPeersToMap( root );
+				torrent.exportPeersToMap( root, num_want );
 				
 				root.put( "interval", new Long( interval ));
 				

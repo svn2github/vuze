@@ -154,6 +154,7 @@ TRTrackerServerProcessorUDP
 		long		downloaded		= 0;
 		long		left			= 0;
 		int			num_peers		= 0;
+		int			num_want		= -1;
 		
 		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 			
@@ -191,6 +192,8 @@ TRTrackerServerProcessorUDP
 			
 			left		= announce.getLeft();
 			
+			num_want	= announce.getNumWant();
+			
 			int	i_ip = announce.getIPAddress();
 			
 			if ( i_ip != 0 ){
@@ -213,7 +216,7 @@ TRTrackerServerProcessorUDP
 				port,
 				client_ip_address,
 				downloaded, uploaded, left,
-				num_peers );
+				num_peers, num_want );
 		
 		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 

@@ -227,6 +227,7 @@ TRTrackerServerProcessorTCP
 				long		downloaded		= 0;
 				long		left			= 0;
 				int			num_peers		= 0;
+				int			num_want		= -1;
 					
 				while(pos < str.length()){
 						
@@ -290,8 +291,12 @@ TRTrackerServerProcessorTCP
 						left = Long.parseLong( rhs );
 						
 					}else if ( lhs.equals( "num_peers" )){
-							
+						
 						num_peers = Integer.parseInt( rhs );
+						
+					}else if ( lhs.equals( "numwant" )){
+						
+						num_want = Integer.parseInt( rhs );
 					}
 						
 					if ( p1 == -1 ){
@@ -317,7 +322,7 @@ TRTrackerServerProcessorTCP
 							port,
 							client_ip_address,
 							downloaded, uploaded, left,
-							num_peers );
+							num_peers, num_want );
 				
 				server.postProcess( torrent, request_type, root );
 				

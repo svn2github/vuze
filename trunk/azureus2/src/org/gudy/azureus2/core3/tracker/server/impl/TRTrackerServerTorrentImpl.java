@@ -39,7 +39,9 @@ TRTrackerServerTorrentImpl
 	protected TRTrackerServerImpl	server;
 	protected HashWrapper			hash;
 
-	protected Map				peer_map = new HashMap();
+	protected Map				peer_map 		= new HashMap();
+	
+	protected Random			random		= new Random( System.currentTimeMillis());
 	
 	protected TRTrackerServerTorrentStatsImpl	stats;
 		
@@ -106,7 +108,7 @@ TRTrackerServerTorrentImpl
 					peer = new TRTrackerServerPeerImpl( peer_bytes, ip_address.getBytes(), port );
 							
 					peer_map.put( peer_id, peer );
-					
+										
 				}catch( UnsupportedEncodingException e){
 					
 					e.printStackTrace();
@@ -137,41 +139,120 @@ TRTrackerServerTorrentImpl
 	
 	public synchronized void
 	exportPeersToMap(
-		Map		map )
+		Map		map,
+		int		num_want )
 	{
+		int		max_peers	= TRTrackerServerImpl.getMaxPeersToSend();
+		
+			// num_want < 0 -> not supplied to give them max
+		
+		if ( num_want < 0 || num_want > max_peers ){
+			
+			num_want = max_peers <= 0?peer_map.size():max_peers;
+		}		
+	
+		// System.out.println( "exportPeersToMap: num_want = " + num_want + ", max = " + max_peers );
+		
 		long	now = System.currentTimeMillis();
 		
 		List	rep_peers = new ArrayList();
 			
 		map.put( "peers", rep_peers );
-	
-		Iterator	it = peer_map.values().iterator();
-				
+		
 		boolean	send_peer_ids = TRTrackerServerImpl.getSendPeerIds();
 		
-		while(it.hasNext()){
+			// if they want them all simply give them the set
+		
+		if ( num_want == 0 ){
+			
+			return;
+			
+		}else if ( num_want >= peer_map.size()){
 	
-			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
-							
-			if ( now > peer.getTimeout()){
-							
-				// System.out.println( "removing timed out client '" + peer.getString());
-								
-				it.remove();
-								
-			}else{
-								
-				Map rep_peer = new HashMap();
-	
-				rep_peers.add( rep_peer );
-										
-				if ( send_peer_ids ){
+				// if they want them all simply give them the set
+			
+			Iterator	it = peer_map.values().iterator();
 					
-					rep_peer.put( "peer id", peer.getPeerId() );
+			while(it.hasNext()){
+		
+				TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
+								
+				if ( now > peer.getTimeout()){
+								
+					// System.out.println( "removing timed out client '" + peer.getString());
+									
+					it.remove();
+														
+				}else{
+									
+					Map rep_peer = new HashMap();
+		
+					rep_peers.add( rep_peer );
+											
+					if ( send_peer_ids ){
+						
+						rep_peer.put( "peer id", peer.getPeerId() );
+					}
+					
+					rep_peer.put( "ip", peer.getIPAsRead() );
+					rep_peer.put( "port", new Long( peer.getPort()));
 				}
+			}
+		}else{
+				// randomly select the peers to return
+			
+			LinkedList	peers = new LinkedList( peer_map.keySet());
+			
+			int	added = 0;
+			
+			while( added < num_want && peers.size() > 0 ){
 				
-				rep_peer.put( "ip", peer.getIPAsRead() );
-				rep_peer.put( "port", new Long( peer.getPort()));
+				String	key = (String)peers.remove(random.nextInt(peers.size()));
+								
+				TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get(key);
+				
+				if ( now > peer.getTimeout()){
+					
+					// System.out.println( "removing timed out client '" + peer.getString());
+					
+					peer_map.remove( key );
+										
+				}else{
+					
+					added++;
+					
+					Map rep_peer = new HashMap();
+					
+					rep_peers.add( rep_peer );
+					
+					if ( send_peer_ids ){
+						
+						rep_peer.put( "peer id", peer.getPeerId() );
+					}
+					
+					rep_peer.put( "ip", peer.getIPAsRead() );
+					rep_peer.put( "port", new Long( peer.getPort()));
+				}
+			}
+		}
+	}
+	
+	public synchronized void
+	checkTimeouts()
+	{
+		long	now = System.currentTimeMillis();
+		
+		Iterator	it = peer_map.values().iterator();
+				
+		while(it.hasNext()){
+			
+			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
+			
+			if ( now > peer.getTimeout()){
+				
+				// System.out.println( "removing timed out client '" + peer.getString());
+				
+				it.remove();
 			}
 		}
 	}
