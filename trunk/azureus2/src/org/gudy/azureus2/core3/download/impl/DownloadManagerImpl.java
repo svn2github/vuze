@@ -128,8 +128,10 @@ DownloadManagerImpl
 	private static final int LDT_PE_PM_ADDED		= 5;
 	private static final int LDT_PE_PM_REMOVED		= 6;
 	
-	private ListenerManager	peer_listeners 	= ListenerManager.createAsyncManager(
-			"DMM:PeerListenDispatcher",
+		// one static async manager for them all
+	
+	private static ListenerManager	peer_listeners_agregator 	= ListenerManager.createAsyncManager(
+			"DMM:PeerListenAgregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -163,7 +165,21 @@ DownloadManagerImpl
 					}else if ( type == LDT_PE_PM_REMOVED ){
 						
 						listener.peerManagerRemoved((PEPeerManager)value);
-					}
+					}			
+				}
+			});
+
+	private ListenerManager	peer_listeners 	= ListenerManager.createManager(
+			"DMM:PeerListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		listener,
+					int			type,
+					Object		value )
+				{
+					peer_listeners_agregator.dispatch( listener, type, value );
 				}
 			});	
 	

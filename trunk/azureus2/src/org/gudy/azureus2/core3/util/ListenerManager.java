@@ -107,7 +107,7 @@ ListenerManager
 			
 			listeners	= new_listeners;
 			
-			if ( async && listeners.size() == 1 ){
+			if ( async && async_thread == null ){
 				
 				async_thread = new AEThread( name )
 					{
@@ -267,17 +267,26 @@ ListenerManager
 			}
 	
 			synchronized( this ){
-				
-					// no point in queueing if no listeners
-				
-				if ( listeners.size() == 0 ){
-					
-					return;
-				}
-				
+								
 					// 5 entries to denote single listener
 				
 				dispatch_queue.add(new Object[]{ listener, new Integer(type), value, sem, null });
+				
+				if ( async_thread == null ){
+					
+					async_thread = new AEThread( name )
+						{
+							public void
+							runSupport()
+							{
+								dispatchLoop();
+							}
+						};
+						
+					async_thread.setDaemon( true );
+					
+					async_thread.start();
+				}
 			}
 			
 			dispatch_sem.release();
