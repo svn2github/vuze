@@ -772,20 +772,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
   
   public void setStatusText(String keyedSentence) {
-    this.statusTextKey = keyedSentence==null?"":keyedSentence;    
-    if(updateWindow != null) {
-      this.statusTextKey += " MainWindow.updateavail";
-    }
+    this.statusTextKey = keyedSentence==null?"":keyedSentence;        
     updateStatusText();
   }
   
   private void updateStatusText() {
     if (display == null || display.isDisposed())
       return;
+    final String text;
+    if(updateWindow != null) {
+      text = this.statusTextKey + " MainWindow.updateavail";
+    } else {
+      text = this.statusTextKey;
+    }
     display.asyncExec(new Runnable() {
       public void run() {
         if (statusText != null && !statusText.isDisposed()) {      
-          statusText.setText(MessageText.getStringForSentence(statusTextKey));
+          statusText.setText(MessageText.getStringForSentence(text));
         }
       }
     });
@@ -1441,12 +1444,12 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     this.updateWindow = updateWindow;
     if(updateWindow != null) {
       statusText.setCursor(Cursors.handCursor);    
-      statusText.setForeground(Colors.colorWarning);
-      this.statusTextKey += " MainWindow.updateavail";
+      statusText.setForeground(Colors.colorWarning);      
       updateStatusText();
     } else {
       statusText.setCursor(null); 
       statusText.setForeground(null);
+      updateStatusText();
     }
   }
   

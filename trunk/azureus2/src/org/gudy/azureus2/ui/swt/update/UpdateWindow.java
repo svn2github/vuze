@@ -171,7 +171,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     btnCancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         updateWindow.dispose();
-        
+        MainWindow.getWindow().setUpdateNeeded(null);
        	check_instance.cancel();
       }
     });
