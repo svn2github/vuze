@@ -155,7 +155,7 @@ public class MainWindow implements IComponentListener {
       String message = ""; //$NON-NLS-1$
       int nbRead = 0;
       try {
-        URL reqUrl = new URL("http://www.gudy.org/azureus/version.php"); //$NON-NLS-1$
+        URL reqUrl = new URL("http://azureus.sourceforge.net/version.php"); //$NON-NLS-1$
         HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
         InputStream is = con.getInputStream();
