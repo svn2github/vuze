@@ -108,7 +108,12 @@ DownloadRemoveRulesPlugin
 	hostNameResolutionComplete(
 		InetAddress	address )
 	{
-		aelitis_ip	= address.getHostAddress();
+			// resolution will fail if disconnected from net
+		
+		if ( address != null ){
+			
+			aelitis_ip	= address.getHostAddress();
+		}
 	}
 
 	public void
