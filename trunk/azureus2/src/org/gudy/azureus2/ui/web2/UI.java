@@ -131,9 +131,14 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   public void init(boolean first, boolean others) {
     super.init(first, others);
     System.setProperty("java.awt.headless", "true");
-    String defaultargs[] = { "defaultURL=index.html", "httpPort=" + Integer.toString(COConfigurationManager.getIntParameter("Server_iPort")), "maxRequests=-1", "maxConnections=-1",
+    String defaultargs[] = { "defaultURL=index.html", "httpPort=" + Integer.toString(COConfigurationManager.getIntParameter("Server_iPort")),
+      "maxRequests=-1", "maxConnections=-1",
       //"+Integer.toString(COConfigurationManager.getIntParameter("Server_iMaxHTTPConnections")),
-      "maxSimultaneousRequests=-1", "maxCacheSize=204800", "numBuffers=1024", "serverName=" + COConfigurationManager.getStringParameter("Server_sName") + " v1.0\r\n" + "Cache-Control: no-cache, must-revalidate\r\nConnection: close", "specialURL=/stats", "bottleneckURL=/bottleneck", "rootDir=/home/tobi/devel/azureus2/org/gudy/azureus2/ui/web/template/" };
+      "maxSimultaneousRequests=-1", "maxCacheSize=204800", "numBuffers=1024",
+      "serverName=" + COConfigurationManager.getStringParameter("Server_sName") + " v1.0\r\n" + "Cache-Control: no-cache, must-revalidate\r\nConnection: close",
+      "specialURL=/stats", "bottleneckURL=/bottleneck",
+  //BELGABOR: this rootDir default needs to be fixed - we can't run straight from jar!
+      "rootDir=/home/tobi/devel/azureus2/org/gudy/azureus2/ui/web/template/" };
     this.cfg = new SandstormConfig();
     cfg.putInt("global.threadPool.initialThreads", 1);
     cfg.putInt("global.threadPool.minThreads", 1);
