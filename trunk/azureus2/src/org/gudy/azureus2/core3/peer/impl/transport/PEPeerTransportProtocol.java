@@ -1225,7 +1225,7 @@ PEPeerTransportProtocol
 	  }
 	  if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
 		keepAlive++;
-		if (keepAlive == 50 * 60) {
+		if (keepAlive == 50 * 60 * 3) {
 		  keepAlive = 0;
 		  sendKeepAlive();
 		}
