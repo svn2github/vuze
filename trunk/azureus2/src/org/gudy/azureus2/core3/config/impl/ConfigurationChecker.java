@@ -74,6 +74,32 @@ public class ConfigurationChecker {
   	
   	System.setProperty("sun.net.client.defaultConnectTimeout", "120000");
   	System.setProperty("sun.net.client.defaultReadTimeout", "60000");
+    
+    // proxy
+    if ( COConfigurationManager.getBooleanParameter("Enable.Proxy", false) ) {
+      String host = COConfigurationManager.getStringParameter("Proxy.Host");
+      String port = COConfigurationManager.getStringParameter("Proxy.Port");
+      String user = COConfigurationManager.getStringParameter("Proxy.Username");
+      String pass = COConfigurationManager.getStringParameter("Proxy.Password");
+      
+      System.setProperty("proxySet", "true");
+      System.setProperty("http.proxyHost", host);
+      System.setProperty("http.proxyPort", port);
+      System.setProperty("https.proxyHost", host);
+      System.setProperty("https.proxyPort", port);
+      
+      if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS", true) ) {
+        System.setProperty("socksProxyHost", host);
+        System.setProperty("socksProxyPort", port);
+      }
+      
+      if (user.length() > 0) {
+        System.setProperty("http.proxyUser", user);
+        System.setProperty("http.proxyPassword", pass);
+        System.setProperty("java.net.socks.username", user);
+        System.setProperty("java.net.socks.password", pass);
+      }
+    }
   
   	SESecurityManager.initialise();
   }
