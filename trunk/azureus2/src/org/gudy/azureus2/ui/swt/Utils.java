@@ -43,7 +43,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.ui.swt.URLTransfer.URLType;
 
 /**
  * @author Olivier
