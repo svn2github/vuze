@@ -2,7 +2,7 @@
  * Created on Sep 1, 2003 
  */
  
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.disk.impl;
 
 import java.util.List;
 

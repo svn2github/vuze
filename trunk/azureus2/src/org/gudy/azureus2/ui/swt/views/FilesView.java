@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.FileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.FileItem;
@@ -108,8 +108,8 @@ public class FilesView extends AbstractIView {
         boolean open = true;
         for(int i = 0 ; i < tis.length ; i++) {
           TableItem ti = tis[0];
-          FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
-          if (fileInfo.getAccessmode() != FileInfo.READ)
+          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+          if (fileInfo.getAccessmode() != DiskManagerFileInfo.READ)
             open = false;
         }
         itemOpen.setEnabled(open);
@@ -124,8 +124,8 @@ public class FilesView extends AbstractIView {
         }
         for(int i = 0 ; i < tis.length ; i++) {
           TableItem ti = tis[i];
-          FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
-          if (fileInfo != null && fileInfo.getAccessmode() == FileInfo.READ)
+          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+          if (fileInfo != null && fileInfo.getAccessmode() == DiskManagerFileInfo.READ)
             Program.launch(fileInfo.getPath() + fileInfo.getName());
         }
       }
@@ -139,7 +139,7 @@ public class FilesView extends AbstractIView {
             }
             for(int i = 0 ; i < tis.length ; i++) {
               TableItem ti = tis[i];
-              FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+              DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
               if (fileInfo != null) {
                 fileInfo.setPriority(true);
                 fileInfo.setSkipped(false);
@@ -156,7 +156,7 @@ public class FilesView extends AbstractIView {
             }
             for(int i = 0 ; i < tis.length ; i++) {
               TableItem ti = tis[i];
-              FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+              DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
               if (fileInfo != null) {
                 fileInfo.setPriority(false);
                 fileInfo.setSkipped(false);
@@ -173,7 +173,7 @@ public class FilesView extends AbstractIView {
                 }
                 for(int i = 0 ; i < tis.length ; i++) {
                   TableItem ti = tis[i];
-                  FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
+                  DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
                   if (fileInfo != null)
                     fileInfo.setSkipped(true);
                 }
@@ -193,8 +193,8 @@ public class FilesView extends AbstractIView {
           return;
         }
         TableItem ti = tis[0];
-        FileInfo fileInfo = (FileInfo) itemsToFile.get(ti);
-        if (fileInfo != null && fileInfo.getAccessmode() == FileInfo.READ)
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(ti);
+        if (fileInfo != null && fileInfo.getAccessmode() == DiskManagerFileInfo.READ)
           Program.launch(fileInfo.getPath() + fileInfo.getName());
       }
     });
@@ -220,7 +220,7 @@ public class FilesView extends AbstractIView {
       return;      
     }
     removeInvalidFileItems();
-    FileInfo files[] = diskManager.getFiles();
+    DiskManagerFileInfo files[] = diskManager.getFiles();
     if (files == null)
       return;
     for (int i = 0; i < files.length; i++) {
@@ -240,11 +240,11 @@ public class FilesView extends AbstractIView {
     DiskManager diskManager = manager.diskManager;
     if(items == null || diskManager == null)
       return;
-    FileInfo files[] = diskManager.getFiles();
+    DiskManagerFileInfo files[] = diskManager.getFiles();
     Iterator iter = items.values().iterator();
     while(iter.hasNext()) {        
       FileItem fileItem = (FileItem) iter.next();
-      FileInfo fileInfo = (FileInfo) itemsToFile.get(fileItem.getItem());
+      DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) itemsToFile.get(fileItem.getItem());
       if(! containsFileInfo(files,fileInfo)) {        
         itemsToFile.remove(fileItem.getItem());
         fileItem.delete();
@@ -253,7 +253,7 @@ public class FilesView extends AbstractIView {
     }    
   }
   
-  private boolean containsFileInfo(FileInfo[] files,FileInfo file) {
+  private boolean containsFileInfo(DiskManagerFileInfo[] files,DiskManagerFileInfo file) {
     //This method works with reference comparision
     if(files == null || file == null) {
       return true;
@@ -291,14 +291,14 @@ public class FilesView extends AbstractIView {
 
   //Sorting
 
-  private String getStringField(FileInfo fileInfo, String field) {
+  private String getStringField(DiskManagerFileInfo fileInfo, String field) {
     if (field.equals("name")) //$NON-NLS-1$
       return fileInfo.getName();
 
     return ""; //$NON-NLS-1$
   }
 
-  private long getIntField(FileInfo fileInfo, String field) {
+  private long getIntField(DiskManagerFileInfo fileInfo, String field) {
 
     if (field.equals("size")) //$NON-NLS-1$
       return fileInfo.getLength();
@@ -341,13 +341,13 @@ public class FilesView extends AbstractIView {
       FileItem fileItems[] = new FileItem[items.size()];
       Iterator iter = items.keySet().iterator();
       while (iter.hasNext()) {
-        FileInfo fileInfo = (FileInfo) iter.next();
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) iter.next();
         FileItem item = (FileItem) items.get(fileInfo);
         fileItems[item.getIndex()] = item;
         long value = getIntField(fileInfo, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
-          FileInfo fileInfoi = (FileInfo) ordered.get(i);
+          DiskManagerFileInfo fileInfoi = (DiskManagerFileInfo) ordered.get(i);
           long valuei = getIntField(fileInfoi, field);
           if (ascending) {
             if (valuei >= value)
@@ -362,7 +362,7 @@ public class FilesView extends AbstractIView {
       }
 
       for (int i = 0; i < ordered.size(); i++) {
-        FileInfo fileInfo = (FileInfo) ordered.get(i);
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ordered.get(i);
         fileItems[i].setFileInfo(fileInfo);
         fileItems[i].invalidate();
         items.put(fileInfo, fileItems[i]);
@@ -410,13 +410,13 @@ public class FilesView extends AbstractIView {
       FileItem fileItems[] = new FileItem[items.size()];
       Iterator iter = items.keySet().iterator();
       while (iter.hasNext()) {
-        FileInfo fileInfo = (FileInfo) iter.next();
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) iter.next();
         FileItem item = (FileItem) items.get(fileInfo);
         fileItems[item.getIndex()] = item;
         String value = getStringField(fileInfo, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
-          FileInfo fileInfoi = (FileInfo) ordered.get(i);
+          DiskManagerFileInfo fileInfoi = (DiskManagerFileInfo) ordered.get(i);
           String valuei = getStringField(fileInfoi, field);
           if (ascending) {
             if (collator.compare(valuei, value) <= 0)
@@ -431,7 +431,7 @@ public class FilesView extends AbstractIView {
       }
 
       for (int i = 0; i < ordered.size(); i++) {
-        FileInfo fileInfo = (FileInfo) ordered.get(i);
+        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ordered.get(i);
         fileItems[i].setFileInfo(fileInfo);
         fileItems[i].invalidate();
         items.put(fileInfo, fileItems[i]);

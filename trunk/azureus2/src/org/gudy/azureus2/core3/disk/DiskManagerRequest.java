@@ -1,4 +1,4 @@
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.disk;
 
 /**
  * 
@@ -11,7 +11,7 @@ package org.gudy.azureus2.core;
  *
  * 
  */
-public class Request
+public class DiskManagerRequest
 {
   //60 secs of expiration for any request.
   private static final int EXPIRATION_TIME = 1000 * 60;
@@ -27,7 +27,7 @@ public class Request
    * @param offset
    * @param length
    */
-  public Request(int pieceNumber,int offset,int length)
+  public DiskManagerRequest(int pieceNumber,int offset,int length)
   {
     this.pieceNumber = pieceNumber;
     this.offset = offset;
@@ -77,9 +77,9 @@ public class Request
    */
   public boolean equals(Object o)
   {
-    if(! (o instanceof Request))
+    if(! (o instanceof DiskManagerRequest))
       return false;    
-    Request otherRequest = (Request) o;
+    DiskManagerRequest otherRequest = (DiskManagerRequest) o;
     if(otherRequest.pieceNumber != this.pieceNumber)
       return false;
     if(otherRequest.offset != this.offset)

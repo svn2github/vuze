@@ -34,11 +34,11 @@ import java.util.List;
 import java.util.Vector;
 
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core3.util.ByteBufferPool;
 import org.gudy.azureus2.core3.util.Constants;
 
-import org.gudy.azureus2.core3.disk.DataQueueItem;
+import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
+import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 
@@ -270,8 +270,8 @@ PEPeerSocketImpl
     protocolQueue.add(buffer);
   }
 
-  protected void sendData(Request request) {
-    dataQueue.add(new DataQueueItem(request));
+  protected void sendData(DiskManagerRequest request) {
+    dataQueue.add(new DiskManagerDataQueueItem(request));
   }
 
   public synchronized void closeAll(boolean closedOnError) {
@@ -313,7 +313,7 @@ PEPeerSocketImpl
 
     //5. release all buffers in dataQueue
     for (int i = dataQueue.size() - 1; i >= 0; i--) {
-      DataQueueItem item = (DataQueueItem) dataQueue.remove(i);
+      DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
       if (item.isLoaded()) {
         ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
       }
@@ -629,7 +629,7 @@ PEPeerSocketImpl
           LGLogger.RECEIVED,
           ip + " has requested #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
         if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
-          sendData(new Request(pieceNumber, pieceOffset, pieceLength));
+          sendData(new DiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
         }
         else {
           LGLogger.log(
@@ -667,7 +667,7 @@ PEPeerSocketImpl
           evtProtocol,
           LGLogger.RECEIVED,
           ip + " has sent #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-        Request request = new Request(pieceNumber, pieceOffset, pieceLength);
+        DiskManagerRequest request = new DiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
         if (requested.contains(request) && manager.checkBlock(pieceNumber, pieceOffset, buffer)) {
           requested.remove(request);
           manager.received(pieceLength);
@@ -712,7 +712,7 @@ PEPeerSocketImpl
           evtProtocol,
           LGLogger.RECEIVED,
           ip + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-        removeRequestFromQueue(new Request(pieceNumber, pieceOffset, pieceLength));
+        removeRequestFromQueue(new DiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
         readMessage(readBuffer);
         break;
      default:
@@ -749,9 +749,9 @@ PEPeerSocketImpl
 
   private void reSetRequestsTime() {
     for (int i = 0; i < requested.size(); i++) {
-      Request request = null;
+      DiskManagerRequest request = null;
       try {
-        request = (Request) requested.get(i);
+        request = (DiskManagerRequest) requested.get(i);
       }
       catch (Exception e) {}
       if (request != null)
@@ -767,7 +767,7 @@ PEPeerSocketImpl
       evtProtocol,
       LGLogger.SENT,
       ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
-    requested.add(new Request(pieceNumber, pieceOffset, pieceLength));
+    requested.add(new DiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
     ByteBuffer buffer = ByteBuffer.allocate(17);
     buffer.putInt(13);
     buffer.put(BT_REQUEST);
@@ -779,7 +779,7 @@ PEPeerSocketImpl
     sendProtocol(buffer);
   }
 
-  public void sendCancel(Request request) {
+  public void sendCancel(DiskManagerRequest request) {
     if (getState() != TRANSFERING)
       return;
     LGLogger.log(
@@ -942,9 +942,9 @@ PEPeerSocketImpl
     }
   }
 
-  private void removeRequestFromQueue(Request request) {
+  private void removeRequestFromQueue(DiskManagerRequest request) {
     for (int i = 0; i < dataQueue.size(); i++) {
-      DataQueueItem item = (DataQueueItem) dataQueue.get(i);
+      DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(i);
       if (item.getRequest().equals(request)) {
         if (item.isLoaded()) {
           ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
@@ -963,7 +963,7 @@ PEPeerSocketImpl
       return;
     synchronized (requested) {
       for (int i = requested.size() - 1; i >= 0; i--) {
-        Request request = (Request) requested.remove(i);
+        DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
         manager.requestCanceled(request);
       }
     }
@@ -977,7 +977,7 @@ PEPeerSocketImpl
     Vector result = new Vector();
     for (int i = 0; i < requested.size(); i++) {
       try {
-        Request request = (Request) requested.get(i);
+        DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
         if (request.isExpired()) {
           result.add(request);
         }
@@ -1062,7 +1062,7 @@ PEPeerSocketImpl
         write();
       }
       if (dataQueue.size() != 0) {
-        DataQueueItem item = (DataQueueItem) dataQueue.get(0);
+        DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
         if (!choking) {
           if (!item.isLoading() && !choking) {
             manager.enqueueReadRequest(item);
@@ -1071,13 +1071,13 @@ PEPeerSocketImpl
           if (item.isLoaded()) {
             dataQueue.remove(0);
             if (dataQueue.size() != 0) {
-              DataQueueItem itemNext = (DataQueueItem) dataQueue.get(0);
+              DiskManagerDataQueueItem itemNext = (DiskManagerDataQueueItem) dataQueue.get(0);
               if (!itemNext.isLoading()) {
                 manager.enqueueReadRequest(itemNext);
                 itemNext.setLoading(true);
               }
             }
-            Request request = item.getRequest();
+            DiskManagerRequest request = item.getRequest();
             LGLogger.log(
               componentID,
               evtProtocol,
@@ -1137,9 +1137,9 @@ PEPeerSocketImpl
     return maxUpload;
   }
 
-  public DataQueueItem getNextRequest() {
+  public DiskManagerDataQueueItem getNextRequest() {
     if (dataQueue.size() != 0)
-      return (DataQueueItem) dataQueue.get(0);
+      return (DiskManagerDataQueueItem) dataQueue.get(0);
     return null;
   }
 

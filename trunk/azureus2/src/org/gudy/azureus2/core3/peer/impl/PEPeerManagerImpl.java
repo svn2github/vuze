@@ -28,15 +28,15 @@ import java.util.*;
 
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core.Server;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.disk.DataQueueItem;
+import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.peer.*;
 
 
@@ -535,7 +535,7 @@ PEPeerManagerImpl
             pc.setSnubbed(true);
 
             //Only cancel first request if more than 2 mins have passed
-            Request request = (Request) expired.get(0);
+            DiskManagerRequest request = (DiskManagerRequest) expired.get(0);
             long timeCreated = request.getTimeCreated();
             if (System.currentTimeMillis() - timeCreated > 1000 * 120) {
               int pieceNumber = request.getPieceNumber();
@@ -552,7 +552,7 @@ PEPeerManagerImpl
 
             //for every expired request                              
             for (int j = 1; j < expired.size(); j++) {
-              request = (Request) expired.get(j);
+              request = (DiskManagerRequest) expired.get(j);
               //get the request object
               pc.sendCancel(request); //cancel the request object
               int pieceNumber = request.getPieceNumber();
@@ -1187,7 +1187,7 @@ PEPeerManagerImpl
    * Called by Peer connections objects when connection is closed or choked
    * @param request
    */
-  public void requestCanceled(Request request) {
+  public void requestCanceled(DiskManagerRequest request) {
     int pieceNumber = request.getPieceNumber(); //get the piece number
     int pieceOffset = request.getOffset(); //get the piece offset    
     PEPiece piece = _pieces[pieceNumber]; //get the piece
@@ -1517,7 +1517,7 @@ PEPeerManagerImpl
     }
   }
 
-  public void enqueueReadRequest(DataQueueItem item) {
+  public void enqueueReadRequest(DiskManagerDataQueueItem item) {
     _diskManager.enqueueReadRequest(item);
   }
 
@@ -1536,7 +1536,7 @@ PEPeerManagerImpl
     return _manager.getPriority();
   }
 
-  public void freeRequest(DataQueueItem item) {
+  public void freeRequest(DiskManagerDataQueueItem item) {
     synchronized (requestsToFree) {
       requestsToFree.add(item);
     }
@@ -1547,7 +1547,7 @@ PEPeerManagerImpl
       return;
     synchronized (requestsToFree) {
       for (int i = 0; i < requestsToFree.size(); i++) {
-        DataQueueItem item = (DataQueueItem) requestsToFree.get(i);
+        DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) requestsToFree.get(i);
         if (item.isLoaded()) {
           requestsToFree.remove(item);
           i--;

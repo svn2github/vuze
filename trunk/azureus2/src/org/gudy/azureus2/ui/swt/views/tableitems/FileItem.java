@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core3.disk.FileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 
@@ -35,11 +35,11 @@ public class FileItem {
   private String oldTexts[];
 
   private DownloadManager manager;
-  private FileInfo fileInfo;
+  private DiskManagerFileInfo fileInfo;
 
   private int loopFactor;
 
-  public FileItem(Table table, DownloadManager manager, FileInfo fileInfo, Color blues[]) {
+  public FileItem(Table table, DownloadManager manager, DiskManagerFileInfo fileInfo, Color blues[]) {
     this.display = table.getDisplay();
     this.blues = blues;
     this.table = table;
@@ -106,7 +106,7 @@ public class FileItem {
     }
 
     tmp = MessageText.getString("FileItem.read"); //$NON-NLS-1$
-    if (fileInfo.getAccessmode() == FileInfo.WRITE)
+    if (fileInfo.getAccessmode() == DiskManagerFileInfo.WRITE)
       tmp = MessageText.getString("FileItem.write"); //$NON-NLS-1$
     if (!oldTexts[7].equals(tmp)) {
       oldTexts[7] = tmp;
@@ -213,14 +213,14 @@ public class FileItem {
   /**
    * @return
    */
-  public FileInfo getFileInfo() {
+  public DiskManagerFileInfo getFileInfo() {
     return fileInfo;
   }
 
   /**
    * @param info
    */
-  public void setFileInfo(FileInfo info) {
+  public void setFileInfo(DiskManagerFileInfo info) {
     fileInfo = info;
   }
   

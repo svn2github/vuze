@@ -6,19 +6,18 @@ package org.gudy.azureus2.core3.disk;
 
 import java.nio.ByteBuffer;
 
-import org.gudy.azureus2.core.Request;
 
 /**
  * @author Olivier
  * 
  */
-public class DataQueueItem {
-  private Request request;
+public class DiskManagerDataQueueItem {
+  private DiskManagerRequest request;
   
   private ByteBuffer buffer;
   private boolean loading;
   
-  public DataQueueItem(Request request)
+  public DiskManagerDataQueueItem(DiskManagerRequest request)
   {
     this.request = request;
   }
@@ -52,7 +51,7 @@ public class DataQueueItem {
   /**
    * @return
    */
-  public Request getRequest() {
+  public DiskManagerRequest getRequest() {
     return request;
   }
 
@@ -66,7 +65,7 @@ public class DataQueueItem {
   /**
    * @param request
    */
-  public void setRequest(Request request) {
+  public void setRequest(DiskManagerRequest request) {
     this.request = request;
   }
 

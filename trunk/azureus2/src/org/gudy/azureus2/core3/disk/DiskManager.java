@@ -58,7 +58,7 @@
 
 	public void 
 	enqueueReadRequest(
-		DataQueueItem item );
+		DiskManagerDataQueueItem item );
 
 	public void
 	stopIt();
@@ -87,7 +87,7 @@
 	public int 
 	getPiecesNumber();
 
-	public FileInfo[]
+	public DiskManagerFileInfo[]
 	getFiles();
 
 	public String[][] 

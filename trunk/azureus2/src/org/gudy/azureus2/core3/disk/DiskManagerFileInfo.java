@@ -11,7 +11,7 @@ import java.io.RandomAccessFile;
  * @author Olivier
  * 
  */
-public class FileInfo {
+public class DiskManagerFileInfo {
   
   public static final int READ = 1;
   public static final int WRITE = 2;

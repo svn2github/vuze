@@ -26,7 +26,6 @@ import java.util.List;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core.*;
 import org.gudy.azureus2.core3.disk.*;
 
 /**
@@ -66,11 +65,11 @@ PEPeerManager
 
 	public boolean checkBlock(int pieceNumber, int offset, int length);
 	public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data);
-	public void enqueueReadRequest(DataQueueItem item);
+	public void enqueueReadRequest(DiskManagerDataQueueItem item);
 	public void writeBlock(int pieceNumber, int offset, ByteBuffer data);
-	public void requestCanceled(Request request);
+	public void requestCanceled(DiskManagerRequest request);
  	
-	public void freeRequest(DataQueueItem item);
+	public void freeRequest(DiskManagerDataQueueItem item);
 
 	public int[] getAvailability();
 	
