@@ -80,7 +80,8 @@ XMLHTTPClient
 	
 				String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
 				
-				/* config stuff
+					// config stuff
+				 
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
@@ -96,16 +97,17 @@ XMLHTTPClient
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + config_oid + "</_object_id></OBJECT>" +
-							"<METHOD>setParameter[String,int]</METHOD>"+
 							"<PARAMS>"+
-								"<ENTRY>Max Upload Speed KBs</ENTRY>"+
-								"<ENTRY>12</ENTRY>"+
+								"<ENTRY index=\"1\">12</ENTRY>"+
+								"<ENTRY index=\"0\">Max Upload Speed KBs</ENTRY>"+
+							//	"<ENTRY>Max Upload Speed KBs</ENTRY>"+
+							//	"<ENTRY>12</ENTRY>"+
 							"</PARAMS>" +
+							"<METHOD>setParameter[String,int]</METHOD>"+
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 						"</REQUEST>");
 
-				*/
 				
 				/* stuff for adding a torrent
 				 
@@ -158,7 +160,7 @@ XMLHTTPClient
 				res.print();
 				*/
 				
-				
+				/*
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
@@ -168,6 +170,7 @@ XMLHTTPClient
 						"</REQUEST>");
 			
 				res.print();
+				*/
 				
 				/*
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();

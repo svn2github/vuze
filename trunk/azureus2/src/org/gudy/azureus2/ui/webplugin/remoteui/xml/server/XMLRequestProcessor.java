@@ -167,9 +167,19 @@ XMLRequestProcessor
 		Class							cla,
 		String							indent )
 	{
-		boolean	request_class = cla == RPRequest.class;
+			// hack I'm afraid, when deserialising request objects we need to use the
+			// method to correctly deserialise parameters
+		
+		String	request_method = null;
+		
+		if ( cla == RPRequest.class ){
+			
+			request_method = node.getChild( "METHOD" ).getValue().trim();
+
+		}
 		
 		// System.out.println(indent + "deser:" + cla.getName());
+		
 		try{
 			Object	obj = cla.newInstance();
 			
@@ -204,51 +214,62 @@ XMLRequestProcessor
 								// hack. for request objects we deserialise the parameters
 								// array by using the method signature
 							
-							String	sig 	= request_class?((RPRequest)obj).getMethod():null;
-							int		sig_pos = sig==null?0:sig.indexOf( '[' )+1;
-							
-							for (int j=0;j<entries.length;j++){
+							if ( request_method != null  ){
 								
-								SimpleXMLParserDocumentNode	array_child = entries[j];
+									// must be params
+						
+								String[]	bits = new String[entries.length];
 								
-								if ( sub_type == String.class ){
-									
-									Array.set( array, j, child.getValue().trim());
-									
-								}else if ( sub_type == Object.class && request_class ){
-									
-									int	p1 = sig.indexOf(',',sig_pos);
-									
+								int		method_pos = request_method.indexOf( '[' )+1;
+
+								for (int j=0;j<entries.length;j++){
+																												
+									int	p1 = request_method.indexOf(',',method_pos);
+										
 									String	bit;
-									
+										
 									if ( p1 == -1 ){
-										
-										bit = sig.substring( sig_pos, sig.length()-1).toLowerCase();
-										
+											
+										bits[j] = request_method.substring( method_pos, request_method.length()-1).toLowerCase();
+											
+										break;
 									}else{
-										
-										bit = sig.substring( sig_pos, p1 ).toLowerCase();
-										
-										sig_pos = p1+1;
+											
+										bits[j] = request_method.substring( method_pos, p1 ).toLowerCase();
+											
+										method_pos = p1+1;
 									}
+								}
+					
+								for (int j=0;j<entries.length;j++){
+									
+									SimpleXMLParserDocumentNode	array_child = entries[j];
+										
+									SimpleXMLParserDocumentAttribute index_attr = array_child.getAttribute("index");
+									
+									String	index_str = index_attr==null?null:index_attr.getValue().trim();
+									
+									int	array_index = index_str==null?j:Integer.parseInt(index_str);
+									
+									String	bit = bits[array_index];
 									
 									String	sub_value = array_child.getValue().trim();
 									
 									if ( bit.equals("string")){
 										
-										Array.set( array, j, sub_value );
+										Array.set( array, array_index, sub_value );
 									
 									}else if ( bit.equals("int")){
 										
-										Array.set( array, j, Integer.valueOf( sub_value));
+										Array.set( array, array_index, Integer.valueOf( sub_value));
 									
 									}else if ( bit.equals("boolean")){
 										
-										Array.set( array, j, Boolean.valueOf( sub_value ));
+										Array.set( array, array_index, Boolean.valueOf( sub_value ));
 									
 									}else if ( bit.equals("url")){
 										
-										Array.set( array, j, new URL(sub_value));
+										Array.set( array, array_index, new URL(sub_value));
 									
 									}else{
 											// see if its an object
@@ -263,16 +284,29 @@ XMLRequestProcessor
 											
 											RPObject	local_obj = RPObject._lookupLocal( oid );
 											
-											Array.set( array, j, local_obj );
+											Array.set( array, array_index, local_obj );
 																			
 										}else{
 										
 											throw( new RuntimeException( "not implemented"));										
 										}
 									}
-								}else{
+								}
+
+							}else{
+							
+								for (int j=0;j<entries.length;j++){
 									
-									throw( new RuntimeException( "not implemented"));
+									SimpleXMLParserDocumentNode	array_child = entries[j];
+									
+									if ( sub_type == String.class ){
+										
+										Array.set( array, j, child.getValue().trim());
+										
+									}else{
+									
+										throw( new RuntimeException( "not implemented"));
+									}
 								}
 							}
 							
