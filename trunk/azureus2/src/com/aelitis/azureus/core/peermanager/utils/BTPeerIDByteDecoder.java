@@ -17,7 +17,7 @@ import java.io.*;
 /**
  * Used for identifying clients by their peerID.
  */
-public class PeerIDByteDecoder {
+public class BTPeerIDByteDecoder {
 	
 	final static boolean LOG_UNKNOWN;
 	

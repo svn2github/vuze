@@ -452,7 +452,7 @@ ConfigurationChecker
     long currentTime = SystemTime.getCurrentTime();
     for(int i = 0 ; i < currentTime % 1000 ; i++)
       Math.random();            
-    //Allocate a 10 random chars ID
+    //Allocate 20 random chars ID
     String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     for(int i = 0 ; i < 20 ; i++) {
       int pos = (int) ( Math.random() * chars.length());
