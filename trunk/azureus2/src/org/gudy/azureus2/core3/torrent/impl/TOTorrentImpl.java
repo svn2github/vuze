@@ -47,6 +47,10 @@ TOTorrentImpl
 	protected static final String TK_PIECE_LENGTH		= "piece length";
 	protected static final String TK_PIECES				= "pieces";
 		
+	protected static final String TK_NAME_UTF8			= "name.utf-8";
+	protected static final String TK_PATH_UTF8			= "path.utf-8";
+	protected static final String TK_COMMENT_UTF8		= "comment.utf-8";
+	
 	private byte[]							torrent_name;
 	private byte[]							comment;
 	private URL								announce_url;
@@ -93,6 +97,9 @@ TOTorrentImpl
 		try{
 		
 			torrent_name		= _torrent_name.getBytes( Constants.DEFAULT_ENCODING );
+			
+			setAdditionalByteArrayProperty( TK_NAME_UTF8, torrent_name );
+			
 			announce_url		= _announce_url;
 			simple_torrent		= _simple_torrent;
 			
@@ -298,15 +305,27 @@ TOTorrentImpl
 					path.add( path_comps[j]);
 				}
 				
-				Map additional_properties = file.getAdditionalProperties();
+				if ( file.isUTF8()){
+					
+					List utf8_path = new ArrayList();
+					
+					file_map.put( TK_PATH_UTF8, utf8_path );
+										
+					for (int j=0;j<path_comps.length;j++){
+						
+						utf8_path.add( path_comps[j]);
+					}
+				}
 				
-				Iterator prop_it = additional_properties.keySet().iterator();
+				Map file_additional_properties = file.getAdditionalProperties();
+				
+				Iterator prop_it = file_additional_properties.keySet().iterator();
 				
 				while( prop_it.hasNext()){
 					
 					String	key = (String)prop_it.next();
 					
-					file_map.put( key, additional_properties.get( key ));
+					file_map.put( key, file_additional_properties.get( key ));
 				}
 			}
 		}
@@ -387,7 +406,11 @@ TOTorrentImpl
 	{
 		try{
 		
-			setComment( _comment.getBytes( Constants.DEFAULT_ENCODING ));
+			byte[]	utf8_comment = _comment.getBytes( Constants.DEFAULT_ENCODING );
+			
+			setComment( utf8_comment );
+			
+			setAdditionalByteArrayProperty( TK_COMMENT_UTF8, utf8_comment );
 			
 		}catch( UnsupportedEncodingException e ){
 			

@@ -38,6 +38,8 @@ TOTorrentFileImpl
 	
 	protected Map		additional_properties = new HashMap();
 	
+	protected boolean	is_utf8;
+
 	protected
 	TOTorrentFileImpl(
 		TOTorrent		_torrent,
@@ -47,6 +49,8 @@ TOTorrentFileImpl
 		throws TOTorrentException
 	{
 		torrent	= _torrent;
+		
+		is_utf8	= true;
 		
 		try{
 			
@@ -136,6 +140,12 @@ TOTorrentFileImpl
 	getPathComponents()
 	{
 		return( path_components );
+	}
+	
+	protected boolean
+	isUTF8()
+	{
+		return( is_utf8 );
 	}
 	
 	protected void
