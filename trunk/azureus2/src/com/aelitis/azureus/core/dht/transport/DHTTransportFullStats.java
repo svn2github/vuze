@@ -74,6 +74,9 @@ DHTTransportFullStats
 	public long
 	getTotalStoresReceived();
 	
+	public long
+	getIncomingRequests();
+	
 		// averages
 	
 	public long

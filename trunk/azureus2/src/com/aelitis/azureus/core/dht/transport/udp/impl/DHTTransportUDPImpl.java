@@ -1281,17 +1281,17 @@ DHTTransportUDPImpl
 					{
 						public void
 						statsReply(
-							DHTTransportContact 	contact,
-							DHTTransportFullStats	stats )
+							DHTTransportContact 	_contact,
+							DHTTransportFullStats	_stats )
 						{
-							res[0]	= stats;
+							res[0]	= _stats;
 							
 							sem.release();
 						}
 						
 						public void
 						failed(
-							DHTTransportContact 	contact )
+							DHTTransportContact 	_contact )
 						{
 							sem.release();
 						}
@@ -1315,6 +1315,8 @@ DHTTransportUDPImpl
 		}
 		
 		try{
+			stats.incomingRequestReceived();
+			
 			DHTUDPPacketRequest	request = (DHTUDPPacketRequest)_request;
 			
 			InetSocketAddress	transport_address = request.getAddress();

@@ -39,6 +39,8 @@ DHTTransportStatsImpl
 	private long[]	stores		= new long[4];
 	private long[]	stats		= new long[4];
 	
+	private long	incoming_requests;
+	
 	public void
 	add(
 		DHTTransportStatsImpl	other )
@@ -48,6 +50,8 @@ DHTTransportStatsImpl
 		add( find_values, other.find_values );
 		add( stores, other.stores );
 		add( stats, other.stats );
+		
+		incoming_requests += other.incoming_requests;
 	}
 	
 	protected void
@@ -204,6 +208,18 @@ DHTTransportStatsImpl
 		stats[STAT_RECEIVED]++;
 	}
 	
+	public void
+	incomingRequestReceived()
+	{
+		incoming_requests++;
+	}
+	
+	public long
+	getIncomingRequests()
+	{
+		return( incoming_requests );
+	}
+	
 	public String
 	getString()
 	{
@@ -211,7 +227,8 @@ DHTTransportStatsImpl
 				"store:" + getString( stores ) + "," +
 				"node:" + getString( find_nodes ) + "," +
 				"value:" + getString( find_values ) + "," +
-				"stats:" + getString( stats ));
+				"stats:" + getString( stats ) + "," +
+				"incoming:" + incoming_requests );
 	}
 	
 	protected String

@@ -174,10 +174,18 @@ DHTControlStats
 	}
 	
 	public long
+	getIncomingRequests()
+	{
+		return( transport_snapshot.getIncomingRequests());
+	}
+		// DB
+	
+	public long
 	getDBValuesStored()
 	{
 		return( control.getDataBase().getSize());
 	}
+	
 	
 		// Router
 	
@@ -214,7 +222,8 @@ DHTControlStats
 				getAverageBytesReceived() + "," +
 				getAverageBytesSent() + "," +
 				getAveragePacketsReceived() + "," +
-				getAveragePacketsSent() + 
+				getAveragePacketsSent() + "," +
+				getIncomingRequests() + 
 				", router:" +
 				getRouterNodes() + "," +
 				getRouterLeaves() + "," +

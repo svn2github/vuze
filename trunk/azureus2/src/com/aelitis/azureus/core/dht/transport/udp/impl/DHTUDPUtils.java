@@ -439,6 +439,8 @@ DHTUDPUtils
 		os.writeLong( stats.getAverageBytesSent());
 		os.writeLong( stats.getAveragePacketsReceived());
 		os.writeLong( stats.getAveragePacketsSent());
+		
+		os.writeLong( stats.getIncomingRequests());
 	}
 	
 	protected static DHTTransportFullStats
@@ -465,6 +467,8 @@ DHTUDPUtils
 		final long average_bytes_sent			= is.readLong();
 		final long average_packets_received		= is.readLong();
 		final long average_packets_sent			= is.readLong();
+		
+		final long incoming_requests			= is.readLong();
 		
 		DHTTransportFullStats	res = 
 			new DHTTransportFullStats()
@@ -569,6 +573,12 @@ DHTUDPUtils
 					return( average_packets_sent );
 				}
 				
+				public long
+				getIncomingRequests()
+				{
+					return( incoming_requests );
+				}
+				
 				public String
 				getString()
 				{
@@ -584,7 +594,8 @@ DHTUDPUtils
 							getAverageBytesReceived() + "," +
 							getAverageBytesSent() + "," +
 							getAveragePacketsReceived() + "," +
-							getAveragePacketsSent() + 
+							getAveragePacketsSent() + "," +
+							getIncomingRequests() + 
 							", router:" +
 							getRouterNodes() + "," +
 							getRouterLeaves() + "," +

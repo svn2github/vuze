@@ -53,6 +53,9 @@ DHTTransportStats
 	getStores();
 	
 	public long
+	getIncomingRequests();
+	
+	public long
 	getPacketsSent();
 	
 	public long
