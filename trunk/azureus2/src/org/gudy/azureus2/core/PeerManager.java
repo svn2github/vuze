@@ -10,7 +10,6 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core2.PeerSocket;
-import org.gudy.azureus2.ui.swt.Messages;
 
 public class PeerManager extends Thread {
   private static final int BLOCK_SIZE = 32768;
@@ -19,7 +18,7 @@ public class PeerManager extends Thread {
 
   private int[] _availability;
   private boolean _bContinue;
-  private List _clients; //:: Try to define by the interface, 
+//  private List _clients; //:: Try to define by the interface, 
   //makes the code more portable by forcing you to interfaces -Tyler  							
   private List _connections;
   private DiskManager _diskManager;
@@ -37,10 +36,10 @@ public class PeerManager extends Thread {
   private int _timeToWait;
   private TrackerConnection _tracker;
   private String _trackerStatus;
-  private int _maxUploads;
+//  private int _maxUploads;
   private int _trackerState;
-  private final int TRACKER_START = 1;
-  private final int TRACKER_UPDATE = 2;
+  private static final int TRACKER_START = 1;
+  private static final int TRACKER_UPDATE = 2;
   private int _seeds, _peers;
   private long _timeStarted;
   private Average _averageReceptionSpeed;
@@ -103,7 +102,7 @@ public class PeerManager extends Thread {
     private boolean bContinue = true;
     
     private long started[];
-    private long iter = 0;
+//    private long iter = 0;
     
     public PeerUpdater() {
       super("Peer Updater"); //$NON-NLS-1$
@@ -232,7 +231,7 @@ public class PeerManager extends Thread {
          //1. Send disconnect to Tracker
         _tracker.stop();
         try {
-          while(requestsToFree.size() >  0)
+          while(requestsToFree.size() !=  0)
           {
             freeRequests();
             Thread.sleep(100);
@@ -959,7 +958,8 @@ public class PeerManager extends Thread {
       best.remove(upRates.length);
   }
 
-  private void testAndSortWeakest(int upRate, int[] upRates, PeerSocket pc, Vector worst) {
+/*
+  private static void testAndSortWeakest(int upRate, int[] upRates, PeerSocket pc, Vector worst) {
     int i;
     for (i = 0; i < upRates.length; i++) {
       if (upRate <= upRates[i])
@@ -975,6 +975,7 @@ public class PeerManager extends Thread {
     if (worst.size() > upRates.length)
       worst.remove(upRates.length);
   }
+*/
 
   //send the have requests out
   private void sendHave(int pieceNumber) {

@@ -8,9 +8,9 @@ package org.gudy.azureus2.core;
  *
  */
 public class PeerStats {
-  private final int avgTime = 12;
+//  private final int avgTime = 12;
 
-  private long timeCreated;
+//  private long timeCreated;
 
   private int pieceLength;
 
@@ -25,7 +25,7 @@ public class PeerStats {
   private Average statisticSentSpeed;
 
   public PeerStats(int pieceLength) {
-    timeCreated = System.currentTimeMillis() / 100;
+//    timeCreated = System.currentTimeMillis() / 100;
 
     this.pieceLength = pieceLength;
 
