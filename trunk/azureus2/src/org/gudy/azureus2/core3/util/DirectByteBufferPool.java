@@ -115,7 +115,17 @@ DirectByteBufferPool
           DEBUG_PRINT_TIME,
           new TimerEventPerformer() {
             public void perform( TimerEvent ev ) {
-              System.out.println("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, in use=" +(bytesOut-bytesIn)/1024/1024 +"MB, free=" + bytesFree()/1024/1024+ "MB");
+              System.out.print("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, ");
+              
+              long in_use = bytesOut - bytesIn;
+              if( in_use < 1024*1024 ) System.out.print( "in use=" +in_use+ "B, " );
+              else System.out.print( "in use=" +in_use/1024/1024+ "MB, " );
+              
+              long free = bytesFree();
+              if( free < 1024*1024 ) System.out.print( "free=" +free+ "B" );
+              else System.out.print( "free=" +free/1024/1024+ "MB" );
+
+              System.out.println();
               
               printInUse( false );
               
