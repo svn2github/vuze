@@ -1370,11 +1370,9 @@ DiskManagerImpl
 	}
 
 	public void computePriorityIndicator() {
-	   DiskManagerFileInfoImpl fileInfo;
-    
 		for (int i = 0; i < pieceCompletion.length; i++) {
 		  
-		   //if the piece is already complete, skip
+		   //if the piece is already complete, skip computation
 		   if (pieceDone[i]) {
 		     pieceCompletion[i] = -1;
 		     continue;
@@ -1385,7 +1383,7 @@ DiskManagerImpl
 			
 			for (int k = 0; k < pieceList.size(); k++) {
 				//get the piece and the file 
-				fileInfo = (pieceList.get(k)).getFile();
+				DiskManagerFileInfoImpl fileInfo = (pieceList.get(k)).getFile();
 				
 				//If the file isn't skipped
 				if(fileInfo.isSkipped()) {
@@ -1400,8 +1398,7 @@ DiskManagerImpl
         
             //if the file is high-priority
 				else if (fileInfo.isPriority()) {
-				  if (i == fileInfo.getFirstPieceNumber()) completion = 99;
-				  else completion = 98;
+				  completion = 98;
 				}
 				
 				//If the file is started but not completed
