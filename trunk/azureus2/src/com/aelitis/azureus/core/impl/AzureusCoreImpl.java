@@ -134,6 +134,14 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
          
+		final PluginInitializer pi = PluginInitializer.getSingleton(this,this);
+		
+	    LGLogger.log("Core: Loading of Plugins starts");
+
+		pi.loadPlugins(this);
+		
+	    LGLogger.log("Core: Loading of Plugins complete");
+
 		global_manager = GlobalManagerFactory.create( this );
 		
 		for (int i=0;i<lifecycle_listeners.size();i++){
@@ -141,7 +149,7 @@ AzureusCoreImpl
 			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).componentCreated( this, global_manager );
 		}
 
-	    PluginInitializer.getSingleton(this,this).initializePlugins( this );
+	    pi.initialisePlugins();
 	        
 	    LGLogger.log("Core: Initializing Plugins complete");
 
@@ -150,7 +158,7 @@ AzureusCoreImpl
 	        	public void
 	        	runSupport()
 	        	{
-	        		PluginInitializer.initialisationComplete();
+	        		pi.initialisationComplete();
 	        		
 	        		for (int i=0;i<lifecycle_listeners.size();i++){
 	        			

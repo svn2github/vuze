@@ -120,6 +120,8 @@ PluginInitializer
   private PluginInterfaceImpl	default_plugin;
   private PluginManager			plugin_manager;
   
+  private List		loaded_pi_list		= new ArrayList();
+  
   private List		plugins				= new ArrayList();
   private List		plugin_interfaces	= new ArrayList();
   
@@ -137,32 +139,6 @@ PluginInitializer
 	  	if ( singleton == null ){
 	  		
 	  		singleton = new PluginInitializer( azureus_core, listener );
-	  		
-	  		for (int i=0;i<registration_queue.size();i++){
-	  			
-	  			try{
-	  				Object	entry = registration_queue.get(i);
-	  				
-	  				if ( entry instanceof Class ){
-	  					
-		  				Class cla = (Class)entry;
-		  				
-		  				singleton.initializePluginFromClass(cla, "<internal>", cla.getName());
-	  				
-	  				}else{
-	  					
-	  					Object[]	x = (Object[])entry;
-	  					
-	  					Plugin	plugin = (Plugin)x[0];
-	  					
-	  					singleton.initializePluginFromInstance(plugin, (String)x[1], plugin.getClass().getName());
-	  				}
-	  			}catch(PluginException e ){
-	  				
-	  			}
-	  		}
-	  		
-	  		registration_queue.clear();
 	  	}
 	 	
 	  	return( singleton );
@@ -233,7 +209,22 @@ PluginInitializer
   {
   	azureus_core	= _azureus_core;
   	
-  	azureus_core.getGlobalManager().addListener( this );
+  	azureus_core.addLifecycleListener(
+	    	new AzureusCoreLifecycleAdapter()
+			{
+	    		public void
+				componentCreated(
+					AzureusCore					core,
+					AzureusCoreComponent		comp )
+	    		{
+	    			if ( comp instanceof GlobalManager ){
+	    				
+	    				GlobalManager	gm	= (GlobalManager)comp;
+	    				
+	    				gm.addListener( PluginInitializer.this );
+	    			}
+	    		}
+			});
   	
     listener 	= _listener;
     
@@ -245,8 +236,8 @@ PluginInitializer
   }
   
   public void 
-  initializePlugins(
-  		AzureusCore		core  ) 
+  loadPlugins(
+  	AzureusCore		core  ) 
   {
     PluginManagerImpl.setStartDetails( core );
     
@@ -273,58 +264,24 @@ PluginInitializer
     
     	// user ones first so they override app ones if present
     
-    initializePluginsFromDir( user_dir, 0, user_plugins + app_plugins );
+    loadPluginsFromDir( user_dir, 0, user_plugins + app_plugins );
     
     if ( !user_dir.equals( app_dir )){
     	
-    	initializePluginsFromDir(app_dir, user_plugins, user_plugins + app_plugins );
+    	loadPluginsFromDir(app_dir, user_plugins, user_plugins + app_plugins );
     }
- 
-    	// some plugins try and steal the logger stdout redirects. re-establish them if needed
-    
-    LGLogger.checkRedirection();
-    
-    	// now do built in ones
-    
-    LGLogger.log("Initializing built-in plugins");
-    
-    PluginManagerDefaults	def = PluginManager.getDefaults();
-    
-    for (int i=0;i<builtin_plugins.length;i++){
-    		
-    	if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
-    		
-	    	String	id 	= builtin_plugins[i][2];
-	    	String	key	= builtin_plugins[i][3];
-	    	
-	    	try{
-	    		Class	cla = getClass().getClassLoader().loadClass( builtin_plugins[i][1]);
-				
-	     		initializePluginFromClass( cla, id, key );
-		 		 				
-	  		}catch( Throwable e ){
-	  			
-	  			Debug.printStackTrace( e );
-	  			
-	  	    	LGLogger.logUnrepeatableAlert( "Initialisation of built in plugin '" + key + "' fails", e );
-	  	      
-	  		}
-    	}else{
-    		
-    		LGLogger.log( "Built-in plugin '" + builtin_plugins[i][0] + "' is disabled" );
-    	}
-     }
   }
  
   private void
-  initializePluginsFromDir(
+  loadPluginsFromDir(
   	File	pluginDirectory,
 	int		plugin_offset,
 	int		plugin_total )
   {
     LGLogger.log("Plugin Directory is " + pluginDirectory);
     
-    if ( !pluginDirectory.exists() ) {
+    if ( !pluginDirectory.exists() ){
+    	
       pluginDirectory.mkdirs();
     }
     
@@ -335,22 +292,30 @@ PluginInitializer
 	    for(int i = 0 ; i < pluginsDirectory.length ; i++) {
         
         if( pluginsDirectory[i].getName().equals( "CVS" ) ) {
+        	
           LGLogger.log("Skipping plugin " + pluginsDirectory[i].getName());
+          
           continue;
         }
 	    	
-	      LGLogger.log("Initializing plugin " + pluginsDirectory[i].getName());
+	    LGLogger.log("Loading plugin " + pluginsDirectory[i].getName());
 
-	      if(listener != null) {
+	    if(listener != null) {
   	      	
-	        listener.reportCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
-	      }
+	      listener.reportCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
+	    }
 	      
-	      try{
-	      	initializePluginFromDir(pluginsDirectory[i]);
+	    try{
+	    
+	    	List	loaded_pis = loadPluginFromDir(pluginsDirectory[i]);
 	      	
+	    		// save details for later initialisation
+	    	
+	    	loaded_pi_list.add( loaded_pis );
+	    	
 	      }catch( PluginException e ){
 	      	
+	      		// already handled
 	      }
 	      
 	      if( listener != null ){
@@ -361,19 +326,29 @@ PluginInitializer
     } 
   }
   
-  private void 
-  initializePluginFromDir(
+  private List 
+  loadPluginFromDir(
   	File directory)
   
   	throws PluginException
   {
-  	
+    List	loaded_pis = new ArrayList();
+    
   	ClassLoader classLoader = getClass().getClassLoader();
   	
-    if(!directory.isDirectory()) return;
+    if( !directory.isDirectory()){
+    	
+    	return( loaded_pis );
+    }
+    
     String pluginName = directory.getName();
+    
     File[] pluginContents = directory.listFiles();
-    if (pluginContents.length <= 0) return;
+    
+    if ( pluginContents == null || pluginContents.length == 0){
+    	
+    	return( loaded_pis );
+    }
     
     	// take only the highest version numbers of jars that look versioned
     
@@ -488,173 +463,164 @@ PluginInitializer
  
       int	pos1 = 0;
       int	pos2 = 0;
-      
+                 
       while(true){
-      		int	p1 = plugin_class_string.indexOf( ";", pos1 );
-      	
-      		String	plugin_class;
-      	
-      		if ( p1 == -1 ){
-      			plugin_class = plugin_class_string.substring(pos1).trim();
-      		}else{
-      			plugin_class	= plugin_class_string.substring(pos1,p1).trim();
-      			pos1 = p1+1;
-      		}
-      
-      		PluginInterfaceImpl existing_pi = getPluginFromClass( plugin_class );
-      		
-      		if ( existing_pi != null ){
-      				
-      				// allow user dir entries to override app dir entries without warning
-      			
-      			File	this_parent 	= directory.getParentFile();
-      			File	existing_parent = null;
-      			
-      			if ( existing_pi.getInitializerKey() instanceof File ){
-      				
-      				existing_parent	= ((File)existing_pi.getInitializerKey()).getParentFile();
-      			}
-      			
-      			if ( 	this_parent.equals( FileUtil.getApplicationFile("plugins")) &&
-      					existing_parent	!= null &&
-      					existing_parent.equals( FileUtil.getUserFile( "plugins" ))){
-      				
-      			}else{
-      			
-      				LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class + "' is already loaded" );
-      			}
+  		int	p1 = plugin_class_string.indexOf( ";", pos1 );
+  	
+  		String	plugin_class;
+  	
+  		if ( p1 == -1 ){
+  			plugin_class = plugin_class_string.substring(pos1).trim();
+  		}else{
+  			plugin_class	= plugin_class_string.substring(pos1,p1).trim();
+  			pos1 = p1+1;
+  		}
+  
+  		PluginInterfaceImpl existing_pi = getPluginFromClass( plugin_class );
+  		
+  		if ( existing_pi != null ){
+  				
+  				// allow user dir entries to override app dir entries without warning
+  			
+  			File	this_parent 	= directory.getParentFile();
+  			File	existing_parent = null;
+  			
+  			if ( existing_pi.getInitializerKey() instanceof File ){
+  				
+  				existing_parent	= ((File)existing_pi.getInitializerKey()).getParentFile();
+  			}
+  			
+  			if ( 	this_parent.equals( FileUtil.getApplicationFile("plugins")) &&
+  					existing_parent	!= null &&
+  					existing_parent.equals( FileUtil.getUserFile( "plugins" ))){
+  				
+  			}else{
+  			
+  				LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class + "' is already loaded" );
+  			}
 
-      		}else{
-      			
-      		  String	plugin_name = null;
-      		  
-      		  if ( plugin_name_string != null ){
-      		  	
-      		  	int	p2 = plugin_name_string.indexOf( ";", pos2 );
-              	
+  		}else{
+  			
+  		  String	plugin_name = null;
+  		  
+  		  if ( plugin_name_string != null ){
+  		  	
+  		  	int	p2 = plugin_name_string.indexOf( ";", pos2 );
           	
-          		if ( p2 == -1 ){
-          			plugin_name = plugin_name_string.substring(pos2).trim();
-          		}else{
-          			plugin_name	= plugin_name_string.substring(pos2,p2).trim();
-          			pos2 = p2+1;
-          		}    
-      		  }
-      		  
-      		  Properties new_props = (Properties)props.clone();
-      		  
-      		  for (int j=0;j<default_version_details.length;j++){
-      		  	
-      		  	if ( plugin_class.equals( default_version_details[j][0] )){
-      		  
-    		  		if ( new_props.get( "plugin.id") == null ){
-      		  			
-    		  			new_props.put( "plugin.id", default_version_details[j][1]);  
-      		  		}
-    		  		
-    		  		if ( plugin_name == null ){
-    		  			
-    		  			plugin_name	= default_version_details[j][2];
-    		  		}
-    		  		
-    		  		if ( new_props.get( "plugin.version") == null ){
-	
-    		  				// no explicit version. If we've derived one then use that, otherwise defaults
-     		  			
-    		  			if ( plugin_version[0] != null ){
-    		  
-    		  				new_props.put( "plugin.version", plugin_version[0]);
-    		     		    		  				
-    		  			}else{
-    		  				
-    		  				new_props.put( "plugin.version", default_version_details[j][3]);
-    		  			}
-      		  		}
-      		  	}
-      		  }
-      		  
-      		  new_props.put( "plugin.class", plugin_class );
-      		  
-      		  if ( plugin_name != null ){
-      		  	
-      		  	new_props.put( "plugin.name", plugin_name );
-      		  }
-      		       		       		  
-	 	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
-		      
-		      	// if the plugin load fails we still need to generate a plugin entry
-      		  	// as this drives the upgrade process
-      		  
-		      Plugin plugin = null;
-		      
-		      Throwable	load_failure	= null;
-		      
-		      try{
-			      Class c = classLoader.loadClass(plugin_class);
-			      
-		      	  plugin	= (Plugin) c.newInstance();
-		      
-		      }catch( Throwable e ){
-		      	
-		      	load_failure	= e;
-		      	
-		      	plugin = new loadFailedPlugin();
-		      }
+      	
+      		if ( p2 == -1 ){
+      			plugin_name = plugin_name_string.substring(pos2).trim();
+      		}else{
+      			plugin_name	= plugin_name_string.substring(pos2,p2).trim();
+      			pos2 = p2+1;
+      		}    
+  		  }
+  		  
+  		  Properties new_props = (Properties)props.clone();
+  		  
+  		  for (int j=0;j<default_version_details.length;j++){
+  		  	
+  		  	if ( plugin_class.equals( default_version_details[j][0] )){
+  		  
+		  		if ( new_props.get( "plugin.id") == null ){
+  		  			
+		  			new_props.put( "plugin.id", default_version_details[j][1]);  
+  		  		}
+		  		
+		  		if ( plugin_name == null ){
+		  			
+		  			plugin_name	= default_version_details[j][2];
+		  		}
+		  		
+		  		if ( new_props.get( "plugin.version") == null ){
 
-		      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
-		      
-		      PluginInterfaceImpl plugin_interface = 
-		      		new PluginInterfaceImpl(
-		      					plugin, 
-								this, 
-								directory, 
-								classLoader,
-								directory.getName(),	// key for config values
-								new_props,
-								directory.getAbsolutePath(),
-								plugin_id[0]==null?directory.getName():plugin_id[0],
-								plugin_version[0] );
-		      
-		      try{
-		      	
-		      	plugin.initialize(plugin_interface);
-		      	
-		      }catch( Throwable e ){
-		      	
-		      	load_failure	= e;
-		      }
-		
-		      plugin_interface.setOperational( load_failure == null );
-		      
-		      plugins.add( plugin );
-		      
-		      plugin_interfaces.add( plugin_interface );
-		      
-		      if ( load_failure != null ){
-		      	
-		      	Debug.printStackTrace( load_failure );
-		        
-		      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
-		   	 
-		      	LGLogger.logUnrepeatableAlert( msg, load_failure );
-
-		      	System.out.println( msg + " : " + load_failure);
-		      	
-		      	last_load_failure = new PluginException( msg, load_failure );
-		      }
-      		}
+		  				// no explicit version. If we've derived one then use that, otherwise defaults
+ 		  			
+		  			if ( plugin_version[0] != null ){
+		  
+		  				new_props.put( "plugin.version", plugin_version[0]);
+		     		    		  				
+		  			}else{
+		  				
+		  				new_props.put( "plugin.version", default_version_details[j][3]);
+		  			}
+  		  		}
+  		  	}
+  		  }
+  		  
+  		  new_props.put( "plugin.class", plugin_class );
+  		  
+  		  if ( plugin_name != null ){
+  		  	
+  		  	new_props.put( "plugin.name", plugin_name );
+  		  }
+  		       		       		  
+ 	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
 	      
-	      if ( p1 == -1 ){
-	      	break;
+	      	// if the plugin load fails we still need to generate a plugin entry
+  		  	// as this drives the upgrade process
+  		  
+	      Plugin plugin = null;
+	      
+	      Throwable	load_failure	= null;
+	      
+	      try{
+		      Class c = classLoader.loadClass(plugin_class);
+		      
+	      	  plugin	= (Plugin) c.newInstance();
+	      
+	      }catch( Throwable e ){
 	      	
+	      	load_failure	= e;
+	      	
+	      	plugin = new loadFailedPlugin();
 	      }
+
+	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
+	      
+	      PluginInterfaceImpl plugin_interface = 
+	      		new PluginInterfaceImpl(
+	      					plugin, 
+							this, 
+							directory, 
+							classLoader,
+							directory.getName(),	// key for config values
+							new_props,
+							directory.getAbsolutePath(),
+							plugin_id[0]==null?directory.getName():plugin_id[0],
+							plugin_version[0] );
+	      
+
+	      loaded_pis.add( plugin_interface );
+	      
+	      if ( load_failure != null ){
+	      	
+	      	Debug.printStackTrace( load_failure );
+	        
+	      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+	   	 
+	      	LGLogger.logUnrepeatableAlert( msg, load_failure );
+
+	      	System.out.println( msg + " : " + load_failure);
+	      	
+	      	last_load_failure = new PluginException( msg, load_failure );
+	      }
+  		}
+	      
+	    if ( p1 == -1 ){
+	    	break;
+	      	
+	    }
       }
       
       if ( last_load_failure != null ){
       	
       	throw( last_load_failure );
       }
-    } catch(Throwable e) {
+      
+      return( loaded_pis );
+      
+    }catch(Throwable e) {
     	
     	if ( e instanceof PluginException ){
     		
@@ -673,6 +639,156 @@ PluginInitializer
     }
   }
   
+  	public void
+	initialisePlugins()
+  	{
+  		for (int i=0;i<loaded_pi_list.size();i++){
+  		
+  			try{
+  				List	l = (List)loaded_pi_list.get(i);
+  			
+  				if ( l.size() > 0 ){
+  				
+  					PluginInterfaceImpl	plugin_interface = (PluginInterfaceImpl)l.get(0);
+  				
+  					LGLogger.log("Initialising plugin " + plugin_interface.getPluginName());
+	
+  					if (listener != null) {
+	  			      	
+  						listener.reportCurrentTask(MessageText.getString("splash.plugin.init") + plugin_interface.getPluginName());
+  					}
+	  		    
+  					initialisePlugin( l );
+  				}
+  			
+  			}catch( PluginException e ){
+  			
+  				// already handled
+  			
+  			}finally{
+  			
+  				if( listener != null ){
+	      	
+  					listener.reportPercent( (100 * (i+1)) / loaded_pi_list.size() );
+  				}
+  			}
+  		}
+  	
+  			// some plugins try and steal the logger stdout redirects. re-establish them if needed
+    
+  		LGLogger.checkRedirection();
+    
+  			// now do built in ones
+    
+  		LGLogger.log("Initializing built-in plugins");
+    
+  		PluginManagerDefaults	def = PluginManager.getDefaults();
+    
+  		for (int i=0;i<builtin_plugins.length;i++){
+    		
+  			if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
+    		
+  				String	id 	= builtin_plugins[i][2];
+  				String	key	= builtin_plugins[i][3];
+	    	
+  				try{
+  					Class	cla = getClass().getClassLoader().loadClass( builtin_plugins[i][1]);
+				
+  					initializePluginFromClass( cla, id, key );
+		 		 				
+  				}catch( Throwable e ){
+	  			
+  					Debug.printStackTrace( e );
+	  			
+  					LGLogger.logUnrepeatableAlert( "Initialisation of built in plugin '" + key + "' fails", e );
+	  	      
+  				}
+  			}else{
+    		
+  				LGLogger.log( "Built-in plugin '" + builtin_plugins[i][0] + "' is disabled" );
+  			}
+  		}
+    
+ 		LGLogger.log("Initializing dynamically registered plugins");
+ 		 
+		for (int i=0;i<registration_queue.size();i++){
+			
+			try{
+				Object	entry = registration_queue.get(i);
+				
+				if ( entry instanceof Class ){
+					
+	  				Class cla = (Class)entry;
+	  				
+	  				singleton.initializePluginFromClass(cla, "<internal>", cla.getName());
+				
+				}else{
+					
+					Object[]	x = (Object[])entry;
+					
+					Plugin	plugin = (Plugin)x[0];
+					
+					singleton.initializePluginFromInstance(plugin, (String)x[1], plugin.getClass().getName());
+				}
+			}catch(PluginException e ){
+				
+			}
+		}
+		
+		registration_queue.clear();
+  	}
+  
+  	private void
+	initialisePlugin(
+		List	l )
+  	
+  		throws PluginException
+  	{
+  		PluginException	last_load_failure = null;
+  		
+  		for (int i=0;i<l.size();i++){
+  	
+  			PluginInterfaceImpl	plugin_interface = (PluginInterfaceImpl)l.get(i);
+  	
+  			Plugin	plugin = plugin_interface.getPlugin();
+  			
+  			Throwable	load_failure = null;
+  			
+  			try{
+      	
+  				plugin.initialize(plugin_interface);
+      	
+  			}catch( Throwable e ){
+      	
+  				load_failure	= e;
+  			}
+
+  			plugin_interface.setOperational( load_failure == null );
+      
+  			plugins.add( plugin );
+	      
+  			plugin_interfaces.add( plugin_interface );
+	      
+  			if ( load_failure != null ){
+	      	
+  				Debug.printStackTrace( load_failure );
+	        
+  				String	msg = "Error initialising plugin '" + plugin_interface.getPluginName() + "'";
+	   	 
+  				LGLogger.logUnrepeatableAlert( msg, load_failure );
+	
+  				System.out.println( msg + " : " + load_failure);
+	      	
+  				last_load_failure = new PluginException( msg, load_failure );
+  			}
+  		}
+      
+  		if ( last_load_failure != null ){
+      	
+  			throw( last_load_failure );
+  		}
+  	}
+
   private ClassLoader 
   addFileToClassPath(
   	ClassLoader		classLoader,
@@ -745,7 +861,7 @@ PluginInitializer
     		
     	}
     	
-        listener.reportCurrentTask(MessageText.getString("splash.plugin") + plugin_name );
+        listener.reportCurrentTask(MessageText.getString("splash.plugin.init") + plugin_name );
     }
     
   	try{
@@ -846,8 +962,9 @@ PluginInitializer
   	
   	if ( key instanceof File ){
   		
-  		initializePluginFromDir( (File)key );
+  		List	pis = loadPluginFromDir( (File)key );
   		
+  		initialisePlugin( pis );
   	}else{
   		
   		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key );
@@ -953,8 +1070,8 @@ PluginInitializer
   	singleton.fireEventSupport(type);
   }
   
-  protected void
-  initialisationCompleteSupport()
+  public void
+  initialisationComplete()
   {
   	initialisation_complete	= true;
   	
@@ -975,11 +1092,6 @@ PluginInitializer
   	return( initialisation_complete );
   }
   
-  public static void
-  initialisationComplete()
-  {
-  	singleton.initialisationCompleteSupport();
-  }
   
   public static List getPluginInterfaces() {
   	return singleton.getPluginInterfacesSupport();

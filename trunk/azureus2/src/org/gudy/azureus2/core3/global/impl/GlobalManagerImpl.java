@@ -1419,11 +1419,13 @@ public class GlobalManagerImpl
 		t.start();
 		*/
 
-  		listeners.dispatch( LDT_DESTROYED, null );
+  		listeners.dispatch( LDT_DESTROYED, null, true );
   }
   	
-  public void informDestroyInitiated()  {
-    listeners.dispatch( LDT_DESTROY_INITIATED, null );		
+  public void 
+  informDestroyInitiated()  
+  {
+  	listeners.dispatch( LDT_DESTROY_INITIATED, null, true );		
   }
   	
  	public void

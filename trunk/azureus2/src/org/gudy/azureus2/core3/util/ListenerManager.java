@@ -161,7 +161,23 @@ ListenerManager
 		int		type,
 		Object	value )
 	{
+		dispatch( type, value, false );
+	}
+	
+	public void
+	dispatch(
+		int			type,
+		Object		value,
+		boolean		blocking )
+	{
 		if ( async ){
+			
+			AESemaphore	sem = null;
+			
+			if ( blocking ){
+				
+				sem = new AESemaphore( "ListenerManager:blocker");
+			}
 			
 			synchronized( this ){
 				
@@ -175,11 +191,15 @@ ListenerManager
 					// listeners are "copy on write" updated, hence we grab a reference to the 
 					// current listeners here. Any subsequent change won't affect our listeners
 												
-				dispatch_queue.add(new Object[]{listeners, new Integer(type), value});
+				dispatch_queue.add(new Object[]{listeners, new Integer(type), value, sem });
 			}
 			
 			dispatch_sem.release();
 			
+			if ( sem != null ){
+				
+				sem.reserve();
+			}
 		}else{
 			
 			if ( target_with_exception != null ){
@@ -227,8 +247,25 @@ ListenerManager
 		int		type,
 		Object	value )
 	{
+		dispatch( listener, type, value, false );
+	}
+	
+	public void
+	dispatch(
+		Object	listener,
+		int		type,
+		Object	value,
+		boolean	blocking )
+	{
 		if ( async ){
 			
+			AESemaphore	sem = null;
+			
+			if ( blocking ){
+				
+				sem = new AESemaphore( "ListenerManager:blocker");
+			}
+	
 			synchronized( this ){
 				
 					// no point in queueing if no listeners
@@ -238,11 +275,17 @@ ListenerManager
 					return;
 				}
 				
-				dispatch_queue.add(new Object[]{ listener, new Integer(type), value, null });	// 4 entries
+					// 5 entries to denote single listener
+				
+				dispatch_queue.add(new Object[]{ listener, new Integer(type), value, sem, null });
 			}
 			
 			dispatch_sem.release();
-			
+	
+			if ( sem != null ){
+				
+				sem.reserve();
+			}
 		}else{
 			
 			if ( target_with_exception != null ){
@@ -359,7 +402,7 @@ ListenerManager
 			if ( data != null ){
 			
 				try{						
-					if ( data.length == 3 ){
+					if ( data.length == 4 ){
 					
 						dispatchInternal((List)data[0], ((Integer)data[1]).intValue(), data[2] );
 						
@@ -371,6 +414,13 @@ ListenerManager
 				}catch( Throwable e ){
 					
 					Debug.printStackTrace( e );
+					
+				}finally{
+					
+					if ( data[3] != null ){
+						
+						((AESemaphore)data[3]).release();
+					}
 				}
 			}
 		}
