@@ -24,7 +24,9 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
@@ -37,6 +39,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
@@ -162,12 +165,34 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     gridData.widthHint = 50;
     colorScheme.setLayoutData(gridData);
     
-    label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.progressBarColor");
-    ColorParameter progressBarColor = new ColorParameter(cArea, "Colors.progressBar",0,128,255,false);
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    progressBarColor.setLayoutData(gridData);
+    Group cColorOverride = new Group(cArea, SWT.NULL);
+    Messages.setLanguageText(cColorOverride, "ConfigView.section.style.colorOverrides");
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    cColorOverride.setLayout(layout);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 2;
+    cColorOverride.setLayoutData(gridData);
+    
+    String[] sColorsToOverride = { "progressBar", "error" };
+    Color[] colorsToOverride = { MainWindow.progressBarColor, 
+                                  MainWindow.colorError };
+
+    for (int i = 0; i < sColorsToOverride.length; i++) {
+      label = new Label(cColorOverride, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.section.style.colorOverride." + sColorsToOverride[i]);
+      ColorParameter colorParm = 
+          new ColorParameter(cColorOverride, "Colors."  + sColorsToOverride[i],
+                             colorsToOverride[i].getRed(), 
+                             colorsToOverride[i].getGreen(), 
+                             colorsToOverride[i].getBlue(), false);
+      gridData = new GridData();
+      gridData.widthHint = 50;
+      colorParm.setLayoutData(gridData);
+      new BooleanParameter(cColorOverride, 
+                           "Colors." + sColorsToOverride[i] + ".override",
+                           "ConfigView.section.style.colorOverride");
+    }
 
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate");

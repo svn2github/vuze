@@ -163,6 +163,7 @@ public class ConfigurationDefaults {
       /* Ignore, SWT not installed */
     }
     def.put("SWT_bGTKTableBug", new Long(bGTKTableBug ? 1: 0));
+    def.put("Colors.progressBar.override", new Long(0));
     
     def.put("Logging Enable", new Long(0));
     def.put("Logging Dir", "");

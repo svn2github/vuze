@@ -411,8 +411,8 @@ public class MultiTrackerEditor {
       		text.setForeground( null );
       		item.setForeground( null );
       	}else{
-      		text.setForeground( MainWindow.red );
-      		item.setForeground( MainWindow.red );
+      		text.setForeground( MainWindow.colorError );
+      		item.setForeground( MainWindow.colorError );
       	}
       	item.setText(url);
         computeSaveEnable();
@@ -427,8 +427,8 @@ public class MultiTrackerEditor {
     			text.setForeground( null );
     			item.setForeground( null );
     		}else{
-    			text.setForeground( MainWindow.red );
-    			item.setForeground( MainWindow.red );
+    			text.setForeground( MainWindow.colorError );
+    			item.setForeground( MainWindow.colorError );
     		}
     		item.setText(url);
      		computeSaveEnable();

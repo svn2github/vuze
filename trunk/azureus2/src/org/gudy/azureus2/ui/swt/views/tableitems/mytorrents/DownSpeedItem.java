@@ -64,7 +64,7 @@ public class DownSpeedItem extends TorrentItem implements ParameterListener {
     try 
     {
       int state = torrentRow.getManager().getState();
-      setItemForeground((iDLAverage < iMinActiveSpeed && state == DownloadManager.STATE_DOWNLOADING) ? MainWindow.red : null);
+      setItemForeground((iDLAverage < iMinActiveSpeed && state == DownloadManager.STATE_DOWNLOADING) ? MainWindow.colorShiftLeft : null);
     } catch (Exception e) {
       e.printStackTrace();
     }

@@ -151,6 +151,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static Color[] blues = new Color[BLUES_DARKEST + 1];
   public static Color progressBarColor;
   public static Color colorInverse;
+  public static Color colorShiftLeft;
+  public static Color colorShiftRight;
+  public static Color colorError;
   public static Color black;
   public static Color blue;
   public static Color grey;
@@ -159,7 +162,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private static Color background;
   
   public static Color red_ConsoleView;
-  public static Color red_ManagerItem;
   public static Cursor handCursor;
 
   private boolean useCustomTab;
@@ -453,9 +455,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         white = new Color(display, new RGB(255, 255, 255));
         background = new Color(display , new RGB(248,248,248));
         red_ConsoleView = new Color(display, new RGB(255, 192, 192));
-        red_ManagerItem = new Color(display, new RGB(255, 68, 68));
         handCursor = new Cursor(display, SWT.CURSOR_HAND);
         allocateProgressBarColor();
+        allocateColorError();
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Error allocating colors");
         e.printStackTrace();
@@ -1090,9 +1092,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     startFolderWatcher();
     COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
     COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
+    COConfigurationManager.addParameterListener("Colors.progressBar.override", this);
     COConfigurationManager.addParameterListener("Colors.progressBar.red", this);
     COConfigurationManager.addParameterListener("Colors.progressBar.green", this);
     COConfigurationManager.addParameterListener("Colors.progressBar.blue", this);
+    COConfigurationManager.addParameterListener("Colors.error.override", this);
+    COConfigurationManager.addParameterListener("Colors.error.red", this);
+    COConfigurationManager.addParameterListener("Colors.error.green", this);
+    COConfigurationManager.addParameterListener("Colors.error.blue", this);
     Tab.addTabKeyListenerToComposite(folder);
     
     gm.startChecker();
@@ -1249,6 +1256,22 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
         toBeDisposed.dispose();
       }
+
+      toBeDisposed = colorShiftRight;
+      hslColor.initHSLbyRGB(r, g, b);
+      hslColor.setHue(hslColor.getHue() + 13);
+      colorShiftRight = new Color(display, hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
+      if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
+        toBeDisposed.dispose();
+      }
+
+      toBeDisposed = colorShiftLeft;
+      hslColor.initHSLbyRGB(r, g, b);
+      hslColor.setHue(hslColor.getHue() - 13);
+      colorShiftLeft = new Color(display, hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
+      if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
+        toBeDisposed.dispose();
+      }
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error allocating colors");
       e.printStackTrace();
@@ -1352,7 +1375,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       String sText = "";
       int iSWTVer = SWT.getVersion();
       if (iSWTVer < 3038) {
-        sText += "SWT v"+ SWT.getVersion() + " is old, please update it. ";
+        String sParam[] = {"SWT v"+ SWT.getVersion()};
+        sText += MessageText.getString("MainWindow.status.tooOld", sParam) + " ";
       }
       sText += "Azureus " + VERSION + " / " + MessageText.getString("MainWindow.status.latestversion") + " : " + latestVersion;
       statusText.setText(sText);
@@ -2044,6 +2068,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
   
   private void disposeColors() {
+    
     if(progressBarColor != null && !progressBarColor.isDisposed())
       progressBarColor.dispose();
   }
@@ -2201,22 +2226,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         if (blues[i] != null && !blues[i].isDisposed())
           blues[i].dispose();
       }
-      if (colorInverse != null && !colorInverse.isDisposed())
-        colorInverse.dispose();
-      if (grey != null && !grey.isDisposed())
-        grey.dispose();
-      if (black != null && !black.isDisposed())
-        black.dispose();
-      if (blue != null && !blue.isDisposed())
-        blue.dispose();
-      if (red != null && !red.isDisposed())
-        red.dispose();
-      if (white != null && !white.isDisposed())
-        white.dispose();
-      if (red_ConsoleView != null && !red_ConsoleView.isDisposed())
-        red_ConsoleView.dispose();
-      if (red_ManagerItem != null && !red_ManagerItem.isDisposed())
-        red_ManagerItem.dispose();
+
+      Color[] colorsToDispose = { colorInverse, colorShiftLeft, colorShiftRight,
+                                  colorError, grey, black, blue, red, white,
+                                  red_ConsoleView };
+      for (int i = 0; i < colorsToDispose.length; i++) {
+        if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
+          colorsToDispose[i].dispose();
+        }
+      }
+
       if (handCursor != null && !handCursor.isDisposed())
         handCursor.dispose();
     }
@@ -2677,7 +2696,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if(parameterName.startsWith("Colors.progressBar")) {
       allocateProgressBarColor();      
     }
-   }
+    if(parameterName.startsWith("Colors.error")) {
+      allocateColorError();      
+    }
+  }
   
   
 
@@ -2685,25 +2707,47 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
    * 
    */
   private void allocateProgressBarColor() {
-    if(display == null || display.isDisposed())
-      return;
+    progressBarColor = new AllocateColor("progressBar", colorShiftRight.getRGB(), progressBarColor).getColor();
+  }
+
+  private void allocateColorError() {
+    colorError = new AllocateColor("error", new RGB(255, 68, 68), colorError).getColor();
+  }
+
+  /** Allocates a color */
+  private class AllocateColor implements Runnable {
+    private Color toBeDeleted = null;
+    private String sName;
+    private RGB rgbDefault;
+    private Color newColor;
     
-    display.asyncExec(new Runnable() {
-      public void run() {
-        Color toBeDeleted = null;
-        if(progressBarColor != null && !progressBarColor.isDisposed()) {
-          toBeDeleted = progressBarColor;
-        }
-        
-        progressBarColor = new Color(display,
-           COConfigurationManager.getIntParameter("Colors.progressBar.red",0),
-           COConfigurationManager.getIntParameter("Colors.progressBar.green",128),
-           COConfigurationManager.getIntParameter("Colors.progressBar.blue",255));
-        
-        if(toBeDeleted != null)
-          toBeDeleted.dispose();
+    public AllocateColor(String sName, RGB rgbDefault, Color colorOld) {
+      toBeDeleted = colorOld;
+      this.sName = sName;
+      this.rgbDefault = rgbDefault;
+    }
+    
+    public Color getColor() {
+      display.syncExec(this);
+      return newColor;
+    }
+
+    public void run() {
+      if (COConfigurationManager.getBooleanParameter("Colors." + sName + ".override")) {
+        newColor = new Color(display,
+           COConfigurationManager.getIntParameter("Colors." + sName + ".red", 
+                                                  rgbDefault.red),
+           COConfigurationManager.getIntParameter("Colors." + sName + ".green",
+                                                  rgbDefault.green),
+           COConfigurationManager.getIntParameter("Colors." + sName + ".blue",
+                                                  rgbDefault.blue));
+      } else {
+        newColor = new Color(display, rgbDefault);
       }
-    });    
+
+      if (toBeDeleted != null && !toBeDeleted.isDisposed())
+        toBeDeleted.dispose();
+    }
   }
 
   public boolean isEnabled(String itemKey) {
