@@ -48,8 +48,9 @@ IpFilterImpl
 
 	private static IpFilterImpl ipFilter;
   
-	private List ipRanges;
-	private List bannedIps;
+	private List 	ipRanges;
+	
+	private Map		bannedIps;
 	 
     //Map ip blocked -> matching range
     private List ipsBlocked;
@@ -61,7 +62,7 @@ IpFilterImpl
 	{
 	  ipFilter = this;
 	  
-	  bannedIps = new ArrayList();
+	  bannedIps = new HashMap();
 	  
 	  ipsBlocked = new ArrayList();
 	  
@@ -227,7 +228,7 @@ IpFilterImpl
 	
 	private boolean isBanned(String ipAddress) {
 	  synchronized(bannedIps) {
-	    return bannedIps.contains(ipAddress);
+	    return( bannedIps.get(ipAddress) != null );
 	  }
 	}
   
@@ -309,13 +310,30 @@ IpFilterImpl
 	}
 	
 	public void 
-	ban(String ipAddress) 
+	ban(
+		String 	ipAddress,
+		String	torrent_name ) 
 	{
 		synchronized(ipsBlocked){
-			if(!bannedIps.contains(ipAddress))
-				bannedIps.add(ipAddress);
+			if( bannedIps.get(ipAddress) == null ){
+				
+				bannedIps.put( ipAddress, new BannedIpImpl( ipAddress, torrent_name ));
+			}
 		}
 	}
+	
+	public BannedIp[] 
+	getBannedIps() 
+	{
+		synchronized(bannedIps){
+			
+			BannedIp[]	res = new BannedIp[bannedIps.size()];
+		
+			bannedIps.values().toArray(res);
+			
+			return( res );
+		}	
+  	}
 	
 	public BlockedIp[] 
 	getBlockedIps() 

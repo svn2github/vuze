@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.ipfilter.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.ipfilter.BadIp;
 import org.gudy.azureus2.core3.ipfilter.BadIps;
 
 /**
@@ -33,36 +34,73 @@ public class BadIpsImpl extends BadIps {
   
   private static BadIps instance; 
   
-  private Map ipToWarning;
+  private Map bad_ip_map;
   
-  public static synchronized BadIps getInstance() {
-    if(instance == null)
-      instance = new BadIpsImpl();
-    return instance;
+  public static synchronized BadIps 
+  getInstance() 
+  {
+    if( instance == null ){
+    
+    	instance = new BadIpsImpl();
+    }
+    
+    return( instance );
   }
   
-  public BadIpsImpl() {
-    ipToWarning = new HashMap();
+  public BadIpsImpl() 
+  {
+    bad_ip_map = new HashMap();
   }
   
-  public int addWarningForIp(String ip) {
-    synchronized(ipToWarning) {     
-      int nbWarnings = getNbWarningForIp(ip) + 1;
-      ipToWarning.put(ip,new Integer(nbWarnings));
-      return nbWarnings;
+  public int 
+  addWarningForIp(
+  	String ip ) 
+  {
+    synchronized(bad_ip_map) 
+	{ 
+    	BadIpImpl	bad_ip = (BadIpImpl)bad_ip_map.get( ip );
+    	
+    	if ( bad_ip == null ){
+    		
+    		bad_ip = new BadIpImpl(ip);
+    		
+    		bad_ip_map.put( ip, bad_ip );
+    	}
+    	
+    	return( bad_ip.incrementWarnings());
     }
   }
 
  
-  public int getNbWarningForIp(String ip) {
-    synchronized(ipToWarning) {
-      Integer iwarnings = (Integer) ipToWarning.get(ip);      
-      if(iwarnings == null) {
+  public int 
+  getNbWarningForIp(
+  	String ip) 
+  {
+    synchronized(bad_ip_map) 
+	{
+      BadIpImpl bad_ip = (BadIpImpl) bad_ip_map.get(ip);
+      
+      if(bad_ip == null) {
+      	
         return 0;
-      } else {
-        return iwarnings.intValue();
+        
+      }else{
+      	
+        return bad_ip.getNumberOfWarnings();
       }
     }
   }
-
+  
+  public BadIp[]
+  getBadIps()
+  {
+  	synchronized(bad_ip_map){
+  		
+  		BadIp[]	res = new BadIp[bad_ip_map.size()];
+  		
+  		bad_ip_map.values().toArray( res );
+  		
+  		return( res );
+  	}
+  }
 }

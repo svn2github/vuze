@@ -36,4 +36,6 @@ public abstract class BadIps {
   
   public abstract int getNbWarningForIp(String ip);
 
+  public abstract BadIp[]
+  getBadIps();
 }

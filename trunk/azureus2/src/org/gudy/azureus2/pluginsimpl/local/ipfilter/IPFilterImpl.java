@@ -189,7 +189,7 @@ IPFilterImpl
 	block(
 		String IPAddress)
 	{
-		filter.ban( IPAddress );
+		filter.ban( IPAddress, "<plugin>" );
 	}
 	
 	public boolean

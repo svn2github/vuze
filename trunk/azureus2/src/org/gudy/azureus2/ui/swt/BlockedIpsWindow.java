@@ -31,9 +31,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.ipfilter.BlockedIp;
-import org.gudy.azureus2.core3.ipfilter.IpFilter;
-import org.gudy.azureus2.core3.ipfilter.IpRange;
+import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 /**
@@ -149,7 +147,26 @@ public class BlockedIpsWindow {
         sb.append(range.toString());
         sb.append('\n');
       }
-    }   
+    }  
+    
+    BannedIp[]	banned_ips = IpFilter.getInstance().getBannedIps();
+    
+    for(int i=0;i<banned_ips.length;i++){
+    	BannedIp bIp = banned_ips[i];
+        sb.append(DisplayFormatters.formatTimeStamp(bIp.getBanningTime()));
+        sb.append("\t[");
+        sb.append( bIp.getTorrentName() );
+        sb.append("] Banned due to sending bad data\n");
+        sb.append(bIp.getIp());
+    }
+    
+    BadIp[]	bad_ips = BadIps.getInstance().getBadIps();
+    
+    for(int i=0;i<bad_ips.length;i++){
+    	BadIp bIp = bad_ips[i];
+        sb.append(bIp.getIp() + " has sent bad data " + bIp.getNumberOfWarnings() + " times\n" );
+    }
+    
     if(mainWindow == null || mainWindow.isDisposed())
       return;
     BlockedIpsWindow.show(mainWindow.getDisplay(),sb.toString());

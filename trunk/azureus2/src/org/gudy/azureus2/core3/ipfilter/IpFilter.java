@@ -60,14 +60,21 @@ IpFilter
 	public abstract List
 	getIpRanges();
 	
-	public abstract IpRange[] getRanges();
+	public abstract IpRange[] 
+	getRanges();
 
-	public abstract boolean isInRange(String ipAddress);
+	public abstract boolean 
+	isInRange(
+		String ipAddress);
   
-  public abstract boolean isInRange(String ipAddress, String torrent_name);
+	public abstract boolean 
+	isInRange(
+		String ipAddress, 
+		String torrent_name);
 	
 	public abstract IpRange
-	createRange(boolean sessionOnly);
+	createRange(
+		boolean sessionOnly);
 	
 	public abstract void
 	addRange(
@@ -77,15 +84,25 @@ IpFilter
 	removeRange(
 		IpRange	range );
 	
-	public abstract int getNbRanges();
+	public abstract int 
+	getNbRanges();
 	
-	public abstract int getNbIpsBlocked();
+	public abstract int 
+	getNbIpsBlocked();
 	
-	public abstract BlockedIp[] getBlockedIps();
+	public abstract BlockedIp[] 
+	getBlockedIps();
 	
-	public abstract void clearBlockedIPs();
+	public abstract void 
+	clearBlockedIPs();
 	
-	public abstract void ban(String ipAddress);
+	public abstract void 
+	ban(
+		String 	ipAddress,
+		String	torrent_name );
+	
+	public abstract BannedIp[]
+	getBannedIps();
 	
 	public abstract boolean
 	isEnabled();
