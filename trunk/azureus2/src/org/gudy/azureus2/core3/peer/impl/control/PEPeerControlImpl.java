@@ -503,6 +503,11 @@ PEPeerControlImpl
     _finished = temp;
         
     if (_finished) {
+      endGameMode = false;
+      synchronized(endGameModeChunks) {
+        endGameModeChunks.clear();
+      }
+      
       boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
       
       _manager.setState(DownloadManager.STATE_FINISHING);
