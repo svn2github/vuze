@@ -38,6 +38,7 @@ import java.security.cert.*;
 import org.bouncycastle.jce.*;
 import org.bouncycastle.asn1.x509.X509Name;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -143,29 +144,112 @@ SESecurityManagerImpl
 		}
 	}
 	
+	protected boolean
+	checkKeyStoreHasEntry()
+	{
+		File	f  = new File(keystore);
+		
+		if ( !f.exists()){
+			
+			LGLogger.logAlertUsingResource( 
+					LGLogger.AT_ERROR,
+					"Security.keystore.empty",
+					new String[]{ keystore });
+			
+			return( false );
+		}
+		
+		try{
+			KeyStore key_store = loadKeyStore();
+			
+			Enumeration enum = key_store.aliases();
+			
+			if ( !enum.hasMoreElements()){
+				
+				LGLogger.logAlertUsingResource( 
+						LGLogger.AT_ERROR,
+						"Security.keystore.empty",
+						new String[]{ keystore });
+				
+				return( false );			
+			}
+			
+		}catch( Throwable e ){
+		
+			LGLogger.logAlertUsingResource( 
+					LGLogger.AT_ERROR,
+					"Security.keystore.corrupt",
+					new String[]{ keystore });
+			
+			return( false );			
+		}
+		
+		return( true );
+	}
+	
+	protected KeyStore
+	loadKeyStore()
+	
+		throws Exception
+	{
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		
+		return( loadKeyStore( keyManagerFactory ));
+	}
+	
+	protected KeyStore
+	loadKeyStore(
+		KeyManagerFactory	keyManagerFactory )
+		
+		throws Exception
+	{
+		KeyStore key_store = KeyStore.getInstance("JKS");
+		
+		if ( !new File(keystore).exists()){
+			
+			key_store.load(null,null);
+			
+		}else{
+			
+			InputStream kis = null;
+			
+			try{
+				kis = new FileInputStream(keystore);
+			
+				key_store.load(kis, SESecurityManager.SSL_PASSWORD.toCharArray());
+				
+			}finally{
+				
+				if ( kis != null ){
+					
+					kis.close();
+				}
+			}
+		}
+		
+		keyManagerFactory.init(key_store, SESecurityManager.SSL_PASSWORD.toCharArray());
+		
+		return( key_store );
+	}
+	
 	public SSLServerSocketFactory
 	getSSLServerSocketFactory()
 	
 		throws Exception
 	{
+		if ( !checkKeyStoreHasEntry()){
+			
+			return( null );
+		}
+		
 		SSLContext context = SSLContext.getInstance( "SSL" );
 		
 		// Create the key manager factory used to extract the server key
 		
 		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 		
-		KeyStore key_store = KeyStore.getInstance("JKS");
+		KeyStore key_store = loadKeyStore(keyManagerFactory);
 		
-		InputStream kis;
-		
-		kis = new FileInputStream(keystore);
-		
-		key_store.load(kis, SESecurityManager.SSL_PASSWORD.toCharArray());
-		
-		kis.close();
-		
-		keyManagerFactory.init(key_store, SESecurityManager.SSL_PASSWORD.toCharArray());
-				
 		// Initialize the context with the key managers
 		
 		context.init(  	
@@ -185,21 +269,9 @@ SESecurityManagerImpl
 		throws Exception
 	{
 		// Create the key manager factory used to extract the server key
+				
+		KeyStore key_store = loadKeyStore();
 		
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-		
-		KeyStore key_store = KeyStore.getInstance("JKS");
-		
-		InputStream kis;
-		
-		kis = new FileInputStream(keystore);
-		
-		key_store.load(kis, SESecurityManager.SSL_PASSWORD.toCharArray());
-		
-		kis.close();
-		
-		keyManagerFactory.init(key_store, SESecurityManager.SSL_PASSWORD.toCharArray());
-	
 		final Key key = key_store.getKey( alias, SESecurityManager.SSL_PASSWORD.toCharArray());
 		
 		java.security.cert.Certificate[]	chain = key_store.getCertificateChain( alias );
@@ -393,34 +465,8 @@ SESecurityManagerImpl
 	
 		throws Exception
 	{
-		KeyStore key_store = KeyStore.getInstance("JKS");
+		KeyStore key_store = loadKeyStore();
 		
-		if ( !new File(keystore).exists()){
-	
-			key_store.load(null,null);
-			
-		}else{
-		
-			FileInputStream		in 	= null;
-			
-			try{
-				in = new FileInputStream( keystore );
-		
-				key_store.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
-				
-			}finally{
-				
-				if ( in != null ){
-					
-					in.close();
-				}
-			}
-		}
-		
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-
-		keyManagerFactory.init(key_store, SESecurityManager.SSL_PASSWORD.toCharArray());
-
 		if( key_store.containsAlias( alias )){
 			
 			key_store.deleteEntry( alias );

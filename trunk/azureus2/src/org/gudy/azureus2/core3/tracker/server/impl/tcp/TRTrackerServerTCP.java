@@ -40,7 +40,7 @@ TRTrackerServerTCP
 	extends 	TRTrackerServerImpl
 {
 	protected static final int THREAD_POOL_SIZE				= 32;
-	
+
 	protected String	name;
 	protected boolean	ssl;
 	protected int		port;
@@ -74,50 +74,54 @@ TRTrackerServerTCP
 
 		if ( _ssl ){
 			
-			try {
-				
- 	      
+			try { 	      
 				SSLServerSocketFactory factory = SESecurityManager.getSSLServerSocketFactory();
  
-				SSLServerSocket ssl_server_socket;
-				
-				if ( bind_ip.length() < 7 ){
-					
-					ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128 );
-					
+				if ( factory == null ){
+										
+					throw( new TRTrackerServerException( "TRTrackerServer: failed to get SSL factory" ));
+					  
 				}else{
+					SSLServerSocket ssl_server_socket;
 					
-					ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128, InetAddress.getByName(bind_ip));
-				}
-
-				String cipherSuites[] = ssl_server_socket.getSupportedCipherSuites();
-  
-				ssl_server_socket.setEnabledCipherSuites(cipherSuites);
- 
-				ssl_server_socket.setNeedClientAuth(false);
-				
-				ssl_server_socket.setReuseAddress(true);
-												
-				final SSLServerSocket	f_ss = ssl_server_socket;
-				
-				Thread accept_thread = 
-						new Thread("TRTrackerServer:accept.loop(ssl)")
-						{
-							public void
-							run()
+					if ( bind_ip.length() < 7 ){
+						
+						ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128 );
+						
+					}else{
+						
+						ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128, InetAddress.getByName(bind_ip));
+					}
+	
+					String cipherSuites[] = ssl_server_socket.getSupportedCipherSuites();
+	  
+					ssl_server_socket.setEnabledCipherSuites(cipherSuites);
+	 
+					ssl_server_socket.setNeedClientAuth(false);
+					
+					ssl_server_socket.setReuseAddress(true);
+													
+					final SSLServerSocket	f_ss = ssl_server_socket;
+					
+					Thread accept_thread = 
+							new Thread("TRTrackerServer:accept.loop(ssl)")
 							{
-								acceptLoop( f_ss );
-							}
-						};
-			
-				accept_thread.setDaemon( true );
-			
-				accept_thread.start();									
-			
-				LGLogger.log( "TRTrackerServer: SSL listener established on port " + port ); 
+								public void
+								run()
+								{
+									acceptLoop( f_ss );
+								}
+							};
+				
+					accept_thread.setDaemon( true );
+				
+					accept_thread.start();									
+				
+					LGLogger.log( "TRTrackerServer: SSL listener established on port " + port ); 
+				}
 				
 			}catch( Throwable e){
-			
+								
 				LGLogger.logAlertUsingResource( 
 						LGLogger.AT_ERROR,
 						"Tracker.alert.listenfail",
@@ -125,9 +129,16 @@ TRTrackerServerTCP
 				
 				LGLogger.log( "TRTrackerServer: SSL listener failed on port " + port, e ); 
 				  
-				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
-   
+				if ( e instanceof TRTrackerServerException ){
+					
+					throw((TRTrackerServerException)e);
+					
+				}else{
+					
+					throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
+				}
 			}
+			
 		}else{
 			
 			try{
