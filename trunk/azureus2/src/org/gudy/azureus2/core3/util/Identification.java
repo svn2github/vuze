@@ -71,7 +71,7 @@ public class Identification {
       
       
       String xantorrent = new String(peerID, 0, 10, Constants.BYTE_ENCODING);
-      if (xantorrent.equals("DansClient")) return "Xantorrent";
+      if (xantorrent.equals("DansClient")) return "XanTorrent";
       
       
       String btfans = new String(peerID, 4, 6, Constants.BYTE_ENCODING);
