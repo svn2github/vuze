@@ -1,72 +1,50 @@
 /*
- * Created on Nov 10, 2003
+ * File    : PluginConfig.java
+ * Created : 17 nov. 2003
+ * By      : Olivier
  *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
+ * Azureus - a Java Bittorrent client
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+ 
 package org.gudy.azureus2.plugins;
 
 /**
- * @author Eric Allen
- * Read-Only (and confined write) access for plugins to Azureus configuration
- * 
+ * @author Olivier
+ *
  */
-public interface PluginConfig {
-	
-	/**
-	 * A plugin may want to get a String configuration parameter.
-	 * @param name identifier of the property
-	 * @return the value of the specified property
-	 */
-	public String getStringParameter(String name);
-	
-	/**
-	 * A plugin may want to get an int configuration parameter.
-	 * @param name identifier of the property
-	 * @return the value of the specified property
-	 */
-	public int getIntParameter(String name);
+public interface PluginConfig {  
 
-	/**
-	 * A plugin may want to get a boolean configuration parameter.
-	 * @param name identifier of the property
-	 * @return the value of the specified property
-	 */
-	public boolean getBooleanParameter(String name);
-
-	/**
-	 * A plugin may want to get a byte[] configuration parameter.
-	 * @param name identifier of the property
-	 * @return the value of the specified property
-	 */
-//	public byte[] GetByteParameter(String name);
-	
-	// write-access spec
-
-	/**
-	 * A plugin may want to set a parameter of it's own.
-	 * All names will be prefixed with plugin.pluginname.
-	 * @param name The identifier of the property
-	 * @param value The value of the property to store
-	 * @param setter The Plugin that is setting the parameter
-	 */
-	public void setPluginParameter(String name, String value, Plugin setter);
-
-	/**
-	 * A plugin may want to set a parameter of it's own.
-	 * All names will be prefixed with plugin.pluginname.
-	 * @param name The identifier of the property
-	 * @param value The value of the property to store
-	 * @param setter The Plugin that is setting the parameter
-	 */
-	public void setPluginParameter(String name, int value, Plugin setter);
-
-	/**
-	 * A plugin may want to set a parameter of it's own.
-	 * All names will be prefixed with plugin.pluginname.
-	 * @param name The identifier of the property
-	 * @param value The value of the property to store
-	 * @param setter The Plugin that is setting the parameter
-	 */
-	public void setPluginParameter(String name, boolean value, Plugin setter);
+  //TODO : Add proper documentation for javadoc  
+  
+  //Azureus's parameters accessor
+  public int getIntParameter(String key);
+  public String getStringParameter(String key);
+  public boolean getBooleanParameter(String key);
+  
+  //Plugin specific parameters
+  public int getPluginIntParameter(String key);
+  public int getPluginIntParameter(String key,int defaultValue);
+  
+  public String getPluginStringParameter(String key);
+  public String getPluginStringParameter(String key,int defaultValue);
+    
+  public boolean getPluginBooleanParameter(String key);
+  public boolean getPluginBooleanParameter(String key,int defaultValue);
+    
+  public void setPluginParameter(String key,int value);
+  public void setPluginParameter(String key,String value);
+  public void setPluginParameter(String key,boolean value);  
 }

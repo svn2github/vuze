@@ -23,6 +23,9 @@ package org.gudy.azureus2.plugins;
 
 import java.util.Properties;
 
+import org.gudy.azureus2.plugins.ui.Parameter;
+import org.gudy.azureus2.plugins.ui.PluginConfigUIFactory;
+
 
 /**
  * Defines the communication interface between Azureus and Plugins
@@ -36,6 +39,12 @@ public interface PluginInterface {
    * @param view The PluginView to be added
    */
   public void addView(PluginView view);
+  
+  /**
+   * TODO: write this
+   * @param fileName
+   */
+  public void addConfigUIParameters(Parameter parameters[]);
   
   /**
    * A Plugin might ask Azureus to open a Torrent file
@@ -61,4 +70,16 @@ public interface PluginInterface {
    */
   public String getPluginDirectoryName();
   
+  /**
+   * An access to the plugin Config
+   * @return TODO: write this
+   */
+  public PluginConfig getPluginconfig();
+  
+  
+  /**
+   * TODO : write this
+   * @return
+   */
+  public PluginConfigUIFactory getPluginConfigUIFactory();
 }
