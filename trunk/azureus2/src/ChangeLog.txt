@@ -1,4 +1,4 @@
-CHANGELOG
+AZUREUS CHANGELOG
 ---------
 
 xx.xx.04 | Azureus 2.0.8.5
@@ -24,6 +24,8 @@ CHANGE: Ignore Share Ratio can now be non-integer [TuxPaper]
 CHANGE: File descriptor handles increased from default of 256 to 8192 under OSX [Nolar]
 CHANGE: Systray4j removed: system tray support now from SWT built-in code [Gudy]
 CHANGE: Config/pref file saving less likely to fail [Nolar]
+CHANGE: New SHA-1 hasher: up to 25% faster [Gudy / Nolar]
+CHANGE: Currently-connected peer connections are dropped when IPFilter is enabled [Nolar]
 
 BUGFIX: Multiple shares of same resources causing problems (e.g. share contents+share contents recursive of same dir) [Parg]
 BUGFIX: Fix for discarded data due to occasional duplicate request [Nolar]
