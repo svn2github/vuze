@@ -834,14 +834,32 @@ public class GlobalManagerImpl
 	      }
 	    }
 	    map.put("downloads", list);
-	    //open a file stream
+        
 	    FileOutputStream fos = null;
+       
 	    try {
 	    	//encode the data
 	    	byte[] torrentData = BEncoder.encode(map);
-	    	fos = new FileOutputStream(FileUtil.getApplicationFile("downloads.config"));
-	      //write the data out
+            
+         File oldFile = FileUtil.getApplicationFile("downloads.config");
+         File newFile = FileUtil.getApplicationFile("downloads.config.new");
+         
+         //write the data out
+	    	fos = new FileOutputStream(newFile);
+         fos.getChannel().force(true);
 	      fos.write(torrentData);
+         fos.flush();
+         
+          //close the output stream
+         fos.close();
+         fos = null;
+         
+         //delete the old file
+         if ( !oldFile.exists() || oldFile.delete() ) {
+            //rename the new one
+            newFile.renameTo(oldFile);
+         }
+                  
 	    }
 	    catch (Exception e) {
 	      e.printStackTrace();
