@@ -10,6 +10,7 @@
  */
 package org.gudy.azureus2.ui.console.commands;
 import java.net.URI;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import org.gudy.azureus2.core3.disk.DiskManager;
@@ -183,7 +184,7 @@ public class Hack implements IConsoleCommand {
 							ci.out.println("> Command 'hack': Parsing tracker url failed: "+e.getMessage());
 							return;
 						}
-						client.setTrackerUrl(sSubcommands[commandoffset+2]);
+						client.setTrackerUrl(new URL(sSubcommands[commandoffset+2]));
 						ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+sSubcommands[commandoffset+2]+"'");
 					} else if (trackercommand.equalsIgnoreCase("host") || trackercommand.equalsIgnoreCase("h")) {
 						//ci.out.println("> Command 'hack': Debug: host");
@@ -191,10 +192,10 @@ public class Hack implements IConsoleCommand {
 							ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
 							return;
 						}
-						URI uold = new URI(client.getTrackerUrl());
+						URI uold = new URI(client.getTrackerUrl().toString());
 						try {
 							URI unew = new URI(uold.getScheme(), uold.getUserInfo(), sSubcommands[commandoffset+2], uold.getPort(), uold.getPath(), uold.getQuery(), uold.getFragment());
-							client.setTrackerUrl(unew.toString());
+							client.setTrackerUrl(new URL(unew.toString()));
 							ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+unew.toString()+"'");
 						} catch (Exception e) {
 							ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
@@ -206,10 +207,10 @@ public class Hack implements IConsoleCommand {
 							ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
 							return;
 						}
-						URI uold = new URI(client.getTrackerUrl());
+						URI uold = new URI(client.getTrackerUrl().toString());
 						try {
 							URI unew = new URI(uold.getScheme(), uold.getUserInfo(), uold.getHost(), Integer.parseInt(sSubcommands[commandoffset+2]), uold.getPath(), uold.getQuery(), uold.getFragment());
-							client.setTrackerUrl(unew.toString());
+							client.setTrackerUrl(new URL(unew.toString()));
 							ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+unew.toString()+"'");
 						} catch (Exception e) {
 							ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
@@ -222,7 +223,7 @@ public class Hack implements IConsoleCommand {
 							ci.out.println("> Command 'hack': Parsing tracker url failed: "+e.getMessage());
 							return;
 						}
-						client.setTrackerUrl(sSubcommands[commandoffset+1]);
+						client.setTrackerUrl(new URL(sSubcommands[commandoffset+1]));
 						ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+sSubcommands[commandoffset+1]+"'");
 					}
 				} catch (Exception e) {
