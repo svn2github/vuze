@@ -21,6 +21,9 @@
  
 package org.gudy.azureus2.core3.config.impl;
 
+
+import org.gudy.azureus2.core3.config.*;
+
 /**
  * 
  * The purpose of this class is to provide a way of checking that the config file
@@ -39,16 +42,18 @@ public class ConfigurationChecker {
     if(checked)
       return;
     checked = true;
-    ConfigurationManager cm = ConfigurationManager.getInstance();
-    int maxUpSpeed = cm.getIntParameter("Max Upload Speed",0);
+    int maxUpSpeed = COConfigurationManager.getIntParameter("Max Upload Speed",0);
     if(maxUpSpeed > 0 && maxUpSpeed < 1024 * 5) {
       changed = true;
-      cm.setParameter("Max Upload Speed", 5 * 1024);
+      COConfigurationManager.setParameter("Max Upload Speed", 5 * 1024);
     }
-    
+    int shareRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio",0);
+    if(shareRatio > 3) {
+      COConfigurationManager.setParameter("Stop Peers Ratio", 3);
+      changed = true;
+    }
     if(changed) {
-      cm.save();
+      COConfigurationManager.save();
     }    
   }
-  
 }
