@@ -47,9 +47,12 @@ RemoteUIServlet
 			//"ui/icons/start2.png",
 			"ui/icons/openFolder16x12.gif",
 			"ui/icons/start.gif",
+			"ui/icons/forcestart.gif",
 			"ui/icons/stop.gif",
 			"ui/icons/delete.gif",
 			"ui/icons/recheck.gif",		
+			"ui/icons/up.gif",		
+			"ui/icons/down.gif",		
 	};
 	
 	static String[] resource_names = {
@@ -97,6 +100,10 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/applet/model/MDStatusAreaModel.class",
 		"ui/webplugin/remoteui/applet/view/VWStatusEntryBorder.class",
 		"ui/webplugin/remoteui/applet/model/MDConfigModelPropertyChangeEvent.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$10.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$11.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$12.class",
+		
 		"ui/webplugin/util/WUJarReader.class",
 		
 		"core3/config/COConfigurationManager.class",

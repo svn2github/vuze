@@ -93,7 +93,7 @@ MDDownloadModel
 		
 		if ( col == 0 ){
 			
-			return( new Long(row));
+			return( new Long(download.getPosition()));
 			
 		}else if ( col == 1 ){
 				
@@ -113,7 +113,7 @@ MDDownloadModel
 			
 		}else if ( col == 5 ){
 			
-			return( download.getStats().getStatus());
+			return( (download.isForceStart()?"Forced ":"") + download.getStats().getStatus());
 			
 		}else if ( col == 6 ){
 			
@@ -202,6 +202,27 @@ MDDownloadModel
 	}
 	
 	public void
+	forceStart(
+		int[]		rows )
+	{
+		if ( rows.length > 0 ){
+			
+			for (int i=0;i<rows.length;i++){
+				
+				try{
+					boolean	current = downloads[rows[i]].isForceStart();
+					
+					downloads[rows[i]].setForceStart( !current );
+					
+				}catch( Throwable e ){
+					
+					throw( new RPException( "Force Start fails", e ));
+				}
+			}
+		}
+	}
+	
+	public void
 	stop(
 		int[]		rows )
 	{
@@ -235,6 +256,49 @@ MDDownloadModel
 					
 					throw( new RPException( "Remove fails", e ));
 				}
+			}
+		}
+	}
+	
+	public void
+	moveUp(
+		int[]		rows )
+	{
+		if ( rows.length > 0 ){
+			
+			try{
+				int	current = downloads[rows[0]].getPosition();
+								
+				if ( current > 0 ){
+					
+					downloads[rows[0]].setPosition( current-1 );
+				}
+				
+			}catch( Throwable e ){
+				
+				throw( new RPException( "Move Up fails", e ));
+			}
+		}
+	}
+	
+	
+	public void
+	moveDown(
+		int[]		rows )
+	{
+		if ( rows.length > 0 ){
+			
+			try{
+				int	current = downloads[rows[0]].getPosition();
+							
+				if ( current < (downloads.length-1)){
+					
+					downloads[rows[0]].setPosition( current+1 );
+				}
+								
+			}catch( Throwable e ){
+				
+				throw( new RPException( "Move Up fails", e ));
 			}
 		}
 	}

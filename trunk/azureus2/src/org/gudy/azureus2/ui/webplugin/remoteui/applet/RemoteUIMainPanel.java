@@ -84,36 +84,75 @@ RemoteUIMainPanel
 			JToolBar tb = new JToolBar();
 			
 			JButton	refresh =				
-				new JButton( 	"Refresh",
-								new ImageIcon(UISwingImageRepository.getImage(
-										adapter.getResource("org/gudy/azureus2/ui/icons/recheck.gif"))));
+				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+									adapter.getResource("org/gudy/azureus2/ui/icons/recheck.gif"))));
 
+			refresh.setToolTipText("Refresh");
 			
 			tb.add( refresh );
 			
 			JButton	start = 
-				new JButton( 	"Start",
-								new ImageIcon(UISwingImageRepository.getImage(
-										adapter.getResource("org/gudy/azureus2/ui/icons/start.gif"))));
+				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+									adapter.getResource("org/gudy/azureus2/ui/icons/start.gif"))));
 			
+			start.setToolTipText("Start");
+
 			start.setEnabled( !view_mode );
 			tb.add( start );
 			
-			JButton	stop = 
-				new JButton( 	"Stop",
-								new ImageIcon(UISwingImageRepository.getImage(
-										adapter.getResource("org/gudy/azureus2/ui/icons/stop.gif"))));
+			JButton	force_start = 
+				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+									adapter.getResource("org/gudy/azureus2/ui/icons/forcestart.gif"))));
+			
+			force_start.setToolTipText("Toggle Force Start");
 
+			force_start.setEnabled( !view_mode );
+			tb.add( force_start );
+
+			
+			JButton	stop = 
+				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+									adapter.getResource("org/gudy/azureus2/ui/icons/stop.gif"))));
+
+			stop.setToolTipText("Stop");
+			
 			stop.setEnabled( !view_mode );
 			tb.add( stop );
 			
 			JButton	remove = 
-				new JButton( 	"Remove",
-								new ImageIcon(UISwingImageRepository.getImage(
-										adapter.getResource("org/gudy/azureus2/ui/icons/delete.gif"))));
+				new JButton( new ImageIcon(UISwingImageRepository.getImage(
+									adapter.getResource("org/gudy/azureus2/ui/icons/delete.gif"))));
+			
+			remove.setToolTipText("Remove");
 
 			remove.setEnabled( !view_mode );
 			tb.add( remove );
+			
+			tb.addSeparator();
+			
+				// move up
+			
+			JButton	move_up = 
+				new JButton( 	new ImageIcon(UISwingImageRepository.getImage(
+										adapter.getResource("org/gudy/azureus2/ui/icons/up.gif"))));
+
+			move_up.setToolTipText("Move Up");
+
+			move_up.setEnabled( !view_mode );
+			tb.add( move_up );
+
+				// move down
+			
+			JButton	move_down = 
+				new JButton( 	new ImageIcon(UISwingImageRepository.getImage(
+										adapter.getResource("org/gudy/azureus2/ui/icons/down.gif"))));
+
+			move_down.setToolTipText("Move Up");
+
+			move_down.setEnabled( !view_mode );
+			tb.add( move_down );
+			
+				// open 
 			
 			final JTextField	tf = new JTextField();
 			
@@ -122,13 +161,15 @@ RemoteUIMainPanel
 			tb.add( tf );
 			
 			JButton	open = 
-				new JButton( 	"Open",
-								new ImageIcon(UISwingImageRepository.getImage(
+				new JButton( new ImageIcon(UISwingImageRepository.getImage(
 										adapter.getResource("org/gudy/azureus2/ui/icons/openFolder16x12.gif"))));
+
+			open.setToolTipText("Open Torrent URL");
 
 			open.setEnabled( !view_mode );
 			tb.add( open );
 			
+
 			add( tb, BorderLayout.NORTH );
 			
 			download_model 	= new MDDownloadModel( download_manager );
@@ -215,6 +256,28 @@ RemoteUIMainPanel
 						}
 					});
 			
+			force_start.addActionListener(
+					new ActionListener()
+					{
+						public void
+						actionPerformed(
+								ActionEvent	ev )
+						{
+							try{
+						
+								download_model.forceStart(download_view.getSelectedRows());
+								
+								refresh();
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+								reportError( e );
+							}
+						}
+					});
+			
 			stop.addActionListener(
 					new ActionListener()
 					{
@@ -259,7 +322,49 @@ RemoteUIMainPanel
 						}
 					});
 			
+			move_up.addActionListener(
+					new ActionListener()
+					{
+						public void
+						actionPerformed(
+								ActionEvent	ev )
+						{
+							try{
+								
+								download_model.moveUp(download_view.getSelectedRows());
+								
+								refresh();
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+								reportError( e );
+							}
+						}
+					});
 			
+			move_down.addActionListener(
+					new ActionListener()
+					{
+						public void
+						actionPerformed(
+								ActionEvent	ev )
+						{
+							try{
+								
+								download_model.moveDown(download_view.getSelectedRows());
+								
+								refresh();
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+								
+								reportError( e );
+							}
+						}
+					});
 			AbstractAction open_action = 
 				new AbstractAction()
 				{

@@ -47,6 +47,9 @@ RPDownload
 	public RPDownloadAnnounceResult	announce_result;
 	public RPDownloadScrapeResult	scrape_result;
 	
+	public int						position;
+	public boolean					force_start;
+	
 	public static RPDownload
 	create(
 		Download		_delegate )
@@ -101,6 +104,9 @@ RPDownload
 		Object		_delegate )
 	{
 		delegate = (Download)_delegate;
+		
+		position	= delegate.getPosition();
+		force_start	= delegate.isForceStart();
 	}
 	
 	public Object
@@ -201,8 +207,24 @@ RPDownload
 			}
 			
 			return( null );
-		}
 			
+		}else if ( method.equals( "setForceStart")){
+			
+			boolean	b = ((Boolean)request.getParams()).booleanValue();
+			
+			delegate.setForceStart( b );
+			
+			return( null );
+			
+		}else if ( method.equals( "setPosition")){
+			
+			int	p = ((Integer)request.getParams()).intValue();
+			
+			delegate.setPosition( p );
+			
+			return( null );
+		}
+		
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
@@ -446,23 +468,30 @@ RPDownload
 		notSupported();
 	}
 	
-	public int getPosition() {
-		notSupported();
-		return (0);
+	public int 
+	getPosition() 
+	{	
+		return( position );
 	}
 	
-	public boolean isForceStart() {
-		notSupported();
-		
-		return (false);
+	public boolean 
+	isForceStart()
+	{	
+		return( force_start );
 	}
 	
-	public void setForceStart(boolean forceStart) {
-		notSupported();
+	public void 
+	setForceStart(
+		boolean force_start ) 
+	{
+		_dispatcher.dispatch( new RPRequest( this, "setForceStart", new Boolean(force_start ))).getResponse();
 	}
 	
-	public void setPosition(int newPosition) {
-		notSupported();
+	public void 
+	setPosition(
+		int new_position) 
+	{
+		_dispatcher.dispatch( new RPRequest( this, "setPosition", new Integer(new_position ))).getResponse();
 	}
 	
 	public void stopAndQueue() throws DownloadException {
