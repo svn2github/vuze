@@ -42,7 +42,13 @@ public class StatusItem extends TorrentItem {
     //setText returns true only if text has changed (ie status has changed)
     if(setText(DisplayFormatters.formatDownloadStatus(torrentRow.getManager()))) {
       int state = torrentRow.getManager().getState();
-      if (state == DownloadManager.STATE_SEEDING)
+      if (state == DownloadManager.STATE_STOPPED) {
+        int completed = torrentRow.getManager().getStats().getCompleted();
+        if (completed == 1000) {
+          setForeground(MainWindow.blues[3]);
+        }
+      }
+      else if (state == DownloadManager.STATE_SEEDING)
         setForeground(MainWindow.blues[3]);
       else if (state == DownloadManager.STATE_ERROR)
         setForeground(MainWindow.red_ManagerItem);
