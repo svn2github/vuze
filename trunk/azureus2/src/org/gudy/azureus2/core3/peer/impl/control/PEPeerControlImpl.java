@@ -1141,7 +1141,7 @@ PEPeerControlImpl
     PEPieceImpl piece = null;
     
     
-    piece = new PEPieceImpl(this, dm_pieces[pieceNumber],slowPeer);
+    piece = new PEPieceImpl(this, dm_pieces[pieceNumber], slowPeer, false );
  
     pieceAdded(piece);
     //Assign the created piece to the pieces array.
@@ -1676,7 +1676,7 @@ PEPeerControlImpl
     	
     	if ( !dm_piece.getDone() && dm_piece.getCompleteCount() > 0 ){
     		
-	    	_pieces[i] = new PEPieceImpl( this, dm_piece, true );
+	    	_pieces[i] = new PEPieceImpl( this, dm_piece, true, true );
 	        	
 	        pieceAdded(_pieces[i]);
 	    }

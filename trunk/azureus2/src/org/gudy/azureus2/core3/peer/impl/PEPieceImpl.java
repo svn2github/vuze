@@ -67,7 +67,8 @@ PEPieceImpl
   PEPieceImpl(
   	PEPeerManager 		_manager, 
 	DiskManagerPiece	_dm_piece,
-	boolean				_slow_piece )
+	boolean				_slow_piece,
+	boolean				_recovered )
   {  
 	manager 	= _manager;
 	dm_piece	= _dm_piece;
@@ -81,6 +82,11 @@ PEPieceImpl
 	requested 	= new boolean[nbBlocs];
 	writers 	= new PEPeer[nbBlocs];
 	writes 		= new ArrayList(0);
+	
+	if ( !_recovered ){
+		
+		dm_piece.setInitialWriteTime();
+	}
   }
 
   

@@ -59,8 +59,6 @@ DiskManagerPieceImpl
 		int	nbBlocs = (length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
 
 		written 	= new boolean[nbBlocs];
-
-		last_write_time = SystemTime.getCurrentTime();
 	}
 	  
 	public int
@@ -132,15 +130,25 @@ DiskManagerPieceImpl
 		  return complete;
 	  }
 	  
-	  public boolean[] getWritten() {
-	  	return( written );
-	  }
+	public boolean[]
+	getWritten() 
+	{
+	 	return( written );
+	}
 	  
-	  public void
-	  reset()
-	  {
-	    written = new boolean[written.length];
-	    
-	    completed = 0;
-	  }
+	public void
+	reset()
+	{
+		written = new boolean[written.length];
+    
+		completed = 0;
+
+		last_write_time = SystemTime.getCurrentTime();
+	}
+	  
+	public void
+	setInitialWriteTime()
+	{
+		last_write_time = SystemTime.getCurrentTime();		
+	}
 }

@@ -66,6 +66,9 @@ DiskManagerPiece
 	public void
 	reset();
 	
+	public void
+	setInitialWriteTime();
+	
 	public long
 	getLastWriteTime();
 
