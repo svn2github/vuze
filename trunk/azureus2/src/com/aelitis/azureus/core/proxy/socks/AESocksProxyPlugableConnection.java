@@ -24,8 +24,6 @@ package com.aelitis.azureus.core.proxy.socks;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
 
 
 /**
@@ -40,14 +38,14 @@ AESocksProxyPlugableConnection
 	getName();
 	
 	public InetAddress
-	getAddress();
+	getLocalAddress();
 	
 	public int
-	getPort();
+	getLocalPort();
 
 	public void
 	connect(
-		InetSocketAddress		_address )
+		AESocksProxyAddress		address )
 		
 		throws IOException;
 	

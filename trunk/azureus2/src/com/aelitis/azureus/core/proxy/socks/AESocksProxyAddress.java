@@ -22,9 +22,7 @@
 
 package com.aelitis.azureus.core.proxy.socks;
 
-import java.io.IOException;
-
-import com.aelitis.azureus.core.proxy.AEProxyConnection;
+import java.net.InetAddress;
 
 /**
  * @author parg
@@ -32,21 +30,14 @@ import com.aelitis.azureus.core.proxy.AEProxyConnection;
  */
 
 public interface 
-AESocksProxyConnection 
+AESocksProxyAddress 
 {
-	public AEProxyConnection
-	getConnection();
+	public String
+	getUnresolvedAddress();
 	
-	public void
-	disableDNSLookups();
+	public InetAddress
+	getAddress();
 	
-	public void
-	connected()
-	
-		throws IOException;
-	
-	public void
-	close()
-	
-		throws IOException;
+	public int
+	getPort();
 }

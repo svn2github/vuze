@@ -73,24 +73,29 @@ AESocksProxyPlugableConnectionDefault
 	}
 
 	public InetAddress
-	getAddress()
+	getLocalAddress()
 	{
 		return( target_channel.socket().getInetAddress());
 	}
 	
 	public int
-	getPort()
+	getLocalPort()
 	{
 		return( target_channel.socket().getPort());
 	}
 	
 	public void
 	connect(
-		InetSocketAddress		_address )
+		AESocksProxyAddress		_address )
 		
 		throws IOException
 	{
-		new proxyStateRelayConnect( _address );
+		if ( _address.getAddress() == null ){
+
+			throw( new IOException( "DNS lookup of '" + _address.getUnresolvedAddress() + "' fails" ));
+		}
+		
+		new proxyStateRelayConnect( new InetSocketAddress(_address.getAddress(), _address.getPort()));
 	}
 	
 	public void

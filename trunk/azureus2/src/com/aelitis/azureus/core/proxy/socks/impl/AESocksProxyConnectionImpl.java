@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.proxy.socks.impl;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
@@ -48,6 +47,7 @@ AESocksProxyConnectionImpl
 	public static final boolean	TRACE	= false;
 	
 	protected AEProxyConnection		connection;
+	protected boolean				disable_dns_lookups;
 	
 	protected SocketChannel			source_channel;
 	
@@ -107,6 +107,12 @@ AESocksProxyConnectionImpl
 	getConnection()
 	{
 		return( connection );
+	}
+	
+	public void
+	disableDNSLookups()
+	{
+		disable_dns_lookups	= true;
 	}
 	
 	public void
@@ -232,7 +238,8 @@ AESocksProxyConnectionImpl
 							
 						socks_version	= 4;
 						
-						plugable_connection.connect( new InetSocketAddress( InetAddress.getByAddress( address ), port ));
+						plugable_connection.connect( 
+								new AESocksProxyAddressImpl( "", InetAddress.getByAddress( address ), port ));
 						
 					}
 				}else{
@@ -314,28 +321,29 @@ AESocksProxyConnectionImpl
 			
 			if ( data == 0 ){
 				
-				final String	f_dns_address	= dns_address;
-				
-				connection.cancelReadSelect( sc );
-				
-				HostNameToIPResolver.addResolverRequest(
-					dns_address,
-					new HostNameToIPResolverListener()
-					{
-						public void
-						hostNameResolutionComplete(
-							InetAddress	address )
+				if ( disable_dns_lookups ){
+					
+					socks_version	= 4;
+					
+					plugable_connection.connect( new AESocksProxyAddressImpl( dns_address, null, port ));
+
+				}else{
+					final String	f_dns_address	= dns_address;
+					
+					connection.cancelReadSelect( sc );
+					
+					HostNameToIPResolver.addResolverRequest(
+						dns_address,
+						new HostNameToIPResolverListener()
 						{
-							if ( address == null ){
-								
-								connection.failed( new Exception( "DNS lookup of '" + f_dns_address + "' fails" ));
-								
-							}else{
-								
+							public void
+							hostNameResolutionComplete(
+								InetAddress	address )
+							{
 								try{
 									socks_version	= 4;
 									
-									plugable_connection.connect( new InetSocketAddress( address, port ));
+									plugable_connection.connect( new AESocksProxyAddressImpl( f_dns_address, address, port ));
 		
 										// re-activate the read select suspended while resolving
 									
@@ -346,8 +354,8 @@ AESocksProxyConnectionImpl
 									connection.failed(e);
 								}
 							}
-						}
-					});				
+						});		
+				}
 			}else{
 				
 				dns_address += (char)data;
@@ -384,8 +392,8 @@ AESocksProxyConnectionImpl
 
 			connection.setWriteState( this );
 			
-			byte[]	addr = plugable_connection.getAddress().getAddress();
-			int		port = plugable_connection.getPort();
+			byte[]	addr = plugable_connection.getLocalAddress().getAddress();
+			int		port = plugable_connection.getLocalPort();
 			
 			buffer	= ByteBuffer.wrap(
 					new byte[]{	(byte)0,(byte)90,
@@ -654,7 +662,7 @@ AESocksProxyConnectionImpl
 			
 			InetAddress inet_address = InetAddress.getByAddress( bytes );
 			
-			new proxyStateV5RequestPort( inet_address );
+			new proxyStateV5RequestPort( "", inet_address );
 		}
 	}
 	
@@ -709,30 +717,30 @@ AESocksProxyConnectionImpl
 					dns_address += (char)buffer.get();
 				}
 					
-				final String	f_dns_address	= dns_address;
+				if ( disable_dns_lookups ){
 				
-				connection.cancelReadSelect( sc );
+					new proxyStateV5RequestPort( dns_address, null );
 				
-				HostNameToIPResolver.addResolverRequest(
-					dns_address,
-					new HostNameToIPResolverListener()
-					{
-						public void
-						hostNameResolutionComplete(
-							InetAddress	address )
+				}else{
+					
+					final String	f_dns_address	= dns_address;
+					
+					connection.cancelReadSelect( sc );
+					
+					HostNameToIPResolver.addResolverRequest(
+						dns_address,
+						new HostNameToIPResolverListener()
 						{
-							if ( address == null ){
-								
-								connection.failed( new Exception( "DNS lookup of '" + f_dns_address + "' fails" ));
-								
-							}else{
-								
-								new proxyStateV5RequestPort( address);
-								
+							public void
+							hostNameResolutionComplete(
+								InetAddress	address )
+							{
+								new proxyStateV5RequestPort( f_dns_address, address);
+									
 								connection.requestReadSelect( sc );
 							}
-						}
-					});
+						});
+				}
 			}
 		}
 	}
@@ -741,15 +749,18 @@ AESocksProxyConnectionImpl
 	proxyStateV5RequestPort
 		extends AESocksProxyState
 	{
+		protected String		unresolved_address;
 		protected InetAddress	address;
 		
 		protected
 		proxyStateV5RequestPort(
-			InetAddress	_address )
+			String			_unresolved_address,
+			InetAddress		_address )
 		{
 			super( AESocksProxyConnectionImpl.this );
 			
-			address	= _address;
+			unresolved_address	= _unresolved_address;
+			address				= _address;
 			
 			connection.setReadState( this );
 			
@@ -778,7 +789,7 @@ AESocksProxyConnectionImpl
 			
 			socks_version	= 5;
 			
-			plugable_connection.connect( new InetSocketAddress( address, port ));
+			plugable_connection.connect( new AESocksProxyAddressImpl( unresolved_address, address, port ));
 		}
 	}
 	
@@ -827,8 +838,8 @@ AESocksProxyConnectionImpl
 			
 			connection.setWriteState( this );
 			
-			byte[]	addr = plugable_connection.getAddress().getAddress();
-			int		port = plugable_connection.getPort();
+			byte[]	addr = plugable_connection.getLocalAddress().getAddress();
+			int		port = plugable_connection.getLocalPort();
 			
 			buffer	= ByteBuffer.wrap(
 					new byte[]{(byte)5,(byte)0,(byte)0,(byte)1,

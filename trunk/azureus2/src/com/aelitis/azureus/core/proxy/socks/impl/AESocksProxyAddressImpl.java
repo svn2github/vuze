@@ -20,33 +20,51 @@
  *
  */
 
-package com.aelitis.azureus.core.proxy.socks;
+package com.aelitis.azureus.core.proxy.socks.impl;
 
-import java.io.IOException;
+import java.net.InetAddress;
 
-import com.aelitis.azureus.core.proxy.AEProxyConnection;
+import com.aelitis.azureus.core.proxy.socks.AESocksProxyAddress;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-AESocksProxyConnection 
+public class 
+AESocksProxyAddressImpl
+	implements AESocksProxyAddress
 {
-	public AEProxyConnection
-	getConnection();
+	protected String			unresolved_address;
+	protected InetAddress		address;
+	protected int				port;
 	
-	public void
-	disableDNSLookups();
+	protected
+	AESocksProxyAddressImpl(
+		String			_unresolved_address,
+		InetAddress		_address,
+		int				_port )
+	{
+		unresolved_address	= _unresolved_address;
+		address				= _address;
+		port				= _port;
+	}
 	
-	public void
-	connected()
+	public String
+	getUnresolvedAddress()
+	{
+		return( unresolved_address );
+	}
 	
-		throws IOException;
+	public InetAddress
+	getAddress()
+	{
+		return( address );
+	}
 	
-	public void
-	close()
-	
-		throws IOException;
+	public int
+	getPort()
+	{
+		return( port );
+	}
 }
