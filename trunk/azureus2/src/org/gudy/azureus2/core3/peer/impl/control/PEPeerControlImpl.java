@@ -25,7 +25,9 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 
+import com.aelitis.azureus.core.networkmanager.ConnectDisconnectManager;
 import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
+import com.aelitis.azureus.core.peermanager.utils.PeerConnectInfoStorage;
 
 
 public class 
@@ -68,7 +70,6 @@ PEPeerControlImpl
   
   private boolean[] 			_piecesRarest;
   private PeerIdentityDataID 	_hash;
-  private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
   private PEPieceImpl[] 				_pieces;
@@ -102,22 +103,18 @@ PEPeerControlImpl
   
   private int nbHashFails;
   
-  /**
-   * The loop time is a potential bottleneck for one-to-one xfers:
-   * 500ms = 400kbs, 100ms = 600kbs, 50ms = 625kbs in testing.
-   * The bottleneck method(s) should be moved away from a timed loop someday.
-   */
-  private static final int PEER_UPDATER_WAIT_TIME = 50;
-  private static final int MAINLOOP_WAIT_TIME   = 100;
+
+  private static final int PEER_UPDATER_INTERVAL = 50;
   
-  private static final int CHOKE_UNCHOKE_FACTOR 	= 10000 / MAINLOOP_WAIT_TIME; 	// every 10s
-  private static final int OPT_UNCHOKE_FACTOR   	= 30000 / MAINLOOP_WAIT_TIME; 	// every 30s
-  private static final int TRACKER_CHECK_TIME		= 5000  / MAINLOOP_WAIT_TIME;	// every 5 secs
-  private static final int AVAILABILITY_BUILD_TIME	= 1000  / MAINLOOP_WAIT_TIME;	// every 1 secs
-  private static final int CHECK_SEEDS_TIME			= 1000  / MAINLOOP_WAIT_TIME;	// every 1 secs
-    
+  private long mainloop_loop_count;
+  private static final int MAINLOOP_INTERVAL   = 100;
+  private static final int MAINLOOP_ONE_SECOND_INTERVAL = 1000 / MAINLOOP_INTERVAL;
+  private static final int MAINLOOP_FIVE_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 5;
+  private static final int MAINLOOP_TEN_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 10;
+  private static final int MAINLOOP_THIRTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 30;
   
   
+
   private List	peer_manager_listeners 		= new ArrayList();
   //private List	peer_transport_listeners 	= new ArrayList();
   
@@ -128,6 +125,8 @@ PEPeerControlImpl
   private int superSeedModeCurrentPiece;
   private int superSeedModeNumberOfAnnounces;
   private SuperSeedPiece[] superSeedPieces;
+  
+  private final PeerConnectInfoStorage peer_info_storage = new PeerConnectInfoStorage( PeerUtils.MAX_CONNECTIONS_PER_TORRENT * 2 );
   
   private final HashMap 	reconnect_counts 		= new HashMap();
   private final AEMonitor	reconnect_counts_mon	= new AEMonitor( "PEPeerControl:RC");
@@ -232,7 +231,7 @@ PEPeerControlImpl
     //BtManager is threaded, this variable represents the
     // current loop iteration. It's used by some components only called
     // at some specific times.
-    _loopFactor = 0;
+    mainloop_loop_count = 0;
 
     //The current tracker state
     //this could be start or update
@@ -252,8 +251,6 @@ PEPeerControlImpl
     
     peerUpdater = new PeerUpdater();
     peerUpdater.start();
-    
-    
     
     
     new AEThread( "Peer Manager"){
@@ -290,8 +287,6 @@ PEPeerControlImpl
 	            if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
 	              ps.setReadSleepTime( ps.processRead() );
 	              if ( !oldPolling ) ps.setLastReadTime( SystemTime.getCurrentTime() );
-	              
-	              ps.doKeepAliveCheck();
 	            }
 	          }
         }catch( Throwable e ){
@@ -303,8 +298,8 @@ PEPeerControlImpl
         
         //TODO : BOTTLENECK for download speed HERE (100 : max 500kB/s from BitTornado, 50 : 1MB/s, 25 : 2MB/s, 10 : 3MB/s
         
-        if( loop_time < PEER_UPDATER_WAIT_TIME && loop_time >= 0 ) {
-          try {  Thread.sleep( PEER_UPDATER_WAIT_TIME - loop_time );  } catch(Exception e) {}
+        if( loop_time < PEER_UPDATER_INTERVAL && loop_time >= 0 ) {
+          try {  Thread.sleep( PEER_UPDATER_INTERVAL - loop_time );  } catch(Exception e) {}
         }
 
       }
@@ -315,70 +310,71 @@ PEPeerControlImpl
     }
   }
   
-
-
-  	//main method
   
-  public void 
-  mainLoop() 
-  {
+  
+  private void mainLoop() {
     _bContinue = true;
-    
-    _downloadManager.setState(DownloadManager.STATE_DOWNLOADING);
-    
+
+    _downloadManager.setState( DownloadManager.STATE_DOWNLOADING );
+
     _timeStarted = SystemTime.getCurrentTime();
-  
-    	// initial check on finished state - future checks are driven by piece check results 
-    
+
+    // initial check on finished state - future checks are driven by piece check results
+
     checkFinished( true );
-    
-    while (_bContinue){ //loop until stopAll() kills us
-      
+
+    while( _bContinue ) { //loop until stopAll() kills us
+
       try {
         long timeStart = SystemTime.getCurrentTime();
-        
+
         checkTracker(); //check the tracker status, update peers
         
-        processPieceChecks();
-        
-        checkCompletedPieces();  //check to see if we've completed anything else
-        
-        computeAvailability(); //compute the availablity
-        
-        updateStats();
-        
-        checkFastPieces();
-        
-        if (!_finished) { //if we're not finished
-        	
-           _diskManager.computePriorityIndicator();
-           
-           checkRequests(); //check the requests
-           
-           checkDLPossible(); //look for downloadable pieces
-        }
-        
-        checkSeeds(false);
-        
-        updatePeersInSuperSeedMode();
-        
-        unChoke();
+        doConnectionChecks();
 
-        long timeWait = MAINLOOP_WAIT_TIME - (SystemTime.getCurrentTime() - timeStart);
-        
-        if (!SystemTime.isErrorLast5sec() && timeWait > 10) {
-        	
-        	Thread.sleep(timeWait); //sleep
+        processPieceChecks();
+
+        checkCompletedPieces(); //check to see if we've completed anything else
+
+        computeAvailability(); //compute the availablity
+
+        updateStats();
+
+        checkFastPieces();
+
+        if( !_finished ) { //if we're not finished
+
+          _diskManager.computePriorityIndicator();
+
+          checkRequests(); //check the requests
+
+          checkDLPossible(); //look for downloadable pieces
         }
-      }catch (Throwable e) {
-      	
-      	Debug.printStackTrace( e );
+
+        checkSeeds( false );
+
+        updatePeersInSuperSeedMode();
+
+        unChoke();
+        
+
+        long loop_time = SystemTime.getCurrentTime() - timeStart;
+        if( loop_time < MAINLOOP_INTERVAL && loop_time >= 0 ) {
+          try {  Thread.sleep( MAINLOOP_INTERVAL - loop_time );  } catch(Exception e) {}
+        }
+        
       }
-      
-      _loopFactor++;
+      catch (Throwable e) {
+
+        Debug.printStackTrace( e );
+      }
+
+      mainloop_loop_count++;
     }
   }
 
+  
+  
   public void stopAll() {
     
   	//Asynchronous cleaner
@@ -548,9 +544,10 @@ PEPeerControlImpl
 		for (int i = 0; i < peers.length; i++){
       	
 			TRTrackerResponsePeer	peer = peers[i];
-
-			makeNewOutgoingConnection( peer.getIPAddress(), peer.getPort() );
-
+      
+      peer_info_storage.addPeerInfo( new PeerConnectInfoStorage.PeerInfo( peer.getIPAddress(), peer.getPort() ) );
+      
+      
 		}
  	}
   
@@ -559,25 +556,27 @@ PEPeerControlImpl
    * Request a new outgoing peer connection.
    * @param address ip of remote peer
    * @param port remote peer listen port
+   * @return true if the connection was added to the transport list, false if rejected
    */
-  private void 
+  private boolean 
   makeNewOutgoingConnection( 
   	String address, int port ) 
   {    
   		//make sure this connection isn't filtered
   	
     if( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( address, _downloadManager.getDisplayName() ) ) {
-      return;
+      return false;
     }
     
     //make sure we need a new connection
     int needed = PeerUtils.numNewConnectionsAllowed( _hash );
-    if( needed == 0 )  return;
+    if( needed == 0 )  return false;
 
     //start the connection
     PEPeerTransport real = PEPeerTransportFactory.createTransport( this, address, port );
     
     addToPeerTransports( real );
+    return true;
   }
   
   
@@ -902,7 +901,7 @@ PEPeerControlImpl
   private void 
   checkTracker() 
   {
-  	if ( _loopFactor % TRACKER_CHECK_TIME != 0 ){
+  	if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL != 0 ){
   		
   		return;
   	}
@@ -954,7 +953,7 @@ PEPeerControlImpl
    */
   private void computeAvailability() {
   	
- 	if ( _loopFactor % AVAILABILITY_BUILD_TIME != 0 ){
+ 	if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL != 0 ){
   		
   		return;
   	}
@@ -1316,7 +1315,7 @@ PEPeerControlImpl
     
     	//  Only Choke-Unchoke Every 10 secs
     
-    if ((_loopFactor % CHOKE_UNCHOKE_FACTOR) != 0){
+    if ((mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL) != 0){
     	
       return;
     }
@@ -1333,7 +1332,7 @@ PEPeerControlImpl
 
     	// optimistic unchoke every 30 seconds
     
-    if ((_loopFactor % OPT_UNCHOKE_FACTOR) == 0 || (currentOptimisticUnchoke == null)) {
+    if ((mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL) == 0 || (currentOptimisticUnchoke == null)) {
       performOptimisticUnChoke();
     }
     
@@ -1551,7 +1550,7 @@ PEPeerControlImpl
   //Method that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds(boolean forceDisconnect) {
   	
-  	if ( (!forceDisconnect) && _loopFactor % CHECK_SEEDS_TIME != 0 ){
+  	if ( (!forceDisconnect) && mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL != 0 ){
   		
   		return;
   	}
@@ -2845,45 +2844,89 @@ PEPeerControlImpl
   
   public LimitedRateGroup getUploadLimitedRateGroup() {  return upload_limited_rate_group;  }
   
+  
   /** To retreive arbitrary objects against this object. */
   public Object 
   getData(
-  	String key) 
+    String key) 
   {
-  	try{
-  		this_mon.enter();
-  	
-  		if (user_data == null) return null;
-  		
-  		return user_data.get(key);
-  		
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
+    try{
+      this_mon.enter();
+    
+      if (user_data == null) return null;
+      
+      return user_data.get(key);
+      
+    }finally{
+      
+      this_mon.exit();
+    }
   }
 
   /** To store arbitrary objects against a control. */
   
   public void 
   setData(
-  	String key, 
-	Object value) 
+    String key, 
+  Object value) 
   {
-  	try{
-  		this_mon.enter();
-  	
-	  	if (user_data == null) {
-	  		user_data = new HashMap();
-	  	}
-	    if (value == null) {
-	      if (user_data.containsKey(key))
-	        user_data.remove(key);
-	    } else {
-	      user_data.put(key, value);
-	    }
-  	}finally{
-  		this_mon.exit();
-  	}
+    try{
+      this_mon.enter();
+    
+      if (user_data == null) {
+        user_data = new HashMap();
+      }
+      if (value == null) {
+        if (user_data.containsKey(key))
+          user_data.remove(key);
+      } else {
+        user_data.put(key, value);
+      }
+    }finally{
+      this_mon.exit();
+    }
   }
+  
+  
+  private void doConnectionChecks() {
+    //every 1 second
+    if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ){
+      ArrayList peer_transports = peer_transports_cow;
+      
+      int num_waiting_establishments = 0;
+      
+      for( int i=0; i < peer_transports.size(); i++ ) {
+        PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+        
+        //keep-alive check
+        transport.doKeepAliveCheck();
+        
+        //update waiting count
+        int state = transport.getConnectionState();
+        if( state == PEPeerTransport.CONNECTION_PENDING || state == PEPeerTransport.CONNECTION_CONNECTING ) {
+          num_waiting_establishments++;
+        }
+      }
+      
+      //load stored peer-infos to be established
+      while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
+        PeerConnectInfoStorage.PeerInfo peer_info = peer_info_storage.getPeerInfo();
+        if( peer_info == null )  break;
+        if( makeNewOutgoingConnection( peer_info.getAddress(), peer_info.getPort() ) ) {
+          num_waiting_establishments++;
+        }
+      }
+
+    }
+    
+    //every 5 seconds
+    if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL == 0 ) {
+      //update storage capacity
+      peer_info_storage.setMaxCapacity( PeerUtils.numNewConnectionsAllowed( _hash ) * 2 );
+    }
+    
+    
+  }
+  
+ 
  }

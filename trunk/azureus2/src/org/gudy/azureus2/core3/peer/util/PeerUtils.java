@@ -20,8 +20,8 @@ public class PeerUtils {
    private static final String	CONFIG_MAX_CONN_PER_TORRENT	= "Max.Peer.Connections.Per.Torrent";
    private static final String	CONFIG_MAX_CONN_TOTAL		= "Max.Peer.Connections.Total";
    
-   private static int maxConnPerTorrent;
-   private static int maxConnTotal;
+   public static int MAX_CONNECTIONS_PER_TORRENT;
+   public static int MAX_CONNECTIONS_TOTAL;
 
    static{
    	
@@ -33,11 +33,11 @@ public class PeerUtils {
 			parameterChanged(
 				String parameterName )
    			{
-   				maxConnPerTorrent = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_PER_TORRENT);
+         MAX_CONNECTIONS_PER_TORRENT = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_PER_TORRENT);
    			}
 		});
    	
-   	maxConnPerTorrent = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_PER_TORRENT);
+   	MAX_CONNECTIONS_PER_TORRENT = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_PER_TORRENT);
    	
   	COConfigurationManager.addParameterListener(
   			CONFIG_MAX_CONN_TOTAL,
@@ -47,11 +47,11 @@ public class PeerUtils {
   				parameterChanged(
   					String parameterName )
   	   			{
-  	   				maxConnTotal = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_TOTAL);
+             MAX_CONNECTIONS_TOTAL = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_TOTAL);
   	   			}
   			});
   	   	
-  	maxConnTotal = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_TOTAL);
+  	MAX_CONNECTIONS_TOTAL = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_TOTAL);
    }
   /**
    * Get the number of new peer connections allowed for the given data item,
@@ -63,15 +63,15 @@ public class PeerUtils {
     int curConnTotal = PeerIdentityManager.getTotalIdentityCount();
 	    
     int perTorrentAllowed = -1;  //default unlimited
-    if ( maxConnPerTorrent != 0 ) {  //if limited
-      int allowed = maxConnPerTorrent - curConnPerTorrent;
+    if ( MAX_CONNECTIONS_PER_TORRENT != 0 ) {  //if limited
+      int allowed = MAX_CONNECTIONS_PER_TORRENT - curConnPerTorrent;
       if ( allowed < 0 )  allowed = 0;
       perTorrentAllowed = allowed;
     }
 	    
     int totalAllowed = -1;  //default unlimited
-    if ( maxConnTotal != 0 ) {  //if limited
-      int allowed = maxConnTotal - curConnTotal;
+    if ( MAX_CONNECTIONS_TOTAL != 0 ) {  //if limited
+      int allowed = MAX_CONNECTIONS_TOTAL - curConnTotal;
       if ( allowed < 0 )  allowed = 0;
       totalAllowed = allowed;
     }

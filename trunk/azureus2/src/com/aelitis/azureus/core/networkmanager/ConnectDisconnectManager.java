@@ -38,7 +38,7 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class ConnectDisconnectManager {
   private static int MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;  
-  private static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;  //NOTE: WinXP SP2 limits to 10 max at any given time
+  public static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;  //NOTE: WinXP SP2 limits to 10 max at any given time
   static {
     MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = COConfigurationManager.getIntParameter( "network.max.simultaneous.connect.attempts" );
     MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - 2;
