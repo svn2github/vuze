@@ -7,7 +7,6 @@ package org.gudy.azureus2.ui.swt;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -74,6 +73,8 @@ import org.gudy.azureus2.core.LocaleUtil;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.maketorrent.Wizard;
 import org.gudy.azureus2.ui.systray.SystemTray;
+
+import org.gudy.azureus2.core3.torrent.*;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -1418,34 +1419,16 @@ public class MainWindow implements IComponentListener {
       mainWindow.setActive();
       boolean singleFile = false;
       String singleFileName = ""; //$NON-NLS-1$
-      FileInputStream fis = null;
+
       try {
-        byte[] buf = new byte[1024];
-        int nbRead;
-        ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
-        fis = new FileInputStream(fileName);
-        while ((nbRead = fis.read(buf)) > 0)
-          metaInfo.write(buf, 0, nbRead);
-
-        Map map = BDecoder.decode(metaInfo.toByteArray());
-        Map info = (Map) map.get("info"); //$NON-NLS-1$
-        singleFileName = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$
-
-        Object test = info.get("length"); //$NON-NLS-1$
-        if (test != null) {
-          singleFile = true;
-        }
+ 
+		singleFile = TOTorrentFactory.deserialiseFromFile( new File(fileName)).isSimpleTorrent();
+        
       }
       catch (Exception e) {
         e.printStackTrace();
       }
-      finally {
-        try {
-          if (fis != null)
-            fis.close();
-        }
-        catch (Exception e) {}
-      }
+
       if (singleFile) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
         fDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
