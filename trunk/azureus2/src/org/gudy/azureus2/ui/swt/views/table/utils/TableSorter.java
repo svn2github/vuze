@@ -55,12 +55,6 @@ public class TableSorter implements ParameterListener {
   private String configTableName;
 
 
-  public TableSorter(SortableTable sortableTable,
-                     String configTableName,
-                     String defaultField) {
-  	this(sortableTable, configTableName, defaultField, true);
-  }
-
   public TableSorter(SortableTable sortableTable, String configTableName,
                      String defaultField, boolean isDefaultAscending) {
     loopFactor = 0;
@@ -105,15 +99,15 @@ public class TableSorter implements ParameterListener {
 
   public void sortColumnReverse(TableColumnCore tableColumn) {
     sortColumn(tableColumn, 
-               (lastSortedTableColumn == tableColumn) ? !bLastAscending : true, 
+               (lastSortedTableColumn == tableColumn) ? !bLastAscending : COConfigurationManager.getBooleanParameter( "config.style.table.sortDefaultAscending" ), 
                false);
   }
 
-  public void sortColumn(TableColumnCore tableColumn, boolean bAscending) {
+  private void sortColumn(TableColumnCore tableColumn, boolean bAscending) {
     sortColumn(tableColumn, bAscending, false);
   }
 
-  public void sortColumn(TableColumnCore tableColumn, boolean bAscending, boolean bForce) {
+  private void sortColumn(TableColumnCore tableColumn, boolean bAscending, boolean bForce) {
     if (tableColumn == null)
       return;
 

@@ -245,7 +245,7 @@ public class TableView
     table.setData("Name", sTableID);
     table.setData("TableView", this);
 
-    sorter = new TableSorter(this, sTableID, sDefaultSortOn, true);
+    sorter = new TableSorter(this, sTableID, sDefaultSortOn, COConfigurationManager.getBooleanParameter( "config.style.table.sortDefaultAscending" ));
 
     // Pre 3.0RC1 SWT on OSX doesn't call this!! :(
     ControlListener resizeListener = new ControlAdapter() {

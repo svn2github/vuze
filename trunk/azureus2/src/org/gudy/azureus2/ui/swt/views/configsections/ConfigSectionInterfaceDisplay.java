@@ -258,6 +258,9 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     IntParameter reorderDelay = new IntParameter(cArea, "ReOrder Delay");
     reorderDelay.setLayoutData(gridData);
     
+    new BooleanParameter(cArea, "config.style.table.sortDefaultAscending", true, "ConfigView.section.style.sortDefaultAscending");
+
+    
     return cLook;
   }
 }
