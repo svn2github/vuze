@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -110,7 +111,7 @@ public class PeerManager {
         matcher,
         new IncomingConnectionManager.MatchListener() {
           public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
-            System.out.println( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] successfully routed to [" +manager.getDownloadManager().getDisplayName()+ "]" );
+            LGLogger.log( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
             PEPeerTransport transport = PEPeerTransportFactory.createTransport( manager, channel, read_so_far );
             manager.addPeerTransport( transport );
           }

@@ -181,7 +181,7 @@ public class IncomingConnectionManager {
           }
           
           if( match_buffers.isEmpty() ) {  //no match registrations, just close
-            System.out.println( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] dropped because zero routing handlers registered" );
+            LGLogger.log( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] dropped because zero routing handlers registered" );
             NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
             return;
           }
@@ -226,7 +226,7 @@ public class IncomingConnectionManager {
                   if( listener == null ) {  //no match found
                     if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
                       ic.buffer.flip();
-                      System.out.println( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] does not match any known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
+                      LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] does not match any known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
                       removeConnection( ic, true );
                     }
                   }
@@ -238,7 +238,7 @@ public class IncomingConnectionManager {
                   }
                 }
                 catch( Throwable t ) {
-                  System.out.println( "Incoming TCP connection [" +ic.channel+ "] socket read exception: " +t.getMessage() );
+                  LGLogger.log( "Incoming TCP connection [" +ic.channel+ "] socket read exception: " +t.getMessage() );
                   removeConnection( ic, true );
                 }
                 
@@ -344,7 +344,7 @@ public class IncomingConnectionManager {
             ic.initial_connect_time = now;
           }
           else if( now - ic.initial_connect_time > 60*1000 ) {  //60s connect timeout
-            System.out.println( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out after 60sec due to socket inactivity [" +ic.buffer.position()+ " bytes read]" );
+            System.out.println( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out after 60sec due to socket inactivity" );
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
           }
