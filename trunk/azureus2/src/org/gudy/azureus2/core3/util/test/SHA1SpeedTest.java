@@ -17,7 +17,7 @@ public class SHA1SpeedTest {
   
   private static final int BUFF_MAX_SIZE = 4 * 1024 * 1024;
   
-  private static final int[] LOOPS = {2500, 2000, 1500, 1200, 900, 700};
+  private static final int[] LOOPS = {4000, 3300, 2000, 1500, 1000, 800};
   private static final int[] TESTS = {16, 64, 256, 512, 1024, 2048};
   
 	public static void main(String[] args) {
@@ -47,8 +47,8 @@ public class SHA1SpeedTest {
       int loops = LOOPS[t];
     
     	String info = " [" + buffsize/1024 + "KB, " + loops + "x] = ";
-    	long totalBytes = buffsize * loops;
-    
+      
+    	float totalMBytes = (buffsize / (1024 * 1024)) * loops;
     
     	System.out.print("JMule SHA1");
     	long jds = System.currentTimeMillis();
@@ -61,12 +61,12 @@ public class SHA1SpeedTest {
     	}
     	long jde = System.currentTimeMillis();
   
-    	long jdt = jde - jds;
-    	double jdspeed = (totalBytes / ((jdt+1) / 1000D)) / (1024 * 1024);
+    	float jdt = (jde - jds) / 1000;
+    	float jdspeed = totalMBytes / jdt;
     	System.out.println(info + jdt + " ms @ " + jdspeed + " MB/s");
 
     
-    	System.out.print("Gudy SHA1 ");
+    	System.out.print("Gudy SHA11");
     	long gds = System.currentTimeMillis();
     	for (int i=0; i < loops; i++) {
     		dBuffer.position(0);
@@ -75,9 +75,24 @@ public class SHA1SpeedTest {
     	}
     	long gde = System.currentTimeMillis();
     
-    	long gdt = gde - gds;
-    	double gdspeed = (totalBytes / ((gdt+1) / 1000D)) / (1024 * 1024);
+    	float gdt = (gde - gds) / 1000;
+    	float gdspeed = totalMBytes / gdt;
     	System.out.println(info + gdt + " ms @ " + gdspeed + " MB/s");
+      
+      
+      System.out.print("Gudy SHA12");
+      long g2ds = System.currentTimeMillis();
+      for (int i=0; i < loops; i++) {
+        dBuffer.position(0);
+        dBuffer.limit( buffsize );
+        sha1Gudy.digest2( dBuffer );
+      }
+      long g2de = System.currentTimeMillis();
+    
+      float g2dt = (g2de - g2ds) / 1000;
+      float g2dspeed = totalMBytes / g2dt;
+      System.out.println(info + g2dt + " ms @ " + g2dspeed + " MB/s");
+      
       
       System.out.println();
     
