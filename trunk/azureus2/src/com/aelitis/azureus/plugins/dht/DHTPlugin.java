@@ -291,24 +291,22 @@ DHTPlugin
 														// premature timeouts occurred
 												log );
 									
+									final int sample_frequency	= 60000;
+									final int sample_duration	= 10*60;
+									
+				
 									plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
-											30000,
+											sample_frequency,
 											new UTTimerEventPerformer()
 											{
-												final int sample_frequency	= 30000;
-												final int sample_duration	= 300;
+												Average	incoming_packet_average = Average.getInstance(sample_frequency,sample_duration);
 												
-												Average	incoming_packet_average = Average.getInstance(30000,300);
-												
-												int	tick;
 												long	last_incoming;
 												
 												public void
 												perform(
 													UTTimerEvent		event )
 												{
-													tick++;
-													
 													if ( dht != null ){
 														
 														DHTTransportStats t_stats = transport.getStats();
@@ -332,7 +330,7 @@ DHTPlugin
 														
 																// 1 every 30 seconds indicates problems
 															
-															if ( incoming_average <= 1 ){
+															if ( incoming_average <= 2 ){
 																
 																log.logAlert(
 																	LoggerChannel.LT_WARNING,
@@ -341,28 +339,25 @@ DHTPlugin
 															}
 														}
 														
-														if (tick%2 == 0 ){
+														DHTRouterStats	r_stats = dht.getRouter().getStats();
 														
-															DHTRouterStats	r_stats = dht.getRouter().getStats();
-															
-															long[]	rs = r_stats.getStats();
-						
-	
-															log.log( "Router" +
-																		":nodes=" + rs[DHTRouterStats.ST_NODES] +
-																		",leaves=" + rs[DHTRouterStats.ST_LEAVES] +
-																		",contacts=" + rs[DHTRouterStats.ST_CONTACTS] +
-																		",replacement=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
-																		",live=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
-																		",unknown=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
-																		",failing=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
-												
-															log.log( 	"Transport" + 
-																		":" + t_stats.getString()); 
-																		
-															log.log( 	"Database" +
-																		":values=" + dht.getDataBase().getSize());
-														}
+														long[]	rs = r_stats.getStats();
+					
+
+														log.log( "Router" +
+																	":nodes=" + rs[DHTRouterStats.ST_NODES] +
+																	",leaves=" + rs[DHTRouterStats.ST_LEAVES] +
+																	",contacts=" + rs[DHTRouterStats.ST_CONTACTS] +
+																	",replacement=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
+																	",live=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
+																	",unknown=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
+																	",failing=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
+											
+														log.log( 	"Transport" + 
+																	":" + t_stats.getString()); 
+																	
+														log.log( 	"Database" +
+																	":values=" + dht.getDataBase().getSize());
 													}
 												}
 											});
