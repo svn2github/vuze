@@ -7,6 +7,8 @@ package org.gudy.azureus2.core3.util;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 
+import java.io.*;
+
 /**
  * Used for identifying clients by their peerID.
  * 
@@ -19,11 +21,11 @@ public class Identification {
    * Decodes the given peerID, returning an identification string.
    */  
   public static String decode(byte[] peerID) {
-    final boolean DEBUG_ALL = false;
-    final boolean DEBUG_UNKNOWN = false;
+    final boolean LOG_UNKNOWN = false;
+    FileWriter log = null;
+    String logName = "e:\\identification.log";
     
     try {
-      if (DEBUG_ALL) System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
 
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
@@ -79,15 +81,40 @@ public class Identification {
       }
       
       
-      String xantorrent = new String(peerID, 0, 10, Constants.BYTE_ENCODING);
-      if (xantorrent.equals("DansClient")) return "XanTorrent";
+      String bitcomet = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
+      if (bitcomet.equals("exbc")) {
+        String name = "BitComet ";
+        name = name.concat(String.valueOf(peerID[4]) + ".");
+        name = name.concat(String.valueOf(peerID[5]/10));
+        name = name.concat(String.valueOf(peerID[5]%10));
+        return name;
+      }
+      
+      
+      String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
+      if (turbobt.equals("turbobt")) {
+        return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
+      }
+      
+  
+      String libtorrent = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
+      if (libtorrent.equals("LT")) {
+        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
+        String name = "LibTorrent ";
+        for (int i = 0; i < 3; i++) {
+          name = name.concat(version.charAt(i) + ".");
+        }
+        name = name + version.charAt(3);
+        return name;
+      }
       
       
       String btfans = new String(peerID, 4, 6, Constants.BYTE_ENCODING);
-      if (btfans.equals("btfans")) return "BitComet"; // "BitComet"? or "SimpleBT"? 
+      if (btfans.equals("btfans")) return "SimpleBT";
       
-      String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
-      if (turbobt.equals("turbobt")) return "TurboBT";
+      
+      String xantorrent = new String(peerID, 0, 10, Constants.BYTE_ENCODING);
+      if (xantorrent.equals("DansClient")) return "XanTorrent";
       
       
       boolean allZero = true;
@@ -104,22 +131,35 @@ public class Identification {
       if (allZero) return MessageText.getString("PeerSocket.generic");
       
     }
-    catch (Exception ignore) {/*ignore*/}
+    catch (Exception e) { Debug.out(e.toString()); }
     
-    if (DEBUG_UNKNOWN && !DEBUG_ALL) {
+    if (LOG_UNKNOWN) {
       try {
-        System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
-      } catch (Exception ignore) {/*ignore*/} 
-    }
-    
-    if (DEBUG_UNKNOWN || DEBUG_ALL) {
-      for (int i=0; i < 19; i++) {
-        System.out.print(i+"=" + peerID[i] + " ");
+        log = new FileWriter( new File( logName ), true );
+        
+        for (int i=0; i < 20; i++) {
+          log.write(i+"=" + peerID[i] + " ");
+        }
+        
+        String text = new String(peerID, 0, 20, Constants.BYTE_ENCODING);
+        text = text.replace((char)12, (char)32);
+        text = text.replace((char)10, (char)32);
+        
+        log.write(" [ " + text + " ]\n");
+        
       }
-      System.out.println("19=" + peerID[19]);
-      System.out.println();
+      catch (Exception e) {
+        Debug.out(e.toString());
+      }
+      finally {
+        try {
+          if (log != null) log.close();
+        }
+        catch (IOException ignore) {/*ignore*/}
+      }
+      
     }
-    
+
     return MessageText.getString("PeerSocket.unknown");
   }
 
