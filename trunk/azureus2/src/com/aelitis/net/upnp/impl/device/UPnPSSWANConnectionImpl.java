@@ -112,6 +112,11 @@ UPnPSSWANConnectionImpl
 
 		List	res = new ArrayList();
 		
+			// I've also seen some routers loop here rather than failing when the index gets too large (they
+			// seem to keep returning the last entry) - check for a duplicate entry and exit if found
+		
+		portMapping	prev_mapping	= null;
+		
 		for (int i=0;i<(entries==0?512:entries);i++){
 					
 			UPnPActionInvocation inv = act.getInvocation();
@@ -149,8 +154,21 @@ UPnPSSWANConnectionImpl
 						description = out.getValue();
 					}
 				}
+		
+				if ( prev_mapping != null ){
+					
+					if ( 	prev_mapping.getExternalPort() == port &&
+							prev_mapping.isTCP() == tcp ){
 				
-				res.add( new portMapping( port, tcp, internal_host, description ));
+							// repeat, get out
+						
+						break;
+					}
+				}
+				
+				prev_mapping = new portMapping( port, tcp, internal_host, description );
+				
+				res.add( prev_mapping );
 				
 			}catch( UPnPException e ){
 				

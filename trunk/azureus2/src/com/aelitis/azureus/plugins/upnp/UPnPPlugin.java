@@ -149,11 +149,11 @@ UPnPPlugin
 					parameterChanged(
 						Parameter	p )
 					{
-						boolean	enabled = enable_param.getValue();
+						boolean	e = enable_param.getValue();
 						
-						model.getStatus().setText( enabled?"Running":"Disabled" );
+						model.getStatus().setText( e?"Running":"Disabled" );
 						
-						if ( enabled ){
+						if ( e ){
 							
 							startUp();
 							
@@ -247,11 +247,11 @@ UPnPPlugin
 					}
 				});
 			
-			UPnPMapping[]	mappings = mapping_manager.getMappings();
+			UPnPMapping[]	upnp_mappings = mapping_manager.getMappings();
 			
-			for (int i=0;i<mappings.length;i++){
+			for (int i=0;i<upnp_mappings.length;i++){
 				
-				addMapping( mappings[i] );
+				addMapping( upnp_mappings[i] );
 			}
 			
 		}catch( Throwable e ){
@@ -308,13 +308,13 @@ UPnPPlugin
 	protected void
 	processServices(
 		UPnPDevice		device,
-		UPnPService[] 	services )
+		UPnPService[] 	device_services )
 	
 		throws UPnPException
 	{
-		for (int i=0;i<services.length;i++){
+		for (int i=0;i<device_services.length;i++){
 			
-			UPnPService	s = services[i];
+			UPnPService	s = device_services[i];
 			
 			String	service_type = s.getServiceType();
 			
@@ -352,7 +352,7 @@ UPnPPlugin
 		
 		for (int j=0;j<ports.length;j++){
 			
-			log.log( "      mapping:" + ports[j].getExternalPort() + "/" + 
+			log.log( "      mapping [" + j  + "] " + ports[j].getExternalPort() + "/" + 
 							(ports[j].isTCP()?"TCP":"UDP" ) + " [" + ports[j].getDescription() + "] -> " + ports[j].getInternalHost());
 		}
 		

@@ -301,17 +301,17 @@ UPnPPluginService
 		
 		protected
 		serviceMapping(
-			UPnPWANConnectionPortMapping		mapping )
+			UPnPWANConnectionPortMapping		device_mapping )
 		{
-			tcp				= mapping.isTCP();
-			port			= mapping.getExternalPort();
-			internal_host	= mapping.getInternalHost();
+			tcp				= device_mapping.isTCP();
+			port			= device_mapping.getExternalPort();
+			internal_host	= device_mapping.getInternalHost();
 			
-			String	desc = mapping.getDescription();
+			String	desc = device_mapping.getDescription();
 			
 			if ( 	desc == null || 
-					!(	desc.equalsIgnoreCase( getOldDescriptionForPort( port ))) &&
-						desc.equalsIgnoreCase( getDescriptionForPort( tcp, port ))){
+					!(	desc.equalsIgnoreCase( getOldDescriptionForPort( port )) ||
+						desc.equalsIgnoreCase( getDescriptionForPort( tcp, port )))){
 				
 				external		= true;
 			}
@@ -325,7 +325,6 @@ UPnPPluginService
 			tcp				= mapping.isTCP();
 			port			= mapping.getPort();
 			internal_host	= connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
-
 		}
 		
 		protected boolean
@@ -380,7 +379,7 @@ UPnPPluginService
 		public String
 		getString()
 		{
-			if ( mapping==null ){
+			if ( mapping == null ){
 				
 				return( "<external> (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" ); 
 				

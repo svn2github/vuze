@@ -101,13 +101,13 @@ UPnPServiceImpl
 	
 		throws UPnPException
 	{
-		UPnPAction[]	actions = getActions();
+		UPnPAction[]	my_actions = getActions();
 		
-		for (int i=0;i<actions.length;i++){
+		for (int i=0;i<my_actions.length;i++){
 			
-			if ( actions[i].getName().equalsIgnoreCase( name )){
+			if ( my_actions[i].getName().equalsIgnoreCase( name )){
 				
-				return( actions[i] );
+				return( my_actions[i] );
 			}
 		}
 		
