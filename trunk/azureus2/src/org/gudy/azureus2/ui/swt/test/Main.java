@@ -32,6 +32,9 @@ import org.eclipse.swt.graphics.Rectangle;
 public class Main {
   
   private Color blue;
+  private Table table;
+  
+  
   private boolean mousePressed;
   private TableItem selectedItem;
   Rectangle oldBounds;
@@ -40,12 +43,12 @@ public class Main {
   public Main() {
     final Display display = new Display ();
     blue = new Color(display,0,0,128);
-    Shell shell = new Shell (display);
+    final Shell shell = new Shell (display);
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     GridData gridData;
     shell.setLayout (layout); 
-    final Table table = new Table (shell, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
+    table = new Table (shell, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.horizontalSpan = 3;
     table.setLayoutData(gridData);
@@ -81,18 +84,7 @@ public class Main {
       TableColumn column = new TableColumn(table, SWT.NONE);    
     }
     for (int i=0; i<12; i++) {
-      TableItem item = new TableItem (table, SWT.NONE);
-      item.setText(1,"Toto " + i);
-    }
-    TableItem [] items = table.getItems ();
-    
-    for (int i=0; i<items.length; i++) {    
-      TableEditor editor = new TableEditor (table);
-      Button button = new Button (table, SWT.CHECK);
-      button.pack ();
-      editor.minimumWidth = button.getSize ().x;    
-      editor.horizontalAlignment = SWT.CENTER;
-      editor.setEditor (button, items[i], 0);
+      createTableRow(-1,"Toto" + i , false);
     }
     TableItem item  = new TableItem(table,SWT.NULL);
     item.setText(1,"---");
@@ -111,7 +103,7 @@ public class Main {
         }
       }
       
-      public void mouseUp(MouseEvent arg0) {
+      public void mouseUp(MouseEvent e) {
         mousePressed = false;
         //1. Restore old image
         if(oldBounds != null && oldImage != null) {
@@ -120,6 +112,21 @@ public class Main {
           oldImage.dispose();
           oldImage = null;
           oldBounds = null;
+        }
+        Point p = new Point(e.x,e.y);
+        TableItem item = table.getItem(p);
+        if(item != null && selectedItem != null) {
+          int index = table.indexOf(item);
+          int oldIndex = table.indexOf(selectedItem);
+          if(index == oldIndex)
+            return;
+          String name = (String) selectedItem.getData("name");
+          Button oldBtn = (Button)selectedItem.getData("button");
+          boolean selected = oldBtn.getSelection();
+          oldBtn.dispose();
+          createTableRow(index,name,selected);
+          selectedItem.dispose();
+          shell.redraw();
         }
       }
     });
@@ -158,6 +165,26 @@ public class Main {
     }
     display.dispose ();
 }
+  
+  private void createTableRow(int index,String name,boolean selected) {
+    TableItem item;
+    
+    if(index == -1)
+      item = new TableItem (table, SWT.NONE);
+    else
+      item = new TableItem (table, SWT.NONE,index);
+    
+    item.setText(1,name);
+    item.setData("name",name);
+    TableEditor editor = new TableEditor (table);
+    Button button = new Button (table, SWT.CHECK);
+    button.setSelection(selected);
+    button.pack ();
+    editor.minimumWidth = button.getSize ().x;    
+    editor.horizontalAlignment = SWT.CENTER;
+    editor.setEditor (button, item, 0);
+    item.setData("button",button);      
+  }
   
 public static void main(String[] args) {
   new Main();
