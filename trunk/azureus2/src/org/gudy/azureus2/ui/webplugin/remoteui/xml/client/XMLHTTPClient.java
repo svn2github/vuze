@@ -71,6 +71,32 @@ XMLHTTPClient
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getShortCuts</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+	
+				res.print();
+	
+				String sc_oid	= res.getChild( "_object_id" ).getValue().trim();
+			
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + sc_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getDownloadStats[byte[]]</METHOD>"+
+							"<PARAMS>"+
+								"<ENTRY>6495034E54A2B374560389FAE3812A6191C614BA</ENTRY>"+
+							"</PARAMS>" + 
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+				
+				res.print();
+				
+				/*
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
 							"<METHOD>getDownloadManager</METHOD>"+
 							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
@@ -117,7 +143,8 @@ XMLHTTPClient
 						"</REQUEST>");
 				
 				res.print();
-
+				*/
+				
 				/*
 				res = sendRequest( 
 						"<REQUEST>" +

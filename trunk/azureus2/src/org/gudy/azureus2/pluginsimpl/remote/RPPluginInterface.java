@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.pluginsimpl.remote.download.*;
 import org.gudy.azureus2.pluginsimpl.remote.ipfilter.*;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.*;
+import org.gudy.azureus2.pluginsimpl.remote.utils.*;
 
 public class 
 RPPluginInterface
@@ -148,6 +149,10 @@ RPPluginInterface
 		}else if ( method.equals( "getIPFilter")){
 			
 			return( new RPReply( RPIPFilter.create(delegate.getIPFilter())));
+			
+		}else if ( method.equals( "getShortCuts")){
+			
+			return( new RPReply( RPShortCuts.create(delegate.getShortCuts())));
 		}
 			
 		throw( new RPException( "Unknown method: " + method ));
@@ -268,6 +273,16 @@ RPPluginInterface
 		notSupported();
 		
 		return( null );
+	}
+	  
+	public ShortCuts
+	getShortCuts()
+	{
+		RPShortCuts	res = (RPShortCuts)_dispatcher.dispatch( new RPRequest( this, "getShortCuts", null )).getResponse();
+		
+		res._setRemote( _dispatcher );
+			
+		return( res );		
 	}
 	
 	 public UIManager

@@ -381,6 +381,37 @@ DownloadManagerImpl
 		return( null );
 	}
 	
+	public Download
+	getDownload(
+		byte[]	hash )
+	{
+		List	dls = global_manager.getDownloadManagers();
+
+		for (int i=0;i<dls.size();i++){
+			
+			DownloadManager	man = (DownloadManager)dls.get(i);
+			
+				// torrent can be null if download manager torrent file read fails
+			
+			TOTorrent	torrent = man.getTorrent();
+			
+			if ( torrent != null ){
+				
+				try{
+					if ( Arrays.equals( torrent.getHash(), hash )){
+				
+						return( new DownloadImpl( man ));
+					}
+				}catch( TOTorrentException e ){
+					
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	public Download[]
 	getDownloads()
 	{

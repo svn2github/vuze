@@ -275,6 +275,10 @@ XMLRequestProcessor
 										
 										Array.set( array, array_index, new URL(sub_value));
 									
+									}else if ( bit.equals("byte[]")){
+										
+										Array.set( array, array_index, ByteFormatter.decodeString( sub_value ));
+									
 									}else{
 											// see if its an object
 										

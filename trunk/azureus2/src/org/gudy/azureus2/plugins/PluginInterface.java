@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.update.UpdateManager;
+import org.gudy.azureus2.plugins.utils.ShortCuts;
 
 
 /**
@@ -161,6 +162,15 @@ public interface PluginInterface {
    */
   public Utilities
   getUtilities();
+  
+  /**
+   * access to a set of convenience routines for doing things in a quicker, although less
+   * structured, fashion
+   * @return
+   */
+  
+  public ShortCuts
+  getShortCuts();
   
   /**
    * access to UI extension features 
