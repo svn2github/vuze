@@ -45,7 +45,7 @@ PRUDPPacket
 	
 	public static final int	MAX_PACKET_SIZE			= 8192;
 	public static final int DEFAULT_UDP_TIMEOUT		= 15000;
-	public static final int DEFAULT_RETRY_COUNT		= 4;
+	public static final int DEFAULT_RETRY_COUNT		= 1;		// changed from 4 after advice from XTF
 	
 	public static final int	ACT_REQUEST_CONNECT		= 0;
 	public static final int	ACT_REQUEST_ANNOUNCE	= 1;
@@ -56,6 +56,8 @@ PRUDPPacket
 	public static final int	ACT_REPLY_SCRAPE		= 2;
 	public static final int	ACT_REPLY_ERROR			= 3;
 
+	public static final long	INITIAL_CONNECTION_ID	= 0x41727101980L;
+	
 	protected static int	next_id = new Random(SystemTime.getCurrentTime()).nextInt();
 	
 	protected int		type;

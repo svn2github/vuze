@@ -402,7 +402,7 @@ public class TrackerStatus {
 	for (int retry_loop=0;retry_loop<PRUDPPacket.DEFAULT_RETRY_COUNT;retry_loop++){
 	
 		try{
-			PRUDPPacket connect_request = new PRUDPPacketRequestConnect(0);
+			PRUDPPacket connect_request = new PRUDPPacketRequestConnect();
 			
 			PRUDPPacket reply = handler.sendAndReceive( connect_request, destination );
 			
