@@ -60,11 +60,11 @@ TRTrackerClientClassicImpl
 	private TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;
 	
-	private int				tracker_state 			= TS_INITIALISED;
-	private String			tracker_status_str		= "";
-	
-	private int				last_update_time_secs;
-	private int				current_time_to_wait_secs;
+	private int					tracker_state 			= TS_INITIALISED;
+	private String				tracker_status_str		= "";
+	private TRTrackerResponse	last_response			= new TRTrackerResponseImpl(TRTrackerResponse.ST_OFFLINE, TRTrackerClient.REFRESH_MINIMUM_SECS );
+	private int					last_update_time_secs;
+	private int					current_time_to_wait_secs;
 	
 	private boolean			stopped;
 	private boolean			completed;
@@ -465,6 +465,8 @@ TRTrackerClientClassicImpl
 	    	       	        	
 					tracker_status_str = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
 				}
+				
+				last_response = response;
 				
 				for (int i=0;i<listeners.size();i++){
 					
@@ -1080,6 +1082,12 @@ TRTrackerClientClassicImpl
 			
 			((TRTrackerClientListener)listeners.elementAt(i)).urlRefresh();
 		}
+	}
+	
+	public TRTrackerResponse
+	getLastResponse()
+	{
+		return( last_response );
 	}
 	
   	public synchronized void

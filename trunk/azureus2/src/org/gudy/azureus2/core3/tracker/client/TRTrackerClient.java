@@ -94,6 +94,9 @@ TRTrackerClient
 	public String
 	getStatusString();
 	
+	public TRTrackerResponse
+	getLastResponse();
+	
 	/**
 	 * This method forces all listeners to get an explicit "urlChanged" event to get them
 	 * to re-examine the tracker
