@@ -141,4 +141,13 @@ PEPeerManager
 	public void
 	discarded(
 		int		l );		
+	
+	public PEPeerStats
+	createPeerStats();
+	
+	public void 
+	peerAdded(PEPeer pc);
+
+	public void 
+	peerRemoved(PEPeer pc);
 }

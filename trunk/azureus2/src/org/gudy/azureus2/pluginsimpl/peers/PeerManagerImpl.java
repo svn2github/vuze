@@ -32,7 +32,6 @@ import org.gudy.azureus2.pluginsimpl.download.*;
 
 
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.*;
 
 public class 
 PeerManagerImpl
@@ -65,5 +64,26 @@ PeerManagerImpl
 		throws DownloadException
 	{
 		return( DownloadManagerImpl.getDownloadStatic( manager.getDownloadManager()));
+	}
+	
+	
+	public PeerStats
+	createPeerStats()
+	{
+		return( new PeerStatsImpl( manager, manager.createPeerStats()));
+	}
+	
+	public void
+	addPeer(
+		Peer		peer )
+	{
+		//manager.peerAdded( peer );
+	}
+	
+	public void
+	removePeer(
+		Peer		peer )
+	{
+		//manager.peerRemoved( peer );
 	}
 }

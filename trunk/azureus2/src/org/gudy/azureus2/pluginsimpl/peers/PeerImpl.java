@@ -31,14 +31,14 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.plugins.peers.*;
 
 public class 
-PluginPEPeerWrapper 
+PeerImpl 
 	implements Peer
 {
 	protected PeerManager	manager;
 	protected PEPeer		delegate;
 	
 	public
-	PluginPEPeerWrapper(
+	PeerImpl(
 		PEPeer		_delegate )
 	{
 		delegate	= _delegate;
@@ -133,7 +133,7 @@ PluginPEPeerWrapper
  
 	public PeerStats getStats()
 	{
-		return( new PluginPEPeerStatsWrapper( this, delegate.getStats()));
+		return( new PeerStatsImpl(((PeerManagerImpl)manager).getDelegate(), delegate.getStats()));
 	}
  	
 	public int getMaxUpload()

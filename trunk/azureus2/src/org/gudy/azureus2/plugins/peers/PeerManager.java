@@ -42,7 +42,6 @@ PeerManager
 	public boolean
 	isSeeding();
 	
-	/*
 	public PeerStats
 	createPeerStats();
 	
@@ -53,5 +52,4 @@ PeerManager
 	public void
 	removePeer(
 		Peer		peer );
-		*/
 }

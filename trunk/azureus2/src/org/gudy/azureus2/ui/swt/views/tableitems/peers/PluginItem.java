@@ -42,7 +42,7 @@ public class PluginItem extends PeerItem implements PeerTableItem {
   }
   
   public Peer getPeer() {
-    return new PluginPEPeerWrapper(peerRow.getPeerSocket());
+    return new PeerImpl(peerRow.getPeerSocket());
   }
   
   public void refresh() {

@@ -1976,7 +1976,7 @@ PEPeerControlImpl
     this.nbHashFails = fails;
   }
   
-  public PEPeerStatsImpl
+  public PEPeerStats
   createPeerStats()
   {
   	return( new PEPeerStatsImpl( getPieceLength()));

@@ -40,16 +40,7 @@ PEPeerControl
   public static final int WAITING_SLEEP        = 75;
   public static final int DATA_EXPECTED_SLEEP  = 35;
   public static final int NO_SLEEP             = 10;
-   
-	public PEPeerStatsImpl
-	createPeerStats();
-	
-	public void 
-	peerAdded(PEPeer pc);
-
-	public void 
-	peerRemoved(PEPeer pc);
-		
+   	
 	public DiskManagerRequest
 	createDiskManagerRequest(
 	   int pieceNumber,

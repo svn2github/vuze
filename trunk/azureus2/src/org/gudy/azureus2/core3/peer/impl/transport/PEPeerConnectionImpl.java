@@ -76,7 +76,7 @@ PEPeerConnectionImpl
 	  available = new boolean[manager.getPiecesNumber()];
 	  Arrays.fill(available, false);
 
-	  stats = manager.createPeerStats();
+	  stats = (PEPeerStatsImpl)manager.createPeerStats();
 	}
 
 

@@ -31,25 +31,19 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.plugins.peers.*;
 
 public class 
-PluginPEPeerStatsWrapper 
+PeerStatsImpl 
 	implements PeerStats
 {
-	protected Peer				peer;
+	protected PEPeerManager		manager;
 	protected PEPeerStats		delegate;
 	
 	public
-	PluginPEPeerStatsWrapper(
-		Peer			_peer,
+	PeerStatsImpl(
+		PEPeerManager	_manager,
 		PEPeerStats		_delegate )
 	{
-		peer		= _peer;
+		manager		= _manager;
 		delegate	= _delegate;
-	}
-	
-	public Peer
-	getPeer()
-	{
-		return( peer );
 	}
 	
 	public int getDownloadAverage()
@@ -98,7 +92,7 @@ PluginPEPeerStatsWrapper
 	{
 		delegate.received( bytes );
 		
-		((PeerManagerImpl)peer.getManager()).getDelegate().received( bytes );
+		manager.received( bytes );
 	}
 	
 	public void
@@ -107,6 +101,6 @@ PluginPEPeerStatsWrapper
 	{
 		delegate.discarded( bytes );
 		
-		((PeerManagerImpl)peer.getManager()).getDelegate().discarded( bytes );
+		manager.discarded( bytes );
 	}
 }

@@ -27,10 +27,7 @@ package org.gudy.azureus2.plugins.peers;
  */
 public interface 
 PeerStats 
-{
-	public Peer
-	getPeer();
-	
+{	
 	public int getDownloadAverage();
 
 	public int getReception();
