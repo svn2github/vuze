@@ -2647,9 +2647,17 @@ PEPeerControlImpl
     try{
     	_peer_transports_mon.enter();
     
-      Iterator iter = _peer_transports.iterator();
+    		// closing a transport can result in it being removed from teh list. Therefore
+    		// copy the list first else we get a "concurrent modification exception"	
+    	
+    	ArrayList	pt_copy = new ArrayList( _peer_transports );
+    	
+      Iterator iter = pt_copy.iterator();
+     
       while(iter.hasNext()) {
+      	
         PEPeerTransport peer = (PEPeerTransport) iter.next();
+        
         peer.closeAll(peer.getIp() + " : Quiting SuperSeed Mode",false,true);
       }
     }finally{
