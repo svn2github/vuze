@@ -63,7 +63,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
     this.mainWindow = mainWindow;
     this.display = mainWindow.getDisplay();
     
-    setPriority(Thread.MAX_PRIORITY);
+    setPriority(Thread.MAX_PRIORITY -2);
     COConfigurationManager.addParameterListener("GUI Refresh", this);
   }
 

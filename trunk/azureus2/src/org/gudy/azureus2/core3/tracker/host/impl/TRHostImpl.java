@@ -227,7 +227,7 @@ TRHostImpl
 				// try to ensure that the tracker stats are collected reasonably
 				// regularly
 			
-			t.setPriority( Thread.MAX_PRIORITY );
+			t.setPriority( Thread.MAX_PRIORITY -1);
 			
 			t.start();
 			
