@@ -25,11 +25,11 @@ import java.util.jar.JarFile;
  */
 public class MessageText {
 
+  public static final Locale LOCALE_ENGLISH = new Locale("en", "EN");
+  public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english 
   private static final String BUNDLE_NAME = "org.gudy.azureus2.ui.swt.MessagesBundle"; //$NON-NLS-1$
-  private static ResourceBundle RESOURCE_BUNDLE =
-    ResourceBundle.getBundle(BUNDLE_NAME);
-  public static Locale LOCALE_ENGLISH = new Locale("en", "EN");
-  public static Locale LOCALE_DEFAULT = new Locale("", ""); // == english 
+  private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT);
+
   /**
    * @param key
    * @return
@@ -108,18 +108,25 @@ public class MessageText {
     }
     return foundLocales;
   }
+
   public static boolean changeLocale(Locale newLocale) {
     if (LOCALE_ENGLISH.equals(newLocale))
       newLocale = LOCALE_DEFAULT;
-    if (!newLocale.equals(RESOURCE_BUNDLE.getLocale())) {
-      ResourceBundle newResourceBundle =
-        ResourceBundle.getBundle(BUNDLE_NAME, newLocale);
+    if (!RESOURCE_BUNDLE.getLocale().equals(newLocale)) {
+      ResourceBundle newResourceBundle = null;
+      try {
+        newResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, newLocale);
+      } catch (Exception e) {
+        System.out.println("changeLocale: no resource bundle for " + newLocale);
+        e.printStackTrace();
+        return false;
+      }
       if (newResourceBundle.getLocale().equals(newLocale)) {
         RESOURCE_BUNDLE = newResourceBundle;
         Locale.setDefault(newLocale);
         return true;
       } else
-        System.out.println("Messages: no message properties for Locale " + newLocale.getDisplayLanguage());
+        System.out.println("changeLocale: no message properties for Locale " + newLocale.getDisplayLanguage());
     }
     return false;
   }
