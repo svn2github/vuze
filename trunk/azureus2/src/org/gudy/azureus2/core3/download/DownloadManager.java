@@ -201,4 +201,8 @@ DownloadManager
   
 	public void
    restartDownload();
+
+	public int getPrevState();
+	public void setPrevState(int state);
+  
 }
