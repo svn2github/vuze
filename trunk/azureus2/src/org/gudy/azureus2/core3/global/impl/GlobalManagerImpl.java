@@ -235,7 +235,7 @@ public class GlobalManagerImpl
   	
     stats = new GlobalManagerStatsImpl();
         
-    trackerScraper = TRTrackerScraperFactory.create();
+    trackerScraper = TRTrackerScraperFactory.getSingleton();
     
     trackerScraper.addListener(
     	new TRTrackerScraperListener()

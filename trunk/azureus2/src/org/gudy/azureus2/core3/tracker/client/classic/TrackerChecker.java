@@ -173,6 +173,37 @@ public class TrackerChecker {
     }
   }
 
+  protected void
+  syncUpdate(
+  	TOTorrent	torrent )
+  {
+  	try{
+	  	HashWrapper	hash = torrent.getHashWrapper();
+	  	
+	    synchronized (trackers) {
+	    	
+	        Iterator iter = trackers.values().iterator();
+	        
+	        while (iter.hasNext()){
+	        	
+	        	TrackerStatus ts = (TrackerStatus) iter.next();
+	          
+	        	Map hashmap = ts.getHashes();
+	          
+	        	if ( hashmap.get( hash ) != null ){
+	  
+	        		ts.updateSingleHash( hash, true );
+	          	
+	        		return;
+	        	}
+	        	}
+	      	}  
+  		}catch( TOTorrentException e ){
+  			
+  			e.printStackTrace();
+  		}
+  	}
+    
   
   private void runScrapes() {
     while (true) {
@@ -193,7 +224,7 @@ public class TrackerChecker {
           HashWrapper hash = (HashWrapper)it.next();
           TrackerStatus ts = (TrackerStatus)doUpdate.get(hash);
 
-          ts.updateSingleHash(hash);
+          ts.updateSingleHash(hash,false);
 
           try { Thread.sleep(25); } catch (Exception e) {/**/}
         }

@@ -37,6 +37,11 @@ TRTrackerScraper
 		
 	public TRTrackerScraperResponse
 	scrape(
+		TOTorrent		torrent,
+		boolean			force );
+		
+	public TRTrackerScraperResponse
+	scrape(
 		TRTrackerClient	tracker_client );
 		
 	public void

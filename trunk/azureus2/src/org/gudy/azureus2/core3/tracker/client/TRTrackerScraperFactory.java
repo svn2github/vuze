@@ -32,7 +32,7 @@ public class
 TRTrackerScraperFactory 
 {
 	public static TRTrackerScraper
-	create()
+	getSingleton()
 	{
 		return( TRTrackerScraperImpl.create());
 	}

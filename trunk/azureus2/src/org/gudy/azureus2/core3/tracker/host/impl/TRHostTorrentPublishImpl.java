@@ -151,12 +151,12 @@ TRHostTorrentPublishImpl
 		
 		if ( tc != null ){
 			
-			resp = TRTrackerScraperFactory.create().scrape( tc );
+			resp = TRTrackerScraperFactory.getSingleton().scrape( tc );
 		}
 		
 		if ( resp == null ){
 			
-			resp = TRTrackerScraperFactory.create().scrape( torrent );
+			resp = TRTrackerScraperFactory.getSingleton().scrape( torrent );
 		}
 				
 		synchronized( this ){

@@ -74,11 +74,24 @@ TRTrackerScraperImpl
 	{
 		tracker_checker = new TrackerChecker( this );;
 	}
-	
+
 	public TRTrackerScraperResponse
 	scrape(
 		TOTorrent		torrent )
 	{
+		return( scrape( torrent, false ));
+	}
+	
+	public TRTrackerScraperResponse
+	scrape(
+		TOTorrent		torrent,
+		boolean			force )
+	{
+		if ( force ){
+			
+			tracker_checker.syncUpdate( torrent );
+		}
+		
 		TRTrackerScraperResponse	res = tracker_checker.getHashData( torrent );
 		
 		// System.out.println( "scrape: " + torrent + " -> " + (res==null?"null":""+res.getSeeds()));

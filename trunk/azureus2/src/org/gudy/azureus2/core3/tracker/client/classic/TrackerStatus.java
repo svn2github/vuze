@@ -73,7 +73,8 @@ public class TrackerStatus {
 
   protected synchronized void 
   updateSingleHash(
-  	HashWrapper hash) 
+  	HashWrapper hash,
+	boolean		force ) 
   {      
     
     if(scrapeURL == null) return;
@@ -84,7 +85,7 @@ public class TrackerStatus {
       if(response == null){
         hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1,-1));
       }
-      else if (response.getNextScrapeStartTime() >= System.currentTimeMillis()) {
+      else if ( (!force) && response.getNextScrapeStartTime() >= System.currentTimeMillis()) {
         LGLogger.log(0,0,LGLogger.INFORMATION,"Skipping scrape for hash "+ByteFormatter.nicePrint(hash.getHash(), true));
         return;
       }

@@ -436,14 +436,50 @@ TRHostImpl
 	protected void
 	startHosting(
 		TRHostTorrentHostImpl	host_torrent,
-		TRTrackerClient 		tracker_client )
+		final TRTrackerClient 	tracker_client )
 	{
-		TOTorrent	torrent = host_torrent.getTorrent();	
+		final TOTorrent	torrent = host_torrent.getTorrent();	
 
 			// set the ip override so that we announce ourselves to other peers via the 
 			// real external address, not the local one used to connect to the tracker 
 			
 		tracker_client.setIPOverride( torrent.getAnnounceURL().getHost());
+		
+			// hook into the client so that when the announce succeeds after the refresh below
+			// we can force a rescrape to pick up the new status 
+		
+		TRTrackerClientListener	listener = 
+			new TRTrackerClientListener()
+			{
+				public void
+				receivedTrackerResponse(
+					TRTrackerResponse	response	)
+				{	
+					try{
+						TRTrackerScraperFactory.getSingleton().scrape( torrent, true );
+					
+					}finally{
+						
+						tracker_client.removeListener( this );
+					}
+				}
+
+				public void
+				urlChanged(
+					String		url,
+					boolean		explicit )
+				{	
+				}
+					
+				public void
+				urlRefresh()
+				{
+				}
+			};
+		
+		tracker_client.addListener(listener);
+
+		tracker_client.refreshListeners();
 	}
 
 	protected synchronized void
