@@ -173,14 +173,14 @@ public class VirtualChannelSelector {
           i.remove();
           RegistrationData data = (RegistrationData)key.attachment();
           if( key.isValid() ) {
-            data.listener.selectSuccess( data.attachment );
             if( INTEREST_OP != OP_READ ) { //read selections don't auto-remove
-              key.cancel();
+                key.cancel();
             }
-          }
+            data.listener.selectSuccess( this, data.channel, data.attachment );
+           }
           else {
-            data.listener.selectFailure( new Throwable( "key is invalid" ) );
             key.cancel();
+            data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "key is invalid" ) );
             Debug.out( "key is invalid" );
           }
         }
@@ -197,12 +197,12 @@ public class VirtualChannelSelector {
       	      data.channel.register( selector, INTEREST_OP, data );
       	    }
       	    else {
-      	      data.listener.selectFailure( new Throwable( "channel is closed" ) );
+      	      data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "channel is closed" ) );
       	      //Debug.out( "channel is closed" );
       	    }
       	  }
       	  catch (Throwable t) {
-      	    data.listener.selectFailure( t );
+      	    data.listener.selectFailure( this, data.channel, data.attachment, t );
       	    Debug.printStackTrace(t);
       	  }
       	}
@@ -217,33 +217,35 @@ public class VirtualChannelSelector {
     
     
     private static class RegistrationData {
-      private final SocketChannel channel;
-      private final VirtualSelectorListener listener;
-      private final Object attachment;
+        private final SocketChannel channel;
+        private final VirtualSelectorListener listener;
+        private final Object attachment;
+        
+      	private RegistrationData( SocketChannel channel, VirtualSelectorListener listener, Object attach ) {
+      		this.channel = channel;
+          this.listener = listener;
+          this.attachment = attach;
+      	}
+      }
       
-    	private RegistrationData( SocketChannel channel, VirtualSelectorListener listener, Object attach ) {
-    		this.channel = channel;
-        this.listener = listener;
-        this.attachment = attach;
-    	}
-    }
-    
-    
-    /**
-     * Listener for notification upon socket channel selection.
-     */
-    public interface VirtualSelectorListener {
-      /**
-       * Called when a channel is successfully selected for readyness.
-       * @param attachment originally given with the channel's registration
-       */
-      public void selectSuccess( Object attachment );
       
       /**
-       * Called when a channel selection fails.
-       * @param msg failure message
+       * Listener for notification upon socket channel selection.
        */
-      public void selectFailure( Throwable msg );
-    }
+      public interface 
+  	VirtualSelectorListener 
+  	{
+        /**
+         * Called when a channel is successfully selected for readyness.
+         * @param attachment originally given with the channel's registration
+         */
+        public void selectSuccess( VirtualChannelSelector	selector, SocketChannel sc, Object attachment );
+        
+        /**
+         * Called when a channel selection fails.
+         * @param msg failure message
+         */
+        public void selectFailure( VirtualChannelSelector	selector, SocketChannel sc, Object attachment, Throwable msg );
+      }
     
 }

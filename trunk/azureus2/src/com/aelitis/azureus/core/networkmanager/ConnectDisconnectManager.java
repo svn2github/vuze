@@ -154,7 +154,7 @@ public class ConnectDisconnectManager {
       request.channel.connect( request.address );
       
       connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
-        public void selectSuccess( Object attachment ) {         
+        public void selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {         
           try {
             if( request.channel.finishConnect() ) {
                   
@@ -210,7 +210,7 @@ public class ConnectDisconnectManager {
           pending_attempts.remove( request );
         }
         
-        public void selectFailure( Throwable msg ) {
+        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
           Debug.out( "selectFailure" );
           
           try{
