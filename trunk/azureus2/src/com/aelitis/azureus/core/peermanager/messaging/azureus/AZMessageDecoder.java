@@ -82,8 +82,8 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     
     while( bytes_remaining > 0 ) {
       if( destroyed ) {
-        System.out.println( "AZ decoder already destroyed" );
-        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
+        System.out.println( "AZ decoder already destroyed: " +transport.getDescription() );
+        //try {  Thread.sleep( 20 );  }catch(Throwable t) {}
         break;
       }
 

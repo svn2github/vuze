@@ -108,7 +108,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           
           Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] channel is null=" +(transport.getSocketChannel() == null)+ ", has_been_closed=" +transport.has_been_closed+ ", closed_error_msg=" +transport.has_been_closed_error+ ", original destroy() trace:", destroyed_trace );
           
-          try{  Thread.sleep( 100 );  }catch(Throwable t){}
+          //try{  Thread.sleep( 100 );  }catch(Throwable t){}
           
           throw new IOException( "BTMessageDecoder:: already destroyed" );
         }
