@@ -32,7 +32,7 @@ import org.gudy.azureus2.pluginsimpl.PluginManagerImpl;
  */
 
 
-public class 
+public abstract class 
 PluginManager
 {
   /**
@@ -88,4 +88,12 @@ PluginManager
 	{
 		PluginManagerImpl.registerPlugin( plugin_class );
 	}
+	
+	/**
+	 * Gets the current set of registered plugins. During initialisation this will probably give partial
+	 * results as plugin initialisation is non-deterministic.
+	 * @return
+	 */
+	public abstract PluginInterface[]
+	getPlugins();
 }

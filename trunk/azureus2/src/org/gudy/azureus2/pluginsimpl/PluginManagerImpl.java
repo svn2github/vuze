@@ -34,9 +34,24 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 
 public class 
 PluginManagerImpl 
+	extends PluginManager
 {
-	public static boolean	running		= false;
-	public static int		ui_type		= PluginManager.UI_NONE;
+	protected static boolean	running		= false;
+	protected static int		ui_type		= PluginManager.UI_NONE;
+	
+	protected static PluginManagerImpl	singleton;
+	
+	protected static synchronized PluginManagerImpl
+	getSingleton(
+		PluginInitializer	pi )
+	{
+		if ( singleton == null ){
+			
+			singleton = new PluginManagerImpl( pi );
+		}
+		
+		return( singleton );
+	}
 	
 	public static synchronized void
 	startAzureus(
@@ -130,5 +145,21 @@ PluginManagerImpl
 		Class		plugin_class )
 	{
 		PluginInitializer.queueRegistration( plugin_class );
+	}
+	
+	
+	protected PluginInitializer		pi;
+	
+	protected
+	PluginManagerImpl(
+		PluginInitializer		_pi )
+	{
+		pi		= _pi;
+	}
+	
+	public PluginInterface[]
+	getPlugins()
+	{
+		return( pi.getPlugins());
 	}
 }

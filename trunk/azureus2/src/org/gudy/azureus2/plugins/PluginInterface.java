@@ -207,6 +207,22 @@ public interface PluginInterface {
   public ClassLoader
   getPluginClassLoader();
   
+  /**
+   * Gives access to the plugin itself
+   * @return
+   */
+  
+  public Plugin
+  getPlugin();
+  
+  /**
+   * gives access to the plugin manager
+   * @return
+   */
+  
+  public PluginManager
+  getPluginManager();
+  
   public void
   addListener(
   	PluginListener	l );

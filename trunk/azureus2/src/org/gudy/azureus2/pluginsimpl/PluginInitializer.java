@@ -40,8 +40,7 @@ import org.gudy.azureus2.ui.swt.SplashWindow;
 import org.gudy.azureus2.plugins.*;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
-//import org.gudy.azureus2.ui.tracker.TrackerWebDefaultStaticPlugin;
-//import org.gudy.azureus2.ui.tracker.TrackerWebDefaultTrackerPlugin;
+import org.gudy.azureus2.ui.tracker.TrackerDefaultWeb;
 import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
 
 /**
@@ -56,7 +55,7 @@ PluginInitializer
   private Class[]	builtin_plugins = 
     new Class[]{ org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
                  ShareHosterPlugin.class,
-             //    TrackerWebDefaultStaticPlugin.class,
+                 TrackerDefaultWeb.class,
              //    TrackerWebDefaultTrackerPlugin.class,
                  UpdateLanguagePlugin.class,
                 };
@@ -71,6 +70,7 @@ PluginInitializer
   private GlobalManager	global_manager;
   
   private PluginInterface	default_plugin;
+  private PluginManager		plugin_manager;
   
   private List		plugins				= new ArrayList();
   private List		plugin_interfaces	= new ArrayList();
@@ -121,6 +121,8 @@ PluginInitializer
     this.splash 	= splash;
     
     tracker_host	= TRHostFactory.create();
+    
+    plugin_manager = PluginManagerImpl.getSingleton( this );
   }
   
   public void initializePlugins() {
@@ -225,7 +227,7 @@ PluginInitializer
       
       MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
       
-      PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(this,classLoader,directory.getName(),props,directory.getAbsolutePath());
+      PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(plugin,this,classLoader,directory.getName(),props,directory.getAbsolutePath());
       
       plugin.initialize(plugin_interface);
       
@@ -274,7 +276,7 @@ PluginInitializer
   	try{
   		Plugin plugin = (Plugin) plugin_class.newInstance();
   		
-  		PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(this,plugin_class.getClassLoader(),"",new Properties(),"");
+  		PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(plugin, this,plugin_class.getClassLoader(),"",new Properties(),"");
   		
   		plugin.initialize(plugin_interface);
   		
@@ -314,7 +316,7 @@ PluginInitializer
   
   	if ( default_plugin == null ){
   		
-  		default_plugin = new PluginInterfaceImpl(this,getClass().getClassLoader(),"default",new Properties(),null);
+  		default_plugin = new PluginInterfaceImpl(null,this,getClass().getClassLoader(),"default",new Properties(),null);
   	}
   	
   	return( default_plugin );
@@ -391,5 +393,23 @@ PluginInitializer
 
   protected List getPluginInterfacesSupport() {
   	return plugin_interfaces;
+  }
+  
+  protected PluginInterface[]
+  getPlugins()
+  {
+  	List	pis = getPluginInterfacesSupport();
+  	
+  	PluginInterface[]	res = new 	PluginInterface[pis.size()];
+  	
+  	pis.toArray(res);
+  	
+  	return( res );
+  }
+  
+  protected PluginManager
+  getPluginManager()
+  {
+  	return( plugin_manager );
   }
 }

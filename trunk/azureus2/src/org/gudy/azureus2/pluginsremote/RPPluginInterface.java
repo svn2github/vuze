@@ -153,6 +153,22 @@ RPPluginInterface
 	
 		// ******************************************
 	
+	public PluginManager
+	getPluginManager()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
+	public Plugin
+	getPlugin()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public String
 	getAzureusName()
 	{

@@ -60,8 +60,11 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  *
  */
-public class PluginInterfaceImpl implements PluginInterface {
-  
+public class 
+PluginInterfaceImpl 
+	implements PluginInterface 
+{
+  protected Plugin				plugin;
   protected PluginInitializer	initialiser;
   protected ClassLoader			class_loader;
   protected List				listeners 		= new ArrayList();
@@ -71,13 +74,16 @@ public class PluginInterfaceImpl implements PluginInterface {
   protected String 				pluginDir;
   protected PluginConfig 		config;
 
-  public PluginInterfaceImpl(
+  public 
+  PluginInterfaceImpl(
+  		Plugin				_plugin,
   		PluginInitializer	_initialiser,
 		ClassLoader			_class_loader,
 		String 				_key,
 		Properties 			_props,
 		String 				_pluginDir) 
   {
+  	plugin				= _plugin;
   	initialiser			= _initialiser;
   	class_loader		= _class_loader;
   	pluginConfigKey 	= "Plugin." + _key;
@@ -86,6 +92,18 @@ public class PluginInterfaceImpl implements PluginInterface {
     config 				= new PluginConfigImpl(pluginConfigKey);
   }
   
+  	public Plugin
+	getPlugin()
+	{
+  		return( plugin );
+	}
+  
+  	public PluginManager
+	getPluginManager()
+	{
+  		return( initialiser.getPluginManager());
+  	}
+  	
 	public String
 	getAzureusName()
 	{
