@@ -586,6 +586,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			if (!lengthBuffer.hasRemaining()) {
 				int length = lengthBuffer.getInt(0);
 		  
+        //message size should never be greater than 16K+9b
+        if( length > 16393 ) {
+          System.out.println( "!!!~~~ ERROR: incoming message size too large: " +length+ " ~~~!!!" );
+        }
+        
 				if(length < 0) {
 					closeAll(PEPeerTransportProtocol.this + " : length negative : " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
