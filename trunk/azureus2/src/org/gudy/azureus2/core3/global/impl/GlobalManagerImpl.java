@@ -625,10 +625,16 @@ public class GlobalManagerImpl
   }
 
   public void stopAllDownloads(int stateAfterStopping) {
- 
     for (Iterator iter = managers.iterator(); iter.hasNext();) {
       DownloadManager manager = (DownloadManager) iter.next();
-      manager.stopIt(stateAfterStopping);
+      
+      int state = manager.getState();
+      
+      if( state != DownloadManager.STATE_STOPPED &&
+          state != DownloadManager.STATE_STOPPING ) {
+        
+        manager.stopIt( stateAfterStopping );
+      }
     }
   }
   
@@ -638,8 +644,11 @@ public class GlobalManagerImpl
    */
   public void startAllDownloads() {    
     for (Iterator iter = managers.iterator(); iter.hasNext();) {
-        DownloadManager manager = (DownloadManager) iter.next();
+      DownloadManager manager = (DownloadManager) iter.next();
+
+      if( manager.getState() == DownloadManager.STATE_STOPPED ) {
         manager.startDownloadInitialized(true);
+      }
     }
   }
   
