@@ -157,6 +157,8 @@ IpRangeImpl
 		String	str )
 	{
 		startIp	= str;
+		
+		checkValid();
 	}
 	
    public String
@@ -170,6 +172,8 @@ IpRangeImpl
 	   String	str )
    {
 	   endIp	= str;
+	   
+	   checkValid();
    }
    
    public String toString() {

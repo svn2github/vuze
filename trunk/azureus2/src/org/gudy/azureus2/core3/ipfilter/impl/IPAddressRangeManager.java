@@ -314,20 +314,20 @@ IPAddressRangeManager
 			}
 		}
 		
-		
+		/*
 		for (int i=0;i<ents.length;i++){
 			
 			entry	e = ents[i];
 			
 			System.out.println( Long.toHexString(e.getStart()) + " - " + Long.toHexString(e.getEnd()) + ": " + e.getMerged() + "/" + Long.toHexString(e.getMergedEnd()));
 		}
-		
+		*/
 		
 		merged_entries = new entry[me.size()];
 		
 		me.toArray( merged_entries );
 		
-		System.out.println( "non_merged = " + merged_entries.length );
+			//	System.out.println( "non_merged = " + merged_entries.length );
 	}
 	
 	protected class
@@ -438,8 +438,11 @@ IPAddressRangeManager
 		manager.addRange( "7.7.7.7", "7.7.8.7", "5" );
 		manager.addRange( "8.8.8.8", "8.8.8.8", "6" );
 		//manager.addRange( "0.0.0.0", "255.255.255.255", "7" );
+		manager.addRange( "5.5.5.5", "6.6.6.9", "8" );
+		manager.addRange( "6.6.6.6", "7.7.0.0", "9" );
 		
-		System.out.println( "inRange -> " + manager.isInRange( "9.1.1.1" ));
+		
+		System.out.println( "inRange -> " + manager.isInRange( "6.6.6.8" ));
 		
 		/*
 		for (int i=0;i<100000;i++){
