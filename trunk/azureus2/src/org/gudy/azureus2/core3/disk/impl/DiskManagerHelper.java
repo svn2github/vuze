@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.disk.impl;
  */
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.peer.*;
 
 public interface 
 DiskManagerHelper 
@@ -43,6 +45,10 @@ DiskManagerHelper
 	public byte[]
 	getPieceHash(
 		int	piece_number );
+	
+	public void
+	setPieces(
+		PEPiece[]		pieces );
 	
 	public void
 	setState(
@@ -70,4 +76,7 @@ DiskManagerHelper
 	public void 
 	computeFilesDone(
 		int pieceNumber ); 
+	
+	public TOTorrent
+	getTorrent();
 }

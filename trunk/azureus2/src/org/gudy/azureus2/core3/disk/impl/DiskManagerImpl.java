@@ -26,16 +26,14 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.file.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
+import org.gudy.azureus2.core3.disk.impl.resume.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.*;
@@ -90,7 +88,8 @@ DiskManagerImpl
 	private DMReader				reader;
 	private DMWriterAndChecker		writer_and_checker;
 	
-
+	private RDResumeHandler			resume_handler;
+	
 	private String rootPath = null;
 
 	//The map that associate
@@ -103,8 +102,6 @@ DiskManagerImpl
   private DownloadManager dmanager;
 
   private PEPeerManager manager;
-
-	private boolean bOverallContinue = true;
 	private PEPiece[] pieces;
 	private boolean alreadyMoved = false;
 
@@ -131,46 +128,26 @@ DiskManagerImpl
 				}
 			});		
 	
-  private static boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
-  private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
+    private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   
-	public DiskManagerImpl(TOTorrent	_torrent, String path, DownloadManager dmanager) {
+	public 
+	DiskManagerImpl(
+		TOTorrent			_torrent, 
+		String 				_path, 
+		DownloadManager 	_dmanager) 
+	{
+    torrent 	= _torrent;
+    path 		= _path;
+    dmanager 	= _dmanager;
+ 
     setState( INITIALIZING );
-    this.percentDone = 0;
-    this.torrent = _torrent;
-    this.path = path;
-    this.dmanager = dmanager;
-    initialize1();
-	}
-
-	public void start() {
-		if (started)
-			return;
-
-		started = true;
-
     
-    // add configuration parameter listeners
-    COConfigurationManager.addParameterListener("Use Resume", this);
-    COConfigurationManager.addParameterListener("Prioritize First Piece", this);
+    percentDone = 0;
     
-    Thread init = new AEThread("DiskManager:start") {
-			public void run() {
-				initialize();
-				if (DiskManagerImpl.this.getState() == DiskManager.FAULTY) {
-					stopIt();
-				}
-			}
-		};
-		init.setPriority(Thread.MIN_PRIORITY);
-		init.start();
+	if (torrent == null) {
+		setState( FAULTY );
+		return;
 	}
-
-	private void initialize1() {
-		if (torrent == null) {
-			setState( FAULTY );
-			return;
-		}
     
     //Insure that save folder exists
     /*
@@ -270,9 +247,34 @@ DiskManagerImpl
 		
 		reader 				= DMAccessFactory.createReader(this);
 		writer_and_checker 	= DMAccessFactory.createWriterAndChecker(this,reader);
+		
+		resume_handler		= new RDResumeHandler( this, writer_and_checker );
+		
 	}
 
-	private void initialize() {
+	public void start() {
+		if (started)
+			return;
+
+		started = true;
+
+    
+    // add configuration parameter listeners
+    COConfigurationManager.addParameterListener("Prioritize First Piece", this);
+    
+    Thread init = new AEThread("DiskManager:start") {
+			public void run() {
+				startSupport();
+				if (DiskManagerImpl.this.getState() == DiskManager.FAULTY) {
+					stopIt();
+				}
+			}
+		};
+		init.setPriority(Thread.MIN_PRIORITY);
+		init.start();
+	}
+
+	private void startSupport() {
 		//  create the pieces map
 		pieceMap = new PieceList[nbPieces];
 		pieceCompletion = new int[nbPieces];
@@ -314,7 +316,7 @@ DiskManagerImpl
 		//fileArray = new RandomAccessFile[btFileList.size()];
 		files = new DiskManagerFileInfoImpl[btFileList.size()];
       
-		int newFiles = this.allocateFiles();
+		int newFiles = allocateFiles();
       
 		if (getState() == FAULTY) return;
     
@@ -323,13 +325,22 @@ DiskManagerImpl
 		constructPieceMap(btFileList);
 
 		constructFilesPieces();
-
-		//check all pieces if no new files were created
-		if (newFiles == 0) checkAllPieces(false);
-		//if not a fresh torrent, check pieces ignoring fast resume data
-		else if (newFiles != btFileList.size()) checkAllPieces(true);
-    
-		//3.Change State   
+		
+		resume_handler.start();
+		  
+		if (newFiles == 0){
+			
+			resume_handler.checkAllPieces(false);
+			
+		}else if (newFiles != btFileList.size()){
+			
+				//	if not a fresh torrent, check pieces ignoring fast resume data
+			
+			resume_handler.checkAllPieces(true);
+		}
+		
+			//3.Change State   
+		
 		setState( READY );
 	}
 
@@ -821,348 +832,8 @@ DiskManagerImpl
     dmanager.setDataAlreadyAllocated( true );
     
 		return numNewFiles;
-	}
-
-
-
-
- 
-
-
-		// RESUME DATA STUFF STARTS.....
+	}	
 	
-	private void checkAllPieces(boolean newfiles) {
-		setState( CHECKING );
-		int startPos = 0;
-		
-		boolean resumeEnabled = useFastResume;
-		//disable fast resume if a new file was created
-		if (newfiles) resumeEnabled = false;
-		
-		boolean	resume_data_complete = false;
-		
-		if (resumeEnabled) {
-			boolean resumeValid = false;
-			byte[] resumeArray = null;
-			Map partialPieces = null;
-			Map resumeMap = torrent.getAdditionalMapProperty("resume");
-			
-			if (resumeMap != null) {
-				
-				// see bug 869749 for explanation of this mangling
-				
-				/*
-				System.out.println( "Resume map");
-				
-				Iterator it = resumeMap.keySet().iterator();
-				
-				while( it.hasNext()){
-					
-					System.out.println( "\tmap:" + ByteFormatter.nicePrint((String)it.next()));
-				}
-				*/
-				
-				String mangled_path;
-				
-				try{
-					mangled_path = new String(path.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
-					
-					// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
-					
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
-					
-					mangled_path = this.path;
-				}
-				
-				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
-				
-				if ( resumeDirectory == null ){
-					
-						// unfortunately, if the torrent hasn't been saved and restored then the
-						// mangling with not yet have taken place. So we have to also try the 
-						// original key (see 878015)
-					
-					resumeDirectory = (Map)resumeMap.get(path);
-				}
-				
-				if ( resumeDirectory != null ){
-					
-					try {
-						
-						resumeArray = (byte[])resumeDirectory.get("resume data");
-						partialPieces = (Map)resumeDirectory.get("blocks");
-						resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
-						
-							// if the torrent download is complete we don't need to invalidate the
-							// resume data
-						
-						if ( isTorrentResumeDataComplete( torrent, path )){
-							
-							resume_data_complete	= true;
-									
-						}else{
-							
-							resumeDirectory.put("valid", new Long(0));
-							
-							saveTorrent();
-						}
-						
-					}catch(Exception ignore){
-						/* ignore */ 
-					}
-					
-				}else{
-					
-					// System.out.println( "resume dir not found");
-				}
-			}
-			
-			if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
-				startPos = resumeArray.length;
-				for (int i = 0; i < resumeArray.length && bOverallContinue; i++) { //parse the array
-					percentDone = ((i + 1) * 1000) / nbPieces;
-					//mark the pieces
-					if (resumeArray[i] == 0) {
-						if (!resumeValid) pieceDone[i] = writer_and_checker.checkPiece(i);
-					}
-					else {
-						computeFilesDone(i);
-						pieceDone[i] = true;
-						if (i < nbPieces - 1) {
-							remaining -= pieceLength;
-						}
-						if (i == nbPieces - 1) {
-							remaining -= lastPieceLength;
-						}
-					}
-				}
-				
-				if (partialPieces != null && resumeValid) {
-					pieces = new PEPiece[nbPieces];
-					Iterator iter = partialPieces.entrySet().iterator();
-					while (iter.hasNext()) {
-						Map.Entry key = (Map.Entry)iter.next();
-						int pieceNumber = Integer.parseInt((String)key.getKey());
-						PEPiece piece;
-						if (pieceNumber < nbPieces - 1)
-							piece = PEPieceFactory.create(manager, getPieceLength(), pieceNumber);
-						else
-							piece = PEPieceFactory.create(manager, getLastPieceLength(), pieceNumber);
-						List blocks = (List)partialPieces.get(key.getKey());
-						Iterator iterBlock = blocks.iterator();
-						while (iterBlock.hasNext()) {
-							piece.setWritten(null,((Long)iterBlock.next()).intValue());
-						}
-						pieces[pieceNumber] = piece;
-					}
-				}
-			}
-		}
-		
-		for (int i = startPos; i < nbPieces && bOverallContinue; i++) {
-			percentDone = ((i + 1) * 1000) / nbPieces;
-			writer_and_checker.checkPiece(i);
-		}
-		
-			//dump the newly built resume data to the disk/torrent
-		
-		if (bOverallContinue && resumeEnabled && !resume_data_complete){
-			
-			dumpResumeDataToDisk(false, false);
-		}
-	}
-	
-	public void 
-	dumpResumeDataToDisk(
-		boolean savePartialPieces, 
-		boolean invalidate )
-	{
-		if(!useFastResume)
-		  return;
-    
-		boolean	was_complete = isTorrentResumeDataComplete( torrent, path );
-		
-		//build the piece byte[] 
-		byte[] resumeData = new byte[pieceDone.length];
-		for (int i = 0; i < resumeData.length; i++) {
-		  if (invalidate) resumeData[i] = (byte)0;
-		  else resumeData[i] = pieceDone[i] ? (byte)1 : (byte)0;
-		}
-
-		//Attach the resume data
-		Map resumeMap = new HashMap();
-		torrent.setAdditionalMapProperty("resume", resumeMap);
-
-	  Map resumeDirectory = new HashMap();
-	  
-	  	// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
-	  	// currently fixed by mangling such that decode works
-	  
-	  // System.out.println( "writing resume data: key = " + ByteFormatter.nicePrint(path));
-	  
-	  resumeMap.put(path, resumeDirectory);
-	  
-	  resumeDirectory.put("resume data", resumeData);
-	  Map partialPieces = new HashMap();
-	
-	  if (savePartialPieces  && !invalidate) {
-	    if (pieces == null && manager != null)
-			pieces = manager.getPieces();
-	    if(pieces != null) {
-	      for (int i = 0; i < pieces.length; i++) {
-	        PEPiece piece = pieces[i];
-	        if (piece != null && piece.getCompleted() > 0) {
-	          boolean[] downloaded = piece.getWritten();
-	          List blocks = new ArrayList();
-	          for (int j = 0; j < downloaded.length; j++) {
-	            if (downloaded[j])
-	              blocks.add(new Long(j));
-	          }
-	          partialPieces.put("" + i, blocks);
-	        }
-	      }
-	      resumeDirectory.put("blocks", partialPieces);
-	    }
-	    resumeDirectory.put("valid", new Long(1));
-	  } else {
-	    resumeDirectory.put("valid", new Long(0));
-	  }
-		
-	  boolean	is_complete = isTorrentResumeDataComplete( torrent, path );
-	  
-	  if ( was_complete && is_complete ){
-	 
-	  		// no change, no point in writing
-	  		  	
-	  }else{
-	  	
-	  	saveTorrent();
-	  }
-	}
-
-	public static void
-	setTorrentResumeDataComplete(
-		TOTorrent	torrent,
-		String		data_dir )
-	{
-		int	piece_count = torrent.getPieces().length;
-		
-		byte[] resumeData = new byte[piece_count];
-		
-		for (int i = 0; i < resumeData.length; i++) {
-			
-			resumeData[i] = (byte)1;
-		}
-
-		Map resumeMap = new HashMap();
-		
-		torrent.setAdditionalMapProperty("resume", resumeMap);
-
-		Map resumeDirectory = new HashMap();
-		
-		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
-		// currently fixed by mangling such that decode works
-		
-		resumeMap.put(data_dir, resumeDirectory);
-		
-		resumeDirectory.put("resume data", resumeData);
-		
-		Map partialPieces = new HashMap();
-		
-		resumeDirectory.put("blocks", partialPieces);
-		
-		resumeDirectory.put("valid", new Long(1));	
-	}
-	
-	public static boolean
-	isTorrentResumeDataComplete(
-		TOTorrent	torrent,
-		String		data_dir )
-	{
-		try{
-			int	piece_count = torrent.getPieces().length;
-		
-			Map resumeMap = torrent.getAdditionalMapProperty("resume");
-		
-			if (resumeMap != null) {
-			
-					// see bug 869749 for explanation of this mangling
-				
-				String mangled_path;
-				
-				try{
-					mangled_path = new String(data_dir.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
-									
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
-					
-					mangled_path = data_dir;
-				}
-				
-				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
-				
-				if ( resumeDirectory == null ){
-					
-					// unfortunately, if the torrent hasn't been saved and restored then the
-					// mangling with not yet have taken place. So we have to also try the 
-					// original key (see 878015)
-					
-					resumeDirectory = (Map)resumeMap.get(data_dir);
-				}
-				
-				if (resumeDirectory != null) {
-										
-					byte[] 	resume_data =  (byte[])resumeDirectory.get("resume data");
-					Map		blocks		= (Map)resumeDirectory.get("blocks");
-					boolean	valid		= ((Long)resumeDirectory.get("valid")).intValue() == 1;
-					
-						// any partial pieced -> not complete
-					if ( blocks == null || blocks.size() > 0 ){
-						
-						return( false );
-					}
-					
-					if ( valid && resume_data.length == piece_count ){
-						
-						for (int i=0;i<resume_data.length;i++){
-	
-							if ( resume_data[i] == 0 ){
-								
-									// missing piece
-								
-								return( false );
-							}
-						}
-						
-						return( true );
-					}
-				}
-			}
-		}catch( Throwable e ){
-		
-			e.printStackTrace();
-		}	
-		
-		return( false );
-	}
-	
-		// RESUME DATA STUFF ENDS
-	
-	private void 
-	saveTorrent() 
-	{
-		try{
-			TorrentUtils.writeToFile( torrent );
-						
-		} catch (TOTorrentException e) {
-			
-			e.printStackTrace();
-		}
-	}
-
   
 	public void 
 	enqueueReadRequest( 
@@ -1257,15 +928,15 @@ DiskManagerImpl
 
 	public void stopIt() {
         
-		bOverallContinue = false; 
-
-		// remove configuration parameter listeners
-	 COConfigurationManager.removeParameterListener("Use Resume", this);
-    COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
+			// remove configuration parameter listeners
+		
+		COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
 		
     	writer_and_checker.stop();
     	
 		reader.stop();
+		
+		resume_handler.stop();
 		
 		if (files != null) {
 			for (int i = 0; i < files.length; i++) {
@@ -1579,6 +1250,13 @@ DiskManagerImpl
 		return pieces;
 	}
 	
+	public void
+	setPieces(
+		PEPiece[]		_pieces )
+	{
+		pieces	= _pieces;
+	}
+	
 	public DiskManagerRequest
 	createRequest(
 		int pieceNumber,
@@ -1622,11 +1300,22 @@ DiskManagerImpl
 		
 		public boolean 
 		checkBlock(
-				int pieceNumber, 
-				int offset, 
-				int length) 
+			int pieceNumber, 
+			int offset, 
+			int length) 
 		{
 			return( writer_and_checker.checkBlock( pieceNumber, offset, length ));
+		}
+		
+		public void 
+		dumpResumeDataToDisk(
+			boolean savePartialPieces, 
+			boolean invalidate )
+		{
+			if ( resume_handler != null ){
+				
+				resume_handler.dumpResumeDataToDisk( savePartialPieces, invalidate );
+			}
 		}
 		
   /**
@@ -1817,12 +1506,18 @@ DiskManagerImpl
   {
   	return( dm_name );
   }
+  
+	public TOTorrent
+	getTorrent()
+	{
+		return( torrent );
+	}
+	
   /**
    * @param parameterName the name of the parameter that has changed
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
     firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   }
 
@@ -1957,9 +1652,5 @@ DiskManagerImpl
   
   public PEPeerManager getPeerManager() {
     return manager;
-  }
-
-  public TOTorrent getTOTorrent() {
-    return torrent;
   }
 }

@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.disk;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.impl.*;
+import org.gudy.azureus2.core3.disk.impl.resume.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 public class 
@@ -67,7 +68,7 @@ DiskManagerFactory
 		TOTorrent	torrent,
 		String		data_location )
 	{
-		DiskManagerImpl.setTorrentResumeDataComplete( torrent, data_location );
+		RDResumeHandler.setTorrentResumeDataComplete( torrent, data_location );
 	}
 
 	public static boolean
@@ -75,7 +76,7 @@ DiskManagerFactory
 		TOTorrent	torrent,
 		String		data_location )
 	{
-		return DiskManagerImpl.isTorrentResumeDataComplete( torrent, data_location );
+		return RDResumeHandler.isTorrentResumeDataComplete( torrent, data_location );
 	}
 
 	public static void deleteDataFiles(TOTorrent torrent, String sPath) {
