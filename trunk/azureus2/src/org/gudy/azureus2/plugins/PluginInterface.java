@@ -25,6 +25,7 @@ import java.util.Properties;
 
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
@@ -75,6 +76,14 @@ public interface PluginInterface {
    */
   
   public Logger getLogger();
+  
+  /**
+   * Gives access to the peer protocol manager
+   * @return
+   */
+  
+  public PeerProtocolManager
+  getPeerProtocolManager();
   
   /**
    * opens a torrent file given its name

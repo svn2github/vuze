@@ -1,6 +1,6 @@
 /*
- * File    : PeerProtocolManager.java
- * Created : 16-Dec-2003
+ * File    : PeerManagerImpl.java
+ * Created : 28-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,17 +19,32 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.peers.protocol;
+package org.gudy.azureus2.pluginsimpl.peers;
 
 /**
  * @author parg
  *
  */
-public interface 
-PeerProtocolManager 
+
+import org.gudy.azureus2.plugins.peers.*;
+
+import org.gudy.azureus2.core3.peer.impl.*;
+
+public class 
+PeerManagerImpl
+	implements PeerManager
 {
-	public void
-	registerExtensionHandler(
-		String							protocol_name,
-		PeerProtocolExtensionHandler	handler );
+	protected PEPeerControl	manager;
+	
+	public
+	PeerManagerImpl(
+		PEPeerControl	_manager )
+	{
+		manager	= _manager;
+	}
+	public Object
+	getInternalManager()
+	{
+		return( manager );
+	}
 }

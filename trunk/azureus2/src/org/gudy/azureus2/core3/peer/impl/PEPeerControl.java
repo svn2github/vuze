@@ -72,7 +72,7 @@ PEPeerControl
 		int 		pieceNumber, 
 		int 		offset, 
 		ByteBuffer 	data,
-    PEPeer sender);
+		PEPeer 		sender);
  
 	public boolean 
 	checkBlock(
@@ -103,6 +103,13 @@ PEPeerControl
 	isOptimisticUnchoke(
 		PEPeer 		pc);
 
+	
+	public void
+	updateSuperSeedPiece(
+	    PEPeer peer,
+	    int pieceNumber);
+	
+	
 	public void
 	received(
 		int		l );	
@@ -110,19 +117,10 @@ PEPeerControl
 	public void
 	sent(
 		int		l );	
-		
+	
 	public void
 	discarded(
 		int		l );		
-
-	public void 
-	setSuperSeedMode(
-	    boolean superSeedMode);
-	
-	public void
-	updateSuperSeedPiece(
-	    PEPeer peer,
-	    int pieceNumber);
 	
 	public void
 	addListener(
