@@ -66,6 +66,13 @@ UPnPPluginService
 		return( connection );
 	}
 	
+	protected String
+	getDescriptionForPort(
+		int		port )
+	{
+		return( "Azureus UPnP " + port );
+	}
+	
 	protected synchronized void
 	checkMapping(
 		LoggerChannel		log,
@@ -152,7 +159,7 @@ UPnPPluginService
 						
 			try{
 				connection.addPortMapping( 
-					mapping.isTCP(), mapping.getPort(),"AZ" + mapping.getPort());
+					mapping.isTCP(), mapping.getPort(), getDescriptionForPort( mapping.getPort()));
 							
 				String	text;
 				
@@ -206,8 +213,6 @@ UPnPPluginService
 		LoggerChannel		log,
 		UPnPMapping			mapping )
 	{
-		String	grab_in_progress	= null;
-		
 		String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 		
 		for (int i=0;i<service_mappings.size();i++){
@@ -230,18 +235,25 @@ UPnPPluginService
 		LoggerChannel		log,
 		serviceMapping		mapping )
 	{
-		try{
-			connection.deletePortMapping( 
-				mapping.isTCP(), mapping.getPort());
-	
-			log.log( "Mapping " + mapping.getString() + " removed" );
-			
-		}catch( Throwable e ){
-			
-			log.log( "Mapping " + mapping.getString() + " failed to delete", e );
-		}
+		if ( mapping.isExternal()){
 		
-		service_mappings.remove(mapping);
+			log.log( "Mapping " + mapping.getString() + " not removed as not created by Azureus" );
+			
+		}else{
+			
+			try{
+				connection.deletePortMapping( 
+					mapping.isTCP(), mapping.getPort());
+		
+				log.log( "Mapping " + mapping.getString() + " removed" );
+				
+			}catch( Throwable e ){
+				
+				log.log( "Mapping " + mapping.getString() + " failed to delete", e );
+			}
+			
+			service_mappings.remove(mapping);
+		}
 	}
 	
 	protected class
@@ -253,6 +265,7 @@ UPnPPluginService
 		protected int			port;
 		protected String		internal_host;
 		
+		protected boolean		external;		// true -> not defined by us
 		protected boolean		logged;
 		
 		protected
@@ -262,6 +275,13 @@ UPnPPluginService
 			tcp				= mapping.isTCP();
 			port			= mapping.getExternalPort();
 			internal_host	= mapping.getInternalHost();
+			
+			String	desc = mapping.getDescription();
+			
+			if ( desc == null || !desc.equalsIgnoreCase( getDescriptionForPort( port ))){
+				
+				external		= true;
+			}
 		}
 	
 		protected
@@ -273,6 +293,12 @@ UPnPPluginService
 			port			= mapping.getPort();
 			internal_host	= connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 
+		}
+		
+		protected boolean
+		isExternal()
+		{
+			return( external );
 		}
 		
 		protected UPnPMapping

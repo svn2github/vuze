@@ -122,6 +122,7 @@ UPnPSSWANConnectionImpl
 				int		port			= 0;
 				boolean	tcp				= false;
 				String	internal_host	= null;
+				String	description		= "";
 				
 				for (int j=0;j<outs.length;j++){
 					
@@ -140,10 +141,14 @@ UPnPSSWANConnectionImpl
 					}else if ( out_name.equalsIgnoreCase( "NewInternalClient" )){
 						
 						internal_host = out.getValue();
+						
+					}else if ( out_name.equalsIgnoreCase( "NewPortMappingDescription" )){
+						
+						description = out.getValue();
 					}
 				}
 				
-				res.add( new portMapping( port, tcp, internal_host ));
+				res.add( new portMapping( port, tcp, internal_host, description ));
 				
 			}catch( UPnPException e ){
 				
@@ -170,16 +175,19 @@ UPnPSSWANConnectionImpl
 		protected int			external_port;
 		protected boolean		tcp;
 		protected String		internal_host;
+		protected String		description;
 		
 		protected
 		portMapping(
 			int			_external_port,
 			boolean		_tcp,
-			String		_internal_host )
+			String		_internal_host,
+			String		_description )
 		{
 			external_port	= _external_port;
 			tcp				= _tcp;
 			internal_host	= _internal_host;
+			description		= _description;
 		}
 		
 		public boolean
@@ -198,6 +206,12 @@ UPnPSSWANConnectionImpl
 		getInternalHost()
 		{
 			return( internal_host );
+		}
+		
+		public String
+		getDescription()
+		{
+			return( description );
 		}
 	}
 }
