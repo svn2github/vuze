@@ -177,6 +177,9 @@ PeerForeignDelegate
 	public long getLastReadTime(){ return 0; }
 	public void setReadSleepTime(int time){}
 	public void setLastReadTime(long time){}
+  
+  //TODO: parg?
+  public void doKeepAliveCheck() {}
 	
 		// PEPeer stuff
 	
