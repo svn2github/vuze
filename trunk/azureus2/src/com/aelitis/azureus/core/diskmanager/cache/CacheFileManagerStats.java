@@ -46,4 +46,16 @@ CacheFileManagerStats
 	
 	public long
 	getBytesReadFromFile();
+	
+	public long
+	getAverageBytesWrittenToCache();
+	
+	public long
+	getAverageBytesWrittenToFile();
+	
+	public long
+	getAverageBytesReadFromCache();
+	
+	public long
+	getAverageBytesReadFromFile();
 }

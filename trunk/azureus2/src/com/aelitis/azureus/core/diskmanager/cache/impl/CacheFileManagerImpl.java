@@ -43,7 +43,9 @@ CacheFileManagerImpl
 {
 	public static final boolean	DEBUG	= true;
 	
-	public static final long	CACHE_CLEANER_PERIOD	= 10*1000;
+	public static final int	CACHE_CLEANER_TICKS		= 5;	// every 10 seconds
+	
+	public static final int	STATS_UPDATE_FREQUENCY	= 2*1000;
 	
 	static{
 		if ( DEBUG ){
@@ -63,7 +65,7 @@ CacheFileManagerImpl
 	
 	protected LinkedHashMap		cache_entries = new LinkedHashMap(1024, 0.75f, true );
 	
-	protected CacheFileManagerStats	stats;
+	protected CacheFileManagerStatsImpl	stats;
 	
 	protected long				cache_bytes_written;
 	protected long				cache_bytes_read;
@@ -116,22 +118,20 @@ CacheFileManagerImpl
 		
 		stats = new CacheFileManagerStatsImpl( this );
 		
-		if ( enabled ){
-			
-			AEThread	t = new AEThread( "CacheCleaner")
+		AEThread	t = 
+			new AEThread( "CacheStatsAndCleaner")
+			{
+				public void
+				run()
 				{
-					public void
-					run()
-					{
-						cacheCleaner();
-					}
-				};
+					cacheStatsAndCleaner();
+				}
+			};
 				
-			t.setDaemon(true);
+		t.setDaemon(true);
 			
-			t.start();
+		t.start();
 			
-		}
 		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", size = " + cache_size + " MB" );
 	}
 	
@@ -268,15 +268,15 @@ CacheFileManagerImpl
 	}
 	
 	protected void
-	cacheCleaner()
+	cacheStatsAndCleaner()
 	{
-		long	cleaner_period	= CACHE_CLEANER_PERIOD;
+		long	cleaner_ticks	= CACHE_CLEANER_TICKS;
 		
 		while( true ){
 			
 			try{
 			
-				Thread.sleep( cleaner_period );
+				Thread.sleep( STATS_UPDATE_FREQUENCY );
 				
 			}catch( InterruptedException e ){
 				
@@ -285,21 +285,28 @@ CacheFileManagerImpl
 				break;
 			}
 			
-			synchronized( this ){
+			stats.update();
+			
+			if ( --cleaner_ticks == 0 ){
 				
-				if ( cache_entries.size() > 0 ){
+				cleaner_ticks	= CACHE_CLEANER_TICKS;
+				
+				synchronized( this ){
 					
-					long	now = SystemTime.getCurrentTime();
-					
-					Iterator it = cache_entries.keySet().iterator();
-					
-					while( it.hasNext()){
+					if ( cache_entries.size() > 0 ){
 						
-						CacheEntry	entry = (CacheEntry)it.next();
-
-						// System.out.println( "oldest entry = " + ( now - entry.getLastUsed()));
+						long	now = SystemTime.getCurrentTime();
 						
-						break;
+						Iterator it = cache_entries.keySet().iterator();
+						
+						while( it.hasNext()){
+							
+							CacheEntry	entry = (CacheEntry)it.next();
+	
+							// System.out.println( "oldest entry = " + ( now - entry.getLastUsed()));
+							
+							break;
+						}
 					}
 				}
 			}

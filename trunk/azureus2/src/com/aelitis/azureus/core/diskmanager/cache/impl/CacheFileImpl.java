@@ -296,9 +296,7 @@ CacheFileImpl
 							}
 								
 							buffer_cached	= true;
-								
-							manager.cacheBytesWritten( read_ahead_size );
-								
+																
 						}finally{
 								
 							if ( !buffer_cached ){
@@ -309,12 +307,7 @@ CacheFileImpl
 								cache_buffer.returnToPool();
 							}
 						}
-							
-						if ( TRACE_CACHE_CONTENTS ){
-								
-							printCache();
-						}
-							
+														
 							// recursively read from the cache, should hit the data we just read although
 							// there is the possibility that it could be flushed before then - hence the
 							// recursion flag that will avoid this happening next time around
