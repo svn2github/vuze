@@ -90,6 +90,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
     this.connection_listener = listener;
     
     if( is_connected ) {
+      connection_listener.connectStarted();
       connection_listener.connectSuccess();
       return;
     }

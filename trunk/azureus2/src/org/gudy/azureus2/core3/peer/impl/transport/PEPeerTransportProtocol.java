@@ -79,7 +79,6 @@ PEPeerTransportProtocol
 
   private boolean incoming;
   private volatile boolean closing = false;
-  private volatile int closed = 0;
   
   private int current_peer_state;
   
@@ -161,9 +160,9 @@ PEPeerTransportProtocol
     port  = _connection.getAddress().getPort();
     incoming = true;
     
-    init();
-    
     connection = _connection;
+    
+    init();
     
     //"fake" a connect request to register our listener
     connection.connect( new NetworkConnection.ConnectionListener() {
@@ -175,6 +174,7 @@ PEPeerTransportProtocol
         LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
         registerForMessageHandling();
         changePeerState( PEPeer.HANDSHAKING );
+        connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE;
       }
       
       public void connectFailure( Throwable failure_msg ) {  //should never happen
@@ -323,67 +323,41 @@ PEPeerTransportProtocol
   }
 
   
-  
-  
   private void performClose( String reason, boolean reconnect, boolean externally_closed ) {
     try{
       closing_mon.enter();
     
-      if (closing){
-        if( reason.indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-            reason.indexOf( "An established connection was aborted by the software in your host machine" ) == -1 &&
-            reason.indexOf( "Closing all Connections" ) == -1 &&
-            reason.indexOf( "Quiting SuperSeed Mode" ) == -1 &&
-            reason.indexOf( "end of stream on socket read" ) == -1 ) {
-          
-          Debug.out( "closeAll() called for [" +reason+ "] but already 'closing', closed=" +closed+ ", externally=" +externally_closed );
-        }
-        
+      if( closing ){        
         return;
       }
       
       closing = true;
       
     }finally{
-      
       closing_mon.exit();
     }
     
-    closed = 1;
-    
     changePeerState( PEPeer.CLOSING );
     
-    closed = 2;
-
     if( outgoing_piece_message_handler != null ) {
       outgoing_piece_message_handler.removeAllPieceRequests();
       outgoing_piece_message_handler.destroy();
     }
     
-    closed = 3;
-    
     if( outgoing_have_message_aggregator != null ) {
       outgoing_have_message_aggregator.destroy();
     }
-          
-    closed = 4;
     
     if( connection_registered ) {
       PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
     }
     
-    closed = 5;
-    
     if( connection != null ) {  //can be null if close is called within ::<init>::, like when the given port is invalid
       connection.close();
     }
     
-    closed = 6;
-    
     //cancel any pending requests (on the manager side)
     cancelRequests();
-    
-    closed = 7;
 
     recent_outgoing_requests.clear();
  
@@ -398,9 +372,7 @@ PEPeerTransportProtocol
     }
 
     LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Peer connection [" +toString()+ "] closed: " +reason );
-    
-    closed = 8;
-    
+
     if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
       if( reconnect && !incoming ) {  //TODO we can reconnect even incoming connections if we received their listen port in az handshake!
         manager.peerConnectionClosed( this, true );
@@ -409,8 +381,6 @@ PEPeerTransportProtocol
         manager.peerConnectionClosed( this, false );
       }
     }
-    
-    closed = 9;
   }
   
   
