@@ -1,6 +1,16 @@
 CHANGELOG
 ---------
 
+xx.xx.04 | Azureus 2.0.8.1
+
+FEATURE:  
+
+CHANGE: 
+
+BUGFIX: 
+
+
+
 08.03.04 | Azureus 2.0.8.0
 
 FEATURE: QUEUED status. Torrents that are queued are stopped, but available for automatic starting [TuxPaper]
