@@ -51,11 +51,18 @@ UIManagerImpl
 {	
 	protected PluginInterface		pi;
 	
+	protected PluginConfig			plugin_config;
+	protected String				key_prefix;
+	
 	public
 	UIManagerImpl(
 		PluginInterface		_pi )
 	{
 		pi		=_pi;
+		
+		plugin_config	= pi.getPluginconfig();
+		
+		key_prefix		= plugin_config.getPluginConfigKeyPrefix();
 	}
 	
 	protected boolean
@@ -178,6 +185,7 @@ UIManagerImpl
 		String 		resource_name,
 		boolean 	defaultValue )
 	{	
+		addBooleanParameter2( key, resource_name, defaultValue );
 	}
 	
 	public BooleanParameter
@@ -186,7 +194,7 @@ UIManagerImpl
 		String 			resource_name,
 		final boolean 	defaultValue )
 	{	
-		return( new BooleanParameterImpl(pi.getPluginconfig(),key,resource_name,defaultValue));
+		return( new BooleanParameterImpl(plugin_config,key_prefix+key,resource_name,defaultValue));
 	}
 	
 	
@@ -196,6 +204,7 @@ UIManagerImpl
 		String 		resource_name,
 		String	 	defaultValue )
 	{
+		addStringParameter2( key, resource_name, defaultValue );
 	}
 	
 	public StringParameter
@@ -204,7 +213,7 @@ UIManagerImpl
 		String 				resource_name,
 		final String	 	defaultValue )
 	{
-		return( new StringParameterImpl(pi.getPluginconfig(),key,resource_name,defaultValue));
+		return( new StringParameterImpl(plugin_config,key_prefix+key,resource_name,defaultValue));
 	}
 	
 	public StringListParameter
@@ -214,7 +223,7 @@ UIManagerImpl
 		String[]	values,
 		String	 	defaultValue )
 	{
-		return( new StringListParameterImpl(pi.getPluginconfig(),key,resource_name,defaultValue, values, values));		
+		return( new StringListParameterImpl(plugin_config,key_prefix+key,resource_name,defaultValue, values, values));		
 	}
 	
 	public PasswordParameter
@@ -224,7 +233,7 @@ UIManagerImpl
 		int			encoding_type,	
 		byte[]	 	defaultValue )
 	{
-		return( new PasswordParameterImpl(pi.getPluginconfig(),key,resource_name,encoding_type, defaultValue));
+		return( new PasswordParameterImpl(plugin_config,key_prefix+key,resource_name,encoding_type, defaultValue));
 	}
 	
 	public IntParameter
@@ -233,7 +242,7 @@ UIManagerImpl
 		String 			resource_name,
 		final int	 	defaultValue )
 	{
-		return( new IntParameterImpl(pi.getPluginconfig(),key,resource_name,defaultValue));
+		return( new IntParameterImpl(plugin_config,key_prefix+key,resource_name,defaultValue));
 	}
 	
 	public LabelParameter
@@ -249,7 +258,7 @@ UIManagerImpl
 		String 		resource_name,
 		String 		defaultValue )
 	{
-		return( new DirectoryParameterImpl(pi.getPluginconfig(),key, resource_name,defaultValue));
+		return( new DirectoryParameterImpl(plugin_config,key_prefix+key, resource_name,defaultValue));
 	}
 	
 	public ActionParameter
@@ -257,7 +266,7 @@ UIManagerImpl
 		String 		label_resource_name,
 		String		action_resource_name )
 	{
-		return( new ActionParameterImpl(pi.getPluginconfig(), label_resource_name, action_resource_name));
+		return( new ActionParameterImpl(plugin_config, label_resource_name, action_resource_name));
 	}
   }
 }
