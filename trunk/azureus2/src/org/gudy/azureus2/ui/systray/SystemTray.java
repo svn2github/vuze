@@ -13,7 +13,6 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
-import org.gudy.azureus2.ui.swt.Messages;
 
 import snoozesoft.systray4j.SysTrayMenu;
 import snoozesoft.systray4j.SysTrayMenuAdapter;
@@ -30,17 +29,14 @@ import snoozesoft.systray4j.SysTrayMenuItem;
 public class SystemTray extends SysTrayMenuAdapter {
 
 	MainWindow main;
-	String fileName;
 	SysTrayMenu menu;
-	int file;
 	
 	int refreshFactor = 0;
   
   private static final String[] menuItems = {"show", "closealldownloadbars", null, "exit"};
 
-	public SystemTray(MainWindow main, String fileName) {
+	public SystemTray(MainWindow main) {
 		this.main = main;
-		this.fileName = fileName;
 		URL iconUrl = ClassLoader.getSystemResource("org/gudy/azureus2/ui/icons/azureus.ico"); //$NON-NLS-1$
 		SysTrayMenuIcon icon = new SysTrayMenuIcon(iconUrl);		
 		menu = new SysTrayMenu(icon);
