@@ -28,12 +28,15 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
 TRTrackerServerImpl 
 	implements TRTrackerServer
 {
+	protected IpFilter	ip_filter	= IpFilter.getInstance();
+	
 	protected int	port;
 	
 	protected Map	torrent_map = new HashMap(); 
@@ -106,38 +109,45 @@ TRTrackerServerImpl
 	
 			try{				
 				final Socket socket = ss.accept();
-								
-				new Thread()
-					{
-						public void
-						run()
-						{			
-							try{
+					
+				String	ip = socket.getInetAddress().getHostAddress();
 							
-								socket.setSoTimeout( 5000 );
-								
-							}catch ( SocketException e ){
-								
-								e.printStackTrace();
-							}
-							
-							try{
-							
-								new TRTrackerServerProcessor( TRTrackerServerImpl.this, socket );
-								
-							}finally{
-								
+				if ( !ip_filter.isInRange( ip )){
+					
+					new Thread()
+						{
+							public void
+							run()
+							{			
 								try{
-									socket.close();
+								
+									socket.setSoTimeout( 5000 );
 									
-								}catch( Throwable e ){
+								}catch ( SocketException e ){
 									
 									e.printStackTrace();
 								}
+								
+								try{
+								
+									new TRTrackerServerProcessor( TRTrackerServerImpl.this, socket );
+									
+								}finally{
+									
+									try{
+										socket.close();
+										
+									}catch( Throwable e ){
+										
+										e.printStackTrace();
+									}
+								}
 							}
-						}
-					}.start();
-
+						}.start();
+				}else{
+					
+					socket.close();
+				}
 			}catch( Throwable e ){
 				
 				e.printStackTrace();		
