@@ -214,6 +214,22 @@ public class ModePanel extends AbstractWizardPanel {
     });
     btnMultiTracker.setSelection(((NewTorrentWizard) wizard).useMultiTracker);
     //Line:
+    // include hashes for other networks (
+    
+    final Button btnExtraHashes = new Button(panel,SWT.CHECK);
+    Messages.setLanguageText(btnExtraHashes, "wizard.createtorrent.extrahashes");
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    btnExtraHashes.setLayoutData(gridData);
+    btnExtraHashes.addListener(SWT.Selection, new Listener() {
+
+    	public void handleEvent(Event arg0) {
+    		((NewTorrentWizard) wizard).addOtherHashes = btnExtraHashes.getSelection();
+    	}
+    });
+    btnExtraHashes.setSelection(((NewTorrentWizard) wizard).addOtherHashes);
+    
+   //Line:
     // ------------------------------
     
     label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);

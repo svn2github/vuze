@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 TOTorrentFileHasher 
 {
-	protected boolean	do_per_file_hash;
+	protected boolean	do_other_per_file_hash;
 	protected int		piece_length;
 	
 	protected Vector	pieces = new Vector();
@@ -53,23 +53,27 @@ TOTorrentFileHasher
 		
 	protected
 	TOTorrentFileHasher(
-		boolean							_do_per_file_hash,				
+		boolean							_do_other_overall_hashes,
+		boolean							_do_other_per_file_hash,				
 		int								_piece_length,
 		TOTorrentFileHasherListener		_listener )
 	{
-		try{
-			overall_sha1_hash 	= new SHA1Hasher();
+		if ( _do_other_overall_hashes ){
+			
+			try{
+				overall_sha1_hash 	= new SHA1Hasher();
 						
-			overall_ed2k_hash 	= new ED2KHasher();
+				overall_ed2k_hash 	= new ED2KHasher();
 			
-		}catch( NoSuchAlgorithmException e ){
+			}catch( NoSuchAlgorithmException e ){
 			
-			e.printStackTrace();
+				e.printStackTrace();
+			}
 		}
 		
-		do_per_file_hash	= _do_per_file_hash;
-		piece_length		= _piece_length;
-		listener			= _listener;
+		do_other_per_file_hash	= _do_other_per_file_hash;
+		piece_length			= _piece_length;
+		listener				= _listener;
 		
 		buffer = new byte[piece_length];
 	}
@@ -88,7 +92,7 @@ TOTorrentFileHasher
 		ED2KHasher	ed2k_hash		= null;
 		
 		try{
-			if ( do_per_file_hash ){
+			if ( do_other_per_file_hash ){
 				
 				sha1_hash		= new SHA1Hasher();
 				ed2k_hash		= new ED2KHasher();
@@ -102,7 +106,7 @@ TOTorrentFileHasher
 				
 				if ( len > 0 ){
 					
-					if ( do_per_file_hash ){
+					if ( do_other_per_file_hash ){
 						
 						sha1_hash.update( buffer, buffer_pos, len );
 						ed2k_hash.update( buffer, buffer_pos, len );
@@ -119,8 +123,11 @@ TOTorrentFileHasher
 						
 						byte[] hash = new SHA1Hasher().calculateHash(buffer);
 
-						overall_sha1_hash.update( buffer );
-						overall_ed2k_hash.update( buffer );
+						if ( overall_sha1_hash != null ){
+							
+							overall_sha1_hash.update( buffer );
+							overall_ed2k_hash.update( buffer );
+						}
 						
 						pieces.add( hash );
 						
@@ -137,7 +144,7 @@ TOTorrentFileHasher
 				}		
 			}
 			
-			if ( do_per_file_hash ){
+			if ( do_other_per_file_hash ){
 				
 				per_file_sha1_digest = sha1_hash.getDigest();
 				per_file_ed2k_digest = ed2k_hash.getDigest();
@@ -186,8 +193,11 @@ TOTorrentFileHasher
 				
 				pieces.addElement(new SHA1Hasher().calculateHash(rem));
 				
-				overall_sha1_hash.update( rem );
-				overall_ed2k_hash.update( rem );
+				if ( overall_sha1_hash != null ){
+					
+					overall_sha1_hash.update( rem );
+					overall_ed2k_hash.update( rem );
+				}
 				
 				if ( listener != null ){
 							
@@ -197,7 +207,7 @@ TOTorrentFileHasher
 				buffer_pos = 0;
 			}
 		
-			if ( sha1_digest == null ){
+			if ( overall_sha1_hash != null && sha1_digest == null ){
 				
 				sha1_digest	= overall_sha1_hash.getDigest();
 				ed2k_digest	= overall_ed2k_hash.getDigest();

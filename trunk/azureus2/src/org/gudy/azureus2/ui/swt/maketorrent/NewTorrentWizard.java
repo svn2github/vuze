@@ -52,7 +52,9 @@ public class NewTorrentWizard extends Wizard {
   boolean computed_piece_size = true;
   long	  manual_piece_size;
   
-  boolean useMultiTracker = false;
+  boolean useMultiTracker 	= false;
+  boolean addOtherHashes	= true;
+  
   String multiTrackerConfig = "";
   List trackers = new ArrayList();
 
@@ -137,5 +139,11 @@ public class NewTorrentWizard extends Wizard {
   getPieceSizeManual()
   {
   	return( manual_piece_size );
+  }
+  
+  protected boolean
+  getAddHashes()
+  {
+  	return( addOtherHashes );
   }
 }

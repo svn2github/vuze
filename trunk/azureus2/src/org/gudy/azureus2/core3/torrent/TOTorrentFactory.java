@@ -108,6 +108,18 @@ TOTorrentFactory
 	{
 		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, TO_DEFAULT_FIXED_PIECE_SIZE, null ));
 	}	
+
+	public static TOTorrent
+	createFromFileOrDirWithFixedPieceLength(
+		File						file,
+		URL							announce_url,
+		boolean						add_hashes,
+		TOTorrentProgressListener	progress_listener )
+	
+		throws TOTorrentException
+	{
+		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, add_hashes, TO_DEFAULT_FIXED_PIECE_SIZE, null ));
+	}	
 	
 	public static TOTorrent
 	createFromFileOrDirWithFixedPieceLength(
@@ -118,7 +130,20 @@ TOTorrentFactory
 		
 		throws TOTorrentException
 	{
-		return( new TOTorrentCreateImpl( file, announce_url, piece_length, progress_listener ));
+		return( new TOTorrentCreateImpl( file, announce_url, false, piece_length, progress_listener ));
+	}
+	
+	public static TOTorrent
+	createFromFileOrDirWithFixedPieceLength(
+		File						file,
+		URL							announce_url,
+		boolean						add_hashes,
+		long						piece_length,
+		TOTorrentProgressListener	progress_listener )
+	
+	throws TOTorrentException
+	{
+		return( new TOTorrentCreateImpl( file, announce_url, add_hashes, piece_length, progress_listener ));
 	}
 	
 	// construction methods: variable piece size
@@ -168,13 +193,30 @@ TOTorrentFactory
 		return( createFromFileOrDirWithComputedPieceLength( 
 					file, 
 					announce_url,
+					false,
+					progress_listener ));	
+	}	
+
+	public static TOTorrent
+	createFromFileOrDirWithComputedPieceLength(
+		File						file,
+		URL							announce_url,
+		boolean						add_hashes,
+		TOTorrentProgressListener	progress_listener )
+	
+		throws TOTorrentException
+	{
+		return( createFromFileOrDirWithComputedPieceLength( 
+					file, 
+					announce_url,
+					add_hashes,
 					TO_DEFAULT_VARIABLE_PIECE_SIZE_MIN, 
 					TO_DEFAULT_VARIABLE_PIECE_SIZE_MAX,
 					TO_DEFAULT_VARIABLE_PIECE_NUM_LOWER,
 					TO_DEFAULT_VARIABLE_PIECE_NUM_UPPER,
 					progress_listener ));	
 	}	
-		
+	
 	public static TOTorrent
 	createFromFileOrDirWithComputedPieceLength(
 		File						file,
@@ -188,8 +230,27 @@ TOTorrentFactory
 		throws TOTorrentException
 	{
 		return( new TOTorrentCreateImpl(
-						file, announce_url, piece_min_size, piece_max_size,
+						file, announce_url, false, piece_min_size, piece_max_size,
 						piece_num_lower, piece_num_upper, progress_listener ));
+
+	}
+	
+	public static TOTorrent
+	createFromFileOrDirWithComputedPieceLength(
+		File						file,
+		URL							announce_url,
+		boolean						add_hashes,
+		long						piece_min_size,
+		long						piece_max_size,
+		long						piece_num_lower,
+		long						piece_num_upper,
+		TOTorrentProgressListener	progress_listener )
+	
+	throws TOTorrentException
+	{
+		return( new TOTorrentCreateImpl(
+				file, announce_url, add_hashes, piece_min_size, piece_max_size,
+				piece_num_lower, piece_num_upper, progress_listener ));
 
 	}
 	

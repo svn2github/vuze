@@ -174,41 +174,62 @@ ShareUtils
 	
 	public static void
 	shareFile(
-		String	file_name )
+		final String	file_name )
 	{
-		try{
-			PluginInitializer.getDefaultInterface().getShareManager().addFile(new File(file_name));
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
+		new Thread()
+		{
+			public void
+			run()
+			{
+				try{
+					PluginInitializer.getDefaultInterface().getShareManager().addFile(new File(file_name));
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+		}.start();
 	}
 
 	public static void
 	shareDir(
-		String	file_name )
+		final String	file_name )
 	{
-		try{
-			PluginInitializer.getDefaultInterface().getShareManager().addDir(new File(file_name));
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
+		new Thread()
+		{
+			public void
+			run()
+			{
+				try{
+					PluginInitializer.getDefaultInterface().getShareManager().addDir(new File(file_name));
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+		}.start();
 	}
 	
 	public static void
 	shareDirContents(
-		String	file_name,
-		boolean	recursive )
+		final String	file_name,
+		final boolean	recursive )
 	{
-		try{
-			PluginInitializer.getDefaultInterface().getShareManager().addDirContents(new File(file_name), recursive);
+		new Thread()
+		{
+			public void
+			run()
+			{
+				try{
+					PluginInitializer.getDefaultInterface().getShareManager().addDirContents(new File(file_name), recursive);
 			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+		}.start();
 	}
 }

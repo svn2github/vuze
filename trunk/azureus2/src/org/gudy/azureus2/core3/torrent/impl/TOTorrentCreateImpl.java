@@ -39,7 +39,8 @@ TOTorrentCreateImpl
 	protected long	total_file_size		= -1;
 	protected long	total_file_count	= 0;
 	
-	protected long	piece_count;
+	protected long							piece_count;
+	protected boolean						add_other_hashes;
 	
 	protected TOTorrentProgressListener		progress_listener;
 	
@@ -49,6 +50,7 @@ TOTorrentCreateImpl
 	TOTorrentCreateImpl(
 		File						_torrent_base,
 		URL							_announce_url,
+		boolean						_add_other_hashes,
 		long						_piece_length,
 		TOTorrentProgressListener	_progress_listener )
 		
@@ -56,7 +58,8 @@ TOTorrentCreateImpl
 	{
 		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
 		
-		progress_listener = _progress_listener;
+		add_other_hashes	= _add_other_hashes;
+		progress_listener 	= _progress_listener;
 		
 		constructFixed( _torrent_base, _piece_length );
 	}
@@ -65,6 +68,7 @@ TOTorrentCreateImpl
 	TOTorrentCreateImpl(	
 		File						_torrent_base,
 		URL							_announce_url,
+		boolean						_add_other_hashes,
 		long						_piece_min_size,
 		long						_piece_max_size,
 		long						_piece_num_lower,
@@ -75,7 +79,8 @@ TOTorrentCreateImpl
 	{
 		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
 		
-		progress_listener = _progress_listener;
+		add_other_hashes	= _add_other_hashes;
+		progress_listener 	= _progress_listener;
 		
 		long	total_size = calculateTotalFileSize( _torrent_base );
 		
@@ -109,7 +114,14 @@ TOTorrentCreateImpl
 		
 		report( MessageText.getString("Torrent.create.progress.hashing"));
 
-		TOTorrentFileHasher	hasher = new TOTorrentFileHasher(!getSimpleTorrent(),(int)_piece_length, progress_listener==null?null:this );
+		boolean add_other_per_file_hashes 	= add_other_hashes&&!getSimpleTorrent();
+		
+		TOTorrentFileHasher	hasher = 
+			new TOTorrentFileHasher(
+					add_other_hashes,
+					add_other_per_file_hashes,
+					(int)_piece_length, 
+					progress_listener==null?null:this );
 		
 		if ( getSimpleTorrent()){
 							
@@ -117,7 +129,6 @@ TOTorrentCreateImpl
 		
 			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( length, new byte[][]{ getName()})});
 			
-		
 			setPieces( hasher.getPieces());
 
 		}else{
@@ -135,14 +146,17 @@ TOTorrentCreateImpl
 										 
 		setPieces( hasher.getPieces());
 		
-		byte[]	sha1_digest = hasher.getSHA1Digest();
-		byte[]	ed2k_digest = hasher.getED2KDigest();
-		
-		addAdditionalInfoProperty( "sha1", sha1_digest );
-		addAdditionalInfoProperty( "ed2k", ed2k_digest );
-		
-		//System.out.println( "overall:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true));
-		//System.out.println( "overall:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true));
+		if ( add_other_hashes ){
+			
+			byte[]	sha1_digest = hasher.getSHA1Digest();
+			byte[]	ed2k_digest = hasher.getED2KDigest();
+			
+			addAdditionalInfoProperty( "sha1", sha1_digest );
+			addAdditionalInfoProperty( "ed2k", ed2k_digest );
+			
+			//System.out.println( "overall:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true));
+			//System.out.println( "overall:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true));
+		}
 	}
 	
 	protected void
@@ -189,16 +203,19 @@ TOTorrentCreateImpl
 					
 					long length = hasher.add( file );
 						
-					byte[]	ed2k_digest	= hasher.getPerFileED2KDigest();
-					byte[]	sha1_digest	= hasher.getPerFileSHA1Digest();
-					
-					//System.out.println( "file:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true ));
-					//System.out.println( "file:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true ));
-					
 					TOTorrentFileImpl	tf = new TOTorrentFileImpl( length, file_name);
 					
-					tf.setAdditionalProperty( "sha1", sha1_digest );
-					tf.setAdditionalProperty( "ed2k", ed2k_digest );
+					if ( add_other_hashes ){
+						
+						byte[]	ed2k_digest	= hasher.getPerFileED2KDigest();
+						byte[]	sha1_digest	= hasher.getPerFileSHA1Digest();
+						
+						//System.out.println( "file:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true ));
+						//System.out.println( "file:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true ));		
+					
+						tf.setAdditionalProperty( "sha1", sha1_digest );
+						tf.setAdditionalProperty( "ed2k", ed2k_digest );
+					}
 					
 					encoded.addElement( tf );
 				}

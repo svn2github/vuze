@@ -122,10 +122,12 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       if ( _wizard.getPieceSizeComputed()){
       	
-      	torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(f, url, this);
+      	torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(
+      					f, url, _wizard.getAddHashes(), this);
       	
       }else{
-      	torrent = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(f,url,_wizard.getPieceSizeManual(),this);
+      	torrent = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(
+      					f, url, _wizard.getAddHashes(), _wizard.getPieceSizeManual(), this);
       }
       
       torrent.setComment(_wizard.getComment());
