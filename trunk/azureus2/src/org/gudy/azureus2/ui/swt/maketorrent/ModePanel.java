@@ -95,6 +95,7 @@ public class ModePanel extends AbstractWizardPanel {
           
     if(localTrackerHost != null && !localTrackerHost.equals("")) {
       localTrackerUrl = "http://" + localTrackerHost + ":" + localTrackePort + "/announce";
+	  ((NewTorrentWizard)wizard).trackerURL = localTrackerUrl;
       localTrackerValue.setText("\t" + localTrackerUrl);        
     } else {    
       localTrackerUrl = "";

@@ -101,7 +101,7 @@ public class MainWindow implements GlobalManagerListener {
   private String latestVersionFileName = null;
 
   private static MainWindow window;
-  private static SplashWindow splash;
+  private static SplashWindow splash_maybe_null;
 
   private static boolean jarDownloaded = false;
   private static boolean updateJar = false;
@@ -358,16 +358,17 @@ public class MainWindow implements GlobalManagerListener {
     ImageRepository.loadImagesForSplashWindow(display);
     
     if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
+    	
       showSplashWindow();
     }
     
-    splash.setPercentDone(0);
-    splash.setCurrentTask(MessageText.getString("splash.loadImages"));
+    setSplashPercentage( 0 );
+    setSplashTask("splash.loadImages");
         
     ImageRepository.loadImages(display);
     
-    splash.setPercentDone(10);
-    splash.setCurrentTask(MessageText.getString("splash.initializeGui"));
+    setSplashPercentage(10);
+    setSplashTask("splash.initializeGui");
     
     
     window = this;
@@ -659,8 +660,8 @@ public class MainWindow implements GlobalManagerListener {
       });
     }
 
-    splash.setPercentDone(40);
-    splash.setCurrentTask(MessageText.getString("splash.openViews"));
+    setSplashPercentage(40);
+    setSplashTask( "splash.openViews");
     
     showMyTorrents(); // mytorrents = new Tab(new MyTorrentsView(globalManager));
 
@@ -726,8 +727,8 @@ public class MainWindow implements GlobalManagerListener {
       catch (Exception e) {}
     }
     
-    splash.setPercentDone(50);        
-    new PluginInitializer(globalManager,splash).initializePlugins();        
+    setSplashPercentage(50);        
+    new PluginInitializer(globalManager,splash_maybe_null).initializePlugins();        
 
     closeSplashWindow();
     
@@ -917,16 +918,29 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   private void showSplashWindow() {
-    if (splash == null && display != null) {
-      splash = new SplashWindow();
-      splash.show(display);
+    if (splash_maybe_null == null && display != null) {
+      splash_maybe_null = new SplashWindow();
+      splash_maybe_null.show(display);
     }
   }
 
+  private void setSplashPercentage( int p ){
+  	if ( splash_maybe_null != null ){
+		splash_maybe_null.setPercentDone(p);
+  	}
+  }
+  
+  private void setSplashTask( String s ){
+	if ( splash_maybe_null != null ){
+		splash_maybe_null.setCurrentTask(MessageText.getString(s));
+	}
+  }
+
+
   private void closeSplashWindow() {
-    if (splash != null) {
-      splash.close();
-      splash = null;
+    if (splash_maybe_null != null) {
+      splash_maybe_null.close();
+      splash_maybe_null = null;
     }
   }
 
