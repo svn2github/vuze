@@ -220,7 +220,6 @@ public class ConfigView extends AbstractIView {
     initGroupFilter();
     initGroupPlugins();
     initStats();
-    initStyle();
     initTracker();
     initSharing();
     initLogging();
@@ -598,58 +597,85 @@ public class ConfigView extends AbstractIView {
     GridLayout layout;
     Label label;
 
-    Composite gDisplay = new Composite(cConfigSection, SWT.NULL);
+    Composite cDisplay = new Composite(cConfigSection, SWT.NULL);
 
     TreeItem treeDisplay = new TreeItem(tree, SWT.NULL);
-    Messages.setLanguageText(treeDisplay, "ConfigView.section.display"); //$NON-NLS-1$
-    treeDisplay.setData(gDisplay);
+    // "ConfigView.section.style" says "Interface" in english, which is better
+    // than "Display" in "ConfigView.section.display" because Interface is a
+    // much broader term.
+    Messages.setLanguageText(treeDisplay, "ConfigView.section.style"); //$NON-NLS-1$
+    treeDisplay.setData(cDisplay);
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gDisplay.setLayoutData(gridData);
+    cDisplay.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
-    gDisplay.setLayout(layout);
+    cDisplay.setLayout(layout);
 
-    label = new Label(gDisplay, SWT.NULL);
+    label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.opendetails"); //$NON-NLS-1$
-    new BooleanParameter(gDisplay, "Open Details", true); //$NON-NLS-1$
+    new BooleanParameter(cDisplay, "Open Details", true); //$NON-NLS-1$
 
-    label = new Label(gDisplay, SWT.NULL);
+    label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.openbar"); //$NON-NLS-1$
-    new BooleanParameter(gDisplay, "Open Bar", false); //$NON-NLS-1$
+    new BooleanParameter(cDisplay, "Open Bar", false); //$NON-NLS-1$
 
-    label = new Label(gDisplay, SWT.NULL);
+    label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.closetotray"); //$NON-NLS-1$
-    new BooleanParameter(gDisplay, "Close To Tray", true); //$NON-NLS-1$
+    new BooleanParameter(cDisplay, "Close To Tray", true); //$NON-NLS-1$
 
-    label = new Label(gDisplay, SWT.NULL);
+    label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.minimizetotray"); //$NON-NLS-1$
-    new BooleanParameter(gDisplay, "Minimize To Tray", false); //$NON-NLS-1$
+    new BooleanParameter(cDisplay, "Minimize To Tray", false); //$NON-NLS-1$
 
-    label = new Label(gDisplay, SWT.NULL);
+    label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.password"); //$NON-NLS-1$
 
     gridData = new GridData();
     gridData.widthHint = 150;
-    new PasswordParameter(gDisplay, "Password").setLayoutData(gridData); //$NON-NLS-1$
+    new PasswordParameter(cDisplay, "Password").setLayoutData(gridData); //$NON-NLS-1$
 
-    label = new Label(gDisplay, SWT.NULL);
+    label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.passwordconfirm"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 150;
-    new PasswordParameter(gDisplay, "Password Confirm").setLayoutData(gridData); //$NON-NLS-1$
+    new PasswordParameter(cDisplay, "Password Confirm").setLayoutData(gridData); //$NON-NLS-1$
 
-    label = new Label(gDisplay, SWT.NULL);
+    label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.passwordmatch"); //$NON-NLS-1$
-    passwordMatch = new Label(gDisplay, SWT.NULL);
+    passwordMatch = new Label(cDisplay, SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 150;
     passwordMatch.setLayoutData(gridData);
 
 
-    label = new Label(gDisplay, SWT.NULL);
+    label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.allowSendVersion");
-    new BooleanParameter(gDisplay, "Send Version Info",true);
+    new BooleanParameter(cDisplay, "Send Version Info",true);
+
+    label = new Label(cDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.confirmationOnExit"); //$NON-NLS-1$
+    new BooleanParameter(cDisplay, "confirmationOnExit",false); //$NON-NLS-1$
+    
+    label = new Label(cDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.dropdiraction");
+
+    String[] drop_options = {
+         "ConfigView.section.style.dropdiraction.opentorrents",
+         "ConfigView.section.style.dropdiraction.sharefolder",
+         "ConfigView.section.style.dropdiraction.sharefoldercontents",
+         "ConfigView.section.style.dropdiraction.sharefoldercontentsrecursive",
+     };
+
+    String dropLabels[] = new String[drop_options.length];
+    String dropValues[] = new String[drop_options.length];
+    for (int i = 0; i < drop_options.length; i++) {
+
+       dropLabels[i] = MessageText.getString( drop_options[i]);
+       dropValues[i] = "" + i;
+    }
+    new StringListParameter(cDisplay, "config.style.dropdiraction", "", dropLabels, dropValues);
+
 
     // "Start" Sub-Section
     // -------------------
@@ -659,9 +685,7 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(treeStart, "ConfigView.section.start"); //$NON-NLS-1$
     treeStart.setData(gStart);
 
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 2;
-    gStart.setLayoutData(gridData);
+    gStart.setLayoutData(new GridData(GridData.FILL_BOTH));
     layout = new GridLayout();
     layout.numColumns = 2;
     gStart.setLayout(layout);
@@ -685,6 +709,147 @@ public class ConfigView extends AbstractIView {
     label = new Label(gStart, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startminimized"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Start Minimized", false); //$NON-NLS-1$
+    
+    // "Display" Sub-Section:
+    // ----------------------
+    // Any Look & Feel settings that don't really change the way the user 
+    // normally interacts
+    Composite cLook = new Composite(cConfigSection, SWT.NULL);
+    cLook.setLayoutData(new GridData(GridData.FILL_BOTH));
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    cLook.setLayout(layout);
+    
+    TreeItem treeLook = new TreeItem(treeDisplay, SWT.NULL);
+    Messages.setLanguageText(treeLook, "ConfigView.section.display"); //$NON-NLS-1$
+    treeLook.setData(cLook);
+
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.useCustomTabs"); //$NON-NLS-1$
+    new BooleanParameter(cLook, "useCustomTab",true); //$NON-NLS-1$
+    
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.showdownloadbasket"); //$NON-NLS-1$
+    new BooleanParameter(cLook, "Show Download Basket",false); //$NON-NLS-1$
+    
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.addurlsilently"); //$NON-NLS-1$
+    new BooleanParameter(cLook, "Add URL Silently",false); //$NON-NLS-1$
+    
+    String osName = System.getProperty("os.name");
+    if (osName.equals("Windows XP")) {
+      label = new Label(cLook, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.section.style.enableXPStyle"); //$NON-NLS-1$
+      final Button enableXPStyle = new Button(cLook, SWT.CHECK);
+      boolean enabled = false;
+      boolean valid = false;
+      try {
+        File f =
+          new File(
+            System.getProperty("java.home")
+              + "\\bin\\javaw.exe.manifest");
+        if (f.exists()) {
+          enabled = true;
+        }
+        f= FileUtil.getApplicationFile("javaw.exe.manifest");
+        if(f.exists()) {
+            valid = true;
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        valid = false;
+      }
+      enableXPStyle.setEnabled(valid);
+      enableXPStyle.setSelection(enabled);
+      enableXPStyle.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+          //In case we enable the XP Style
+          if (enableXPStyle.getSelection()) {
+            try {
+              File fDest =
+                new File(
+                  System.getProperty("java.home")
+                    + "\\bin\\javaw.exe.manifest");
+              File fOrigin = new File("javaw.exe.manifest");
+              if (!fDest.exists() && fOrigin.exists()) {
+                FileUtil.copyFile(fOrigin, fDest);
+              }
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          } else {
+            try {
+              File fDest =
+                new File(
+                  System.getProperty("java.home")
+                    + "\\bin\\javaw.exe.manifest");
+              fDest.delete();
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
+          }
+        }
+      });
+    }
+
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.colorScheme"); //$NON-NLS-1$
+    ColorParameter colorScheme = new ColorParameter(cLook, "Color Scheme",0,128,255,true); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    colorScheme.setLayoutData(gridData);
+
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate"); //$NON-NLS-1$
+    int[] values = { 100 , 250 , 500 , 1000 , 2000 , 5000 };
+    String[] labels = { "100 ms" , "250 ms" , "500 ms" , "1 s" , "2 s" , "5 s" };
+    new IntListParameter(cLook, "GUI Refresh", 250, labels, values);
+
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate"); //$NON-NLS-1$
+    int[] gValues = new int[50];
+    String[] gLabels = new String[50];
+    for(int i = 1 ; i <= 50 ; i++) {
+      gValues[i-1] = i;
+      gLabels[i-1] = "" + i;
+    }
+    new IntListParameter(cLook, "Graphics Update", 4, gLabels, gValues);
+
+    if (osName.equals("Linux") && SWT.getPlatform().equals("gtk")) {
+     label = new Label(cLook, SWT.NULL);
+     Messages.setLanguageText(label, "ConfigView.section.style.verticaloffset"); //$NON-NLS-1$
+     new IntParameter(cLook, VerticalAligner.parameterName,28); //$NON-NLS-1$
+    }
+
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay"); //$NON-NLS-1$
+    int[] rValues = new int[51];
+    String[] rLabels = new String[51];
+    rValues[0] = 0;
+    rLabels[0] = MessageText.getString("ConfigView.section.style.reOrderDelay.never");
+    for(int i = 1 ; i <= 50 ; i++) {
+      rValues[i] = i;
+      rLabels[i] = "" + i;
+    }
+    new IntListParameter(cLook, "ReOrder Delay", 0, rLabels, rValues);
+
+
+    /**
+     * Disabled for the moment because of some side effects
+     */
+    /*
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.alwaysShowTorrentFiles"); //$NON-NLS-1$
+    new BooleanParameter(cLook, "Always Show Torrent Files", true); //$NON-NLS-1$
+    */
+
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.useSIUnits"); //$NON-NLS-1$
+    new BooleanParameter(cLook, "config.style.useSIUnits",false); //$NON-NLS-1$
+
+    label = new Label(cLook, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.alwaysRefreshMyTorrents"); //$NON-NLS-1$
+    new BooleanParameter(cLook, "config.style.refreshMT",false); //$NON-NLS-1$
   }
 
   private void initGroupTransfer() {
@@ -1268,179 +1433,6 @@ public class ConfigView extends AbstractIView {
     controls[6] = new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues).getControl();
     enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
   }  // initStats
-
-  /**
-   *  init Style Section
-   */
-  private void initStyle() {
-    GridData gridData;
-    GridLayout layout;
-    Label label;
-
-    Composite gStyle = new Composite(cConfigSection, SWT.NULL);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gStyle.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 2;
-    gStyle.setLayout(layout);
-
-    TreeItem treeStyle = new TreeItem(tree, SWT.NULL);
-    Messages.setLanguageText(treeStyle, "ConfigView.section.style"); //$NON-NLS-1$
-    treeStyle.setData(gStyle);
-    
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.useCustomTabs"); //$NON-NLS-1$
-    new BooleanParameter(gStyle, "useCustomTab",true); //$NON-NLS-1$
-    
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.confirmationOnExit"); //$NON-NLS-1$
-    new BooleanParameter(gStyle, "confirmationOnExit",false); //$NON-NLS-1$
-    
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.showdownloadbasket"); //$NON-NLS-1$
-    new BooleanParameter(gStyle, "Show Download Basket",false); //$NON-NLS-1$
-    
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.addurlsilently"); //$NON-NLS-1$
-    new BooleanParameter(gStyle, "Add URL Silently",false); //$NON-NLS-1$
-    
-    String osName = System.getProperty("os.name");
-    if (osName.equals("Windows XP")) {
-      label = new Label(gStyle, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.section.style.enableXPStyle"); //$NON-NLS-1$
-      final Button enableXPStyle = new Button(gStyle, SWT.CHECK);
-      boolean enabled = false;
-      boolean valid = false;
-      try {
-        File f =
-          new File(
-            System.getProperty("java.home")
-              + "\\bin\\javaw.exe.manifest");
-        if (f.exists()) {
-          enabled = true;
-        }
-        f= FileUtil.getApplicationFile("javaw.exe.manifest");
-        if(f.exists()) {
-            valid = true;
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        valid = false;
-      }
-      enableXPStyle.setEnabled(valid);
-      enableXPStyle.setSelection(enabled);
-      enableXPStyle.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event arg0) {
-          //In case we enable the XP Style
-          if (enableXPStyle.getSelection()) {
-            try {
-              File fDest =
-                new File(
-                  System.getProperty("java.home")
-                    + "\\bin\\javaw.exe.manifest");
-              File fOrigin = new File("javaw.exe.manifest");
-              if (!fDest.exists() && fOrigin.exists()) {
-                FileUtil.copyFile(fOrigin, fDest);
-              }
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-          } else {
-            try {
-              File fDest =
-                new File(
-                  System.getProperty("java.home")
-                    + "\\bin\\javaw.exe.manifest");
-              fDest.delete();
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
-          }
-        }
-      });
-    }
-
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.colorScheme"); //$NON-NLS-1$
-    ColorParameter colorScheme = new ColorParameter(gStyle, "Color Scheme",0,128,255,true); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    colorScheme.setLayoutData(gridData);
-
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate"); //$NON-NLS-1$
-    int[] values = { 100 , 250 , 500 , 1000 , 2000 , 5000 };
-    String[] labels = { "100 ms" , "250 ms" , "500 ms" , "1 s" , "2 s" , "5 s" };
-    new IntListParameter(gStyle, "GUI Refresh", 250, labels, values);
-
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate"); //$NON-NLS-1$
-    int[] gValues = new int[50];
-    String[] gLabels = new String[50];
-    for(int i = 1 ; i <= 50 ; i++) {
-      gValues[i-1] = i;
-      gLabels[i-1] = "" + i;
-    }
-    new IntListParameter(gStyle, "Graphics Update", 4, gLabels, gValues);
-
-    if (osName.equals("Linux") && SWT.getPlatform().equals("gtk")) {
-     label = new Label(gStyle, SWT.NULL);
-     Messages.setLanguageText(label, "ConfigView.section.style.verticaloffset"); //$NON-NLS-1$
-     new IntParameter(gStyle, VerticalAligner.parameterName,28); //$NON-NLS-1$
-    }
-
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay"); //$NON-NLS-1$
-    int[] rValues = new int[51];
-    String[] rLabels = new String[51];
-    rValues[0] = 0;
-    rLabels[0] = MessageText.getString("ConfigView.section.style.reOrderDelay.never");
-    for(int i = 1 ; i <= 50 ; i++) {
-      rValues[i] = i;
-      rLabels[i] = "" + i;
-    }
-    new IntListParameter(gStyle, "ReOrder Delay", 0, rLabels, rValues);
-
-
-    /**
-     * Disabled for the moment because of some side effects
-     */
-    /*
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.alwaysShowTorrentFiles"); //$NON-NLS-1$
-    new BooleanParameter(gStyle, "Always Show Torrent Files", true); //$NON-NLS-1$
-    */
-
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.useSIUnits"); //$NON-NLS-1$
-    new BooleanParameter(gStyle, "config.style.useSIUnits",false); //$NON-NLS-1$
-
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.alwaysRefreshMyTorrents"); //$NON-NLS-1$
-    new BooleanParameter(gStyle, "config.style.refreshMT",false); //$NON-NLS-1$
-
-    label = new Label(gStyle, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.dropdiraction");
-
-    String[] drop_options = {
-         "ConfigView.section.style.dropdiraction.opentorrents",
-         "ConfigView.section.style.dropdiraction.sharefolder",
-         "ConfigView.section.style.dropdiraction.sharefoldercontents",
-         "ConfigView.section.style.dropdiraction.sharefoldercontentsrecursive",
-     };
-
-    String dropLabels[] = new String[drop_options.length];
-    String dropValues[] = new String[drop_options.length];
-
-    for (int i = 0; i < drop_options.length; i++) {
-
-       dropLabels[i] = MessageText.getString( drop_options[i]);
-       dropValues[i] = "" + i;
-    }
-
-    Control drop_param = new StringListParameter(gStyle, "config.style.dropdiraction", "", dropLabels, dropValues).getControl();
-  } // init
-
 
 
   private void initTracker() {
