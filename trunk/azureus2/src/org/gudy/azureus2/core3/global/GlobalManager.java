@@ -35,6 +35,8 @@ GlobalManager
 		String			save_path );
 
   /**
+   * @param fileName
+   * @param savePath
    * @param startStopped if true, the download will be added in STOPPED state
    * @return true, if the download was added
    *
@@ -90,7 +92,15 @@ GlobalManager
 	moveUp(
 		DownloadManager	dm );
 		
-	public void
+  public void
+  moveEnd(
+      DownloadManager[] dm );
+  
+  public void
+  moveTop(
+      DownloadManager[] dm );
+  
+  public void
 	addListener(
 		GlobalManagerListener	l );
 		

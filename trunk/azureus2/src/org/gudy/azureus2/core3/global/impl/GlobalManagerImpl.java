@@ -426,7 +426,7 @@ public class GlobalManagerImpl
         				client.resetTrackerUrl( false );
         			}
         		}catch( Throwable e ){
-        			e.printStackTrace();;
+        			e.printStackTrace();
         		}
         	}
         	
@@ -704,6 +704,29 @@ public class GlobalManagerImpl
         if (index < managers.size() - 1) {
           managers.remove(index);
           managers.add(index + 1, manager);
+        }
+      }
+    }
+  }
+
+  public void moveTop(DownloadManager[] manager) {
+    if (managers != null) {
+      synchronized (managers) {
+        for (int i = 0; i < manager.length; i++) {
+          managers.remove(managers.indexOf(manager[i]));
+          managers.add(i, manager[i]);
+        }
+      }
+    }
+  }
+
+  public void moveEnd(DownloadManager[] manager) {
+    if (managers != null) {
+      synchronized (managers) {
+        int endPosition = managers.size() - 1;
+        for (int i = manager.length - 1; i >= 0; i--) {
+          managers.remove(managers.indexOf(manager[i]));
+          managers.add(endPosition--, manager[i]);
         }
       }
     }

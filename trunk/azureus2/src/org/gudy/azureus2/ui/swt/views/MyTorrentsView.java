@@ -312,6 +312,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     final Menu menuMove = new Menu(composite.getShell(), SWT.DROP_DOWN);
     itemMove.setMenu(menuMove);    
         
+    final MenuItem itemMoveTop = new MenuItem(menuMove, SWT.PUSH);
+    Messages.setLanguageText(itemMoveTop, "MyTorrentsView.menu.moveTop"); //$NON-NLS-1$    
+    
     final MenuItem itemMoveUp = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveUp, "MyTorrentsView.menu.moveUp"); //$NON-NLS-1$    
     itemMoveUp.setImage(ImageRepository.getImage("up"));
@@ -320,6 +323,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     Messages.setLanguageText(itemMoveDown, "MyTorrentsView.menu.moveDown"); //$NON-NLS-1$
     itemMoveDown.setImage(ImageRepository.getImage("down"));
     
+    final MenuItem itemMoveEnd = new MenuItem(menuMove, SWT.PUSH);
+    Messages.setLanguageText(itemMoveEnd, "MyTorrentsView.menu.moveEnd"); //$NON-NLS-1$    
+
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "MyTorrentsView.menu.setpriority"); //$NON-NLS-1$
     //itemPriority.setImage(ImageRepository.getImage("stop"));
@@ -721,6 +727,18 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     itemMoveUp.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         moveSelectedTorrentsUp();
+      }     
+    });
+
+    itemMoveTop.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        moveSelectedTorrentsTop();
+      }     
+    });
+
+    itemMoveEnd.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        moveSelectedTorrentsEnd();
       }     
     });
 
@@ -1182,7 +1200,31 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     if (sorter.getLastField().equals("#"))
       sorter.reOrder(true);
   }
-    
+
+  private void moveSelectedTorrentsTop() {
+    moveSelectedTorrentsTopOrEnd(true);
+  }
+
+  private void moveSelectedTorrentsEnd() {
+    moveSelectedTorrentsTopOrEnd(false);
+  }
+
+  private void moveSelectedTorrentsTopOrEnd(boolean moveToTop) {
+    TableItem[] tis = table.getSelection();
+    if(tis.length == 0)
+      return;
+    DownloadManager[] downloadManagers = new DownloadManager[tis.length];
+    for (int i = 0; i < tis.length; i++) {
+      downloadManagers[i] = (DownloadManager) tableItemToObject.get(tis[i]);
+    }
+    if(moveToTop)
+      globalManager.moveTop(downloadManagers);
+    else
+      globalManager.moveEnd(downloadManagers);
+    if (sorter.getLastField().equals("#"))
+      sorter.reOrder(true);
+  }
+
   /**
    * @param parameterName the name of the parameter that has changed
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
