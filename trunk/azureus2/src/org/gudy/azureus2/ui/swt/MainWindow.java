@@ -27,7 +27,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabFolderAdapter;
+import org.eclipse.swt.custom.CTabFolder2Adapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.dnd.DND;
@@ -51,6 +51,9 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -480,356 +483,47 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
     mainWindow.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
-    
-    GridData gridData;
-    /*CoolBar coolbar = new CoolBar(mainWindow,SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    coolbar.setLayoutData(coolbar);
-    CoolItem item = new CoolItem(coolbar,SWT.NULL);
-    Decorations decoMenu = new Decorations(coolbar,SWT.NULL);
-    */
-    
-  try {
-    //The Main Menu
-    menuBar = new Menu(mainWindow, SWT.BAR);
-    mainWindow.setMenuBar(menuBar);
-    //The File Menu
-    MenuItem fileItem = new MenuItem(menuBar, SWT.CASCADE);
-    Messages.setLanguageText(fileItem, "MainWindow.menu.file"); //$NON-NLS-1$
-    Menu fileMenu = new Menu(mainWindow, SWT.DROP_DOWN);
-    fileItem.setMenu(fileMenu);
-    
-    MenuItem file_new = new MenuItem(fileMenu, SWT.CASCADE);
-    Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
-    
-    MenuItem file_share= new MenuItem(fileMenu, SWT.CASCADE);
-    Messages.setLanguageText(file_share, "MainWindow.menu.file.share"); //$NON-NLS-1$
-    
-    MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
-    Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
-
-    MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
-    Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
-
-    new MenuItem(fileMenu, SWT.SEPARATOR);
-
-    MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
-    Messages.setLanguageText(file_export, "MainWindow.menu.file.export"); //$NON-NLS-1$
-
-    MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
-    Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
-
-    new MenuItem(fileMenu, SWT.SEPARATOR);
-
-    MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
-    Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
-
-    	// file->open submenus
-    
-    Menu newMenu = new Menu(mainWindow, SWT.DROP_DOWN);
-    file_new.setMenu(newMenu);
-
-    MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
-    Messages.setLanguageText(file_new_torrent, "MainWindow.menu.file.open.torrent"); //$NON-NLS-1$
-    file_new_torrent.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        openTorrent();
-      }
-    });
-    
-    MenuItem file_new_torrentwindow = new MenuItem(newMenu, SWT.NULL);
-    file_new_torrentwindow.setText(MessageText.getString("MainWindow.menu.file.open.torrent") + " (Experimental)");
-    file_new_torrentwindow.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        openTorrentWindow();
-      }
-    });
-
-    MenuItem file_new_torrent_no_default = new MenuItem(newMenu, SWT.NULL);
-    Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$
-    file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        openTorrentNoDefaultSave(false);
-      }      
-    });
-
-    MenuItem file_new_torrent_for_seeding = new MenuItem(newMenu, SWT.NULL);
-    Messages.setLanguageText(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding"); //$NON-NLS-1$
-    file_new_torrent_for_seeding.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        openTorrentNoDefaultSave(true);
-      }      
-    });
-
-    MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
-    Messages.setLanguageText(file_new_url, "MainWindow.menu.file.open.url"); //$NON-NLS-1$
-    file_new_url.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        openUrl();
-      }
-    });
-    MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
-    Messages.setLanguageText(file_new_folder, "MainWindow.menu.file.folder"); //$NON-NLS-1$
-    file_new_folder.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        openDirectory();
-      }
-    });
-
-    	// file->share submenus
-    
-    Menu shareMenu = new Menu(mainWindow, SWT.DROP_DOWN);
-    file_share.setMenu(shareMenu);
-
-    MenuItem file_share_file = new MenuItem(shareMenu, SWT.NULL);
-    Messages.setLanguageText(file_share_file, "MainWindow.menu.file.share.file");
-    file_share_file.addListener(SWT.Selection, new Listener() {
-    	public void handleEvent(Event e) {
-    		ShareUtils.shareFile( mainWindow );
-    	}
-    });
-    
-    MenuItem file_share_dir = new MenuItem(shareMenu, SWT.NULL);
-    Messages.setLanguageText(file_share_dir, "MainWindow.menu.file.share.dir");
-    file_share_dir.addListener(SWT.Selection, new Listener() {
-    	public void handleEvent(Event e) {
-    		ShareUtils.shareDir( mainWindow );
-    	}
-    });
-    
-    MenuItem file_share_dircontents = new MenuItem(shareMenu, SWT.NULL);
-    Messages.setLanguageText(file_share_dircontents, "MainWindow.menu.file.share.dircontents");
-    file_share_dircontents.addListener(SWT.Selection, new Listener() {
-    	public void handleEvent(Event e) {
-    		ShareUtils.shareDirContents( mainWindow, false );
-    	}
-    });
-    MenuItem file_share_dircontents_rec = new MenuItem(shareMenu, SWT.NULL);
-    Messages.setLanguageText(file_share_dircontents_rec, "MainWindow.menu.file.share.dircontentsrecursive");
-    file_share_dircontents_rec.addListener(SWT.Selection, new Listener() {
-    	public void handleEvent(Event e) {
-    		ShareUtils.shareDirContents( mainWindow, true );
-    	}
-    });
-       	// file->create
-    
-    file_create.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        new NewTorrentWizard(display);
-      }
-    });
-
-    file_configure.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        new ConfigureWizard(display);
-      }
-    });
-
-    file_export.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        new ExportTorrentWizard(display);
-      }
-    });
-
-    file_import.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        new ImportTorrentWizard(display);
-      }
-    });
-
-    file_exit.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        dispose();
-      }
-    });
-
-    //The View Menu
-    MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
-    Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
-    Menu viewMenu = new Menu(mainWindow, SWT.DROP_DOWN);
-    viewItem.setMenu(viewMenu);
-
-    MenuItem view_torrents = new MenuItem(viewMenu, SWT.NULL);
-    Messages.setLanguageText(view_torrents, "MainWindow.menu.view.mytorrents"); //$NON-NLS-1$
-    view_torrents.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-		showMyTorrents();
-      }
-    });
-
-	MenuItem view_tracker = new MenuItem(viewMenu, SWT.NULL);
-	Messages.setLanguageText(view_tracker, "MainWindow.menu.view.mytracker"); //$NON-NLS-1$
-	view_tracker.addListener(SWT.Selection, new Listener() {
-	  public void handleEvent(Event e) {
-		showMyTracker();
-	  }
-	});
-	
-	MenuItem view_shares = new MenuItem(viewMenu, SWT.NULL);
-	Messages.setLanguageText(view_shares, "MainWindow.menu.view.myshares"); //$NON-NLS-1$
-	view_shares.addListener(SWT.Selection, new Listener() {
-		public void handleEvent(Event e) {
-			showMyShares();
-		}
-	});
-	
-    MenuItem view_config = new MenuItem(viewMenu, SWT.NULL);
-    Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
-    view_config.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        if (config == null)
-          config = new Tab(new ConfigView());
-        else
-          config.setFocus();
-      }
-    });
-
-    MenuItem view_console = new MenuItem(viewMenu, SWT.NULL);
-    Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
-    view_console.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        if (console == null)
-          console = new Tab(new ConsoleView());
-        else
-          console.setFocus();
-      }
-    });
-
-    MenuItem view_irc = new MenuItem(viewMenu, SWT.NULL);
-    Messages.setLanguageText(view_irc, "MainWindow.menu.view.irc"); //$NON-NLS-1$
-    view_irc.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        if (irc == null)
-          irc = new Tab(new IrcView());
-        else
-          irc.setFocus();
-      }
-    });
-
-    MenuItem view_stats = new MenuItem(viewMenu, SWT.NULL);
-    Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
-    view_stats.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        if (stats_tab == null)
-          stats_tab = new Tab(new SpeedView(globalManager));
-        else
-          stats_tab.setFocus();
-      }
-    });
-
-    new MenuItem(viewMenu, SWT.SEPARATOR);
-    
-    view_plugin = new MenuItem(viewMenu, SWT.CASCADE);
-    Messages.setLanguageText(view_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
-    pluginMenu = new Menu(mainWindow,SWT.DROP_DOWN);
-    view_plugin.setEnabled(false);
-    view_plugin.setMenu(pluginMenu);
-    
-    new MenuItem(viewMenu, SWT.SEPARATOR);
-
-    MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
-    Messages.setLanguageText(view_closeDetails, "MainWindow.menu.closealldetails"); //$NON-NLS-1$
-    view_closeDetails.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        Tab.closeAllDetails();
-      }
-    });
-
-    addCloseDownloadBarsToMenu(viewMenu);
-
-    createLanguageMenu(menuBar, mainWindow, locales);
-
-    //The Help Menu
-    MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
-    Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
-    Menu helpMenu = new Menu(mainWindow, SWT.DROP_DOWN);
-    helpItem.setMenu(helpMenu);
-
-    MenuItem help_about = new MenuItem(helpMenu, SWT.NULL);
-    Messages.setLanguageText(help_about, "MainWindow.menu.help.about"); //$NON-NLS-1$
-    help_about.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        AboutWindow.show(display);
-      }
-    });
-    
-    /*
-    MenuItem testAnimation = new MenuItem(helpMenu, SWT.NULL);
-    testAnimation.setText("Animation Test");
-    testAnimation.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        new TestWindow(display);
-      }
-    });
-    */
-    
-    MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
-    Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
-      help_faq.addListener(SWT.Selection, new Listener() {
-          public void handleEvent(Event e) {
-            String faqString = "http://azureus.sourceforge.net/wiki/";
-            Program.launch(faqString);
-          }
-        });
-    
-    if ( !SystemProperties.isJavaWebStartInstance()){
-    	
-    MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
-    Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
-    help_checkupdate.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        checkForNewVersion();
-      }
-    });
-    }
-
-    MenuItem item = new MenuItem(helpMenu, SWT.PUSH);
-    Messages.setLanguageText(item, "MyTorrentsView.menu.health");
-    item.setImage(ImageRepository.getImage("st_explain"));
-    item.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        HealthHelpWindow.show(display);
-      }
-    });
-
-    new MenuItem(helpMenu,SWT.SEPARATOR);
-    
-    MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
-    Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate"); //$NON-NLS-1$
-    help_donate.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        new DonationWindow2(MainWindow.this.display).show();
-        //String donationString = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
-        //Program.launch(donationString);
-      }
-    });
-  } catch (Exception e) {
-    LGLogger.log(LGLogger.ERROR, "Error while creating menu items");
-    e.printStackTrace();
-  }
+            
+    buildMenu(locales);
 
     createDropTarget(mainWindow);
 
-    GridLayout mainLayout = new GridLayout();
-    mainLayout.numColumns = 1;
+    FormLayout mainLayout = new FormLayout(); 
+    FormData formData;
+    
     mainLayout.marginHeight = 0;
     mainLayout.marginWidth = 0;
-    mainLayout.horizontalSpacing = 0;
-    mainLayout.verticalSpacing = 0;
+    mainLayout.spacing = 0;
     mainWindow.setLayout(mainLayout);
+    
+    Label separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
+    formData = new FormData();
+    formData.top = new FormAttachment(mainWindow);
+    formData.left = new FormAttachment(10);
+    formData.right = new FormAttachment(90);    
+    separator.setLayoutData(formData);
     
     this.iconBar = new IconBar(mainWindow);
     this.iconBar.setCurrentEnabler(this);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    this.iconBar.setLayoutData(gridData);
     
-    gridData = new GridData(GridData.FILL_BOTH);
+    formData = new FormData();
+    formData.top = new FormAttachment(separator);
+    formData.left = new FormAttachment(0);
+    formData.right = new FormAttachment(100);    
+    this.iconBar.setLayoutData(formData);
+    
+    separator = new Label(mainWindow,SWT.SEPARATOR | SWT.HORIZONTAL);
+    formData = new FormData();
+    formData.top = new FormAttachment(iconBar.coolBar);
+    formData.left = new FormAttachment(0);
+    formData.right = new FormAttachment(100);    
+    separator.setLayoutData(formData);
+        
     if(!useCustomTab) {
       folder = new TabFolder(mainWindow, SWT.V_SCROLL);
     } else {
-      folder = new CTabFolder(mainWindow, SWT.NULL);
-    }
-    folder.setLayoutData(gridData);
+      folder = new CTabFolder(mainWindow, SWT.CLOSE);
+    }    
     
     Tab.setFolder(folder);   
     SelectionAdapter selectionAdapter = new SelectionAdapter() {
@@ -852,14 +546,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Can't set MIN_TAB_WIDTH");
         e.printStackTrace();
-      }
-      ((CTabFolder)folder).setLayoutData(gridData);
-      ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {
+      }      
+      ((CTabFolder)folder).addCTabFolder2Listener(new CTabFolder2Adapter() {
         public void itemClosed(CTabFolderEvent event) {
           Tab.closed((CTabItem) event.item);
           event.doit = true;
         }
       });
+      ((CTabFolder)folder).setUnselectedCloseVisible(false);
       ((CTabFolder)folder).addSelectionListener(selectionAdapter);
 
       Display display = folder.getDisplay();
@@ -867,30 +561,23 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
                                                   new int[0]);
       ((CTabFolder)folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
     }
-
-    LGLogger.log("Initializing GUI complete");
-    splashNextTask();
-    setSplashTask( "splash.initializePlugins");
-
-    PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
-
-    LGLogger.log("Initializing Plugins complete");
-    splashNextTask();
-    setSplashTask( "splash.openViews");
     
-    showMyTorrents();
-
-  	if ( TRHostFactory.create().getTorrents().length > 0 ){  		
-  		showMyTracker();
-  	}
-	
-    if (COConfigurationManager.getBooleanParameter("Open Console", false))
-      console = new Tab(new ConsoleView());    
-
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-
+    
     Composite statusBar = new Composite(mainWindow, SWT.SHADOW_IN);
-    statusBar.setLayoutData(gridData);
+    formData = new FormData();
+    formData.bottom = new FormAttachment(100);
+    formData.left = new FormAttachment(0);
+    formData.right = new FormAttachment(100);
+    statusBar.setLayoutData(formData);
+    
+    formData = new FormData();
+    formData.top = new FormAttachment(separator);
+    formData.bottom = new FormAttachment(statusBar);
+    formData.left = new FormAttachment(0);
+    formData.right = new FormAttachment(100);
+    folder.setLayoutData(formData);
+    
+    
     GridLayout layout_status = new GridLayout();
     layout_status.numColumns = 4;
     layout_status.horizontalSpacing = 1;
@@ -899,37 +586,40 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     layout_status.marginWidth = 0;
     statusBar.setLayout(layout_status);
 
+    GridData gridData;
+    
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     statusText = new CLabel(statusBar, SWT.SHADOW_IN);
     statusText.setLayoutData(gridData);
 
-		checkForNewVersion();
+    
 
-		gridData = new GridData();
-		gridData.widthHint = 220;
-		ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
-		ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
-		ipBlocked.setLayoutData(gridData);
-		Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
-		ipBlocked.addMouseListener(new MouseAdapter() {
-	    public void mouseDoubleClick(MouseEvent arg0) {
-	     showBlockedIps();
-	    }
-		});
-		
+    gridData = new GridData();
+    gridData.widthHint = 220;
+    ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
+    ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
+    ipBlocked.setLayoutData(gridData);
+    Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
+    ipBlocked.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+       showBlockedIps();
+      }
+    });
+    
     gridData = new GridData();
     gridData.widthHint = 105;
     statusDown = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusDown.setText(MessageText.getString("ConfigView.download.abbreviated"));
+    statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/ "n/a");
     statusDown.setLayoutData(gridData);
 
     gridData = new GridData();
     gridData.widthHint = 105;
     statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusUp.setText(MessageText.getString("ConfigView.upload.abbreviated"));
+    statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
     statusUp.setLayoutData(gridData);
     
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
+    
     menuUpSpeed.addListener(SWT.Show,new Listener() {
       public void handleEvent(Event e) {
         MenuItem[] items = menuUpSpeed.getItems();
@@ -977,10 +667,34 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           
           iRel += (iRel >= 10) ? 10 : (iRel >= 6) ? 2 : 1;
         }
+        
       }
     });
     
     statusUp.setMenu(menuUpSpeed);
+    
+    LGLogger.log("Initializing GUI complete");
+    splashNextTask();
+    setSplashTask( "splash.initializePlugins");
+
+    PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
+
+    LGLogger.log("Initializing Plugins complete");
+    splashNextTask();
+    setSplashTask( "splash.openViews");
+    
+    showMyTorrents();
+
+  	if ( TRHostFactory.create().getTorrents().length > 0 ){  		
+  		showMyTracker();
+  	}
+	
+    if (COConfigurationManager.getBooleanParameter("Open Console", false))
+      console = new Tab(new ConsoleView());    
+    
+    checkForNewVersion();
+
+    
     
     globalManager.addListener(this);
 
@@ -1161,6 +875,321 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }catch( Throwable e ){
 		e.printStackTrace();
 	} }
+
+  /**
+   * @param locales
+   */
+  private void buildMenu(Locale[] locales) {
+    try {
+      //The Main Menu
+      menuBar = new Menu(mainWindow, SWT.BAR);
+      mainWindow.setMenuBar(menuBar);
+      //The File Menu
+      MenuItem fileItem = new MenuItem(menuBar, SWT.CASCADE);
+      Messages.setLanguageText(fileItem, "MainWindow.menu.file"); //$NON-NLS-1$
+      Menu fileMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+      fileItem.setMenu(fileMenu);
+      
+      MenuItem file_new = new MenuItem(fileMenu, SWT.CASCADE);
+      Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
+      
+      MenuItem file_share= new MenuItem(fileMenu, SWT.CASCADE);
+      Messages.setLanguageText(file_share, "MainWindow.menu.file.share"); //$NON-NLS-1$
+      
+      MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
+      Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
+
+      MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
+      Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
+
+      new MenuItem(fileMenu, SWT.SEPARATOR);
+
+      MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
+      Messages.setLanguageText(file_export, "MainWindow.menu.file.export"); //$NON-NLS-1$
+
+      MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
+      Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
+
+      new MenuItem(fileMenu, SWT.SEPARATOR);
+
+      MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
+      Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
+
+      	// file->open submenus
+      
+      Menu newMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+      file_new.setMenu(newMenu);
+
+      MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
+      Messages.setLanguageText(file_new_torrent, "MainWindow.menu.file.open.torrent"); //$NON-NLS-1$
+      file_new_torrent.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          openTorrent();
+        }
+      });
+      
+      MenuItem file_new_torrentwindow = new MenuItem(newMenu, SWT.NULL);
+      file_new_torrentwindow.setText(MessageText.getString("MainWindow.menu.file.open.torrent") + " (Experimental)");
+      file_new_torrentwindow.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          openTorrentWindow();
+        }
+      });
+
+      MenuItem file_new_torrent_no_default = new MenuItem(newMenu, SWT.NULL);
+      Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$
+      file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          openTorrentNoDefaultSave(false);
+        }      
+      });
+
+      MenuItem file_new_torrent_for_seeding = new MenuItem(newMenu, SWT.NULL);
+      Messages.setLanguageText(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding"); //$NON-NLS-1$
+      file_new_torrent_for_seeding.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          openTorrentNoDefaultSave(true);
+        }      
+      });
+
+      MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
+      Messages.setLanguageText(file_new_url, "MainWindow.menu.file.open.url"); //$NON-NLS-1$
+      file_new_url.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          openUrl();
+        }
+      });
+      MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
+      Messages.setLanguageText(file_new_folder, "MainWindow.menu.file.folder"); //$NON-NLS-1$
+      file_new_folder.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          openDirectory();
+        }
+      });
+
+      	// file->share submenus
+      
+      Menu shareMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+      file_share.setMenu(shareMenu);
+
+      MenuItem file_share_file = new MenuItem(shareMenu, SWT.NULL);
+      Messages.setLanguageText(file_share_file, "MainWindow.menu.file.share.file");
+      file_share_file.addListener(SWT.Selection, new Listener() {
+      	public void handleEvent(Event e) {
+      		ShareUtils.shareFile( mainWindow );
+      	}
+      });
+      
+      MenuItem file_share_dir = new MenuItem(shareMenu, SWT.NULL);
+      Messages.setLanguageText(file_share_dir, "MainWindow.menu.file.share.dir");
+      file_share_dir.addListener(SWT.Selection, new Listener() {
+      	public void handleEvent(Event e) {
+      		ShareUtils.shareDir( mainWindow );
+      	}
+      });
+      
+      MenuItem file_share_dircontents = new MenuItem(shareMenu, SWT.NULL);
+      Messages.setLanguageText(file_share_dircontents, "MainWindow.menu.file.share.dircontents");
+      file_share_dircontents.addListener(SWT.Selection, new Listener() {
+      	public void handleEvent(Event e) {
+      		ShareUtils.shareDirContents( mainWindow, false );
+      	}
+      });
+      MenuItem file_share_dircontents_rec = new MenuItem(shareMenu, SWT.NULL);
+      Messages.setLanguageText(file_share_dircontents_rec, "MainWindow.menu.file.share.dircontentsrecursive");
+      file_share_dircontents_rec.addListener(SWT.Selection, new Listener() {
+      	public void handleEvent(Event e) {
+      		ShareUtils.shareDirContents( mainWindow, true );
+      	}
+      });
+         	// file->create
+      
+      file_create.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new NewTorrentWizard(display);
+        }
+      });
+
+      file_configure.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new ConfigureWizard(display);
+        }
+      });
+
+      file_export.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new ExportTorrentWizard(display);
+        }
+      });
+
+      file_import.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new ImportTorrentWizard(display);
+        }
+      });
+
+      file_exit.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          dispose();
+        }
+      });
+
+      //The View Menu
+      MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
+      Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
+      Menu viewMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+      viewItem.setMenu(viewMenu);
+
+      MenuItem view_torrents = new MenuItem(viewMenu, SWT.NULL);
+      Messages.setLanguageText(view_torrents, "MainWindow.menu.view.mytorrents"); //$NON-NLS-1$
+      view_torrents.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+    	showMyTorrents();
+        }
+      });
+
+    MenuItem view_tracker = new MenuItem(viewMenu, SWT.NULL);
+    Messages.setLanguageText(view_tracker, "MainWindow.menu.view.mytracker"); //$NON-NLS-1$
+    view_tracker.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+    	showMyTracker();
+      }
+    });
+    
+    MenuItem view_shares = new MenuItem(viewMenu, SWT.NULL);
+    Messages.setLanguageText(view_shares, "MainWindow.menu.view.myshares"); //$NON-NLS-1$
+    view_shares.addListener(SWT.Selection, new Listener() {
+    	public void handleEvent(Event e) {
+    		showMyShares();
+    	}
+    });
+    
+      MenuItem view_config = new MenuItem(viewMenu, SWT.NULL);
+      Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
+      view_config.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          if (config == null)
+            config = new Tab(new ConfigView());
+          else
+            config.setFocus();
+        }
+      });
+
+      MenuItem view_console = new MenuItem(viewMenu, SWT.NULL);
+      Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
+      view_console.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          if (console == null)
+            console = new Tab(new ConsoleView());
+          else
+            console.setFocus();
+        }
+      });
+
+      MenuItem view_irc = new MenuItem(viewMenu, SWT.NULL);
+      Messages.setLanguageText(view_irc, "MainWindow.menu.view.irc"); //$NON-NLS-1$
+      view_irc.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          if (irc == null)
+            irc = new Tab(new IrcView());
+          else
+            irc.setFocus();
+        }
+      });
+
+      MenuItem view_stats = new MenuItem(viewMenu, SWT.NULL);
+      Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
+      view_stats.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          if (stats_tab == null)
+            stats_tab = new Tab(new SpeedView(globalManager));
+          else
+            stats_tab.setFocus();
+        }
+      });
+
+      new MenuItem(viewMenu, SWT.SEPARATOR);
+      
+      view_plugin = new MenuItem(viewMenu, SWT.CASCADE);
+      Messages.setLanguageText(view_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
+      pluginMenu = new Menu(mainWindow,SWT.DROP_DOWN);
+      view_plugin.setEnabled(false);
+      view_plugin.setMenu(pluginMenu);
+      
+      new MenuItem(viewMenu, SWT.SEPARATOR);
+
+      MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
+      Messages.setLanguageText(view_closeDetails, "MainWindow.menu.closealldetails"); //$NON-NLS-1$
+      view_closeDetails.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          Tab.closeAllDetails();
+        }
+      });
+
+      addCloseDownloadBarsToMenu(viewMenu);
+
+      createLanguageMenu(menuBar, mainWindow, locales);
+
+      //The Help Menu
+      MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
+      Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
+      Menu helpMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+      helpItem.setMenu(helpMenu);
+
+      MenuItem help_about = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_about, "MainWindow.menu.help.about"); //$NON-NLS-1$
+      help_about.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          AboutWindow.show(display);
+        }
+      });
+      
+      /*
+      MenuItem testAnimation = new MenuItem(helpMenu, SWT.NULL);
+      testAnimation.setText("Animation Test");
+      testAnimation.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new TestWindow(display);
+        }
+      });
+      */
+      
+      MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
+        help_faq.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+              String faqString = "http://azureus.sourceforge.net/wiki/";
+              Program.launch(faqString);
+            }
+          });
+      
+      if ( !SystemProperties.isJavaWebStartInstance()){
+      	
+      MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
+      help_checkupdate.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          checkForNewVersion();
+        }
+      });
+      }
+
+      new MenuItem(helpMenu,SWT.SEPARATOR);
+      
+      MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate"); //$NON-NLS-1$
+      help_donate.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new DonationWindow2(MainWindow.this.display).show();
+          //String donationString = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
+          //Program.launch(donationString);
+        }
+      });
+    } catch (Exception e) {
+      LGLogger.log(LGLogger.ERROR, "Error while creating menu items");
+      e.printStackTrace();
+    }
+  }
 
   private void
   showAlert(
@@ -2085,7 +2114,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   public void waitForClose() {
-    while (!mainWindow.isDisposed()) {
+    while (!display.isDisposed() && !mainWindow.isDisposed()) {
       try {
         if (!display.readAndDispatch())
           display.sleep();

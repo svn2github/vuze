@@ -54,11 +54,9 @@ public class IconBar {
   
   public IconBar(Composite parent) {
     this.parent = parent;
-    this.itemKeyToControl = new HashMap();
-    new Label(parent,SWT.SEPARATOR | SWT.HORIZONTAL).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    this.itemKeyToControl = new HashMap();    
     this.coolBar = new CoolBar(parent,SWT.NONE);
-    initBar();
-    new Label(parent,SWT.SEPARATOR | SWT.HORIZONTAL).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));    
+    initBar();       
     this.coolBar.setLocked(true);
   }
   
