@@ -76,7 +76,7 @@ public class UpdateSWT {
     }
   }
   
-  public static void updateSWT_generic(String zipFileName) throws IOException {
+  public static void updateSWT_generic(String zipFileName) throws Exception {
     String toLog = "SWT Updater is doing Generic Update\n";
     fosLog.write(toLog.getBytes()); 
     
@@ -84,6 +84,10 @@ public class UpdateSWT {
     Enumeration enum = zipFile.entries();
     while(enum.hasMoreElements()) {
       ZipEntry zipEntry = (ZipEntry) enum.nextElement();
+      
+      toLog = "\tSWT Updater is processing : " + zipEntry.getName() + "\n";
+      fosLog.write(toLog.getBytes());
+      
       if(zipEntry.getName().equals("swt.jar")) {        
         writeFile(zipFile,zipEntry,null);
       }
@@ -93,7 +97,7 @@ public class UpdateSWT {
     }    
   }
   
-  public static void updateSWT_carbon(String zipFileName) throws IOException{
+  public static void updateSWT_carbon(String zipFileName) throws Exception{
     String toLog = "SWT Updater is doing Carbon (OSX) Update\n";
     fosLog.write(toLog.getBytes());
     
@@ -120,12 +124,12 @@ public class UpdateSWT {
     }    
   }
    
-  public static void writeFile(ZipFile zipFile,ZipEntry zipEntry,String path) throws IOException {
+  public static void writeFile(ZipFile zipFile,ZipEntry zipEntry,String path) throws Exception {
     String toLog = "";
     if(path != null) {
-      toLog = "\t\t Unzipping file " + zipFile.getName() + "to path " + path + "\n";
+      toLog = "\t\t Unzipping file " + zipEntry.getName() + "to path " + path + "\n";
     } else {
-      toLog = "\t\t Unzipping file " + zipFile.getName() + "\n";
+      toLog = "\t\t Unzipping file " + zipEntry.getName() + "\n";
     }    
     fosLog.write(toLog.getBytes());
     
@@ -141,7 +145,7 @@ public class UpdateSWT {
       
       String backUpName = fileName + ".old";
       File backup =  openFile(path,backUpName);
-      if(backup.exists()) backup.delete();
+      if(backup.exists()) {backup.delete(); Thread.sleep(500); }
       if(!f.renameTo(backup)) {
         toLog = "\t\tCouldn't rename file\n";
         fosLog.write(toLog.getBytes());
@@ -168,7 +172,7 @@ public class UpdateSWT {
       fileName = path + System.getProperty("file.separator") + name;            
     }
     
-    String toLog = "\t\tOpening : " + fileName + "\n";
+    String toLog = "\t\t\tOpening : " + fileName + "\n";
     fosLog.write(toLog.getBytes());
     
     return new File(fileName);
