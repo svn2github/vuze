@@ -239,9 +239,11 @@ PlatformManagerUpdateChecker
 		        
 		        	name = name.substring( 8 );
 		        
-		        		// skip the director entry
+		        		// skip the directory entry
 		        	
 		        	if ( name.length() > 0 ){
+		        		
+		        		rd.reportActivity( "Adding update action for '" + name + "'" );
 		        		
 		    			LGLogger.log( "PlatformManager:Win32 adding action for '" + name + "'" );
 
