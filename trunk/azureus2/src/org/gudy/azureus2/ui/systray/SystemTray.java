@@ -46,7 +46,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 		menu.addItem(item);
 		menu.addSeparator();
     item = new SysTrayMenuItem("Close All Download Bars", "close_all_download_bars");
-    item.addSysTrayMenuListener(main.getCloseDownloadbarsListener());
+    item.addSysTrayMenuListener(this);
 //    menu.addItem(item); // org.eclipse.swt.SWTException: Invalid thread access
 		item = new SysTrayMenuItem("Show Azureus", "show");
 		item.addSysTrayMenuListener(this);
@@ -98,7 +98,9 @@ public class SystemTray extends SysTrayMenuAdapter {
 			dispose();
 		} else if (cmd.equals("show")) {
 			show();
-		}
+    } else if (cmd.equals("close_all_download_bars")) {
+      main.closeDownloadBars();
+    }
 	}
 
 	private void show() {
