@@ -62,4 +62,25 @@ FormattersImpl
 	{
 		return( ByteFormatter.nicePrint( data, no_spaces ));
 	}
+	
+	public String
+	encodeBytesToString(
+		byte[]		bytes )
+	{
+		return( ByteFormatter.encodeString( bytes ));
+	}
+	
+	public byte[]
+	decodeBytesFromString(
+		String		str )
+	{
+		return( ByteFormatter.decodeString( str ));
+	}
+	
+	public String
+	formatDate(
+		long		millis )
+	{
+		return( DisplayFormatters.formatDate( millis ));
+	}
 }

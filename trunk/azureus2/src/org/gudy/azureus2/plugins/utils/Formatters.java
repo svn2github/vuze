@@ -44,4 +44,16 @@ Formatters
 	formatByteArray(
 		byte[]		data,
 		boolean		no_spaces );
+	
+	public String
+	encodeBytesToString(
+		byte[]		bytes );
+	
+	public byte[]
+	decodeBytesFromString(
+		String		str );
+	
+	public String
+	formatDate(
+		long		millis );
 }

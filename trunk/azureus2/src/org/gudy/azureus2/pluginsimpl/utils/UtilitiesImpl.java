@@ -26,16 +26,31 @@ package org.gudy.azureus2.pluginsimpl.utils;
  *
  */
 
+import java.io.File;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.plugins.utils.*;
 
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.SystemProperties;
 
 public class 
 UtilitiesImpl
 	implements Utilities
 {
+	public String
+	getAzureusUserDir()
+	{
+		String	res = SystemProperties.getUserPath();
+		
+		if ( res.endsWith(File.separator )){
+			
+			res = res.substring(0,res.length()-1);
+		}
+		
+		return( res );
+	}
+	
 	public Semaphore
 	getSemaphore()
 	{

@@ -31,6 +31,9 @@ import java.nio.ByteBuffer;
 public interface 
 Utilities 
 {
+	public String
+	getAzureusUserDir();
+	
 	public Semaphore
 	getSemaphore();
 	
