@@ -198,7 +198,18 @@ public class VirtualChannelSelector {
             try {
                 if( data.channel.isOpen() ){
                 	
-                  data.channel.register( selector, INTEREST_OP, data );
+                		// see if already registered
+                	
+                  SelectionKey key = data.channel.keyFor( selector );
+                  
+                  if ( key != null ){
+                  	
+                  	key.attach( data );
+                  	
+                  }else{
+                  	
+                  	data.channel.register( selector, INTEREST_OP, data );
+                  }
                   
                 }else{
             	
@@ -248,7 +259,8 @@ public class VirtualChannelSelector {
           else {
             key.cancel();
             data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "key is invalid" ) );
-            Debug.out( "key is invalid" );
+            // can get this if socket has been closed between select and here
+            //Debug.out( "key is invalid" );
           }
         }
       }
