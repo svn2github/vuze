@@ -186,7 +186,7 @@ public class UpdateSWT {
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec = javaPath + "javaw -classpath \"" + classPath
+    String exec = javaPath + "java -classpath \"" + classPath
     + "\" -Djava.library.path=\"" + libPath
     + "\" -Duser.dir=\"" + userPath
     + "\" org.gudy.azureus2.ui.swt.Main";
