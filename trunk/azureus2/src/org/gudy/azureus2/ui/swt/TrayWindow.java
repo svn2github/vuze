@@ -52,12 +52,12 @@ public class TrayWindow implements IComponentListener {
     minimized = new Shell(main.getShell(), SWT.ON_TOP);
     minimized.setText("Azureus");
     label = new Label(minimized, SWT.NULL);
-    label.setImage(ImageRepository.getImage("tray"));
-    label.setSize(32, 32);
-    minimized.setSize(34, 34);
+    label.setImage(ImageRepository.getImage("azureus"));
+    label.setSize(16, 16);
+    minimized.setSize(18, 18);
     screen = display.getClientArea();
     //System.out.println(screen);
-    minimized.setLocation(screen.width - 34, screen.height - 34);
+    minimized.setLocation(screen.width - 18, screen.height - 18);
     minimized.setVisible(false);
     //minimized.open();    
 
@@ -88,12 +88,12 @@ public class TrayWindow implements IComponentListener {
           int y = currentLoc.y - dY;
           if (x < 10)
             x = 0;
-          if (x > screen.width - 44)
-            x = screen.width - 34;
+          if (x > screen.width - 28)
+            x = screen.width - 18;
           if (y < 10)
             y = 0;
-          if (y > screen.height - 44)
-            y = screen.height - 34;
+          if (y > screen.height - 28)
+            y = screen.height - 18;
           minimized.setLocation(x, y);
         }
       }
