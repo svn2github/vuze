@@ -33,8 +33,7 @@ CHANGE: Core | Also do dynamic tracker re-announce interval overrides when seedi
 CHANGE: Core | NAT check url changed to aelitis server [Nolar]
 CHANGE: Core | Reduce tracker re-announce interval when incoming connections are accepted (unfirewalled) [Nolar]
 CHANGE: Core | Remove old auto-migration code [Nolar]
-CHANGE: Core | update restart logic now preserves JVM mam mem for Sun JVMs [Parg]
-
+CHANGE: Core | Update restart logic now preserves JVM max mem setting for Sun JVMs [Parg]
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
@@ -61,6 +60,8 @@ BUGFIX: UI   | Fix the fuzzy Azureus icon bug under OSX [Gudy]
 BUGFIX: UI   | IPFilter config view slow to display when thousands of ranges are set [Gudy]
 BUGFIX: Core | Fix for hangs when scraping due to slow DNS resolves [Parg]
 BUGFIX: Core | Fix for UPnP failing if trailing spaces in 'action name' [Parg]
+
+
 
 2004.10.31 | Azureus 2.2.0.0
 
