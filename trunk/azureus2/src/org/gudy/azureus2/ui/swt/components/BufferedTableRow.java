@@ -344,8 +344,20 @@ BufferedTableRow
   }
   
   public void setTableItem(TableItem ti, boolean bCopyFromOld) {
-    if (bCopyFromOld)
+    if (bCopyFromOld) {
       copyToItem(ti);
+    } else {
+  		ti.setForeground(null);
+  		ti.setBackground(null);
+      Table table = getTable();
+      if (table == null)
+        return;
+  		int numColumns = table.getColumnCount();
+  		for (int i = 0; i < numColumns; i++) {
+		    ti.setForeground(i, null);
+		    ti.setBackground(i, null);
+  		}
+ 		}
 	  text_values		= new String[0];
 	  image_values	= new Image[0];
 	  foreground_colors	= new Color[0];
