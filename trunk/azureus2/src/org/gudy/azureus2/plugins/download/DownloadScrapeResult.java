@@ -83,4 +83,13 @@ DownloadScrapeResult
    * @since 2.1.0.2
    */
   public void setNextScrapeStartTime(long nextScrapeStartTime);
+  
+  /**
+   * returns a string representation of the scrape status
+   * @return
+   * @since 2.1.0.4
+   */
+  
+  public String
+  getStatus();
 }

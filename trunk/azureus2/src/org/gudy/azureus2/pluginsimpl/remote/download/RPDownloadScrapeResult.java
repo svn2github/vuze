@@ -133,4 +133,12 @@ RPDownloadScrapeResult
 	{
 		notSupported();		
 	}
+	
+	public String
+	getStatus()
+	{
+		notSupported();
+		
+		return( null );
+	}
 }

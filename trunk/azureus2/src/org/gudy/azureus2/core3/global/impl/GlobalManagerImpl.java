@@ -228,7 +228,7 @@ public class GlobalManagerImpl
     stats = new GlobalManagerStatsImpl();
     
     StatsFactory.initialize(this);
-        
+           
     if (listener != null)
       listener.reportCurrentTask(MessageText.getString("splash.initializeGM") + ": " +
                             MessageText.getString("splash.loadingTorrents"));

@@ -115,6 +115,12 @@ LGLogger
 		log( 0, 0, "", e );
 	}
 	
+	public static void
+	checkRedirection()
+	{
+		LGLoggerImpl.checkRedirection();
+	}
+	
 	public static boolean
 	isLoggingOn()
 	{

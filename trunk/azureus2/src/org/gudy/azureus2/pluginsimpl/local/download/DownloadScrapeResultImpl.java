@@ -93,4 +93,10 @@ DownloadScrapeResultImpl
     if (response != null)
       response.setNextScrapeStartTime(nextScrapeStartTime);
   }
+  
+  public String
+  getStatus()
+  {
+  	return( response.getStatusString());
+  }
 }

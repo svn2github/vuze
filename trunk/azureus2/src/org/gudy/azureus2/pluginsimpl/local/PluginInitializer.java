@@ -30,6 +30,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.global.removerules.DownloadRemoveRulesPlugin;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -66,7 +67,8 @@ PluginInitializer
 	// "id" is used when checking for updates
 	
   private Object[][]	builtin_plugins = { 
-    		{	 org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class, "<internal>", "" },
+   			{	 org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class, "<internal>", "" },
+   			{	 DownloadRemoveRulesPlugin.class, "<internal>", "" },
     		{	 ShareHosterPlugin.class, "<internal>", "ShareHoster" },
     		{    TrackerDefaultWeb.class, "<internal>", "TrackerDefault", },
     		{    UpdateLanguagePlugin.class, "<internal>", "UpdateLanguagePlugin" },
@@ -201,6 +203,10 @@ PluginInitializer
     	initializePluginsFromDir(app_dir );
     }
  
+    	// some plugins try and steal the logger stdout redirects. re-establish them if needed
+    
+    LGLogger.checkRedirection();
+    
     	// now do built in ones
     
     LGLogger.log("Initializing built-in plugins");

@@ -54,9 +54,12 @@ LGLoggerImpl
 	
 	private static boolean			log_to_file		= false;
   
-  private static boolean    log_to_stdout = System.getProperty("azureus.log.stdout") != null;
-  private static PrintStream old_system_out = null;
-  
+    private static boolean      log_to_stdout = System.getProperty("azureus.log.stdout") != null;
+    private static PrintStream  old_system_out = null;
+    private static PrintStream  old_system_err = null;
+    private static PrintStream	out_redirector;
+    private static PrintStream	err_redirector;
+    
 	private static String			log_dir			= "";
 	private static int				log_file_max	= 1;		// MB
 	private static int        log_types[] = new int[components.length];
@@ -116,16 +119,45 @@ LGLoggerImpl
 		}
 	}
 	
+	public static void
+	checkRedirection()
+	{
+	 	  boolean overrideLog = System.getProperty("azureus.overridelog") != null;
+	 	  
+	  	  if (!overrideLog) {
+	 		
+	  	  	doRedirects();
+	  	  }
+	}
+	
 	protected static void
 	doRedirects()
 	{
 		try{
 		
-      if( log_to_stdout ) old_system_out = System.out;
-      
-			System.setOut(new PrintStream(new redirectorOutputStream( System.out )));
+			if ( System.out != out_redirector ){
 			
-			System.setErr(new PrintStream(new redirectorOutputStream( System.err )));
+				if ( old_system_out == null ){
+					
+					old_system_out = System.out;
+				}
+	      
+				out_redirector = new PrintStream(new redirectorOutputStream( old_system_out ));
+				
+				System.setOut( out_redirector );
+			}
+			
+			if ( System.err != err_redirector ){
+				
+				if ( old_system_err == null ){
+					
+					old_system_err = System.err;
+				}
+	      
+				err_redirector = new PrintStream(new redirectorOutputStream( old_system_err ));
+				
+				System.setErr( err_redirector );
+			}
 			
 		}catch( Throwable e ){
 			
@@ -317,8 +349,8 @@ LGLoggerImpl
 				pw = new PrintWriter(new FileWriter( file_name, true ));
 			
 				pw.print( str );
-        
-        if( log_to_stdout ) old_system_out.println( str );
+         
+                if( log_to_stdout ) old_system_out.println( str );
 				
 			}catch( Throwable e ){
 				
@@ -397,5 +429,18 @@ LGLoggerImpl
 				buffer.setLength(0);
 			}
 		}
+		
+  	    public void 
+		write(
+			byte 	b[],
+			int 	off, 
+			int 	len )
+  	    {
+  	    	for (int i=off;i<off+len;i++){
+  	    		int	d = b[i];
+  	    		if ( d < 0 )d+=256;
+  	    		write(d);
+  	    	}
+  	    }
 	}
 }
