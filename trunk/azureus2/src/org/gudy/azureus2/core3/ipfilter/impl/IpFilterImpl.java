@@ -309,7 +309,15 @@ IpFilterImpl
 	public List 
 	getIpRanges() 
 	{
-	  return new ArrayList( all_ip_ranges );
+		try{
+			class_mon.enter();
+
+			return new ArrayList( all_ip_ranges );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public IpRange[]

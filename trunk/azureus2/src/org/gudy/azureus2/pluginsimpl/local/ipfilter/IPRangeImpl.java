@@ -34,8 +34,8 @@ public class
 IPRangeImpl 
 	implements IPRange
 {
-	protected IPFilter		filter;
-	protected IpRange		range;
+	private IPFilter		filter;
+	private IpRange		range;
 	
 	protected
 	IPRangeImpl(
