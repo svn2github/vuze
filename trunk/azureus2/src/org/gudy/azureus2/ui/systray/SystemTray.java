@@ -18,7 +18,6 @@ import snoozesoft.systray4j.SysTrayMenuAdapter;
 import snoozesoft.systray4j.SysTrayMenuEvent;
 import snoozesoft.systray4j.SysTrayMenuIcon;
 import snoozesoft.systray4j.SysTrayMenuItem;
-import snoozesoft.systray4j.SysTrayMenuListener;
 
 /**
  * @author oc
@@ -47,7 +46,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 		menu.addSeparator();
     item = new SysTrayMenuItem("Close All Download Bars", "close_all_download_bars");
     item.addSysTrayMenuListener(this);
-//    menu.addItem(item); // org.eclipse.swt.SWTException: Invalid thread access
+    menu.addItem(item); // org.eclipse.swt.SWTException: Invalid thread access
 		item = new SysTrayMenuItem("Show Azureus", "show");
 		item.addSysTrayMenuListener(this);
 		menu.addItem(item);
