@@ -112,7 +112,7 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/applet/model/MDDownloadFilterModel$1.class",
 		"ui/webplugin/remoteui/applet/model/MDDownloadSplitModel$2.class",
 		"ui/webplugin/remoteui/applet/view/VWDownloadView$6.class",
-		"/ui/webplugin/remoteui/applet/RemoteUIMainPanel$13.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$13.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$14.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$15.class",
 		
@@ -182,6 +182,7 @@ RemoteUIServlet
 		"plugins/ipfilter/IPFilter.class",
 		"plugins/torrent/TorrentAnnounceURLList.class",
 		"plugins/utils/Utilities.class",
+		"plugins/download/DownloadPeerListener.class",
 	};
 	
 	protected RPRequestHandler		request_handler;

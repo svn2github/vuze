@@ -290,7 +290,7 @@ MDDownloadFullModel
 			try{
 				int	current = downloads[rows[0]].getPosition();
 							
-				if ( current < (downloads.length-1)){
+				if ( current < downloads.length ){
 					
 					downloads[rows[0]].moveDown();
 				}
