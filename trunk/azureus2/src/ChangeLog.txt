@@ -1,12 +1,17 @@
-2.0.3.2 -> 2.0.4.0
-Next version will be 4.0 because of the new Tracker stuff, which represents a big change in the program.
-Also it'll be first version after the refactoring.
+CHANGELOG
+---------
 
-New Feature , Gudy   : Ability to disable (per torrent) the auto priority setting when seeding
-New Feature , Gudy   : Ability to disable (per torrent) the rules to start / stop a seeding torrent
+xx.11.03 | Azureus 2.0.4.0
 
+FEATURE: Disable (per torrent) the auto priority setting when seeding [Gudy]
+FEATURE: Disable (per torrent) the rules to start / stop a seeding torrent [Gudy]
+FEATURE: Move files to a directory upon completion [Nolar]
+FEATURE: Slowly establish new connections to peers (for those with internet disconnection issues) [Nolar]
 
-Change      , Gudy   : Some GUI Changes, so that winXP theme is widely supported.
+CHANGE: Some GUI Changes, so that winXP theme is widely supported [Gudy]
+CHANGE: Saving of torrent files to central dir now optional [Nolar]
+CHANGE: Checking after crash now remembers Fast Resume data [Nolar]
 
-Bugs        , Gudy   : Ability to snub / unsnub multiple peers on the peers list
-Bugs        , Gudy   : Save file dialog now opens as a 'save' dialog, and not 'open' (for OSX)
+BUGFIX: Fixed snub/unsnub multiple peers on the peers list [Gudy]
+BUGFIX: Save file dialog now opens as a 'save' dialog, and not 'open' (for OSX) [Gudy]
+BUGFIX: DNS name resolution caching no longer infinite [Nolar]
