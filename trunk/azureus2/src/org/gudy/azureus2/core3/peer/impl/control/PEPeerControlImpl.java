@@ -52,6 +52,7 @@ PEPeerControlImpl
   private static boolean disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
   
     
+  private static IpFilter ip_filter = IpFilterManagerFactory.getSingleton().getIPFilter();
   
   private int peer_manager_state = PS_INITIALISED;
   
@@ -134,6 +135,8 @@ PEPeerControlImpl
   private final AEMonitor	reconnect_counts_mon	= new AEMonitor( "PEPeerControl:RC");
 
   private AEMonitor	this_mon	= new AEMonitor( "PEPeerControl");
+  
+  private long		ip_filter_last_update_time;
   
   private Map		user_data;
   
@@ -597,7 +600,7 @@ PEPeerControlImpl
   {    
   		//make sure this connection isn't filtered
   	
-    if( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( address, _downloadManager.getDisplayName() ) ) {
+    if( ip_filter.isInRange( address, _downloadManager.getDisplayName() ) ) {
       return false;
     }
     
@@ -1245,7 +1248,7 @@ PEPeerControlImpl
 	    //Get the max number of connections allowed
 	    boolean addFailed = false;
 	    String reason = "";
-	    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ps.getIp(), _downloadManager.getDisplayName())) {
+	    if (!ip_filter.isInRange(ps.getIp(), _downloadManager.getDisplayName())) {
 	       try{
 	       	peer_transports_mon.enter();
 	       
@@ -2367,7 +2370,7 @@ PEPeerControlImpl
       	// if it comes back it'll start afresh
       
       if(nbWarnings > WARNINGS_LIMIT) {
-      	IpFilterManagerFactory.getSingleton().getIPFilter().ban(ip, _downloadManager.getDisplayName());                    
+      	ip_filter.ban(ip, _downloadManager.getDisplayName());                    
       }
       //Close connection in 2nd
       ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
@@ -2472,13 +2475,24 @@ PEPeerControlImpl
     
     disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
     
-    //if ipfiltering becomes enabled, remove any existing filtered connections
-    if (parameterName.equals("Ip Filter Enabled") && IpFilterManagerFactory.getSingleton().getIPFilter().isEnabled()) {
+    if ( parameterName.equals("Ip Filter Enabled")){
+    	
+    	checkForBannedConnections();
+    }
+  }
+  
+  protected void
+  checkForBannedConnections()
+  {
+  	//if ipfiltering is enabled, remove any existing filtered connections
+  	
+    if ( ip_filter.isEnabled()){
+    	
       	ArrayList	peer_transports = peer_transports_cow;
       	
         for (int i=0; i < peer_transports.size(); i++) {
           PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
-          if ( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
+          if ( ip_filter.isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
             conn.closeAll( "IPFilter banned IP address: " + conn.getIp(), false, false );
           }
         }
@@ -2869,7 +2883,22 @@ PEPeerControlImpl
   }
   
   
-  private void doConnectionChecks() {
+  private void doConnectionChecks() 
+  {
+  		// every 10 seconds check for connected + banned peers
+  
+    if ( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ) {
+    	
+    	long	last_update = ip_filter.getLastUpdateTime();
+    	
+    	if ( last_update != ip_filter_last_update_time ){
+    		
+    		ip_filter_last_update_time	= last_update;
+    		
+    		checkForBannedConnections();
+    	}
+    }
+    
     //every 1 second
     if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ){
       ArrayList peer_transports = peer_transports_cow;
