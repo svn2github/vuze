@@ -922,11 +922,6 @@ PEPeerControlImpl
       int num_pending = peer_info_storage.getStoredCount();
       num_wanted -= num_pending;
       
-      if( num_wanted < 1 ) {  //we dont need any more connections
-        _tracker.setRefreshDelayOverrides( 100 );  //use normal announce interval
-        return;
-      }
-
       int current_connection_count = PeerIdentityManager.getIdentityCount( _hash );
       
       TRTrackerScraperResponse tsr = _downloadManager.getTrackerScrapeResponse();
@@ -935,24 +930,34 @@ PEPeerControlImpl
         int num_seeds = tsr.getSeeds();   
         int num_peers = tsr.getPeers();
 
-        int swarm_size = seeding_mode ? num_peers : num_peers + num_seeds;  //if seeding, only use peer count
+        int swarm_size;
         
-        if( swarm_size < 1 ) {  //there are no peers to connect to in the swarm
-          _tracker.setRefreshDelayOverrides( 100 );  //use normal announce interval
-          return;
+        if( seeding_mode ) {
+          //Only use peer count when seeding, as other seeds are unconnectable.
+          //Since trackers return peers randomly (some of which will be seeds),
+          //backoff by the seed2peer ratio since we're given only that many peers
+          //on average each announce.
+          float ratio = (float)num_peers / (num_seeds + num_peers);
+          swarm_size = (int)(num_peers * ratio);
         }
-
+        else {
+          swarm_size = num_peers + num_seeds;
+        }
+        
         if( swarm_size < num_wanted ) {  //lower limit to swarm size if necessary
           num_wanted = swarm_size;
         }
       }
       
-      if( current_connection_count == 0 ) {  //we're not connected to anybody yet
-        _tracker.setRefreshDelayOverrides( 0 );  //so recheck in 1 min
+      if( num_wanted < 1 ) {  //we dont need any more connections
+        _tracker.setRefreshDelayOverrides( 100 );  //use normal announce interval
         return;
       }
-
+      
+      if( current_connection_count == 0 )  current_connection_count = 1;  //fudge it :)
+      
       int current_percent = (current_connection_count * 100) / (current_connection_count + num_wanted);
+      
       _tracker.setRefreshDelayOverrides( current_percent );  //set dynamic interval override
       return;
     }

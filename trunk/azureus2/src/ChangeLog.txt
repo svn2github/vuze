@@ -7,6 +7,8 @@ FEATURE: Core | Client support for the 'trackerid' announce extension [Nolar]
 FEATURE: Core | Client support for the 'min interval' announce extension [Nolar]
 FEATURE: UI   | Option to disable small fonts under OSX [Nolar]
 
+CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
+
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
 
