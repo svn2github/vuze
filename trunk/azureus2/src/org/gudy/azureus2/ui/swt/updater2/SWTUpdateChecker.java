@@ -157,8 +157,19 @@ public class SWTUpdateChecker implements UpdatableComponent
           continue;
         }
         
-        //on OS X, libswt-carbon-XXXX.jnilib
-        if(name.startsWith("libswt-carbon-")) {
+        //swt-pi.jar on OSX and on Linux
+        if(name.equals("swt-pi.jar")) {
+          installer.addResource(name,zip,false);
+          if(Constants.isOSX) {
+            installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/swt-pi.jar");
+          } else {
+            installer.addMoveAction(name,installer.getInstallDir() + File.separator + "swt.jar");
+          }
+          continue;
+        }
+        
+        //on OS X, any .jnilib
+        if(name.endsWith(".jnilib") && Constants.isOSX) {
           installer.addResource(name,zip,false);
           installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/dll/" + name);
           continue;
