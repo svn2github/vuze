@@ -95,24 +95,18 @@ public class UploadManager {
           if( conn_data.state == ConnectionData.STATE_NORMAL ) {  //so upgrade it
             
             standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
-              public int getCurrentNumBytesAllowed() {
-                ByteBucket group_bucket;
-                try {  group_buckets_mon.enter(); 
-                  group_bucket = ((GroupData)group_buckets.get( group )).bucket;
-                }
-                finally {  group_buckets_mon.exit();  }
-                
+              public int getCurrentNumBytesAllowed() {                
                 //sync global rate
                 if( standard_bucket.getRate() != standard_max_rate_bps ) { 
                   standard_bucket.setRate( standard_max_rate_bps, standard_max_rate_bps );
                 }
                 //sync group rate
                 int group_rate = getTranslatedLimit( group );
-                if( group_bucket.getRate() != group_rate ) {
-                  group_bucket.setRate( group_rate, group_rate );
+                if( conn_data.group_bucket.getRate() != group_rate ) {
+                  conn_data.group_bucket.setRate( group_rate, group_rate );
                 }
                 
-                int group_allowed = group_bucket.getAvailableByteCount();
+                int group_allowed = conn_data.group_bucket.getAvailableByteCount();
                 int global_allowed = standard_bucket.getAvailableByteCount();
                 
                 //reserve bandwidth for the general pool if needed
@@ -126,13 +120,7 @@ public class UploadManager {
               }
 
               public void bytesWritten( int num_bytes_written ) {
-                ByteBucket group_bucket;
-                try {  group_buckets_mon.enter(); 
-                  group_bucket = ((GroupData)group_buckets.get( group )).bucket;
-                }
-                finally {  group_buckets_mon.exit();  }
-                
-                group_bucket.setBytesUsed( num_bytes_written );
+                conn_data.group_bucket.setBytesUsed( num_bytes_written );
                 standard_bucket.setBytesUsed( num_bytes_written );
               }
             });
@@ -155,13 +143,11 @@ public class UploadManager {
       public void bytesSent( int byte_count ) {/*nothing*/}
     };
     
-    conn_data.queue_listener = listener;
-    conn_data.state = ConnectionData.STATE_NORMAL;
-    conn_data.group = group;
     
     //do group registration
+    GroupData group_data;
     try {  group_buckets_mon.enter(); 
-      GroupData group_data = (GroupData)group_buckets.get( group );
+      group_data = (GroupData)group_buckets.get( group );
       if( group_data == null ) {
         int limit = getTranslatedLimit( group );
         group_data = new GroupData( new ByteBucket( limit, limit ) );
@@ -169,7 +155,12 @@ public class UploadManager {
       }
       group_data.group_size++;
     }
-    finally {  group_buckets_mon.exit();  }
+    finally {  group_buckets_mon.exit();  } 
+    
+    conn_data.group_bucket = group_data.bucket;
+    conn_data.queue_listener = listener;
+    conn_data.state = ConnectionData.STATE_NORMAL;
+    conn_data.group = group;
     
     try{ standard_peer_connections_mon.enter();
       standard_peer_connections.put( connection, conn_data );
@@ -229,6 +220,7 @@ public class UploadManager {
     private OutgoingMessageQueue.MessageQueueListener queue_listener;
     private int state;
     private LimitedRateGroup group;
+    private ByteBucket group_bucket;
   }
 
     
