@@ -107,6 +107,31 @@ public class FileUtil {
     } catch (Exception ignore) {/*ignore*/}
   }
   
+  public static long
+  getFileOrDirectorySize(
+  	File		file )
+  {
+  	if ( file.isFile()){
+  		
+  		return( file.length());
+  		
+  	}else{
+  		
+  		long	res = 0; 
+  			
+  		File[] files = file.listFiles();
+  		
+  		if ( files != null ){
+  			
+  			for (int i=0;i<files.length;i++){
+  				
+  				res += getFileOrDirectorySize( files[i] );
+  			}
+  		}
+  		
+  		return( res );
+  	}
+  }
   
   /**
    * Deletes the given dir and all dirs underneath if empty.

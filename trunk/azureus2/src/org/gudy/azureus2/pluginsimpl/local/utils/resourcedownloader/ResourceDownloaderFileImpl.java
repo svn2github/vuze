@@ -27,6 +27,7 @@ import java.io.*;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 
@@ -67,7 +68,7 @@ ResourceDownloaderFileImpl
 	
 		throws ResourceDownloaderException
 	{	
-		return( file.length());
+		return( FileUtil.getFileOrDirectorySize( file ));
 	}
 	
 	
@@ -154,6 +155,8 @@ ResourceDownloaderFileImpl
 	cancel(
 		ResourceDownloaderException reason )
 	{
+		setCancelled();
+		
 		try{
 			this_mon.enter();
 		

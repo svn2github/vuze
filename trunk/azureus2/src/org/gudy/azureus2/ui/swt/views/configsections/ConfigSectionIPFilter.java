@@ -385,7 +385,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     	nbIPsBlocked = 0x100000000L - nbIPsBlocked;
     }
     
-    int percentIPsBlocked =  (int) (nbIPsBlocked * 1000l / (255l * 255l * 255l * 255l));
+    int percentIPsBlocked =  (int) (nbIPsBlocked * 1000L / (256L * 256L * 256L * 256L));
     
     String nbIps = "" + nbIPsBlocked;
     String percentIps = DisplayFormatters.formatPercentFromThousands(percentIPsBlocked);

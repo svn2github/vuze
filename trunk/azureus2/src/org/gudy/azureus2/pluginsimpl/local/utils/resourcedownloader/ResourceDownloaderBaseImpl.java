@@ -44,6 +44,8 @@ ResourceDownloaderBaseImpl
 	protected ResourceDownloaderBaseImpl	parent;
 	protected List							children = new ArrayList();
 	
+	protected boolean		download_cancelled;
+	
 	protected AEMonitor		this_mon	= new AEMonitor( "ResourceDownloader" );
 
 	protected
@@ -231,6 +233,18 @@ ResourceDownloaderBaseImpl
 		int					percentage )
 	{
 		informPercentDone( percentage );
+	}
+	
+	protected void
+	setCancelled()
+	{
+		download_cancelled	= true;
+	}
+	
+	public boolean
+	isCancelled()
+	{
+		return( download_cancelled );
 	}
 	
 	public void

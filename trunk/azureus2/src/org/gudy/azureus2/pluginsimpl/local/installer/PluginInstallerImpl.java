@@ -432,7 +432,10 @@ PluginInstallerImpl
 											ResourceDownloader			downloader,
 											ResourceDownloaderException e )
 										{
-											LGLogger.logAlert( "Plugin uninstall failed", e );
+											if ( !downloader.isCancelled()){
+												
+												LGLogger.logAlert( "Plugin uninstall failed", e );
+											}
 										}
 									});
 	

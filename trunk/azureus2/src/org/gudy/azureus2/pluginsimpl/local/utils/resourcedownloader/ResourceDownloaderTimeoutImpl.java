@@ -263,6 +263,8 @@ ResourceDownloaderTimeoutImpl
 	cancel(
 		ResourceDownloaderException reason )
 	{
+		setCancelled();
+		
 		try{
 			this_mon.enter();
 		

@@ -123,6 +123,8 @@ ResourceDownloaderDelayedImpl
 	public void
 	cancel()
 	{
+		setCancelled();
+		
 		getDelegate();
 		
 		delegate.cancel();		

@@ -490,6 +490,8 @@ ResourceDownloaderURLImpl
 	public void
 	cancel()
 	{
+		setCancelled();
+		
 		cancel_download	= true;
 		
 		try{

@@ -85,6 +85,7 @@ ResourceDownloaderErrorImpl
 	public void
 	cancel()
 	{
+		setCancelled();
 	}
 	
 	public void

@@ -198,6 +198,8 @@ ResourceDownloaderMetaRefreshImpl
 	public void
 	cancel()
 	{
+		setCancelled();
+		
 		try{
 			this_mon.enter();
 		

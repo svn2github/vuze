@@ -76,6 +76,9 @@ ResourceDownloader
 	public void
 	cancel();
 	
+	public boolean
+	isCancelled();
+	
 	public void
 	reportActivity(
 		String				activity );
