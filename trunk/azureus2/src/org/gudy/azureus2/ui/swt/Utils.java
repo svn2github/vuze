@@ -142,29 +142,31 @@ public class Utils {
   }
 
   /**
+   * <p>Gets an URL from the clipboard if a valid URL for downloading has been copied.</p>
+   * <p>The supported protocols currently are http and https.</p>
    * @param display
-   * @return first valid link from clipboard, else "http://" 
-   *
-   * @author Rene Leonhardt
+   * @return first valid link from clipboard, else "http://"
    */
   public static String getLinkFromClipboard(final Display display) {
-    String link = "http://";
-    Clipboard cb = new Clipboard(display);
-    TextTransfer transfer = TextTransfer.getInstance();
-    String data = (String) cb.getContents(transfer);
+    final String[] prefixes = new String[] {"http://", "https://"};
+    final Clipboard cb = new Clipboard(display);
+    final TextTransfer transfer = TextTransfer.getInstance();
+    final String data = (String)cb.getContents(transfer);
     if (data != null) {
-      int begin = data.indexOf("http://");
-      if (begin >= 0) {
-        int end = data.indexOf("\n", begin + 7);
-        String stringURL = end >= 0 ? data.substring(begin, end - 1) : data.substring(begin);
-        try {
-          URL parsedURL = new URL(stringURL);
-          link = parsedURL.toExternalForm();
-        } catch (MalformedURLException e1) {
+      for(int i = 0; i < prefixes.length; i++) {
+        final int begin = data.indexOf(prefixes[i]);
+        if (begin >= 0) {
+          final int end = data.indexOf("\n", begin + prefixes[i].length());
+          final String stringURL = (end >= 0) ? data.substring(begin, end - 1) : data.substring(begin);
+          try {
+            final URL parsedURL = new URL(stringURL);
+            return parsedURL.toExternalForm();
+          } catch (MalformedURLException e1) {
+          }
         }
       }
     }
-    return link;
+    return prefixes[0];
   }
 
   /**
