@@ -51,6 +51,10 @@ public class OutgoingBTPieceMessageHandler {
   private int num_messages_loading = 0;
   private int num_messages_in_queue = 0;
   
+  //TODO
+  private boolean destroyed = false;
+  
+  
   private final ReadRequestListener read_req_listener = new ReadRequestListener() {
     public void readCompleted( DiskManagerRequest request, DirectByteBuffer data ) {
       synchronized( loading_messages ) {
@@ -58,10 +62,14 @@ public class OutgoingBTPieceMessageHandler {
           data.returnToPool();
           return;
         }
+        if( destroyed ) System.out.println("readCompleted 1:: already destroyed");
         loading_messages.remove( request );
       }
       num_messages_loading--;
       BTPiece msg = new BTPiece( request.getPieceNumber(), request.getOffset(), data );
+      
+      if( destroyed ) System.out.println("readCompleted 2:: already destroyed");
+      
       synchronized( queued_messages ) {
         queued_messages.put( msg, request );
       }
@@ -105,6 +113,9 @@ public class OutgoingBTPieceMessageHandler {
    */
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
     DiskManagerRequest dmr = disk_manager.createRequest( piece_number, piece_offset, length );
+    
+    if( destroyed ) System.out.println("addPieceRequest:: already destroyed");
+    
     synchronized( requests ) {
       requests.addLast( dmr );
     }
@@ -182,6 +193,11 @@ public class OutgoingBTPieceMessageHandler {
         num_messages_in_queue--;
       }
     }
+  }
+  
+  
+  public void destroy() {
+    destroyed = true;
   }
   
   
