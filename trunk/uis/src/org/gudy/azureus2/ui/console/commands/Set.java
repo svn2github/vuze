@@ -58,6 +58,7 @@ public class Set implements IConsoleCommand {
       else if( COConfigurationManager.doesParameterExist( parameter ) ) {
         try {
           if (setto == null) {
+            ci.out.println("parameter=["+parameter+"]");
             ci.out.println("> " + parameter + ": " + COConfigurationManager.getStringParameter( parameter ) );
           }
         	else if( args.size() == 3 ) {
