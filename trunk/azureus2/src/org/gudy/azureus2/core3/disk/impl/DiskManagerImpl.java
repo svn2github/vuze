@@ -114,7 +114,25 @@ DiskManagerImpl
 	private PEPiece[] pieces;
 	private boolean alreadyMoved = false;
 
-	private List	listeners = new ArrayList();
+	// DiskManager listeners
+	
+	private static final int LDT_STATECHANGED		= 1;
+	
+	private ListenerManager	listeners 	= ListenerManager.createManager(
+			"DiskM:ListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					DiskManagerListener	listener = (DiskManagerListener)_listener;
+					
+					listener.stateChanged(((Integer)value).intValue());
+				}
+			});		
 	
   private static boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
   private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
@@ -1383,13 +1401,7 @@ DiskManagerImpl
 			
 			state_set_via_method = _state;
 			
-			synchronized( listeners ){
-				
-				for (int i=0;i<listeners.size();i++){
-			
-					((DiskManagerListener)listeners.get(i)).stateChanged(state_set_via_method );
-				}
-			}
+			listeners.dispatch( LDT_STATECHANGED, new Integer(_state));
 		}
 	}
 	
@@ -1878,19 +1890,15 @@ DiskManagerImpl
   addListener(
   	DiskManagerListener	l )
   {
-  	synchronized( listeners ){
-  		listeners.add( l );
+ 	listeners.addListener( l );
   		
-  		l.stateChanged( getState());
-  	}
+  	listeners.dispatch( l, LDT_STATECHANGED, new Integer(getState()));
   }
   
   public void
   removeListener(
   	DiskManagerListener	l )
   {
-  	synchronized( listeners ){
-  		listeners.remove(l);
-  	}
+  	listeners.removeListener(l);
   }
 }

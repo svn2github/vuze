@@ -654,6 +654,11 @@ TRHostImpl
 		byte[]		hash,
 		int			state )
 	{
+		if ( lookupHostTorrentViaHash( hash ) != null ){
+			
+			return;
+		}
+		
 		String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "127.0.0.1");
 						
 			// external torrents don't care whether ssl or not so just assume non-ssl for simplicity 
