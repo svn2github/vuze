@@ -73,8 +73,6 @@ PESharedPortServerImpl
 								{
 										// new incoming connection
                   
-								  LGLogger.log(LGLogger.INFORMATION,"ADDPEERTRANSPORT = " + this.toString());
-										
 									selector.addSocket((SocketChannel)param);
 								}
 									

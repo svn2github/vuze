@@ -144,19 +144,7 @@ PEPeerServerImpl
         "PEPeerServer is ready to accept incoming connections");
       while (bContinue) {
         
-        LGLogger.log(
-        componentID,
-        evtLyfeCycle,
-        LGLogger.INFORMATION,
-        "PEPeerServer start accept block");
-        
         SocketChannel sckClient = sck.accept();
-        
-        LGLogger.log(
-        componentID,
-        evtLyfeCycle,
-        LGLogger.INFORMATION,
-        "PEPeerServer accept complete");
         
         if (sckClient != null) {
           LGLogger.log(
@@ -164,16 +152,11 @@ PEPeerServerImpl
             evtNewConnection,
             LGLogger.INFORMATION,
             "PEPeerServer has accepted an incoming connection from : "
-              + sckClient.socket().getInetAddress().getHostAddress());
+            + sckClient.socket().getInetAddress().getHostAddress());
+          
           sckClient.configureBlocking(false);
-          
-          LGLogger.log(
-        componentID,
-        evtLyfeCycle,
-        LGLogger.INFORMATION,
-        "ADAPTER = " + adapter.toString());
-          
-		  adapter.addPeerTransport(sckClient);
+                    
+          adapter.addPeerTransport(sckClient);
         }
         else {
           LGLogger.log(
