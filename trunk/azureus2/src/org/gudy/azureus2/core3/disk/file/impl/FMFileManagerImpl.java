@@ -100,17 +100,20 @@ FMFileManagerImpl
 	
 	public FMFile
 	createFile(
+		FMFileOwner	owner,
 		File		file )
+	
+		throws FMFileManagerException
 	{
 		FMFile	res;
 		
 		if ( limited ){
 
-			res = new FMFileLimited(this, file);
+			res = new FMFileLimited(owner,this, file);
 			
 		}else{
 			
-			res = new FMFileUnlimited(file);
+			res = new FMFileUnlimited( owner, file);
 		}
 		
 		if (DEBUG){
@@ -236,7 +239,7 @@ FMFileManagerImpl
 			if ( file != null ){
 				
 				try{
-					file.close();
+					file.close(false);
 				
 				}catch( Throwable e ){
 				

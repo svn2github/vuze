@@ -56,8 +56,9 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class 
 DiskManagerImpl
-	implements DiskManager, ParameterListener 
+	implements DiskManager, ParameterListener, FMFileOwner 
 {  
+	private String	dm_name	= "";
 	private boolean started = false;
   
 	private int state_set_via_method;
@@ -198,6 +199,9 @@ DiskManagerImpl
 			  fileName = f.getName();
 			  path = f.getParent();
 			}
+			
+			dm_name	= ByteFormatter.nicePrint(torrent.getHash(),true);
+			
 		}catch( TOTorrentException e ){
 			this.errorMessage = TorrentUtils.exceptionToText(e) + " (Initialize1)";
 			setState( FAULTY );
@@ -834,7 +838,27 @@ DiskManagerImpl
 		setState( ALLOCATING );
 		allocated = 0;
 		int numNewFiles = 0;
-		String basePath = path + System.getProperty("file.separator") + rootPath;
+		// String basePath = path + System.getProperty("file.separator") + rootPath;
+		
+		// ok, we sometimes end up here with
+		// path=d:\temp, rootPath=test\
+		// for an original path of d:\temp\test
+		// So we need to make sure that the basePath ends up back as
+		// d:\temp\test\
+		
+		String	tempRoot 	= rootPath;
+		
+		if ( tempRoot.endsWith(File.separator)){
+			
+			tempRoot = tempRoot.substring(0,tempRoot.length()-1);
+		}
+		
+		String basePath = FileUtil.smartFullName( path, tempRoot );
+		
+		if ( !basePath.endsWith(File.separator)){
+			
+			basePath += File.separator;
+		}
 		
 		for (int i = 0; i < fileList.size(); i++) {
 			//get the BtFile
@@ -848,7 +872,19 @@ DiskManagerImpl
 
 			final File f = new File(tempPath, tempName);
 
-			DiskManagerFileInfoImpl fileInfo = new DiskManagerFileInfoImpl( f );
+			DiskManagerFileInfoImpl fileInfo;
+			
+			try{
+				fileInfo = new DiskManagerFileInfoImpl( this, f );
+				
+			}catch ( FMFileManagerException e ){
+				
+				this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles:" + f.toString() + ")";
+				
+				setState( FAULTY );
+				
+				return -1;
+			}
 						
 			int separator = tempName.lastIndexOf(".");
 			
@@ -2106,16 +2142,17 @@ DiskManagerImpl
     if (moveToDir.length() == 0) return returnName;
 
     try {
+      //make sure the 'path' var isn't refering to multi-file torrent dir
+      if (rPath.endsWith(fileName)) {
+        File fTest = new File(rPath);
+        if(fTest.isDirectory()) rPath = fTest.getParent();
+      }
+      
       for (int i=0; i < files.length; i++) {
         synchronized (files[i]) {
           //get old file pointer
-          File oldFile = files[i].getFile();
           
-          //make sure the 'path' var isn't refering to multi-file torrent dir
-          if (rPath.endsWith(fileName)) {
-            File fTest = new File(rPath);
-            if(fTest.isDirectory()) rPath = fTest.getParent();
-          }
+          File oldFile = files[i].getFile();
           
           //get old file's parent path
           fullPath = oldFile.getParent();
@@ -2238,6 +2275,11 @@ DiskManagerImpl
   }
 
 
+  public String
+  getName()
+  {
+  	return( dm_name );
+  }
   /**
    * @param parameterName the name of the parameter that has changed
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)

@@ -39,10 +39,13 @@ FMFileLimited
 	
 	protected
 	FMFileLimited(
+		FMFileOwner			_owner,
 		FMFileManagerImpl	_manager,
 		File				_file )
+	
+		throws FMFileManagerException
 	{
-		super( _file );
+		super( _owner, _file );
 		
 		manager = _manager;
 	}
@@ -99,7 +102,7 @@ FMFileLimited
 	{
 		if ( mode != access_mode ){
 		
-			close();
+			close(false);
 		}
 		
 		access_mode		= mode;
@@ -166,13 +169,24 @@ FMFileLimited
 	
 		throws FMFileManagerException
 	{
-		if ( raf != null ){
+		close(true);
+	}
+	
+	protected synchronized void
+	close(
+		boolean	explicit )
+	
+		throws FMFileManagerException
+	{	
+		boolean	was_open = raf != null;
+		
+		try{
+			closeSupport( explicit );
 			
-			try{
-				closeSupport();
-			
-			}finally{
-			
+		}finally{
+
+			if ( was_open ){
+				
 				releaseSlot();
 			}
 		}

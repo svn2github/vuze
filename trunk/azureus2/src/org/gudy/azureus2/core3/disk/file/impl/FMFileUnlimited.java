@@ -37,9 +37,12 @@ FMFileUnlimited
 {
 	protected
 	FMFileUnlimited(
-		File	_file )
+		FMFileOwner	_owner,
+		File		_file )
+	
+		throws FMFileManagerException
 	{
-		super( _file );
+		super( _owner, _file );
 	}
 	
 	
@@ -58,7 +61,7 @@ FMFileUnlimited
 		
 		if ( raf != null ){
 			
-			closeSupport();
+			closeSupport( false );
 		}
 		
 		openSupport();
@@ -115,6 +118,6 @@ FMFileUnlimited
 	
 		throws FMFileManagerException
 	{
-		closeSupport();
+		closeSupport( true );
 	}
 }

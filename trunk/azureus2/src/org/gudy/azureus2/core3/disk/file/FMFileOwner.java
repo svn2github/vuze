@@ -1,6 +1,6 @@
 /*
- * File    : FMFileManager.java
- * Created : 12-Feb-2004
+ * File    : FMFileOwner.java
+ * Created : 01-Mar-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -25,16 +25,9 @@ package org.gudy.azureus2.core3.disk.file;
  * @author parg
  *
  */
-
-import java.io.File;
-
 public interface 
-FMFileManager 
+FMFileOwner 
 {
-	public FMFile
-	createFile(
-		FMFileOwner	owner,
-		File		file )
-	
-		throws FMFileManagerException;
+	public String
+	getName();
 }

@@ -53,7 +53,10 @@ DiskManagerFileInfoImpl
   
   protected
   DiskManagerFileInfoImpl(
+  	FMFileOwner	owner,
   	File		file )
+  
+  	throws FMFileManagerException
   {
   	try{
       path	= file.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
@@ -64,7 +67,7 @@ DiskManagerFileInfoImpl
       e.printStackTrace();
     }
   	
-  	fm_file = FMFileManagerFactory.getSingleton().createFile( file );
+  	fm_file = FMFileManagerFactory.getSingleton().createFile( owner, file );
   }
   
   protected void
