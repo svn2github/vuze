@@ -50,6 +50,7 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -469,7 +470,7 @@ public class MainWindow implements IComponentListener {
     languageItem.setMenu(languageMenu);
 
     Locale[] locales = MessageText.getLocales();
-    String savedLocaleString = ConfigurationManager.getInstance().getStringParameter("locale", Locale.getDefault().toString());
+    String savedLocaleString = ConfigurationManager.getInstance().getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
     Locale savedLocale = new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5)); 
 
     MenuItem[] items = new MenuItem[locales.length];
@@ -510,7 +511,7 @@ public class MainWindow implements IComponentListener {
       public void handleEvent(Event e) {
         if (isSelectedLanguageDifferent(e.widget)) {
           if (MessageText.changeLocale(locale)) {
-            ConfigurationManager.getInstance().setParameter("locale", locale.toString());
+            ConfigurationManager.getInstance().setParameter("locale", locale.toString()); //$NON-NLS-1$
             ConfigurationManager.getInstance().save();
             setSelectedLanguageItem((MenuItem) e.widget);
           } else {
@@ -555,8 +556,15 @@ public class MainWindow implements IComponentListener {
     s.setLayoutData(gridData = new GridData());
 //    gridData.horizontalIndent = 10;
 
-    Label label = new Label(s, SWT.CENTER);
-    label.setText(MessageText.getString("MainWindow.upgrade.newerversion")+": " + latestVersion + "\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    Group gInfo = new Group(s, SWT.NULL);
+    gInfo.setLayout(new GridLayout());
+    Messages.setLanguageText(gInfo, "MainWindow.upgrade.section.info"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gInfo.setLayoutData(gridData);
+    gridData.horizontalSpan = 3;
+
+    Label label = new Label(gInfo, SWT.CENTER);
+    label.setText(MessageText.getString("MainWindow.upgrade.newerversion")+": " + latestVersion + "\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     FontData[] fontData = label.getFont().getFontData();
     for (int i = 0; i < fontData.length; i++) {
       fontData[i].setStyle(SWT.BOLD);
@@ -565,23 +573,33 @@ public class MainWindow implements IComponentListener {
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
-    label = new Label(s, SWT.LEFT);
-    label.setText(MessageText.getString("MainWindow.upgrade.explanation")+".\n\n"); //$NON-NLS-1$ //$NON-NLS-2$
+    label = new Label(gInfo, SWT.LEFT);
+    label.setText(MessageText.getString("MainWindow.upgrade.explanation")+".\n"); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
-    
+
     label = new Label(s, SWT.LEFT);
+    label.setText("\n"); //$NON-NLS-1$
+    label.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    Group gManual = new Group(s, SWT.NULL);
+    gManual.setLayout(new GridLayout());
+    Messages.setLanguageText(gManual, "MainWindow.upgrade.section.manual"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gManual.setLayoutData(gridData);
+    gridData.horizontalSpan = 3;
+    
+    label = new Label(gManual, SWT.NULL);
     label.setText(MessageText.getString("MainWindow.upgrade.explanation.manual")+":\n"); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
-    gridData.horizontalSpan = 3;
     
     final String downloadLink = "http://azureus.sourceforge.net/Azureus2.jar";  //$NON-NLS-1$
-    final Label linklabel = new Label(s, SWT.CENTER);
+    final Label linklabel = new Label(gManual, SWT.NULL);
     linklabel.setText(downloadLink);
     linklabel.setCursor(new Cursor(display, SWT.CURSOR_HAND));
     linklabel.setForeground(blue);
     linklabel.setLayoutData(gridData = new GridData());
-    gridData.horizontalSpan = 3;
             
     linklabel.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
@@ -597,42 +615,41 @@ public class MainWindow implements IComponentListener {
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
-    final Label separator = new Label(s, SWT.SEPARATOR | SWT.HORIZONTAL);
-    separator.setLayoutData(gridData = new GridData(GridData.FILL_HORIZONTAL));
+    Group gAutomatic = new Group(s, SWT.NULL);
+    gAutomatic.setLayout(new GridLayout());
+    Messages.setLanguageText(gAutomatic, "MainWindow.upgrade.section.automatic"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gAutomatic.setLayoutData(gridData);
     gridData.horizontalSpan = 3;
 
-    label = new Label(s, SWT.LEFT);
-    label.setText("\n"); //$NON-NLS-1$
-    label.setLayoutData(gridData = new GridData());
-    gridData.horizontalSpan = 3;
-
-    final Label step1 = new Label(s, SWT.LEFT);
+    final Label step1 = new Label(gAutomatic, SWT.LEFT);
     step1.setText("- "+MessageText.getString("MainWindow.upgrade.step1")); //$NON-NLS-1$ //$NON-NLS-2$
     step1.setForeground(blue);
     step1.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
-    final Label step2 = new Label(s, SWT.LEFT);
+    final Label step2 = new Label(gAutomatic, SWT.LEFT);
     step2.setText("- "+MessageText.getString("MainWindow.upgrade.step2")+"\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     step2.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
-    final Label hint = new Label(s, SWT.LEFT);
+    final Label hint = new Label(gAutomatic, SWT.LEFT);
     hint.setText(MessageText.getString("MainWindow.upgrade.hint1")+"."); //$NON-NLS-1$ //$NON-NLS-2$
     hint.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
-    label = new Label(s, SWT.LEFT);
+    label = new Label(gAutomatic, SWT.LEFT);
     label.setText("\n"); //$NON-NLS-1$
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
-    final ProgressBar progressBar = new ProgressBar (s, SWT.SMOOTH);
+    final ProgressBar progressBar = new ProgressBar (gAutomatic, SWT.SMOOTH);
     progressBar.setLayoutData(gridData = new GridData(GridData.FILL_HORIZONTAL));
     gridData.horizontalSpan = 3;
+    progressBar.setToolTipText(MessageText.getString("MainWindow.upgrade.tooltip.progressbar")); //$NON-NLS-1$
 
     label = new Label(s, SWT.LEFT);
-    label.setText("\n\n"); //$NON-NLS-1$
+    label.setText("\n"); //$NON-NLS-1$
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
@@ -644,7 +661,7 @@ public class MainWindow implements IComponentListener {
 
     final Button finish = new Button(s, SWT.PUSH);
     finish.setText(" "+MessageText.getString("Button.finish")+" "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
-    finish.setLayoutData(new GridData()); // GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.GRAB_HORIZONTAL
+    finish.setLayoutData(new GridData());
 
     final Button cancel = new Button(s, SWT.PUSH);
     cancel.setText(" "+MessageText.getString("Button.cancel")+" "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
@@ -1062,10 +1079,10 @@ public class MainWindow implements IComponentListener {
         fis = new FileInputStream(fileName);
         while ((nbRead = fis.read(buf)) > 0)
           metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
-        Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
-        Map info = (Map) map.get("info");
-        singleFileName = new String((byte[]) info.get("name"), "ISO-8859-1");
-        Object test = info.get("length");        
+        Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
+        Map info = (Map) map.get("info"); //$NON-NLS-1$
+        singleFileName = new String((byte[]) info.get("name"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
+        Object test = info.get("length");         //$NON-NLS-1$
         if (test != null) {        
           singleFile = true;          
         }
@@ -1083,14 +1100,14 @@ public class MainWindow implements IComponentListener {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
         fDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
         fDialog.setFileName(singleFileName);
-        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$
+        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         savePath = fDialog.open();
 
       }
       else {
         DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
         dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
-        dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$
+        dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         savePath = dDialog.open();
       }
       if (savePath == null)
