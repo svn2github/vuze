@@ -269,6 +269,7 @@ PEPeerTransportProtocol
 	      public void messageSent( Message message ) {
 	        //update keep-alive info
 	        last_message_sent_time = SystemTime.getCurrentTime();
+          LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " + connection );
 	      }
 	
 	      public void protocolBytesSent( int byte_count ) {

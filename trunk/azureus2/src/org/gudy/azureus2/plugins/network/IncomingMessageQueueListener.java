@@ -39,15 +39,8 @@ public interface IncomingMessageQueueListener {
   public boolean messageReceived( Message message );
   
   /**
-   * The given number of protocol (overhead) bytes read from the connection.
+   * The given number of bytes read from the connection.
    * @param byte_count number of protocol bytes
    */
-  public void protocolBytesReceived( int byte_count );
-  
-  /**
-   * The given number of (piece) data bytes read from the connection.
-   * @param byte_count number of data bytes
-   */
-  public void dataBytesReceived( int byte_count );
-  
+  public void bytesReceived( int byte_count );  
 }

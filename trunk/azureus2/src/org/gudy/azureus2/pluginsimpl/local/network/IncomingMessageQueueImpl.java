@@ -84,9 +84,9 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
           return listener.messageReceived( new AdapterMessageImpl( message ) );
         }
       
-        public void protocolBytesReceived( int byte_count ) {  listener.protocolBytesReceived( byte_count );  }
+        public void protocolBytesReceived( int byte_count ) {  listener.bytesReceived( byte_count );  }
 
-        public void dataBytesReceived( int byte_count ) {  listener.dataBytesReceived( byte_count );  }
+        public void dataBytesReceived( int byte_count ) {  listener.bytesReceived( byte_count );  }
     };
     
     registrations.put( listener, core_listener );  //save this mapping for later

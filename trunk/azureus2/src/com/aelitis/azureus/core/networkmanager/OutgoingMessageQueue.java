@@ -491,7 +491,6 @@ public class OutgoingMessageQueue {
 	            listener.messageSent( msg );
 	            
 	            if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
-	              LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + tcp_transport.getDescription() );
 	              msg.destroy();
 	            }
 	          }
