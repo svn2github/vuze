@@ -694,16 +694,19 @@ public class PeerSocket extends PeerConnection {
   }
 
   private void have(int pieceNumber) {
-    /* NOLAR: temp debug output - let me know if you see this! */
-    if (pieceNumber >= available.length) System.out.println("pieceNumber="+pieceNumber+" >= length="+available.length);
-    
-    available[pieceNumber] = true;
-    stats.haveNewPiece();
-    manager.haveNewPiece();
-    manager.havePiece(pieceNumber, this);
-    if (!interested)
-      checkInterested(pieceNumber);
-    checkSeed();
+    if (pieceNumber >= available.length) {
+       /* NOLAR: temp debug output */
+       System.out.println("ERROR: pieceNumber="+pieceNumber+" >= length="+available.length);
+    }
+    else {    
+      available[pieceNumber] = true;
+      stats.haveNewPiece();
+      manager.haveNewPiece();
+      manager.havePiece(pieceNumber, this);
+      if (!interested)
+         checkInterested(pieceNumber);
+      checkSeed();
+    }
   }
 
   /**
