@@ -97,11 +97,14 @@ TOTorrentCreateImpl
 			current_piece_size = current_piece_size << 1;
 		}
 		
+			// if we haven't set a piece length here then there are too many pieces even
+			// at maximum piece size. Go for largest piece size
+			
 		if ( piece_length == -1 ){
 		
-				// just go for the minimum piece size
+				// just go for the maximum piece size
 				
-			piece_length = 	_piece_min_size;
+			piece_length = 	_piece_max_size;
 		}
 		
 		constructFixed( _torrent_base, piece_length );
