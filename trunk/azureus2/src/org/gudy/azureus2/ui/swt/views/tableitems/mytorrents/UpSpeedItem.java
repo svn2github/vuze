@@ -84,7 +84,7 @@ public class UpSpeedItem
         return;
   
       if (cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)) || 
-          (iState != iLastState)) {
+          (iState != iLastState) || !cell.isValid()) {
         changeColor(cell, value, iState);
       }
     }
