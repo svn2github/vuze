@@ -51,9 +51,10 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     MainWindow.getWindow().removeManagerView(manager);
     manager.removeListener(this);
     
-    if(folder != null) {
+    if(folder != null && !folder.isDisposed()) {
       TabItem[] items = folder.getItems();
       for(int i=0 ; i < items.length ; i++) {
+        if (!items[i].isDisposed())
         	items[i].dispose();
       }
     }
