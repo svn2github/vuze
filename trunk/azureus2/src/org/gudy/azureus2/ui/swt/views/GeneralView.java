@@ -601,7 +601,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	        if(url.startsWith("http://" ) || url.startsWith("https://")) {
 	          int pos = -1;
 	          if((pos = url.indexOf("/announce")) != -1) {
-	            url = url.substring(0,pos);
+	            url = url.substring(0,pos+1);
 	          }
 	          Program.launch(url);
         	}
