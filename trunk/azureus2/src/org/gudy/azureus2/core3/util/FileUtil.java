@@ -40,5 +40,22 @@ public class FileUtil {
     return new File(FileUtil.getApplicationPath(), filename);
   }
 
+  
+  /**
+   * Deletes the given dir and all files/dirs underneath
+   */
+  public static void recursiveDelete(File f) {
+    if (f.isDirectory()) {
+      File[] files = f.listFiles();
+      for (int i = 0; i < files.length; i++) {
+        recursiveDelete(files[i]);
+      }
+      f.delete();
+    }
+    else {
+      f.delete();
+    }
+  }
+  
 
 }

@@ -433,7 +433,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
               try {
                 globalManager.removeDownloadManager(dm);                
                 File f = new File(path);
-                recursiveDelete(f);
+                FileUtil.recursiveDelete(f);
               }
               catch (Exception ex) {
                 ex.printStackTrace();
@@ -465,7 +465,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
               try {
                 globalManager.removeDownloadManager(dm);                
                 File f = new File(path);
-                recursiveDelete(f);
+                FileUtil.recursiveDelete(f);
                 f = new File(dm.getTorrentFileName());
                 f.delete();
               }
@@ -709,18 +709,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     return "";
   }*/
 
-  private void recursiveDelete(File f) {
-    if (f.isDirectory()) {
-      File[] files = f.listFiles();
-      for (int i = 0; i < files.length; i++) {
-        recursiveDelete(files[i]);
-      }
-      f.delete();
-    }
-    else {
-      f.delete();
-    }
-  }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
