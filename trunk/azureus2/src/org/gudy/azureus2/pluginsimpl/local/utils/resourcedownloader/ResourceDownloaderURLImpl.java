@@ -303,6 +303,36 @@ ResourceDownloaderURLImpl
 			try{
 				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
 			      
+					// some authentications screw up without an explicit port number here
+				
+				if( url.getPort() == -1 ){
+					
+					int	target_port;
+					
+					if ( url.getProtocol().toLowerCase().equals( "http" )){
+						
+						target_port = 80;
+						
+					}else{
+						
+						target_port = 443;
+					}
+					
+					try{
+						String str = original_url.toString().replaceAll( " ", "%20" );
+					
+						int	pos = str.indexOf( "://" );
+						
+						pos = str.indexOf( "/", pos+4 );
+						
+						url = new URL( str.substring(0,pos) + ":" + target_port + str.substring(pos));
+												
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+				}
+				
 				try{
 					if ( auth_supplied ){
 						
