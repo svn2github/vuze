@@ -441,22 +441,7 @@ DHTTrackerPlugin
 			final Download	dl = (Download)it.next();
 			
 			Byte	existing_flags = (Byte)registered_downloads.get( dl );
-			
-			if (  existing_flags != null){
-				
-					// state change, force a re-announce
-				
-				try{ 
-					this_mon.enter();
 
-					query_map.put( dl, new Long( now ));
-					
-				}finally{
-					
-					this_mon.exit();
-				}
-			}
-			
 			byte	new_flags = dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING;
 				
 			if ( existing_flags == null || existing_flags.byteValue() != new_flags ){
@@ -863,7 +848,10 @@ DHTTrackerPlugin
 					state == Download.ST_QUEUED ){	// included queued here for the mo to avoid lots
 													// of thrash for torrents that flip a lot
 				
-				running_downloads.add( download );
+				if ( !running_downloads.contains( download )){
+					
+					running_downloads.add( download );
+				}
 				
 			}else{
 				
