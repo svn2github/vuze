@@ -26,8 +26,8 @@ package org.gudy.azureus2.ui.swt.components.graphics;
  */
 public class Scale {
   
-  //The target number of scale level
-  private int pixelsPerLevel = 40;
+  //The target number of pixels per scale level
+  private int pixelsPerLevel = 50;
       
   //The max value
   private int max = 1;
@@ -65,7 +65,7 @@ public class Scale {
       targetNbLevels = 1;
     scaleFactor = max / targetNbLevels;
     powFactor = 1;
-    while(scaleFactor > 10) {
+    while(scaleFactor >= 10) {
       powFactor = 10 * powFactor;
       scaleFactor = scaleFactor / 10;
     }

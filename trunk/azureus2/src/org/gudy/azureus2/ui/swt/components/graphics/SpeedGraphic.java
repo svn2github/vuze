@@ -77,6 +77,7 @@ public class SpeedGraphic extends ScaledGraphic {
     if(drawCanvas == null || drawCanvas.isDisposed())
       return;
     
+    drawBackGround();
     drawScale();
     drawShart();
     
@@ -125,7 +126,7 @@ public class SpeedGraphic extends ScaledGraphic {
       if(nbValues > 0) {
         int height = bounds.height - scale.getScaledValue(computeAverage(currentPosition-6)) - 2;
         gcImage.setForeground(MainWindow.red);
-        gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12);
+        gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12,true);
       }
       
       

@@ -116,7 +116,9 @@ public class SpeedView extends AbstractIView {
   public void delete() {
     updateThread.stopIt();
     MainWindow.getWindow().setStats(null);
-    Utils.disposeComposite(panel);    
+    Utils.disposeComposite(panel);
+    downSpeedGraphic.dispose();
+    upSpeedGraphic.dispose();
   }
 
   public String getFullTitle() {
