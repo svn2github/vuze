@@ -198,9 +198,9 @@ public class VersionCheckClient {
       
       if ( stats != null ){
       	
-	      long total_bytes_downloaded = StatsFactory.getStats().getDownloadedBytes();
-	      long total_bytes_uploaded = StatsFactory.getStats().getUploadedBytes();
-	      long total_uptime = StatsFactory.getStats().getTotalUpTime();
+	      long total_bytes_downloaded 	= stats.getDownloadedBytes();
+	      long total_bytes_uploaded		= stats.getUploadedBytes();
+	      long total_uptime 			= stats.getTotalUpTime();
 	
 	      message.put( "total_bytes_downloaded", new Long( total_bytes_downloaded ) );
 	      message.put( "total_bytes_uploaded", new Long( total_bytes_uploaded ) );
