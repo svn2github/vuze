@@ -39,9 +39,23 @@ CacheFileManagerFactory
 	
 		throws CacheFileManagerException
 	{
+		return( getSingleton( null ));
+	}
+	
+	public static synchronized CacheFileManager
+	getSingleton(
+		String	explicit_implementation )
+	
+		throws CacheFileManagerException
+	{
 		if ( manager == null ){
 			
-			String	impl = System.getProperty( "com.aelitis.azureus.core.diskmanager.cache.manager");
+			String	impl = explicit_implementation;
+			
+			if ( impl == null ){
+				
+				impl = System.getProperty( "com.aelitis.azureus.core.diskmanager.cache.manager");
+			}
 			
 			if ( impl == null ){
 				

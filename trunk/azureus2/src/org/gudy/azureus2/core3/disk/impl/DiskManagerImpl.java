@@ -55,7 +55,7 @@ import com.aelitis.azureus.core.diskmanager.cache.*;
  */
 public class 
 DiskManagerImpl
-	implements DiskManagerHelper, CacheFileOwner 
+	implements DiskManagerHelper 
 {  
 
 	private String	dm_name	= "";
@@ -374,7 +374,7 @@ DiskManagerImpl
 			DiskManagerFileInfoImpl fileInfo;
 			
 			try{
-				fileInfo = new DiskManagerFileInfoImpl( this, f );
+				fileInfo = new DiskManagerFileInfoImpl( this, f, tempFile.getTorrentFile());
 				
 			}catch ( CacheFileManagerException e ){
 				

@@ -273,7 +273,7 @@ TOTorrentXMLDeserialiser
 						throw( new TOTorrentException( "FILE element invalid (file length = " + file_length + ")", TOTorrentException.RT_DECODE_FAILS));
 					
 					}
-					files[j] = new TOTorrentFileImpl( file_length, path_comps );
+					files[j] = new TOTorrentFileImpl( torrent, file_length, path_comps );
 					
 					for (int k=0;k<additional_props.size();k++){
 						
@@ -310,7 +310,8 @@ TOTorrentXMLDeserialiser
 	
 			torrent.setFiles( 
 				new TOTorrentFileImpl[]{ 
-						new TOTorrentFileImpl( 	torrent_length,
+						new TOTorrentFileImpl( 	torrent, 
+												torrent_length,
 												new byte[][]{ torrent.getName()})});
 		}
 	}

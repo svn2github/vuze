@@ -81,7 +81,7 @@ DiskManagerPieceMapper
 		TOTorrentFile			torrent_file, 
 		String					fileName )
 	{
-		btFileList.add(new DiskManagerPieceMapper.fileInfo("", fileName, total_length ));
+		btFileList.add(new DiskManagerPieceMapper.fileInfo(torrent_file,"", fileName, total_length ));
 	}
 	
 	protected void 
@@ -156,6 +156,7 @@ DiskManagerPieceMapper
 			
 			btFileList.add(
 				new fileInfo(
+					torrent_file,
 					pathBuffer.toString(),
 					last_comp,
 					fileLength));
@@ -320,31 +321,44 @@ DiskManagerPieceMapper
 	protected static class 
 	fileInfo 
 	{
-		private DiskManagerFileInfoImpl		_file;
-		private String 						_path;
-		private String 						_name;
-		private long 						_length;
+		private DiskManagerFileInfoImpl		file;
+		private TOTorrentFile				torrent_file;
+		private String 						path;
+		private String 						name;
+		private long 						length;
 
-		public fileInfo(String path, String name, long length) {
-			_path = path;
-			_length = length;
-			_name = name;
+		public 
+		fileInfo(
+			TOTorrentFile	_torrent_file,
+			String 			_path, 
+			String 			_name, 
+			long 			_length) 
+		{
+			torrent_file	= _torrent_file;
+			path			= _path;
+			length 			= _length;
+			name 			= _name;
 		}
 		
 		public long getLength() {
-			return _length;
+			return length;
 		}
 		public String getPath() {
-			return _path;
+			return path;
 		}
 		public String getName() {
-			return _name;
+			return name;
+		}
+		public TOTorrentFile
+		getTorrentFile()
+		{
+			return( torrent_file );
 		}
 		public DiskManagerFileInfoImpl getFileInfo() {
-			return _file;
+			return file;
 		}
-		public void setFileInfo(DiskManagerFileInfoImpl file) {
-			_file = file;
+		public void setFileInfo(DiskManagerFileInfoImpl _file) {
+			file = _file;
 		}
 	}
 }

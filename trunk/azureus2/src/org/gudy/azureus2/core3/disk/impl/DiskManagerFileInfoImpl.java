@@ -28,6 +28,7 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
@@ -37,7 +38,7 @@ import com.aelitis.azureus.core.diskmanager.cache.*;
  */
 public class 
 DiskManagerFileInfoImpl
-	implements DiskManagerFileInfo
+	implements DiskManagerFileInfo, CacheFileOwner
 {
   private CacheFile		cache_file;
   
@@ -48,31 +49,47 @@ DiskManagerFileInfoImpl
   private long 			downloaded;
   private int 			firstPieceNumber = -1;
   private int 			nbPieces = 0;
-  private DiskManager diskManager;
+  
+  private DiskManagerImpl 	diskManager;
+  private TOTorrentFile		torrent_file;
   
   private boolean priority = false;  
   private boolean skipped = false;
   
   protected
   DiskManagerFileInfoImpl(
-  	CacheFileOwner	owner,
-  	File			file )
+  	DiskManagerImpl		_disk_manager,
+  	File				_file,
+	TOTorrentFile		_torrent_file )
   
   	throws CacheFileManagerException
   {
-    this.diskManager = (DiskManager)owner;
+    diskManager 	= _disk_manager;
+    torrent_file	= _torrent_file;
+    
   	try{
-      path	= file.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
-      name	= file.getName();
+      path	= _file.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
+      name	= _file.getName();
     }
     catch (Exception e) {
-      Debug.out("Unable to resolve canonical path for " + file.getName());
+      Debug.out("Unable to resolve canonical path for " + _file.getName());
       e.printStackTrace();
     }
   	
-  	cache_file = CacheFileManagerFactory.getSingleton().createFile( owner, file );
+  	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, _file );
   }
   
+  public String
+  getCacheFileOwnerName()
+  {
+  	return( diskManager.getName());
+  }
+	public TOTorrentFile
+	getCacheFileTorrentFile()
+	{
+		return( torrent_file );
+	}
+	
   public void
   flushCache()
 	

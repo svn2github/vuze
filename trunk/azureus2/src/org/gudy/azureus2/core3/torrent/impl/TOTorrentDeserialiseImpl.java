@@ -398,7 +398,7 @@ TOTorrentDeserialiseImpl
 			
 				setSimpleTorrent( true );
 				
-				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( simple_file_length.longValue(), new byte[][]{getName()})});
+				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, simple_file_length.longValue(), new byte[][]{getName()})});
 				
 			}else{
 				
@@ -423,7 +423,7 @@ TOTorrentDeserialiseImpl
 						path_comps[j] = (byte[])paths.get(j);
 					}
 					
-					TOTorrentFileImpl file = files[i] = new TOTorrentFileImpl( len, path_comps );
+					TOTorrentFileImpl file = files[i] = new TOTorrentFileImpl( this, len, path_comps );
 					
 						// preserve any non-standard attributes
 						

@@ -24,6 +24,9 @@ package org.gudy.azureus2.core3.torrent;
 public interface 
 TOTorrentFile 
 {
+	public TOTorrent
+	getTorrent();
+	
 	public long
 	getLength();
 		

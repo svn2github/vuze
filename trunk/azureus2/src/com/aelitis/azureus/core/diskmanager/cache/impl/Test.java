@@ -23,6 +23,8 @@
 package com.aelitis.azureus.core.diskmanager.cache.impl;
 
 import java.io.*;
+
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
@@ -57,9 +59,15 @@ Test
 					new CacheFileOwner()
 					{
 						public String
-						getName()
+						getCacheFileOwnerName()
 						{
 							return( "file" + f_i );
+						}
+						
+						public TOTorrentFile
+						getCacheFileTorrentFile()
+						{
+							return( null );
 						}
 					},
 					new File( "C:\\temp\\cachetest" + i + ".dat" ));

@@ -32,6 +32,7 @@ public class
 TOTorrentFileImpl
 	implements TOTorrentFile
 {
+	protected TOTorrent	torrent;
 	protected long		file_length;
 	protected byte[][]	path_components;
 	
@@ -39,11 +40,14 @@ TOTorrentFileImpl
 	
 	protected
 	TOTorrentFileImpl(
+		TOTorrent		_torrent,
 		long			_len,
 		String			_path )
 		
 		throws TOTorrentException
 	{
+		torrent	= _torrent;
+		
 		try{
 			
 			file_length			= _len;
@@ -81,11 +85,19 @@ TOTorrentFileImpl
 	
 	protected
 	TOTorrentFileImpl(
+		TOTorrent		_torrent,
 		long			_len,
 		byte[][]		_path_components )
 	{
+		torrent				= _torrent;
 		file_length			= _len;
 		path_components		= _path_components;
+	}
+	
+	public TOTorrent
+	getTorrent()
+	{
+		return( torrent );
 	}
 	
 	public long

@@ -79,7 +79,7 @@ CacheFileManagerImpl
 						public String
 						getName()
 						{
-							return( owner.getName());
+							return( owner.getCacheFileOwnerName());
 						}
 					}, file );
 				

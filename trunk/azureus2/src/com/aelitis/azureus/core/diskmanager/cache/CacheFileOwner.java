@@ -26,9 +26,15 @@ package com.aelitis.azureus.core.diskmanager.cache;
  * @author parg
  *
  */
+
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+
 public interface 
 CacheFileOwner 
 {
 	public String
-	getName();
+	getCacheFileOwnerName();
+	
+	public TOTorrentFile
+	getCacheFileTorrentFile();
 }
