@@ -92,7 +92,12 @@ public class TrackerConnection {
 
   public String stop() {
     Logger.getLogger().log(componentID, evtLifeCycle, Logger.INFORMATION, "Tracker Connection is sending a stopped Request");
-    return update("stopped");
+    int oldTimeout = timeout;
+    if(timeout > 5000 || timeout == 0)
+      timeout = 5000;
+    String response = update("stopped");
+    timeout = oldTimeout;
+    return response;
   }
 
   public String update() {
