@@ -55,6 +55,12 @@ DHTTransportLoopbackContactImpl
 		return( 0 );
 	}
 	
+	public byte
+	getProtocolVersion()
+	{
+		return( 0 );
+	}
+	
 	public int
 	getMaxFailForLiveCount()
 	{

@@ -73,13 +73,27 @@ DHTUDPUtils
 	
 	protected static byte[]
 	deserialiseByteArray(
-		DataInputStream	is )
+		DataInputStream	is,
+		int				max_length )
 	
 		throws IOException
 	{
-		int	len	= is.readInt();
+		int	len;
 		
-		if ( len > 1024 ){
+		if ( max_length < 256 ){
+			
+			len = is.readByte()&0xff;
+			
+		}else if ( max_length < 65536 ){
+			
+			len = is.readShort()&0xffff;
+			
+		}else{
+			
+			len = is.readInt();
+		}
+		
+		if ( len > max_length ){
 			
 			throw( new IOException( "Invalid data length" ));
 		}
@@ -94,11 +108,30 @@ DHTUDPUtils
 	protected static void
 	serialiseByteArray(
 		DataOutputStream	os,
-		byte[]				data )
+		byte[]				data,
+		int					max_length )
 	
 		throws IOException
 	{
-		os.writeInt( data.length );
+		int	len = data.length;
+		
+		if ( len > max_length ){
+			
+			throw( new IOException( "Invalid data length" ));
+		}
+		
+		if ( max_length < 256 ){
+			
+			os.writeByte( len );
+			
+		}else if ( max_length < 65536 ){
+			
+			os.writeShort( len );
+			
+		}else{
+			
+			os.writeInt( len );
+		}
 		
 		os.write( data );
 	}
@@ -110,7 +143,7 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		int	len = is.readInt();
+		short	len = is.readShort();
 		
 		if ( len > 1024 ){
 			
@@ -137,6 +170,22 @@ DHTUDPUtils
 		
 		return( res );
 	}
+
+	protected static void
+	serialiseTransportValues(
+		DataOutputStream		os,
+		DHTTransportValue[]		values )
+	
+		throws IOException, DHTTransportException
+	{
+		os.writeShort( values.length );
+	
+		for (int i=0;i<values.length;i++){
+			
+			
+			serialiseTransportValue( os, values[i] );
+		}
+	}
 	
 	protected static DHTTransportValue
 	deserialiseTransportValue(
@@ -149,7 +198,7 @@ DHTUDPUtils
 		
 		final long 	created		= is.readLong();
 		
-		final byte[]	value_bytes = deserialiseByteArray( is );
+		final byte[]	value_bytes = deserialiseByteArray( is, 256 );
 		
 		final DHTTransportContact	originator		= deserialiseContact( transport, is );
 		
@@ -199,22 +248,6 @@ DHTUDPUtils
 	}
 	
 	protected static void
-	serialiseTransportValues(
-		DataOutputStream		os,
-		DHTTransportValue[]		values )
-	
-		throws IOException, DHTTransportException
-	{
-		os.writeInt( values.length );
-	
-		for (int i=0;i<values.length;i++){
-			
-			
-			serialiseTransportValue( os, values[i] );
-		}
-	}
-	
-	protected static void
 	serialiseTransportValue(
 		DataOutputStream	os,
 		DHTTransportValue	value )
@@ -225,7 +258,7 @@ DHTUDPUtils
 		
 		os.writeLong( value.getCreationTime());
 		
-		serialiseByteArray( os, value.getValue());
+		serialiseByteArray( os, value.getValue(), 256 );
 		
 		serialiseContact( os, value.getOriginator());
 		
@@ -239,7 +272,7 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		os.writeInt( contacts.length );
+		os.writeShort( contacts.length );
 		
 		for (int i=0;i<contacts.length;i++){
 			
@@ -264,7 +297,7 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		int	len = is.readInt();
+		short	len = is.readShort();
 		
 		if ( len > 1024 ){
 			
@@ -303,6 +336,8 @@ DHTUDPUtils
 			
 			os.writeByte( CT_UDP );
 			
+			os.writeByte( contact.getProtocolVersion());
+			
 			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
 								
 			serialiseAddress( os, c.getExternalAddress() );
@@ -327,12 +362,14 @@ DHTUDPUtils
 			throw( new IOException( "Unsupported contact type:" + ct ));
 		}
 			
+		byte	version = is.readByte();
+		
 			// we don't transport instance ids around via this route as they are just
 			// cached versions and not useful
 				
 		InetSocketAddress	external_address = deserialiseAddress( is );
 		
-		return( new DHTTransportUDPContactImpl( transport, external_address, external_address, 0 ));
+		return( new DHTTransportUDPContactImpl( transport, external_address, external_address, version, 0 ));
 	}
 	
 	
@@ -352,7 +389,7 @@ DHTUDPUtils
 			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
 		}
 		
-		serialiseByteArray( os, ia.getAddress());
+		serialiseByteArray( os, ia.getAddress(), 16);
 		
 		os.writeShort( address.getPort());
 	}
@@ -363,7 +400,7 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		byte[]	bytes = deserialiseByteArray( is );
+		byte[]	bytes = deserialiseByteArray( is, 16 );
 				
 		int	port = is.readShort()&0xffff;
 		

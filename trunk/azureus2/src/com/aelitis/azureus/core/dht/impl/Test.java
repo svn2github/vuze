@@ -186,7 +186,7 @@ Test
 			
 				if ( AELITIS_TEST ){
 					
-					((DHTTransportUDP)transports[i]).importContact( AELITIS_ADDRESS );
+					((DHTTransportUDP)transports[i]).importContact( AELITIS_ADDRESS, DHTTransportUDP.PROTOCOL_VERSION );
 					
 				}else{
 					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
@@ -210,7 +210,7 @@ Test
 			
 			if ( AELITIS_TEST ){
 				
-				((DHTTransportUDP)transports[num_dhts-1]).importContact( AELITIS_ADDRESS );
+				((DHTTransportUDP)transports[num_dhts-1]).importContact( AELITIS_ADDRESS, DHTTransportUDP.PROTOCOL_VERSION );
 
 			}else{
 				

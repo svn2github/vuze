@@ -770,6 +770,11 @@ DHTRouterImpl
 		
 		DHTLog.log( "DHTRouter: requestPing:" + DHTLog.getString( contact.getID()));
 		
+		if ( contact == local_contact ){
+			
+			Debug.out( "pinging local contact" );
+		}
+		
 		synchronized( this ){
 			
 			if ( !outstanding_pings.contains( contact )){
@@ -801,9 +806,14 @@ DHTRouterImpl
 	requestNodeAdd(
 		DHTRouterContactImpl	contact )
 	{
-			// make sure we don't do the ping when synchronized
+			// make sure we don't do the addition when synchronized
 		
 		DHTLog.log( "DHTRouter: requestNodeAdd:" + DHTLog.getString( contact.getID()));
+		
+		if ( contact == local_contact ){
+
+			Debug.out( "adding local contact" );
+		}
 		
 		synchronized( this ){
 			

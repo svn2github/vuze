@@ -234,7 +234,7 @@ DHTControlImpl
 		List	to_save 	= new ArrayList();
 		List	reserves	= new ArrayList();
 		
-		System.out.println( "Exporting" );
+		//System.out.println( "Exporting" );
 		
 		for (int i=0;i<contacts.size();i++){
 		
@@ -260,7 +260,7 @@ DHTControlImpl
 			}
 		}
 		
-		System.out.println( "    initial to_save = " + to_save.size() + ", reserves = " + reserves.size());
+		//System.out.println( "    initial to_save = " + to_save.size() + ", reserves = " + reserves.size());
 		
 			// now pull out any live ones
 		
@@ -274,13 +274,21 @@ DHTControlImpl
 			}
 		}
 		
-		System.out.println( "    after adding live ones = " + to_save.size());
+		//System.out.println( "    after adding live ones = " + to_save.size());
 		
 			// now add any reserve ones
 		
-		to_save.addAll( reserves );
+		for (int i=0;i<reserves.size();i++){
+			
+			DHTRouterContact	contact = (DHTRouterContact)reserves.get(i);
 		
-		System.out.println( "    after adding reserves = " + to_save.size());
+			if ( !to_save.contains( contact )){
+				
+				to_save.add( contact );
+			}
+		}
+		
+		//System.out.println( "    after adding reserves = " + to_save.size());
 
 			// now add in the rest!
 		
@@ -294,7 +302,7 @@ DHTControlImpl
 			}
 		}	
 		
-		System.out.println( "    finally = " + to_save.size());
+		//System.out.println( "    finally = " + to_save.size());
 
 		int	num_to_write = Math.min( max, to_save.size());
 		
@@ -304,7 +312,7 @@ DHTControlImpl
 			
 			DHTRouterContact	contact = (DHTRouterContact)to_save.get(i);
 			
-			System.out.println( "export:" + contact.getString());
+			//System.out.println( "export:" + contact.getString());
 			
 			daos.writeLong( contact.getTimeAlive());
 			

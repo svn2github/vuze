@@ -44,6 +44,9 @@ DHTTransportContact
 	public byte[]
 	getID();
 	
+	public byte
+	getProtocolVersion();
+	
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler );

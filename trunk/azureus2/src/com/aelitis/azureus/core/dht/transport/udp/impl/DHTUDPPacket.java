@@ -25,9 +25,10 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.net.udp.*;
 
 
@@ -39,7 +40,7 @@ import com.aelitis.net.udp.*;
 public class 
 DHTUDPPacket 
 {
-	public static final int		VERSION					= 2;
+	public static final byte	VERSION					= DHTTransportUDP.PROTOCOL_VERSION;
 	
 		// these actions have to co-exist with the tracker ones when the connection
 		// is shared, hence 1024
@@ -58,8 +59,11 @@ DHTUDPPacket
 	private static boolean	registered				= false;
 	private static boolean	version_fail_reported	= false;
 	
+	private static LoggerChannel	logger;
+	
 	protected static void
-	registerCodecs()
+	registerCodecs(
+		LoggerChannel	_logger )
 	{
 		if ( registered ){
 			
@@ -67,6 +71,8 @@ DHTUDPPacket
 		}
 	
 		registered	= true;
+		
+		logger		= _logger;
 			
 		PRUDPPacketRequestDecoder	request_decoder =
 			new PRUDPPacketRequestDecoder()
@@ -190,11 +196,7 @@ DHTUDPPacket
 						
 						version_fail_reported	= true;
 						
-							// TODO: some idiot could annoy users by sending high version
-							// packets - consider removing 
-						
-						LGLogger.logUnrepeatableAlert(
-							LGLogger.AT_ERROR,
+						logger.log(
 							"DHT protocol version is too old, please update Azureus" );
 					}
 				}

@@ -27,6 +27,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.net.udp.PRUDPPacketRequest;
 
@@ -39,7 +41,8 @@ public class
 DHTUDPPacketRequest 
 	extends PRUDPPacketRequest
 {
-	private short				version;
+	private byte				version;
+	private long				originator_time;
 	private InetSocketAddress	originator_address;
 	private int					originator_instance_id;
 	
@@ -55,6 +58,7 @@ DHTUDPPacketRequest
 		
 		originator_address		= _contact.getExternalAddress();
 		originator_instance_id	= _contact.getInstanceID();
+		originator_time			= SystemTime.getCurrentTime();
 	}
 	
 	protected
@@ -68,16 +72,18 @@ DHTUDPPacketRequest
 	{
 		super( type, con_id, trans_id );
 		
-		version	= is.readShort();
+		version	= is.readByte();
 		
 		DHTUDPPacket.checkVersion( version );
 		
 		originator_address		= DHTUDPUtils.deserialiseAddress( is );
 		
 		originator_instance_id	= is.readInt();
+		
+		originator_time			= is.readLong();
 	}
 	
-	protected int
+	protected byte
 	getVersion()
 	{
 		return( version );
@@ -110,7 +116,7 @@ DHTUDPPacketRequest
 	{
 		super.serialise(os);
 		
-		os.writeShort( version );
+		os.writeByte( version );
 		
 		try{
 			DHTUDPUtils.serialiseAddress( os, originator_address );
@@ -121,5 +127,7 @@ DHTUDPPacketRequest
 		}
 		
 		os.writeInt( originator_instance_id );
+		
+		os.writeLong( originator_time );
 	}
 }

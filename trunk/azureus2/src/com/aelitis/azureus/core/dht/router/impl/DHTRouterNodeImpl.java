@@ -212,7 +212,9 @@ DHTRouterNodeImpl
 				
 				DHTRouterContactImpl	c = (DHTRouterContactImpl)buckets.get(i);
 				
-				if ( !c.getPingOutstanding()){
+					// don't ping ourselves or someone already being pinged
+				
+				if ( !( router.isID(c.getID()) || c.getPingOutstanding())){
 			
 					c.setPingOutstanding( true );
 					
@@ -332,7 +334,9 @@ DHTRouterNodeImpl
 					
 					DHTRouterContactImpl	c = (DHTRouterContactImpl)buckets.get(i);
 					
-					if ( !c.getPingOutstanding()){
+						// don't ping ourselves or someone already being pinged
+					
+					if ( !( router.isID(c.getID()) || c.getPingOutstanding())){
 				
 						c.setPingOutstanding( true );
 						

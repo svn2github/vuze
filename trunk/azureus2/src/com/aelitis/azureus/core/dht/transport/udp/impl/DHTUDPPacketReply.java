@@ -39,7 +39,7 @@ DHTUDPPacketReply
 	extends PRUDPPacketReply
 {
 	private long	connection_id;
-	private int		version;
+	private byte	version;
 	private int		target_instance_id;
 	
 	public
@@ -70,7 +70,7 @@ DHTUDPPacketReply
 		
 		connection_id 	= _is.readLong();
 		
-		version			= _is.readShort();
+		version			= _is.readByte();
 			
 		DHTUDPPacket.checkVersion( version );
 	
@@ -89,7 +89,7 @@ DHTUDPPacketReply
 		return( connection_id );
 	}
 	
-	public int
+	public byte
 	getVersion()
 	{
 		return( version );
@@ -105,7 +105,7 @@ DHTUDPPacketReply
 		
 		os.writeLong( connection_id );
 		
-		os.writeShort( version );
+		os.writeByte( version );
 		
 		os.writeInt( target_instance_id );
 	}

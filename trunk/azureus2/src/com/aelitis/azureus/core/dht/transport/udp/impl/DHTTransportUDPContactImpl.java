@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 
@@ -44,6 +45,7 @@ DHTTransportUDPContactImpl
 	private InetSocketAddress		transport_address;
 	
 	private byte[]				id;
+	private byte				protocol_version;
 	private int					instance_id;
 	
 	protected
@@ -51,6 +53,7 @@ DHTTransportUDPContactImpl
 		DHTTransportUDPImpl		_transport,
 		InetSocketAddress		_transport_address,
 		InetSocketAddress		_external_address,
+		byte					_protocol_version,
 		int						_instance_id )
 	
 		throws DHTTransportException
@@ -58,6 +61,7 @@ DHTTransportUDPContactImpl
 		transport				= _transport;
 		transport_address		= _transport_address;
 		external_address		= _external_address;
+		protocol_version		= _protocol_version;
 		
 		if ( transport_address.equals( external_address )){
 			
@@ -71,6 +75,12 @@ DHTTransportUDPContactImpl
 			
 			id = DHTUDPUtils.getNodeID( external_address );
 		}
+	}
+	
+	public byte
+	getProtocolVersion()
+	{
+		return( protocol_version );
 	}
 	
 	protected boolean
@@ -173,9 +183,9 @@ DHTTransportUDPContactImpl
 	{
 		if ( transport_address.equals( external_address )){
 			
-			return( transport_address.toString());
+			return( DHTLog.getString2(id) + "["+transport_address.toString()+"]");
 		}
 		
-		return( "tran="+transport_address.toString()+",ext="+external_address);
+		return( DHTLog.getString2(id) + "[tran="+transport_address.toString()+",ext="+external_address+"]");
 	}
 }

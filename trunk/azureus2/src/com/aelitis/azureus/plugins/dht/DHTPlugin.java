@@ -259,7 +259,9 @@ DHTPlugin
 							
 							dht.setLogging( logging.getValue());
 							
-							transport.importContact(new InetSocketAddress( "213.186.46.164", 6881 ));
+							transport.importContact(
+									new InetSocketAddress( "213.186.46.164", 6881 ),
+									DHTTransportUDP.PROTOCOL_VERSION );
 							
 							importContacts();
 							

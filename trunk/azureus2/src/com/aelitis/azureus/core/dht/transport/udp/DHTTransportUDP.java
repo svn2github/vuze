@@ -37,9 +37,12 @@ public interface
 DHTTransportUDP
 	extends DHTTransport
 {
+	public static final byte PROTOCOL_VERSION		= 3;
+	
 	public DHTTransportContact
 	importContact(
-		InetSocketAddress	address )
+		InetSocketAddress	address,
+		byte				protocol_version )
 	
 		throws DHTTransportException;
 }

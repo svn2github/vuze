@@ -55,12 +55,7 @@ DHTTransportUDPImpl
 	implements DHTTransportUDP, PRUDPRequestHandler
 {
 	public static boolean TEST_EXTERNAL_IP	= false;
-	
-	static{
 		
-		DHTUDPPacket.registerCodecs();
-	}
-	
 	private static String	external_address;
 	
 	
@@ -118,6 +113,8 @@ DHTTransportUDPImpl
 		request_timeout			= _timeout;
 		logger					= _logger;
 				
+		DHTUDPPacket.registerCodecs( logger );
+
 			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
 			// if you change it :)
 		
@@ -134,7 +131,7 @@ DHTTransportUDPImpl
 
 		logger.log( "Initial external address: " + address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, random.nextInt());
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTUDPPacket.VERSION, random.nextInt());
 	}
 	
 	public void
@@ -142,7 +139,7 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), random.nextInt());		
+		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), DHTUDPPacket.VERSION, random.nextInt());		
 	}
 	
 	public void
@@ -160,7 +157,7 @@ DHTTransportUDPImpl
 		
 		InetSocketAddress	address = new InetSocketAddress( external_address, port );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, local_contact.getInstanceID());		
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTUDPPacket.VERSION, local_contact.getInstanceID());		
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -472,7 +469,7 @@ DHTTransportUDPImpl
 		
 		logger.log( "External address changed: " + s_address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, s_address, s_address, random.nextInt());
+		local_contact = new DHTTransportUDPContactImpl( this, s_address, s_address, DHTUDPPacket.VERSION, random.nextInt());
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -533,13 +530,14 @@ DHTTransportUDPImpl
 	
 	public DHTTransportContact
 	importContact(
-		InetSocketAddress	address )
+		InetSocketAddress	address,
+		byte				protocol_version )
 	
 		throws DHTTransportException
 	{
 			// instance id of 0 means "unknown"
 		
-		DHTTransportContact	contact = new DHTTransportUDPContactImpl( this, address, address, 0 );
+		DHTTransportContact	contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, 0 );
 		
 		request_handler.contactImported( contact );
 		
@@ -1167,7 +1165,13 @@ DHTTransportUDPImpl
 			
 			InetSocketAddress	transport_address = request.getAddress();
 			
-			DHTTransportUDPContactImpl	originating_contact = new DHTTransportUDPContactImpl( this, transport_address, request.getOriginatorAddress(), request.getOriginatorInstanceID());
+			DHTTransportUDPContactImpl	originating_contact = 
+				new DHTTransportUDPContactImpl( 
+						this, 
+						transport_address, 
+						request.getOriginatorAddress(), 
+						request.getVersion(),
+						request.getOriginatorInstanceID());
 			
 			try{
 				checkAddress( originating_contact );

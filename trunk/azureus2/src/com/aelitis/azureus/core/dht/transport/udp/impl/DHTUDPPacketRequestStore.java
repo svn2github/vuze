@@ -40,7 +40,7 @@ DHTUDPPacketRequestStore
 	extends DHTUDPPacketRequest
 {
 	private byte[]				key;
-	private	DHTTransportValue	value;
+	private	DHTTransportValue[]	values;
 	
 	public
 	DHTUDPPacketRequestStore(
@@ -61,15 +61,9 @@ DHTUDPPacketRequestStore
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_STORE, con_id, trans_id );
 		
-		key		= DHTUDPUtils.deserialiseByteArray( is );
+		key		= DHTUDPUtils.deserialiseByteArray( is, 64 );
 		
-		try{
-			value 	= DHTUDPUtils.deserialiseTransportValue( transport, is );
-			
-		}catch( DHTTransportException e ){
-			
-			throw( new IOException( e.getMessage()));
-		}
+		values 	= DHTUDPUtils.deserialiseTransportValues( transport, is );
 	}
 	
 	public void
@@ -80,10 +74,10 @@ DHTUDPPacketRequestStore
 	{
 		super.serialise(os);
 		
-		DHTUDPUtils.serialiseByteArray( os, key );
+		DHTUDPUtils.serialiseByteArray( os, key, 64 );
 		
 		try{
-			DHTUDPUtils.serialiseTransportValue( os, value );
+			DHTUDPUtils.serialiseTransportValues( os, values );
 			
 		}catch( DHTTransportException e ){
 			
@@ -95,13 +89,18 @@ DHTUDPPacketRequestStore
 	setValue(
 		DHTTransportValue	_value )
 	{
-		value	= _value;
+		values	= new DHTTransportValue[]{ _value };
 	}
 	
 	protected DHTTransportValue
 	getValue()
 	{
-		return( value );
+		if ( values == null || values.length == 0 ){
+			
+			return( null );
+		}
+		
+		return( values[0] );
 	}
 	
 	protected void
