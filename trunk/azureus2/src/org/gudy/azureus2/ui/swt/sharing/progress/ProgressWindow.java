@@ -29,14 +29,8 @@ import org.eclipse.swt.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.animations.Animator;
-import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
-import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
-import org.gudy.azureus2.ui.swt.shells.PopupShell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 
@@ -79,102 +73,68 @@ ProgressWindow
 	}
 	
 	protected class
-	progressDialog extends PopupShell implements AnimableShell
+	progressDialog
 	{
-		//protected Shell			shell;
+		protected Shell			shell;
 		
 		protected
 		progressDialog(
 			Display				display )
 		{
-      super(display);
 			if ( display.isDisposed()){
 								
 				return;
 			}
 			
-			//shell = new Shell( display, SWT.DIALOG_TRIM );
+			shell = new Shell( display, SWT.DIALOG_TRIM );
 			
-			//shell.setImage(ImageRepository.getImage("azureus"));
+			shell.setImage(ImageRepository.getImage("azureus"));
 			shell.setText(MessageText.getString("sharing.progress.title"));
 			
-			//GridLayout layout = new GridLayout();
-			//layout.numColumns = 3;
+			GridLayout layout = new GridLayout();
+			layout.numColumns = 3;
 			
-			//shell.setLayout (layout);
+			shell.setLayout (layout);
 			
-			//Composite panel = new Composite(shell, SWT.NULL);
-			//GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
-			//panel.setLayoutData(gridData);
-			//layout = new GridLayout();
-			//layout.numColumns = 1;
-			//panel.setLayout(layout);
+			Composite panel = new Composite(shell, SWT.NULL);
+			GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+			panel.setLayoutData(gridData);
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			panel.setLayout(layout);
 
-			tasks = new StyledText(shell, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);  
-			tasks.setBackground(display.getSystemColor(SWT.COLOR_WHITE));      
-      
-      
-			//gridData = new GridData(GridData.FILL_BOTH);
-			//gridData.heightHint = 200;
-			//tasks.setLayoutData(gridData);
+			tasks = new StyledText(panel, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);  
+			tasks.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+			gridData = new GridData(GridData.FILL_BOTH);
+			gridData.heightHint = 200;
+			tasks.setLayoutData(gridData);
 
-			progress = new ProgressBar(shell, SWT.NULL);
+			progress = new ProgressBar(panel, SWT.NULL);
 			progress.setMinimum(0);
-			progress.setMaximum(100);            
-      
-			//gridData = new GridData(GridData.FILL_HORIZONTAL);
-			//progress.setLayoutData(gridData);		
+			progress.setMaximum(0);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			progress.setLayoutData(gridData);		
 			
 			// buttons
 						
-			//Composite comp = new Composite(panel,SWT.NULL);
-			//gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
-			//gridData.grabExcessHorizontalSpace = true;
-			//gridData.horizontalSpan = 1;
-			//comp.setLayoutData(gridData);
-			//GridLayout layoutButtons = new GridLayout();
-			//layoutButtons.numColumns = 2;
-			//comp.setLayout(layoutButtons);
+			Composite comp = new Composite(panel,SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+			gridData.grabExcessHorizontalSpace = true;
+			gridData.horizontalSpan = 1;
+			comp.setLayoutData(gridData);
+			GridLayout layoutButtons = new GridLayout();
+			layoutButtons.numColumns = 2;
+			comp.setLayout(layoutButtons);
 			
 			
-			//new Label(comp,SWT.NULL);
+			new Label(comp,SWT.NULL);
 			
-			Button hide_button = new Button(shell,SWT.PUSH);
+			Button hide_button = new Button(comp,SWT.PUSH);
 			hide_button.setText(MessageText.getString("sharing.progress.hide"));
-			//gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
-			//gridData.grabExcessHorizontalSpace = true;
-			//gridData.widthHint = 70;
-			//hide_button.setLayoutData(gridData);
-      
-      
-      //Layout :
-      
-      //Progress Bar on bottom, with Hide button next to it.
-      FormData formData;
-      formData = new FormData();
-      formData.right = new FormAttachment(100,-5);
-      formData.bottom = new FormAttachment(100,-10);
-      
-      hide_button.setLayoutData(formData);
-      
-      formData = new FormData();
-      formData.right = new FormAttachment(hide_button,-5);
-      formData.left = new FormAttachment(0,50);
-      formData.bottom = new FormAttachment(100,-10);
-      
-      progress.setLayoutData(formData);
-      
-      formData = new FormData();
-      formData.right = new FormAttachment(100,-5);
-      formData.bottom = new FormAttachment(100,-50);
-      formData.top = new FormAttachment(0,5);
-      formData.left = new FormAttachment(0,5);
-      
-      tasks.setLayoutData(formData);
-      
-      
-      layout();
-      
+			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+			gridData.grabExcessHorizontalSpace = true;
+			gridData.widthHint = 70;
+			hide_button.setLayoutData(gridData);
 			hide_button.addListener(SWT.Selection,new Listener() {
 				public void handleEvent(Event e) {
 					hidePanel();
@@ -193,22 +153,15 @@ ProgressWindow
 			});
 
 			
-      Rectangle bounds = display.getClientArea();    
-      x0 = bounds.width - 250;
-      x1 = bounds.width;
-      
-      y0 = bounds.height;
-      y1 = bounds.height - 150;
+			shell.setSize(400,320);
 					
-			shell.setLocation(x0,y0);
+			Utils.centreWindow( shell );
 		}
 		
 		protected void
 		hidePanel()
 		{			
-      currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x1,y1),15,30);
-      currentAnimator.start();
-      hideAfter = true;
+			shell.setVisible(false);
 		}
 		
 		protected void
@@ -218,14 +171,9 @@ ProgressWindow
 			
 				shell_opened = true;
 				
-				shell.open();        
+				shell.open();
 			}
-      
-      if(currentAnimator == null) {
-        currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),15,30);
-        currentAnimator.start();
-      }
-            
+			
 			shell.moveAbove( MainWindow.getWindow().getShell());
 			
 			if ( !shell.isVisible()){
@@ -233,42 +181,6 @@ ProgressWindow
 				shell.setVisible(true);
 			}
 		}
-    
-    
-    
-    //Animation properties
-    Animator currentAnimator;
-    int x0,y0,x1,y1;
-    
-    boolean isAnimated;
-    boolean hideAfter;
-    
-    public void animationEnded(Animator source) {
-      if(source != currentAnimator) 
-        return;
-      isAnimated = false;
-      currentAnimator = null;
-      if(hideAfter) {
-        hideAfter = false;
-        if(display == null || display.isDisposed())
-          return;
-        display.asyncExec(new Runnable() {          
-          public void run() {
-            shell.setVisible(false);
-          }
-        });
-      }
-    }
-
-    public void animationStarted(Animator source) {
-    }
-
-    public Shell getShell() {
-      return shell;
-    }
-
-    public void reportPercent(int percent) {
-    }
 	}
 	
 	public void
@@ -305,7 +217,7 @@ ProgressWindow
 					{
 						if (progress != null && !progress.isDisposed()){
 							
-							//dialog.showPanel();
+							dialog.showPanel();
 							
 							progress.setSelection(percent_complete);
 						}

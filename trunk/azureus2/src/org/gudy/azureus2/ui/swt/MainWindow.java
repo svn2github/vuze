@@ -2941,7 +2941,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		{
       
       //Uncomment following to restore old popup system.
-      /*
+      
 			MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(), type | SWT.OK );
     	
 			mb.setText(title);
@@ -2949,9 +2949,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 			mb.setMessage(	message );
   	  	
 			mb.open();
-      */
       
-      ErrorPopupShell eps = new ErrorPopupShell(display,title,message,details);
+      
+      //ErrorPopupShell eps = new ErrorPopupShell(display,title,message,details);
 		}
  	});
    }
