@@ -351,6 +351,7 @@ DownloadManagerImpl
 		state = DownloadManager.STATE_STOPPED;                
 	  }
 	};
+	stopThread.setDaemon(true);
 	stopThread.start();
   }
 
