@@ -25,11 +25,13 @@ package org.gudy.azureus2.plugins.tracker;
  * @author Olivier
  *
  */
-public interface PeerStatsListener {
+public interface StatsListener {
   
+  public static final int EVENT_STARTE   = 0;
   public static final int EVENT_UPDATE   = 10;  
   public static final int EVENT_FINISHED = 20;
   public static final int EVENT_STOPPED  = 30;
   
-  public void peerStatsUpdated(Object pluginKey,int event,long uploaded,long downloaded);
+  public void peerStatsUpdated(Object peerKey,int event,long uploaded,long downloaded);
+  
 }

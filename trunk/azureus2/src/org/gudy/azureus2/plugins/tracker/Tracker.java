@@ -1,5 +1,5 @@
 /*
- * File    : PeerKey.java
+ * File    : Tracker.java
  * Created : 30 nov. 2003
  * By      : Olivier
  *
@@ -25,8 +25,16 @@ package org.gudy.azureus2.plugins.tracker;
  * @author Olivier
  *
  */
-public interface TrackerPeer {
-  
-  public void associateKeyToPeer(Object peerKey);
-
+public interface Tracker {
+    /**
+     * adds an identificator to the tracker
+     * @param indentificator the Identificator
+     */
+    public void addTrackerIdentificator(Identificator identificator);
+    
+    /**
+     * adds a stats listener to the tracker
+     * @param listener
+     */
+    public void addTrackerStatsListener(StatsListener listener);
 }
