@@ -255,6 +255,9 @@ public class TableCellImpl
     if (bufferedTableItem == null || 
         !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
+    if (img == null)
+      return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(null);
+
     if (!(img instanceof GraphicSWT))
       return false;
     Image imgSWT = ((GraphicSWT)img).getImage();
