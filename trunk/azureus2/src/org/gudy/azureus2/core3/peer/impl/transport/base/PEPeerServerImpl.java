@@ -103,6 +103,10 @@ PEPeerServerImpl
     while (sck == null && port <= highPort) {
       try {
         sck = ServerSocketChannel.open();
+        
+        // Allow the server socket to be released back to OS faster
+        // during shutdown
+        sck.socket().setReuseAddress(true);
         if (bindIP.length() < 7) {
            sck.socket().bind(new InetSocketAddress(port));
         }
