@@ -471,23 +471,27 @@ public class DiskManager {
 
     public void run() {
       while (bContinue) {
-        synchronized (readQueue) {
-          if (readQueue.size() == 0) {
-            try {
-              if (bContinue) {
-                readWaitFlag = true;
-                readQueue.wait();
-                readWaitFlag = false;
-              }
-            } catch (Exception e) {
-            }
-          }
-        }
-        while (bContinue && readQueue.size() != 0) {
-          DataQueueItem item = (DataQueueItem) readQueue.remove(0);
-          Request request = item.getRequest();
-          item.setBuffer(readBlock(request.getPieceNumber(), request.getOffset(), request.getLength()));
-        }
+		synchronized (readQueue)
+		{
+	        if (bContinue && readQueue.size() != 0) 
+	        {
+	          DataQueueItem item = (DataQueueItem) readQueue.remove(0);
+	          Request request = item.getRequest();
+	          item.setBuffer(readBlock(request.getPieceNumber(), request.getOffset(), request.getLength()));
+	        }
+		
+			if (readQueue.size() == 0) 
+			{
+				try {
+					if (bContinue) {
+						readWaitFlag = true;
+						readQueue.wait();
+						readWaitFlag = false;
+					}
+				} catch (Exception e) {
+				}
+			}
+		}
       }
     }
 
