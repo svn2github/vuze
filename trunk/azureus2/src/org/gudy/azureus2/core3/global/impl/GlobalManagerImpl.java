@@ -332,7 +332,7 @@ public class GlobalManagerImpl
       }
       
       fDest.createNewFile();
-      copyFile(f, fDest);
+      FileUtil.copyFile(f, fDest);
       DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath);
       boolean correct = addDownloadManager(manager);
       if (!correct) {
@@ -351,17 +351,7 @@ public class GlobalManagerImpl
     }
   }
 
-  private void copyFile(File origin, File destination) throws IOException {
-    OutputStream os = new FileOutputStream(destination);
-    InputStream is = new FileInputStream(origin);
-    byte[] buffer = new byte[32768];
-    int nbRead = 0;
-    while ((nbRead = is.read(buffer)) > 0) {
-      os.write(buffer, 0, nbRead);
-    }
-    is.close();
-    os.close();
-  }
+
 
   //Public method !!! and don't touch it !
   public boolean addDownloadManager(DownloadManager manager) {

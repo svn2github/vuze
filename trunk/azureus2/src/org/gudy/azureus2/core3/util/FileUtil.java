@@ -7,8 +7,12 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -76,6 +80,18 @@ public class FileUtil {
     else {
       f.delete();
     }
+  }
+  
+  public static void copyFile(File origin, File destination) throws IOException {
+    OutputStream os = new FileOutputStream(destination);
+    InputStream is = new FileInputStream(origin);
+    byte[] buffer = new byte[32768];
+    int nbRead = 0;
+    while ((nbRead = is.read(buffer)) > 0) {
+      os.write(buffer, 0, nbRead);
+    }
+    is.close();
+    os.close();
   }
   
 
