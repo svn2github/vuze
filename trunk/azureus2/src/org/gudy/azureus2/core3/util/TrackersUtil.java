@@ -120,9 +120,9 @@ public class TrackersUtil {
             List resGroups = new ArrayList(groups.size());
             Iterator iterGroups = groups.iterator();
             while(iterGroups.hasNext()) {
-              List trackers = (List) iterGroups.next();
-              List resTrackers = new ArrayList(trackers.size());
-              Iterator iterTrackers = trackers.iterator();
+              List theseTrackers = (List) iterGroups.next();
+              List resTrackers = new ArrayList(theseTrackers.size());
+              Iterator iterTrackers = theseTrackers.iterator();
               while(iterTrackers.hasNext()) {
                 String tracker = new String((byte[]) iterTrackers.next());
                 resTrackers.add(tracker);

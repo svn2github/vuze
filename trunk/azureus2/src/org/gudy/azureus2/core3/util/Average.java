@@ -37,15 +37,15 @@ public class Average {
 
   /**
    * Private constructor for an Average
-   * @param refreshRate the refresh rate in ms
-   * @param period the period in s
+   * @param _refreshRate the refresh rate in ms
+   * @param _period the period in s
    */
-  private Average(int refreshRate, int period) {
-    this.refreshRate = refreshRate;
-    this.period = period;
+  private Average(int _refreshRate, int _period) {
+    this.refreshRate = _refreshRate;
+    this.period = _period;
 
-    this.nbElements = (period * 1000) / refreshRate + 2;
-    this.lastUpdate = SystemTime.getCurrentTime() / refreshRate;
+    this.nbElements = (_period * 1000) / _refreshRate + 2;
+    this.lastUpdate = SystemTime.getCurrentTime() / _refreshRate;
     this.values = new long[this.nbElements];
   }
 

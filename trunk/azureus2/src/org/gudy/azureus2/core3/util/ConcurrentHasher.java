@@ -196,9 +196,7 @@ ConcurrentHasher
 		final long	loop			= 1024;
 		
 		for (int i=0;i<threads;i++){
-			
-			final int	f_i	= i;
-			
+						
 			new Thread()
 			{
 				public void

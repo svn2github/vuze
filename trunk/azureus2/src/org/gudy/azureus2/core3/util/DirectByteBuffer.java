@@ -23,7 +23,6 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.IOException;
-import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
@@ -223,6 +222,8 @@ DirectByteBuffer
 		Throwable 	e )
 	{
 		if ( TRACE ){
+			
+			Ignore.ignore(e);
 		}
 	}
 	
