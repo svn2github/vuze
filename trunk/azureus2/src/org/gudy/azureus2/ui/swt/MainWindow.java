@@ -98,7 +98,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  * @author Olivier
  *  
  */
-public class MainWindow implements GlobalManagerListener {
+public class MainWindow implements GlobalManagerListener, ParameterListener {
 
   public static final String VERSION = Constants.AZUREUS_VERSION;
   private String latestVersion = ""; //$NON-NLS-1$
@@ -810,9 +810,8 @@ public class MainWindow implements GlobalManagerListener {
     }
     catch (NoClassDefFoundError e) {}
 
-    if (available) {
+    if (available)
       trayIcon = new SystemTray(this);
-    }
     else
       tray = new TrayWindow(this);
 
@@ -844,6 +843,13 @@ public class MainWindow implements GlobalManagerListener {
     if (!COConfigurationManager.getBooleanParameter("Wizard Completed", false)) {
       new ConfigureWizard(display);
     }       
+
+    if (COConfigurationManager.getBooleanParameter("Show Download Basket", true)) { //$NON-NLS-1$
+      if(tray == null)
+        tray = new TrayWindow(this);
+      tray.setVisible(true);
+    }
+    COConfigurationManager.addParameterListener("Show Download Basket", this);
   }
 
 	public void allocateBlues() {
@@ -1698,9 +1704,8 @@ public class MainWindow implements GlobalManagerListener {
   public void setVisible(boolean visible) {
     mainWindow.setVisible(visible);
     if (visible) {
-      if (tray != null) {
+      if (tray != null)
         tray.setVisible(false);
-      }
       mainWindow.forceActive();
       mainWindow.setMinimized(false);
     }
@@ -2099,6 +2104,22 @@ public class MainWindow implements GlobalManagerListener {
   
   public void openUrl() {
     new OpenUrlWindow(display);
+  }
+  
+  /**
+   * @param parameterName the name of the parameter that has changed
+   * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+   */
+  public void parameterChanged(String parameterName) {
+    if (COConfigurationManager.getBooleanParameter("Show Download Basket", true)) { //$NON-NLS-1$
+      if(tray == null) {
+        tray = new TrayWindow(this);
+        tray.setVisible(true);
+      }
+    } else if(trayIcon != null) {
+      tray.setVisible(false);
+      tray = null;
+    }
   }
 
 }

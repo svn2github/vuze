@@ -140,13 +140,10 @@ public class TrayWindow implements GlobalManagerListener {
   }
 
   public void setVisible(boolean visible) {
-    minimized.setVisible(visible);
-    if (visible) {
-      //minimized.setFocus();
-      //minimized.setActive();
-    }
-    else {
-      moving = false;
+    if(visible || !COConfigurationManager.getBooleanParameter("Show Download Basket", true)) {
+      minimized.setVisible(visible);
+      if (!visible)
+        moving = false;
     }
   }
 
@@ -156,7 +153,8 @@ public class TrayWindow implements GlobalManagerListener {
 
   public void restore() {
     if (!COConfigurationManager.getBooleanParameter("Password enabled", false)) {
-      minimized.setVisible(false);
+      if(!COConfigurationManager.getBooleanParameter("Show Download Basket", true))
+        minimized.setVisible(false);
       main.setVisible(true);
       moving = false;
     }
