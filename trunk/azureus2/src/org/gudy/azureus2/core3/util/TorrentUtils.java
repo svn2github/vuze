@@ -316,6 +316,78 @@ TorrentUtils
 			
 			System.out.println( "TorrentUtils::announceGroupsSetFirst - failed to find '" + first_url + "'" );
 		}
+		
 		listToAnnounceGroups( groups, torrent );
+	}
+	
+	public static boolean
+	mergeAnnounceURLs(
+		TOTorrent 	new_torrent,
+		TOTorrent	dest_torrent )
+	{
+		if ( new_torrent == null || dest_torrent == null ){
+			
+			return( false);
+		}
+		
+		List	new_groups 	= announceGroupsToList( new_torrent );
+		List 	dest_groups = announceGroupsToList( dest_torrent );
+		
+		List	groups_to_add = new ArrayList();
+		
+		for (int i=0;i<new_groups.size();i++){
+			
+			List new_set = (List)new_groups.get(i);
+			
+			boolean	match = false;
+			
+			for (int j=0;j<dest_groups.size();j++){
+				
+				List dest_set = (List)dest_groups.get(j);
+				
+				boolean same = new_set.size() == dest_set.size();
+				
+				if ( same ){
+					
+					for (int k=0;k<new_set.size();k++){
+						
+						String new_url = (String)new_set.get(k);
+						
+						if ( !dest_set.contains(new_url)){
+							
+							same = false;
+							
+							break;
+						}
+					}
+				}
+				
+				if ( same ){
+					
+					match = true;
+					
+					break;
+				}
+			}
+			
+			if ( !match ){
+		
+				groups_to_add.add( new_set );
+			}
+		}
+		
+		if ( groups_to_add.size() == 0 ){
+			
+			return( false );
+		}
+		
+		for (int i=0;i<groups_to_add.size();i++){
+			
+			dest_groups.add(i,groups_to_add.get(i));
+		}
+		
+		listToAnnounceGroups( dest_groups, dest_torrent );
+		
+		return( true );
 	}
 }

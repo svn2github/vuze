@@ -403,10 +403,38 @@ public class GlobalManagerImpl
   public boolean addDownloadManager(DownloadManager manager) {
     if (!isStopped) {
       synchronized (managers) {
-        if (managers.contains(manager)) {
-          manager.setState(DownloadManager.STATE_DUPLICATE);
-          return false;
+      	
+      	int	existing_index = managers.indexOf( manager );
+      	
+        if (existing_index != -1) {
+        	
+        	DownloadManager existing = (DownloadManager)managers.get(existing_index);
+          
+        	TOTorrent existing_torrent 	= existing.getTorrent();
+        	TOTorrent new_torrent		= manager.getTorrent();
+        	
+        	if ( TorrentUtils.mergeAnnounceURLs( new_torrent, existing_torrent )){
+        		
+        		try{
+        			
+        			TorrentUtils.writeToFile( existing_torrent );
+        			
+        			TRTrackerClient	client = existing.getTrackerClient();
+        			
+        			if ( client != null ){
+        				
+        				client.resetTrackerUrl( false );
+        			}
+        		}catch( Throwable e ){
+        			e.printStackTrace();;
+        		}
+        	}
+        	
+        	manager.setState(DownloadManager.STATE_DUPLICATE);
+        	
+            return false;
         }
+        
         managers.add(manager);
       }
 
