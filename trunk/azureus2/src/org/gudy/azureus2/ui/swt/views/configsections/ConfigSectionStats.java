@@ -50,6 +50,9 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 
 public class ConfigSectionStats implements ConfigSectionSWT {
+	
+  private static final int defaultStatsPeriod = 30;
+  
   private static final int statsPeriods[] =
     {
       1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50,
@@ -194,7 +197,7 @@ public class ConfigSectionStats implements ConfigSectionSWT {
     }
 
     controls[9] = lSaveFreq;
-    controls[10] = new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues).getControl();
+    controls[10] = new IntListParameter(gStats, "Stats Period", defaultStatsPeriod, spLabels, spValues).getControl();
     new Label(gStats, SWT.NULL);
 
     	// ROW
