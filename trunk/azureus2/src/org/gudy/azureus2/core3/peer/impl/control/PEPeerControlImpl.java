@@ -1495,8 +1495,20 @@ PEPeerControlImpl
     if (result) {
 
       PEPieceImpl piece = _pieces[pieceNumber];
-      if(piece != null)
+      
+      if(piece != null) {
+      	List list = piece.getPieceWrites();
+        if(list.size() > piece.getNbBlocs()) {
+          Iterator iter = list.iterator();
+          while(iter.hasNext()) {
+            PEPieceWrite write = (PEPieceWrite) iter.next();
+            try{
+              System.out.println(write.sender.getIp() + " : " + write.blocNumber + " H: "+ ByteFormatter.nicePrint(write.hash));
+            } catch(Exception ignore) { }
+          }
+        }
         piece.free();
+      }
       _pieces[pieceNumber] = null;
 
       //mark this piece as downloaded
@@ -1504,19 +1516,12 @@ PEPeerControlImpl
 
       //send all clients an have message
       sendHave(pieceNumber);
-
+      
     }
     //the piece is corrupt
     else {
       if (_pieces[pieceNumber] != null) {
-        List list = _pieces[pieceNumber].getPieceWrites();
-        Iterator iter = list.iterator();
-        while(iter.hasNext()) {
-          PEPieceWrite write = (PEPieceWrite) iter.next();
-          try{
-          	System.out.println(write.sender.getIp() + " : " + write.blocNumber + " H: "+ ByteFormatter.nicePrint(write.hash));
-          } catch(Exception ignore) { }
-        }
+        
         //_pieces[pieceNumber].free();      
         _pieces[pieceNumber].reset();
       
