@@ -274,16 +274,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.left = new FormAttachment(ignore_ports.getControl());
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     label.setLayoutData(formData);
-    
-   
-    if(!Constants.isOSX) {
-      BooleanParameter playSound = new BooleanParameter(cTransfer, "Play Download Finished", false, "ConfigView.label.playdownloadfinished");
-      formData = new FormData();
-      formData.top = new FormAttachment(ignore_ports.getControl());
-      playSound.setLayoutData(formData);
-    }
-    
- 
+
     return cTransfer;
   }
 }

@@ -26,6 +26,8 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
@@ -95,7 +97,9 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     new BooleanParameter(cDisplay, "Send Version Info",true, "ConfigView.label.allowSendVersion");
     
     //Option disabled on OS X, as impossible to make it work correctly
-    if(! Constants.isOSX) {
+    if(! Constants.isOSX) {      
+      new BooleanParameter(cDisplay, "Play Download Finished",false, "ConfigView.label.playdownloadfinished");
+        
       new BooleanParameter(cDisplay, "confirmationOnExit",false, "ConfigView.section.style.confirmationOnExit");
     }
     

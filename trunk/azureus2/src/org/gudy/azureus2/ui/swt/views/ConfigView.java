@@ -211,11 +211,11 @@ public class ConfigView extends AbstractIView {
      */
     pluginSections = ConfigSectionRepository.getInstance().getList();
 
-    ConfigSection[] internalSections = { new ConfigSectionFile(), 
+    ConfigSection[] internalSections = { new ConfigSectionConnection(),
+                                         new ConfigSectionTransfer(),
+                                         new ConfigSectionFile(), 
                                          new ConfigSectionFileTorrents(),
                                          new ConfigSectionFilePerformance(),
-                                         new ConfigSectionConnection(),
-                                         new ConfigSectionTransfer(),
                                          new ConfigSectionInterface(),
                                          new ConfigSectionInterfaceStart(),
                                          new ConfigSectionInterfaceDisplay(),
