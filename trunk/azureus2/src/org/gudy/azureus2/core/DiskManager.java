@@ -944,7 +944,7 @@ public class DiskManager {
         FileChannel fc = raf.getChannel();
         try {
           fc.position(fileOffset + (offset - previousFilesLength));
-          while(fc.position() != fc.size() || buffer.hasRemaining())
+          while(fc.position() < (fc.size()-1) && buffer.hasRemaining())
             fc.read(buffer);
         }
         catch (IOException e) {
