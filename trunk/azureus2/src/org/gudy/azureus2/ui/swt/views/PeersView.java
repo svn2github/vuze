@@ -10,6 +10,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -26,122 +30,170 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ParameterListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeerRow;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.EnumeratorEditor;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificationListener;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
+import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
 /**
  * @author Olivier
- * 
  */
-public class PeersView extends AbstractIView implements DownloadManagerListener, SortableTable, ParameterListener {
+public class PeersView extends AbstractIView implements DownloadManagerListener, SortableTable, ParameterListener, ITableStructureModificationListener {
 
-  DownloadManager manager;
-  Table table;
-  Map objectToSortableItem;
-  Map tableItemToObject;
+  private DownloadManager manager;
+  private Composite panel;
+  private Table table;
+  private Menu menu;
+  private Map objectToSortableItem;
+  private Map tableItemToObject;
   
-  TableSorter sorter;
-  int loopFactor;
-  static int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+  private ItemEnumerator itemEnumerator;
+  private TableSorter sorter;
+  
+  private int loopFactor;
+  private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+
+  private final String[] tableItems = {
+     "ip;L;S;100;0"
+    ,"port;L;I;40;-1"
+    ,"T;L;I;20;1"
+    ,"I1;C;I;20;2"
+    ,"C1;C;I;20;3"
+    ,"pieces;C;I;100;4"
+    ,"%;R;I;55;5"
+    ,"downloadspeed;R;I;65;6"
+    ,"download;R;I;70;7"
+    ,"I2;C;I;20;8"
+    ,"C2;C;I;20;9"
+    ,"optunchoke;C;I;20;10"
+    ,"uploadspeed;R;I;65;11"
+    ,"upload;R;I;70;12"
+    ,"statup;R;I;65;-1"
+    ,"S;C;I;20;13"
+    ,"downloadspeedoverall;R;I;65;14"    
+    ,"client;L;S;105;15"
+    ,"discarded;R;I;60;16" };
+
+  /**
+   * @return Returns the itemEnumerator.
+   */
+  public ItemEnumerator getItemEnumerator() {
+    return itemEnumerator;
+  }
 
   public PeersView(DownloadManager manager) {
     this.manager = manager;
     objectToSortableItem = new HashMap();
     tableItemToObject = new HashMap();
   }
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
-   */
+  
   public void initialize(Composite composite) {
-    table = new Table(composite, SWT.MULTI | SWT.FULL_SELECTION);
-    table.setLinesVisible(false);
-    table.setHeaderVisible(true);
-    String[] titles = { "ip", //$NON-NLS-1$
-      "port", //$NON-NLS-1$
-      "T", "I1", "C1", "pieces", //$NON-NLS-1$
-      "%", //$NON-NLS-1$
-      "downloadspeed", //$NON-NLS-1$
-      "download", //$NON-NLS-1$
-      "I2", "C2", "uploadspeed", //$NON-NLS-1$
-      "upload", //$NON-NLS-1$
-      "statup", "S", "downloadspeedoverall", //$NON-NLS-1$
-      "optunchoke", "client","discarded" };
-    int[] align =
-      {
-        SWT.LEFT,
-        SWT.LEFT,
-        SWT.LEFT,
-        SWT.CENTER,
-        SWT.CENTER,
-        SWT.CENTER,
-        SWT.RIGHT,
-        SWT.RIGHT,
-        SWT.RIGHT,
-        SWT.CENTER,
-        SWT.CENTER,
-        SWT.RIGHT,
-        SWT.RIGHT,
-        SWT.RIGHT,
-        SWT.CENTER,
-        SWT.RIGHT,
-        SWT.LEFT,
-        SWT.LEFT,
-        SWT.CENTER };
-    for (int i = 0; i < titles.length; i++) {
-      TableColumn column = new TableColumn(table, align[i]);
-      Messages.setLanguageText(column, "PeersView." + titles[i]);
-    }
-    table.getColumn(0).setWidth(100);
-    table.getColumn(1).setWidth(0);
-    table.getColumn(2).setWidth(20);
-    table.getColumn(3).setWidth(20);
-    table.getColumn(4).setWidth(20);
-    table.getColumn(5).setWidth(100);
-    table.getColumn(6).setWidth(55);
-    table.getColumn(7).setWidth(65);
-    table.getColumn(8).setWidth(70);
-    table.getColumn(9).setWidth(20);
-    table.getColumn(10).setWidth(20);
-    table.getColumn(11).setWidth(65);
-    table.getColumn(12).setWidth(70);
-    table.getColumn(13).setWidth(70);
-    table.getColumn(14).setWidth(20);
-    table.getColumn(15).setWidth(60);
-    table.getColumn(16).setWidth(30);
-    table.getColumn(17).setWidth(105);
-    table.getColumn(18).setWidth(60);
-
-    sorter = new TableSorter(this,"done",true);
-    sorter.addStringColumnListener(table.getColumn(0),"ip");
-    sorter.addStringColumnListener(table.getColumn(17),"client");
+    panel = new Composite(composite,SWT.NULL);
+    panel.setLayout(new FillLayout());
     
-    sorter.addIntColumnListener(table.getColumn(1),"port");
-    sorter.addIntColumnListener(table.getColumn(2),"t");
-    sorter.addIntColumnListener(table.getColumn(3),"i");
-    sorter.addIntColumnListener(table.getColumn(4),"c");
-    sorter.addIntColumnListener(table.getColumn(5),"done");
-    sorter.addIntColumnListener(table.getColumn(6),"done");
-    sorter.addIntColumnListener(table.getColumn(7),"ds");
-    sorter.addIntColumnListener(table.getColumn(8),"down");
-    sorter.addIntColumnListener(table.getColumn(9),"i2");
-    sorter.addIntColumnListener(table.getColumn(10),"c2");
-    sorter.addIntColumnListener(table.getColumn(11),"us");
-    sorter.addIntColumnListener(table.getColumn(12),"up");
-    sorter.addIntColumnListener(table.getColumn(13),"su");
-    sorter.addIntColumnListener(table.getColumn(14),"s");
-    sorter.addIntColumnListener(table.getColumn(15),"od");
-    sorter.addIntColumnListener(table.getColumn(16),"opt");
-    sorter.addIntColumnListener(table.getColumn(18),"discarded");
-        
-    final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
+    createMenu();
+    createTable();        
+    
+    ConfigurationManager.getInstance().addParameterListener("Graphics Update", this);
+
+  }
+  
+  public void tableStructureChanged() {
+    //1. Unregister for item creation
+    manager.removeListener(this);
+    
+    //2. Clear everything
+    Iterator iter = objectToSortableItem.values().iterator();
+    while(iter.hasNext()) {
+      PeerRow row = (PeerRow) iter.next();
+      TableItem tableItem = row.getTableItem();
+      tableItemToObject.remove(tableItem);
+      row.delete();
+      iter.remove();
+    }
+    
+    //3. Dispose the old table
+    table.dispose();
+    menu.dispose();
+    
+    //4. Re-create the table
+    createMenu();
+    createTable();
+    
+    //5. Re-add as a listener
+    manager.addListener(this);
+    panel.layout();
+  }
+
+  private void createTable() {
+    table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION);
+    table.setLinesVisible(false);
+    
+    sorter = new TableSorter(this,"pieces",true);
+    ControlListener resizeListener = new ControlAdapter() {
+      public void controlResized(ControlEvent e) {
+        Utils.saveTableColumn((TableColumn) e.widget);
+        synchronized(objectToSortableItem) {
+          Iterator iter = objectToSortableItem.values().iterator();
+          while(iter.hasNext()) {
+            PeerRow row = (PeerRow) iter.next();
+            row.invalidate();
+          }
+        }
+      }
+    };
+    
+    itemEnumerator = ConfigBasedItemEnumerator.getInstance("Peers",tableItems);
+    ItemDescriptor[] items = itemEnumerator.getItems();
+    
+    //Create all columns
+    for (int i = 0; i < items.length; i++) {
+      int position = items[i].getPosition();
+      if (position != -1) {
+        new TableColumn(table, SWT.NULL);
+      }
+    }
+    //Assign length and titles
+    //We can only do it after ALL columns are created, as position (order)
+    //may not be in the natural order (if the user re-order the columns).    
+    for (int i = 0; i < items.length; i++) {
+      int position = items[i].getPosition();
+      if(position != -1) {
+        TableColumn column = table.getColumn(position);
+        Messages.setLanguageText(column, "PeersView." + items[i].getName());
+        column.setAlignment(items[i].getAlign());
+        column.setWidth(items[i].getWidth());
+        if (items[i].getType() == ItemDescriptor.TYPE_INT) {
+          sorter.addIntColumnListener(column, items[i].getName());
+        }
+        if (items[i].getType() == ItemDescriptor.TYPE_STRING) {
+          sorter.addStringColumnListener(column, items[i].getName());
+        }
+        column.setData("configName", "Table.Peers." + items[i].getName());
+        column.addControlListener(resizeListener);
+      }
+    }   
+
+    table.setHeaderVisible(true);
+    table.setMenu(menu);
+  }
+
+  private void createMenu() {
+    menu = new Menu(panel.getShell(), SWT.POP_UP);
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(item, "PeersView.menu.snubbed"); //$NON-NLS-1$
     
-    /*final MenuItem itemClose = new MenuItem(menu, SWT.CHECK);
-    Messages.setLanguageText(itemClose, "PeersView.menu.close"); //$NON-NLS-1$
-    */
+    new MenuItem(menu, SWT.SEPARATOR);
+
+    final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns"); //$NON-NLS-1$
+        
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
@@ -152,9 +204,9 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
         }
         item.setEnabled(true);
         TableItem ti = tis[0];
-        PeerRow pti = (PeerRow) PeerRow.tableItems.get(ti);
-        if (pti != null)
-          item.setSelection(pti.isSnubbed());
+        PEPeer peer = (PEPeer) tableItemToObject.get(ti);
+        if (peer != null)
+          item.setSelection(peer.isSnubbed());
       }
     });
 
@@ -166,44 +218,26 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
         }
         for(int i = 0 ; i < tis.length ; i++) {
           TableItem ti = tis[i];
-          PeerRow pti = (PeerRow) PeerRow.tableItems.get(ti);
-          if (pti != null)
-            pti.setSnubbed(item.getSelection());
+          PEPeer peer = (PEPeer) tableItemToObject.get(ti);
+          if (peer != null)
+            peer.setSnubbed(item.getSelection());
         }
       }
     });
     
-    /*itemClose.addListener(SWT.Selection, new Listener() {
-    public void handleEvent(Event e) {
-      TableItem[] tis = table.getSelection();
-      if (tis.length == 0) {
-        return;
+    itemChangeTable.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+          new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance("Peers",tableItems),PeersView.this,"PeersView");       
       }
-      for(int i = 0 ; i < tis.length ; i ++) {
-        TableItem ti = tis[i];
-        PeerTableItem pti = (PeerTableItem) PeerTableItem.tableItems.get(ti);
-        if (pti != null)
-          pti.getPeerSocket().closeAll(false);
-      }
-    }
-  });*/
-    table.setMenu(menu);
-    ConfigurationManager.getInstance().addParameterListener("Graphics Update", this);
-
-    //    manager.addListener(this);
-
+    });
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getComposite()
-   */
+
   public Composite getComposite() {
-    return table;
+    return panel;
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#refresh()
-   */
+
   public void refresh() {
     if (getComposite() == null || getComposite().isDisposed())
       return;
@@ -213,29 +247,27 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     loopFactor++;
     //Refresh all items in table...
     synchronized (objectToSortableItem) {
-
+      
       Iterator iter = objectToSortableItem.values().iterator();
       while (iter.hasNext()) {
-        PeerRow pti = (PeerRow) iter.next();
-        pti.updateAll();
-        pti.updateStats();
-        //Every N GUI updates we unvalidate the images
+        PeerRow pr = (PeerRow) iter.next();
+        
+        // Every N GUI updates we unvalidate the images
         if (loopFactor % graphicsUpdate == 0)
-          pti.invalidate();
-        pti.updateImage();
+          pr.invalidate();
+        
+        pr.refresh();
+        
       }
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#delete()
-   */
   public void delete() {
     manager.removeListener(this);
     Iterator iter = objectToSortableItem.values().iterator();
     while (iter.hasNext()) {
       PeerRow item = (PeerRow) iter.next();
-      item.remove();
+      item.delete();
     }
     if(table != null && ! table.isDisposed())
       table.dispose();
@@ -247,16 +279,11 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     return "PeersView.title.short"; //$NON-NLS-1$
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
-   */
+
   public String getFullTitle() {
     return MessageText.getString("PeersView.title.full"); //$NON-NLS-1$
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
-   */
   public void peerAdded(PEPeer created) {
     synchronized (objectToSortableItem) {
       if (objectToSortableItem.containsKey(created))
@@ -271,21 +298,17 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
-   */
   public void peerRemoved(PEPeer removed) {
-    //System.out.println("removed : " + removed.getClass() + ":" + removed);
     PeerRow item;
     synchronized (objectToSortableItem) {
       item = (PeerRow) objectToSortableItem.remove(removed);
     }
     if (item == null)
       return;
-    
-    tableItemToObject.remove(item.getTableItem());
-    item.remove();
-    //System.out.println("PC removed"); 
+    TableItem ti = item.getTableItem();
+    if(ti != null)
+      tableItemToObject.remove(ti);
+    item.delete(); 
   }
 
   public void

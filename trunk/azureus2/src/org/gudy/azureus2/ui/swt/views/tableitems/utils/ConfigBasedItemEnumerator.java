@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.utils;
 
 import java.util.StringTokenizer;
 
+import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /**
@@ -51,12 +52,17 @@ public class ConfigBasedItemEnumerator extends ItemEnumerator {
     for(int i = 0 ; i < items.length ; i++) {
       StringTokenizer st = new StringTokenizer(tableItems[i],";");      
       String itemName = st.nextToken();
+      String strAlign = st.nextToken();
+      int align = SWT.LEFT;
+      if(strAlign.equals("C")) align = SWT.CENTER; 
+      if(strAlign.equals("R")) align = SWT.RIGHT;
+        
       int type = st.nextToken().equals("I") ? ItemDescriptor.TYPE_INT : ItemDescriptor.TYPE_STRING;
       int dWidth = Integer.parseInt(st.nextToken());
       int dPosition = Integer.parseInt(st.nextToken());
       int width = COConfigurationManager.getIntParameter("Table." + tableName + "." + itemName + ".width",dWidth);
       int position = COConfigurationManager.getIntParameter("Table." + tableName + "." + itemName + ".position",dPosition);
-      items[i] = new ItemDescriptor(itemName,type,position,width);
+      items[i] = new ItemDescriptor(itemName,align,type,position,width);
     }
     return new ConfigBasedItemEnumerator(tableName,items);
   }

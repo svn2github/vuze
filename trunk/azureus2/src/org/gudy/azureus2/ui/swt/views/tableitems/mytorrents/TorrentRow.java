@@ -81,8 +81,15 @@ public class TorrentRow implements SortableItem {
   }
 
   public void delete() {
-    display.syncExec(new Runnable() {
+    if(display == null || display.isDisposed())
+      return;
+    display.asyncExec(new Runnable() {
       public void run() {
+        Iterator iter = items.iterator();
+        while(iter.hasNext()) {
+          BufferedTableItem item = (BufferedTableItem) iter.next();
+          item.dispose();
+        }
         if (table == null || table.isDisposed())
           return;
         if (row == null || row.isDisposed())

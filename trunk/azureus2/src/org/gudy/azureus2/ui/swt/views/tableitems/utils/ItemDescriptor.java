@@ -31,14 +31,16 @@ public class ItemDescriptor {
   private int itemType;
   
   private int itemPosition;
+  private int itemAlign;
   private int itemWidth;
   
   public static final int TYPE_INT = 1;
-  public static final int TYPE_STRING = 2;
+  public static final int TYPE_STRING = 2;    
   
-  public ItemDescriptor(String name,int type,int position,int width) {
+  public ItemDescriptor(String name,int align,int type,int position,int width) {
     this.itemName = name;
     this.itemType = type;
+    this.itemAlign = align;
     this.itemPosition = position;
     this.itemWidth = width;
   }
@@ -54,6 +56,10 @@ public class ItemDescriptor {
   public int getPosition() {
     return itemPosition;
   }
+  
+  public int getAlign() {
+     return itemAlign;
+   }
   
   public int getWidth() {
     return itemWidth;

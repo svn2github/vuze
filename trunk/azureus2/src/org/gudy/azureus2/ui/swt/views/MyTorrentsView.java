@@ -90,21 +90,21 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   private TableSorter sorter;
 
   private String[] tableItems = {
-       "#;I;25;0"
-      ,"name;S;250;1"
-      ,"size;I;70;2"
-      ,"done;I;55;3"
-      ,"status;I;80;4"
-      ,"seeds;I;45;5"
-      ,"peers;I;45;6"
-      ,"downspeed;I;70;7"
-      ,"upspeed;I;70;8"    
-      ,"eta;I;70;9"
-      ,"tracker;I;70;10"
-      ,"priority;I;70;11"
-      ,"shareRatio;I;70;-1"
-      ,"down;I;70;-1"
-      ,"up;I;70;-1"
+       "#;L;I;25;0"
+      ,"name;L;S;250;1"
+      ,"size;R;I;70;2"
+      ,"done;R;I;55;3"
+      ,"status;L;I;80;4"
+      ,"seeds;C;I;45;5"
+      ,"peers;C;I;45;6"
+      ,"downspeed;R;I;70;7"
+      ,"upspeed;R;I;70;8"    
+      ,"eta;L;I;70;9"
+      ,"tracker;L;I;70;10"
+      ,"priority;L;I;70;11"
+      ,"shareRatio;L;I;70;-1"
+      ,"down;R;I;70;-1"
+      ,"up;R;I;70;-1"
   };
   
 	// table item index, where the drag has started
@@ -224,6 +224,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       if(position != -1) {
         TableColumn column = table.getColumn(position);
         Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
+        column.setAlignment(items[i].getAlign());
         column.setWidth(items[i].getWidth());
         if (items[i].getType() == ItemDescriptor.TYPE_INT) {
           sorter.addIntColumnListener(column, items[i].getName());
