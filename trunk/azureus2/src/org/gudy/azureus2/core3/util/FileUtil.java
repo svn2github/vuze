@@ -824,6 +824,9 @@ public class FileUtil {
 			return( true );
 
 		}else{
+			
+			boolean		success	= false;
+			
 
 			// can't rename across file systems under Linux - try copy+delete
 
@@ -863,6 +866,8 @@ public class FileUtil {
 					throw( new Exception( "Failed to delete '" + from_file.toString() + "'"));
 				}
 				
+				success	= true;
+				
 				return( true );
 				
 			}catch( Throwable e ){		
@@ -891,9 +896,12 @@ public class FileUtil {
 					}
 				}
 				
-				if ( to_file.exists()){
+				if ( !success ){
 					
-					to_file.delete();
+					if ( to_file.exists()){
+						
+						to_file.delete();
+					}
 				}
 			}
 		}
