@@ -37,7 +37,12 @@ public class
 AEThread 
 	extends Thread
 {
-	protected static boolean	LOG_TO_FILE	= true;
+	protected static boolean	LOG_TO_FILE;
+	
+	static{
+		
+		LOG_TO_FILE = System.getProperty("azureus.log.threads") != null;
+	}
 
 	protected static File		log_file;
 	
