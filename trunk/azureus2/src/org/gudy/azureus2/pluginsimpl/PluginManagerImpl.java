@@ -29,30 +29,70 @@ package org.gudy.azureus2.pluginsimpl;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.ui.swt.Main;
+import org.gudy.azureus2.ui.swt.MainWindow;
 
 public class 
 PluginManagerImpl 
 {
-	public static void
+	public static boolean	running		= false;
+	public static int		ui_type		= PluginManager.UI_NONE;
+	
+	public static synchronized void
 	startAzureus(
-		int			ui_type,
+		int			_ui_type,
 		Properties	properties )
 	{
-		if ( ui_type == PluginManager.UI_SWT ){
+		if ( running ){
 			
+			throw( new RuntimeException( "Azureus is already running"));
+		}
+		
+		running	= true;
+		ui_type	= _ui_type;
+		
+		if ( ui_type == PluginManager.UI_NONE ){
+		
+			org.gudy.azureus2.ui.common.Main.main( new String[]{"--ui=console"});
+			
+		}else if ( ui_type == PluginManager.UI_SWT ){
+				
 			if ( properties != null ){
 				
 				String	mi = (String)properties.get( PluginManager.PR_MULTI_INSTANCE );
 				
 				if ( mi != null && mi.equalsIgnoreCase("true")){
 					
-					System.setProperty( Main.PR_MULTI_INSTANCE, "true" );
+					System.setProperty( org.gudy.azureus2.ui.swt.Main.PR_MULTI_INSTANCE, "true" );
 				}
 			}
 			
-			Main.main(new String[0]);
+			org.gudy.azureus2.ui.swt.Main.main(new String[0]);
 		}
+	}
+	
+	public static synchronized void
+	stopAzureus()
+	
+		throws PluginException
+	{
+		if ( !running ){
+			
+			throw( new RuntimeException( "Azureus is not running"));
+		}
+				
+		if ( ui_type == PluginManager.UI_NONE ){
+			
+			org.gudy.azureus2.ui.common.Main.shutdown();
+			
+		}else if ( ui_type == PluginManager.UI_SWT ){
+			
+			if ( !MainWindow.getWindow().dispose()){
+				
+				throw( new PluginException( "PluginManager: Azureus close action failed"));
+			}
+		}
+		
+		running	= false;
 	}
 	
 	public static void

@@ -57,7 +57,7 @@ ShareTester
 					
 					props.put( PluginManager.PR_MULTI_INSTANCE, "true" );
 					
-					PluginManager.startAzureus( PluginManager.UI_SWT, props );
+					PluginManager.startAzureus( PluginManager.UI_NONE, props );
 				}
 			}.start();
 		
