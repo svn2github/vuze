@@ -61,8 +61,8 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
 public class 
 DiskManagerImpl
 	implements DiskManager 
-{
-
+{  
+  
 	private int state;
 	private String errorMessage = "";
 
@@ -394,6 +394,7 @@ DiskManagerImpl
 
 	private void checkAllPieces() {
 		state = CHECKING;
+      int startPos = 0;
 		boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
 		boolean resumeValid = false;
 		byte[] resumeArray = null;
@@ -411,16 +412,16 @@ DiskManagerImpl
 				} catch (Exception ignore) { /* ignore */ }
 			}
 		}
-
-		if (resumeEnabled && (resumeArray != null) && (resumeArray.length == pieceDone.length)) {
-			for (int i = 0; i < resumeArray.length && bContinue; i++) //parse the array
-				{
+ 
+		if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
+		  startPos = resumeArray.length;
+		  for (int i = 0; i < resumeArray.length && bContinue; i++) { //parse the array
 				percentDone = ((i + 1) * 1000) / nbPieces;
 				//mark the pieces
 				if (resumeArray[i] == 0) {
-					if (!resumeValid)
-						pieceDone[i] = checkPiece(i);
-				} else {
+					if (!resumeValid) pieceDone[i] = checkPiece(i);
+				}
+				else {
 					computeFilesDone(i);
 					pieceDone[i] = true;
 					if (i < nbPieces - 1) {
@@ -431,6 +432,7 @@ DiskManagerImpl
 					}
 				}
 			}
+      
 			if (partialPieces != null && resumeValid) {
 				pieces = new PEPiece[nbPieces];
 				Iterator iter = partialPieces.entrySet().iterator();
@@ -450,16 +452,15 @@ DiskManagerImpl
 					pieces[pieceNumber] = piece;
 				}
 			}
-		} else //no resume data.. rebuild it
-			{
-			for (int i = 0; i < nbPieces && bContinue; i++) {
-				percentDone = ((i + 1) * 1000) / nbPieces;
-				checkPiece(i);
-			}
-			//Patch:: dump the newly built resume data to the disk / torrent --Tyler
-			if (bContinue && resumeEnabled)
-				this.dumpResumeDataToDisk(false);
 		}
+    
+      for (int i = startPos; i < nbPieces && bContinue; i++) {
+        percentDone = ((i + 1) * 1000) / nbPieces;
+        checkPiece(i);
+		}
+		//dump the newly built resume data to the disk/torrent
+		if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false);
+
 	}
 
 	private List buildPieceToFileList(List btFileList, int currentFile, int fileOffset, int pieceSize) {
@@ -654,10 +655,10 @@ DiskManagerImpl
 					WriteElement elt = (WriteElement)checkQueue.remove(0);
 					boolean correct = checkPiece(elt.getPieceNumber());
 					manager.pieceChecked(elt.getPieceNumber(), correct);
-					if (!correct)
-						LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
-					else
-						LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+					if (!correct) {
+					  LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
+					} else LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
+          
 				}
 				try {
 					Thread.sleep(15);
