@@ -27,13 +27,20 @@ package org.gudy.azureus2.ui.webplugin.util;
  */
 
 import java.io.*;
+import java.net.URL;
+import java.net.URI;
+import java.security.PrivateKey;
 import java.util.jar.*;
 
+import org.gudy.azureus2.core3.security.SEKeyDetails;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
 WUJarBuilder 
 {
+	public static final boolean SIGN_JAR	= false;
+	
 	public static void
 	buildFromResources(
 		JarOutputStream		jos,
@@ -42,7 +49,7 @@ WUJarBuilder
 	
 		throws IOException
 	{
-		buildFromResources( jos, class_loader, null, resource_names );
+		buildFromResources2( jos, class_loader, null, resource_names );
 	}
 	
 	public static void
@@ -54,6 +61,71 @@ WUJarBuilder
 	
 		throws IOException
 	{
+		buildFromResources2( jos, class_loader, resource_prefix, resource_names );	
+	}
+	
+	public static long
+	buildFromResources2(
+		JarOutputStream		jos,
+		ClassLoader			class_loader,
+		String[]			resource_names )
+	
+		throws IOException
+	{
+		return( buildFromResources2( jos, class_loader, null, resource_names ));
+	}
+	
+	public static long
+	buildFromResources2(
+		JarOutputStream		jos,
+		ClassLoader			class_loader,
+		String				resource_prefix,
+		String[]			resource_names )
+	
+		throws IOException
+	{
+		if ( SIGN_JAR ){
+			
+			ByteArrayOutputStream	baos = new ByteArrayOutputStream(65536);
+			
+			long tim = buildFromResourcesSupport( new JarOutputStream( baos ),class_loader,resource_prefix,resource_names );
+			
+			String	alias = SESecurityManager.DEFAULT_ALIAS;
+			
+			try{
+				SEKeyDetails	kd = SESecurityManager.getKeyDetails( alias );
+			
+				WUJarSigner signer = new WUJarSigner(alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
+
+				signer.signJarStream( new ByteArrayInputStream(baos.toByteArray()), jos );
+			
+				return( tim );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+				
+				throw( new IOException( e.getMessage()));
+			}
+			
+		}else{
+			
+			return( buildFromResourcesSupport( jos,class_loader,resource_prefix,resource_names ));
+		}
+	}
+	
+	public static long
+	buildFromResourcesSupport(
+		JarOutputStream		jos,
+		ClassLoader			class_loader,
+		String				resource_prefix,
+		String[]			resource_names )
+	
+		throws IOException
+	{		
+		long	latest_time	= 0;
+		long	now			= SystemTime.getCurrentTime();
+		
 		for (int i=0;i<resource_names.length;i++){
 	
 			String	resource_name = resource_names[i];
@@ -73,6 +145,43 @@ WUJarBuilder
 					Debug.out( "WUJarBuilder: failed to find resource '" + resource_name + "'");
 	
 				}else{
+				
+					URL	url = class_loader.getResource( resource_name );
+					
+					try{
+						File	file = null;
+						
+						if ( url != null ){
+							
+							String	url_str = url.toString();
+							
+							if ( url_str.startsWith("jar:file:" )){
+								
+								file	= FileUtil.getJarFileFromURL( url_str );
+								
+							}else if ( url_str.startsWith( "file:")){
+								
+								file	= new File( URI.create( url_str ));
+							}
+						}
+						
+						if ( file == null ){
+							
+							latest_time	= now;
+							
+						}else{
+						
+							long	time = file.lastModified();
+							
+							if ( time > latest_time ){
+								
+								latest_time	= time;
+							}
+						}
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
 					
 					JarEntry entry = new JarEntry(resource_name);
 			
@@ -93,6 +202,10 @@ WUJarBuilder
 		writeEntry( jos, entry, bais );
 		
 		jos.flush();
+		
+		jos.finish();
+		
+		return( latest_time );
 	}
 	
 	

@@ -30,6 +30,7 @@ import java.net.URL;
 import java.net.PasswordAuthentication;
 
 import javax.net.ssl.*;
+import java.security.*;
 
 import org.gudy.azureus2.core3.security.impl.*;
 
@@ -42,6 +43,7 @@ SESecurityManager
 	public static final String SSL_KEYS			= ".keystore";
 	public static final String SSL_PASSWORD 	= "changeit";
 	
+	public static final String DEFAULT_ALIAS	= "Azureus";
 	
 	public static void
 	initialise()
@@ -64,6 +66,15 @@ SESecurityManager
 		return( SESecurityManagerImpl.getSingleton().installServerCertificates(https_url));
 	}
 	
+	public static SEKeyDetails
+	getKeyDetails(
+		String	alias )
+	
+		throws Exception
+	{
+		return( SESecurityManagerImpl.getSingleton().getKeyDetails( alias ));
+	}
+	
 	public static PasswordAuthentication
 	getPasswordAuthentication(
 		String		realm,
@@ -81,7 +92,6 @@ SESecurityManager
 		SESecurityManagerImpl.getSingleton().setPasswordAuthenticationOutcome(realm, tracker, success);	
 	}
 		
-	
 	public static void
 	addPasswordListener(
 		SEPasswordListener	l )

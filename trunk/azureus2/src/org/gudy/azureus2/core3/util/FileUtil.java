@@ -8,8 +8,8 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.*;
+import java.net.URI;
 import java.util.*;
-import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -593,6 +593,49 @@ public class FileUtil {
     }
 
     
-  
+    public static File
+	getJarFileFromURL(
+		String		url_str )
+    {
+    	if (url_str.startsWith("jar:file:")) {
+        	
+        	// java web start returns a url like "jar:file:c:/sdsd" which then fails as the file
+        	// part doesn't start with a "/". Add it in!
+    		// here's an example 
+    		// jar:file:C:/Documents%20and%20Settings/stuff/.javaws/cache/http/Dparg.homeip.net/P9090/DMazureus-jnlp/DMlib/XMAzureus2.jar1070487037531!/org/gudy/azureus2/internat/MessagesBundle.properties
+    			
+        	// also on Mac we don't get the spaces escaped
+        	
+    		url_str = url_str.replaceAll(" ", "%20" );
+        	
+        	if ( !url_str.startsWith("jar:file:/")){
+        		
+       
+        		url_str = "jar:file:/".concat(url_str.substring(9));
+        	}
+        	
+        	try{
+        			// 	you can see that the '!' must be present and that we can safely use the last occurrence of it
+          	
+        		int posPling = url_str.lastIndexOf('!');
+            
+        		String jarName = url_str.substring(4, posPling);
+        		
+        			//        System.out.println("jarName: " + jarName);
+        		
+        		URI uri = URI.create(jarName);
+        		
+        		File jar = new File(uri);
+        		
+        		return( jar );
+        		
+        	}catch( Throwable e ){
+        	
+        		e.printStackTrace();
+        	}
+    	}
+    	
+    	return( null );
+    }
 
 }

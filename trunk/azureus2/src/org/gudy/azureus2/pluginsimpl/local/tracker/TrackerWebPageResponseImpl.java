@@ -52,8 +52,7 @@ TrackerWebPageResponseImpl
 	
 	protected int					reply_status	= 200;
 	
-	protected Vector	header_names 	= new Vector();
-	protected Vector	header_values	= new Vector();
+	protected Map		header_map 	= new HashMap();
 	
 	protected
 	TrackerWebPageResponseImpl(
@@ -69,6 +68,28 @@ TrackerWebPageResponseImpl
 		setHeader( "Last-Modified",	formatted_date_now );
 		
 		setHeader( "Expires", formatted_date_now );
+	}
+	
+	public void
+	setLastModified(
+		long		time )
+	{
+		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+		
+		String	formatted_date		 = format.format(new Date(time));
+
+		setHeader( "Last-Modified",	formatted_date );
+	}
+	
+	public void
+	setExpires(
+		long		time )
+	{
+		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+		
+		String	formatted_date		 = format.format(new Date(time));
+
+		setHeader( "Expires",	formatted_date );	
 	}
 	
 	public void
@@ -90,8 +111,7 @@ TrackerWebPageResponseImpl
 			String		name,
 			String		value )
 	{
-		header_names.add( name );
-		header_values.add( value );
+		header_map.put( name, value );
 	}
 	
 	public OutputStream
@@ -111,10 +131,12 @@ TrackerWebPageResponseImpl
 		
 		String reply_header = "HTTP/1.1 " + reply_status + (reply_status == 200 || reply_status == 204?" OK":" BAD") + NL;
 		
-		for (int i=0;i<header_names.size();i++){
+		Iterator	it = header_map.keySet().iterator();
+		
+		while( it.hasNext()){
 			
-			String	name = (String)header_names.get(i);
-			String	value = (String)header_values.get(i);
+			String	name 	= (String)it.next();
+			String	value 	= (String)header_map.get(name);
 			
 			reply_header += name + ": " + value + NL;
 		}

@@ -46,6 +46,14 @@ TrackerWebPageResponse
 		String		type );
 	
 	public void
+	setLastModified(
+		long		time );
+	
+	public void
+	setExpires(
+		long		time );
+	
+	public void
 	setHeader(
 		String		name,
 		String		value );

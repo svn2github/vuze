@@ -32,6 +32,7 @@ import java.io.*;
 import javax.net.ssl.*;
 
 import java.security.*;
+import java.security.cert.*;
 
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
@@ -146,16 +147,74 @@ SESecurityManagerImpl
 		kis.close();
 		
 		keyManagerFactory.init(key_store, SESecurityManager.SSL_PASSWORD.toCharArray());
-		
+				
 		// Initialize the context with the key managers
 		
-		context.init(  	keyManagerFactory.getKeyManagers(), 
+		context.init(  	
+				keyManagerFactory.getKeyManagers(), 
 				null,
 				new java.security.SecureRandom());
 		
 		SSLServerSocketFactory factory = context.getServerSocketFactory();
 		
 		return( factory );
+	}
+	
+	public SEKeyDetails
+	getKeyDetails(
+		String		alias )
+	
+		throws Exception
+	{
+		Security.addProvider((java.security.Provider)
+				Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
+				
+		// Create the key manager factory used to extract the server key
+		
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+		
+		KeyStore key_store = KeyStore.getInstance("JKS");
+		
+		InputStream kis;
+		
+		kis = new FileInputStream(keystore);
+		
+		key_store.load(kis, SESecurityManager.SSL_PASSWORD.toCharArray());
+		
+		kis.close();
+		
+		keyManagerFactory.init(key_store, SESecurityManager.SSL_PASSWORD.toCharArray());
+	
+		final Key key = key_store.getKey( alias, SESecurityManager.SSL_PASSWORD.toCharArray());
+		
+		java.security.cert.Certificate[]	chain = key_store.getCertificateChain( alias );
+		
+		final X509Certificate[]	res = new X509Certificate[chain.length];
+		
+		for (int i=0;i<chain.length;i++){
+			
+			if ( !( chain[i] instanceof X509Certificate )){
+				
+				throw( new Exception( "Certificate chain must be comprised of X509Certificate entries"));
+			}
+			
+			res[i] = (X509Certificate)chain[i];
+		}
+		
+		return( new SEKeyDetails()
+				{
+					public Key
+					getKey()
+					{
+						return( key );
+					}
+					
+					public X509Certificate[]
+					getCertificateChain()
+					{
+						return( res );
+					}
+				});
 	}
 	
 	public synchronized boolean

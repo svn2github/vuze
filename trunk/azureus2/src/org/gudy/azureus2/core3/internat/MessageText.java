@@ -28,6 +28,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.FileUtil;
 
 /**
  * @author Arbeiten
@@ -189,45 +190,31 @@ public class MessageText {
     String urlString = MessageText.class.getClassLoader().getResource(bundleFolder.concat(extension)).toExternalForm();
     //System.out.println("urlString: " + urlString);
     String[] bundles = null;
+    
     if (urlString.startsWith("jar:file:")) {
     	
-    		// java web start returns a url like "jar:file:c:/sdsd" which then fails as the file
-    		// part doesn't start with a "/". Add it in!
-			// here's an example 
-			// jar:file:C:/Documents%20and%20Settings/stuff/.javaws/cache/http/Dparg.homeip.net/P9090/DMazureus-jnlp/DMlib/XMAzureus2.jar1070487037531!/org/gudy/azureus2/internat/MessagesBundle.properties
-			
-    		// also on Mac we don't get the spaces escaped
-    	
-    	urlString = urlString.replaceAll(" ", "%20" );
-    	
-    	if ( !urlString.startsWith("jar:file:/")){
-    		urlString = "jar:file:/".concat(urlString.substring(9));
-    	}
-      try {
-      	// you can see that the '!' must be present and that we can safely use the last occurrence of it
-      	
-        int posPling = urlString.lastIndexOf('!');
+        File jar = FileUtil.getJarFileFromURL( urlString );
         
-        String jarName = urlString.substring(4, posPling);
-        //        System.out.println("jarName: " + jarName);
-        URI uri = URI.create(jarName);
-        File jar = new File(uri);
-        //        System.out.println("jar: " + jar.getAbsolutePath());
-        JarFile jarFile = new JarFile(jar);
-        Enumeration entries = jarFile.entries();
-        ArrayList list = new ArrayList(250);
-        while (entries.hasMoreElements()) {
-          JarEntry jarEntry = (JarEntry) entries.nextElement();
-          if (jarEntry.getName().startsWith(bundleFolder) && jarEntry.getName().endsWith(extension) && jarEntry.getName().length() < bundleFolder.length() + extension.length() + 7) {
-            //            System.out.println("jarEntry: " + jarEntry.getName());
-            list.add(jarEntry.getName().substring(bundleFolder.length() - prefix.length()));
-            // "MessagesBundle_de_DE.properties"
-          }
+        if ( jar != null ){
+        	
+        	try{
+		        //        System.out.println("jar: " + jar.getAbsolutePath());
+		        JarFile jarFile = new JarFile(jar);
+		        Enumeration entries = jarFile.entries();
+		        ArrayList list = new ArrayList(250);
+		        while (entries.hasMoreElements()) {
+		          JarEntry jarEntry = (JarEntry) entries.nextElement();
+		          if (jarEntry.getName().startsWith(bundleFolder) && jarEntry.getName().endsWith(extension) && jarEntry.getName().length() < bundleFolder.length() + extension.length() + 7) {
+		            //            System.out.println("jarEntry: " + jarEntry.getName());
+		            list.add(jarEntry.getName().substring(bundleFolder.length() - prefix.length()));
+		            // "MessagesBundle_de_DE.properties"
+		          }
+		        }
+		        bundles = (String[]) list.toArray(new String[list.size()]);
+        	} catch (Exception e) {
+        		e.printStackTrace();
+        	}
         }
-        bundles = (String[]) list.toArray(new String[list.size()]);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
     } else {
       File bundleDirectory = new File(URI.create(urlString)).getParentFile();
       //      System.out.println("bundleDirectory: " +
