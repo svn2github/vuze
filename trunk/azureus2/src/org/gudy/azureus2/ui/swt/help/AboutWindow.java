@@ -1,6 +1,6 @@
 /*
  * File    : AboutWindow.java
- * Created : 18 déc. 2003}
+ * Created : 18 dï¿½c. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -20,31 +20,27 @@
  */
 package org.gudy.azureus2.ui.swt.help;
 
-import java.util.Properties;
-
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
-import org.gudy.azureus2.core3.util.*;
+
+import java.util.Properties;
 
 /**
  * @author Olivier
@@ -54,9 +50,15 @@ public class AboutWindow {
 
   static Image image;
   static AEMonitor	class_mon	= new AEMonitor( "AboutWindow" );
-  
+  private static Shell instance;
+
   public static void show(final Display display) {
-    
+    if(instance != null)
+    {
+        instance.open();
+        return;
+    }
+
     Properties properties = new Properties();
     try {
       properties.load(AboutWindow.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/swt/about.properties"));
@@ -66,7 +68,7 @@ public class AboutWindow {
       return;
     }
         
-    final Shell window = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell window = new Shell(display, (Constants.isOSX) ? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
     if(! Constants.isOSX) {
       window.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     }
@@ -112,7 +114,7 @@ public class AboutWindow {
   
     final String[][] link =
       { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "forumdiscussion", "wiki" }, {
-        "http://azureus.sourceforge.net/",
+          Constants.SF_WEB_SITE,
           "http://sourceforge.net/projects/azureus/",
           "http://sourceforge.net/project/showfiles.php?group_id=84122",
           "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
@@ -121,7 +123,7 @@ public class AboutWindow {
     };
   
     for (int i = 0; i < link[0].length; i++) {
-      final Label linkLabel = new Label(gInternet, SWT.NULL);
+      final CLabel linkLabel = new CLabel(gInternet, SWT.NULL);
       linkLabel.setText(MessageText.getString("MainWindow.about.internet." + link[0][i]));
       linkLabel.setData(link[1][i]);
       linkLabel.setCursor(Cursors.handCursor);
@@ -129,10 +131,10 @@ public class AboutWindow {
       linkLabel.setLayoutData(gridData = new GridData());
       linkLabel.addMouseListener(new MouseAdapter() {
         public void mouseDoubleClick(MouseEvent arg0) {
-          Program.launch((String) ((Label) arg0.widget).getData());
+          Program.launch((String) ((CLabel) arg0.widget).getData());
         }
         public void mouseDown(MouseEvent arg0) {
-          Program.launch((String) ((Label) arg0.widget).getData());
+          Program.launch((String) ((CLabel) arg0.widget).getData());
         }
       });
     }
@@ -151,7 +153,14 @@ public class AboutWindow {
     window.pack();
     Utils.centreWindow(window);
     window.open();
-    
+
+    instance = window;
+    window.addDisposeListener(new DisposeListener() {
+        public void widgetDisposed(DisposeEvent event) {
+            instance = null;
+        }
+    });
+
     Thread updater =  new AEThread("Splash Screen Updater") {
       public void runSupport() {        
         if(image == null || image.isDisposed())
