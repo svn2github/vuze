@@ -113,6 +113,8 @@ ShareResourceDirContentsImpl
 	
 	protected void
 	checkConsistency()
+
+		throws ShareException
 	{
 		// ensure all shares are defined as per dir contents and recursion flag
 		
@@ -126,35 +128,63 @@ ShareResourceDirContentsImpl
 	protected List
 	checkConsistency(
 		File		dir )
+
+		throws ShareException
 	{
 		List	kids = new ArrayList();
 		
 		File[]	files = dir.listFiles();
 		
-		for (int i=0;i<files.length;i++){
+		if ( files == null ){
 			
-			File	file = files[i];
+				// dir has been deleted
+			
+			manager.delete( this );
+			
+		}else{
+			
 		
-			String	file_name = file.getName();
-			
-			if (!(file_name.equals(".") || file_name.equals(".." ))){
+			for (int i=0;i<files.length;i++){
 				
-				if ( file.isDirectory()){
+				File	file = files[i];
+			
+				String	file_name = file.getName();
+				
+				if (!(file_name.equals(".") || file_name.equals(".." ))){
 					
-					if ( recursive ){
+					if ( file.isDirectory()){
 						
-						List	child = checkConsistency( file );
-						
-						kids.add( new shareNode( file, child ));
-						
+						if ( recursive ){
+							
+							List	child = checkConsistency( file );
+							
+							kids.add( new shareNode( file, child ));
+							
+						}else{
+							
+							try{
+								ShareResource res = manager.getDir( file );
+								
+								if ( res == null ){
+								
+									res = manager.addDir( file );
+								}
+								
+								kids.add( res );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace( e );
+							}
+						}
 					}else{
-						
+		
 						try{
-							ShareResource res = manager.getDir( file );
+							ShareResource res = manager.getFile( file );
 							
 							if ( res == null ){
-							
-								res = manager.addDir( file );
+								
+								res = manager.addFile( file );
 							}
 							
 							kids.add( res );
@@ -164,36 +194,20 @@ ShareResourceDirContentsImpl
 							Debug.printStackTrace( e );
 						}
 					}
-				}else{
-	
-					try{
-						ShareResource res = manager.getFile( file );
-						
-						if ( res == null ){
-							
-							res = manager.addFile( file );
-						}
-						
-						kids.add( res );
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace( e );
-					}
 				}
 			}
-		}
-		
-		for (int i=0;i<kids.size();i++){
 			
-			Object	o = kids.get(i);
-			
-			if ( o instanceof ShareResourceImpl ){
-		
-				((ShareResourceImpl)o).setParent(this);
-			}else{
+			for (int i=0;i<kids.size();i++){
 				
-				((shareNode)o).setParent(this);
+				Object	o = kids.get(i);
+				
+				if ( o instanceof ShareResourceImpl ){
+			
+					((ShareResourceImpl)o).setParent(this);
+				}else{
+					
+					((shareNode)o).setParent(this);
+				}
 			}
 		}
 		
