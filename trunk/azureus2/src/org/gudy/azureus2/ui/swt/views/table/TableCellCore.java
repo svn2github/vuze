@@ -41,6 +41,12 @@ import org.gudy.azureus2.plugins.ui.tables.TableCell;
 public interface TableCellCore
        extends TableCell, Comparable
 {
+  /** Sets the Validitiliy of the cell
+   *
+   * @param valid The valid to set.
+   */
+  public void setValid(boolean valid);
+
   /** Change the cell's foreground color.
    *
    * NOTE: favor (R, G, B)

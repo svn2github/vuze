@@ -101,19 +101,23 @@ public interface TableCell {
    */
   boolean setForeground(int red, int green, int blue);
 
-  /** Sets the value that column sorting will act on.  If you never call
-   * setSortValue, your column will be sorted by the cell's text.
+  /** Sets a Comparable object that column sorting will act on.  If you never 
+   * call setSortValue, your column will be sorted by the cell's text.
    *
    * @param valueToSort the object that will be used when the column cell's
    *                    are compared to each other
+   * @return True - Sort Value changed. <br>
+   *         False - Sort Value was already set to object supplied.
    */
-  public void setSortValue(Comparable valueToSort);
+  public boolean setSortValue(Comparable valueToSort);
 
   /** Sets a long value that the column sorting will act on. 
    *
    * @param valueToSort sorting value.
+   * @return True - Sort Value changed. <br>
+   *         False - Sort Value was already set to value supplied.
    */
-  public void setSortValue(long valueToSort);
+  public boolean setSortValue(long valueToSort);
 
   /** Retrieves the sorting value
    *

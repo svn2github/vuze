@@ -60,9 +60,10 @@ public class TableCellImpl
   private TableRowCore tableRow;
   private Comparable sortValue;
   private BufferedTableItem bufferedTableItem;
-	private ArrayList refreshListeners;
-	private ArrayList disposeListeners;
-	private TableColumnCore tableColumn;
+  private ArrayList refreshListeners;
+  private ArrayList disposeListeners;
+  private TableColumnCore tableColumn;
+  private boolean valid;
   
   public TableCellImpl(TableRowCore tableRow, TableColumnCore tableColumn) {
     this(tableRow, tableColumn, false);
@@ -77,6 +78,7 @@ public class TableCellImpl
                        boolean bSkipFirstColumn) {
     this.tableColumn = tableColumn;
     this.tableRow = tableRow;
+    valid = false;
     int position = tableColumn.getPosition();
     position = (position >= 0 && bSkipFirstColumn) ? position + 1 : position;
     if (tableColumn.getType() != TableColumnCore.TYPE_GRAPHIC) {
@@ -126,7 +128,7 @@ public class TableCellImpl
   }
   
   public boolean isValid() {
-    return tableRow.isValid();
+    return tableRow.isValid() && valid;
   }
   
   public boolean setForeground(Color color) {
@@ -159,12 +161,20 @@ public class TableCellImpl
     return bufferedTableItem.isShown();
   }
   
-  public void setSortValue(Comparable valueToSort) {
+  public boolean setSortValue(Comparable valueToSort) {
+    if (sortValue == valueToSort)
+      return false;
     sortValue = valueToSort;
+    return true;
   }
   
-  public void setSortValue(long valueToSort) {
+  public boolean setSortValue(long valueToSort) {
+    if ((sortValue instanceof Long) && 
+        ((Long)sortValue).longValue() == valueToSort)
+      return false;
+
     sortValue = new Long(valueToSort);
+    return true;
   }
 
   public Comparable getSortValue() {
@@ -246,32 +256,36 @@ public class TableCellImpl
     if (refreshListeners == null)
       refreshListeners = new ArrayList();
 
-		refreshListeners.add(listener);
+    refreshListeners.add(listener);
   }
 
   public synchronized void removeRefreshListener(TableCellRefreshListener listener) {
     if (refreshListeners == null)
       return;
 
-		refreshListeners.remove(listener);
+    refreshListeners.remove(listener);
   }
 
   public synchronized void addDisposeListener(TableCellDisposeListener listener) {
     if (disposeListeners == null) {
       disposeListeners = new ArrayList();
     }
-		disposeListeners.add(listener);
+    disposeListeners.add(listener);
   }
 
   public synchronized void removeDisposeListener(TableCellDisposeListener listener) {
     if (disposeListeners == null)
       return;
 
-		disposeListeners.remove(listener);
+    disposeListeners.remove(listener);
   }
   
   /* Start of Core-Only function */
   //////////////////////////////////
+  public void setValid(boolean valid) {
+    this.valid = valid;
+  }
+
   public void refresh() {
     if (bufferedTableItem == null)
       return;
@@ -282,6 +296,8 @@ public class TableCellImpl
           return;
         for (int i = 0; i < refreshListeners.size(); i++)
           ((TableCellRefreshListener)(refreshListeners.get(i))).refresh(this);
+
+        valid = true;
       }
     } catch (Throwable e) {
       pluginError(e);

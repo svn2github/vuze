@@ -155,10 +155,8 @@ public class TableRowImpl
       int iInterval = item.getTableColumn().getRefreshInterval();
       if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
           (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
-          (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid) ||
-          (iInterval > 0 && (loopFactor % iInterval) == 0))
-          && item.isShown()
-          && (!item.needsPainting() || bDoGraphics || !valid)) {
+          (iInterval > 0 && (loopFactor % iInterval) == 0) ||
+          !item.isValid()) && item.isShown()) {
         item.refresh();
       }
     }
