@@ -105,6 +105,19 @@ public class PeerIDByteDecoder {
         return "XBT " + v1 + "." + v2 + "." + v3;
       }
       
+      String bow = new String(peerID, 0, 3, Constants.BYTE_ENCODING);
+      if( bow.equals( "BoW" ) ) {
+        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
+        return "BitsOnWheels " + version;
+      }
+      
+      String exeem = new String(peerID, 0, 2, Constants.BYTE_ENCODING);
+      if( exeem.equals( "eX" ) ) {
+        String user = new String(peerID, 2, 18, Constants.BYTE_ENCODING);
+        return "eXeem [" +user+ "]";
+      }
+      
+      
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
         
