@@ -34,7 +34,7 @@ public class NewTorrentWizard extends org.gudy.azureus2.ui.swt.wizard.Wizard {
   String singlePath = "";
   String directoryPath = "";
   String savePath = "";
-  
+  String comment = "";
   boolean localTracker = true;
   String trackerURL = "http://";
   
@@ -44,4 +44,16 @@ public class NewTorrentWizard extends org.gudy.azureus2.ui.swt.wizard.Wizard {
     this.setFirstPanel(panel);
   }
 
+  void
+  setComment(
+  	String	s )
+  {
+  	comment = s;
+  }
+  
+  String
+  getComment()
+  {
+  	return( comment );
+  }
 }

@@ -32,6 +32,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -204,6 +205,27 @@ public class ModePanel extends AbstractWizardPanel {
         tracker.setEnabled(true);
       }
     });
+    
+	label = new Label(panel, SWT.NULL);
+	label = new Label(panel, SWT.NULL);
+		
+	Messages.setLanguageText(label, "wizard.comment"); 
+   
+	final Text comment = new Text(panel,SWT.BORDER);
+	gridData = new GridData(GridData.FILL_HORIZONTAL);
+	gridData.horizontalSpan = 2;
+	comment.setLayoutData(gridData);
+	comment.setText("");
+		
+	comment.addListener(SWT.Modify, new Listener(){
+			
+	  public void handleEvent(Event event) {
+		  	
+		String str = comment.getText();
+			
+		((NewTorrentWizard)wizard).setComment( str );
+	  }
+	});
   }
 
   /* (non-Javadoc)
