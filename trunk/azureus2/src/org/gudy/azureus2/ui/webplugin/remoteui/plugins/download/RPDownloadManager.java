@@ -97,6 +97,19 @@ RPDownloadManager
 			
 			return( new RPReply( res ));
 			
+    }else if ( method.equals( "getDownloads[bSort]")){
+			
+			Download[]	downloads = delegate.getDownloads(((Boolean)request.getParams()).booleanValue());
+			
+			RPDownload[]	res = new RPDownload[downloads.length];
+			
+			for (int i=0;i<res.length;i++){
+				
+				res[i] = RPDownload.create( downloads[i]);
+			}
+			
+			return( new RPReply( res ));
+			
 		}else if ( method.equals( "addDownload[URL]" )){
 			
 			try{
@@ -175,6 +188,19 @@ RPDownloadManager
 	getDownloads()
 	{
 		RPDownload[]	res = (RPDownload[])dispatcher.dispatch( new RPRequest( this, "getDownloads", null )).getResponse();
+		
+		for (int i=0;i<res.length;i++){
+			
+			res[i]._setRemote( dispatcher );
+		}
+		
+		return( res );
+	}
+	
+	public Download[]
+	getDownloads(boolean bSort)
+	{
+		RPDownload[]	res = (RPDownload[])dispatcher.dispatch( new RPRequest( this, "getDownloads[bSort]", new Boolean(bSort) )).getResponse();
 		
 		for (int i=0;i<res.length;i++){
 			
