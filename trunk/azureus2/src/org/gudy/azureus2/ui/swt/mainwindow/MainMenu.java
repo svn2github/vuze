@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -49,12 +48,16 @@ import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
-import org.gudy.azureus2.ui.swt.predicate.shell.*;
+import org.gudy.azureus2.ui.swt.predicate.shell.ShellCanMaximizePredicate;
+import org.gudy.azureus2.ui.swt.predicate.shell.ShellCanMinimizePredicate;
+import org.gudy.azureus2.ui.swt.predicate.shell.ShellIsMinimizedPredicate;
+import org.gudy.azureus2.ui.swt.predicate.shell.ShellIsModalPredicate;
 import org.gudy.azureus2.ui.swt.predicate.shellmanager.AllManagedShellsAreMinimizedPredicate;
 import org.gudy.azureus2.ui.swt.predicate.shellmanager.ShellManagerIsEmptyPredicate;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.plugins.PluginView;
 
 import java.util.Iterator;
 import java.util.Locale;
@@ -306,102 +309,19 @@ public class MainMenu {
           new ImportTorrentWizard(mainWindow.getAzureusCore(),display);
         }
       });
-  
-     
-      	// ******** The Download Menu
-      
-      MenuItem downloadItem = new MenuItem(menuBar, SWT.CASCADE);
-      Messages.setLanguageText(downloadItem, "MainWindow.menu.transfers"); //$NON-NLS-1$
-      Menu downloadMenu = new Menu(parent, SWT.DROP_DOWN);
-      downloadItem.setMenu(downloadMenu);
-      if(isModal) {performOneTimeDisable(downloadItem, true);}
 
 
-
-      // new MenuItem(fileMenu,SWT.SEPARATOR);
-      
-      final MenuItem itemStartAll = new MenuItem(downloadMenu,SWT.NULL);
-      KeyBindings.setAccelerator(itemStartAll, "MainWindow.menu.transfers.startalltransfers");
-      Messages.setLanguageText(itemStartAll,"MainWindow.menu.transfers.startalltransfers");
-      
-      final MenuItem itemStopAll = new MenuItem(downloadMenu,SWT.NULL);
-      KeyBindings.setAccelerator(itemStopAll, "MainWindow.menu.transfers.stopalltransfers");
-      Messages.setLanguageText(itemStopAll,"MainWindow.menu.transfers.stopalltransfers");
-
-      final MenuItem itemPause = new MenuItem(downloadMenu,SWT.NULL);
-      KeyBindings.setAccelerator(itemPause, "MainWindow.menu.transfers.pausetransfers");
-      Messages.setLanguageText(itemPause,"MainWindow.menu.transfers.pausetransfers");
-      if(notMainWindow) {performOneTimeDisable(itemPause, true);}
-
-      final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL);
-      KeyBindings.setAccelerator(itemResume, "MainWindow.menu.transfers.resumetransfers");
-      Messages.setLanguageText(itemResume,"MainWindow.menu.transfers.resumetransfers");
-      if(notMainWindow) {performOneTimeDisable(itemResume, true);}
-
-      itemStartAll.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event arg0) {
-        	mainWindow.getGlobalManager().startAllDownloads();
-        }
-      });
-      
-      itemStopAll.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event arg0) {
-        	ManagerUtils.asyncStopAll();
-        }
-      });
-
-      itemPause.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event arg0) 
-        {
-        	ManagerUtils.asyncPause();
-        }
-      });
-      
-      itemResume.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event arg0) 
-        {
-          mainWindow.getGlobalManager().resumeDownloads();
-        }
-      });
-      
-      downloadMenu.addMenuListener(
-          	new MenuListener()
-    		{
-          		public void
-    			menuShown(
-    				MenuEvent	menu )
-          		{
-          		  itemPause.setEnabled( mainWindow.getGlobalManager().canPauseDownloads() );
-         			          			
-          		  itemResume.setEnabled( mainWindow.getGlobalManager().canResumeDownloads() );
-          		}
-          		
-        		public void
-    			menuHidden(
-    				MenuEvent	menu )
-          		{
-          			
-          		}
-    		});
-      
-      	// ******** The View Menu
-      MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
-      Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
-      Menu viewMenu = new Menu(parent, SWT.DROP_DOWN);
-      viewItem.setMenu(viewMenu);
-      if(notMainWindow) {performOneTimeDisable(viewItem, true);}
-
-      addMenuItemLabel(viewMenu, "MainWindow.menu.view.show");
-      indent(addMyTorrentsMenuItem(viewMenu));
-      indent(addMyTrackerMenuItem(viewMenu));
-      indent(addMySharesMenuItem(viewMenu));
-
+        // hig compliance
         if(Constants.isOSX) {
-          indent(addConsoleMenuItem(viewMenu));
-          indent(addStatisticsMenuItem(viewMenu));
-      }
+            addViewMenu(parent, notMainWindow);
+            addTransferMenu(parent, isModal, notMainWindow);
+        }
+        else { // previous ordering
+            addTransferMenu(parent, isModal, notMainWindow);
+            addViewMenu(parent, notMainWindow);
+        }
 
-      //the Tools menu
+        //the Tools menu
         if(!Constants.isOSX) {
             MenuItem menu_tools = new MenuItem(menuBar,SWT.CASCADE);
             Messages.setLanguageText(menu_tools, "MainWindow.menu.tools"); //$NON-NLS-1$
@@ -469,11 +389,11 @@ public class MainMenu {
           addZoomWindowMenuItem(windowMenu);
           new MenuItem(windowMenu, SWT.SEPARATOR);
           addBlockedIPsMenuItem(windowMenu);
-          /*new MenuItem(windowMenu, SWT.SEPARATOR);
+          new MenuItem(windowMenu, SWT.SEPARATOR);
           addBringAllToFrontMenuItem(windowMenu);
           new MenuItem(windowMenu, SWT.SEPARATOR);
 
-          appendWindowMenuItems(windowMenu);*/
+          appendWindowMenuItems(windowMenu);
 
       }
 
@@ -561,7 +481,203 @@ public class MainMenu {
     }
   }
 
-  private static final MenuItem addMenuItem(Menu menu, String localizationKey, Listener selListener) {
+  private void addTransferMenu(final Shell parent, boolean modal, boolean notMainWindow)
+  {
+      // ******** The Download Menu
+
+      MenuItem downloadItem = new MenuItem(menuBar, SWT.CASCADE);
+      Messages.setLanguageText(downloadItem, "MainWindow.menu.transfers"); //$NON-NLS-1$
+      Menu downloadMenu = new Menu(parent, SWT.DROP_DOWN);
+      downloadItem.setMenu(downloadMenu);
+      if(modal) {performOneTimeDisable(downloadItem, true);}
+
+
+
+        // new MenuItem(fileMenu,SWT.SEPARATOR);
+
+      final MenuItem itemStartAll = new MenuItem(downloadMenu,SWT.NULL);
+      KeyBindings.setAccelerator(itemStartAll, "MainWindow.menu.transfers.startalltransfers");
+      Messages.setLanguageText(itemStartAll,"MainWindow.menu.transfers.startalltransfers");
+
+      final MenuItem itemStopAll = new MenuItem(downloadMenu,SWT.NULL);
+      KeyBindings.setAccelerator(itemStopAll, "MainWindow.menu.transfers.stopalltransfers");
+      Messages.setLanguageText(itemStopAll,"MainWindow.menu.transfers.stopalltransfers");
+
+      final MenuItem itemPause = new MenuItem(downloadMenu,SWT.NULL);
+      KeyBindings.setAccelerator(itemPause, "MainWindow.menu.transfers.pausetransfers");
+      Messages.setLanguageText(itemPause,"MainWindow.menu.transfers.pausetransfers");
+      if(notMainWindow) {performOneTimeDisable(itemPause, true);}
+
+      final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL);
+      KeyBindings.setAccelerator(itemResume, "MainWindow.menu.transfers.resumetransfers");
+      Messages.setLanguageText(itemResume,"MainWindow.menu.transfers.resumetransfers");
+      if(notMainWindow) {performOneTimeDisable(itemResume, true);}
+
+      itemStartAll.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+            mainWindow.getGlobalManager().startAllDownloads();
+        }
+      });
+
+      itemStopAll.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+            ManagerUtils.asyncStopAll();
+        }
+      });
+
+      itemPause.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0)
+        {
+            ManagerUtils.asyncPause();
+        }
+      });
+
+      itemResume.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0)
+        {
+          mainWindow.getGlobalManager().resumeDownloads();
+        }
+      });
+
+      downloadMenu.addMenuListener(
+          new MenuListener() {
+                public void
+                menuShown(MenuEvent menu)
+                {
+                    itemPause.setEnabled( mainWindow.getGlobalManager().canPauseDownloads() );
+
+                    itemResume.setEnabled( mainWindow.getGlobalManager().canResumeDownloads() );
+                }
+
+                public void
+                menuHidden(MenuEvent	menu )
+                {
+                }
+          });
+  }
+
+  private void addViewMenu(final Shell parent, boolean notMainWindow)
+  {
+      // ******** The View Menu
+      MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
+      Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
+      Menu viewMenu = new Menu(parent, SWT.DROP_DOWN);
+      viewItem.setMenu(viewMenu);
+      if(notMainWindow) {performOneTimeDisable(viewItem, true);}
+
+      addMenuItemLabel(viewMenu, "MainWindow.menu.view.show");
+      indent(addMyTorrentsMenuItem(viewMenu));
+      indent(addMyTrackerMenuItem(viewMenu));
+      indent(addMySharesMenuItem(viewMenu));
+
+      if(Constants.isOSX) {
+          indent(addConsoleMenuItem(viewMenu));
+          indent(addStatisticsMenuItem(viewMenu));
+      }
+  }
+
+  public void
+  addPluginView(
+  	final PluginView view)
+  {
+    display.asyncExec(new AERunnable() {
+      public void runSupport()
+      {
+      	String	name = view.getPluginViewName();
+
+      	MenuItem[]	items = pluginMenu.getItems();
+
+      	int	insert_at	= items.length;
+
+      	for (int i=0;i<items.length;i++){
+
+      		if ( 	items[i].getStyle() == SWT.SEPARATOR ||
+      				name.compareTo(items[i].getText()) < 0 ){
+
+      			insert_at  = i;
+
+      			break;
+      		}
+      	}
+
+        MenuItem item = new MenuItem(pluginMenu,SWT.NULL,insert_at);
+        item.setText( name );
+        item.addListener(SWT.Selection,new Listener() {
+          public void handleEvent(Event e) {
+            mainWindow.openPluginView(view);
+          }
+        });
+        menu_plugin.setEnabled(true);
+      }
+    });
+  }
+
+  /**
+   * Appends the list of opened interactive windows to the bottom of the specified parent menu
+   * @param windowMenu The parent menu
+   */
+  private void appendWindowMenuItems(final Menu windowMenu)
+  {
+      final int numTopItems = windowMenu.getItemCount();
+      Listener rebuild = new Listener() {
+          public void handleEvent(Event event) {
+              if(windowMenu.isDisposed())
+                  return;
+
+              final int size = ShellManager.sharedManager().getSize();
+              if(size == windowMenu.getItemCount() - numTopItems)
+              {
+                  for(int i = numTopItems; i < windowMenu.getItemCount(); i++)
+                  {
+                      final MenuItem item = windowMenu.getItem(i);
+                      item.setSelection(item.getData() == attachedShell);
+                  }
+                  return;
+              }
+
+              for(int i = numTopItems; i < windowMenu.getItemCount();)
+                windowMenu.getItem(i).dispose();
+
+              Iterator iter = ShellManager.sharedManager().getWindows();
+              for(int i = 0; i < size; i++)
+              {
+                  final Shell sh = (Shell)iter.next();
+
+                  if(sh.isDisposed() || sh.getText().length() == 0)
+                     continue;
+
+                  final MenuItem item = new MenuItem(windowMenu, SWT.CHECK);
+
+                  item.setText(sh.getText());
+                  item.setSelection(attachedShell == sh);
+                  item.setData(sh);
+
+                  item.addSelectionListener(new SelectionAdapter()
+                  {
+                      public void widgetSelected(SelectionEvent event)
+                      {
+                          if(event.widget.isDisposed() || sh.isDisposed())
+                              return;
+
+                          if(sh.getMinimized())
+                              sh.setMinimized(false);
+
+                          sh.open();
+                      }
+                  });
+              }
+          }
+      };
+
+      ShellManager.sharedManager().addWindowAddedListener(rebuild);
+      ShellManager.sharedManager().addWindowRemovedListener(rebuild);
+      attachedShell.addListener(SWT.FocusIn, rebuild);
+      windowMenu.addListener(SWT.Show, rebuild);
+  }
+
+    // individual menu items
+
+    private static final MenuItem addMenuItem(Menu menu, String localizationKey, Listener selListener) {
       MenuItem item = new MenuItem(menu, SWT.NULL);
       Messages.setLanguageText(item, localizationKey);
       KeyBindings.setAccelerator(item, localizationKey);
@@ -737,8 +853,8 @@ public class MainMenu {
               while (iter.hasNext())
               {
                   Shell shell = (Shell) iter.next();
-                  if(!shell.isDisposed())
-                      shell.setMinimized(false);
+                  if(!shell.isDisposed() && !shell.getMinimized())
+                      shell.open();
               }
           }
       });
@@ -780,6 +896,8 @@ public class MainMenu {
   }
 
 
+    // utility methods
+
   public void updateMenuText(Object menu) {
     if (menu == null)
       return;
@@ -813,41 +931,7 @@ public class MainMenu {
     });
   }
   
-  public void 
-  addPluginView(
-  	final PluginView view) 
-  {
-    display.asyncExec(new AERunnable() {
-      public void runSupport() 
-      {
-      	String	name = view.getPluginViewName();
-      	
-      	MenuItem[]	items = pluginMenu.getItems();
-      	
-      	int	insert_at	= items.length;
-      
-      	for (int i=0;i<items.length;i++){
-      	
-      		if ( 	items[i].getStyle() == SWT.SEPARATOR ||
-      				name.compareTo(items[i].getText()) < 0 ){
-      			
-      			insert_at  = i;
-      			
-      			break;
-      		}
-      	}
-      	      	      	
-        MenuItem item = new MenuItem(pluginMenu,SWT.NULL,insert_at);
-        item.setText( name );
-        item.addListener(SWT.Selection,new Listener() {
-          public void handleEvent(Event e) {
-            mainWindow.openPluginView(view);
-          }
-        });
-        menu_plugin.setEnabled(true);
-      }
-    }); 
-  }
+
 
   private static void setHandlerForShellManager(MenuItem item, final ShellManager mgr, final Listener evtHandler)
   {
