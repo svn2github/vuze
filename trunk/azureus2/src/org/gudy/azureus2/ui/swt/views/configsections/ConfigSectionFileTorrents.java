@@ -98,7 +98,7 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     final StringParameter torrentPathParameter = new StringParameter(gSaveTorrents,
-                                                                     "General_sDefaultTorrent_Directory", "");
+                                                                     "General_sDefaultTorrent_Directory");
     torrentPathParameter.setLayoutData(gridData);
 
     Button browse2 = new Button(gSaveTorrents, SWT.PUSH);
