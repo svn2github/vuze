@@ -92,4 +92,9 @@ PEPeer
 	public int getUniqueAnnounce();
 	
 	public int getAllowed();
+  
+  public int getLimit();
+  public void setLimit(int newLimit);
+  public void addLimitIfNotZero(int addToLimit);
+  
 }

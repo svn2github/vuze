@@ -6,10 +6,8 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -41,12 +39,12 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
   
   //The last computation time
   private long lastComputationTime;
+
+  // synchronisation object
+  private Object lock = new Object();
   
   //Cache expiration in ms
   private static final long CACHE_EXPIRES = 20;
-  
-  //The limit per peer
-  private Map peerToLimit;
   
   static private class UploaderInfo implements Comparable{
     int priorityLevel;
@@ -79,7 +77,6 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
    */
   private PEPeerTransportSpeedLimiter() {
     uploaders = new ArrayList();
-    peerToLimit = new HashMap();
     lastComputationTime = 0;
     this.limit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
     COConfigurationManager.addParameterListener("Max Upload Speed", this);
@@ -116,9 +113,7 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
       while (uploaders.contains(peer))
         uploaders.remove(peer);
     }
-    synchronized(peerToLimit) {
-      peerToLimit.remove(peer);
-    }
+    peer.setLimit(0);
   }
 
   /**
@@ -141,19 +136,12 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
       computeAllocation();
       lastComputationTime = currentTime;
     }
-    Integer limit = null;
-    synchronized(peerToLimit) {
-      limit = (Integer) peerToLimit.get(peer);
-    }
-    if(limit == null)
-      return 0;
-    return limit.intValue();
+    return peer.getLimit();
   }
 
   
   private void computeAllocation() {    
-    synchronized(peerToLimit) {
-      peerToLimit.clear();
+    synchronized(lock) {
       
       if (this.uploaders.size() == 0) {        
         return;
@@ -191,11 +179,12 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
       int maxAllocation, allocation;
       while(iter.hasNext()) {        
         UploaderInfo ui = (UploaderInfo) iter.next();
+        ui.peer.setLimit(0);
         if(ui.priorityLevel != DownloadManager.LOW_PRIORITY)
           continue;
         maxAllocation = toBeAllowed / nbUploadersLowPriority;
-        allocation = min(maxAllocation,ui.maxUpload);
-        peerToLimit.put(ui.peer,new Integer(allocation));
+        allocation = maxAllocation < ui.maxUpload ? maxAllocation : ui.maxUpload;
+        ui.peer.setLimit(allocation);
         toBeAllowed -= allocation;
         nbUploadersLowPriority--;
       }
@@ -209,21 +198,26 @@ public final class PEPeerTransportSpeedLimiter implements ParameterListener {
         if(ui.priorityLevel != DownloadManager.HIGH_PRIORITY)
           continue;
         maxAllocation = toBeAllowed / nbUploadersHighPriority;
-        allocation = min(maxAllocation,ui.maxUpload);
-        peerToLimit.put(ui.peer,new Integer(allocation));
+        allocation = maxAllocation < ui.maxUpload ? maxAllocation : ui.maxUpload;
+        ui.peer.setLimit(allocation);
         toBeAllowed -= allocation;
         nbUploadersHighPriority--;
       }
       
       //2.3 3rd pass in case some bandwith is left
       if(toBeAllowed > 0) {
-        int toBeAllowedMorePerPeer = toBeAllowed / peerToLimit.size();
+        int limitedPeersCount = 0;
+        iter = sortedList.iterator();
+        while(iter.hasNext()) {
+          if(((UploaderInfo) iter.next()).peer.getLimit() != 0)
+            limitedPeersCount++;
+        }
+        int toBeAllowedMorePerPeer = toBeAllowed / limitedPeersCount;
         if(toBeAllowedMorePerPeer > 0) {
-	        iter = peerToLimit.keySet().iterator();
+          iter = sortedList.iterator();
 	        while(iter.hasNext()) {
-	          PEPeer key = (PEPeer) iter.next();
-	          Integer oldValue = (Integer) peerToLimit.get(key);
-	          peerToLimit.put(key,new Integer(oldValue.intValue() + toBeAllowedMorePerPeer));
+	          PEPeer key = ((UploaderInfo) iter.next()).peer;
+            key.addLimitIfNotZero(toBeAllowedMorePerPeer);
 	        }
         }
       }      

@@ -75,7 +75,8 @@ PEPeerTransportProtocol
 	private boolean writeData;
 	private int allowed;
 	private int used;
-	private int loopFactor;
+  private int limit = 0;
+  private int loopFactor;
 
 		//The keepAlive counter
 		
@@ -1352,6 +1353,17 @@ PEPeerTransportProtocol
 
   public int getAllowed() {
     return allowed;
+  }
+
+  public int getLimit() {
+    return limit;
+  }
+  public void setLimit(int newLimit) {
+    limit = newLimit;
+  }
+  public void addLimitIfNotZero(int addToLimit) {
+    if(limit != 0)
+      limit += addToLimit;
   }
 
 }
