@@ -1075,8 +1075,10 @@ public class DiskManager {
   }
 
   public void stopIt() {
-    writeThread.stopIt();
-    readThread.stopIt();
+    if(writeThread != null)
+      writeThread.stopIt();
+    if(readThread != null)
+      readThread.stopIt();
     this.bContinue = false;
     for (int i = 0; i < files.length; i++) {
       try {

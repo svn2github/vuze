@@ -41,13 +41,6 @@ public class Updater {
       File targetFile = new File(originDirectory, "Azureus2.jar");
       if(updateFile.isFile()) {
 //        System.out.println(FOUND);
-        while(!updateFile.isFile())
-          try {
-            Thread.sleep(1000);
-          } catch (InterruptedException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-          }
         while(!targetFile.delete()) {
           try {
             Thread.sleep(1000);
@@ -67,6 +60,7 @@ public class Updater {
         String classPath = args[0]; // targetFile.getAbsolutePath()
         String libraryPath = args[1];
         String userPath = args[2];
+//        classPath.replaceAll("Azureus\\.jar", "Azureus-new.jar");
 
         String exec = "java -classpath \"" + classPath + "\" -Djava.library.path=\"" + libraryPath + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
 //        System.out.println("executing: " + exec);
