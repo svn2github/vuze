@@ -78,7 +78,7 @@ public class SplashWindow {
     label.setImage(ImageRepository.getImage("azureus_splash"));
 
     currentTask = new Label(splash,SWT.BORDER);
-    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+    GridData gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
     currentTask.setLayoutData(gridData);
     currentTask.setBackground(white);
 
@@ -89,6 +89,7 @@ public class SplashWindow {
     this.percentDone.setLayoutData(gridData);
 
     splash.pack();
+    splash.layout();
     Utils.centreWindow(splash);
     splash.open();    
   }
@@ -110,6 +111,7 @@ public class SplashWindow {
   
   public void setCurrentTask(String task) {
     currentTask.setText(task);
+    
   }
 
 }

@@ -406,6 +406,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     ImageRepository.loadImagesForSplashWindow(display);
     
+    Display.setAppName("Azureus");
+    
     if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
     	
       showSplashWindow();

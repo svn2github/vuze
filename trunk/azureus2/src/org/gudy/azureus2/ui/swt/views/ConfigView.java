@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,11 +14,14 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -420,9 +424,30 @@ public class ConfigView extends AbstractIView {
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     Messages.setLanguageText(label, "ConfigView.pluginlist.whereToPut");
 
+    
+    
     label = new Label(infoGroup, SWT.WRAP);
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     label.setText(sPluginDir);
+    label.setForeground(MainWindow.blue);
+    label.setCursor(MainWindow.handCursor);
+    
+    final String _sPluginDir = sPluginDir;
+    
+    label.addMouseListener(new MouseAdapter() {
+      public void mouseDown(MouseEvent arg0) {
+        if(_sPluginDir.endsWith("/plugins/")) {
+          File f = new File(_sPluginDir);
+          if(f.exists() && f.isDirectory()) {
+            Program.launch(_sPluginDir);
+          } else {
+            String azureusDir = _sPluginDir.substring(0,_sPluginDir.length() - 9);
+            System.out.println(azureusDir);
+            Program.launch(azureusDir);
+          }
+        }
+      }
+    });
 
     List pluginIFs = PluginInitializer.getPluginInterfaces();
     Label labelInfo = new Label(infoGroup, SWT.WRAP);
