@@ -57,7 +57,7 @@ LoadTest
 	protected
 	LoadTest()
 	{		
-		int	timeout = 100;
+		int	timeout = 10;
 		
 		TRTrackerServerImpl.RETRY_MINIMUM_SECS		= timeout;
 		TRTrackerServerImpl.RETRY_MINIMUM_MILLIS	= timeout*1000;
@@ -158,6 +158,8 @@ LoadTest
 				}else if (chance(10)){
 					
 					client.changeAddress();
+			
+				}else if (chance(10)){
 					
 					client.reset();
 				}else{

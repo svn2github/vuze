@@ -105,10 +105,10 @@ TRTrackerServerTorrentImpl
 		
 		long	now = SystemTime.getCurrentTime();
 		
+		int		tracker_key_hash_code	= tracker_key==null?0:tracker_key.hashCode();
+		
 		TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get( peer_id );
 
-		String	reuse_key = ip_address + ":" +port;
-		
 		boolean		new_peer 			= false;
 		
 		boolean		already_completed	= false;
@@ -119,6 +119,8 @@ TRTrackerServerTorrentImpl
 		long	le_diff = 0;
 		
 		if ( peer == null ){
+			
+			String	reuse_key = ip_address + ":" +port;
 			
 			new_peer	= true;
 			
@@ -132,12 +134,14 @@ TRTrackerServerTorrentImpl
 			TRTrackerServerPeerImpl old_peer	= (TRTrackerServerPeerImpl)peer_reuse_map.get( reuse_key );
 							
 			if ( old_peer != null ){
-				
+								
 				last_contact_time	= old_peer.getLastContactTime();
 				
 				already_completed	= old_peer.getDownloadCompleted();
 				
 				removePeer( old_peer );
+				
+				lightweight_seed_map.remove( old_peer.getPeerId());
 				
 			}else{
 				
@@ -162,8 +166,8 @@ TRTrackerServerTorrentImpl
 			if ( !stopped ){			
 													
 				peer = new TRTrackerServerPeerImpl( 
-						peer_id, 
-								tracker_key, 
+								peer_id, 
+								tracker_key_hash_code, 
 								ip_address.getBytes(), 
 								port,
 								last_contact_time,
@@ -177,17 +181,11 @@ TRTrackerServerTorrentImpl
 			}
 		}else{
 			
-			String	existing_tracker_key = peer.getKey();
+			int	existing_tracker_key_hash_code = peer.getKeyHashCode();
 	
 			// System.out.println( "tracker_key:" + existing_tracker_key + "/" + tracker_key );
 				
-			if ( existing_tracker_key == null && tracker_key == null ){
-				
-			}else if ( existing_tracker_key == null || tracker_key == null ){
-				
-				throw( new Exception( "Unauthorised: key mismatch "));
-				
-			}else if ( !existing_tracker_key.equals( tracker_key )){
+			if ( existing_tracker_key_hash_code != tracker_key_hash_code ){
 		
 				throw( new Exception( "Unauthorised: key mismatch "));
 				
@@ -205,7 +203,20 @@ TRTrackerServerTorrentImpl
 				
 					// IP may have changed - update if required
 				
-				peer.checkForIPChange( ip_address.getBytes());
+				byte[]	old_ip = peer.getIPAsRead();
+				
+				if ( peer.checkForIPChange( ip_address.getBytes())){
+					
+						// same peer id so same port
+					
+					String 	old_key = new String( old_ip, Constants.BYTE_ENCODING ) + ":" + peer.getPort();
+					
+					String	new_key = new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getPort();
+					
+					peer_reuse_map.remove( old_key );
+
+					peer_reuse_map.put( new_key, peer );
+				}
 			}
 		}
 		
@@ -382,7 +393,7 @@ TRTrackerServerTorrentImpl
 		checkForPeerListCompaction( false );
 		
 		try{
-			Object o = peer_reuse_map.remove( new String( peer.getIPWhenCreated(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
+			Object o = peer_reuse_map.remove( new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
 		
 			if ( o == null ){
 				

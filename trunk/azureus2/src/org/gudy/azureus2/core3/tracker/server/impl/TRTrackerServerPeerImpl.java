@@ -31,10 +31,9 @@ public class
 TRTrackerServerPeerImpl
 	implements TRTrackerServerPeer, HostNameToIPResolverListener
 {	
-	protected byte[]		peer_id;
-	protected String		key;
+	protected HashWrapper	peer_id;
+	protected int			key_hash_code;
 	
-	protected byte[]		ip_when_created;
 	protected byte[]		ip;
 	protected int			port;
 	protected String		ip_str;
@@ -52,15 +51,14 @@ TRTrackerServerPeerImpl
 	protected
 	TRTrackerServerPeerImpl(
 		HashWrapper	_peer_id,
-		String		_key,
+		int			_key_hash_code,
 		byte[]		_ip,
 		int			_port,
 		long		_last_contact_time,
 		boolean		_download_completed )
 	{
-		peer_id				= _peer_id.getHash();
-		key					= _key;
-		ip_when_created		= _ip;
+		peer_id				= _peer_id;
+		key_hash_code		= _key_hash_code;
 		ip					= _ip;
 		port				= _port;
 		last_contact_time	= _last_contact_time;
@@ -69,7 +67,7 @@ TRTrackerServerPeerImpl
 		resolve();
 	}
 	
-	protected void
+	protected boolean
 	checkForIPChange(
 		byte[]		_ip )
 	{
@@ -78,6 +76,12 @@ TRTrackerServerPeerImpl
 			ip			= _ip;
 	
 			resolve();
+			
+			return( true );
+			
+		}else{
+			
+			return( false );
 		}
 	}
 	
@@ -125,21 +129,13 @@ TRTrackerServerPeerImpl
 	protected HashWrapper
 	getPeerId()
 	{
-		return( new HashWrapper(peer_id));
+		return( peer_id );
 	}
 	
-	protected String
-	getKey()
+	protected int
+	getKeyHashCode()
 	{
-		return( key );
-	}
-	
-		// the original IP is used as a key so we need to keep track of it
-	
-	protected byte[]
-	getIPWhenCreated()
-	{
-		return( ip_when_created );
+		return( key_hash_code );
 	}
 	
 	protected byte[]
@@ -236,6 +232,6 @@ TRTrackerServerPeerImpl
 	protected String
 	getString()
 	{
-		return( new String(ip) + ":" + port + "(" + new String(peer_id) + ")" );
+		return( new String(ip) + ":" + port + "(" + new String(peer_id.getHash()) + ")" );
 	}
 }
