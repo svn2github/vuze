@@ -28,7 +28,7 @@ import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
-
+import org.gudy.azureus2.core3.util.AEThread;
 /**
  * @author parg
  */
@@ -203,7 +203,7 @@ StatsWriterPeriodicImpl
 			if ( start_count == 1 ){
 							
 				current_thread = 
-					new Thread("StatsWriter"){
+					new AEThread("StatsWriter"){
 						public void
 						run()
 						{

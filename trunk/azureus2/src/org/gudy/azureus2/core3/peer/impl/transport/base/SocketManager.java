@@ -13,7 +13,7 @@ import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
 import org.gudy.azureus2.core3.config.*;
-
+import org.gudy.azureus2.core3.util.AEThread;
 
 /**
  * Handles socket connections.
@@ -30,7 +30,7 @@ public class SocketManager {
   
   
   private SocketManager() {
-    Thread loop = new Thread("SocketManager") {
+    Thread loop = new AEThread("SocketManager") {
       public void run() {
         mainLoop();
       }

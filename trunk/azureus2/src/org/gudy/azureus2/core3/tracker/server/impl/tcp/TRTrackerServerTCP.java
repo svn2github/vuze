@@ -107,7 +107,7 @@ TRTrackerServerTCP
 					final SSLServerSocket	f_ss = ssl_server_socket;
 					
 					Thread accept_thread = 
-							new Thread("TRTrackerServer:accept.loop(ssl)")
+							new AEThread("TRTrackerServer:accept.loop(ssl)")
 							{
 								public void
 								run()
@@ -161,7 +161,7 @@ TRTrackerServerTCP
 				final ServerSocket	f_ss = ss;
 				
 				Thread accept_thread = 
-						new Thread("TRTrackerServer:accept.loop")
+						new AEThread("TRTrackerServer:accept.loop")
 						{
 							public void
 							run()

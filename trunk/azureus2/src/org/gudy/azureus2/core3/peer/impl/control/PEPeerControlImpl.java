@@ -223,7 +223,7 @@ PEPeerControlImpl
     peerUpdater.start();
     
     
-    new Thread( "Peer Manager"){
+    new AEThread( "Peer Manager"){
       public void
       run()
       {
@@ -232,7 +232,7 @@ PEPeerControlImpl
     }.start();
   }
 
-  private class PeerUpdater extends Thread {
+  private class PeerUpdater extends AEThread {
     private boolean bContinue = true;
 
     private long started[];
@@ -346,7 +346,7 @@ PEPeerControlImpl
   public void stopAll() {
     
   	//Asynchronous cleaner
-    Thread t = new Thread("Cleaner - Tracker Ender") {
+    Thread t = new AEThread("Cleaner - Tracker Ender") {
       public void run() {
           //1. Send disconnect to Tracker
         _tracker.stop();

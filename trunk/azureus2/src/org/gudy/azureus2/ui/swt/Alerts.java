@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
-
+import org.gudy.azureus2.core3.util.AEThread;
 /**
  * Utility methods to display popup window
  */
@@ -228,7 +228,7 @@ public class Alerts {
   }
   
   private void initCompleteI() {
-    new Thread("Init Complete")
+    new AEThread("Init Complete")
     {
     	public void
     	run()

@@ -47,7 +47,7 @@ Main
 	{
 		if ( singleton == null ){
 			
-			new Thread( "plugin initialiser ")
+			new AEThread( "plugin initialiser ")
 			{
 				public void
 				run()

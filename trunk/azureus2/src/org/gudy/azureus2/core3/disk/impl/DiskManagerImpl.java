@@ -190,7 +190,7 @@ DiskManagerImpl
     COConfigurationManager.addParameterListener("Use Resume", this);
     COConfigurationManager.addParameterListener("Prioritize First Piece", this);
     
-    Thread init = new Thread() {
+    Thread init = new AEThread("DiskManager:start") {
 			public void run() {
 				initialize();
 				if (DiskManagerImpl.this.getState() == DiskManager.FAULTY) {

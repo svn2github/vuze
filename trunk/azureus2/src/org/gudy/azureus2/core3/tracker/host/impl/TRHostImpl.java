@@ -93,7 +93,7 @@ TRHostImpl
 			
 			TRTrackerClientFactory.addListener( this );
 			
-			Thread t = new Thread("TRHost::stats.loop")
+			Thread t = new AEThread("TRHost::stats.loop")
 						{
 							public void
 							run()
@@ -576,7 +576,7 @@ TRHostImpl
 			
 		// for the moment stick a delay in to allow any async stuff to complete
 		
-		Thread thread = new Thread()
+		Thread thread = new AEThread("StopHosting")
 			{
 				public void
 				run()

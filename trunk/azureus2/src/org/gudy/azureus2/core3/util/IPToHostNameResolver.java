@@ -51,7 +51,7 @@ IPToHostNameResolver
 			if ( resolver_thread == null ){
 				
 				resolver_thread = 
-					new Thread("IPToHostNameResolver")
+					new AEThread("IPToHostNameResolver")
 					{
 						public void
 						run()

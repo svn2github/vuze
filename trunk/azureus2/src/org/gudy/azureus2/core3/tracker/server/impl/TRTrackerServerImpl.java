@@ -212,7 +212,7 @@ TRTrackerServerImpl
 		current_scrape_retry_interval	= (current_announce_retry_interval*scrape_percentage)/100;
 		
 		Thread timer_thread = 
-			new Thread("TrackerServer:timer.loop")
+			new AEThread("TrackerServer:timer.loop")
 			{
 				public void
 				run( )

@@ -54,7 +54,7 @@ PESharedPortSelector
 	{
 		selector = Selector.open();
 		
-		Thread t = new Thread("PESharedPortSelector")
+		Thread t = new AEThread("PESharedPortSelector")
 			{
 				public void
 				run()

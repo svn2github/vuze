@@ -83,7 +83,7 @@ FMFileManagerImpl
 			
 			close_queue		= new LinkedList();
 			
-			Thread	t = new Thread("FMFileManager::closeQueueDispatcher")
+			Thread	t = new AEThread("FMFileManager::closeQueueDispatcher")
 				{
 					public void
 					run()

@@ -289,7 +289,7 @@ ResourceDownloaderTorrentImpl
 				});
 				
 			Thread	t = 
-				new Thread( "RDTorrent percentage checker")
+				new AEThread( "RDTorrent percentage checker")
 				{
 					public void
 					run()

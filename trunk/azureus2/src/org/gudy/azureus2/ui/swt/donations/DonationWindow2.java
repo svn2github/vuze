@@ -51,6 +51,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.core3.util.AEThread;
 
 /**
  * @author Olivier
@@ -172,7 +173,7 @@ public class DonationWindow2 {
     animator.start();
   }
   
-  private class Animator extends Thread {
+  private class Animator extends AEThread {
    
     boolean ended = false;
     boolean drawingDone;

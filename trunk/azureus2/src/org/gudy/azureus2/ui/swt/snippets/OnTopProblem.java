@@ -17,6 +17,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 
+import org.gudy.azureus2.core3.util.AEThread;
+
 /**
  * 
  */
@@ -74,7 +76,7 @@ public class OnTopProblem {
         }
     });
     
-    Thread t = new Thread() {
+    Thread t = new AEThread("OnTopProblem") {
       public void run() {
        while(updateDisplay()) {
         try { Thread.sleep(100); } catch(Exception ignore) {}   

@@ -78,7 +78,7 @@ NonDaemonTaskRunner
 				
 				final Semaphore wait_sem = new Semaphore();
 				
-				current_thread = new Thread("NonDaemonTaskRunner" )
+				current_thread = new AEThread("NonDaemonTaskRunner" )
 					{
 						public void
 						run()

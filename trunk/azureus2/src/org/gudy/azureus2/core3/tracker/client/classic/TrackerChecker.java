@@ -46,7 +46,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
     
     trackers  = new HashMap();
     
-    Thread t = new Thread("Tracker Scrape") {
+    Thread t = new AEThread("Tracker Scrape") {
        public void run() {
         runScrapes();
       }

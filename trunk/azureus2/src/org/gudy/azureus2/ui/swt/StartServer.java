@@ -53,7 +53,7 @@ public class StartServer
     pollForConnections()
 	{
 	    Thread t = 
-	    	new Thread("Start Server")
+	    	new AEThread("Start Server")
 			{
 	    		public void 
 				run()

@@ -615,7 +615,7 @@ DownloadManagerImpl
 
   	setState( DownloadManager.STATE_STOPPING );
 
-  	Thread stopThread = new Thread() {
+  	Thread stopThread = new AEThread("DownloadManager:stopIt") {
 	  public void run()
 	  {
 	  	try{
@@ -1286,7 +1286,7 @@ DownloadManagerImpl
   		return;
   	}
   	
-    Thread recheck = new Thread() {
+    Thread recheck = new AEThread("forceRecheck") {
 			public void run() {
 				int prevState = DownloadManagerImpl.this.getState();
 				setState(STATE_CHECKING);

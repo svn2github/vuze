@@ -26,6 +26,7 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.AEThread;
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.*;
@@ -125,7 +126,7 @@ SSDPImpl
 						mc_sock.setLoopbackMode(true);
 											
 						Runtime.getRuntime().addShutdownHook(
-								new Thread()
+								new AEThread("SSDP:VMShutdown")
 								{
 									public void
 									run()
@@ -141,7 +142,7 @@ SSDPImpl
 								});
 						
 						Thread	group_thread = 
-							new Thread()
+							new AEThread("SSDP: MC listener")
 							{
 								public void
 								run()
@@ -163,7 +164,7 @@ SSDPImpl
 						control_socket.bind( new InetSocketAddress(ni_address, SSDP_CONTROL_PORT ));
 		
 						Thread	control_thread = 
-							new Thread()
+							new AEThread("SSDP:listener")
 							{
 								public void
 								run()
@@ -184,7 +185,7 @@ SSDPImpl
 			}
 		
 			Thread	query_thread = 
-				new Thread()
+				new AEThread("SSDP:queryLoop")
 				{
 					public void
 					run()

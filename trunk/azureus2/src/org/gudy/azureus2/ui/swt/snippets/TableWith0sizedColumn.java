@@ -15,6 +15,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
+import org.gudy.azureus2.core3.util.AEThread;
+
 /**
  * 
  */
@@ -43,7 +45,7 @@ public class TableWith0sizedColumn {
       item.setText(new String[] {null,"col 1 row " + i , "col 2 row " + i});
     }
     
-    Thread tUpdateValues = new Thread() {
+    Thread tUpdateValues = new AEThread("TableWith0sizedColumn") {
       public void run() {
         final int[] t = new int[1];
         t[0] = 0;

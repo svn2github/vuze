@@ -146,7 +146,7 @@ ResourceDownloaderTimeoutImpl
 			
 			current_downloader.asyncDownload();
 		
-			Thread t = new Thread( "ResourceDownloaderTimeout")
+			Thread t = new AEThread( "ResourceDownloaderTimeout")
 				{
 					public void
 					run()
@@ -193,7 +193,7 @@ ResourceDownloaderTimeoutImpl
 			
 			current_downloader = delegate.getClone( this );
 					
-			Thread	size_thread = new Thread( "ResourceDownloader:size getter" )
+			Thread	size_thread = new AEThread( "ResourceDownloader:size getter" )
 				{
 					public void
 					run()
@@ -216,7 +216,7 @@ ResourceDownloaderTimeoutImpl
 		
 			size_thread.start();
 			
-			Thread t = new Thread( "ResourceDownloaderTimeout")
+			Thread t = new AEThread( "ResourceDownloaderTimeout")
 				{
 					public void
 					run()

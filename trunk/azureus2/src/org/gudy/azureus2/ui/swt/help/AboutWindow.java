@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
+import org.gudy.azureus2.core3.util.AEThread;
 
 /**
  * @author Olivier
@@ -147,7 +148,7 @@ public class AboutWindow {
     Utils.centreWindow(window);
     window.open();
     
-    Thread updater =  new Thread("Splash Screen Updater") {
+    Thread updater =  new AEThread("Splash Screen Updater") {
       public void run() {        
         if(image == null || image.isDisposed())
           return;

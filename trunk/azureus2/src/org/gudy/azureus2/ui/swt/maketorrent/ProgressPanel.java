@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.wizard.*;
+import org.gudy.azureus2.core3.util.AEThread;
 
 /**
  * @author Olivier
@@ -89,7 +90,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#finish()
    */
   public void finish() {
-    Thread t = new Thread("Torrent Maker") {
+    Thread t = new AEThread("Torrent Maker") {
       public void run() {
         makeTorrent();
       }

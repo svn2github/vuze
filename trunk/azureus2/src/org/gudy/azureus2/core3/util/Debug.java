@@ -176,7 +176,7 @@ public class Debug {
    dumpThreadsLoop(
    	final String	name )
    {
-   	new Thread("Thread Dumper")
+   	new AEThread("Thread Dumper")
 	   {
 		   public void 
 		   run()

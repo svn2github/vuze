@@ -82,7 +82,7 @@ ThreadPool
 		protected
 		worker()
 		{
-			Thread t = new Thread( name + "[" + (thread_name_index++) +  "]")
+			Thread t = new AEThread( name + "[" + (thread_name_index++) +  "]")
 				{
 					public void 
 					run()

@@ -32,6 +32,7 @@ import java.net.*;
 
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.*;
+import org.gudy.azureus2.core3.util.AEThread;
 
 public abstract class 
 ExternalIPCheckerServiceImpl 
@@ -84,7 +85,7 @@ ExternalIPCheckerServiceImpl
 	{
 	
 		Thread	t = 
-			new Thread()
+			new AEThread("IPChecker")
 			{
 				public void
 				run()
@@ -107,7 +108,7 @@ ExternalIPCheckerServiceImpl
 		if ( timeout > 0 ){
 			
 			Thread	t2 = 
-				new Thread()
+				new AEThread("IPChecker2")
 				{
 					public void
 					run()

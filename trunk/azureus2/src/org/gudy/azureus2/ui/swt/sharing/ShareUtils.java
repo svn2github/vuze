@@ -44,7 +44,7 @@ ShareUtils
 	shareFile(
 		final Shell		shell )
 	{
-		new Thread()
+		new AEThread("shareFile")
 		{
 			public void
 			run()
@@ -104,7 +104,7 @@ ShareUtils
 		final boolean	contents,
 		final boolean	recursive )
 	{
-		new Thread()
+		new AEThread("shareDirSupport")
 		{
 			public void
 			run()
@@ -157,7 +157,7 @@ ShareUtils
 	shareFile(
 		final String	file_name )
 	{
-		new Thread()
+		new AEThread("shareFile")
 		{
 			public void
 			run()
@@ -177,7 +177,7 @@ ShareUtils
 	shareDir(
 		final String	file_name )
 	{
-		new Thread()
+		new AEThread("shareDir")
 		{
 			public void
 			run()
@@ -198,7 +198,7 @@ ShareUtils
 		final String	file_name,
 		final boolean	recursive )
 	{
-		new Thread()
+		new AEThread("shareDirCntents")
 		{
 			public void
 			run()

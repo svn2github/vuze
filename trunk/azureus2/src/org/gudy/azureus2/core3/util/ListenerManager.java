@@ -105,7 +105,7 @@ ListenerManager
 			
 			if ( async && listeners.size() == 1 ){
 				
-				async_thread = new Thread( name )
+				async_thread = new AEThread( name )
 					{
 						public void
 						run()

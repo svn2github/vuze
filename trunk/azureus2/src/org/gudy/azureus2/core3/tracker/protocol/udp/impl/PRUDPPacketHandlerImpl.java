@@ -56,7 +56,7 @@ PRUDPPacketHandlerImpl
 		
 		final Semaphore init_sem = new Semaphore();
 		
-		Thread t = new Thread( "PRUDPPacketReciever:".concat(String.valueOf(port)))
+		Thread t = new AEThread( "PRUDPPacketReciever:".concat(String.valueOf(port)))
 			{
 				public void
 				run()

@@ -78,7 +78,7 @@ UpdateCheckInstanceImpl
 			final UpdateCheckerImpl			checker = checkers[i];
 			
 			Thread	t = 
-				new Thread( "UpdatableComponent Checker:" + i )
+				new AEThread( "UpdatableComponent Checker:" + i )
 				{
 					public void
 					run()
@@ -99,7 +99,7 @@ UpdateCheckInstanceImpl
 		}
 		
 		Thread	t = 
-			new Thread( "UpdatableComponent Completion Waiter" )
+			new AEThread( "UpdatableComponent Completion Waiter" )
 			{
 				public void
 				run()

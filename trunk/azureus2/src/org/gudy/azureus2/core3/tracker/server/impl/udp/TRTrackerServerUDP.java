@@ -82,7 +82,7 @@ TRTrackerServerUDP
 			final InetSocketAddress	f_address	= address;
 			
 			Thread recv_thread = 
-				new Thread("TRTrackerServerUDP:recv.loop")
+				new AEThread("TRTrackerServerUDP:recv.loop")
 				{
 					public void
 					run()

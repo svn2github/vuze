@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.OpenUrlWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
+import org.gudy.azureus2.core3.util.AEThread;
 
 /**
  * @author Olivier Chalouhi
@@ -100,7 +101,7 @@ public class TorrentOpener {
           if(!COConfigurationManager.getBooleanParameter("Add URL Silently", false))
             mainWindow.setActive();
           
-          new Thread() {
+          new AEThread("TorrentOpener::openTorrent") {
             public void run() {
               try{
                 String savePath = getSavePath(fileName);
@@ -233,7 +234,7 @@ public class TorrentOpener {
      {
       mainWindow.setActive();
 
-      new Thread(){
+      new AEThread("TorrentOpener"){
           public void run() {
             String separator = System.getProperty("file.separator"); //$NON-NLS-1$
             for (int i = 0; i < fileNames.length; i++) {
@@ -279,7 +280,7 @@ public class TorrentOpener {
     final String path = setFilterPathData( dDialog.open() );
     if( path == null ) return;
     
-    new Thread() {
+    new AEThread("Torrent Opener") {
       public void run() {
         for (int i = 0; i < files.length; i++)
           globalManager.addDownloadManager(files[i].getAbsolutePath(), path, 

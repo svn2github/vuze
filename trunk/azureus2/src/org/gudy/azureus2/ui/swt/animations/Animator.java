@@ -24,7 +24,10 @@ package org.gudy.azureus2.ui.swt.animations;
  * @author Olivier Chalouhi
  *
  */
-public abstract class Animator extends Thread {  
+
+import org.gudy.azureus2.core3.util.AEThread;
+
+public abstract class Animator extends AEThread {  
   public abstract void interrupt();
   
   public Animator(String name) {
