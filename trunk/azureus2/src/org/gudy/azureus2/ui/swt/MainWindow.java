@@ -6,6 +6,7 @@ package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -107,13 +108,14 @@ public class MainWindow implements IComponentListener {
 
     private void update() {
       final IView view;
-      
-      try {      
+
+      try {
         view = Tab.getView(folder.getSelection());
-      } catch(Exception e) {
+      }
+      catch (Exception e) {
         return;
       }
-      
+
       if (view != null) {
         display.asyncExec(new Runnable() {
           public void run() {
@@ -135,7 +137,8 @@ public class MainWindow implements IComponentListener {
           }
         });
       }
-    }    public void stopIt() {
+    }
+    public void stopIt() {
       finished = true;
     }
   }
@@ -449,7 +452,7 @@ public class MainWindow implements IComponentListener {
           }
         }
       }
-      
+
     });
   }
 
@@ -617,40 +620,66 @@ public class MainWindow implements IComponentListener {
     final String _fileName = fileName;
     display.asyncExec(new Runnable() {
       public void run() {
-        String savePath = ConfigurationManager.getInstance().getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
-        if (savePath.length() == 0) {
-          mainWindow.setActive();
-          DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
-          dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
-          dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath")); //$NON-NLS-1$
-          savePath = dDialog.open();
-          if (savePath == null)
-            return;
-          ConfigurationManager.getInstance().setParameter("Default Path", savePath); //$NON-NLS-1$
-          ConfigurationManager.getInstance().save();
-        }
+        String savePath = getSavePath(_fileName);
+        if (savePath == null)
+          return;
         globalManager.addDownloadManager(new DownloadManager(globalManager, _fileName, savePath));
       }
     });
   }
 
+  public String getSavePath(String fileName) {
+    String savePath = ConfigurationManager.getInstance().getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    if (savePath.length() == 0) {
+      mainWindow.setActive();
+      boolean singleFile = false;
+      try {
+        byte[] buf = new byte[1024];
+        int nbRead;
+        StringBuffer metaInfo = new StringBuffer();
+        FileInputStream fis = new FileInputStream(fileName);
+        while ((nbRead = fis.read(buf)) > 0)
+          metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
+        fis.close();
+        Map map = (Map) BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
+        Map info = (Map) map.get("info");
+        Object test = info.get("length");
+        if (test != null)
+          singleFile = true;
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+      if (singleFile) {
+        FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
+        fDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", ""));
+        fDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath"));
+        savePath = fDialog.open();
+
+      }
+      else {
+        DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
+        dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
+        dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath")); //$NON-NLS-1$
+        savePath = dDialog.open();
+      }
+      if (savePath == null)
+        return null;
+      ConfigurationManager.getInstance().setParameter("Default Path", savePath); //$NON-NLS-1$
+      ConfigurationManager.getInstance().save();
+    }
+    return savePath;
+  }
+
   public void openTorrents(final String path, final String fileNames[]) {
     display.asyncExec(new Runnable() {
       public void run() {
-        String savePath = ConfigurationManager.getInstance().getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
-        if (savePath.length() == 0) {
-          mainWindow.setActive();
-          DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
-          dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
-          dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
-          savePath = dDialog.open();
-          if (savePath == null)
-            return;
-          ConfigurationManager.getInstance().setParameter("Default Path", savePath); //$NON-NLS-1$
-          ConfigurationManager.getInstance().save();
-        }
+
         String separator = System.getProperty("file.separator"); //$NON-NLS-1$
         for (int i = 0; i < fileNames.length; i++) {
+          String savePath = getSavePath(path + separator + fileNames[i]);
+          if (savePath == null)
+            continue;
           globalManager.addDownloadManager(
             new DownloadManager(globalManager, path + separator + fileNames[i], savePath));
         }

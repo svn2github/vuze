@@ -109,8 +109,14 @@ public class DiskManager {
     pieceDone = new boolean[nbPieces];
 
     fileName = "";
-    try {
-      fileName = new String((byte[]) info.get("name"), "ISO-8859-1");
+    try {      
+      File f = new File(path);
+      if(f.isDirectory()) {
+        fileName = new String((byte[]) info.get("name"), "ISO-8859-1");
+      } else {
+        fileName = f.getName();
+        path = f.getParent();       
+      }      
     }
     catch (UnsupportedEncodingException e) {
       this.state = FAULTY;
@@ -1177,6 +1183,13 @@ public class DiskManager {
         fileInfo.setNbPieces(fileInfo.getNbPieces() + 1);
       }
     }
+  }
+
+  /**
+   * @return
+   */
+  public String getPath() {
+    return path;
   }
 
 }

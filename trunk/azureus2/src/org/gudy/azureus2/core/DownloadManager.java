@@ -34,11 +34,10 @@ public class DownloadManager extends Component {
   public static final int STATE_STOPPING = 65;
   public static final int STATE_STOPPED = 70;
   public static final int STATE_ERROR = 100;
-  
+
   private int priority;
   public static final int LOW_PRIORITY = 1;
   public static final int HIGH_PRIORITY = 2;
-
 
   private String errorDetail;
 
@@ -59,12 +58,12 @@ public class DownloadManager extends Component {
 
   private int maxUploads = 4;
 
-  public DownloadManager(GlobalManager gm, String torrentFileName, String savePath,boolean stopped) {
-   this(gm,torrentFileName,savePath);
-   if (this.state == STATE_ERROR)
-     return;
-   if(stopped)
-    this.state = STATE_STOPPED;
+  public DownloadManager(GlobalManager gm, String torrentFileName, String savePath, boolean stopped) {
+    this(gm, torrentFileName, savePath);
+    if (this.state == STATE_ERROR)
+      return;
+    if (stopped)
+      this.state = STATE_STOPPED;
   }
 
   public DownloadManager(GlobalManager gm, String torrentFileName, String savePath) {
@@ -117,7 +116,7 @@ public class DownloadManager extends Component {
     catch (FileNotFoundException e) {
       name = Messages.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
       nbPieces = 0;
-      hash = new byte[20];      
+      hash = new byte[20];
       this.state = STATE_ERROR;
       errorDetail = Messages.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
     }
@@ -324,6 +323,8 @@ public class DownloadManager extends Component {
    * @return
    */
   public String getSavePath() {
+    if (diskManager != null)
+      return diskManager.getPath();
     return savePath;
   }
 
@@ -359,7 +360,7 @@ public class DownloadManager extends Component {
 
   public String getFileName() {
     if (diskManager != null)
-      return savePath + System.getProperty("file.separator") + diskManager.getFileName(); //$NON-NLS-1$
+      return diskManager.getPath() + System.getProperty("file.separator") + diskManager.getFileName(); //$NON-NLS-1$
     return savePath;
   }
 
