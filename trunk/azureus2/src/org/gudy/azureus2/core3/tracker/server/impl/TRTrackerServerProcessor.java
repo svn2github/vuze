@@ -32,8 +32,11 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
-TRTrackerServerProcessor 
+TRTrackerServerProcessor
+	implements Runnable
 {
+	protected static final int SOCKET_TIMEOUT				= 5000;
+
 	protected static final char		CR			= '\015';
 	protected static final char		FF			= '\012';
 	protected static final String	NL			= "\015\012";
@@ -43,6 +46,7 @@ TRTrackerServerProcessor
 	protected static final int		RT_FULL_SCRAPE	= 3;
 							
 	protected TRTrackerServerImpl		server;
+	protected Socket					socket;
 	
 	protected
 	TRTrackerServerProcessor(
@@ -50,76 +54,103 @@ TRTrackerServerProcessor
 		Socket				_socket )
 	{
 		server	= _server;
-		
-		String	header = "";
-			
+		socket	= _socket;
+	}
+	
+	public void
+	run()
+	{
 		try{
-									
-			InputStream	is = _socket.getInputStream();
-			
-			byte[]	buffer = new byte[1024];
-			
-			while( header.length()< 4096 ){
-					
-				int	len = is.read(buffer);
-					
-				if ( len == -1 ){
+	
+			try{
+												
+				socket.setSoTimeout( SOCKET_TIMEOUT );
+													
+			}catch ( SocketException e ){
+													
+				e.printStackTrace();
+			}
+										
+			String	header = "";
 				
-					break;
-				}
-								
-				header += new String( buffer, 0, len );
-								
-				if ( header.endsWith( NL )){
+			try{
+										
+				InputStream	is = socket.getInputStream();
+				
+				byte[]	buffer = new byte[1024];
+				
+				while( header.length()< 4096 ){
+						
+					int	len = is.read(buffer);
+						
+					if ( len == -1 ){
 					
-					break;
+						break;
+					}
+									
+					header += new String( buffer, 0, len );
+									
+					if ( header.endsWith( NL )){
+						
+						break;
+					}
 				}
+		
+				if ( LGLogger.isLoggingOn()){
+					
+					String	log_str = header;
+					
+					int	pos = log_str.indexOf( NL );
+					
+					if ( pos != -1 ){
+						
+						log_str = log_str.substring(0,pos);
+					}
+					
+					LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
+				}				
+	
+				// System.out.println( "got header:" + header );
+				
+				if ( !header.startsWith( "GET " )){
+					
+					throw( new TRTrackerServerException( "header doesn't start with GET ('" + (header.length()>256?header.substring(0,256):header)+"')" ));
+				}
+				
+				header = header.substring(4).trim();
+				
+				int	pos = header.indexOf( " " );
+				
+				if ( pos == -1 ){
+					
+					throw( new TRTrackerServerException( "header doesn't have space in right place" ));
+				}
+				
+				header = header.substring(0,pos);
+				
+				processRequest( header, 
+								socket.getInetAddress().getHostAddress(),
+								socket.getOutputStream());
+				
+			}catch( SocketTimeoutException e ){
+				
+				// System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
+				// ignore it
+							
+			}catch( Throwable e ){
+				
+				// e.printStackTrace();
 			}
 	
-			if ( LGLogger.isLoggingOn()){
-				
-				String	log_str = header;
-				
-				int	pos = log_str.indexOf( NL );
-				
-				if ( pos != -1 ){
-					
-					log_str = log_str.substring(0,pos);
-				}
-				
-				LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
-			}				
-
-			// System.out.println( "got header:" + header );
-			
-			if ( !header.startsWith( "GET " )){
-				
-				throw( new TRTrackerServerException( "header doesn't start with GET ('" + (header.length()>256?header.substring(0,256):header)+"')" ));
+		}finally{
+												
+			try{
+				socket.close();
+																							
+			}catch( Throwable e ){
+													
+				e.printStackTrace();
 			}
-			
-			header = header.substring(4).trim();
-			
-			int	pos = header.indexOf( " " );
-			
-			if ( pos == -1 ){
-				
-				throw( new TRTrackerServerException( "header doesn't have space in right place" ));
-			}
-			
-			header = header.substring(0,pos);
-			
-			processRequest( header, 
-							_socket.getInetAddress().getHostAddress(),
-							_socket.getOutputStream());
-			
-		}catch( SocketTimeoutException e ){
-			
-			// System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
-			// ignore it
-						
-		}catch( Throwable e ){
-			
-			// e.printStackTrace();
 		}
 	}
 	
