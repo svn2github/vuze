@@ -95,7 +95,6 @@ public class ModePanel extends AbstractWizardPanel {
           
     if(localTrackerHost != null && !localTrackerHost.equals("")) {
       localTrackerUrl = "http://" + localTrackerHost + ":" + localTrackePort + "/announce";
-	  ((NewTorrentWizard)wizard).trackerURL = localTrackerUrl;
       localTrackerValue.setText("\t" + localTrackerUrl);        
     } else {    
       localTrackerUrl = "";
@@ -106,7 +105,9 @@ public class ModePanel extends AbstractWizardPanel {
       labelLocalTracker.setEnabled(false);      
       ((NewTorrentWizard)wizard).localTracker = false;
     }
-    
+    if(((NewTorrentWizard)wizard).localTracker) {
+			((NewTorrentWizard)wizard).trackerURL = localTrackerUrl;
+		}
     btnLocalTracker.setSelection(((NewTorrentWizard)wizard).localTracker);
     btnExternalTracker.setSelection(!((NewTorrentWizard)wizard).localTracker);
     
