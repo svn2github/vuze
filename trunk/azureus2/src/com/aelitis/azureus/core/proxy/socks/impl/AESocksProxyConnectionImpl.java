@@ -175,20 +175,26 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(1);
 		}
 		
-		protected void
+		protected boolean
 		readSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
 			
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 			buffer.flip();
@@ -208,6 +214,8 @@ AESocksProxyConnectionImpl
 				throw( new IOException( "Unsupported version " + version ));
 
 			}
+			
+			return( true );
 		}
 	}
 	
@@ -232,7 +240,7 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(7);
 		}
 	
-		protected void
+		protected boolean
 		readSupport(
 			SocketChannel 		sc )
 		
@@ -245,14 +253,20 @@ AESocksProxyConnectionImpl
 			# of bytes:	   1    1      2              4           variable       1
 			*/
 
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
-			
+						
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 			buffer.flip();
@@ -311,6 +325,8 @@ AESocksProxyConnectionImpl
 				
 				buffer = ByteBuffer.allocate(1);
 			}
+			
+			return( true );
 		}
 	}
 	
@@ -335,7 +351,7 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(1);
 		}
 	
-		protected void
+		protected boolean
 		readSupport(
 			final SocketChannel 		sc )
 		
@@ -343,14 +359,21 @@ AESocksProxyConnectionImpl
 		{
 				// dns name follows, null terminated
 
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
 			
+			
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 			buffer.flip();
@@ -407,6 +430,8 @@ AESocksProxyConnectionImpl
 				
 				buffer.flip();
 			}
+			
+			return( true );
 		}
 	}
 	
@@ -442,13 +467,13 @@ AESocksProxyConnectionImpl
 			write( source_channel );
 		}
 		
-		protected void
+		protected boolean
 		writeSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			sc.write( buffer );
+			int	len = sc.write( buffer );
 			
 			if ( buffer.hasRemaining()){
 				
@@ -458,6 +483,8 @@ AESocksProxyConnectionImpl
 	
 				plugable_connection.relayData();
 			}
+			
+			return( len > 0 );
 		}
 	}
 	
@@ -478,20 +505,27 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(1);
 		}
 		
-		protected void
+		protected boolean
 		readSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
 			
+			
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 			buffer.flip();
@@ -499,6 +533,8 @@ AESocksProxyConnectionImpl
 			int	num_methods	= buffer.get();
 			
 			new proxyStateV5Methods(num_methods);
+			
+			return( true );
 		}
 	}
 	
@@ -518,25 +554,34 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(methods);
 		}
 		
-		protected void
+		protected boolean
 		readSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
 			
+			
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 				// we just ignore actual method values
 			
 			new proxyStateV5MethodsReply();
+			
+			return( true );
 		}
 	}
 	
@@ -561,18 +606,20 @@ AESocksProxyConnectionImpl
 			write( source_channel );
 		}
 		
-		protected void
+		protected boolean
 		writeSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			sc.write( buffer );
+			int len = sc.write( buffer );
 			
 			if ( buffer.hasRemaining()){
 				
 				connection.requestWriteSelect( sc );
 			}
+			
+			return( len > 0 );
 		}
 	}
 	
@@ -615,20 +662,27 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(4);
 		}
 		
-		protected void
+		protected boolean
 		readSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
 			
+			
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 			buffer.flip();
@@ -658,6 +712,8 @@ AESocksProxyConnectionImpl
 				
 				throw( new IOException( "V5: Unsupported address type" ));
 			}
+			
+			return( true );
 		}
 	}
 	
@@ -676,20 +732,27 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(4);
 		}
 		
-		protected void
+		protected boolean
 		readSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
 			
+			
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 			buffer.flip();
@@ -701,6 +764,8 @@ AESocksProxyConnectionImpl
 			InetAddress inet_address = InetAddress.getByAddress( bytes );
 			
 			new proxyStateV5RequestPort( "", inet_address );
+			
+			return( true );
 		}
 	}
 	
@@ -720,20 +785,27 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(1);
 		}
 		
-		protected void
+		protected boolean
 		readSupport(
 			final SocketChannel 		sc )
 		
 			throws IOException
 		{
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
 			
+			
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 			buffer.flip();
@@ -780,6 +852,8 @@ AESocksProxyConnectionImpl
 						});
 				}
 			}
+			
+			return( true );
 		}
 	}
 	
@@ -805,20 +879,27 @@ AESocksProxyConnectionImpl
 			buffer	= ByteBuffer.allocate(2);
 		}
 		
-		protected void
+		protected boolean
 		readSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			if ( sc.read( buffer ) == -1 ){
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
 				
 				throw( new IOException( "read channel shutdown" ));
 			}
 			
+			
 			if ( buffer.hasRemaining()){
 				
-				return;
+				return( true );
 			}
 			
 			buffer.flip();
@@ -828,6 +909,8 @@ AESocksProxyConnectionImpl
 			socks_version	= 5;
 			
 			plugable_connection.connect( new AESocksProxyAddressImpl( unresolved_address, address, port ));
+			
+			return( true );
 		}
 	}
 	
@@ -889,13 +972,13 @@ AESocksProxyConnectionImpl
 			write( source_channel );
 		}
 		
-		protected void
+		protected boolean
 		writeSupport(
 			SocketChannel 		sc )
 		
 			throws IOException
 		{
-			sc.write( buffer );
+			int	len = sc.write( buffer );
 			
 			if ( buffer.hasRemaining()){
 				
@@ -905,6 +988,8 @@ AESocksProxyConnectionImpl
 	
 				plugable_connection.relayData();
 			}
+			
+			return( len > 0 );
 		}
 	}
 	

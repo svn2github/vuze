@@ -207,14 +207,28 @@ UpdateMonitor
 		
 	    mainWindow.setStatusText( Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + " / MainWindow.status.checking ...");
 	    
-	  	UpdateManager um = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager(); 
+	    	// take this off this GUI thread in case it blocks for a while
+	    
+	   AEThread t = 
+		   	new AEThread( "UpdateMonitor:kickoff")
+				{
+			    	public void
+					runSupport()
+			    	{
+			    		UpdateManager um = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager(); 
+				
+			    		current_update_instance = 
+			    			um.createUpdateCheckInstance(
+			    				UpdateCheckInstance.UCI_UPDATE,
+			  					"update.instance.update" );
+			  	
+			    		current_update_instance.start();
+			    	}
+				};
+			
+		t.setDaemon( true );
 		
-	  	current_update_instance = 
-	  		um.createUpdateCheckInstance(
-	  				UpdateCheckInstance.UCI_UPDATE,
-	  				"update.instance.update" );
-	  	
-	  	current_update_instance.start();
+		t.start();
 	}
 	
 	public void

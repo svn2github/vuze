@@ -156,9 +156,11 @@ public class Transport {
     
     
     NetworkManager.getSingleton().getWriteController().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
-      public void selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
+      public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         is_ready_for_write = true;
         is_write_select_pending = false;
+        
+        return( true );
       }
 
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {

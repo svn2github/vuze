@@ -292,7 +292,20 @@ public class VirtualChannelSelector {
             if( deregister_after_select_success ) { 
                 key.cancel();
             }
-            data.listener.selectSuccess( this, data.channel, data.attachment );
+            boolean	progress_made = data.listener.selectSuccess( this, data.channel, data.attachment );
+            
+            if ( progress_made ){
+            	
+            	data.non_progress_count = 0;
+            }else{
+            	
+            	data.non_progress_count++;
+            	
+            	if ( data.non_progress_count %10 == 0 && data.non_progress_count > 0 ){
+            		
+            		System.out.println( "VirtualChannelSelector: No progress for op " + INTEREST_OP + ": " + data.non_progress_count );
+            	}
+            }
            }
           else {
             key.cancel();
@@ -312,6 +325,8 @@ public class VirtualChannelSelector {
         private final VirtualSelectorListener listener;
         private final Object attachment;
         
+        private int non_progress_count;
+        
       	private RegistrationData( SocketChannel _channel, VirtualSelectorListener _listener, Object _attachment ) {
       		channel 		= _channel;
       		listener		= _listener;
@@ -329,8 +344,15 @@ public class VirtualChannelSelector {
         /**
          * Called when a channel is successfully selected for readyness.
          * @param attachment originally given with the channel's registration
+         * @return indicator of whether or not any 'progress' was made due to this select
+         * 			e.g. read-select -> read >0 bytes, write-select -> wrote > 0 bytes
          */
-        public void selectSuccess( VirtualChannelSelector	selector, SocketChannel sc, Object attachment );
+      	
+        public boolean 
+		selectSuccess( 
+			VirtualChannelSelector	selector, 
+			SocketChannel 			sc, 
+			Object 					attachment );
         
         /**
          * Called when a channel selection fails.

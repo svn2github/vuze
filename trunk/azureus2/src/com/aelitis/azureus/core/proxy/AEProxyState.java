@@ -36,20 +36,20 @@ AEProxyState
 	public String
 	getStateName();
 	
-	public void
+	public boolean
 	read(
 		SocketChannel 		sc )
 	
 		throws IOException;
 	
 
-	public void
+	public boolean
 	write(
 		SocketChannel 		sc )
 	
 		throws IOException;
 		
-	public void
+	public boolean
 	connect(
 		SocketChannel 		sc )
 	

@@ -229,7 +229,7 @@ TRNonBlockingServer
 	        VirtualChannelSelector.VirtualSelectorListener read_listener = 
 	        	new VirtualChannelSelector.VirtualSelectorListener() 
 				{
-	        		public void 
+	        		public boolean 
 					selectSuccess( 
 						VirtualChannelSelector 	selector, 
 						SocketChannel 			sc, 
@@ -254,6 +254,8 @@ TRNonBlockingServer
 	            			
 	            			removeAndCloseConnection( processor );
 	            		}
+	              		
+	              		return( true );
 	        		}
 	
 	        		public void 
@@ -280,7 +282,7 @@ TRNonBlockingServer
         final VirtualChannelSelector.VirtualSelectorListener write_listener = 
         	new VirtualChannelSelector.VirtualSelectorListener() 
 			{
-            	public void 
+            	public boolean 
 				selectSuccess( 
 					VirtualChannelSelector 	selector, 
 					SocketChannel 			sc, 
@@ -307,6 +309,8 @@ TRNonBlockingServer
             			
             			removeAndCloseConnection( processor );
             		}
+            		
+            		return( true );
             	}
 
             	public void 

@@ -65,17 +65,17 @@ AESocksProxyState
 		
 		state = state.substring(pos+1);
 		
-		return( state );
+		return( state  + ", buffer = " + buffer );
 	}
 	
-	public final void
+	public final boolean
 	read(
 		SocketChannel 		sc )
 	
 		throws IOException
 	{
 		try{
-			readSupport(sc);
+			return( readSupport(sc));
 			
 		}finally{
 			
@@ -83,7 +83,7 @@ AESocksProxyState
 		}
 	}
 	
-	protected void
+	protected boolean
 	readSupport(
 		SocketChannel 		sc )
 	
@@ -92,14 +92,14 @@ AESocksProxyState
 		throw( new IOException( "Read not supported: " + sc ));
 	}
 	
-	public final void
+	public final boolean
 	write(
 		SocketChannel 		sc )
 	
 		throws IOException
 	{
 		try{
-			writeSupport(sc);
+			return( writeSupport(sc));
 			
 		}finally{
 			
@@ -107,7 +107,7 @@ AESocksProxyState
 		}		
 	}	
 	
-	protected void
+	protected boolean
 	writeSupport(
 		SocketChannel 		sc )
 	
@@ -116,14 +116,14 @@ AESocksProxyState
 		throw( new IOException( "Write not supported: " + sc ));
 	}	
 	
-	public final void
+	public final boolean
 	connect(
 		SocketChannel 		sc )
 	
 		throws IOException
 	{
 		try{
-			connectSupport(sc);
+			return( connectSupport(sc));
 			
 		}finally{
 			
@@ -131,7 +131,7 @@ AESocksProxyState
 		}
 	}	
 	
-	protected void
+	protected boolean
 	connectSupport(
 		SocketChannel 		sc )
 	
@@ -145,7 +145,7 @@ AESocksProxyState
 	{
 		if ( AESocksProxyConnectionImpl.TRACE ){
 			
-			LGLogger.log( socks_connection.getConnection().getName() + ":" + getStateName() + ", " + buffer );
+			LGLogger.log( socks_connection.getConnection().getName() + ":" + getStateName());
 		}
 	}
 }

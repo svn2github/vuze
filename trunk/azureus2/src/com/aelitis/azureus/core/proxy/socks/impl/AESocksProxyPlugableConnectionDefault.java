@@ -28,7 +28,6 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
@@ -171,7 +170,7 @@ AESocksProxyPlugableConnectionDefault
 	        connection.requestConnectSelect( target_channel );
 		}
 		
-		protected void
+		protected boolean
 		connectSupport(
 			SocketChannel 		sc )
 		
@@ -191,6 +190,8 @@ AESocksProxyPlugableConnectionDefault
 			}
 			
 			socks_connection.connected();
+			
+			return( true );
 		}
 	}
 	
@@ -252,7 +253,7 @@ AESocksProxyPlugableConnectionDefault
 			}		
 		}
 		
-		protected void
+		protected boolean
 		readSupport(
 			SocketChannel 		sc )
 		
@@ -304,9 +305,11 @@ AESocksProxyPlugableConnectionDefault
 					}
 				}
 			}
+			
+			return( len > 0 );
 		}
 		
-		protected void
+		protected boolean
 		writeSupport(
 			SocketChannel 		sc )
 		
@@ -343,15 +346,20 @@ AESocksProxyPlugableConnectionDefault
 				
 				connection.requestReadSelect( chan2 );
 			}
+			
+			return( written > 0 );
 		}
 		
-		protected void
-		trace()
+		public String
+		getStateName()
 		{
-			if ( AESocksProxyConnectionImpl.TRACE ){
-				
-				LGLogger.log( getName() + ":" + getStateName() + "[out=" + outward_bytes +",in=" + inward_bytes +"] " + source_buffer + " / " + target_buffer );
-			}
+			String	state = this.getClass().getName();
+			
+			int	pos = state.indexOf( "$");
+			
+			state = state.substring(pos+1);
+			
+			return( state  +" [out=" + outward_bytes +",in=" + inward_bytes +"] " + source_buffer + " / " + target_buffer );
 		}
 	}
 }

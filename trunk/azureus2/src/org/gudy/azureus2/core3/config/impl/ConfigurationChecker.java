@@ -30,6 +30,9 @@ import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
+import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
+import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
+
 
 
 /**
@@ -130,39 +133,15 @@ ConfigurationChecker
 	  			String.valueOf( read_timeout*1000 ));
 	    
 	    // proxy
-	    if ( COConfigurationManager.getBooleanParameter("Enable.Proxy", false) ) {
-	      String host = COConfigurationManager.getStringParameter("Proxy.Host");
-	      String port = COConfigurationManager.getStringParameter("Proxy.Port");
-	      String user = COConfigurationManager.getStringParameter("Proxy.Username");
-	      String pass = COConfigurationManager.getStringParameter("Proxy.Password");
-		      
-	      if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS", false) ) {
-	        System.setProperty("socksProxyHost", host);
-	        System.setProperty("socksProxyPort", port);
-	        
-	        if (user.length() > 0) {
-	          System.setProperty("java.net.socks.username", user);
-	          System.setProperty("java.net.socks.password", pass);
-	        }
-	      }
-	      else {
-	        System.setProperty("http.proxyHost", host);
-	        System.setProperty("http.proxyPort", port);
-	        System.setProperty("https.proxyHost", host);
-	        System.setProperty("https.proxyPort", port);
-	        
-	        if (user.length() > 0) {
-	          System.setProperty("http.proxyUser", user);
-	          System.setProperty("http.proxyPassword", pass);
-	        }
-	      }
-	    }else{
-	    		// no explicit proxy, install our own baby for testing purposes at the moment
-	    	
-	    	/*
+	  	
+	  	boolean TEST_PROXY = false;
+	  	
+	  	if ( TEST_PROXY ){
+	  		
+	  			// test our proxy
 	    	try{
 	    		AESocksProxy	proxy = 
-	    			AESocksProxyFactory.create( 0, 0, 0 );
+	    			AESocksProxyFactory.create( 16234, 0, 0 );
 	    		
 		        System.setProperty("socksProxyHost", "127.0.0.1");
 		        System.setProperty("socksProxyPort", "" + proxy.getPort());
@@ -172,7 +151,35 @@ ConfigurationChecker
 	    		
 	    		Debug.printStackTrace(e);
 	    	}
-	    	*/
+	  	}else{
+	  		
+		    if ( COConfigurationManager.getBooleanParameter("Enable.Proxy", false) ) {
+		      String host = COConfigurationManager.getStringParameter("Proxy.Host");
+		      String port = COConfigurationManager.getStringParameter("Proxy.Port");
+		      String user = COConfigurationManager.getStringParameter("Proxy.Username");
+		      String pass = COConfigurationManager.getStringParameter("Proxy.Password");
+			      
+		      if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS", false) ) {
+		        System.setProperty("socksProxyHost", host);
+		        System.setProperty("socksProxyPort", port);
+		        
+		        if (user.length() > 0) {
+		          System.setProperty("java.net.socks.username", user);
+		          System.setProperty("java.net.socks.password", pass);
+		        }
+		      }
+		      else {
+		        System.setProperty("http.proxyHost", host);
+		        System.setProperty("http.proxyPort", port);
+		        System.setProperty("https.proxyHost", host);
+		        System.setProperty("https.proxyPort", port);
+		        
+		        if (user.length() > 0) {
+		          System.setProperty("http.proxyUser", user);
+		          System.setProperty("http.proxyPassword", pass);
+		        }
+		      }
+		    }
 	    }
 	  
 	  	SESecurityManager.initialise();

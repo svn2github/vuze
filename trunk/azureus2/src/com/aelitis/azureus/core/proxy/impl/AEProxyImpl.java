@@ -48,18 +48,21 @@ public class
 AEProxyImpl 
 	implements AEProxy, VirtualChannelSelector.VirtualSelectorListener
 {
-	protected int				port;
-	protected long				connect_timeout;
-	protected long				read_timeout;
-	protected AEProxyHandler	proxy_handler;
+	private static final int	DEBUG_PERIOD	= 60000;
+	private long				last_debug;
 	
-	protected VirtualChannelSelector	read_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_READ );
-	protected VirtualChannelSelector	connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT );
-	protected VirtualChannelSelector	write_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
+	private int				port;
+	private long				connect_timeout;
+	private long				read_timeout;
+	private AEProxyHandler	proxy_handler;
 	
-	protected Map				processors = new WeakHashMap();
+	private VirtualChannelSelector	read_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_READ, false );
+	private VirtualChannelSelector	connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT, true );
+	private VirtualChannelSelector	write_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
 	
-	protected AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
+	private Map				processors = new WeakHashMap();
+	
+	private AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
 	
 	public 
 	AEProxyImpl(
@@ -275,6 +278,29 @@ AEProxyImpl
 	protected void
 	checkTimeouts()
 	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now - last_debug > DEBUG_PERIOD ){
+			
+			last_debug	= now;
+			
+			try{
+				this_mon.enter();
+				
+				Iterator	it = processors.keySet().iterator();
+				
+				while( it.hasNext()){
+					
+					AEProxyConnectionImpl	processor = (AEProxyConnectionImpl)it.next();
+					
+					System.out.println( "AEProxy: proc = " + processor.getStateString());
+				}
+			}finally{
+				
+				this_mon.exit();
+			}
+		}
+		
 		if ( connect_timeout <= 0 && read_timeout <= 0 ){
 			
 			return;
@@ -284,8 +310,6 @@ AEProxyImpl
 		
 		try{
 			this_mon.enter();
-			
-			long	now = SystemTime.getCurrentTime();
 			
 			Iterator	it = processors.keySet().iterator();
 			
@@ -364,7 +388,7 @@ AEProxyImpl
 		connect_selector.cancel( sc );
 	}
 	
-    public void 
+    public boolean 
 	selectSuccess( 
 		VirtualChannelSelector	selector, 
 		SocketChannel 			sc,
@@ -374,15 +398,15 @@ AEProxyImpl
     	   	
     	if ( selector == read_selector ){
     		
-    		processor.read(sc);
+    		return( processor.read(sc));
     		
     	}else if ( selector == write_selector ){
     		
-    		processor.write(sc);
+    		return( processor.write(sc));
     		
     	}else{
     		
-    		processor.connect(sc);
+    		return( processor.connect(sc));
     	}
     }
     
