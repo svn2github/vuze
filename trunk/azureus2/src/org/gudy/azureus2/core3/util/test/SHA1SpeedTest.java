@@ -69,12 +69,12 @@ public class SHA1SpeedTest {
 
     
     	System.out.print("Gudy SHA1 ");
-      dBuffer.position(0);
-      dBuffer.limit( buffsize );
     	long gds = System.currentTimeMillis();
     	for (int i=0; i < loops; i++) {
+        dBuffer.position(0);
+        dBuffer.limit( buffsize );
     		sha1Gudy.reset();
-        sha1Gudy.update(dBuffer);
+        sha1Gudy.update( dBuffer );
     		sha1Gudy.digest();
     	}
     	long gde = System.currentTimeMillis();
@@ -82,22 +82,7 @@ public class SHA1SpeedTest {
     	long gdt = (gde - gds);
     	float gdspeed = totalMBytes / (gdt / 1000);
     	System.out.println(info + gdt + " ms @ " + gdspeed + " MB/s");
-      
-      
-      System.out.print("Gudy SHA1-2");
-      dBuffer.position(0);
-      dBuffer.limit( buffsize );
-      long g2ds = System.currentTimeMillis();
-      for (int i=0; i < loops; i++) {        
-        sha1Gudy.digest( dBuffer );
-      }
-      long g2de = System.currentTimeMillis();
-    
-      long g2dt = (g2de - g2ds);
-      float g2dspeed = totalMBytes / (g2dt / 1000);
-      System.out.println(info + g2dt + " ms @ " + g2dspeed + " MB/s");
-      
-      
+   
       System.out.println();
     
     }
