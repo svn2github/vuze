@@ -189,7 +189,8 @@ ShareHosterPlugin
 									{
 										if ( tt != torrent_being_removed ){
 											
-											throw( new TrackerTorrentRemovalVetoException(MessageText.getString("plugin.sharing.download.remove.veto")));
+											throw( new TrackerTorrentRemovalVetoException(
+													MessageText.getString("plugin.sharing.torrent.remove.veto")));
 										}
 									}								
 								});
@@ -208,7 +209,8 @@ ShareHosterPlugin
 								{
 									if ( dl != download_being_removed ){
 										
-										throw( new DownloadRemovalVetoException(MessageText.getString("plugin.sharing.download.remove.veto")));
+										throw( new DownloadRemovalVetoException(
+													MessageText.getString("plugin.sharing.download.remove.veto")));
 									}
 								}
 							});

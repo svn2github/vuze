@@ -46,6 +46,8 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+
 public class 
 DownloadImpl
 	implements Download, DownloadManagerListener, DownloadManagerTrackerListener
@@ -286,12 +288,12 @@ DownloadImpl
 				
 			}catch( GlobalManagerDownloadRemovalVetoException e ){
 				
-				throw( new DownloadRemovalVetoException( "Download::remove: operation vetoed" ));
+				throw( new DownloadRemovalVetoException( e.getMessage()));
 			}
 			
 		}else{
 			
-			throw( new DownloadException( "Download::remove: download not stopped or in error" ));
+			throw( new DownloadRemovalVetoException( MessageText.getString("plugin.download.remove.veto.notstopped")));
 		}
 	}
 	
@@ -315,7 +317,7 @@ DownloadImpl
 			
 		}else{
 			
-			throw( new DownloadRemovalVetoException( "Download::remove: download not stopped or in error" ));
+			throw( new DownloadRemovalVetoException( MessageText.getString("plugin.download.remove.veto.notstopped")));
 		}
 		
 		return( true );
