@@ -472,11 +472,38 @@ PluginUpdatePlugin
 						
 						ResourceDownloaderFactory rdf =  plugin_interface.getUtilities().getResourceDownloaderFactory();
 						
-						ResourceDownloader rdl = rdf.create( new URL( sf_plugin_download ));
+						ResourceDownloader direct_rdl = rdf.create( new URL( sf_plugin_download ));
 
+							// work out what the torrent download will be, if it exists 
+							// sf_plugin_download will be something like ../plugins/safepeer_2.4.zip
+							//     torrent is safepeer_2.4.zip.torrent
+						
+						String	torrent_download = Constants.AELITIS_TORRENTS;
+						
+						int	slash_pos = sf_plugin_download.lastIndexOf("/");
+						
+						if ( slash_pos == -1 ){
+							
+							torrent_download += sf_plugin_download;
+							
+						}else{
+							
+							torrent_download += sf_plugin_download.substring( slash_pos + 1 );
+						}
+						
+						torrent_download	+= ".torrent";
+						
+						ResourceDownloader torrent_rdl = rdf.create( new URL( torrent_download ));
+
+						torrent_rdl	= rdf.getSuffixBasedDownloader( torrent_rdl );
+						
+							// create an alternate downloader with torrent attempt first
+						
+						ResourceDownloader alternate_rdl = rdf.getAlternateDownloader( new ResourceDownloader[]{ torrent_rdl, direct_rdl });
+						
 							// get size so it is cached
 						
-						rdf.getTimeoutDownloader(rdf.getRetryDownloader(rdl,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
+						rdf.getTimeoutDownloader(rdf.getRetryDownloader(alternate_rdl,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
 																			
 						String[]	update_d = new String[update_desc.size()];
 						
@@ -488,7 +515,7 @@ PluginUpdatePlugin
 								plugin_id + "/" + plugin_names,
 								update_d,
 								sf_plugin_version,
-								rdl,
+								alternate_rdl,
 								sf_plugin_download.toLowerCase().endsWith(".jar"),
 								plugin_unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
 			
