@@ -453,14 +453,14 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     });
     
     gridData = new GridData();
-    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 105 );
+    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
     statusDown = new CLabel(statusBar, SWT.SHADOW_IN);
     statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/ "n/a");
     statusDown.setLayoutData(gridData);
     Messages.setLanguageText(statusDown,"MainWindow.status.updowndetails.tooltip");
 
     gridData = new GridData();
-    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 105 );
+    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
     statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
     statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
     statusUp.setLayoutData(gridData);
