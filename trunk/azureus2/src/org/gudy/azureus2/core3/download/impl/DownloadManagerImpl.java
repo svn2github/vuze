@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.ui.common.util.UserAlerts;
 
 /**
  * @author Olivier
@@ -51,7 +50,9 @@ public class
 DownloadManagerImpl 
 	implements DownloadManager
 {
-	private Vector	listeners 		= new Vector();
+	private Vector	listeners		= new Vector();
+	
+	private Vector	peer_listeners 	= new Vector();
 	private Vector	current_peers 	= new Vector();
 	private Vector	current_pieces	= new Vector();
   
@@ -59,6 +60,8 @@ DownloadManagerImpl
 	
   private boolean startStopLocked;
   private int state;
+  private boolean download_ended;
+  
   private int prevState = -1;
 
   private boolean priorityLocked;
@@ -96,7 +99,7 @@ DownloadManagerImpl
 	if (this.state == STATE_ERROR)
 	  return;
 	if (stopped)
-	  this.state = STATE_STOPPED;
+	  setState( STATE_STOPPED );
   }
 
   public DownloadManagerImpl(GlobalManager gm, String torrentFileName, String savePath) {
@@ -108,7 +111,8 @@ DownloadManagerImpl
 	stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads", 4));
 	 
 	this.startStopLocked = false;
-  this.state = STATE_WAITING;
+  
+    setState( STATE_WAITING );
 	
   this.priorityLocked = false;
 	this.priority = HIGH_PRIORITY;
@@ -122,10 +126,10 @@ DownloadManagerImpl
 
   public void initialize() {
 	if(torrent == null) {
-	  this.state = STATE_ERROR;
+	  setState( STATE_ERROR );
 	  return;
 	}
-	this.state = STATE_INITIALIZING;
+	setState( STATE_INITIALIZING );
     
 	startServer();
     
@@ -174,18 +178,18 @@ DownloadManagerImpl
 
 		diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
 
-		this.state = STATE_INITIALIZED;
+		setState( STATE_INITIALIZED );
 									
 	}catch( TRTrackerClientException e ){
 		
 		e.printStackTrace();
 		
-		this.state = STATE_ERROR;
+		setState( STATE_ERROR );
 	}
   }
 
   public void startDownload() {
-	this.state = STATE_DOWNLOADING;
+	setState( STATE_DOWNLOADING );
 	
 	PEPeerManager temp = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
 
@@ -254,7 +258,7 @@ DownloadManagerImpl
 		
 			nbPieces = 0;
         		
-			this.state = STATE_ERROR;
+			setState( STATE_ERROR );
  			
 			errorDetail = TorrentUtils.exceptionToText( e );
  			
@@ -262,7 +266,7 @@ DownloadManagerImpl
 		
 			nbPieces = 0;
         		
-			this.state = STATE_ERROR;
+			setState( STATE_ERROR );
 			
 			errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
 		}
@@ -279,12 +283,12 @@ DownloadManagerImpl
 	  
 	  if (port == 0){
 	  	
-		this.state = STATE_WAITING;
+		setState( STATE_WAITING );
 		//      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
 	  }
 	}else {
 		
-	  this.state = STATE_WAITING;
+	  setState( STATE_WAITING );
 	}
   }
 
@@ -356,7 +360,7 @@ DownloadManagerImpl
 	Thread stopThread = new Thread() {
 	  public void run() {
 	  	
-		state = DownloadManager.STATE_STOPPING;
+		setState( DownloadManager.STATE_STOPPING );
 
 			// kill tracker client first so it doesn't report to peer manager
 			// after its been deleted 
@@ -403,7 +407,7 @@ DownloadManagerImpl
 		  diskManager = null;
 		}
 				
-		state = DownloadManager.STATE_STOPPED;                
+		setState( DownloadManager.STATE_STOPPED );                
 	  }
 	};
 	stopThread.setDaemon(true);
@@ -412,6 +416,8 @@ DownloadManagerImpl
 
   public void setState(int state) {
 	this.state = state;
+	
+	informStateChanged();
   }
 
   public int getNbSeeds() {
@@ -688,14 +694,65 @@ DownloadManagerImpl
   	return( peerManager );
   }
 
+	public void
+	addListener(
+		DownloadManagerListener	listener )
+	{
+		synchronized( listeners ){
+			
+			listeners.addElement(listener);
+			
+			listener.stateChanged( state );
+			
+			if ( download_ended ){
+				
+				listener.downloadComplete();
+			}
+		}
+	}
+	
+	public void
+	removeListener(
+		DownloadManagerListener	listener )
+	{
+		synchronized( listeners ){
+			
+			listeners.removeElement(listener);
+			
+		}
+	}
+	
+	protected void
+	informStateChanged()
+	{
+		synchronized( listeners ){
+		
+			for (int i=0;i<listeners.size();i++){
+				
+				((DownloadManagerListener)listeners.elementAt(i)).stateChanged( state );
+			}
+		}
+	}
+	
+	protected void
+	informDownloadEnded()
+	{
+		synchronized( listeners ){
+		
+			for (int i=0;i<listeners.size();i++){
+				
+				((DownloadManagerListener)listeners.elementAt(i)).downloadComplete();
+			}
+		}
+	}
 
   public void
-  addListener(
-	  DownloadManagerListener	listener )
+  addPeerListener(
+	  DownloadManagerPeerListener	listener )
   {
-  	synchronized( listeners ){
+  	synchronized( peer_listeners ){
   		
-  		listeners.addElement( listener );
+  		peer_listeners.addElement( listener );
   		
 		for (int i=0;i<current_peers.size();i++){
   			
@@ -710,12 +767,12 @@ DownloadManagerImpl
   }
 		
   public void
-  removeListener(
-	  DownloadManagerListener	listener )
+  removePeerListener(
+	  DownloadManagerPeerListener	listener )
   {
-	synchronized( listeners ){
+	synchronized( peer_listeners ){
   		
-		listeners.removeElement( listener );
+		peer_listeners.removeElement( listener );
 	}
   }
  
@@ -728,10 +785,10 @@ DownloadManagerImpl
   current_peers.addElement( peer );
   //Moved the synchronised block AFTER the addElement,
   //as it ended sometimes on a dead-lock situation. Gudy
-  synchronized( listeners ){
-		for (int i=0;i<listeners.size();i++){
+  synchronized( peer_listeners ){
+		for (int i=0;i<peer_listeners.size();i++){
 			
-			((DownloadManagerListener)listeners.elementAt(i)).peerAdded( peer );
+			((DownloadManagerPeerListener)peer_listeners.elementAt(i)).peerAdded( peer );
 		}
 	}
   }
@@ -744,10 +801,10 @@ DownloadManagerImpl
     
   	//Moved the synchronised block AFTER the removeElement,
     //as it ended sometimes on a dead-lock situation. Gudy
-    synchronized( listeners ){
-		for (int i=0;i<listeners.size();i++){
+    synchronized( peer_listeners ){
+		for (int i=0;i<peer_listeners.size();i++){
 			
-			((DownloadManagerListener)listeners.elementAt(i)).peerRemoved( peer );
+			((DownloadManagerPeerListener)peer_listeners.elementAt(i)).peerRemoved( peer );
 		}
 	}
  }
@@ -756,13 +813,13 @@ DownloadManagerImpl
   addPiece(
 	  PEPiece 	piece )
   {
-	synchronized( listeners ){
+	synchronized( peer_listeners ){
   		
   		current_pieces.addElement( piece );
   		
-		for (int i=0;i<listeners.size();i++){
+		for (int i=0;i<peer_listeners.size();i++){
 			
-			((DownloadManagerListener)listeners.elementAt(i)).pieceAdded( piece );
+			((DownloadManagerPeerListener)peer_listeners.elementAt(i)).pieceAdded( piece );
 		}
 	}
  }
@@ -771,13 +828,13 @@ DownloadManagerImpl
   removePiece(
 	  PEPiece		piece )
   {
-	synchronized( listeners ){
+	synchronized( peer_listeners ){
   		
   		current_pieces.removeElement( piece );
   		
-		for (int i=0;i<listeners.size();i++){
+		for (int i=0;i<peer_listeners.size();i++){
 			
-			((DownloadManagerListener)listeners.elementAt(i)).pieceRemoved( piece );
+			((DownloadManagerPeerListener)peer_listeners.elementAt(i)).pieceRemoved( piece );
 		}
 	}
  }
@@ -821,7 +878,11 @@ DownloadManagerImpl
    *
    * @author Rene Leonhardt
    */
-  public void downloadEnded() {
-    UserAlerts.downloadFinished();
+  public void 
+  downloadEnded()
+  {
+  	download_ended = true;
+  	
+	informDownloadEnded();
   }
 }

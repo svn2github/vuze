@@ -15,7 +15,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.PEPeer;
@@ -28,7 +28,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
  * @author Olivier
  * 
  */
-public class PiecesView extends AbstractIView implements DownloadManagerListener,SortableTable {
+public class PiecesView extends AbstractIView implements DownloadManagerPeerListener,SortableTable {
 
   DownloadManager manager;
   Table table;
@@ -92,7 +92,7 @@ public class PiecesView extends AbstractIView implements DownloadManagerListener
 
 
   public void delete() {
-    manager.removeListener(this);
+    manager.removePeerListener(this);
     Iterator iter = pieceToPieceItem.values().iterator();
     while (iter.hasNext()) {
       PieceTableItem item = (PieceTableItem) iter.next();

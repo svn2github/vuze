@@ -86,6 +86,14 @@ DownloadManager
 		DownloadManagerListener	listener );
 		
 	public void
+	addPeerListener(
+		DownloadManagerPeerListener	listener );
+		
+	public void
+	removePeerListener(
+		DownloadManagerPeerListener	listener );
+		
+	public void
 	addPeer(
 		PEPeer 		peer );
 		

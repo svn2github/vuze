@@ -111,8 +111,8 @@ public class ManagerView extends AbstractIView {
     itemFiles.setControl(viewFiles.getComposite());
     TabItem items[] = {itemGeneral};
     folder.setSelection(items);
-    manager.addListener((PiecesView)viewPieces);
-    manager.addListener((PeersView)viewDetails);
+    manager.addPeerListener((PiecesView)viewPieces);
+    manager.addPeerListener((PeersView)viewDetails);
     folder.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
         refresh();

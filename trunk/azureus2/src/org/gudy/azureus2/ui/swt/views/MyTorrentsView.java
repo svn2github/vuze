@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -54,6 +55,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -77,7 +79,8 @@ import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 public class MyTorrentsView extends AbstractIView implements GlobalManagerListener, SortableTable, ITableStructureModificationListener, ParameterListener {
 
   private GlobalManager globalManager;
-
+  private DownloadManagerListener	download_manager_listener;
+  
   private Composite composite;
   private Composite panel;
   private Table table;
@@ -127,6 +130,23 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
   public MyTorrentsView(GlobalManager globalManager) {
     this.globalManager = globalManager;
+    
+	download_manager_listener = new
+		DownloadManagerListener()
+		{
+			public void
+			stateChanged(
+				int		state )
+			{
+			}
+		
+			public void
+			downloadComplete()
+			{
+				UserAlerts.downloadFinished();
+			}
+		};
+		
     objectToSortableItem = new HashMap();
     tableItemToObject = new HashMap();
     downloadBars = MainWindow.getWindow().getDownloadBars();
@@ -894,32 +914,38 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
-  public String getFullTitle() {
-    return MessageText.getString("MyTorrentsView.mytorrents");
-  }
+  	public String getFullTitle() {
+    	return MessageText.getString("MyTorrentsView.mytorrents");
+  	}
 
-   public void downloadManagerAdded(DownloadManager manager) {
-     synchronized (objectToSortableItem) {
-      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-      if (item == null)
-        item = new TorrentRow(this,table, manager);
-        objectToSortableItem.put(manager, item);      
-    }
-  }
+   	public void downloadManagerAdded(DownloadManager manager) 
+	{
+		manager.addListener( download_manager_listener );
+	
+     	synchronized (objectToSortableItem) {
+     		TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
+      		if (item == null)
+        		item = new TorrentRow(this,table, manager);
+        	objectToSortableItem.put(manager, item);      
+    	}
+  	}
 
-  public void downloadManagerRemoved(DownloadManager removed) {
-    MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(removed);
-    if (mw != null) {
-      mw.close();
-    }
+	public void downloadManagerRemoved(DownloadManager removed) 
+	{
+		removed.removeListener(download_manager_listener);
+		
+    	MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(removed);
+    	if (mw != null) {
+      		mw.close();
+    	}
 
-    TorrentRow managerItem = (TorrentRow) objectToSortableItem.remove(removed);
-    if (managerItem != null) {
-      TableItem tableItem = managerItem.getTableItem();
-      tableItemToObject.remove(tableItem);
-      managerItem.delete();
-    }
-  }
+    	TorrentRow managerItem = (TorrentRow) objectToSortableItem.remove(removed);
+    	if (managerItem != null) {
+      		TableItem tableItem = managerItem.getTableItem();
+      		tableItemToObject.remove(tableItem);
+      		managerItem.delete();
+    	}
+  	}
 
   
 /*

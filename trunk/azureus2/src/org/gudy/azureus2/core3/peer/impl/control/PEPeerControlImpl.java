@@ -523,7 +523,11 @@ PEPeerControlImpl
       
       
       _manager.setState(DownloadManager.STATE_SEEDING);
-      _manager.downloadEnded();
+      
+      if ( !looks_like_restart ){
+      
+      	_manager.downloadEnded();
+      }
             		
       _tracker.complete( looks_like_restart );
     }

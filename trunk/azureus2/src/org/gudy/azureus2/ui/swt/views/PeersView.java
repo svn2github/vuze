@@ -25,7 +25,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
@@ -44,7 +44,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 /**
  * @author Olivier
  */
-public class PeersView extends AbstractIView implements DownloadManagerListener, SortableTable, ParameterListener, PeersViewListener {
+public class PeersView extends AbstractIView implements DownloadManagerPeerListener, SortableTable, ParameterListener, PeersViewListener {
 
   private DownloadManager manager;
   private Composite panel;
@@ -106,7 +106,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
   
   public void tableStructureChanged() {
     //1. Unregister for item creation
-    manager.removeListener(this);
+    manager.removePeerListener(this);
     
     //2. Clear everything
     Iterator iter = objectToSortableItem.values().iterator();
@@ -127,7 +127,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     createTable();
     
     //5. Re-add as a listener
-    manager.addListener(this);
+    manager.addPeerListener(this);
     panel.layout();
   }
 
@@ -266,7 +266,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
   }
 
   public void delete() {
-    manager.removeListener(this);
+    manager.removePeerListener(this);
     PeersViewEventDispacher.getInstance().removeListener(this);
     Iterator iter = objectToSortableItem.values().iterator();
     while (iter.hasNext()) {

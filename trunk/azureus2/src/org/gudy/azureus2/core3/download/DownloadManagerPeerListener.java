@@ -1,7 +1,7 @@
 /*
  * File    : DownloadManagerListener.java
- * Created : 29-Nov-2003
- * By      : parg
+ * Created : 19-Oct-2003
+ * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -25,13 +25,25 @@ package org.gudy.azureus2.core3.download;
  * @author parg
  *
  */
+
+import org.gudy.azureus2.core3.peer.*;
+
 public interface 
-DownloadManagerListener 
+DownloadManagerPeerListener 
 {
 	public void
-	stateChanged(
-		int		state );
+	peerAdded(
+		PEPeer 	peer );
 		
 	public void
-	downloadComplete();
+	peerRemoved(
+		PEPeer	peer );
+		
+	public void
+	pieceAdded(
+		PEPiece 	piece );
+		
+	public void
+	pieceRemoved(
+		PEPiece		piece );
 }
