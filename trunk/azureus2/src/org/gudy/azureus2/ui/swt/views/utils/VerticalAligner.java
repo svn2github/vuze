@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.views.utils;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Constants;
@@ -57,11 +58,23 @@ public class VerticalAligner implements ParameterListener {
   public static int getTableAdjustVerticalBy(Table t) {
    return getInstance().COgetTableAdjustVerticalBy(t);
   }      
+  public static int getTableAdjustHorizontallyBy(Table t) {
+   return getInstance().COgetTableAdjustHorizontallyBy(t);
+  }      
 
   public int COgetTableAdjustVerticalBy(Table t) {
     if (!bFixGTKBug || t == null || t.isDisposed())
       return 0;
    return -t.getHeaderHeight(); 
+  }      
+  
+  public int COgetTableAdjustHorizontallyBy(Table t) {
+    if (!bFixGTKBug || t == null || t.isDisposed())
+      return 0;
+    ScrollBar sb = t.getHorizontalBar();
+    if (sb == null)
+      return 0;
+   return sb.getSelection();
   }      
    
 }
