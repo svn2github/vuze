@@ -103,7 +103,8 @@ public class DiskManager {
     Map info = (Map) metaData.get("info");
     pieceLength = (int) ((Long) info.get("piece length")).longValue();
 
-    piecesHash = (byte[]) info.get("pieces");
+
+    piecesHash = (byte[])info.get("pieces");
     nbPieces = piecesHash.length / 20;
 
     //  create the pieces map
@@ -710,6 +711,7 @@ public class DiskManager {
     try {
       SHA1Hasher hasher = new SHA1Hasher();
       allocateAndTestBuffer.position(0);
+
       byte[] testHash = hasher.calculateHash(allocateAndTestBuffer);
       int i = 0;
       int pieceLocation = pieceNumber * 20;
@@ -760,7 +762,7 @@ public class DiskManager {
     //open the torrent file    		
     File torrent = null;
     try {
-      torrent = new File(new String((byte[]) metaData.get("torrent filename"), "UTF-8"));
+      torrent = new File(new String((byte[]) metaData.get("torrent filename"), Constants.DEFAULT_ENCODING));
     }
     catch (UnsupportedEncodingException e) {
       // TODO Auto-generated catch block
@@ -996,7 +998,7 @@ public class DiskManager {
 
       //TODO:: CLEAN UP - fix the conversion to a string...
       //open the torrent file       
-      File torrent = new File(new String((byte[]) metaData.get("torrent filename"), "UTF-8"));
+      File torrent = new File(new String((byte[]) metaData.get("torrent filename"), Constants.DEFAULT_ENCODING));
       //re-encode the data
       byte[] torrentData = BEncoder.encode(metaData);
       //open a file stream

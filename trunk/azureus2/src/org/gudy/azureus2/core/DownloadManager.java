@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.core;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -47,7 +48,7 @@ public class DownloadManager extends Component {
   private int nbPieces;
   private String savePath;
 
-  private StringBuffer metaInfo;
+  private ByteArrayOutputStream metaInfo;
   private byte[] hash;
   private Map metaData;
   private Server server;
@@ -72,7 +73,7 @@ public class DownloadManager extends Component {
     this.priority = HIGH_PRIORITY;
     this.torrentFileName = torrentFileName;
     this.savePath = savePath;
-    this.metaInfo = new StringBuffer();
+    this.metaInfo = new ByteArrayOutputStream();
     extractMetaInfo();
     if (this.state == STATE_ERROR)
       return;
@@ -101,15 +102,15 @@ public class DownloadManager extends Component {
       int nbRead;
       fis = new FileInputStream(torrentFileName);
       while ((nbRead = fis.read(buf)) > 0)
-        metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
-      metaData = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
+        metaInfo.write(buf, 0, nbRead);
+      metaData = BDecoder.decode(metaInfo.toByteArray()); //$NON-NLS-1$
       Map info = (Map) metaData.get("info"); //$NON-NLS-1$
       name = LocaleUtil.getCharsetString((byte[])info.get("name")); //$NON-NLS-1$ //$NON-NLS-2$
       byte[] pieces = (byte[]) info.get("pieces"); //$NON-NLS-1$
       nbPieces = pieces.length / 20;
-      metaData.put("torrent filename", torrentFileName.getBytes("UTF8")); //$NON-NLS-1$ //$NON-NLS-2$
+      metaData.put("torrent filename", torrentFileName.getBytes(Constants.DEFAULT_ENCODING)); //$NON-NLS-1$ //$NON-NLS-2$
       SHA1Hasher s = new SHA1Hasher();
-      hash = s.calculateHash(BEncoder.encode((Map) metaData.get("info"))); //$NON-NLS-1$
+      hash = s.calculateHash(BEncoder.encode((Map)metaData.get("info"))); //$NON-NLS-1$
     }
     catch (FileNotFoundException e) {
       name = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$

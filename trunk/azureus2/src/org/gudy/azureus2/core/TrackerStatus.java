@@ -46,14 +46,13 @@ public class TrackerStatus {
       HttpURLConnection con = (HttpURLConnection) scrapeURL.openConnection();
       con.connect();
       is = con.getInputStream();
-      byte[] message = null;
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ByteArrayOutputStream message = new ByteArrayOutputStream();
       int nbRead = 0;
       while (nbRead >= 0) {
         try {
           nbRead = is.read(data);
           if (nbRead >= 0)
-            bos.write(data, 0, nbRead);
+		  	message.write(data, 0, nbRead);
           Thread.sleep(20);
         } catch (Exception e) {
           // nbRead = -1;
@@ -62,14 +61,13 @@ public class TrackerStatus {
           return;
         }
       }
-      message = bos.toByteArray();
-      Map map = BDecoder.decode(message);
+      Map map = BDecoder.decode(message.toByteArray());
       map = (Map) map.get("files");
       Iterator iter = map.keySet().iterator();
       while(iter.hasNext()) {
-        String strKey = (String) iter.next();
-        byte[] key = (strKey).getBytes("ISO-8859-1");
-        Map hashMap = (Map) map.get(strKey);
+        String strKey = (String)iter.next();
+        byte[] key = (strKey).getBytes(Constants.BYTE_ENCODING);
+        Map hashMap = (Map)map.get(strKey);
         //System.out.println(ByteFormater.nicePrint(key) + " :: " + hashMap);
         int seeds = ((Long)hashMap.get("complete")).intValue();
         int peers = ((Long)hashMap.get("incomplete")).intValue();

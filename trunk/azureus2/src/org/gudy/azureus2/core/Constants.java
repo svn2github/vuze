@@ -16,6 +16,6 @@ package org.gudy.azureus2.core;
 public class Constants {
   
   public static final int MAX_DATA_LENGTH = 32777;
-  
-
+  public static final String DEFAULT_ENCODING = "UTF8";
+  public static final String BYTE_ENCODING = "ISO-8859-1";
 }

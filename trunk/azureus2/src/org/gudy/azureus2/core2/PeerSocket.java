@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.gudy.azureus2.core.ByteBufferPool;
+import org.gudy.azureus2.core.Constants;
 import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerManager;
@@ -172,10 +173,10 @@ public class PeerSocket extends PeerConnection {
 
     try {
       client = MessageText.getString("PeerSocket.generic"); //$NON-NLS-1$
-      String xan = new String(otherPeerId, 0, 11, "ISO-8859-1");
+      String xan = new String(otherPeerId, 0, 11, Constants.BYTE_ENCODING);
       if (xan.equals("DansClient "))
         client = "Xan'";
-      String azureus = new String(otherPeerId, 5, 7, "ISO-8859-1");
+      String azureus = new String(otherPeerId, 5, 7, Constants.BYTE_ENCODING);
       if (azureus.equals("Azureus"))
         client = "Azureus";
     }

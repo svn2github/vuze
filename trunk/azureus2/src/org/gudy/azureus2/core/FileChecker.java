@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.core;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.util.Map;
 
@@ -16,16 +17,17 @@ public class FileChecker {
   public static void main(String args[]) {
     if (args.length < 2)
       usage();
-    StringBuffer metaInfo = new StringBuffer();
+	ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
     FileInputStream fis = null;
     try {
       byte[] buf = new byte[1024];
       int nbRead;
       fis = new FileInputStream(args[0]);
       while ((nbRead = fis.read(buf)) > 0)
-        metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1"));
-      Map metaData = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
-      DiskManager diskManager = new DiskManager(metaData,args[1]);
+	  	metaInfo.write(buf, 0, nbRead);
+        Map metaData =
+        BDecoder.decode(metaInfo.toByteArray());
+      	DiskManager diskManager = new DiskManager(metaData,args[1]);
       while(diskManager.getState() != DiskManager.READY)
       {
         int percent = diskManager.getPercentDone();

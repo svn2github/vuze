@@ -1,5 +1,6 @@
 package org.gudy.azureus2.core;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -253,7 +254,7 @@ public class PeerManager extends Thread {
    * In fact we use 2/3 of what tracker is asking us to wait, in order not to be considered as timed-out by it.
    * @param data a String with bencoded data in it
    */
-  private void analyseTrackerResponse(String data) {
+  private void analyseTrackerResponse(byte[] data) {
     //was any data returned?
     if (data == null) //no data returned
       {
@@ -265,7 +266,7 @@ public class PeerManager extends Thread {
       {
       try {
         //parse the metadata
-        Map metaData = BDecoder.decode(data.getBytes("ISO-8859-1")); //$NON-NLS-1$
+        Map metaData = BDecoder.decode(data); //$NON-NLS-1$
 
         //OLD WAY
         //BtDictionary metaData = new BtDecode(data).getDictionary();
@@ -275,7 +276,7 @@ public class PeerManager extends Thread {
           _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
         }
         catch (Exception e) {
-          _trackerStatus = new String((byte[]) metaData.get("failure reason"), "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
+          _trackerStatus = new String((byte[]) metaData.get("failure reason"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
           _timeToWait = 120;
           return;
         }
@@ -300,28 +301,17 @@ public class PeerManager extends Thread {
         for (int i = 0; i < nbPeers; i++) {
           Map peer = (Map) peers.get(i);
           //build a dictionary object				
-          String peerId = new String((byte[]) peer.get("peer id"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
+          byte [] peerId = (byte[])peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer id
-          String ip = new String((byte[]) peer.get("ip"), "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
+          String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
           //get the peer ip address
           int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
-          //get the peer port number
+          //get the peer port number          
 
-          //Test peer IDs to remove the local IP address
-          byte[] piBytes = null;
-          try { //:: Any reason for this try/catch? -Tyler
-            //:: If not we can merge this section and the one below
-            //:: Into a single compact statement
-            piBytes = peerId.getBytes("ISO-8859-1"); //$NON-NLS-1$
-          }
-          catch (Exception e) {
-            e.printStackTrace();
-          }
-
-          if (!Arrays.equals(piBytes, _myPeerId))
+          if (!Arrays.equals(peerId, _myPeerId))
             //::this should be quicker -Tyler
             {
-            addPeer(piBytes, ip, port);
+            addPeer(peerId, ip, port);
           }
           //for(int j = 0 ; j < piBytes.length ; j++)
           //{				
@@ -499,12 +489,17 @@ public class PeerManager extends Thread {
       _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
       _timeLastUpdate = time; //update last checked time
       Thread t = new Thread("Tracker Checker") { //$NON-NLS-1$
-        public void run() {
-          if (_trackerState == TRACKER_UPDATE)
-            analyseTrackerResponse(_tracker.update());
-          //get the tracker response
-          if (_trackerState == TRACKER_START)
-            analyseTrackerResponse(_tracker.start());
+        public void run() {          
+            try {
+				if (_trackerState == TRACKER_UPDATE)
+				analyseTrackerResponse(_tracker.update().getBytes(Constants.BYTE_ENCODING));
+				//get the tracker response
+				if (_trackerState == TRACKER_START)
+				  analyseTrackerResponse(_tracker.start().getBytes(Constants.BYTE_ENCODING));				
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
       };
       t.start(); //start the thread

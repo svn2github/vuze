@@ -1,5 +1,6 @@
 package org.gudy.azureus2.core;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -36,7 +37,7 @@ public class TrackerConnection
   {
     //Get the Tracker url
     try{            
-	  trackerUrl = new String((byte[])metainfo.get("announce"), "UTF-8");      
+	  trackerUrl = new String((byte[])metainfo.get("announce"), Constants.DEFAULT_ENCODING);      
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -107,14 +108,14 @@ public class TrackerConnection
 //      int length = con.getContentLength();
 //      System.out.println(length);
       byte[] data = new byte[1024];
-      String message = "";
+      ByteArrayOutputStream message = new ByteArrayOutputStream();
       int nbRead = 0;
       while(nbRead != -1)
       {
         try{
         nbRead = is.read(data);
         if(nbRead!=-1)
-          message += new String(data,0,nbRead,"ISO-8859-1");
+          message.write(data, 0, nbRead);
         Thread.sleep(10);
         } catch (Exception e) {
           Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"Exception while Requesting Tracker : " + e);
@@ -125,7 +126,7 @@ public class TrackerConnection
       }
       
       Logger.getLogger().log(componentID,evtFullTrace,Logger.INFORMATION,"Tracker Connection has received : " + message);     
-      return message;
+      return new String(message.toByteArray(), Constants.BYTE_ENCODING);
     } catch (Exception e)
     {
       Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"Exception while creating the Tracker Request : " + e);
@@ -148,8 +149,8 @@ public class TrackerConnection
     //request += "&peer_id=" + URLEncoder.encode(new String(peerId,"ISO-8859-1"));
     
     //1.4 Version
-    request += "?info_hash=" + URLEncoder.encode(new String(hash,"ISO-8859-1"),"ISO-8859-1").replaceAll("\\+","%20");
-    request += "&peer_id=" + URLEncoder.encode(new String(peerId,"ISO-8859-1"),"ISO-8859-1").replaceAll("\\+","%20");
+    request += "?info_hash=" + URLEncoder.encode(new String(hash,Constants.BYTE_ENCODING),Constants.BYTE_ENCODING).replaceAll("\\+","%20");
+    request += "&peer_id=" + URLEncoder.encode(new String(peerId,Constants.BYTE_ENCODING),Constants.BYTE_ENCODING).replaceAll("\\+","%20");
     } catch(Exception e)
     {
       e.printStackTrace();
