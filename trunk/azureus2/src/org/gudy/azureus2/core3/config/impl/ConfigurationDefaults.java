@@ -251,6 +251,8 @@ public class ConfigurationDefaults {
     def.put( "Sharing Add Hashes", new Long(0) );
     def.put( "File.Decoder.Prompt", new Long(0) );
     def.put( "File.Decoder.Default", "" );
+    def.put( "File.Decoder.ShowLax", new Long(0));
+    def.put( "File.Decoder.ShowAll", new Long(0));
     def.put( "Password enabled", new Long(0) );
     def.put( "Password", null );
     def.put( "Save detail views column widths", new Long(0) );

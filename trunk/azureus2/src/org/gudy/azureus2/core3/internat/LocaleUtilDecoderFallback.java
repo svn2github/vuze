@@ -44,7 +44,8 @@ LocaleUtilDecoderFallback
 
 	public String
 	tryDecode(
-		byte[]		bytes )
+		byte[]		bytes,
+		boolean		lax )
 	{
 		return( decode( bytes ));
 	}

@@ -56,18 +56,11 @@ LocaleUtilDecoderReal
 	{
 		return( name );
 	}
-	
-	/*
-	public CharsetDecoder
-	getDecoder()
-	{
-		return( decoder );
-	}
-	*/
 
 	public String
 	tryDecode(
-		byte[]		array )
+		byte[]		array,
+		boolean		lax )
 	{
 		try{
 			ByteBuffer bb = ByteBuffer.wrap(array);
@@ -81,6 +74,14 @@ LocaleUtilDecoderReal
 				cb.flip();
 				
 				String	str = cb.toString();
+				
+					// lax means that as long as the conversion works we consider it usable
+					// as opposed to strict which requires reverse-conversion equivalence
+				
+				if ( lax ){
+										
+					return( str );
+				}
 				
 				byte[]	b2 = str.getBytes( getName() );
 				

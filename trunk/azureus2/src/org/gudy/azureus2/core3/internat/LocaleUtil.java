@@ -4,8 +4,9 @@ import java.io.UnsupportedEncodingException;
 
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.util.ArrayList;
+import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -32,7 +33,8 @@ LocaleUtil
   
   static {
   	
-	ArrayList	decoders 	= new ArrayList();
+	List	decoders 		= new ArrayList();
+  	List	decoder_names	= new ArrayList();
   	
 	for (int i = 0; i < manual_charset.length; i++) {
 	   try {
@@ -40,37 +42,44 @@ LocaleUtil
 		 
 		 CharsetDecoder decoder = Charset.forName(name).newDecoder();
 		 
+		 decoder_names.add( name );
+		 
 		 decoders.add( new LocaleUtilDecoderReal(decoder, name));
 		 		 
 	   }catch (Exception ignore) {
 	   }
 	 }
 	
-	decoders.add( new LocaleUtilDecoderFallback());
 
-	/*
-	Map m = Charset.availableCharsets();
-  	
-	Iterator it = m.keySet().iterator();
+	boolean show_all = COConfigurationManager.getBooleanParameter("File.Decoder.ShowAll" );
 
-	while(it.hasNext()){
-  		
-		String	charset_name = (String)it.next();
-  		
-		if ( !names.contains( charset_name)){
-  		
-			try {
-			  CharsetDecoder decoder = Charset.forName(charset_name).newDecoder();
-			 
-			  decoders.add( decoder );
-			  names.add( charset_name );
-			 
-			} catch (Exception ignore) {
+	if ( show_all ){
+		
+		Map m = Charset.availableCharsets();
+	  	
+		Iterator it = m.keySet().iterator();
+	
+		while(it.hasNext()){
+	  		
+			String	charset_name = (String)it.next();
+	  		
+			if ( !decoder_names.contains( charset_name)){
+	  		
+				try {
+				  CharsetDecoder decoder = Charset.forName(charset_name).newDecoder();
+				 
+				  decoders.add( new LocaleUtilDecoderReal(decoder, charset_name));
+				  
+				  decoder_names.add( charset_name );
+				 
+				} catch (Exception ignore) {
+				}
 			}
 		}
 	}
-	*/
     
+	decoders.add( new LocaleUtilDecoderFallback());
+
 	charsetDecoders	= new LocaleUtilDecoder[ decoders.size()];
 	
 	decoders.toArray( charsetDecoders);
@@ -87,8 +96,6 @@ LocaleUtil
   {
   	return( charsetDecoders );
   }
-  protected static boolean 				rememberEncodingDecision = true;
-  protected static LocaleUtilDecoder 	rememberedDecoder 		 = null;
  
   protected LocaleUtilDecoder lastChosenDecoder = null;
    
@@ -104,6 +111,8 @@ LocaleUtil
   {
 	Candidate[] candidates = new Candidate[charsetDecoders.length];
     
+	boolean show_less_likely_conversions = COConfigurationManager.getBooleanParameter("File.Decoder.ShowLax" );
+
 	for (int i = 0; i < charsetDecoders.length; i++){
     	
 	  candidates[i] = new Candidate(i);
@@ -111,7 +120,7 @@ LocaleUtil
 	  try{
 			LocaleUtilDecoder decoder = charsetDecoders[i];
       	      	
-			String str = decoder.tryDecode( array );
+			String str = decoder.tryDecode( array, show_less_likely_conversions );
 
 			if ( str != null ){
 				
@@ -220,7 +229,13 @@ LocaleUtil
   }
   
   
-  public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {
+  public String 
+  getChoosableCharsetString(
+  	byte[] 		array,
+	Object		decision_owner)
+  
+  	throws UnsupportedEncodingException 
+  {
 	throw new UnsupportedEncodingException("Hello, this is your base class speaking. You need to implement an ILocaleUtilChooser interface. This method is abstract here.");
   }
 
@@ -276,7 +291,7 @@ LocaleUtil
 		
 		lut.lastChosenDecoder = null;
 		
-		lut.getChoosableCharsetString( torrent.getName());
+		lut.getChoosableCharsetString( torrent.getName(), torrent );
 		
 		if ( lut.lastChosenDecoder == null ){
 			
@@ -290,7 +305,7 @@ LocaleUtil
 				
 				for (int j=0;j<comps.length;j++){
 					
-					lut.getChoosableCharsetString( comps[j]);
+					lut.getChoosableCharsetString( comps[j], torrent );
 					
 					if ( lut.lastChosenDecoder != null ){
 						
@@ -311,7 +326,7 @@ LocaleUtil
 			
 			if ( comment != null ){
 				
-				lut.getChoosableCharsetString(comment);
+				lut.getChoosableCharsetString(comment, torrent);
 			}
 		}
 		if ( lut.lastChosenDecoder == null ){
@@ -320,7 +335,7 @@ LocaleUtil
 			
 			if ( created != null ){
 				
-				lut.getChoosableCharsetString(created);
+				lut.getChoosableCharsetString(created, torrent);
 			}
 		}
 		

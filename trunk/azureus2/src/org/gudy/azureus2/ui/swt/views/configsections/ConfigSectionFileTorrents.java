@@ -226,6 +226,21 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
                          "ConfigView.section.file.decoder.prompt").setLayoutData(gridData);
           
     
+    	// show lax decodings
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    new BooleanParameter(cTorrent, "File.Decoder.ShowLax", false,
+                         "ConfigView.section.file.decoder.showlax").setLayoutData(gridData);
+
+    	// show all decoders
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    new BooleanParameter(cTorrent, "File.Decoder.ShowAll", false,
+                         "ConfigView.section.file.decoder.showall").setLayoutData(gridData);
+   
+    
     Label lIgnoreFiles = new Label(cTorrent, SWT.NULL);
     Messages.setLanguageText(lIgnoreFiles, "ConfigView.section.file.torrent.ignorefiles");
 

@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.TableItem;
 
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -36,10 +37,18 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
  * @author  Tobias Minich
  */
 
-public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
+public class 
+LocaleUtilSWT 
+	extends LocaleUtil 
+	implements ILocaleUtilChooser 
+{
   
   boolean waitForUserInput = true;
     
+  protected static boolean 				rememberEncodingDecision = true;
+  protected static LocaleUtilDecoder 	rememberedDecoder 		 = null;
+  protected static Object				remembered_on_behalf_of;
+  
 
   public LocaleUtilSWT() {
     super();
@@ -51,11 +60,23 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
   }
 
   
-  /** Creates a new instance of LocaleUtilSWT */
-  public String getChoosableCharsetString(byte[] array) {
+  	/** Creates a new instance of LocaleUtilSWT */
+  
+  public String 
+  getChoosableCharsetString(
+  	byte[] 		array,
+	Object		decision_owner ) 
+  {
+  	if ( decision_owner != remembered_on_behalf_of ){
+  		
+  		remembered_on_behalf_of		= decision_owner;
+  		rememberedDecoder			= null;
+  	}
+  	
     Candidate[] candidates = getCandidates(array);
 
-    if(rememberEncodingDecision && rememberedDecoder != null) {
+    if( rememberEncodingDecision && rememberedDecoder != null) {
+    	
       for (int i = 0; i < candidates.length; i++) {
         if(candidates[i].getValue() != null && rememberedDecoder == candidates[i].getDecoder()) {
         	

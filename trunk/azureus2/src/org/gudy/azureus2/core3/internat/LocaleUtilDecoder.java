@@ -38,7 +38,8 @@ LocaleUtilDecoder
 
 	public String
 	tryDecode(
-		byte[]		array );
+		byte[]		array,
+		boolean		lax );
 	
 	public String
 	decodeString(
