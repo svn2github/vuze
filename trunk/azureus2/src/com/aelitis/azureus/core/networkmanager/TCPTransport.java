@@ -218,6 +218,12 @@ public class TCPTransport {
    */
   public void startReadSelects( ReadListener listener ) {
     read_listener = listener;
+    
+    if( socket_channel == null ) {
+      Debug.printStackTrace( new Exception( "startReadSelects():: socket_channel == null" ) );
+      return;
+    }
+    
     NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
   }
 
@@ -226,7 +232,9 @@ public class TCPTransport {
    * Disable transport read selection.
    */
   public void stopReadSelects() {
-    NetworkManager.getSingleton().getReadController().getReadSelector().pauseSelects( socket_channel );
+    if( socket_channel != null ){
+      NetworkManager.getSingleton().getReadController().getReadSelector().pauseSelects( socket_channel );
+    }
   }
   
   
@@ -466,8 +474,11 @@ public class TCPTransport {
    * Close the transport connection.
    */
   public void close() {
-    NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
-    NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
+    if( socket_channel != null ){
+      NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
+      NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
+    }
+    
     is_ready_for_write = false;
 
     try {  connect_state_mon.enter();

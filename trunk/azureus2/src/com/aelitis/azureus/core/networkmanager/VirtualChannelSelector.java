@@ -180,12 +180,7 @@ public class VirtualChannelSelector {
       }
       else {  //channel not (yet?) registered
         try{  register_cancel_list_mon.enter();
-        
-          Object paused = paused_states.remove( channel );  //check if the channel's op has been already paused before select-time reg
-          
-          if( paused != null ) {
-            System.out.println( "resumeSelects( " +channel+ " ):: selection key not found BUT IT WAS PAUSED" );
-          }
+          paused_states.remove( channel );  //check if the channel's op has been already paused before select-time reg
         }
         finally{  register_cancel_list_mon.exit();  }
       }
