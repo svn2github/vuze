@@ -50,6 +50,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Monitor;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /**
@@ -192,7 +193,7 @@ public class Utils {
   {
   	Display display = shell.getDisplay();
   	
-	Rectangle displayRect = display.getBounds();
+	Rectangle displayRect = display.getPrimaryMonitor().getClientArea();
 	
 	Rectangle shellRect = shell.getBounds();
 	
@@ -281,10 +282,15 @@ public class Utils {
       	        (children[i].getStyle() & SWT.WRAP) == SWT.WRAP) {
       	      GridData gd = (GridData)children[i].getLayoutData();
       	      if (gd != null && 
-      	          gd.horizontalSpan == parentLayout.numColumns && 
       	          gd.horizontalAlignment == GridData.FILL) {
-      		      gd.widthHint = size.x - 2 * marginWidth;
-      		      oneChanged = true;
+      	        if (gd.horizontalSpan == parentLayout.numColumns) {
+        		      gd.widthHint = size.x - 2 * marginWidth;
+        		      oneChanged = true;
+        		    } else {
+        		      Point pt = children[i].getLocation();
+        		      gd.widthHint = size.x - pt.x - (2 * marginWidth);
+        		      oneChanged = true;
+        		    }
       		    }
       		  }
       		}
