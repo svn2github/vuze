@@ -56,6 +56,7 @@ public class PeersView
     new DownSpeedItem(),
     new UpSpeedItem(),
 
+    new HostNameItem(),
     new PortItem(),
     new InterestedItem(),
     new ChokedItem(),

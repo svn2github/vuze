@@ -23,7 +23,6 @@
  */
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
-import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -37,33 +36,15 @@ public class IpItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-	static boolean	show_host_names = false;
-	
-	static{
-		show_host_names = COConfigurationManager.getBooleanParameter("config.style.showHostNames", false );
-		
-		COConfigurationManager.addParameterListener(
-				"config.style.showHostNames",
-				new ParameterListener()
-				{
-					public void
-					parameterChanged(
-						String	str )
-					{
-						show_host_names = COConfigurationManager.getBooleanParameter("config.style.showHostNames", false );						
-					}
-				});
-	}
 	
   /** Default Constructor */
   public IpItem() {
     super("ip", POSITION_LAST, 100, TableManager.TABLE_TORRENT_PEERS);
-    setRefreshInterval(INTERVAL_LIVE);
-  }
+   }
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    String sText = (peer == null) ? "" : (show_host_names?peer.getIPHostName():peer.getIp());
+    String sText = (peer == null) ? "" : peer.getIp();
 
     cell.setText(sText);
   }
