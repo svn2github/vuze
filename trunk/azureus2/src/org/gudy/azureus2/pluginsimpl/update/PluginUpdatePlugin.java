@@ -666,6 +666,17 @@ PluginUpdatePlugin
 											
 											log.log( LoggerChannel.LT_INFORMATION,
 													"overwriting '" + file_name +"'" );
+											
+												// back up just in case
+											
+											File	backup = new File( initial_target.getParentFile(), initial_target.getName() + ".bak" );
+											
+											if ( backup.exists()){
+												
+												backup.delete();
+											}
+											
+											initial_target.renameTo( backup );
 										}
 									}
 									
