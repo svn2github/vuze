@@ -149,8 +149,10 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
 
   private synchronized void updateStats() {
     
+    long current_time = SystemTime.getCurrentTime() / 1000;
+    
     if ( SystemTime.isErrorLast5min() ) {
-      lastUptime = SystemTime.getCurrentTime() / 1000;
+      lastUptime = current_time;
       return;
     }
     
@@ -165,8 +167,15 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
     totalUploaded +=  current_total_sent - lastUploaded;
     lastUploaded = current_total_sent;
     
-    totalUptime += SystemTime.getCurrentTime() / 1000 - lastUptime;
-    lastUptime = SystemTime.getCurrentTime() / 1000;
+    long delta = current_time - lastUptime;
+    
+    if( delta > 100 || delta < 0 ) { //make sure the time diff isn't borked
+      lastUptime = current_time;
+      return;
+    }
+    
+    totalUptime += delta;
+    lastUptime = current_time;
     
     overallMap.put("downloaded",new Long(totalDownloaded));
     overallMap.put("uploaded",new Long(totalUploaded));
