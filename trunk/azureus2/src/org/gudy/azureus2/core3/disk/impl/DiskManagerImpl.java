@@ -139,7 +139,7 @@ DiskManagerImpl
     md5 = new Md5Hasher();
     md5Result = ByteBuffer.allocate(16);
 		try {
-			hasher = new SHA1Hasher();      
+			hasher = new SHA1Hasher();
 		} catch (NoSuchAlgorithmException ignore) {
 		}
 		Thread init = new Thread() {
@@ -290,7 +290,7 @@ DiskManagerImpl
 			pieceLength = (int)totalLength; //ok to convert
 		}
 
-		int fileOffset = 0;
+		long fileOffset = 0;
 		int currentFile = 0;
 		for (int i = 0;(1 == nbPieces && i < nbPieces) || i < nbPieces - 1; i++) {
 			ArrayList pieceToFileList = new ArrayList();
@@ -490,7 +490,7 @@ DiskManagerImpl
 
 	}
   
-	private List buildPieceToFileList(List btFileList, int currentFile, int fileOffset, int pieceSize) {
+	private List buildPieceToFileList(List btFileList, int currentFile, long fileOffset, int pieceSize) {
 		ArrayList pieceToFileList = new ArrayList();
 		int usedSpace = 0;
 		while (pieceSize > usedSpace) {
@@ -625,7 +625,7 @@ DiskManagerImpl
     
     public PEPeer getSender() {
       return this.sender;
-    }
+	}
 	}
 
 	public class DiskReadThread extends Thread {
@@ -677,7 +677,7 @@ DiskManagerImpl
 					//FIX for bug 814062
 					//Do not allow to write in a piece marked as done.
 					int pieceNumber = elt.getPieceNumber();
-          byte[] hash = computeMd5Hash(elt);
+          		byte[] hash = computeMd5Hash(elt);
 					if(!pieceDone[pieceNumber]) {
 					  dumpBlockToDisk(elt);
 					} else {
@@ -1005,7 +1005,6 @@ DiskManagerImpl
 			torrent.serialiseToBEncodedFile( torrent_file );
 			
 		} catch (TOTorrentException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -1124,8 +1123,7 @@ DiskManagerImpl
 					fc.read(buffer);
 				}
 				return true;
-			} catch (Exception e) {
-				// TODO Auto-generated catch block			
+			} catch (Exception e) {	
 				e.printStackTrace();
 
 				System.out.println("ERROR IN READ FILE INFO INTO BUFFER: *Debug Information*");
@@ -1199,31 +1197,26 @@ DiskManagerImpl
 
 		//Now tempPiece points to the first file that contains data for this block
 		while (buffer.hasRemaining()) {
-			//System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "r:" + buffer.remaining());      
 			tempPiece = pieceList.get(currentFile);
-			//System.out.println(pieceNumber + "," + offset + " : " + previousFilesLength + " : " + currentFile + "," + tempPiece.getLength());
-
+      
 			synchronized (tempPiece.getFile()) {
 				try {
 					RandomAccessFile raf = tempPiece.getFile().getRaf();
 					FileChannel fc = raf.getChannel();
+          
+          
+if (fileOffset < 0) System.out.println("fileOffset=" + fileOffset);
+
 					fc.position(fileOffset + (offset - previousFilesLength));
-					//System.out.print(" remaining:" + buffer.remaining());
-					//System.out.print(" position:" + buffer.position());
 					int realLimit = buffer.limit();
-					//System.out.print(" realLimit:" + realLimit);
-					int limit =
-						buffer.position() + (int) ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
-					//System.out.print(" limit:" + limit);
-					if (limit < realLimit)
-						buffer.limit(limit);
-					//System.out.print(" Blimit:" + buffer.limit());
+          
+					long limit = buffer.position() + ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
+          
+					if (limit < realLimit) buffer.limit((int)limit);
+
 					fc.write(buffer);
 					buffer.limit(realLimit);
-					//System.out.print(" remaining:" + buffer.remaining());
-					//System.out.println(" position:" + buffer.position());
 				} catch (IOException ex) {
-					// TODO Auto-generated catch block
 					ex.printStackTrace();
 				}
 			}
@@ -1239,7 +1232,6 @@ DiskManagerImpl
 	public void updateResumeInfo() {
 		FileOutputStream fos = null;
 		try {
-			//  TODO CLEAN UP
 			//build the piece byte[] 
 			byte[] resumeData = new byte[pieceDone.length];
 			for (int i = 0; i < resumeData.length; i++) {
@@ -1370,7 +1362,7 @@ DiskManagerImpl
 							  RandomAccessFile newRaf = new RandomAccessFile(files[i].getFile(), "r");
 								files[i].setRaf(newRaf);
 								raf.close();
-								files[i].setAccessmode(DiskManagerFileInfoImpl.READ);
+								files[i].setAccessmode(DiskManagerFileInfo.READ);
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -1510,26 +1502,26 @@ DiskManagerImpl
 
 	public int getPiecenumberToDownload(boolean[] _piecesRarest) {
 		//Added patch so that we try to complete most advanced files first.
-		List pieces = new ArrayList();
+		List _pieces = new ArrayList();
 		Integer pieceInteger;    
 		for (int i = 9; i >= 0; i--) {
       int k = 0;
 			for (int j = 0; j < nbPieces && k < 50; j++) {
 				if (_piecesRarest[j] && priorityLists[i].get(j)) {
 					pieceInteger = FlyWeightInteger.getInteger(j);
-					pieces.add(pieceInteger);
+					_pieces.add(pieceInteger);
           k++;
 				}
 			}
-			if (pieces.size() != 0)
+			if (_pieces.size() != 0)
 				break;
 		}
 
-		if (pieces.size() == 0) {
+		if (_pieces.size() == 0) {
 		  return -1;
 		}
 
-		return ((Integer)pieces.get((int) (Math.random() * pieces.size()))).intValue();
+		return ((Integer)_pieces.get((int) (Math.random() * _pieces.size()))).intValue();
 	}
 
 	/*
@@ -1584,14 +1576,18 @@ DiskManagerImpl
    * Returns a string path to the new torrent file.
    */
   public String moveCompletedFiles() {
+    boolean DBG = false;
+    
     String fullPath;
     String subPath;
     File destDir;
     File delDir;
     String returnName = "";
     
+    if (DBG) System.out.println("======START=======");    
+    
     //make sure the torrent hasn't already been moved
-    //Added syncrhonized block, so that we're sure it's ok.
+    //Added synchronized block, so that we're sure it's ok.
     synchronized(this) {
       if (alreadyMoved) return returnName;
       alreadyMoved = true;
@@ -1608,17 +1604,31 @@ DiskManagerImpl
         synchronized (files[i]) {
           //get old file pointer
           File oldFile = files[i].getFile();
+          
+          if (DBG) System.out.println("oldFile=" + oldFile.getCanonicalPath());
+          
           //get old file's parent path
           fullPath = oldFile.getParent();
           //compute the file's sub-path off from the default save path
           subPath = fullPath.substring(fullPath.indexOf(path) + path.length());
+
+          if (DBG) System.out.println("subPath=" + subPath);
+    
           //create the destination dir
           destDir = new File(moveToDir + subPath);
+          
+          if (DBG) System.out.println("destDir=" + destDir.getCanonicalPath());
+     
           destDir.mkdirs();
           //points to the file's parent dir, used for later deletion
           delDir = new File(fullPath);
+          
+          if (DBG) System.out.println("delDir=" + delDir.getCanonicalPath());
+    
           //create the destination file pointer
           File newFile = new File(destDir, oldFile.getName());
+          
+          if (DBG) System.out.println("newFile=" + newFile.getCanonicalPath());
            
           if (newFile.exists()) {
             System.out.println("DiskManagerImpl::ERROR: " + oldFile.getName() + " already exists in MoveTo destination dir");
@@ -1668,10 +1678,12 @@ DiskManagerImpl
       
     } catch (Exception e) { e.printStackTrace(); }
     
+    if (DBG) System.out.println("======END=======");
+ 
     return returnName;
   }
-  
-  
+   
+    
   private byte[] computeMd5Hash(WriteElement elt) {
     md5.reset();
     ByteBuffer buffer = elt.data;
@@ -1687,7 +1699,5 @@ DiskManagerImpl
     }    
     return result;    
   }
-   
-    
 
 }
