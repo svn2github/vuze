@@ -240,7 +240,7 @@ DiskManagerImpl
 		//fileArray = new RandomAccessFile[btFileList.size()];
 		files = new DiskManagerFileInfoImpl[btFileList.size()];
       
-		boolean newFiles = this.allocateFiles(rootPath, btFileList);
+		int newFiles = this.allocateFiles(rootPath, btFileList);
       
 		if (this.state == FAULTY) return;
 
@@ -248,9 +248,10 @@ DiskManagerImpl
 
 		constructFilesPieces();
 
-		//if all files existed, check pieces
-		if (!newFiles)
-			this.checkAllPieces();
+		//check all pieces if no new files were created
+		if (newFiles == 0) checkAllPieces(false);
+		//if not a fresh torrent, check pieces ignoring fast resume data
+		else if (newFiles != btFileList.size()) checkAllPieces(true);
 
 		//3.Change State   
 		state = READY;
@@ -392,66 +393,73 @@ DiskManagerImpl
 		return fileLength;
 	}
 
-	private void checkAllPieces() {
+	private void checkAllPieces(boolean newfiles) {
 		state = CHECKING;
       int startPos = 0;
-		boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
-		boolean resumeValid = false;
-		byte[] resumeArray = null;
-		Map partialPieces = null;
-		Map resumeMap = torrent.getAdditionalMapProperty("resume");
-		if (resumeMap != null) {
-			Map resumeDirectory = (Map)resumeMap.get(this.path);
-			if (resumeDirectory != null) {
-				try {
-					resumeArray = (byte[])resumeDirectory.get("resume data");
-					partialPieces = (Map)resumeDirectory.get("blocks");
-					resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
-					resumeDirectory.put("valid", new Long(0));
-					saveTorrent();
-				} catch (Exception ignore) { /* ignore */ }
-			}
-		}
+		
+      boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
+      //disable fast resume if a new file was created
+      if (newfiles) resumeEnabled = false;
+		
+		if (resumeEnabled) {
+		  boolean resumeValid = false;
+		  byte[] resumeArray = null;
+		  Map partialPieces = null;
+		  Map resumeMap = torrent.getAdditionalMapProperty("resume");
+		  
+		  if (resumeMap != null) {
+		    Map resumeDirectory = (Map)resumeMap.get(this.path);
+		    if (resumeDirectory != null) {
+		      try {
+		        resumeArray = (byte[])resumeDirectory.get("resume data");
+		        partialPieces = (Map)resumeDirectory.get("blocks");
+		        resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
+		        resumeDirectory.put("valid", new Long(0));
+		        saveTorrent();
+		      } catch (Exception ignore) { /* ignore */ }
+		    }
+		  }
  
-		if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
-		  startPos = resumeArray.length;
-		  for (int i = 0; i < resumeArray.length && bContinue; i++) { //parse the array
-				percentDone = ((i + 1) * 1000) / nbPieces;
-				//mark the pieces
-				if (resumeArray[i] == 0) {
-					if (!resumeValid) pieceDone[i] = checkPiece(i);
-				}
-				else {
-					computeFilesDone(i);
-					pieceDone[i] = true;
-					if (i < nbPieces - 1) {
-						remaining -= pieceLength;
-					}
-					if (i == nbPieces - 1) {
-						remaining -= lastPieceLength;
-					}
-				}
-			}
+		  if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
+		    startPos = resumeArray.length;
+		    for (int i = 0; i < resumeArray.length && bContinue; i++) { //parse the array
+		      percentDone = ((i + 1) * 1000) / nbPieces;
+		      //mark the pieces
+		      if (resumeArray[i] == 0) {
+		        if (!resumeValid) pieceDone[i] = checkPiece(i);
+		      }
+		      else {
+		        computeFilesDone(i);
+		        pieceDone[i] = true;
+		        if (i < nbPieces - 1) {
+		          remaining -= pieceLength;
+		        }
+		        if (i == nbPieces - 1) {
+		          remaining -= lastPieceLength;
+		        }
+		      }
+		    }
       
-			if (partialPieces != null && resumeValid) {
-				pieces = new PEPiece[nbPieces];
-				Iterator iter = partialPieces.entrySet().iterator();
-				while (iter.hasNext()) {
-					Map.Entry key = (Map.Entry)iter.next();
-					int pieceNumber = Integer.parseInt((String)key.getKey());
-					PEPiece piece;
-					if (pieceNumber < nbPieces - 1)
-						piece = PEPieceFactory.create(null, getPieceLength(), pieceNumber);
-					else
-						piece = PEPieceFactory.create(null, getLastPieceLength(), pieceNumber);
-					List blocks = (List)partialPieces.get(key.getKey());
-					Iterator iterBlock = blocks.iterator();
-					while (iterBlock.hasNext()) {
-						piece.setWritten(((Long)iterBlock.next()).intValue());
-					}
-					pieces[pieceNumber] = piece;
-				}
-			}
+		    if (partialPieces != null && resumeValid) {
+		      pieces = new PEPiece[nbPieces];
+		      Iterator iter = partialPieces.entrySet().iterator();
+		      while (iter.hasNext()) {
+		        Map.Entry key = (Map.Entry)iter.next();
+		        int pieceNumber = Integer.parseInt((String)key.getKey());
+		        PEPiece piece;
+		        if (pieceNumber < nbPieces - 1)
+		          piece = PEPieceFactory.create(null, getPieceLength(), pieceNumber);
+		        else
+		          piece = PEPieceFactory.create(null, getLastPieceLength(), pieceNumber);
+		          List blocks = (List)partialPieces.get(key.getKey());
+		          Iterator iterBlock = blocks.iterator();
+		          while (iterBlock.hasNext()) {
+		            piece.setWritten(((Long)iterBlock.next()).intValue());
+		          }
+		          pieces[pieceNumber] = piece;
+		      }
+		    }
+		  }
 		}
     
       for (int i = startPos; i < nbPieces && bContinue; i++) {
@@ -705,11 +713,12 @@ DiskManagerImpl
 		}
 	}
 
-	private boolean allocateFiles(String rootPath, List fileList) {
+	private int allocateFiles(String rootPath, List fileList) {
 		this.state = ALLOCATING;
 		allocated = 0;
-		boolean newFiles = true;
+		int numNewFiles = 0;
 		String basePath = path + System.getProperty("file.separator") + rootPath;
+		
 		for (int i = 0; i < fileList.size(); i++) {
 			//get the BtFile
 			BtFile tempFile = (BtFile)fileList.get(i);
@@ -737,6 +746,7 @@ DiskManagerImpl
 			
 			if (bCreateFile) {
 				//File doesn't exist
+			   numNewFiles++;
 				buildDirectoryStructure(tempPath);
 				
 				try {
@@ -767,17 +777,17 @@ DiskManagerImpl
 					} catch (IOException ex) { ex.printStackTrace(); }
 					this.state = FAULTY;
 					this.errorMessage = e.getMessage();
-					return false;
+					return -1;
 				}
-			//the file exists
+        
+			//the file already exists
 			} else {               
 				try {
 					raf = new RandomAccessFile(f, "rwd");
-					newFiles = false;
 				} catch (FileNotFoundException e) {
 					this.state = FAULTY;
 					this.errorMessage = e.getMessage();
-					return false;
+					return -1;
 				}
 				allocated += length;
 			}
@@ -820,7 +830,7 @@ DiskManagerImpl
 			//setup this files RAF reference
 			tempFile.setFileInfo(files[i]);
 		}
-		return newFiles;
+		return numNewFiles;
 	}
 
 	/*
