@@ -91,7 +91,7 @@ public class TorrentFolderWatcher {
         File imported = new File( watchFolderString, file.getName() + ".imported" );
       	file.renameTo( imported );
         
-        mainWindow.openTorrent(watchFolderString + imported.getName(), startWatchedTorrentsStopped);
+        mainWindow.openTorrent(watchFolderString + imported.getName(), startWatchedTorrentsStopped, false);
         LGLogger.log(LGLogger.INFORMATION, "Imported " + watchFolderString + "/" + currentFileList[i]);
       }
     }

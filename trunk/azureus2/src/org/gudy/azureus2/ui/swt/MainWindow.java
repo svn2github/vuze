@@ -2210,7 +2210,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       for (int i = 0;(i < sourceNames.length); i++) {
         final File source = new File(sourceNames[i]);
         if (source.isFile())
-          openTorrent(source.getAbsolutePath(), startInStoppedState);
+          openTorrent(source.getAbsolutePath(), startInStoppedState, true );
         else if (source.isDirectory()){
         	
         	String	dir_name = source.getAbsolutePath();
@@ -2542,18 +2542,25 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   public void openTorrent(final String fileName) {
-    openTorrent(fileName, false);
+    openTorrent(fileName, false, false);
   }
 
-  public void openTorrent(final String fileName, final boolean startInStoppedState) {
+  public void 
+  openTorrent(
+  		final String 	fileName, 
+		final boolean 	startInStoppedState,
+		boolean			from_drag_and_drop ) {
     try {
       if (!FileUtil.isTorrentFile(fileName)){
       	
-        LGLogger.log( "MainWindow::openTorrent: file it not a torrent file, sharing" );
+      	if ( from_drag_and_drop ){
+      		
+      		LGLogger.log( "MainWindow::openTorrent: file it not a torrent file, sharing" );
 
-        ShareUtils.shareFile( fileName );
+      		ShareUtils.shareFile( fileName );
         
-        return;
+      		return;
+      	}
       }
     } catch (Exception e) {
     	
