@@ -73,16 +73,11 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
       image = img;
     }
 
-    if (image == null) {
-      Table table = getTable();
-      if (table != null && !table.isDisposed()) {
-        Rectangle bounds = getBoundsForCanvas();
-        if (bounds != null) table.redraw(bounds.x, bounds.y, 
-                                         bounds.width, bounds.height, true);
-      }
-      return bImageSet;
-    } else {
-      doPaint();
+    Table table = getTable();
+    if (table != null && !table.isDisposed()) {
+      Rectangle bounds = getBoundsForCanvas();
+      if (bounds != null) table.redraw(bounds.x, bounds.y, 
+                                       bounds.width, bounds.height, true);
     }
 
     return bImageSet;
