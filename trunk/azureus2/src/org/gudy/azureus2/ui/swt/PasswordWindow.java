@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
@@ -89,7 +90,7 @@ public class PasswordWindow {
                      }
                      shell.dispose();                                   
                    } else {
-                     shell.dispose();
+                     close();
                    }                   
                } catch(Exception e) {
                  e.printStackTrace();
@@ -108,7 +109,7 @@ public class PasswordWindow {
            */
           public void handleEvent(Event event) {
              
-             shell.dispose();
+             close();
           }
         });    
     
@@ -119,8 +120,22 @@ public class PasswordWindow {
       }
     });
     
+    shell.addListener(SWT.Close,new Listener() {
+      public void handleEvent(Event arg0) {
+        close();
+      }
+    });
+    
     shell.pack();
     shell.open();
   }      
+  
+  private void close() {
+    shell.dispose();
+    if(Constants.isOSX) {
+      MainWindow.getWindow().getShell().setMinimized(true);
+      MainWindow.getWindow().getShell().setVisible(true);
+    } 
+  }
 
 }

@@ -800,7 +800,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     			isAlreadyDead = true;
     		}
     	}      
-    });        
+    });
+    
     
     mainWindow.layout();
     mainWindow.open();
@@ -809,6 +810,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     updater.start();
 
     try {
+      /*
+      //Systray doesn't seem to be doing anything under OSX ...
+      //So, we should by-pass SWT use of systray.
+      if(Constants.isOSX) {
+        throw new Exception("OSX doesn't support systray");
+      }
+      */
       systemTraySWT = new SystemTraySWT(this);
     } catch (Throwable e) { 
       /** < SWT 3.0M8 **/ 
@@ -851,6 +859,17 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           minimizeToTray(event);
         }
       }
+      
+    });
+    
+    mainWindow.addListener(SWT.Deiconify, new Listener() {
+      public void handleEvent(Event e) {
+        if (Constants.isOSX && COConfigurationManager.getBooleanParameter("Password enabled", false)) {
+          e.doit = false;
+        		mainWindow.setVisible(false);
+        		PasswordWindow.showPasswordWindow(display);
+        }
+      }
     });
 
     if (COConfigurationManager.getBooleanParameter("Start Minimized", false)) {
@@ -860,7 +879,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     //Correct bug #878227
     else {
 	    if (COConfigurationManager.getBooleanParameter("Password enabled", false)) {
-	      mainWindow.setVisible(false);
+	      minimizeToTray(null);
 	      PasswordWindow.showPasswordWindow(display);
 	    }
     }
@@ -1438,7 +1457,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     //Added this test so that we can call this method will null parameter.
     if (event != null)
       event.doit = false;
-    mainWindow.setVisible(false);
+    if(Constants.isOSX) {
+      mainWindow.setMinimized(true);
+    } else {  
+      mainWindow.setVisible(false);
+    }
     if (tray != null)
       tray.setVisible(true);
     synchronized (downloadBars) {

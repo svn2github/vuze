@@ -108,7 +108,7 @@ public class RestartUtil {
 	    Process pChMod = Runtime.getRuntime().exec("chmod 755 " + fileName);
 	    pChMod.waitFor();
 	    LGLogger.log("RestartUtil is running file : ./" + restartScriptName);
-	    Process p = Runtime.getRuntime().exec("./" + restartScriptName);
+	    Process p = Runtime.getRuntime().exec(fileName);
     } catch(Exception e) {
       LGLogger.log("RestartUtil has encountered an exception : " + e);
       e.printStackTrace();
