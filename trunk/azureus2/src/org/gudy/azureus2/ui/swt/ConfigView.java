@@ -115,10 +115,9 @@ public class ConfigView extends AbstractIView {
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     gFile.setLayout(layout);
-    Label label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
+    
 
-    label = new Label(gFile, SWT.NULL);
+    Label label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.allocatenewfiles"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Allocate New", true); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
@@ -128,6 +127,8 @@ public class ConfigView extends AbstractIView {
     new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
 
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Use Resume", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
 
@@ -140,7 +141,8 @@ public class ConfigView extends AbstractIView {
       saveResumeValues[i - 2] = i;
     }
     new IntListParameter(gFile, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$    
-
+    new Label(gFile, SWT.NULL);
+    
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
 
@@ -209,18 +211,8 @@ public class ConfigView extends AbstractIView {
     new IntParameter(gServer, "High Port", 6889).setLayoutData(gridData); //$NON-NLS-1$
 
     itemServer.setControl(gServer);
-
-    CTabItem itemGlobal = new CTabItem(ctfConfig, SWT.NULL);
-    Messages.setLanguageText(itemGlobal, "ConfigView.section.global"); //$NON-NLS-1$
-
-    Group gGlobal = new Group(ctfConfig, SWT.NULL);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gGlobal.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 2;
-    gGlobal.setLayout(layout);         
-
-    itemGlobal.setControl(gGlobal);
+    
+    
 
     CTabItem itemDownloads = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemDownloads, "ConfigView.section.seeding"); //$NON-NLS-1$
@@ -375,6 +367,25 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.minimizetotray"); //$NON-NLS-1$
     new BooleanParameter(gDisplay, "Minimize To Tray", false); //$NON-NLS-1$
 
+    label = new Label(gDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.password"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    new PasswordParameter(gDisplay, "Password").setLayoutData(gridData); //$NON-NLS-1$
+
+    label = new Label(gDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.passwordconfirm"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    new PasswordParameter(gDisplay, "Password Confirm").setLayoutData(gridData); //$NON-NLS-1$
+
+    label = new Label(gDisplay, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.passwordmatch"); //$NON-NLS-1$
+    passwordMatch = new Label(gDisplay, SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    passwordMatch.setLayoutData(gridData);
+
     itemDisplay.setControl(gDisplay);
 
     CTabItem itemStart = new CTabItem(ctfConfig, SWT.NULL);
@@ -440,38 +451,6 @@ public class ConfigView extends AbstractIView {
     new StringParameter(gIrc, "Irc Login", "").setLayoutData(gridData); //$NON-NLS-1$
 
     itemIrc.setControl(gIrc);
-
-    CTabItem itemSecurity = new CTabItem(ctfConfig, SWT.NULL);
-    Messages.setLanguageText(itemSecurity, "ConfigView.section.security"); //$NON-NLS-1$
-
-    Group gSecurity = new Group(ctfConfig, SWT.NULL);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gSecurity.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 2;
-    gSecurity.setLayout(layout);
-
-    label = new Label(gSecurity, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.password"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 150;
-    new PasswordParameter(gSecurity, "Password").setLayoutData(gridData); //$NON-NLS-1$
-
-    label = new Label(gSecurity, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.passwordconfirm"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 150;
-    new PasswordParameter(gSecurity, "Password Confirm").setLayoutData(gridData); //$NON-NLS-1$
-
-    label = new Label(gSecurity, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.passwordmatch"); //$NON-NLS-1$
-    passwordMatch = new Label(gSecurity, SWT.NULL);
-    gridData = new GridData();
-    gridData.widthHint = 150;
-    passwordMatch.setLayoutData(gridData);
-
-    itemSecurity.setControl(gSecurity);
-    ctfConfig.setSelection(itemFile);
 
     CTabItem itemFilter = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemFilter, "ipFilter.shortTitle"); //$NON-NLS-1$
