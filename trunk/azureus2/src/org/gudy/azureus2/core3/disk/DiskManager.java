@@ -24,6 +24,7 @@
  
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.download.DownloadManager;
  
  public interface
  DiskManager
@@ -163,4 +164,6 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
    */
   public void storeFilePriorities();
   
+  public DownloadManager getDownloadManager();
+  public PEPeerManager getPeerManager();
  }
