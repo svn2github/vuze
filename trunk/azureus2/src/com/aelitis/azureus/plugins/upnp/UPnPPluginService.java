@@ -196,8 +196,8 @@ UPnPPluginService
 							"upnp.alert.mappingfailed", 
 							new String[]{ mapping.getString()});
 				
-				log.log( text );
-				
+				log.log( text, e );
+			
 				if ( alert_other_port_param.getValue()){
 				
 					log.logAlertRepeatable( LoggerChannel.LT_ERROR, text );
