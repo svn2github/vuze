@@ -2,7 +2,7 @@
  * Created on 22 juil. 2003
  *
  */
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.tracker.client.classic;
 
 import java.util.Arrays;
 

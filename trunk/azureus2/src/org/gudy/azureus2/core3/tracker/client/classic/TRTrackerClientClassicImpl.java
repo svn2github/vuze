@@ -284,6 +284,12 @@ TRTrackerClientClassicImpl
 	this.manager = manager;
   }
 
+	public TOTorrent
+	getTorrent()
+	{
+		return( torrent );
+	}
+	
   public String getTrackerUrl() {
 	return lastUsedUrl;
   }

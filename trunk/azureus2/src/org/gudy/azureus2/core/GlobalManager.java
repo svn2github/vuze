@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.tracker.client.classic.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.IComponentListener;
 
@@ -228,7 +229,15 @@ public class GlobalManager extends Component {
     }
     this.objectRemoved(manager);
     saveDownloads();
-    this.trackerChecker.removeHash(manager.getTrackerUrl(),new Hash(manager.getHash()));
+    
+    if ( manager.getTrackerClient() != null ){
+    
+    	trackerChecker.removeHash( manager.getTrackerClient());
+    	
+    }else if (  manager.getTorrent() != null ){
+    	
+    	trackerChecker.removeHash( manager.getTorrent() );
+    }
   }
 
   public void stopAll() {

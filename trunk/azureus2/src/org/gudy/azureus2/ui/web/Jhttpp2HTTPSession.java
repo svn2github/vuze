@@ -530,7 +530,7 @@ public class Jhttpp2HTTPSession extends Thread {
         h.put("Torrents_Torrent_ETA", (dm.getETA()=="")?"&nbsp;":dm.getETA());
         h.put("Torrents_Torrent_SizeDown", dm.getDownloaded());
         h.put("Torrents_Torrent_SizeUp", dm.getUploaded());
-        h.put("Torrents_Torrent_Hash", ByteFormatter.nicePrint(dm.getHash(), true));
+        h.put("Torrents_Torrent_Hash", ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
         if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || ConfigurationManager.getInstance().getBooleanParameter("Server_bNoJavaScript"))
           h.put("Global_NoJavaScript", Boolean.TRUE);
         v.addElement(h);
@@ -624,7 +624,7 @@ public class Jhttpp2HTTPSession extends Thread {
         Iterator torrent = torrents.iterator();
         while (torrent.hasNext()) {
           DownloadManager dm = (DownloadManager) torrent.next();
-          dls.put(ByteFormatter.nicePrint(dm.getHash(), true), dm);
+          dls.put(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true), dm);
         }
       }
   }

@@ -8,20 +8,43 @@ package org.gudy.azureus2.core3.util;
  * @author Olivier
  * 
  */
-public class ByteFormatter {
-  public static String nicePrint(byte[] data) {
-    if(data == null)
-      return "";      
-    String out = "";    
-    for (int i = 0; i < data.length; i++) {
-      out = out + nicePrint(data[i]);
-      if (i % 4 == 3)
-        out = out + " ";
-    }
-    return out;
+
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+
+public class ByteFormatter
+{
+   public static String nicePrintTorrentHash(TOTorrent	torrent )
+  {
+  	return( nicePrintTorrentHash( torrent, false ));
   }
   
+  public static String nicePrintTorrentHash(TOTorrent	torrent, boolean tight)
+  {
+	byte[]	hash;
+	
+	if ( torrent == null ){
+		
+		hash = new byte[20];
+	}else{
+		try{
+			hash = torrent.getHash();
+			
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();
+			
+			hash = new byte[20];
+		}
+	}
 
+	return( nicePrint( hash, tight ));
+  }
+
+  public static String nicePrint(byte[] data) {
+	 return( nicePrint( data, false ));
+   }
+    
   public static String nicePrint(byte[] data, boolean tight) {
     if(data == null)
       return "";      

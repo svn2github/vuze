@@ -28,6 +28,7 @@ import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 
 /**
  * @author Olivier
@@ -383,12 +384,12 @@ public class GeneralView extends AbstractIView {
       peers,
       manager.getHashFails(),
       _shareRatio);
-    setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerUrl());
+    setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerClient());
     setInfos(
       manager.getName(),
 	DisplayFormatters.formatByteCountToKBEtc(manager.getSize()),
       manager.getSavePath(),
-      ByteFormatter.nicePrint(manager.getHash()),
+      ByteFormatter.nicePrintTorrentHash(manager.getTorrent()),
       manager.getNbPieces(),
       manager.getPieceLength(),
       manager.getComment());
@@ -685,7 +686,7 @@ public class GeneralView extends AbstractIView {
     shareRatio.setText(_shareRatio);     
   }
 
-  public void setTracker(final String status, final int time, String trackerUrl) {
+  public void setTracker(final String status, final int time, TRTrackerClient trackerClient ){
     if (display == null || display.isDisposed())
       return;
     if (tracker == null || tracker.isDisposed())
@@ -702,8 +703,15 @@ public class GeneralView extends AbstractIView {
     
     if(trackerUrlValue == null || trackerUrlValue.isDisposed())
       return;
-    if(trackerUrl != null)
-      trackerUrlValue.setText(trackerUrl);
+    if(trackerClient != null){
+    	
+    	String trackerURL = trackerClient.getTrackerUrl();
+    
+    	if ( trackerURL != null ){
+    	
+      		trackerUrlValue.setText(trackerURL);
+    	}
+    }
   }
 
   public void setInfos(

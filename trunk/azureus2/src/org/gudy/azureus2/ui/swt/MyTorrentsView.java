@@ -208,7 +208,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
             TableItem ti = tis[i];
             DownloadManager dm = (DownloadManager) managers.get(ti);
             if (dm != null) {
-              if (dm.getTrackerConnection() == null)
+              if (dm.getTrackerClient() == null)
                 changeUrl = false;
               if (!downloadBars.containsKey(dm))
                 barsOpened = false;
@@ -328,8 +328,8 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) managers.get(ti);
-          if (dm != null && dm.getTrackerConnection() != null) {
-            new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), dm.getTrackerConnection());
+          if (dm != null && dm.getTrackerClient() != null) {
+            new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), dm.getTrackerClient());
           }
         }
       }

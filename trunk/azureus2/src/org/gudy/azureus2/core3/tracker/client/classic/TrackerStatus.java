@@ -2,7 +2,7 @@
  * Created on 22 juil. 2003
  *
  */
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.tracker.client.classic;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.gudy.azureus2.core.HashData;
+import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core3.util.*;
 
 /**

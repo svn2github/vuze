@@ -61,7 +61,7 @@ public class DownloadManager extends Component {
 
   private Server server;
   private TOTorrent			torrent;
-  private TRTrackerClient 	trackerConnection;
+  private TRTrackerClient 	tracker_client;
   public DiskManager diskManager;
   public PeerManager peerManager;
   
@@ -125,7 +125,7 @@ public class DownloadManager extends Component {
     }
     
 	try{
-    	trackerConnection = TRTrackerClientFactory.create( torrent, server.getPort());
+    	tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
     
 		diskManager = new DiskManager( torrent, savePath);
     
@@ -141,7 +141,7 @@ public class DownloadManager extends Component {
 
   public void startDownload() {
     this.state = STATE_DOWNLOADING;
-    peerManager = new PeerManager(this, getHash(), server, trackerConnection, diskManager);
+    peerManager = new PeerManager(this, server, tracker_client, diskManager);
     peerManager.getStats().setTotalReceivedRaw(downloaded);
     peerManager.getStats().setTotalSent(uploaded);
   }
@@ -316,7 +316,7 @@ public class DownloadManager extends Component {
              diskManager.dumpResumeDataToDisk(true);
           diskManager.stopIt();
         }
-        trackerConnection = null;
+        tracker_client = null;
         peerManager = null;
         state = DownloadManager.STATE_STOPPED;
                 
@@ -364,12 +364,12 @@ public class DownloadManager extends Component {
     return ""; //$NON-NLS-1$
   }
 
-  public String getTrackerUrl() {
-    if (trackerConnection != null)
-      return trackerConnection.getTrackerUrl();
-    return null;
+  public TRTrackerClient 
+  getTrackerClient() 
+  {
+  	return( tracker_client );
   }
-
+  
   public String getETA() {
     if (peerManager != null)
       return peerManager.getETA();
@@ -432,19 +432,10 @@ public class DownloadManager extends Component {
   /**
    * @return
    */
-  public byte[] 
-  getHash() 
+  public TOTorrent
+  getTorrent() 
   {
-  	try{
-  	
-    	return( torrent == null?new byte[20]:torrent.getHash());
-    	
-  	}catch( TOTorrentException e ){
-  	
-  		e.printStackTrace();
-  		
-  		return( new byte[20] );
-  	}
+  	return( torrent );
   }
 
   /**
@@ -542,11 +533,11 @@ public class DownloadManager extends Component {
   }
 
   public HashData getHashData() {
-    if (trackerConnection != null  && globalManager != null)
-      return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(), getHash());
+    if (tracker_client != null  && globalManager != null)
+      return globalManager.getTrackerChecker().getHashData(tracker_client);
     else
-      if(trackerUrl != null && globalManager != null)
-        return globalManager.getTrackerChecker().getHashData(trackerUrl, getHash());
+      if(torrent != null && globalManager != null)
+        return globalManager.getTrackerChecker().getHashData(torrent);
     return null;
   }
 
@@ -571,22 +562,41 @@ public class DownloadManager extends Component {
    */
   public boolean equals(Object obj) {
     if(null != obj && obj instanceof DownloadManager) {
+    	
       DownloadManager other = (DownloadManager) obj;
-      return getSize() == other.getSize() && Arrays.equals(getHash(), other.getHash());
+      
+      if ( getSize() != other.getSize()){
+      	
+      	return( false );
+      }
+      
+      TOTorrent t1 = getTorrent();
+      TOTorrent t2 = other.getTorrent();
+      
+      if ( t1 == null || t2 == null ){
+      	
+      	return( false );	// broken torrents - treat as different so shown
+      						// as broken
+      }
+      
+      try{
+      	
+      	return( Arrays.equals(t1.getHash(), t2.getHash()));
+     
+      }catch( TOTorrentException e ){
+      	
+      		// only get here is serious problem with hashing process
+      		
+      	e.printStackTrace();
+      }
     }
+    
     return false;
   }
   
   public void checkTracker() {
     if(peerManager != null)
       peerManager.checkTracker();
-  }
-
-  /**
-   * @return
-   */
-  public TRTrackerClient getTrackerConnection() {
-    return trackerConnection;
   }
 
   /**

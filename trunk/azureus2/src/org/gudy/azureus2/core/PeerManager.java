@@ -12,6 +12,7 @@ import java.util.Vector;
 import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core2.PeerSocket;
 
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.peer.*;
 
@@ -66,14 +67,24 @@ PeerManager
 
   public PeerManager(
     DownloadManager manager,
-    byte[] hash,
     Server server,
 	TRTrackerClient tracker,
     DiskManager diskManager) {
     super("Peer Manager"); //$NON-NLS-1$
     this._manager = manager;
     //This torrent Hash
-    _hash = hash;
+    
+    try{
+    
+    	_hash = tracker.getTorrent().getHash();
+    	
+    }catch( TOTorrentException e ){
+    	
+    		// this should never happen - TODO: tidy when refactoring peer manager
+    	e.printStackTrace();
+    	
+    	_hash = new byte[20]; // TODO: just for the mo
+    }
     
     this.nbHashFails = 0;
 
