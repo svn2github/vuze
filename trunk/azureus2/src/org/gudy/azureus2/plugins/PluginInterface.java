@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
@@ -102,6 +103,14 @@ public interface PluginInterface {
    */
   
   public Logger getLogger();
+  
+  /**
+   * Gives access to the IP filter
+   * @return
+   */
+  
+  public IPFilter
+  getIPFilter();
   
   /**
    * Gives access to the download manager

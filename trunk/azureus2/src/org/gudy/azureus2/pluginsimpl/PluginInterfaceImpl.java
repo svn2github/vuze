@@ -26,6 +26,8 @@ import java.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.pluginsimpl.logging.LoggerImpl;
+import org.gudy.azureus2.plugins.ipfilter.IPFilter;
+import org.gudy.azureus2.pluginsimpl.ipfilter.IPFilterImpl;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
@@ -165,6 +167,12 @@ public class PluginInterfaceImpl implements PluginInterface {
   	return( LoggerImpl.getSingleton());
   }
   
+  public IPFilter
+  getIPFilter()
+  {
+  	return( new IPFilterImpl());
+  }
+
   public PeerProtocolManager
   getPeerProtocolManager()
   {

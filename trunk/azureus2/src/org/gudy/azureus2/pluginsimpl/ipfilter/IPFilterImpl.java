@@ -1,7 +1,7 @@
 /*
- * File    : IpFilter.java
- * Created : 1 oct. 2003 12:27:26
- * By      : Olivier 
+ * File    : IPFilterImpl.java
+ * Created : 02-Mar-2004
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,52 +18,41 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.core3.ipfilter;
 
-
+package org.gudy.azureus2.pluginsimpl.ipfilter;
 
 /**
- * @author Olivier
- * 
+ * @author parg
+ *
  */
 
-import java.util.List;
 import java.io.File;
 
-import org.gudy.azureus2.core3.ipfilter.impl.*;
+import org.gudy.azureus2.plugins.ipfilter.*;
 
-public abstract class 
-IpFilter 
+import org.gudy.azureus2.core3.ipfilter.*;
+
+public class 
+IPFilterImpl
+	implements IPFilter
 {
-	public static IpFilter
-	getInstance()
+	public File
+	getFile()
 	{
-		return( IpFilterImpl.getInstance());
+		return(IpFilter.getInstance().getFile());
 	}
 	
-	public abstract File getFile();
-	
-	public abstract void save();
-	
-	public abstract void 
+	public void
 	reload()
 	
-		throws Exception;
-	
-	public abstract List getIpRanges();
-
-	public abstract boolean isInRange(String ipAddress);
-	
-	public abstract IpRange
-	createRange(boolean sessionOnly);
-	
-	public abstract int getNbRanges();
-	
-	public abstract int getNbIpsBlocked();
-	
-	public abstract List getBlockedIps();
-	
-	
-	public abstract void ban(String ipAddress);
+		throws IPFilterException
+	{
+		try{
+			IpFilter.getInstance().reload();
+			
+		}catch( Throwable e ){
+			
+			throw( new IPFilterException( "IPFilter::reload fails", e ));
+		}
+	}
 }

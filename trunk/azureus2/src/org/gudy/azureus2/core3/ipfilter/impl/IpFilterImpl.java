@@ -52,21 +52,29 @@ IpFilterImpl
 	private List bannedIps;
 	
 	//Number of ip Blocked
-  private int nbIpsBlocked;
+    private int nbIpsBlocked;
   
-  //Map ip blocked -> matching range
-  private List ipsBlocked;
+    //Map ip blocked -> matching range
+    private List ipsBlocked;
  
   
-	private IpFilterImpl() {
+	private IpFilterImpl() 
+	{
 	  ipFilter = this;
-	  ipRanges = new ArrayList();
-	  bannedIps = new ArrayList();
 	  
 	  nbIpsBlocked = 0;
+	  bannedIps = new ArrayList();
+	  
 	  ipsBlocked = new ArrayList();
 	  
-	  loadFilters();
+	  try{
+	  	
+	  	loadFilters();
+	  	
+	  }catch( Exception e ){
+	  	
+	  	e.printStackTrace();
+	  }
 	}
   
 	public static synchronized IpFilter getInstance() {
@@ -76,7 +84,21 @@ IpFilterImpl
 	  return ipFilter;
 	}
   
-	public void save() {
+	public File
+	getFile()
+	{
+		return( FileUtil.getApplicationFile("filters.config"));
+	}
+	
+	public void
+	reload()
+		throws Exception
+	{
+		loadFilters();
+	}
+	
+	public void save() 
+	{
 		Map map = new HashMap();
 		List filters = new ArrayList();
 		map.put("ranges",filters);
@@ -106,7 +128,12 @@ IpFilterImpl
 	  }
 	}
   
-	private void loadFilters() {
+	private void loadFilters() 
+		throws Exception
+	{
+		
+	  List new_ipRanges = new ArrayList();
+
 	  FileInputStream fin = null;
 	  BufferedInputStream bin = null;
 	  try {
@@ -126,13 +153,14 @@ IpFilterImpl
 	        
 			  IpRange ipRange = new IpRangeImpl(description,startIp,endIp,false);
 			  if(ipRange.isValid())
-				this.ipRanges.add(ipRange);
+				new_ipRanges.add(ipRange);
 			}
-      bin.close();
-      fin.close();
-		}
-	  } catch(Exception e) {
-		e.printStackTrace();
+			bin.close();
+			fin.close();
+		}		
+	  }finally{
+	  
+	  	ipRanges 	= new_ipRanges;
 	  }
 	}
   
