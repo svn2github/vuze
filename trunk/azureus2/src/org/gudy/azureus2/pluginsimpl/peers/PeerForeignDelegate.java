@@ -368,4 +368,21 @@ PeerForeignDelegate
 	    }
 	  }
 	  
+	public boolean 
+	equals(
+		Object 	other )
+	{
+		if ( other instanceof PeerForeignDelegate ){
+				
+			return( foreign.equals(((PeerForeignDelegate)other).foreign ));
+		}
+			
+		return( false );
+	}
+		
+	public int
+	hashCode()
+	{
+		return( foreign.hashCode());
+	}
 }
