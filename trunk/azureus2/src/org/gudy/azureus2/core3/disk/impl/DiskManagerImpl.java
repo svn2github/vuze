@@ -825,7 +825,7 @@ DiskManagerImpl
 						}else{
 							
 						  boolean correct = checkPiece(elt.getPieceNumber());
-							
+
 						  if(!correct){
 						  	
 						    MD5CheckPiece(elt.getPieceNumber(),false);
@@ -1148,8 +1148,10 @@ DiskManagerImpl
   
 
 	private synchronized boolean checkPiece(int pieceNumber) {
-        
-      if (bOverallContinue == false) return false;
+            
+    if (bOverallContinue == false) return false;
+    
+    try{  Thread.sleep( 100 );  }catch(Exception e) {e.printStackTrace();}
 
 		allocateAndTestBuffer.position(0);
 
