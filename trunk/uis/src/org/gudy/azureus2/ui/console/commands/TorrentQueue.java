@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.console.commands;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -34,7 +36,7 @@ public class TorrentQueue extends TorrentCommand {
 	{
 		super( new String[] { "queue", "q" }, "Queueing");
 	}
-	protected boolean performCommand(ConsoleInput ci, DownloadManager dm) {
+	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		try {
 			if (dm.getState() == DownloadManager.STATE_STOPPED)
 				dm.setState(DownloadManager.STATE_QUEUED);

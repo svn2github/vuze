@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.console.commands;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.ui.console.ConsoleInput;
@@ -36,7 +38,7 @@ public class TorrentRemove extends TorrentCommand {
 		super(new String[] {"remove", "r"}, "Removing");
 	}
 
-	protected boolean performCommand(ConsoleInput ci, DownloadManager dm) {
+	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		try {
 			dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
 			ci.gm.removeDownloadManager(dm);

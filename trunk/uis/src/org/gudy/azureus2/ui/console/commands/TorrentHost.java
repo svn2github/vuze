@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.console.commands;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
@@ -37,7 +39,7 @@ public class TorrentHost extends TorrentCommand {
 		super(new String[] { "host"}, "Hosting");
 	}
 
-	protected boolean performCommand(ConsoleInput ci, DownloadManager dm) {
+	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		TOTorrent torrent = dm.getTorrent();
         if (torrent != null) {
           try {

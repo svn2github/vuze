@@ -19,17 +19,18 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  * @author Tobias Minich
  */
-public class Hack extends IConsoleCommand {
+public class Hack extends TorrentCommand {
 	
 	public Hack() 
 	{
-		super(new String[] { "hack", "#" });
+		super(new String[] { "hack", "#" }, "Hacking");
+		addSubCommand(new HackFile());
+		addSubCommand(new HackTracker());
 	}
 	
 	public String getCommandDescriptions()
@@ -41,31 +42,11 @@ public class Hack extends IConsoleCommand {
 		out.println("> -----");
 		out.println("'hack' syntax:");
 		if( args.size() > 0 ) {
-			String command = (String) args.get(0);
-			if (command.equalsIgnoreCase("file") || command.equalsIgnoreCase("f")) {
-				out.println("hack <torrent id> file <#> <priority>");
-				out.println();
-				out.println("<#> Number of the file.");
-				out.println();
-				out.println("<priority> can be one of the following:");
-				out.println("normal\t\tn\tNormal Priority");
-				out.println("high\t\th|+\tHigh Priority");
-				out.println("nodownload\t!|-\tDon't download this file.");
-				out.println("> -----");
-				return;
-			}
-			else if (command.equalsIgnoreCase("tracker") || command.equalsIgnoreCase("t")) {
-				out.println("hack <torrent id> tracker [command] <new value>");
-				out.println();
-				out.println("[command] can be one of the following:");
-				out.println("url\t\tu\tChange the full URL (Note: you have to include the '/announce' part).");
-				out.println("host\t\th\tChange the host.");
-				out.println("port\t\tp\tChange the port.");
-				out.println();
-				out.println("You can also omit [command] and only give a new full URL (just like the [command] 'url').");
-				out.println("> -----");
-				return;
-			}
+			String command = (String) args.remove(0);
+			TorrentCommand cmd = getSubCommand(command);
+			if( cmd != null )
+				cmd.printHelp(out, args);
+			return;
 		}
 		out.println("hack <torrent id> <command> <command options>");
 		out.println();
@@ -75,171 +56,232 @@ public class Hack extends IConsoleCommand {
 		out.println("help\t\tDetailed help for <command>");
 		out.println();
 		out.println("Available <command>s:");
-		out.println("file\t\tf\tModify priority of a single file of a batch torrent.");
-		out.println("tracker\t\tt\tModify Tracker URL of a torrent.");
+		for (Iterator iter = getSubCommands().iterator(); iter.hasNext();) {
+			TorrentSubCommand cmd = (TorrentSubCommand) iter.next();
+			out.println(cmd.getCommandDescriptions());
+		}
 		out.println("> -----");
 	}
-	
-	public void execute(String commandName, ConsoleInput ci, List args) {
-		if (!args.isEmpty()) {
-			String[] sSubcommands = new String[args.size()];
-			args.toArray(sSubcommands);
-			DownloadManager dm = null;
-			int commandoffset = 0;
-			if (sSubcommands[0].equalsIgnoreCase("hash")) {
-				String hash = sSubcommands[1];
-				List torrents = ci.gm.getDownloadManagers();
-				boolean foundit = false;
-				if (!torrents.isEmpty()) {
-					Iterator torrent = torrents.iterator();
-					while (torrent.hasNext()) {
-						dm = (DownloadManager) torrent.next();
-						if (hash.equals(ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true))) {
-							foundit = true;
-							break;
-						}
-					}
-				}
-				if (!foundit) {
-					ci.out.println("> Command 'hack': Hash '" + hash + "' unknown.");
-					return;
-				}
-				commandoffset = 2;
-			} else if (sSubcommands[0].equalsIgnoreCase("help") || sSubcommands[0].equalsIgnoreCase("?")) {
-				try {
-					printHelp(ci.out, sSubcommands[1]);
-				} catch (Exception e) {
-					printHelp(ci.out, (String)null);
-				}
-				return;
-			} else {
-				try {
-					int number = Integer.parseInt(sSubcommands[0]);
-					if ((ci.torrents != null) && ci.torrents.isEmpty()) {
-						ci.out.println("> Command 'hack': No torrents in list.");
-						return;
-					} else {
-						if ((number > 0) && (number <= ci.torrents.size())) {
-							dm = (DownloadManager) ci.torrents.get(number - 1);
-						} else {
-							ci.out.println("> Command 'hack': Torrent #" + sSubcommands[0] + " unknown.");
-							return;
-						}
-					}
-					commandoffset = 1;
-				} catch (NumberFormatException e) {
-					ci.out.println("> Command 'hack': First parameter '" + sSubcommands[0] + "' unknown.");
-					return;
-				}
-			}
-			if (dm == null) {
-				ci.out.println("> Command 'hack': Couldn't determine Torrent.");
-				return;
-			}
-			if (sSubcommands[commandoffset].equalsIgnoreCase("file") || sSubcommands[commandoffset].equalsIgnoreCase("f")) {
-				if (sSubcommands.length < (commandoffset + 3)) {
-					ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
-					return;
-				}
-				try {
-					DiskManager disk = dm.getDiskManager();
-					DiskManagerFileInfo files[] = disk.getFiles();
-					int file = Integer.parseInt(sSubcommands[commandoffset + 1]);
-					String c = sSubcommands[commandoffset + 2];
-					if (c.equalsIgnoreCase("normal") || c.equalsIgnoreCase("n")) {
-						files[file - 1].setSkipped(false);
-						files[file - 1].setPriority(false);
-						ci.out.println("> Set file '"+files[file - 1].getName()+"' to normal priority.");
-					} else if (c.equalsIgnoreCase("high") || c.equalsIgnoreCase("h") || c.equalsIgnoreCase("+")) {
-						files[file - 1].setSkipped(false);
-						files[file - 1].setPriority(true);
-						ci.out.println("> Set file '"+files[file - 1].getName()+"' to high priority.");
-					} else if (c.equalsIgnoreCase("nodownload") || c.equalsIgnoreCase("!") || c.equalsIgnoreCase("-")) {
-						files[file - 1].setSkipped(true);
-						files[file - 1].setPriority(false);
-						ci.out.println("> Stopped to download file '"+files[file - 1].getName()+"'.");
-					} else {
-						ci.out.println("> Command 'hack': Unknown priority '" + c + "' for command parameter '" + sSubcommands[commandoffset] + "'.");
-						return;
-					}
-				} catch (Exception e) {
-					ci.out.println("> Command 'hack': Exception while parsing command parameter '" + sSubcommands[commandoffset] + "': " + e.getMessage());
-					return;
-				}
-			} else if (sSubcommands[commandoffset].equalsIgnoreCase("tracker") || sSubcommands[commandoffset].equalsIgnoreCase("t")) {
-				if (sSubcommands.length < (commandoffset + 1)) {
-					ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
-					return;
-				}
-				try {
-					String trackercommand = sSubcommands[commandoffset+1];
-					TRTrackerClient client = dm.getTrackerClient();
-					//ci.out.println("> Command 'hack': Debug: '"+trackercommand+"'");
-					if (client == null) {
-						ci.out.println("> Command 'hack': Tracker interface not available.");
-						return;
-					}
-					if (trackercommand.equalsIgnoreCase("url") || trackercommand.equalsIgnoreCase("u")) {
-						ci.out.println("> Command 'hack': Debug: url");
-						if (sSubcommands.length < (commandoffset + 2)) {
-							ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
-							return;
-						}
-						try {
-							URI test = new URI(sSubcommands[commandoffset+2]);
-						} catch (Exception e) {
-							ci.out.println("> Command 'hack': Parsing tracker url failed: "+e.getMessage());
-							return;
-						}
-						client.setTrackerUrl(new URL(sSubcommands[commandoffset+2]));
-						ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+sSubcommands[commandoffset+2]+"'");
-					} else if (trackercommand.equalsIgnoreCase("host") || trackercommand.equalsIgnoreCase("h")) {
-						//ci.out.println("> Command 'hack': Debug: host");
-						if (sSubcommands.length < (commandoffset + 2)) {
-							ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
-							return;
-						}
-						URI uold = new URI(client.getTrackerUrl().toString());
-						try {
-							URI unew = new URI(uold.getScheme(), uold.getUserInfo(), sSubcommands[commandoffset+2], uold.getPort(), uold.getPath(), uold.getQuery(), uold.getFragment());
-							client.setTrackerUrl(new URL(unew.toString()));
-							ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+unew.toString()+"'");
-						} catch (Exception e) {
-							ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
-							return;
-						}
-					} else if (trackercommand.equalsIgnoreCase("port") || trackercommand.equalsIgnoreCase("p")) {
-						//ci.out.println("> Command 'hack': Debug: port");
-						if (sSubcommands.length < (commandoffset + 2)) {
-							ci.out.println("> Command 'hack': Not enough parameters for command parameter '" + sSubcommands[commandoffset] + "'.");
-							return;
-						}
-						URI uold = new URI(client.getTrackerUrl().toString());
-						try {
-							URI unew = new URI(uold.getScheme(), uold.getUserInfo(), uold.getHost(), Integer.parseInt(sSubcommands[commandoffset+2]), uold.getPath(), uold.getQuery(), uold.getFragment());
-							client.setTrackerUrl(new URL(unew.toString()));
-							ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+unew.toString()+"'");
-						} catch (Exception e) {
-							ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
-							return;
-						}
-					} else {
-						try {
-							URI test = new URI(sSubcommands[commandoffset+1]);
-						} catch (Exception e) {
-							ci.out.println("> Command 'hack': Parsing tracker url failed: "+e.getMessage());
-							return;
-						}
-						client.setTrackerUrl(new URL(sSubcommands[commandoffset+1]));
-						ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+sSubcommands[commandoffset+1]+"'");
-					}
-				} catch (Exception e) {
-					ci.out.println("> Command 'hack': Exception while parsing command parameter '" + sSubcommands[commandoffset] + "': " + e.getMessage());
-					return;
-				}
-			} else
-				ci.out.println("> Command 'hack': Command parameter '" + sSubcommands[commandoffset] + "' unknown.");
-		} else
-			printHelp(ci.out, (String)null);
+
+	/**
+	 * finds the appropriate subcommand and executes it.
+	 * the execute() method will have taken care of finding/iterating over the
+	 * appropriate torrents
+	 */
+	protected boolean performCommand(ConsoleInput ci, DownloadManager dm,
+			List args) 
+	{
+		if (args.isEmpty()) {
+			ci.out.println("> Not enough parameters for command '" + getCommandName() + "'.");
+			return false;
+		}
+		String subCommandName = (String)args.remove(0);
+		TorrentSubCommand cmd = getSubCommand(subCommandName);
+		if( cmd != null )
+			return cmd.performCommand(ci, dm, args);
+		else
+		{
+			ci.out.println("> Command 'hack': Command parameter '" + subCommandName + "' unknown.");
+			return false;
+		}
 	}
+	
+	private static class HackTracker extends TorrentSubCommand
+	{
+		public HackTracker()
+		{
+			super(new String[] { "tracker", "t" });
+			addSubCommand(new HackHost());
+			addSubCommand(new HackPort());
+			addSubCommand(new HackURL());
+		}
+
+		public void printHelp(PrintStream out, List args)
+		{
+			out.println("hack <torrent id> tracker [command] <new value>");
+			out.println();
+			out.println("[command] can be one of the following:");
+			for (Iterator iter = getSubCommands().iterator(); iter.hasNext();) {
+				TorrentSubCommand cmd = (TorrentSubCommand) iter.next();
+				out.println(cmd.getCommandDescriptions());
+			}
+			out.println();
+			out.println("You can also omit [command] and only give a new full URL (just like the [command] 'url').");
+			out.println("> -----");
+		}
+		
+		/**
+		 * locate the appropriate subcommand and execute it 
+		 */
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
+		{
+			if (args.isEmpty()) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand '" + getCommandName() + "'");
+				return false;
+			}
+			String trackercommand = (String) args.remove(0);
+			TRTrackerClient client = dm.getTrackerClient();
+			//ci.out.println("> Command 'hack': Debug: '"+trackercommand+"'");
+			if (client == null) {
+				ci.out.println("> Command 'hack': Tracker interface not available.");
+				return false;
+			}
+			TorrentSubCommand cmd = getSubCommand(trackercommand);
+			if( cmd == null )
+			{
+				args.add(trackercommand);
+				cmd = getSubCommand("url");
+			}
+			
+			return cmd.performCommand(ci, dm, args);
+		}
+
+		public String getCommandDescriptions() {
+			return "tracker\t\tt\tModify Tracker URL of a torrent.";
+		}
+	}
+	
+	private static class HackFile extends TorrentSubCommand
+	{
+		public HackFile()
+		{
+			super(new String[] { "file", "f" });
+		}
+		public void printHelp(PrintStream out, List args)
+		{
+			out.println("hack <torrent id> file <#> <priority>");
+			out.println();
+			out.println("<#> Number of the file.");
+			out.println();
+			out.println("<priority> can be one of the following:");
+			out.println("normal\t\tn\tNormal Priority");
+			out.println("high\t\th|+\tHigh Priority");
+			out.println("nodownload\t!|-\tDon't download this file.");
+			out.println("> -----");
+		}
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
+		{
+			if (args.size() < 2) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand 'file'.");
+				return false;
+			}
+			try {
+				DiskManager disk = dm.getDiskManager();
+				DiskManagerFileInfo files[] = disk.getFiles();
+				int file = Integer.parseInt((String) args.get(0));
+				String c = (String) args.get(1);
+				if (c.equalsIgnoreCase("normal") || c.equalsIgnoreCase("n")) {
+					files[file - 1].setSkipped(false);
+					files[file - 1].setPriority(false);
+					ci.out.println("> Set file '"+files[file - 1].getName()+"' to normal priority.");
+				} else if (c.equalsIgnoreCase("high") || c.equalsIgnoreCase("h") || c.equalsIgnoreCase("+")) {
+					files[file - 1].setSkipped(false);
+					files[file - 1].setPriority(true);
+					ci.out.println("> Set file '"+files[file - 1].getName()+"' to high priority.");
+				} else if (c.equalsIgnoreCase("nodownload") || c.equalsIgnoreCase("!") || c.equalsIgnoreCase("-")) {
+					files[file - 1].setSkipped(true);
+					files[file - 1].setPriority(false);
+					ci.out.println("> Stopped to download file '"+files[file - 1].getName()+"'.");
+				} else {
+					ci.out.println("> Command 'hack': Unknown priority '" + c + "' for command parameter 'file'.");
+					return false;
+				}
+				return true;
+			} catch (Exception e) {
+				ci.out.println("> Command 'hack': Exception while executing subcommand 'file': " + e.getMessage());
+				return false;
+			}
+		}
+
+		public String getCommandDescriptions() {
+			return "file\t\tf\tModify priority of a single file of a batch torrent.";
+		}
+	}
+	
+	private static class HackPort extends TorrentSubCommand
+	{
+		public HackPort()
+		{
+			super(new String[] { "port", "p" });
+		}
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
+		{
+			if (args.isEmpty()) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand parameter 'port'.");
+				return false;
+			}
+			TRTrackerClient client = dm.getTrackerClient();
+			try {
+				URI uold = new URI(client.getTrackerUrl().toString());
+				String portStr = (String) args.get(0);
+				URI unew = new URI(uold.getScheme(), uold.getUserInfo(), uold.getHost(), Integer.parseInt(portStr), uold.getPath(), uold.getQuery(), uold.getFragment());
+				client.setTrackerUrl(new URL(unew.toString()));
+				ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+unew.toString()+"'");
+			} catch (Exception e) {
+				ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
+				return false;
+			}
+			return true;
+		}
+		public String getCommandDescriptions() {
+			return "port\t\tp\tChange the port.";
+		}
+	}
+	private static class HackHost extends TorrentSubCommand
+	{
+		public HackHost()
+		{
+			super(new String[] { "host", "h" });
+		}
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
+		{
+			if (args.isEmpty()) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand parameter 'host'.");
+				return false;
+			}
+			TRTrackerClient client = dm.getTrackerClient();
+			try {
+				URI uold = new URI(client.getTrackerUrl().toString());
+				URI unew = new URI(uold.getScheme(), uold.getUserInfo(), (String)args.get(0), uold.getPort(), uold.getPath(), uold.getQuery(), uold.getFragment());
+				client.setTrackerUrl(new URL(unew.toString()));
+				ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+unew.toString()+"'");
+			} catch (Exception e) {
+				ci.out.println("> Command 'hack': Assembling new tracker url failed: "+e.getMessage());
+				return false;
+			}
+			return true;
+		}
+		public String getCommandDescriptions() {
+			return "host\t\th\tChange the host.";
+		}
+	}
+	private static class HackURL extends TorrentSubCommand
+	{
+		public HackURL()
+		{
+			super(new String[] { "url", "u" });
+		}
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
+		{
+			if (args.isEmpty()) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand parameter 'url'.");
+				return false;
+			}
+			TRTrackerClient client = dm.getTrackerClient();
+			
+			try {
+				String uriStr = (String) args.get(0); 
+				URI uri = new URI(uriStr);
+				client.setTrackerUrl(new URL(uri.toString()));
+				ci.out.println("> Set Tracker URL for '"+dm.getTorrentSaveDirAndFile()+"' to '"+uri+"'");
+			} catch (Exception e) {
+				ci.out.println("> Command 'hack': Parsing tracker url failed: "+e.getMessage());
+				return false;
+			}
+			return true;
+		}
+		public String getCommandDescriptions() {
+			return "url\t\tu\tChange the full URL (Note: you have to include the '/announce' part).";
+		}
+	}	
 }

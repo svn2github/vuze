@@ -10,8 +10,13 @@
  */
 package org.gudy.azureus2.ui.console.commands;
 
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -26,6 +31,7 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 public abstract class TorrentCommand extends IConsoleCommand {
 	private final String primaryCommandName;
 	private final String action;
+	private final Map subCommands = new HashMap();
 	
 	/**
 	 * initializes the torrent command
@@ -38,7 +44,23 @@ public abstract class TorrentCommand extends IConsoleCommand {
 		this.primaryCommandName = commandNames[0];
 		this.action = action;
 	}
-  
+
+	protected void addSubCommand(TorrentSubCommand command)
+	{
+		for (Iterator iter = command.getCommandNames().iterator(); iter.hasNext();) {
+			String cmdName = (String) iter.next();
+			subCommands.put(cmdName, command);
+		}
+	}
+	protected Set getSubCommands()
+	{
+		return new HashSet(subCommands.values());
+	}
+	protected TorrentSubCommand getSubCommand(String commandName)
+	{
+		return (TorrentSubCommand) subCommands.get(commandName);
+	}
+	
 	protected String getCommandName()
 	{
 		return primaryCommandName;
@@ -47,12 +69,12 @@ public abstract class TorrentCommand extends IConsoleCommand {
 	{
 		return action;
 	}
-	protected abstract boolean performCommand(ConsoleInput ci, DownloadManager dm);
+	protected abstract boolean performCommand(ConsoleInput ci, DownloadManager dm, List args);
 
 	public void execute(String commandName, ConsoleInput ci, List args)
 	{
 		if (!args.isEmpty()) {
-		    String subcommand = (String) args.get(0);
+		    String subcommand = (String) args.remove(0);
 			if (ci.torrents.isEmpty()) {
 				ci.out.println("> Command '" + getCommandName() + "': No torrents in list (Maybe you forgot to 'show torrents' first).");
 			} else {
@@ -66,29 +88,28 @@ public abstract class TorrentCommand extends IConsoleCommand {
 							name = "?";
 						else
 							name = dm.getDisplayName();
-						if (performCommand(ci, dm))
+						if (performCommand(ci, dm, args))
 							ci.out.println("> " + getAction() + " Torrent #" + subcommand + " (" + name + ") succeeded.");
 						else
 							ci.out.println("> " + getAction() + " Torrent #" + subcommand + " (" + name + ") failed.");
 					} else
 						ci.out.println("> Command '" + getCommandName() + "': Torrent #" + subcommand + " unknown.");
 				} catch (NumberFormatException e) {
-					if (subcommand.equalsIgnoreCase("all")) {
+					if ("all".equalsIgnoreCase(subcommand)) {
 						Iterator torrent = ci.torrents.iterator();
-						int nr = 0;
 						while (torrent.hasNext()) {
 							dm = (DownloadManager) torrent.next();
 							if (dm.getDisplayName() == null)
 								name = "?";
 							else
 								name = dm.getDisplayName();
-							if (performCommand(ci, dm))
+							if (performCommand(ci, dm, args))
 								ci.out.println("> " + getAction() + " Torrent #" + subcommand + " (" + name + ") succeeded.");
 							else
 								ci.out.println("> " + getAction() + " Torrent #" + subcommand + " (" + name + ") failed.");
 						}
-					} else if (subcommand.toUpperCase().startsWith("HASH")) {
-						String hash = subcommand.substring(subcommand.indexOf(" ") + 1);
+					} else if ("hash".equalsIgnoreCase(subcommand)) {
+						String hash = (String) args.remove(0); 
 						List torrents = ci.gm.getDownloadManagers();
 						boolean foundit = false;
 						if (!torrents.isEmpty()) {
@@ -100,7 +121,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 										name = "?";
 									else
 										name = dm.getDisplayName();
-									if (performCommand(ci, dm))
+									if (performCommand(ci, dm, args))
 										ci.out.println("> " + getAction() + " Torrent " + hash + " (" + name + ") succeeded.");
 									else
 										ci.out.println("> " + getAction() + " Torrent " + hash + " (" + name + ") failed.");
@@ -117,7 +138,15 @@ public abstract class TorrentCommand extends IConsoleCommand {
 				}
 			}
 		} else {
-			ci.out.println("> Missing subcommand for '" + getCommandName() + "'\r\n> " + getCommandName() + " syntax: " + getCommandName() + " (<#>|all|hash <hash>)");
+			ci.out.println("> Missing subcommand for '" + getCommandName() + "'");
+			printHelp(ci.out, args);			
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.console.commands.IConsoleCommand#printHelp(java.io.PrintStream, java.util.List)
+	 */
+	public void printHelp(PrintStream out, List args) {
+		out.println("> " + getCommandName() + " syntax: " + getCommandName() + " (<#>|all|hash <hash>)");
 	}
 }

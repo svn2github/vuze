@@ -1,5 +1,5 @@
 /*
- * Created on 04/12/2004
+ * Created on 21/12/2004
  * Created by Paul Duran
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -19,6 +19,7 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
+
 package org.gudy.azureus2.ui.console.commands;
 
 import java.util.List;
@@ -27,31 +28,19 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
- * console command to stop a torrent.
- * extracted from the Torrent class written by tobias
+ * simple subclass of TorrentCommand that publicises the performCommand
+ * method. the execute() method is not necessarily used in these objects
+ * @author pauld
  */
-public class TorrentStop extends TorrentCommand {
-
+public abstract class TorrentSubCommand extends TorrentCommand 
+{
 	/**
-	 * @param args
+	 * @param commandNames
 	 * @param action
 	 */
-	public TorrentStop() {
-		super(new String[] {"stop", "h"}, "Stopping");
+	public TorrentSubCommand(String[] commandNames) {
+		super(commandNames, null);
 	}
 
-	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
-		try {
-			dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
-		} catch (Exception e) {
-			e.printStackTrace(ci.out);
-			return false;
-		}
-		return true;
-	}
-
-	public String getCommandDescriptions() {
-		return("stop (<torrentoptions>)\t\th\tStop torrent(s).");
-	}
-
+	public abstract boolean performCommand(ConsoleInput ci, DownloadManager dm, List args);
 }

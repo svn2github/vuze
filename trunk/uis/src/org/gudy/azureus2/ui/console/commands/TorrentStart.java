@@ -51,7 +51,7 @@ public class TorrentStart extends TorrentCommand {
 		}
 		super.execute(commandName, console, args);
 	}
-	protected boolean performCommand(ConsoleInput ci, DownloadManager dm)
+	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args)
 	{
 		try {
 			dm.setState(DownloadManager.STATE_WAITING);

@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.console.commands;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -33,7 +35,7 @@ public class TorrentForceStart extends TorrentCommand {
 	{
 		super(new String[] {"forcestart"}, "Force Starting");
 	}
-	protected boolean performCommand(ConsoleInput ci, DownloadManager dm) {
+	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		try {
 	          dm.setForceStart(true);
         } catch (Exception e) {

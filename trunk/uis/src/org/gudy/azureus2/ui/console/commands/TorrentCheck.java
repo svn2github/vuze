@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.ui.console.commands;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -35,7 +37,7 @@ public class TorrentCheck extends TorrentCommand {
 		super(new String[] { "check", "c"}, "Initiating recheck of");
 	}
 	
-	protected boolean performCommand(ConsoleInput ci, DownloadManager dm) {
+	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		try {
 			if (dm.canForceRecheck()) {
 				dm.forceRecheck();
