@@ -3,8 +3,8 @@ AZUREUS CHANGELOG
 
 2004.07.xx | Azureus 2.1.0.3
 
-FEATURE: Core | show built-in plugins in config view [Parg]
-FEATURE: Core | fallback encoding for torrents (a-zA-Z0-9 type encoding with hex chars for others) [Parg]
+FEATURE: Core | Show built-in plugins in config view [Parg]
+FEATURE: Core | Fallback encoding for torrents (a-zA-Z0-9 type encoding with hex chars for others) [Parg]
 FEATURE: Core | Numbers now localized to selected language [TuxPaper]
 FEATURE: Dev  | More features for torrent creation [Parg]
 FEATURE: Plug | Experimental data upload facility for tracker web pages [Parg]
@@ -14,6 +14,7 @@ FEATURE: UI   | New peer columns to help track leechers [TuxPaper]
 CHANGE: Core | More sensible merging of plugin.properties on plugin update [Parg]
 
 BUGFIX: Core | 99.X% / continuous hash fails fix [Parg]
+BUGFIX: UI   | Fix bug where failed-hashcheck pieces never reappeared in Pieces view [Nolar]
 
 
 
