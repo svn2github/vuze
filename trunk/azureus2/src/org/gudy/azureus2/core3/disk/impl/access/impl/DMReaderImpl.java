@@ -105,6 +105,8 @@ DMReaderImpl
 				return;
 			}	
 		
+			started				= false;
+			
 			bOverallContinue	= false;
 			
 		}finally{
@@ -277,6 +279,7 @@ DMReaderImpl
 
 		public DiskReadThread() {
 			super("Disk Reader");
+			
 			setDaemon(true);
 		}
 
@@ -284,7 +287,7 @@ DMReaderImpl
 		runSupport() 
 		{
 			try{
-				while (bReadContinue){	
+				while ( bReadContinue ){	
 			
 					try{
 						int	entry_count = readQueueSem.reserveSet( 10 );
