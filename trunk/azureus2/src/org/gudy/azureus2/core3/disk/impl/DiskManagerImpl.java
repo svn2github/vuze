@@ -902,28 +902,8 @@ DiskManagerImpl
 					buildDirectoryStructure(tempPath);
 					//test: throws Exception if filename is not supported by os
 							
-					try{
-						f.getCanonicalPath();
+					f.getCanonicalPath();
 						
-					}catch( IOException e ){
-						
-						String	message = e.getMessage();
-						
-							// some problem on windows 2003 with this failing. temporary hack
-							// to allow things to continue, it'll fail later if things are 
-							// badly wrong
-						
-						if ( message != null && message.indexOf( "Bad pathname") != -1 ){
-							
-							if ( !f.getParentFile().exists()){
-								
-								throw( e );
-							}
-						}else{
-							
-							throw( e );
-						}
-					}
 					//create the new file
 					
 					fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
