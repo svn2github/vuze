@@ -219,7 +219,7 @@ ResourceDownloaderTorrentImpl
 			
 			download.setPosition(1);
 			
-			download.setPosition( Download.PR_HIGH_PRIORITY );
+			download.setPriority( Download.PR_HIGH_PRIORITY );
 			
 			download.setForceStart( true );
 			
