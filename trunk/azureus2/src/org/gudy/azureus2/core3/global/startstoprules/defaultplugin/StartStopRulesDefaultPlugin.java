@@ -1271,7 +1271,7 @@ StartStopRulesDefaultPlugin
 
 
       label = new Label(cNoTimeNone, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.qr.numPeersAsFullCopy");
+      Messages.setLanguageText(label, "ConfigView.label.seeding.numPeersAsFullCopy");
 
       cArea = new Composite(cNoTimeNone, SWT.NULL);
       layout = new GridLayout();
