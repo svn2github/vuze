@@ -17,6 +17,7 @@ FEATURE: Added new columns to MyTorrents : 'Share Ratio', 'Downloaded', 'Uploade
 FEATURE: Details view can now be customized (choice of columns and order) [Gudy]
 FEATURE: SSL now supported for tracker web and tracker updates [Parg]
 FEATURE: Added Drag and Drop of URLs [Rele]
+FEATURE: Multi-Trackers torrent can now be created [Gudy]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
