@@ -704,7 +704,7 @@ PEPeerControlImpl
    */
   private boolean findPieceToDownload(PEPeerTransport pc, boolean snubbed) {
     //get the rarest pieces list
-    getRarestPieces(pc);
+    getRarestPieces(pc,90);
     if (_piecesRarest == null)
       return false;
 
@@ -792,6 +792,10 @@ PEPeerControlImpl
 
     //Otherwhise, vPieces is not null, we'll 'randomly' choose an element from it.
 
+    //If we're not going to continue a piece, then stick with more rarity :
+    //Allowing 20% here.
+    getRarestPieces(pc,20);
+    
     pieceNumber = _diskManager.getPiecenumberToDownload(_piecesRarest);
 
     if (pieceNumber == -1)
@@ -818,7 +822,7 @@ PEPeerControlImpl
     return true;
   }
 
-  private void getRarestPieces(PEPeerTransport pc) {
+  private void getRarestPieces(PEPeerTransport pc,int rangePercent) {
     boolean[] piecesAvailable = pc.getAvailable();
     Arrays.fill(_piecesRarest, false);
 
@@ -835,7 +839,7 @@ PEPeerControlImpl
     }
 
     //We add a 90 % range
-    pieceMinAvailability = (190 * pieceMinAvailability) / 100;
+    pieceMinAvailability = ((100+rangePercent) * pieceMinAvailability) / 100;
     //For all pieces
     for (int i = 0; i < _nbPieces; i++) {
       //If we're not downloading it, if it's not downloaded, and if it's available from that peer
