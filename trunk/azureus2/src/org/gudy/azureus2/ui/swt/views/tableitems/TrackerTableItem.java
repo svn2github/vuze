@@ -30,7 +30,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -38,6 +37,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.components.*;
 
 import org.gudy.azureus2.core3.tracker.host.*;
 
@@ -45,10 +45,10 @@ import org.gudy.azureus2.core3.tracker.host.*;
 public class 
 TrackerTableItem 
 {
-	private Display 		display;
-	private Table 			table;
-	private TableItem 		item;
-	private TRHostTorrent	torrent;
+	private Display 			display;
+	private Table 				table;
+	private BufferedTableItem 	item;
+	private TRHostTorrent		torrent;
  
 		//Used when sorting
 	public boolean selected;  
@@ -64,7 +64,7 @@ TrackerTableItem
 	  	initialize(view);
 	}
 
-	public TableItem 
+	public BufferedTableItem 
 	getTableItem()
 	{
 	  return item;
@@ -82,8 +82,10 @@ TrackerTableItem
 		public void run() {
 		  if (table == null || table.isDisposed())
 			return;
-		  item = new TableItem(table, SWT.NULL);
-      view.putHost(item,torrent);
+			
+		  item = new BufferedTableItem(table, SWT.NULL);
+		  
+      	  view.putHost(item.getItem(),torrent);
 		}
 	  });
 	}
@@ -95,7 +97,7 @@ TrackerTableItem
 			return;
 		  if (item == null || item.isDisposed())
 			return;
-		  table.remove(table.indexOf(item));
+		  table.remove(table.indexOf(item.getItem()));
 		  item.dispose();
 		}
 	  });
@@ -128,11 +130,11 @@ TrackerTableItem
 				
 		item.setImage(icon);
 
-		ViewUtils.setText( item, 0, name);
+		item.setText( 0, name);
 		
 		String	tracker = torrent.getTorrent().getAnnounceURL().toString();
 
-		ViewUtils.setText( item, 1, tracker);
+		item.setText( 1, tracker);
 		
 		String	status;
 		
@@ -159,7 +161,7 @@ TrackerTableItem
 			status = "?";
 		}
 		
-		ViewUtils.setText( item, 2, status );
+		item.setText( 2, status );
 		
 		TRHostPeer[]	peers = torrent.getPeers();
 		
@@ -187,18 +189,18 @@ TrackerTableItem
 			left		+= peer.getAmountLeft();
 		}
 		
-		ViewUtils.setText( item, 3, "" + seed_count );
-		ViewUtils.setText( item, 4, "" + peer_count );
+		item.setText( 3, "" + seed_count );
+		item.setText( 4, "" + peer_count );
 		
-		ViewUtils.setText( item, 5, "" + torrent.getAnnounceCount());
+		item.setText( 5, "" + torrent.getAnnounceCount());
 		
-		ViewUtils.setText( item, 6, "" + torrent.getCompletedCount());
+		item.setText( 6, "" + torrent.getCompletedCount());
 		
-		ViewUtils.setText( item, 7, "" + DisplayFormatters.formatByteCountToKBEtc(uploaded));
+		item.setText( 7, "" + DisplayFormatters.formatByteCountToKBEtc(uploaded));
 		
-		ViewUtils.setText( item, 8, "" + DisplayFormatters.formatByteCountToKBEtc(downloaded));
+		item.setText( 8, "" + DisplayFormatters.formatByteCountToKBEtc(downloaded));
 		
-		ViewUtils.setText( item, 9, "" + DisplayFormatters.formatByteCountToKBEtc(left));
+		item.setText( 9, "" + DisplayFormatters.formatByteCountToKBEtc(left));
 		
 		if ( seed_count != 0 ){
 			
@@ -214,7 +216,7 @@ TrackerTableItem
 	{
     if(table == null || table.isDisposed() || item == null || item.isDisposed())
       return -1;
-	  return table.indexOf(item);
+	  return table.indexOf(item.getItem());
 	}
 
 	public TRHostTorrent 
