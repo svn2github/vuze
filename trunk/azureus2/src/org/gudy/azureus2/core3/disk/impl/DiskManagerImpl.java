@@ -394,7 +394,7 @@ DiskManagerImpl
 					}
 				}catch( CacheFileManagerException e ){
 				
-					errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (filesExist:" + f.toString() + ")";
+					errorMessage = Debug.getNestedExceptionMessage(e) + " (filesExist:" + f.toString() + ")";
 					
 					return( false );
 				}
