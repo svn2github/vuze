@@ -51,11 +51,13 @@ public class FilesView
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
+    new PathItem(),
     new SizeItem(),
     new DoneItem(),
     new PercentItem(),
     new FirstPieceItem(),
     new PieceCountItem(),
+    new RemainingPiecesItem(),
     new ProgressGraphItem(),
     new ModeItem(),
     new PriorityItem()
