@@ -161,14 +161,6 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", 
                          "ConfigView.section.style.alternateTablePainting");
     
-    /**
-     * Disabled for the moment because of some side effects
-     */
-    /*
-    label = new Label(cLook, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.alwaysShowTorrentFiles");
-    new BooleanParameter(cLook, "Always Show Torrent Files", true);
-    */
 
     new BooleanParameter(cLook, "config.style.useSIUnits",false, "ConfigView.section.style.useSIUnits");
     new BooleanParameter(cLook, "config.style.useUnitsRateBits",false, "ConfigView.section.style.useUnitsRateBits");

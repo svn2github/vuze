@@ -203,6 +203,10 @@ ConfigurationChecker
 	    	}
 	    }
 	    
+      
+      /*
+       * Old migration code... 
+       * 
 	    int nbMinSeeds = COConfigurationManager.getIntParameter("StartStopManager_iIgnoreSeedCount", -1);
 	    if (nbMinSeeds == -1) {
 	    COConfigurationManager.setParameter("StartStopManager_iIgnoreSeedCount", 0);
@@ -221,7 +225,6 @@ ConfigurationChecker
 	      changed = true;
 	    }
 	    
-	    
 	    //migrate to new dual connection limit option
 	    int maxclients = COConfigurationManager.getIntParameter("Max Clients", -1);
 	    if ( maxclients > -1 ) {      
@@ -229,6 +232,16 @@ ConfigurationChecker
 	      COConfigurationManager.setParameter("Max Clients", -1);
 	      changed = true;
 	    }
+      
+      //if previous config did not use shared port, grab the port
+      if (!COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
+        int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
+        COConfigurationManager.setParameter("TCP.Listen.Port", lp);
+        COConfigurationManager.setParameter("Server.shared.port", true);
+        changed = true;
+      }
+      */
+      
 	    
 	    // migrate to split tracker client/server key config
 	    
@@ -286,14 +299,6 @@ ConfigurationChecker
 	      changed = true;
 	    }
 	    
-	    /**
-	     * Patch to insure that this option is disabled
-	     */    
-	    boolean astf = COConfigurationManager.getBooleanParameter("Always Show Torrent Files",true);
-	    if(astf) {
-	      COConfigurationManager.setParameter("Always Show Torrent Files",false);
-	      changed = true;
-	    }    
 	    
 	    /**
 	     * Special Patch for OSX users
@@ -313,13 +318,7 @@ ConfigurationChecker
 	      }
 	    }
 	    
-	    //if previous config did not use shared port, grab the port
-	    if (!COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
-	    	int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
-	      COConfigurationManager.setParameter("TCP.Listen.Port", lp);
-	      COConfigurationManager.setParameter("Server.shared.port", true);
-	      changed = true;
-	    }
+	    
 	    
 	    //remove a trailing slash, due to user manually entering the path in config
 	    String[] path_params = { "Default save path",

@@ -90,8 +90,6 @@ public class FilesView
       }
     });
 
-    if(COConfigurationManager.getBooleanParameter("Always Show Torrent Files", true))
-      manager.initializeDiskManager();
   }
 
   
