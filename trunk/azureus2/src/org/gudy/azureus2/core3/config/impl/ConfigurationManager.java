@@ -306,7 +306,7 @@ public class ConfigurationManager {
       return;
     Vector parameterListener = (Vector) parameterListeners.get(parameter);
     if(parameterListener != null) {
-      parameterListeners.remove(listener);
+    	parameterListener.remove(listener);
     }
   }
 
