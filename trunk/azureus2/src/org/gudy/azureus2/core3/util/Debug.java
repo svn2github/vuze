@@ -42,20 +42,37 @@ public class Debug {
     String className;
     String methodName;
     int lineNumber;
+    String	trace_trace_tail = null;
     
     try {
       throw new Exception();
     }
     catch (Exception e) {
-      StackTraceElement st = e.getStackTrace()[2];
-      className = st.getClassName() + "::";
-      methodName = st.getMethodName() + "::";
-      lineNumber = st.getLineNumber();
+    	StackTraceElement[]	st = e.getStackTrace();
+    	
+      StackTraceElement first_line = st[2];
+      className = first_line.getClassName() + "::";
+      methodName = first_line.getMethodName() + "::";
+      lineNumber = first_line.getLineNumber();
+   
+      for (int i=3;i<st.length;i++){
+      	
+      	if ( trace_trace_tail == null ){
+      		trace_trace_tail = "";
+      	}else{
+      		trace_trace_tail += ",";
+      	}
+      	
+      	trace_trace_tail += st[i].getClass()+"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
+      }
     }
     
-    System.out.println(header.concat(className).concat(methodName).concat(String.valueOf(lineNumber)).concat(":"));
+    System.out.println(header+className+(methodName)+lineNumber+":");
     if (_debug_msg.length() > 0) {
       System.out.println("  " + _debug_msg);
+    }
+    if ( trace_trace_tail != null ){
+    	System.out.println( "    " + trace_trace_tail );
     }
     if (_exception != null) {
       _exception.printStackTrace();
