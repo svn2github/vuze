@@ -71,10 +71,17 @@ public class MessageText {
     final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
     final String extension = ".properties";
 
-    String urlString = ClassLoader.getSystemResource(bundleFolder.concat(extension)).toString();
-    //    System.out.println("urlString: " + urlString);
+    String urlString = MessageText.class.getClassLoader().getResource(bundleFolder.concat(extension)).toExternalForm();
+    //System.out.println("urlString: " + urlString);
     String[] bundles = null;
-    if (urlString.startsWith("jar:file:/")) {
+    if (urlString.startsWith("jar:file:")) {
+    	
+    		// java web start returns a url like "jar:file:c:/sdsd" which then fails as the file
+    		// part doesn't start with a "/". Add it in!
+    		
+    	if ( !urlString.startsWith("jar:file:/")){
+    		urlString = "jar:file:/" + urlString.substring(9);
+    	}
       try {
         int posDirectory = urlString.indexOf(".jar!", 11);
         String jarName = urlString.substring(4, posDirectory + 4);
@@ -125,7 +132,7 @@ public class MessageText {
     if (!LOCALE_CURRENT.equals(newLocale)) {
       ResourceBundle newResourceBundle = null;
       try {
-        newResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, newLocale);
+        newResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, newLocale, MessageText.class.getClassLoader());
       } catch (Exception e) {
         System.out.println("changeLocale: no resource bundle for " + newLocale);
         e.printStackTrace();

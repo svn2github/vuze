@@ -78,7 +78,7 @@ public class ImageRepository {
   getImageAsStream(
   	String	name ) 
   {
-      return(ClassLoader.getSystemResourceAsStream("org/gudy/azureus2/ui/icons/" + name));
+      return(ImageRepository.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/icons/" + name));
   }
   
   public static void unLoadImages() {

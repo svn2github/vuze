@@ -76,7 +76,7 @@ UserAlerts
 	    
 	    		if ( audio_clip == null ){
 	    		
-					audio_clip = Applet.newAudioClip(ClassLoader.getSystemResource("org/gudy/azureus2/ui/icons/downloadFinished.wav"));
+					audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource("org/gudy/azureus2/ui/icons/downloadFinished.wav"));
 	    		}
 	    		
 	    		if ( audio_clip != null ){

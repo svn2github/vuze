@@ -40,7 +40,7 @@ public class IntegratedResourceBundle extends ListResourceBundle {
         if(classLoader != null)
           newResourceBundle = ResourceBundle.getBundle(localizationPath, main.getLocale(),classLoader);
         else
-        newResourceBundle = ResourceBundle.getBundle(localizationPath, main.getLocale());
+        newResourceBundle = ResourceBundle.getBundle(localizationPath, main.getLocale(),IntegratedResourceBundle.class.getClassLoader());
       } catch (Exception e) {
         //        System.out.println(localizationPath+": no resource bundle for " +
 				// main.getLocale());
@@ -48,7 +48,7 @@ public class IntegratedResourceBundle extends ListResourceBundle {
           if(classLoader != null)
             newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,classLoader);
           else 
-          newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT);
+          newResourceBundle = ResourceBundle.getBundle(localizationPath, MessageText.LOCALE_DEFAULT,IntegratedResourceBundle.class.getClassLoader());
         } catch (Exception e2) {
           System.out.println(localizationPath + ": no default resource bundle");
           continue;

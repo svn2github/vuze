@@ -364,6 +364,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       return;
     }
     
+    try{
 	COConfigurationManager.checkConfiguration();
 
     auth_window = new AuthenticatorWindow();
@@ -850,7 +851,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       tray.setVisible(true);
     }
     COConfigurationManager.addParameterListener("Show Download Basket", this);
-  }
+	}catch( Throwable e ){
+		e.printStackTrace();
+	} }
 
 	public void allocateBlues() {
     int r = COConfigurationManager.getIntParameter("Color Scheme.red",0);
@@ -863,6 +866,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
         toBeDisposed.dispose();
       }
     }
+
   }
 
   public void showMyTracker() {
@@ -993,7 +997,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
   }
 
   private void setSplashPercentage( int p ){
-  	if ( splash_maybe_null != null ){
+   	if ( splash_maybe_null != null ){
 		splash_maybe_null.setPercentDone(p);
   	}
   }
@@ -1027,7 +1031,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
 
     Properties properties = new Properties();
     try {
-      properties.load(ClassLoader.getSystemResourceAsStream("org/gudy/azureus2/ui/swt/about.properties"));
+      properties.load(MainWindow.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/swt/about.properties"));
     }
     catch (Exception e1) {
       e1.printStackTrace();

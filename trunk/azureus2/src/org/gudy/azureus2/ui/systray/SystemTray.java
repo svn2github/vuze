@@ -40,7 +40,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 
 	public SystemTray(MainWindow main) {
 		this.main = main;
-		URL iconUrl = ClassLoader.getSystemResource("org/gudy/azureus2/ui/icons/azureus.ico"); //$NON-NLS-1$
+		URL iconUrl = SystemTray.class.getClassLoader().getResource("org/gudy/azureus2/ui/icons/azureus.ico"); //$NON-NLS-1$
 		SysTrayMenuIcon icon = new SysTrayMenuIcon(iconUrl);		
 		menu = new SysTrayMenu(icon);
     SysTrayMenuItem item;
