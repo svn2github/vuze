@@ -202,7 +202,7 @@ TRTrackerServerTorrentImpl
 		return( peer );
 	}
 	
-	protected void
+	protected synchronized void
 	removePeer(
 		TRTrackerServerPeerImpl	peer )
 	{
