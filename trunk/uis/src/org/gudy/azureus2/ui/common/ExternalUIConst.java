@@ -76,6 +76,11 @@ public class ExternalUIConst {
 		parameterlegacy.put("Logger_bEnable","Logging Enable");
 		parameterlegacy.put("Logger_sDir_Directory", "Logging Dir");
 		parameterlegacy.put("Logger_iMaxSize", "Logging Max Size");
+    
+    parameterlegacy.put("Tracker_Password_Enable","Tracker Password Enable Web");
+    parameterlegacy.put("Tracker_UserName","Tracker Username");
+    parameterlegacy.put("Tracker_Password","Tracker Password");
+    
 		int[] logComponents = { 0, 1, 2, 4 };
 		for (int i = 0; i < logComponents.length; i++)
 			for (int j = 0; j <= 3; j++)
