@@ -482,11 +482,12 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
               }
             }
           }
-          catch( IOException e ) {  //write exception, so completely remove from this upload entity, as no further writes are possible
+          catch( IOException e ) {  //write exception, so move to stalled list while it waits for removal
             //total_bytes_ready -= peer_data.connection.getOutgoingMessageQueue().getTotalSize();
             peer_data.connection.getOutgoingMessageQueue().cancelQueueListener( peer_data.queue_listener ); //cancel the listener
             peer_data.exception = e;
             connections_to_notify_of_exception.add( peer_data );  //do exception notification outside of sync'd block
+            addToStalledList( peer_data.connection );
           }
           
           num_bytes_remaining -= written;
