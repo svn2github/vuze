@@ -124,7 +124,7 @@ ConfigurationChecker
 	      String user = COConfigurationManager.getStringParameter("Proxy.Username");
 	      String pass = COConfigurationManager.getStringParameter("Proxy.Password");
 		      
-	      if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS", true) ) {
+	      if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS", false) ) {
 	        System.setProperty("socksProxyHost", host);
 	        System.setProperty("socksProxyPort", port);
 	        
