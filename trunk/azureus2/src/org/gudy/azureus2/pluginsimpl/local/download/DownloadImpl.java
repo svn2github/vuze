@@ -869,6 +869,12 @@ DownloadImpl
  		download_manager.checkTracker();
  	}
  	
+  public byte[] getDownloadPeerId() {
+    return download_manager.getTrackerClient().getPeerId();
+  }
+  
+  
+  
  	// Deprecated methods
 
   public int getPriority() {

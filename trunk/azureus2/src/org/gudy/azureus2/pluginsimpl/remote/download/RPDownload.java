@@ -297,6 +297,12 @@ RPDownload
 		return( torrent );
 	}
 	
+  
+  public byte[] getDownloadPeerId() {
+    return delegate.getDownloadPeerId();
+  }
+  
+  
 	public void
 	initialize()
 	

@@ -521,4 +521,12 @@ Download
 	public void
 	removePeerListener(
 		DownloadPeerListener	l );
+  
+  /**
+   * Get the local peerID advertised to the download swarm.
+   * @return self peer id
+   * 
+   * @since 2.1.0.5
+   */
+  public byte[] getDownloadPeerId();
 }
