@@ -312,4 +312,12 @@ RemoteUIApplet
 			throw( new RPException( "RequestDispatch fails", e ));
 		}
 	}
+	
+	public void
+	destroy()
+	{
+		panel.destroy();
+		
+		super.destroy();
+	}
 }

@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet;
  */
 
 import java.net.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -44,11 +45,18 @@ public class
 RemoteUIMainPanel
 	extends JPanel
 {
-	protected DownloadManager		download_manager;
+	protected DownloadManager			download_manager;
+	
+	protected MDDownloadModel			download_model;
 	
 	protected ArrayList					listeners = new ArrayList();
 	
 	protected JTextArea		log_area;
+	
+	protected int			next_refresh;
+	protected int			refresh_period;
+	
+	protected boolean		destroyed;
 	
 	public
 	RemoteUIMainPanel(
@@ -90,13 +98,29 @@ RemoteUIMainPanel
 			
 			add( tb, BorderLayout.NORTH );
 			
-			final MDDownloadModel	model 	= new MDDownloadModel( download_manager );
+			download_model 	= new MDDownloadModel( download_manager );
 			
-			final VWDownloadView 	download_view 	= new VWDownloadView(model);
+			final VWDownloadView 	download_view 	= new VWDownloadView(download_model);
 			
 			MDConfigModel			config_model	= new MDConfigModel( _pi );
 			
 			VWConfigView			config_view 	= new VWConfigView( config_model );
+			
+			refresh_period = config_model.getRefreshPeriod();
+			
+			config_model.addListener(
+					new MDConfigModelListener()
+					{
+						public void
+						propertyChanged(
+							MDConfigModelPropertyChangeEvent	ev )
+						{
+							if ( ev.getPropertyType() == MDConfigModelPropertyChangeEvent.PT_REFRESH_PERIOD ){
+							
+								refresh_period = ((Integer)ev.getPropertyValue()).intValue();								
+							}
+						}
+					});
 			
 			JTabbedPane	tabs = new JTabbedPane();
 			
@@ -125,20 +149,7 @@ RemoteUIMainPanel
 						actionPerformed(
 								ActionEvent	ev )
 						{
-							try{
-								for (int i=0;i<listeners.size();i++){
-									
-									((RemoteUIMainPanelListener)listeners.get(i)).refresh();
-								}
-								
-								model.refresh();
-								
-							}catch( Throwable e ){
-								
-								e.printStackTrace();
-								
-								reportError( e );
-							}
+							refresh();
 						}
 					});
 	
@@ -151,7 +162,7 @@ RemoteUIMainPanel
 						{
 							try{
 						
-								model.start(download_view.getSelectedRows());
+								download_model.start(download_view.getSelectedRows());
 								
 							}catch( Throwable e ){
 								
@@ -171,7 +182,7 @@ RemoteUIMainPanel
 						{
 							try{
 								
-								model.stop(download_view.getSelectedRows());
+								download_model.stop(download_view.getSelectedRows());
 								
 							}catch( Throwable e ){
 								
@@ -191,7 +202,7 @@ RemoteUIMainPanel
 						{
 							try{
 								
-								model.remove(download_view.getSelectedRows());
+								download_model.remove(download_view.getSelectedRows());
 								
 							}catch( Throwable e ){
 								
@@ -214,7 +225,7 @@ RemoteUIMainPanel
 							
 								download_manager.addDownload( url );
 							
-								model.refresh();
+								download_model.refresh();
 								
 							}catch( Throwable e ){
 								
@@ -224,6 +235,59 @@ RemoteUIMainPanel
 							}
 						}
 					});
+			
+			new Thread()
+			{
+				public void
+				run()
+				{
+					periodicRefresh();
+				}
+			}.start();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			reportError( e );
+		}
+	}
+	
+	protected void
+	periodicRefresh()
+	{
+		int	ticks = 0;
+		
+		while( !destroyed ){
+		
+			if ( ticks >= refresh_period ){
+				
+				refresh();
+				
+				ticks = 0;
+			}
+			
+			try{
+				Thread.sleep(1000);
+				
+			}catch( InterruptedException e ){
+				
+			}
+			
+			ticks++;
+		}
+	}
+	
+	protected void
+	refresh()
+	{
+		try{
+			for (int i=0;i<listeners.size();i++){
+				
+				((RemoteUIMainPanelListener)listeners.get(i)).refresh();
+			}
+			
+			download_model.refresh();
 			
 		}catch( Throwable e ){
 			
@@ -243,7 +307,8 @@ RemoteUIMainPanel
 				public void
 				run()
 				{
-					log_area.setText(log_area.getText()+ "\r\n" + str );
+					String ts = new SimpleDateFormat("hh:mm:ss - ").format( new Date());
+					log_area.setText(log_area.getText()+ "\r\n" + ts + str );
 				}
 			});
 	}
@@ -265,5 +330,11 @@ RemoteUIMainPanel
 		RemoteUIMainPanelListener	l )
 	{
 		listeners.add(l);
+	}
+	
+	public void
+	destroy()
+	{
+		destroyed	= true;
 	}
 }
