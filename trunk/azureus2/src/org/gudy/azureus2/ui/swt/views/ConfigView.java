@@ -540,6 +540,12 @@ public class ConfigView extends AbstractIView {
     new StringParameter(gServer, "Override Ip", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
 
     label = new Label(gServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.bindip"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    new StringParameter(gServer, "Bind IP", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
+    
+    label = new Label(gServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.serverportlow"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
