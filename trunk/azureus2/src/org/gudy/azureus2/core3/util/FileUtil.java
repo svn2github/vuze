@@ -236,35 +236,24 @@ public class FileUtil {
   {
   	try{
   		getReservedFileHandles();
-  	
-	    File file = new File( SystemProperties.getUserPath() + file_name );
-	    
-	  	//backup
-	    if ( file.exists() && file.length() > 1L ){
-	    	
-	      File bakfile = new File( file + ".bak" );
-	      
-	      if ( bakfile.exists()){
-	      	bakfile.delete();
-	      }
-	      
-	      file.renameTo( bakfile );
-	    }
-	  	
+      File temp = new File( SystemProperties.getUserPath() + file_name + ".saving");
 	    BufferedOutputStream	baos = null;
 	    
 	    try{
 	    	byte[] encoded_data = BEncoder.encode(data);
-		    
-	
-	    	baos = new BufferedOutputStream( new FileOutputStream( file, false ), 8192 );
-	  	
-	    		//write the data out
-	    	
-	    	baos.write(encoded_data);
-	    	
+	    	baos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
+	    	baos.write( encoded_data );
 	    	baos.flush();
-	    
+        baos.close();
+        baos = null;
+           
+        //only use newly saved file if it got this far, i.e. it saved successfully
+        File file = new File( SystemProperties.getUserPath() + file_name );
+        if ( file.exists() ){
+          file.delete();
+        }
+        temp.renameTo( file );
+
 	    }catch (Exception e) {
 	    
 	    	LGLogger.logAlert( "Save of '" + file_name + "' fails", e );
@@ -309,7 +298,7 @@ public class FileUtil {
 	{	  
   			// open the file
   	
-  		boolean	using_backup	= file_name.endsWith(".bak");
+  		boolean	using_backup	= file_name.endsWith(".saving");
   		
   		File file = new File( SystemProperties.getUserPath() + file_name );
 	    
@@ -336,7 +325,7 @@ public class FileUtil {
   				return( new HashMap());
   			}
   			
-  			return( readResilientConfigFile( file_name + ".bak", 0 ));
+  			return( readResilientConfigFile( file_name + ".saving", 0 ));
   		}
 
   		BufferedInputStream bin = null;
@@ -367,7 +356,7 @@ public class FileUtil {
 	    		return( new HashMap());
 	    	}
 	    	
- 			return( readResilientConfigFile( file_name + ".bak", 1 ));
+ 			return( readResilientConfigFile( file_name + ".saving", 1 ));
  			 
 	    }finally{
 	    	
