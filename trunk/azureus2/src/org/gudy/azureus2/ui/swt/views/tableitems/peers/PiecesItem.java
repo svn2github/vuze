@@ -99,7 +99,7 @@ public class PiecesItem extends PeerItem  {
           gcImage.drawLine(i,1,i,1+height);
         }
         gcImage.setForeground(MainWindow.grey);
-        gcImage.drawRoundRectangle(0, 0, width-1, height-1,1,1);
+        gcImage.drawRectangle(0, 0, width-2, height-1);
       }
       gcImage.dispose();
       if (oldImage != null && !oldImage.isDisposed())
