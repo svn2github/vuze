@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
 
 import java.io.InputStream;
 import java.io.File;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
@@ -45,13 +46,22 @@ import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSFeedImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser.*;
 
+import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
+import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
+import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
+import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.IPToHostNameResolver;
+import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.ui.common.UIImageRepository;
+
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
 UtilitiesImpl
@@ -244,5 +254,119 @@ UtilitiesImpl
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException
 	{
 		return( new RSSFeedImpl( this, feed_location ));
+	}
+	
+	public InetAddress
+	getPublicAddress()
+	{
+		try{
+			
+			String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
+			
+			if ( vc_ip != null && vc_ip.length() > 0 ){
+								
+				return( InetAddress.getByName( vc_ip ));
+			}
+			
+			ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
+			
+			ExternalIPCheckerService[]	services = checker.getServices();
+			
+			final String[]	ip = new String[]{ null };
+			
+			for (int i=0;i<services.length && ip[0] == null;i++){
+				
+				final ExternalIPCheckerService	service = services[i];
+				
+				if ( service.supportsCheck()){
+
+					final AESemaphore	sem = new AESemaphore("Utilities:getExtIP");
+					
+					ExternalIPCheckerServiceListener	listener = 
+						new ExternalIPCheckerServiceListener()
+						{
+							public void
+							checkComplete(
+								ExternalIPCheckerService	_service,
+								String						_ip )
+							{
+								ip[0]	= _ip;
+								
+								sem.release();
+							}
+								
+							public void
+							checkFailed(
+								ExternalIPCheckerService	_service,
+								String						_reason )
+							{
+								sem.release();
+							}
+								
+							public void
+							reportProgress(
+								ExternalIPCheckerService	_service,
+								String						_message )
+							{
+							}
+						};
+						
+					services[i].addListener( listener );
+					
+					try{
+						
+						services[i].initiateCheck( 60000 );
+						
+						sem.reserve( 60000 );
+						
+					}finally{
+						
+						services[i].removeListener( listener );
+					}
+				}
+				
+					
+				if ( ip[0] != null ){
+						
+					return( InetAddress.getByName( ip[0] ));
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+		
+		return( null );
+	}
+	
+	public String
+	reverseDNSLookup(
+		InetAddress		address )
+	{
+		final AESemaphore	sem = new AESemaphore("Utilities:reverseDNS");
+		
+		final String[]	res = { null };
+		
+		IPToHostNameResolver.addResolverRequest(
+					address.getHostAddress(),
+					new IPToHostNameResolverListener()
+					{
+						public void 
+						IPResolutionComplete(
+							String 		result,
+							boolean 	succeeded )
+						{
+							if ( succeeded ){
+								
+								res[0] = result;
+							}
+
+							sem.release();
+						}
+					});
+		
+		sem.reserve( 60000 );
+		
+		return( res[0] );
 	}
 }

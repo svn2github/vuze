@@ -27,6 +27,7 @@ package org.gudy.azureus2.plugins.utils;
  */
 
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
 
@@ -128,4 +129,21 @@ Utilities
 		ResourceDownloader	feed_location )
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException;
+	
+		/**
+		 * Returns a public IP address of the machine or null if it can't be determined
+		 */
+	
+	public InetAddress
+	getPublicAddress();
+	
+		/**
+		 * attempts a reverse DNS lookup of an address, null if it fails
+		 * @param address
+		 * @return
+		 */
+	
+	public String
+	reverseDNSLookup(
+		InetAddress		address );
 }
