@@ -751,8 +751,7 @@ public class ConfigView extends AbstractIView {
     //Make the zero new checkbox(button) deselct when incremental is used
     Button[] btnZeroNew = {(Button)zeroNew.getControl()}; 
     incremental.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnZeroNew));
-    
-    
+        
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
     new BooleanParameter(gFile, "Check Pieces on Completion", true);

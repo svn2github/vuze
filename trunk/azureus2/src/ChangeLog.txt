@@ -58,7 +58,8 @@ BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale en
 BUGFIX: System tray icon re-shown after explorer.exe crash [Rele]
 BUGFIX: Completed downloads shown in different color when Stopped [Nolar]
 BUGFIX: Fix possible data loss when moving complete files if not enough free space avail: Bug #855284 [Nolar]
-
+BUGFIX: Fix for the incremental vs allocate choice in Config [Gudy]
+BUGFIX: DNS lookups are no longer cached for ever [Parg]
 
 
 

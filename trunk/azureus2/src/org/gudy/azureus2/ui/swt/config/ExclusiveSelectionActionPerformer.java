@@ -21,7 +21,9 @@
  
 package org.gudy.azureus2.ui.swt.config;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Event;
 
 /**
  * @author Olivier
@@ -46,7 +48,8 @@ public class ExclusiveSelectionActionPerformer implements IAdditionalActionPerfo
     if(!selected)
       return;
     for(int i = 0 ; i < buttons.length ; i++) {
-      buttons[i].setSelection(false);      
+      buttons[i].setSelection(false);
+      buttons[i].notifyListeners(SWT.Selection,new Event());
     }
   }
 
