@@ -341,6 +341,12 @@ UpdateCheckInstanceImpl
 		}
 	}
 	
+	public boolean
+	isCancelled()
+	{
+		return( cancelled );
+	}
+	
 	public void
 	addListener(
 		UpdateCheckInstanceListener	l )

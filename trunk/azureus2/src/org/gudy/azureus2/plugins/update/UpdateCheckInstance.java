@@ -48,6 +48,9 @@ UpdateCheckInstance
 	public void
 	cancel();
 	
+	public boolean
+	isCancelled();
+	
 	public UpdateChecker[]
 	getCheckers();
 	

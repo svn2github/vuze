@@ -1447,88 +1447,15 @@ MainWindow
     }
   }
   
-  private void switchStatusToUpdate() {
-    if(display != null && ! display.isDisposed())
-      display.asyncExec(new AERunnable(){
-        public void runSupport() {
-           	if ( statusArea == null || statusArea.isDisposed()){
-        		return;
-        	}
-           	layoutStatusAera.topControl = statusUpdate;
-           	statusArea.layout();
-        }
-      });
-  }
+
   
-  private void switchStatusToText() {
-    if(display != null && ! display.isDisposed())
-      display.asyncExec(new AERunnable() {
-        public void runSupport() {
-        	if ( statusArea == null || statusArea.isDisposed()){
-        		return;
-        	}
-        	layoutStatusAera.topControl = statusText;
-        	statusArea.layout();
-        }
-      });
-  }
-  
-  private void setNbChecks(final int nbChecks) {
-    if(display != null && ! display.isDisposed())
-      display.asyncExec(new AERunnable() {
-        public void runSupport() {
-          if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
-            return;
-          statusUpdateProgressBar.setMinimum(0);
-          statusUpdateProgressBar.setMaximum(nbChecks);
-          statusUpdateProgressBar.setSelection(0);
-        }
-      });
-  }
-  
-  private void setNextCheck() {
-    if(display != null && ! display.isDisposed())
-      display.asyncExec(new AERunnable() {
-        public void runSupport() {
-          if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
-            return;
-          statusUpdateProgressBar.setSelection(statusUpdateProgressBar.getSelection() + 1);
-        }
-      });
-  }
-  
-  private void addUpdateListener() {
+  private void 
+  addUpdateListener() 
+  {
   	azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager().addListener(new UpdateManagerListener () {
       public void checkInstanceCreated(UpdateCheckInstance instance) {
         
-        switchStatusToUpdate();
-        instance.addListener(new UpdateCheckInstanceListener () {
-          public void cancelled(UpdateCheckInstance instance) {
-            switchStatusToText();
-          }
-          public void complete(UpdateCheckInstance instance) {
-            switchStatusToText();
-          }
-        });
-        UpdateChecker[] checkers = instance.getCheckers();
-        setNbChecks(checkers.length);
-        UpdateCheckerListener listener = new UpdateCheckerListener() {
-          public void cancelled(UpdateChecker checker) {
-            //setNextCheck();
-          }
-          
-          public void completed(UpdateChecker checker) {
-            setNextCheck();
-          }
-          
-          public void failed(UpdateChecker checker) {
-            setNextCheck();
-          }
-          
-        };
-        for(int i = 0 ; i < checkers.length ; i++) {
-          checkers[i].addListener(listener);
-        }
+      	new updateStatusChanger( instance );
       }
     });
   }  
@@ -1602,5 +1529,94 @@ MainWindow
   getAzureusCore()
   {
   	return( azureus_core );
+  }
+  
+  protected class
+  updateStatusChanger
+  {
+  	protected
+	updateStatusChanger(
+		UpdateCheckInstance		instance )
+  	{
+        switchStatusToUpdate();
+        
+        instance.addListener(new UpdateCheckInstanceListener () {
+          public void cancelled(UpdateCheckInstance instance) {
+            switchStatusToText();
+          }
+          public void complete(UpdateCheckInstance instance) {
+            switchStatusToText();
+          }
+        });
+        UpdateChecker[] checkers = instance.getCheckers();
+        setNbChecks(checkers.length);
+        UpdateCheckerListener listener = new UpdateCheckerListener() {
+          public void cancelled(UpdateChecker checker) {
+            //setNextCheck();
+          }
+          
+          public void completed(UpdateChecker checker) {
+            setNextCheck();
+          }
+          
+          public void failed(UpdateChecker checker) {
+            setNextCheck();
+          }
+          
+        };
+        for(int i = 0 ; i < checkers.length ; i++) {
+          checkers[i].addListener(listener);
+        }
+  	}
+  	
+    private void setNbChecks(final int nbChecks) {
+        if(display != null && ! display.isDisposed())
+          display.asyncExec(new AERunnable() {
+            public void runSupport() {
+              if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
+                return;
+              statusUpdateProgressBar.setMinimum(0);
+              statusUpdateProgressBar.setMaximum(nbChecks);
+              statusUpdateProgressBar.setSelection(0);
+            }
+          });
+      }
+      
+      private void setNextCheck() {
+        if(display != null && ! display.isDisposed())
+          display.asyncExec(new AERunnable() {
+            public void runSupport() {
+              if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
+                return;
+              statusUpdateProgressBar.setSelection(statusUpdateProgressBar.getSelection() + 1);
+            }
+          });
+      }
+      
+      private void switchStatusToUpdate() {
+        if(display != null && ! display.isDisposed())
+          display.asyncExec(new AERunnable(){
+            public void runSupport() {
+               	if ( statusArea == null || statusArea.isDisposed()){
+            		return;
+            	}
+               	layoutStatusAera.topControl = statusUpdate;
+               	statusArea.layout();
+            }
+          });
+      }
+      
+      private void switchStatusToText() {
+        if(display != null && ! display.isDisposed())
+          display.asyncExec(new AERunnable() {
+            public void runSupport() {
+            	if ( statusArea == null || statusArea.isDisposed()){
+            		return;
+            	}
+            	layoutStatusAera.topControl = statusText;
+            	statusArea.layout();
+            }
+          });
+      }
   }
 }

@@ -198,6 +198,11 @@ UpdateMonitor
 	      		});
 	    }
 	    
+	    if ( current_update_instance != null ){
+	    	
+	    	current_update_instance.cancel();
+	    }
+	    
 		MainWindow mainWindow = MainWindow.getWindow();
 		
 	    mainWindow.setStatusText( Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + " / MainWindow.status.checking ...");
