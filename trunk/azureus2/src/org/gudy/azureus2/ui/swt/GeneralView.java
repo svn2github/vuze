@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core.ByteFormater;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.PeerStats;
 
 /**
@@ -73,6 +74,7 @@ public class GeneralView extends AbstractIView {
   Label hash;
   Label tracker;
   Label trackerUpdateIn;
+  Label trackerUrlValue;
   Label pieceNumber;
   Label pieceSize;
 
@@ -208,8 +210,7 @@ public class GeneralView extends AbstractIView {
         manager.setMaxUploads(2 + maxUploads.getSelectionIndex());
       }
     });
-    maxUploads.select(
-      manager.getMaxUploads()-2);
+    maxUploads.select(manager.getMaxUploads() - 2);
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.uploaded"); //$NON-NLS-1$
@@ -298,6 +299,14 @@ public class GeneralView extends AbstractIView {
     trackerUpdateIn = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     trackerUpdateIn.setLayoutData(gridData);
+
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
+    trackerUrlValue = new Label(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    trackerUrlValue.setLayoutData(gridData);
+
     genComposite.addListener(SWT.Resize, new Listener() {
       public void handleEvent(Event e) {
         overall = -1;
@@ -322,29 +331,44 @@ public class GeneralView extends AbstractIView {
     updatePiecesInfo();
     updateOverall();
     setTime(manager.getElapsed(), manager.getETA());
+    HashData hd = manager.getHashData();
+    String seeds = "" + manager.getNbSeeds();
+    String peers = "" + manager.getNbPeers();
+    if(hd != null) {
+      seeds += " (" + hd.seeds + ")";
+      peers += " (" + hd.peers + ")";
+    } else {
+      seeds += " (?)";
+      peers += " (?)";
+    }
     setStats(
       manager.getDownloaded(),
       manager.getUploaded(),
       manager.getDownloadSpeed(),
       manager.getUploadSpeed(),
       manager.getTotalSpeed(),
-      manager.getNbSeeds(),
-      manager.getNbPeers());
-      setTracker(manager.getTrackerStatus(),manager.getTrackerTime());
-    setInfos(manager.getName(),PeerStats.format(manager.getSize()),manager.getSavePath(),ByteFormater.nicePrint(manager.getHash()),manager.getNbPieces(),manager.getPieceLength());
+      seeds,
+      peers);
+    setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerUrl());
+    setInfos(
+      manager.getName(),
+      PeerStats.format(manager.getSize()),
+      manager.getSavePath(),
+      ByteFormater.nicePrint(manager.getHash()),
+      manager.getNbPieces(),
+      manager.getPieceLength());
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
-    if(colorGrey != null && !colorGrey.isDisposed())
+    if (colorGrey != null && !colorGrey.isDisposed())
       colorGrey.dispose();
-    if(blues != null)
-    {
-      for(int i = 0 ; i < blues.length ; i++) {
-        if(blues[i] != null && ! blues[i].isDisposed())
-          blues[i].dispose();    
+    if (blues != null) {
+      for (int i = 0; i < blues.length; i++) {
+        if (blues[i] != null && !blues[i].isDisposed())
+          blues[i].dispose();
       }
     }
   }
@@ -380,8 +404,8 @@ public class GeneralView extends AbstractIView {
     GC gc = new GC(availabilityImage);
     if (aImage != null && !aImage.isDisposed())
       aImage.dispose();
-    if(width < 10 || height < 5)
-            return;
+    if (width < 10 || height < 5)
+      return;
     aImage = new Image(display, width, height);
     GC gcImage = new GC(aImage);
     int allMin = 0;
@@ -477,7 +501,8 @@ public class GeneralView extends AbstractIView {
     GC gc = new GC(piecesImage);
     boolean valid = true;
     boolean newPieces[] = manager.getPiecesStatus();
-    if(newPieces == null) return;
+    if (newPieces == null)
+      return;
     for (int i = 0; i < pieces.length; i++) {
       if (pieces[i] != newPieces[i]) {
         valid = false;
@@ -487,7 +512,7 @@ public class GeneralView extends AbstractIView {
     if (!valid) {
       if (pImage != null && !pImage.isDisposed())
         pImage.dispose();
-      if(width < 10 || height < 5)
+      if (width < 10 || height < 5)
         return;
       pImage = new Image(display, width, height);
       GC gcImage = new GC(pImage);
@@ -534,7 +559,7 @@ public class GeneralView extends AbstractIView {
     if (display.isDisposed())
       return;
     final int total = manager.getCompleted();
-//    String percent = (total / 10) + "." + (total % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
+    //    String percent = (total / 10) + "." + (total % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
 
     if (fileImage.isDisposed())
       return;
@@ -547,7 +572,7 @@ public class GeneralView extends AbstractIView {
     if (overall != total) {
       if (fImage != null && !fImage.isDisposed())
         fImage.dispose();
-      if(width < 10 || height < 5)
+      if (width < 10 || height < 5)
         return;
       fImage = new Image(display, width, height);
       GC gcImage = new GC(fImage);
@@ -571,22 +596,15 @@ public class GeneralView extends AbstractIView {
     gc.dispose();
   }
   public void setTime(String elapsed, String remaining) {
-    if(timeElapsed.isDisposed())
+    if (timeElapsed.isDisposed())
       return;
     timeElapsed.setText(elapsed);
-    if(timeRemaining.isDisposed())
+    if (timeRemaining.isDisposed())
       return;
     timeRemaining.setText(remaining);
   }
 
-  public void setStats(
-    String _dl,
-    String _ul,
-    String _dls,
-    String _uls,
-    String _ts,
-    int _s,
-    int _p) {
+  public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p) {
     if (display.isDisposed())
       return;
 
@@ -595,8 +613,8 @@ public class GeneralView extends AbstractIView {
     final String dl = _dl;
     final String ul = _ul;
     final String ts = _ts;
-    final int s = _s;
-    final int p = _p;
+    final String s = _s;
+    final String p = _p;
     if (download.isDisposed())
       return;
     download.setText(dl);
@@ -614,20 +632,21 @@ public class GeneralView extends AbstractIView {
     totalSpeed.setText(ts);
     if (seeds.isDisposed())
       return;
-    seeds.setText("" + s); //$NON-NLS-1$
+    seeds.setText(s); //$NON-NLS-1$
     if (peers.isDisposed())
       return;
-    peers.setText("" + p); //$NON-NLS-1$
+    peers.setText(p); //$NON-NLS-1$
     if (gTransfer.isDisposed())
       return;
   }
 
-  public void setTracker(String _status, int _time) {
+  public void setTracker(String _status, int _time,String _trackerUrl) {
 
     if (display.isDisposed())
       return;
     final String status = _status;
     final int time = _time;
+    final String trackerUrl = _trackerUrl;    
     if (tracker.isDisposed())
       return;
     tracker.setText(status);
@@ -639,6 +658,11 @@ public class GeneralView extends AbstractIView {
     if (seconds < 10)
       strSeconds = "0" + seconds; //$NON-NLS-1$
     trackerUpdateIn.setText(minutes + ":" + strSeconds); //$NON-NLS-1$
+    
+    if(trackerUrlValue.isDisposed())
+      return;
+    if(trackerUrl != null)
+      trackerUrlValue.setText(trackerUrl);
   }
 
   public void setInfos(
