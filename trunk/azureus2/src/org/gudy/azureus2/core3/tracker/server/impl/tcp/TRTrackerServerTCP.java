@@ -250,6 +250,7 @@ TRTrackerServerTCP
 	
 	protected synchronized boolean
 	handleExternalRequest(
+		String			url,
 		String			header,
 		InputStream		is,
 		OutputStream	os )
@@ -258,7 +259,7 @@ TRTrackerServerTCP
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			if (((TRTrackerServerListener)listeners.elementAt(i)).handleExternalRequest( header, is, os )){
+			if (((TRTrackerServerListener)listeners.elementAt(i)).handleExternalRequest( url, header, is, os )){
 				
 				return( true );
 			}

@@ -36,16 +36,19 @@ TrackerWebPageRequestImpl
 {
 	protected Tracker		tracker;
 	protected String		url;
+	protected String		header;
 	protected InputStream	is;
 	
 	protected
 	TrackerWebPageRequestImpl(
 		Tracker		_tracker,
 		String		_url,
+		String		_header,
 		InputStream	_is )
 	{
 		tracker	= _tracker;
 		url		= _url;
+		header	= _header;
 		is		= _is;
 	}
 	

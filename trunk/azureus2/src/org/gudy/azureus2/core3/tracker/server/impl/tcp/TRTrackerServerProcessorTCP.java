@@ -260,7 +260,7 @@ TRTrackerServerProcessorTCP
 						return;
 					}
 					
-					if ( handleExternalRequest( str, is, os )){
+					if ( handleExternalRequest( str, header, is, os )){
 					
 						return;
 					}
@@ -508,12 +508,13 @@ TRTrackerServerProcessorTCP
 		
 	protected boolean
 	handleExternalRequest(
+		String			url,
 		String			header,
 		InputStream		is,
 		OutputStream	os )
 		
 		throws IOException
 	{
-		return( server.handleExternalRequest(header, is, os));
+		return( server.handleExternalRequest(url,header, is, os));
 	}
 }
