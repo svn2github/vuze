@@ -155,7 +155,7 @@ Download
 	/**
 	 * When a download is "start-stop locked" it means that seeding rules shouldn't start or
 	 * stop the download as it is under manual control
-	 * @return
+	 * @return True if download is locked and should not be started or stopped
 	 */
 	public boolean
 	isStartStopLocked();
