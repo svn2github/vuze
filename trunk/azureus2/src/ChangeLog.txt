@@ -17,6 +17,7 @@ FEATURE: UI   | Tooltip for Health Icon [TuxPaper]
 FEATURE: UI   | New language: Japanese [Gouss]
 
 CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
+CHANGE: Core | Default socket write buffer now a more conservative 1460 bytes for smoother uploading [Nolar]
 CHANGE: Plug | Tracker web plugin configuration moved to plugin config from core config  [Parg]
 CHANGE: UI   | About Window is closeable by hitting the 'ESC' key [Gudy]
 
@@ -26,6 +27,8 @@ BUGFIX: Core | File Open dialogs now correctly remember their last path [Nolar]
 BUGFIX: Core | Plugin loader picking up .zip files instead of corresponding .jar files [Parg]
 BUGFIX: Core | Don't delete the imported .torrent file if the import dir happens to also be the Save torrent dir [Nolar]
 BUGFIX: Core | Torrents leave READY state quicker after other torrents are re-queued [TuxPaper]
+BUGFIX: Core | Fix for Fast Resume not working when a 0-byte file exists in the torrent [Nolar]
+BUGIFX: Core | Fix for Fast Resume not working when Incremental File Creation is enabled [Nolar]
 BUGFIX: UI   | # Column now on by default again [TuxPaper]
 BUGFIX: UI   | Fix for Bug #966867: Context Menu not appearing after setting up columns on Linux [TuxPaper]
 BUGFIX: UI   | IP column now sorts by hex groups [TuxPaper]
@@ -35,6 +38,8 @@ BUGFIX: UI   | Moving torrent from Uncategorized category to new category now re
 BUGFIX: UI   | Fix for empty table rows appearing in Peers Details tab and Pieces tab [TuxPaper]
 BUGFIX: UI   | Windows : Tray Icon should come back after explorer crash (needs latest SWT build) [SWT team, Gudy]
 BUGFIX: UI   | 192 bytes memory leak fixed on OSX [SWT Team, Gudy]
+
+
 
 30.05.04 | Azureus 2.1.0.0
 
