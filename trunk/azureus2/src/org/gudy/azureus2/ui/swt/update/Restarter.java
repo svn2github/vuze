@@ -88,6 +88,8 @@ Restarter
 				config_override,
 	  	};
 	  	
+	  	String[]	properties = { "-Duser.dir=\"" + app_path + "\"" };
+	  	
 	  	restartAzureus(
 	  		new PrintWriter(new ByteArrayOutputStream())
 			{
@@ -100,7 +102,7 @@ Restarter
 					
 	  		},
 			MAIN_CLASS,
-			new String[0],
+			properties,
 			parameters );
   }
   
@@ -243,9 +245,9 @@ Restarter
                     + System.getProperty("file.separator");
     
     String exec =   "#!/bin/bash\n" + 
-                  "ulimit -H -S -n 8192\n\"" +
-          userPath + "/Azureus.app/Contents/MacOS/java_swt\" " + getClassPath() +
-          "-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
+                  	"ulimit -H -S -n 8192\n\"" +
+					userPath + "/Azureus.app/Contents/MacOS/java_swt\" " + getClassPath() +
+					getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
       exec += properties[i] + " ";
@@ -290,7 +292,7 @@ Restarter
                     + System.getProperty("file.separator");
     
     String exec =   "#!/bin/bash\n\"" + javaPath + "java\" " + getClassPath() +
-            "-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
+            		getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
       exec += properties[i] + " ";
