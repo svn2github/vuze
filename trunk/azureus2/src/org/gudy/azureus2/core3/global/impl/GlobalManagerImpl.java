@@ -48,6 +48,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.Category;
 
+import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
+
 /**
  * @author Olivier
  * 
@@ -130,6 +132,9 @@ public class GlobalManagerImpl
 	private TRTrackerScraper 			trackerScraper;
 	private GlobalManagerStatsWriter 	stats_writer;
 	private GlobalManagerHostSupport	host_support;
+  
+  private TorrentFolderWatcher torrent_folder_watcher;
+  
   
   /* Whether the GlobalManager is active (false) or stopped (true) */
   private boolean 					isStopped = false;
@@ -272,6 +277,8 @@ public class GlobalManagerImpl
     	
     	stats_writer.initialisationComplete();
     }
+    
+    torrent_folder_watcher = new TorrentFolderWatcher( this );
   }
 
   public DownloadManager addDownloadManager(String fileName, String savePath) {
@@ -511,9 +518,10 @@ public class GlobalManagerImpl
     	informDestroyInitiated();
     	
     	if ( host_support != null ){
-    		
     		host_support.destroy();
     	}
+      
+      torrent_folder_watcher.destroy();
     	
     		// kick off a non-daemon task. This will ensure that we hang around
     		// for at least LINGER_PERIOD to run other non-daemon tasks such as writing

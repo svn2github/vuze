@@ -79,7 +79,6 @@ import org.gudy.azureus2.plugins.update.UpdateManagerListener;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentFolderWatcher.FolderWatcher;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
 import org.gudy.azureus2.ui.swt.IconBar;
@@ -106,7 +105,6 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   private static MainWindow window;
 
   private Initializer initializer;  
-  private FolderWatcher folderWatcher = null;
   private GUIUpdater updater;
 
   //Package visibility for GUIUpdater
@@ -724,9 +722,6 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
       tray.setVisible(true);
     }
     COConfigurationManager.addParameterListener("Show Download Basket", this);
-    startFolderWatcher();
-    COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
-    COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
     COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
     
     Tab.addTabKeyListenerToComposite(folder);
@@ -737,21 +732,6 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     DonationWindow2.checkForDonationPopup();
   }
 
-  private void startFolderWatcher() {
-    if(folderWatcher == null)
-      folderWatcher = TorrentFolderWatcher.getFolderWatcher(azureus_core);
-	  folderWatcher.startIt();
-  }
-
-  private void stopFolderWatcher() {
-    if(folderWatcher != null) {
-      folderWatcher.stopIt();
-      folderWatcher.interrupt();
-      folderWatcher = null;
-    }
-  }
-
-  
 
   public void showMyTracker() {
   	if (my_tracker_tab == null) {
@@ -997,7 +977,7 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     if (this.trayIcon != null)
       SysTrayMenu.dispose();
     */
-    stopFolderWatcher();
+
     initializer.stopIt();
     if(updater != null)
       updater.stopIt();
@@ -1206,12 +1186,6 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
       tray.setVisible(false);
       tray = null;
     }
-    if (COConfigurationManager.getBooleanParameter("Watch Torrent Folder", false)) //$NON-NLS-1$
-      startFolderWatcher();
-    else
-      stopFolderWatcher();
-    if("Watch Torrent Folder Path".equals(parameterName))
-      startFolderWatcher();
     
     if (parameterName.equals("GUI_SWT_bFancyTab") && 
         folder instanceof CTabFolder && 
