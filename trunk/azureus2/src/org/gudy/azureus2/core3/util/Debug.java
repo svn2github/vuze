@@ -1,6 +1,6 @@
 /*
  * Created on Nov 19, 2003
- * Created by nolar
+ * Created by Alon Rohter
  *
  */
 package org.gudy.azureus2.core3.util;
