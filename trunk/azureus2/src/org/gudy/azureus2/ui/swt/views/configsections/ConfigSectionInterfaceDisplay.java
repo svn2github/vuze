@@ -165,6 +165,9 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     */
 
     new BooleanParameter(cLook, "config.style.useSIUnits",false, "ConfigView.section.style.useSIUnits");
+    new BooleanParameter(cLook, "config.style.useUnitsRateBits",false, "ConfigView.section.style.useUnitsRateBits");
+    
+    
     new BooleanParameter(cLook, "config.style.refreshMT",false, "ConfigView.section.style.alwaysRefreshMyTorrents");
     
     Composite cArea = new Composite(cLook, SWT.NULL);

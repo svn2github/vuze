@@ -39,13 +39,23 @@ import org.gudy.azureus2.core3.internat.*;
 public class 
 DisplayFormatters 
 {
-	protected static String	k_unit;
-	protected static String	m_unit;
-	protected static String	g_unit;
-	protected static String	t_unit;
+	protected static boolean use_si_units;
+	protected static boolean use_units_rate_bits;
+	
+	protected static String	B_unit;
+	protected static String	KB_unit;
+	protected static String	MB_unit;
+	protected static String	GB_unit;
+	protected static String	TB_unit;
+	
+	protected static String	rate_B_unit;
+	protected static String	rate_KB_unit;
+	protected static String	rate_MB_unit;
+	protected static String	rate_GB_unit;
+	protected static String	rate_TB_unit;
 	
 	static{
-		boolean si = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
+		use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
 	
 		COConfigurationManager.addParameterListener( "config.style.useSIUnits",
 				new ParameterListener()
@@ -54,29 +64,90 @@ DisplayFormatters
 					parameterChanged(
 						String	value )
 					{
-						setUnits(COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false));
+						use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
+						
+						setUnits();
+					}
+				});
+			
+		use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits", false);
+		
+		COConfigurationManager.addParameterListener( "config.style.useUnitsRateBits",
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	value )
+					{
+						use_units_rate_bits = COConfigurationManager.getBooleanParameter("config.style.useUnitsRateBits", false);
+						
+						setUnits();
 					}
 				});
 		
-		setUnits(si);
+		setUnits();
 	}
 	
 	protected static void
-	setUnits(
-		boolean	si )
+	setUnits()
 	{
-		if ( si ){
-			k_unit = " KiB";
-			m_unit = " MiB";
-			g_unit = " GiB";
-			t_unit = " TiB";
+		if ( use_si_units ){
+			
+			B_unit	= " B";
+			KB_unit = " KiB";
+			MB_unit = " MiB";
+			GB_unit = " GiB";
+			TB_unit = " TiB";	
+							
+			if ( use_units_rate_bits ){
+				
+				rate_B_unit	 = " bit";
+				rate_KB_unit = " Kibit";
+				rate_MB_unit = " Mibit";
+				rate_GB_unit = " Gibit";
+				rate_TB_unit = " Tibit";
+				
+			}else{
+				
+				rate_B_unit 	= " B";
+				rate_KB_unit = " KiB";
+				rate_MB_unit = " MiB";
+				rate_GB_unit = " GiB";
+				rate_TB_unit = " TiB";			
+			}
 		}else{
-			k_unit = " KB";
-			m_unit = " MB";
-			g_unit = " GB";
-			t_unit = " TB";
+			
+			B_unit	= " B";
+			KB_unit = " KB";
+			MB_unit = " MB";
+			GB_unit = " GB";
+			TB_unit = " TB";
+			
+			if ( use_units_rate_bits ){
+				
+				rate_B_unit	 = " bit";
+				rate_KB_unit = " Kbit";
+				rate_MB_unit = " Mbit";
+				rate_GB_unit = " Gbit";
+				rate_TB_unit = " Tbit";
+				
+			}else{
+			
+				rate_B_unit	 = " B";
+				rate_KB_unit = " KB";
+				rate_MB_unit = " MB";
+				rate_GB_unit = " GB";
+				rate_TB_unit = " TB";
+			}
 		}
+		
+		rate_B_unit 	= rate_B_unit  + "/s";
+		rate_KB_unit 	= rate_KB_unit + "/s";
+		rate_MB_unit 	= rate_MB_unit + "/s";
+		rate_GB_unit 	= rate_GB_unit + "/s";
+		rate_TB_unit 	= rate_TB_unit + "/s";
 	}
+	
 	public static String 
 	formatByteCountToKiBEtc(int n) 
 	{
@@ -87,29 +158,42 @@ DisplayFormatters
 	String formatByteCountToKiBEtc(
 		long n )
 	{
+		return( formatByteCountToKiBEtc( n, false ));
+	}
+	
+	protected static 
+	String formatByteCountToKiBEtc(
+		long	n,
+		boolean	rate )
+	{
+		if ( rate && use_units_rate_bits ){
+			
+			n = n * 8;
+		}
+		
 		if (n < 1024){  	
 	  
-			return( n + " B" );
+			return( n + (rate?rate_B_unit:B_unit));
 			
 		}else if (n < 1024 * 1024){
 		
-			return( (n / 1024) + "." + (((n % (1024))*10 ) / (1024)) + k_unit );
+			return( (n / 1024) + "." + (((n % (1024))*10 ) / (1024)) + (rate?rate_KB_unit:KB_unit));
 			
 		}else if (n < 1024L * 1024L * 1024L){
 		
-			return( (n / (1024L * 1024L)) + "." + (((n % (1024L * 1024L))*10L) / (1024L*1024L)) +  m_unit );
+			return( (n / (1024L * 1024L)) + "." + (((n % (1024L * 1024L))*10L) / (1024L*1024L)) +  (rate?rate_MB_unit:MB_unit ));
 			
 		}else if (n < 1024L * 1024L * 1024L * 1024L ){
 			
-			return( (n / (1024L * 1024L * 1024L)) + "." + (((n % (1024L * 1024L * 1024L))*10L) / (1024L*1024L*1024L)) +  g_unit );
+			return( (n / (1024L * 1024L * 1024L)) + "." + (((n % (1024L * 1024L * 1024L))*10L) / (1024L*1024L*1024L)) +  (rate?rate_GB_unit:GB_unit ));
 			
 		}else if (n < 1024L * 1024L * 1024L * 1024L * 1024L){
 			
-			return( (n / (1024L * 1024L * 1024L * 1024L)) + "." + (((n % (1024L * 1024L * 1024L * 1024L))*10L) / (1024L*1024L*1024L*1024L)) +  t_unit );
+			return( (n / (1024L * 1024L * 1024L * 1024L)) + "." + (((n % (1024L * 1024L * 1024L * 1024L))*10L) / (1024L*1024L*1024L*1024L)) +  (rate?rate_TB_unit:TB_unit ));
 			
 		}else{
 			
-			return( "A lot !!!" );
+			return( rate?"A lot !!!":"Very fast !!!" );
 		}
 	}
 	
@@ -117,7 +201,7 @@ DisplayFormatters
 	formatByteCountToKiBEtcPerSec(
 		long		n )
 	{
-		return( formatByteCountToKiBEtc(n).concat("/s"));
+		return( formatByteCountToKiBEtc(n,true));
 	}
   
 	
