@@ -237,7 +237,10 @@ DisplayFormatters
            tmp = MessageText.getString("ManagerItem.seeding"); 
          }
 			break;
-		  case DownloadManager.STATE_STOPPED :
+		case DownloadManager.STATE_STOPPING :
+			tmp = MessageText.getString("ManagerItem.stopping"); 
+			break;
+		case DownloadManager.STATE_STOPPED :
 			tmp = MessageText.getString("ManagerItem.stopped"); 
 			break;
 		  case DownloadManager.STATE_QUEUED :
@@ -295,6 +298,9 @@ DisplayFormatters
 		  	else {
 		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding"); //$NON-NLS-1$
 		  	}
+		  	break;
+		  case DownloadManager.STATE_STOPPING :
+		  	tmp = MessageText.getDefaultLocaleString("ManagerItem.stopping"); 
 		  	break;
 		  case DownloadManager.STATE_STOPPED :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.stopped"); //$NON-NLS-1$
