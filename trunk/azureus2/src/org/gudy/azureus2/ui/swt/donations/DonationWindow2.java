@@ -130,7 +130,7 @@ public class DonationWindow2 {
     fontDataMain = tempFont.getFontData();
     for(int i=0 ; i < fontDataMain.length ; i++) {
       if(isMacLinux)
-      	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.75));
+      	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.80));
       else
         fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.90));
     }
