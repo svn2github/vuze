@@ -148,7 +148,7 @@ public class SWTUpdateChecker implements UpdatableComponent
           if(Constants.isOSX) {
             installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/swt-pi.jar");
           } else {
-            installer.addMoveAction(name,installer.getInstallDir() + File.separator + "swt.jar");
+            installer.addMoveAction(name,installer.getInstallDir() + File.separator + "swt-pi.jar");
           }
           continue;
         }
