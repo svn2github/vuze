@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.tracker.server.impl.udp;
  * @author parg
  *
  */
+
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -40,6 +41,10 @@ TRTrackerServerUDP
 	extends 	TRTrackerServerImpl
 {
 	public static final int	PACKET_SIZE	= 8192;
+
+	protected static final int THREAD_POOL_SIZE				= 10;
+
+	protected ThreadPool	thread_pool;
 	
 	protected int		port;
 	
@@ -48,6 +53,8 @@ TRTrackerServerUDP
 		int		_port )
 	{
 		port		= _port;
+		
+		thread_pool = new ThreadPool( "TrackerServer:UDP:"+port, THREAD_POOL_SIZE );
 		
 		try{
 			String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
@@ -110,7 +117,7 @@ TRTrackerServerUDP
 								
 				if ( !ip_filter.isInRange( ip )){
 										
-					// thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
+					thread_pool.run( new TRTrackerServerProcessorUDP( this, packet ));
 				}					
 				
 			}catch( Throwable e ){

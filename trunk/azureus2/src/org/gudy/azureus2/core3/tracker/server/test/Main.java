@@ -58,10 +58,18 @@ Main
 				Thread.sleep(1000);
 				
 				DatagramSocket	ds = new DatagramSocket( );
-				
-				byte[]	buffer = "hello world".getBytes();
-				
+								
 				InetAddress address = InetAddress.getByName( "127.0.0.1" );
+				
+				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+				
+				DataOutputStream os = new DataOutputStream( baos );
+				
+				os.writeInt( 1234 );
+				
+				os.flush();
+				
+				byte[]	buffer = baos.toByteArray();
 				
 				DatagramPacket packet = new DatagramPacket(buffer, buffer.length,address,6969);
 				

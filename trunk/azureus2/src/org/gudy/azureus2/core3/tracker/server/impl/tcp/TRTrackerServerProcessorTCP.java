@@ -46,11 +46,11 @@ TRTrackerServerProcessorTCP
 
 							
 	protected TRTrackerServerTCP	server;
-	protected Socket					socket;
+	protected Socket				socket;
 	
 	protected
 	TRTrackerServerProcessorTCP(
-		TRTrackerServerTCP	_server,
+		TRTrackerServerTCP		_server,
 		Socket					_socket )
 	{
 		server	= _server;

@@ -74,7 +74,7 @@ TRTrackerServerTCP
 			
 		readPasswordSettings();
 				
-		thread_pool = new ThreadPool( "TrackerServer:"+port, THREAD_POOL_SIZE );			
+		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );			
 		current_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 		
 		if ( current_retry_interval < RETRY_MINIMUM_SECS ){
