@@ -12,7 +12,7 @@ package org.gudy.azureus2.core3.disk;
  * 
  */
 public interface 
-DiskManagerRequest
+DiskManagerReadRequest
 {  
 	public boolean isExpired();
   

@@ -22,10 +22,10 @@
 
 package org.gudy.azureus2.core3.disk.impl.access;
 
-import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 
 /**
  * @author parg
@@ -45,7 +45,7 @@ DMReader
 	readBlock(
 		int pieceNumber, int offset, int length );
 
-	public DiskManagerRequest
+	public DiskManagerReadRequest
 	createRequest(
 		int pieceNumber,
 		int offset,
@@ -53,6 +53,6 @@ DMReader
 	
 	public void 
 	enqueueReadRequest( 
-		DiskManagerRequest 	request, 
-		ReadRequestListener listener );
+		DiskManagerReadRequest 	request, 
+		DiskManagerReadRequestListener listener );
 }

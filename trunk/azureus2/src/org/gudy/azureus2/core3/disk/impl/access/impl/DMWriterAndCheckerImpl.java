@@ -24,19 +24,15 @@ package org.gudy.azureus2.core3.disk.impl.access.impl;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
 import org.gudy.azureus2.core3.disk.impl.PieceList;
 import org.gudy.azureus2.core3.disk.impl.PieceMapEntry;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -98,7 +94,6 @@ DMWriterAndCheckerImpl
 	}
 
 	private DiskManagerHelper		disk_manager;
-	private DMReader				reader;
 	
 	private DiskWriteThread writeThread;
 	private List 			writeQueue;
@@ -120,11 +115,9 @@ DMWriterAndCheckerImpl
 	
 	public
 	DMWriterAndCheckerImpl(
-		DiskManagerHelper	_disk_manager,
-		DMReader			_reader )
+		DiskManagerHelper	_disk_manager )
 	{
 		disk_manager	= _disk_manager;
-		reader			= _reader;
 		
 		pieceLength		= disk_manager.getPieceLength();
 		lastPieceLength	= disk_manager.getLastPieceLength();
@@ -245,7 +238,8 @@ DMWriterAndCheckerImpl
 
 	public void 
 	aSyncCheckPiece(
-		int pieceNumber ) 
+		int 							pieceNumber,
+		DiskManagerCheckRequestListener listener ) 
 	{  	
 			// recursion here will deadlock the write thread
 		
@@ -268,7 +262,7 @@ DMWriterAndCheckerImpl
 	  	try{
 	  		writeCheckQueueLock_mon.enter();
 	 		
-	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
+	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, null, listener ));
 	   		
 	    }finally{
 	    	
@@ -294,29 +288,9 @@ DMWriterAndCheckerImpl
 					int		result )
 				{
 					try{						
-				    	boolean[]	pieceDone	= disk_manager.getPiecesDone();
-				    		
-						boolean	piece_was_done	= pieceDone[ pieceNumber ]; 
+
+						disk_manager.getPieces()[piece_number].setDone( result == CheckPieceResultHandler.OP_SUCCESS );
 						
-						if ( result ==  CheckPieceResultHandler.OP_SUCCESS ){
-							
-							pieceDone[ pieceNumber] = true;
-							
-							if ( !piece_was_done ){
-							
-								disk_manager.decrementRemaining( this_piece_length );
-								
-								disk_manager.computeFilesDone(pieceNumber);
-							}
-						}else{
-							
-							pieceDone[ pieceNumber ] = false;
-								
-							if ( piece_was_done ){
-								
-								disk_manager.incrementRemaining( this_piece_length );
-							}
-						}
 					}finally{
 												
 						if ( _result_handler != null ){
@@ -510,61 +484,6 @@ DMWriterAndCheckerImpl
 			}
 		}
 	}
-		
-		
-	private byte[] 
-	computeMd5Hash(
-		DirectByteBuffer buffer) 
-	{ 			
-		Md5Hasher md5 	= new Md5Hasher();
-
-	    md5.reset();
-	    
-	    int position = buffer.position(DirectByteBuffer.SS_DW);
-	    
-	    md5.update(buffer.getBuffer(DirectByteBuffer.SS_DW));
-	    
-	    buffer.position(DirectByteBuffer.SS_DW, position);
-	    
-	    ByteBuffer md5Result	= ByteBuffer.allocate(16);
-	    
-	    md5Result.position(0);
-	    
-	    md5.finalDigest( md5Result );
-	    
-	    byte[] result = new byte[16];
-	    
-	    md5Result.position(0);
-	    
-	    for(int i = 0 ; i < result.length ; i++) {
-	    	
-	      result[i] = md5Result.get();
-	    }   
-	    
-	    return result;    
-	  }
-	  
-	  private void MD5CheckPiece(int pieceNumber,boolean correct) {
-	    PEPiece piece = disk_manager.getPeerManager().getPieces()[pieceNumber];
-	    if(piece == null) {
-	      return;
-	    }
-	    PEPeer[] writers = piece.getWriters();
-	    int offset = 0;
-	    for(int i = 0 ; i < writers.length ; i++) {
-	      int length = piece.getBlockSize(i);
-	      PEPeer peer = writers[i];
-	      if(peer != null) {
-	        DirectByteBuffer buffer = reader.readBlock(pieceNumber,offset,length);
-	        byte[] hash = computeMd5Hash(buffer);
-	        buffer.returnToPool();
-	        buffer = null;
-	        piece.addWrite(i,peer,hash,correct);        
-	      }
-	      offset += length;
-	    }        
-	  }
-	  
 	 
 	/**
 	 * @param e
@@ -676,10 +595,11 @@ DMWriterAndCheckerImpl
 	
 	public void 
 	writeBlock(
-		int pieceNumber, 
-		int offset, 
-		DirectByteBuffer data,
-		PEPeer sender) 
+		int 							pieceNumber, 
+		int 							offset, 
+		DirectByteBuffer 				data,
+		Object 							user_data,
+		DiskManagerWriteRequestListener	listener ) 
 	{		
 			// recursive entry here will deadlock the writeThread
 		
@@ -702,7 +622,7 @@ DMWriterAndCheckerImpl
 		try{
 			writeCheckQueueLock_mon.enter();
 			
-			writeQueue.add(new QueueElement(pieceNumber, offset, data,sender));
+			writeQueue.add(new QueueElement(pieceNumber, offset, data, user_data, listener ));
 		}finally{
 			
 			writeCheckQueueLock_mon.exit();
@@ -770,7 +690,7 @@ DMWriterAndCheckerImpl
 		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" + length="+length+" > pLength="+pLength);
 		  return false;
 		}
-		if(!disk_manager.getPiecesDone()[pieceNumber]) {
+		if(!disk_manager.getPieces()[pieceNumber].getDone()) {
 		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" not done");
 		  return false;
 		}
@@ -801,7 +721,8 @@ DMWriterAndCheckerImpl
 					
 					for (int i=0;i<entry_count;i++){
 						
-						QueueElement	elt;
+						final QueueElement	elt;
+						
 						boolean			elt_is_write;
 						
 						try{
@@ -841,12 +762,16 @@ DMWriterAndCheckerImpl
 							
 							int pieceNumber = elt.getPieceNumber();
 							
-							if(!disk_manager.getPiecesDone()[pieceNumber]){
+							if(!disk_manager.getPieces()[pieceNumber].getDone()){
 								
 							  if ( dumpBlockToDisk(elt)){
 							  
-							  	disk_manager.getPeerManager().blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
+							  	DiskManagerWriteRequestListener	listener = (DiskManagerWriteRequestListener)elt.getListener();
 							  	
+							  	if ( listener != null ){
+							  	
+							  		listener.blockWritten( elt.getPieceNumber(), elt.getOffset(),elt.getUserData());
+							  	}
 							  }else{
 							  	
 							  		// could try and recover if, say, disk full. however, not really
@@ -884,16 +809,9 @@ DMWriterAndCheckerImpl
 						  				if ( result == CheckPieceResultHandler.OP_SUCCESS ){
 									  								  	
 						  					LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + pieceNumber + " passed hash check.");
-									    
-						  					if( disk_manager.getPeerManager().needsMD5CheckOnCompletion(pieceNumber)){
-									    	
-						  						MD5CheckPiece(pieceNumber,true);
-						  					}
-	
+									   
 						  				}else if ( result == CheckPieceResultHandler.OP_FAILURE ){
 
-						  					MD5CheckPiece(pieceNumber,false);
-										    
 							  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " failed hash check.");
 
 						  				}else{
@@ -902,7 +820,12 @@ DMWriterAndCheckerImpl
 						  					
 						  				}
 		
-									  	disk_manager.getPeerManager().asyncPieceChecked(pieceNumber, result == CheckPieceResultHandler.OP_SUCCESS);
+									  	DiskManagerCheckRequestListener	listener = (DiskManagerCheckRequestListener)elt.getListener();
+									  	
+									  	if ( listener != null ){
+
+									  		listener.pieceChecked(pieceNumber, result == CheckPieceResultHandler.OP_SUCCESS);
+									  	}
 						  			}
 								});
 					  }
@@ -949,43 +872,63 @@ DMWriterAndCheckerImpl
 
 				// global_check_queue_block_sem.release();
 				
-				QueueElement elt = (QueueElement)checkQueue.remove(0);
+				checkQueue.remove(0);
 			}
 		}
 	}
-	public class QueueElement {
-		private int pieceNumber;
-		private int offset;
-		private DirectByteBuffer data;
-    private PEPeer sender; 
+	
+	public class 
+	QueueElement 
+	{
+		private int 				pieceNumber;
+		private int 				offset;
+		private DirectByteBuffer 	data;
+		private Object 				user_data; 
+		private	Object				listener;
 
 		public 
 		QueueElement(
 			int 				_pieceNumber, 
 			int 				_offset, 
 			DirectByteBuffer	_data, 
-			PEPeer 				_sender) 
+			Object 				_user_data,
+			Object				_listener ) 
 		{
-			pieceNumber = _pieceNumber;
-			offset = _offset;
-			data = _data;
-			sender = _sender;
+			pieceNumber 	= _pieceNumber;
+			offset 			= _offset;
+			data 			= _data;
+			user_data 		= _user_data;
+			listener		= _listener;
 		}  
 
-		public int getPieceNumber() {
+		public int 
+		getPieceNumber() 
+		{
 			return pieceNumber;
 		}
 
-		public int getOffset() {
+		public int 
+		getOffset() 
+		{
 			return offset;
 		}
 
-		public DirectByteBuffer getData() {
+		public DirectByteBuffer 
+		getData() 
+		{
 			return data;
 		}
     
-	    public PEPeer getSender() {
-	      return sender;
+	    public Object 
+		getUserData() 
+	    {
+	      return( user_data );
 		}
+	    
+	    public Object
+		getListener()
+	    {
+	    	return( listener );
+	    }
 	}
 }

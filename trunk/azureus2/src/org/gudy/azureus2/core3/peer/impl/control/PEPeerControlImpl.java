@@ -9,6 +9,7 @@
 package org.gudy.azureus2.core3.peer.impl.control;
 
 
+import java.nio.ByteBuffer;
 import java.util.*;
 
 
@@ -16,8 +17,7 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -28,7 +28,7 @@ import org.gudy.azureus2.core3.peer.util.*;
 
 public class 
 PEPeerControlImpl
-	implements 	PEPeerControl, ParameterListener
+	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener, DiskManagerCheckRequestListener
 {
   
   //Min number of requests sent to a peer
@@ -52,9 +52,10 @@ PEPeerControlImpl
   private boolean _bContinue;                
   private ArrayList _peer_transports;
   private AEMonitor	_peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
-  private DiskManager _diskManager;
   
-  private boolean[] _downloaded;
+  private DiskManager 			_diskManager;
+  private DiskManagerPiece[]	dm_pieces;
+  
   private boolean[] _downloading;
   private boolean 	_finished;
   private boolean	restart_initiated;
@@ -201,8 +202,6 @@ PEPeerControlImpl
 
     //The Server that handle incoming connections
      _server.setServerAdapter(this);
-
-    _diskManager.setPeerManager(this);
 
     //BtManager is threaded, this variable represents the
     // current loop iteration. It's used by some components only called
@@ -584,8 +583,10 @@ PEPeerControlImpl
       //if piece is loaded, and completed
       if (currentPiece != null && currentPiece.isComplete() && !currentPiece.isBeingChecked()) {
         //check the piece from the disk
-        _diskManager.aSyncCheckPiece(i);
+      	
         currentPiece.setBeingChecked();
+        
+       _diskManager.aSyncCheckPiece(i,this);	
       }
     }
   }
@@ -639,7 +640,7 @@ PEPeerControlImpl
     		
     		Integer pieceNum = (Integer)it.next();
     		
-    		pieceChecked(pieceNum.intValue(), true);
+    		processPieceCheckResult(pieceNum.intValue(), true);
     	}
   
     
@@ -665,7 +666,7 @@ PEPeerControlImpl
       	
 	    	Integer pieceNum = (Integer)it.next();
   
-	    	pieceChecked(pieceNum.intValue(), false);
+	    	processPieceCheckResult(pieceNum.intValue(), false);
 	    }
   	}
   
@@ -751,7 +752,7 @@ PEPeerControlImpl
     for (int i = 0; i < _nbPieces; i++) {
       //:: we should be able to do this better than keeping a bunch of arrays
       //:: possibly adding a status field to the piece object? -Tyler 
-      temp = temp && _downloaded[i];
+      temp = temp && dm_pieces[i].getDone();
 
       //::pre-emptive break should save some cycles -Tyler
       if (!temp) {
@@ -764,6 +765,8 @@ PEPeerControlImpl
         
     if (_finished) {
       
+    	System.out.println( "**** finished" );
+    	
       if(endGameMode) {
 	      try{
 	      	endGameModeChunks_mon.enter();
@@ -806,8 +809,8 @@ PEPeerControlImpl
       
       //re-check all pieces to make sure they are not corrupt
       if (checkPieces && !looks_like_restart) {
-        for(int i=0; i < _downloaded.length; i++) {
-          _diskManager.aSyncCheckPiece(i);
+        for(int i=0; i < dm_pieces.length; i++) {
+          _diskManager.aSyncCheckPiece( i, this );
         }
       }
       
@@ -865,7 +868,7 @@ PEPeerControlImpl
             pc.setSnubbed(true);
 
             //Only cancel first request if more than 2 mins have passed
-            DiskManagerRequest request = (DiskManagerRequest) expired.get(0);
+            DiskManagerReadRequest request = (DiskManagerReadRequest) expired.get(0);
             long timeCreated = request.getTimeCreated();
             if (SystemTime.getCurrentTime() - timeCreated > 1000 * 120) {
               int pieceNumber = request.getPieceNumber();
@@ -883,7 +886,7 @@ PEPeerControlImpl
 
             //for every expired request                              
             for (int j = 1; j < expired.size(); j++) {
-              request = (DiskManagerRequest) expired.get(j);
+              request = (DiskManagerReadRequest) expired.get(j);
               //get the request object
               pc.sendCancel(request); //cancel the request object
               int pieceNumber = request.getPieceNumber();
@@ -988,8 +991,8 @@ PEPeerControlImpl
     }
 
     //Then adds our own availability.
-    for (int i = _downloaded.length - 1; i >= 0; i--) {
-      if (_downloaded[i])
+    for (int i = dm_pieces.length - 1; i >= 0; i--) {
+      if (dm_pieces[i].getDone())
         availability[i]++;
     }
 
@@ -1129,12 +1132,8 @@ PEPeerControlImpl
     PEPieceImpl piece = null;
     
     
-    //We need to know if it's last piece or not when creating the BtPiece Object
-    if (pieceNumber < _nbPieces - 1)
-      piece = new PEPieceImpl(this, _diskManager.getPieceLength(), pieceNumber,slowPeer);
-    else
-      piece = new PEPieceImpl(this, _diskManager.getLastPieceLength(), pieceNumber,slowPeer);
-
+    piece = new PEPieceImpl(this, dm_pieces[pieceNumber],slowPeer);
+ 
     pieceAdded(piece);
     //Assign the created piece to the pieces array.
     _pieces[pieceNumber] = piece;
@@ -1158,7 +1157,7 @@ PEPeerControlImpl
     Arrays.fill(_piecesRarest, false);
 
     if ( FORCE_PIECE != -1 ){
-    	if ( !_downloaded[FORCE_PIECE] && !_downloading[FORCE_PIECE] && piecesAvailable[FORCE_PIECE]){
+    	if ( !dm_pieces[FORCE_PIECE].getDone() && !_downloading[FORCE_PIECE] && piecesAvailable[FORCE_PIECE]){
     		
     		_piecesRarest[FORCE_PIECE]	= true;
     	}
@@ -1171,7 +1170,7 @@ PEPeerControlImpl
 
     //1. Scan all pieces to determine min availability
     for (int i = 0; i < _nbPieces; i++) {
-      if (!_downloaded[i] && !_downloading[i] && piecesAvailable[i]) {
+      if (!dm_pieces[i].getDone() && !_downloading[i] && piecesAvailable[i]) {
         if (pieceMinAvailability == -1 || _availability[i] < pieceMinAvailability) {
           pieceMinAvailability = _availability[i];
         }
@@ -1188,7 +1187,7 @@ PEPeerControlImpl
     //For all pieces
     for (int i = 0; i < _nbPieces; i++) {
       //If we're not downloading it, if it's not downloaded, and if it's available from that peer
-      if (!_downloaded[i] && !_downloading[i] && piecesAvailable[i]) {
+      if (!dm_pieces[i].getDone() && !_downloading[i] && piecesAvailable[i]) {
         //null : special case, to ensure we find at least one piece
         //or if the availability level is lower than the old availablility level
         if (_availability[i] <= pieceMinAvailability) {
@@ -1570,7 +1569,7 @@ PEPeerControlImpl
    * Called by Peer connections objects when connection is closed or choked
    * @param request
    */
-  public void requestCanceled(DiskManagerRequest request) {
+  public void requestCanceled(DiskManagerReadRequest request) {
     int pieceNumber = request.getPieceNumber(); //get the piece number
     int pieceOffset = request.getOffset(); //get the piece offset    
     PEPiece piece = _pieces[pieceNumber]; //get the piece
@@ -1612,11 +1611,6 @@ PEPeerControlImpl
     return _nbPieces;
   }
 
-  //get the status array
-  public boolean[] getPiecesStatus() {
-    return _downloaded;
-  }
-
   //get the remaining percentage
   public long getRemaining() {
     return _diskManager.getRemaining();
@@ -1647,10 +1641,14 @@ PEPeerControlImpl
   }
 
   //setup the diskManager
-  public void setDiskManager(DiskManager diskManager) {
+  
+  protected void 
+  setDiskManager(
+  	DiskManager diskManager ) 
+  {
     //the diskManager that handles read/write operations
     _diskManager = diskManager;
-    _downloaded = _diskManager.getPiecesDone();
+    dm_pieces	 = _diskManager.getPieces();
     _nbPieces = _diskManager.getNumberOfPieces();
 
     //the bitfield indicating if pieces are currently downloading or not
@@ -1659,27 +1657,19 @@ PEPeerControlImpl
 
     _piecesRarest = new boolean[_nbPieces];
 
-    	//the pieces
+    	//the pieces - only present here when downloading
     
-    PEPiece[] dm_pieces = diskManager.getRecoveredPieces();
-    
-    if (dm_pieces == null){
-    
-      _pieces = new PEPieceImpl[_nbPieces];
-      
-    }else{
-    	_pieces = new PEPieceImpl[ dm_pieces.length ];
+    _pieces = new PEPieceImpl[dm_pieces.length];
     	
-	    for (int i = 0; i < dm_pieces.length; i++) {
+    for (int i = 0; i < dm_pieces.length; i++) {
 	    
-	    	_pieces[i] = (PEPieceImpl)dm_pieces[i];
-	    	
-	      	if (_pieces[i] != null){
-	      		
-	        	_pieces[i].setManager(this);
+    	DiskManagerPiece	dm_piece = dm_pieces[i];
+    	
+    	if ( !dm_piece.getDone() && dm_piece.getCompleteCount() > 0 ){
+    		
+	    	_pieces[i] = new PEPieceImpl( this, dm_piece, true );
 	        	
-	        	pieceAdded(_pieces[i]);
-	      	}
+	        pieceAdded(_pieces[i]);
 	    }
     }
 
@@ -1692,10 +1682,10 @@ PEPeerControlImpl
     _server.startServer();	
   }
 
-  public void blockWritten(int pieceNumber, int offset,PEPeer sender) {
+  public void blockWritten(int pieceNumber, int offset, Object user_data) {
     PEPiece piece = _pieces[pieceNumber];
     if (piece != null) {
-      piece.setWritten(sender,offset / BLOCK_SIZE);
+      piece.setWritten((PEPeer)user_data,offset / BLOCK_SIZE);
     }    
   }
 
@@ -1704,7 +1694,7 @@ PEPeerControlImpl
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
-      _diskManager.writeBlock(pieceNumber, offset, data,sender);
+      _diskManager.writeBlock(pieceNumber, offset, data, sender, this );
       if(endGameMode) {
         //In case we are in endGame mode, remove the piece from the chunk list
         removeFromEndGameModeChunks(pieceNumber,offset);
@@ -1715,7 +1705,7 @@ PEPeerControlImpl
           Iterator iter = _peer_transports.iterator();
           while(iter.hasNext()) {
             PEPeerTransport connection = (PEPeerTransport) iter.next();
-            DiskManagerRequest dmr = _diskManager.createRequest( pieceNumber, offset, piece.getBlockSize(blockNumber));
+            DiskManagerReadRequest dmr = _diskManager.createReadRequest( pieceNumber, offset, piece.getBlockSize(blockNumber));
             connection.sendCancel( dmr );
           }
         }finally{
@@ -1738,7 +1728,7 @@ PEPeerControlImpl
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
-      _diskManager.writeBlock(pieceNumber, offset, data,sender);
+      _diskManager.writeBlock(pieceNumber, offset, data, sender, this);
 
       //cancel any matching outstanding requests
       try{
@@ -1747,7 +1737,7 @@ PEPeerControlImpl
         Iterator iter = _peer_transports.iterator();
         while(iter.hasNext()) {
           PEPeerTransport connection = (PEPeerTransport) iter.next();
-          DiskManagerRequest dmr = _diskManager.createRequest( pieceNumber, offset, piece.getBlockSize(blockNumber));
+          DiskManagerReadRequest dmr = _diskManager.createReadRequest( pieceNumber, offset, piece.getBlockSize(blockNumber));
           connection.sendCancel( dmr );   
         }
       }finally{
@@ -1847,7 +1837,7 @@ PEPeerControlImpl
     }
     int availability = _availability[pieceNumber];
     if (availability < 4) {
-      if (_downloaded[pieceNumber])
+      if (dm_pieces[pieceNumber].getDone())
         availability--;
       if (availability <= 0)
         return;
@@ -2069,39 +2059,99 @@ PEPeerControlImpl
     return _timeStartedSeeding;
   }
   
-  
-  /**
-   * DiskManager places the result of a piece check here, so that they can be
-   * analyzed in the PeerControl thread asyc.
-   */
-  public void asyncPieceChecked ( int pieceNumber, boolean result ){
-     if (result) {
-        try{
-        	successPieceChecks_mon.enter();
-        
-            successPieceChecks.add(new Integer(pieceNumber));
-        }finally{
-        	
-        	successPieceChecks_mon.exit();
-        }
-     }
-     else {
-        try{
-        	failedPieceChecks_mon.enter();
-        
-            failedPieceChecks.add(new Integer(pieceNumber));
-        }finally{
-        	
-        	failedPieceChecks_mon.exit();
-        }
-     }
-  }
+	private byte[] 
+	computeMd5Hash(
+		DirectByteBuffer buffer) 
+	{ 			
+		Md5Hasher md5 	= new Md5Hasher();
 
-  
+	    md5.reset();
+	    
+	    int position = buffer.position(DirectByteBuffer.SS_DW);
+	    
+	    md5.update(buffer.getBuffer(DirectByteBuffer.SS_DW));
+	    
+	    buffer.position(DirectByteBuffer.SS_DW, position);
+	    
+	    ByteBuffer md5Result	= ByteBuffer.allocate(16);
+	    
+	    md5Result.position(0);
+	    
+	    md5.finalDigest( md5Result );
+	    
+	    byte[] result = new byte[16];
+	    
+	    md5Result.position(0);
+	    
+	    for(int i = 0 ; i < result.length ; i++) {
+	    	
+	      result[i] = md5Result.get();
+	    }   
+	    
+	    return result;    
+	  }
+	  
+	  private void MD5CheckPiece(int pieceNumber,boolean correct) {
+	    PEPiece piece = getPieces()[pieceNumber];
+	    if(piece == null) {
+	      return;
+	    }
+	    PEPeer[] writers = piece.getWriters();
+	    int offset = 0;
+	    for(int i = 0 ; i < writers.length ; i++) {
+	      int length = piece.getBlockSize(i);
+	      PEPeer peer = writers[i];
+	      if(peer != null) {
+	        DirectByteBuffer buffer = _diskManager.readBlock(pieceNumber,offset,length);
+	        byte[] hash = computeMd5Hash(buffer);
+	        buffer.returnToPool();
+	        buffer = null;
+	        piece.addWrite(i,peer,hash,correct);        
+	      }
+	      offset += length;
+	    }        
+	  }
+					  
+
+  	public void
+	pieceChecked( 
+		int 		pieceNumber, 
+		boolean 	result )
+  	{
+  		if (result){
+			
+  			if( needsMD5CheckOnCompletion(pieceNumber)){
+			    	
+  				MD5CheckPiece(pieceNumber,true);
+  			}
+	     	
+  	     	try{
+  	        	successPieceChecks_mon.enter();
+  	        
+  	            successPieceChecks.add(new Integer(pieceNumber));
+  	        }finally{
+  	        	
+  	        	successPieceChecks_mon.exit();
+  	        }
+  	    }else{
+  	    	
+			MD5CheckPiece(pieceNumber,false);			    
+
+  	        try{
+  	        	failedPieceChecks_mon.enter();
+  	        
+  	            failedPieceChecks.add(new Integer(pieceNumber));
+  	        }finally{
+  	        	
+  	        	failedPieceChecks_mon.exit();
+  	        }
+  	    }
+  	}
+  	
   private void 
-  pieceChecked(
-  	int pieceNumber, 
-	boolean result) 
+  processPieceCheckResult(
+  	int 		pieceNumber, 
+	boolean 	result) 
   {
   		// tidy up - don't know if piece really can be null here but assuming it can be coz
   		// the existing code did...
@@ -2180,11 +2230,8 @@ PEPeerControlImpl
         
         piece.free();
       }
-      
+           
       _pieces[pieceNumber] = null;
-
-      //mark this piece as downloaded
-      _downloaded[pieceNumber] = true;
 
       //send all clients an have message
       sendHave(pieceNumber);
@@ -2218,10 +2265,7 @@ PEPeerControlImpl
       }
       //Mark this piece as non downloading
       _downloading[pieceNumber] = false;
-      
-      //Mark this piece as not downloaded (shouldn't change anything)
-      _downloaded[pieceNumber] = false;
-      
+            
       //if we are in end-game mode, we need to re-add all the piece chunks
       //to the list of chunks needing to be downloaded
       if(endGameMode && piece != null ) {
@@ -2302,13 +2346,13 @@ PEPeerControlImpl
   }
 
   
-  public DiskManagerRequest
+  public DiskManagerReadRequest
   createDiskManagerRequest(
   	int pieceNumber,
   	int offset,
   	int length )
   {
-  	return( _diskManager.createRequest( pieceNumber, offset, length ));
+  	return( _diskManager.createReadRequest( pieceNumber, offset, length ));
   }
   
   
@@ -2391,7 +2435,7 @@ PEPeerControlImpl
       return;
     for(int i = 0 ; i < _pieces.length ; i++) {
       //If the piece is downloaded, let's simply continue
-      if(_downloaded[i])
+      if(dm_pieces[i].getDone())
         continue;
       //If the piece is being downloaded (fully requested), let's simply continue
       if(_downloading[i])
@@ -2412,7 +2456,7 @@ PEPeerControlImpl
     
 	    for(int i = 0 ; i < _pieces.length ; i++) {
 	      //Pieces already downloaded are of no interest
-	      if(_downloaded[i])
+	      if(dm_pieces[i].getDone())
 	        continue;
 	      PEPiece piece = _pieces[i];
 	      if(piece == null)

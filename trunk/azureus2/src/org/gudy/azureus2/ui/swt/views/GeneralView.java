@@ -37,7 +37,7 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -908,20 +908,33 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	
 	    if (piecesImage == null || piecesImage.isDisposed())
 	      return;
+	    
+	    DiskManager	dm = manager.getDiskManager();
+
 	    boolean valid = !bForce;
+	    
 	    if (valid) {
-	      boolean newPieces[] = manager.getPiecesStatus();
-	      if (newPieces == null) {
-	        pieces = null;
-	      } else {
+	    	
+	      if (dm == null){
+	      	
+	        pieces = new boolean[manager.getNbPieces()];
+	        
+	      }else{
+	      	DiskManagerPiece[]	new_pieces = dm.getPieces();
+	      	
 	      	if (pieces == null ){
-	      		 pieces = (boolean[])newPieces.clone();
+	      		 pieces = new boolean[new_pieces.length];
+	      		 
+	      		 for (int i=0;i<pieces.length;i++){
+	      		 	
+	      		 	pieces[i] = new_pieces[i].getDone();
+	      		 }
 	      		 valid = false;
 	      	}else{
 		        for (int i = 0; i < pieces.length; i++) {
-		          if (pieces[i] != newPieces[i]) {
+		          if (pieces[i] != new_pieces[i].getDone()) {
 		            valid = false;
-		            pieces[i] = newPieces[i];
+		            pieces[i] = new_pieces[i].getDone();
 		          }
 		        }
 	      	}
@@ -929,7 +942,20 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	    } else {
 	      // clone so it doesn't auto-update..
 	      try {
-	        pieces = (boolean[])manager.getPiecesStatus().clone();
+		      if (dm == null){
+		      	
+		        pieces = new boolean[manager.getNbPieces()];
+		        
+		      }else{
+		      	DiskManagerPiece[]	new_pieces = dm.getPieces();
+		      	
+	      		 pieces = new boolean[new_pieces.length];
+		      		 
+	      		 for (int i=0;i<pieces.length;i++){
+	      		 	
+	      		 	pieces[i] = new_pieces[i].getDone();
+	      		 }
+		      }
 	      } catch (Exception e) {
 	      	Debug.printStackTrace( e );
 	        pieces = null;

@@ -19,18 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
- package org.gudy.azureus2.core3.disk;
+package org.gudy.azureus2.core3.disk;
  
  
-import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
-import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
  
- public interface
- DiskManager
- {
+public interface
+DiskManager
+{
 	public static final int INITIALIZING = 1;
 	public static final int ALLOCATING = 2;
 	public static final int CHECKING = 3;
@@ -43,27 +41,35 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 	public void
 	start();
 	
+	public void
+	stop();
+
+
 	/**
 	  * @return whether all files exist and sizes match
 	  */
+	
 	public boolean
 	filesExist();
 
-	public void 
-	setPeerManager(
-		PEPeerManager manager );
-
+	public DirectByteBuffer 
+	readBlock(
+		int pieceNumber, 
+		int offset, 
+		int length );
+	
 	public void 
 	writeBlock(
-		int 		pieceNumber, 
-		int 		offset, 
-		DirectByteBuffer 	data,
-    PEPeer sender);
+		int 							pieceNumber, 
+		int 							offset, 
+		DirectByteBuffer 				data,
+		Object 							user_data,
+		DiskManagerWriteRequestListener	listener );
 
 	public boolean 
 	checkBlock(
-		int 		pieceNumber, 
-		int 		offset, 
+		int 				pieceNumber, 
+		int 				offset, 
 		DirectByteBuffer 	data );
 
 	public boolean 
@@ -72,8 +78,8 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 		int offset, 
 		int length );
 		
-	public DiskManagerRequest
-	createRequest(
+	public DiskManagerReadRequest
+	createReadRequest(
 		int pieceNumber,
 		int offset,
 		int length );
@@ -83,10 +89,11 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
    * @param request
    * @param listener
    */
-	public void enqueueReadRequest( DiskManagerRequest request, ReadRequestListener listener );
-
-	public void
-	stopIt();
+	
+	public void 
+	enqueueReadRequest( 
+		DiskManagerReadRequest 			request, 
+		DiskManagerReadRequestListener listener );
 
 	public void
     dumpResumeDataToDisk(
@@ -98,20 +105,18 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 	public void
 	computePriorityIndicator();
 	
-	public PEPiece[] 
-	getRecoveredPieces();
+	public DiskManagerPiece[] 
+	getPieces();
 
 	public void
 	aSyncCheckPiece(
-		int	pieceNumber );
+		int								pieceNumber,
+		DiskManagerCheckRequestListener	listener );
   
 	public int 
 	getPieceNumberToDownload(
 		boolean[] 	_piecesRarest );
 	
-	public boolean[] 
-	getPiecesDone();
-
 	public int 
 	getNumberOfPieces();
 
@@ -158,10 +163,9 @@ import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
    * Save the individual file priorities map to
    * DownloadManager.getData( "file_priorities" ).
    */
-  public void storeFilePriorities();
-  
-  public DownloadManager getDownloadManager();
-  
-  public PEPeerManager getPeerManager();
 
- }
+	public void storeFilePriorities();
+	
+	public DownloadManager 
+	getDownloadManager();
+}

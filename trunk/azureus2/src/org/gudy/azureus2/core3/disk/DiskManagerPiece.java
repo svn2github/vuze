@@ -1,6 +1,6 @@
 /*
- * Created on Jul 19, 2004
- * Created by Alon Rohter
+ * Created on 08-Oct-2004
+ * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -20,22 +20,50 @@
  *
  */
 
-package com.aelitis.azureus.core.diskmanager;
-
-import org.gudy.azureus2.core3.disk.DiskManagerRequest;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+package org.gudy.azureus2.core3.disk;
 
 /**
- * Used for receiving notification of async read request completion.
+ * @author parg
+ *
  */
-public interface ReadRequestListener {
-  
-  /**
-   * Notification that the read request has completed,
-   * along with its accompanying buffer data.
-   * @param request
-   * @param data
-   */
-  public void readCompleted( DiskManagerRequest request, DirectByteBuffer data );
+
+public interface 
+DiskManagerPiece 
+{
+	public int
+	getPieceNumber();
+	
+	public int
+	getLength();
+	
+	public boolean
+	getDone();
+	
+	public void
+	setDone(
+		boolean		done );
+	
+	public boolean
+	getWritten(
+		int		block_number );
+	
+	public void
+	setWritten(
+		int		block_number );
+	
+	public boolean[]
+	getWritten();
+	
+	public boolean
+	getCompleted();
+	
+	public int
+	getCompleteCount();
+	
+	public void
+	reset();
+	
+	public long
+	getLastWriteTime();
 
 }

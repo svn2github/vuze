@@ -1,6 +1,6 @@
 /*
- * Created on 31-Jul-2004
- * Created by Paul Gardner
+ * Created on Jul 19, 2004
+ * Created by Alon Rohter
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -20,30 +20,26 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.impl.access;
+package org.gudy.azureus2.core3.disk;
+
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 /**
- * @author parg
- *
+ * Used for receiving notification of async read request completion.
  */
-
-import org.gudy.azureus2.core3.disk.impl.access.impl.*;
-import org.gudy.azureus2.core3.disk.impl.*;
-
-public class 
-DMAccessFactory 
+public interface 
+DiskManagerReadRequestListener 
 {
-	public static DMReader
-	createReader(
-		DiskManagerHelper		disk_manager )
-	{
-		return( new DMReaderImpl( disk_manager ));
-	}
+  
+  /**
+   * Notification that the read request has completed,
+   * along with its accompanying buffer data.
+   * @param request
+   * @param data
+   */
 	
-	public static DMWriterAndChecker
-	createWriterAndChecker(
-		DiskManagerHelper		disk_manager )
-	{
-		return( new DMWriterAndCheckerImpl( disk_manager ));
-	}
+  public void 
+  readCompleted( 
+  		DiskManagerReadRequest 	request, 
+		DirectByteBuffer 	data );
 }

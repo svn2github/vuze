@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
@@ -81,7 +80,7 @@ DMReaderImpl
  
 	}
 	
-	public DiskManagerRequest
+	public DiskManagerReadRequest
 	createRequest(
 		int pieceNumber,
 		int offset,
@@ -92,8 +91,8 @@ DMReaderImpl
 	
 	public void 
 	enqueueReadRequest( 
-	  	DiskManagerRequest request, 
-		ReadRequestListener listener ) 
+	  	DiskManagerReadRequest request, 
+		DiskManagerReadRequestListener listener ) 
 	{
 		DiskReadRequest drr = new DiskReadRequest( request, listener );
 	    
@@ -205,7 +204,7 @@ DMReaderImpl
 			// Stop, because if it happened once, it will probably happen everytime
 			// Especially in the case of a CD being removed
 	
-			disk_manager.stopIt();
+			disk_manager.stop();
 			
 			disk_manager.setState( DiskManager.FAULTY );
 		}
@@ -268,7 +267,7 @@ DMReaderImpl
 							readQueue_mon.exit();
 						}
 		
-						DiskManagerRequest request = drr.getRequest();
+						DiskManagerReadRequest request = drr.getRequest();
 		
 						DirectByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
             
@@ -314,21 +313,21 @@ DMReaderImpl
 	private static class 
 	DiskReadRequest 
 	{
-	    private final DiskManagerRequest 	request;
-	    private final ReadRequestListener 	listener;
+	    private final DiskManagerReadRequest 	request;
+	    private final DiskManagerReadRequestListener 	listener;
 	    
 	    //private long	queue_time	= SystemTime.getCurrentTime();
 	    
 	    private 
 		DiskReadRequest( 
-			DiskManagerRequest 	r, 
-			ReadRequestListener l ) 
+			DiskManagerReadRequest 	r, 
+			DiskManagerReadRequestListener l ) 
 	    {
 	      request 	= r;
 	      listener = l;
 	    }
 	    
-	    protected DiskManagerRequest
+	    protected DiskManagerReadRequest
 		getRequest()
 	    {
 	    	return( request );

@@ -50,9 +50,7 @@ RDResumeHandler
 	protected DiskManagerHelper		disk_manager;
 	protected DMWriterAndChecker	writer_and_checker;
 	protected TOTorrent				torrent;
-	
-	protected PEPiece[] 			recovered_pieces;
-	
+		
 	protected int					nbPieces;
 	protected int					pieceLength;
 	protected int					lastPieceLength;
@@ -98,12 +96,6 @@ RDResumeHandler
 	{
 	    useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
 	}
-	 
-	public PEPiece[] 
-	getRecoveredPieces()
-	{
-		return( recovered_pieces );
-	}
 	
 	public void 
 	checkAllPieces(
@@ -127,11 +119,17 @@ RDResumeHandler
 			int					pending_check_num	= 0;
 
 			if (resumeEnabled){
+				
 				boolean resumeValid = false;
+				
 				byte[] resumeArray = null;
+				
 				Map partialPieces = null;
+				
 				Map resumeMap = torrent.getAdditionalMapProperty("resume");
 				
+				DiskManagerPiece[]	pieces	= disk_manager.getPieces();
+
 				if (resumeMap != null) {
 					
 						// backward compatability here over path management changes :(
@@ -200,6 +198,16 @@ RDResumeHandler
 							
 							resumeArray = (byte[])resumeDirectory.get("resume data");
 							
+							if ( resumeArray != null ){
+								
+								if ( resumeArray.length != pieces.length ){
+								
+									Debug.out( "Resume data array length mismatch: " + resumeArray.length + "/" + pieces.length );
+									
+									resumeArray	= null;
+								}
+							}
+							
 							partialPieces = (Map)resumeDirectory.get("blocks");
 							
 							resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
@@ -233,22 +241,19 @@ RDResumeHandler
 				}
 				
 				
-				
-				boolean[]	pieceDone	= disk_manager.getPiecesDone();
-				
-				if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
-					
-					startPos = resumeArray.length;
-					
-					for (int i = 0; i < resumeArray.length && bOverallContinue; i++) { //parse the array
+				if ( resumeArray != null ){
+										
+					for (int i = 0; i < pieces.length && bOverallContinue; i++) { //parse the array
+						
+						DiskManagerPiece	dm_piece	= pieces[i];
 						
 						disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
 						
 							//mark the pieces
 						
-						if (resumeArray[i] == 0) {
+						if ( resumeArray[i] == 0 ){
 							
-							if (!resumeValid){
+							if ( !resumeValid ){
 								
 								pending_check_num++;
 								
@@ -266,66 +271,34 @@ RDResumeHandler
 									});
 							}
 						}else{
-							
-							disk_manager.computeFilesDone(i);
-							
-							pieceDone[i] = true;
-							
-							if (i < nbPieces - 1) {
-								
-								disk_manager.decrementRemaining(  pieceLength );
-								
-							}else{
-								
-								disk_manager.decrementRemaining(  lastPieceLength );
-							}
+											
+							dm_piece.setDone(true);
 						}
 					}
 					
-					if (partialPieces != null && resumeValid) {
-						
-						recovered_pieces = new PEPiece[nbPieces];
-										
+					if ( partialPieces != null && resumeValid ){
+															
 						Iterator iter = partialPieces.entrySet().iterator();
+						
 						while (iter.hasNext()) {
+							
 							Map.Entry key = (Map.Entry)iter.next();
+							
 							int pieceNumber = Integer.parseInt((String)key.getKey());
-							PEPiece piece;
-							if (pieceNumber < nbPieces - 1)
-								piece = PEPieceFactory.create(disk_manager.getPeerManager(), disk_manager.getPieceLength(), pieceNumber);
-							else
-								piece = PEPieceFactory.create(disk_manager.getPeerManager(), disk_manager.getLastPieceLength(), pieceNumber);
+														
 							List blocks = (List)partialPieces.get(key.getKey());
+							
 							Iterator iterBlock = blocks.iterator();
+							
 							while (iterBlock.hasNext()) {
-								piece.setWritten(null,((Long)iterBlock.next()).intValue());
+								
+								pieces[pieceNumber].setWritten(((Long)iterBlock.next()).intValue());
 							}
-							recovered_pieces[pieceNumber] = piece;
 						}
 					}
 				}
 			}
-			
-			for (int i = startPos; i < nbPieces && bOverallContinue; i++) {
-				
-				disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces);
-				
-				pending_check_num++;
-				
-				writer_and_checker.checkPiece(
-					i,
-					new CheckPieceResultHandler()
-					{
-						public void
-						processResult(
-							int		p,
-							int		result )
-						{
-							pending_checks_sem.release();
-						}
-					});
-			}
-			
+						
 			while( pending_check_num > 0 ){
 				
 				pending_checks_sem.reserve();
@@ -335,7 +308,7 @@ RDResumeHandler
 			
 				//dump the newly built resume data to the disk/torrent
 			
-			if (bOverallContinue && resumeEnabled && !resume_data_complete){
+			if ( bOverallContinue && !resume_data_complete ){
 				
 				try{
 					dumpResumeDataToDisk(false, false);
@@ -384,11 +357,13 @@ RDResumeHandler
 									disk_manager.getDownloadManager().getTorrentSaveDir(), 
 									disk_manager.getDownloadManager().getTorrentSaveFile());
 		
-		boolean[]	pieceDone	= disk_manager.getPiecesDone();
+		DiskManagerPiece[] pieces	= disk_manager.getPieces();
 
 			//build the piece byte[]
 		
-		byte[] resumeData = new byte[pieceDone.length];
+		byte[] resumeData = new byte[pieces.length];
+		
+		int	pieces_not_done	= 0;
 		
 		for (int i = 0; i < resumeData.length; i++) {
 			
@@ -396,12 +371,22 @@ RDResumeHandler
 		  	
 		  	resumeData[i] = (byte)0;
 		  	
+		  	pieces_not_done++;
+		  	
 		  }else{
 		  	
-		  	resumeData[i] = pieceDone[i] ? (byte)1 : (byte)0;
+		  	if ( pieces[i].getDone()){
+		  		
+				resumeData[i] = (byte)1;
+		  		
+		  	}else{
+		  		pieces_not_done++;
+		  	
+				resumeData[i] = (byte)0;
+		  	}
 		  }
 		}
-
+		
 		Map resumeMap = new HashMap();
 	  
 		Map resumeDirectory = new HashMap();
@@ -425,54 +410,33 @@ RDResumeHandler
 		Map partialPieces = new HashMap();
 	
 		if ( savePartialPieces  && !invalidate ){
-	  	
-	  			// get the pieces to save - peer manager's are most recent if they exist
-	  	
-			PEPeerManager	peer_manager = disk_manager.getPeerManager();
-	  	
-			if ( peer_manager != null ){
-	  		
-				PEPiece[]	pm_pieces = peer_manager.getPieces();
-	  		
-				if ( pm_pieces != null ){
-	  			
-					recovered_pieces	= pm_pieces;
-				}
-			}
-	  	
-			if( recovered_pieces != null) {
-	      
-				for (int i = 0; i < recovered_pieces.length; i++) {
-					
-					PEPiece piece = recovered_pieces[i];
-					
-					if (piece != null && piece.getCompleted() > 0){
-						
-						boolean[] downloaded = piece.getWritten();
-						
-						List blocks = new ArrayList();
-						
-						for (int j = 0; j < downloaded.length; j++) {
-							
-							if (downloaded[j]){
-								
-								blocks.add(new Long(j));
-							}
-						}
-	          
-						partialPieces.put("" + i, blocks);
-					}
-				}
+	  		  		      
+			for (int i = 0; i < pieces.length; i++) {
 				
-				resumeDirectory.put("blocks", partialPieces);
+				DiskManagerPiece piece = pieces[i];
+				
+				if (piece != null && piece.getCompleteCount() > 0){
+					
+					boolean[] downloaded = piece.getWritten();
+					
+					List blocks = new ArrayList();
+					
+					for (int j = 0; j < downloaded.length; j++) {
+						
+						if (downloaded[j]){
+							
+							blocks.add(new Long(j));
+						}
+					}
+          
+					partialPieces.put("" + i, blocks);
+				}
 			}
 			
-			resumeDirectory.put("valid", new Long(1));
-			
-		}else{
-			
-			resumeDirectory.put("valid", new Long(0));
-		}	
+			resumeDirectory.put("blocks", partialPieces);
+		}
+		
+		resumeDirectory.put("valid", new Long(1));
 		
 		for (int i=0;i<files.length;i++){
 			

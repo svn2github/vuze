@@ -35,7 +35,7 @@ DiskManagerRequestImpl
 {
 	protected PEPeerManager		manager;
 
-	protected org.gudy.azureus2.core3.disk.DiskManagerRequest	request;
+	protected org.gudy.azureus2.core3.disk.DiskManagerReadRequest	request;
 	
 	protected
 	DiskManagerRequestImpl(
@@ -49,7 +49,7 @@ DiskManagerRequestImpl
 		request		= manager.createDiskManagerRequest( _pieceNumber, _offset, _length );
 	}
 	
-	public org.gudy.azureus2.core3.disk.DiskManagerRequest
+	public org.gudy.azureus2.core3.disk.DiskManagerReadRequest
 	getDelegate()
 	{
 		return( request );

@@ -26,8 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -128,9 +127,9 @@ public class ProgressGraphItem
     
           DiskManager manager = fileInfo.getDiskManager();
     
-          boolean available[] = manager.getPiecesDone();
+          DiskManagerPiece[] dm_pieces = manager.getPieces();
     
-          PEPeerManager pm = manager.getPeerManager();
+          PEPeerManager pm = manager.getDownloadManager().getPeerManager();
     
           PEPiece[] pieces = pm==null?null:pm.getPieces();
     
@@ -148,7 +147,7 @@ public class ProgressGraphItem
             if (firstPiece >= 0) {
               for (int j = a0; j < a1; j++){
                 int this_index = j+firstPiece;
-                if (available[this_index]) {
+                if (dm_pieces[this_index].getDone()) {
                   nbAvailable++;
                 }
                 

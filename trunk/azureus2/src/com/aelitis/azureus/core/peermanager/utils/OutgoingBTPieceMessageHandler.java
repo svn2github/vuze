@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
@@ -57,8 +56,8 @@ public class OutgoingBTPieceMessageHandler {
   
 
   
-  private final ReadRequestListener read_req_listener = new ReadRequestListener() {
-    public void readCompleted( DiskManagerRequest request, DirectByteBuffer data ) {
+  private final DiskManagerReadRequestListener read_req_listener = new DiskManagerReadRequestListener() {
+    public void readCompleted( DiskManagerReadRequest request, DirectByteBuffer data ) {
       BTPiece msg;
       try{
       	lock_mon.enter();
@@ -127,7 +126,7 @@ public class OutgoingBTPieceMessageHandler {
    * @param length
    */
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
-    DiskManagerRequest dmr = disk_manager.createRequest( piece_number, piece_offset, length );
+    DiskManagerReadRequest dmr = disk_manager.createReadRequest( piece_number, piece_offset, length );
 
     try{
       lock_mon.enter();
@@ -147,7 +146,7 @@ public class OutgoingBTPieceMessageHandler {
    * @param length
    */
   public void removePieceRequest( int piece_number, int piece_offset, int length ) {
-    DiskManagerRequest dmr = disk_manager.createRequest( piece_number, piece_offset, length );
+    DiskManagerReadRequest dmr = disk_manager.createReadRequest( piece_number, piece_offset, length );
     
     try{
       lock_mon.enter();
@@ -229,7 +228,7 @@ public class OutgoingBTPieceMessageHandler {
   
   private void doReadAheadLoads() {
     while( num_messages_loading + num_messages_in_queue < MIN_READ_AHEAD && !requests.isEmpty() ) {
-      DiskManagerRequest dmr = (DiskManagerRequest)requests.removeFirst();
+      DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
       loading_messages.add( dmr );
       disk_manager.enqueueReadRequest( dmr, read_req_listener );
       num_messages_loading++;

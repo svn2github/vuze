@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -163,13 +164,15 @@ public class PiecesItem
         gcImage = new GC(image);
       }
   
-      boolean available[] = infoObj.getPiecesStatus();
+      DiskManager			disk_manager = infoObj.getDiskManager();
+      
+      DiskManagerPiece[]	pieces = disk_manager==null?null:disk_manager.getPieces();
 
-      if (available != null && available.length > 0) {
+      int	nbPieces = infoObj.getNbPieces();
+      
       try {
 
         int nbComplete = 0;
-        int nbPieces = available.length;
         int a0;
         int a1 = 0;
         for (int i = 0; i < drawWidth; i++) {
@@ -193,7 +196,7 @@ public class PiecesItem
           } else {
             int nbAvailable = 0;
             for (int j = a0; j < a1; j++)
-              if (available[j])
+              if (pieces != null && pieces[j].getDone())
                 nbAvailable++;
             nbComplete += nbAvailable;
             index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
@@ -220,7 +223,7 @@ public class PiecesItem
       } catch (Exception e) {
         System.out.println("Error Drawing PiecesItem");
         Debug.printStackTrace( e );
-      } }
+      } 
       gcImage.dispose();
   
       Image oldImage = ((TableCellCore)cell).getGraphicSWT();

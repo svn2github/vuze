@@ -30,7 +30,8 @@ import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
-import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
 
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.disk.*;
@@ -123,9 +124,7 @@ Test
 			PEPeerManagerDummy	pm = new PEPeerManagerDummy();
 			
 			final DiskManager dm = DiskManagerFactory.create( torrent, new DownloadManagerDummy( file, pm ));
-			
-			dm.setPeerManager( pm );
-		
+					
 			pm.setDiskManager( dm );
 			
 			dm.addListener(
@@ -148,11 +147,11 @@ Test
 														
 							if ( !READ_TEST ){
 								
-								boolean[]	x = dm.getPiecesDone();
+								DiskManagerPiece[]	x = dm.getPieces();
 								
 								for (int i=0;i<x.length;i++){
 									
-									x[i]	= false;
+									x[i].setDone( false );
 								}
 							}
 							
@@ -185,15 +184,15 @@ Test
 									
 									if ( READ_TEST ){
 										
-										DiskManagerRequest	res = dm.createRequest( piece_number, BLOCK_SIZE*block_number, BLOCK_SIZE );
+										DiskManagerReadRequest	res = dm.createReadRequest( piece_number, BLOCK_SIZE*block_number, BLOCK_SIZE );
 										
 										dm.enqueueReadRequest(
 											res,
-											new ReadRequestListener()
+											new DiskManagerReadRequestListener()
 											{
 												public void 
 												readCompleted( 
-													DiskManagerRequest 	request, 
+													DiskManagerReadRequest 	request, 
 													DirectByteBuffer 	data )
 												{
 												//	System.out.println( "request complete" );
@@ -220,7 +219,7 @@ Test
 										
 										DirectByteBuffer b = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER, BLOCK_SIZE );
 										
-										dm.writeBlock( piece_number, BLOCK_SIZE*block_number, b, null );	
+										dm.writeBlock( piece_number, BLOCK_SIZE*block_number, b, null, null );	
 									}
 						
 								}
@@ -880,7 +879,7 @@ Test
 					
 					if ( offset == 0 ){
 						
-						dm.aSyncCheckPiece( pieceNumber );
+						dm.aSyncCheckPiece( pieceNumber, null );
 					}
 				}
 			}
@@ -892,7 +891,7 @@ Test
 			int pieceNumber, 
 			boolean result )
 		{
-			dm.getPiecesDone()[pieceNumber] = false;
+			dm.getPieces()[pieceNumber].setDone( false );
 		}
 
 		public int[] getAvailability()
@@ -1121,7 +1120,7 @@ Test
 		}
 
 		
-		public DiskManagerRequest
+		public DiskManagerReadRequest
 		createDiskManagerRequest(
 		   int pieceNumber,
 		   int offset,
@@ -1133,7 +1132,7 @@ Test
 		
 		public void
 		requestCanceled(
-			DiskManagerRequest	item )
+			DiskManagerReadRequest	item )
 		{
 			
 		}

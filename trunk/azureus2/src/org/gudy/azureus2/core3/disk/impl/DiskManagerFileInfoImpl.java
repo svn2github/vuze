@@ -254,8 +254,8 @@ DiskManagerFileInfoImpl
   /**
    * @param skipped
    */
-  public void setSkipped(boolean skipped) {
-	this.skipped = skipped;
+  public void setSkipped(boolean _skipped) {
+	skipped = _skipped;
   }
 
   public DiskManager getDiskManager() {

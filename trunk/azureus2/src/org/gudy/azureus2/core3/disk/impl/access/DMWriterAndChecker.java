@@ -22,8 +22,8 @@
 
 package org.gudy.azureus2.core3.disk.impl.access;
 
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
-import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 /**
@@ -51,7 +51,8 @@ DMWriterAndChecker
 	
 	public void 
 	aSyncCheckPiece(
-		int pieceNumber ); 
+		int 							pieceNumber,
+		DiskManagerCheckRequestListener	listener ); 
 	  
 	public boolean 
 	isChecking();
@@ -71,8 +72,9 @@ DMWriterAndChecker
 
 	public void 
 	writeBlock(
-		int 				pieceNumber, 
-		int 				offset, 
-		DirectByteBuffer 	data,
-		PEPeer 				sender );
+		int 							pieceNumber, 
+		int 							offset, 
+		DirectByteBuffer 				data,
+		Object 							user_data,
+		DiskManagerWriteRequestListener	listener );
 }

@@ -732,14 +732,6 @@ DownloadManagerImpl
   return 0;
   }
 
-  public boolean[] getPiecesStatus() {
-	if (peerManager != null)
-	  return peerManager.getPiecesStatus();
-	if (diskManager != null)
-	  return diskManager.getPiecesDone();
-	return new boolean[nbPieces];
-  }
-
   public void stopIt() {
     stopIt(DownloadManager.STATE_STOPPED);
   }
@@ -825,7 +817,7 @@ DownloadManagerImpl
 						  					  
 						  diskManager.storeFilePriorities();
 						  
-						  diskManager.stopIt();
+						  diskManager.stop();
 						  	
 						  diskManager.removeListener( disk_manager_listener );
 						  
@@ -1552,7 +1544,7 @@ DownloadManagerImpl
 				  	try{
 				  		recheck_disk_manager.dumpResumeDataToDisk(true, false);
 				  		
-						recheck_disk_manager.stopIt();
+						recheck_disk_manager.stop();
 						
 						setOnlySeeding(recheck_disk_manager.getRemaining() == 0);
 						
@@ -1577,7 +1569,7 @@ DownloadManagerImpl
 				  	
 				  	setErrorDetail( recheck_disk_manager.getErrorMessage());
 					
-				  	recheck_disk_manager.stopIt();
+				  	recheck_disk_manager.stop();
 					
 				  	setOnlySeeding(false);
 					

@@ -60,7 +60,7 @@ PEPeerTransport
 		
 	public void
 	sendCancel(
-		DiskManagerRequest	request );
+		DiskManagerReadRequest	request );
 	
   /**
    * 

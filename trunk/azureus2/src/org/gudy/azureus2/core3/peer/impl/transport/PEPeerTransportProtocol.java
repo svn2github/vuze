@@ -29,7 +29,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
@@ -1342,7 +1342,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength - 1);
         }
         
-        DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
+        DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
 
         if( manager.checkBlock( pieceNumber, pieceOffset, message_buff ) ) {
           if( alreadyRequested( request ) ) {
@@ -1471,7 +1471,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		manager.requestCanceled( manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength ) );
   		return false;
   	}	
-  	DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
+  	DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
   	if( !alreadyRequested( request ) ) {
   		addRequest( request );
       try{
@@ -1488,7 +1488,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
   
 
-  public void sendCancel( DiskManagerRequest request ) {
+  public void sendCancel( DiskManagerReadRequest request ) {
   	if ( getState() != TRANSFERING ) return;
 		if ( alreadyRequested( request ) ) {
 			removeRequest( request );
@@ -1559,9 +1559,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
    */
   private void checkInterested() {
 		boolean newInterested = false;
-		boolean[] myStatus = manager.getPiecesStatus();
-		for (int i = 0; i < myStatus.length; i++) {
-			if ( !myStatus[i] && other_peer_has_pieces[i] ) {
+		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
+		
+		for (int i = 0; i < pieces.length; i++) {
+			if ( !pieces[i].getDone() && other_peer_has_pieces[i] ) {
 				newInterested = true;
 				break;
 			}
@@ -1581,8 +1582,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
    * @param pieceNumber the piece number that has been received
    */
   private void checkInterested( int pieceNumber ) {
-		boolean[] myStatus = manager.getPiecesStatus();
-		boolean newInterested = !myStatus[ pieceNumber ];
+  		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
+		boolean newInterested = !pieces[ pieceNumber ].getDone();
 		if ( newInterested && !interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTInterested(), false );
 		}
@@ -1604,13 +1605,15 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     //create bitfield
 		ByteBuffer buffer = ByteBuffer.allocate( (manager.getPiecesNumber() + 7) / 8 );
 		boolean atLeastOne = false;
-		boolean[] myStatus = manager.getPiecesStatus();
+		
+		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
+		
 		int bToSend = 0;
 		int i = 0;
-		for (; i < myStatus.length; i++) {
+		for (; i < pieces.length; i++) {
 			if ( (i % 8) == 0 ) bToSend = 0;
 			bToSend = bToSend << 1;
-			if ( myStatus[i] ) {
+			if ( pieces[i].getDone()) {
 				bToSend += 1;
 				atLeastOne = true;
 			}
@@ -1750,7 +1753,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		        	requested_mon.enter();
 		        
 		          for (int i = requested.size() - 1; i >= 0; i--) {
-		            DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
+		            DiskManagerReadRequest request = (DiskManagerReadRequest) requested.remove(i);
 		            manager.requestCanceled(request);
 		          }
 		        }finally{
@@ -1783,7 +1786,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			
 		    	for (int i = 0; i < requested.size(); i++) {
 		    		try {
-		    			DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
+		    			DiskManagerReadRequest request = (DiskManagerReadRequest) requested.get(i);
 		    			if (request.isExpired()) {
 		    				if ( result == null ){
 		    					result = new ArrayList();
@@ -1806,7 +1809,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		
 		protected boolean
 		alreadyRequested(
-			DiskManagerRequest	request )
+			DiskManagerReadRequest	request )
 		{
 	    try{
 	    	requested_mon.enter();
@@ -1819,7 +1822,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		
 		protected void
 		addRequest(
-			DiskManagerRequest	request )
+			DiskManagerReadRequest	request )
 		{
 			try{
 				requested_mon.enter();
@@ -1833,7 +1836,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		
 		protected void
 		removeRequest(
-			DiskManagerRequest	request )
+			DiskManagerReadRequest	request )
 		{
 	    	try{
 	    		requested_mon.enter();
@@ -1856,9 +1859,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  requested_mon.enter();
 	    
 			  for (int i = 0; i < requested.size(); i++) {
-			  	DiskManagerRequest request = null;
+			  	DiskManagerReadRequest request = null;
 			  	try {
-			  		request = (DiskManagerRequest) requested.get(i);
+			  		request = (DiskManagerReadRequest) requested.get(i);
 			  	}
 			  	catch (Exception e) { Debug.printStackTrace( e );}
 	        

@@ -27,6 +27,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.*;
 
@@ -91,12 +92,12 @@ DMPiecePickerImpl
 	public void 
 	computePriorityIndicator() 
 	{
-		boolean[]	piecesDone	= disk_manager.getPiecesDone();
+		DiskManagerPiece[]	pieces	= disk_manager.getPieces();
 		
 		for (int i = 0; i < pieceCompletion.length; i++) {
 		  
 		   //if the piece is already complete, skip computation
-		   if (piecesDone[i]) {
+		   if (pieces[i].getDone()) {
 		     pieceCompletion[i] = -1;
 		     continue;
 		   }

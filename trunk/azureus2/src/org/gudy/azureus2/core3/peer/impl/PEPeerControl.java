@@ -72,8 +72,5 @@ PEPeerControl
 		PEPeerControlListener	l );
   
   
-  public DiskManager getDiskManager();
-  
-  
-	
+	public DiskManager getDiskManager();
 }

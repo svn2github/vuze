@@ -43,7 +43,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
@@ -89,13 +88,12 @@ DiskManagerImpl
 	
 	
 	
-	private PieceList[] pieceMap;
+	private DiskManagerPieceImpl[]	pieces;
+	private PieceList[] 			pieceMap;
 
 	private DiskManagerFileInfoImpl[] files;
 	
     private DownloadManager dmanager;
-
-    private PEPeerManager manager;
 
 	private boolean alreadyMoved = false;
 
@@ -134,6 +132,8 @@ DiskManagerImpl
 	    torrent 	= _torrent;
 	    dmanager 	= _dmanager;
 	 
+	    pieces		= new DiskManagerPieceImpl[0];	// in case things go wrong later
+	    
 	    setState( INITIALIZING );
 	    
 	    percentDone = 0;
@@ -205,9 +205,16 @@ DiskManagerImpl
 		
 		lastPieceLength  	= piece_mapper.getLastPieceLength();
 		
+		pieces		= new DiskManagerPieceImpl[ nbPieces ];
+		
+		for (int i=0;i<pieces.length;i++){
+			
+			pieces[i] = new DiskManagerPieceImpl(this, i, i==pieces.length-1?lastPieceLength:pieceLength);
+		}
+		
 		reader 				= DMAccessFactory.createReader(this);
 		
-		writer_and_checker 	= DMAccessFactory.createWriterAndChecker(this,reader);
+		writer_and_checker 	= DMAccessFactory.createWriterAndChecker(this);
 		
 		resume_handler		= new RDResumeHandler( this, writer_and_checker );
 	
@@ -234,14 +241,17 @@ DiskManagerImpl
 			
 			started = true;
 	       
-		    Thread init = new AEThread("DiskManager:start") {
-					public void runSupport() 
+		    Thread init = 
+		    	new AEThread("DiskManager:start") 
+				{
+					public void 
+					runSupport() 
 					{
 						startSupport();
 						
 						if (DiskManagerImpl.this.getState() == DiskManager.FAULTY){
 							
-							stopIt();
+							DiskManagerImpl.this.stop();
 						}
 					}
 				};
@@ -616,8 +626,8 @@ DiskManagerImpl
   
 	public void 
 	enqueueReadRequest( 
-		DiskManagerRequest request, 
-		ReadRequestListener listener ) 
+		DiskManagerReadRequest request, 
+		DiskManagerReadRequestListener listener ) 
 	{
 		reader.enqueueReadRequest( request, listener );
 	}
@@ -689,8 +699,31 @@ DiskManagerImpl
 		allocated	= num;
 	}
 	
-
+		// called when status has CHANGED and should only be called by DiskManagerPieceImpl
 	
+	protected void
+	setPieceDone(
+		DiskManagerPieceImpl	piece )
+	{
+		int	piece_length = piece.getPieceNumber()==nbPieces-1?lastPieceLength:pieceLength;
+		
+		if ( piece.getDone()){
+				
+			decrementRemaining( piece_length );
+			
+			computeFilesDone( piece.getPieceNumber());
+			
+		}else{
+				
+			incrementRemaining( piece_length );
+		}
+	}
+	
+	public DiskManagerPiece[]
+	getPieces()
+	{
+		return( pieces );
+	}
 
 	public int getPieceLength() {
 		return pieceLength;
@@ -720,12 +753,7 @@ DiskManagerImpl
 		}
 	}
 
-
-	public void setPeerManager(PEPeerManager _manager) {
-		manager = _manager;
-	}
-
-	public void stopIt() 
+	public void stop() 
 	{	
 		if ( !started ){
 			
@@ -848,16 +876,8 @@ DiskManagerImpl
 		return( piecesHash[ piece_number ]);
 	}
 	
-	public PEPiece[] 
-	getRecoveredPieces() 
-	{
-		return( resume_handler.getRecoveredPieces());
-	}
-	
-
-	
-	public DiskManagerRequest
-	createRequest(
+	public DiskManagerReadRequest
+	createReadRequest(
 		int pieceNumber,
 		int offset,
 		int length )
@@ -868,9 +888,10 @@ DiskManagerImpl
   
 	public void 
 	aSyncCheckPiece(
-		int pieceNumber) 
+		int 							pieceNumber,
+		DiskManagerCheckRequestListener listener ) 
 	{
-	  	writer_and_checker.aSyncCheckPiece( pieceNumber );
+	  	writer_and_checker.aSyncCheckPiece( pieceNumber, listener );
 	}
 	  
 	public boolean isChecking() 
@@ -878,14 +899,24 @@ DiskManagerImpl
 	  return ( writer_and_checker.isChecking());
 	}
   
-	public void 
-	writeBlock(
+	public DirectByteBuffer 
+	readBlock(
 		int pieceNumber, 
 		int offset, 
-		DirectByteBuffer data,
-		PEPeer sender)
+		int length )
 	{
-		writer_and_checker.writeBlock( pieceNumber, offset, data, sender );
+		return( reader.readBlock( pieceNumber, offset, length ));
+	}
+	
+	public void 
+	writeBlock(
+		int 							pieceNumber, 
+		int 							offset, 
+		DirectByteBuffer 				data,
+		Object 							user_data,
+		DiskManagerWriteRequestListener	listener )
+	{
+		writer_and_checker.writeBlock( pieceNumber, offset, data, user_data, listener );
 	}
 	
 	public boolean 
@@ -1246,11 +1277,7 @@ DiskManagerImpl
   public DownloadManager getDownloadManager() {
     return dmanager;
   }
-  
-  public PEPeerManager getPeerManager() {
-    return manager;
-  }
-  
+    
   	public void 
 	computePriorityIndicator()
   	{

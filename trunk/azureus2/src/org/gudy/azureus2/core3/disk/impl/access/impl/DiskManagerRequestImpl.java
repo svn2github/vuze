@@ -37,7 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
  */
 public class 
 DiskManagerRequestImpl
-	implements DiskManagerRequest
+	implements DiskManagerReadRequest
 {
   //60 secs of expiration for any request.
   private static final int EXPIRATION_TIME = 1000 * 60;
@@ -56,13 +56,15 @@ DiskManagerRequestImpl
    * @param offset
    * @param length
    */
-  public DiskManagerRequestImpl(int pieceNumber,int offset,int length)
+  public DiskManagerRequestImpl(int _pieceNumber,int _offset,int _length)
   {
-    this.pieceNumber = pieceNumber;
-    this.offset = offset;
-    this.length = length;
+    pieceNumber = _pieceNumber;
+    offset = _offset;
+    length = _length;
+    
     timeCreated = SystemTime.getCurrentTime();
-    this.hashcode = pieceNumber + offset + length;
+    
+    hashcode = pieceNumber + offset + length;
   }
   
   /**

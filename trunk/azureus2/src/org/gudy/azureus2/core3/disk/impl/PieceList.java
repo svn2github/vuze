@@ -21,9 +21,9 @@ public class PieceList {
 		return new PieceList((PieceMapEntry[])pieceList.toArray(new PieceMapEntry[pieceList.size()]));	
 	}
 	
-	public PieceList(PieceMapEntry[] pieces) {
-		this.pieces = pieces;
-		this.cumulativeLengths = new long[pieces.length];
+	public PieceList(PieceMapEntry[] _pieces) {
+		pieces = _pieces;
+		cumulativeLengths = new long[pieces.length];
 		
 		initializeCumulativeLengths();
 	}

@@ -29,6 +29,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -170,7 +171,10 @@ public class PiecesItem
       
       if (available != null && available.length > 0) {
       try {
-        boolean pieces[] = dm.getPiecesStatus();
+      	DiskManager	disk_manager = dm.getDiskManager();
+      	
+      	DiskManagerPiece[]	pieces = disk_manager==null?null:disk_manager.getPieces();
+      	        
         int nbComplete = 0;
         int nbPieces = available.length;
         int a0;
@@ -197,7 +201,7 @@ public class PiecesItem
             int nbAvailable = 0;
             for (int j = a0; j < a1; j++) {
               if (available[j]) {
-              	if (!pieces[j]) {
+              	if (pieces==null|!pieces[j].getDone()) {
               	  nbNeeded++;
               	}
                 nbAvailable++;

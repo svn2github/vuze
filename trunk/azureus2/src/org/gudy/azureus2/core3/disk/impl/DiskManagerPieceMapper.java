@@ -257,14 +257,14 @@ DiskManagerPieceMapper
 
 	private List 
 	buildLastPieceToFileList(
-		List btFileList, 
+		List file_list, 
 		int currentFile, 
 		long fileOffset )
 	{
 		ArrayList pieceToFileList = new ArrayList();
 		int usedSpace = 0;
 		while (last_piece_length > usedSpace) {
-			fileInfo tempFile = (fileInfo)btFileList.get(currentFile);
+			fileInfo tempFile = (fileInfo)file_list.get(currentFile);
 			long length = tempFile.getLength();
 
 			//get the available space

@@ -28,7 +28,7 @@ package org.gudy.azureus2.core3.peer;
 
 import java.util.List;
 
-import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
@@ -67,25 +67,12 @@ PEPeerManager
 	
 	public byte[]
 	getPeerId();
-	
-	public void 
-	blockWritten(
-		int pieceNumber, 
-		int offset,
-    PEPeer peer);
-	
-	public void 
-	asyncPieceChecked(
-		int pieceNumber, 
-		boolean result );
 
 	public int[] getAvailability();
 
 	public int getAvailability(int pieceNumber);
 	
     public float getMinAvailability();
-
-	public boolean[] getPiecesStatus();
 
 	public PEPiece[] getPieces();
 
@@ -169,7 +156,7 @@ PEPeerManager
 	public void 
 	peerRemoved(PEPeer pc);
 	
-	public DiskManagerRequest
+	public DiskManagerReadRequest
 	createDiskManagerRequest(
 	   int pieceNumber,
 	   int offset,
@@ -177,7 +164,7 @@ PEPeerManager
 	
 	public void
 	requestCanceled(
-		DiskManagerRequest	item );
+		DiskManagerReadRequest	item );
 		
 	public boolean 
 	checkBlock(

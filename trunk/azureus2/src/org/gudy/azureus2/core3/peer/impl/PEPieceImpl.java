@@ -30,31 +30,27 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
 PEPieceImpl
 	implements PEPiece
 {  
-  
-  public int length;
+  protected DiskManagerPiece	dm_piece;
+	
   public int nbBlocs;
-  public int pieceNumber;
-
   public int lastBlocSize;
 
   public boolean[] downloaded;
   public boolean[] requested;
-  public boolean[] written;
   
   private PEPeer[] 	writers;
-  public List 		writes;
-  private long		last_write_time;
+  private List 		writes;
+
     
-  public int completed;
-  public boolean isBeingChecked = false;
+   public boolean isBeingChecked = false;
 
   //A Flag to indicate that this piece is for slow peers
   //Slow peers can only continue/create slow pieces
@@ -68,52 +64,32 @@ PEPieceImpl
   
   protected static AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
 
-  protected PEPieceImpl(PEPeerManager manager, int length) {
-    
-    
-	this.manager = manager;
-	  
-  
-	this.length = length;
+  public 
+  PEPieceImpl(
+  	PEPeerManager 		_manager, 
+	DiskManagerPiece	_dm_piece,
+	boolean				_slow_piece )
+  {  
+	manager 	= _manager;
+	dm_piece	= _dm_piece;
+	slowPiece	= _slow_piece;
+	
+	int	length = dm_piece.getLength();
+	
 	nbBlocs = (length + PEPeerManager.BLOCK_SIZE - 1) / PEPeerManager.BLOCK_SIZE;
-	this.writes = new ArrayList(0);
 	downloaded = new boolean[nbBlocs];
 	requested = new boolean[nbBlocs];
-	written = new boolean[nbBlocs];
 	writers = new PEPeer[nbBlocs];
+	writes 		= new ArrayList(0);
 
 	if ((length % PEPeerManager.BLOCK_SIZE) != 0)
 	  lastBlocSize = length % PEPeerManager.BLOCK_SIZE;
 	else
 	  lastBlocSize = PEPeerManager.BLOCK_SIZE;
 	
-	last_write_time = SystemTime.getCurrentTime();
 
   }
 
-  public PEPieceImpl(PEPeerManager manager, int length, int pieceNumber,boolean slowPiece) {
-    this(manager, length);
-	this.pieceNumber = pieceNumber;
-	this.slowPiece = slowPiece;
-  }
-  
-  public PEPieceImpl(PEPeerManager manager, int length, int pieceNumber) {
-	this(manager, length,pieceNumber,true);	
-  }
-    
-  public void setWritten(PEPeer peer,int blocNumber) {
-    writers[blocNumber] = peer;
-    written[blocNumber] = true;
-    completed++;
-    
-    last_write_time	= SystemTime.getCurrentTime();
-  }
-
-  public long
-  getLastWriteTime()
-  {
-  	return( last_write_time );
-  }
   
   public int 
   getAvailability()
@@ -123,25 +99,10 @@ PEPieceImpl
   		return( 0 );
   	}
   	
-  	return( manager.getAvailability( pieceNumber ));
+  	return( manager.getAvailability( dm_piece.getPieceNumber()));
   }
 
-  public boolean isComplete() {
-  	boolean complete = true;
-  	for (int i = 0; i < nbBlocs; i++) {
-  		complete = complete && written[i];
-  		if (!complete) return false;
-  	}
-	  return complete;
-  }
 
-  public boolean isWritten(int blockNumber) {
-  	return written[blockNumber];
-  }
-  
-  public boolean[] getWritten() {
-  	return( written );
-  }
 
   public boolean[] getRequested(){
   	return( requested );
@@ -169,7 +130,7 @@ PEPieceImpl
 	  	
 		int blocNumber = -1;
 		for (int i = 0; i < nbBlocs; i++) {
-		  if (!requested[i] && !written[i]) {
+		  if (!requested[i] && !dm_piece.getWritten(i)) {
 			blocNumber = i;
 			requested[i] = true;
 	
@@ -217,15 +178,12 @@ PEPieceImpl
   public void free() {
   }
 
-  public int getCompleted() {
-	return completed;
-  }
-  
+
   public int getPieceNumber(){
-  	return( pieceNumber );
+  	return( dm_piece.getPieceNumber() );
   }
   public int getLength(){
-  	return( length );
+  	return( dm_piece.getLength() );
   }
   public int getNbBlocs(){
   	return( nbBlocs );  
@@ -242,10 +200,16 @@ PEPieceImpl
   /**
    * @param manager
    */
-  public void setManager(PEPeerManager manager) {
-	this.manager = manager;
+  public void setManager(PEPeerManager _manager) {
+	manager = _manager;
   }
 
+  public void setWritten(PEPeer peer,int blocNumber) {
+    writers[blocNumber] = peer;
+  
+    dm_piece.setWritten( blocNumber );
+  }
+  
   public List getPieceWrites() {
     List result;
     try{
@@ -300,12 +264,12 @@ PEPieceImpl
   }
   
   public void reset() {
+  	dm_piece.reset();
     downloaded = new boolean[nbBlocs];
     requested = new boolean[nbBlocs];
-    written = new boolean[nbBlocs];
-    writers = new PEPeer[nbBlocs];
+     writers = new PEPeer[nbBlocs];
     isBeingChecked = false;
-    completed = 0;
+ 
   }
   
   protected void addWrite(PEPieceWriteImpl write) {
@@ -337,10 +301,40 @@ PEPieceImpl
     return slowPiece;
   }
   
-  public void setSlowPiece(boolean slowPiece) {
-    this.slowPiece = slowPiece;
+  public void setSlowPiece(boolean _slowPiece) {
+    slowPiece = _slowPiece;
   }
 
+  public boolean[] getWritten()
+  {
+  	return( dm_piece.getWritten());
+  }
+  
+  public boolean
+  isComplete()
+  {
+  	return( dm_piece.getCompleted());
+  }
+  
+  public int
+  getCompleted()
+  {
+  	return( dm_piece.getCompleteCount());
+  }
+  
+  public boolean
+  isWritten(
+  	int		bn )
+  {
+  	return( dm_piece.getWritten( bn ));
+  }
+
+  public long
+  getLastWriteTime()
+  {
+  	return( dm_piece.getLastWriteTime());
+  }
+  
   /**
    * @return Returns the manager.
    */

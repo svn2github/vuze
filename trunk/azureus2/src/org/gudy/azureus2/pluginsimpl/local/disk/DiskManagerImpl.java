@@ -66,7 +66,7 @@ DiskManagerImpl
 	
 	public DiskManagerRequest
 	lookupRequest(
-		org.gudy.azureus2.core3.disk.DiskManagerRequest	r )
+		org.gudy.azureus2.core3.disk.DiskManagerReadRequest	r )
 	{
 		return((DiskManagerRequest)map.get(r));
 	}

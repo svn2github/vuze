@@ -202,10 +202,7 @@ DownloadManager
 	
 	public String
 	getPieceLength();
-	
-	boolean[]
-	getPiecesStatus();
-	
+		
 	public int
 	getNbSeeds();
 	
