@@ -23,11 +23,11 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.gudy.azureus2.core.ByteFormater;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 
 /**
  * @author Olivier
@@ -383,7 +383,7 @@ public class GeneralView extends AbstractIView {
       manager.getName(),
       PeerStats.format(manager.getSize()),
       manager.getSavePath(),
-      ByteFormater.nicePrint(manager.getHash()),
+      ByteFormatter.nicePrint(manager.getHash()),
       manager.getNbPieces(),
       manager.getPieceLength(),
       manager.getComment());

@@ -16,7 +16,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.SHA1Hasher;
+import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
  * @author Olivier

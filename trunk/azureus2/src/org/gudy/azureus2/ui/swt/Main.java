@@ -10,8 +10,8 @@ import java.net.Socket;
 
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.ILocaleUtilChooser;
-import org.gudy.azureus2.core.LocaleUtil;
+import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
 
 /**
  * @author Olivier

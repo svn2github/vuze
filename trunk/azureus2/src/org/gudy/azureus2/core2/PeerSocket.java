@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Vector;
 
 import org.gudy.azureus2.core.ByteBufferPool;
-import org.gudy.azureus2.core.Constants;
 import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerManager;
 import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core.SpeedLimiter;
+import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * @author Olivier

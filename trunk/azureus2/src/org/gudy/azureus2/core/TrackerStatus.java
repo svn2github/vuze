@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.gudy.azureus2.core3.util.*;
+
 /**
  * @author Olivier
  * 

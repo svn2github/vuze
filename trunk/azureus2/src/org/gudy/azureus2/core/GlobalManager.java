@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.IComponentListener;
 
 /**

@@ -65,16 +65,16 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
-import org.gudy.azureus2.core.BDecoder;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.LocaleUtil;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.maketorrent.Wizard;
 import org.gudy.azureus2.ui.systray.SystemTray;
 
+import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.BDecoder;
 
 import snoozesoft.systray4j.SysTrayMenu;
 

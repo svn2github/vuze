@@ -20,7 +20,9 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core2.DataQueueItem;
 
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * 

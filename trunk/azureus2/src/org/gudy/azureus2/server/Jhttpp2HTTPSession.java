@@ -31,12 +31,12 @@ import java.util.Vector;
 import org.apache.log4j.spi.LoggingEvent;
 
 import HTML.Template;
-import org.gudy.azureus2.core.ByteFormater;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 
 /**
  * One HTTP connection
@@ -528,7 +528,7 @@ public class Jhttpp2HTTPSession extends Thread {
         h.put("Torrents_Torrent_ETA", (dm.getETA()=="")?"&nbsp;":dm.getETA());
         h.put("Torrents_Torrent_SizeDown", dm.getDownloaded());
         h.put("Torrents_Torrent_SizeUp", dm.getUploaded());
-        h.put("Torrents_Torrent_Hash", ByteFormater.nicePrint(dm.getHash(), true));
+        h.put("Torrents_Torrent_Hash", ByteFormatter.nicePrint(dm.getHash(), true));
         if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || ConfigurationManager.getInstance().getBooleanParameter("Server_bNoJavaScript"))
           h.put("Global_NoJavaScript", Boolean.TRUE);
         v.addElement(h);
@@ -622,7 +622,7 @@ public class Jhttpp2HTTPSession extends Thread {
         Iterator torrent = torrents.iterator();
         while (torrent.hasNext()) {
           DownloadManager dm = (DownloadManager) torrent.next();
-          dls.put(ByteFormater.nicePrint(dm.getHash(), true), dm);
+          dls.put(ByteFormatter.nicePrint(dm.getHash(), true), dm);
         }
       }
   }

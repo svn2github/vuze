@@ -10,8 +10,8 @@ import java.util.Properties;
 
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.ConfigurationManager;
-import org.gudy.azureus2.core.ILocaleUtilChooser;
-import org.gudy.azureus2.core.LocaleUtil;
+import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
 
 /**
  *
@@ -38,7 +38,7 @@ public class Main implements ILocaleUtilChooser {
     new Main(args);
   }
   
-  public org.gudy.azureus2.core.LocaleUtil getProperLocaleUtil(Object lastEncoding) {
+  public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(Object lastEncoding) {
     return new LocaleUtilServer(lastEncoding);
   }
   

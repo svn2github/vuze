@@ -4,7 +4,7 @@
  * Created on 29. August 2003, 18:39
  */
 
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.internat;
 
 /**
  *

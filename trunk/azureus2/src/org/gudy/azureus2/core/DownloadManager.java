@@ -12,8 +12,10 @@ import java.util.List;
 import org.gudy.azureus2.core2.PeerSocket;
 import org.gudy.azureus2.ui.swt.IComponentListener;
 
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier

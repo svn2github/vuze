@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.*;
+
 /**
  * A singleton used to store configuration into a bencoded file.
  *
