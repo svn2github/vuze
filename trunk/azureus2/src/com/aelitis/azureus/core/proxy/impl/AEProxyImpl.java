@@ -165,11 +165,16 @@ AEProxyImpl
 	acceptLoop(
 		ServerSocketChannel	ssc )
 	{		
+		long	successfull_accepts = 0;
+		long	failed_accepts		= 0;
+
 		while(true){
 			
 			try{				
-				final SocketChannel socket_channel = ssc.accept();
-								
+				SocketChannel socket_channel = ssc.accept();
+						
+				successfull_accepts++;
+				
 				if ( !socket_channel.socket().getInetAddress().isLoopbackAddress()){
 					
 					LGLogger.log( "AEProxy: incoming connection from '" + socket_channel.socket().getInetAddress() + "' - closed as not local" );
@@ -197,7 +202,22 @@ AEProxyImpl
 				
 			}catch( Throwable e ){
 				
-				// e.printStackTrace();		
+				failed_accepts++;
+
+				LGLogger.log( "AEProxy: listener failed on port " + port, e ); 
+			
+				if ( failed_accepts > 100 && successfull_accepts == 0 ){
+
+						// looks like its not going to work...
+						// some kind of socket problem
+									
+					LGLogger.logUnrepeatableAlertUsingResource( 
+							LGLogger.AT_ERROR,
+							"Network.alert.acceptfail",
+							new String[]{ ""+port, "TCP" } );
+			
+					break;
+				}			
 			}
 		}
 	}

@@ -228,41 +228,37 @@ TRTrackerServerTCP
 		while(true){
 			
 			try{				
-				final Socket socket = ss.accept();
+				Socket socket = ss.accept();
 					
 				successfull_accepts++;
 				
 				String	ip = socket.getInetAddress().getHostAddress();
-				
-				//if ( checkDOS( ip )){
+								
+				if ( (!apply_ip_filter) || (!ip_filter.isInRange( ip, "Tracker" ))){
 					
-				//	socket.close();
+					thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
 					
-				//}else{
+				}else{
 					
-					if ( (!apply_ip_filter) || (!ip_filter.isInRange( ip, "Tracker" ))){
-						
-						thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
-						
-					}else{
-						
-						socket.close();
-					}
-				//}
+					socket.close();
+				}
 				
 			}catch( Throwable e ){
 				
 				failed_accepts++;
 				
+				LGLogger.log( "TRTrackerServer: listener failed on port " + port, e ); 
+				
 				if ( failed_accepts > 100 && successfull_accepts == 0 ){
 
 						// looks like its not going to work...
 						// some kind of socket problem
-					
-					LGLogger.logUnrepeatableAlert( "Tracker: too many successive errors on TCP port '" + port + "', abandoning", e );
-					
-					Debug.printStackTrace(e);
-					
+									
+					LGLogger.logUnrepeatableAlertUsingResource( 
+							LGLogger.AT_ERROR,
+							"Network.alert.acceptfail",
+							new String[]{ ""+port, "TCP" } );
+			
 					break;
 				}
 			}

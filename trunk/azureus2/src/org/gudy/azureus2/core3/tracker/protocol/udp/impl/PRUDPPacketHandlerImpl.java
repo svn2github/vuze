@@ -105,6 +105,9 @@ PRUDPPacketHandlerImpl
 	
 			byte[] buffer = new byte[PRUDPPacket.MAX_PACKET_SIZE];
 			
+			long	successful_accepts 	= 0;
+			long	failed_accepts		= 0;
+			
 			while(true){
 				
 				try{
@@ -113,26 +116,39 @@ PRUDPPacketHandlerImpl
 					
 					socket.receive( packet );
 					
+					successful_accepts++;
+					
 					process( packet );
 				
 				}catch( SocketTimeoutException e ){
 										
 				}catch( Throwable e ){
+						
+					failed_accepts++;
+					
+					LGLogger.log( "PRUDPPacketReceiver: receive failed on port " + port, e ); 
+
+					if ( failed_accepts > 100 && successful_accepts == 0 ){
+						
+		
+						LGLogger.logUnrepeatableAlertUsingResource( 
+								LGLogger.AT_ERROR,
+								"Network.alert.acceptfail",
+								new String[]{ ""+port, "UDP" } );
 										
-					Debug.printStackTrace( e );
-					
-						// break, sometimes get a screaming loop. e.g.
-					/*
-					[2:01:55]  DEBUG::Tue Dec 07 02:01:55 EST 2004
-					[2:01:55]    java.net.SocketException: Socket operation on nonsocket: timeout in datagram socket peek
-					[2:01:55]  	at java.net.PlainDatagramSocketImpl.peekData(Native Method)
-					[2:01:55]  	at java.net.DatagramSocket.receive(Unknown Source)
-					[2:01:55]  	at org.gudy.azureus2.core3.tracker.server.impl.udp.TRTrackerServerUDP.recvLoop(TRTrackerServerUDP.java:118)
-					[2:01:55]  	at org.gudy.azureus2.core3.tracker.server.impl.udp.TRTrackerServerUDP$1.runSupport(TRTrackerServerUDP.java:90)
-					[2:01:55]  	at org.gudy.azureus2.core3.util.AEThread.run(AEThread.java:45)
-					*/
-					
-					break;
+							// break, sometimes get a screaming loop. e.g.
+						/*
+						[2:01:55]  DEBUG::Tue Dec 07 02:01:55 EST 2004
+						[2:01:55]    java.net.SocketException: Socket operation on nonsocket: timeout in datagram socket peek
+						[2:01:55]  	at java.net.PlainDatagramSocketImpl.peekData(Native Method)
+						[2:01:55]  	at java.net.DatagramSocket.receive(Unknown Source)
+						[2:01:55]  	at org.gudy.azureus2.core3.tracker.server.impl.udp.TRTrackerServerUDP.recvLoop(TRTrackerServerUDP.java:118)
+						[2:01:55]  	at org.gudy.azureus2.core3.tracker.server.impl.udp.TRTrackerServerUDP$1.runSupport(TRTrackerServerUDP.java:90)
+						[2:01:55]  	at org.gudy.azureus2.core3.util.AEThread.run(AEThread.java:45)
+						*/
+						
+						break;
+					}
 					
 				}finally{
 					

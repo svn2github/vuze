@@ -149,53 +149,76 @@ PEPeerServerImpl
     }
   }
 
-  public void runSupport() {
-    try {
+  public void 
+  runSupport() 
+  {
       LGLogger.log(
         componentID,
         evtLyfeCycle,
         LGLogger.INFORMATION,
         "PEPeerServer is ready to accept incoming connections");
+      
+      long	successfull_accepts = 0;
+	  long	failed_accepts		= 0;
+
       while (bContinue) {
         
-        SocketChannel sckClient = sck.accept();
-        
-        if (sckClient != null) {
-          LGLogger.log(
-            componentID,
-            evtNewConnection,
-            LGLogger.RECEIVED,
-            "PEPeerServer has accepted an incoming connection from : "
-            + sckClient.socket().getInetAddress().getHostAddress());
-          
-          int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
-          if( snd_size > 0 ) sckClient.socket().setSendBufferSize( snd_size );
-          
-          String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
-          if( ip_tos.length() > 0 ) sckClient.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+      	try{
+	        SocketChannel sckClient = sck.accept();
+	        
+	        successfull_accepts++;
+	        
+	        if (sckClient != null) {
+	          LGLogger.log(
+	            componentID,
+	            evtNewConnection,
+	            LGLogger.RECEIVED,
+	            "PEPeerServer has accepted an incoming connection from : "
+	            + sckClient.socket().getInetAddress().getHostAddress());
+	          
+	          int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
+	          if( snd_size > 0 ) sckClient.socket().setSendBufferSize( snd_size );
+	          
+	          String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
+	          if( ip_tos.length() > 0 ) sckClient.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+	
+	          sckClient.configureBlocking(false);
+	          
+	          adapter.addPeerTransport(sckClient);
+	          
+	          sckClient = null;
+	        }
+	        else {
+	          LGLogger.log(
+	              componentID,
+	              evtLyfeCycle,
+					  LGLogger.INFORMATION,
+					  "PEPeerServer SocketChannel is null");
+	          Thread.sleep(1000);
+	        }
+      	}catch( Throwable e ){
+      		
+			failed_accepts++;
+			
+			LGLogger.log( "PEPeerServer: listener failed on port " + TCPListenPort, e ); 
 
-          sckClient.configureBlocking(false);
-          
-          adapter.addPeerTransport(sckClient);
-          
-          sckClient = null;
-        }
-        else {
-          LGLogger.log(
-              componentID,
-              evtLyfeCycle,
-				  LGLogger.INFORMATION,
-				  "PEPeerServer SocketChannel is null");
-          Thread.sleep(1000);
-        }
+			if ( failed_accepts > 100 && successfull_accepts == 0 ){
+
+					// looks like its not going to work...
+					// some kind of socket problem
+								
+				LGLogger.logUnrepeatableAlertUsingResource( 
+						LGLogger.AT_ERROR,
+						"Network.alert.acceptfail",
+						new String[]{ ""+TCPListenPort, "TCP" } );
+								
+				break;
+			}
+      	}
       } 
-    }
-    catch (Exception e) {
-      if (bContinue)
-        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "PEPeerServer has caught an error : " + e);
-    }
+ 
 
-    LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "PEPeerServer is stopped");
+      LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "PEPeerServer is stopped");
   }
 
   	public PEPeerTransport

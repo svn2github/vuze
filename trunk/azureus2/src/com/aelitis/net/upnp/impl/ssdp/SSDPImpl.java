@@ -25,6 +25,7 @@ package com.aelitis.net.upnp.impl.ssdp;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.net.upnp.*;
@@ -346,6 +347,11 @@ SSDPImpl
 		InetAddress			local_address,
 		DatagramSocket		socket )
 	{
+		long	successful_accepts 	= 0;
+		long	failed_accepts		= 0;
+
+		int	port = socket.getPort();
+		
 		while(true){
 			
 			try{
@@ -354,26 +360,26 @@ SSDPImpl
 				DatagramPacket packet = new DatagramPacket(buf, buf.length );
 								
 				socket.receive( packet );
-											
+					
+				successful_accepts++;
+				
 				receivePacket( local_address, packet );
 				
 			}catch( Throwable e ){
 				
-				Debug.printStackTrace( e );
+				failed_accepts++;
 				
-					// get out of here - on some systems we seem to get a screaming loop here
-					// complaining about "socket operation on non-socket":
-					/*
-					[2:11:31]  DEBUG::Tue Dec 07 02:11:31 EST 2004
-					[2:11:31]    java.net.SocketException: Socket operation on nonsocket: timeout in datagram socket peek
-					[2:11:31]  	at java.net.PlainDatagramSocketImpl.peekData(Native Method)
-					[2:11:31]  	at java.net.DatagramSocket.receive(Unknown Source)
-					[2:11:31]  	at com.aelitis.net.upnp.impl.ssdp.SSDPImpl.handleSocket(SSDPImpl.java:356)
-					[2:11:31]  	at com.aelitis.net.upnp.impl.ssdp.SSDPImpl$2.runSupport(SSDPImpl.java:196)
-					[2:11:31]  	at org.gudy.azureus2.core3.util.AEThread.run(AEThread.java:45)
-					*/
-				
-				break;
+				LGLogger.log( "PRUDPPacketReceiver: receive failed on port " + port, e ); 
+
+				if ( failed_accepts > 100 && successful_accepts == 0 ){
+					
+					LGLogger.logUnrepeatableAlertUsingResource( 
+							LGLogger.AT_ERROR,
+							"Network.alert.acceptfail",
+							new String[]{ ""+port, "UDP" } );
+			
+					break;
+				}
 			}
 		}
 	}

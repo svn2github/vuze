@@ -87,7 +87,8 @@ public class NatCheckerServer extends AEThread{
           	sck.getOutputStream().write(check.getBytes());
           }
         } catch(Exception e) {
-          bContinue = false;
+        	Debug.printStackTrace(e);
+        	bContinue = false;
         }
       }
     }
