@@ -35,6 +35,7 @@ import java.util.zip.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
@@ -608,155 +609,181 @@ TRTrackerClientClassicImpl
   }
 
  	private byte[] 
- 	updateOld(URL reqUrl,String evt)
+ 	updateOld(
+ 		URL 		reqUrl,
+		String 		evt)
   
   		throws Exception
 	{
-  		String	failure_reason = null;
-  	
-		try{      
-	  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
-	  
-			HttpURLConnection con;
-			
-	  		if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
-	  			
-	  				// see ConfigurationChecker for SSL client defaults
-	  				
-	  			HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
-	  			
-	  				// allow for certs that contain IP addresses rather than dns names
-	  				
-	  			ssl_con.setHostnameVerifier(
-	  				new HostnameVerifier()
-	  				{
-	  					public boolean
-	  					verify(
-	  						String		host,
-	  						SSLSession	session )
-	  					{
-	  						return( true );
-	  					}
-	  				});
-	  				
-	  			con = ssl_con;
-	  			
-	  		}else{
-	  		
-	  			con = (HttpURLConnection) reqUrl.openConnection();
-	  		}
+ 		
+ 			// loop to possibly retry update on SSL certificate install
+ 		
+ 		for (int i=0;i<2;i++){	
+ 		
+	  		String	failure_reason = null;
 	  	
-         con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
-        
-	  	   // some trackers support gzip encoding of replies
-	  		
-	  		con.addRequestProperty("Accept-Encoding","gzip");
-	  		
-	  		ByteArrayOutputStream message = new ByteArrayOutputStream();
-	  	  
- 	  		con.connect();
-	  	  
-	  		InputStream is = null;
-	  
-			try{
+			try{      
+		  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client is Requesting : " + reqUrl);
+		  
+				HttpURLConnection con;
 				
-		  		is = con.getInputStream();
-		  		
-		  		String encoding = con.getHeaderField( "content-encoding");
-		  				  		
-		  		boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
-		  		
-		  		// System.out.println( "encoding = " + encoding );
-		  		
-		  		if ( gzip ){
+		  		if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
 		  			
-		  			is = new GZIPInputStream( is );
+		  				// see ConfigurationChecker for SSL client defaults
+		  				
+		  			HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+		  			
+		  				// allow for certs that contain IP addresses rather than dns names
+		  				
+		  			ssl_con.setHostnameVerifier(
+		  				new HostnameVerifier()
+		  				{
+		  					public boolean
+		  					verify(
+		  						String		host,
+		  						SSLSession	session )
+		  					{
+		  						return( true );
+		  					}
+		  				});
+		  				
+		  			con = ssl_con;
+		  			
+		  		}else{
+		  		
+		  			con = (HttpURLConnection) reqUrl.openConnection();
 		  		}
-				  //      int length = con.getContentLength();
-		  		  //      System.out.println(length);
-		  
-		  		byte[] data = new byte[1024];
+		  	
+		  		con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
+	        
+		  			// some trackers support gzip encoding of replies
 		  		
-		  		int nbRead = 0;
+		  		con.addRequestProperty("Accept-Encoding","gzip");
 		  		
-		  		while (nbRead >= 0) {
-		  			
-					try{
-			  			nbRead = is.read(data);
-			  			
-			  			if (nbRead >= 0){
-			  			
-							message.write(data, 0, nbRead);
-			  			}
-			  			
-			  			Thread.sleep(20);
-			  			
-					}catch (Exception e){
-						
-			  			LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
-			  			LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
-			  			
-						nbRead = -1;
-						
-			  			failure_reason = exceptionToString( e );
-					}
-		  		}
+		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
+		  	  
+	 	  		con.connect();
+		  	  
+		  		InputStream is = null;
 		  
-		  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
-		  
-			}catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
-			
-				failure_reason = "SSL not supported";
-			
-			}catch (Exception ignore){
-			
-				// ignore.printStackTrace();
-			
-				failure_reason = exceptionToString( ignore );
-			
-			}finally{
-				
-		  		if (is != null) {
-		  			
-					try {
-			  			is.close();
+				try{
+					
+			  		is = con.getInputStream();
+			  		
+			  		String encoding = con.getHeaderField( "content-encoding");
+			  				  		
+			  		boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
+			  		
+			  		// System.out.println( "encoding = " + encoding );
+			  		
+			  		if ( gzip ){
 			  			
-					}catch (Exception e) {
+			  			is = new GZIPInputStream( is );
+			  		}
+					  //      int length = con.getContentLength();
+			  		  //      System.out.println(length);
+			  
+			  		byte[] data = new byte[1024];
+			  		
+			  		int nbRead = 0;
+			  		
+			  		while (nbRead >= 0) {
+			  			
+						try{
+				  			nbRead = is.read(data);
+				  			
+				  			if (nbRead >= 0){
+				  			
+								message.write(data, 0, nbRead);
+				  			}
+				  			
+				  			Thread.sleep(20);
+				  			
+						}catch (Exception e){
+							
+				  			LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
+				  			LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
+				  			
+							nbRead = -1;
+							
+				  			failure_reason = exceptionToString( e );
+						}
+			  		}
+			  
+			  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
+			  
+			
+				}catch (Exception e){
+				
+					// e.printStackTrace();
+				
+					failure_reason = exceptionToString( e );
+				
+				}finally{
+					
+			  		if (is != null) {
+			  			
+						try {
+				  			is.close();
+				  			
+						}catch (Exception e) {
+						}
+				
+						is = null;
 					}
-			
-					is = null;
 				}
-			}
-		
-				// if we've got some kind of response then return it
 			
-			if ( message.size() > 0 ){
-		
-				return( message.toByteArray());
+					// if we've got some kind of response then return it
 				
-			}else{
-				
-				if ( failure_reason == null ){
-				
-					failure_reason = "No data received from tracker";
+				if ( message.size() > 0 ){
+			
+					return( message.toByteArray());
+					
+				}else{
+					
+					if ( failure_reason == null ){
+					
+						failure_reason = "No data received from tracker";
+					}
 				}
-			}
-
-		}catch (Exception e){
-	  
-	  		//e.printStackTrace();
-	  
-	  		failure_reason = exceptionToString( e );
-		}
-			
-		if ( failure_reason.indexOf("401" ) != -1 ){
-				
-			failure_reason = "Tracker authentication failed";
-		}
 	
-		LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while processing the Tracker Request : " + failure_reason);
+			}catch( SSLHandshakeException e ){
+				
+				// e.printStackTrace();
+								
+				if ( i == 0 && e.getMessage().indexOf("No trusted certificate found") != -1 ){
+					
+					if ( SESecurityManager.installServerCertificates( reqUrl )){
+						
+							// certificate has been installed
+						
+						continue;	// retry with new certificate
+						
+					}else{
+						
+						failure_reason = exceptionToString( e );
+					}
+				}
+			}catch (Exception e){
+		  
+		  		// e.printStackTrace();
+		  
+		  		failure_reason = exceptionToString( e );
+			}
+				
+			if ( failure_reason.indexOf("401" ) != -1 ){
+					
+				failure_reason = "Tracker authentication failed";
+			}
 		
-		throw( new Exception( failure_reason));
+			LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while processing the Tracker Request : " + failure_reason);
+			
+			throw( new Exception( failure_reason));
+ 		}
+ 		
+ 			// should never get here as second iteration of loop will always cause an exit
+ 		
+ 		throw( new Exception( "Internal Error: should never get here" ));
   	}
   
   protected String

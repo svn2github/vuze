@@ -25,7 +25,7 @@ package org.gudy.azureus2.core3.config.impl;
 import java.util.HashMap;
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.security.*;
 
 /**
  * 
@@ -41,29 +41,21 @@ public class ConfigurationChecker {
   private static boolean checked = false;
   public static boolean changed = false;
   
-  	// SSL client defaults
-  	
-  private static String SSL_CERTS 		= ".certs";
-  private static String SSL_PASSWORD 	= "changeit";
-
+ 
   public static void
   setSystemProperties()
   {
+  		// DNS cache timeouts
+  	
   	System.setProperty("sun.net.inetaddr.ttl", "60");
   	System.setProperty("networkaddress.cache.ttl", "60");
+  	
+  		// socket connect/read timeouts
+  	
   	System.setProperty("sun.net.client.defaultConnectTimeout", "120000");
   	System.setProperty("sun.net.client.defaultReadTimeout", "60000");
-  	// keytool -genkey -keystore %home%\.keystore -keypass changeit -storepass changeit -keyalg rsa -alias azureus
-
-  	// keytool -export -keystore %home%\.keystore -keypass changeit -storepass changeit -alias azureus -file azureus.cer
-
-  	// keytool -import -keystore %home%\.certs -alias azureus -file azureus.cer			
-  	
-  	// debug SSL with -Djavax.net.debug=ssl
-  	
-  	System.setProperty( "javax.net.ssl.trustStore", FileUtil.getApplicationFile(SSL_CERTS).getAbsolutePath());
-  	
-  	System.setProperty( "javax.net.ssl.trustStorePassword", SSL_PASSWORD );
+  
+  	SESecurityManager.initialise();
   }
   
   public static synchronized void 
