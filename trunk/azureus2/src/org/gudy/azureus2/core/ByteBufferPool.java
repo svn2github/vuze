@@ -23,7 +23,8 @@ public class ByteBufferPool {
   public final static int evtAllocation = 0; // Allocation Info    
 
   private static ByteBufferPool pool;
-  private ArrayList buffers;
+  private ArrayList usedBuffers;
+  private ArrayList freeBuffers;
 
   // Here's the logic of SIZE, piece packet are assumed to be
   // the biggest packet (only bitfield could be bigger, but that'd require
@@ -40,29 +41,17 @@ public class ByteBufferPool {
   // that pool isn't too small
   // Let's assume 1Mb initial mem use is not a problem
   // 32k a buffer, that's 40 buffers
-  private static final int INITIAL_CAPACITY = 0;
+  private static final int INITIAL_CAPACITY = 1009;
 
   private ByteBufferPool() {
-    buffers = new ArrayList(INITIAL_CAPACITY);
-  }
-
-  private ByteBufferPool(int initialCapacity) {
-    this();
-    for (int i = 0; i < initialCapacity; i++)
-      allocateNewBuffer();
+    usedBuffers = new ArrayList(INITIAL_CAPACITY);
+    freeBuffers = new ArrayList(INITIAL_CAPACITY);
   }
 
   private ByteBuffer allocateNewBuffer() {
-    Logger.getLogger().log(
-      componentID,
-      evtAllocation,
-      Logger.INFORMATION,
-      "Allocating new Buffer -- Current Pool Size : "
-        + (buffers.size() + 1)
-        + " buffers");
     try {
       ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE+1);
-      buffers.add(buffer);
+      usedBuffers.add(buffer);
       //System.out.println("Pool Size :" + buffers.size());
       return buffer;
     } catch (Exception e) {
@@ -78,46 +67,26 @@ public class ByteBufferPool {
   public static synchronized ByteBufferPool getInstance() {
     if (pool != null)
       return pool;
-    pool = new ByteBufferPool(INITIAL_CAPACITY);
+    pool = new ByteBufferPool();
     return pool;
   }
 
   public synchronized ByteBuffer getFreeBuffer() {
-    Logger.getLogger().log(
-      componentID,
-      evtAllocation,
-      Logger.INFORMATION,
-      "Giving 1 free Buffer");
-    //return ByteBuffer.allocateDirect(SIZE);       
-    for (int i = 0; i < buffers.size(); i++) {
-      ByteBuffer buffer = (ByteBuffer) buffers.get(i);
-      if (buffer.position() == SIZE) {
-        buffer.position(0);
-        return buffer;
-      }
+    if(freeBuffers.size() == 0) {
+      return allocateNewBuffer();
+    } else {
+      return (ByteBuffer) freeBuffers.remove(freeBuffers.size()-1);
     }
-    ByteBuffer buffer = allocateNewBuffer();
-    buffer.position(0);
-    return buffer;
   }
 
   public synchronized void freeBuffer(ByteBuffer buffer) {
-    int index = buffers.indexOf(buffer);
-		if(index == -1) return;
-/*
-    try {
-		if(index == -1) throw new Exception("freeBuffer: buffer not registered");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
-*/
-    Logger.getLogger().log(
-      componentID,
-      evtAllocation,
-      Logger.INFORMATION,
-      "Freeing 1 buffer");
-    buffer.limit(buffer.capacity());
-    buffer.position(SIZE);
+    if(usedBuffers.remove(buffer)) {
+      buffer.clear();
+      freeBuffers.add(buffer);
+    }
+  }
+
+  public synchronized void clearFreeBuffers() {
+    freeBuffers.clear();
   }
 }
