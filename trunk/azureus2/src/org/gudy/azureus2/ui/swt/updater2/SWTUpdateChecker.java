@@ -102,7 +102,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 	      	e.printStackTrace();
 	      }
 	      
-	      checker.addUpdate("SWT Libray for " + versionGetter.getPlatform(),
+	      checker.addUpdate("SWT Library for " + versionGetter.getPlatform(),
 	          new String[] {"SWT is the graphical library used by Azureus"},
 	          "" + versionGetter.getLatestVersion(),
 	          swtDownloader,
