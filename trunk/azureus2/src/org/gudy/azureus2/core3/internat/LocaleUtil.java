@@ -274,7 +274,8 @@ LocaleUtil
  			// get canonical name
 	  		
 			try{
-				String canonical_name = Charset.forName(encoding).name();
+				String canonical_name = encoding.equals(fallback_decoder.getName())?encoding:
+											Charset.forName(encoding).name();
 	
 				for (int i=0;i<all_decoders.length;i++){
 					

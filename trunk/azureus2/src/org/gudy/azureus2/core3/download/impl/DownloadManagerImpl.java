@@ -556,6 +556,8 @@ DownloadManagerImpl
 			
 		}catch( TOTorrentException e ){
 		
+			e.printStackTrace();
+			
 			nbPieces = 0;
         		
 			setState( STATE_ERROR );
@@ -564,6 +566,8 @@ DownloadManagerImpl
  			
 		}catch( UnsupportedEncodingException e ){
 		
+			e.printStackTrace();
+			
 			nbPieces = 0;
         		
 			setState( STATE_ERROR );
@@ -571,6 +575,8 @@ DownloadManagerImpl
 			errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
 			
 		}catch( Exception e ){
+			
+			e.printStackTrace();
 			
 			nbPieces = 0;
     		

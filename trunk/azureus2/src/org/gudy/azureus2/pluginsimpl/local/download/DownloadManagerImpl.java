@@ -194,7 +194,13 @@ DownloadManagerImpl
 				
 				for (int i=0;i<listeners.size();i++){
 					
-					((DownloadManagerListener)listeners.get(i)).downloadAdded( dl );
+					try{
+						((DownloadManagerListener)listeners.get(i)).downloadAdded( dl );
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
 				}
 			}
 		}

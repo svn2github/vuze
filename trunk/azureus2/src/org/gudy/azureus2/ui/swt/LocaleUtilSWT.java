@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -19,8 +18,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
@@ -30,6 +27,7 @@ import org.eclipse.swt.widgets.TableItem;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 /**
@@ -40,9 +38,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 public class 
 LocaleUtilSWT 
 	implements LocaleUtilListener
-{
-  boolean waitForUserInput = true;
-    
+{    
   protected static boolean 				rememberEncodingDecision = true;
   protected static LocaleUtilDecoder 	rememberedDecoder 		 = null;
   protected static Object				remembered_on_behalf_of;
@@ -115,38 +111,45 @@ LocaleUtilSWT
 		}
     }
     
-    ArrayList choosableCandidates = new ArrayList(5);
+    ArrayList choosableCandidates = new ArrayList();
     
-    choosableCandidates.add(candidates[0]);
-       
+    	// Always stick the default candidate in position 0 if valid
+    
+    if ( defaultString != null ){
+    	
+    	choosableCandidates.add( default_candidate );  	
+    }
+    
     LocaleUtilDecoder[]	general_decoders = locale_util.getGeneralDecoders();
     
-    // add all general candidates with names not already in the list
+    	// 	add all general candidates with names not already in the list
+    
     for (int j = 0; j < general_decoders.length; j++) {
     	
-      for (int i = 1; i < candidates.length; i++) {
+      for (int i = 0; i < candidates.length; i++) {
       	
       	if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) continue;
       	
-        if(		general_decoders[j] != null && 
-        		general_decoders[j].getName().equals(candidates[i].getDecoder().getName())){
-        	
-        	if (!choosableCandidates.contains(candidates[i])) {
-       
-        		choosableCandidates.add(candidates[i]);
-        		
-        		break;
-        	}
-        }
-      }
+	        if(		general_decoders[j] != null && 
+	        		general_decoders[j].getName().equals(candidates[i].getDecoder().getName())){
+	        	
+	        	if (!choosableCandidates.contains(candidates[i])) {
+	       
+	        		choosableCandidates.add(candidates[i]);
+	        		
+	        		break;
+	        	}
+	        }
+      	}
     }
     
-    // add the remaining possible locales
-   	for (int i = 1; i < candidates.length; i++){
+    	// add the remaining possible locales
+    
+   	for (int i = 0; i < candidates.length; i++){
    		
    		if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) continue;
    		
-   		if(!choosableCandidates.contains(candidates[i])){
+   		if (!choosableCandidates.contains(candidates[i])){
    			
    			choosableCandidates.add(candidates[i]);
    		}
@@ -155,9 +158,7 @@ LocaleUtilSWT
 
     final LocaleUtilDecoderCandidate[] candidatesToChoose = (LocaleUtilDecoderCandidate[]) choosableCandidates.toArray(new LocaleUtilDecoderCandidate[choosableCandidates.size()]);
     final LocaleUtilDecoderCandidate[] selected_candidate = {null};
-    
-    waitForUserInput	= true;
-    
+        
     MainWindow window = MainWindow.getWindow();
     
     	// can get here if torrent already added in non-swt ui mode with dodgy encoding
@@ -167,40 +168,24 @@ LocaleUtilSWT
     	return( default_candidate );
     }
     
+    final Semaphore[]	lock = { new Semaphore()};
+    
     MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
       public void run() {
       	try{
-        	showChoosableEncodingWindow(MainWindow.getWindow().getShell(), candidatesToChoose,selected_candidate);
+        	showChoosableEncodingWindow(lock[0], MainWindow.getWindow().getShell(), candidatesToChoose,selected_candidate);
         	
       	}catch( Throwable e ){
       		
-      		e.printStackTrace();	
-      	}finally{
-      	
-        	synchronized( LocaleUtilSWT.this ){
-        
-        		waitForUserInput = false;
-        	}
+      		e.printStackTrace();
+      		
+      		lock[0].release();
         }
       }
     });
     
-    while(true) {
+    lock[0].reserve();
     
-      synchronized( this ){
-      	
-      	if ( !waitForUserInput ){
-      		
-      		break;
-      	}
-      }
-		
-      try {
-        Thread.sleep(100);
-      } catch (Exception ignore) {
-      }
-    }
-
     if ( selected_candidate[0] == null ){
     
     	throw( new LocaleUtilEncodingException( true ));
@@ -212,11 +197,11 @@ LocaleUtilSWT
 
   private void 
   showChoosableEncodingWindow(
-  		final Shell shell, 
-		final LocaleUtilDecoderCandidate[] 	candidates,
-		final LocaleUtilDecoderCandidate[]	selected_candidate ) 
+  		final Semaphore	lock,
+  		final 			Shell shell, 
+		final 			LocaleUtilDecoderCandidate[] 	candidates,
+		final 			LocaleUtilDecoderCandidate[]	selected_candidate ) 
   {
-    final Display display = shell.getDisplay();
     final Shell s = new Shell(shell, SWT.TITLE | SWT.RESIZE | SWT.PRIMARY_MODAL );
     s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     s.setText(MessageText.getString("LocaleUtil.title")); //$NON-NLS-1$
@@ -323,12 +308,16 @@ LocaleUtilSWT
       public void widgetSelected(SelectionEvent event) {
       	//abandonSelection(s);
         setSelectedIndex(s, table, checkBox, candidates,selected_candidate);
+        
+        lock.release();
       }
     });
 
     table.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent mEvent) {
         setSelectedIndex(s, table, checkBox, candidates,selected_candidate);
+        
+        lock.release();
       }
     });
 

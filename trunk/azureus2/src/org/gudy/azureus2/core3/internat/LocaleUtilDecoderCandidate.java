@@ -84,8 +84,10 @@ LocaleUtilDecoderCandidate
 		}
 	  }
       
-	  // System.out.println( "comp:" + this.name + "/" + candidate.name + " -> " + res );
-      
+	  if ( decoder != null && candidate.getDecoder() != null ){
+	  	
+	  	// System.out.println( "comp:" + decoder.getName() + "/" + candidate.getDecoder().getName() + " -> " + res );
+	  }
 	  return( res );
 	}
 	

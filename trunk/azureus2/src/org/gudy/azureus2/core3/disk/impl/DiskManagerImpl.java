@@ -152,6 +152,8 @@ DiskManagerImpl
 			
 		}catch( TOTorrentException e ){
 			
+			e.printStackTrace();
+			
 			this.errorMessage = TorrentUtils.exceptionToText(e) + " (Constructor)";
 			
 			setState( FAULTY );
@@ -159,6 +161,8 @@ DiskManagerImpl
 			return;
 			
 		}catch( Throwable e ){
+			
+			e.printStackTrace();
 			
 			this.errorMessage = e.getMessage() + " (Constructor)";
 			

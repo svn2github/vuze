@@ -176,6 +176,8 @@ StatsWriterImpl
 						
 						writeLineRaw( "<TORRENT>" );
 
+							// torrent can be null if broken torrent!
+						
 						TOTorrent torrent = dm.getTorrent();
 															
 						try{
@@ -215,13 +217,16 @@ StatsWriterImpl
 						
 						writeTag( "DOWNLOAD_DIR", dm.getTorrentSaveDirAndFile());
 						
-						if ( torrent.isSimpleTorrent()){
-						
-							writeTag( "TARGET_FILE", dm.getTorrentSaveDirAndFile());
+						if ( torrent != null ){
+								
+							if ( torrent.isSimpleTorrent()){
 							
-						}else{
-							
-							writeTag( "TARGET_DIR", dm.getTorrentSaveDirAndFile());
+								writeTag( "TARGET_FILE", dm.getTorrentSaveDirAndFile());
+								
+							}else{
+								
+								writeTag( "TARGET_DIR", dm.getTorrentSaveDirAndFile());
+							}
 						}
 						
 						writeTag( "TRACKER_STATUS", dm.getTrackerStatus());
