@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.pluginsimpl.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
@@ -109,7 +111,7 @@ public class PeerRow implements SortableItem {
     });  
   }
 
-  public void refresh() {
+  public void refresh(boolean bDoGraphics) {
     if (display == null || display.isDisposed())
       return;
     if (row == null || row.isDisposed())
@@ -117,22 +119,53 @@ public class PeerRow implements SortableItem {
     Iterator iter = items.iterator();
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
-      item.refresh();
+      if (item.isShown() && (!item.needsPainting() || bDoGraphics)) {
+        item.refresh();
+      }
     }
     valid = true;
   }
   
-  public void doPaint(Rectangle clipping) {   
+  /** Calls doPaint for each BufferentTableItem in row if that item 
+      has needsPainting set to true.
+    */
+  public void doPaint(GC gc) {
   	if (table == null || table.isDisposed())
   		return;
   	if (row == null || row.isDisposed())
   		return;
+  		
+    Rectangle dirtyBounds = gc.getClipping();
+    Rectangle tableBounds = table.getClientArea();
+    // all OSes, scrollbars are excluded (I hope!)
+    // some OSes (all?), table header is included in client area
+    if (tableBounds.y < table.getHeaderHeight()) {
+      tableBounds.y = table.getHeaderHeight();
+    }
 
   	Iterator iter = items.iterator();
   	while(iter.hasNext()) {
   		BufferedTableItem item = (BufferedTableItem) iter.next();
-  		if(item.needsPainting())
-  			item.doPaint(clipping);
+  		if (item.needsPainting()) {
+  		  Rectangle cellBounds = item.getBounds();
+  		  if (cellBounds != null && cellBounds.y >= table.getHeaderHeight()) {
+    		  Rectangle clippedBounds = dirtyBounds.intersection(cellBounds.intersection(tableBounds));
+    		  if (clippedBounds.width > 0 && clippedBounds.height > 0) {
+      		  gc.setClipping(clippedBounds);
+/*
+            debugOut("doPaint()"+gc+
+                    "\nClippingOld: "+dirtyBounds+
+                    "\nclippingNew: "+clippedBounds+
+                    "\nclippingNew: "+gc.getClipping()+
+                    "\ndirtyBounds: "+dirtyBounds+
+                    "\ncellbounds: "+cellBounds,
+                    false);
+*/
+      			item.doPaint(gc);
+      			gc.setClipping(dirtyBounds);
+      		}
+    		}
+  		}
   	}
   }
 
@@ -290,4 +323,15 @@ public class PeerRow implements SortableItem {
     return null;
   }
 
+  public void debugOut(String s, boolean bStackTrace) {
+    if (table == null || table.isDisposed() || row == null)
+      return;
+    TableItem[] ti = table.getSelection();
+    for (int i = 0; i < ti.length; i++) {
+      if (ti[i] == row.getItem()) {
+        System.out.println(s);
+        if (bStackTrace) Debug.outStackTrace(3);
+      }
+    }
+  }
 }

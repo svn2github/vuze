@@ -29,15 +29,12 @@ import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
-import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
  *
  */
-public class HealthItem extends TorrentItem  {
-  
-  Image image;
+public class HealthItem extends TorrentGraphicItem  {
   
   /**
    * @param row
@@ -45,6 +42,8 @@ public class HealthItem extends TorrentItem  {
    */
   public HealthItem(TorrentRow torrentRow, int position) {
     super(torrentRow, position);
+    fillCell = false;
+    disposeGraphic = false;
   }
   
   public void refresh() {
@@ -66,42 +65,8 @@ public class HealthItem extends TorrentItem  {
     }
     image_name += "_selected";
     
-    image = ImageRepository.getImage(image_name);
-    
-    doPaint(getBounds(),true);
-  }
-  
-  public boolean needsPainting() {
-   return true; 
-  }
-  
-  public void doPaint(Rectangle clipping) {
-    doPaint(clipping,false);
-  }
-  
-  public void doPaint(Rectangle clipping,boolean ignoreValid) {
-    BufferedTableRow row = torrentRow.getRow();
-    
-    if (row == null || row.isDisposed())
-      return;
-    
-    //Compute bounds ...
-    Rectangle bounds = getBounds();
-    //In case item isn't displayed bounds is null
-    if(bounds == null)
-      return;
-
-    int x0 = bounds.x + 1;
-    int y0 = bounds.y + VerticalAligner.getTableAdjustVerticalBy(row.getTable());
-    
-    if(image != null) {
-      GC gc = new GC(row.getTable());
-      gc.setClipping(clipping);
-      gc.drawImage(image, x0, y0);
-      gc.dispose();     
-    } 
-  }
-  
-  public void dispose() {    
+    if (setGraphic(ImageRepository.getImage(image_name))) {
+      doPaint();
+    }
   }
 }

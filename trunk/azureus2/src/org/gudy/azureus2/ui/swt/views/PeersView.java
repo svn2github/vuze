@@ -16,6 +16,7 @@ import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -144,21 +145,6 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
       public void controlResized(ControlEvent e) {
         TableColumn column = (TableColumn) e.widget;
         Utils.saveTableColumn(column);
-        synchronized(objectToSortableItem) {
-          Iterator iter = objectToSortableItem.values().iterator();
-          // area that has changed is everything including and after column
-          Rectangle bounds = column.getParent().getBounds();
-          TableColumn[] columns = column.getParent().getColumns();
-          for (int i = 0; i < columns.length; i++) {
-            bounds.x += columns[i].getWidth();
-            if (columns[i] == column)
-              break;
-          }
-          while(iter.hasNext()) {
-            PeerRow row = (PeerRow) iter.next();
-            row.doPaint(bounds);
-          }
-        }        
         int columnNumber = table.indexOf(column);
         PeersViewEventDispacher.getInstance().columnSizeChanged(columnNumber,column.getWidth());
       }
@@ -198,7 +184,7 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
     table.addPaintListener(new PaintListener() {
     	public void paintControl(PaintEvent event) {
         if(event.width == 0 || event.height == 0) return;
-    		doPaint(new Rectangle(event.x,event.y,event.width,event.height));
+    		doPaint(event.gc);
     	}
     });
     
@@ -275,17 +261,13 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
       while (iter.hasNext()) {
         PeerRow pr = (PeerRow) iter.next();
         
-        // Every N GUI updates we unvalidate the images
-        if (loopFactor % graphicsUpdate == 0)
-          pr.invalidate();
-        
-        pr.refresh();
-        
+        // Every N GUI updates we refresh graphics
+        pr.refresh((loopFactor % graphicsUpdate) == 0);
       }
     }
   }
   
-  private void doPaint(Rectangle clipping) {
+  private void doPaint(GC gc) {
   	if (getComposite() == null || getComposite().isDisposed())
   		return;    
     
@@ -293,7 +275,7 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
   		Iterator iter = objectToSortableItem.values().iterator();
   		while (iter.hasNext()) {
   			PeerRow pr = (PeerRow) iter.next();  		  			
-  			pr.doPaint(clipping);  			
+  			pr.doPaint(gc);  			
   		}
   	}
   }

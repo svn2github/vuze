@@ -27,18 +27,17 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
-import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
  *
  */
-public class CompletionItem extends TorrentItem  {
+public class CompletionItem extends TorrentGraphicItem  {
   
-  //The Buffered image;
-  Image image;
-  //And its size
-  Point imageSize;
+  private static final int borderWidth = 1;
+  int lastPercentDone = 0;
+  int lastWidth = 0;
+  
   
   /**
    * @param row
@@ -51,85 +50,71 @@ public class CompletionItem extends TorrentItem  {
   public void refresh() {    
     boolean valid = torrentRow.isValid();    
     BufferedTableRow row = torrentRow.getRow();
-    
     if (row == null || row.isDisposed())
       return;
     
     //Compute bounds ...
-    Rectangle bounds = getBounds();
-    //In case item isn't displayed bounds is null
-    if(bounds == null)
-      return;
-    
-    int width = bounds.width - 2;
-    int height = bounds.height - 2;
-    if (width < 10 || height < 2)
-      return;
+    Rectangle bounds = getBoundsForCanvas();
 
-    if (!valid || image == null) {
-      Image oldImage = null;
-      if (image == null || ! imageSize.equals(new Point(width,height))) {
-        oldImage = image;
-        image = new Image(torrentRow.getTableItem().getDisplay(), width, height);
-        imageSize = new Point(width,height);
-      }
-      GC gcImage = new GC(image);
-      int percentDone = torrentRow.getManager().getStats().getDownloadCompleted(true);
-      gcImage.setBackground(MainWindow.blues[0]);
-      gcImage.fillRectangle(1,1,width,height - 2);
-      gcImage.setBackground(MainWindow.blues[4]);
-      gcImage.fillRectangle(1,1,(percentDone*(width-2))/1000,height - 2);
-      gcImage.setForeground(MainWindow.grey);
-      gcImage.drawRectangle(0, 0, width-1, height-1);
-      gcImage.dispose();
-      
-      if (oldImage != null && !oldImage.isDisposed())
-        oldImage.dispose();
-      
-      doPaint(bounds,true);
-    }
-  }
-  
-  public boolean needsPainting() {
-   return true; 
-  }
-  
-  public void doPaint(Rectangle clipping) {
-    doPaint(clipping,false);
-  }
-  
-  public void doPaint(Rectangle clipping,boolean ignoreValid) {
-    boolean valid = ignoreValid || torrentRow.isValid();    
-    BufferedTableRow row = torrentRow.getRow();
-    
-    if (row == null || row.isDisposed())
-      return;
-    
-    //Compute bounds ...
-    Rectangle bounds = getBounds();
     //In case item isn't displayed bounds is null
     if(bounds == null)
       return;
     
-    int width = bounds.width - 2;
-    int x0 = bounds.x + 1;
-    int y0 = bounds.y + 1 + VerticalAligner.getTableAdjustVerticalBy(getTable());
-    int height = bounds.height - 2;
-    if (width < 10 || height < 2)
+    int x1 = bounds.width - borderWidth - 1;
+    int y1 = bounds.height - borderWidth - 1;
+    if (x1 < 10 || y1 < 3) {
       return;
-    
-    if (valid  && image != null) {
-    	//Get the table GC
-      GC gc = new GC(row.getTable());
-      gc.setClipping(clipping);
-      gc.drawImage(image, x0, y0);
-      gc.dispose();   
     }
-  }
-  
-  public void dispose() {
-    if(image != null && ! image.isDisposed()) {
-      image.dispose();
+
+    int percentDone = torrentRow.getManager().getStats().getDownloadCompleted(true);
+    boolean bImageBufferValid = (lastPercentDone == percentDone) && (lastWidth == bounds.width);
+    if (bImageBufferValid) {
+      return;
+    }
+
+    lastPercentDone = percentDone;
+    lastWidth = bounds.width;
+
+    Image image = getGraphic();
+    GC gcImage;
+    boolean bImageSizeChanged;
+    Rectangle imageBounds;
+    if (image == null) {
+      bImageSizeChanged = true;
+    } else {
+      imageBounds = image.getBounds();
+      bImageSizeChanged = imageBounds.width != bounds.width ||
+                          imageBounds.height != bounds.height;
+    }
+    if (bImageSizeChanged) {
+      image = new Image(torrentRow.getTableItem().getDisplay(), bounds.width, bounds.height);
+      imageBounds = image.getBounds();
+      bImageBufferValid = false;
+
+      // draw border
+      gcImage = new GC(image);
+      gcImage.setForeground(MainWindow.grey);
+      gcImage.drawRectangle(0, 0, bounds.width - 1, bounds.height - 1);
+    } else {
+      gcImage = new GC(image);
+    }
+
+    gcImage.setForeground(MainWindow.grey);
+    gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
+
+    int limit = (x1 * percentDone) / 1000;
+    gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
+    gcImage.fillRectangle(1,1,limit,y1);
+    if (limit < x1) {
+      gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+      gcImage.fillRectangle(limit+1,1,x1-limit,y1);
+    }
+
+    gcImage.dispose();
+      
+    if (!bImageBufferValid) {
+      setGraphic(image);
+      doPaint();
     }
   }
 }

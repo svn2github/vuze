@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
@@ -149,7 +150,7 @@ public class TorrentRow implements SortableItem {
     });
   }
 
-  public void refresh() {
+  public void refresh(boolean bDoGraphics) {
     if (table == null || table.isDisposed())
       return;
     if (row == null || row.isDisposed())
@@ -159,24 +160,42 @@ public class TorrentRow implements SortableItem {
     Iterator iter = items.iterator();
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
-      if (item.getPosition() != -1)
-        item.refresh();      
+      if (item.isShown() && (!item.needsPainting() || bDoGraphics)) {
+        item.refresh();
+      }
     }
     this.setValid(true);
   }
   
-  public void doPaint(Rectangle clipping) {
+  public void doPaint(GC gc) {
     if (table == null || table.isDisposed())
       return;
     if (row == null || row.isDisposed())
       return;
 
+    Rectangle dirtyBounds = gc.getClipping();
+    Rectangle tableBounds = table.getClientArea();
+    // all OSes, scrollbars are excluded (I hope!)
+    // some OSes (all?), table header is included in client area
+    if (tableBounds.y < table.getHeaderHeight()) {
+      tableBounds.y = table.getHeaderHeight();
+    }
+
     Iterator iter = items.iterator();
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
-      if(item.getPosition() != -1 && item.needsPainting())
-      	item.doPaint(clipping);
-    }    
+  		if (item.needsPainting()) {
+  		  Rectangle cellBounds = item.getBounds();
+  		  if (cellBounds != null && cellBounds.y >= table.getHeaderHeight()) {
+    		  Rectangle clippedBounds = dirtyBounds.intersection(cellBounds.intersection(tableBounds));
+    		  if (clippedBounds.width > 0 && clippedBounds.height > 0) {
+      		  gc.setClipping(clippedBounds);
+      			item.doPaint(gc);
+      			gc.setClipping(dirtyBounds);
+      		}
+    		}
+  		}
+    }
   }
 
   public int getIndex() {

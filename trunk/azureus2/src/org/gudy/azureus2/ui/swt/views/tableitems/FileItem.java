@@ -45,6 +45,7 @@ public class FileItem implements SortableItem{
 
   private int 	loopFactor;
   private long	last_draw_time;
+  private int lastWidth;
   
   public FileItem(Table table, DownloadManager manager, DiskManagerFileInfo fileInfo, Color blues[]) {
     this.display = table.getDisplay();
@@ -133,6 +134,10 @@ public class FileItem implements SortableItem{
     }
 
     Rectangle bounds = item.getBounds(6);
+    if (lastWidth != bounds.width) {
+      lastWidth = bounds.width;
+      valid = false;
+    }
     int width = bounds.width - 1;
     int x0 = bounds.x;
     int y0 = bounds.y + 1 + VerticalAligner.getTableAdjustVerticalBy(table);
@@ -208,17 +213,17 @@ public class FileItem implements SortableItem{
            nbAvailable = 1;    
         }
         
-        int index = (nbAvailable * 4) / (a1 - a0);
+        int index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
         //System.out.print(index);
         gcImage.setBackground(written?MainWindow.red:requested?MainWindow.grey:blues[index]);
-        gcImage.setForeground( fileInfo.getDownloaded() == fileInfo.getLength() ? blues[4] : black );
+        gcImage.setForeground( fileInfo.getDownloaded() == fileInfo.getLength() ? blues[MainWindow.BLUES_DARKEST] : black );
         gcImage.fillRectangle(i,1,1,height);
       }
       gcImage.dispose();
       
       last_draw_time = System.currentTimeMillis();
     }
-    gc.setForeground(blues[4]);
+    gc.setForeground(blues[MainWindow.BLUES_DARKEST]);
     gc.drawImage(piecesImage, x0, y0);
     gc.drawRectangle(x0, y0, width, height);
     gc.dispose();

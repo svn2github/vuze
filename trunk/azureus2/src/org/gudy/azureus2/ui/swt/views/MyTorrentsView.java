@@ -37,6 +37,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -449,13 +450,6 @@ public class MyTorrentsView extends AbstractIView
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {
         Utils.saveTableColumn((TableColumn) e.widget);
-        synchronized(objectToSortableItem) {
-          Iterator iter = objectToSortableItem.values().iterator();
-          while(iter.hasNext()) {
-            TorrentRow row = (TorrentRow) iter.next();
-            row.invalidate();
-          }
-        }
       }
     };
 
@@ -517,7 +511,7 @@ public class MyTorrentsView extends AbstractIView
     table.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent event) {
         if(event.width == 0 || event.height == 0) return;
-				doPaint(new Rectangle(event.x,event.y,event.width,event.height));
+				doPaint(event.gc);
 			}
     });
 
@@ -1284,11 +1278,8 @@ public class MyTorrentsView extends AbstractIView
         DownloadManager manager = (DownloadManager) iter.next();
         TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
         if (item != null) {
-          //Every N GUI updates we unvalidate the images
-          if ((loopFactor % graphicsUpdate) == 0) {
-            item.invalidate();
-          }
-          item.refresh();
+          // Every N GUI updates we refresh graphics
+          item.refresh((loopFactor % graphicsUpdate) == 0);
         }
       }
     }
@@ -1296,7 +1287,7 @@ public class MyTorrentsView extends AbstractIView
   }
 
 
-  private void doPaint(Rectangle clipping) {
+  private void doPaint(GC gc) {
     if (getComposite() == null || getComposite().isDisposed())
       return;
 
@@ -1308,7 +1299,7 @@ public class MyTorrentsView extends AbstractIView
         DownloadManager manager = (DownloadManager) iter.next();
         TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
         if (item != null) {
-          item.doPaint(clipping);
+          item.doPaint(gc);
         }
       }
     }
