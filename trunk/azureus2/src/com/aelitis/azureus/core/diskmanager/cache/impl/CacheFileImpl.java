@@ -707,16 +707,18 @@ CacheFileImpl
 							multi_block_entries.add( entry );
 							
 							if ( skip_chunk ){
-							
+								
+								if ( TRACE ){
+									
+									LGLogger.log( "flushCache: skipping " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "] as too small" );			
+								}
+							}else{
+								
 								multiBlockFlush(
 										f_multi_block_entries,
 										f_multi_block_start,
 										f_multi_block_next,
 										release_entries );
-							}else{
-								
-								LGLogger.log( "flushCache: skipping " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "] as too small" );			
-
 							}
 						}
 					}
