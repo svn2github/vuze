@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
@@ -100,7 +101,8 @@ public class MakeTorrent implements TOTorrentProgressListener {
         urls.add(_url);        
       }
       list.add(urls);            
-      torrent.setAdditionalListProperty("announce-list",list);
+      
+      TorrentUtils.listToAnnounceGroups(list, torrent);
     }
     
     try {

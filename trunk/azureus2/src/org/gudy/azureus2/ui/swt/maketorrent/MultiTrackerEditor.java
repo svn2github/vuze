@@ -59,7 +59,7 @@ public class MultiTrackerEditor {
   TrackerEditorListener listener;
   String oldName;
   String currentName;
-  
+  boolean	anonymous;
   
   List trackers;
   
@@ -75,12 +75,23 @@ public class MultiTrackerEditor {
   Menu menu;
   
   public MultiTrackerEditor(String name,List trackers,TrackerEditorListener listener) {
-    this.oldName = name;
+  	this( name, trackers, listener, false );
+  }
+  
+  public 
+  MultiTrackerEditor(
+  		String 					name,
+		List 					trackers,
+		TrackerEditorListener 	listener,
+		boolean					_anonymous ) 
+  {
+  		this.oldName = name;
     if(name != null)
       this.currentName = name;
     else
       this.currentName = "";
     this.listener = listener;
+    anonymous = _anonymous;
     this.trackers = new ArrayList(trackers);
     createWindow();
     
@@ -97,20 +108,23 @@ public class MultiTrackerEditor {
     
     GridData gridData;
     
-    Label labelName = new Label(shell,SWT.NULL);
-    Messages.setLanguageText(labelName,"wizard.multitracker.edit.name");
-    
-    textName = new Text(shell,SWT.BORDER);
-    textName.setText(currentName);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
-    textName.setLayoutData(gridData);
-    textName.addModifyListener(new ModifyListener() {
-	    public void modifyText(ModifyEvent arg0) {
-	      currentName = textName.getText();
-	      computeSaveEnable();
-	    }
-    });    
+    if ( !anonymous ){
+    	
+	    Label labelName = new Label(shell,SWT.NULL);
+	    Messages.setLanguageText(labelName,"wizard.multitracker.edit.name");
+	    
+	    textName = new Text(shell,SWT.BORDER);
+	    textName.setText(currentName);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalSpan = 2;
+	    textName.setLayoutData(gridData);
+	    textName.addModifyListener(new ModifyListener() {
+		    public void modifyText(ModifyEvent arg0) {
+		      currentName = textName.getText();
+		      computeSaveEnable();
+		    }
+	    });   
+    }
         
     treeGroups = new Tree(shell,SWT.BORDER);
     gridData = new GridData(GridData.FILL_BOTH);
@@ -185,7 +199,7 @@ public class MultiTrackerEditor {
   }
 
   private void computeSaveEnable() {
-    btnSave.setEnabled(!("".equals(currentName)));
+    btnSave.setEnabled(anonymous || !("".equals(currentName)));
   }
   
   private void refresh() {
@@ -314,6 +328,13 @@ public class MultiTrackerEditor {
         removeEditor();
       }
     });
+    
+    text.addListener(SWT.Modify, new Listener() {
+    	public void handleEvent (Event e) {
+    		item.setText(text.getText());
+    	}
+    });
+    
     text.addKeyListener(new KeyAdapter() {
 	    public void keyReleased(KeyEvent keyEvent) {
 	     if(keyEvent.character == SWT.ESC) {	       

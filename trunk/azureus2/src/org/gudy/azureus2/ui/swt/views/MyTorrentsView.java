@@ -6,6 +6,7 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,7 +50,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -58,6 +60,8 @@ import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
+import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
+import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.EnumeratorEditor;
@@ -367,6 +371,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     final MenuItem itemChangeTracker = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
     
+    final MenuItem itemEditTracker = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker"); //$NON-NLS-1$
+    
     final MenuItem itemRecheck = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRecheck, "MyTorrentsView.menu.recheck");
     itemRecheck.setImage(ImageRepository.getImage("recheck"));
@@ -400,6 +407,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         itemRemoveAnd.setEnabled(false);
 
         itemChangeTracker.setEnabled(false);
+        itemEditTracker.setEnabled(false);
         itemRecheck.setEnabled(false);
 
         if (tis.length > 0) {
@@ -468,6 +476,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           itemRemove.setEnabled(remove);
           itemRemoveAnd.setEnabled(remove);
 
+          itemEditTracker.setEnabled(true);
           itemChangeTracker.setEnabled(changeUrl);
           itemRecheck.setEnabled(recheck);
 
@@ -581,16 +590,57 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     });
 
     itemChangeTracker.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm != null && dm.getTrackerClient() != null) {
-            new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), dm.getTrackerClient());
-          }
-        }
-      }
+    	public void handleEvent(Event e) {
+    		TableItem[] tis = table.getSelection();
+    		for (int i = 0; i < tis.length; i++) {
+    			TableItem ti = tis[i];
+    			DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+    			if (dm != null && dm.getTrackerClient() != null) {
+    				new TrackerChangerWindow(MainWindow.getWindow().getDisplay(), dm.getTrackerClient());
+    			}
+    		}
+    	}
+    });
+    
+    itemEditTracker.addListener(SWT.Selection, new Listener() {
+    	public void handleEvent(Event e) {
+    		TableItem[] tis = table.getSelection();
+    		for (int i = 0; i < tis.length; i++) {
+    			TableItem ti = tis[i];
+    			final DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+    			if (dm != null && dm.getTorrent() != null) {
+    				
+    				final TOTorrent	torrent = dm.getTorrent();
+    				
+    				List	group = TorrentUtils.announceGroupsToList( torrent );
+    				
+    				new MultiTrackerEditor(null,group,
+    						new TrackerEditorListener()
+    						{
+    							public void
+    							trackersChanged(
+    								String	str,
+									String	str2,
+									List	group )
+    							{
+    								TorrentUtils.listToAnnounceGroups( group, torrent );
+    								
+    								try{
+    									TorrentUtils.writeToFile( torrent );
+    								}catch( Throwable e ){
+    									
+    									e.printStackTrace();
+    								}
+    								
+    								if ( dm.getTrackerClient() != null ){
+    									
+    									dm.getTrackerClient().resetTrackerUrl();
+    								}
+    							}
+    						}, true);
+    			}
+    		}
+    	}
     });
     
     itemChangeTable.addListener(SWT.Selection, new Listener() {

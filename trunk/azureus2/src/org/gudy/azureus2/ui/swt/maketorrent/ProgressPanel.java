@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
 import org.gudy.azureus2.core3.util.TrackersUtil;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
@@ -115,8 +116,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       torrent.setComment(((NewTorrentWizard)wizard).getComment());
       if(((NewTorrentWizard)wizard).useMultiTracker) {
         this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
-        torrent.setAdditionalListProperty("announce-list",((NewTorrentWizard)wizard).trackers);
-      }
+        TorrentUtils.listToAnnounceGroups(((NewTorrentWizard)wizard).trackers, torrent);
+       }
       this.reportCurrentTask(MessageText.getString("wizard.savingfile"));      
       torrent.serialiseToBEncodedFile(new File(((NewTorrentWizard)wizard).savePath));
       this.reportCurrentTask(MessageText.getString("wizard.filesaved"));

@@ -27,6 +27,8 @@ package org.gudy.azureus2.core3.util;
  */
 
 import java.io.*;
+import java.net.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
@@ -53,16 +55,19 @@ TorrentUtils
 		
 		throws TOTorrentException
 	{	
-		String	str = torrent.getAdditionalStringProperty( "torrent filename");
-		
-		if ( str == null ){
+		synchronized( torrent ){
 			
-			throw( new TOTorrentException( "TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND ));
+			String	str = torrent.getAdditionalStringProperty( "torrent filename");
+			
+			if ( str == null ){
+				
+				throw( new TOTorrentException( "TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND ));
+			}
+			
+			File torrent_file = new File( str );
+				
+			torrent.serialiseToBEncodedFile( torrent_file );
 		}
-		
-		File torrent_file = new File( str );
-			
-		torrent.serialiseToBEncodedFile( torrent_file );
 	}
 	
 	public static String
@@ -119,5 +124,105 @@ TorrentUtils
 		}
 		
 		return( errorDetail );
+	}
+	
+	public static List
+	announceGroupsToList(
+		TOTorrent	torrent )
+	{
+		List	groups = new ArrayList();
+		
+		TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+		
+		TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+		
+		if ( sets.length == 0 ){
+		
+			List	s = new ArrayList();
+			
+			s.add( torrent.getAnnounceURL().toString());
+			
+			groups.add(s);
+		}else{
+			
+			for (int i=0;i<sets.length;i++){
+			
+				List	s = new ArrayList();
+								
+				TOTorrentAnnounceURLSet	set = sets[i];
+				
+				URL[]	urls = set.getAnnounceURLs();
+				
+				for (int j=0;j<urls.length;j++){
+				
+					s.add( urls[j].toString());
+				}
+				
+				if ( s.size() > 0 ){
+					
+					groups.add(s);
+				}
+			}
+		}
+		
+		return( groups );
+	}
+	
+	public static void
+	listToAnnounceGroups(
+		List		groups,
+		TOTorrent	torrent )
+	{
+		try{
+			if ( groups.size() == 1 ){
+				
+				List	set = (List)groups.get(0);
+				
+				if ( set.size() == 1 ){
+					
+					torrent.setAnnounceURL( new URL((String)set.get(0)));
+					
+					return;
+				}
+			}
+			
+			TOTorrentAnnounceURLGroup tg = torrent.getAnnounceURLGroup();
+			
+			Vector	g = new Vector();
+			
+			for (int i=0;i<groups.size();i++){
+				
+				List	set = (List)groups.get(i);
+				
+				URL[]	urls = new URL[set.size()];
+				
+				for (int j=0;j<set.size();j++){
+				
+					urls[j] = new URL((String)set.get(j));
+				}
+				
+				if ( urls.length > 0 ){
+					
+					g.add( tg.createAnnounceURLSet( urls ));
+				}
+			}
+			
+			TOTorrentAnnounceURLSet[]	sets = new TOTorrentAnnounceURLSet[g.size()];
+			
+			g.copyInto( sets );
+			
+			tg.setAnnounceURLSets( sets );
+			
+			if ( sets.length == 0 ){
+			
+					// hmm, no valid urls at all
+				
+				torrent.setAnnounceURL( new URL( "http://no.valid.urls.defined/announce"));
+			}
+			
+		}catch( MalformedURLException e ){
+			
+			e.printStackTrace();
+		}
 	}
 }
