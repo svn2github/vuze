@@ -50,18 +50,23 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.TimeFormater;
 import org.gudy.azureus2.core3.util.Debug;
 
+/** Handles Starting and Stopping of torrents */
 public class
 StartStopRulesDefaultPlugin
   implements Plugin
 {
   private static final boolean DEBUG = false;
   // No auto ranking
+  /** Do not rank completed torrents */  
   public static final int RANK_NONE = 0;
   // Seeds/Peer Ratio
+  /** Rank completed torrents using Seeds:Peer Ratio */  
   public static final int RANK_SPRATIO = 1;
   // Seed Count (ignore peer count)
+  /** Rank completed torrents using Seed Count method */  
   public static final int RANK_SEEDCOUNT = 2;
   // Timed Rotation based on  minTimeAlive
+  /** Rank completed torrents using a timed rotation */  
   public static final int RANK_TIMED = 3;
   
   private static final int QR_INCOMPLETE_ENDS_AT      = 1000000000; // billion
@@ -77,6 +82,7 @@ StartStopRulesDefaultPlugin
   protected DownloadListener      download_listener;
   protected DownloadTrackerListener download_tracker_listener;
 
+  /** Map to relate downloadData to a Download */  
   protected Map downloadDataMap = Collections.synchronizedMap(new HashMap());
 
   protected volatile boolean         closingDown;

@@ -128,6 +128,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Display display;
   private Shell mainWindow;
   private Menu menuBar;
+  private Menu languageMenu = null;
   private IconBar iconBar;
 
   //NICO handle swt on macosx
@@ -1060,10 +1061,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   private void createLanguageMenu(Menu menu, Decorations decoMenu, Locale[] locales) {
-    MenuItem languageItem = new MenuItem(menu, SWT.CASCADE);
-    Messages.setLanguageText(languageItem, "MainWindow.menu.language"); //$NON-NLS-1$
-    Menu languageMenu = new Menu(decoMenu, SWT.DROP_DOWN);
-    languageItem.setMenu(languageMenu);
+    if (languageMenu != null) {
+      MenuItem[] items = languageMenu.getItems();
+      for (int i = 0; i < items.length; i++)
+        items[i].dispose();
+    } else {
+      MenuItem languageItem = new MenuItem(menu, SWT.CASCADE);
+      Messages.setLanguageText(languageItem, "MainWindow.menu.language"); //$NON-NLS-1$
+      languageMenu = new Menu(decoMenu, SWT.DROP_DOWN);
+      languageItem.setMenu(languageMenu);
+    }
 
     MenuItem[] items = new MenuItem[locales.length];
 
@@ -1077,7 +1084,20 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       for (int i = 0; i < items.length; i++) {
         items[i].setSelection(currentLocale.equals(items[i].getData()));
         }
+        
+    new MenuItem(languageMenu, SWT.SEPARATOR);
+    MenuItem itemRefresh = new MenuItem(languageMenu, SWT.PUSH);
+    Messages.setLanguageText(itemRefresh, "MainWindow.menu.language.refresh");
+    itemRefresh.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        MenuItem item = (MenuItem)event.widget;
+        createLanguageMenu(menuBar, mainWindow, MessageText.getLocales());
+        if (MessageText.changeLocale(MessageText.getCurrentLocale(), true)) {
+          setSelectedLanguageItem(selectedLanguageItem);
+        }
       }
+    });
+  }
 
   private void setStatusVersion() {
     if (statusText != null && !statusText.isDisposed())
@@ -1096,7 +1116,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private void createLanguageMenuitem(MenuItem language, final Locale locale) {
     language.setData(locale);
-    language.setText(((Locale) language.getData()).getDisplayLanguage());
+    language.setText(locale.getDisplayName(locale));
     language.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (isSelectedLanguageDifferent(e.widget)) {
@@ -1631,11 +1651,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     else if (menu instanceof MenuItem) {
       MenuItem item = (MenuItem) menu;
       if (item.getData() != null) {
-        if (item.getData() instanceof String)
+        if (item.getData() instanceof String) {
           item.setText(MessageText.getString((String) item.getData()));
-        else
-          item.setText(((Locale) item.getData()).getDisplayLanguage());
-        updateMenuText(item.getMenu());
+          updateMenuText(item.getMenu());
+        }
       }
     }
   }

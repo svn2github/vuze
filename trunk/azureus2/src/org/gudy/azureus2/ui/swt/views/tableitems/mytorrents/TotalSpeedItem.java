@@ -39,7 +39,7 @@ public class TotalSpeedItem extends TorrentItem {
   }
 
   public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKiBEtc(torrentRow.getManager().getStats().getTotalAverage()));
+    setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrentRow.getManager().getStats().getTotalAverage()));
   }
 
 }

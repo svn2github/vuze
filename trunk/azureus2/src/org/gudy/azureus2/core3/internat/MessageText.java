@@ -9,15 +9,23 @@ package org.gudy.azureus2.core3.internat;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+
+import org.gudy.azureus2.core3.util.FileUtil;
 
 /**
  * @author Arbeiten
@@ -124,30 +132,76 @@ public class MessageText {
         }
       });
     }
+    
+    HashSet bundleSet = new HashSet();
+    
+    // Add local first
+    File localDir = new File(FileUtil.getApplicationPath());
+    String localBundles[] = localDir.list(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        return name.startsWith(prefix) && name.endsWith(extension);
+      }
+    });
+    bundleSet.addAll(Arrays.asList(localBundles));
+    // Any duplicates will be ignored
+    bundleSet.addAll(Arrays.asList(bundles));
 
-    Locale[] foundLocales = new Locale[bundles.length];
-    for (int i = 0; i < bundles.length; i++) {
+    Locale[] foundLocales = new Locale[bundleSet.size()];
+    Iterator val = bundleSet.iterator();
+    int i = 0;
+    while (val.hasNext()) {
+      String sBundle = (String)val.next();
+      
       //      System.out.println("ResourceBundle: " + bundles[i]);
-      String locale = bundles[i].substring(prefix.length(), bundles[i].length() - extension.length());
+      String locale = sBundle.substring(prefix.length(), sBundle.length() - extension.length());
       //      System.out.println("Locale: " + locale);
-      foundLocales[i] = locale.length() == 0 ? LOCALE_ENGLISH : new Locale(locale.substring(1, 3), locale.substring(4, 6));
+      foundLocales[i++] = locale.length() == 0 ? LOCALE_ENGLISH : new Locale(locale.substring(1, 3), locale.substring(4, 6));
     }
+
+    Arrays.sort(foundLocales, new Comparator() {
+      public final int compare (Object a, Object b) {
+        return ((Locale)a).getDisplayName((Locale)a).compareToIgnoreCase(((Locale)b).getDisplayName((Locale)b));
+      }
+    });
     return foundLocales;
   }
 
   public static boolean changeLocale(Locale newLocale) {
+    return changeLocale(newLocale, false);
+  }
+
+  public static boolean changeLocale(Locale newLocale, boolean force) {
     if (LOCALE_ENGLISH.equals(newLocale))
       newLocale = LOCALE_DEFAULT;
-    if (!LOCALE_CURRENT.equals(newLocale)) {
+    if (!LOCALE_CURRENT.equals(newLocale) || force) {
       ResourceBundle newResourceBundle = null;
+      String bundleFolder = BUNDLE_NAME.replace('.', '/');
+      final String prefix = BUNDLE_NAME.substring(BUNDLE_NAME.lastIndexOf('.') + 1);
+      final String extension = ".properties";
+
+      // First, try Application path
       try {
-        newResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, newLocale, MessageText.class.getClassLoader());
-      } catch (Exception e) {
+        File bundleFile = new File(FileUtil.getApplicationPath());
+        
+        // Get the jarURL
+        // XXX Is there a better way to get the JAR name?
+        ClassLoader cl = MessageText.class.getClassLoader();
+        String sJar = cl.getResource(bundleFolder + extension).toString();
+        sJar = sJar.substring(0, sJar.length() - prefix.length() - extension.length());
+        URL jarURL = new URL(sJar);
+
+        URL[] urls = {bundleFile.toURL(), jarURL};
+        newResourceBundle = ResourceBundle.getBundle("MessagesBundle", newLocale, 
+                                                      new URLClassLoader(urls));
+      } catch (MissingResourceException e) {
         System.out.println("changeLocale: no resource bundle for " + newLocale);
         e.printStackTrace();
         return false;
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-      if (newResourceBundle.getLocale().equals(newLocale)) {
+
+      if (newResourceBundle != null && newResourceBundle.getLocale().equals(newLocale)) {
         Locale.setDefault(newLocale);
         LOCALE_CURRENT = newLocale;
         RESOURCE_BUNDLE = new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths);
