@@ -21,7 +21,8 @@ BUGFIX: Fast resume data no longer duplicated [Nolar]
 BUGFIX: File 'downloads.config' kept better up-to-date [Nolar]
 BUGFIX: % Completed is now correct again in MyTorrents view on stopped downloads [Gudy]
 BUGFIX: Non-UTF8 encoded 'comment' fields in torrents not showing properly [Parg]
-BUGFIX: Some dead-locks issues (especially on start-up) [Gudy]
+BUGFIX: Some dead-lock issues (especially on startup) [Gudy]
+BUGFIX: Better recovery on connection closing [Nolar]
 
 
 13.11.03 | Azureus 2.0.4.0
