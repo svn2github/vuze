@@ -66,7 +66,9 @@ public class BackGroundGraphic implements Graphic{
       
       if(bufferBackground != null && ! bufferBackground.isDisposed())
         bufferBackground.dispose();
-           
+      
+      if(bounds.width > 1600 || bounds.height > 1200) return;
+      
       bufferBackground = new Image(drawCanvas.getDisplay(),bounds);
       
       Color colors[] = new Color[4];

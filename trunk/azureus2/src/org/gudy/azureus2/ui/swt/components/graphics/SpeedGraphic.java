@@ -114,7 +114,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       return;
     
     Rectangle bounds = drawCanvas.getClientArea();
-    if(bounds.height < 30 || bounds.width  < 100)
+    if(bounds.height < 30 || bounds.width  < 100 || bounds.width > 1600 || bounds.height > 1200)
       return;
     
     boolean sizeChanged = (oldSize == null || (oldSize.x != bounds.width && oldSize.y != bounds.height));
