@@ -148,6 +148,12 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
   }
 
   private synchronized void updateStats() {
+    
+    if ( SystemTime.isErrorLast5min() ) {
+      lastUptime = SystemTime.getCurrentTime() / 1000;
+      return;
+    }
+    
     GlobalManagerStats stats = manager.getStats();
     
     long	current_total_received 	= stats.getTotalReceivedRaw();
