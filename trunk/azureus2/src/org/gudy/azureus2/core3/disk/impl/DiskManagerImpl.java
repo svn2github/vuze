@@ -97,6 +97,8 @@ DiskManagerImpl
 
 	private boolean				skipped_file_set_changed;
 	private long				skipped_file_set_size;
+	private long				skipped_but_downloaded;
+	
 	
 		// DiskManager listeners
 	
@@ -789,12 +791,16 @@ DiskManagerImpl
 					this_mon.enter();
 					
 					skipped_file_set_size	= 0;
+					skipped_but_downloaded	= 0;
 					
 					for (int i=0;i<current_files.length;i++){
 						
-						if ( current_files[i].isSkipped()){
+						DiskManagerFileInfoImpl	file = current_files[i];
+						
+						if ( file.isSkipped()){
 							
-							skipped_file_set_size	+= current_files[i].getLength();
+							skipped_file_set_size	+= file.getLength();
+							skipped_but_downloaded	+= file.getDownloaded();
 						}
 					}
 				}finally{
@@ -803,11 +809,8 @@ DiskManagerImpl
 				}
 			}
 		}
-			// obviously this doesn't work very well if people fiddle with DND as some of the
-			// stuff already downloaded may belong to a skipped file
-			// better than nothing though
 		
-		long rem = ( remaining - skipped_file_set_size );
+		long rem = ( remaining - ( skipped_file_set_size - skipped_but_downloaded ));
 		
 		if ( rem < 0 ){
 			
