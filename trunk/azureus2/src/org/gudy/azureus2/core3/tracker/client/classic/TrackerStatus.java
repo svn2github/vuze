@@ -198,6 +198,23 @@ public class TrackerStatus {
         Map map = BDecoder.decode(message.toByteArray());
         
         Map mapFiles = (Map) map.get("files");
+        if (mapFiles == null || mapFiles.size() == 0) {
+          if (responses.size() > 1) {
+            // multi were requested, 0 returned.  Therefore, multi not supported
+            bSingleHashScrapes = true;
+            LGLogger.log(scrapeURL + " doesn't properly support multi-hash scrapes");
+          } else {
+            // 1 was requested, 0 returned.  Therefore, hash not found.
+            TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(0);
+            response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
+                                            FAULTY_SCRAPE_RETRY_INTERVAL);
+            response.setStatus(TRTrackerScraperResponse.ST_ERROR);
+            response.setStatusString(MessageText.getString("Scrape.status.error") + 
+                                     MessageText.getString("Scrape.status.error.nohash"));
+          }
+
+          return;
+        }
         if (!bSingleHashScrapes && responses.size() > 1 && mapFiles.size() == 1) {
           bSingleHashScrapes = true;
           LGLogger.log(scrapeURL + " only returned " + mapFiles.size() + " hash scrape(s), but we asked for " + responses.size());
@@ -246,16 +263,30 @@ public class TrackerStatus {
             }
 
     	      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
-    	      int scrapeInterval = 10 * 60;
+    	      /*
+                files
+                	infohash
+                		complete
+                		incomplete
+                		downloaded
+                		name
+                flags
+                	min_request_interval
+            */
+            // Min 15 min, plus 10 seconds for every seed
+            // ex. 10 Seeds   = 15m + 100s = ~16.66m
+            //     60 seeds   = 15m + 600s = ~25m
+            //     1000 seeds = 15m + 10000s = ~2h 52m
+    	      int scrapeInterval = 15 * 60 + (seeds * 10);
     	      Map mapFlags = (Map) map.get("flags");
     	      if (mapFlags != null) {
-              scrapeInterval = ((Long)mapFlags.get("min_request_interval")).intValue();
-  
-              if (scrapeInterval < 10*59) scrapeInterval = 10*59;
-              if (scrapeInterval > 60*60) scrapeInterval = 60*60;
-    
-              //Debug.out("scrape min_request_interval = " +scrapeInterval);
+              int iNewScrapeInterval = ((Long)mapFlags.get("min_request_interval")).intValue();
+              if (iNewScrapeInterval > scrapeInterval)
+                scrapeInterval = iNewScrapeInterval;
+              //Debug.out("scrape min_request_interval = " +iNewScrapeInterval);
     	      }
+            if (scrapeInterval < 10*60) scrapeInterval = 10*60;
+            if (scrapeInterval > 3*60*60) scrapeInterval = 3*60*60;
   
             long nextScrapeTime = SystemTime.getCurrentTime() + (scrapeInterval * 1000);
             response.setNextScrapeStartTime(nextScrapeTime);
