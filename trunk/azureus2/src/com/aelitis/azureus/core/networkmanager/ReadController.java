@@ -47,7 +47,7 @@ public class ReadController {
   private void readLoop() {
     while( true ) {
       try {
-        read_selector.select( 50 );  //TODO: faster ???
+        read_selector.select( 100 );
       }
       catch( Throwable t ) {
         Debug.out( "readLoop() EXCEPTION: ", t );

@@ -168,7 +168,6 @@ public class VirtualChannelSelector {
      * @param channel to resume
      */
     public void resumeSelects( SocketChannel channel ) {
-      
       if( channel == null ) {
         Debug.printStackTrace( new Exception( "resumeSelects():: channel == null" ) );
         return;
@@ -184,6 +183,13 @@ public class VirtualChannelSelector {
           paused_states.remove( channel );  //check if the channel's op has been already paused before select-time reg
         }
         finally{  register_cancel_list_mon.exit();  }
+      }
+      
+      try{
+        selector.wakeup();
+      }
+      catch( Throwable t ) {
+        Debug.out( "selector.wakeup():: caught exception: ", t );
       }
     }
 
