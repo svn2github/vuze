@@ -67,15 +67,17 @@ public class DirectByteBufferPool {
         }
      );
     
+    /*
     Timer printer = new Timer("printer");
     printer.addPeriodicEvent(
         60*1000,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {
-            //System.out.println("Out=" +bytesOut/1024/1024+ ", In=" +bytesIn/1024/1024+ ", diff=" +(bytesOut-bytesIn)/1024/1024);
+            System.out.println("Out=" +bytesOut/1024/1024+ ", In=" +bytesIn/1024/1024+ ", diff=" +(bytesOut-bytesIn)/1024/1024);
           }
         }
      );
+     */
 
   }
 
