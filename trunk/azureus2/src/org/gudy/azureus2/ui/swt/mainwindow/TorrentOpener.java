@@ -114,7 +114,7 @@ public class TorrentOpener {
                 // immediately goes to queued)
                 
                 LGLogger.log( "MainWindow::openTorrent: adding download '" + fileName + "' --> '" + savePath + "'" );
-  
+ 
                 globalManager.addDownloadManager(fileName, savePath, 
                                                  startInStoppedState ? DownloadManager.STATE_STOPPED 
                                                                      : DownloadManager.STATE_WAITING);
@@ -274,9 +274,9 @@ public class TorrentOpener {
       return;
 
     DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-    dDialog.setFilterPath( getFilterPathTorrent() );
+    dDialog.setFilterPath( getFilterPathData() );
     dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
-    final String path = setFilterPathTorrent( dDialog.open() );
+    final String path = setFilterPathData( dDialog.open() );
     if( path == null ) return;
     
     new Thread() {
@@ -405,6 +405,7 @@ public class TorrentOpener {
         COConfigurationManager.setParameter( "previous.filter.dir.data", now );
         COConfigurationManager.save();
       }
+      return now;
     }
     return path;
   }
@@ -420,6 +421,7 @@ public class TorrentOpener {
         COConfigurationManager.setParameter( "previous.filter.dir.torrent", now );
         COConfigurationManager.save();
       }
+      return now;
     }
     return path;
   }
