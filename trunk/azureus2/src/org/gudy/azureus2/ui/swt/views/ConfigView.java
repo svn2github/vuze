@@ -995,6 +995,7 @@ public class ConfigView extends AbstractIView {
     
     // Sub-Section: Server -> Proxy
     // ----------------------------
+    /*
     Composite cProxy = createConfigSection(treeServer, "proxy");
 
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -1066,7 +1067,7 @@ public class ConfigView extends AbstractIView {
     controls[9] = pPass.getControl();
     IAdditionalActionPerformer proxyButton = new ChangeSelectionActionPerformer(controls);
     enableProxy.setAdditionalActionPerformer(proxyButton);
-
+    */
   }
   
   private void initGroupFile() {
