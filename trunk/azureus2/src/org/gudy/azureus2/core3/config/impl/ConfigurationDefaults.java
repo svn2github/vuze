@@ -241,6 +241,8 @@ public class ConfigurationDefaults {
     def.put( "Tracker Separate Peer IDs", new Long(0));
     def.put( "Tracker Client Connect Timeout", new Long(120));
     def.put( "Tracker Client Read Timeout", new Long(60));
+    def.put( "Tracker Client Send OS and Java Version", new Long(1));
+
     def.put( "Tracker Public Enable", new Long(0) );
     def.put( "Tracker Log Enable", new Long(0) );
     def.put( "Tracker Port Enable", new Long(0) );

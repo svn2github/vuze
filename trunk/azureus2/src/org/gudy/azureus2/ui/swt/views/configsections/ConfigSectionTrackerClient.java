@@ -124,7 +124,17 @@ ConfigSectionTrackerClient
 
     label = new Label(gMainTab, SWT.NULL);
     
- 
+    // row
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+  
+    new BooleanParameter(gMainTab, "Tracker Client Send OS and Java Version", true,
+                         "ConfigView.section.tracker.sendjavaversionandos").setLayoutData(gridData);
+
+    label = new Label(gMainTab, SWT.NULL);
+    
+
 //////////////////////
     
     BooleanParameter enableUDP = new BooleanParameter(gMainTab, "Server Enable UDP", true, "ConfigView.section.server.enableudp");

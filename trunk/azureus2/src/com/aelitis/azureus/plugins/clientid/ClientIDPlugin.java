@@ -38,9 +38,11 @@ public class
 ClientIDPlugin 
 	implements Plugin
 {
+	private PluginInterface		plugin_interface;
+	
 	public static void
 	load(
-		PluginInterface	plugin_interface )
+		final PluginInterface	plugin_interface )
 	{
 		plugin_interface.getClientIDManager().setGenerator( 
 			new ClientIDGenerator()
@@ -57,7 +59,7 @@ ClientIDPlugin
 				generateHTTPProperties(
 					Properties	properties )
 				{
-					doHTTPProperties( properties );
+					doHTTPProperties( plugin_interface, properties );
 				}
 				
 				public String[]
@@ -72,21 +74,27 @@ ClientIDPlugin
 	
 	public void
 	initialize(
-		PluginInterface	plugin_interface )
+		PluginInterface	_plugin_interface )
 	{
+		plugin_interface	= _plugin_interface;
+		
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Client ID" );		
 	}
 	
 
 	protected static void
 	doHTTPProperties(
-		Properties	properties )
+		PluginInterface		plugin_interface,
+		Properties			properties )
 	{
 		String	agent = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
 		
-		agent += ";" + Constants.OSName;
+		if ( plugin_interface.getPluginconfig().getBooleanParameter("Tracker Client Send OS and Java Version")){
+							
+			agent += ";" + Constants.OSName;
 		
-		agent += ";Java " + Constants.JAVA_VERSION;
+			agent += ";Java " + Constants.JAVA_VERSION;
+		}
 		
 		properties.put( ClientIDGenerator.PR_USER_AGENT, agent );
 	}
