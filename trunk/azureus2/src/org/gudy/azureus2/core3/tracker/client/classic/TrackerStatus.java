@@ -70,7 +70,14 @@ public class TrackerStatus {
       	
       	scrapeURL = trackerUrl;
       	
-       } else {
+       }else if ( position >= 0 && trackerUrl.lastIndexOf('.') < position ){
+       	
+       		// some trackers support /scrape appended but don't have an /announce
+       		// don't do this though it the URL ends with .php (or infact .<anything>)
+       	
+       	scrapeURL = trackerUrl + (trackerUrl.endsWith("/")?"":"/") + "scrape";
+       	
+    }else {
         LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
                      "can't scrape using '" + trackerUrl + "' as it doesn't end in '/announce'");		
        }
