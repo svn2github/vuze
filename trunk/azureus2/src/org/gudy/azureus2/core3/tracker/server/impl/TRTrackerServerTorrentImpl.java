@@ -668,9 +668,7 @@ TRTrackerServerTorrentImpl
 		if ( peer_list_hole_count > 0 && !peer_list_compaction_suspended ){
 			
 			if ( force || peer_list_hole_count > peer_map.size()/10 ){
-				
-				System.out.println( "compacting" );
-				
+								
 				ArrayList	new_peer_list = new ArrayList( peer_list.size() - peer_list_hole_count );
 				
 				int	holes_found = 0;
