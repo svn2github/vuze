@@ -111,11 +111,11 @@ PEPeerTransportProtocol
 
 		//The Queue for protocol messages
 		
-	private List protocolQueue;
+	private List protocolQueue = new ArrayList();
 
 		//The Queue for data messages
 		
-	private List dataQueue;
+	private List dataQueue = new ArrayList();
 	private boolean incoming;
 	private volatile boolean closing;
 	private PEPeerTransportProtocolState currentState;
@@ -243,17 +243,16 @@ PEPeerTransportProtocol
    */
   protected void allocateAll() {
 
-	allocateAllSupport();
+  	allocateAllSupport();
 
-	this.closing = false;
-	this.protocolQueue = new ArrayList();
-	this.dataQueue = new ArrayList();
-	//TODO
-  this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
+  	this.closing = false;
+  	//TODO
+  	//this.lengthBuffer = ByteBuffer.allocate( 4 );
+  	this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
 
-	this.allowed = 0;
-	this.used = 0;
-	this.loopFactor = 0;
+  	this.allowed = 0;
+  	this.used = 0;
+  	this.loopFactor = 0;
   }
 
   protected void handShake(
@@ -457,7 +456,7 @@ PEPeerTransportProtocol
   	
   	synchronized( dataQueue ) {
   		//release all buffers in dataQueue
-  		for (int i = dataQueue.size() - 1; i >= 0; i--) {
+      for (int i=0; i < dataQueue.size(); i++) {
   			DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
   			if (item.isLoaded()) {
   				item.getBuffer().returnToPool();
@@ -1375,10 +1374,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	buffer.buff.putInt(0);
   	buffer.buff.limit(4);
   	buffer.buff.position(0);
-  
-  	synchronized( protocolQueue ) {
-  		protocolQueue.add(buffer);
-  	}
+  	sendProtocol( buffer );
   }
 
   public int getMaxUpload() {
