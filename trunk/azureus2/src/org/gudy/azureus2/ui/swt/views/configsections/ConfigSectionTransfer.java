@@ -82,7 +82,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     
     
 
-    IntParameter paramMaxClients = new IntParameter(cTransfer, "Max Clients", 100);
+    IntParameter paramMaxClients = new IntParameter(cTransfer, "Max.Peer.Connections.Per.Torrent", 100);
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploadSpeed.getControl());
     formData.left = new FormAttachment(0);
@@ -90,12 +90,29 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     paramMaxClients.setLayoutData(formData);
     
     label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxclients");
+    Messages.setLanguageText(label, "ConfigView.label.max_peers_per_torrent");
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploadSpeed.getControl(),5);
     formData.left = new FormAttachment(paramMaxClients.getControl());
     formData.right = new FormAttachment(100);
     label.setLayoutData(formData);
+    
+    
+    IntParameter paramMaxClientsTotal = new IntParameter(cTransfer, "Max.Peer.Connections.Total", 0);
+    formData = new FormData();
+    formData.top = new FormAttachment(paramMaxClients.getControl());
+    formData.left = new FormAttachment(0);
+    formData.right = new FormAttachment(0,30);
+    paramMaxClientsTotal.setLayoutData(formData);
+    
+    label = new Label(cTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.max_peers_total");
+    formData = new FormData();
+    formData.top = new FormAttachment(paramMaxClients.getControl(),5);
+    formData.left = new FormAttachment(paramMaxClientsTotal.getControl());
+    formData.right = new FormAttachment(100);
+    label.setLayoutData(formData);
+    
     
     
     IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false); 
@@ -112,11 +129,11 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.left = new FormAttachment(paramMaxUploads.getControl());
     formData.right = new FormAttachment(100);
     label.setLayoutData(formData);
-           
+     
     
     BooleanParameter slowConnect = new BooleanParameter(cTransfer, "Slow Connect", false, "ConfigView.label.slowconnect");
     formData = new FormData();
-    formData.top = new FormAttachment(paramMaxUploads.getControl());
+    formData.top = new FormAttachment(paramMaxUploads.getControl(), 10);
     slowConnect.setLayoutData(formData);    
     
     BooleanParameter oldPolling = new BooleanParameter(cTransfer, "Old.Socket.Polling.Style", false, "ConfigView.label.oldpollingstyle");

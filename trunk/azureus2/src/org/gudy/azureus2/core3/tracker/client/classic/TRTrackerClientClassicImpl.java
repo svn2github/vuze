@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.peer.util.*;
 
 import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
@@ -101,9 +102,7 @@ TRTrackerClientClassicImpl
 	
 	private String port;
 	private String ip_override;
-  
-    private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients");
-  
+
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 	
 	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
@@ -1181,21 +1180,15 @@ TRTrackerClientClassicImpl
   protected int
   calculateNumWant()
   {
-  	int numwant;
     int MAX_PEERS = 100;
     
-    if (maxConnections != 0) {
-      numwant = maxConnections - announce_data_provider.getConnectionCount();
-      
-      if (numwant < 0) numwant = 0;
-      if (numwant > MAX_PEERS) numwant = MAX_PEERS;
-      
-    }else {
-    	
-      numwant = MAX_PEERS;
-    }
+    int maxAllowed = PeerUtils.numNewConnectionsAllowed( torrent_hash );
     
-    return( numwant );
+    if ( maxAllowed < 0 || maxAllowed > MAX_PEERS ) {
+      maxAllowed = MAX_PEERS;
+    }
+
+    return maxAllowed;
   }
   
   public byte[] 
@@ -1583,15 +1576,12 @@ TRTrackerClientClassicImpl
     
   
   private void addConfigListeners() {
-    COConfigurationManager.addParameterListener("Max Clients", this);
   }
   
   private void removeConfigListeners() {
-    COConfigurationManager.removeParameterListener("Max Clients", this);
   }
   
   public void parameterChanged(String parameterName) {
-    maxConnections = COConfigurationManager.getIntParameter("Max Clients");
   }
   
   

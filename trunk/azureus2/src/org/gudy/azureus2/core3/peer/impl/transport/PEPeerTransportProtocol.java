@@ -34,6 +34,9 @@ import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.util.*;
+import org.gudy.azureus2.core3.config.*;
+
 
 /**
  * @author Olivier
@@ -314,7 +317,7 @@ PEPeerTransportProtocol
 	   readBuffer.get(otherHash);
 	   for (int i = 0; i < 20; i++) {
 		  if (otherHash[i] != hash[i]) {
-			 closeAll(ip + " has sent handshake, but hash is wrong",true, false);
+			 closeAll(ip + " has sent handshake, but infohash is wrong",true, false);
 			 return;
 		  }
 	   }
@@ -328,37 +331,39 @@ PEPeerTransportProtocol
 	}
 	else readBuffer.get(otherPeerId);
 
-
-	if (incoming) {
-	  //HandShaking is ok so far
-	  //We test if the handshaking is valid (no other connections with that peer)
-	  if (manager.validateHandshaking(this, otherPeerId)) {
-		  //Store the peerId
-		  this.id = otherPeerId;
-	  }
-	  else {
-		 closeAll(ip + " has sent handshake, but peer ID already connected",true, false);
-		 return;
-	  }
-	}
-  else {
-    if (this.id[0] == Identification.NON_SUPPLIED_PEER_ID_BYTE1 &&
-        this.id[1] == Identification.NON_SUPPLIED_PEER_ID_BYTE2) {
-      LGLogger.log(componentID, evtProtocol, LGLogger.INFORMATION,
-                   ip + ": from no_peer_id tracker response...skipping peerID compare");
-    }
-    else {
-      boolean same = true;
-      for (int j = 0; j < this.id.length; j++) {
-        same = same && (this.id[j] == otherPeerId[j]);
-      }
-      if (!same) {
-        LGLogger.log(componentID, evtProtocol, LGLogger.INFORMATION,
-                     ip + ": tracker-supplied peerID doesn't match...but InfoHash does, so ignoring peerID compare");
-      }
+  this.id = otherPeerId;
+  
+  
+  
+  //make sure we are not already connected to this peer
+  boolean sameIdentity = PeerIdentityManager.containsIdentity( otherHash, otherPeerId );
+  boolean sameIP = false;
+  if (! COConfigurationManager.getBooleanParameter("Allow Same IP Peers", false)) {
+    if ( PeerIdentityManager.containsIPAddress( otherHash, ip )) {
+      sameIP = true;
     }
   }
-
+  if ( sameIdentity ) {
+    closeAll(ip + " exchanged handshake, but peer matches pre-existing identity", false, false);
+    return;
+  }
+  if ( sameIP ) {
+    closeAll(ip + " exchanged handshake, but peer matches pre-existing IP address", false, false);
+    return;
+  }
+  
+  
+  //make sure we haven't reached our connection limit
+  int maxAllowed = PeerUtils.numNewConnectionsAllowed( otherHash );
+  if ( maxAllowed == 0 ) {
+    closeAll("Too many existing peer connections", false, false);
+    return;
+  }
+  
+  
+  PeerIdentityManager.addIdentity( otherHash, otherPeerId, ip );
+ 
+  
 	//decode a client identification string from the given peerID
 	client = Identification.decode(otherPeerId);
 
@@ -395,19 +400,19 @@ PEPeerTransportProtocol
    }
 	closing = true;         
     
-	//1. Cancel any pending requests (on the manager side)
+	//Cancel any pending requests (on the manager side)
 	cancelRequests();
 
-	//2. Close the socket
+	//Close the socket
 	closeConnection();
 
-	//3. release the read Buffer
+	//release the read Buffer
 	if (readBuffer != null) {
 	  DirectByteBufferPool.freeBuffer(readBuffer);
 	  readBuffer = null;
    }
 
-	//4. release the write Buffer
+	//release the write Buffer
 	if (writeBuffer != null) {      
 	  if (writeData) {
 		PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
@@ -416,7 +421,7 @@ PEPeerTransportProtocol
 	  }
 	}
 
-	//5. release all buffers in dataQueue
+	//release all buffers in dataQueue
 	for (int i = dataQueue.size() - 1; i >= 0; i--) {
 	  DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
 	  if (item.isLoaded()) {
@@ -428,10 +433,15 @@ PEPeerTransportProtocol
 	  }
 	}
 
-	//6. Send removed event ...
+  //remove identity
+  if ( this.id != null ) {
+  	PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
+  }
+  
+	//Send removed event ...
 	manager.peerRemoved(this);
 
-	//7. Send a logger event
+	//Send a logger event
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
 	/*try{
 	  throw new Exception("Peer Closed");
