@@ -25,6 +25,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
@@ -39,6 +40,8 @@ StatsWriterPeriodicImpl
 {
 	
 	private static StatsWriterPeriodicImpl	singleton;
+	private static AEMonitor				class_mon	= new AEMonitor( "StatsWriterPeriodic" );
+		
 	private static int				start_count;
 	private static Thread			current_thread;
 	
@@ -50,16 +53,24 @@ StatsWriterPeriodicImpl
 	private String			config_dir;
 	private String			config_file;
 	
-	public static synchronized StatsWriterPeriodic
+	public static StatsWriterPeriodic
 	create(
 		GlobalManager	manager )
 	{
-		if ( singleton == null ){
-			
-			singleton = new StatsWriterPeriodicImpl(manager);
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );	
+			if ( singleton == null ){
+				
+				singleton = new StatsWriterPeriodicImpl(manager);
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	protected
@@ -78,7 +89,8 @@ StatsWriterPeriodicImpl
 		
 		while( true ){
 									
-			synchronized( singleton ){
+			try{
+				class_mon.enter();
 				
 				if ( Thread.currentThread() != current_thread ){
 					
@@ -86,6 +98,10 @@ StatsWriterPeriodicImpl
 				}
 				
 				writeStats();	
+				
+			}finally{
+				
+				class_mon.exit();
 			}
 			
 			try{
@@ -196,7 +212,8 @@ StatsWriterPeriodicImpl
 	public void
 	start()
 	{
-		synchronized( singleton ){
+		try{
+			class_mon.enter();
 			
 			start_count++;
 			
@@ -215,13 +232,17 @@ StatsWriterPeriodicImpl
 				
 				current_thread.start();
 			}
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	
 	public void
 	stop()
 	{
-		synchronized( singleton ){
+		try{
+			class_mon.enter();
 			
 			start_count--;
 			
@@ -229,6 +250,9 @@ StatsWriterPeriodicImpl
 				
 				current_thread = null;
 			}
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	

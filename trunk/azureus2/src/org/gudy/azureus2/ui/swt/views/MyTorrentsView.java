@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -95,6 +96,7 @@ public class MyTorrentsView
   private MenuItem menuItemChangeDir = null;
 
   private Map downloadBars;
+  private AEMonitor				downloadBars_mon	= new AEMonitor( "MyTorrentsView:DL" );
 
   private Category currentCategory;
   private boolean skipDMAdding = true;
@@ -745,7 +747,9 @@ public class MyTorrentsView
                         new SelectedTableRowsListener() {
       public void run(TableRowCore row) {
         DownloadManager dm = (DownloadManager)row.getDataSource(true);
-        synchronized (downloadBars) {
+        try{
+        	downloadBars_mon.enter();
+        
           if (downloadBars.containsKey(dm)) {
             MinimizedWindow mw = (MinimizedWindow) downloadBars.remove(dm);
             mw.close();
@@ -753,7 +757,10 @@ public class MyTorrentsView
             MinimizedWindow mw = new MinimizedWindow(dm, cTablePanel.getShell());
             downloadBars.put(dm, mw);
           }
-        } // sync
+        }finally{
+        	
+        	downloadBars_mon.exit();
+        }
       } // run
     });
 
@@ -1411,8 +1418,13 @@ public class MyTorrentsView
 
 
   public void  removeDownloadBar(DownloadManager dm) {
-    synchronized(downloadBars) {
-      downloadBars.remove(dm);
+    try{
+    	downloadBars_mon.enter();
+    
+    	downloadBars.remove(dm);
+    }finally{
+    	
+    	downloadBars_mon.exit();
     }
   }
 

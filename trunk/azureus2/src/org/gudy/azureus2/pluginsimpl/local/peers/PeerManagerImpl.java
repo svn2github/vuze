@@ -38,6 +38,7 @@ import org.gudy.azureus2.pluginsimpl.local.download.*;
 
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 PeerManagerImpl
@@ -45,17 +46,21 @@ PeerManagerImpl
 {
 	protected PEPeerManager	manager;
 	
-	protected static Map	pm_map	= new WeakHashMap();
-	
+	protected static Map		pm_map		= new WeakHashMap();
+	protected static AEMonitor	pm_map_mon	= new AEMonitor( "PeerManager:Map" );
+
 	protected Map		foreign_map	= new WeakHashMap();
 	
 	protected Map		listener_map = new HashMap();
 	
+	 protected AEMonitor	this_mon	= new AEMonitor( "PeerManager" );
+
 	public static PeerManagerImpl
 	getPeerManager(
 		PEPeerManager	_manager )
 	{
-		synchronized( pm_map ){
+		try{
+			pm_map_mon.enter();
 			
 			PeerManagerImpl	res = (PeerManagerImpl)pm_map.get( _manager );
 			
@@ -67,6 +72,9 @@ PeerManagerImpl
 			}
 			
 			return( res );
+		}finally{
+			
+			pm_map_mon.exit();
 		}
 	}
 	
@@ -182,85 +190,99 @@ PeerManagerImpl
 	}
 	
 	
-	public synchronized void
+	public void
 	addListener(
 		final PeerManagerListener	l )
 	{
-		final Map	peer_map = new HashMap();
+		try{
+			this_mon.enter();
 		
-		DownloadManagerPeerListener	pml = 
-			new DownloadManagerPeerListener()
-			{
-				public void
-				peerManagerAdded(
-					PEPeerManager	manager )
+			final Map	peer_map = new HashMap();
+			
+			DownloadManagerPeerListener	pml = 
+				new DownloadManagerPeerListener()
 				{
-				}
-				
-				public void
-				peerManagerRemoved(
-					PEPeerManager	manager )
-				{
-				}
-								
-				public void
-				peerAdded(
-					PEPeer 	peer )
-				{
-					PeerImpl pi = new PeerImpl( peer );
-										
-					peer_map.put( peer, pi );
-					
-					l.peerAdded( PeerManagerImpl.this, pi );
-				}
-					
-				public void
-				peerRemoved(
-					PEPeer	peer )
-				{	
-					PeerImpl	pi = (PeerImpl)peer_map.remove( peer );
-					
-					if ( pi == null ){
-						
-						// somewhat inconsistently we get told here about the removal of
-						// peers that never connected (and weren't added)
-						// Debug.out( "PeerManager: peer not found");
-						
-					}else{
-												
-						l.peerRemoved( PeerManagerImpl.this, pi );
+					public void
+					peerManagerAdded(
+						PEPeerManager	manager )
+					{
 					}
-				}
 					
-				public void
-				pieceAdded(
-					PEPiece 	piece )
-				{	
-				}
-					
-				public void
-				pieceRemoved(
-					PEPiece		piece )
-				{
-				}
-			};
-
-		listener_map.put( l, pml );
+					public void
+					peerManagerRemoved(
+						PEPeerManager	manager )
+					{
+					}
+									
+					public void
+					peerAdded(
+						PEPeer 	peer )
+					{
+						PeerImpl pi = new PeerImpl( peer );
+											
+						peer_map.put( peer, pi );
+						
+						l.peerAdded( PeerManagerImpl.this, pi );
+					}
+						
+					public void
+					peerRemoved(
+						PEPeer	peer )
+					{	
+						PeerImpl	pi = (PeerImpl)peer_map.remove( peer );
+						
+						if ( pi == null ){
+							
+							// somewhat inconsistently we get told here about the removal of
+							// peers that never connected (and weren't added)
+							// Debug.out( "PeerManager: peer not found");
+							
+						}else{
+													
+							l.peerRemoved( PeerManagerImpl.this, pi );
+						}
+					}
+						
+					public void
+					pieceAdded(
+						PEPiece 	piece )
+					{	
+					}
+						
+					public void
+					pieceRemoved(
+						PEPiece		piece )
+					{
+					}
+				};
 	
-		manager.getDownloadManager().addPeerListener(pml);
+			listener_map.put( l, pml );
+		
+			manager.getDownloadManager().addPeerListener(pml);
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	removeListener(
 		PeerManagerListener	l )
 	{
+		try{
+			this_mon.enter();
+		
 		DownloadManagerPeerListener	pml = (DownloadManagerPeerListener)listener_map.get( l );
 		
-		if ( pml != null ){
-		
-			manager.getDownloadManager().removePeerListener( pml );
+			if ( pml != null ){
 			
-			listener_map.remove( l );
+				manager.getDownloadManager().removePeerListener( pml );
+				
+				listener_map.remove( l );
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 }

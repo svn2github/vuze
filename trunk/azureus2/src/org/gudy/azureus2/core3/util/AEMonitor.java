@@ -82,20 +82,23 @@ AEMonitor
 			
 			stack.push( name );
 			
-			String	str = "";
-
-			for (int i=0;i<stack.size();i++){
-			
-				str += (i==0?"":",") + stack.get(i);
-			}
-			
-			synchronized( debug_traces ){
+			if ( !name.equals( "LGLogger" )){
+		
+				String	str = "";
+	
+				for (int i=0;i<stack.size();i++){
 				
-				if ( debug_traces.get(str) == null ){
-			
-					System.out.println( "AEMonitor: " + str );
+					str += (i==0?"":",") + stack.get(i);
+				}
+				
+				synchronized( debug_traces ){
 					
-					debug_traces.put( str, str );
+					if ( debug_traces.get(str) == null ){
+				
+						System.out.println( "AEMonitor: " + str );
+						
+						debug_traces.put( str, str );
+					}
 				}
 			}
 		}
@@ -184,5 +187,12 @@ AEMonitor
 				}
 			}
 		}
+	}
+	
+	public static Map
+	getSynchronisedMap(
+		Map	m )
+	{
+		return( Collections.synchronizedMap(m));
 	}
 }

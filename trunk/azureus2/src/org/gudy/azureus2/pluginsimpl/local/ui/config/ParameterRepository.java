@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 /**
  * @author epall
@@ -32,7 +33,9 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
  */
 public class ParameterRepository
 {
-	private static ParameterRepository instance;
+	private static ParameterRepository 	instance;
+	private static AEMonitor			class_mon	= new AEMonitor( "ParameterRepository:class" );
+
 	private HashMap params;
 	
 	private ParameterRepository()
@@ -40,11 +43,19 @@ public class ParameterRepository
 		params = new HashMap();
 	}
 	
-	public static synchronized ParameterRepository getInstance()
+	public static ParameterRepository getInstance()
 	{
-		if(instance == null)
-			instance = new ParameterRepository();
-		return instance;
+		try{
+			class_mon.enter();
+		
+			if(instance == null)
+				instance = new ParameterRepository();
+			return instance;
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public void addPlugin(Parameter[] parameters, String displayName)

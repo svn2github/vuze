@@ -100,6 +100,8 @@ NonDaemonTaskRunner
 								
 								task_sem.reserve(LINGER_PERIOD);
 								
+								taskWrapper t			= null;
+								
 								synchronized( tasks ){
 									
 									if ( tasks.isEmpty()){
@@ -117,13 +119,13 @@ NonDaemonTaskRunner
 										
 									}else{
 										
-										taskWrapper t = (taskWrapper)tasks.pop();
-																					
-										t.run();
+										t = (taskWrapper)tasks.pop();
 									}
 								}
+								
+								t.run();
 							}
-							
+													
 							// System.out.println( "non daemon ends" );
 						}
 					};

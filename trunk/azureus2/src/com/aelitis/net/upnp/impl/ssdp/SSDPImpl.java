@@ -25,6 +25,8 @@ package com.aelitis.net.upnp.impl.ssdp;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
+
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.*;
 
@@ -57,6 +59,8 @@ SSDPImpl
 	
 	protected List			listeners	= new ArrayList();
 	
+	protected AEMonitor		this_mon	= new AEMonitor( "SSDP" );
+
 	public
 	SSDPImpl(
 		UPnPImpl		_upnp )
@@ -305,145 +309,152 @@ SSDPImpl
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	receivePacket(
 		InetAddress			local_address,
 	    DatagramPacket		packet )
 	{
-		String	str = new String( packet.getData(), 0, packet.getLength());
+		try{
+			this_mon.enter();
 		
-		if ( first_response ){
+			String	str = new String( packet.getData(), 0, packet.getLength());
 			
-			first_response	= false;
+			if ( first_response ){
+				
+				first_response	= false;
+				
+				upnp.log( "UPnP:SSDP: first response:\n" + str );
+			}
 			
-			upnp.log( "UPnP:SSDP: first response:\n" + str );
-		}
-		
-		if ( str.startsWith("M-SEARCH")){
+			if ( str.startsWith("M-SEARCH")){
+				
+					// hmm, loopack or another client announcing, ignore it
+				
+				return;
+				
+			}
+				
+					// notify event
+	
+				/*
+				NOTIFY * HTTP/1.1
+				HOST: 239.255.255.250:1900
+				CACHE-CONTROL: max-age=3600
+				LOCATION: http://192.168.0.1:49152/gateway.xml
+				NT: urn:schemas-upnp-org:service:WANIPConnection:1
+				NTS: ssdp:byebye
+				SERVER: Linux/2.4.17_mvl21-malta-mips_fp_le, UPnP/1.0, Intel SDK for UPnP devices /1.2
+				USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
+				*/
+				
+			// System.out.println( str );
 			
-				// hmm, loopack or another client announcing, ignore it
+			List	lines = new ArrayList();
 			
-			return;
+			int	pos = 0;
 			
-		}
+			while(true){
+				int	p1 = str.indexOf( NL, pos );
+				
+				String	line;
+				
+				if ( p1 == -1 ){
+				
+					line = str.substring(pos);
+				}else{
+					
+					line = str.substring(pos,p1);
+					
+					pos	= p1+1;
+				}
+				
+				lines.add( line.trim());
+				
+				if ( p1 == -1 ){
+					
+					break;
+				}
+			}
 			
-				// notify event
-
-			/*
-			NOTIFY * HTTP/1.1
-			HOST: 239.255.255.250:1900
-			CACHE-CONTROL: max-age=3600
-			LOCATION: http://192.168.0.1:49152/gateway.xml
-			NT: urn:schemas-upnp-org:service:WANIPConnection:1
-			NTS: ssdp:byebye
-			SERVER: Linux/2.4.17_mvl21-malta-mips_fp_le, UPnP/1.0, Intel SDK for UPnP devices /1.2
-			USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
-			*/
+			if ( lines.size() == 0 ){
+				
+				upnp.log( "SSDP::receive packet - 0 line reply" );
+				
+				return;
+			}
 			
-		// System.out.println( str );
-		
-		List	lines = new ArrayList();
-		
-		int	pos = 0;
-		
-		while(true){
-			int	p1 = str.indexOf( NL, pos );
+			String	header = (String)lines.get(0);
 			
-			String	line;
+				// Gudy's  Root: http://192.168.0.1:5678/igd.xml, uuid:upnp-InternetGatewayDevice-1_0-12345678900001::upnp:rootdevice, upnp:rootdevice
+				// Parg's  Root: http://192.168.0.1:49152/gateway.xml, uuid:824ff22b-8c7d-41c5-a131-44f534e12555::upnp:rootdevice, upnp:rootdevice
+	
+			URL		location	= null;
+			String	nt			= null;
+			String	nts			= null;
 			
-			if ( p1 == -1 ){
-			
-				line = str.substring(pos);
+			for (int i=1;i<lines.size();i++){
+				
+				String	line = (String)lines.get(i);
+				
+				int	c_pos = line.indexOf(":");
+				
+				if ( c_pos == -1 ){
+					continue;
+				}
+				
+				String	key	= line.substring( 0, c_pos ).trim();
+				String 	val = line.substring( c_pos+1 ).trim();
+				
+				if ( key.equalsIgnoreCase("LOCATION" )){
+					
+					try{
+						location	= new URL( val );
+						
+					}catch( MalformedURLException e ){
+						
+						upnp.log( e );
+					}			
+				}else if ( key.equalsIgnoreCase( "NT" )){
+					
+					nt	= val;
+					
+				}else if ( key.equalsIgnoreCase( "NTS" )){
+					
+					nts	= val;
+				}
+			}
+				
+			if ( header.startsWith( "NOTIFY" )){
+				
+				if ( location != null && nt != null && nts != null ){
+					
+					if ( nt.indexOf( "upnp:rootdevice" ) != -1 ){
+						
+						if ( nts.indexOf("alive") != -1 ){
+							
+								// alive can be reported on any interface
+							
+							gotAlive( location );
+							
+						}else if ( nts.indexOf( "byebye") != -1 ){
+								
+							lostRoot( local_address, location );
+						}
+					}		
+				}
+			}else if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
+	
+				if ( location != null ){
+					
+					gotRoot( local_address, location );
+				}
 			}else{
 				
-				line = str.substring(pos,p1);
-				
-				pos	= p1+1;
+				upnp.log( "UPnP::SSDP::receive packet - bad header:" + header );
 			}
+		}finally{
 			
-			lines.add( line.trim());
-			
-			if ( p1 == -1 ){
-				
-				break;
-			}
-		}
-		
-		if ( lines.size() == 0 ){
-			
-			upnp.log( "SSDP::receive packet - 0 line reply" );
-			
-			return;
-		}
-		
-		String	header = (String)lines.get(0);
-		
-			// Gudy's  Root: http://192.168.0.1:5678/igd.xml, uuid:upnp-InternetGatewayDevice-1_0-12345678900001::upnp:rootdevice, upnp:rootdevice
-			// Parg's  Root: http://192.168.0.1:49152/gateway.xml, uuid:824ff22b-8c7d-41c5-a131-44f534e12555::upnp:rootdevice, upnp:rootdevice
-
-		URL		location	= null;
-		String	nt			= null;
-		String	nts			= null;
-		
-		for (int i=1;i<lines.size();i++){
-			
-			String	line = (String)lines.get(i);
-			
-			int	c_pos = line.indexOf(":");
-			
-			if ( c_pos == -1 ){
-				continue;
-			}
-			
-			String	key	= line.substring( 0, c_pos ).trim();
-			String 	val = line.substring( c_pos+1 ).trim();
-			
-			if ( key.equalsIgnoreCase("LOCATION" )){
-				
-				try{
-					location	= new URL( val );
-					
-				}catch( MalformedURLException e ){
-					
-					upnp.log( e );
-				}			
-			}else if ( key.equalsIgnoreCase( "NT" )){
-				
-				nt	= val;
-				
-			}else if ( key.equalsIgnoreCase( "NTS" )){
-				
-				nts	= val;
-			}
-		}
-			
-		if ( header.startsWith( "NOTIFY" )){
-			
-			if ( location != null && nt != null && nts != null ){
-				
-				if ( nt.indexOf( "upnp:rootdevice" ) != -1 ){
-					
-					if ( nts.indexOf("alive") != -1 ){
-						
-							// alive can be reported on any interface
-						
-						gotAlive( location );
-						
-					}else if ( nts.indexOf( "byebye") != -1 ){
-							
-						lostRoot( local_address, location );
-					}
-				}		
-			}
-		}else if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
-
-			if ( location != null ){
-				
-				gotRoot( local_address, location );
-			}
-		}else{
-			
-			upnp.log( "UPnP::SSDP::receive packet - bad header:" + header );
+			this_mon.exit();
 		}
 	}
 	

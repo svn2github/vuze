@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.tables.peers;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 
 /**
@@ -32,28 +33,50 @@ import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
  */
 public class PeersTableExtensions {
 
-  private static PeersTableExtensions instance;
-  private Map items;
-  
+  private static PeersTableExtensions 	instance;
+  private static AEMonitor				class_mon	= new AEMonitor( "PeerTableExtensions:class" );
+
+  private Map 			items;
+  private AEMonitor		items_mon	= new AEMonitor( "PeerTableExtensions:items" );
+
   private PeersTableExtensions() {
    items = new HashMap();
   }
   
-  public static synchronized PeersTableExtensions getInstance() {
-    if(instance == null)
-      instance = new PeersTableExtensions();
-    return instance;
+  public static PeersTableExtensions getInstance() {
+  	try{
+  		class_mon.enter();
+  	
+  		if(instance == null)
+  			instance = new PeersTableExtensions();
+  		return instance;
+  		
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   public void addExtension(String name,PluginPeerItemFactory item) {
-    synchronized(items) {
-      items.put(name,item);
+    try{
+    	items_mon.enter();
+    
+    	items.put(name,item);
+      
+    }finally{
+    	
+    	items_mon.exit();
     }
   }
   
   public Map getExtensions() {
-    synchronized(items) {
-      return new HashMap(items);
+    try{
+    	items_mon.enter();
+    
+    	return new HashMap(items);
+    }finally{
+    	
+    	items_mon.exit();
     }
   }
 

@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -32,9 +33,19 @@ public class PasswordWindow {
   
   private static int nbInstances = 0;
   
-  public static synchronized void showPasswordWindow(Display display) {
-    if(nbInstances == 0)
-       new PasswordWindow(display);     
+  protected static AEMonitor	class_mon	= new AEMonitor( "PasswordWindow:class" );
+
+  public static void showPasswordWindow(Display display) {
+  	try{
+  		class_mon.enter();
+  	
+  		if(nbInstances == 0)
+  			new PasswordWindow(display);
+  		
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   protected PasswordWindow(Display display) {
     nbInstances++;

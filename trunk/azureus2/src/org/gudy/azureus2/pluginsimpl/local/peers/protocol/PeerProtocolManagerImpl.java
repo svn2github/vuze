@@ -33,22 +33,32 @@ import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.pluginsimpl.local.peers.*;
 
 import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 PeerProtocolManagerImpl
 	implements PeerProtocolManager
 {
 	protected static PeerProtocolManager	singleton;
-	
-	public synchronized static PeerProtocolManager
+	protected static AEMonitor				class_mon	= new AEMonitor( "PeerProtocolManager:class" );
+
+	public static PeerProtocolManager
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			singleton = new PeerProtocolManagerImpl();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton = new PeerProtocolManagerImpl();
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public void

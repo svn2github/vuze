@@ -31,12 +31,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Control;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public abstract class 
 Parameter 
 	implements IParameter
 {
 	protected  List	change_listeners;
+	
+	private static AEMonitor	class_mon	= new AEMonitor( "Parameter:class" );
 
 	public Control[]
 	getControls()
@@ -44,16 +47,24 @@ Parameter
 		return( new Control[]{ getControl() });
 	}
 	
- 	public synchronized void
+ 	public void
 	addChangeListener(
 		ParameterChangeListener	l )
 	{
- 		if ( change_listeners == null ){
- 			
- 			change_listeners = new ArrayList(1);
- 		}
+ 		try{
+ 			class_mon.enter();
  		
-  		change_listeners.add( l );
+	 		if ( change_listeners == null ){
+	 			
+	 			change_listeners = new ArrayList(1);
+	 		}
+	 		
+	  		change_listeners.add( l );
+	  		
+ 		}finally{
+ 			
+ 			class_mon.exit();
+ 		}
 	}
 		
 	public void

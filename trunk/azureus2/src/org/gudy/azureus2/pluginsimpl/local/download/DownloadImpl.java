@@ -472,26 +472,21 @@ DownloadImpl
 	isRemovable()
 		throws DownloadRemovalVetoException
 	{
-		try{
-			removal_listeners_mon.enter();
+			// no sync required, see update code
+		
+		for (int i=0;i<removal_listeners.size();i++){
 			
-			for (int i=0;i<removal_listeners.size();i++){
+			try{
+				((DownloadWillBeRemovedListener)removal_listeners.get(i)).downloadWillBeRemoved(this);
 				
-				try{
-					((DownloadWillBeRemovedListener)removal_listeners.get(i)).downloadWillBeRemoved(this);
-					
-				}catch( DownloadRemovalVetoException e ){
-					
-					throw( e );
-					
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
-				}
+			}catch( DownloadRemovalVetoException e ){
+				
+				throw( e );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
 			}
-		}finally{
-			
-			removal_listeners_mon.exit();
 		}
 	}
 	
@@ -521,22 +516,15 @@ DownloadImpl
 			
 			latest_forcedStart = curr_forcedStart;
 			
-			try{
-				listeners_mon.enter();
+			for (int i=0;i<listeners.size();i++){
 				
-				for (int i=0;i<listeners.size();i++){
+				try{
+					((DownloadListener)listeners.get(i)).stateChanged( this, prev_state, latest_state );
+				
+				}catch( Throwable e ){
 					
-					try{
-						((DownloadListener)listeners.get(i)).stateChanged( this, prev_state, latest_state );
-					
-					}catch( Throwable e ){
-						
-						e.printStackTrace();
-					}
+					e.printStackTrace();
 				}
-			}finally{
-				
-				listeners_mon.exit();
 			}
 		}
 	}
@@ -553,22 +541,19 @@ DownloadImpl
 	{
 	}
 	
-  public void positionChanged(DownloadManager download, 
-                              int oldPosition, int newPosition) {
-		try{
-			listeners_mon.enter();
-		
-			for (int i = 0; i < listeners.size(); i++) {
-				try {
-					((DownloadListener)listeners.get(i)).positionChanged(this, oldPosition, newPosition);
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}
-			}
-		}finally{
-			
-			listeners_mon.exit();
+  public void 
+  positionChanged(
+  	DownloadManager download, 
+    int oldPosition, 
+	int newPosition) 
+  {	
+	for (int i = 0; i < listeners.size(); i++) {
+		try {
+			((DownloadListener)listeners.get(i)).positionChanged(this, oldPosition, newPosition);
+		} catch (Throwable e) {
+			e.printStackTrace();
 		}
+	}
   }
 
 	public void
@@ -578,7 +563,11 @@ DownloadImpl
 		try{
 			listeners_mon.enter();
 			
-			listeners.add(l);
+			List	new_listeners = new ArrayList( listeners );
+			
+			new_listeners.add(l);
+			
+			listeners	= new_listeners;
 		}finally{
 			
 			listeners_mon.exit();
@@ -592,8 +581,11 @@ DownloadImpl
 		try{
 			listeners_mon.enter();
 			
-			listeners.remove(l);
+			List	new_listeners	= new ArrayList(listeners);
 			
+			new_listeners.remove(l);
+			
+			listeners	= new_listeners;
 		}finally{
 			
 			listeners_mon.exit();
@@ -623,22 +615,15 @@ DownloadImpl
 	{
 		last_scrape_result.setContent( response );
 		
-		try{
-			tracker_listeners_mon.enter();
+		for (int i=0;i<tracker_listeners.size();i++){
 			
-			for (int i=0;i<tracker_listeners.size();i++){
-				
-				try{						
-					((DownloadTrackerListener)tracker_listeners.get(i)).scrapeResult( last_scrape_result );
+			try{						
+				((DownloadTrackerListener)tracker_listeners.get(i)).scrapeResult( last_scrape_result );
 
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
-				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
 			}
-		}finally{
-			
-			tracker_listeners_mon.exit();
 		}
 	}
 	
@@ -648,22 +633,15 @@ DownloadImpl
 	{
 		last_announce_result.setContent( response );
 		
-		try{
-			tracker_listeners_mon.enter();
+		for (int i=0;i<tracker_listeners.size();i++){
 			
-			for (int i=0;i<tracker_listeners.size();i++){
-				
-				try{						
-					((DownloadTrackerListener)tracker_listeners.get(i)).announceResult( last_announce_result );
+			try{						
+				((DownloadTrackerListener)tracker_listeners.get(i)).announceResult( last_announce_result );
 
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
-				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
 			}
-		}finally{
-			
-			tracker_listeners_mon.exit();
 		}
 	}
 	
@@ -685,7 +663,11 @@ DownloadImpl
 		try{
 			tracker_listeners_mon.enter();
 	
-			tracker_listeners.add( l );
+			List	new_tracker_listeners = new ArrayList( tracker_listeners );
+			
+			new_tracker_listeners.add( l );
+			
+			tracker_listeners	= new_tracker_listeners;
 			
 			if ( tracker_listeners.size() == 1 ){
 				
@@ -708,7 +690,11 @@ DownloadImpl
 		try{
 			tracker_listeners_mon.enter();
 			
-			tracker_listeners.remove( l );
+			List	new_tracker_listeners	= new ArrayList( tracker_listeners );
+			
+			new_tracker_listeners.remove( l );
+			
+			tracker_listeners	= new_tracker_listeners;
 			
 			if ( tracker_listeners.size() == 0 ){
 				
@@ -727,7 +713,12 @@ DownloadImpl
 		try{
 			removal_listeners_mon.enter();
 			
-			removal_listeners.add(l);
+			List	new_removal_listeners	= new ArrayList( removal_listeners );
+			
+			new_removal_listeners.add(l);
+			
+			removal_listeners	= new_removal_listeners;
+			
 		}finally{
 			
 			removal_listeners_mon.exit();
@@ -741,7 +732,12 @@ DownloadImpl
 		try{
 			removal_listeners_mon.enter();
 			
-			removal_listeners.remove(l);
+			List	new_removal_listeners	= new ArrayList( removal_listeners );
+			
+			new_removal_listeners.remove(l);
+			
+			removal_listeners	= new_removal_listeners;
+			
 		}finally{
 			
 			removal_listeners_mon.exit();
@@ -755,7 +751,11 @@ DownloadImpl
 		try{
 			peer_listeners_mon.enter();
 		
-			peer_listeners.add( l );
+			List	new_peer_listeners	= new ArrayList( peer_listeners );
+			
+			new_peer_listeners.add( l );
+			
+			peer_listeners	= new_peer_listeners;
 			
 			if ( peer_listeners.size() == 1 ){
 				
@@ -775,7 +775,11 @@ DownloadImpl
 		try{
 			peer_listeners_mon.enter();
 
-			peer_listeners.remove( l );
+			List	new_peer_listeners	= new ArrayList( peer_listeners );
+			
+			new_peer_listeners.remove( l );
+			
+			peer_listeners	= new_peer_listeners;
 			
 			if ( peer_listeners.size() == 0 ){
 				

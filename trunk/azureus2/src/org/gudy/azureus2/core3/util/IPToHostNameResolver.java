@@ -35,6 +35,8 @@ IPToHostNameResolver
 {
 	static protected Thread			resolver_thread;
 	static protected List			request_queue		= new ArrayList();
+	static protected AEMonitor		request_mon			= new AEMonitor( "IPToHostNameResolver" );
+
 	static protected AESemaphore	request_semaphore	= new AESemaphore("IPToHostNameResolver");
 	
 	public static void
@@ -42,7 +44,8 @@ IPToHostNameResolver
 		String							ip,
 		IPToHostNameResolverListener	l )
 	{
-		synchronized( request_queue ){
+		try{
+			request_mon.enter();
 			
 			request_queue.add( new request( ip, l ));
 			
@@ -63,9 +66,14 @@ IPToHostNameResolver
 									
 									request	req;
 									
-									synchronized( request_queue ){
+									try{
+										request_mon.enter();
 										
 										req	= (request)request_queue.remove(0);
+										
+									}finally{
+										
+										request_mon.exit();
 									}
 									
 									try{
@@ -90,6 +98,9 @@ IPToHostNameResolver
 					
 				resolver_thread.start();
 			}
+		}finally{
+			
+			request_mon.exit();
 		}
 	}
 	

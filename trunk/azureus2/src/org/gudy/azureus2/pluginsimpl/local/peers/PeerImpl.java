@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.peers.protocol.*;
@@ -44,6 +45,8 @@ PeerImpl
 	
 	protected List			listeners;
 	
+    protected AEMonitor	this_mon	= new AEMonitor( "Peer" );
+
 	public
 	PeerImpl(
 		PEPeer		_delegate )
@@ -279,7 +282,8 @@ PeerImpl
 	addListener(
 		PeerListener	l )
 	{
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			if (listeners == null ){
 				
@@ -287,6 +291,10 @@ PeerImpl
 			}
 		
 			listeners.add( l );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		delegate.addListener(this);
@@ -296,7 +304,8 @@ PeerImpl
 	removeListener(
 		PeerListener	l )
 	{
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			if (listeners == null ){
 				
@@ -304,6 +313,10 @@ PeerImpl
 			}
 		
 			listeners.add( l );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		delegate.removeListener(this);	

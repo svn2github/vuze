@@ -39,6 +39,8 @@ ShareConfigImpl
 	protected boolean				saving_suspended;
 	protected boolean				save_outstanding;
 	
+	protected AEMonitor				this_mon	= new AEMonitor( "ShareConfig" );
+
 	protected void
 	loadConfig(
 		ShareManagerImpl	_manager )
@@ -71,55 +73,78 @@ ShareConfigImpl
 		}
 	}
 
-	protected synchronized void
+	protected void
 	saveConfig()
 	
 		throws ShareException
 	{
-		if ( saving_suspended ){
+		try{
+			this_mon.enter();
+		
+			if ( saving_suspended ){
+				
+				save_outstanding = true;
+				
+				return;
+			}
 			
-			save_outstanding = true;
+			Map map = new HashMap();
 			
-			return;
+			List list = new ArrayList();
+			
+			map.put("resources", list);
+			
+			ShareResource[]	shares = manager.getShares();
+			
+			for (int i=0;i<shares.length;i++){
+				
+				Map	m = new HashMap();
+				
+				((ShareResourceImpl)shares[i]).serialiseResource( m );
+				
+				list.add( m );
+			}
+			
+			FileUtil.writeResilientConfigFile("sharing.config", map);
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		Map map = new HashMap();
-		
-		List list = new ArrayList();
-		
-		map.put("resources", list);
-		
-		ShareResource[]	shares = manager.getShares();
-		
-		for (int i=0;i<shares.length;i++){
-			
-			Map	m = new HashMap();
-			
-			((ShareResourceImpl)shares[i]).serialiseResource( m );
-			
-			list.add( m );
-		}
-		
-		FileUtil.writeResilientConfigFile("sharing.config", map);
 	}
 	
-	protected synchronized void
+	protected void
 	suspendSaving()
 	{
-		saving_suspended	= true;
+		try{
+			this_mon.enter();
+		
+			saving_suspended	= true;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	resumeSaving()
 		throws ShareException
 	{
-		saving_suspended	= false;
+		try{
+			this_mon.enter();
 		
-		if ( save_outstanding ){
+			saving_suspended	= false;
 			
-			save_outstanding	= false;
+			if ( save_outstanding ){
+				
+				save_outstanding	= false;
+				
+				saveConfig();
+			}
+		}finally{
 			
-			saveConfig();
+			this_mon.exit();
 		}
 	}
 }

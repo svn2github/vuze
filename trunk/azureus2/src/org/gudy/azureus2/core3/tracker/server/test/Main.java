@@ -139,34 +139,45 @@ Main
 		}
 	}
 
-	protected static AESemaphore			init_sem = new AESemaphore("TrackerServerTest");
-	
+	protected static AESemaphore			init_sem 	= new AESemaphore("TrackerServerTest");
+	private static AEMonitor				class_mon	= new AEMonitor( "TrackerServerTest:class" );
+
 	protected static Main		singleton;
-				
-	public static synchronized Main
+			
+	protected AEMonitor				this_mon	= new AEMonitor( "TrackerServerTest" );
+
+	public static Main
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			new AEThread( "plugin initialiser ")
-			{
-				public void
-				run()
+		try{
+			class_mon.enter();
+		
+			if ( singleton == null ){
+				
+				new AEThread( "plugin initialiser ")
 				{
-					PluginManager.registerPlugin( Main.class );
-	
-					Properties props = new Properties();
-					
-					props.put( PluginManager.PR_MULTI_INSTANCE, "true" );
-					
-					PluginManager.startAzureus( PluginManager.UI_SWT, props );
-				}
-			}.start();
+					public void
+					run()
+					{
+						PluginManager.registerPlugin( Main.class );
 		
-			init_sem.reserve();
+						Properties props = new Properties();
+						
+						props.put( PluginManager.PR_MULTI_INSTANCE, "true" );
+						
+						PluginManager.startAzureus( PluginManager.UI_SWT, props );
+					}
+				}.start();
+			
+				init_sem.reserve();
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( singleton );
 	}	
 	
 	protected PluginInterface		plugin_interface;
@@ -296,8 +307,8 @@ Main
 						String url_start	= "http://127.0.0.1:" + tracker_url.getPort() + "/announce?info_hash=" + info_hash + "&peer_id=-AZ2103-aa";
 						String url_end		= "&port=6881&uploaded=0&downloaded=0&left=10&event="+event+"&numwant=" +num_want + "&ip=IP";
 												
-						synchronized( Main.this ){
-	
+						try{
+							this_mon.enter();
 							
 							count++;
 							
@@ -310,6 +321,10 @@ Main
 							
 							peer_id = peer_id_next++;
 							address = ip_address_next++;
+							
+						}finally{
+							
+							this_mon.exit();
 						}
 							
 						boolean	did_scrape;

@@ -49,18 +49,29 @@ ShareManagerImpl
 	public static final int			MAX_DIRS			= 1000;
 	
 	protected static ShareManagerImpl	singleton;
-	
-	public synchronized static ShareManagerImpl
+	private static AEMonitor			class_mon	= new AEMonitor( "ShareManager:class" );
+
+	protected AEMonitor				this_mon	= new AEMonitor( "ShareManager" );
+
+	public static ShareManagerImpl
 	getSingleton()
 	
 		throws ShareException
 	{
-		if ( singleton == null ){
-			
-			singleton = new ShareManagerImpl();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton = new ShareManagerImpl();
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	
@@ -81,53 +92,60 @@ ShareManagerImpl
 	{
 	}
 	
-	public synchronized void
+	public void
 	initialise()
 		throws ShareException
 	{
-		if ( !initialised ){
+		try{
+			this_mon.enter();
 		
-			initialised	= true;
+			if ( !initialised ){
 			
-			share_dir = FileUtil.getUserFile( TORRENT_STORE );
-			
-			share_dir.mkdirs();
-							
-			config = new ShareConfigImpl();
-			
-			try{
-				config.suspendSaving();
-			
-				config.loadConfig(this);
-		
-				checkConsistency();
+				initialised	= true;
 				
-			}finally{
+				share_dir = FileUtil.getUserFile( TORRENT_STORE );
+				
+				share_dir.mkdirs();
+								
+				config = new ShareConfigImpl();
+				
+				try{
+					config.suspendSaving();
+				
+					config.loadConfig(this);
 			
-				Iterator it = shares.values().iterator();
-				
-				while(it.hasNext()){
-				
-					ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+					checkConsistency();
 					
-					if ( resource.getType() == ShareResource.ST_DIR_CONTENTS ){
-			
-						for (int i=0;i<listeners.size();i++){
-							
-							try{
+				}finally{
+				
+					Iterator it = shares.values().iterator();
+					
+					while(it.hasNext()){
+					
+						ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+						
+						if ( resource.getType() == ShareResource.ST_DIR_CONTENTS ){
+				
+							for (int i=0;i<listeners.size();i++){
 								
-								((ShareManagerListener)listeners.get(i)).resourceAdded( resource );
-								
-							}catch( Throwable e ){
-								
-								e.printStackTrace();
+								try{
+									
+									((ShareManagerListener)listeners.get(i)).resourceAdded( resource );
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+								}
 							}
 						}
 					}
+					
+					config.resumeSaving();
 				}
-				
-				config.resumeSaving();
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -387,13 +405,15 @@ ShareManagerImpl
 		return( (ShareResourceFile)ShareResourceFileImpl.getResource( this, file ));
 	}
 	
-	public synchronized ShareResourceDir
+	public ShareResourceDir
 	addDir(
 		File	dir )
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
 		try{
+			this_mon.enter();
+			
 			return( (ShareResourceDir)addFileOrDir( dir, ShareResource.ST_DIR, false ));
 			
 		}catch( ShareException e ){
@@ -401,7 +421,11 @@ ShareManagerImpl
 			reportError(e);
 			
 			throw(e);
-		}	
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public ShareResourceDir
@@ -413,7 +437,7 @@ ShareManagerImpl
 		return( (ShareResourceDir)ShareResourceDirImpl.getResource( this, file ));
 	}
 	
-	protected synchronized ShareResource
+	protected ShareResource
 	addFileOrDir(
 		File		file,
 		int			type,
@@ -421,58 +445,66 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		String	name = file.toString();
+		try{
+			this_mon.enter();
 		
-		ShareResource	old_resource = (ShareResource)shares.get(name);
-		
-		if ( old_resource != null ){
-	
-			old_resource.delete();
-		}
-		
-		ShareResourceImpl new_resource;
-		
-		if ( type == ShareResource.ST_FILE ){
-	
-			reportCurrentTask( "Adding file '" + name + "'");
+			String	name = file.toString();
 			
-			new_resource = new ShareResourceFileImpl( this, file );
+			ShareResource	old_resource = (ShareResource)shares.get(name);
 			
-		}else{
-			
-			reportCurrentTask( "Adding dir '" + name + "'");
-			
-			new_resource = new ShareResourceDirImpl( this, file );
-		}
+			if ( old_resource != null ){
 		
-		shares.put(name, new_resource );
-		
-		config.saveConfig();
-		
-		for (int i=0;i<listeners.size();i++){
-			
-			try{
-				
-				if ( modified ){
-					
-					((ShareManagerListener)listeners.get(i)).resourceModified( new_resource );
-				
-				}else{
-					
-					((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );				
-				}
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
+				old_resource.delete();
 			}
-		}
+			
+			ShareResourceImpl new_resource;
+			
+			if ( type == ShareResource.ST_FILE ){
 		
-		return( new_resource );
+				reportCurrentTask( "Adding file '" + name + "'");
+				
+				new_resource = new ShareResourceFileImpl( this, file );
+				
+			}else{
+				
+				reportCurrentTask( "Adding dir '" + name + "'");
+				
+				new_resource = new ShareResourceDirImpl( this, file );
+			}
+			
+			shares.put(name, new_resource );
+			
+			config.saveConfig();
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					
+					if ( modified ){
+						
+						((ShareManagerListener)listeners.get(i)).resourceModified( new_resource );
+					
+					}else{
+						
+						((ShareManagerListener)listeners.get(i)).resourceAdded( new_resource );				
+					}
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+			
+			return( new_resource );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 
 	
-	public synchronized ShareResourceDirContents
+	public ShareResourceDirContents
 	addDirContents(
 		File		dir,
 		boolean		recursive )
@@ -480,6 +512,8 @@ ShareManagerImpl
 		throws ShareException, ShareResourceDeletionVetoException
 	{
 		try{
+			this_mon.enter();
+			
 			String	name = dir.toString();
 			
 			reportCurrentTask( "Adding dir contents '" + name + "', recursive = " + recursive );
@@ -516,32 +550,43 @@ ShareManagerImpl
 			reportError(e);
 			
 			throw(e);
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 	}	
 	
-	protected synchronized void
+	protected void
 	delete(
 		ShareResourceImpl	resource )
 	
 		throws ShareException
 	{
-		shares.remove(resource.getName());
+		try{
+			this_mon.enter();
 		
-		resource.deleteInternal();
-		
-		config.saveConfig();
-		
-		for (int i=0;i<listeners.size();i++){
+			shares.remove(resource.getName());
 			
-			try{
+			resource.deleteInternal();
+			
+			config.saveConfig();
+			
+			for (int i=0;i<listeners.size();i++){
 				
-				((ShareManagerListener)listeners.get(i)).resourceDeleted( resource );
-				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
+				try{
+					
+					((ShareManagerListener)listeners.get(i)).resourceDeleted( resource );
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	

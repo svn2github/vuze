@@ -69,7 +69,9 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   public void addIntValue(int value) {
-    synchronized(this) {
+    try{
+    	this_mon.enter();
+    
 	    average += value - values[currentPosition];
 	    values[currentPosition++] = value;
 	    
@@ -79,6 +81,9 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 	    if(currentPosition >= values.length)
 	      currentPosition = 0;
 	    
+    }finally{
+    	
+    	this_mon.exit();
     }
   }
   
@@ -108,7 +113,9 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   protected void drawChart(boolean sizeChanged) {
-    synchronized(this) {
+   try{
+   	  this_mon.enter();
+   		
       drawScale(sizeChanged);
       
       Rectangle bounds = drawCanvas.getClientArea();    
@@ -167,6 +174,9 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       
       gcImage.dispose();
 
+    }finally{
+    	
+    	this_mon.exit();
     }
   }
   

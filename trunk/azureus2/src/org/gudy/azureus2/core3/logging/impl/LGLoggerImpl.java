@@ -62,60 +62,71 @@ LGLoggerImpl
     
 	private static String			log_dir			= "";
 	private static int				log_file_max	= 1;		// MB
-	private static int        log_types[] = new int[components.length];
+	private static int        		log_types[] = new int[components.length];
 	
-	public static synchronized void
+	private static AEMonitor		class_mon	= new AEMonitor( "LGLogger" );
+
+	public static void
 	initialise()
 	{
-		if ( !initialised ){
-			
-			initialised	= true;
-			
-  	  boolean overrideLog = System.getProperty("azureus.overridelog") != null;
-  	  if (!overrideLog) {
-  			COConfigurationManager.addListener(
-  				new COConfigurationListener()
-  				{
-  					public void
-  					configurationSaved()
-  					{
-  						checkLoggingConfig();
-  					}
-  				});
-			}
-			checkLoggingConfig();
-			
- 			doRedirects();
-			
-			LGLogger.log( "**** Logging starts: " + Constants.AZUREUS_VERSION + " ****" );
-			
-			LGLogger.log( "java.home=" + System.getProperty("java.home"));
-			
-			LGLogger.log( "java.version=" + System.getProperty("java.version"));
-			
-			LGLogger.log( "os=" + 	System.getProperty("os.arch") + "/" + 
-									System.getProperty("os.name") + "/" + 
-									System.getProperty("os.version" ));
-			
-			LGLogger.log( "user.dir=" + System.getProperty("user.dir"));
-			
-			LGLogger.log( "user.home=" + System.getProperty("user.home"));
-			
-			if ( log_to_file ){
+		try{
+			class_mon.enter();
+		
+			if ( !initialised ){
 				
-				for (int i=0;i<log_history.size();i++){
-					
-					Object[]	entry = (Object[])log_history.get(i);
-					
-					log(	((Integer)entry[0]).intValue(),
-							((Integer)entry[1]).intValue(),
-							((Integer)entry[2]).intValue(),
-							(String)entry[3] );
+				initialised	= true;
+				
+		  	  	boolean overrideLog = System.getProperty("azureus.overridelog") != null;
+		  	  	
+		  	  	if (!overrideLog) {
+		  			COConfigurationManager.addListener(
+		  				new COConfigurationListener()
+		  				{
+		  					public void
+		  					configurationSaved()
+		  					{
+		  						checkLoggingConfig();
+		  					}
+		  				});
 				}
+		  	  	
+				checkLoggingConfig();
+				
+	 			doRedirects();
+				
+				LGLogger.log( "**** Logging starts: " + Constants.AZUREUS_VERSION + " ****" );
+				
+				LGLogger.log( "java.home=" + System.getProperty("java.home"));
+				
+				LGLogger.log( "java.version=" + System.getProperty("java.version"));
+				
+				LGLogger.log( "os=" + 	System.getProperty("os.arch") + "/" + 
+										System.getProperty("os.name") + "/" + 
+										System.getProperty("os.version" ));
+				
+				LGLogger.log( "user.dir=" + System.getProperty("user.dir"));
+				
+				LGLogger.log( "user.home=" + System.getProperty("user.home"));
+				
+				if ( log_to_file ){
+					
+					for (int i=0;i<log_history.size();i++){
+						
+						Object[]	entry = (Object[])log_history.get(i);
+						
+						log(	((Integer)entry[0]).intValue(),
+								((Integer)entry[1]).intValue(),
+								((Integer)entry[2]).intValue(),
+								(String)entry[3] );
+					}
+				}
+				
+				log_history.clear();
+		
 			}
-			
-			log_history.clear();
-	
+		}finally{
+		
+			class_mon.exit();
 		}
 	}
 	
@@ -193,37 +204,44 @@ LGLoggerImpl
 		
 	}
 
-	public static synchronized void 
+	public static void 
 	log(
 		int componentId, 
 		int event, 
 		int color, 
 		String text) 
 	{
-		if ( initialised ){
-			if ( log_to_file ){
-			  int logTypeIndex = 0;
-	  		for (int i = 0; i < components.length; i++) {
-	  		  if (components[i] == componentId) {
-	  		    logTypeIndex = i;
-	  		    break;
-	  		  }
-	  		}
-	  		if ((log_types[logTypeIndex] & (1 << color)) != 0)
-	  			logToFile("{" + componentId + ":" + event + ":" + color + "}  " + text + NL);
+		try{
+			class_mon.enter();
+		
+			if ( initialised ){
+				if ( log_to_file ){
+				  int logTypeIndex = 0;
+		  		for (int i = 0; i < components.length; i++) {
+		  		  if (components[i] == componentId) {
+		  		    logTypeIndex = i;
+		  		    break;
+		  		  }
+		  		}
+		  		if ((log_types[logTypeIndex] & (1 << color)) != 0)
+		  			logToFile("{" + componentId + ":" + event + ":" + color + "}  " + text + NL);
+				}
+				
+				if( listener !=  null ){
+				
+					listener.log(componentId,event,color,text);
+				} 
+			}else{
+				
+				log_history.add( new Object[]{	new Integer(componentId),
+												new Integer(event),
+												new Integer( color ),
+												text  });
+										
 			}
+		}finally{
 			
-			if( listener !=  null ){
-			
-				listener.log(componentId,event,color,text);
-			} 
-		}else{
-			
-			log_history.add( new Object[]{	new Integer(componentId),
-											new Integer(event),
-											new Integer( color ),
-											text  });
-									
+			class_mon.exit();
 		}
 	}
   
@@ -233,14 +251,29 @@ LGLoggerImpl
 		return( listener != null || log_to_file );
 	}
 	
-	public static synchronized void 
+	public static void 
 	setListener(ILoggerListener _listener) {
-	  listener = _listener;
+		try{
+			class_mon.enter();
+		
+			listener = _listener;
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
   
-	public static synchronized void 
+	public static void 
 	removeListener() {
-	  listener = null;
+		try{
+			class_mon.enter();
+		
+			listener = null;
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public static void
@@ -328,66 +361,73 @@ LGLoggerImpl
 		alert_listeners.remove(l);
 	}
 	
-	protected static synchronized void
+	protected static void
 	logToFile(
 		String	str )
 	{
 		if ( log_to_file ){
-			Calendar now = GregorianCalendar.getInstance();
-			        
-			 String timeStamp =
-			   "[".concat(String.valueOf(now.get(Calendar.HOUR_OF_DAY))).concat(":").concat(format(now.get(Calendar.MINUTE))).concat(":").concat(format(now.get(Calendar.SECOND))).concat("]  "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$        
-	
-			str = timeStamp.concat(str);
+			try{
+				class_mon.enter();
 			
-			PrintWriter	pw = null;
-			
-			File	file_name = new File( log_dir.concat(File.separator).concat(LOG_FILE_NAME) );
-			
-			try{		
-						
-				pw = new PrintWriter(new FileWriter( file_name, true ));
-			
-				pw.print( str );
-         
-                if( log_to_stdout ) old_system_out.println( str );
+				Calendar now = GregorianCalendar.getInstance();
+				        
+				 String timeStamp =
+				   "[".concat(String.valueOf(now.get(Calendar.HOUR_OF_DAY))).concat(":").concat(format(now.get(Calendar.MINUTE))).concat(":").concat(format(now.get(Calendar.SECOND))).concat("]  "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$        
+		
+				str = timeStamp.concat(str);
 				
-			}catch( Throwable e ){
+				PrintWriter	pw = null;
 				
-				// can't log this as go recursive!!!!
+				File	file_name = new File( log_dir.concat(File.separator).concat(LOG_FILE_NAME) );
 				
-			}finally{
+				try{		
+							
+					pw = new PrintWriter(new FileWriter( file_name, true ));
 				
-				if ( pw != null ){
+					pw.print( str );
+	         
+	                if( log_to_stdout ) old_system_out.println( str );
 					
-					try{
+				}catch( Throwable e ){
 					
-						pw.close();
-						
-					}catch( Throwable e ){
-						
-						// can't log as go recursive!!!!
-					}
+					// can't log this as go recursive!!!!
 					
-					long	max_bytes = (log_file_max*1024*1024)/2;	// two files so half
+				}finally{
 					
-					if ( file_name.length() > max_bytes ){
+					if ( pw != null ){
 						
-						File	back_name = new File( log_dir.concat(File.separator).concat(BAK_FILE_NAME) );
+						try{
 						
-						if ( (!back_name.exists()) || back_name.delete()){
+							pw.close();
+							
+						}catch( Throwable e ){
+							
+							// can't log as go recursive!!!!
+						}
 						
-							if ( !file_name.renameTo( back_name )){
+						long	max_bytes = (log_file_max*1024*1024)/2;	// two files so half
+						
+						if ( file_name.length() > max_bytes ){
+							
+							File	back_name = new File( log_dir.concat(File.separator).concat(BAK_FILE_NAME) );
+							
+							if ( (!back_name.exists()) || back_name.delete()){
+							
+								if ( !file_name.renameTo( back_name )){
+									
+									file_name.delete();
+								}
+								
+							}else{
 								
 								file_name.delete();
 							}
-							
-						}else{
-							
-							file_name.delete();
 						}
 					}
 				}
+			}finally{
+				
+				class_mon.exit();
 			}
 		}
 	}

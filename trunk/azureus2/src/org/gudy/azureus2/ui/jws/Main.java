@@ -40,32 +40,41 @@ Main
 	protected static Main				singleton;
 	
 	protected static AESemaphore		init_sem = new AESemaphore("UIJWS");
+	private static AEMonitor			class_mon	= new AEMonitor( "UIJWS" );
 
-	public static synchronized Main
+	public static Main
 	getSingleton(
 		final String[]	args )
 	{
-		if ( singleton == null ){
-			
-			new AEThread( "plugin initialiser ")
-			{
-				public void
-				run()
-				{
-					PluginManager.registerPlugin( Main.class );
-					
-					Properties props = new Properties();
-					
-					props.put( PluginManager.PR_MULTI_INSTANCE, "false" );
-										
-					PluginManager.startAzureus( PluginManager.UI_SWT, props );
-				}
-			}.start();
-			
-			init_sem.reserve();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				new AEThread( "plugin initialiser ")
+				{
+					public void
+					run()
+					{
+						PluginManager.registerPlugin( Main.class );
+						
+						Properties props = new Properties();
+						
+						props.put( PluginManager.PR_MULTI_INSTANCE, "false" );
+											
+						PluginManager.startAzureus( PluginManager.UI_SWT, props );
+					}
+				}.start();
+				
+				init_sem.reserve();
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}	
 	
 	protected PluginInterface		plugin_interface;

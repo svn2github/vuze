@@ -36,36 +36,46 @@ public class
 ShareTester
 	implements Plugin, PluginListener, ShareManagerListener
 {
-	protected static AESemaphore		init_sem = new AESemaphore("ShareTester");
-	
+	protected static AESemaphore		init_sem 	= new AESemaphore("ShareTester");
+	private static AEMonitor			class_mon	= new AEMonitor( "ShareTester" );
+
 	protected static ShareTester		singleton;
 	
 	protected Map	seed_transport_map	= new HashMap();
 	
-	public static synchronized ShareTester
+	
+	public static ShareTester
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			new Thread( "plugin initialiser ")
-			{
-				public void
-				run()
+		try{
+			class_mon.enter();
+		
+			if ( singleton == null ){
+				
+				new Thread( "plugin initialiser ")
 				{
-					PluginManager.registerPlugin( ShareTester.class );
-	
-					Properties props = new Properties();
-					
-					props.put( PluginManager.PR_MULTI_INSTANCE, "true" );
-					
-					PluginManager.startAzureus( PluginManager.UI_SWT, props );
-				}
-			}.start();
+					public void
+					run()
+					{
+						PluginManager.registerPlugin( ShareTester.class );
 		
-			init_sem.reserve();
+						Properties props = new Properties();
+						
+						props.put( PluginManager.PR_MULTI_INSTANCE, "true" );
+						
+						PluginManager.startAzureus( PluginManager.UI_SWT, props );
+					}
+				}.start();
+			
+				init_sem.reserve();
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( singleton );
 	}	
 	
 	protected PluginInterface		plugin_interface;

@@ -50,6 +50,8 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
   long lastUploaded;
   long lastUptime; 
   
+  protected AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
+
   private void 
   load(String filename) 
   {
@@ -60,12 +62,18 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
 	  load("azureus.statistics");
 	}
   
-  private synchronized void 
+  private void 
   save(String filename) 
-  {  	  	
-	 File file = new File( SystemProperties.getUserPath() + filename );
-	    
-	 FileUtil.writeResilientConfigFile( filename, statisticsMap );
+  {  	  
+  	try{
+  		this_mon.enter();
+  	  		
+  		FileUtil.writeResilientConfigFile( filename, statisticsMap );
+  		
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   private void save() {
@@ -145,44 +153,51 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
     updateStats();
   }
 
-  private synchronized void updateStats() {
-    
-    long current_time = SystemTime.getCurrentTime() / 1000;
-    
-    if ( SystemTime.isErrorLast5min() ) {
-      lastUptime = current_time;
-      return;
-    }
-    
-    GlobalManagerStats stats = manager.getStats();
-    
-    long	current_total_received 	= stats.getTotalReceivedRaw();
-    long	current_total_sent		= stats.getTotalSentRaw();
-    
-    totalDownloaded +=  current_total_received - lastDownloaded;
-    lastDownloaded = current_total_received;
-    
-    totalUploaded +=  current_total_sent - lastUploaded;
-    lastUploaded = current_total_sent;
-    
-    long delta = current_time - lastUptime;
-    
-    if( delta > 100 || delta < 0 ) { //make sure the time diff isn't borked
-      lastUptime = current_time;
-      return;
-    }
-    
-    if( totalUptime > 60*60*24*365*10 ) {  //total uptime > 10years is an error, reset
-      totalUptime = 0;
-    }
-    
-    totalUptime += delta;
-    lastUptime = current_time;
-    
-    overallMap.put("downloaded",new Long(totalDownloaded));
-    overallMap.put("uploaded",new Long(totalUploaded));
-    overallMap.put("uptime",new Long(totalUptime));
-    
-    save(); 
+  private void updateStats() 
+  {
+  	try{
+  		this_mon.enter();
+  	
+	    long current_time = SystemTime.getCurrentTime() / 1000;
+	    
+	    if ( SystemTime.isErrorLast5min() ) {
+	      lastUptime = current_time;
+	      return;
+	    }
+	    
+	    GlobalManagerStats stats = manager.getStats();
+	    
+	    long	current_total_received 	= stats.getTotalReceivedRaw();
+	    long	current_total_sent		= stats.getTotalSentRaw();
+	    
+	    totalDownloaded +=  current_total_received - lastDownloaded;
+	    lastDownloaded = current_total_received;
+	    
+	    totalUploaded +=  current_total_sent - lastUploaded;
+	    lastUploaded = current_total_sent;
+	    
+	    long delta = current_time - lastUptime;
+	    
+	    if( delta > 100 || delta < 0 ) { //make sure the time diff isn't borked
+	      lastUptime = current_time;
+	      return;
+	    }
+	    
+	    if( totalUptime > 60*60*24*365*10 ) {  //total uptime > 10years is an error, reset
+	      totalUptime = 0;
+	    }
+	    
+	    totalUptime += delta;
+	    lastUptime = current_time;
+	    
+	    overallMap.put("downloaded",new Long(totalDownloaded));
+	    overallMap.put("uploaded",new Long(totalUploaded));
+	    overallMap.put("uptime",new Long(totalUptime));
+	    
+	    save();
+  	}finally{
+  	
+  		this_mon.exit();
+  	}
   }
 }

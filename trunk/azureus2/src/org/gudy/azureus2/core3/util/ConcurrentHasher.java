@@ -44,6 +44,8 @@ ConcurrentHasher
 	protected AESemaphore		request_sem		= new AESemaphore("ConcHashReqQ");
 	protected AESemaphore		scheduler_sem	= new AESemaphore("ConcHashSched");
 		
+	protected AEMonitor			requests_mon	= new AEMonitor( "ConcurrentHasher:R" );
+
 	protected
 	ConcurrentHasher()
 	{
@@ -80,7 +82,8 @@ ConcurrentHasher
 						final ConcurrentHasherRequest	req;
 						final SHA1Hasher				hasher;
 						
-						synchronized( requests ){
+						try{
+							requests_mon.enter();
 							
 							req	= (ConcurrentHasherRequest)requests.remove(0);
 							
@@ -92,6 +95,9 @@ ConcurrentHasher
 								
 								hasher	= (SHA1Hasher)hashers.remove( hashers.size()-1 );
 							}
+						}finally{
+							
+							requests_mon.exit();
 						}
 						
 						pool.run( 
@@ -155,7 +161,8 @@ ConcurrentHasher
 	{
 		final ConcurrentHasherRequest	req = new ConcurrentHasherRequest( this, buffer, priority, listener );
 			
-		synchronized( requests ){
+		try{
+			requests_mon.enter();
 			
 			boolean	done = false;
 			
@@ -177,6 +184,9 @@ ConcurrentHasher
 				
 				requests.add( req );
 			}
+		}finally{
+			
+			requests_mon.exit();
 		}
 		
 		request_sem.release();

@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.peers.*;
 
 import org.gudy.azureus2.pluginsimpl.local.disk.*;
@@ -49,6 +50,8 @@ PeerForeignDelegate
 	
 	protected Map		data;
 	
+	protected AEMonitor	this_mon	= new AEMonitor( "PeerForeignDelegate" );
+
 	protected
 	PeerForeignDelegate(
 		PeerManagerImpl		_manager,
@@ -355,16 +358,23 @@ PeerForeignDelegate
 	  }
 
 	  /** To store arbitrary objects against a peer. */
-	  public synchronized void setData (String key, Object value) {
-	  	if (data == null) {
-	  	  data = new HashMap();
+	  public void setData (String key, Object value) {
+	  	try{
+	  		this_mon.enter();
+	  	
+	  		if (data == null) {
+		  	  data = new HashMap();
+		  	}
+		    if (value == null) {
+		      if (data.containsKey(key))
+		        data.remove(key);
+		    } else {
+		      data.put(key, value);
+		    }
+	  	}finally{
+	  		
+	  		this_mon.exit();
 	  	}
-	    if (value == null) {
-	      if (data.containsKey(key))
-	        data.remove(key);
-	    } else {
-	      data.put(key, value);
-	    }
 	  }
 	  
 	public boolean 
