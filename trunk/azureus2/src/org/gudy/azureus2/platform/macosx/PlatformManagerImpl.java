@@ -24,6 +24,7 @@ package org.gudy.azureus2.platform.macosx;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerException;
@@ -33,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashSet;
+import java.text.MessageFormat;
 
 
 /**
@@ -110,12 +112,13 @@ public class PlatformManagerImpl implements PlatformManager
         return PT_MACOSX;
     }
 
-    public String getVersion()
-
-    throws PlatformManagerException
-	{
-	throw new PlatformManagerException("Unsupported capability called on platform manager");
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public String getVersion() throws PlatformManagerException
+    {
+        throw new PlatformManagerException("Unsupported capability called on platform manager");
+    }
     
     /**
      * {@inheritDoc}
@@ -166,7 +169,7 @@ public class PlatformManagerImpl implements PlatformManager
         {
             StringBuffer sb = new StringBuffer();
             sb.append("tell application \"");
-            sb.append(getFileBrowserName());
+            sb.append("Finder");
             sb.append("\" to move (posix file \"");
             sb.append(path);
             sb.append("\" as alias) to the trash");
@@ -179,6 +182,9 @@ public class PlatformManagerImpl implements PlatformManager
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public boolean hasCapability(PlatformManagerCapabilities capability)
     {
         return capabilitySet.contains(capability);
@@ -295,19 +301,137 @@ public class PlatformManagerImpl implements PlatformManager
      */
     protected static String performOSAScript(CharSequence cmd) throws IOException
     {
-        Process osaProcess = performRuntimeExec(new String[]{"osascript", "-e", String.valueOf(cmd)});
+        return performOSAScript(new CharSequence[]{cmd});
+    }
+
+    /**
+     * Compiles a new AppleScript instance and runs it
+     * @param cmds AppleScript Sequence of commands to execute; do not surround command with extra quotation marks
+     * @return Output of the script
+     * @throws IOException If the script failed to execute
+     */
+    protected static String performOSAScript(CharSequence[] cmds) throws IOException
+    {
+        long start = System.currentTimeMillis();
+        Debug.outNoStack("Executing OSAScript: ");
+         for(int i = 0; i < cmds.length; i++)
+            Debug.outNoStack("\t" + cmds[i]);
+
+        String[] cmdargs = new String[2*cmds.length + 1];
+        cmdargs[0] = "osascript";
+        for(int i = 0; i < cmds.length; i++)
+        {
+            cmdargs[i*2+1] = "-e";
+            cmdargs[i*2+2] = String.valueOf(cmds[i]);
+        }
+
+        Process osaProcess = performRuntimeExec(cmdargs);
         BufferedReader reader = new BufferedReader(new InputStreamReader(osaProcess.getInputStream()));
         String line = reader.readLine();
         reader.close();
+        Debug.outNoStack("OSAScript Output: " + line);
 
         reader = new BufferedReader(new InputStreamReader(osaProcess.getErrorStream()));
         String errorMsg = reader.readLine();
         reader.close();
 
+        Debug.outNoStack("OSAScript Error (if any): " + errorMsg);
+
+        Debug.outNoStack(MessageFormat.format("OSAScript execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
+
         if(errorMsg != null)
             throw new IOException(errorMsg);
 
         return line;
+    }
+
+    /**
+     * Compiles a new AppleScript instance and runs it
+     * @param script AppleScript file (.scpt) to execute
+     * @return Output of the script
+     * @throws IOException If the script failed to execute
+     */
+    protected static String performOSAScript(File script) throws IOException
+    {
+        long start = System.currentTimeMillis();
+        Debug.outNoStack("Executing OSAScript from file: " + script.getPath());
+
+        Process osaProcess = performRuntimeExec(new String[]{"osascript", script.getPath()});
+        BufferedReader reader = new BufferedReader(new InputStreamReader(osaProcess.getInputStream()));
+        String line = reader.readLine();
+        reader.close();
+        Debug.outNoStack("OSAScript Output: " + line);
+
+        reader = new BufferedReader(new InputStreamReader(osaProcess.getErrorStream()));
+        String errorMsg = reader.readLine();
+        reader.close();
+
+        Debug.outNoStack("OSAScript Error (if any): " + errorMsg);
+
+        Debug.outNoStack(MessageFormat.format("OSAScript execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
+
+        if(errorMsg != null)
+            throw new IOException(errorMsg);
+
+        return line;
+    }
+
+    /**
+     * Compiles a new AppleScript instance to the specified location
+     * @param cmd Command to compile; do not surround command with extra quotation marks
+     * @param destination Destination location of the AppleScript file
+     * @return True if compiled successfully
+     */
+    protected static boolean compileOSAScript(CharSequence cmd, File destination)
+    {
+        return compileOSAScript(new CharSequence[]{cmd}, destination);
+    }
+
+    /**
+     * Compiles a new AppleScript instance to the specified location
+     * @param cmds Sequence of commands to compile; do not surround command with extra quotation marks
+     * @param destination Destination location of the AppleScript file
+     * @return True if compiled successfully
+     */
+    protected static boolean compileOSAScript(CharSequence[] cmds, File destination)
+    {
+        long start = System.currentTimeMillis();
+        Debug.outNoStack("Compiling OSAScript: " + destination.getPath());
+        for(int i = 0; i < cmds.length; i++)
+            Debug.outNoStack("\t" + cmds[i]);
+
+        String[] cmdargs = new String[2*cmds.length + 3];
+        cmdargs[0] = "osacompile";
+        for(int i = 0; i < cmds.length; i++)
+        {
+            cmdargs[i*2+1] = "-e";
+            cmdargs[i*2+2] = String.valueOf(cmds[i]);
+        }
+
+        cmdargs[cmdargs.length - 2] = "-o";
+        cmdargs[cmdargs.length - 1] = destination.getPath();
+
+        String errorMsg;
+        try
+        {
+            Process osaProcess = performRuntimeExec(cmdargs);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(osaProcess.getErrorStream()));
+            errorMsg = reader.readLine();
+            reader.close();
+        }
+        catch(IOException e)
+        {
+            Debug.outNoStack("OSACompile Execution Failed: " + e.getMessage());
+            Debug.printStackTrace(e);
+            return false;
+        }
+
+        Debug.outNoStack("OSACompile Error (if any): " + errorMsg);
+
+        Debug.outNoStack(MessageFormat.format("OSACompile execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
+
+        return (errorMsg == null);
     }
 
     /**
@@ -336,14 +460,23 @@ public class PlatformManagerImpl implements PlatformManager
     {
         try
         {
-            if(performOSAScript("tell application \"System Events\" to exists process \"Path Finder\"").equalsIgnoreCase("true"))
+            // slowwwwwwww
+            if("true".equalsIgnoreCase(performOSAScript("tell application \"System Events\" to exists process \"Path Finder\"")))
             {
-                //Debug.out("Path Finder is running");
+                Debug.outNoStack("Path Finder is running");
+
                 return "Path Finder";
             }
+            else
+            {
+                return "Finder";
+            }
         }
-        finally
+        catch(IOException e)
         {
+            Debug.printStackTrace(e);
+            LGLogger.log(e.getMessage(), e);
+
             return "Finder";
         }
     }
