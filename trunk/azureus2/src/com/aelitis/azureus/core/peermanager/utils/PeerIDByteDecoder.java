@@ -120,25 +120,29 @@ public class PeerIDByteDecoder {
       
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
-        
-        if ( (peerID[6] == (byte)45) && (peerID[7] == (byte)45) && (peerID[8] == (byte)45) ) {
-          String name = "Shad0w ";
-          for (int i = 1; i < 3; i++) {
-            String v = new String(peerID, i, 1, Constants.BYTE_ENCODING);
-            name = name.concat( Integer.parseInt(v, 16) + "." );
+        try {
+          if ( (peerID[6] == (byte)45) && (peerID[7] == (byte)45) && (peerID[8] == (byte)45) ) {
+            String name = "Shad0w ";
+            for (int i = 1; i < 3; i++) {
+              String v = new String(peerID, i, 1, Constants.BYTE_ENCODING);
+              name = name.concat( Integer.parseInt(v, 16) + "." );
+            }
+            String v = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
+            name = name.concat( "" + Integer.parseInt(v, 16) );
+            return name;
           }
-          String v = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
-          name = name.concat( "" + Integer.parseInt(v, 16) );
-          return name;
+        
+          if (peerID[8] == (byte)0) {
+            String name = "Shad0w ";
+            for (int i = 1; i < 3; i++) {
+              name = name.concat(String.valueOf(peerID[i]) + ".");
+            }
+            name = name + String.valueOf(peerID[3]);
+            return name;
+          }
         }
-        
-        if (peerID[8] == (byte)0) {
-          String name = "Shad0w ";
-          for (int i = 1; i < 3; i++) {
-            name = name.concat(String.valueOf(peerID[i]) + ".");
-          }
-          name = name + String.valueOf(peerID[3]);
-          return name;
+        catch( Exception e ) {
+          /* NumberFormatException, for peerid like [S-----------A---$H-"] */
         }
       }
       
@@ -224,7 +228,10 @@ public class PeerIDByteDecoder {
       if (iFirstNonZeroPos == 12) return "Mainline";
       
     }
-    catch (Exception e) { Debug.out(e.toString()); }
+    catch (Exception e) {
+      e.printStackTrace();
+      Debug.out( "[" +new String( peerID )+ "]", e );
+    }
     
     if (LOG_UNKNOWN) {
       try {
