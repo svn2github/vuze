@@ -1819,12 +1819,8 @@ public class MainWindow implements GlobalManagerListener {
 			        dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + f_singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			        savePath[0] = dDialog.open();
 			      }
-			      if (savePath == null){
-			      
-			        savePath[0] = null;
-			        
-			      }else{
-			      	
+			      if (savePath[0] != null){
+			      			      	
 			      	COConfigurationManager.setParameter("Default Path", savePath[0]); //$NON-NLS-1$
 			      	
 			      	COConfigurationManager.save();
