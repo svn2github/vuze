@@ -478,6 +478,12 @@ public class GlobalManagerImpl
     return managers;
   }
   
+  public AEMonitor
+  getDownloadManagersMonitor()
+  {
+  	return( managers_mon );
+  }
+  
   public DownloadManager getDownloadManager(TOTorrent torrent) {
     try {
       return getDownloadManager(torrent.getHash());

@@ -33,6 +33,8 @@ import java.util.HashMap;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
+
 /**
  * @author Olivier
  *
@@ -40,8 +42,12 @@ import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 public class TableStructureEventDispatcher implements ITableStructureModificationListener {
 
   private static Map instances = new HashMap();
-  private List listeners;
   
+  private static AEMonitor	class_mon	= new AEMonitor( "TableStructureEventDispatcher:class" );
+  
+  private List 		listeners;
+  private AEMonitor	listeners_mon	= new AEMonitor( "TableStructureEventDispatcher:L" );
+
   /**
    * 
    */
@@ -49,55 +55,88 @@ public class TableStructureEventDispatcher implements ITableStructureModificatio
     listeners = new ArrayList();
   }
   
-  public static synchronized TableStructureEventDispatcher getInstance(String sTableID) {
-    TableStructureEventDispatcher instance = (TableStructureEventDispatcher)instances.get(sTableID);
-    if (instance == null) {
-      instance = new TableStructureEventDispatcher();
-      instances.put(sTableID, instance);
-    }
-    return instance;
+  public static TableStructureEventDispatcher getInstance(String sTableID) {
+  	try{
+  		class_mon.enter();
+  	
+  		TableStructureEventDispatcher instance = (TableStructureEventDispatcher)instances.get(sTableID);
+  		if (instance == null) {
+  			instance = new TableStructureEventDispatcher();
+  			instances.put(sTableID, instance);
+  		}
+  		return instance;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   public void addListener(ITableStructureModificationListener listener) {
-    synchronized(listeners) {
+    try{
+    	listeners_mon.enter();
+    
       this.listeners.add(listener);
+      
+    }finally{
+    	
+    	listeners_mon.exit();
     }
   }
   
   public void removeListener(ITableStructureModificationListener listener) {
-    synchronized(listeners) {
-      this.listeners.remove(listener);
+    try{
+    	listeners_mon.enter();
+    	    
+    	this.listeners.remove(listener);
+    }finally{
+    	
+    	listeners_mon.exit();
     }
   }
   
   public void tableStructureChanged() {
-   synchronized(listeners) {
+   try{
+   		listeners_mon.enter();
+   
      Iterator iter = listeners.iterator();
      while(iter.hasNext()) {
        ITableStructureModificationListener listener = (ITableStructureModificationListener) iter.next();
        listener.tableStructureChanged();
      }
+   }finally{
+   	
+   		listeners_mon.exit();
    }
   }
   
   public void columnSizeChanged(TableColumnCore tableColumn) {
-   synchronized(listeners) {
+   try{
+   		listeners_mon.enter();
+   
      Iterator iter = listeners.iterator();
      while(iter.hasNext()) {
        ITableStructureModificationListener listener = (ITableStructureModificationListener) iter.next();
        listener.columnSizeChanged(tableColumn);
      }
+   }finally{
+   	
+   	listeners_mon.exit();
    }
   }
 
   public void columnInvalidate(TableColumnCore tableColumn) {
-    synchronized (listeners) {
+    try{
+    	listeners_mon.enter();
+    
       Iterator iter = listeners.iterator();
       while (iter.hasNext()) {
         ITableStructureModificationListener listener = 
                               (ITableStructureModificationListener)iter.next();
         listener.columnInvalidate(tableColumn);
       }
+    }finally{
+    	
+    	listeners_mon.exit();
     }
   }
 }

@@ -190,7 +190,9 @@ public class SystemTraySWT {
     StringBuffer toolTip = new StringBuffer();
     int seeding = 0;
     int downloading = 0;
-    synchronized (managers) {
+    try{
+    	mainWindow.getGlobalManager().getDownloadManagersMonitor().enter();
+    
       for (int i = 0; i < managers.size(); i++) {
         DownloadManager manager = (DownloadManager) managers.get(i);
         int state = manager.getState();
@@ -199,7 +201,11 @@ public class SystemTraySWT {
         if (state == DownloadManager.STATE_SEEDING)
           seeding++;
       }
+    }finally{
+    	
+    	mainWindow.getGlobalManager().getDownloadManagersMonitor().exit();
     }
+    
     toolTip.append(seeding);
     toolTip.append(MessageText.getString("SystemTray.tooltip.seeding"));
     toolTip.append(downloading);

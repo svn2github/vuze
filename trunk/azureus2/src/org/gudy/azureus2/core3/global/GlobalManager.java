@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.download.*;
@@ -74,6 +75,9 @@ GlobalManager
 	public List
 	getDownloadManagers();
 
+	public AEMonitor
+	getDownloadManagersMonitor();
+	
 	public DownloadManager 
 	getDownloadManager(TOTorrent torrent);
 

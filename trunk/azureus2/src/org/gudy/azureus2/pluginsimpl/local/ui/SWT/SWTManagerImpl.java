@@ -18,6 +18,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.SWT;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 
 import org.gudy.azureus2.plugins.PluginView;
@@ -29,11 +30,20 @@ public class SWTManagerImpl
 	implements SWTManager
 {	
 	protected static SWTManagerImpl singleton;
+	
+	private static AEMonitor	class_mon	= new AEMonitor( "SWTManager" );
 
-	public synchronized static SWTManagerImpl getSingleton() {
-	  if (singleton == null)
-	    singleton = new SWTManagerImpl();
-    return singleton;
+	public static SWTManagerImpl getSingleton() {
+		try{
+			class_mon.enter();
+		
+			if (singleton == null)
+				singleton = new SWTManagerImpl();
+			return singleton;
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
   
   public Display getDisplay() {
