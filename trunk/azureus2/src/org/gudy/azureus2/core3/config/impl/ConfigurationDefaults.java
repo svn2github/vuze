@@ -330,4 +330,8 @@ public class ConfigurationDefaults {
   public void registerExternalDefaults(Map addmap) {
   	def.putAll(addmap);
   }
+  
+  public boolean doesParameterExist(String p) {
+    return def.containsKey(p);
+  }
 }

@@ -88,9 +88,9 @@ StatsWriterImpl
 	{
 		writeLineRaw( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 
-		boolean	export_peer_stats = COConfigurationManager.getBooleanParameter("Stats Export Peer Details", false );
+		boolean	export_peer_stats = COConfigurationManager.getBooleanParameter("Stats Export Peer Details");
 		
-		String xsl = COConfigurationManager.getStringParameter( "Stats XSL File", "" );
+		String xsl = COConfigurationManager.getStringParameter( "Stats XSL File" );
 		
 		if ( xsl.length() > 0 ){
 			

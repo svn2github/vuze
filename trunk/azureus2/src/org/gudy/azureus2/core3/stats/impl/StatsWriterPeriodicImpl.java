@@ -37,7 +37,6 @@ public class
 StatsWriterPeriodicImpl 
 	implements StatsWriterPeriodic, COConfigurationListener
 {
-	private static final int		DEFAULT_SLEEP_PERIOD	= 30*1000;
 	
 	private static StatsWriterPeriodicImpl	singleton;
 	private static int				start_count;
@@ -118,13 +117,13 @@ StatsWriterPeriodicImpl
 	protected void
 	readConfigValues()
 	{
-		config_enabled 	= COConfigurationManager.getBooleanParameter( "Stats Enable", false );
+		config_enabled 	= COConfigurationManager.getBooleanParameter( "Stats Enable" );
 		
-		config_period	= COConfigurationManager.getIntParameter( "Stats Period", DEFAULT_SLEEP_PERIOD );
+		config_period	= COConfigurationManager.getIntParameter( "Stats Period" );
 		
-		config_dir		= COConfigurationManager.getStringParameter( "Stats Dir", "" );
+		config_dir		= COConfigurationManager.getStringParameter( "Stats Dir" );
 		
-		config_file		= COConfigurationManager.getStringParameter( "Stats File", DEFAULT_STATS_FILE_NAME );
+		config_file		= COConfigurationManager.getStringParameter( "Stats File" );
 	}
 	
 	protected void

@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Constants;
 public interface 
 StatsWriterPeriodic 
 {	
+  public static final int    DEFAULT_SLEEP_PERIOD  = 30*1000;
 	public static final String		DEFAULT_STATS_FILE_NAME	= Constants.AZUREUS_NAME + "_Stats.xml";
 
 	public void
