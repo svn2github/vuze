@@ -1,9 +1,12 @@
 CHANGELOG
 ---------
 
-xx.xx.xx | Azureus 2.0.5.0
+xx.xx.03 | Azureus 2.0.4.1
 
-BUGFIX: torrent hosting - resetting of tracker url to original after hosting cancelled
+CHANGE: Client identification now includes Experimental [Nolar]
+
+BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
+BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
 
 
 13.11.03 | Azureus 2.0.4.0
