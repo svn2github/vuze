@@ -131,12 +131,13 @@ public class Tab {
     IView view = null;
     synchronized (tabs) {
       view = (IView) tabs.get(item);
-	  try {
-		  item.dispose();
+	  try {		  
       Control control = item.getControl();
       if(control != null && ! control.isDisposed())
         control.dispose();
+      item.dispose();
 	  } catch (Exception ignore) {
+      //ignore.printStackTrace();
 	  }
       tabs.remove(item);
     }
@@ -144,6 +145,7 @@ public class Tab {
       try {
         view.delete();
       } catch (Exception ignore) {
+        //ignore.printStackTrace();
       }
     }
   }
