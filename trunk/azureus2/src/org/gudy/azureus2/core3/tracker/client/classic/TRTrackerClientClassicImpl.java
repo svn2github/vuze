@@ -368,17 +368,18 @@ TRTrackerClientClassicImpl
 	protected int
 	requestUpdateSupport()
 	{
-		synchronized( this ){
-		
-			if ( update_in_progress ){
-			
-				return( REFRESH_MINIMUM_SECS );
-			}
-		}
+		boolean	clear_progress = true;
 		
 		try{
 			synchronized( this ){
-			
+
+				if ( update_in_progress ){
+					
+					clear_progress = false;
+					
+					return( REFRESH_MINIMUM_SECS );
+				}
+				
 				update_in_progress = true;
 			}
 	
@@ -442,8 +443,6 @@ TRTrackerClientClassicImpl
 				response = updateSupport();
 			}
 						
-				// set up next event
-				
 			if ( response != null ){
 
 				int	rs = response.getStatus();
@@ -489,7 +488,10 @@ TRTrackerClientClassicImpl
 			
 			synchronized( this ){
 			
-				update_in_progress = false;
+				if ( clear_progress ){
+					
+					update_in_progress = false;
+				}
 			}
 		}
 	}
