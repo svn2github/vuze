@@ -53,7 +53,7 @@ ThreadPool
 	run(
 		Runnable	runnable )
 	{
-		System.out.println( "Thread pool:" + name + " - sem = " + thread_sem.getValue());
+		// System.out.println( "Thread pool:" + name + " - sem = " + thread_sem.getValue());
 		
 		thread_sem.reserve();
 						
