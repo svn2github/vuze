@@ -60,16 +60,21 @@ public class DonationWindow {
   private static final String donationUrl = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
   private static final String donationUrlShort = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&currency_code=EUR";
   
-  private String fullText;
+  private String headerText;
+  private String mainText;
+  private String footerText;
   
   public DonationWindow(Display display) {
    this.display = display;   
    OverallStats stats = StatsFactory.getStats();
-   fullText = MessageText.getString("DonationWindow.text.time") + " " +(stats.getUpTime() / (60*60))
+   headerText = MessageText.getString("DonationWindow.text.time") + " " +(stats.getUpTime() / (60*60))
               + " " + MessageText.getString("DonationWindow.text.hours_downloaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes())
-              + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n"
-              + MessageText.getString("DonationWindow.text");
-   timeToWait = fullText.length() / 25 ;
+              + MessageText.getString("DonationWindow.text.uploaded") + " " + DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()) + "\n";
+              
+   mainText = MessageText.getString("DonationWindow.text");
+   footerText = MessageText.getString("DonationWindow.text.footer");
+   
+   timeToWait = (headerText.length() + mainText.length()) / 25 ;
   }
   
   public void show() {
@@ -87,49 +92,107 @@ public class DonationWindow {
     shell.setLayout(layout);
     
     
-    final Label text = new Label(shell,SWT.NULL);    
-    text.setText(fullText);
-    Font font = text.getFont();
-    FontData fontData[] = font.getFontData();
-    for(int i=0 ; i < fontData.length ; i++) {
-      fontData[i].setHeight((int) (fontData[i].getHeight() * 1.2));
-      fontData[i].setStyle(SWT.BOLD);     
+    final Label textHeader = new Label(shell,SWT.NULL);    
+    textHeader.setText(headerText);
+    Font fontHeader = textHeader.getFont();
+    FontData fontDataHeader[] = fontHeader.getFontData();
+    for(int i=0 ; i < fontDataHeader.length ; i++) {
+      fontDataHeader[i].setHeight((int) (fontDataHeader[i].getHeight() * 1.2));
+      fontDataHeader[i].setStyle(SWT.BOLD);     
     }
-    text.setFont(new Font(display,fontData));
-    text.setForeground(MainWindow.blues[4]);
-    text.setBackground(MainWindow.blues[0]);
+    textHeader.setFont(new Font(display,fontDataHeader));
+    textHeader.setForeground(MainWindow.red);
+     
     
-    final Text textForCopy = new Text(shell,SWT.BORDER);
-    textForCopy.setText(donationUrlShort);
+    final Label textMain = new Label(shell,SWT.NULL);    
+    textMain.setText(mainText);
+    Font fontMain = textMain.getFont();
+    FontData fontDataMain[] = fontMain.getFontData();
+    for(int i=0 ; i < fontDataMain.length ; i++) {
+      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.4));
+      fontDataMain[i].setStyle(SWT.BOLD);     
+    }
+    textMain.setFont(new Font(display,fontDataMain));
+    textMain.setForeground(MainWindow.blues[4]);
     formData = new FormData();
-    formData.top = new FormAttachment(text);
-    formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(100);
-    textForCopy.setLayoutData(formData);
+    formData.top = new FormAttachment(textHeader);
+    textMain.setLayoutData(formData);
     
     final Button radioDonate = new Button(shell,SWT.RADIO);
-    Messages.setLanguageText(radioDonate,"DonationWindow.options.donate");        
+    Messages.setLanguageText(radioDonate,"DonationWindow.options.donate");
+    Font fontDonate = radioDonate.getFont();
+    FontData fontDataDonate[] = fontDonate.getFontData();
+    for(int i=0 ; i < fontDataDonate.length ; i++) {
+      fontDataDonate[i].setHeight((int) (fontDataDonate[i].getHeight() * 1.4));
+      fontDataDonate[i].setStyle(SWT.BOLD); 
+    }
+    radioDonate.setFont(new Font(display,fontDataDonate));
     formData = new FormData();
-    formData.top = new FormAttachment(textForCopy);
+    formData.top = new FormAttachment(textMain);
     radioDonate.setLayoutData(formData);        
+    
+    
+    final Label textFooter = new Label(shell,SWT.NULL);    
+    textFooter.setText(footerText);
+    textFooter.setForeground(MainWindow.black);
+    formData = new FormData();
+    formData.top = new FormAttachment(radioDonate);
+    formData.left = new FormAttachment(4,0);
+    textFooter.setLayoutData(formData);
+   
     
     final Button radioNoDonate = new Button(shell,SWT.RADIO);
     Messages.setLanguageText(radioNoDonate,"DonationWindow.options.nodonate");
+    Font fontNoDonate = radioNoDonate.getFont();
+    FontData fontDataNoDonate[] = fontNoDonate.getFontData();
+    for(int i=0 ; i < fontDataNoDonate.length ; i++) {
+      fontDataNoDonate[i].setHeight((int) (fontDataNoDonate[i].getHeight() * 1.3));
+      fontDataNoDonate[i].setStyle(SWT.BOLD); 
+    }
+    radioNoDonate.setFont(new Font(display,fontDataNoDonate));
     formData = new FormData();
-    formData.top = new FormAttachment(radioDonate);
+    formData.top = new FormAttachment(textFooter);
     radioNoDonate.setLayoutData(formData);
     
     final Button radioLater = new Button(shell,SWT.RADIO);
     Messages.setLanguageText(radioLater,"DonationWindow.options.later");
+    Font fontLater = radioLater.getFont();
+    FontData fontDataLater[] = fontLater.getFontData();
+    for(int i=0 ; i < fontDataLater.length ; i++) {
+      fontDataLater[i].setHeight((int) (fontDataLater[i].getHeight() * 1.3));
+      fontDataLater[i].setStyle(SWT.BOLD); 
+    }
+    radioLater.setFont(new Font(display,fontDataLater));
     formData = new FormData();
     formData.top = new FormAttachment(radioNoDonate);
     radioLater.setLayoutData(formData);
     
     final Button radioAlready = new Button(shell,SWT.RADIO);
     Messages.setLanguageText(radioAlready,"DonationWindow.options.already");
+    Font fontAlready = radioAlready.getFont();
+    FontData fontDataAlready[] = fontAlready.getFontData();
+    for(int i=0 ; i < fontDataAlready.length ; i++) {
+      fontDataAlready[i].setHeight((int) (fontDataAlready[i].getHeight() * 1.3));
+      fontDataAlready[i].setStyle(SWT.BOLD); 
+    }
+    radioAlready.setFont(new Font(display,fontDataAlready));
     formData = new FormData();
     formData.top = new FormAttachment(radioLater);
     radioAlready.setLayoutData(formData);
+    
+    
+    final Text textForCopy = new Text(shell,SWT.BORDER);
+    textForCopy.setText(donationUrlShort);
+    Font fontCopy = textForCopy.getFont();
+    FontData fontDataCopy[] = fontCopy.getFontData();
+    for(int i=0 ; i < fontDataCopy.length ; i++) {
+      fontDataCopy[i].setHeight((int) (fontDataCopy[i].getHeight() * 0.9));
+    }
+    textForCopy.setFont(new Font(display,fontDataCopy));
+    formData = new FormData();
+    formData.top = new FormAttachment(radioAlready);
+    textForCopy.setLayoutData(formData);
+    
     
     //By default, donate is selected (of course)
     radioDonate.setSelection(true);    
@@ -165,7 +228,7 @@ public class DonationWindow {
     });
     shell.pack();    
     shell.open();
-    text.setText("");
+    textMain.setText("");
     Utils.centreWindow(shell);
     
     new Thread() {
@@ -184,8 +247,8 @@ public class DonationWindow {
               if(display != null && ! display.isDisposed()) {
                 display.asyncExec(new Runnable() {
                   public void run() {
-                    if(cutAt <= fullText.length()) {
-                    	text.setText(fullText.substring(0,cutAt));
+                    if(cutAt <= mainText.length()) {
+                      textMain.setText(mainText.substring(0,cutAt));
                     }
                     ok.setText(MessageText.getString("DonationWindow.ok.waiting") +  " " + timeToWait);
                   }
@@ -202,7 +265,7 @@ public class DonationWindow {
         if(display != null && ! display.isDisposed()) {
           display.asyncExec(new Runnable() {
             public void run() {
-              text.setText(fullText);
+              textMain.setText(mainText);
               Messages.setLanguageText(ok,"DonationWindow.ok");
               ok.setEnabled(true);
             }
