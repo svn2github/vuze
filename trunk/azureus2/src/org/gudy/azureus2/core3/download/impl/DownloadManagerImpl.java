@@ -615,77 +615,86 @@ DownloadManagerImpl
 
   	setState( DownloadManager.STATE_STOPPING );
 
-  	Thread stopThread = new AEThread("DownloadManager:stopIt") {
-	  public void run()
-	  {
-	  	try{
-	  	
-				// kill tracker client first so it doesn't report to peer manager
-				// after its been deleted 
-				
-			if ( tracker_client != null ){
-			
-				tracker_client.removeListener( tracker_client_listener );
-		
-				tracker_response_cache = tracker_client.getTrackerResponseCache();
-				
-				tracker_client.destroy();
-				
-				tracker_client = null;
-			}
-			
-			if (peerManager != null){
-			  stats.setSavedDownloadedUploaded( 
-					  stats.getSavedDownloaded() + peerManager.getStats().getTotalReceived(),
-				 	  stats.getSavedUploaded() + peerManager.getStats().getTotalSent());
-	      
-			  stats.saveDiscarded(stats.getDiscarded());
-			  stats.saveHashFails(stats.getHashFails());
-			  stats.setSecondsDownloading(stats.getSecondsDownloading());
-			  stats.setSecondsOnlySeeding(stats.getSecondsOnlySeeding());
-				 	  
-			  peerManager.removeListener( peer_manager_listener );
-			  
-			  peerManager.stopAll(); 
-			  
-			  synchronized( peer_listeners ){
-			  	peer_listeners.dispatch( LDT_PE_PM_REMOVED, peerManager );
-			  }
-
-			  peerManager = null; 
-			  server	  = null;	// clear down ref
-			}      
-			
-			if (diskManager != null){
-				stats.setCompleted(stats.getCompleted());
-				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-	      
-			  if (diskManager.getState() == DiskManager.READY){
-			    diskManager.dumpResumeDataToDisk(true, false);
-			  }
-	      
-			  saveTrackerResponseCache();
-			  
-			  //update path+name info before termination
-			  savePath = diskManager.getPath();
-			  name = diskManager.getFileName();
-			  
-        diskManager.storeFilePriorities();        
-			  diskManager.stopIt();
+  	try{
+	  	NonDaemonTaskRunner.run(
+			new NonDaemonTask()
+			{
+				public Object 
+				run()
+				{
+					try{
 			  	
-			  diskManager.removeListener( disk_manager_listener );
-			  
-			  diskManager = null;
-			}
-	  	}finally{
-				
-	  		setState( stateAfterStopping );                
-	  		forceStarted = false;
-	  	}
-	  }
-	};
-	stopThread.setDaemon(true);
-	stopThread.start();
+							// kill tracker client first so it doesn't report to peer manager
+							// after its been deleted 
+							
+						if ( tracker_client != null ){
+						
+							tracker_client.removeListener( tracker_client_listener );
+					
+							tracker_response_cache = tracker_client.getTrackerResponseCache();
+							
+							tracker_client.destroy();
+							
+							tracker_client = null;
+						}
+						
+						if (peerManager != null){
+						  stats.setSavedDownloadedUploaded( 
+								  stats.getSavedDownloaded() + peerManager.getStats().getTotalReceived(),
+							 	  stats.getSavedUploaded() + peerManager.getStats().getTotalSent());
+				      
+						  stats.saveDiscarded(stats.getDiscarded());
+						  stats.saveHashFails(stats.getHashFails());
+						  stats.setSecondsDownloading(stats.getSecondsDownloading());
+						  stats.setSecondsOnlySeeding(stats.getSecondsOnlySeeding());
+							 	  
+						  peerManager.removeListener( peer_manager_listener );
+						  
+						  peerManager.stopAll(); 
+						  
+						  synchronized( peer_listeners ){
+						  	peer_listeners.dispatch( LDT_PE_PM_REMOVED, peerManager );
+						  }
+			
+						  peerManager = null; 
+						  server	  = null;	// clear down ref
+						}      
+						
+						if (diskManager != null){
+							stats.setCompleted(stats.getCompleted());
+							stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+				      
+						  if (diskManager.getState() == DiskManager.READY){
+						    diskManager.dumpResumeDataToDisk(true, false);
+						  }
+				      
+						  saveTrackerResponseCache();
+						  
+						  //update path+name info before termination
+						  savePath = diskManager.getPath();
+						  name = diskManager.getFileName();
+						  
+						  diskManager.storeFilePriorities();        
+						  diskManager.stopIt();
+						  	
+						  diskManager.removeListener( disk_manager_listener );
+						  
+						  diskManager = null;
+						}
+					
+					 }finally{
+								
+					 	setState( stateAfterStopping );                
+					 	forceStarted = false;
+				  	 }
+				  	
+				  	return( null );
+				}
+			  });	
+  	}catch( Throwable e ){
+  		
+  		e.printStackTrace();
+  	}
   }
 
   public void

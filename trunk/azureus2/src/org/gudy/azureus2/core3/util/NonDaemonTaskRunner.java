@@ -66,6 +66,13 @@ NonDaemonTaskRunner
 	
 		throws Throwable
 	{
+			// is this a recursive call? if so, run directly
+		
+		if ( current_thread == Thread.currentThread()){
+			
+			return( target.run());
+		}
+		
 		taskWrapper	wrapper = new taskWrapper( target );
 		
 		synchronized( tasks ){
