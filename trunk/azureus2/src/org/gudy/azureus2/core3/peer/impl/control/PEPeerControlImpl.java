@@ -50,6 +50,7 @@ PEPeerControlImpl
   private static final int BAD_CHUNKS_LIMIT = 3;
   private static final int WARNINGS_LIMIT = 3;
   private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients");
+  private static boolean oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style", false);
   
   private int peer_manager_state = PS_INITIALISED;
   
@@ -109,14 +110,15 @@ PEPeerControlImpl
   public PEPeerControlImpl(
     DownloadManager 	manager,
     PEPeerServerHelper 	server,
-	TRTrackerClient 	tracker,
+		TRTrackerClient 	tracker,
     DiskManager 		diskManager) {
     	
- 	_server = server;
-    this._manager = manager;
-	_tracker = tracker;
-	this._diskManager = diskManager;
-    COConfigurationManager.addParameterListener("Max Clients", this);
+  	  _server = server;
+  	  this._manager = manager;
+  	  _tracker = tracker;
+  	  this._diskManager = diskManager;
+  	  COConfigurationManager.addParameterListener("Max Clients", this);
+  	  COConfigurationManager.addParameterListener("Old.Socket.Polling.Style", this);
  }
   
 	public DownloadManager
@@ -267,7 +269,7 @@ PEPeerControlImpl
               }
             }
             else {
-              if ( System.currentTimeMillis() > (ps.getLastReadTime() + ps.getReadSleepTime()) ) {
+              if (oldPolling || ( System.currentTimeMillis() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
                 ps.setReadSleepTime( ps.processRead() );
                 ps.setLastReadTime( System.currentTimeMillis() );
               }
@@ -447,6 +449,7 @@ PEPeerControlImpl
     
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Max Clients", this);
+    COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
   }
 
   /**
@@ -2054,6 +2057,7 @@ PEPeerControlImpl
    */
   public void parameterChanged(String parameterName) {
     maxConnections = COConfigurationManager.getIntParameter("Max Clients");
+    oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style");
   }
   
   
