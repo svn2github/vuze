@@ -1513,10 +1513,16 @@ public class MainWindow implements IComponentListener {
 
       try {
 
-        singleFile = TOTorrentFactory.deserialiseFromFile(new File(fileName)).isSimpleTorrent();
-
-      }
-      catch (Exception e) {
+		TOTorrent torrent = TOTorrentFactory.deserialiseFromFile(new File(fileName));
+		
+		singleFile = torrent.isSimpleTorrent();
+        
+        if ( singleFile ){
+        	
+        	singleFileName = torrent.getFiles()[0].getPath();
+        }
+     
+      }catch (Exception e) {
         e.printStackTrace();
       }
 
