@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.internat.update;
 
 import java.io.*;
 import java.util.Locale;
+import java.net.URL;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -38,9 +39,10 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -74,21 +76,13 @@ import org.gudy.azureus2.ui.swt.Utils;
  */
 public class
 UpdateLanguagePlugin
-  implements Plugin, TorrentDownloaderCallBackInterface
+  implements Plugin
 {
   private static final int STATE_UPDATEURL   = 0;
   private static final int STATE_LANGUAGEURL = 1;
   protected PluginInterface   plugin_interface;
   protected PluginConfig      plugin_config;
   protected LoggerChannel     log;
-
-  private TorrentDownloader downloader;
-  private String sCurLocale;
-  private String sUpdateURL;
-  private File  fLanguageFile;
-  private float fCurrentRevision;
-  private float fNewestRevision = 1;
-  private int state = STATE_UPDATEURL;
 
   public void initialize(PluginInterface _plugin_interface) {
     plugin_interface  = _plugin_interface;
@@ -120,25 +114,12 @@ UpdateLanguagePlugin
     }
   }
   
-  /* Main procedure to update the current language file. */
-  private void updateLanguage() {
+  public float getLocaleCurrentRevision() {
     String sCurrentRevision = "0";
-
-    sUpdateURL = plugin_config.getStringParameter("General_sUpdateLanguageURL"); 
-    
-    // get Current Revision from first line of .properties file
-    sCurLocale = Locale.getDefault().toString();
-    if (sCurLocale == "en")
-      sCurLocale = "";
-    
-    sUpdateURL = sUpdateURL.replaceAll("%s", sCurLocale);
-
-    if (!sCurLocale.equals(""))
-      sCurLocale = "_" + sCurLocale;
 
     BufferedReader in = null;
     try {
-      fLanguageFile = FileUtil.getUserFile("MessagesBundle" + sCurLocale + ".properties");
+      File fLanguageFile = getCurLocaleFile();
       in = new BufferedReader(new FileReader(fLanguageFile));
       sCurrentRevision = in.readLine();
       if (sCurrentRevision.startsWith("#")) {
@@ -158,46 +139,64 @@ UpdateLanguagePlugin
     }
     
     try {
-      fCurrentRevision = Float.valueOf(sCurrentRevision).floatValue();
+      return Float.valueOf(sCurrentRevision).floatValue();
     } catch (Exception e) {
-      fCurrentRevision = 0;
+      return 0;
     }
-
-    downloader = TorrentDownloaderFactory.download(this, sUpdateURL);
-    downloader.start();
-    log.log(LoggerChannel.LT_INFORMATION, 
-            "Current local revision is " + fCurrentRevision + 
-            ". Starting download using " + sUpdateURL);
   }
+  
+  public String getBundleSuffix(String sLangID) {
+    if (sLangID == "en")
+      return "";
 
-  /* Handle responses from the TorrentDownloader */
-  public void TorrentDownloaderEvent(int stateDownloader, TorrentDownloader inf) {   
-    if (state == STATE_UPDATEURL) {
-      if (stateDownloader == TorrentDownloader.STATE_FINISHED) {
-        checkRevision();
+    if (!sLangID.equals(""))
+      return "_" + sLangID;
+
+    return sLangID;
+  }
+  
+  /* Main procedure to update the current language file. */
+  private void updateLanguage() {
+    String sCurrentRevision = "0";
+
+    String sUpdateURL = plugin_config.getStringParameter("General_sUpdateLanguageURL"); 
+    
+    // get Current Revision from first line of .properties file
+    String sLocaleID = Locale.getDefault().toString();
+    if (sLocaleID == "en")
+      sLocaleID = "";
+    sUpdateURL = sUpdateURL.replaceAll("%s", sLocaleID);
+
+    String sBundleSuffix = getBundleSuffix(sLocaleID);
+    float fCurrentRevision = getLocaleCurrentRevision();
+    ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+    try {
+      ResourceDownloader rd = rdf.create(new URL(sUpdateURL));
+      log.log(LoggerChannel.LT_INFORMATION, 
+              "Current local revision is " + fCurrentRevision + 
+              ". Starting download using " + sUpdateURL);
+      try {
+        checkRevision(rd.download(), fCurrentRevision, sBundleSuffix);
+      } catch (ResourceDownloaderException e) {
+        log.log(LoggerChannel.LT_ERROR, "Error:" + e);
       }
-    } else if (state == STATE_LANGUAGEURL) {
-      if (stateDownloader == TorrentDownloader.STATE_FINISHED) {
-        moveInNewRevision();
-      }
-    }
-    if (stateDownloader == TorrentDownloader.STATE_ERROR) {
-      log.log(LoggerChannel.LT_ERROR, "Error:" + downloader.getError());
-    } else if (stateDownloader == TorrentDownloader.STATE_CANCELLED) {
-      log.log(LoggerChannel.LT_INFORMATION, "Update cancelled by user");
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
   /* Retrieve the revision number, and if newer, update bundle */
-  private void checkRevision() {
+  private void checkRevision(InputStream is, float fCurrentRevision, String sBundleSuffix) {
+    if (is == null)
+      return;
     log.log(LoggerChannel.LT_INFORMATION, "Revision info download complete");
     String sLanguageURL = null;
+    float fNewestRevision = 1;
 
     // retrieve the revision number and Language URL from file
     BufferedReader in = null;
     try {
-      File fUpdateInfo = new File(downloader.getFile().getAbsolutePath());
-      in = new BufferedReader(new FileReader(fUpdateInfo));
+      in = new BufferedReader(new InputStreamReader(is));
       String sLine = in.readLine();
 
       try {
@@ -220,42 +219,38 @@ UpdateLanguagePlugin
     
     if (sLanguageURL == null) {
       log.log(LoggerChannel.LT_WARNING, "Could not retrieve newest language file revision number");
-    } else {
-      if (fNewestRevision > fCurrentRevision && sLanguageURL != null) {
-        log.log(LoggerChannel.LT_INFORMATION, "Latest revision is " + fNewestRevision);
-        if (okToGetLatest()) {
-          try {
-            File fDel = FileUtil.getUserFile("lang.tmp");
-            if (fDel.exists())
-              fDel.delete();
-            
-            state = STATE_LANGUAGEURL;
-            downloader = TorrentDownloaderFactory.download(this, sLanguageURL, 
-                                                           SystemProperties.getUserPath() + "lang.tmp");
-            downloader.start();
-            log.log(LoggerChannel.LT_INFORMATION, "Downloading Rev. " + fNewestRevision + " from " + sLanguageURL);
-          } catch (Exception e) {
-            log.log("Deleting Old lang.tmp File", e);
-            e.printStackTrace();
-          }
+      return;
+    }
+
+    if (fNewestRevision > fCurrentRevision && sLanguageURL != null) {
+      log.log(LoggerChannel.LT_INFORMATION, "Latest revision is " + fNewestRevision);
+      if (okToGetLatest(sBundleSuffix)) {
+        try {
+          ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+          ResourceDownloader rd = rdf.create(new URL(sLanguageURL));
+          log.log(LoggerChannel.LT_INFORMATION, 
+                  "Downloading Rev. " + fNewestRevision + " from " + sLanguageURL);
+          moveInNewRevision(rd.download(), fNewestRevision);
+        } catch (Exception e) {
+          log.log("DLing Lang Update", e);
+          e.printStackTrace();
         }
-      } else {
-        log.log(LoggerChannel.LT_INFORMATION, "You have the latest revision (" + fNewestRevision + ")");
       }
+    } else {
+      log.log(LoggerChannel.LT_INFORMATION, "You have the latest revision (" + fNewestRevision + ")");
     }
   }    
   
   /* Overwrite the old bundle with the new Revision. */
-  private void moveInNewRevision() {
+  private void moveInNewRevision(InputStream is, float fNewestRevision) {
+    if (is == null)
+      return;
     log.log(LoggerChannel.LT_INFORMATION, "Language File download complete");
     // overwrite user language file
-    File fInBundle = new File(downloader.getFile().getAbsolutePath());
 
-    InputStream is = null;
     OutputStream os = null;
 		try{
-      File fOutBundle = fLanguageFile;
-			is = new FileInputStream(fInBundle);
+      File fOutBundle = getCurLocaleFile();
 			os = new FileOutputStream(fOutBundle);
 			
 			byte[] buf = new byte[32*1024];
@@ -271,6 +266,7 @@ UpdateLanguagePlugin
 				os.write(buf, 0, nbRead);
 			}
 
+      log.log(LoggerChannel.LT_INFORMATION, "Written to " + fOutBundle.getAbsolutePath());
     } catch (FileNotFoundException e) {
       //Do nothing
 
@@ -291,11 +287,6 @@ UpdateLanguagePlugin
 			}
 		}
 		
-		try {
-  		fInBundle.delete();
-    } catch (Exception e) { }
-    
-    log.log(LoggerChannel.LT_INFORMATION, "Written to " + fLanguageFile.getAbsolutePath());
     // refresh Azureus
     MainWindow.getWindow().getMenu().refreshLanguage();
   }
@@ -305,25 +296,28 @@ UpdateLanguagePlugin
    *
    * @return whether it's okay to retrieve the latest bundle
    */
-  private boolean okToGetLatest() {
+  private boolean okToGetLatest(String sBundleSuffix) {
+    File fLanguageFile = getCurLocaleFile();
     if (!fLanguageFile.exists()) {
       return true;
     }
 
     boolean okToProceed = true;
     String sNewLocale;
-    if (sCurLocale.length() > 6) {
-      sNewLocale = sCurLocale + ".%x";
-    } else if (sCurLocale.length() == 3) {
-      sNewLocale = sCurLocale + "__User.%x";
-    } else if (sCurLocale.length() == 0) {
-      sNewLocale = sCurLocale + "___User.%x";
+    if (sBundleSuffix.length() > 6) {
+      sNewLocale = sBundleSuffix + ".%x";
+    } else if (sBundleSuffix.length() == 3) {
+      sNewLocale = sBundleSuffix + "__User.%x";
+    } else if (sBundleSuffix.length() == 0) {
+      sNewLocale = sBundleSuffix + "___User.%x";
     } else {
-      sNewLocale = sCurLocale + "_User.%x";
+      sNewLocale = sBundleSuffix + "_User.%x";
     }
     File fRenameTo = null;
     for (int i = 1; i < 1000; i++) {
-      fRenameTo = FileUtil.getUserFile("MessagesBundle" + sNewLocale.replaceAll("%x", String.valueOf(i)) + ".properties");
+      fRenameTo = FileUtil.getUserFile("MessagesBundle" + 
+                                       sNewLocale.replaceAll("%x", String.valueOf(i)) +
+                                       ".properties");
       if (!fRenameTo.exists())
         break;
     }
@@ -333,19 +327,15 @@ UpdateLanguagePlugin
       okToProceed = false;
     }
     log.log(okToProceed ? LoggerChannel.LT_INFORMATION : LoggerChannel.LT_ERROR, 
-            "Renaming old MessagesBundle" + sCurLocale + ".properties " +
+            "Renaming old MessagesBundle" + sBundleSuffix + ".properties " +
             (okToProceed ? "succeeded" : "failed"));
 
     return okToProceed;  
   }
 
   private File getCurLocaleFile() {
-    String sCurLocale = Locale.getDefault().toString();
-    if (sCurLocale == "en")
-      sCurLocale = "";
-    if (!sCurLocale.equals(""))
-      sCurLocale = "_" + sCurLocale;
-    return FileUtil.getUserFile("MessagesBundle" + sCurLocale + ".properties");
+    String sBundleSuffix = getBundleSuffix(Locale.getDefault().toString());
+    return FileUtil.getUserFile("MessagesBundle" + sBundleSuffix + ".properties");
   }
 
   /* Configuration.
@@ -389,8 +379,26 @@ UpdateLanguagePlugin
       
       gridData = new GridData();
       gridData.horizontalSpan = 2;
-      new BooleanParameter(cSection, "General_bEnableLanguageUpdate", 
-                           "ConfigView.section.language.enableUpdate").setLayoutData(gridData);
+      final BooleanParameter bpEnable = 
+        new BooleanParameter(cSection, "General_bEnableLanguageUpdate", 
+                             "ConfigView.section.language.enableUpdate");
+      bpEnable.setLayoutData(gridData);
+      bpEnable.setAdditionalActionPerformer(
+        new GenericActionPerformer(null) {
+          public void performAction() {
+            if (!bpEnable.isSelected() && UpdateLanguagePlugin.this.getLocaleCurrentRevision() > 0) {
+    	        File file = UpdateLanguagePlugin.this.getCurLocaleFile();
+        	    if (file.exists()) {
+                try {
+                  file.delete();
+                  MainWindow.getWindow().getMenu().refreshLanguage();
+                } catch (Exception e) {}
+              }
+            }
+          }
+        }
+      );
+
 
       label = new Label(cSection, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.section.language.UpdateURL");
@@ -421,7 +429,7 @@ UpdateLanguagePlugin
 	      }
 	    });
       btnRevert.setEnabled(UpdateLanguagePlugin.this.getCurLocaleFile().exists());
-
+      
       return cSection;
     }
   }
