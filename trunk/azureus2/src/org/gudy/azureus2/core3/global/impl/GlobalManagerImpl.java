@@ -105,9 +105,17 @@ public class GlobalManagerImpl
           if (loopFactor % saveResumeLoopCount == 0) {
             saveDownloads();
           }
+          
 
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager manager = (DownloadManager) managers.get(i);
+            
+            //make sure we update 'downloads.config' on state changes
+            if (manager.getPrevState() != manager.getState()) {
+              saveDownloads();
+              manager.setPrevState(manager.getState());
+            }
+            
             if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
               nbStarted++;
               nbDownloading++;
