@@ -10,7 +10,7 @@ CHANGE: Core | Support azureus.install.path parameter, used by new linux launche
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
 BUGFIX: UI   | Fix for window state not being remembered between sessions [Nolar]
 BUGFIX: UI   | Fix for messages window being closed while animated [Gudy]
-
+BUBFIX: UI   | Fix for BUG 1059432 : Download bars spawning multiple times when set to auto open [Gudy]
 
 
 2004.10.31 | Azureus 2.2.0.0
