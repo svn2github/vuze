@@ -102,6 +102,8 @@ public class TorrentFolderWatcher {
         boolean saved = COConfigurationManager.getBooleanParameter("Save Torrent Files");
         String path = COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory");
         
+        if( file.getParent().equals( path ) ) saved = false;
+        
         if ( !saved || path.length() < 1) {
         	File imported = new File( watchFolderString, file.getName() + ".imported" );
         	file.renameTo( imported );
