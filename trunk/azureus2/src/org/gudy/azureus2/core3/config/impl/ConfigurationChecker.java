@@ -206,11 +206,13 @@ public class ConfigurationChecker {
       boolean sound = COConfigurationManager.getBooleanParameter("Play Download Finished",true);
       boolean close = COConfigurationManager.getBooleanParameter("Close To Tray",true);
       boolean min = COConfigurationManager.getBooleanParameter("Minimize To Tray",true);
+      boolean confirmExit = COConfigurationManager.getBooleanParameter("confirmationOnExit",false);
       
-      if ( sound || close || min ) {
+      if ( sound || close || min || confirmExit ) {
         COConfigurationManager.setParameter("Play Download Finished",false);
         COConfigurationManager.setParameter("Close To Tray",false);
         COConfigurationManager.setParameter("Minimize To Tray",false);
+        COConfigurationManager.setParameter("confirmationOnExit",false);
         changed = true;
       }
     }

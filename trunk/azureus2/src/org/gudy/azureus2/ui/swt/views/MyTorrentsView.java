@@ -578,6 +578,8 @@ public class MyTorrentsView
           itemRemove.setEnabled(remove);
           itemRemoveAnd.setEnabled(remove);
 
+          //itemSpeed.
+          
           itemEditTracker.setEnabled(true);
           itemChangeTracker.setEnabled(changeUrl);
           itemRecheck.setEnabled(recheck);

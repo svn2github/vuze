@@ -86,7 +86,11 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     }
     
     new BooleanParameter(cDisplay, "Send Version Info",true, "ConfigView.label.allowSendVersion");
-    new BooleanParameter(cDisplay, "confirmationOnExit",false, "ConfigView.section.style.confirmationOnExit");
+    
+    //Option disabled on OS X, as impossible to make it work correctly
+    if(! Constants.isOSX) {
+      new BooleanParameter(cDisplay, "confirmationOnExit",false, "ConfigView.section.style.confirmationOnExit");
+    }
     
     Composite cArea = new Composite(cDisplay, SWT.NULL);
     layout = new GridLayout();
