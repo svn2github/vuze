@@ -678,6 +678,8 @@ public class TableView
             TableCellCore cell = row.getTableCellCore(sorter.getLastField());
             if (cell != null)
               cell.refresh();
+          } else {
+            row.delete();
           }
           bSortScheduled = true;
         }
