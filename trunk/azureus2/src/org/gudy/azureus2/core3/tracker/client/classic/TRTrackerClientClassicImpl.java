@@ -1309,11 +1309,8 @@ TRTrackerClientClassicImpl
       
     	// latest space saving measure, a compact return type where peers are returned
     	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
-        // TODO: remove the enable/disable option once we know our implementation works properly in the wild
+      request.append( "&compact=1" );
       
-      if ( COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true )){
-        request.append( "&compact=1" );
-      }
     }
 	
     String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
