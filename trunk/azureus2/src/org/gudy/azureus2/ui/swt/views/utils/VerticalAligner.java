@@ -20,6 +20,7 @@
  */
 package org.gudy.azureus2.ui.swt.views.utils;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -38,12 +39,15 @@ public class VerticalAligner implements ParameterListener {
   }
   
   private VerticalAligner() {
-  	bFixGTKBug = COConfigurationManager.getBooleanParameter("SWT_bGTKTableBug");
+  	parameterChanged("");
   	COConfigurationManager.addParameterListener("SWT_bGTKTableBug",this);
   }
   
 	public void parameterChanged(String parameterName) {
-  	bFixGTKBug = COConfigurationManager.getBooleanParameter("SWT_bGTKTableBug");
+	  // some people switch from motif to gtk & back again, so make this
+	  // only apply to GTK, even if it was enabled prior
+  	bFixGTKBug = COConfigurationManager.getBooleanParameter("SWT_bGTKTableBug") &&
+  	             System.getProperty("os.name").equals("Linux") && SWT.getPlatform().equals("gtk");
 	}
   
   public static int getTableAdjustVerticalBy(Table t) {
