@@ -47,6 +47,8 @@ public interface TableCell {
    *                       object for the current row<br>
    *   TABLE_TORRENT_PEERS: {@link org.gudy.azureus2.plugins.peers.Peer} 
    *                        object for the current row<br>
+   *   TABLE_TORRENT_FILES: {@link org.gudy.azureus2.plugins.file.DiskManagerFileInfo}
+   *                        object for the current row<br>
    *   TABLE_MYTRACKER: {@link org.gudy.azureus2.plugins.tracker.TrackerTorrent}
    *                    object for the current row<br>
    *   TABLE_MYSHARES: {@link org.gudy.azureus2.plugins.sharing.ShareResource}
