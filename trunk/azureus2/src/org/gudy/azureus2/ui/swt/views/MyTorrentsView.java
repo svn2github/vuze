@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.tracker.host.*;
-import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -402,7 +401,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null
             && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
-            String path = getFilePath(dm);
+            String path = dm.getFullName();
             MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
             mb.setText(MessageText.getString("deletedata.title"));
             mb.setMessage(
@@ -434,7 +433,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null
             && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
-            String path = getFilePath(dm);
+            String path = dm.getFullName();
             MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
             mb.setText(MessageText.getString("deletedata.title"));
             mb.setMessage(
@@ -507,7 +506,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         }
         TableItem ti = tis[0];
         DownloadManager dm = (DownloadManager) managers.get(ti);
-        Program.launch(getFilePath(dm));
+        Program.launch(dm.getFullName());
       }
     });
 
@@ -653,7 +652,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     globalManager.addListener(this);
   }
 
-  private String getFilePath(DownloadManager dm) {
+  /*private String getFilePath(DownloadManager dm) {
     if (dm == null)
       return "";
     try {
@@ -675,7 +674,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       ex.printStackTrace();
     }
     return "";
-  }
+  }*/
 
   private void recursiveDelete(File f) {
     if (f.isDirectory()) {
