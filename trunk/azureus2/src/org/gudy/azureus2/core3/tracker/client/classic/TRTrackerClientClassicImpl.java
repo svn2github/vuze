@@ -1647,4 +1647,16 @@ TRTrackerClientClassicImpl
     return failure_added_time;
   }
   
+	public Map
+	getTrackerResponseCache()
+	{
+		return( new HashMap());
+	}
+	
+	
+	public void
+	setTrackerResponseCache(
+		Map		map )
+	{
+	}
 }

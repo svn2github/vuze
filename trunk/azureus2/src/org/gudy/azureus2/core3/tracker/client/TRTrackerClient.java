@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.core3.tracker.client;
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.torrent.*;
 
 public interface 
@@ -95,6 +97,25 @@ TRTrackerClient
 	
 	public TRTrackerResponse
 	getLastResponse();
+	
+		/**
+		 * returns a Map containing "bencoded" entries representing a cache of tracker
+		 * responses.
+		 * @return
+		 */
+	
+	public Map
+	getTrackerResponseCache();
+	
+		/**
+		 * sets the response cache. This may be used by the tracker client to return peer
+		 * details when the tracker is offline 
+		 * @param map
+		 */
+	
+	public void
+	setTrackerResponseCache(
+		Map		map );
 	
 	/**
 	 * This method forces all listeners to get an explicit "urlChanged" event to get them

@@ -1014,11 +1014,22 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
     catch (NoClassDefFoundError e) {}
 
-    if (available)
-      trayIcon = new SystemTray(this);
-    else
+    if (available){
+    	
+      try{
+      	trayIcon = new SystemTray(this);
+      	
+      }catch( Throwable e ){
+      	
+      	LGLogger.logAlert( "System tray initialisation fails", e );
+      	
+      	tray = new TrayWindow(this);
+      }
+    }else{
+    	
       tray = new TrayWindow(this);
-
+    }
+    
     mainWindow.addShellListener(new ShellAdapter() {
       public void shellClosed(ShellEvent event) {
         if (COConfigurationManager.getBooleanParameter("Close To Tray", true)) { //$NON-NLS-1$
