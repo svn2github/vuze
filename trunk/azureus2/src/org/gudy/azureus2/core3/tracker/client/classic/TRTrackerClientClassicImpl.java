@@ -1358,7 +1358,7 @@ TRTrackerClientClassicImpl
 							
 							if ( s_peerid == null ){
                 
-                Debug.out(ip + ": tracker did not give peerID in reply");
+								// Debug.out(ip + ": tracker did not give peerID in reply");
 								
 								peerId = new byte[20];
 								

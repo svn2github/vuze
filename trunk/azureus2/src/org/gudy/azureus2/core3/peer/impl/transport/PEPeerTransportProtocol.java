@@ -338,7 +338,7 @@ PEPeerTransportProtocol
     if (this.id[0] == Identification.NON_SUPPLIED_PEER_ID_BYTE1 &&
         this.id[1] == Identification.NON_SUPPLIED_PEER_ID_BYTE2) {
       //LGLogger.log(ip + ": from no_peer_id tracker response...skipping peerID compare");
-      Debug.out(ip + ": from no_peer_id tracker response...skipping peerID compare");
+      //Debug.out(ip + ": from no_peer_id tracker response...skipping peerID compare");
     }
     else {
       boolean same = true;
@@ -347,7 +347,7 @@ PEPeerTransportProtocol
       }
       if (!same) {
         //LGLogger.log(ip + ": tracker-supplied peerID doesn't match...but InfoHash does, so ignoring peerID compare");
-        Debug.out(ip + ": tracker-supplied peerID doesn't match...but InfoHash does, so ignoring peerID compare");
+        // Debug.out(ip + ": tracker-supplied peerID doesn't match...but InfoHash does, so ignoring peerID compare");
       }
     }
   }
