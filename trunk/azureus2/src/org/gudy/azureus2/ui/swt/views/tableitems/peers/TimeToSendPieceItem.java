@@ -24,7 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.core3.util.TimeFormater;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -53,6 +53,6 @@ public class TimeToSendPieceItem
     if (!cell.setSortValue(value) && cell.isValid())
       return;
 
-    cell.setText(TimeFormater.format(value / 1000));
+    cell.setText(TimeFormatter.format(value / 1000));
   }
 }

@@ -40,8 +40,10 @@ public class
 TRTrackerServerTCP 
 	extends 	TRTrackerServerImpl
 {
-	protected static final int THREAD_POOL_SIZE				= 32;
-
+	protected static final int 	THREAD_POOL_SIZE				= 32;
+	
+	protected static final long THREAD_POOL_EXECUTION_LIMIT		= 20000;
+	
 	protected String	name;
 	protected boolean	ssl;
 	protected int		port;
@@ -67,6 +69,8 @@ TRTrackerServerTCP
 		apply_ip_filter			= _apply_ip_filter;
 
 		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );			
+		thread_pool.setExecutionLimit( THREAD_POOL_EXECUTION_LIMIT );
+		
 		current_announce_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 		
 		if ( current_announce_retry_interval < RETRY_MINIMUM_SECS ){

@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 TRTrackerServerProcessorTCP
 	extends 	TRTrackerServerProcessor
-	implements 	Runnable
 {
 	protected static final int SOCKET_TIMEOUT				= 5000;
 
@@ -74,6 +73,8 @@ TRTrackerServerProcessorTCP
 	{
 		try{
 	
+			setTaskState( "entry" );
+			
 			try{
 												
 				socket.setSoTimeout( SOCKET_TIMEOUT );
@@ -84,7 +85,9 @@ TRTrackerServerProcessorTCP
 			}
 										
 			String	header_plus = "";
-				
+			
+			setTaskState( "reading header" );
+
 			try{
 										
 				InputStream	is = socket.getInputStream();
@@ -147,6 +150,8 @@ TRTrackerServerProcessorTCP
 					
 				}else if ( header_plus.startsWith( "POST ")){
 					
+					setTaskState( "reading content" );
+
 					int	header_end = header_plus.indexOf(NL+NL);
 					
 					if ( header_end == -1 ){
@@ -237,6 +242,8 @@ TRTrackerServerProcessorTCP
 					throw( new TRTrackerServerException( "header doesn't start with GET or POST ('" + (header_plus.length()>256?header_plus.substring(0,256):header_plus)+"')" ));
 				}
 				
+				setTaskState( "processing request" );
+
 				try{
 					if ( post_is == null ){
 						
@@ -284,6 +291,8 @@ TRTrackerServerProcessorTCP
 							}
 						}
 												
+						setTaskState( "writing head response" );
+
 						socket.getOutputStream().write( head_data, 0, header_length );
 						
 						socket.getOutputStream().flush();
@@ -320,7 +329,9 @@ TRTrackerServerProcessorTCP
 			}
 	
 		}finally{
-												
+					
+			setTaskState( "final socket close" );
+
 			try{
 				socket.close();
 																							
@@ -331,7 +342,17 @@ TRTrackerServerProcessorTCP
 		}
 	}
 	
-	
+	public void
+	interruptTask()
+	{
+		try{
+			socket.close();
+																						
+		}catch( Throwable e ){
+												
+			// e.printStackTrace();
+		}
+	}
 
 	protected void
 	processRequest(
@@ -376,6 +397,8 @@ TRTrackerServerProcessorTCP
 				
 				}else{
 					
+					setTaskState( "external request" );
+
 						// check non-tracker authentication
 						
 					if ( !doAuthentication( url_path, input_header, os, false )){
@@ -417,6 +440,8 @@ TRTrackerServerProcessorTCP
 					}
 				}
 				
+				setTaskState( "decoding announce/scrape" );
+
 				int	pos = 0;
 					
 				String		hash_str	= null;
@@ -575,6 +600,8 @@ TRTrackerServerProcessorTCP
 				root.put( "failure reason", message );
 			}
 		
+			setTaskState( "writing response" );
+
 				// cache both plain and gzip encoded data for possible reuse
 			
 			byte[] data 		= (byte[])root.get( "_data" );
@@ -612,6 +639,8 @@ TRTrackerServerProcessorTCP
 						
 				// write the response
 			
+			setTaskState( "writing header" );
+
 			os.write( HTTP_RESPONSE_START );
 			
 			byte[]	length_bytes = String.valueOf(data.length).getBytes();
@@ -620,6 +649,8 @@ TRTrackerServerProcessorTCP
 
 			int	header_len = HTTP_RESPONSE_START.length + length_bytes.length;
 			
+			setTaskState( "writing content" );
+
 			if ( gzip_reply ){
 				
 				os.write( HTTP_RESPONSE_END_GZIP );
@@ -638,6 +669,8 @@ TRTrackerServerProcessorTCP
 							
 		}finally{
 			
+			setTaskState( "final os flush" );
+
 			os.flush();
 		}
 	}

@@ -245,6 +245,11 @@ TRTrackerServerProcessorUDP
 		}
 	}
 	
+	public void
+	interruptTask()
+	{
+	}
+	
 	protected long
 	allocateConnectionId(
 		String	client_address )

@@ -33,8 +33,9 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
-public class 
+public abstract class 
 TRTrackerServerProcessor 
+	extends ThreadPoolTask
 {
 	protected TRTrackerServerImpl		server;
 	

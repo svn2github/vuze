@@ -8,7 +8,7 @@ package org.gudy.azureus2.core3.util;
  * @author Olivier
  * 
  */
-public class TimeFormater {
+public class TimeFormatter {
 
     public static String format(long time)
     {

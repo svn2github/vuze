@@ -24,7 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.util.TimeFormater;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -51,6 +51,6 @@ public class OnlyCDing4Item
     if (!cell.setSortValue(value) && cell.isValid())
       return;
 
-    cell.setText(TimeFormater.format(value));
+    cell.setText(TimeFormatter.format(value));
   }
 }

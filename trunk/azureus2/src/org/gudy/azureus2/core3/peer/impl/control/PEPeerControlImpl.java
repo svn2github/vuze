@@ -1726,7 +1726,7 @@ PEPeerControlImpl
   }
 
   public String getElapsedTime() {
-    return TimeFormater.format((SystemTime.getCurrentTime() - _timeStarted) / 1000);
+    return TimeFormatter.format((SystemTime.getCurrentTime() - _timeStarted) / 1000);
   }
   
   // Returns time started in ms

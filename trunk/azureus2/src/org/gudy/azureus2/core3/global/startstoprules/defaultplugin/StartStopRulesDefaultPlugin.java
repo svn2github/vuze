@@ -28,7 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormater;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -1619,7 +1619,7 @@ public class StartStopRulesDefaultPlugin
               timeLeft = minTimeAlive;
             else
               timeLeft = (minTimeAlive - (SystemTime.getCurrentTime() - timeStarted));
-            sText += TimeFormater.format(timeLeft / 1000);
+            sText += TimeFormatter.format(timeLeft / 1000);
           } else if (sr > 0) {
             sText += MessageText.getString("StartStopRules.waiting");
           }

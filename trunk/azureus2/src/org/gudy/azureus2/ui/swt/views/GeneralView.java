@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.disk.DiskManager;
@@ -1004,16 +1005,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 		trackerUpdateIn.setText( MessageText.getString("GeneralView.label.updatein.querying"));
 		
 	}else{
-	
-	    int minutes = time / 60;
-	    int seconds = time % 60;
-	    String strSeconds = "" + seconds;
- 	    if (seconds < 10){
  	    
-      		strSeconds = "0" + seconds; //$NON-NLS-1$
- 	    }
- 	    
-		trackerUpdateIn.setText(  minutes + ":" + strSeconds); 
+		trackerUpdateIn.setText(  TimeFormatter.formatColon( time )); 
 	}
     
     boolean	update_state;

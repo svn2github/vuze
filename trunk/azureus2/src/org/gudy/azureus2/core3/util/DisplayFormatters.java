@@ -251,10 +251,10 @@ DisplayFormatters
    public static String formatETA(long eta) {
      if (eta == 0) return MessageText.getString("PeerManager.status.finished");
      if (eta == -1) return "";
-     if (eta > 0) return TimeFormater.format(eta);
+     if (eta > 0) return TimeFormatter.format(eta);
 
      return MessageText.getString("PeerManager.status.finishedin").concat(
-            " ").concat(TimeFormater.format(eta * -1));
+            " ").concat(TimeFormatter.format(eta * -1));
    }
 
 
