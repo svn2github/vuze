@@ -52,7 +52,9 @@ ResourceDownloaderTorrentImpl
 	
 	protected long						size	= -2;
 	
-	protected TOTorrent					torrent;
+		// this + clones *share* the torrent object to avoid downloading more than once
+	
+	protected TOTorrent[]				torrent	 = new TOTorrent[1];
 	
 	protected DownloadManager			download_manager;
 	protected Download					download;
@@ -102,10 +104,25 @@ ResourceDownloaderTorrentImpl
 					
 					size = -1;
 				}
+				
+				setSize( size );
 			}
 		}
 		
+
 		return( size );
+	}
+	
+	protected void
+	setSize(
+		long		l )
+	{
+		size	= l;
+		
+		if ( size >= 0 ){
+			
+			delegate.setSize( size );
+		}
 	}
 	
 	protected long
@@ -114,21 +131,21 @@ ResourceDownloaderTorrentImpl
 		throws ResourceDownloaderException
 	{
 		try{
-			if ( torrent == null ){
+			if ( torrent[0] == null ){
 				
 				ResourceDownloader	x = delegate.getClone( this );
 			
 				addReportListener( x );
 			
-				torrent = TOTorrentFactory.deserialiseFromBEncodedInputStream( x.download());
+				torrent[0] = TOTorrentFactory.deserialiseFromBEncodedInputStream( x.download());
 				
-				if( !torrent.isSimpleTorrent()){
+				if( !torrent[0].isSimpleTorrent()){
 					
 					throw( new ResourceDownloaderException( "Only simple torrents supported" ));
 				}
 			}
 			
-			return( torrent.getSize());
+			return( torrent[0].getSize());
 			
 		}catch( TOTorrentException e ){
 			
@@ -139,7 +156,7 @@ ResourceDownloaderTorrentImpl
 	protected void
 	setSizeAndTorrent(
 		long		_size,
-		TOTorrent	_torrent )
+		TOTorrent[]	_torrent )
 	{
 		size	= _size;
 		torrent	= _torrent;
@@ -212,7 +229,7 @@ ResourceDownloaderTorrentImpl
 	downloadTorrent()
 	{
 		try{
-			informActivity( getLogIndent() + "Downloading: " + new String( torrent.getName(), Constants.DEFAULT_ENCODING ));
+			informActivity( getLogIndent() + "Downloading: " + new String( torrent[0].getName(), Constants.DEFAULT_ENCODING ));
 			
 				// we *don't* want this temporary file to be deleted automatically as we're
 				// going to use it across Azureus restarts to hold the download data and
@@ -227,15 +244,15 @@ ResourceDownloaderTorrentImpl
 			
 			final File	data_dir		= download_dir==null?torrent_file.getParentFile():download_dir;
 			
-			torrent.serialiseToBEncodedFile( torrent_file );
+			torrent[0].serialiseToBEncodedFile( torrent_file );
 						
 			if ( persistent ){
 				
-				download = download_manager.addDownload( new TorrentImpl(torrent), torrent_file, data_dir );
+				download = download_manager.addDownload( new TorrentImpl(torrent[0]), torrent_file, data_dir );
 				
 			}else{
 				
-				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent), torrent_file, data_dir );
+				download = download_manager.addNonPersistentDownload( new TorrentImpl(torrent[0]), torrent_file, data_dir );
 			}
 			
 			download.setPosition(1);				
@@ -302,7 +319,7 @@ ResourceDownloaderTorrentImpl
 														
 							int	this_percentage = download.getStats().getCompleted()/10;
 							
-							long	total	= torrent.getSize();
+							long	total	= torrent[0].getSize();
 														
 							if ( this_percentage != last_percentage ){
 								
@@ -351,7 +368,7 @@ ResourceDownloaderTorrentImpl
 			// moved via the "move on complete" options
 		
 		File	target_file = 
-			new File( data_dir,	new String(torrent.getFiles()[0].getPathComponents()[0]));
+			new File( data_dir,	new String(torrent[0].getFiles()[0].getPathComponents()[0]));
 		
 		if ( !target_file.exists()){
 	
@@ -360,7 +377,7 @@ ResourceDownloaderTorrentImpl
 				File	moved_target_file = 
 					new File( 
 							COConfigurationManager.getStringParameter("Completed Files Directory", ""),
-							new String(torrent.getFiles()[0].getPathComponents()[0]));
+							new String(torrent[0].getFiles()[0].getPathComponents()[0]));
 				
 					// hmm, explicit target location and its moved, copy it back :)
 				
@@ -448,9 +465,9 @@ ResourceDownloaderTorrentImpl
 		InputStream			data )
 	{
 		try{			
-			torrent = TOTorrentFactory.deserialiseFromBEncodedInputStream( data );
+			torrent[0] = TOTorrentFactory.deserialiseFromBEncodedInputStream( data );
 			
-			if( torrent.isSimpleTorrent()){
+			if( torrent[0].isSimpleTorrent()){
 				
 				downloadTorrent();
 				

@@ -150,8 +150,10 @@ ResourceDownloaderAlternateImpl
 				
 				size = -1;
 			}
+			
+			setSize( size );
 		}
-		
+
 		return( size );
 	}
 	
@@ -160,6 +162,14 @@ ResourceDownloaderAlternateImpl
 		long	l )
 	{
 		size	= l;
+		
+		if ( size >= 0 ){
+			
+			for (int i=0;i<delegates.length;i++){
+				
+				((ResourceDownloaderBaseImpl)delegates[i]).setSize( size );
+			}
+		}
 	}
 	
 	public ResourceDownloader

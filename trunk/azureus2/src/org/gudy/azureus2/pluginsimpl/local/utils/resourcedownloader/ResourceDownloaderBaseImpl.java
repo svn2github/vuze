@@ -64,6 +64,10 @@ ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	_parent );
 
+	protected abstract void
+	setSize(
+		long	size );
+	
 	protected void
 	setParent(
 		ResourceDownloader		_parent )

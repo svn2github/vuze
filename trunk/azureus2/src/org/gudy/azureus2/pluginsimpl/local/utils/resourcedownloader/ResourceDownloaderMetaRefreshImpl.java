@@ -88,10 +88,24 @@ ResourceDownloaderMetaRefreshImpl
 					
 					size = -1;
 				}
+				
+				setSize( size );
 			}
 		}
-		
+	
 		return( size );
+	}
+	
+	protected void
+	setSize(
+		long	l )
+	{
+		size	= l;
+		
+		if ( size >= 0 ){
+			
+			delegate.setSize( size );
+		}
 	}
 	
 	protected long
@@ -129,14 +143,7 @@ ResourceDownloaderMetaRefreshImpl
 		}
 	}	
 	
-	protected void
-	setSize(
-		long	l )
-	{
-		size	= l;
 
-	}
-	
 	public ResourceDownloader
 	getClone(
 		ResourceDownloaderBaseImpl	parent )

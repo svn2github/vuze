@@ -74,6 +74,12 @@ ResourceDownloaderErrorImpl
 	{
 	}
 	
+	protected void
+	setSize(
+		long	size )
+	{
+	}
+	
 	public long
 	getSize()
 	

@@ -110,6 +110,15 @@ ResourceDownloaderDelayedImpl
 		delegate.asyncDownload();	
 	}
 	
+	protected void
+	setSize(
+		long	size )
+	{
+		getDelegate();
+		
+		delegate.setSize( size );
+	}
+	
 	public long
 	getSize()
 	

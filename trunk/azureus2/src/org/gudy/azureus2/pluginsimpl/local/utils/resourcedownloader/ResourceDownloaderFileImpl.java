@@ -63,6 +63,12 @@ ResourceDownloaderFileImpl
 		return( file.toString());
 	}
 	
+	protected void
+	setSize(
+		long	size )
+	{
+	}
+	
 	public long
 	getSize()
 	

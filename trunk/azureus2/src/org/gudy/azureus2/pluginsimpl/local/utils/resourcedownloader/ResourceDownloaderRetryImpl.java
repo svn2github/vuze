@@ -105,8 +105,10 @@ ResourceDownloaderRetryImpl
 				
 				size = -1;
 			}
+			
+			setSize( size );
 		}
-		
+
 		return( size );
 	}
 	
@@ -115,6 +117,11 @@ ResourceDownloaderRetryImpl
 		long	l )
 	{
 		size	= l;
+		
+		if ( size >= 0 ){
+			
+			delegate.setSize( size );
+		}
 	}
 	
 	public ResourceDownloader
