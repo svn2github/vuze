@@ -180,6 +180,11 @@ public class PeerSocket extends PeerConnection {
       String azureus = new String(otherPeerId, 5, 7, Constants.BYTE_ENCODING);
       if (azureus.equals("Azureus"))
         client = "Azureus";
+      String shadow = new String(otherPeerId,0,1);
+      if(shadow.equals("S"))
+      {
+        client = "Shadow";
+      }
     }
     catch (Exception e) {}
 
@@ -295,10 +300,10 @@ public class PeerSocket extends PeerConnection {
           
           //Gudy 31.08.2003 : commented to see if this helps
           // keeping the connections.
+          // NOT WORKING, uncommented.
           
-          
-          //if (read < 0)
-            //throw new IOException("End of Stream Reached");
+          if (read < 0)
+            throw new IOException("End of Stream Reached");
         }
         catch (IOException e) {
           closeAll();
@@ -324,9 +329,10 @@ public class PeerSocket extends PeerConnection {
             
             //Gudy 31.08.2003 : commented to see if this helps
             // keeping the connections.
+            // NOT WORKING, uncommented.
             
-            //if (read < 0)
-              //throw new IOException("End of Stream Reached");
+            if (read < 0)
+              throw new IOException("End of Stream Reached");
           }
           catch (IOException e) {
             e.printStackTrace();
