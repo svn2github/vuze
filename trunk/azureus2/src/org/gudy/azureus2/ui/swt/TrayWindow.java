@@ -64,7 +64,7 @@ public class TrayWindow implements GlobalManagerListener {
     minimized.setLocation(screen.width - bounds.width - 2, screen.height - bounds.height - 2);
     minimized.layout();
     minimized.setVisible(false);
-    //minimized.open();    
+    minimized.open();    
 
     MouseListener mListener = new MouseAdapter() {
       public void mouseDown(MouseEvent e) {
