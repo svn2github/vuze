@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.config.IntParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
@@ -99,6 +100,9 @@ DHTPlugin
 				
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "DHT" );
 
+		int	dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+
+
 		log = plugin_interface.getLogger().getTimeStampedChannel("DHT");
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
@@ -110,6 +114,19 @@ DHTPlugin
 			
 		final BooleanParameter	enabled_param = config.addBooleanParameter2( "dht.enabled", "dht.enabled", true );
 
+		final BooleanParameter	use_default_port = config.addBooleanParameter2( "dht.portdefault", "dht.portdefault", true );
+
+		final IntParameter		dht_port_param	= config.addIntParameter2( "dht.port", "dht.port", dht_data_port );
+				
+		use_default_port.addDisabledOnSelection( dht_port_param );
+		
+		if ( !use_default_port.getValue()){
+		
+			dht_data_port	= dht_port_param.getValue();
+		}
+		
+		final int f_dht_data_port	= dht_data_port;
+		
 		final StringParameter	command = config.addStringParameter2( "dht.execute.command", "dht.execute.command", "print" );
 		
 		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
@@ -251,8 +268,6 @@ DHTPlugin
 			return;
 		}
 		
-		final int	dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
-
 		PluginInterface pi_upnp = plugin_interface.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
 		
 		if ( pi_upnp == null ){
@@ -292,7 +307,7 @@ DHTPlugin
 								try{
 									transport = 
 										DHTTransportFactory.createUDP( 
-												dht_data_port, 
+												f_dht_data_port, 
 												4,
 												2,
 												20000, 	// udp timeout - tried less but a significant number of 
@@ -342,7 +357,7 @@ DHTPlugin
 																
 																log.logAlert(
 																	LoggerChannel.LT_WARNING,
-																	"If you have a router/firewall, please check that you have port " + dht_data_port + 
+																	"If you have a router/firewall, please check that you have port " + f_dht_data_port + 
 																	" UDP open.\nDecentralised tracking requires this." );
 															}
 														}
