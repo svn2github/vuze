@@ -146,6 +146,7 @@ RemoteUIServlet
 		"plugins/torrent/TorrentDownloader.class",
 		"plugins/ipfilter/IPFilter.class",
 		"plugins/torrent/TorrentAnnounceURLList.class",
+		"plugins/utils/Utilities.class",
 	};
 	
 	protected RPRequestHandler		request_handler;
@@ -290,11 +291,30 @@ RemoteUIServlet
 				
 					plugin_interface.getDownloadManager().addDownload( torrent );
 				
-					pw.println("<HTML><BODY><P>Upload OK</P></BODY></HTML>");
+					pw.println("<HTML><BODY><P><FONT COLOR=#00CC44>Upload OK</FONT></P></BODY></HTML>");
 				
 				}catch( Throwable e ){
-				
-					pw.println("<HTML><BODY><P>Upload Failed " + e.toString() + "</P></BODY></HTML>");
+					
+					String	message_chain = "";
+					
+					Throwable	temp = e;
+					
+					while( temp != null ){
+						
+						String	this_message = temp.getMessage();
+						
+						if ( this_message != null ){
+							
+							message_chain += (message_chain.length()==0?"":"\n") + this_message;
+						}
+						
+						temp = temp.getCause();
+					}
+								
+					String	message = message_chain.length()==0?e.toString():message_chain;
+						
+
+					pw.println("<HTML><BODY><P><FONT COLOR=#FF0000>Upload Failed: " + message + "</FONT></P></BODY></HTML>");
 					
 				}finally{
 					

@@ -95,7 +95,7 @@ TorrentManagerImpl
 			
 		}catch( TOTorrentException e ){
 			
-			throw( new TorrentException( "TorrentManager::createFromBEncodedFile Fails", e ));
+			throw( new TorrentException( "TorrentManager::createFromBEncodedData Fails", e ));
 			
 		}finally{
 			
