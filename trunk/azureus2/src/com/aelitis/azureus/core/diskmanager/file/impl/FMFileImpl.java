@@ -360,6 +360,7 @@ FMFileImpl
 				
 				long	expected_write 	= 0;
 				long	actual_write	= 0;
+				boolean	partial_write	= false;
 				
 				if ( DEBUG ){
 				
@@ -370,16 +371,28 @@ FMFileImpl
 				}
 				
 				fc.position( position );
+									
+				ByteBuffer[]	bbs = new ByteBuffer[buffers.length];
 				
-				if ( buffers.length == 1 ){
+				ByteBuffer	last_bb	= null;
+				
+				for (int i=0;i<bbs.length;i++){
 					
-					DirectByteBuffer	bb = buffers[0];
+					bbs[i] = buffers[i].getBuffer();
 					
-					int	loop	= 0;
+					if ( bbs[i].position() != bbs[i].limit()){
+						
+						last_bb	= bbs[i];
+					}
+				}
+				
+				if ( last_bb != null ){
+										  
+					int		loop			= 0;
 					
-					while( bb.position() != bb.limit()){
-																		
-						int	written = bb.write(fc);
+					while( last_bb.position() != last_bb.limit()){
+						
+						long	written = fc.write( bbs );
 						
 						actual_write	+= written;
 						
@@ -389,25 +402,28 @@ FMFileImpl
 							
 							if ( DEBUG ){
 								
-								if (  bb.position() != bb.limit()){
+								if ( last_bb.position() != last_bb.limit()){
 								
-									Debug.out( "FMFile::write: **** partial write ****");
+									partial_write	= true;
+									
+									Debug.out( "FMFile::write: **** partial write **** this = " + written + ", total = " + actual_write + ", target = " + expected_write );
 								}
 							}
+							
 						}else{
 						
 							loop++;
 							
-									
 							if ( loop == WRITE_RETRY_LIMIT ){
 								
 								Debug.out( "FMFile::write: zero length write - abandoning" );
-								
+							
 								throw( new FMFileManagerException( "FMFile::write: retry limit exceeded"));
 								
 							}else{
-								Debug.out( "FMFile::write: zero length write - retrying" );
 								
+								Debug.out( "FMFile::write: zero length write - retrying" );
+							
 								try{
 									Thread.sleep( WRITE_RETRY_DELAY*loop );
 									
@@ -416,71 +432,7 @@ FMFileImpl
 									throw( new FMFileManagerException( "FMFile::write: interrupted" ));
 								}
 							}
-						}
-					}
-					
-				}else{
-					
-					ByteBuffer[]	bbs = new ByteBuffer[buffers.length];
-					
-					ByteBuffer	last_bb	= null;
-					
-					for (int i=0;i<bbs.length;i++){
-						
-						bbs[i] = buffers[i].getBuffer();
-						
-						if ( bbs[i].position() != bbs[i].limit()){
-							
-							last_bb	= bbs[i];
-						}
-					}
-					
-					if ( last_bb != null ){
-											  
-						int	loop	= 0;
-						
-						while( last_bb.position() != last_bb.limit()){
-							
-							long	written = fc.write( bbs );
-							
-							actual_write	+= written;
-							
-							if ( written > 0 ){
-								
-								loop	= 0;
-								
-								if ( DEBUG ){
-									
-									if ( last_bb.position() != last_bb.limit()){
-									
-										Debug.out( "FMFile::write: **** partial write ****");
-									}
-								}
-								
-							}else{
-							
-								loop++;
-								
-								if ( loop == WRITE_RETRY_LIMIT ){
-									
-									Debug.out( "FMFile::write: zero length write - abandoning" );
-								
-									throw( new FMFileManagerException( "FMFile::write: retry limit exceeded"));
-									
-								}else{
-									
-									System.out.println( "FMFile::write: zero length write - retrying" );
-								
-									try{
-										Thread.sleep( WRITE_RETRY_DELAY*loop );
-										
-									}catch( InterruptedException e ){
-										
-										throw( new FMFileManagerException( "FMFile::write: interrupted" ));
-									}
-								}
-							}						
-						}
+						}						
 					}
 				}
 				
@@ -488,8 +440,16 @@ FMFileImpl
 
 					if ( expected_write != actual_write ){
 						
+						Debug.out( "FMFile::write: **** partial write **** failed: expected = " + expected_write + ", actual = " + actual_write );
+
 						throw( new FMFileManagerException( "FMFile::write: expected write/actual write mismatch" ));
 					
+					}else{
+						
+						if ( partial_write ){
+							
+							Debug.out( "FMFile::write: **** partial write **** completed ok" );
+						}
 					}
 				}
 			}else{
