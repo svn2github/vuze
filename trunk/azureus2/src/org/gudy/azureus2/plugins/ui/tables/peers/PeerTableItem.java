@@ -23,11 +23,11 @@ package org.gudy.azureus2.plugins.ui.tables.peers;
 
 import org.gudy.azureus2.plugins.peers.*;
 
-/**
- * This interface provides access to a Table Item in the Peers View.<br>
+/** (DEPRECATED) This interface provides access to a Table Item in the Peers View.
  * 
  * @author Olivier
  *
+ * @deprecated Use {@link org.gudy.azureus2.plugins.ui.tables.TableCell}
  */
 public interface PeerTableItem {
   

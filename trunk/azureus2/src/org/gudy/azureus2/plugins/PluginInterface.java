@@ -74,24 +74,28 @@ public interface PluginInterface {
    */
   public void addConfigUIParameters(Parameter[] parameters, String displayName);
   
-  /**
-   * adds a column to the peers table.<br>
+  /** (DEPRECATED) Adds a column to the peers table.
+   *
    * @param columnName the key name of the column
    * @param factory the factory responsible of creating items.
    * Azureus will look-up for PeersView.<i>columnName</i> into the lang files
    * in order to find the localized displayName. (see i18n)
+   *
+   * @deprecated use {@link UIManager.addColumn}
    */
   public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
   
-  /**
-   * adds a column to the My Torrents table.<br>
+  /** (DEPRECATED) Adds a column to the My Torrents table.
+   *
    * @param columnName the key name of the column
    * @param factory the factory responsible of creating items.
    * Azureus will look-up for MyTorrentsView.<i>columnName</i> into the lang files
    * in order to find the localized displayName. (see i18n)
+   *
+   * @deprecated use {@link UIManager.addColumn}
    */
   public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory);
-  
+
   /**
    * adds a ConfigSection to the config view.<p>
    * In contrast to addConfigUIParameters, this gives you total control over

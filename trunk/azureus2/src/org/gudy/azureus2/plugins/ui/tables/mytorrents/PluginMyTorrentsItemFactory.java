@@ -29,6 +29,7 @@ package org.gudy.azureus2.plugins.ui.tables.mytorrents;
  * 
  * @author TuxPaper
  *
+ * @deprecated Use {@link org.gudy.azureus2.plugins.ui.tables}
  */
 public interface PluginMyTorrentsItemFactory {
   /**

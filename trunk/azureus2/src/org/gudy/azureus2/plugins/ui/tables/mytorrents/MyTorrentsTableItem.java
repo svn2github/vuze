@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.download.Download;
 /**
  * This interface provides access to a Table Item in the My Torrents View.<br>
  * 
+ * @deprecated Use {@link org.gudy.azureus2.plugins.ui.tables.TableCell}
  */
 public interface MyTorrentsTableItem {
   

@@ -22,10 +22,11 @@
  
 package org.gudy.azureus2.plugins.ui.tables.mytorrents;
 
-/**
- * This interface represents a table item in the "My Torrents" view.<br>
+/** (DEPRECATED) This interface represents a table item in the "My Torrents" view.
+ *
  * @author Olivier
  *
+ * @deprecated Use {@link org.gudy.azureus2.plugins.ui.tables}
  */
 public interface PluginMyTorrentsItem {
   
