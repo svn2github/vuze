@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 /**
  * this class initiatize all GUI and Core components which are :
@@ -121,11 +122,13 @@ public class Initializer implements STProgressListener, Application {
     reportCurrentTaskByKey( "splash.openViews");
     
     new UpdateMonitor();
-    
+    PluginInitializer.getDefaultInterface().getUpdateManager().registerUpdatableComponent(new SWTUpdateChecker(),true);
     //Tell listeners that all is initialized :
     Alerts.initComplete();
     
     nextTask();
+    
+    
      
   }
   
