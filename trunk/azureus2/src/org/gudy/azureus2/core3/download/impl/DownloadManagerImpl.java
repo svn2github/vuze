@@ -27,8 +27,7 @@ package org.gudy.azureus2.core3.download.impl;
  
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.Vector;
+import java.util.*;
 
 
 import org.gudy.azureus2.core3.config.*;
@@ -50,7 +49,8 @@ public class
 DownloadManagerImpl 
 	implements DownloadManager
 {
-	private Vector	listeners		= new Vector();
+	private Vector	listeners			= new Vector();
+	private List	tracker_listeners	= new ArrayList();
 	
 	private Vector	peer_listeners 	= new Vector();
 	private Vector	current_peers 	= new Vector();
@@ -163,16 +163,24 @@ DownloadManagerImpl
 			new TRTrackerClientListener()
 			{
 				public void
-				 receivedTrackerResponse(
+				receivedTrackerResponse(
 					 TRTrackerResponse	response	)
-				 {
+				{
 					PEPeerManager	pm = peerManager;
 					
 					if ( pm != null ){
 					
 						pm.processTrackerResponse( response );
 					}
-				 }
+					
+					synchronized( tracker_listeners ){
+						
+						for (int i=0;i<tracker_listeners.size();i++){
+							
+							((DownloadManagerTrackerListener)tracker_listeners.get(i)).announceResult( response );
+						}
+					}
+				}
 			
 				 public void
 				 urlChanged(
@@ -950,6 +958,26 @@ DownloadManagerImpl
     } else {
       return WEALTH_STOPPED;
     }
+  }
+  
+  public void
+  addTrackerListener(
+  	DownloadManagerTrackerListener	listener )
+  {
+  	synchronized( tracker_listeners ){
+  		
+  		tracker_listeners.add( listener );
+  	}
+  }
+  
+  public void
+  removeTrackerListener(
+  	DownloadManagerTrackerListener	listener )
+  {
+  	synchronized( tracker_listeners ){
+  		
+  		tracker_listeners.remove( listener );
+  	}
   }
   
 }

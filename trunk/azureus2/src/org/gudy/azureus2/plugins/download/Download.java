@@ -70,6 +70,14 @@ Download
 	public void
 	removeListener(
 		DownloadListener	l );
+
+	public void
+	addTrackerListener(
+		DownloadTrackerListener	l );
+	
+	public void
+	removeTrackerListener(
+		DownloadTrackerListener	l );
 	
 	public void
 	addDownloadWillBeRemovedListener(

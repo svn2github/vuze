@@ -83,12 +83,20 @@ DownloadManager
 	
 	public void
 	addListener(
-		DownloadManagerListener	listener );
-		
+			DownloadManagerListener	listener );
+	
 	public void
 	removeListener(
-		DownloadManagerListener	listener );
-		
+			DownloadManagerListener	listener );
+	
+	public void
+	addTrackerListener(
+		DownloadManagerTrackerListener	listener );
+	
+	public void
+	removeTrackerListener(
+		DownloadManagerTrackerListener	listener );
+	
 	public void
 	addPeerListener(
 		DownloadManagerPeerListener	listener );

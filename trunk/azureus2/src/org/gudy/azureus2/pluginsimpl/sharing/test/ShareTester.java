@@ -114,6 +114,34 @@ ShareTester
 										System.out.println( "statechange:" + old + "-> " + cur );
 									}
 								});
+							
+							download.addTrackerListener(
+								new DownloadTrackerListener()
+								{
+									public void
+									scrapeResult(
+										int		seeds,
+										int		non_seeds )
+									{
+										System.out.println( "scrapeResult:" + seeds + "/" + non_seeds );
+									}
+									
+									public void
+									announceResult(
+										int		total_peers,
+										int		current_seeds,
+										int		current_non_seeds )
+									{
+										System.out.println( "announceResult:" + total_peers + "/" + current_seeds + "/" + current_non_seeds );
+									}
+									
+									public void
+									announceFailed(
+										String	reason )
+									{
+										System.out.println( "announceFailed:" + reason );
+									}
+								});
 						}
 						public void
 						downloadRemoved(

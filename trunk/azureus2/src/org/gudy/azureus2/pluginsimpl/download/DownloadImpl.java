@@ -31,12 +31,15 @@ import java.util.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.tracker.client.*;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.torrent.TorrentImpl;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadListener;
+import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
@@ -44,13 +47,14 @@ import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 
 public class 
 DownloadImpl
-	implements Download, DownloadManagerListener
+	implements Download, DownloadManagerListener, DownloadManagerTrackerListener
 {
 	protected DownloadManager		download_manager;
 	
 	protected int		latest_state		= ST_STOPPED;
 	
 	protected List		listeners 			= new ArrayList();
+	protected List		tracker_listeners	= new ArrayList();
 	protected List		removal_listeners 	= new ArrayList();
 	
 	protected
@@ -251,6 +255,95 @@ DownloadImpl
 		synchronized( listeners ){
 			
 			listeners.remove(l);
+		}
+	}
+	
+	public void
+	scrapeResult(
+		TRTrackerScraperResponse	response )
+	{
+		
+	}
+	
+	public void
+	announceResult(
+		TRTrackerResponse			response )
+	{
+		int status = response.getStatus();
+		
+		String	fail_reason 	= null;
+		
+		int		total_peers		= 0;
+		int		seeds			= 0;
+		int		non_seeds		= 0;
+		
+		if ( status == TRTrackerResponse.ST_ONLINE ){
+			
+			PEPeerManager	pm = download_manager.getPeerManager();
+				
+				// use latest peer manager stats if available 
+			
+			if ( pm != null ){
+				
+				seeds 		= pm.getNbSeeds();
+				non_seeds 	= pm.getNbPeers();
+			}
+			
+			total_peers = response.getPeers().length;
+			
+		}else{
+			
+			fail_reason = response.getFailureReason();
+		}
+		
+		synchronized( tracker_listeners ){
+			
+			for (int i=0;i<tracker_listeners.size();i++){
+				
+				try{
+					if ( status == TRTrackerResponse.ST_ONLINE ){
+						
+						((DownloadTrackerListener)tracker_listeners.get(i)).announceResult( total_peers, seeds, non_seeds );
+						
+					}else{
+						
+						((DownloadTrackerListener)tracker_listeners.get(i)).announceFailed( fail_reason );
+					}
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public void
+	addTrackerListener(
+		DownloadTrackerListener	l )
+	{
+		synchronized( tracker_listeners ){
+	
+			tracker_listeners.add( l );
+			
+			if ( tracker_listeners.size() == 1 ){
+				
+				download_manager.addTrackerListener( this );
+			}
+		}
+	}
+	
+	public void
+	removeTrackerListener(
+		DownloadTrackerListener	l )
+	{
+		synchronized( tracker_listeners ){
+			
+			tracker_listeners.remove( l );
+			
+			if ( tracker_listeners.size() == 0 ){
+				
+				download_manager.removeTrackerListener( this );
+			}
 		}
 	}
 	
