@@ -81,7 +81,7 @@ public class TemplateHandler implements httpRequestHandlerIF {
     String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_" + name + "_D", po);
-    tmpl.setParam("Options_" + name, new Float(COConfigurationManager.getFloatParameter(ExternalUIConst.parameterlegacy.get(name).toString())));
+    tmpl.setParam("Options_" + name, String.valueOf(COConfigurationManager.getFloatParameter(parameterlegacy.get(name).toString())));
   }
 
   private void handleConfigInt(Template tmpl, String name) {
