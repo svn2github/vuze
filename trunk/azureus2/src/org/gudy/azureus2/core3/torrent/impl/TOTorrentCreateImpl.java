@@ -175,6 +175,12 @@ TOTorrentCreateImpl
 	{
 		File[]	dir_file_list = dir.listFiles();
 		
+		if ( dir_file_list == null ){
+			
+			throw( new TOTorrentException( "TOTorrentCreate: directory '" + dir.getAbsolutePath() + "' returned error when listing files in it",
+					TOTorrentException.RT_FILE_NOT_FOUND ));
+			
+		}
 			// sort contents so that multiple encodes of a dir always
 			// generate same torrent
 		
@@ -184,7 +190,7 @@ TOTorrentCreateImpl
 		
 		for (int i=0;i<file_list.size();i++){
 			
-			File	file = (File)file_list.get(i);;
+			File	file = (File)file_list.get(i);
 			
 			String	file_name = file.getName();
 			
@@ -328,6 +334,13 @@ TOTorrentCreateImpl
 			
 			File[]	dir_files = file.listFiles();
 		
+			if ( dir_files == null ){
+				
+				throw( new TOTorrentException( "TOTorrentCreate: directory '" + file.getAbsolutePath() + "' returned error when listing files in it",
+						TOTorrentException.RT_FILE_NOT_FOUND ));
+				
+			}
+			
 			long	length = 0;
 			
 			for (int i=0;i<dir_files.length;i++){
