@@ -131,15 +131,16 @@ ShareConfigImpl
 			list.add( m );
 		}
 		
-		//encode the data
 		
-		byte[] torrentData = BEncoder.encode(map);
-		
-		//open a file stream
+			//open a file stream
 		
 		FileOutputStream fos = null;
 		
 		try{
+			//encode the data
+			
+			byte[] torrentData = BEncoder.encode(map);
+			
 			fos = new FileOutputStream(FileUtil.getApplicationFile("sharing.config"));
 			
 			//write the data out

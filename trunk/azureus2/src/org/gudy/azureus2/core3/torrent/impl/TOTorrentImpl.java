@@ -165,8 +165,17 @@ TOTorrentImpl
 		throws TOTorrentException
 	{
 		Map	root = serialiseToMap();
-				
-		return( BEncoder.encode( root ));
+			
+		try{
+			return( BEncoder.encode( root ));
+			
+		}catch( IOException e ){
+
+			throw( 	new TOTorrentException( 	
+							"TOTorrent::serialiseToByteArray: fails '" + e.toString() + "'",
+							TOTorrentException.RT_WRITE_FAILS ));
+			
+		}
 	}		
 
 	public Map

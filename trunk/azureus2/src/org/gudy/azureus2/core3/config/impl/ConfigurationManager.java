@@ -59,10 +59,12 @@ public class ConfigurationManager {
       fin = new FileInputStream(file_name);
       
       bin = new BufferedInputStream(fin);
-      propertiesMap = BDecoder.decode(bin);
-      if (propertiesMap == null)
+      try{
+      	propertiesMap = BDecoder.decode(bin);
+      }catch( IOException e ){
         // Occurs when file is there but zero size (or b0rked?)
         propertiesMap = new HashMap();
+      }
     } catch (FileNotFoundException e) {
       //create the file!
       try {
@@ -94,14 +96,18 @@ public class ConfigurationManager {
   }
   
   public void save(String filename) {
-    //re-encode the data
-    byte[] torrentData = BEncoder.encode(propertiesMap);
     //open a file stream
     FileOutputStream fos = null;
     try {
-      fos = new FileOutputStream(FileUtil.getApplicationPath() + filename);
-      //write the data out
-      fos.write(torrentData);
+    	//re-encode the data
+    	
+    	byte[] torrentData = BEncoder.encode(propertiesMap);
+    	
+    	fos = new FileOutputStream(FileUtil.getApplicationPath() + filename);
+    	
+    	//write the data out
+    	
+    	fos.write(torrentData);
     } catch (Exception e) {
       e.printStackTrace();
     } finally {

@@ -116,17 +116,18 @@ TOTorrentDeserialiseImpl
 		
 		throws TOTorrentException
 	{
-		Map meta_data = BDecoder.decode(bytes);
-		
-		if ( meta_data == null) {
+		try{
+			Map meta_data = BDecoder.decode(bytes);
+	
+			// print( "", "", meta_data );
 			
-			throw( new TOTorrentException( 	"TOTorrentDeserialise: decode fails",
+			construct( meta_data );
+			
+		}catch( IOException e ){
+			
+			throw( new TOTorrentException( 	"TOTorrentDeserialise: decode fails: " + e.getMessage(),
 											TOTorrentException.RT_DECODE_FAILS ));
 		}
-
-		// print( "", "", meta_data );
-		
-		construct( meta_data );
 	}
 	
 	protected void

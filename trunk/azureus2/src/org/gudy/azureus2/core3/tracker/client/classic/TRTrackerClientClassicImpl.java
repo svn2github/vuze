@@ -1289,27 +1289,10 @@ TRTrackerClientClassicImpl
   		
 	 		try{
 					   //parse the metadata
-					   
-				Map metaData = BDecoder.decode(data); //$NON-NLS-1$
-	
-					// decode could fail if the tracker's returned, say, an HTTP response
-					// indicating server overload
-					
-				if ( metaData == null ){
-					
-					String	trace_data = new String(data);
-          
-					LGLogger.log("TRTrackerClient::invalid reply: " + trace_data );
-					
-					if ( trace_data.length() > 50 ){
-						
-						trace_data = trace_data.substring(0,50) + "...";
-					}
-					
-					failure_reason = "invalid reply: " + trace_data;
 				
-				}else{
-					
+	 			try{
+	 				Map metaData = BDecoder.decode(data); //$NON-NLS-1$
+						
 					long	time_to_wait;
 										
 					try {
@@ -1420,8 +1403,23 @@ TRTrackerClientClassicImpl
 					
 					return( resp );  
 
-				}
-			}catch( Exception e ){
+				}catch( IOException e ){
+					
+						// decode could fail if the tracker's returned, say, an HTTP response
+						// indicating server overload
+	 				 				
+	 				String	trace_data = new String(data);
+	 				
+	 				LGLogger.log("TRTrackerClient::invalid reply: " + trace_data );
+	 				
+	 				if ( trace_data.length() > 50 ){
+	 					
+	 					trace_data = trace_data.substring(0,50) + "...";
+	 				}
+	 				
+	 				failure_reason = "invalid reply: " + trace_data;
+	 			}	 				
+	 		}catch( Exception e ){
 				
 				e.printStackTrace();
 				

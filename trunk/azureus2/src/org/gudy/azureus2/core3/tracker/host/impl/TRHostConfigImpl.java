@@ -154,16 +154,17 @@ TRHostConfigImpl
 	   	
 	   	map.put("torrents", list);
 	   	
-	   		//encode the data
-	   		
-	   	byte[] torrentData = BEncoder.encode(map);
 	   	
 	   		//open a file stream
 	   		
 	   	FileOutputStream fos = null;
 	   	
 	   	try{
-		 	fos = new FileOutputStream(FileUtil.getApplicationFile("tracker.config"));
+	   			//encode the data
+	   		
+	   		byte[] torrentData = BEncoder.encode(map);
+	   		
+	   		fos = new FileOutputStream(FileUtil.getApplicationFile("tracker.config"));
 		 	
 		 		//write the data out
 		 		

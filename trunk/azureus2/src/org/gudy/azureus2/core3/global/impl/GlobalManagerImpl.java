@@ -834,12 +834,12 @@ public class GlobalManagerImpl
 	      }
 	    }
 	    map.put("downloads", list);
-	    //encode the data
-	    byte[] torrentData = BEncoder.encode(map);
 	    //open a file stream
 	    FileOutputStream fos = null;
 	    try {
-	      fos = new FileOutputStream(FileUtil.getApplicationFile("downloads.config"));
+	    	//encode the data
+	    	byte[] torrentData = BEncoder.encode(map);
+	    	fos = new FileOutputStream(FileUtil.getApplicationFile("downloads.config"));
 	      //write the data out
 	      fos.write(torrentData);
 	    }

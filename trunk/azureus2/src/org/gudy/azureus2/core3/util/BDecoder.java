@@ -21,30 +21,29 @@ public class BDecoder {
   private BDecoder() {
   }
 
-  public static Map decode(byte[] data) {
+  public static Map decode(byte[] data) throws IOException {
     return BDecoder.decode(new ByteArrayInputStream(data));
   }
 
-  public static Map decode(ByteArrayInputStream data) {
-    try {
-      return (Map) BDecoder.decodeInputStream(data);
-    } catch (IOException e) {
-      //e.printStackTrace();
-      return null;
-    }
+  private static Map 
+  decode(ByteArrayInputStream data) throws IOException 
+  {
+      return (Map) BDecoder.decodeInputStream(data, 0);
+  
   }
 
-  public static Map decode(BufferedInputStream data) {
-    try {
-      return (Map) BDecoder.decodeInputStream(data);
-    } catch (IOException e) {
-      //e.printStackTrace(); 
-      // TODO new or null like above?           
-      return new HashMap();
-    }
+  public static Map decode(BufferedInputStream data) throws IOException 
+  {
+      return (Map) BDecoder.decodeInputStream(data, 0);
   }
 
-  public static Object decodeInputStream(InputStream bais) throws IOException {
+  private static Object 
+  decodeInputStream(
+  	InputStream bais,
+	int			nesting ) 
+  
+  	throws IOException 
+  {
     if (!bais.markSupported()) {
       throw new IOException("InputStream must support the mark() method");
     }
@@ -63,13 +62,18 @@ public class BDecoder {
 
         //get the key   
         byte[] tempByteArray = null;
-        while ((tempByteArray = (byte[]) BDecoder.decodeInputStream(bais)) != null) {
+        while ((tempByteArray = (byte[]) BDecoder.decodeInputStream(bais, nesting+1)) != null) {
           //decode some more
-          Object value = BDecoder.decodeInputStream(bais);
+          Object value = BDecoder.decodeInputStream(bais,nesting+1);
           //add the value to the map
           tempMap.put(new String(tempByteArray,Constants.BYTE_ENCODING), value);
         }
 
+        if ( bais.available() < nesting ){
+        	
+        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of dictionary"));
+        }
+        
         //return the map
         return tempMap;
 
@@ -79,11 +83,16 @@ public class BDecoder {
 
         //create the key
         Object tempElement = null;
-        while ((tempElement = BDecoder.decodeInputStream(bais)) != null) {
+        while ((tempElement = BDecoder.decodeInputStream(bais, nesting+1)) != null) {
           //add the element
           tempList.add(tempElement);
         }
-        //return the list
+        
+        if ( bais.available() < nesting ){
+        	
+        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of list"));
+        }
+               //return the list
         return tempList;
 
       case 'e' :
@@ -156,7 +165,7 @@ public class BDecoder {
     if (length < 0) {
       return null;
     }
-
+    
     byte[] tempArray = new byte[length];
     int count = 0;
     int len = 0;

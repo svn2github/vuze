@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.beditor;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -259,8 +260,16 @@ public class BencodedViewer {
 	public void addMetaData(String fileName, String title) throws FileNotFoundException
 	{
 		BufferedInputStream bis = new BufferedInputStream( new FileInputStream(fileName));
-		Map data = BDecoder.decode(bis);
-		addMetaData(data, title);
+		
+		try{
+			Map data = BDecoder.decode(bis);
+			
+			addMetaData(data, title);
+			
+		}catch( IOException e ){
+			
+			e.printStackTrace();
+		}
 	}
 	public void addMetaData(byte[] data)
 	{
@@ -268,8 +277,14 @@ public class BencodedViewer {
 	}
 	public void addMetaData(byte[] data,String title)
 	{
-		Map dataMap = BDecoder.decode(data);
-		addMetaData(dataMap,title);
+		try{
+			Map dataMap = BDecoder.decode(data);
+			
+			addMetaData(dataMap,title);
+		}catch( IOException e ){
+			
+			e.printStackTrace();
+		}
 	}
 	public void addMetaData(Map root)
 	{

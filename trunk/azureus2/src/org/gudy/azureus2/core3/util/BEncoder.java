@@ -20,23 +20,19 @@ public class BEncoder {
     public BEncoder() {
     }
     
-    public static byte[] encode(Map object){
+    public static byte[] encode(Map object) throws IOException{
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         BEncoder.encode(baos, object);
         return baos.toByteArray();
     }    
     
-    private static void encode(ByteArrayOutputStream baos, Object object){
+    private static void encode(ByteArrayOutputStream baos, Object object) throws IOException{
         if(object instanceof String){
             String tempString = (String)object;
             
-            try{
-              baos.write((String.valueOf(tempString.getBytes(Constants.DEFAULT_ENCODING).length)).getBytes());
-              baos.write(':');
-              baos.write(tempString.getBytes(Constants.DEFAULT_ENCODING));
-            }catch(IOException e){
-                e.printStackTrace();
-            }
+            baos.write((String.valueOf(tempString.getBytes(Constants.DEFAULT_ENCODING).length)).getBytes());
+            baos.write(':');
+            baos.write(tempString.getBytes(Constants.DEFAULT_ENCODING));
             
         }else if(object instanceof Map){
             Map tempMap = (Map)object;
@@ -96,7 +92,7 @@ public class BEncoder {
 			   		}
             	}catch( UnsupportedEncodingException e ){
             		
-            		e.printStackTrace();
+            		throw( new IOException( "BEncoder: unsupport encoding: " + e.getMessage()));
             	}
             }else{                 
            
@@ -127,32 +123,20 @@ public class BEncoder {
         }else if(object instanceof Long){
             Long tempLong = (Long)object;         
             //write out the l       
-            try{
-                baos.write('i');
-                baos.write(tempLong.toString().getBytes());
-                baos.write('e');
-            }catch(IOException e){
-                e.printStackTrace();
-            }
-        }else if(object instanceof Integer){
+               baos.write('i');
+               baos.write(tempLong.toString().getBytes());
+               baos.write('e');
+         }else if(object instanceof Integer){
 			Integer tempInteger = (Integer)object;         
 			//write out the l       
-			try{
-        baos.write('i');
-        baos.write(tempInteger.toString().getBytes());
-        baos.write('e');
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-        }else if(object instanceof byte[]){
+			baos.write('i');
+			baos.write(tempInteger.toString().getBytes());
+			baos.write('e');
+       }else if(object instanceof byte[]){
             byte[] tempByteArray = (byte[])object;
-            try{
-                baos.write((String.valueOf(tempByteArray.length)).getBytes());
-                baos.write(':');
-                baos.write(tempByteArray);
-            }catch(IOException e){
-                e.printStackTrace();
-            }
+            baos.write((String.valueOf(tempByteArray.length)).getBytes());
+            baos.write(':');
+            baos.write(tempByteArray);
         }      
     }
 }
