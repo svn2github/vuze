@@ -17,8 +17,8 @@ public class SHA1SpeedTest {
   
   private static final int BUFF_MAX_SIZE = 4 * 1024 * 1024;
   
-  private static final int[] LOOPS = {4000, 3300, 2000, 1500, 1000, 800};
-  private static final int[] TESTS = {16, 64, 256, 512, 1024, 2048};
+  private static final int[] LOOPS = {20000, 10000, 4000, 3000, 2000, 1200};
+  private static final int[] TESTS = {   16,    64,  256,  512, 1024, 2048};
   
 	public static void main(String[] args) {
     
@@ -48,7 +48,7 @@ public class SHA1SpeedTest {
     
     	String info = " [" + buffsize/1024 + "KB, " + loops + "x] = ";
       
-    	float totalMBytes = (buffsize / (1024 * 1024)) * loops;
+    	float totalMBytes = ((float)buffsize / (1024 * 1024)) * loops;
     
     	System.out.print("JMule SHA1");
     	long jds = System.currentTimeMillis();
@@ -61,8 +61,9 @@ public class SHA1SpeedTest {
     	}
     	long jde = System.currentTimeMillis();
   
-    	float jdt = (jde - jds) / 1000;
-    	float jdspeed = totalMBytes / jdt;
+    	long jdt = (jde - jds);
+    	float jdspeed = totalMBytes / (jdt / 1000);
+      
     	System.out.println(info + jdt + " ms @ " + jdspeed + " MB/s");
 
     
@@ -75,8 +76,8 @@ public class SHA1SpeedTest {
     	}
     	long gde = System.currentTimeMillis();
     
-    	float gdt = (gde - gds) / 1000;
-    	float gdspeed = totalMBytes / gdt;
+    	long gdt = (gde - gds);
+    	float gdspeed = totalMBytes / (gdt / 1000);
     	System.out.println(info + gdt + " ms @ " + gdspeed + " MB/s");
       
       
@@ -89,8 +90,8 @@ public class SHA1SpeedTest {
       }
       long g2de = System.currentTimeMillis();
     
-      float g2dt = (g2de - g2ds) / 1000;
-      float g2dspeed = totalMBytes / g2dt;
+      long g2dt = (g2de - g2ds);
+      float g2dspeed = totalMBytes / (g2dt / 1000);
       System.out.println(info + g2dt + " ms @ " + g2dspeed + " MB/s");
       
       
