@@ -58,6 +58,7 @@ DownloadManagerImpl
 	private static final int LDT_STATECHANGED		= 1;
 	private static final int LDT_DOWNLOADCOMPLETE	= 2;
 	private static final int LDT_COMPLETIONCHANGED = 3;
+	private static final int LDT_POSITIONCHANGED = 4;
 	
 	private ListenerManager	listeners 	= ListenerManager.createManager(
 			"DMM:ListenDispatcher",
@@ -81,6 +82,10 @@ DownloadManagerImpl
 
 					}else if ( type == LDT_COMPLETIONCHANGED ){
 						listener.completionChanged(DownloadManagerImpl.this, ((Boolean)value).booleanValue());
+
+					}else if ( type == LDT_POSITIONCHANGED ){
+						listener.positionChanged(DownloadManagerImpl.this,
+						                         ((Integer)value).intValue(), position);
 					}
 				}
 			});		
@@ -1075,6 +1080,12 @@ DownloadManagerImpl
 	{
 		listeners.dispatch( LDT_DOWNLOADCOMPLETE, null );
 	}
+	
+	protected void
+	informPositionChanged(int iOldPosition)
+	{
+		listeners.dispatch( LDT_POSITIONCHANGED, new Integer(iOldPosition));
+	}
 
   public void
   addPeerListener(
@@ -1174,8 +1185,10 @@ DownloadManagerImpl
       forceStarted = forceStart;
       if (forceStarted && 
           (getState() == STATE_STOPPED || getState() == STATE_QUEUED)) {
-        // Start it!
+        // Start it!  (Which will cause a stateChanged to trigger)
         setState(STATE_WAITING);
+      } else {
+        informStateChanged(getState());
       }
     }
   }
@@ -1335,7 +1348,9 @@ DownloadManagerImpl
     if (newPosition != position) {
 //  	  LGLogger.log(getName() + "] setPosition from "+position+" to "+newPosition);
 //    	Debug.outStackTrace();
+      int oldPosition = position;
     	position = newPosition;
+    	informPositionChanged(oldPosition);
     }
   }
 

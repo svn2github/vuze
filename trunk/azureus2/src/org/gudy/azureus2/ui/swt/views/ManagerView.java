@@ -243,4 +243,6 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     });    
   }
 
+  public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
+  }
 }

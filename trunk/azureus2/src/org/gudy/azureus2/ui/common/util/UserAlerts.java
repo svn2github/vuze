@@ -10,9 +10,9 @@ import java.applet.Applet;
 import java.applet.AudioClip;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
@@ -30,29 +30,18 @@ UserAlerts
 	UserAlerts(
 		GlobalManager	global_manager ) 
  	{	
-		final DownloadManagerListener download_manager_listener = new
-			DownloadManagerListener()
+		final DownloadManagerAdapter download_manager_listener = new
+			DownloadManagerAdapter()
 			{
-				public void
-				stateChanged(
-					DownloadManager manager,
-					int		state )
-				{
-				}
-		
 				public void
 				downloadComplete(DownloadManager manager)
 				{
 					downloadFinished();
 				}
-
-        public void 
-        completionChanged(DownloadManager manager, boolean bCompleted) {
-        }
 			}; 
 			
     	global_manager.addListener(
-    		new GlobalManagerListener()
+    		new GlobalManagerAdpater()
     		{
 				public void downloadManagerAdded(DownloadManager manager) 
 				{
@@ -63,11 +52,6 @@ UserAlerts
 				{
 					removed.removeListener(download_manager_listener);
 				}  
-				
-				public void
-				destroyInitiated()
-				{
-				}				
 				
 				public void
 				destroyed()

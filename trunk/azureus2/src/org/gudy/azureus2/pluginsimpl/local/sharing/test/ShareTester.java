@@ -112,6 +112,14 @@ ShareTester
 									{
 										System.out.println( "statechange:" + old + "-> " + cur + "  (" + download + ")");
 									}
+                  public void
+                  positionChanged(
+                    Download	download, 
+                    int old,
+                    int cur)
+									{
+										System.out.println( "statechange:" + old + "-> " + cur + "  (" + download + ")");
+									}
 								});
 							
 							download.addTrackerListener(

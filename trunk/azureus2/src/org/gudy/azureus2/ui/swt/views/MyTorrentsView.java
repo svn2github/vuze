@@ -1402,6 +1402,9 @@ public class MyTorrentsView
   public void stateChanged(DownloadManager manager, int state) {
   }
 
+  public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
+  }
+  
   public void completionChanged(final DownloadManager manager, boolean bCompleted) {
     // manager has moved lists
     if ((isSeedingView && bCompleted) || (!isSeedingView && !bCompleted)) {

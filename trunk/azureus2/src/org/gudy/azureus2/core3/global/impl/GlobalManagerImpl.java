@@ -1122,4 +1122,7 @@ public class GlobalManagerImpl
 	public void downloadComplete(DownloadManager manager) { }
 
   public void completionChanged(DownloadManager manager, boolean bCompleted) { }
+  
+  public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
+  }
 }
