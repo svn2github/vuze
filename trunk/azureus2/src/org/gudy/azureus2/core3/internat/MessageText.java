@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
  */
 public class MessageText {
 
-  public static final Locale LOCALE_ENGLISH = new Locale("en", "EN");
+  public static final Locale LOCALE_ENGLISH = new Locale("en", "US");
   public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english
   private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
@@ -252,7 +252,7 @@ public class MessageText {
         RESOURCE_BUNDLE = new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths);
         return true;
       } else
-        System.out.println("changeLocale: no message properties for Locale " + newLocale.getDisplayLanguage());
+        System.out.println("changeLocale: no message properties for Locale " + newLocale.getDisplayName());
     }
     return false;
   }
