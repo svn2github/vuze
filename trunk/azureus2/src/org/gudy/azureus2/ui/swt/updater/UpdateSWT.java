@@ -168,7 +168,6 @@ public class UpdateSWT {
         
     File f = openFile(path,fileName);
     
-    
     //If file already exists, rename to .old
     if(f.exists()) {
       UpdateLogger.log("\t\tFile exists, renaming to .old");
@@ -181,7 +180,10 @@ public class UpdateSWT {
         
         throw new IOException("File " + fileName + " cannot be renamed into " + backUpName);
       }
-    }
+    } /*else {
+      f.mkdirs();
+      f.createNewFile();
+    }*/
     
     f = openFile(path,fileName);
     FileOutputStream fos = new FileOutputStream(f);
@@ -207,6 +209,7 @@ public class UpdateSWT {
   }
   
   public static void restart() throws IOException{
+    UpdateLogger.log("Restarting Azureus");
     try {
     	Main.main(new String[0]);
     } catch(Throwable t) {
