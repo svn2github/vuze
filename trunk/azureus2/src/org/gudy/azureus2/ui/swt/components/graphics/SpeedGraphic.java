@@ -117,7 +117,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     if(bounds.height < 30 || bounds.width  < 100 || bounds.width > 2000 || bounds.height > 2000)
       return;
     
-    boolean sizeChanged = (oldSize == null || (oldSize.x != bounds.width && oldSize.y != bounds.height));
+    boolean sizeChanged = (oldSize == null || oldSize.x != bounds.width || oldSize.y != bounds.height);
     oldSize = new Point(bounds.width,bounds.height);
     
     internalLoop++;
