@@ -891,7 +891,7 @@ public class PeerSocket extends PeerConnection {
   }
 
   protected void write() {
-    if(currentState.getState() != TRANSFERING)
+    if(currentState.getState() == CONNECTING || currentState.getState() == DISCONNECTED  )
       return;       
     if(++processLoop > 10)
         return;    
