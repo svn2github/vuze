@@ -710,6 +710,9 @@ PEPeerTransportProtocol
 			    sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 			  } else {
 			    LGLogger.log(LGLogger.INFORMATION,ip
+          + " ("
+          + client
+          + ")"
 	        + " has requested #"
 	        + pieceNumber
 	        + ":"
