@@ -1088,9 +1088,10 @@ PEPeerTransportProtocol
 		//Assign the current buffer ...
 		keepAlive = 0;
 		writeBuffer = (ByteBuffer) protocolQueue.remove(0);
-		//
+		
     if (writeBuffer == null){
       closeAll(ip + " : Empty write Buffer on protocol message !!!",true);
+      return;
     }
 		writeBuffer.position(0);
 		writeData = false;
