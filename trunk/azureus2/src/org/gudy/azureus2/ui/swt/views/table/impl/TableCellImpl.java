@@ -76,6 +76,7 @@ public class TableCellImpl
   private boolean valid;
   private int refreshErrLoopCount;
   private int loopFactor;
+  private Object oToolTip;
   
   public TableCellImpl(TableRowCore tableRow, TableColumnCore tableColumn) {
     this(tableRow, tableColumn, false);
@@ -458,5 +459,13 @@ public class TableCellImpl
       e.printStackTrace();
     }
     return 0;
+  }
+
+  public void setToolTip(Object tooltip) {
+    oToolTip = tooltip;
+  }
+
+  public Object getToolTip() {
+    return oToolTip;
   }
 }

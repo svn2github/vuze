@@ -142,6 +142,9 @@ public interface TableCell {
    */
   boolean isValid();
 
+  public void setToolTip(Object tooltip);
+  public Object getToolTip();
+
   //////////////////////////////////
   // Start TYPE_GRAPHIC functions //
   //////////////////////////////////
