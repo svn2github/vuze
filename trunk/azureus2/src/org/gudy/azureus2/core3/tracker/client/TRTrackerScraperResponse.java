@@ -32,6 +32,11 @@ import org.gudy.azureus2.core3.tracker.client.classic.TrackerStatus;
 public interface 
 TRTrackerScraperResponse 
 {
+	public static final int	ST_INITIALIZING    = 0;
+	public static final int ST_ERROR           = 1;
+	public static final int	ST_ONLINE          = 2;
+	public static final int	ST_SCRAPING        = 3;
+
 	public byte[]
 	getHash();
 	
@@ -44,8 +49,8 @@ TRTrackerScraperResponse
 	public void 
 	setSeedsPeers(int iSeeds, int iPeers);
   
-  public boolean
-  isValid();
+  public int
+  getStatus();
 
   public long
   getScrapeStartTime();
@@ -63,5 +68,7 @@ TRTrackerScraperResponse
 	getStatusString();
 
 	public void setStatusString(String status);
+
+  public boolean isValid();
 		
 }

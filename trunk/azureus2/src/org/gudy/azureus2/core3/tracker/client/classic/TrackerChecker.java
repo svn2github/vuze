@@ -229,7 +229,8 @@ public class TrackerChecker implements TRTrackerScraperListener {
           while( iterHashes.hasNext() ) {
             TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)iterHashes.next();
             long lResponseNextScrapeTime = response.getNextScrapeStartTime();
-            if ((nextResponse == null || lResponseNextScrapeTime < lNewNextScrapeTime) && 
+            if ((response.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) &&
+                (nextResponse == null || lResponseNextScrapeTime < lNewNextScrapeTime) && 
                 (nextTrackerStatus != response.getTrackerStatus() ||
                  nextTrackerHash != response.getHash())) {
               lNewNextScrapeTime = lResponseNextScrapeTime;

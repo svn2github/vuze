@@ -12,6 +12,8 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.net.ssl.*;
 
@@ -39,6 +41,8 @@ public class TrackerStatus {
   private HashMap 					hashes;
   /** only needed to notify listeners */ 
   private TRTrackerScraperImpl		scraper;
+  
+  private boolean bSingleHashScrapes = false;
     
 
   public TrackerStatus(TRTrackerScraperImpl	_scraper, String trackerUrl) {    	
@@ -87,45 +91,59 @@ public class TrackerStatus {
 
   protected synchronized void updateSingleHash(byte[] hash, boolean force, boolean async) {      
     //System.out.println("updateSingleHash:" + force + " " + scrapeURL + " : " + ByteFormatter.nicePrint(hash, true));
+    if (scrapeURL == null)  {
+      return;
+    }
     
-    // TODO: Go through hashes and pick out other scrapes that are "close to"
-    //       wanting a new scrape.
+    ArrayList responsesToUpdate = new ArrayList();
 
     TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)hashes.get(hash);
     if (response == null) {
       response = addHash(hash);
-    } else if ((!force) && 
-               response.getNextScrapeStartTime() >= System.currentTimeMillis()) {
-      LGLogger.log(0, 0, LGLogger.INFORMATION,
-                   "Skipping scrape for hash "+ByteFormatter.nicePrint(hash, true));
+    }
+
+    long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
+    if ((!force) && lMainNextScrapeStartTime >= System.currentTimeMillis()) {
       return;
     }
-    
-    // when the tracker is slow to reply, this function may be called 
-    // called again right after it just ran with the same hash
-    // so, Fake a next scrape start time
-    response.setNextScrapeStartTime(System.currentTimeMillis() + FAULTY_SCRAPE_RETRY_INTERVAL);
+    response.setStatus(TRTrackerScraperResponse.ST_SCRAPING);
     response.setStatusString(MessageText.getString("Scrape.status.scraping"));
 
-    new ThreadedScrapeRunner(response, hash, force, async);
+    responsesToUpdate.add(response);
+    
+    // TODO: Go through hashes and pick out other scrapes that are "close to"
+    //       wanting a new scrape.
+    if (!bSingleHashScrapes) {
+      Iterator iterHashes = hashes.values().iterator();
+      while( iterHashes.hasNext() ) {
+        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
+        if (!r.getHash().equals(hash)) {
+          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
+          if (lTimeDiff <= 30000) {
+            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING);
+            r.setStatusString(MessageText.getString("Scrape.status.scraping"));
+            responsesToUpdate.add(r);
+          }
+        }
+      }
+    }
+    
+    new ThreadedScrapeRunner(responsesToUpdate,  force, async);
   }
-
+  
   /** Does the scrape and decoding asynchronously.
     *
     * TODO: Allow handling of multiple TRTrackerScraperResponseImpl objects
     *       on one URL
     */
   private class ThreadedScrapeRunner extends Thread {
-    byte[] hash;
     boolean force;
-    TRTrackerScraperResponseImpl response;
+    ArrayList responses;
 
-    public ThreadedScrapeRunner(TRTrackerScraperResponseImpl _response, 
-                                byte[] _hash, boolean _force, boolean async) {
+    public ThreadedScrapeRunner(ArrayList _responses, boolean _force, boolean async) {
       super("ThreadedScrapeRunner");
-      hash = _hash;
       force = _force;
-      response = _response;
+      responses = _responses;
 
       if (async) {
         setDaemon(true);
@@ -137,15 +155,18 @@ public class TrackerStatus {
 
     public void run() {
       if (scrapeURL == null)  {
-        response.setStatusString(MessageText.getString("Scrape.status.error") + 
-                                 MessageText.getString("Scrape.status.error.badURL"));
         return;
       }
             
       try {
-        String info_hash = "?info_hash=";
-        info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
-                                       Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+        String info_hash = "";
+        for (int i = 0; i < responses.size(); i++) {
+          byte[] hash = ((TRTrackerScraperResponseImpl)responses.get(i)).getHash();
+          info_hash += ((i > 0) ? "&" : "?") + "info_hash=";
+          info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
+                                         Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+        }
+
         URL reqUrl = new URL(scrapeURL + info_hash);
         
         LGLogger.log(0,0,LGLogger.SENT,"Accessing scrape interface using url : " + reqUrl);
@@ -155,7 +176,9 @@ public class TrackerStatus {
         long scrapeStartTime = System.currentTimeMillis();
         
         if ( reqUrl.getProtocol().equalsIgnoreCase( "udp" )){
-        	scrapeUDP( reqUrl, message, hash);
+          // TODO: support multi hash scrapes on UDP
+        	scrapeUDP( reqUrl, message, ((TRTrackerScraperResponseImpl)responses.get(0)).getHash());
+        	bSingleHashScrapes = true;
         }else{
         	scrapeHTTP( reqUrl, message );
         }
@@ -166,71 +189,113 @@ public class TrackerStatus {
         Map map = BDecoder.decode(message.toByteArray());
         
         Map mapFiles = (Map) map.get("files");
-        
-        //retrieve the scrape data for the relevent infohash
-        Map scrapeMap = (Map)mapFiles.get(new String(hash, Constants.BYTE_ENCODING));
-        
-        if ( scrapeMap == null ){
-          response.setStatusString(MessageText.getString("Scrape.status.error") + 
-                                   MessageText.getString("Scrape.status.error.nohash"));
-        	// System.out.println("scrape: hash missing from reply");
-        } else {
-  	      //retrieve values
-  	      int seeds = ((Long)scrapeMap.get("complete")).intValue();
-  	      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
-  
-  	      //create the response
-          response = new TRTrackerScraperResponseImpl(TrackerStatus.this, hash, 
-                                                      seeds, peers, 
-                                                      scrapeStartTime);
-            
-  	      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
-  	      int scrapeInterval = 10 * 60;
-  	      Map mapFlags = (Map) map.get("flags");
-  	      if (mapFlags != null) {
-            scrapeInterval = ((Long)mapFlags.get("min_request_interval")).intValue();
-
-            if (scrapeInterval < 10*59) scrapeInterval = 10*59;
-            if (scrapeInterval > 60*60) scrapeInterval = 60*60;
-  
-            //Debug.out("scrape min_request_interval = " +scrapeInterval);
-  	      }
-
-          long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
-          response.setNextScrapeStartTime(nextScrapeTime);
-          response.setStatusString(MessageText.getString("Scrape.status.ok"));
+        if (!bSingleHashScrapes && responses.size() > 1 && mapFiles.size() == 1) {
+          bSingleHashScrapes = true;
+          LGLogger.log(scrapeURL + " only returned " + mapFiles.size() + " hash scrape(s), but we asked for " + responses.size());
         }
+        
+        for (int i = 0; i < responses.size(); i++) {
+          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
+          //retrieve the scrape data for the relevent infohash
+          Map scrapeMap = (Map)mapFiles.get(new String(response.getHash(), Constants.BYTE_ENCODING));
+        
+          if ( scrapeMap == null ){
+            // some trackers that return only 1 hash return a random one!
+            if (responses.size() == 1 || mapFiles.size() != 1) {
+              response.setNextScrapeStartTime(System.currentTimeMillis() + 
+                                              FAULTY_SCRAPE_RETRY_INTERVAL);
+              response.setStatus(TRTrackerScraperResponse.ST_ERROR);
+              response.setStatusString(MessageText.getString("Scrape.status.error") + 
+                                       MessageText.getString("Scrape.status.error.nohash"));
+            } else {
+              // This tracker doesn't support multiple hash requests.
+              // revert status to what it was
+              response.revertStatus();
+              if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING) {
+                System.out.println("Hash " + ByteFormatter.nicePrint(response.getHash(), true) + " mysteriously reverted to ST_SCRAPING!");
+                response.setStatus(TRTrackerScraperResponse.ST_ONLINE);
+              }
+              // if this was the first scrape request in the list, TrackerChecker
+              // will attempt to scrape again because we didn't reset the 
+              // nextscrapestarttime.  But the next time, bSingleHashScrapes
+              // will be false, and only 1 has will be requested, so there
+              // will be infinite looping
+            }
+          	// System.out.println("scrape: hash missing from reply");
+          } else {
+    	      //retrieve values
+    	      int seeds = ((Long)scrapeMap.get("complete")).intValue();
+    	      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
+    
+    	      
+    	      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
+    	      int scrapeInterval = 10 * 60;
+    	      Map mapFlags = (Map) map.get("flags");
+    	      if (mapFlags != null) {
+              scrapeInterval = ((Long)mapFlags.get("min_request_interval")).intValue();
+  
+              if (scrapeInterval < 10*59) scrapeInterval = 10*59;
+              if (scrapeInterval > 60*60) scrapeInterval = 60*60;
+    
+              //Debug.out("scrape min_request_interval = " +scrapeInterval);
+    	      }
+  
+            long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
+            response.setNextScrapeStartTime(nextScrapeTime);
+
+    	      //create the response
+    	      response.setScrapeStartTime(scrapeStartTime);
+    	      response.seeds = seeds;
+    	      response.peers = peers; 
+            response.setStatus(TRTrackerScraperResponse.ST_ONLINE);
+
+            String s = MessageText.getString("Scrape.status.ok");
+            if (!s.endsWith(".")) {
+              s += ".  ";
+            } else if (!s.equals("")) {
+              s += "  ";
+            }
+            String[] params = { DisplayFormatters.formatTime(response.getNextScrapeStartTime()) };
+            response.setStatusString(s + 
+                                     MessageText.getString("Scrape.status.nextScrapeAt", 
+                                                           params));
+            //notifiy listeners
+            scraper.scrapeReceived( response );
+          }
+        } // for responses
   
       } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
+        for (int i = 0; i < responses.size(); i++) {
+          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
+          response.setNextScrapeStartTime(System.currentTimeMillis() + 
+                                          FAULTY_SCRAPE_RETRY_INTERVAL);
+          response.setStatus(TRTrackerScraperResponse.ST_ERROR);
+          //notifiy listeners
+          scraper.scrapeReceived( response );
+        }
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, 
   									"Response from scrape interface " + scrapeURL + " : " + e);
    
-        response = new TRTrackerScraperResponseImpl(TrackerStatus.this, hash);
-        response.setNextScrapeStartTime(System.currentTimeMillis() + 
-                                        FAULTY_SCRAPE_RETRY_INTERVAL);
-        response.setStatusString(MessageText.getString("Scrape.status.error") + 
-                                 e.getMessage());
+        for (int i = 0; i < responses.size(); i++) {
+          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
+          response.setNextScrapeStartTime(System.currentTimeMillis() + 
+                                          FAULTY_SCRAPE_RETRY_INTERVAL);
+          response.setStatus(TRTrackerScraperResponse.ST_ERROR);
+          String s = MessageText.getString("Scrape.status.error") + e.getMessage();
+          if (!s.endsWith(".")) {
+            s += ".  ";
+          } else if (!s.equals("")) {
+            s += "  ";
+          }
+          String[] params = { DisplayFormatters.formatTime(response.getNextScrapeStartTime()) };
+          response.setStatusString(s + 
+                                   MessageText.getString("Scrape.status.nextScrapeAt", 
+                                                         params));
+          //notifiy listeners
+          scraper.scrapeReceived( response );
+        }
       }
-      
-      String s = response.getStatusString();
-      if (!s.endsWith(".")) {
-        s += ".  ";
-      } else if (!s.equals("")) {
-        s += "  ";
-      }
-      String[] params = { DisplayFormatters.formatTime(response.getNextScrapeStartTime()) };
-      response.setStatusString(s + 
-                               MessageText.getString("Scrape.status.nextScrapeAt", 
-                                                     params));
-  
-      //update the hash list
-      synchronized( hashes ) {
-        hashes.put(hash, response);
-      }
-  
-      //notifiy listeners
-      scraper.scrapeReceived( response );
     }
   }
   
@@ -516,7 +581,13 @@ public class TrackerStatus {
 
   protected TRTrackerScraperResponseImpl addHash(byte[] hash) {
     TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(this, hash);
-    response.setStatusString(MessageText.getString("Scrape.status.initializing"));
+    if (scrapeURL == null)  {
+      response.setStatus(TRTrackerScraperResponse.ST_ERROR);
+      response.setStatusString(MessageText.getString("Scrape.status.error") + 
+                               MessageText.getString("Scrape.status.error.badURL"));
+    } else {
+      response.setStatusString(MessageText.getString("Scrape.status.initializing"));
+    }
   	synchronized( hashes ){
       hashes.put(hash, response);
   	}

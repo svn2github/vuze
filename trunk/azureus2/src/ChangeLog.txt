@@ -12,6 +12,7 @@ FEATURE: Added "DLing For" and "Seeding For" time columns to "My Torrents" [TuxP
 FEATURE: When torrent data is missing, you can change directory via the context menu [TuxPaper]
 FEATURE: UDP tracker version 2 support added [Parg]
 FEATURE: Linux system tray support [Gudy]
+FEATURE: HTTP scrapes to same tracker combined into one request if tracker supports it. [TuxPaper]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]

@@ -17,12 +17,13 @@ public class TRTrackerScraperResponseImpl
   protected byte[]  hash;
   protected int     seeds;
   protected int     peers;
-  protected boolean   valid;
   
   private long scrapeStartTime;
   private long nextScrapeStartTime;
   private TrackerStatus ts;
   private String sStatus = "";
+  private int status;
+  private int last_status;
 
   protected TRTrackerScraperResponseImpl(TrackerStatus _ts,
                                          byte[] _hash) {
@@ -40,7 +41,8 @@ public class TRTrackerScraperResponseImpl
     ts = _ts;
     scrapeStartTime = _scrapeStartTime;
     
-    valid = (seeds >= 0 && peers >= 0);
+    setStatus(TRTrackerScraperResponse.ST_ONLINE);
+    last_status = status;
     nextScrapeStartTime = -1;
   }
 
@@ -63,16 +65,32 @@ public class TRTrackerScraperResponseImpl
 	public void setSeedsPeers(int iSeeds, int iPeers) {
 	  seeds = iSeeds;
 	  peers = iPeers;
-    valid = (seeds >= 0 && peers >= -1);
+	  setStatus(TRTrackerScraperResponse.ST_ONLINE);
     
     // XXX Is this a good idea?
     ts.scrapeReceived(this);
 	}
 
-  // XXX Change to getStatus
-  public boolean isValid() {
-    return( valid);
+  public int getStatus() {
+    return status;
   }
+  
+  protected void setStatus(int iStatus) {
+    if (iStatus == TRTrackerScraperResponse.ST_ONLINE) {
+      status = (isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
+    } else {
+      status = iStatus;
+    }
+  }
+  
+  protected void revertStatus() {
+    setStatus(last_status);
+  }
+  
+  protected void setScrapeStartTime(long time) {
+    scrapeStartTime = time;
+  }
+    
   
   public long getScrapeStartTime() {
     return scrapeStartTime;
@@ -92,5 +110,9 @@ public class TRTrackerScraperResponseImpl
   
   public void setStatusString(String s) {
     sStatus = s;
+  }
+  
+  public boolean isValid() {
+    return !(seeds == -1 && peers == -1);
   }
 }
