@@ -14,8 +14,10 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -84,8 +86,9 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  public static final String VERSION = "2.0.3.0"; //$NON-NLS-1$
+  public static final String VERSION = "2.0.0.9"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
+  private String latestVersionFileName = null;
 
   private static MainWindow window;
   private static Shell splash;
@@ -215,6 +218,9 @@ public class MainWindow implements IComponentListener {
         }
         Map decoded = BDecoder.decode(message.toByteArray());
         latestVersion = new String((byte[]) decoded.get("version")); //$NON-NLS-1$
+        byte[] bFileName = (byte[]) decoded.get("filename"); //$NON-NLS-1$
+        if (bFileName != null)
+          latestVersionFileName = new String(bFileName);
 
         if (display == null || display.isDisposed())
           return;
@@ -286,7 +292,8 @@ public class MainWindow implements IComponentListener {
       display = new Display(data);
       Sleak sleak = new Sleak();
       sleak.open();
-    } else {
+    }
+    else {
       display = new Display();
     }
 
@@ -343,7 +350,7 @@ public class MainWindow implements IComponentListener {
 
     Menu newMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     file_new.setMenu(newMenu);
-    
+
     MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
     Messages.setLanguageText(file_new_torrent, "MainWindow.menu.file.open.torrent"); //$NON-NLS-1$
     file_new_torrent.addListener(SWT.Selection, new Listener() {
@@ -358,7 +365,7 @@ public class MainWindow implements IComponentListener {
         openTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
       }
     });
-    
+
     // MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
     //file_new_url.setText("URL");
     MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
@@ -373,8 +380,7 @@ public class MainWindow implements IComponentListener {
         openTorrentsFromDirectory(fileName);
       }
     });
-    
-    
+
     file_create.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         new Wizard(display);
@@ -386,7 +392,6 @@ public class MainWindow implements IComponentListener {
         dispose();
       }
     });
-
 
     //The View Menu
     MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -539,8 +544,8 @@ public class MainWindow implements IComponentListener {
       try {
         while (st.hasMoreTokens() && i < 4) {
           values[i++] = Integer.valueOf(st.nextToken()).intValue();
-          if(values[i-1] < 0)
-             values[i-1] = 0;
+          if (values[i - 1] < 0)
+            values[i - 1] = 0;
         }
         if (i == 4) {
           mainWindow.setBounds(values[0], values[1], values[2], values[3]);
@@ -588,7 +593,7 @@ public class MainWindow implements IComponentListener {
     if (ConfigurationManager.getInstance().getBooleanParameter("Start Minimized", false))
       minimizeToTray(null);
 
-    if (ConfigurationManager.getInstance().getBooleanParameter("Password enabled",false)) {
+    if (ConfigurationManager.getInstance().getBooleanParameter("Password enabled", false)) {
       mainWindow.setVisible(false);
       PasswordWindow.showPasswordWindow(display);
     }
@@ -864,7 +869,13 @@ public class MainWindow implements IComponentListener {
     label.setText(MessageText.getString("MainWindow.upgrade.explanation.manual") + ":\n"); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
 
-    final String downloadLink = "http://azureus.sourceforge.net/Azureus2.jar"; //$NON-NLS-1$
+    final String downloadLink;
+    if (latestVersionFileName == null) {
+      downloadLink = "http://azureus.sourceforge.net/Azureus2.jar"; //$NON-NLS-1$
+    }
+    else {
+      downloadLink = "http://prdownloads.sourceforge.net/azureus/" + latestVersionFileName + "?download";
+    }
     final Label linklabel = new Label(gManual, SWT.NULL);
     linklabel.setText(downloadLink);
     linklabel.setCursor(handCursor);
@@ -939,7 +950,7 @@ public class MainWindow implements IComponentListener {
 
     SelectionAdapter update = new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
-        downloadJar(progressBar);
+        downloadJar(progressBar,hint);
         if (jarDownloaded) {
           if (event.widget == finish) {
             updateJar = true;
@@ -1053,7 +1064,47 @@ public class MainWindow implements IComponentListener {
     }
   }
 
-  private void downloadJar(final ProgressBar progressBar) {
+  private String readUrl(URL url) {
+    String result = "";
+    InputStream in = null;
+    try {
+      HttpURLConnection con = (HttpURLConnection) url.openConnection();
+      con.connect();
+      in = con.getInputStream();
+      final ByteArrayOutputStream message = new ByteArrayOutputStream();
+      byte[] data = new byte[1024];
+      int nbRead = 0;
+      while (nbRead >= 0) {
+        try {
+          nbRead = in.read(data);
+          if (nbRead >= 0)
+            message.write(data, 0, nbRead);
+          Thread.sleep(20);
+        }
+        catch (Exception e) {
+          nbRead = -1;
+        }
+        display.readAndDispatch();
+      }
+      result = message.toString();
+    }
+    catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
+    }
+    catch (Exception ignore) {}
+    finally {
+      if (in != null) {
+        try {
+          in.close();
+        }
+        catch (Exception e) {}
+        in = null;
+      }
+    }
+    
+    return result;
+  }
+
+  private void downloadJar(final ProgressBar progressBar,final Label hint) {
     if (jarDownloaded) {
       progressBar.setSelection(progressBar.getMaximum());
       return;
@@ -1064,8 +1115,48 @@ public class MainWindow implements IComponentListener {
     try {
       File originFile = GlobalManager.getApplicationFile("Azureus2.jar"); //$NON-NLS-1$
       File newFile = new File(originFile.getParentFile(), "Azureus2-new.jar"); //$NON-NLS-1$
+      URL reqUrl = null;
+      if (latestVersionFileName == null) {
+        reqUrl = new URL("http://azureus.sourceforge.net/Azureus2.jar"); //$NON-NLS-1$
+      }
+      else {
+        //New update method, using sourceforge mirrors.
+        URL mirrorsUrl = new URL("http://prdownloads.sourceforge.net/azureus/" + latestVersionFileName + "?download");
+        String mirrorsHtml = readUrl(mirrorsUrl);
+        List mirrors = new ArrayList();
+        String pattern = "/azureus/" + latestVersionFileName + "?use_mirror=";
+        int position = mirrorsHtml.indexOf(pattern);
+        while(position > 0) {
+          int end = mirrorsHtml.indexOf(">",position);
+          if(end < 0) {
+            position = -1;
+          } else {
+            String mirror = mirrorsHtml.substring(position,end);
+            //System.out.println(mirror);
+            mirrors.add(mirror);
+            position = mirrorsHtml.indexOf(pattern,position+1);
+          }  
+        }
+        
+        //Grab a random mirror
+        if(mirrors.size() == 0)
+          return;
+        int random = (int) (Math.random() * mirrors.size());
+        String mirror = (String) (mirrors.get(random));
+        
+        URL mirrorUrl = new URL("http://prdownloads.sourceforge.net/" + mirror);
+        String mirrorHtml = readUrl(mirrorUrl);
+        pattern = "<META HTTP-EQUIV=\"refresh\" content=\"1; URL=";
+        position = mirrorHtml.indexOf("<META HTTP-EQUIV=\"refresh\" content=\"1; URL=");
+        if(position < 0) return;
+        int end = mirrorHtml.indexOf("\">",position);
+        if(end < 0) return;
+        reqUrl = new URL(mirrorHtml.substring(position + pattern.length() ,end));
+      }
 
-      URL reqUrl = new URL("http://azureus.sourceforge.net/Azureus2.jar"); //$NON-NLS-1$
+      if (reqUrl == null)
+        return;
+      hint.setText(MessageText.getString("MainWindow.upgrade.downloadingfrom") + reqUrl);
       HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
       con.connect();
       in = con.getInputStream();
@@ -1300,7 +1391,7 @@ public class MainWindow implements IComponentListener {
       mainWindow.setMinimized(false);
     }
   }
-  
+
   public boolean isVisible() {
     return mainWindow.isVisible();
   }
@@ -1421,9 +1512,9 @@ public class MainWindow implements IComponentListener {
       String singleFileName = ""; //$NON-NLS-1$
 
       try {
- 
-		singleFile = TOTorrentFactory.deserialiseFromFile( new File(fileName)).isSimpleTorrent();
-        
+
+        singleFile = TOTorrentFactory.deserialiseFromFile(new File(fileName)).isSimpleTorrent();
+
       }
       catch (Exception e) {
         e.printStackTrace();
