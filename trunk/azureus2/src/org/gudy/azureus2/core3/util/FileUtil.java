@@ -461,6 +461,7 @@ public class FileUtil {
      * @return true if file copy successful, false if copy failed
      */
     /*
+    // FileChannel.transferTo() seems to fail under certain linux configurations.
     public static boolean copyFile( final File _source, final File _dest ) {
       FileChannel source = null;
       FileChannel dest = null;
