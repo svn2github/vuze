@@ -800,7 +800,7 @@ public class ConfigView extends AbstractIView {
     
     Label lSaveTorrentBackup = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(lSaveTorrentBackup, "ConfigView.label.savetorrentbackup"); //$NON-NLS-1$
-    BooleanParameter saveTorrentBackup = new BooleanParameter(gFile, "Save Torrent Backup", true); //$NON-NLS-1$    
+    BooleanParameter saveTorrentBackup = new BooleanParameter(gFile, "Save Torrent Backup", false); //$NON-NLS-1$    
 
     controls = new Control[4];
     controls[0] = torrentPathParameter.getControl();
