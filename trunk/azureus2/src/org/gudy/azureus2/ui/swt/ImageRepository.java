@@ -257,7 +257,7 @@ public class ImageRepository {
                     key = ext;
 
                     if(doNotUseAWTIcon)
-                         getIconFromProgram(Program.findProgram(ext));
+                         return getIconFromProgram(Program.findProgram(ext));
 
                     // case-insensitive file systems
                     for (int i = 0; i < noCacheExtList.length; i++)
