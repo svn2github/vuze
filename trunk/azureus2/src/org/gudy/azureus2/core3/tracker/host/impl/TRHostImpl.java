@@ -215,43 +215,44 @@ TRHostImpl
 		TRHostTorrent	ht = lookupHostTorrent( torrent );
 		
 		if ( ht != null ){
-			
-			return( ht );
-		}
-		
+					
 			// check that this isn't the explicit publish/host of a torrent already there
 			// as an external torrent. If so then just replace the torrent
 			
-		try{
-		
-			ht = lookupHostTorrentViaHash( torrent.getHash());
-		
-			if ( ht instanceof TRHostTorrentHostImpl ){
-				
-				TRHostTorrentHostImpl hti = (TRHostTorrentHostImpl)ht;
-				
-				hti.setTorrent( torrent );	
+			try{
 			
-				if ( persistent && !hti.isPersistent()){
+				ht = lookupHostTorrentViaHash( torrent.getHash());
+			
+				if ( ht instanceof TRHostTorrentHostImpl ){
 					
-					hti.setPersistent( true );
-				}
+					TRHostTorrentHostImpl hti = (TRHostTorrentHostImpl)ht;
+					
+					if ( hti.getTorrent() != torrent ){
+						
+						hti.setTorrent( torrent );	
+					
+						if ( persistent && !hti.isPersistent()){
+							
+							hti.setPersistent( true );
+						}
+						
+						if ( state != TRHostTorrent.TS_PUBLISHED ){
 				
-				if ( state != TRHostTorrent.TS_PUBLISHED ){
-		
-					startHosting( hti );
-		
-					if ( state == TRHostTorrent.TS_STARTED ){
-					
-						hti.start();
+							startHosting( hti );
+				
+							if ( state == TRHostTorrent.TS_STARTED ){
+							
+								hti.start();
+							}
+						}			
 					}
-				}			
+				}
+			}catch( TOTorrentException e ){
 				
-				return( ht );
+				e.printStackTrace();	
 			}
-		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();	
+			return( ht );
 		}
 		
 		int		port;
@@ -397,7 +398,7 @@ TRHostImpl
 		TOTorrent	torrent )
 	{
 		try{
-			return((TRHostTorrent)host_torrent_hash_map.get( new HashWrapper(torrent.getHash())));
+			return((TRHostTorrent)host_torrent_hash_map.get( torrent.getHashWrapper()));
 			
 		}catch( TOTorrentException e ){
 			
