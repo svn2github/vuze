@@ -102,7 +102,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     table.getColumn(14).setWidth(20);
     table.getColumn(15).setWidth(60);
     table.getColumn(16).setWidth(30);
-    table.getColumn(17).setWidth(60);
+    table.getColumn(17).setWidth(105);
     table.getColumn(18).setWidth(60);
 
     table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("ip")); //$NON-NLS-1$
@@ -123,6 +123,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     table.getColumn(15).addListener(SWT.Selection, new IntColumnListener("od")); //$NON-NLS-1$
     table.getColumn(16).addListener(SWT.Selection, new IntColumnListener("opt")); //$NON-NLS-1$
     table.getColumn(17).addListener(SWT.Selection, new StringColumnListener("client")); //$NON-NLS-1$
+    table.getColumn(18).addListener(SWT.Selection, new IntColumnListener("discarded"));
 
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
@@ -331,6 +332,15 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
 
     if (field.equals("up")) //$NON-NLS-1$
       return peerSocket.getStats().getTotalSent();
+    
+    if (field.equals("su")) //$NON-NLS-1$
+      return peerSocket.getStats().getStatisticSentAverage();
+    
+    if (field.equals("od")) //$NON-NLS-1$
+      return peerSocket.getStats().getTotalAverage();
+    
+    if (field.equals("discarded"))
+      return peerSocket.getStats().getTotalDiscarded();
 
     if (getBooleanFiedl(peerSocket, field))
       return 1;
@@ -412,6 +422,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     }
   }
 
+  
   private void orderString(String field) {
     if (lastField.equals(field))
       ascending = !ascending;
@@ -436,7 +447,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
         for (i = 0; i < ordered.size(); i++) {
           PEPeer peerSocketi = (PEPeer) ordered.get(i);
           String valuei = getStringField(peerSocketi, field);
-          if (ascending) {
+          if (!ascending) {
             if (collator.compare(valuei, value) <= 0)
               break;
           }
