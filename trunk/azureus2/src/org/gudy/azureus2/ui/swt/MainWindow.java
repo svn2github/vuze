@@ -63,6 +63,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core.BDecoder;
 import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core.Constants;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.LocaleUtil;
@@ -180,7 +181,8 @@ public class MainWindow implements IComponentListener {
      * @see java.lang.Thread#run()
      */
     public void run() {
-      byte[] message = null;
+      ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
+
       int nbRead = 0;
       InputStream is = null;
       try {
@@ -191,18 +193,15 @@ public class MainWindow implements IComponentListener {
 //        int length = con.getContentLength();
 //        System.out.println(length);
         byte[] data = new byte[1024];
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         while (nbRead >= 0) {
           nbRead = is.read(data);
           if (nbRead >= 0) {
-            bos.write(data, 0, nbRead);
+            message.write(data, 0, nbRead);
           }
         }
-        message = bos.toByteArray();
-        Map decoded = BDecoder.decode(message);
+        Map decoded = BDecoder.decode(message.toByteArray()); //$NON-NLS-1$
+        latestVersion = new String((byte[])decoded.get("version")); //$NON-NLS-1$ //$NON-NLS-2$
 
-        latestVersion = new String((byte[]) decoded.get("version")); //$NON-NLS-1$ //$NON-NLS-2$
         if (display == null || display.isDisposed())
           return;
         display.asyncExec(new Runnable() {
@@ -1116,14 +1115,17 @@ public class MainWindow implements IComponentListener {
       try {
         byte[] buf = new byte[1024];
         int nbRead;
-        StringBuffer metaInfo = new StringBuffer();
+        ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
         fis = new FileInputStream(fileName);
         while ((nbRead = fis.read(buf)) > 0)
-          metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
-        Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
-        Map info = (Map) map.get("info"); //$NON-NLS-1$
-        singleFileName = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$ //$NON-NLS-2$
-        Object test = info.get("length"); //$NON-NLS-1$
+			metaInfo.write(buf, 0, nbRead);
+
+        fis.close();
+        Map map = BDecoder.decode(metaInfo.toByteArray());
+        Map info = (Map) map.get("info");
+        singleFileName = new String((byte[])info.get("name"), Constants.DEFAULT_ENCODING);
+        Object test = info.get("length");        
+
         if (test != null) {        
           singleFile = true;          
         }
