@@ -1,22 +1,9 @@
-/*
- * File    : DiskManagerImpl.java
- * Created : 18-Oct-2003
- * By      : parg
+ /*
+ * Created on Oct 18, 2003
+ * Created by Paul Gardner
+ * Modified Apr 13, 2004 by Alon Rohter
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
  * 
- * Azureus - a Java Bittorrent client
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details ( see the LICENSE file ).
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 package org.gudy.azureus2.core3.disk.impl;
@@ -25,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.BitSet;
@@ -182,9 +168,7 @@ DiskManagerImpl
 		md5 = new Md5Hasher();
 		md5Result = ByteBuffer.allocate(16);
     
-		try {
-			hasher = new SHA1Hasher();
-		} catch (NoSuchAlgorithmException ignore) {/*ignore*/}
+		hasher = new SHA1Hasher();
     
     // add configuration parameter listeners
     COConfigurationManager.addParameterListener("Use Resume", this);
