@@ -187,12 +187,10 @@ public class GlobalManagerImpl
             
 	        	needsSaving = false;
 	        }
-	        
-	        List	managers_ref = managers_cow;
-	        
-	        for (int i = 0; i < managers_ref.size(); i++) {
+	        	        
+	        for (Iterator it=managers_cow.iterator();it.hasNext();) {
           	
-	        	DownloadManager manager = (DownloadManager) managers_ref.get(i);
+	        	DownloadManager manager = (DownloadManager)it.next();
             
 	        	if ( loopFactor % saveResumeLoopCount == 0 ) {
 	        		
@@ -1341,8 +1339,8 @@ public class GlobalManagerImpl
       return false;
 
     int numInGroup = 0;
-    for (int i = 0; i < managers_cow.size(); i++) {
-      DownloadManager dm = (DownloadManager) managers_cow.get(i);
+    for (Iterator it = managers_cow.iterator();it.hasNext();) {
+      DownloadManager dm = (DownloadManager)it.next();
       if ((dm.getStats().getDownloadCompleted(false) == 1000) == isCompleted)
         numInGroup++;
     }
