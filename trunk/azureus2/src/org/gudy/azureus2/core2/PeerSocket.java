@@ -1016,7 +1016,7 @@ public class PeerSocket extends PeerConnection {
         //Assign the current buffer ...
         keepAlive = 0;
         writeBuffer = (ByteBuffer) protocolQueue.remove(0);
-        if (writeBuffer == null) System.out.println("null writebuffer");
+        if (writeBuffer == null) return;
         writeBuffer.position(0);
         writeData = false;
         //and loop
