@@ -96,7 +96,13 @@ PEPeerServerImpl
     int hp = COConfigurationManager.getIntParameter("High Port", 6889);
     int lowPort = Math.min(lp, hp);
     int highPort = Math.max(lp, hp);
-    port = lowPort;
+    if (COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
+      //Use real Low Port even if it's not the real lowest port
+      port = lp;
+    } else  {
+      //Otherwise, use the lowest port
+    	port = lowPort;
+    }
     sck = null;
     bContinue = true;
     setPriority(Thread.MIN_PRIORITY);
