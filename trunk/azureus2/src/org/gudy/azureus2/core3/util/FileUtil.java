@@ -460,6 +460,7 @@ public class FileUtil {
      * @param _dest destination file
      * @return true if file copy successful, false if copy failed
      */
+    /*
     public static boolean copyFile( final File _source, final File _dest ) {
       FileChannel source = null;
       FileChannel dest = null;
@@ -485,6 +486,20 @@ public class FileUtil {
         catch (Exception ignore) {}
       }
     }
+    */
+    
+    public static boolean copyFile( final File _source, final File _dest ) {
+      try {
+        copyFile( new FileInputStream( _source ), new FileOutputStream( _dest ) );
+        return true;
+      }
+      catch( Throwable t ) {
+        t.printStackTrace();
+        return false;
+      }
+    }
+    
+    
     
     public static void 
 	copyFile( 
