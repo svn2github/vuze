@@ -9,6 +9,7 @@ package org.gudy.azureus2.core3.internat;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.Constants;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -60,22 +61,52 @@ public class MessageText {
    */
   public static String getString(String key, String sDefault) {
     try {
-      return RESOURCE_BUNDLE.getString(key);
+      return RESOURCE_BUNDLE.getString(key + getPlatformSuffix());
     } catch (MissingResourceException e) {
-      return sDefault;
+      return getPlatformNeutralString(key, sDefault);
     }
   }
 
   public static String getString(String key) {
-    // TODO Auto-generated method stub
+    try {
+      return RESOURCE_BUNDLE.getString(key + getPlatformSuffix());
+    } catch (MissingResourceException e) {
+      return getPlatformNeutralString(key);
+    }
+  }
+
+  public static String getPlatformNeutralString(String key) {
     try {
       return RESOURCE_BUNDLE.getString(key);
     } catch (MissingResourceException e) {
       return '!' + key + '!';
     }
   }
-  
-  
+
+  public static String getPlatformNeutralString(String key, String sDefault) {
+    try {
+      return RESOURCE_BUNDLE.getString(key);
+    } catch (MissingResourceException e) {
+      return sDefault;
+    }
+  }
+
+  /**
+   * Gets the localization key suffix for the running platform
+   * @return The suffix
+   * @see Constants
+   */
+  private static String getPlatformSuffix() {
+    if(Constants.isOSX)
+        return "._mac";
+    else if(Constants.isLinux)
+        return "._linux";
+     else if(Constants.isWindows)
+       return "._windows";
+     else
+       return "";
+  }
+
   /**
    * Process a sequence of words, and translate the ones containing at least one '.', unless it's an ending dot.
    * @param sentence 
@@ -115,7 +146,6 @@ public class MessageText {
    * @param params
    * @return
    */
-  
   public static String 
   getString(
   		String		key,

@@ -334,9 +334,8 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 
 		    gridData = new GridData();
 		    gridData.horizontalSpan = 2;
-            // todo: generify localization
 		    new BooleanParameter(gFile, "Move Deleted Data To Recycle Bin", true,
-		                         "ConfigView.section.file.win32movetorecyclebin").setLayoutData(gridData);
+		                         "ConfigView.section.file.nativedelete").setLayoutData(gridData);
 
 	    }    
     }catch( Throwable e ){
