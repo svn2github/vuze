@@ -42,7 +42,6 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.views.TableView.GroupTableRowRunner;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
@@ -264,9 +263,9 @@ MyTrackerView
   		int		peer_count	= 0;
   		int		seed_count	= 0;
   		
-  		long	uploaded	= 0;
-  		long	downloaded	= 0;
-  		long	left		= 0;
+  		long	uploaded	= host_torrent.getTotalUploaded();
+  		long	downloaded	= host_torrent.getTotalDownloaded();
+  		long	left		= host_torrent.getTotalLeft();
   		
   		for (int i=0;i<peers.length;i++){
   			
@@ -279,11 +278,8 @@ MyTrackerView
   				
   				peer_count++;
   			}
-  			
-  			uploaded 	+= peer.getUploaded();
-  			downloaded	+= peer.getDownloaded();
-  			left		+= peer.getAmountLeft();
   		}
+  		
   		host_torrent.setData("GUI_PeerCount", new Long(peer_count));
   		host_torrent.setData("GUI_SeedCount", new Long(seed_count));
   		host_torrent.setData("GUI_Uploaded", new Long(uploaded));

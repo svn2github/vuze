@@ -50,7 +50,7 @@ TRTrackerServer
 	public int
 	getAnnounceRetryInterval();
 	
-	public void
+	public TRTrackerServerTorrent
 	permit(
 		byte[]		hash,
 		boolean		explicit  )

@@ -127,18 +127,18 @@ TRHostTorrentPublishImpl
 		return( peers );
 	}	
 
-	public int
+	public long
 	getAnnounceCount()
 	{
 		return( 0 );
 	}
 	
-	public int
+	public long
 	getScrapeCount()
 	{
 		return( 0 );
 	}
-	public int
+	public long
 	getCompletedCount()
 	{
 		return( 0 );

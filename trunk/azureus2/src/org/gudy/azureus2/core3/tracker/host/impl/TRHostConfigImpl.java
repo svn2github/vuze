@@ -129,13 +129,7 @@ TRHostConfigImpl
 			 			
 			 			TRHostTorrentHostImpl	hth = (TRHostTorrentHostImpl)ht;
 			 			
-			 			hth.setCompletedCount( (int)completed );
-			 			hth.setAnnounceCount( (int)announces );
-			 			hth.setScrapeCount( (int)scrapes );
-			 			hth.setTotalUploaded( total_up );
-			 			hth.setTotalDownloaded( total_down );
-			 			hth.setTotalBytesIn( bytes_in );
-			 			hth.setTotalBytesOut( bytes_out );
+			 			hth.setStartOfDayValues( completed, announces, scrapes, total_up, total_down, bytes_in, bytes_out );
 			 		}
 			 	
 			 	}else{

@@ -77,13 +77,13 @@ TRHostTorrent
 	public TRHostPeer[]
 	getPeers();
 	
-	public int
+	public long
 	getAnnounceCount();
 	
-	public int
+	public long
 	getScrapeCount();
 	
-	public int
+	public long
 	getCompletedCount();
 	
 	public long

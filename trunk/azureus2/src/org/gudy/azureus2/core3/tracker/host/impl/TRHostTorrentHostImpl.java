@@ -37,10 +37,11 @@ public class
 TRHostTorrentHostImpl
 	implements TRHostTorrent 
 {
-	protected TRHostImpl		host;
-	protected TRTrackerServer	server;
-	protected TOTorrent			torrent;
-	protected int				port;
+	protected TRHostImpl					host;
+	protected TRTrackerServer				server;
+	protected TRTrackerServerTorrentStats	torrent_stats;
+	protected TOTorrent						torrent;
+	protected int							port;
 	
 	protected List				listeners			= new ArrayList();
 	protected List				removal_listeners	= new ArrayList();
@@ -48,11 +49,10 @@ TRHostTorrentHostImpl
 	protected int				status	= TS_STOPPED;
 	protected boolean			persistent;
 	
-	protected long				total_uploaded;
-	protected long				total_downloaded;
-	protected long				total_left;
-	protected long				total_bytes_in;
-	protected long				total_bytes_out;
+	protected long				sos_uploaded;
+	protected long				sos_downloaded;
+	protected long				sos_bytes_in;
+	protected long				sos_bytes_out;
 	
 	protected long				last_uploaded;
 	protected long				last_downloaded;
@@ -66,7 +66,7 @@ TRHostTorrentHostImpl
 	protected Average			average_bytes_in		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	protected Average			average_bytes_out		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	
-  private HashMap data;
+	private HashMap data;
 
 	protected
 	TRHostTorrentHostImpl(
@@ -95,7 +95,7 @@ TRHostTorrentHostImpl
 			
 			status = TS_STARTED;
 					
-			server.permit( torrent.getHash(), true);
+			torrent_stats = server.permit( torrent.getHash(), true).getStats();
 		
 			host.hostTorrentStateChange( this );
 			
@@ -115,6 +115,21 @@ TRHostTorrentHostImpl
 				
 			server.deny( torrent.getHash(), true);
 		
+			if ( torrent_stats != null ){
+				
+				sos_uploaded	= sos_uploaded 		+ torrent_stats.getUploaded();
+				sos_downloaded	= sos_downloaded 	+ torrent_stats.getDownloaded();
+				sos_bytes_in	= sos_bytes_in 		+ torrent_stats.getBytesIn();
+				sos_bytes_out	= sos_bytes_out 	+ torrent_stats.getBytesOut();
+				
+				torrent_stats	= null;
+			}
+			
+			last_uploaded		= 0;
+			last_downloaded		= 0;
+			last_bytes_in		= 0;
+			last_bytes_out		= 0;
+
 			host.hostTorrentStateChange( this );
 			
 		}catch( Throwable e ){
@@ -206,215 +221,143 @@ TRHostTorrentHostImpl
 		return( new TRHostPeer[0] );
 	}	
 	
-	public int
+	protected TRTrackerServerTorrentStats
+	getStats()
+	{
+		return( torrent_stats );
+	}
+	
+	protected void
+	setStartOfDayValues(
+		long		completed,
+		long		announces,
+		long		scrapes,
+		long		uploaded,
+		long		downloaded,
+		long		bytes_in,
+		long		bytes_out )
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			stats.setCompletedCount(completed);
+			stats.setAnnounceCount(announces);
+			stats.setScrapeCount(scrapes);
+		}
+		
+		sos_uploaded		= uploaded;
+		sos_downloaded		= downloaded;
+		sos_bytes_in		= bytes_in;
+		sos_bytes_out		= bytes_out;
+	}
+	
+	public long
 	getAnnounceCount()
 	{
-		try{
+		TRTrackerServerTorrentStats	stats = getStats();
+	
+		if ( stats != null ){
 		
-			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
-		
-			if ( stats != null ){
-			
-				return( stats.getAnnounceCount());
-			}
-		}catch( TOTorrentException e ){
-			
-			e.printStackTrace();
+			return( stats.getAnnounceCount());
 		}
 		
 		return( 0 );
 	}
 	
-	protected void
-	setAnnounceCount(
-		int		count )
-	{
-		try{
-			
-			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
-			
-			if ( stats != null ){
-				
-				stats.setAnnounceCount(count);
-			}
-		}catch( TOTorrentException e ){
-			
-			e.printStackTrace();
-		}
-	}
-	
-	public int
+	public long
 	getScrapeCount()
 	{
-		try{
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
 			
-			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
-			
-			if ( stats != null ){
-				
-				return( stats.getScrapeCount());
-			}
-		}catch( TOTorrentException e ){
-			
-			e.printStackTrace();
+			return( stats.getScrapeCount());
 		}
 		
 		return( 0 );
 	}
 	
-	protected void
-	setScrapeCount(
-		int		count )
-	{
-		try{
-			
-			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
-			
-			if ( stats != null ){
-				
-				stats.setScrapeCount(count);
-			}
-		}catch( TOTorrentException e ){
-			
-			e.printStackTrace();
-		}
-	}
-	
-	public int
+	public long
 	getCompletedCount()
 	{
-		try{
+		TRTrackerServerTorrentStats	stats = getStats();
 		
-			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
-		
-			if ( stats != null ){
+		if ( stats != null ){
 			
-				return( stats.getCompletedCount());
-			}
-		}catch( TOTorrentException e ){
-			
-			e.printStackTrace();
+			return( stats.getCompletedCount());
 		}
 		
-		return( 0 );	
+		return( 0 );
 	}
 
-	protected void
-	setCompletedCount(
-		int		count )
-	{
-		try{
-			
-			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
-			
-			if ( stats != null ){
-				
-				stats.setCompletedCount(count);
-			}
-		}catch( TOTorrentException e ){
-			
-			e.printStackTrace();
-		}
-	}
 	protected void
 	updateStats()
 	{
-		try{
+		TRTrackerServerTorrentStats	stats = getStats();
+	
+		if ( stats != null ){
 		
-			// System.out.println( "stats update ");
-			
-			TRTrackerServerTorrentStats	stats = server.getStats( torrent.getHash());
-		
-			if ( stats != null ){
-			
-				long	current_uploaded 	= stats.getUploaded();
+			long	current_uploaded 	= stats.getUploaded();
+								
+			long ul_diff = current_uploaded - last_uploaded;
 				
-					// bit crap this as the maintained values are only for *active*
-					// peers - stats are lost when they disconnect
-					
-				long ul_diff = current_uploaded - last_uploaded;
-					
-				if ( ul_diff > 0 ){
-			
-					total_uploaded += ul_diff;
-				
-				}else{
-				
-					ul_diff = 0;
-				}
-				
-				average_uploaded.addValue((int)ul_diff);
-				
-				last_uploaded = current_uploaded;
-				
-					// downloaded 
-				
-				long	current_downloaded 	= stats.getDownloaded();
-				
-				long dl_diff = current_downloaded - last_downloaded;
-					
-				if ( dl_diff > 0 ){
-				
-					total_downloaded += dl_diff;
-					
-				}else{
-					
-					dl_diff = 0;
-				}
-				
-				average_downloaded.addValue((int)dl_diff);
-				
-				last_downloaded = current_downloaded;
-				
-				// bytes in 
-				
-				long	current_bytes_in 	= stats.getBytesIn();
-				
-				long bi_diff = current_bytes_in - last_bytes_in;
-				
-				if ( bi_diff > 0 ){
-					
-					total_bytes_in += bi_diff;
-					
-				}else{
-					
-					bi_diff = 0;
-				}
-				
-				average_bytes_in.addValue((int)bi_diff);
-				
-				last_bytes_in = current_bytes_in;
-
-				// bytes out 
-				
-				long	current_bytes_out 	= stats.getBytesOut();
-				
-				long bo_diff = current_bytes_out - last_bytes_out;
-				
-				if ( bo_diff > 0 ){
-					
-					total_bytes_out += bo_diff;
-					
-				}else{
-					
-					bo_diff = 0;
-				}
-				
-				average_bytes_out.addValue((int)bo_diff);
-				
-				last_bytes_out = current_bytes_out;
-				
-				
-					// left
-				
-				total_left = stats.getAmountLeft();
-				
-				// System.out.println( "tot_up = " + total_uploaded + ", tot_down = " + total_downloaded);
+			if ( ul_diff < 0 ){
+	
+				ul_diff = 0;
 			}
-		}catch( TOTorrentException e ){
 			
-			e.printStackTrace();
-		}	
+			average_uploaded.addValue((int)ul_diff);
+			
+			last_uploaded = current_uploaded;
+			
+				// downloaded 
+			
+			long	current_downloaded 	= stats.getDownloaded();
+			
+			long dl_diff = current_downloaded - last_downloaded;
+				
+			if ( dl_diff < 0 ){
+				
+				dl_diff = 0;
+			}
+			
+			average_downloaded.addValue((int)dl_diff);
+			
+			last_downloaded = current_downloaded;
+			
+			// bytes in 
+			
+			long	current_bytes_in 	= stats.getBytesIn();
+			
+			long bi_diff = current_bytes_in - last_bytes_in;
+			
+			if ( bi_diff < 0 ){
+								
+				bi_diff = 0;
+			}
+			
+			average_bytes_in.addValue((int)bi_diff);
+			
+			last_bytes_in = current_bytes_in;
+
+			// bytes out 
+			
+			long	current_bytes_out 	= stats.getBytesOut();
+			
+			long bo_diff = current_bytes_out - last_bytes_out;
+			
+			if ( bo_diff < 0 ){
+								
+				bo_diff = 0;
+			}
+			
+			average_bytes_out.addValue((int)bo_diff);
+			
+			last_bytes_out = current_bytes_out;
+						
+			// System.out.println( "tot_up = " + total_uploaded + ", tot_down = " + total_downloaded);
+		}
 	}
 	
 	protected TRTrackerServer
@@ -426,33 +369,80 @@ TRHostTorrentHostImpl
 	public long
 	getTotalUploaded()
 	{
-		return( total_uploaded );
-	}
-	
-	protected void
-	setTotalUploaded(
-		long	l )
-	{
-		total_uploaded	= l;
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			return( sos_uploaded + stats.getUploaded());
+		}
+		
+		return( sos_uploaded );
 	}
 	
 	public long
 	getTotalDownloaded()
 	{
-		return( total_downloaded );
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			return( sos_downloaded + stats.getDownloaded());
+		}
+		
+		return( sos_downloaded );	
 	}	
-	
-	protected void
-	setTotalDownloaded(
-		long	l )
-	{
-		total_downloaded	= l;
-	}
 	
 	public long
 	getTotalLeft()
 	{
-		return( total_left );
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			return( stats.getAmountLeft());
+		}
+		
+		return( 0 );	
+	}
+	
+	public long
+	getTotalBytesIn()
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			return( sos_bytes_in + stats.getBytesIn());
+		}
+		
+		return( sos_bytes_in );	
+	}	
+	
+	public long
+	getTotalBytesOut()
+	{
+		TRTrackerServerTorrentStats	stats = getStats();
+		
+		if ( stats != null ){
+			
+			return( sos_bytes_out + stats.getBytesOut());
+		}
+		
+		return( sos_bytes_out );	
+	}
+	
+		// averages
+	
+	public long
+	getAverageBytesIn()
+	{
+		return( average_bytes_in.getAverage());
+	}
+	
+	public long
+	getAverageBytesOut()
+	{
+		return( average_bytes_out.getAverage() );
 	}
 	
 	public long
@@ -465,45 +455,6 @@ TRHostTorrentHostImpl
 	getAverageDownloaded()
 	{
 		return( average_downloaded.getAverage() );
-	}
-	
-	public long
-	getTotalBytesIn()
-	{
-		return( total_bytes_in );
-	}
-	
-	protected void
-	setTotalBytesIn(
-		long	l )
-	{
-		total_bytes_in	= l;
-	}
-	
-	
-	public long
-	getTotalBytesOut()
-	{
-		return( total_bytes_out );
-	}
-	
-	protected void
-	setTotalBytesOut(
-		long	l )
-	{
-		total_bytes_out	= l;
-	}
-	
-	public long
-	getAverageBytesIn()
-	{
-		return( average_bytes_in.getAverage());
-	}
-	
-	public long
-	getAverageBytesOut()
-	{
-		return( average_bytes_out.getAverage() );
 	}
 	
 	protected synchronized void

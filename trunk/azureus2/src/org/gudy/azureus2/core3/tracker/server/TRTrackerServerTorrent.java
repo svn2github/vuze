@@ -33,4 +33,15 @@ TRTrackerServerTorrent
 {
 	public HashWrapper
 	getHash();
+	
+	public TRTrackerServerTorrentStats
+	getStats();
+	
+	public void
+	addListener(
+		TRTrackerServerTorrentListener	l );
+	
+	public void
+	removeListener(
+		TRTrackerServerTorrentListener	l );
 }

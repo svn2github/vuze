@@ -32,9 +32,13 @@ TRTrackerServerTorrentStatsImpl
 	implements TRTrackerServerTorrentStats 
 {
 	protected TRTrackerServerTorrentImpl	torrent;
-	protected int							announce_count;
-	protected int							scrape_count;
-	protected int							completed_count;
+	protected long							announce_count;
+	protected long							scrape_count;
+	protected long							completed_count;
+	
+	protected long							uploaded;
+	protected long							downloaded;
+	protected long							left;
 	
 	protected long							bytes_in;
 	protected long							bytes_out;
@@ -47,12 +51,36 @@ TRTrackerServerTorrentStatsImpl
 	}
 		
 	protected void
-	addAnnounce()
+	addAnnounce(
+		long		ul_diff,
+		long		dl_diff,
+		long		le_diff )
 	{
 		announce_count++;
+		
+		uploaded	+= ul_diff<0?0:ul_diff;	// should always be +ve
+		downloaded	+= dl_diff<0?0:dl_diff;
+		left		+= le_diff;	// can be +ve at start (0->x) then neg after
+		
+		if ( left < 0 ){
+			
+			left	= 0;
+		}
 	}
 	
-	public int
+	protected void
+	removeLeft(
+		long	_left )
+	{
+		left	-= _left;
+		
+		if ( left < 0 ){
+			
+			left	= 0;
+		}
+	}
+	
+	public long
 	getAnnounceCount()
 	{
 		return( announce_count );
@@ -60,7 +88,7 @@ TRTrackerServerTorrentStatsImpl
 	
 	public void
 	setAnnounceCount(
-		int		count )
+		long		count )
 	{
 		announce_count	= count;
 	}
@@ -71,7 +99,7 @@ TRTrackerServerTorrentStatsImpl
 		scrape_count++;
 	}
 	
-	public int
+	public long
 	getScrapeCount()
 	{
 		return( scrape_count );
@@ -79,7 +107,7 @@ TRTrackerServerTorrentStatsImpl
 	
 	public void
 	setScrapeCount(
-		int		count )
+		long		count )
 	{
 		scrape_count	= count;
 	}
@@ -89,7 +117,7 @@ TRTrackerServerTorrentStatsImpl
 		completed_count++;
 	}
 
-	public int
+	public long
 	getCompletedCount()
 	{
 		return( completed_count );
@@ -97,7 +125,7 @@ TRTrackerServerTorrentStatsImpl
 
 	public void
 	setCompletedCount(
-		int		count )
+		long		count )
 	{
 		completed_count	= count;
 	}
@@ -105,81 +133,21 @@ TRTrackerServerTorrentStatsImpl
 	public long
 	getUploaded()
 	{
-		TRTrackerServerPeer[]	peers = torrent.getPeers();
-		
-		long	res = 0;
-		
-		for(int i=0;i<peers.length;i++){
-			
-			res += peers[i].getUploaded();
-		}
-		
-		return( res );
+		return( uploaded );
 	}
 	
 	public long
 	getDownloaded()
 	{
-		TRTrackerServerPeer[]	peers = torrent.getPeers();
-		
-		long	res = 0;
-		
-		for(int i=0;i<peers.length;i++){
-			
-			res += peers[i].getDownloaded();
-		}
-		
-		return( res );
+		return( downloaded );
 	}
 	
 	public long
 	getAmountLeft()
 	{
-		TRTrackerServerPeer[]	peers = torrent.getPeers();
-		
-		long	res = 0;
-		
-		for(int i=0;i<peers.length;i++){
-			
-			res += peers[i].getAmountLeft();
-		}
-		
-		return( res );
+		return( left );
 	}
-	
-	public int
-	getNumberOfPeers()
-	{
-		TRTrackerServerPeer[]	peers = torrent.getPeers();
 		
-		int	res = 0;
-		
-		for(int i=0;i<peers.length;i++){
-			
-			res += peers[i].getNumberOfPeers();
-		}
-		
-		return( res );
-	}
-	
-	public int
-	getNumberOfSeeds()
-	{
-		TRTrackerServerPeer[]	peers = torrent.getPeers();
-		
-		int	res = 0;
-		
-		for(int i=0;i<peers.length;i++){
-			
-			if (peers[i].getAmountLeft() == 0 ){
-
-				res++;
-			}
-		}
-		
-		return( res );
-	}
-	
 	protected void
 	addXferStats(
 		int		in,

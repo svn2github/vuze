@@ -57,6 +57,9 @@ TRTrackerServerTorrentImpl
 	
 	protected TRTrackerServerTorrentStatsImpl	stats;
 		
+	protected List				listeners	= new ArrayList();
+	protected boolean			deleted;
+	
 	protected
 	TRTrackerServerTorrentImpl(
 		TRTrackerServerImpl		_server,
@@ -158,14 +161,25 @@ TRTrackerServerTorrentImpl
 			}
 		}
 		
+		long	ul_diff = 0;
+		long	dl_diff	= 0;
+		long	le_diff = 0;
+		
 		if ( peer != null ){
 			
 			peer.setTimeout( SystemTime.getCurrentTime() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
 			
+			ul_diff = uploaded 		- peer.getUploaded();
+			dl_diff = downloaded 	- peer.getDownloaded();
+			
+				// when the peer is removed its "left" amount will dealt with
+			
+			le_diff = stopped?0:(left - peer.getAmountLeft());
+			
 			peer.setStats( uploaded, downloaded, left, numwant );
 		}
 		
-		stats.addAnnounce();
+		stats.addAnnounce( ul_diff, dl_diff, le_diff );
 		
 		if ( completed ){
 			
@@ -179,6 +193,8 @@ TRTrackerServerTorrentImpl
 	removePeer(
 		TRTrackerServerPeerImpl	peer )
 	{
+		stats.removeLeft( peer.getAmountLeft());
+		
 		if ( peer_map.size() != peer_list.size() || peer_list.size() != peer_reuse_map.size()){
 	
 			Debug.out( "TRTrackerServerTorrent::removePeer: maps/list size different");	
@@ -216,6 +232,8 @@ TRTrackerServerTorrentImpl
 		Iterator				peer_map_iterator,
 		TRTrackerServerPeerImpl	peer )
 	{
+		stats.removeLeft( peer.getAmountLeft());
+
 		if ( peer_map.size() != peer_list.size() || peer_list.size() != peer_reuse_map.size()){
 			
 			Debug.out( "TRTrackerServerTorrent::removePeer: maps/list size different");	
@@ -612,7 +630,7 @@ TRTrackerServerTorrentImpl
 		stats.addXferStats( bytes_in, bytes_out );
 	}
 	
-	protected TRTrackerServerTorrentStats
+	public TRTrackerServerTorrentStats
 	getStats()
 	{
 		return( stats );
@@ -634,6 +652,36 @@ TRTrackerServerTorrentImpl
 		return( hash );
 	}
 		
+	public void
+	addListener(
+		TRTrackerServerTorrentListener	l )
+	{
+		listeners.add(l);
+		
+		if ( deleted ){
+			
+			l.deleted(this);
+		}
+	}
+	
+	public void
+	removeListener(
+		TRTrackerServerTorrentListener	l )
+	{
+		listeners.remove(l);
+	}
+	
+	protected void
+	delete()
+	{
+		deleted	= true;
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRTrackerServerTorrentListener)listeners.get(i)).deleted(this);
+		}
+	}
+	
 	static class
 	announceCacheEntry
 	{
