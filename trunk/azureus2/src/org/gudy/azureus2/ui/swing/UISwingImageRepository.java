@@ -54,6 +54,13 @@ UISwingImageRepository
 		}
 	}
 	
+	public static InputStream
+	getImageAsStream(
+		String		name )
+	{
+		return( UIImageRepository.getImageAsStream(name));
+	}
+	
 	public static Image
 	getImage(
 		InputStream		is )
