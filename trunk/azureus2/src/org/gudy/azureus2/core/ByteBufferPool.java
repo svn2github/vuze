@@ -102,6 +102,15 @@ public class ByteBufferPool {
 
   public synchronized void freeBuffer(ByteBuffer buffer) {
     int index = buffers.indexOf(buffer);
+		if(index == -1) return;
+/*
+    try {
+		if(index == -1) throw new Exception("freeBuffer: buffer not registered");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+*/
     Logger.getLogger().log(
       componentID,
       evtAllocation,
