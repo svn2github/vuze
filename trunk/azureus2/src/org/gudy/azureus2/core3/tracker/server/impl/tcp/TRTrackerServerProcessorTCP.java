@@ -110,11 +110,68 @@ TRTrackerServerProcessorTCP
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
 				}				
 					
-					// System.out.println( "got header:" + header );
+				// System.out.println( "got header:" + header );
 				
-				if ( !header.startsWith( "GET " )){
+				ByteArrayInputStream	data = null;
+				
+				if ( header.startsWith( "GET " )){
 					
-					throw( new TRTrackerServerException( "header doesn't start with GET ('" + (header.length()>256?header.substring(0,256):header)+"')" ));
+				}else if ( header.startsWith( "POST ")){
+					
+					int	header_end = header.indexOf(NL+NL);
+					
+					if ( header_end == -1 ){
+					
+						throw( new TRTrackerServerException( "header truncated" ));
+					}
+					
+					int	cl_start = header.indexOf("Content-Length:");
+					
+					if ( cl_start == -1 ){
+						
+						throw( new TRTrackerServerException( "header Content-Length start missing" ));
+					}
+					
+					int	cl_end = header.indexOf( NL, cl_start );
+					
+					if ( cl_end == -1 ){
+						
+						throw( new TRTrackerServerException( "header Content-Length end missing" ));
+					}
+					
+					int	content_length = Integer.parseInt( header.substring(cl_start+15,cl_end ).trim());
+					
+					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+					
+						// if we have X<NL><NL>Y get Y
+					
+					int	rem = header.length() - (header_end+4);
+					
+					if ( rem > 0 ){
+						
+						content_length	-= rem;
+						
+						baos.write( header.substring(header.length()-rem).getBytes());
+					}
+					
+					while( content_length > 0 ){
+						
+						int	len = is.read( buffer );
+						
+						if ( len < 0 ){
+							
+							throw( new TRTrackerServerException( "premature end of input stream" ));
+						}
+						
+						baos.write( buffer, 0, len );
+						
+						content_length -= len;
+					}
+										
+					data = new ByteArrayInputStream(baos.toByteArray());
+				}else{
+					
+					throw( new TRTrackerServerException( "header doesn't start with GET or POST ('" + (header.length()>256?header.substring(0,256):header)+"')" ));
 				}
 				
 				String	url = header.substring(4).trim();
@@ -131,6 +188,7 @@ TRTrackerServerProcessorTCP
 				processRequest( header,
 								url, 
 								socket.getInetAddress().getHostAddress(),
+								data,
 								socket.getOutputStream() );
 				
 			}catch( SocketTimeoutException e ){
@@ -162,6 +220,7 @@ TRTrackerServerProcessorTCP
 		String			header,
 		String			str,
 		String			client_ip_address,
+		InputStream		is,
 		OutputStream	os )
 		
 		throws IOException
@@ -199,7 +258,7 @@ TRTrackerServerProcessorTCP
 						return;
 					}
 					
-					if ( handleExternalRequest( str, os )){
+					if ( handleExternalRequest( str, is, os )){
 					
 						return;
 					}
@@ -448,10 +507,11 @@ TRTrackerServerProcessorTCP
 	protected boolean
 	handleExternalRequest(
 		String			header,
+		InputStream		is,
 		OutputStream	os )
 		
 		throws IOException
 	{
-		return( server.handleExternalRequest(header, os));
+		return( server.handleExternalRequest(header, is, os));
 	}
 }

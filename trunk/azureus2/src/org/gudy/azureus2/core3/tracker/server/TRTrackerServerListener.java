@@ -34,6 +34,7 @@ TRTrackerServerListener
 	public boolean
 	handleExternalRequest(
 		String			header,
+		InputStream		is,
 		OutputStream	os )
 		
 		throws IOException;

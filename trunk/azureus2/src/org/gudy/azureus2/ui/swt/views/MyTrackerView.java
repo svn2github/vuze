@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.util.*;
 import java.io.OutputStream;
+import java.io.InputStream;
 import java.io.IOException;
 
 import org.eclipse.swt.SWT;
@@ -314,6 +315,7 @@ MyTrackerView
 	public boolean
 	handleExternalRequest(
 		String			url,
+		InputStream		is,
 		OutputStream	os )
 	
 		throws IOException

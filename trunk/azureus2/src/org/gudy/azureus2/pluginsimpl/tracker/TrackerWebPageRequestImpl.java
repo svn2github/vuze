@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.tracker;
  *
  */
 
+import java.io.InputStream;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 
@@ -35,14 +36,17 @@ TrackerWebPageRequestImpl
 {
 	protected Tracker		tracker;
 	protected String		url;
+	protected InputStream	is;
 	
 	protected
 	TrackerWebPageRequestImpl(
 		Tracker		_tracker,
-		String		_url )
+		String		_url,
+		InputStream	_is )
 	{
 		tracker	= _tracker;
 		url		= _url;
+		is		= _is;
 	}
 	
 	public Tracker
@@ -55,5 +59,11 @@ TrackerWebPageRequestImpl
 	getURL()
 	{
 		return( url );
+	}
+	
+	public InputStream
+	getInputStream()
+	{
+		return( is );
 	}
 }	

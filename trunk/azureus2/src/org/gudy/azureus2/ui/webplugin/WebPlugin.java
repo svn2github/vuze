@@ -28,7 +28,6 @@ package org.gudy.azureus2.ui.webplugin;
 
 import java.io.*;
 import java.util.*;
-//import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
@@ -36,8 +35,6 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 
-
-import HTML.Template;
 
 public class 
 WebPlugin
@@ -184,12 +181,27 @@ WebPlugin
 	}
 	
 	public boolean
+	generateSupport(
+		TrackerWebPageRequest		request,
+		TrackerWebPageResponse		response )
+	
+		throws IOException
+	{
+		return( false );
+	}
+	
+	public boolean
 	generate(
 		TrackerWebPageRequest		request,
 		TrackerWebPageResponse		response )
 	
 		throws IOException
 	{
+		if ( generateSupport( request, response )){
+			
+			return(true);
+		}
+		
 		OutputStream os = response.getOutputStream();
 		
 		String	url = request.getURL();
@@ -243,7 +255,7 @@ WebPlugin
 		
 			InputStream is = WebPlugin.class.getClassLoader().getResourceAsStream( resource_name );
 		
-			System.out.println( resource_name + "->" + is );
+			// System.out.println( resource_name + "->" + is );
 		
 			if (is != null ){
 			

@@ -42,6 +42,7 @@ TRHostListener
 	public boolean
 	handleExternalRequest(
 		String			url,
+		InputStream		is,
 		OutputStream	os )
 	
 		throws IOException;

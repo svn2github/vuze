@@ -26,6 +26,8 @@ package org.gudy.azureus2.plugins.tracker.web;
  *
  */
 
+import java.io.InputStream;
+
 import org.gudy.azureus2.plugins.tracker.*;
 
 public interface 
@@ -36,4 +38,7 @@ TrackerWebPageRequest
 	
 	public String
 	getURL();
+	
+	public InputStream
+	getInputStream();
 }

@@ -143,11 +143,12 @@ TrackerImpl
 	public boolean
 	handleExternalRequest(
 		String			_url,
+		InputStream		_is,
 		OutputStream	_os )
 	
 		throws IOException
 	{	
-		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( this, _url );
+		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( this, _url, _is );
 		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
 		
 		synchronized( this ){

@@ -700,6 +700,7 @@ TRHostImpl
 	public boolean
 	handleExternalRequest(
 		String			url,
+		InputStream		is,
 		OutputStream	os )
 		
 		throws IOException
@@ -713,7 +714,7 @@ TRHostImpl
 			
 			for (int i=0;i<listeners.size();i++){
 			
-				if (((TRHostListener)listeners.get(i)).handleExternalRequest( url, os )){
+				if (((TRHostListener)listeners.get(i)).handleExternalRequest( url, is, os )){
 					
 					return( true );
 				}

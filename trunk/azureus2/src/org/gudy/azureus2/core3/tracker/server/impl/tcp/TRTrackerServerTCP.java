@@ -251,13 +251,14 @@ TRTrackerServerTCP
 	protected synchronized boolean
 	handleExternalRequest(
 		String			header,
+		InputStream		is,
 		OutputStream	os )
 		
 		throws IOException
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			if (((TRTrackerServerListener)listeners.elementAt(i)).handleExternalRequest( header, os )){
+			if (((TRTrackerServerListener)listeners.elementAt(i)).handleExternalRequest( header, is, os )){
 				
 				return( true );
 			}
