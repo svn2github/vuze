@@ -72,7 +72,7 @@ public class WriteController {
   private void writeSelectorLoop() {
     while( true ) {
       try {
-        write_selector.select( 1000 );
+        write_selector.select( 50 );  //TODO faster ???
       }
       catch( Throwable t ) {
         Debug.out( "writeSelectorLoop() EXCEPTION: ", t );
