@@ -374,7 +374,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     FormLayout layoutStatusUpdate = new FormLayout();
     layoutStatusUpdate.marginHeight = 0;
     layoutStatusUpdate.marginWidth = 0;
-    layoutStatusUpdate.spacing = 5;
+    try {
+      layoutStatusUpdate.spacing = 5;
+    } catch (NoSuchFieldError e) { /* Pre SWT 3.0 */ }
     statusUpdate.setLayout(layoutStatusUpdate);
     
     statusUpdateLabel = new Label(statusUpdate,SWT.NULL);
@@ -385,7 +387,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     int ctrlHeight,top;
     
     formData = new FormData();
-    formData.left = new FormAttachment(0);
+    formData.left = new FormAttachment(0, 0);
     ctrlHeight = statusUpdateLabel.computeSize(100,SWT.DEFAULT).y;
     top = (height - ctrlHeight) / 2;
     formData.top = new FormAttachment(0,top);
@@ -404,7 +406,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     formData = new FormData();
     formData.left = new FormAttachment(statusUpdateLabel);
-    formData.right = new FormAttachment(100);
+    formData.right = new FormAttachment(100,0);
     ctrlHeight = statusUpdateProgressBar.computeSize(100,SWT.DEFAULT).y;
     top = (height - ctrlHeight) / 2;
     formData.top = new FormAttachment(0,top);

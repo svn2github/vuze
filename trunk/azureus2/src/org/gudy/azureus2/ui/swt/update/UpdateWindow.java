@@ -125,7 +125,9 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     Messages.setLanguageText(updateWindow,"swt.update.window.title");
     
     FormLayout layout = new FormLayout();
-    layout.spacing = 5;
+    try {
+      layout.spacing = 5;
+    } catch (NoSuchFieldError e) { /* Pre SWT 3.0 */ }
     layout.marginHeight = 10;
     layout.marginWidth = 10;
     FormData formData;
