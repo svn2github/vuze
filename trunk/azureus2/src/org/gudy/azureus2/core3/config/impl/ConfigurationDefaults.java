@@ -119,6 +119,9 @@ public class ConfigurationDefaults {
     def.put("update.start",new Long(1));
     def.put("update.periodic",new Long(1));
     def.put("update.opendialog",new Long(1));
+    def.put("Tracker Password Enable Web", new Long(0));
+    def.put("Tracker Username", "");
+    def.put("Tracker Password", "");
     
     boolean bGTKTableBug = false;
     try {
