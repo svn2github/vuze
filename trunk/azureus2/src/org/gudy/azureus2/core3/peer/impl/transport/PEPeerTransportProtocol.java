@@ -318,6 +318,8 @@ PEPeerTransportProtocol
   		
   			if (closing){
   				
+          Debug.out( "closeAll() called for [" +reason+ "] but already 'closing'" );
+          
   				return;
   			}
   			
@@ -333,6 +335,9 @@ PEPeerTransportProtocol
       
       if( connection != null ) {  //can be null if closeAll is called within ::<init>::, like when the given port is invalid
         connection.getIncomingMessageQueue().stopQueueProcessing();
+      }
+      else {
+        Debug.out( "closeAll() called for [" +reason+ "] but connection == null" );
       }
 
       LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
@@ -356,7 +361,13 @@ PEPeerTransportProtocol
 	      PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
 	    }
       
-	    connection.close();
+	    if( connection != null ) {
+        connection.close();
+      }
+      else {
+        Debug.out( "closeAll() called for [" +reason+ "] but connection == null" );
+      }
+
 
 	    recent_outgoing_requests.clear();
    

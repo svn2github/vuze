@@ -66,6 +66,12 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private volatile boolean is_paused = false;
 
   
+  private int destroyed_loop_count = 0;
+  private int paused_loop_count = 0;
+  
+  private Throwable destroyed_trace;
+  
+  
   
   
   public BTMessageDecoder() {
@@ -80,19 +86,31 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
     int bytes_remaining = max_bytes;
     
-    while( bytes_remaining > 0 ) {     
+    while( bytes_remaining > 0 ) {
+      
       if( destroyed ) {
-        System.out.println( "BT decoder already destroyed" );
-        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
+        destroyed_loop_count++;
+        
+        if( destroyed_loop_count > 50 ) {
+          Debug.out( "BTMessageDecoder:: orginal destroy() trace:", destroyed_trace );
+          throw new IOException( "BTMessageDecoder:: already destroyed loop!" );
+        }
+        
         break;
       }
+      
       
       if( is_paused ) {
-        //System.out.println( "BT decoder paused" );  //TODO
-        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
+        paused_loop_count++;
+        
+        if( paused_loop_count > 50 ) {
+          throw new IOException( "BTMessageDecoder:: already paused loop!" );
+        }
+        
         break;
       }
       
+
       int bytes_possible = preReadProcess( bytes_remaining );
       
       if( bytes_possible < 1 ) {
@@ -149,6 +167,13 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
   
   public ByteBuffer destroy() {
+    try{
+      throw new Exception( "btmessagedecoder::destroyed()" );
+    }
+    catch( Throwable t ) {
+      destroyed_trace = t;
+    }
+    
     destroyed = true;
 
     int lbuff_read = 0;

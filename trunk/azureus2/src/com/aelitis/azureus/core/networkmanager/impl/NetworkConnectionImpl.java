@@ -27,6 +27,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
@@ -123,7 +125,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
     if( connection_listener != null ) {
       connection_listener.exceptionThrown( error );
     }
-    else System.out.println( "connection_listener == null" );
+    else {
+      Debug.out( "notifyOfException():: connection_listener == null for exception: " +error.getMessage() );
+    }
   }
   
 

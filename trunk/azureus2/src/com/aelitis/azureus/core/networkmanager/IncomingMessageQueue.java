@@ -40,7 +40,6 @@ public class IncomingMessageQueue {
   private volatile ArrayList listeners = new ArrayList();  //copy-on-write
   private final AEMonitor listeners_mon = new AEMonitor( "IncomingMessageQueue" );
 
-  private boolean is_processing_enabled = false;
   private MessageStreamDecoder stream_decoder;
   private final NetworkConnection connection;
   
@@ -198,38 +197,29 @@ public class IncomingMessageQueue {
     try{  listeners_mon.enter();
       stream_decoder.resumeDecoding();  //this allows us to resume docoding externally, in case it was auto-paused internally
     
-      if( !is_processing_enabled ) {
-        connection.getTCPTransport().requestReadSelects( new TCPTransport.ReadListener() {
-        
-          public void readyToRead() {
-            try {
-              if( !is_processing_enabled ) {
-                throw new IOException( "readyToRead():: !is_processing_enabled" );
-              }
-            
-              receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
-            }
-            catch( Throwable e ) {
-              if( e.getMessage() == null ) {
-                Debug.out( "null read exception message: ", e );
-              }
-              else {
-                if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
-                    e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-                    e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
-                    e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
-                
-                  System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
-                }
-              }
-              
-              connection.notifyOfException( e );
-            }
+      connection.getTCPTransport().requestReadSelects( new TCPTransport.ReadListener() {
+        public void readyToRead() {
+          try {
+            receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
           }
-        });
-      
-        is_processing_enabled = true;
-      }
+          catch( Throwable e ) {
+            if( e.getMessage() == null ) {
+              Debug.out( "null read exception message: ", e );
+            }
+            else {
+              if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+                  e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+                  e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+                  e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+                
+                System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+              }
+            }
+              
+            connection.notifyOfException( e );
+          }
+        }
+      });
     }
     finally{  listeners_mon.exit();  }
   }
@@ -241,11 +231,7 @@ public class IncomingMessageQueue {
   public void stopQueueProcessing() {
     try{  listeners_mon.enter();
       stream_decoder.pauseDecoding();  //disallow decoding
-    
-      if( is_processing_enabled ) {
-        is_processing_enabled = false;
-        connection.getTCPTransport().cancelReadSelects();
-      }
+      connection.getTCPTransport().cancelReadSelects();
     }
     finally{  listeners_mon.exit();  }
   }

@@ -470,6 +470,7 @@ public class TCPTransport {
       is_write_select_registered = false;
       NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
     }
+    
     is_ready_for_write = false;
     
     try {  state_mon.enter();
