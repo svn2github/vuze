@@ -154,6 +154,10 @@ public class Main implements ILocaleUtilChooser {
   
   public static void main(String args[]) {
   	
+ 	LGLogger.initialise();
+ 	LGLogger.log("Welcome to debugging!");
+ 	LGLogger.log(":O");
+
   	COConfigurationManager.setSystemProperties();
   	
   	//Debug.dumpThreads("Entry threads");
