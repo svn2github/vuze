@@ -28,8 +28,8 @@ public class CarbonUIEnhancer {
          private static final int kHICommandPreferences= ('p'<<24) + ('r'<<16) + ('e'<<8) + 'f';
    private static final int kHICommandAbout= ('a'<<24) + ('b'<<16) + ('o'<<8) + 'u';
    private static final int kHICommandServices= ('s'<<24) + ('e'<<16) + ('r'<<8) + 'v';
-   private static final int kHICommandWizard = ('c'<<24) + ('o'<<16) + ('n' << 8) + 'f';
-   private static final int kHICommandRestart = ('r'<<24) + ('e'<<16) + ('s'<<8) + 't';
+   private static final int kHICommandWizard = ('a'<<24) + ('z'<<16) + ('c' << 8) + 'n';
+   private static final int kHICommandRestart = ('a'<<24) + ('z'<<16) + ('r'<<8) + 's';
 
    private static final String RESOURCE_BUNDLE= "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
    private static String fgAboutActionName;
