@@ -29,7 +29,7 @@ public interface
 LocaleUtilities 
 {
 	public String
-	getLocalisedCoreMessageText(
+	getLocalisedMessageText(
 		String		key );
 	
 	public LocaleDecoder[]

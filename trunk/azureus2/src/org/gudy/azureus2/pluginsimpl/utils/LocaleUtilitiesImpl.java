@@ -36,7 +36,7 @@ LocaleUtilitiesImpl
 	implements LocaleUtilities
 {
 	public String
-	getLocalisedCoreMessageText(
+	getLocalisedMessageText(
 		String		key )
 	{
 		return( MessageText.getString( key ));
