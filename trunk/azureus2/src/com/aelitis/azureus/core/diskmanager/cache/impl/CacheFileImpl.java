@@ -389,7 +389,7 @@ CacheFileImpl
 
 									// flush before read so that any bits in cache get re-read correctly on read
 						
-								flushCache( file_position, actual_read_ahead, true, -1 );
+								flushCache( file_position, actual_read_ahead, true, -1, 0 );
 								
 								getFMFile().read( cache_buffer, file_position );
 			
@@ -430,7 +430,7 @@ CacheFileImpl
 							
 						synchronized( this ){
 							
-							flushCache( file_position, read_length, true, -1 );
+							flushCache( file_position, read_length, true, -1, 0 );
 						
 							getFMFile().read( file_buffer, file_position );
 						}
@@ -509,7 +509,7 @@ CacheFileImpl
 							// thread getting in-between and adding same block thus causing mutiple entries
 							// for same space
 						
-						flushCache( file_position, write_length, true, -1 );
+						flushCache( file_position, write_length, true, -1, 0 );
 						
 						cache.add( entry );
 					
@@ -527,7 +527,7 @@ CacheFileImpl
 					
 					synchronized( this ){
 						
-						flushCache( file_position, write_length, true, -1 );
+						flushCache( file_position, write_length, true, -1, 0 );
 
 						getFMFile().write( file_buffer, file_position );
 					}
@@ -570,7 +570,9 @@ CacheFileImpl
 		long				file_position,
 		long				length,					// -1 -> do all from position onwards
 		boolean				release_entries,
-		long				minimum_to_release )	// -1 = all
+		long				minimum_to_release,		// -1 -> all
+		long				oldest_dirty_time	)	// dirty entries newer than this won't be flushed
+													// 0 -> now
 	
 		throws CacheFileManagerException
 	{
@@ -615,7 +617,9 @@ CacheFileImpl
 
 				try{
 						
-					if ( dirty ){
+					if ( 	dirty && 
+							(	oldest_dirty_time == 0 ||
+								entry.getLastUsed() < oldest_dirty_time )){
 																	
 						if ( multi_block_start == -1 ){
 							
@@ -795,6 +799,7 @@ CacheFileImpl
 	
 	protected void
 	flushCache(
+		long				file_start_position,
 		boolean				release_entries,
 		long				minumum_to_release )
 	
@@ -807,10 +812,36 @@ CacheFileImpl
 				LGLogger.log( "flushCache: " + getName() + ", rel = " + release_entries + ", min = " + minumum_to_release );
 			}
 			
-			flushCache( 0, -1, release_entries, minumum_to_release);
+			flushCache( file_start_position, -1, release_entries, minumum_to_release, 0);
 		}
 	}
 	
+	protected void
+	flushCache(
+		boolean				release_entries,
+		long				minumum_to_release )
+	
+		throws CacheFileManagerException
+	{
+		flushCache(0, release_entries, minumum_to_release );
+	}
+	
+	protected void
+	flushOldDirtyData(
+		long	oldest_dirty_time )
+	
+		throws CacheFileManagerException
+	{
+		if ( manager.isCacheEnabled()){
+			
+			if ( TRACE ){
+	
+				LGLogger.log( "flushOldDirtyData: " + getName());
+			}
+
+			flushCache( 0, -1, false, -1, oldest_dirty_time);
+		}
+	}
 	
 	protected void
 	printCache()

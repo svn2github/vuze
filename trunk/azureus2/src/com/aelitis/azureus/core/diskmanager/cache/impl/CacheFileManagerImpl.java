@@ -43,10 +43,11 @@ CacheFileManagerImpl
 {
 	public static final boolean	DEBUG	= true;
 	
-	public static final int	CACHE_CLEANER_TICKS		= 10;	// every 10 seconds
+	public static final int	CACHE_CLEANER_TICKS		= 15;	// every 15 seconds
 	
-	public static final int	STATS_UPDATE_FREQUENCY	= 1*1000;
-	
+	public static final int		STATS_UPDATE_FREQUENCY		= 1*1000;
+	public static final long	DIRTY_CACHE_WRITE_MAX_AGE	= 30*1000;
+		
 	static{
 		if ( DEBUG ){
 			
@@ -233,7 +234,7 @@ CacheFileManagerImpl
 			
 				CacheFileImpl	oldest_file = oldest_entry.getFile();
 				
-				oldest_file.flushCache( true, cache_minimum_free_size );
+				oldest_file.flushCache( oldest_entry.getFilePosition(), true, cache_minimum_free_size );
 				
 				long	flushed = cache_space_free - old_free;
 				
@@ -292,11 +293,15 @@ CacheFileManagerImpl
 				
 				cleaner_ticks	= CACHE_CLEANER_TICKS;
 				
+				Set		dirty_files	= new HashSet();
+	
+				long	now 	= SystemTime.getCurrentTime();
+							
+				long	oldest	= now - DIRTY_CACHE_WRITE_MAX_AGE;
+				
 				synchronized( this ){
 					
 					if ( cache_entries.size() > 0 ){
-						
-						long	now = SystemTime.getCurrentTime();
 						
 						Iterator it = cache_entries.keySet().iterator();
 						
@@ -306,8 +311,27 @@ CacheFileManagerImpl
 	
 							// System.out.println( "oldest entry = " + ( now - entry.getLastUsed()));
 							
-							break;
+							if ( entry.isDirty()){
+								
+								dirty_files.add( entry.getFile());
+							}
 						}
+					}
+				}
+				
+				Iterator	it = dirty_files.iterator();
+				
+				while( it.hasNext()){
+					
+					try{
+						((CacheFileImpl)it.next()).flushOldDirtyData( oldest );
+						
+					}catch( Throwable e ){
+						
+							// if this fails then the error should reoccur on a "proper"
+							// flush later and be reported
+						
+						e.printStackTrace();
 					}
 				}
 			}
