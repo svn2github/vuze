@@ -57,12 +57,18 @@ UPnPPluginService
 		}
 	}
 	
+	protected UPnPWANConnection
+	getService()
+	{
+		return( connection );
+	}
+	
 	protected void
 	checkMapping(
 		LoggerChannel		log,
 		UPnPMapping			mapping )
 	{
-		String local_address = connection.getGenericService().getDevice().getLocalAddress().getHostAddress();
+		String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 		
 		for (int i=0;i<service_mappings.size();i++){
 			
@@ -88,7 +94,7 @@ UPnPPluginService
 						
 						log.log( text );
 						
-						log.logAlert( LoggerChannel.LT_WARNING, text );
+						log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
 					}
 				}
 				
@@ -112,7 +118,7 @@ UPnPPluginService
 			
 			if ( alert_success.getValue()){
 				
-				log.logAlert( LoggerChannel.LT_INFORMATION, text );
+				log.logAlertRepeatable( LoggerChannel.LT_INFORMATION, text );
 			}
 			
 		}catch( Throwable e ){
@@ -124,7 +130,7 @@ UPnPPluginService
 			
 			log.log( text );
 			
-			log.logAlert( LoggerChannel.LT_ERROR, text );
+			log.logAlertRepeatable( LoggerChannel.LT_ERROR, text );
 		}
 		
 		service_mappings.add( new serviceMapping( mapping ));
@@ -157,7 +163,7 @@ UPnPPluginService
 			external		= true;
 			tcp				= mapping.isTCP();
 			port			= mapping.getPort();
-			internal_host	= connection.getGenericService().getDevice().getLocalAddress().getHostAddress();
+			internal_host	= connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 		}
 		
 		protected boolean

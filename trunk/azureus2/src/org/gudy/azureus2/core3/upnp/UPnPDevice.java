@@ -27,14 +27,9 @@ package org.gudy.azureus2.core3.upnp;
  *
  */
 
-import java.net.InetAddress;
-
 public interface 
 UPnPDevice 
 {
-	public InetAddress
-	getLocalAddress();
-	
 	public String
 	getDeviceType();
 	
@@ -46,4 +41,7 @@ UPnPDevice
 	
 	public UPnPService[]
 	getServices();
+	
+	public UPnPRootDevice
+	getRootDevice();
 }

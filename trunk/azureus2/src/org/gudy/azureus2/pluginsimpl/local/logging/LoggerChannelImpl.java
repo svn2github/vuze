@@ -127,10 +127,11 @@ LoggerChannelImpl
 		LGLogger.log("[".concat(name).concat("] ").concat(str), error);
 	}
 	
-	public void
+	protected void
 	logAlert(
 		int			alert_type,
-		String		message )
+		String		message,
+		boolean		repeatable )
 	{
 		int	at;
 		
@@ -156,7 +157,23 @@ LoggerChannelImpl
 			}	
 		}
 		
-		LGLogger.logAlert( at, message );
+		LGLogger.logAlert( at, message, repeatable );
+	}
+	
+	public void
+	logAlert(
+		int			alert_type,
+		String		message )
+	{
+		logAlert( alert_type, message, false );
+	}
+	
+	public void
+	logAlertRepeatable(
+		int			alert_type,
+		String		message )
+	{
+		logAlert( alert_type, message, true );
 	}
 	
 	public void
@@ -164,7 +181,15 @@ LoggerChannelImpl
 		String		message,
 		Throwable 	e )
 	{
-		LGLogger.logAlert( message, e );
+		LGLogger.logAlert( message, e, false  );
+	}	
+	
+	public void
+	logAlertRepeatable(
+		String		message,
+		Throwable 	e )
+	{
+		LGLogger.logAlert( message, e, true );
 	}
 	
 	public void

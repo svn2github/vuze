@@ -99,7 +99,7 @@ UPnPDeviceImpl
 		return( root_device.getUPnP());
 	}
 	
-	protected UPnPRootDeviceImpl
+	public UPnPRootDevice
 	getRootDevice()
 	{
 		return( root_device );

@@ -66,7 +66,7 @@ UPnPSSWANConnectionImpl
 		inv.addArgument( "NewExternalPort", 			"" + port );
 		inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
 		inv.addArgument( "NewInternalPort", 			"" + port );
-		inv.addArgument( "NewInternalClient",			service.getDevice().getLocalAddress().getHostAddress());
+		inv.addArgument( "NewInternalClient",			service.getDevice().getRootDevice().getLocalAddress().getHostAddress());
 		inv.addArgument( "NewEnabled", 					"1" );
 		inv.addArgument( "NewPortMappingDescription", 	description );
 		inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)

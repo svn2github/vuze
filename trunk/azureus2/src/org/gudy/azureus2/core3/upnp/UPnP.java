@@ -32,11 +32,11 @@ UPnP
 {
 	public void
 	addRootDeviceListener(
-		UPnPRootDeviceListener	l );
+		UPnPListener	l );
 	
 	public void
 	removeRootDeviceListener(
-		UPnPRootDeviceListener	l );
+		UPnPListener	l );
 	
 	public void
 	addLogListener(

@@ -136,43 +136,51 @@ public class Alerts {
   	showMessageBoxUsingResourceString( SWT.ICON_INFORMATION, "AlertMessageBox.information", message );
   }
   
-  public static void showAlert(
-      int type,
-      String message) {
-    getInstance().showAlertI(type,message);
+  public static void 
+  showAlert(
+      int 		type,
+      String 	message,
+	  boolean	repeatable ) 
+  {
+    getInstance().showAlertI(type,message,repeatable);
   }
   
   public static void
   showAlert(
   	String		message,
-  Throwable	exception )
+	Throwable	exception,
+	boolean		repeatable )
   {
-    getInstance().showAlertI(message,exception);
+    getInstance().showAlertI(message,exception,repeatable);
   }
 
   private void
   showAlertI(
   	String		message,
-  Throwable	exception )
+	Throwable	exception,
+	boolean		repeatable )
   {
   	synchronized( alert_history ){
-  		
-  		String	key = message + ":" + exception.toString();
-  		
-  		if ( alert_history.contains( key )){
+  		 		
+  		if ( !repeatable ){
   			
-  			return;
-  		}
-  	
-  		alert_history.add( key );
+  			String	key = message + ":" + exception.toString();
   		
-  		if ( alert_history.size() > 512 ){
-  			
-  			alert_history.remove(0);
+	  			if ( alert_history.contains( key )){
+	  			
+	  			return;
+	  		}
+	  	
+	  		alert_history.add( key );
+	  		
+	  		if ( alert_history.size() > 512 ){
+	  			
+	  			alert_history.remove(0);
+	  		}
   		}
   	}
   	
-  showErrorMessageBox( message, exception );
+  	showErrorMessageBox( message, exception );
   }
 
   
@@ -180,21 +188,25 @@ public class Alerts {
   private void
   showAlertI(
   	int		type,
-  String	message )
+	String	message,
+	boolean	repeatable )
   {
   	synchronized( alert_history ){
   		
-  		if ( alert_history.contains( message )){
-  			
-  			return;
-  		}
-  	
-  		alert_history.add( message );
-  		
-  		if ( alert_history.size() > 512 ){
-  			
-  			alert_history.remove(0);
-  		}
+		if ( !repeatable ){
+			  
+	  		if ( alert_history.contains( message )){
+	  			
+	  			return;
+	  		}
+	  	
+	  		alert_history.add( message );
+	  		
+	  		if ( alert_history.size() > 512 ){
+	  			
+	  			alert_history.remove(0);
+	  		}
+	  	}
   	}
   	
   if ( type == LGLogger.AT_COMMENT ){
@@ -231,19 +243,21 @@ public class Alerts {
     				
     				Object[]	x = (Object[])alert_queue.get(i);
     				
+    				boolean	repeatable = ((Boolean)x[2]).booleanValue();
+    				
     				if ( x[0] instanceof String ){
     					
     					String		message 	= (String)x[0];
     					Throwable	exception 	= (Throwable)x[1];
     					
-    					showAlert( message, exception );
+    					showAlert( message, exception, repeatable );
     					
     				}else{
     					
     					int		type 	= ((Integer)x[0]).intValue();
     					String	message = (String)x[1];
     				
-    					showAlert( type, message );
+    					showAlert( type, message, repeatable );
     				}
     			}
     			
@@ -263,38 +277,40 @@ public class Alerts {
 			{
   				public void
 				alertRaised(
-					int		type,
-					String	message )
+					int			type,
+					String		message,
+					boolean		repeatable )
 				{
   					synchronized( alert_queue ){
   						
   						if ( !initialisation_complete ){
   							
-  							alert_queue.add( new Object[]{ new Integer(type), message });
+  							alert_queue.add( new Object[]{ new Integer(type), message, new Boolean(repeatable)});
   							
   							return;
   						}
   					}
   					
-  					showAlert( type, message );
+  					showAlert( type, message, repeatable );
   				}
 				
 				public void
 				alertRaised(
 					String		message,
-					Throwable	exception )
+					Throwable	exception,
+					boolean		repeatable )
 				{
   					synchronized( alert_queue ){
   						
   						if ( !initialisation_complete ){
   							
-  							alert_queue.add( new Object[]{ message, exception });
+  							alert_queue.add( new Object[]{ message, exception, new Boolean(repeatable)});
   							
   							return;
   						}
   					}
   					
-  					showAlert( message, exception );
+  					showAlert( message, exception, repeatable );
 				}
   			});
   }

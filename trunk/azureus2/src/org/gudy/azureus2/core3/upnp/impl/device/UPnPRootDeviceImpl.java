@@ -30,10 +30,10 @@ import org.gudy.azureus2.core3.upnp.impl.UPnPImpl;
  *
  */
 
+import java.util.*;
 import java.net.*;
 
 import org.gudy.azureus2.core3.xml.simpleparser.*;
-import org.gudy.azureus2.core3.upnp.impl.*;
 
 public class 
 UPnPRootDeviceImpl 
@@ -46,25 +46,19 @@ UPnPRootDeviceImpl
 	
 	protected UPnPDevice	root_device;
 	
+	protected List			listeners	= new ArrayList();
+	
 	public
 	UPnPRootDeviceImpl(
 		UPnPImpl	_upnp,
 		InetAddress	_local_address,
-		String		_location,
-		String		_usn )
+		URL			_location )
 	
 		throws UPnPException
 	{
 		upnp			= _upnp;
 		local_address	= _local_address;
-		
-		try{
-			location	= new URL( _location );
-			
-		}catch( MalformedURLException e ){
-			
-			throw( new UPnPException( "Root device location '" + _location + "' invalid", e ));
-		}
+		location		= _location;
 		
 		SimpleXMLParserDocument	doc = upnp.downloadXML( location );
 			
@@ -93,5 +87,29 @@ UPnPRootDeviceImpl
 	getDevice()
 	{
 		return( root_device );
+	}
+	
+	public void
+	destroy(
+		boolean		replaced )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((UPnPRootDeviceListener)listeners.get(i)).lost( this, replaced);
+		}
+	}
+	
+	public void
+	addListener(
+		UPnPRootDeviceListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		UPnPRootDeviceListener	l )
+	{
+		listeners.remove( l );
 	}
 }

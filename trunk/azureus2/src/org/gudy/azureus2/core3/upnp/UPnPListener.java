@@ -20,18 +20,16 @@
  *
  */
 
-package org.gudy.azureus2.core3.upnp.impl;
-
-import org.gudy.azureus2.core3.upnp.UPnPDevice;
+package org.gudy.azureus2.core3.upnp;
 
 /**
  * @author parg
  *
  */
-
 public interface 
-UPnPRootDevice
+UPnPListener 
 {
-	public UPnPDevice
-	getDevice();
+	public void
+	rootDeviceFound(
+		UPnPRootDevice		device );	
 }

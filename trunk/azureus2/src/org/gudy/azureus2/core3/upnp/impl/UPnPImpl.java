@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
 import org.gudy.azureus2.core3.upnp.*;
+import org.gudy.azureus2.core3.upnp.impl.device.*;
 import org.gudy.azureus2.core3.upnp.services.UPnPWANConnectionPortMapping;
 import org.gudy.azureus2.core3.upnp.services.UPnPWANIPConnection;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocument;
@@ -93,32 +94,40 @@ UPnPImpl
 	public void
 	rootDiscovered(
 		InetAddress	local_address,
-		String		location,
-		String		usn,
-		String		st )
+		URL			location )
+
 	{
-		if ( root_locations.get( location ) != null  ){
+		UPnPRootDeviceImpl root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
 			
-			return;
+		if ( root_device != null ){
+			
+			if ( root_device.getLocation().equals( location )){
+				
+				return;
+			}
+			
+			root_locations.remove( location.getHost());
+			
+			root_device.destroy( true );
 		}
 		
-		log( "UPnP: root = " + location + ", USN = " + usn +  ", local = " + local_address.toString() );
+		log( "UPnP: root discovered = " + location + ", local = " + local_address.toString() );
 		
 		try{
-			UPnPRootDevice	root_device = UPnPDeviceFactory.createRootDevice( this, local_address, location, usn );
+			root_device = new UPnPRootDeviceImpl( this, local_address, location );
 		
 			List	listeners;
 			
 			synchronized( rd_listeners ){
 				
-				root_locations.put( location, root_device );
+				root_locations.put( location.getHost(), root_device );
 
 				listeners = new ArrayList( rd_listeners );
 			}
 			
 			for (int i=0;i<listeners.size();i++){
 				
-				((UPnPRootDeviceListener)listeners.get(i)).rootDeviceFound( root_device.getDevice());
+				((UPnPListener)listeners.get(i)).rootDeviceFound( root_device );
 				
 			}
 		
@@ -126,6 +135,28 @@ UPnPImpl
 			
 			log( e.toString());
 		}
+	}
+	
+	public void
+	rootLost(
+		InetAddress	local_address,
+		URL			location )
+	{
+		UPnPRootDeviceImpl	root_device;
+	
+		synchronized( rd_listeners ){
+
+			root_device = (UPnPRootDeviceImpl)root_locations.remove( location.getHost());
+		}
+		
+		if ( root_device == null ){
+			
+			return;
+		}
+		
+		log( "UPnP: root lost = " + location +", local = " + local_address.toString() );
+	
+		root_device.destroy( false );
 	}
 	
 	public SimpleXMLParserDocument
@@ -398,7 +429,7 @@ UPnPImpl
 	
 	public void
 	addRootDeviceListener(
-		UPnPRootDeviceListener	l )
+		UPnPListener	l )
 	{
 		List	old_locations;
 		
@@ -411,13 +442,13 @@ UPnPImpl
 		
 		for (int i=0;i<old_locations.size();i++){
 			
-			l.rootDeviceFound(((UPnPRootDevice)old_locations.get(i)).getDevice());
+			l.rootDeviceFound(((UPnPRootDevice)old_locations.get(i)));
 		}
 	}
 		
 	public void
 	removeRootDeviceListener(
-		UPnPRootDeviceListener	l )
+		UPnPListener	l )
 	{
 		rd_listeners.remove( l );
 	}
@@ -429,14 +460,14 @@ UPnPImpl
 			UPnP	upnp = UPnPFactory.getSingleton();
 				
 			upnp.addRootDeviceListener(
-					new UPnPRootDeviceListener()
+					new UPnPListener()
 					{
 						public void
 						rootDeviceFound(
-							UPnPDevice		device )
+							UPnPRootDevice		device )
 						{
 							try{
-								processDevice( device );
+								processDevice( device.getDevice() );
 								
 							}catch( Throwable e ){
 								

@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.config.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.upnp.*;
 import org.gudy.azureus2.core3.upnp.services.*;
 
@@ -142,14 +143,14 @@ UPnPPlugin
 			upnp = UPnPFactory.getSingleton();
 				
 			upnp.addRootDeviceListener(
-				new UPnPRootDeviceListener()
+				new UPnPListener()
 				{
 					public void
 					rootDeviceFound(
-						UPnPDevice		device )
+						UPnPRootDevice		device )
 					{
 						try{
-							processDevice( device );
+							processDevice( device.getDevice() );
 							
 						}catch( Throwable e ){
 							
@@ -195,7 +196,7 @@ UPnPPlugin
 	
 	protected void
 	processDevice(
-		UPnPDevice	device )
+		UPnPDevice		device )
 	
 		throws UPnPException
 	{
@@ -203,7 +204,7 @@ UPnPPlugin
 			
 			log.log( "Found WANConnectionDevice" );
 			
-			processServices( device.getServices());
+			processServices( device, device.getServices());
 			
 		}else{
 			
@@ -218,7 +219,8 @@ UPnPPlugin
 	
 	protected void
 	processServices(
-		UPnPService[] services )
+		UPnPDevice		device,
+		UPnPService[] 	services )
 	
 		throws UPnPException
 	{
@@ -231,7 +233,19 @@ UPnPPlugin
 			if ( 	service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANIPConnection:1") || 
 					service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANPPPConnection:1")){
 				
-				UPnPWANConnection	wan_service = (UPnPWANConnection)s.getSpecificService();
+				final UPnPWANConnection	wan_service = (UPnPWANConnection)s.getSpecificService();
+				
+				device.getRootDevice().addListener(
+					new UPnPRootDeviceListener()
+					{
+						public void
+						lost(
+							UPnPRootDevice	root,
+							boolean			replaced )
+						{
+							removeService( wan_service, replaced );
+						}
+					});
 				
 				addService( wan_service );
 			}
@@ -257,6 +271,38 @@ UPnPPlugin
 		services.add(new UPnPPluginService( wan_service, ports, alert_success_param ));
 		
 		checkState();
+	}
+	
+	protected synchronized void
+	removeService(
+		UPnPWANConnection	wan_service,
+		boolean				replaced )
+	{
+		String	name = wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection";
+		
+		String	text = 
+			MessageText.getString( 
+					"upnp.alert.lostdevice", 
+					new String[]{ name, wan_service.getGenericService().getDevice().getRootDevice().getLocation().getHost()});
+		
+		log.log( text );
+		
+		if ( !replaced ){
+			
+			log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+		}
+				
+		for (int i=0;i<services.size();i++){
+			
+			UPnPPluginService	ps = (UPnPPluginService)services.get(i);
+			
+			if ( ps.getService() == wan_service ){
+				
+				services.remove(i);
+				
+				break;
+			}
+		}
 	}
 	
 	protected synchronized void

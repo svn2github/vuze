@@ -281,13 +281,21 @@ SSDPImpl
 			
 			return;
 			
-		}else if ( str.startsWith( "NOTIFY" )){
+		}
 			
 				// notify event, ignore
+
+			/*
+			NOTIFY * HTTP/1.1
+			HOST: 239.255.255.250:1900
+			CACHE-CONTROL: max-age=3600
+			LOCATION: http://192.168.0.1:49152/gateway.xml
+			NT: urn:schemas-upnp-org:service:WANIPConnection:1
+			NTS: ssdp:byebye
+			SERVER: Linux/2.4.17_mvl21-malta-mips_fp_le, UPnP/1.0, Intel SDK for UPnP devices /1.2
+			USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
+			*/
 			
-			return;
-		}
-		
 		// System.out.println( str );
 		
 		List	lines = new ArrayList();
@@ -326,45 +334,66 @@ SSDPImpl
 		
 		String	header = (String)lines.get(0);
 		
-		// Gudy's  Root: http://192.168.0.1:5678/igd.xml, uuid:upnp-InternetGatewayDevice-1_0-12345678900001::upnp:rootdevice, upnp:rootdevice
-		// Parg's  Root: http://192.168.0.1:49152/gateway.xml, uuid:824ff22b-8c7d-41c5-a131-44f534e12555::upnp:rootdevice, upnp:rootdevice
+			// Gudy's  Root: http://192.168.0.1:5678/igd.xml, uuid:upnp-InternetGatewayDevice-1_0-12345678900001::upnp:rootdevice, upnp:rootdevice
+			// Parg's  Root: http://192.168.0.1:49152/gateway.xml, uuid:824ff22b-8c7d-41c5-a131-44f534e12555::upnp:rootdevice, upnp:rootdevice
 
-		if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
+		URL		location	= null;
+		String	nt			= null;
+		String	nts			= null;
+		
+		for (int i=1;i<lines.size();i++){
 			
-			String	location	= null;
-			String	usn			= null;
-			String	st			= null;
+			String	line = (String)lines.get(i);
 			
-			for (int i=1;i<lines.size();i++){
-				
-				String	line = (String)lines.get(i);
-				
-				int	c_pos = line.indexOf(":");
-				
-				if ( c_pos == -1 ){
-					continue;
-				}
-				
-				String	key	= line.substring( 0, c_pos ).trim();
-				String 	val = line.substring( c_pos+1 ).trim();
-				
-				if ( key.equalsIgnoreCase("LOCATION" )){
-					
-					location	= val;
-					
-				}else if ( key.equalsIgnoreCase( "USN" )){
-					
-					usn	= val;
-					
-				}else if ( key.equalsIgnoreCase( "ST" )){
-					
-					st	= val;
-				}
+			int	c_pos = line.indexOf(":");
+			
+			if ( c_pos == -1 ){
+				continue;
 			}
 			
-			if ( location != null && usn != null && st != null ){
+			String	key	= line.substring( 0, c_pos ).trim();
+			String 	val = line.substring( c_pos+1 ).trim();
+			
+			if ( key.equalsIgnoreCase("LOCATION" )){
 				
-				gotRoot( local_address, location, usn, st );
+				try{
+					location	= new URL( val );
+					
+				}catch( MalformedURLException e ){
+					
+					upnp.log( e );
+				}			
+			}else if ( key.equalsIgnoreCase( "NT" )){
+				
+				nt	= val;
+				
+			}else if ( key.equalsIgnoreCase( "NTS" )){
+				
+				nts	= val;
+			}
+		}
+			
+		if ( header.startsWith( "NOTIFY" )){
+			
+			if ( location != null && nt != null && nts != null ){
+				
+				if ( nt.indexOf( "upnp:rootdevice" ) != -1 ){
+					
+					if ( nts.indexOf("alive") != -1 ){
+						
+						gotRoot( local_address, location );
+						
+					}else if ( nts.indexOf( "byebye") != -1 ){
+							
+						lostRoot( local_address, location );
+					}
+				}		
+			}
+		}else if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
+
+			if ( location != null ){
+				
+				gotRoot( local_address, location );
 			}
 		}else{
 			
@@ -375,13 +404,22 @@ SSDPImpl
 	protected void
 	gotRoot(
 		InetAddress	local_address,
-		String		location,
-		String		usn,
-		String		st )
+		URL		location )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPListener)listeners.get(i)).rootDiscovered( local_address, location, usn, st );
+			((SSDPListener)listeners.get(i)).rootDiscovered( local_address, location );
+		}
+	}
+	
+	protected void
+	lostRoot(
+		InetAddress	local_address,
+		URL		location )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((SSDPListener)listeners.get(i)).rootLost( local_address, location );
 		}
 	}
 	

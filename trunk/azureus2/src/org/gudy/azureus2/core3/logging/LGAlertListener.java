@@ -31,10 +31,12 @@ LGAlertListener
 	public void
 	alertRaised(
 		int		type,
-		String	message );
+		String	message,
+		boolean	repeatable );
 	
 	public void
 	alertRaised(
 		String		message,
-		Throwable	exception );
+		Throwable	exception,
+		boolean		repeatable );
 }

@@ -210,11 +210,12 @@ LGLoggerImpl
 	public static void
 	logAlert(
 		int			type,
-		String		message )
+		String		message,
+		boolean		repeatable )
 	{
 		LGLogger.log( "Alert:" + type + ":" + message );
 		
-		alert_history.add( new Object[]{ new Integer(type), message });
+		alert_history.add( new Object[]{ new Integer(type), message, new Boolean(repeatable)});
 		
 		if ( alert_history.size() > 256 ){
 			
@@ -225,7 +226,7 @@ LGLoggerImpl
 			
 			try{
 				
-				((LGAlertListener)alert_listeners.get(i)).alertRaised( type, message );
+				((LGAlertListener)alert_listeners.get(i)).alertRaised( type, message, repeatable  );
 				
 			}catch( Throwable f ){
 				
@@ -237,11 +238,12 @@ LGLoggerImpl
 	public static void
 	logAlert(
 		String		message,
-		Throwable	e )
+		Throwable	e,
+		boolean		repeatable )
 	{
 		LGLogger.log( "Alert:" + message, e );
 	
-		alert_history.add( new Object[]{ message, e });
+		alert_history.add( new Object[]{ message, e, new Boolean( repeatable ) });
 		
 		if ( alert_history.size() > 256 ){
 			
@@ -251,7 +253,7 @@ LGLoggerImpl
 		for (int i=0;i<alert_listeners.size();i++){
 			
 			try{
-				((LGAlertListener)alert_listeners.get(i)).alertRaised( message, e );
+				((LGAlertListener)alert_listeners.get(i)).alertRaised( message, e, repeatable );
 				
 			}catch( Throwable f ){
 				
@@ -270,13 +272,15 @@ LGLoggerImpl
 			
 			Object[]	entry = (Object[])alert_history.get(i);
 			
+			boolean repeatable = ((Boolean)entry[2]).booleanValue();
+			
 			if ( entry[0] instanceof Integer ){
 				
-				l.alertRaised(((Integer)entry[0]).intValue(),(String)entry[1]);
+				l.alertRaised(((Integer)entry[0]).intValue(),(String)entry[1], repeatable);
 				
 			}else{
 				
-				l.alertRaised((String)entry[0],(Throwable)entry[1]);
+				l.alertRaised((String)entry[0],(Throwable)entry[1], repeatable);
 			}
 		}
 	}

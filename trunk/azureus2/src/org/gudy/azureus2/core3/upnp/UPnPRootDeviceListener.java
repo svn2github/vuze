@@ -1,5 +1,5 @@
 /*
- * Created on 15-Jun-2004
+ * Created on 16-Jun-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -26,10 +26,12 @@ package org.gudy.azureus2.core3.upnp;
  * @author parg
  *
  */
+
 public interface 
 UPnPRootDeviceListener 
 {
 	public void
-	rootDeviceFound(
-		UPnPDevice		device );	
+	lost(
+		UPnPRootDevice	root,
+		boolean			replaced );
 }

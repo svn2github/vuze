@@ -78,6 +78,21 @@ LoggerChannel
 		String		message,
 		Throwable 	e );
 	
+		/**
+		 * These variants will always generate an alert (i.e. duplicates won't be filtered)
+		 * @param alert_type
+		 * @param message
+		 */
+	public void
+	logAlertRepeatable(
+		int			alert_type,
+		String		message );
+	
+	public void
+	logAlertRepeatable(
+		String		message,
+		Throwable 	e );
+	
 	public void
 	addListener(
 		LoggerChannelListener	l );

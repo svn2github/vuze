@@ -139,7 +139,16 @@ LGLogger
 		int			type,
 		String		message )
 	{
-		LGLoggerImpl.logAlert(type,message);
+		LGLoggerImpl.logAlert(type,message,false);
+	}
+	
+	public static void
+	logAlert(
+		int			type,
+		String		message,
+		boolean		repeatable )
+	{
+		LGLoggerImpl.logAlert(type,message,repeatable);
 	}
 	
 	public static void
@@ -147,7 +156,7 @@ LGLogger
 		int			type,
 		String		resource_key )
 	{
-		LGLoggerImpl.logAlert( type, MessageText.getString( resource_key ));
+		LGLoggerImpl.logAlert( type, MessageText.getString( resource_key ), false);
 	}
 
 	public static void
@@ -156,7 +165,7 @@ LGLogger
 		String		resource_key,
 		String[]	params )
 	{
-		LGLoggerImpl.logAlert( type, MessageText.getString( resource_key, params ));
+		LGLoggerImpl.logAlert( type, MessageText.getString( resource_key, params ), false);
 	}
 
 	public static void
@@ -164,9 +173,17 @@ LGLogger
 		String		message,
 		Throwable	e )
 	{
-		LGLoggerImpl.logAlert(message,e);
+		LGLoggerImpl.logAlert(message,e,false);
 	}
 	
+	public static void
+	logAlert(
+		String		message,
+		Throwable	e,
+		boolean		repeatable )
+	{
+		LGLoggerImpl.logAlert(message,e,repeatable);
+	}
 	public static void
 	addAlertListener(
 		LGAlertListener	l )
