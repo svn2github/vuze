@@ -1472,7 +1472,9 @@ PEPeerControlImpl
               	upRate = -1;
               }
             }
-            testAndSortBest(upRate, upRates, pc, bestUploaders, start);
+            if( upRate >= 0 ) {
+              testAndSortBest(upRate, upRates, pc, bestUploaders, start);
+            }
           }
         }
     }
