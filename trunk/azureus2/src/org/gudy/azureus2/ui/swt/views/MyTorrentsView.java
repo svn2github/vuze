@@ -214,7 +214,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     for (int i = 0; i < items.length; i++) {
       int position = items[i].getPosition();
       if (position != -1) {
-        TableColumn column = new TableColumn(table, SWT.NULL);
+        new TableColumn(table, SWT.NULL);
       }
     }
     //Assign length and titles
@@ -458,45 +458,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     itemStart.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm != null) {
-            dm.setState(DownloadManager.STATE_WAITING);
-          }
-        }
+        resumeSelectedTorrents();
       }
     });
 
     itemStop.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm != null) {
-            if (dm.getState() == DownloadManager.STATE_SEEDING
-              && dm.getStats().getShareRatio() >= 0
-              && dm.getStats().getShareRatio() < 1000
-              && COConfigurationManager.getBooleanParameter("Alert on close", true)) {
-              MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
-              mb.setText(MessageText.getString("seedmore.title"));
-              mb.setMessage(
-                MessageText.getString("seedmore.shareratio")
-                  + (dm.getStats().getShareRatio() / 10)
-                  + "%.\n"
-                  + MessageText.getString("seedmore.uploadmore"));
-              int action = mb.open();
-              if (action == SWT.YES)
-                dm.stopIt();
-            }
-            else {
-              dm.stopIt();
-            }
-
-          }
-        }
+        stopSelectedTorrents();
       }
     });
 
@@ -934,7 +902,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
 
   
-
+/*
   private List getSelection() {
     TableItem[] selection = table.getSelection();
     List selected = new ArrayList(selection.length);
@@ -945,28 +913,81 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     }
     return selected;
   }
+*/
 
   private KeyListener createKeyListener() {
     return new KeyAdapter() {
       public void keyPressed(KeyEvent e) {
-        //TODO: what is the best key shortcut for stopping selected torrents?
-        //TODO: what is the correct keycode for CTRL+a ?
-//        if (0 == e.keyCode && 0x40000 == e.stateMask && 1 == e.character)
-//          table.selectAll(); // CTRL+a
-        if ((e.stateMask & SWT.CTRL) != 0) {
-          // move one down
+/*
+        String string = "stateMask=0x" + Integer.toHexString(e.stateMask);
+        if ((e.stateMask & SWT.CTRL) != 0)
+          string += " CTRL";
+        if ((e.stateMask & SWT.ALT) != 0)
+          string += " ALT";
+        if ((e.stateMask & SWT.SHIFT) != 0)
+          string += " SHIFT";
+        if ((e.stateMask & SWT.COMMAND) != 0)
+          string += " COMMAND";
+        string += ", keyCode=0x" + Integer.toHexString(e.keyCode) + "=" + e.keyCode;
+        string += ", character=0x" + Integer.toHexString(e.character);
+        switch (e.character) {
+          case 0 :
+            string += " '\\0'";
+            break;
+          case SWT.BS :
+            string += " '\\b'";
+            break;
+          case SWT.CR :
+            string += " '\\r'";
+            break;
+          case SWT.DEL :
+            string += " DEL";
+            break;
+          case SWT.ESC :
+            string += " ESC";
+            break;
+          case SWT.LF :
+            string += " '\\n'";
+            break;
+          case SWT.TAB :
+            string += " '\\t'";
+            break;
+          default :
+            string += " '" + e.character + "'";
+            break;
+        }
+        System.out.println(string);
+//*/
+        if (e.stateMask == (SWT.CTRL|SWT.SHIFT)) {
+          // CTRL+SHIFT+S stop all Torrents
+          if(e.character == 0x13) {
+            table.selectAll();
+            stopSelectedTorrents();
+          }
+        } else if (e.stateMask == SWT.CTRL) {
+          // CTRL+CURSOR DOWN move selected Torrents one down
           if(e.keyCode == 0x1000001)
             moveSelectedTorrents(1, 0);
-          // move one up
+          // CTRL+CURSOR UP move selected Torrents one up
           else if(e.keyCode == 0x1000002)
             moveSelectedTorrents(0, 1);
-          // move to end
-          else if(e.keyCode == 0x1000008)
-            moveSelectedTorrents(0, table.getItemCount()-1);
-          // move to top
+          // CTRL+HOME move selected Torrents to top
           else if(e.keyCode == 0x1000007)
             moveSelectedTorrents(table.getItemCount()-1, 0);
+          // CTRL+END move selected Torrents to end
+          else if(e.keyCode == 0x1000008)
+            moveSelectedTorrents(0, table.getItemCount()-1);
+          // CTRL+A select all Torrents
+          else if(e.character == 0x1)
+            table.selectAll();
+          // CTRL+R resume/start selected Torrents
+          else if(e.character == 0x12)
+            resumeSelectedTorrents();
+          // CTRL+S stop selected Torrents
+          else if(e.character == 0x13)
+            stopSelectedTorrents();
         } else if(e.stateMask == 0) {
+          // DEL remove selected Torrents
           if(e.keyCode == 127) {
             removeSelectedTorrentsIfStoppedOrError();
           }
@@ -1007,4 +1028,43 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     }
   }
 
+  private void stopSelectedTorrents() {
+    TableItem[] tis = table.getSelection();
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+      if (dm != null) {
+        if (dm.getState() == DownloadManager.STATE_SEEDING
+            && dm.getStats().getShareRatio() >= 0
+            && dm.getStats().getShareRatio() < 1000
+            && COConfigurationManager.getBooleanParameter("Alert on close", true)) {
+          MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
+          mb.setText(MessageText.getString("seedmore.title"));
+          mb.setMessage(
+              MessageText.getString("seedmore.shareratio")
+              + (dm.getStats().getShareRatio() / 10)
+              + "%.\n"
+              + MessageText.getString("seedmore.uploadmore"));
+          int action = mb.open();
+          if (action == SWT.YES)
+            dm.stopIt();
+        }
+        else {
+          dm.stopIt();
+        }
+      }
+    }
+  }
+
+  private void resumeSelectedTorrents() {
+    TableItem[] tis = table.getSelection();
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+      if (dm != null) {
+        dm.setState(DownloadManager.STATE_WAITING);
+      }
+    }
+  }
+  
 }
