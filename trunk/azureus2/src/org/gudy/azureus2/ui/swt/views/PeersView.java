@@ -65,18 +65,21 @@ public class PeersView
     new ChokingItem(),
     new OptimisticUnchokeItem(),
     new UpItem(),
+    new UpDownRatioItem(),
     new StatUpItem(),
     new SnubbedItem(),
     new TotalDownSpeedItem(),
     new DiscardedItem(),
     new UniquePieceItem(),
     new TimeToSendPieceItem(),
+    new DLedFromOthersItem(),
+    new UpRatioItem()
   };
   private DownloadManager manager;
 
   public PeersView(DownloadManager manager) {
     super(TableManager.TABLE_TORRENT_PEERS, "PeersView", 
-          basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+          basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION);
     this.manager = manager;
     iCellHeight = 16;
   }
