@@ -66,6 +66,7 @@ public class AZMessageFactory {
    * Initialize the factory, i.e. register the messages with the message manager.
    */
   public static void init() {
+    MessageManager.getSingleton().registerMessage( new AZHandshake( new byte[20], "", -1, new String[0], new byte[0]) );
     MessageManager.getSingleton().registerMessage( new AZPing() );
     MessageManager.getSingleton().registerMessage( new AZPong() );
   }
