@@ -86,7 +86,7 @@ public class Identification {
       String bitcomet = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
       if (bitcomet.equals("exbc")) {
         String name = "BitComet ";
-        name = name.concat(String.valueOf(peerID[4]).concat("."));
+        name = name.concat(String.valueOf(peerID[4]) + ".");
         name = name.concat(String.valueOf(peerID[5]/10));
         name = name.concat(String.valueOf(peerID[5]%10));
         return name;
@@ -95,7 +95,7 @@ public class Identification {
       
       String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
       if (turbobt.equals("turbobt")) {
-        return "TurboBT ".concat(new String(peerID, 7, 5, Constants.BYTE_ENCODING));
+        return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
       }
       
   
@@ -103,6 +103,28 @@ public class Identification {
       if (libtorrent.equals("LT")) {
         String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
         String name = "libtorrent ";
+        for (int i = 0; i < 3; i++) {
+          name = name.concat(version.charAt(i) + ".");
+        }
+        name = name + version.charAt(3);
+        return name;
+      }
+      
+      String torrentstorm = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
+      if (torrentstorm.equals("TS")) {
+        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
+        String name = "TorrentStorm ";
+        for (int i = 0; i < 3; i++) {
+          name = name.concat(version.charAt(i) + ".");
+        }
+        name = name + version.charAt(3);
+        return name;
+      }
+      
+      String moonlight = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
+      if (moonlight.equals("MT")) {
+        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
+        String name = "MoonlightTorrent ";
         for (int i = 0; i < 3; i++) {
           name = name.concat(version.charAt(i) + ".");
         }
@@ -153,7 +175,7 @@ public class Identification {
         text = text.replace((char)12, (char)32);
         text = text.replace((char)10, (char)32);
         
-        log.write(" [ ".concat(text).concat(" ]\n"));
+        log.write(" [" + text + "]\n");
         
       }
       catch (Exception e) {
