@@ -183,11 +183,11 @@ TRTrackerServerTorrentImpl
 		
 				ul_diff = uploaded 		- peer.getUploaded();
 				dl_diff = downloaded 	- peer.getDownloaded();
-				
+			}
+			
 					// when the peer is removed its "left" amount will dealt with
 				
-				le_diff = stopped?0:(left - peer.getAmountLeft());
-			}
+			le_diff = stopped?0:(left - peer.getAmountLeft());
 			
 			peer.setStats( uploaded, downloaded, left, numwant );
 		}
