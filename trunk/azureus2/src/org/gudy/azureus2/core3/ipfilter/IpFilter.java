@@ -122,4 +122,7 @@ IpFilter
 	
 	public abstract long
 	getLastUpdateTime();
+	
+	public abstract long
+	getTotalAddressesInRange();
 }

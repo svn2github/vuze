@@ -526,4 +526,10 @@ IpFilterImpl
 	{
 		return( last_update_time );
 	}
+	
+	public long
+	getTotalAddressesInRange()
+	{
+		return( range_manager.getTotalSpan());
+	}
 }

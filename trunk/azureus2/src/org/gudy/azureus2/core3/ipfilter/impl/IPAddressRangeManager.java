@@ -40,6 +40,8 @@ IPAddressRangeManager
 {
 	protected Map		entries = new HashMap();
 	
+	protected long		total_span;
+	
 	protected boolean	rebuild_required;
 	protected long		last_rebuild_time;
 	
@@ -92,16 +94,16 @@ IPAddressRangeManager
 
 			if( old_entry != null ){
 				
-				if ( old_entry.start == start_int && old_entry.end == end_int ){
+				if ( old_entry.getStart() == start_int && old_entry.getEnd() == end_int ){
 				
 						// no change, bail out
 					
 					return;
 				}
 				
-				old_entry.start = start_int;
+				old_entry.setStart( start_int );
 				
-				old_entry.end	= end_int;
+				old_entry.setEnd( end_int );
 				
 			}else{
 				
@@ -181,7 +183,7 @@ IPAddressRangeManager
 				return( false );
 			}
 			
-			return( address_int >= e.start && address_int <= e.end );
+			return( address_int >= e.getStart() && address_int <= e.getEnd());
 
 		}catch( UnknownHostException e ){
 			
@@ -241,7 +243,7 @@ IPAddressRangeManager
 				entry	e = merged_entries[current];
 				
 				long	this_start 	= e.getStart();
-				long this_end	= e.getMergedEnd();
+				long 	this_end	= e.getMergedEnd();
 				
 				if ( ip_int == this_start ){
 					
@@ -440,23 +442,39 @@ IPAddressRangeManager
 		
 		me.toArray( merged_entries );
 		
+		total_span	= 0;
+		
+		for (int i=0;i<merged_entries.length;i++){
+			
+			entry	e = (entry)merged_entries[i];
+			
+			long	span = e.getMergedEnd() - e.getStart();
+			
+			total_span	+= span;
+		}
 			//	System.out.println( "non_merged = " + merged_entries.length );
 		
 		LGLogger.log( "IPAddressRangeManager: rebuilding " + entries.size() + " entries ends" );
 
 	}
 	
+	protected long
+	getTotalSpan()
+	{
+		return( total_span );
+	}
+	
 	protected class
 	entry
 	{
-		protected long		start;
-		protected long		end;
-		protected Object	user_data;
+		private long		start;
+		private long		end;
+		private Object		user_data;
 		
-		protected boolean	merged;
-		protected long		merged_end;
+		private boolean		merged;
+		private long		merged_end;
 		
-		protected List		my_merged_entries;
+		private List		my_merged_entries;
 		
 		protected
 		entry(
@@ -475,10 +493,24 @@ IPAddressRangeManager
 			return( start );
 		}
 		
+		protected void
+		setStart(
+			long	_start )
+		{
+			start	= _start;
+		}
+		
 		protected long
 		getEnd()
 		{
 			return( end );
+		}
+		
+		protected void
+		setEnd(
+			long		_end )
+		{
+			end	= _end;
 		}
 		
 		protected void
@@ -548,17 +580,20 @@ IPAddressRangeManager
 		
 		
 		manager.addRange( "3.1.1.1", "3.1.1.2", "1" );
-		manager.addRange( "1.1.1.1", "2.2.2.2", "2" );
-		manager.addRange( "0.1.1.1", "2.2.2.2", "3" );
-		manager.addRange( "1.1.1.1", "1.2.2.2", "4" );
-		manager.addRange( "7.7.7.7", "7.7.8.7", "5" );
-		manager.addRange( "8.8.8.8", "8.8.8.8", "6" );
+		manager.addRange( "3.1.1.1", "3.1.1.3", "1" );
+		//manager.addRange( "1.1.1.1", "2.2.2.2", "2" );
+		//manager.addRange( "0.1.1.1", "2.2.2.2", "3" );
+		//manager.addRange( "1.1.1.1", "1.2.2.2", "4" );
+		//manager.addRange( "7.7.7.7", "7.7.8.7", "5" );
+		//manager.addRange( "8.8.8.8", "8.8.8.8", "6" );
 		//manager.addRange( "0.0.0.0", "255.255.255.255", "7" );
-		manager.addRange( "5.5.5.5", "6.6.6.9", "8" );
-		manager.addRange( "6.6.6.6", "7.7.0.0", "9" );
+		//manager.addRange( "5.5.5.5", "6.6.6.9", "8" );
+		//manager.addRange( "6.6.6.6", "7.7.0.0", "9" );
 		
 		
 		System.out.println( "inRange -> " + manager.isInRange( "6.6.6.8" ));
+		
+		System.out.println( "Total span = " + manager.getTotalSpan());
 		
 		/*
 		for (int i=0;i<100000;i++){
