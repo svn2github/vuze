@@ -42,11 +42,20 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/string.png", "string");
     loadImage(display, "org/gudy/azureus2/ui/icons/data.png", "data");
     loadImage(display, "org/gudy/azureus2/ui/icons/ipfilter.png", "ipfilter");
-    loadImage(display, "org/gudy/azureus2/ui/icons/start2.png", "start");
-    loadImage(display, "org/gudy/azureus2/ui/icons/stop2.png", "stop");
-    loadImage(display, "org/gudy/azureus2/ui/icons/downloadBar.png", "downloadBar");
-    loadImage(display, "org/gudy/azureus2/ui/icons/delete.png", "delete");
-    loadImage(display, "org/gudy/azureus2/ui/icons/lock.png", "lock");
+    loadImage(display, "org/gudy/azureus2/ui/icons/start.gif", "start");
+    loadImage(display, "org/gudy/azureus2/ui/icons/stop.gif", "stop");
+    loadImage(display, "org/gudy/azureus2/ui/icons/bar.gif", "downloadBar");
+    loadImage(display, "org/gudy/azureus2/ui/icons/delete.gif", "delete");
+    loadImage(display, "org/gudy/azureus2/ui/icons/lock.gif", "lock");
+    loadImage(display, "org/gudy/azureus2/ui/icons/host.gif", "host");
+    loadImage(display, "org/gudy/azureus2/ui/icons/run.gif", "run");
+    loadImage(display, "org/gudy/azureus2/ui/icons/details.gif", "details");
+    loadImage(display, "org/gudy/azureus2/ui/icons/up.gif", "up");    
+    loadImage(display, "org/gudy/azureus2/ui/icons/down.gif", "down");
+    loadImage(display, "org/gudy/azureus2/ui/icons/recheck.gif", "recheck");
+    loadImage(display, "org/gudy/azureus2/ui/icons/export.gif", "export");
+    loadImage(display, "org/gudy/azureus2/ui/icons/move.gif", "move");
+    loadImage(display, "org/gudy/azureus2/ui/icons/publish.gif", "publish");
     
     loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/open.gif", "cb_open");
     loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/open_no_default.gif", "cb_open_no_default");
