@@ -95,7 +95,7 @@ UpdaterUpdateChecker
 		    
 		}catch( Throwable e ){
 
-			LGLogger.logAlert( "azupdater plugin: initialisation error", e );
+			LGLogger.logUnrepeatableAlert( "azupdater plugin: initialisation error", e );
 		}
 	}
 	

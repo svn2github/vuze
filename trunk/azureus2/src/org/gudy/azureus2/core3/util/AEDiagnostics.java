@@ -142,7 +142,7 @@ AEDiagnostics
 					
 					if ( file_moved ){
 						
-						LGLogger.logAlertUsingResource(
+						LGLogger.logUnrepeatableAlertUsingResource(
 							LGLogger.AT_WARNING,
 							"diagnostics.log_found",
 							new String[]{ debug_save_dir.toString() } );

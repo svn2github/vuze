@@ -128,7 +128,7 @@ PRUDPPacketHandlerImpl
 			}
 		}catch( Throwable e ){
 			
-			LGLogger.logAlertUsingResource( 
+			LGLogger.logUnrepeatableAlertUsingResource( 
 					LGLogger.AT_ERROR,
 					"Tracker.alert.listenfail",
 					new String[]{ "UDP:"+port });

@@ -141,7 +141,7 @@ LGLogger
 	}
 	
 	public static void
-	logAlert(
+	logUnrepeatableAlert(
 		int			type,
 		String		message )
 	{
@@ -149,16 +149,15 @@ LGLogger
 	}
 	
 	public static void
-	logAlert(
+	logRepeatableAlert(
 		int			type,
-		String		message,
-		boolean		repeatable )
+		String		message )
 	{
-		LGLoggerImpl.logAlert(type,message,repeatable);
+		LGLoggerImpl.logAlert(type,message,true);
 	}
 	
 	public static void
-	logAlertUsingResource(
+	logUnrepeatableAlertUsingResource(
 		int			type,
 		String		resource_key )
 	{
@@ -166,7 +165,7 @@ LGLogger
 	}
 
 	public static void
-	logAlertUsingResource(
+	logUnrepeatableAlertUsingResource(
 		int			type,
 		String		resource_key,
 		String[]	params )
@@ -175,7 +174,7 @@ LGLogger
 	}
 
 	public static void
-	logAlert(
+	logUnrepeatableAlert(
 		String		message,
 		Throwable	e )
 	{
@@ -183,13 +182,13 @@ LGLogger
 	}
 	
 	public static void
-	logAlert(
+	logRepeatableAlert(
 		String		message,
-		Throwable	e,
-		boolean		repeatable )
+		Throwable	e )
 	{
-		LGLoggerImpl.logAlert(message,e,repeatable);
+		LGLoggerImpl.logAlert(message,e,true );
 	}
+	
 	public static void
 	addAlertListener(
 		LGAlertListener	l )

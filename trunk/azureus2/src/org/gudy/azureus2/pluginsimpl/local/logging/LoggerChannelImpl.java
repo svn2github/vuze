@@ -158,7 +158,11 @@ LoggerChannelImpl
 			}	
 		}
 		
-		LGLogger.logAlert( at, message, repeatable );
+		if ( repeatable ){
+			LGLogger.logRepeatableAlert( at, message );
+		}else{
+			LGLogger.logUnrepeatableAlert( at, message );
+		}
 	}
 	
 	public void
@@ -182,7 +186,7 @@ LoggerChannelImpl
 		String		message,
 		Throwable 	e )
 	{
-		LGLogger.logAlert( message, e, false  );
+		LGLogger.logUnrepeatableAlert( message, e  );
 	}	
 	
 	public void
@@ -190,7 +194,7 @@ LoggerChannelImpl
 		String		message,
 		Throwable 	e )
 	{
-		LGLogger.logAlert( message, e, true );
+		LGLogger.logRepeatableAlert( message, e );
 	}
 	
 	public void

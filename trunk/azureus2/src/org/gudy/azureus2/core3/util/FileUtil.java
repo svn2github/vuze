@@ -362,7 +362,7 @@ public class FileUtil {
 	
 		    }catch (Exception e) {
 		    
-		    	LGLogger.logAlert( "Save of '" + file_name + "' fails", e );
+		    	LGLogger.logUnrepeatableAlert( "Save of '" + file_name + "' fails", e );
 		    	
 		    }finally{
 		    	
@@ -373,7 +373,7 @@ public class FileUtil {
 		    		}
 		    	}catch( Exception e){
 		    		
-		        	LGLogger.logAlert( "Save of '" + file_name + "' fails", e ); 
+		        	LGLogger.logUnrepeatableAlert( "Save of '" + file_name + "' fails", e ); 
 		    	}
 		    }
 	  	}finally{
@@ -441,7 +441,7 @@ public class FileUtil {
   						// we only alert the user if at least one file was found and failed
   						// otherwise it could be start of day when neither file exists yet
   					
-  					LGLogger.logAlert( 	LGLogger.AT_ERROR,
+  					LGLogger.logUnrepeatableAlert( 	LGLogger.AT_ERROR,
   										"Load of '" + file_name + "' fails, no usable file or backup" );
   				}else{
   					
@@ -487,7 +487,7 @@ public class FileUtil {
 	    	
 	    	if ( using_backup ){
   		
-	    		LGLogger.logAlert( 
+	    		LGLogger.logUnrepeatableAlert( 
 	    					LGLogger.AT_WARNING,
 							"Load of '" + file_name.substring(0,file_name.length()-4) + "' had to revert to backup file" ); 
 	    	}
@@ -506,7 +506,7 @@ public class FileUtil {
 	    	
 	    	if ( using_backup ){
 		
-	    		LGLogger.logAlert( LGLogger.AT_ERROR,
+	    		LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR,
 							"Load of '" + file_name + "' fails, no usable file or backup" ); 
 	    		
 	    		return( new HashMap());
@@ -872,7 +872,7 @@ public class FileUtil {
 				
 			}catch( Throwable e ){		
 
-				LGLogger.logAlert( "Failed to rename '" + from_file.toString() + "' to '" + to_file.toString() + "'", e );
+				LGLogger.logUnrepeatableAlert( "Failed to rename '" + from_file.toString() + "' to '" + to_file.toString() + "'", e );
 				
 				return( false );
 				

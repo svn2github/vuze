@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
@@ -164,9 +165,31 @@ PluginInstallerImpl
 			
 			String	plugin_id = plugin.getId();
 			
-			if ( manager.getPluginInterfaceByID( plugin_id ) != null ){
+			PluginInterface	existing_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
+			
+			Plugin			existing_plugin	= null;
+			
+			if ( existing_plugin_interface != null ){
 				
-				throw( new PluginException( "Plugin '" + plugin_id + "' is already installed" ));
+				existing_plugin	= existing_plugin_interface.getPlugin();
+				
+					// try to check that the new version is higher than the old one!
+				
+				String	old_version = existing_plugin_interface.getPluginVersion();
+				
+				if ( old_version != null ){
+					
+					int	res = Constants.compareVersions( plugin.getVersion(), old_version );
+					
+					if ( res < 0 ){
+						
+						throw( new PluginException( "A higher version (" + old_version + ") of Plugin '" + plugin_id + "' is already installed" ));
+						
+					}else if ( res == 0 ){
+						
+						throw( new PluginException( "Version (" + old_version + ") of Plugin '" + plugin_id + "' is already installed" ));
+					}
+				}
 			}
 			
 			String	target_dir;
@@ -184,34 +207,41 @@ PluginInstallerImpl
 	
 			new File( target_dir ).mkdir();
 			
-				// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
-				// installed version
+			if ( existing_plugin == null ){
+				
+					// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
+					// installed version
+				
+				final dummyPlugin	dummy_plugin = new dummyPlugin( plugin_id, target_dir );
+				
+				PluginManager.registerPlugin( dummy_plugin, plugin_id );
 			
-			final dummyPlugin	dummy_plugin = new dummyPlugin( plugin_id, target_dir );
-			
-			PluginManager.registerPlugin( dummy_plugin, plugin_id );
-		
-			PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
-			
-			((InstallablePluginImpl)plugin).addUpdate( inst, pup, dummy_plugin, dummy_plugin_interface );
-					
-			inst.addListener(
-				new UpdateCheckInstanceListener()
-				{
-					public void
-					cancelled(
-						UpdateCheckInstance		instance )
+				PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
+				
+				((InstallablePluginImpl)plugin).addUpdate( inst, pup, dummy_plugin, dummy_plugin_interface );
+						
+				inst.addListener(
+					new UpdateCheckInstanceListener()
 					{
-						dummy_plugin.requestUnload();
-					}
-					
-					public void
-					complete(
-						UpdateCheckInstance		instance )
-					{
-						dummy_plugin.requestUnload();
-					}
-				});
+						public void
+						cancelled(
+							UpdateCheckInstance		instance )
+						{
+							dummy_plugin.requestUnload();
+						}
+						
+						public void
+						complete(
+							UpdateCheckInstance		instance )
+						{
+							dummy_plugin.requestUnload();
+						}
+					});
+			}else{
+				
+				((InstallablePluginImpl)plugin).addUpdate( inst, pup, existing_plugin, existing_plugin_interface );
+
+			}
 		}
 		
 		inst.start();
@@ -333,7 +363,7 @@ PluginInstallerImpl
 												
 												Debug.printStackTrace(e);
 												
-												LGLogger.logAlert( "Plugin uninstall failed", e );
+												LGLogger.logRepeatableAlert( "Plugin uninstall failed", e );
 											}
 												
 											return( true );
@@ -346,7 +376,7 @@ PluginInstallerImpl
 										{
 											if ( !downloader.isCancelled()){
 												
-												LGLogger.logAlert( "Plugin uninstall failed", e );
+												LGLogger.logRepeatableAlert( "Plugin uninstall failed", e );
 											}
 										}
 									});

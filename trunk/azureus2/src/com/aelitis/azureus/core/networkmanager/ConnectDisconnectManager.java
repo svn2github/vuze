@@ -146,7 +146,7 @@ public class ConnectDisconnectManager {
       catch( Throwable t ) {
         String msg = "Error while processing advanced socket options.";
         Debug.out( msg, t );
-        LGLogger.logAlert( msg, t, false );
+        LGLogger.logUnrepeatableAlert( msg, t );
         //dont pass the exception outwards, so we will continue processing connection without advanced options set
       }
       

@@ -149,6 +149,11 @@ PluginManager
    *
    * @since 2.1.0.0
    */
+	
+	public abstract PluginInterface
+	getPluginInterfaceByClass(
+		String		class_name  );
+
 	public abstract PluginInterface
 	getPluginInterfaceByClass(
 		Class		c );

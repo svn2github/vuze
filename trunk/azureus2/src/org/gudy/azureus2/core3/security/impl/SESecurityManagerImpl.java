@@ -264,7 +264,7 @@ SESecurityManagerImpl
 		
 		if ( !f.exists()){
 			
-			LGLogger.logAlertUsingResource( 
+			LGLogger.logUnrepeatableAlertUsingResource( 
 					LGLogger.AT_ERROR,
 					"Security.keystore.empty",
 					new String[]{ keystore_name });
@@ -279,7 +279,7 @@ SESecurityManagerImpl
 			
 			if ( !enumx.hasMoreElements()){
 				
-				LGLogger.logAlertUsingResource( 
+				LGLogger.logUnrepeatableAlertUsingResource( 
 						LGLogger.AT_ERROR,
 						"Security.keystore.empty",
 						new String[]{ keystore_name });
@@ -289,7 +289,7 @@ SESecurityManagerImpl
 			
 		}catch( Throwable e ){
 		
-			LGLogger.logAlertUsingResource( 
+			LGLogger.logUnrepeatableAlertUsingResource( 
 					LGLogger.AT_ERROR,
 					"Security.keystore.corrupt",
 					new String[]{ keystore_name });

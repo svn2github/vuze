@@ -81,7 +81,7 @@ public class InstallPluginWizard extends Wizard {
   	    	
   	      Debug.printStackTrace(e);
   	      
-  	      LGLogger.logAlert( "Failed to initialse installer", e );
+  	      LGLogger.logRepeatableAlert( "Failed to initialise installer", e );
   	    }
   	  }
   	}

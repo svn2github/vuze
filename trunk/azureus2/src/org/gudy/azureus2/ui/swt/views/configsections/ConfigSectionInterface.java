@@ -292,7 +292,7 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 		      		
 		      	}catch( PlatformManagerException e ){
 		      	
-		      		LGLogger.logAlert("Failed to register application", e );
+		      		LGLogger.logUnrepeatableAlert("Failed to register application", e );
 		      	}
 		      }
 		    });

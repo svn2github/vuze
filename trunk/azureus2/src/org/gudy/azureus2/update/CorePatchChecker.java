@@ -240,7 +240,7 @@ CorePatchChecker
 				
 				installer.addMoveAction( resource_name, az2_jar );
 				
-				LGLogger.logAlert( 	LGLogger.AT_COMMENT,
+				LGLogger.logUnrepeatableAlert( 	LGLogger.AT_COMMENT,
 									"Patch " + highest_p_file.getName() + " ready to be applied" );
 				
 				String done_file = highest_p_file.toString();
@@ -257,7 +257,7 @@ CorePatchChecker
 			
 			Debug.printStackTrace( e );
 			
-			LGLogger.logAlert( 	"Core Patcher failed", e );
+			LGLogger.logUnrepeatableAlert( 	"Core Patcher failed", e );
 		}
 	}
 }

@@ -112,7 +112,7 @@ AEJarBuilder
 			
 				if ( kd == null ){
 			
-					LGLogger.logAlert(
+					LGLogger.logUnrepeatableAlert(
 						LGLogger.AT_ERROR,
 						"Certificate alias '" + sign_alias + "' not found, jar signing fails" );
 					

@@ -150,7 +150,7 @@ TRTrackerServerTCP
 				
 			}catch( Throwable e){
 								
-				LGLogger.logAlertUsingResource( 
+				LGLogger.logUnrepeatableAlertUsingResource( 
 						LGLogger.AT_ERROR,
 						"Tracker.alert.listenfail",
 						new String[]{ ""+port });
@@ -203,7 +203,7 @@ TRTrackerServerTCP
 				
 			}catch( Throwable e){
 			
-				LGLogger.logAlertUsingResource( 
+				LGLogger.logUnrepeatableAlertUsingResource( 
 						LGLogger.AT_ERROR,
 						"Tracker.alert.listenfail",
 						new String[]{ ""+port });

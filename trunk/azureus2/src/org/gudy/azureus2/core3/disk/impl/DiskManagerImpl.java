@@ -943,7 +943,7 @@ DiskManagerImpl
 			{
 				errorMessage	= reason;
 				
-				LGLogger.logAlert( LGLogger.AT_ERROR, errorMessage );
+				LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, errorMessage );
 				
 
 				setState( DiskManager.FAULTY );
@@ -1152,7 +1152,7 @@ DiskManagerImpl
 	            
 	            LGLogger.log(LGLogger.ERROR,msg);
 	            
-	            LGLogger.logAlertUsingResource( 
+	            LGLogger.logUnrepeatableAlertUsingResource( 
 	            		LGLogger.AT_ERROR, "DiskManager.alert.movefileexists", 
 	            		new String[]{ old_file.getName() } );
 	            
@@ -1180,7 +1180,7 @@ DiskManagerImpl
 	            
 	            LGLogger.log(LGLogger.ERROR,msg);
 	            
-	            LGLogger.logAlertUsingResource( 
+	            LGLogger.logUnrepeatableAlertUsingResource( 
 	            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
 	            		new String[]{ old_file.toString(),
 	            		Debug.getNestedExceptionMessage(e)});
@@ -1198,7 +1198,7 @@ DiskManagerImpl
 	         		
 	            	}catch( CacheFileManagerException f ){
 	              
-	            		LGLogger.logAlertUsingResource( 
+	            		LGLogger.logUnrepeatableAlertUsingResource( 
 	                    		LGLogger.AT_ERROR, "DiskManager.alert.movefilerecoveryfails", 
 	                    		new String[]{ files[j].toString(),
 	                    		Debug.getNestedExceptionMessage(f)} );
@@ -1248,7 +1248,7 @@ DiskManagerImpl
 		            
 		            LGLogger.log(LGLogger.ERROR,msg);
 		            
-		            LGLogger.logAlertUsingResource( 
+		            LGLogger.logUnrepeatableAlertUsingResource( 
 		            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
 		            		new String[]{ 	oldTorrentFile.toString(),
 		            						newTorrentFile.toString()});

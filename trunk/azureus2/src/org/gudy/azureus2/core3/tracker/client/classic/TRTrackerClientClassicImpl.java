@@ -1715,7 +1715,7 @@ TRTrackerClientClassicImpl
 	 												announce_data_provider.getName(),
 													warning_message });
 	 									
-	 							LGLogger.logAlert(
+	 							LGLogger.logUnrepeatableAlert(
 	 								LGLogger.AT_WARNING,
 									expanded_message );
 	 						}

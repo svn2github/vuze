@@ -306,7 +306,7 @@ PluginInitializer
 	  			
 	  			Debug.printStackTrace( e );
 	  			
-	  	    	LGLogger.logAlert( "Initialisation of built in plugin '" + key + "' fails", e );
+	  	    	LGLogger.logUnrepeatableAlert( "Initialisation of built in plugin '" + key + "' fails", e );
 	  	      
 	  		}
     	}else{
@@ -465,7 +465,7 @@ PluginInitializer
       	Debug.printStackTrace( e );
       	String	msg =  "Can't read 'plugin.properties' for plugin '" + pluginName + "': file may be missing";
       	
-      	LGLogger.logAlert( LGLogger.AT_ERROR, msg );
+      	LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, msg );
       	  
         System.out.println( msg );
         
@@ -521,7 +521,7 @@ PluginInitializer
       				
       			}else{
       			
-      				LGLogger.logAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class + "' is already loaded" );
+      				LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class + "' is already loaded" );
       			}
 
       		}else{
@@ -636,7 +636,7 @@ PluginInitializer
 		        
 		      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
 		   	 
-		      	LGLogger.logAlert( msg, load_failure );
+		      	LGLogger.logUnrepeatableAlert( msg, load_failure );
 
 		      	System.out.println( msg + " : " + load_failure);
 		      	
@@ -665,7 +665,7 @@ PluginInitializer
       
     	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
  	 
-    	LGLogger.logAlert( msg, e );
+    	LGLogger.logUnrepeatableAlert( msg, e );
 
     	System.out.println( msg + " : " + e);
     	
@@ -728,7 +728,7 @@ PluginInitializer
   
   	if ( getPluginFromClass( plugin_class ) != null ){
   	
-  		LGLogger.logAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class.getName() + "' is already loaded" );
+  		LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class.getName() + "' is already loaded" );
   		
   		return;
   	}
@@ -775,7 +775,7 @@ PluginInitializer
   		
   		String	msg = "Error loading internal plugin '" + plugin_class.getName() + "'";
   		
-    	LGLogger.logAlert( msg, e );
+    	LGLogger.logUnrepeatableAlert( msg, e );
 
   		System.out.println(msg + " : " + e);
   		
@@ -816,7 +816,7 @@ PluginInitializer
   		
   		String	msg = "Error loading internal plugin '" + plugin.getClass().getName() + "'";
   		
-    	LGLogger.logAlert( msg, e );
+    	LGLogger.logUnrepeatableAlert( msg, e );
 
   		System.out.println(msg + " : " + e);
   		

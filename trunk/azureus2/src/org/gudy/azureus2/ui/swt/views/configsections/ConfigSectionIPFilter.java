@@ -120,7 +120,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
       if (filter != null)
       	filter.save();
     }catch( Exception e ){
-    	LGLogger.logAlert("Save of filter file fails", e);
+    	LGLogger.logUnrepeatableAlert("Save of filter file fails", e);
     }
   }
 

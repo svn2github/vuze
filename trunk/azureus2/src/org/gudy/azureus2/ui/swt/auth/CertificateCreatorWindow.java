@@ -235,11 +235,11 @@ CertificateCreatorWindow
 						
 						close(true );
 						
-						LGLogger.logAlert( LGLogger.AT_COMMENT, MessageText.getString( "security.certcreate.createok") + "\n" + alias +":" + strength + "\n" + dn + "\n" + SystemTime.getCurrentTime());
+						LGLogger.logUnrepeatableAlert( LGLogger.AT_COMMENT, MessageText.getString( "security.certcreate.createok") + "\n" + alias +":" + strength + "\n" + dn + "\n" + SystemTime.getCurrentTime());
 						
 					}catch( Throwable f ){
 						
-						LGLogger.logAlert( MessageText.getString( "security.certcreate.createfail")+"\n" + SystemTime.getCurrentTime(), f );
+						LGLogger.logUnrepeatableAlert( MessageText.getString( "security.certcreate.createfail")+"\n" + SystemTime.getCurrentTime(), f );
 					}
 				}
 			});

@@ -22,7 +22,12 @@
 
 package org.gudy.azureus2.pluginsimpl.local.installer;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
@@ -36,7 +41,6 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
-import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
 import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoader;
 import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoaderFactory;
 
@@ -79,11 +83,139 @@ FilePluginInstallerImpl
 			if ( 	suffix.toLowerCase().equals( "jar") ||
 					suffix.toLowerCase().equals( "zip" )){
 		
+				is_jar		= suffix.toLowerCase().equals( "jar");
+
+					// See if we can get at the plugin.properties in the file
+				
+				Properties	properties	= null;
+				
+				ZipInputStream	zis = null;
+				
+				try{
+					zis = 
+						new ZipInputStream( 
+								new BufferedInputStream( new FileInputStream( file ) ));
+					
+					
+						while( properties == null ){
+							
+							ZipEntry	entry = zis.getNextEntry();
+								
+							if ( entry == null ){
+								
+								break;
+							}
+						
+							String	zip_name = entry.getName().toLowerCase();
+						
+							// System.out.println( "zis1:" + zip_name );
+							
+							if ( zip_name.equals( "plugin.properties" )){
+								
+								properties	= new Properties();
+								
+								properties.load( zis );
+																
+							}else if ( zip_name.endsWith( ".jar" )){
+								
+								ZipInputStream	zis2 = new ZipInputStream( zis );
+								
+								while( properties == null ){
+									
+									ZipEntry	entry2 = zis2.getNextEntry();
+										
+									if ( entry2 == null ){
+										
+										break;
+									}
+								
+									String	zip_name2 = entry2.getName().toLowerCase();
+							
+									// System.out.println( "    zis2:" + zip_name2 );
+									
+									if ( zip_name2.equals( "plugin.properties" )){
+										
+										properties	= new Properties();
+										
+										properties.load( zis2 );
+			
+									}
+								}
+							}
+						}
+				}catch( Throwable e ){
+					
+					throw( new PluginException( "Failed to read plugin file", e ));
+				
+				}finally{
+				
+					if ( zis != null ){
+						
+						try{
+							zis.close();
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+					
+				if ( properties == null ){
+					
+					throw( new PluginException( "Mandatory file 'plugin.properties' not found in plugin file" ));
+				}
+				
+					// unfortunately plugin.id isn't mandatory for the properties, and neither is plugin.version
+				
+				id		= properties.getProperty( "plugin.id" );
+				version	= properties.getProperty( "plugin.version" );
+				
+				if ( id == null ){
+					
+					// see if plugin is already loaded, if so we can get the id from it
+					
+					String	plugin_class = properties.getProperty("plugin.class");
+					
+					if ( plugin_class == null ){
+						
+						String	plugin_classes = properties.getProperty( "plugin.classes" );
+						
+						if ( plugin_classes != null ){
+							
+							int	semi_pos = plugin_classes.indexOf(";");
+							
+							if ( semi_pos == -1 ){
+								
+								plugin_class	= plugin_classes;
+								
+							}else{
+								
+								plugin_class = plugin_classes.substring( 0, semi_pos );
+							}
+						}
+					}
+					
+					if ( plugin_class != null ){
+						
+						try{
+							PluginInterface pi = installer.getPluginManager().getPluginInterfaceByClass( plugin_class );
+							
+							if ( pi != null ){
+								
+								id	= pi.getPluginID();
+							}
+						}catch( Throwable ignore ){
+							
+						}
+					}
+				}
+				
 				pos = prefix.lastIndexOf("_");
 		
 				if ( pos != -1 ){
 		
-					id 			= prefix.substring(0,pos);
+					id 			= id==null?prefix.substring(0,pos):id;
 
 						// see if we can normalise the ID based on SF values
 					
@@ -106,12 +238,11 @@ FilePluginInstallerImpl
 						Debug.printStackTrace(e);
 					}
 
-					version		= prefix.substring(pos+1);
+					version		= version == null?prefix.substring(pos+1):version;
 
-					is_jar		= suffix.toLowerCase().equals( "jar");
-						
-					ok	= true;
 				}
+				
+				ok	= id != null && version != null;
 			}
 		}
 		
@@ -219,7 +350,7 @@ FilePluginInstallerImpl
 								version,
 								rd,
 								is_jar,
-								Update.RESTART_REQUIRED_NO );
+								plugin_interface.isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
 								
 						}finally{
 							

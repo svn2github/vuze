@@ -145,7 +145,7 @@ public class TorrentFolderWatcher {
 	    
 	    if( !default_data_dir_enabled ) {
 	      LGLogger.log( LGLogger.ERROR, "ERROR: [Use default data dir] not enabled" );
-	      LGLogger.logAlert( LGLogger.ERROR, "'Save to default data dir' [Use default data dir] needs to be enabled for auto-.torrent-import to work." );
+	      LGLogger.logUnrepeatableAlert( LGLogger.ERROR, "'Save to default data dir' [Use default data dir] needs to be enabled for auto-.torrent-import to work." );
 	      return;
 	    }
 

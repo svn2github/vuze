@@ -121,7 +121,7 @@ public class SelectorGuard {
     String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys.\n";
     msg += MessageText.getString( "SelectorGuard.repairmessage" );
     Debug.out( msg );
-    LGLogger.logAlert( LGLogger.AT_WARNING, msg, false );
+    LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
     
     try {
       //sleep a bit to allow underlying network recovery

@@ -100,7 +100,7 @@ PESharedPortServerImpl
 										
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "PESharedPortServer: failed to establish selector" + e.toString());
 					
-					LGLogger.logAlertUsingResource(	LGLogger.AT_ERROR, "SharedPortServer.alert.selectorfailed" ); 
+					LGLogger.logUnrepeatableAlertUsingResource(	LGLogger.AT_ERROR, "SharedPortServer.alert.selectorfailed" ); 
 										
 					Debug.printStackTrace( e );
 				}

@@ -198,7 +198,7 @@ PlatformManagerImpl
 					
 					if (!az_exe_checked){
 					
-						LGLogger.logAlert( LGLogger.AT_WARNING, msg );
+						LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
 					}
 					
 					throw( new PlatformManagerException( msg ));

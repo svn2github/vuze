@@ -59,7 +59,7 @@ AzureusRestarterImpl
 		
 		if ( pi == null ){
 			
-			LGLogger.logAlert( LGLogger.AT_ERROR, "Can't restart, mandatory plugin 'azupdater' not found" );
+			LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, "Can't restart, mandatory plugin 'azupdater' not found" );
 			
 			return;
 		}

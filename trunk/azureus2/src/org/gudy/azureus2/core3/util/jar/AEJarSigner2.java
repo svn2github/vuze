@@ -109,7 +109,7 @@ AEJarSigner2
 				
 			}catch( Throwable e ){
 				
-				LGLogger.logAlertUsingResource( 
+				LGLogger.logUnrepeatableAlertUsingResource( 
 						LGLogger.AT_ERROR, 
 						"Security.jar.signfail",
 						new String[]{ e.getMessage()});
@@ -121,7 +121,7 @@ AEJarSigner2
    			
 		}else{
 			
-			LGLogger.logAlertUsingResource( 
+			LGLogger.logUnrepeatableAlertUsingResource( 
 					LGLogger.AT_ERROR, 
 					"Security.jar.tools_not_found",
 					new String[]{ tools_dir.toString() });
@@ -210,7 +210,7 @@ AEJarSigner2
 			
 			Debug.out( "JAR signing fails '" + failure_msg + "'" );
 		
-			LGLogger.logAlertUsingResource( 
+			LGLogger.logUnrepeatableAlertUsingResource( 
 					LGLogger.AT_ERROR, 
 					"Security.jar.signfail",
 					new String[]{ failure_msg });

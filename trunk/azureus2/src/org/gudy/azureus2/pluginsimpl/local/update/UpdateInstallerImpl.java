@@ -75,7 +75,7 @@ UpdateInstallerImpl
 				
 				if ( found_failure ){
 					
-					LGLogger.logAlert( 
+					LGLogger.logUnrepeatableAlert(
 							LGLogger.AT_ERROR, 
 							"Installation of at least one component failed - see 'update.log' for details" );
 				}

@@ -162,7 +162,7 @@ DirectByteBufferPool
                     + "or upgrade your Java JRE to version 1.4.2_05 or 1.5 series or newer.";
        	 Debug.out( msg );
        	 
-         LGLogger.logAlert( LGLogger.AT_ERROR, msg );
+         LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, msg );
          
          printInUse( true );
          

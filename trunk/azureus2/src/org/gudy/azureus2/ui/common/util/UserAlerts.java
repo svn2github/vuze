@@ -116,7 +116,7 @@ UserAlerts
 	    					
 	    					if ( audio_clip == null ){
 	    						
-	    						LGLogger.logAlert( 
+	    						LGLogger.logUnrepeatableAlert( 
 	    								LGLogger.AT_ERROR,
 	    								"Failed to load audio file '" + file + "'" );
 	    					}

@@ -161,7 +161,7 @@ public class TorrentOpener {
 	                                                                     : DownloadManager.STATE_WAITING);
                 }catch( Throwable e ){
     	          	
-    	          	LGLogger.logAlert("Torrent open fails for '" + fileName + "'", e );
+    	          	LGLogger.logUnrepeatableAlert("Torrent open fails for '" + fileName + "'", e );
     	        }
 	          }catch( Throwable e ){
                 
@@ -309,7 +309,7 @@ public class TorrentOpener {
 								forSeeding );
 	          }catch( Throwable e ){
 	          	
-   	          	LGLogger.logAlert("Torrent open fails for '" + path + separator + fileNames[i] + "'", e );
+   	          	LGLogger.logUnrepeatableAlert("Torrent open fails for '" + path + separator + fileNames[i] + "'", e );
 	          }
             }
           }
@@ -355,7 +355,7 @@ public class TorrentOpener {
 	                                                               : DownloadManager.STATE_QUEUED);
             }catch( Throwable e ){
 	          	
-   	          	LGLogger.logAlert("Torrent open fails for '" + files[i].getAbsolutePath() + "'", e );
+   	          	LGLogger.logUnrepeatableAlert("Torrent open fails for '" + files[i].getAbsolutePath() + "'", e );
 	        }
       }
     }

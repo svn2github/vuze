@@ -358,7 +358,7 @@ CoreUpdateChecker
 						alert_text = alert_text.substring(2);
 					}
 					
-					LGLogger.logAlert( alert_type, alert_text );
+					LGLogger.logUnrepeatableAlert( alert_type, alert_text );
 					
 					COConfigurationManager.setParameter( "CoreUpdateChecker.lastmessage", s_message );
 					
