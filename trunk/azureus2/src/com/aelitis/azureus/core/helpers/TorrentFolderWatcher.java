@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -159,30 +160,73 @@ public class TorrentFolderWatcher {
 	    
 	    String[] currentFileList = folder.list( filename_filter );
 	
-	    for( int i = 0; i < currentFileList.length; i++ ) {
+	    for( int i = 0; i < currentFileList.length; i++ ){
+	    	
 	      File file = new File( folder, currentFileList[i] );
 	      
 	      boolean already_added = false;
-	      try { //make sure it hasn't already been added
-	        if( global_manager.getDownloadManager( TorrentUtils.readFromFile( file, false )) != null ) {
-	          already_added = true;
-	          save_torrents = false;
-	          LGLogger.log( LGLogger.INFORMATION, "INFO: " + file.getAbsolutePath()+ " is already being downloaded" );
-	        }
-	      } catch( Throwable t) {  Debug.printStackTrace( t );  }
 	      
-	      if( torrent_save_path.equals( folder ) ) save_torrents = false;
+	      TOTorrent 	torrent = null;
 	      
-	      if( !save_torrents || torrent_save_path.length() < 1 ) {
-	        File imported = new File( folder, file.getName() + ".imported" );
-	        file.renameTo( imported );
-	        if( !already_added ) global_manager.addDownloadManager( imported.getAbsolutePath(), data_save_path, start_state );
+	      	// make sure we've got a valid torrent file before proceeding
+	      
+	      try{
+	      	
+	      	torrent = TorrentUtils.readFromFile( file, false );
+	      	
+	      }catch( Throwable e ){
+	      	
+	      	Debug.out( "Failed to auto-import torrent file '" + file.getAbsolutePath() + "' - " +
+	      					Debug.getNestedExceptionMessage(e ));
 	      }
-	      else {
-	        global_manager.addDownloadManager( file.getAbsolutePath(), data_save_path, start_state );
-	        to_delete.add( file );  //add file for deletion, since there will be a saved copy elsewhere
+	      
+	      if ( torrent != null ){
+	      	
+		      try { //make sure it hasn't already been added
+		      	
+		        if( global_manager.getDownloadManager( torrent ) != null ){
+		        	
+		          already_added = true;
+		          
+		          save_torrents = false;
+		          
+		          LGLogger.log( LGLogger.INFORMATION, "INFO: " + file.getAbsolutePath()+ " is already being downloaded" );
+		        }
+		      }catch( Throwable t ){  
+		      	
+		      	Debug.printStackTrace( t );  
+		      }
+		      
+		      if( torrent_save_path.equals( folder ) ){
+		      	
+		      	save_torrents = false;
+		      }
+		      
+		      if( !save_torrents || torrent_save_path.length() < 1 ) {
+		      	
+		        File imported = new File( folder, file.getName() + ".imported" );
+		        
+		        file.renameTo( imported );
+		        
+		        if( !already_added ){
+		        	
+		        	global_manager.addDownloadManager( 
+		        			imported.getAbsolutePath(), 
+							data_save_path, 
+							start_state );
+		        }
+		      }else{
+		      	
+		        global_manager.addDownloadManager( 
+		        		file.getAbsolutePath(), 
+						data_save_path, 
+						start_state );
+		        
+		        to_delete.add( file );  //add file for deletion, since there will be a saved copy elsewhere
+		      }
+		      
+		      LGLogger.log( LGLogger.INFORMATION, "Auto-imported " + file.getAbsolutePath() );
 	      }
-	      LGLogger.log( LGLogger.INFORMATION, "Auto-imported " + file.getAbsolutePath() );
 	    }
   	}finally{
   		this_mon.exit();
