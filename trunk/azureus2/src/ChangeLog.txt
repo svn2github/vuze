@@ -31,7 +31,6 @@ BUGFIX: Core | Throw an error message if existing data file length is too large 
 BUGFIX: Core | Fix new bug with tracker announce every 10s when no peers were connected [Nolar]
 BUGFIX: Core | Fix for renaming files across volumes [Parg]
 BUGFIX: Core | Torrent auto-import now works with console UI [Nolar]
-BUGFIX: Core | Fix for kernel panics on dual-cpu macs under OSX (?) [Nolar]
 BUGFIX: Core | Bug when setting upload to unlimited (forced download to unlimited too) [Parg]
 BUGFIX: Core | Set downloaded amount correctly when opening a torrent with existing download data [Parg]
 BUGFIX: Plug | Netgear WGT624 was crashing when processing UPnP requests [Parg]
