@@ -252,7 +252,7 @@ TRTrackerClientClassicImpl
 								
 								secs_to_wait = getAdjustedSecsToWait();
 								
-								long target_time = System.currentTimeMillis() + (secs_to_wait*1000);
+								long target_time = SystemTime.getCurrentTime() + (secs_to_wait*1000);
 								
 								if ( current_timer_event != null && !current_timer_event.isCancelled()){
 									
@@ -328,9 +328,9 @@ TRTrackerClientClassicImpl
 			percentage	= 1;
 		}
 		
-		long	now = System.currentTimeMillis();
-		
-		if ( now - rd_last_override > OVERRIDE_PERIOD &&
+		long	now = SystemTime.getCurrentTime();
+
+		if ( ( SystemTime.isErrorLast10sec() || now - rd_last_override > OVERRIDE_PERIOD ) &&
 				(	rd_override_use_minimum != use_minimum ||
 					rd_override_percentage != percentage )){
 		
@@ -375,7 +375,7 @@ TRTrackerClientClassicImpl
 			return( getErrorRetryInterval() );
 		}
 				
-		int rem = (int)((current_timer_event.getWhen() - System.currentTimeMillis())/1000);
+		int rem = (int)((current_timer_event.getWhen() - SystemTime.getCurrentTime())/1000);
 				
 		return( rem );
 	}
@@ -390,9 +390,9 @@ TRTrackerClientClassicImpl
 	update(
 		boolean		force )
 	{
-		long time = System.currentTimeMillis() / 1000;
-		
-		if  ( 	force ||
+		long time = SystemTime.getCurrentTime() / 1000;
+
+		if  ( SystemTime.isErrorLast1min() || force ||
 			 	( time - last_update_time_secs >= REFRESH_MINIMUM_SECS )){
     		
 			requestUpdate();
@@ -430,7 +430,7 @@ TRTrackerClientClassicImpl
 		
 		current_timer_event = 
 			tracker_timer.addEvent( 
-				System.currentTimeMillis(),
+				SystemTime.getCurrentTime(),
 				timer_event_action );
 	}
 	
@@ -452,7 +452,7 @@ TRTrackerClientClassicImpl
 				update_in_progress = true;
 			}
 	
-			last_update_time_secs	= System.currentTimeMillis()/1000;
+			last_update_time_secs	= SystemTime.getCurrentTime()/1000;
 			
 			tracker_status_str = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
 		
@@ -1616,7 +1616,7 @@ TRTrackerClientClassicImpl
               TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
               if (scrapeResponse != null) {
                 long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
-                long lNewNextScrapeTime = System.currentTimeMillis() + 10*60*1000;
+                long lNewNextScrapeTime = SystemTime.getCurrentTime() + 10*60*1000;
                 if (lNextScrapeTime < lNewNextScrapeTime) {
                   scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
                 }
@@ -1712,10 +1712,11 @@ TRTrackerClientClassicImpl
    * Retrieve the retry interval to use on announce errors.
    */
   private int getErrorRetryInterval() {
-    long currentTime = System.currentTimeMillis() /1000;
+    long currentTime = SystemTime.getCurrentTime() /1000;
     
     //use previously calculated interval if it's not time to update
-    if ((currentTime - failure_time_last_updated) < (failure_added_time)) {
+    if ( !SystemTime.isErrorLast1min() &&
+        ((currentTime - failure_time_last_updated) < failure_added_time)) {
       return failure_added_time;
     }
 

@@ -193,8 +193,9 @@ public class TrackerChecker implements TRTrackerScraperListener {
    */
   private void runScrapes() {
     while (true) {
-      //System.out.println("Waiting for " + (lNextScrapeTime - System.currentTimeMillis()) + "ms");
-      while (lNextScrapeTime == 0 || lNextScrapeTime > System.currentTimeMillis()) {
+      //System.out.println("Waiting for " + (lNextScrapeTime - SystemTime.getCurrentTime()) + "ms");
+      while (lNextScrapeTime == 0 || lNextScrapeTime > SystemTime.getCurrentTime()) {
+        if ( SystemTime.isErrorLast1sec() ) break;
         try { 
           Thread.sleep(1000); 
         } catch (Exception e) {/**/}
@@ -244,7 +245,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
     // no next scrape was found.  search again in a minute
     if (nextResponse == null) {
       nextTrackerStatus = null;
-      lNextScrapeTime = System.currentTimeMillis() + 1000 * 60;
+      lNextScrapeTime = SystemTime.getCurrentTime() + 1000 * 60;
     } else {
       nextTrackerStatus = nextResponse.getTrackerStatus();
       nextTrackerHash = nextResponse.getHash();

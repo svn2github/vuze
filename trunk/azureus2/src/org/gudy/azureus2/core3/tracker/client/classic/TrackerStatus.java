@@ -103,7 +103,8 @@ public class TrackerStatus {
     }
 
     long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
-    if ((!force) && lMainNextScrapeStartTime >= System.currentTimeMillis()) {
+    
+    if (!SystemTime.isErrorLast1min() && !force && lMainNextScrapeStartTime >= SystemTime.getCurrentTime()) {
       return;
     }
     response.setStatus(TRTrackerScraperResponse.ST_SCRAPING);
@@ -173,7 +174,7 @@ public class TrackerStatus {
    
         ByteArrayOutputStream message = new ByteArrayOutputStream();
         
-        long scrapeStartTime = System.currentTimeMillis();
+        long scrapeStartTime = SystemTime.getCurrentTime();
         
         if ( reqUrl.getProtocol().equalsIgnoreCase( "udp" )){
           // TODO: support multi hash scrapes on UDP
@@ -202,7 +203,7 @@ public class TrackerStatus {
           if ( scrapeMap == null ){
             // some trackers that return only 1 hash return a random one!
             if (responses.size() == 1 || mapFiles.size() != 1) {
-              response.setNextScrapeStartTime(System.currentTimeMillis() + 
+              response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                               FAULTY_SCRAPE_RETRY_INTERVAL);
               response.setStatus(TRTrackerScraperResponse.ST_ERROR);
               response.setStatusString(MessageText.getString("Scrape.status.error") + 
@@ -229,7 +230,7 @@ public class TrackerStatus {
               
             //make sure we dont use invalid replies
             if ( seeds < 0 || peers < 0 ) {
-            	response.setNextScrapeStartTime(System.currentTimeMillis() + FAULTY_SCRAPE_RETRY_INTERVAL);
+            	response.setNextScrapeStartTime(SystemTime.getCurrentTime() + FAULTY_SCRAPE_RETRY_INTERVAL);
             	response.setStatus(TRTrackerScraperResponse.ST_ERROR);
               response.setStatusString(MessageText.getString("Scrape.status.error") + MessageText.getString("Scrape.status.error.invalid"));
               scraper.scrapeReceived( response );
@@ -248,7 +249,7 @@ public class TrackerStatus {
               //Debug.out("scrape min_request_interval = " +scrapeInterval);
     	      }
   
-            long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
+            long nextScrapeTime = SystemTime.getCurrentTime() + (scrapeInterval * 1000);
             response.setNextScrapeStartTime(nextScrapeTime);
 
     	      //create the response
@@ -275,7 +276,7 @@ public class TrackerStatus {
       } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
         for (int i = 0; i < responses.size(); i++) {
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
-          response.setNextScrapeStartTime(System.currentTimeMillis() + 
+          response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                           FAULTY_SCRAPE_RETRY_INTERVAL);
           response.setStatus(TRTrackerScraperResponse.ST_ERROR);
           //notifiy listeners
@@ -287,7 +288,7 @@ public class TrackerStatus {
    
         for (int i = 0; i < responses.size(); i++) {
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
-          response.setNextScrapeStartTime(System.currentTimeMillis() + 
+          response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                           FAULTY_SCRAPE_RETRY_INTERVAL);
           response.setStatus(TRTrackerScraperResponse.ST_ERROR);
           String s = MessageText.getString("Scrape.status.error") + e.getMessage();

@@ -132,9 +132,9 @@ PRUDPPacketHandlerImpl
 	protected void
 	checkTimeouts()
 	{
-		long	now = System.currentTimeMillis();
-		
-		if ( now - last_timeout_check >= PRUDPPacket.DEFAULT_UDP_TIMEOUT ){
+		long	now = SystemTime.getCurrentTime();
+
+		if ( SystemTime.isErrorLast30sec() || now - last_timeout_check >= PRUDPPacket.DEFAULT_UDP_TIMEOUT ){
 			
 			last_timeout_check	= now;
 			
