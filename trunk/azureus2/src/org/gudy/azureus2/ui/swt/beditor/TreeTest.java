@@ -55,13 +55,13 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
  */
 public class TreeTest {
 	
-	private final Tree theTree;
-	private final Composite form;
-	private final Composite treeComposite;
-	private final Composite editorComposite;
-	private final Display display;
+	private Tree theTree;
+	private Composite form;
+	private Composite treeComposite;
+	private Composite editorComposite;
+	private Display display;
 	private boolean showArrayIndices = false;
-	private final Map renderInfo;
+	private Map renderInfo;
 	
 	public TreeTest(Display display, Decorations parent, boolean editable) throws FileNotFoundException
 	{
@@ -69,19 +69,23 @@ public class TreeTest {
 		
 		final FillLayout layout = new FillLayout();
 		renderInfo = new HashMap();
-		form = new SashForm(parent, SWT.HORIZONTAL);
-				
-		treeComposite = new Composite(form, SWT.NONE);
-		treeComposite.setLayout(layout);
 		
-		theTree = new Tree(treeComposite, SWT.MULTI);
-		if( editable )
-			setupContextMenu(parent, theTree);
-
-		editorComposite = new Composite(form, SWT.NONE);
 		if( editable )	
 		{
+      form = new SashForm(parent, SWT.HORIZONTAL);
+        
+      treeComposite = new Composite(form, SWT.NONE);
+      treeComposite.setLayout(layout);
+
+      theTree = new Tree(treeComposite, SWT.MULTI);
+      
+      setupContextMenu(parent, theTree);
+
+      editorComposite = new Composite(form, SWT.NONE);
 		} else {
+      treeComposite = new Composite(parent, SWT.NONE);
+      treeComposite.setLayout(layout);
+      theTree = new Tree(treeComposite, SWT.MULTI);      
 		}
 	}
 	public Composite getPanel()
@@ -323,7 +327,7 @@ public class TreeTest {
 		mainWindow.setLayout(layout);
 		mainWindow.setText("SWT Test");
 
-		TreeTest test = new TreeTest(display, mainWindow, false);
+		TreeTest test = new TreeTest(display, mainWindow, true);
 		final String []specialKeys = new String[] {
 			"comment",
 			"created by",

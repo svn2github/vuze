@@ -124,15 +124,15 @@ public class PeersView extends AbstractIView implements IComponentListener {
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(item, "PeersView.menu.snubbed"); //$NON-NLS-1$
     
-    final MenuItem itemClose = new MenuItem(menu, SWT.CHECK);
+    /*final MenuItem itemClose = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(itemClose, "PeersView.menu.close"); //$NON-NLS-1$
-
+    */
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
           item.setEnabled(false);
-          itemClose.setEnabled(false);
+          //itemClose.setEnabled(false);
           return;
         }
         item.setEnabled(true);
@@ -156,7 +156,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
       }
     });
     
-    itemClose.addListener(SWT.Selection, new Listener() {
+    /*itemClose.addListener(SWT.Selection, new Listener() {
     public void handleEvent(Event e) {
       TableItem[] tis = table.getSelection();
       if (tis.length == 0) {
@@ -169,7 +169,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
           pti.getPeerSocket().closeAll(false);
       }
     }
-  });
+  });*/
     table.setMenu(menu);
 
     //    manager.addListener(this);
