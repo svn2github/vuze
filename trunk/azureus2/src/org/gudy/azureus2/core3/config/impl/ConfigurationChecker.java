@@ -160,7 +160,7 @@ ConfigurationChecker
 	    }else{
 	    		// no explicit proxy, install our own baby for testing purposes at the moment
 	    	
-	    	
+	    	/*
 	    	try{
 	    		AESocksProxy	proxy = 
 	    			AESocksProxyFactory.create( 0, 0, 0 );
@@ -173,7 +173,7 @@ ConfigurationChecker
 	    		
 	    		Debug.printStackTrace(e);
 	    	}
-	    
+	    	*/
 	    }
 	  
 	  	SESecurityManager.initialise();
