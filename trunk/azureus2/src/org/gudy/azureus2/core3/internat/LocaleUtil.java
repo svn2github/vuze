@@ -496,7 +496,7 @@ LocaleUtil
 				throw( new LocaleUtilEncodingException(charsets, names));
 			}
 			
-			torrent.setAdditionalStringProperty("encoding", encoding );
+			torrent.setAdditionalStringProperty("encoding", canonical_requested_name );
 			
 		}catch( Throwable e ){
 			
