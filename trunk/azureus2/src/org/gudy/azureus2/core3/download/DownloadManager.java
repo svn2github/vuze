@@ -161,6 +161,9 @@ DownloadManager
 	
 	public String
 	getSavePath();
+
+  public boolean 
+  setSavePath(String sPath);
 	
 	public int
 	getPriority();
