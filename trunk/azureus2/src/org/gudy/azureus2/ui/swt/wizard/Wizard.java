@@ -132,33 +132,33 @@ public class Wizard {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     new Label(cButtons, SWT.NULL).setLayoutData(gridData);
 
+    cancel = new Button(cButtons, SWT.PUSH);
+    gridData = new GridData();
+    gridData.widthHint = 90;
+    gridData.horizontalAlignment = GridData.CENTER;
+    cancel.setLayoutData(gridData);
+    Messages.setLanguageText(cancel, "Button.cancel");
+    
     previous = new Button(cButtons, SWT.PUSH);
     gridData = new GridData();
-    gridData.widthHint = 70;
+    gridData.widthHint = 90;
     gridData.horizontalAlignment = GridData.END;
     previous.setLayoutData(gridData);
     Messages.setLanguageText(previous, "wizard.previous");
 
     next = new Button(cButtons, SWT.PUSH);
     gridData = new GridData();
-    gridData.widthHint = 70;
+    gridData.widthHint = 90;
     gridData.horizontalAlignment = GridData.BEGINNING;
     next.setLayoutData(gridData);
     Messages.setLanguageText(next, "wizard.next");
 
     finish = new Button(cButtons, SWT.PUSH);
     gridData = new GridData();
-    gridData.widthHint = 70;
+    gridData.widthHint = 90;
     gridData.horizontalAlignment = GridData.CENTER;
     finish.setLayoutData(gridData);
     Messages.setLanguageText(finish, "wizard.finish");
-
-    cancel = new Button(cButtons, SWT.PUSH);
-    gridData = new GridData();
-    gridData.widthHint = 70;
-    gridData.horizontalAlignment = GridData.CENTER;
-    cancel.setLayoutData(gridData);
-    Messages.setLanguageText(cancel, "Button.cancel");
 
     previous.addListener(SWT.Selection, new Listener() {
       /* (non-Javadoc)
@@ -176,8 +176,9 @@ public class Wizard {
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
       public void handleEvent(Event arg0) {
+        IWizardPanel nextPanel = currentPanel.getNextPanel();
         clearPanel();
-        currentPanel = currentPanel.getNextPanel();
+        currentPanel = nextPanel;
         refresh();
       }
     });
