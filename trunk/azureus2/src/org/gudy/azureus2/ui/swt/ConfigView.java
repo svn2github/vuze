@@ -388,12 +388,14 @@ public class ConfigView extends AbstractIView {
 
     itemDisplay.setControl(gDisplay);
 
-    CTabItem itemStart = new CTabItem(ctfConfig, SWT.NULL);
-    Messages.setLanguageText(itemStart, "ConfigView.section.start"); //$NON-NLS-1$ //general
+    //CTabItem itemStart = new CTabItem(ctfConfig, SWT.NULL);
+    //Messages.setLanguageText(itemStart, "ConfigView.section.start"); //$NON-NLS-1$ //general
 
-    Group gStart = new Group(ctfConfig, SWT.NULL);
-
+    Group gStart = new Group(gDisplay, SWT.NULL);
+    Messages.setLanguageText(gStart, "ConfigView.section.start"); //$NON-NLS-1$ //general
+    
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 2;
     gStart.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
@@ -419,7 +421,7 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.startminimized"); //$NON-NLS-1$
     new BooleanParameter(gStart, "Start Minimized", false); //$NON-NLS-1$
 
-    itemStart.setControl(gStart);
+    //itemStart.setControl(gStart);
 
     CTabItem itemIrc = new CTabItem(ctfConfig, SWT.NULL);
     Messages.setLanguageText(itemIrc, "ConfigView.section.irc"); //$NON-NLS-1$
@@ -570,6 +572,8 @@ public class ConfigView extends AbstractIView {
         filter.save();
       }
     });
+    
+    ctfConfig.setSelection(itemFile);
 
   }
 
