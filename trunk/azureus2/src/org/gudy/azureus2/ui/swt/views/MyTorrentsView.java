@@ -201,6 +201,13 @@ public class MyTorrentsView
         }
     }
 
+    if(cCategories != null && !showCat) {
+        Control[] controls = cCategories.getChildren();
+        for (int i = 0; i < controls.length; i++) {
+          controls[i].dispose();
+        }
+    }
+
     if (categories.length > 0 && showCat) {
       if (cCategories == null) {
         cCategories = new Composite(getComposite(), SWT.NULL);
@@ -231,8 +238,6 @@ public class MyTorrentsView
           controls[i].dispose();
         }
       }
-
-      int totalWidth = 0;
 
       int iFontPixelsHeight = 11;
       int iFontPointHeight = (iFontPixelsHeight * 72) / cCategories.getDisplay().getDPI().y;
@@ -265,7 +270,6 @@ public class MyTorrentsView
         }
 
         catButton.pack(true);
-        totalWidth += catButton.getSize().x;
 
         catButton.addSelectionListener(new SelectionAdapter() {
           public void widgetSelected(SelectionEvent e) {
@@ -343,47 +347,51 @@ public class MyTorrentsView
       getComposite().layout();
 
       // layout hack - relayout
-      if(catResizeAdapter != null) {
-          MainWindow.getWindow().getShell().removeControlListener(catResizeAdapter);
+      if(catResizeAdapter == null) {
+          catResizeAdapter = new ControlAdapter() {
+              public void controlResized(ControlEvent event) {
+                  if(getComposite().isDisposed() || cCategories.isDisposed())
+                      return;
+
+                  final Shell shell = MainWindow.getWindow().getShell();
+                  if(shell.isDisposed() || !shell.isVisible())
+                      return;
+
+                  final Control[] childControls = getComposite().getChildren();
+
+                  if(childControls.length < 1)
+                      return;
+
+                  final Control label = childControls[0];
+                  if(label.isDisposed())
+                      return;
+
+                  final RowLayout buttonLayout = (RowLayout)cCategories.getLayout();
+                  int totalWidth = buttonLayout.marginLeft + buttonLayout.marginWidth + buttonLayout.marginRight;
+                  final Control[] buttons = cCategories.getChildren();
+                  for (int i = 0; i < buttons.length; i++) {
+                      totalWidth += buttons[i].getSize().x + buttonLayout.spacing;
+                  }
+
+                  final int labelWidth = label.getSize().x;
+                  int delta = MainWindow.getWindow().getShell().getSize().x - labelWidth - 5;
+                  GridData tmpData = (GridData)cCategories.getLayoutData();
+                  if(totalWidth > delta) {
+                      tmpData.widthHint = delta;
+                  }
+                  else {
+                      tmpData.widthHint = totalWidth;
+                  }
+                  cCategories.setLayoutData(tmpData);
+                  cCategories.layout();
+                  getComposite().layout();
+              }
+          };
+
+          MainWindow.getWindow().getShell().addControlListener(catResizeAdapter);
       }
 
-      final Integer totalWidthBox = new Integer(totalWidth);
-      catResizeAdapter = new ControlAdapter() {
-          public void controlResized(ControlEvent event) {
-              if(getComposite().isDisposed() || cCategories.isDisposed())
-                  return;
-
-              final Shell shell = MainWindow.getWindow().getShell();
-              if(shell.isDisposed() || !shell.isVisible())
-                  return;
-
-              final Control[] childControls = getComposite().getChildren();
-
-              if(childControls.length < 1)
-                  return;
-
-              final Control label = childControls[0];
-              if(label.isDisposed())
-                  return;
-
-              final int totalWidth = totalWidthBox.intValue();
-              final int labelWidth = label.getSize().x;
-              int delta = MainWindow.getWindow().getShell().getSize().x - labelWidth - 5;
-              GridData tmpData = (GridData)cCategories.getLayoutData();
-              if(totalWidth > delta) {
-                  tmpData.widthHint = delta;
-              }
-              else {
-                  tmpData.widthHint = totalWidth;
-              }
-              cCategories.setLayoutData(tmpData);
-              cCategories.layout();
-              getComposite().layout();
-          }
-      };
-
-      catResizeAdapter.controlMoved(null);
-      MainWindow.getWindow().getShell().addControlListener(catResizeAdapter);
+      catResizeAdapter.controlResized(null);
     }
   }
 
