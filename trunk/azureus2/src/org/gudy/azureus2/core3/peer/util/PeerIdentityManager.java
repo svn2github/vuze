@@ -93,17 +93,20 @@ public class PeerIdentityManager {
    */
   public static void addIdentity( byte[] data_id, byte[] peer_id, String ip ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
+    DataID dataID = new DataID( data_id );
+    PeerIdentity peerID = new PeerIdentity( peer_id );
+    
     try{
       class_mon.enter();
     
-      DataID dataID = new DataID( data_id );
-      if ( !dataMap.containsKey( dataID )) {
-        dataMap.put( dataID, new HashMap());
-      }
       Map peerMap = (Map)dataMap.get( dataID );
-      PeerIdentity peerID = new PeerIdentity( peer_id );
-      if ( !peerMap.containsKey( peerID )) {
-        peerMap.put( peerID, ip );
+      if( peerMap == null ) {
+        peerMap = new HashMap();
+        dataMap.put( dataID, peerMap );
+      }
+      
+      Object old = peerMap.put( peerID, ip );
+      if( old == null ) {
         totalIDs++;
       }
     }finally{
@@ -119,15 +122,17 @@ public class PeerIdentityManager {
    */
   public static void removeIdentity( byte[] data_id, byte[] peer_id ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
+    DataID dataID = new DataID( data_id );
+    
     try{
     	class_mon.enter();
-    
-      DataID dataID = new DataID( data_id );
-      if ( dataMap.containsKey( dataID )) {
-        Map peerMap = (Map)dataMap.get( dataID );
+      
+      Map peerMap = (Map)dataMap.get( dataID );
+      if( peerMap != null ) {
         PeerIdentity peerID = new PeerIdentity( peer_id );
-        if ( peerMap.containsKey( peerID )) {
-          peerMap.remove( peerID );
+        
+        Object old = peerMap.remove( peerID );
+        if( old != null ) {
           totalIDs--;
         }
       }
@@ -145,20 +150,22 @@ public class PeerIdentityManager {
    */
   public static boolean containsIdentity( byte[] data_id, byte[] peer_id ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
+    DataID dataID = new DataID( data_id );
+    PeerIdentity peerID = new PeerIdentity( peer_id );
+    
     try{
     	class_mon.enter();
   
-      DataID dataID = new DataID( data_id );
-      if ( dataMap.containsKey( dataID )) {
-        Map peerMap = (Map)dataMap.get( dataID );
-        PeerIdentity peerID = new PeerIdentity( peer_id );
-        if ( peerMap.containsKey( peerID )) {
-        	return true;
+      Map peerMap = (Map)dataMap.get( dataID );
+      if( peerMap != null ) {
+        if( peerMap.containsKey( peerID ) ) {
+          return true;
         }
       }
     }finally{
     	class_mon.exit();
     }
+    
     return false;
   }
   
@@ -179,17 +186,19 @@ public class PeerIdentityManager {
    */
   public static int getIdentityCount( byte[] data_id ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
+    DataID dataID = new DataID( data_id );
+    
     try{
     	class_mon.enter();
-    
-      DataID dataID = new DataID( data_id );
-      if ( dataMap.containsKey( dataID )) {
-        Map peerMap = (Map)dataMap.get( dataID );
+
+      Map peerMap = (Map)dataMap.get( dataID );
+      if( peerMap != null ) {
         return peerMap.size();
       }
     }finally{
     	class_mon.exit();
     }
+    
     return 0;
   }
   
@@ -204,19 +213,21 @@ public class PeerIdentityManager {
    */
   public static boolean containsIPAddress( byte[] data_id, String ip ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
+    DataID dataID = new DataID( data_id );
+    
     try{
     	class_mon.enter();
    	  
-      DataID dataID = new DataID( data_id );
-      if ( dataMap.containsKey( dataID )) {
-        Map peerMap = (Map)dataMap.get( dataID );
-        if ( peerMap.containsValue( ip )) {
+      Map peerMap = (Map)dataMap.get( dataID );
+      if( peerMap != null ) {
+        if( peerMap.containsValue( ip ) ) {
           return true;
         }
       }
     }finally{
     	class_mon.exit();
     }
+    
     return false;
   }
 
