@@ -11,6 +11,7 @@ import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 
 public class MyTorrentsSuperView extends AbstractIView  {
@@ -26,8 +27,11 @@ public class MyTorrentsSuperView extends AbstractIView  {
   public Composite getComposite() {
     return form;
   }
-
+  
   public void delete() {
+    // this doesn't always get called :(
+    // XXX need a better place
+    COConfigurationManager.setParameter("MyTorrents.SplitAt", form.getWeights()[0]);
     MainWindow.getWindow().setMytorrents(null);
     super.delete();
   }
@@ -51,7 +55,10 @@ public class MyTorrentsSuperView extends AbstractIView  {
     child2.setLayout(new FillLayout());
     seedingview = new MyTorrentsView(globalManager, true);
     seedingview.initialize(child2);
-    form.setWeights(new int[] {30,70});
+    int weight = COConfigurationManager.getIntParameter("MyTorrents.SplitAt", 30);
+    if (weight > 100)
+      weight = 100;
+    form.setWeights(new int[] {weight,100 - weight});
   }
 
   public void refresh() {

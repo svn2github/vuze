@@ -52,7 +52,7 @@ public class TrackerChangerWindow {
     gridData.horizontalSpan = 2;
     panel.setLayoutData(gridData);
     Button ok = new Button(panel, SWT.PUSH);
-    ok.setText(MessageText.getString("TrackerChangerWindow.ok"));
+    ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData();
     gridData.widthHint = 70;
     ok.setLayoutData(gridData);
@@ -80,7 +80,7 @@ public class TrackerChangerWindow {
     });
 
     Button cancel = new Button(panel, SWT.PUSH);
-    cancel.setText(MessageText.getString("TrackerChangerWindow.cancel"));
+    cancel.setText(MessageText.getString("Button.cancel"));
     gridData = new GridData();
     gridData.widthHint = 70;
     cancel.setLayoutData(gridData);

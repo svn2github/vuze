@@ -61,7 +61,7 @@ public class BlockedIpsWindow {
     text.setText(ips);
     
     
-    Messages.setLanguageText(btnOk,"authenticator.ok");
+    Messages.setLanguageText(btnOk,"Button.ok");
     formData = new FormData();
     formData.right = new FormAttachment(100,0);    
     formData.bottom = new FormAttachment(100,0);

@@ -48,6 +48,14 @@ public class MessageText {
    * @param key
    * @return
    */
+  public static String getString(String key, String sDefault) {
+    try {
+      return RESOURCE_BUNDLE.getString(key);
+    } catch (MissingResourceException e) {
+      return sDefault;
+    }
+  }
+
   public static String getString(String key) {
     // TODO Auto-generated method stub
     try {

@@ -158,7 +158,7 @@ public class Wizard {
     gridData.widthHint = 70;
     gridData.horizontalAlignment = GridData.CENTER;
     cancel.setLayoutData(gridData);
-    Messages.setLanguageText(cancel, "wizard.cancel");
+    Messages.setLanguageText(cancel, "Button.cancel");
 
     previous.addListener(SWT.Selection, new Listener() {
       /* (non-Javadoc)

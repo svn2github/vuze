@@ -53,7 +53,7 @@ public class CategoryAdderWindow {
     gridData.horizontalSpan = 2;
     panel.setLayoutData(gridData);
     Button ok = new Button(panel, SWT.PUSH);
-    ok.setText(MessageText.getString("CategoryAddWindow.ok"));
+    ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData();
     gridData.widthHint = 70;
     ok.setLayoutData(gridData);
@@ -77,7 +77,7 @@ public class CategoryAdderWindow {
     });
 
     Button cancel = new Button(panel, SWT.PUSH);
-    cancel.setText(MessageText.getString("CategoryAddWindow.cancel"));
+    cancel.setText(MessageText.getString("Button.cancel"));
     gridData = new GridData();
     gridData.widthHint = 70;
     cancel.setLayoutData(gridData);

@@ -133,7 +133,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 100;
     cancel.setLayoutData(gridData);
-    cancel.setText(MessageText.getString("fileDownloadWindow.cancel"));
+    cancel.setText(MessageText.getString("Button.cancel"));
     cancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         downloader.cancel();

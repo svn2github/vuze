@@ -196,7 +196,7 @@ public class MultiTrackerEditor {
     gridData.horizontalAlignment = GridData.END;
     gridData.widthHint = 70;
     btnCancel.setLayoutData(gridData);
-    Messages.setLanguageText(btnCancel,"wizard.multitracker.edit.cancel");
+    Messages.setLanguageText(btnCancel,"Button.cancel");
     btnCancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         shell.dispose();

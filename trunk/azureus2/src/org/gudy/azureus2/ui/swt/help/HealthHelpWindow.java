@@ -138,7 +138,7 @@ public class HealthHelpWindow {
     
     
     Button btnOk = new Button(window,SWT.PUSH);
-    btnOk.setText(MessageText.getString("authenticator.ok"));
+    btnOk.setText(MessageText.getString("Button.ok"));
     formData = new FormData();
     formData.top = new FormAttachment(lblGreenExplain,20);
     formData.right = new FormAttachment(100,0);

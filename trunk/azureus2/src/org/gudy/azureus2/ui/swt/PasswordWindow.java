@@ -59,7 +59,7 @@ public class PasswordWindow {
     password.setLayoutData(gridData);
     
     Button ok = new Button(shell,SWT.PUSH);
-    ok.setText(MessageText.getString("PasswordWindow.ok"));
+    ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
     gridData.widthHint = 70;
     ok.setLayoutData(gridData);
@@ -98,7 +98,7 @@ public class PasswordWindow {
     });    
     
     Button cancel = new Button(shell,SWT.PUSH);
-    cancel.setText(MessageText.getString("PasswordWindow.cancel"));
+    cancel.setText(MessageText.getString("Button.cancel"));
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
     gridData.widthHint = 70;
     cancel.setLayoutData(gridData);

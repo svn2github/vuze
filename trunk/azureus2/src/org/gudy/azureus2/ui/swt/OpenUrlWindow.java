@@ -77,7 +77,7 @@ public class OpenUrlWindow {
     gridData.widthHint = 100;    
     gridData.horizontalSpan = 2;
     ok.setLayoutData(gridData);
-    ok.setText(MessageText.getString("openUrl.ok"));
+    ok.setText(MessageText.getString("Button.ok"));
     ok.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {        
         new FileDownloadWindow(display,url.getText());
@@ -90,7 +90,7 @@ public class OpenUrlWindow {
     gridData = new GridData();
     gridData.widthHint = 100;
     cancel.setLayoutData(gridData);
-    cancel.setText(MessageText.getString("openUrl.cancel"));
+    cancel.setText(MessageText.getString("Button.cancel"));
     cancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         shell.dispose();

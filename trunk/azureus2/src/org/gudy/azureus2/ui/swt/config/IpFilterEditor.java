@@ -98,7 +98,7 @@ public class IpFilterEditor {
     textEndIp.setLayoutData(gridData);
 
     final Button ok = new Button(shell, SWT.PUSH);
-    Messages.setLanguageText(ok, "ipFilter.ok");
+    Messages.setLanguageText(ok, "Button.ok");
 
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;

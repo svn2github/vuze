@@ -298,7 +298,7 @@ AuthenticatorWindow
 			Label label = new Label(shell,SWT.NULL);
 
 			Button bOk = new Button(shell,SWT.PUSH);
-		 	bOk.setText(MessageText.getString("authenticator.ok"));
+		 	bOk.setText(MessageText.getString("Button.ok"));
 		 	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 		 	gridData.grabExcessHorizontalSpace = true;
 		 	gridData.widthHint = 70;
@@ -310,7 +310,7 @@ AuthenticatorWindow
 			 });
 	    
 		 	Button bCancel = new Button(shell,SWT.PUSH);
-		 	bCancel.setText(MessageText.getString("authenticator.cancel"));
+		 	bCancel.setText(MessageText.getString("Button.cancel"));
 		 	gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		 	gridData.grabExcessHorizontalSpace = false;
 		 	gridData.widthHint = 70;

@@ -67,38 +67,44 @@ public class EnumeratorEditor {
     
     blue = new Color(display,0,0,128);
     
-    shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
     shell.setImage(ImageRepository.getImage("azureus"));
     shell.setText(MessageText.getString("columnChooser.title"));
     
     GridLayout layout = new GridLayout();
-    layout.numColumns = 3;         
     shell.setLayout (layout);
     
     GridData gridData;
     
     Label label = new Label(shell,SWT.NULL);
     label.setText(MessageText.getString("columnChooser.move"));
-    gridData = new GridData(GridData.FILL_BOTH);
-    gridData.horizontalSpan = 3;
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     label.setLayoutData(gridData);
     
     table = new Table (shell, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
     gridData = new GridData(GridData.FILL_BOTH);
-    gridData.horizontalSpan = 3;
     table.setLayoutData(gridData);
     table.setLinesVisible (true);    
+    table.setHeaderVisible(true);
     Font f = table.getFont();
     FontData fd = f.getFontData()[0];
     fd.setHeight(9);
     table.setFont(new Font(display, fd));
     
-    Button bOk = new Button(shell,SWT.PUSH);
-    bOk.setText(MessageText.getString("columnChooser.ok"));
-    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.grabExcessHorizontalSpace = true;
-    gridData.widthHint = 70;
-    bOk.setLayoutData(gridData);
+    Composite cButtonArea = new Composite(shell, SWT.NULL);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+    cButtonArea.setLayoutData(gridData);
+    RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
+    rLayout.marginLeft = 0;
+ 		rLayout.marginTop = 0;
+ 		rLayout.marginRight = 0;
+ 		rLayout.marginBottom = 0;
+ 		rLayout.spacing = 5;
+ 		cButtonArea.setLayout (rLayout);
+    
+    Button bOk = new Button(cButtonArea,SWT.PUSH);
+    bOk.setText(MessageText.getString("Button.ok"));
+    bOk.setLayoutData(new RowData(70, 20));
     bOk.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         saveAndApply();
@@ -106,24 +112,18 @@ public class EnumeratorEditor {
       }
     });
     
-    Button bCancel = new Button(shell,SWT.PUSH);
-    bCancel.setText(MessageText.getString("columnChooser.cancel"));
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-    gridData.grabExcessHorizontalSpace = false;
-    gridData.widthHint = 70;
-    bCancel.setLayoutData(gridData);    
+    Button bCancel = new Button(cButtonArea,SWT.PUSH);
+    bCancel.setText(MessageText.getString("Button.cancel"));
+    bCancel.setLayoutData(new RowData(70, 20));
     bCancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         close();
       }
     });
     
-    Button bApply = new Button(shell,SWT.PUSH);
+    Button bApply = new Button(cButtonArea,SWT.PUSH);
     bApply.setText(MessageText.getString("columnChooser.apply"));
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-    gridData.grabExcessHorizontalSpace = false;
-    gridData.widthHint = 70;
-    bApply.setLayoutData(gridData);
+    bApply.setLayoutData(new RowData(70, 20));
     bApply.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         saveAndApply();
@@ -131,8 +131,11 @@ public class EnumeratorEditor {
     });
     
     
-    for (int i=0; i<2; i++) {
+    String[] columnsHeader = { "", "columnname", "columndescription" };
+    for (int i=0; i< columnsHeader.length; i++) {
       TableColumn column = new TableColumn(table, SWT.NONE);    
+      if (columnsHeader[i] != "")
+        column.setText(MessageText.getString("columnChooser." + columnsHeader[i]));
     }
     ItemDescriptor[] items = enumerator.getItems();
     for (int i=0; i<items.length; i++) {
@@ -150,6 +153,7 @@ public class EnumeratorEditor {
     //Hack to get a correct width
     table.getColumn(0).setWidth(30);
     table.getColumn(1).setWidth(200);
+    table.getColumn(2).setWidth(1000);
     
     
     table.addMouseListener(new MouseAdapter() {
@@ -225,6 +229,9 @@ public class EnumeratorEditor {
     });
     table.redraw();
     shell.pack ();
+    Point p = shell.getSize();
+    p.x = 550;
+    shell.setSize(p);
     shell.open (); 
   }
   
@@ -257,6 +264,7 @@ public class EnumeratorEditor {
       item = new TableItem (table, SWT.NONE,index);
     
     item.setText(1,MessageText.getString(propertiesName + "." + name));
+    item.setText(2,MessageText.getString(propertiesName + "." + name + "." + "info", ""));
     item.setData("name",name);
     TableEditor editor = new TableEditor (table);
     Button button = new Button (table, SWT.CHECK);

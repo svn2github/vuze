@@ -210,7 +210,7 @@ public class NatPanel extends AbstractWizardPanel {
     bTest.setLayoutData(gridData);
 
     bCancel = new Button(panel, SWT.PUSH);
-    Messages.setLanguageText(bCancel, "configureWizard.nat.cancel");
+    Messages.setLanguageText(bCancel, "Button.cancel");
     gridData = new GridData();
     gridData.widthHint = 70;
     bCancel.setLayoutData(gridData);
