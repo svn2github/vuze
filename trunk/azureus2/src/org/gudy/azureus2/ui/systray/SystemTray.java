@@ -90,8 +90,8 @@ public class SystemTray extends SysTrayMenuAdapter {
 		toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(main.getGlobalManager().getStats().getUploadAverage()));
 
 		menu.setToolTip(toolTip.toString());
-    if(!menu.isIconVisible())
-      menu.showIcon();
+//    if(!menu.isIconVisible())
+    menu.showIcon();
 	}
 	/* (non-Javadoc)
 	 * @see snoozesoft.systray4j.SysTrayMenuListener#iconLeftDoubleClicked(snoozesoft.systray4j.SysTrayMenuEvent)
