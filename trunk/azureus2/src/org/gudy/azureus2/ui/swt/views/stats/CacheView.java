@@ -287,7 +287,7 @@ public class CacheView extends AbstractIView {
     lblWritesToFile = new Label(gCacheWrites,SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
-    lblPercentWrites.setLayoutData(gridData);
+    lblWritesToFile.setLayoutData(gridData);
   }
 
   public void delete() {
