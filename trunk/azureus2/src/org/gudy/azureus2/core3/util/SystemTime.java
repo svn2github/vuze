@@ -42,6 +42,7 @@ public class SystemTime {
   private long errorStartTime = 0;
   private final long errorTimes[] = { 1000, 5000, 10000, 30000, 60000, 300000, 600000 };
   private volatile boolean errorStates[] = new boolean[errorTimes.length];
+  private volatile long lastTimeChange = 0;
   
   
   private SystemTime() {
@@ -53,7 +54,8 @@ public class SystemTime {
           currentTime = System.currentTimeMillis();
           
           if ( currentTime < prevTime ) {   //oops, time went backwards!
-            LGLogger.log(LGLogger.INFORMATION, "SystemTime: caught clock time set backwards "+(prevTime-currentTime)+ " ms");
+            lastTimeChange = prevTime - currentTime;
+            LGLogger.log(LGLogger.INFORMATION, "SystemTime: caught clock time set backwards "+lastTimeChange+" ms");
             errorStartTime = currentTime;
             for (int i=0; i < errorStates.length; i++) errorStates[i] = true;
           }
@@ -148,5 +150,12 @@ public class SystemTime {
     return instance.errorStates[6];
   }
   
+  /**
+   * Get the time change (backwards) of the last time error.
+   * @return change in ms
+   */
+  public static long getErrorTimeChange() {
+    return instance.lastTimeChange;
+  }
   
 }
