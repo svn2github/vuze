@@ -5,7 +5,7 @@ xx.06.04 | Azureus 2.1.0.1
 
 FEATURE:
 
-CHANGE:
+CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
 
 BUGFIX: Core | Fix for Library Paths using single quotes [Parg]
 BUGFIX: Core | Fixed shared plugin dir location on OSX [Parg]
