@@ -18,7 +18,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
-import java.util.Properties;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.Date;
@@ -94,6 +93,7 @@ import org.gudy.azureus2.pluginsimpl.PluginInitializer;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
+import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.*;
@@ -575,7 +575,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Messages.setLanguageText(help_about, "MainWindow.menu.help.about"); //$NON-NLS-1$
     help_about.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        showAboutWindow();
+        AboutWindow.show(display);
       }
     });
     
@@ -1009,98 +1009,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if (splash_maybe_null != null) {
       splash_maybe_null.close();
       splash_maybe_null = null;
-    }
-  }
-
-  private void showAboutWindow() {
-    final Shell s = new Shell(mainWindow, SWT.CLOSE | SWT.PRIMARY_MODAL);
-    s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
-    s.setText(MessageText.getString("MainWindow.about.title") + " " + VERSION); //$NON-NLS-1$
-    GridData gridData;
-    s.setLayout(new GridLayout(1, true));
-    s.setLayoutData(gridData = new GridData());
-
-    Label label = new Label(s, SWT.NONE);
-    label.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash"));
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-    label.setLayoutData(gridData);
-
-    Properties properties = new Properties();
-    try {
-      properties.load(MainWindow.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/swt/about.properties"));
-    }
-    catch (Exception e1) {
-      e1.printStackTrace();
-    }
-
-    Group gDevelopers = new Group(s, SWT.NULL);
-    gDevelopers.setLayout(new GridLayout());
-    Messages.setLanguageText(gDevelopers, "MainWindow.about.section.developers"); //$NON-NLS-1$
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gDevelopers.setLayoutData(gridData);
-
-    label = new Label(gDevelopers, SWT.LEFT);
-    label.setText(properties.getProperty("developers")); //$NON-NLS-1$ //$NON-NLS-2$
-    label.setLayoutData(gridData = new GridData());
-
-    Group gTranslators = new Group(s, SWT.NULL);
-    gTranslators.setLayout(new GridLayout());
-    Messages.setLanguageText(gTranslators, "MainWindow.about.section.translators"); //$NON-NLS-1$
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gTranslators.setLayoutData(gridData);
-
-    label = new Label(gTranslators, SWT.LEFT);
-    label.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
-    label.setLayoutData(gridData = new GridData());
-
-    Group gInternet = new Group(s, SWT.NULL);
-    gInternet.setLayout(new GridLayout());
-    Messages.setLanguageText(gInternet, "MainWindow.about.section.internet"); //$NON-NLS-1$
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gInternet.setLayoutData(gridData);
-
-    final String[][] link =
-      { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "featurerequests", "forumdiscussion" }, {
-        "http://azureus.sourceforge.net/",
-          "http://sourceforge.net/projects/azureus/",
-          "http://sourceforge.net/project/showfiles.php?group_id=84122",
-          "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
-          "http://sourceforge.net/tracker/?atid=575157&group_id=84122&func=browse",
-          "http://sourceforge.net/forum/forum.php?forum_id=291997" }
-    };
-
-    for (int i = 0; i < link[0].length; i++) {
-      final Label linkLabel = new Label(gInternet, SWT.NULL);
-      linkLabel.setText(MessageText.getString("MainWindow.about.internet." + link[0][i]));
-      linkLabel.setData(link[1][i]);
-      linkLabel.setCursor(handCursor);
-      linkLabel.setForeground(blue);
-      linkLabel.setLayoutData(gridData = new GridData());
-      linkLabel.addMouseListener(new MouseAdapter() {
-        public void mouseDoubleClick(MouseEvent arg0) {
-          Program.launch((String) ((Label) arg0.widget).getData());
-        }
-        public void mouseDown(MouseEvent arg0) {
-          Program.launch((String) ((Label) arg0.widget).getData());
-        }
-      });
-    }
-
-    s.pack();
-    Rectangle splashRect = s.getBounds();
-    Rectangle displayRect = display.getBounds();
-    int x = (displayRect.width - splashRect.width) / 2;
-    int y = (displayRect.height - splashRect.height) / 2;
-    s.setLocation(x, y);
-    s.open();
-    while (!s.isDisposed()) {
-      try {
-        if (!display.readAndDispatch())
-          display.sleep();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
     }
   }
 

@@ -110,7 +110,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       ,"up;R;I;70;-1"
       ,"pieces;C;I;100;-1"
       ,"completion;C;I;100;-1"
-			,"wealth;C;I;18;-1"
+			,"health;L;I;18;-1"
   };
   
 	// table item index, where the drag has started

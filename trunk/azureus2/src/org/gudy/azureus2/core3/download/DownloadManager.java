@@ -236,5 +236,5 @@ DownloadManager
 	/**
 	 * @return the wealthy status of this download
 	 */
-	public int getWealthyStatus();
+	public int getHealthStatus();
 }

@@ -162,8 +162,9 @@ PEPeerControlImpl
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
+    
     setDiskManager(_diskManager);
-
+    
     superSeedMode = (COConfigurationManager.getBooleanParameter("Use Super Seeding") && this.getRemaining() == 0);
     superSeedModeCurrentPiece = 0;
     superSeedPieces = new SuperSeedPiece[_nbPieces];
@@ -174,6 +175,8 @@ PEPeerControlImpl
     
     requestsToFree = new ArrayList();
 
+    
+    
     peerUpdater = new PeerUpdater();
     peerUpdater.start();
     
@@ -185,6 +188,14 @@ PEPeerControlImpl
        slowConnector.setDaemon(true);
        slowConnector.start();
     }
+    
+    new Thread( "Peer Manager"){
+      public void
+      run()
+      {
+        mainLoop();
+      }
+    }.start();
   }
 
   private class PeerUpdater extends Thread {
@@ -1474,15 +1485,7 @@ PEPeerControlImpl
     //the stats
     _stats = new PEPeerManagerStatsImpl(diskManager.getPieceLength());
 
-    _server.startServer();
-
-	new Thread( "Peer Manager"){
-		public void
-		run()
-		{
-			mainLoop();
-		}
-	}.start();
+    _server.startServer();	
   }
 
   public void haveNewPiece() {

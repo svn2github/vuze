@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.ui.swt.config.wizard.WelcomePanel;
 
 /**
  * @author Olivier
@@ -915,7 +914,7 @@ DownloadManagerImpl
   }
   
   
-  public int getWealthyStatus() {
+  public int getHealthStatus() {
     if(peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
       int nbSeeds = getNbSeeds();
       int nbPeers = getNbPeers();

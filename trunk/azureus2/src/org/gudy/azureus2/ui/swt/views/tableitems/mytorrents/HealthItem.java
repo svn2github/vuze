@@ -33,13 +33,13 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
  * @author Olivier
  *
  */
-public class WealthItem extends TorrentItem  {
+public class HealthItem extends TorrentItem  {
   
   /**
    * @param row
    * @param position
    */
-  public WealthItem(TorrentRow torrentRow, int position) {
+  public HealthItem(TorrentRow torrentRow, int position) {
     super(torrentRow, position);
   }
   
@@ -65,7 +65,7 @@ public class WealthItem extends TorrentItem  {
     String	image_name = "st_stopped";
     
     DownloadManager manager = torrentRow.getManager();
-    int wealth = manager.getWealthyStatus();
+    int wealth = manager.getHealthStatus();
     if(wealth == DownloadManager.WEALTH_KO) {
     	image_name = "st_ko";   
     } else if (wealth == DownloadManager.WEALTH_OK) {
