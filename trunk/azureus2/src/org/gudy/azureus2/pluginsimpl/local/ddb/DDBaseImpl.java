@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -41,7 +42,6 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
-import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 
 /**
  * @author parg
@@ -120,7 +120,11 @@ DDBaseImpl
 									
 									Download dl = azureus_core.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( hash );
 									
-									return( createValue( dl.getTorrent().writeToBEncodedData()));
+									Torrent	torrent = dl.getTorrent();
+									
+									torrent = torrent.removeAdditionalProperties();
+									
+									return( createValue( torrent.writeToBEncodedData()));
 									
 								}catch( Throwable e ){
 									

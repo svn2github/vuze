@@ -106,7 +106,7 @@ MagnetConnection
 			}
 		}
 		
-		return( socket.getInputStream());
+		return( is );
 	}
 	
 	public int

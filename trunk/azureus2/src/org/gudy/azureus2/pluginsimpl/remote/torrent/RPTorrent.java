@@ -236,6 +236,14 @@ RPTorrent
 		return(null);
 	}
 	
+	public Torrent
+	removeAdditionalProperties()
+	{
+		notSupported();
+		
+		return( null );
+	}
+
 	public Map
 	writeToMap()
 	

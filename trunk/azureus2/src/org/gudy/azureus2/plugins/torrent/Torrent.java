@@ -93,6 +93,9 @@ Torrent
 	getAdditionalProperty(
 		String		name );
 
+	public Torrent
+	removeAdditionalProperties();
+	
 	public boolean
 	isDecentralised();
 	

@@ -236,6 +236,24 @@ TorrentImpl
 		return( torrent.getAdditionalProperty( name ));
 	}
 	
+	public Torrent
+	removeAdditionalProperties()
+	{
+		try{
+			TOTorrent	t = TOTorrentFactory.deserialiseFromMap(torrent.serialiseToMap());
+					
+			t.removeAdditionalProperties();
+	
+			return( new TorrentImpl( t ));
+			
+		}catch( TOTorrentException e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( this );
+		}
+	}
+
 	public Map
 	writeToMap()
 	

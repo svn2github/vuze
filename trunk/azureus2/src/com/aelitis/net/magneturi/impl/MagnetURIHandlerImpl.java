@@ -265,9 +265,7 @@ MagnetURIHandlerImpl
 				pw.flush();
 				
 				String	base_32 = urn.substring(9);
-				
-				System.out.println( "base 32 = " + base_32 );
-				
+								
 				byte[] sha1 = Base32.decode( base_32 );
 				
 				byte[]	data = null;
@@ -285,7 +283,7 @@ MagnetURIHandlerImpl
 				
 				if ( data != null ){
 					
-					pw.println( "Content-Length: " + data.length + NL + NL );
+					pw.print( "Content-Length: " + data.length + NL + NL );
 					
 					pw.flush();
 					
@@ -295,7 +293,7 @@ MagnetURIHandlerImpl
 					
 				}else{
 					
-					pw.println( "X-Report: no sources found for download" + NL );
+					pw.print( "X-Report: no sources found for download" + NL );
 					
 					pw.flush();
 				}
