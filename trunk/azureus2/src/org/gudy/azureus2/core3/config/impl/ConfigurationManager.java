@@ -83,7 +83,7 @@ public class ConfigurationManager {
   private void
   initialise()
   {
-   	ConfigurationChecker.migrateConfig();
+   //ConfigurationChecker.migrateConfig();  //removed 2201
   	
   	ConfigurationChecker.checkConfiguration();
 

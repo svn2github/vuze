@@ -42,7 +42,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 public class 
 ConfigurationChecker 
 {
-  private static boolean migrated				= false;
+  //private static boolean migrated				= false;
 	 
   private static boolean system_properties_set	= false;
   
@@ -51,6 +51,7 @@ ConfigurationChecker
   private static AEMonitor	class_mon	= new AEMonitor( "ConfigChecker");
   
   
+  /*
   protected static void
   migrateConfig()
   {
@@ -71,6 +72,7 @@ ConfigurationChecker
   		class_mon.exit();
   	}
   }
+  */
   
   protected static void
   setSystemProperties()
@@ -404,9 +406,10 @@ ConfigurationChecker
   }
   
   
-  /**
+  
+  /*
    * Migrates old user files/dirs from application dir to user dir
-   */
+   *
   private static void migrateOldConfigFiles() {
     if ( COConfigurationManager.getBooleanParameter("Already_Migrated", false)) {
       return;
@@ -443,8 +446,7 @@ ConfigurationChecker
     	LGLogger.logAlertUsingResource(LGLogger.INFORMATION, "AutoMigration.useralert", params);
     }
   }
-  
-  
+    
   private static String migrateAllFiles( String source_path, String dest_path ) {
     String result = "";
     File source_dir = new File( source_path );
@@ -463,6 +465,7 @@ ConfigurationChecker
     }
     return result;
   }
+  */
   
   
   

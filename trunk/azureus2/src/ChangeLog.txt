@@ -30,6 +30,7 @@ CHANGE: UI   | Graphical view item refresh optimizations [Nolar]
 CHANGE: Core | Also do dynamic tracker re-announce interval overrides when seeding; uses peer count only [Nolar]
 CHANGE: Core | NAT check url changed to aelitis server [Nolar]
 CHANGE: Core | Reduce tracker re-announce interval when incoming connections are accepted (unfirewalled) [Nolar]
+CHANGE: Core | Remove old auto-migration code [Nolar]
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
