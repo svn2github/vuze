@@ -21,6 +21,7 @@ import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 /**
@@ -39,15 +40,19 @@ public class TorrentInfoPNGStream extends InputStream {
   public TorrentInfoPNGStream(HashMap URIvars, DownloadManager dm) {
     if (URIvars.containsKey("kind")) {
       if (URIvars.get("kind").toString().equalsIgnoreCase("pieces")) {
-        boolean pieces[] = dm.getPiecesStatus();
-        if (pieces == null) {
+      	DiskManager	disk_manager = dm.getDiskManager();
+      	
+        if (disk_manager == null) {
           CreateNotAvailable();
           return;
         }
+        
+        DiskManagerPiece[]	pieces = disk_manager.getPieces();
+        
         img = new BufferedImage(pieces.length, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D gr = img.createGraphics();
         for (int i = 0; i < pieces.length; i++) {
-          if (pieces[i])
+          if (pieces[i].getDone())
             gr.setColor(new Color(0, 128, 255));
           else
             gr.setColor(Color.WHITE);
