@@ -12,20 +12,19 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.SHA1;
 import org.gudy.azureus2.core3.util.SHA1Az;
-
+import java.security.MessageDigest;
 
 /**
  * 
  */
 public class SHA1Verification {
   
-  public static final String dirname = System.getProperty("user.home") + System.getProperty("file.separator") + "testdir";
+  public static final String dirname = "D:" + System.getProperty("file.separator") + "testdir";
   
   public static void main(String[] args) {
     if (! new File( dirname ).exists())  createTestFiles();
-    //runTests();
+    runTests();
   }
 
   public static void createTestFiles() {
@@ -33,43 +32,25 @@ public class SHA1Verification {
       System.out.println("Creating test files ... ");
       Random rand = new Random();
       String rootname = "f-";
-      long[] sizes = { 1, 4, 10, 16, 25, 32, 75, 127, 179, 250, 512, 1003, 1023, 1024, 1025,
-        							 1500, 2011, 2910, 3500, 5120, 8700, 10250, 50001, 77777, 100030, 210000,
-        							 512000, 1024000, 1024001, 5120003, 10000000, 25000007, 100000000,
-        							 255000000, 512000000, 756000000};
+      
+      long[] sizes = { 0, 1, 3347483648L};
     
       File testdir = new File( dirname );
       testdir.mkdirs();
    
 
-      File file = new File( testdir, rootname + "allzero");
-      System.out.println( file.getName() + "...");
-      FileChannel fc = new RandomAccessFile( file, "rw" ).getChannel();
-      long size = 1025*1024*9;
-      long position = 0;
-      while ( position < size ) {
-        long remaining = size - position;
-        if ( remaining > 1024000 ) remaining = 1024000;
-        byte[] buffer = new byte[(int)remaining];
-        Arrays.fill( buffer , (byte)0 );
-        ByteBuffer bb = ByteBuffer.wrap( buffer );
-        position += fc.write( bb );
-      }
-      fc.close();
-      
-      
       
       for (int i=0; i < sizes.length; i++) {
-        size = sizes[i];
-        file = new File( testdir, rootname + String.valueOf( size ));
+        long size = sizes[i];
+        File file = new File( testdir, rootname + String.valueOf( size ));
         System.out.println( file.getName() + "...");
-        fc = new RandomAccessFile( file, "rw" ).getChannel();
+        FileChannel fc = new RandomAccessFile( file, "rw" ).getChannel();
         
-        position = 0;
+        long position = 0;
         while ( position < size ) {
           long remaining = size - position;
           if ( remaining > 1024000 ) remaining = 1024000;
-          byte[] buffer = new byte[(int)remaining];
+          byte[] buffer = new byte[ new Long(remaining).intValue() ];
           rand.nextBytes( buffer );
           ByteBuffer bb = ByteBuffer.wrap( buffer );
           position += fc.write( bb );
@@ -82,77 +63,64 @@ public class SHA1Verification {
     catch (Exception e) { e.printStackTrace(); }
   }
   
-  /*
-	public static void runTests() {
-    
-    SHA1 sha1Jmule = new SHA1();
-    SHA1Az sha1Gudy = new SHA1Az();
-    
-    ByteBuffer dBuffer = ByteBuffer.allocateDirect( BUFF_MAX_SIZE );
-    ByteBuffer fBuffer = ByteBuffer.allocateDirect( 20 );
-    
-    fBuffer.order(ByteOrder.BIG_ENDIAN);
-    
-    for (int i=0; i < BUFF_MAX_SIZE; i++) {
-      byte b = (byte)(Math.random() * 255);
-      dBuffer.put( b );
-    }
-    
-    //allow time for setting thread to high-priority
-    try { Thread.sleep(10000); } catch (Exception ignore) {}
-    
-
-    for (int t=0; t < TESTS.length; t++) {
-      
-      int buffsize = TESTS[t] * 1024;
-      dBuffer.limit( buffsize );
-      
-      int loops = LOOPS[t];
-    
-    	String info = " [" + buffsize/1024 + "KB, " + loops + "x] = ";
-      
-    	float totalMBytes = ((float)buffsize / (1024 * 1024)) * loops;
-    
-    
-    	System.out.print("JMule SHA1");
-    	long jds = System.currentTimeMillis();
-    	for (int i=0; i < loops; i++) {
-    		dBuffer.position(0);
-        dBuffer.limit( buffsize );
-        fBuffer.position(0);
-        sha1Jmule.update( dBuffer );
-    		sha1Jmule.finalDigest( fBuffer );
-    	}
-    	long jde = System.currentTimeMillis();
   
-    	long jdt = (jde - jds);
-    	float jdspeed = totalMBytes / (jdt / 1000);
-      
-    	System.out.println(info + jdt + " ms @ " + jdspeed + " MB/s");
+	public static void runTests() {
+    try {
+    
+      //SHA1 sha1Jmule = new SHA1();
+      MessageDigest sha1Sun = MessageDigest.getInstance("SHA-1");
+      SHA1Az sha1Gudy = new SHA1Az();
+      //SHA1Az shaGudyResume = new SHA1Az();
+    
+      ByteBuffer buffer = ByteBuffer.allocate( 1024 * 1024 );
+    
+      File dir = new File( dirname );
+      File[] files = dir.listFiles();
 
-    
-    	System.out.print("Gudy SHA1 ");
-    	long gds = System.currentTimeMillis();
-    	for (int i=0; i < loops; i++) {
-        dBuffer.position(0);
-        dBuffer.limit( buffsize );
-    		sha1Gudy.reset();
-        sha1Gudy.update( dBuffer );
-    		sha1Gudy.digest();
-    	}
-    	long gde = System.currentTimeMillis();
-    
-    	long gdt = (gde - gds);
-    	float gdspeed = totalMBytes / (gdt / 1000);
-    	System.out.println(info + gdt + " ms @ " + gdspeed + " MB/s");
-   
-      System.out.println();
+      for (int i=0; i < files.length; i++) {
+        FileChannel fc = new RandomAccessFile( files[i], "r" ).getChannel();
+        
+        System.out.println("Testing " + files[i].getName() + " ...");
+        
+        while( fc.position() < fc.size() ) {
+         fc.read( buffer );
+         buffer.flip();
+         
+         byte[] raw = new byte[ buffer.limit() ];
+         System.arraycopy( buffer.array(), 0, raw, 0, raw.length );
+
+         sha1Gudy.update( buffer );
+         sha1Gudy.saveState();
+         ByteBuffer bb = ByteBuffer.allocate(9731); bb.put( (byte)9 ); bb.flip();
+         sha1Gudy.digest(bb );
+         sha1Gudy.restoreState();
+         
+         sha1Sun.update( raw );
+         
+         buffer.clear();
+        }
+        
+        byte[] sun = sha1Sun.digest();
+        sha1Sun.reset();
+        
+        byte[] gudy = sha1Gudy.digest();
+        sha1Gudy.reset();
+        
+        if ( Arrays.equals( sun, gudy ) ) {
+          System.out.println("  SHA1-Gudy: OK");
+        }
+        else {
+          System.out.println("  SHA1-Gudy: FAILED");
+        }
+        
+        buffer.clear();
+        fc.close();
+        System.out.println();
+      }
     
     }
-    
-    System.out.println("DONE");
-    
-    */
+    catch (Throwable e) { e.printStackTrace(); }
+  }
 	
 
 }
