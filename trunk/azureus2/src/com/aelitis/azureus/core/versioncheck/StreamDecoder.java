@@ -136,7 +136,7 @@ public class StreamDecoder {
         }
         
         if( bytes_read < 0 ) {
-          throw new IOException( "end of stream on socket read [payload payload]" );
+          throw new IOException( "end of stream on socket read [payload-payload, read=" +payload_buffer.position()+ ", limit=" +payload_buffer.limit()+ "]" );
         }
       }
     }
