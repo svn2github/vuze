@@ -102,9 +102,6 @@ DiskManagerImpl
 
 	private DiskManagerFileInfoImpl[] files;
 
-	//long[] filesDone;
-	//RandomAccessFile[] fileArray;
-
 	private PEPeerManager manager;
 	private SHA1Hasher hasher;
   private Md5Hasher md5;
