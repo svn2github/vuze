@@ -44,6 +44,9 @@ TRTrackerServerTorrentImpl
 	public static final int MAX_UPLOAD_BYTES_PER_SEC	= 1024*1024;
 	public static final int MAX_DOWNLOAD_BYTES_PER_SEC	= MAX_UPLOAD_BYTES_PER_SEC;
 	
+	public static final boolean	USE_LIGHTWEIGHT_SEEDS	= true;
+	
+	
 	protected HashWrapper			hash;
 
 	protected Map				peer_map 		= new HashMap();
@@ -52,6 +55,8 @@ TRTrackerServerTorrentImpl
 	protected List				peer_list		= new ArrayList();
 	protected int				peer_list_hole_count;
 	protected boolean			peer_list_compaction_suspended;
+	
+	protected Map				lightweight_seed_map	= new HashMap();
 	
 	protected int				seed_count;
 	protected int				removed_count;
@@ -81,7 +86,7 @@ TRTrackerServerTorrentImpl
 	public synchronized TRTrackerServerPeerImpl
 	peerContact(
 		String		event,
-		String		peer_id,
+		HashWrapper	peer_id,
 		int			port,
 		String		ip_address,
 		String		tracker_key,
@@ -94,7 +99,7 @@ TRTrackerServerTorrentImpl
 		throws Exception
 	{
 		// System.out.println( "TRTrackerServerTorrent: peerContact, ip = " + ip_address );
-		
+				
 		boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 		boolean	completed 	= event != null && event.equalsIgnoreCase("completed");
 		
@@ -109,6 +114,10 @@ TRTrackerServerTorrentImpl
 		boolean		already_completed	= false;
 		long		last_contact_time	= 0;
 		
+		long	ul_diff = 0;
+		long	dl_diff	= 0;
+		long	le_diff = 0;
+		
 		if ( peer == null ){
 			
 			new_peer	= true;
@@ -121,7 +130,7 @@ TRTrackerServerTorrentImpl
 			
 			
 			TRTrackerServerPeerImpl old_peer	= (TRTrackerServerPeerImpl)peer_reuse_map.get( reuse_key );
-						
+							
 			if ( old_peer != null ){
 				
 				last_contact_time	= old_peer.getLastContactTime();
@@ -132,33 +141,39 @@ TRTrackerServerTorrentImpl
 				
 			}else{
 				
-				last_contact_time	= now;
+				lightweightSeed lws = (lightweightSeed)lightweight_seed_map.remove( peer_id );
+				
+				if ( lws != null ){
+					
+					last_contact_time	= lws.getLastContactTime();
+					
+					ul_diff	= uploaded - lws.getUploaded();
+					
+					if ( ul_diff < 0 ){
+						
+						ul_diff	= 0;
+					}
+				}else{
+				
+					last_contact_time	= now;
+				}
 			}
 			
 			if ( !stopped ){			
+													
+				peer = new TRTrackerServerPeerImpl( 
+						peer_id, 
+								tracker_key, 
+								ip_address.getBytes(), 
+								port,
+								last_contact_time,
+								already_completed );
 				
-				try{
-					
-					byte[]	peer_bytes = peer_id.getBytes( Constants.BYTE_ENCODING );
-					
-					peer = new TRTrackerServerPeerImpl( 
-									peer_bytes, 
-									tracker_key, 
-									ip_address.getBytes(), 
-									port,
-									last_contact_time,
-									already_completed );
-					
-					peer_map.put( peer_id, peer );
-					
-					peer_list.add( peer );
-					
-					peer_reuse_map.put( reuse_key, peer );
-					
-				}catch( UnsupportedEncodingException e){
-					
-					e.printStackTrace();
-				}
+				peer_map.put( peer_id, peer );
+				
+				peer_list.add( peer );
+				
+				peer_reuse_map.put( reuse_key, peer );
 			}
 		}else{
 			
@@ -194,15 +209,13 @@ TRTrackerServerTorrentImpl
 			}
 		}
 		
-		long	ul_diff = 0;
-		long	dl_diff	= 0;
-		long	le_diff = 0;
-		
 			// a null peer here signifies a new peer whose first state was "stopped"
+		
+		long	new_timeout = now + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER );
 		
 		if ( peer != null ){
 			
-			peer.setTimeout( now, now + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
+			peer.setTimeout( now, new_timeout );
 						
 				// if this is the first time we've heard from this peer then we don't want to
 				// use existing ul/dl value diffs as they will have been reported previously
@@ -284,9 +297,16 @@ TRTrackerServerTorrentImpl
 						TRTrackerServerPeerImpl	this_peer = (TRTrackerServerPeerImpl)peer_list.get(i);
 						
 						if ( this_peer != null && this_peer.isSeed()){
+					
+							if ( USE_LIGHTWEIGHT_SEEDS ){
+																
+								lightweight_seed_map.put( 
+										this_peer.getPeerId(), 
+										new lightweightSeed( now, new_timeout, this_peer.getUploaded()));
+							}
 							
 							removePeer( this_peer, i );
-							
+
 							if ( --to_remove == 0 ){
 								
 								break;
@@ -324,15 +344,14 @@ TRTrackerServerTorrentImpl
 			Debug.out( "TRTrackerServerTorrent::removePeer: maps size different");	
 		}
 		
-		try{
-			Object o = peer_map.remove( new String( peer.getPeerId(), Constants.BYTE_ENCODING ));
+		{
+			Object o = peer_map.remove( peer.getPeerId());
 			
 			if ( o == null ){
 				
 				Debug.out(" TRTrackerServerTorrent::removePeer: peer_map doesn't contain peer");
 			}
-		}catch( UnsupportedEncodingException e ){
-		}										
+		}
 		
 		if ( peer_list_index == -1 ){
 			
@@ -758,6 +777,18 @@ TRTrackerServerTorrentImpl
 			
 			checkForPeerListCompaction( false );
 		}
+		
+		Iterator	it = lightweight_seed_map.values().iterator();
+		
+		while( it.hasNext()){
+			
+			lightweightSeed	lws = (lightweightSeed)it.next();
+			
+			if ( now > lws.getTimeout()){
+			
+				it.remove();
+			}
+		}
 	}
 	
 	protected void
@@ -814,7 +845,7 @@ TRTrackerServerTorrentImpl
 	public int
 	getPeerCount()
 	{
-		return( peer_map.size());
+		return( peer_map.size() + lightweight_seed_map.size());
 	}
 	
 	public int
@@ -824,8 +855,8 @@ TRTrackerServerTorrentImpl
 			
 			Debug.out( "seed count negative" );
 		}
-		
-		return( seed_count );
+				
+		return( seed_count + lightweight_seed_map.size());
 	}
 	
 	public int
@@ -926,6 +957,42 @@ TRTrackerServerTorrentImpl
 		getData()
 		{
 			return( data );
+		}
+	}
+	
+	protected static class
+	lightweightSeed
+	{
+		long	timeout;
+		long	last_contact_time;
+		long	uploaded;
+		
+		protected
+		lightweightSeed(
+			long	_now,
+			long	_timeout,
+			long	_uploaded )
+		{
+			last_contact_time	= _now;
+			timeout				= _timeout;
+			uploaded			= _uploaded;
+		}
+		
+		protected long
+		getTimeout()
+		{
+			return( timeout );
+		}
+		protected long
+		getLastContactTime()
+		{
+			return( last_contact_time );
+		}
+		
+		protected long
+		getUploaded()
+		{
+			return( uploaded );
 		}
 	}
 }

@@ -51,14 +51,14 @@ TRTrackerServerPeerImpl
 	
 	protected
 	TRTrackerServerPeerImpl(
-		byte[]		_peer_id,
+		HashWrapper	_peer_id,
 		String		_key,
 		byte[]		_ip,
 		int			_port,
 		long		_last_contact_time,
 		boolean		_download_completed )
 	{
-		peer_id				= _peer_id;
+		peer_id				= _peer_id.getHash();
 		key					= _key;
 		ip_when_created		= _ip;
 		ip					= _ip;
@@ -122,10 +122,10 @@ TRTrackerServerPeerImpl
 		download_completed	= true;
 	}
 	
-	protected byte[]
+	protected HashWrapper
 	getPeerId()
 	{
-		return( peer_id );
+		return( new HashWrapper(peer_id));
 	}
 	
 	protected String

@@ -346,7 +346,7 @@ TRTrackerServerProcessorUDP
 		}
 				
 		byte[]		hash_bytes	= null;
-		String		peer_id		= null;
+		HashWrapper	peer_id		= null;
 		int			port		= 0;
 		String		event		= null;
 		
@@ -365,7 +365,7 @@ TRTrackerServerProcessorUDP
 				
 				hash_bytes	= announce.getHash();
 				
-				peer_id		= new String( announce.getPeerId(), Constants.BYTE_ENCODING );
+				peer_id		= new HashWrapper( announce.getPeerId());
 				
 				port		= announce.getPort();
 				
@@ -409,7 +409,7 @@ TRTrackerServerProcessorUDP
 				
 				hash_bytes	= announce.getHash();
 				
-				peer_id		= new String( announce.getPeerId(), Constants.BYTE_ENCODING );
+				peer_id		= new HashWrapper( announce.getPeerId());
 				
 				port		= announce.getPort();
 				

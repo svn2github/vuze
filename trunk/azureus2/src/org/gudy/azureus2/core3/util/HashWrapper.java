@@ -12,16 +12,24 @@ import java.util.Arrays;
  */
 public class HashWrapper {
   
-  private byte[] hash;
+  private byte[] 	hash;
+  private int		hash_code;
   
-  public HashWrapper(byte[] hash) {
-	this.hash = new byte[hash.length];
-	System.arraycopy(hash,0,this.hash,0,this.hash.length);
+  public HashWrapper(byte[] _hash) 
+  {
+  	this(_hash,0,_hash.length);
   }
   
-  public HashWrapper(byte[] hash, int offset,int length) {
-	 this.hash = new byte[length];
-	 System.arraycopy(hash,offset,this.hash,0,length);
+  public HashWrapper(byte[] _hash, int offset,int length) 
+  {
+	 hash = new byte[length];
+	 
+	 System.arraycopy(_hash,offset,hash,0,length);
+
+	 for (int i = 0; i < length; i++) {
+	   
+	 	hash_code = 31*hash_code + hash[i];
+	 }
    }
   
   public boolean equals(Object o) {
@@ -32,21 +40,17 @@ public class HashWrapper {
 	return Arrays.equals(hash, otherHash);	
   }
   
-  public byte[] getHash() {
-    return this.hash;
+  public byte[] 
+  getHash() 
+  {
+    return( hash );
   }
   
   /* (non-Javadoc)
    * @see java.lang.Object#hashCode()
    */
-  public int hashCode() {
-    String str = null;
-    try {    
-      str = new String(hash);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return str.hashCode();
+  public int hashCode() 
+  {
+  	return( hash_code );
   }
-
 }

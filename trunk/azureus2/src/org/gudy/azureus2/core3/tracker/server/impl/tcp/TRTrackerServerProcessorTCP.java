@@ -420,7 +420,7 @@ TRTrackerServerProcessorTCP
 				int	pos = 0;
 					
 				String		hash_str	= null;
-				String		peer_id		= null;
+				HashWrapper	peer_id		= null;
 				int			port		= 0;
 				String		event		= null;
 					
@@ -468,7 +468,7 @@ TRTrackerServerProcessorTCP
 							
 					}else if ( lhs.equals( "peer_id" )){
 						
-						peer_id	= rhs;
+						peer_id	= new HashWrapper(rhs.getBytes(Constants.BYTE_ENCODING));
 						
 					}else if ( lhs.equals( "no_peer_id" )){
 						

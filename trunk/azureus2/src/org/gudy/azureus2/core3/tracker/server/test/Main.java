@@ -127,7 +127,7 @@ Main
 					if ( i%1000 == 0 ){
 					//	System.out.println(i);
 					}
-					torrent.peerContact("started", "xxxxxxxxxxxxxxxx" + i, 1234, "xxxxxxx" + i,  "kkkkkkkk", 0, 0, 0, 100, 100000 );
+					torrent.peerContact("started", new HashWrapper( ("xxxxxxxxxxxxxxxx" + i).getBytes()), 1234, "xxxxxxx" + i,  "kkkkkkkk", 0, 0, 0, 100, 100000 );
 				}catch( Throwable e ){
 					e.printStackTrace();
 				}

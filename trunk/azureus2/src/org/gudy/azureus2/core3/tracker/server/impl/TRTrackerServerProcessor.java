@@ -45,7 +45,7 @@ TRTrackerServerProcessor
 		TRTrackerServerPeerImpl[]	peer_out,		// output
 		int							request_type,
 		byte[]						hash,
-		String						peer_id,
+		HashWrapper					peer_id,
 		boolean						no_peer_id,
 		boolean						compact,
 		String						key,

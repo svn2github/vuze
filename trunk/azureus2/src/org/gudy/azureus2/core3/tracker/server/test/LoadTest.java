@@ -32,6 +32,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.tracker.client.classic.*;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerRequestListener;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 LoadTest 
@@ -46,15 +47,16 @@ LoadTest
 	int	address3	= 0;
 	int	address4	= 0;
 	
-	int	num_clients	= 25000;
+	int	num_clients	= 100000;
 	loadTestClient[]	clients;
 	
+	Random	random = new Random(12345);
 	
 	TRTrackerServerTorrentImpl torrent;
 
 	protected
 	LoadTest()
-	{
+	{		
 		int	timeout = 100;
 		
 		TRTrackerServerImpl.RETRY_MINIMUM_SECS		= timeout;
@@ -139,7 +141,7 @@ LoadTest
 				System.out.println( "used = " + ( rt.totalMemory() - rt.freeMemory()) + ": per peer = " + mem_per_peer  + ", per sec = " + ( loop*1000L/ (now-initial_time )));
 			}
 			
-			loadTestClient	client = clients[(int)(Math.random()*clients.length)];
+			loadTestClient	client = clients[(int)(random.nextDouble()*clients.length)];
 		
 			int	state = client.getState();
 			
@@ -178,14 +180,14 @@ LoadTest
 	chance(
 		int		one_in )
 	{
-		return(((int)(Math.random()*one_in )) == 0 ); 
+		return(((int)(random.nextDouble()*one_in )) == 0 ); 
 	}
 	
 	class
 	loadTestClient
 	{
 		int			state		= ST_READY;
-		String		peer_id;
+		HashWrapper	peer_id;
 		String		key;
 		String		address;
 		
@@ -201,7 +203,8 @@ LoadTest
 			state	= ST_READY;
 
 			try{
-				peer_id = new String(TRTrackerClientClassicImpl.createPeerID(), "ISO-8859-1" );
+				peer_id = new HashWrapper(TRTrackerClientClassicImpl.createPeerID());
+				
 			}catch( Throwable e ){
 				e.printStackTrace();
 			}
@@ -249,7 +252,8 @@ LoadTest
 			left	= 100;
 			
 			try{
-				peer_id = new String(TRTrackerClientClassicImpl.createPeerID(), "ISO-8859-1" );
+				peer_id = new HashWrapper(TRTrackerClientClassicImpl.createPeerID());
+				
 			}catch( Throwable e ){
 				e.printStackTrace();
 			}		
@@ -259,7 +263,7 @@ LoadTest
 		start()
 		{
 			try{
-				torrent.peerContact("started", peer_id.toString(), 6881, address,  key, uploaded, downloaded, left, num_want, interval );
+				torrent.peerContact("started", peer_id, 6881, address,  key, uploaded, downloaded, left, num_want, interval );
 				
 				Map m = torrent.exportAnnounceToMap( true, num_want, 4, true, true );
 				
@@ -267,7 +271,7 @@ LoadTest
 				byte[]	l = (byte[])m.get("peers");
 				int	seeds = ((Long)m.get("complete")).intValue();
 				int	leechers = ((Long)m.get("incomplete")).intValue();
-				System.out.println( l.length / 6 + ","+seeds+","+leechers);
+				System.out.println( l.length / 6 + ","+seeds+","+leechers+ ","+ new String(l,0,12));
 				*/
 				
 				state	= ST_STARTED;
@@ -282,7 +286,7 @@ LoadTest
 		stop()
 		{
 			try{
-				torrent.peerContact("stopped", peer_id.toString(), 6881, address,  key, uploaded, downloaded, left, num_want, interval );
+				torrent.peerContact("stopped", peer_id, 6881, address,  key, uploaded, downloaded, left, num_want, interval );
 				
 				state	= ST_STOPPED;
 				
@@ -300,7 +304,7 @@ LoadTest
 				
 				uploaded += 10000;
 				
-				torrent.peerContact(null, peer_id.toString(), 6881, address,  key, uploaded, downloaded, left, num_want, interval );
+				torrent.peerContact(null, peer_id, 6881, address,  key, uploaded, downloaded, left, num_want, interval );
 	
 				Map m = torrent.exportAnnounceToMap( true, num_want, 4, true, true );
 			
@@ -317,7 +321,7 @@ LoadTest
 			try{
 				left	= 0;
 				
-				torrent.peerContact("complete", peer_id.toString(), 6881, address,  key, uploaded, downloaded, left, num_want, interval );
+				torrent.peerContact("complete", peer_id, 6881, address,  key, uploaded, downloaded, left, num_want, interval );
 	
 				Map m = torrent.exportAnnounceToMap( true, num_want, 4, true, true );
 			
