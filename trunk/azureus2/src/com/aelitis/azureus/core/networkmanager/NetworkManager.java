@@ -160,9 +160,8 @@ public class NetworkManager {
       try {
         //long start_time = System.currentTimeMillis();
         
-        //write_selector.select( 25 );
-        
-        root_connection_pool.doWrites( write_selector );
+        write_selector.select( 50 );
+        root_connection_pool.doWrites();
       
         //long processing_time = System.currentTimeMillis() - start_time;
         //System.out.println("processing_time="+processing_time);

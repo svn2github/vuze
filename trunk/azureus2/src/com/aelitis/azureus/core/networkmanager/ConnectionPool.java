@@ -337,8 +337,7 @@ public class ConnectionPool {
    * i.e. do limited guaranteed-rate writes first, and then allow
    * connections to use any remaining unclaimed bandwidth (burst).
    */
-  protected void doWrites( VirtualChannelSelector selector ) {
-    selector.select( 50 );
+  protected void doWrites() {
     doLimitedRateWrites();  //do guaranteed-rate writes
     //optimization: if the configured max rate is unlimited, doLimitedRateWrites() will do all the writes possible at the moment
     boolean is_unlimited_rate = NetworkManager.getSingleton().getMaxWriteRateBytesPerSec() == NetworkManager.UNLIMITED_WRITE_RATE ? true : false;
