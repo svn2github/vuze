@@ -42,7 +42,7 @@ public class OpenUrlWindow {
   Display display;
   Shell shell;
   
-  public OpenUrlWindow(final Display display) {
+  public OpenUrlWindow(final Display display, String linkURL) {
     this.display = display;
     shell = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     shell.setText(MessageText.getString("openUrl.title"));
@@ -60,7 +60,10 @@ public class OpenUrlWindow {
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint=300;
-    Utils.setTextLinkFromClipboard(shell, gridData, url);
+    if(linkURL == null)
+      Utils.setTextLinkFromClipboard(shell, gridData, url);
+    else
+      Utils.setTextLink(shell, gridData, url, linkURL);
     url.setSelection(url.getText().length());
     gridData.horizontalSpan = 2;
     url.setLayoutData(gridData);

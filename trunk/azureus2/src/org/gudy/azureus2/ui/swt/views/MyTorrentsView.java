@@ -59,6 +59,7 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
+import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
@@ -791,26 +792,28 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       }
     });
 
-    DropTarget dropTarget = new DropTarget(table, DND.DROP_MOVE | DND.DROP_COPY);
-    dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance(), TextTransfer.getInstance()});
+    DropTarget dropTarget = new DropTarget(table, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+    dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(), FileTransfer.getInstance(), TextTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
       public void dragOver(DropTargetEvent event) {
-        if(TextTransfer.getInstance().isSupportedType(event.currentDataType)) {
+        if(URLTransfer.getInstance().isSupportedType(event.currentDataType)) {
+          event.detail = DND.DROP_LINK;
+        } else if(TextTransfer.getInstance().isSupportedType(event.currentDataType)) {
           event.feedback = DND.FEEDBACK_EXPAND | DND.FEEDBACK_SCROLL | DND.FEEDBACK_SELECT | DND.FEEDBACK_INSERT_BEFORE | DND.FEEDBACK_INSERT_AFTER;
           event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
         }
       }
       public void drop(DropTargetEvent event) {
         // Torrent file from shell dropped
-        if(event.data instanceof String[]) {
+        if(event.data == null) {
+          event.detail = DND.DROP_NONE;
+          if(event.item == null)
+            return;
+          int drag_drop_line_end = table.indexOf((TableItem)event.item);
+          moveSelectedTorrents(drag_drop_line_start, drag_drop_line_end);
+        } else {
           MainWindow.getWindow().openDroppedTorrents(event);
-          return;
         }
-        event.detail = DND.DROP_NONE;
-        if(event.item == null)
-          return;
-        int drag_drop_line_end = table.indexOf((TableItem)event.item);
-        moveSelectedTorrents(drag_drop_line_start, drag_drop_line_end);
       }
     });
   }

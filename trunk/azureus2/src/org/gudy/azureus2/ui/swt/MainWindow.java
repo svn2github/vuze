@@ -1560,9 +1560,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
   }
 
   private void createDropTarget(final Control control) {
-    DropTarget dropTarget = new DropTarget(control, DND.DROP_MOVE | DND.DROP_COPY);
-    dropTarget.setTransfer(new Transfer[] {FileTransfer.getInstance()});
+    DropTarget dropTarget = new DropTarget(control, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+    dropTarget.setTransfer(new Transfer[] {URLTransfer.getInstance(), FileTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
+      public void dragOver(DropTargetEvent event) {
+        if(URLTransfer.getInstance().isSupportedType(event.currentDataType)) {
+          event.detail = DND.DROP_LINK;
+        }
+      }
       public void drop(DropTargetEvent event) {
         openDroppedTorrents(event);
       }
@@ -1570,18 +1575,24 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
   }
 
   public void openDroppedTorrents(DropTargetEvent event) {
-    final String[] sourceNames = (String[]) event.data;
-    if (sourceNames == null)
-      event.detail = DND.DROP_NONE;
-    if (event.detail == DND.DROP_NONE)
-      return;
-    boolean startInStoppedState = event.detail == DND.DROP_COPY;
-    for (int i = 0;(i < sourceNames.length); i++) {
-      final File source = new File(sourceNames[i]);
-      if (source.isFile())
-        openTorrent(source.getAbsolutePath(), startInStoppedState);
-      else if (source.isDirectory())
-        openTorrentsFromDirectory(source.getAbsolutePath(), startInStoppedState);
+		if(event.data == null)
+			return;
+    if(event.data instanceof String[]) {
+      final String[] sourceNames = (String[]) event.data;
+      if (sourceNames == null)
+        event.detail = DND.DROP_NONE;
+      if (event.detail == DND.DROP_NONE)
+        return;
+      boolean startInStoppedState = event.detail == DND.DROP_COPY;
+      for (int i = 0;(i < sourceNames.length); i++) {
+        final File source = new File(sourceNames[i]);
+        if (source.isFile())
+          openTorrent(source.getAbsolutePath(), startInStoppedState);
+        else if (source.isDirectory())
+          openTorrentsFromDirectory(source.getAbsolutePath(), startInStoppedState);
+      }
+    } else {
+      openUrl(((URLTransfer.URLType)event.data).linkURL);
     }
   }
 
@@ -2103,9 +2114,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
   }
   
   public void openUrl() {
-    new OpenUrlWindow(display);
+    openUrl(null);
   }
-  
+
+  public void openUrl(String linkURL) {
+    new OpenUrlWindow(display, linkURL);
+  }
+
   /**
    * @param parameterName the name of the parameter that has changed
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)

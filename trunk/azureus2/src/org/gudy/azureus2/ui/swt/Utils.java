@@ -91,6 +91,20 @@ public class Utils {
    */
   public static void setTextLinkFromClipboard(final Shell shell, final GridData gridData, final Text url) {
     String link = getLinkFromClipboard(shell.getDisplay());
+    setTextLink(shell, gridData, url, link);
+  }
+
+  /**
+   * Sets a text into the URL dialog and adjusts the dialog size (and location).
+   * @param shell
+   * @param gridData
+   * @param url the URL text control
+   * @param link
+   * @author Rene Leonhardt
+   */
+  public static void setTextLink(final Shell shell, final GridData gridData, final Text url, String link) {
+    if(link == null)
+      return;
     if(link.length() > 7) {
       GC gc = new GC(url);
       FontMetrics fm = gc.getFontMetrics();
@@ -106,7 +120,7 @@ public class Utils {
   }
 
   /**
-   * @param shell
+   * @param display
    * @return first valid link from clipboard, else "http://" 
    *
    * @author Rene Leonhardt
