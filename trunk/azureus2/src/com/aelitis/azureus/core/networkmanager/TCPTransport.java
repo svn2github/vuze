@@ -221,9 +221,6 @@ public class TCPTransport {
     if( socket_channel != null ) {
       NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
     }
-    else {
-      Debug.out( "TCPTransport::startReadSelects() called when socket_channel == null" );
-    }
   }
 
   
