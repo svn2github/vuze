@@ -126,6 +126,14 @@ public class OutgoingBTHaveMessageAggregator {
   }
   
   
+  
+  /**
+   * Are there Haves messages pending?
+   * @return true if there are any unsent haves, false otherwise
+   */
+  public boolean hasPending() {  return !pending_haves.isEmpty();  }
+  
+  
   private void sendPendingHaves() {
     if( destroyed )  return;
     

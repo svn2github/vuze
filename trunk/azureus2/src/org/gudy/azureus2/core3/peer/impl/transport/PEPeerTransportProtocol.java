@@ -489,7 +489,13 @@ PEPeerTransportProtocol
 
   private void sendKeepAlive() {
     if ( getPeerState() != TRANSFERING ) return;
-    connection.getOutgoingMessageQueue().addMessage( new BTKeepAlive(), false );
+    
+    if( outgoing_have_message_aggregator.hasPending() ) {
+      outgoing_have_message_aggregator.forceSendOfPending();
+    }
+    else {
+      connection.getOutgoingMessageQueue().addMessage( new BTKeepAlive(), false );
+    }
   }
   
   
