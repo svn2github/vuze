@@ -1,84 +1,112 @@
-/*
- * SHA1Hasher.java
- *
- * Created on June 4, 2003, 10:19 PM
+ /*
+ * Created on Apr 13, 2004
+ * Created by Alon Rohter
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * 
  */
 
 package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 
 /**
- * A SHA-1 hasher used to check pieces.
- *
- * @author  TdC_VgA
+ * SHA-1 hasher utility frontend.
  */
 public final class SHA1Hasher {
-  private MessageDigest _messageDigest = null;
-  private SHA1 sha1;
-  private ByteBuffer resultBuffer;
-  
-  /** Creates a new instance of SHA1Hasher */
-  public SHA1Hasher() throws NoSuchAlgorithmException {
-    _messageDigest = MessageDigest.getInstance("SHA-1");
+  private final SHA1 sha1;
+
+
+  /**
+   * Create a new SHA1Hasher instance
+   */
+  public SHA1Hasher() {
     sha1 = new SHA1();
-    resultBuffer = ByteBuffer.allocate(20);
-    resultBuffer.order(ByteOrder.BIG_ENDIAN);
   }
 
-  public byte[] calculateHash(byte[] bytes) {
-    return _messageDigest.digest(bytes);
+  
+  /**
+   * Calculate the SHA-1 hash for the given bytes.
+   * @param bytes data to hash
+   * @return 20-byte hash
+   */
+  public byte[] calculateHash( byte[] bytes ) {
+    ByteBuffer buff = ByteBuffer.wrap( bytes );
+    return calculateHash( buff );
   }
 
-  public byte[] calculateHash(ByteBuffer buffer) {
-    //Temp stores the current buffer's position
-    int position = buffer.position();
-    sha1.update(buffer);
-    //Restores the buffer's position
-    buffer.position(position);
-    
-    resultBuffer.position(0);
-    sha1.finalDigest(resultBuffer);
-    
-    byte[] result = new byte[20];
-    resultBuffer.position(0);
-    resultBuffer.get(result);
-//    System.out.println(result);
-    
-    return result;
+  
+  /**
+   * Calculate the SHA-1 hash for the given buffer.
+   * @param buffer data to hash
+   * @return 20-byte hash
+   */
+  public byte[] calculateHash( ByteBuffer buffer ) {
+    sha1.reset();
+    return sha1.digest( buffer );
   }
   
-  public void
-  update(
-  	byte[]		data )
-  {
-  	update( data, 0, data.length );
+  
+  /**
+   * Start or continue a hash calculation with the given data.
+   * @param data input
+   */
+  public void update( byte[] data ) {
+  	update( ByteBuffer.wrap( data ));
   }
   
-  public void
-  update(
-  	byte[]		data,
-	int			pos,
-	int			len )
-  {
-  	sha1.update( ByteBuffer.wrap( data, pos, len ));
+  
+  /**
+   * Start or continue a hash calculation with the given data,
+   * starting at the given position, for the given length.
+   * @param data input
+   * @param pos start position
+   * @param len length
+   */
+  public void update( byte[] data, int pos, int len ) {
+  	update( ByteBuffer.wrap( data, pos, len ));
   }
   
-  public byte[]
-  getDigest()
-  {
-  	resultBuffer.position(0);
-  	sha1.finalDigest(resultBuffer);
-  	
-  	byte[] result = new byte[20];
-  	resultBuffer.position(0);
-  	resultBuffer.get(result);
-//    System.out.println(result);
-  	
-  	return result;	
+  
+  /**
+   * Start or continue a hash calculation with the given data.
+   * @param buffer data input
+   */
+  public void update( ByteBuffer buffer ) {
+    sha1.update( buffer );
   }
+  
+
+  /**
+   * Finish the hash calculation.
+   * @return 20-byte hash
+   */
+  public byte[] getDigest() {
+  	return sha1.digest();
+  }
+  
+  
+  /**
+   * Resets the hash calculation.
+   */
+  public void reset() {
+    sha1.reset();
+  }
+  
+
+  /**
+   * Save the current hasher state for later resuming.
+   */
+  public void saveHashState() {
+    sha1.saveState();
+  }
+  
+  
+  /**
+   * Restore the hasher state from previous save.
+   */
+  public void restoreHashState() {
+    sha1.restoreState();
+  }
+  
 }

@@ -1,29 +1,15 @@
 /*
- * File    : TOTorrentFileHasher.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * Created on Oct 5, 2003
+ * Created by Paul Gardner
+ * Modified Apr 13, 2004 by Alon Rohter
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
  * 
- * Azureus - a Java Bittorrent client
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details ( see the LICENSE file ).
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
 package org.gudy.azureus2.core3.torrent.impl;
 
 
 import java.io.*;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
@@ -59,16 +45,9 @@ TOTorrentFileHasher
 		TOTorrentFileHasherListener		_listener )
 	{
 		if ( _do_other_overall_hashes ){
-			
-			try{
-				overall_sha1_hash 	= new SHA1Hasher();
+		  overall_sha1_hash 	= new SHA1Hasher();
 						
-				overall_ed2k_hash 	= new ED2KHasher();
-			
-			}catch( NoSuchAlgorithmException e ){
-			
-				e.printStackTrace();
-			}
+		  overall_ed2k_hash 	= new ED2KHasher();
 		}
 		
 		do_other_per_file_hash	= _do_other_per_file_hash;

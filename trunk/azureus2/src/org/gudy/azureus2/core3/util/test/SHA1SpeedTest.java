@@ -1,15 +1,15 @@
 /*
  * Created on Mar 12, 2004
  * Created by Alon Rohter
- * Copyright (C) 2004 Alon Rohter, All Rights Reserved.
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
  * 
  */
 package org.gudy.azureus2.core3.util.test;
 
 import java.nio.*;
 
+//import org.gudy.azureus2.core3.util.SHA1;
 import org.gudy.azureus2.core3.util.SHA1;
-import org.gudy.azureus2.core3.util.SHA1Az;
 
 /**
  */
@@ -22,8 +22,8 @@ public class SHA1SpeedTest {
   
 	public static void main(String[] args) {
     
-    SHA1 sha1Jmule = new SHA1();
-    SHA1Az sha1Gudy = new SHA1Az();
+    //SHA1 sha1Jmule = new SHA1();
+    SHA1 sha1Gudy = new SHA1();
     
     ByteBuffer dBuffer = ByteBuffer.allocateDirect( BUFF_MAX_SIZE );
     ByteBuffer fBuffer = ByteBuffer.allocateDirect( 20 );
@@ -57,8 +57,8 @@ public class SHA1SpeedTest {
     		dBuffer.position(0);
         dBuffer.limit( buffsize );
         fBuffer.position(0);
-        sha1Jmule.update( dBuffer );
-    		sha1Jmule.finalDigest( fBuffer );
+        //sha1Jmule.update( dBuffer );
+    		//sha1Jmule.finalDigest( fBuffer );
     	}
     	long jde = System.currentTimeMillis();
   

@@ -1,7 +1,7 @@
 /*
  * Created on Apr 4, 2004
  * Created by Alon Rohter
- * Copyright (C) 2004 Alon Rohter, All Rights Reserved.
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
  * 
  */
 package org.gudy.azureus2.core3.util.test;
@@ -12,7 +12,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.SHA1Az;
+import org.gudy.azureus2.core3.util.SHA1;
 import java.security.MessageDigest;
 
 /**
@@ -33,7 +33,7 @@ public class SHA1Verification {
       Random rand = new Random();
       String rootname = "f-";
       
-      long[] sizes = { 0, 1, 3347483648L};
+      long[] sizes = { 0, 1, 50000000 };
     
       File testdir = new File( dirname );
       testdir.mkdirs();
@@ -69,7 +69,7 @@ public class SHA1Verification {
     
       //SHA1 sha1Jmule = new SHA1();
       MessageDigest sha1Sun = MessageDigest.getInstance("SHA-1");
-      SHA1Az sha1Gudy = new SHA1Az();
+      SHA1 sha1Gudy = new SHA1();
       //SHA1Az shaGudyResume = new SHA1Az();
     
       ByteBuffer buffer = ByteBuffer.allocate( 1024 * 1024 );
@@ -91,8 +91,8 @@ public class SHA1Verification {
 
          sha1Gudy.update( buffer );
          sha1Gudy.saveState();
-         ByteBuffer bb = ByteBuffer.allocate(9731); bb.put( (byte)9 ); bb.flip();
-         sha1Gudy.digest(bb );
+         ByteBuffer bb = ByteBuffer.wrap( new byte[56081] );
+         sha1Gudy.digest( bb );
          sha1Gudy.restoreState();
          
          sha1Sun.update( raw );
