@@ -116,8 +116,9 @@ public class GlobalManagerImpl
             
             //temp debug check to see if DiskManager's write thread is dying
             if (loopFactor % 300 == 0) {
-              if (manager.getDiskManager().getState() != DiskManager.INITIALIZING) {
-                if (!manager.getDiskManager().isWriteThreadRunning()) {
+              DiskManager dm = manager.getDiskManager();
+              if (dm != null && dm.getState() != DiskManager.INITIALIZING) {
+                if (!dm.isWriteThreadRunning()) {
                   Debug.out("ERROR: ["+ i +"]DiskManager.writeThread is not running");
                 }
               }
