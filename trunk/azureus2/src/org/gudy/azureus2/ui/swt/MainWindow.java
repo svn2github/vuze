@@ -90,6 +90,7 @@ import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
+import org.gudy.azureus2.ui.swt.auth.*;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -138,8 +139,9 @@ public class MainWindow implements GlobalManagerListener {
   private CLabel statusDown;
   private CLabel statusUp;
 
-  private GlobalManager globalManager;
-
+  private GlobalManager 		globalManager;
+  private AuthenticatorWindow	auth_window;
+  
   private Tab 	mytorrents;
   private IView viewMyTorrents;
   
@@ -351,6 +353,8 @@ public class MainWindow implements GlobalManagerListener {
       setVisible(true);
       return;
     }
+    
+    auth_window = new AuthenticatorWindow();
     
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
     

@@ -53,26 +53,7 @@ TRTrackerClientClassicImpl
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
 	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
-	
-	
-	static{
-		Authenticator.setDefault(
-			new Authenticator()
-			{
-				protected PasswordAuthentication
-				getPasswordAuthentication()
-				{
-					System.out.println( "password auth: " + 
-										getRequestingPrompt() + "/" + 
-										getRequestingScheme() + "/" + 
-										getRequestingHost() + "/" + 
-										getRequestingPort() + "/" + 
-										getRequestingProtocol());
-					
-					return( new PasswordAuthentication( "monkey", "slapper".toCharArray()));
-				}
-			});
-	}
+
 	
 	private TOTorrent				torrent;
 	private TimerEvent				current_timer_event;
