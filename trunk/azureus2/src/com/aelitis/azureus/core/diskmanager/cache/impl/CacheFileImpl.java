@@ -509,9 +509,38 @@ CacheFileImpl
 							":" + file_buffer_position + "/" + file_buffer_limit );
 				}
 				
-				// if we are overwriting stuff already in the cache then force-write overlapped
-				// data (easiest solution as this should only occur on hash-fails)
-			
+					// if the data is smaller than a piece and not handed over then it is most
+					// likely apart of a piece at the start or end of a file. If so, copy it
+					// and insert the copy into cache
+							
+				if ( 	( !buffer_handed_over ) &&
+						write_length < piece_size ){
+				
+					if ( TRACE ){
+						
+						LGLogger.log( "    making copy of non-handedover buffer" );
+					}
+					
+					DirectByteBuffer	cache_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_WRITE, write_length );
+					
+					cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
+					
+					cache_buffer.limit( DirectByteBuffer.SS_CACHE, write_length );
+					
+					file_buffer.get( DirectByteBuffer.SS_CACHE, cache_buffer );
+					
+					cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
+					
+						// make it look like this buffer has been handed over
+					
+					file_buffer		= cache_buffer;
+					
+					file_buffer_position	= 0;
+					file_buffer_limit		= write_length;
+					
+					buffer_handed_over	= true;
+				}
+				
 				if ( buffer_handed_over ){
 					
 						// cache this write, allocate outside sync block (see manager for details)
@@ -528,6 +557,9 @@ CacheFileImpl
 
 						this_mon.enter();
 						
+							// if we are overwriting stuff already in the cache then force-write overlapped
+							// data (easiest solution as this should only occur on hash-fails)
+
 							// do the flush and add sychronized to avoid possibility of another
 							// thread getting in-between and adding same block thus causing mutiple entries
 							// for same space

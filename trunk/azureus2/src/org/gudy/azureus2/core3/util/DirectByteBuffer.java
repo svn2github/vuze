@@ -47,9 +47,10 @@ DirectByteBuffer
 	public static final byte		AL_DM_ZERO		= 7;
 	public static final byte		AL_DM_CHECK		= 8;
 	public static final byte		AL_BT_PIECE		= 9;
+	public static final byte		AL_CACHE_WRITE	= 10;
 	
 	public static final String[] AL_DESCS =
-	{ "None", "Ext", "Other", "PeerRead", "PeerLen", "CacheRead", "DiskRead", "DiskZero", "DiskCheck", "BTPiece" };
+	{ "None", "Ext", "Other", "PeerRead", "PeerLen", "CacheRead", "DiskRead", "DiskZero", "DiskCheck", "BTPiece", "CacheWrite" };
 	
 	public static final byte		SS_NONE			= 0;	// not used, required to id cycled buffers
 	public static final byte		SS_EXTERNAL		= 1;
@@ -89,13 +90,14 @@ DirectByteBuffer
 	public static final byte		OP_READ_SC			= 21;
 	public static final byte		OP_WRITE_SC			= 22;
 	public static final byte		OP_GETBUFFER		= 23;
+	public static final byte		OP_GET_DBB			= 24;
 	
 	public static final String[]	OP_DESCS = 
 		{ 	"limit", 		"limit(int)", 	"position", 	"position(int)", 	"clear", 
 			"flip", 		"remaining", 	"capacity", 	"put(byte[])", 		"put(dbb)",
 			"put(bbb)", 	"putInt", 		"put(byte)",	"get",				"get(int)",
 			"get(byte[])",	"getInt",		"getInt(int",	"hasRemaining",		"read(fc)",		
-			"write(fc)",	"read(sc)",		"write(sc)",	"getBuffer"	
+			"write(fc)",	"read(sc)",		"write(sc)",	"getBuffer",		"get(dbb)",	
 		};
 			
 	protected static final boolean	TRACE				= true;
@@ -470,6 +472,29 @@ DirectByteBuffer
 		return( buffer.getInt(x));
 	}
   
+	public void
+	get(
+		byte				subsystem,
+		DirectByteBuffer	x )
+	{
+		if ( TRACE ){
+			
+			traceUsage( subsystem, OP_GET_DBB );
+		}
+		
+		ByteBuffer	target_buffer	= x.getBufferInternal();
+		
+			// doesn't appear to be a smart way of doing this
+		
+		int	target_len = target_buffer.limit() - target_buffer.position();
+		
+		byte[]	data = new byte[target_len];
+		
+		buffer.get(data);
+		
+		target_buffer.put( data );
+	}
+	
 	public boolean
 	hasRemaining(
 		byte		subsystem )
