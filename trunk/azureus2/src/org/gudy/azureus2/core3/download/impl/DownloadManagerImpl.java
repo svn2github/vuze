@@ -913,4 +913,23 @@ DownloadManagerImpl
     setState( STATE_WAITING );
   }
   
+  
+  public int getWealthyStatus() {
+    if(peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
+      int nbSeeds = getNbSeeds();
+      int nbPeers = getNbPeers();
+      int nbRemotes = peerManager.getNbRemoteConnections();
+      int trackerStatus = tracker_client.getLastResponse().getStatus();
+      if( (nbSeeds + nbPeers) == 0)
+        return WEALTH_KO;     
+      if( trackerStatus == TRTrackerResponse.ST_OFFLINE)
+        return WEALTH_NO_TRACKER;
+      if( nbRemotes == 0)
+        return WEALTH_NO_REMOTE;
+      return WEALTH_OK;
+    } else {
+      return WEALTH_STOPPED;
+    }
+  }
+  
 }

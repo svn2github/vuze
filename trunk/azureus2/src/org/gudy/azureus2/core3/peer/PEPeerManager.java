@@ -110,4 +110,6 @@ PEPeerManager
   
   public boolean
   isSuperSeedMode();
+  
+  public int getNbRemoteConnections();
 }

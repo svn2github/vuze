@@ -49,14 +49,18 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/delete.gif", "delete");
     loadImage(display, "org/gudy/azureus2/ui/icons/lock.gif", "lock");
     loadImage(display, "org/gudy/azureus2/ui/icons/host.gif", "host");
+    loadImage(display, "org/gudy/azureus2/ui/icons/publish.gif", "publish");
     loadImage(display, "org/gudy/azureus2/ui/icons/run.gif", "run");
     loadImage(display, "org/gudy/azureus2/ui/icons/details.gif", "details");
     loadImage(display, "org/gudy/azureus2/ui/icons/up.gif", "up");    
     loadImage(display, "org/gudy/azureus2/ui/icons/down.gif", "down");
+    loadImage(display, "org/gudy/azureus2/ui/icons/top.gif", "top");
+    loadImage(display, "org/gudy/azureus2/ui/icons/bottom.gif", "bottom");
     loadImage(display, "org/gudy/azureus2/ui/icons/recheck.gif", "recheck");
     loadImage(display, "org/gudy/azureus2/ui/icons/export.gif", "export");
     loadImage(display, "org/gudy/azureus2/ui/icons/move.gif", "move");
     
+    //ToolBar Icons
     
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open.gif", "cb_open");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open_no_default.gif", "cb_open_no_default");
@@ -65,13 +69,21 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/new.gif", "cb_new");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/up.gif", "cb_up");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/down.gif", "cb_down");
+    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/top.gif", "cb_top");
+    loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/bottom.gif", "cb_bottom");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/run.gif", "cb_run");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/start.gif", "cb_start");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/stop.gif", "cb_stop");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/remove.gif", "cb_remove");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/host.gif", "cb_host");
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/publish.gif", "cb_publish");
-    
+        
+    //Status icons    
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/ok.gif", "st_ok");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/ko.gif", "st_ko");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped.gif", "st_stopped");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker.gif", "st_no_tracker");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote.gif", "st_no_remote");
   }
 
   

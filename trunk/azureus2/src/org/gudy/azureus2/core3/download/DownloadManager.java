@@ -47,6 +47,12 @@ DownloadManager
 
 	public static final int LOW_PRIORITY = 1;
 	public static final int HIGH_PRIORITY = 2;
+	
+	public static final int WEALTH_STOPPED    = 1;
+	public static final int WEALTH_NO_TRACKER = 2;
+	public static final int WEALTH_NO_REMOTE  = 3;
+	public static final int WEALTH_OK  				= 4;
+	public static final int WEALTH_KO 				= 5;
 
 	public void
 	initialize();
@@ -226,4 +232,9 @@ DownloadManager
   public void initializeDiskManager();
   
   public void forceRecheck();
+
+	/**
+	 * @return the wealthy status of this download
+	 */
+	public int getWealthyStatus();
 }

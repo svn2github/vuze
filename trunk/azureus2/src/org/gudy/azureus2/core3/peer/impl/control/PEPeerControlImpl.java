@@ -71,7 +71,7 @@ PEPeerControlImpl
   private PEPeerManagerStatsImpl 		_stats;
   private TRTrackerClient _tracker;
    //  private int _maxUploads;
-  private int _seeds, _peers;
+  private int _seeds, _peers,_remotes;
   private long _timeStarted;
   private long _timeFinished;
   private Average _averageReceptionSpeed;
@@ -1317,17 +1317,22 @@ PEPeerControlImpl
     }
   }  
 
-  private void updateStats() {
-    _seeds = _peers = 0;
+  private void updateStats() {   
     //calculate seeds vs peers
     synchronized (_peer_transports) {
+      _seeds = _peers = _remotes = 0;
       for (int i = 0; i < _peer_transports.size(); i++) {
         PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
-        if (pc.getState() == PEPeer.TRANSFERING)
+        if (pc.getState() == PEPeer.TRANSFERING) {
           if (pc.isSeed())
             _seeds++;
           else
             _peers++;
+          
+          if(((PEPeer)pc).isIncoming()) {
+            _remotes++;
+          }
+        }
       }
     }
   }
@@ -1580,11 +1585,21 @@ PEPeerControlImpl
   }
 
   public int getNbPeers() {
-    return _peers;
+    synchronized (_peer_transports) {
+      return _peers;
+    }
   }
 
   public int getNbSeeds() {
-    return _seeds;
+    synchronized (_peer_transports) {
+      return _seeds;
+    }
+  }
+  
+  public int getNbRemoteConnections() {
+    synchronized (_peer_transports) {
+      return _remotes;
+    }
   }
 
   public PEPeerManagerStats getStats() {

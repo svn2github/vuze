@@ -109,6 +109,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       ,"up;R;I;70;-1"
       ,"pieces;C;I;100;-1"
       ,"completion;C;I;100;-1"
+			,"wealth;C;I;18;-1"
   };
   
 	// table item index, where the drag has started
@@ -314,6 +315,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         
     final MenuItem itemMoveTop = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveTop, "MyTorrentsView.menu.moveTop"); //$NON-NLS-1$    
+    itemMoveTop.setImage(ImageRepository.getImage("top"));
     
     final MenuItem itemMoveUp = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveUp, "MyTorrentsView.menu.moveUp"); //$NON-NLS-1$    
@@ -325,7 +327,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     
     final MenuItem itemMoveEnd = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveEnd, "MyTorrentsView.menu.moveEnd"); //$NON-NLS-1$    
-
+    itemMoveEnd.setImage(ImageRepository.getImage("bottom"));
+    
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "MyTorrentsView.menu.setpriority"); //$NON-NLS-1$
     //itemPriority.setImage(ImageRepository.getImage("stop"));
@@ -1274,6 +1277,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
   
   public boolean isEnabled(String itemKey) {
+    if(itemKey.equals("top"))
+      return true;
+    if(itemKey.equals("bottom"))
+      return true;
     if(itemKey.equals("up"))
       return up;
     if(itemKey.equals("down"))
@@ -1294,6 +1301,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
   
   public void itemActivated(String itemKey) {
+    if(itemKey.equals("top")) {
+      moveSelectedTorrentsTop();
+      return;
+    }
+    if(itemKey.equals("bottom")){
+      moveSelectedTorrentsEnd();
+      return;
+    }
     if(itemKey.equals("up")) {
       moveSelectedTorrentsUp();
       return;
@@ -1310,7 +1325,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       hostSelectedTorrents();
       return;
     }
-    if(itemKey.equals("host")){
+    if(itemKey.equals("publish")){
       publishSelectedTorrents();
       return;
     }

@@ -93,6 +93,7 @@ public class TorrentRow implements SortableItem {
         items.add(new UpItem(TorrentRow.this,itemEnumerator.getPositionByName("up")));
         items.add(new PiecesItem(TorrentRow.this,itemEnumerator.getPositionByName("pieces")));
         items.add(new CompletionItem(TorrentRow.this,itemEnumerator.getPositionByName("completion")));
+        items.add(new WealthItem(TorrentRow.this,itemEnumerator.getPositionByName("wealth")));
         view.setItem(row.getItem(),manager);
       }
     });
