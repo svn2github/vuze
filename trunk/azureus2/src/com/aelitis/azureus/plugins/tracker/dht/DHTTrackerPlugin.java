@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.plugins.tracker.dht;
 
+import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
@@ -242,9 +243,11 @@ DHTTrackerPlugin
 				
 				registered_downloads.add( dl );
 				
+				int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+
 				dht.put( 
 						dl.getTorrent().getHash(), 
-						"wibble".getBytes(), 
+						String.valueOf( port ).getBytes(), 
 						new DHTPluginOperationListener()
 						{
 							public void
