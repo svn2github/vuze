@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableStructureEventDispatcher;
@@ -53,6 +54,8 @@ public class TableColumnImpl
   private boolean bCoreDataSource;
 	private ArrayList cellRefreshListeners;
 	private ArrayList cellAddedListeners;
+	private ArrayList cellDisposeListeners;
+	private int iConsecutiveErrCount;
 
   /** Create a column object for the specified table.
    *
@@ -62,13 +65,14 @@ public class TableColumnImpl
   public TableColumnImpl(String tableID, String columnID) {
     sTableID = tableID;
     sName = columnID;
-    iType = TableColumnCore.TYPE_TEXT;
-    iPosition = TableColumnCore.POSITION_INVISIBLE;
+    iType = TYPE_TEXT;
+    iPosition = POSITION_INVISIBLE;
     iWidth = 50;
-    iAlignment = TableColumnCore.ALIGN_LEAD;
+    iAlignment = ALIGN_LEAD;
     bColumnAdded = false;
     bCoreDataSource = false;
-    iInterval = TableColumnCore.INTERVAL_INVALID_ONLY;
+    iInterval = INTERVAL_INVALID_ONLY;
+    iConsecutiveErrCount = 0;
   }
 
   public void initialize(int iAlignment, int iPosition, 
@@ -118,9 +122,11 @@ public class TableColumnImpl
       return;
     iWidth = width;
 
-    if (bColumnAdded && iPosition != TableColumnCore.POSITION_INVISIBLE) {
+    if (bColumnAdded && iPosition != POSITION_INVISIBLE) {
       TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
       tsed.columnSizeChanged(this);
+      if (iType == TYPE_GRAPHIC)
+        invalidateCells();
     }
   }
 
@@ -187,6 +193,20 @@ public class TableColumnImpl
 		cellAddedListeners.remove(listener);
   }
 
+  public synchronized void addCellDisposeListener(TableCellDisposeListener listener) {
+    if (cellDisposeListeners == null)
+      cellDisposeListeners = new ArrayList();
+
+		cellDisposeListeners.add(listener);
+  }
+
+  public synchronized void removeCellDisposeListener(TableCellDisposeListener listener) {
+    if (cellDisposeListeners == null)
+      return;
+
+		cellDisposeListeners.remove(listener);
+  }
+
   public void invalidateCells() {
     TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
     tsed.columnInvalidate(this);
@@ -228,6 +248,13 @@ public class TableColumnImpl
       ((TableCellAddedListener)(cellAddedListeners.get(i))).cellAdded(cell);
   }
 
+  public void invokeCellDisposeListeners(TableCellCore cell) {
+    if (cellDisposeListeners == null)
+      return;
+    for (int i = 0; i < cellDisposeListeners.size(); i++)
+      ((TableCellDisposeListener)(cellDisposeListeners.get(i))).dispose(cell);
+  }
+
   public void setPositionNoShift(int position) {
     iPosition = position;
   }
@@ -267,5 +294,13 @@ public class TableColumnImpl
       }
     }
     return sTitleLanguageKey;
+  }
+
+  public int getConsecutiveErrCount() {
+    return iConsecutiveErrCount;
+  }
+
+  public void setConsecutiveErrCount(int iCount) {
+    iConsecutiveErrCount = iCount;
   }
 }

@@ -65,11 +65,18 @@ public interface TableColumnCore extends TableColumn {
    * @param cell the cell is being refreshed
    */
   public void invokeCellRefreshListeners(TableCellCore cell);
+
   /** Send a cellAdded trigger to all listeners stored in TableColumn
    *
    * @param cell the cell is being added
    */
   public void invokeCellAddedListeners(TableCellCore cell);
+
+  /** Send a dispose trigger to all listeners stored in TableColumn
+   *
+   * @param cell the cell is being disposed
+   */
+  public void invokeCellDisposeListeners(TableCellCore cell);
 
   /** Sets the position of the column without adjusting the other columns.
    * This will cause duplicate columns, and is only usefull if you are
@@ -100,4 +107,7 @@ public interface TableColumnCore extends TableColumn {
    * @return Title's language key
    */
   public String getTitleLanguageKey();
+  
+  public int getConsecutiveErrCount();
+  public void setConsecutiveErrCount(int iCount);
 }

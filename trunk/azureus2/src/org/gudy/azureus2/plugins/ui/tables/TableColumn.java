@@ -179,6 +179,9 @@ public interface TableColumn {
   public void addCellAddedListener(TableCellAddedListener listener);
   public void removeCellAddedListener(TableCellAddedListener listener);
 
+  public void addCellDisposeListener(TableCellDisposeListener listener);
+  public void removeCellDisposeListener(TableCellDisposeListener listener);
+
   /** Invalidate all cells in this column.  The cells will be forced to
    * update on the next refresh.
    */
