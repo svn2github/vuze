@@ -405,6 +405,22 @@ TRTrackerServerTorrentImpl
 		
 		boolean	add_to_cache	= false;
 		
+		int		max_peers	= TRTrackerServerImpl.getMaxPeersToSend();
+		
+			// num_want < 0 -> not supplied so give them max
+		
+		if ( num_want < 0 ){
+			
+			num_want = total_peers;
+		}
+		
+			// trim back to max_peers if specified
+		
+		if ( max_peers > 0 && num_want > max_peers ){
+			
+			num_want	= max_peers;
+		}
+	
 		if ( 	cache_millis > 0 &&
 				num_want >= MIN_CACHE_ENTRY_SIZE &&
 				total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold()){
@@ -424,27 +440,33 @@ TRTrackerServerTorrentImpl
 				
 				if ( now - entry.getTime() > cache_millis ){
 										
-					it.remove();
-					
-				}else{
-					
-					if ( 	entry.getSendPeerIds() == send_peer_ids &&
-							entry.getCompact() == compact ){
-						
-						break;
-					}
+					it.remove();	
 				}
 			}
 			
 				// look for an entry with a reasonable num_want
+				// e.g. for 100 look between 50 and 100
 			
-			for (int i=num_want/10;i>0;i--){
+			for (int i=num_want/10;i>num_want/20;i--){
 								
-				announceCacheEntry	res = (announceCacheEntry)announce_cache.get(new Integer(i));
+				announceCacheEntry	entry = (announceCacheEntry)announce_cache.get(new Integer(i));
 				
-				if( res != null ){
-								
-					return( res.getData());
+				if( entry != null ){
+			
+					if ( now - entry.getTime() > cache_millis ){
+						
+						announce_cache.remove( new Integer(i));
+						
+					}else{
+					
+							// make sure this is compatible
+						
+						if ( 	entry.getSendPeerIds() == send_peer_ids &&
+								entry.getCompact() == compact ){
+						
+							return( entry.getData());
+						}
+					}
 				}
 			}
 		
@@ -454,22 +476,7 @@ TRTrackerServerTorrentImpl
 		
 		List	rep_peers = new ArrayList();
 		
-		int		max_peers	= TRTrackerServerImpl.getMaxPeersToSend();
-		
-			// num_want < 0 -> not supplied to give them max
-		
-		if ( num_want < 0 ){
-			
-			num_want = total_peers;
-		}
-		
-			// trim back to max_peers if specified
-		
-		if ( max_peers > 0 && num_want > max_peers ){
-			
-			num_want	= max_peers;
-		}
-	
+
 		// System.out.println( "exportPeersToMap: num_want = " + num_want + ", max = " + max_peers );
 		
 			// if they want them all simply give them the set
@@ -530,7 +537,8 @@ TRTrackerServerTorrentImpl
 						// too costly to randomise as below. use more efficient but slightly less accurate
 						// approach
 					
-					int	limit 	= (num_want*3)/2;
+					int	limit 	= num_want*2;	// some entries we find might not be usable
+												// so in the limit search for more
 					int	added	= 0;
 					
 					for (int i=0;i<limit && added < num_want;i++){
@@ -635,11 +643,13 @@ TRTrackerServerTorrentImpl
 		
 		Map	root = new TreeMap();	// user TreeMap to pre-sort so encoding quicker
 		
+		int	num_peers_returned	= rep_peers.size();
+		
 		if ( compact ){
 			
 			byte[]	compact_peers = new byte[rep_peers.size()*6];
-			
-			for ( int i=0;i<rep_peers.size();i++){
+						
+			for ( int i=0;i<num_peers_returned;i++){
 				
 				Map	rep_peer = (Map)rep_peers.get(i);
 				
@@ -672,7 +682,7 @@ TRTrackerServerTorrentImpl
 		
 		if ( add_to_cache ){
 				
-			announce_cache.put( new Integer((num_want+9)/10), new announceCacheEntry( root, send_peer_ids, compact ));
+			announce_cache.put( new Integer((num_peers_returned+9)/10), new announceCacheEntry( root, send_peer_ids, compact ));
 		}
 		
 		return( root );

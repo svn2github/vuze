@@ -46,7 +46,7 @@ LoadTest
 	int	address3	= 0;
 	int	address4	= 0;
 	
-	int	num_clients	= 100000;
+	int	num_clients	= 25000;
 	loadTestClient[]	clients;
 	
 	
@@ -62,7 +62,7 @@ LoadTest
 		
 		TRTrackerServerImpl.TIMEOUT_CHECK 		    = timeout*1000;
 		
-		TRTrackerServerImpl.max_seed_retention		= 0;
+		TRTrackerServerImpl.max_seed_retention		= 3000;
 		
 		TRTrackerServerImpl	server = 
 			new TRTrackerServerImpl( "test" )
