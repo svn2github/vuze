@@ -222,6 +222,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         itemBar.setEnabled(false);
 
         itemOpen.setEnabled(false);
+        itemExport.setEnabled(false);
+        itemHost.setEnabled(false);
 
         itemMove.setEnabled(false);
         itemPriority.setEnabled(false);
@@ -238,6 +240,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           itemBar.setEnabled(true);
 
           itemOpen.setEnabled(true);
+          itemExport.setEnabled(true);
+          //itemHost.setEnabled(true);
 
           itemMove.setEnabled(true);
           itemPriority.setEnabled(true);
