@@ -39,6 +39,7 @@ UPnPPluginService
 {
 	protected UPnPWANConnection		connection;
 	protected BooleanParameter 		alert_success;
+	protected BooleanParameter 		grab_ports;
 	
 	protected List	service_mappings = new ArrayList();
 	
@@ -46,10 +47,12 @@ UPnPPluginService
 	UPnPPluginService(
 		UPnPWANConnection				_connection,
 		UPnPWANConnectionPortMapping[]	_ports,
-		BooleanParameter				_alert_success )
+		BooleanParameter				_alert_success,
+		BooleanParameter				_grab_ports )
 	{
 		connection		= _connection;
 		alert_success	= _alert_success;
+		grab_ports		= _grab_ports;
 		
 		for (int i=0;i<_ports.length;i++){
 
@@ -63,11 +66,145 @@ UPnPPluginService
 		return( connection );
 	}
 	
-	protected void
+	protected synchronized void
 	checkMapping(
 		LoggerChannel		log,
-		UPnPMapping			mapping,
-		boolean				grab_ports )
+		UPnPMapping			mapping )
+	{
+		if ( mapping.isEnabled()){
+			
+				// check for change of port number and delete old value if so
+			
+			for (int i=0;i<service_mappings.size();i++){
+				
+				serviceMapping	sm = (serviceMapping)service_mappings.get(i);
+				
+				if ( sm.getMapping() == mapping ){
+			
+					if ( sm.getPort() != mapping.getPort()){
+						
+						removeMapping( log, sm );
+					}
+				}
+			}
+		
+			serviceMapping	grab_in_progress	= null;
+			
+			String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
+			
+			for (int i=0;i<service_mappings.size();i++){
+				
+				serviceMapping	sm = (serviceMapping)service_mappings.get(i);
+				
+				if ( 	sm.isTCP() 		== mapping.isTCP() &&
+						sm.getPort() 	== mapping.getPort()){				
+			
+					if ( sm.getInternalHost().equals( local_address )){
+						
+							// make sure we tie this to the mapping in case it
+							// was external to begin with
+						
+						sm.setMapping( mapping  );
+						
+						if ( !sm.getLogged()){
+							
+							sm.setLogged();
+							
+							log.log( "Mapping " + mapping.getString() + " already established" );
+						}
+						
+						return;
+						
+					}else{
+						
+						if ( !grab_ports.getValue() ){
+	
+							if ( !sm.getLogged()){
+								
+								sm.setLogged();
+							
+								String	text = 
+									MessageText.getString( 
+										"upnp.alert.differenthost", 
+										new String[]{ mapping.getString(), sm.getInternalHost()});
+							
+								log.log( text );
+							
+								log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+							}
+							
+							return;
+							
+						}else{
+							
+								// we're going to grab it
+							
+							sm.setMapping( mapping  );
+
+							grab_in_progress	= sm;
+						}
+					}
+				}
+			}
+			
+				// not found - try and establish it + add entry even if we fail so
+				// that we don't retry later
+						
+			try{
+				connection.addPortMapping( 
+					mapping.isTCP(), mapping.getPort(),"AZ" + mapping.getPort());
+							
+				String	text;
+				
+				if ( grab_in_progress != null ){
+					
+					text = MessageText.getString( 
+							"upnp.alert.mappinggrabbed", 
+							new String[]{ mapping.getString(), grab_in_progress.getInternalHost()});
+				}else{
+					
+					text = MessageText.getString( 
+							"upnp.alert.mappingok", 
+							new String[]{ mapping.getString()});
+				}
+				
+				log.log( text );
+				
+				if ( alert_success.getValue()){
+					
+					log.logAlertRepeatable( LoggerChannel.LT_INFORMATION, text );
+				}
+				
+			}catch( Throwable e ){
+				
+				String	text = 
+					MessageText.getString( 
+							"upnp.alert.mappingfailed", 
+							new String[]{ mapping.getString()});
+				
+				log.log( text );
+				
+				log.logAlertRepeatable( LoggerChannel.LT_ERROR, text );
+			}
+			
+			if ( grab_in_progress == null ){
+				
+				serviceMapping	new_mapping = new serviceMapping( mapping );
+			
+				service_mappings.add( new_mapping );
+			}
+			
+		}else{
+				// mapping is disabled
+			
+			removeMapping( log, mapping );
+		}
+	}
+	
+	protected synchronized void
+	removeMapping(
+		LoggerChannel		log,
+		UPnPMapping			mapping )
 	{
 		String	grab_in_progress	= null;
 		
@@ -78,94 +215,40 @@ UPnPPluginService
 			serviceMapping	sm = (serviceMapping)service_mappings.get(i);
 			
 			if ( 	sm.isTCP() == mapping.isTCP() &&
-					sm.getPort() == mapping.getPort()){				
-		
-				if ( sm.getInternalHost().equals( local_address )){
-					
-					if ( !sm.getLogged()){
-						
-						sm.setLogged();
-						
-						log.log( "Mapping " + mapping.getString() + " already established" );
-					}
-					
-					return;
-					
-				}else{
-					
-					if ( !grab_ports ){
+					sm.getPort() == mapping.getPort() &&
+					sm.getMapping() != null ){
+				
+				removeMapping( log, sm );
 
-						if ( !sm.getLogged()){
-							
-							sm.setLogged();
-						
-							String	text = 
-								MessageText.getString( 
-									"upnp.alert.differenthost", 
-									new String[]{ mapping.getString(), sm.getInternalHost()});
-						
-							log.log( text );
-						
-							log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
-						}
-						
-						return;
-						
-					}else{
-						
-						grab_in_progress	= sm.getInternalHost();
-					}
-				}
+				return;
 			}
 		}
-		
-			// not found - try and establish it + add entry even if we fail so
-			// that we don't retry later
-		
+	}
+							
+	protected void
+	removeMapping(
+		LoggerChannel		log,
+		serviceMapping		mapping )
+	{
 		try{
-			connection.addPortMapping( 
-				mapping.isTCP(), mapping.getPort(),"AZ" + mapping.getPort());
-		
-			String	text;
-			
-			if ( grab_in_progress != null ){
-				
-				text = MessageText.getString( 
-						"upnp.alert.mappinggrabbed", 
-						new String[]{ mapping.getString(), grab_in_progress });
-			}else{
-				
-				text = MessageText.getString( 
-						"upnp.alert.mappingok", 
-						new String[]{ mapping.getString()});
-			}
-			
-			log.log( text );
-			
-			if ( alert_success.getValue()){
-				
-				log.logAlertRepeatable( LoggerChannel.LT_INFORMATION, text );
-			}
+			connection.deletePortMapping( 
+				mapping.isTCP(), mapping.getPort());
+	
+			log.log( "Mapping " + mapping.getString() + " removed" );
 			
 		}catch( Throwable e ){
 			
-			String	text = 
-				MessageText.getString( 
-						"upnp.alert.mappingfailed", 
-						new String[]{ mapping.getString()});
-			
-			log.log( text );
-			
-			log.logAlertRepeatable( LoggerChannel.LT_ERROR, text );
+			log.log( "Mapping " + mapping.getString() + " failed to delete", e );
 		}
 		
-		service_mappings.add( new serviceMapping( mapping ));
+		service_mappings.remove(mapping);
 	}
 	
 	protected class
 	serviceMapping
 	{
-		protected boolean		external;
+		protected UPnPMapping	mapping;
+		
 		protected boolean		tcp;
 		protected int			port;
 		protected String		internal_host;
@@ -176,7 +259,6 @@ UPnPPluginService
 		serviceMapping(
 			UPnPWANConnectionPortMapping		mapping )
 		{
-			external		= true;
 			tcp				= mapping.isTCP();
 			port			= mapping.getExternalPort();
 			internal_host	= mapping.getInternalHost();
@@ -184,12 +266,26 @@ UPnPPluginService
 	
 		protected
 		serviceMapping(
-			UPnPMapping		mapping )
+			UPnPMapping		_mapping )
 		{
-			external		= true;
+			mapping			= _mapping;
 			tcp				= mapping.isTCP();
 			port			= mapping.getPort();
 			internal_host	= connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
+
+		}
+		
+		protected UPnPMapping
+		getMapping()
+		{
+			return( mapping );
+		}
+		
+		protected void
+		setMapping(
+			UPnPMapping	_mapping )
+		{
+			mapping	= _mapping;
 		}
 		
 		protected boolean
@@ -220,6 +316,14 @@ UPnPPluginService
 		getInternalHost()
 		{
 			return( internal_host );
+		}
+		
+		public String
+		getString()
+		{
+			String	name = mapping==null?"<external>":MessageText.getString(mapping.getResourceName());
+			
+			return(  name + " (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" );
 		}
 	}
 }

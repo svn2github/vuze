@@ -62,6 +62,26 @@ UPnPPlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
+		plugin_interface.addListener(
+			new PluginListener()
+			{
+				public void
+				initializationComplete()
+				{	
+				}
+				
+				public void
+				closedownInitiated()
+				{
+				}
+				
+				public void
+				closedownComplete()
+				{
+					closeDown();
+				}
+			});
+		
 		log = plugin_interface.getLogger().getChannel("UPnP");
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
@@ -116,6 +136,10 @@ UPnPPlugin
 						if ( enabled ){
 							
 							startUp();
+							
+						}else{
+							
+							closeDown();
 						}
 					}
 				});
@@ -213,6 +237,27 @@ UPnPPlugin
 	}
 	
 	protected void
+	closeDown()
+	{
+		for (int i=0;i<mappings.size();i++){
+			
+			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
+			
+			if ( !mapping.isEnabled()){
+				
+				continue;
+			}
+			
+			for (int j=0;j<services.size();j++){
+				
+				UPnPPluginService	service = (UPnPPluginService)services.get(j);
+				
+				service.removeMapping( log, mapping );
+			}
+		}		
+	}
+	
+	protected void
 	processDevice(
 		UPnPDevice		device )
 	
@@ -286,7 +331,7 @@ UPnPPlugin
 							(ports[j].isTCP()?"TCP":"UDP" ) + " -> " + ports[j].getInternalHost());
 		}
 		
-		services.add(new UPnPPluginService( wan_service, ports, alert_success_param ));
+		services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param ));
 		
 		checkState();
 	}
@@ -351,17 +396,12 @@ UPnPPlugin
 		for (int i=0;i<mappings.size();i++){
 			
 			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
-			
-			if ( !mapping.isEnabled()){
-				
-				continue;
-			}
-			
+
 			for (int j=0;j<services.size();j++){
 				
 				UPnPPluginService	service = (UPnPPluginService)services.get(j);
 				
-				service.checkMapping( log, mapping, grab_ports_param.getValue() );
+				service.checkMapping( log, mapping );
 			}
 		}
 	}

@@ -52,4 +52,11 @@ UPnPWANConnection
 	getPortMappings()
 	
 		throws UPnPException;
+	
+	public void
+	deletePortMapping(
+		boolean		tcp,
+		int			port )
+	
+		throws UPnPException;
 }

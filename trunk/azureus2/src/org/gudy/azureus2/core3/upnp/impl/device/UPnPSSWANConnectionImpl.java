@@ -75,6 +75,24 @@ UPnPSSWANConnectionImpl
 		
 	}
 	
+	public void
+	deletePortMapping(
+		boolean		tcp,			
+		int			port )
+	
+		throws UPnPException
+	{
+		UPnPAction act = service.getAction( "DeletePortMapping" );
+		
+		UPnPActionInvocation inv = act.getInvocation();
+		
+		inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
+		inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
+		inv.addArgument( "NewExternalPort", 			"" + port );
+		
+		inv.invoke();
+	}
+	
 	public UPnPWANConnectionPortMapping[]
 	getPortMappings()
 										
