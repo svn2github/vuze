@@ -86,6 +86,10 @@ DownloadManagerState
 	getAttribute(
 		String		name );		// make sure you use an AT_ value defined above
 
+	public String[]
+	getListAttribute(
+		String		name );
+	
 	public void
 	save();
 	

@@ -548,6 +548,7 @@ DownloadManagerStateImpl
 			}
 			
 			return( cat.getName());
+			
 		}else{
 			
 			return( getStringAttribute( name ));
@@ -602,7 +603,7 @@ DownloadManagerStateImpl
 	public String[]
 	getNetworks()
 	{
-		List	values = getListAttribute( AT_NETWORKS );
+		List	values = getListAttributeSupport( AT_NETWORKS );
 		
 		List	res = new ArrayList();
 		
@@ -762,9 +763,20 @@ DownloadManagerStateImpl
 		}
 	}
 	
+	public String[]
+	getListAttribute(
+		String	attribute_name )
+	{
+		if ( attribute_name == AT_NETWORKS ){
+			
+			return( getNetworks());
+		}
+		
+		return( null );
+	}
 	
 	protected List
-	getListAttribute(
+	getListAttributeSupport(
 		String	attribute_name )
 	{
 		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
@@ -836,7 +848,7 @@ DownloadManagerStateImpl
 			}
 		}else{
 		
-			List old_value = getListAttribute( attribute_name );
+			List old_value = getListAttributeSupport( attribute_name );
 								
 			if ( old_value == null || old_value.size() != attribute_value.size()){
 				
@@ -977,6 +989,13 @@ DownloadManagerStateImpl
 		public String
 		getAttribute(
 			String		name )
+		{
+			return( null );
+		}
+		
+		public String[]
+		getListAttribute(
+			String	name )
 		{
 			return( null );
 		}

@@ -35,13 +35,13 @@ import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.util.Debug;
 
 public class 
-TorrentAttributeImpl
+TorrentAttributeCategoryImpl
 	implements TorrentAttribute
 {
 	private List	listeners = new ArrayList();
 	
 	protected
-	TorrentAttributeImpl()
+	TorrentAttributeCategoryImpl()
 	{
 		CategoryManager.addCategoryManagerListener(
 				new CategoryManagerListener()
@@ -62,7 +62,7 @@ TorrentAttributeImpl
 								public TorrentAttribute
 								getAttribte()
 								{
-									return( TorrentAttributeImpl.this );
+									return( TorrentAttributeCategoryImpl.this );
 								}
 								
 								public Object
@@ -100,7 +100,7 @@ TorrentAttributeImpl
 								public TorrentAttribute
 								getAttribte()
 								{
-									return( TorrentAttributeImpl.this );
+									return( TorrentAttributeCategoryImpl.this );
 								}
 								
 								public Object

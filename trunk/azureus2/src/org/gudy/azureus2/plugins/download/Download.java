@@ -292,6 +292,10 @@ Download
   	TorrentAttribute		attribute,
 	String					value );
   
+  public String[]
+  getListAttribute(
+	TorrentAttribute		attribute );
+  
   /** Returns the name of the Category
    *
    * @return name of the category

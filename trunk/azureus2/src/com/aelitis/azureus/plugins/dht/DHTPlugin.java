@@ -66,6 +66,8 @@ DHTPlugin
 	private DHT					dht;
 	private DHTTransportUDP		transport;
 	
+	private boolean				enabled;
+	
 	private LoggerChannel		log;
 	
 	public void
@@ -195,7 +197,9 @@ DHTPlugin
 		
 			// TODO: When DHT is known to work OK remove this feature!!!! 
 		
-		if ( VersionCheckClient.getSingleton().DHTEnableAllowed()){
+		enabled = VersionCheckClient.getSingleton().DHTEnableAllowed();
+		
+		if ( enabled ){
 			
 			model.getStatus().setText( "Initialising" );
 			
@@ -401,5 +405,26 @@ DHTPlugin
 			
 			Debug.printStackTrace( e );
 		}
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( enabled );
+	}
+	
+	public void
+	put(
+		byte[]	key,
+		byte[]	value )
+	{
+		dht.put( key, value );
+	}
+	
+	public void
+	remove(
+		byte[]	key )
+	{
+		dht.remove( key );
 	}
 }

@@ -44,6 +44,7 @@ PluginManagerDefaults
 	public static final String	PID_UPNP					= "UPnP";
 	public static final String	PID_CLIENT_ID				= "Client ID";
 	public static final String	PID_DHT						= "DHT";
+	public static final String	PID_DHT_TRACKER				= "DHT Tracker";
 	
 	public static final String[] PLUGIN_IDS = {
 			
@@ -57,6 +58,8 @@ PluginManagerDefaults
 			PID_PLATFORM_CHECKER,
 			PID_UPNP,
 			PID_CLIENT_ID,
+			PID_DHT,
+			PID_DHT_TRACKER,
 		};
 	
 	public String[]

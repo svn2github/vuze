@@ -175,7 +175,8 @@ DHTUDPUtils
 	protected static void
 	serialiseTransportValues(
 		DataOutputStream		os,
-		DHTTransportValue[]		values )
+		DHTTransportValue[]		values,
+		long					skew )
 	
 		throws IOException, DHTTransportException
 	{
@@ -184,7 +185,7 @@ DHTUDPUtils
 		for (int i=0;i<values.length;i++){
 			
 			
-			serialiseTransportValue( os, values[i] );
+			serialiseTransportValue( os, values[i], skew );
 		}
 	}
 	
@@ -254,13 +255,14 @@ DHTUDPUtils
 	protected static void
 	serialiseTransportValue(
 		DataOutputStream	os,
-		DHTTransportValue	value )
+		DHTTransportValue	value,
+		long				skew )
 	
 		throws IOException, DHTTransportException
 	{
 		os.writeInt( value.getCacheDistance());
 		
-		os.writeLong( value.getCreationTime());
+		os.writeLong( value.getCreationTime() + skew );
 		
 		serialiseByteArray( os, value.getValue(), 256 );
 		

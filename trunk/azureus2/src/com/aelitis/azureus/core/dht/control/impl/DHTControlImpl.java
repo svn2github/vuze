@@ -67,7 +67,9 @@ DHTControlImpl
 	private int			max_rep_per_node;
 	
 	
-	private ThreadPool	lookup_pool;
+	private ThreadPool	internal_lookup_pool;
+	private ThreadPool	external_lookup_pool;
+	private ThreadPool	put_pool;
 	
 	private Map			imported_state	= new HashMap();
 	
@@ -103,9 +105,12 @@ DHTControlImpl
 		
 		if ( lookup_concurrency > 1 ){
 			
-			lookup_pool = new ThreadPool("DHTControl:lookups", lookup_concurrency );
+			internal_lookup_pool = new ThreadPool("DHTControl:internallookups", lookup_concurrency );
 		}
 		
+		external_lookup_pool 	= new ThreadPool("DHTControl:externallookups", 1 );
+		put_pool 				= new ThreadPool("DHTControl:puts", 1 );
+
 		createRouter( transport.getLocalContact());
 
 		node_id_byte_count	= router.getID().length;
@@ -176,7 +181,7 @@ DHTControlImpl
 				requestLookup(
 					byte[]		id )
 				{
-					lookup( id, false, 0, search_concurrency, null );
+					lookup( internal_lookup_pool, id, false, 0, search_concurrency, null );
 				}
 				
 				public void
@@ -366,7 +371,8 @@ DHTControlImpl
 	{
 		final AESemaphore	sem = new AESemaphore( "DHTControl:seed" );
 		
-		lookup( router.getID(), 
+		lookup( internal_lookup_pool,
+				router.getID(), 
 				false, 
 				0,
 				search_concurrency*4,
@@ -409,7 +415,8 @@ DHTControlImpl
 		final DHTTransportValue	value,
 		final long				timeout )
 	{
-		lookup( encoded_key, 
+		lookup( put_pool,
+				encoded_key, 
 				false, 
 				timeout,
 				search_concurrency,
@@ -476,7 +483,8 @@ DHTControlImpl
 		
 		final AESemaphore			sem		= new AESemaphore( "DHTControl:get" );
 		
-		lookup( encoded_key, 
+		lookup( external_lookup_pool,
+				encoded_key, 
 				true, 
 				timeout,
 				search_concurrency,
@@ -565,13 +573,14 @@ DHTControlImpl
 	
 	protected void
 	lookup(
+		ThreadPool					thread_pool,
 		final byte[]				lookup_id,
 		final boolean				value_search,
 		final long					timeout,
 		final int					concurrency,
 		final lookupResultHandler	handler )
 	{
-		if ( lookup_pool == null ){
+		if ( thread_pool == null ){
 			
 			try{
 				List	res = lookupSupport( lookup_id, value_search, timeout, concurrency );
@@ -591,7 +600,7 @@ DHTControlImpl
 			}
 		}else{
 			
-			lookup_pool.run(
+			thread_pool.run(
 				new AERunnable()
 				{
 					public void

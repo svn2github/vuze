@@ -79,7 +79,7 @@ DHTUDPPacketRequestStore
 		DHTUDPUtils.serialiseByteArray( os, key, 64 );
 		
 		try{
-			DHTUDPUtils.serialiseTransportValues( os, values );
+			DHTUDPUtils.serialiseTransportValues( os, values, 0 );
 			
 		}catch( DHTTransportException e ){
 			

@@ -629,7 +629,7 @@ RPDownload
   	TorrentAttribute		attribute )
   {
 	notSupported();
-	return ("");  
+	return (null);  
   }
   
   public void
@@ -639,6 +639,15 @@ RPDownload
   {
   	notSupported();
   }
+  
+  public String[]
+  getListAttribute(
+		TorrentAttribute		attribute )
+  {
+	notSupported();
+	return (null);   	
+  }
+  
   public String getCategoryName() {
  		notSupported();
 		return ("");

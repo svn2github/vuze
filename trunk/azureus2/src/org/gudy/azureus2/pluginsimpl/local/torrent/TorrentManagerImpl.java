@@ -41,10 +41,18 @@ public class
 TorrentManagerImpl 
 	implements TorrentManager, TOTorrentProgressListener
 {
-	protected static TorrentManagerImpl	singleton;
-	protected static AEMonitor 			class_mon 	= new AEMonitor( "TorrentManager" );
+	private static TorrentManagerImpl	singleton;
+	private static AEMonitor 			class_mon 	= new AEMonitor( "TorrentManager" );
 
-	protected static TorrentAttribute	category_attribute = new TorrentAttributeImpl();
+	private static TorrentAttribute	category_attribute = new TorrentAttributeCategoryImpl();
+	private static TorrentAttribute	networks_attribute = new TorrentAttributeNetworksImpl();
+	
+	private static Map	attribute_map = new HashMap();
+	
+	static{
+		attribute_map.put( TorrentAttribute.TA_CATEGORY, category_attribute );
+		attribute_map.put( TorrentAttribute.TA_NETWORKS, networks_attribute );
+	}
 	
 	public static TorrentManagerImpl
 	getSingleton()
@@ -185,19 +193,20 @@ TorrentManagerImpl
 	public TorrentAttribute[]
 	getDefinedAttributes()
 	{
-		return( new TorrentAttribute[]{ category_attribute });
+		Collection	entries = attribute_map.values();
+		
+		TorrentAttribute[]	res = new TorrentAttribute[entries.size()];
+		
+		entries.toArray( res );
+		
+		return( res );
 	}
 	
 	public TorrentAttribute
 	getAttribute(
 		String		name )
 	{
-		if ( name.equals( category_attribute.getName())){
-			
-			return( category_attribute );
-		}
-		
-		return( null );
+		return((TorrentAttribute)attribute_map.get(name));
 	}
 	
 	public void

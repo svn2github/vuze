@@ -393,6 +393,20 @@ DownloadImpl
   	return( null );
   }
   
+  public String[]
+  getListAttribute(
+  	TorrentAttribute		attribute )
+  {
+	  	String	name = convertAttribute( attribute );
+	  	
+	  	if ( name != null ){
+	  		
+	  		return( download_manager.getDownloadState().getListAttribute( name ));
+	  	}
+	  	
+	  	return( null );
+  }
+  
   public void
   setAttribute(
   	TorrentAttribute		attribute,
@@ -410,10 +424,14 @@ DownloadImpl
   convertAttribute(
   	TorrentAttribute		attribute )
   {
-  	if ( attribute.getName() == TorrentAttribute.TA_CATEGORY ){
+ 	if ( attribute.getName() == TorrentAttribute.TA_CATEGORY ){
   		
   		return( DownloadManagerState.AT_CATEGORY );
   		
+ 	}else if ( attribute.getName() == TorrentAttribute.TA_NETWORKS ){
+  	  		
+  	 	return( DownloadManagerState.AT_NETWORKS );
+  	  		
   	}else{
   		
   		Debug.out( "Can't convert attribute '" + attribute.getName() + "'" );
@@ -426,10 +444,14 @@ DownloadImpl
   convertAttribute(
   	String			name )
   {
-  	if ( name.equals( DownloadManagerState.AT_CATEGORY )){
+ 	if ( name.equals( DownloadManagerState.AT_CATEGORY )){
   		
   		return( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CATEGORY ));
   		
+ 	}else if ( name.equals( DownloadManagerState.AT_NETWORKS )){
+  	  		
+  	  	return( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_NETWORKS ));
+  	  		
   	}else{
   		
   		return( null );
