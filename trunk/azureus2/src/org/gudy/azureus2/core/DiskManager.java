@@ -902,6 +902,8 @@ public class DiskManager {
       currentFile++;
       fileOffset = 0;
       previousFilesLength = offset;
+      if(currentFile > pieceList.size())
+         noError = false;
     }
 
     buffer.position(0);
