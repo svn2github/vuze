@@ -35,7 +35,8 @@ CHANGE: Core | NAT check url changed to aelitis server [Nolar]
 CHANGE: Core | Reduce tracker re-announce interval when incoming connections are accepted (unfirewalled) [Nolar]
 CHANGE: Core | Remove old auto-migration code [Nolar]
 CHANGE: Core | Update restart logic now preserves JVM max mem setting for Sun JVMs [Parg]
-CHANGE: UI   | change context menu selection for queue/stop/force start/recheck to be "at least one can be..." rather than "all can be..." [Parg[
+CHANGE: Core | Cleanup and optimize choke-unchoke logic [Nolar]
+CHANGE: UI   | Change context menu selection for queue/stop/force-start/recheck to be "at least one can be..." rather than "all can be..." [Parg]
 
 BUGFIX: Core | Fix for kernel panics under MacOSX [ej32206, Nolar]
 BUGFIX: UI   | Old language files in user dir causing !missing! item texts [Nolar]
@@ -62,6 +63,9 @@ BUGFIX: UI   | Fix the fuzzy Azureus icon bug under OSX [Gudy]
 BUGFIX: UI   | IPFilter config view slow to display when thousands of ranges are set [Gudy]
 BUGFIX: Core | Fix for hangs when scraping due to slow DNS resolves [Parg]
 BUGFIX: Core | Fix for UPnP failing if trailing spaces in 'action name' [Parg]
+BUGFIX: Core | Fixed bug in choke/unchoke logic when number of connected peers < max upload slots [Nolar]
+
+
 
 
 
