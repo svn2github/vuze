@@ -1,7 +1,7 @@
 /*
  * File    : PEPieceImpl.java
  * Created : 15-Oct-2003
- * By      : stuff
+ * By      : Olivier
  * 
  * Azureus - a Java Bittorrent client
  *

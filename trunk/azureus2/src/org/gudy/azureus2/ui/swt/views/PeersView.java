@@ -23,7 +23,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core2.PeerSocket;
+import org.gudy.azureus2.core3.peer.PEPeerSocket;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PeerTableItem;
 
@@ -239,13 +239,13 @@ public class PeersView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
    */
   public void objectAdded(Object created) {
-    if (!(created instanceof PeerSocket))
+    if (!(created instanceof PEPeerSocket))
       return;
     synchronized (items) {
       if (items.containsKey(created))
         return;
       try {
-        PeerTableItem item = new PeerTableItem(table, (PeerSocket) created);
+        PeerTableItem item = new PeerTableItem(table, (PEPeerSocket) created);
         items.put(created, item);
       }
       catch (Exception e) {
@@ -271,7 +271,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
   }
 
   //Sorting methods
-  private boolean getBooleanFiedl(PeerSocket peerSocket, String field) {
+  private boolean getBooleanFiedl(PEPeerSocket peerSocket, String field) {
     if (field.equals("t")) //$NON-NLS-1$
       return peerSocket.isIncoming();
 
@@ -289,7 +289,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
     return false;
   }
 
-  private String getStringField(PeerSocket peerSocket, String field) {
+  private String getStringField(PEPeerSocket peerSocket, String field) {
     if (field.equals("ip")) //$NON-NLS-1$
       return peerSocket.getIp();
 
@@ -299,7 +299,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
     return ""; //$NON-NLS-1$
   }
 
-  private long getIntField(PeerSocket peerSocket, String field) {
+  private long getIntField(PEPeerSocket peerSocket, String field) {
 
     if (field.equals("port")) //$NON-NLS-1$
       return peerSocket.getPort();
@@ -340,13 +340,13 @@ public class PeersView extends AbstractIView implements IComponentListener {
       PeerTableItem psItems[] = new PeerTableItem[items.size()];
       Iterator iter = items.keySet().iterator();
       while (iter.hasNext()) {
-        PeerSocket peerSocket = (PeerSocket) iter.next();
+        PEPeerSocket peerSocket = (PEPeerSocket) iter.next();
         PeerTableItem item = (PeerTableItem) items.get(peerSocket);
         psItems[item.getIndex()] = item;
         long value = getIntField(peerSocket, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
-          PeerSocket peerSocketi = (PeerSocket) ordered.get(i);
+          PEPeerSocket peerSocketi = (PEPeerSocket) ordered.get(i);
           long valuei = getIntField(peerSocketi, field);
           if (ascending) {
             if (valuei >= value)
@@ -361,7 +361,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
       }
 
       for (int i = 0; i < ordered.size(); i++) {
-        PeerSocket peerSocket = (PeerSocket) ordered.get(i);
+        PEPeerSocket peerSocket = (PEPeerSocket) ordered.get(i);
         psItems[i].setPeerSocket(peerSocket);
         psItems[i].invalidate();
         items.put(peerSocket, psItems[i]);
@@ -409,13 +409,13 @@ public class PeersView extends AbstractIView implements IComponentListener {
       PeerTableItem psItems[] = new PeerTableItem[items.size()];
       Iterator iter = items.keySet().iterator();
       while (iter.hasNext()) {
-        PeerSocket peerSocket = (PeerSocket) iter.next();
+        PEPeerSocket peerSocket = (PEPeerSocket) iter.next();
         PeerTableItem item = (PeerTableItem) items.get(peerSocket);
         psItems[item.getIndex()] = item;
         String value = getStringField(peerSocket, field);
         int i;
         for (i = 0; i < ordered.size(); i++) {
-          PeerSocket peerSocketi = (PeerSocket) ordered.get(i);
+          PEPeerSocket peerSocketi = (PEPeerSocket) ordered.get(i);
           String valuei = getStringField(peerSocketi, field);
           if (ascending) {
             if (collator.compare(valuei, value) <= 0)
@@ -430,7 +430,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
       }
 
       for (int i = 0; i < ordered.size(); i++) {
-        PeerSocket peerSocket = (PeerSocket) ordered.get(i);
+        PEPeerSocket peerSocket = (PEPeerSocket) ordered.get(i);
         psItems[i].setPeerSocket(peerSocket);
         psItems[i].invalidate();
         items.put(peerSocket, psItems[i]);

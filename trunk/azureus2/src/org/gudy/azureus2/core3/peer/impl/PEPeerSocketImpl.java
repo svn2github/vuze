@@ -1,8 +1,29 @@
 /*
+ * File    : PEPeerSocketImpl
+ * Created : 15-Oct-2003
+ * By      : Olivier
+ * 
+ * Azureus - a Java Bittorrent client
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+ 
+  /*
  * Created on 4 juil. 2003
  *
  */
-package org.gudy.azureus2.core2;
+package org.gudy.azureus2.core3.peer.impl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -17,14 +38,20 @@ import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core.SpeedLimiter;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core2.DataQueueItem;
 import org.gudy.azureus2.core3.util.Constants;
+
+import org.gudy.azureus2.core3.peer.*;
 
 /**
  * @author Olivier
  *
  */
-public class PeerSocket extends PeerConnection {
+public class 
+PEPeerSocketImpl 
+	extends PEPeerConnectionImpl
+	implements PEPeerSocket 
+{
 
   /*
      * This object constructors will let the PeerConnection partially created,
@@ -40,7 +67,7 @@ public class PeerSocket extends PeerConnection {
    * @param ip the peer Ip Address
    * @param port the peer port
    */
-  public PeerSocket(PEPeerManager manager, byte[] peerId, String ip, int port, boolean fake) {
+  public PEPeerSocketImpl(PEPeerManager manager, byte[] peerId, String ip, int port, boolean fake) {
     super(manager, peerId, ip, port);
     if (fake)
       return;
@@ -77,7 +104,7 @@ public class PeerSocket extends PeerConnection {
    * @param table the graphical table in which this PeerConnection should display its info
    * @param sck the SocketChannel that handles the connection
    */
-  public PeerSocket(PEPeerManager manager, SocketChannel sck) {
+  public PEPeerSocketImpl(PEPeerManager manager, SocketChannel sck) {
     super(manager, sck.socket().getInetAddress().getHostAddress(), sck.socket().getPort());
     this.socket = sck;
     this.incoming = true;
@@ -1191,10 +1218,7 @@ public class PeerSocket extends PeerConnection {
   private final static byte BT_PIECE = 7;
   private final static byte BT_CANCEL = 8;
 
-  public final static int CONNECTING = 10;
-  public final static int HANDSHAKING = 20;
-  public final static int TRANSFERING = 30;
-  public final static int DISCONNECTED = 40;
+ 
   /**
    * @return
    */

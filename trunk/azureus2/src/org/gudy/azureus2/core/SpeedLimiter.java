@@ -7,8 +7,8 @@ package org.gudy.azureus2.core;
 import java.util.List;
 import java.util.Vector;
 
-import org.gudy.azureus2.core2.PeerSocket;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.peer.PEPeerSocket;
 
 /**
  * 
@@ -35,7 +35,7 @@ public class SpeedLimiter {
   // TODO rename the following, more descriptive fields, etc.
   static private class UploaderInfo {
     int maxUpload;
-    PeerSocket peerSocket;
+    PEPeerSocket peerSocket;
   }
 
   static private class Allocation {
@@ -96,7 +96,7 @@ public class SpeedLimiter {
    * count of uploads.
    *
    */
-  public void addUploader(PeerSocket wt) {
+  public void addUploader(PEPeerSocket wt) {
     synchronized (uploaders) {
       if (!uploaders.contains(wt))
         uploaders.add(wt);
@@ -106,7 +106,7 @@ public class SpeedLimiter {
   /**
    * Same as addUploader, but to tell that an upload is ended. 
    */
-  public void removeUploader(PeerSocket wt) {
+  public void removeUploader(PEPeerSocket wt) {
     synchronized (uploaders) {
       while (uploaders.contains(wt))
         uploaders.remove(wt);
@@ -117,7 +117,7 @@ public class SpeedLimiter {
    * Method used to know if there is a limitation or not.
    * @return true if speed is limited
    */
-  public boolean isLimited(PeerSocket wt) {
+  public boolean isLimited(PEPeerSocket wt) {
     limit = COConfigurationManager.getIntParameter("Max Upload Speed", 0);
     return (this.limit != 0 && uploaders.contains(wt));
   }
@@ -127,7 +127,7 @@ public class SpeedLimiter {
    * over a period of 100ms.
    * @return number of bytes allowed for 100 ms
    */
-  public synchronized int getLimitPer100ms(PeerSocket wt) {
+  public synchronized int getLimitPer100ms(PEPeerSocket wt) {
 
     if (this.uploaders.size() == 0)
       return 0;
@@ -154,7 +154,7 @@ public class SpeedLimiter {
   }
 
   // refactored out of getLimitPer100ms() - Moti
-  private boolean findPeerSocket(UploaderInfo[] uploaderInfos, int numPeers, Allocation allocation, PeerSocket wt) {
+  private boolean findPeerSocket(UploaderInfo[] uploaderInfos, int numPeers, Allocation allocation, PEPeerSocket wt) {
     allocation.peersToBeAllocated = numPeers;
 
     for (i = 0; i < numPeers; i++) {
@@ -168,7 +168,7 @@ public class SpeedLimiter {
   }
 
   // refactored out of getLimitPer100ms() - Moti
-  private int getLimit(PeerSocket wt, Allocation allocation) {
+  private int getLimit(PEPeerSocket wt, Allocation allocation) {
     maxUpload = wt.getMaxUpload();
     return min(allocation.getNumAllowed(), maxUpload);
   }
@@ -201,7 +201,7 @@ public class SpeedLimiter {
     //We construct a TreeMap to sort all writeThread according to their up speed.
     synchronized (uploaders) {
       for (i = 0; i < uploaders.size(); i++) {
-        PeerSocket wti = (PeerSocket) uploaders.get(i);
+        PEPeerSocket wti = (PEPeerSocket) uploaders.get(i);
         maxUpload = wti.getMaxUpload();
         if (wti.getDownloadPriority() == DownloadManager.HIGH_PRIORITY) {
           assignUploaderInfo(sortedUploadersHighPriority, sortedUploadersHighPriorityIndex, wti);
@@ -216,7 +216,7 @@ public class SpeedLimiter {
   }
 
   // refactored out of getLimitPer100ms() - Moti
-  private void assignUploaderInfo(UploaderInfo[] uploaderInfos, int index, PeerSocket wti) {
+  private void assignUploaderInfo(UploaderInfo[] uploaderInfos, int index, PEPeerSocket wti) {
     for (j = 0; j < index; j++)
       if (uploaderInfos[j].maxUpload == maxUpload) {
         maxUpload++;

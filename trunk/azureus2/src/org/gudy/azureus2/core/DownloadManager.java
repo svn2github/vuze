@@ -9,7 +9,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.gudy.azureus2.core2.PeerSocket;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.*;
@@ -433,8 +432,8 @@ public class DownloadManager extends Component {
       List connections = peerManager.get_connections();
       synchronized (connections) {
         for (int i = 0; i < connections.size(); i++) {
-          PeerSocket ps = (PeerSocket) connections.get(i);
-          if (ps.getState() == PeerSocket.TRANSFERING)
+          PEPeerSocket ps = (PEPeerSocket) connections.get(i);
+          if (ps.getState() == PEPeerSocket.TRANSFERING)
             objectAdded(ps);
         }
       }

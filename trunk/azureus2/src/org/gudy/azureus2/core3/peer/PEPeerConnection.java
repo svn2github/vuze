@@ -1,7 +1,7 @@
 /*
- * File    : PEPieceFactory.java
+ * File    : PEPeerConnection.java
  * Created : 15-Oct-2003
- * By      : parg
+ * By      : Olivier
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,25 +18,63 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-package org.gudy.azureus2.core3.peer;
-
-/**
- * @author parg
+ 
+ /*
+ * Created on 4 juil. 2003
  *
  */
+package org.gudy.azureus2.core3.peer;
 
-import  org.gudy.azureus2.core3.peer.impl.*;
+import java.util.Vector;
 
-public class 
-PEPieceFactory 
+
+/**
+ * @author Olivier
+ * 
+ */
+public interface 
+PEPeerConnection 
+	extends PEPeer 
 {
-	public static PEPiece
-	create(
-		PEPeerManager 	manager, 
-		int 			length, 
-		int 			pieceNumber )
-	{
-		return( new PEPieceImpl( manager, length, pieceNumber ));
-	}
+  public boolean[] getAvailable();
+ 
+  
+  public boolean isChoked();
+
+ 
+  public boolean isChoking();
+
+  public boolean isInterested();
+
+  
+  public boolean isInteresting();
+
+  public Vector getRequested();
+
+
+  public Vector getRequesting();
+
+ 
+  public boolean isSeed();
+
+ 
+  public boolean isSnubbed();
+ 
+  public PEPeerStats getStats();
+ 
+  public void setChoked(boolean b);
+
+  public void setChoking(boolean b);
+
+ 
+  public void setInterested(boolean b);
+
+  
+  public void setInteresting(boolean b);
+
+
+  public void setSeed(boolean b);
+
+  public void setSnubbed(boolean b);
+
 }

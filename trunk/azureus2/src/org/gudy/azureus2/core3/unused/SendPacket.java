@@ -1,4 +1,4 @@
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.unused;
 
 import java.nio.ByteBuffer;
 /**

@@ -44,11 +44,11 @@ PEPeerManager
  	addPeer(
 		SocketChannel		chan);
 		
-	public void peerAdded(PeerSocket pc);
+	public void peerAdded(PEPeerSocket pc);
 
-	public void peerRemoved(PeerSocket pc);
+	public void peerRemoved(PEPeerSocket pc);
 	
-	public boolean validateHandshaking(PeerSocket pc, byte[] peerId);
+	public boolean validateHandshaking(PEPeerSocket pc, byte[] peerId);
 
 	public void
 	stopAll();
@@ -79,9 +79,9 @@ PEPeerManager
 	public void pieceChecked(int pieceNumber, boolean result);
 
 	public PEPiece[] getPieces();
-	public void havePiece(int pieceNumber, PeerSocket pcOrigin);
+	public void havePiece(int pieceNumber, PEPeerSocket pcOrigin);
 	
-	public boolean isOptimisticUnchoke(PeerSocket pc);
+	public boolean isOptimisticUnchoke(PEPeerSocket pc);
 
 	public PEPeerStats
 	getStats();
