@@ -679,7 +679,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       }
     });
     }
-    
+
     new MenuItem(helpMenu,SWT.SEPARATOR);
     
     MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
@@ -762,7 +762,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
 
 	if ( !FileUtil.isJavaWebStart()){
 		
-    	new VersionChecker().start();
+    new VersionChecker().start();
 	}
 
     gridData = new GridData();
@@ -1308,6 +1308,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
       String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
       String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+      String javaPath = System.getProperty("java.home")
+                      + System.getProperty("file.separator")
+                      + "bin"
+                      + System.getProperty("file.separator");
+      
      
       //remove any trailing slashes
       if (libraryPath.endsWith("\\")) {
@@ -1344,7 +1349,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       }
       else log.write("updateJar:: using existing Updater.jar file\n");
 
-      String exec = "java -classpath \"" + updaterJar.getAbsolutePath()
+      String exec = javaPath + "java -classpath \"" + updaterJar.getAbsolutePath()
                   + "\" org.gudy.azureus2.update.Updater \"" + classPath
                   + "\" \"" + libraryPath
                   + "\" \"" + userPath + "\"";

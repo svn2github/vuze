@@ -28,6 +28,11 @@ public class Updater {
     String classPath    = args[0];
     String libraryPath  = args[1];
     String userPath     = args[2];
+    String javaPath = System.getProperty("java.home")
+                    + System.getProperty("file.separator")
+                    + "bin"
+                    + System.getProperty("file.separator");
+      
 
     File oldFile = new File(userPath, "Azureus2.jar");
     File updateFile = new File(oldFile.getParentFile(), "Azureus2-new.jar");
@@ -53,7 +58,7 @@ public class Updater {
           
           log.write("Updater:: attempting to delete " + oldFile.getAbsolutePath() + " ...");
           while(!oldFile.delete()) {
-            log.write(" x");
+            log.write(" x ");
             Thread.sleep(1000);
           }
           log.write("deleted\n");
@@ -61,12 +66,12 @@ public class Updater {
           
           log.write("Updater:: attempting to rename " + updateFile.getAbsolutePath() + " ...");
           while(!updateFile.renameTo(oldFile)) {
-            log.write(" x");
+            log.write(" x ");
             Thread.sleep(1000);
           }
           log.write("renamed\n");
         
-          String exec = "java -classpath \"" + classPath
+          String exec = javaPath + "java -classpath \"" + classPath
                       + "\" -Djava.library.path=\"" + libraryPath
                       + "\" -Duser.dir=\"" + userPath
                       + "\" org.gudy.azureus2.ui.swt.Main";
