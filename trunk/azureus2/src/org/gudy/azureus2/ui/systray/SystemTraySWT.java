@@ -158,7 +158,7 @@ public class SystemTraySWT {
     
     itemExit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        SystemTraySWT.this.mainWindow.dispose();
+        SystemTraySWT.this.mainWindow.dispose(false);
       }
     });
     

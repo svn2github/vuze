@@ -155,7 +155,7 @@ public class TrayWindow implements GlobalManagerListener {
     Messages.setLanguageText(file_exit, "TrayWindow.menu.exit"); //$NON-NLS-1$
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        main.dispose();
+        main.dispose(false);
       }
     });
 

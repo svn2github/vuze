@@ -103,7 +103,7 @@ Initializer
 								{
 									try{
 								
-										if ( !MainWindow.getWindow().dispose()){
+										if ( !MainWindow.getWindow().dispose(false)){
 											
 											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
 										}	
@@ -145,7 +145,7 @@ Initializer
 								runSupport()
 								{
 									try{				
-										if ( !MainWindow.getWindow().dispose()){
+										if ( !MainWindow.getWindow().dispose(true)){
 												
 											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
 										}	

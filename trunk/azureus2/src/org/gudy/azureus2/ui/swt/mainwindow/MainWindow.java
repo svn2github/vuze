@@ -651,7 +651,7 @@ MainWindow
     			isDisposeFromListener = true;
     			if (mainWindow != null) {
     				mainWindow.removeDisposeListener(this);
-    				dispose();
+    				dispose(false);
     			}
     			isAlreadyDead = true;
     		}
@@ -671,7 +671,7 @@ MainWindow
           minimizeToTray(event);
         }
         else {
-          event.doit = dispose();
+          event.doit = dispose(false);
         }
       }
 
@@ -1053,8 +1053,11 @@ MainWindow
     return mainWindow.isVisible();
   }
 
-  public boolean dispose() {
-    if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation())
+  public boolean 
+  dispose(
+  	boolean	for_restart ) 
+  {
+    if(COConfigurationManager.getBooleanParameter("confirmationOnExit", false) && !getExitConfirmation(for_restart))
       return false;
     
     if(systemTraySWT != null) {
@@ -1131,10 +1134,16 @@ MainWindow
    *
    * @author Rene Leonhardt
    */
-  private boolean getExitConfirmation() {
+  private boolean 
+  getExitConfirmation(
+  	boolean	for_restart) {
     MessageBox mb = new MessageBox(mainWindow, SWT.ICON_WARNING | SWT.YES | SWT.NO);
-    mb.setText(MessageText.getString("MainWindow.dialog.exitconfirmation.title"));
-    mb.setMessage(MessageText.getString("MainWindow.dialog.exitconfirmation.text"));
+    
+    mb.setText(MessageText.getString(
+    		for_restart?"MainWindow.dialog.restartconfirmation.title":"MainWindow.dialog.exitconfirmation.title"));
+    
+    mb.setMessage(MessageText.getString(
+    		for_restart?"MainWindow.dialog.restartconfirmation.text":"MainWindow.dialog.exitconfirmation.text"));
     if(mb.open() == SWT.YES)
       return true;
     return false;

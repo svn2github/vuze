@@ -122,7 +122,7 @@ public class MainMenu {
         public void handleEvent(Event event) {
         // this HAS to be done this way around else the restart inherits
       	// the 6880 port listen. However, this is a general problem....
-        MainWindow.getWindow().dispose();
+        MainWindow.getWindow().dispose(true);
         AzureusCoreFactory.getSingleton().restart();
         }
       });
@@ -136,7 +136,7 @@ public class MainMenu {
         
         file_exit.addListener(SWT.Selection, new Listener() {
           public void handleEvent(Event e) {
-            mainWindow.dispose();
+            mainWindow.dispose(false);
           }
         });
       }
