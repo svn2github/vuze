@@ -6,8 +6,14 @@
  */
 package org.gudy.azureus2.core;
 
-import java.util.*;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A singleton used to store configuration into a bencoded file.
@@ -36,14 +42,16 @@ public class ConfigurationManager {
     BufferedInputStream bin = null;
     try {
       //open the file
-      fin = new FileInputStream(this.getApplicationPath() + filename);
+      fin = new FileInputStream(getApplicationPath() + filename);
       bin = new BufferedInputStream(fin);
       propertiesMap = BDecoder.decode(bin);
     } catch (FileNotFoundException e) {
       //create the file!
       try {
-        //create the file
-        new File(this.getApplicationPath() + filename).createNewFile();
+        File newConfigFile = new File(getApplicationPath() + filename);
+        if (System.getProperty("os.name").equals("Linux"))
+          newConfigFile.getParentFile().mkdir();
+        newConfigFile.createNewFile();
         //create an instance of properties map
         propertiesMap = new HashMap();
       } catch (IOException e1) {
@@ -73,7 +81,7 @@ public class ConfigurationManager {
     //open a file stream
     FileOutputStream fos = null;
     try {
-      fos = new FileOutputStream(this.getApplicationPath() + filename);
+      fos = new FileOutputStream(getApplicationPath() + filename);
       //write the data out
       fos.write(torrentData);
     } catch (Exception e) {
@@ -112,7 +120,7 @@ public class ConfigurationManager {
   }
 
   public int getIntParameter(String parameter, int defaultValue) {
-    Long tempValue = this.getIntParameter(parameter);
+    Long tempValue = getIntParameter(parameter);
     return tempValue != null ? tempValue.intValue() : defaultValue;
   }
 
@@ -121,13 +129,13 @@ public class ConfigurationManager {
   }
 
   public byte[] getByteParameter(String parameter, byte[] defaultValue) {
-    byte[] tempValue = this.getByteParameter(parameter);
+    byte[] tempValue = getByteParameter(parameter);
     return tempValue != null ? tempValue : defaultValue;
   }
 
   private String getStringParameter(String parameter, byte[] defaultValue) {
     try {
-      return new String((byte[])this.getByteParameter(parameter, defaultValue));
+      return new String(getByteParameter(parameter, defaultValue));
     } catch (Exception e) {
       //e.printStackTrace();
       return null;
@@ -135,7 +143,7 @@ public class ConfigurationManager {
   }
 
   public String getStringParameter(String parameter, String defaultValue) {
-    String tempValue = this.getStringParameter(parameter, (byte[]) null);
+    String tempValue = getStringParameter(parameter, (byte[]) null);
     return tempValue != null ? tempValue : defaultValue;
   }
 
@@ -148,11 +156,15 @@ public class ConfigurationManager {
   }
 
   public void setParameter(String parameter, String defaultValue) {
-    this.setParameter(parameter, defaultValue.getBytes());
+    setParameter(parameter, defaultValue.getBytes());
   }
 
   //TODO:: Move this to a FileManager class?
-  private String getApplicationPath() {
-    return System.getProperty("user.dir") + System.getProperty("file.separator");
+  public static String getApplicationPath() {
+    if (System.getProperty("os.name").equals("Linux")) {
+      return System.getProperty("user.home") + System.getProperty("file.separator") + ".azureus" + System.getProperty("file.separator");
+    } else {
+      return System.getProperty("user.dir") + System.getProperty("file.separator");
+    }
   }
 }
