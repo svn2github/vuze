@@ -381,7 +381,7 @@ TRHostImpl
 		try{
 			if ( url.equals( "/" )){
 				
-				String[]	widths = { "32%", "10%", "10%", "8%", "8%", "8%", "8%", "8%", "8%" };
+				String[]	widths = { "32%", "10%", "9%", "7%", "7%", "7%", "7%", "7%", "7%", "7%" };
 				 
 				String	reply_string = 
 				"<html>" +
@@ -419,6 +419,7 @@ TRHostImpl
 				"	    <td width=\""+widths[6]+"\" bgcolor=\"#FFDEAD\">Tot Down</td>" +
 				"	    <td width=\""+widths[7]+"\" bgcolor=\"#FFDEAD\">Ave Up</td>" +
 				"	    <td width=\""+widths[8]+"\" bgcolor=\"#FFDEAD\">Ave Down</td>" +
+				"	    <td width=\""+widths[9]+"\" bgcolor=\"#FFDEAD\">Left</td>" +
 				"	  </tr>" +
 				"    </thread>";
 				
@@ -500,6 +501,10 @@ TRHostImpl
 											  
 							table_bit.append( "<td>" + 
 												DisplayFormatters.formatByteCountToKBEtcPerSec( host_torrent.getAverageDownloaded()) + 
+												"</td>" );
+												
+							table_bit.append( "<td>" + 
+												DisplayFormatters.formatByteCountToKBEtc( host_torrent.getTotalLeft()) + 
 												"</td>" );
 											  
 							table_bit.append( "</tr>" );

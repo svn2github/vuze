@@ -63,6 +63,9 @@ TRHostTorrent
 	getTotalDownloaded();
 		
 	public long
+	getTotalLeft();
+	
+	public long
 	getAverageUploaded();
 	
 	public long

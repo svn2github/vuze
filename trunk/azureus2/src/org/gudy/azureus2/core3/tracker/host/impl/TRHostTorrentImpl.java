@@ -44,6 +44,7 @@ TRHostTorrentImpl
 	
 	protected long				total_uploaded;
 	protected long				total_downloaded;
+	protected long				total_left;
 	
 	protected long				last_uploaded;
 	protected long				last_downloaded;
@@ -218,6 +219,8 @@ TRHostTorrentImpl
 				
 				last_downloaded = current_downloaded;
 				
+				total_left = stats.getAmountLeft();
+				
 				// System.out.println( "tot_up = " + total_uploaded + ", tot_down = " + total_downloaded);
 			}
 		}catch( TOTorrentException e ){
@@ -237,6 +240,12 @@ TRHostTorrentImpl
 	{
 		return( total_downloaded );
 	}	
+	
+	public long
+	getTotalLeft()
+	{
+		return( total_left );
+	}
 	
 	public long
 	getAverageUploaded()
