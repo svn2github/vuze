@@ -33,9 +33,10 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ParameterListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeerRow;
+import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeersViewEventDispacher;
+import org.gudy.azureus2.ui.swt.views.tableitems.peers.PeersViewListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.EnumeratorEditor;
-import org.gudy.azureus2.ui.swt.views.tableitems.utils.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
@@ -44,7 +45,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 /**
  * @author Olivier
  */
-public class PeersView extends AbstractIView implements DownloadManagerListener, SortableTable, ParameterListener, ITableStructureModificationListener {
+public class PeersView extends AbstractIView implements DownloadManagerListener, SortableTable, ParameterListener, PeersViewListener {
 
   private DownloadManager manager;
   private Composite panel;
@@ -101,7 +102,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     createTable();        
     
     ConfigurationManager.getInstance().addParameterListener("Graphics Update", this);
-
+    PeersViewEventDispacher.getInstance().addListener(this);
   }
   
   public void tableStructureChanged() {
@@ -138,14 +139,17 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     sorter = new TableSorter(this,"pieces",true);
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {
-        Utils.saveTableColumn((TableColumn) e.widget);
+        TableColumn column = (TableColumn) e.widget;
+        Utils.saveTableColumn(column);
         synchronized(objectToSortableItem) {
           Iterator iter = objectToSortableItem.values().iterator();
           while(iter.hasNext()) {
             PeerRow row = (PeerRow) iter.next();
             row.invalidate();
           }
-        }
+        }        
+        int columnNumber = table.indexOf(column);
+        PeersViewEventDispacher.getInstance().columnSizeChanged(columnNumber,column.getWidth());
       }
     };
     
@@ -227,7 +231,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
     
     itemChangeTable.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-          new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance("Peers",tableItems),PeersView.this,"PeersView");       
+          new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance("Peers",tableItems),PeersViewEventDispacher.getInstance(),"PeersView");       
       }
     });
   }
@@ -264,6 +268,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
 
   public void delete() {
     manager.removeListener(this);
+    PeersViewEventDispacher.getInstance().removeListener(this);
     Iterator iter = objectToSortableItem.values().iterator();
     while (iter.hasNext()) {
       PeerRow item = (PeerRow) iter.next();
@@ -350,5 +355,18 @@ public class PeersView extends AbstractIView implements DownloadManagerListener,
   public void parameterChanged(String parameterName) {
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
   }
+  
+  public void columnSizeChanged(int columnNumber, int newWidth) {
+    if(table == null || table.isDisposed())
+      return;
+    TableColumn column = table.getColumn(columnNumber);
+    if(column == null || column.isDisposed())
+      return;
+    if(column.getWidth() == newWidth)
+      return;
+    column.setWidth(newWidth);
+  }
+  
+  
   
 }
