@@ -116,7 +116,12 @@ AEDiagnostics
 			}
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace( e );
+				// with webui we don't have the file stuff so this fails with class not found
+			
+			if ( !(e instanceof NoClassDefFoundError )){
+				
+				Debug.printStackTrace( e );
+			}
 		}
 	}
 	
