@@ -77,7 +77,7 @@ public class OutgoingMessageQueue {
   
   
   /**
-   * Whether or not an urgent message (one that needs an immediate send) is queued.
+   * Whether or not an urgent message (one that needs an immediate send, i.e. a no-delay message) is queued.
    * @return true if there's a message tagged for immediate write
    */
   public boolean hasUrgentMessage() {  return urgent_message == null ? false : true;  }
@@ -96,10 +96,13 @@ public class OutgoingMessageQueue {
       int pos = 0;
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         ProtocolMessage msg = (ProtocolMessage)i.next();
-        if( message.getPriority() > msg.getPriority() ) break;
+        if( message.getPriority() > msg.getPriority() 
+            && msg.getPayload().position() == 0 ) {  //but don't insert in front of a half-sent message
+          break;
+        }
         pos++;
       }
-      if( message.getPriority() == ProtocolMessage.PRIORITY_URGENT ) {
+      if( message.isNoDelay() ) {
         urgent_message = message;
       }
       queue.add( pos, message );
