@@ -25,9 +25,9 @@ import java.net.*;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 
 /**
@@ -38,7 +38,7 @@ import org.gudy.azureus2.core3.peer.impl.*;
  */
 public class 
 PEPeerServerImpl
-	extends 	Thread 
+	extends 	AEThread 
 	implements  PEPeerServerHelper
 {
   public static final int componentID = 4;
@@ -46,26 +46,51 @@ PEPeerServerImpl
   public static final int evtNewConnection = 1;
   public static final int evtErrors = 2;
 
+  protected static serverHelperDelegate	server_delegate;
+  
   int TCPListenPort;
   private ServerSocketChannel sck;
   private boolean bContinue;
   private PEPeerServerAdapter adapter;
 
 
-	 public static PEPeerServer
+	 public static synchronized PEPeerServerHelper
 	 create()
 	 {
-		 synchronized( PEPeerServerImpl.class ){
+	 	int	port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
 
-		 	 return( new PEPeerServerImpl());
-		 }
+	 	if ( server_delegate != null ){
+	 		
+	 		server_delegate.setPort( port );
+
+	 	}else{
+	 		
+	 		COConfigurationManager.addParameterListener(
+	 				"TCP.Listen.Port",
+					new ParameterListener()
+					{
+	 					public void
+						parameterChanged(
+							String	param )
+	 					{
+	 						create();
+	 					}
+								
+					});
+	 		
+	 		server_delegate	= new serverHelperDelegate( port );
+	 	}
+	 	
+		return( server_delegate );
 	 }
 	
-  public PEPeerServerImpl() {
-    super("PEPeerServer");
-    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-    TCPListenPort = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
-    
+  private 
+  PEPeerServerImpl(
+  	int		_port ) 
+  {
+    super("PEPeerServer:port=" + _port);
+    String bindIP 	= COConfigurationManager.getStringParameter("Bind IP", "");
+    TCPListenPort	= _port;
     sck = null;
     bContinue = true;
     setPriority(Thread.MIN_PRIORITY);
@@ -210,4 +235,143 @@ PEPeerServerImpl
   {
   	adapter	= null;
   }
+  
+    
+  	protected static class
+	serverHelperDelegate
+  		implements PEPeerServerHelper
+	{
+  		protected PEPeerServerHelper	_delegate;
+  		
+  		protected int						port;
+  		protected boolean					started;
+  		protected PEPeerServerAdapter		adapter;
+
+  		protected
+  		serverHelperDelegate(
+  			int		_port )
+  		{
+  			port	= _port;
+ 
+  			_delegate	= new PEPeerServerImpl(port);
+  		}
+
+  		protected void
+		setPort(
+			int	_port )
+  		{
+  			if ( started ){
+  				
+  				_delegate.stopServer();
+  			}
+  			
+  			_delegate.clearServerAdapter();
+  			
+  			port	= _port;
+  			
+  			_delegate	= new PEPeerServerImpl(port);
+  			
+  			if ( adapter != null ){
+  				
+  				_delegate.setServerAdapter( adapter );
+  			}
+  			
+  			if ( started ){
+  				
+  				_delegate.startServer();
+  			}
+  		}
+  		
+		public int
+		getPort()
+		{
+			return( port );
+		}
+		
+		public void
+		startServer()
+		{
+			started	= true;
+			
+			PEPeerServerHelper	delegate	= _delegate;
+			
+			if ( delegate == null ){
+				
+				Debug.out( "PEPeerServer::serverHelperDelegate::startServer: delegate is null" );
+				
+			}else{
+			
+				delegate.startServer();
+			}
+		}
+		
+		public void
+		stopServer()
+		{
+			started	= false;
+			
+			PEPeerServerHelper	delegate	= _delegate;
+			
+			if ( delegate == null ){
+				
+				Debug.out( "PEPeerServer::serverHelperDelegate::stopServer: delegate is null" );
+				
+			}else{
+			
+				delegate.stopServer();
+			}			
+		}
+		
+		public void
+		setServerAdapter(
+			PEPeerServerAdapter	_adapter )
+		{
+			adapter	= _adapter;
+			
+			PEPeerServerHelper	delegate	= _delegate;
+
+			if ( delegate == null ){
+				
+				Debug.out( "PEPeerServer::serverHelperDelegate::setServerAdapter: delegate is null" );
+				
+			}else{
+			
+				delegate.setServerAdapter(adapter);
+			}		
+		}
+			
+		public void
+		clearServerAdapter()
+		{
+			adapter	= null;
+			
+			PEPeerServerHelper	delegate	= _delegate;
+			
+			if ( delegate == null ){
+				
+				Debug.out( "PEPeerServer::serverHelperDelegate::clearServerAdapter: delegate is null" );
+				
+			}else{
+			
+				delegate.clearServerAdapter();
+			}		
+		}
+		
+		public PEPeerTransport
+		createPeerTransport(
+			Object		param )
+		{
+			PEPeerServerHelper	delegate	= _delegate;
+
+			if ( delegate == null ){
+				
+				Debug.out( "PEPeerServer::serverHelperDelegate::createPeerTransport: delegate is null" );
+				
+				return( null );
+			}else{
+			
+				return( delegate.createPeerTransport(param));
+			}		
+		}
+	}
 }

@@ -338,8 +338,16 @@ Initializer
   }
   
   public void stopIt() {
-    if(gm != null)
-      gm.stopAll();
+    if(core != null){
+    	try{
+    		core.stop();
+    		
+    	}catch( AzureusCoreException e ){
+    		
+    		e.printStackTrace();
+    	}
+    }
+    
     if (startServer != null)
       startServer.stopIt();
     Cursors.dispose();

@@ -54,7 +54,7 @@ PESharedPortServerImpl
 				
 					selector = new PESharedPortSelector();
 										
-					server_delegate = (PEPeerServerHelper)PEPeerServerImpl.create();
+					server_delegate = PEPeerServerImpl.create();
 					
 					if ( server_delegate == null || server_delegate.getPort() == 0 ){
 						
