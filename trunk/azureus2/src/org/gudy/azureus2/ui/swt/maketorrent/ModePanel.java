@@ -377,9 +377,12 @@ public class ModePanel extends AbstractWizardPanel {
   
   void setTrackerUrl(String url) {
     ((NewTorrentWizard) wizard).trackerURL = url;
-    List list = (List) ((NewTorrentWizard) wizard).trackers.get(0);
-    if(list.size() > 0)
-      list.remove(0);
-    list.add(url);
+    String config = ((NewTorrentWizard) wizard).multiTrackerConfig;
+    if(config.equals("")) {
+	    List list = (List) ((NewTorrentWizard) wizard).trackers.get(0);
+	    if(list.size() > 0)
+	      list.remove(0);
+	    list.add(url);
+    }
   }
 }
