@@ -30,6 +30,14 @@ PluginConfig
 {  
 	public static final String CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC	= "Max Upload Speed KBs";
 	
+
+  /**
+   * returns the value of a core float parameter
+   * @param key the parameter name
+   * @return the value of the parameter
+   */
+  public float getFloatParameter(String key);
+
   /**
    * returns the value of a core int parameter
    * @param key the parameter name

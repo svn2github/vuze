@@ -48,6 +48,10 @@ public class PluginConfigImpl
 		return config.getStringParameter(name);
 	}
 
+	public float getFloatParameter(String name) {
+		return config.getFloatParameter(name);
+	}
+
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
 	 */

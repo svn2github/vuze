@@ -27,8 +27,8 @@ public class BEncoder {
     }    
     
     private static void encode(ByteArrayOutputStream baos, Object object) throws IOException{
-        if(object instanceof String){
-            String tempString = (String)object;
+        if(object instanceof String || object instanceof Float){
+            String tempString = (object instanceof String) ? (String)object : String.valueOf((Float)object);
             
             baos.write((String.valueOf(tempString.getBytes(Constants.DEFAULT_ENCODING).length)).getBytes());
             baos.write(':');
