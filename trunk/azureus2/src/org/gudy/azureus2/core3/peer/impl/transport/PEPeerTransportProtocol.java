@@ -366,7 +366,7 @@ PEPeerTransportProtocol
   
   //make sure we are not connected to ourselves
   if ( Arrays.equals( manager.getPeerId(), otherPeerId )) {
-    closeAll("peerID matches myself", false, false);
+    closeAll("OOPS, peerID matches myself", false, false);
     return;
   }
   

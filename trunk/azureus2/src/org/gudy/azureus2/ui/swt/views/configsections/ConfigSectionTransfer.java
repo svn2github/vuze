@@ -69,7 +69,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData = new FormData();
     formData.top = new FormAttachment(0);
     formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(0,30);
+    formData.right = new FormAttachment(0,50);
     paramMaxUploadSpeed.setLayoutData(formData);
     
     label = new Label(cTransfer, SWT.NULL);
@@ -86,7 +86,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploadSpeed.getControl());
     formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(0,30);
+    formData.right = new FormAttachment(0,70);
     paramMaxClients.setLayoutData(formData);
     
     label = new Label(cTransfer, SWT.NULL);
@@ -102,7 +102,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxClients.getControl());
     formData.left = new FormAttachment(0);
-    formData.right = new FormAttachment(0,30);
+    formData.right = new FormAttachment(0,70);
     paramMaxClientsTotal.setLayoutData(formData);
     
     label = new Label(cTransfer, SWT.NULL);
