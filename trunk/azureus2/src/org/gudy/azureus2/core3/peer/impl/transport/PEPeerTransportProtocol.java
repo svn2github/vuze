@@ -1078,7 +1078,7 @@ PEPeerTransportProtocol
 	return result;
   }
 
-  protected void write() {
+  protected synchronized void write() {
 	if(currentState.getState() == CONNECTING || currentState.getState() == DISCONNECTED  )
 	  return;       
 	if(++processLoop > 10)
