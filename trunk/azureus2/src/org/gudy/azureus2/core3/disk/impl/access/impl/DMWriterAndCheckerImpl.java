@@ -335,7 +335,7 @@ DMWriterAndCheckerImpl
 	  					
 	  					int	delay = pieceLength/1024;
 	  					
-	  					delay = Math.min( delay, 1000 );
+	  					delay = Math.min( delay, 250 );
 	  					delay = Math.max( delay, 100 );
 	  					
 	  					Thread.sleep(delay);
