@@ -10,6 +10,8 @@ package org.gudy.azureus2.core3.logging;
  * 
  */
 
+import java.io.*;
+
 import org.gudy.azureus2.core3.logging.impl.*;
 
 public class 
@@ -42,7 +44,22 @@ LGLogger {
 		String		text, 
 		Throwable	e )
 	{
-		LGLoggerImpl.log(componentId,event,ERROR,text + " ('" + e.toString() + "')" );
+		String	ex_details = "";
+		
+		try{
+			CharArrayWriter cw = new CharArrayWriter();
+			
+			PrintWriter pw = new PrintWriter( cw );
+		
+			e.printStackTrace( pw );
+			
+			pw.close();
+			
+			ex_details = new String(cw.toCharArray());
+		}catch( Throwable f ){
+		}
+		
+		LGLoggerImpl.log(componentId,event,ERROR,text + " ('" + (ex_details==null?e.toString():ex_details) + "')" );
 	}
 	
 	public static boolean

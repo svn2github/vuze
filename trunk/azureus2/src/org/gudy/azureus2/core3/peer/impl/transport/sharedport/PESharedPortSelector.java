@@ -79,17 +79,18 @@ PESharedPortSelector
 					// Get set of ready objects
 			 		 
 				Set readyKeys 		= selector.selectedKeys();
-				Iterator readyItor 	= readyKeys.iterator();
+				
+				Iterator ready_it 	= readyKeys.iterator();
 	
 					// System.out.println( "selector keys = " + selector.keys().size());
 				
-				while (readyItor.hasNext()){
+				while (ready_it.hasNext()){
 	
-					SelectionKey key = (SelectionKey)readyItor.next();
+					SelectionKey key = (SelectionKey)ready_it.next();
 	
 						// Remove current entry
 						
-					readyItor.remove();
+					ready_it.remove();
 	
 						// Get channel
 					
@@ -202,13 +203,22 @@ PESharedPortSelector
 						
 							key.cancel();							
 						}
-					}
-					
+					}				
 				}
 				
 			}catch( Throwable e ){
 				
-				LGLogger.log(0, 0, LGLogger.ERROR, "PESharedPortSelector: error occurred during processing: " + e.toString());
+				e.printStackTrace();
+				
+				LGLogger.log(0, 0, "PESharedPortSelector: error occurred during processing: " + e.toString(), e);
+				
+				try{
+						// just in case something has gone mad
+						
+					Thread.sleep(1000);
+					
+				}catch( InterruptedException f ){
+				}
 			}
 		}
 	}

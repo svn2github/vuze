@@ -88,7 +88,7 @@ TRTrackerServerImpl
 			final ServerSocket	f_ss = ss;
 			
 			Thread accept_thread = 
-					new Thread()
+					new Thread("TRTrackerServer:accept.loop")
 					{
 						public void
 						run()
@@ -107,10 +107,10 @@ TRTrackerServerImpl
 		}			
 		
 		Thread timer_thread = 
-			new Thread()
+			new Thread("TrackerServer:timer.loop")
 			{
 				public void
-				run()
+				run( )
 				{
 					timerLoop();
 				}

@@ -92,7 +92,7 @@ TRHostImpl
 			
 			TRTrackerClientFactory.addListener( this );
 			
-			Thread t = new Thread()
+			Thread t = new Thread("TRHost::stats.loop")
 						{
 							public void
 							run()

@@ -44,7 +44,7 @@ public class Timer
 	{
 		thread_pool = new ThreadPool(name,thread_pool_size);
 		
-		Thread t = new Thread(this);
+		Thread t = new Thread(this, "Timer:" + name );
 		
 		t.setDaemon( true );
 			
