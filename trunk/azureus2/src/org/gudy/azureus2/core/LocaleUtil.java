@@ -98,11 +98,13 @@ public class LocaleUtil {
 
   private static Candidate[] getCandidates(byte[] array) {
     Candidate[] candidates = new Candidate[charset.length];
+    int j=0;
     for (int i = 0; i < charset.length; i++) {
       candidates[i] = new Candidate();
       try {
-        candidates[i].name = charsetDecoder[i].decode(ByteBuffer.wrap(array)).toString();
-        candidates[i].charset = charset[i];
+        candidates[j].name = charsetDecoder[i].decode(ByteBuffer.wrap(array)).toString();
+        candidates[j].charset = charset[i];
+        j++;
       } catch (Exception ignore) {
       }
     }
