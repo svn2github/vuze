@@ -43,10 +43,9 @@ import org.gudy.azureus2.core3.config.ParameterListener;
  */
 public class ColorParameter implements IParameter, ParameterListener {
 
-  Button colorChooser;
-  String sParamName;
-  Image img;
-  Button btnOverride = null;
+  private Button colorChooser;
+  protected String sParamName;
+  private Image img;
 
   public ColorParameter(final Composite composite,
                         final String name,
@@ -109,14 +108,7 @@ public class ColorParameter implements IParameter, ParameterListener {
     updateButtonColor(colorChooser.getDisplay(), rV, gV, bV);
   }
   
-  public void setButtonToEnableOnChange(Button btn) {
-    btnOverride = btn;
-  }
-  
   public void newColorChosen() {
-    if (btnOverride != null && !btnOverride.isDisposed()) {
-      btnOverride.setSelection(true);
-      btnOverride.notifyListeners(SWT.Selection, new Event());
-    }
+    // subclasses can write their own code
   }
 }
