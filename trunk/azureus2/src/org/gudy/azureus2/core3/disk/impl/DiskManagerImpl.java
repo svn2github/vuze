@@ -61,6 +61,7 @@ public class
 DiskManagerImpl
 	implements DiskManager, ParameterListener 
 {  
+	private boolean started = false;
   
 	private int state_set_via_method;
 	private String errorMessage = "";
@@ -70,6 +71,7 @@ DiskManagerImpl
 
 	//  private int[] _priorityPieces;
 
+	ArrayList btFileList = new ArrayList();
 	private byte[][] piecesHash;
 	private int nbPieces;
 	private long totalLength;
@@ -138,11 +140,18 @@ DiskManagerImpl
   private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   
 	public DiskManagerImpl(TOTorrent	_torrent, String path) {
-		setState( INITIALIZING );
-		this.percentDone = 0;
-		this.torrent = _torrent;
-      this.path = path;
+    setState( INITIALIZING );
+    this.percentDone = 0;
+    this.torrent = _torrent;
+    this.path = path;
+    initialize1();
+	}
 
+	public void start() {
+		if (started)
+			return;
+
+		started = true;
 		md5 = new Md5Hasher();
 		md5Result = ByteBuffer.allocate(16);
     
@@ -166,8 +175,64 @@ DiskManagerImpl
 		init.start();
 	}
 
-	private void initialize() {
+	private void initialize1() {
+		if (torrent == null) {
+			setState( FAULTY );
+			return;
+		}
+		LocaleUtilDecoder	locale_decoder = null;
+		try{
+			locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
+	
+			fileName = "";
+		
+			File f = new File(path);
+			
+			if (f.isDirectory()) {
+				fileName = locale_decoder.decodeString( torrent.getName());
+			} else {
+			  fileName = f.getName();
+			  path = f.getParent();
+			}
+		}catch( TOTorrentException e ){
+			this.errorMessage = TorrentUtils.exceptionToText(e) + " (Initialize1)";
+			setState( FAULTY );
+			return;
+		}catch( UnsupportedEncodingException e ){
+			this.errorMessage = e.getMessage() + " (Initialize1)";
+			setState( FAULTY );
+			return;
+		}
 
+		//build something to hold the filenames/sizes
+		TOTorrentFile[] torrent_files = torrent.getFiles();
+
+		if ( torrent.isSimpleTorrent()){
+			totalLength = torrent_files[0].getLength();
+			rootPath = "";
+			btFileList.add(new BtFile("", fileName, totalLength));
+		} else {
+			final char separator = System.getProperty("file.separator").charAt(0);
+
+			//get the root
+			rootPath = fileName + separator;
+
+			//:: Directory patch 08062003 - Tyler
+			//check for a user selecting the full path
+			String fullPath = path + separator;
+			int fullPathIndex = fullPath.lastIndexOf(rootPath);
+			if (fullPathIndex >= 0 && fullPathIndex == (fullPath.length() - rootPath.length())) {
+				rootPath = ""; //null out rootPath
+			}
+
+			buildFileLookupTables( torrent_files, btFileList, locale_decoder, separator);
+
+			if (getState() == FAULTY)
+				return;
+		}
+	}
+
+	private void initialize() {
 		pieceLength = (int)torrent.getPieceLength();
 
 		piecesHash = torrent.getPieces();
@@ -185,32 +250,6 @@ DiskManagerImpl
 
 		pieceDone = new boolean[nbPieces];
 		
-		LocaleUtilDecoder	locale_decoder = null;
-		
-		try{
-		
-			locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
-	
-			fileName = "";
-		
-			File f = new File(path);
-			
-			if (f.isDirectory()) {
-				fileName = locale_decoder.decodeString( torrent.getName());
-			} else {
-			  fileName = f.getName();
-			  path = f.getParent();
-			}
-		}catch( TOTorrentException e ){
-			this.errorMessage = TorrentUtils.exceptionToText(e);
-			setState( FAULTY );
-			return;
-		}catch( UnsupportedEncodingException e ){
-			this.errorMessage = e.getMessage();
-			setState( FAULTY );
-			return;
-		}
-      
 		//if the data file is already in the completed files dir, we want to use it
 		boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
 		String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
@@ -223,9 +262,6 @@ DiskManagerImpl
 		    alreadyMoved = true;
 		  }
 		}
-
-		//build something to hold the filenames/sizes
-		ArrayList btFileList = new ArrayList();
 
 		//Create the ByteBuffer for checking (size : pieceLength)
     allocateAndTestBuffer = ByteBufferPool.getFreeBuffer(pieceLength);
@@ -245,45 +281,9 @@ DiskManagerImpl
 		readThread = new DiskReadThread();
 		readThread.start();
 
-		//2. Distinguish between simple file
-
-		TOTorrentFile[] torrent_files = torrent.getFiles();
-
-		if ( torrent.isSimpleTorrent()){
-        	
-        	
-			totalLength = torrent_files[0].getLength();
-            
-			rootPath = "";
-            
-			btFileList.add(new BtFile("", fileName, totalLength));
-		} else {
-			//define a variable to keep track of what piece we're on
-			//      int currentPiece = 0;
-
-			final char separator = System.getProperty("file.separator").charAt(0);
-
-			//get the root
-			rootPath = fileName + separator;
-
-			//:: Directory patch 08062003 - Tyler
-			//check for a user selecting the full path
-			String fullPath = path + separator;
-			int fullPathIndex = fullPath.lastIndexOf(rootPath);
-			if (fullPathIndex >= 0 && fullPathIndex == (fullPath.length() - rootPath.length())) {
-				rootPath = ""; //null out rootPath
-			}
-
-			buildFileLookupTables( torrent_files, btFileList, locale_decoder, separator);
-
-			if (getState() == FAULTY)
-				return;
-		}
-
 		remaining = totalLength;
 		lastPieceLength = (int) (totalLength - ((long) (nbPieces - 1) * (long)pieceLength));
 
-		//we now have a list of files and their lengths
 		//allocate / check every file
 		//fileArray = new RandomAccessFile[btFileList.size()];
 		files = new DiskManagerFileInfoImpl[btFileList.size()];
@@ -441,7 +441,7 @@ DiskManagerImpl
 					locale_decoder.decodeString(path_components[lastIndex]),
 					fileLength));
 		}catch( UnsupportedEncodingException e ){
-			this.errorMessage = e.getMessage();
+			this.errorMessage = e.getMessage() + " (buildFileLookupTable)";
 			setState( FAULTY );
 		}
  
@@ -707,6 +707,27 @@ DiskManagerImpl
        
 	}
 
+	public boolean filesExist() {
+		String basePath = path + System.getProperty("file.separator") + rootPath;
+		
+		for (int i = 0; i < btFileList.size(); i++) {
+			//get the BtFile
+			BtFile tempFile = (BtFile)btFileList.get(i);
+			//get the path
+			String tempPath = basePath + tempFile.getPath();
+			//get file name
+			String tempName = tempFile.getName();
+			//get file length
+			long length = tempFile.getLength();
+
+			File f = new File(tempPath, tempName);
+
+			if (!f.exists() || (f.length() != length))
+				return false;
+		}
+		return true;
+	}
+	
 	private int allocateFiles(String rootPath, List fileList) {
 		setState( ALLOCATING );
 		allocated = 0;
@@ -726,6 +747,8 @@ DiskManagerImpl
 			File f = new File(tempPath, tempName);
 
 			RandomAccessFile raf = null;
+			
+			int accessMode;
 
 			boolean incremental = COConfigurationManager.getBooleanParameter("Enable incremental file creation", false);
 			boolean preZero = COConfigurationManager.getBooleanParameter("Zero New", false);
@@ -748,6 +771,7 @@ DiskManagerImpl
 					f.getCanonicalPath();
 					//create the new file
 					raf = new RandomAccessFile(f, "rwd");
+					accessMode = DiskManagerFileInfo.WRITE;
 					//if we don't want incremental file creation, pre-allocate file
 					if (!incremental) raf.setLength(length);
 					
@@ -773,7 +797,7 @@ DiskManagerImpl
 							raf.close();
 						}
 					} catch (IOException ex) { ex.printStackTrace(); }
-					this.errorMessage = e.getMessage();
+					this.errorMessage = e.getMessage() + " (allocateFiles)";
 					setState( FAULTY );
 					return -1;
 				}
@@ -781,9 +805,10 @@ DiskManagerImpl
 			//the file already exists
 			} else {               
 				try {
-					raf = new RandomAccessFile(f, "rwd");
+					raf = new RandomAccessFile(f, "r");
+					accessMode = DiskManagerFileInfo.READ;
 				} catch (FileNotFoundException e) {
-					this.errorMessage = e.getMessage();
+					this.errorMessage = e.getMessage() + " (allocateFiles:2)";
 					setState( FAULTY );
 					return -1;
 				}
@@ -822,7 +847,7 @@ DiskManagerImpl
 			fileInfo.setDownloaded(0);
 			fileInfo.setFile(f);
 			fileInfo.setRaf(raf);
-			fileInfo.setAccessmode(DiskManagerFileInfo.WRITE);
+			fileInfo.setAccessmode(accessMode);
 			files[i] = fileInfo;
 
 			//setup this files RAF reference
@@ -838,7 +863,7 @@ DiskManagerImpl
 		try {
 			length = file.length();
 		} catch (IOException e) {
-			this.errorMessage = e.getMessage();
+			this.errorMessage = e.getMessage() + " (zeroFile)";
 			setState( FAULTY );
 			return false;
 		}
@@ -1349,6 +1374,12 @@ DiskManagerImpl
 			//System.out.println("PieceLength: " + tempPiece.getLength());
 			//System.out.println("PieceOffset: " + tempPiece.getOffset());
 			//System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
+
+
+			// Stop, because if it happened once, it will probably happen everytime
+			// Especially in the case of a CD being removed
+			stopIt();
+			setState( FAULTY );
 		}
 
 		buffer.position(0);
@@ -1380,6 +1411,8 @@ DiskManagerImpl
 				return true;
 			} catch (Exception e) {	
 				e.printStackTrace();
+				this.errorMessage = e.getMessage() + " (readFileInfoIntoBuffer)";
+
 				return false;
 			}
 		}
@@ -1466,6 +1499,22 @@ DiskManagerImpl
 		//Now tempPiece points to the first file that contains data for this block
 		while (buffer.hasRemaining()) {
 			tempPiece = pieceList.get(currentFile);
+
+			if (tempPiece.getFile().getAccessmode() == DiskManagerFileInfo.READ)
+				try {
+					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + tempPiece.getFile().getName() + " to read/write");
+					RandomAccessFile raf = tempPiece.getFile().getRaf();
+					raf.close();
+				  raf = new RandomAccessFile(tempPiece.getFile().getFile(), "rwd");
+					tempPiece.getFile().setRaf(raf);
+					tempPiece.getFile().setAccessmode(DiskManagerFileInfo.WRITE);
+				} catch (Exception ex) {
+					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + tempPiece.getFile().getName() + " to read/write. ERR: "+ex.getMessage());
+					this.errorMessage = ex.getMessage() + " (dumpBlockToDisk)";
+					stopIt();
+					setState( FAULTY );
+					return;
+				}
             
          FileChannel fc = tempPiece.getFile().getRaf().getChannel();
             
@@ -1609,7 +1658,8 @@ DiskManagerImpl
 					long done = files[i].getDownloaded();
 					done += tempPiece.getLength();
 					files[i].setDownloaded(done);
-					if (done == files[i].getLength())
+					if (done == files[i].getLength() &&
+					   files[i].getAccessmode() == DiskManagerFileInfo.WRITE)
 						try {
 							synchronized (files[i]) {
 							  RandomAccessFile newRaf = new RandomAccessFile(files[i].getFile(), "r");

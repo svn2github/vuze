@@ -222,7 +222,8 @@ DisplayFormatters
 			tmp = MessageText.getString("ManagerItem.downloading"); 
 			break;
 		  case DownloadManager.STATE_SEEDING :
-         if (manager.getDiskManager().isChecking()) {
+         DiskManager diskManager = manager.getDiskManager();
+         if ((diskManager != null) && diskManager.isChecking()) {
            tmp = MessageText.getString("ManagerItem.seeding").concat(
                  " + ").concat(
                  MessageText.getString("ManagerItem.checking"));
@@ -237,11 +238,18 @@ DisplayFormatters
 		  case DownloadManager.STATE_STOPPED :
 			tmp = MessageText.getString("ManagerItem.stopped"); 
 			break;
+		  case DownloadManager.STATE_QUEUED :
+			tmp = MessageText.getString("ManagerItem.queued"); //$NON-NLS-1$
+			break;
 		  case DownloadManager.STATE_ERROR :
 			tmp = MessageText.getString("ManagerItem.error").concat(" : ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
 		}
 	
+		if (manager.isForceStart() &&
+		    (state == DownloadManager.STATE_SEEDING ||
+		     state == DownloadManager.STATE_DOWNLOADING))
+			tmp = MessageText.getString("ManagerItem.forced") + " " + tmp;
 		return( tmp );
 	}
 	
@@ -288,6 +296,9 @@ DisplayFormatters
 		  	break;
 		  case DownloadManager.STATE_STOPPED :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.stopped"); //$NON-NLS-1$
+			break;
+		  case DownloadManager.STATE_QUEUED :
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.queued"); //$NON-NLS-1$
 			break;
 		  case DownloadManager.STATE_ERROR :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.error").concat(" : ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$

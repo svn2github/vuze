@@ -138,7 +138,7 @@ public class IconBar {
     createBufferedToolItem(toolBar,SWT.PUSH,"run","cb_run","iconBar.run.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"host","cb_host","iconBar.host.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"publish","cb_publish","iconBar.publish.tooltip");
-    createBufferedToolItem(toolBar,SWT.PUSH,"start","cb_start","iconBar.start.tooltip");
+    createBufferedToolItem(toolBar,SWT.PUSH,"queue","cb_start","iconBar.queue.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"stop","cb_stop","iconBar.stop.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"remove","cb_remove","iconBar.remove.tooltip");
     toolBar.pack();

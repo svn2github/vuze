@@ -21,7 +21,7 @@
 package org.gudy.azureus2.ui.swt.config.plugins;
 
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter;
 import org.gudy.azureus2.pluginsimpl.ui.config.ColorParameter;
@@ -41,7 +41,7 @@ public class PluginParameter {
 
   public PluginParameterImpl implementation;
   
-  public PluginParameter(Group pluginGroup,Parameter parameter) {
+  public PluginParameter(Composite pluginGroup,Parameter parameter) {
     if(parameter instanceof StringParameter) {
       implementation = new PluginStringParameter(pluginGroup,(StringParameter)parameter);
     } else if(parameter instanceof IntParameter) {

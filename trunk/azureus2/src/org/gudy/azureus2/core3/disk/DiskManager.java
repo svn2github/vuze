@@ -34,6 +34,18 @@
 	public static final int READY = 4;
 	public static final int FAULTY = 10;
 
+	/**
+	 * Start checking/allocating
+	 */
+	public void
+	start();
+	
+	/**
+	  * @return whether all files exist and sizes match
+	  */
+	public boolean
+	filesExist();
+
 	public void 
 	setPeerManager(
 		PEPeerManager manager );

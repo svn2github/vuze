@@ -143,4 +143,12 @@ DownloadStatsImpl
 	{
 		return( dm_stats.getShareRatio());
 	}
+	
+	// in ms
+	public long
+	getTimeStarted()
+	{
+		return (dm_stats.getTimeStarted());
+	}
+	
 }

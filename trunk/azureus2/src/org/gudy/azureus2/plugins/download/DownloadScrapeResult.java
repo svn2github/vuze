@@ -63,4 +63,7 @@ DownloadScrapeResult
 	
 	public int
 	getNonSeedCount();
+
+  public long
+  getScrapeStartTime();
 }

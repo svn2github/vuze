@@ -1,6 +1,23 @@
 CHANGELOG
 ---------
 
+xx.xx.04 | Azureus 2.0.7.x
+
+FEATURE: QUEUED status.  Torrents that are queued are stopped, but available for automatic starting.[TuxPaper]
+FEATURE: Partial support for Read-Only data (for seeding) [TuxPaper]
+FEATURE: Added "Forced-Start" to force a torrent to start, ignoring download limits or seeding rules. [TuxPaper]
+FEATURE: Auto-positioning of finished torrent based on how badly the torrent needs seeding. [TuxPaper]
+
+CHANGE: Replaced "Max Active Torrents" with "Max Seeding While DLing" and "Max Seeding No DLing" [TuxPaper]
+CHANGE: Split torrents in My Torrents view into 2 lists: Downloading and Seeding (Completed) [TuxPaper]
+CHANGE: STOPPED status now means the torrent never auto-starts. [TuxPaper]
+CHANGE: Moved icon from Rank column to Name column. [TuxPaper]
+CHANGE: Removed Lock Priority.  No longer an issue since priority only gets autochanged once. [TuxPaper]
+CHANGE: Remove "Lock Start/Stop" menu option.  Stop now means no auto-starting/stopping. [TuxPaper]
+
+BUGFIX: Once a torrent is complete, and you remove the data, it wil no longer start downloading again when seeding rules are on. [TuxPaper]
+
+
 02.02.04 | Azureus 2.0.7.0
 
 FEATURE: Under Linux + GTK, added an option to setup a vertical offset to re-align graphics [Gudy]

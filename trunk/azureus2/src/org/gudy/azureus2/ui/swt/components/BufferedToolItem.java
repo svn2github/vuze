@@ -75,6 +75,7 @@ BufferedToolItem
 	setImage(
 		Image	i )
 	{
+		i.setBackground(item.getParent().getBackground());
 		item.setImage(i);
 	}
 	

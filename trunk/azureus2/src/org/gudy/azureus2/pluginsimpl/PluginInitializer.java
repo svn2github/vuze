@@ -52,10 +52,12 @@ PluginInitializer
 	implements GlobalManagerListener
 {
 
-  private Class[]	builtin_plugins = new Class[]{ 	org.gudy.azureus2.core3.global.seedingrules.defaultplugin.GMSRDefaultPlugin.class,
-													ShareHosterPlugin.class,
-													TrackerWebDefaultStaticPlugin.class,
-  													TrackerWebDefaultTrackerPlugin.class,};
+  private Class[]	builtin_plugins = 
+    new Class[]{ org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
+                 ShareHosterPlugin.class,
+                 TrackerWebDefaultStaticPlugin.class,
+                 TrackerWebDefaultTrackerPlugin.class,
+                };
   
   private static PluginInitializer	singleton;
   
@@ -341,5 +343,13 @@ PluginInitializer
   initialisationComplete()
   {
   	singleton.initialisationCompleteSupport();
+  }
+  
+  public static List getPluginInterfaces() {
+  	return singleton.getPluginInterfacesSupport();
+  }
+
+  protected List getPluginInterfacesSupport() {
+  	return plugin_interfaces;
   }
 }

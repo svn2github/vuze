@@ -437,4 +437,33 @@ RPDownload
 	{
 		notSupported();
 	}
+	
+	public int getPosition() {
+		notSupported();
+		return (0);
+	}
+	
+	public boolean isForceStart() {
+		notSupported();
+		
+		return (false);
+	}
+	
+	public void setForceStart(boolean forceStart) {
+		notSupported();
+	}
+	
+	public void setPosition(int newPosition) {
+		notSupported();
+	}
+	
+	public void stopAndQueue() throws DownloadException {
+		notSupported();
+	}
+	
+	public String getName() {
+		notSupported();
+		return ("");
+	}
+	
 }

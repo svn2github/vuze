@@ -49,7 +49,7 @@ public class StatusItem extends TorrentItem {
         }
       }
       else if (state == DownloadManager.STATE_SEEDING)
-        setForeground(MainWindow.blues[3]);
+        setForeground(MainWindow.colorShift);
       else if (state == DownloadManager.STATE_ERROR)
         setForeground(MainWindow.red_ManagerItem);
       else

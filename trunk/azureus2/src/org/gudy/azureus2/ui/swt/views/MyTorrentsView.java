@@ -48,12 +48,14 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -79,9 +81,15 @@ import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
  * @author Olivier
  * 
  */
-public class MyTorrentsView extends AbstractIView implements GlobalManagerListener, SortableTable, ITableStructureModificationListener, ParameterListener {
+public class MyTorrentsView extends AbstractIView 
+  implements GlobalManagerListener, 
+             SortableTable, 
+             ITableStructureModificationListener, 
+             ParameterListener,
+             DownloadManagerListener {
 
   private GlobalManager globalManager;
+  private boolean isSeedingView;
    
   private Composite composite;
   private Composite panel;
@@ -94,30 +102,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
   private ItemEnumerator itemEnumerator;
   private TableSorter sorter;
-
-  private String[] tableItems = {
-       "#;L;I;45;0"
-      ,"name;L;S;250;1"
-      ,"size;R;I;70;2"
-      ,"down;R;I;70;3"
-      ,"done;R;I;55;4"
-      ,"health;L;I;18;5"
-      ,"status;L;I;80;6"      
-      ,"seeds;C;I;60;7"
-      ,"peers;C;I;60;8"
-      ,"downspeed;R;I;70;9"
-      ,"upspeed;R;I;70;10"    
-      ,"eta;L;I;70;11"      
-      ,"priority;L;I;70;12"
-			
-      ,"tracker;L;I;70;-1"
-      ,"shareRatio;L;I;70;-1"      
-      ,"up;R;I;70;-1"
-      ,"pieces;C;I;100;-1"
-      ,"completion;C;I;100;-1"
-			
-  };
   
+  private String[] tableItems;
+  private String configTableName;
+  
+
 	// table item index, where the drag has started
   private int drag_drop_line_start = -1;
   
@@ -133,9 +122,69 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     return itemEnumerator;
   }
 
-  public MyTorrentsView(GlobalManager globalManager) {
+  public MyTorrentsView(GlobalManager globalManager, boolean isSeedingView) {
+    // Table rows seem to have a bug
+    // if any column has a image set using setImage, the first column will
+    // reserve a space for an image.
+    // Default Health to first column and no one will notice ;)
+    final String[] tableItemsDL = {
+        "health;L;I;18;0"
+        ,"#;R;I;45;1"
+        ,"name;L;S;250;2"
+        ,"size;R;I;70;3"
+        ,"down;R;I;70;4"
+        ,"done;R;I;55;5"
+        ,"status;L;I;80;6"      
+        ,"seeds;C;I;60;7"
+        ,"peers;C;I;60;8"
+        ,"downspeed;R;I;70;9"
+        ,"upspeed;R;I;70;10"    
+        ,"eta;L;I;70;11"      
+        ,"priority;L;I;70;12"
+  			
+        ,"tracker;L;I;70;-1"
+        ,"shareRatio;R;I;70;-1"      
+        ,"up;R;I;70;-1"
+        ,"pieces;C;I;100;-1"
+        ,"completion;C;I;100;-1"
+        ,"maxuploads;R;I;30;-1"
+        ,"totalspeed;R;I;70;-1"
+        ,"savepath;L;S;150;-1"
+  			
+    };
+  
+    final String[] tableItemsSeeder = {
+        "health;L;I;18;0"
+        ,"#;R;I;45;1"
+        ,"name;L;S;250;2"
+        ,"size;R;I;70;3"
+        ,"status;L;I;80;4"      
+        ,"seeds;C;I;60;5"
+        ,"peers;C;I;60;6"
+        ,"upspeed;R;I;70;7"    
+        ,"priority;L;I;70;8"
+        ,"shareRatio;R;I;70;9"
+        ,"up;R;I;70;10"
+  			
+        ,"tracker;L;I;70;-1"
+        ,"done;R;I;55;-1"
+        ,"maxuploads;R;I;30;-1"
+        ,"totalspeed;R;I;70;-1"
+        ,"savepath;L;S;150;-1"
+    };
+  
     this.globalManager = globalManager;
+    this.isSeedingView = isSeedingView;
 		
+
+    if (isSeedingView) {
+      tableItems = tableItemsSeeder;
+      configTableName = "MySeeders";
+    }
+    else {
+      tableItems = tableItemsDL;
+      configTableName = "MyTorrents";
+    }
     objectToSortableItem = new HashMap();
     tableItemToObject = new HashMap();
     downloadBars = MainWindow.getWindow().getDownloadBars();
@@ -231,8 +280,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         }
       }
     };
-        
-    itemEnumerator = ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems);
+
+    // Setup table
+    // -----------
+    itemEnumerator = ConfigBasedItemEnumerator.getInstance(configTableName, tableItems);
     ItemDescriptor[] items = itemEnumerator.getItems();
     
     //Create all columns
@@ -249,7 +300,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       int position = items[i].getPosition();
       if(position != -1) {
         TableColumn column = table.getColumn(position);
-        Messages.setLanguageText(column, "MyTorrentsView.".concat(items[i].getName()));
+        Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
         column.setAlignment(items[i].getAlign());
         column.setWidth(items[i].getWidth());
         if (items[i].getType() == ItemDescriptor.TYPE_INT) {
@@ -258,7 +309,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         if (items[i].getType() == ItemDescriptor.TYPE_STRING) {
           sorter.addStringColumnListener(column, items[i].getName());
         }
-        column.setData("configName", "Table.MyTorrents.".concat(items[i].getName()));
+        column.setData("configName", "Table." + configTableName + "." + items[i].getName());
         column.addControlListener(resizeListener);
       }
     }   
@@ -354,19 +405,16 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     Messages.setLanguageText(itemHigh, "MyTorrentsView.menu.setpriority.high"); //$NON-NLS-1$
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.PUSH);
     Messages.setLanguageText(itemLow, "MyTorrentsView.menu.setpriority.low"); //$NON-NLS-1$
-    final MenuItem itemLockPriority = new MenuItem(menu, SWT.CHECK);
-    Messages.setLanguageText(itemLockPriority, "MyTorrentsView.menu.lockpriority");
-    itemLockPriority.setImage(ImageRepository.getImage("lock"));
     
     new MenuItem(menu, SWT.SEPARATOR);
 
-    final MenuItem itemLockStartStop = new MenuItem(menu, SWT.CHECK);
-    Messages.setLanguageText(itemLockStartStop, "MyTorrentsView.menu.lockstartstop");
-    itemLockStartStop.setImage(ImageRepository.getImage("lock"));
+    final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue"); //$NON-NLS-1$
+    itemQueue.setImage(ImageRepository.getImage("start"));
     
-    final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
-    itemStart.setImage(ImageRepository.getImage("start"));
+    final MenuItem itemForceStart = new MenuItem(menu, SWT.CHECK);
+    Messages.setLanguageText(itemForceStart, "MyTorrentsView.menu.forceStart");
+    itemForceStart.setImage(ImageRepository.getImage("forcestart"));
     
     final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
@@ -429,10 +477,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
         itemMove.setEnabled(false);
         itemPriority.setEnabled(false);
-        itemLockPriority.setEnabled(false);
 
-        itemLockStartStop.setEnabled(false);
-        itemStart.setEnabled(false);
+        itemForceStart.setEnabled(false);
+        itemQueue.setEnabled(false);
         itemStop.setEnabled(false);
         itemRemove.setEnabled(false);
         itemRemoveAnd.setEnabled(false);
@@ -452,9 +499,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
           itemMove.setEnabled(true);
           itemPriority.setEnabled(true);
-          itemLockPriority.setEnabled(true);
 
-          itemLockStartStop.setEnabled(true);
+          itemForceStart.setEnabled(true);
           itemStop.setEnabled(true);
 
           itemRemove.setEnabled(false);
@@ -462,8 +508,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           
           //itemRecheck.setEnabled(true);
 
-          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, lockPriority, lockStartStop, recheck;
-          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = lockPriority = lockStartStop = recheck = true;
+          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, forceStart, recheck;
+          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = forceStart = recheck = true;
           for (int i = 0; i < tis.length; i++) {
             TableItem ti = tis[i];
             DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
@@ -488,10 +534,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
               if (!dm.isMoveableUp())
                 moveUp = false;
               
-              if(!dm.isPriorityLocked())
-                lockPriority = false;
-              if(!dm.isStartStopLocked())
-                lockStartStop = false;
+              if(!dm.isForceStart())
+                forceStart = false;
             }
           }
           itemBar.setSelection(barsOpened);
@@ -499,10 +543,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           itemMoveDown.setEnabled(moveDown);
           itemMoveUp.setEnabled(moveUp);
 
-          itemLockPriority.setSelection(lockPriority);
-          
-          itemLockStartStop.setSelection(lockStartStop);
-          itemStart.setEnabled(start);
+          itemForceStart.setSelection(forceStart);
+          itemQueue.setEnabled(start);
           itemStop.setEnabled(stop);
           itemRemove.setEnabled(remove);
           itemRemoveAnd.setEnabled(remove);
@@ -515,9 +557,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       }
     });
 
-    itemStart.addListener(SWT.Selection, new Listener() {
+    itemQueue.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        resumeSelectedTorrents();
+        queueSelectedTorrents();
       }
     });
 
@@ -700,7 +742,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     
     itemChangeTable.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-          new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance("MyTorrents",tableItems),MyTorrentsView.this,"MyTorrentsView");       
+          new EnumeratorEditor(table.getDisplay(),ConfigBasedItemEnumerator.getInstance(configTableName,tableItems),MyTorrentsView.this,"MyTorrentsView");
       }
     });
     
@@ -820,24 +862,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       }
     });
     
-    itemLockPriority.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        TableItem[] tis = table.getSelection();
-        for (int i = 0; i < tis.length; i++) {
-          TableItem ti = tis[i];
-          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-          dm.setPriorityLocked(itemLockPriority.getSelection());
-        }
-      }
-    });
-    
-    itemLockStartStop.addListener(SWT.Selection, new Listener() {
+    itemForceStart.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         TableItem[] tis = table.getSelection();
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);          
-          dm.setStartStopLocked(itemLockStartStop.getSelection());
+          dm.setForceStart(itemForceStart.getSelection());
         }
       }
     });
@@ -1037,7 +1068,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
    */
   public void delete() {
     globalManager.removeListener(this);
-    MainWindow.getWindow().setMytorrents(null);
     COConfigurationManager.removeParameterListener("ReOrder Delay", sorter);
     COConfigurationManager.removeParameterListener("Graphics Update", this);
     COConfigurationManager.removeParameterListener("Confirm Data Delete", this);
@@ -1052,12 +1082,16 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
    	public void downloadManagerAdded(DownloadManager manager) 
 	{	
-     	synchronized (objectToSortableItem) {
-     		TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-      		if (item == null)
-        		item = new TorrentRow(this,table, manager);
-        	objectToSortableItem.put(manager, item);      
-    	}
+  	  if ((manager.getStats().getCompleted() == 1000 && isSeedingView) || 
+  	      (manager.getStats().getCompleted() != 1000 && ! isSeedingView)) {
+       	synchronized (objectToSortableItem) {
+       		TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
+        		if (item == null)
+          		item = new TorrentRow(this,table, manager);
+          	objectToSortableItem.put(manager, item);      
+      	}
+      }
+   	  manager.addListener( this );
   	}
 
 	public void downloadManagerRemoved(DownloadManager removed) 
@@ -1075,6 +1109,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       		tableItemToObject.remove(tableItem);
       		managerItem.delete();
     	}
+		removed.removeListener( this );
   	}
 
 	// globalmanagerlistener
@@ -1231,12 +1266,21 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     }
   }
 
+  private void queueSelectedTorrents() {
+    TableItem[] tis = table.getSelection();
+    for (int i = 0; i < tis.length; i++) {
+      TableItem ti = tis[i];
+      DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+      ManagerUtils.queue(dm,panel);
+    }   
+  }
+
   private void resumeSelectedTorrents() {
     TableItem[] tis = table.getSelection();
     for (int i = 0; i < tis.length; i++) {
       TableItem ti = tis[i];
       DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-      ManagerUtils.start(dm);      
+      ManagerUtils.start(dm);
     }   
   }
   
@@ -1364,14 +1408,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   }
   
   public boolean isEnabled(String itemKey) {
-    if(itemKey.equals("top"))
-      return true;
-    if(itemKey.equals("bottom"))
-      return true;
-    if(itemKey.equals("up"))
-      return up;
-    if(itemKey.equals("down"))
-      return down;
     if(itemKey.equals("run"))
       return run;
     if(itemKey.equals("host"))
@@ -1380,10 +1416,24 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       return publish;
     if(itemKey.equals("start"))
       return start;
+    if(itemKey.equals("queue"))
+      return start;
     if(itemKey.equals("stop"))
       return stop;
     if(itemKey.equals("remove"))
       return remove;
+
+    // The rest aren't applicable to seedingView
+    if(isSeedingView)
+      return false;
+    if(itemKey.equals("top"))
+      return true;
+    if(itemKey.equals("bottom"))
+      return true;
+    if(itemKey.equals("up"))
+      return up;
+    if(itemKey.equals("down"))
+      return down;
     return false;
   }
   
@@ -1420,6 +1470,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       resumeSelectedTorrents();
       return;
     }
+    if(itemKey.equals("queue")){
+      queueSelectedTorrents();
+      return;
+    }
     if(itemKey.equals("stop")){
       stopSelectedTorrents();
       return;
@@ -1437,6 +1491,51 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     synchronized(downloadBars) {
       downloadBars.remove(dm);
     }
+  }
+  
+  // DownloadManagerListener Function
+  // move TorrentRow from one pane to another if needed
+  public void stateChanged(DownloadManager manager, int state)
+  {
+    // Can't use getCompleted() in these states..
+    if (state == DownloadManager.STATE_INITIALIZING ||
+        state == DownloadManager.STATE_INITIALIZED ||
+        state == DownloadManager.STATE_ALLOCATING ||
+        state == DownloadManager.STATE_CHECKING ||
+        state == DownloadManager.STATE_STOPPING ||
+        state == DownloadManager.STATE_FINISHING)
+      return;
+
+    boolean completed = (manager.getStats().getCompleted() == 1000);
+    synchronized (objectToSortableItem) {
+      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
+      if (item == null) {
+        // check to see if it should be in this view
+        if ((isSeedingView && completed) ||
+            (!isSeedingView && !completed)) {
+          // Add to view
+					//LGLogger.log(0,"AddTo"+ (isSeedingView ? "S" : "D") + ": stateChanged to "+ state+ "C="+ manager.getStats().getCompleted()+";"+ manager.getName());
+          item = new TorrentRow(this,table, manager);
+          objectToSortableItem.put(manager, item);
+        }
+      } else { // item exists in view
+        // does it belong?
+        if ((isSeedingView && !completed) ||
+            (!isSeedingView && completed)) {
+					//LGLogger.log(0,"RemoveFrom"+ (isSeedingView ? "S" : "D") + ": stateChanged to "+ state+ "C="+ manager.getStats().getCompleted()+";"+ manager.getName());
+          TorrentRow managerItem = (TorrentRow) objectToSortableItem.remove(manager);
+          if (managerItem != null) {
+            TableItem tableItem = managerItem.getTableItem();
+            tableItemToObject.remove(tableItem);
+            managerItem.delete();
+          }
+        }
+      }
+    }
+  }
+
+  public void downloadComplete(DownloadManager manager)
+  {
   }
 
 }

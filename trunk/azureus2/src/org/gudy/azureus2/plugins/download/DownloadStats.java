@@ -148,4 +148,8 @@ DownloadStats
 	 */
 	public int
 	getShareRatio();
+
+	// in ms
+	public long
+	getTimeStarted();
 }

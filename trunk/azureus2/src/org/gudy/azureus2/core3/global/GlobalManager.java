@@ -38,13 +38,13 @@ GlobalManager
 	addDownloadManager(
 		String			file_name,
 		String			save_path,
-		boolean			start_stopped );
+		int         initialState );
 		
 	public DownloadManager
 	addDownloadManager(
 	    String 		fileName,
 	    String 		savePath,
-	    boolean 	startStopped,
+	    int       initialState,
 		boolean		persistent );
   
 	public void
@@ -113,6 +113,13 @@ GlobalManager
   moveTop(
       DownloadManager[] dm );
   
+  public void 
+  moveTo(
+  		DownloadManager manager, int newPosition );
+
+	public void
+	fixUpDownloadManagerPositions();
+
   public void
 	addListener(
 		GlobalManagerListener	l );

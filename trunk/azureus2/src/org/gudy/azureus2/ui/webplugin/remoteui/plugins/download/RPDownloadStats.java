@@ -206,4 +206,10 @@ RPDownloadStats
 		
 		return( 0 );
 	}
+	
+	public long getTimeStarted() {
+		 notSupported();
+		 return ( 0 );
+	}
+	
 }

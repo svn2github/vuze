@@ -26,11 +26,14 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.pluginsimpl.ui.config.FileParameter;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 /**
  * @author Olivier
@@ -40,7 +43,7 @@ public class PluginFileParameter implements PluginParameterImpl {
   
   Control[] controls;
   
-  public PluginFileParameter(final Group pluginGroup,FileParameter parameter) {
+  public PluginFileParameter(final Composite pluginGroup,FileParameter parameter) {
     controls = new Control[3];
            
     controls[0] = new Label(pluginGroup,SWT.NULL);
@@ -55,11 +58,11 @@ public class PluginFileParameter implements PluginParameterImpl {
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     controls[1].setLayoutData(gridData);
     
-    Button browse = new Button(pluginGroup,SWT.PUSH);
-    Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 100;
-    browse.setLayoutData(gridData);
+    Button browse = new Button(pluginGroup, SWT.PUSH);
+    Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
+    browse.setImage(imgOpenFolder);
+    imgOpenFolder.setBackground(browse.getBackground());
+    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
     
     browse.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {

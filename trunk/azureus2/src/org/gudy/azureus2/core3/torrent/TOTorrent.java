@@ -195,6 +195,10 @@ TOTorrent
 	public Object
 	getAdditionalProperty(
 		String		name );
+
+	public void
+	removeAdditionalProperty(
+		String name );
 	
 	/**
 	 * remove all additional properties to clear out the torrent

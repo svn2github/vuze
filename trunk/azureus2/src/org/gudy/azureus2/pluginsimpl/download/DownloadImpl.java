@@ -139,6 +139,12 @@ DownloadImpl
 					
 				break;
 			}
+			case DownloadManager.STATE_QUEUED:
+			{
+				latest_state	= ST_QUEUED;
+					
+				break;
+			}
 			case DownloadManager.STATE_ERROR:
 			{
 				latest_state	= ST_ERROR;
@@ -221,7 +227,8 @@ DownloadImpl
 	
 		throws DownloadException
 	{
-		if ( download_manager.getState() == DownloadManager.STATE_STOPPED ){
+		if ( download_manager.getState() == DownloadManager.STATE_STOPPED ||
+		     download_manager.getState() == DownloadManager.STATE_QUEUED ){
 			
 			download_manager.setState( DownloadManager.STATE_WAITING );
 			
@@ -246,10 +253,33 @@ DownloadImpl
 		}
 	}
 	
+	public void
+	stopAndQueue()
+	
+		throws DownloadException
+	{
+		if ( download_manager.getState() != DownloadManager.STATE_QUEUED)
+			download_manager.stopIt(DownloadManager.STATE_QUEUED);
+		else
+			throw( new DownloadException( "Download::stopAndQueue: download already queued" ));
+	}
+	
 	public boolean
 	isStartStopLocked()
 	{
-		return( download_manager.isStartStopLocked());
+		return( download_manager.getState() == DownloadManager.STATE_STOPPED );
+	}
+	
+	public boolean
+	isForceStart()
+	{
+		return download_manager.isForceStart();
+	}
+	
+	public void
+	setForceStart(boolean forceStart)
+	{
+		download_manager.setForceStart(forceStart);
 	}
 	
 	public int
@@ -276,9 +306,27 @@ DownloadImpl
 	public boolean
 	isPriorityLocked()
 	{
-		return( download_manager.isPriorityLocked());
+		return( false );
 	}
 	
+	public int
+	getPosition()
+	{
+		return download_manager.getPosition();
+	}
+	
+	public void
+	setPosition(int newPosition)
+	{
+		download_manager.setPosition(newPosition);
+	}
+	
+	public String 
+	getName()
+	{
+		return download_manager.getName();
+	}
+
 	public void
 	remove()
 	
@@ -368,6 +416,7 @@ DownloadImpl
 	
 	public void
 	stateChanged(
+      DownloadManager manager,
 		int		state )
 	{
 		int	prev_state 	= latest_state;
@@ -392,7 +441,7 @@ DownloadImpl
 	}
 	
 	public void
-	downloadComplete()
+	downloadComplete(DownloadManager manager)
 	{	
 	}
 	

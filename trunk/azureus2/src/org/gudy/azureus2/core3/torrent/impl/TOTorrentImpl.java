@@ -682,6 +682,13 @@ TOTorrentImpl
 	}
 	
 	public void
+	removeAdditionalProperty(
+		String name )
+	{
+		additional_properties.remove( name );
+	}
+
+	public void
 	removeAdditionalProperties()
 	{
 		additional_properties.clear();

@@ -168,6 +168,15 @@ DownloadManagerStatsImpl
 		return pm.getElapsedTime();
 	  return ""; //$NON-NLS-1$
 	}
+	
+	public long getTimeStarted()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+	  if (pm != null)
+		  return pm.getTimeStarted();
+		return -1;
+	}
 
 	public long getDownloaded() {
 		PEPeerManager	pm = download_manager.getPeerManager();

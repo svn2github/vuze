@@ -202,7 +202,10 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),data_location.toString(), false, false );
+		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
+		                                                       data_location.toString(), 
+		                                                       DownloadManager.STATE_QUEUED, 
+		                                                       false );
 		
 		if ( dm == null ){
 			
@@ -222,7 +225,10 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),data_location.toString(), false, false );
+		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
+		                                                       data_location.toString(), 
+		                                                       DownloadManager.STATE_QUEUED, 
+		                                                       false );
 		
 		if ( dm == null ){
 			

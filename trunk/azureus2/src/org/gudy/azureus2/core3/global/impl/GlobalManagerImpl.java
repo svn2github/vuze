@@ -39,6 +39,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
+import java.util.Collections;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
@@ -191,150 +193,22 @@ public class GlobalManagerImpl
 	            	}
 	            }
 	            /*
-	             * seeding rules have been moved to seedingrules.GMSRDefaultPlugin
+	             * seeding rules have been moved to StartStopRulesDefaultPlugin
 	             */
 	            
-	            /*
-	            if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
-	              nbStarted++;
-	              nbDownloading++;
-	              if (loopFactor % saveResumeLoopCount == 0) {
-	                manager.getDiskManager().dumpResumeDataToDisk(false, false);
-	              }
-	            }
-	            else if (manager.getState() == DownloadManager.STATE_SEEDING) {
-	              nbStarted++;
-	
-	              //First condition to be met to be able to stop a torrent is that the number of seeds
-	              //Is greater than the minimal set, if any.
-	              int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
-	              TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
-	
-	              boolean mayStop = false;
-	              if (hd != null && hd.isValid()) {
-	                if (hd.getSeeds() > nbMinSeeds) {
-	                  mayStop = true;
-	                }
-	              }
-	              else {
-	                mayStop = true;
-	              }
-	
-	              //Checks if any condition to stop seeding is met
-	              int minShareRatio = 1000 * COConfigurationManager.getIntParameter("Stop Ratio", 0);
-	              int shareRatio = manager.getStats().getShareRatio();
-	              //0 means unlimited
-	              if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop && ! manager.isStartStopLocked()) {
-	                manager.stopIt();
-	              }
-	
-	              int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio", 0);
-	              //0 means never stop
-	              if (mayStop && minSeedsPerPeersRatio != 0) {
-	                if (hd != null && hd.isValid()) {
-	                  int nbPeers = hd.getPeers();
-	                  int nbSeeds = hd.getSeeds();
-	                  //If there are no seeds, avoid / by 0
-	                  if (nbSeeds != 0) {
-	                    int ratio = nbPeers / nbSeeds;
-	                    //Added a test over the shareRatio greater than 500
-	                    //Avoids disconnecting too early, even with many peers
-	                    if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1) && ! manager.isStartStopLocked())
-	                      manager.stopIt();
-	                  }
-	                }
-	              }
-	            }
-	            else if (manager.getState() == DownloadManager.STATE_STOPPED && manager.getStats().getCompleted() == 1000) {
-	              //Checks if any condition to start seeding is met
-	              int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
-	              int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Start Peers Ratio", 0);
-	              //0 means never start
-	              if (minSeedsPerPeersRatio != 0 && ! manager.isStartStopLocked()) {
-	                TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
-	                if (hd != null && hd.isValid()) {
-	                  int nbPeers = hd.getPeers();
-	                  int nbSeeds = hd.getSeeds();
-	                  //If there are no seeds, avoid / by 0
-	                  if (nbPeers != 0) {
-	                    if (nbSeeds != 0) {
-	                      int ratio = nbPeers / nbSeeds;
-	                      if (ratio >= minSeedsPerPeersRatio)
-	                        manager.setState(DownloadManager.STATE_WAITING);
-	                    }
-	                    else {
-	                      //No seeds, at least 1 peer, let's start download.
-	                      manager.setState(DownloadManager.STATE_WAITING);
-	                    }
-	                  }
-	                }
-	              }
-	              if (nbMinSeeds > 0 && ! manager.isStartStopLocked()) {
-	                TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
-	                if (hd != null && hd.isValid()) {
-	                  int nbSeeds = hd.getSeeds();
-	                  if (nbSeeds < nbMinSeeds) {
-	                    manager.setState(DownloadManager.STATE_WAITING);
-	                  }
-	                }
-	              }
-	            }
-	          }
-	          boolean alreadyOneAllocatingOrChecking = false;
-	          for (int i = 0; i < managers.size(); i++) {
-	            DownloadManager manager = (DownloadManager) managers.get(i);
-	            if (((manager.getState() == DownloadManager.STATE_ALLOCATING)
-	              || (manager.getState() == DownloadManager.STATE_CHECKING)
-	              || (manager.getState() == DownloadManager.STATE_INITIALIZED))) {
-	              alreadyOneAllocatingOrChecking = true;
-	            }
-	          }
-	
-	          for (int i = 0; i < managers.size(); i++) {
-	            DownloadManager manager = (DownloadManager) managers.get(i);
-	            if ((manager.getState() == DownloadManager.STATE_WAITING) && !alreadyOneAllocatingOrChecking) {
-	              manager.initialize();
-	              alreadyOneAllocatingOrChecking = true;
-	            }
-	            int nbMax = COConfigurationManager.getIntParameter("max active torrents", 4);
-	            int nbMaxDownloads = COConfigurationManager.getIntParameter("max downloads", 4);
-	            if (manager.getState() == DownloadManager.STATE_READY
-	              && ((nbMax == 0) || (nbStarted < nbMax))
-	              && (manager.getStats().getCompleted() == 1000 || ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
+            
+	            // Handle forced starts here
+	            if (manager.getState() == DownloadManager.STATE_READY &&
+	                manager.isForceStart()) {
 	              manager.startDownload();
 	              
-	              //set previous hash fails and discarded values
-	              manager.getStats().setSavedDiscarded();
-	              manager.getStats().setSavedHashFails();
-	              
-	              nbStarted++;
-	              if (manager.getStats().getCompleted() != 1000)
-	                nbDownloading++;
+	              if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
+	                //set previous hash fails and discarded values
+	                manager.getStats().setSavedDiscarded();
+	                manager.getStats().setSavedHashFails();
+	              }
 	            }
-	
-	            if (manager.getState() == DownloadManager.STATE_ERROR) {
-	              DiskManager dm = manager.getDiskManager();
-	              if (dm != null && dm.getState() == DiskManager.FAULTY)
-	                manager.setErrorDetail(dm.getErrorMessage());
-	            }
-	
-	            if ((manager.getState() == DownloadManager.STATE_SEEDING)
-	              && (! manager.isPriorityLocked())
-	              && (manager.getPriority() == DownloadManager.HIGH_PRIORITY)
-	              && COConfigurationManager.getBooleanParameter("Switch Priority", false)) {
-	              manager.setPriority(DownloadManager.LOW_PRIORITY);
-	            }
-	
-	            if ((manager.getState() == DownloadManager.STATE_ERROR)
-	              && (manager.getErrorDetails() != null && manager.getErrorDetails().equals("File Not Found"))) {
-	            	
-	            	try{
-	            		removeDownloadManager(manager);
-	            	}catch( GlobalManagerDownloadRemovalVetoException e ){
-	            		e.printStackTrace();
-	            	}
-	            }
-	            */
+
 	          }
 	        }
       	}catch( Throwable e ){
@@ -430,22 +304,21 @@ public class GlobalManagerImpl
   }
 
   public DownloadManager addDownloadManager(String fileName, String savePath) {
-  	return addDownloadManager(fileName, savePath, false, true);
+  	return addDownloadManager(fileName, savePath, DownloadManager.STATE_WAITING, true);
   }
    
   public DownloadManager 
-  addDownloadManager(String fileName, String savePath, boolean startStopped ) {
-  	return( addDownloadManager(fileName, savePath, startStopped, true ));
+  addDownloadManager(String fileName, String savePath, int initialState ) {
+  	return( addDownloadManager(fileName, savePath, initialState, true ));
   }
   	
   /**
-   * @param startStopped if true, the download will be added in STOPPED state
    * @return true, if the download was added
    *
    * @author Rene Leonhardt
    */
   public DownloadManager 
-  addDownloadManager(String fileName, String savePath, boolean startStopped, boolean persistent ) {
+  addDownloadManager(String fileName, String savePath, int initialState, boolean persistent ) {
 	File torrentDir	= null;
 	File fDest		= null;
 	
@@ -480,34 +353,32 @@ public class GlobalManagerImpl
       
       fDest.createNewFile();
       FileUtil.copyFile(f, fDest);
-      DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath, startStopped, persistent );
-      manager = addDownloadManager(manager);
+      DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath, initialState, persistent );
+      manager = addDownloadManager(manager, true);
       if ( manager == null ) {
         fDest.delete();
         File backupFile = new File(fDest.getAbsolutePath() + ".bak");
         if(backupFile.exists())
           backupFile.delete();
-      } else if(startStopped) {
-        manager.setState(DownloadManager.STATE_STOPPED);
       }
       return( manager );
     }
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       e.printStackTrace();
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, startStopped, persistent);
-      return addDownloadManager(manager);
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent);
+      return addDownloadManager(manager, true);
     }
     catch (Exception e) {
     	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, startStopped, persistent);
-      return addDownloadManager(manager);
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent);
+      return addDownloadManager(manager, true);
     }
   }
 
 
 
-   protected DownloadManager addDownloadManager(DownloadManager manager) {
+   protected DownloadManager addDownloadManager(DownloadManager manager, boolean save) {
     if (!isStopped) {
       synchronized (managers) {
       	
@@ -541,6 +412,18 @@ public class GlobalManagerImpl
         	return( existing );
         }
         
+	      if (manager.getPosition() == -1) {
+	        int endPosition = 0;
+	        for (int i = 0; i < managers.size(); i++) {
+	          DownloadManager dm = (DownloadManager) managers.get(i);
+	          if (dm.getStats().getCompleted() < 1000)
+	            endPosition++;
+	        }
+	        manager.setPosition(endPosition + 1);
+	      }
+	      
+	      manager.setOnlySeeding(manager.getStats().getCompleted() == 1000);
+
         managers.add(manager);
         
         TOTorrent	torrent = manager.getTorrent();
@@ -559,7 +442,8 @@ public class GlobalManagerImpl
         listeners.dispatch( LDT_MANAGER_ADDED, manager );
       }
  
-      saveDownloads();
+      if (save)
+        saveDownloads();
       
       return( manager );
     }
@@ -618,6 +502,7 @@ public class GlobalManagerImpl
       }
     }
     
+    fixUpDownloadManagerPositions();
     listeners.dispatch( LDT_MANAGER_REMOVED, manager );
     
     saveDownloads();
@@ -708,6 +593,7 @@ public class GlobalManagerImpl
       bin = new BufferedInputStream(fin);
       Map map = BDecoder.decode(bin);
       boolean debug = Boolean.getBoolean("debug");
+      int numDownloading = 0;
 
       Iterator iter = null;
       //v2.0.3.0+ vs older mode
@@ -726,16 +612,38 @@ public class GlobalManagerImpl
           String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
           String savePath = new String((byte[]) mDownload.get("path"), Constants.DEFAULT_ENCODING);
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
-          int stopped = debug ? 1 : ((Long) mDownload.get("stopped")).intValue();
+          int state = DownloadManager.STATE_WAITING;
+          if (debug)
+            state = DownloadManager.STATE_STOPPED;
+          else {
+            if (mDownload.containsKey("state")) {
+              state = ((Long) mDownload.get("state")).intValue();
+              if (state != DownloadManager.STATE_STOPPED &&
+                  state != DownloadManager.STATE_QUEUED &&
+                  state != DownloadManager.STATE_WAITING)
+                state = DownloadManager.STATE_WAITING;
+            }
+            else {
+              int stopped = ((Long) mDownload.get("stopped")).intValue();
+              if (stopped == 1)
+                state = DownloadManager.STATE_STOPPED;
+            } 
+          }
           Long lPriority = (Long) mDownload.get("priority");
           Long lDownloaded = (Long) mDownload.get("downloaded");
           Long lUploaded = (Long) mDownload.get("uploaded");
           Long lCompleted = (Long) mDownload.get("completed");
           Long lDiscarded = (Long) mDownload.get("discarded");
           Long lHashFails = (Long) mDownload.get("hashfails");
-          Long lPriorityLocked = (Long) mDownload.get("priorityLocked");
-          Long lStartStopLocked = (Long) mDownload.get("startStopLocked");
-          DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, stopped == 1, true );
+          Long lForceStart = (Long) mDownload.get("forceStart");
+          if (lForceStart == null) {
+	          Long lStartStopLocked = (Long) mDownload.get("startStopLocked");
+	          if(lStartStopLocked != null) {
+	          	lForceStart = lStartStopLocked;
+	          }
+	        }
+          Long lPosition = (Long) mDownload.get("position");
+          DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, state, true );
           dm.getStats().setMaxUploads(nbUploads);
           if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
@@ -745,6 +653,11 @@ public class GlobalManagerImpl
           }
           if (lCompleted != null) {
             dm.getStats().setCompleted(lCompleted.intValue());
+            if (lCompleted.intValue() < 1000)
+              numDownloading++;
+          }
+          else {
+            numDownloading++;
           }
           
           if (lDiscarded != null) {
@@ -754,22 +667,25 @@ public class GlobalManagerImpl
             dm.getStats().saveHashFails(lHashFails.intValue());
           }
           
-          if(lPriorityLocked != null) {
-            if(lPriorityLocked.intValue() == 1) {
-              dm.setPriorityLocked(true);
+          if (lPosition != null)
+            dm.setPosition(lPosition.intValue());
+          else if (dm.getStats().getCompleted() < 1000)
+            dm.setPosition(numDownloading);
+          this.addDownloadManager(dm, false);
+
+          if(lForceStart != null) {
+            if(lForceStart.intValue() == 1) {
+              dm.setForceStart(true);
             }
           }
-          if(lStartStopLocked != null) {
-            if(lStartStopLocked.intValue() == 1) {
-              dm.setStartStopLocked(true);
-            }
-          }
-          this.addDownloadManager(dm);
         }
         catch (UnsupportedEncodingException e1) {
           //Do nothing and process next.
         }
       }
+      // Someone could have mucked with the config file and set weird positions,
+      // so fix them up.
+      fixUpDownloadManagerPositions();
     }
     catch (FileNotFoundException e) {
       //Do nothing
@@ -806,20 +722,29 @@ public class GlobalManagerImpl
 		      dmMap.put("torrent", dm.getTorrentFileName());
 		      dmMap.put("path", dm.getFullName());
 		      dmMap.put("uploads", new Long(dm.getStats().getMaxUploads()));
-		      int stopped = 0;
-		      if (dm.getState() == DownloadManager.STATE_STOPPED)
-		        stopped = 1;
-		      dmMap.put("stopped", new Long(stopped));
-		      int priority = dm.getPriority();
+          int state = dm.getState();
+          // XXX: Add "&& SeedingQREnabled"
+          if (state == DownloadManager.STATE_SEEDING)
+            state = DownloadManager.STATE_QUEUED;
+          else if (state != DownloadManager.STATE_STOPPED &&
+                  state != DownloadManager.STATE_QUEUED &&
+                  state != DownloadManager.STATE_WAITING)
+            state = DownloadManager.STATE_WAITING;
+          dmMap.put("state", new Long(state));
+          int priority = dm.getPriority();
 		      dmMap.put("priority", new Long(priority));
-		      dmMap.put("position", new Long(i));
+		      dmMap.put("position", new Long(dm.getPosition()));
 		      dmMap.put("downloaded", new Long(dm.getStats().getDownloaded()));
 		      dmMap.put("uploaded", new Long(dm.getStats().getUploaded()));
 		      dmMap.put("completed", new Long(dm.getStats().getCompleted()));
 		      dmMap.put("discarded", new Long(dm.getStats().getDiscarded()));
 		      dmMap.put("hashfails", new Long(dm.getStats().getHashFails()));
-		      dmMap.put("priorityLocked", new Long(dm.isPriorityLocked() ? 1 : 0));
-		      dmMap.put("startStopLocked", new Long(dm.isStartStopLocked() ? 1 : 0));
+		      dmMap.put("forceStart", new Long(dm.isForceStart() ? 1 : 0));
+		      // Following 3 aren't needed, but save them so older versions still work
+		      // XXX: Maybe remove them after 2.0.7.x release
+		      dmMap.put("priorityLocked", new Long(0));
+		      dmMap.put("startStopLocked", new Long(0));
+		      dmMap.put("stopped", new Long(1));
 		      list.add(dmMap);
 	      }
 	    }
@@ -884,61 +809,130 @@ public class GlobalManagerImpl
   }
 
   public boolean isMoveableUp(DownloadManager manager) {
-    return getIndexOf(manager) > 0;
+    return (manager.getStats().getCompleted() < 1000 && manager.getPosition() > 1);
   }
 
   public boolean isMoveableDown(DownloadManager manager) {
-    if (managers != null)
-      return getIndexOf(manager) < managers.size() - 1;
+    if (managers != null) {
+      int numNotCompleted = 0;
+      for (int i = 0; i < managers.size(); i++) {
+        DownloadManager dm = (DownloadManager) managers.get(i);
+        if (dm.getStats().getCompleted() < 1000)
+          numNotCompleted++;
+      }
+      return manager.getPosition() < numNotCompleted;
+    }
     return false;
   }
 
   public void moveUp(DownloadManager manager) {
-    if (managers != null) {
-      synchronized (managers) {
-        int index = managers.indexOf(manager);
-        if (index > 0) {
-          managers.remove(index);
-          managers.add(index - 1, manager);
-        }
-      }
-    }
+  	moveTo(manager, manager.getPosition() - 1);
   }
 
   public void moveDown(DownloadManager manager) {
-    if (managers != null) {
-      synchronized (managers) {
-        int index = managers.indexOf(manager);
-        if (index < managers.size() - 1) {
-          managers.remove(index);
-          managers.add(index + 1, manager);
-        }
-      }
-    }
+  	moveTo(manager, manager.getPosition() + 1);
   }
 
   public void moveTop(DownloadManager[] manager) {
-    if (managers != null) {
+    if (managers != null)
       synchronized (managers) {
-        for (int i = 0; i < manager.length; i++) {
-          managers.remove(managers.indexOf(manager[i]));
-          managers.add(i, manager[i]);
-        }
+      	int newPosition = 1;
+        for (int i = 0; i < manager.length; i++)
+        	moveTo(manager[i], newPosition++);
       }
-    }
   }
 
   public void moveEnd(DownloadManager[] manager) {
+    if (managers != null)
+      synchronized (managers) {
+        int endPosComplete = 0;
+        int endPosIncomplete = 0;
+        for (int j = 0; j < managers.size(); j++) {
+			DownloadManager dm = (DownloadManager) managers.get(j);
+			if (dm.getStats().getCompleted() == 1000)
+				endPosComplete++;
+			else
+				endPosIncomplete++;
+        }
+		  for (int i = manager.length - 1; i >= 0; i--)
+				if (manager[i].getStats().getCompleted() == 1000 && endPosComplete > 0)
+	        		moveTo(manager[i], endPosComplete--);
+	        	else if (endPosIncomplete > 0)
+	        		moveTo(manager[i], endPosIncomplete--);
+		}
+  }
+  
+  public void moveTo(DownloadManager manager, int newPosition) {
+	if (managers != null)
+		synchronized (managers) {
+    		int curPosition = manager.getPosition();
+    		if (newPosition > curPosition) {
+    			// move [manager] down
+    			// move everything between [curPosition+1] and [newPosition] up(-) 1
+				boolean curCompleted = (manager.getStats().getCompleted() == 1000);
+				int numToMove = newPosition - curPosition;
+				for (int i = 0; i < managers.size(); i++) {
+					DownloadManager dm = (DownloadManager) managers.get(i);
+					boolean dmCompleted = (dm.getStats().getCompleted() == 1000);
+					int dmPosition = dm.getPosition();
+					if ((dmCompleted == curCompleted) &&
+					    (dmPosition > curPosition) &&
+					    (dmPosition <= newPosition)
+					   ) {
+						dm.setPosition(dmPosition - 1);
+						numToMove--;
+						if (numToMove <= 0)
+							break;
+					}
+				}
+				manager.setPosition(newPosition);
+			}
+			else if (newPosition < curPosition && curPosition > 1) {
+				// move [manager] up
+				// move everything between [newPosition] and [curPosition-1] down(+) 1
+				boolean curCompleted = (manager.getStats().getCompleted() == 1000);
+				int numToMove = curPosition - newPosition;
+
+				for (int i = 0; i < managers.size(); i++) {
+					DownloadManager dm = (DownloadManager) managers.get(i);
+					boolean dmCompleted = (dm.getStats().getCompleted() == 1000);
+					int dmPosition = dm.getPosition();
+					if ((dmCompleted == curCompleted) &&
+					    (dmPosition >= newPosition) &&
+					    (dmPosition < curPosition)
+					   ) {
+						dm.setPosition(dmPosition + 1);
+						LGLogger.log(0, "Moved "+dmPosition+" to "+dmPosition+1);
+						numToMove--;
+						if (numToMove <= 0)
+							break;
+					}
+				}
+				manager.setPosition(newPosition);
+			}
+		}
+	}
+	
+	public void fixUpDownloadManagerPositions() {
     if (managers != null) {
       synchronized (managers) {
-        int endPosition = managers.size() - 1;
-        for (int i = manager.length - 1; i >= 0; i--) {
-          managers.remove(managers.indexOf(manager[i]));
-          managers.add(endPosition--, manager[i]);
+      	int posComplete = 1;
+      	int posIncomplete = 1;
+		    Collections.sort(managers, new Comparator () {
+	          public final int compare (Object a, Object b) {
+	            return ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
+	          }
+	        } );
+        for (int i = 0; i < managers.size(); i++) {
+          DownloadManager dm = (DownloadManager) managers.get(i);
+          if (dm.getStats().getCompleted() == 1000)
+          	dm.setPosition(posComplete++);
+         	else
+          	dm.setPosition(posIncomplete++);
         }
       }
     }
-  }
+	}
   
   	protected void
   	informDestroyed()

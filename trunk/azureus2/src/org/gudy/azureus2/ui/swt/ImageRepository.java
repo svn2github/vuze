@@ -63,7 +63,8 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/edit_trackers.gif", "edit_trackers");
     loadImage(display, "org/gudy/azureus2/ui/icons/columns.gif", "columns");
     loadImage(display, "org/gudy/azureus2/ui/icons/speed.gif", "speed");
-    
+    loadImage(display, "org/gudy/azureus2/ui/icons/openFolder16x12.gif", "openFolderButton");
+    loadImage(display, "org/gudy/azureus2/ui/icons/forcestart.gif", "forcestart");
     
     //ToolBar Icons
     

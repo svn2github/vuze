@@ -24,14 +24,18 @@ package org.gudy.azureus2.core3.download;
 /**
  * @author parg
  *
+ * [Paper 2004/01/12]
+ * Added DownloadManager parameter to calls.  This allows for one listener object
+ * to listen to many DownloadManagers
  */
 public interface 
 DownloadManagerListener 
 {
 	public void
 	stateChanged(
+		DownloadManager manager,
 		int		state );
 		
 	public void
-	downloadComplete();
+	downloadComplete(DownloadManager manager);
 }

@@ -68,6 +68,10 @@ DownloadManagerStats
 			
 	public String
 	getElapsedTime();
+	
+	// in ms
+	public long
+	getTimeStarted();
 		
 	public long
 	getETA();

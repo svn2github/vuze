@@ -54,8 +54,13 @@ public class TableSorter implements ParameterListener {
   private Map tableItemToObject;
 
   public TableSorter(SortableTable sortableTable, String defaultField,boolean isDefaultInt) {
+  	this(sortableTable, defaultField, isDefaultInt, true);
+  }
+  
+  public TableSorter(SortableTable sortableTable, String defaultField,
+                     boolean isDefaultInt, boolean ascending) {
     loopFactor = 0;
-    ascending = true;
+    this.ascending = ascending;
     this.lastField = defaultField;
     this.lastFieldIsInt = isDefaultInt;
     this.sortableTable = sortableTable;

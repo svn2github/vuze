@@ -37,9 +37,19 @@ DiskManagerFactory
 		TOTorrent	torrent, 
 		String 		path )
 	{
-		return( new DiskManagerImpl( torrent, path ));
+		DiskManagerImpl dm = new DiskManagerImpl( torrent, path );
+		dm.start();
+		return dm;
 	}
 	
+	public static DiskManager
+	createNoStart(
+		TOTorrent	torrent, 
+		String 		path )
+	{
+		return( new DiskManagerImpl( torrent, path ));
+	}
+
 		/**
 		 * Method to preset resume data to indicate completely valid file. 
 		 * Doesn't save the torrent

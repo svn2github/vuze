@@ -63,6 +63,10 @@ public class TorrentRow implements SortableItem {
   }
 
   public TableItem getTableItem() {
+  	if (row == null)
+  		// this sucks.  It could mean we are in the process of initialize()
+  		return null;
+
     return this.row.getItem();
   }
 
@@ -95,6 +99,9 @@ public class TorrentRow implements SortableItem {
         items.add(new PiecesItem(TorrentRow.this,itemEnumerator.getPositionByName("pieces")));
         items.add(new CompletionItem(TorrentRow.this,itemEnumerator.getPositionByName("completion")));
         items.add(new HealthItem(TorrentRow.this,itemEnumerator.getPositionByName("health")));
+        items.add(new MaxUploadsItem(TorrentRow.this,itemEnumerator.getPositionByName("maxuploads")));
+        items.add(new TotalSpeedItem(TorrentRow.this,itemEnumerator.getPositionByName("totalspeed")));
+        items.add(new SavePathItem(TorrentRow.this,itemEnumerator.getPositionByName("savepath")));
         view.setItem(row.getItem(),manager);
       }
     });
@@ -174,6 +181,9 @@ public class TorrentRow implements SortableItem {
     if (field.equals("priority")) //$NON-NLS-1$
       return manager.getName();
   
+    if (field.equals("savepath")) //$NON-NLS-1$
+      return manager.getSavePath();
+  
     return ""; //$NON-NLS-1$
   }
 
@@ -210,7 +220,7 @@ public class TorrentRow implements SortableItem {
       return manager.getPriority();
   
     if (field.equals("#")) //$NON-NLS-1$
-      return manager.getIndex();
+      return manager.getPosition();
     
     if (field.equals("eta")) //$NON-NLS-1$
       return manager.getStats().getETA();
@@ -223,6 +233,12 @@ public class TorrentRow implements SortableItem {
     
     if (field.equals("up")) //$NON-NLS-1$
       return manager.getStats().getUploaded();
+    
+    if (field.equals("maxuploads")) //$NON-NLS-1$
+      return manager.getStats().getMaxUploads();
+    
+    if (field.equals("totalspeed")) //$NON-NLS-1$
+      return manager.getStats().getTotalAverage();
     
     return 0;
   }  

@@ -32,14 +32,26 @@ import org.gudy.azureus2.core3.global.*;
 public class 
 DownloadManagerFactory 
 {
+ 	public static DownloadManager
+ 	create(
+ 		GlobalManager 	gm, 
+ 		String 			torrentFileName, 
+ 		String 			savePath, 
+		boolean 		stopped,
+ 		boolean			persistent )
+ 	{
+ 		int state = (stopped) ? DownloadManager.STATE_STOPPED : DownloadManager.STATE_WAITING;
+		return( new DownloadManagerImpl( gm, torrentFileName, savePath, state, persistent ));
+ 	}	
+
 	public static DownloadManager
 	create(
 		GlobalManager 	gm, 
 		String 			torrentFileName, 
 		String 			savePath, 
-		boolean 		stopped,
+		int      		initialState,
 		boolean			persistent )
 	{
-		return( new DownloadManagerImpl( gm, torrentFileName, savePath, stopped, persistent ));
+		return( new DownloadManagerImpl( gm, torrentFileName, savePath, initialState, persistent ));
 	}	
 }

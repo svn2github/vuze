@@ -23,7 +23,7 @@ package org.gudy.azureus2.ui.swt.config.plugins;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.pluginsimpl.ui.config.StringParameter;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -36,7 +36,7 @@ public class PluginStringParameter implements PluginParameterImpl {
   
   Control[] controls;
   
-  public PluginStringParameter(Group pluginGroup,StringParameter parameter) {
+  public PluginStringParameter(Composite pluginGroup,StringParameter parameter) {
     controls = new Control[2];
            
     controls[0] = new Label(pluginGroup,SWT.NULL);

@@ -71,7 +71,7 @@ public class Tab {
     this.useCustomTab = MainWindow.getWindow().isUseCustomTab();
     this.view = _view;
     this.folder = _folder;
-    if (_view instanceof MyTorrentsView) {
+    if (_view instanceof MyTorrentsSuperView) {
       if (useCustomTab) {
         tabItem = new CTabItem((CTabFolder) folder, SWT.NULL, 0);
       }
@@ -117,7 +117,7 @@ public class Tab {
 	    });
     }
 
-    if (!(_view instanceof MyTorrentsView || _view instanceof MyTrackerView || _view instanceof MySharesView )) {
+    if (!(_view instanceof MyTorrentsSuperView || _view instanceof MyTrackerView || _view instanceof MySharesView )) {
       composite = new Composite(folder, SWT.NULL);
       GridLayout layout = new GridLayout();
       layout.numColumns = 1;
@@ -314,7 +314,7 @@ public class Tab {
     IView view = null;
     synchronized (tabs) {
       view = (IView) tabs.get(item);
-      if (view != null && view instanceof MyTorrentsView) {
+      if (view != null && view instanceof MyTorrentsSuperView) {
         MainWindow.getWindow().setMytorrents(null);
         item.dispose();
         return;

@@ -96,6 +96,9 @@ PEPeerManager
 
 	public String getElapsedTime();
 	
+	// Time Started in ms
+	public long getTimeStarted();
+	
 	public void
 	addListener(
 		PEPeerManagerListener	l );

@@ -33,7 +33,7 @@ import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 public class 
 RPDownloadScrapeResult
 	extends		RPObject
-	implements 	DownloadScrapeResult
+	implements 	DownloadScrapeResult 
 {
 	protected transient DownloadScrapeResult		delegate;
 
@@ -118,4 +118,11 @@ RPDownloadScrapeResult
 	{
 		return( non_seed_count );
 	}
+	
+	public long getScrapeStartTime() {
+		notSupported();
+
+		return( 0 );
+	}
+	
 }

@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 
@@ -66,6 +67,14 @@ public interface PluginInterface {
   public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
   
   
+  /**
+   * adds a ConfigSection to the config view<p>
+   * In contrast to addConfigUIParameters, this gives you total control over
+   * a tab.  Please be kind and use localizable text.<BR>
+   * @param tab ConfigSection to be added to the Config view
+   */
+	public void addConfigSection(ConfigSection section);
+
   /**
    * Gives access to the tracker functionality
    * @return The tracker

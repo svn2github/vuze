@@ -328,7 +328,7 @@ PEPeerControlImpl
   public void mainLoop() {
     _bContinue = true;
     _manager.setState(DownloadManager.STATE_DOWNLOADING);
-    _timeStarted = System.currentTimeMillis() / 1000;
+    _timeStarted = System.currentTimeMillis();
     while (_bContinue) //loop until stopAll() kills us
       {
       try {
@@ -651,7 +651,7 @@ PEPeerControlImpl
       boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", true);
       
       _manager.setState(DownloadManager.STATE_FINISHING);
-      _timeFinished = System.currentTimeMillis() / 1000;
+      _timeFinished = System.currentTimeMillis();
             
       //remove previous snubbing
       synchronized (_peer_transports) {
@@ -668,7 +668,7 @@ PEPeerControlImpl
       
       boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
       
-      long	run_time = _timeFinished - _timeStarted;	// secs
+      long	run_time = (_timeFinished - _timeStarted)/1000;	// secs
       
       boolean	looks_like_restart = run_time < 10;
       
@@ -1375,7 +1375,7 @@ PEPeerControlImpl
   //Method that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds(boolean forceDisconnect) {
     //If we are not ourself a seed, return
-    if (!forceDisconnect && (!_finished || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true))) //$NON-NLS-1$
+    if (!forceDisconnect && ((!_finished) || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true))) //$NON-NLS-1$
       return;
     synchronized (_peer_transports) {
       for (int i = 0; i < _peer_transports.size(); i++) {
@@ -1686,7 +1686,7 @@ PEPeerControlImpl
     
     long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
     if (dataRemaining == 0) {
-      long timeElapsed = _timeFinished - _timeStarted;
+      long timeElapsed = (_timeFinished - _timeStarted)/1000;
       //if time was spent downloading....return the time as negative
       if(timeElapsed > 1) return timeElapsed * -1;
       else return 0;
@@ -1758,7 +1758,12 @@ PEPeerControlImpl
   }
 
   public String getElapsedTime() {
-    return TimeFormater.format(System.currentTimeMillis() / 1000 - _timeStarted);
+    return TimeFormater.format((System.currentTimeMillis() - _timeStarted) / 1000);
+  }
+  
+  // Returns time started in ms
+  public long getTimeStarted() {
+    return _timeStarted;
   }
   
   

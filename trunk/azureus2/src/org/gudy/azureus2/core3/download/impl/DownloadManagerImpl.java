@@ -40,6 +40,8 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
 
+import org.gudy.azureus2.core3.logging.*;
+
 /**
  * @author Olivier
  * 
@@ -68,11 +70,11 @@ DownloadManagerImpl
 					
 					if ( type == LDT_STATECHANGED ){
 						
-						listener.stateChanged(((Integer)value).intValue());
+						listener.stateChanged(DownloadManagerImpl.this, ((Integer)value).intValue());
 						
 					}else if ( type == LDT_DOWNLOADCOMPLETE ){
 						
-						listener.downloadComplete();
+						listener.downloadComplete(DownloadManagerImpl.this);
 					}
 				}
 			});		
@@ -149,13 +151,21 @@ DownloadManagerImpl
 	private DownloadManagerStatsImpl	stats;
 	
 	private boolean		persistent;
-	private boolean 	startStopLocked;
+	/**
+	 * forceStarted torrents can't/shouldn't be automatically stopped
+	 */
+	private boolean 	forceStarted;
+	/**
+	 * Only seed this torrent. Never download or allocate<P>
+	 * Current Functionality:
+	 */
+	protected boolean onlySeeding;
+	
 	private int 		state;
 	private boolean 	download_ended;
   
 	private int prevState = -1;
 
-	private boolean priorityLocked;
 	private int priority;
 
 	private String errorDetail;
@@ -168,10 +178,11 @@ DownloadManagerImpl
 	private int nbPieces;
 	private String savePath;
   
+	// Position in Queue
+	private int position = -1;
+  
 	//Used when trackerConnection is not yet created.
 	// private String trackerUrl;
-  
-	private boolean forcedRecheck;
   
 	private PEPeerServer server;
 	private TOTorrent			torrent;
@@ -187,12 +198,13 @@ DownloadManagerImpl
 	private PEPeerManager 			peerManager;
 	private PEPeerManagerListener	peer_manager_listener;
    
+	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	public 
 	DownloadManagerImpl(
 		GlobalManager 	_gm, 
 		String 			_torrentFileName, 
 		String 			_savePath,
-		boolean			_start_stopped,
+		int   			_initialState,
 		boolean			_persistent ) 
 	{
 		persistent	= _persistent;
@@ -203,13 +215,9 @@ DownloadManagerImpl
 	
 		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads", 4));
 	 
-		startStopLocked = false;
+		forceStarted = false;
   
-		forcedRecheck = false;
-  
-		setState( STATE_WAITING );
-	
-		priorityLocked = false;
+		setState( _initialState );
     
 		priority = HIGH_PRIORITY;
 	
@@ -219,13 +227,6 @@ DownloadManagerImpl
 	
 		readTorrent();
 	
-		if ( _start_stopped ){
-		
-			if ( state != STATE_ERROR){
-
-				setState( STATE_STOPPED );
-			}
-		}
 	}
 
   public void initialize() 
@@ -426,6 +427,32 @@ DownloadManagerImpl
 	return STATE_ERROR;
   }
   
+	public boolean getOnlySeeding() {
+		return onlySeeding;
+	}
+	
+	public void setOnlySeeding(boolean onlySeeding) {
+		this.onlySeeding = onlySeeding;
+		if (onlySeeding && !filesExist()) {
+  		setState(STATE_ERROR);
+  		errorDetail = MessageText.getString("DownloadManager.error.datamissing"); //$NON-NLS-1$
+		}
+	}
+	
+	public boolean filesExist() {
+		boolean ok;
+		// currently can only seed if whole torrent exists
+		if (diskManager == null) {
+  		DiskManager dm = DiskManagerFactory.createNoStart( torrent, FileUtil.smartFullName(savePath, name));
+  		ok = dm.filesExist();
+  		dm = null;
+  	} else
+  		ok = diskManager.filesExist();
+  	
+  	return ok;
+	}
+	
+	
   public boolean
   isPersistent()
   {
@@ -473,7 +500,11 @@ DownloadManagerImpl
 	return new boolean[nbPieces];
   }
 
-  public void stopIt() 
+  public void stopIt() {
+    stopIt(DownloadManager.STATE_STOPPED);
+  }
+
+  public void stopIt(final int stateAfterStopping)
   {
   	setState( DownloadManager.STATE_STOPPING );
 
@@ -524,13 +555,14 @@ DownloadManagerImpl
 			  
 			  diskManager.stopIt();
 			  	
-			  diskManager.addListener( disk_manager_listener );
+			  diskManager.removeListener( disk_manager_listener );
 			  
 			  diskManager = null;
 			}
 	  	}finally{
 				
-	  		setState( DownloadManager.STATE_STOPPED );
+	  		setState( stateAfterStopping );                
+	  		forceStarted = false;
 	  	}
 	  }
 	};
@@ -673,13 +705,14 @@ DownloadManagerImpl
   }
 
   public TRTrackerScraperResponse getTrackerScrapeResponse() {
-  	// System.out.println("dl::getTSR" + this );
-	if (tracker_client != null  && globalManager != null)
-	  return globalManager.getTrackerScraper().scrape(tracker_client);
-	else
-	  if(torrent != null && globalManager != null)
-		return globalManager.getTrackerScraper().scrape(torrent);
-	return null;
+    TRTrackerScraperResponse r = null;
+    if (globalManager != null) {
+      if (tracker_client != null)
+        r = globalManager.getTrackerScraper().scrape(tracker_client);
+      if (r == null && torrent != null)
+        r = globalManager.getTrackerScraper().scrape(torrent);
+    }
+    return r;
   }
 
   /**
@@ -844,7 +877,7 @@ DownloadManagerImpl
 						
 		if ( download_ended ){
 				
-			listener.downloadComplete();
+			listener.downloadComplete(this);
 		}
 	}
 	
@@ -949,32 +982,20 @@ DownloadManagerImpl
 	{
 		return( stats );
 	}
-  /**
-   * @return Returns the priorityLocked.
-   */
-  public boolean isPriorityLocked() {
-    return priorityLocked;
+
+  public boolean isForceStart() {
+    return forceStarted;
   }
 
-  /**
-   * @param priorityLocked The priorityLocked to set.
-   */
-  public void setPriorityLocked(boolean priorityLocked) {
-    this.priorityLocked = priorityLocked;
-  }
-
-  /**
-   * @return Returns the startStopLocked.
-   */
-  public boolean isStartStopLocked() {
-    return startStopLocked;
-  }
-
-  /**
-   * @param startStopLocked The startStopLocked to set.
-   */
-  public void setStartStopLocked(boolean startStopLocked) {
-    this.startStopLocked = startStopLocked;
+  public void setForceStart(boolean forceStart) {
+    if (forceStarted != forceStart) {
+      forceStarted = forceStart;
+      if (forceStarted && 
+          (getState() == STATE_STOPPED || getState() == STATE_QUEUED)) {
+        // Start it!
+        setState(STATE_WAITING);
+      }
+    }
   }
 
   /**
@@ -986,9 +1007,18 @@ DownloadManagerImpl
   public void 
   downloadEnded()
   {
-  	download_ended = true;
-  	
-	informDownloadEnded();
+    download_ended = true;
+
+    if (getPriority() == HIGH_PRIORITY &&
+        COConfigurationManager.getBooleanParameter("Switch Priority", false))
+      setPriority(LOW_PRIORITY);
+
+    setOnlySeeding(true);
+	
+    if(globalManager != null)
+      globalManager.fixUpDownloadManagerPositions();
+
+    informDownloadEnded();
   }
 
   public void initializeDiskManager() 
@@ -1006,6 +1036,7 @@ DownloadManagerImpl
   					if ( disk_manager_state == DiskManager.FAULTY ){
   						
   						setErrorDetail( diskManager.getErrorMessage());
+  						stopIt(STATE_ERROR);
   					}
   					
   					int	dl_state = getState();
@@ -1019,20 +1050,49 @@ DownloadManagerImpl
   		
   		diskManager.addListener( disk_manager_listener );
   	}
-    
-    if (forcedRecheck){
-    	
-      forcedRecheck = false;
-      while (diskManager.getState() == DiskManager.INITIALIZING) {
-        try { Thread.sleep(50); } catch (Exception ignore) {}
-      }
-      restartDownload(false);
-    }
   }
   
   public void forceRecheck() {
-    forcedRecheck = true;
-    setState( STATE_WAITING );
+  	if ( diskManager != null ) {
+  		LGLogger.log(0, 0, LGLogger.ERROR, "Trying to force recheck while diskmanager active");
+  		return;
+  	}
+  	
+    Thread recheck = new Thread() {
+			public void run() {
+				int prevState = getState();
+				setState(STATE_CHECKING);
+      	// remove resume data
+		  	torrent.removeAdditionalProperty("resume");
+				diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
+				while (diskManager.getState() != DiskManager.FAULTY &&
+				       diskManager.getState() != DiskManager.READY) {
+					try {
+						Thread.sleep(100);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				stats.setCompleted(stats.getCompleted());
+			  if (diskManager.getState() == DiskManager.READY) {
+			    diskManager.dumpResumeDataToDisk(true, false);
+					diskManager.stopIt();
+					diskManager = null;
+					if (prevState == STATE_ERROR)
+						setState(STATE_STOPPED);
+					else
+						setState(prevState);
+			  }
+			  else { // Faulty
+			  	setErrorDetail( diskManager.getErrorMessage());
+					diskManager.stopIt();
+					diskManager = null;
+					setState(STATE_ERROR);
+			  }
+			}
+		};
+		recheck.setPriority(Thread.MIN_PRIORITY);
+		recheck.start();
   }
   
   
@@ -1059,6 +1119,14 @@ DownloadManagerImpl
     }
   }
   
+  public int getPosition() {
+  	return position;
+  }
+
+  public void setPosition(int newPosition) {
+  	position = newPosition;
+  }
+
   public void
   addTrackerListener(
   	DownloadManagerTrackerListener	listener )

@@ -39,6 +39,7 @@ Download
 	public static final int ST_STOPPING			= 6;	// stopping
 	public static final int ST_STOPPED			= 7;	// stopped
 	public static final int ST_ERROR			= 8;	// failed
+	public static final int ST_QUEUED			= 9;	// stopped, but ready for auto-starting
 	
 		/* A download's lifecycle:
 		 * initial state = WAITING
@@ -128,6 +129,11 @@ Download
 	
 	
 	public void
+	stopAndQueue()
+	
+		throws DownloadException;
+
+	public void
 	restart()
 	
 		throws DownloadException;
@@ -141,6 +147,12 @@ Download
 	
 	public boolean
 	isStartStopLocked();
+	
+	public boolean
+	isForceStart();
+	
+	public void
+	setForceStart(boolean forceStart);
 	
 	/**
 	 * Downloads can either be low or high priority (see PR_ constants above)
@@ -163,10 +175,14 @@ Download
 	 * When a download's priority is locked this means that seeding rules should not change
 	 * a downloads priority, it is under manual control
 	 * @return whether it is locked or not
+	 * @obsolete
 	 */
 	
 	public boolean
 	isPriorityLocked();
+	
+	public String 
+	getName();
 	
 	/**
 	 * Removes a download. The download must be stopped or in error. Removal may fail if another 
@@ -180,6 +196,22 @@ Download
 	
 		throws DownloadException, DownloadRemovalVetoException;
 	
+	/**
+	 * Returns the current position in the queue
+	 * Completed and Incompleted downloads have seperate position sets.  This means
+	 * we can have a position x for Completed, and position x for Incompleted.
+	 */
+	public int
+	getPosition();
+	
+	/**
+	 * Sets the position in the queue
+	 * Completed and Incompleted downloads have seperate position sets
+	 */
+	public void
+	setPosition(
+		int newPosition);
+
 	/**
 	 * Tests whether or not a download can be removed. Due to synchronization issues it is possible
 	 * for a download to report OK here but still fail removal.

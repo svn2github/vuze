@@ -35,12 +35,13 @@ UserAlerts
 			{
 				public void
 				stateChanged(
+					DownloadManager manager,
 					int		state )
 				{
 				}
 		
 				public void
-				downloadComplete()
+				downloadComplete(DownloadManager manager)
 				{
 					downloadFinished();
 				}

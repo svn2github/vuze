@@ -84,4 +84,8 @@ DownloadScrapeResultImpl
 	{
 		return( response==null?-1:response.getPeers());
 	}
+
+  public long getScrapeStartTime() {
+		return( response==null?-1:response.getScrapeStartTime());
+  }
 }

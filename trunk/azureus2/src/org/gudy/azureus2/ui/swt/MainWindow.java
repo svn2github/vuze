@@ -134,6 +134,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static boolean isDisposeFromListener = false;
   
   public static Color[] blues = new Color[5];
+  public static Color colorShift;
   public static Color black;
   public static Color blue;
   public static Color grey;
@@ -442,7 +443,15 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$
     file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        openTorrentNoDefaultSave();
+        openTorrentNoDefaultSave(false);
+      }      
+    });
+
+    MenuItem file_new_torrent_for_seeding = new MenuItem(newMenu, SWT.NULL);
+    Messages.setLanguageText(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding"); //$NON-NLS-1$
+    file_new_torrent_for_seeding.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        openTorrentNoDefaultSave(true);
       }      
     });
 
@@ -826,6 +835,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     globalManager.addListener(this);
 
+    boolean isMaximized = COConfigurationManager.getBooleanParameter("window.maximized", mainWindow.getMaximized());
+    mainWindow.setMaximized(isMaximized);
+    
     String windowRectangle = COConfigurationManager.getStringParameter("window.rectangle", null);
     if (null != windowRectangle) {
       int i = 0;
@@ -966,6 +978,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         toBeDisposed.dispose();
       }
     }
+    float[] hsb = new float[3];
+    java.awt.Color.RGBtoHSB(r, g, b, hsb);
+    hsb[0] += 0.10;
+    if (hsb[0] > 1)
+    	hsb[0] -= 1;
+    java.awt.Color awtColorShift = java.awt.Color.getHSBColor(hsb[0], hsb[1], hsb[2]);
+    colorShift = new Color(display, awtColorShift.getRed(), awtColorShift.getGreen(), awtColorShift.getBlue());
+    
   }
 
   public void showMyTracker() {
@@ -997,7 +1017,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public void showMyTorrents() {
     if (mytorrents == null) {
       if (viewMyTorrents == null)
-        mytorrents = new Tab(new MyTorrentsView(globalManager));
+        mytorrents = new Tab(new MyTorrentsSuperView(globalManager));
       else
         mytorrents = new Tab(viewMyTorrents);
     } else
@@ -1734,7 +1754,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   downloadManagerAdded(
   	final DownloadManager created) 
   {
-    if ( created.getState() == DownloadManager.STATE_STOPPED)
+    if ( created.getState() != DownloadManager.STATE_WAITING )
       return;
       
 	if (display != null && !display.isDisposed()){
@@ -1830,6 +1850,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       startServer.stopIt();
     updater.stopIt();
     globalManager.stopAll();
+    
+    COConfigurationManager.setParameter("window.maximized", mainWindow.getMaximized());
+    // unmaximize to get correct window rect
+    if (mainWindow.getMaximized())
+      mainWindow.setMaximized(false);
 
     Rectangle windowRectangle = mainWindow.getBounds();
     COConfigurationManager.setParameter(
@@ -1971,7 +1996,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
               String savePath = getSavePath(fileName);
               if (savePath == null)
                 return;
-              globalManager.addDownloadManager(fileName, savePath, startInStoppedState);
+              globalManager.addDownloadManager(fileName, savePath, 
+                                               startInStoppedState ? DownloadManager.STATE_STOPPED 
+                                                                   : DownloadManager.STATE_QUEUED);
             }
           }
           .start();
@@ -1980,13 +2007,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
   
   public String getSavePath(String fileName) {
-    return getSavePathSupport(fileName,true);
+    return getSavePathSupport(fileName,true,false);
   }
   
   protected String 
   getSavePathSupport(
   	String fileName,
-  	boolean useDefault) 
+  	boolean useDefault,
+  	boolean forSeeding) 
   {
   		// This *musn't* run on the swt thread as the torrent decoder stuff can need to 
   		// show a window...
@@ -2018,7 +2046,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     
 	  final boolean f_singleFile 		= singleFile;
-      
+	  final boolean f_forSeeding = forSeeding;
 	  final String  f_singleFileName 	= singleFileName;
 
 	  final Semaphore	sem = new Semaphore();
@@ -2028,7 +2056,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		   {
 		   	  try{
 			      if (f_singleFile) {
-			        FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL | SWT.SAVE);
+			      	int style = (f_forSeeding) ? SWT.OPEN : SWT.SAVE;
+			        FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL | style);
+			        
 			        fDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
 			        fDialog.setFileName(f_singleFileName);
 			        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + f_singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -2062,11 +2092,24 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public void openTorrents(final String path, final String fileNames[]) {
     openTorrents(path,fileNames,true);
   }
+
+  public void openTorrentsForSeeding(final String path, final String fileNames[]) {
+    openTorrents(path,fileNames,false,true);
+  }
   
   public void openTorrents(
   	final String path, 
   	final String fileNames[],
   	final boolean useDefault )
+  {
+  	openTorrents(path,fileNames,useDefault,false);
+  }
+
+  public void openTorrents(
+  	final String path, 
+  	final String fileNames[],
+  	final boolean useDefault,
+  	final boolean forSeeding )
   {
 	display.asyncExec(new Runnable() {
 		 public void run()
@@ -2082,7 +2125,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		              continue;
 		            }
 		          }
-		          String savePath = getSavePathSupport(path + separator + fileNames[i],useDefault);
+		          String savePath = getSavePathSupport(path + separator + fileNames[i],useDefault,forSeeding);
 		          if (savePath == null)
 		            continue;
 		          globalManager.addDownloadManager(path + separator + fileNames[i], savePath);
@@ -2129,7 +2172,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     new Thread() {
       public void run() {
         for (int i = 0; i < files.length; i++)
-          globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath, startInStoppedState);
+          globalManager.addDownloadManager(files[i].getAbsolutePath(), savePath, 
+                                           startInStoppedState ? DownloadManager.STATE_STOPPED 
+                                                               : DownloadManager.STATE_QUEUED);
       }
     }
     .start();
@@ -2306,7 +2351,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
      return;
     }
     if(itemKey.equals("open_no_default")) {
-      openTorrentNoDefaultSave();
+      openTorrentNoDefaultSave(false);
+      return;
+    }
+    if(itemKey.equals("open_for_seeding")) {
+      openTorrentNoDefaultSave(true);
       return;
     }
     if(itemKey.equals("open_url")) {
@@ -2356,7 +2405,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     openTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
   }
   
-  private void openTorrentNoDefaultSave() {
+  private void openTorrentNoDefaultSave(boolean forSeeding) {
     FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
     fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
     fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
@@ -2364,7 +2413,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     String fileName = fDialog.open();
     if (fileName == null)
       return;
-    openTorrents(fDialog.getFilterPath(), fDialog.getFileNames(),false);
+    openTorrents(fDialog.getFilterPath(), fDialog.getFileNames(),false,forSeeding);
   }
   
   private void openDirectory() {

@@ -43,6 +43,8 @@ import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.sharing.ShareManagerImpl;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.download.DownloadManagerImpl;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.pluginsimpl.ui.config.ConfigSectionRepository;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -83,6 +85,11 @@ public class PluginInterfaceImpl implements PluginInterface {
       window.addPluginView(view);
     }
   } 
+  
+  public void addConfigSection(ConfigSection section)
+  {
+  	ConfigSectionRepository.getInstance().addConfigSection(section);
+  }
 
   /**
    * @deprecated

@@ -22,7 +22,7 @@ package org.gudy.azureus2.ui.swt.config.plugins;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -37,7 +37,7 @@ public class PluginBooleanParameter implements PluginParameterImpl {
   Control[] controls;
   org.gudy.azureus2.ui.swt.config.BooleanParameter booleanParameter;
   
-  public PluginBooleanParameter(Group pluginGroup,BooleanParameter parameter) {
+  public PluginBooleanParameter(Composite pluginGroup,BooleanParameter parameter) {
     controls = new Control[2];
            
     controls[0] = new Label(pluginGroup,SWT.NULL);

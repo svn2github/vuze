@@ -70,6 +70,7 @@ public class ManagerUtils {
       return false;
     int state = dm.getState();
     if (state != DownloadManager.STATE_STOPPED
+        && state != DownloadManager.STATE_QUEUED
         && state != DownloadManager.STATE_ERROR ){
        
       return false;
@@ -111,8 +112,7 @@ public class ManagerUtils {
   
   public static void remove(DownloadManager dm)
   	throws GlobalManagerDownloadRemovalVetoException{
-    if (dm != null
-        && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
+    if (isRemoveable(dm)) {
       GlobalManager globalManager = dm.getGlobalManager();
       globalManager.removeDownloadManager(dm);
     }
@@ -123,9 +123,23 @@ public class ManagerUtils {
       dm.setState(DownloadManager.STATE_WAITING);
     }
   }
+
+  public static void queue(DownloadManager dm,Composite panel) {
+    if (dm != null) {
+    	if (dm.getState() == DownloadManager.STATE_STOPPED)
+      	dm.setState(DownloadManager.STATE_QUEUED);
+      else if (dm.getState() == DownloadManager.STATE_DOWNLOADING || dm.getState() == DownloadManager.STATE_SEEDING) {
+      	stop(dm,panel,DownloadManager.STATE_QUEUED);
+      }
+    }
+  }
   
   public static void stop(DownloadManager dm,Composite panel) {
-    if (dm != null && dm.getState() != DownloadManager.STATE_STOPPED) {
+  	stop(dm, panel, DownloadManager.STATE_STOPPED);
+  }
+  
+  public static void stop(DownloadManager dm,Composite panel,int stateAfterStopped) {
+    if (dm != null && dm.getState() != DownloadManager.STATE_STOPPED && dm.getState() != stateAfterStopped) {
       if (dm.getState() == DownloadManager.STATE_SEEDING
           && dm.getStats().getShareRatio() >= 0
           && dm.getStats().getShareRatio() < 1000
@@ -139,10 +153,10 @@ public class ManagerUtils {
             + MessageText.getString("seedmore.uploadmore"));
         int action = mb.open();
         if (action == SWT.YES)
-          dm.stopIt();
+          dm.stopIt(stateAfterStopped);
       }
       else {
-        dm.stopIt();
+        dm.stopIt(stateAfterStopped);
       }
     }
   }

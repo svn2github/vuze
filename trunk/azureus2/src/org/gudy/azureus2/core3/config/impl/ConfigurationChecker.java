@@ -85,6 +85,16 @@ public class ConfigurationChecker {
       return;
     checked = true;
     
+    int nbMinSeeds = COConfigurationManager.getIntParameter("Ignore Seed Count", -1);
+    if (nbMinSeeds == -1) {
+    COConfigurationManager.setParameter("Ignore Seed Count", 0);
+      // not set yet.. import from "Start Num Peers"
+    int nbOldMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", -1);
+    if (nbOldMinSeeds != -1)
+      COConfigurationManager.setParameter("Ignore Seed Count", nbOldMinSeeds);
+    changed = true;
+    }
+
     int maxUpSpeed = COConfigurationManager.getIntParameter("Max Upload Speed",0);
     if(maxUpSpeed > 0 && maxUpSpeed < 1024 * 5) {
       changed = true;
@@ -92,8 +102,8 @@ public class ConfigurationChecker {
     }
     
     int peersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio",0);
-    if(peersRatio > 4) {
-      COConfigurationManager.setParameter("Stop Peers Ratio", 4);
+    if(peersRatio > 14) {
+      COConfigurationManager.setParameter("Stop Peers Ratio", 14);
       changed = true;
     }
     
