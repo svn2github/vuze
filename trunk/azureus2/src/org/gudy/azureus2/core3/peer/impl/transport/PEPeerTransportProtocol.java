@@ -1935,8 +1935,14 @@ StateTransfering
 	}
   
   public void doKeepAliveCheck() {
-    if( last_message_sent_time == 0 )  last_message_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
-    if( SystemTime.getCurrentTime() - last_message_sent_time > 2*60*1000 ) {  //2min keep-alive timer
+    long wait_time = SystemTime.getCurrentTime() - last_message_sent_time;
+    
+    if( last_message_sent_time == 0 || wait_time < 0 ) {
+      last_message_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
+      return;
+    }
+    
+    if( wait_time > 2*60*1000 ) {  //2min keep-alive timer
       sendKeepAlive();
       last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
     }

@@ -33,7 +33,7 @@ BUGFIX: Core | Tidied up UPnP error handing if action missing [Parg]
 BUGFIX: UI   | Fixed up opening of torrent files not ending in ".tor" or ".torrent" [Parg]
 BUGFIX: Core | Scrape mult-tracker torrents correctly when download not running [Parg]
 BUGFIX: Core | Upload/download/share ratio frig for newly added seeds made consistent [Parg]
-
+BUGFIX: Core | Fix for stalls from system clock being set backwards in time [Nolar]
 
 
 

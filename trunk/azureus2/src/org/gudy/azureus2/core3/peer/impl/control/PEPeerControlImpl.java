@@ -300,7 +300,7 @@ PEPeerControlImpl
         
         //TODO : BOTTLENECK for download speed HERE (100 : max 500kB/s from BitTornado, 50 : 1MB/s, 25 : 2MB/s, 10 : 3MB/s
         
-        if( loop_time < PEER_UPDATER_WAIT_TIME ) {
+        if( loop_time < PEER_UPDATER_WAIT_TIME && loop_time >= 0 ) {
           try {  Thread.sleep( PEER_UPDATER_WAIT_TIME - loop_time );  } catch(Exception e) {}
         }
 
@@ -853,8 +853,14 @@ PEPeerControlImpl
 
             //Only cancel first request if more than 2 mins have passed
             DiskManagerReadRequest request = (DiskManagerReadRequest) expired.get(0);
-            long timeCreated = request.getTimeCreated();
-            if (SystemTime.getCurrentTime() - timeCreated > 1000 * 120) {
+            
+            long wait_time = SystemTime.getCurrentTime() - request.getTimeCreated();
+            
+            if( wait_time < 0 ) {  //time went backwards
+              request.reSetTime();
+            }
+
+            if( wait_time > 1000*120 ) {
               int pieceNumber = request.getPieceNumber();
               //get the piece number
               int pieceOffset = request.getOffset();
@@ -1024,8 +1030,6 @@ PEPeerControlImpl
 
     //Last completed level (this is for undo purposes)   
     int lastCompleted = -1;
-
-    long currentTime = SystemTime.getCurrentTime();
     
     //For every piece
     for (int i = 0; i < _nbPieces; i++) {
@@ -1044,7 +1048,7 @@ PEPeerControlImpl
           //ie more blocks have already been WRITTEN on disk (not requested)
           // and the piece corresponds to our class of peer
           // or nothing has happened to the piece in the last 120 secs
-          if (_pieces[i].getCompleted() > lastCompleted && (slowPeer == _pieces[i].isSlowPiece() || (_pieces[i].isSlowPiece() && (currentTime - _pieces[i].getLastWriteTime() > 120 * 1000))) ) {
+          if (_pieces[i].getCompleted() > lastCompleted && (slowPeer == _pieces[i].isSlowPiece() || (_pieces[i].isSlowPiece() && (SystemTime.getCurrentTime() - _pieces[i].getLastWriteTime() > 120 * 1000))) ) {
             //If we had marked a block previously, we must unmark it
             if (pieceNumber != -1) {
               //So pieceNumber contains the last piece
