@@ -66,11 +66,18 @@ CacheFileManagerImpl
 	{
 		file_manager	= FMFileManagerFactory.getSingleton();
 		
-		System.out.println( "**** Disk Cache forced on for testing purposes****" );
-		
-		COConfigurationManager.setParameter( "diskmanager.perf.cache.enable", true );
-		
 		boolean	enabled	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable" );
+		
+		System.out.println( "**** Disk Cache forced on for testing purposes ****" );
+		
+		if ( !enabled ){
+			
+			COConfigurationManager.setParameter( "diskmanager.perf.cache.enable", true );
+		
+			COConfigurationManager.save();
+			
+			enabled	= true;
+		}
 		
 		int		size	= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
 		

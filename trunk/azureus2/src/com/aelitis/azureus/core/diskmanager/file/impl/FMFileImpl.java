@@ -391,19 +391,22 @@ FMFileImpl
 								
 								if (  bb.position() != bb.limit()){
 								
-									System.out.println( "FMFile::write: **** partial write ****");
+									Debug.out( "FMFile::write: **** partial write ****");
 								}
 							}
 						}else{
 						
 							loop++;
 							
-							System.out.println( "FMFile::write: zero length write - retrying" );
-							
+									
 							if ( loop == WRITE_RETRY_LIMIT ){
 								
+								Debug.out( "FMFile::write: zero length write - abandoning" );
+								
 								throw( new FMFileManagerException( "FMFile::write: retry limit exceeded"));
+								
 							}else{
+								Debug.out( "FMFile::write: zero length write - retrying" );
 								
 								try{
 									Thread.sleep( WRITE_RETRY_DELAY*loop );
@@ -450,7 +453,7 @@ FMFileImpl
 									
 									if ( last_bb.position() != last_bb.limit()){
 									
-										System.out.println( "FMFile::write: **** partial write ****");
+										Debug.out( "FMFile::write: **** partial write ****");
 									}
 								}
 								
@@ -458,13 +461,16 @@ FMFileImpl
 							
 								loop++;
 								
-								System.out.println( "FMFile::write: zero length write - retrying" );
-								
 								if ( loop == WRITE_RETRY_LIMIT ){
 									
+									Debug.out( "FMFile::write: zero length write - abandoning" );
+								
 									throw( new FMFileManagerException( "FMFile::write: retry limit exceeded"));
+									
 								}else{
 									
+									System.out.println( "FMFile::write: zero length write - retrying" );
+								
 									try{
 										Thread.sleep( WRITE_RETRY_DELAY*loop );
 										

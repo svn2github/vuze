@@ -32,6 +32,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.diskmanager.file.*;
@@ -124,7 +125,7 @@ CacheFileImpl
 			int	read_length	= file_buffer_limit - file_buffer_position;
 		
 			if ( TRACE ){
-				System.out.println( 
+				LGLogger.log( 
 						"readCache: " + getName() + ", " + file_position + " - " + (file_position + read_length - 1 ) + 
 						":" + file_buffer_position + "/" + file_buffer_limit );
 			}
@@ -191,7 +192,7 @@ CacheFileImpl
 							entry_buffer.limit( entry_buffer_position + skip + available );
 						
 							if ( TRACE ){
-								System.out.println( 
+								LGLogger.log( 
 										"cacheRead: using " + entry.getString() + 
 										"[" + entry_buffer.position()+"/"+entry_buffer.limit()+ "]" +
 										"to write to [" + file_buffer.position() + "/" + file_buffer.limit() + "]" );
@@ -221,14 +222,14 @@ CacheFileImpl
 					
 					if ( TRACE ){
 						
-						System.out.println( "cacheRead: cache use ok [entries = " + used_entries + "]" );
+						LGLogger.log( "cacheRead: cache use ok [entries = " + used_entries + "]" );
 					}
 									
 				}else{
 					
 					if ( TRACE ){
 						
-						System.out.println( "cacheRead: cache use fails, reverting to plain read" );
+						LGLogger.log( "cacheRead: cache use fails, reverting to plain read" );
 					}
 							
 					file_buffer.position( file_buffer_position );
@@ -240,7 +241,7 @@ CacheFileImpl
 							
 							if ( TRACE ){
 								
-								System.out.println( "\tread ahead hit" );
+								LGLogger.log( "\tread ahead hit" );
 							}
 							
 							flushCache( file_position, read_ahead_size, true, -1 );
@@ -272,7 +273,7 @@ CacheFileImpl
 							
 							if ( TRACE ){
 								
-								System.out.println( "\tread ahead miss" );
+								LGLogger.log( "\tread ahead miss" );
 							}
 							
 							flushCache( file_position, read_length, true, -1 );
@@ -327,7 +328,7 @@ CacheFileImpl
 					
 					if ( TRACE ){
 						
-						System.out.println( 
+						LGLogger.log( 
 								"writeCache: " + getName() + ", " + file_position + " - " + (file_position + write_length - 1 ) + 
 								":" + file_buffer_position + "/" + file_buffer_limit );
 					}
@@ -523,7 +524,7 @@ CacheFileImpl
 		try{
 			if ( TRACE ){
 				
-				System.out.println( "multiBlockFlush: writing " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "," + release_entries + "]" );			
+				LGLogger.log( "multiBlockFlush: writing " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "," + release_entries + "]" );			
 			}
 			
 			DirectByteBuffer[]	buffers = new DirectByteBuffer[ multi_block_entries.size()];
@@ -599,7 +600,7 @@ CacheFileImpl
 				
 				if ( TRACE ){
 					
-					System.out.println( "flushCache: " + getName() + ", rel = " + release_entries + ", min = " + minumum_to_release );
+					LGLogger.log( "flushCache: " + getName() + ", rel = " + release_entries + ", min = " + minumum_to_release );
 				}
 				
 				flushCache( 0, -1, release_entries, minumum_to_release);
@@ -613,7 +614,7 @@ CacheFileImpl
 	{
 		synchronized( CacheFileImpl.class ){
 			
-			System.out.println( "cache for " + getName());
+			LGLogger.log( "cache for " + getName());
 			
 			Iterator	it = cache.iterator();
 			
@@ -621,7 +622,7 @@ CacheFileImpl
 				
 				CacheEntry entry = (CacheEntry)it.next();
 				
-				System.out.println( "  " + entry.getString());
+				LGLogger.log( "  " + entry.getString());
 			}
 		}
 	}
