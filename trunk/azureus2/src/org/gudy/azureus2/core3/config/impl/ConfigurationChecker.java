@@ -69,7 +69,7 @@ public class ConfigurationChecker {
     }
     
     String uniqueId = COConfigurationManager.getStringParameter("ID",null);
-    if(uniqueId == null) {
+    if(uniqueId == null || uniqueId.length() != 20) {
       uniqueId = "";
       long currentTime = System.currentTimeMillis();
       for(int i = 0 ; i < currentTime % 1000 ; i++)
