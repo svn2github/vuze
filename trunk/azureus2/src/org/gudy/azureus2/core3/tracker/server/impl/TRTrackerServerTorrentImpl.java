@@ -41,6 +41,7 @@ TRTrackerServerTorrentImpl
 
 	protected Map				peer_map 		= new HashMap();
 	protected Map				peer_reuse_map	= new HashMap();
+	protected List				peer_list		= new ArrayList();
 	
 	protected Random			random		= new Random( System.currentTimeMillis());
 	
@@ -90,16 +91,7 @@ TRTrackerServerTorrentImpl
 			
 			if ( old_peer != null ){
 				
-				peer_reuse_map.remove( reuse_key );
-				
-				// System.out.println( "removing dead client '" + old_peer.getString());
-				
-				try{
-					peer_map.remove( new String( old_peer.getPeerId(), Constants.BYTE_ENCODING ));
-					
-				}catch( UnsupportedEncodingException e ){
-					
-				}
+				removePeer( old_peer );
 			}
 			
 			if ( !stopped ){			
@@ -112,6 +104,8 @@ TRTrackerServerTorrentImpl
 					
 					peer_map.put( peer_id, peer );
 					
+					peer_list.add( peer );
+					
 					peer_reuse_map.put( reuse_key, peer );
 					
 				}catch( UnsupportedEncodingException e){
@@ -123,9 +117,7 @@ TRTrackerServerTorrentImpl
 			
 			if ( stopped ){
 				
-				peer_map.remove( peer_id );
-				
-				peer_reuse_map.remove( reuse_key );
+				removePeer( peer );
 			}
 		}
 		
@@ -144,18 +136,84 @@ TRTrackerServerTorrentImpl
 		}
 	}
 	
+	protected void
+	removePeer(
+		TRTrackerServerPeerImpl	peer )
+	{
+		if ( peer_map.size() != peer_list.size() || peer_list.size() != peer_reuse_map.size()){
+	
+			Debug.out( "TRTrackerServerTorrent::removePeer: maps/list size different");	
+		}
+		
+		try{
+			Object o = peer_map.remove( new String( peer.getPeerId(), Constants.BYTE_ENCODING ));
+			
+			if ( o == null ){
+				
+				Debug.out(" TRTrackerServerTorrent::removePeer: peer_map doesn't contain peer");
+			}
+		}catch( UnsupportedEncodingException e ){
+		}										
+		
+		if ( !peer_list.remove( peer )){
+			
+			Debug.out(" TRTrackerServerTorrent::removePeer: peer_list doesn't contain peer");
+		}
+		
+		try{
+			Object o = peer_reuse_map.remove( new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
+		
+			if ( o == null ){
+				
+				Debug.out(" TRTrackerServerTorrent::removePeer: peer_reuse_map doesn't contain peer");
+			}
+			
+		}catch( UnsupportedEncodingException e ){
+		}										
+	}
+	
+	protected void
+	removePeer(
+		Iterator				peer_map_iterator,
+		TRTrackerServerPeerImpl	peer )
+	{
+		if ( peer_map.size() != peer_list.size() || peer_list.size() == peer_reuse_map.size()){
+			
+			Debug.out( "TRTrackerServerTorrent::removePeer: maps/list size different");	
+		}
+		
+		peer_map_iterator.remove();
+		
+		if ( !peer_list.remove( peer )){
+			
+			Debug.out(" TRTrackerServerTorrent::removePeer: peer_list doesn't contain peer");
+		}
+		
+		try{
+			Object o = peer_reuse_map.remove( new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
+			
+			if ( o == null ){
+				
+				Debug.out(" TRTrackerServerTorrent::removePeer: peer_reuse_map doesn't contain peer");
+			}
+			
+		}catch( UnsupportedEncodingException e ){
+		}										
+	}
+	
 	public synchronized void
 	exportPeersToMap(
 		Map		map,
 		int		num_want )
 	{
 		int		max_peers	= TRTrackerServerImpl.getMaxPeersToSend();
+		int		total_peers	= peer_map.size();
 		
 			// num_want < 0 -> not supplied to give them max
 		
 		if ( num_want < 0 ){
 			
-			num_want = peer_map.size();
+			num_want = total_peers;
 		}
 		
 			// trim back to max_peers if specified
@@ -181,7 +239,7 @@ TRTrackerServerTorrentImpl
 			
 			return;
 			
-		}else if ( num_want >= peer_map.size()){
+		}else if ( num_want >= total_peers){
 	
 				// if they want them all simply give them the set
 			
@@ -193,10 +251,10 @@ TRTrackerServerTorrentImpl
 								
 				if ( now > peer.getTimeout()){
 								
-					// System.out.println( "removing timed out client '" + peer.getString());
-									
-					it.remove();
-														
+						// System.out.println( "removing timed out client '" + peer.getString());
+					
+					removePeer( it, peer );									
+					
 				}else{
 									
 					Map rep_peer = new HashMap();
@@ -213,39 +271,76 @@ TRTrackerServerTorrentImpl
 				}
 			}
 		}else{
-				// randomly select the peers to return
-			
-			LinkedList	peers = new LinkedList( peer_map.keySet());
-			
-			int	added = 0;
-			
-			while( added < num_want && peers.size() > 0 ){
+			if ( num_want < total_peers*3 ){
 				
-				String	key = (String)peers.remove(random.nextInt(peers.size()));
-								
-				TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get(key);
+					// too costly to randomise as below. use more efficient but slightly less accurate
+					// approach
 				
-				if ( now > peer.getTimeout()){
+				int	limit 	= (num_want*3)/2;
+				int	added	= 0;
+				
+				for (int i=0;i<limit && added < num_want;i++){
 					
-					// System.out.println( "removing timed out client '" + peer.getString());
+					int	index = random.nextInt(peer_list.size());
 					
-					peer_map.remove( key );
-										
-				}else{
-					
-					added++;
-					
-					Map rep_peer = new HashMap();
-					
-					rep_peers.add( rep_peer );
-					
-					if ( send_peer_ids ){
+					TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
+	
+					if ( now > peer.getTimeout()){
 						
-						rep_peer.put( "peer id", peer.getPeerId() );
+						removePeer( peer );
+						
+					}else{
+				
+						added++;
+						
+						Map rep_peer = new HashMap();
+						
+						rep_peers.add( rep_peer );
+						
+						if ( send_peer_ids ){
+							
+							rep_peer.put( "peer id", peer.getPeerId() );
+						}
+						
+						rep_peer.put( "ip", peer.getIPAsRead() );
+						rep_peer.put( "port", new Long( peer.getPort()));					
 					}
+				}
+				
+			}else{
+				
+					// randomly select the peers to return
+				
+				LinkedList	peers = new LinkedList( peer_map.keySet());
+				
+				int	added = 0;
+				
+				while( added < num_want && peers.size() > 0 ){
 					
-					rep_peer.put( "ip", peer.getIPAsRead() );
-					rep_peer.put( "port", new Long( peer.getPort()));
+					String	key = (String)peers.remove(random.nextInt(peers.size()));
+									
+					TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_map.get(key);
+					
+					if ( now > peer.getTimeout()){
+						
+						removePeer( peer );
+						
+					}else{
+						
+						added++;
+						
+						Map rep_peer = new HashMap();
+						
+						rep_peers.add( rep_peer );
+						
+						if ( send_peer_ids ){
+							
+							rep_peer.put( "peer id", peer.getPeerId() );
+						}
+						
+						rep_peer.put( "ip", peer.getIPAsRead() );
+						rep_peer.put( "port", new Long( peer.getPort()));
+					}
 				}
 			}
 		}
@@ -264,9 +359,7 @@ TRTrackerServerTorrentImpl
 			
 			if ( now > peer.getTimeout()){
 				
-				// System.out.println( "removing timed out client '" + peer.getString());
-				
-				it.remove();
+				removePeer( it, peer );
 			}
 		}
 	}
