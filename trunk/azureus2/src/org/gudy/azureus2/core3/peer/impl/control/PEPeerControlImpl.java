@@ -1284,12 +1284,12 @@ PEPeerControlImpl
   */
   private void doUnchokes() {  
     int max_to_unchoke = _downloadManager.getStats().getMaxUploads();  //how many simultaneous uploads we should consider
-    int max_optimistic = ((max_to_unchoke - 1) / 10) + 1;  //one optimistic unchoke for every 10 upload slots
+    int optimistics_per = seeding_mode ? 5 : 10;
+    int max_optimistic = ((max_to_unchoke - 1) / optimistics_per) + 1;  //one optimistic unchoke for every few upload slots
     
     //ensure current unchokes are still valid
     for( Iterator i = unchoked_peers.iterator(); i.hasNext(); ) {
       PEPeerTransport peer = (PEPeerTransport)i.next();
-
       if( !peer.isInterestedInMe() || peer.isSnubbed() || peer.getPeerState() != PEPeer.TRANSFERING ) {  //should be immediately choked
         optimistic_unchokes.remove( peer );
         i.remove();
@@ -1300,21 +1300,25 @@ PEPeerControlImpl
     //if there are less currently-unchoked peers than max upload slots allowed
     while( unchoked_peers.size() < max_to_unchoke ) {
       PEPeerTransport peer = chooseNextOptimisticPeer();  //fill slots optimistically
-      
       if( peer == null )  break;  //no more avail for unchoke
-      
-      if( peer.isChokedByMe() ) {
-        if( optimistic_unchokes.size() < max_optimistic ) {  //add as optimistic if possible
-          optimistic_unchokes.put( peer, new Integer(0) );
-        }
-        unchoked_peers.add( peer );
-        peer.sendUnChoke();
+      if( optimistic_unchokes.size() < max_optimistic ) {  //add as optimistic if possible
+        optimistic_unchokes.put( peer, new Integer(0) );
       }
+      unchoked_peers.add( peer );
+      peer.sendUnChoke();
     }
+    
+    //if there are too many currently-unchoked peers, choke the extra
+    while( unchoked_peers.size() > max_to_unchoke ) {
+      PEPeerTransport peer = (PEPeerTransport)unchoked_peers.remove( unchoked_peers.size() - 1 );
+      optimistic_unchokes.remove( peer );
+      peer.sendChoke();
+    }
+
     
     //do main choke/unchoke update every 10 secs
     if( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ) {
-
+      
       //increment optimistic unchoke round values
       for( Iterator i = optimistic_unchokes.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry)i.next();
@@ -1322,16 +1326,41 @@ PEPeerControlImpl
         entry.setValue( new Integer( rounds + 1 ) );
       }
       
+      //ensure we always have enough opt unchokes going
+      for( int i=0; i < unchoked_peers.size(); i++ ) {
+        if( optimistic_unchokes.size() >= max_optimistic )  break;
+        PEPeerTransport peer = (PEPeerTransport)unchoked_peers.get( i );
+        if( !peer.isOptimisticUnchoke() ) {
+          optimistic_unchokes.put( peer, new Integer(0) );
+        }
+      }
+      
       List peers_to_choke = new ArrayList();
       List peers_to_unchoke = new ArrayList();
-      
+
       if( seeding_mode ) {
         calculateSeedingModeUnchokes( peers_to_choke, peers_to_unchoke );        
       }
       else {
         calculateDownloadingModeUnchokes( peers_to_choke, peers_to_unchoke );
       }
+
+      //count how many unchokable peers there are available
+      int total_avail = 0;
+      ArrayList peer_transports = peer_transports_cow;   
+      for( int i=0; i < peer_transports.size(); i++ ) {
+        PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+        if( !peer.isSeed() && peer.isInterestedInMe() && peer.isChokedByMe() && !peer.isSnubbed() && peer.getPeerState() == PEPeer.TRANSFERING ) {
+          total_avail++;
+        }
+      }
       
+      //ensure we dont choke (too many) peers that we'll end up immediately unchoking again
+      while( peers_to_choke.size() - peers_to_unchoke.size() > total_avail ) {  
+        PEPeerTransport peer = (PEPeerTransport)peers_to_choke.remove( peers_to_choke.size() - 1 );
+        peers_to_unchoke.remove( peer );  //in case it was an upgrade
+      }
+
       //do chokes first
       for( int i=0; i < peers_to_choke.size(); i++ ) {
         PEPeerTransport peer = (PEPeerTransport)peers_to_choke.get( i );
@@ -1345,7 +1374,7 @@ PEPeerControlImpl
           }
         }
       }
-      
+
       //do unchokes second
       for( int i=0; i < peers_to_unchoke.size(); i++ ) {
         PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
@@ -1357,14 +1386,9 @@ PEPeerControlImpl
           peer.sendUnChoke();
         }
       }
-      
     }
-    
-    
+
   }
- 
-  
-  
 
   
   
@@ -1401,64 +1425,80 @@ PEPeerControlImpl
     //Assumptions: that both unchoked and optimistically unchoked lists are as full as they can possibly be at the moment
     //and that the optimistically unchoked list is a time-limited subset of the full unchoked list.
 
+    int optimistic_refreshes = 0;
     //check if we need to refresh any optimistic unchokes
-    for( Iterator it = optimistic_unchokes.entrySet().iterator(); it.hasNext(); ) {
-      Map.Entry entry = (Map.Entry)it.next();
+    for( Iterator i = optimistic_unchokes.entrySet().iterator(); i.hasNext(); ) {
+      Map.Entry entry = (Map.Entry)i.next();
       int rounds = ((Integer)entry.getValue()).intValue();
 
-      if( rounds > 3 ) {  //been opt unchoked for a full 3 x 10sec rounds
-        PEPeerTransport optimistic_peer = (PEPeerTransport)entry.getKey();
-
-        //we need to make room for a new opt unchoke by finding the "worst" peer
-        List peers_ordered_by_rate = new ArrayList();
-        List peers_ordered_by_uploaded = new ArrayList();
-        
-        long[] rates = new long[ unchoked_peers.size() ];  //0-initialized
-        long[] uploaded = new long[ unchoked_peers.size() ];  //0-initialized
-          
-        //calculate factor rankings
-        for( int i=0; i < unchoked_peers.size(); i++ ) {
-          PEPeerTransport peer = (PEPeerTransport)unchoked_peers.get( i );
-            
-          boolean choked = peers_to_choke.contains( peer );
-          boolean unchoked = peers_to_unchoke.contains( peer );
-          
-          if( !choked || (choked && unchoked) ) {  //filter out peers already choked this round
-            //calculate order by our upload rate to them
-            updateLargestValueFirstSort( peer.getStats().getDataSendRate(), rates, peer, peers_ordered_by_rate, 0 );
-            
-            //calculate reverse order by the total number of bytes we've uploaded to them
-            updateLargestValueFirstSort( peer.getStats().getTotalDataBytesSent() * -1, uploaded, peer, peers_ordered_by_uploaded, 0 );
-          }
-        }
-        
-        List peers_ordered_by_worst = new ArrayList();
-        long[] ranks = new long[ peers_ordered_by_rate.size() ];  //0-initialized
-        
-        //combine factor rankings to get worst
-        for( int i=0; i < unchoked_peers.size(); i++ ) {
-          PEPeerTransport peer = (PEPeerTransport)unchoked_peers.get( i );
-          
-          //"better" peers have lower indexes, and thus will have a smaller rank factor
-          long rank_factor = peers_ordered_by_rate.indexOf( peer ) + peers_ordered_by_uploaded.indexOf( peer );
-          
-          updateLargestValueFirstSort( rank_factor, ranks, peer, peers_ordered_by_worst, 0 );
-        }
-        
-        PEPeerTransport worst_peer = (PEPeerTransport)peers_ordered_by_worst.get( 0 );  //get worst
-
-        if( worst_peer == optimistic_peer ) {  //didnt make the cut
-          peers_to_choke.add( optimistic_peer );  //just go ahead and choke
-        }
-        else {  //optimistic peer is worth keeping unchoked
-          peers_to_choke.add( optimistic_peer );
-          peers_to_unchoke.add( optimistic_peer );  //convert optimistic unchoke --> normal unchoke
-          
-          peers_to_choke.add( worst_peer );  //choke the worst
-        }
+      if( rounds > 2 ) {  //been opt unchoked for a full 3 x 10sec rounds
+        optimistic_refreshes++;
       }
     }
     
+    if( optimistic_refreshes > 0 ) {
+      //we need to make room for new opt unchokes by finding the "worst" peers
+      List peers_ordered_by_rate = new ArrayList();
+      List peers_ordered_by_uploaded = new ArrayList();
+      
+      long[] rates = new long[ unchoked_peers.size() ];  //0-initialized
+      long[] uploaded = new long[ unchoked_peers.size() ];  //0-initialized
+        
+      //calculate factor rankings
+      for( int i=0; i < unchoked_peers.size(); i++ ) {
+        PEPeerTransport peer = (PEPeerTransport)unchoked_peers.get( i );
+
+        long rate = peer.getStats().getDataSendRate();
+        if( rate > 256 ) {  //filter out really slow peers
+          //calculate reverse order by our upload rate to them
+          updateLargestValueFirstSort( rate, rates, peer, peers_ordered_by_rate, 0 );
+          
+          //calculate order by the total number of bytes we've uploaded to them
+          updateLargestValueFirstSort( peer.getStats().getTotalDataBytesSent(), uploaded, peer, peers_ordered_by_uploaded, 0 );
+        }
+      }
+
+      Collections.reverse( peers_ordered_by_rate );  //we want higher rates at the end
+
+      List peers_ordered_by_rank = new ArrayList();
+      long[] ranks = new long[ peers_ordered_by_rate.size() ];  //0-initialized
+      
+      //combine factor rankings to get best
+      for( int i=0; i < unchoked_peers.size(); i++ ) {
+        PEPeerTransport peer = (PEPeerTransport)unchoked_peers.get( i );
+        
+        //"better" peers have high indexes (toward the end of each list)
+        long rate_factor = peers_ordered_by_rate.indexOf( peer );
+        long uploaded_factor = peers_ordered_by_uploaded.indexOf( peer );
+        
+        if( rate_factor == -1 )  continue;  //wasn't downloading fast enough, skip add so it will be choked automatically
+        
+        long rank_factor = rate_factor /* *2 */ + uploaded_factor;  //TODO: make speed the more important factor?
+        
+        updateLargestValueFirstSort( rank_factor, ranks, peer, peers_ordered_by_rank, 0 );
+      }
+      
+      //make space for new optimistic unchokes
+      while( peers_ordered_by_rank.size() > unchoked_peers.size() - optimistic_refreshes ) {
+        peers_ordered_by_rank.remove( peers_ordered_by_rank.size() - 1 );
+      }
+      
+      //update returned choke/unchoke lists
+      for( int i=0; i < unchoked_peers.size(); i++ ) {
+        PEPeerTransport peer = (PEPeerTransport)unchoked_peers.get( i );
+        
+        if( peers_ordered_by_rank.contains( peer ) ) {  //should remain unchoked          
+          if( peer.isOptimisticUnchoke() ) {
+            peers_to_choke.add( peer );  //convert optimistic unchoke --> normal unchoke
+            peers_to_unchoke.add( peer );
+          }
+        }
+        else {  //should be choked
+          peers_to_choke.add( peer );
+        }
+      }
+    }
+
     //for every expired optimistic unchoke, we've now choked a peer, to free up slots for replacement optimistic unchokes
   }
   
@@ -1475,7 +1515,7 @@ PEPeerControlImpl
       Map.Entry entry = (Map.Entry)i.next();
       int rounds = ((Integer)entry.getValue()).intValue();
 
-      if( rounds > 3 ) {  //been opt unchoked for a full 3 x 10sec rounds
+      if( rounds > 2 ) {  //been opt unchoked for a full 3 x 10sec rounds
         optimistic_refreshes++;
       }
     }
@@ -1490,7 +1530,9 @@ PEPeerControlImpl
 
       if( peer.isInterestingToMe() && peer.isInterestedInMe() && !peer.isSeed() && !peer.isSnubbed() && peer.getPeerState() == PEPeer.TRANSFERING ) {  //viable peer found
         long rate = peer.getStats().getSmoothDataReceiveRate();
-        updateLargestValueFirstSort( rate, rates, peer, peers_ordered_by_rate, 0 );
+        if( rate > 256 ) {  //filter out really slow peers
+          updateLargestValueFirstSort( rate, rates, peer, peers_ordered_by_rate, 0 );
+        }
       }
     }
 
@@ -2941,7 +2983,7 @@ PEPeerControlImpl
 
       if( _downloadManager.getHealthStatus() == DownloadManager.WEALTH_OK ) {  //if unfirewalled, leave slots avail for remote connections
         if( allowed != -1 ) {
-          int free = PeerUtils.MAX_CONNECTIONS_PER_TORRENT / 10;  //leave 10%
+          int free = PeerUtils.MAX_CONNECTIONS_PER_TORRENT / 20;  //leave 5%
           allowed = allowed - free;
           if( allowed < 0 )  allowed = 0;
         }
