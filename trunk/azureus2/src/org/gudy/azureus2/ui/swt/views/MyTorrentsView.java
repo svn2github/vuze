@@ -1843,8 +1843,7 @@ public class MyTorrentsView extends AbstractIView
 	      (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
 	    return;
 	  Category cat = dm.getCategory();
-	  if (cat == null)
-      downloadManagerRemoved(null, dm);
+    downloadManagerRemoved(null, dm);
 	}
 		
 	public void	destroyInitiated() {
