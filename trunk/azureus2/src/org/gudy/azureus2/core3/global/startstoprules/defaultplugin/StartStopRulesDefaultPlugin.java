@@ -555,9 +555,9 @@ StartStopRulesDefaultPlugin
           boolean aIsComplete = aDL.getStats().getDownloadCompleted(false) == 1000;
           boolean bIsComplete = bDL.getStats().getDownloadCompleted(false) == 1000;
           if (aIsComplete && !bIsComplete)
-            return -1;
-          if (!aIsComplete && bIsComplete)
             return 1;
+          if (!aIsComplete && bIsComplete)
+            return -1;
           return aDL.getPosition() - bDL.getPosition();
         }
       } );
