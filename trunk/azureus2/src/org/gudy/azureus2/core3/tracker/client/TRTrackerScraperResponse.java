@@ -41,4 +41,14 @@ TRTrackerScraperResponse
   
   public boolean
   isValid();
+
+    public long
+    getScrapeStartTime();
+ 
+    public long
+    getNextScrapeStartTime();
+
+    public void
+	 setNextScrapeStartTime(long nextScrapeStartTime);
+    
 }

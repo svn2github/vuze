@@ -161,8 +161,8 @@ public class GlobalManagerImpl
 	        loopFactor++;
 	        determineSaveResumeDataInterval();
 	
-	        //update tracker scrape every 15min - temporary, until scrape code gets reworked
-	        if (loopFactor >= 900) {
+	        //update tracker scrape every 10min - temporary, until scrape code gets reworked
+	        if (loopFactor >= 10*60) {
 	          loopFactor = 0;
 	          trackerScraper.update();
 	        }

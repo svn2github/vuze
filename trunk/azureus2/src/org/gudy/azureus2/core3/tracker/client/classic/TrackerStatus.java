@@ -75,11 +75,17 @@ public class TrackerStatus {
   	final HashWrapper hash ) 
   {
   	synchronized( hashes ){
+       TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)hashes.get(hash);
   		
-	    if(hashes.get(hash) == null){
+	    if(response == null){
 	    	
-	      hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1));
-	    }
+	      hashes.put(hash,new TRTrackerScraperResponseImpl(null,-1,-1,-1));
+       }
+       else if (response.getNextScrapeStartTime() <= System.currentTimeMillis()) {
+        	    LGLogger.log(0,0,LGLogger.INFORMATION,"Skipping Scrape for hash "+hash.getHash());
+             return;
+       }
+
   	}
     
     Thread t = new Thread("Tracker Checker - Scrape interface") {
@@ -112,6 +118,8 @@ public class TrackerStatus {
  
       ByteArrayOutputStream message = new ByteArrayOutputStream();
       
+      long scrapeStartTime = System.currentTimeMillis();
+      
       if ( reqUrl.getProtocol().equalsIgnoreCase( "udp" )){
       	
       	scrapeUDP( reqUrl, message, hash.getHash());
@@ -140,18 +148,23 @@ public class TrackerStatus {
 	      int seeds = ((Long)scrapeMap.get("complete")).intValue();
 	      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
 	
-	
+	      //create the response
+         TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(hash.getHash(), seeds, peers, scrapeStartTime);
+          
 	      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
 	      Map mapFlags = (Map) map.get("flags");
 	      if (mapFlags != null) {
 	        int scrapeInterval = ((Long) mapFlags.get("min_request_interval")).intValue();
-	        //Debug.out("scrape min_request_interval = " +scrapeInterval);
+	        
+           if (scrapeInterval < 10*59) scrapeInterval = 10*59;
+           if (scrapeInterval > 60*60) scrapeInterval = 60*60;
+
+	        long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
+           response.setNextScrapeStartTime(nextScrapeTime);
+           
+           Debug.out("scrape min_request_interval = " +scrapeInterval);
 	      }
-	      
-	
-	      //create the response
-	      TRTrackerScraperResponseImpl response = new TRTrackerScraperResponseImpl(hash.getHash(), seeds, peers);
-	      
+
 	      //update the hash list
 	      synchronized( hashes ) {
 	        hashes.put(new HashWrapper(hash.getHash()), response);
@@ -160,31 +173,6 @@ public class TrackerStatus {
 	      //notifiy listeners
 	      scraper.scrapeReceived( response );
       }
-
-
-      /*
-      Iterator iter = mapFiles.keySet().iterator();
-      while(iter.hasNext()) {
-        String strKey = (String)iter.next();
-        
-        byte[] key = (strKey).getBytes(Constants.BYTE_ENCODING);
-        
-        Map hashMap = (Map)mapFiles.get(strKey);
-        
-        // System.out.println(ByteFormatter.nicePrint(hash.getHash()) + " -> " + ByteFormatter.nicePrint(key));
-        int seeds = ((Long)hashMap.get("complete")).intValue();
-        int peers = ((Long)hashMap.get("incomplete")).intValue();
-        
-        TRTrackerScraperResponseImpl	response = new TRTrackerScraperResponseImpl(key,seeds,peers);
-        
-        synchronized( hashes ){
-        	hashes.put(new HashWrapper(key),response);
-        }
-        
-        scraper.scrapeReceived( response );
-      }
-      */
-
 
     } catch (NoClassDefFoundError ignoreSSL) { // javax/net/ssl/SSLSocket
     } catch (Exception ignore) {

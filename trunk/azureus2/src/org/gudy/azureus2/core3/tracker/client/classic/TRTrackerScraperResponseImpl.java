@@ -19,12 +19,16 @@ TRTrackerScraperResponseImpl
     protected int 		seeds;
     protected int 		peers;
     protected boolean 	valid;
+    
+    private long scrapeStartTime;
+    private long nextScrapeStartTime;
 
     protected 
     TRTrackerScraperResponseImpl(
     	byte[]	_hash,
 		int 	_seeds, 
-		int 	_peers) 
+		int 	_peers,
+      long _scrapeStartTime) 
     {
     	hash		= _hash;
     	seeds 		= _seeds;
@@ -38,6 +42,9 @@ TRTrackerScraperResponseImpl
     		
     		valid = true;
     	}
+        
+    	scrapeStartTime = _scrapeStartTime;
+      nextScrapeStartTime = -1;
     }
 
     public byte[]
@@ -63,4 +70,16 @@ TRTrackerScraperResponseImpl
   {
     return( valid);
   }
+  
+    public long getScrapeStartTime() {
+    	return scrapeStartTime;
+    }
+
+    public long getNextScrapeStartTime() {
+    	return nextScrapeStartTime;
+    }
+ 
+    public void setNextScrapeStartTime(long nextScrapeStartTime) {
+    	this.nextScrapeStartTime = nextScrapeStartTime;
+   }
 }
