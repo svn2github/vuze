@@ -77,10 +77,16 @@ LocaleUtil
 	decoders.toArray( charsetDecoders);
   }
   
-  protected boolean rememberEncodingDecision = true;
-  
+  public static LocaleUtilDecoder[]
+  getDecoders()
+  {
+  	return( charsetDecoders );
+  }
+  protected static boolean 				rememberEncodingDecision = true;
+  protected static LocaleUtilDecoder 	rememberedDecoder 		 = null;
+ 
   protected LocaleUtilDecoder lastChosenDecoder = null;
-  
+   
   private static ILocaleUtilChooser chooser = null;
     
   public static void setLocaleUtilChooser(ILocaleUtilChooser ch) {

@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  *
@@ -56,9 +57,12 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
   public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {
     Candidate[] candidates = getCandidates(array);
 
-    if(rememberEncodingDecision && lastChosenDecoder != null) {
+    if(rememberEncodingDecision && rememberedDecoder != null) {
       for (int i = 0; i < candidates.length; i++) {
-        if(candidates[i].getValue() != null && lastChosenDecoder == candidates[i].getDecoder()) {
+        if(candidates[i].getValue() != null && rememberedDecoder == candidates[i].getDecoder()) {
+        	
+		  lastChosenDecoder = rememberedDecoder;
+		  
           return candidates[i].getValue();
         }
       }
@@ -76,6 +80,21 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
       return defaultString;
     }
 
+        // see if we can try and apply a default encoding
+        
+    String	default_name = COConfigurationManager.getStringParameter( "File.Decoder.Default", "" );
+    
+    if ( default_name.length() > 0 ){
+		for (int i = 0; i < candidates.length; i++) {
+		  if(candidates[i].getValue() != null && candidates[i].getDecoder().getName().equals( default_name )) {
+        	
+			lastChosenDecoder = candidates[i].getDecoder();
+		  
+			return candidates[i].getValue();
+		  }
+		}
+	}
+    
     ArrayList choosableCandidates = new ArrayList(5);
     choosableCandidates.add(candidates[0]);
     
@@ -188,7 +207,7 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     }
     int lastSelectedIndex = 0;
     for (int i = 1; i < candidates.length; i++) {
-      if(candidates[i].getValue() != null && candidates[i].getDecoder() == lastChosenDecoder ) {
+      if(candidates[i].getValue() != null && candidates[i].getDecoder() == rememberedDecoder ) {
         lastSelectedIndex = i;
         break;
       }
@@ -251,7 +270,16 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
     if(-1 == selectedIndex) 
       return;
     rememberEncodingDecision = checkBox.getSelection();
+    
     lastChosenDecoder = candidates[selectedIndex].getDecoder();
+    
+	if ( rememberEncodingDecision ){
+		
+		rememberedDecoder = lastChosenDecoder;
+	}else{
+		rememberedDecoder = null;
+	}
+
     s.dispose();
   }
 

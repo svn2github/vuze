@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
@@ -759,6 +759,30 @@ public class ConfigView extends AbstractIView {
     gridData.widthHint = 262;
     gridData.horizontalSpan = 6;
     new StringParameter(gFile, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$       
+
+
+	label = new Label(gFile, SWT.NULL);
+	Messages.setLanguageText(label, "ConfigView.section.file.decoder.label"); //$NON-NLS-1$
+	
+	LocaleUtilDecoder[]	decoders = LocaleUtil.getDecoders();
+	
+	String decoderLabels[] = new String[decoders.length + 1];
+	String decoderValues[] = new String[decoders.length + 1];
+	
+	decoderLabels[0] = MessageText.getString( "ConfigView.section.file.decoder.nodecoder");
+	decoderValues[0] = "";
+	
+	for (int i = 1; i <= decoders.length; i++) {
+		
+		decoderLabels[i] = decoderValues[i] = decoders[i-1].getName();
+    }
+	Control[] decoder_controls = new Control[2];
+	decoder_controls[0] = label;
+	decoder_controls[1] = new StringListParameter(gFile, "File.Decoder.Default", "", decoderLabels, decoderValues).getControl(); //$NON-NLS-1$    
+	new Label(gFile, SWT.NULL);
+	new Label(gFile, SWT.NULL);
+ 
+
 
     itemFile.setControl(gFile);
     return itemFile;
