@@ -185,10 +185,30 @@ DHTDBMapping
 			
 			addDirectValue( originator_id, new_value );
 			
-				// remove any indirect value we might already have for this
+				// remove any indirect values we might already have for this
 			
-			removeIndirectValue( originator_value_id );
+			Iterator	it = indirect_originator_value_map.entrySet().iterator();
 			
+			List	to_remove = new ArrayList();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				HashWrapper		existing_key		= (HashWrapper)entry.getKey();
+				
+				DHTDBValueImpl	existing_value	= (DHTDBValueImpl)entry.getValue();
+	
+				if ( Arrays.equals( existing_value.getOriginator().getID(), originator.getID())){
+				
+					to_remove.add( existing_key );
+				}
+			}
+			
+			for (int i=0;i<to_remove.size();i++){
+				
+				removeIndirectValue((HashWrapper)to_remove.get(i));
+			}
 		}else{
 			
 				// not direct. if we have a value already for this originator then
