@@ -34,6 +34,10 @@ AggregatedList
 	add(
 		Object		obj );
 	
+	public Object
+	remove(
+		Object		obj );
+	
 	public void
 	destroy();
 }

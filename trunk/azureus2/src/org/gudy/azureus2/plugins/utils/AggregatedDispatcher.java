@@ -34,6 +34,10 @@ AggregatedDispatcher
 	add(
 		Runnable	runnable );
 	
+	public Runnable
+	remove(
+		Runnable		obj );
+	
 	public void
 	destroy();
 }

@@ -427,6 +427,13 @@ UtilitiesImpl
 					list.add( runnable );
 				}
 				
+				public Runnable
+				remove(
+					Runnable	runnable )
+				{
+					return((Runnable)list.remove( runnable ));
+				}
+				
 				public void
 				destroy()
 				{
@@ -500,6 +507,50 @@ UtilitiesImpl
 					}
 				}
 
+				public Object
+				remove(
+					Object	obj )
+				{
+					Object	res = null;
+					
+					synchronized( timer ){
+					
+						res = list.remove( obj )?obj:null;
+							
+						if ( res != null ){
+							
+							long	now = SystemTime.getCurrentTime();
+							
+							if ( event != null ){
+								
+								event.cancel();
+							}
+								
+							if ( list.size() == 0 ){
+								
+								event	= null;
+								
+							}else{
+								
+								event = 
+									timer.addEvent( 
+											now + idle_dispatch_time,
+											new TimerEventPerformer()
+											{
+												public void
+												perform(
+													TimerEvent	event )
+												{
+													dispatch();
+												}
+											});
+							}
+						}
+					}
+					
+					return( res );
+				}
+				
 				protected void
 				dispatch()
 				{
@@ -509,8 +560,7 @@ UtilitiesImpl
 					
 						dispatch_list	= list;
 						
-						list	= new ArrayList();
-						
+						list	= new ArrayList();					
 					}
 					
 					dispatch( dispatch_list );
@@ -520,12 +570,15 @@ UtilitiesImpl
 				dispatch(
 					List		l )
 				{
-					try{
-						acceptor.accept( l );
+					if ( l.size() > 0 ){
 						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
+						try{
+							acceptor.accept( l );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
 					}
 				}
 				
