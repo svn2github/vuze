@@ -84,6 +84,6 @@ extends PRUDPPacketReply
 	public String
 	getString()
 	{
-		return( super.getString() + ",[msg=" + message + "]");
+		return( super.getString().concat(",[msg=").concat(message).concat("]"));
 	}
 }

@@ -54,7 +54,7 @@ PRUDPPacketHandlerImpl
 		
 		final Semaphore init_sem = new Semaphore();
 		
-		Thread t = new Thread( "PRUDPPacketReciever:" + port )
+		Thread t = new Thread( "PRUDPPacketReciever:".concat(String.valueOf(port)))
 			{
 				public void
 				run()
@@ -98,7 +98,7 @@ PRUDPPacketHandlerImpl
 			
 			init_sem.release();
 			
-			LGLogger.log( "PRUDPPacketReceiver: receiver established on port " + port ); 
+			LGLogger.log( "PRUDPPacketReceiver: receiver established on port ".concat(String.valueOf(port))); 
 	
 			byte[] buffer = new byte[PRUDPPacket.MAX_PACKET_SIZE];
 			
@@ -125,7 +125,7 @@ PRUDPPacketHandlerImpl
 			}
 		}catch( Throwable e ){
 			
-			LGLogger.log( "PRUDPPacketReceiver: DatagramSocket bind failed on port " + port, e ); 
+			LGLogger.log( "PRUDPPacketReceiver: DatagramSocket bind failed on port ".concat(String.valueOf(port)), e ); 
 		}
 	}
 	
@@ -172,7 +172,7 @@ PRUDPPacketHandlerImpl
 			PRUDPPacketReply.deserialiseReply( 
 				new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet.getLength())));
 
-		LGLogger.log( "PRUDPPacketHandler: reply packet received: " + reply.getString()); 
+		LGLogger.log( "PRUDPPacketHandler: reply packet received: ".concat(reply.getString())); 
 				
 		synchronized( requests ){
 			
@@ -180,7 +180,7 @@ PRUDPPacketHandlerImpl
 		
 			if ( request == null ){
 			
-				LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:" + reply.getString());
+				LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:".concat(reply.getString()));
 			
 			}else{
 			
@@ -214,7 +214,7 @@ PRUDPPacketHandlerImpl
 				requests.put( new Integer( request_packet.getTransactionId()), request );
 			}
 			
-			LGLogger.log( "PRUDPPacketHandler: request packet sent: " + request_packet.getString()); 
+			LGLogger.log( "PRUDPPacketHandler: request packet sent: ".concat(request_packet.getString())); 
 			
 			try{
 				socket.send( packet );

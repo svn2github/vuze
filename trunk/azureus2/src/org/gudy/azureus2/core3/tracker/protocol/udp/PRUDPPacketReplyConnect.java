@@ -76,6 +76,6 @@ PRUDPPacketReplyConnect
 	public String
 	getString()
 	{
-		return( super.getString() + ",[con=" + connection_id + "]");
+		return( super.getString().concat(",[con=").concat(String.valueOf(connection_id)).concat("]"));
 	}
 }

@@ -81,9 +81,9 @@ PRUDPPacketRequestScrape
 	public String
 	getString()
 	{
-		return( super.getString() + "[" +
-				"hash=" + ByteFormatter.nicePrint( hash, true ) +
-				"]" );
+		return( super.getString().concat("[").concat(
+				"hash=").concat(ByteFormatter.nicePrint( hash, true )).concat(
+				"]") );
 	}
 }
 

@@ -115,7 +115,7 @@ ShareHosterPlugin
 	resourceAdded(
 		ShareResource		resource )
 	{
-		log.log( LoggerChannel.LT_INFORMATION, "Resource added:" + resource.getName());
+		log.log( LoggerChannel.LT_INFORMATION, "Resource added:".concat(resource.getName()));
 		
 		if ( initialised ){
 			
@@ -272,7 +272,7 @@ ShareHosterPlugin
 	resourceModified(
 		ShareResource		resource )
 	{
-		log.log( LoggerChannel.LT_INFORMATION, "Resource modified:" + resource.getName());
+		log.log( LoggerChannel.LT_INFORMATION, "Resource modified:".concat(resource.getName()));
 		
 		if ( initialised ){
 			
@@ -286,7 +286,7 @@ ShareHosterPlugin
 	resourceDeleted(
 		ShareResource		resource )
 	{
-		log.log( LoggerChannel.LT_INFORMATION, "Resource deleted:" + resource.getName());
+		log.log( LoggerChannel.LT_INFORMATION, "Resource deleted:".concat(resource.getName()));
 		
 		if ( initialised ){
 		
@@ -344,6 +344,6 @@ ShareHosterPlugin
 	reportCurrentTask(
 		String	task_description )
 	{
-		log.log( LoggerChannel.LT_INFORMATION, "Current Task:" + task_description );
+		log.log( LoggerChannel.LT_INFORMATION, "Current Task:".concat(task_description) );
 	}
 }

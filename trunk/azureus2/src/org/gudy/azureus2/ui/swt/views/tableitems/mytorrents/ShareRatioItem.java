@@ -43,9 +43,9 @@ public class ShareRatioItem extends TorrentItem {
     int sr = torrentRow.getManager().getStats().getShareRatio();
     if(sr == -1) shareRatio = Constants.INFINITY_STRING;
     if(sr >  0){ 
-      String partial = "" + sr%1000;
-      while(partial.length() < 3) partial = "0" + partial;
-      shareRatio = (sr/1000) + "." + partial;
+      String partial = String.valueOf(sr%1000);
+      while(partial.length() < 3) partial = "0".concat(partial);
+      shareRatio = String.valueOf(sr/1000).concat(".").concat(partial);
 
     }
     setText(shareRatio);

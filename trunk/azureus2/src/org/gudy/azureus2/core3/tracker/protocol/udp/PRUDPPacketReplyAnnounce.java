@@ -123,7 +123,7 @@ PRUDPPacketReplyAnnounce
 	public String
 	getString()
 	{
-		return( super.getString() + "[interval=" + interval + ", addresses=" + addresses.length + "]" );
+		return( super.getString().concat("[interval=").concat(String.valueOf(interval)).concat(", addresses=").concat(String.valueOf(addresses.length)).concat("]") );
 	}
 }
 

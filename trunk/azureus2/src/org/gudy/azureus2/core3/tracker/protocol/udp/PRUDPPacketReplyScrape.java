@@ -150,7 +150,7 @@ PRUDPPacketReplyScrape
 	public String
 	getString()
 	{
-		return( super.getString() + "[hashes=" + hashes.length + "]" );
+		return( super.getString().concat("[hashes=").concat(String.valueOf(hashes.length)).concat("]") );
 		// return( super.getString() + "[interval=" + interval + ", hashes=" + hashes.length + "]" );
 	}
 }

@@ -41,9 +41,9 @@ public class SeedsItem extends TorrentItem {
   public void refresh() {
     TRTrackerScraperResponse hd = torrentRow.getManager().getTrackerScrapeResponse();
     
-    String tmp = "" + torrentRow.getManager().getNbSeeds(); //$NON-NLS-1$
+    String tmp = String.valueOf(torrentRow.getManager().getNbSeeds()); //$NON-NLS-1$
     if(hd!=null && hd.isValid())
-      tmp += " (" + hd.getSeeds() + ")";
+      tmp = tmp.concat(" (").concat(String.valueOf(hd.getSeeds())).concat(")");
     setText(tmp);
   }
 

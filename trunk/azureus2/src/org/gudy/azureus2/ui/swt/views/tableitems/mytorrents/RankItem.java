@@ -39,7 +39,7 @@ public class RankItem extends TorrentItem {
 
   public void refresh() {
     //setText returns true only if the text is updated
-    if(setText("" + (torrentRow.getManager().getIndex()+1))) {
+    if(setText(String.valueOf(torrentRow.getManager().getIndex()+1))) {
       //in which case we also update the icon
       String name = torrentRow.getManager().getName();
       if (name != null ) {

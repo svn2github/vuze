@@ -85,6 +85,6 @@ PRUDPPacketReply
 	public String
 	getString()
 	{
-		return( super.getString() + ":reply[trans=" + transaction_id + "]" );
+		return( super.getString().concat(":reply[trans=").concat(String.valueOf(transaction_id)).concat("]") );
 	}
 }

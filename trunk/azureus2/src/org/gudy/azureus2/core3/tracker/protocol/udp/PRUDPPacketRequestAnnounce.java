@@ -205,15 +205,15 @@ PRUDPPacketRequestAnnounce
 	public String
 	getString()
 	{
-		return( super.getString() + "[" +
-					"hash=" + ByteFormatter.nicePrint( hash, true ) +
-					"peer=" + ByteFormatter.nicePrint( peer_id, true ) +
-					"dl=" + downloaded +
-					"ev=" + event +
-					"ip=" + ip_address + 
-					"nw=" + num_want +
-					"left="+left+
-					"port=" + port +
-					"ul=" + uploaded + "]" );
+		return( super.getString()).concat("[").concat(
+					"hash=").concat(ByteFormatter.nicePrint( hash, true )).concat(
+					"peer=").concat(ByteFormatter.nicePrint( peer_id, true )).concat(
+					"dl=").concat(String.valueOf(downloaded)).concat(
+					"ev=").concat(String.valueOf(event)).concat(
+					"ip=").concat(String.valueOf(ip_address)).concat(
+					"nw=").concat(String.valueOf(num_want)).concat(
+					"left=").concat(String.valueOf(left)).concat(
+					"port=").concat(String.valueOf(port)).concat(
+					"ul=").concat(String.valueOf(uploaded)).concat("]");
 	}
 }

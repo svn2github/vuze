@@ -176,7 +176,7 @@ SESecurityManagerImpl
 				
 				if (((SECertificateListener)certificate_listeners.get(i)).trustCertificate( resource, x509_cert )){
 					
-					String	alias = host + ":" + port;
+					String	alias = host.concat(":").concat(String.valueOf(port));
 			
 					addCertToTrustStore( alias, cert );
 			

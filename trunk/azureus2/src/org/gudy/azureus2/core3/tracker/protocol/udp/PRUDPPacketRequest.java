@@ -104,6 +104,6 @@ PRUDPPacketRequest
 	public String
 	getString()
 	{
-		return( super.getString() + ":request[con=" + connection_id + ",trans=" + transaction_id + "]" );
+		return( super.getString().concat(":request[con=").concat(String.valueOf(connection_id)).concat(",trans=").concat(String.valueOf(transaction_id)).concat("]") );
 	}
 }

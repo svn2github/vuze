@@ -93,7 +93,7 @@ PRUDPPacket
 	public String
 	getString()
 	{
-		return( "type=" + type);
+		return( "type=".concat(String.valueOf(type)));
 	}
 	
 	public static int
