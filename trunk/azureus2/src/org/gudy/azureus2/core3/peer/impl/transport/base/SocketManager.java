@@ -51,7 +51,9 @@ public class SocketManager {
         doClosings();
       }
     }
-    catch (Exception e) { e.printStackTrace(); }
+    catch (Exception e) {
+      System.out.println("SOCKETMANAGER: selector open b0rked");
+      e.printStackTrace(); }
   }
   
   
