@@ -28,15 +28,15 @@ public class TrackerConnection
   public final static int componentID = 2;
   public final static int evtLifeCycle = 0;
   public final static int evtFullTrace = 1;
-  public final static int evtErrors = 2;
+  public final static int evtErrors = 2;    
   
   private static final byte[] azureus = "Azureus".getBytes();
 
   public TrackerConnection(Map metainfo,byte[] hash,int port)
   {
     //Get the Tracker url
-    try{
-    trackerUrl = new String((byte[])metainfo.get("announce"), "ISO-8859-1");
+    try{            
+	  trackerUrl = new String((byte[])metainfo.get("announce"), "UTF8");      
     } catch (Exception e) {
       e.printStackTrace();
     }

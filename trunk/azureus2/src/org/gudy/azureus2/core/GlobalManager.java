@@ -207,8 +207,8 @@ public class GlobalManager extends Component {
       while (iter.hasNext()) {
         Map mDownload = (Map) iter.next();
         try {
-          String fileName = new String((byte[]) mDownload.get("torrent"), "ISO-8859-1");
-          String savePath = new String((byte[]) mDownload.get("path"), "ISO-8859-1");
+          String fileName = new String((byte[]) mDownload.get("torrent"), "UTF8");
+          String savePath = new String((byte[]) mDownload.get("path"), "UTF8");
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int stopped = debug ? 1 : ((Long) mDownload.get("stopped")).intValue();
           DownloadManager dm = new DownloadManager(this, fileName, savePath, stopped == 1);

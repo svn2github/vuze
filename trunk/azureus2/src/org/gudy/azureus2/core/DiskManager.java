@@ -119,7 +119,7 @@ public class DiskManager {
     try {      
       File f = new File(path);
       if(f.isDirectory()) {
-        fileName = new String((byte[]) info.get("name"), "ISO-8859-1");
+        fileName = new String((byte[]) info.get("name"), "UTF8");
       } else {
         fileName = f.getName();
         path = f.getParent();       
@@ -191,7 +191,7 @@ public class DiskManager {
           if (j != (fileList.size() - 1)) //are we the filename?
             {
             try {
-              pathBuffer.append(new String((byte[]) fileList.get(j), "ISO-8859-1"));
+              pathBuffer.append(new String((byte[]) fileList.get(j), "UTF8"));
             }
             catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
@@ -206,7 +206,7 @@ public class DiskManager {
             //add the file entry to the file holder list 
             try {
               btFileList.add(
-                new BtFile(pathBuffer.toString(), new String((byte[]) fileList.get(j), "ISO-8859-1"), fileLength));
+                new BtFile(pathBuffer.toString(), new String((byte[]) fileList.get(j), "UTF8"), fileLength));
             }
             catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
@@ -735,7 +735,7 @@ public class DiskManager {
     //open the torrent file    		
     File torrent = null;
     try {
-      torrent = new File(new String((byte[]) metaData.get("torrent filename"), "ISO-8859-1"));
+      torrent = new File(new String((byte[]) metaData.get("torrent filename"), "UTF8"));
     }
     catch (UnsupportedEncodingException e) {
       // TODO Auto-generated catch block
@@ -961,7 +961,7 @@ public class DiskManager {
 
       //TODO:: CLEAN UP - fix the conversion to a string...
       //open the torrent file       
-      File torrent = new File(new String((byte[]) metaData.get("torrent filename"), "ISO-8859-1"));
+      File torrent = new File(new String((byte[]) metaData.get("torrent filename"), "UTF8"));
       //re-encode the data
       byte[] torrentData = BEncoder.encode(metaData);
       //open a file stream

@@ -194,7 +194,7 @@ public class MainWindow implements IComponentListener {
           Thread.sleep(10);
         }
         Map decoded = BDecoder.decode(message.getBytes("ISO-8859-1")); //$NON-NLS-1$
-        latestVersion = new String((byte[]) decoded.get("version"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
+        latestVersion = new String((byte[]) decoded.get("version"), "UTF8"); //$NON-NLS-1$ //$NON-NLS-2$
         if (display == null || display.isDisposed())
           return;
         display.asyncExec(new Runnable() {
@@ -1079,10 +1079,14 @@ public class MainWindow implements IComponentListener {
         fis = new FileInputStream(fileName);
         while ((nbRead = fis.read(buf)) > 0)
           metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
-        Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
-        Map info = (Map) map.get("info"); //$NON-NLS-1$
-        singleFileName = new String((byte[]) info.get("name"), "ISO-8859-1"); //$NON-NLS-1$ //$NON-NLS-2$
-        Object test = info.get("length");         //$NON-NLS-1$
+
+        fis.close();
+
+        Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
+        Map info = (Map) map.get("info");
+        singleFileName = new String((byte[]) info.get("name"), "UTF8");
+        Object test = info.get("length");        
+
         if (test != null) {        
           singleFile = true;          
         }

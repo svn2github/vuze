@@ -159,7 +159,7 @@ public class ConfigurationManager {
 	private String getStringParameter(String parameter, byte[] defaultValue)
 	{
 		try {
-			return new String(this.getByteParameter(parameter, defaultValue), "ISO-8859-1");
+			return new String((byte[])this.getByteParameter(parameter, defaultValue), "UTF8");
 		} catch (Exception e) {			
 			//e.printStackTrace();
 			return null;
