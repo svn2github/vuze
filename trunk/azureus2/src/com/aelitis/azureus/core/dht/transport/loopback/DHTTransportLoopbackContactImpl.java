@@ -66,6 +66,11 @@ DHTTransportLoopbackContactImpl
 	{
 		return( 0 );
 	}
+	public boolean
+	isValid()
+	{
+		return( true );
+	}
 	
 	public int
 	getMaxFailForLiveCount()

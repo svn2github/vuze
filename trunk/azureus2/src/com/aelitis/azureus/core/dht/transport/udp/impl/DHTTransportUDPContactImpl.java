@@ -94,8 +94,15 @@ DHTTransportUDPContactImpl
 		return( skew );
 	}
 	
-	protected boolean
+	public boolean
 	isValid()
+	{
+		return( 	addressMatchesID() &&
+					!transport.invalidExternalAddress( external_address.getAddress()));
+	}
+	
+	protected boolean
+	addressMatchesID()
 	{
 		return( id != null );
 	}

@@ -485,6 +485,29 @@ DHTPlugin
 		t.setDaemon(true);
 			
 		t.start();
+		
+		plugin_interface.addListener(
+			new PluginListener()
+			{
+				public void
+				initializationComplete()
+				{
+				}
+				
+				public void
+				closedownInitiated()
+				{
+					if ( dht != null ){
+						
+						storage_manager.exportContacts( dht );
+					}
+				}
+				
+				public void
+				closedownComplete()
+				{
+				}
+			});
 	}
 	
 	protected void

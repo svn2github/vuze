@@ -377,6 +377,22 @@ DHTControlImpl
 			}
 		}	
 		
+			// and finally remove the invalid ones
+		
+		Iterator	it = to_save.iterator();
+		
+		while( it.hasNext()){
+			
+			DHTRouterContact	contact	= (DHTRouterContact)it.next();
+			
+			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
+			
+			if ( !t_contact.isValid()){
+				
+				it.remove();
+			}
+		}
+	
 		//System.out.println( "    finally = " + to_save.size());
 
 		int	num_to_write = Math.min( max, to_save.size());
@@ -394,7 +410,7 @@ DHTControlImpl
 			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
 			
 			try{
-				
+									
 				t_contact.exportContact( daos );
 				
 			}catch( DHTTransportException e ){

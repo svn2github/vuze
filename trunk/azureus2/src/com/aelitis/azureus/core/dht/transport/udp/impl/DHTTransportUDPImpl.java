@@ -409,9 +409,7 @@ DHTTransportUDPImpl
 	
 				// check for dodgy addresses that shouldn't appear as an external address!
 			
-			if ( 	ia.isLinkLocalAddress() ||
-					ia.isLoopbackAddress() ||
-					new_ip.startsWith( "192.168." )){
+			if ( invalidExternalAddress( ia )){
 				
 				logger.log( "     This is invalid as it is a private address." );
 	
@@ -479,6 +477,15 @@ DHTTransportUDPImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	protected boolean
+	invalidExternalAddress(
+		InetAddress	ia )
+	{
+		return(	ia.isLinkLocalAddress() ||
+				ia.isLoopbackAddress() ||
+				ia.getHostAddress().startsWith( "192.168." ));
 	}
 	
 	protected int
@@ -1792,7 +1799,7 @@ DHTTransportUDPImpl
 				return;
 			}
 
-			if ( !originating_contact.isValid()){
+			if ( !originating_contact.addressMatchesID()){
 				
 				logger.log( "Node " + originating_contact.getString() + " has incorrect ID, reporting it to them" );
 				

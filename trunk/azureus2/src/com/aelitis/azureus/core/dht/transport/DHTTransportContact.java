@@ -58,6 +58,9 @@ DHTTransportContact
 	isAlive(
 		long		timeout );
 
+	public boolean
+	isValid();
+	
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler );
