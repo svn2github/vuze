@@ -91,6 +91,13 @@ RPIPRange
 	{
 		String	method = request.getMethod();	
 		
+		if ( method.equals( "delete")){
+			
+			delegate.delete();
+			
+			return( null );
+		}
+
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
@@ -172,6 +179,12 @@ RPIPRange
 		notSupported();
 		
 		return( false );
+	}
+	
+	public void
+	delete()
+	{
+		_dispatcher.dispatch( new RPRequest( this, "delete", null )).getResponse();
 	}
 	
 	public int

@@ -105,6 +105,21 @@ XMLHTTPClient
 				
 				res.print();
 				
+				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
+				
+				for (int i=0;i<kids.length;i++){
+				
+					String range_oid	= kids[i].getChild( "_object_id" ).getValue().trim();
+
+					res = sendRequest( 
+							"<REQUEST>" +
+								"<OBJECT><_object_id>" + range_oid + "</_object_id></OBJECT>" +
+								"<METHOD>delete</METHOD>"+
+								"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+								"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+							"</REQUEST>");
+				}
+				
 				/*
 				res = sendRequest( 
 						"<REQUEST>" +

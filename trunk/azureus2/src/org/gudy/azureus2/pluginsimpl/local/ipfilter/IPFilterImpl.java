@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsimpl.local.ipfiler;
+package org.gudy.azureus2.pluginsimpl.local.ipfilter;
 
 /**
  * @author parg
@@ -87,7 +87,7 @@ IPFilterImpl
 		
 		for (int i=0;i<l.length;i++){
 			
-			res[i] = new IPRangeImpl(l[i]);
+			res[i] = new IPRangeImpl(this, l[i]);
 		}
 		
 		return( res );
@@ -116,7 +116,7 @@ IPFilterImpl
 	createRange(
 		boolean this_session_only )
 	{
-		return( new IPRangeImpl( filter.createRange( this_session_only )));
+		return( new IPRangeImpl( this, filter.createRange( this_session_only )));
 	}
 		
 	public void
@@ -179,7 +179,7 @@ IPFilterImpl
 		
 		for (int i=0;i<l.length;i++){
 			
-			res[i] = new IPBlockedImpl(l[i]);
+			res[i] = new IPBlockedImpl(this,l[i]);
 		}
 		
 		return( res );

@@ -73,4 +73,7 @@ IPRange
 	public boolean 
 	isInRange(
 		String ipAddress );
+	
+	public void
+	delete();
 }

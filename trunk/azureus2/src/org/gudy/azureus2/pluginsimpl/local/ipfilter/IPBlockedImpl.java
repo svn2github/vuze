@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.pluginsimpl.local.ipfiler;
+package org.gudy.azureus2.pluginsimpl.local.ipfilter;
 
 /**
  * @author parg
@@ -34,12 +34,15 @@ public class
 IPBlockedImpl 
 	implements IPBlocked
 {
+	protected IPFilter	filter;
 	protected BlockedIp	blocked;
 	
 	protected
 	IPBlockedImpl(
+		IPFilter	_filter,
 		BlockedIp	_blocked )
 	{
+		filter	= _filter;
 		blocked	= _blocked;
 	}
 	 
@@ -58,6 +61,6 @@ IPBlockedImpl
 	public IPRange
 	getBlockingRange()
 	{
-	 	return( new IPRangeImpl( blocked.getBlockingRange()));
+	 	return( new IPRangeImpl( filter, blocked.getBlockingRange()));
 	}
 }
