@@ -226,6 +226,12 @@ public class ConfigSectionFileTorrents implements ConfigSectionSWT {
     Messages.setLanguageText(label, "ConfigView.section.file.decoder.prompt");
     new BooleanParameter(cTorrent, "File.Decoder.Prompt", false);
     
+    // save peers
+    
+    label = new Label(cTorrent, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.file.save.peers.enable");
+    new BooleanParameter(cTorrent, "File.save.peers.enable", true);
+      
     return cTorrent;
   }
 }

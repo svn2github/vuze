@@ -59,170 +59,235 @@ public class ConfigSectionFile implements ConfigSectionSWT {
   public Composite configSectionCreate(final Composite parent) {
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
     GridData gridData;
-    Composite cArea;
 
     Composite gFile = new Composite(parent, SWT.NULL);
     
     GridLayout layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 3;
     gFile.setLayout(layout);
     Label label;
 
+    	// zero new files 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.zeronewfiles"); 
     BooleanParameter zeroNew = new BooleanParameter(gFile, "Zero New", false); 
-
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    zeroNew.setLayoutData(gridData);
+    
+    	// incrementaal file creation
+    
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); 
     BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false); 
-
-    //Make the incremental checkbox (button) deselect when zero new is used
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    incremental.setLayoutData(gridData);
+ 
+    		//Make the incremental checkbox (button) deselect when zero new is used
     Button[] btnIncremental = {(Button)incremental.getControl()};
     zeroNew.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnIncremental));
 
-    //Make the zero new checkbox(button) deselct when incremental is used
+    		//Make the zero new checkbox(button) deselct when incremental is used
     Button[] btnZeroNew = {(Button)zeroNew.getControl()};
     incremental.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnZeroNew));
-
+    
+    	// check on complete
+    
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); 
-    new BooleanParameter(gFile, "Check Pieces on Completion", true);
-
-
+    BooleanParameter checkOnComp = new BooleanParameter(gFile, "Check Pieces on Completion", true);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    checkOnComp.setLayoutData(gridData);
+ 
+    	// resume data
+    
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.usefastresume"); 
-    cArea = new Composite(gFile, SWT.NULL);
-    layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 4;
-    cArea.setLayout(layout);
-    cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
-    BooleanParameter bpUseResume = new BooleanParameter(cArea, "Use Resume", true); 
+    final BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", true); 
 
-    label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); 
-    
-    gridData = new GridData();
-    gridData.widthHint = 30;
-    IntParameter paramSaveInterval = new IntParameter(cArea, "Save Resume Interval");
-    paramSaveInterval.setLayoutData(gridData); 
-    Label lblMinutes = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(lblMinutes, "ConfigView.text.minutes");
+    Group cResumeGroup = new Group(gFile, SWT.NULL);
+	    layout = new GridLayout();
+	    layout.marginHeight = 4;
+	    layout.marginWidth = 4;
+	    layout.numColumns = 3;
+	    cResumeGroup.setLayout(layout);
+	    cResumeGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	    
+	    Label lblSaveResumeInterval = new Label(cResumeGroup, SWT.NULL);
+	    Messages.setLanguageText(lblSaveResumeInterval, "ConfigView.label.saveresumeinterval"); 
+	    	    
+	    IntParameter paramSaveInterval = new IntParameter(cResumeGroup, "Save Resume Interval");
+	    gridData = new GridData();
+	    gridData.widthHint = 30;
+	    paramSaveInterval.setLayoutData(gridData);
+	    	
+	    Label lblMinutes = new Label(cResumeGroup, SWT.NULL);
+	    Messages.setLanguageText(lblMinutes, "ConfigView.text.minutes");
+	
+	    // save peers
+	    
+	    final Label lblSavePeers = new Label(cResumeGroup, SWT.NULL);
+	    Messages.setLanguageText(lblSavePeers, "ConfigView.section.file.save.peers.enable");
+	    final BooleanParameter save_peers = new BooleanParameter(cResumeGroup, "File.save.peers.enable", true);
+	    label = new Label(cResumeGroup, SWT.NULL);
+	  
+	    // save peers max
+	 
+	    
+	    final Label lblSavePeersMax = new Label(cResumeGroup, SWT.NULL);
+	    Messages.setLanguageText(lblSavePeersMax, "ConfigView.section.file.save.peers.max");
+	    final IntParameter savePeersMax = new IntParameter(cResumeGroup, "File.save.peers.max");
+	    gridData = new GridData();
+	    gridData.widthHint = 30;
+	    savePeersMax.setLayoutData(gridData); 
+	    label = new Label(cResumeGroup, SWT.NULL);
+	    
+	   
+	    final Control[] controls = { 	
+	    						lblMinutes, 
+	    						lblSaveResumeInterval,	paramSaveInterval.getControl(),
+	    						lblSavePeers, save_peers.getControl(),
+	    						lblSavePeersMax, savePeersMax.getControl()};
+	   
+	    /*
+	    IAdditionalActionPerformer performer = new ChangeSelectionActionPerformer(controls);
+	    bpUseResume.setAdditionalActionPerformer(performer);
+	    */
+	    
+	    IAdditionalActionPerformer f_enabler =
+	      new GenericActionPerformer(controls) {
+	        public void performAction()
+	        {
+	        	for (int i=0;i<controls.length;i++){
+	        		controls[i].setEnabled(bpUseResume.isSelected());
+	        	}
+	        	
+	            if ( bpUseResume.isSelected()){
+	            	
+	            	lblSavePeersMax.setEnabled( save_peers.isSelected());
+	            	savePeersMax.getControl().setEnabled( save_peers.isSelected());
+	            }
+	        }
+	      };
 
-
-    Control[] controls = { label, lblMinutes, paramSaveInterval.getControl() };
-    IAdditionalActionPerformer performer = new ChangeSelectionActionPerformer(controls);
-    bpUseResume.setAdditionalActionPerformer(performer);
+	    bpUseResume.setAdditionalActionPerformer(f_enabler);
+	    save_peers.setAdditionalActionPerformer(f_enabler);
 
     // savepath
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); 
 
-    cArea = new Composite(gFile, SWT.NULL);
-    layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 3;
-    cArea.setLayout(layout);
-    cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-    BooleanParameter saveDefault = new BooleanParameter(cArea, "Use default data dir", true); 
-
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final StringParameter pathParameter = new StringParameter(cArea, "Default save path", "");  //$NON-NLS-2$
-    pathParameter.setLayoutData(gridData);
-
-    Button browse = new Button(cArea, SWT.PUSH);
-    browse.setImage(imgOpenFolder);
-    imgOpenFolder.setBackground(browse.getBackground());
-    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-
-    browse.addListener(SWT.Selection, new Listener() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-       */
-      public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
-        dialog.setFilterPath(pathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); 
-        String path = dialog.open();
-        if (path != null) {
-          pathParameter.setValue(path);
-        }
-      }
-    });
-
-    controls = new Control[2];
-    controls[0] = pathParameter.getControl();
-    controls[1] = browse;
-    IAdditionalActionPerformer defaultSave = new ChangeSelectionActionPerformer(controls);
-    saveDefault.setAdditionalActionPerformer(defaultSave);
+    Composite cSave = new Composite(gFile, SWT.NULL);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalSpan = 2;
+	    cSave.setLayoutData(gridData);
+	    layout = new GridLayout();
+	    layout.marginHeight = 0;
+	    layout.marginWidth = 0;
+	    layout.numColumns = 3;
+	    cSave.setLayout(layout);
+	
+	    BooleanParameter saveDefault = new BooleanParameter(cSave, "Use default data dir", true); 
+	
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    final StringParameter pathParameter = new StringParameter(cSave, "Default save path", "");  //$NON-NLS-2$
+	    pathParameter.setLayoutData(gridData);
+	
+	    Button browse = new Button(cSave, SWT.PUSH);
+	    browse.setImage(imgOpenFolder);
+	    imgOpenFolder.setBackground(browse.getBackground());
+	    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+	
+	    browse.addListener(SWT.Selection, new Listener() {
+	      /* (non-Javadoc)
+	       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+	       */
+	      public void handleEvent(Event event) {
+	        DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
+	        dialog.setFilterPath(pathParameter.getValue());
+	        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); 
+	        String path = dialog.open();
+	        if (path != null) {
+	          pathParameter.setValue(path);
+	        }
+	      }
+	    });
+	
+	    Control[] controls2 = new Control[2];
+	    controls2[0] = pathParameter.getControl();
+	    controls2[1] = browse;
+	    IAdditionalActionPerformer defaultSave = new ChangeSelectionActionPerformer(controls2);
+	    saveDefault.setAdditionalActionPerformer(defaultSave);
 
     // Move Completed
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.movecompleted"); 
     BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); 
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    moveCompleted.setLayoutData(gridData);
 
     Composite gMoveCompleted = new Composite(gFile, SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalIndent = 15;
-    gridData.horizontalSpan = 2;
-    gMoveCompleted.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 3;
-    gMoveCompleted.setLayout(layout);
-
-    label = new Label(gMoveCompleted, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.directory"); 
-
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final StringParameter movePathParameter = new StringParameter(gMoveCompleted, "Completed Files Directory", "");
-    movePathParameter.setLayoutData(gridData);
-
-    Button browse3 = new Button(gMoveCompleted, SWT.PUSH);
-    browse3.setImage(imgOpenFolder);
-    imgOpenFolder.setBackground(browse3.getBackground());
-    browse3.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-
-    browse3.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event event) {
-        DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
-        dialog.setFilterPath(movePathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosemovepath")); 
-        String path = dialog.open();
-        if (path != null) {
-          movePathParameter.setValue(path);
-        }
-      }
-    });
-
-
-    Label lMoveTorrent = new Label(gMoveCompleted, SWT.NULL);
-    Messages.setLanguageText(lMoveTorrent, "ConfigView.label.movetorrent"); 
-    BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted, "Move Torrent When Done", true); 
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    moveTorrent.setLayoutData(gridData);
-
-    Label lMoveOnly = new Label(gMoveCompleted, SWT.NULL);
-    Messages.setLanguageText(lMoveOnly, "ConfigView.label.moveonlyusingdefaultsave"); 
-    BooleanParameter moveOnly = new BooleanParameter(gMoveCompleted, "Move Only When In Default Save Dir", true); 
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    moveOnly.setLayoutData(gridData);
-
-
-    controls = new Control[6];
-    controls[0] = movePathParameter.getControl();
-    controls[1] = browse3;
-    controls[2] = lMoveTorrent;
-    controls[3] = moveTorrent.getControl();
-    controls[4] = lMoveOnly;
-    controls[5] = moveOnly.getControl();
-    IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls);
-    moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalIndent = 15;
+	    gridData.horizontalSpan = 3;
+	    gMoveCompleted.setLayoutData(gridData);
+	    layout = new GridLayout();
+	    layout.numColumns = 3;
+	    gMoveCompleted.setLayout(layout);
+	
+	    label = new Label(gMoveCompleted, SWT.NULL);
+	    Messages.setLanguageText(label, "ConfigView.label.directory"); 
+	
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    final StringParameter movePathParameter = new StringParameter(gMoveCompleted, "Completed Files Directory", "");
+	    movePathParameter.setLayoutData(gridData);
+	
+	    Button browse3 = new Button(gMoveCompleted, SWT.PUSH);
+	    browse3.setImage(imgOpenFolder);
+	    imgOpenFolder.setBackground(browse3.getBackground());
+	    browse3.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+	
+	    browse3.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	        DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
+	        dialog.setFilterPath(movePathParameter.getValue());
+	        dialog.setText(MessageText.getString("ConfigView.dialog.choosemovepath")); 
+	        String path = dialog.open();
+	        if (path != null) {
+	          movePathParameter.setValue(path);
+	        }
+	      }
+	    });
+	
+	
+	    Label lMoveTorrent = new Label(gMoveCompleted, SWT.NULL);
+	    Messages.setLanguageText(lMoveTorrent, "ConfigView.label.movetorrent"); 
+	    BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted, "Move Torrent When Done", true); 
+	    gridData = new GridData();
+	    gridData.horizontalSpan = 2;
+	    moveTorrent.setLayoutData(gridData);
+	
+	    Label lMoveOnly = new Label(gMoveCompleted, SWT.NULL);
+	    Messages.setLanguageText(lMoveOnly, "ConfigView.label.moveonlyusingdefaultsave"); 
+	    BooleanParameter moveOnly = new BooleanParameter(gMoveCompleted, "Move Only When In Default Save Dir", true); 
+	    gridData = new GridData();
+	    gridData.horizontalSpan = 2;
+	    moveOnly.setLayoutData(gridData);
+	
+	
+	    Control[] controls3 = new Control[6];
+	    controls3[0] = movePathParameter.getControl();
+	    controls3[1] = browse3;
+	    controls3[2] = lMoveTorrent;
+	    controls3[3] = moveTorrent.getControl();
+	    controls3[4] = lMoveOnly;
+	    controls3[5] = moveOnly.getControl();
+	    IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls3);
+	    moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
 
 
     // Auto-Prioritize
@@ -232,20 +297,22 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); 
 
-    cArea = new Composite(gFile, SWT.NULL);
-    layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 3;
-    cArea.setLayout(layout);
-    cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    new StringParameter(cArea, "priorityExtensions", "").setLayoutData(gridData); 
-
-    label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.ignoreCase");
-    new BooleanParameter(cArea, "priorityExtensionsIgnoreCase");
+    Composite cExtensions = new Composite(gFile, SWT.NULL);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalSpan = 2;
+	    cExtensions.setLayoutData(gridData);
+	    layout = new GridLayout();
+	    layout.marginHeight = 0;
+	    layout.marginWidth = 0;
+	    layout.numColumns = 3;
+	    cExtensions.setLayout(layout);
+	
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    new StringParameter(cExtensions, "priorityExtensions", "").setLayoutData(gridData); 
+	
+	    label = new Label(cExtensions, SWT.NULL);
+	    Messages.setLanguageText(label, "ConfigView.label.ignoreCase");
+	    new BooleanParameter(cExtensions, "priorityExtensionsIgnoreCase");
 
     // Confirm Delete
     label = new Label(gFile, SWT.NULL);
