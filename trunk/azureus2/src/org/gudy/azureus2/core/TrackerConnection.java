@@ -95,7 +95,7 @@ public class TrackerConnection
     try {
       URL reqUrl = new URL(constructURL(evt));
       Logger.getLogger().log(componentID,evtFullTrace,Logger.INFORMATION,"Tracker is Requesting : " + reqUrl);
-      HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();           
+      HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();             
       con.connect();
       InputStream is = con.getInputStream(); 
       int length = con.getContentLength();

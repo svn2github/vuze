@@ -791,7 +791,7 @@ public class PeerSocket extends PeerConnection {
               if (used >= (90 * allowed) / 100)
                 maxUpload = 1024 * 1024;
               if (used < (90 * allowed) / 100)
-                maxUpload = (110 * written) / 100 + 50;
+                maxUpload = max((110 * written) / 100, 50);
             }
           }
         }
@@ -869,6 +869,10 @@ public class PeerSocket extends PeerConnection {
         }
       }
     }
+  }
+  
+  private int max(int a,int b) {
+    return a>b?a:b;
   }
 
   private void sendKeepAlive() {
@@ -952,7 +956,7 @@ public class PeerSocket extends PeerConnection {
   }
   
   public int getDownloadPriority() {
-      return manager.getPriority();
+      return manager.getDownloadPriority();
   }
 
 }
