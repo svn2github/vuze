@@ -7,17 +7,12 @@ package org.gudy.azureus2.core2;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
 import org.gudy.azureus2.core.ByteBufferPool;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.Constants;
 import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core.MessageText;
@@ -47,28 +42,23 @@ public class PeerSocket extends PeerConnection {
    */
   public PeerSocket(PeerManager manager, byte[] peerId, String ip, int port, boolean fake) {
     super(manager, peerId, ip, port);
-    if (fake)
+    if (fake) {
+      this.fake = true;
       return;
+    }
+    initialize();
+  }
+
+  private void initialize() {
+    this.fake = false;
     this.incoming = false;
     allocateAll();
 //    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
 
     try {
-      if(false) { // ConfigurationManager.getInstance().getBooleanParameter("UDP Download", true)
-        selector = Selector.open();
-      //Create a new SocketChannel, left non-connected
-        udpSocket = DatagramChannel.open();
-        //Configure it so it's non blocking
-        udpSocket.configureBlocking(false);
-        //Initiate the connection
-        udpSocket.connect(new InetSocketAddress(ip, port));
-        udpSocket.register(selector, udpSocket.validOps());
-      } else {
-        socket = SocketChannel.open();
-        socket.configureBlocking(false);
-        socket.connect(new InetSocketAddress(ip, port));
-//        socket.register(selector, socket.validOps());
-      }
+      socket = SocketChannel.open();
+      socket.configureBlocking(false);
+      socket.connect(new InetSocketAddress(ip, port));
       this.currentState = new StateConnecting();
     }
     catch (Exception e) {
@@ -232,15 +222,6 @@ public class PeerSocket extends PeerConnection {
     //2. Cancel any pending requests (on the manager side)
     cancelRequests();
 
-    if (selector != null) {
-      try {
-        selector.close();
-      } catch (Exception e) {
-        e.printStackTrace(); // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
-      }
-      selector = null;
-    }
-
     //3. Close the socket
     if (socket != null) {
       try {
@@ -249,15 +230,6 @@ public class PeerSocket extends PeerConnection {
         e.printStackTrace(); // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
       }
       socket = null;
-    }
-
-    if (udpSocket != null) {
-      try {
-        udpSocket.close();
-      } catch (Exception e) {
-        e.printStackTrace(); // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
-      }
-      udpSocket = null;
     }
 
     //4. release the read Buffer
@@ -348,15 +320,8 @@ public class PeerSocket extends PeerConnection {
       if (readBuffer.hasRemaining()) {
         try {
           int read = -1;
-          if(udpSocket == null) {
-            try {
-              socket.finishConnect();
-            } catch(Exception ignore) {
-            }
-            read = socket.read(readBuffer);
-          } else {
-            read = udpSocket.read(readBuffer);
-          }
+          socket.finishConnect();
+          read = socket.read(readBuffer);
           if (read < 0) {
             closeAll();
             return;
@@ -430,64 +395,18 @@ public class PeerSocket extends PeerConnection {
 
   private int processSocket(ByteBuffer buffer, boolean doRead) {
     int processedBytes = 0;
-    if(udpSocket == null) {
-      try {
-        processedBytes = doRead ? socket.read(buffer) : socket.write(buffer);
-      } catch (Exception e) {
-//      closeAll();
-        return -1;
-      }
-    } else {
-      try {
-        // Wait for an event
-        selector.select();
-      } catch (Exception e) {
-        // Handle error with selector
-//        closeAll();
-        return -1;
-      }
-
-      Iterator it = null;
-      try {
-        // Get list of selection keys with pending events
-        it = selector.selectedKeys().iterator();
-      } catch (Exception e) {
-        return -1;
-      }
-
-      // Process each key at a time
-      while (it.hasNext()) {
-        // Get the selection key
-        SelectionKey selKey = (SelectionKey) it.next();
-        // Remove it from the list to indicate that it is being processed
-        it.remove();
-        if (selKey.isValid()) {
-          try {
-            SocketChannel sChannel = (SocketChannel) selKey.channel();
-            if (selKey.isConnectable()) {
-              // Finish connection
-              if (sChannel.isConnectionPending()) {
-                sChannel.finishConnect();
-              }
-            }
-            if((doRead && selKey.isReadable()) || (!doRead && selKey.isWritable())) {
-              processedBytes = doRead ? sChannel.read(buffer) : sChannel.write(buffer);
-              break;
-            }
-          } catch (Exception e) {
-            // Handle error with channel and unregister
-            selKey.cancel();
-//              closeAll();
-            return -1;
-          }
-        }
-      }
+    try {
+      processedBytes = doRead ? socket.read(buffer) : socket.write(buffer);
+    } catch (Exception e) {
+      return -1;
     }
     return processedBytes;
   }
 
   public void process() {
     if(peerUpdater == null) {
+      if(fake)
+        initialize();
       peerUpdater = new PeerUpdater();
       peerUpdater.start();
     }
@@ -1045,8 +964,6 @@ public class PeerSocket extends PeerConnection {
 
   //The SocketChannel associated with this peer
   private SocketChannel socket;
-  private DatagramChannel udpSocket;
-  private Selector selector;
 
   //The reference to the current ByteBuffer used for reading on the socket.
   private ByteBuffer readBuffer;
@@ -1063,6 +980,8 @@ public class PeerSocket extends PeerConnection {
   private int loopFactor;
 
   private PeerUpdater peerUpdater;
+
+  private boolean fake = false;
 
   //The keepAlive counter
   private int keepAlive;
