@@ -67,7 +67,7 @@ public class CompletionItem extends TorrentGraphicItem  {
     }
 
     int percentDone = torrentRow.getManager().getStats().getDownloadCompleted(true);
-    boolean bImageBufferValid = (lastPercentDone == percentDone) && (lastWidth == bounds.width);
+    boolean bImageBufferValid = (lastPercentDone == percentDone) && (lastWidth == bounds.width) && torrentRow.isValid();
     if (bImageBufferValid) {
       return;
     }

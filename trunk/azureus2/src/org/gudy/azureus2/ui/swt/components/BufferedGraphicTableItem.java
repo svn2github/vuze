@@ -76,8 +76,10 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
    * @return true - image was changed.  false = image was the same
    */
   public boolean setGraphic(Image img) {
-    if (image == img)
+    if (image == img) {
+      doPaint();
       return false;
+    }
     if (disposeGraphic && image != null && !image.isDisposed()) {
       image.dispose();
     }

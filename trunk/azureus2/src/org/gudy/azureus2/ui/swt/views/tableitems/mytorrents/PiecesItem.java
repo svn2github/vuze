@@ -72,7 +72,7 @@ public class PiecesItem extends TorrentGraphicItem  {
       return;
     boolean bImageBufferValid = true;
     boolean bImageChanged = false;
-    if (imageBuffer.length != x1) {
+    if (imageBuffer.length != x1 || !torrentRow.isValid()) {
       imageBuffer = new int[x1];
       bImageBufferValid = false;
     }

@@ -62,7 +62,7 @@ public class HealthItem extends TorrentGraphicItem  {
     }
     image_name += "_selected";
     
-    if (!sLastImageName.equals(image_name)) {
+    if (!sLastImageName.equals(image_name) || !torrentRow.isValid()) {
       setGraphic(ImageRepository.getImage(image_name));
       sLastImageName = image_name;
     }

@@ -119,7 +119,7 @@ public class PeerRow implements SortableItem {
     Iterator iter = items.iterator();
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
-      if (item.isShown() && (!item.needsPainting() || bDoGraphics)) {
+      if (item.isShown() && (!item.needsPainting() || bDoGraphics || !valid)) {
         item.refresh();
       }
     }

@@ -68,7 +68,7 @@ public class PiecesItem extends PeerGraphicItem  {
       return;
     boolean bImageBufferValid = true;
     boolean bImageChanged = false;
-    if (imageBuffer.length != x1) {
+    if (imageBuffer.length != x1 || !peerRow.isValid()) {
       imageBuffer = new int[x1];
       bImageBufferValid = false;
     }
@@ -124,7 +124,7 @@ public class PiecesItem extends PeerGraphicItem  {
     gcImage.dispose();
 
     if (bImageChanged) {
-  	  //peerRow.debugOut("refresh()", false);
+  	  //peerRow.debugOut("refresh() "+image+ ";V"+ peerRow.isValid(), false);
       setGraphic(image);
     }
   }
