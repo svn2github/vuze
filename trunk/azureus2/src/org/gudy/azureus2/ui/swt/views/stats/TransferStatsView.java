@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -49,7 +50,7 @@ public class TransferStatsView extends AbstractIView {
   
   Composite panel;
   
-  BufferedLabel sessionDown,sessionUp,sessionTime,totalDown,totalUp,totalTime;
+  BufferedLabel sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
   
   public TransferStatsView(GlobalManager manager) {
     this.manager = manager;
@@ -61,7 +62,7 @@ public class TransferStatsView extends AbstractIView {
     panel = new Composite(composite,SWT.NULL);
     
     GridLayout panelLayout = new GridLayout();
-    panelLayout.numColumns = 4;
+    panelLayout.numColumns = 5;
     panelLayout.makeColumnsEqualWidth = true;
     panel.setLayout(panelLayout);
     
@@ -74,6 +75,9 @@ public class TransferStatsView extends AbstractIView {
     
     lbl = new Label(panel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.uploaded");
+    
+    lbl = new Label(panel,SWT.NULL);
+    Messages.setLanguageText(lbl,"SpeedView.stats.ratio");
     
     lbl = new Label(panel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.uptime");
@@ -89,6 +93,10 @@ public class TransferStatsView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionUp.setLayoutData(gridData);
     
+    session_ratio = new BufferedLabel(panel,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    session_ratio.setLayoutData(gridData);    
+    
     sessionTime = new BufferedLabel(panel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionTime.setLayoutData(gridData);
@@ -103,6 +111,10 @@ public class TransferStatsView extends AbstractIView {
     totalUp = new BufferedLabel(panel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalUp.setLayoutData(gridData);
+    
+    total_ratio = new BufferedLabel(panel,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    total_ratio.setLayoutData(gridData);
     
     totalTime = new BufferedLabel(panel,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -123,14 +135,41 @@ public class TransferStatsView extends AbstractIView {
   }
   
   public void refresh() {
-    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived() ));
-    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent() ));
+    long session_total_received = stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived();
+    long session_total_sent = stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent();
     
-    totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc(totalStats.getDownloadedBytes()));
-    totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc(totalStats.getUploadedBytes()));
+    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_received ));
+    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_sent ));
+    
+    totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getDownloadedBytes() ));
+    totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getUploadedBytes() ));
 
     sessionTime.setText( DisplayFormatters.formatETA( totalStats.getSessionUpTime() ) );
     totalTime.setText( DisplayFormatters.formatETA( totalStats.getTotalUpTime() ) );
+    
+    long t_ratio_raw = (1000* totalStats.getUploadedBytes() / totalStats.getDownloadedBytes() );
+    long s_ratio_raw = (1000* session_total_sent / session_total_received );
+    
+    String t_ratio = "";
+    String s_ratio = "";
+    
+    
+    String partial = String.valueOf(t_ratio_raw % 1000);
+    while (partial.length() < 3) {
+      partial = "0" + partial;
+    }
+    t_ratio = (t_ratio_raw / 1000) + "." + partial;
+    
+    partial = String.valueOf(s_ratio_raw % 1000);
+    while (partial.length() < 3) {
+      partial = "0" + partial;
+    }
+    s_ratio = (s_ratio_raw / 1000) + "." + partial;
+    
+    
+    total_ratio.setText( t_ratio );
+    session_ratio.setText( s_ratio );
+    
   }  
   
   public String getData() {
