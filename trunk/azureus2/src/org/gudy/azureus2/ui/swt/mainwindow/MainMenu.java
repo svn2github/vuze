@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
@@ -370,6 +371,7 @@ public class MainMenu {
           mainWindow.showStats();
         }
       });
+            
       
       
       new MenuItem(toolsMenu, SWT.SEPARATOR);
@@ -395,6 +397,8 @@ public class MainMenu {
       }
       
       
+      
+      
       //the Plugins menu
       menu_plugin = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(menu_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
@@ -402,6 +406,15 @@ public class MainMenu {
       menu_plugin.setEnabled(false);
       menu_plugin.setMenu(pluginMenu);
       
+      new MenuItem(pluginMenu, SWT.SEPARATOR);
+      
+      MenuItem plugins_install_wizard = new MenuItem(pluginMenu, SWT.NULL);
+      Messages.setLanguageText(plugins_install_wizard, "MainWindow.menu.plugins.installPlugins"); //$NON-NLS-1$
+      plugins_install_wizard.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new InstallPluginWizard(mainWindow.getAzureusCore(), display);
+        }
+      });
       
       //The Help Menu
       MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -535,7 +548,7 @@ public class MainMenu {
   public void addPluginView(final PluginView view) {
     display.asyncExec(new AERunnable() {
       public void runSupport() {
-        MenuItem item = new MenuItem(pluginMenu,SWT.NULL);
+        MenuItem item = new MenuItem(pluginMenu,SWT.NULL,0);
         item.setText(view.getPluginViewName());
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
