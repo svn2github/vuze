@@ -278,6 +278,14 @@ public class FileUtil {
   	public static Map
 	readResilientConfigFile(
 		String		file_name )
+	{
+  		return(readResilientConfigFile( file_name, 0 ));
+  	}
+  	
+	protected static Map
+	readResilientConfigFile(
+		String		file_name,
+		int			fail_count )
 	{	  
   			// open the file
   	
@@ -291,13 +299,24 @@ public class FileUtil {
 
   			if ( using_backup ){
 	     
-   				LGLogger.logAlert( LGLogger.AT_ERROR,
-  									"Load of '" + file_name + "' fails, no usable file or backup" ); 
+  				if ( fail_count == 1 ){
+  					
+  						// we only alert the user if at least one file was found and failed
+  						// otherwise it could be start of day when neither file exists yet
+  					
+  					LGLogger.logAlert( 	LGLogger.AT_ERROR,
+  										"Load of '" + file_name + "' fails, no usable file or backup" );
+  				}else{
+  					
+  					LGLogger.log( 	LGLogger.INFORMATION,
+									"Load of '" + file_name + "' fails, file not found" );
+				
+  				}
 	       
   				return( new HashMap());
   			}
   			
-  			return( readResilientConfigFile( file_name + ".bak" ));
+  			return( readResilientConfigFile( file_name + ".bak", 0 ));
   		}
 
   		BufferedInputStream bin = null;
@@ -328,7 +347,7 @@ public class FileUtil {
 	    		return( new HashMap());
 	    	}
 	    	
- 			return( readResilientConfigFile( file_name + ".bak" ));
+ 			return( readResilientConfigFile( file_name + ".bak", 1 ));
  			 
 	    }finally{
 	    	

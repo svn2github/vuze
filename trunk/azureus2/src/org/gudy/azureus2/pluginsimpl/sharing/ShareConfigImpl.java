@@ -45,20 +45,10 @@ ShareConfigImpl
 		ShareManagerImpl	_manager )
 	{
 		manager	= _manager;
-		
-		FileInputStream 		fin = null;
-		
-		BufferedInputStream 	bin = null;
-		
+				
 		try{
-			
-			File configFile = FileUtil.getUserFile("sharing.config");
-			
-			fin = new FileInputStream(configFile);
-			
-			bin = new BufferedInputStream(fin, 8192);
-			
-			Map map = BDecoder.decode(bin);
+						
+			Map map = FileUtil.readResilientConfigFile("sharing.config");
 			
 			List resources = (List) map.get("resources");
 			
@@ -75,30 +65,10 @@ ShareConfigImpl
 				
 				manager.deserialiseResource( r_map );
 			}
-		}catch (FileNotFoundException e) {
-			
-			//Do nothing
 			
 		}catch (Exception e) {
 			
 			e.printStackTrace();
-			
-		}finally{
-			try{
-				if (bin != null){
-						
-					bin.close();
-				}
-			}catch (Exception e){
-			}
-			
-			try{
-				if (fin != null){
-					
-					fin.close();
-				}
-			}catch(Exception e){
-			}
 		}
 	}
 
@@ -131,41 +101,7 @@ ShareConfigImpl
 			list.add( m );
 		}
 		
-		
-			//open a file stream
-		
-		FileOutputStream fos = null;
-		
-		try{
-			//encode the data
-			
-			byte[] torrentData = BEncoder.encode(map);
-			
-			fos = new FileOutputStream(FileUtil.getUserFile("sharing.config"));
-			
-			//write the data out
-			
-			fos.write(torrentData);
-			
-		}catch (Exception e){
-			
-			e.printStackTrace();
-			
-			throw( new ShareException("ShareConfig::saveConfig failed", e ));
-		}finally{
-			
-			try {
-				if (fos != null){
-					
-					fos.close();
-				}
-				
-			}catch (Exception e){
-				
-				throw( new ShareException("ShareConfig::saveConfig failed", e ));
-				
-			}
-		}
+		FileUtil.writeResilientConfigFile("sharing.config", map);
 	}
 	
 	protected synchronized void

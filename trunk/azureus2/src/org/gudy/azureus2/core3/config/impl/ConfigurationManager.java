@@ -9,7 +9,6 @@ package org.gudy.azureus2.core3.config.impl;
 import java.io.*;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;

@@ -61,20 +61,10 @@ TRHostConfigImpl
 	loadConfig(
 		TRHostTorrentFinder		finder ) 
 	{
-		FileInputStream 		fin = null;
-		
-		BufferedInputStream 	bin = null;
-	   
 	   	try{
 	   		loading	= true;
 	   		
-			File configFile = FileUtil.getUserFile("tracker.config");
-		 
-			fin = new FileInputStream(configFile);
-		 
-			bin = new BufferedInputStream(fin, 8192);
-		 
-			Map map = BDecoder.decode(bin);
+	   		Map	map = FileUtil.readResilientConfigFile("tracker.config");
 		 
 			List torrents = (List) map.get("torrents");
 		 
@@ -155,25 +145,12 @@ TRHostConfigImpl
 					}
 			 	}
 		   	}
-		}catch (FileNotFoundException e) {
-			
-		 	//Do nothing
 		 	
 	   	}catch (Exception e) {
 		 
 			e.printStackTrace();
 			  
 	   	}finally{
-	   		
-			try{
-		   		if (bin != null)
-					 bin.close();
-		 	}catch (Exception e) {}
-		 	
-		 	try{
-		   		if (fin != null)
-			 		fin.close();
-		 	}catch (Exception e) {}
 		 	
 		 	loading	= false;
 	   	}
@@ -303,32 +280,7 @@ TRHostConfigImpl
 		   	
 		   	synchronized( save_lock ){
 		   		
-			   		//open a file stream
-			   		
-			   	FileOutputStream fos = null;
-			   	
-			   	try{
-			   			//encode the data
-			   		
-			   		byte[] torrentData = BEncoder.encode(map);
-			   		
-			   		fos = new FileOutputStream(FileUtil.getUserFile("tracker.config"));
-				 	
-				 		//write the data out
-				 		
-				 	fos.write(torrentData);
-				 	
-			   	}catch ( Throwable e){
-			   		
-				 	e.printStackTrace();
-				 	
-			   	}finally{
-			   		
-				 	try {
-				   		if (fos != null)
-					 		fos.close();
-				 	}catch (Exception e) {}
-			   	}
+		   		FileUtil.writeResilientConfigFile( "tracker.config", map );
 			   	
 				if ( 	COConfigurationManager.getBooleanParameter( "Tracker Log Enable", false ) &&
 						stats_entries.size() > 0 ){
