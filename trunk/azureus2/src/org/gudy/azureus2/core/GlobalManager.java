@@ -27,16 +27,28 @@ public class GlobalManager extends Component {
   private List managers;
   private Checker checker;
   private PeerStats stats;
+  private TrackerChecker trackerChecker;
 
   public class Checker extends Thread {
     boolean finished = false;
-
+    int loopFactor;
+    
     public Checker() {
       super("Global Status Checker");
+      loopFactor = 0;
     }
+    
+    
 
     public void run() {
       while (!finished) {
+                
+        loopFactor++;
+        if(loopFactor >= 6000) {
+          loopFactor = 0;
+          trackerChecker.update();
+        }
+        
         synchronized (managers) {
           int nbStarted = 0;
           for (int i = 0; i < managers.size(); i++) {
@@ -77,7 +89,7 @@ public class GlobalManager extends Component {
           }
         }
         try {
-          Thread.sleep(50);
+          Thread.sleep(100);
         }
         catch (Exception e) {
           e.printStackTrace();
@@ -93,6 +105,7 @@ public class GlobalManager extends Component {
   public GlobalManager() {
     stats = new PeerStats(0);
     managers = new ArrayList();
+    trackerChecker = new TrackerChecker();
     loadDownloads();
     checker = new Checker();
     checker.start();
@@ -198,7 +211,7 @@ public class GlobalManager extends Component {
       DownloadManager dm = (DownloadManager) managers.get(i);
       Map dmMap = new HashMap();
       dmMap.put("torrent", dm.getTorrentFileName().getBytes());
-      dmMap.put("path", dm.getSavePath());
+      dmMap.put("path", dm.getSavePathForSave());
       dmMap.put("uploads", new Long(dm.getMaxUploads()));
       int stopped = 0;
       if (dm.getState() == DownloadManager.STATE_STOPPED)
@@ -229,6 +242,13 @@ public class GlobalManager extends Component {
   //TODO:: Move this to a FileManager class?
   private String getApplicationPath() {
     return System.getProperty("user.dir") + System.getProperty("file.separator");
+  }
+
+  /**
+   * @return
+   */
+  public TrackerChecker getTrackerChecker() {
+    return trackerChecker;
   }
 
 }

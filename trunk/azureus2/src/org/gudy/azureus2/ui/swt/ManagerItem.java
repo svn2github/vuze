@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.PeerStats;
 
 /**
@@ -159,13 +160,23 @@ public class ManagerItem {
 
     }
 
+    HashData hd = manager.getHashData();
+    
     tmp = "" + manager.getNbSeeds(); //$NON-NLS-1$
+    if(hd!=null)
+      tmp += " (" + hd.seeds + ")";
+    else
+      tmp += " (?)";
     if (!(tmp.equals(this.nbSeeds))) {
       nbSeeds = tmp;
       item.setText(4, tmp);
     }
 
     tmp = "" + manager.getNbPeers(); //$NON-NLS-1$
+    if(hd!=null)
+          tmp += " (" + hd.peers + ")";
+        else
+          tmp += " (?)";
     if (!(tmp.equals(this.nbPeers))) {
       nbPeers = tmp;
       item.setText(5, tmp);
