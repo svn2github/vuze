@@ -22,7 +22,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
  */
 public class DirectByteBufferPool {
 
-	private static final boolean DEBUG = true;
+	protected static final boolean DEBUG = true;
 	
 	static{
 		if ( DEBUG ){
@@ -52,13 +52,13 @@ public class DirectByteBufferPool {
   
 
   private final Map buffersMap = new LinkedHashMap(END_POWER - START_POWER + 1);
-  private final Object poolsLock = new Object();
-  private final Timer compactionTimer;
-  private final ReferenceQueue refQueue = new ReferenceQueue();
   
-  private final Map refMap 		= new HashMap();
-  private final Map revRefMap	= new HashMap();	// for debugging
-  private final Map refs 		= new HashMap();
+  private final Object poolsLock = new Object();
+
+  private final Timer compactionTimer;
+  
+  private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents
+  															// hence IdentityHashMap)
   
   private static final long COMPACTION_CHECK_PERIOD = 5*60*1000; //5 min
   private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
@@ -100,7 +100,7 @@ public class DirectByteBufferPool {
         COMPACTION_CHECK_PERIOD,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {
-            reclaimBuffers();
+       
             checkMemoryUsage();
           }
         }
@@ -130,8 +130,9 @@ public class DirectByteBufferPool {
     }
     catch (OutOfMemoryError e) {
        Debug.out("Running garbage collector...");
-       reclaimBuffers();
+       
        clearBufferPools();
+       
        runGarbageCollection();
 
        try {
@@ -171,93 +172,89 @@ public class DirectByteBufferPool {
    * Retrieve an appropriate buffer from the free pool, or
    * create a new one if the pool is empty.
    */
-  private DirectByteBuffer getBufferHelper(final int _length) {
-    //Reclaim any unused buffers
-    reclaimBuffers();
+  private DirectByteBuffer 
+  getBufferHelper(final int _length) 
+  {
     
     Integer reqVal = new Integer(_length);
     
     //loop through the buffer pools to find a buffer big enough
+    
     Iterator it = buffersMap.keySet().iterator();
+    
     while (it.hasNext()) {
+    	
       Integer keyVal = (Integer)it.next();
 
-      //check if the buffers in this pool are big enough
+      	//check if the buffers in this pool are big enough
+      
       if (reqVal.compareTo(keyVal) <= 0) {
+      	
+   
         ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
             
         ByteBuffer buff;
-        synchronized ( poolsLock ) { //make sure we don't remove a buffer when running compaction
-          //if there are no free buffers in the pool, create a new one.
-          //otherwise use one from the pool
+        
+        synchronized ( poolsLock ) { 
+        
+        	//make sure we don't remove a buffer when running compaction
+        	//if there are no free buffers in the pool, create a new one.
+        	//otherwise use one from the pool
+        	
           if (bufferPool.isEmpty()) {
+          	
             buff = allocateNewBuffer(keyVal.intValue());
-          }
-          else {
+            
+          }else{
+          	
             synchronized ( bufferPool ) {
+            	
               buff = (ByteBuffer)bufferPool.remove(bufferPool.size() - 1);
             }
           }
         }
+        
         buff.clear();   //scrub the buffer
+        
         buff.limit( _length );
         
         bytesOut += buff.capacity();
-        
-        //register it for later reclaiming
-        DirectByteBuffer dbb = new DirectByteBuffer( buff );
-        
-        WeakReference wr = new WeakReference( dbb, refQueue );
-        
-        synchronized( refs ) {
+              
+        DirectByteBuffer dbb = new DirectByteBuffer( buff, this );
+                    
+        if ( DEBUG ){
         	
-          refs.put( wr, new Boolean( false ));
-        }
-        
-        dbb.setReference( wr );
-        
-        synchronized( refMap ){
+        	synchronized( handed_out ){
+        	        	
+        		if ( handed_out.put( buff, buff ) != null ){
+          		
+        			Debug.out( "buffer handed out twice!!!!");
+          		
+        			throw( new RuntimeException( "Buffer handed out twice" ));
+        		}
         	
-          refMap.put( wr, buff );
-          
-          if ( DEBUG){
-          	
-    		// System.out.println( "buffer allocated = " + buff + ", bytesIn = " + bytesIn + ", bytesOut = " + bytesOut );
-
-          	if ( revRefMap.put( new byteBufferWrapper(buff), wr ) != null ){
-          		
-          		Debug.out( "buffer handed out twice!!!!");
-          		
-          		throw( new RuntimeException( "Buffer handed out twice" ));
+				//System.out.println( "[" + handed_out.size() + "] -> " + buff + ", bytesIn = " + bytesIn + ", bytesOut = " + bytesOut );
           	}
-          }
         }
         
         return dbb;
       }
     }
     
-    //we should never get here
+    	//we should never get here
+      
     Debug.out("Unable to find an appropriate buffer pool");
-    return null;
+    
+	throw( new RuntimeException( "Unable to find an appropriate buffer pool" ));	 
   }
-
-  
-  /**
-   * Return a buffer to the buffer pool.
-   * *** Remember to set the local buffer reference to
-   * null after returning the buffer to the pool ***
-   */
-  //public static void freeBuffer(ByteBuffer _buffer) {
-  //  pool.free(_buffer);
-  //}
-  
   
   
   /**
    * Return the given buffer to the appropriate pool.
    */
-  private void free(ByteBuffer _buffer) {
+  private void 
+  free(ByteBuffer _buffer) 
+  {
     Integer buffSize = new Integer(_buffer.capacity());
     
     ArrayList bufferPool = (ArrayList)buffersMap.get(buffSize);
@@ -392,108 +389,27 @@ public class DirectByteBufferPool {
     }
   }
   
-   
-  private void 
-  reclaimBuffers() 
+  protected void
+  returnBuffer(
+  	ByteBuffer		buffer )
   {
-    Reference ref;
+    bytesIn += buffer.capacity();
     
-    while ( (ref = refQueue.poll()) != null ){
-    	
-      Boolean returned;
-      
-      synchronized( refs ) {
-      	
-        returned = (Boolean)refs.remove( ref );
-      }
-      
-      if ( returned == null ){
-      	
-      	Debug.out( "Buffer reference dequeued but not in 'refs' table" );
-      }
-      
-      synchronized( refMap ) {
-      	
-        ByteBuffer buff = (ByteBuffer) refMap.remove( ref );
-        
-        if ( buff == null ){
-        	
-          	Debug.out( "Buffer reference requeued but not in 'refMap' table" );
-       	
-        }else{
-        	
-	        bytesIn += buff.capacity();
-	        
-        	if ( DEBUG ){
-        		
-        		// System.out.println( "buffer returned = " + buff + ", bytesIn = " + bytesIn + ", bytesOut = " + bytesOut );
-        		
-        		if ( revRefMap.remove( new byteBufferWrapper(buff)) == null ){
-        			
-        			Debug.out( "Unknown buffer returned!!!!" );
-        		}
-        	}
-        	
-	        if ( returned != null && !returned.booleanValue()){
-	        	
-	        	Debug.out("DirectByteBuffer not returned to pool: size=" +buff.limit());
-	        }
-	        
-	        free( buff );
-        }
-      }
-    }
-  }
-  
-  
-  protected static void registerReturn( Reference ref ) {
-  	
-    Map refs = pool.refs;
-    
-    synchronized( refs ) {
-    	
-      Boolean	old_val = (Boolean)refs.put( ref, new Boolean( true ));
-      
-      if ( old_val == null ){
-      	
-      	Debug.out( "entry not found");
-      	
-      }else if ( old_val.booleanValue()){
-      	
-      	Debug.out( "entry already returned" );
-      }
-    }
-  }
-  
-  protected class
-  byteBufferWrapper
-  {
-  		// ByteBuffer implements "equals" based on buffer contents!!!!!
-  	
-  	protected ByteBuffer	b;
-  	
-  	protected
-	byteBufferWrapper(
-		ByteBuffer	_b )
-  	{
-  		b		= _b;
+  	if ( DEBUG ){
   		
-  		// System.out.println( "Allocated " + b + ", waste = " + ( b.capacity() - b.limit()));
+  		synchronized( handed_out ){
+
+  			if ( handed_out.remove( buffer ) == null ){
+  				
+  				Debug.out( "buffer not handed out" );
+  				
+  				throw( new RuntimeException( "Buffer not handed out" ));
+  			}
+  			
+       		// System.out.println( "[" + handed_out.size() + "] <- " + buffer + ", bytesIn = " + bytesIn + ", bytesOut = " + bytesOut );
+  		}
   	}
   	
-  	public int
-	hashCode()
-  	{
-  			// very poor hashcode :P
-  		
-  		return( b.capacity());
-  	}
-  	
-  	public boolean
-	equals(
-		Object	other )
-  	{
-  		return(((byteBufferWrapper)other).b == b );
-  	}
+    free( buffer ); 
   }
 }

@@ -40,49 +40,37 @@ DirectByteBuffer
 {	
 	protected static final boolean	TRACE		= false;
 	
-	protected List			trace_list;
-	protected StringBuffer	spare_trace_buffer;
-	protected traceWrapper	trace_wrapper;
-	protected static List	global_trace;
-	//protected static Map	trace_buffer_map = new WeakHashMap();
+	//protected List			trace_list;
+	//protected StringBuffer	spare_trace_buffer;
+	//protected traceWrapper	trace_wrapper;
+	//protected static List		global_trace;
+	//protected static Map		trace_buffer_map = new WeakHashMap();
 	
-	private final ByteBuffer buffer;
+	private ByteBuffer buffer;
   
-	private Reference ref;
+	private DirectByteBufferPool	 pool;
   
 	public 
 	DirectByteBuffer( 
 		ByteBuffer _buffer ) 
 	{
-		buffer = _buffer;
+		this( _buffer, null );
+	}
+	
+	public 
+	DirectByteBuffer( 
+		ByteBuffer 				_buffer,
+		DirectByteBufferPool	_pool ) 
+	{
+		buffer 	= _buffer;
+		pool	= _pool;
 		
 		if ( TRACE ){
-			
+			/*
 			trace_list		= new LinkedList();
 			global_trace	= new LinkedList();
 			
 			trace_wrapper = new traceWrapper( buffer );
-			/*
-			Exception	existing = (Exception)trace_buffer_map.get( wrapper );
-			
-			// System.out.println( "alloc:" + buffer );
-			
-			Exception	here =  new Exception();
-			
-			if ( existing != null ){
-				
-				System.out.println( "**** dual allocation of ByteBuffer **** ");
-				
-				System.out.println( "old" );
-				
-				existing.printStackTrace();				
-				
-				System.out.println( "new" );
-				
-				here.printStackTrace();
-			}
-			
-			trace_buffer_map.put( wrapper, here);
 			*/
 		}
 	}
@@ -93,6 +81,7 @@ DirectByteBuffer
 	{
 		if ( TRACE ){
 		
+			/*
 			Thread	t = Thread.currentThread();
 			
 			StringBuffer	buffer = spare_trace_buffer==null?new StringBuffer(100):spare_trace_buffer;
@@ -123,6 +112,7 @@ DirectByteBuffer
 					global_trace.remove(0);
 				}
 			}
+			*/
 		}
 	}
 	
@@ -131,7 +121,7 @@ DirectByteBuffer
 		Throwable 	e )
 	{
 		if ( TRACE ){
-			
+			/*
 			synchronized( global_trace ){
 	
 				e.printStackTrace();
@@ -167,14 +157,8 @@ DirectByteBuffer
 					}
 				}
 			}
+			*/
 		}
-	}
-	
-	protected void
-	setReference(
-		Reference	_ref )
-	{
-		ref		= _ref;
 	}
 	
 	public int
@@ -484,13 +468,36 @@ DirectByteBuffer
 			// trace_buffer_map.remove( buffer );
 		}
 		
-		if ( ref != null ){
-    	
-			DirectByteBufferPool.registerReturn( ref );
-      
-			if ( !ref.enqueue()){
+		if ( pool != null ){
+			
+			if ( DirectByteBufferPool.DEBUG ){
 				
-				Debug.out( "Reference enqueue fails" );
+				synchronized( this ){
+					
+					if ( buffer == null ){
+						
+						Debug.out( "Buffer already returned to pool");
+						
+					}else{
+		    	
+						pool.returnBuffer( buffer );
+						
+						buffer	= null;
+					}
+				}
+			}else{
+				
+				if ( buffer == null ){
+					
+					Debug.out( "Buffer already returned to pool");
+					
+				}else{
+	    	
+					pool.returnBuffer( buffer );
+					
+					buffer	= null;
+				}
+				
 			}
 		}
 	}
@@ -499,19 +506,19 @@ DirectByteBuffer
 	protected class
 	traceWrapper
 	{
-		ByteBuffer	buffer;
+		ByteBuffer	trace_buffer;
 		
 		protected
 		traceWrapper(
 			ByteBuffer	_buffer )
 		{
-			buffer	= _buffer;
+			trace_buffer	= _buffer;
 		}
 		
 		public int
 		hashCode()
 		{
-			return( buffer.hashCode());	
+			return( trace_buffer.hashCode());	
 		}
 			
 		public boolean
@@ -523,7 +530,7 @@ DirectByteBuffer
 				return( false);
 			}
 			
-			return( buffer == ((traceWrapper)other).buffer );
+			return( trace_buffer == ((traceWrapper)other).trace_buffer );
 		}
 	}
 }
