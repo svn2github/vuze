@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -33,6 +34,7 @@ public class GlobalManager extends Component {
   private Checker checker;
   private PeerStats stats;
   private TRTrackerScraper trackerScraper;
+  private boolean isStopped = false;
 
   public class Checker extends Thread {
     boolean finished = false;
@@ -256,7 +258,6 @@ public class GlobalManager extends Component {
       DownloadManager manager = new DownloadManager(this, fileName, savePath);
       return addDownloadManager(manager);
     }
-
   }
 
   private void copyFile(File origin, File destination) throws IOException {
@@ -273,17 +274,22 @@ public class GlobalManager extends Component {
 
   //Public method !!! and don't touch it !
   public boolean addDownloadManager(DownloadManager manager) {
-    synchronized (managers) {
-      if (managers.contains(manager)) {
-        manager.setState(DownloadManager.STATE_DUPLICATE);
-        return false;
+    if (!isStopped) {
+      synchronized (managers) {
+        if (managers.contains(manager)) {
+          manager.setState(DownloadManager.STATE_DUPLICATE);
+          return false;
+        }
+        managers.add(manager);
       }
-      managers.add(manager);
-    }
 
-    objectAdded(manager);
-    saveDownloads();
-    return true;
+      objectAdded(manager);
+      saveDownloads();
+      return true;
+    } else {
+      LGLogger.log(0, LGLogger.ERROR, LGLogger.ERROR, "Tried to add a DownloadManager after shutdown of GlobalManager.");
+      return false;
+    }
   }
 
   public List getDownloadManagers() {
@@ -309,11 +315,14 @@ public class GlobalManager extends Component {
   }
 
   public void stopAll() {
-    checker.stopIt();
-    saveDownloads();
-    while (managers.size() != 0) {
-      DownloadManager manager = (DownloadManager) managers.remove(0);
-      manager.stopIt();
+    if (!isStopped) {
+      checker.stopIt();
+      saveDownloads();
+      while (managers.size() != 0) {
+        DownloadManager manager = (DownloadManager) managers.remove(0);
+        manager.stopIt();
+      }
+      isStopped = true;
     }
   }
 
