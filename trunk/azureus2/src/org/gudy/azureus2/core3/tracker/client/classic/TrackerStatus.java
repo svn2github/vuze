@@ -243,7 +243,7 @@ public class TrackerStatus {
         	
      		// azureus extension here to handle "failure reason" returned for scrapes
         	
-		     byte[]	failure_reason_bytes = (byte[]) map.get("failure reason");
+ 		     byte[]	failure_reason_bytes = map==null?null:(byte[]) map.get("failure reason");
 
 		     if ( failure_reason_bytes != null ){
 		     	

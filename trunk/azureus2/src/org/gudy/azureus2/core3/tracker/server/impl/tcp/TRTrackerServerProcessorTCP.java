@@ -60,6 +60,7 @@ TRTrackerServerProcessorTCP
 	
 
 	protected boolean				disable_timeouts = false;
+	protected String				current_request;
 	
 	protected
 	TRTrackerServerProcessorTCP(
@@ -246,6 +247,8 @@ TRTrackerServerProcessorTCP
 				
 				setTaskState( "processing request" );
 
+				current_request	= actual_header;
+				
 				try{
 					if ( post_is == null ){
 						
@@ -350,7 +353,7 @@ TRTrackerServerProcessorTCP
 		try{
 			if ( disable_timeouts ){
 				
-				Debug.out( "External tracker request timeout ignored" );
+				Debug.out( "External tracker request timeout ignored: state = " + getTaskState() + ", req = " + current_request  );
 				
 			}else{
 				Debug.out( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded" );
