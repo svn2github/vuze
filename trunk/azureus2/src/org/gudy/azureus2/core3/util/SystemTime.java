@@ -48,7 +48,9 @@ public class SystemTime {
   private SystemTime() {
     Arrays.fill( errorStates, false );
     
-    updater = new AEThread("SystemTime") {
+    	// don't use AEThread as this pulls in lots of crap in the webui
+    
+    updater = new Thread("SystemTime") {
       public void run() {
         while( true ) {
           currentTime = System.currentTimeMillis();
