@@ -88,7 +88,7 @@ MagnetPlugin
 					
 					String	url = "magnet:?xt=urn:btih:" + Base32.encode( t.getHash());
 					
-					System.out.println( "MagnetPlugin: export = " + url );
+					// System.out.println( "MagnetPlugin: export = " + url );
 					
 					try{
 						plugin_interface.getUIManager().copyToClipBoard( url );
