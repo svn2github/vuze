@@ -18,7 +18,7 @@ LocaleUtil
   private static final String systemEncoding = System.getProperty("file.encoding");
   
   private static final String[] manual_charset = {
-	systemEncoding,
+	systemEncoding,	// must be first entry due to code below that gets the system decoder
 	"Big5","EUC-JP","EUC-KR","GB18030","GB2312","GBK","ISO-2022-JP","ISO-2022-KR",
 	"Shift_JIS","KOI8-R",Constants.DEFAULT_ENCODING,"windows-1251",Constants.BYTE_ENCODING 
   };
@@ -30,7 +30,8 @@ LocaleUtil
   };
   
    private static LocaleUtilDecoder[] 	charsetDecoders;
-  
+   private static LocaleUtilDecoder		system_decoder;
+   
   static {
   	
 	List	decoders 		= new ArrayList();
@@ -44,7 +45,14 @@ LocaleUtil
 		 
 		 decoder_names.add( name );
 		 
-		 decoders.add( new LocaleUtilDecoderReal(decoder, name));
+		 LocaleUtilDecoder	lu_decoder =  new LocaleUtilDecoderReal(decoder, name);
+		 
+		 if ( i == 0 ){
+		 	
+		 	system_decoder = lu_decoder;
+		 }
+		 
+		 decoders.add( lu_decoder );
 		 		 
 	   }catch (Exception ignore) {
 	   }
@@ -97,7 +105,7 @@ LocaleUtil
   	return( charsetDecoders );
   }
  
-  protected LocaleUtilDecoder lastChosenDecoder = null;
+  private LocaleUtilDecoder lastChosenDecoder = null;
    
   private static ILocaleUtilChooser chooser = null;
     
@@ -105,6 +113,25 @@ LocaleUtil
 	chooser=ch;
   }
    
+  public LocaleUtilDecoder
+  getSystemDecoder()
+  {
+  	return( system_decoder );
+  }
+  
+  public LocaleUtilDecoder
+  getLastChosenDecoder()
+  {
+  	return( lastChosenDecoder );
+  }
+  
+  protected void
+  setLastChosenDecoder(
+  	LocaleUtilDecoder	d )
+  {
+  	lastChosenDecoder	= d;
+  }
+  
   protected static Candidate[] 
   getCandidates(
 	byte[] array ) 

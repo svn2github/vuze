@@ -80,7 +80,7 @@ LocaleUtilSWT
       for (int i = 0; i < candidates.length; i++) {
         if(candidates[i].getValue() != null && rememberedDecoder == candidates[i].getDecoder()) {
         	
-		  lastChosenDecoder = rememberedDecoder;
+		  setLastChosenDecoder(rememberedDecoder);
 		  
           return candidates[i].getValue();
         }
@@ -113,7 +113,7 @@ LocaleUtilSWT
 			for (int i = 0; i < candidates.length; i++) {
 			  if(candidates[i].getValue() != null && candidates[i].getDecoder().getName().equals( default_name )) {
 	        	
-				lastChosenDecoder = candidates[i].getDecoder();
+				setLastChosenDecoder(candidates[i].getDecoder());
 			  
 				return candidates[i].getValue();
 			  }
@@ -160,6 +160,15 @@ LocaleUtilSWT
        
     waitForUserInput	= true;
     
+    MainWindow window = MainWindow.getWindow();
+    
+    	// can get here if torrent already added in non-swt ui mode with dodgy encoding
+    
+    if ( window == null ){
+    	
+    	return( new String(array));
+    }
+    
     MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
       public void run() {
       	try{
@@ -196,7 +205,7 @@ LocaleUtilSWT
 
     int choosedIndex = 0;
     for (int i = 1; i < candidatesToChoose.length; i++) {
-      if(candidatesToChoose[i].getValue() != null && lastChosenDecoder == candidatesToChoose[i].getDecoder()) {
+      if(candidatesToChoose[i].getValue() != null && getLastChosenDecoder() == candidatesToChoose[i].getDecoder()) {
         choosedIndex = i;
         break;
       }
@@ -315,11 +324,11 @@ LocaleUtilSWT
       return;
     rememberEncodingDecision = checkBox.getSelection();
     
-    lastChosenDecoder = candidates[selectedIndex].getDecoder();
+    setLastChosenDecoder( candidates[selectedIndex].getDecoder());
     
 	if ( rememberEncodingDecision ){
 		
-		rememberedDecoder = lastChosenDecoder;
+		rememberedDecoder = getLastChosenDecoder();
 	}else{
 		rememberedDecoder = null;
 	}

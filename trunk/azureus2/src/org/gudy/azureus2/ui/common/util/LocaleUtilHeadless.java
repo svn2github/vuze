@@ -31,8 +31,16 @@ public class LocaleUtilHeadless extends LocaleUtil implements ILocaleUtilChooser
     return new LocaleUtilHeadless();
   }
   
-  public String getChoosableCharsetString(byte[] array) throws UnsupportedEncodingException {
-    return new String(array);
-  }
+  public String 
+  getChoosableCharsetString(
+  	byte[] array)
   
+  	throws UnsupportedEncodingException 
+  {
+    String	res = new String( array );
+    
+    setLastChosenDecoder( getSystemDecoder());
+    
+    return( res );
+ }
 }
