@@ -45,7 +45,7 @@ public class ReadController {
   
   private void readLoop() {
     while( true ) {
-      read_selector.select( 0 );
+      read_selector.select( 1000 );
     }
   }
   

@@ -70,7 +70,7 @@ public class WriteController {
   
   private void writeSelectorLoop() {
     while( true ) {
-      write_selector.select( 0 );      
+      write_selector.select( 1000 );      
     }
   }
   
