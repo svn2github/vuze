@@ -281,7 +281,7 @@ PEPeerTransportProtocol
       public void messageSent( Message message ) {
         //update keep-alive info
         last_message_sent_time = SystemTime.getCurrentTime();
-        LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " + connection );
+        LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " +PEPeerTransportProtocol.this );
       }
 	
       public void protocolBytesSent( int byte_count ) {
@@ -865,6 +865,9 @@ PEPeerTransportProtocol
     
 
 	public String toString() {
+    if( connection != null ) {
+      return connection + " [" + client+ "]";
+    }
     return ip + ":" + port + " [" + client+ "]";
 	}
 	
