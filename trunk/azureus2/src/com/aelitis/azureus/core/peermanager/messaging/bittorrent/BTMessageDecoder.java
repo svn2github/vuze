@@ -137,7 +137,6 @@ public class BTMessageDecoder implements MessageStreamDecoder {
 
   public void destroy() {
     destroyed = true;
-    payload_buffer = null;
     
     if( direct_payload_buffer != null ) {
       direct_payload_buffer.returnToPool();
