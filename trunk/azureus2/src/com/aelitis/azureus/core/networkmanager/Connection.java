@@ -61,7 +61,8 @@ public class Connection {
               Debug.out( "null read exception message: ", e );
             }
             else {
-              if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 ) {
+              if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+                  e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 ) {
                 
                 System.out.println( "read exception [" +tcp_transport.getDescription()+ "]: " +e.getMessage() );
               }

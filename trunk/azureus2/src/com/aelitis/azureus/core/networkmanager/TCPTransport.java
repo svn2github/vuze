@@ -391,9 +391,9 @@ public class TCPTransport {
     }
     
     if( bytes_read == 0 ) {
-      long time = last_zero_read_time == 0 ? 0 : SystemTime.getCurrentTime() - last_zero_read_time;
+      long time = last_zero_read_time == 0 ? 0 : (SystemTime.getCurrentTime() - last_zero_read_time) / 1000;
       last_zero_read_time = SystemTime.getCurrentTime();
-      System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-read [" +(++zero_read_count)+ "x, " +time+ "ms]" );
+      System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-read [" +(++zero_read_count)+ "x, " +time+ "s]" );
     }
     
     return bytes_read;
