@@ -50,7 +50,7 @@ implements SortableItem
 {
 	private Display 			display;
 	private Table 				table;
-	private BufferedTableItem 	item;
+	private BufferedTableRow 	item;
 	private TRHostTorrent		torrent;
  
 		//Used when sorting
@@ -86,7 +86,7 @@ implements SortableItem
 		  if (table == null || table.isDisposed())
 			return;
 			
-		  item = new BufferedTableItem(table, SWT.NULL);
+		  item = new BufferedTableRow(table, SWT.NULL);
 		  
       	  view.putHost(item.getItem(),torrent);
 		}
@@ -131,7 +131,7 @@ implements SortableItem
 		
 		Image icon = ImageRepository.getIconFromProgram(program);
 				
-		item.setImage(icon);
+		item.setImage( 0, icon);
 
 		item.setText( 0, name);
 		

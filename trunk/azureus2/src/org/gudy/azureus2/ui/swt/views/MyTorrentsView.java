@@ -44,7 +44,7 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
-import org.gudy.azureus2.ui.swt.views.tableitems.ManagerItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.*;
@@ -747,7 +747,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       if (this.panel.isDisposed())
         return;
       DownloadManager manager = (DownloadManager) iter.next();
-      ManagerItem item = (ManagerItem) objectToSortableItem.get(manager);
+      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
       if (item != null) {
         item.refresh();
       }
@@ -776,9 +776,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
    public void downloadManagerAdded(DownloadManager manager) {
      synchronized (objectToSortableItem) {
-      ManagerItem item = (ManagerItem) objectToSortableItem.get(manager);
+      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
       if (item == null)
-        item = new ManagerItem(this,table, manager);
+        item = new TorrentRow(this,table, manager);
         objectToSortableItem.put(manager, item);      
     }
   }
@@ -789,7 +789,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       mw.close();
     }
 
-    ManagerItem managerItem = (ManagerItem) objectToSortableItem.remove(removed);
+    TorrentRow managerItem = (TorrentRow) objectToSortableItem.remove(removed);
     if (managerItem != null) {
       TableItem tableItem = managerItem.getTableItem();
       tableItemToObject.remove(tableItem);

@@ -2,7 +2,10 @@
  * Created on 30 juin 2003
  *
  */
-package org.gudy.azureus2.ui.swt.views.tableitems;
+package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -16,6 +19,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
@@ -23,11 +27,12 @@ import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
  * @author Olivier
  * 
  */
-public class ManagerItem implements SortableItem {
+public class TorrentRow implements SortableItem {
 
   private Display display;
   private Table table;
-  private TableItem item;
+  private BufferedTableRow row;
+  private List items;
   private DownloadManager manager;
 
   private String index = ""; //$NON-NLS-1$
@@ -46,14 +51,15 @@ public class ManagerItem implements SortableItem {
   //Used when sorting
   public boolean selected;  
 
-  public ManagerItem(MyTorrentsView view, Table table, DownloadManager manager) {
+  public TorrentRow(MyTorrentsView view, Table table, DownloadManager manager) {
     this.table = table;
     this.manager = manager;
+    items = new ArrayList();
     initialize(view);
   }
 
   public TableItem getTableItem() {
-    return this.item;
+    return this.row.getItem();
   }
 
   private void initialize(final MyTorrentsView view) {
@@ -64,8 +70,8 @@ public class ManagerItem implements SortableItem {
       public void run() {
         if (table == null || table.isDisposed())
           return;
-        item = new TableItem(table, SWT.NULL);
-        view.setItem(item,manager);
+        row = new BufferedTableRow(table, SWT.NULL);
+        view.setItem(row.getItem(),manager);
       }
     });
   }
@@ -75,10 +81,10 @@ public class ManagerItem implements SortableItem {
       public void run() {
         if (table == null || table.isDisposed())
           return;
-        if (item == null || item.isDisposed())
+        if (row == null || row.isDisposed())
           return;
-        table.remove(table.indexOf(item));
-        item.dispose();
+        table.remove(table.indexOf(row.getItem()));
+        row.dispose();
       }
     });
   }
@@ -86,7 +92,7 @@ public class ManagerItem implements SortableItem {
   public void refresh() {
     if (table == null || table.isDisposed())
       return;
-    if (item == null || item.isDisposed())
+    if (row == null || row.isDisposed())
       return;
 
     String tmp;
@@ -94,7 +100,7 @@ public class ManagerItem implements SortableItem {
     tmp = "" + (manager.getIndex()+1);
     if(!(this.index.equals(tmp))) {
       index = tmp;
-      item.setText(0,index);
+      row.setText(0,index);
     }
     
     tmp = manager.getName();
@@ -105,8 +111,8 @@ public class ManagerItem implements SortableItem {
       tmp = tmp.substring(sep);
       Program program = Program.findProgram(tmp);
       Image icon = ImageRepository.getIconFromProgram(program);
-      item.setText(1, name);
-      item.setImage(icon);
+      row.setText(1, name);
+      row.setImage(0, icon);
       
     }
 
@@ -114,7 +120,7 @@ public class ManagerItem implements SortableItem {
     tmp = DisplayFormatters.formatByteCountToKBEtc(manager.getSize());
     if (tmp != null && !(tmp.equals(this.size))) {
       size = tmp;
-      item.setText(2, tmp);
+      row.setText(2, tmp);
     }
 
     tmp = ""; //$NON-NLS-1$
@@ -122,7 +128,7 @@ public class ManagerItem implements SortableItem {
     tmp = (done / 10) + "." + (done % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
     if (!(tmp.equals(this.done))) {
       this.done = tmp;
-      item.setText(3, tmp);
+      row.setText(3, tmp);
     }
 
     tmp = DisplayFormatters.formatDownloadStatus( manager );
@@ -132,14 +138,14 @@ public class ManagerItem implements SortableItem {
       int state = manager.getState();
     	
       status = tmp;
-      item.setText(4, tmp);
+      row.setText(4, tmp);
       if (state == DownloadManager.STATE_SEEDING)
         
-        item.setForeground(MainWindow.blues[3]);
+        row.setForeground(MainWindow.blues[3]);
       else if (state == DownloadManager.STATE_ERROR)
-        item.setForeground(MainWindow.red_ManagerItem);
+        row.setForeground(MainWindow.red_ManagerItem);
       else
-        item.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
+        row.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
 
     }
 
@@ -152,7 +158,7 @@ public class ManagerItem implements SortableItem {
     //  tmp += " (?)";
     if (!(tmp.equals(this.nbSeeds))) {
       nbSeeds = tmp;
-      item.setText(5, tmp);
+      row.setText(5, tmp);
     }
 
     tmp = "" + manager.getNbPeers(); //$NON-NLS-1$
@@ -162,31 +168,31 @@ public class ManagerItem implements SortableItem {
     //  tmp += " (?)";
     if (!(tmp.equals(this.nbPeers))) {
       nbPeers = tmp;
-      item.setText(6, tmp);
+      row.setText(6, tmp);
     }
 
     tmp = "" + DisplayFormatters.formatByteCountToKBEtcPerSec(manager.getStats().getDownloadAverage());
     if (!(tmp.equals(this.downSpeed))) {
       downSpeed = tmp;
-      item.setText(7, tmp);
+      row.setText(7, tmp);
     }
 
     tmp = "" + DisplayFormatters.formatByteCountToKBEtcPerSec(manager.getStats().getUploadAverage());
     if (!(tmp.equals(this.upSpeed))) {
       upSpeed = tmp;
-      item.setText(8, tmp);
+      row.setText(8, tmp);
     }
 
     tmp = "" + DisplayFormatters.formatETA(manager.getStats().getETA());
     if (!(tmp.equals(this.eta))) {
       eta = tmp;
-      item.setText(9, tmp);
+      row.setText(9, tmp);
     }
 
     tmp = "" + manager.getTrackerStatus(); //$NON-NLS-1$
     if (!(tmp.equals(this.trackerStatus))) {
       trackerStatus = tmp;
-      item.setText(10, tmp);
+      row.setText(10, tmp);
     }
 
     if (manager.getPriority() == DownloadManager.HIGH_PRIORITY) {
@@ -197,14 +203,14 @@ public class ManagerItem implements SortableItem {
     }
     if (!(tmp.equals(this.priority))) {
       priority = tmp;
-      item.setText(11, tmp);
+      row.setText(11, tmp);
     }
   }
 
   public int getIndex() {
-    if(table == null || table.isDisposed() || item == null || item.isDisposed())
+    if(table == null || table.isDisposed() || row == null || row.isDisposed())
       return -1;
-    return table.indexOf(item);
+    return table.indexOf(row.getItem());
   }
 
   public DownloadManager getManager() {

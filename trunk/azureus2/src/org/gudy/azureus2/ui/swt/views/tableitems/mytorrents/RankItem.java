@@ -1,5 +1,5 @@
 /*
- * File    : BufferedTableItem.java
+ * File    : RankItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -19,45 +19,27 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.ui.swt.components;
+package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Table;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
+import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
 /**
  * @author Olivier
  *
  */
-public abstract class BufferedTableItem {
+public class RankItem extends BufferedTableItem {
   
-  private BufferedTableRow row;
-  private int position;
+  DownloadManager manager;
   
-  public BufferedTableItem(BufferedTableRow row,int position) {
-    this.row = row;
-    this.position = position;
+  public RankItem(BufferedTableRow row,int position,DownloadManager manager) {
+    super(row,position);
+    this.manager = manager;
   }
   
-  public void setText(String text) {
-    if(position != -1)
-      row.setText(position,text);
+  public void refresh() {
+    setText("" + (manager.getIndex()+1));
+    String name = manager.getName();
   }
-  
-  public void setImage(Image img) {
-    if(position != -1)
-      row.setImage(position,img);
-  }
-  
-  public Rectangle getBounds() {
-    if(position != -1)
-      return row.getBounds(position);
-    return null;
-  }
-  
-  public Table getTable() {
-    return row.getTable();
-  }
-  
-  public abstract void refresh();
 }
