@@ -34,7 +34,8 @@ import java.io.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
-	
+import org.gudy.azureus2.core3.html.*;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
@@ -45,13 +46,15 @@ CoreUpdateChecker
 	implements Plugin, UpdatableComponent
 {
 	public static final int	RD_GET_DETAILS_RETRIES	= 3;
+	public static final int	RD_GET_MIRRORS_RETRIES	= 3;
 	
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 
-	protected PluginInterface		plugin_interface;
-	
-	protected LoggerChannel			log;
+	protected PluginInterface				plugin_interface;
+	protected ResourceDownloaderFactory 	rdf;
+	protected LoggerChannel					log;
+	protected ResourceDownloaderListener	rd_logger;
 	
 	public void
 	initialize(
@@ -61,10 +64,24 @@ CoreUpdateChecker
 		
 		log	= plugin_interface.getLogger().getChannel("CoreUpdater");
 		
+		rd_logger =
+			new ResourceDownloaderAdapter()
+			{
+				public void
+				reportActivity(
+					ResourceDownloader	downloader,
+					String				activity )
+				{
+					log.log( activity );
+				}
+			};
+			
 		Properties	props = plugin_interface.getPluginProperties();
 							
 		props.setProperty( "plugin.version", plugin_interface.getAzureusVersion());
 		
+		rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
+	
 		plugin_interface.getUpdateManager().registerUpdatableComponent( this, true );
 	}
 	
@@ -81,9 +98,9 @@ CoreUpdateChecker
 			
 			String url_str = Constants.SF_WEB_SITE + "version.php";
 			
-			boolean	REMOVE_ID_FOR_TESTING = true;	// !!!!TODO: REMOVE THIS
+			boolean	TESTING = true;	// !!!!TODO: REMOVE THIS
 			
-			if ( REMOVE_ID_FOR_TESTING ){
+			if ( TESTING ){
 			
 				System.out.println( "CoreUpdater: ID deliberately currently removed!!!!" );
 				
@@ -96,23 +113,11 @@ CoreUpdateChecker
 			
 			URL url = new URL(url_str); 
 			
-			ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
-			
 			ResourceDownloader	rd = rdf.create( url );
 			
 			rd = rdf.getRetryDownloader( rd, RD_GET_DETAILS_RETRIES );
 			
-			rd.addListener(
-				new ResourceDownloaderAdapter()
-				{
-					public void
-					reportActivity(
-						ResourceDownloader	downloader,
-						String				activity )
-					{
-						log.log( activity );
-					}
-				});
+			rd.addListener( rd_logger );
 			
 			InputStream	data = rd.download();
 			
@@ -152,17 +157,17 @@ CoreUpdateChecker
 				//	2) 2.0.8.5_CVS -> 2.0.8.6
 				// but not to a CVS version (also currently never reported as latest...)
 				
-			if ( latest_is_cvs ){
+			if ( latest_is_cvs && !TESTING ){
 				
 				return;
 			}
 
-			if ( Constants.compareVersions( current_base, latest_base ) >= 0 ){
+			if ( Constants.compareVersions( current_base, latest_base ) >= 0 && !TESTING){
 				
 				return;
 			}
 			
-			int g = 10;
+			URL[]	primary_mirrors = getPrimaryURLs( latest_file_name );
 			
 			/*
 			boolean current_az_is_cvs	= Constants.isCVSVersion();
@@ -247,6 +252,146 @@ CoreUpdateChecker
 		}
 	}
 	
+	protected URL[]
+	getPrimaryURLs(
+		String		latest_file_name )
+	{
+		List	res = new ArrayList();
+
+		try{
+			if ( latest_file_name == null ){
+		
+					// very old method, non-mirror based
+				
+				res.add( new URL( Constants.SF_WEB_SITE + "Azureus2.jar" ));
+								
+			}else{
+		
+				URL mirrors_url = new URL("http://prdownloads.sourceforge.net/azureus/" + latest_file_name + "?download");
+				
+				ResourceDownloader	rd = rdf.create( mirrors_url );
+				
+				rd = rdf.getRetryDownloader( rd, RD_GET_MIRRORS_RETRIES );
+				
+				rd.addListener( rd_logger );
+				
+				String	page = HTMLPageFactory.loadPage( rd.download()).getContent();
+				
+				String pattern = "/azureus/" + latest_file_name + "?use_mirror=";
+	     
+				int position = page.indexOf(pattern);
+				
+				while ( position > 0 ){
+					
+					int end = page.indexOf(">", position);
+					
+					if (end < 0) {
+						
+						position = -1;
+						
+					}else{
+						String mirror = page.substring(position, end);
+	 
+						try{
+							res.add( new URL( "http://prdownloads.sourceforge.net" + mirror ));
+							
+						}catch( Throwable e ){
+							
+							log.log( "Invalid URL read:" + mirror, e );
+						}
+	          
+						position = page.indexOf(pattern, position + 1);
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			log.log( "Failed to read primary mirror list", e );
+		}
+		
+		URL[]	urls = new URL[res.size()];
+		
+		res.toArray( urls );
+		
+		for (int i=0;i<urls.length;i++){
+			
+			log.log( "Primary mirror:" + urls[i].toString());
+		}
+		
+		return( urls );
+	}
+		
+		/*
+
+      //Grab a random mirror
+      if ( mirrors.size() > 0 ) {
+        int random = (int) (Math.random() * mirrors.size());
+        String mirror = (String) (mirrors.get(random));
+
+        URL mirrorUrl = new URL("http://prdownloads.sourceforge.net" + mirror);
+        String mirrorHtml = readUrl(mirrorUrl);
+        pattern = "<META HTTP-EQUIV=\"refresh\" content=\"5; URL=";
+        position = mirrorHtml.indexOf(pattern);
+        if ( position >= 0 ) {
+        	int end = mirrorHtml.indexOf("\">", position);
+          if ( end >= 0 ) {
+        	  reqUrl = new URL(mirrorHtml.substring(position + pattern.length(), end));
+            foundMirror = true;
+          }
+        }
+      }
+    }
+
+    if (reqUrl == null || !foundMirror) {
+    	reqUrl = getMirrorFromBackupList( log );
+    }
+    
+    HttpURLConnection con = null;
+    try {
+    	con = (HttpURLConnection) reqUrl.openConnection();
+    	con.connect();
+      in = con.getInputStream();
+    } catch (IOException e) {
+      //probably a 404 error, try one last time
+      if (con != null)  con.disconnect();
+      URL backup = getMirrorFromBackupList( log );
+      con = (HttpURLConnection) backup.openConnection();
+      con.connect();
+      in = con.getInputStream();
+    }
+    
+    
+    private URL getMirrorFromBackupList( FileWriter log ) {
+        try{ log.write("Retrieving backup SF mirror list..."); } catch (Exception e) {}
+        ByteArrayOutputStream message = new ByteArrayOutputStream();
+        int nbRead = 0;
+        HttpURLConnection con = null;
+        InputStream is = null;
+        try {
+          String url = "http://azureus.sourceforge.net/mirrors.php";
+          URL mirrorUrl = new URL(url);
+          con = (HttpURLConnection) mirrorUrl.openConnection();
+          con.connect();
+          is = con.getInputStream();
+          byte[] data = new byte[1024];
+          while (nbRead >= 0) {
+            nbRead = is.read(data);
+            if (nbRead >= 0) {
+              message.write(data, 0, nbRead);
+            }
+          }
+          Map decoded = BDecoder.decode(message.toByteArray());
+          List mirrors = (List)decoded.get("mirrors");
+          int random = (int) (Math.random() * mirrors.size());
+          String mirror = new String( (byte[])mirrors.get(random) );
+          return new URL( mirror + latestVersionFileName );
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+          return null;
+        }
+      }
+      */
 	/*
 	protected void
 	installUpdate(
