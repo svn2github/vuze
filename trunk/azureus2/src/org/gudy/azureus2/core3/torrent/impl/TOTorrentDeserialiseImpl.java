@@ -69,12 +69,48 @@ TOTorrentDeserialiseImpl
 			}
 		}
 		
-		Map meta_data = BDecoder.decode(metaInfo.toByteArray());
+		construct( metaInfo.toByteArray());
+	}
+	
+	public
+	TOTorrentDeserialiseImpl(
+		byte[]		bytes )
+		
+		throws TOTorrentException
+	{
+		construct( bytes );
+	}
+	public
+	TOTorrentDeserialiseImpl(
+		Map			map )
+		
+		throws TOTorrentException
+	{
+		construct( map );
+	}
+
+	protected void
+	construct(
+		byte[]		bytes )
+		
+		throws TOTorrentException
+	{
+		Map meta_data = BDecoder.decode(bytes);
 		
 		if ( meta_data == null) {
 			
 			throw( new TOTorrentException( "TOTorrentDeserialise: decode fails" ));
 		}
+
+		construct( meta_data );
+	}
+	
+	protected void
+	construct(
+		Map		meta_data )
+		
+		throws TOTorrentException
+	{
 		
 			// decode the stuff
 		

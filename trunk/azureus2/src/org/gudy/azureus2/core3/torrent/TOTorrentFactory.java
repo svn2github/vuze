@@ -13,6 +13,7 @@ package org.gudy.azureus2.core3.torrent;
  * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 
+import java.util.*;
 import java.io.*;
 import java.net.*;
 
@@ -20,7 +21,9 @@ import org.gudy.azureus2.core3.torrent.impl.*;
 
 public class 
 TOTorrentFactory 
-{
+{	
+		// deserialisation methods
+		
 	public static TOTorrent
 	deserialiseFromFile(
 		File		file )
@@ -30,6 +33,26 @@ TOTorrentFactory
 		return( new TOTorrentDeserialiseImpl( file ));
 	}
 	
+	public static TOTorrent
+	deserialiseFromMap(
+		Map			data )
+		
+		throws TOTorrentException
+	{
+		return( new TOTorrentDeserialiseImpl( data ));
+	}
+	
+	public static TOTorrent
+	deserialiseFromByteArray(
+		byte[]		data )
+		
+		throws TOTorrentException
+	{
+		return( new TOTorrentDeserialiseImpl( data ));
+	}
+	
+		// construction methods
+		
 	public static TOTorrent
 	createFromFileOrDir(
 		File						file,
