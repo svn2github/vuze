@@ -697,56 +697,51 @@ DiskManagerImpl
 			//Test if files exists
 			RandomAccessFile raf = null;
 
-			boolean bDynamicFile=COConfigurationManager.getBooleanParameter("Enable incremental file creation", false);
-			boolean bCreateFile=false;
+			boolean incremental = COConfigurationManager.getBooleanParameter("Enable incremental file creation", false);
+			//boolean preZero = COConfigurationManager.getBooleanParameter("Allocate New", true);
+         boolean bCreateFile=false;
 			
-			if (!f.exists()) { bCreateFile = true; }
-			
-			if (f.length() != length) {
-				if (!bDynamicFile || f.length() > length ) bCreateFile=true;
+			if (!f.exists()) {
+			  bCreateFile = true;
+			}
+			else if (f.length() != length) {
+				if (!incremental || f.length() > length ) bCreateFile = true;
 			}
 			
 			if (bCreateFile) {
 				//File doesn't exist
 				buildDirectoryStructure(tempPath);
+				
 				try {
-					// throw Exception if filename is not supported by os
+					// test: throws Exception if filename is not supported by os
 					f.getCanonicalPath();
+					/* create the new file */
 					raf = new RandomAccessFile(f, "rw");
-					if (!bDynamicFile)
-						raf.setLength(length);
+					/* if we don't want incremental file creation, pre-allocate file */
+					if (!incremental) raf.setLength(length);
+					/*
+					//if we want to fill file with zeros - formerly "Allocate new files"
+					if (preZero) {
+					  //pre-allocate
+					  raf.setLength(length);
+					  //and zero
+					  boolean ok = zeroFile(raf);
+					  if (!ok) {
+					    this.state = FAULTY;
+					    return false;
+					  }
+					}
+					*/
+
 				} catch (Exception e) {
 					try {
 						raf.close();
-					} catch (IOException ex) {
-						ex.printStackTrace();
-					}
+					} catch (IOException ex) { ex.printStackTrace(); }
 					this.state = FAULTY;
 					this.errorMessage = e.getMessage();
 					return false;
 				}
-
-				if (COConfigurationManager.getBooleanParameter("Allocate New", true)) {
-					try {
-						raf.setLength(length);
-					}
-					catch (Exception e) {
-					try {
-						 raf.close();
-					 } catch (IOException ex) {
-						 ex.printStackTrace();
-					 }
-					 this.state = FAULTY;
-					 this.errorMessage = e.getMessage();
-					 return false;
-				  }
-				  boolean ok = clearFile(raf);
-				  if (!ok) {
-				     this.state = FAULTY;
-				     return false;
-				  }
-				}
-   
+			/* the file exists */
 			} else {               
 				try {
 					raf = new RandomAccessFile(f, "rw");
@@ -800,9 +795,10 @@ DiskManagerImpl
 		return newFiles;
 	}
 
-	private boolean clearFile(RandomAccessFile file) {
+	/*
+  private boolean zeroFile(RandomAccessFile file) {
 		FileChannel fc = file.getChannel();
-		long length = 0;
+		long length;
 		try {
 			length = file.length();
 		} catch (IOException e) {
@@ -810,17 +806,17 @@ DiskManagerImpl
 			this.errorMessage = e.getMessage();
 			return false;
 		}
-		long writen = 0;
+		long written = 0;
 		synchronized (file) {
 			try {
 				fc.position(0);
-				while (writen < length && bContinue) {
+				while (written < length && bContinue) {
 					allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
-					if ((length - writen) < allocateAndTestBuffer.remaining())
-						allocateAndTestBuffer.limit((int) (length - writen));
+					if ((length - written) < allocateAndTestBuffer.remaining())
+						allocateAndTestBuffer.limit((int) (length - written));
 					int deltaWriten = fc.write(allocateAndTestBuffer);
 					allocateAndTestBuffer.position(0);
-					writen += deltaWriten;
+					written += deltaWriten;
 					allocated += deltaWriten;
 					percentDone = (int) ((allocated * 1000) / totalLength);
 				}
@@ -834,6 +830,7 @@ DiskManagerImpl
 		}
         return true;
 	}
+  */
 
 	private void buildDirectoryStructure(String file) {
 		File tempFile = new File(file);
