@@ -31,6 +31,8 @@ import java.net.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
@@ -61,8 +63,36 @@ TRHostImpl
 	protected Map	host_torrent_map		= new HashMap();
 	protected Map	tracker_client_map		= new HashMap();
 	
-	protected List		listeners			= new ArrayList();
-	protected AEMonitor listeners_mon 		= new AEMonitor( "TRHost:L" );
+	private static final int LDT_TORRENT_ADDED			= 1;
+	private static final int LDT_TORRENT_REMOVED		= 2;
+	private static final int LDT_TORRENT_CHANGED		= 3;
+	
+	private ListenerManager	listeners 	= ListenerManager.createAsyncManager(
+		"TRHost:ListenDispatcher",
+		new ListenerManagerDispatcher()
+		{
+			public void
+			dispatch(
+				Object		_listener,
+				int			type,
+				Object		value )
+			{
+				TRHostListener	target = (TRHostListener)_listener;
+		
+				if ( type == LDT_TORRENT_ADDED ){
+					
+					target.torrentAdded((TRHostTorrent)value);
+					
+				}else if ( type == LDT_TORRENT_REMOVED ){
+						
+					target.torrentRemoved((TRHostTorrent)value);
+						
+				}else if ( type == LDT_TORRENT_CHANGED ){
+					
+					target.torrentChanged((TRHostTorrent)value);
+				}
+			}
+		});	
 	
 	protected List	auth_listeners		= new ArrayList();
 	
@@ -293,10 +323,7 @@ TRHostImpl
 								}
 							}	
 							
-							for (int i=0;i<listeners.size();i++){
-								
-								((TRHostListener)listeners.get(i)).torrentChanged( ht );
-							}
+							listeners.dispatch( LDT_TORRENT_CHANGED, ht );
 						}
 					}
 				}catch( TOTorrentException e ){
@@ -395,10 +422,7 @@ TRHostImpl
 				}
 			}
 	
-			for (int i=0;i<listeners.size();i++){
-				
-				((TRHostListener)listeners.get(i)).torrentAdded( host_torrent );
-			}
+			listeners.dispatch( LDT_TORRENT_ADDED, host_torrent );
 			
 			config.saveConfig();
 			
@@ -587,10 +611,7 @@ TRHostImpl
 				stopHosting((TRHostTorrentHostImpl)host_torrent );
 			}
 			
-			for (int i=0;i<listeners.size();i++){
-				
-				((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
-			}
+			listeners.dispatch( LDT_TORRENT_REMOVED, host_torrent );
 			
 			config.saveConfig();	
 			
@@ -869,25 +890,11 @@ TRHostImpl
 		
 		throws IOException
 	{
+		List	listeners_copy = listeners.getListenersCopy();
+		
+		for (int i=0;i<listeners_copy.size();i++){
 
-		for (int i=0;i<listeners.size();i++){
-
-			TRHostListener	listener;
-			
-			try{
-				listeners_mon.enter();
-				
-				if ( i >= listeners.size()){
-					
-					break;
-				}
-				
-				listener	= (TRHostListener)listeners.get(i);
-				
-			}finally{
-				
-				listeners_mon.exit();
-			}
+			TRHostListener	listener = (TRHostListener)listeners_copy.get(i);
 			
 			if ( listener.handleExternalRequest( client_address, url, header, is, os )){
 				
@@ -910,17 +917,17 @@ TRHostImpl
 		TRHostListener	l )
 	{
 		try{
-			listeners_mon.enter();
+			this_mon.enter();
 		
-			listeners.add( l );
+			listeners.addListener( l );
 			
 			for (int i=0;i<host_torrents.size();i++){
 				
-				l.torrentAdded((TRHostTorrent)host_torrents.get(i));
+				listeners.dispatch( l, LDT_TORRENT_ADDED, host_torrents.get(i));
 			}
 		}finally{
 			
-			listeners_mon.exit();
+			this_mon.exit();
 		}
 	}
 		
@@ -928,15 +935,7 @@ TRHostImpl
 	removeListener(
 		TRHostListener	l )
 	{
-		try{
-			listeners_mon.enter();
-		
-			listeners.remove( l );
-			
-		}finally{
-			
-			listeners_mon.exit();
-		}
+		listeners.removeListener( l );
 	}
 	
 	protected void

@@ -448,6 +448,7 @@ AEMonSem
 						
 						
 						int	earliest_common = stack.size();
+						int	common_count	= 0;
 						
 						for (int i=0;i<stack.size();i++){
 				
@@ -456,54 +457,61 @@ AEMonSem
 							int	p1 = old_key.indexOf( "$" + n1 + "$");
 	
 							if ( p1 != -1 ){
-																
+						
+								common_count++;
+								
 								earliest_common = Math.min( earliest_common, i+1 );
 							}
 						}
 						
-						for (int i=0;i<earliest_common;i++){
+							// need at least 2 common monitors for chance of deadlock
+						
+						if ( common_count >= 2 ){
 							
-							AEMonSem	ms1 = (AEMonSem)stack.get(i);
-							
-							if ( !ms1.is_monitor ){
+							for (int i=0;i<earliest_common;i++){
 								
-								continue;
-							}
-							
-							String	n1 = ms1.name;
-
-							for (int j=i+1;j<stack.size();j++){
+								AEMonSem	ms1 = (AEMonSem)stack.get(i);
 								
-								AEMonSem	ms2 = (AEMonSem)stack.get(j);
-								
-								if ( !ms2.is_monitor ){
+								if ( !ms1.is_monitor ){
 									
 									continue;
 								}
 								
-								String	n2 = ms2.name;
-								
-									// same object recursion already tested above
-								
-								if ( !n1.equals( n2 )){
-								
-									int	p1 = old_key.indexOf( "$" + n1 + "$");
-									int p2 = old_key.indexOf( "$" + n2 + "$");
+								String	n1 = ms1.name;
+	
+								for (int j=i+1;j<stack.size();j++){
 									
-									if ( p1 != -1 && p2 != -1 && p1 > p2 ){
+									AEMonSem	ms2 = (AEMonSem)stack.get(j);
+									
+									if ( !ms2.is_monitor ){
 										
-										String	reciprocal_log = trace_key + " / " + old_key;
+										continue;
+									}
+									
+									String	n2 = ms2.name;
+									
+										// same object recursion already tested above
+									
+									if ( !n1.equals( n2 )){
+									
+										int	p1 = old_key.indexOf( "$" + n1 + "$");
+										int p2 = old_key.indexOf( "$" + n2 + "$");
 										
-										if ( !debug_reciprocals.contains( reciprocal_log )){
+										if ( p1 != -1 && p2 != -1 && p1 > p2 ){
 											
-											debug_reciprocals.add( reciprocal_log );
+											String	reciprocal_log = trace_key + " / " + old_key;
 											
-											Debug.outNoStack(
-													"AEMonSem: Reciprocal usage:\r\n" +
-													"    " + trace_key + "\r\n" + 
-													"        [" + thread_name + "] " + stack_trace + "\r\n" +
-													"    " + old_key + "\r\n" +
-													"        [" + old_thread_name + "] " + old_trace );
+											if ( !debug_reciprocals.contains( reciprocal_log )){
+												
+												debug_reciprocals.add( reciprocal_log );
+												
+												Debug.outNoStack(
+														"AEMonSem: Reciprocal usage:\r\n" +
+														"    " + trace_key + "\r\n" + 
+														"        [" + thread_name + "] " + stack_trace + "\r\n" +
+														"    " + old_key + "\r\n" +
+														"        [" + old_thread_name + "] " + old_trace );
+											}
 										}
 									}
 								}

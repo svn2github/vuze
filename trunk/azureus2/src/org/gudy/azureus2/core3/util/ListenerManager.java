@@ -148,6 +148,14 @@ ListenerManager
 		}
 	}
 	
+	public List
+	getListenersCopy()
+	{
+			// we can just return the listeners as we copy on update
+				
+		return( listeners );
+	}
+	
 	public void
 	dispatch(
 		int		type,

@@ -108,8 +108,6 @@ TRHostTorrentHostImpl
 				server_torrent.disableCaching();
 			}
 			
-			host.hostTorrentStateChange( this );
-			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
@@ -118,6 +116,8 @@ TRHostTorrentHostImpl
 			
 			this_mon.exit();
 		}
+				
+		host.hostTorrentStateChange( this );
 	}
 	
 	public void
@@ -150,8 +150,6 @@ TRHostTorrentHostImpl
 			last_downloaded		= 0;
 			last_bytes_in		= 0;
 			last_bytes_out		= 0;
-
-			host.hostTorrentStateChange( this );
 			
 		}catch( Throwable e ){
 			
@@ -161,25 +159,20 @@ TRHostTorrentHostImpl
 			
 			this_mon.exit();
 		}
+		
+		host.hostTorrentStateChange( this );
 	}
 	
 	public void
 	remove()
 	
 		throws TRHostTorrentRemovalVetoException
-	{
-		try{
-			this_mon.enter();
+	{		
+		canBeRemoved();
 		
-			canBeRemoved();
+		stop();
 		
-			stop();
-		
-			host.remove( this );
-		}finally{
-			
-			this_mon.exit();
-		}
+		host.remove( this );
 	}
 	
 	public boolean
@@ -574,13 +567,13 @@ TRHostTorrentHostImpl
 			this_mon.enter();
 	
 			listeners.add(l);
-		
-			host.torrentListenerRegistered();
 			
 		}finally{
 			
 			this_mon.exit();
 		}
+		
+		host.torrentListenerRegistered();
 	}
 	
 	public void
