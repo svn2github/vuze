@@ -332,8 +332,16 @@ public class TorrentRow implements SortableItem {
     valid = false;
   }
 
-  public void setDataSource(Object dataSource) {
-    this.manager = (DownloadManager) dataSource;
+  /**
+   * @return true - dataSource changed.  false - already set
+   */
+  public boolean setDataSource(Object dataSource) {
+    if (this.manager != (DownloadManager) dataSource) {
+      this.manager = (DownloadManager)dataSource;
+      invalidate();
+      return true;
+    }
+    return false;
   }
 
 }

@@ -318,8 +318,13 @@ public class FileItem implements SortableItem{
    return item;
   }
 
-  public void setDataSource(Object dataSource) {
-    fileInfo = (DiskManagerFileInfo) dataSource;
+  public boolean setDataSource(Object dataSource) {
+    if (fileInfo != (DiskManagerFileInfo) dataSource) {
+      fileInfo = (DiskManagerFileInfo) dataSource;
+      invalidate();
+      return true;
+    }
+    return false;
   }
 
 }

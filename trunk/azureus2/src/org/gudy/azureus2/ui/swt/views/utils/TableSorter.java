@@ -232,11 +232,10 @@ public class TableSorter implements ParameterListener {
     for (int i = 0; i < ordered.size(); i++) {
       Object dataSource = ordered.get(i);
 
-      items[i].setDataSource(dataSource);
-
-      objectToSortableItem.put(dataSource, items[i]);
-      tableItemToObject.put(items[i].getTableItem(), dataSource);
-      items[i].invalidate();
+      if (items[i].setDataSource(dataSource)) {
+        objectToSortableItem.put(dataSource, items[i]);
+        tableItemToObject.put(items[i].getTableItem(), dataSource);
+      }
       if (selected.contains(dataSource)) {
         table.select(i);
       } else {

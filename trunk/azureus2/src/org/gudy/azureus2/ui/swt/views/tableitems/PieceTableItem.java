@@ -194,8 +194,13 @@ public class PieceTableItem implements SortableItem{
    * SortableItem implementation
    */
   
-  public void setDataSource(Object piece) {
-    this.piece = (PEPiece) piece;
+  public boolean setDataSource(Object dataSource) {
+    if (this.piece != (PEPiece) piece) {
+      this.piece = (PEPiece) piece;
+      invalidate();
+      return true;
+    }
+    return false;
   }
 
   public int getIndex() {

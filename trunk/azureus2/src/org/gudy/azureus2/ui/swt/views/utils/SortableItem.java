@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.TableItem;
  */
 public interface SortableItem {
   
-  public void setDataSource(Object dataSource);
+  public boolean setDataSource(Object dataSource);
   public TableItem getTableItem();
   public int getIndex();
   

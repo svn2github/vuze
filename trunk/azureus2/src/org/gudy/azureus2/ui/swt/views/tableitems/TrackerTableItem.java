@@ -278,11 +278,13 @@ implements SortableItem
   public void invalidate() {
   }
 
-  public void 
-  setDataSource(
-  	Object dataSource) 
-  {
-    torrent = (TRHostTorrent) dataSource;
+  public boolean setDataSource(Object dataSource) {
+    if (torrent != (TRHostTorrent) dataSource) {
+      torrent = (TRHostTorrent) dataSource;
+      invalidate();
+      return true;
+    }
+    return false;
   }
 
 }

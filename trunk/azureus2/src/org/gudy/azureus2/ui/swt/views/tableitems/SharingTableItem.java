@@ -258,11 +258,13 @@ SharingTableItem
 	public void invalidate() {
 	}
 
-	public void 
-	setDataSource(
-		Object dataSource) 
-	{
-		share = (ShareResource)dataSource;
+  public boolean setDataSource(Object dataSource) {
+    if (share != (ShareResource)dataSource) {
+      share = (ShareResource)dataSource;
+      invalidate();
+      return true;
+    }
+    return false;
 	}
 
 }

@@ -313,8 +313,13 @@ public class PeerRow implements SortableItem {
     return false;
   } 
 
-  public void setDataSource(Object dataSource) {
-    peerSocket = (PEPeer) dataSource;
+  public boolean setDataSource(Object dataSource) {
+    if (peerSocket != (PEPeer) dataSource) {
+      peerSocket = (PEPeer) dataSource;
+      invalidate();
+      return true;
+    }
+    return false;
   }
   
   public TableItem getTableItem() {
