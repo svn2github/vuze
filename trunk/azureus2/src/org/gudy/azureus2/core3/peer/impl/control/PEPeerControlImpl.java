@@ -48,8 +48,7 @@ PEPeerControlImpl
 
   private int peer_manager_state = PS_INITIALISED;
   
-  private int[] 	_availability;
-  private AEMonitor	_availability_mon		= new AEMonitor( "PEPeerControl:Avail");
+  private int[] 	availability_cow;
   
   private boolean _bContinue;    
   
@@ -951,8 +950,8 @@ PEPeerControlImpl
    */
   private void computeAvailability() {
     //reset the availability
-    int[] availability = new int[_availability.length];
-    Arrays.fill(availability, 0); //:: should be faster -Tyler
+    int[] new_availability = new int[availability_cow.length];
+    Arrays.fill(new_availability, 0); //:: should be faster -Tyler
 
     //for all clients
     
@@ -970,7 +969,7 @@ PEPeerControlImpl
           for (int j = _nbPieces - 1; j >= 0; j--) //loop for every piece
             {
             if (piecesAvailable[j]) //set the piece to available
-              availability[j]++;
+            	new_availability[j]++;
           }
         }
       }
@@ -978,18 +977,12 @@ PEPeerControlImpl
     //Then adds our own availability.
     for (int i = dm_pieces.length - 1; i >= 0; i--) {
       if (dm_pieces[i].getDone())
-        availability[i]++;
+      	new_availability[i]++;
     }
 
     //copy availability into _availability
-    try{
-    	_availability_mon.enter();
-    
-    	System.arraycopy(availability, 0, _availability, 0, availability.length);
-    }finally{
-    	
-    	_availability_mon.exit();
-    }
+  
+    availability_cow	= new_availability;
   }
 
   /**
@@ -1163,11 +1156,13 @@ PEPeerControlImpl
     //This will represent the minimum piece availability level.
     int pieceMinAvailability = -1;
 
+    int[]	availability = availability_cow;
+    
     //1. Scan all pieces to determine min availability
     for (int i = 0; i < _nbPieces; i++) {
       if (!dm_pieces[i].getDone() && !_downloading[i] && piecesAvailable[i]) {
-        if (pieceMinAvailability == -1 || _availability[i] < pieceMinAvailability) {
-          pieceMinAvailability = _availability[i];
+        if (pieceMinAvailability == -1 || availability[i] < pieceMinAvailability) {
+          pieceMinAvailability = availability[i];
         }
       }
     }
@@ -1185,7 +1180,7 @@ PEPeerControlImpl
       if (!dm_pieces[i].getDone() && !_downloading[i] && piecesAvailable[i]) {
         //null : special case, to ensure we find at least one piece
         //or if the availability level is lower than the old availablility level
-        if (_availability[i] <= pieceMinAvailability) {
+        if (availability[i] <= pieceMinAvailability) {
           if(!onlyNonAllocatedPieces || _pieces[i] == null)
             _piecesRarest[i] = true;
         }
@@ -1720,7 +1715,7 @@ PEPeerControlImpl
     }
 
     //the availability level of each piece in the network
-    _availability = new int[_nbPieces];
+    availability_cow = new int[_nbPieces];
 
     //the stats
     _stats = new PEPeerManagerStatsImpl();
@@ -1817,60 +1812,46 @@ PEPeerControlImpl
   }
 
   public int getAvailability(int pieceNumber) {
-    if (_availability == null)
+    if (availability_cow == null){
       return 0;
-    try{
-    	_availability_mon.enter();
-    
-      return _availability[pieceNumber];
-      
-    }finally{
-    	
-    	_availability_mon.exit();
     }
+    
+    return availability_cow[pieceNumber]; 
   }
 
   public float getMinAvailability() {
-    if (_availability == null)
+    if (availability_cow == null)
       return 0;
 
+    int[]	availability = availability_cow;
+    
     int total = 0;
     int nbPieces;
     int allMin;
-    try{
-      _availability_mon.enter();
     
-      nbPieces = _availability.length;
+      nbPieces = availability.length;
       if (nbPieces == 0)
         return 0;
 
-      allMin = _availability[0];
+      allMin = availability[0];
       for (int i = 0; i < nbPieces; i++) {
-        if (_availability[i] < allMin)
-          allMin = _availability[i];
+        if (availability[i] < allMin)
+          allMin = availability[i];
       }
       for (int i = 0; i < nbPieces; i++) {
-        if (_availability[i] > allMin)
+        if (availability[i] > allMin)
           total++;
       }
-    }finally{
-    	_availability_mon.exit();
-    }
+  
     return allMin + (total / (float)nbPieces);
   }
 
-  public int[] getAvailability() {
-    if (_availability == null)
-      return null;
-
-    try{
-      _availability_mon.enter();
-    
-      return _availability;
-    }finally{
-    	
-    	_availability_mon.exit();
-    }
+  public int[] 
+  getAvailability() 
+  {
+  
+    return( availability_cow );
+ 
   }
 
   public void havePiece(int pieceNumber, int pieceLength, PEPeer pcOrigin) {
@@ -1883,7 +1864,7 @@ PEPeerControlImpl
         superSeedModeNumberOfAnnounces--;
       }      
     }
-    int availability = _availability[pieceNumber];
+    int availability = availability_cow[pieceNumber];
     if (availability < 4) {
       if (dm_pieces[pieceNumber].getDone())
         availability--;
