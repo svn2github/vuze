@@ -32,7 +32,7 @@ public class ExternalUIConst {
 		//parameterlegacy.put("Core_iHighPort", "High Port");
 		parameterlegacy.put("Core_iMaxActiveTorrents", "max active torrents");
 		parameterlegacy.put("Core_iMaxDownloads", "max downloads");
-		parameterlegacy.put("Core_iMaxClients", "Max Clients");
+		//parameterlegacy.put("Core_iMaxClients", "Max Clients");
 		parameterlegacy.put("Core_iMaxUploads", "Max Uploads");
 		parameterlegacy.put("Core_iMaxUploadSpeed", "Max Upload Speed KBs");
 		parameterlegacy.put("Core_bUseResume", "Use Resume");
