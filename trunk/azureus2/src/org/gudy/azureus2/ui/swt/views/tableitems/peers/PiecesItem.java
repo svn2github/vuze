@@ -54,6 +54,9 @@ public class PiecesItem extends PeerItem  {
     
     //Compute bounds ...
     Rectangle bounds = getBounds();
+    //In case item isn't displayed bounds is null
+    if(bounds == null)
+      return;
     int width = bounds.width - 1;
     int x0 = bounds.x;
     int y0 = bounds.y + 1;
