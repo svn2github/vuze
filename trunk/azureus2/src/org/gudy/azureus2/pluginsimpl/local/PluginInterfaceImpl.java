@@ -399,7 +399,10 @@ PluginInterfaceImpl
 		
   	}else{
   		
-		List	pis = PluginInitializer.getPluginInterfaces();
+  			// we must copy the list here as when we unload interfaces they will be
+  			// removed from the original list
+  		
+		List	pis = new ArrayList(PluginInitializer.getPluginInterfaces());
 		 
 		for (int i=0;i<pis.size();i++){
 	  		
