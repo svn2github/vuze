@@ -52,6 +52,9 @@ public class DownloadManager extends Component {
 
   private int nbPieces;
   private String savePath;
+  
+  //Used when trackerConnection is not yet created.
+  private String trackerUrl;
 
   private byte[] hash;
   private Map metaData;
@@ -94,7 +97,16 @@ public class DownloadManager extends Component {
     this.torrentFileName = torrentFileName;
     this.savePath = savePath;
     extractMetaInfo();
-//    if (this.state == STATE_ERROR) return;
+    if (this.state == STATE_ERROR) return;
+
+    //Get the Tracker url
+       try {
+         trackerUrl = null;
+         trackerUrl = new String((byte[]) metaData.get("announce"), Constants.DEFAULT_ENCODING);
+         trackerUrl = trackerUrl.replaceAll(" ", "");
+       } catch (Exception e) {
+         e.printStackTrace();
+       }
   }
 
   public void initialize() {
@@ -472,7 +484,9 @@ public class DownloadManager extends Component {
     if (trackerConnection != null  && globalManager != null)
       return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(), hash);
     else
-      return null;
+      if(trackerUrl != null && globalManager != null)
+        return globalManager.getTrackerChecker().getHashData(trackerUrl,hash);
+    return null;
   }
 
   /**

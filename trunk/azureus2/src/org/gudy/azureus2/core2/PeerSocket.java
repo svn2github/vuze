@@ -46,10 +46,12 @@ public class PeerSocket extends PeerConnection {
       return;
 
     this.incoming = false;
+    this.nbConnections = 0;
     createConnection();
   }
 
   private void createConnection() {
+    this.nbConnections++;
     allocateAll();
     logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
 
@@ -278,7 +280,7 @@ public class PeerSocket extends PeerConnection {
     }
     
     //In case it was an outgoing connection, established, we can try to reconnect.
-    if(this.currentState.getState() == TRANSFERING && incoming == false) {
+    if((this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 10)) {
       logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
       createConnection();
     } else {
@@ -1075,6 +1077,9 @@ public class PeerSocket extends PeerConnection {
 
   //Reader / Writer Loop
   private int processLoop;
+  
+  //Number of connections made since creation
+  private int nbConnections;
 
   //The Logger
   private Logger logger;
