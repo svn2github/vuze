@@ -772,7 +772,7 @@ public class TableView
   public void refresh() {
   	try{
   		this_mon.enter();
-  
+
 	    if(getComposite() == null || getComposite().isDisposed())
 	      return;
 	
@@ -894,10 +894,10 @@ public class TableView
   		this_mon.enter();
  
 	    try {
-	      if ( 	objectToSortableItem.containsKey(dataSource) || 
+	      if ( 	objectToSortableItem.containsKey(dataSource) ||
 	      		panel.isDisposed() ||
 				table.isDisposed()){
-	      
+
 	        return;
 	      }
 	      
@@ -973,16 +973,43 @@ public class TableView
     TableRowCore item;
     try{
     	objectToSortableItem_mon.enter();
-    	
+
     	item = (TableRowCore)objectToSortableItem.remove(dataSource);
     }finally{
-    	
+
     	objectToSortableItem_mon.exit();
     }
     
     if (item == null)
       return;
     item.delete();
+  }
+
+  /**
+   * Removes the table's rows using the row index
+   * @param indexSet Zero-based row index for the table
+   */
+  public void removeTableRows(int[] indexSet)
+  {
+      Object[] sources = new Object[indexSet.length];
+      if (table != null && !table.isDisposed())
+      {
+          for (int i = 0; i < indexSet.length; i++)
+          {
+              sources[i] = getRow(indexSet[i]).getDataSource(true);
+          }
+
+          table.remove(indexSet);
+      }
+
+      for (int i = 0; i < sources.length; i++)
+      {
+          Object src = sources[i];
+          if(src != null)
+          {
+              removeDataSource(src);
+          }
+      }
   }
 
   /** Remove all the data sources (table rows) from the table.
@@ -1139,7 +1166,11 @@ public class TableView
   public TableRowCore[] getRowsUnordered() {
     return (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
   }
-  
+
+  public TableRowCore getRow(int rowIndex) {
+      return (TableRowCore) getTable().getItem(rowIndex).getData("TableRow");
+  }
+
   /** Return all the TableColumnCore objects that belong to this TableView
    *
    * @return All the TableColumnCore objects
@@ -1242,8 +1273,8 @@ public class TableView
       return null;
     return row.getDataSource(true);
   }
-  
-  /** For each row source that the user has selected, run the code 
+
+  /** For each row source that the user has selected, run the code
    * provided by the specified parameter.
    *
    * @param runner Code to run for each selected row/datasource
@@ -1270,10 +1301,22 @@ public class TableView
     }
   }
 
-  public static void runForTableItems(List items, GroupTableRowRunner runner) {
+  /**
+   * Runs a specified task for a list of table items that the table contains
+   * @param items A list of TableItems that are part of the table view
+   * @param runner A task
+   */
+  public void runForTableItems(List items, GroupTableRowRunner runner) {
+      if(table == null || table.isDisposed())
+          return;
+
       final Iterator iter = items.iterator();
       while (iter.hasNext()) {
-          TableRowCore row = (TableRowCore) ((TableItem) iter.next()).getData("TableRow");
+          TableItem tableItem = (TableItem) iter.next();
+          if(tableItem.isDisposed())
+            continue;
+
+          TableRowCore row = (TableRowCore) tableItem.getData("TableRow");
           if (row != null)
             runner.run(row);
       }
