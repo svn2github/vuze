@@ -3,8 +3,8 @@ CHANGELOG
 
 xx.xx.04 | Azureus 2.0.8.5
 
-FEATURE: Added saving of peer details and their usage if tracker unavailable [Parg]
-FEATURE: Added Remaining column to My Torrents. [TuxPaper]
+FEATURE: Added Remaining column to My Torrents [TuxPaper]
+FEATURE: Caching of peer info to disk for quick restarts if tracker is unavailable [Parg]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]
