@@ -291,8 +291,13 @@ StartStopRulesDefaultPlugin
 
     for (int i = 0; i < dlDataArray.length; i++) {
       downloadData dl_data = dlDataArray[i];
+      if (dl_data == null)
+        continue;
+      Download dl = dl_data.getDownloadObject();
+      if (dl == null)
+        continue;
       
-      int iNewPosition = dl_data.getDownloadObject().getPosition();
+      int iNewPosition = dl.getPosition();
       int iOldPosition = dl_data.getDLPosition();
       if (iNewPosition != iOldPosition) {
         dl_data.setDLPosition(iNewPosition);
@@ -303,9 +308,15 @@ StartStopRulesDefaultPlugin
     // sorting
     if (bPositionsChanged && iRankType != RANK_NONE) {
       for (int i = 0; i < dlDataArray.length; i++) {
-        if (dlDataArray[i].getQR() > QR_INCOMPLETE_ENDS_AT - 10000 ||
-            dlDataArray[i].getDownloadObject().getStats().getDownloadCompleted(false) < 1000) {
-          dlDataArray[i].recalcQR();
+        downloadData dl_data = dlDataArray[i];
+        if (dl_data == null)
+          continue;
+        Download dl = dl_data.getDownloadObject();
+        if (dl == null)
+          continue;
+        if (dl_data.getQR() > QR_INCOMPLETE_ENDS_AT - 10000 ||
+            dl.getStats().getDownloadCompleted(false) < 1000) {
+          dl_data.recalcQR();
         }
       }
     }
