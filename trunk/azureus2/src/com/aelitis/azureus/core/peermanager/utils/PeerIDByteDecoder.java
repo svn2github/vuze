@@ -13,6 +13,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
 
 import java.io.*;
 
+
 /**
  * Used for identifying clients by their peerID.
  */
@@ -29,7 +30,7 @@ public class PeerIDByteDecoder {
   /**
    * Decodes the given peerID, returning an identification string.
    */  
-  protected static String decode(byte[] peer_id) {
+  protected static String decode(byte[] peer_id) {   
     String decoded = null;
     byte[] peerID = new byte[peer_id.length];
     System.arraycopy(peer_id, 0, peerID, 0, peer_id.length);
@@ -106,8 +107,8 @@ public class PeerIDByteDecoder {
       }
       
       String bow = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
-      if( bow.equals( "BoW" ) ) {
-        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
+      if( bow.equals( "BOW" ) ) {
+        String version = new String(peerID, 4, 3, Constants.BYTE_ENCODING);
         return "BitsOnWheels " + version;
       }
       
@@ -165,6 +166,7 @@ public class PeerIDByteDecoder {
         }  
       }
       
+      
       String bitcomet = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
       if (bitcomet.equals("exbc")) {
         String name = "BitComet ";
@@ -173,6 +175,7 @@ public class PeerIDByteDecoder {
         name = name.concat(String.valueOf(peerID[5]%10));
         return name;
       }
+      
       
             
       iFirstNonZeroPos = 20;
@@ -346,11 +349,13 @@ public class PeerIDByteDecoder {
 
   protected static String
   getPrintablePeerID(
-  	byte[]		peerID,
+  	byte[]		peer_id,
   	int iStartAtPos )
   {
   	String	sPeerID = "";
-  	
+  	byte[] peerID = new byte[ peer_id.length ];
+    System.arraycopy( peer_id, 0, peerID, 0, peer_id.length );
+    
     try {
     	for (int i = iStartAtPos; i < peerID.length; i++) {
     	  int b = (0xFF & peerID[i]);

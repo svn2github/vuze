@@ -65,15 +65,13 @@ public class BTHandshake implements BTMessage, RawMessage {
     dbb.put( DirectByteBuffer.SS_BT, data_hash );
     dbb.put( DirectByteBuffer.SS_BT, peer_id );
     dbb.flip( DirectByteBuffer.SS_BT );
-    buffer = new DirectByteBuffer[] { dbb };
-
-    description = BTMessage.ID_BT_HANDSHAKE +
-                  " of dataID: " +ByteFormatter.nicePrint( data_hash, true ) +
-                  " peerID: " +PeerClassifier.getPrintablePeerID( peer_id );
+    buffer = new DirectByteBuffer[] { dbb };    
       
     this.reserved_bytes = reserved;
     this.datahash_bytes = data_hash;
     this.peer_id_bytes = peer_id;
+    
+    description = BTMessage.ID_BT_HANDSHAKE + " of dataID: " +ByteFormatter.nicePrint( data_hash, true ) + " peerID: " +PeerClassifier.getPrintablePeerID( peer_id );
     
       /* for( int i=7; i >= 0; i-- ) {
            byte b = (byte) (RESERVED[0] >> i);
