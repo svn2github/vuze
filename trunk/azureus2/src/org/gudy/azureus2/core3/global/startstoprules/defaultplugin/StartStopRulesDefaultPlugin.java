@@ -1489,7 +1489,7 @@ StartStopRulesDefaultPlugin
       new IntListParameter(gQR, "Ignore Seed Count", 0, ignoreSeedsLabels, ignoreSeedsValues);
 
       label = new Label(gQR, SWT.WRAP);
-      Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$
+      Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreRatioPeers"); //$NON-NLS-1$
       final String stopRatioPeersLabels[] = new String[15];
       final int stopRatioPeersValues[] = new int[15];
       stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverIgnore");
