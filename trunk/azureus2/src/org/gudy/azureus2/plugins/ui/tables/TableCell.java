@@ -22,7 +22,6 @@
  
 package org.gudy.azureus2.plugins.ui.tables;
 
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Image;
 
 /** This interface provides access to an Azureus table cell.
@@ -141,12 +140,19 @@ public interface TableCell {
   // Start TYPE_GRAPHIC functions //
   //////////////////////////////////
 
-  /** Retrieve the size of the cell's drawing area (excluding any margin) for
+  /** Retrieve the width of the cell's drawing area (excluding any margin) for
    * TableColumn objects of TYPE_GRAPHIC only.
    *
-   * @return if you are filling the cell, this is what size your image should be
+   * @return if you are filling the cell, this is the width your image should be
    */
-  public Point getSize();
+  public int getWidth();
+
+  /** Retrieve the height of the cell's drawing area (excluding any margin) for
+   * TableColumn objects of TYPE_GRAPHIC only.
+   *
+   * @return if you are filling the cell, this is the height your image should be
+   */
+  public int getHeight();
   
   /** Sets the SWT image to be drawn.
    *
