@@ -57,8 +57,6 @@ public class
 DiskManagerImpl
 	implements DiskManagerHelper 
 {  
-	protected static final boolean		TRUNCATE_IF_TOO_BIG	= true;
-	
 	private String	dm_name	= "";
 	private boolean started = false;
   
@@ -372,7 +370,7 @@ DiskManagerImpl
 						
 						if ( existing_length > length ){
 							
-							if ( TRUNCATE_IF_TOO_BIG ){
+							if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
 								
 								file_info.setAccessMode( DiskManagerFileInfo.WRITE );
 
@@ -494,7 +492,7 @@ DiskManagerImpl
 			  	
 				if(  existing_length > length ){
 				
-					if ( TRUNCATE_IF_TOO_BIG ){
+					if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
 					
 					  	fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
 

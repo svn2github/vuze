@@ -78,6 +78,14 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     gridData.horizontalSpan = 2;
     zeroNew.setLayoutData(gridData);
 
+    // truncate too large
+    BooleanParameter truncateLarge = 
+    	new BooleanParameter(gFile, "File.truncate.if.too.large", false,
+                                    "ConfigView.section.file.truncate.too.large");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    truncateLarge.setLayoutData(gridData);
+
       // incrementaal file creation
     BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false,
                                                         "ConfigView.label.incrementalfile");
