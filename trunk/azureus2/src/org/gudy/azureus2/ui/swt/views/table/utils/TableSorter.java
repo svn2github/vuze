@@ -27,10 +27,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.swt.widgets.TableItem;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
 /**
  * @author Olivier
@@ -129,6 +133,15 @@ public class TableSorter implements ParameterListener {
 
     List columnCellList = sortableTable.getColumnCoreCells(sColumnName);
     TableCellCore[] cells = (TableCellCore[])columnCellList.toArray(new TableCellCore[0]);
+
+    TableCellCore[] cellsOriginal = (TableCellCore[])cells.clone();
+    TableItem[] tableItems = new TableItem[cells.length];
+    boolean[] selected = new boolean[cells.length];
+    for (int i = 0; i < cells.length; i++) {
+      BufferedTableRow row = (BufferedTableRow)cells[i].getTableRowCore();
+      tableItems[i] = row.getItem();
+      selected[i] = row.getSelected();
+    }
     
     if (bForce) {
       for (int i = 0; i < cells.length; i++)
@@ -140,7 +153,20 @@ public class TableSorter implements ParameterListener {
     else
       Arrays.sort(cells, Collections.reverseOrder());
 
+/* Flicker
     for (int i = 0; i < cells.length; i++)
       cells[i].getTableRowCore().setIndex(i);
+*/
+
+    for (int i = 0; i < cells.length; i++) {
+      if (cells[i] != cellsOriginal[i]) {
+        TableRowCore row = cells[i].getTableRowCore();
+        ((BufferedTableRow)row).setSelected(selected[row.getIndex()]);
+        ((BufferedTableRow)row).setTableItem(tableItems[i], false);
+        tableItems[i].setData("TableRow", row);
+        row.setValid(false);
+        row.refresh(true);
+      }
+    }
   }
 }
