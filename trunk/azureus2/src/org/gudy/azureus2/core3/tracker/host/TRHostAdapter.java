@@ -1,7 +1,7 @@
 /*
- * File    : GlobalManagerFactory.java
- * Created : 21-Oct-2003
- * By      : stuff
+ * File    : TRHostAdapter.java
+ * Created : 19-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,28 +19,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.global;
+package org.gudy.azureus2.core3.tracker.host;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.core3.global.impl.*;
+import java.io.InputStream;
 
-public class 
-GlobalManagerFactory 
+public interface 
+TRHostAdapter 
 {
-	public static GlobalManager
-	create()
-	{
-		return( create(null));
-	}	
-	
-	public static GlobalManager
-	create(
-		GlobalManagerAdapter	adapter )
-	{
-		return( new GlobalManagerImpl( adapter ));
-	}
+	public InputStream
+	getImageAsStream(
+		String	name ); 
 }

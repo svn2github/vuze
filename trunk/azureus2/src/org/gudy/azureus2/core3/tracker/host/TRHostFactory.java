@@ -32,7 +32,14 @@ TRHostFactory
 {
 	public static TRHost
 	create()
+	{	
+		return( create( null ));
+	}
+	
+	public static TRHost
+	create(
+		TRHostAdapter	adapter )
 	{
-		return( TRHostImpl.create());
+		return( TRHostImpl.create(adapter));
 	}
 }

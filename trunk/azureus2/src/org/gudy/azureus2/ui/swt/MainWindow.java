@@ -1549,7 +1549,17 @@ public class MainWindow implements GlobalManagerListener {
   public static void main(String args[]) {
     LocaleUtil lu = new LocaleUtilSWT();
     LocaleUtil.setLocaleUtilChooser(lu);
-    GlobalManager gm = GlobalManagerFactory.create();
+    GlobalManager gm = 
+    	GlobalManagerFactory.create( 
+    		new GlobalManagerAdapter(){
+				public InputStream
+				getImageAsStream(
+					String	name )
+				{
+					return( ImageRepository.getImageAsStream(name));
+				}
+    		});
+    		
     MainWindow mw = new MainWindow(gm, null);
     mw.waitForClose();
   }

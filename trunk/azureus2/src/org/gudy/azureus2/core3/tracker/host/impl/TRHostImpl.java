@@ -48,6 +48,7 @@ TRHostImpl
 	
 	protected static TRHostImpl		singleton;
 	
+	protected TRHostAdapter			host_adapter;
 	protected TRHostConfigImpl		config;
 		
 	protected Hashtable				server_map 	= new Hashtable();
@@ -60,19 +61,23 @@ TRHostImpl
 	protected List	listeners			= new ArrayList();
 	
 	public static synchronized TRHost
-	create()
+	create(
+		TRHostAdapter	adapter )
 	{
 		if ( singleton == null ){
 			
-			singleton = new TRHostImpl();
+			singleton = new TRHostImpl( adapter );
 		}
 		
 		return( singleton );
 	}
 	
 	protected
-	TRHostImpl()
+	TRHostImpl(
+		TRHostAdapter	_adapter )
 	{	
+		host_adapter	= _adapter;
+		
 		config = new TRHostConfigImpl(this);	
 		
 		TRTrackerClientFactory.addListener( this );
@@ -691,6 +696,41 @@ TRHostImpl
 					reply_bytes = new byte[0];
 				
 					reply_status	= "404";
+				}
+			}else if ( url.equalsIgnoreCase("/favicon.ico" )){
+				
+				//content_type = "image/x-icon";
+				content_type = "application/octet-stream";
+				
+				InputStream is = host_adapter.getImageAsStream( "azureus.gif" );
+				
+				if ( is == null ){
+				
+					reply_bytes = new byte[0];
+				
+					reply_status	= "404";
+					
+				}else{
+					
+					byte[] data = new byte[4096];
+					
+					int	pos = 0;
+					
+					while(true){
+					
+						int len = is.read(data, pos, data.length - pos );
+						
+						if ( len <= 0 ){
+							
+							break;
+						}
+						
+						pos += len;
+					}
+				
+					reply_bytes = new byte[pos];
+										
+					System.arraycopy( data, 0, reply_bytes, 0, pos );
 				}
 			}else{
 					

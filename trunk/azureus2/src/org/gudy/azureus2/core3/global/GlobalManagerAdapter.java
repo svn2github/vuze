@@ -1,7 +1,7 @@
 /*
- * File    : GlobalManagerFactory.java
- * Created : 21-Oct-2003
- * By      : stuff
+ * File    : GlobalManagerAdapter.java
+ * Created : 19-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -26,21 +26,12 @@ package org.gudy.azureus2.core3.global;
  *
  */
 
-import org.gudy.azureus2.core3.global.impl.*;
+import java.io.*;
 
-public class 
-GlobalManagerFactory 
+public interface 
+GlobalManagerAdapter 
 {
-	public static GlobalManager
-	create()
-	{
-		return( create(null));
-	}	
-	
-	public static GlobalManager
-	create(
-		GlobalManagerAdapter	adapter )
-	{
-		return( new GlobalManagerImpl( adapter ));
-	}
+	public InputStream
+	getImageAsStream(
+		String	name );
 }

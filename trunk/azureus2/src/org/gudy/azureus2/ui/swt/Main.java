@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -64,7 +65,16 @@ public class Main implements ILocaleUtilChooser {
 	
     if (startServer.getState() == StartServer.STATE_LISTENING) {
       startServer.start();
-      gm = GlobalManagerFactory.create();
+      gm = GlobalManagerFactory.create(
+		  new GlobalManagerAdapter(){
+			  public InputStream
+			  getImageAsStream(
+				  String	name )
+			  {
+				  return( ImageRepository.getImageAsStream(name));
+			  }
+		  });
+
       mainWindow = new MainWindow(gm, startServer);
       COConfigurationManager.checkConfiguration();
       if (args.length != 0) {
