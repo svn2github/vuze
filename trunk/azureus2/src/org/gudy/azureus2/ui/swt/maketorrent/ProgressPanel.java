@@ -64,6 +64,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     display = wizard.getDisplay();
     wizard.setTitle(MessageText.getString("wizard.progresstitle"));
     wizard.setCurrentInfo("");
+    wizard.setPreviousEnabled(false);
     Composite rootPanel = wizard.getPanel();
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
