@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.core3.download.DownloadManager;
 
 /**
  * @author Olivier
@@ -77,6 +78,7 @@ public class PiecesItem extends PeerGraphicItem  {
       return;
 
     PEPeer infoObj = peerRow.getPeerSocket();
+    DownloadManager dm = infoObj.getManager().getDownloadManager();
 
     int x0 = borderVerticalSize;
     int x1 = bounds.width - 1 - borderVerticalSize;
@@ -136,7 +138,7 @@ public class PiecesItem extends PeerGraphicItem  {
     }
 
     boolean available[] = infoObj.getAvailable();
-    boolean pieces[] = infoObj.getManager().getDownloadManager().getPiecesStatus();
+    boolean pieces[] = dm.getPiecesStatus();
     
     if (available != null && available.length > 0) {
       int nbComplete = 0;
