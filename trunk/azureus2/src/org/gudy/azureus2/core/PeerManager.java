@@ -757,6 +757,9 @@ PeerManager
         {
         if (maxConnections == 0 || _connections.size() < maxConnections) {
           _connections.add(pc); //add the connection
+        } else {
+          pc.closeAll(false);
+          pc = null;
         }
       }
       else //our list already contains this connection
