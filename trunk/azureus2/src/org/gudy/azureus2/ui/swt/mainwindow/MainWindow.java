@@ -441,13 +441,15 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     statusDown = new CLabel(statusBar, SWT.SHADOW_IN);
     statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/ "n/a");
     statusDown.setLayoutData(gridData);
+    Messages.setLanguageText(statusDown,"MainWindow.status.updowndetails.tooltip");
 
     gridData = new GridData();
     gridData.widthHint = 105;
     statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
     statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
     statusUp.setLayoutData(gridData);
-    
+    Messages.setLanguageText(statusUp,"MainWindow.status.updowndetails.tooltip");
+   
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);    
     menuUpSpeed.addListener(SWT.Show,new Listener() {
       public void handleEvent(Event e) {
