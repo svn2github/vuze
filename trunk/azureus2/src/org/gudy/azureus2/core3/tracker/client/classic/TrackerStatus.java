@@ -578,164 +578,173 @@ public class TrackerStatus {
   {
 	reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
-	PasswordAuthentication	auth = null;
-			
-	if ( reqUrl.getQuery().toLowerCase().indexOf("auth") != -1 ){
-				
-		auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
-	}		
-
-	int port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
+	PasswordAuthentication	auth 	= null;
+	boolean					auth_ok	= false;
 	
-	PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( port );
-	
-	InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
-	
-	for (int retry_loop=0;retry_loop<PRUDPPacket.DEFAULT_RETRY_COUNT;retry_loop++){
-	
-		try{
-			PRUDPPacket connect_request = new PRUDPPacketRequestConnect();
-			
-			PRUDPPacket reply = handler.sendAndReceive( auth, connect_request, destination );
-			
-			if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
-				
-				PRUDPPacketReplyConnect connect_reply = (PRUDPPacketReplyConnect)reply;
-				
-				long	my_connection = connect_reply.getConnectionId();
-				
-				PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hash );
-								
-				reply = handler.sendAndReceive( auth, scrape_request, destination );
-				
-				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_SCRAPE ){
+	try{
+		if ( reqUrl.getQuery().toLowerCase().indexOf("auth") != -1 ){
 					
- 					if ( auth != null ){
- 						
- 						SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerClientClassicImpl.UDP_REALM, reqUrl, true );
- 					}
-
-					if ( PRUDPPacket.VERSION == 1 ){
-						PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
-						
-						Map	map = new HashMap();
-						
-						/*
-						int	interval = scrape_reply.getInterval();
-						
-						if ( interval != 0 ){
+			auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
+		}		
+	
+		int port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
+		
+		PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( port );
+		
+		InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
+		
+		String	failure_reason = null;
+		
+		for (int retry_loop=0;retry_loop<PRUDPPacket.DEFAULT_RETRY_COUNT;retry_loop++){
+		
+			try{
+				PRUDPPacket connect_request = new PRUDPPacketRequestConnect();
+				
+				PRUDPPacket reply = handler.sendAndReceive( auth, connect_request, destination );
+				
+				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
+					
+					PRUDPPacketReplyConnect connect_reply = (PRUDPPacketReplyConnect)reply;
+					
+					long	my_connection = connect_reply.getConnectionId();
+					
+					PRUDPPacketRequestScrape scrape_request = new PRUDPPacketRequestScrape( my_connection, hash );
+									
+					reply = handler.sendAndReceive( auth, scrape_request, destination );
+					
+					if ( reply.getAction() == PRUDPPacket.ACT_REPLY_SCRAPE ){
+	
+						auth_ok	= true;
+	
+						if ( PRUDPPacket.VERSION == 1 ){
+							PRUDPPacketReplyScrape	scrape_reply = (PRUDPPacketReplyScrape)reply;
 							
-							map.put( "interval", new Long(interval ));
-						}
-						*/
-						
-						byte[][]	hashes 		= scrape_reply.getHashes();
-						int[]		complete 	= scrape_reply.getComplete();
-						int[]		downloaded 	= scrape_reply.getComplete();
-						int[]		incomplete 	= scrape_reply.getComplete();
-						
-						Map	files = new ByteEncodedKeyHashMap();
-						
-						map.put( "files", files );
-						
-						for (int i=0;i<hashes.length;i++){
+							Map	map = new HashMap();
 							
+							/*
+							int	interval = scrape_reply.getInterval();
+							
+							if ( interval != 0 ){
+								
+								map.put( "interval", new Long(interval ));
+							}
+							*/
+							
+							byte[][]	hashes 		= scrape_reply.getHashes();
+							int[]		complete 	= scrape_reply.getComplete();
+							int[]		downloaded 	= scrape_reply.getComplete();
+							int[]		incomplete 	= scrape_reply.getComplete();
+							
+							Map	files = new ByteEncodedKeyHashMap();
+							
+							map.put( "files", files );
+							
+							for (int i=0;i<hashes.length;i++){
+								
+								Map	file = new HashMap();
+								
+								byte[]	resp_hash = hashes[i];
+								
+								// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
+							
+								files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
+								
+								file.put( "complete", new Long(complete[i]));
+								file.put( "downloaded", new Long(downloaded[i]));
+								file.put( "incomplete", new Long(incomplete[i]));
+							}
+							
+							byte[] data = BEncoder.encode( map );
+							
+							message.write( data );
+							
+							return;
+						}else{
+							PRUDPPacketReplyScrape2	scrape_reply = (PRUDPPacketReplyScrape2)reply;
+							
+							Map	map = new HashMap();
+							
+							/*
+							int	interval = scrape_reply.getInterval();
+							
+							if ( interval != 0 ){
+								
+								map.put( "interval", new Long(interval ));
+							}
+							*/
+							
+							int[]		complete 	= scrape_reply.getComplete();
+							int[]		downloaded 	= scrape_reply.getComplete();
+							int[]		incomplete 	= scrape_reply.getComplete();
+							
+							Map	files = new ByteEncodedKeyHashMap();
+							
+							map.put( "files", files );
+														
 							Map	file = new HashMap();
-							
-							byte[]	resp_hash = hashes[i];
+								
+							byte[]	resp_hash = hash;
 							
 							// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
 						
 							files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
 							
-							file.put( "complete", new Long(complete[i]));
-							file.put( "downloaded", new Long(downloaded[i]));
-							file.put( "incomplete", new Long(incomplete[i]));
+							file.put( "complete", new Long(complete[0]));
+							file.put( "downloaded", new Long(downloaded[0]));
+							file.put( "incomplete", new Long(incomplete[0]));
+							
+							byte[] data = BEncoder.encode( map );
+							
+							message.write( data );
+							
+							return;
 						}
-						
-						byte[] data = BEncoder.encode( map );
-						
-						message.write( data );
-						
-						return;
 					}else{
-						PRUDPPacketReplyScrape2	scrape_reply = (PRUDPPacketReplyScrape2)reply;
 						
-						Map	map = new HashMap();
+						failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 						
-						/*
-						int	interval = scrape_reply.getInterval();
+						LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
+	    									"Response from scrape interface : " + failure_reason );
 						
-						if ( interval != 0 ){
-							
-							map.put( "interval", new Long(interval ));
-						}
-						*/
-						
-						int[]		complete 	= scrape_reply.getComplete();
-						int[]		downloaded 	= scrape_reply.getComplete();
-						int[]		incomplete 	= scrape_reply.getComplete();
-						
-						Map	files = new ByteEncodedKeyHashMap();
-						
-						map.put( "files", files );
-													
-						Map	file = new HashMap();
-							
-						byte[]	resp_hash = hash;
-						
-						// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
-					
-						files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
-						
-						file.put( "complete", new Long(complete[0]));
-						file.put( "downloaded", new Long(downloaded[0]));
-						file.put( "incomplete", new Long(incomplete[0]));
-						
-						byte[] data = BEncoder.encode( map );
-						
-						message.write( data );
-						
-						return;
+						break;
 					}
 				}else{
+	
+					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 					
 					LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
-    									"Response from scrape interface : " +
-    										((PRUDPPacketReplyError)reply).getMessage());
+							"Response from scrape interface : " +
+							((PRUDPPacketReplyError)reply).getMessage());
+					
+					break;
 				}
-			}else{
+	
+			}catch( PRUDPPacketHandlerException e ){
 				
-				LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
-						"Response from scrape interface : " +
-						((PRUDPPacketReplyError)reply).getMessage());
-			}
-			
-			if ( auth != null ){
-						
-				SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerClientClassicImpl.UDP_REALM, reqUrl, false );
-			}
-
-		}catch( PRUDPPacketHandlerException e ){
-			
-			if ( auth != null ){
-						
-				SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerClientClassicImpl.UDP_REALM, reqUrl, false );
-			}
-
-			if ( e.getMessage() == null || e.getMessage().indexOf("timed out") == -1 ){
+				if ( e.getMessage() == null || e.getMessage().indexOf("timed out") == -1 ){
+					
+					throw( e );
+				}
 				
-				throw( e );
+				failure_reason	= "Timeout";
 			}
+		}
+		
+		if ( failure_reason != null ){
 			
 			Map	map = new HashMap();
 			
-			map.put( "failure reason", "Timeout".getBytes());
+			map.put( "failure reason", failure_reason.getBytes());
 			
 			byte[] data = BEncoder.encode( map );
 			
 			message.write( data );
 
+		}
+	}finally{
+		if ( auth != null ){
+			
+			SESecurityManager.setPasswordAuthenticationOutcome( TRTrackerClientClassicImpl.UDP_REALM, reqUrl, auth_ok );
 		}
 	}
   }
