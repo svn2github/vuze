@@ -8,11 +8,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-//import java.nio.channels.SelectionKey;
-//import java.nio.channels.Selector;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-//import java.util.Iterator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -53,16 +53,15 @@ public class PeerSocket extends PeerConnection {
 //    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
 
     try {
-//      selector = Selector.open();
+      selector = Selector.open();
       //      Construct the peer's address with ip and port     
-      InetSocketAddress peerAddress = new InetSocketAddress(ip, port);
       //Create a new SocketChannel, left non-connected
       udpSocket = DatagramChannel.open();
       //Configure it so it's non blocking
       udpSocket.configureBlocking(false);
       //Initiate the connection
-      udpSocket.connect(peerAddress);
-//      udpSocket.register(selector, SelectionKey.OP_READ);
+      udpSocket.connect(new InetSocketAddress(ip, port));
+      udpSocket.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
       this.currentState = new StateConnecting();
     }
     catch (Exception e) {
@@ -221,7 +220,7 @@ public class PeerSocket extends PeerConnection {
     this.currentState = new StateClosed();
 
     //1. Remove us from the manager, so it will stop asking us for things :p
-    //manager.removePeer(this);
+    manager.removePeer(this);
 
     //2. Cancel any pending requests (on the manager side)
     cancelRequests();
@@ -237,6 +236,12 @@ public class PeerSocket extends PeerConnection {
     }
 
     if (udpSocket != null) {
+      try {
+        selector.close();
+      } catch (Exception e) {
+        e.printStackTrace(); // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
+      }
+      selector = null;
       try {
         udpSocket.close();
       } catch (Exception e) {
@@ -273,6 +278,27 @@ public class PeerSocket extends PeerConnection {
 
     //8. Send a logger event
 //    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Connection Ended with " + ip + " : " + port);
+  }
+
+  private class PeerUpdater extends Thread {
+    public PeerUpdater() {
+      super("Peer Updater"); //$NON-NLS-1$
+    }
+
+    public void run() {
+      while (!closing) {
+        loopFactor++;
+        if (currentState != null)
+          currentState.process();
+        write();
+        if(incoming) {
+          try {
+            Thread.sleep(30);
+          } catch (InterruptedException ignore) {
+          }
+        }
+      }
+    }
   }
 
   private class StateConnecting implements State {
@@ -334,14 +360,8 @@ public class PeerSocket extends PeerConnection {
     public void process() {
       if (readingLength) {
         if (lengthBuffer.hasRemaining()) {
-          try {
-            int read = incoming ? socket.read(lengthBuffer) : udpSocket.read(lengthBuffer);
-            if (read < 0) {
-              closeAll();
-              return;
-            }
-          }
-          catch (IOException e) {
+          int read = processSocket(lengthBuffer, true);
+          if (read < 0) {
             closeAll();
             return;
           }
@@ -358,22 +378,15 @@ public class PeerSocket extends PeerConnection {
         }
       }
       if (!readingLength) {
-        try {
-          int read = udpSocket != null ? udpSocket.read(readBuffer) : socket.read(readBuffer);
-          if (read < 0) {
-            closeAll();
-            return;
-          }
-          //hack to statistically determine when we're receving data...
-          if (readBuffer.limit() > 8192) {
-            stats.received(read);
-            manager.received(read);
-          }
-        }
-        catch (IOException e) {
-          //e.printStackTrace();
+        int read = processSocket(readBuffer, true);
+        if (read < 0) {
           closeAll();
           return;
+        }
+        //hack to statistically determine when we're receving data...
+        if (readBuffer.limit() > 8192) {
+          stats.received(read);
+          manager.received(read);
         }
         if (!readBuffer.hasRemaining()) {
           analyseBuffer(readBuffer);
@@ -395,11 +408,58 @@ public class PeerSocket extends PeerConnection {
     }
   }
 
+  private int processSocket(ByteBuffer buffer, boolean doRead) {
+    int processedBytes = 0;
+    if(incoming) {
+      try {
+        processedBytes = doRead ? socket.read(buffer) : socket.write(buffer);
+      } catch (Exception e) {
+//      closeAll();
+        return -1;
+      }
+    } else {
+      try {
+        // Wait for an event
+        selector.select();
+      } catch (Exception e) {
+        // Handle error with selector
+//        closeAll();
+        return -1;
+      }
+
+      // Get list of selection keys with pending events
+      Iterator it = selector.selectedKeys().iterator();
+
+      // Process each key at a time
+      while (it.hasNext()) {
+        // Get the selection key
+        SelectionKey selKey = (SelectionKey) it.next();
+        // Remove it from the list to indicate that it is being processed
+        it.remove();
+        if (selKey.isValid()) {
+          if((doRead && selKey.isReadable()) || (!doRead && selKey.isWritable())) {
+            try {
+              SocketChannel sChannel = (SocketChannel) selKey.channel();
+              processedBytes = doRead ? sChannel.read(buffer) : sChannel.write(buffer); // udpSocket.read(readBuffer)
+              break;
+            } catch (Exception e) {
+              // Handle error with channel and unregister
+              selKey.cancel();
+//              closeAll();
+              return -1;
+            }
+          }
+        }
+      }
+    }
+    return processedBytes;
+  }
+
   public void process() {
-    loopFactor++;
-    if (currentState != null)
-      currentState.process();
-    write();
+    if(peerUpdater == null) {
+      peerUpdater = new PeerUpdater();
+      peerUpdater.start();
+    }
   }
 
   public int getState() {
@@ -821,7 +881,7 @@ public class PeerSocket extends PeerConnection {
             limit = realLimit;
         }
         writeBuffer.limit(limit);
-        int written = incoming ? socket.write(writeBuffer) : udpSocket.write(writeBuffer);
+        int written = processSocket(writeBuffer, false);
         // End of Stream Reached
         if (written >= 0) {
           writeBuffer.limit(realLimit);
@@ -832,7 +892,7 @@ public class PeerSocket extends PeerConnection {
             if (SpeedLimiter.getLimiter().isLimited(this)) {
               used += written;
               if ((loopFactor % 5) == 4) {
-                if (used >= (100 * allowed) / 100)
+                if (used >= allowed) // (100 * allowed) / 100
                   maxUpload = max(110 * allowed, 20);
                 if (used < (95 * allowed) / 100)
                   maxUpload = max((100 * written) / 100, 20);
@@ -955,7 +1015,7 @@ public class PeerSocket extends PeerConnection {
   //The SocketChannel associated with this peer
   private SocketChannel socket;
   private DatagramChannel udpSocket;
-//  private Selector selector;
+  private Selector selector;
 
   //The reference to the current ByteBuffer used for reading on the socket.
   private ByteBuffer readBuffer;
@@ -970,6 +1030,8 @@ public class PeerSocket extends PeerConnection {
   private int allowed;
   private int used;
   private int loopFactor;
+  
+  private PeerUpdater peerUpdater;
 
   //The keepAlive counter
   private int keepAlive;
