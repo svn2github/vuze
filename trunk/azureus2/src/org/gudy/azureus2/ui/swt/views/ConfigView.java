@@ -115,6 +115,7 @@ public class ConfigView extends AbstractIView {
     initStats();
     initStyle();
     initTracker();
+    initLogging();
     
     initSaveButton(); 
     TabItem[] items = {itemFile};
@@ -1157,6 +1158,66 @@ public class ConfigView extends AbstractIView {
 	 	itemStats.setControl(gTracker);
 	}
 	
+	
+	
+	
+	private void initLogging() {
+		GridData gridData;
+		GridLayout layout;
+		Label label;
+	  TabItem itemLogging = new TabItem(tfConfig, SWT.NULL);
+		Messages.setLanguageText(itemLogging, "ConfigView.section.logging"); //$NON-NLS-1$
+
+	  Group gLogging = new Group(tfConfig, SWT.NULL);
+		//Group gStats = new Group(ctfConfig, SWT.NULL);
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gLogging.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		gLogging.setLayout(layout);
+
+		   // row
+		
+		label = new Label(gLogging, SWT.NULL);
+		Messages.setLanguageText(label, "ConfigView.section.logging.enable"); //$NON-NLS-1$
+		BooleanParameter enableStats = new BooleanParameter(gLogging, "Logging Enable", false); //$NON-NLS-1$
+
+		label = new Label(gLogging, SWT.NULL);
+
+	  Control[] controls = new Control[7];
+   
+		   // row
+		
+		Label lStatsPath = new Label(gLogging, SWT.NULL);
+		Messages.setLanguageText(lStatsPath, "ConfigView.section.logging.logdir"); //$NON-NLS-1$
+
+		gridData = new GridData();
+		gridData.widthHint = 150;
+	  final StringParameter pathParameter = new StringParameter(gLogging, "Logging Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
+	  pathParameter.setLayoutData(gridData);
+	  controls[0] = lStatsPath;
+	  controls[1] = pathParameter.getControl();
+	  Button browse = new Button(gLogging, SWT.PUSH);
+	  Messages.setLanguageText(browse, "ConfigView.button.browse"); //$NON-NLS-1$
+	  controls[2] = browse;
+	  browse.addListener(SWT.Selection, new Listener() {
+		 /* (non-Javadoc)
+		  * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+		  */
+		 public void handleEvent(Event event) {
+		 DirectoryDialog dialog = new DirectoryDialog(tfConfig.getShell(), SWT.APPLICATION_MODAL);
+		   //DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+		   dialog.setFilterPath(pathParameter.getValue());
+		   dialog.setText(MessageText.getString("ConfigView.section.logging.choosedefaultsavepath")); //$NON-NLS-1$
+		   String path = dialog.open();
+		   if (path != null) {
+			 pathParameter.setValue(path);
+		   }
+		 }
+	   });
+ 
+	   itemLogging.setControl(gLogging);
+	  }
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
    */
