@@ -179,6 +179,9 @@ DownloadManager
   	public boolean
   	isPersistent();
   	
+ 	public boolean
+	isDownloadComplete();
+	
 	public String
 	getTrackerStatus();
 	
@@ -323,5 +326,15 @@ DownloadManager
    */
   public void setDataAlreadyAllocated( boolean already_allocated );
   
+  	/**
+  	 * gives the time this download was created (not the torrent but the download itself)
+  	 * @return
+  	 */
   
+  public long
+  getCreationTime();
+
+  public void
+  setCreationTime(
+  	long		t );
 }

@@ -337,6 +337,12 @@ DownloadImpl
 		return download_manager.getPosition();
 	}
 	
+	public long
+	getCreationTime()
+	{
+		return( download_manager.getCreationTime());
+	}
+	
 	public void
 	setPosition(int newPosition)
 	{
@@ -449,6 +455,14 @@ DownloadImpl
 		return( download_stats );
 	}
 	
+ 	public boolean
+	isComplete()
+ 	{
+ 		int	state = getState();
+ 		
+ 		return( state == ST_SEEDING || download_manager.isDownloadComplete());
+ 	}
+ 	
 	protected void
 	isRemovable()
 		throws DownloadRemovalVetoException
@@ -519,8 +533,12 @@ DownloadImpl
 	{	
 	}
 
-  public void completionChanged(DownloadManager manager, boolean bCompleted) {
-  }
+	public void 
+	completionChanged(
+		DownloadManager 	manager, 
+		boolean 			bCompleted) 
+	{
+	}
 	
   public void positionChanged(DownloadManager download, 
                               int oldPosition, int newPosition) {

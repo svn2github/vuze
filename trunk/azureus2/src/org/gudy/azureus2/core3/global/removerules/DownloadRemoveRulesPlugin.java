@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.global.removerules;
  */
 
 import java.util.*;
+
+import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.config.*;
@@ -47,7 +49,10 @@ DownloadRemoveRulesPlugin
 
 	protected BooleanParameter 	remove_unauthorised; 
 	protected BooleanParameter 	remove_unauthorised_seeding_only; 
+	
+	protected BooleanParameter 	remove_update_torrents; 
 
+	
 	public void
 	initialize(
 		PluginInterface 	_plugin_interface )
@@ -69,7 +74,10 @@ DownloadRemoveRulesPlugin
 			config.addBooleanParameter2( "download.removerules.unauthorised.seedingonly", "download.removerules.unauthorised.seedingonly", true );
 		
 		remove_unauthorised.addEnabledOnSelection( remove_unauthorised_seeding_only );
-		
+
+		remove_update_torrents = 
+			config.addBooleanParameter2( "download.removerules.updatetorrents", "download.removerules.updatetorrents", true );
+
 		plugin_interface.getDownloadManager().addListener( this );
 	}
 	
@@ -89,8 +97,8 @@ DownloadRemoveRulesPlugin
 						
 						return;
 					}
-					
-					// System.out.println( "scrape status = " + response.getStatusString());
+
+					handleScrape( dm, response );
 				}
 				
 				public void
@@ -102,21 +110,7 @@ DownloadRemoveRulesPlugin
 						return;
 					}
 					
-					if ( response.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
-						
-						String	reason = response.getError();
-						
-						if ( reason != null ){
-							
-							reason = reason.toLowerCase();
-							
-							if ( 	reason.indexOf( "not authori" ) != -1 ||
-									reason.toLowerCase().indexOf( "unauthori" ) != -1 ){
-					
-								handleUnauthorised( dm );
-							}
-						}
-					}
+					handleAnnounce( dm, response );
 				}
 			};
 			
@@ -126,68 +120,187 @@ DownloadRemoveRulesPlugin
 	}
 		
 	protected void
-	handleUnauthorised(
-		final Download	dm )
+	handleScrape(
+		Download				download,
+		DownloadScrapeResult	response )
 	{
-		if ( !remove_unauthorised.getValue()){
+		String	status = response.getStatus();
+		
+		if ( status == null ){
 			
-			return;
+			status = "";
 		}
-		
-		if ( remove_unauthorised_seeding_only.getValue() && dm.getState() != Download.ST_SEEDING ){
 			
-			return;
+		handleAnnounceScrapeStatus( download, status );
+	}
+	
+	protected void
+	handleAnnounce(
+		Download				download,
+		DownloadAnnounceResult	response )
+	{
+		String	reason = "";
+		
+		if ( response.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
+			
+			reason = response.getError();
 		}
+				
+		handleAnnounceScrapeStatus( download, reason );
+	}
+	
+	protected void
+	handleAnnounceScrapeStatus(
+		Download		download,
+		String			status )
+	{
+		status = status.toLowerCase();
 		
-		log.log( "Download '" + dm.getName() + "' is unauthorised and removal triggered" );
+		boolean	download_completed = download.isComplete();
 		
-		dm.addListener( 
-			new DownloadListener()
-			{
-				public void
-				stateChanged(
-					Download		download,
-					int				old_state,
-					int				new_state )
-				{
-					log.log( "download state changed to '" + new_state +"'" );
+		if ( 	status.indexOf( "not authori" ) != -1 ||
+				status.toLowerCase().indexOf( "unauthori" ) != -1 ){
+	
+			if ( !remove_unauthorised.getValue()){
+				
+				return;
+			}
+			
+			if ( remove_unauthorised_seeding_only.getValue() && !download_completed ){
+				
+				return;
+			}
+			
+			log.log( "Download '" + download.getName() + "' is unauthorised and removal triggered" );
+			
+			removeDownload( download );
+			
+		}else{
+			
+			Torrent	torrent = download.getTorrent();
+			
+			if ( torrent != null && torrent.getAnnounceURL() != null ){
+			
+				if ( torrent.getAnnounceURL().toString().toLowerCase().indexOf( "aelitis.com") != -1 ){
+		
+						// emergency instruction from tracker
 					
-					if ( new_state == Download.ST_STOPPED ){
+					if ( 	( download_completed && status.indexOf( "too many seeds" ) != -1 ) ||
+							status.indexOf( "too many peers" ) != -1 ){
+			
+						removeDownloadDelayed( download );
 						
-						try{
-							dm.remove();
-							
-							String msg = 
-								plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
-									"download.removerules.removed.ok",
-									new String[]{ dm.getName() });
-								
-							log.logAlert( 
-								LoggerChannel.LT_INFORMATION,
-								msg );
+					}else if ( download_completed && remove_update_torrents.getValue()){
 						
-						}catch( Throwable e ){
+						long	creation_time	= download.getCreationTime();
+						
+						long	seeds	= download.getLastScrapeResult().getSeedCount();
+												
+							// try to maintain an upper bound on seeds that isn't going to
+							// kill the tracker
+						
+						long	running_hours = ( System.currentTimeMillis() - creation_time )/(60*60*1000);
+						
+						if ( seeds > 20000 && running_hours > 0 ){
 							
-							log.logAlert( "Automatic removal of download '" + dm.getName() + "' failed", e );
+							removeDownloadDelayed( download );							
 						}
 					}
 				}
-
+			}
+		}
+	}
+	
+	protected void
+	removeDownloadDelayed(
+		final Download		download )
+	{
+			// we need to delay this because other actions may be being performed
+			// on the download (e.g. completion may trigger update install)
+		
+		plugin_interface.getUtilities().createThread( 
+			"delayedRemoval",
+			new Runnable()
+			{
 				public void
-				positionChanged(
-					Download	download, 
-					int oldPosition,
-					int newPosition )
+				run()
 				{
+					try{
+						Thread.sleep(30000);
+						
+						removeDownload( download );
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
 				}
 			});
-		
-		try{
-			dm.stop();
+	}
+	
+	protected void
+	removeDownload(
+		final Download		download )
+	{
+		if ( download.getState() == Download.ST_STOPPED ){
 			
-		}catch( DownloadException e ){
+			try{
+				download.remove();
+				
+			}catch( Throwable e ){
+				
+				log.logAlert( "Automatic removal of download '" + download.getName() + "' failed", e );
+			}
+		}else{
 			
-			log.log( "Removal failed", e );
+			download.addListener( 
+				new DownloadListener()
+				{
+					public void
+					stateChanged(
+						Download		download,
+						int				old_state,
+						int				new_state )
+					{
+						log.log( "download state changed to '" + new_state +"'" );
+						
+						if ( new_state == Download.ST_STOPPED ){
+							
+							try{
+								download.remove();
+								
+								String msg = 
+									plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
+										"download.removerules.removed.ok",
+										new String[]{ download.getName() });
+									
+								log.logAlert( 
+									LoggerChannel.LT_INFORMATION,
+									msg );
+							
+							}catch( Throwable e ){
+								
+								log.logAlert( "Automatic removal of download '" + download.getName() + "' failed", e );
+							}
+						}
+					}
+	
+					public void
+					positionChanged(
+						Download	download, 
+						int oldPosition,
+						int newPosition )
+					{
+					}
+				});
+			
+			try{
+				download.stop();
+				
+			}catch( DownloadException e ){
+				
+				log.logAlert( "Automatic removal of download '" + download.getName() + "' failed", e );
+			}
 		}
 	}
 	

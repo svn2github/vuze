@@ -736,6 +736,17 @@ public class GlobalManagerImpl
             dm.setDataAlreadyAllocated( true );
           }
           
+          Long creation_time = (Long)mDownload.get( "creationTime" );
+          
+          if ( creation_time != null ){
+          	
+          	long	ct = creation_time.longValue();
+          	
+          	if ( ct < SystemTime.getCurrentTime()){
+          	
+          		dm.setCreationTime( ct );
+          	}
+          }
           
           //TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
           try {
@@ -817,6 +828,8 @@ public class GlobalManagerImpl
 		      if (category != null && category.getType() == Category.TYPE_USER)
 		        dmMap.put("category", category.getName());
           
+		      dmMap.put( "creationTime", new Long( dm.getCreationTime()));
+		      
 		      //save file priorities
           DiskManager disk_manager = dm.getDiskManager();
           if ( disk_manager != null ) disk_manager.storeFilePriorities();

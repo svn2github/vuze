@@ -235,6 +235,7 @@ DownloadManagerImpl
   
   private boolean data_already_allocated = false;
   
+  private long	creation_time	= SystemTime.getCurrentTime();
    
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	public 
@@ -1074,6 +1075,12 @@ DownloadManagerImpl
   	return( peerManager );
   }
 
+  	public boolean
+	isDownloadComplete()
+  	{
+  		return( download_ended );
+  	}
+  	
 	public void
 	addListener(
 		DownloadManagerListener	listener )
@@ -1504,4 +1511,16 @@ DownloadManagerImpl
     data_already_allocated = already_allocated;
   }
     
+  public long
+  getCreationTime()
+  {
+  	return( creation_time );
+  }
+
+  public void
+  setCreationTime(
+  	long		t )
+  {
+  	creation_time	= t;
+  }
 }

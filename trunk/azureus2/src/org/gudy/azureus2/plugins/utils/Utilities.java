@@ -66,6 +66,18 @@ Utilities
 	createTimer(
 		String		name );
 
+		/**
+		 * create and run a thread for the target. This will be a daemon thread so that
+		 * its existence doesn't interfere with Azureus closedown
+		 * @param name
+		 * @param target
+		 */
+	
+	public void
+	createThread(
+		String		name,
+		Runnable	target );
+	
 	public ResourceDownloaderFactory
 	getResourceDownloaderFactory();
 	

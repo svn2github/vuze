@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
 
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
@@ -119,6 +120,26 @@ UtilitiesImpl
 		String		name )
 	{
 		return( new UTTimerImpl( pi, name ));
+	}
+	
+	public void
+	createThread(
+		String			name,
+		final Runnable	target )
+	{
+		Thread t = 
+			new AEThread( pi.getPluginName() + "::" + name )
+			{
+				public void
+				run()
+				{
+					target.run();
+				}
+			};
+	
+		t.setDaemon(true);
+		
+		t.start();
 	}
 	
 	public ResourceDownloaderFactory

@@ -608,4 +608,20 @@ RPDownload
   		
   		return(0);
   	}
+  	
+ 	public boolean
+	isComplete()
+ 	{
+ 		notSupported();
+ 		
+ 		return( false );
+ 	}
+ 	
+	public long
+	getCreationTime()
+	{
+		notSupported();
+		
+		return( 0 );
+	}
 }

@@ -283,6 +283,14 @@ Download
 	public int
 	getPosition();
 	
+		/**
+		 * returns the time this download was created in milliseconds
+		 * @return
+		 */
+	
+	public long
+	getCreationTime();
+	
 	/**
 	 * Sets the position in the queue
 	 * Completed and Incompleted downloads have seperate position sets
@@ -374,6 +382,15 @@ Download
   	public int
 	getMaximumDownloadKBPerSecond();
 
+  	/**
+  	 * indicates if the download has completed or not 
+  	 * @return
+  	 * @since 2.1.0.4
+  	 */
+  	
+  	public boolean
+	isComplete();
+  	
 	/**
 	 * Adds a listener to the download that will be informed of changes in the download's state
 	 * @param l
