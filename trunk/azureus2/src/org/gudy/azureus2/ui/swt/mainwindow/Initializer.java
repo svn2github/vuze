@@ -40,6 +40,7 @@ import org.gudy.azureus2.ui.swt.StartServer;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
+import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
 /**
  * this class initiatize all GUI and Core components which are :
@@ -118,6 +119,7 @@ public class Initializer implements STProgressListener, Application {
     nextTask();
     reportCurrentTaskByKey( "splash.openViews");
     
+    new UpdateMonitor();
     
     //Tell listeners that all is initialized :
     Alerts.initComplete();
