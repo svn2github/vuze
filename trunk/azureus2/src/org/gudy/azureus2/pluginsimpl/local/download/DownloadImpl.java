@@ -80,7 +80,6 @@ DownloadImpl
 		
 		download_manager.addListener( this );
 		
-		download_manager.addPeerListener( this );
 		latest_forcedStart = download_manager.isForceStart();
 	}
 	
@@ -637,19 +636,29 @@ DownloadImpl
 		}
 	}
 	
-	public void
+	public synchronized void
 	addPeerListener(
 		DownloadPeerListener	l )
 	{
 		peer_listeners.add( l );
+		
+		if ( peer_listeners.size() == 1 ){
+			
+			download_manager.addPeerListener( this );
+		}
 	}
 	
 	
-	public void
+	public synchronized void
 	removePeerListener(
 		DownloadPeerListener	l )
 	{
 		peer_listeners.remove( l );
+		
+		if ( peer_listeners.size() == 0 ){
+			
+			download_manager.removePeerListener( this );
+		}
 	}
 	
 	public void
