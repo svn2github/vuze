@@ -104,7 +104,11 @@ public class UnchokerUtil {
     
     int rand_pos = new Random().nextInt( optimistics.size() );
     
-    return (PEPeerTransport)optimistics.get( rand_pos );
+    PEPeerTransport peer = (PEPeerTransport)optimistics.get( rand_pos );
+    
+    if( peer.isSnubbed() )  System.out.println( "getNextOptimisticPeer():: returned snubbed peer " +peer.getConnection() );
+    
+    return peer;
     
     //TODO:
     //in downloading mode, we would be better off optimistically unchoking just peers we are interested in ourselves,

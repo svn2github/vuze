@@ -28,6 +28,14 @@ import java.util.*;
  * Performs peer choke/unchoke calculations.
  */
 public interface Unchoker {
+  
+  /**
+   * Get any unchokes that should be performed immediately.
+   * @param max_to_unchoke maximum number of peers allowed to be unchoked
+   * @param all_peers list of peers to choose from
+   * @return peers to unchoke
+   */
+  public ArrayList getImmediateUnchokes( int max_to_unchoke, ArrayList all_peers );
 
   /**
    * Perform peer choke, unchoke and optimistic calculations

@@ -39,6 +39,31 @@ public class SeedingUnchoker implements Unchoker {
     /* nothing */
   }
   
+  
+  public ArrayList getImmediateUnchokes( int max_to_unchoke, ArrayList all_peers ) {
+    ArrayList to_unchoke = new ArrayList();
+    
+    //count all the currently unchoked peers
+    int num_unchoked = 0;
+    for( int i=0; i < all_peers.size(); i++ ) {
+      PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+      if( !peer.isChokedByMe() )  num_unchoked++;
+    }
+    
+    //if not enough unchokes
+    int needed = max_to_unchoke - num_unchoked;
+    if( needed > 0 ) {
+      for( int i=0; i < needed; i++ ) {
+        PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false );
+        if( peer == null )  break;  //no more new unchokes avail
+        to_unchoke.add( peer );
+      }
+    }
+    
+    return to_unchoke;
+  }
+  
+  
 
   public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh ) {
     
@@ -56,13 +81,6 @@ public class SeedingUnchoker implements Unchoker {
       }
     }
     
-    //if not enough unchokes
-    while( unchokes.size() < max_to_unchoke ) {  
-      PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false );
-      if( peer == null )  break;  //no more new unchokes avail
-      unchokes.add( peer );
-      peer.setOptimisticUnchoke( true );
-    }
     
     //if too many unchokes
     while( unchokes.size() > max_to_unchoke ) {
@@ -124,8 +142,8 @@ public class SeedingUnchoker implements Unchoker {
       ArrayList to_unchoke = new ArrayList();
       for( Iterator it = unchokes.iterator(); it.hasNext(); ) {
         PEPeerTransport peer = (PEPeerTransport)it.next();
-
-        peer.setOptimisticUnchoke( false );
+        
+        peer.setOptimisticUnchoke( false ); 
         
         if( !peers_ordered_by_rank.contains( peer ) ) {  //should be choked
           //we assume that any/all chokes are to be replace by optimistics
@@ -138,7 +156,7 @@ public class SeedingUnchoker implements Unchoker {
             to_unchoke.add( optimistic_peer );
             optimistic_peer.setOptimisticUnchoke( true );
           }
-        }
+        } 
       }
       
       for( int i=0; i < to_unchoke.size(); i++ ) {

@@ -1288,25 +1288,26 @@ PEPeerControlImpl
   */
   private void doUnchokes() {  
     int max_to_unchoke = _downloadManager.getStats().getMaxUploads();  //how many simultaneous uploads we should consider
+    ArrayList peer_transports = peer_transports_cow;
+    
+    //determine proper unchoker
+    if( seeding_mode ) {
+      if( unchoker == null || !(unchoker instanceof SeedingUnchoker) ) {
+        unchoker = new SeedingUnchoker();
+      }
+    }
+    else {
+      if( unchoker == null || !(unchoker instanceof DownloadingUnchoker) ) {
+        unchoker = new DownloadingUnchoker();
+      }
+    }
+    
     
     //do main choke/unchoke update every 10 secs
     if( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ) {
       
-      //determine proper unchoker
-      if( seeding_mode ) {
-        if( unchoker == null || !(unchoker instanceof SeedingUnchoker) ) {
-          unchoker = new SeedingUnchoker();
-        }
-      }
-      else {
-        if( unchoker == null || !(unchoker instanceof DownloadingUnchoker) ) {
-          unchoker = new DownloadingUnchoker();
-        }
-      }
-
       boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
-      ArrayList peer_transports = peer_transports_cow;
-      
+
       unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh );
       
       ArrayList peers_to_choke = unchoker.getChokes();
@@ -1321,6 +1322,19 @@ PEPeerControlImpl
         }
       }
 
+      //do unchokes
+      for( int i=0; i < peers_to_unchoke.size(); i++ ) {
+        PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
+        
+        if( peer.isChokedByMe() ) {
+          peer.sendUnChoke();
+        }
+      }
+    }
+    else if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ) {  //do quick unchoke check every 1 sec
+      
+      ArrayList peers_to_unchoke = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
+      
       //do unchokes
       for( int i=0; i < peers_to_unchoke.size(); i++ ) {
         PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );

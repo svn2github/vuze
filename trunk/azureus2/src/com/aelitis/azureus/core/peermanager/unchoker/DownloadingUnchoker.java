@@ -40,6 +40,31 @@ public class DownloadingUnchoker implements Unchoker {
     /* nothing */
   }
   
+  
+  public ArrayList getImmediateUnchokes( int max_to_unchoke, ArrayList all_peers ) {
+    ArrayList to_unchoke = new ArrayList();
+    
+    //count all the currently unchoked peers
+    int num_unchoked = 0;
+    for( int i=0; i < all_peers.size(); i++ ) {
+      PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+      if( !peer.isChokedByMe() )  num_unchoked++;
+    }
+    
+    //if not enough unchokes
+    int needed = max_to_unchoke - num_unchoked;
+    if( needed > 0 ) {
+      for( int i=0; i < needed; i++ ) {
+        PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true );
+        if( peer == null )  break;  //no more new unchokes avail
+        to_unchoke.add( peer );
+      }
+    }
+    
+    return to_unchoke;
+  }
+  
+  
 
   public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh ) {
     int max_optimistic = ((max_to_unchoke - 1) / 10) + 1;  //one optimistic unchoke for every 10 upload slots
@@ -123,7 +148,7 @@ public class DownloadingUnchoker implements Unchoker {
       if( peer == null )  break;  //no more new unchokes avail
       if( !best_peers.contains( peer ) ) {
         best_peers.add( peer );
-        peer.setOptimisticUnchoke( true );
+        if( force_refresh )  peer.setOptimisticUnchoke( true );
       }
     }
     
