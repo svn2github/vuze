@@ -32,7 +32,6 @@ public interface ProtocolMessage {
   public static final int PRIORITY_LOW    = 0;
   public static final int PRIORITY_NORMAL = 1;
   public static final int PRIORITY_HIGH   = 2;
-  public static final int PRIORITY_URGENT = 3;
   
   
   /**
@@ -64,6 +63,14 @@ public interface ProtocolMessage {
    * @return priority
    */
   public int getPriority();
+  
+  /**
+   * Is this a no-delay message.
+   * No-delay messages are transmitted immediately,
+   * i.e. force-flushed out the transport.
+   * @return true if a no-delay message
+   */
+  public boolean isNoDelay();
   
   /**
    * Destroy the message; i.e. perform cleanup actions.

@@ -64,7 +64,9 @@ public class BTRequest implements BTProtocolMessage {
     return "Request piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length);
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_URGENT;  }
+  public int getPriority() {  return ProtocolMessage.PRIORITY_NORMAL;  }
+  
+  public boolean isNoDelay() {  return true;  }
   
   public void destroy() {
     buffer.returnToPool();

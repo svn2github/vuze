@@ -65,7 +65,9 @@ public class BTHandshake implements BTProtocolMessage {
                      + " PeerID: " +Identification.getPrintablePeerID( peer_id );
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_URGENT;  }
+  public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
+  
+  public boolean isNoDelay() {  return true;  }
   
   public void destroy() {
     buffer.returnToPool();

@@ -68,6 +68,8 @@ public class BTPiece implements BTProtocolMessage {
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_LOW;  }
   
+  public boolean isNoDelay() {  return false;  }
+  
   public void destroy() {
     buffer.returnToPool();
   }
