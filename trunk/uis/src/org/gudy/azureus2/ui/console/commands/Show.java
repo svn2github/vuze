@@ -149,7 +149,35 @@ public class Show implements IConsoleCommand {
 								else
 									tstate += dm.getName();
 							}
-							tstate += " (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA()) + "\r\n\t\tSpeed: ";
+							tstate += " (" + DisplayFormatters.formatByteCountToKiBEtc(dm.getSize()) + ") ETA:" + DisplayFormatters.formatETA(stats.getETA());
+							tstate += "\r\n";
+							DiskManager dim = dm.getDiskManager();
+							long to = 0;
+							long tot = 0;
+							if (dim != null) {
+								DiskManagerFileInfo files[] = dim.getFiles();
+								if (files != null) {
+									if (files.length>1) { 
+										int c=0;
+										for (int i = 0; i < files.length; i++) {
+											if (files[i] != null) {
+												if (!files[i].isSkipped()) {
+													c += 1;
+													tot += files[i].getLength();
+													to += files[i].getDownloaded();
+												}
+											}
+										}
+										if (c == files.length)
+											tot = 0;
+									}
+								}
+							}
+							if (tot > 0) {
+								tstate += "      ("+df.format(to * 1.0 / tot)+")";
+							} else
+								tstate += "\t";
+							tstate += "\tSpeed: ";
 							tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDownloadAverage()) + " / ";
 							tstate += DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getUploadAverage()) + "\tAmount: ";
 							tstate += DisplayFormatters.formatDownloaded(stats) + " / ";
@@ -209,18 +237,22 @@ public class Show implements IConsoleCommand {
 							ci.out.println("- Tracker Info -");
 							if (trackerclient != null) {
 								ci.out.println("URL: " + trackerclient.getTrackerUrl());
-								int time = trackerclient.getTimeUntilNextUpdate();
 								String timestr;
-								if (time < 0) {
-									timestr = MessageText.getString("GeneralView.label.updatein.querying");
-								} else {
-									int minutes = time / 60;
-									int seconds = time % 60;
-									String strSeconds = "" + seconds;
-									if (seconds < 10) {
-										strSeconds = "0" + seconds; //$NON-NLS-1$
+								try {
+									int time = trackerclient.getTimeUntilNextUpdate();
+									if (time < 0) {
+										timestr = MessageText.getString("GeneralView.label.updatein.querying");
+									} else {
+										int minutes = time / 60;
+										int seconds = time % 60;
+										String strSeconds = "" + seconds;
+										if (seconds < 10) {
+											strSeconds = "0" + seconds; //$NON-NLS-1$
+										}
+										timestr = minutes + ":" + strSeconds;
 									}
-									timestr = minutes + ":" + strSeconds;
+								} catch (Exception e) {
+									timestr = "unknown";
 								}
 								ci.out.println("Time till next Update: " + timestr);
 								ci.out.println("Status: " + trackerclient.getStatusString());
@@ -232,7 +264,7 @@ public class Show implements IConsoleCommand {
 								DiskManagerFileInfo files[] = dim.getFiles();
 								if (files != null) {
 									for (int i = 0; i < files.length; i++) {
-										ci.out.print(((i < 10) ? "   " : "  ") + Integer.toString(i+1) + " (");
+										ci.out.print(((i < 9) ? "   " : "  ") + Integer.toString(i+1) + " (");
 										String tmp = ">";
 										if (files[i].isPriority())
 											tmp = "+";
