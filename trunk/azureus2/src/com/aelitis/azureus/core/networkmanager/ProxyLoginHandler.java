@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -84,9 +85,17 @@ public class ProxyLoginHandler {
     this.proxy_connection = proxy_connection;
     this.remote_address = remote_address;
     this.proxy_listener = listener;
+       
+    if ( remote_address.isUnresolved() || remote_address.getAddress() == null ){
+    	
+    		// deal with long "hostnames" that we get for, e.g., I2P destinations
+    	
+    	mapped_ip = AEProxyFactory.getAddressMapper().internalise( remote_address.getHostName() );
     
-    mapped_ip = AEProxyFactory.getAddressMapper().internalise( remote_address.getAddress().getHostAddress() ); // TODO ok?
-    
+    }else{
+    	
+    	mapped_ip = remote_address.getAddress().getHostName();
+    }
     
     if( socks_version.equals( "V4" ) ) {
       doSocks4Login();
