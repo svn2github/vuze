@@ -638,12 +638,6 @@ DiskManagerImpl
 					}
 				}
         
-				/*
-				if (readQueue.isEmpty()){
-					
-					try { Thread.sleep(3000); } catch (Exception ignore) {}
-				}
-				*/
 			}
 		}
 
@@ -668,6 +662,7 @@ DiskManagerImpl
 		public DiskWriteThread() {
 			super("Disk Writer & Checker");
 			setDaemon(true);
+      setPriority(Thread.MAX_PRIORITY - 1);
 		}
 
 		public void run() 
@@ -744,11 +739,6 @@ DiskManagerImpl
 				  }
 				}
         
-				/*
-				if (writeQueue.isEmpty() && checkQueue.isEmpty()) {
-					try { Thread.sleep(3000); } catch (Exception ignore) {}
-				}
-				*/
 			}
 		}
 
