@@ -176,7 +176,7 @@ PluginInterfaceImpl
    * @deprecated
    */
   public void openTorrentURL(String url) {
-    new FileDownloadWindow(initialiser.getAzureusCore(),MainWindow.getWindow().getDisplay(),url);
+    new FileDownloadWindow(initialiser.getAzureusCore(),MainWindow.getWindow().getDisplay(),url, null);
   }
       
   public String getPluginName()

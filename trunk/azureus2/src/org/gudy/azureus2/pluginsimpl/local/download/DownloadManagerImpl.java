@@ -173,7 +173,7 @@ DownloadManagerImpl
 					public void
 					run()
 					{
-						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString());
+						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString(), null);
 					}
 				});
 	}

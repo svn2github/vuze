@@ -391,9 +391,9 @@ public class TorrentOpener {
 	String 		linkURL) 
   {
     if(linkURL != null && linkURL.length() > 12 && COConfigurationManager.getBooleanParameter("Add URL Silently", false))
-      new FileDownloadWindow(azureus_core,display, linkURL);
+      new FileDownloadWindow(azureus_core,display, linkURL, null );
     else
-      new OpenUrlWindow(azureus_core, display, linkURL);
+      new OpenUrlWindow(azureus_core, display, linkURL, null);
   }
   
   public static void 

@@ -25,39 +25,52 @@ public class TorrentDownloaderFactory {
     }
   }
   
-  public static TorrentDownloader download(TorrentDownloaderCallBackInterface callback, String url, String fileordir, boolean logged) {
+  public static TorrentDownloader 
+  download(
+  	TorrentDownloaderCallBackInterface 	callback, 
+	String 								url,
+	String								referrer,
+	String 								fileordir, 
+	boolean 							logged) 
+  {
     TorrentDownloaderImpl dl = getClass(logged);
     if (dl!=null)
-      dl.init(callback, url, fileordir);
+      dl.init(callback, url, referrer, fileordir);
     return dl;
   }
   
-  public static TorrentDownloader download(TorrentDownloaderCallBackInterface callback, String url, String fileordir) {
-    return download(callback, url, fileordir, false);
+  public static TorrentDownloader 
+  download(
+  		TorrentDownloaderCallBackInterface 	callback, 
+		String 								url,
+		String								referrer,
+		String 								fileordir) 
+  {
+    return download(callback, url, referrer, fileordir, false);
   }
   
   public static TorrentDownloader download(TorrentDownloaderCallBackInterface callback, String url, boolean logged) {
-    return download(callback, url, null, logged);
+    return download(callback, url, null, null, logged);
   }
   
   public static TorrentDownloader download(TorrentDownloaderCallBackInterface callback, String url) {
-      return download(callback, url, null, false);
+      return download(callback, url, null, null, false);
   }
   
   public static TorrentDownloader download(String url, String fileordir, boolean logged) {
-    return download(null, url, fileordir, logged);
+    return download(null, url, null, fileordir, logged);
   }
   
   public static TorrentDownloader download(String url, String fileordir) {
-    return download(null, url, fileordir, false);
+    return download(null, url, null, fileordir, false);
   }
   
   public static TorrentDownloader download(String url, boolean logged) {
-    return download(null, url, null, logged);
+    return download(null, url, null, null, logged);
   }
   
   public static TorrentDownloader download(String url) {
-    return download(null, url, null, false);
+    return download(null, url, null, null, false);
   }
   
   public static void initManager(GlobalManager gm, boolean logged, boolean autostart, String downloaddir) {

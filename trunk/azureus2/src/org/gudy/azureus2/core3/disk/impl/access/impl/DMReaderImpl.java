@@ -110,7 +110,7 @@ DMReaderImpl
 	    
 	    if( queue_size > next_report_size ){
 	    	
-	    	Debug.out( "Disk Manager read queue size exceeds " + next_report_size );
+	    	LGLogger.log( "Disk Manager read queue size exceeds " + next_report_size );
 	    	
 	    	next_report_size += QUEUE_REPORT_CHUNK;
 	    }

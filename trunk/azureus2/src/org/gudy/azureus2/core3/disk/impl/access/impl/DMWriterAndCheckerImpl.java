@@ -251,7 +251,7 @@ DMWriterAndCheckerImpl
 	   		
 		if ( global_check_queue_block_sem.getValue() < global_check_queue_block_sem_next_report_size ){
 			
-	    	Debug.out( "Disk Manager check queue size exceeds " + ( global_check_queue_block_sem_size - global_check_queue_block_sem_next_report_size ));
+	    	// Debug.out( "Disk Manager check queue size exceeds " + ( global_check_queue_block_sem_size - global_check_queue_block_sem_next_report_size ));
 
 			global_check_queue_block_sem_next_report_size -= QUEUE_REPORT_CHUNK;
 		}
@@ -582,7 +582,7 @@ DMWriterAndCheckerImpl
 		
 		if ( global_write_queue_block_sem.getValue() < global_write_queue_block_sem_next_report_size ){
 			
-	    	Debug.out( "Disk Manager write queue size exceeds " + ( global_write_queue_block_sem_size - global_write_queue_block_sem_next_report_size ));
+			LGLogger.log( "Disk Manager write queue size exceeds " + ( global_write_queue_block_sem_size - global_write_queue_block_sem_next_report_size ));
 
 			global_write_queue_block_sem_next_report_size -= QUEUE_REPORT_CHUNK;
 		}
@@ -825,28 +825,34 @@ DMWriterAndCheckerImpl
 		private DirectByteBuffer data;
     private PEPeer sender; 
 
-		public QueueElement(int pieceNumber, int offset, DirectByteBuffer data, PEPeer sender) {
-			this.pieceNumber = pieceNumber;
-			this.offset = offset;
-			this.data = data;
-      this.sender = sender;
+		public 
+		QueueElement(
+			int 				_pieceNumber, 
+			int 				_offset, 
+			DirectByteBuffer	_data, 
+			PEPeer 				_sender) 
+		{
+			pieceNumber = _pieceNumber;
+			offset = _offset;
+			data = _data;
+			sender = _sender;
 		}  
 
 		public int getPieceNumber() {
-			return this.pieceNumber;
+			return pieceNumber;
 		}
 
 		public int getOffset() {
-			return this.offset;
+			return offset;
 		}
 
 		public DirectByteBuffer getData() {
-			return this.data;
+			return data;
 		}
     
-    public PEPeer getSender() {
-      return this.sender;
-	}
+	    public PEPeer getSender() {
+	      return sender;
+		}
 	}
 
 

@@ -46,7 +46,8 @@ public class OpenUrlWindow {
   OpenUrlWindow(
   	final AzureusCore	azureus_core,
 	final Display 		display, 
-	String 				linkURL) 
+	String 				linkURL,
+	final String		referrer ) 
   {
     final Shell shell = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     shell.setText(MessageText.getString("openUrl.title"));
@@ -87,7 +88,7 @@ public class OpenUrlWindow {
     ok.setText(MessageText.getString("Button.ok"));
     ok.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {        
-        new FileDownloadWindow(azureus_core,display,url.getText());
+        new FileDownloadWindow(azureus_core,display,url.getText(), referrer );
         shell.dispose();
       }
     }); 

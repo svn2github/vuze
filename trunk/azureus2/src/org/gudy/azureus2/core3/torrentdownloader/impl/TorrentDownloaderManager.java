@@ -69,15 +69,15 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
     }
     
     public TorrentDownloader download(String url, String fileordir, boolean logged) {
-        return download(TorrentDownloaderFactory.download(this, url, fileordir, logged));
+        return download(TorrentDownloaderFactory.download(this, url, null, fileordir, logged));
     }
     
     public TorrentDownloader download(String url, boolean logged) {
-        return download(TorrentDownloaderFactory.download(this, url, logged));
+        return download(TorrentDownloaderFactory.download(this, url, null, null, logged));
     }
     
     public TorrentDownloader download(String url, String fileordir) {
-        return download(TorrentDownloaderFactory.download(this, url, fileordir, this.logged));
+        return download(TorrentDownloaderFactory.download(this, url, null, fileordir, this.logged));
     }
     
     public TorrentDownloader download(String url) {

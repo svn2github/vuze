@@ -57,9 +57,10 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
   
   public 
   FileDownloadWindow(
-  		AzureusCore	_azureus_core,
-  		Display 	display,
-		final String url) 
+  		AzureusCore		_azureus_core,
+  		Display 		display,
+		final String 	url,
+		final String	referrer ) 
   {
   	azureus_core	= _azureus_core;
   	
@@ -134,7 +135,12 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
         retry.setEnabled(false);
         status.setText("");
         downloader.cancel();       
-        downloader = TorrentDownloaderFactory.download(FileDownloadWindow.this,url,_dirName);
+        downloader = 
+        	TorrentDownloaderFactory.download(
+        			FileDownloadWindow.this,
+					url,
+					referrer,
+					_dirName);
         downloader.start();
       }
     });        
@@ -152,7 +158,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     });
     shell.pack();
     shell.open();
-    downloader = TorrentDownloaderFactory.download(this,url,dirName);
+    downloader = TorrentDownloaderFactory.download(this,url,referrer,dirName);
     downloader.start();
   }    
     

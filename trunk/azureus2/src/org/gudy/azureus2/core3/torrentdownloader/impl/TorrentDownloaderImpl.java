@@ -52,7 +52,13 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
     setDaemon(true);
   }
 
-  private void init(TorrentDownloaderCallBackInterface _iface, String _url) {
+  public void 
+  init(
+  		TorrentDownloaderCallBackInterface	_iface, 
+		String 								_url,
+		String								_referrer,
+		String								_file )
+  {
     this.iface = _iface;
     
     	// it's possible that the URL hasn't been encoded (see Bug 878990)
@@ -62,11 +68,7 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
     this.setName("TorrentDownloader: " + _url);
     
     this._url = _url;
-  }
-
-  public void init(TorrentDownloaderCallBackInterface _iface, String _url, String _file) {
-    init(_iface, _url);
-    this._file = _file;
+    this._file	= _file;
   }
 
   public void notifyListener() {
