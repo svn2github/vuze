@@ -895,7 +895,7 @@ PEPeerTransportProtocol
     
     public int process() 
     {
-      if( !sent_our_handshake ) {
+      if( !sent_our_handshake ) {  //TODO we should wait until we receive their handshake completely on incoming connections, before sending our own
         if ( getState() == CLOSING ) return 0;
         
         connection.getOutgoingMessageQueue().addMessage( new BTHandshake( manager.getHash(), manager.getPeerId() ), false );
