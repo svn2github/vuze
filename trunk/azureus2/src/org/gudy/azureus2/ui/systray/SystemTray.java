@@ -125,8 +125,8 @@ public class SystemTray extends SysTrayMenuAdapter {
 	}
 
 	private void dispose() {
+    menu.getIcon().removeSysTrayMenuListener(this);
     menu.hideIcon();
-
 		Display display = main.getDisplay();
 		if (display == null || display.isDisposed())
 			return;

@@ -38,6 +38,8 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
@@ -79,7 +81,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.2.0"; //$NON-NLS-1$
+  private static final String VERSION = "2.0.2.1"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
@@ -265,8 +267,10 @@ public class MainWindow implements IComponentListener {
   }
 
   public MainWindow(GlobalManager gm, StartServer server) {
-    if (window != null)
+    if (window != null) {
+      setVisible(true);
       return;
+    }
 
     //The display
     display = new Display();
@@ -502,6 +506,7 @@ public class MainWindow implements IComponentListener {
     closeSplashWindow();
 
     mainWindow.open();
+    mainWindow.forceActive();
     updater = new GUIUpdater();
     updater.start();
 
@@ -517,25 +522,35 @@ public class MainWindow implements IComponentListener {
     else
       tray = new TrayWindow(this);
 
-    mainWindow.addListener(SWT.Close, new Listener() {
-      public void handleEvent(Event event) {
+    mainWindow.addShellListener(new ShellAdapter() {
+      public void shellClosed(ShellEvent event) {
         if (ConfigurationManager.getInstance().getBooleanParameter("Close To Tray", true)) { //$NON-NLS-1$
-          event.doit = false;
-          mainWindow.setVisible(false);
-          if (tray != null)
-            tray.setVisible(true);
-          synchronized (downloadBars) {
-            Iterator iter = downloadBars.values().iterator();
-            while (iter.hasNext()) {
-              MinimizedWindow mw = (MinimizedWindow) iter.next();
-              mw.setVisible(true);
-            }
-          }
+          minimizeToTray(event);
         } else {
           dispose();
         }
       }
+
+      public void shellIconified(ShellEvent event) {
+        if (ConfigurationManager.getInstance().getBooleanParameter("Minimize To Tray", false)) { //$NON-NLS-1$
+          minimizeToTray(event);
+        }
+      }
     });
+  }
+
+  private void minimizeToTray(ShellEvent event) {
+    event.doit = false;
+    mainWindow.setVisible(false);
+    if (tray != null)
+      tray.setVisible(true);
+    synchronized (downloadBars) {
+      Iterator iter = downloadBars.values().iterator();
+      while (iter.hasNext()) {
+        MinimizedWindow mw = (MinimizedWindow) iter.next();
+        mw.setVisible(true);
+      }
+    }
   }
 
   private void createLanguageMenu(Menu menu) {
@@ -721,7 +736,9 @@ public class MainWindow implements IComponentListener {
     gridData.horizontalSpan = 3;
 
     Label label = new Label(gInfo, SWT.CENTER);
-    label.setText(MessageText.getString("MainWindow.upgrade.newerversion")+": " + latestVersion + "\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    int posMessage = latestVersion.indexOf(" (");
+    String newVersion = posMessage >= 0 ? latestVersion.substring(0, posMessage) : latestVersion;
+    label.setText(MessageText.getString("MainWindow.upgrade.newerversion")+": " + newVersion + "\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     FontData[] fontData = label.getFont().getFontData();
     for (int i = 0; i < fontData.length; i++) {
       fontData[i].setStyle(SWT.BOLD);
@@ -1163,6 +1180,13 @@ public class MainWindow implements IComponentListener {
 
   public void setVisible(boolean visible) {
     mainWindow.setVisible(visible);
+    if(visible) {
+      if(tray != null) {
+	      tray.setVisible(false);
+      }
+      mainWindow.forceActive();
+      mainWindow.setMinimized(false);
+    }
   }
 
   public void dispose() {

@@ -135,6 +135,8 @@ public class TrayWindow implements IComponentListener {
     if(visible) {    
       //minimized.setFocus();
       //minimized.setActive();
+    } else {
+      moving = false;
     }
   }
 

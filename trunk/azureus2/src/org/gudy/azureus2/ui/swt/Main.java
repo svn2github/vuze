@@ -22,8 +22,8 @@ public class Main {
   
   public static class StartSocket {
     public StartSocket(String args[]) {
-      if(args.length == 0)
-        return;
+//      if(args.length == 0)
+//        return;
 
       Socket sck = null;
       PrintWriter pw = null;
@@ -56,28 +56,26 @@ public class Main {
   }
   
   public Main(String args[]) {
-     startServer = new StartServer(this);
-     if(startServer.getState() == StartServer.STATE_LISTENING) {
-       startServer.start();
-       gm = new GlobalManager();
-       mainWindow = new MainWindow(gm,startServer);
-       if(args.length != 0) {
-       	// Sometimes Windows use filename in 8.3 form and cannot
-       	// match .torrent extension. To solve this, canonical path
-       	// is used to get back the long form
-       	String filename=args[0];
-       	try {
-       		filename=new java.io.File(args[0]).getCanonicalPath();
-       	}
-       	catch (java.io.IOException ioe) {
-       	}
+    startServer = new StartServer(this);
+    if (startServer.getState() == StartServer.STATE_LISTENING) {
+      startServer.start();
+      gm = new GlobalManager();
+      mainWindow = new MainWindow(gm, startServer);
+      if (args.length != 0) {
+        // Sometimes Windows use filename in 8.3 form and cannot
+        // match .torrent extension. To solve this, canonical path
+        // is used to get back the long form
+        String filename = args[0];
+        try {
+          filename = new java.io.File(args[0]).getCanonicalPath();
+        } catch (java.io.IOException ioe) {
+        }
         mainWindow.openTorrent(filename);
-       }
-       mainWindow.waitForClose();
-     }
-     else {
-       new StartSocket(args);
-     }
+      }
+      mainWindow.waitForClose();
+    } else {
+      new StartSocket(args);
+    }
   }
   
   public void useParam(String args[]) {
@@ -94,4 +92,15 @@ public class Main {
   public static void main(String args[]) {
     new Main(args);
   }
+
+  public void showMainWindow() {
+    if(mainWindow != null) {
+      mainWindow.getDisplay().asyncExec(new Runnable() {
+        public void run() {
+          mainWindow.setVisible(true);
+        }
+      });
+    }
+  }
+
 }

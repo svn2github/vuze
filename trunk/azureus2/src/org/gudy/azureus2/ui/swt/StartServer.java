@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.StringTokenizer;
 
 /**
@@ -38,14 +39,16 @@ public class StartServer extends Thread {
   public void run() {
     bContinue = true;
     while (bContinue) {
+      BufferedReader br = null;
       try {
         Socket sck = socket.accept();
         String address = sck.getInetAddress().getHostAddress();
         if (address.equals("localhost") || address.equals("127.0.0.1")) {
-          BufferedReader br = new BufferedReader(new InputStreamReader(sck.getInputStream()));
+          br = new BufferedReader(new InputStreamReader(sck.getInputStream()));
           String line = br.readLine();
           //System.out.println("received : " + line);
           if (line != null) {
+            main.showMainWindow();
             StringTokenizer st = new StringTokenizer(line, ";");
             String args[] = new String[st.countTokens()];
             int i = 0;
@@ -59,8 +62,15 @@ public class StartServer extends Thread {
 
       }
       catch (Exception e) {
-        //e.printStackTrace();
+        if(!(e instanceof SocketException))
+          e.printStackTrace();
         bContinue = false;
+      } finally {
+        try {
+          if (br != null)
+            br.close();
+        } catch (Exception e) {
+        }
       }
     }
   }
