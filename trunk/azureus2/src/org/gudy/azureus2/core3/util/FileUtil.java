@@ -141,48 +141,6 @@ public class FileUtil {
     } catch (Exception e) { Debug.out(e.toString()); }
   }
   
-  
-  /**
-   * Takes a path and a file/dir name and returns the full path,
-   * including file/dir name, removing 'name' duplicate if already
-   * represented by 'path'
-   * 
-   * Example: smartFullName("c:\windows\thedir", "thedir") -> "c:\windows\thedir"
-   * Example: smartFullName("c:\windows", "thedir") -> "c:\windows\thedir"
-   * Example: smartFullName("c:\windows", "filename.txt") -> "c:\windows\filename.txt"
-   * Example: smartFullName("c:\windows\filename.txt", "filename.txt") -> "c:\windows\filename.txt"
-   */
-  public static String smartFullName(String path, String name) {
-    //if 'name' is already represented by 'path'
-    if (path.endsWith(name)) return path;
-    else return path + System.getProperty("file.separator") + name;
-  }
-  
-  
-   /**
-   * Takes a path and a file/dir name and returns the full dir path,
-   * removing 'name' dir duplicate if already represented by 'path'
-   * 
-   * Example: smartPath("c:\windows\thedir", "thedir") -> "c:\windows\thedir"
-   * Example: smartPath("c:\windows", "thedir") -> "c:\windows\thedir"
-   * Example: smartPath("c:\windows\thedir", "filename.txt") -> "c:\windows\thedir"
-   */
-  public static String smartPath(String path, String name) {
-    String fullPath = path + System.getProperty("file.separator") + name;
-    //if 'name' is already represented by 'path'
-    if (path.endsWith(name)) {
-      File dirTest = new File(path);
-      if (dirTest.isDirectory()) return path;
-      else return dirTest.getParent();
-    }
-    //otherwise use path + name
-    else {
-      File dirTest = new File (fullPath);
-      if (dirTest.isDirectory()) return fullPath;
-      else return path;
-    }
-  }
-
   public static String
   convertOSSpecificChars(
   	String	file_name_in )

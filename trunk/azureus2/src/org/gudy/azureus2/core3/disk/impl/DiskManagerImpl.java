@@ -332,11 +332,11 @@ DiskManagerImpl
 			File f = new File(tempPath, tempName);
 
 			if (!f.exists()) {
-			  errorMessage = tempPath + tempName + " not found.";
+			  errorMessage = f.toString() + " not found.";
 			  return false;
 			}
 			else if (f.length() != length) {
-			  errorMessage = tempPath + tempName + " not correct size.";
+			  errorMessage = f.toString() + " not correct size.";
 				return false;
 			}
 		}
