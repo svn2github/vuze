@@ -51,8 +51,8 @@ TRTrackerServerTCP
 		if ( THREAD_POOL_SIZE <= 0 ){
 			THREAD_POOL_SIZE	= 1;
 		}
-		if ( PROCESSING_GET_LIMIT <= 0 ){
-			PROCESSING_GET_LIMIT = 1000;
+		if ( PROCESSING_GET_LIMIT < 0 ){
+			PROCESSING_GET_LIMIT = 0;
 		}
 		if ( PROCESSING_POST_MULTIPLIER < 0 ){
 			PROCESSING_POST_MULTIPLIER	= 0;
@@ -86,7 +86,10 @@ TRTrackerServerTCP
 		apply_ip_filter			= _apply_ip_filter;
 
 		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );			
-		thread_pool.setExecutionLimit( PROCESSING_GET_LIMIT );
+		if ( PROCESSING_GET_LIMIT > 0 ){
+			
+			thread_pool.setExecutionLimit( PROCESSING_GET_LIMIT );
+		}
 		
 		current_announce_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 		
