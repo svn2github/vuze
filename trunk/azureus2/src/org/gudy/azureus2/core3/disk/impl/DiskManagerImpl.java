@@ -1370,44 +1370,59 @@ DiskManagerImpl
 	}
 
 	public void computePriorityIndicator() {
+	   DiskManagerFileInfoImpl fileInfo;
+    
 		for (int i = 0; i < pieceCompletion.length; i++) {
+		  
+		   //if the piece is already complete, skip
+		   if (pieceDone[i]) {
+		     pieceCompletion[i] = -1;
+		     continue;
+		   }
+      
 			PieceList pieceList = pieceMap[i];
 			int completion = -1;
+			
 			for (int k = 0; k < pieceList.size(); k++) {
 				//get the piece and the file 
-				DiskManagerFileInfoImpl fileInfo = (pieceList.get(k)).getFile();
+				fileInfo = (pieceList.get(k)).getFile();
 				
 				//If the file isn't skipped
 				if(fileInfo.isSkipped()) {
 					continue;
 				}
-                          
+
 				//if this is the first piece of the file
 				if (i == fileInfo.getFirstPieceNumber()) {
-				  completion = 98;   
+				  if (fileInfo.isPriority()) completion = 99;
+				  else completion = 97;
 				}
         
             //if the file is high-priority
 				else if (fileInfo.isPriority()) {
-				  completion = 99;
+				  if (i == fileInfo.getFirstPieceNumber()) completion = 99;
+				  else completion = 98;
 				}
 				
 				//If the file is started but not completed
-				int percent = 0;
-				if (fileInfo.getLength() != 0) {
-				  percent = (int) ((fileInfo.getDownloaded() * 100) / fileInfo.getLength());
-				}
-				if (percent > completion && percent < 100) {
-				  completion = percent;
+				else {
+				  int percent = 0;
+				  if (fileInfo.getLength() != 0) {
+				    percent = (int) ((fileInfo.getDownloaded() * 100) / fileInfo.getLength());
+				  }
+				  if (percent < 100) {
+				    completion = percent;
+				  }
 				}
 			}
+      
 			pieceCompletion[i] = completion;
 		}
 
 		for (int i = 0; i < priorityLists.length; i++) {
 			BitSet list = priorityLists[i];
 			if (list == null) {
-				list = new BitSet(100);
+				list = new BitSet(pieceCompletion.length);
 			} else {
 				list.clear();
 			}
@@ -1478,15 +1493,23 @@ DiskManagerImpl
 		//Added patch so that we try to complete most advanced files first.
 		List _pieces = new ArrayList();
 		Integer pieceInteger;    
+    
 		for (int i = 99; i >= 0; i--) {
-		  int k = 0;
+
+		  if (priorityLists[i].isEmpty()) {
+		    //nothing is set for this priority, so skip
+		    continue;
+		  }
+		  
 		  //Switch comments to enable sequential piece picking.
+		  //int k = 0;
 		  //for (int j = 0; j < nbPieces && k < 50; j++) {
+      
 		  for (int j = 0; j < nbPieces ; j++) {
 		    if (_piecesRarest[j] && priorityLists[i].get(j)) {
 		      pieceInteger = FlyWeightInteger.getInteger(j);
 		      _pieces.add(pieceInteger);
-		      k++;
+		      //k++;
 		    }
 		  }
 		  
