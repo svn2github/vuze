@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 /**
  * @author Olivier Chalouhi
@@ -98,6 +99,14 @@ public class MainMenu {
       MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
   
+      new MenuItem(fileMenu,SWT.SEPARATOR);
+      
+      final MenuItem itemStartAll = new MenuItem(fileMenu,SWT.NULL);
+      Messages.setLanguageText(itemStartAll,"MainWindow.menu.file.startalldownloads");
+      
+      final MenuItem itemStopAll = new MenuItem(fileMenu,SWT.NULL); 
+      Messages.setLanguageText(itemStopAll,"MainWindow.menu.file.stopalldownloads");
+
       new MenuItem(fileMenu, SWT.SEPARATOR);
   
       MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
@@ -214,6 +223,18 @@ public class MainMenu {
         }
       });
   
+      itemStartAll.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+        	mainWindow.getGlobalManager().startAllDownloads();
+        }
+      });
+      
+      itemStopAll.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+        	mainWindow.getGlobalManager().stopAllDownloads();
+        }
+      });
+      
       file_export.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           new ExportTorrentWizard(mainWindow.getAzureusCore(), display);
