@@ -156,6 +156,18 @@ PluginUpdatePlugin
 		try{
 			SFPluginDetailsLoader loader = SFPluginDetailsLoaderFactory.create();
 			
+			loader.addListener( 
+				new SFPluginDetailsLoaderListener()
+				{
+					public void
+					log(
+						String	str )
+					{
+						log.log( LoggerChannel.LT_INFORMATION, "[" + str + "]" );
+						
+					}
+				});
+			
 			String[]	names = loader.getPluginNames();
 			
 			String	name_list = "";

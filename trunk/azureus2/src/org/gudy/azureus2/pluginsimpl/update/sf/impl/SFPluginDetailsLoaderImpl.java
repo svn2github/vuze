@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.update.sf.impl;
  */
 
 import java.util.*;
+import java.io.InputStream;
 
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.core3.resourcedownloader.*;
@@ -35,7 +36,7 @@ import org.gudy.azureus2.core3.html.*;
 
 public class 
 SFPluginDetailsLoaderImpl 
-	implements SFPluginDetailsLoader
+	implements SFPluginDetailsLoader, ResourceDownloaderListener
 {
 
 	public static final String	site_prefix = "http://azureus.sourceforge.net/";
@@ -61,6 +62,8 @@ SFPluginDetailsLoaderImpl
 	protected List		plugin_names		= new ArrayList();
 	protected Map		plugin_map			= new HashMap();
 	
+	protected List		listeners			= new ArrayList();
+	
 	protected
 	SFPluginDetailsLoaderImpl()
 	{
@@ -74,6 +77,8 @@ SFPluginDetailsLoaderImpl
 		ResourceDownloader dl = ResourceDownloaderFactory.create( page_url );
 		
 		dl = ResourceDownloaderFactory.getRetryDownloader( dl, 5 );
+		
+		dl.addListener( this );
 		
 		try{
 			HTMLPage	page = HTMLPageFactory.loadPage( dl.download());
@@ -115,6 +120,8 @@ SFPluginDetailsLoaderImpl
 		
 			p_dl = ResourceDownloaderFactory.getRetryDownloader( p_dl, 5 );
 		
+			p_dl.addListener( this );
+
 			HTMLPage	plugin_page = HTMLPageFactory.loadPage( p_dl.download());
 			
 			SFPluginDetailsImpl res = processPluginPage( plugin_name, plugin_page );
@@ -296,5 +303,60 @@ SFPluginDetailsLoaderImpl
 		}
 		
 		return( res );
+	}
+	
+	public void
+	reportPercentComplete(
+		ResourceDownloader	downloader,
+		int					percentage )
+	{
+	}
+	
+	public void
+	reportActivity(
+		ResourceDownloader	downloader,
+		String				activity )
+	{
+		informListeners( activity );
+	}
+	
+	public boolean
+	completed(
+		ResourceDownloader	downloader,
+		InputStream			data )
+	{
+		return( true );
+	}
+	
+	public void
+	failed(
+		ResourceDownloader			downloader,
+		ResourceDownloaderException e )
+	{
+		informListeners( "Error: " + e.getMessage());
+	}
+
+	protected void
+	informListeners(
+		String		log )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((SFPluginDetailsLoaderListener)listeners.get(i)).log( log );
+		}
+	}
+	
+	public void
+	addListener(
+		SFPluginDetailsLoaderListener		l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		SFPluginDetailsLoaderListener		l )
+	{
+		listeners.remove(l);
 	}
 }
