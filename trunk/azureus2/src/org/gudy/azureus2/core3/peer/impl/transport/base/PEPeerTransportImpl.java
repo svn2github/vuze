@@ -113,7 +113,11 @@ PEPeerTransportImpl
 			public void run() {
 				Selector sel = null;
 				try {
+				  sel = Selector.open();
+				  
 					socket = SocketChannel.open();
+					
+					socket.configureBlocking(false);
 					
 					socket.socket().setReceiveBufferSize(PEPeerTransport.RECEIVE_BUFF_SIZE);
 					
@@ -122,11 +126,7 @@ PEPeerTransportImpl
 						socket.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));
 					}
 					
-					socket.configureBlocking(false);
-					
 					InetSocketAddress peerAddress = new InetSocketAddress(getIp(), getPort());
-					
-					sel = Selector.open();
 					
 					socket.connect( peerAddress );
 					
@@ -135,7 +135,7 @@ PEPeerTransportImpl
 					int keys = sel.select(60*1000); //60 sec timout
 					
 					if ( keys > 0 ) { // Connection established
-						sel.close();
+
 						if ( socket.finishConnect() ) {
 							connected = true;
 						}
@@ -143,20 +143,21 @@ PEPeerTransportImpl
 							error_msg = "finishConnect() failed";
 							connect_error = true;
 						}
+	
 					}
 					else {
-						sel.close();
 						closeConnection();
 						error_msg = "failed to connect within 60 sec";
 						connect_error = true;
 					}
 					
 				} catch (Throwable t) {
+					error_msg = t.getMessage();
+					connect_error = true;
+				} finally {
 					if (sel != null) {
 						try{  sel.close();  } catch (Exception e) { e.printStackTrace(); }
 					}
-					error_msg = t.getMessage();
-					connect_error = true;
 				}
 			}
 		};
