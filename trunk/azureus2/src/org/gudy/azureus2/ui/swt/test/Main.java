@@ -125,8 +125,8 @@ public class Main {
           boolean selected = oldBtn.getSelection();
           oldBtn.dispose();
           createTableRow(index,name,selected);
-          selectedItem.dispose();
-          shell.redraw();
+          selectedItem.dispose();          
+          shell.layout();
         }
       }
     });
