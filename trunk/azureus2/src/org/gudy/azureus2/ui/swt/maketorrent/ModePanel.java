@@ -104,7 +104,7 @@ public class ModePanel extends AbstractWizardPanel {
     // there's a potential oversize issue with the howToLocal string, and attemtping to force wrap has no effect -
     // therefore, provide more room and remove extraneous labeling
     final boolean showLocal = localTrackerHost != null && !localTrackerHost.equals("");
-    final Label labelLocalAnnounce = (showLocal) ? null : new Label(panel, SWT.NULL);
+    final Label labelLocalAnnounce = (showLocal) ? new Label(panel, SWT.NULL) : null;
     if (showLocal) {
       localTrackerUrl[0] = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
       localTrackerValue.setText(localTrackerUrl[0]);
