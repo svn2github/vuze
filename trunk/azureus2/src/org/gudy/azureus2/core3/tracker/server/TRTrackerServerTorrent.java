@@ -41,6 +41,9 @@ TRTrackerServerTorrent
 	getStats();
 	
 	public void
+	disableCaching();
+	
+	public void
 	addListener(
 		TRTrackerServerTorrentListener	l );
 	

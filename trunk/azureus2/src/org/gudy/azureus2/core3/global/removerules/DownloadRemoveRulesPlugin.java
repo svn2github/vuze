@@ -37,14 +37,18 @@ import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.*;
 
-import org.gudy.azureus2.core3.util.HostNameToIPResolver;
-import org.gudy.azureus2.core3.util.HostNameToIPResolverListener;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 DownloadRemoveRulesPlugin 
 	implements Plugin, DownloadManagerListener, HostNameToIPResolverListener
 {
-	protected static final String	AELITIS_HOST	= "aelitis.com";
+	public static final int			INITIAL_DELAY			= 30000;
+	public static final int			DELAYED_REMOVAL_PERIOD	= 30000;
+	public static final int			AELITIS_SEED_LIMIT		= 20000;
+		
+	public static final String		AELITIS_HOST	= "aelitis.com";	// needs to be lowercase
+	
 	protected String				aelitis_ip;
 	
 	protected PluginInterface		plugin_interface;
@@ -87,7 +91,16 @@ DownloadRemoveRulesPlugin
 		remove_update_torrents = 
 			config.addBooleanParameter2( "download.removerules.updatetorrents", "download.removerules.updatetorrents", true );
 
-		plugin_interface.getDownloadManager().addListener( this );
+		new DelayedEvent(
+				INITIAL_DELAY,
+				new Runnable()
+				{
+					public void
+					run()
+					{		
+						plugin_interface.getDownloadManager().addListener( DownloadRemoveRulesPlugin.this );
+					}
+				});
 	}
 	
 	public void
@@ -101,6 +114,14 @@ DownloadRemoveRulesPlugin
 	downloadAdded(
 		final Download	dm )
 	{
+			// we don't auto-remove non-persistent downloads as these are managed 
+			// elsewhere (e.g. shares)
+		
+		if ( !dm.isPersistent()){
+			
+			return;
+		}
+		
 		DownloadTrackerListener	listener = 
 			new DownloadTrackerListener()
 			{
@@ -222,7 +243,7 @@ DownloadRemoveRulesPlugin
 					
 					long	running_hours = ( System.currentTimeMillis() - creation_time )/(60*60*1000);
 					
-					if ( seeds > 20000 && running_hours > 0 ){
+					if ( seeds > AELITIS_SEED_LIMIT && running_hours > 0 ){
 
 						log.log( "Download '" + download.getName() + "' being removed to reduce swarm size" );
 					
@@ -248,7 +269,7 @@ DownloadRemoveRulesPlugin
 				run()
 				{
 					try{
-						Thread.sleep(30000);
+						Thread.sleep(DELAYED_REMOVAL_PERIOD);
 						
 						removeDownload( download );
 						

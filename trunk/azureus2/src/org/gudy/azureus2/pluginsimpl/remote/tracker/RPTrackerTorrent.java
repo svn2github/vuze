@@ -241,13 +241,10 @@ RPTrackerTorrent
 		return( 0 );	
 	}
 	
-	public Object
-	getAdditionalProperty(
-		String		name )
+	public void
+	disableReplyCaching()
 	{
 		notSupported();
-		
-		return( null );
 	}
 	
 	public void

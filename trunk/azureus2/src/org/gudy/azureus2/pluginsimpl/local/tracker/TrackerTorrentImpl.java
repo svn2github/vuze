@@ -206,20 +206,28 @@ TrackerTorrentImpl
 	{
 		return( host_torrent.getLeecherCount());
 	}
-	
-	public Object
-	getAdditionalProperty(
-		String		name )
+		
+	public void
+	disableReplyCaching()
 	{
-		return( host_torrent.getTorrent().getAdditionalProperty(name));
+		host_torrent.disableReplyCaching();
 	}
+	
 	public synchronized void
 	postProcess(
 		TRHostTorrentRequest	request )
+	
+		throws TRHostException
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((TrackerTorrentListener)listeners.get(i)).postProcess(new TrackerTorrentRequestImpl(request));
+			try{
+				((TrackerTorrentListener)listeners.get(i)).postProcess(new TrackerTorrentRequestImpl(request));
+				
+			}catch( TrackerException e ){
+				
+				throw( new TRHostException( "Post process fails", e ));
+			}
 		}
 	}
 	

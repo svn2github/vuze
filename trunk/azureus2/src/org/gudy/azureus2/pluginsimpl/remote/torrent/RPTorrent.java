@@ -210,6 +210,16 @@ RPTorrent
 		
 		return(null);
 	}	
+	
+	public Object
+	getAdditionalProperty(
+		String		name )
+	{
+		notSupported();
+		
+		return(null);
+	}
+	
 	public Map
 	writeToMap()
 	

@@ -97,7 +97,7 @@ TRTrackerClientClassicImpl
   	private String trackerUrlListString;
   
   	private byte[]	torrent_hash;
-	private String info_hash = "?info_hash=";
+	private String info_hash = "info_hash=";
 	private byte[] peerId;
 	private String peer_id = "&peer_id=";
 	
@@ -1253,6 +1253,14 @@ TRTrackerClientClassicImpl
   
   public String constructUrl(String evt,String url) {
   	StringBuffer request = new StringBuffer(url);
+  	
+  		// if url already has a query component then just append our parameters on the end
+  	if ( url.indexOf('?') != -1 ){
+  		request.append('&');
+  	}else{
+  		request.append('?');
+  	}
+  	
   	request.append(info_hash);
   	request.append(peer_id);
   	request.append(port);

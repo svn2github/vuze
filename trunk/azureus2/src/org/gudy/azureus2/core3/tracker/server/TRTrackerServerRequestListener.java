@@ -30,5 +30,7 @@ TRTrackerServerRequestListener
 {
 	public void
 	postProcess(
-		TRTrackerServerRequest	request );
+		TRTrackerServerRequest	request )
+	
+		throws TRTrackerServerException;
 }

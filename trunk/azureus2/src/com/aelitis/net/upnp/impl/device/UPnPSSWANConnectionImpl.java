@@ -99,6 +99,10 @@ UPnPSSWANConnectionImpl
 										
 		throws UPnPException
 	{
+		if ( System.getProperty( "upnp.test") != null ){
+			
+			return( new UPnPWANConnectionPortMapping[0]);
+		}
 		// UPnPStateVariable noe = service.getStateVariable("PortMappingNumberOfEntries");
 		
 		int	entries = 0; //Integer.parseInt( noe.getValue());

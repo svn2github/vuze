@@ -75,6 +75,8 @@ TRTrackerServerTorrentImpl
 	
 	protected boolean			map_size_diff_reported;
 	
+	protected boolean			caching_enabled	= true;
+	
 	public
 	TRTrackerServerTorrentImpl(
 		HashWrapper				_hash )
@@ -280,14 +282,18 @@ TRTrackerServerTorrentImpl
 				
 			if ( ul_rate > MAX_UPLOAD_BYTES_PER_SEC ){
 				
-				Debug.out( "TRTrackerPeer: peer " + peer.getIPRaw() + " reported an upload rate of " + ul_rate + " bytes per second" );
+				Debug.out( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
+								new String(peer.getPeerId().getHash()) + 
+								" reported an upload rate of " + ul_rate + " bytes per second" );
 				
 				ul_diff	= 0;
 			}
 			
 			if ( dl_rate > MAX_DOWNLOAD_BYTES_PER_SEC ){
 				
-				Debug.out( "TRTrackerPeer: peer " + peer.getIPRaw() + " reported a download rate of " + dl_rate + " bytes per second" );
+				Debug.out( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
+								new String(peer.getPeerId().getHash()) + 
+								" reported a download rate of " + dl_rate + " bytes per second" );
 				
 				dl_diff	= 0;
 			}
@@ -481,8 +487,9 @@ TRTrackerServerTorrentImpl
 			
 			num_want	= max_peers;
 		}
-	
-		if ( 	cache_millis > 0 &&
+				
+		if ( 	caching_enabled &&
+				cache_millis > 0 &&
 				num_want >= MIN_CACHE_ENTRY_SIZE &&
 				total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold()){
 						
@@ -944,6 +951,18 @@ TRTrackerServerTorrentImpl
 		TRTrackerServerTorrentListener	l )
 	{
 		listeners.remove(l);
+	}
+	
+	public void
+	disableCaching()
+	{
+		caching_enabled	= false;
+	}
+	
+	public boolean
+	isCachingEnabled()
+	{
+		return( caching_enabled );
 	}
 	
 	protected void

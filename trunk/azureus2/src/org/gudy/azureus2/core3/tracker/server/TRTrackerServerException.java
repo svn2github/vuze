@@ -31,4 +31,12 @@ TRTrackerServerException
 	{
 		super(str);
 	}
+	
+	public
+	TRTrackerServerException(
+		String		str,
+		Throwable	e )
+	{
+		super(str,e);
+	}
 }

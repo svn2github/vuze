@@ -198,13 +198,17 @@ public class TrackerStatus {
       boolean	original_bSingleHashScrapes = bSingleHashScrapes;
       
       try {
+      		// if URL already includes a query component then just append our params
+      	
+      	char	first_separator = scrapeURL.indexOf('?')==-1?'?':'&';
+      	
         String info_hash = "";
         for (int i = 0; i < responses.size(); i++) {
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
           response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
                              MessageText.getString("Scrape.status.scraping"));
           byte[] hash = response.getHash();
-          info_hash += ((i > 0) ? "&" : "?") + "info_hash=";
+          info_hash += ((i > 0) ? '&' : first_separator) + "info_hash=";
           info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
                                          Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
         }

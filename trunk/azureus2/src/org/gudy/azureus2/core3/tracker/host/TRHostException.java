@@ -35,4 +35,12 @@ TRHostException
 	{
 		super( str );
 	}
+	
+	public 
+	TRHostException(
+		String		str,
+		Throwable	e )
+	{
+		super( str, e );
+	}
 }

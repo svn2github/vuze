@@ -47,7 +47,7 @@ TRHostTorrentPublishImpl
 	protected List				listeners 			= new ArrayList();
 	protected List				removal_listeners	= new ArrayList();
 	
-  private HashMap data;
+	private HashMap data;
 
 	protected
 	TRHostTorrentPublishImpl(
@@ -247,9 +247,16 @@ TRHostTorrentPublishImpl
 		return( 0 );
 	}
 	
+	public void
+	disableReplyCaching()
+	{
+	}
+	
 	protected synchronized void
 	postProcess(
 		TRHostTorrentRequest	req )
+	
+		throws TRHostException
 	{
 		for (int i=0;i<listeners.size();i++){
 			

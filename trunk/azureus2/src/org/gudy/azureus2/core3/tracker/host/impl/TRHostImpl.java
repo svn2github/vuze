@@ -835,6 +835,8 @@ TRHostImpl
 	public void
 	postProcess(
 		TRTrackerServerRequest	request )
+	
+		throws TRTrackerServerException
 	{
 		if ( 	request.getType() 	== TRTrackerServerRequest.RT_ANNOUNCE  ||
 				request.getType() 	== TRTrackerServerRequest.RT_SCRAPE ){
@@ -849,12 +851,17 @@ TRHostImpl
 				
 				TRHostTorrentRequest	req = new TRHostTorrentRequestImpl( h_torrent, new TRHostPeerHostImpl(request.getPeer()), request );
 			
-				if ( h_torrent instanceof TRHostTorrentHostImpl ){
-				
-					((TRHostTorrentHostImpl)h_torrent).postProcess( req );
-				}else{
+				try{
+					if ( h_torrent instanceof TRHostTorrentHostImpl ){
 					
-					((TRHostTorrentPublishImpl)h_torrent).postProcess( req );	
+						((TRHostTorrentHostImpl)h_torrent).postProcess( req );
+					}else{
+						
+						((TRHostTorrentPublishImpl)h_torrent).postProcess( req );	
+					}
+				}catch( TRHostException e ){
+					
+					throw( new TRTrackerServerException( "Post process fails", e ));
 				}
 			}
 		}

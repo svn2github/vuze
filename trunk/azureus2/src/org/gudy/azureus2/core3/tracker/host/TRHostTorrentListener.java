@@ -31,5 +31,7 @@ TRHostTorrentListener
 {
 	public void
 	postProcess(
-		TRHostTorrentRequest	request );
+		TRHostTorrentRequest	request )
+	
+		throws TRHostException;
 }

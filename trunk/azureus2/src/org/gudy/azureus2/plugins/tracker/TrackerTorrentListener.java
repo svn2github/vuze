@@ -28,7 +28,18 @@ package org.gudy.azureus2.plugins.tracker;
 public interface 
 TrackerTorrentListener 
 {
+	/**
+	 * This is called to give the opportunity to post-process the reply being
+	 * sent to a peer.
+	 * If the reply is cached and reused this method *won't* be re-invoked. It is therefore
+	 * not appropriate to insert peer-specific data unless caching is *switched off*
+	 * @param request
+	 */
+	
 	public void
 	postProcess(
-		TrackerTorrentRequest request );
+		TrackerTorrentRequest request )
+	
+		throws TrackerException;
+
 }

@@ -89,6 +89,10 @@ Torrent
 	public String
 	getEncoding();
 	
+	public Object
+	getAdditionalProperty(
+		String		name );
+
 	public Map
 	writeToMap()
 	

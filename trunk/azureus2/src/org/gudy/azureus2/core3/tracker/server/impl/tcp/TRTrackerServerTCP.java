@@ -450,6 +450,8 @@ TRTrackerServerTCP
 		TRTrackerServerTorrentImpl	torrent,
 		int							type,
 		Map							response )
+	
+		throws TRTrackerServerException
 	{
 		if ( request_listeners.size() > 0 ){
 			

@@ -117,9 +117,12 @@ TrackerTorrent
 	public long
 	getAnnounceCount();
 
-	public Object
-	getAdditionalProperty(
-		String		name );
+		/**
+		 * stops the tracker from caching replies to announces/scrapes for this torrent
+		 */
+	
+	public void
+	disableReplyCaching();
 	
 	public void
 	addListener(

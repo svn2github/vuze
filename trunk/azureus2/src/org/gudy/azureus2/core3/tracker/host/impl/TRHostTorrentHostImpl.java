@@ -39,7 +39,7 @@ TRHostTorrentHostImpl
 {
 	protected TRHostImpl					host;
 	protected TRTrackerServer				server;
-	protected TRTrackerServerTorrentStats	torrent_stats;
+	protected TRTrackerServerTorrent		server_torrent;
 	protected TOTorrent						torrent;
 	protected int							port;
 	
@@ -66,8 +66,10 @@ TRHostTorrentHostImpl
 	protected Average			average_bytes_in		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	protected Average			average_bytes_out		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	
+	protected boolean			disable_reply_caching;
+	
 	private HashMap data;
-
+	
 	protected
 	TRHostTorrentHostImpl(
 		TRHostImpl		_host,
@@ -95,8 +97,13 @@ TRHostTorrentHostImpl
 			
 			status = TS_STARTED;
 					
-			torrent_stats = server.permit( torrent.getHash(), true).getStats();
+			server_torrent = server.permit( torrent.getHash(), true);
 		
+			if ( disable_reply_caching ){
+				
+				server_torrent.disableCaching();
+			}
+			
 			host.hostTorrentStateChange( this );
 			
 		}catch( Throwable e ){
@@ -115,6 +122,10 @@ TRHostTorrentHostImpl
 				
 			server.deny( torrent.getHash(), true);
 		
+			TRTrackerServerTorrent		st				= server_torrent;
+			
+			TRTrackerServerTorrentStats	torrent_stats 	= st==null?null:st.getStats();	
+				
 			if ( torrent_stats != null ){
 				
 				sos_uploaded	= sos_uploaded 		+ torrent_stats.getUploaded();
@@ -224,7 +235,14 @@ TRHostTorrentHostImpl
 	protected TRTrackerServerTorrentStats
 	getStats()
 	{
-		return( torrent_stats );
+		TRTrackerServerTorrent	st = server_torrent;
+		
+		if ( st != null ){
+			
+			return( st.getStats());
+		}
+		
+		return( null );
 	}
 	
 	protected void
@@ -483,9 +501,24 @@ TRHostTorrentHostImpl
 		return( average_downloaded.getAverage() );
 	}
 	
+	public void
+	disableReplyCaching()
+	{
+		TRTrackerServerTorrent	st = server_torrent;
+		
+		disable_reply_caching	= true;
+		
+		if ( st != null ){
+		
+			st.disableCaching();
+		}
+	}
+	
 	protected synchronized void
 	postProcess(
 		TRHostTorrentRequest	req )
+	
+		throws TRHostException
 	{
 		for (int i=0;i<listeners.size();i++){
 			

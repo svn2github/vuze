@@ -216,6 +216,13 @@ TorrentImpl
 		return( "" );
 	}
 	
+	public Object
+	getAdditionalProperty(
+		String		name )
+	{
+		return( torrent.getAdditionalProperty( name ));
+	}
+	
 	public Map
 	writeToMap()
 	

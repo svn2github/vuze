@@ -42,18 +42,6 @@ TrackerPeerImpl
 		peer	= _peer;
 	}
 	
-	
-	public void associateKeyToPeer(Object peerKey)
-	{
-		
-	}
-	
-	public Object 
-	getAssociatedKey()
-	{
-		return( null );
-	}
-
 	public boolean
 	isSeed()
 	{

@@ -120,6 +120,9 @@ TRHostTorrent
 	getAverageBytesOut();
 	
 	public void
+	disableReplyCaching();
+	
+	public void
 	addListener(
 		TRHostTorrentListener	l );
 	
