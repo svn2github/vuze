@@ -152,6 +152,19 @@ public class Identification {
       }
       
       
+      boolean nine_zeros = true;
+      for (int i=0; i < 9; i++) {
+        if (peerID[i] != (byte)0) { nine_zeros = false; break; }
+      }
+      byte three = (byte)3;
+      if ((nine_zeros)
+          && (peerID[9] == three)
+          && (peerID[10] == three)
+          && (peerID[11] == three)) {
+        return "Snark";
+      }
+      
+      
       String btuga = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
       if (btuga.equals("btuga")) return "BTugaXP";
       
