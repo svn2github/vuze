@@ -31,7 +31,7 @@ public class OutgoingConnector {
     connectionsOutstanding = new HashMap();
     selectorGuard = new SelectorGuard(50, 100);
     
-    Thread loop = new Thread("Outgoing socket connector") {
+    Thread loop = new Thread("Outgoing Socket Connector") {
       public void run() {
         mainLoop();
       }
