@@ -31,15 +31,14 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 
 public class 
-TRTrackerServerProcessorUDP 
+TRTrackerServerProcessorUDP
+	extends		TRTrackerServerProcessor
 	implements 	Runnable
 {
 	protected TRTrackerServerUDP		server;
@@ -65,6 +64,8 @@ TRTrackerServerProcessorUDP
 		DataInputStream is = new DataInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
 		
 		try{
+			String	client_ip_address = packet.getAddress().getHostAddress();
+			
 			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( is );
 			
 			System.out.println( "UDPRequest:" + request.getString());
@@ -80,11 +81,11 @@ TRTrackerServerProcessorUDP
 					
 				}else if (type == PRUDPPacket.ACT_REQUEST_ANNOUNCE ){
 					
-					reply = handleAnnounce( request );
+					reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
 					
 				}else if ( type == PRUDPPacket.ACT_REQUEST_SCRAPE ){
 					
-					reply = handleScrape( request );
+					reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
 					
 				}else{
 					
@@ -92,7 +93,14 @@ TRTrackerServerProcessorUDP
 				}
 			}catch( Throwable e ){
 				
-				reply = new PRUDPPacketReplyError( request.getTransactionId(), "error:" + e.toString());
+				String	error = e.getMessage();
+				
+				if ( error == null ){
+					
+					error = e.toString();
+				}
+				
+				reply = new PRUDPPacketReplyError( request.getTransactionId(), error );
 			}
 			
 			InetAddress address = packet.getAddress();
@@ -127,16 +135,103 @@ TRTrackerServerProcessorUDP
 	}
 	
 	protected PRUDPPacket
-	handleAnnounce(
-		PRUDPPacket		request )
-	{
-		throw( new RuntimeException( "Moo"));
-	}
+	handleAnnounceAndScrape(
+		String			client_ip_address,
+		PRUDPPacket		request,
+		int				request_type )
 	
-	protected PRUDPPacket
-	handleScrape(
-		PRUDPPacket		request )
+		throws Exception
 	{
-		throw( new RuntimeException( "Moo"));
+		Map	root = new HashMap();
+		
+		byte[]		hash_bytes	= null;
+		String		peer_id		= null;
+		int			port		= 0;
+		String		event		= null;
+		
+		long		uploaded		= 0;
+		long		downloaded		= 0;
+		long		left			= 0;
+		int			num_peers		= 0;
+		
+		if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
+			
+			PRUDPPacketRequestAnnounce	announce = (PRUDPPacketRequestAnnounce)request;
+			
+			hash_bytes	= announce.getHash();
+			
+			peer_id		= new String( announce.getPeerId(), Constants.BYTE_ENCODING );
+			
+			port		= announce.getPort();
+			
+			int	i_event = announce.getEvent();
+			
+			switch( i_event ){
+				case PRUDPPacketRequestAnnounce.EV_STARTED:
+				{
+					event = "started";
+					break;
+				}
+				case PRUDPPacketRequestAnnounce.EV_STOPPED:
+				{
+					event = "stopped";
+					break;
+				}
+				case PRUDPPacketRequestAnnounce.EV_COMPLETED:
+				{
+					event = "completed";
+					break;
+				}					
+			}
+			
+			uploaded 	= announce.getUploaded();
+			
+			downloaded	= announce.getDownloaded();
+			
+			left		= announce.getLeft();
+			
+			int	i_ip = announce.getIPAddress();
+			
+			if ( i_ip != 0 ){
+				
+				client_ip_address = PRUDPPacket.intToAddress( i_ip );
+			}
+		}else{
+			
+			// TODO:
+		}
+		
+		processTrackerRequest( 
+				server, root,
+				request_type,
+				hash_bytes,
+				peer_id,
+				event,
+				port,
+				client_ip_address,
+				downloaded, uploaded, left,
+				num_peers );
+		
+		PRUDPPacketReplyAnnounce reply = new PRUDPPacketReplyAnnounce(request.getTransactionId());
+		
+		reply.setInterval(((Long)root.get("interval")).intValue());
+		
+		List	peers = (List)root.get("peers");
+		
+		int[]	addresses 	= new int[peers.size()];
+		short[]	ports		= new short[addresses.length];
+		
+		for (int i=0;i<addresses.length;i++){
+			
+			Map	peer = (Map)peers.get(i);
+			
+			addresses[i] 	= PRUDPPacket.addressToInt(new String((byte[])peer.get("ip")));
+			
+			ports[i]		= (short)((Long)peer.get("port")).shortValue();
+		}
+		
+		reply.setPeers( addresses, ports );
+		
+		return( reply );
 	}
 }

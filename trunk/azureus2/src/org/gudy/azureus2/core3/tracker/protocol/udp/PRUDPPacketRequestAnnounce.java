@@ -105,6 +105,61 @@ PRUDPPacketRequestAnnounce
 		port		= is.readShort();
 	}
 	
+	public byte[]
+	getHash()
+	{
+		return( hash );
+	}
+	
+	public byte[]
+	getPeerId()
+	{
+		return( peer_id );
+	}
+	
+	public long
+	getDownloaded()
+	{
+		return( downloaded );
+	}
+	
+	public int
+	getEvent()
+	{
+		return( event );
+	}
+	
+	public int
+	getNumWant()
+	{
+		return( num_want );
+	}
+	
+	public long
+	getLeft()
+	{
+		return( left );
+	}
+	
+	public short
+	getPort()
+	{
+		return( port );
+	}
+	
+	public long
+	getUploaded()
+	{
+		return( uploaded );
+	}
+	
+	public int
+	getIPAddress()
+	{
+		return( ip_address );
+	}
+	
+	
 	public void
 	setDetails(
 		byte[]		_hash,

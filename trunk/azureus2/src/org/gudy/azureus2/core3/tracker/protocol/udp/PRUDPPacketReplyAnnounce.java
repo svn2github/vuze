@@ -108,10 +108,13 @@ extends PRUDPPacketReply
 		
 		os.writeInt( interval );
 		
-		for (int i=0;i<addresses.length;i++){
+		if ( addresses != null ){
 			
-			os.writeInt( addresses[i] );
-			os.writeShort( ports[i] );
+			for (int i=0;i<addresses.length;i++){
+			
+				os.writeInt( addresses[i] );
+				os.writeShort( ports[i] );
+			}
 		}
 	}
 	
