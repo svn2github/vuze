@@ -524,7 +524,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     trackerUpdateIn.setLayoutData(gridData);
     
 
-    updateButton = new Button(gInfo, SWT.CENTER);
+    updateButton = new Button(gInfo, SWT.PUSH);
     Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
 		updateButton.setLayoutData(gridData);
