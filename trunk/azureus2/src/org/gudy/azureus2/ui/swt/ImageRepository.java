@@ -32,7 +32,8 @@ public class ImageRepository {
   
   public static void loadImages(Display display) {
     loadImage(display, "org/gudy/azureus2/ui/icons/close.png", "close");
-    loadImage(display, "org/gudy/azureus2/ui/icons/tray.png", "tray");    
+    //loadImage(display, "org/gudy/azureus2/ui/icons/tray.png", "tray");
+    loadImage(display, "org/gudy/azureus2/ui/icons/Azureus_big.png", "tray");
     loadImage(display, "org/gudy/azureus2/ui/icons/dragger.gif", "dragger");
     loadImage(display, "org/gudy/azureus2/ui/icons/folder.gif", "folder");
     loadImage(display, "org/gudy/azureus2/ui/icons/root.png", "root");
@@ -55,7 +56,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/recheck.gif", "recheck");
     loadImage(display, "org/gudy/azureus2/ui/icons/export.gif", "export");
     loadImage(display, "org/gudy/azureus2/ui/icons/move.gif", "move");
-    loadImage(display, "org/gudy/azureus2/ui/icons/publish.gif", "publish");
+    
     
     loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/open.gif", "cb_open");
     loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/open_no_default.gif", "cb_open_no_default");

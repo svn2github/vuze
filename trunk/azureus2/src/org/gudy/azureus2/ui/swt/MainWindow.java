@@ -2174,7 +2174,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         tray = new TrayWindow(this);
         tray.setVisible(true);
       }
-    } else if(trayIcon != null) {
+    } else if(tray != null) {
       tray.setVisible(false);
       tray = null;
     }

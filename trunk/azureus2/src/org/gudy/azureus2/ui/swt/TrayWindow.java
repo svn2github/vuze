@@ -12,6 +12,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
@@ -53,12 +54,14 @@ public class TrayWindow implements GlobalManagerListener {
     minimized = new Shell(main.getShell(), SWT.ON_TOP);
     minimized.setText("Azureus"); //$NON-NLS-1$
     label = new Label(minimized, SWT.NULL);
-    label.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
-    label.setSize(16, 16);
-    minimized.setSize(18, 18);
+    Image img = ImageRepository.getImage("tray");
+    label.setImage(img); //$NON-NLS-1$
+    final Rectangle bounds = img.getBounds();
+    label.setSize(bounds.width, bounds.height);
+    minimized.setSize(bounds.width + 2, bounds.height + 2);
     screen = display.getClientArea();
     //System.out.println(screen);
-    minimized.setLocation(screen.width - 18, screen.height - 18);
+    minimized.setLocation(screen.width - bounds.width - 2, screen.height - bounds.height - 2);
     minimized.setVisible(false);
     //minimized.open();    
 
@@ -89,12 +92,12 @@ public class TrayWindow implements GlobalManagerListener {
           int y = currentLoc.y - dY;
           if (x < 10)
             x = 0;
-          if (x > screen.width - 28)
-            x = screen.width - 18;
+          if (x > screen.width - (bounds.width + 12))
+            x = screen.width - (bounds.width + 2);
           if (y < 10)
             y = 0;
-          if (y > screen.height - 28)
-            y = screen.height - 18;
+          if (y > screen.height - (bounds.height + 12))
+            y = screen.height - (bounds.height + 2);
           minimized.setLocation(x, y);
         }
       }
