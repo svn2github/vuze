@@ -65,6 +65,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private int data_bytes_owed = 0;
 
   
+  private long total_bytes_read = 0;
+  
   
   public BTMessageDecoder() {
     /* nothing */
@@ -101,6 +103,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       
       int bytes_read = postReadProcess();
       
+      total_bytes_read += bytes_read;
       bytes_remaining -= bytes_read;
       
       if( bytes_read < bytes_possible ) {
@@ -255,7 +258,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             messages_last_read.add( handshake );
           }
           catch( MessageException me ) {
-            throw new IOException( "message decode failed: " + me.getMessage() );
+            throw new IOException( "BT message decode failed: " + me.getMessage()+ ", total_bytes_read=" +total_bytes_read );
           }
         }
         else {  //decode normal message
@@ -274,7 +277,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             if( direct_payload_buffer != null ) {
               direct_payload_buffer.returnToPool();
             }
-            throw new IOException( "message decode failed: " +me.getMessage() );
+            throw new IOException( "BT message decode failed: " +me.getMessage() );
           }
         }
      
@@ -313,7 +316,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             messages_last_read.add( keep_alive );
           }
           catch( MessageException me ) {
-            throw new IOException( "message decode failed: " + me.getMessage() );
+            throw new IOException( "BT message decode failed: " + me.getMessage() );
           }
         }
         else if( message_length < MIN_MESSAGE_LENGTH || message_length > MAX_MESSAGE_LENGTH ) {
