@@ -183,6 +183,11 @@ PEPeerManager
   
   public boolean isBlockAlreadyWritten( int piece_number, int offset );
 
+  /**
+   * Are we in end-game mode?
+   * @return true if in end game mode, false if not
+   */
+  public boolean isInEndGameMode();
   
   /**
    * Notify the manager that the given peer connection has been closed.

@@ -1368,13 +1368,23 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
 
         if( manager.checkBlock( pieceNumber, pieceOffset, message_buff ) ) {
-          if( alreadyRequested( request ) ) {
+          if( alreadyRequested( request ) ) {  //from active request
             removeRequest( request );
-            manager.received( pieceLength );
             setSnubbed( false );
             reSetRequestsTime();
-            manager.writeBlock( pieceNumber, pieceOffset, message_buff, this );
-            requests_completed++;
+            
+            if( manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {  //oops, looks like this block has already been downloaded
+              //we're probably in end-game mode then
+              if( manager.isInEndGameMode() )  msg += ", but piece block ignored as already written in end-game mode";
+              else  msg += ", but piece block ignored as already written";
+              Debug.out( msg );  //TODO remove debug
+              message_buff.returnToPool();
+            }
+            else {
+              manager.received( pieceLength );
+              manager.writeBlock( pieceNumber, pieceOffset, message_buff, this );
+              requests_completed++;
+            }
           }
           else { //initial request may have already expired, but check if we can use the data anyway
             if( !manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {

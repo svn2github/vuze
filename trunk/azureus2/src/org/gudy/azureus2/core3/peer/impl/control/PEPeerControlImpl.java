@@ -80,8 +80,8 @@ PEPeerControlImpl
   private PEPeerTransport currentOptimisticUnchoke;
   
   
-  private static final long	END_GAME_MODE_SIZE_TRIGGER	= 1*1024*1024;
-  private static final long	END_GAME_MODE_TIMEOUT		= 120*1000;
+  private static final long	END_GAME_MODE_SIZE_TRIGGER	= 2*1024*1024;
+  private static final long	END_GAME_MODE_TIMEOUT		= 5*60*1000;
   
   	//A flag to indicate when we're in endgame mode
   private boolean endGameMode;
@@ -2596,6 +2596,10 @@ PEPeerControlImpl
     return superSeedMode;
   }
 
+  public boolean isInEndGameMode() {
+    return endGameMode;
+  }
+  
   public void setSuperSeedMode(boolean superSeedMode) {
     this.superSeedMode = superSeedMode;
   }    
