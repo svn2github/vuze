@@ -122,6 +122,12 @@ public class TrackerChecker {
   
 	protected TRTrackerScraperResponseImpl getHashData(String trackerUrl,final HashWrapper hash) 
   {
+		// can be null when first called and url not yet set up...
+		
+	if ( trackerUrl == null ){
+		return( null );
+	}
+	
     if (trackers.containsKey(trackerUrl)) {
       final TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
       TRTrackerScraperResponseImpl data = ts.getHashData(hash);
