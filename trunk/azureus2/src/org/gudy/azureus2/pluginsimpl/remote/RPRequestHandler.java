@@ -113,6 +113,10 @@ RPRequestHandler
 				
 				return( rep );
 				
+			}else if ( object == null ){
+				
+				throw( new RPException( "Object identifier missing from request" ));
+				
 			}else{
 				
 				// System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId() + ", client = " + request.getClientIP());
