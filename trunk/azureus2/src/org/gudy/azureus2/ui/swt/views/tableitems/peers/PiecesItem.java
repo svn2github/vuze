@@ -89,10 +89,6 @@ public class PiecesItem
       /* Notes:
        * We store our image and imageBufer in PEPeer using
        * setData & getData.
-       * This means, we can ignore peerRow.isValid(). peerRow gets marked
-       * invalid when its link between peerRow and the table row changes.
-       * However, since our data isn't reliant on the table row, it may not
-       * really be invalid.
        */
 
       // Named infoObj so code can be copied easily to the other PiecesItem
@@ -263,7 +259,7 @@ public class PiecesItem
       gcImage.dispose();
   
       Image oldImage = ((TableCellCore)cell).getGraphicSWT();
-      if (bImageChanged || image != oldImage) {
+      if (bImageChanged || image != oldImage || !cell.isValid()) {
         ((TableCellCore)cell).setGraphic(image);
         infoObj.setData("PiecesImage", image);
         infoObj.setData("PiecesImageBuffer", imageBuffer);
