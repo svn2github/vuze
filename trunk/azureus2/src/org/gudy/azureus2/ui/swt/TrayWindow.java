@@ -113,7 +113,9 @@ public class TrayWindow implements IComponentListener {
         restore();
       }
     });
-    
+
+		main.addCloseDownloadBarsToMenu(menu);
+
     new MenuItem(menu,SWT.SEPARATOR);
 
     MenuItem file_exit = new MenuItem(menu, SWT.NULL);
