@@ -86,7 +86,7 @@ public class ConfigurationDefaults {
     def.put("max downloads", new Long(4));
     // Maxmail number of connections (0=unlimited) ("Max Clients")
     //def.put("Core_iMaxClients", new Long(0));
-    def.put("Max Clients", new Long(150));
+    def.put("Max Clients", new Long(100));
     // Default max uploads per torrent ("Max Uploads")
     //def.put("Core_iMaxUploads", new Long(4));
     def.put("Max Uploads", new Long(4));
