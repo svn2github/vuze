@@ -100,6 +100,7 @@ import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
+import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
@@ -120,6 +121,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   public static final String VERSION = Constants.AZUREUS_VERSION;
   private static final int DONATIONS_ASK_AFTER = 168;
+  private static final int RECOMMENDED_SWT_VERSION = 3044; // M8 (M7 = 3038)
   
   private String latestVersion = ""; //$NON-NLS-1$
   private String latestVersionFileName = null;
@@ -781,6 +783,15 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     });
     }
 
+    MenuItem item = new MenuItem(helpMenu, SWT.PUSH);
+    Messages.setLanguageText(item, "MyTorrentsView.menu.health");
+    item.setImage(ImageRepository.getImage("st_explain"));
+    item.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        HealthHelpWindow.show(display);
+      }
+    });
+
     new MenuItem(helpMenu,SWT.SEPARATOR);
     
     MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
@@ -927,7 +938,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
         
         int upLimit = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
-        //int index = findIndex(upLimit/1024,ConfigView.upRates);
         
         MenuItem item = new MenuItem(menuUpSpeed,SWT.RADIO);
         item.setText(MessageText.getString("ConfigView.unlimited"));
@@ -938,48 +948,36 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         });
         if(upLimit == 0) item.setSelection(true);
         
-        
-        int start = upLimit - 15;
-        if (start < 5) start = 5;
-        for (int i = start; i < start + 30; i++) {
-          final int fi = i;
-          item = new MenuItem(menuUpSpeed,SWT.RADIO);
-          item.setText(i + " KB/s");
-          item.addListener(SWT.Selection,new Listener() {
-            public void handleEvent(Event e) {
-             COConfigurationManager.setParameter("Max Upload Speed KBs", fi); 
+        final Listener speedChangeListener = new Listener() {
+              public void handleEvent(Event e) {
+                int iSpeed = ((Long)((MenuItem)e.widget).getData("speed")).intValue();
+                COConfigurationManager.setParameter("Max Upload Speed KBs", iSpeed);
+              }
+            };
+
+        int iRel = 0;
+        for (int i = 0; i < 12; i++) {
+          int[] iAboveBelow;
+          if (iRel == 0) {
+            iAboveBelow = new int[] { upLimit };
+          } else {
+            iAboveBelow = new int[] { upLimit - iRel, upLimit + iRel };
+          }
+          for (int j = 0; j < iAboveBelow.length; j++) {
+            if (iAboveBelow[j] >= 5) {
+              item = new MenuItem(menuUpSpeed, SWT.RADIO, 
+                                  (j == 0) ? 1 : menuUpSpeed.getItemCount());
+              item.setText(iAboveBelow[j] + " KB/s");
+              item.setData("speed", new Long(iAboveBelow[j]));
+              item.addListener(SWT.Selection, speedChangeListener);
+  
+              if (upLimit == iAboveBelow[j]) item.setSelection(true);
             }
-          });
-          if(upLimit == i) item.setSelection(true);
+          }
+          
+          iRel += (iRel >= 10) ? 10 : (iRel >= 6) ? 2 : 1;
         }
-        
-        /*
-        int start = index - 10;
-        if(start < 1) start = 1;
-        for(int i = start ; i < start + 20 && i < ConfigView.upRates.length ; i++) {
-          final int fi = i;
-          item = new MenuItem(menuUpSpeed,SWT.RADIO);
-          item.setText(ConfigView.upRates[i] + " KB/s");
-          item.addListener(SWT.Selection,new Listener() {
-            public void handleEvent(Event e) {
-             COConfigurationManager.setParameter("Max Upload Speed KBs",ConfigView.upRates[fi]*1024); 
-            }
-          });
-          if(i == index) item.setSelection(true);
-        }
-        */
       }
-      
-      /*
-      private int findIndex(int value,int values[]) {
-        for(int i = 0 ; i < values.length ;i++) {
-          if(values[i] == value)
-            return i;
-        }
-        return 0;
-      }
-      */
-      
     });
     
     statusUp.setMenu(menuUpSpeed);
@@ -1403,9 +1401,19 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if (statusText != null && !statusText.isDisposed()) {
       String sText = "";
       int iSWTVer = SWT.getVersion();
-      if (iSWTVer < 3038) {
-        String sParam[] = {"SWT v"+ SWT.getVersion()};
+      if (iSWTVer < RECOMMENDED_SWT_VERSION) {
+        String sParam[] = {"SWT v"+ iSWTVer};
         sText += MessageText.getString("MainWindow.status.tooOld", sParam) + " ";
+        
+        if (!statusText.getForeground().equals(red)) {
+					statusText.setCursor(handCursor);
+					statusText.addMouseListener(new MouseAdapter() {
+						public void mouseDown(MouseEvent arg0) {
+						  String url = "http://azureus.sourceforge.net/wiki/index.php/UpdateSWT";
+	            Program.launch(url);
+						}
+					});
+				}
       }
       sText += "Azureus " + VERSION + " / " + MessageText.getString("MainWindow.status.latestversion") + " : " + latestVersion;
       statusText.setText(sText);
@@ -2448,7 +2456,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   		
 	final String[] savePath = {""};
 
-    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir", true);
+    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir");
     
     if (useDefDataDir) savePath[0] = COConfigurationManager.getStringParameter("Default save path", "");
     
