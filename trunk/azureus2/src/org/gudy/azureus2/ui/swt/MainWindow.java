@@ -362,6 +362,15 @@ public class MainWindow implements GlobalManagerListener {
     }
     
     setSplashPercentage( 0 );
+
+    Locale[] locales = MessageText.getLocales();
+    String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
+    Locale savedLocale =
+      savedLocaleString.length() > 4
+        ? new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5))
+        : Locale.getDefault();
+    MessageText.changeLocale(savedLocale);
+
     setSplashTask("splash.loadingImages");
         
     ImageRepository.loadImages(display);
@@ -558,10 +567,10 @@ public class MainWindow implements GlobalManagerListener {
     Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
     view_console.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        if (console == null)
-          console = new Tab(new ConsoleView());
-        else
-          console.setFocus();
+//        if (console == null)
+//          console = new Tab(new ConsoleView());
+//        else
+//          console.setFocus();
       }
     });
 
@@ -596,7 +605,7 @@ public class MainWindow implements GlobalManagerListener {
 
     addCloseDownloadBarsToMenu(viewMenu);
 
-    createLanguageMenu(menuBar,mainWindow);
+    createLanguageMenu(menuBar, mainWindow, locales);
 
     //The Help Menu
     MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
@@ -680,8 +689,8 @@ public class MainWindow implements GlobalManagerListener {
   		showMyTracker();
   	}
 	
-    if (COConfigurationManager.getBooleanParameter("Open Console", false))
-      console = new Tab(new ConsoleView());
+//    if (COConfigurationManager.getBooleanParameter("Open Console", false))
+//      console = new Tab(new ConsoleView());
     if (COConfigurationManager.getBooleanParameter("Open Config", false))
       config = new Tab(new ConfigView());
 
@@ -849,18 +858,11 @@ public class MainWindow implements GlobalManagerListener {
     }
   }
 
-  private void createLanguageMenu(Menu menu,Decorations decoMenu) {
+  private void createLanguageMenu(Menu menu, Decorations decoMenu, Locale[] locales) {
     MenuItem languageItem = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(languageItem, "MainWindow.menu.language"); //$NON-NLS-1$
     Menu languageMenu = new Menu(decoMenu, SWT.DROP_DOWN);
     languageItem.setMenu(languageMenu);
-
-    Locale[] locales = MessageText.getLocales();
-    String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
-    Locale savedLocale =
-      savedLocaleString.length() > 4
-        ? new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5))
-        : Locale.getDefault();
 
     MenuItem[] items = new MenuItem[locales.length];
 
@@ -871,20 +873,8 @@ public class MainWindow implements GlobalManagerListener {
     }
 
     Locale currentLocale = MessageText.getCurrentLocale();
-    if (MessageText.changeLocale(savedLocale)) {
-      for (int i = 0; i < items.length; i++) {
-        if (currentLocale.equals(items[i].getData())) {
-          items[i].setSelection(false);
-          break;
-        }
-      }
-      for (int i = 0; i < items.length; i++) {
-        if (savedLocale.equals(items[i].getData())) {
-          items[i].setSelection(true);
-          setSelectedLanguageItem(items[i]);
-          break;
-        }
-      }
+    for (int i = 0; i < items.length; i++) {
+        items[i].setSelection(currentLocale.equals(items[i].getData()));
     }
   }
 
