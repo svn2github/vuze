@@ -24,11 +24,12 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 
 public class 
 TRTrackerServerPeerImpl
-	implements TRTrackerServerPeer
+	implements TRTrackerServerPeer, HostNameToIPResolverListener
 {
 	protected byte[]		peer_id;
 	protected String		key;
@@ -58,6 +59,8 @@ TRTrackerServerPeerImpl
 		ip_when_created	= _ip;
 		ip				= _ip;
 		port			= _port;
+		
+		resolve();
 	}
 	
 	protected void
@@ -67,8 +70,31 @@ TRTrackerServerPeerImpl
 		if ( !Arrays.equals( _ip, ip )){
 			
 			ip			= _ip;
-			ip_str		= null;
-			ip_bytes	= null;
+	
+			resolve();
+		}
+	}
+	
+	protected void
+	resolve()
+	{
+		// default values pending resolution
+		
+		ip_str 		= new String( ip );
+		ip_bytes	= null;
+		
+		HostNameToIPResolver.addResolverRequest( ip_str, this );
+	}
+	
+	public void
+	completed(
+		InetAddress	address )
+	{
+		if ( address != null ){
+			
+			ip_str 		= address.getHostAddress();
+			
+			ip_bytes	= address.getAddress();
 		}
 	}
 	
@@ -106,35 +132,13 @@ TRTrackerServerPeerImpl
 	
 	public String
 	getIP()
-	{
-		if ( ip_str == null ){
-			
-			ip_str = new String(ip);
-		
-			try{
-				InetAddress addr = InetAddress.getByName( ip_str );
-				
-				ip_str 		= addr.getHostAddress();
-				ip_bytes	= addr.getAddress();
-				
-			}catch( UnknownHostException e ){
-			
-				ip_str 		= new String( ip );
-				ip_bytes	= null;
-			}
-		}
-		
+	{		
 		return( ip_str );
 	}
 	
 	public byte[]
 	getIPBytes()
 	{
-		if ( ip_str == null ){
-			
-			getIP();
-		}
-		
 		return( ip_bytes );
 	}
 	

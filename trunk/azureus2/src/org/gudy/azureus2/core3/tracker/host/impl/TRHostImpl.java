@@ -163,6 +163,11 @@ TRHostImpl
 			
 			t.setDaemon(true);
 			
+				// try to ensure that the tracker stats are collected reasonably
+				// regularly
+			
+			t.setPriority( Thread.MAX_PRIORITY );
+			
 			t.start();
 		}
 	}
