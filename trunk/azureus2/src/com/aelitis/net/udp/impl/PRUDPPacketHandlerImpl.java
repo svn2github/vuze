@@ -665,7 +665,10 @@ PRUDPPacketHandlerImpl
 													
 												}catch( Throwable e ){
 													
-													Debug.printStackTrace(e);
+													// get occasional send fails, not 
+													// very interesting
+													
+													LGLogger.log( "PRUDPPacketHandler: send failed", e ); 
 												}
 											}
 										}
@@ -750,7 +753,7 @@ PRUDPPacketHandlerImpl
 			
 			if ( TRACE_REQUESTS ){
 				
-					LGLogger.log( "PRUDPPacketHandler: reply packet sent: " + request_packet.getString());
+				LGLogger.log( "PRUDPPacketHandler: reply packet sent: " + request_packet.getString());
 			}
 			
 			socket.send( dg_packet );
