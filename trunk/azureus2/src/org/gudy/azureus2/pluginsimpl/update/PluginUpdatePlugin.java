@@ -32,6 +32,7 @@ import java.util.zip.*;
 import java.net.URL;
 import java.io.*;
 
+import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.*;
@@ -438,7 +439,7 @@ PluginUpdatePlugin
 							
 							List	update_desc = new ArrayList();
 							
-							List	desc_lines = splitMultiLine( "", details.getDescription());
+							List	desc_lines = HTMLUtils.convertHTMLToText( "", details.getDescription());
 							
 							logMultiLine( "        ", desc_lines );
 							
@@ -446,7 +447,7 @@ PluginUpdatePlugin
 							
 							log.log( LoggerChannel.LT_INFORMATION, "    Comment:" );
 							
-							List	comment_lines = splitMultiLine( "    ", details.getComment());
+							List	comment_lines = HTMLUtils.convertHTMLToText( "    ", details.getComment());
 	
 							logMultiLine( "    ", comment_lines );
 							
@@ -1060,44 +1061,5 @@ PluginUpdatePlugin
 			
 			log.log( LoggerChannel.LT_INFORMATION, indent + (String)lines.get(i) );
 		}
-	}
-	
-	protected List
-	splitMultiLine(
-		String		indent,
-		String		text )
-	{
-		int		pos = 0;
-		
-		String	lc_text = text.toLowerCase();
-		
-		List	lines = new ArrayList();
-		
-		while( true ){
-			
-			String	line;
-			
-			int	p1 = lc_text.indexOf( "<br>", pos );
-			
-			if ( p1 == -1 ){
-				
-				line = text.substring(pos);
-				
-			}else{
-				
-				line = text.substring(pos,p1);
-				
-				pos = p1+4;
-			}
-			
-			lines.add( indent + line );
-			
-			if ( p1 == -1 ){
-				
-				break;
-			}
-		}
-		
-		return( lines );
 	}
 }

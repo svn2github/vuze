@@ -281,6 +281,9 @@ UpdateMonitor
 	    				this_window.addUpdate(us[i]);
 	    			}
 	    		}
+	    		
+	    		this_window.updateAdditionComplete();
+	    		
     		}else{
     			
     			LGLogger.log( "UpdateMonitor: user dialog already in progress, updates skipped");

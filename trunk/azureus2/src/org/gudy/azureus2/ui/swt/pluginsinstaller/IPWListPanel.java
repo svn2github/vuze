@@ -37,7 +37,6 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -126,7 +125,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	Label lblDescription = new Label(panel,SWT.NULL);
 	Messages.setLanguageText(lblDescription,"installPluginsWizard.list.description");
 	
-	final StyledText txtDescription = new StyledText(panel,SWT.NULL);
+	final StyledText txtDescription = new StyledText(panel,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
 	txtDescription.setEditable(false);
 	
 	data = new GridData(GridData.FILL_HORIZONTAL);

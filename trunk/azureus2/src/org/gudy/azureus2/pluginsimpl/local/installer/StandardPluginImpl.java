@@ -27,6 +27,9 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
  *
  */
 
+import java.util.List;
+
+import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
@@ -73,9 +76,17 @@ StandardPluginImpl
 	getDescription()
 	{
 		try{
-			return( details.getDescription());
+			List lines = HTMLUtils.convertHTMLToText("", details.getDescription());
 			
-		}catch( SFPluginDetailsException e ){
+			String	res = "";
+			
+			for (int i=0;i<lines.size();i++){
+				res += (i==0?"":"\n") + lines.get(i);
+			}
+			
+			return( res );
+			
+		}catch( Throwable e ){
 			
 			return( Debug.getNestedExceptionMessage( e ));
 		}

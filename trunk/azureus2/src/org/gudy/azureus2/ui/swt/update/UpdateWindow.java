@@ -213,6 +213,7 @@ UpdateWindow
     };
     
     btnOk.addListener(SWT.Selection, lOk);
+    btnOk.setEnabled( false );
     
     btnCancel = new Button(updateWindow,SWT.PUSH);
     
@@ -335,6 +336,22 @@ UpdateWindow
         }
       }
     });
+  }
+  
+  protected void
+  updateAdditionComplete()
+  {
+    if(display == null || display.isDisposed())
+        return;
+    
+      display.asyncExec(new AERunnable() {
+        public void runSupport() {
+          if(btnOk == null || btnOk.isDisposed())
+            return;
+          
+          btnOk.setEnabled(true);
+        }
+      });
   }
   
   public void show() {

@@ -34,6 +34,7 @@ import java.util.zip.ZipInputStream;
 import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -185,11 +186,11 @@ PlatformManagerUpdateChecker
 				
 				List	update_desc = new ArrayList();
 				
-				List	desc_lines = splitMultiLine( "", sf_details.getDescription());
+				List	desc_lines = HTMLUtils.convertHTMLToText( "", sf_details.getDescription());
 								
 				update_desc.addAll( desc_lines );
 								
-				List	comment_lines = splitMultiLine( "    ", sf_details.getComment());
+				List	comment_lines = HTMLUtils.convertHTMLToText( "    ", sf_details.getComment());
 				
 				update_desc.addAll( comment_lines );
 
