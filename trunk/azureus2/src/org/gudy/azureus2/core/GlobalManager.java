@@ -235,7 +235,7 @@ public class GlobalManager extends Component {
       File f = new File(fileName);
       File torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
       torrentDir.mkdirs();
-      File fDest = new File(torrentDir, f.getName());
+      File fDest = new File(torrentDir, f.getName().replaceAll("%20","."));
       if (fDest.equals(f))
         throw new Exception("Same files");
       String prefix = "_";
