@@ -699,6 +699,9 @@ DownloadManagerImpl
   protected void
   saveTrackerResponseCache()
   {
+    if (torrent == null)
+      return;
+
   	if ( COConfigurationManager.getBooleanParameter("File.save.peers.enable", true )){
   		
 	  	if ( !BEncoder.mapsAreIdentical(
