@@ -213,7 +213,10 @@ WebPlugin
 					pw.println( "plugin.name=" + props.getProperty( "plugin.name" ));
 					pw.println( "plugin.version=" + props.getProperty( "plugin.version" ));
 					pw.println( "plugin.id=" + props.getProperty( "plugin.id" ));
-	
+					pw.println( "" );
+					pw.println( "# configuration has been migrated to plugin config - see view->config->plugins" );
+					pw.println( "# in the SWT user interface" );
+					
 					log.logAlert( 	LoggerChannel.LT_INFORMATION, 
 							plugin_interface.getPluginName() + " - plugin.properties settings migrated to plugin configuration." );
 			
