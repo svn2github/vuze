@@ -58,6 +58,21 @@ public class
 DiskManagerImpl
 	implements DiskManager, ParameterListener, FMFileOwner 
 {  
+		// each block is PeerManager.BLOCK_SIZE bytes (current 16k)
+	
+	public 	static final int	GLOBAL_WRITE_QUEUE_BLOCK_LIMIT	= 16;	// 0 -> unlimited;
+	
+	private static Semaphore	global_write_queue_block_sem;
+	
+	static{
+		global_write_queue_block_sem = new Semaphore(GLOBAL_WRITE_QUEUE_BLOCK_LIMIT);
+		
+		if ( GLOBAL_WRITE_QUEUE_BLOCK_LIMIT == 0 ){
+			
+			global_write_queue_block_sem.releaseForever();
+		}
+	}
+
 	private String	dm_name	= "";
 	private boolean started = false;
   
@@ -85,9 +100,6 @@ DiskManagerImpl
 	private	TOTorrent		torrent;
 
 	private ByteBuffer allocateAndTestBuffer;
-
-	//public static final int	CHECK_QUEUE_BLOCK_LIMIT	= 1000;
-	//private Semaphore	check_queue_block_sem;
 	
 	private List 		writeQueue;
 	private List 		checkQueue;
@@ -724,16 +736,16 @@ DiskManagerImpl
 							
 							elt	= (QueueElement)writeQueue.remove(0);
 							
+							// System.out.println( "releasing global write slot" );
+
+							global_write_queue_block_sem.release();
+							
 							elt_is_write	= true;
 							
 						}else{
 							
 							elt	= (QueueElement)checkQueue.remove(0);
-							
-							//if ( checkQueue.size() >= DiskManagerImpl.CHECK_QUEUE_BLOCK_LIMIT ){			
-							//	check_queue_block_sem.release();
-							//}
-							
+														
 							elt_is_write	= false;
 						}
 					}
@@ -794,6 +806,10 @@ DiskManagerImpl
 			writeCheckQueueSem.releaseForever();
 			
 			while (writeQueue.size() != 0){
+				
+				// System.out.println( "releasing global write slot (tidy up)" );
+
+				global_write_queue_block_sem.release();
 				
 				QueueElement elt = (QueueElement)writeQueue.remove(0);
 				
@@ -1629,6 +1645,10 @@ DiskManagerImpl
 		ByteBuffer data,
 		PEPeer sender) 
 	{		
+		global_write_queue_block_sem.reserve();
+		
+		// System.out.println( "reserved global write slot (buffer = " + data.limit() + ")" );
+		
 		synchronized( writeCheckQueueLock ){
 			
 			writeQueue.add(new QueueElement(pieceNumber, offset, data,sender));
