@@ -61,7 +61,7 @@ public class DirectByteBufferPool {
   															// hence IdentityHashMap)
   
   private static final long COMPACTION_CHECK_PERIOD = 5*60*1000; //5 min
-  private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
+  private static final long MAX_FREE_BYTES = 5*1024*1024; //5 MB
   
   private long bytesIn = 0;
   private long bytesOut = 0;
@@ -106,17 +106,22 @@ public class DirectByteBufferPool {
         }
      );
     
-    /*
-    Timer printer = new Timer("printer");
-    printer.addPeriodicEvent(
-        60*1000,
-        new TimerEventPerformer() {
-          public void perform( TimerEvent ev ) {
-            System.out.println("Out=" +bytesOut/1024/1024+ ", In=" +bytesIn/1024/1024+ ", diff=" +(bytesOut-bytesIn)/1024/1024);
+    if( DEBUG ) {
+      Timer printer = new Timer("printer");
+      printer.addPeriodicEvent(
+          60*1000,
+          new TimerEventPerformer() {
+            public void perform( TimerEvent ev ) {
+              System.out.println("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, in use=" +(bytesOut-bytesIn)/1024/1024 +"MB");
+              long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
+              long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
+              long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
+              System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB");
+            }
           }
-        }
-     );
-     */
+      );
+    }
+     
 
   }
 
