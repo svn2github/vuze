@@ -22,10 +22,10 @@ import org.gudy.azureus2.core3.peer.PEPeer;
  * @author Olivier
  *
  */
-public class SpeedLimiter {
+public class PEPeerTransportSpeedLimiter {
 
   //The instance of the speed Limiter
-  private static SpeedLimiter limiter;
+  private static PEPeerTransportSpeedLimiter limiter;
 
   //The limit in bytes per second
   private int limit;
@@ -63,7 +63,7 @@ public class SpeedLimiter {
    * Private constructor for SpeedLimiter
    *
    */
-  private SpeedLimiter() {
+  private PEPeerTransportSpeedLimiter() {
     //limit = ConfigurationManager.getInstance().getIntParameter("Max Upload Speed", 0);
     uploaders = new Vector();
 
@@ -77,9 +77,9 @@ public class SpeedLimiter {
    * The way to get the singleton
    * @return the SpeedLimiter instance
    */
-  public synchronized static SpeedLimiter getLimiter() {
+  public synchronized static PEPeerTransportSpeedLimiter getLimiter() {
     if (limiter == null)
-      limiter = new SpeedLimiter();
+      limiter = new PEPeerTransportSpeedLimiter();
     return limiter;
   }
 

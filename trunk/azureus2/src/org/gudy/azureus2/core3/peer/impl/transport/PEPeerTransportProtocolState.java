@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
  * @author Olivier
  * 
  */
-public interface State {
+public interface PEPeerTransportProtocolState {
   
   public void process();
   

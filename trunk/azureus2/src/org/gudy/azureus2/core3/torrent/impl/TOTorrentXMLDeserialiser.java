@@ -228,6 +228,9 @@ TOTorrentXMLDeserialiser
 					SimpleXMLParserDocumentNode[]	file_entries = file_node.getChildren();
 					
 					long		file_length	= 0;
+					
+					boolean		length_entry_found	= false;
+					
 					byte[][]	path_comps	= null;
 					
 					Vector	additional_props	= new Vector();
@@ -242,6 +245,8 @@ TOTorrentXMLDeserialiser
 					
 							file_length = readGenericLong(file_entry).longValue();
 					
+							length_entry_found = true;
+							
 						}else if ( entry_name.equalsIgnoreCase( "PATH" )){
 							
 							SimpleXMLParserDocumentNode[]	path_nodes = file_entry.getChildren();
@@ -258,9 +263,9 @@ TOTorrentXMLDeserialiser
 						}
 					}
 					
-					if ( file_length == 0 || path_comps == null ){
+					if ( (!length_entry_found) || path_comps == null ){
 
-						throw( new TOTorrentException( "FILE element invalid", TOTorrentException.RT_DECODE_FAILS));
+						throw( new TOTorrentException( "FILE element invalid (file length = " + file_length + ")", TOTorrentException.RT_DECODE_FAILS));
 					
 					}
 					files[j] = new TOTorrentFileImpl( file_length, path_comps );

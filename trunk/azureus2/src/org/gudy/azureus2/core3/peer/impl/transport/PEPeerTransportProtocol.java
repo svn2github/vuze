@@ -87,59 +87,82 @@ PEPeerTransportProtocol
 	public final static byte BT_CANCEL 			= 8;
 
 
-	//The SocketChannel associated with this peer
-	//The reference to the current ByteBuffer used for reading on the socket.
+		//The reference to the current ByteBuffer used for reading on the socket.
+	
 	private ByteBuffer readBuffer;
-	//The Buffer for reading the length of the messages
+	
+		//The Buffer for reading the length of the messages
+		
 	private ByteBuffer lengthBuffer;
-	//A flag to indicate if we're reading the length or the message
+	
+		//A flag to indicate if we're reading the length or the message
+		
 	private boolean readingLength;
-	//The reference tp the current ByteBuffer used to write on the socket
+	
+		//The reference tp the current ByteBuffer used to write on the socket
+		
 	private ByteBuffer writeBuffer;
-	//A flag to indicate if we're sending protocol messages or data
+	
+		//A flag to indicate if we're sending protocol messages or data
+		
 	private boolean writeData;
 	private int allowed;
 	private int used;
 	private int loopFactor;
 
-	//The keepAlive counter
+		//The keepAlive counter
+		
 	private int keepAlive;
 
-	//The Queue for protocol messages
+		//The Queue for protocol messages
+		
 	private List protocolQueue;
 
-	//The Queue for data messages
+		//The Queue for data messages
+		
 	private List dataQueue;
 	private boolean incoming;
 	private boolean closing;
-	private State currentState;
+	private PEPeerTransportProtocolState currentState;
 
-	//The maxUpload ...
+		//The maxUpload ...
+		
 	int maxUpload = 1024 * 1024;
 
-	//The client
+		//The client
+		
 	String client = "";
 
-	//Reader / Writer Loop
+		//Reader / Writer Loop
+		
 	private int processLoop;
   
-	//Number of connections made since creation
+		//Number of connections made since creation
+		
 	private int nbConnections;
   
-	//Flag to indicate if the connection is in a stable enough state to send a request.
-	//Used to reduce discarded pieces due to request / choke / unchoke / re-request , and both in fact taken into account.
+		//Flag to indicate if the connection is in a stable enough state to send a request.
+		//Used to reduce discarded pieces due to request / choke / unchoke / re-request , and both in fact taken into account.
+		
 	private boolean readyToRequest;
   
-	//Flag to determine when a choke message has really been sent
+		//Flag to determine when a choke message has really been sent
+		
 	private boolean waitingChokeToBeSent;
 
 	public final static int componentID = 1;
 	public final static int evtProtocol = 0;
-	// Protocol Info
+	
+		// Protocol Info
+		
 	public final static int evtLifeCycle = 1;
-	// PeerConnection Life Cycle
+	
+		// PeerConnection Life Cycle
+		
 	public final static int evtErrors = 2;
-	// PeerConnection Life Cycle
+	
+		// PeerConnection Life Cycle
+		
 	private final static String PROTOCOL = "BitTorrent protocol";
 
  
@@ -393,7 +416,7 @@ PEPeerTransportProtocol
 	//4. release the write Buffer
 	if (writeBuffer != null) {      
 	  if (writeData) {
-		SpeedLimiter.getLimiter().removeUploader(this);
+		PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
 		ByteBufferPool.getInstance().freeBuffer(writeBuffer);
 	  }
 	}
@@ -432,7 +455,7 @@ PEPeerTransportProtocol
   }
 
 	
-  private class StateConnecting implements State {
+  private class StateConnecting implements PEPeerTransportProtocolState {
 	public void process() {
 	  try {
 		if ( completeConnection()) {
@@ -457,7 +480,7 @@ PEPeerTransportProtocol
 	}
   }
 		
-  private class StateHandshaking implements State {
+  private class StateHandshaking implements PEPeerTransportProtocolState {
 	public void process() {
 	  if (readBuffer.hasRemaining()) {
 		try {
@@ -480,7 +503,7 @@ PEPeerTransportProtocol
 	}
   }
 
-  private class StateTransfering implements State {
+  private class StateTransfering implements PEPeerTransportProtocolState {
 	public void process() {      
 	  if(++processLoop > 10)
 		  return;
@@ -569,7 +592,7 @@ PEPeerTransportProtocol
 	}
   }
 
-  private static class StateClosed implements State {
+  private static class StateClosed implements PEPeerTransportProtocolState {
 	public void process() {}
 
 	public int getState() {
@@ -1089,9 +1112,9 @@ PEPeerTransportProtocol
 		int realLimit = writeBuffer.limit();
 		int limit = realLimit;
 		int uploadAllowed = 0;
-		if (writeData && SpeedLimiter.getLimiter().isLimited(this)) {
+		if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
 		  if ((loopFactor % 5) == 0) {
-			allowed = SpeedLimiter.getLimiter().getLimitPer100ms(this);
+			allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms(this);
 			used = 0;
 		  }
 		  uploadAllowed = allowed - used;
@@ -1109,7 +1132,7 @@ PEPeerTransportProtocol
 		if (writeData) {
 		  stats.sent(written);
 		  manager.sent(written);
-		  if (SpeedLimiter.getLimiter().isLimited(this)) {
+		  if (PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
 			used += written;
 			if ((loopFactor % 5) == 4) {
 			  if (used >= allowed) // (100 * allowed) / 100
@@ -1128,7 +1151,7 @@ PEPeerTransportProtocol
 		//If we were sending data, we must free the writeBuffer
 		if (writeData) {
 		  ByteBufferPool.getInstance().freeBuffer(writeBuffer);
-		  SpeedLimiter.getLimiter().removeUploader(this);
+		  PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
 		}
 		//We set it to null
 		writeBuffer = null;
@@ -1180,7 +1203,7 @@ PEPeerTransportProtocol
 			writeBuffer = item.getBuffer();
 			writeBuffer.position(0);
 			writeData = true;
-			SpeedLimiter.getLimiter().addUploader(this);
+			PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
 			// and loop
 			write();
 		  }
