@@ -95,7 +95,8 @@ public class IrcView extends AbstractIView implements IrcListener {
     colors[1] = MainWindow.blues[2];
     colors[2] = MainWindow.blues[1];
     colors[3] = MainWindow.red_ConsoleView;
-    client = new IrcClient(this);   
+    client = new IrcClient(this);
+    super.initialize(composite);
   }
 
   /* (non-Javadoc)

@@ -111,6 +111,7 @@ public class SpeedView extends AbstractIView {
     updateThread = new UpdateThread(); 
     updateThread.setDaemon(true);
     updateThread.start();
+    super.initialize(composite);
   }
   
   public void delete() {

@@ -822,6 +822,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     startFolderWatcher();
     COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
     COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
+    Tab.addTabKeyListenerToComposite(folder);
   }catch( Throwable e ){
 		e.printStackTrace();
 	} }

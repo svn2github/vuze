@@ -54,6 +54,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
@@ -266,7 +267,8 @@ MyTrackerView
 		   }
 		 });	   
 		TRHostFactory.create().addListener( this );
-	}
+    super.initialize(composite);
+  }
 	
 	public void
 	torrentAdded(

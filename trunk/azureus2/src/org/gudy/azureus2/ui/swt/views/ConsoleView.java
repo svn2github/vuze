@@ -40,6 +40,7 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
     colors[2] = MainWindow.blues[1];
     colors[3] = MainWindow.red_ConsoleView;
     LGLogger.setListener(this);
+    super.initialize(composite);
   }
 
   /* (non-Javadoc)

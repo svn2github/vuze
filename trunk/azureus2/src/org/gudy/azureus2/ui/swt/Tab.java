@@ -266,24 +266,34 @@ public class Tab {
      }
   }
 
-  public static void selectNextTab() {
+  /**
+   * @param selectNext if true, the next tab is selected, else the previous
+   *
+   * @author Rene Leonhardt
+   */
+  public static void selectNextTab(boolean selectNext) {
     if (_folder == null || _folder.isDisposed())
       return;
+    final int nextOrPrevious = selectNext ? 1 : -1;
     if(_folder instanceof TabFolder) {
       TabFolder tabFolder = (TabFolder)_folder;
-      int index = tabFolder.getSelectionIndex() + 1;
-      if(index == 0 || tabFolder.getItemCount() < 2)
+      int index = tabFolder.getSelectionIndex() + nextOrPrevious;
+      if(index == 0 && selectNext || index == -2 || tabFolder.getItemCount() < 2)
         return;
       if(index == tabFolder.getItemCount())
         index = 0;
+      else if(index < 0)
+        index = tabFolder.getItemCount() - 1;
       tabFolder.setSelection(index);
     } else {
       CTabFolder tabFolder = (CTabFolder)_folder;
-      int index = tabFolder.getSelectionIndex() + 1;
-      if(index == 0 || tabFolder.getItemCount() < 2)
+      int index = tabFolder.getSelectionIndex() + nextOrPrevious;
+      if(index == 0 && selectNext || index == -2 || tabFolder.getItemCount() < 2)
         return;
       if(index == tabFolder.getItemCount())
         index = 0;
+      else if(index < 0)
+        index = tabFolder.getItemCount() - 1;
       tabFolder.setSelection(index);
     }
   }
@@ -383,8 +393,13 @@ public class Tab {
         if(keyEvent.character == SWT.ESC || (keyEvent.keyCode == 0x100000d && keyEvent.stateMask == SWT.CTRL)) {
           closeCurrent();
         }
-        if(keyEvent.keyCode == 0x100000f && keyEvent.stateMask == 0) {
-          selectNextTab();
+        if(keyEvent.keyCode == 0x100000f) {
+          // F6 selects next Tab
+          if(keyEvent.stateMask == 0)
+            selectNextTab(true);
+          // Shift+F6 selects previous Tab
+          else if(keyEvent.stateMask == SWT.SHIFT)
+            selectNextTab(false);
         }
       }
 
