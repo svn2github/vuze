@@ -50,11 +50,10 @@ TOTorrentDeserialiseImpl
 			throw( new TOTorrentException( 	"TOTorrentDeserialise: Torrent is zero length ('" + file.getName() + "')",
 											TOTorrentException.RT_ZERO_LENGTH ));
 			
-		}else if ( file.length() > 1024L * 1024L ){
-			
-			throw( new TOTorrentException( 	"TOTorrentDeserialise: Torrent is too big ('" + file.getName() + "')",
-											TOTorrentException.RT_TOO_BIG ));
 		}
+			// parg: there used to be a check made that the torrent file wasn't larger than 1MB.
+			// However, this as been exceeded! (see bug 826617)
+			// As there is no technical reason for this limit I have removed it
 		
 		ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
 		
@@ -62,7 +61,7 @@ TOTorrentDeserialiseImpl
 		
 		try{
 		
-			byte[] buf = new byte[2048];
+			byte[] buf = new byte[32*1024];	// raised this limit as 2k was rather too small
 		
 			int nbRead;
 		
