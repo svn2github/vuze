@@ -41,7 +41,6 @@ import org.gudy.azureus2.ui.swt.StartServer;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
-import org.gudy.azureus2.ui.swt.update.Restarter;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
@@ -133,7 +132,8 @@ Initializer
 				
 				public boolean
 				restartRequested(
-					AzureusCore		core )
+					final AzureusCore		core,
+					final boolean			update_only )
 				{
 					final AESemaphore				sem 	= new AESemaphore("SWTInit:restart");
 					final AzureusCoreException[]	error 	= {null};
@@ -151,7 +151,8 @@ Initializer
 											error[0] = new AzureusCoreException( "SWT Initializer: Azureus close action failed");
 										}	
 										
-										Restarter.restartForUpgrade(azureus_core);
+										azureus_core.restart( update_only );
+										
 									}finally{
 												
 										sem.release();

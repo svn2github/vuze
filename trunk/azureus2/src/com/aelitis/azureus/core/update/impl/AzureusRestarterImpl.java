@@ -19,11 +19,12 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
-package org.gudy.azureus2.ui.swt.update;
+package com.aelitis.azureus.core.update.impl;
 
 import java.io.*;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.update.AzureusRestarter;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.platform.*;
@@ -32,24 +33,26 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 public class 
-Restarter 
+AzureusRestarterImpl 
+	implements AzureusRestarter
 {    
 	private static final String MAIN_CLASS 		= "org.gudy.azureus2.update.Updater";
 	private static final String UPDATER_JAR 	= "Updater.jar";
   
   
-	protected String	classpath_prefix;
+	protected AzureusCore	azureus_core;
+	protected String		classpath_prefix;
 	
-	public static void 
-	restartForUpgrade(
-		AzureusCore		azureus_core ) 
+	public
+	AzureusRestarterImpl(
+		AzureusCore		_azureus_core )
 	{
-		new Restarter().restartForUpgradeSupport(azureus_core);
+		azureus_core	= _azureus_core;
 	}
 	
-	protected void
-	restartForUpgradeSupport(
-		AzureusCore		azureus_core )
+	public void
+	restart(
+		boolean	update_only )
 	{
 		PluginInterface pi = azureus_core.getPluginManager().getPluginInterfaceByID( "azupdater" );
 		
@@ -108,13 +111,8 @@ Restarter
 			MAIN_CLASS,
 			properties,
 			parameters );
-  }
-  
-	private String
-	getClassPathPrefix()
-	{
-		return( classpath_prefix );
 	}
+  
 	
 	private String
 	getClassPath()
@@ -243,10 +241,6 @@ Restarter
     String[] parameters) 
   {
     String userPath = System.getProperty("user.dir");
-    String javaPath = System.getProperty("java.home")
-                    + System.getProperty("file.separator")
-                    + "bin"
-                    + System.getProperty("file.separator");
     
     String exec =   "#!/bin/bash\n" + 
                   	"ulimit -H -S -n 8192\n\"" +
@@ -275,7 +269,7 @@ Restarter
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
       chMod(fileName,"755",log);      
-      Process p = Runtime.getRuntime().exec("Azureus.app/" + restartScriptName);
+      Runtime.getRuntime().exec("Azureus.app/" + restartScriptName);
     } catch(Exception e) {
       log.println(e);
       e.printStackTrace(log);
@@ -320,7 +314,7 @@ Restarter
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
       chMod(fileName,"755",log);
-      Process p = Runtime.getRuntime().exec("./" + restartScriptName);
+      Runtime.getRuntime().exec("./" + restartScriptName);
     } catch(Exception e) {
       log.println(e);  
       e.printStackTrace(log);

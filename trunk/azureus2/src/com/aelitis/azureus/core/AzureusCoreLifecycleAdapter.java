@@ -61,7 +61,8 @@ AzureusCoreLifecycleAdapter
 	
 	public boolean
 	restartRequested(
-		AzureusCore		core )
+		AzureusCore		core,
+		boolean			update_only )
 	
 		throws AzureusCoreException
 	{

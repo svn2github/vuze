@@ -1,5 +1,5 @@
 /*
- * Created on 14-Jul-2004
+ * Created on 17-Nov-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core;
+package com.aelitis.azureus.core.update;
 
 /**
  * @author parg
@@ -28,38 +28,9 @@ package com.aelitis.azureus.core;
  */
 
 public interface 
-AzureusCoreLifecycleListener 
+AzureusRestarter 
 {
 	public void
-	componentCreated(
-		AzureusCore				core,
-		AzureusCoreComponent	component );
-	
-	public void
-	started(
-		AzureusCore		core );
-	
-	public void
-	stopped(
-		AzureusCore		core );
-	
-		/**
-		 * return true if the request has been accepted (and hence the listener will arrange for a stop to occur
-		 * @param core
-		 * @return
-		 */
-	
-	public boolean
-	stopRequested(
-		AzureusCore		core )
-	
-		throws AzureusCoreException;
-	
-	public boolean
-	restartRequested(
-		AzureusCore		core,
-		boolean			update_only )
-	
-		throws AzureusCoreException;
-
+	restart(
+		boolean	update_only );
 }

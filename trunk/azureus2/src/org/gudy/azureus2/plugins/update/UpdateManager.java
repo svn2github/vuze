@@ -63,7 +63,8 @@ UpdateManager
 		throws UpdateException;
 	
 		/**
-		 * restart azureus
+		 * restart azureus after applying any updates
+		 * @deprecated - use applyUpdates
 		 * @throws UpdateException
 		 */
 	
@@ -71,6 +72,19 @@ UpdateManager
 	restart()
 	
 		throws UpdateException;
+	
+		/**
+		 * applies any updates and stops or restarts Azureus
+		 * @throws UpdateException
+		 */
+	
+	public void
+	applyUpdates(
+		boolean	restart_after )
+	
+		throws UpdateException;
+	
+
 	
 	public void
 	addListener(

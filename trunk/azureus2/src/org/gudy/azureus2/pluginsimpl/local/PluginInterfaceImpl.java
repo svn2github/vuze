@@ -331,7 +331,7 @@ PluginInterfaceImpl
   public UpdateManager
   getUpdateManager()
   {
-  	return( UpdateManagerImpl.getSingleton());
+  	return( UpdateManagerImpl.getSingleton( initialiser.getAzureusCore()));
   }
 
   public PeerProtocolManager

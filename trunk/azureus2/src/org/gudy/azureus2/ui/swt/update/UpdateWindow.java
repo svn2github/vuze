@@ -499,7 +499,7 @@ UpdateWindow
     	// this HAS to be done this way around else the restart inherits
     	// the 6880 port listen. However, this is a general problem....
       MainWindow.getWindow().dispose();
-      Restarter.restartForUpgrade( azureus_core );
+      azureus_core.restart( false );
     } else {
       updateWindow.dispose();      
     }

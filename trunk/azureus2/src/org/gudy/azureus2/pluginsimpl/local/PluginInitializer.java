@@ -198,7 +198,7 @@ PluginInitializer
   	
     this.listener 	= listener;
     
-    UpdateManagerImpl.getSingleton();	// initialise the update manager
+    UpdateManagerImpl.getSingleton( azureus_core );	// initialise the update manager
        
     plugin_manager = PluginManagerImpl.getSingleton( this );
     

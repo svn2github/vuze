@@ -64,12 +64,22 @@ AzureusCore
 		throws AzureusCoreException;
 	
 		/**
+		 * restart the system
+		 * @param apply_updates_only	applies the updates and then stops (i.e. doesn't restart :)
+		 */
+	
+	public void
+	restart(
+		boolean	apply_updates_only );
+	
+		/**
 		 * request a restart of the system - currently only available for swt based systems 
 		 * @throws AzureusCoreException
 		 */
 	
 	public void
-	requestRestart()
+	requestRestart(
+		boolean	apply_updates_only )
 	
 		throws AzureusCoreException;
 	

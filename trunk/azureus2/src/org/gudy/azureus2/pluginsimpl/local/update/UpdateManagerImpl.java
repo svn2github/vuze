@@ -34,26 +34,39 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.*;
 
+import com.aelitis.azureus.core.AzureusCore;
+
 public class 
 UpdateManagerImpl
 	implements UpdateManager
 {
-	protected static UpdateManagerImpl		singleton = new UpdateManagerImpl();
+	protected static UpdateManagerImpl		singleton;
 	
 	public static UpdateManager
-	getSingleton()
+	getSingleton(
+		AzureusCore		core )
 	{
+		if ( singleton == null ){
+			
+			singleton = new UpdateManagerImpl( core );
+		}
+		
 		return( singleton );
 	}
 
+	protected AzureusCore	azureus_core;
+	
 	protected List	components 	= new ArrayList();
 	protected List	listeners	= new ArrayList();
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UpdateManager" );
 
 	protected
-	UpdateManagerImpl()
+	UpdateManagerImpl(
+		AzureusCore		_azureus_core )
 	{
+		azureus_core	= _azureus_core;
+		
 		UpdateInstallerImpl.checkForFailedInstalls();
 		
 			// cause the platform manager to register any updateable components
@@ -121,12 +134,21 @@ UpdateManagerImpl
 	
 		throws UpdateException
 	{
+		applyUpdates( true );
+	}
+	
+	public void
+	applyUpdates(
+		boolean	restart_after )
+	
+		throws UpdateException
+	{
 		try{
-			PluginManager.restartAzureus();
+			azureus_core.requestRestart( !restart_after );
 			
 		}catch( Throwable e ){
 			
-			throw( new UpdateException( "UpdateManager:restart fails", e ));
+			throw( new UpdateException( "UpdateManager:applyUpdates fails", e ));
 		}
 	}
 	

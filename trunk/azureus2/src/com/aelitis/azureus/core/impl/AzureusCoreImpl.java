@@ -37,6 +37,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.update.AzureusRestarterFactory;
 
 /**
  * @author parg
@@ -239,13 +240,23 @@ AzureusCoreImpl
 	}
 	
 	public void
-	requestRestart()
+	restart(
+		boolean	update_only )
+	
+		throws AzureusCoreException
+	{
+		AzureusRestarterFactory.create( this ).restart( update_only );
+	}
+	
+	public void
+	requestRestart(
+		boolean	update_only )
 	
 		throws AzureusCoreException
 	{
 		for (int i=0;i<lifecycle_listeners.size();i++){
 			
-			if (((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( this )){
+			if (((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( this,update_only )){
 				
 				return;
 			}

@@ -55,13 +55,6 @@ StartServer
 		    	new AzureusCoreLifecycleAdapter()
 				{
 		    		public void
-					componentCreated(
-						AzureusCore					core,
-						AzureusCoreComponent		comp )
-		    		{
-		    		}
-		    		
-		    		public void
 					started(
 						AzureusCore		core )
 		    		{
