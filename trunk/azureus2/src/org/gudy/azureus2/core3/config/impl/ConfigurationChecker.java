@@ -42,16 +42,25 @@ public class ConfigurationChecker {
     if(checked)
       return;
     checked = true;
+    
     int maxUpSpeed = COConfigurationManager.getIntParameter("Max Upload Speed",0);
     if(maxUpSpeed > 0 && maxUpSpeed < 1024 * 5) {
       changed = true;
       COConfigurationManager.setParameter("Max Upload Speed", 5 * 1024);
     }
-    int shareRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio",0);
-    if(shareRatio > 3) {
-      COConfigurationManager.setParameter("Stop Peers Ratio", 3);
+    
+    int peersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio",0);
+    if(peersRatio > 4) {
+      COConfigurationManager.setParameter("Stop Peers Ratio", 4);
       changed = true;
     }
+    
+    int stopRatio = COConfigurationManager.getIntParameter("Stop Ratio",0);
+    if(stopRatio < 0) {
+       COConfigurationManager.setParameter("Stop Ratio", 0);
+       changed = true;
+    }
+    
     if(changed) {
       COConfigurationManager.save();
     }    
