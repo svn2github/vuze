@@ -46,8 +46,9 @@ PEPieceImpl
   public boolean[] requested;
   public boolean[] written;
   
-  private PEPeer[] writers;
-  public List writes;
+  private PEPeer[] 	writers;
+  public List 		writes;
+  private long		last_write_time;
     
   public int completed;
   public boolean isBeingChecked = false;
@@ -82,8 +83,16 @@ PEPieceImpl
     writers[blocNumber] = peer;
     written[blocNumber] = true;
     completed++;
+    
+    last_write_time	= System.currentTimeMillis();
   }
 
+  public long
+  getLastWriteTime()
+  {
+  	return( last_write_time );
+  }
+  
   public int 
   getAvailability()
   {

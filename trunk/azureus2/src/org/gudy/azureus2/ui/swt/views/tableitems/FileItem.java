@@ -15,8 +15,11 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
@@ -39,8 +42,9 @@ public class FileItem implements SortableItem{
   private DownloadManager manager;
   private DiskManagerFileInfo fileInfo;
 
-  private int loopFactor;
-
+  private int 	loopFactor;
+  private long	last_draw_time;
+  
   public FileItem(Table table, DownloadManager manager, DiskManagerFileInfo fileInfo, Color blues[]) {
     this.display = table.getDisplay();
     this.blues = blues;
@@ -150,6 +154,11 @@ public class FileItem implements SortableItem{
 
       //System.out.println(table.getHeaderHeight());
       boolean available[] = manager.getPiecesStatus();
+      
+      PEPeerManager	pm = manager.getPeerManager();
+      
+      PEPiece[]	pieces = pm==null?null:pm.getPieces();
+      
       GC gcImage = new GC(piecesImage);
       for (int i = 0; i < width; i++) {
         int a0 = (i * nbPieces) / width;
@@ -159,20 +168,54 @@ public class FileItem implements SortableItem{
         if (a1 > nbPieces && nbPieces != 0)
           a1 = nbPieces;
         int nbAvailable = 0;
+        boolean	written		= false;
+        boolean	requested	= false;
         if(firstPiece >= 0) {               
-          for (int j = a0; j < a1; j++)
-           if (available[j+firstPiece])
-              nbAvailable++;        
-        } else {
+          for (int j = a0; j < a1; j++){
+           int this_index = j+firstPiece;
+           if (available[this_index]){
+              nbAvailable++;
+           }
+           
+           if ( !written ){
+	           PEPiece	piece = pieces==null?null:pieces[this_index];
+	           
+	           if ( piece != null ){
+	           	
+	           	written 	= written ||( piece.getLastWriteTime()+500 ) > last_draw_time;
+	           
+	           	if ( (!written) && (!requested )){
+	           		
+		           	boolean[]	reqs = piece.getRequested();
+		           	
+		           	if ( reqs != null ){
+			           	for (int k=0;k<reqs.length;k++){
+			           		
+			           		if ( reqs[k]){
+			           			
+			           			requested	= true;
+			           			
+			           			break;
+			           		}
+			           	}
+		           	}
+	           	}
+	           }
+           }
+          }
+         }else{
            nbAvailable = 1;    
         }
+        
         int index = (nbAvailable * 4) / (a1 - a0);
         //System.out.print(index);
-        gcImage.setBackground(blues[index]);
+        gcImage.setBackground(written?MainWindow.red:requested?MainWindow.grey:blues[index]);
         gcImage.setForeground( fileInfo.getDownloaded() == fileInfo.getLength() ? blues[4] : black );
         gcImage.fillRectangle(i,1,1,height);
       }
       gcImage.dispose();
+      
+      last_draw_time = System.currentTimeMillis();
     }
     gc.setForeground(blues[4]);
     gc.drawImage(piecesImage, x0, y0);

@@ -69,6 +69,9 @@ PEPiece
 		byte[] hash,
 		boolean correct	);
     
+  public long
+  getLastWriteTime();
+
   public void reset();
   
   public PEPeer[] getWriters();
