@@ -27,6 +27,8 @@ FEATURE: Core | Torrents created by Azureus now include .utf-8 fields [Parg]
 FEATURE: Core | Dynamic piece request queue scaling [Gudy]
 FEATURE: Core | Added torrent name to authentication dialog [Parg]
 FEATURE: Core | Per-torrent upload speed limits [Nolar]
+FEATURE: UI   | Per-torrent upload speed limits [Gudy]
+FEATURE: UI   | Down/Up speed indicators in main view are now double-clickable to open the Stats View [Gudy]
 
 CHANGE: Core | Show time to re-announce/scrape in general view using hh::mm::ss [Parg]
 CHANGE: Core | Timeout tracker server operations [Parg]
