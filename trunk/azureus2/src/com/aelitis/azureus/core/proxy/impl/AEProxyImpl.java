@@ -60,7 +60,7 @@ AEProxyImpl
 	private VirtualChannelSelector	connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT, true );
 	private VirtualChannelSelector	write_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
 	
-	private Map				processors = new WeakHashMap();
+	private List				processors = new ArrayList();
 	
 	private AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
 	
@@ -189,19 +189,22 @@ AEProxyImpl
 
 				AEProxyConnectionImpl processor = new AEProxyConnectionImpl(this, socket_channel, proxy_handler);
 				
-				try{
-					this_mon.enter();
-				
-					processors.put( processor, "" );
-	
-					LGLogger.log( "AEProxy: num processors = " + processors.size());
+				if ( !processor.isClosed()){
 					
-				}finally{
+					try{
+						this_mon.enter();
 					
-					this_mon.exit();
+						processors.add( processor );
+		
+						LGLogger.log( "AEProxy: active processors = " + processors.size());
+						
+					}finally{
+						
+						this_mon.exit();
+					}
+					
+					read_selector.register( socket_channel, this, processor );
 				}
-				
-				read_selector.register( socket_channel, this, processor );
 				
 			}catch( Throwable e ){
 				
@@ -287,13 +290,13 @@ AEProxyImpl
 			try{
 				this_mon.enter();
 				
-				Iterator	it = processors.keySet().iterator();
+				Iterator	it = processors.iterator();
 				
 				while( it.hasNext()){
 					
 					AEProxyConnectionImpl	processor = (AEProxyConnectionImpl)it.next();
 					
-					System.out.println( "AEProxy: proc = " + processor.getStateString());
+					LGLogger.log( "AEProxy: active processor: " + processor.getStateString());
 				}
 			}finally{
 				
@@ -311,7 +314,7 @@ AEProxyImpl
 		try{
 			this_mon.enter();
 			
-			Iterator	it = processors.keySet().iterator();
+			Iterator	it = processors.iterator();
 			
 			while( it.hasNext()){
 				

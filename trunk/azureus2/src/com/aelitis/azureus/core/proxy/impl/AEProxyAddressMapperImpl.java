@@ -125,7 +125,7 @@ AEProxyAddressMapperImpl
 			}
 		}
 		
-		System.out.println( "AEProxyAddressMapper: internalise " + address + " -> " + target );
+		// System.out.println( "AEProxyAddressMapper: internalise " + address + " -> " + target );
 		
 		return( target );
 	}
@@ -146,7 +146,7 @@ AEProxyAddressMapperImpl
 			target = address;
 		}
 		
-		System.out.println( "AEProxyAddressMapper: externalise " + address + " -> " + target );
+		// System.out.println( "AEProxyAddressMapper: externalise " + address + " -> " + target );
 		
 		return( target );
 	}
