@@ -25,7 +25,7 @@ public class Identification {
   public static String decode(byte[] peerID) {
     final boolean LOG_UNKNOWN = false;
     FileWriter log = null;
-    String logName = "e:\\identification.log";
+    File logFile = FileUtil.getApplicationFile("identification.log");
     
     try {
 
@@ -167,17 +167,18 @@ public class Identification {
     
     if (LOG_UNKNOWN) {
       try {
-        log = new FileWriter( new File( logName ), true );
-        
-        for (int i=0; i < 20; i++) {
-          log.write(i+"=" + peerID[i] + " ");
-        }
-        
+        log = new FileWriter( logFile, true );
+
         String text = new String(peerID, 0, 20, Constants.BYTE_ENCODING);
         text = text.replace((char)12, (char)32);
         text = text.replace((char)10, (char)32);
         
-        log.write(" [" + text + "]\n");
+        log.write("[" + text + "] ");
+        
+        for (int i=0; i < 20; i++) {
+          log.write(i+"=" + peerID[i] + " ");
+        }
+        log.write("\n");
         
       }
       catch (Exception e) {
