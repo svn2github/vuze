@@ -1063,7 +1063,7 @@ PluginInitializer
   	return( singleton.getDefaultInterfaceSupport());
   }
   
-  protected PluginInterface
+  public PluginInterface
   getDefaultInterfaceSupport()
   {
   
@@ -1071,7 +1071,14 @@ PluginInitializer
   		
   		default_plugin = 
   			new PluginInterfaceImpl(
-  					null,
+  					new Plugin()
+					{
+  						public void
+						initialize(
+							PluginInterface pi)
+  						{
+  						}
+					},
 					this,
 					getClass(),
 					getClass().getClassLoader(),
