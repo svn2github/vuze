@@ -228,16 +228,22 @@ DownloadManagerImpl
 		}
 	}
 
-  public void initialize() {
-	if(torrent == null) {
+  public void initialize() 
+  {
+	if ( torrent == null ){
+		
 	  setState( STATE_ERROR );
+	  
 	  return;
 	}
+	
+	errorDetail = "";
+	
 	setState( STATE_INITIALIZING );
     
 	startServer();
     
-	if (this.state == STATE_WAITING){
+	if ( state == STATE_WAITING || state == STATE_ERROR ){
     	
 		return;
 	}
@@ -388,18 +394,13 @@ DownloadManagerImpl
   {
   	server = PEPeerServerFactory.create();
   	
-	if( server != null ) {
+	if ( server == null || server.getPort() == 0 ) {
 		
-	  int port = server.getPort();
-	  
-	  if (port == 0){
-	  	
-		setState( STATE_WAITING );
-		//      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
-	  }
-	}else {
+			// single port - this situation isn't going to clear easily
 		
-	  setState( STATE_WAITING );
+		errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
+		
+		setState( STATE_ERROR );
 	}
   }
 

@@ -204,22 +204,22 @@ DisplayFormatters
 		
 		switch (state) {
 		  case DownloadManager.STATE_WAITING :
-			tmp = MessageText.getString("ManagerItem.waiting"); //$NON-NLS-1$
+			tmp = MessageText.getString("ManagerItem.waiting"); 
 			break;
 		  case DownloadManager.STATE_ALLOCATING :
-			tmp = MessageText.getString("ManagerItem.allocating"); //$NON-NLS-1$
+			tmp = MessageText.getString("ManagerItem.allocating"); 
 			break;
 		  case DownloadManager.STATE_CHECKING :
-			tmp = MessageText.getString("ManagerItem.checking"); //$NON-NLS-1$
+			tmp = MessageText.getString("ManagerItem.checking"); 
 			break;
 		  case DownloadManager.STATE_FINISHING :
-		    tmp = MessageText.getString("ManagerItem.finishing"); //$NON-NLS-1$
+		    tmp = MessageText.getString("ManagerItem.finishing"); 
 			 break;
 		  case DownloadManager.STATE_READY :
-			tmp = MessageText.getString("ManagerItem.ready"); //$NON-NLS-1$
+			tmp = MessageText.getString("ManagerItem.ready"); 
 			break;
 		  case DownloadManager.STATE_DOWNLOADING :
-			tmp = MessageText.getString("ManagerItem.downloading"); //$NON-NLS-1$
+			tmp = MessageText.getString("ManagerItem.downloading"); 
 			break;
 		  case DownloadManager.STATE_SEEDING :
          if (manager.getDiskManager().isChecking()) {
@@ -228,14 +228,14 @@ DisplayFormatters
                  MessageText.getString("ManagerItem.checking"));
          }
          else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
-           tmp = MessageText.getString("ManagerItem.superseeding"); //$NON-NLS-1$
+           tmp = MessageText.getString("ManagerItem.superseeding"); 
          }
          else {
-           tmp = MessageText.getString("ManagerItem.seeding"); //$NON-NLS-1$
+           tmp = MessageText.getString("ManagerItem.seeding"); 
          }
 			break;
 		  case DownloadManager.STATE_STOPPED :
-			tmp = MessageText.getString("ManagerItem.stopped"); //$NON-NLS-1$
+			tmp = MessageText.getString("ManagerItem.stopped"); 
 			break;
 		  case DownloadManager.STATE_ERROR :
 			tmp = MessageText.getString("ManagerItem.error").concat(" : ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
