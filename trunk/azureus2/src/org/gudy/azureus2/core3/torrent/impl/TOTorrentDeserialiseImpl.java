@@ -164,6 +164,13 @@ TOTorrentDeserialiseImpl
 	{
 		try{
 		
+			String	announce_url		= null;
+			
+			boolean	got_announce		= false;
+			boolean	got_announce_list	= false;
+			
+			boolean	bad_announce		= false;
+			
 				// decode the stuff
 			
 			Iterator root_it = meta_data.keySet().iterator();
@@ -174,9 +181,11 @@ TOTorrentDeserialiseImpl
 				
 				if ( key.equalsIgnoreCase( TK_ANNOUNCE )){
 							
-          String announce_url = readStringFromMetaData( meta_data, TK_ANNOUNCE );
+					got_announce	= true;
 					
-          announce_url = announce_url.replaceAll( " ", "" );
+					announce_url = readStringFromMetaData( meta_data, TK_ANNOUNCE );
+					
+					announce_url = announce_url.replaceAll( " ", "" );
 					
 					try{
 					
@@ -184,21 +193,23 @@ TOTorrentDeserialiseImpl
 						
 					}catch( MalformedURLException e ){
 						
-						e.printStackTrace();
+						bad_announce	= true;
 						
-						throw( new TOTorrentException( 	"TOTorrentDeserialise: announce URL malformed ('" + announce_url + "'",
-														TOTorrentException.RT_DECODE_FAILS ));
 					}
 					
 				}else if ( key.equalsIgnoreCase( TK_ANNOUNCE_LIST )){
 	
+					got_announce_list	= true;
+					
 					List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
 					
 					if ( announce_list != null && announce_list.size() > 0 ){
             
-            String announce_url = readStringFromMetaData( meta_data, TK_ANNOUNCE );
-            announce_url = announce_url.replaceAll( " ", "" );
-            boolean announce_url_found = false;
+			            announce_url = readStringFromMetaData( meta_data, TK_ANNOUNCE );
+			            
+			            announce_url = announce_url.replaceAll( " ", "" );
+			            
+			            boolean announce_url_found = false;
             
 						for (int i=0;i<announce_list.size();i++){
 							
@@ -214,10 +225,12 @@ TOTorrentDeserialiseImpl
 									
 									url_str=url_str.replaceAll( " ", "" );
                   
-                  //check to see if the announce url is somewhere in the announce-list
-                  if ( url_str.equalsIgnoreCase( announce_url )) {
-                    announce_url_found = true;
-                  }
+					                 	//check to see if the announce url is somewhere in the announce-list
+									
+					                if ( url_str.equalsIgnoreCase( announce_url )) {
+					                	
+					                   announce_url_found = true;
+					                }
 											
 									urls.add( new URL( url_str ));		
 							
@@ -237,17 +250,19 @@ TOTorrentDeserialiseImpl
 							}
 						}
             
-            //if the original announce url isn't found, add it to the list
-            if ( !announce_url_found ) {
-              try {
-              	Vector urls = new Vector();
-              	urls.add( new URL( announce_url ));
-              	URL[] url_array = new URL[ urls.size() ];
-              	urls.copyInto( url_array );
-              	addTorrentAnnounceURLSet( url_array );
-              }
-              catch (Exception e) { e.printStackTrace(); }
-            }
+			            	//if the original announce url isn't found, add it to the list
+							// watch out for those invalid torrents with announce url missing
+						
+			            if ( !announce_url_found && announce_url.length() > 0) {
+			              try {
+			              	Vector urls = new Vector();
+			              	urls.add( new URL( announce_url ));
+			              	URL[] url_array = new URL[ urls.size() ];
+			              	urls.copyInto( url_array );
+			              	addTorrentAnnounceURLSet( url_array );
+			              }
+			              catch (Exception e) { e.printStackTrace(); }
+			            }
             
 					}
 				}else if ( key.equalsIgnoreCase( TK_COMMENT )){
@@ -301,7 +316,30 @@ TOTorrentDeserialiseImpl
 					}
 				}
 			}
+
+			if ( bad_announce ){
+				
+				if ( got_announce_list ){
 			
+					TOTorrentAnnounceURLSet[] sets = getAnnounceURLGroup().getAnnounceURLSets();
+					
+					if ( sets.length > 0 ){
+						
+						setAnnounceURL( sets[0].getAnnounceURLs()[0]);
+					}else{
+						
+						throw( new TOTorrentException( 	"TOTorrentDeserialise: announce URL malformed ('" + announce_url + "' and no usable announce list",
+														TOTorrentException.RT_DECODE_FAILS ));
+						
+					}
+					
+				}else{
+			
+					throw( new TOTorrentException( 	"TOTorrentDeserialise: announce URL malformed ('" + announce_url + "'",
+													TOTorrentException.RT_DECODE_FAILS ));
+				}
+			}
+
 			Map	info = (Map)meta_data.get( TK_INFO );
 
 			if ( info == null ){
