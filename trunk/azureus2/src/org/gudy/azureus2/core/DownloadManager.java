@@ -5,11 +5,12 @@
 package org.gudy.azureus2.core;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,8 @@ public class DownloadManager extends Component {
   public static final int STATE_STOPPING = 65;
   public static final int STATE_STOPPED = 70;
   public static final int STATE_ERROR = 100;
+  // indicates, that there is already a DownloadManager with the same size and hash in the list
+  public static final int STATE_DUPLICATE = 200;
 
   private int priority;
   public static final int LOW_PRIORITY = 1;
@@ -45,10 +48,11 @@ public class DownloadManager extends Component {
 
   private String torrentFileName;
   private String name;
+  private String nameFromUser = null;
+
   private int nbPieces;
   private String savePath;
 
-  private ByteArrayOutputStream metaInfo;
   private byte[] hash;
   private Map metaData;
   private Server server;
@@ -57,6 +61,22 @@ public class DownloadManager extends Component {
   public PeerManager peerManager;
 
   private int maxUploads = 4;
+
+  /**
+   * @param nameFromUser the new filename for this torrent 
+   *
+   * @author Rene Leonhardt
+   */
+  public boolean setNameFromUser(String nameFromUser) {
+    if(!name.equals(nameFromUser) && nameFromUser != null && nameFromUser.trim().length() != 0) {
+      if(state == STATE_STOPPED) {
+        this.nameFromUser = nameFromUser;
+        name = nameFromUser;
+        return true;
+      }
+    }
+    return false;
+  }
 
   public DownloadManager(GlobalManager gm, String torrentFileName, String savePath, boolean stopped) {
     this(gm, torrentFileName, savePath);
@@ -73,13 +93,15 @@ public class DownloadManager extends Component {
     this.priority = HIGH_PRIORITY;
     this.torrentFileName = torrentFileName;
     this.savePath = savePath;
-    this.metaInfo = new ByteArrayOutputStream();
     extractMetaInfo();
-    if (this.state == STATE_ERROR)
-      return;
+//    if (this.state == STATE_ERROR) return;
   }
 
   public void initialize() {
+    if(metaData == null) {
+      this.state = STATE_ERROR;
+      return;
+    }
     this.state = STATE_INITIALIZING;
     startServer();
     if (this.state == STATE_WAITING)
@@ -98,25 +120,49 @@ public class DownloadManager extends Component {
   private void extractMetaInfo() {
     FileInputStream fis = null;
     try {
+      File torrent = new File(torrentFileName);
+      if(!torrent.isFile()) {
+        name = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
+        nbPieces = 0;
+        hash = new byte[20];
+        this.state = STATE_ERROR;
+        errorDetail = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
+        return;
+      }
+      if(torrent.length() == 0L) {
+        this.state = STATE_ERROR;
+        errorDetail = MessageText.getString("DownloadManager.error.fileempty"); //$NON-NLS-1$
+        return;
+      }
+      if(torrent.length() > 1024L * 1024L) {
+        this.state = STATE_ERROR;
+        errorDetail = MessageText.getString("DownloadManager.error.filetoobig"); //$NON-NLS-1$
+        return;
+      }
       byte[] buf = new byte[1024];
       int nbRead;
+      ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
       fis = new FileInputStream(torrentFileName);
       while ((nbRead = fis.read(buf)) > 0)
         metaInfo.write(buf, 0, nbRead);
-      metaData = BDecoder.decode(metaInfo.toByteArray()); //$NON-NLS-1$
+      metaData = BDecoder.decode(metaInfo.toByteArray());
+      if(metaData == null) {
+        name = torrent.getName();
+        state = STATE_ERROR;
+        errorDetail = MessageText.getString("DownloadManager.error.filewithouttorrentinfo"); //$NON-NLS-1$
+        return;
+      }
       Map info = (Map) metaData.get("info"); //$NON-NLS-1$
-      name = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$ //$NON-NLS-2$
+      name = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$
+      if(nameFromUser != null) {
+        name = nameFromUser;
+        info.put("name", name.getBytes(LocaleUtil.getCharsetString(name.getBytes()))); //$NON-NLS-1$
+      }
       byte[] pieces = (byte[]) info.get("pieces"); //$NON-NLS-1$
       nbPieces = pieces.length / 20;
       metaData.put("torrent filename", torrentFileName.getBytes(Constants.DEFAULT_ENCODING)); //$NON-NLS-1$ //$NON-NLS-2$
       SHA1Hasher s = new SHA1Hasher();
       hash = s.calculateHash(BEncoder.encode((Map) metaData.get("info"))); //$NON-NLS-1$
-    } catch (FileNotFoundException e) {
-      name = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
-      nbPieces = 0;
-      hash = new byte[20];
-      this.state = STATE_ERROR;
-      errorDetail = MessageText.getString("DownloadManager.error.filenotfound"); //$NON-NLS-1$
     } catch (UnsupportedEncodingException e) {
       this.state = STATE_ERROR;
       errorDetail = MessageText.getString("DownloadManager.error.unsupportedencoding"); //$NON-NLS-1$
@@ -139,11 +185,15 @@ public class DownloadManager extends Component {
   }
 
   private void startServer() {
-    server = new Server();
-    int port = server.getPort();
-    if (port == 0) {
+    if(Server.portsFree()) {
+      server = new Server();
+      int port = server.getPort();
+      if (port == 0) {
+        this.state = STATE_WAITING;
+        //      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
+      }
+    } else {
       this.state = STATE_WAITING;
-      //      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
     }
   }
 
@@ -439,6 +489,17 @@ public class DownloadManager extends Component {
     if (getState() == DownloadManager.STATE_READY) {
       startDownload();
     }
+  }
+
+  /** @retun true, if the other DownloadManager has the same size and hash 
+   * @see java.lang.Object#equals(java.lang.Object)
+   */
+  public boolean equals(Object obj) {
+    if(null != obj && obj instanceof DownloadManager) {
+      DownloadManager other = (DownloadManager) obj;
+      return getSize() == other.getSize() && Arrays.equals(hash, other.getHash());
+    }
+    return false;
   }
 
 }
