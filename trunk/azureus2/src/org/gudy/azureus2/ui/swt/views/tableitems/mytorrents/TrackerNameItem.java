@@ -50,8 +50,9 @@ public class TrackerNameItem
         
       int used = 0;
       for( int i = parts.length-1; i >= 0; i-- ) {
+        if( used > 4 ) break; //don't use more than 4 segments
         String chunk = parts[ i ];
-        if( used < 2 || chunk.length() < 11 ) {  //use end two always, but trim out >10 chars (passkeys)
+        if( used < 2 || chunk.length() < 11 ) {  //use first end two always, but trim out >10 chars (passkeys)
           if( used == 0 ) name = chunk;
           else name = chunk + "." + name;
           used++;
