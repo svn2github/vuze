@@ -135,6 +135,7 @@ public class StartStopRulesDefaultPlugin
   int iFirstPriorityType;
   int iFirstPrioritySeedingMinutes;
   int iFirstPriorityDLMinutes;
+  // Ignore First Priority
   int iFirstPriorityIgnoreSPRatio;
   boolean bFirstPriorityIgnore0Peer;
   
