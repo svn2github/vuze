@@ -55,11 +55,9 @@ DDBaseValueImpl
 		value		= _value;
 				
 		value_bytes	= DDBaseHelpers.encode( value );
-
-		if ( value_bytes.length > MAX_VALUE_SIZE ){
-			
-			throw( new DistributedDatabaseException("Value size limited to " + MAX_VALUE_SIZE + " bytes" ));
-		}
+		
+		// don't police value size limit here as temporary large objects can be 
+		// created when handling transfers
 	}
 	
 	protected 

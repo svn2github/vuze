@@ -222,6 +222,14 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
+		for (int i=0;i<values.length;i++){
+			
+			if (((DDBaseValueImpl)values[i]).getBytes().length > DDBaseValueImpl.MAX_VALUE_SIZE ){
+				
+				throw( new DistributedDatabaseException("Value size limited to " + DDBaseValueImpl.MAX_VALUE_SIZE + " bytes" ));		
+			}
+		}
+		
 		if ( values.length == 0 ){
 			
 			delete( listener, key );

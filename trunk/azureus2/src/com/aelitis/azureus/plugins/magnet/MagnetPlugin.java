@@ -110,6 +110,37 @@ MagnetPlugin
 		menu2.addListener( listener );
 
 		MagnetURIHandler.getSingleton().addListener( this );
+		
+		plugin_interface.addListener(
+			new PluginListener()
+			{
+				public void
+				initializationComplete()
+				{
+						// make sure DDB is initialised as we need it to register its
+						// transfer types
+					
+					Thread t = 
+						new AEThread( "MagnetPlugin:init" )
+						{
+							public void
+							runSupport()
+							{
+								plugin_interface.getDistributedDatabase();
+							}
+						};
+					
+					t.setDaemon( true );
+					
+					t.start();
+				}
+				
+				public void
+				closedownInitiated(){}
+				
+				public void
+				closedownComplete(){}			
+			});
 	}
 	
 	public byte[]
