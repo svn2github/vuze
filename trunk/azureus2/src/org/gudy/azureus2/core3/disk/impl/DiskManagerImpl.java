@@ -1733,25 +1733,18 @@ DiskManagerImpl
 			int realLimit = buffer.limit();
 				
 			long limit = buffer.position() + ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
-				
+       
 			if (limit < realLimit) {
-			
 				buffer.limit((int)limit);
 			}
 
-			if (buffer.position() < buffer.limit()){
-					
+			if ( buffer.hasRemaining() ) {
 				try{
 					tempPiece.getFile().getFMFile().write( buffer, fileOffset + (offset - previousFilesLength));
-					
-				}catch( FMFileManagerException f ){
-				
+				}
+        catch( FMFileManagerException f ){
 						// TODO: handle this properly
 				}
-					
-			}else{
-				
-				Debug.out("buffer.position [" +buffer.position()+ "] is not < buffer.limit [" +buffer.limit()+ "]");
 			}
 				
 			buffer.limit(realLimit);
