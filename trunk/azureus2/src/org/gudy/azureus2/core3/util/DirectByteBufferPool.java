@@ -110,7 +110,7 @@ public class DirectByteBufferPool {
     if( DEBUG_PRINT_MEM ) {
       Timer printer = new Timer("printer");
       printer.addPeriodicEvent(
-          60*1000,
+          120*1000,
           new TimerEventPerformer() {
             public void perform( TimerEvent ev ) {
               System.out.println("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, in use=" +(bytesOut-bytesIn)/1024/1024 +"MB, free=" + bytesFree()/1024/1024+ "MB");
