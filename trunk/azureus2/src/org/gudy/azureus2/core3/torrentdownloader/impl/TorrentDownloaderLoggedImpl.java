@@ -6,14 +6,11 @@
 
 package org.gudy.azureus2.core3.torrentdownloader.impl;
 
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
-
 /**
  *
  * @author  Tobias Minich
  */
-public class TorrentDownloaderLoggedImpl extends TorrentDownloaderImpl implements TorrentDownloader {
+public class TorrentDownloaderLoggedImpl extends TorrentDownloaderImpl {
 
     public void notifyListener() {
       super.notifyListener();
