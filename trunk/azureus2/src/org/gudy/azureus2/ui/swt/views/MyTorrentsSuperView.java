@@ -59,7 +59,8 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new SecondsSeedingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE)
+    new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+    new TrackerNameItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE )
   };
 
   final static TableColumnCore[] tableCompleteItems = {
@@ -86,7 +87,8 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-    new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_COMPLETE)
+    new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+    new TrackerNameItem( TableManager.TABLE_MYTORRENTS_COMPLETE )
   };
 
   public MyTorrentsSuperView(AzureusCore	_azureus_core) {

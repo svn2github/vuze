@@ -27,7 +27,7 @@ FEATURE: UI   | Table col sort order default option added, thanks to Charnobo! [
 FEATURE: UI   | URL Downloader window now support to set-up referrer and saves last used referrers [Parg, Gudy]
 FEATURE: UI   | New Statistic page about the disk cache (yeah more CPU consuming graphs) [Gudy]
 FEATURE: UI   | Down/Up speed indicators in main view are now double-clickable to open the Stats View [Gudy]
-FEATURE: UI   | Added Path and # Remaining Pieces to Files view [Nolar]
+FEATURE: UI   | Added Path and # Remaining Pieces to Files view, Tracker Name to MyTorrents view [Nolar]
 FEATURE: Plug | webui support for torrent encoding choice [Parg]
 FEATURE: Plug | tracker torrent stats available via xml/http interface [Parg]
 
