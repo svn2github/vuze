@@ -192,6 +192,7 @@ ConfigurationChecker
 	    if ( last_version.length() == 0 ){
 	    	
 	    		// "last version" introduced at same time as the default save dir problem
+	    		// which was the release after 2.2.0.0
 	    	
 	    		// only do this on an already existing configuration. Easiest way to test
 	    		// for this is the "diagnostics.tidy_close" flag
@@ -199,7 +200,19 @@ ConfigurationChecker
 	    	if ( 	COConfigurationManager.doesParameterNonDefaultExist( "diagnostics.tidy_close" ) && 
 	    			!COConfigurationManager.doesParameterNonDefaultExist( "Use default data dir" )){
 	    		
-	    		COConfigurationManager.setParameter( "Use default data dir", 1 );
+	    		COConfigurationManager.setParameter( "Use default data dir", true );
+	    		
+	    		changed	= true;
+	    	}
+	    	
+	    		// also, if we now have a default data dir enabled (either explicitly or by
+	    		// above migration fix), and there's no value defined for the dir, then
+	    		// set it to what it would have been before the default was changed to blank
+	    	
+	    	if ( 	COConfigurationManager.getBooleanParameter( "Use default data dir" ) &&
+	    			!COConfigurationManager.doesParameterNonDefaultExist( "Default save path" )){	
+	    		
+	    		COConfigurationManager.setParameter( "Default save path", SystemProperties.getUserPath()+"downloads" );
 	    		
 	    		changed	= true;
 	    	}
