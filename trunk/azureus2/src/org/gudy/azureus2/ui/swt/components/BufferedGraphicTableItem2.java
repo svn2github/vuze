@@ -91,7 +91,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
       iStyle |= SWT.NO_REDRAW_RESIZE;
     }
     cBlockView = new Canvas(getTable(), iStyle);
-      cBlockView.setBackground(null);
+    cBlockView.setBackground(null);
     cBlockView.addPaintListener(new PaintListener() {
     	public void paintControl(PaintEvent event) {
         if (event.width == 0 || event.height == 0)
@@ -159,6 +159,8 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
     if (bounds == null || image == null || image.isDisposed()) {
       return;
     }
+    // moveAbove reduces the # redraws
+    //cBlockView.moveAbove(null);
     cBlockView.setLocation(bounds.x, bounds.y);
   }
 
@@ -179,8 +181,10 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
     }
     Rectangle canvasBounds = cBlockView.getBounds();
     if (canvasBounds.x != bounds.x || canvasBounds.y != bounds.y) {
+      //cBlockView.moveAbove(null);
       cBlockView.setLocation(bounds.x, bounds.y);
       canvasBounds = cBlockView.getBounds();
+      //debugOut("doPaint(GC): move cBlockView to " + bounds.x + "x" + bounds.y, false);
     }
 
     Table table = getTable();
@@ -219,7 +223,14 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
     Rectangle canvasBounds = cBlockView.getBounds();
     //debugOut("Block:"+canvasBounds+";cell:"+bounds,false);
     if (canvasBounds.x != bounds.x || canvasBounds.y != bounds.y) {
+      //cBlockView.moveAbove(null);
       cBlockView.setLocation(bounds.x, bounds.y);
+      canvasBounds = cBlockView.getBounds();
+      //debugOut("doPaint(clipping): move cBlockView to " + bounds.x + "x" + bounds.y, false);
+    }
+    if (bounds.width != canvasBounds.width ||
+        bounds.height != canvasBounds.height) {
+      cBlockView.setSize(bounds.width, bounds.height);
       canvasBounds = cBlockView.getBounds();
     }
     //debugOut("doPaint()" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
@@ -257,16 +268,11 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
     if (tableBounds.y < table.getHeaderHeight()) {
       tableBounds.y = table.getHeaderHeight();
     }
-    Rectangle rNewCanvas = bounds.intersection(tableBounds);
-    //debugOut("doPaint() rNewCanvas="+rNewCanvas+";canvasBounds="+canvasBounds+";clipping="+clipping, false);
-    if (rNewCanvas.width != canvasBounds.width ||
-        rNewCanvas.height != canvasBounds.height) {
-      cBlockView.setSize(rNewCanvas.width, rNewCanvas.height);
-    }
-    rNewCanvas.x -= canvasBounds.x;
-    rNewCanvas.y -= canvasBounds.y;
-    clipping = clipping.intersection(rNewCanvas);
-    //debugOut("doPaint() rNewCanvas="+rNewCanvas+";clipping="+clipping, false);
+    //debugOut("doPaint() tableBounds="+tableBounds+";canvasBounds="+canvasBounds+";clipping="+clipping, false);
+    tableBounds.x -= canvasBounds.x;
+    tableBounds.y -= canvasBounds.y;
+    clipping = clipping.intersection(tableBounds);
+    //debugOut("doPaint() clipping="+clipping, false);
 
     if (clipping.x + clipping.width <= 0 && clipping.y + clipping.height <= 0) {
       return;
@@ -297,11 +303,15 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
       lastBackColor = getRowBackground(table);
       gc.setBackground(lastBackColor);
       gc.fillRectangle(clipping);
+/*      
       Rectangle imageBounds = image.getBounds();
-      int x = (rNewCanvas.width - imageBounds.width) / 2;
+      Rectangle r = canvasBounds.intersection(tableBounds);
+      int x = (r.width - imageBounds.width) / 2;
       if (x <= 0)
         x = 0;
-      //clipping.x += x;
+      clipping.x += x;
+*/
+      int x = 0;
       gc.setClipping(clipping);
       gc.drawImage(image, x, 0);
     }
@@ -333,6 +343,14 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
     return bounds;
   }
   
+  public Point getSize() {
+    Rectangle bounds = getBounds();
+    if(bounds == null)
+      return new Point(0, 0);
+    return new Point(bounds.width - (marginWidth * 2), 
+                     bounds.height - (marginHeight * 2));
+  }
+
   private Color getRowBackground(Table table) {
     if (table.isSelected(table.indexOf(getTableItem())) && false) {
       if (table.isFocusControl())

@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.components;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
@@ -203,5 +204,13 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
     bounds.x += marginWidth;
     bounds.width -= (marginWidth * 2);
     return bounds;
+  }
+
+  public Point getSize() {
+    Rectangle bounds = getBounds();
+    if(bounds == null)
+      return new Point(0, 0);
+    return new Point(bounds.width - (marginWidth * 2), 
+                     bounds.height - (marginHeight * 2));
   }
 }
