@@ -1476,7 +1476,7 @@ public class StartStopRulesDefaultPlugin
           }
         }
       } else if (bDebugLog) {
-        sExplainFP += "  SeedingTime setting == 0:  Ignored");
+        sExplainFP += "  SeedingTime setting == 0:  Ignored";
       }
 
       bLastMatched = (iFirstPriorityDLMinutes == 0);
@@ -1495,7 +1495,7 @@ public class StartStopRulesDefaultPlugin
           }
         }
       } else if (bDebugLog) {
-        sExplainFP += "  DLTime setting == 0:  Ignored");
+        sExplainFP += "  DLTime setting == 0:  Ignored";
       }
 
       if (iFirstPriorityType == FIRSTPRIORITY_ALL) {
