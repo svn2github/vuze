@@ -22,9 +22,24 @@
 package org.gudy.azureus2.plugins.ui.config;
 
 /**
+ * represents a parameter that is able to enable/disable other parameters.<br>
  * @author Olivier
  *
  */
 public interface EnablerParameter extends Parameter {
+  
+  /**
+   * enables parameter when EnablerParameter is selected.<br>
+   * parameter is disabled is EnablerParameter isn't selected.
+   * @param parameter the Parameter to act on
+   */
+  public void addEnabledOnSelection(Parameter parameter);
+  
+  /**
+   * disables parameter when EnablerParameter is selected.<br>
+   * parameter is enabled is EnablerParameter isn't selected.
+   * @param parameter the Parameter to act on
+   */
+  public void addDisabledOnSelection(Parameter parameter);
 
 }

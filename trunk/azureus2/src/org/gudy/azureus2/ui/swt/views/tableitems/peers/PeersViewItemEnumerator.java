@@ -26,8 +26,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.plugins.ui.tables.PluginPeerItemFactory;
-import org.gudy.azureus2.plugins.ui.tables.impl.PeersTableExtensions;
+import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
+import org.gudy.azureus2.plugins.ui.tables.peers.impl.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
 
 

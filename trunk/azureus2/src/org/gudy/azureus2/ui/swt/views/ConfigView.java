@@ -37,9 +37,9 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.plugins.ui.Parameter;
-import org.gudy.azureus2.plugins.ui.impl.GenericParameter;
-import org.gudy.azureus2.plugins.ui.impl.ParameterRepository;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.impl.GenericParameter;
+import org.gudy.azureus2.plugins.ui.config.impl.ParameterRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -186,9 +186,9 @@ public class ConfigView extends AbstractIView {
 			tempLabel = new Label(tempGroup, SWT.NULL);
 			tempLabel.setText(tempParam.getLabel());
 			
-			if(tempParam instanceof org.gudy.azureus2.plugins.ui.impl.StringParameter)
+			if(tempParam instanceof org.gudy.azureus2.plugins.ui.config.impl.StringParameter)
 			{
-				org.gudy.azureus2.plugins.ui.impl.StringParameter tpar = (org.gudy.azureus2.plugins.ui.impl.StringParameter)(tempParam);
+				org.gudy.azureus2.plugins.ui.config.impl.StringParameter tpar = (org.gudy.azureus2.plugins.ui.config.impl.StringParameter)(tempParam);
 //				String defaultVal = tpar.getDefaultValue();
 				String defaultVal = "test";
 				StringParameter uiParam = new StringParameter(tempGroup, tempParam.getKey(), defaultVal);

@@ -1,8 +1,8 @@
 /*
- * File    : Parameter.java
- * Created : 30 nov. 2003
- * By      : Olivier
- *
+ * File    : GenericParameter.java
+ * Created : Nov 21, 2003
+ * By      : epall
+ * 
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -19,13 +19,38 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.azureus2.plugins.ui.config;
+package org.gudy.azureus2.plugins.ui.config.impl;
+
+import org.gudy.azureus2.plugins.ui.config.Parameter;
 
 /**
- * represents a genric parameter description
- * @author Olivier
+ * @author epall
  *
  */
-public interface Parameter {
+public class GenericParameter implements Parameter
+{
+	private String key;
+	private String label;
+	
+	public GenericParameter(String key, String label)
+	{
+		this.key = key;
+		this.label = label;
+	}
+	/**
+	 * @return Returns the key.
+	 */
+	public String getKey()
+	{
+		return key;
+	}
+
+	/**
+	 * @return Returns the label.
+	 */
+	public String getLabel()
+	{
+		return label;
+	}
 
 }
