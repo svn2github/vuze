@@ -591,6 +591,16 @@ public class MainWindow implements GlobalManagerListener {
         showAboutWindow();
       }
     });
+    
+    MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
+    Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate"); //$NON-NLS-1$
+    help_donate.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        String donationString = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
+        Program.launch(donationString);
+      }
+    });
+    
 
     createDropTarget(mainWindow);
 
@@ -1682,12 +1692,13 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   public void openTorrent(final String fileName) {
-    try {
+       try {
       if (!FileUtil.isTorrentFile(fileName)) //$NON-NLS-1$
         return;
     } catch (Exception e) {
       return;
     }
+      return;
     display.asyncExec(new Runnable() {
       public void run() {
         String savePath = getSavePath(fileName);
