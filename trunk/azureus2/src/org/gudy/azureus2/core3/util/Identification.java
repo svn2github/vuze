@@ -129,32 +129,45 @@ public class Identification {
         return name;
       }
       
-      
-      boolean nine_zeros = true;
-      for (int i=0; i < 9; i++) {
-        if (peerID[i] != (byte)0) { nine_zeros = false; break; }
+      // Shareaza check
+      boolean bShareaza = true;
+      byte[] m_pGUID = peerID;
+      for (int i = 0; i < 16; i++) {
+        if (peerID[i] == (byte)0) {
+          bShareaza = false;
+          break;
+        }
       }
+      if (bShareaza) {
+        for (int i = 16; i < 20; i++) {
+      		if (peerID[i] != (peerID[i % 16] ^ peerID[15 - (i % 16)])) {
+            bShareaza = false;
+      			break;
+      		}
+     		}
+     		return "Shareaza";
+      }
+      
+      int iFirstNonZeroPos = 20;
+      for (int i=0; i < 20; i++) {
+        if (peerID[i] != (byte)0) { iFirstNonZeroPos = i; break; }
+      }
+      
       byte three = (byte)3;
-      if ((nine_zeros)
+      if ((iFirstNonZeroPos == 9)
           && (peerID[9] == three)
           && (peerID[10] == three)
           && (peerID[11] == three)) {
         return "Snark";
       }
       
-      
-      boolean allZero = true;
-      for (int i = 0; i < 12; i++) {
-        if (peerID[i] != (byte)0) { allZero = false; break; }
-      }
-      
-      if ((allZero) && (peerID[12] == (byte)97) && (peerID[13] == (byte)97)) {
+      if ((iFirstNonZeroPos == 12) && (peerID[12] == (byte)97) && (peerID[13] == (byte)97)) {
         return "Experimental 3.2.1b2";
       }
-      if ((allZero) && (peerID[12] == (byte)0) && (peerID[13] == (byte)0)) {
+      if ((iFirstNonZeroPos == 12) && (peerID[12] == (byte)0) && (peerID[13] == (byte)0)) {
         return "Experimental 3.1";
       }
-      if (allZero) return "Generic";
+      if (iFirstNonZeroPos == 20) return "Generic";
       
     }
     catch (Exception e) { Debug.out(e.toString()); }
