@@ -772,7 +772,7 @@ DownloadManagerStateImpl
 	{
 		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 		
-		if ( attributes == null ){
+		if ( attributes == null || !(attributes.get( attribute_name) instanceof byte[] )){
 			
 			return( null );
 		}
