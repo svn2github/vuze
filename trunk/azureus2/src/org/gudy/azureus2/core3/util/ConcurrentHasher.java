@@ -31,6 +31,7 @@ import java.util.*;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 
 public class 
 ConcurrentHasher 
@@ -48,6 +49,20 @@ ConcurrentHasher
 		
 	protected AEMonitor			requests_mon	= new AEMonitor( "ConcurrentHasher:R" );
 
+  private static boolean friendly_hashing;
+  
+  static{
+    friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
+    
+    COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", new ParameterListener() {
+      public void parameterChanged( String  str ) {
+          friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );        
+      }
+    });
+  }
+  
+  
+  
 	
 	public static ConcurrentHasher
 	getSingleton()
@@ -140,7 +155,7 @@ ConcurrentHasher
 												requests_mon.exit();
 											}
 
-											if ( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
+											if ( friendly_hashing ){
 					
 												try{  
 													Thread.sleep( 100 );

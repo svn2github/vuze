@@ -26,6 +26,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
@@ -65,7 +66,9 @@ DMWriterAndCheckerImpl
 	private static int			global_check_queue_block_sem_size;
 	private static AESemaphore	global_check_queue_block_sem;
 	private static int			global_check_queue_block_sem_next_report_size;
-	
+  
+  private static boolean friendly_hashing;
+  
 	static{
 		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
 
@@ -93,8 +96,15 @@ DMWriterAndCheckerImpl
 			global_check_queue_block_sem.releaseForever();
 		}
 		
-		// System.out.println( "global writes = " + write_limit_blocks + ", global checks = " + check_limit_pieces );
+		
+		friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
+    COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", new ParameterListener() {
+      public void parameterChanged( String  str ) {
+          friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );        
+      }
+    });
 	}
+  
 
 	private DiskManagerHelper		disk_manager;
 	
@@ -300,6 +310,17 @@ DMWriterAndCheckerImpl
 	  				
 	  				int	checks_submitted	= 0;
 	  				
+            int delay = 0;  //if friendly hashing is enabled, no need to delay even more here
+
+            if( !friendly_hashing ) {
+              //delay a bit normally anyway, as we don't want to kill the user's system
+              //during the post-completion check (10k of piece = 1ms of sleep)
+              delay = pieceLength /1024 /10;
+              delay = Math.min( delay, 409 );
+              delay = Math.max( delay, 12 );
+            }
+            
+            
 	  				for ( int i=0; i < nbPieces; i++ ){
 	        
 	  					if ( !bOverallContinue ){
@@ -330,15 +351,7 @@ DMWriterAndCheckerImpl
 	  					
 	  					checks_submitted++;
 	  					
-	  						// no hurry here, we don't want to discourage the user
-	  						// from doing this by killing the machine
-	  					
-	  					int	delay = pieceLength/1024;
-	  					
-	  					delay = Math.min( delay, 250 );
-	  					delay = Math.max( delay, 100 );
-	  					
-	  					Thread.sleep(delay);
+	  					if( delay > 0 )  Thread.sleep( delay );
 	  				}
 	  				
 	  				if ( bOverallContinue ){
