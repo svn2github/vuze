@@ -259,7 +259,7 @@ public class BencodedViewer {
 	}
 	public void addMetaData(String fileName, String title) throws FileNotFoundException
 	{
-		BufferedInputStream bis = new BufferedInputStream( new FileInputStream(fileName));
+		BufferedInputStream bis = new BufferedInputStream( new FileInputStream(fileName), 8192);
 		
 		try{
 			Map data = BDecoder.decode(bis);

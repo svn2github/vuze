@@ -114,7 +114,7 @@ IpFilterImpl
 		File filtersFile = FileUtil.getApplicationFile("filters.config");
 		if (filtersFile.exists()) {
 			fin = new FileInputStream(filtersFile);
-			bin = new BufferedInputStream(fin);
+			bin = new BufferedInputStream(fin, 8192);
 			Map map = BDecoder.decode(bin);
 			List list = (List) map.get("ranges");
 			Iterator iter = list.listIterator();

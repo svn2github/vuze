@@ -92,7 +92,7 @@ public class TrackersUtil {
       BufferedInputStream bin = null;
       try {
         fin = new FileInputStream(fTrackers);
-        bin = new BufferedInputStream(fin);
+        bin = new BufferedInputStream(fin, 8192);
         Map map = BDecoder.decode(bin);
         List list = (List) map.get("trackers");
         if(list != null) {

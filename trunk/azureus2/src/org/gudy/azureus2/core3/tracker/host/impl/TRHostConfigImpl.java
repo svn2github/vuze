@@ -71,7 +71,7 @@ TRHostConfigImpl
 		 
 			fin = new FileInputStream(configFile);
 		 
-			bin = new BufferedInputStream(fin);
+			bin = new BufferedInputStream(fin, 8192);
 		 
 			Map map = BDecoder.decode(bin);
 		 
