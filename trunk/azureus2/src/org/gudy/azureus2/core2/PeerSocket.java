@@ -694,9 +694,9 @@ public class PeerSocket extends PeerConnection {
   }
 
   private void have(int pieceNumber) {
-    if (pieceNumber >= available.length) {
-       /* NOLAR: temp debug output */
-       System.out.println("ERROR: pieceNumber="+pieceNumber+" >= length="+available.length);
+    if ((pieceNumber >= available.length) || (pieceNumber < 0)) {
+       logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " gave invalid pieceNumber:" + pieceNumber);
+       closeAll(true);
     }
     else {    
       available[pieceNumber] = true;
