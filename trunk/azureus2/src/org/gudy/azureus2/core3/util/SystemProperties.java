@@ -41,6 +41,18 @@ public class SystemProperties {
       return user_path;
     }
     
+    // Super Override -- no AZ_DIR or xxx_DEFAULT added at all.
+    user_path = System.getProperty("azureus.user.fullpath");
+    if (user_path != null) {
+      if (!user_path.endsWith(SEP))
+        user_path += SEP;
+      File dir = new File( user_path );
+      if (!dir.exists()) {
+        dir.mkdirs();
+      }
+      return user_path;
+    }
+    
     	// override for testing purposes
     
     String 	userhome 		= System.getProperty("azureus.user.home");
