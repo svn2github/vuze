@@ -140,8 +140,7 @@ public class ConfigurationManager {
   }
   
   public void setParameter(String parameter, boolean value) {
-    int intValue = value ? 1 : 0;
-    propertiesMap.put(parameter, new Long(intValue));
+    setParameter(parameter, value ? 1 : 0);
   }
   
   private Long getIntParameterRaw(String parameter) {
