@@ -26,6 +26,7 @@ package org.gudy.azureus2.plugins.utils;
  *
  */
 
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 public interface 
@@ -33,6 +34,10 @@ Utilities
 {
 	public String
 	getAzureusUserDir();
+	
+	public InputStream
+	getImageAsStream(
+		String	image_name );
 	
 	public Semaphore
 	getSemaphore();

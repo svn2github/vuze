@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.utils;
  *
  */
 
+import java.io.InputStream;
 import java.io.File;
 import java.nio.ByteBuffer;
 
@@ -33,6 +34,7 @@ import org.gudy.azureus2.plugins.utils.*;
 
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.ui.common.UIImageRepository;
 
 public class 
 UtilitiesImpl
@@ -49,6 +51,13 @@ UtilitiesImpl
 		}
 		
 		return( res );
+	}
+	
+	public InputStream
+	getImageAsStream(
+		String	image_name )
+	{
+		return( UIImageRepository.getImageAsStream( image_name ));
 	}
 	
 	public Semaphore
