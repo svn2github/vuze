@@ -142,17 +142,48 @@ TrackerWeb
 		
 		Template t = new Template( args );
 
+		int	specific_torrent	= -1;
+		
+		if ( params != null ){
+			
+			String	specific_torrents = (String)params.get( "torrent_info" );
+			
+			
+			if ( specific_torrents != null ){
+				
+				specific_torrent = Integer.parseInt( specific_torrents );
+				
+					// 1 based -> 0 based
+				
+				specific_torrent--;
+			}
+		}
+		
 			// set up the parameters
 		
 		Vector torrent_info = new Vector();
 		
 		TrackerTorrent[]	tracker_torrents = tracker.getTorrents();
 		
-		for (int i=0;i<tracker_torrents.length;i++){
+		int	start;
+		int	end;
+		
+		if ( specific_torrent != -1 ){
 			
-			Hashtable row = new Hashtable();
+			start 	= specific_torrent;
 			
-			torrent_info.add( row );
+			end		= specific_torrent+1;
+		}else{
+			
+			start 	= 0;
+			end		= tracker_torrents.length;
+		}
+		
+		for (int i=start;i<end;i++){
+			
+			Hashtable t_row = new Hashtable();
+			
+			torrent_info.add( t_row );
 			
 			TrackerTorrent	tracker_torrent = tracker_torrents[i];
 			
@@ -200,36 +231,54 @@ TrackerWeb
 				status_str = "Failed";
 			}
 			
-			row.put( "name", torrent_name );
+			t_row.put( "torrent_name", torrent_name );
 			
 			if ( torrent.getSize() > 0 ){
 				
-				row.put( "download_url", "/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str );
+				t_row.put( "torrent_download_url", "/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str );
 
 			}else{
 				
-				row.put( "download_url", "" );
+				t_row.put( "torrent_download_url", "" );
 			}
 			
-			row.put( "status", status_str );
+			t_row.put( "torrent_status", status_str );
 			
-			row.put( "size", (torrent.getSize()<=0?"N/A":DisplayFormatters.formatByteCountToKBEtc( torrent.getSize())));
+			t_row.put( "torrent_size", (torrent.getSize()<=0?"N/A":DisplayFormatters.formatByteCountToKBEtc( torrent.getSize())));
 			
-			row.put( "seeds", "" + seed_count );
+			t_row.put( "torrent_seeds", "" + seed_count );
 			
-			row.put( "peers", "" + non_seed_count );
+			t_row.put( "torrent_peers", "" + non_seed_count );
 
-			row.put( "total_upload", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalUploaded())); 
+			t_row.put( "torrent_total_upload", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalUploaded())); 
 			
-			row.put( "total_download", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalDownloaded())); 
+			t_row.put( "torrent_total_download", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalDownloaded())); 
 			
-			row.put( "upload_speed", DisplayFormatters.formatByteCountToKBEtcPerSec( tracker_torrent.getAverageUploaded())); 
+			t_row.put( "torrent_upload_speed", DisplayFormatters.formatByteCountToKBEtcPerSec( tracker_torrent.getAverageUploaded())); 
 			
-			row.put( "download_speed", DisplayFormatters.formatByteCountToKBEtcPerSec( tracker_torrent.getAverageDownloaded())); 
+			t_row.put( "torrent_download_speed", DisplayFormatters.formatByteCountToKBEtcPerSec( tracker_torrent.getAverageDownloaded())); 
 			
-			row.put( "total_left", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalLeft())); 
+			t_row.put( "torrent_total_left", DisplayFormatters.formatByteCountToKBEtc( tracker_torrent.getTotalLeft())); 
 			
-			row.put( "completed",  "" + tracker_torrent.getCompletedCount()); 
+			t_row.put( "torrent_completed",  "" + tracker_torrent.getCompletedCount());
+			
+			if ( specific_torrent != -1 ){
+				
+				Vector	peer_info = new Vector();
+				
+				for (int j=0;j<peers.length;j++){
+					
+					Hashtable p_row = new Hashtable();
+					
+					peer_info.add( p_row );
+					
+					TrackerPeer	peer = peers[j];
+					
+					p_row.put( "peer_is_seed", peer.isSeed()?"1":"0" );
+				}
+				
+				t_row.put( "peer_info", peer_info );
+			}
 		}
 		
 		t.setParam("torrent_info", torrent_info);

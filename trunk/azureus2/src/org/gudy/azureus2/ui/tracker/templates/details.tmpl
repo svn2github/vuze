@@ -46,28 +46,11 @@
 
 		<tmpl_loop torrent_info>
 
-            <tr>
-              <td>
-              <a href="<tmpl_var torrent_download_url>"><tmpl_var torrent_name></a></td>
-              <td><tmpl_var torrent_status></td>
-              <td><tmpl_var torrent_size></td>
-              <td><b>
-			<tmpl_if torrent_seeds>
-				<font color="#00CC00">
-			<tmpl_else>
-				<font color="#FF0000">
-			</tmpl_if>
-			<tmpl_var torrent_seeds></font></b></td>
-              <td><tmpl_var torrent_peers></td>
-              <td><tmpl_var torrent_total_upload></td>
-              <td><tmpl_var torrent_total_download></td>
-              <td><tmpl_var torrent_upload_speed></td>
-              <td><tmpl_var torrent_download_speed></td>
-              <td><tmpl_var torrent_total_left></td>
-              <td><tmpl_var torrent_completed></td>
-              <td><a href="details.tmpl?torrent_info=<tmpl_var __COUNTER__>">...</a></td>
-            </tr>
-
+			<tmpl_loop peer_info>
+	            <tr>
+	              <td><tmpl_var peer_is_seed></td>
+	            </tr>
+			</tmpl_loop>
 		</tmpl_loop>
         </table>
         </td>
