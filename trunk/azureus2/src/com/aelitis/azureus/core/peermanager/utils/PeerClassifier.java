@@ -23,7 +23,7 @@
 package com.aelitis.azureus.core.peermanager.utils;
 
 /**
- *
+ * Handles peer client identification and banning.
  */
 public class PeerClassifier {
   
@@ -54,7 +54,7 @@ public class PeerClassifier {
    * @return true if allowed, false if banned
    */
   public static boolean isClientTypeAllowed( String client_description ) {
-    //if( client_description.startsWith( "BitComet" ) ) return false;
+    if( client_description.startsWith( "BitComet" ) ) return false;
     return true;
   }
   
