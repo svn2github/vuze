@@ -376,7 +376,9 @@ DisplayFormatters
       return( "" );
     }
     
-    SimpleDateFormat temp = new SimpleDateFormat("MMM dd, HH:mm a");
+    	// 24 hour clock, no point in including AM/PM
+    
+    SimpleDateFormat temp = new SimpleDateFormat("MMM dd, HH:mm");
     
     return( temp.format(new Date(date)));
   }
