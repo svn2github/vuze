@@ -232,7 +232,7 @@ public class PeerSocket extends PeerConnection {
     }
 
     //4. release the read Buffer
-    if (readBuffer != null && !readingLength)
+    if (readBuffer != null)
       ByteBufferPool.getInstance().freeBuffer(readBuffer);
 
     //5. release the write Buffer
