@@ -73,7 +73,8 @@ public class SpeedLimiter {
    */
   public void addUploader(PeerSocket wt) {
     synchronized (uploaders) {
-      uploaders.add(wt);
+      if(!uploaders.contains(wt))
+        uploaders.add(wt);
     }
   }
 
@@ -82,7 +83,8 @@ public class SpeedLimiter {
    */
   public void removeUploader(PeerSocket wt) {
     synchronized (uploaders) {
-      uploaders.remove(wt);
+      while(uploaders.contains(wt))
+        uploaders.remove(wt);
     }
   }
 
