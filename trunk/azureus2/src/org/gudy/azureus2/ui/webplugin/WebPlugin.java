@@ -40,7 +40,7 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 
-import org.gudy.azureus2.pluginsimpl.upnp.UPnPPlugin;
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 public class 
 WebPlugin

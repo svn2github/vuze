@@ -30,7 +30,8 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.BDecoder;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.pluginsimpl.upnp.*;
+
+import com.aelitis.azureus.plugins.upnp.*;
 
 /**
  * @author Olivier

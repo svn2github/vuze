@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
-import org.gudy.azureus2.pluginsimpl.upnp.UPnPPlugin;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.core3.startup.STProgressListener;
@@ -49,6 +48,8 @@ import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
 import org.gudy.azureus2.update.CoreUpdateChecker;
 import org.gudy.azureus2.update.CorePatchChecker;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
+
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 
 /**
