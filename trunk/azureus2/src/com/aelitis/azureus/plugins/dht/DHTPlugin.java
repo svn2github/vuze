@@ -193,7 +193,7 @@ DHTPlugin
 										
 										long[]	rs = r_stats.getStats();
 	
-										log.log( "Router Stats  " +
+										log.log( "Router Stats   " +
 													":no=" + rs[DHTRouterStats.ST_NODES] +
 													",le=" + rs[DHTRouterStats.ST_LEAVES] +
 													",co=" + rs[DHTRouterStats.ST_CONTACTS] +

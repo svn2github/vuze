@@ -60,6 +60,9 @@ PRUDPPacketHandlerImpl
 	private Map			requests = new HashMap();
 	private AEMonitor	requests_mon	= new AEMonitor( "PRUDPPH:req" );
 
+	private int			send_delay		= 0;
+	private int			receive_delay	= 0;
+	
 	protected
 	PRUDPPacketHandlerImpl(
 		int		_port )
@@ -165,6 +168,18 @@ PRUDPPacketHandlerImpl
 					
 					process( packet );
 				
+					if ( receive_delay > 0 ){
+						
+						try{
+						
+							Thread.sleep(receive_delay);
+						
+						}catch( InterruptedException e ){
+						
+							Debug.printStackTrace(e);
+						
+						}
+					}
 				}catch( SocketTimeoutException e ){
 										
 				}catch( Throwable e ){
@@ -455,6 +470,18 @@ PRUDPPacketHandlerImpl
 					
 				stats.packetSent( buffer.length );
 				
+				if ( send_delay > 0 ){
+					
+					try{
+					
+						Thread.sleep( send_delay );
+					
+					}catch( InterruptedException e ){
+					
+						Debug.printStackTrace(e);
+					
+					}
+				}
 					// if the send is ok then the request will be removed from the queue
 					// either when a reply comes back or when it gets timed-out
 				
@@ -510,6 +537,18 @@ PRUDPPacketHandlerImpl
 			
 			stats.packetSent( buffer.length );
 			
+			if ( send_delay > 0 ){
+				
+				try{
+				
+					Thread.sleep(send_delay);
+				
+				}catch( InterruptedException e ){
+				
+					Debug.printStackTrace(e);
+				
+				}
+			}
 		}catch( Throwable e ){
 			
 			LGLogger.log( "PRUDPPacketHandler: send failed", e ); 
@@ -518,6 +557,15 @@ PRUDPPacketHandlerImpl
 		}
 	}
 	
+	public void
+	setDelays(
+		int		_send_delay,
+		int		_receive_delay )
+	{
+		send_delay		= _send_delay;
+		
+		receive_delay	= _receive_delay;
+	}
 	public PRUDPPacketHandlerStats
 	getStats()
 	{

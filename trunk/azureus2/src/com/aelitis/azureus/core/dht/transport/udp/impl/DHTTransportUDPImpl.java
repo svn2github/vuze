@@ -40,7 +40,6 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
-import com.aelitis.azureus.core.dht.transport.util.DHTTransportStatsImpl;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.net.udp.*;
 
@@ -107,6 +106,10 @@ DHTTransportUDPImpl
 		
 		packet_handler = PRUDPPacketHandlerFactory.getHandler( _port, this );		
 
+			// limit send and receive rates 
+		
+		packet_handler.setDelays( 50, 50 );
+		
 		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		
 		InetSocketAddress	address = 

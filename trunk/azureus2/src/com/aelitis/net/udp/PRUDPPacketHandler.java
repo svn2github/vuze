@@ -82,6 +82,11 @@ PRUDPPacketHandler
 	public PRUDPRequestHandler
 	getRequestHandler();
 	
+	public void
+	setDelays(
+		int		send_delay,
+		int		receive_delay );
+	
 	public PRUDPPacketHandlerStats
 	getStats();
 }
