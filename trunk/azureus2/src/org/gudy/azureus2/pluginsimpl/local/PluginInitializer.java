@@ -612,7 +612,7 @@ PluginInitializer
 								directory.getName(),	// key for config values
 								new_props,
 								directory.getAbsolutePath(),
-								plugin_id[0],
+								plugin_id[0]==null?directory.getName():plugin_id[0],
 								plugin_version[0] );
 		      
 		      try{
