@@ -666,6 +666,12 @@ DHTPlugin
 							DHTTransportValue	_value )
 						{
 							// log.log( "Put: wrote " + _value.getString() + " to " + _contact.getString());
+							
+							if ( listener != null ){
+								
+								listener.valueWritten( _contact.getAddress(), _value.getValue());
+							}
+
 						}
 						
 						public void
@@ -729,7 +735,7 @@ DHTPlugin
 							
 							if ( listener != null ){
 								
-								listener.valueFound( value.getOriginator().getAddress(), value.getValue(), (byte)value.getFlags());
+								listener.valueRead( value.getOriginator().getAddress(), value.getValue(), (byte)value.getFlags());
 							}
 						}
 						
@@ -804,6 +810,10 @@ DHTPlugin
 								DHTTransportValue	value )
 							{
 								// log.log( "Remove: wrote " + value.getString() + " to " + contact.getString());
+								if ( listener != null ){
+									
+									listener.valueWritten( contact.getAddress(), value.getValue());
+								}
 							}
 							
 							public void
@@ -818,5 +828,16 @@ DHTPlugin
 								}
 							}			
 						});
+	}
+	
+	public InetSocketAddress
+	getLocalAddress()
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		return( dht.getTransport().getLocalContact().getAddress());
 	}
 }

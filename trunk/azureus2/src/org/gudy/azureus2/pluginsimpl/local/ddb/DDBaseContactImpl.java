@@ -1,5 +1,5 @@
 /*
- * Created on 18-Feb-2005
+ * Created on 22-Feb-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,7 +22,13 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
+import java.net.InetSocketAddress;
+
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 
 /**
  * @author parg
@@ -30,21 +36,42 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
  */
 
 public class 
-DDBKeyImpl
-	implements DistributedDatabaseKey
+DDBaseContactImpl
+	implements DistributedDatabaseContact
 {
-	private Object		key;
+	private InetSocketAddress		address;
 	
-	protected 
-	DDBKeyImpl(
-		Object	_key )
+	protected
+	DDBaseContactImpl(
+		InetSocketAddress		_address )
 	{
-		key		= _key;
+		address	= _address;
 	}
 	
-	public Object
-	getKey()
+	public String
+	getName()
 	{
-		return( key );
+		return( address.toString());
+	}
+	
+	public void
+	write(
+		DistributedDatabaseTransferType		type,
+		DistributedDatabaseKey				key,
+		DistributedDatabaseValue			data )
+	
+		throws DistributedDatabaseException
+	{
+		// TODO:
+	}
+	
+	public DistributedDatabaseValue
+	read(
+		DistributedDatabaseTransferType		type,
+		DistributedDatabaseKey				key )
+	
+		throws DistributedDatabaseException
+	{
+		throw( new DistributedDatabaseException(""));	// TODO:
 	}
 }

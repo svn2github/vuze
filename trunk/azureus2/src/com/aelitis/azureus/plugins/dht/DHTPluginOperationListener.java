@@ -33,10 +33,15 @@ public interface
 DHTPluginOperationListener 
 {
 	public void
-	valueFound(
+	valueRead(
 		InetSocketAddress	originator,
 		byte[]				value,
 		byte				flags );
+	
+	public void
+	valueWritten(
+		InetSocketAddress	target,
+		byte[]				value );
 	
 	public void
 	complete(

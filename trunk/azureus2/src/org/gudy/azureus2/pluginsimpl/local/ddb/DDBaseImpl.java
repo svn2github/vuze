@@ -22,13 +22,16 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
+import java.net.InetSocketAddress;
+
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 
 /**
  * @author parg
@@ -91,13 +94,26 @@ DDBaseImpl
 		return( dht.isEnabled());
 	}
 	
+	protected void
+	throwIfNotAvailable()
+	
+		throws DistributedDatabaseException
+	{
+		if ( !isAvailable()){
+			
+			throw( new DistributedDatabaseException( "DHT not available" ));
+		}
+	}
+	
 	public DistributedDatabaseKey
 	createKey(
 		Object			key )
 	
 		throws DistributedDatabaseException
 	{
-		return( new DDBKeyImpl( key ));
+		throwIfNotAvailable();
+		
+		return( new DDBaseKeyImpl( key ));
 	}
 	
 	public DistributedDatabaseValue
@@ -106,7 +122,9 @@ DDBaseImpl
 	
 		throws DistributedDatabaseException
 	{
-		return( new DDBValueImpl( value ));
+		throwIfNotAvailable();
+		
+		return( new DDBaseValueImpl( new DDBaseContactImpl( dht.getLocalAddress()), value ));
 	}
 	
 	public void
@@ -117,17 +135,25 @@ DDBaseImpl
 	
 		throws DistributedDatabaseException
 	{
+		throwIfNotAvailable();
 		
+		dht.put(	((DDBaseKeyImpl)key).getBytes(),
+					((DDBaseValueImpl)value).getBytes(),
+					(byte)0,
+					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key ));
 	}
 		
 	public void
 	read(
 		DistributedDatabaseListener		listener,
-		DistributedDatabaseKey			key )
+		DistributedDatabaseKey			key,
+		long							timeout )
 	
 		throws DistributedDatabaseException
 	{
+			// TODO: max values?
 		
+		dht.get(	((DDBaseKeyImpl)key).getBytes(), (byte)0, 16, timeout, new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_READ, key ));
 	}
 	
 	public void
@@ -137,7 +163,7 @@ DDBaseImpl
 	
 		throws DistributedDatabaseException
 	{
-		
+		dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key ));
 	}
 	
 	public void
@@ -147,6 +173,111 @@ DDBaseImpl
 	
 		throws DistributedDatabaseException
 	{
+		// TODO:
+	}
 	
+	protected class
+	listenerMapper
+		implements DHTPluginOperationListener
+	{
+		private DistributedDatabaseListener	listener;
+		private int							type;
+		private DistributedDatabaseKey		key;
+		
+		protected
+		listenerMapper(
+			DistributedDatabaseListener	_listener,
+			int							_type,
+			DistributedDatabaseKey		_key )
+		{
+			listener	= _listener;
+			type		= _type;
+			key			= _key;
+		}
+		
+		public void
+		valueRead(
+			InetSocketAddress	originator,
+			byte[]				value,
+			byte				flags )
+		{
+			listener.event( new dbEvent( type, key, originator, value ));
+		}
+		
+		public void
+		valueWritten(
+			InetSocketAddress	target,
+			byte[]				value )
+		{
+			listener.event( new dbEvent( type, key, target, value ));
+		}
+
+		public void
+		complete(
+			boolean	timeout_occurred )
+		{
+			listener.event( 
+				new dbEvent( 
+					timeout_occurred?DistributedDatabaseEvent.ET_OPERATION_TIMEOUT:DistributedDatabaseEvent.ET_OPERATION_COMPLETE,
+					key ));
+		}
+	}
+	
+	protected class
+	dbEvent
+		implements DistributedDatabaseEvent
+	{
+		private int							type;
+		private DistributedDatabaseKey		key;
+		private DistributedDatabaseValue	value;
+		private DDBaseContactImpl			contact;
+		
+		protected 
+		dbEvent(
+			int						_type,
+			DistributedDatabaseKey	_key )
+		{
+			type	= _type;
+			key		= _key;
+		}
+		
+		protected
+		dbEvent(
+			int						_type,
+			DistributedDatabaseKey	_key,
+			InetSocketAddress		_address,
+			byte[]					_value )
+		{
+			type		= _type;
+			key			= _key;
+			
+			contact	= new DDBaseContactImpl( _address );
+			
+			value	= new DDBaseValueImpl( contact, _value ); 
+		}
+		
+		public int
+		getType()
+		{
+			return( type );
+		}
+		
+		public DistributedDatabaseKey
+		getKey()
+		{
+			return( key );
+		}
+		
+		public DistributedDatabaseValue
+		getValue()
+		{
+			return( value );
+		}
+		
+		public DistributedDatabaseContact
+		getContact()
+		{
+			return( contact );
+		}
 	}
 }

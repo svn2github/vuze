@@ -22,7 +22,12 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
-import org.gudy.azureus2.plugins.ddb.*;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
 
 /**
  * @author parg
@@ -30,31 +35,32 @@ import org.gudy.azureus2.plugins.ddb.*;
  */
 
 public class 
-DDBValueImpl 
-	implements DistributedDatabaseValue
+DDBaseKeyImpl
+	implements DistributedDatabaseKey
 {
-	private Object		value;
+	private Object		key;
+	private byte[]		key_bytes;
 	
 	protected 
-	DDBValueImpl(
-		Object	_value )
+	DDBaseKeyImpl(
+		Object	_key )
+	
+		throws DistributedDatabaseException
 	{
-		value		= _value;
+		key		= _key;
+		
+		key_bytes	= DDBaseHelpers.encode( key );
 	}
 	
 	public Object
-	getValue(
-		Class		c )
+	getKey()
 	{
-		return( value );
+		return( key );
 	}
 	
-	
-	public DistributedDatabaseContact
-	getContact()
+	protected byte[]
+	getBytes()
 	{
-		// TODO:
-		
-		return( null );
+		return( key_bytes );
 	}
 }

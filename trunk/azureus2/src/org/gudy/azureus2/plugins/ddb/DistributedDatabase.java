@@ -56,7 +56,8 @@ DistributedDatabase
 	public void
 	read(
 		DistributedDatabaseListener		listener,
-		DistributedDatabaseKey			key )
+		DistributedDatabaseKey			key,
+		long							timeout )
 	
 		throws DistributedDatabaseException;
 	

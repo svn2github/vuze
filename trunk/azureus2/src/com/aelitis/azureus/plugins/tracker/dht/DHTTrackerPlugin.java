@@ -581,14 +581,21 @@ DHTTrackerPlugin
 						new DHTPluginOperationListener()
 						{
 							public void
-							valueFound(
+							valueRead(
 								InetSocketAddress	originator,
 								byte[]				value,
 								byte				flags )
 							{
 								
 							}
-							
+							public void
+							valueWritten(
+								InetSocketAddress	target,
+								byte[]				value )
+							{
+								
+							}
+
 							public void
 							complete(
 								boolean	timeout_occurred )
@@ -640,7 +647,7 @@ DHTTrackerPlugin
 						new DHTPluginOperationListener()
 						{
 							public void
-							valueFound(
+							valueRead(
 								InetSocketAddress	originator,
 								byte[]				value,
 								byte				flags )
@@ -648,6 +655,13 @@ DHTTrackerPlugin
 								
 							}
 							
+							public void
+							valueWritten(
+								InetSocketAddress	target,
+								byte[]				value )
+							{
+							}	
+
 							public void
 							complete(
 								boolean	timeout_occurred )
@@ -707,7 +721,7 @@ DHTTrackerPlugin
 							int		peer_count;
 							
 							public void
-							valueFound(
+							valueRead(
 								InetSocketAddress	originator,
 								byte[]				value,
 								byte				flags )
@@ -735,6 +749,13 @@ DHTTrackerPlugin
 								}
 							}
 							
+							public void
+							valueWritten(
+								InetSocketAddress	target,
+								byte[]				value )
+							{
+							}
+
 							public void
 							complete(
 								boolean	timeout_occurred )

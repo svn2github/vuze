@@ -20,33 +20,70 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ddb;
+package org.gudy.azureus2.pluginsimpl.local.ddb;
+
+import org.gudy.azureus2.plugins.ddb.*;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DistributedDatabaseEvent 
+public class 
+DDBaseValueImpl 
+	implements DistributedDatabaseValue
 {
-	public static final int	ET_VALUE_WRITTEN		= 1;
-	public static final int	ET_VALUE_READ			= 2;
-	public static final int	ET_VALUE_DELETED		= 3;
+	private DDBaseContactImpl	contact;
 	
-	public static final int	ET_OPERATION_COMPLETE	= 4;
-	public static final int	ET_OPERATION_TIMEOUT	= 5;
+	private Object			value;
+	private byte[]			value_bytes;
+	
+	protected 
+	DDBaseValueImpl(
+		DDBaseContactImpl	_contact,
+		Object				_value )
+	
+		throws DistributedDatabaseException
+	{
+		contact		= _contact;
+		value		= _value;
+				
+		value_bytes	= DDBaseHelpers.encode( value );
 
+	}
 	
-	public int
-	getType();
+	protected 
+	DDBaseValueImpl(
+		DDBaseContactImpl	_contact,
+		byte[]				_value_bytes )
+	{
+		contact			= _contact;
+		value_bytes		= _value_bytes;
+	}
 	
-	public DistributedDatabaseKey
-	getKey();
+	public Object
+	getValue(
+		Class		c )
 	
-	public DistributedDatabaseValue
-	getValue();
+		throws DistributedDatabaseException
+	{
+		if ( value == null ){
+			
+			value = DDBaseHelpers.decode( c, value_bytes );
+		}
+		
+		return( value );
+	}
+	
+	protected byte[]
+	getBytes()
+	{
+		return( value_bytes );
+	}
 	
 	public DistributedDatabaseContact
-	getContact();
+	getContact()
+	{		
+		return( contact );
+	}
 }
