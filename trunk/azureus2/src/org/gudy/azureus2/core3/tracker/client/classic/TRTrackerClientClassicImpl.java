@@ -384,55 +384,66 @@ TRTrackerClientClassicImpl
 				long	time_to_wait;
 				String	failure_reason = null;
 				
+				boolean		tracker_ok = false;
+				
 				try{
 					// * In fact we use 2/3 of what tracker is asking us to wait, in order not to be considered as timed-out by it.
 					
 					time_to_wait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
-				   
+									
 			   	}catch( Exception e ){
 			   	
-					failure_reason = new String((byte[]) metaData.get("failure reason"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
+					byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
 					
-					time_to_wait = 120;
+					if ( failure_reason_bytes == null ){
+						
+						System.out.println("Problems with Tracker, will retry in 1 minute");
+												
+						time_to_wait = 60;
+
+						return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, time_to_wait ));
+
+					}else{
+						
+						failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
+
+						time_to_wait = 120;
+					
+						return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, time_to_wait, failure_reason ));
+					}
 			 	}
-	
-				if ( failure_reason != null ){
 					
-					return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, time_to_wait, failure_reason ));
+					//build the list of peers
 					
-				}else{
+				List meta_peers = (List) metaData.get("peers"); //$NON-NLS-1$
+				 
+				TRTrackerResponsePeer[] peers = new TRTrackerResponsePeer[ meta_peers.size()];
+				 
+					//for every peer
+					
+				for (int i = 0; i < peers.length; i++) {
+					 	
+					Map peer = (Map) meta_peers.get(i);
+					   
+					  //build a dictionary object
+					 	         
+					byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
+					   
+					 	//get the peer id
+					   	
+					String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
+					   
+					  	//get the peer ip address
+					   	
+					int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
+					   
+					   	//get the peer port number
+					
+					peers[i] = new TRTrackerResponsePeerImpl( peerId, ip, port );
+				} 
 				
-						//build the list of peers
-						
-					List meta_peers = (List) metaData.get("peers"); //$NON-NLS-1$
-					 
-					TRTrackerResponsePeer[] peers = new TRTrackerResponsePeer[ meta_peers.size()];
-					 
-						//for every peer
-						
-					for (int i = 0; i < peers.length; i++) {
-						 	
-						Map peer = (Map) meta_peers.get(i);
-						   
-						  //build a dictionary object
-						 	         
-						byte[] peerId = (byte[]) peer.get("peer id"); //$NON-NLS-1$ //$NON-NLS-2$
-						   
-						 	//get the peer id
-						   	
-						String ip = new String((byte[]) peer.get("ip"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
-						   
-						  	//get the peer ip address
-						   	
-						int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
-						   
-						   	//get the peer port number
-						
-						peers[i] = new TRTrackerResponsePeerImpl( peerId, ip, port );
-					} 
-					
-					return( new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers ));  
-				}
+				return( new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers ));  
+			
 			}catch( Exception e ){
 				
 				e.printStackTrace();
