@@ -46,8 +46,8 @@ public class ConfigurationChecker {
 
   public static synchronized void checkConfiguration() {
     
-    System.setProperty("sun.net.inetaddr.ttl", "600");
-    System.setProperty("networkaddress.cache.ttl", "600");
+    System.setProperty("sun.net.inetaddr.ttl", "120");
+    System.setProperty("networkaddress.cache.ttl", "120");
     System.setProperty("sun.net.client.defaultConnectTimeout", "120000");
     System.setProperty("sun.net.client.defaultReadTimeout", "60000");
 
