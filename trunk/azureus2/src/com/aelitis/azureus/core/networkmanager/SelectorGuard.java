@@ -49,7 +49,7 @@ public class SelectorGuard {
   private boolean marked = false;
   private int consecutiveZeroSelects = 0;
   private long beforeSelectTime;
-  private long afterSelectTime;
+  private long select_op_time;
   
   private static final boolean DISABLED = false;//System.getProperty("java.version").startsWith("1.5") ? true : false;
   
@@ -90,10 +90,9 @@ public class SelectorGuard {
     if (marked) marked = false;
     else Debug.out("Error: You must run markPreSelectTime() before calling isSelectorOK");
     
-    afterSelectTime = SystemTime.getCurrentTime();
-    long elapsedTime = afterSelectTime - beforeSelectTime;
+    select_op_time = SystemTime.getCurrentTime() - beforeSelectTime;
     
-    if (elapsedTime > _time_threshold) {
+    if( select_op_time > _time_threshold || select_op_time < 0 ) {
       //zero-select, but over the time threshold, so OK
       consecutiveZeroSelects = 0;
       return true;
@@ -169,25 +168,30 @@ public class SelectorGuard {
     HashMap new_keys = new HashMap();
     boolean spin_detected = false;
     
-    for( Iterator i = selected_keys.iterator(); i.hasNext(); ) {
-      Object key = i.next();
-      
-      Integer count = (Integer)conseq_keys.get( key );
-      
-      if( count == null ) {
-        new_keys.put( key, new Integer(1) );
-      }
-      else {
-        int conseq_selects = count.intValue() + 1;
+    if( select_op_time > 30 ) {  //the select op didnt return immediately
+      //must have blocked, no spinning
+    }
+    else {
+      for( Iterator i = selected_keys.iterator(); i.hasNext(); ) {
+        Object key = i.next();
         
-        new_keys.put( key, new Integer( conseq_selects ) );
+        Integer count = (Integer)conseq_keys.get( key );
         
-        if( conseq_selects >= CONSEQ_SELECT_THRESHOLD && conseq_selects % 25 == 0 ) {
-          spin_detected = true;
+        if( count == null ) {
+          new_keys.put( key, new Integer(1) );
+        }
+        else {
+          int conseq_selects = count.intValue() + 1;
+          
+          new_keys.put( key, new Integer( conseq_selects ) );
+          
+          if( conseq_selects >= CONSEQ_SELECT_THRESHOLD && conseq_selects % 25 == 0 ) {
+            spin_detected = true;
+          }
         }
       }
     }
-    
+
     conseq_keys = new_keys;    
     
     return spin_detected;

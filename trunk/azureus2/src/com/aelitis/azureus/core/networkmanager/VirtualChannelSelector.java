@@ -389,7 +389,7 @@ public class VirtualChannelSelector {
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
       
-      if( !selector_guard.isSelectorOK( count, 50 ) ) {
+      if( !selector_guard.isSelectorOK( count, 30 ) ) {
         selector = selector_guard.repairSelector( selector );
       }
       
