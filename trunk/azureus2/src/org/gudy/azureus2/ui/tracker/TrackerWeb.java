@@ -199,7 +199,7 @@ TrackerWeb
 		// if we're using pagenation we need a last page, and NOW!!
 		if(pagenation)
 		{
-			int remainder = tracker_skip % tracker_torrents.length;
+			int remainder = tracker_torrents.length % tracker_skip;
 			tracker_last_page = (tracker_torrents.length-remainder)/tracker_skip;
 			if(remainder >0 )
 			{
