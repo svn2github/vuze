@@ -144,7 +144,7 @@ public class ModePanel extends AbstractWizardPanel {
       }
     });
     tracker.setText(((NewTorrentWizard)wizard).trackerURL);
-    
+    tracker.setEnabled(!((NewTorrentWizard)wizard).localTracker);
     label = new Label(panel,SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
@@ -188,6 +188,7 @@ public class ModePanel extends AbstractWizardPanel {
         ((NewTorrentWizard)wizard).trackerURL = localTrackerUrl;
         btnExternalTracker.setSelection(false);
         btnLocalTracker.setSelection(true);
+        tracker.setEnabled(false);
       }
     });
     
@@ -196,6 +197,7 @@ public class ModePanel extends AbstractWizardPanel {
         ((NewTorrentWizard)wizard).localTracker = false;
         btnLocalTracker.setSelection(false);
         btnExternalTracker.setSelection(true);
+        tracker.setEnabled(true);
       }
     });
   }
