@@ -34,25 +34,33 @@ public class SystemTray extends SysTrayMenuAdapter {
 	int file;
 	
 	int refreshFactor = 0;
+  
+  private static final String[] menuItems = {"show", "closealldownloadbars", null, "exit"};
 
 	public SystemTray(MainWindow main, String fileName) {
 		this.main = main;
 		this.fileName = fileName;
 		URL iconUrl = ClassLoader.getSystemResource("org/gudy/azureus2/ui/icons/azureus.ico"); //$NON-NLS-1$
 		SysTrayMenuIcon icon = new SysTrayMenuIcon(iconUrl);		
-		menu = new SysTrayMenu(icon);		
-		SysTrayMenuItem item = new SysTrayMenuItem(Messages.getString("SystemTray.menu.exit"), "exit"); //$NON-NLS-1$ //$NON-NLS-2$
-		item.addSysTrayMenuListener(this);
-		menu.addItem(item);
-		menu.addSeparator();
-    item = new SysTrayMenuItem(Messages.getString("SystemTray.menu.closealldownloadbars"), "close_all_download_bars"); //$NON-NLS-1$ //$NON-NLS-2$
-    item.addSysTrayMenuListener(this);
-    menu.addItem(item); // org.eclipse.swt.SWTException: Invalid thread access
-		item = new SysTrayMenuItem(Messages.getString("SystemTray.menu.show") + " Azureus", "show"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		item.addSysTrayMenuListener(this);
-		menu.addItem(item);
+		menu = new SysTrayMenu(icon);
+    SysTrayMenuItem item;
+    for (int i = menuItems.length-1; i >= 0; i--) {
+      if (menuItems[i] != null) {
+        item = new SysTrayMenuItem(Messages.getString("SystemTray.menu." + menuItems[i]), menuItems[i]); //$NON-NLS-1$ //$NON-NLS-2$
+        item.addSysTrayMenuListener(this);
+        menu.addItem(item);
+      } else
+        menu.addSeparator();
+    }
 		icon.addSysTrayMenuListener(this);
 	}
+
+  public void updateLanguage() {
+    for (int i = menu.getItemCount()-1; i >= 0; i--) {
+      if(menu.getItemAt(i) != null)
+        menu.getItemAt(i).setLabel(Messages.getString("SystemTray.menu." + menu.getItemAt(i).getActionCommand()));
+    }
+  }
 
 	public void refresh() {
 		refreshFactor++;
@@ -98,7 +106,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 			dispose();
 		} else if (cmd.equals("show")) { //$NON-NLS-1$
 			show();
-    } else if (cmd.equals("close_all_download_bars")) { //$NON-NLS-1$
+    } else if (cmd.equals("closealldownloadbars")) { //$NON-NLS-1$
       main.closeDownloadBars();
     }
 	}

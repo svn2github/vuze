@@ -21,7 +21,7 @@ import org.gudy.azureus2.core.Logger;
  * @author Olivier
  * 
  */
-public class ConsoleView implements IView, ILoggerListener {
+public class ConsoleView extends AbstractIView implements ILoggerListener {
 
   Display display;
   StyledText consoleText;
