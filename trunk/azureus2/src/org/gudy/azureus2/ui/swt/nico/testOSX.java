@@ -5,13 +5,9 @@
 package org.gudy.azureus2.ui.swt.nico;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 
@@ -32,7 +28,7 @@ public class testOSX extends  Object{
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
     mainWindow.setText("Test OSX"); //$NON-NLS-1$
     
-    Listener printer = new Listener() { 
+    /*Listener printer = new Listener() { 
     	public void handleEvent(Event evt) { 
     		System.out.println("-->" + evt.type); 
     	}
@@ -41,11 +37,12 @@ public class testOSX extends  Object{
     mainWindow.addListener(SWT.Dispose,printer);
     mainWindow.addListener(SWT.KeyDown,printer);
     mainWindow.addListener(SWT.KeyUp,printer);
-    
+    */
       
     mainWindow.open();
-    mainWindow.forceActive();
+    //mainWindow.forceActive();
     
+    /*
     mainWindow.addDisposeListener(new DisposeListener() {
     	public void widgetDisposed(DisposeEvent arg0) {
     		System.out.println("NICO disposelistener 002\n");
@@ -59,14 +56,11 @@ public class testOSX extends  Object{
     		System.out.println("NICO disposelistener 003\n");
     	}      
     });
-    
+    */
 
     mainWindow.addShellListener(new ShellAdapter() {
       public void shellClosed(ShellEvent event) {
           dispose();        
-      }
-
-      public void shellIconified(ShellEvent event) {
       }
     });
   }
@@ -79,16 +73,10 @@ public class testOSX extends  Object{
   				display.sleep();
   		}
   		catch (Exception e) {
-  			System.out.println("NICO001\n");
   			e.printStackTrace();
-  			System.out.println("NICO001b\n");
   		}
   	}
-
- 
-  	System.out.println("NICO003\n");
   	display.dispose();
-  	System.out.println("NICO004\n");
   }
   
   public static void main(String args[]) {	
