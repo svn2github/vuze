@@ -25,11 +25,12 @@ CHANGE: Core | Added many new peerid identifications [Nolar]
 CHANGE: Core | First piece priority option now also prioritizes last piece of file [Nolar]
 CHANGE: Core | NAT check functions even when downloads have already been started [Nolar]
 CHANGE: UI   | Reintroduced download completion alerts in Mac OS X (use System Preferences / Sound to set the alert sound of choice) [CrazyAlchemist]
-CHANGE: UI   | Contextual menu items no longer carry images for better compliance with Aqua Human Interface Guidelines [CrazyAlchemist]
+CHANGE: UI   | For Mac OS X, ontextual menu items no longer carry images for better compliance with Aqua Human Interface Guidelines [CrazyAlchemist]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
 BUGFIX: UI   | Corrected save dialog behaviour on Make Torrent Wizard regarding file selection [CrazyAlchemist]
+
 
 
 
