@@ -60,7 +60,7 @@ public class BTUnchoke implements BTProtocolMessage {
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_NORMAL;  }
   
-  public boolean isNoDelay() {  return false;  }
+  public boolean isNoDelay() {  return true;  }
   
   public void destroy() { }
   

@@ -63,7 +63,7 @@ public class BTBitfield implements BTProtocolMessage {
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
   
-  public boolean isNoDelay() {  return false;  }
+  public boolean isNoDelay() {  return true;  }
    
   public void destroy() { }
   
