@@ -140,6 +140,11 @@ TOTorrent
 		  
 		throws TOTorrentException;
 
+	public Map
+	serialiseToMap()
+		  
+		throws TOTorrentException;
+
 	public void
 	print();
 }

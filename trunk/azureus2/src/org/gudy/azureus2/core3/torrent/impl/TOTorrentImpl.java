@@ -134,7 +134,7 @@ TOTorrentImpl
 		return( BEncoder.encode( root ));
 	}		
 
-	protected Map
+	public Map
 	serialiseToMap()
 	
 		throws TOTorrentException
