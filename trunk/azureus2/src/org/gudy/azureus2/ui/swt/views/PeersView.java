@@ -153,10 +153,12 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
         if (tis.length == 0) {
           return;
         }
-        TableItem ti = tis[0];
-        PeerTableItem pti = (PeerTableItem) PeerTableItem.tableItems.get(ti);
-        if (pti != null)
-          pti.setSnubbed(item.getSelection());
+        for(int i = 0 ; i < tis.length ; i++) {
+          TableItem ti = tis[i];
+          PeerTableItem pti = (PeerTableItem) PeerTableItem.tableItems.get(ti);
+          if (pti != null)
+            pti.setSnubbed(item.getSelection());
+        }
       }
     });
     
