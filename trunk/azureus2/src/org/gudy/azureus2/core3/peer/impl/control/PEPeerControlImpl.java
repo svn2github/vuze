@@ -1465,8 +1465,6 @@ PEPeerControlImpl
               
             }else{
               
-            		//TODO: seeding to more-complete peers is not the best way to do things
-            	
               upRate = pc.getPercentDone();
               
               if (pc.isSnubbed()){
