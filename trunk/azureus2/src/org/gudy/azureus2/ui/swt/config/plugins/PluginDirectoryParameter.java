@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.graphics.Image;
-import org.gudy.azureus2.pluginsimpl.ui.config.DirectoryParameter;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.DirectoryParameter;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.core3.internat.MessageText;

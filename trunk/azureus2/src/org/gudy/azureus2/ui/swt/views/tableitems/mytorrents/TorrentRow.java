@@ -20,7 +20,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
-import org.gudy.azureus2.pluginsimpl.ui.tables.mytorrents.MyTorrentsTableExtensions;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.mytorrents.MyTorrentsTableExtensions;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;

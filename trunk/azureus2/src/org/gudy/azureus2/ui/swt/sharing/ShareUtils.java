@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
-import org.gudy.azureus2.pluginsimpl.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 public class 
 ShareUtils 

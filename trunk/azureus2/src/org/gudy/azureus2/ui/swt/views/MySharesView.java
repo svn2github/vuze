@@ -57,7 +57,7 @@ import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
 import org.gudy.azureus2.plugins.sharing.*;
-import org.gudy.azureus2.pluginsimpl.*;
+import org.gudy.azureus2.pluginsimpl.local.*;
 
 public class 
 MySharesView 

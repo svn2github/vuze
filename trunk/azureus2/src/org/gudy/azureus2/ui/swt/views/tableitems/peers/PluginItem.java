@@ -26,7 +26,7 @@ import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.ui.tables.peers.PeerTableItem;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItem;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
-import org.gudy.azureus2.pluginsimpl.peers.*;
+import org.gudy.azureus2.pluginsimpl.local.peers.*;
 
 /**
  * @author Olivier

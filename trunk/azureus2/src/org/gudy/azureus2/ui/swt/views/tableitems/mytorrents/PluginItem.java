@@ -26,7 +26,7 @@ import org.gudy.azureus2.plugins.ui.tables.mytorrents.MyTorrentsTableItem;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItem;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.pluginsimpl.download.PluginDownloadGrabber;
+import org.gudy.azureus2.pluginsimpl.local.download.PluginDownloadGrabber;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 /**

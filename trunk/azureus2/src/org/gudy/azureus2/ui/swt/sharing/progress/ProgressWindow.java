@@ -41,7 +41,7 @@ import org.gudy.azureus2.ui.swt.shells.PopupShell;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import org.gudy.azureus2.plugins.sharing.*;
-import org.gudy.azureus2.pluginsimpl.*;
+import org.gudy.azureus2.pluginsimpl.local.*;
 
 public class 
 ProgressWindow

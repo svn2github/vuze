@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
-import org.gudy.azureus2.pluginsimpl.ui.tables.peers.PeersTableExtensions;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.PeersView;

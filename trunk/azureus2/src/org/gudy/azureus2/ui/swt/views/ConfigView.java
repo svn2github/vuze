@@ -42,15 +42,15 @@ import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-import org.gudy.azureus2.pluginsimpl.ui.config.ParameterRepository;
-import org.gudy.azureus2.pluginsimpl.ui.config.ConfigSectionRepository;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.pluginsimpl.PluginInitializer;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 import org.gudy.azureus2.ui.swt.views.configsections.*;
@@ -511,9 +511,9 @@ public class ConfigView extends AbstractIView {
       //Check for dependencies
       for(int j = 0; j < parameters.length; j++) {
         Parameter parameter = parameters[j];
-        if(parameter instanceof org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter) {
+        if(parameter instanceof org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameter) {
           List parametersToEnable =
-            ((org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter)parameter).getEnabledOnSelectionParameters();
+            ((org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameter)parameter).getEnabledOnSelectionParameters();
           List controlsToEnable = new ArrayList();
           Iterator iter = parametersToEnable.iterator();
           while(iter.hasNext()) {
@@ -526,7 +526,7 @@ public class ConfigView extends AbstractIView {
           }
 
           List parametersToDisable =
-          ((org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter)parameter).getDisabledOnSelectionParameters();
+          ((org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameter)parameter).getDisabledOnSelectionParameters();
           List controlsToDisable = new ArrayList();
           iter = parametersToDisable.iterator();
           while(iter.hasNext()) {

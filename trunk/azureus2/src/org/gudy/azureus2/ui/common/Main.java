@@ -38,7 +38,7 @@ import org.apache.log4j.PatternLayout;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.pluginsimpl.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 /**
  *

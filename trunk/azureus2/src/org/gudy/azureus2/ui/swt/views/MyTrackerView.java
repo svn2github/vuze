@@ -60,8 +60,8 @@ import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
-import org.gudy.azureus2.pluginsimpl.*;
-import org.gudy.azureus2.pluginsimpl.ui.tables.mytracker.*;
+import org.gudy.azureus2.pluginsimpl.local.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.mytracker.*;
 
 public class 
 MyTrackerView 
