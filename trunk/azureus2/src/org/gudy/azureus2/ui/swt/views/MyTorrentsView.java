@@ -85,6 +85,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
@@ -1414,7 +1415,7 @@ public class MyTorrentsView extends AbstractIView
           moveSelectedTorrents(drag_drop_line_start, drag_drop_line_end);
           drag_drop_line_start = -1;
         } else {
-          MainWindow.getWindow().openDroppedTorrents(event);
+          TorrentOpener.openDroppedTorrents(event);
         }
       }
     });
