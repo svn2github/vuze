@@ -29,6 +29,7 @@ BUGFIX: Uncleaned buffers in peer handling code [Nolar]
 BUGFIX: Outgoing message correctness verification [Nolar]
 BUGFIX: Text scroll is now ok in irc view [Gudy]
 BUGFIX: Size is now displayed even when the torrent is stopped [Gudy]
+BUGFIX: Sorting by 'Discarded', 'Overall Down Speed', 'Stat Up' in Details view [Nolar]
 
 
 13.11.03 | Azureus 2.0.4.0
