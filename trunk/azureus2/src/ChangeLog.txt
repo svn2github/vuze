@@ -13,7 +13,7 @@ CHANGE: Added 'comment' field to torrent create [Parg]
 CHANGE: Moving of .torrent to completed dir now optional [Nolar]
 CHANGE: Additional upload speed options [Nolar]
 CHANGE: Cleanup of Configuration tabs [Nolar]
-CHANGE: Rewrite of locale selection code for torrents. Now a torrent's encoding is determined up front. Only one encoding allowed per torrent [Parg]
+CHANGE: Rewrite of locale selection code for torrents. Only one encoding allowed per torrent [Parg]
 
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
