@@ -47,6 +47,8 @@ LGLoggerImpl
 	private static ILoggerListener listener;
 
 	private static List				alert_listeners	= new ArrayList();
+	private static List				alert_history	= new ArrayList();
+	
 	
 	private static boolean			log_to_file		= false;
 	private static String			log_dir			= "";
@@ -157,6 +159,13 @@ LGLoggerImpl
 	{
 		LGLogger.log( "Alert:" + type + ":" + message );
 		
+		alert_history.add( new Object[]{ new Integer(type), message });
+		
+		if ( alert_history.size() > 256 ){
+			
+			alert_history.remove(0);
+		}
+		
 		for (int i=0;i<alert_listeners.size();i++){
 			
 			try{
@@ -176,7 +185,14 @@ LGLoggerImpl
 		Throwable	e )
 	{
 		LGLogger.log( "Alert:" + message, e );
+	
+		alert_history.add( new Object[]{ message, e });
 		
+		if ( alert_history.size() > 256 ){
+			
+			alert_history.remove(0);
+		}
+	
 		for (int i=0;i<alert_listeners.size();i++){
 			
 			try{
@@ -194,6 +210,20 @@ LGLoggerImpl
 		LGAlertListener	l )
 	{
 		alert_listeners.add(l);
+		
+		for (int i=0;i<alert_history.size();i++){
+			
+			Object[]	entry = (Object[])alert_history.get(i);
+			
+			if ( entry[0] instanceof Integer ){
+				
+				l.alertRaised(((Integer)entry[0]).intValue(),(String)entry[1]);
+				
+			}else{
+				
+				l.alertRaised((String)entry[0],(Throwable)entry[1]);
+			}
+		}
 	}
 	
 	public static void
