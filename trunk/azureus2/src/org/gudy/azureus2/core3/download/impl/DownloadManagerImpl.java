@@ -741,11 +741,11 @@ DownloadManagerImpl
   public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data )
   {
     if( state == DownloadManager.STATE_STOPPED ||
-        state == DownloadManager.STATE_ERROR ||
-        state == DownloadManager.STATE_QUEUED ) {
+        state == DownloadManager.STATE_ERROR ) {
       //already in stopped state, just do removals if necessary
       if( remove_data )  deleteDataFiles();
       if( remove_torrent )  deleteTorrentFile();
+      setState( _stateAfterStopping ); 
       return;
     }
     
@@ -837,12 +837,12 @@ DownloadManagerImpl
 						}
 					
 					 }finally{
-								
-					   setState( stateAfterStopping );                
+								  
 					   forceStarted = false;
              
              if( remove_data )  deleteDataFiles();
              if( remove_torrent )  deleteTorrentFile();
+             setState( stateAfterStopping );
              
 					 }
 				  	
