@@ -13,7 +13,7 @@ BUGFIX: Core | File Open dialogs now correctly remember their last path [Nolar]
 BUGFIX: UI   | # Column now on by default again [TuxPaper]
 BUGFIX: UI   | Fix for Context Menu not appearing after setting up columns on Linux [TuxPaper]
 BUGFIX: UI   | IP column now sorts by hex groups [TuxPaper]
-
+BUGFIX: UI   | Fix for .torrent icons with new Azureus.exe [Parg]
 
 
 30.05.04 | Azureus 2.1.0.0
