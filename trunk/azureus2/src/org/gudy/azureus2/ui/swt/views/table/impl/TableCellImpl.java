@@ -247,7 +247,6 @@ public class TableCellImpl
     return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
   }
 
-  // XXX Implement!
   public Graphic getGraphic() {
     if (bufferedTableItem == null || 
         !(bufferedTableItem instanceof BufferedGraphicTableItem))

@@ -125,6 +125,7 @@ public class MainMenu {
         }
       });
       
+/* Not working.. Hide for release
       MenuItem file_new_torrentwindow = new MenuItem(newMenu, SWT.NULL);
       file_new_torrentwindow.setText(MessageText.getString("MainWindow.menu.file.open.torrent") + " (Experimental)");
       file_new_torrentwindow.addListener(SWT.Selection, new Listener() {
@@ -132,6 +133,7 @@ public class MainMenu {
           TorrentOpener.openTorrentWindow();
         }
       });
+*/
   
       MenuItem file_new_torrent_no_default = new MenuItem(newMenu, SWT.NULL);
       Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$

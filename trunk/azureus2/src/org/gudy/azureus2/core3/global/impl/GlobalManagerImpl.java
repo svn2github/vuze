@@ -794,12 +794,6 @@ public class GlobalManagerImpl
 		      Category category = dm.getCategory();
 		      if (category != null && category.getType() == Category.TYPE_USER)
 		        dmMap.put("category", category.getName());
-
-		      // Following 3 aren't needed, but save them so older versions still work
-		      // XXX: Maybe remove them after 2.0.7.x release
-		      dmMap.put("priorityLocked", new Long(0));
-		      dmMap.put("startStopLocked", new Long(0));
-		      dmMap.put("stopped", new Long(1));
           
 		      //save file priorities
           DiskManager disk_manager = dm.getDiskManager();

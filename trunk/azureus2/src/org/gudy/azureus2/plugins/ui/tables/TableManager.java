@@ -90,16 +90,4 @@ public interface TableManager
   public Menu addContextMenu(String tableID, String resourceKey);
   public Menu addContextMenu(String tableID, String resourceKey, String parentKey);
   */
-
-  /**
-   * XXX: Not Implemented Yet
-   * @param sTableID Which table to be notified of
-   * @param listener listener which will recieve the notifications
-   */
-  //public void addTableListener(String sTableID, TableListener listener);
-  /** XXX: Not Implemented Yet 
-   * @param sTableID Which table to remove the listener from
-   * @param listener listener to be removed
-   */
-  //public void removeTableListener(String sTableID, TableListener listener);
 }
