@@ -33,7 +33,7 @@ CHANGE: Remember sorted column and order for all views [TuxPaper]
 CHANGE: Core performance optimizations and major cpu usage reductions [Nolar]
 CHANGE: User prompt when (1) tracker listens fails (2) incoming server port bind fails [Parg]
 CHANGE: Config files/dirs and plugins now stored in OS user dir (Win: C:\Documents and Settings\username\Application Data\Azureus\, OSX: /Users/username/Library/Azureus/, Linux: /home/username/Azureus/) [Nolar]
-CHANGE: Tracker log now includes date as well as time
+CHANGE: Tracker log now includes date as well as time [Parg]
 
 BUGFIX: Once a torrent is complete, and you remove the data, it wil no longer start downloading again when seeding rules are on [TuxPaper]
 BUGFIX: 1st column of MyTorrents no longer has a gap if there's no icon. (Windows Only Bug) [TuxPaper]
@@ -42,7 +42,7 @@ BUGFIX: Fix for minimize/close causing the program to disappear from view under 
 BUGFIX: Fix for icon bar buttons not being flat (Bug #890166) [Gudy]
 BUGFIX: More reliable .config and .torrent file save/load management [Nolar]
 BUGFIX: Better handling of failures when performing "move on complete" [Parg]
-BUGFIX: Handle torrent file names with trailing spaces (from Mac) [Parg]
+BUGFIX: Handle torrent file names with trailing spaces and CR/NL (from Mac) [Parg]
 
 
 02.02.04 | Azureus 2.0.7.0
