@@ -853,12 +853,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
     });
 
-    if (COConfigurationManager.getBooleanParameter("Start Minimized", false))
+    if (COConfigurationManager.getBooleanParameter("Start Minimized", false)) {
       minimizeToTray(null);
-
-    if (COConfigurationManager.getBooleanParameter("Password enabled", false)) {
-      mainWindow.setVisible(false);
-      PasswordWindow.showPasswordWindow(display);
+    }
+    //Only show the password if not started minimized
+    //Correct bug #878227
+    else {
+	    if (COConfigurationManager.getBooleanParameter("Password enabled", false)) {
+	      mainWindow.setVisible(false);
+	      PasswordWindow.showPasswordWindow(display);
+	    }
     }
 
     PluginInitializer.fireEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS );
