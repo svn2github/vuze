@@ -883,9 +883,9 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploads"); //$NON-NLS-1$
-    final String upLabels[] = new String[299];
-    final int upValues[] = new int[299];
-    for (int i = 0; i < 299; i++) {
+    final String upLabels[] = new String[499];
+    final int upValues[] = new int[upLabels.length];
+    for (int i = 0; i < upLabels.length; i++) {
       upLabels[i] = " " + (i + 2); //$NON-NLS-1$
       upValues[i] = i + 2;
     }
@@ -1996,10 +1996,11 @@ public class ConfigView extends AbstractIView {
     itemLogging.setData(gLogging);
 
     // row
+
     label = new Label(gLogging, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.logging.enable"); //$NON-NLS-1$
     BooleanParameter enableLogging = new BooleanParameter(gLogging, "Logging Enable"); //$NON-NLS-1$
-    
+
     Composite cArea = new Composite(gLogging, SWT.NULL);
     layout = new GridLayout();
     layout.marginHeight = 0;
@@ -2009,7 +2010,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     cArea.setLayoutData(gridData);
-    
+
 
     // row
 
