@@ -131,6 +131,8 @@ RPRequestHandler
 						
 						String	name = object._getName();
 						
+						System.out.println( "request: " + name + "/" + method );
+						
 						if ( name.equals( "Download" )){
 							
 							if ( 	method.equals( "start" ) ||
@@ -150,6 +152,12 @@ RPRequestHandler
 							
 							if ( 	method.startsWith( "getURLDownloader")){
 								
+								throw( new RPException( "Access Denied" ));
+							}	
+						}else if ( name.equals( "PluginConfig" )){
+								
+							if ( 	method.startsWith( "setParameter")){
+									
 								throw( new RPException( "Access Denied" ));
 							}
 						}					

@@ -53,7 +53,9 @@ MDConfigModel
 		
 		refresh_period = plugin_config.getPluginIntParameter( "MDConfigModel:refresh_period", 30 );
 		
-		max_upload = pi.getPluginconfig().getIntParameter( PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC );
+		max_upload = pi.getPluginconfig().getIntParameter( 
+				PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC,
+				COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED );
 
 	}
 	
@@ -99,11 +101,11 @@ MDConfigModel
 			throw( new RPException( "Maximum upload speed must be at least " + COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED ));
 		}
 		
-		max_upload = v;
-		
 		PluginConfig	plugin_config = pi.getPluginconfig();
 		
-		plugin_config.setIntParameter( PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC, max_upload );
+		plugin_config.setIntParameter( PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC, v );
+		
+		max_upload = v;
 		
 		try{
 			plugin_config.save();
@@ -111,7 +113,8 @@ MDConfigModel
 		}catch( PluginException e ){
 			
 			throw( new RPException("setMaxUploadSpeed Fails", e ));
-		}		
+		}
+	
 	}
 	
 	protected void

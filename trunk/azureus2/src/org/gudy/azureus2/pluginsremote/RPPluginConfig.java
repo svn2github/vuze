@@ -101,7 +101,9 @@ RPPluginConfig
 		}else if ( method.equals( "setParameter[int]")){
 					
 			delegate.setIntParameter((String)params[0],((Integer)params[1]).intValue());
-					
+			
+			return( null );
+			
 		}else if ( method.equals( "save")){
 			
 			try{ 
@@ -146,7 +148,7 @@ RPPluginConfig
 		String	key, 
 		int		value )
 	  {
-		_dispatcher.dispatch( new RPRequest( this, "setParameter[int]", new Object[]{key,new Integer(value)} ));
+		_dispatcher.dispatch( new RPRequest( this, "setParameter[int]", new Object[]{key,new Integer(value)} )).getResponse();
 	  }
 	  
 	  public String getStringParameter(String key)

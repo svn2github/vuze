@@ -71,9 +71,9 @@ public class PluginConfigImpl
 	  	String	key, 
 		int		value )
 	{
-		if ( key != CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC ){
+		if ( !key.equals( CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC )){
 			
-			throw( new RuntimeException("Invalid code int parameter"));
+			throw( new RuntimeException("Invalid code int parameter (" + key + ")"));
 		}
 		
 		config.setParameter( key, value );

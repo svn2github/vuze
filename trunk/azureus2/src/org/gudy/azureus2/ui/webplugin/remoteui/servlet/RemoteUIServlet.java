@@ -116,6 +116,7 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$13.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$14.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$15.class",
+		"ui/webplugin/remoteui/applet/view/VWConfigView$2.class",
 		
 		"ui/webplugin/util/WUJarReader.class",
 		
@@ -128,6 +129,8 @@ RemoteUIServlet
 		"core3/util/Semaphore.class",
 		"core3/torrentdownloader/TorrentDownloaderException.class",
 		"core3/torrent/TOTorrentException.class",
+		"core3/util/SystemTime.class",
+		"core3/util/SystemTime$1.class",
 		
 		"pluginsremote/RPRequestDispatcher.class",
 		"pluginsremote/RPException.class",
@@ -188,6 +191,9 @@ RemoteUIServlet
 		"plugins/ipfilter/IPFilterException.class",
 		"plugins/ipfilter/IPRange.class",
 		"plugins/ipfilter/IPBlocked.class",
+		"plugins/Plugin.class",
+		"plugins/PluginManager.class",
+		
 
 	};
 	
