@@ -145,6 +145,18 @@ public class ConfigurationChecker {
       changed = true;
     }
     
+    int iSeedingMin = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_SeedingMinutes");
+    if (iSeedingMin < 90 && iSeedingMin != 0) {
+      COConfigurationManager.setParameter("StartStopManager_iFirstPriority_SeedingMinutes", 90);
+      changed = true;
+    }
+
+    int iDLMin = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_DLMinutes");
+    if (iDLMin < 60*3 && iDLMin != 0) {
+      COConfigurationManager.setParameter("StartStopManager_iFirstPriority_DLMinutes", 60*3);
+      changed = true;
+    }
+
     String uniqueId = COConfigurationManager.getStringParameter("ID",null);
     if(uniqueId == null || uniqueId.length() != 20) {
       uniqueId = generatePeerId();      

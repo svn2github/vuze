@@ -361,10 +361,6 @@ StartStopRulesDefaultPlugin
     for (int i = 0; i < dlDataArray.length; i++) {
       downloadData dl_data = dlDataArray[i];
       
-      if (dl_data.isFirstPriority()) {
-        totalFirstPriority++;
-      }
-
       int qr = (recalcQR) ? dl_data.recalcQR() : dl_data.getQR();
 
       Download download = dl_data.getDownloadObject();
@@ -387,6 +383,8 @@ StartStopRulesDefaultPlugin
           bActivelyDownloading = true;
           activeDLCount++;
         }
+      } else if (state == Download.ST_SEEDING && dl_data.isFirstPriority()) {
+        totalFirstPriority++;
       }
       // since it's based on time, store in dl_data.
       // we check ActivelyDownloding later and want to use the same value
@@ -540,10 +538,14 @@ StartStopRulesDefaultPlugin
         } else if (state == Download.ST_READY ||
                    state == Download.ST_DOWNLOADING ||
                    state == Download.ST_WAITING) {
-                    
+
+          boolean bIsActiveDownload = (state == Download.ST_DOWNLOADING) &&
+                                      (download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
+                                      (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000);
           // Stop torrent if over limit
           if ((maxDownloads != 0) &&
-              (numWaitingOrDLing >= maxDownloads - iExtraFPs)) {
+              (numWaitingOrDLing >= maxDownloads - iExtraFPs) &&
+              (bIsActiveDownload || state != Download.ST_DOWNLOADING)) {
             try {
               if (bDebugLog)
                 log.log(LoggerChannel.LT_INFORMATION, "   stopAndQueue() > maxDownloads");
@@ -560,9 +562,7 @@ StartStopRulesDefaultPlugin
             } catch (Exception ignore) {/*ignore*/}
             
             state = download.getState();
-          } else if ((state == Download.ST_DOWNLOADING) &&
-                     (download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
-                     (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000)) {
+          } else if (bIsActiveDownload) {
             numWaitingOrDLing++;
           }
         }
@@ -965,36 +965,6 @@ StartStopRulesDefaultPlugin
 
       int newQR = 0;
 
-      // Never do anything with rank type of none
-      if (iRankType == RANK_NONE) {
-        // everythink ok!
-        setQR(newQR);
-        return newQR;
-      }
-
-      if (iRankType == RANK_TIMED) {
-        int state = dl.getState();
-        if (state == Download.ST_STOPPING ||
-            state == Download.ST_STOPPED ||
-            state == Download.ST_ERROR) {
-          setQR(QR_NOTQUEUED);
-          return QR_NOTQUEUED;
-        } else if (state == Download.ST_SEEDING) {
-          // force sort to top
-          int iMsElapsed = (int)(System.currentTimeMillis() - startedSeedingOn);
-          if (iMsElapsed >= minTimeAlive)
-            setQR(1);
-          else
-            setQR(QR_TIMED_QUEUED_ENDS_AT + 1 + (iMsElapsed/1000));
-          return getQR();
-        } else {
-          if (getQR() <= 0)
-            setQR(QR_TIMED_QUEUED_ENDS_AT - dl.getPosition());
-          return getQR();
-        }
-      }
-
-
       // First Priority Calculations
       if (isFirstPriority()) {
         newQR += QR_FIRST_PRIORITY_STARTS_AT;
@@ -1036,6 +1006,42 @@ StartStopRulesDefaultPlugin
       }
 
       
+      // Never do anything with rank type of none
+      if (iRankType == RANK_NONE) {
+        // everythink ok!
+        setQR(newQR);
+        return newQR;
+      }
+
+      if (iRankType == RANK_TIMED) {
+        int state = dl.getState();
+        if (state == Download.ST_STOPPING ||
+            state == Download.ST_STOPPED ||
+            state == Download.ST_ERROR) {
+          setQR(QR_NOTQUEUED);
+          return QR_NOTQUEUED;
+        } else if (state == Download.ST_SEEDING) {
+          if (newQR >= QR_FIRST_PRIORITY_STARTS_AT) {
+            setQR(newQR);
+            return newQR;
+          }
+
+          // force sort to top
+          int iMsElapsed = (int)(System.currentTimeMillis() - startedSeedingOn);
+          if (iMsElapsed >= minTimeAlive)
+            setQR(1);
+          else
+            setQR(QR_TIMED_QUEUED_ENDS_AT + 1 + (iMsElapsed/1000));
+          return getQR();
+        } else {
+          if (getQR() <= 0)
+            setQR(QR_TIMED_QUEUED_ENDS_AT - dl.getPosition());
+          return getQR();
+        }
+      }
+
+
+
       /** 
        * Add to QR based on Rank Type
        */
@@ -1355,10 +1361,10 @@ StartStopRulesDefaultPlugin
       String sHours = MessageText.getString("ConfigView.text.hours");
       seedTimeLabels[0] = MessageText.getString("ConfigView.text.ignore");
       seedTimeValues[0] = 0;
-      seedTimeLabels[1] = "90 " + sMinutes;
+      seedTimeLabels[1] = "<= 90 " + sMinutes;
       seedTimeValues[1] = 90;
       for (int i = 2; i < seedTimeValues.length; i++) {
-        seedTimeLabels[i] = i + " " + sHours ;
+        seedTimeLabels[i] = "<= " + i + " " + sHours ;
         seedTimeValues[i] = i * 60;
       }
       new IntListParameter(cFirstPriorityArea, "StartStopManager_iFirstPriority_SeedingMinutes", 
@@ -1372,11 +1378,9 @@ StartStopRulesDefaultPlugin
       int dlTimeValues[] = new int[15];
       dlTimeLabels[0] = MessageText.getString("ConfigView.text.ignore");
       dlTimeValues[0] = 0;
-      dlTimeLabels[1] = "90 " + MessageText.getString("ConfigView.text.minutes");
-      dlTimeValues[1] = 90;
-      for (int i = 2; i < dlTimeValues.length; i++) {
-        dlTimeLabels[i] = i + " " + sHours ;
-        dlTimeValues[i] = i * 60;
+      for (int i = 1; i < dlTimeValues.length; i++) {
+        dlTimeLabels[i] = "<= " + (i + 2) + " " + sHours ;
+        dlTimeValues[i] = (i + 2) * 60;
       }
       new IntListParameter(cFirstPriorityArea, "StartStopManager_iFirstPriority_DLMinutes", 
                            dlTimeLabels, dlTimeValues);
@@ -1767,10 +1771,10 @@ StartStopRulesDefaultPlugin
                                  (long)(System.currentTimeMillis() - 
                                         dlData.getStartedSeedingOn())) / 1000;
             sText += TimeFormater.format(timeLeft);
-          } else {
+          } else if (qr > 0) {
             sText += MessageText.getString("StartStopRules.waiting");
           }
-        } else {
+        } else if (qr > 0) {
           sText += String.valueOf(qr);
         }
         tableItem.setText(sText);
