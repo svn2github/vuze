@@ -36,10 +36,14 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.pluginsimpl.local.ui.SWT.GraphicSWTImpl;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
@@ -67,6 +71,7 @@ public class TableCellImpl
   private ArrayList disposeListeners;
   private TableColumnCore tableColumn;
   private boolean valid;
+  private int refreshErrLoopCount;
   
   public TableCellImpl(TableRowCore tableRow, TableColumnCore tableColumn) {
     this(tableRow, tableColumn, false);
@@ -82,6 +87,7 @@ public class TableCellImpl
     this.tableColumn = tableColumn;
     this.tableRow = tableRow;
     valid = false;
+    refreshErrLoopCount = 0;
     int position = tableColumn.getPosition();
     position = (position >= 0 && bSkipFirstColumn) ? position + 1 : position;
     if (tableColumn.getType() != TableColumnCore.TYPE_GRAPHIC) {
@@ -225,7 +231,26 @@ public class TableCellImpl
     return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(img);
   }
 
-  public Image getGraphic() {
+  public boolean setGraphic(Graphic img) {
+    if (bufferedTableItem == null || 
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+      return false;
+    if (!(img instanceof GraphicSWT))
+      return false;
+    Image imgSWT = ((GraphicSWT)img).getImage();
+    return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
+  }
+
+  // XXX Implement!
+  public Graphic getGraphic() {
+    if (bufferedTableItem == null || 
+        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+      return null;
+    Image img = ((BufferedGraphicTableItem)bufferedTableItem).getGraphic();
+    return new GraphicSWTImpl(img);
+  }
+
+  public Image getGraphicSWT() {
     if (bufferedTableItem == null || 
         !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return null;
@@ -290,20 +315,31 @@ public class TableCellImpl
   }
 
   public void refresh() {
-    if (bufferedTableItem == null)
+    if (bufferedTableItem == null || refreshErrLoopCount > 2)
       return;
+    int iErrCount = tableColumn.getConsecutiveErrCount();
+    if (iErrCount > 10)
+      return;
+
     try {
       if (bufferedTableItem.isShown()) {
         tableColumn.invokeCellRefreshListeners(this);
-        if (refreshListeners == null)
-          return;
-        for (int i = 0; i < refreshListeners.size(); i++)
-          ((TableCellRefreshListener)(refreshListeners.get(i))).refresh(this);
+        if (refreshListeners != null)
+          for (int i = 0; i < refreshListeners.size(); i++)
+            ((TableCellRefreshListener)(refreshListeners.get(i))).refresh(this);
 
-        valid = true;
+        setValid(true);
       }
+      refreshErrLoopCount = 0;
+      if (iErrCount > 0)
+        tableColumn.setConsecutiveErrCount(0);
     } catch (Throwable e) {
+      refreshErrLoopCount++;
+      tableColumn.setConsecutiveErrCount(++iErrCount);
       pluginError(e);
+      if (refreshErrLoopCount > 2)
+        LGLogger.log(LGLogger.ERROR, 
+                     "TableCell will not be refreshed anymore this session.");
     }
   }
 
@@ -311,6 +347,7 @@ public class TableCellImpl
   public void dispose() {
     if (disposeListeners != null) {
       try {
+        tableColumn.invokeCellDisposeListeners(this);
         for (Iterator iter = disposeListeners.iterator(); iter.hasNext();) {
           TableCellDisposeListener listener = (TableCellDisposeListener)iter.next();
           listener.dispose(this);

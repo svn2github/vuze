@@ -94,4 +94,7 @@ public interface TableCellCore
   public TableRowCore getTableRowCore();
   
   public Point getSize();
+  
+  public boolean setGraphic(Image img);
+  public Image getGraphicSWT();
 }
