@@ -80,7 +80,7 @@ public class TRTrackerScraperResponseImpl
   }
   
   protected void setStatus(int iNewStatus, String sNewStatus) {
-    if (last_status != status)
+    if (last_status != status && iNewStatus != status)
       last_status = status;
     if (iNewStatus == TRTrackerScraperResponse.ST_ONLINE) {
       status = (isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
