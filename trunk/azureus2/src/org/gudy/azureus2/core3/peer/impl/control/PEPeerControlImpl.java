@@ -641,6 +641,7 @@ PEPeerControlImpl
 		  		} 
 		 	}
 		};
+    t.setDaemon(true);
     t.start(); //start the thread
   }
 
