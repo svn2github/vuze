@@ -64,6 +64,10 @@ public class GlobalManager extends Component {
         synchronized (managers) {
           int nbStarted = 0;
           int nbDownloading = 0;
+          if (loopFactor % saveResumeLoopCount == 0) {
+             saveDownloads();
+          }
+                                  
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager manager = (DownloadManager) managers.get(i);
             if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {

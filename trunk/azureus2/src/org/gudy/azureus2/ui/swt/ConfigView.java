@@ -190,6 +190,53 @@ public class ConfigView extends AbstractIView {
     gridData.widthHint = 100;
     new StringParameter(gGlobal, "priorityExtensions","").setLayoutData(gridData); //$NON-NLS-1$       
 
+    Group gDownloads = new Group(gConfig,SWT.NULL);
+    Messages.setLanguageText(gDownloads, "ConfigView.section.downloadManagement"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gDownloads.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    gDownloads.setLayout(layout);
+    
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.stopRatio"); //$NON-NLS-1$
+    final String stopRatioLabels[] = new String[11];
+    final int stopRatioValues[] = new int[11];
+    stopRatioLabels[0] = MessageText.getString("ConfigView.text.neverStop");
+    stopRatioValues[0] = 0;
+    for (int i = 1; i < 11; i++) {
+      stopRatioLabels[i] = i + ":" + 1; //$NON-NLS-1$
+      stopRatioValues[i] = i;
+    }
+    new IntListParameter(gDownloads, "Stop Ratio", 0, stopRatioLabels, stopRatioValues);
+    
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$
+    final String stopRatioPeersLabels[] = new String[6];
+    final int stopRatioPeersValues[] = new int[6];
+    stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStop");
+    stopRatioPeersValues[0] = 0;
+    String peers = MessageText.getString("ConfigView.text.peers");
+    for (int i = 1; i < 6; i++) {
+      stopRatioPeersLabels[i] =  i + " " + peers; //$NON-NLS-1$
+      stopRatioPeersValues[i] = i;
+    }
+    new IntListParameter(gDownloads, "Stop Peers Ratio", 0, stopRatioPeersLabels, stopRatioPeersValues);
+        
+        
+    label = new Label(gDownloads, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.startRatioPeers"); //$NON-NLS-1$
+    final String startRatioPeersLabels[] = new String[11];
+    final int startRatioPeersValues[] = new int[11];
+    startRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStart");
+    startRatioPeersValues[0] = 0;
+    for (int i = 1; i < 11; i++) {
+      startRatioPeersLabels[i] = (i+5) + " " + peers; //$NON-NLS-1$
+      startRatioPeersValues[i] = i+5;
+    }
+    new IntListParameter(gDownloads, "Start Peers Ratio", 0, startRatioPeersLabels, startRatioPeersValues);
+    
+    
     Group gTransfer = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gTransfer, "ConfigView.section.transfer"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
