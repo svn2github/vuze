@@ -61,7 +61,11 @@ TorrentImpl
 	public String
 	getName()
 	{
-		return( decode( torrent.getName()));
+		String	name = decode( torrent.getName());
+		
+		name = FileUtil.convertOSSpecificChars( name );
+
+		return( name );
 	}
 	
 	public URL
@@ -159,7 +163,11 @@ TorrentImpl
 			
 			for (int j=0;j<comps.length;j++){
 				
-				name += (j==0?"":File.separator)+decode(comps[j]);
+				String	comp = decode(comps[j]);
+			
+				comp = FileUtil.convertOSSpecificChars( comp );
+				
+				name += (j==0?"":File.separator)+comp;
 			}
 			
 			res[i] = new TorrentFileImpl(name, tf.getLength());
