@@ -240,12 +240,10 @@ TRNonBlockingServer
 		            
 		        			if( read_result == 0 ) {  //read processing is complete
 		        				
-		        				read_selector.cancel( sc );
+		        				read_selector.pauseSelects( sc );
 		        				
 		        			}else if ( read_result < 0 ) {  //a read error occured
-		        				
-		        				read_selector.cancel( sc );
-		        				
+
 		        				removeAndCloseConnection( processor );
 		        			}
 	              		}catch( Throwable e ){
@@ -265,8 +263,6 @@ TRNonBlockingServer
 						Object 					attachment, 
 						Throwable 				msg ) 
 	        		{
-	        			read_selector.cancel( sc );
-	        			
 	        			removeAndCloseConnection( processor );
 	        		}	
 				};
@@ -296,13 +292,11 @@ TRNonBlockingServer
 	            			write_selector.resumeSelects( sc );  //resume for more writing
 	            			
 	            		}else if( write_result == 0 ) {  //write processing is complete
-	            			
-                    write_selector.cancel( sc );
+
 	            			removeAndCloseConnection( processor );
 	
 	            		}else if( write_result < 0 ) {  //a write error occured
-	            			
-                    write_selector.cancel( sc );
+
 	            			removeAndCloseConnection( processor );
 	            		}
             		}catch( Throwable e ){
@@ -338,6 +332,9 @@ TRNonBlockingServer
         	this_mon.enter();
         	
         	if ( processors.remove( processor )){
+            
+            read_selector.cancel( processor.getSocketChannel() );
+            write_selector.cancel( processor.getSocketChannel() );
         	
         		connections_to_close.add( processor );
         	
@@ -389,12 +386,15 @@ TRNonBlockingServer
         		TRNonBlockingServerProcessor	processor = (TRNonBlockingServerProcessor)processors.get(i);
         		
         		if ( now - processor.getStartTime() > PROCESSING_GET_LIMIT ){
-        			
-               		connections_to_close.add( processor );
+              
+              read_selector.cancel( processor.getSocketChannel() );
+              write_selector.cancel( processor.getSocketChannel() );
+              
+              connections_to_close.add( processor );
                 	
-               		connections_to_close_sem.release();
+              connections_to_close_sem.release();
                		
-               		total_timeouts++;
+              total_timeouts++;
                		
         		}else{
         			
