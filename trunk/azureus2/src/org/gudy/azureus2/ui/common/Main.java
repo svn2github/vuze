@@ -101,8 +101,6 @@ public class Main {
     initRootLogger();
     CommandLine commands = parseCommands(args, true);
 
-    System.setProperty( "sun.net.client.defaultConnectTimeout", "120000");
-    System.setProperty( "sun.net.client.defaultReadTimeout", "60000" );
     start = new StartServer();
       
     if ((start == null) || (start.getState()==StartServer.STATE_FAULTY)) {
