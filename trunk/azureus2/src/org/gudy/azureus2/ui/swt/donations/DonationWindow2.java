@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 /**
  * @author Olivier
@@ -57,11 +58,13 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  */
 public class DonationWindow2 {
 
+  
+  
   private Display display;
   private Shell shell;
   private Button ok;
   
-  private String headerText,mainText,footerText;
+  private String mainText,footerText;
   int timeToWait;
   OverallStats stats;
   
@@ -76,6 +79,8 @@ public class DonationWindow2 {
   
   private static final String donationUrl = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR";
   private static final String donationUrlShort = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&currency_code=EUR";
+  
+  private static final int DONATIONS_ASK_AFTER = 168;
   
   public DonationWindow2(Display display) {
       this.display = display;   
@@ -376,4 +381,52 @@ public class DonationWindow2 {
     COConfigurationManager.setParameter("donations.lastVersion",Constants.AZUREUS_VERSION);
     COConfigurationManager.save();
   }
+  
+  public synchronized static void checkForDonationPopup() {
+    //Check if user has already donated first
+    boolean alreadyDonated = COConfigurationManager.getBooleanParameter("donations.donated",false);
+    if(alreadyDonated)
+      return;
+    
+    //Check for last asked version
+    String lastVersionAsked = COConfigurationManager.getStringParameter("donations.lastVersion","");
+         
+    long upTime = StatsFactory.getStats().getUpTime();
+    int hours = (int) (upTime / (60*60)); //secs * mins
+    
+    //Ask every DONATIONS_ASK_AFTER hours.
+    int nextAsk = (COConfigurationManager.getIntParameter("donations.nextAskTime",0) + 1) * DONATIONS_ASK_AFTER;
+    
+    //if donations.nextAskTime == -1 , then no more ask for same version
+    if(nextAsk == 0) {
+     if(lastVersionAsked.equals(Constants.AZUREUS_VERSION)) {
+      return; 
+     }
+     else {
+      //Set the re-ask so that we ask in the next %DONATIONS_ASK_AFTER hours
+       COConfigurationManager.setParameter("donations.nextAskTime",hours / DONATIONS_ASK_AFTER);
+       COConfigurationManager.save();
+
+       return;
+     }
+    }
+    
+    //If we're still under the ask time, return
+    if(hours < nextAsk)
+     return;
+    
+    //Here we've got to ask !!!
+    COConfigurationManager.setParameter("donations.nextAskTime",hours / DONATIONS_ASK_AFTER);
+    COConfigurationManager.save();
+
+    final Display display = SWTThread.getInstance().getDisplay();
+    
+    if(display != null && !display.isDisposed()) {
+     display.asyncExec( new Runnable() {
+      public void run() {
+         new DonationWindow2(display).show();    
+      }
+     });
+    }          
+   }
 }

@@ -66,7 +66,6 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.startup.STProgressListener;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
@@ -99,8 +98,6 @@ import org.gudy.azureus2.ui.swt.sharing.progress.*;
  */
 public class MainWindow implements GlobalManagerListener, ParameterListener, IconBarEnabler, STProgressListener, Runnable {
 
-  public static final String VERSION = Constants.AZUREUS_VERSION;
-  private static final int DONATIONS_ASK_AFTER = 168;
   private static final int RECOMMENDED_SWT_VERSION = 3044; // M8 (M7 = 3038)
 
   private static MainWindow window;
@@ -691,7 +688,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     globalManager.startChecker();
     
     	// check file associations   
-    checkForDonationPopup();
+    DonationWindow2.checkForDonationPopup();
   }
 
   private void startFolderWatcher() {
@@ -908,7 +905,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
          created.getState() == DownloadManager.STATE_SEEDING )
       return;
     
-    checkForDonationPopup();
+    DonationWindow2.checkForDonationPopup();
       
 	if (display != null && !display.isDisposed()){
 	
@@ -1350,51 +1347,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
   
   
-  private synchronized void checkForDonationPopup() {
-   //Check if user has already donated first
-   boolean alreadyDonated = COConfigurationManager.getBooleanParameter("donations.donated",false);
-   if(alreadyDonated)
-     return;
-   
-   //Check for last asked version
-   String lastVersionAsked = COConfigurationManager.getStringParameter("donations.lastVersion","");
-        
-   long upTime = StatsFactory.getStats().getUpTime();
-   int hours = (int) (upTime / (60*60)); //secs * mins
-   
-   //Ask every DONATIONS_ASK_AFTER hours.
-   int nextAsk = (COConfigurationManager.getIntParameter("donations.nextAskTime",0) + 1) * DONATIONS_ASK_AFTER;
-   
-   //if donations.nextAskTime == -1 , then no more ask for same version
-   if(nextAsk == 0) {
-    if(lastVersionAsked.equals(VERSION)) {
-     return; 
-    }
-    else {
-     //Set the re-ask so that we ask in the next %DONATIONS_ASK_AFTER hours
-      COConfigurationManager.setParameter("donations.nextAskTime",hours / DONATIONS_ASK_AFTER);
-      COConfigurationManager.save();
 
-      return;
-    }
-   }
-   
-   //If we're still under the ask time, return
-   if(hours < nextAsk)
-    return;
-   
-   //Here we've got to ask !!!
-   COConfigurationManager.setParameter("donations.nextAskTime",hours / DONATIONS_ASK_AFTER);
-   COConfigurationManager.save();
-
-   if(display != null && !display.isDisposed()) {
-    display.asyncExec( new Runnable() {
-			public void run() {
-        new DonationWindow2(display).show();    
-			}
-    });
-   }   	     
-  }
   
   public void showConfig() {
     if (config == null)
@@ -1405,19 +1358,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   
 
   
-  public void reportCurrentTask(String task) {}
-  
-  public void reportPercent(int percent) {
-    if(percent > 100) {
-      if(display == null || display.isDisposed())
-        return;
-      display.asyncExec(new Runnable() {
-        public void run() {
-          openMainWindow();
-        }
-      });
-    }
-  }
+
   
   public void showConsole() {
     if (console == null)
@@ -1445,12 +1386,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         ((TabFolder)folder).update();
       }
     }
-    /*
-    if (trayIcon != null) {
-      trayIcon.updateLanguage();
-      trayIcon.refresh();
-    }
-    */
+
     if (tray != null)
       tray.updateLanguage();
   
@@ -1461,5 +1397,26 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   
   public MainMenu getMenu() {
     return mainMenu;
+  }
+  
+  /*
+   * STProgressListener implementation, used for startup.
+   */
+  
+  public void reportCurrentTask(String task) {}
+  
+  /**
+   * A percent > 100 means the end of the startup process
+   */
+  public void reportPercent(int percent) {
+    if(percent > 100) {
+      if(display == null || display.isDisposed())
+        return;
+      display.asyncExec(new Runnable() {
+        public void run() {
+          openMainWindow();
+        }
+      });
+    }
   }
 }

@@ -612,7 +612,7 @@ public class GlobalManagerImpl
         try {
           String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
           if(listener != null && nbDownloads > 0) {
-            listener.reportPercent(100 * nbDownloads / currentDownload);
+            listener.reportPercent(100 * currentDownload / nbDownloads);
           }
           if(listener != null) {
             listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
