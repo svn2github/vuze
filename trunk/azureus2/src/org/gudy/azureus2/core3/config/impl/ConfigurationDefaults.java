@@ -151,6 +151,7 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iFirstPriority_ShareRatio", new Long(500));
     def.put("StartStopManager_iFirstPriority_SeedingMinutes", new Long(0));
     def.put("StartStopManager_iFirstPriority_DLMinutes", new Long(0));
+    def.put("StartStopManager_bAutoStart0Peers", new Long(0));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

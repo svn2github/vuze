@@ -283,6 +283,8 @@ public class ConfigSectionSeedingAutoStarting implements ConfigSectionSWT {
     controlsSetEnabled(controlsNoTimeNone, enable);
       
 
+    new BooleanParameter(gQR, "StartStopManager_bAutoStart0Peers", 
+                         "ConfigView.label.seeding.autoStart0Peers");
 
     return gQR;
   }
