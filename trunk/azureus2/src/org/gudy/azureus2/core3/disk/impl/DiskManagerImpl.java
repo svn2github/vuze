@@ -206,6 +206,7 @@ DiskManagerImpl
 
 		if ( torrent.isSimpleTorrent()){
 			totalLength = torrent_files[0].getLength();
+  		remaining = totalLength;
 			rootPath = "";
 			btFileList.add(new BtFile("", fileName, totalLength));
 		} else {
@@ -224,6 +225,7 @@ DiskManagerImpl
 
 			buildFileLookupTables( torrent_files, btFileList, locale_decoder, separator);
 
+  		remaining = totalLength;
 			if (getState() == FAULTY)
 				return;
 		}
@@ -278,7 +280,6 @@ DiskManagerImpl
 		readThread = new DiskReadThread();
 		readThread.start();
 
-		remaining = totalLength;
 		lastPieceLength = (int) (totalLength - ((long) (nbPieces - 1) * (long)pieceLength));
 
 		//allocate / check every file

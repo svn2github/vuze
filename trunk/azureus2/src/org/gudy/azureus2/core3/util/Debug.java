@@ -40,8 +40,8 @@ public class Debug {
   }
   
   public static void outStackTrace() {
-    // skip the last two, since they'll most likely be main
-    outStackTrace(2);
+    // skip the last, since they'll most likely be main
+    outStackTrace(1);
   }
 
   public static void outStackTrace(int endNumToSkip) {
@@ -50,8 +50,10 @@ public class Debug {
     }
     catch (Exception e) {
       StackTraceElement st[] = e.getStackTrace();
-      for (int i = 1; i < st.length - endNumToSkip; i++)
-        System.out.println(st[i].toString());
+      for (int i = 1; i < st.length - endNumToSkip; i++) {
+        if (st[i].getMethodName() != "outStackTrace")
+          System.out.println(st[i].toString());
+      }
     }
   }
 
