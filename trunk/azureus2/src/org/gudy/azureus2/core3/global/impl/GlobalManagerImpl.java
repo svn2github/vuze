@@ -815,4 +815,35 @@ public class GlobalManagerImpl
 			listeners.removeElement(listener);
 		}
 	}
+
+  /**
+   * @param c the character to be found 
+   * @param lastSelectedIndex the highest selection index; -1 to start from the beginning
+   * @return index of next item with a name beginning with c, -1 else
+   *
+   * @author Rene Leonhardt
+   */
+  public int getNextIndexForCharacter(char c, int lastSelectedIndex) {
+    if(c >= '0' && c <= 'z') {
+      c = Character.toLowerCase(c);
+      if (managers != null) {
+        synchronized (managers) {
+          if(lastSelectedIndex < 0 || lastSelectedIndex >= managers.size())
+            lastSelectedIndex = -1;
+          lastSelectedIndex++;
+          for (int i = lastSelectedIndex; i < managers.size(); i++) {
+            char test = Character.toLowerCase(((DownloadManager) managers.get(i)).getName().charAt(0));
+            if(test == c)
+              return i;
+          }
+          for (int i = 0; i < lastSelectedIndex; i++) {
+            char test = Character.toLowerCase(((DownloadManager) managers.get(i)).getName().charAt(0));
+            if(test == c)
+              return i;
+          }
+        }
+      }
+    }
+    return -1;
+  }
 }

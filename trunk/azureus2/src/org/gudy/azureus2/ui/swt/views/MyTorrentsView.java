@@ -1091,6 +1091,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           // DEL remove selected Torrents
           if(e.keyCode == 127) {
             removeSelectedTorrentsIfStoppedOrError();
+          } else if(e.keyCode == 0) {
+            // normal character: jump to next item with a name beginning with this character
+            TableItem[] items = table.getSelection();
+            int lastSelectedIndex = items.length == 0 ? -1 : table.indexOf(items[items.length-1]);
+            int nextIndex = globalManager.getNextIndexForCharacter(e.character, lastSelectedIndex);
+            if (nextIndex >= 0)
+              table.setSelection(nextIndex);
           }
         }
       }
