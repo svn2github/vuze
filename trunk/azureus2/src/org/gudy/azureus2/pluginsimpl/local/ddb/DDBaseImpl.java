@@ -595,10 +595,31 @@ DDBaseImpl
 			byte[]				value,
 			byte				flags )
 		{
-			listener.event( new dbEvent( type, key, originator, value ));
-			
 			if ( flags == DHTPlugin.FLAG_MULTI_VALUE ){
+
+				int	pos = 1;
 				
+				while( pos < value.length ){
+					
+					int	len = (	( value[pos++]<<8 ) & 0x0000ff00 )+
+							 	( value[pos++] & 0x000000ff );
+					
+					if ( len > value.length - pos ){
+						
+						Debug.out( "Invalid length: len = " + len + ", remaining = " + (value.length - pos ));
+						
+						break;
+					}
+					
+					byte[]	d = new byte[len];
+					
+					System.arraycopy( value, pos, d, 0, len );
+					
+					listener.event( new dbEvent( type, key, originator, d ));
+					
+					pos += len;
+				}				
+
 				if ( value[0] == 1 ){
 					
 						// continuation exists
@@ -622,6 +643,9 @@ DDBaseImpl
 								}
 							});
 				}
+			}else{
+				
+				listener.event( new dbEvent( type, key, originator, value ));
 			}
 		}
 		
