@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -119,13 +120,16 @@ public class ConfigView extends AbstractIView {
   Label passwordMatch;
 
   public ConfigView() {
+long y = System.currentTimeMillis();
     filter = IpFilter.getInstance();
+System.out.println("ClassInit: " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
+long y = System.currentTimeMillis();
     GridData gridData;
     /*
     /--cConfig-------------------------------------------------------\
@@ -145,89 +149,99 @@ public class ConfigView extends AbstractIView {
     |  [Button]                                                      |
     \----------------------------------------------------------------/
     */
-    cConfig = new Composite(composite, SWT.NONE);
-    GridLayout configLayout = new GridLayout();
-    configLayout.marginHeight = 0;
-    configLayout.marginWidth = 0;
-    cConfig.setLayout(configLayout);
-    gridData = new GridData(GridData.FILL_BOTH);
-    cConfig.setLayoutData(gridData);
+    try {
+      cConfig = new Composite(composite, SWT.NONE);
+      GridLayout configLayout = new GridLayout();
+      configLayout.marginHeight = 0;
+      configLayout.marginWidth = 0;
+      cConfig.setLayout(configLayout);
+      gridData = new GridData(GridData.FILL_BOTH);
+      cConfig.setLayoutData(gridData);
+  
+      SashForm form = new SashForm(cConfig,SWT.HORIZONTAL);
+      gridData = new GridData(GridData.FILL_BOTH);
+      form.setLayoutData(gridData);
+  
+      tree = new Tree(form, SWT.BORDER);
+      tree.setLayout(new FillLayout());
+  
+      Composite cRightSide = new Composite(form, SWT.NULL);
+      configLayout = new GridLayout();
+      configLayout.marginHeight = 3;
+      configLayout.marginWidth = 0;
+      cRightSide.setLayout(configLayout);
+  
+      // Header
+      Composite cHeader = new Composite(cRightSide, SWT.BORDER);
+      configLayout = new GridLayout();
+      configLayout.marginHeight = 3;
+      configLayout.marginWidth = 0;
+      cHeader.setLayout(configLayout);
+      gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
+      cHeader.setLayoutData(gridData);
+  
+      Display d = cRightSide.getDisplay();
+      cHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
+      cHeader.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
+  
+      lHeader = new Label(cHeader, SWT.NULL);
+      lHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
+      lHeader.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
+      FontData[] fontData = lHeader.getFont().getFontData();
+      fontData[0].setStyle(SWT.BOLD);
+      int fontHeight = (int)(fontData[0].getHeight() * 1.2);
+      fontData[0].setHeight(fontHeight);
+      headerFont = new Font(d, fontData);
+      lHeader.setFont(headerFont);
+      gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
+      lHeader.setLayoutData(gridData);
+  
+      // Config Section
+      cConfigSection = new Composite(cRightSide, SWT.NULL);
+      layoutConfigSection = new StackLayout();
+      cConfigSection.setLayout(layoutConfigSection);
+      gridData = new GridData(GridData.FILL_BOTH);
+      cConfigSection.setLayoutData(gridData);
+  
+  
+      form.setWeights(new int[] {20,80});
+  
+      tree.addSelectionListener(new SelectionAdapter() {
+        public void widgetSelected(SelectionEvent e) {
+          Tree tree = (Tree)e.getSource();
+          showSection(tree.getSelection()[0]);
+        }
+      });
+      // Double click = expand/contract branch
+      tree.addListener(SWT.DefaultSelection, new Listener() {
+        public void handleEvent(Event e) {
+            TreeItem item = (TreeItem)e.item;
+            if (item != null)
+              item.setExpanded(!item.getExpanded());
+        }
+      });
+    } catch (Exception e) {
+      LGLogger.log(LGLogger.ERROR, "Error initializing ConfigView");
+      e.printStackTrace();
+    }
 
-    SashForm form = new SashForm(cConfig,SWT.HORIZONTAL);
-    gridData = new GridData(GridData.FILL_BOTH);
-    form.setLayoutData(gridData);
 
-    tree = new Tree(form, SWT.BORDER);
-    tree.setLayout(new FillLayout());
-
-    Composite cRightSide = new Composite(form, SWT.NULL);
-    configLayout = new GridLayout();
-    configLayout.marginHeight = 3;
-    configLayout.marginWidth = 0;
-    cRightSide.setLayout(configLayout);
-
-    // Header
-    Composite cHeader = new Composite(cRightSide, SWT.BORDER);
-    configLayout = new GridLayout();
-    configLayout.marginHeight = 3;
-    configLayout.marginWidth = 0;
-    cHeader.setLayout(configLayout);
-    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
-    cHeader.setLayoutData(gridData);
-
-    Display d = cRightSide.getDisplay();
-    cHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
-    cHeader.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
-
-    lHeader = new Label(cHeader, SWT.NULL);
-    lHeader.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
-    lHeader.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
-    FontData[] fontData = lHeader.getFont().getFontData();
-    fontData[0].setStyle(SWT.BOLD);
-    int fontHeight = (int)(fontData[0].getHeight() * 1.2);
-    fontData[0].setHeight(fontHeight);
-    headerFont = new Font(d, fontData);
-    lHeader.setFont(headerFont);
-    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
-    lHeader.setLayoutData(gridData);
-
-    // Config Section
-    cConfigSection = new Composite(cRightSide, SWT.NULL);
-    layoutConfigSection = new StackLayout();
-    cConfigSection.setLayout(layoutConfigSection);
-    gridData = new GridData(GridData.FILL_BOTH);
-    cConfigSection.setLayoutData(gridData);
-
-
-    form.setWeights(new int[] {20,80});
-
-    tree.addSelectionListener(new SelectionAdapter() {
-      public void widgetSelected(SelectionEvent e) {
-        Tree tree = (Tree)e.getSource();
-        showSection(tree.getSelection()[0]);
+System.out.println("BeforeGroupInits: " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
+    String[] sGroupInitFuncs = { "initGroupFile", "initGroupServer", 
+                                 "initGroupTransfer", "initGroupDisplay", 
+                                 "initGroupIrc", "initGroupFilter",
+                                 "initGroupPlugins", "initStats",
+                                 "initTracker", "initSharing", "initLogging" };
+    for (int i = 0; i < sGroupInitFuncs.length; i++) {
+      try {
+        Method m = this.getClass().getDeclaredMethod(sGroupInitFuncs[i], null);
+        m.invoke(this, null);
+System.out.println(sGroupInitFuncs[i] + ": " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
+      } catch (Exception e) {
+        LGLogger.log(LGLogger.ERROR, "Error initializing ConfigView." + sGroupInitFuncs[i]);
+        e.printStackTrace();
       }
-    });
-    // Double click = expand/contract branch
-    tree.addListener(SWT.DefaultSelection, new Listener() {
-      public void handleEvent(Event e) {
-          TreeItem item = (TreeItem)e.item;
-          if (item != null)
-            item.setExpanded(!item.getExpanded());
-      }
-    });
-
-
-    initGroupFile();
-    initGroupServer();
-    initGroupTransfer();
-    initGroupDisplay();
-    initGroupIrc();
-    initGroupFilter();
-    initGroupPlugins();
-    initStats();
-    initTracker();
-    initSharing();
-    initLogging();
+    }
 
     // Add plugin sections
     pluginSections = ConfigSectionRepository.getInstance().getList();
@@ -277,10 +291,12 @@ public class ConfigView extends AbstractIView {
     }
     initSaveButton();
 
+System.out.println("DonePluginConfigs: " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
     TreeItem[] items = { tree.getItems()[0] };
     tree.setSelection(items);
     // setSelection doesn't trigger a SelectionListener, so..
     showSection(items[0]);
+System.out.println("DoneInitialize: " + (System.currentTimeMillis() - y)); y = System.currentTimeMillis();
   }
 
   private void showSection(TreeItem section) {
