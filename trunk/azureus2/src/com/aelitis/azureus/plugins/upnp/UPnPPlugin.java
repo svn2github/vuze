@@ -126,7 +126,7 @@ UPnPPlugin
 		
 		config.addLabelParameter2( "blank.resource" );
 		
-		alert_success_param = config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", true );
+		alert_success_param = config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", false );
 		
 		alert_other_port_param = config.addBooleanParameter2( "upnp.alertothermappings", "upnp.alertothermappings", true );
 		
