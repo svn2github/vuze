@@ -1,0 +1,40 @@
+<html>
+    <head>
+        <title><TMPL_VAR Global_ServerName> Menu</title>
+    </head>
+    <body bgcolor="#FFFFCC">
+        <table width="100%">
+            <tr>
+                <td style="padding:0"><form method=get action="torrents" target="body">
+                    <input type=submit value=Torrents>
+                </form></td>
+                <TMPL_IF seeds>
+                    <td nowrap><form method=get action="seeds" target="body">
+                        <input type=submit value=Seeds>
+                    </form></td>
+                </TMPL_IF>
+                <td nowrap><form method=get action="log" target="body">
+                    <input type=submit Value="View Log">
+                </form></td>
+                <td><form method=get action="config" target="body">
+                    <input type=submit Value=Config>
+                </form></td>
+                <td width="80%"><form method=post action="torrents" target="body">
+                    <table width="100%" border=1 bgcolor="#FFCCCC">
+                        <tr>
+                            <td width="100%"><input type=text style="width:100%" name=Add_torrent title="Paste Torrent URLs here"></td>
+                            <td><table cellpadding=0><tr>
+                                <td><input type=hidden  name=command value=Add><input type=submit Value=Add></td>
+                                <td><input type=reset value=Clear></td>
+                            </tr></table></td>
+                        </tr>
+                    </table>
+                </form></td>
+                <td nowrap><form method=get action="exit" target="body">
+                    <input type=submit Value="Kill server">
+                    <input type=HIDDEN name='command' value='Exit'>
+                </form></td>
+            </tr>
+        </table>
+    </body>
+</html>

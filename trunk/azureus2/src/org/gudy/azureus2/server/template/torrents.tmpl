@@ -27,7 +27,10 @@
                         <TMPL_ELSE>	
                             <tr bgcolor="#BFD8BC">
                         </TMPL_IF>
-                        <td><input type=submit name=command value="<TMPL_VAR Torrents_Torrent_Command>"></td>
+                        <td>
+                            <input type=submit name=command value="<TMPL_VAR Torrents_Torrent_Command>">
+                            <INPUT type=option name='Torrent_Hash_<TMPL_VAR Torrents_Torrent_Hash>'>
+                        </td>
                         <td>
                             <table>
                                 <tr>
@@ -81,8 +84,8 @@
                         <td align=center nowrap><TMPL_VAR Torrents_Torrent_FileSize></td>
                         <td align=center nowrap><TMPL_VAR Torrents_Torrent_SpeedDown> <b>down</b><br> <TMPL_VAR Torrents_Torrent_SpeedUp> <b>up</b></td>
                         <td align=center nowrap>
-                            <TMPL_VAR Torrents_Torrent_Seeds> (<TMPL_VAR Torrents_Torrent_SizeUp>)<br>
-                            <TMPL_VAR Torrents_Torrent_Peers> (<TMPL_VAR Torrents_Torrent_SizeDown>)
+                            <TMPL_VAR Torrents_Torrent_SeedsConnected>/<TMPL_VAR Torrents_Torrent_Seeds> (<TMPL_VAR Torrents_Torrent_SizeUp>)<br>
+                            <TMPL_VAR Torrents_Torrent_PeersConnected>/<TMPL_VAR Torrents_Torrent_Peers> (<TMPL_VAR Torrents_Torrent_SizeDown>)
                         </td>
                         <td align=center nowrap><TMPL_VAR Torrents_Torrent_ETA></td>
                     </tr>
