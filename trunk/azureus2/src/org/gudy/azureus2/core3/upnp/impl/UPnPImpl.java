@@ -138,6 +138,19 @@ UPnPImpl
 	}
 	
 	public void
+	rootAlive(
+		URL			location )
+
+	{
+		UPnPRootDeviceImpl root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
+			
+		if ( root_device == null ){
+			
+			ssdp.searchNow();
+		}
+	}
+	
+	public void
 	rootLost(
 		InetAddress	local_address,
 		URL			location )

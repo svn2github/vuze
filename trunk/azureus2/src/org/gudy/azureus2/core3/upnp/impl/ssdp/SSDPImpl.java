@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.upnp.*;
 import org.gudy.azureus2.core3.upnp.impl.*;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
  * @author parg
@@ -49,7 +50,9 @@ SSDPImpl
 	
 	protected UPnPImpl		upnp;
 	
-	protected List			mc_bind_addresses	= new ArrayList();
+	protected long			last_explicit_search	= 0;
+	
+	protected List			mc_bind_addresses		= new ArrayList();
 		
 	protected List			listeners	= new ArrayList();
 	
@@ -189,49 +192,28 @@ SSDPImpl
 		}
 	}
 	
+	public void
+	searchNow()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now - last_explicit_search < 10000 ){
+			
+			return;
+		}
+		
+		last_explicit_search	= now;
+		
+		search();
+	}
+	
 	protected void
 	queryLoop()
 	{
 		while(true){
 			
 			try{
-				String	str =
-					"M-SEARCH * HTTP/" + HTTP_VERSION + NL +  
-					"ST: upnp:rootdevice" + NL +
-					"MX: 3" + NL +
-					"MAN: \"ssdp:discover\"" + NL + 
-					"HOST: " + SSDP_GROUP_ADDRESS + ":" + SSDP_GROUP_PORT + NL + NL;
-
-				byte[]	data = str.getBytes();
-				
-				for (int i=0;i<mc_bind_addresses.size();i++){
-					
-					InetSocketAddress	mc_bind_address = (InetSocketAddress)mc_bind_addresses.get(i);
-
-					try{
-						InetSocketAddress group_address = new InetSocketAddress(InetAddress.getByName(SSDP_GROUP_ADDRESS), SSDP_GROUP_PORT);
-						
-						MulticastSocket mc_sock = new MulticastSocket(null);
-
-						mc_sock.setReuseAddress(true);
-						
-						mc_sock.setTimeToLive(4);
-
-						mc_sock.bind( new InetSocketAddress( mc_bind_address.getAddress(), SSDP_CONTROL_PORT ));
-		
-						DatagramPacket packet = new DatagramPacket(data, data.length, group_address);
-						
-						mc_sock.send(packet);
-						
-						mc_sock.close();
-					
-					
-					}catch( Throwable e ){
-					
-						e.printStackTrace();
-					}
-					
-				}
+				search();
 				
 				Thread.sleep( 60000 );
 				
@@ -243,7 +225,46 @@ SSDPImpl
 		}
 	}
 	
+	protected void
+	search()
+	{
+		String	str =
+			"M-SEARCH * HTTP/" + HTTP_VERSION + NL +  
+			"ST: upnp:rootdevice" + NL +
+			"MX: 3" + NL +
+			"MAN: \"ssdp:discover\"" + NL + 
+			"HOST: " + SSDP_GROUP_ADDRESS + ":" + SSDP_GROUP_PORT + NL + NL;
 
+		byte[]	data = str.getBytes();
+		
+		for (int i=0;i<mc_bind_addresses.size();i++){
+			
+			InetSocketAddress	mc_bind_address = (InetSocketAddress)mc_bind_addresses.get(i);
+
+			try{
+				InetSocketAddress group_address = new InetSocketAddress(InetAddress.getByName(SSDP_GROUP_ADDRESS), SSDP_GROUP_PORT);
+				
+				MulticastSocket mc_sock = new MulticastSocket(null);
+
+				mc_sock.setReuseAddress(true);
+				
+				mc_sock.setTimeToLive(4);
+
+				mc_sock.bind( new InetSocketAddress( mc_bind_address.getAddress(), SSDP_CONTROL_PORT ));
+
+				DatagramPacket packet = new DatagramPacket(data, data.length, group_address);
+				
+				mc_sock.send(packet);
+				
+				mc_sock.close();
+			
+			
+			}catch( Throwable e ){
+			
+				e.printStackTrace();
+			}
+		}
+	}
 	
 	protected void
 	handleSocket(
@@ -381,7 +402,9 @@ SSDPImpl
 					
 					if ( nts.indexOf("alive") != -1 ){
 						
-						gotRoot( local_address, location );
+							// alive can be reported on any interface
+						
+						gotAlive( location );
 						
 					}else if ( nts.indexOf( "byebye") != -1 ){
 							
@@ -411,7 +434,16 @@ SSDPImpl
 			((SSDPListener)listeners.get(i)).rootDiscovered( local_address, location );
 		}
 	}
-	
+
+	protected void
+	gotAlive(
+		URL		location )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((SSDPListener)listeners.get(i)).rootAlive( location );
+		}
+	}
 	protected void
 	lostRoot(
 		InetAddress	local_address,

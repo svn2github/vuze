@@ -38,6 +38,10 @@ SSDPListener
 		URL			location );
 	
 	public void
+	rootAlive(
+		URL			location );
+	
+	public void
 	rootLost(
 		InetAddress	local_address,
 		URL			location );

@@ -38,6 +38,9 @@ SSDP
 		throws UPnPException;
 	
 	public void
+	searchNow();
+	
+	public void
 	addListener(
 		SSDPListener	l );
 	
