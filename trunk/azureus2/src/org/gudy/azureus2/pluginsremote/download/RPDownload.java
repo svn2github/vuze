@@ -526,4 +526,32 @@ RPDownload
 		return ("");
 	}
 	
+	public void
+	addListener(
+		DownloadPeerListener	l )
+	{
+		notSupported();
+	}
+	
+	
+	public void
+	removeListener(
+		DownloadPeerListener	l )
+	{
+		notSupported();
+	}
+	
+	public void
+	addPeerListener(
+		DownloadPeerListener	l )
+	{
+		notSupported();
+	}
+	
+	public void
+	removePeerListener(
+		DownloadPeerListener	l )
+	{
+		notSupported();
+	}
 }

@@ -43,7 +43,7 @@ XMLHTTPClient
 		boolean	quick_test = false;
 			
 		try{
-			long	req_id = 0;
+			long	req_id = System.currentTimeMillis();
 			
 			if ( quick_test ){
 				SimpleXMLParserDocument	res = 

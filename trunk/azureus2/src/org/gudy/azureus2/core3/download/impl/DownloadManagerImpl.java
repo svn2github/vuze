@@ -118,6 +118,8 @@ DownloadManagerImpl
 	private static final int LDT_PE_PEER_REMOVED	= 2;
 	private static final int LDT_PE_PIECE_ADDED		= 3;
 	private static final int LDT_PE_PIECE_REMOVED	= 4;
+	private static final int LDT_PE_PM_ADDED		= 5;
+	private static final int LDT_PE_PM_REMOVED		= 6;
 	
 	private ListenerManager	peer_listeners 	= ListenerManager.createAsyncManager(
 			"DMM:PeerListenDispatcher",
@@ -146,6 +148,14 @@ DownloadManagerImpl
 					}else if ( type == LDT_PE_PIECE_REMOVED ){
 						
 						listener.pieceRemoved((PEPiece)value);
+						
+					}else if ( type == LDT_PE_PM_ADDED ){
+						
+						listener.peerManagerAdded((PEPeerManager)value);
+						
+					}else if ( type == LDT_PE_PM_REMOVED ){
+						
+						listener.peerManagerRemoved((PEPeerManager)value);
 					}
 				}
 			});	
@@ -366,6 +376,8 @@ DownloadManagerImpl
 	
 	peerManager = temp;		// delay this so peerManager var not available to other threads until it is started
 	
+	peer_listeners.dispatch( LDT_PE_PM_ADDED, temp );
+
 	tracker_client.update( true );
   }
 
@@ -649,6 +661,8 @@ DownloadManagerImpl
 			  
 			  peerManager.stopAll(); 
 			  
+			  peer_listeners.dispatch( LDT_PE_PM_REMOVED, peerManager );
+
 			  peerManager = null; 
 			  server	  = null;	// clear down ref
 			}      

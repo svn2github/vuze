@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.xml.server;
  *
  */
 
+import java.util.*;
 import java.io.*;
 import java.lang.reflect.*;
 
@@ -86,7 +87,7 @@ XMLRequestProcessor
 	protected void
 	process()
 	{
-		request.print();
+		// request.print();
 			
 		RPRequest	req_obj = (RPRequest)deserialiseObject( request, RPRequest.class, "" );
 		
@@ -95,6 +96,18 @@ XMLRequestProcessor
 			// void methods result in null return
 
 		if ( reply != null ){
+			
+			Map	props = reply.getProperties();
+			
+			Iterator it = props.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				String	name 	= (String)it.next();
+				String	value 	= (String)props.get(name);
+				
+				writeTag( name, value );
+			}
 			
 			try{
 				Object	response = reply.getResponse();
@@ -150,7 +163,7 @@ XMLRequestProcessor
 		Class							cla,
 		String							indent )
 	{
-		System.out.println(indent + "deser:" + cla.getName());
+		// System.out.println(indent + "deser:" + cla.getName());
 		try{
 			Object	obj = cla.newInstance();
 			
@@ -170,7 +183,7 @@ XMLRequestProcessor
 					
 					SimpleXMLParserDocumentNode child = node.getChild( name );
 				
-					System.out.println( indent + "  field:" + field.getName() + " -> " + child );
+					// System.out.println( indent + "  field:" + field.getName() + " -> " + child );
 					
 					if ( child != null ){
 						
@@ -239,7 +252,7 @@ XMLRequestProcessor
 	{
 		Class	cla = obj.getClass();
 		
-		System.out.println(indent + "ser:" + cla.getName());
+		// System.out.println(indent + "ser:" + cla.getName());
 		
 		if ( cla.isArray()){
 			
@@ -283,7 +296,7 @@ XMLRequestProcessor
 						
 						Class	type = field.getType();
 										
-						System.out.println( indent + "  field:" + field.getName() + ", type = " + type );
+						// System.out.println( indent + "  field:" + field.getName() + ", type = " + type );
 						
 						try{
 							writeLine( "<" + name + ">" );

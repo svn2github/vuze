@@ -67,7 +67,7 @@ PeerProtocolManagerImpl
 					{
 							// TODO: create delegates
 						
-						PeerManagerImpl	peer_manager = new PeerManagerImpl(manager);
+						PeerManagerImpl	peer_manager = PeerManagerImpl.getPeerManager( manager);
 						
 						Peer[] peers = handler.handleExtension(
 								peer_manager,

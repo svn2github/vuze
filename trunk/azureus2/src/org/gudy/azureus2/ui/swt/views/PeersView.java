@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -344,6 +345,18 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
  {
  }
   
+	public void
+	peerManagerAdded(
+		PEPeerManager	manager )
+	{
+	}
+	
+	public void
+	peerManagerRemoved(
+		PEPeerManager	manager )
+	{	
+	}
+	
   public void setItem(TableItem item,PEPeer peer) {
     tableItemToObject.put(item,peer);
   }

@@ -43,10 +43,30 @@ PeerManagerImpl
 {
 	protected PEPeerManager	manager;
 	
+	protected static Map	pm_map	= new WeakHashMap();
+	
 	protected Map		foreign_map	= new WeakHashMap();
 	
-
-	public
+	public static PeerManagerImpl
+	getPeerManager(
+		PEPeerManager	_manager )
+	{
+		synchronized( pm_map ){
+			
+			PeerManagerImpl	res = (PeerManagerImpl)pm_map.get( _manager );
+			
+			if ( res == null ){
+				
+				res = new PeerManagerImpl( _manager );
+				
+				pm_map.put( _manager, res );
+			}
+			
+			return( res );
+		}
+	}
+	
+	protected
 	PeerManagerImpl(
 		PEPeerManager	_manager )
 	{

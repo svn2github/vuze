@@ -30,14 +30,18 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.torrent.TorrentImpl;
 
+import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.pluginsimpl.peers.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadListener;
+import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
@@ -50,7 +54,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 
 public class 
 DownloadImpl
-	implements Download, DownloadManagerListener, DownloadManagerTrackerListener
+	implements 	Download, DownloadManagerListener, 
+				DownloadManagerTrackerListener, DownloadManagerPeerListener
 {
 	protected DownloadManager		download_manager;
 	protected DownloadStatsImpl		download_stats;
@@ -63,6 +68,7 @@ DownloadImpl
 	protected List		listeners 			= new ArrayList();
 	protected List		tracker_listeners	= new ArrayList();
 	protected List		removal_listeners 	= new ArrayList();
+	protected List		peer_listeners		= new ArrayList();
 	
 	protected
 	DownloadImpl(
@@ -72,6 +78,8 @@ DownloadImpl
 		download_stats		= new DownloadStatsImpl( download_manager );
 		
 		download_manager.addListener( this );
+		
+		download_manager.addPeerListener( this );
 	}
 	
 	protected DownloadManager
@@ -606,5 +614,78 @@ DownloadImpl
 			
 			removal_listeners.remove(l);
 		}
+	}
+	
+	public void
+	addPeerListener(
+		DownloadPeerListener	l )
+	{
+		peer_listeners.add( l );
+	}
+	
+	
+	public void
+	removePeerListener(
+		DownloadPeerListener	l )
+	{
+		peer_listeners.remove( l );
+	}
+	
+	public void
+	peerManagerAdded(
+		PEPeerManager	manager )
+	{
+		if ( peer_listeners.size() > 0 ){
+			
+			PeerManager pm = PeerManagerImpl.getPeerManager( manager);
+		
+			for (int i=0;i<peer_listeners.size();i++){
+		
+				((DownloadPeerListener)peer_listeners.get(i)).peerManagerAdded( this, pm );
+			}
+		}
+	}
+	
+	public void
+	peerManagerRemoved(
+		PEPeerManager	manager )
+	{
+		if ( peer_listeners.size() > 0 ){
+			
+			PeerManager pm = PeerManagerImpl.getPeerManager( manager);
+		
+			for (int i=0;i<peer_listeners.size();i++){
+		
+				((DownloadPeerListener)peer_listeners.get(i)).peerManagerRemoved( this, pm );
+			}
+		}	
+	}
+	
+	public void
+	peerAdded(
+		PEPeer 	peer )
+	{
+		
+	}
+		
+	public void
+	peerRemoved(
+		PEPeer	peer )
+	{
+		
+	}
+		
+	public void
+	pieceAdded(
+		PEPiece 	piece )
+	{
+		
+	}
+		
+	public void
+	pieceRemoved(
+		PEPiece		piece )
+	{
+		
 	}
 }

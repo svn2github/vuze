@@ -27,11 +27,16 @@ import java.io.Serializable;
  * @author parg
  *
  */
+
+import java.util.*;
+
 public class 
 RPReply 
 	implements Serializable
 {
 	public Object	response;
+	
+	transient protected Map		properties	= new HashMap();
 	
 	public
 	RPReply(
@@ -55,5 +60,19 @@ RPReply
 		}
 		
 		return( response );
+	}
+	
+	public void
+	setProperty(
+		String		name,
+		String		value )
+	{
+		properties.put( name, value );
+	}
+	
+	public Map
+	getProperties()
+	{
+		return( properties );
 	}
 }

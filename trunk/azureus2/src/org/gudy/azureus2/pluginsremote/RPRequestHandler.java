@@ -59,7 +59,7 @@ RPRequestHandler
 	{
 		Long	connection_id 	= new Long( request.getConnectionId());
 
-		replyCache	cached_reply = (replyCache)reply_cache.get(connection_id);
+		replyCache	cached_reply = connection_id.longValue()==0?null:(replyCache)reply_cache.get(connection_id);
 		
 		if ( cached_reply != null ){
 			
@@ -85,13 +85,15 @@ RPRequestHandler
 			RPObject		object 	= request.getObject();
 			String			method	= request.getMethod();
 			
-			if ( method.equals( "getSingleton")){
+			// System.out.println( "object = " + object + ", method = " + method );
+				
+			if ( object == null && method.equals("getSingleton")){
 				
 				RPReply reply = new RPReply( RPPluginInterface.create(plugin_interface));
 				
 				return( reply );
 				
-			}else if ( method.equals( "getDownloads")){
+			}else if ( object == null && method.equals( "getDownloads")){
 					
 					// short cut method for quick access to downloads
 					// used by GTS
@@ -100,7 +102,13 @@ RPRequestHandler
 					
 				RPDownloadManager dm = (RPDownloadManager)pi._process( new RPRequest(null, "getDownloadManager", null )).getResponse();
 				
-				return( dm._process(new RPRequest( null, "getDownloads", null )));
+				RPReply	rep = dm._process(new RPRequest( null, "getDownloads", null ));
+				
+				rep.setProperty( "azureus_name", pi.azureus_name );
+				
+				rep.setProperty( "azureus_version", pi.azureus_version );
+				
+				return( rep );
 			}else{
 					// System.out.println( "Request: con = " + request.getConnectionId() + ", req = " + request.getRequestId());
 				

@@ -323,4 +323,22 @@ Download
 	public void
 	removeDownloadWillBeRemovedListener(
 		DownloadWillBeRemovedListener	l );
+	
+	/**
+	 * Adds a listener to the download that will be informed of 
+	 * @param l
+	 */
+	
+	public void
+	addPeerListener(
+		DownloadPeerListener	l );
+	
+	/**
+	 * Removes listeners added above
+	 * @param l
+	 */
+	
+	public void
+	removePeerListener(
+		DownloadPeerListener	l );
 }

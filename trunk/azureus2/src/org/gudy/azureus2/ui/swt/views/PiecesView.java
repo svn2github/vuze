@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PieceTableItem;
@@ -141,6 +142,18 @@ public class PiecesView extends AbstractIView implements DownloadManagerPeerList
   public void peerRemoved(PEPeer peer) {
   }
   
+	public void
+	peerManagerAdded(
+		PEPeerManager	manager )
+	{
+	}
+	
+	public void
+	peerManagerRemoved(
+		PEPeerManager	manager )
+	{
+	}
+	
   public void setItem(TableItem item, PEPiece piece) {
     tableItemToObject.put(item, piece);
   }
