@@ -59,7 +59,8 @@ TRTrackerClientClassicImpl
   private byte[] peerId;
   private String peer_id = "&peer_id=";
   private String port;
-
+  private String ip_override;
+  
   private PEPeerManager manager;
 
   public final static int componentID = 2;
@@ -364,14 +365,21 @@ TRTrackerClientClassicImpl
 	request.append("&left=").append(manager.getRemaining());
 	if (evt.length() != 0)
 	  request.append("&event=").append(evt);
-	if (evt.equals("stopped"))
+	if (evt.equals("stopped")){
+	
 	  request.append("&num_peers=0");
-	else
+	}else{
+	
 	  request.append("&num_peers=50");
-	String ip = COConfigurationManager.getStringParameter("Override Ip", "");
-	if (ip.length() != 0)
+	}
+	
+	String ip = ip_override==null?COConfigurationManager.getStringParameter("Override Ip", ""):ip_override;
+	
+	if (ip.length() != 0){
+	
 	  request.append("&ip=").append(ip);
-
+	}
+	
 	return request.toString();
   }
 
@@ -452,6 +460,25 @@ TRTrackerClientClassicImpl
 	informURLChange( trackerUrl, true );       	
   }
   
+  public void
+  resetTrackerUrl()
+  {
+	constructTrackerUrlLists();
+  }
+	
+  public void
+  setIPOverride(
+	  String		override )
+  {
+  	ip_override = override;
+  }
+	
+  public void
+  clearIPOverride()
+  {
+  	ip_override = null;
+  }
+		
   private void 
   constructTrackerUrlLists()
   {

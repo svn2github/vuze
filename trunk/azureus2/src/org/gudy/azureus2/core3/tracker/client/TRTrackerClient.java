@@ -45,6 +45,16 @@ TRTrackerClient
 	setTrackerUrl(
 		String		url );
 		
+	public void
+	resetTrackerUrl();
+	
+	public void
+	setIPOverride(
+		String		override );
+	
+	public void
+	clearIPOverride();
+		
 	public byte[]
 	getPeerId();
 	

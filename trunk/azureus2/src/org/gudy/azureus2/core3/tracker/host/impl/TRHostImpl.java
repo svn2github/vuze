@@ -85,6 +85,11 @@ TRHostImpl
 			url += bind_ip;
 		}
 
+			// set the ip override so that we announce ourselves to other peers via the 
+			// real external address, not the local one used to connect to the tracker 
+			
+		tracker_client.setIPOverride( ht.getTorrent().getAnnounceURL().getHost());
+		
 		tracker_client.setTrackerUrl(url + ":" + ht.getPort() + "/announce");	
 		
 		ht.start();
