@@ -186,7 +186,7 @@ public class SystemTraySWT {
         uploadSpeedItem.setText(MessageText.getString("GeneralView.label.maxuploadspeed"));
 
         final Menu uploadSpeedMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
-        createLimitMenuItems("Max Upload Speed KBs", 1024*1024, uploadSpeedMenu); // 1MiB - see MyTorrentsView
+        createLimitMenuItems("Max Upload Speed KBs", uploadSpeedMenu);
         uploadSpeedItem.setMenu(uploadSpeedMenu);
     }
 
@@ -200,37 +200,47 @@ public class SystemTraySWT {
         downloadSpeedItem.setText(MessageText.getString("GeneralView.label.maxdownloadspeed"));
 
         final Menu downloadSpeedMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
-        createLimitMenuItems("Max Download Speed KBs", 1024*1024, downloadSpeedMenu); // 1MiB starting point
+        createLimitMenuItems("Max Download Speed KBs", downloadSpeedMenu);
         downloadSpeedItem.setMenu(downloadSpeedMenu);
     }
 
     /**
      * Creates the submenu items for bandwidth limit
      * @param configKey Configuration key to get initial max bandwidth
-     * @param maxInitialValue
      * @param parent Parent menu to populate the items in
      */
-    private final void createLimitMenuItems(final String configKey, int maxInitialValue, final Menu parent) {
-        final int speedPartitions = 10;
+    private final void createLimitMenuItems(final String configKey, final Menu parent) {
+        final int speedPartitions = 15;
         final MenuItem[] items = new MenuItem[speedPartitions + 1];
 
-        int maxBandwidth = COConfigurationManager.getIntParameter(configKey,0) * 1024;
+        final int maxBandwidth = COConfigurationManager.getIntParameter(configKey,0);
+        final String unitSuffix = COConfigurationManager.getBooleanParameter("config.style.useSIUnits") ? " KiB/s" : "KB/s";
 
-        items[0] = new MenuItem(parent, SWT.CHECK);
+        items[0] = new MenuItem(parent, SWT.RADIO);
         items[0].setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
         items[0].setData("maxkb", new Integer(0));
         items[0].setSelection(maxBandwidth == 0);
         items[0].addListener(SWT.Selection, getLimitMenuItemListener(items, configKey));
 
-        // set default for calculations
-        if(maxBandwidth == 0) maxBandwidth = maxInitialValue;
-        for (int i = 2; i < speedPartitions + 2; i++) {
-            final int bandwidth = maxBandwidth / speedPartitions * (speedPartitions + 2 - i);
-            items[i - 1] = new MenuItem(parent, SWT.CHECK);
-            items[i - 1].setData("maxkb", new Integer(bandwidth));
-            items[i - 1].setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(bandwidth));
-            items[i - 1].setSelection(bandwidth == maxBandwidth);
-            items[i - 1].addListener(SWT.Selection, getLimitMenuItemListener(items, configKey));
+        int delta = 0;
+        for (int i = 0; i < speedPartitions; i++) {
+            final int[] valuePair;
+              if (delta == 0)
+                valuePair = new int[] { maxBandwidth };
+              else
+                valuePair = new int[] { maxBandwidth - delta, maxBandwidth + delta };
+
+              for (int j = 0; j < valuePair.length; j++) {
+                if (valuePair[j] >= 5) {
+                  final MenuItem item = new MenuItem(parent, SWT.RADIO, (j == 0) ? 1 : parent.getItemCount());
+                  item.setText(valuePair[j] + unitSuffix);
+                  item.setData("maxkb", new Integer(valuePair[j]));
+                  item.addListener(SWT.Selection, getLimitMenuItemListener(items, configKey));
+                  item.setSelection(valuePair[j] == maxBandwidth);
+                }
+              }
+
+              delta += (delta >= 10) ? 10 : (delta >= 6) ? 2 : 1;
         }
     }
 
@@ -248,7 +258,8 @@ public class SystemTraySWT {
                     if(items[i] == event.widget)
                     {
                         items[i].setSelection(true);
-                        COConfigurationManager.setParameter(configKey, ((Integer)items[i].getData("maxkb")).intValue() / 1024);
+                        COConfigurationManager.setParameter(configKey, ((Integer)items[i].getData("maxkb")).intValue());
+                        COConfigurationManager.save();
                     }
                     else {
                         items[i].setSelection(false);
