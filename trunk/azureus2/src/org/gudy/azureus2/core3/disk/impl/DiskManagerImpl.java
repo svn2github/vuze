@@ -1036,11 +1036,19 @@ DiskManagerImpl
 	
 		throws IOException
 	{
+		if ( file.endsWith(File.separator)){
+			
+			file = file.substring(0,file.length()-1);
+		}
+		
 		File tempFile = new File(file);
 		
-		if ( !tempFile.mkdirs()){
+		if ( !tempFile.exists()){
 			
-			throw( new IOException( "Directory creation fails for '" + file + "'"));
+			if ( !tempFile.mkdirs()){
+			
+				throw( new IOException( "Directory creation fails for '" + file + "'"));
+			}
 		}
 	}
 
