@@ -62,6 +62,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ui.config"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.helpers"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.systray"/>
+<javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.telnet"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.global.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.tableitems"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.xml.util"/>
@@ -198,14 +199,16 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.protocol.udp"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.SWT"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.update"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.peers.protocol"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.logging"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform"/>
-<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.components.images"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.upnp"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.components.images"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web2.http.request"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.config"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.util.impl"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.update.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.sharing.hoster"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.jce.spec"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote.download"/>

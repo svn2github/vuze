@@ -25,7 +25,6 @@ package org.gudy.azureus2.core3.download.impl;
 import java.util.*;
 import java.io.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -107,6 +106,14 @@ DownloadManagerStateImpl
 				
 			}else{
 				
+					// if original state was created without a download manager, 
+					// bind it to this one
+				
+				if ( res.getDownloadManager() == null && download_manager != null ){
+					
+					res.setDownloadManager( download_manager );
+				}
+				
 				if ( original_torrent != null ){
 						
 					res.mergeTorrentDetails( original_torrent );
@@ -150,9 +157,9 @@ DownloadManagerStateImpl
 		
 		if ( saved_state == null ){
 		
-			saved_state = original_torrent;
+			TorrentUtils.copyToFile( original_torrent, saved_file );
 			
-			TorrentUtils.writeToFile( saved_state, saved_file, true );
+			saved_state = TorrentUtils.readFromFile( saved_file, true );
 		}
 
 		return( getDownloadState( null, original_torrent, saved_state ));
@@ -211,10 +218,15 @@ DownloadManagerStateImpl
 			}
 			
 			if ( saved_state == null ){
+						
+					// we must copy the torrent as we want one independent from the
+					// original (someone might still have references to the original
+					// and do stuff like write it somewhere else which would screw us
+					// up)
 				
-				saved_state = original_torrent;
+				TorrentUtils.copyToFile( original_torrent, saved_file );
 				
-				TorrentUtils.writeToFile( saved_state, saved_file, true );
+				saved_state = TorrentUtils.readFromFile( saved_file, true );
 			}
 		}
 
@@ -244,10 +256,17 @@ DownloadManagerStateImpl
 		}
 	}
 	
-	protected DownloadManager
+	protected DownloadManagerImpl
 	getDownloadManager()
 	{
 		return( download_manager );
+	}
+	
+	protected void
+	setDownloadManager(
+		DownloadManagerImpl		dm )
+	{
+		download_manager	= dm;
 	}
 	
 	protected void

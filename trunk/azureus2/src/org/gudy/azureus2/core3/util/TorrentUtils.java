@@ -209,6 +209,29 @@ TorrentUtils
 	}
 	
 	public static void
+	copyToFile(
+		TOTorrent		torrent,
+		File			file )
+
+		throws TOTorrentException 
+	{
+		try{
+	   		torrent.getMonitor().enter();
+	    	
+	   			// we've got to re-obtain the pieces here in case they've been thrown
+	   			// away to save memory *before* we rename the torrent file!
+	   		
+	   		torrent.getPieces();
+	   			      
+	    	torrent.serialiseToBEncodedFile(file);
+			
+	   	}finally{
+	   		
+	   		torrent.getMonitor().exit();
+	   	}	
+	}
+	
+	public static void
 	delete(
 		TOTorrent 		torrent )
 	
@@ -848,11 +871,19 @@ TorrentUtils
 						 
 				// System.out.println( "recovering pieces for '" + new String(getName()) + "'");
 				
-				TOTorrent	temp = readFromFile( file, false );
+				try{
+			   		getMonitor().enter();
+
+			   		TOTorrent	temp = readFromFile( file, false );
 					
-				res	= temp.getPieces();
+			   		res	= temp.getPieces();
 					
-				delegate.setPieces( res );
+			   		delegate.setPieces( res );
+			   		
+				}finally{
+					
+					getMonitor().exit();
+				}
 			}
 			
 			return( res );

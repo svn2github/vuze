@@ -51,7 +51,12 @@ TOTorrentImpl
 	protected static final String TK_PATH_UTF8			= "path.utf-8";
 	protected static final String TK_COMMENT_UTF8		= "comment.utf-8";
 	
+	protected static final List	TK_ADDITIONAL_OK_ATTRS = 
+		Arrays.asList(new String[]{TK_COMMENT_UTF8});
+	
 	private byte[]							torrent_name;
+	private byte[]							torrent_name_utf8;
+	
 	private byte[]							comment;
 	private URL								announce_url;
 	private TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl();
@@ -99,7 +104,7 @@ TOTorrentImpl
 		
 			torrent_name		= _torrent_name.getBytes( Constants.DEFAULT_ENCODING );
 			
-			setAdditionalByteArrayProperty( TK_NAME_UTF8, torrent_name );
+			torrent_name_utf8	= torrent_name;
 			
 			announce_url		= _announce_url;
 			simple_torrent		= _simple_torrent;
@@ -255,6 +260,11 @@ TOTorrentImpl
 		info.put( TK_PIECES, flat_pieces );
 		
 		info.put( TK_NAME, torrent_name );
+		
+		if ( torrent_name_utf8 != null ){
+			
+			info.put( TK_NAME_UTF8, torrent_name_utf8 );
+		}
 		
 		if ( simple_torrent ){
 		
@@ -732,7 +742,21 @@ TOTorrentImpl
 	public void
 	removeAdditionalProperties()
 	{
-		additional_properties.clear();
+		Map	new_props = new HashMap();
+		
+		Iterator it = additional_properties.keySet().iterator();
+		
+		while( it.hasNext()){
+			
+			String	key = (String)it.next();
+			
+			if ( TK_ADDITIONAL_OK_ATTRS.contains(key)){
+			
+				new_props.put( key, additional_properties.get( key ));
+			}
+		}
+		
+		additional_properties = new_props;
 	}
 
 	protected void
