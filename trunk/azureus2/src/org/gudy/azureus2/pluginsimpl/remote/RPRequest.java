@@ -33,7 +33,7 @@ RPRequest
 {
 	public RPObject	object;
 	public String	method;
-	public Object	params;
+	public Object[]	params;
 	
 	public long		connection_id;
 	public long		request_id;
@@ -49,7 +49,7 @@ RPRequest
 	RPRequest(
 		RPObject			_object,
 		String				_method,
-		Object				_params )
+		Object[]			_params )
 	{
 		object		= _object;
 		method		= _method;
@@ -94,7 +94,7 @@ RPRequest
 		return( method );
 	}
 	
-	public Object
+	public Object[]
 	getParams()
 	{
 		return( params );

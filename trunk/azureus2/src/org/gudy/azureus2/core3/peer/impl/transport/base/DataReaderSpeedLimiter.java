@@ -36,6 +36,17 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 public class 
 DataReaderSpeedLimiter 
 {
+	protected int	bytes_per_second = 5000;
+	protected int	slot_count		 = 20;
+	
+	protected int[]	slots = new int[slot_count];
+	protected int	bytes_per_slot	= bytes_per_second/slot_count;
+	protected int	current_slot;
+	
+	protected int	slot_period_millis	= 1000/slot_count;
+	protected long	last_read_time;
+	
+	
 	protected static DataReaderSpeedLimiter		singleton = new DataReaderSpeedLimiter();
 	
 	public static DataReaderSpeedLimiter
@@ -84,14 +95,35 @@ DataReaderSpeedLimiter
 		
 			throws IOException
 		{
+			int	bytes_available = 0;
+			
+			synchronized( DataReaderSpeedLimiter.this ){
+				
+				long	now = System.currentTimeMillis();
+				
+				int		slots = (int)( ( now - last_read_time )/slot_period_millis );
+				
+				if ( slots > slot_count ){
+					
+					slots = slot_count;
+				}
+				
+				last_read_time	= now;
+			}
+			
+			if ( bytes_available == 0 ){
+				
+				return( 0 );
+			}
+			
 			ByteBuffer	buffer = direct_buffer.buff;
 				
 			int	position	= buffer.position();
 			int limit		= buffer.limit();
 			
-			if ( limit - position > 10 ){
+			if ( limit - position > bytes_available ){
 				
-				buffer.limit( position + 10 );
+				buffer.limit( position + bytes_available );
 			}
 			
 			try{

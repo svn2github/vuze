@@ -79,7 +79,43 @@ XMLHTTPClient
 				res.print();
 	
 				String dl_man_oid	= res.getChild( "_object_id" ).getValue().trim();
+				
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + plugin_if_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getTorrentManager</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+	
+				res.print();
+	
+				String torrent_man_oid	= res.getChild( "_object_id" ).getValue().trim();
+	
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + torrent_man_oid + "</_object_id></OBJECT>" +
+							"<METHOD>getURLDownloader[URL]</METHOD>"+
+							"<PARAMS><ENTRY>http://s.d/</ENTRY></PARAMS>" +
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
 			
+				res.print();
+				
+				String torrent_downloader_oid	= res.getChild( "_object_id" ).getValue().trim();
+
+				res = sendRequest( 
+						"<REQUEST>" +
+							"<OBJECT><_object_id>" + torrent_downloader_oid + "</_object_id></OBJECT>" +
+							"<METHOD>download</METHOD>"+
+							"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
+							"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
+						"</REQUEST>");
+			
+				res.print();
+				
+				/*
 				res = sendRequest( 
 						"<REQUEST>" +
 							"<OBJECT><_object_id>" + dl_man_oid + "</_object_id></OBJECT>" +
@@ -109,7 +145,7 @@ XMLHTTPClient
 					res.print();
 						
 				}
-				
+				*/
 			}
 
 		}catch( Throwable e ){

@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.xml.server;
 
 import java.util.*;
 import java.io.*;
+import java.net.*;
 import java.lang.reflect.*;
 
 import org.gudy.azureus2.core3.xml.simpleparser.*;
@@ -163,6 +164,8 @@ XMLRequestProcessor
 		Class							cla,
 		String							indent )
 	{
+		boolean	request_class = cla == RPRequest.class;
+		
 		// System.out.println(indent + "deser:" + cla.getName());
 		try{
 			Object	obj = cla.newInstance();
@@ -182,54 +185,119 @@ XMLRequestProcessor
 					Class	type = field.getType();
 					
 					SimpleXMLParserDocumentNode child = node.getChild( name );
-				
-					// System.out.println( indent + "  field:" + field.getName() + " -> " + child );
 					
-					if ( child != null ){
+						// System.out.println( indent + "  field:" + field.getName() + " -> " + child );
 						
-						if ( type == String.class ){
-							
-							field.set( obj, child.getValue().trim());
-							
-						}else if ( type == long.class ){
-							
-							field.setLong( obj,Long.parseLong( child.getValue().trim()));
-							
-						}else if ( type == boolean.class ){
-							
-							//field.set( obj, new Long(Long.parseLong( child.getValue())));
-							
-						}else if ( type == byte.class ){
-							
-							//field.set( obj, new Long(Long.parseLong( child.getValue())));
-							
-						}else if ( type == char.class ){
-							
-							//field.set( obj, new Long(Long.parseLong( child.getValue())));
-							
-						}else if ( type == double.class ){
-							
-							//field.set( obj, new Long(Long.parseLong( child.getValue())));
-							
-						}else if ( type == float.class ){
-							
-							//field.set( obj, new Long(Long.parseLong( child.getValue())));
-							
-						}else if ( type == int.class ){
-							
-							//field.set( obj, new Long(Long.parseLong( child.getValue())));
-							
-						}else if ( type == short.class ){
-							
-							//field.set( obj, new Long(Long.parseLong( child.getValue())));
+					if ( child != null ){
+
+						if ( type.isArray()){
+						
+							Class	sub_type = type.getComponentType();
 					
-						}else if ( type == Long.class || type == long.class ){
+							SimpleXMLParserDocumentNode[] entries = child.getChildren();
 							
-							field.set( obj, new Long(Long.parseLong( child.getValue().trim())));
+							Object array = Array.newInstance( sub_type, entries.length );
+						
+								// hack. for request objects we deserialise the parameters
+								// array by using the method signature
 							
+							String	sig 	= request_class?((RPRequest)obj).getMethod():null;
+							int		sig_pos = sig==null?0:sig.indexOf( '[' )+1;
+							
+							for (int j=0;j<entries.length;j++){
+								
+								SimpleXMLParserDocumentNode	array_child = entries[j];
+								
+								if ( sub_type == String.class ){
+									
+									Array.set( array, j, child.getValue().trim());
+									
+								}else if ( sub_type == Object.class && request_class ){
+									
+									int	p1 = sig.indexOf(',');
+									
+									String	bit;
+									
+									if ( p1 == -1 ){
+										
+										bit = sig.substring( sig_pos, sig.length()-1);
+										
+									}else{
+										
+										bit = sig.substring( sig_pos, p1 );
+										
+										sig_pos = p1+1;
+									}
+									
+									String	sub_value = array_child.getValue().trim();
+									
+									if ( bit.equalsIgnoreCase("url")){
+										
+										Array.set( array, j, new URL(sub_value));
+										
+									}else{
+										
+										throw( new RuntimeException( "not implemented"));
+									}
+								}else{
+									
+									throw( new RuntimeException( "not implemented"));
+								}
+							}
+							
+							field.set( obj, array );
 						}else{
 							
-							field.set( obj, deserialiseObject( child, type, indent + "    " ));
+							String	value = child.getValue().trim();
+							
+							if ( type == String.class ){
+								
+								field.set( obj, value );
+								
+							}else if ( type == long.class ){
+								
+								field.setLong( obj,Long.parseLong( value ));
+								
+							}else if ( type == boolean.class ){
+								
+								throw( new RuntimeException( "not implemented"));
+
+								//field.set( obj, new Long(Long.parseLong( value )));
+								
+							}else if ( type == byte.class ){
+
+								throw( new RuntimeException( "not implemented"));
+
+								//field.set( obj, new Long(Long.parseLong( value )));
+								
+							}else if ( type == char.class ){
+								
+								field.setChar( obj, value.charAt(0));
+								
+							}else if ( type == double.class ){
+								
+								field.setDouble( obj, Double.parseDouble( value));
+								
+							}else if ( type == float.class ){
+								
+								field.setFloat( obj, Float.parseFloat( value));
+								
+							}else if ( type == int.class ){
+								
+								field.setInt( obj, Integer.parseInt( value));
+								
+							}else if ( type == short.class ){
+								
+								field.setShort( obj, (Short.parseShort( value )));
+						
+							}else if ( type == Long.class || type == long.class ){
+								
+								field.set( obj, new Long(Long.parseLong( value )));
+								
+							}else{
+								
+								field.set( obj, deserialiseObject( child, type, indent + "    " ));
+							}
 						}
 					}
 				}

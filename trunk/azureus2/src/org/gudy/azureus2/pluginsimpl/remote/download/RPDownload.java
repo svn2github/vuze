@@ -208,17 +208,17 @@ RPDownload
 			
 			return( null );
 			
-		}else if ( method.equals( "setForceStart")){
+		}else if ( method.equals( "setForceStart[boolean]")){
 			
-			boolean	b = ((Boolean)request.getParams()).booleanValue();
+			boolean	b = ((Boolean)request.getParams()[0]).booleanValue();
 			
 			delegate.setForceStart( b );
 			
 			return( null );
 			
-		}else if ( method.equals( "setPosition")){
+		}else if ( method.equals( "setPosition[int]")){
 			
-			int	p = ((Integer)request.getParams()).intValue();
+			int	p = ((Integer)request.getParams()[0]).intValue();
 			
 			delegate.setPosition( p );
 			
@@ -496,14 +496,14 @@ RPDownload
 	setForceStart(
 		boolean force_start ) 
 	{
-		_dispatcher.dispatch( new RPRequest( this, "setForceStart", new Boolean(force_start ))).getResponse();
+		_dispatcher.dispatch( new RPRequest( this, "setForceStart[boolean]", new Object[]{new Boolean(force_start )})).getResponse();
 	}
 	
 	public void 
 	setPosition(
 		int new_position) 
 	{
-		_dispatcher.dispatch( new RPRequest( this, "setPosition", new Integer(new_position ))).getResponse();
+		_dispatcher.dispatch( new RPRequest( this, "setPosition[int]", new Object[]{new Integer(new_position )})).getResponse();
 	}
 	
 	public void
@@ -517,6 +517,7 @@ RPDownload
 	{
 		_dispatcher.dispatch( new RPRequest( this, "moveDown", null)).getResponse();
 	}
+	
 	public void stopAndQueue() throws DownloadException {
 		notSupported();
 	}

@@ -137,6 +137,7 @@ RemoteUIServlet
 		"core3/util/SystemTime.class",
 		"core3/util/SystemTime$1.class",
 		"core3/util/DisplayFormatters$2.class",		
+		"core3/resourcedownloader/ResourceDownloaderException.class",
 		
 		"pluginsimpl/remote/RPRequestDispatcher.class",
 		"pluginsimpl/remote/RPException.class",

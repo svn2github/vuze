@@ -98,9 +98,9 @@ RPDownloadManager
 			
 			return( new RPReply( res ));
 			
-		}else if ( method.equals( "getDownloads[bSort]")){
+		}else if ( method.equals( "getDownloads[boolean]")){
 			
-			Download[]	downloads = delegate.getDownloads(((Boolean)request.getParams()).booleanValue());
+			Download[]	downloads = delegate.getDownloads(((Boolean)request.getParams()[0]).booleanValue());
 			
 			RPDownload[]	res = new RPDownload[downloads.length];
 			
@@ -114,7 +114,7 @@ RPDownloadManager
 		}else if ( method.equals( "addDownload[Torrent]" )){
 		
 			try{
-				RPTorrent	torrent = (RPTorrent)request.getParams();
+				RPTorrent	torrent = (RPTorrent)request.getParams()[0];
 				
 				Download res = delegate.addDownload((Torrent)torrent._setLocal());
 				
@@ -128,7 +128,7 @@ RPDownloadManager
 		}else if ( method.equals( "addDownload[URL]" )){
 				
 			try{
-				delegate.addDownload((URL)request.getParams());
+				delegate.addDownload((URL)request.getParams()[0]);
 				
 			}catch( DownloadException e ){
 				
@@ -158,7 +158,7 @@ RPDownloadManager
 	
 		throws DownloadException
 	{
-		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "addDownload[URL]", url )).getResponse();
+		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "addDownload[URL]", new Object[]{url} )).getResponse();
 	}
 	
 	
@@ -169,7 +169,7 @@ RPDownloadManager
 		throws DownloadException
 	{
 		try{
-			RPDownload	res = (RPDownload)_dispatcher.dispatch( new RPRequest( this, "addDownload[Torrent]", torrent )).getResponse();
+			RPDownload	res = (RPDownload)_dispatcher.dispatch( new RPRequest( this, "addDownload[Torrent]", new Object[]{torrent})).getResponse();
 			
 			res._setRemote( _dispatcher );
 		
@@ -240,7 +240,7 @@ RPDownloadManager
 	public Download[]
 	getDownloads(boolean bSort)
 	{
-		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "getDownloads[bSort]", new Boolean(bSort) )).getResponse();
+		RPDownload[]	res = (RPDownload[])_dispatcher.dispatch( new RPRequest( this, "getDownloads[boolean]", new Object[]{ new Boolean(bSort)} )).getResponse();
 		
 		for (int i=0;i<res.length;i++){
 			

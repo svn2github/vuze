@@ -83,10 +83,10 @@ RPTorrentManager
 	{
 		String	method = request.getMethod();
 		
-		if ( method.equals( "getURLDownloader")){
+		if ( method.equals( "getURLDownloader[URL]")){
 			
 			try{
-				TorrentDownloader dl = delegate.getURLDownloader((URL)request.getParams());
+				TorrentDownloader dl = delegate.getURLDownloader((URL)request.getParams()[0]);
 			
 				RPTorrentDownloader res = RPTorrentDownloader.create( dl );
 		
@@ -110,7 +110,7 @@ RPTorrentManager
 		throws TorrentException
 	{
 		try{
-			RPTorrentDownloader resp = (RPTorrentDownloader)_dispatcher.dispatch( new RPRequest( this, "getURLDownloader", url )).getResponse();
+			RPTorrentDownloader resp = (RPTorrentDownloader)_dispatcher.dispatch( new RPRequest( this, "getURLDownloader[URL]", new Object[]{url})).getResponse();
 			
 			resp._setRemote( _dispatcher );
 			
