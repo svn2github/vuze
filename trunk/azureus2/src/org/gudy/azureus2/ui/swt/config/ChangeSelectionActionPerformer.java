@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Composite;
 
 /**
  * @author Olivier
@@ -49,8 +50,14 @@ public class ChangeSelectionActionPerformer implements IAdditionalActionPerforme
   public void performAction() {
     if(controls == null)
       return;
+    controlsSetEnabled(controls, reverse_sense?!selected:selected);
+  }
+  
+  private void controlsSetEnabled(Control[] controls, boolean bEnabled) {
     for(int i = 0 ; i < controls.length ; i++) {
-      controls[i].setEnabled(reverse_sense?!selected:selected);
+      if (controls[i] instanceof Composite)
+        controlsSetEnabled(((Composite)controls[i]).getChildren(), bEnabled);
+      controls[i].setEnabled(bEnabled);
     }
   }
 
