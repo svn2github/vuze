@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.animations.shell;
 
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.ui.swt.animations.Animator;
 
 /**
  * @author Olivier Chalouhi
@@ -30,8 +31,8 @@ public interface AnimableShell {
   
   public Shell getShell();
   
-  public void animationStarted();
+  public void animationStarted(Animator source);
   public void reportPercent(int percent);
-  public void animationEnded();
+  public void animationEnded(Animator source);
     
 }

@@ -64,7 +64,7 @@ public class LinearAnimator extends Animator{
   }
   
   public void run() {
-    shell.animationStarted();
+    shell.animationStarted(this);
     int step = 0;
     while(step <= nbSteps && !interrupted) {
       setShellAtStep(step);
@@ -77,7 +77,7 @@ public class LinearAnimator extends Animator{
         step = nbSteps;
       }
     }
-    shell.animationEnded();
+    shell.animationEnded(this);
   }
   
   public void interrupt() {

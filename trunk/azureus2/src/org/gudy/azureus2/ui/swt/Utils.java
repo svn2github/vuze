@@ -201,7 +201,7 @@ public class Utils {
 	int y = (displayRect.height - shellRect.height) / 2;
 	
 	shell.setLocation(x, y);
-  }
+  }  
 
   /**
    * @param control the control (usually a Shell) to add the DropTarget
