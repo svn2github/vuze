@@ -23,13 +23,24 @@ package org.gudy.azureus2.core3.category;
 
 import org.gudy.azureus2.core3.category.Category;
 
+/**
+ * A listener informed of changes to Categories
+ */
 public interface 
 CategoryManagerListener 
 {
+  /**
+   * A category has been added to the CategoryManager
+   * @param category the category that was added
+   */    
 	public void
 	categoryAdded(
 		Category category );
 		
+  /**
+   * A category has been removed from the CategoryManager
+   * @param category Category that was removed
+   */  
 	public void
 	categoryRemoved(
 		Category category );

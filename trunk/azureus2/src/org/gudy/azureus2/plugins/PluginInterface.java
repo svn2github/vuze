@@ -80,7 +80,7 @@ public interface PluginInterface {
    * adds a ConfigSection to the config view<p>
    * In contrast to addConfigUIParameters, this gives you total control over
    * a tab.  Please be kind and use localizable text.<BR>
-   * @param tab ConfigSection to be added to the Config view
+   * @param section ConfigSection to be added to the Config view
    */
 	public void addConfigSection(ConfigSection section);
 

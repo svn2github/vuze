@@ -26,22 +26,17 @@ import java.util.Iterator;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Collections;
-import java.util.HashMap;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import org.gudy.azureus2.core3.category.impl.*;
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.util.ListenerManager;
-import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
 public class CategoryManagerImpl  {
   private static CategoryManagerImpl catMan;
@@ -49,7 +44,7 @@ public class CategoryManagerImpl  {
   private static Category catUncategorized = null;
   private static boolean doneLoading = false;
 
-  private HashMap categories = new HashMap();
+  private Map categories = new HashMap();
 
   private static final int LDT_CATEGORY_ADDED     = 1;
   private static final int LDT_CATEGORY_REMOVED   = 2;

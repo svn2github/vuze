@@ -45,7 +45,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
  * 
@@ -2099,8 +2098,7 @@ DiskManagerImpl
   }
   
   public boolean isChecking() {
-    if (checkQueue.size() == 0) return false;
-    else return true;
+    return (checkQueue.size() != 0);
   }
 
 

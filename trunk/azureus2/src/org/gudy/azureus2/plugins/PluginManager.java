@@ -26,24 +26,37 @@ import java.util.Properties;
 import org.gudy.azureus2.pluginsimpl.PluginManagerImpl;
 
 /**
- * @author parg
  * This class allows Azureus to be started as an embedded component and also allows plugins to
  * be dynamically registered
+ * @author parg
  */
 
 
 public class 
 PluginManager
 {
-	public static final int	UI_NONE		= 0;	// No user interface
-	public static final int	UI_SWT		= 1;	// SWT user interface
+  /**
+   * No user interface
+   */  
+	public static final int	UI_NONE		= 0;
+  /**
+   * SWT user inferface
+   */  
+	public static final int	UI_SWT		= 1;
 	
-		// property keys
+
+  /**
+   * Property Key: Allow multiple instances.
+   * Normally Azureus will only permit a single instance to run per machine.
+   * Values for this key are: "true" or "false"
+   */  
+	public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";
 	
-		// normally Azureus will only permit a single instance to run per machine
-	
-	public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";	// values "true" or "false"
-	
+  /**
+   * Runs Azureus
+   * @param ui_type Type of user interface to provide.  See UI_* Constants
+   * @param properties A list of properties to pass Azureus.  See PR_* constants.
+   */  
 	public static void
 	startAzureus(
 		int			ui_type,
@@ -52,6 +65,10 @@ PluginManager
 		PluginManagerImpl.startAzureus( ui_type, properties );
 	}
 	
+  /**
+   * Shuts down Azureus
+   * @throws PluginException
+   */  
 	public static void
 	stopAzureus()
 	
