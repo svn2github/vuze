@@ -392,34 +392,29 @@ public class ConfigView extends AbstractIView {
     gTransfer.setLayout(layout);
 
     label = new Label(gTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.transfer.tooltip.maxactivetorrents");
+    Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$    
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gTransfer, "max active torrents", 4).setLayoutData(gridData); //$NON-NLS-1$
 
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxdownloads"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.transfer.tooltip.maxdownloads");
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gTransfer, "max downloads", 4).setLayoutData(gridData); //$NON-NLS-1$
 
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxclients"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.transfer.tooltip.maxclients");
     gridData = new GridData();
     gridData.widthHint = 30;
     new IntParameter(gTransfer, "Max Clients", 0).setLayoutData(gridData); //$NON-NLS-1$
     
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.slowconnect"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.transfer.tooltip.slowconnect");
     new BooleanParameter(gTransfer, "Slow Connect", false); //$NON-NLS-1$
     
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploads"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.transfer.tooltip.maxuploads");
     final String upLabels[] = new String[99];
     final int upValues[] = new int[99];
     for (int i = 0; i < 99; i++) {
@@ -430,7 +425,6 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.transfer.tooltip.maxuploadspeed");
     final String upsLabels[] = new String[upRates.length];
     final int upsValues[] = new int[upRates.length];
     upsLabels[0] = MessageText.getString("ConfigView.unlimited"); //$NON-NLS-1$
@@ -462,17 +456,14 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.seeding.tooltip.disconnetseed");
     new BooleanParameter(gDownloads, "Disconnect Seed", false); //$NON-NLS-1$
 
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.switchpriority"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.seeding.tooltip.switchpriority");
     new BooleanParameter(gDownloads, "Switch Priority", false); //$NON-NLS-1$
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatio"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.seeding.tooltip.stopratio");
     final String stopRatioLabels[] = new String[11];
     final int stopRatioValues[] = new int[11];
     stopRatioLabels[0] = MessageText.getString("ConfigView.text.neverStop");
@@ -485,7 +476,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$    
-    Messages.setToolTip(label, "ConfigView.seeding.tooltip.stopratiopeers");
     final String stopRatioPeersLabels[] = new String[5];
     final int stopRatioPeersValues[] = new int[5];
     stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStop");
@@ -502,7 +492,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startRatioPeers"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.seeding.tooltip.startratiopeers");
     final String startRatioPeersLabels[] = new String[13];
     final int startRatioPeersValues[] = new int[13];
     startRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStart");
@@ -516,7 +505,6 @@ public class ConfigView extends AbstractIView {
     String seeds = MessageText.getString("ConfigView.label.seeds");
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startNumSeeds"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.seeding.tooltip.startnumseeds");
     final String startNumSeedsLabels[] = new String[16];
     final int startNumSeedsValues[] = new int[16];
     startNumSeedsLabels[0] = MessageText.getString("ConfigView.text.neverStart");
@@ -533,7 +521,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.showpopuponclose"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.seeding.tooltip.disconnetseed");
     new BooleanParameter(gDownloads, "Alert on close", true);
     
     itemDownloads.setControl(gDownloads);
@@ -557,28 +544,24 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(gServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.overrideip"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.server.tooltip.overrideip");
     gridData = new GridData();
     gridData.widthHint = 100;
     new StringParameter(gServer, "Override Ip", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
 
     label = new Label(gServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.bindip"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.server.tooltip.bindip");
     gridData = new GridData();
     gridData.widthHint = 100;
     new StringParameter(gServer, "Bind IP", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
     
     label = new Label(gServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.serverportlow"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.server.tooltip.serverportlow");
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gServer, "Low Port", 6881).setLayoutData(gridData); //$NON-NLS-1$
 
     label = new Label(gServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.serverporthigh"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.server.tooltip.serverporthigh");
     gridData = new GridData();
     gridData.widthHint = 40;
     new IntParameter(gServer, "High Port", 6889).setLayoutData(gridData); //$NON-NLS-1$
@@ -603,7 +586,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.zeronewfiles"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.files.tooltip.zeronewfiles");
     BooleanParameter zeroNew = new BooleanParameter(gFile, "Zero New", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
@@ -613,7 +595,6 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.files.tooltip.incrementalfile");
     BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
@@ -632,7 +613,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.files.tooltip.checkOncompletion");
     new BooleanParameter(gFile, "Check Pieces on Completion", true);
     new Label(gFile, SWT.NULL);
     new Label(gFile, SWT.NULL);
@@ -643,7 +623,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.files.tooltip.usefastresume");
     BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
     
@@ -665,7 +644,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.files.tooltip.defaultsavepath");
     BooleanParameter saveDefault = new BooleanParameter(gFile, "Use default data dir", true); //$NON-NLS-1$
  
     Button browse = new Button(gFile, SWT.PUSH);
@@ -701,7 +679,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.savetorrents"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.files.tooltip.savetorrents");
     BooleanParameter saveTorrents = new BooleanParameter(gFile, "Save Torrent Files", true); //$NON-NLS-1$    
 
     Button browse2 = new Button(gFile, SWT.PUSH);
@@ -737,7 +714,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.movecompleted"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.files.tooltip.movecompleted");
     BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); //$NON-NLS-1$    
 
     Button browse3 = new Button(gFile, SWT.PUSH);
@@ -778,7 +754,6 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
-    Messages.setToolTip(label, "ConfigView.files.tooltip.priorityExtensions");
     
     gridData = new GridData();
     gridData.widthHint = 262;
@@ -909,14 +884,12 @@ public class ConfigView extends AbstractIView {
    
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.useCustomTabs"); //$NON-NLS-1$
-   Messages.setToolTip(label, "ConfigView.interface.tooltip.useCustomTabs");
    BooleanParameter useCustomTabs = new BooleanParameter(gStyle, "useCustomTab",true); //$NON-NLS-1$
    
    String osName = System.getProperty("os.name");
    if (osName.equals("Windows XP")) {
      label = new Label(gStyle, SWT.NULL);
      Messages.setLanguageText(label, "ConfigView.section.style.enableXPStyle"); //$NON-NLS-1$
-     Messages.setToolTip(label, "ConfigView.interface.tooltip.enableXPStyle");
      final Button enableXPStyle = new Button(gStyle, SWT.CHECK);
      boolean enabled = false;
      boolean valid = true;
@@ -967,7 +940,6 @@ public class ConfigView extends AbstractIView {
    
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.colorScheme"); //$NON-NLS-1$
-   Messages.setToolTip(label, "ConfigView.interface.tooltip.colorScheme");
    ColorParameter colorScheme = new ColorParameter(gStyle, "Color Scheme",0,128,255); //$NON-NLS-1$
    gridData = new GridData();
    gridData.widthHint = 50;
@@ -1003,11 +975,9 @@ public class ConfigView extends AbstractIView {
 		
 		label = new Label(gTracker, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollinterval"); 
-		Messages.setToolTip(label, "ConfigView.tracker.tooltip.pollinterval");
     
 		label = new Label(gTracker, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmin"); 
-	   Messages.setToolTip(label, "ConfigView.tracker.tooltip.pollintervalmin");	
     
 		IntParameter pollIntervalMin = new IntParameter(gTracker, "Tracker Poll Interval Min", TRHost.DEFAULT_MIN_RETRY_DELAY );
 	
@@ -1021,7 +991,6 @@ public class ConfigView extends AbstractIView {
 				
 		label = new Label(gTracker, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmax"); 
-		Messages.setToolTip(label, "ConfigView.tracker.tooltip.pollintervalmax");
     
 		IntParameter pollIntervalMax = new IntParameter(gTracker, "Tracker Poll Interval Max", TRHost.DEFAULT_MAX_RETRY_DELAY );
 	
@@ -1035,7 +1004,6 @@ public class ConfigView extends AbstractIView {
 				
 		label = new Label(gTracker, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincby"); 
-		Messages.setToolTip(label, "ConfigView.tracker.tooltip.pollintervalincby");
     
 		IntParameter pollIntervalIncBy = new IntParameter(gTracker, "Tracker Poll Inc By", TRHost.DEFAULT_INC_BY );
 		
@@ -1049,7 +1017,6 @@ public class ConfigView extends AbstractIView {
 				
 		label = new Label(gTracker, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincper"); 
-		Messages.setToolTip(label, "ConfigView.tracker.tooltip.pollintervalincper");
     
 		IntParameter pollIntervalIncPer = new IntParameter(gTracker, "Tracker Poll Inc Per", TRHost.DEFAULT_INC_PER );
 		
@@ -1061,7 +1028,6 @@ public class ConfigView extends AbstractIView {
 		
 	  label = new Label(gTracker, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.ip"); 
-	  Messages.setToolTip(label, "ConfigView.tracker.tooltip.ip");
 	  
      final StringParameter tracker_ip = new StringParameter(gTracker, "Tracker IP", "" );
 	  
@@ -1102,7 +1068,6 @@ public class ConfigView extends AbstractIView {
 		
 	  label = new Label(gTracker, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.port"); 
-	  Messages.setToolTip(label, "ConfigView.tracker.tooltip.port");	
     
 	  IntParameter tracker_port = new IntParameter(gTracker, "Tracker Port", TRHost.DEFAULT_PORT );
 
@@ -1117,7 +1082,6 @@ public class ConfigView extends AbstractIView {
 			
 		label = new Label(gTracker, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable"); 
-		Messages.setToolTip(label, "ConfigView.tracker.tooltip.publishenable");
     
 		BooleanParameter enablePublish = new BooleanParameter(gTracker, "Tracker Publish Enable", true);
 
