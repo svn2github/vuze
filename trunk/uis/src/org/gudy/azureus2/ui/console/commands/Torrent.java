@@ -36,6 +36,7 @@ public class Torrent implements IConsoleCommand {
 	private static final int TORRENTCOMMAND_STARTNOW = 4;
 	private static final int TORRENTCOMMAND_CHECK = 5;
   private static final int TORRENTCOMMAND_HOST = 6;
+  private static final int TORRENTCOMMAND_FORCESTART = 7;
 	
 	private static boolean performTorrentCommand(ConsoleInput ci, int command, DownloadManager dm) {
 		switch (command) {
@@ -128,13 +129,23 @@ public class Torrent implements IConsoleCommand {
         }
         return false;
       }
+      case TORRENTCOMMAND_FORCESTART :
+      {               
+        try {
+          dm.setForceStart(true);
+        } catch (Exception e) {
+          e.printStackTrace(ci.out);
+          return false;
+        }
+        return true;
+      }
 		}
 		return false;
 	}
 
 	private static void commandTorrentCommand(ConsoleInput ci, int command, List args) {
-		String[] commands = { "start", "stop", "remove", "queue", "start", "check" ,"host"};
-		String[] actions = { "Starting", "Stopping", "Removing", "Queueing", "Starting", "Initiating recheck of","Hosting" };
+		String[] commands = { "start", "stop", "remove", "queue", "start", "check" ,"host" ,"forcestart"};
+		String[] actions = { "Starting", "Stopping", "Removing", "Queueing", "Starting", "Initiating recheck of","Hosting" ,"Force Starting" };
 		if ((args != null) && (!args.isEmpty())) {
 		    String subcommand = (String) args.get(0);
 			if ((ci.torrents == null) || (ci.torrents != null) && ci.torrents.isEmpty()) {
@@ -236,6 +247,10 @@ public class Torrent implements IConsoleCommand {
   public static void commandHost(ConsoleInput ci, List args) {
     commandTorrentCommand(ci, TORRENTCOMMAND_HOST, args);
   }
+  
+  public static void commandForceStart(ConsoleInput ci, List args) {
+    commandTorrentCommand(ci, TORRENTCOMMAND_FORCESTART, args);
+  }
 	
 	public static void RegisterCommands() {
 		try {
@@ -249,7 +264,8 @@ public class Torrent implements IConsoleCommand {
 			ConsoleInput.RegisterCommand("s", Torrent.class.getMethod("commandStart", ConsoleCommandParameters));
 			ConsoleInput.RegisterCommand("stop", Torrent.class.getMethod("commandStop", ConsoleCommandParameters));
 			ConsoleInput.RegisterCommand("h", Torrent.class.getMethod("commandStop", ConsoleCommandParameters));
-      ConsoleInput.RegisterCommand("host", Torrent.class.getMethod("commandHost", ConsoleCommandParameters));      
+      ConsoleInput.RegisterCommand("host", Torrent.class.getMethod("commandHost", ConsoleCommandParameters));
+      ConsoleInput.RegisterCommand("forcestart", Torrent.class.getMethod("commandForceStart", ConsoleCommandParameters));  
 			ConsoleInput.RegisterHelp("check (<torrentoptions>)\tc\tForce recheck on torrent(s).");
 			ConsoleInput.RegisterHelp("queue (<torrentoptions>)\tq\tQueue torrent(s).");
 			ConsoleInput.RegisterHelp("remove (<torrentoptions>)\tr\tRemove torrent(s).");
