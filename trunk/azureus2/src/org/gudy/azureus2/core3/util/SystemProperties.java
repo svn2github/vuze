@@ -15,8 +15,8 @@ import java.io.*;
 public class SystemProperties {
   
   public static final String SEPARATOR = System.getProperty("file.separator");
-  private static final String USER_DIR = ".azureus";
-  
+  private static final String USER_DIR_LINUX = ".azureus";
+  private static final String USER_DIR = "azureus";
   
   /**
    * Returns the full path to the user's home azureus directory.
@@ -24,7 +24,13 @@ public class SystemProperties {
    * Under Windows, this is usually .../Documents and Settings/username/.azureus/
    */
   public static String getUserPath() {
-    String path = System.getProperty("user.home") + SEPARATOR + USER_DIR + SEPARATOR;
+    String path;
+    if ( System.getProperty("os.name").equals("Linux")) {
+    	path = System.getProperty("user.home") + SEPARATOR + USER_DIR_LINUX + SEPARATOR;
+    }
+    else {
+      path = System.getProperty("user.home") + SEPARATOR + USER_DIR + SEPARATOR;
+    }
     
     //if the directory doesn't already exist, create it
     File dir = new File( path );
