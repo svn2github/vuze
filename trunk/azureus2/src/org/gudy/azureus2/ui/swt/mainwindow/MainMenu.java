@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
+import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
 /**
  * @author Olivier Chalouhi
@@ -367,9 +368,8 @@ public class MainMenu {
       MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
       help_checkupdate.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          //VersionChecker.checkForNewVersion();
-          PluginInitializer.getDefaultInterface().getUpdateManager().createUpdateCheckInstance().start();
+        public void handleEvent(Event e) {          
+            UpdateMonitor.getSingleton().performCheck();
         }
       });
       }

@@ -354,8 +354,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     statusText = new CLabel(statusArea, SWT.SHADOW_IN);
     int height = statusText.computeSize(150,SWT.DEFAULT).y;
     
-    //Or a composite with a label, a label, a progressBar and a button
-    statusUpdate = new Composite(statusArea, SWT.BORDER);
+    //Or a composite with a label, a progressBar and a button
+    statusUpdate = new Composite(statusArea, SWT.NULL);
     statusUpdate.setSize(SWT.DEFAULT,height);
     FormLayout layoutStatusUpdate = new FormLayout();
     layoutStatusUpdate.marginHeight = 0;
