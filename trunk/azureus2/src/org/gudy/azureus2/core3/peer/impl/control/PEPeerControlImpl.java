@@ -127,10 +127,12 @@ PEPeerControlImpl
   private static final int PEER_UPDATER_WAIT_TIME = 50;
   private static final int MAINLOOP_WAIT_TIME   = 100;
   
-  private static final int CHOKE_UNCHOKE_FACTOR = 10000 / MAINLOOP_WAIT_TIME; 	//every 10s
-  private static final int OPT_UNCHOKE_FACTOR   = 30000 / MAINLOOP_WAIT_TIME; 	//every 30s
-  private static final int TRACKER_CHECK_TIME	= 5000 / MAINLOOP_WAIT_TIME;	// every 5 secs
-  
+  private static final int CHOKE_UNCHOKE_FACTOR 	= 10000 / MAINLOOP_WAIT_TIME; 	// every 10s
+  private static final int OPT_UNCHOKE_FACTOR   	= 30000 / MAINLOOP_WAIT_TIME; 	// every 30s
+  private static final int TRACKER_CHECK_TIME		= 5000  / MAINLOOP_WAIT_TIME;	// every 5 secs
+  private static final int AVAILABILITY_BUILD_TIME	= 1000  / MAINLOOP_WAIT_TIME;	// every 1 secs
+  private static final int CHECK_SEEDS_TIME			= 1000  / MAINLOOP_WAIT_TIME;	// every 1 secs
+    
   
   
   private List	peer_manager_listeners 		= new ArrayList();
@@ -957,6 +959,12 @@ PEPeerControlImpl
    *
    */
   private void computeAvailability() {
+  	
+ 	if ( _loopFactor % AVAILABILITY_BUILD_TIME != 0 ){
+  		
+  		return;
+  	}
+ 	
     //reset the availability
     int[] new_availability = new int[availability_cow.length];
     Arrays.fill(new_availability, 0); //:: should be faster -Tyler
@@ -1550,6 +1558,12 @@ PEPeerControlImpl
 
   //Method that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds(boolean forceDisconnect) {
+  	
+  	if ( (!forceDisconnect) && _loopFactor % CHECK_SEEDS_TIME != 0 ){
+  		
+  		return;
+  	}
+	
     //If we are not ourself a seed, return
     if (!forceDisconnect && ((!_finished) || !disconnect_seeds_when_seeding )){
       return;
