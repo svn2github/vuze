@@ -604,7 +604,7 @@ public class MyTorrentsView
         itemPublish.setEnabled(hasSelection);
 
         itemMove.setEnabled(hasSelection);
-        itemCategory.setEnabled(hasSelection);     
+        itemCategory.setEnabled(hasSelection);
         itemBar.setEnabled(hasSelection);
 
         itemManualUpdate.setEnabled(hasSelection);
@@ -736,8 +736,8 @@ public class MyTorrentsView
           
           
           int maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0) * 1024;
-          //using 1MB/s as the default limit when no limit set.
-          if(maxUpload == 0) maxUpload = 1024 * 1024;
+          //using 75KiB/s as the default limit when no limit set.
+          if(maxUpload == 0) maxUpload = 75 * 1024;
           
           
           if(dms.length > 0) {
