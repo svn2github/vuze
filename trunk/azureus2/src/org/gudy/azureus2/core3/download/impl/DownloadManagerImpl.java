@@ -801,8 +801,11 @@ DownloadManagerImpl
     // no tracker, return scrape
     if (torrent != null && globalManager != null) {
       TRTrackerScraperResponse response = globalManager.getTrackerScraper().scrape(torrent);
-      if (response != null)
+      if (response != null) {
+        if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING)
+          return -1;
         return (int)((response.getNextScrapeStartTime() - System.currentTimeMillis()) / 1000);
+      }
     }
 	
     return TRTrackerClient.REFRESH_MINIMUM_SECS;
