@@ -20,6 +20,7 @@ FEATURE: Web Plugin support for uploading torrents [Parg]
 FEATURE: Added option to show transfer rates in bits/sec [Parg]
 FEATURE: Added ability to automatically exclude files when making torrents (e.g. .DS_Store & Thumbs.db) [Parg]
 FEATURE: MyTracker row right-click support for copying torrent URL to clipboard [Parg]
+FEATURE: UDP authentication protocol added [Parg]
 
 CHANGE: Azureus should work with SWT 2.12 until we break backwards compat. again. [TuxPaper]
 CHANGE: All progress/piece bars re-done (again) [TuxPaper]
