@@ -118,12 +118,17 @@ public class TorrentOpener {
                 
                 LGLogger.log( "MainWindow::openTorrent: adding download '" + fileName + "' --> '" + savePath + "'" );
  
-                globalManager.addDownloadManager(fileName, savePath, 
-                                                 startInStoppedState ? DownloadManager.STATE_STOPPED 
-                                                                     : DownloadManager.STATE_WAITING);
-              }catch( Throwable e ){
+                try{
+	                globalManager.addDownloadManager(fileName, savePath, 
+	                                                 startInStoppedState ? DownloadManager.STATE_STOPPED 
+	                                                                     : DownloadManager.STATE_WAITING);
+                }catch( Throwable e ){
+    	          	
+    	          	LGLogger.logAlert("Torrent open fails for '" + fileName + "'", e );
+    	        }
+	          }catch( Throwable e ){
                 
-                LGLogger.log( "MainWindow::openTorrent: torrent addition fails", e );
+               LGLogger.log( "MainWindow::openTorrent: torrent addition fails", e );
 
               }
             }
@@ -250,11 +255,17 @@ public class TorrentOpener {
               String savePath = getSavePathSupport(path + separator + fileNames[i],useDefault,forSeeding);
               if (savePath == null)
                 continue;
-              globalManager.addDownloadManager(
-              				path + separator + fileNames[i], 
-							savePath,
-							default_start_stopped ? DownloadManager.STATE_STOPPED 
-                                    : DownloadManager.STATE_QUEUED);
+              
+              try{
+	              globalManager.addDownloadManager(
+	              				path + separator + fileNames[i], 
+								savePath,
+								default_start_stopped ? DownloadManager.STATE_STOPPED 
+	                                    : DownloadManager.STATE_QUEUED);
+	          }catch( Throwable e ){
+	          	
+   	          	LGLogger.logAlert("Torrent open fails for '" + path + separator + fileNames[i] + "'", e );
+	          }
             }
           }
         }.start();
@@ -293,9 +304,14 @@ public class TorrentOpener {
     new AEThread("Torrent Opener") {
       public void run() {
         for (int i = 0; i < files.length; i++)
-          globalManager.addDownloadManager(files[i].getAbsolutePath(), path, 
-                                           startInStoppedState ? DownloadManager.STATE_STOPPED 
-                                                               : DownloadManager.STATE_QUEUED);
+        	try{
+	          globalManager.addDownloadManager(files[i].getAbsolutePath(), path, 
+	                                           startInStoppedState ? DownloadManager.STATE_STOPPED 
+	                                                               : DownloadManager.STATE_QUEUED);
+            }catch( Throwable e ){
+	          	
+   	          	LGLogger.logAlert("Torrent open fails for '" + files[i].getAbsolutePath() + "'", e );
+	        }
       }
     }
     .start();
