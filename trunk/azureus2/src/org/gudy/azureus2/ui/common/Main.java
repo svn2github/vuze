@@ -44,10 +44,8 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
  */
 public class Main {
   
-  public static HashMap UIS = null;
   public static String DEFAULT_UI = "swt";
   
-  public static GlobalManager GM = null;
   public static StartServer start = null;
   
   private static CommandLine parseCommands(String[] args, boolean constart) {
@@ -119,8 +117,8 @@ public class Main {
   public static void shutdown() {
     if (start!=null)
       start.stopIt();
-    if (GM!=null)
-      GM.stopAll();
+    if (UIConst.GM!=null)
+    UIConst.GM.stopAll();
     SimpleDateFormat temp = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     Logger.getLogger("azureus2").fatal("Azureus stopped at "+temp.format(new Date()));
     System.exit(0);
@@ -130,49 +128,50 @@ public class Main {
     if (commands==null)
       commands = parseCommands(args, false);
     if (((commands!=null) && (args.length>0)) || creategm) {
-      if (UIS == null)
-        UIS = new HashMap();
+      if (UIConst.UIS == null)
+      UIConst.UIS = new HashMap();
       if (commands.hasOption('u')) {
         String uinames = commands.getOptionValue('u');
         if (uinames.indexOf(',')==-1) {
-          if (!UIS.containsKey(uinames))
-            UIS.put(uinames,UserInterfaceFactory.getUI(uinames));
+          if (!UIConst.UIS.containsKey(uinames))
+          UIConst.UIS.put(uinames,UserInterfaceFactory.getUI(uinames));
         } else {
           StringTokenizer stok = new StringTokenizer(uinames, ",");
           while (stok.hasMoreTokens()) {
             String uin = stok.nextToken();
-            if (!UIS.containsKey(uin))
-              UIS.put(uin,UserInterfaceFactory.getUI(uin));
+            if (!UIConst.UIS.containsKey(uin))
+              UIConst.UIS.put(uin,UserInterfaceFactory.getUI(uin));
           }
         }
       } else {
-        if (UIS.isEmpty() && !commands.hasOption('c') && !commands.hasOption('e'))
-          UIS.put(DEFAULT_UI, UserInterfaceFactory.getUI(DEFAULT_UI));
+        if (UIConst.UIS.isEmpty() && !commands.hasOption('c') && !commands.hasOption('e'))
+          UIConst.UIS.put(DEFAULT_UI, UserInterfaceFactory.getUI(DEFAULT_UI));
       }
 
-      Iterator uis = UIS.values().iterator();
+      Iterator uis = UIConst.UIS.values().iterator();
       boolean isFirst = true;
       String [] theRest = commands.getArgs();
       while (uis.hasNext()) {
         IUserInterface ui = (IUserInterface) uis.next();
-        ui.init(isFirst, (UIS.size()>1));
+        ui.init(isFirst, (UIConst.UIS.size()>1));
         theRest = ui.processArgs(theRest);
         isFirst = false;
       }
 
       if (creategm) {
         SimpleDateFormat temp = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
-        Logger.getLogger("azureus2").fatal("Azureus started at "+temp.format(new Date()));
-        GM = GlobalManagerFactory.create();
+        UIConst.startTime = new Date();
+        Logger.getLogger("azureus2").fatal("Azureus started at "+temp.format(UIConst.startTime));
+        UIConst.GM = GlobalManagerFactory.create();
       }
 
-      uis = UIS.values().iterator();
+      uis = UIConst.UIS.values().iterator();
       while (uis.hasNext())
         ((IUserInterface) uis.next()).startUI();
       
       if (commands.hasOption('e')) {
         try {
-          new ConsoleInput(commands.getOptionValue('e'), GM, new FileReader(commands.getOptionValue('e')), System.out, false);
+          new ConsoleInput(commands.getOptionValue('e'), UIConst.GM, new FileReader(commands.getOptionValue('e')), System.out, false);
         } catch (java.io.FileNotFoundException e) {
           Logger.getLogger("azureus2").error("Script file not found: "+e.toString());
         }
@@ -181,7 +180,7 @@ public class Main {
       if (commands.hasOption('c')) {
         String comm = commands.getOptionValue('c');
         comm+="\nlogout\n";
-        new ConsoleInput(commands.getOptionValue('c'), GM, new StringReader(comm), System.out, false);
+        new ConsoleInput(commands.getOptionValue('c'), UIConst.GM, new StringReader(comm), System.out, false);
       }
       
       openTorrents(theRest);
@@ -191,9 +190,9 @@ public class Main {
   }
   
   public static void openTorrents(String[] torrents) {
-    if ((Main.UIS!=null) && (!Main.UIS.isEmpty()) && (torrents.length>0)) {
+    if ((UIConst.UIS!=null) && (!UIConst.UIS.isEmpty()) && (torrents.length>0)) {
       for(int l=0; l<torrents.length; l++) {
-        ((IUserInterface) Main.UIS.values().toArray()[0]).openTorrent(torrents[l]);
+        ((IUserInterface) UIConst.UIS.values().toArray()[0]).openTorrent(torrents[l]);
       }
     }
   }

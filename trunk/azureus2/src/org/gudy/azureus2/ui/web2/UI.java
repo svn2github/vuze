@@ -10,7 +10,13 @@
 
 package org.gudy.azureus2.ui.web2;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.log4j.Appender;
+import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 
 import seda.sandStorm.main.Sandstorm;
 import seda.sandStorm.main.SandstormConfig;
@@ -20,14 +26,18 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.common.IUserInterface;
+import org.gudy.azureus2.ui.common.UIConst;
+import org.gudy.azureus2.ui.common.util.LGLogger2Log4j;
+import org.gudy.azureus2.ui.common.util.SLevel;
 import org.gudy.azureus2.ui.web2.stages.http.HttpRecv;
 import org.gudy.azureus2.ui.web2.stages.http.HttpSend;
+import org.gudy.azureus2.ui.web2.util.WebLogAppender;
 
 /**
  *
  * @author  Tobias Minich
  */
-public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocaleUtilChooser,IUserInterface {
+public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implements ILocaleUtilChooser,IUserInterface {
   
   public static int numRequests;                                                                                                                                                                                
   public static int numErrors;                                                                                                                                                                                  
@@ -54,6 +64,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
 
   public static HttpRecv httpRecv;
   public static HttpSend httpSend;
+  
+  public static List logList = new LinkedList();
+  public static Logger loggerWeb = Logger.getLogger("azureus2.ui.web");
   
   SandstormConfig cfg = null;
   Sandstorm storm = null;
@@ -128,11 +141,12 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
   }
   
   public void startUI() {
-    TorrentDownloaderFactory.initManager(org.gudy.azureus2.ui.common.Main.GM, true, true);
+    TorrentDownloaderFactory.initManager(UIConst.GM, true, true);
     if ((!isStarted()) || (storm==null)) {
       try {
         this.storm = new Sandstorm(this.cfg);
         super.startUI();
+        initLoggers();
         System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
       } catch (Exception e) {
         Logger.getLogger("azureus2.ui.web").fatal("Startup of webinterface failed: "+e.getMessage(), e);
@@ -150,13 +164,33 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
       Logger.getLogger("azureus2.ui.web").error("Something is wrong with "+fileName+". Not added. (Reason: "+e.getMessage()+")");
       return;
     }
-    if (org.gudy.azureus2.ui.common.Main.GM!=null) {
+    if (UIConst.GM!=null) {
       try {
-        org.gudy.azureus2.ui.common.Main.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
+        UIConst.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
       } catch (Exception e) {
         Logger.getLogger("azureus2.ui.web").error("The torrent "+fileName+" could not be added.", e);
       }
     }
+  }
+  
+  public static void initLoggers() {
+    //Logger.getRootLogger().removeAllAppenders();
+    Logger.getRootLogger().removeAppender("WebLogAppender");
+    Logger.getRootLogger().removeAppender("LogFileAppender");
+    //BasicConfigurator.configure();
+    Appender app;
+    app = new WebLogAppender(logList);
+    app.setName("WebLogAppender");
+    Logger.getRootLogger().addAppender(app);
+    if (COConfigurationManager.getBooleanParameter("Server_bLogFile")) {
+      try{
+        app = new FileAppender(new PatternLayout(), COConfigurationManager.getStringParameter("Server_sLogFile"),true);
+        app.setName("LogFileAppender");
+        Logger.getRootLogger().addAppender(app);
+      }catch (Exception e){}
+    }
+    LGLogger2Log4j.core.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelCore")));
+    loggerWeb.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelWebinterface")));
   }
   
 }

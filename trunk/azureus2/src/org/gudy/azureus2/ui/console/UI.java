@@ -17,12 +17,13 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.common.IUserInterface;
+import org.gudy.azureus2.ui.common.UIConst;
 
 /**
  *
  * @author  Tobias Minich
  */
-public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocaleUtilChooser,IUserInterface {
+public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implements ILocaleUtilChooser,IUserInterface {
   
   private ConsoleInput console = null;
   
@@ -41,11 +42,11 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
   
   public void startUI() {
     super.startUI();
-    TorrentDownloaderFactory.initManager(org.gudy.azureus2.ui.common.Main.GM, true, true);
+    TorrentDownloaderFactory.initManager(UIConst.GM, true, true);
     if ((!isStarted()) || (console == null) || ((console!=null) && (!console.isAlive()))) {
       ConsoleInput.printconsolehelp(System.out);
       System.out.println();
-      console = new ConsoleInput("Main", org.gudy.azureus2.ui.common.Main.GM, System.in, System.out, true);
+      console = new ConsoleInput("Main", UIConst.GM, System.in, System.out, true);
     }
   }
   
@@ -59,9 +60,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
       Logger.getLogger("azureus2.ui.console").error("Something is wrong with "+fileName+". Not added. (Reason: "+e.getMessage()+")");
       return;
     }
-    if (org.gudy.azureus2.ui.common.Main.GM!=null) {
+    if (UIConst.GM!=null) {
       try {
-        org.gudy.azureus2.ui.common.Main.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
+        UIConst.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
       } catch (Exception e) {
         Logger.getLogger("azureus2.ui.console").error("The torrent "+fileName+" could not be added.", e);
       }

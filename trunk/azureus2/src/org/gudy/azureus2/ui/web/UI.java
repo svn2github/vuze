@@ -17,12 +17,13 @@ import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.common.IUserInterface;
+import org.gudy.azureus2.ui.common.UIConst;
 
 /**
  *
  * @author  Tobias Minich
  */
-public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocaleUtilChooser,IUserInterface {
+public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implements ILocaleUtilChooser,IUserInterface {
   
   Jhttpp2Server server = null;
   
@@ -41,9 +42,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
   
   public void startUI() {
     super.startUI();
-    TorrentDownloaderFactory.initManager(org.gudy.azureus2.ui.common.Main.GM, true, true);
+    TorrentDownloaderFactory.initManager(UIConst.GM, true, true);
     if ((!isStarted()) || (server==null)) {
-      server = new Jhttpp2Server(org.gudy.azureus2.ui.common.Main.GM, true);
+      server = new Jhttpp2Server(UIConst.GM, true);
       new Thread(server, "Webinterface Server").start();
       System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
     }
@@ -59,9 +60,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
       Logger.getLogger("azureus2.ui.web").error("Something is wrong with "+fileName+". Not added. (Reason: "+e.getMessage()+")");
       return;
     }
-    if (org.gudy.azureus2.ui.common.Main.GM!=null) {
+    if (UIConst.GM!=null) {
       try {
-        org.gudy.azureus2.ui.common.Main.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
+        UIConst.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
       } catch (Exception e) {
         Logger.getLogger("azureus2.ui.web").error("The torrent "+fileName+" could not be added.", e);
       }

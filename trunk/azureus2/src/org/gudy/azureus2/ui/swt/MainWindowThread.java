@@ -7,6 +7,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.ui.common.UIConst;
 
 /**
  *
@@ -43,7 +44,7 @@ public class MainWindowThread extends Thread {
   }
   
   public void run() {
-    mainWindow = new MainWindow(org.gudy.azureus2.ui.common.Main.GM, null);
+    mainWindow = new MainWindow(UIConst.GM, null);
     mainWindow.waitForClose();
     org.gudy.azureus2.ui.common.Main.shutdown();
   }

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.ui.common.util.SLevel;
 
 /**
  * File: Jhttpp2BufferedFilterStream.java
