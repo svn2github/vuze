@@ -80,7 +80,7 @@ Test
 				
 				StandardPlugin	sp = sps[i];
 				
-				System.out.println( "Standard Pluging: " + sp.getId() + " - " + sp.getVersion());
+				System.out.println( "Standard Plugin: " + sp.getId() + " - " + sp.getVersion());
 			}
 		}catch( Throwable e ){
 			
