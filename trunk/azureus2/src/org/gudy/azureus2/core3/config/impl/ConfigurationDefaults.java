@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.io.File;
 
-import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
@@ -152,14 +151,6 @@ public class ConfigurationDefaults {
     def.put("Tracker Username", "");
     def.put("Tracker Password", "");
     
-    boolean bGTKTableBug = false;
-    try {
-      bGTKTableBug = Constants.isLinux && SWT.getPlatform().equals("gtk");
-    } catch (NoClassDefFoundError e) {
-      /* Ignore, SWT not installed */
-    }
-    
-    def.put("SWT_bGTKTableBug", new Long(bGTKTableBug ? 1: 0));
     def.put("Colors.progressBar.override", new Long(0));
     
     def.put("Logging Enable", new Long(0));

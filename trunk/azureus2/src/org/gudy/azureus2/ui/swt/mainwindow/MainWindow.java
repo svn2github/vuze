@@ -42,7 +42,6 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -142,7 +141,6 @@ MainWindow
   private Composite statusUpdate;
   private Label statusUpdateLabel;
   private ProgressBar statusUpdateProgressBar;
-  private Button statusUpdateButton;
   
   //Package visibility for GUIUpdater
   CLabel ipBlocked;
@@ -172,18 +170,18 @@ MainWindow
   public 
   MainWindow(
   	AzureusCore		_azureus_core,
-	Initializer 	initializer) 
+	Initializer 	_initializer) 
   { 
   	try{
 	    LGLogger.log("MainWindow start");
 	    
 	    azureus_core	= _azureus_core;
 	    
-	    this.globalManager = azureus_core.getGlobalManager();
+	    globalManager = azureus_core.getGlobalManager();
 	    
-	    this.initializer = initializer;
+	    initializer = _initializer;
 	    
-	    this.display = SWTThread.getInstance().getDisplay();
+	    display = SWTThread.getInstance().getDisplay();
 	    
 	    window = this;
 	    

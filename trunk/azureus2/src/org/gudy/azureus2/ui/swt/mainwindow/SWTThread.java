@@ -22,7 +22,9 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer;
 
@@ -41,7 +43,15 @@ public class SWTThread {
     if(instance != null) {
       throw new SWTThreadAlreadyInstanciatedException();
     }
-    //Will only return on termination
+    
+    // set SWT specific config parameter defaults
+    
+    boolean bGTKTableBug_default = Constants.isLinux && SWT.getPlatform().equals("gtk");
+  
+    COConfigurationManager.setBooleanDefault( "SWT_bGTKTableBug", bGTKTableBug_default );
+    
+    	//Will only return on termination
+    
     new SWTThread(app);
 
   }
