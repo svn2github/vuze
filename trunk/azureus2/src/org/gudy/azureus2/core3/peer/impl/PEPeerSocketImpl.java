@@ -651,9 +651,6 @@ PEPeerSocketImpl
         break;
       case BT_PIECE :
         if (buffer.limit() < 9) {
-           // NOLAR: temp debug output
-           System.out.println("PeerSocket::analyseBuffer::BT_PIECE:: buffer.limit < 9: "+ buffer.limit());
-           
            LGLogger.log(
              componentID,
              evtProtocol,
