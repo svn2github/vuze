@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.core;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -16,35 +17,40 @@ import java.util.Map;
  * 
  */
 public class TrackerStatus {
-  private String trackerUrl;
-  private String trackerStatus;
+  private URL scrapeURL;
+  byte[] data;
+
   private HashMap hashes;
 
   public TrackerStatus(String trackerUrl) {    
-    this.trackerUrl = trackerUrl;
     this.hashes = new HashMap();
-    if(this.trackerUrl.endsWith("/announce")) {
-      this.trackerUrl = trackerUrl.substring(0,trackerUrl.length()-9);
-    }
+    try {
+      if(trackerUrl.endsWith("/announce"))
+        this.scrapeURL = new URL(trackerUrl.substring(0,trackerUrl.length()-9)  + "/scrape");
+      else
+        this.scrapeURL = new URL(trackerUrl + "/scrape");
+    } catch (Exception e) {
+      e.printStackTrace();
+    } 
+    data = new byte[1024];
   }
 
   public HashData getHashData(Hash hash) {
     return (HashData) hashes.get(hash);
   }
 
-  public void update() {
+  public synchronized void update() {
+    InputStream is = null;
     try {
-      URL reqUrl = new URL(trackerUrl + "/scrape");
-      HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
+      HttpURLConnection con = (HttpURLConnection) scrapeURL.openConnection();
       con.connect();
-      InputStream is = con.getInputStream();
-      byte[] data = new byte[1024];
+      is = con.getInputStream();
       String message = "";
       int nbRead = 0;
-      while (nbRead != -1) {
+      while (nbRead >= 0) {
         try {
           nbRead = is.read(data);
-          if (nbRead != -1)
+          if (nbRead >= 0)
             message += new String(data, 0, nbRead, "ISO-8859-1");
           Thread.sleep(20);
         }
@@ -55,7 +61,7 @@ public class TrackerStatus {
           //e.printStackTrace();
         }
       }
-      Map map = (Map) BDecoder.decode(message.getBytes("ISO-8859-1"));
+      Map map = BDecoder.decode(message.getBytes("ISO-8859-1"));
       map = (Map) map.get("files");
       Iterator iter = map.keySet().iterator();
       while(iter.hasNext()) {
@@ -70,6 +76,12 @@ public class TrackerStatus {
     }
     catch (Exception e) {
       //e.printStackTrace();
+    } finally {
+      if(is != null)
+        try {
+          is.close();
+        } catch (IOException e1) {
+        }
     }
   }
 
