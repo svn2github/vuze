@@ -37,8 +37,7 @@ PEPieceFactory
 		int 			length, 
 		int 			pieceNumber )
 	{
-    PEPiece piece = new PEPieceImpl( manager, length, pieceNumber );
-    manager.pieceAdded(piece);
+    PEPiece piece = new PEPieceImpl( manager, length, pieceNumber );    
 		return piece;
 	}
 }
