@@ -34,4 +34,8 @@ DHTPluginContact
 {
 	public InetSocketAddress
 	getAddress();
+	
+	public boolean
+	isAlive(
+		long		timeout );
 }

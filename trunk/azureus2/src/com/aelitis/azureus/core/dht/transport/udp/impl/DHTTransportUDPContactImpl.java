@@ -26,6 +26,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
+
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
@@ -141,6 +143,46 @@ DHTTransportUDPContactImpl
 		instance_id	= _instance_id;
 	}
 	
+	public boolean
+	isAlive(
+		long		timeout )
+	{
+		final AESemaphore	sem = new AESemaphore( "DHTTransportContact:alive");
+		
+		final boolean[]	alive = { false };
+		
+		try{
+			sendPing(
+				new DHTTransportReplyHandlerAdapter()
+				{
+					public void
+					pingReply(
+						DHTTransportContact contact )
+					{
+						alive[0]	= true;
+						
+						sem.release();
+					}
+					
+					public void
+					failed(
+						DHTTransportContact 	contact,
+						Throwable 				cause )
+					{
+						sem.release();
+					}
+				});
+			
+			sem.reserve( timeout );
+		
+			return( alive[0] );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
+
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler )

@@ -35,5 +35,6 @@ MagnetURIHandlerListener
 	
 	public byte[]
 	download(
-		byte[]		hash );
+		byte[]		hash,
+		long		timeout );
 }

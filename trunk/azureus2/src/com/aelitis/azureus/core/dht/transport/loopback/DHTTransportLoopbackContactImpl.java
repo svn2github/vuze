@@ -85,6 +85,13 @@ DHTTransportLoopbackContactImpl
 		return( null );
 	}
 	
+	public boolean
+	isAlive(
+		long		timeout )
+	{
+		return( true );
+	}
+
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler )

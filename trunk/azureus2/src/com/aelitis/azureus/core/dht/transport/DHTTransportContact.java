@@ -54,6 +54,10 @@ DHTTransportContact
 	public InetSocketAddress
 	getAddress();
 	
+	public boolean
+	isAlive(
+		long		timeout );
+
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler );

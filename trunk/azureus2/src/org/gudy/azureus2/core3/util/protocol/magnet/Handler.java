@@ -41,7 +41,7 @@ Handler
 	openConnection(URL u)
 	{			
 		String	str = u.toString();
-		
+				
 		str = "http://127.0.0.1:" + MagnetURIHandler.getSingleton().getPort() + "/download/" + str.substring( 7 );
 		
 		try{

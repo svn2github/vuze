@@ -59,6 +59,14 @@ DDBaseContactImpl
 		return( contact.getAddress().toString());
 	}
 	
+	public boolean
+	isAlive(
+		long		timeout )
+	{
+		return( contact.isAlive( timeout ));
+	}
+	
+
 	public void
 	write(
 		DistributedDatabaseTransferType		type,

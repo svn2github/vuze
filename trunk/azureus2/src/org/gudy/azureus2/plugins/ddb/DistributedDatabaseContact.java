@@ -33,6 +33,10 @@ DistributedDatabaseContact
 	public String
 	getName();
 	
+	public boolean
+	isAlive(
+		long		timeout );
+	
 	public void
 	write(
 		DistributedDatabaseTransferType		type,

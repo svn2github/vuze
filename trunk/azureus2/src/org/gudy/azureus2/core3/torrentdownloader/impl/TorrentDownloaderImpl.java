@@ -55,7 +55,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
   public TorrentDownloaderImpl() {
     super("Torrent Downloader");
-    setDaemon(true);
+     setDaemon(true);
   }
 
   public void 
@@ -150,6 +150,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	      }
 	      
 	      this.con.connect();
+	      
+	      break;
 	      
       	}catch( SSLException e ){
       		

@@ -128,7 +128,9 @@ MagnetURIHandlerImpl
 							        	if ( line != null ){
 							        		
 								        	if ( line.toUpperCase().startsWith( "GET " )){
-								        		
+								        	
+									        	LGLogger.log("MagentURIHandler: processing '" + line + "'" );
+
 								        		line = line.substring(4);
 								        		
 								        		int	pos = line.lastIndexOf(' ');
@@ -237,7 +239,7 @@ MagnetURIHandlerImpl
 			
 			for (int i=0;i<listeners.size();i++){
 			
-				data = ((MagnetURIHandlerListener)listeners.get(i)).download( sha1 );
+				data = ((MagnetURIHandlerListener)listeners.get(i)).download( sha1, 60000 );
 				
 				break;
 			}

@@ -922,5 +922,12 @@ DHTPlugin
 		{
 			return( contact.getAddress());
 		}
+		
+		public boolean
+		isAlive(
+			long		timeout )
+		{
+			return( contact.isAlive( timeout ));
+		}
 	}
 }
