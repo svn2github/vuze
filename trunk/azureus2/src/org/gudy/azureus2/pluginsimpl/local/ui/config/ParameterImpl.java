@@ -50,6 +50,8 @@ ParameterImpl
 	private List	listeners		= new ArrayList();
 	private List	impl_listeners	= new ArrayList();
 	
+	private ParameterGroupImpl	parameter_group;
+	
 	public 
 	ParameterImpl(
 		PluginConfig	_config,
@@ -126,6 +128,19 @@ ParameterImpl
 	isEnabled()
 	{
 		return( enabled );
+	}
+	
+	public void
+	setGroup(
+		ParameterGroupImpl	_group )
+	{
+		parameter_group = _group;
+	}
+	
+	public ParameterGroupImpl
+	getGroup()
+	{
+		return( parameter_group );
 	}
 	
 	public void

@@ -31,6 +31,7 @@ import java.util.*;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.*;
@@ -41,6 +42,7 @@ import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
@@ -232,6 +234,21 @@ BasicPluginConfigModelImpl
 		return( res );			
 	}
 	
+	public ParameterGroup
+	createGroup(
+		String											_resource_name,
+		org.gudy.azureus2.plugins.ui.config.Parameter[]	_parameters )
+	{
+		ParameterGroupImpl	pg = new ParameterGroupImpl( _resource_name );
+		
+		for (int i=0;i<_parameters.length;i++){
+			
+			((ParameterImpl)_parameters[i]).setGroup( pg );
+		}
+		
+		return( pg );
+	}
+	
 	public Composite 
 	configSectionCreate(
 		Composite parent ) 
@@ -239,11 +256,11 @@ BasicPluginConfigModelImpl
 		
 			// main tab set up
 		
-		Composite gMainTab = new Composite(parent, SWT.NULL);
+		Composite main_tab = new Composite(parent, SWT.NULL);
 		
 		GridData main_gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		
-		gMainTab.setLayoutData(main_gridData);
+		main_tab.setLayoutData(main_gridData);
 		
 		GridLayout layout = new GridLayout();
 		
@@ -251,15 +268,49 @@ BasicPluginConfigModelImpl
 		
 		layout.marginHeight = 0;
 		
-		gMainTab.setLayout(layout);
+		main_tab.setLayout(layout);
 		
 		final Map	comp_map	= new HashMap();
+		
+		ParameterGroupImpl	current_group	= null;
+		
+		Composite current_composite	= main_tab;
 		
 		for (int i=0;i<parameters.size();i++){
 			
 			final ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
 		
-			Label label = new Label(gMainTab, param instanceof LabelParameterImpl?SWT.WRAP:SWT.NULL);
+			ParameterGroupImpl	pg = param.getGroup();
+			
+			if ( pg == null ){
+				
+				current_composite = main_tab;
+				
+			}else{
+			
+				if ( pg != current_group ){
+					
+					current_group	= pg;
+					
+					current_composite = new Group(main_tab, SWT.NULL);
+					
+					Messages.setLanguageText(current_composite, current_group.getResourceName());
+					
+					GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+					
+					gridData.horizontalSpan = 2;
+					
+					current_composite.setLayoutData(gridData);
+					
+					layout = new GridLayout();
+					
+					layout.numColumns = 2;
+					
+					current_composite.setLayout(layout);			
+				}
+			}
+			
+			Label label = new Label(current_composite, param instanceof LabelParameterImpl?SWT.WRAP:SWT.NULL);
 			
 			Messages.setLanguageText(label, param.getLabel());
 						
@@ -271,11 +322,11 @@ BasicPluginConfigModelImpl
 			
 			if ( param instanceof BooleanParameterImpl ){
 				
-				swt_param = new BooleanParameter(gMainTab, key, ((BooleanParameterImpl)param).getDefaultValue());
+				swt_param = new BooleanParameter(current_composite, key, ((BooleanParameterImpl)param).getDefaultValue());
 					
 			}else if ( param instanceof IntParameterImpl ){
 						
-				swt_param = new IntParameter(gMainTab, key, ((IntParameterImpl)param).getDefaultValue());
+				swt_param = new IntParameter(current_composite, key, ((IntParameterImpl)param).getDefaultValue());
 				
 				GridData gridData = new GridData();
 				gridData.widthHint = 100;
@@ -288,7 +339,7 @@ BasicPluginConfigModelImpl
 				
 				gridData.widthHint = 150;
 
-				swt_param = new StringParameter(gMainTab, key, ((StringParameterImpl)param).getDefaultValue());
+				swt_param = new StringParameter(current_composite, key, ((StringParameterImpl)param).getDefaultValue());
 				
 				swt_param.setLayoutData( gridData );
 				
@@ -300,7 +351,7 @@ BasicPluginConfigModelImpl
 				
 				gridData.widthHint = 150;
 
-				swt_param = new StringListParameter(gMainTab, key, sl_param.getDefaultValue(), sl_param.getValues(), sl_param.getValues());
+				swt_param = new StringListParameter(current_composite, key, sl_param.getDefaultValue(), sl_param.getValues(), sl_param.getValues());
 				
 				swt_param.setLayoutData( gridData );
 				
@@ -310,13 +361,13 @@ BasicPluginConfigModelImpl
 				
 				gridData.widthHint = 150;
 
-				swt_param = new PasswordParameter(gMainTab, key, ((PasswordParameterImpl)param).getEncodingType() == PasswordParameterImpl.ET_SHA1 );
+				swt_param = new PasswordParameter(current_composite, key, ((PasswordParameterImpl)param).getEncodingType() == PasswordParameterImpl.ET_SHA1 );
 				
 				swt_param.setLayoutData( gridData );
 				
 			}else if ( param instanceof DirectoryParameterImpl ){
 				
-				Composite area = new Composite(gMainTab, SWT.NULL);
+				Composite area = new Composite(current_composite, SWT.NULL);
 
 				GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_HORIZONTAL );
 				
@@ -334,7 +385,7 @@ BasicPluginConfigModelImpl
 		
 			}else if ( param instanceof ActionParameterImpl ){
 				
-				swt_param = new ButtonParameter( gMainTab, MessageText.getString(((ActionParameterImpl)param).getActionResource()));
+				swt_param = new ButtonParameter( current_composite, MessageText.getString(((ActionParameterImpl)param).getActionResource()));
 				
 				swt_param.addChangeListener(
 						new ParameterChangeListener()
@@ -475,6 +526,6 @@ BasicPluginConfigModelImpl
 			}
 		}
 		
-		return( gMainTab );
+		return( main_tab );
 	}
 }

@@ -268,5 +268,13 @@ UIManagerImpl
 	{
 		return( new ActionParameterImpl(plugin_config, label_resource_name, action_resource_name));
 	}
+	
+	public ParameterGroup
+	createGroup(
+		String		resource_name,
+		Parameter[]	parameters )
+	{
+		return( new ParameterGroup(){});
+	}
   }
 }

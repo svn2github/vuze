@@ -109,4 +109,9 @@ BasicPluginConfigModel
 	addActionParameter2(
 		String 		label_resource_name,
 		String		action_resource_name );
+	
+	public ParameterGroup
+	createGroup(
+		String		resource_name,
+		Parameter[]	parameters );
 }
