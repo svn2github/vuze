@@ -319,6 +319,7 @@ PEPeerTransportProtocol
   			if (closing){
           
           if( reason.indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+              reason.indexOf( "Closing all Connections" ) == -1 &&
               reason.indexOf( "end of stream on socket read" ) == -1 ) {
             Debug.out( "closeAll() called for [" +reason+ "] but already 'closing'" );
           }
