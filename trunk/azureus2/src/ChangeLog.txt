@@ -48,6 +48,8 @@ BUGFIX: UI   | Upload caps for individual transfers now display more sensible va
 BUGFIX: UI   | In My Torrents, a category view will no longer prevent its corresponding table view's horizontal scrolling [CrazyAlchemist]
 BUGFIX: UI   | Download bars should no longer disappear when the main window is minimized (Mac OS X) [CrazyAlchemist]
 BUGFIX: UI   | Certain table column contents no longer 'disappear' when a row is selected (Mac OS X) [CrazyAlchemist]
+BUGFIX: Core | Send uninterested message when complete while using do-not-download feature [Nolar]
+
 
 
 

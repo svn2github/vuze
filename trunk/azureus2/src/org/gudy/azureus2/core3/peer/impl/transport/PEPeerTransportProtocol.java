@@ -545,9 +545,7 @@ PEPeerTransportProtocol
   }
   
   
-  
 
-  
   /**
    * Global checkInterested method.
    * Scans the whole pieces to determine if it's interested or not
@@ -555,24 +553,30 @@ PEPeerTransportProtocol
   private void checkInterested() {
     if ( getPeerState() == CLOSING ) return;
     
-		boolean newInterested = false;
-		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
-		
-		for (int i = 0; i < pieces.length; i++) {
-			if ( !pieces[i].getDone() && other_peer_has_pieces[i] ) {
-				newInterested = true;
-				break;
-			}
-		}
-		if ( newInterested && !interested_in_other_peer ) {
+		boolean is_interesting = false;
+    
+    if( manager.getDiskManager().hasDownloadablePiece() ) {  //there is a piece worth being interested in
+      DiskManagerPiece[]  pieces = manager.getDiskManager().getPieces();
+      
+      for (int i = 0; i < pieces.length; i++) {
+        if ( !pieces[i].getDone() && other_peer_has_pieces[i] ) {
+          is_interesting = true;
+          break;
+        }
+      }
+    }
+    
+		if ( is_interesting && !interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTInterested(), false );
 		}
-    else if ( !newInterested && interested_in_other_peer ) {
+    else if ( !is_interesting && interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTUninterested(), false );
 		}
-		interested_in_other_peer = newInterested;
+    
+		interested_in_other_peer = is_interesting;
 	}
 
+  
   
   /**
    * Checks interested given a new piece received
@@ -580,19 +584,25 @@ PEPeerTransportProtocol
    */
   private void checkInterested( int pieceNumber ) {
     if ( getPeerState() == CLOSING ) return;
+
+    boolean is_interesting = false;
     
-    DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
-		boolean newInterested = !pieces[ pieceNumber ].getDone();
-		if ( newInterested && !interested_in_other_peer ) {
+    if( manager.getDiskManager().hasDownloadablePiece() ) {  //there is a piece worth being interested in
+      is_interesting = !manager.getDiskManager().getPieces()[ pieceNumber ].getDone();  //we dont have that piece yet
+    }
+    
+		if ( is_interesting && !interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTInterested(), false );
 		}
-    else if ( !newInterested && interested_in_other_peer ) {
+    else if ( !is_interesting && interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTUninterested(), false );
 		}
-		interested_in_other_peer = newInterested;
+    
+		interested_in_other_peer = is_interesting;
 	}
   
 
+  
   /**
    * Private method to send the bitfield.
    */
