@@ -50,18 +50,21 @@ public class NameItem
     String name = (item == null) ? "" 
                                  : TorrentUtils.getLocalisedName(item.getTorrent());
     //setText returns true only if the text is updated
-    //setText returns true only if the text is updated
+  
     if (cell.setText(name)) {
     	
     	boolean	folder_icon	= false;
     	
      			// for non-simple torrents the target is always a directory
+  
+    	if (item != null ){
     		
-    	TOTorrent	torrent = item.getTorrent();
-    		
-    	if ( torrent != null && !torrent.isSimpleTorrent()){
-    			
-    		folder_icon	= true;
+	    	TOTorrent	torrent = item.getTorrent();
+	    		
+	    	if ( torrent != null && !torrent.isSimpleTorrent()){
+	    			
+	    		folder_icon	= true;
+	    	}
     	}
     	   	
     	if ( folder_icon ){
@@ -71,6 +74,7 @@ public class NameItem
     		((TableCellCore)cell).setImage(icon);
     		
     	}else{
+    		
 	      int sep = name.lastIndexOf('.');
 		
 	      if(sep < 0) sep = 0;
