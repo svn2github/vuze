@@ -58,7 +58,7 @@ Main
 				}
 			});
 		
-		frame.setSize(100,200);
+		frame.setSize(600,300);
 
 		Container cont = frame.getContentPane();
 		

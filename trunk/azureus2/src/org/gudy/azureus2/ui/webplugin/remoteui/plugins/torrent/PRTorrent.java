@@ -41,6 +41,7 @@ PRTorrent
 	protected transient Torrent		delegate;
 
 	protected String		name;
+	protected long			size;
 	
 	public static PRTorrent
 	create(
@@ -65,6 +66,7 @@ PRTorrent
 		delegate	= _delegate;
 		
 		name		= _delegate.getName();
+		size		= _delegate.getSize();
 	}
 	
 	public void
@@ -105,12 +107,11 @@ PRTorrent
 		
 		return(null);
 	}	
+	
 	public long
 	getSize()
 	{
-		notSupported();
-		
-		return(0);
+		return( size );
 	}
 	
 	public String

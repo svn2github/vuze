@@ -26,9 +26,13 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.view;
  *
  */
 
+import java.awt.*;
+
 import javax.swing.*;
+import javax.swing.table.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.model.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 VWDownloadView 
@@ -41,11 +45,37 @@ VWDownloadView
 	{
 		TableSorter  sorter = new TableSorter(model);
 		
-		JTable    tableView = new JTable(sorter);
+		JTable    table = new JTable(sorter);
 		
-		sorter.addMouseListenerToHeaderInTable(tableView);
+		TableColumnModel cm = table.getColumnModel();
+		
+		cm.getColumn(1).setCellRenderer(
+			new DefaultTableCellRenderer()
+			{
+				public Component 
+				getTableCellRendererComponent(
+					JTable		table,
+					Object 		o_value,
+					boolean 	isSelected,
+					boolean 	hasFocus,
+					int 		row,
+					int 		column )
+				{
+					long	value = ((Long)o_value).longValue();
 
-		JScrollPane scrollpane = new JScrollPane(tableView);
+					String	str = DisplayFormatters.formatByteCountToKiBEtc(value);
+					
+					JLabel	res = (JLabel)super.getTableCellRendererComponent( table, str, isSelected, hasFocus, row,column );
+					
+					res.setHorizontalAlignment( JLabel.RIGHT );
+					
+					return( res );
+				}
+			});
+		
+		sorter.addMouseListenerToHeaderInTable(table);
+
+		JScrollPane scrollpane = new JScrollPane(table);
 		
 		component	= scrollpane;
 	}

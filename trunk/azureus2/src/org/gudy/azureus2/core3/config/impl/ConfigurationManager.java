@@ -38,13 +38,23 @@ public class ConfigurationManager {
   private Hashtable parameterListeners = new Hashtable();
   
   private ConfigurationManager() {
-    load();
+  	load();
+  }
+  
+  private ConfigurationManager(Map data) {
+  	propertiesMap	= data;
   }
   
   public synchronized static ConfigurationManager getInstance() {
-    if (config == null)
-      config = new ConfigurationManager();
-    return config;
+  	if (config == null)
+  		config = new ConfigurationManager();
+  	return config;
+  }
+  
+  public synchronized static ConfigurationManager getInstance(Map data) {
+  	if (config == null)
+  		config = new ConfigurationManager(data);
+  	return config;
   }
   
   public void load(String filename) {

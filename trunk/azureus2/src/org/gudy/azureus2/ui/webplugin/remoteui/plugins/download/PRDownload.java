@@ -40,6 +40,9 @@ PRDownload
 {
 	protected transient Download		delegate;
 
+	protected int		state;
+	protected PRTorrent	torrent;
+	
 	public static PRDownload
 	create(
 		Download		_delegate )
@@ -50,7 +53,7 @@ PRDownload
 			
 			res = new PRDownload( _delegate );
 		}
-		
+			
 		return( res );
 	}
 	
@@ -61,6 +64,13 @@ PRDownload
 		super( _delegate );
 		
 		delegate	= _delegate;
+		
+		torrent = (PRTorrent)_lookupLocal( _delegate.getTorrent());
+		
+		if ( torrent == null ){
+			
+			torrent = PRTorrent.create( _delegate.getTorrent());
+		}
 	}
 	
 	public void
@@ -69,8 +79,18 @@ PRDownload
 		throws RPException
 	{
 		delegate = (Download)_fixupLocal();
+		
+		torrent._setLocal();
 	}
 	
+	public void
+	_setRemote(
+		RPRequestDispatcher		_dispatcher )
+	{
+		super._setRemote( _dispatcher );
+		
+		torrent._setRemote( _dispatcher );
+	}
 	
 	public RPReply
 	_process(
@@ -108,11 +128,7 @@ PRDownload
 	public Torrent
 	getTorrent()
 	{
-		PRTorrent	res = (PRTorrent)dispatcher.dispatch( new RPRequest( this, "getTorrent", null )).getResponse();
-	
-		res._setRemote( dispatcher );
-		
-		return( res );		
+		return( torrent );
 	}
 	
 	public void

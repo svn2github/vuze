@@ -36,6 +36,7 @@ import java.awt.*;
 
 import javax.net.ssl.*;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 import org.gudy.azureus2.plugins.*;
@@ -55,6 +56,10 @@ RemoteUIApplet
 	public void
 	init()
 	{
+			// set up dummy configuration parameters as file-based default read will fail as 
+			// we are an applet!
+		
+		COConfigurationManager.initialiseFromMap( new HashMap());
 	}
 	
 	public void

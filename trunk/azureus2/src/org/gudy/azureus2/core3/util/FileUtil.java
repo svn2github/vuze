@@ -201,8 +201,16 @@ public class FileUtil {
 	public static boolean
 	isJavaWebStart()
 	{
-		String	java_ws_prop = System.getProperty("azureus.javaws");
+		try{
+			String	java_ws_prop = System.getProperty("azureus.javaws");
     
-		return( java_ws_prop != null && java_ws_prop.equals( "true"));
+			return( java_ws_prop != null && java_ws_prop.equals( "true"));
+			
+		}catch( Throwable e ){
+			
+				// we can get here if running in an applet as we have no access to system props
+			
+			return( false );
+		}
 	}
 }

@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.core3.config;
 
+import java.util.Map;
 import java.io.IOException;
 
 import org.gudy.azureus2.core3.config.impl.*;
@@ -38,6 +39,13 @@ COConfigurationManager
 	checkConfiguration()
 	{
 		ConfigurationChecker.checkConfiguration();
+	}
+	
+	public static void
+	initialiseFromMap(
+		Map		data )
+	{
+		ConfigurationManager.getInstance(data);
 	}
 	
 	public static String
