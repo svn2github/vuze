@@ -51,6 +51,8 @@ PEPeerManager
 		boolean result );
 
 	public int[] getAvailability();
+
+	public int getAvailability(int pieceNumber);
 	
 	public boolean[] getPiecesStatus();
 
@@ -64,8 +66,6 @@ PEPeerManager
 
 	public String getTrackerStatus();
 	
-	public int getAvailability(int pieceNumber);
-
 	public int getNbPeers();
 
 	public int getNbSeeds();

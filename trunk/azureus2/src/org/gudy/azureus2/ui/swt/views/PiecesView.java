@@ -276,7 +276,7 @@ public class PiecesView extends AbstractIView implements DownloadManagerListener
         return piece.getCompleted();
 
       if (field.equals("availability")) //$NON-NLS-1$
-        return piece.getManager().getAvailability(piece.getPieceNumber());
+        return piece.getAvailability();
 
       return 0;
     }

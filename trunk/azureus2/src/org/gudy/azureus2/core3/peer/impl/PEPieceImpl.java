@@ -68,16 +68,21 @@ PEPieceImpl
 	this(manager, length);
 	this.pieceNumber = pieceNumber;
   }
-
-  public PEPeerManager
-  getManager()
-  {
-  	return( manager );
-  }
-  
+ 
   public void setWritten(int blocNumber) {
 	written[blocNumber] = true;
 	completed++;
+  }
+
+  public int 
+  getAvailability()
+  {
+  	if ( manager == null ){
+  		
+  		return( 0 );
+  	}
+  	
+  	return( manager.getAvailability( getPieceNumber()));
   }
 
   public boolean isComplete() {

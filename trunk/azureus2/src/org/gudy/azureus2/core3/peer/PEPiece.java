@@ -31,13 +31,12 @@
 public interface 
 PEPiece 
 {  
-  public PEPeerManager
-  getManager();
-
   public void setWritten(int blocNumber);
  
   public void unmarkBlock(int blocNumber);
-  
+ 
+  public int getAvailability();
+   
   public int getPieceNumber();
   
   public int getLength();

@@ -86,7 +86,7 @@ public class PieceTableItem {
       oldTexts[4] = tmp;
     }
 
-    tmp = "" + piece.getManager().getAvailability(piece.getPieceNumber());
+    tmp = "" + piece.getAvailability();
     if (!(oldTexts[5].equals(tmp))) {
       item.setText(5, tmp);
       oldTexts[5] = tmp;
