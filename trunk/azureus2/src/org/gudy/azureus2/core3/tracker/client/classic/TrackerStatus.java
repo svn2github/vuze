@@ -119,7 +119,7 @@ public class TrackerStatus {
         TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
         if (!r.getHash().equals(hash)) {
           long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
-          if (lTimeDiff <= 30000) {
+          if (lTimeDiff <= 30000 && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
             r.setStatus(TRTrackerScraperResponse.ST_SCRAPING);
             r.setStatusString(MessageText.getString("Scrape.status.scraping"));
             responsesToUpdate.add(r);
@@ -320,72 +320,30 @@ public class TrackerStatus {
   	
   	try{
 	  	HttpURLConnection con = null;
-	  	
-	    // TODO: replace iOtherPorts with config-based equiv.
-	    // XXX: This is great for scrape, but announce needs this too otherwise
-	    //      it's pretty pointless. (ie. scrape suceeds, seeding starts, bug fails to connect to tracker)
-	    //      Need to update tracker URL.
-	    int[] iOtherPorts = {-1, 443};
-	    boolean passed = false;
-	    String sNewURL = scrapeURL;
-	    String sNewURLFull = reqUrl.toString();
-	    int iOldPort = reqUrl.getPort();
-	    ConnectException connectexception = null;
-      for (int i = 0; i < iOtherPorts.length; i++) {
-        try {
-          if (iOtherPorts[i] != -1) {
-            if (iOldPort == -1)
-              break;
 
-            sNewURL = scrapeURL.replaceAll(":" + reqUrl.getPort() + "/", 
-                                           ":" + String.valueOf(iOtherPorts[i]) + "/");
-            sNewURLFull = reqUrl.toString().replaceAll(":" + reqUrl.getPort() + "/", 
-                                                       ":" + String.valueOf(iOtherPorts[i]) + "/");
-          }
-          reqUrl = new URL(sNewURLFull);
-    	  	if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
-    	  		// see ConfigurationChecker for SSL client defaults
-    	  		HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
-    	  		
-    	  		// allow for certs that contain IP addresses rather than dns names
-    	  		ssl_con.setHostnameVerifier(
-    	  				new HostnameVerifier() {
-    	  					public boolean verify(String host, SSLSession session) {
-    	  						return( true );
-    	  					}
-    	  				});
-    	  		
-    	  		con = ssl_con;
-    	  		
-    	  	} else {
-    	  		con = (HttpURLConnection) reqUrl.openConnection();
-    	  	}
+	  	if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
+	  		// see ConfigurationChecker for SSL client defaults
+	  		HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+	  		
+	  		// allow for certs that contain IP addresses rather than dns names
+	  		ssl_con.setHostnameVerifier(
+	  				new HostnameVerifier() {
+	  					public boolean verify(String host, SSLSession session) {
+	  						return( true );
+	  					}
+	  				});
+	  		
+	  		con = ssl_con;
+	  		
+	  	} else {
+	  		con = (HttpURLConnection) reqUrl.openConnection();
+	  	}
 
-    	  	con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
-	      	// some trackers support gzip encoding of replies
-	  	    con.addRequestProperty("Accept-Encoding","gzip");
-    	  	con.connect();
+	  	con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
+    	// some trackers support gzip encoding of replies
+	    con.addRequestProperty("Accept-Encoding","gzip");
+	  	con.connect();
 
-          passed = true;
-          if (iOtherPorts[i] != -1) {
-            LGLogger.log(LGLogger.INFORMATION, 
-      									"Scrape changed from port " + iOldPort + " to " + iOtherPorts[i]);
-          }
-        } catch (ConnectException e1) { 
-          if (connectexception == null)
-            connectexception = e1;/** Connection timed out: connect */
-        }
-
-        if (passed)
-          break;
-      }
-
-      if (passed) {
-        scrapeURL = sNewURL;
-      } else {
-        throw(connectexception);
-      }
-	  	
 	  	is = con.getInputStream();
 	
 	  	String encoding = con.getHeaderField( "content-encoding");
