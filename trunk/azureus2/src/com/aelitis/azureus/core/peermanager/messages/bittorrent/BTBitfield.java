@@ -61,7 +61,7 @@ public class BTBitfield implements BTProtocolMessage {
     return "Bitfield";
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
+  public int getPriority() {  return ProtocolMessage.PRIORITY_URGENT;  }
    
   public void destroy() {
     //buffer.returnToPool();
