@@ -77,7 +77,7 @@ DownloadManagerImpl
 			{
 				public void
 				downloadManagerAdded(
-						DownloadManager	dm )
+					DownloadManager	dm )
 				{
 					synchronized( listeners ){
 						
@@ -251,6 +251,22 @@ DownloadManagerImpl
 		synchronized( listeners ){
 			
 			listeners.add( l );
+			
+			for (int i=0;i<downloads.size();i++){
+				
+				try{
+					Download dl = (Download)download_map.get(downloads.get(i));
+					
+					if ( dl != null ){
+						
+						l.downloadAdded(dl);
+					}
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
