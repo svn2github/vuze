@@ -84,17 +84,25 @@ public class TableSorter implements ParameterListener {
     return lastSortedTableColumn.getName();
   }
 
+  public void sortColumn(boolean bForce) {
+    sortColumn(lastSortedTableColumn, bLastAscending, bForce);
+  }
+
   public void sortColumn() {
-    sortColumn(lastSortedTableColumn, bLastAscending);
+    sortColumn(lastSortedTableColumn, bLastAscending, false);
   }
 
   public void sortColumnReverse(TableColumnCore tableColumn) {
     bLastAscending = (lastSortedTableColumn == tableColumn) ? !bLastAscending
                                                             : true;
-    sortColumn(tableColumn, bLastAscending);
+    sortColumn(tableColumn, bLastAscending, false);
   }
 
   public void sortColumn(TableColumnCore tableColumn, boolean bAscending) {
+    sortColumn(tableColumn, bAscending, false);
+  }
+
+  public void sortColumn(TableColumnCore tableColumn, boolean bAscending, boolean bForce) {
     if (tableColumn == null)
       return;
 
@@ -114,6 +122,11 @@ public class TableSorter implements ParameterListener {
 
     List columnCellList = sortableTable.getColumnCoreCells(sColumnName);
     TableCellCore[] cells = (TableCellCore[])columnCellList.toArray(new TableCellCore[0]);
+    
+    if (bForce) {
+      for (int i = 0; i < cells.length; i++)
+        cells[i].refresh();
+    }
 
     if (bLastAscending)
       Arrays.sort(cells);

@@ -287,6 +287,7 @@ public class TableView
         iMouseX = e.x;
         // skip if outside client area (ie. scrollbars)
         Rectangle rTableArea = table.getClientArea();
+        System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
         Point pMousePosition = new Point(e.x, e.y);
         if (rTableArea.contains(pMousePosition)) {
           // Use 1 because of inconsistent behaviour of getItem

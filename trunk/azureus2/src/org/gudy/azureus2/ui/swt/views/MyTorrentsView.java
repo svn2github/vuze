@@ -975,7 +975,7 @@ public class MyTorrentsView
       lastIndex = dm.getIndex();
     }
     if (sorter.getLastField().equals("#"))
-      sorter.reOrder(true);
+      sorter.sortColumn(true);
   }
 
   /* (non-Javadoc)
@@ -1223,7 +1223,7 @@ public class MyTorrentsView
     }
 
     if (sorter.getLastField().equals("#"))
-      sorter.reOrder(true);
+      sorter.sortColumn(true);
   }
 
   private void moveSelectedTorrentsUp() {
@@ -1237,7 +1237,7 @@ public class MyTorrentsView
     }
 
     if (sorter.getLastField().equals("#"))
-      sorter.reOrder(true);
+      sorter.sortColumn(true);
   }
 
   private void moveSelectedTorrentsTop() {
@@ -1257,7 +1257,7 @@ public class MyTorrentsView
     else
       globalManager.moveEnd(downloadManagers);
     if (sorter.getLastField().equals("#"))
-      sorter.reOrder(true);
+      sorter.sortColumn(true);
   }
 
   /**
