@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
+import org.gudy.azureus2.pluginsimpl.local.update.*;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
 import org.gudy.azureus2.core3.startup.STProgressListener;
@@ -153,6 +154,8 @@ PluginInitializer
   	global_manager.addListener( this );
   	
     this.listener 	= listener;
+    
+    UpdateManagerImpl.getSingleton();	// initialise the update manager
     
     tracker_host	= TRHostFactory.create();
     

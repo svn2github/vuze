@@ -1,5 +1,5 @@
 /*
- * Created on 07-May-2004
+ * Created on 12-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -27,55 +27,32 @@ package org.gudy.azureus2.pluginsimpl.local.update;
  *
  */
 
-import java.util.*;
-
-import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
 
 public class 
-UpdateManagerImpl
-	implements UpdateManager
+UpdatableComponentImpl 
 {
-	protected static UpdateManagerImpl		singleton = new UpdateManagerImpl();
-	
-	public static UpdateManager
-	getSingleton()
-	{
-		return( singleton );
-	}
-
-	protected List	components = new ArrayList();
+	protected UpdatableComponent		comp;
+	protected boolean					mandatory;
 	
 	protected 
-	UpdateManagerImpl()
+	UpdatableComponentImpl(
+		UpdatableComponent		_comp,
+		boolean					_mandatory )
 	{
-			// cause the platform manager to register any updateable components
-		
-		try{
-			PlatformManagerFactory.getPlatformManager();
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
+		comp			= _comp;
+		mandatory		= _mandatory;
 	}
 	
-	public synchronized void
-	registerUpdatableComponent(
-		UpdatableComponent		component,
-		boolean					mandatory )
+	protected UpdatableComponent
+	getComponent()
 	{
-		components.add( new UpdatableComponentImpl( component, mandatory ));
+		return( comp );
 	}
 	
-	
-	public synchronized UpdateCheckInstance
-	createUpdateCheckInstance()
+	protected boolean
+	isMandatory()
 	{
-		UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[components.size()];
-		
-		components.toArray( comps );
-		
-		return( new UpdateCheckInstanceImpl( comps ));
+		return( mandatory );
 	}
 }

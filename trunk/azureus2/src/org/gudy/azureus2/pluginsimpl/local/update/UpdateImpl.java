@@ -37,7 +37,6 @@ public class
 UpdateImpl 
 	implements Update
 {
-	protected UpdateManagerImpl			manager;
 	protected String					name;
 	protected String[]					description;
 	protected String					new_version;
@@ -49,7 +48,6 @@ UpdateImpl
 	
 	protected
 	UpdateImpl(
-		UpdateManagerImpl		_manager,
 		String					_name,
 		String[]				_desc,
 		String					_new_version,
@@ -57,7 +55,6 @@ UpdateImpl
 		boolean					_mandatory,
 		int						_restart_required )
 	{
-		manager				= _manager;
 		name				= _name;
 		description			= _desc;
 		new_version			= _new_version;
@@ -128,27 +125,12 @@ UpdateImpl
 		return( restart_required );
 	}
 	
-
 	public void
 	cancel()
 	{
-		for (int i=0;i<listeners.size();i++){
+		for (int i=0;i<downloaders.length;i++){
 			
-			((UpdateListener)listeners.get(i)).cancelled( this );
+			downloaders[i].cancel();
 		}
-	}
-	
-	public void
-	addListener(
-		UpdateListener		l )
-	{
-		listeners.add( l );
-	}
-	
-	public void
-	removeListener(
-		UpdateListener		l )
-	{
-		listeners.remove( l );
 	}
 }

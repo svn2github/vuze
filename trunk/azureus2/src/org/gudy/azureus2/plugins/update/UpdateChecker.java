@@ -1,5 +1,5 @@
 /*
- * Created on 07-May-2004
+ * Created on 11-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -30,38 +30,47 @@ package org.gudy.azureus2.plugins.update;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public interface 
-Update 
+UpdateChecker 
 {
-	public static final int	RESTART_REQUIRED_NO			= 1;
-	public static final int	RESTART_REQUIRED_YES		= 2;
-	public static final int	RESTART_REQUIRED_MAYBE		= 3;
+		/**
+		 * Add an update with a single downloader
+		 * @param mandatory indicates that in a group of updates this one must succeed
+		 */
 	
-	public String
-	getName();
-
-	public String[]
-	getDescription();
-	
-	public String
-	getNewVersion();
-	
-	public ResourceDownloader[]
-	getDownloaders();
-	
-	public boolean
-	isMandatory();
-	
-	public void
-	setRestartRequired(
-		int	restart_required );
-	
-	public int
-	getRestartRequired();
+	public Update
+	addUpdate(
+		String				name,
+		String[]			description,
+		String				new_version,
+		ResourceDownloader	downloader,
+		int					restart_required );
 	
 		/**
-		 * cancel this update
+		 * Add an update with a number of downloaders
+		 */
+	
+	public Update
+	addUpdate(
+		String					name,
+		String[]				description,
+		String					new_version,
+		ResourceDownloader[]	downloaders,
+		int						restart_required );
+	
+		/**
+		 * Indicate that update checking is complete and that any updates required have
+		 * been added by the addUpdate methods
 		 */
 	
 	public void
-	cancel();
+	completed();
+	
+		/**
+		 * Indicates that the update check failed. Of particular importance for mandatory
+		 * components (e.g. AZ core) as failure of a mandatory one causes all other
+		 * updates to be aborted 
+		 */
+	
+	public void
+	failed();
 }

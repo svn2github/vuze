@@ -1,5 +1,5 @@
 /*
- * Created on 07-May-2004
+ * Created on 11-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -26,27 +26,21 @@ package org.gudy.azureus2.plugins.update;
  * @author parg
  *
  */
+
 public interface 
-UpdateListener 
+UpdateCheckInstance 
 {
-		/**
-		 * Called to inform when the update is complete. This signifies that all
-		 * downloaders have succeeded.
-		 * It is possible to change the "restart required" status of an upload at this
-		 * point to influence the outcome as required
-		 * @param update
-		 */
+	public void
+	start();
+	
+	public Update[]
+	getUpdates();
 	
 	public void
-	completed(
-		Update	update );
-	
-		/**
-		 * Called if the update is cancelled
-		 * @param update
-		 */
+	addListener(
+		UpdateCheckInstanceListener	l );
 	
 	public void
-	cancelled(
-		Update	update );
+	removeListener(
+		UpdateCheckInstanceListener	l );
 }

@@ -39,7 +39,8 @@ import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 
 public class 
-PlatformManagerUpdateChecker 
+PlatformManagerUpdateChecker
+	implements UpdatableComponent
 {
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
@@ -47,28 +48,21 @@ PlatformManagerUpdateChecker
 	public static final String	UPDATE_DIR				= Constants.SF_WEB_SITE + "update2/";
 	public static final String	UPDATE_PROPERTIES_FILE	= UPDATE_DIR + PlatformManagerImpl.DLL_NAME + ".dll.properties";
 	
+	
+	protected PlatformManagerImpl		platform;
+	
 	protected
 	PlatformManagerUpdateChecker(
-		final PlatformManagerImpl		platform )
+		PlatformManagerImpl		_platform )
 	{
-		Thread	t = 
-			new Thread("Win32PlatformManager:updateChecker")
-			{
-				public void
-				run()
-				{
-					check( platform );
-				}
-			};
+		platform	= _platform;
 		
-		t.setDaemon( true );
-		
-		t.start();
+		UpdateManagerImpl.getSingleton().registerUpdatableComponent( this, false );
 	}
 	
-	protected void
-	check(
-		PlatformManagerImpl		platform )
+	public void
+	checkForUpdate(
+		UpdateChecker	checker )
 	{
 		String	current_dll_version = platform==null?"1.0":platform.getVersion();
 		
@@ -132,17 +126,22 @@ PlatformManagerUpdateChecker
 				
 				rdf.getTimeoutDownloader(rdf.getRetryDownloader(dll_rd,RD_SIZE_RETRIES),RD_SIZE_TIMEOUT).getSize();
 
-				UpdateManagerImpl.getSingleton().addUpdate(
+				checker.addUpdate(
 						"Windows native support: " + PlatformManagerImpl.DLL_NAME + ".dll",
 						new String[]{"This DLL supports native operations such as file-associations" },
 						target_dll_version,
 						dll_rd,
-						false,		// not mandatory as we can run without it
 						Update.RESTART_REQUIRED_YES );
 			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
+			
+			checker.failed();
+			
+		}finally{
+			
+			checker.completed();
 		}
 	}
 }

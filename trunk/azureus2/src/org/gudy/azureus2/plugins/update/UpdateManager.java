@@ -27,61 +27,26 @@ package org.gudy.azureus2.plugins.update;
  *
  */
 
-import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-
 public interface 
 UpdateManager 
 {
 		/**
-		 * Add an update with a single downloader
-		 * @param mandatory indicates that in a group of updates this one must succeed
+		 * All updateable components must register in order to receive update check events
+		 * @param component
+		 * @param mandatory indicates that this component must successfully complete checking
+		 * for any overall update check to complete
 		 */
 	
-	public Update
-	addUpdate(
-		String				name,
-		String[]			description,
-		String				new_version,
-		ResourceDownloader	downloader,
-		boolean				mandatory,
-		int					restart_required );
+	public void
+	registerUpdatableComponent(
+		UpdatableComponent		component,
+		boolean					mandatory );
 	
 		/**
-		 * Add an update with a number of downloaders
-		 */
-	
-	public Update
-	addUpdate(
-		String					name,
-		String[]				description,
-		String					new_version,
-		ResourceDownloader[]	downloaders,
-		boolean					mandatory,
-		int						restart_required );
-	
-		/**
-		 * get the currently defined updates
+		 * Kick off an update check - this will ask all registered components to perform a check
 		 * @return
 		 */
 	
-	public Update[]
-	getUpdates();
-	
-		/**
-		 * add a listener that will be informed when new updates are added
-		 * @param l
-		 */
-	
-	public void
-	addListener(
-		UpdateManagerListener	l );
-	
-		/**
-		 * remove the afore mentioned listener
-		 * @param l
-		 */
-	
-	public void
-	removeListener(
-		UpdateManagerListener	l );
+	public UpdateCheckInstance
+	createUpdateCheckInstance();
 }

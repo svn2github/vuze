@@ -22,38 +22,70 @@
  */
 package org.gudy.azureus2.ui.swt.update;
 
-import java.util.ArrayList;
-import java.util.List;
 
-import org.gudy.azureus2.plugins.update.Update;
-import org.gudy.azureus2.plugins.update.UpdateManager;
-import org.gudy.azureus2.plugins.update.UpdateManagerListener;
+import org.gudy.azureus2.core3.util.DelayedEvent;
+
+import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 /**
  * @author Olivier Chalouhi
  *
  */
-public class UpdateMonitor implements UpdateManagerListener {
-
-  UpdateWindow window;
-  List updates;
+public class 
+UpdateMonitor 
+	implements UpdateCheckInstanceListener 
+{
+	UpdateWindow window;
   
-  public UpdateMonitor() {
-    updates = new ArrayList();
-    window = new UpdateWindow();
-    UpdateManager um = PluginInitializer.getDefaultInterface().getUpdateManager(); 
-    um.addListener(this);
-    Update[] us = um.getUpdates();
-    for(int i = 0 ;  i < us.length ; i++) {
-      updateAdded(um,us[i]);
-    }
-  }
+	UpdateCheckInstance		current_instance;
+	
+	public 
+	UpdateMonitor() 
+	{
+		new DelayedEvent(
+				2500,
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						performCheck();
+					}
+				});
+	}
   
-  public synchronized void updateAdded(UpdateManager manager, Update update) {
-    if(updates.contains(update))
-      return;
-   updates.add(update);
-   window.addUpdate(update); 
-  }  
+	public void
+	performCheck()
+	{
+	  	UpdateManager um = PluginInitializer.getDefaultInterface().getUpdateManager(); 
+		
+	  	current_instance = um.createUpdateCheckInstance();
+		  	
+	  	current_instance.addListener( this );
+		  	
+	  	current_instance.start();		
+	}
+	
+	public void
+	complete(
+		UpdateCheckInstance		instance )
+	{
+		if ( instance != current_instance ){
+			
+			return;
+		}
+		
+	    Update[] us = instance.getUpdates();
+	    
+	    if ( us.length > 0 ){
+	    	
+			window = new UpdateWindow();
+				
+			for(int i = 0 ;  i < us.length ; i++){
+				
+				window.addUpdate(us[i]);
+			}	
+	    }
+	} 
 }

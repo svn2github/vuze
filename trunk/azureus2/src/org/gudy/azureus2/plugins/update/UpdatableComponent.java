@@ -1,5 +1,5 @@
 /*
- * Created on 07-May-2004
+ * Created on 11-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -27,10 +27,9 @@ package org.gudy.azureus2.plugins.update;
  *
  */
 public interface 
-UpdateManagerListener 
+UpdatableComponent 
 {
 	public void
-	updateAdded(
-		UpdateManager	manager,
-		Update			update );
+	checkForUpdate(
+		UpdateChecker	checker );
 }

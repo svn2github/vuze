@@ -42,13 +42,11 @@ import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 public class 
 PluginUpdatePlugin
-	implements Plugin
+	implements Plugin, UpdatableComponent
 {
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
-	
-	protected static Map			outstanding_updates = new HashMap();
-	
+		
 	protected PluginInterface		plugin_interface;
 	protected LoggerChannel 		log;
 	
@@ -100,69 +98,58 @@ PluginUpdatePlugin
 		
 		config.addBooleanParameter( "enable.update", "Plugin.pluginupdate.enablecheck", true );
 		
-		if ( enabled ){
-			
-			Thread t = new Thread("PluginUpdate" )
-				{
-					public void
-					run()
-					{
-						updater();
-					}
-				};
-				
-			t.setDaemon(true);
-			
-			t.start();
-		}else{
-			
-			log.log( LoggerChannel.LT_INFORMATION, "Update check disabled in configuration" );
-		}
+		plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
 	}
 	
-	protected void
-	updater()
+	public void
+	checkForUpdate(
+		UpdateChecker	checker )
 	{
-		PluginInterface[]	plugins = plugin_interface.getPluginManager().getPlugins();
-		
-		log.log( LoggerChannel.LT_INFORMATION, "Currently loaded plugins:");
-
-		List	plugins_to_check 		= new ArrayList();
-		List	plugins_to_check_ids	= new ArrayList();
-		Map		plugins_to_check_names	= new HashMap();
-		
-		for (int i=0;i<plugins.length;i++){
-			
-			PluginInterface	pi = plugins[i];
-			
-			String	id 		= pi.getPluginID();
-			String	version = pi.getPluginVersion();
-			String	name	= pi.getPluginName();
-			
-			if ( version != null && !id.startsWith("<")){
-				
-				if ( plugins_to_check_ids.contains( id )){
-					
-					String	s = (String)plugins_to_check_names.get(id);
-					
-					if ( !name.equals( id )){
-						
-						plugins_to_check_names.put( id, s+","+name);
-					}
-					
-				}else{
-					plugins_to_check_ids.add( id );
-					
-					plugins_to_check.add( pi );
-					
-					plugins_to_check_names.put( id, name.equals(id)?"":name);
-				}
-			}
-			
-			log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())));
-		}
-		
 		try{
+			if ( !plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true )){
+								
+				return;
+			}
+
+			PluginInterface[]	plugins = plugin_interface.getPluginManager().getPlugins();
+			
+			log.log( LoggerChannel.LT_INFORMATION, "Currently loaded plugins:");
+	
+			List	plugins_to_check 		= new ArrayList();
+			List	plugins_to_check_ids	= new ArrayList();
+			Map		plugins_to_check_names	= new HashMap();
+			
+			for (int i=0;i<plugins.length;i++){
+				
+				PluginInterface	pi = plugins[i];
+				
+				String	id 		= pi.getPluginID();
+				String	version = pi.getPluginVersion();
+				String	name	= pi.getPluginName();
+				
+				if ( version != null && !id.startsWith("<")){
+					
+					if ( plugins_to_check_ids.contains( id )){
+						
+						String	s = (String)plugins_to_check_names.get(id);
+						
+						if ( !name.equals( id )){
+							
+							plugins_to_check_names.put( id, s+","+name);
+						}
+						
+					}else{
+						plugins_to_check_ids.add( id );
+						
+						plugins_to_check.add( pi );
+						
+						plugins_to_check_names.put( id, name.equals(id)?"":name);
+					}
+				}
+				
+				log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())));
+			}
+		
 			SFPluginDetailsLoader loader = SFPluginDetailsLoaderFactory.create();
 			
 			loader.addListener( 
@@ -193,14 +180,7 @@ PluginUpdatePlugin
 				final PluginInterface	pi = (PluginInterface)plugins_to_check.get(i);
 				
 				final String	plugin_id = pi.getPluginID();
-				
-				if ( outstanding_updates.get( plugin_id ) != null ){
-			
-					log.log( LoggerChannel.LT_INFORMATION, "Skipping " + plugin_id + " as update already outstanding");
-
-					continue;
-				}
-				
+								
 				boolean	found	= false;
 				
 				for (int j=0;j<names.length;j++){
@@ -323,8 +303,6 @@ PluginUpdatePlugin
 									ResourceDownloader	downloader,
 									InputStream			data )
 								{	
-									outstanding_updates.remove( plugin_id );
-									
 									installUpdate( 
 											pi, 
 											f_sf_plugin_download, 
@@ -339,7 +317,6 @@ PluginUpdatePlugin
 									ResourceDownloader			downloader,
 									ResourceDownloaderException e )
 								{
-									outstanding_updates.remove( plugin_id );								
 								}
 								
 							});
@@ -348,42 +325,30 @@ PluginUpdatePlugin
 						
 						update_desc.toArray( update_d );
 						
-						Update update = plugin_interface.getUpdateManager().addUpdate(
+						Update update = checker.addUpdate(
 								plugin_id + "/" + plugin_names,
 								update_d,
 								sf_plugin_version,
 								rdl,
-								false,		// plugin updates aren't mandatory
-								Update.RESTART_REQUIRED_MAYBE );
-						
-						update.addListener(
-							new UpdateListener()
-							{
-								public void
-								cancelled(
-									Update		update )
-								{
-									outstanding_updates.remove( plugin_id );
-								}
-								
-								public void
-								completed(
-									Update		update )
-								{
-									
-								}
-							});
-						
-						outstanding_updates.put( plugin_id, rdl );
+								Update.RESTART_REQUIRED_MAYBE );			
 					}
 				}catch( Throwable e ){
 					
 					log.log("    Plugin check failed", e ); 
 				}
 			}
+						
 		}catch( Throwable e ){
 			
-			log.log("Failed to load plugin details", e ); 
+			log.log("Failed to load plugin details", e );
+			
+			checker.failed();
+			
+		}finally{
+			
+				// any prior failure will take precedence
+			
+			checker.completed();
 		}
 	}
 	

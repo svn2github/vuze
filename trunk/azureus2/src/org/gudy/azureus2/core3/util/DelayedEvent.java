@@ -1,5 +1,5 @@
 /*
- * Created on 07-May-2004
+ * Created on 12-May-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,48 +20,36 @@
  *
  */
 
-package org.gudy.azureus2.plugins.update;
+package org.gudy.azureus2.core3.util;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-
-public interface 
-Update 
+public class 
+DelayedEvent 
 {
-	public static final int	RESTART_REQUIRED_NO			= 1;
-	public static final int	RESTART_REQUIRED_YES		= 2;
-	public static final int	RESTART_REQUIRED_MAYBE		= 3;
-	
-	public String
-	getName();
-
-	public String[]
-	getDescription();
-	
-	public String
-	getNewVersion();
-	
-	public ResourceDownloader[]
-	getDownloaders();
-	
-	public boolean
-	isMandatory();
-	
-	public void
-	setRestartRequired(
-		int	restart_required );
-	
-	public int
-	getRestartRequired();
-	
-		/**
-		 * cancel this update
-		 */
-	
-	public void
-	cancel();
+	public
+	DelayedEvent(
+		long			delay_millis,
+		final Runnable	target )
+	{
+		final Timer timer = new Timer("DelayedEvent");
+		
+		timer.addEvent( SystemTime.getCurrentTime() + delay_millis,
+						new TimerEventPerformer()
+						{
+							public void
+							perform(
+								TimerEvent	event )
+							{
+								try{
+									target.run();
+								}finally{
+									
+									timer.destroy();
+								}
+							}					
+						});
+	}
 }
