@@ -33,17 +33,20 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.ui.swt.config.ParameterListener;
 
 /**
  * @author Olivier
  *  
  */
-public class TableSorter {
+public class TableSorter implements ParameterListener {
 
   private String lastField;
   private boolean lastFieldIsInt;
   private boolean ascending;
   private int loopFactor;
+  private static int reOrderDelay = COConfigurationManager.getIntParameter("ReOrder Delay");
   
   private SortableTable sortableTable;
   private Table table;
@@ -60,11 +63,10 @@ public class TableSorter {
     this.objectToSortableItem = sortableTable.getObjectToSortableItemMap();
     this.tableItemToObject = sortableTable.getTableItemToObjectMap();
     this.table = sortableTable.getTable();
+    ConfigurationManager.getInstance().addParameterListener("ReOrder Delay", this);
   }
   
   public void reOrder(boolean force) {
-    int reOrderDelay = COConfigurationManager.getIntParameter("ReOrder Delay");
-    
     if(!force && (reOrderDelay == 0 || loopFactor++ < reOrderDelay))
       return;
     loopFactor = 0;
@@ -233,4 +235,12 @@ public class TableSorter {
     return lastField;
   }
 
+  /**
+   * @param parameterName the name of the parameter that has changed
+   * @see org.gudy.azureus2.ui.swt.config.ParameterListener#parameterChanged(java.lang.String)
+   */
+  public void parameterChanged(String parameterName) {
+    reOrderDelay = COConfigurationManager.getIntParameter("ReOrder Delay");
+  }
+  
 }

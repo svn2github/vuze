@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -97,8 +98,9 @@ public class PiecesView extends AbstractIView implements DownloadManagerListener
       PieceTableItem item = (PieceTableItem) iter.next();
       item.remove();
     }
-    if(table != null && ! table.isDisposed())
-        table.dispose();
+    if (table != null && !table.isDisposed())
+      table.dispose();
+    ConfigurationManager.getInstance().removeParameterListener("ReOrder Delay", sorter);
   }
 
   public String getData() {
@@ -129,20 +131,14 @@ public class PiecesView extends AbstractIView implements DownloadManagerListener
     item.remove();
   }
   
-  public void
-  peerAdded(
-	  PEPeer 		peer )
-  {
+  public void peerAdded(PEPeer peer) {
   }
-		
-  public void
-  peerRemoved(
-	  PEPeer		peer )
-  {
+
+  public void peerRemoved(PEPeer peer) {
   }
   
-  public void setItem(TableItem item,PEPiece piece) {
-    tableItemToObject.put(item,piece);
+  public void setItem(TableItem item, PEPiece piece) {
+    tableItemToObject.put(item, piece);
   }
   
   /*

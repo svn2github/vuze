@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.config.ParameterListener;
 
 /**
  * @author Olivier
@@ -143,4 +144,7 @@ public class ManagerView extends AbstractIView {
     }
   }
 
+  public ParameterListener getPeersViewParameterListener() {
+    return (ParameterListener) viewDetails;
+  }
 }

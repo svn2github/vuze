@@ -19,12 +19,14 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.config.ParameterListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.PeerTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
@@ -33,7 +35,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
  * @author Olivier
  * 
  */
-public class PeersView extends AbstractIView implements DownloadManagerListener ,SortableTable {
+public class PeersView extends AbstractIView implements DownloadManagerListener, SortableTable, ParameterListener {
 
   DownloadManager manager;
   Table table;
@@ -42,6 +44,8 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
   
   TableSorter sorter;
   int loopFactor;
+  static int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+
   public PeersView(DownloadManager manager) {
     this.manager = manager;
     objectToSortableItem = new HashMap();
@@ -184,6 +188,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     }
   });*/
     table.setMenu(menu);
+    ConfigurationManager.getInstance().addParameterListener("Graphics Update", this);
 
     //    manager.addListener(this);
 
@@ -214,8 +219,8 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
         PeerTableItem pti = (PeerTableItem) iter.next();
         pti.updateAll();
         pti.updateStats();
-        //Every second, we unvalidate the images.
-        if (loopFactor % COConfigurationManager.getIntParameter("Graphics Update") == 0)
+        //Every N GUI updates we unvalidate the images
+        if (loopFactor % graphicsUpdate == 0)
           pti.invalidate();
         pti.updateImage();
       }
@@ -234,7 +239,9 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     }
     if(table != null && ! table.isDisposed())
       table.dispose();
-  }
+    ConfigurationManager.getInstance().removeParameterListener("Graphics Update", this);
+    ConfigurationManager.getInstance().removeParameterListener("ReOrder Delay", sorter);
+   }
 
   public String getData() {
     return "PeersView.title.short"; //$NON-NLS-1$
@@ -313,4 +320,12 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     return tableItemToObject;
   }
 
+  /**
+   * @param parameterName the name of the parameter that has changed
+   * @see org.gudy.azureus2.ui.swt.config.ParameterListener#parameterChanged(java.lang.String)
+   */
+  public void parameterChanged(String parameterName) {
+    graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+  }
+  
 }

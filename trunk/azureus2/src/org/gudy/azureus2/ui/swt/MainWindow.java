@@ -70,6 +70,7 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Widget;
+import org.gudy.azureus2.ui.swt.config.ParameterListener;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -78,6 +79,7 @@ import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
@@ -158,24 +160,33 @@ public class MainWindow implements GlobalManagerListener {
 
   private StartServer startServer;
 
-  private class GUIUpdater extends Thread {
+  private class GUIUpdater extends Thread implements ParameterListener {
     boolean finished = false;
     IView view;
+    int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
 
     public GUIUpdater() {
       super("GUI updater"); //$NON-NLS-1$
       setPriority(Thread.MIN_PRIORITY);
+      ConfigurationManager.getInstance().addParameterListener("GUI Refresh", this);
     }
 
     public void run() {
       while (!finished) {
         update();
         try {
-          int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
           Thread.sleep(waitTime);
         }
         catch (Exception ignore) {}
       }
+    }
+
+    /**
+     * @param parameterName the name of the parameter that has changed
+     * @see org.gudy.azureus2.ui.swt.config.ParameterListener#parameterChanged(java.lang.String)
+     */
+    public void parameterChanged(String parameterName) {
+      waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
     }
 
     private void update() {
@@ -243,6 +254,7 @@ public class MainWindow implements GlobalManagerListener {
 
     public void stopIt() {
       finished = true;
+      ConfigurationManager.getInstance().removeParameterListener("GUI Refresh", this);
     }
   }
 

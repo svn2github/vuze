@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -765,6 +766,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   public void delete() {
     globalManager.removeListener(this);
     MainWindow.getWindow().setMytorrents(null);
+    ConfigurationManager.getInstance().removeParameterListener("ReOrder Delay", sorter);
   }
 
   /* (non-Javadoc)

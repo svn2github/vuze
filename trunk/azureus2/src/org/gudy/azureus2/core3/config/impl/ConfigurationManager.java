@@ -12,12 +12,16 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.ui.swt.config.ParameterListener;
 
 /**
  * A singleton used to store configuration into a bencoded file.
@@ -32,6 +36,7 @@ public class ConfigurationManager {
   private Map propertiesMap;
   
   private Vector	listeners = new Vector();
+  private Hashtable parameterListeners = new Hashtable();
   
   private ConfigurationManager() {
     load();
@@ -213,12 +218,15 @@ public class ConfigurationManager {
   }
   
   public void setParameter(String parameter, int defaultValue) {
-    propertiesMap.put(parameter, new Long(defaultValue));
+    Long newValue = new Long(defaultValue);
+    Long oldValue = (Long) propertiesMap.put(parameter, newValue);
+    notifyParameterListenersIfChanged(parameter, newValue, oldValue);
   }
   
   public void setParameter(String parameter, byte[] defaultValue) {
-    propertiesMap.put(parameter, defaultValue);
-  }
+    byte[] oldValue = (byte[]) propertiesMap.put(parameter, defaultValue);
+    notifyParameterListenersIfChanged(parameter, defaultValue, oldValue);
+   }
   
   public void setParameter(String parameter, String defaultValue) {
     setParameter(parameter, defaultValue.getBytes());
@@ -234,17 +242,52 @@ public class ConfigurationManager {
     }
   }
   
-  public synchronized void
-  addListener(
-	  COConfigurationListener		listener )
-  {
-	 listeners.addElement( listener ); 
+  private void notifyParameterListenersIfChanged(String parameter, Long newValue, Long oldValue) {
+    if(oldValue == null || 0 != newValue.compareTo(oldValue))
+      notifyParameterListeners(parameter);
   }
-	
-  public synchronized void
-  removeListener(
-	  COConfigurationListener		listener )
-  {
-	listeners.removeElement( listener );
+
+  private void notifyParameterListenersIfChanged(String parameter, byte[] newValue, byte[] oldValue) {
+    if(oldValue == null || Arrays.equals(newValue, oldValue))
+      notifyParameterListeners(parameter);
+  }
+    
+  private void notifyParameterListeners(String parameter) {
+    Vector parameterListener = (Vector) parameterListeners.get(parameter);
+    if(parameterListener != null) {
+      for (Iterator iter = parameterListener.iterator(); iter.hasNext();) {
+        ParameterListener listener = (ParameterListener) iter.next();
+        if(listener != null)
+          listener.parameterChanged(parameter);
+      }
+    }
+  }
+
+  public synchronized void addParameterListener(String parameter, ParameterListener listener){
+    if(parameter == null || listener == null)
+      return;
+    Vector parameterListener = (Vector) parameterListeners.get(parameter);
+    if(parameterListener == null) {
+      parameterListeners.put(parameter, parameterListener = new Vector());
+    }
+    if(!parameterListener.contains(listener))
+      parameterListener.add(listener); 
+  }
+
+  public synchronized void removeParameterListener(String parameter, ParameterListener listener){
+    if(parameter == null || listener == null)
+      return;
+    Vector parameterListener = (Vector) parameterListeners.get(parameter);
+    if(parameterListener != null) {
+      parameterListeners.remove(listener);
+    }
+  }
+
+  public synchronized void addListener(COConfigurationListener listener) {
+    listeners.addElement(listener);
+  }
+
+  public synchronized void removeListener(COConfigurationListener listener) {
+    listeners.removeElement(listener);
   }
 }
