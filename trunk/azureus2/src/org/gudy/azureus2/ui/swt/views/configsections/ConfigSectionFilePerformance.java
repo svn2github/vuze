@@ -32,7 +32,7 @@ import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -152,13 +152,22 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     IntParameter cache_size = new IntParameter(cSection, "diskmanager.perf.cache.size" );
     cache_size.setAllowZero(false);
     cache_size.setMinimumValue(1);
-    
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.widthHint = 30;
     cache_size.setLayoutData( gridData );
+    
+    
     label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
     label.setLayoutData(gridData);
+    Messages.setLanguageText(
+    		label, 
+			"ConfigView.section.file.perf.cache.size.explain",
+			new String[]{ 
+    			DisplayFormatters.formatByteCountToKiBEtc(32*1024*1024),
+    			DisplayFormatters.formatByteCountToKiBEtc(Runtime.getRuntime().maxMemory()),
+				Constants.SF_WEB_SITE
+			});
     
      // diskmanager.perf.cache.trace
     
