@@ -35,7 +35,7 @@ public class
 MDDownloadModel
 	extends AbstractTableModel
 {
-	public static String[]	column_names = { "Name", "Size" };
+	public static String[]	column_names = { "#", "Name", "Size", "Downloaded", "Done" };
 	
 	protected DownloadManager	download_manager;
 	protected Download[]		downloads;
@@ -72,13 +72,27 @@ MDDownloadModel
 		int row, 
 		int col ) 
 	{
+		Download	download	= downloads[row];
+		
 		if ( col == 0 ){
 			
-			return( downloads[row].getTorrent().getName());
+			return( new Long(row));
 			
 		}else if ( col == 1 ){
+				
+			return( download.getTorrent().getName());
+				
+		}else if ( col == 2 ){
 			
-			return( new Long(downloads[row].getTorrent().getSize()));
+			return( new Long( download.getTorrent().getSize()));
+			
+		}else if ( col == 3 ){
+			
+			return( new Long( download.getStats().getDownloaded()));
+			
+		}else if ( col == 4 ){
+			
+			return(new Integer( download.getStats().getCompleted()/10 ));
 		}
 		
 		return( null );

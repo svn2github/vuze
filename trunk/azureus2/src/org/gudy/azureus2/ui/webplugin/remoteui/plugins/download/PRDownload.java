@@ -40,8 +40,9 @@ PRDownload
 {
 	protected transient Download		delegate;
 
-	protected int		state;
-	protected PRTorrent	torrent;
+	protected int				state;
+	protected PRTorrent			torrent;
+	protected PRDownloadStats	stats;
 	
 	public static PRDownload
 	create(
@@ -71,6 +72,13 @@ PRDownload
 			
 			torrent = PRTorrent.create( _delegate.getTorrent());
 		}
+		
+		stats = (PRDownloadStats)_lookupLocal( _delegate.getStats());
+		
+		if ( stats == null ){
+			
+			stats = PRDownloadStats.create( _delegate.getStats());
+		}
 	}
 	
 	public void
@@ -81,6 +89,8 @@ PRDownload
 		delegate = (Download)_fixupLocal();
 		
 		torrent._setLocal();
+		
+		stats._setLocal();
 	}
 	
 	public void
@@ -90,6 +100,8 @@ PRDownload
 		super._setRemote( _dispatcher );
 		
 		torrent._setRemote( _dispatcher );
+		
+		stats._setRemote( _dispatcher );
 	}
 	
 	public RPReply
@@ -99,10 +111,12 @@ PRDownload
 		String	method = request.getMethod();
 		
 		if ( method.equals( "getTorrent")){
-		 
-			Torrent	res = delegate.getTorrent();
+		 			
+			return( new RPReply( torrent ));
 			
-			return( new RPReply( PRTorrent.create( res )));
+		}else if ( method.equals( "getStats")){
+						
+			return( new RPReply( stats ));
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -231,9 +245,7 @@ PRDownload
 	public DownloadStats
 	getStats()
 	{
-		notSupported();
-		
-		return( null );
+		return( stats );
 	}
 	
 	public void

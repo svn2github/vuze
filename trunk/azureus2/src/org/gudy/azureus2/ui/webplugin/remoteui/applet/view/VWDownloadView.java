@@ -49,29 +49,66 @@ VWDownloadView
 		
 		TableColumnModel cm = table.getColumnModel();
 		
-		cm.getColumn(1).setCellRenderer(
-			new DefaultTableCellRenderer()
-			{
-				public Component 
-				getTableCellRendererComponent(
-					JTable		table,
-					Object 		o_value,
-					boolean 	isSelected,
-					boolean 	hasFocus,
-					int 		row,
-					int 		column )
+		int[]	byte_columns = { 2, 3 };
+		
+		for (int i=0;i<byte_columns.length;i++){
+			
+			TableColumn column = cm.getColumn( byte_columns[i]);
+			
+			column.setWidth(50);
+			
+			column.setCellRenderer(
+				new DefaultTableCellRenderer()
 				{
-					long	value = ((Long)o_value).longValue();
+					public Component 
+					getTableCellRendererComponent(
+						JTable		table,
+						Object 		o_value,
+						boolean 	isSelected,
+						boolean 	hasFocus,
+						int 		row,
+						int 		column )
+					{
+						long	value = ((Long)o_value).longValue();
+	
+						String	str = DisplayFormatters.formatByteCountToKiBEtc(value);
+						
+						JLabel	res = (JLabel)super.getTableCellRendererComponent( table, str, isSelected, hasFocus, row,column );
+						
+						res.setHorizontalAlignment( JLabel.RIGHT );
+						
+						return( res );
+					}
+				});
+		}
+		
+		cm.getColumn(4).setCellRenderer(
+				new TableCellRenderer()
+				{
+					public Component 
+					getTableCellRendererComponent(
+							JTable		table,
+							Object 		o_value,
+							boolean 	isSelected,
+							boolean 	hasFocus,
+							int 		row,
+							int 		column )
+					{
+						int	value = ((Integer)o_value).intValue();
 
-					String	str = DisplayFormatters.formatByteCountToKiBEtc(value);
-					
-					JLabel	res = (JLabel)super.getTableCellRendererComponent( table, str, isSelected, hasFocus, row,column );
-					
-					res.setHorizontalAlignment( JLabel.RIGHT );
-					
-					return( res );
-				}
-			});
+						JProgressBar	pb = new JProgressBar();
+						
+						pb.setMaximum(100);
+						
+						pb.setValue(value );
+						
+						pb.setStringPainted(true);
+						
+						pb.setString(""+value+"%");
+						
+						return( pb );
+					}
+				});
 		
 		sorter.addMouseListenerToHeaderInTable(table);
 
