@@ -33,24 +33,26 @@ PRUDPPacketRequest
 	extends PRUDPPacket
 {	
 	protected long		connection_id;
-	protected int		transaction_id;
 	
-	public
+	public 
 	PRUDPPacketRequest(
 		int		_action,
-		long	_con_id,
-		int		_tran_id )
+		long	_con_id )
 	{
 		super( _action );
 		
 		connection_id	= _con_id;
-		transaction_id	= _tran_id;
 	}
 	
-	public int
-	getAction()
+	protected 
+	PRUDPPacketRequest(
+		int		_action,
+		long	_con_id,
+		int		_trans_id )
 	{
-		return( type );
+		super( _action, _trans_id );
+		
+		connection_id	= _con_id;
 	}
 	
 	public void
@@ -88,6 +90,6 @@ PRUDPPacketRequest
 	public String
 	getString()
 	{
-		return( super.getString() + ":request" );
+		return( super.getString() + ":request[con=" + connection_id + ",trans=" + transaction_id + "]" );
 	}
 }

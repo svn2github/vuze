@@ -43,21 +43,24 @@ TRTrackerServerProcessorUDP
 	implements 	Runnable
 {
 	protected TRTrackerServerUDP		server;
+	protected DatagramSocket			socket;
 	protected DatagramPacket			packet;
 	
 	protected
 	TRTrackerServerProcessorUDP(
 		TRTrackerServerUDP		_server,
+		DatagramSocket			_socket,
 		DatagramPacket			_packet )
 	{
 		server	= _server;
+		socket	= _socket;
 		packet	= _packet;
 	}
 	
 	public void
 	run()
 	{
-		System.out.println( "UDPProcessor: packet length = " + packet.getLength());
+		System.out.println( "UDPProcessor: packet length = " + packet.getLength() + ", address = " + packet.getAddress() + ", port = " + packet.getPort());
 		
 		DataInputStream is = new DataInputStream(new ByteArrayInputStream(packet.getData()));
 		
@@ -65,6 +68,26 @@ TRTrackerServerProcessorUDP
 			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( is );
 			
 			System.out.println( "UDPRequest:" + request.getString());
+						
+			InetAddress address = packet.getAddress();
+			
+			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			
+			DataOutputStream os = new DataOutputStream( baos );
+			
+			long	conn_id = 232323;
+			
+			PRUDPPacket data_packet = new PRUDPPacketReplyConnect(request.getTransactionId(), conn_id );
+			
+			data_packet.serialise(os);
+			
+			byte[]	buffer = baos.toByteArray();
+			
+			DatagramPacket reply_packet = new DatagramPacket(buffer, buffer.length,address,packet.getPort());
+			
+			System.out.println( "sending packet");
+			
+			socket.send( reply_packet );
 			
 		}catch( Throwable e ){
 			

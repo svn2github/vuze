@@ -34,10 +34,9 @@ PRUDPPacketRequestConnect
 {
 	public
 	PRUDPPacketRequestConnect(
-		long				con_id,
-		int					trans_id )
+		long				con_id )
 	{
-		super( ACT_REQUEST_CONNECT, con_id, trans_id );
+		super( ACT_REQUEST_CONNECT, con_id );
 	}
 	
 	protected

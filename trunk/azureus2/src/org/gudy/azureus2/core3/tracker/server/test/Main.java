@@ -51,32 +51,24 @@ Main
 		
 		
 		try{
-
-			TRTrackerServerFactory.create( TRTrackerServerFactory.PR_UDP, 6969 );
+			int my_port 	= 6881;
+			int their_port	= 6969;
+			
+			InetSocketAddress address = new InetSocketAddress("127.0.0.1",their_port);
+			
+			TRTrackerServerFactory.create( TRTrackerServerFactory.PR_UDP, their_port );
 				
+			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( my_port );
+			
 			for (int i=0;i<100;i++){
 				
 				Thread.sleep(1000);
-				
-				DatagramSocket	ds = new DatagramSocket( );
 								
-				InetAddress address = InetAddress.getByName( "127.0.0.1" );
+				PRUDPPacket request_packet = new PRUDPPacketRequestConnect(999);
+				 
+				PRUDPPacket reply_packet = handler.sendAndReceive( request_packet, address );
 				
-				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-				
-				DataOutputStream os = new DataOutputStream( baos );
-				
-				PRUDPPacket data_packet = new PRUDPPacketRequestConnect(100, 200);
-				
-				data_packet.serialise(os);
-				
-				byte[]	buffer = baos.toByteArray();
-				
-				DatagramPacket packet = new DatagramPacket(buffer, buffer.length,address,6969);
-				
-				System.out.println( "sending packet");
-				
-				ds.send( packet );
+				System.out.println( reply_packet.getString());
 			}
 			
 			Thread.sleep(100000);

@@ -35,13 +35,12 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
+import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 
 public class 
 TRTrackerServerUDP
 	extends 	TRTrackerServerImpl
 {
-	public static final int	PACKET_SIZE	= 8192;
-
 	protected static final int THREAD_POOL_SIZE				= 10;
 
 	protected ThreadPool	thread_pool;
@@ -107,7 +106,7 @@ TRTrackerServerUDP
 		while(true){
 			
 			try{				
-				byte[] buf = new byte[PACKET_SIZE];
+				byte[] buf = new byte[PRUDPPacket.MAX_PACKET_SIZE];
 								
 				DatagramPacket packet = new DatagramPacket( buf, buf.length, address );
 				
@@ -117,7 +116,7 @@ TRTrackerServerUDP
 								
 				if ( !ip_filter.isInRange( ip )){
 										
-					thread_pool.run( new TRTrackerServerProcessorUDP( this, packet ));
+					thread_pool.run( new TRTrackerServerProcessorUDP( this, socket, packet ));
 				}					
 				
 			}catch( Throwable e ){

@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketReply.java
+ * File    : PRUDPPacketReceiver.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -25,54 +25,16 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
  * @author parg
  *
  */
-import java.io.*;
 
-public abstract class 
-PRUDPPacketReply
-	extends PRUDPPacket
-{		
-	public
-	PRUDPPacketReply(
-		int		_action,
-		int		_tran_id )
-	{
-		super( _action, _tran_id );
-	}
-		
-	public void
-	serialise(
-		DataOutputStream	os )
+import java.net.*;
+
+public interface 
+PRUDPPacketHandler 
+{
+	public PRUDPPacket
+	sendAndReceive(
+		PRUDPPacket			request_packet,
+		InetSocketAddress	destination_address )
 	
-	throws IOException
-	{
-		os.writeInt( type );
-		os.writeInt( transaction_id );
-	}
-	
-	public static PRUDPPacketReply
-	deserialiseReply(
-		DataInputStream		is )
-	
-		throws IOException
-	{
-		int		action			= is.readInt();
-		int		transaction_id	= is.readInt();
-		
-		switch( action ){
-			
-			case ACT_REPLY_CONNECT:
-			{
-				return( new PRUDPPacketReplyConnect(is, transaction_id));
-			}
-		}
-		
-		
-		throw( new IOException( "unsupported reply type"));
-	}
-	
-	public String
-	getString()
-	{
-		return( super.getString() + ":reply[trans=" + transaction_id + "]" );
-	}
+		throws PRUDPPacketHandlerException;
 }

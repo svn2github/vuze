@@ -27,25 +27,58 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
  */
 
 import java.io.*;
+import java.util.*;
 
 public abstract class 
 PRUDPPacket 
 {
+	public static final int	MAX_PACKET_SIZE	= 8192;
+	
 	public static final int	ACT_REQUEST_CONNECT		= 0;
 	public static final int	ACT_REQUEST_ANNOUNCE	= 1;
 	public static final int	ACT_REQUEST_SCRAPE		= 2;
 	
-	public static final int	ACT_REPLY_CONNECT		= 10;
-	public static final int	ACT_REPLY_ANNOUNCE		= 11;
-	public static final int	ACT_REPLY_SCRAPE		= 12;
+	public static final int	ACT_REPLY_CONNECT		= 0;
+	public static final int	ACT_REPLY_ANNOUNCE		= 1;
+	public static final int	ACT_REPLY_SCRAPE		= 2;
+	public static final int	ACT_REPLY_ERROR			= 3;
+
+	protected static int	next_id = new Random(System.currentTimeMillis()).nextInt();
 	
 	protected int		type;
+	protected int		transaction_id;
+	
+	protected
+	PRUDPPacket(
+		int		_type,
+		int		_transaction_id )
+	{
+		type			= _type;
+		transaction_id	= _transaction_id;
+	}
 	
 	protected
 	PRUDPPacket(
 		int		_type )
 	{
-		type	= _type;
+		type			= _type;
+		
+		synchronized( PRUDPPacket.class ){
+			
+			transaction_id	= next_id++;
+		}
+	}
+	
+	public int
+	getAction()
+	{
+		return( type );
+	}
+	
+	public int
+	getTransactionId()
+	{
+		return( transaction_id );
 	}
 	
 	public abstract void

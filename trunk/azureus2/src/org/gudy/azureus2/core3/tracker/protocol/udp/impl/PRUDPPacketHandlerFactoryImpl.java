@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketReplyConnect.java
+ * File    : PRUDPPacketReceiverFactoryImpl.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -19,57 +19,36 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.protocol.udp;
+package org.gudy.azureus2.core3.tracker.protocol.udp.impl;
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
+import java.util.*;
+
+import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 
 public class 
-PRUDPPacketReplyConnect
-	extends PRUDPPacketReply
+PRUDPPacketHandlerFactoryImpl 
 {
-	protected long	connection_id;
+	protected static Map	receiver_map = new HashMap();
 	
-	public
-	PRUDPPacketReplyConnect(
-		int			trans_id,
-		long		conn_id )
+
+	public static synchronized PRUDPPacketHandler
+	getHandler(
+		int		port )
 	{
-		super( ACT_REPLY_CONNECT, trans_id );
+		PRUDPPacketHandler	receiver = (PRUDPPacketHandler)receiver_map.get(new Integer(port));
 		
-		connection_id	= conn_id;
-	}
-	
-	protected
-	PRUDPPacketReplyConnect(
-		DataInputStream		is,
-		int					trans_id )
-	
-		throws IOException
-	{
-		super( ACT_REPLY_CONNECT, trans_id );
+		if ( receiver == null ){
+			
+			receiver = new PRUDPPacketHandlerImpl( port );
+			
+			receiver_map.put( new Integer(port), receiver );
+		}
 		
-		connection_id = is.readLong();
-	}
-	
-	public void
-	serialise(
-		DataOutputStream	os )
-	
-		throws IOException
-	{
-		super.serialise(os);
-		
-		os.writeLong( connection_id );
-	}
-	
-	public String
-	getString()
-	{
-		return( super.getString() + ",[con=" + connection_id + "]");
-	}
+		return( receiver );
+	}		
 }
