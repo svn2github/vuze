@@ -763,9 +763,25 @@ DiskManagerImpl
 							
 							if(!pieceDone[pieceNumber]){
 								
-							  dumpBlockToDisk(elt);
+							  if ( dumpBlockToDisk(elt)){
 							  
-							  manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
+							  	manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
+							  	
+							  }else{
+							  	
+							  		// could try and recover if, say, disk full. however, not really
+							  		// worth the effort as user intervention is no doubt required to
+							  		// fix the problem 
+							  	
+							  	DirectByteBufferPool.freeBuffer(elt.getData());
+								  
+								elt.data = null;
+								  
+								stopIt();
+								
+								setState( FAULTY );
+								
+							  }
 							  
 							}else{
 								
@@ -1743,72 +1759,85 @@ DiskManagerImpl
 		return true;
 	}
 
-	private void dumpBlockToDisk(QueueElement e) {
-		int pieceNumber = e.getPieceNumber();
-		int offset = e.getOffset();
-		ByteBuffer buffer = e.getData();
-       
-      if (buffer == null) {
-        Debug.out("buffer is null");
-      }
+		/**
+		 * @param e
+		 * @return FALSE if the write failed for some reason. Error will have been reported
+		 * and queue element set back to initial state to allow a re-write attempt later
+		 */
+	
+	private boolean 
+	dumpBlockToDisk(
+		QueueElement queue_entry ) 
+	{
+		int pieceNumber 	= queue_entry.getPieceNumber();
+		int offset		 	= queue_entry.getOffset();
+		ByteBuffer buffer 	= queue_entry.getData();
+		int	initial_buffer_position = buffer.position();
 
-		int previousFilesLength = 0;
-		int currentFile = 0;
-		PieceList pieceList = pieceMap[pieceNumber];
-		PieceMapEntry tempPiece = pieceList.get(currentFile);
-		long fileOffset = tempPiece.getOffset();
-		while ((previousFilesLength + tempPiece.getLength()) < offset) {
-			previousFilesLength += tempPiece.getLength();
-			currentFile++;
-			fileOffset = 0;
-			tempPiece = pieceList.get(currentFile);
-		}
-
-		//Now tempPiece points to the first file that contains data for this block
-		while (buffer.hasRemaining()) {
-			tempPiece = pieceList.get(currentFile);
-
-			if (tempPiece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
-				try {
-					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + tempPiece.getFile().getName() + " to read/write");
-					
-					tempPiece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
-					
-				} catch (Exception ex) {
-					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + tempPiece.getFile().getName() + " to read/write. ERR: "+ex.getMessage());
-					this.errorMessage = (ex.getCause()!=null?ex.getCause().getMessage():ex.getMessage()) + " (dumpBlockToDisk)";
-					stopIt();
-					setState( FAULTY );
-					return;
-				}
+		PieceMapEntry current_piece = null;
+		
+		try{
+			int previousFilesLength = 0;
+			int currentFile = 0;
+			PieceList pieceList = pieceMap[pieceNumber];
+			current_piece = pieceList.get(currentFile);
+			long fileOffset = current_piece.getOffset();
+			while ((previousFilesLength + current_piece.getLength()) < offset) {
+				previousFilesLength += current_piece.getLength();
+				currentFile++;
+				fileOffset = 0;
+				current_piece = pieceList.get(currentFile);
 			}
-			
-			int realLimit = buffer.limit();
+	
+			//Now tempPiece points to the first file that contains data for this block
+			while (buffer.hasRemaining()) {
+				current_piece = pieceList.get(currentFile);
+	
+				if (current_piece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
+		
+					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + current_piece.getFile().getName() + " to read/write");
+						
+					current_piece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
+				}
 				
-			long limit = buffer.position() + ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
-       
-			if (limit < realLimit) {
-				buffer.limit((int)limit);
-			}
+				int realLimit = buffer.limit();
+					
+				long limit = buffer.position() + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
+	       
+				if (limit < realLimit) {
+					buffer.limit((int)limit);
+				}
+	
+				if ( buffer.hasRemaining() ){
 
-			if ( buffer.hasRemaining() ) {
-				try{
-					tempPiece.getFile().getFMFile().write( buffer, fileOffset + (offset - previousFilesLength));
+					current_piece.getFile().getFMFile().write( buffer, fileOffset + (offset - previousFilesLength));
 				}
-        catch( FMFileManagerException f ){
-						// TODO: handle this properly
-				}
-			}
+					
+				buffer.limit(realLimit);
 				
-			buffer.limit(realLimit);
+				currentFile++;
+				fileOffset = 0;
+				previousFilesLength = offset;
+			}
+	
+			DirectByteBufferPool.freeBuffer(buffer);
 			
-			currentFile++;
-			fileOffset = 0;
-			previousFilesLength = offset;
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			String file_name = current_piece==null?"<unknown>":current_piece.getFile().getName();
+						
+			errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (dumpBlockToDisk) when processing file '" + file_name + "'";
+			
+			LGLogger.logAlert( LGLogger.AT_ERROR, errorMessage );
+			
+			buffer.position(initial_buffer_position);
+			
+			return( false );
 		}
-
-		DirectByteBufferPool.freeBuffer(buffer);
-		buffer = null;
 	}
     
 
