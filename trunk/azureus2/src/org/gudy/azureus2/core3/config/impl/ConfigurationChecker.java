@@ -270,90 +270,50 @@ public class ConfigurationChecker {
       return;
     }
     
-    String successes = "";
-    String failures = "";
-    
-    String[] fileNames = { "categories.config", "azureus.config",
-        "downloads.config", "filters.config", ".certs", ".keystore",
-        "azureus.statistics", "tracker.log", "tracker.config",
-        "trackers.config", "sharing.config", "plugins", "shares", "web" };
-    
-    //migrate files/folders from pre-2080 location
-    for (int i=0; i < fileNames.length; i++) {
-      try {
-        File oldFile = FileUtil.getApplicationFile( fileNames[i] );
-        if ( oldFile.exists() ) {
-          File newFile = FileUtil.getUserFile( fileNames[i] );
-          boolean result = oldFile.renameTo(newFile);
-          if (result) {
-            successes += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : OK\n";
-          }
-          else {
-            failures += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : FAILED\n\n";
-          }
-        }
-      } catch (Throwable t) {
-        failures += fileNames[i] + "\n---> " + t.getMessage() + ": FAILED\n\n";
-        t.printStackTrace();
-        LGLogger.log(t);
-      }
-    }
-    
+    String results = "";
     
     //migrate from old buggy APPDATA dir to new registry-culled dir
-    String oldappdata = SystemProperties.getEnvironmentalVariable( "APPDATA" );
-    if ( oldappdata != null && oldappdata.length() > 0 ) {
-      oldappdata = oldappdata + SystemProperties.SEP + "Azureus" + SystemProperties.SEP;
-      File oldpath = new File( oldappdata );
-      File newpath = new File( SystemProperties.getUserPath() );
-      if ( oldpath.exists() && !oldpath.equals( newpath ) ) {
-        boolean result = oldpath.renameTo( newpath );
-        if (result) {
-          successes += oldpath.toURI().getPath() + "\n---> " + newpath.toURI().getPath() + " : OK\n";
-        }
-        else {
-          failures += oldpath.toURI().getPath() + "\n---> " + newpath.toURI().getPath() + " : FAILED\n\n";
-        }
+    if( Constants.isWindows ) {
+      String old_dir = SystemProperties.getEnvironmentalVariable( "APPDATA" );
+      if( old_dir != null && old_dir.length() > 0 ) {
+        old_dir = old_dir + SystemProperties.SEP + "Azureus" + SystemProperties.SEP;
+        results += migrateAllFiles( old_dir, SystemProperties.getUserPath() );
       }
     }
-    
-    
-    //migrate from old /.azureus/ dir
-    String oldLinuxAndWebStartPath = System.getProperty("user.home") + SystemProperties.SEP + ".azureus" + SystemProperties.SEP;
-    File oldLinuxAndWebStartDir = new File( oldLinuxAndWebStartPath );
-    if ( oldLinuxAndWebStartDir.exists() ) {
-      File newDir = new File( SystemProperties.getUserPath());
-      boolean result = oldLinuxAndWebStartDir.renameTo(newDir);
-      if (result) {
-        successes += oldLinuxAndWebStartDir.toURI().getPath() + "\n---> " + newDir.toURI().getPath() + " : OK\n";
-      }
-      else {
-        failures += oldLinuxAndWebStartDir.toURI().getPath() + "\n---> " + newDir.toURI().getPath() + " : FAILED\n\n";
-      }
-    }
-    
     
     //migrate from old ~/Library/Azureus/ to ~/Library/Application Support/Azureus/
-    File oldosxpath = new File( System.getProperty("user.home") + "/Library/Azureus/" );
-    if ( oldosxpath.exists() ) {
-      File newosxpath = new File( SystemProperties.getUserPath() );
-      boolean result = oldosxpath.renameTo( newosxpath );
-      if (result) {
-        successes += oldosxpath.toURI().getPath() + "\n---> " + newosxpath.toURI().getPath() + " : OK\n";
-      }
-      else {
-        failures += oldosxpath.toURI().getPath() + "\n---> " + newosxpath.toURI().getPath() + " : FAILED\n\n";
-      }
+    if( Constants.isOSX ) {
+      String old_dir = System.getProperty("user.home") + "/Library/Azureus/";
+      results += migrateAllFiles( old_dir, SystemProperties.getUserPath() );
     }
-    
-    
+
     ConfigurationManager.getInstance().load();
     COConfigurationManager.setParameter("Already_Migrated", true);
     
-    if (successes.length() > 1 || failures.length() > 1) {
-    	String[] params = { successes, failures };
+    if( results.length() > 0 ) {
+    	String[] params = { results };
     	LGLogger.logAlertUsingResource(LGLogger.INFORMATION, "AutoMigration.useralert", params);
     }
+  }
+  
+  
+  private static String migrateAllFiles( String source_path, String dest_path ) {
+    String result = "";
+    File source_dir = new File( source_path );
+    File dest_dir = new File( dest_path );
+    if( source_dir.exists() && !source_path.equals( dest_path ) ) {
+      if( !dest_dir.exists() ) dest_dir.mkdirs();
+      File[] files = source_dir.listFiles();
+      for( int i=0; i < files.length; i++ ) {
+        File source_file = files[ i ];
+        File dest_file = new File( dest_dir, source_file.getName() );
+        boolean ok = source_file.renameTo( dest_file );
+        if( ok ) result += source_file.toURI().getPath() + "\n---> " + dest_file.toURI().getPath() + " : OK\n";
+        else result += source_file.toURI().getPath() + "\n---> " + dest_file.toURI().getPath() + " : FAILED\n";
+      }
+      source_dir.delete();
+    }
+    return result;
   }
   
   
