@@ -73,7 +73,7 @@ public class BlockedIpsWindow {
     }
     });
         
-    window.setSize(420,320);
+    window.setSize(720,320);
     window.layout();
     window.open();    
   }
