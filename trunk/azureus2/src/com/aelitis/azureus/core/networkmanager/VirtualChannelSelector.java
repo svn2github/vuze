@@ -81,6 +81,7 @@ public class VirtualChannelSelector {
       	
       	register_list_mon.exit();
       }
+      selector.wakeup();
     }
     
     
