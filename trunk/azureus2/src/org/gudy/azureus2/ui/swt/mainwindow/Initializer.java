@@ -207,7 +207,7 @@ public class Initializer implements STProgressListener, Application {
   }
   
   private int overallPercent(int taskPercent) {
-    System.out.println("ST percent " + currentPercent + " / " + taskPercent + " : " + (currentPercent + (taskPercent / nbTasks)));
+    //System.out.println("ST percent " + currentPercent + " / " + taskPercent + " : " + (currentPercent + (taskPercent / nbTasks)));
     return currentPercent + taskPercent / nbTasks;
   }
   
