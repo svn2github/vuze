@@ -1173,7 +1173,9 @@ public class TableView
   private int getColumnNo(int iMouseX) {
     int iColumn = -1;
     if (table.getItemCount() > 0) {
-      TableItem ti = table.getItem(0);
+      //Using  table.getTopIndex() instead of 0, cause
+      //the first row has no bounds when it's not visible under OS X.
+      TableItem ti = table.getItem(table.getTopIndex());
       for (int i = bSkipFirstColumn ?  1 : 0; i < table.getColumnCount(); i++) {
         // M8 Fixes SWT GTK Bug 51777:
         //  "TableItem.getBounds(int) returns the wrong values when table scrolled"
