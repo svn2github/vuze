@@ -93,9 +93,9 @@ public class TableSorter implements ParameterListener {
   }
 
   public void sortColumnReverse(TableColumnCore tableColumn) {
-    bLastAscending = (lastSortedTableColumn == tableColumn) ? !bLastAscending
-                                                            : true;
-    sortColumn(tableColumn, bLastAscending, false);
+    sortColumn(tableColumn, 
+               (lastSortedTableColumn == tableColumn) ? !bLastAscending : true, 
+               false);
   }
 
   public void sortColumn(TableColumnCore tableColumn, boolean bAscending) {
