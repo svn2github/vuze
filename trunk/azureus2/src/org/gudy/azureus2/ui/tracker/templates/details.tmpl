@@ -103,17 +103,19 @@
           <td> 
             <table align="center" border="1" cellpadding="2" cellspacing="1" width="96%" class="azcontent">
               <tr> 
-                  <th width="20%">Seed</th>
-                  <th width="20%">Uploaded</th>
-                  <th width="20%">Downloaded</th>
-                  <th width="20%">Left</th>
-                  <th width="20%">IP</th>
+                  <th width="15%">Seed</th>
+                  <th width="15%">Uploaded</th>
+                  <th width="15%">Downloaded</th>
+                  <th width="15%">Share Ratio</th>
+                  <th width="15%">Left</th>
+                  <th width="25%">IP</th>
                 </tr>
               <tmpl_loop peer_info> 
               <tr> 
                 <td><tmpl_if peer_is_seed><span class="torrent_isseed">Yes</span><tmpl_else><span class="torrent_0seed">No</span></tmpl_if></td>
                 <td><tmpl_var peer_uploaded></td>
                 <td><tmpl_var peer_downloaded></td>
+                <td><span class="peer_share_health<tmpl_var peer_share_health>"><tmpl_var peer_share_ratio></td>
                 <td><tmpl_var peer_left></td>
                 <td><tmpl_var peer_ip></td>
               </tr>

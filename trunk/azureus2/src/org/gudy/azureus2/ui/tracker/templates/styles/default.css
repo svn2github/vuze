@@ -51,19 +51,37 @@ h1 {
 	color: #FF0000;
 }
 .torrent_1seed {
-	color: FF8800;
+	color: #FF8800;
 }
 .torrent_2seed {
-	color: FFCC00;
+	color: #FFCC00;
 }
 .torrent_3seed {
-	color: FFFF00;
+	color: #FFFF00;
 }
 .torrent_4seed {
 	color: #CCFF00;
 }
 .torrent_isseed {
 	color: #00CC00;
+}
+.peer_share_health0{
+	color: #FF0000;
+}
+.peer_share_health1{
+	color: #FF8800;
+}
+.peer_share_health2{
+	color: #FFCC00;
+}
+.peer_share_health3{
+	color: #FFFF00;
+}
+.peer_share_health4{
+	color: #00FF00;
+}
+.peer_share_health5{
+	color: #00FF44;
 }
 span {
 	font-weight: bold;

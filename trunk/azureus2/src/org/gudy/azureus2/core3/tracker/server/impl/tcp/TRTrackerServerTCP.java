@@ -39,7 +39,7 @@ public class
 TRTrackerServerTCP 
 	extends 	TRTrackerServerImpl
 {
-	protected static final int THREAD_POOL_SIZE				= 10;
+	protected static final int THREAD_POOL_SIZE				= 32;
 	
 	protected int	port;
 	

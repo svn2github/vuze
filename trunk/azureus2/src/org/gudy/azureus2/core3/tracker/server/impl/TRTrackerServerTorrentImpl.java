@@ -186,7 +186,7 @@ TRTrackerServerTorrentImpl
 		Iterator				peer_map_iterator,
 		TRTrackerServerPeerImpl	peer )
 	{
-		if ( peer_map.size() != peer_list.size() || peer_list.size() == peer_reuse_map.size()){
+		if ( peer_map.size() != peer_list.size() || peer_list.size() != peer_reuse_map.size()){
 			
 			Debug.out( "TRTrackerServerTorrent::removePeer: maps/list size different");	
 		}

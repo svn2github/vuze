@@ -467,12 +467,34 @@ TrackerWeb
 							
 							TrackerPeer	peer = peers[j];
 							
+							long	uploaded 	= peer.getUploaded();
+							long	downloaded	= peer.getDownloaded();
+							
+							float	share_ratio;
+							
+							if ( downloaded == 0 ){
+								
+								share_ratio = uploaded==0?1:-1;
+								
+							}else{
+								share_ratio	= (float)((uploaded*1000)/downloaded)/1000;
+							}
+							
+							int	share_health = (int)share_ratio*5;
+							
+							if ( share_health > 5 ){
+								
+								share_health = 5;
+							}
+														
 							p_row.put( "peer_is_seed", peer.isSeed()?"1":"0" );
-							p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKiBEtc(peer.getUploaded()));
-							p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKiBEtc(peer.getDownloaded()));
+							p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKiBEtc(uploaded));
+							p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKiBEtc(downloaded));
 							p_row.put( "peer_left", DisplayFormatters.formatByteCountToKiBEtc(peer.getAmountLeft()));
 							p_row.put( "peer_ip", hideLastIpBlock(peer.getIP()) );
 							p_row.put( "peer_ip_full", peer.getIP());
+							p_row.put( "peer_share_ratio", (share_ratio==-1?"&#8734;":""+share_ratio));
+							p_row.put( "peer_share_health", ""+share_health );
 						}
 					}
 					
