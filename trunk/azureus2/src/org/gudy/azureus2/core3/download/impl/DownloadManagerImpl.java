@@ -653,10 +653,11 @@ DownloadManagerImpl
   addPeer(
 	  PEPeer 		peer )
   {
-	synchronized( listeners ){
-  		
-  		current_peers.addElement( peer );
-  		
+
+  current_peers.addElement( peer );
+  //Moved the synchronised block AFTER the addElement,
+  //as it ended sometimes on a dead-lock situation. Gudy
+  synchronized( listeners ){
 		for (int i=0;i<listeners.size();i++){
 			
 			((DownloadManagerListener)listeners.elementAt(i)).peerAdded( peer );
@@ -668,10 +669,11 @@ DownloadManagerImpl
   removePeer(
 	  PEPeer		peer )
   {
-	synchronized( listeners ){
-  		
-  		current_peers.removeElement( peer );
-  		
+  	current_peers.removeElement( peer );
+    
+  	//Moved the synchronised block AFTER the removeElement,
+    //as it ended sometimes on a dead-lock situation. Gudy
+    synchronized( listeners ){
 		for (int i=0;i<listeners.size();i++){
 			
 			((DownloadManagerListener)listeners.elementAt(i)).peerRemoved( peer );
