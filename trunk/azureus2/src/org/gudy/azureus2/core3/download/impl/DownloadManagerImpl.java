@@ -31,8 +31,6 @@ import java.util.Arrays;
 import java.util.Vector;
 
 
-import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.Server;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -77,7 +75,7 @@ DownloadManagerImpl
   //The comment field in the metaData
   private String comment;
 
-  private Server server;
+  private PEServer server;
   private TOTorrent			torrent;
   private TRTrackerClient 	tracker_client;
   public DiskManager diskManager;
@@ -221,15 +219,21 @@ DownloadManagerImpl
 	}
 
 
-  private void startServer() {
-	if(Server.portsFree()) {
-	  server = new Server();
+  private void startServer() 
+  {
+  	server = PEServerFactory.create();
+  	
+	if( server != null ) {
+		
 	  int port = server.getPort();
-	  if (port == 0) {
+	  
+	  if (port == 0){
+	  	
 		this.state = STATE_WAITING;
 		//      errorDetail = MessageText.getString("DownloadManager.error.unabletostartserver"); //$NON-NLS-1$
 	  }
-	} else {
+	}else {
+		
 	  this.state = STATE_WAITING;
 	}
   }

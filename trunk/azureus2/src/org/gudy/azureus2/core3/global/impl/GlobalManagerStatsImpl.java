@@ -25,7 +25,7 @@ package org.gudy.azureus2.core3.global.impl;
  * @author parg
  *
  */
-import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
 // temporary until refactoring sorted

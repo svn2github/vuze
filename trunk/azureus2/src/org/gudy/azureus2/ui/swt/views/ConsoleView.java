@@ -13,7 +13,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ScrollBar;
-import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.ui.swt.MainWindow;

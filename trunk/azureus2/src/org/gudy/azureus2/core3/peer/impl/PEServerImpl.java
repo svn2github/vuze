@@ -1,4 +1,25 @@
-package org.gudy.azureus2.core;
+/*
+ * File    : PEServerImpl.java
+ * Created : 21-Oct-2003
+ * By      : stuff
+ * 
+ * Azureus - a Java Bittorrent client
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+package org.gudy.azureus2.core3.peer.impl;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
@@ -14,7 +35,11 @@ import org.gudy.azureus2.core3.peer.*;
  * @author Olivier
  *
  */
-public class Server extends Thread {
+public class 
+PEServerImpl
+	extends 	Thread 
+	implements  PEServer
+{
   public static final int componentID = 4;
   public static final int evtLyfeCycle = 0;
   public static final int evtNewConnection = 1;
@@ -28,7 +53,31 @@ public class Server extends Thread {
 
   private static int instanceCount = 0;
 
-  public Server() {
+  public static boolean portsFree() {
+	 return Math.abs(
+	   COConfigurationManager.getIntParameter("Low Port", 6881)
+		 - COConfigurationManager.getIntParameter("High Port", 6889))
+	   + 1
+	   > instanceCount;
+   }
+
+	 public static PEServer
+	 create()
+	 {
+		 synchronized( PEServerImpl.class ){
+			
+			 if ( portsFree()){
+				
+				 return( new PEServerImpl());
+				
+			 }else{
+				
+				 return( null );
+			 }
+		 }
+	 }
+	
+  public PEServerImpl() {
     super("Bt Server");
     //Will create a Server on any socket from 6881 to 6889
     int lowPort = COConfigurationManager.getIntParameter("Low Port", 6881);
@@ -103,6 +152,9 @@ public class Server extends Thread {
     LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is stopped");
   }
 
+  public void startServer(){
+  	start();	// Thread method
+  }
   public void stopServer() {
     bContinue = false;
 
@@ -116,14 +168,7 @@ public class Server extends Thread {
     }
     instanceCount--;
   }
-
-  public static boolean portsFree() {
-    return Math.abs(
-      COConfigurationManager.getIntParameter("Low Port", 6881)
-        - COConfigurationManager.getIntParameter("High Port", 6889))
-      + 1
-      > instanceCount;
-  }
+  
 
   public int getPort() {
     return port;

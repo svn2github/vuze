@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Widget;
-import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 /**
  * @author Arbeiten

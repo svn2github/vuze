@@ -26,7 +26,7 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
-import  org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText;
 import  org.gudy.azureus2.core3.torrent.*;
 
 public class 

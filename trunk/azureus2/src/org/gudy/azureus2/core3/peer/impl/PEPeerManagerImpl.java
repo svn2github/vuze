@@ -26,8 +26,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
-import org.gudy.azureus2.core.MessageText;
-import org.gudy.azureus2.core.Server;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -37,6 +35,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.*;
 
 
@@ -61,7 +60,7 @@ PEPeerManagerImpl
   private byte[] _myPeerId;
   private int _nbPieces;
   private PEPiece[] _pieces;
-  private Server _server;
+  private PEServerImpl _server;
   private PEPeerStats _stats;
   private long _timeLastUpdate;
   private int _timeToWait;
@@ -93,7 +92,7 @@ PEPeerManagerImpl
 
   public PEPeerManagerImpl(
     DownloadManager manager,
-    Server server,
+    PEServer server,
 	TRTrackerClient tracker,
     DiskManager diskManager) {
     super("Peer Manager"); //$NON-NLS-1$
@@ -123,7 +122,7 @@ PEPeerManagerImpl
     _connections = new ArrayList();
 
     //The Server that handle incoming connections
-    _server = server;
+    _server = (PEServerImpl)server;
     _server.setManager(this);
 
     this._diskManager = diskManager;
@@ -1302,7 +1301,7 @@ PEPeerManagerImpl
     //the stats
     _stats = new PEPeerStatsImpl(diskManager.getPieceLength());
 
-    _server.start();
+    _server.startServer();
 
     this.start();
   }

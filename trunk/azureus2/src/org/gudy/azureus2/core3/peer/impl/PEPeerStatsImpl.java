@@ -26,9 +26,9 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core.*;
 
 public class 
 PEPeerStatsImpl 

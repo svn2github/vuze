@@ -28,9 +28,9 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 /**
  *

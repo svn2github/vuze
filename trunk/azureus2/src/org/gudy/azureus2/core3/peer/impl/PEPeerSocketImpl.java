@@ -33,12 +33,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.util.ByteBufferPool;
 import org.gudy.azureus2.core3.util.Constants;
 
 import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 

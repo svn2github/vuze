@@ -4,8 +4,8 @@
  */
 package org.gudy.azureus2.irc;
 
-import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.jibble.pircbot.Colors;
 import org.jibble.pircbot.PircBot;
