@@ -1137,7 +1137,13 @@ DiskManagerImpl
 	          subPath = fullPath.substring(fullPath.indexOf(rPath) + rPath.length());
 	    
 	          //create the destination dir
-	          destDir = new File(moveToDir + subPath);
+	          
+	          if ( subPath.startsWith( File.separator )){
+	          	
+	          	subPath = subPath.substring(1);
+	          }
+	          
+	          destDir = new File(moveToDir, subPath);
 	     
 	          destDir.mkdirs();
 	          
