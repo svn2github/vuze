@@ -49,11 +49,16 @@ UPnPMappingManager
 	UPnPMappingManager()
 	{
 			// incoming data port
-				
-		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port", true );
+
+			// Zyxel routers currently seem to overwrite the TCP mapping for a given port
+			// with the UDP one, leaving the TCP one non-operational. Hack to try setting them
+			// in UDP -> TCP order to hopefully leave the more important one working :)
 		
 		addConfigPort( "upnp.mapping.dataportudp", false, "Server Enable UDP", "TCP.Listen.Port" );
+
+		addConfigPort( "upnp.mapping.dataport", true, "TCP.Listen.Port", true );
 		
+
 			// tracker TCP
 		
 		addConfigPort( "upnp.mapping.tcptrackerport", true, "Tracker Port Enable", "Tracker Port" );
