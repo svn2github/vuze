@@ -152,8 +152,15 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
         return;
       }
       gc.setClipping(bounds);
-      bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
     }
+    // See Eclipse Bug 42416
+    // "[Platform Inconsistency] GC(Table) has wrong origin"
+    // Notes/Questions:
+    // - Appears to apply to new GC(table) AND GC passed by PaintEvent
+    // - Q) .height may be effected (smaller than it should be).  How does this effect clipping?
+    // - Q) At what version does this bug start appearing?
+    //   A) Reports suggest at least 2.1.1
+    bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
     gc.drawImage(image, bounds.x, bounds.y);
     //tableRow.debugOut("doPaint()"+gc+": "+ gc.getClipping(), false);
     if (ourGC) {
