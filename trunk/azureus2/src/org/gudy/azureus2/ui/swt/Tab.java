@@ -392,6 +392,7 @@ public class Tab {
       public void keyReleased(KeyEvent keyEvent) {
         // ESC or CTRL+F4 closes current Tab
         if(keyEvent.character == SWT.ESC || (keyEvent.keyCode == 0x100000d && keyEvent.stateMask == SWT.CTRL)) {
+          eventCloseAllowed = false;
           closeCurrent();
         }
         if(keyEvent.keyCode == 0x100000f) {
@@ -405,6 +406,7 @@ public class Tab {
       }
 
       public void keyPressed(KeyEvent keyEvent) {
+        eventCloseAllowed = true;
         // F6 selects next Tab
 //        if(keyEvent.keyCode == 0x100000f && keyEvent.stateMask == 0) {
 //          selectNextTab();
