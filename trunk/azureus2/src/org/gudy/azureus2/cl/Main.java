@@ -21,11 +21,9 @@ public class Main {
     String path = args[args.length - 1];
     GlobalManager gm = new GlobalManager();
     DownloadManager manager = new DownloadManager(gm, torrentFile, path);
+    final boolean initStoppedDownloads = false;
     while (true) {
-      if (manager.getState() == DownloadManager.STATE_WAITING)
-        manager.initialize();
-      if (manager.getState() == DownloadManager.STATE_READY)
-        manager.startDownload();
+      manager.startDownloadInitialized(initStoppedDownloads);
 
       StringBuffer buf = new StringBuffer();
       int state = manager.getState();
