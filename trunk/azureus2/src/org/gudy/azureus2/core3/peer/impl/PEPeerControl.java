@@ -123,4 +123,13 @@ PEPeerControl
 	updateSuperSeedPiece(
 	    PEPeer peer,
 	    int pieceNumber);
+	
+	public void
+	addListener(
+		PEPeerControlListener	l );
+	
+	public void
+	removeListener(
+		PEPeerControlListener	l );
+	
 }

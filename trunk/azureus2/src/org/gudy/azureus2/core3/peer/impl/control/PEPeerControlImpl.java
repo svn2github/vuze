@@ -56,7 +56,7 @@ PEPeerControlImpl
   
   private int[] _availability;
   private boolean _bContinue;                
-  private List _connections;
+  private List _peer_transports;
   private DiskManager _diskManager;
   private boolean[] _downloaded;
   private boolean[] _downloading;
@@ -97,7 +97,8 @@ PEPeerControlImpl
   
   private int nbHashFails;
 
-  private List	listeners = new ArrayList();
+  private List	peer_manager_listeners 		= new ArrayList();
+  private List	peer_transport_listeners 	= new ArrayList();
   
   
   private boolean superSeedMode;
@@ -144,7 +145,7 @@ PEPeerControlImpl
     _myPeerId = _tracker.getPeerId();
 
     //The peer connections
-    _connections = new ArrayList();
+    _peer_transports = new ArrayList();
 
     //The Server that handle incoming connections
      _server.setServerAdapter(this);
@@ -201,8 +202,8 @@ PEPeerControlImpl
         for (int i = 9; i > 0; i--)
           started[i] = started[i - 1];
         started[0] = System.currentTimeMillis();
-        synchronized (_connections) {
-          Iterator iter = _connections.iterator();
+        synchronized (_peer_transports) {
+          Iterator iter = _peer_transports.iterator();
           while (iter.hasNext()) {
             PEPeerTransport ps = (PEPeerTransport) iter.next();
             if (ps.getState() == PEPeer.DISCONNECTED) {
@@ -263,10 +264,10 @@ PEPeerControlImpl
                   testPS = (PEPeerTransport)slowQueue.remove(0);
                   /* add the connection */
                   if (testPS != null) {
-                     synchronized (_connections) {
+                     synchronized (_peer_transports) {
                         //System.out.println("new slow connect: " + (System.currentTimeMillis() /1000));
                         /* add connection */
-                        _connections.add(PEPeerTransportFactory.createTransport(testPS.getManager(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));
+                     	addToPeerTransports(PEPeerTransportFactory.createTransport(testPS.getManager(), testPS.getId(), testPS.getIp(), testPS.getPort(), false));               
                      }
                   }
                   /* wait */
@@ -368,10 +369,10 @@ PEPeerControlImpl
     t.start();
 
     //  4. Close all clients
-    if (_connections != null)
-      synchronized (_connections) {
-        while (_connections.size() != 0) {
-          PEPeerTransport pc = (PEPeerTransport) _connections.remove(0);
+    if (_peer_transports != null)
+      synchronized (_peer_transports) {
+        while (_peer_transports.size() != 0) {
+          PEPeerTransport pc = (PEPeerTransport) removeFromPeerTransports(0);
           pc.closeAll("Closing all Connections",false, false);
         }
       }
@@ -428,13 +429,16 @@ PEPeerControlImpl
 			
 			List	transports = PEPeerTransportFactory.createExtendedTransports( this, protocol_name, protocol );
 			
-			for (int i=0;i<transports.size();i++){
-				
-				PEPeerTransport	transport = (PEPeerTransport)transports.get(i);
-				
-				if ( !_connections.contains(transport)){
+			synchronized( _peer_transports ){
 					
-					_connections.add( transport );
+				for (int i=0;i<transports.size();i++){
+					
+					PEPeerTransport	transport = (PEPeerTransport)transports.get(i);
+					
+					if ( !_peer_transports.contains(transport)){
+						
+						addToPeerTransports( transport );
+					}
 				}
 			}
 		}
@@ -493,14 +497,14 @@ PEPeerControlImpl
     //::updated this method to work with List -Tyler
     //for all peers
     Vector bestUploaders = new Vector();
-    synchronized (_connections) {
-      int[] upRates = new int[_connections.size()];
+    synchronized (_peer_transports) {
+      int[] upRates = new int[_peer_transports.size()];
       Arrays.fill(upRates, -1);
 
-      for (int i = 0; i < _connections.size(); i++) {
+      for (int i = 0; i < _peer_transports.size(); i++) {
         PEPeerTransport pc = null;
         try {
-          pc = (PEPeerTransport) _connections.get(i);
+          pc = (PEPeerTransport) _peer_transports.get(i);
         }
         catch (Exception e) {
           e.printStackTrace();
@@ -574,9 +578,9 @@ PEPeerControlImpl
       _timeFinished = System.currentTimeMillis() / 1000;
             
       //remove previous snubbing
-      synchronized (_connections) {
-        for (int i = 0; i < _connections.size(); i++) {
-          PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
+      synchronized (_peer_transports) {
+        for (int i = 0; i < _peer_transports.size(); i++) {
+          PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
           if (pc != null) {
             pc.setSnubbed(false);
           }
@@ -626,9 +630,9 @@ PEPeerControlImpl
    */
   private void checkRequests() {
     //for every connection
-    synchronized (_connections) {
-      for (int i = 0; i < _connections.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
+    synchronized (_peer_transports) {
+      for (int i = 0; i < _peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
         if (pc.getState() == PEPeer.TRANSFERING) {
           List expired = pc.getExpiredRequests();
           //::May want to make this an ArrayList unless you
@@ -694,7 +698,7 @@ PEPeerControlImpl
       int swarmPeers = 0;
       int swarmSeeds = 0;
       int tempMaxConnections = maxConnections;
-      int currentConnectionCount = _connections.size();
+      int currentConnectionCount = _peer_transports.size();
       TRTrackerScraperResponse tsr = _manager.getTrackerScrapeResponse();
     
       //get current scrape values
@@ -745,11 +749,11 @@ PEPeerControlImpl
     Arrays.fill(availability, 0); //:: should be faster -Tyler
 
     //for all clients
-    synchronized (_connections) {
-      for (int i = _connections.size() - 1; i >= 0; i--) //::Possible optimization to break early when you reach 100%
+    synchronized (_peer_transports) {
+      for (int i = _peer_transports.size() - 1; i >= 0; i--) //::Possible optimization to break early when you reach 100%
         {
         //get the peer connection
-        PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
+        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
 
         //get an array of available pieces    
         boolean[] piecesAvailable = pc.getAvailable();
@@ -954,9 +958,9 @@ PEPeerControlImpl
     PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
     
     if (!IpFilterImpl.getInstance().isInRange(ip)) {
-       synchronized (_connections) {
-          if (!_connections.contains(testPS)) {
-             if (maxConnections == 0 || _connections.size() < maxConnections) {
+       synchronized (_peer_transports) {
+          if (!_peer_transports.contains(testPS)) {
+             if (maxConnections == 0 || _peer_transports.size() < maxConnections) {
                 /* do we need to slow down new connection creation? */
                 if (slowConnect) {
                    /* add connection to be slow-connected */
@@ -965,7 +969,7 @@ PEPeerControlImpl
                 }
                 else {
                    /* add connection */
-                   _connections.add(PEPeerTransportFactory.createTransport(this, peerId, ip, port, false));
+                	addToPeerTransports(PEPeerTransportFactory.createTransport(this, peerId, ip, port, false));
                 }
              }
           }
@@ -984,11 +988,11 @@ PEPeerControlImpl
     boolean addFailed = false;
     String reason = "";
     if (!IpFilterImpl.getInstance().isInRange(ps.getIp())) {
-       synchronized (_connections) {
-          if (!_connections.contains(ps)) {
-             if (maxConnections == 0 || _connections.size() < maxConnections) {
+       synchronized (_peer_transports) {
+          if (!_peer_transports.contains(ps)) {
+             if (maxConnections == 0 || _peer_transports.size() < maxConnections) {
                 /* add connection */
-                _connections.add(ps);
+             	addToPeerTransports(ps);
              }
              else {
                addFailed = true;
@@ -1091,10 +1095,10 @@ PEPeerControlImpl
     Arrays.fill(upRates, 0);
 
     Vector bestUploaders = new Vector();
-    for (int i = 0; i < _connections.size(); i++) {
+    for (int i = 0; i < _peer_transports.size(); i++) {
       PEPeerTransport pc = null;
       try {
-        pc = (PEPeerTransport) _connections.get(i);
+        pc = (PEPeerTransport) _peer_transports.get(i);
       }
       catch (Exception e) {
         break;
@@ -1117,11 +1121,11 @@ PEPeerControlImpl
     Arrays.fill(upRates, 0);
 
     Vector bestUploaders = new Vector();
-    synchronized (_connections) {
-      for (int i = 0; i < _connections.size(); i++) {
+    synchronized (_peer_transports) {
+      for (int i = 0; i < _peer_transports.size(); i++) {
         PEPeerTransport pc = null;
         try {
-          pc = (PEPeerTransport) _connections.get(i);
+          pc = (PEPeerTransport) _peer_transports.get(i);
         }
         catch (Exception e) {
           continue;
@@ -1144,11 +1148,11 @@ PEPeerControlImpl
     }
 
     if (!_finished && bestUploaders.size() < upRates.length) {
-      synchronized (_connections) {
-        for (int i = 0; i < _connections.size(); i++) {
+      synchronized (_peer_transports) {
+        for (int i = 0; i < _peer_transports.size(); i++) {
           PEPeerTransport pc = null;
           try {
-            pc = (PEPeerTransport) _connections.get(i);
+            pc = (PEPeerTransport) _peer_transports.get(i);
           }
           catch (Exception e) {
             break;
@@ -1167,11 +1171,11 @@ PEPeerControlImpl
 
     if (bestUploaders.size() < upRates.length) {
       int start = bestUploaders.size();
-      synchronized (_connections) {
-        for (int i = 0; i < _connections.size(); i++) {
+      synchronized (_peer_transports) {
+        for (int i = 0; i < _peer_transports.size(); i++) {
           PEPeerTransport pc = null;
           try {
-            pc = (PEPeerTransport) _connections.get(i);
+            pc = (PEPeerTransport) _peer_transports.get(i);
           }
           catch (Exception e) {
             continue;
@@ -1197,19 +1201,19 @@ PEPeerControlImpl
   // refactored out of unChoke() - Moti
   private void performOptimisticUnChoke(Vector bestUploaders) {
     int index = 0;
-    synchronized (_connections) {
-      for (int i = 0; i < _connections.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
+    synchronized (_peer_transports) {
+      for (int i = 0; i < _peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
         if (pc == currentOptimisticUnchoke)
           index = i + 1;
       }
-      if (index >= _connections.size())
+      if (index >= _peer_transports.size())
         index = 0;
 
       currentOptimisticUnchoke = null;
 
-      for (int i = index; i < _connections.size() + index; i++) {
-        PEPeerTransport pc = (PEPeerTransport) _connections.get(i % _connections.size());
+      for (int i = index; i < _peer_transports.size() + index; i++) {
+        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i % _peer_transports.size());
         if (!pc.isSeed() && pc.isInteresting() && !pc.isSnubbed()) {
           currentOptimisticUnchoke = pc;
           break;
@@ -1221,11 +1225,11 @@ PEPeerControlImpl
   // refactored out of unChoke() - Moti
   private Vector getNonChokingPeers() {
     Vector nonChoking = new Vector();
-    synchronized (_connections) {
-      for (int i = 0; i < _connections.size(); i++) {
+    synchronized (_peer_transports) {
+      for (int i = 0; i < _peer_transports.size(); i++) {
         PEPeerTransport pc = null;
         try {
-          pc = (PEPeerTransport) _connections.get(i);
+          pc = (PEPeerTransport) _peer_transports.get(i);
         }
         catch (Exception e) {
           continue;
@@ -1281,10 +1285,10 @@ PEPeerControlImpl
   //send the have requests out
   private void sendHave(int pieceNumber) {
     //for all clients
-    synchronized (_connections) {
-      for (int i = 0; i < _connections.size(); i++) {
+    synchronized (_peer_transports) {
+      for (int i = 0; i < _peer_transports.size(); i++) {
         //get a peer connection
-        PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
+        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
         //send the have message
         pc.sendHave(pieceNumber);
       }
@@ -1296,9 +1300,9 @@ PEPeerControlImpl
     //If we are not ourself a seed, return
     if (!forceDisconnect && (!_finished || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true))) //$NON-NLS-1$
       return;
-    synchronized (_connections) {
-      for (int i = 0; i < _connections.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
+    synchronized (_peer_transports) {
+      for (int i = 0; i < _peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
         if (pc != null && pc.getState() == PEPeer.TRANSFERING && pc.isSeed()) {
           pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false, false);
         }
@@ -1309,9 +1313,9 @@ PEPeerControlImpl
   private void updateStats() {
     _seeds = _peers = 0;
     //calculate seeds vs peers
-    synchronized (_connections) {
-      for (int i = 0; i < _connections.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
+    synchronized (_peer_transports) {
+      for (int i = 0; i < _peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
         if (pc.getState() == PEPeer.TRANSFERING)
           if (pc.isSeed())
             _seeds++;
@@ -1340,6 +1344,7 @@ PEPeerControlImpl
    * to the list of peer connections.
    * @param sckClient the incoming connection socket
    */
+  
   public void addPeerTransport(Object param) {
     
     this.insertPeerSocket( _server.createPeerTransport(param));
@@ -1356,8 +1361,8 @@ PEPeerControlImpl
    * @param pc
    */
   public void removePeer(PEPeerTransport pc) {
-    synchronized (_connections) {
-      _connections.remove(pc);
+    synchronized (_peer_transports) {
+    	removeFromPeerTransports(pc);
     }
   }
 
@@ -1489,8 +1494,8 @@ PEPeerControlImpl
         //In case we are in endGame mode, remove the piece from the chunk list
         removeFromEndGameModeChunks(pieceNumber,offset);
         //For all connections cancel the request
-        synchronized(_connections) {
-          Iterator iter = _connections.iterator();
+        synchronized(_peer_transports) {
+          Iterator iter = _peer_transports.iterator();
           while(iter.hasNext()) {
             PEPeerTransport connection = (PEPeerTransport) iter.next();
             connection.sendCancel(
@@ -1541,9 +1546,9 @@ PEPeerControlImpl
       if (availability <= 0)
         return;
       //for all peers
-      synchronized (_connections) {
-        for (int i = _connections.size() - 1; i >= 0; i--) {
-          PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
+      synchronized (_peer_transports) {
+        for (int i = _peer_transports.size() - 1; i >= 0; i--) {
+          PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
           if (pc != null && pc != pcOrigin && pc.getState() == PEPeer.TRANSFERING) {
             boolean[] peerAvailable = pc.getAvailable();
             if (peerAvailable[pieceNumber])
@@ -1562,8 +1567,8 @@ PEPeerControlImpl
 
   public boolean validateHandshaking(PEPeer pc, byte[] peerId) {
     PEPeerTransport pcTest = PEPeerTransportFactory.createTransport(this, peerId, pc.getIp(), pc.getPort(), true);
-    synchronized (_connections) {
-      return !_connections.contains(pcTest);
+    synchronized (_peer_transports) {
+      return !_peer_transports.contains(pcTest);
     }
   }
 
@@ -1607,8 +1612,46 @@ PEPeerControlImpl
     return dataRemaining / (averageSpeed + 1);
   }
   
+  	// the following three methods must be used when adding to/removing from peer transports
+  	// they are also synchronized on peer_transports
   
+  private void
+  addToPeerTransports(
+  	PEPeerTransport		peer )
+  {
+  	_peer_transports.add(peer);
+  	
+  	for (int i=0;i<peer_transport_listeners.size();i++){
+  		((PEPeerControlListener)peer_transport_listeners.get(i)).peerAdded( peer );
+  	}
+  }
+  
+  private PEPeerTransport
+  removeFromPeerTransports(
+  		int		index )
+  {
+  	PEPeerTransport res = (PEPeerTransport)_peer_transports.remove(index);
 
+	for (int i=0;i<peer_transport_listeners.size();i++){
+		((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( res );
+	}	
+	
+	return( res );
+  } 
+  
+  private void
+  removeFromPeerTransports(
+  	PEPeerTransport		peer )
+  {
+  	 _peer_transports.remove(peer);
+  	 
+  	 for (int i=0;i<peer_transport_listeners.size();i++){
+  	 	((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
+  	 }
+  }
+
+  	// these should be replaced by above methods + listeners
+  
   public void peerAdded(PEPeer pc) {
     _manager.addPeer(pc);
   }
@@ -1771,7 +1814,7 @@ PEPeerControlImpl
    * @return
    */
   public List get_connections() {
-    return _connections;
+    return _peer_transports;
   }
 
   public PEPiece[] getPieces() {
@@ -1852,9 +1895,9 @@ PEPeerControlImpl
   {
   	peer_manager_state = new_state;
   	
-  	for (int i=0;i<listeners.size();i++){
+  	for (int i=0;i<peer_manager_listeners.size();i++){
   		
-  		((PEPeerManagerListener)listeners.get(i)).stateChanged( peer_manager_state );
+  		((PEPeerManagerListener)peer_manager_listeners.get(i)).stateChanged( peer_manager_state );
   	}
   }
 	
@@ -1862,14 +1905,14 @@ PEPeerControlImpl
   addListener(
 	  PEPeerManagerListener	l )
   {
-  	listeners.add( l );
+  	peer_manager_listeners.add( l );
   }
 		
   public synchronized void
   removeListener(
 	  PEPeerManagerListener	l )
   {
-  	listeners.remove(l);
+  	peer_manager_listeners.remove(l);
   }
 
   /**
@@ -1991,9 +2034,9 @@ PEPeerControlImpl
     //Find an available Peer
     PEPeer selectedPeer = null;
     List sortedPeers = null;
-    synchronized(_connections) {
-      sortedPeers = new ArrayList(_connections.size());
-      Iterator iter = _connections.iterator();
+    synchronized(_peer_transports) {
+      sortedPeers = new ArrayList(_peer_transports.size());
+      Iterator iter = _peer_transports.iterator();
       while(iter.hasNext()) {
         sortedPeers.add(new SuperSeedPeer((PEPeer)iter.next()));
       }      
@@ -2062,12 +2105,40 @@ PEPeerControlImpl
   
   private void quitSuperSeedMode() {
     superSeedMode = false;
-    synchronized(_connections) {
-      Iterator iter = _connections.iterator();
+    synchronized(_peer_transports) {
+      Iterator iter = _peer_transports.iterator();
       while(iter.hasNext()) {
         PEPeerTransport peer = (PEPeerTransport) iter.next();
         peer.closeAll(peer.getIp() + " : Quiting SuperSeed Mode",false,true);
       }
     }
+  }
+  
+  public void
+  addListener(
+  	PEPeerControlListener	l )
+  {
+  	synchronized( _peer_transports ){
+  	
+  		if ( !peer_transport_listeners.contains( l )){
+  			
+  			peer_transport_listeners.add(l);
+  		
+  			for (int i=0;i<_peer_transports.size();i++){
+  			
+  				l.peerAdded( (PEPeerTransport)_peer_transports.get(i));
+  			}
+  		}
+  	}
+  }
+  
+  public void
+  removeListener(
+  	PEPeerControlListener	l )
+  {
+  	synchronized( _peer_transports ){
+  		
+  		peer_transport_listeners.remove(l);
+  	}
   }
  }
