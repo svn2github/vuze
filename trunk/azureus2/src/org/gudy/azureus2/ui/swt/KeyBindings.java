@@ -353,7 +353,7 @@ public final class KeyBindings
             menu.setAccelerator(kbInfo.accelerator);
 
             // SWT on OS X now uses native drawing
-            if(!Constants.isOSX)
+            if(!Constants.isOSX && !menu.getText().endsWith(kbInfo.name))
                 menu.setText(menu.getText() + kbInfo.name);
         }
     }
