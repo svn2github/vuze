@@ -61,7 +61,8 @@ TOTorrentImpl
 
 	private long				creation_date;
 	
-	private Map					additional_properties = new HashMap();
+	private Map					additional_properties 		= new HashMap();
+	private Map					additional_info_properties	= new HashMap();
 	
 	/** 
 	 * Constructor for deserialisation
@@ -249,6 +250,15 @@ TOTorrentImpl
 					}
 				}
 			}
+		}
+		
+		Iterator info_it = additional_info_properties.keySet().iterator();
+		
+		while( info_it.hasNext()){
+		
+			String	key = (String)info_it.next();
+			
+			info.put( key, additional_info_properties.get( key ));	
 		}
 		
 		Iterator it = additional_properties.keySet().iterator();
@@ -523,6 +533,14 @@ TOTorrentImpl
 		return((Map)additional_properties.get( name ));
 	}
 	
+	protected void
+	addAdditionalInfoProperty(
+		String			name,
+		Object			value )
+	{
+		additional_info_properties.put( name, value );
+	}		
+	
 	protected String
 	readStringFromMetaData(
 		Map		meta_data,
@@ -597,6 +615,23 @@ TOTorrentImpl
 			System.out.println( "piece length = " + getPieceLength() );
 			System.out.println( "pieces = " + getPieces().length );
 			
+			Iterator info_it = additional_info_properties.keySet().iterator();
+			
+			while( info_it.hasNext()){
+			
+				String	key = (String)info_it.next();
+				Object	value = additional_info_properties.get( key );
+				
+				try{
+				
+					System.out.println( "info prop '" + key + "' = '" + 
+										( value instanceof byte[]?new String((byte[])value, Constants.DEFAULT_ENCODING):value.toString()) + "'" );
+				}catch( UnsupportedEncodingException e){
+				
+					System.out.println( "info prop '" + key + "' = unsupported encoding!!!!");	
+				}
+			}	
+					
 			Iterator it = additional_properties.keySet().iterator();
 			
 			while( it.hasNext()){

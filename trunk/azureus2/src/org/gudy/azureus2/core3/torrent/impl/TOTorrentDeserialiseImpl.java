@@ -125,6 +125,8 @@ TOTorrentDeserialiseImpl
 											TOTorrentException.RT_DECODE_FAILS ));
 		}
 
+		print( "", "", meta_data );
+		
 		construct( meta_data );
 	}
 	
@@ -241,10 +243,16 @@ TOTorrentDeserialiseImpl
 			}
 			
 			Map	info = (Map)meta_data.get( TK_INFO );
-			
-			setHashFromInfo( info );
-			
+
+			if ( info == null ){
+				
+				throw( new TOTorrentException( "TOTorrentDeserialise: deserialisation fails, 'info' element not found'",
+												TOTorrentException.RT_DECODE_FAILS ));
+			}
+		
 			setName( readStringFromMetaData( info, TK_NAME ));
+						
+			setHashFromInfo( info );
 			
 			Long simple_file_length = (Long)info.get( TK_LENGTH );
 			
@@ -296,6 +304,28 @@ TOTorrentDeserialiseImpl
 				
 			setPieces( pieces );	
 			
+				// extract and additional info elements
+				
+			Iterator	info_it = info.keySet().iterator();
+			
+			while( info_it.hasNext()){
+
+				String	key = (String)info_it.next();
+				
+				if ( 	key.equals( TK_NAME ) ||
+						key.equals( TK_LENGTH ) ||
+						key.equals( TK_FILES ) ||
+						key.equals( TK_PIECE_LENGTH ) ||
+						key.equals( TK_PIECES )){
+			
+					// standard attributes
+									
+				}else{
+					
+					addAdditionalInfoProperty( key, info.get( key ));
+				}
+			}
+
 		}catch( Throwable e ){
 			
 			if ( e instanceof TOTorrentException){

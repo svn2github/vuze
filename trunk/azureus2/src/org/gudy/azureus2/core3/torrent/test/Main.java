@@ -73,7 +73,7 @@ Main
 		try{
 			if ( test_type == TT_ENCODE ){
 				
-				File f = new File("C:\\temp\\test.torrent");
+				File f = new File("C:\\temp\\alias.302.hdtv-lol.[BT].orig.torrent");
 						
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			
@@ -90,7 +90,7 @@ Main
 			}else if ( test_type == TT_DECODE ){
 				
 					 
-				File f = new File("c:\\temp\\test.torrent" );
+				File f = new File("c:\\temp\\test2.torrent" );
 			
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			
