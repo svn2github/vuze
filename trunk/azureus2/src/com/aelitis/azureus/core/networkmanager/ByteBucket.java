@@ -67,7 +67,6 @@ public class ByteBucket {
    */
   protected void setBytesUsed( int bytes_used ) {
     avail_bytes -= bytes_used;
-    if( avail_bytes < 0 ) Debug.out( "avail_bytes < 0" );
   }
   
   
