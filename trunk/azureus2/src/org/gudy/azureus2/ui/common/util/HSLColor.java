@@ -222,7 +222,7 @@ public class HSLColor {
   // --
 
   public void reverseColor() {
-    setHue(HSLMAX - pHue);
+    setHue(pHue + (HSLMAX / 2));
   }
 
   // --
