@@ -296,9 +296,11 @@ public class MyTorrentsView
 
     cCategories.removeAll();
     if(categories.length == 0) {
-        cCategories.add(MessageText.getString(CategoryManager.getCategory(Category.TYPE_ALL).getName()));
+        cCategories.add(MessageText.getString("Categories.all"));
+        cCategories.setEnabled(false);
     }
     else {
+        cCategories.setEnabled(true);
         Arrays.sort(categories);
         for (int i = 0; i < categories.length; i++) {
             final Category cat = categories[i];
@@ -323,7 +325,10 @@ public class MyTorrentsView
     cCategories.addSelectionListener(cCategoriesListener);
 
     if(cCategories.getSelectionIndex() == -1) {
-        if(currentCategory.getType() == Category.TYPE_USER) {
+        if(currentCategory == null) {
+            cCategories.select(0);
+        }
+        else if(currentCategory.getType() == Category.TYPE_USER) {
             cCategories.select(cCategories.indexOf(currentCategory.getName()));
         }
         else {
