@@ -159,48 +159,40 @@ DHTTrackerPlugin
 					if ( dht_pi != null ){
 						
 						dht = (DHTPlugin)dht_pi.getPlugin();
-
-						if ( !dht.isEnabled()){
-							
-							model.getStatus().setText( "Disabled" );
-							
-							notRunning();
-							
-						}else{
-							
-							Thread	t = 
-								new AEThread( "DHTTrackerPlugin:init" )
+						
+						Thread	t = 
+							new AEThread( "DHTTrackerPlugin:init" )
+							{
+								public void
+								runSupport()
 								{
-									public void
-									runSupport()
-									{
-										try{
+									try{
+									
+										if ( dht.isEnabled()){
 										
-											if ( dht.isEnabled()){
+											model.getStatus().setText( "Running" );
 											
-												model.getStatus().setText( "Running" );
-												
-												initialise();
-												
-											}else{
-												
-												model.getStatus().setText( "Disabled, DHT not available" );
-												
-												notRunning();
-											}
-										}catch( Throwable e ){
+											initialise();
 											
-											model.getStatus().setText( "Failed" );
+										}else{
+											
+											model.getStatus().setText( "Disabled, DHT not available" );
 											
 											notRunning();
 										}
+									}catch( Throwable e ){
+										
+										model.getStatus().setText( "Failed" );
+										
+										notRunning();
 									}
-								};
-								
-							t.setDaemon( true );
+								}
+							};
 							
-							t.start();
-						}
+						t.setDaemon( true );
+						
+						t.start();
+						
 					}
 				}
 				
