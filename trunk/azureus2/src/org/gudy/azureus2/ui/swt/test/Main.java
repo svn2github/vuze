@@ -36,13 +36,13 @@ public static void main(String[] args) {
   shell.setLayout(layout);
   Label label = new Label(shell,SWT.NULL);
   label.setText("A single-line Label");
-  Combo combo = new Combo(shell,SWT.READ_ONLY);
+  Combo combo = new Combo(shell,SWT.SINGLE | SWT.READ_ONLY);
   for(int i = 0 ; i < 5 ; i++) {
     combo.add("item " +1);
   }
   label = new Label(shell,SWT.NULL);
   label.setText("A multi-line\nLabel");
-  combo = new Combo(shell,SWT.READ_ONLY);
+  combo = new Combo(shell,SWT.SINGLE | SWT.READ_ONLY);
   for(int i = 0 ; i < 5 ; i++) {
     combo.add("item " +1);
   }  
