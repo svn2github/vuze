@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 
+import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+
 public class 
 TRTrackerServerProcessorUDP 
 	implements 	Runnable
@@ -60,9 +62,9 @@ TRTrackerServerProcessorUDP
 		DataInputStream is = new DataInputStream(new ByteArrayInputStream(packet.getData()));
 		
 		try{
-			int	action = is.readInt();
+			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( is );
 			
-			System.out.println( "action = " + action );
+			System.out.println( "UDPRequest:" + request.getString());
 			
 		}catch( Throwable e ){
 			

@@ -25,6 +25,7 @@ import java.io.*;
 import java.net.*;
 
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerFactory;
+import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 
 public class 
 Main 
@@ -65,9 +66,9 @@ Main
 				
 				DataOutputStream os = new DataOutputStream( baos );
 				
-				os.writeInt( 1234 );
+				PRUDPPacket data_packet = new PRUDPPacketRequestConnect(100, 200);
 				
-				os.flush();
+				data_packet.serialise(os);
 				
 				byte[]	buffer = baos.toByteArray();
 				
