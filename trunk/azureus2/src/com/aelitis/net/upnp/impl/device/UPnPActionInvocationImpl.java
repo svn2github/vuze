@@ -65,11 +65,11 @@ UPnPActionInvocationImpl
 	
 		throws UPnPException
 	{	
+		UPnPService	service = action.getService();
+		
+		String	soap_action = service.getServiceType() + "#" + action.getName();
+		
 		try{
-			UPnPService	service = action.getService();
-			
-			String	soap_action = service.getServiceType() + "#" + action.getName();
-			
 			String	request =
 				"<?xml version=\"1.0\"?>"+
 				"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"+
@@ -102,14 +102,14 @@ UPnPActionInvocationImpl
 			
 			if ( fault != null ){
 				
-				throw( new UPnPException( "Invoke fails - fault reported: " + fault.getValue()));
+				throw( new UPnPException( "Invoke of '" + soap_action + "' fails - fault reported: " + fault.getValue()));
 			}
 			
 			SimpleXMLParserDocumentNode	resp_node = body.getChild( action.getName() + "Response" );
 			
 			if ( resp_node == null ){
 				
-				throw( new UPnPException( "Invoke fails - response missing: " + body.getValue()));
+				throw( new UPnPException( "Invoke of '" + soap_action + "' fails - response missing: " + body.getValue()));
 			}
 			
 			SimpleXMLParserDocumentNode[]	out_nodes = resp_node.getChildren();
@@ -130,7 +130,7 @@ UPnPActionInvocationImpl
 				throw((UPnPException)e);
 			}
 			
-			throw( new UPnPException( "Invoke fails", e ));	
+			throw( new UPnPException( "Invoke of '" + soap_action + "' fails: " + e.getMessage(), e ));	
 		}
 	}
 }
