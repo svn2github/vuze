@@ -118,72 +118,76 @@ public class ProgressGraphItem
       GC gcImage = new GC(piecesImage);
 
       if (fileInfo != null) {
-        int firstPiece = fileInfo.getFirstPieceNumber();
-        int nbPieces = fileInfo.getNbPieces();
-  
-        DiskManager manager = fileInfo.getDiskManager();
-  
-        boolean available[] = manager.getPiecesStatus();
-  
-        PEPeerManager pm = manager.getPeerManager();
-  
-        PEPiece[] pieces = pm==null?null:pm.getPieces();
-  
-        bNoRed = true;
-        for (int i = 0; i < newWidth; i++) {
-          int a0 = (i * nbPieces) / newWidth;
-          int a1 = ((i + 1) * nbPieces) / newWidth;
-          if (a1 == a0)
-            a1++;
-          if (a1 > nbPieces && nbPieces != 0)
-            a1 = nbPieces;
-          int nbAvailable = 0;
-          boolean written   = false;
-          boolean requested = false;
-          if (firstPiece >= 0) {
-            for (int j = a0; j < a1; j++){
-              int this_index = j+firstPiece;
-              if (available[this_index]) {
-                nbAvailable++;
-              }
-              
-              if (written || pieces == null)
-                continue;
-  
-              PEPiece  piece = pieces[this_index];
-              if (piece == null)
-                continue;
-  
-              written = written || (piece.getLastWriteTime() + 500) > last_draw_time;
-  
-              if ((!written) && (!requested)) {
-                boolean[] reqs = piece.getRequested();
-  
-                if ( reqs != null ) {
-                  for (int k = 0; k < reqs.length; k++){
-                    if (reqs[k]){
-                      requested = true;
-                      break;
+        if (percentDone == 1000) {
+          gcImage.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
+          gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
+          gcImage.fillRectangle(1, 1, newWidth - 2, newHeight - 2);
+        } else {
+          int firstPiece = fileInfo.getFirstPieceNumber();
+          int nbPieces = fileInfo.getNbPieces();
+    
+          DiskManager manager = fileInfo.getDiskManager();
+    
+          boolean available[] = manager.getPiecesStatus();
+    
+          PEPeerManager pm = manager.getPeerManager();
+    
+          PEPiece[] pieces = pm==null?null:pm.getPieces();
+    
+          bNoRed = true;
+          for (int i = 0; i < newWidth; i++) {
+            int a0 = (i * nbPieces) / newWidth;
+            int a1 = ((i + 1) * nbPieces) / newWidth;
+            if (a1 == a0)
+              a1++;
+            if (a1 > nbPieces && nbPieces != 0)
+              a1 = nbPieces;
+            int nbAvailable = 0;
+            boolean written   = false;
+            boolean requested = false;
+            if (firstPiece >= 0) {
+              for (int j = a0; j < a1; j++){
+                int this_index = j+firstPiece;
+                if (available[this_index]) {
+                  nbAvailable++;
+                }
+                
+                if (written || pieces == null)
+                  continue;
+    
+                PEPiece  piece = pieces[this_index];
+                if (piece == null)
+                  continue;
+    
+                written = written || (piece.getLastWriteTime() + 500) > last_draw_time;
+    
+                if ((!written) && (!requested)) {
+                  boolean[] reqs = piece.getRequested();
+    
+                  if ( reqs != null ) {
+                    for (int k = 0; k < reqs.length; k++){
+                      if (reqs[k]){
+                        requested = true;
+                        break;
+                      }
                     }
                   }
                 }
-              }
-  
-            } // for j
-          } else {
-            nbAvailable = 1;
+    
+              } // for j
+            } else {
+              nbAvailable = 1;
+            }
+    
+            gcImage.setBackground(written ? Colors.red
+                                          : requested ? Colors.grey 
+                                                      : Colors.blues[(nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0)]);
+            gcImage.fillRectangle(i, 1, 1, newHeight - 2);
+            if (written)
+              bNoRed = false;
           }
-  
-          gcImage.setBackground(written ? Colors.red
-                                        : requested ? Colors.grey 
-                                                    : Colors.blues[(nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0)]);
-          gcImage.fillRectangle(i, 1, 1, newHeight - 2);
-          if (written)
-            bNoRed = false;
+          gcImage.setForeground(Colors.grey);
         }
-        gcImage.setForeground(
-          (fileInfo.getDownloaded() == fileInfo.getLength()) ? Colors.blues[Colors.BLUES_DARKEST] 
-                                                             : Colors.grey);
       } else {
         gcImage.setForeground(Colors.grey);
       }
