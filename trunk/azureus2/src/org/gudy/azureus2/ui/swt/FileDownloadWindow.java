@@ -267,11 +267,14 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
         		p.x = 800;
         	}
         	
-            shell.setSize( p );
-            
-            Utils.centreWindow( shell );
-            
-            shell.layout();
+        	if ( !shell.getSize().equals(p)){
+        		
+	            shell.setSize( p );
+	            
+	            Utils.centreWindow( shell );
+	            
+	            shell.layout();
+        	}
           }
         }
       });
