@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -141,7 +140,7 @@ public class ConfigView extends AbstractIView {
     GridData gridData;
     Button save = new Button(cConfig, SWT.PUSH);
     Messages.setLanguageText(save, "ConfigView.button.save"); //$NON-NLS-1$
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     gridData.widthHint = 80;
     save.setLayoutData(gridData);
 
