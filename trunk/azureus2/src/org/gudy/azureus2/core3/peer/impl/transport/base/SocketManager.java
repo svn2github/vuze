@@ -43,7 +43,6 @@ public class SocketManager {
   
   private void mainLoop() {
     try {
-      long prevCheckTime = 0;
       selector = Selector.open();
       while( true ) {
         addNewOutboundRequests();
