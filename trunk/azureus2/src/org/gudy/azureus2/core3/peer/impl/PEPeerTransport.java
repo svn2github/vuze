@@ -109,11 +109,33 @@ PEPeerTransport
 	 */
 	public void doKeepAliveCheck();
   
+  /**
+   * Check for possible connection timeouts.
+   * @return true if the connection has been timed-out, false if not
+   */
+  public boolean doTimeoutChecks();
   
   /**
    * Get the specific post-socket-establishment connection state.
    * @return connection state
    */
   public int getConnectionState();
+  
+  /**
+   * Get the time since this connection was first established.
+   * NOTE: This method will always return 0 at any time before
+   * the underlying transport is fully connected, i.e. before
+   * handshaking begins.
+   * @return time in ms
+   */
+  public long getTimeSinceConnectionEstablished();
+  
+  /**
+   * Get the time since the last (most-recent) data (payload) message was received.
+   * NOTE: Received time is initialized to current time only when their handshake is
+   * processed, so this method will always return 0 at any time before that.
+   * @return time in ms
+   */
+  public long getTimeSinceLastDataMessageReceived();
   
 }

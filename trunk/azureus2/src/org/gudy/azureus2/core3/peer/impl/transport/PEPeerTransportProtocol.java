@@ -136,6 +136,10 @@ PEPeerTransportProtocol
   private long lastReadTime;
 
   private long last_message_sent_time = 0;
+  private long last_message_received_time = 0;
+  private long last_data_message_received_time = 0;
+  
+  private long connection_established_time = 0;
   
   
   protected AEMonitor	this_mon	= new AEMonitor( "PEPeerTransportProtocol" );
@@ -490,6 +494,9 @@ PEPeerTransportProtocol
     int 	socks_v5_reply_rem_length;
     
     private SOCKSStateHandshaking() {
+      //do this here to ensure connections stuck in socks-handshaking state can be timed out
+      connection_established_time = SystemTime.getCurrentTime();
+      
       allocateAll();
       startConnectionX();  //sets up the download speed limiter
     }
@@ -670,7 +677,7 @@ PEPeerTransportProtocol
             
             if ( socks_handshake_read_buff == null ) {
             	
-              closeAll( toString() + ": SOCKS handshake_read_buff is null", true, false );
+              closeAll( PEPeerTransportProtocol.this + ": SOCKS handshake_read_buff is null", true, false );
               
               return(0);
             }
@@ -865,6 +872,7 @@ PEPeerTransportProtocol
     boolean sent_our_handshake = false;
   
     private StateHandshaking( boolean already_initialised, byte[] data_already_read ) {
+      connection_established_time = SystemTime.getCurrentTime();
       connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE;
       
       if ( !already_initialised ){
@@ -874,7 +882,7 @@ PEPeerTransportProtocol
       
       handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, 68 );
       if( handshake_read_buff == null ) {
-        closeAll( toString() + ": handshake_read_buff is null", true, false );
+        closeAll( PEPeerTransportProtocol.this + ": handshake_read_buff is null", true, false );
         return;
       }
 
@@ -992,14 +1000,14 @@ PEPeerTransportProtocol
 
     //make sure the client type is not banned
     if( !PeerClassifier.isClientTypeAllowed( client ) ) {
-      closeAll( client + " client type not allowed to connect, banned", false, false );
+      closeAll( toString() + ": " +client+ " client type not allowed to connect, banned", false, false );
       handshake_data.returnToPool();
       return;
     }
 
     //make sure we are not connected to ourselves
     if( Arrays.equals( manager.getPeerId(), otherPeerId ) ) {
-      closeAll( "OOPS, peerID matches myself", false, false );
+      closeAll( toString() + ": peerID matches myself", false, false );
       handshake_data.returnToPool();
       return;
     }
@@ -1028,7 +1036,7 @@ PEPeerTransportProtocol
     //make sure we haven't reached our connection limit
     int maxAllowed = PeerUtils.numNewConnectionsAllowed( my_peer_data_id );
     if( maxAllowed == 0 ) {
-      closeAll( "Too many existing peer connections", false, false );
+      closeAll( toString() + ": Too many existing peer connections", false, false );
       handshake_data.returnToPool();
       return;
     }
@@ -1043,6 +1051,9 @@ PEPeerTransportProtocol
     handshake_data.returnToPool();
     
     connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+    
+    //fudge to ensure optimistic-connect code processes connections that have never sent a data message
+    last_data_message_received_time = SystemTime.getCurrentTime();
     
     currentState = new StateTransfering();
   }
@@ -1250,6 +1261,9 @@ StateTransfering
     //*any* message received at this point means we're established, even though 99/100 it'll be the optional bitfield message
     connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
     
+    last_message_received_time = SystemTime.getCurrentTime();
+    
+    
     int pieceNumber, pieceOffset, pieceLength;
     byte cmd = message_buff.get( DirectByteBuffer.SS_PEER );
     switch( cmd ) {
@@ -1360,6 +1374,8 @@ StateTransfering
         message_buff.returnToPool();
         return true;
       case BT_PIECE :
+        last_data_message_received_time = SystemTime.getCurrentTime();
+        
         if( message_buff.limit( DirectByteBuffer.SS_PEER ) < 9 ) {
           closeAll( toString() + " piece block received, but message of wrong size : " + message_buff.limit( DirectByteBuffer.SS_PEER ), true, true );
           message_buff.returnToPool();
@@ -1975,6 +1991,7 @@ StateTransfering
 				});
 	}
   
+  
   public void doKeepAliveCheck() {
     long wait_time = SystemTime.getCurrentTime() - last_message_sent_time;
     
@@ -1988,10 +2005,81 @@ StateTransfering
       last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
     }
   }
+
   
-  
-  public int getConnectionState() {
-    return connection_state;
+  public boolean doTimeoutChecks() {
+    //Timeouts when in states PEPeerTransport.CONNECTION_PENDING and
+    //PEPeerTransport.CONNECTION_CONNECTING are handled by the ConnectDisconnectManager
+    //so we don't need to deal with them here.
+    
+    //make sure we time out stalled connections
+    if( connection_state == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
+      long dead_time = SystemTime.getCurrentTime() - last_message_received_time;
+      
+      if( dead_time < 0 ) {  //oops, system clock went backwards
+        last_message_received_time = SystemTime.getCurrentTime();
+        return false;
+      }
+      
+      if( dead_time > 10*60*1000 ) { //10min timeout
+        closeAll( toString() + ": Timed out while waiting for messages", true, true );
+        return true;
+      }
+    }
+    //ensure we dont get stuck in the handshaking phases
+    else if( connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ||
+             connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD ) {
+      
+      long wait_time = SystemTime.getCurrentTime() - connection_established_time;
+      
+      if( wait_time < 0 ) {  //oops, system clock went backwards
+        connection_established_time = SystemTime.getCurrentTime();
+        return false;
+      }
+      
+      if( wait_time > 2*60*1000 ) { //2min timeout
+        String phase = connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ? "handshaking" : "bitfield";
+        closeAll( toString() + ": Timed out while waiting in " +phase+ " phase", true, true );
+        return true;
+      }
+    }
+    
+    return false;
   }
+  
+  
+  public int getConnectionState() {  return connection_state;  }
+  
+  
+  public long getTimeSinceLastDataMessageReceived() {
+    if( last_data_message_received_time == 0 ) {  //fudge it while we're still handshaking
+      return 0;
+    }
+    
+    long time = SystemTime.getCurrentTime() - last_data_message_received_time;
+    
+    if( time < 0 ) {  //time went backwards
+      last_data_message_received_time = SystemTime.getCurrentTime();
+      time = 0;
+    }
+    
+    return time;
+  }
+  
+  
+  public long getTimeSinceConnectionEstablished() {
+    if( connection_established_time == 0 ) {  //fudge it while the transport is being connected
+      return 0;
+    }
+    
+    long time = SystemTime.getCurrentTime() - connection_established_time;
+    
+    if( time < 0 ) {  //time went backwards
+      connection_established_time = SystemTime.getCurrentTime();
+      time = 0;
+    }
+    return time;
+  }
+  
   
 }

@@ -17,6 +17,7 @@ FEATURE: Core | Advanced network settings: MTU, SO_RCVBUF, SO_SNDBUF, IPTOS [Nol
 FEATURE: UI   | Option to show confirmation dialog on torrent Removal [Nolar]
 FEATURE: UI   | Added Seed2PeerRatio item to MyTorrents view [Nolar]
 FEATURE: UI   | Added detailed connection State to peers view [Nolar]
+FEATURE: Core | Optimistic Connect: drop inactive connections in order to find better ones [Nolar]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
@@ -40,6 +41,10 @@ BUGFIX: Core | Upload/download/share ratio frig for newly added seeds made consi
 BUGFIX: Core | Fix for stalls from system clock being set backwards in time [Nolar]
 BUGFIX: Core | Fixed up bad behaviour on out-of-disk-space falures [Parg]
 BUGFIX: Core | Fixed torrents getting stuck in READY state [Parg]
+BUGFIX: Core | Fix potential connection establishment backlog [Nolar]
+BUGFIX: Core | Fix potential DOS by timing out stalled connections [Nolar]
+
+
 
 
 2004.10.31 | Azureus 2.2.0.0

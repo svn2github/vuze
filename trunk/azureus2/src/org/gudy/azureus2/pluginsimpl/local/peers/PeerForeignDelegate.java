@@ -185,6 +185,22 @@ PeerForeignDelegate
   
   //TODO: parg?
   public void doKeepAliveCheck() {}
+  
+  public boolean doTimeoutChecks() {
+    return false;
+  }
+  
+  public long getTimeSinceConnectionEstablished() {
+    return 0;
+  }
+  
+  public long getTimeSinceLastDataMessageReceived() {
+    return 0;
+  }
+  
+  
+  
+  
 	
 		// PEPeer stuff
 	

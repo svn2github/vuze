@@ -514,7 +514,7 @@ PEPeerControlImpl
 								
 			}else{
 			  
-				transport.closeAll("Already Connected",false,false);
+				transport.closeAll(transport.getIp()+ ":" +transport.getPort()+ ": Already Connected",false,false);
 			}
 		}finally{
 			
@@ -2018,7 +2018,7 @@ PEPeerControlImpl
 
 		  		//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
 	 	 
-		 	peer.closeAll( reason ,false, false);
+		 	peer.closeAll( peer.getIp() + ": " + reason ,false, false);
 	  	}
 	}finally{
 		
@@ -2523,7 +2523,7 @@ PEPeerControlImpl
         for (int i=0; i < peer_transports.size(); i++) {
           PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
           if ( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
-            conn.closeAll( "IPFilter banned IP address", false, false );
+            conn.closeAll( "IPFilter banned IP address: " + conn.getIp(), false, false );
           }
         }
     }
@@ -2917,10 +2917,7 @@ PEPeerControlImpl
       
       for( int i=0; i < peer_transports.size(); i++ ) {
         PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
-        
-        //keep-alive check
-        transport.doKeepAliveCheck();
-        
+
         //update waiting count
         int state = transport.getConnectionState();
         if( state == PEPeerTransport.CONNECTION_PENDING || state == PEPeerTransport.CONNECTION_CONNECTING ) {
@@ -2941,10 +2938,47 @@ PEPeerControlImpl
     
     //every 5 seconds
     if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL == 0 ) {
+      ArrayList peer_transports = peer_transports_cow;
+      
+      for( int i=0; i < peer_transports.size(); i++ ) {
+        PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+        
+        //check for timeouts
+        if( transport.doTimeoutChecks() )  continue;
+        
+        //keep-alive check
+        transport.doKeepAliveCheck();
+      }
+      
       //update storage capacity
       peer_info_storage.setMaxCapacity( PeerUtils.numNewConnectionsAllowed( _hash ) * 2 );
     }
     
+    //every 30 seconds
+    if ( mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0 ) {
+      //if we're at our connection limit, time out the least-useful
+      //one so we can establish a possibly-better new connection
+      if( PeerUtils.numNewConnectionsAllowed( _hash ) == 0 ) {  //we've reached limit
+        ArrayList peer_transports = peer_transports_cow;
+        
+        PEPeerTransport max_transport = null;
+        long max_time = 0;
+        
+        for( int i=0; i < peer_transports.size(); i++ ) {
+          PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+          
+          long time = transport.getTimeSinceLastDataMessageReceived();
+          if( time > max_time ) {
+            max_time = time;
+            max_transport = transport;
+          }
+        }
+        
+        if( max_transport != null && max_time > 60*1000 ) {  //ensure a 1min minimum
+          max_transport.closeAll( max_transport.getIp()+ ": Timed out by optimistic-connect for lack of activity", false, false );
+        }
+      }
+    }
     
   }
   
