@@ -1408,7 +1408,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         setNbChecks(checkers.length);
         UpdateCheckerListener listener = new UpdateCheckerListener() {
           public void cancelled(UpdateChecker checker) {
-            setNextCheck();
+            //setNextCheck();
           }
           
           public void completed(UpdateChecker checker) {
