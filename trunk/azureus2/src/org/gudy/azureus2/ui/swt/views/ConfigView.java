@@ -1107,14 +1107,23 @@ public class ConfigView extends AbstractIView {
 
 	  label = new Label(gTracker, SWT.NULL);
 		
-			// row
+	  // row
 			
-		label = new Label(gTracker, SWT.NULL);
-		Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable"); 
+	  label = new Label(gTracker, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable"); 
     
-		BooleanParameter enablePublish = new BooleanParameter(gTracker, "Tracker Publish Enable", true);
+      BooleanParameter enablePublish = new BooleanParameter(gTracker, "Tracker Publish Enable", true);
 
-		label = new Label(gTracker, SWT.NULL);
+      label = new Label(gTracker, SWT.NULL);
+
+      // row
+			
+      label = new Label(gTracker, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable"); 
+    
+      BooleanParameter publicPublish = new BooleanParameter(gTracker, "Tracker Public Enable", false);
+
+      label = new Label(gTracker, SWT.NULL);
 
 
 	 	itemStats.setControl(gTracker);

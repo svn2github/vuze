@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -264,8 +265,17 @@ TRTrackerServerProcessor
 					TRTrackerServerTorrent	torrent = server.getTorrent( hash_bytes );
 						
 					if ( torrent == null ){
-								
-						throw( new Exception( "Torrent unauthorised "));
+							
+						if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+			
+							throw( new Exception( "Torrent unauthorised "));
+							
+						}else{
+							
+							server.permit( hash_bytes );
+							
+							torrent = server.getTorrent( hash_bytes );
+						}
 					}
 				
 					if ( request_type == RT_ANNOUNCE ){

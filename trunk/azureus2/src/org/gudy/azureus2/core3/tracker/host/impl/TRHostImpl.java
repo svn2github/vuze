@@ -29,6 +29,7 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -76,54 +77,78 @@ TRHostImpl
 	TRHostImpl(
 		TRHostAdapter	_adapter )
 	{	
-		host_adapter	= _adapter;
+			// we need to synchronize this so that the async (possible) establishment of
+			// a server within the stats loop (to deal with public trackers with no locally
+			// hosted torrents) doesn't get ahead of the reading of persisted torrents
+			// If we allow the server to start early then it can potentially receive an
+			// announce/scrape and result in the creation of an "external" torrent when
+			// it should really be using an existing torrent 
+			 
+		synchronized(this){
 		
-		config = new TRHostConfigImpl(this);	
-		
-		TRTrackerClientFactory.addListener( this );
-		
-		Thread t = new Thread()
-					{
-						public void
-						run()
-						{
-							while(true){
-								
-								try{
-									
-									Thread.sleep( STATS_PERIOD_SECS*1000 );
-									
-									synchronized( TRHostImpl.this ){
-										
-										for (int i=0;i<host_torrents.size();i++){
+			host_adapter	= _adapter;
 			
-											TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
+			config = new TRHostConfigImpl(this);	
+			
+			TRTrackerClientFactory.addListener( this );
+			
+			Thread t = new Thread()
+						{
+							public void
+							run()
+							{
+								while(true){
+									
+									try{
+	
+										if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+										
+											try{
 											
-											if ( ht instanceof TRHostTorrentHostImpl ){
-																				
-												((TRHostTorrentHostImpl)ht).updateStats();
+												int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+											
+												startServer( port );
 												
-											}else{
+											}catch( Throwable e ){
 												
-												((TRHostTorrentPublishImpl)ht).updateStats();
-												
+												e.printStackTrace();
 											}
 										}
+										
+										Thread.sleep( STATS_PERIOD_SECS*1000 );
+										
+										synchronized( TRHostImpl.this ){
+											
+											for (int i=0;i<host_torrents.size();i++){
+				
+												TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
+												
+												if ( ht instanceof TRHostTorrentHostImpl ){
+																					
+													((TRHostTorrentHostImpl)ht).updateStats();
+													
+												}else{
+													
+													((TRHostTorrentPublishImpl)ht).updateStats();
+													
+												}
+											}
+										}
+										
+									}catch( InterruptedException e ){
+										
+										e.printStackTrace();
+										
+										break;
 									}
-									
-								}catch( InterruptedException e ){
-									
-									e.printStackTrace();
-									
-									break;
 								}
 							}
-						}
-					};
-		
-		t.setDaemon(true);
-		
-		t.start();
+						};
+			
+			t.setDaemon(true);
+			
+			t.start();
+		}
 	}
 	
 	public void
@@ -151,7 +176,7 @@ TRHostImpl
 		addTorrent( torrent, TRHostTorrent.TS_PUBLISHED );
 	}
 	
-	public synchronized void
+	protected synchronized void
 	addTorrent(
 		TOTorrent		torrent,
 		int				state )
@@ -164,7 +189,36 @@ TRHostImpl
 			
 			return;	// already hosted
 		}
+		
+			// check that this isn't the explicit publish/host of a torrent already there
+			// as an external torrent. If so then just replace the torrent
+			
+		try{
+		
+			ht = lookupHostTorrentViaHash( torrent.getHash());
+		
+			if ( ht instanceof TRHostTorrentHostImpl ){
 				
+				TRHostTorrentHostImpl hti = (TRHostTorrentHostImpl)ht;
+				
+				hti.setTorrent( torrent );	
+			
+				if ( state != TRHostTorrent.TS_PUBLISHED ){
+		
+					startHosting( hti );
+		
+					if ( state == TRHostTorrent.TS_STARTED ){
+					
+						hti.start();
+					}
+				}				
+				return;
+			}
+		}catch( TOTorrentException e ){
+			
+			e.printStackTrace();	
+		}
+		
 		int	port;
 		
 		if ( state == TRHostTorrent.TS_PUBLISHED ){
@@ -181,23 +235,7 @@ TRHostImpl
 			}
 		}
 		
-		TRTrackerServer	server = (TRTrackerServer)server_map.get( new Integer( port ));
-			
-		if ( server == null ){
-				
-			try{
-				
-				server = TRTrackerServerFactory.create( port );
-				
-				server_map.put( new Integer( port ), server );
-				
-				server.addListener( this );
-					
-			}catch( TRTrackerServerException e ){
-					
-				throw( new TRHostException( e.getMessage()));
-			}
-		}
+		TRTrackerServer server = startServer( port );
 		
 		TRHostTorrent host_torrent;
 	
@@ -229,6 +267,36 @@ TRHostImpl
 		}
 		
 		config.saveConfig();
+	}
+	
+	protected synchronized TRTrackerServer
+	startServer(
+		int		port )
+		
+		throws TRHostException
+	{
+	
+		TRTrackerServer	server = (TRTrackerServer)server_map.get( new Integer( port ));
+			
+		if ( server == null ){
+				
+			try{
+				
+				server = TRTrackerServerFactory.create( port );
+					
+				server_map.put( new Integer( port ), server );
+					
+				server.addListener( this );
+						
+			}catch( TRTrackerServerException e ){
+					
+				LGLogger.log(0, 0, LGLogger.ERROR, "Tracker Host: failed to start server: " + e.toString());
+	
+				throw( new TRHostException( e.getMessage()));
+			}
+		}
+		
+		return( server );
 	}
 	
 	protected TRHostTorrent
@@ -277,7 +345,7 @@ TRHostImpl
 	protected void
 	startHosting(
 		TRHostTorrentHostImpl	host_torrent,
-		TRTrackerClient 	tracker_client )
+		TRTrackerClient 		tracker_client )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();	
 				
@@ -456,6 +524,68 @@ TRHostImpl
 		stopHosting( client );
 	}
 	
+	protected TRHostTorrent
+	lookupHostTorrentViaHash(
+		byte[]		hash )
+	{
+		for (int i=0;i<host_torrents.size();i++){
+			
+			TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
+			
+			try{
+				byte[]	ht_hash = ht.getTorrent().getHash();
+			
+				if ( Arrays.equals( hash, ht_hash )){
+					
+					return( ht );
+				}
+						
+			}catch( TOTorrentException e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( null );
+	}
+	
+		// reports from TRTrackerServer regarding state of hashes
+		// if we get a "permitted" event for a torrent we know nothing about
+		// the the server is allowing public hosting and this is a new hash
+		// create an 'external' entry for it
+		
+	public synchronized void
+	permitted(
+		byte[]		hash )
+	{
+		if ( lookupHostTorrentViaHash( hash ) != null ){
+			
+				// nothing to do, torrent already there
+				
+			return;
+		}
+		
+		String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "127.0.0.1");
+						
+		int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+
+		try{
+			TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + tracker_ip + ":" + port + "/announce"));
+		
+			hostTorrent( external_torrent );	
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	public synchronized void
+	denied(
+		byte[]		hash )
+	{
+	}
+	
 	public boolean
 	handleExternalRequest(
 		String			url,
@@ -573,13 +703,19 @@ TRHostImpl
 						
 						table_bit.append( "<tr>" );
 						
-						table_bit.append( "<td>"+
-										  "<a href=\"/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
+						if ( torrent.getSize() > 0 ){
+						
+							table_bit.append( "<td>"+
+											  "<a href=\"/torrents/" + torrent_name.replace('?','_') + ".torrent?" + hash_str + "\">" + torrent_name + "</a></td>" );
+						}else{			  
+						
+							table_bit.append( "<td>" + torrent_name + "</td>" );
+						}
 										  
 						table_bit.append( "<td>" + status_str + "</td>" );
 										  
 						table_bit.append( "<td>" + 
-										  DisplayFormatters.formatByteCountToKBEtc( torrent.getSize()) + "</td>" );
+										  (torrent.getSize()<=0?"N/A":DisplayFormatters.formatByteCountToKBEtc( torrent.getSize())) + "</td>" );
 										  
 						table_bit.append( "<td><b><font color=\"" + (seed_count==0?"#FF0000":"#00CC00")+"\">" +
 										  seed_count + "</font></b></td>" );

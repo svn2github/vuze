@@ -37,4 +37,12 @@ TRTrackerServerListener
 		OutputStream	os )
 		
 		throws IOException;
+		
+	public void
+	permitted(
+		byte[]	hash );
+		
+	public void
+	denied(
+		byte[]	hash );
 }

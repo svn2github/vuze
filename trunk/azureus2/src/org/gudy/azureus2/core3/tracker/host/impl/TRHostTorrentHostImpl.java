@@ -127,6 +127,13 @@ TRHostTorrentHostImpl
 		return( torrent );
 	}
 
+	protected void
+	setTorrent(
+		TOTorrent		_torrent )
+	{
+		torrent = _torrent;
+	}
+	
 	public TRHostPeer[]
 	getPeers()
 	{

@@ -276,16 +276,26 @@ TRTrackerServerImpl
 			entry = new TRTrackerServerTorrent( this, hash );
 			
 			torrent_map.put( hash, entry );
+			
+			for (int i=0;i<listeners.size();i++){
+			
+				((TRTrackerServerListener)listeners.elementAt(i)).permitted( _hash );
+			}
 		}
 	}
 		
-	public void
+	public synchronized void
 	deny(
 		byte[]		_hash )
 	{
 		HashWrapper	hash = new HashWrapper( _hash );
 		
 		torrent_map.remove( hash );
+
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRTrackerServerListener)listeners.elementAt(i)).denied( _hash );
+		}
 	}
 	
 	protected TRTrackerServerTorrent
