@@ -155,7 +155,14 @@ DisplayFormatters
 			tmp = MessageText.getString("ManagerItem.downloading"); //$NON-NLS-1$
 			break;
 		  case DownloadManager.STATE_SEEDING :
-			tmp = MessageText.getString("ManagerItem.seeding"); //$NON-NLS-1$
+         if (manager.getDiskManager().isChecking()) {
+           tmp = MessageText.getString("ManagerItem.seeding")
+                 + " + "
+                 + MessageText.getString("ManagerItem.checking");
+         }
+         else {
+           tmp = MessageText.getString("ManagerItem.seeding"); //$NON-NLS-1$
+         }
 			break;
 		  case DownloadManager.STATE_STOPPED :
 			tmp = MessageText.getString("ManagerItem.stopped"); //$NON-NLS-1$
