@@ -49,7 +49,33 @@ public class
 DownloadManagerImpl 
 	implements DownloadManager
 {
-	private Vector	listeners			= new Vector();
+		// DownloadManager listeners
+	
+	private static final int LDT_STATECHANGED		= 1;
+	private static final int LDT_DOWNLOADCOMPLETE	= 2;
+	
+	private ListenerManager	listeners 	= ListenerManager.createManager(
+			"DMM:ListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					DownloadManagerListener	listener = (DownloadManagerListener)_listener;
+					
+					if ( type == LDT_STATECHANGED ){
+						
+						listener.stateChanged(((Integer)value).intValue());
+						
+					}else if ( type == LDT_DOWNLOADCOMPLETE ){
+						
+						listener.downloadComplete();
+					}
+				}
+			});		
 	
 		// TrackerListeners
 	
@@ -78,6 +104,7 @@ DownloadManagerImpl
 					}
 				}
 			});	
+	
 	
 	private Vector	peer_listeners 	= new Vector();
 	private Vector	current_peers 	= new Vector();
@@ -776,16 +803,11 @@ DownloadManagerImpl
 	addListener(
 		DownloadManagerListener	listener )
 	{
-		synchronized( listeners ){
-			
-			listeners.addElement(listener);
-			
-			listener.stateChanged( state );
-			
-			if ( download_ended ){
+		listeners.addListener(listener);
+						
+		if ( download_ended ){
 				
-				listener.downloadComplete();
-			}
+			listener.downloadComplete();
 		}
 	}
 	
@@ -793,36 +815,20 @@ DownloadManagerImpl
 	removeListener(
 		DownloadManagerListener	listener )
 	{
-		synchronized( listeners ){
-			
-			listeners.removeElement(listener);
-			
-		}
+		listeners.removeListener(listener);			
 	}
 	
 	protected void
 	informStateChanged(
 		int		new_state )
 	{
-		synchronized( listeners ){
-		
-			for (int i=0;i<listeners.size();i++){
-				
-				((DownloadManagerListener)listeners.elementAt(i)).stateChanged( new_state );
-			}
-		}
+		listeners.dispatch( LDT_STATECHANGED, new Integer( new_state ));
 	}
 	
 	protected void
 	informDownloadEnded()
 	{
-		synchronized( listeners ){
-		
-			for (int i=0;i<listeners.size();i++){
-				
-				((DownloadManagerListener)listeners.elementAt(i)).downloadComplete();
-			}
-		}
+		listeners.dispatch( LDT_DOWNLOADCOMPLETE, null );
 	}
 
   public void
