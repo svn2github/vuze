@@ -14,6 +14,7 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 
 /**
  * @author Olivier
@@ -131,7 +132,10 @@ public class Tab {
     synchronized (tabs) {
       view = (IView) tabs.get(item);
 	  try {
-		item.dispose();
+		  item.dispose();
+      Control control = item.getControl();
+      if(control != null && ! control.isDisposed())
+        control.dispose();
 	  } catch (Exception ignore) {
 	  }
       tabs.remove(item);
@@ -161,6 +165,9 @@ public class Tab {
         view.delete();
       tabItem.dispose();
     } catch (Exception e) {
+    }
+    if(composite != null && ! composite.isDisposed()) {
+      composite.dispose();
     }
   }
 }

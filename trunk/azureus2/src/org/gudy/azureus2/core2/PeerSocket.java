@@ -67,7 +67,7 @@ public class PeerSocket extends PeerConnection {
       this.currentState = new StateConnecting();
     }
     catch (Exception e) {
-      closeAll();
+      closeAll(true);
     }
   }
 
@@ -122,14 +122,14 @@ public class PeerSocket extends PeerConnection {
       readBuffer = ByteBufferPool.getInstance().getFreeBuffer();
       if (readBuffer == null) {
          System.out.println("PeerSocket::handShake:: readBuffer null");
-         closeAll();
+         closeAll(true);
          return;
       }
       readBuffer.limit(68);
       readBuffer.position(0);
     }
     catch (Exception e) {
-      closeAll();
+      closeAll(true);
     }
   }
 
@@ -165,7 +165,6 @@ public class PeerSocket extends PeerConnection {
     if (bContinue && incoming) {
       //HandShaking is ok so far
       //We test if the handshaking is valid (no other connections with that peer)
-      // TODO restore the call to validation ...
       if (manager.validateHandshaking(this, otherPeerId)) {
         //Store the peerId
         this.id = otherPeerId;
@@ -199,7 +198,7 @@ public class PeerSocket extends PeerConnection {
     catch (Exception e) {}
 
     if (!bContinue)
-      closeAll();
+      closeAll(true);
     else {
       sendBitField();
       readMessage(readBuffer);
@@ -223,7 +222,7 @@ public class PeerSocket extends PeerConnection {
     dataQueue.add(new DataQueueItem(request));
   }
 
-  public synchronized void closeAll() {
+  public synchronized void closeAll(boolean closedOnError) {
     if (closing)
       return;
     closing = true;              
@@ -279,8 +278,8 @@ public class PeerSocket extends PeerConnection {
         logger.log(componentID,evtLifeCycle,Logger.INFORMATION,elts[i].toString());
     }
     
-    //In case it was an outgoing connection, established, we can try to reconnect.
-    if((this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 10)) {
+    //In case it was an outgoing connection, established, we can try to reconnect.   
+    if((closedOnError) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 10)) {
       logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
       createConnection();
     } else {
@@ -302,7 +301,7 @@ public class PeerSocket extends PeerConnection {
           evtErrors,
           Logger.ERROR,
           "Error in PeerConnection::initConnection (" + ip + " : " + port + " ) : " + e);
-        closeAll();
+        closeAll(true);
         return;
       }
 
@@ -322,7 +321,7 @@ public class PeerSocket extends PeerConnection {
             throw new IOException("End of Stream Reached");
         }
         catch (IOException e) {
-          closeAll();
+          closeAll(true);
           return;
         }
       }
@@ -349,16 +348,16 @@ public class PeerSocket extends PeerConnection {
               throw new IOException("End of Stream Reached");
           }
           catch (IOException e) {
-            closeAll();
+            closeAll(true);
             return;
           }
         }
         if (!lengthBuffer.hasRemaining()) {
           int length = lengthBuffer.getInt(0);
           if(length < 0) {
-            closeAll();
+            closeAll(true);
           } else if(length >= readBuffer.capacity()) {
-            closeAll();
+            closeAll(true);
           } else if (length > 0) {
             readBuffer.limit(length);
             readingLength = false;
@@ -381,7 +380,7 @@ public class PeerSocket extends PeerConnection {
         }
         catch (IOException e) {
           //e.printStackTrace();
-          closeAll();
+          closeAll(true);
           return;
         }
         if (!readBuffer.hasRemaining()) {
@@ -415,7 +414,7 @@ public class PeerSocket extends PeerConnection {
         write();
     }
     catch (Exception e) {
-      closeAll();
+      closeAll(true);
     }
   }
 
@@ -452,7 +451,7 @@ public class PeerSocket extends PeerConnection {
             evtProtocol,
             Logger.ERROR,
             ip + " choking received, but message of wrong size : " + buffer.limit());
-          closeAll();
+          closeAll(true);
           break;
         }
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is choking you");
@@ -467,7 +466,7 @@ public class PeerSocket extends PeerConnection {
             evtProtocol,
             Logger.ERROR,
             ip + " unchoking received, but message of wrong size : " + buffer.limit());
-          closeAll();
+          closeAll(true);
           break;
         }
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is unchoking you");
@@ -481,7 +480,7 @@ public class PeerSocket extends PeerConnection {
             evtProtocol,
             Logger.ERROR,
             ip + " interested received, but message of wrong size : " + buffer.limit());
-          closeAll();
+          closeAll(true);
           break;
         }
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is interested");
@@ -495,7 +494,7 @@ public class PeerSocket extends PeerConnection {
             evtProtocol,
             Logger.ERROR,
             ip + " uninterested received, but message of wrong size : " + buffer.limit());
-          closeAll();
+          closeAll(true);
           break;
         }
         logger.log(componentID, evtProtocol, Logger.RECEIVED, ip + " is not interested");
@@ -509,7 +508,7 @@ public class PeerSocket extends PeerConnection {
             evtProtocol,
             Logger.ERROR,
             ip + " interested received, but message of wrong size : " + buffer.limit());
-          closeAll();
+          closeAll(true);
           break;
         }
         pieceNumber = buffer.getInt();
@@ -531,7 +530,7 @@ public class PeerSocket extends PeerConnection {
             evtProtocol,
             Logger.ERROR,
             ip + " request received, but message of wrong size : " + buffer.limit());
-          closeAll();
+          closeAll(true);
           break;
         }
         pieceNumber = buffer.getInt();
@@ -558,7 +557,7 @@ public class PeerSocket extends PeerConnection {
               + "->"
               + pieceLength
               + " which is an invalid request.");
-          closeAll();
+          closeAll(true);
           return;
         }
         readMessage(readBuffer);
@@ -581,7 +580,7 @@ public class PeerSocket extends PeerConnection {
           ByteBuffer newbuff = ByteBufferPool.getInstance().getFreeBuffer();
           if (newbuff == null) {
              System.out.println("PeerSocket::analyseBuffer:: newbuff null");
-             closeAll();
+             closeAll(true);
              break;
           }
           readMessage(newbuff);      
@@ -609,7 +608,7 @@ public class PeerSocket extends PeerConnection {
             evtProtocol,
             Logger.ERROR,
             ip + " cancel received, but message of wrong size : " + buffer.limit());
-          closeAll();
+          closeAll(true);
           break;
         }
         pieceNumber = buffer.getInt();
@@ -624,7 +623,7 @@ public class PeerSocket extends PeerConnection {
         readMessage(readBuffer);
         break;
      default:
-      closeAll();
+      closeAll(true);
     }
   }
 
@@ -935,7 +934,7 @@ public class PeerSocket extends PeerConnection {
       }
       catch (IOException e) {
         //e.printStackTrace();
-        closeAll();
+        closeAll(true);
       } //If we have finished sending this buffer
       if (!writeBuffer.hasRemaining()) {
         //If we were sending data, we must free the writeBuffer

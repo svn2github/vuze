@@ -37,35 +37,15 @@ public class TrackerChecker {
       if(data != null)
         return data;
       else {
-        Thread t = new Thread() {
-              /* (non-Javadoc)
-               * @see java.lang.Thread#run()
-               */
-              public void run() {
-                ts.update(hash);
-              }
-            };
-            t.setDaemon(true);
-            t.setPriority(Thread.MIN_PRIORITY);
-            t.start();
-            return null;
+        ts.asyncUpdate(hash);
+        return null;
       }        
     }
     final TrackerStatus ts = new TrackerStatus(trackerUrl);
     synchronized (trackers) {
       trackers.put(trackerUrl, ts);
     }
-    Thread t = new Thread() {
-      /* (non-Javadoc)
-       * @see java.lang.Thread#run()
-       */
-      public void run() {
-        ts.update(hash);
-      }
-    };
-    t.setDaemon(true);
-    t.setPriority(Thread.MIN_PRIORITY);
-    t.start();
+    ts.asyncUpdate(hash);
     return null;
   }
 
@@ -73,22 +53,12 @@ public class TrackerChecker {
     synchronized (trackers) {
       Iterator iter = trackers.values().iterator();
       while (iter.hasNext()) {
-        final TrackerStatus ts = (TrackerStatus) iter.next();
-        Thread t = new Thread() {
-          /* (non-Javadoc)
-           * @see java.lang.Thread#run()
-           */
-          public void run() {
-            Iterator iter = ts.getHashesIterator();
-            while(iter.hasNext()) {              
-              Hash hash = (Hash) iter.next();
-              ts.update(hash);
-            }           
-            }
-        };
-        t.setDaemon(true);
-        t.setPriority(Thread.MIN_PRIORITY);
-        t.start();
+        TrackerStatus ts = (TrackerStatus) iter.next();
+        Iterator iterHashes = ts.getHashesIterator();
+        while(iterHashes.hasNext()) {              
+          Hash hash = (Hash) iterHashes.next();
+          ts.asyncUpdate(hash);
+        }                      
       }
     }
   }

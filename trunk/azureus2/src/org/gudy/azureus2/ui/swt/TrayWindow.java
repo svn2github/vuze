@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 
@@ -72,7 +73,7 @@ public class TrayWindow implements IComponentListener {
       public void mouseUp(MouseEvent e) {
         moving = false;
       }
-      
+
       public void mouseDoubleClick(MouseEvent e) {
         restore();
       }
@@ -114,9 +115,9 @@ public class TrayWindow implements IComponentListener {
       }
     });
 
-		main.addCloseDownloadBarsToMenu(menu);
+    main.addCloseDownloadBarsToMenu(menu);
 
-    new MenuItem(menu,SWT.SEPARATOR);
+    new MenuItem(menu, SWT.SEPARATOR);
 
     MenuItem file_exit = new MenuItem(menu, SWT.NULL);
     Messages.setLanguageText(file_exit, "TrayWindow.menu.exit"); //$NON-NLS-1$
@@ -125,17 +126,18 @@ public class TrayWindow implements IComponentListener {
         main.dispose();
       }
     });
-    
+
     globalManager = main.getGlobalManager();
     globalManager.addListener(this);
   }
 
   public void setVisible(boolean visible) {
     minimized.setVisible(visible);
-    if(visible) {    
+    if (visible) {
       //minimized.setFocus();
       //minimized.setActive();
-    } else {
+    }
+    else {
       moving = false;
     }
   }
@@ -145,18 +147,23 @@ public class TrayWindow implements IComponentListener {
   }
 
   public void restore() {
-    minimized.setVisible(false);
-    main.setVisible(true);
-    moving = false;
+    if (!ConfigurationManager.getInstance().getBooleanParameter("Password enabled", false)) {
+      minimized.setVisible(false);
+      main.setVisible(true);
+      moving = false;
+    }
+    else {
+      PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());
+    }    
   }
-  
+
   public void refresh() {
-    if(minimized.isDisposed() || ! minimized.isVisible())
+    if (minimized.isDisposed() || !minimized.isVisible())
       return;
     StringBuffer toolTip = new StringBuffer();
     String separator = ""; //$NON-NLS-1$
-    synchronized(managers) {
-      for(int i = 0 ; i < managers.size() ; i++) {
+    synchronized (managers) {
+      for (int i = 0; i < managers.size(); i++) {
         DownloadManager manager = (DownloadManager) managers.get(i);
         String name = manager.getName();
         String completed = (manager.getCompleted() / 10) + "." + (manager.getCompleted() % 10) + "%"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -167,8 +174,8 @@ public class TrayWindow implements IComponentListener {
         toolTip.append(", D : ");
         toolTip.append(manager.getDownloadSpeed());
         toolTip.append(", U : ");
-        toolTip.append(manager.getUploadSpeed());        
-        separator = "\n" ; //$NON-NLS-1$
+        toolTip.append(manager.getUploadSpeed());
+        separator = "\n"; //$NON-NLS-1$
       }
     }
     //label.setToolTipText(toolTip.toString());
@@ -179,8 +186,8 @@ public class TrayWindow implements IComponentListener {
    */
   public void objectAdded(Object created) {
     if (!(created instanceof DownloadManager))
-     return;
-    synchronized(managers) {
+      return;
+    synchronized (managers) {
       managers.add(created);
     }
   }
@@ -189,13 +196,20 @@ public class TrayWindow implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
    */
   public void objectRemoved(Object removed) {
-    synchronized(managers) {    
+    synchronized (managers) {
       managers.remove(removed);
     }
   }
-  
+
   public void updateLanguage() {
     MainWindow.updateMenuText(menu);
+  }
+
+  /**
+   * @param moving
+   */
+  public void setMoving(boolean moving) {
+    this.moving = moving;
   }
 
 }

@@ -80,6 +80,11 @@ public class PasswordWindow {
                    }
                    if(same) {
                      MainWindow.getWindow().setVisible(true);
+                     TrayWindow tw = MainWindow.getWindow().getTray();
+                     if(tw != null) {
+                       tw.setVisible(false);
+                       tw.setMoving(false);
+                     }
                      nbInstances--;
                      shell.dispose();                                   
                    } else {

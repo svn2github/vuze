@@ -209,6 +209,8 @@ public class FilesView extends AbstractIView {
       FileItem fileItem = (FileItem) iter.next();
       fileItem.delete();
     }
+    if(table != null && ! table.isDisposed())
+      table.dispose();
   }
 
   public String getData() {

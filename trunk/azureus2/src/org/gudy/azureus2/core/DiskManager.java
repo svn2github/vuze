@@ -831,7 +831,6 @@ public class DiskManager {
     }
 
     private void saveTorrent() {
-        //TODO:: CLEAN UP - fix the conversion to a string...
         //open the torrent file       
         File torrent = null;
         try {
@@ -1099,7 +1098,6 @@ public class DiskManager {
             //Attach the resume data
             metaData.put("resume data", resumeData);
 
-            //TODO:: CLEAN UP - fix the conversion to a string...
             //open the torrent file       
             File torrent = new File(new String((byte[])metaData.get("torrent filename"), Constants.DEFAULT_ENCODING));
             //re-encode the data

@@ -375,7 +375,7 @@ public class GeneralView extends AbstractIView {
 	if (pImage != null)
 		pImage.dispose();
 	pImage = null;
-    
+  Utils.disposeComposite(genComposite);    
   }
 
   public String getData() {

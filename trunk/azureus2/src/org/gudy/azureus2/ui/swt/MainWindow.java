@@ -538,6 +538,8 @@ public class MainWindow implements IComponentListener {
       try {
         while (st.hasMoreTokens() && i < 4) {
           values[i++] = Integer.valueOf(st.nextToken()).intValue();
+          if(values[i-1] < 0)
+             values[i-1] = 0;
         }
         if (i == 4) {
           mainWindow.setBounds(values[0], values[1], values[2], values[3]);
@@ -1297,6 +1299,10 @@ public class MainWindow implements IComponentListener {
       mainWindow.setMinimized(false);
     }
   }
+  
+  public boolean isVisible() {
+    return mainWindow.isVisible();
+  }
 
   public void dispose() {
     if (this.trayIcon != null)
@@ -1534,6 +1540,13 @@ public class MainWindow implements IComponentListener {
    */
   public void setIrc(Tab tab) {
     irc = tab;
+  }
+
+  /**
+   * @return
+   */
+  public TrayWindow getTray() {
+    return tray;
   }
 
 }

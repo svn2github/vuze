@@ -34,6 +34,7 @@ import org.gudy.azureus2.irc.IrcListener;
 public class IrcView extends AbstractIView implements IrcListener {
 
   Display display;
+  Composite cIrc;
   StyledText consoleText;
   List users;
   Label userSumUp;
@@ -50,20 +51,21 @@ public class IrcView extends AbstractIView implements IrcListener {
    */
   public void initialize(Composite composite) {
     display = composite.getDisplay();
+    cIrc = new Composite(composite,SWT.NULL);
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;
     layout.makeColumnsEqualWidth = false;
-    composite.setLayout(layout);
-    consoleText = new StyledText(composite, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+    cIrc.setLayout(layout);
+    consoleText = new StyledText(cIrc, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
     consoleText.setWordWrap(true);
     GridData gridData = new GridData(GridData.FILL_BOTH | GridData.CENTER);
     gridData.grabExcessHorizontalSpace = true;
     consoleText.setLayoutData(gridData);
-    users = new List(composite, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL );
+    users = new List(cIrc, SWT.MULTI | SWT.BORDER | SWT.V_SCROLL );
     gridData = new GridData(GridData.FILL_VERTICAL | GridData.HORIZONTAL_ALIGN_END | GridData.END);
     gridData.widthHint = 120;
     users.setLayoutData(gridData);
-    inputField = new Text(composite, SWT.BORDER);
+    inputField = new Text(cIrc, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     //gridData.horizontalSpan = 2;
     inputField.setLayoutData(gridData);
@@ -80,7 +82,7 @@ public class IrcView extends AbstractIView implements IrcListener {
       }
     });
     inputField.setFocus();
-    userSumUp = new Label(composite, SWT.NONE);
+    userSumUp = new Label(cIrc, SWT.NONE);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 120;
     userSumUp.setLayoutData(gridData);
@@ -96,7 +98,7 @@ public class IrcView extends AbstractIView implements IrcListener {
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
    */
   public Composite getComposite() {
-    return consoleText;
+    return cIrc;
   }
 
   /* (non-Javadoc)
@@ -117,6 +119,7 @@ public class IrcView extends AbstractIView implements IrcListener {
       }
     };
     t.start();
+    Utils.disposeComposite(cIrc);
   }
 
   /* (non-Javadoc)

@@ -196,6 +196,8 @@ public class PeersView extends AbstractIView implements IComponentListener {
       PeerTableItem item = (PeerTableItem) iter.next();
       item.remove();
     }
+    if(table != null && ! table.isDisposed())
+      table.dispose();
   }
 
   public String getData() {

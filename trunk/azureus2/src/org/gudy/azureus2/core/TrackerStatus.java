@@ -45,6 +45,21 @@ public class TrackerStatus {
     return (HashData) hashes.get(hash);
   }
 
+  public synchronized void asyncUpdate(final Hash hash) {
+    hashes.put(hash,new HashData(0,0));
+    Thread t = new Thread("Tracker Checker - Scrape interface") {
+      /* (non-Javadoc)
+       * @see java.lang.Thread#run()
+       */
+      public void run() {
+        update(hash);
+      }
+    };
+    t.setDaemon(true);
+    t.setPriority(Thread.MIN_PRIORITY);
+    t.start();
+  }
+
   public synchronized void update(Hash hash) {    
     hashes.put(hash,new HashData(0,0));
     if(! hashList.contains(hash))

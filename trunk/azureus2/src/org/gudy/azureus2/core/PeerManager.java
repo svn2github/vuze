@@ -231,7 +231,7 @@ public class PeerManager extends Thread {
             synchronized (_connections) {
                 while (_connections.size() != 0) {
                     PeerSocket pc = (PeerSocket)_connections.remove(0);
-                    pc.closeAll();
+                    pc.closeAll(false);
                 }
             }
     }
@@ -267,22 +267,13 @@ public class PeerManager extends Thread {
                     _timeToWait = 120;
                     return;
                 }
-
-                //OLD WAY
-                //_timeToWait = ((Integer)metaData.getValue("interval")).intValue();
-
-                if (DEBUG) //print debug info
-                    {
-                    System.out.println("Tracker Checker: timeToWait=" + _timeToWait);
-                }
+                                
                 addPeersFromTracker(metaData);
                 _trackerState = TRACKER_UPDATE;
                 _trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status      //$NON-NLS-1$
                 return; //break           
             } catch (Exception e) {
-                //TODO:: WE SHOULD CLEAN THIS UP
                 //tracker not working   
-                System.out.println("Problems with Tracker, will retry in 1 minute");
                 _trackerStatus = MessageText.getString("PeerManager.status.offline"); //$NON-NLS-1$
                 _timeToWait = 60;
             }
@@ -531,7 +522,8 @@ public class PeerManager extends Thread {
      */
     private void computeAvailability() {
         //reset the availability
-        Arrays.fill(_availability, 0); //:: should be faster -Tyler
+        int[] availability = new int[_availability.length];
+        Arrays.fill(availability, 0); //:: should be faster -Tyler
 
         //for all clients
         synchronized (_connections) {
@@ -547,16 +539,22 @@ public class PeerManager extends Thread {
                     for (int j = _nbPieces - 1; j >= 0; j--) //loop for every piece
                         {
                         if (piecesAvailable[j]) //set the piece to available
-                            _availability[j]++;
+                            availability[j]++;
                     }
                 }
             }
-        }
+        }        
 
         //Then adds our own availability.
         for (int i = _downloaded.length - 1; i >= 0; i--) {
             if (_downloaded[i])
-                _availability[i]++;
+                availability[i]++;
+        }
+        
+        //copy availability into _availability
+        synchronized(_availability) {
+          for(int i = 0 ; i < availability.length ;i++)
+            _availability[i] = availability[i];
         }
     }
 
@@ -736,7 +734,7 @@ public class PeerManager extends Thread {
                 }
             } else //our list already contains this connection
                 {
-                pc.closeAll(); // NOLAR: fixes stalled connections (bug #795751)
+                pc.closeAll(false); // NOLAR: fixes stalled connections (bug #795751)
                 pc = null; //do nothing ...
             }
         }
@@ -1010,7 +1008,7 @@ public class PeerManager extends Thread {
             for (int i = 0; i < _connections.size(); i++) {
                 PeerSocket pc = (PeerSocket)_connections.get(i);
                 if (pc != null && pc.getState() == PeerSocket.TRANSFERING && pc.isSeed()) {
-                    pc.closeAll();
+                    pc.closeAll(false);
                 }
             }
         }
@@ -1198,11 +1196,15 @@ public class PeerManager extends Thread {
     }
 
     public int getAvailability(int pieceNumber) {
+      synchronized(_availability) {
         return _availability[pieceNumber];
+      }
     }
 
     public int[] getAvailability() {
+      synchronized(_availability) {
         return _availability;
+      }
     }
 
     public void havePiece(int pieceNumber, PeerSocket pcOrigin) {

@@ -71,6 +71,7 @@ public class ConfigView extends AbstractIView {
 
   Composite gConfig;
   Label passwordMatch;
+  
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
@@ -393,6 +394,7 @@ public class ConfigView extends AbstractIView {
    */
   public void delete() {
     MainWindow.getWindow().setConfig(null);
+    Utils.disposeComposite(gConfig);       
   }
 
   /* (non-Javadoc)

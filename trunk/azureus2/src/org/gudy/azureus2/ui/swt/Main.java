@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.ILocaleUtilChooser;
 import org.gudy.azureus2.core.LocaleUtil;
@@ -105,7 +106,10 @@ public class Main implements ILocaleUtilChooser {
     if(mainWindow != null) {
       mainWindow.getDisplay().asyncExec(new Runnable() {
         public void run() {
-          mainWindow.setVisible(true);
+          if (!ConfigurationManager.getInstance().getBooleanParameter("Password enabled",false) || mainWindow.isVisible())          
+            mainWindow.setVisible(true);
+          else
+            PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());
         }
       });
     }

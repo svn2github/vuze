@@ -84,6 +84,13 @@ public class PiecesView extends AbstractIView implements IComponentListener {
    */
   public void delete() {
     manager.removeListener(this);
+    Iterator iter = items.values().iterator();
+    while (iter.hasNext()) {
+      PieceTableItem item = (PieceTableItem) iter.next();
+      item.remove();
+    }
+    if(table != null && ! table.isDisposed())
+        table.dispose();
   }
 
   public String getData() {
