@@ -138,6 +138,12 @@ AESocksProxyConnectionImpl
 	}
 	
 	public void
+	enableDNSLookups()
+	{
+		disable_dns_lookups = false;
+	}
+	
+	public void
 	close()
 	
 		throws IOException

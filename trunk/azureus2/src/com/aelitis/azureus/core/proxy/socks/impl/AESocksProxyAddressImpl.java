@@ -24,7 +24,10 @@ package com.aelitis.azureus.core.proxy.socks.impl;
 
 import java.net.InetAddress;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyAddress;
+
 
 /**
  * @author parg
@@ -48,6 +51,23 @@ AESocksProxyAddressImpl
 		unresolved_address	= _unresolved_address;
 		address				= _address;
 		port				= _port;
+		
+		if ( address == null ){
+			
+				// see if we've been passed an IP address as unresolved
+			
+			if ( 	Character.digit(unresolved_address.charAt(0), 16) != -1 || 
+					unresolved_address.charAt(0) == ':') {
+			
+				try{
+					address = InetAddress.getByName( unresolved_address );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
 	}
 	
 	public String

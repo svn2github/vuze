@@ -44,6 +44,9 @@ AESocksProxyConnection
 	disableDNSLookups();
 	
 	public void
+	enableDNSLookups();
+	
+	public void
 	connected()
 	
 		throws IOException;
