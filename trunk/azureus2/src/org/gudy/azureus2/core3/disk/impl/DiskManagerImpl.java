@@ -331,15 +331,55 @@ DiskManagerImpl
 
 			File f = new File(tempPath, tempName);
 
-			if (!f.exists()) {
+			if (!f.exists()){
+				
 			  errorMessage = f.toString() + " not found.";
+			  
 			  return false;
+			  
 			}
-			else if (f.length() != length) {
-			  errorMessage = f.toString() + " not correct size.";
-				return false;
+			
+				// use the cache file to ascertain length in case the caching/writing algorithm
+				// fiddles with the real length
+				// Unfortunately we may be called here BEFORE the disk manager has been 
+				// started and hence BEFORE the file info has been setup...
+				// Maybe one day we could allocate the file info earlier. However, if we do
+				// this then we'll need to handle the "already moved" stuff too...
+			
+			DiskManagerFileInfoImpl	file_info = tempFile.getFileInfo();
+			
+			boolean	close_it	= false;
+			
+			try{
+				if ( file_info == null ){
+					
+					file_info = new DiskManagerFileInfoImpl( this, f, tempFile.getTorrentFile());
+	
+					close_it	= true;					
+				}
+				
+				try{
+					if ( file_info.getCacheFile().getLength() != length ){
+						
+						errorMessage = f.toString() + " not correct size.";
+					  
+						return false;
+					}
+				}finally{
+					
+					if ( close_it ){
+						
+						file_info.getCacheFile().close();
+					}
+				}
+			}catch( CacheFileManagerException e ){
+			
+				errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (filesExist:" + f.toString() + ")";
+				
+				return( false );
 			}
 		}
+		
 		return true;
 	}
 	
@@ -418,24 +458,29 @@ DiskManagerImpl
 			
       //do file allocation
 			if( f.exists() ) {  //file already exists
-
-        //make sure the existing file length isn't too large
-        if( f.length() > length ) {
-          this.errorMessage = "Existing data file length too large [" +f.length()+ ">" +length+ "]: " + f.getAbsolutePath();
-          setState( FAULTY );
-          return -1;
-        }
-        
 			  try {
-          fileInfo.setAccessMode( DiskManagerFileInfo.READ );
-			  }
-        catch (CacheFileManagerException e) {
-          this.errorMessage = (e.getCause() != null
-              ? e.getCause().getMessage()
-              : e.getMessage())
-              + " (allocateFiles existing:" + f.toString() + ")";
-          setState( FAULTY );
-          return -1;
+
+				//make sure the existing file length isn't too large
+				if( fileInfo.getCacheFile().getLength() > length ){
+					
+		          this.errorMessage = "Existing data file length too large [" +f.length()+ ">" +length+ "]: " + f.getAbsolutePath();
+		          
+		          setState( FAULTY );
+		          
+		          return -1;
+				}
+        
+			  	
+			  	fileInfo.setAccessMode( DiskManagerFileInfo.READ );
+			  	
+			  }catch (CacheFileManagerException e) {
+			  	this.errorMessage = (e.getCause() != null
+			  				? e.getCause().getMessage()
+			  							: e.getMessage())
+											+ " (allocateFiles existing:" + f.toString() + ")";
+			  	setState( FAULTY );
+			  	
+			  	return -1;
         }
         allocated += length;
       }
