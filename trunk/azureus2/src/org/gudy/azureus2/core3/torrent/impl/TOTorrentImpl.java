@@ -102,38 +102,60 @@ TOTorrentImpl
 	
 	public void
 	serialiseToBEncodedFile(
-		File		output_file )
+		final File		output_file )
 	
 		throws TOTorrentException
-	{				
-		byte[]	res = serialiseToByteArray();
-		
-		FileOutputStream os = null;
-		
+	{		
 		try{
-			os = new FileOutputStream( output_file );
-			
-			os.write( res );
-		
-			os.close();
-			
-		}catch( Throwable e){
-			
-			throw( new TOTorrentException( 	"TOTorrent::serialise: fails '" + e.toString() + "'",
-											TOTorrentException.RT_WRITE_FAILS ));
-			
-		}finally{
-			
-			if ( os != null ){
-				
-				try{
-					os.close();
+			NonDaemonTaskRunner.run(
+				new NonDaemonTask()
+				{
+					public Object
+					run()
 					
-				}catch( IOException e ){
+						throws Throwable
+					{
+						byte[]	res = serialiseToByteArray();
+						
+						FileOutputStream os = null;
+						
+						try{
+							os = new FileOutputStream( output_file );
+							
+							os.write( res );
+						
+							os.close();
+							
+							return( null );
+							
+						}catch( Throwable e){
+							
+							throw( new TOTorrentException( 	"TOTorrent::serialise: fails '" + e.toString() + "'",
+															TOTorrentException.RT_WRITE_FAILS ));
+							
+						}finally{
+							
+							if ( os != null ){
+								
+								try{
+									os.close();
+									
+								}catch( IOException e ){
+								
+									e.printStackTrace();
+								}
+							}
+						}
+					}
+				});
+		}catch( Throwable e ){
+			
+			if ( e instanceof RuntimeException ){
 				
-					e.printStackTrace();
-				}
+				throw((RuntimeException)e);
 			}
+			
+			throw((TOTorrentException)e);
 		}
 	}
 	

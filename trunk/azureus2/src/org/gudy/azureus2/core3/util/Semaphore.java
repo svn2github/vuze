@@ -54,11 +54,18 @@ Semaphore
 	public void
 	reserve()
 	{
+		reserve(0);
+	}
+	
+	public boolean
+	reserve(
+		long	millis )
+	{
 		synchronized(this){
 
 			if ( released_forever ){
 
-				return;
+				return(true);
 			}
 
 			if ( dont_wait == 0 ){
@@ -66,30 +73,29 @@ Semaphore
 				try{
 					waiting++;
 
-					while(true){
-
+					if ( millis == 0 ){
+						
 						wait();
-
-						total_reserve++;
-
-						if ( total_reserve > total_release ){
-
-							total_reserve--;
-
-							System.err.println( "*********** Semaphore error:" +
-												waiting + ", " + dont_wait + ", " +
-												total_reserve + ", " + total_release );
-						}else{
-
-							break;
-						}
+						
+					}else{
+						
+						wait(millis);
 					}
+					
+					if ( total_reserve == total_release ){
+							
+						return( false );
+					}
+						
+					total_reserve++;
+
+					return( true );
 
 				}catch( Throwable e ){
 
 					waiting--;
 
-					System.err.println( "******** semaphore operation interrupted" );
+					System.err.println( "**** semaphore operation interrupted ****" );
 
 					throw( new RuntimeException("Semaphore: operation interrupted" ));
 				}
@@ -97,13 +103,8 @@ Semaphore
 				dont_wait--;
 
 				total_reserve++;
-
-				if ( total_reserve > total_release ){
-
-					System.err.println( "*********** Semaphore error:" +
-										waiting + ", " + dont_wait + ", " +
-										total_reserve + ", " + total_release );
-				}
+				
+				return( true );
 			}
 		}
 	}
