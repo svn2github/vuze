@@ -1083,7 +1083,7 @@ DownloadManagerImpl
   	public boolean
 	isDownloadComplete()
   	{
-  		return( download_ended );
+  		return( download_ended || onlySeeding );
   	}
   	
 	public void
