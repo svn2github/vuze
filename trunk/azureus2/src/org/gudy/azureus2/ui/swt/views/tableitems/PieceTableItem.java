@@ -134,7 +134,7 @@ public class PieceTableItem implements SortableItem{
     if (display == null || display.isDisposed())
       return;
     try {
-    display.syncExec(new Runnable() {
+    display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
           return;

@@ -94,7 +94,7 @@ implements SortableItem
 	}
 
 	public void delete() {
-	  display.syncExec(new Runnable() {
+	  display.asyncExec(new Runnable() {
 		public void run() {
 		  if (table == null || table.isDisposed())
 			return;
