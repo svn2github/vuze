@@ -7,6 +7,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
@@ -15,11 +17,15 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
+import org.gudy.azureus2.pluginsimpl.ui.tables.mytorrents.MyTorrentsTableExtensions;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.PluginItem;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author Olivier
@@ -32,6 +38,7 @@ public class TorrentRow implements SortableItem {
   private BufferedTableRow row;
   private List items;
   private DownloadManager manager;
+  private Map pluginItems;
   
   private boolean valid;
 
@@ -75,6 +82,7 @@ public class TorrentRow implements SortableItem {
     if (table == null || table.isDisposed())
       return;
     display = table.getDisplay();
+    this.pluginItems = new HashMap();
     display.asyncExec(new Runnable() {
       public void run() {
         if (table == null || table.isDisposed())
@@ -104,6 +112,17 @@ public class TorrentRow implements SortableItem {
         items.add(new TotalSpeedItem(TorrentRow.this,itemEnumerator.getPositionByName("totalspeed")));
         items.add(new SavePathItem(TorrentRow.this,itemEnumerator.getPositionByName("savepath")));
         items.add(new CategoryItem(TorrentRow.this,itemEnumerator.getPositionByName("category")));
+
+        Map extensions = MyTorrentsTableExtensions.getInstance().getExtensions();
+        Iterator iter = extensions.keySet().iterator();
+        while(iter.hasNext()) {
+          String name = (String) iter.next();
+          PluginMyTorrentsItemFactory ppif = (PluginMyTorrentsItemFactory) extensions.get(name);
+          PluginItem pi = new PluginItem(TorrentRow.this,itemEnumerator.getPositionByName(name),ppif);
+          items.add(pi);
+          pluginItems.put(name,pi);          
+        }
+        
         view.setItem(row.getItem(),manager);
       }
     });
@@ -191,6 +210,10 @@ public class TorrentRow implements SortableItem {
       return (cat == null) ? "" : cat.getName();
     }
   
+    PluginItem item = (PluginItem)pluginItems.get(field);
+    if(item != null)
+      return item.pluginItem.getStringValue();
+
     return ""; //$NON-NLS-1$
   }
 
@@ -246,6 +269,10 @@ public class TorrentRow implements SortableItem {
     
     if (field.equals("totalspeed")) //$NON-NLS-1$
       return manager.getStats().getTotalAverage();
+    
+    PluginItem item = (PluginItem)pluginItems.get(field);
+    if(item != null)
+      return item.pluginItem.getIntValue();
     
     return 0;
   }  
