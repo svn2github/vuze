@@ -35,7 +35,6 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new NameItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SizeItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new DownItem(),
-    new DownSpeedLimitItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new DoneItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new StatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SeedsItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
@@ -62,7 +61,8 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TrackerNextAccessItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TrackerNameItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-    new SeedToPeerRatioItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE )
+    new SeedToPeerRatioItem( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
+    new DownSpeedLimitItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE)
   };
 
   final static TableColumnCore[] tableCompleteItems = {

@@ -41,7 +41,7 @@ implements TableCellRefreshListener
 
 	/** Default Constructor */
 	public DownSpeedLimitItem(String sTableID) {
-	  super("maxdownspeed", ALIGN_TRAIL, POSITION_LAST, 35, sTableID);
+	  super("maxdownspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 35, sTableID);
 	  setRefreshInterval(INTERVAL_LIVE);
 	}
 
