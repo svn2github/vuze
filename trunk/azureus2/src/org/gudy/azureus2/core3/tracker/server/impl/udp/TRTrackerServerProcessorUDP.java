@@ -43,7 +43,9 @@ TRTrackerServerProcessorUDP
 	extends		TRTrackerServerProcessor
 	implements 	Runnable
 {
-	public static final long CONNECTION_ID_LIFETIME	= PRUDPPacket.DEFAULT_UDP_TIMEOUT*2;
+		// client may connect + then retry announce up to 4 times -> * 6
+	
+	public static final long CONNECTION_ID_LIFETIME	= PRUDPPacket.DEFAULT_UDP_TIMEOUT*6;
 	
 	protected TRTrackerServerUDP		server;
 	protected DatagramSocket			socket;
