@@ -266,15 +266,23 @@ DiskManagerImpl
    
 		if (moveWhenDone && completedDir.length() > 0) {
 		  //if the data file already resides in the completed files dir
-		  if (new File(completedDir, fileName).exists()) {
-		    //set the completed dir as the save path
-		    this.path = FileUtil.smartPath(completedDir, fileName);
-		    alreadyMoved = true;
+			
+			String	path_copy = path;
+			
+			path = FileUtil.smartPath(completedDir, fileName);
+			
+			if (filesExist()){
+				
+				alreadyMoved = true;
+				
+			}else{
+				
+				path = path_copy;
 		  }
 		}
 
 		//Create the ByteBuffer for checking (size : pieceLength)
-    allocateAndTestBuffer = DirectByteBufferPool.getFreeBuffer(pieceLength);
+        allocateAndTestBuffer = DirectByteBufferPool.getFreeBuffer(pieceLength);
     
 		allocateAndTestBuffer.limit(pieceLength);
 		for (int i = 0; i < allocateAndTestBuffer.limit(); i++) {
@@ -304,11 +312,11 @@ DiskManagerImpl
 		//fileArray = new RandomAccessFile[btFileList.size()];
 		files = new DiskManagerFileInfoImpl[btFileList.size()];
       
-		int newFiles = this.allocateFiles(rootPath, btFileList);
+		int newFiles = this.allocateFiles();
       
 		if (getState() == FAULTY) return;
     
-      path = FileUtil.smartPath(path, fileName);
+        path = FileUtil.smartPath(path, fileName);
 
 		constructPieceMap(btFileList);
 
@@ -834,7 +842,7 @@ DiskManagerImpl
 		return true;
 	}
 	
-	private int allocateFiles(String rootPath, List fileList) {
+	private int allocateFiles() {
 		setState( ALLOCATING );
 		allocated = 0;
 		int numNewFiles = 0;
@@ -860,9 +868,9 @@ DiskManagerImpl
 			basePath += File.separator;
 		}
 		
-		for (int i = 0; i < fileList.size(); i++) {
+		for (int i = 0; i < btFileList.size(); i++) {
 			//get the BtFile
-			final BtFile tempFile = (BtFile)fileList.get(i);
+			final BtFile tempFile = (BtFile)btFileList.get(i);
 			//get the path
 			final String tempPath = basePath + tempFile.getPath();
 			//get file name
@@ -2180,6 +2188,8 @@ DiskManagerImpl
           if (newFile.exists()) {
             String msg = "" + oldFile.getName() + " already exists in MoveTo destination dir";
             LGLogger.log(LGLogger.ERROR,msg);
+            LGLogger.logAlert( LGLogger.AT_ERROR, msg );
+            
             Debug.out(msg);
             return returnName;
           }
