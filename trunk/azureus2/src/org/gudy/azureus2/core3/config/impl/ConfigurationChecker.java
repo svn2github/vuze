@@ -273,7 +273,7 @@ public class ConfigurationChecker {
     }
     
     //migrate from old /.azureus/ dir
-    String oldLinuxAndWebStartPath = System.getProperty("user.home") + SystemProperties.SEPARATOR + ".azureus" + SystemProperties.SEPARATOR;
+    String oldLinuxAndWebStartPath = System.getProperty("user.home") + SystemProperties.SEP + ".azureus" + SystemProperties.SEP;
     File oldLinuxAndWebStartDir = new File( oldLinuxAndWebStartPath );
     if ( oldLinuxAndWebStartDir.exists() ) {
       File newDir = new File( SystemProperties.getUserPath());
