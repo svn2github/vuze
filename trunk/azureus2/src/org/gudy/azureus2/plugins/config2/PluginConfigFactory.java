@@ -15,4 +15,6 @@ package org.gudy.azureus2.plugins.config2;
 public interface PluginConfigFactory
 {
 	StringConfigProperty createStringConfigProperty(String identifier, String label, String value);
+	BooleanConfigProperty createBooleanConfigProperty(String identifier, String label, boolean value);
+	IntConfigProperty createIntConfigProperty(String identifier, String label, int value);
 }
