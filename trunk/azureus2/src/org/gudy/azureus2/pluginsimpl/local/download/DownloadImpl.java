@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.download;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -354,6 +355,22 @@ DownloadImpl
     return download_manager.getTorrentFileName();
   }
   
+  public String getCategoryName() {
+    Category category = download_manager.getCategory();
+    if (category == null)
+      category = CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED);
+
+    return category.getName();
+  }
+    
+  
+  public void setCategory(String sName) {
+    Category category = CategoryManager.getCategory(sName);
+    if (category == null)
+      category = CategoryManager.createCategory(sName);
+    download_manager.setCategory(category);
+  }
+
 	public void
 	remove()
 	
@@ -445,6 +462,7 @@ DownloadImpl
 		download_manager.removeListener( this );
 	}
 	
+
 	// DownloadManagerListener methods
 	
 	public void

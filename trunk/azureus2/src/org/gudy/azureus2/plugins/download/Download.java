@@ -209,6 +209,18 @@ Download
 	 * @return File name of the torrent.
 	 */
   public String getTorrentFileName();
+  
+  /** Returns the name of the Category
+   *
+   * @return name of the category
+   */
+  public String getCategoryName();
+  
+  /** Sets the category for the download 
+   *
+   * @param sName Category name
+   */
+  public void setCategory(String sName);
 
 	/**
 	 * Removes a download. The download must be stopped or in error. Removal may fail if another 
