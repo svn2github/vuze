@@ -27,8 +27,17 @@ package org.gudy.azureus2.plugins.ui.impl;
  */
 public class StringParameter extends GenericParameter
 {
+	private String defaultValue;
 	public StringParameter(String key, String label, String defaultValue)
 	{
 		super(key, label);
 	}
+	/**
+	 * @return Returns the defaultValue.
+	 */
+	public String getDefaultValue()
+	{
+		return defaultValue;
+	}
+
 }

@@ -62,9 +62,9 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 	public Parameter createStringParameter(
 		String key,
 		String label,
-		boolean defaultValue)
+		String defaultValue)
 	{
-		return new StringParameter(key, label, "test");
+		return new StringParameter(key, label, defaultValue);
 	}
 
 	/* (non-Javadoc)

@@ -37,4 +37,20 @@ public class GenericParameter implements Parameter
 		this.key = key;
 		this.label = label;
 	}
+	/**
+	 * @return Returns the key.
+	 */
+	public String getKey()
+	{
+		return key;
+	}
+
+	/**
+	 * @return Returns the label.
+	 */
+	public String getLabel()
+	{
+		return label;
+	}
+
 }

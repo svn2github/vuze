@@ -51,23 +51,27 @@ public class ParameterRepository
 	
 	public int getSize()
 	{
-		return 2;
-//		return params.size();
+//		return 2;
+		return params.size();
 	}
 	
 	public String[] getNames()
 	{
-		String[] x = {"Hello, World!", "plugin 2"};
-		return x;
-//		return (String[])params.keySet().toArray();
+//		String[] x = {"Hello, World!", "plugin 2"};
+//		return x;
+		String[] temp = new String[1];
+		return (String[])(params.keySet().toArray(temp));
 	}
 	
 	public Parameter[] getParameterBlock(String key)
 	{
+/*
 		Parameter[] x = new Parameter[2];
 		PluginConfigUIFactoryImpl factory = new PluginConfigUIFactoryImpl();
-		x[0] = factory.createStringParameter("test.1", "first parameter", false);
+		x[0] = factory.createStringParameter("test.1", "first parameter", "none");
+		x[1] = factory.createStringParameter("test.2", "second parameter", "none");		
 		return x;
-//		return (Parameter[])params.get(key);
+*/
+		return (Parameter[])params.get(key);
 	}
 }

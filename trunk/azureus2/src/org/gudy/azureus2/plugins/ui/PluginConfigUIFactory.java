@@ -29,7 +29,7 @@ public interface PluginConfigUIFactory {
 
   public EnablerParameter createBooleanParameter(String key,String label,boolean defaultValue);
   public Parameter createIntParameter(String key,String label,boolean defaultValue);
-  public Parameter createStringParameter(String key,String label,boolean defaultValue);
+  public Parameter createStringParameter(String key,String label,String defaultValue);
   public Parameter createFileParameter(String key,String label,boolean defaultValue);  
   /**
    * Note : each color component is stored as an int parameter with the keys key.red, key.blue, key.green

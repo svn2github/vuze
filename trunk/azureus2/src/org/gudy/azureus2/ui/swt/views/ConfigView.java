@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.Parameter;
+import org.gudy.azureus2.plugins.ui.impl.GenericParameter;
 import org.gudy.azureus2.plugins.ui.impl.ParameterRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -163,6 +164,8 @@ public class ConfigView extends AbstractIView {
 	Group tempGroup;
 	GridLayout tempLayout;
 	Label tempLabel;
+	GenericParameter tempParam;
+	GridData gData;
 	
 	names = repository.getNames();
 	for(int i = 0; i < names.length; i++)
@@ -174,10 +177,24 @@ public class ConfigView extends AbstractIView {
 		tempGroup = new Group(tfPlugins, SWT.NULL);
 		tempLayout = new GridLayout();
 		tempLayout.numColumns = 2;
-			
+		tempGroup.setLayout(tempLayout);
+        
 		for(int j = 0; j < tempParams.length; j++)
 		{
+			tempParam = (GenericParameter)(tempParams[j]);
 			tempLabel = new Label(tempGroup, SWT.NULL);
+			tempLabel.setText(tempParam.getLabel());
+			
+			if(tempParam instanceof org.gudy.azureus2.plugins.ui.impl.StringParameter)
+			{
+				org.gudy.azureus2.plugins.ui.impl.StringParameter tpar = (org.gudy.azureus2.plugins.ui.impl.StringParameter)(tempParam);
+//				String defaultVal = tpar.getDefaultValue();
+				String defaultVal = "test";
+				StringParameter uiParam = new StringParameter(tempGroup, tempParam.getKey(), defaultVal);
+				gData = new GridData();
+				gData.widthHint = 200;
+				uiParam.setLayoutData(gData);
+			}
 		}
 		tempTab.setControl(tempGroup);
 	}
