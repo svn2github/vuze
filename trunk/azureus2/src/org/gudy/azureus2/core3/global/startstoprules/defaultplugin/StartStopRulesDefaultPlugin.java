@@ -293,6 +293,11 @@ StartStopRulesDefaultPlugin
       process();
     }
   }
+  
+  private int calcMaxSeeders(int iDLs) {
+    // XXX put in subtraction logic here
+    return (maxActive == 0) ? 99999 : maxActive - iDLs;
+  }
 
   protected void process() {
     long  process_time = System.currentTimeMillis();
@@ -337,18 +342,31 @@ StartStopRulesDefaultPlugin
       int qr = (recalcQR) ? dl_data.recalcQR() : dl_data.getQR();
 
       Download download = dl_data.getDownloadObject();
+      int completionLevel = download.getStats().getDownloadCompleted(false);
+
+      // Count forced seedings as using a slot
+      // Don't count forced downloading as using a slot
+      if (completionLevel < 1000 && download.isForceStart())
+        continue;
+
       int state = download.getState();
 
-      if (state == Download.ST_DOWNLOADING && !download.isForceStart()) {
+      boolean bActivelyDownloading = false;
+      if (state == Download.ST_DOWNLOADING) {
         totalDownloading++;
         // Only increase activeDLCount if there's downloading
         // or if the torrent just recently started (ie. give it a chance to get some connections)
         if ((download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
-            (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000))
+            (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000)) {
+          bActivelyDownloading = true;
           activeDLCount++;
+        }
       }
+      // since it's based on time, store in dl_data.
+      // we check ActivelyDownloding later and want to use the same value
+      // calculated here
+      dl_data.setActivelyDownloading(bActivelyDownloading);
 
-      int completionLevel = download.getStats().getDownloadCompleted(false);
       if (!bSeedHasRanking && completionLevel == 1000 && qr != 0)
         bSeedHasRanking = true;
 
@@ -369,15 +387,15 @@ StartStopRulesDefaultPlugin
       } else {
         if (state == Download.ST_READY ||
             state == Download.ST_WAITING ||
-            state == Download.ST_PREPARING)
+            state == Download.ST_PREPARING) {
           totalWaitingToDL++;
-        else if (state == Download.ST_QUEUED)
+        } else if (state == Download.ST_QUEUED) {
           totalIncompleteQueued++;
+        }
       }
     }
 
-    int maxSeeders = (maxActive == 0) ? 99999 : maxActive - activeDLCount;
-    // XXX put in subtraction logic here
+    int maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
 
     // We can also quit early if:
     // - we don't have any torrents waiting (these have to either be started, queued, or stopped)
@@ -473,46 +491,69 @@ StartStopRulesDefaultPlugin
                   ">> "+download.getTorrent().getName()+
                   "]: state="+sStates.charAt(download.getState())+
                   ";shareRatio="+download.getStats().getShareRatio()+
-                  ";numWaitingorDLing="+numWaitingOrDLing+
+                  ";numW8tngorDLing="+numWaitingOrDLing+
+                  ";maxCDrs="+maxSeeders+
+                  ";forced="+download.isForceStart()+
+                  ";forcedStart="+download.isForceStart()+
+                  ";activeDLCount="+activeDLCount+
                   "");
 
-        // Stop torrent if over limit
-        if ((download.getState() == Download.ST_READY ||
-             download.getState() == Download.ST_DOWNLOADING ||
-             download.getState() == Download.ST_WAITING) &&
-            (!download.isForceStart())
-           ) {
+        if (download.isForceStart())
+          continue;
+          
+        boolean bActivelyDownloading = dl_data.getActivelyDownloading();
 
-            if ((maxDownloads != 0) &&
-                (numWaitingOrDLing >= maxDownloads)) {
-               try {
-                if (bDebugLog)
-                  log.log(LoggerChannel.LT_INFORMATION, "   stopAndQueue() > maxDownloads");
-                download.stopAndQueue();
-                bStopAndQueued = true;
-               } catch (Exception ignore) {/*ignore*/}
-            }
-            else if ((download.getState() == Download.ST_DOWNLOADING) &&
+        int state = download.getState();
+        if (state == Download.ST_PREPARING) {
+          // Don't mess with preparing torrents.  they could be in the 
+          // middle of resume-data building, or file allocating.
+          numWaitingOrDLing++;
+
+        } else if (state == Download.ST_READY ||
+                   state == Download.ST_DOWNLOADING ||
+                   state == Download.ST_WAITING) {
+          // Stop torrent if over limit
+          if ((maxDownloads != 0) &&
+              (numWaitingOrDLing >= maxDownloads)) {
+            try {
+              if (bDebugLog)
+                log.log(LoggerChannel.LT_INFORMATION, "   stopAndQueue() > maxDownloads");
+              download.stopAndQueue();
+              // reduce counts
+              if (state == Download.ST_DOWNLOADING) {
+                totalDownloading--;
+                if (bActivelyDownloading)
+                  activeDLCount--;
+              } else {
+                totalWaitingToDL--;
+              }
+              bStopAndQueued = true;
+            } catch (Exception ignore) {/*ignore*/}
+            
+            state = download.getState();
+          } else if ((state == Download.ST_DOWNLOADING) &&
                      (download.getStats().getDownloadAverage() >= minSpeedForActiveDL) ||
-                     (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000))
-              numWaitingOrDLing++;
+                     (System.currentTimeMillis() - download.getStats().getTimeStarted() <= 30000)) {
+            numWaitingOrDLing++;
+          }
         }
 
-        if ((download.getState() == Download.ST_QUEUED) &&
+        if ((state == Download.ST_QUEUED) &&
             ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads))) {
           try {
             if (bDebugLog)
               log.log(LoggerChannel.LT_INFORMATION, "   restart()");
             download.restart();
+            // increase counts
+            numWaitingOrDLing++;
+            totalWaitingToDL++;
           } catch (Exception ignore) {/*ignore*/}
-          numWaitingOrDLing++;
+          state = download.getState();
         }
 
 
-        // Start if incomplete and we haven't reached our limit, or
-        // if user forced start.
-        // (completed torrents are started later)
-        if (download.getState() == Download.ST_READY &&
+        // Start we haven't reached our limit
+        if (state == Download.ST_READY &&
             ((maxDownloads == 0) || (activeDLCount < maxDownloads))
         ) {
           try {
@@ -521,12 +562,14 @@ StartStopRulesDefaultPlugin
             download.start();
           } catch (Exception ignore) {/*ignore*/}
 
-          if (download.getState() == Download.ST_DOWNLOADING) {
+          state = download.getState();
+          if (state == Download.ST_DOWNLOADING) {
             if (bDebugLog)
               log.log(LoggerChannel.LT_INFORMATION, "   start() ok");
+            // increase counts
+            totalWaitingToDL--;
             activeDLCount++;
-            maxSeeders = (maxActive == 0) ? 99999 : maxActive - activeDLCount;
-            // XXX put in subtraction logic here
+            numWaitingOrDLing++;
           }
         }
 
@@ -535,7 +578,11 @@ StartStopRulesDefaultPlugin
                   "<< "+download.getTorrent().getName()+
                   "]: state="+sStates.charAt(download.getState())+
                   ";shareRatio="+download.getStats().getShareRatio()+
-                  ";numWaitingorSeeding="+numWaitingOrDLing+
+                  ";numW8tngorDLing="+numWaitingOrDLing+
+                  ";maxCDrs="+maxSeeders+
+                  ";forced="+download.isForceStart()+
+                  ";forcedStart="+download.isForceStart()+
+                  ";activeDLCount="+activeDLCount+
                   "");
       }
       else if (bSeedHasRanking) { // completed
@@ -552,6 +599,9 @@ StartStopRulesDefaultPlugin
         //    b) User pressed stop
         //    c) other
         // 7) Seeding Torrent changes to Queued.  Go to step 1.
+
+        // XXX this really only needs to be calculated on first completed item..
+        maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
 
         int shareRatio = download.getStats().getShareRatio();
         int state = download.getState();
@@ -580,7 +630,8 @@ StartStopRulesDefaultPlugin
                            "okToQ="+okToQueue,
                            "okToStp="+okToStop,
                            "qr="+dl_data.getQR(),
-                           "hgherQd="+higherQueued
+                           "hgherQd="+higherQueued,
+                           "maxCDrs="+maxSeeders
                           };
         }
 
@@ -730,7 +781,8 @@ StartStopRulesDefaultPlugin
                            "okToQ="+okToQueue,
                            "okToStp="+okToStop,
                            "qr="+dl_data.getQR(),
-                           "hgherQd="+higherQueued
+                           "hgherQd="+higherQueued,
+                           "maxCDrs="+maxSeeders
                           };
 
           boolean bAnyChanged = false;
@@ -756,7 +808,7 @@ StartStopRulesDefaultPlugin
   } // process()
 
   public boolean getAlreadyAllocatingOrChecking() {
-    Download[]  downloads = download_manager.getDownloads();
+    Download[]  downloads = download_manager.getDownloads(false);
     for (int i=0;i<downloads.length;i++){
       Download  download = downloads[i];
       int state = download.getState();
@@ -828,7 +880,8 @@ StartStopRulesDefaultPlugin
     protected int qr;
     protected Download dl;
     protected long startedSeedingOn;
-
+    private boolean bActivelyDownloading;
+    
     public int compareTo(Object obj)
     {
       return ((downloadData)obj).getQR() - qr;
@@ -844,6 +897,14 @@ StartStopRulesDefaultPlugin
     Download getDownloadObject()
     {
       return dl;
+    }
+    
+    public boolean getActivelyDownloading() {
+      return bActivelyDownloading;
+    }
+    
+    public void setActivelyDownloading(boolean bActive) {
+      bActivelyDownloading = bActive;
     }
 
     public int getQR()
