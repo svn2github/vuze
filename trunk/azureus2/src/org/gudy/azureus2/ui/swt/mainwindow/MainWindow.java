@@ -556,9 +556,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     
     LGLogger.log("Initializing GUI complete");
-
-    VersionChecker.checkForNewVersion();
-    
+   
     globalManager.addListener(this);
 
     boolean isMaximized = COConfigurationManager.getBooleanParameter("window.maximized", mainWindow.getMaximized());
