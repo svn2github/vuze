@@ -790,6 +790,7 @@ PEPeerTransportProtocol
 			readMessage(readBuffer);
 			break;
 	  default:
+       Debug.out(ip + " [" + client + "] has sent an unknown protocol message id: " + cmd);
 	    closeAll(ip + " has sent a wrong message " + cmd,true, true);
 	}
   }
