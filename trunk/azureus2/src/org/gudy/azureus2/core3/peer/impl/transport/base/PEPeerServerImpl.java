@@ -115,14 +115,14 @@ PEPeerServerImpl
           componentID,
           evtErrors,
           LGLogger.ERROR,
-          "BT Server was unable to bind port " + port + ", reason : " + e);
+          "PEPeerServer was unable to bind port " + port + ", reason : " + e);
         port++;
         sck = null;
       }
     }
 
     if (sck != null) {
-      LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is bound on port " + port);
+      LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "PEPeerServer is bound on port " + port);
       instanceCount++;
     }
     else {
@@ -141,27 +141,48 @@ PEPeerServerImpl
         componentID,
         evtLyfeCycle,
         LGLogger.INFORMATION,
-        "BT Server is ready to accept incoming connections");
+        "PEPeerServer is ready to accept incoming connections");
       while (bContinue) {
+        
+        LGLogger.log(
+        componentID,
+        evtLyfeCycle,
+        LGLogger.INFORMATION,
+        "PEPeerServer start accept block");
+        
         SocketChannel sckClient = sck.accept();
+        
+        LGLogger.log(
+        componentID,
+        evtLyfeCycle,
+        LGLogger.INFORMATION,
+        "PEPeerServer accept complete");
+        
         if (sckClient != null) {
           LGLogger.log(
             componentID,
             evtNewConnection,
             LGLogger.INFORMATION,
-            "BT Server has accepted an incoming connection from : "
+            "PEPeerServer has accepted an incoming connection from : "
               + sckClient.socket().getInetAddress().getHostAddress());
           sckClient.configureBlocking(false);
 		  adapter.addPeerTransport(sckClient);
-        } 
-      }  
+        }
+        else {
+          LGLogger.log(
+              componentID,
+              evtLyfeCycle,
+				  LGLogger.INFORMATION,
+				  "PEPeerServer SocketChannel is null");
+        }
+      } 
     }
     catch (Exception e) {
       if (bContinue)
-        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "BT Server has catched an error : " + e);
+        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "PEPeerServer has catched an error : " + e);
     }
 
-    LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is stopped");
+    LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "PEPeerServer is stopped");
   }
 
   	public PEPeerTransport
@@ -187,7 +208,7 @@ PEPeerServerImpl
     		//this will most probably raise an exception ;)
     	try{
     		
-      		LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "BT Server is stopping");
+      		LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "PEPeerServer is stopping");
       		
       		sck.close();
     	}catch (Exception e) {
