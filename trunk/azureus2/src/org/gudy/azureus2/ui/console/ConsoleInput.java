@@ -78,15 +78,15 @@ public class ConsoleInput extends Thread {
   
   public static void printconsolehelp(PrintStream os) {
     os.println("Available console commands:");
-    os.println("Command\t\t\tShort\tDescription");
-    os.println(".\t\t\t\tRepeats last command (Initially 'show torrents').");
-    os.println("help [torrents]\t\t?\tShow this help. 'torrents' shows info about the show torrents display.");
-    os.println("log (on|off)\t\tl\tTurn on/off console logging");
-    os.println("remove (#|all|hash #)\tr\tRemove torrent(s).");
-    os.println("show torrents\t\tsh t\tShow running torrents.");
-    os.println("start (#|all|hash #)\ts\tStart torrent(s).");
-    os.println("stop (#|all|hash #)\th\tStop torrent(s).");
-    os.println("quit\t\t\tq\tShutdown Azureus");
+    os.println("Command\t\t\t\tShort\tDescription");
+    os.println(".\t\t\t\t\tRepeats last command (Initially 'show torrents').");
+    os.println("help [torrents]\t\t\t?\tShow this help. 'torrents' shows info about the show torrents display.");
+    os.println("log (on|off)\t\t\tl\tTurn on/off console logging");
+    os.println("remove (#|all|hash <hash>)\tr\tRemove torrent(s).");
+    os.println("show torrents\t\t\tsh t\tShow running torrents.");
+    os.println("start (#|all|hash <hash>)\ts\tStart torrent(s).");
+    os.println("stop (#|all|hash <hash>)\th\tStop torrent(s).");
+    os.println("quit\t\t\t\tq\tShutdown Azureus");
   }
   
   private void quit(boolean finish) {
@@ -155,6 +155,8 @@ public class ConsoleInput extends Thread {
           }
         } else if (command.equalsIgnoreCase("logout"))  {
           running = false;
+        } else if (command.equalsIgnoreCase("set") || command.equalsIgnoreCase("+")) {
+          // Nothing for the moment
         } else if (command.equalsIgnoreCase("show") || command.equalsIgnoreCase("sh")) {
           if (subcommand != null) {
             if (subcommand.equalsIgnoreCase("torrents") || subcommand.equalsIgnoreCase("t")) {

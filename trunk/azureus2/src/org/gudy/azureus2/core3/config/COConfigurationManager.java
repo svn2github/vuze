@@ -138,4 +138,11 @@ COConfigurationManager
 	{
 		ConfigurationManager.getInstance().removeListener( listener );
 	}
+        
+        public static boolean
+        doesParameterExist(
+                String                          parameter)
+        {
+                return ConfigurationDefaults.getInstance().doesParameterExist(parameter);
+        }
 }

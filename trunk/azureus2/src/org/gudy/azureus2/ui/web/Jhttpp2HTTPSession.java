@@ -235,9 +235,7 @@ public class Jhttpp2HTTPSession extends Thread {
     + "<p class=\"tiagtext\"><a href=\"" + in.getFullURL() + "\">" + in.getFullURL() + "</A> </p>\r"
     + "<P class=\"i25\">Reason: " + info + "</P>"
     + "<HR size=\"4\">\r"
-    + "<p class=\"i25\"><A HREF=\"http://jhttp2.sourceforge.net/\">jHTTPp2</A> HTTP Proxy, Version " + server.getServerVersion() + " at " + localhost
-    + "<br>Copyright &copy; 2001-2003 <A HREF=\"mailto:bkohl@users.sourceforge.net\">Benjamin Kohl</A></p>\r"
-    + "<p class=\"i25\"><A HREF=\"http://" + localhost + "/\">jHTTPp2 local website</A> <A HREF=\"http://" + localhost + "/" + server.WEB_CONFIG_FILE + "\">Configuration</A></p>"
+    + "<p class=\"i25\"><A HREF=\"http://azureus.sourceforge.net/\">Azureus</A> Webinterface at " + localhost
     + "</BODY></HTML>";
     sendLine("Content-Length",String.valueOf(msg.length()));
     sendLine("Content-Type","text/html; charset=iso-8859-1");
@@ -251,6 +249,7 @@ public class Jhttpp2HTTPSession extends Thread {
     switch(a) {
       case 200:stat="200 OK"; break;
       case 202:stat="202 Accepted"; break;
+      case 204:stat="204 No Content"; break;
       case 300:stat="300 Ambiguous"; break;
       case 301:stat="301 Moved Permanently"; break;
       case 400:stat="400 Bad Request"; break;
@@ -848,14 +847,21 @@ public class Jhttpp2HTTPSession extends Thread {
         server.gm.addDownloadManager(file, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
         server.loggerWeb.info("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" succeeded");
         fwd=COConfigurationManager.getStringParameter("Server_sProxySuccessRedirect");
+        if (fwd=="") {
+          sendHeader(204);
+        } else {
+          sendHeader(301);
+          write(out,"Location: http://" + COConfigurationManager.getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
+        }
+        endHeader();
+        out.flush();
       } catch (Exception e) {
         server.loggerWeb.error("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" failed", e);
-        fwd="dl_fail";
+        sendErrorMSG(400, "Torrent download failed: "+e.getMessage());
       }
-      sendHeader(301);
-      write(out,"Location: http://" + COConfigurationManager.getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
-      endHeader();
-      out.flush();
+      //sendHeader(301);
+      //write(out,"Location: http://" + COConfigurationManager.getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
+      //write(out,"Location: javascript:alert(\"hallo\")\r\n");
   }
   /**
    * @since 0.4.10b

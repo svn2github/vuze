@@ -58,15 +58,15 @@ public class Main {
     options.addOption(OptionBuilder.withLongOpt("exec")
                                    .hasArg()
                                    .withArgName("file")
-                                   .withDescription("Execute script file.")
+                                   .withDescription("Execute script file. The file should end with 'logout', otherwise the parser thread doesn't stop.")
                                    .create('e'));
     options.addOption(OptionBuilder.withLongOpt("command")
                                    .hasArg()
                                    .withArgName("command")
-                                   .withDescription("Execute single script command.")
+                                   .withDescription("Execute single script command. Try '-c help' for help on commands.")
                                    .create('c'));
     options.addOption(OptionBuilder.withLongOpt("ui")
-                                   .withDescription("Run <uis>. ',' separated list of user interfaces to run. The first one given will respond to requests without determinable source UI (e.g. further torrents added via command line).\r\nAvailable: swt (default), web, console")
+                                   .withDescription("Run <uis>. ',' separated list of user interfaces to run. The first one given will respond to requests without determinable source UI (e.g. further torrents added via command line).")
                                    .withArgName("uis")
                                    .hasArg()
                                    .create('u'));
@@ -81,7 +81,7 @@ public class Main {
     if (commands.hasOption('h')) {
       if (constart) {
         HelpFormatter hf = new HelpFormatter();
-        hf.printHelp("java org.gudy.azureus2.ui.common.Main", options, true);
+        hf.printHelp("java org.gudy.azureus2.ui.common.Main", "Optionally you can put torrent files to add to the end of the command line.\r\n", options, "Available User Interfaces: swt (default), web, console\r\nThe default interface is not started if you give either the '-e' or '-c' option (But you can start it by hand with '-u').", true);
         System.exit(0);
       }
     }
@@ -143,7 +143,7 @@ public class Main {
           }
         }
       } else {
-        if (UIS.isEmpty())
+        if (UIS.isEmpty() && !commands.hasOption('c') && !commands.hasOption('e'))
           UIS.put(DEFAULT_UI, UserInterfaceFactory.getUI(DEFAULT_UI));
       }
 

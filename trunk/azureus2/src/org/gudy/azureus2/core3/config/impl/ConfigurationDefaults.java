@@ -208,4 +208,8 @@ public class ConfigurationDefaults {
       throw new ConfigurationParameterNotFoundException(p);
   }
   
+  public boolean doesParameterExist(String p) {
+    return def.containsKey(p);
+  }
+  
 }
