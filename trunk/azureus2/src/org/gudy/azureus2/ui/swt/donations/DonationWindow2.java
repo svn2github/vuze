@@ -104,10 +104,12 @@ public class DonationWindow2 {
     tempFont = shell.getFont();
     fontDataMain = tempFont.getFontData();
     
-    boolean isMac = System.getProperty("os.name").equals("Mac OS X");
+    boolean isMacLinux = (System.getProperty("os.name").equals("Mac OS X") ||
+                          System.getProperty("os.name").equals("Linux"));
+    
     
     for(int i=0 ; i < fontDataMain.length ; i++) {
-      if(!isMac)
+      if(!isMacLinux)
       	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.4));
       fontDataMain[i].setStyle(SWT.BOLD);     
     }
@@ -116,7 +118,7 @@ public class DonationWindow2 {
     tempFont = shell.getFont();
     fontDataMain= tempFont.getFontData();
     for(int i=0 ; i < fontDataMain.length ; i++) {
-      if(!isMac)
+      if(!isMacLinux)
       	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
       //fontDataMain[i].setStyle(SWT.BOLD);     
     }
@@ -125,7 +127,7 @@ public class DonationWindow2 {
     tempFont = shell.getFont();
     fontDataMain = tempFont.getFontData();
     for(int i=0 ; i < fontDataMain.length ; i++) {
-      if(isMac)
+      if(isMacLinux)
       	fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.70));
       else
         fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 0.90));
@@ -269,6 +271,7 @@ public class DonationWindow2 {
       
       
       final Label textFooter = new Label(shell,SWT.NULL);    
+      textFooter.setFont(smallFont);
       textFooter.setText(footerText);
       textFooter.setForeground(MainWindow.black);
       textFooter.setBackground(MainWindow.white);
