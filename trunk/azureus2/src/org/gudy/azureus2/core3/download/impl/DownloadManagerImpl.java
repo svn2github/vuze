@@ -314,6 +314,7 @@ DownloadManagerImpl
 		  peerManager.stopAll(); 
 		  
 		  peerManager = null; 
+		  server	  = null;	// clear down ref
 		}      
 		
 		if (diskManager != null){
