@@ -136,7 +136,11 @@ CacheFileManagerImpl
 				
 				CacheEntry	oldest = (CacheEntry)cache_entries.keySet().iterator().next();
 				
+				long	old_cw	= cache_bytes_written;
+				
 				oldest.getFile().flushCache( true, cache_minimum_free_size );
+				
+				LGLogger.log( "DiskCache: cache full, flushed " + ( cache_bytes_written - old_cw ) + " from " + oldest.getFile().getName());
 			}
 		}
 		

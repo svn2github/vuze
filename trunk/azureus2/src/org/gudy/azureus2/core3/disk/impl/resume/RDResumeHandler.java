@@ -286,8 +286,6 @@ RDResumeHandler
 	
 		throws Exception
 	{
-		if(!useFastResume)
-		  return;
     
 			// if file caching is enabled then this is an important time to ensure that the cache is
 			// flushed as we are going to record details about the accuracy of written data
@@ -299,6 +297,13 @@ RDResumeHandler
 			files[i].flushCache();
 		}
 		
+		if ( !useFastResume ){
+			
+				// flush cache even if resume disable
+			
+			return;
+		}
+
 		boolean	was_complete = isTorrentResumeDataComplete( 
 									torrent, 
 									disk_manager.getDownloadManager().getTorrentSaveDir(), 
