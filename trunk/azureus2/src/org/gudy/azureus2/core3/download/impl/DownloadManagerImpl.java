@@ -541,6 +541,9 @@ DownloadManagerImpl
 
   public void stopIt(final int stateAfterStopping)
   {
+    if (state == DownloadManager.STATE_STOPPING)
+      return;
+
   	setState( DownloadManager.STATE_STOPPING );
 
   	Thread stopThread = new Thread() {
