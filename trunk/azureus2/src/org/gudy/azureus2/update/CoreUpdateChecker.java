@@ -344,7 +344,17 @@ CoreUpdateChecker
 				
 				if ( !s_message.equals( last )){
 					
-					LGLogger.logAlert( LGLogger.AT_WARNING, s_message );
+					int		alert_type 		= LGLogger.AT_WARNING;
+					String	alert_text		= s_message;
+					
+					if ( alert_text.startsWith("i:" )){
+					
+						alert_type = LGLogger.AT_COMMENT;
+						
+						alert_text = alert_text.substring(2);
+					}
+					
+					LGLogger.logAlert( alert_type, alert_text );
 					
 					COConfigurationManager.setParameter( "CoreUpdateChecker.lastmessage", s_message );
 					
