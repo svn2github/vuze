@@ -69,7 +69,17 @@ UPnPRootDeviceImpl
 		SimpleXMLParserDocumentNode url_base_node = doc.getChild("URLBase");
 		
 		try{
-			url_base_for_relative_urls = url_base_node==null?null:new URL(url_base_node.getValue().trim());
+			if ( url_base_node != null ){
+				
+				String	url_str = url_base_node.getValue().trim();
+			
+					// url_str is sometimes blank
+				
+				if ( url_str.length() > 0 ){
+					
+					url_base_for_relative_urls = new URL(url_str);
+				}
+			}
 			
 			upnp.log( "Relative URL base is " + (url_base_for_relative_urls==null?"unspecified":url_base_for_relative_urls.toString()));
 			
