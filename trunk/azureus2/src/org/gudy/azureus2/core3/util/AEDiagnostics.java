@@ -85,6 +85,8 @@ AEDiagnostics
 	private static boolean	started_up;
 	private static Map		loggers	= new HashMap();
 	
+	private static List		evidence_generators	= new ArrayList();
+	
 	public static synchronized void
 	startup()
 	{
@@ -302,6 +304,29 @@ AEDiagnostics
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
+		}
+	}
+	
+	public static synchronized void
+	addEvidenceGenerator(
+		AEDiagnosticsEvidenceGenerator	gen )
+	{
+		evidence_generators.add( gen );
+	}
+	
+	public static synchronized void
+	generateEvidence(
+		PrintWriter		writer )
+	{
+		for (int i=0;i<evidence_generators.size();i++){
+			
+			try{
+				((AEDiagnosticsEvidenceGenerator)evidence_generators.get(i)).generate( writer );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace( writer );
+			}
 		}
 	}
 }

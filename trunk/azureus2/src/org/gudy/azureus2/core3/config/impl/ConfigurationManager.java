@@ -20,7 +20,10 @@ import org.gudy.azureus2.core3.config.*;
  * @author TdC_VgA
  *
  */
-public class ConfigurationManager {
+public class 
+ConfigurationManager 
+	implements AEDiagnosticsEvidenceGenerator
+{
   
   private static ConfigurationManager config;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
@@ -88,6 +91,8 @@ public class ConfigurationManager {
   	ConfigurationChecker.checkConfiguration();
 
   	ConfigurationChecker.setSystemProperties();
+	
+	AEDiagnostics.addEvidenceGenerator( this );
   }
   
   public void load(String filename) 
@@ -439,4 +444,55 @@ public class ConfigurationManager {
   		this_mon.exit();
   	}
   }
+  
+	public void
+	generate(
+		PrintWriter		writer )
+	{
+		writer.println( "Configuration Details" );
+		writer.println( "---------------------" );
+		writer.println( "**** System Properties" );
+		
+		Properties props = System.getProperties();
+		
+		Iterator	it = new TreeSet( props.keySet()).iterator();
+		
+		while(it.hasNext()){
+			
+			String	key = (String)it.next();
+			
+			writer.println( key + "=" + props.get( key ));
+		}
+		
+		writer.println( "**** Azureus Config" );
+
+		it = new TreeSet(propertiesMap.keySet()).iterator();
+		
+		while( it.hasNext()){
+			
+			Object	key 	= it.next();
+			Object	value	= propertiesMap.get(key);
+			
+			if ( value instanceof Long ){
+				
+				writer.println( key + "=" + value );
+				
+			}else if ( value instanceof List ){
+				
+				writer.println( key + "=" + value + "[list]" );
+				
+			}else if ( value instanceof Map ){
+				
+				writer.println( key + "=" + value + "[map]" );
+				
+			}else if ( value instanceof byte[] ){
+				
+				writer.println( key + "=" + new String((byte[])value));
+				
+			}else{
+				
+				writer.println( key + "=" + value + "[unknown]" );
+			}
+		}
+	}
 }

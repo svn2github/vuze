@@ -24,6 +24,10 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.StringTokenizer;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -32,16 +36,20 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.Messages;
 
 public class ConfigSectionLogging implements ConfigSectionSWT {
@@ -171,6 +179,45 @@ public class ConfigSectionLogging implements ConfigSectionSWT {
     
     Control[] controls = { cArea, cLogTypes };
     enableLogging.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
+	
+		// diagnostics
+	
+	Label generate_info = new Label(gLogging, SWT.NULL);
+
+	Messages.setLanguageText(generate_info, "ConfigView.section.logging.generatediagnostics.info");
+
+	Button generate_button = new Button(gLogging, SWT.PUSH);
+
+	Messages.setLanguageText(generate_button, "ConfigView.section.logging.generatediagnostics");
+
+	generate_button.addListener(
+			SWT.Selection, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(Event event) 
+				{
+					StringWriter sw = new StringWriter();
+					
+					PrintWriter	pw = new PrintWriter( sw );
+					
+					AEDiagnostics.generateEvidence( pw );
+					
+					pw.close();
+					
+					String	evidence = sw.toString();
+					
+					ClipboardCopy.copyToClipBoard( evidence );
+					
+					StringTokenizer	tok = new StringTokenizer(evidence, "\n" );
+					
+					while( tok.hasMoreTokens()){
+						
+						LGLogger.log( LGLogger.AT_COMMENT, tok.nextToken().trim());
+					}
+				}
+			});
+	
     return gLogging;
   }
 }
