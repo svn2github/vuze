@@ -123,8 +123,8 @@ PEPeerTransportProtocol
 		//The maxUpload ...
 		
 	int maxUpload = 1024 * 1024;
-  
-  private static final int MSS_SIZE = COConfigurationManager.getIntParameter("MTU.Size") - 52;
+
+  private static final int WRITE_CACHE_SIZE = System.getProperty("socket.write.cache") == null ? 1460 : Integer.parseInt( System.getProperty("socket.write.cache"));
   private DirectByteBuffer cache_buffer;
   private boolean queues_empty = true;
   private boolean actively_writing = false;
@@ -250,7 +250,7 @@ PEPeerTransportProtocol
   protected void allocateAll() {
   	allocateAllSupport();
     
-    cache_buffer = DirectByteBufferPool.getBuffer( MSS_SIZE );
+    cache_buffer = DirectByteBufferPool.getBuffer( WRITE_CACHE_SIZE );
 
   	this.closing = false;
   	//TODO
@@ -1219,7 +1219,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
             int orig_pos = c_buff.position();
             int orig_lim = c_buff.limit();
             c_buff.position( orig_lim );
-            c_buff.limit( MSS_SIZE );
+            c_buff.limit( WRITE_CACHE_SIZE );
             
             int copy_len = w_buff.remaining() > c_buff.remaining() ? c_buff.remaining() : w_buff.remaining();
             w_buff.limit( w_buff.position() + copy_len );
@@ -1234,20 +1234,20 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         w_buff.limit( realLimit );
         boolean force_flush = queues_empty && !w_buff.hasRemaining();
                 
-        if ( actively_writing || force_flush || c_buff.position() == MSS_SIZE ) {
+        if ( actively_writing || force_flush || c_buff.position() == WRITE_CACHE_SIZE ) {
           if ( !actively_writing ) c_buff.flip();
 
           int poss = c_buff.remaining();
           
           int wrote = writeData( cache_buffer );
                    
-          if ( WRITE_DEBUG ) {
-            System.out.println( wrote + " [" +poss+ "] F:" + force_flush + " A:" + actively_writing );
+          if ( WRITE_DEBUG ) {  //TODO: remove debug
+            System.out.println("["+ip+"]" + wrote + " [" +poss+ "] " + force_flush );
           }
           
           if ( !c_buff.hasRemaining() ) { //done writing the cache buffer
             c_buff.position( 0 );
-            c_buff.limit( MSS_SIZE );
+            c_buff.limit( WRITE_CACHE_SIZE );
             actively_writing = false;
           }
           else actively_writing = true;

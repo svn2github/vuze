@@ -12,7 +12,6 @@ import java.net.*;
 import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
-import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.config.*;
 
 
@@ -67,10 +66,11 @@ public class SocketManager {
         try {
           channel = SocketChannel.open();
           
-          String sz = System.getProperty("set.SO_RCVBUF");
-          int size = sz == null ? PEPeerTransport.RECEIVE_BUFF_SIZE : Integer.parseInt( sz );
+          String size = System.getProperty("socket.SO_RCVBUF");
+          if ( size != null ) channel.socket().setReceiveBufferSize( Integer.parseInt( size ) );
           
-          channel.socket().setReceiveBufferSize( size );
+          size = System.getProperty("socket.SO_SNDBUF");
+          if ( size != null ) channel.socket().setSendBufferSize( Integer.parseInt( size ) );
           
           String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
           if ( bindIP.length() > 6 ) {

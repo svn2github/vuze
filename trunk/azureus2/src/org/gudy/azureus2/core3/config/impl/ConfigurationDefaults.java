@@ -82,8 +82,7 @@ public class ConfigurationDefaults {
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
 
     def.put("File Max Open", new Long(50));
-    def.put("MTU.Size", new Long(1500));    
-    
+
     def.put("Max Uploads", new Long(4));
     def.put("Max Upload Speed KBs", new Long(0));
     def.put("Use Resume", new Long(1));

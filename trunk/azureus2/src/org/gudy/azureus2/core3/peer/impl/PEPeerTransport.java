@@ -36,9 +36,7 @@ PEPeerTransport
 	extends PEPeer
 {
 	public static final int HIGH_PRIORITY	= DownloadManager.HIGH_PRIORITY;
-  
-    public static final int RECEIVE_BUFF_SIZE = 255*1024;
-		
+  	
 	/**
 	 * Fake transports are created to permit equivalence testing prior to adding to 
 	 * the active transport set. This method exists to convert such fake transports into
