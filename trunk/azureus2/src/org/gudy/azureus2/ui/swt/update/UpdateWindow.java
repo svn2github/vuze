@@ -74,7 +74,7 @@ UpdateWindow
   
   private AzureusCore			azureus_core;
   private UpdateCheckInstance	check_instance;
-  private boolean				update_action;
+  private int					check_type;
   
   Display display;  
   
@@ -105,12 +105,12 @@ UpdateWindow
   public 
   UpdateWindow(
   		AzureusCore			_azureus_core,
-  		UpdateCheckInstance	_check_instance,
-		boolean				_update_action ) 
+  		UpdateCheckInstance	_check_instance )
   {
   	azureus_core	= _azureus_core;
   	check_instance 	= _check_instance;
-  	update_action	= _update_action;
+  	
+  	check_type = check_instance.getType();
   	
     this.display = SWTThread.getInstance().getDisplay();
     this.updateWindow = null;
@@ -138,7 +138,23 @@ UpdateWindow
     if(! Constants.isOSX) {
       updateWindow.setImage(ImageRepository.getImage("azureus"));
     }
-    Messages.setLanguageText(updateWindow,update_action?"swt.update.window.title":"swt.install.window.title");
+    
+    String	res_prefix = "swt.";
+    
+    if ( check_type == UpdateCheckInstance.UCI_INSTALL ){
+    	
+    	res_prefix += "install.window";
+    	
+    }else if (check_type == UpdateCheckInstance.UCI_UNINSTALL ){
+    	
+    	res_prefix += "uninstall.window";
+    	
+    }else{
+    	
+    	res_prefix += "update.window";
+    }
+    
+    Messages.setLanguageText(updateWindow, res_prefix + ".title");
     
     FormLayout layout = new FormLayout();
     try {
@@ -150,7 +166,7 @@ UpdateWindow
     updateWindow.setLayout(layout);
     
     Label lHeaderText = new Label(updateWindow,SWT.WRAP);
-    Messages.setLanguageText(lHeaderText,update_action?"swt.update.window.header":"swt.install.window.header");
+    Messages.setLanguageText(lHeaderText,res_prefix + ".header");
     formData = new FormData();
     formData.left = new FormAttachment(0,0);
     formData.right = new FormAttachment(100,0);
@@ -187,7 +203,7 @@ UpdateWindow
  
     
     btnOk = new Button(updateWindow,SWT.PUSH);
-    Messages.setLanguageText(btnOk,update_action?"swt.update.window.ok":"swt.install.window.ok");
+    Messages.setLanguageText(btnOk,res_prefix + ".ok" );
     
     updateWindow.setDefaultButton( btnOk );
     lOk = new Listener() {
@@ -308,9 +324,13 @@ UpdateWindow
         
         checkRestartNeeded();
         
-        if( COConfigurationManager.getBooleanParameter("update.opendialog")|| !update_action ) {
-          show();
-        } else {
+        if( 	COConfigurationManager.getBooleanParameter("update.opendialog")|| 
+        		check_instance.getType() != UpdateCheckInstance.UCI_UPDATE ) {
+        	
+        	show();
+        	
+        }else{
+        	
           MainWindow.getWindow().setUpdateNeeded(UpdateWindow.this);
         }
       }

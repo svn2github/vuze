@@ -44,6 +44,8 @@ UpdateCheckInstanceImpl
 	
 	protected AESemaphore	sem 	= new AESemaphore("UpdateCheckInstance");
 
+	protected int			check_type; 
+
 	protected UpdatableComponentImpl[]		components;
 	protected UpdateCheckerImpl[]			checkers;
 	
@@ -55,7 +57,16 @@ UpdateCheckInstanceImpl
 	protected
 	UpdateCheckInstanceImpl(
 		UpdatableComponentImpl[]	_components )
+	{	
+		this( UCI_UPDATE, _components );
+	}
+	
+	protected
+	UpdateCheckInstanceImpl(
+		int							_check_type,
+		UpdatableComponentImpl[]	_components )
 	{
+		check_type	= _check_type;
 		components	= _components;
 		
 		checkers	= new UpdateCheckerImpl[components.length];
@@ -68,6 +79,12 @@ UpdateCheckInstanceImpl
 		}
 	}
 
+	public int
+	getType()
+	{
+		return( check_type );
+	}
+	
 	public void
 	addUpdatableComponent(
 		UpdatableComponent		component,

@@ -141,7 +141,7 @@ PluginInstallerImpl
 		UpdateManager	uman = manager.getDefaultPluginInterface().getUpdateManager();
 		
 		UpdateCheckInstance	inst = 
-			uman.createEmptyUpdateCheckInstance();
+			uman.createEmptyUpdateCheckInstance(UpdateCheckInstance.UCI_INSTALL);
 		
 		inst.addUpdatableComponent(
 				pup.getCustomUpdateableComponent( plugin_id, false), false );

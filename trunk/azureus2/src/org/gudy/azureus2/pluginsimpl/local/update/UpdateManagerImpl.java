@@ -54,7 +54,7 @@ UpdateManagerImpl
 	}
 
 	protected AzureusCore	azureus_core;
-	
+		
 	protected List	components 	= new ArrayList();
 	protected List	listeners	= new ArrayList();
 	
@@ -120,14 +120,15 @@ UpdateManagerImpl
 	}
 	
 	public UpdateCheckInstance
-	createEmptyUpdateCheckInstance()
+	createEmptyUpdateCheckInstance(
+		int			type )
 	{
 		try{
 			this_mon.enter();
 	
 			UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[0];
 			
-			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( comps );
+			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( type, comps );
 			
 			for (int i=0;i<listeners.size();i++){
 				

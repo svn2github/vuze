@@ -43,7 +43,8 @@ UpdateManager
 		boolean					mandatory );
 	
 		/**
-		 * Kick off an update check - this will ask all registered components to perform a check
+		 * creates an update check instance with currently registered updatable components
+		 * Default check type is "UCI_UPDATE" 
 		 * @return
 		 */
 	
@@ -53,10 +54,13 @@ UpdateManager
 		/**
 		 * creates an update check instance with no attached updateable components (as opposed
 		 * to automatically including all registered
+		 * @param check_type	see UpdateCheckInstance.UCI_xx
 		 * @return
 		 */
+	
 	public UpdateCheckInstance
-	createEmptyUpdateCheckInstance();
+	createEmptyUpdateCheckInstance(
+		int		check_type );
 
 		/**
 		 * create a stand alone update installer. you will need to restart Azureus for it to

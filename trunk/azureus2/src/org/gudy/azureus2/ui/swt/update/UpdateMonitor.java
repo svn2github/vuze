@@ -216,7 +216,7 @@ UpdateMonitor
 			// we can get here for either update actions (triggered above) or for plugin
 			// install actions (triggered by the plugin installer)
 		
-		boolean	update_action = instance == current_update_instance;
+		boolean	update_action = instance.getType() == UpdateCheckInstance.UCI_UPDATE;
 		
 		if ( update_action ){
 		
@@ -263,13 +263,13 @@ UpdateMonitor
     			
     			if ( current_update_window == null || current_update_window.isDisposed()){
     			
-    				this_window = current_update_window = new UpdateWindow( azureus_core, instance, true );
+    				this_window = current_update_window = new UpdateWindow( azureus_core, instance );
     			}
     		}else{
 
     				// always show an installer window
     			
-    			this_window = new UpdateWindow( azureus_core, instance, false );
+    			this_window = new UpdateWindow( azureus_core, instance );
     		}
     		
     		if ( this_window != null ){

@@ -30,6 +30,18 @@ package org.gudy.azureus2.plugins.update;
 public interface 
 UpdateCheckInstance 
 {
+	public static final int	UCI_INSTALL			= 1;
+	public static final int	UCI_UPDATE			= 2;
+	public static final int	UCI_UNINSTALL		= 3;
+	
+		/**
+		 * returns one of the above UCI_ constants
+		 * @return
+		 */
+	
+	public int
+	getType();
+	
 	public void
 	start();
 	
