@@ -21,7 +21,10 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.program.Program;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
@@ -41,5 +44,13 @@ public class RankItem extends BufferedTableItem {
   public void refresh() {
     setText("" + (manager.getIndex()+1));
     String name = manager.getName();
+    if (name != null ) {
+      int sep = name.lastIndexOf('.'); //$NON-NLS-1$
+      if(sep < 0) sep = 0;
+      name = name.substring(sep);
+      Program program = Program.findProgram(name);
+      Image icon = ImageRepository.getIconFromProgram(program);
+      setImage(icon);
+    }
   }
 }

@@ -5,11 +5,10 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -17,8 +16,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
@@ -71,6 +70,7 @@ public class TorrentRow implements SortableItem {
         if (table == null || table.isDisposed())
           return;
         row = new BufferedTableRow(table, SWT.NULL);
+        items.add(new RankItem(row,0,manager));
         view.setItem(row.getItem(),manager);
       }
     });
@@ -95,25 +95,18 @@ public class TorrentRow implements SortableItem {
     if (row == null || row.isDisposed())
       return;
 
-    String tmp;
-    
-    tmp = "" + (manager.getIndex()+1);
-    if(!(this.index.equals(tmp))) {
-      index = tmp;
-      row.setText(0,index);
+    Iterator iter = items.iterator();
+    while(iter.hasNext()) {
+      BufferedTableItem item = (BufferedTableItem) iter.next();
+      item.refresh();
     }
+    
+    String tmp;   
     
     tmp = manager.getName();
     if (tmp != null && !(this.name.equals(tmp))) {
-      name = tmp;
-      int sep = tmp.lastIndexOf('.'); //$NON-NLS-1$
-      if(sep < 0) sep = 0;
-      tmp = tmp.substring(sep);
-      Program program = Program.findProgram(tmp);
-      Image icon = ImageRepository.getIconFromProgram(program);
-      row.setText(1, name);
-      row.setImage(0, icon);
-      
+      name = tmp;      
+      row.setText(1, name);     
     }
 
     tmp = ""; //$NON-NLS-1$
