@@ -90,7 +90,7 @@ Main
 			}else if ( test_type == TT_DECODE ){
 				
 					 
-				File f = new File("c:\\temp\\test2.torrent" );
+				File f = new File("c:\\temp\\test.torrent" );
 			
 				TOTorrent torrent = TOTorrentFactory.deserialiseFromFile( f );
 			
@@ -152,6 +152,8 @@ Main
 								new File("c:\\temp\\qqq"), 
 								new URL("http://localhost:6969/announce" ), 
 								list);
+								
+						t.setCreationDate( 12345L );
 					}
 				}
 				

@@ -36,6 +36,8 @@ TOTorrentImpl
 	protected static final String TK_ANNOUNCE			= "announce";
 	protected static final String TK_ANNOUNCE_LIST		= "announce-list";
 	protected static final String TK_COMMENT			= "comment";
+	protected static final String TK_CREATION_DATE		= "creation date";
+	
 	protected static final String TK_INFO				= "info";
 	protected static final String TK_NAME				= "name";
 	protected static final String TK_LENGTH				= "length";
@@ -57,6 +59,8 @@ TOTorrentImpl
 	private boolean				simple_torrent;
 	private TOTorrentFile[]		files;
 
+	private long				creation_date;
+	
 	private Map					additional_properties = new HashMap();
 	
 	/** 
@@ -177,6 +181,11 @@ TOTorrentImpl
 			writeStringToMetaData( root, TK_COMMENT, comment );			
 		}
 		
+		if ( creation_date != 0 ){
+			
+			root.put( TK_CREATION_DATE, new Long( creation_date ));
+		}
+		
 		Map info = new HashMap();
 		
 		root.put( TK_INFO, info );
@@ -277,7 +286,7 @@ TOTorrentImpl
 		return( comment );
 	}
 	
-	protected void
+	public void
 	setComment(
 		String	_comment )
 	{
@@ -297,6 +306,19 @@ TOTorrentImpl
 	getAnnounceURL()
 	{
 		return( announce_url );
+	}
+	
+	public long
+	getCreationDate()
+	{
+		return( creation_date );
+	}
+	
+	public void
+	setCreationDate(
+		long		_creation_date )
+	{
+		creation_date 	= _creation_date;
 	}
 	
 	public byte[]
@@ -569,6 +591,7 @@ TOTorrentImpl
 			System.out.println( "name = " + torrent_name );
 			System.out.println( "announce url = " + announce_url );
 			System.out.println( "announce group = " + announce_group.getAnnounceURLSets().length );
+			System.out.println( "creation date = " + creation_date );
 			System.out.println( "hash = " + ByteFormatter.nicePrint( hash ));
 			System.out.println( "piece length = " + getPieceLength() );
 			System.out.println( "pieces = " + getPieces().length );

@@ -204,6 +204,15 @@ TOTorrentDeserialiseImpl
 					
 					setComment( readStringFromMetaData( meta_data, TK_COMMENT ));
 					
+				}else if ( key.equalsIgnoreCase( TK_CREATION_DATE )){
+					
+					Long creation_date = (Long)meta_data.get( TK_CREATION_DATE );
+					
+					if ( creation_date != null ){
+						
+						setCreationDate( creation_date.longValue());
+					}
+									
 				}else if ( key.equalsIgnoreCase( TK_INFO )){
 					
 					// processed later

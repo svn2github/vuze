@@ -45,7 +45,18 @@ TOTorrent
 	
 	public String
 	getComment();
+
+	public void
+	setComment(
+		String		comment );
+		
+	public long
+	getCreationDate();
 	
+	public void
+	setCreationDate(
+		long		date );
+		
 	public URL
 	getAnnounceURL();
 
