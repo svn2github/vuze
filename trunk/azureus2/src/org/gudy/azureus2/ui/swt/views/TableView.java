@@ -358,20 +358,31 @@ public class TableView
   	// Implement a "fake" tooltip
   	final Listener labelListener = new Listener () {
   		public void handleEvent (Event event) {
-  			Label label = (Label)event.widget;
-  			Shell shell = label.getShell();
+  		  System.out.println(event);
+  		  Shell shell;
+  		  if (event.widget instanceof Label)
+  		    shell = ((Label)event.widget).getShell();
+  		  else
+  		    shell = (Shell)event.widget;
   			switch (event.type) {
   				case SWT.MouseDown:
+  				case SWT.FocusIn:
   					Event e = new Event ();
-  					e.item = (TableItem)label.getData("_TABLEITEM");
-  					// Assuming table is single select, set the selection as if
-  					// the mouse down event went through to the table
-  					table.setSelection(new TableItem [] {(TableItem) e.item});
-  					table.notifyListeners(SWT.Selection, e);
+  					TableItem ti = (TableItem)shell.getData("_TABLEITEM");
+  					if (!ti.isDisposed()) {
+    					e.item = ti;
+    					table.setSelection(table.indexOf(ti));
+    					table.notifyListeners(SWT.Selection, e);
+   					}
+   					if (table != null && !table.isDisposed())
+     					table.setFocus();
   					// fall through
   				case SWT.MouseExit:
-  				  TableCellCore cell = (TableCellCore)label.getData("TableCellCore");
+  				  TableCellCore cell = (TableCellCore)shell.getData("TableCellCore");
             cell.invokeToolTipListeners(TableCellCore.TOOLTIPLISTENER_HOVERCOMPLETE);
+            Point pt = shell.getSize();
+            pt.x *= 2;
+            shell.setSize(pt);
   					shell.dispose();
   					break;
   			}
@@ -434,11 +445,14 @@ public class TableView
 						label = new Label(shell, SWT.WRAP);
 						label.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 						label.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-						label.setData("_TABLEITEM", item);
-						label.setData("TableCellCore", cell);
+						shell.setData("_TABLEITEM", item);
+						shell.setData("TableCellCore", cell);
 						label.setText(sToolTip);
 						label.addListener(SWT.MouseExit, labelListener);
 						label.addListener(SWT.MouseDown, labelListener);
+						shell.addListener(SWT.MouseExit, labelListener);
+						shell.addListener(SWT.MouseDown, labelListener);
+						shell.addListener(SWT.FocusIn, labelListener);
 						// compute size on label instead of shell because label
 						// calculates wrap, while shell doesn't
 						Point size = label.computeSize (SWT.DEFAULT, SWT.DEFAULT);
