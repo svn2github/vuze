@@ -1,7 +1,7 @@
 CHANGELOG
 ---------
 
-xx.xx.04 | Azureus 2.0.8.1
+15.03.04 | Azureus 2.0.8.2
 
 FEATURE: Show last time IPFilter list was updated in status area [Parg]
 FEATURE: Support for "compact" tracker announce protocol [Parg]
@@ -22,6 +22,8 @@ BUGFIX: Popup windows now center in main monitor on multi-monitor setups [TuxPap
 BUGFIX: Fix for Pieces and Files views off-by-one row drawing glitch under linux [TuxPaper]
 BUGFIX: Sort on Health and Availability now enabled [TuxPaper]
 BUGFIX: Various memory leaks (DiskManager instances not being freed) [Parg]
+
+
 
 08.03.04 | Azureus 2.0.8.0
 
