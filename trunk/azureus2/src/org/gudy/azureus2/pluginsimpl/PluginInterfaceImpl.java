@@ -228,6 +228,38 @@ PluginInterfaceImpl
   	return( PeerProtocolManagerImpl.getSingleton());
   }
   
+  public void
+  unload()
+  
+  	throws PluginException
+  {
+  	if ( plugin instanceof UnloadablePlugin ){
+  		
+  		((UnloadablePlugin)plugin).unload();
+  		
+  	}else{
+  		
+  		throw( new PluginException( "Plugin isn't unloadable" ));
+  	}
+  }
+  
+  public void
+  reload()
+  
+  	throws PluginException
+  {
+ 	if ( plugin instanceof UnloadablePlugin ){
+  		
+  		((UnloadablePlugin)plugin).unload();
+  		
+  		throw( new PluginException( "not implemented"));
+  		
+  	}else{
+  		
+  		throw( new PluginException( "Plugin isn't reloadable" ));
+  	} 	
+  }
+  
   protected void
   initialisationComplete()
   {

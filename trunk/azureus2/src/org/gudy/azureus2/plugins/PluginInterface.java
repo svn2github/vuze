@@ -223,6 +223,16 @@ public interface PluginInterface {
   public Plugin
   getPlugin();
   
+  public void
+  unload()
+  
+  	throws PluginException;
+  
+  public void
+  reload()
+  
+  	throws PluginException;
+  
   /**
    * gives access to the plugin manager
    * @return

@@ -342,6 +342,21 @@ RPPluginInterface
 	}
 	
 	public void
+	unload()
+	  
+		throws PluginException
+	{
+		notSupported();
+	}
+	
+	public void
+	reload()
+	  
+		throws PluginException
+	{
+		notSupported();
+	}
+	public void
 	addListener(
 			PluginListener	l )
 	{
