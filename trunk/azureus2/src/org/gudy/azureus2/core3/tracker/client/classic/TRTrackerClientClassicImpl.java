@@ -1786,8 +1786,8 @@ TRTrackerClientClassicImpl
     if( !is_seed && failure_added_time > 1200) {
       failure_added_time = 1200;
     }
-    else if ( is_seed && failure_added_time > 2400) { //or 40min if seed
-      failure_added_time = 2400;
+    else if ( is_seed && failure_added_time > 3600) { //or 60min if seed
+      failure_added_time = 3600;
     }
 
     return failure_added_time;
