@@ -247,6 +247,8 @@ PEPeerControlImpl
     }
 
     public void run() {
+      long now = 0;
+        
       while (bContinue) {
         
       	for (int i = 9; i > 0; i--) {
@@ -262,9 +264,9 @@ PEPeerControlImpl
               removeFromPeerTransports( ps, ps.getIp()+":"+ps.getPort()+ " Disconnected" );
             }
             else {
-              if (oldPolling || ( System.currentTimeMillis() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
+              if (oldPolling || ( (now = System.currentTimeMillis()) > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
                 ps.setReadSleepTime( ps.processRead() );
-                ps.setLastReadTime( System.currentTimeMillis() );
+                if ( !oldPolling ) ps.setLastReadTime( now );
               }
               
               ps.processWrite();
@@ -390,32 +392,12 @@ PEPeerControlImpl
   }
 
   public void stopAll() {
-
-    //1. Stop the peer updater
-    peerUpdater.stopIt();
     
-    /* stop the slow connector if running */
-    if (slowConnect) slowConnector.stopIt();
-
-    //2. Stop itself
-    _bContinue = false;
-
-    //3. Stop the server
-    _server.stopServer();
-
-    _server.clearServerAdapter();
-
-    for (int i = 0; i < _pieces.length; i++) {
-      if (_pieces[i] != null)
-        pieceRemoved(_pieces[i]);
-    }    
-
-    //Asynchronous cleaner
-
+  	//Asynchronous cleaner
     Thread t = new Thread("Cleaner - Tracker Ender") {
       public void run() {
           //1. Send disconnect to Tracker
-  _tracker.stop();
+        _tracker.stop();
         try {
           while (requestsToFree.size() != 0) {
             freeRequests();
@@ -430,7 +412,14 @@ PEPeerControlImpl
     t.setDaemon(true);
     t.start();
 
-    //  4. Close all clients
+    //stop the slow connector
+    if (slowConnect) slowConnector.stopIt();
+    
+    //  Stop the server
+    _server.stopServer();
+    _server.clearServerAdapter();
+    
+    // Close all clients
     if (_peer_transports != null) {
       synchronized (_peer_transports) {
         while (_peer_transports.size() != 0) {
@@ -439,6 +428,18 @@ PEPeerControlImpl
       }
     }
     
+    // Stop the peer updater
+    peerUpdater.stopIt();
+
+    //clear pieces
+    for (int i = 0; i < _pieces.length; i++) {
+      if (_pieces[i] != null)
+        pieceRemoved(_pieces[i]);
+    }    
+
+    //  Stop itself
+    _bContinue = false;
+
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
   }
