@@ -3,7 +3,17 @@ AZUREUS CHANGELOG
 
 xx.06.04 | Azureus 2.1.0.1
 
+FEATURE:
 
+CHANGE:
+
+BUGFIX: Core | Fix for Library Paths using single quotes [Parg]
+BUGFIX: Core | Fixed shared plugin dir location on OSX [Parg]
+BUGFIX: Core | Better directory remembering [Nolar]
+BUGFIX: UI   | # Column now on by default again [TuxPaper]
+BUGFIX: UI   | Fix for Context Menu not appearing after setting up columns on Linux [TuxPaper]
+BUGFIX: UI   | IP column now sorts by hex groups [TuxPaper]
+BUGFIX:
 
 
 
