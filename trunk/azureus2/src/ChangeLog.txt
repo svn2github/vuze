@@ -234,7 +234,7 @@ BUGFIX: UI   | Fix for the Freeze on exit under OSX [Gudy]
 
 16.03.04 | Azureus 2.0.8.4
 
-CHANGE: WebUI plugin included in mainline (see http://azureus.sf.net/CVS/web.interface.howto.htm)
+CHANGE: WebUI plugin included in mainline (see http://azureus.sf.net/CVS/web.interface.howto.htm) [Parg]
 CHANGE: Much more reliable SF mirror auto-update handling [Nolar]
 
 BUGFIX: Fix for loading .torrent files via web-browser/shell/doubleclick/etc [Nolar]
