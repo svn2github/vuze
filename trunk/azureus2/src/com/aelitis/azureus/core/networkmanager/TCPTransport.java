@@ -56,10 +56,6 @@ public class TCPTransport {
   private ByteBuffer data_already_read = null;
   private final boolean is_inbound_connection;
   
-  private long total_read = 0;
-  private long zero_read_count = 0;
-  private long last_zero_read_time = 0;
-  
   
   
   /**
@@ -70,7 +66,6 @@ public class TCPTransport {
     is_connected = false;
     is_ready_for_write = false;
     is_inbound_connection = false;
-    
     transport_debugger	= _owner.getDebugger();
   }
   
@@ -83,19 +78,9 @@ public class TCPTransport {
    */
   protected TCPTransport( TransportOwner _owner, SocketChannel channel, ByteBuffer already_read ) {
     this.socket_channel = channel;
-    this.data_already_read = already_read;
-    
-    /*
-    int old = already_read.position();
-    byte[] raw = new byte[ already_read.remaining() ];
-    already_read.get( raw );
-    already_read.position( old );
-    System.out.println( "already_read=[" +new String( raw )+ "]" );
-    */
-    
+    this.data_already_read = already_read;   
     is_connected = true;
     is_ready_for_write = true;  //assume it is ready
-    total_read += already_read.remaining();
     is_inbound_connection = true;  //well, true only if the given socket was actually accepted
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
     transport_debugger = _owner.getDebugger();
@@ -383,17 +368,15 @@ public class TCPTransport {
     }
     
 
+    
     long bytes_read = socket_channel.read( buffers, array_offset, length );
-    total_read += bytes_read;
     
     if( bytes_read < 0 ) {
-      throw new IOException( "end of stream on socket read, [total bytes read="+(total_read+1)+"]" );
+      throw new IOException( "end of stream on socket read" );
     }
     
     if( bytes_read == 0 ) {
-      long time = last_zero_read_time == 0 ? 0 : (SystemTime.getCurrentTime() - last_zero_read_time) / 1000;
-      last_zero_read_time = SystemTime.getCurrentTime();
-      System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-read [" +(++zero_read_count)+ "x, " +time+ "s]" );
+      System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-read" );
     }
     
     return bytes_read;
