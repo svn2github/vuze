@@ -183,11 +183,11 @@ public class TableSorter implements ParameterListener {
             SortableItem itemi = (SortableItem) objectToSortableItem.get(dataSourcei);
             String valuei = itemi.getStringField(field);
             if (ascending) {
-              if (collator.compare(valuei, value) <= 0)
+              if (collator.compare(valuei, value) >= 0)
                 break;
             }
             else {
-              if (collator.compare(valuei, value) >= 0)
+              if (collator.compare(valuei, value) <= 0)
                 break;
             }
           }
