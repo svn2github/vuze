@@ -18,7 +18,7 @@ import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
-import com.apple.eawt.*; //Application and ApplicationAdapter
+//import com.apple.eawt.*; //Application and ApplicationAdapter
 
 public class CarbonUIEnhancer {
          private static final int kHICommandPreferences= ('p'<<24) + ('r'<<16) + ('e'<<8) + 'f';
