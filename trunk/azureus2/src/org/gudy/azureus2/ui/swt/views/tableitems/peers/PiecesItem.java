@@ -136,6 +136,8 @@ public class PiecesItem extends PeerGraphicItem  {
     }
 
     boolean available[] = infoObj.getAvailable();
+    boolean pieces[] = infoObj.getManager().getDownloadManager().getPiecesStatus();
+    
     if (available != null && available.length > 0) {
       int nbComplete = 0;
       int nbPieces = available.length;
@@ -155,23 +157,27 @@ public class PiecesItem extends PeerGraphicItem  {
         }
 
         int index;
+        boolean needed = false;
 
         if (a1 <= a0) {
           index = imageBuffer[i - 1];
         } else {
           int nbAvailable = 0;
-          for (int j = a0; j < a1; j++)
-            if (available[j])
+          for (int j = a0; j < a1; j++) {
+            if (available[j]) {
+            	if ( !pieces[j] )  needed = true;
               nbAvailable++;
+            }
+          }
           nbComplete += nbAvailable;
           index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
-          //System.out.println("i="+i+";nbAvailable="+nbAvailable+";nbComplete="+nbComplete+";nbPieces="+nbPieces+";a0="+a0+";a1="+a1);
         }
 
         if (!bImageBufferValid || imageBuffer[i] != index) {
           imageBuffer[i] = index;
           bImageChanged = true;
-          gcImage.setForeground(MainWindow.blues[index]);
+          if (needed)  gcImage.setForeground(MainWindow.colorInverse);
+          else  gcImage.setForeground(MainWindow.blues[index]);
           gcImage.drawLine(i + x0, y0, i + x0, y1);
         }
       }
