@@ -22,7 +22,12 @@
 
 package org.gudy.azureus2.pluginsimpl.local.messaging;
 
+import java.util.*;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.messaging.*;
+import org.gudy.azureus2.plugins.peers.*;
 
 
 
@@ -32,6 +37,63 @@ import org.gudy.azureus2.plugins.messaging.*;
 public class MessageManagerImpl implements MessageManager {
   
   private static final MessageManagerImpl instance = new MessageManagerImpl();
+  
+  private final HashMap compat_checks = new HashMap();
+  
+  private final DownloadManagerListener download_manager_listener = new DownloadManagerListener() {
+    public void downloadAdded( Download dwnld ) {
+      dwnld.addPeerListener( new DownloadPeerListener() {
+        public void peerManagerAdded( final Download download, PeerManager peer_manager ) {
+          peer_manager.addListener( new PeerManagerListener() {
+            public void peerAdded( PeerManager manager, final Peer peer ) {
+              peer.addListener( new PeerListener() {
+                public void stateChanged( int new_state ) {
+                  
+                  if( new_state == Peer.TRANSFERING ) {  //the peer handshake has completed
+                    if( peer.supportsMessaging() ) {  //if it supports advanced messaging
+                      //see if it supports any registered message types
+                      Message[] messages = peer.getSupportedMessages();
+
+                      for( int i=0; i < messages.length; i++ ) {
+                        Message msg = messages[i];
+                        
+                        for( Iterator it = compat_checks.entrySet().iterator(); it.hasNext(); ) {
+                          Map.Entry entry = (Map.Entry)it.next();
+                          Message message = (Message)entry.getKey();
+                          
+                          if( msg.getID().equals( message.getID() ) && msg.getVersion() == message.getVersion() ) {  //it does !
+                            MessageManagerListener listener = (MessageManagerListener)entry.getValue();
+                            
+                            listener.compatiblePeerFound( download, peer, message );
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              });
+            }
+
+            public void peerRemoved( PeerManager manager, Peer peer ) {
+              for( Iterator i = compat_checks.values().iterator(); i.hasNext(); ) {
+                MessageManagerListener listener = (MessageManagerListener)i.next();
+                
+                listener.peerRemoved( download, peer );
+              }
+            }
+          });
+        }
+
+        public void peerManagerRemoved( Download download, PeerManager peer_manager ) { /* nothing */ }
+      });
+    }
+    
+    public void downloadRemoved( Download download ) { /* nothing */ }
+  };
+  
+  
+  
+  
   
   
   public static MessageManagerImpl getSingleton() {  return instance;  }
@@ -55,4 +117,13 @@ public class MessageManagerImpl implements MessageManager {
     com.aelitis.azureus.core.peermanager.messaging.MessageManager.getSingleton().deregisterMessageType( new MessageAdapter( message ) );
   }
     
+  
+  
+  public void locateCompatiblePeers( PluginInterface plug_interface, Message message, MessageManagerListener listener ) {
+    compat_checks.put( message, listener );  //TODO need to copy-on-write?
+    
+    if( compat_checks.size() == 1 ) {  //only register global peer locator listener once
+      plug_interface.getDownloadManager().addListener( download_manager_listener );
+    }
+  }
 }

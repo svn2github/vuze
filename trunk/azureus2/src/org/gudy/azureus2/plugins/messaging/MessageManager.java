@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.messaging;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+
 
 /**
  * Manages peer message handling.
@@ -43,4 +45,13 @@ public interface MessageManager {
    * @param message type to remove
    */
   public void deregisterMessageType( Message message );
+  
+  
+  /**
+   * Globally register for notification of peers that support the given message type.
+   * @param plug_interface to get the download manager
+   * @param message to match
+   * @param listener to notify
+   */
+  public void locateCompatiblePeers( PluginInterface plug_interface, Message message, MessageManagerListener listener );
 }
