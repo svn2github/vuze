@@ -215,6 +215,11 @@ PEPeerTransportProtocol
       }
  
       public void connectSuccess() {
+        if( closing ) {
+          Debug.out( "PEPeerTransportProtocol::connectSuccess() called when closing." );
+          return;
+        }
+        
         LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
         registerForMessageHandling();
         changePeerState( PEPeer.HANDSHAKING );
@@ -256,18 +261,8 @@ PEPeerTransportProtocol
    * Hopefully, that will save some RAM.
    */
   private void allocateAll() {
-  	try{
-  	  closing_mon.enter();
-  	
-  	  if ( closing ){
-  			Debug.out( "allocateAll() called when 'closing'" );
-  			return;
-  	  }
-  	}
-    finally{
-      closing_mon.exit();
-    }
-    
+    if( closing )  return;
+
     other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
     Arrays.fill( other_peer_has_pieces, false );
 	
@@ -1430,9 +1425,6 @@ PEPeerTransportProtocol
           message.destroy();
           return true;
         }       
-        
-        //String reason = "Received unknown message: " +message.getID()+ ":" +message.getVersion();
-        //Debug.out( reason );
         
         return false;
       }

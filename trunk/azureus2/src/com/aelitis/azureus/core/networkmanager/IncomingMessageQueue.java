@@ -193,8 +193,6 @@ public class IncomingMessageQueue {
         buffs[ x ].returnToPool();
       }
     }
-    
-    //System.out.println( "notifiedOfExternallyReceivedMessage:: [" +message.getID()+ "] size=" +size );
   }
   
   

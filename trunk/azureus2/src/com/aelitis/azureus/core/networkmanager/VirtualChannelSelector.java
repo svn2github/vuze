@@ -439,7 +439,7 @@ public class VirtualChannelSelector {
           }
           else {
             key.cancel();
-            data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "select notification: key is invalid" ) );
+            data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "key is invalid" ) );
             // can get this if socket has been closed between select and here
           }
         }

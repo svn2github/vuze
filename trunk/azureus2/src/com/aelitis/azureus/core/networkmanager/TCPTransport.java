@@ -218,12 +218,12 @@ public class TCPTransport {
   public void startReadSelects( ReadListener listener ) {
     read_listener = listener;
     
-    if( socket_channel == null ) {
-      Debug.printStackTrace( new Exception( "startReadSelects():: socket_channel == null" ) );
-      return;
+    if( socket_channel != null ) {
+      NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
     }
-    
-    NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
+    else {
+      Debug.out( "TCPTransport::startReadSelects() called when socket_channel == null" );
+    }
   }
 
   
@@ -360,12 +360,8 @@ public class TCPTransport {
     }
  
     
-    if( socket_channel == null ) {
-      System.out.println( "read(): [" +description+ "]: socket_channel == null" );
-    }
-    
     if( buffers == null ) {
-      System.out.println( "read: buffers == null" );
+      Debug.out( "read: buffers == null" );
     }
     
     long bytes_read = 0;
@@ -375,7 +371,11 @@ public class TCPTransport {
     }
     catch( IOException ioe ) {
       //stopReadSelects();//TODO
-      throw ioe;      
+      throw ioe;
+    }
+    catch( Throwable t ) {
+      Debug.out( "Caught Throwable on TCPTransport::read()", t );
+      throw new IOException( "Caught Throwable on TCPTransport::read(): " +t.getMessage() );
     }
     
     if( bytes_read < 0 ) {
@@ -457,10 +457,7 @@ public class TCPTransport {
       }
 
       public void connectFailure( Throwable failure_msg ) {
-        socket_channel = null;
         connect_request_key = null;
-        is_ready_for_write = false;
-
         listener.connectFailure( failure_msg );
       }
     };

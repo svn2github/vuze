@@ -256,7 +256,7 @@ public class IncomingSocketChannelManager {
               
               //FAILURE
               public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
-                Debug.out( "select failure:", msg );
+                LGLogger.log( "Incoming TCP connection [" +sc+ "] socket select op failure: " +msg.getMessage() );
                 removeConnection( ic, true );
               }
             }, null );
