@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.transport.base.*;
@@ -34,6 +36,8 @@ import org.gudy.azureus2.core3.peer.impl.transport.sharedport.*;
 public class 
 PEPeerTransportFactory 
 {
+	protected static Map	extension_handlers = new HashMap();
+	
 	public static PEPeerTransport
 	createTransport(
 		PEPeerControl	 	control, 
@@ -45,6 +49,34 @@ PEPeerTransportFactory
 		return( new PEPeerTransportImpl( control, peerId, ip, port, fake ));
 	}
 
+	public static void
+	registerExtensionHandler(
+		String								protocol_name,
+		PEPeerTransportExtensionHandler		handler )
+	{
+		extension_handlers.put( protocol_name, handler );
+	}
+	
+	public static List
+	createExtendedTransports(
+		PEPeerControl	manager,
+		String			protocol_name,
+		Map				details )
+	{
+		System.out.println( "createExtendedTransports:" + protocol_name );
+		
+		PEPeerTransportExtensionHandler	handler = (PEPeerTransportExtensionHandler)extension_handlers.get( protocol_name );
+		
+		if ( handler == null ){
+			
+			System.out.println( "\tNo handler");
+			
+			return( new ArrayList());
+		}
+		
+		return( handler.handleExtension( manager, details ));
+	}
+	
 	public static PEPeerServer
 	createServer()
 	{
