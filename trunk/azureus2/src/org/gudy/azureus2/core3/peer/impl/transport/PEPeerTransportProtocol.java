@@ -155,6 +155,7 @@ PEPeerTransportProtocol
   		String 			ip, 
   		int 			port,
   		boolean			incoming_connection, 
+  		byte[]			data_already_read,
   		boolean 		fake ) 
 	{
 		super(manager, peerId, ip, port);
@@ -172,7 +173,7 @@ PEPeerTransportProtocol
 			
 			LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Creating incoming connection from " + ip + " : " + port);
 			
-			handShake();
+			handShake( data_already_read );
 			
 			currentState = new StateHandshaking();
 					
@@ -222,7 +223,9 @@ PEPeerTransportProtocol
 	this.loopFactor = 0;
   }
 
-  protected void handShake() {
+  protected void handShake(
+  	byte[]		data_already_read ) 
+  {
 	try {
 	  byte[] protocol = PROTOCOL.getBytes();
 	  byte[] reserved = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -242,6 +245,9 @@ PEPeerTransportProtocol
 	  }
 	  readBuffer.limit(68);
 	  readBuffer.position(0);
+	  if ( data_already_read != null ){
+	  	readBuffer.put( data_already_read );
+	  }
 	}
 	catch (Exception e) {
 	  closeAll(ip + " : Exception in handshake : " + e, true);
@@ -426,7 +432,7 @@ PEPeerTransportProtocol
 	public void process() {
 	  try {
 		if ( completeConnection()) {
-		  handShake();
+		  handShake(null);
 		  currentState = new StateHandshaking();
 		}
 	  }

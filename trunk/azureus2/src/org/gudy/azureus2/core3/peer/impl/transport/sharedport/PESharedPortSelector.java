@@ -26,13 +26,21 @@ package org.gudy.azureus2.core3.peer.impl.transport.sharedport;
  *
  */
 
+import java.util.*;
 import java.io.*;
+import java.nio.*;
 import java.nio.channels.*;
+
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 PESharedPortSelector 
 {
 	protected Selector	selector;
+	
+	protected Map		outstanding_sockets	= new HashMap();
+		
+	protected Map		hash_map			= new HashMap();
 	
 	protected
 	PESharedPortSelector()
@@ -58,6 +66,115 @@ PESharedPortSelector
 	protected void
 	selectLoop()
 	{
+		while (true){
+			
+			try{
+			
+				selector.select(1000);
+				
+					// Get set of ready objects
+			 		 
+				Set readyKeys 		= selector.selectedKeys();
+				Iterator readyItor 	= readyKeys.iterator();
+	
+					// System.out.println( "selector keys = " + selector.keys().size());
+				
+				while (readyItor.hasNext()){
+	
+					SelectionKey key = (SelectionKey)readyItor.next();
+	
+						// Remove current entry
+						
+					readyItor.remove();
+	
+						// Get channel
+					
+					SocketChannel socket = (SocketChannel)key.channel();
+	
+					boolean	remove_this_key = false;
+					
+					if (key.isReadable()){
+	
+				  		// Read what's ready in response
+				  		
+				  		ByteBuffer	buffer = (ByteBuffer)outstanding_sockets.get( socket );
+				  		
+				  		if ( buffer == null ){
+				  			
+				  			System.out.println( "eh? buffer not found");
+				  			
+				  			remove_this_key = true;
+				  			
+				  		}else{
+				  		
+					  		try{
+					  		
+								int	len = socket.read(buffer);
+					  		
+					  			if ( len <= 0 ){
+					  				
+					  				remove_this_key = true;
+					  				
+					  			}else{
+					  			
+						  			System.out.println( "buffer position = " + buffer.position());
+						  			
+						  			if ( buffer.position() >= 48 ){
+						  				
+						  				byte[]	contents = new byte[buffer.position()];
+									
+										buffer.flip();
+						  					
+						  				buffer.get( contents );
+						  				
+						  				HashWrapper	hw = new HashWrapper(contents,28,20);
+						  				
+										PESharedPortServerImpl server = (PESharedPortServerImpl)hash_map.get( hw );
+										
+										if ( server == null ){
+											
+											remove_this_key	= true;
+											
+											System.out.println( "server dead");
+										}else{
+											
+												// hand over this socket 
+												
+											key.cancel();
+											
+											server.connectionReceived( socket, contents );
+										}
+						  			}
+					  			}
+					  		}catch( IOException e ){
+					  			
+					  			remove_this_key	= true;
+					  			
+					  			e.printStackTrace();
+					  		}
+				  		}
+					}
+					
+					if ( remove_this_key ){
+						
+						outstanding_sockets.remove( socket );
+						
+						try{
+							socket.close();
+							
+						}catch( IOException e ){
+							
+							e.printStackTrace();
+						}
+						
+						key.cancel();
+					}
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void
@@ -65,6 +182,28 @@ PESharedPortSelector
 		SocketChannel		_socket )
 	{
 		System.out.println( "socket added");
+		
+		try{
+			
+			ByteBuffer	buffer = ByteBuffer.allocate( 68 );
+			
+			buffer.position(0);
+			
+			buffer.limit(68);
+			
+			outstanding_sockets.put( _socket, buffer );
+			
+			_socket.register(selector,SelectionKey.OP_READ);
+			
+		}catch( ClosedChannelException e ){
+			
+			try{
+			
+				_socket.close();
+				
+			}catch( IOException f ){
+			}
+		}
 	}
 	
 	public void
@@ -73,6 +212,8 @@ PESharedPortSelector
 		byte[]						_hash )
 	{
 		System.out.println( "hash added");
+		
+		hash_map.put( new HashWrapper( _hash ), _server );
 	}	
 	
 	public void
@@ -81,5 +222,7 @@ PESharedPortSelector
 		byte[]						_hash )
 	{
 		System.out.println( "hash removed");
+		
+		hash_map.remove( new HashWrapper(_hash));
 	}
 }

@@ -79,7 +79,7 @@ PEPeerServerImpl
 	 }
 	
   public PEPeerServerImpl() {
-    super("Bt Server");
+    super("PEPeerServer");
     //Will create a Server on any socket from 6881 to 6889
     String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
     int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
@@ -164,6 +164,8 @@ PEPeerServerImpl
   	public void 
   	startServer()
   	{
+  		setDaemon(true);
+  		
   		start();	// Thread method
   	}
   	

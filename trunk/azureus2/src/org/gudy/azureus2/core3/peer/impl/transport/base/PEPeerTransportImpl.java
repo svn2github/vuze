@@ -48,7 +48,6 @@ PEPeerTransportImpl
 		//The SocketChannel associated with this peer
 		
 	private SocketChannel 	socket;
-	private byte[]			leading_data;
 	
 	  /**
 	   * The Default Contructor for outgoing connections.
@@ -67,7 +66,7 @@ PEPeerTransportImpl
   		int 			port, 
   		boolean 		fake )
  	{
-    	super(manager, peerId, ip, port, false, fake);
+    	super(manager, peerId, ip, port, false, null, fake);
   	}
 
 
@@ -89,10 +88,10 @@ PEPeerTransportImpl
     			sck.socket().getInetAddress().getHostAddress(), 
     			sck.socket().getPort(),
     			true,
+    			_leading_data,
     			false ) ;
     
     	socket 			= sck;
-    	leading_data	= _leading_data;
   	}
   
 	protected void 
@@ -188,18 +187,7 @@ PEPeerTransportImpl
         msg = msg + " sConnected=" + socket.socket().isConnected();
         Debug.out(msg);
         return -1;
-      }
-        if ( leading_data != null ){
-        
-        	buffer.put( leading_data);
-        
-        	int	len = leading_data.length;
-        		
-        	leading_data = null;
-        	
-        	return( len );
-  		}
-  		
+      } 		
 		return(socket.read(buffer));
   	}
   

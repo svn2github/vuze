@@ -15,9 +15,14 @@ public class HashWrapper {
   private byte[] hash;
   
   public HashWrapper(byte[] hash) {
-    this.hash = new byte[hash.length];
-    System.arraycopy(hash,0,this.hash,0,this.hash.length);
+	this.hash = new byte[hash.length];
+	System.arraycopy(hash,0,this.hash,0,this.hash.length);
   }
+  
+  public HashWrapper(byte[] hash, int offset,int length) {
+	 this.hash = new byte[length];
+	 System.arraycopy(hash,offset,this.hash,0,length);
+   }
   
   public boolean equals(Object o) {
     if(! (o instanceof HashWrapper))

@@ -127,6 +127,8 @@ PESharedPortServerImpl
 		SocketChannel		socket,
 		byte[]				data_read )
 	{
+		System.out.println( "PESharedPortServer: connection received");
+		
 		adapter.addPeerTransport( new Object[]{ socket, data_read });
 	}
 	
@@ -139,6 +141,7 @@ PESharedPortServerImpl
 		SocketChannel	channel = (SocketChannel)temp[0];
 		byte[]			data	= (byte[])temp[1];
 		
+		System.out.println( "PESharedPortServer: transport created");
 		
 		return( new PEPeerTransportImpl( adapter.getControl(), channel, data ));
 	}
