@@ -71,7 +71,7 @@ SESecurityManagerImpl
 		Security.addProvider((java.security.Provider)
 				Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
 		
-		SSLContext context = SSLContext.getInstance( "TLS" );
+		SSLContext context = SSLContext.getInstance( "SSL" );
 		
 		// Create the key manager factory used to extract the server key
 		
@@ -131,7 +131,7 @@ SESecurityManagerImpl
 						}
 					};
 			
-			SSLContext sc = SSLContext.getInstance("TLS");
+			SSLContext sc = SSLContext.getInstance("SSL");
 			
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
 			
@@ -231,27 +231,29 @@ SESecurityManagerImpl
 				keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());				
 			}
 			
-			if ( keystore.containsAlias( alias )){
+			if ( cert != null ){
+				if ( keystore.containsAlias( alias )){
 				
-				keystore.deleteEntry( alias );
+					keystore.deleteEntry( alias );
+				}
+							
+				keystore.setCertificateEntry(alias, cert);
+				
+				out = new FileOutputStream(truststore);
+			
+				keystore.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
 			}
 			
-			keystore.setCertificateEntry(alias, cert);
-			
-			out = new FileOutputStream(truststore);
-			
-			keystore.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
-						
 				// pick up the changed trust store
 			
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 			
 			tmf.init(keystore);
 			
-			SSLContext ctx = SSLContext.getInstance("TLS");
+			SSLContext ctx = SSLContext.getInstance("SSL");
 			
 			ctx.init(null, tmf.getTrustManagers(), null);
-			
+						
 			HttpsURLConnection.setDefaultSSLSocketFactory(ctx.getSocketFactory());
 			
 		}finally{

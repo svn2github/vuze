@@ -630,7 +630,7 @@ TRTrackerClientClassicImpl
 		  		if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
 		  			
 		  				// see ConfigurationChecker for SSL client defaults
-		  				
+		  						  			
 		  			HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
 		  			
 		  				// allow for certs that contain IP addresses rather than dns names
@@ -646,7 +646,8 @@ TRTrackerClientClassicImpl
 		  						return( true );
 		  					}
 		  				});
-		  				
+		  			
+		  			
 		  			con = ssl_con;
 		  			
 		  		}else{
@@ -655,83 +656,98 @@ TRTrackerClientClassicImpl
 		  		}
 		  	
 		  		con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);
-	        
+		  		
+		  		con.setRequestProperty("Connection", "close" );
+		  		
 		  			// some trackers support gzip encoding of replies
 		  		
 		  		con.addRequestProperty("Accept-Encoding","gzip");
 		  		
 		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
 		  	  
-	 	  		con.connect();
-		  	  
-		  		InputStream is = null;
-		  
-				try{
+		  		try{
+		  			
+		 	  		con.connect();
+			  	  		 	  		
+			  		InputStream is = null;
+			  
+					try{
+						
+				  		is = con.getInputStream();
+				  		
+				  		String encoding = con.getHeaderField( "content-encoding");
+				  				  		
+				  		boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
+				  		
+				  		// System.out.println( "encoding = " + encoding );
+				  		
+				  		if ( gzip ){
+				  			
+				  			is = new GZIPInputStream( is );
+				  		}
+						
+				  		int content_length = con.getContentLength();
+				  		
+				  		  //      System.out.println(length);
+				  
+				  		byte[] data = new byte[1024];
+				  		
+				  		int	num_read = 0;
+				  		
+				  		while ( num_read < content_length ){
+				  			
+							try{
+					  			int	len = is.read(data);
+					  			
+					  			if ( len > 0 ){
+					  			
+									message.write(data, 0, len);
+									
+									num_read += len;
+									
+					  			}else if ( len == 0 ){
+					  			
+					  				Thread.sleep(20);
+					  			}else{
+					  				break;
+					  			}
+					  			
+							}catch (Exception e){
+								
+					  			LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
+					  			LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
+					  										
+					  			failure_reason = exceptionToString( e );
+					  			
+					  			break;
+							}
+				  		}
+				  			  		
+				  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
+				  
+				
+					}catch (Exception e){
 					
-			  		is = con.getInputStream();
-			  		
-			  		String encoding = con.getHeaderField( "content-encoding");
-			  				  		
-			  		boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
-			  		
-			  		// System.out.println( "encoding = " + encoding );
-			  		
-			  		if ( gzip ){
-			  			
-			  			is = new GZIPInputStream( is );
-			  		}
-					  //      int length = con.getContentLength();
-			  		  //      System.out.println(length);
-			  
-			  		byte[] data = new byte[1024];
-			  		
-			  		int nbRead = 0;
-			  		
-			  		while (nbRead >= 0) {
-			  			
-						try{
-				  			nbRead = is.read(data);
-				  			
-				  			if (nbRead >= 0){
-				  			
-								message.write(data, 0, nbRead);
-				  			}
-				  			
-				  			Thread.sleep(20);
-				  			
-						}catch (Exception e){
-							
-				  			LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
-				  			LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
-				  			
-							nbRead = -1;
-							
-				  			failure_reason = exceptionToString( e );
-						}
-			  		}
-			  
-			  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Client has received : " + message);
-			  
-			
-				}catch (Exception e){
-				
-					// e.printStackTrace();
-				
-					failure_reason = exceptionToString( e );
-				
-				}finally{
+						// e.printStackTrace();
 					
-			  		if (is != null) {
-			  			
-						try {
-				  			is.close();
+						failure_reason = exceptionToString( e );
+					
+					}finally{
+						
+						if (is != null) {
 				  			
-						}catch (Exception e) {
+							try {
+					  			is.close();
+					  			
+							}catch (Exception e) {
+							}
+					
+							is = null;
 						}
-				
-						is = null;
 					}
-				}
+		  		}finally{
+		  			con.disconnect();
+		  		}
 			
 					// if we've got some kind of response then return it
 				

@@ -441,7 +441,7 @@ public class GeneralView extends AbstractIView {
       public void mouseUp(MouseEvent event) {        
         if(event.button == 1) {
 	        String url = trackerUrlValue.getText();
-	        if(url.startsWith("http://")) {
+	        if(url.startsWith("http://" ) || url.startsWith("https://")) {
 	          int pos = -1;
 	          if((pos = url.indexOf("/announce")) != -1) {
 	            url = url.substring(0,pos);
@@ -879,7 +879,7 @@ public class GeneralView extends AbstractIView {
     	if ( trackerURL != null ){
     	
 				trackerUrlValue.setText( trackerURL);
-				if(trackerURL.startsWith("http://") && (trackerURL.indexOf("/announce") != -1)) {
+				if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://")) && (trackerURL.indexOf("/announce") != -1)) {
 				  trackerUrlValue.setForeground(MainWindow.blue);
 				  trackerUrlValue.setCursor(MainWindow.handCursor);
 				  Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen.tooltip", true);

@@ -121,6 +121,8 @@ TRTrackerServerImpl
  
 				ssl_server_socket.setNeedClientAuth(false);
 				
+				ssl_server_socket.setReuseAddress(true);
+												
 				final SSLServerSocket	f_ss = ssl_server_socket;
 				
 				Thread accept_thread = 
@@ -159,7 +161,9 @@ TRTrackerServerImpl
 					
 					ss = new ServerSocket( port, 128, InetAddress.getByName(bind_ip));
 				}
-			
+				
+				ss.setReuseAddress(true);
+				
 				final ServerSocket	f_ss = ss;
 				
 				Thread accept_thread = 
@@ -201,32 +205,36 @@ TRTrackerServerImpl
 		timer_thread.start();
 	}
 	
+
+	int req_num;
+	
 	protected void
 	acceptLoop(
 		ServerSocket	ss )
-	{
+	{		
 		while(true){
-	
+			
 			try{				
 				final Socket socket = ss.accept();
-										
+				
 				String	ip = socket.getInetAddress().getHostAddress();
-							
+				
 				if ( !ip_filter.isInRange( ip )){
 					
 					thread_pool.run( new TRTrackerServerProcessor( this, socket ));
-											
+					
 				}else{
 					
 					socket.close();
 				}
+				
 			}catch( Throwable e ){
 				
 				e.printStackTrace();		
 			}
 		}
 	}
-	
+		
 	protected void
 	timerLoop()
 	{

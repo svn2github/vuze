@@ -61,8 +61,10 @@ AuthenticatorWindow
 										
 					String	realm = getRequestingPrompt();
 					
+					String	requesting_host = getRequestingHost();
+					
 					String	tracker = getRequestingProtocol() + "://" + 
-										getRequestingHost() + ":" + 
+										requesting_host + ":" + 
 										getRequestingPort() + "/";
 					
 					String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
@@ -82,7 +84,11 @@ AuthenticatorWindow
 						// for the password. Here we return a special user and the password hash
 						// which is picked up in the tracker auth code - search for "<internal>"!
 						
-					if ( getRequestingHost().equals(self_addr)){
+						// also include the tracker IP as well as for scrapes these can occur on
+						// a raw torrent which hasn't been modified to point to localhost
+					
+					if ( 	requesting_host.equals(self_addr) ||
+							requesting_host.equals(COConfigurationManager.getStringParameter("Tracker IP", ""))){
 					
 						try{
 							byte[]	pw	= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);

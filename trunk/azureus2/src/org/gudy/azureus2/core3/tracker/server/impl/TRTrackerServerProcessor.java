@@ -64,7 +64,7 @@ TRTrackerServerProcessor
 			try{
 												
 				socket.setSoTimeout( SOCKET_TIMEOUT );
-													
+										
 			}catch ( SocketException e ){
 													
 				e.printStackTrace();
@@ -457,8 +457,9 @@ TRTrackerServerProcessor
 			String output_header = 
 							"HTTP/1.1 200 OK" + NL + 
 							"Content-Type: text/html" + NL +
-							"Content-Length: " + data.length + 
-							NL + NL;
+							"Connection: close" + NL+
+							"Content-Length: " + data.length + NL + 
+							NL;
 	
 			os.write( output_header.getBytes());
 				
