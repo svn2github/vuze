@@ -765,8 +765,14 @@ PluginInitializer
   			
   			if ( name.endsWith(".jar")){
   				
-  				int	sep_pos = name.lastIndexOf("_");
   				
+  				int cvs_pos = name.lastIndexOf("_cvs");
+          int sep_pos;
+  				if (cvs_pos <= 0)
+  					sep_pos = name.lastIndexOf("_");
+  				else
+  					sep_pos = name.lastIndexOf("_", cvs_pos - 1);
+   				
   				if ( 	sep_pos == -1 || 
   						sep_pos == name.length()-1 ||
 						!Character.isDigit(name.charAt(sep_pos+1))){
@@ -779,7 +785,7 @@ PluginInitializer
   					
   					String	prefix = name.substring(0,sep_pos);
 					
-					String	version = name.substring(sep_pos+1,name.length()-4);
+					String	version = name.substring(sep_pos+1, (cvs_pos <= 0) ? name.length()-4 : cvs_pos);
 					
 					String	prev_version = (String)version_map.get(prefix);
 					
@@ -817,7 +823,7 @@ PluginInitializer
   			String	prefix 	= (String)it.next();
   			String	version	= (String)version_map.get(prefix);
   			
-  			String	target = prefix + "_" + version + ".";
+  			String	target = prefix + "_" + version;
   			
   			version_out[0] 	= version;
   			id_out[0]		= prefix;
@@ -826,7 +832,8 @@ PluginInitializer
   				
   				File	f = files[i];
   				
-  				if ( f.getName().toLowerCase().startsWith( target )){
+  				if ( f.getName().toLowerCase().startsWith( target + "." ) ||
+  				     f.getName().toLowerCase().startsWith( target + "_cvs" )){
   					  					
   					res.add( f );
   					
