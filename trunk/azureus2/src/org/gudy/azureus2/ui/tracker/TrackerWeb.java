@@ -256,7 +256,7 @@ TrackerWeb
 			if ( specific_torrent == -1 )
 			{
 				t.setParam( "show_pagenation", "1");
-				System.out.println("debug blah 1");
+
 				t.setParam( "show_first_link", (tracker_page>1)?"1":"0");
 				t.setParam( "first_link", page_url+"?skip="+tracker_skip+"&page=1" );
 				t.setParam( "show_previous_link", (tracker_page>0)?"1":"0");
@@ -265,7 +265,7 @@ TrackerWeb
 				t.setParam( "last_link", page_url+"?skip="+tracker_skip+"&page="+tracker_last_page );
 				t.setParam( "show_next_link", (tracker_page<tracker_last_page-1)?"1":"0");
 				t.setParam( "next_link", page_url+"?skip="+tracker_skip+"&page="+(tracker_page+2) );
-				System.out.println("debug blah 2");
+
 				t.setParam("current_page", tracker_page+1);
 				String pagenation_text = "";
 				
@@ -290,7 +290,7 @@ TrackerWeb
 		{
 			t.setParam( "show_pagenation", "0");
 		}
-		System.out.println("debug blah 3");
+
 		boolean	allow_details = plugin_interface.getPluginconfig().getBooleanParameter("Tracker Publish Enable Details", true );
 		
 		t.setParam( "torrent_details_allowed", allow_details?"1":"0");
