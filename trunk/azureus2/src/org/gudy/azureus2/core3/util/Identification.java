@@ -134,15 +134,21 @@ public class Identification {
       }
       
       
+      /*
+       <xxx> i think S587Plus is burst! or burst!+
+       <xxx> or upnp client
+       <xxx> [oernuBTugaXP ?!?³?~] is http://www.btuga.org/
+       <xxx> [BTDWV-.... is "BitTorrent Deadman Walking"
+       <xxx> "BitTorrent Deadman Walking" seems to be some chinese client
+       */
+      
+      
       String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
       if (turbobt.equals("turbobt")) {
         return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
       }
       
       
-      //String g3torrent = new String(peerID, 0, 12, Constants.BYTE_ENCODING);
-      //if (g3torrent.equals("-G3g3rmz    ")) return "G3 Torrent";
-      // changed for bug 926066
       String g3torrent = new String(peerID, 0, 3, Constants.BYTE_ENCODING);
       if (g3torrent.equals("-G3")) return "G3 Torrent";
       
