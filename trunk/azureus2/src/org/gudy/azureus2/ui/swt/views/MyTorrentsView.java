@@ -553,12 +553,19 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     if (dm == null)
       return "";
     try {
+      //The save path, for a directory torrent, it may be the directory itself
       String path = dm.getSavePathForSave();
       String name = LocaleUtil.getCharsetString(dm.getTorrent().getName());
-      if (!path.endsWith(name)) {
-        path = path + System.getProperty("file.separator") + name;
+      String fullPath = path + System.getProperty("file.separator") + name;
+      if (path.endsWith(name)) {
+        File f = new File(fullPath);
+        if(f.exists() && f.isDirectory())
+          return fullPath;
+        else
+          return path;
+      } else {
+        return fullPath;
       }
-      return path;
     }
     catch (Exception ex) {
       ex.printStackTrace();

@@ -38,7 +38,7 @@ public class GlobalManager extends Component {
     boolean finished = false;
     int loopFactor;
     private static final int waitTime = 1000;
-		// 5 minutes save resume data interval (default)
+    // 5 minutes save resume data interval (default)
     private int saveResumeLoopCount = 300000 / waitTime;
 
     public Checker() {
@@ -50,7 +50,7 @@ public class GlobalManager extends Component {
 
     private void determineSaveResumeDataInterval() {
       int saveResumeInterval = COConfigurationManager.getIntParameter("Save Resume Interval", 5);
-      if(saveResumeInterval > 1 && saveResumeInterval < 21)
+      if (saveResumeInterval > 1 && saveResumeInterval < 21)
         saveResumeLoopCount = saveResumeInterval * 60000 / waitTime;
     }
 
@@ -62,7 +62,7 @@ public class GlobalManager extends Component {
         // Changed to 20 mins :D
         // Should be user configurable.
         if (loopFactor >= 1200) {
-          loopFactor = 0;          
+          loopFactor = 0;
           trackerScraper.update();
         }
 
@@ -70,9 +70,9 @@ public class GlobalManager extends Component {
           int nbStarted = 0;
           int nbDownloading = 0;
           if (loopFactor % saveResumeLoopCount == 0) {
-             saveDownloads();
+            saveDownloads();
           }
-                                  
+
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager manager = (DownloadManager) managers.get(i);
             if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
@@ -84,66 +84,76 @@ public class GlobalManager extends Component {
             }
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {
               nbStarted++;
-              
-              
+
               //First condition to be met to be able to stop a torrent is that the number of seeds
               //Is greater than the minimal set, if any.
-              int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers",0);
+              int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
               TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
-                            
+
               boolean mayStop = false;
-              if(hd != null && hd.isValid() && hd.getSeeds() >= nbMinSeeds) {               
-                mayStop = true;
-              } else {
+              if (hd != null && hd.isValid() && hd.getSeeds() >= nbMinSeeds) {
                 mayStop = true;
               }
-  
+              else {
+                mayStop = true;
+              }
+
               //Checks if any condition to stop seeding is met
-              int minShareRatio = 1000 * COConfigurationManager.getIntParameter("Stop Ratio",0);
+              int minShareRatio = 1000 * COConfigurationManager.getIntParameter("Stop Ratio", 0);
               int shareRatio = manager.getShareRatio();
               //0 means unlimited
-              if(minShareRatio != 0 && shareRatio > minShareRatio && mayStop) {
-                  manager.stopIt();
-              }              
-              
-              int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio",0);    
+              if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop) {
+                manager.stopIt();
+              }
+
+              int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio", 0);
               //0 means never stop
-              if(mayStop && minSeedsPerPeersRatio != 0) {                    
-                if(hd != null && hd.isValid()) {            
+              if (mayStop && minSeedsPerPeersRatio != 0) {
+                if (hd != null && hd.isValid()) {
                   int nbPeers = hd.getPeers();
                   int nbSeeds = hd.getSeeds();
                   //If there are no seeds, avoid / by 0
-                  if(nbSeeds != 0) {
+                  if (nbSeeds != 0) {
                     int ratio = nbPeers / nbSeeds;
                     //Added a test over the shareRatio greater than 500
                     //Avoids disconnecting too early, even with many peers
-                    if(ratio < minSeedsPerPeersRatio && shareRatio > 500)
+                    if (ratio < minSeedsPerPeersRatio && (shareRatio > 500 || shareRatio == -1))
                       manager.stopIt();
                   }
                 }
-              }         
-            } else if(manager.getState() == DownloadManager.STATE_STOPPED && manager.getCompleted() == 1000) {
+              }
+            }
+            else if (manager.getState() == DownloadManager.STATE_STOPPED && manager.getCompleted() == 1000) {
               //Checks if any condition to start seeding is met
-              int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers",0);
-              int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Start Peers Ratio",0); 
+              int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
+              int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Start Peers Ratio", 0);
               //0 means never start
-              if(minSeedsPerPeersRatio != 0) {
-                TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();  
-                if(hd != null && hd.isValid()) {              
+              if (minSeedsPerPeersRatio != 0) {
+                TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
+                if (hd != null && hd.isValid()) {
                   int nbPeers = hd.getPeers();
                   int nbSeeds = hd.getSeeds();
                   //If there are no seeds, avoid / by 0
-                  if(nbPeers != 0) {
-                    if(nbSeeds != 0) {                  
+                  if (nbPeers != 0) {
+                    if (nbSeeds != 0) {
                       int ratio = nbPeers / nbSeeds;
-                      if(ratio >= minSeedsPerPeersRatio || nbSeeds < nbMinSeeds)
+                      if (ratio >= minSeedsPerPeersRatio)
                         manager.setState(DownloadManager.STATE_WAITING);
-                    } else {
+                    }
+                    {
                       //No seeds, at least 1 peer, let's start download.
                       manager.setState(DownloadManager.STATE_WAITING);
                     }
                   }
-                  
+                }
+              }
+              if (nbMinSeeds > 0) {
+                TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
+                if (hd != null && hd.isValid()) {
+                  int nbSeeds = hd.getSeeds();
+                  if (nbSeeds < nbMinSeeds) {
+                    manager.setState(DownloadManager.STATE_WAITING);
+                  }
                 }
               }
             }
@@ -157,7 +167,7 @@ public class GlobalManager extends Component {
               alreadyOneAllocatingOrChecking = true;
             }
           }
-          
+
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager manager = (DownloadManager) managers.get(i);
             if ((manager.getState() == DownloadManager.STATE_WAITING) && !alreadyOneAllocatingOrChecking) {
@@ -168,7 +178,7 @@ public class GlobalManager extends Component {
             int nbMaxDownloads = COConfigurationManager.getIntParameter("max downloads", 4);
             if (manager.getState() == DownloadManager.STATE_READY
               && ((nbMax == 0) || (nbStarted < nbMax))
-              && (manager.getCompleted() == 1000 ||  ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
+              && (manager.getCompleted() == 1000 || ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
               manager.startDownload();
               nbStarted++;
               if (manager.getCompleted() != 1000)
@@ -222,42 +232,44 @@ public class GlobalManager extends Component {
       File torrentDir = new File(getApplicationPath() + System.getProperty("file.separator") + "torrents");
       torrentDir.mkdirs();
       File fDest = new File(torrentDir, f.getName());
-      if(fDest.equals(f)) throw new Exception("Same files");
+      if (fDest.equals(f))
+        throw new Exception("Same files");
       String prefix = "_";
-      while(fDest.exists()) {
-        fDest = new File(torrentDir, "_"  + fDest.getName());
+      while (fDest.exists()) {
+        fDest = new File(torrentDir, "_" + fDest.getName());
       }
       fDest.createNewFile();
-      copyFile(f,fDest);
+      copyFile(f, fDest);
       DownloadManager manager = new DownloadManager(this, fDest.getAbsolutePath(), savePath);
       boolean correct = addDownloadManager(manager);
-      if(!correct) {
+      if (!correct) {
         fDest.delete();
       }
       return correct;
-    } catch(IOException e) {
+    }
+    catch (IOException e) {
       e.printStackTrace();
       DownloadManager manager = new DownloadManager(this, fileName, savePath);
       return addDownloadManager(manager);
-    } catch(Exception e) {
+    }
+    catch (Exception e) {
       DownloadManager manager = new DownloadManager(this, fileName, savePath);
       return addDownloadManager(manager);
     }
-    
+
   }
-  
-  private void copyFile(File origin,File destination) throws IOException {    
+
+  private void copyFile(File origin, File destination) throws IOException {
     OutputStream os = new FileOutputStream(destination);
     InputStream is = new FileInputStream(origin);
     byte[] buffer = new byte[32768];
     int nbRead = 0;
-    while((nbRead = is.read(buffer)) > 0) {
-      os.write(buffer,0,nbRead);
+    while ((nbRead = is.read(buffer)) > 0) {
+      os.write(buffer, 0, nbRead);
     }
     is.close();
     os.close();
   }
-
 
   //Public method !!! and don't touch it !
   public boolean addDownloadManager(DownloadManager manager) {
@@ -284,14 +296,15 @@ public class GlobalManager extends Component {
     }
     this.objectRemoved(manager);
     saveDownloads();
-    
-    if ( manager.getTrackerClient() != null ){
-    
-    	trackerScraper.remove( manager.getTrackerClient());
-    	
-    }else if (  manager.getTorrent() != null ){
-    	
-    	trackerScraper.remove( manager.getTorrent() );
+
+    if (manager.getTrackerClient() != null) {
+
+      trackerScraper.remove(manager.getTrackerClient());
+
+    }
+    else if (manager.getTorrent() != null) {
+
+      trackerScraper.remove(manager.getTorrent());
     }
   }
 
@@ -320,10 +333,10 @@ public class GlobalManager extends Component {
   public void received(int length) {
     stats.received(length);
   }
-  
+
   public void discarded(int length) {
-      stats.discarded(length);
-    }
+    stats.discarded(length);
+  }
 
   public void sent(int length) {
     stats.sent(length);
@@ -347,14 +360,15 @@ public class GlobalManager extends Component {
       bin = new BufferedInputStream(fin);
       Map map = BDecoder.decode(bin);
       boolean debug = Boolean.getBoolean("debug");
-      
+
       Iterator iter = null;
       //v2.0.3.0+ vs older mode
       List downloads = (List) map.get("downloads");
-      if(downloads == null) {
+      if (downloads == null) {
         //No downloads entry, then use the old way
         iter = map.values().iterator();
-      } else {
+      }
+      else {
         //New way, downloads stored in a list
         iter = downloads.iterator();
       }
@@ -365,19 +379,19 @@ public class GlobalManager extends Component {
           String savePath = new String((byte[]) mDownload.get("path"), Constants.DEFAULT_ENCODING);
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int stopped = debug ? 1 : ((Long) mDownload.get("stopped")).intValue();
-          Long lPriority = (Long) mDownload.get("priority");   
+          Long lPriority = (Long) mDownload.get("priority");
           Long lDownloaded = (Long) mDownload.get("downloaded");
           Long lUploaded = (Long) mDownload.get("uploaded");
           Long lCompleted = (Long) mDownload.get("completed");
           DownloadManager dm = new DownloadManager(this, fileName, savePath, stopped == 1);
           dm.setMaxUploads(nbUploads);
-          if(lPriority != null) {
+          if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
           }
-          if(lDownloaded !=  null && lUploaded != null) {
-            dm.setDownloadedUploaded(lDownloaded.longValue(),lUploaded.longValue());
+          if (lDownloaded != null && lUploaded != null) {
+            dm.setDownloadedUploaded(lDownloaded.longValue(), lUploaded.longValue());
           }
-          if(lCompleted !=  null ) {
+          if (lCompleted != null) {
             dm.setCompleted(lCompleted.intValue());
           }
           this.addDownloadManager(dm);
@@ -425,12 +439,12 @@ public class GlobalManager extends Component {
       int priority = dm.getPriority();
       dmMap.put("priority", new Long(priority));
       dmMap.put("position", new Long(i));
-      dmMap.put("downloaded",new Long(dm.getDownloadedRaw()));
-      dmMap.put("uploaded",new Long(dm.getUploadedRaw()));
-      dmMap.put("completed",new Long(dm.getCompleted()));
+      dmMap.put("downloaded", new Long(dm.getDownloadedRaw()));
+      dmMap.put("uploaded", new Long(dm.getUploadedRaw()));
+      dmMap.put("completed", new Long(dm.getCompleted()));
       list.add(dmMap);
     }
-    map.put("downloads",list);
+    map.put("downloads", list);
     //encode the data
     byte[] torrentData = BEncoder.encode(map);
     //open a file stream
@@ -467,42 +481,42 @@ public class GlobalManager extends Component {
   public TRTrackerScraper getTrackerScraper() {
     return trackerScraper;
   }
-  
+
   public int getIndexOf(DownloadManager manager) {
-    if(managers != null && manager != null)
+    if (managers != null && manager != null)
       return managers.indexOf(manager);
     return -1;
   }
-  
+
   public boolean isMoveableUp(DownloadManager manager) {
     return getIndexOf(manager) > 0;
   }
-  
+
   public boolean isMoveableDown(DownloadManager manager) {
-    if(managers != null)
-      return getIndexOf(manager) < managers.size() -1;
+    if (managers != null)
+      return getIndexOf(manager) < managers.size() - 1;
     return false;
   }
-  
-  public void moveUp(DownloadManager manager) {    
-    if(managers != null) {
-      synchronized(managers) {
+
+  public void moveUp(DownloadManager manager) {
+    if (managers != null) {
+      synchronized (managers) {
         int index = managers.indexOf(manager);
-        if(index > 0) {
+        if (index > 0) {
           managers.remove(index);
-          managers.add(index-1,manager);
+          managers.add(index - 1, manager);
         }
       }
     }
   }
-  
+
   public void moveDown(DownloadManager manager) {
-    if(managers != null) {
-      synchronized(managers) {
+    if (managers != null) {
+      synchronized (managers) {
         int index = managers.indexOf(manager);
-        if(index < managers.size() -1) {
+        if (index < managers.size() - 1) {
           managers.remove(index);
-          managers.add(index+1,manager);
+          managers.add(index + 1, manager);
         }
       }
     }
