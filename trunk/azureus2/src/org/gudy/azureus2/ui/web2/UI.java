@@ -77,7 +77,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   public static Hashtable messagetextmap = null;
   public static Hashtable parameterlegacy = null;
   public static Hashtable status = null;
-  
+
   static {
     parameterlegacy = new LegacyHashtable();
     parameterlegacy.put("Core_sOverrideIP", "Override Ip");
@@ -132,12 +132,29 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   public void init(boolean first, boolean others) {
     super.init(first, others);
     System.setProperty("java.awt.headless", "true");
-    String defaultargs[] = { "defaultURL=index.html", "httpPort=" + Integer.toString(COConfigurationManager.getIntParameter("Server_iPort")), "maxRequests=-1", "maxConnections=-1",
+    String defaultargs[] = {
+      // Default URL
+      "defaultURL=index.html",
+      // Http Port
+      "httpPort=" + Integer.toString(COConfigurationManager.getIntParameter("Server_iPort")),
+      // Max http requests. -1 = unlimited
+      "maxRequests=-1",
+      // Max Connections. -1 = unlimited
+      "maxConnections=-1",
       //"+Integer.toString(COConfigurationManager.getIntParameter("Server_iMaxHTTPConnections")),
-      "maxSimultaneousRequests=-1", "maxCacheSize=204800", "numBuffers=1024", "serverName=" + COConfigurationManager.getStringParameter("Server_sName") + " v1.0\r\n" + "Cache-Control: no-cache, must-revalidate\r\nConnection: close", "specialURL=/stats", "bottleneckURL=/bottleneck",
-      //BELGABOR: this rootDir default needs to be fixed - we can't run
-	  // straight from jar!
-      "rootDir="+FileUtil.getApplicationPath()+"template" };
+      "maxSimultaneousRequests=-1",
+      // Max chache size
+      "maxCacheSize=204800",
+      // Number of buffers
+      "numBuffers=1024",
+      // Server name
+      "serverName=" + COConfigurationManager.getStringParameter("Server_sName") + " v1.0\r\n" + "Cache-Control: no-cache, must-revalidate\r\nConnection: close",
+      // Stats URL
+      "specialURL=/stats",
+      // Proxy port
+      "listen_port=8081",
+      // Html root dir
+      "rootDir=" + FileUtil.getApplicationPath() + "template" };
     this.cfg = new SandstormConfig();
     cfg.putInt("global.threadPool.initialThreads", 1);
     cfg.putInt("global.threadPool.minThreads", 1);
@@ -154,7 +171,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     try {
       System.loadLibrary("NBIO");
       cfg.putString("global.aSocket.provider", "NBIO");
-    } catch (Exception e) {
+    } catch (UnsatisfiedLinkError e) {
       cfg.putString("global.aSocket.provider", "NIO");
     }
     cfg.putBoolean("global.aDisk.enable", true);
@@ -163,12 +180,13 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     cfg.putInt("global.aDisk.threadPool.sizeController.delay", 1000);
     cfg.putInt("global.aDisk.threadPool.sizeController.threshold", 20);
     try {
-      cfg.addStage("HttpRecv", STAGES+"http.HttpRecv", defaultargs);
-      cfg.addStage("HttpSend", STAGES+"http.HttpSend", defaultargs);
-      cfg.addStage("HttpCommand", STAGES+"http.HttpCommand", defaultargs);
-      cfg.addStage("CacheStage", STAGES+"cache.PageCacheSized", defaultargs);
-      cfg.addStage("ResouceReader", STAGES+"cache.ResourceReader", defaultargs);
-      cfg.addStage("DynamicHttp", STAGES+"hdapi.WildcardDynamicHttp", defaultargs);
+      cfg.addStage("HttpRecv", STAGES + "http.HttpRecv", defaultargs);
+      cfg.addStage("HttpSend", STAGES + "http.HttpSend", defaultargs);
+      cfg.addStage("HttpCommand", STAGES + "http.HttpCommand", defaultargs);
+      cfg.addStage("CacheStage", STAGES + "cache.PageCacheSized", defaultargs);
+      cfg.addStage("ResouceReader", STAGES + "cache.ResourceReader", defaultargs);
+      cfg.addStage("DynamicHttp", STAGES + "hdapi.WildcardDynamicHttp", defaultargs);
+      cfg.addStage("HttpProxy", STAGES + "proxy.HttpProxy", defaultargs);
     } catch (Exception e) {
       logger.fatal("Webinterface configuration failed: " + e.getMessage(), e);
     }
