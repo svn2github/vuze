@@ -31,6 +31,7 @@ public class StringParameter extends GenericParameter
 	public StringParameter(String key, String label, String defaultValue)
 	{
 		super(key, label);
+    this.defaultValue = defaultValue;
 	}
 	/**
 	 * @return Returns the defaultValue.

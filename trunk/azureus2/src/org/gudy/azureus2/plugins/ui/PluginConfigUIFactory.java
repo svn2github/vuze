@@ -28,9 +28,9 @@ package org.gudy.azureus2.plugins.ui;
 public interface PluginConfigUIFactory {
 
   public EnablerParameter createBooleanParameter(String key,String label,boolean defaultValue);
-  public Parameter createIntParameter(String key,String label,boolean defaultValue);
+  public Parameter createIntParameter(String key,String label,int defaultValue);
   public Parameter createStringParameter(String key,String label,String defaultValue);
-  public Parameter createFileParameter(String key,String label,boolean defaultValue);  
+  public Parameter createFileParameter(String key,String label,String defaultValue);  
   /**
    * Note : each color component is stored as an int parameter with the keys key.red, key.blue, key.green
    * @param key
@@ -38,5 +38,5 @@ public interface PluginConfigUIFactory {
    * @param defaultValue
    * @return
    */
-  public Parameter createColorParameter(String key,String label,boolean defaultValue);
+  public Parameter createColorParameter(String key,String label,int defaultValueRed,int defaultValueGreen,int defaultValueblue);
 }

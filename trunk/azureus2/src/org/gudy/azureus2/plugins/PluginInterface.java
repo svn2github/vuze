@@ -68,7 +68,7 @@ public interface PluginInterface {
   
   /**
    * An access to the plugin properties
-   * @return te properties from the file plugin.properties
+   * @return the properties from the file plugin.properties
    */
   public Properties getPluginProperties();
   

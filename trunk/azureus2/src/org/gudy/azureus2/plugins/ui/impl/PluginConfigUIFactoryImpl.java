@@ -50,7 +50,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 	public Parameter createIntParameter(
 		String key,
 		String label,
-		boolean defaultValue)
+		int defaultValue)
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -73,7 +73,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 	public Parameter createFileParameter(
 		String key,
 		String label,
-		boolean defaultValue)
+		String defaultValue)
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -85,7 +85,9 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 	public Parameter createColorParameter(
 		String key,
 		String label,
-		boolean defaultValue)
+		int defaultValueRed,
+    int defaultValueGreen,
+    int defaultValueBlue)
 	{
 		// TODO Auto-generated method stub
 		return null;
