@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerServerListener;
 import org.gudy.azureus2.core3.peer.impl.*;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+
 /**
  * The Bittorrent server to accept incoming connections.
  * 
@@ -158,6 +160,7 @@ PEPeerServerImpl
           
           String size = System.getProperty("socket.SO_SNDBUF");
           if ( size != null ) sckClient.socket().setSendBufferSize( Integer.parseInt( size ) );
+          //sckClient.socket().setSendBufferSize( NetworkManager.WRITE_WINDOW_SIZE );
 
           String ip_tos = System.getProperty("socket.IPTOS");
           if ( ip_tos != null ) sckClient.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
