@@ -826,10 +826,11 @@ DownloadManagerImpl
     return true;
   }
 
-  public String getPieceLength() {
-	if (diskManager != null)
-	  return DisplayFormatters.formatByteCountToKiBEtc(diskManager.getPieceLength());
-	return ""; //$NON-NLS-1$
+  public String getPieceLength(){
+  	if ( torrent != null ){
+	  return( DisplayFormatters.formatByteCountToKiBEtc(torrent.getPieceLength()));
+  	}
+  	return( "" );
   }
 
   /**

@@ -488,8 +488,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	          int pos = -1;
 	          if((pos = url.indexOf("/announce")) != -1) {
 	            url = url.substring(0,pos);
-	            Program.launch(url);
 	          }
+	          Program.launch(url);
         	}
         } else if(event.button == 3){
           menuTracker.setVisible(true);
@@ -637,7 +637,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 		DisplayFormatters.formatHashFails(manager),
       _shareRatio);
       
-    setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerClient());
+    setTracker(manager);
     
     setInfos(
       manager.getName(),
@@ -923,12 +923,22 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	shareRatio.setText( _shareRatio);     
   }
 
-  public void setTracker( String status,  int time, TRTrackerClient trackerClient ){
+  public void setTracker( DownloadManager	manager ){
     if (display == null || display.isDisposed())
       return;
+    
+    String	status 	= manager.getTrackerStatus();
+    int		time	= manager.getTrackerTime();
+     
+    TRTrackerClient	trackerClient = manager.getTrackerClient();
+	
 	tracker.setText( status);
 		
-	if ( time < 0 ){
+	if ( trackerClient == null ){
+		
+		trackerUpdateIn.setText( MessageText.getString("GeneralView.label.updatein.stopped"));
+	
+	}else if ( time < 0 ){
 		
 		trackerUpdateIn.setText( MessageText.getString("GeneralView.label.updatein.querying"));
 		
@@ -947,24 +957,38 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     boolean	update_state;
     
-    if(trackerClient != null){
-    	
-    	String trackerURL = trackerClient.getTrackerUrl();
+    String trackerURL = null;
     
-    	if ( trackerURL != null ){
+    if ( trackerClient == null ){
     	
-				trackerUrlValue.setText( trackerURL);
-				if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://")) && (trackerURL.indexOf("/announce") != -1)) {
-				  trackerUrlValue.setForeground(Colors.blue);
-				  trackerUrlValue.setCursor(Cursors.handCursor);
-				  Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen.tooltip", true);
-				} else {
-				  trackerUrlValue.setForeground(null);
-				  trackerUrlValue.setCursor(null);
-				  Messages.setLanguageText(trackerUrlValue, null);	
-				  trackerUrlValue.setToolTipText(null);
-				}
-    	}
+       	TOTorrent	torrent = manager.getTorrent();
+       	
+       	if( torrent != null ){
+       		
+       		trackerURL = torrent.getAnnounceURL().toString();
+       	}
+    }else{
+    	
+    	trackerURL = trackerClient.getTrackerUrl();
+    }
+    
+    if ( trackerURL != null ){
+    	
+		trackerUrlValue.setText( trackerURL);
+				
+		if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://"))) {
+		  trackerUrlValue.setForeground(Colors.blue);
+		  trackerUrlValue.setCursor(Cursors.handCursor);
+		  Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen.tooltip", true);
+		} else {
+		  trackerUrlValue.setForeground(null);
+		  trackerUrlValue.setCursor(null);
+		  Messages.setLanguageText(trackerUrlValue, null);	
+		  trackerUrlValue.setToolTipText(null);
+		}
+   	}
+    
+    if ( trackerClient != null ){
     	
     	update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
     	
