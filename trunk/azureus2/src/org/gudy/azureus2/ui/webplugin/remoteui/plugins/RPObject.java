@@ -104,7 +104,7 @@ RPObject
 		return( _delegate );
 	}
 	
-	protected void
+	protected Object
 	_fixupLocal()
 	
 		throws RPException
@@ -117,6 +117,8 @@ RPObject
 		}
 		
 		_setDelegate( res );
+		
+		return( res );
 	}
 	
 	public void
@@ -136,7 +138,7 @@ RPObject
 	_process(
 		RPRequest	request	);
 	
-	public abstract void
+	public abstract Object
 	_setLocal();
 	
 	public void

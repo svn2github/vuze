@@ -61,6 +61,20 @@ DownloadManager
 		throws DownloadException;
 	
 	/**
+	 * add a torrent from a "Torrent" object. The default torrent file and data locations will be
+	 * used if defined - exception if they're not 
+	 * @param torrent
+	 * @return
+	 */
+	
+	public Download
+	addDownload(
+		Torrent		torrent )
+	
+		throws DownloadException;
+	
+
+	/**
 	 * add a torrent from a "Torrent" object and point it at the data location 
 	 * @param torrent
 	 * @param torrent_location

@@ -128,6 +128,10 @@ RemoteUIServlet
 		"core3/util/Semaphore.class",
 		"ui/webplugin/remoteui/applet/RemoteUIApplet$3.class",
 		"ui/webplugin/remoteui/applet/RemoteUIApplet$2.class",
+		"plugins/torrent/TorrentManager.class",
+		"ui/webplugin/remoteui/plugins/torrent/RPTorrentManager.class",
+		"plugins/torrent/TorrentDownloader.class",
+		"ui/webplugin/remoteui/plugins/torrent/RPTorrentDownloader.class",
 	};
 	
 	protected Map	reply_cache	= new HashMap();

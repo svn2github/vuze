@@ -101,12 +101,12 @@ RPDownload
 		delegate = (Download)_delegate;
 	}
 	
-	public void
+	public Object
 	_setLocal()
 	
 		throws RPException
 	{
-		_fixupLocal();
+		Object res = _fixupLocal();
 		
 		torrent._setLocal();
 		
@@ -115,6 +115,8 @@ RPDownload
 		announce_result._setLocal();
 		
 		scrape_result._setLocal();
+		
+		return( res );
 	}
 	
 	public void

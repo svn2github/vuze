@@ -56,8 +56,10 @@ TorrentDownloaderImpl
 	
 		throws TorrentException
 	{
+		InputStream	is = null;
+		
 		try{
-			InputStream	is = downloader.download();
+			is = downloader.download();
 			
 			TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedInputStream(is);
 			
@@ -66,6 +68,20 @@ TorrentDownloaderImpl
 		}catch( Throwable e ){
 			
 			throw( new TorrentException( "TorrentDownloader: download fails", e ));
+			
+		}finally{
+			
+			if ( is != null ){
+				
+				try{
+					
+					is.close();
+					
+				}catch( IOException e ){
+					
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 }

@@ -87,12 +87,12 @@ RPDownloadStats
 		share_ratio			= delegate.getShareRatio();
 	}
 	
-	public void
+	public Object
 	_setLocal()
 	
 		throws RPException
 	{
-		_fixupLocal();
+		return( _fixupLocal());
 	}
 	
 	public RPReply

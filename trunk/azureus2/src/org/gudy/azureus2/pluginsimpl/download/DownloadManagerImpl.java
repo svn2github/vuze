@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 
@@ -192,6 +193,55 @@ DownloadManagerImpl
 				}
 			}
 		}
+	}
+	
+	public Download
+	addDownload(
+		Torrent		torrent )
+	
+		throws DownloadException
+	{
+	    String torrent_dir = null;
+	    
+	    if(COConfigurationManager.getBooleanParameter("Save Torrent Files",true)){
+	    	
+	      try{
+	      	
+	      	torrent_dir = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
+	        
+	      }catch(Exception egnore){}
+	    }
+	    
+	    if ( torrent_dir == null ){
+	    	
+	    	throw( new DownloadException("DownloadManager::addDownload: default torrent save directory must be configured" ));
+	    }
+	
+	    File	torrent_file = new File( torrent_dir + File.separator + torrent.getName());
+	    
+	    try{
+	    	torrent.writeToFile( torrent_file );
+	    	
+	    }catch( TorrentException e ){
+	    	
+	    	throw( new DownloadException("DownloadManager::addDownload: failed to write torrent to '" + torrent_file.toString() + "'", e ));	    	
+	    }
+	    
+	    boolean useDefDataDir = COConfigurationManager.getBooleanParameter("Use default data dir", true);
+	    
+	    String data_dir = null;
+	    
+	    if (useDefDataDir){
+	    	
+	    	data_dir = COConfigurationManager.getStringParameter("Default save path", null);
+	    }
+	    
+	    if ( data_dir == null ){
+	    	
+	    	throw( new DownloadException("DownloadManager::addDownload: default data save directory must be configured" ));
+	    }
+	 
+	    return( addDownload( torrent, torrent_file, new File(data_dir)));
 	}
 	
 	public Download

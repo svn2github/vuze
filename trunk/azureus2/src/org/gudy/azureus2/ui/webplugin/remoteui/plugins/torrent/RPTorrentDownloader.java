@@ -1,6 +1,6 @@
 /*
- * File    : PRTorrent.java
- * Created : 28-Jan-2004
+ * File    : RPTorrentDownloader.java
+ * Created : 28-Feb-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -25,55 +25,43 @@ package org.gudy.azureus2.ui.webplugin.remoteui.plugins.torrent;
  * @author parg
  *
  */
-
-import java.io.File;
-
 import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
-
 public class 
-RPTorrent
+RPTorrentDownloader
 	extends		RPObject
-	implements 	Torrent
+	implements 	TorrentDownloader
 {
-	protected transient Torrent		delegate;
+	protected transient TorrentDownloader		delegate;
 
-	protected String		name;
-	protected long			size;
-	
-	public static RPTorrent
+	public static RPTorrentDownloader
 	create(
-		Torrent		_delegate )
+		TorrentDownloader		_delegate )
 	{
-		RPTorrent	res =(RPTorrent)_lookupLocal( _delegate );
+		RPTorrentDownloader	res =(RPTorrentDownloader)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new RPTorrent( _delegate );
+			res = new RPTorrentDownloader( _delegate );
 		}
 		
 		return( res );
 	}
 	
 	protected
-	RPTorrent(
-		Torrent		_delegate )
+	RPTorrentDownloader(
+		TorrentDownloader		_delegate )
 	{
 		super( _delegate );
-		
-		delegate	= _delegate;		
 	}
 	
 	protected void
 	_setDelegate(
 		Object		_delegate )
 	{
-		delegate = (Torrent)_delegate;
-		
-		name		= delegate.getName();
-		size		= delegate.getSize();
+		delegate = (TorrentDownloader)_delegate;
 	}
 	
 	public Object
@@ -91,86 +79,46 @@ RPTorrent
 	{
 		String	method = request.getMethod();
 		
-		/*
-		 if ( method.equals( "getPluginProperties")){
-		 
-		 return( new RPReply( delegate.getPluginProperties()));
-		 }
-		 */
+		if ( method.equals( "download")){
+			
+			try{
+				Torrent to = delegate.download();
+			
+				RPTorrent res = RPTorrent.create( to );
+		
+				return( new RPReply( res ));
+				
+			}catch( TorrentException e ){
+				
+				return(new RPReply(e));
+			}
+		}			
 		
 		throw( new RPException( "Unknown method: " + method ));
 	}
+
+	// ************************************************************************
 	
-	public String
-	getName()
-	{
-		return( name );
-	}
-	
-	public byte[]
-	getHash()
-	{
-		notSupported();
-		
-		return(null);
-	}	
-	
-	public long
-	getSize()
-	{
-		return( size );
-	}
-	
-	public String
-	getComment()
-	{
-		notSupported();
-		
-		return(null);
-	}	
-	
-	public long
-	getCreationDate()
-	{
-		notSupported();
-		
-		return(0);
-	}
-	
-	public String
-	getCreatedBy()
-	{
-		notSupported();
-		
-		return(null);
-	}	
-	public long
-	getPieceSize()
-	{
-		notSupported();
-		
-		return(0);
-	}	
-	public long
-	getPieceCount()
-	{
-		notSupported();
-		
-		return(0);
-	}	
-	public TorrentFile[]
-	getFiles()
-	{
-		notSupported();
-		
-		return(null);
-	}	
-	public void
-	writeToFile(
-		File		file )
+	public Torrent
+	download()
 	
 		throws TorrentException
 	{
-		notSupported();
+		try{
+			RPTorrent resp = (RPTorrent)dispatcher.dispatch( new RPRequest( this, "download", null )).getResponse();
+			
+			resp._setRemote( dispatcher );
+			
+			return( resp );
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof TorrentException ){
+				
+				throw((TorrentException)e.getCause());
+			}
+			
+			throw( e );
+		}	
 	}
 }

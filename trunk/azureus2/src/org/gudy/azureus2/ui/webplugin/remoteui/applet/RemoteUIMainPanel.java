@@ -35,6 +35,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.download.*;
 
 
@@ -61,7 +62,7 @@ RemoteUIMainPanel
 	
 	public
 	RemoteUIMainPanel(
-		PluginInterface	_pi,
+		final PluginInterface	_pi,
 		DownloadManager	_dm )
 	{
 		try{
@@ -232,7 +233,13 @@ RemoteUIMainPanel
 							try{
 								URL	url = new URL( tf.getText());
 							
-								download_manager.addDownload( url );
+								TorrentDownloader dl = _pi.getTorrentManager().getURLDownloader( url );
+								
+								Torrent torrent = dl.download();
+								
+								logMessage( "Downloaded torrent: " + torrent.getName());
+								
+								download_manager.addDownload( torrent );
 							
 								refresh();
 								

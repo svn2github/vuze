@@ -95,9 +95,27 @@ Main
 									public void
 									run()
 									{
+										String	message_chain = "";
+										
+										Throwable	temp = e;
+										
+										while( temp != null ){
+											
+											String	this_message = temp.getMessage();
+											
+											if ( this_message != null ){
+												
+												message_chain += (message_chain.length()==0?"":"\n") + this_message;
+											}
+											
+											temp = temp.getCause();
+										}
+													
+										final String	message = message_chain.length()==0?e.toString():message_chain;
+
 										JOptionPane.showMessageDialog( 
 												frame, 
-												e.toString(),
+												message,
 												"Error Occurred",  
 												JOptionPane.ERROR_MESSAGE );
 									}

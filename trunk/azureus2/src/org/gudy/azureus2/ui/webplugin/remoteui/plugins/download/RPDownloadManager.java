@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.torrent.*;
 
 public class 
 RPDownloadManager
@@ -69,12 +70,12 @@ RPDownloadManager
 		delegate = (DownloadManager)_delegate;
 	}
 	
-	public void
+	public Object
 	_setLocal()
 	
 		throws RPException
 	{
-		_fixupLocal();
+		return( _fixupLocal());
 	}
 	
 	
@@ -97,7 +98,7 @@ RPDownloadManager
 			
 			return( new RPReply( res ));
 			
-    }else if ( method.equals( "getDownloads[bSort]")){
+		}else if ( method.equals( "getDownloads[bSort]")){
 			
 			Download[]	downloads = delegate.getDownloads(((Boolean)request.getParams()).booleanValue());
 			
@@ -109,9 +110,23 @@ RPDownloadManager
 			}
 			
 			return( new RPReply( res ));
-			
+						
+		}else if ( method.equals( "addDownload[Torrent]" )){
+		
+			try{
+				RPTorrent	torrent = (RPTorrent)request.getParams();
+				
+				Download res = delegate.addDownload((Torrent)torrent._setLocal());
+				
+				return( new RPReply( RPDownload.create(res)));
+				
+			}catch( DownloadException e ){
+				
+				throw( new RPException("DownloadManager::addDownload failed", e ));
+			}
+		
 		}else if ( method.equals( "addDownload[URL]" )){
-			
+				
 			try{
 				delegate.addDownload((URL)request.getParams());
 				
@@ -126,6 +141,7 @@ RPDownloadManager
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
+		// ***********************************************************************************8
 	
 	public void 
 	addDownload(
@@ -148,6 +164,31 @@ RPDownloadManager
 	
 	public Download
 	addDownload(
+		Torrent		torrent )
+	
+		throws DownloadException
+	{
+		try{
+			RPDownload	res = (RPDownload)dispatcher.dispatch( new RPRequest( this, "addDownload[Torrent]", torrent )).getResponse();
+			
+			res._setRemote( dispatcher );
+		
+			return( res );
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}	
+	}
+
+		
+	public Download
+	addDownload(
 		Torrent		torrent,
 		File		torrent_location,
 		File		data_location )
@@ -157,8 +198,7 @@ RPDownloadManager
 		notSupported();
 		
 		return( null );
-	}
-	
+	}	
 	
 	public Download
 	addNonPersistentDownload(

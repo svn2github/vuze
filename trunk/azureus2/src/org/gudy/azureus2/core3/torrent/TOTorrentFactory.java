@@ -62,7 +62,7 @@ TOTorrentFactory
 		
 		throws TOTorrentException
 	{
-		return( null );//new TOTorrentDeserialiseImpl( is ));
+		return( new TOTorrentDeserialiseImpl( is ));
 	}
 	
 	public static TOTorrent

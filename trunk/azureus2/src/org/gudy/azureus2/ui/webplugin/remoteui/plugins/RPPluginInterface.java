@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.download.*;
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.torrent.*;
 
 public class 
 RPPluginInterface
@@ -101,12 +102,12 @@ RPPluginInterface
 		delegate = (PluginInterface)_delegate;
 	}
 	
-	public void
+	public Object
 	_setLocal()
 	
 		throws RPException
 	{
-		_fixupLocal();
+		return( _fixupLocal());
 	}
 	
 	
@@ -123,6 +124,10 @@ RPPluginInterface
 		}else if ( method.equals( "getDownloadManager")){
 			
 			return( new RPReply( RPDownloadManager.create(delegate.getDownloadManager())));
+		
+		}else if ( method.equals( "getTorrentManager")){
+			
+			return( new RPReply( RPTorrentManager.create(delegate.getTorrentManager())));
 		
 		}else if ( method.equals( "getPluginconfig")){
 				
@@ -205,9 +210,11 @@ RPPluginInterface
 	 public TorrentManager
 	 getTorrentManager()
 	 {
-		notSupported();
+		RPTorrentManager	res = (RPTorrentManager)dispatcher.dispatch( new RPRequest( this, "getTorrentManager", null )).getResponse();
 		
-		return( null );
+		res._setRemote( dispatcher );
+			
+		return( res );
 	 }
 	 
 	/**

@@ -55,22 +55,14 @@ TOTorrentDeserialiseImpl
 			// However, this as been exceeded! (see bug 826617)
 			// As there is no technical reason for this limit I have removed it
 		
-		ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
-		
 		FileInputStream fis = null;
 		
 		try{
-		
-			byte[] buf = new byte[32*1024];	// raised this limit as 2k was rather too small
-		
-			int nbRead;
-		
+				
 			fis = new FileInputStream(file);
-		
-			while ((nbRead = fis.read(buf)) > 0){
-			
-				metaInfo.write(buf, 0, nbRead);
-			}
+	
+			construct( fis );
+	
 		}catch( IOException e ){
 			
 			throw( new TOTorrentException( "TOTorrentDeserialise: IO exception reading torrent '" + e.toString()+ "'",
@@ -79,6 +71,7 @@ TOTorrentDeserialiseImpl
 		}finally{
 			
 			if ( fis != null ){
+				
 				try{
 					
 					fis.close();
@@ -89,8 +82,15 @@ TOTorrentDeserialiseImpl
 				}
 			}
 		}
+	}
+	
+	public
+	TOTorrentDeserialiseImpl(
+		InputStream		is )
 		
-		construct( metaInfo.toByteArray());
+		throws TOTorrentException
+	{		
+		construct( is );
 	}
 	
 	public
@@ -110,6 +110,32 @@ TOTorrentDeserialiseImpl
 		construct( map );
 	}
 
+	protected void
+	construct(
+		InputStream		is )
+	
+		throws TOTorrentException
+	{
+		ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
+		
+		try{
+			byte[] buf = new byte[32*1024];	// raised this limit as 2k was rather too small
+		
+			int nbRead;
+				
+			while ((nbRead = is.read(buf)) > 0){
+			
+				metaInfo.write(buf, 0, nbRead);
+			}
+		}catch( IOException e ){
+			
+			throw( new TOTorrentException( "TOTorrentDeserialise: IO exception reading torrent '" + e.toString()+ "'",
+											TOTorrentException.RT_READ_FAILS ));
+		}
+		
+		construct( metaInfo.toByteArray());
+	}
+	
 	protected void
 	construct(
 		byte[]		bytes )

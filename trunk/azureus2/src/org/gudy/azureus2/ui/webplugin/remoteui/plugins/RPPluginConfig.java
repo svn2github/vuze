@@ -63,12 +63,12 @@ RPPluginConfig
 		delegate = (PluginConfig)_delegate;
 	}
 	
-	public void
+	public Object
 	_setLocal()
 	
 		throws RPException
 	{
-		_fixupLocal();
+		return( _fixupLocal());
 	}
 	
 	public void

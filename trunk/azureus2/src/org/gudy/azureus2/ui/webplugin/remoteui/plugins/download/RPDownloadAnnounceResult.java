@@ -71,12 +71,12 @@ RPDownloadAnnounceResult
 		non_seed_count	= delegate.getNonSeedCount();	
 	}
 	
-	public void
+	public Object
 	_setLocal()
 	
 		throws RPException
 	{
-		_fixupLocal();
+		return( _fixupLocal());
 	}
 	
 	public RPReply

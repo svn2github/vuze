@@ -142,14 +142,23 @@ RemoteUIApplet
 	{
 		e.printStackTrace();
 		
-		Throwable cause = e.getCause();
+		String	message_chain = "";
+		
+		Throwable	temp = e;
+		
+		while( temp != null ){
 			
-		if ( cause != null ){
+			String	this_message = temp.getMessage();
+			
+			if ( this_message != null ){
 				
-			e	= cause;
-		}
+				message_chain += (message_chain.length()==0?"":"\n") + this_message;
+			}
 			
-		final String	message = e.toString();
+			temp = temp.getCause();
+		}
+					
+		final String	message = message_chain.length()==0?e.toString():message_chain;
 			
 		synchronized( outstanding_dialogs ){
 				
