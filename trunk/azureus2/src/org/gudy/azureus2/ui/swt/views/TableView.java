@@ -755,7 +755,7 @@ public class TableView
 	
 	    if (bSortScheduled) {
 	      bSortScheduled = false;
-	      sorter.sortColumn();
+	      sorter.sortColumn( true );
 	    } else {
 	      sorter.reOrder(false);
 	    }
@@ -912,6 +912,7 @@ public class TableView
 	          } else {
 	            row.delete();
 	          }
+	          	          
 	          bSortScheduled = true;
 	        }
 	      });
