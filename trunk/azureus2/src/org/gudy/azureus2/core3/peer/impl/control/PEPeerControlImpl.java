@@ -442,6 +442,9 @@ PEPeerControlImpl
 					if ( !_peer_transports.contains(transport)){
 						
 						addToPeerTransports( transport );
+					} else {
+					  
+					  transport.closeAll("Already Connected",false,false);
 					}
 				}
 			}
