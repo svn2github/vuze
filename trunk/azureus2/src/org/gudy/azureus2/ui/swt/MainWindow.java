@@ -73,6 +73,8 @@ import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
+import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 
@@ -349,9 +351,20 @@ public class MainWindow implements IComponentListener {
     Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
     MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
+    
     MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
-    new MenuItem(fileMenu, SWT.SEPARATOR);
+    
+	new MenuItem(fileMenu, SWT.SEPARATOR);
+
+	MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
+	Messages.setLanguageText(file_export, "MainWindow.menu.file.export"); //$NON-NLS-1$
+
+	MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
+	Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
+
+	new MenuItem(fileMenu, SWT.SEPARATOR);
+    
     MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
 
@@ -394,11 +407,23 @@ public class MainWindow implements IComponentListener {
       }
     });
     
-    file_configure.addListener(SWT.Selection, new Listener() {
-    public void handleEvent(Event e) {
-      new ConfigureWizard(display);
-    }
+	file_configure.addListener(SWT.Selection, new Listener() {
+	public void handleEvent(Event e) {
+	  new ConfigureWizard(display);
+	}
   });
+  
+  file_export.addListener(SWT.Selection, new Listener() {
+  	 public void handleEvent(Event e) {
+		 new ExportTorrentWizard(display);
+  	 }
+ 	}); 
+
+  file_import.addListener(SWT.Selection, new Listener() {
+	  public void handleEvent(Event e) {
+		new ImportTorrentWizard(display);
+	  }
+	});
 
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {

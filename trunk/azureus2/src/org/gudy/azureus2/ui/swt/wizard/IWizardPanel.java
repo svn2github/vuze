@@ -37,5 +37,13 @@ public interface IWizardPanel {
   public boolean isNextEnabled();
   public boolean isFinishEnabled();
   
+  /**
+   * This method is called when the "finish" button is pressed. It allows operations to be
+   * carried out before the "finish" panel is shown. 
+   * @return true  - carry on and show the finish panel; false - operation failed,
+   * leave on current panel
+   */
+  public boolean isFinishSelectionOK();
+  
   public void finish();
 }

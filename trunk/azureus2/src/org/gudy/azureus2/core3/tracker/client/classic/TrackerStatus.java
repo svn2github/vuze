@@ -36,11 +36,17 @@ public class TrackerStatus {
     try {
       trackerUrl = trackerUrl.replaceAll(" ", "");
       int position = trackerUrl.lastIndexOf('/');
-      if(position >= 0 && trackerUrl.substring(position+1,position+9).equals("announce"))
+      if(	position >= 0 &&
+      		trackerUrl.length() >= position+9 && 
+      		trackerUrl.substring(position+1,position+9).equals("announce"))
+      		
         this.scrapeURL = trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9);
+        
     } catch (Exception e) {
+    	
       e.printStackTrace();
     } 
+    
     data = new byte[1024];
   }
 

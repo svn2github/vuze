@@ -58,6 +58,11 @@ public abstract class AbstractWizardPanel implements IWizardPanel {
     return null;
   }
 
+  public boolean
+  isFinishSelectionOK()
+  {
+  	return( true );
+  }
   public void finish() {}
 
 }

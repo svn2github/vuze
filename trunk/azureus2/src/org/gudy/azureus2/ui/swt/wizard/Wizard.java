@@ -190,16 +190,11 @@ public class Wizard {
       /* (non-Javadoc)
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
        */
-      public void handleEvent(Event arg0) {
-        cancel.setEnabled(false);
-        wizardWindow.addListener(SWT.Close, closeCatcher);
-        clearPanel();
-        currentPanel = currentPanel.getFinishPanel();
-        refresh();
-        currentPanel.finish();
-      }
+		public void handleEvent(Event arg0){
+    		finishSelected();
+		}
     });
-
+    
     cancel.addListener(SWT.Selection, new Listener() {
       /* (non-Javadoc)
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
@@ -214,10 +209,24 @@ public class Wizard {
         onClose();
       }
     });
-
+	
     wizardWindow.setSize(400, 400);
     wizardWindow.open();
 
+  }
+  
+   private void
+   finishSelected()
+   {
+	   if ( currentPanel.isFinishSelectionOK()){
+      	
+		   cancel.setEnabled(false);
+		   wizardWindow.addListener(SWT.Close, closeCatcher);
+		   clearPanel();
+		   currentPanel = currentPanel.getFinishPanel();
+		   refresh();
+		   currentPanel.finish();
+	   }
   }
 
   private void clearPanel() {
@@ -230,17 +239,63 @@ public class Wizard {
     setCurrentInfo("");
   }
 
-  private void refresh() {
-    if (currentPanel == null)
-      return;
+  private void refresh(){
+    if (currentPanel == null){
+    	
+    	setDefaultButton();
+    	
+      	return;
+    }
+    
     previous.setEnabled(currentPanel.isPreviousEnabled());
+    
     next.setEnabled(currentPanel.isNextEnabled());
+    
     finish.setEnabled(currentPanel.isFinishEnabled());
+    
+	setDefaultButton();
+	
     currentPanel.show();
     panel.layout();
     panel.redraw();
   }
 
+	private void
+	setDefaultButton()
+	{
+		if (display != null && !display.isDisposed()){
+		
+		 	display.asyncExec(new Runnable() {
+				public void run() {
+		 	
+			  	Button	default_button = null;
+			  	
+				if ( next.isEnabled()){
+			    	
+					default_button = next;
+					
+				}else if ( finish.isEnabled()){
+				
+					default_button = finish;
+					
+				}else if ( previous.isEnabled()){
+					
+					default_button = previous;
+					
+				}else if ( cancel.isEnabled()){
+					
+					default_button	= cancel;
+				}
+				
+				if ( default_button != null ){
+				
+					wizardWindow.setDefaultButton( default_button );
+				}
+		 	}
+		});
+	 }
+  }
+  
   public Composite getPanel() {
     return panel;
   }
@@ -263,14 +318,17 @@ public class Wizard {
 
   public void setNextEnabled(boolean enabled) {
     this.next.setEnabled(enabled);
+	setDefaultButton();
   }
 
   public void setPreviousEnabled(boolean enabled) {
     this.previous.setEnabled(enabled);
+	setDefaultButton();
   }
 
   public void setFinishEnabled(boolean enabled) {
     this.finish.setEnabled(enabled);
+	setDefaultButton();
   }
 
   public void setFirstPanel(IWizardPanel panel) {
@@ -301,6 +359,7 @@ public class Wizard {
           wizardWindow.removeListener(SWT.Close, closeCatcher);
           cancel.setText(MessageText.getString("wizard.close"));
           cancel.setEnabled(true);
+		  setDefaultButton();
         }
       }
     });
