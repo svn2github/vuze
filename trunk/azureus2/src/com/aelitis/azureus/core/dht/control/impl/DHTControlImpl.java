@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.control.impl;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -712,7 +713,6 @@ DHTControlImpl
 				max_values,
 				new lookupResultHandler()
 				{
-					private List	found_contacts	= new ArrayList();
 					private List	found_values	= new ArrayList();
 					
 					public void
@@ -729,7 +729,6 @@ DHTControlImpl
 						DHTTransportContact	contact,
 						DHTTransportValue	value )
 					{	
-						found_contacts.add( contact );
 						found_values.add( value );
 						
 						get_listener.read( contact, value );
@@ -1172,13 +1171,15 @@ DHTControlImpl
 										
 										DHTTransportValue	value = values[i];
 										
-										if ( !values_found_set.contains( value.getOriginator().getAddress())){
+										DHTTransportContact	originator = value.getOriginator();
+										
+										if ( !values_found_set.contains( originator.getAddress())){
 											
 											new_values++;
 											
-											values_found_set.add( value.getOriginator().getAddress());
+											values_found_set.add( originator.getAddress());
 											
-											result_handler.read( contact, values[i] );
+											result_handler.read( originator, values[i] );
 										}
 									}
 									

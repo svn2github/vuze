@@ -501,10 +501,10 @@ DHTPlugin
 						
 						public void
 						read(
-							DHTTransportContact	contact,
-							DHTTransportValue	value )
+							DHTTransportContact	_contact,
+							DHTTransportValue	_value )
 						{
-							log.log( "Put: read " + value.getString() + " from " + contact.getString());
+							Debug.out( "read operation not supported for puts" );
 						}
 						
 						public void
@@ -572,7 +572,7 @@ DHTPlugin
 									{
 										DHTTransportFullStats stats = contact.getStats();
 										
-										log.log( "Get: read " + value.getString() + " from " + contact.getString() + ", stats=" + (stats==null?"<failed>":stats.getString()));
+										log.log( "Get: read " + value.getString() + " from " + contact.getString() + ", originator = " + value.getOriginator().getString() + ", stats=" + (stats==null?"<failed>":stats.getString()));
 									}
 								};
 							
@@ -582,7 +582,7 @@ DHTPlugin
 							
 							if ( listener != null ){
 								
-								listener.valueFound( contact.getAddress(), value.getValue());
+								listener.valueFound( value.getOriginator().getAddress(), value.getValue());
 							}
 						}
 						

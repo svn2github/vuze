@@ -403,7 +403,7 @@ Test
 								public void
 								read(
 									final DHTTransportContact	contact,
-									DHTTransportValue	value )
+									final DHTTransportValue		value )
 								{
 									System.out.println( "-> " + value.getString());
 
