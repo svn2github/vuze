@@ -248,34 +248,46 @@ GMSRDefaultPlugin
 				
 				started++;
 
-				//First condition to be met to be able to stop a torrent is that the number of seeds
-				//Is greater than the minimal set, if any.
+					//First condition to be met to be able to stop a torrent is that the number of seeds
+					//	Is greater than the minimal set, if any.
 				
+				boolean mayStop = false;
+				
+				DownloadScrapeResult sr = download.getLastScrapeResult();
 			
 					// this params corresponds to "start seeding if there is less than <n> seeds
 					// 0 = "never start". it overrides all other stuff about stopping
 				
 				int nbMinSeeds = plugin_config.getIntParameter("Start Num Peers", 0);
 				
-					// note that scrape results are cached for some time, so we
-					// shouldn't end up thrashing in a start/stop loop because the results
-					// of us starting/stopping don't get reported until next scrape.
-				
-				DownloadScrapeResult sr = download.getLastScrapeResult();
-
-				boolean mayStop = false;
-				
-				if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+				if ( nbMinSeeds == 0 ){
 					
-						// start if < n means we can possibly stop if >= n
+						// no minimum number of seeds, ok to stop if other conditions hold 
 					
-					if (sr.getSeedCount() >= nbMinSeeds) {
-						
-						mayStop = true;
-					}
+					mayStop	= true;
+					
 				}else{
 					
-					mayStop = true;
+						// note that scrape results are cached for some time, so we
+						// shouldn't end up thrashing in a start/stop loop because the results
+						// of us starting/stopping don't get reported until next scrape.	
+					
+					if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+						
+							// start if < n means we can possibly stop if >= n.
+							// However, we assume that the reported seed cound includes
+							// ourselves, so we only want to possibly stop if there are more
+							// seeds than our limit (i.e. use ">" not ">=" below)
+						
+						if (sr.getSeedCount() > nbMinSeeds) {
+							
+							mayStop = true;
+						}
+					}else{
+						
+						// no valid data available to we have to assume we need to keep seeding
+						// and leave mayStop = false
+					}
 				}
 	
 					//Checks if any condition to stop seeding is met
