@@ -115,7 +115,7 @@ TOTorrentFactory
 		
 		throws TOTorrentException
 	{
-		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, TO_DEFAULT_FIXED_PIECE_SIZE, null ));
+		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, TO_DEFAULT_FIXED_PIECE_SIZE, progress_listener ));
 	}	
 
 	public static TOTorrent
@@ -127,7 +127,7 @@ TOTorrentFactory
 	
 		throws TOTorrentException
 	{
-		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, add_hashes, TO_DEFAULT_FIXED_PIECE_SIZE, null ));
+		return( createFromFileOrDirWithFixedPieceLength( file, announce_url, add_hashes, TO_DEFAULT_FIXED_PIECE_SIZE, progress_listener ));
 	}	
 	
 	public static TOTorrent
