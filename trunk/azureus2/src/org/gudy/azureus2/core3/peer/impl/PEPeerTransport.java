@@ -70,11 +70,12 @@ PEPeerTransport
 		int pieceOffset, 
 		int pieceLength );
 
-	public void
-	closeAll(
-      String reason,
-	  boolean closedOnError,
-	  boolean attemptReconnect);
+  
+  /**
+   * Close the peer connection
+   * @param reason for closure
+   */
+	public void closeConnection( String reason );
 			
 		
 	public boolean

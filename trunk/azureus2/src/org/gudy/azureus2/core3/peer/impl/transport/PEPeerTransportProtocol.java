@@ -179,11 +179,11 @@ PEPeerTransportProtocol
       
       public void connectFailure( Throwable failure_msg ) {  //should never happen
         Debug.out( "ERROR: incoming connect failure: ", failure_msg );
-        closeAll( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
+        closeConnection( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), false );
       }
       
       public void exceptionThrown( Throwable error ) {
-        closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
+        closeConnection( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true );
       }
     });
   }
@@ -202,7 +202,7 @@ PEPeerTransportProtocol
     
     if( port < 0 || port > 65535 ) {
       Debug.out( "Given remote port is invalid: " + port );
-      closeAll( "Given remote port is invalid: " + port, false, false );
+      closeConnection( "Given remote port is invalid: " + port, false );
     }
     
     connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder() );
@@ -222,11 +222,11 @@ PEPeerTransportProtocol
       }
         
       public void connectFailure( Throwable failure_msg ) {
-        closeAll( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), true, false );
+        closeConnection( "Failed to establish outgoing connection [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), false );
       }
         
       public void exceptionThrown( Throwable error ) {
-        closeAll( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true, true );
+        closeConnection( "Connection [" + PEPeerTransportProtocol.this + "] exception : " + error.getMessage(), true );
       }
     });
       
@@ -310,105 +310,108 @@ PEPeerTransportProtocol
 
    
   
-  public void 
-  closeAll(
-  		String 		reason, 
-		boolean 	closedOnError, 
-		boolean 	attemptReconnect ) 
-  {
-  		try{
-        closing_mon.enter();
-  		
-  			if (closing){
-          
-          if( reason.indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-              reason.indexOf( "An established connection was aborted by the software in your host machine" ) == -1 &&
-              reason.indexOf( "Closing all Connections" ) == -1 &&
-              reason.indexOf( "Quiting SuperSeed Mode" ) == -1 &&
-              reason.indexOf( "end of stream on socket read" ) == -1 ) {
-            Debug.out( "closeAll() called for [" +reason+ "] but already 'closing', closed=" +closed );
-          }
-          
-  				return;
-  			}
-  			
-  			closing = true;
-  			
-  		}finally{
-  			
-        closing_mon.exit();
-  		}
-  		
-      closed = 1;
-      
-      changePeerState( PEPeer.CLOSING );
-      
-      closed = 2;
 
-      LGLogger.log( componentID, evtProtocol, closedOnError?LGLogger.ERROR:LGLogger.INFORMATION, reason);
-      
- 
-	    if( outgoing_piece_message_handler != null ) {
-	      outgoing_piece_message_handler.removeAllPieceRequests();
-	      outgoing_piece_message_handler.destroy();
-	      //outgoing_piece_message_handler = null;
-	    }
-	    
-      closed = 3;
-      
-	    if( outgoing_have_message_aggregator != null ) {
-	      outgoing_have_message_aggregator.destroy();
-	      //outgoing_have_message_aggregator = null;
-	    }
-	    	    
-	    closed = 4;
-      
-	    if( connection_registered ) {
-	      PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
-	    }
-      
-      closed = 5;
-      
-	    if( connection != null ) {  //can be null if closeAll is called within ::<init>::, like when the given port is invalid
-        connection.close();
-      }
-      
-      closed = 6;
-      
-	    //Cancel any pending requests (on the manager side)
-      cancelRequests();
-      
-      closed = 7;
-
-	    recent_outgoing_requests.clear();
-   
-	    if ( ip_resolver_request != null ){
-	    	ip_resolver_request.cancel();
-	    }
-	    
-	    
-	  	//remove identity
-	  	if ( this.peer_id != null && identityAdded ) {
-	  		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), this.peer_id );
-	  	}
-	
-	  		//	Send a logger event
-	  	
-	  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + toString());
-	  	
-      closed = 8;
-      
-	  	if( attemptReconnect && !incoming ) {      
-	  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + toString());
-	  		manager.peerConnectionClosed( this, true );
-	  		
-	  	}else{
-	  		
-	      manager.peerConnectionClosed( this, false );
-	  	}
+  //close the peer connection internally
+  private void closeConnection( String reason, boolean reconnect ) {
+    performClose( reason, reconnect, false );
+  }
+  
+  
+  //close the peer connection externally
+  public void closeConnection( String reason ) {
+    performClose( reason, false, true );
   }
 
-	
+  
+  
+  
+  private void performClose( String reason, boolean reconnect, boolean externally_closed ) {
+    try{
+      closing_mon.enter();
+    
+      if (closing){
+        if( reason.indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+            reason.indexOf( "An established connection was aborted by the software in your host machine" ) == -1 &&
+            reason.indexOf( "Closing all Connections" ) == -1 &&
+            reason.indexOf( "Quiting SuperSeed Mode" ) == -1 &&
+            reason.indexOf( "end of stream on socket read" ) == -1 ) {
+          
+          Debug.out( "closeAll() called for [" +reason+ "] but already 'closing', closed=" +closed+ ", externally=" +externally_closed );
+        }
+        
+        return;
+      }
+      
+      closing = true;
+      
+    }finally{
+      
+      closing_mon.exit();
+    }
+    
+    closed = 1;
+    
+    changePeerState( PEPeer.CLOSING );
+    
+    closed = 2;
+
+    if( outgoing_piece_message_handler != null ) {
+      outgoing_piece_message_handler.removeAllPieceRequests();
+      outgoing_piece_message_handler.destroy();
+    }
+    
+    closed = 3;
+    
+    if( outgoing_have_message_aggregator != null ) {
+      outgoing_have_message_aggregator.destroy();
+    }
+          
+    closed = 4;
+    
+    if( connection_registered ) {
+      PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
+    }
+    
+    closed = 5;
+    
+    if( connection != null ) {  //can be null if close is called within ::<init>::, like when the given port is invalid
+      connection.close();
+    }
+    
+    closed = 6;
+    
+    //cancel any pending requests (on the manager side)
+    cancelRequests();
+    
+    closed = 7;
+
+    recent_outgoing_requests.clear();
+ 
+    if ( ip_resolver_request != null ){
+      ip_resolver_request.cancel();
+    }
+    
+    
+    //remove identity
+    if ( this.peer_id != null && identityAdded ) {
+      PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), this.peer_id );
+    }
+
+    LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Peer connection [" +toString()+ "] closed: " +reason );
+    
+    closed = 8;
+    
+    if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
+      if( reconnect && !incoming ) {  //TODO we can reconnect even incoming connections if we received their listen port in az handshake!
+        manager.peerConnectionClosed( this, true );
+      }
+      else{
+        manager.peerConnectionClosed( this, false );
+      }
+    }
+  }
+  
+  
 
   
   
@@ -921,7 +924,7 @@ PEPeerTransportProtocol
       }
       
       if( dead_time > 5*60*1000 ) { //5min timeout
-        closeAll( toString() + ": Timed out while waiting for messages", true, true );
+        closeConnection( toString() + ": Timed out while waiting for messages", true );
         return true;
       }
     }
@@ -938,7 +941,7 @@ PEPeerTransportProtocol
       
       if( wait_time > 3*60*1000 ) { //3min timeout
         String phase = connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ? "handshaking" : "bitfield";
-        closeAll( toString() + ": Timed out while waiting in " +phase+ " phase", true, true );
+        closeConnection( toString() + ": Timed out while waiting in " +phase+ " phase", true );
         return true;
       }
     }
@@ -986,7 +989,7 @@ PEPeerTransportProtocol
     PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
       
     if( !Arrays.equals( manager.getHash(), handshake.getDataHash() ) ) {
-      closeAll( toString() + " has sent handshake, but infohash is wrong", true, false );
+      closeConnection( toString() + " has sent handshake, but infohash is wrong", false );
       handshake.destroy();
       return;
     }
@@ -998,14 +1001,14 @@ PEPeerTransportProtocol
 
     //make sure the client type is not banned
     if( !PeerClassifier.isClientTypeAllowed( client ) ) {
-      closeAll( toString() + ": " +client+ " client type not allowed to connect, banned", false, false );
+      closeConnection( toString() + ": " +client+ " client type not allowed to connect, banned", false );
       handshake.destroy();
       return;
     }
 
     //make sure we are not connected to ourselves
     if( Arrays.equals( manager.getPeerId(), peer_id ) ) {
-      closeAll( toString() + ": peerID matches myself", false, false );
+      closeConnection( toString() + ": peerID matches myself", false );
       handshake.destroy();
       return;
     }
@@ -1024,13 +1027,13 @@ PEPeerTransportProtocol
     }
       
     if( sameIdentity ) {
-      closeAll( toString() + " exchanged handshake, but peer matches pre-existing identity", false, false );
+      closeConnection( toString() + " exchanged handshake, but peer matches pre-existing identity", false );
       handshake.destroy();
       return;
     }
     
     if( sameIP ) {
-      closeAll( toString() + " exchanged handshake, but peer matches pre-existing IP address", false, false );
+      closeConnection( toString() + " exchanged handshake, but peer matches pre-existing IP address", false );
       handshake.destroy();
       return;
     }
@@ -1038,7 +1041,7 @@ PEPeerTransportProtocol
     //make sure we haven't reached our connection limit
     int maxAllowed = PeerUtils.numNewConnectionsAllowed( my_peer_data_id );
     if( maxAllowed == 0 ) {
-      closeAll( toString() + ": Too many existing peer connections [" +PeerIdentityManager.getIdentityCount( my_peer_data_id )+ "]", false, false );
+      closeConnection( toString() + ": Too many existing peer connections [" +PeerIdentityManager.getIdentityCount( my_peer_data_id )+ "]", false );
       handshake.destroy();
       return;
     }
@@ -1225,7 +1228,7 @@ PEPeerTransportProtocol
     int piece_number = have.getPieceNumber();
     
     if ((piece_number >= other_peer_has_pieces.length) || (piece_number < 0)) {
-      closeAll( toString() + " gave invalid piece_number: " + piece_number, true, true );
+      closeConnection( toString() + " gave invalid piece_number: " + piece_number, true );
       have.destroy();
       return;
     }
@@ -1252,7 +1255,7 @@ PEPeerTransportProtocol
     int length = request.getLength();
     
     if( !manager.checkBlock( number, offset, length ) ) {
-      closeAll( toString() + " has requested #" + number + ":" + offset + "->" + (offset + length) + " which is an invalid request.", true, true );
+      closeConnection( toString() + " has requested #" + number + ":" + offset + "->" + (offset + length) + " which is an invalid request.", true );
       request.destroy();
       return;
     }

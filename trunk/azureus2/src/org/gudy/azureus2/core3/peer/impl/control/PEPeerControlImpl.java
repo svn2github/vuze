@@ -467,7 +467,7 @@ PEPeerControlImpl
 								
     }else{
 			Debug.out( "addPeer():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
-      transport.closeAll(transport.getIp()+ ":" +transport.getPort()+ ": Already Connected",false,false);
+      transport.closeConnection(transport.getIp()+ ":" +transport.getPort()+ ": Already Connected" );
     }
 	}
 
@@ -483,12 +483,12 @@ PEPeerControlImpl
 		
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
     
-    closeAndRemovePeer( transport, "Remove peer", false );
+    closeAndRemovePeer( transport, "Remove peer" );
 	}
 	
   
   
-  private void closeAndRemovePeer( PEPeerTransport peer, String reason, boolean reconnect ) {
+  private void closeAndRemovePeer( PEPeerTransport peer, String reason ) {
     boolean removed = false;
     
     // copy-on-write semantics
@@ -512,7 +512,7 @@ PEPeerControlImpl
     
     if( removed ) {
       peerRemoved( peer );  //notify listeners
-      peer.closeAll( "Closing [" +peer.getIp()+":"+peer.getPort()+ "]: " + reason ,false, reconnect );
+      peer.closeConnection( "Closing [" +peer.getIp()+":"+peer.getPort()+ "]: " + reason );
     }
   }
   
@@ -536,7 +536,18 @@ PEPeerControlImpl
       PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
       
       peerRemoved( peer );  //notify listeners
-      peer.closeAll( "Closing [" +peer.getIp()+":"+peer.getPort()+ "]: " + reason ,false, reconnect );      
+      peer.closeConnection( "Closing [" +peer.getIp()+":"+peer.getPort()+ "]: " + reason );      
+    }
+    
+    if( reconnect ) {
+      for( int i=0; i < peer_transports.size(); i++ ) {
+        PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+        
+        if( !peer.isIncoming() ) {  //TODO we can reconnect even incoming connections if we received their listen port in az handshake!
+          PEPeerTransport new_conn = PEPeerTransportFactory.createTransport( this, peer.getPeerSource(), peer.getIp(), peer.getPort() );
+          addToPeerTransports( new_conn );
+        }
+      }
     }
   }
   
@@ -1235,32 +1246,19 @@ PEPeerControlImpl
   
   
   public void addPeerTransport( PEPeerTransport transport ) {
-    boolean addFailed = false;
-    String reason = "";
-      
     if (!ip_filter.isInRange(transport.getIp(), _downloadManager.getDisplayName())) {
       ArrayList peer_transports = peer_transports_cow;
         
       if (!peer_transports.contains( transport )) {
-            
-        addToPeerTransports(transport);
-                
-      }else{
-        
-        Debug.out( "addPeerTransport():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
-        
-        addFailed = true;
-                
-        reason=transport.getIp() + " : Already Connected";
+        addToPeerTransports(transport);    
+      }
+      else{
+        Debug.out( "addPeerTransport():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );        
+        transport.closeConnection( "Already Connected" );
       }
     }
     else {
-      addFailed = true;
-      reason=transport.getIp() + " : Blocked IP";
-    }
-        
-    if (addFailed) {
-      transport.closeAll(reason,false, false);
+      transport.closeConnection( "Blocked IP" );
     }
   }
   
@@ -1504,7 +1502,7 @@ PEPeerControlImpl
     for (int i = 0; i < peer_transports.size(); i++) {
       PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
       if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && pc.isSeed()) {
-        closeAndRemovePeer( pc, "Disconnecting other seeds when seeding", false );
+        closeAndRemovePeer( pc, "Disconnecting other seeds when seeding" );
       }
     }
   }
@@ -1891,9 +1889,7 @@ PEPeerControlImpl
     return lETA;
   }
   
-  	// the following three methods must be used when adding to/removing from peer transports
-  	// they are also synchronised on peer_transports
-  
+
   
   private void
   addToPeerTransports(
@@ -1906,7 +1902,7 @@ PEPeerControlImpl
       
       if( peer_transports_cow.contains( peer ) ){
       	Debug.out( "Transport added twice" );
-      	return;  //we do not want to closeAll() it
+      	return;  //we do not want to close it
       }
       
       if( is_running ) {
@@ -1930,17 +1926,13 @@ PEPeerControlImpl
       peerAdded( peer ); 
     }
     else {
-      peer.closeAll( "PeerTransport added when manager not running", false, false );
+      peer.closeConnection( "PeerTransport added when manager not running" );
     }
   }
   
   
-  
-  public void 
-  peerConnectionClosed(
-  	PEPeerTransport peer,   //the peer calls this method itself, in closeAll()
-	boolean reconnect ) 
-  {
+  //the peer calls this method itself in closeConnection() to notify this manager
+  public void peerConnectionClosed( PEPeerTransport peer,	boolean reconnect ) {
   	boolean	connection_found = false;
   
     try{
@@ -2344,7 +2336,7 @@ PEPeerControlImpl
 	      
 	      		//	Close connection in 2nd
 	      	
-          closeAndRemovePeer( peer, "Has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)", false );
+          closeAndRemovePeer( peer, "Has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)" );
 	      	
 	      		//Trace the ban in third
 	      		      		
@@ -2475,7 +2467,7 @@ PEPeerControlImpl
         for (int i=0; i < peer_transports.size(); i++) {
           PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
           if ( ip_filter.isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
-            closeAndRemovePeer( conn, "IPFilter banned IP address", false );
+            closeAndRemovePeer( conn, "IPFilter banned IP address" );
           }
         }
     }
@@ -2906,7 +2898,7 @@ PEPeerControlImpl
         }
         
         if( max_transport != null && max_time > 60*1000 ) {  //ensure a 1min minimum
-          closeAndRemovePeer( max_transport, "Timed out by optimistic-connect for lack of activity", false );
+          closeAndRemovePeer( max_transport, "Timed out by optimistic-connect for lack of activity" );
         }
       }
     }

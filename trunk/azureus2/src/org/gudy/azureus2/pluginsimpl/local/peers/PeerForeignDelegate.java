@@ -122,18 +122,13 @@ PeerForeignDelegate
 	{
 		return( foreign.addRequest( pieceNumber, pieceOffset, pieceLength ));
 	}
-
-	public void
-	closeAll(
-      String reason,
-	  boolean closedOnError,
-	  boolean attemptReconnect)
-	{
-		foreign.close( reason, closedOnError, attemptReconnect );
 		
-	  	manager.peerRemoved(foreign);
-	}
-			
+  
+  public void closeConnection( String reason ) {
+    foreign.close( reason, false, false );  //TODO implement reconnect?
+    manager.peerRemoved(foreign);
+  }
+  
 		
 	public List
 	getExpiredRequests()
