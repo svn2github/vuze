@@ -31,13 +31,23 @@ public final class SHA1Az {
   private int h0,h1,h2,h3,h4;
   private ByteBuffer finalBuffer;
   
+  private ByteBuffer saveBuffer;
+  private int s0,s1,s2,s3,s4;
+  
+  int length;
+  int saveLength;
   
   public SHA1Az() {
-    finalBuffer = ByteBuffer.allocateDirect(64); 
+    finalBuffer = ByteBuffer.allocateDirect(64);
+    finalBuffer.position(0);
     finalBuffer.limit(64);
+    
+    saveBuffer = ByteBuffer.allocateDirect(64);
+    saveBuffer.position(0);
+    saveBuffer.limit(64);
   }
   
-  private void transform3(ByteBuffer M) {
+  private void transform(ByteBuffer M) {
     int w0 , w1 , w2 , w3 ,  w4 , w5 , w6 , w7 , w8 , w9 ,
     w10, w11, w12, w13, w14, w15;
     
@@ -293,7 +303,8 @@ public final class SHA1Az {
     h4 += e;
   }
   
-  private void transform2(ByteBuffer M) {
+  /*
+  private void transform(ByteBuffer M) {
   	int w0 , w1 , w2 , w3 ,  w4 , w5 , w6 , w7 , w8 , w9 ,
     w10, w11, w12, w13, w14, w15;
   	
@@ -887,16 +898,129 @@ public final class SHA1Az {
     h4 += e;
   }
   
-  private void reset() {
+  */
+  
+  public void reset() {
     h0 = 0x67452301;
     h1 = 0xEFCDAB89;
     h2 = 0x98BADCFE;
     h3 = 0x10325476;    
-    h4 = 0xC3D2E1F0;
+    h4 = 0xC3D2E1F0;    
     
+    length = 0;
+    
+    finalBuffer.position(0);
+  }
+  
+  public void update(ByteBuffer buffer) {
+    length += buffer.remaining();
+    //Save current position to leave given buffer unchanged
+    int position = buffer.position();
+    
+    //Complete the final buffer if needed
+    completeFinalBuffer(buffer);
+    
+    while(buffer.remaining() >= 64) {
+      transform(buffer);
+    }
+    
+    if(buffer.remaining() != 0) {
+      finalBuffer.put(buffer);
+    }
+    
+    buffer.position(position);
+  }
+  
+  public byte[] digest() {
+    byte[] result = new byte[20];
+    
+    finalBuffer.put((byte)0x80);
+    if(finalBuffer.remaining() < 8) {
+      while(finalBuffer.remaining() > 0) {
+        finalBuffer.put((byte)0);
+      }
+      finalBuffer.position(0);
+      transform(finalBuffer);
+      finalBuffer.position(0);
+    }
+    
+    while(finalBuffer.remaining() > 8) {
+      finalBuffer.put((byte)0);
+    }
+    
+    finalBuffer.putLong(length << 3);
+    finalBuffer.position(0);
+    transform(finalBuffer);
+    
+    finalBuffer.position(0);
+    finalBuffer.putInt(h0);
+    finalBuffer.putInt(h1);
+    finalBuffer.putInt(h2);
+    finalBuffer.putInt(h3);
+    finalBuffer.putInt(h4);    
+    finalBuffer.position(0);
+    
+    for(int i  = 0 ; i < 20 ; i++) {
+     result[i] = finalBuffer.get(); 
+    }
+    
+    return result;
+  }
+  
+  public  void saveState() {
+    s0=h0;
+    s1=h1;
+    s2=h2;
+    s3=h3;
+    s4=h4;
+    
+    saveLength = length;
+    
+    saveBuffer.position(0);
+    int position = finalBuffer.position();
+    
+    finalBuffer.position(0);
+    finalBuffer.limit(position);
+    
+    saveBuffer.put(finalBuffer);
+    saveBuffer.position(0);
+    saveBuffer.limit(position);
+    
+    finalBuffer.limit(64);
+  }
+  
+  public void restoreState() {
+    h0=s0;
+    h1=s1;
+    h2=s2;
+    h3=s3;
+    h4=s4;
+    
+    length = saveLength;
+    
+    finalBuffer.position(0);
+    finalBuffer.limit(64);
+    finalBuffer.put(saveBuffer);
   }
  
-  public byte[] digest(ByteBuffer buffer){
+  private void completeFinalBuffer(ByteBuffer buffer) {
+    if(finalBuffer.position() == 0) 
+      return;
+    
+    int remaining = buffer.remaining();
+    
+    while(buffer.remaining() > 0 && finalBuffer.remaining() > 0) {
+      finalBuffer.put(buffer.get());
+    }
+    
+    if(finalBuffer.remaining() == 0) {
+      finalBuffer.position(0);
+      transform(finalBuffer);
+      finalBuffer.position(0);
+    }
+  }
+
+  public byte[] digest(ByteBuffer buffer) {
     byte[] result = new byte[20];
     int length = buffer.remaining();
     int totalLength = 64 * ((length + 63) / 64);
@@ -935,10 +1059,10 @@ public final class SHA1Az {
     reset();
     buffer.position(position);
     while(buffer.remaining() > 0) {
-      transform3(buffer);
+      transform(buffer);
     }
     if(needsFill < 0) {
-      transform3(finalBuffer);
+      transform(finalBuffer);
     }
     finalBuffer.rewind();
     finalBuffer.putInt(h0);
@@ -982,7 +1106,12 @@ public final class SHA1Az {
    System.out.println(ByteFormatter.nicePrint(bResult));
    System.out.println(buffer.position() + " - " + buffer.remaining());
    System.out.println(ByteFormatter.nicePrint(sha1Test.digest(buffer)));
+   System.out.println(buffer.position() + " - " + buffer.remaining());   
+   sha1Test.reset();
+   sha1Test.update(buffer);
+   System.out.println(ByteFormatter.nicePrint(sha1Test.digest()));
    System.out.println(buffer.position() + " - " + buffer.remaining());
+   
   }
     
   

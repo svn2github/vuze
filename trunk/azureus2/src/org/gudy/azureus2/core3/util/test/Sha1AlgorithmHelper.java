@@ -38,7 +38,7 @@ public class Sha1AlgorithmHelper {
   // e = d ; d = c ; c = G(b) ; b = a ; a = temp;
   // The Goal of changing the variable meaning is to remove the allocations
   // made.
-  // In order to do, so let's replace the role of :
+  // In order to do, let's replace the role of :
   //
   // e by d,
   // d by c,
