@@ -114,6 +114,22 @@ TrackerImpl
 					e.printStackTrace();
 				}
 			}
+			
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port UDP Enable" )){
+				
+				int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+				
+				boolean	auth = COConfigurationManager.getBooleanParameter( "Tracker Password Enable Torrent" );
+					
+				try{
+					urls.add( new URL( "udp://" + tracker_host + ":" + port + "/announce" +
+										(auth?"?auth":"" )));
+				
+				}catch( MalformedURLException e ){
+				
+					e.printStackTrace();
+				}
+			}
 		}
 		
 		URL[]	res = new URL[urls.size()];

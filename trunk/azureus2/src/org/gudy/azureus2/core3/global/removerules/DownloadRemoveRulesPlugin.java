@@ -159,6 +159,11 @@ DownloadRemoveRulesPlugin
 		if ( response.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
 			
 			reason = response.getError();
+			
+			if ( reason == null ){
+				
+				reason = "";
+			}
 		}
 				
 		handleAnnounceScrapeStatus( download, reason );
