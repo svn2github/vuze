@@ -1013,15 +1013,19 @@ PEPeerTransportProtocol
     
     //extended protocol processing
     if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
-      if( client.indexOf( "Azureus" ) != -1 ) {  //for now, filter out non-az clients, as ABC seems to set our reserved flag
+      if( client.indexOf( "Plus!" ) != -1 ) {
+        System.out.println( "Peer " +ip+ " [" +client+ "] handshake mistakingly indicates extended AZ messaging support....ignoring." );
+      }
+      else {
+        if( client.indexOf( "Azureus" ) == -1 ) {
+          System.out.println( "Peer " +ip+ " [" +client+ "] handshake claims extended AZ messaging support....enabling AZ mode." );
+        }
+        
         az_messaging_mode = true;
         connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
         connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder() );
-        
+      
         sendAZHandshake();
-      }
-      else {
-        System.out.println( "Peer " +ip+ " [" +client+ "] handshake mistakingly indicates extended AZ messaging support." );
       }
     }
 
