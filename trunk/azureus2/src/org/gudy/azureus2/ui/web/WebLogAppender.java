@@ -14,7 +14,6 @@ import java.util.List;
 
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.spi.Filter;
 
 import org.gudy.azureus2.core.ConfigurationManager;
 

@@ -9,8 +9,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.File;
@@ -86,7 +84,7 @@ public class Jhttpp2HTTPSession extends Thread {
     try {
       in = new Jhttpp2ClientInputStream(server,this,client.getInputStream());//,true);
       out = new BufferedOutputStream(client.getOutputStream());
-      this.server=server;
+      Jhttpp2HTTPSession.server=server;
       this.client=client;
       if (parameterlegacy==null) {
         parameterlegacy = new LegacyHashtable();
@@ -123,7 +121,7 @@ public class Jhttpp2HTTPSession extends Thread {
         stuff.put("favicon.ico", "org/gudy/azureus2/ui/icons/azureus.ico");
         stuff.put("froggy.png", "org/gudy/azureus2/ui/icons/tray.png");
       }
-      if ((this.status == null) || (locale != this.server.locale)) {
+      if ((Jhttpp2HTTPSession.status == null) || (locale != Jhttpp2HTTPSession.server.locale)) {
         if (status != null)
           status.clear();
         else
@@ -517,7 +515,7 @@ public class Jhttpp2HTTPSession extends Thread {
           h.put("Torrents_Torrent_FileName", dm.getName());
         if (dmstate == DownloadManager.STATE_ERROR)
           h.put("Torrents_Torrent_Error", dm.getErrorDetails());
-        h.put("Torrents_Torrent_Status", this.status.get(new Integer(dmstate)));
+        h.put("Torrents_Torrent_Status", Jhttpp2HTTPSession.status.get(new Integer(dmstate)));
         if (hd == null) {
           h.put("Torrents_Torrent_Seeds", "?");
           h.put("Torrents_Torrent_Peers", "?");

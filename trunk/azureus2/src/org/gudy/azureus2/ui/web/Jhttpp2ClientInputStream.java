@@ -61,7 +61,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
   
   public Jhttpp2ClientInputStream(Jhttpp2Server server,Jhttpp2HTTPSession connection,InputStream a) {
     super(a);
-    this.server = server;
+    Jhttpp2ClientInputStream.server = server;
     this.connection=connection;
   }
   /**
@@ -70,7 +70,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
    */
   public int read(byte[] a)throws IOException {
     ConfigurationManager cm = ConfigurationManager.getInstance();
-    statuscode = connection.SC_OK;
+    statuscode = Jhttpp2HTTPSession.SC_OK;
     if (ssl) return super.read(a);
     boolean cookies_enabled=server.enableCookiesByDefault();
     String rq="";
@@ -85,11 +85,11 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
         start_line = false;
         int methodID = server.getHttpMethod(buf);
         switch (methodID) {
-          case -1: statuscode = connection.SC_NOT_SUPPORTED; break;
+          case -1: statuscode = Jhttpp2HTTPSession.SC_NOT_SUPPORTED; break;
           case 2: ssl = true;
           default:
             InetAddress host = parseRequest(buf,methodID);
-            if (statuscode != connection.SC_OK) break; // error occured, go on with the next line
+            if (statuscode != Jhttpp2HTTPSession.SC_OK) break; // error occured, go on with the next line
             
             if (!cm.getBooleanParameter("Server_bUseDownstreamProxy") && !ssl) {
               /* creates a new request without the hostname */
@@ -98,13 +98,13 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
             }
             if ((cm.getBooleanParameter("Server_bUseDownstreamProxy") && connection.notConnected()) || !host.equals(remote_host)) {
               server.loggerWeb.debug("read_f: STATE_CONNECT_TO_NEW_HOST");
-              statuscode = connection.SC_CONNECTING_TO_HOST;
+              statuscode = Jhttpp2HTTPSession.SC_CONNECTING_TO_HOST;
               remote_host = host;
             }
                                         /* -------------------------
                                          * url blocking (only "GET" method)
                                          * -------------------------*/
-            if (cm.getBooleanParameter("Server_bProxyBlockURLs") && methodID==0 && statuscode!=connection.SC_FILE_REQUEST) {
+            if (cm.getBooleanParameter("Server_bProxyBlockURLs") && methodID==0 && statuscode!=Jhttpp2HTTPSession.SC_FILE_REQUEST) {
               server.loggerWeb.debug("Searching match...");
               Jhttpp2URLMatch match=server.findMatch(this.remote_host_name+url);
               if (match!=null){
@@ -113,10 +113,10 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
                 if (match.getActionIndex()==-1) break;
                 OnURLAction action=(OnURLAction)server.getURLActions().elementAt(match.getActionIndex());
                 if (action.onAccesssDeny()) {
-                  statuscode=connection.SC_URL_BLOCKED;
+                  statuscode=Jhttpp2HTTPSession.SC_URL_BLOCKED;
                   if (action.onAccessDenyWithCustomText()) errordescription=action.getCustomErrorText();
                 } else if (action.onAccessRedirect()) {
-                  statuscode=connection.SC_MOVED_PERMANENTLY;
+                  statuscode=Jhttpp2HTTPSession.SC_MOVED_PERMANENTLY;
                   errordescription=action.newLocation();
                 }
               }//end if match!=null)
@@ -137,7 +137,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
             content_len=Integer.parseInt(clen);
           }
           catch (NumberFormatException e) {
-            statuscode=connection.SC_CLIENT_ERROR;
+            statuscode=Jhttpp2HTTPSession.SC_CLIENT_ERROR;
           }
           if (server.loggerWeb.isDebugEnabled()) 
             server.loggerWeb.debug("read_f: content_len: " + content_len);
@@ -191,7 +191,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
     
     if (header_length==0) {
       server.loggerWeb.debug("header_length=0, setting status to SC_CONNECTION_CLOSED (buggy request)");
-      statuscode=connection.SC_CONNECTION_CLOSED;
+      statuscode=Jhttpp2HTTPSession.SC_CONNECTION_CLOSED;
     }
     
     for (int i=0;i<header_length;i++) a[i]=(byte)rq.charAt(i);
@@ -233,7 +233,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
       body = false;
     }
     
-    return (statuscode==connection.SC_OK)?header_length:-1; // return -1 with an error
+    return (statuscode==Jhttpp2HTTPSession.SC_OK)?header_length:-1; // return -1 with an error
   }
   /**
    * reads a line
@@ -266,7 +266,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
       pos = a.indexOf(":"); // locate first :
       if (pos == -1) { // occours with "GET / HTTP/1.1"
         url = a.substring(a.indexOf(" ")+1,a.lastIndexOf(" "));
-        statuscode = connection.SC_FILE_REQUEST;
+        statuscode = Jhttpp2HTTPSession.SC_FILE_REQUEST;
         server.loggerWeb.log(SLevel.HTTP, connection.getLocalSocket().getInetAddress().getHostAddress() + " " + method + " " + getFullURL());
         return null;
       }
@@ -274,7 +274,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
     }
     pos=f.indexOf(" "); // locate space, should be the space before "HTTP/1.1"
     if (pos==-1) { // buggy request
-      statuscode=connection.SC_CLIENT_ERROR;
+      statuscode=Jhttpp2HTTPSession.SC_CLIENT_ERROR;
       errordescription="Your browser sent an invalid request: \""+ a + "\"";
       return null;
     }
@@ -305,19 +305,19 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
     InetAddress address = null;
     server.loggerWeb.log(SLevel.HTTP, connection.getLocalSocket().getInetAddress().getHostAddress() + " " + method + " " + getFullURL());
     if (f.equals(cm.getStringParameter("Server_sAccessHost"))) {
-      statuscode = connection.SC_FILE_REQUEST;
+      statuscode = Jhttpp2HTTPSession.SC_FILE_REQUEST;
       return null;
     }
     try {
       address = InetAddress.getByName(f);
       if (remote_port == cm.getIntParameter("Server_iPort") && address.equals(InetAddress.getLocalHost()))
-        statuscode = connection.SC_FILE_REQUEST;
+        statuscode = Jhttpp2HTTPSession.SC_FILE_REQUEST;
     }
     catch (UnknownHostException e_u_host) {
-      if (!cm.getBooleanParameter("Server_bUseDownstreamProxy")) statuscode = connection.SC_HOST_NOT_FOUND;
+      if (!cm.getBooleanParameter("Server_bUseDownstreamProxy")) statuscode = Jhttpp2HTTPSession.SC_HOST_NOT_FOUND;
     }
     if ((cm.getBooleanParameter("Server_bProxyGrabTorrents")) && (url.toUpperCase().endsWith(".TORRENT")))
-      statuscode = connection.SC_GRABBED_TORRENT;
+      statuscode = Jhttpp2HTTPSession.SC_GRABBED_TORRENT;
     return address;
   }
   /**

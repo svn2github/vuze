@@ -25,7 +25,7 @@ public class Jhttpp2Read extends Thread {
     in=l_in;
     out=l_out;
     this.connection=connection;
-    this.server=server;
+    Jhttpp2Read.server=server;
     setPriority(Thread.MIN_PRIORITY);
     start();
   }
@@ -47,7 +47,7 @@ public class Jhttpp2Read extends Thread {
     } catch (IOException e) {}
     
     try {
-      if (connection.getStatus()!=connection.SC_CONNECTING_TO_HOST) // *uaaahhh*: fixes a very strange bug
+      if (connection.getStatus()!=Jhttpp2HTTPSession.SC_CONNECTING_TO_HOST) // *uaaahhh*: fixes a very strange bug
         connection.getLocalSocket().close();
       // why? If we are connecting to a new host (and this thread is already running!) , the upstream
       // socket will be closed. So we get here and close our own downstream socket..... and the browser

@@ -10,7 +10,6 @@
 
 package org.gudy.azureus2.ui.web;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.File;
 import java.io.FileOutputStream;
