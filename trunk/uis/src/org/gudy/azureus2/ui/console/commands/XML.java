@@ -1,5 +1,5 @@
 /*
- * Written and copyright 2001-2003 Tobias Minich. Distributed under the GNU
+ * Written and copyright 2001-2004 Tobias Minich. Distributed under the GNU
  * General Public License; see the README file. This code comes with NO
  * WARRANTY.
  * 
@@ -58,8 +58,8 @@ public class XML implements IConsoleCommand {
 
 	public static void RegisterCommands() {
 		try {
-			ConsoleInput.commands.put("xml", XML.class.getMethod("command", ConsoleCommandParameters));
-			ConsoleInput.helplines.add("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
+			ConsoleInput.RegisterCommand("xml", XML.class.getMethod("command", ConsoleCommandParameters));
+			ConsoleInput.RegisterHelp("xml [<file>]\t\t\t\tOutput stats in xml format (to <file> if given)");
 		} catch (Exception e) {e.printStackTrace();}
 	}
 

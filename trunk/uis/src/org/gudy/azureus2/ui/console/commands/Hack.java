@@ -1,8 +1,12 @@
 /*
+ * Written and copyright 2001-2004 Tobias Minich. Distributed under the GNU
+ * General Public License; see the README file. This code comes with NO
+ * WARRANTY.
+ * 
+ * Hack.java
+ * 
  * Created on 22.03.2004
  *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
  */
 package org.gudy.azureus2.ui.console.commands;
 
@@ -27,9 +31,9 @@ public class Hack implements IConsoleCommand {
 	public static void RegisterCommands() {
 		try {
 			//System.out.println(">>> Hack init");
-			ConsoleInput.commands.put("hack", Hack.class.getMethod("commandHack", ConsoleCommandParameters));
-			ConsoleInput.commands.put("#", Hack.class.getMethod("commandHack", ConsoleCommandParameters));
-			ConsoleInput.helplines.add("hack\t\t\t\t#\tCurrently only for testing purposes =)");
+			ConsoleInput.RegisterCommand("hack", Hack.class.getMethod("commandHack", ConsoleCommandParameters));
+			ConsoleInput.RegisterCommand("#", Hack.class.getMethod("commandHack", ConsoleCommandParameters));
+			ConsoleInput.RegisterHelp("hack\t\t\t\t#\tCurrently only for testing purposes =)");
 		} catch (Exception e) {}
 	}
 
