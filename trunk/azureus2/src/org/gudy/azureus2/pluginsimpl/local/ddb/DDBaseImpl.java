@@ -94,51 +94,54 @@ DDBaseImpl
 			
 			dht = (DHTPlugin)dht_pi.getPlugin();
 			
-			try{
-				addTransferHandler(
-						torrent_transfer,
-						new DistributedDatabaseTransferHandler()
-						{
-							public DistributedDatabaseValue
-							read(
-								DistributedDatabaseContact			contact,
-								DistributedDatabaseTransferType		type,
-								DistributedDatabaseKey				key )
-							
-								throws DistributedDatabaseException
-							{
-								try{
-									byte[]	hash = ((DDBaseKeyImpl)key).getBytes();
-									
-									Download dl = azureus_core.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( hash );
-									
-									Torrent	torrent = dl.getTorrent();
-									
-									torrent = torrent.removeAdditionalProperties();
-									
-									return( createValue( torrent.writeToBEncodedData()));
-									
-								}catch( Throwable e ){
-									
-									throw( new DistributedDatabaseException("Torrent write fails", e ));
-								}
-							}
-							
-							public void
-							write(
-								DistributedDatabaseContact			contact,
-								DistributedDatabaseTransferType		type,
-								DistributedDatabaseKey				key,
-								DistributedDatabaseValue			value )
-							
-								throws DistributedDatabaseException
-							{
-								throw( new DistributedDatabaseException( "not supported" ));
-							}
-						});
-			}catch( Throwable e ){
+			if ( dht.isEnabled()){
 				
-				Debug.printStackTrace(e);
+				try{
+					addTransferHandler(
+							torrent_transfer,
+							new DistributedDatabaseTransferHandler()
+							{
+								public DistributedDatabaseValue
+								read(
+									DistributedDatabaseContact			contact,
+									DistributedDatabaseTransferType		type,
+									DistributedDatabaseKey				key )
+								
+									throws DistributedDatabaseException
+								{
+									try{
+										byte[]	hash = ((DDBaseKeyImpl)key).getBytes();
+										
+										Download dl = azureus_core.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( hash );
+										
+										Torrent	torrent = dl.getTorrent();
+										
+										torrent = torrent.removeAdditionalProperties();
+										
+										return( createValue( torrent.writeToBEncodedData()));
+										
+									}catch( Throwable e ){
+										
+										throw( new DistributedDatabaseException("Torrent write fails", e ));
+									}
+								}
+								
+								public void
+								write(
+									DistributedDatabaseContact			contact,
+									DistributedDatabaseTransferType		type,
+									DistributedDatabaseKey				key,
+									DistributedDatabaseValue			value )
+								
+									throws DistributedDatabaseException
+								{
+									throw( new DistributedDatabaseException( "not supported" ));
+								}
+							});
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 	}
