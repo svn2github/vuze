@@ -1424,8 +1424,10 @@ DiskManagerImpl
 		List _pieces = new ArrayList();
 		Integer pieceInteger;    
 		for (int i = 9; i >= 0; i--) {
-      int k = 0;
-			for (int j = 0; j < nbPieces && k < 50; j++) {
+      int k = 0;      
+      //Switch comments to enable sequential piece picking.
+			//for (int j = 0; j < nbPieces && k < 50; j++) {
+      for (int j = 0; j < nbPieces ; j++) {
 				if (_piecesRarest[j] && priorityLists[i].get(j)) {
 					pieceInteger = FlyWeightInteger.getInteger(j);
 					_pieces.add(pieceInteger);
