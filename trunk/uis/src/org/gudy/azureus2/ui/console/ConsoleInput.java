@@ -22,7 +22,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,7 +74,6 @@ public class ConsoleInput extends Thread {
 	public final Properties aliases = new Properties();
 	private final Map commands = new LinkedHashMap();
 	private final List helpItems = new ArrayList();
-	private final List extraHelpItems = new ArrayList();	
 	/**
 	 * can be used by plugins to register console commands since they may not have access o
 	 * each ConsoleInput object that is created.
@@ -227,7 +225,7 @@ public class ConsoleInput extends Thread {
 		}
 		public void execute(String commandName, ConsoleInput ci, List args)
 		{
-			if ((args == null) || (args.isEmpty())){
+			if (args.isEmpty()){
 				printconsolehelp(ci.out);
 			} else {
 				String subcommand = (String) args.get(0);
@@ -308,7 +306,7 @@ public class ConsoleInput extends Thread {
 				ci.out.println( "OK" );
 			}
 			else {
-				if ((args == null) || (args.isEmpty()) || (!args.get(0).toString().equalsIgnoreCase("IAMSURE"))) {
+				if (args.isEmpty() || (!args.get(0).toString().equalsIgnoreCase("IAMSURE"))) {
 					ci.out.println("> The 'quit' command exits azureus. Since this is a non-controlling shell thats probably not what you wanted. Use 'logout' to quit it or 'quit iamsure' to really exit azureus.");
 				}
 				else {
@@ -357,7 +355,7 @@ public class ConsoleInput extends Thread {
 			return("ui <interface>\t\t\tu\tStart additional user interface.");
 		}
 		public void execute(String commandName, ConsoleInput ci, List args) {
-			if ((args != null) && (!args.isEmpty())){
+			if (!args.isEmpty()){
 				UIConst.startUI(args.get(0).toString(), null);
 			} else {
 				ci.out.println("> Missing subcommand for 'ui'\r\n> ui syntax: ui <interface>");
