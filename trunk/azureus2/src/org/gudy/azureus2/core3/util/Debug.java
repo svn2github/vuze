@@ -71,9 +71,9 @@ public class Debug {
       // [1] = the line that called getLastCaller
       // [2] = the line that called the function that has getLastCaller
       StackTraceElement st[] = e.getStackTrace();
-      if (st.length > 1)
+      if (st.length > 2)
         return st[2].toString();
-      if (st.length > 0)
+      if (st.length > 1)
         return st[1].toString();
     }
     return "??";
