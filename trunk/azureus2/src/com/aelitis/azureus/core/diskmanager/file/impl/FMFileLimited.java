@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.disk.file.impl;
+package com.aelitis.azureus.core.diskmanager.file.impl;
 
 /**
  * @author parg
@@ -29,8 +29,9 @@ package org.gudy.azureus2.core3.disk.file.impl;
 //import java.nio.ByteBuffer;
 import java.io.File;
 
-import org.gudy.azureus2.core3.disk.file.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
+import com.aelitis.azureus.core.diskmanager.file.*;
 
 public class 
 FMFileLimited

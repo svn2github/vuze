@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.cache.impl;
+package com.aelitis.azureus.core.diskmanager.cache.impl;
 
 /**
  * @author parg
@@ -32,9 +32,10 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import org.gudy.azureus2.core3.disk.cache.*;
-import org.gudy.azureus2.core3.disk.file.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
+import com.aelitis.azureus.core.diskmanager.cache.*;
+import com.aelitis.azureus.core.diskmanager.file.*;
 
 public class 
 CacheFileImpl 

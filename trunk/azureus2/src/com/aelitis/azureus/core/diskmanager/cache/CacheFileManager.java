@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.cache;
+package com.aelitis.azureus.core.diskmanager.cache;
 
 import java.io.File;
 

@@ -20,28 +20,45 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.cache;
+package com.aelitis.azureus.core.diskmanager.cache;
 
 /**
  * @author parg
  *
  */
+
 public class 
-CacheFileManagerException 
-extends Exception
+CacheFileManagerFactory 
 {
-	public
-	CacheFileManagerException(
-		String		str )
-	{
-		super(str);
-	}
+	public static final String	DEFAULT_MANAGER = "com.aelitis.azureus.core.diskmanager.cache.impl.CacheFileManagerImpl";
 	
-	public
-	CacheFileManagerException(
-		String		str,
-		Throwable	cause )
+	private static CacheFileManager	manager;
+	
+	public static synchronized CacheFileManager
+	getSingleton()
+	
+		throws CacheFileManagerException
 	{
-		super( str, cause );
+		if ( manager == null ){
+			
+			String	impl = System.getProperty( "com.aelitis.azureus.core.diskmanager.cache.manager");
+			
+			if ( impl == null ){
+				
+				impl	= DEFAULT_MANAGER;
+			}
+			
+			try{
+				Class impl_class = CacheFileManagerFactory.class.getClassLoader().loadClass( impl );
+				
+				manager = (CacheFileManager)impl_class.newInstance();
+								
+			}catch( Throwable e ){
+				
+				throw( new CacheFileManagerException( "Failed to instantiate manager '" + impl + "'", e ));
+			}
+		}
+		
+		return( manager );
 	}
 }

@@ -20,11 +20,12 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.cache.impl;
+package com.aelitis.azureus.core.diskmanager.cache.impl;
 
 import java.io.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.disk.cache.*;
+
+import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
  * @author parg
@@ -42,17 +43,43 @@ Test
 		try{
 			CacheFileManager	manager = CacheFileManagerFactory.getSingleton();
 			
-			CacheFile cf = manager.createFile(
-				new CacheFileOwner()
-				{
-					public String
-					getName()
-					{
-						return( "test file" );
-					}
-				},
-				new File( "C:\\temp\\cachetest.dat" ));
+			CacheFile[]	files = new CacheFile[3];
 			
+			byte[][]	file_data	= new byte[3][];
+			
+			for (int i=0;i<files.length;i++){
+				
+				final	int f_i = i;
+			
+				file_data[i] = new byte[randomInt(200000)];
+				
+				files[i] = manager.createFile(
+					new CacheFileOwner()
+					{
+						public String
+						getName()
+						{
+							return( "file" + f_i );
+						}
+					},
+					new File( "C:\\temp\\cachetest" + i + ".dat" ));
+				
+				files[i].setAccessMode( CacheFile.CF_WRITE );
+				
+				DirectByteBuffer bb = DirectByteBufferPool.getBuffer(file_data[i].length);
+				
+				bb.put( file_data[i]);
+				
+				bb.position(0);
+				
+				files[i].write(bb,0);
+			}
+			
+			while( true ){
+				
+				CacheFile	fc = files[randomInt(files.length)];
+			}
+			/*
 			DirectByteBuffer	write_buffer1 = DirectByteBufferPool.getBuffer(512);
 			DirectByteBuffer	write_buffer2 = DirectByteBufferPool.getBuffer(512);
 			
@@ -66,12 +93,20 @@ Test
 			cf.read( read_buffer, 503 );
 			read_buffer.position(0);
 			cf.read( read_buffer, 503 );
+			*/
 			
-			cf.close();
+			//cf.close();
 			
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
+	}
+	
+	static int
+	randomInt(
+		int	num )
+	{
+		return( (int)(Math.random()*num ));
 	}
 }

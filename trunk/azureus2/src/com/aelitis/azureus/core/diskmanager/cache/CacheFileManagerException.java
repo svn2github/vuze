@@ -20,15 +20,28 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.cache;
+package com.aelitis.azureus.core.diskmanager.cache;
 
 /**
  * @author parg
  *
  */
-public interface 
-CacheFileOwner 
+public class 
+CacheFileManagerException 
+extends Exception
 {
-	public String
-	getName();
+	public
+	CacheFileManagerException(
+		String		str )
+	{
+		super(str);
+	}
+	
+	public
+	CacheFileManagerException(
+		String		str,
+		Throwable	cause )
+	{
+		super( str, cause );
+	}
 }

@@ -27,8 +27,9 @@ package org.gudy.azureus2.core3.disk.impl;
 import java.io.File;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
  * @author Olivier

@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.cache.impl;
+package com.aelitis.azureus.core.diskmanager.cache.impl;
 
 /**
  * @author parg
@@ -30,9 +30,10 @@ package org.gudy.azureus2.core3.disk.cache.impl;
 import java.io.File;
 import java.util.*;
 
-import org.gudy.azureus2.core3.disk.cache.*;
-import org.gudy.azureus2.core3.disk.file.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
+import com.aelitis.azureus.core.diskmanager.cache.*;
+import com.aelitis.azureus.core.diskmanager.file.*;
 
 public class 
 CacheFileManagerImpl 
@@ -45,9 +46,7 @@ CacheFileManagerImpl
 	protected static long		cache_minimum_free_size	= cache_size/4;
 	
 	protected static long		cache_space_free		= cache_size; 
-	
-	protected static CacheFileManagerImpl			singleton = new CacheFileManagerImpl();
-	
+		
 	protected FMFileManager		file_manager;
 
 		// access order
@@ -59,13 +58,7 @@ CacheFileManagerImpl
 	protected long				file_bytes_written;
 	protected long				file_bytes_read;
 	
-	public static CacheFileManager
-	getSingleton()
-	{
-		return( singleton );
-	}
-	
-	protected
+	public
 	CacheFileManagerImpl()
 	{
 		file_manager	= FMFileManagerFactory.getSingleton();

@@ -23,7 +23,6 @@
 package com.aelitis.azureus.core.impl;
 
 import java.util.*;
-import java.io.UnsupportedEncodingException;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;

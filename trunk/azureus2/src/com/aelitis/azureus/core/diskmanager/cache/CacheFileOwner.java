@@ -20,21 +20,15 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.cache;
-
-import org.gudy.azureus2.core3.disk.cache.impl.*;
+package com.aelitis.azureus.core.diskmanager.cache;
 
 /**
  * @author parg
  *
  */
-
-public class 
-CacheFileManagerFactory 
+public interface 
+CacheFileOwner 
 {
-	public static CacheFileManager
-	getSingleton()
-	{
-		return( CacheFileManagerImpl.getSingleton());
-	}
+	public String
+	getName();
 }

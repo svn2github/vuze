@@ -26,7 +26,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -36,6 +35,7 @@ import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.Semaphore;
 
 import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
+import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
  * @author parg

@@ -30,7 +30,6 @@ import java.util.StringTokenizer;
 
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.cache.*;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.impl.resume.*;
@@ -45,6 +44,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
+import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
  * 
