@@ -342,6 +342,7 @@ public class FileUtil {
         //rename it in case it actually contains useful data, so it won't be overwritten next save
         LGLogger.log("Read of '" + file_name + "' failed, b-decoding error. Renaming to *.bad" );      
         File bad = new File( file.getParentFile(), file.getName() + ".bad" );
+        try {  if (bin != null) bin.close();  } catch (Exception x) { x.printStackTrace(); }
         file.renameTo( bad );
 	    	
 	    	if ( using_backup ){
