@@ -63,7 +63,7 @@ public class TrayWindow implements GlobalManagerListener {
     screen = display.getClientArea();
     //System.out.println(screen);
  //NICO handle macosx and multiple monitors
-    if (!System.getProperty("os.name").equals("Mac OS X")) {
+    if (!Constants.isOSX) {
     	minimized.setLocation(screen.width - bounds.width - 2, screen.height - bounds.height - 2);
     } else {
     	minimized.setLocation(20, 20);

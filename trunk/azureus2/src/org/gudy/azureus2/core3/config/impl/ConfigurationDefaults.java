@@ -18,6 +18,7 @@ import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.Constants;
 
 
 /**
@@ -118,7 +119,7 @@ public class ConfigurationDefaults {
     
     boolean bGTKTableBug = false;
     try {
-      bGTKTableBug = System.getProperty("os.name").equals("Linux") && SWT.getPlatform().equals("gtk");
+      bGTKTableBug = Constants.isLinux && SWT.getPlatform().equals("gtk");
     } catch (NoClassDefFoundError e) {
       /* Ignore, SWT not installed */
     }

@@ -26,6 +26,7 @@ import java.io.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 public class 
@@ -156,13 +157,17 @@ Restarter
     String[]  properties,
     String[]  parameters ) 
   {
-    String osName = System.getProperty("os.name");
-    if(osName.equalsIgnoreCase("Mac OS X")) {
-      restartAzureus_OSX(log,mainClass,properties,parameters);
-    } else if(osName.equalsIgnoreCase("Linux")) {
-      restartAzureus_Linux(log,mainClass,properties,parameters);
-    } else {
-      restartAzureus_win32(log,mainClass,properties,parameters);
+    if(Constants.isOSX){
+    	
+    	restartAzureus_OSX(log,mainClass,properties,parameters);
+    	
+    }else if( Constants.isLinux ){
+    	
+    	restartAzureus_Linux(log,mainClass,properties,parameters);
+      
+    }else{
+    	
+    	restartAzureus_win32(log,mainClass,properties,parameters);
     }
   }
   

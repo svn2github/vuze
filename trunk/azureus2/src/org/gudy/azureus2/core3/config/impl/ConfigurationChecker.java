@@ -202,7 +202,7 @@ public class ConfigurationChecker {
     /**
      * Special Patch for OSX users
      */
-    if (System.getProperty("os.name").equals("Mac OS X")) {
+    if (Constants.isOSX) {
       boolean sound = COConfigurationManager.getBooleanParameter("Play Download Finished",true);
       boolean close = COConfigurationManager.getBooleanParameter("Close To Tray",true);
       boolean min = COConfigurationManager.getBooleanParameter("Minimize To Tray",true);

@@ -35,13 +35,18 @@ Constants
   
   public static final int MINIMAL_SWT_VERSION = 3044;
   
-  public static final boolean isOSX;
-  public static final boolean isLinux;
+  public static final String  OSName = System.getProperty("os.name");
   
-  static {
-    isOSX = System.getProperty("os.name").equalsIgnoreCase("Mac OS X");
-    isLinux = System.getProperty("os.name").equalsIgnoreCase("Linux");
-  }
+  public static final boolean isOSX				= OSName.equalsIgnoreCase("Mac OS X");
+  public static final boolean isLinux			= OSName.equalsIgnoreCase("Linux");
+  public static final boolean isWindowsXP		= OSName.equalsIgnoreCase("Windows XP");
+  public static final boolean isWindows95		= OSName.equalsIgnoreCase("Windows 95");
+  public static final boolean isWindows98		= OSName.equalsIgnoreCase("Windows 98");
+  public static final boolean isWindowsME		= OSName.equalsIgnoreCase("Windows ME");
+  public static final boolean isWindows9598ME	= isWindows95 || isWindows98 || isWindowsME;
+  
+  public static final boolean isWindows	= !(isOSX || isLinux); 
+ 
   
   	/**
   	 * Gets the current version, or if a CVS version, the one on which it is based 

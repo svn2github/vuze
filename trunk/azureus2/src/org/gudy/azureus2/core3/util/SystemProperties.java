@@ -60,10 +60,8 @@ public class SystemProperties {
     }
     
     String userhome = System.getProperty("user.home");
-    
-    String OS = System.getProperty("os.name").toLowerCase();
-    
-    if ( OS.indexOf("windows") >= 0 ) {   	
+        
+    if ( Constants.isWindows ) {   	
       try { 
         user_path = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
         LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from registry: " + user_path  );
@@ -86,7 +84,7 @@ public class SystemProperties {
       
       LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Win): user_path = " + user_path );
       
-    }else if ( OS.indexOf("mac os x") >= 0 ) {
+    }else if ( Constants.isOSX ) {
     	
       user_path = userhome + SEP + OSX_DEFAULT + SEP + AZ_DIR + SEP;
       
@@ -147,18 +145,17 @@ public class SystemProperties {
   	Properties envVars = new Properties();
   	Runtime r = Runtime.getRuntime();
     BufferedReader br = null;
-    String OS = System.getProperty("os.name").toLowerCase();
 
     	// this approach doesn't work at all on Windows 95/98/ME - it just hangs
     	// so get the hell outta here!
     
-    if ( OS.indexOf("windows 9") != -1 ){
+    if ( Constants.isWindows9598ME ){
     	
     	return( "" );
     }
     
     try {
-    	if ( (OS.indexOf("nt") > -1) || (OS.indexOf("windows") > -1) ) {
+    	if ( Constants.isWindows ) {
     		p = r.exec( "cmd.exe /c set" );
     	}
     	else { //we assume unix

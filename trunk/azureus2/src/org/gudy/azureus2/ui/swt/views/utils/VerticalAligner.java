@@ -27,6 +27,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.Constants;
 
 /** Workaround Eclipse Bug Bug 42416
  *   "[Platform Inconsistency] GC(Table) has wrong origin"
@@ -50,7 +51,7 @@ public class VerticalAligner implements ParameterListener {
 	  // some people switch from motif to gtk & back again, so make this
 	  // only apply to GTK, even if it was enabled prior
   	bFixGTKBug = COConfigurationManager.getBooleanParameter("SWT_bGTKTableBug") &&
-  	             System.getProperty("os.name").equals("Linux") && SWT.getPlatform().equals("gtk");
+  	             Constants.isLinux && SWT.getPlatform().equals("gtk");
 	}
   
   public static int getTableAdjustVerticalBy(Table t) {

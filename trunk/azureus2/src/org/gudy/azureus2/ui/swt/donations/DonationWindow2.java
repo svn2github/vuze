@@ -109,9 +109,7 @@ public class DonationWindow2 {
     tempFont = shell.getFont();
     fontDataMain = tempFont.getFontData();
     
-    boolean isMacLinux = (System.getProperty("os.name").equals("Mac OS X") ||
-                          System.getProperty("os.name").equals("Linux"));
-    
+    boolean isMacLinux = Constants.isOSX || Constants.isLinux;    
     
     for(int i=0 ; i < fontDataMain.length ; i++) {
       if(!isMacLinux)

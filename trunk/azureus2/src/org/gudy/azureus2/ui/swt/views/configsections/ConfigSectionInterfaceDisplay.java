@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.Constants;
 
 public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
   private static final String[] sColorsToOverride = { "progressBar", "error", "warning", "altRow" };
@@ -96,8 +97,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     new BooleanParameter(cLook, "Show Download Basket",false, "ConfigView.section.style.showdownloadbasket");
     new BooleanParameter(cLook, "Add URL Silently",false, "ConfigView.section.style.addurlsilently");
     
-    String osName = System.getProperty("os.name");
-    if (osName.equals("Windows XP")) {
+    if ( Constants.isWindowsXP ) {
       final Button enableXPStyle = new Button(cLook, SWT.CHECK);
       Messages.setLanguageText(enableXPStyle, "ConfigView.section.style.enableXPStyle");
       
@@ -152,7 +152,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
       });
     }
 
-    if (osName.equals("Linux") && SWT.getPlatform().equals("gtk")) {
+    if ( Constants.isLinux && SWT.getPlatform().equals("gtk")) {
       // See Eclipse Bug #42416 ([Platform Inconsistency] GC(Table) has wrong origin)
       new BooleanParameter(cLook, "SWT_bGTKTableBug", "ConfigView.section.style.verticaloffset");
     }

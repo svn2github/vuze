@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Constants;
 
 public class ConfigSectionTransfer implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -242,7 +243,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     formData.top = new FormAttachment(allowSameIP.getControl());
     firstPiece.setLayoutData(formData);
     
-    if(!System.getProperty("os.name").equals("Mac OS X")) {
+    if(!Constants.isOSX) {
       BooleanParameter playSound = new BooleanParameter(cTransfer, "Play Download Finished", false, "ConfigView.label.playdownloadfinished");
       formData = new FormData();
       formData.top = new FormAttachment(firstPiece.getControl());

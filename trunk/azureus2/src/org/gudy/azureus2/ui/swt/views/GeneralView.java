@@ -565,7 +565,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       }
     });
 
-    if(System.getProperty("os.name").equals("Mac OS X")) {
+    if( Constants.isOSX ) {
       Shell shell = MainWindow.getWindow().getShell();
       Point size = shell.getSize();
       shell.setSize(size.x-1,size.y-1);

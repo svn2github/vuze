@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.platform;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.win32.PlatformManagerImpl;
 
 /**
@@ -55,9 +56,7 @@ PlatformManagerFactory
 	public static int
 	getPlatformType()
 	{
-		String OS = System.getProperty("os.name").toLowerCase();
-	    
-		if ( OS.indexOf("windows") >= 0 ){
+		if ( Constants.isWindows ){
 			
 			return( PlatformManager.PT_WINDOWS );
 		}else{

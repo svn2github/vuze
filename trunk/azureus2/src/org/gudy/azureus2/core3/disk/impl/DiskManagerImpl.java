@@ -589,7 +589,7 @@ DiskManagerImpl
 
 			String newName = name.replace('"', '\'');
 
-			if (System.getProperty("os.name").startsWith("Windows")) {
+			if ( Constants.isWindows ){
 				newName = newName.replaceAll(unsupportedChars[0], "_");
 			}
 

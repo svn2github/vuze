@@ -189,10 +189,8 @@ public class FileUtil {
   	String	file_name_in )
   {
   	String	file_name_out	= file_name_in;
-	
-  	boolean mac = System.getProperty("os.name").equals("Mac OS X");
-  	
-  	if ( !mac ){
+	 	
+  	if ( !Constants.isOSX ){
   		
   			// '/' is valid in mac file names, replace with space
   			// so it seems are cr/lf

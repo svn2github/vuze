@@ -121,7 +121,9 @@ CoreUpdateChecker
 			
 			if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
 				
-				url_str += "?id=" + id + "&version=" + Constants.AZUREUS_VERSION;
+				url_str += "?id=" + id + 
+								"&version=" + Constants.AZUREUS_VERSION + 
+								"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 			}
 			
 			URL url = new URL(url_str); 
@@ -414,15 +416,17 @@ CoreUpdateChecker
 			
 			installer.addResource( temp_jar_name, data );
 			
-      if(Constants.isOSX) {
-        installer.addMoveAction( 
-            temp_jar_name,
-            installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/" + target_jar_name );        
-      } else {
-        installer.addMoveAction( 
+			if ( Constants.isOSX ){
+				
+				installer.addMoveAction( 
+					temp_jar_name,
+					installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/" + target_jar_name );        
+			}else{
+				
+				installer.addMoveAction( 
 					temp_jar_name,
 					installer.getInstallDir() + File.separator + target_jar_name );
-      }
+			}
 		}catch( Throwable e ){
 			
 			rd.reportActivity("Update install failed:" + e.getMessage());

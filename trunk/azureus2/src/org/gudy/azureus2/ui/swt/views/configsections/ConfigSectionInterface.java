@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.*;
 
 public class ConfigSectionInterface implements ConfigSectionSWT {
@@ -79,7 +80,7 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     new BooleanParameter(cDisplay, "Open Details", "ConfigView.label.opendetails");
     new BooleanParameter(cDisplay, "Open Bar", false, "ConfigView.label.openbar");
 
-    if(!System.getProperty("os.name").equals("Mac OS X")) {
+    if(!Constants.isOSX) {
       new BooleanParameter(cDisplay, "Close To Tray", true, "ConfigView.label.closetotray");
       new BooleanParameter(cDisplay, "Minimize To Tray", false, "ConfigView.label.minimizetotray");
     }
