@@ -45,9 +45,13 @@ TRTrackerServerTorrentImpl
 
 	protected Map				peer_map 		= new HashMap();
 	protected Map				peer_reuse_map	= new HashMap();
+	
 	protected List				peer_list		= new ArrayList();
+	protected int				peer_list_hole_count;
+	protected boolean			peer_list_compaction_suspended;
 	
 	protected int				seed_count;
+	protected int				removed_count;
 	
 	protected Random			random		= new Random( SystemTime.getCurrentTime());
 	
@@ -212,15 +216,23 @@ TRTrackerServerTorrentImpl
 		return( peer );
 	}
 	
-	protected synchronized void
+	protected void
 	removePeer(
 		TRTrackerServerPeerImpl	peer )
 	{
+		removePeer( peer, -1 );
+	}
+		
+	protected synchronized void
+	removePeer(
+		TRTrackerServerPeerImpl	peer,
+		int						peer_list_index )	// -1 if not known
+	{
 		stats.removeLeft( peer.getAmountLeft());
 		
-		if ( peer_map.size() != peer_list.size() || peer_list.size() != peer_reuse_map.size()){
+		if ( peer_map.size() != peer_reuse_map.size()){
 	
-			Debug.out( "TRTrackerServerTorrent::removePeer: maps/list size different");	
+			Debug.out( "TRTrackerServerTorrent::removePeer: maps size different");	
 		}
 		
 		try{
@@ -233,10 +245,33 @@ TRTrackerServerTorrentImpl
 		}catch( UnsupportedEncodingException e ){
 		}										
 		
-		if ( !peer_list.remove( peer )){
+		if ( peer_list_index == -1 ){
 			
-			Debug.out(" TRTrackerServerTorrent::removePeer: peer_list doesn't contain peer");
+			int	peer_index = peer_list.indexOf( peer );
+			
+			if ( peer_index == -1){
+				
+				Debug.out(" TRTrackerServerTorrent::removePeer: peer_list doesn't contain peer");
+			}else{
+				
+				peer_list.set( peer_index, null );
+			}
+		}else{
+			
+			if ( peer_list.get( peer_list_index ) == peer ){
+				
+				peer_list.set( peer_list_index, null );
+				
+			}else{
+				
+				Debug.out(" TRTrackerServerTorrent::removePeer: peer_list doesn't contain peer at index");
+				
+			}
 		}
+		
+		peer_list_hole_count++;
+			
+		checkForPeerListCompaction( false );
 		
 		try{
 			Object o = peer_reuse_map.remove( new String( peer.getIPWhenCreated(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
@@ -253,46 +288,12 @@ TRTrackerServerTorrentImpl
 			
 			seed_count--;
 		}
+		
+		removed_count++;
 	}
 	
-	protected void
-	removePeer(
-		Iterator				peer_map_iterator,
-		TRTrackerServerPeerImpl	peer )
-	{
-		stats.removeLeft( peer.getAmountLeft());
-
-		if ( peer_map.size() != peer_list.size() || peer_list.size() != peer_reuse_map.size()){
-			
-			Debug.out( "TRTrackerServerTorrent::removePeer: maps/list size different");	
-		}
-		
-		peer_map_iterator.remove();
-		
-		if ( !peer_list.remove( peer )){
-			
-			Debug.out(" TRTrackerServerTorrent::removePeer: peer_list doesn't contain peer");
-		}
-		
-		try{
-			Object o = peer_reuse_map.remove( new String( peer.getIPWhenCreated(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
-			
-			if ( o == null ){
-				
-				Debug.out(" TRTrackerServerTorrent::removePeer: peer_reuse_map doesn't contain peer");
-			}
-			
-		}catch( UnsupportedEncodingException e ){
-		}	
-		
-		if ( peer.isSeed()){
-			
-			seed_count--;
-		}
-	}
-	
-	protected synchronized Map
-	exportAnnounceToList(
+	public synchronized Map
+	exportAnnounceToMap(
 		boolean		include_seeds,
 		int			num_want,
 		long		interval,
@@ -353,7 +354,7 @@ TRTrackerServerTorrentImpl
 				announceCacheEntry	res = (announceCacheEntry)announce_cache.get(new Integer(i));
 				
 				if( res != null ){
-										
+								
 					return( res.getData());
 				}
 			}
@@ -390,17 +391,20 @@ TRTrackerServerTorrentImpl
 		
 					// if they want them all simply give them the set
 				
-				Iterator	it = peer_map.values().iterator();
-						
-				while(it.hasNext()){
-			
-					TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
+				for (int i=0;i<peer_list.size();i++){
+								
+					TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(i);
 									
+					if ( peer == null ){
+						
+						continue;
+					}
+					
 					if ( now > peer.getTimeout()){
 									
 							// System.out.println( "removing timed out client '" + peer.getString());
 						
-						removePeer( it, peer );									
+						removePeer( peer, i );									
 						
 					}else if ( include_seeds || !peer.isSeed()){
 										
@@ -431,6 +435,7 @@ TRTrackerServerTorrentImpl
 					}
 				}
 			}else{
+				
 				if ( num_want < total_peers*3 ){
 					
 						// too costly to randomise as below. use more efficient but slightly less accurate
@@ -445,6 +450,11 @@ TRTrackerServerTorrentImpl
 						
 						TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(index);
 		
+						if ( peer == null ){
+							
+							continue;
+						}
+						
 						if ( now > peer.getTimeout()){
 							
 							removePeer( peer );
@@ -465,7 +475,7 @@ TRTrackerServerTorrentImpl
 								byte[]	peer_bytes = peer.getIPBytes();
 								
 								if ( peer_bytes == null ){
-									
+																		
 									continue;
 								}
 								
@@ -473,10 +483,10 @@ TRTrackerServerTorrentImpl
 							}else{
 								rep_peer.put( "ip", peer.getIPAsRead() );
 							}
+							
 							rep_peer.put( "port", new Long( peer.getPort()));	
 							
 							rep_peers.add( rep_peer );
-						
 						}
 					}
 					
@@ -567,53 +577,18 @@ TRTrackerServerTorrentImpl
 	
 			// also include scrape details
 		
-		long	seeds 		= 0;
-		long	non_seeds	= 0;
-		
-		for (int i=0;i<peer_list.size();i++){
-			
-			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(i);
-			
-			if ( peer.getAmountLeft() == 0 ){
-				
-				seeds++;
-				
-			}else{
-				
-				non_seeds++;
-			}
-		}
-		
-		root.put( "complete", new Long( seeds ));
-		root.put( "incomplete", new Long( non_seeds ));
+		root.put( "complete", new Long( getSeedCount() ));
+		root.put( "incomplete", new Long( getLeecherCount() ));
 		root.put( "downloaded", new Long(stats.getCompletedCount()));
 		
 		if ( add_to_cache ){
-						
+				
 			announce_cache.put( new Integer((num_want+9)/10), new announceCacheEntry( root, send_peer_ids, compact ));
 		}
 		
 		return( root );
 	}
-	
-	protected synchronized void
-	checkTimeouts()
-	{
-		long	now = SystemTime.getCurrentTime();
 		
-		Iterator	it = peer_map.values().iterator();
-				
-		while(it.hasNext()){
-			
-			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
-			
-			if ( now > peer.getTimeout()){
-				
-				removePeer( it, peer );
-			}
-		}
-	}
-	
 	public synchronized Map
 	exportScrapeToMap(
 		boolean		allow_cache )
@@ -632,28 +607,97 @@ TRTrackerServerTorrentImpl
 		last_scrape 			= new TreeMap();
 		last_scrape_calc_time	= now;
 		
-		long	seeds 		= 0;
-		long	non_seeds	= 0;
-		
-		for (int i=0;i<peer_list.size();i++){
-			
-			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(i);
-			
-			if ( peer.getAmountLeft() == 0 ){
-				
-				seeds++;
-				
-			}else{
-				
-				non_seeds++;
-			}
-		}
-		
-		last_scrape.put( "complete", new Long( seeds ));
-		last_scrape.put( "incomplete", new Long( non_seeds ));
+		last_scrape.put( "complete", new Long( getSeedCount()));
+		last_scrape.put( "incomplete", new Long( getLeecherCount()));
 		last_scrape.put( "downloaded", new Long(stats.getCompletedCount()));
 		
 		return( last_scrape );
+	}
+	
+	protected synchronized void
+	checkTimeouts()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		try{
+			peer_list_compaction_suspended	= true;
+			
+			for (int i=0;i<peer_list.size();i++){
+								
+				TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)peer_list.get(i);
+				
+				if ( peer == null ){
+					
+					continue;
+				}
+				
+				if ( now > peer.getTimeout()){
+					
+					removePeer( peer, i );
+				}
+			}
+		}finally{
+			
+			peer_list_compaction_suspended	= false;
+		}
+		
+		if ( removed_count > 1000 ){
+			
+			removed_count = 0;
+			
+			checkForPeerListCompaction( true );
+			
+				// rehash
+			
+			HashMap	new_peer_map 		= new HashMap(peer_map);
+			HashMap	new_peer_reuse_map	= new HashMap(peer_reuse_map);
+			
+			peer_map 		= new_peer_map;
+			peer_reuse_map	= new_peer_reuse_map;
+			
+		}else{
+			
+			checkForPeerListCompaction( false );
+		}
+	}
+	
+	protected void
+	checkForPeerListCompaction(
+		boolean	force )
+	{
+		if ( peer_list_hole_count > 0 && !peer_list_compaction_suspended ){
+			
+			if ( force || peer_list_hole_count > peer_map.size()/10 ){
+				
+				System.out.println( "compacting" );
+				
+				ArrayList	new_peer_list = new ArrayList( peer_list.size() - peer_list_hole_count );
+				
+				int	holes_found = 0;
+				
+				for (int i=0;i<peer_list.size();i++){
+					
+					Object	obj = peer_list.get(i);
+					
+					if ( obj == null ){
+						
+						holes_found++;
+					}else{
+						
+						new_peer_list.add( obj );
+					}
+				}
+				
+				if( holes_found != peer_list_hole_count ){
+					
+					Debug.out( "TRTrackerTorrent:compactHoles: count mismatch" );
+				}
+				
+				peer_list	= new_peer_list;
+				
+				peer_list_hole_count	= 0;
+			}
+		}
 	}
 	
 	protected void

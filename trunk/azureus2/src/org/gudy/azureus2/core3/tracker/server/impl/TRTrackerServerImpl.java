@@ -39,11 +39,11 @@ public abstract class
 TRTrackerServerImpl 
 	implements 	TRTrackerServer
 {
-	protected static final int RETRY_MINIMUM_SECS			= 60;
-	protected static final int RETRY_MINIMUM_MILLIS			= RETRY_MINIMUM_SECS*1000;
-	protected static final int CLIENT_TIMEOUT_MULTIPLIER	= 3;
+	public static  int RETRY_MINIMUM_SECS			= 60;
+	public static  int RETRY_MINIMUM_MILLIS			= RETRY_MINIMUM_SECS*1000;
+	public static  int CLIENT_TIMEOUT_MULTIPLIER	= 3;
 	
-	protected static final int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
+	public static int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
 	
 	protected static int		max_peers_to_send			= 0;
 	protected static boolean	send_peer_ids				= true;
@@ -186,7 +186,7 @@ TRTrackerServerImpl
 	
 
 	
-	protected
+	public
 	TRTrackerServerImpl(
 		String		_name )
 	{

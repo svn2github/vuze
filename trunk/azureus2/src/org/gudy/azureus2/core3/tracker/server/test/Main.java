@@ -120,21 +120,23 @@ Main
 		
 		System.out.println( "used = " + ( rt.totalMemory() - rt.freeMemory()));
 		
-		for (int i=0;i<50000;i++){
-			
-			try{
-				if ( i%1000 == 0 ){
-					System.out.println(i);
+		for (int x=0;x<1000;x++){
+			for (int i=0;i<50000;i++){
+				
+				try{
+					if ( i%1000 == 0 ){
+					//	System.out.println(i);
+					}
+					torrent.peerContact("started", "xxxxxxxxxxxxxxxx" + i, 1234, "xxxxxxx" + i,  "kkkkkkkk", 0, 0, 0, 100, 100000 );
+				}catch( Throwable e ){
+					e.printStackTrace();
 				}
-				torrent.peerContact("started", "wee" + i, 1234, "moo" + i, "", 0, 0, 0, 100, 100000 );
-			}catch( Throwable e ){
-				e.printStackTrace();
 			}
+			
+			rt.gc();
+			
+			System.out.println( "used = " + ( rt.totalMemory() - rt.freeMemory()));
 		}
-		
-		rt.gc();
-		
-		System.out.println( "used = " + ( rt.totalMemory() - rt.freeMemory()));
 	}
 
 	protected static Semaphore			init_sem = new Semaphore();

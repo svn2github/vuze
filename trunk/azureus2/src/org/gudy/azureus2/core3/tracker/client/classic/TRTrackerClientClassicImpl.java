@@ -101,9 +101,9 @@ TRTrackerClientClassicImpl
 	private byte[] peerId;
 	private String peer_id = "&peer_id=";
 	
-	private String 	key_id			= "";
-	private int	   	key_id_length	= 8;
-	private int		key_udp;
+	private String 					key_id			= "";
+	private static final int	   	key_id_length	= 8;
+	private int						key_udp;
 	
 	private String port;
 	private String ip_override;
@@ -154,7 +154,44 @@ TRTrackerClientClassicImpl
 						listener.urlRefresh();
 					}
 				}
-			});	  
+			});
+
+	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+	public static byte[]
+	createPeerID()
+	{
+		byte[] peerId = new byte[20];
+	
+		byte[] version = Constants.VERSION_ID;
+    
+		for (int i = 0; i < 8; i++) {
+			peerId[i] = version[i];
+		}
+    
+	 	for (int i = 8; i < 20; i++) {
+		  int pos = (int) ( Math.random() * chars.length());
+	     peerId[i] = (byte)chars.charAt(pos);
+		}
+	 	
+		// System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
+
+	 	return( peerId );
+	}
+
+	public static String
+	createKeyID()
+	{
+		String	key_id = "";
+		
+		for (int i = 0; i < key_id_length; i++) {
+			int pos = (int) ( Math.random() * chars.length());
+		    key_id +=  chars.charAt(pos);
+		}
+		
+		return( key_id );
+	}
+	
   public 
   TRTrackerClientClassicImpl(
   	TOTorrent	_torrent,
@@ -171,27 +208,11 @@ TRTrackerClientClassicImpl
     addConfigListeners();  
    
 		//Create our unique peerId
-		
-	peerId = new byte[20];
 	
-    byte[] version = Constants.VERSION_ID;
-    
-	for (int i = 0; i < 8; i++) {
-	  peerId[i] = version[i];
-    }
-    
-    String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-	for (int i = 8; i < 20; i++) {
-	  int pos = (int) ( Math.random() * chars.length());
-     peerId[i] = (byte)chars.charAt(pos);
-	}
+    peerId = createPeerID();
 
-	// System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
-	for (int i = 0; i < key_id_length; i++) {
-		int pos = (int) ( Math.random() * chars.length());
-	    key_id +=  chars.charAt(pos);
-	}
-	
+    key_id	= createKeyID();
+    
 	key_udp	= (int)(Math.random() *  (double)0xFFFFFFFFL );
 	
 	try {
