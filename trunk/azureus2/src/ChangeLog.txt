@@ -18,7 +18,7 @@ CHANGE: Core | More "polite" hash checking...doesn't stress the cpu/system as mu
 
 BUGFIX: Core | 99.X% / continuous hash fails fix [Parg]
 BUGFIX: UI   | Fix bug where failed-hashcheck pieces never reappeared in Pieces view [Nolar]
-
+BUGFIX: Core | basic plugin config model parameters not working in non-swt (e.g. console) mode
 
 
 2004.06.21 | Azureus 2.1.0.2
