@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.swt.SWT;
+import org.gudy.azureus2.core3.logging.LGLogger;
 
 /**
  * @author Olivier Chalouhi
@@ -98,6 +99,8 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
       + userPath + "\" \"" + libraryPath + "\"";
       
       //System.out.println(exec);
+      
+      LGLogger.log("SWT Updater is about to execute : " + exec);
       
       Runtime.getRuntime().exec(exec);
     } catch(Exception e) {
