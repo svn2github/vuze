@@ -27,6 +27,9 @@ package org.gudy.azureus2.ui.swt.auth;
  */
 
 import java.net.*;
+import java.util.*;
+
+import sun.misc.BASE64Encoder;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.layout.*;
@@ -37,17 +40,20 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.*;
 
 public class 
 AuthenticatorWindow 
 {
+	protected Map	auth_cache = new HashMap();
+	
 	public
 	AuthenticatorWindow()
 	{
 		Authenticator.setDefault(
 			new Authenticator()
 			{
-				protected PasswordAuthentication
+				protected synchronized PasswordAuthentication
 				getPasswordAuthentication()
 				{
 					String	realm = getRequestingPrompt();
@@ -55,7 +61,49 @@ AuthenticatorWindow
 					String	tracker = getRequestingProtocol() + "://" + 
 										getRequestingHost() + ":" + 
 										getRequestingPort() + "/";
+					
+					String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+
+					String	self_addr;
+		
+					if ( bind_ip.length() < 7 ){
+				
+						self_addr = "127.0.0.1";
+				
+					}else{
+				
+						self_addr = bind_ip;
+					}
+
+					if ( getRequestingHost().equals(self_addr)){
+					
+						try{
+							byte[]	pw	= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
+						
+							String str_pw = new BASE64Encoder().encode(pw);
+							
+							return( new PasswordAuthentication( "<internal>", str_pw.toCharArray()));
+								
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}	
+					}
+					
+					String auth_key = realm+":"+tracker;
 										
+					authCache	cache = (authCache)auth_cache.get( auth_key );
+								
+					if ( cache != null ){
+						
+						PasswordAuthentication	auth = cache.getAuth();
+						
+						if ( auth != null ){
+							
+							return( auth );
+						}
+					}
+						
 					String[]	res = getAuth( realm, tracker );
 						
 					if ( res == null ){
@@ -64,7 +112,11 @@ AuthenticatorWindow
 						
 					}else{
 										
-						return( new PasswordAuthentication( res[0], res[1].toCharArray()));
+						PasswordAuthentication auth =  new PasswordAuthentication( res[0], res[1].toCharArray());
+						
+						auth_cache.put( auth_key, new authCache( auth ));
+						
+						return( auth );
 					}
 				}
 			});
@@ -281,4 +333,32 @@ AuthenticatorWindow
 	 		return( password );
 	 	}
 	}
+	
+	protected class
+	authCache
+	{
+		protected PasswordAuthentication	auth;
+		protected int						life = 5;
+		
+		protected
+		authCache(
+			PasswordAuthentication		_auth )
+		{
+			auth		= _auth;
+		}
+		
+		protected PasswordAuthentication
+		getAuth()
+		{
+			life--;
+			
+			if ( life >= 0 ){
+				
+				return( auth );
+			}
+			
+			return( null );
+		}
+	}
+		
 }

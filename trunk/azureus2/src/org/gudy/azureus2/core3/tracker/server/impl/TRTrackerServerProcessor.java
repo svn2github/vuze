@@ -208,8 +208,16 @@ TRTrackerServerProcessor
 						encoded = new byte[0];
 					}
 					
-					if ( user.equalsIgnoreCase(server.getUsername()) &&
-						 Arrays.equals(encoded, server.getPassword())){
+					if ( user.equals( "<internal>")){
+						
+						byte[] internal_pw = new BASE64Decoder().decodeBuffer(pw);
+
+						if ( Arrays.equals( internal_pw, server.getPassword())){
+							
+							return( true );
+						}
+					}else if ( 	user.equalsIgnoreCase(server.getUsername()) &&
+						 		Arrays.equals(encoded, server.getPassword())){
 						 	
 						 return( true );			 	
 					}
