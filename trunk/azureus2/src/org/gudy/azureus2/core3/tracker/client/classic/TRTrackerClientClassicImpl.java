@@ -1309,8 +1309,7 @@ TRTrackerClientClassicImpl
         // TODO: remove the enable/disable option once we know our implementation works properly in the wild
       
       if ( COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true )){
-      	
-      	if (numwant > 0) request.append( "&compact=1");
+        request.append( "&compact=1" );
       }
     }
 	
