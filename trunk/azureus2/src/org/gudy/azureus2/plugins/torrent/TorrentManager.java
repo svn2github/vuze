@@ -118,8 +118,24 @@ TorrentManager
 	public TorrentAttribute[]
 	getDefinedAttributes();
 	
+		/**
+		 * Gives access to the standard built-in attributes
+		 * @param name
+		 * @return
+		 */
+	
 	public TorrentAttribute
 	getAttribute(
+		String		name );
+	
+		/**
+		 * Gives access to/creates arbitrary String attributes for plugins to use
+		 * @param name
+		 * @return
+		 */
+	
+	public TorrentAttribute
+	getPluginAttribute(
 		String		name );
 	
 	public void

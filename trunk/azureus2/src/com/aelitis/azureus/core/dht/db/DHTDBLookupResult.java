@@ -30,10 +30,6 @@ package com.aelitis.azureus.core.dht.db;
 public interface 
 DHTDBLookupResult 
 {
-	public static final byte	DT_NONE			= 1;
-	public static final byte	DT_FREQUENCY	= 2;
-	public static final byte	DT_SIZE			= 3;
-
 	public DHTDBValue[]
 	getValues();
 	

@@ -32,6 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
@@ -64,7 +65,9 @@ TorrentManagerImpl
 		
 			if ( singleton == null ){
 				
-				singleton = new TorrentManagerImpl();
+					// default singleton not attached to a plugin
+				
+				singleton = new TorrentManagerImpl(null);
 			}
 			
 			return( singleton );
@@ -75,12 +78,24 @@ TorrentManagerImpl
 		}
 	}
 	
-	protected List		listeners = new ArrayList();
+	protected static List		listeners = new ArrayList();
+	
+	protected PluginInterface	plugin_interface;
 	
 	protected
-	TorrentManagerImpl()
+	TorrentManagerImpl(
+		PluginInterface		_pi )
 	{
-
+		plugin_interface	= _pi;
+	}
+	
+	public TorrentManager
+	specialise(
+		PluginInterface		_pi )
+	{
+			// specialised one attached to plugin
+		
+		return( new TorrentManagerImpl( _pi ));
 	}
 	
 	public TorrentDownloader
@@ -195,20 +210,66 @@ TorrentManagerImpl
 	public TorrentAttribute[]
 	getDefinedAttributes()
 	{
-		Collection	entries = attribute_map.values();
+		try{
+			class_mon.enter();
 		
-		TorrentAttribute[]	res = new TorrentAttribute[entries.size()];
-		
-		entries.toArray( res );
-		
-		return( res );
+			Collection	entries = attribute_map.values();
+			
+			TorrentAttribute[]	res = new TorrentAttribute[entries.size()];
+			
+			entries.toArray( res );
+			
+			return( res );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public TorrentAttribute
 	getAttribute(
 		String		name )
 	{
-		return((TorrentAttribute)attribute_map.get(name));
+		try{
+			class_mon.enter();
+		
+			return((TorrentAttribute)attribute_map.get(name));
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
+	public TorrentAttribute
+	getPluginAttribute(
+		String		name )
+	{
+			// this prefix is RELIED ON ELSEWHERE!!!!
+		
+		name	= "Plugin." + plugin_interface.getPluginID() + "." + name;
+		
+		try{
+			class_mon.enter();
+			
+			TorrentAttribute	res = (TorrentAttribute)attribute_map.get(name);
+			
+			if ( res != null ){
+				
+				return( res );
+			}
+			
+			res = new TorrentAttributePluginImpl( name );
+			
+			attribute_map.put( name, res );
+			
+			return( res );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public void
@@ -221,9 +282,9 @@ TorrentManagerImpl
 	reportCurrentTask(
 		final String	task_description )
 	{
-		for (int i=0;i<listeners.size();i++){
+		for (Iterator it = listeners.iterator();it.hasNext();){
 			
-			((TorrentManagerListener)listeners.get(i)).event(
+			((TorrentManagerListener)it.next()).event(
 					new TorrentManagerEvent()
 					{
 						public Object
@@ -288,13 +349,36 @@ TorrentManagerImpl
 	addListener(
 		TorrentManagerListener	l )
 	{
-		listeners.add( l );
+		try{
+			class_mon.enter();
+
+			ArrayList	new_listeners = new ArrayList( listeners );
+			
+			new_listeners.add( l );
+			
+			listeners	= new_listeners;			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 		
 	public void
 	removeListener(
 		TorrentManagerListener	l )
 	{
-		listeners.remove(l);
+		try{
+			class_mon.enter();
+
+			ArrayList	new_listeners = new ArrayList( listeners );
+			
+			new_listeners.remove( l );
+			
+			listeners	= new_listeners;
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 }

@@ -38,9 +38,22 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 public interface 
 DHTDB 
 {
+	public static final byte	DT_NONE			= 1;
+	public static final byte	DT_FREQUENCY	= 2;
+	public static final byte	DT_SIZE			= 3;
+
+
 	public void
 	setControl(
 		DHTControl		control );
+	
+		/**
+		 * Local store
+		 * @param key
+		 * @param value
+		 * @param flags
+		 * @return
+		 */
 	
 	public DHTDBValue
 	store(
@@ -48,7 +61,16 @@ DHTDB
 		byte[]			value,
 		byte			flags );
 	
-	public void
+		/**
+		 * Remote store
+		 * 
+		 * @param sender
+		 * @param key
+		 * @param values
+		 * @return diversification state
+		 */
+	
+	public byte
 	store(
 		DHTTransportContact 	sender, 
 		HashWrapper				key,

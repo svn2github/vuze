@@ -84,7 +84,8 @@ Test
 					{
 						public void
 						storeReply(
-							DHTTransportContact contact )
+							DHTTransportContact contact,
+							byte[]				types )
 						{
 							System.out.println( "store reply" );
 						}
@@ -209,13 +210,15 @@ Test
 		System.out.println( "TransportHandler: ping" );
 	}
 		
-	public void
+	public byte[]
 	storeRequest(
 		DHTTransportContact 	contact, 
 		byte[][]				keys,
 		DHTTransportValue[][]	value_sets )
 	{
 		System.out.println( "TransportHandler: store" );
+		
+		return( new byte[keys.length] );
 	}
 	
 	public DHTTransportContact[]

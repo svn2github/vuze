@@ -1,5 +1,5 @@
 /*
- * Created on 10-Mar-2005
+ * Created on 23-Jun-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,31 +20,69 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport;
-
-import com.aelitis.azureus.core.dht.db.DHTDB;
+package org.gudy.azureus2.pluginsimpl.local.torrent;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DHTTransportFindValueReply 
+import java.util.*;
+
+import org.gudy.azureus2.plugins.torrent.*;
+
+public class 
+TorrentAttributePluginImpl
+	implements TorrentAttribute
 {
-	public static final byte	DT_NONE			= DHTDB.DT_NONE;
-	public static final byte	DT_FREQUENCY	= DHTDB.DT_FREQUENCY;
-	public static final byte	DT_SIZE			= DHTDB.DT_SIZE;
+	private String	name;
+	private List	listeners = new ArrayList();
 	
-	public byte
-	getDiversificationType();
+	protected
+	TorrentAttributePluginImpl(
+		String		_name )
+	{
+		name	= _name;
+	}
+
+	public String
+	getName()
+	{
+		return( name );
+	}
 	
-	public boolean
-	hit();
+	public String[]
+	getDefinedValues()
+	{
+		throw( new RuntimeException( "not supported" ));
+	}
 	
-	public DHTTransportValue[]
-	getValues();
+	public void
+	addDefinedValue(
+		String		name )
+	{
+		throw( new RuntimeException( "not supported" ));
+	}
 	
-	public DHTTransportContact[]
-	getContacts();
+	
+	public void
+	removeDefinedValue(
+		String		name )
+	{
+		throw( new RuntimeException( "not supported" ));
+	}
+	
+	public void
+	addTorrentAttributeListener(
+		TorrentAttributeListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeTorrentAttributeListener(
+		TorrentAttributeListener	l )
+	{
+		listeners.remove( l );
+	}
 }

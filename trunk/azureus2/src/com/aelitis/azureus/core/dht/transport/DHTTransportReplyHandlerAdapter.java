@@ -48,7 +48,8 @@ DHTTransportReplyHandlerAdapter
 			
 	public void
 	storeReply(
-		DHTTransportContact contact )
+		DHTTransportContact contact,
+		byte[]				diversifications )
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}

@@ -745,8 +745,11 @@ DHTControlImpl
 					{
 						public void
 						storeReply(
-							DHTTransportContact _contact )
+							DHTTransportContact _contact,
+							byte[]				_diversifications )
 						{
+								// TODO: store diversifications
+							
 							DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
 														
 							router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
@@ -978,7 +981,8 @@ DHTControlImpl
 										{
 											public void
 											storeReply(
-												DHTTransportContact _contact )
+												DHTTransportContact _contact,
+												byte[]				_diversifications )
 											{
 												DHTLog.log( "Cache store OK " + DHTLog.getString( _contact ));
 												
@@ -1557,7 +1561,7 @@ DHTControlImpl
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	}
 		
-	public void
+	public byte[]
 	storeRequest(
 		DHTTransportContact 	originating_contact, 
 		byte[][]				keys,
@@ -1567,6 +1571,8 @@ DHTControlImpl
 		
 		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ", keys = " + keys.length );
 
+		byte[]	diverse_res = new byte[ keys.length];
+		
 		for (int i=0;i<keys.length;i++){
 			
 			HashWrapper			key		= new HashWrapper( keys[i] );
@@ -1575,8 +1581,10 @@ DHTControlImpl
 		
 			DHTLog.log( "    key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
 			
-			database.store( originating_contact, key, values );
+			diverse_res[i] = database.store( originating_contact, key, values );
 		}
+		
+		return( diverse_res );
 	}
 	
 	public DHTTransportContact[]
@@ -1813,8 +1821,11 @@ DHTControlImpl
 					{
 						public void
 						storeReply(
-							DHTTransportContact _contact )
+							DHTTransportContact _contact,
+							byte[]				_diversifications )
 						{
+								// TODO: send store diversifications
+							
 							DHTLog.log( "add store ok" );
 							
 							router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));

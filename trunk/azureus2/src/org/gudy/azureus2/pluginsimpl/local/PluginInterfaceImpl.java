@@ -339,7 +339,7 @@ PluginInterfaceImpl
   public TorrentManager
   getTorrentManager()
   {
-  	return( TorrentManagerImpl.getSingleton());
+  	return( TorrentManagerImpl.getSingleton().specialise( this ));
   }
   
   public Logger getLogger() 

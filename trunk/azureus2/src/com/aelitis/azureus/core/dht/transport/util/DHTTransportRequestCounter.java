@@ -67,7 +67,7 @@ DHTTransportRequestCounter
 		return( delegate.statsRequest( contact ));
 	}
 	
-	public void
+	public byte[]
 	storeRequest(
 		DHTTransportContact 	contact, 
 		byte[][]				keys,
@@ -75,7 +75,7 @@ DHTTransportRequestCounter
 	{
 		stats.storeReceived();
 		
-		delegate.storeRequest( contact, keys, value_sets );
+		return( delegate.storeRequest( contact, keys, value_sets ));
 	}
 	
 	public DHTTransportContact[]

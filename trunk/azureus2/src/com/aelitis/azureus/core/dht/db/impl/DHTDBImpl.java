@@ -49,6 +49,8 @@ public class
 DHTDBImpl
 	implements DHTDB
 {
+	private static final int	MAX_ENTRIES_PER_MAPPING	= 1;
+	
 	private int			original_republish_interval;
 	
 		// the grace period gives the originator time to republish their data as this could involve
@@ -169,6 +171,8 @@ DHTDBImpl
 		byte[]			value,
 		byte			flags )
 	{
+			// local store
+		
 		try{
 			this_mon.enter();
 			
@@ -204,7 +208,7 @@ DHTDBImpl
 		}
 	}
 	
-	public void
+	public byte
 	store(
 		DHTTransportContact 	sender, 
 		HashWrapper				key,
@@ -236,7 +240,7 @@ DHTDBImpl
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as key too far away" );
 
-			return;
+			return( DHTDB.DT_NONE );
 		}
 		
 			// next, for cache forwards (rather then values coming directly from 
@@ -279,7 +283,7 @@ DHTDBImpl
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as cache forward and sender too far away" );
 			
-			return;
+			return( DHTDB.DT_NONE );
 		}
 		
 		try{
@@ -291,26 +295,32 @@ DHTDBImpl
 				
 				logger.log( "Max entries exceeded" );
 				
-				return;
+				return( DHTDB.DT_NONE );
+				
 			}else{
 				
 				checkCacheExpiration( false );
 				
-				DHTDBMapping	existing_mapping = (DHTDBMapping)stored_values.get( key );
+				DHTDBMapping	mapping = (DHTDBMapping)stored_values.get( key );
 				
-				if ( existing_mapping == null ){
+				if ( mapping == null ){
 					
-					existing_mapping = new DHTDBMapping( key );
+					mapping = new DHTDBMapping( key );
 					
-					stored_values.put( key, existing_mapping );
+					stored_values.put( key, mapping );
 				}
+				
+					// we carry on an update as its ok to replace existing entries
+					// even if diversified
 				
 				for (int i=0;i<values.length;i++){
 					
 					DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, values[i], 1 );
 					
-					existing_mapping.add( mapping_value );
+					mapping.add( mapping_value );
 				}
+				
+				return( mapping.getDiversificationType());
 			}
 		}finally{
 			
@@ -329,7 +339,7 @@ DHTDBImpl
 			
 			checkCacheExpiration( false );
 					
-			DHTDBMapping mapping = (DHTDBMapping)stored_values.get(key);
+			final DHTDBMapping mapping = (DHTDBMapping)stored_values.get(key);
 			
 			if ( mapping == null ){
 				
@@ -342,20 +352,7 @@ DHTDBImpl
 			}
 			
 			final DHTDBValue[]	values = mapping.get( max_values, true );
-
-			byte	dt = DHTDBLookupResult.DT_NONE;
-			
-			/*
-			if ( values.length > 1 ){
-			
-				System.out.println( "pretend diversification" );
-				
-				dt	= DHTDBLookupResult.DT_SIZE;
-			}
-			*/
-			
-			final byte f_dt = dt;
-			
+						
 			return(
 				new DHTDBLookupResult()
 				{
@@ -368,7 +365,7 @@ DHTDBImpl
 					public byte
 					getDiversificationType()
 					{
-						return( f_dt );
+						return( mapping.getDiversificationType());
 					}
 				});
 			
@@ -930,7 +927,7 @@ DHTDBImpl
 				
 				str_entries++;
 				
-				str += (str_entries==1?"":", ") + DHTLog.getString2(value_key.getHash()) + " -> " + mapping.getSize() + "/" + mapping.getHits()+"["+mapping.getIndirectSize() + "]";
+				str += (str_entries==1?"":", ") + DHTLog.getString2(value_key.getHash()) + " -> " + mapping.getSize() + "/" + mapping.getHits()+"["+mapping.getLocalSize()+","+mapping.getDirectSize()+","+mapping.getIndirectSize() + "]";
 			}
 			
 			if ( str_entries > 0 ){

@@ -403,11 +403,12 @@ DHTTransportLoopbackImpl
 			
 			stats.storeOK();
 			
-			target.getRequestHandler().storeRequest( 
+			byte[] diversifies = 
+				target.getRequestHandler().storeRequest( 
 					new DHTTransportLoopbackContactImpl( target, node_id ),
 					keys, value_sets );
 			
-			handler.storeReply( contact );
+			handler.storeReply( contact, diversifies );
 		}
 	}
 	

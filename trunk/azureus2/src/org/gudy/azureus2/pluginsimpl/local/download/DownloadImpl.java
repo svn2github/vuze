@@ -432,10 +432,14 @@ DownloadImpl
 	  		
 	 	return( DownloadManagerState.AT_NETWORKS );
 	  		
- 	}else if ( attribute.getName() == TorrentAttribute.TA_PEER_SOURCES ){
-	  		
-	 	return( DownloadManagerState.AT_PEER_SOURCES );
-	  		
+	}else if ( attribute.getName() == TorrentAttribute.TA_PEER_SOURCES ){
+  		
+ 	return( DownloadManagerState.AT_PEER_SOURCES );
+  		
+	}else if ( attribute.getName().startsWith( "Plugin." )){
+  		
+		return( attribute.getName());
+  		
   	}else{
   		
   		Debug.out( "Can't convert attribute '" + attribute.getName() + "'" );
@@ -457,8 +461,12 @@ DownloadImpl
 	  	return( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_NETWORKS ));
 	  		
 	}else if ( name.equals( DownloadManagerState.AT_PEER_SOURCES )){
-	  		
-	  	return( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_PEER_SOURCES ));
+  		
+		return( TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_PEER_SOURCES ));
+		
+	}else if ( name.startsWith( "Plugin." )){
+  		
+		return( TorrentManagerImpl.getSingleton().getAttribute( name ));
 	  		
   	}else{
   		

@@ -41,7 +41,8 @@ DHTTransportReplyHandler
 
 	public void
 	storeReply(
-		DHTTransportContact contact );
+		DHTTransportContact contact,
+		byte[]				diversifications );
 	
 	public void
 	findNodeReply(

@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
 
+import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 /**
@@ -44,7 +45,12 @@ DHTDBMapping
 	private Map				indirect_originator_value_map	= new LinkedHashMap(16, 0.75f, true );
 	
 	private int				hits;
+	
+	private int				direct_data_size;
 	private int				indirect_data_size;
+	private int				local_size;
+	
+	private byte			diversification_state	= DHTDB.DT_NONE;
 	
 	protected
 	DHTDBMapping(
@@ -155,7 +161,7 @@ DHTDBMapping
 			
 				// direct contact from the originator is straight forward
 			
-			direct_originator_map.put( originator_id, new_value );
+			addDirectValue( originator_id, new_value );
 			
 				// remove any indirect value we might already have for this
 			
@@ -205,12 +211,17 @@ DHTDBMapping
 				}				
 			}else{
 			
-				addIndirectValue( originator_value_id, new_value );
+					// only add new values if not diversified
+				
+				if ( diversification_state == DHTDB.DT_NONE ){
+				
+					addIndirectValue( originator_value_id, new_value );
+				}
 			}	
 		}
 	}
 
-	protected HashWrapper
+	private HashWrapper
 	getOriginatorValueID(
 		DHTDBValueImpl	value )
 	{
@@ -245,6 +256,18 @@ DHTDBMapping
 	getIndirectSize()
 	{
 		return( indirect_data_size );
+	}
+	
+	protected int
+	getDirectSize()
+	{
+		return( direct_data_size );
+	}
+	
+	protected int
+	getLocalSize()
+	{
+		return( local_size );
 	}
 	
 	protected DHTDBValueImpl[]
@@ -339,7 +362,7 @@ DHTDBMapping
 		
 		HashWrapper originator_id = new HashWrapper( originator.getID());
 		
-		DHTDBValueImpl	res = (DHTDBValueImpl)direct_originator_map.remove( originator_id );
+		DHTDBValueImpl	res = removeDirectValue( originator_id );
 		
 		return( res );
 	}
@@ -357,6 +380,56 @@ DHTDBMapping
 		return( new valueIterator());
 	}
 	
+	protected byte
+	getDiversificationType()
+	{
+		return( diversification_state );
+	}
+	
+	protected void
+	addDirectValue(
+		HashWrapper		value_key,
+		DHTDBValueImpl	value )
+	{
+		DHTDBValueImpl	old = (DHTDBValueImpl)direct_originator_map.put( value_key, value );
+		
+		if ( old != null ){
+			
+			direct_data_size -= old.getValue().length;
+			
+			if ( old.getCacheDistance() == 0 ){
+				
+				local_size -= old.getValue().length;
+			}
+		}
+		
+		direct_data_size += value.getValue().length;
+		
+		if ( value.getCacheDistance() == 0 ){
+			
+			local_size += value.getValue().length;
+		}
+	}
+	
+	protected DHTDBValueImpl
+	removeDirectValue(
+		HashWrapper		value_key )
+	{
+		DHTDBValueImpl	old = (DHTDBValueImpl)indirect_originator_value_map.remove( value_key );
+		
+		if ( old != null ){
+			
+			indirect_data_size -= old.getValue().length;
+			
+			if ( old.getCacheDistance() == 0 ){
+				
+				local_size -= old.getValue().length;
+			}
+		}
+		
+		return( old );
+	}
+
 	protected void
 	addIndirectValue(
 		HashWrapper		value_key,
@@ -367,9 +440,19 @@ DHTDBMapping
 		if ( old != null ){
 			
 			indirect_data_size -= old.getValue().length;
+			
+			if ( old.getCacheDistance() == 0 ){
+				
+				local_size -= old.getValue().length;
+			}
 		}
 		
 		indirect_data_size += value.getValue().length;
+		
+		if ( value.getCacheDistance() == 0 ){
+			
+			local_size += value.getValue().length;
+		}
 	}
 	
 	protected void
@@ -381,6 +464,11 @@ DHTDBMapping
 		if ( old != null ){
 			
 			indirect_data_size -= old.getValue().length;
+			
+			if ( old.getCacheDistance() == 0 ){
+				
+				local_size -= old.getValue().length;
+			}
 		}
 	}
 	
@@ -439,9 +527,21 @@ DHTDBMapping
 				throw( new IllegalStateException());
 			}	
 			
-			if ( value != null && map == indirect_originator_value_map ){
+			if ( value != null ){
 				
-				indirect_data_size -= value.getValue().length;
+				if( value.getCacheDistance() == 0 ){
+					
+					local_size -= value.getValue().length;
+				}
+				
+				if (  map == indirect_originator_value_map ){
+				
+					indirect_data_size -= value.getValue().length;
+					
+				}else{
+					
+					direct_data_size -= value.getValue().length;
+				}
 			}
 			
 			it.remove();

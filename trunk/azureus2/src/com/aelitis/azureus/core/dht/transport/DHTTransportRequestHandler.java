@@ -38,7 +38,7 @@ DHTTransportRequestHandler
 	statsRequest(	
 		DHTTransportContact contact );
 	
-	public void
+	public byte[]
 	storeRequest(
 		DHTTransportContact contact, 
 		byte[][]				keys,

@@ -1025,12 +1025,14 @@ DHTTransportUDPImpl
 												store_timeout, true );
 									}
 								}else{
-									
+
+									DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
+
 									stats.storeOK();
 									
 									if ( f_packet_count == 1 ){
 										
-										handler.storeReply( contact );
+										handler.storeReply( contact, reply.getDiversificationTypes());
 									}
 								}
 								
@@ -1843,7 +1845,8 @@ DHTTransportUDPImpl
 					
 					DHTUDPPacketRequestStore	store_request = (DHTUDPPacketRequestStore)request;
 					
-					request_handler.storeRequest(
+					byte[] diversify = 
+						request_handler.storeRequest(
 							originating_contact, 
 							store_request.getKeys(), 
 							store_request.getValueSets());
@@ -1854,6 +1857,8 @@ DHTTransportUDPImpl
 								request.getConnectionId(),
 								local_contact,
 								originating_contact );
+					
+					reply.setDiversificationTypes( diversify );
 					
 					packet_handler.send( reply, request.getAddress());
 					

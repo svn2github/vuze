@@ -34,7 +34,7 @@ public class
 DHTUDPPacketReplyStore
 	extends DHTUDPPacketReply
 {
-	private boolean	diversify;
+	private byte[]	diversify;
 	
 	public
 	DHTUDPPacketReplyStore(
@@ -57,7 +57,7 @@ DHTUDPPacketReplyStore
 		
 		if ( getVersion() >= 6 ){
 			
-			diversify = is.readBoolean();
+			diversify = DHTUDPUtils.deserialiseByteArray( is, DHTUDPPacketRequestStore.MAX_KEYS_PER_PACKET );
 		}
 	}
 	
@@ -71,19 +71,19 @@ DHTUDPPacketReplyStore
 		
 		if ( getVersion() >= 6 ){
 			
-			os.writeBoolean( diversify );
+			DHTUDPUtils.serialiseByteArray( os, diversify, DHTUDPPacketRequestStore.MAX_KEYS_PER_PACKET );
 		}
 	}
 	
 	public void
-	setDetails(
-		boolean		_diversify )
+	setDiversificationTypes(
+		byte[]		_diversify )
 	{
 		diversify	= _diversify;
 	}
 	
-	public boolean
-	getDiversify()
+	public byte[]
+	getDiversificationTypes()
 	{
 		return( diversify );
 	}
