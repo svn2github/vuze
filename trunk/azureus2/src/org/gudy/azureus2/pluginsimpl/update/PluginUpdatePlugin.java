@@ -103,7 +103,9 @@ PluginUpdatePlugin
 			
 			PluginInterface	pi = plugins[i];
 			
-			log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + ", version = " + pi.getPluginVersion());
+			String	version = pi.getPluginVersion();
+			
+			log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + (version==null?"":(", version = " + pi.getPluginVersion())));
 		}
 	}
 }

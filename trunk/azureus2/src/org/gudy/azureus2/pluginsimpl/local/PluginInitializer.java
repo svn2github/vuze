@@ -219,7 +219,9 @@ PluginInitializer
     
     	// take only the highest version numbers of jars that look versioned
     
-    pluginContents	= getHighestJarVersions( pluginContents );
+    String[]	version = {null};
+    
+    pluginContents	= getHighestJarVersions( pluginContents, version );
     
     for(int i = 0 ; i < pluginContents.length ; i++) {
       classLoader = addFileToClassPath((URLClassLoader)classLoader, pluginContents[i]);
@@ -339,7 +341,7 @@ PluginInitializer
 								directory.getName(),
 								new_props,
 								directory.getAbsolutePath(),
-								null );
+								version[0] );
 		      
 		      plugin.initialize(plugin_interface);
 		      
@@ -631,7 +633,8 @@ PluginInitializer
   
   	protected File[]
 	getHighestJarVersions(
-		File[]	files )
+		File[]		files,
+		String[]	version_out )	// currently the version of last versioned jar found...
 	{
   		List	res 		= new ArrayList();
   		Map		version_map	= new HashMap();
@@ -718,6 +721,8 @@ PluginInitializer
   			String	version	= (String)version_map.get(prefix);
   			
   			String	target = prefix + "_" + version + ".";
+  			
+  			version_out[0] = version;
   			
   			for (int i=0;i<files.length;i++){
   				
