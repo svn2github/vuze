@@ -98,7 +98,7 @@ public class AZHandshake implements AZMessage {
     
     this.buffer = new DirectByteBuffer( ByteBuffer.wrap( raw_payload ) );
     
-    System.out.println( "Generated AZHandshake size = " +raw_payload.length+ " bytes" );
+    if( raw_payload.length > 1200 )  System.out.println( "Generated AZHandshake size = " +raw_payload.length+ " bytes" );
 
     this.description = getID()+ " from [" +ByteFormatter.nicePrint( peer_identity, true )+ ", " +client+ " " +version+ "] supports " +msgs_desc;
   }
