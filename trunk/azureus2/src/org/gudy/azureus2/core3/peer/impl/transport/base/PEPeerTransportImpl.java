@@ -28,12 +28,12 @@ package org.gudy.azureus2.core3.peer.impl.transport.base;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.net.*;
+
 
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
-import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
 
@@ -48,6 +48,10 @@ PEPeerTransportImpl
 		//The SocketChannel associated with this peer
 		
 	private SocketChannel 	socket;
+  private volatile boolean connected = false;
+  private volatile boolean connect_error = false;
+  private String error_msg = "";
+  
 	
 	  /**
 	   * The Default Contructor for outgoing connections.
@@ -100,95 +104,92 @@ PEPeerTransportImpl
 		return( this );
 	}
 	
-	protected void 
-	startConnection()
-		throws IOException
-	{
-		   //Construct the peer's address with ip and port
-		        
-	   InetSocketAddress peerAddress = new InetSocketAddress(getIp(), getPort());
-	   
-		   //Create a new SocketChannel, left non-connected
-	   
-	   socket = SocketChannel.open();
-     
-     //set the socket's receive buffer size
-     socket.socket().setReceiveBufferSize(PEPeerTransport.RECEIVE_BUFF_SIZE);
-      
-	   String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-	   if (bindIP.length() > 6) {
-	     socket.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));
-	   }
-	   
-		   //Configure it so it's non blocking
-	   
-	   socket.configureBlocking(false);
-	   
-		   	//Initiate the connection
-		   	
-	   socket.connect(peerAddress);
+  
+	protected void startConnection() throws IOException {
+    
+		Thread connect = new Thread("Socket Connect") {
+			public void run() {
+				Selector sel = null;
+				try {
+					socket = SocketChannel.open();
+					
+					socket.socket().setReceiveBufferSize(PEPeerTransport.RECEIVE_BUFF_SIZE);
+					
+					String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+					if (bindIP.length() > 6) {
+						socket.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));
+					}
+					
+					socket.configureBlocking(false);
+					
+					InetSocketAddress peerAddress = new InetSocketAddress(getIp(), getPort());
+					
+					sel = Selector.open();
+					
+					socket.connect( peerAddress );
+					
+					socket.register( sel, SelectionKey.OP_CONNECT );
+					
+					int keys = sel.select(60*1000); //60 sec timout
+					
+					if ( keys > 0 ) { // Connection established
+						sel.close();
+						if ( socket.finishConnect() ) {
+							connected = true;
+						}
+						else {
+							error_msg = "finishConnect() failed";
+							connect_error = true;
+						}
+					}
+					else {
+						sel.close();
+						closeConnection();
+						error_msg = "failed to connect within 60 sec";
+						connect_error = true;
+					}
+					
+				} catch (Throwable t) {
+					if (sel != null) {
+						try{  sel.close();  } catch (Exception e) { e.printStackTrace(); }
+					}
+					error_msg = t.getMessage();
+					connect_error = true;
+				}
+			}
+		};
+		connect.setDaemon( true );
+		connect.start();
+    
 	}
 
-	protected void
-	closeConnection() {
-    try {  
+  
+	protected void closeConnection() {
+		try {  
       if (socket != null) {
-        //Socket s = socket.socket();
-        //if ( !s.isOutputShutdown() ) s.shutdownOutput();
-        //if ( !s.isInputShutdown() )  s.shutdownInput();
-      	//socket.close();
-        socket.socket().close();
+        socket.close();
         socket = null;
       }
-      else Debug.out("socket already null");
     }
     catch (Throwable e) { e.printStackTrace(); }
 	}
 
   
-	protected boolean
-  	completeConnection()
+	protected boolean completeConnection() throws IOException {
+    if ( connect_error ) {
+      throw new IOException(error_msg);
+    }
+    return connected;
+	}
   
-  		throws IOException
-  	{
-		return(socket.finishConnect());
-  	}
   
-  	protected int
-  	readData(
-  		ByteBuffer	buffer )
-  	
-  		throws IOException
-  	{
-      if (!socket.finishConnect()) {
-        String msg = "socket.finishConnect=false::";
-        msg = msg + " cOpen=" + socket.isOpen();
-        msg = msg + " cConnected=" + socket.isConnected();
-        msg = msg + " cPending=" + socket.isConnectionPending();
-        msg = msg + " sClosed=" + socket.socket().isClosed();
-        msg = msg + " sConnected=" + socket.socket().isConnected();
-        Debug.out(msg);
-        return -1;
-      } 		
+	protected int readData( ByteBuffer	buffer ) throws IOException {
 		return(socket.read(buffer));
-  	}
+	}
   
-  	protected int
-  	writeData(
-		ByteBuffer	buffer )
-  	
-		throws IOException
-  	{
-      if (!socket.finishConnect()) {
-        String msg = "socket.finishConnect=false::";
-        msg = msg + " cOpen=" + socket.isOpen();
-        msg = msg + " cConnected=" + socket.isConnected();
-        msg = msg + " cPending=" + socket.isConnectionPending();
-        msg = msg + " sClosed=" + socket.socket().isClosed();
-        msg = msg + " sConnected=" + socket.socket().isConnected();
-        Debug.out(msg);
-        return -1;
-      }
+  
+	protected int writeData( ByteBuffer	buffer ) throws IOException {
 		return(socket.write(buffer));
-  	}
+	}
+  
 }
