@@ -439,6 +439,13 @@ ShareManagerImpl
 		return((ShareResourceImpl)shares.get(file.toString()));
 	}
 	
+	public ShareResource
+	getShare(
+		File	file_or_dir )
+	{
+		return( getResource( file_or_dir ));
+	}
+	
 	public ShareResourceFile
 	addFile(
 		File	file )

@@ -189,7 +189,7 @@ ShareHosterPlugin
 							
 									TorrentAttribute	attribute = (TorrentAttribute)event.getData();
 									
-									System.out.println( "sh: res -> ds: " + attribute.getName() + "/" + resource.getAttribute( attribute ));
+									// System.out.println( "sh: res -> ds: " + attribute.getName() + "/" + resource.getAttribute( attribute ));
 									
 									f_new_download.setAttribute(
 											attribute,
@@ -219,7 +219,7 @@ ShareHosterPlugin
 									
 									TorrentAttribute	at = (TorrentAttribute)event.getData();
 									
-									System.out.println( "sh: rs -> res " + at.getName() + "/" + download.getAttribute( at ));
+									// System.out.println( "sh: rs -> res " + at.getName() + "/" + download.getAttribute( at ));
 									
 									resource.setAttribute( at, download.getAttribute( at ));
 						

@@ -39,6 +39,16 @@ ShareManager
 	public ShareResource[]
 	getShares();
 	
+		/**
+		 * returns null if share not defined
+		 * @param file_or_dir
+		 * @return
+		 */
+	
+	public ShareResource
+	getShare(
+		File	file_or_dir );
+	
 	public ShareResourceFile
 	addFile(
 		File	file )
