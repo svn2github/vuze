@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.table;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 
@@ -82,4 +83,6 @@ public interface TableCellCore
    * @return the row that this cell belongs to
    */
   public TableRowCore getTableRowCore();
+  
+  public Point getSize();
 }

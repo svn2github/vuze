@@ -185,6 +185,26 @@ public class TableCellImpl
     return ((BufferedGraphicTableItem2)bufferedTableItem).getSize();
   }
 
+  public int getWidth() {
+    if (bufferedTableItem == null || 
+        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+      return -1;
+    Point pt = ((BufferedGraphicTableItem2)bufferedTableItem).getSize();
+    if (pt == null)
+      return -1;
+    return pt.x;
+  }
+
+  public int getHeight() {
+    if (bufferedTableItem == null || 
+        !(bufferedTableItem instanceof BufferedGraphicTableItem2))
+      return -1;
+    Point pt = ((BufferedGraphicTableItem2)bufferedTableItem).getSize();
+    if (pt == null)
+      return -1;
+    return pt.y;
+  }
+
   public boolean setGraphic(Image img) {
     if (bufferedTableItem == null || 
         !(bufferedTableItem instanceof BufferedGraphicTableItem2))
