@@ -65,6 +65,9 @@ CacheFileManagerImpl
 	protected long		cache_space_free;
 		
 	protected FMFileManager		file_manager;
+	
+	protected WeakHashMap		cache_files	= new WeakHashMap();
+	
 
 		// access order
 	
@@ -182,17 +185,26 @@ CacheFileManagerImpl
 			
 			CacheFile	cf = new CacheFileImpl( this, fm_file, tf );
 			
-			if ( tf != null ){
+			WeakHashMap	new_cache_files = new WeakHashMap( cache_files );
+			
+				// copy on write so readers don't need to synchronize or copy
+			
+			new_cache_files.put( cf, null );
 				
-				try{
-					this_mon.enter();
+			cache_files	= new_cache_files;
+			
+			
+			try{
+				this_mon.enter();
+				
+				if ( tf != null ){
 					
 					torrent_to_cache_file_map.put( tf, cf );
-					
-				}finally{
-					
-					this_mon.exit();
+	
 				}
+			}finally{
+			
+				this_mon.exit();
 			}
 			
 			return( cf );
@@ -337,6 +349,16 @@ CacheFileManagerImpl
 			
 			stats.update();
 			
+			
+			// System.out.println( "cache file count = " + cache_files.size());
+			
+			Iterator	cf_it = cache_files.keySet().iterator();
+			
+			while(cf_it.hasNext()){
+				
+				((CacheFileImpl)cf_it.next()).updateStats();
+			}
+			
 			if ( --cleaner_ticks == 0 ){
 				
 				cleaner_ticks	= CACHE_CLEANER_TICKS;
@@ -349,10 +371,10 @@ CacheFileManagerImpl
 				
 				try{
 					this_mon.enter();
+			
+					Map	t_to_c_file_map	= new HashMap();
 					
 					if ( cache_entries.size() > 0 ){
-						
-						Map	t_to_c_file_map	= new HashMap();
 						
 						Iterator it = cache_entries.keySet().iterator();
 						
@@ -376,10 +398,10 @@ CacheFileManagerImpl
 								dirty_files.add( entry.getFile());
 							}
 						}
-						
-						torrent_to_cache_file_map	= t_to_c_file_map;
-						
 					}
+					
+					torrent_to_cache_file_map	= t_to_c_file_map;
+						
 				}finally{
 					
 					this_mon.exit();

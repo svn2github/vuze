@@ -86,7 +86,9 @@ CacheFileImpl
 		}
 	}
 	
-	protected final static int		READAHEAD_MAX		= 65536;
+	protected final static int		READAHEAD_LOW_LIMIT		= 64*1024;
+	protected final static int		READAHEAD_HIGH_LIMIT	= 256*1024;
+	
 	protected final static int		READAHEAD_HISTORY	= 32;
 	
 	protected CacheFileManagerImpl		manager;
@@ -98,7 +100,19 @@ CacheFileImpl
 	
 	protected TreeSet					cache			= new TreeSet(comparator);
 			
-	protected int max_read_ahead_size				= 0;
+	protected int 	current_read_ahead_size				= 0;
+	
+	protected static final int READ_AHEAD_STATS_WAIT_TICKS	= 10*1000 / CacheFileManagerImpl.STATS_UPDATE_FREQUENCY;
+	
+	protected int		read_ahead_stats_wait	= READ_AHEAD_STATS_WAIT_TICKS;
+	
+	protected Average	read_ahead_made_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 5);
+	protected Average	read_ahead_used_average 	= Average.getInstance(CacheFileManagerImpl.STATS_UPDATE_FREQUENCY, 5);
+	
+	protected long		read_ahead_bytes_made;
+	protected long		last_read_ahead_bytes_made;
+	protected long		read_ahead_bytes_used;
+	protected long		last_read_ahead_bytes_used;
 	
 	protected int piece_size						= 0;
 	protected int piece_offset						= 0;
@@ -125,14 +139,7 @@ CacheFileImpl
 			TOTorrent	torrent = torrent_file.getTorrent();
 					
 			piece_size	= (int)torrent.getPieceLength();
-			
-			max_read_ahead_size	= piece_size;
-			
-			if ( max_read_ahead_size > READAHEAD_MAX ){
-				
-				max_read_ahead_size	= READAHEAD_MAX;
-			}
-			
+						
 			long	total_size	= 0;
 			
 			for (int i=0;i<torrent.getFiles().length;i++){
@@ -154,12 +161,59 @@ CacheFileImpl
 				piece_offset	= 0;
 			}
 			
-		}else{
-			
-			max_read_ahead_size	= READAHEAD_MAX;
+			current_read_ahead_size	= Math.min( READAHEAD_LOW_LIMIT, piece_size );
 		}
 	}
 	
+	protected void
+	updateStats()
+	{
+		long	made	= read_ahead_bytes_made;
+		long	used	= read_ahead_bytes_used;
+
+		long	made_diff	= made - last_read_ahead_bytes_made;
+		long	used_diff	= used - last_read_ahead_bytes_used;
+		
+		read_ahead_made_average.addValue( made_diff );
+		read_ahead_used_average.addValue( used_diff );
+		
+		last_read_ahead_bytes_made	= made;
+		last_read_ahead_bytes_used	= used;
+		
+			// give changes made to read ahead size a chance to work through the stats
+			// before recalculating
+		
+		if ( --read_ahead_stats_wait == 0 ){
+		
+			read_ahead_stats_wait	= READ_AHEAD_STATS_WAIT_TICKS;
+			
+				// see if we need to adjust the read-ahead size
+							
+			double	made_average	= read_ahead_made_average.getAverage();
+			double	used_average	= read_ahead_used_average.getAverage();
+		
+				// if used average > 75% of made average then increase
+				
+			double 	ratio = used_average*100/made_average;
+			
+			if ( ratio > 0.75 ){
+				
+				current_read_ahead_size	+= 16*1024;
+				
+				current_read_ahead_size	= Math.min( current_read_ahead_size, piece_size );
+				
+				current_read_ahead_size = Math.min( current_read_ahead_size, (int)(manager.getCacheSize()/16 ));
+				
+			}else if ( ratio < 0.5 ){
+				
+				current_read_ahead_size	-= 16*1024;
+				
+				current_read_ahead_size = Math.max( current_read_ahead_size, READAHEAD_LOW_LIMIT );
+			}
+		}
+		
+		// System.out.println( "read-ahead: done = " + read_ahead_bytes_made + ", used = " + read_ahead_bytes_used + ", done_av = " + read_ahead_made_average.getAverage() + ", used_av = " +  read_ahead_used_average.getAverage()+ ", size = " + current_read_ahead_size );
+	}
 	
 	protected void
 	readCache(
@@ -192,7 +246,9 @@ CacheFileImpl
 
 			boolean	ok 				= true;
 			int		used_entries	= 0;
+			long	used_read_ahead	= 0;
 			
+
 		
 					// if we can totally satisfy the read from the cache, then use it
 					// otherwise flush the cache (not so smart here to only read missing)
@@ -276,10 +332,21 @@ CacheFileImpl
 						
 						writing_file_position	+= available;
 						writing_left			-= available;
+						
+						if ( entry.getType() == CacheEntry.CT_READ_AHEAD ){
+							
+							used_read_ahead	+= available;
+						}
+
 					}
 				}
 			}finally{
 				
+				if ( ok ){
+				
+					read_ahead_bytes_used += used_read_ahead;
+				}
+			
 				this_mon.exit();
 			}
 			
@@ -308,13 +375,13 @@ CacheFileImpl
 					// reset in case we've done some partial reads
 					
 				file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
-					
+				
 				try{
 					boolean	do_read_ahead	= 
 								!recursive &&
 								manager.isReadCacheEnabled() &&
-								read_length <  max_read_ahead_size &&
-								file_position + max_read_ahead_size <= file.getLength();
+								read_length <  current_read_ahead_size &&
+								file_position + current_read_ahead_size <= file.getLength();
 
 					if ( do_read_ahead ){
 
@@ -333,7 +400,7 @@ CacheFileImpl
 						}
 					}
 					
-					int	actual_read_ahead = max_read_ahead_size;
+					int	actual_read_ahead = current_read_ahead_size;
 					
 					if ( do_read_ahead ){
 					
@@ -366,7 +433,7 @@ CacheFileImpl
 					}
 					
 					if ( do_read_ahead ){
-												
+							
 						if ( TRACE ){
 								
 							LGLogger.log( "\tperforming read-ahead" );
@@ -389,6 +456,7 @@ CacheFileImpl
 														
 							entry.setClean();
 			
+							System.out.println("read-ahead =" + actual_read_ahead );
 							try{
 								
 								this_mon.enter();
@@ -399,6 +467,8 @@ CacheFileImpl
 								
 								getFMFile().read( cache_buffer, file_position );
 			
+								read_ahead_bytes_made	+= actual_read_ahead;
+								
 								manager.fileBytesRead( actual_read_ahead );
 									
 								cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
