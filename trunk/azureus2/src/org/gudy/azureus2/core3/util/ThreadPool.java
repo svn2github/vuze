@@ -53,6 +53,8 @@ ThreadPool
 	run(
 		Runnable	runnable )
 	{
+		System.out.println( "Thread pool:" + name + " - sem = " + thread_sem.getValue());
+		
 		thread_sem.reserve();
 						
 		worker w;
@@ -128,9 +130,9 @@ outer:
 															
 										thread_pool.push( worker.this );
 									}
-								}
 								
-								thread_sem.release();
+									thread_sem.release();
+								}
 							}
 						}
 					}

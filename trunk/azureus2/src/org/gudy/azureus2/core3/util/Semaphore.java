@@ -172,6 +172,6 @@ Semaphore
 	public int
 	getValue()
 	{
-		return( waiting - dont_wait );
+		return( dont_wait - waiting );
 	}
 }
