@@ -453,7 +453,7 @@ public class FileUtil {
   				return( new HashMap());
   			}
         
-        LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
+  			LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
   			
   			return( readResilientConfigFile( file_name + ".saving", 0 ));
   		}
@@ -489,7 +489,7 @@ public class FileUtil {
   		
 	    		LGLogger.logUnrepeatableAlert( 
 	    					LGLogger.AT_WARNING,
-							"Load of '" + file_name.substring(0,file_name.length()-4) + "' had to revert to backup file" ); 
+							"Load of '" + file_name.substring(0,file_name.length()-7) + "' had to revert to backup file" ); 
 	    	}
 	    	
 	    	return( res );
