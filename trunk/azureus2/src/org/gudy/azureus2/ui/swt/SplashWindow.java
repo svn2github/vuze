@@ -90,11 +90,7 @@ public class SplashWindow {
     this.percentDone.setLayoutData(gridData);
 
     splash.pack();
-    Rectangle splashRect = splash.getBounds();
-    Rectangle displayRect = display.getBounds();
-    int x = (displayRect.width - splashRect.width) / 2;
-    int y = (displayRect.height - splashRect.height) / 2;
-    splash.setLocation(x, y);
+    Utils.centreWindow(splash);
     splash.open();    
   }
   
