@@ -151,7 +151,7 @@ public class BlocksItem
         }
   
         gcImage.setBackground(color);
-        gcImage.fillRectangle(i * iPixelsPerBlock + 1,1,nextWidth,y1);
+        gcImage.fillRectangle(i * iPixelsPerBlock / blocksPerPixel + 1,1,nextWidth,y1);
         
         int pieceNumber = piece.getPieceNumber();
         int length = piece.getBlockSize(i);
