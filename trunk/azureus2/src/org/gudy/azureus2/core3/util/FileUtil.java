@@ -15,6 +15,9 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerException;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 /**
  * File utility class.
@@ -927,4 +930,32 @@ public class FileUtil {
 
     }
     
+	public static boolean
+	deleteWithRecycle(
+		File		file )
+	{
+		if ( COConfigurationManager.getBooleanParameter("Move Deleted Data To Recycle Bin" )){
+			
+			try{
+			    final PlatformManager	platform  = PlatformManagerFactory.getPlatformManager();
+			    
+			    if ( platform != null && platform.getPlatformType() == PlatformManager.PT_WINDOWS ){
+			    	
+			    	platform.moveToRecycleBin( file.getAbsolutePath());
+			    
+			    	return( true );
+			    	
+			    }else{
+			    	
+			    	return( file.delete());
+			    }
+			}catch( PlatformManagerException e ){
+				
+				return( file.delete());
+			}
+		}else{
+			
+			return( file.delete());
+		}
+	}
 }

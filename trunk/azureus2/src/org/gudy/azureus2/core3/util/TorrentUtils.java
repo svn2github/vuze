@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 public class 
 TorrentUtils 
@@ -264,8 +266,8 @@ TorrentUtils
 	delete(
 		File 		torrent_file )
 	{
-    	if ( !torrent_file.delete()){
-    		
+		if ( !FileUtil.deleteWithRecycle( torrent_file )){
+			
     		Debug.out( "TorrentUtils::delete: failed to delete '" + torrent_file + "'" );
     	}
 	

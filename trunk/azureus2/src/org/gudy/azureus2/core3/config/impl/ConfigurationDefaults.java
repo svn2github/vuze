@@ -220,6 +220,7 @@ public class ConfigurationDefaults {
     def.put( "Copy And Delete Data Rather Than Move", new Long(0));
     def.put( "Move Torrent When Done", new Long(1) );
     def.put( "File.save.peers.enable", new Long(1) );
+    def.put( "Move Deleted Data To Recycle Bin", new Long(1));
     
     //default torrent directory option
     def.put( "Save Torrent Files", new Long(1) );

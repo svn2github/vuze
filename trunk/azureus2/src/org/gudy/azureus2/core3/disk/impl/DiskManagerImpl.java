@@ -1406,7 +1406,7 @@ DiskManagerImpl
 		try{
 			if (torrent.isSimpleTorrent()){
 
-				new File( torrent_save_dir, torrent_save_file ).delete();
+				FileUtil.deleteWithRecycle(new File( torrent_save_dir, torrent_save_file ));
 				
 			}else{
 				
@@ -1443,7 +1443,7 @@ DiskManagerImpl
 					if (file.exists() && !file.isDirectory()){
 				  
 						try{
-							file.delete();
+							FileUtil.deleteWithRecycle( file );
 							
 						}catch (Exception e){
 							
