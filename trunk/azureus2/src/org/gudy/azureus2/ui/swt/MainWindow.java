@@ -199,8 +199,8 @@ public class MainWindow implements IComponentListener {
             message.write(data, 0, nbRead);
           }
         }
-        Map decoded = BDecoder.decode(message.toByteArray());
-        latestVersion = new String((byte[])decoded.get("version")); //$NON-NLS-1$
+        Map decoded = BDecoder.decode(message.toByteArray()); //$NON-NLS-1$
+        latestVersion = new String((byte[])decoded.get("version")); //$NON-NLS-1$ //$NON-NLS-2$
 
         if (display == null || display.isDisposed())
           return;
@@ -351,14 +351,31 @@ public class MainWindow implements IComponentListener {
 
     new MenuItem(viewMenu, SWT.SEPARATOR);
 
-  	MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
-    Messages.setLanguageText(view_closeDetails, "MainWindow.menu.closealldetails"); //$NON-NLS-1$
-  	view_closeDetails.addListener(SWT.Selection, new Listener() {
-  		public void handleEvent(Event e) {
-        Tab.closeAllDetails();
- 			}
-  	});
-
+    /*
+    	MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
+    	view_closeDetails.setText("Close all Details");
+    	view_closeDetails.addListener(SWT.Selection, new Listener() {
+    		public void handleEvent(Event e) {
+    			synchronized (downloadViews) {
+    //				Tab.closeAll();
+    
+    //				Iterator iter = downloadViews.values().iterator();
+    //				while (iter.hasNext()) {
+    //					Tab tab = (Tab) iter.next();
+    //					Tab.closed(tab.getTabItem());
+    //				}
+    
+    				Tab[] tab_items =
+    					(Tab[]) downloadViews.values().toArray(new Tab[downloadViews.size()]);
+    				for (int i = 0; i < tab_items.length; i++) {
+    					Tab.closed(tab_items[i].getTabItem());
+    				}
+    
+    				downloadViews.clear();
+    			}
+    		}
+    	});
+    */
     addCloseDownloadBarsToMenu(viewMenu);
 
     createLanguageMenu(menuBar);
@@ -1101,13 +1118,14 @@ public class MainWindow implements IComponentListener {
         ByteArrayOutputStream metaInfo = new ByteArrayOutputStream();
         fis = new FileInputStream(fileName);
         while ((nbRead = fis.read(buf)) > 0)
-          metaInfo.write(buf, 0, nbRead);
+			metaInfo.write(buf, 0, nbRead);
 
+        fis.close();
         Map map = BDecoder.decode(metaInfo.toByteArray());
-        Map info = (Map) map.get("info"); //$NON-NLS-1$
-        singleFileName = new String((byte[])info.get("name"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$
+        Map info = (Map) map.get("info");
+		singleFileName = LocaleUtil.getCharsetString((byte[]) info.get("name"));
+        Object test = info.get("length");        
 
-        Object test = info.get("length"); //$NON-NLS-1$
         if (test != null) {        
           singleFile = true;          
         }
