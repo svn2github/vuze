@@ -11,6 +11,7 @@ FEATURE: Core | HTTP scrapes to same tracker combined into one request if tracke
 FEATURE: Core | Tracker connections proxy support [Nolar]
 FEATURE: Core | UDP authentication protocol added [Parg]
 FEATURE: Core | UDP tracker version 2 support added [Parg]
+FEATURE: Core | Generic update mechanisms for core, updater and swt [Parg/Gudy]
 FEATURE: Dev  | Column management for any of Azureus' table views. [TuxPaper]
 FEATURE: Dev  | Easy to use "basic plugin view": see PluginInterface::getUIManager::getBasicPluginViewModel [Parg, Gudy]
 FEATURE: UI   | Ability to upload torrents with xml/http interface [Parg]
@@ -29,6 +30,8 @@ FEATURE: WebUI| Web Plugin now can set upload rate [Parg]
 FEATURE: WebUI| Web Plugin support for uploading torrents [Parg]
 FEATURE: WebUI| Webui + xml/http "access" property support for IP range [Parg]
 FEATURE: WebUI| Webui + xml/http plugins have had basic plugin view added [Parg]
+FEATURE: Plugi| Support for loading user-specific plugins from user dir and shared ones from app dir [Parg]
+
 
 CHANGE:      | IRC and Tracker Web Pages moved to separate plugin [Parg]
 CHANGE: Core | Auto-imported .torrent files are moved (not copied) to default .torrent save dir if enabled [Nolar]
