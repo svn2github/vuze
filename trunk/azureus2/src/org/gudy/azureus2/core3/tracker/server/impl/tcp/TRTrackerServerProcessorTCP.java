@@ -119,10 +119,19 @@ TRTrackerServerProcessorTCP
 				String	actual_header;
 				String	lowercase_header;
 				
+				boolean	head	= false;
+				
 				if ( header_plus.startsWith( "GET " )){
 				
 					actual_header		= header_plus;
 					lowercase_header	= actual_header.toLowerCase();
+	
+				}else if ( header_plus.startsWith( "HEAD " )){
+						
+					actual_header		= header_plus;
+					lowercase_header	= actual_header.toLowerCase();			
+
+					head	= true;
 					
 				}else if ( header_plus.startsWith( "POST ")){
 					
@@ -198,12 +207,47 @@ TRTrackerServerProcessorTCP
 								
 				url = url.substring(0,pos);
 				
-				processRequest( actual_header,
-								lowercase_header,
-								url, 
-								socket.getInetAddress().getHostAddress(),
-								data,
-								socket.getOutputStream() );
+				if ( head ){
+					
+					ByteArrayOutputStream	head_response = new ByteArrayOutputStream(4096);
+					
+					processRequest( actual_header,
+							lowercase_header,
+							url, 
+							socket.getInetAddress().getHostAddress(),
+							data,
+							head_response );
+					
+					byte[]	head_data = head_response.toByteArray();
+					
+					int	header_length = head_data.length;
+					
+					for (int i=3;i<head_data.length;i++){
+						
+						if ( 	head_data[i-3] 	== CR &&
+								head_data[i-2] 	== FF &&
+								head_data[i-1] 	== CR &&
+								head_data[i]	== FF ){
+							
+							header_length = i+1;
+					
+							break;
+						}
+					}
+											
+					socket.getOutputStream().write( head_data, 0, header_length );
+					
+					socket.getOutputStream().flush();
+					
+				}else{
+				
+					processRequest( actual_header,
+									lowercase_header,
+									url, 
+									socket.getInetAddress().getHostAddress(),
+									data,
+									socket.getOutputStream() );
+				}
 								
 			}catch( SocketTimeoutException e ){
 				
@@ -284,7 +328,11 @@ TRTrackerServerProcessorTCP
 						return;
 					}
 					
-					throw( new Exception( "Unsupported Request Type"));
+					os.write( ("HTTP/1.1 404 Not Found\r\n\r\n").getBytes() );
+					
+					os.flush();
+
+					return; // throw( new Exception( "Unsupported Request Type"));
 				}
 				
 					// OK, here its an announce, scrape or full scrape
