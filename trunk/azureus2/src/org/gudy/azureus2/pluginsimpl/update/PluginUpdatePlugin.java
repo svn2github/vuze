@@ -244,7 +244,7 @@ PluginUpdatePlugin
 					
 					log.log( LoggerChannel.LT_INFORMATION, "    Current: " + az_plugin_version + ", Latest: " + sf_plugin_version );
 					
-					if ( comp > 0 ){
+					if ( comp < 0 ){
 						
 						log.log( LoggerChannel.LT_INFORMATION, "    Description:" );
 						

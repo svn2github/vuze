@@ -27,6 +27,8 @@ package org.gudy.azureus2.pluginsimpl;
  *
  */
 
+import org.gudy.azureus2.core3.util.*;
+
 public class 
 PluginUtils 
 {
@@ -34,7 +36,7 @@ PluginUtils
 		 * compare two version strings of form n.n.n.n (e.g. 1.2.3.4)
 		 * @param version_1	
 		 * @param version_2
-		 * @return -ve -> version_1 higher, 0 = same, +ve -> version_2 higher
+		 * @return -ve -> version_1 lower, 0 = same, +ve -> version_1 higher
 		 */
 	
 	public static int
@@ -42,38 +44,6 @@ PluginUtils
 		String		version_1,
 		String		version_2 )
 	{
-		boolean	done = false;
-		
-		for (int j=0;j<Math.min(version_2.length(), version_1.length());j++){
-			
-			char	v1_c	= version_1.charAt(j);
-			char	v2_c	= version_2.charAt(j);
-			
-			if ( v1_c == v2_c ){
-				
-				continue;
-			}
-			
-			if ( v2_c == '.' ){
-				
-					// version1 higher (e.g. 10.2 -vs- 1.2)
-				
-				return( -1 );
-				
-			}else if ( v1_c == '.' ){
-				
-					// version2 higher ( e.g. 1.2 -vs- 10.2 )
-				
-				return( 1 );
-								
-			}else{
-				
-				return( v2_c - v1_c );
-			}
-		}
-		
-			// longest one wins. e.g. 1.2.1 -vs- 1.2
-		
-		return( version_2.length() - version_1.length());
+		return( Constants.compareVersions( version_1, version_2 ));
 	}
 }

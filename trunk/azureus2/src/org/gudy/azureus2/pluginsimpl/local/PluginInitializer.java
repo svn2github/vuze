@@ -701,7 +701,7 @@ PluginInitializer
 						
 					}else{
 					
-						if ( PluginUtils.comparePluginVersions( prev_version, version ) > 0 ){
+						if ( PluginUtils.comparePluginVersions( prev_version, version ) < 0 ){
 														
 							version_map.put( prefix, version );
 						}							
