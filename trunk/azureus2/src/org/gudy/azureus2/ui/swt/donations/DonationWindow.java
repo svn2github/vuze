@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
@@ -94,11 +95,18 @@ public class DonationWindow {
     text.setForeground(MainWindow.blues[4]);
     text.setBackground(MainWindow.blues[0]);
     
+    final Text textForCopy = new Text(shell,SWT.BORDER);
+    textForCopy.setText(donationUrl);
+    formData = new FormData();
+    formData.top = new FormAttachment(text);
+    formData.left = new FormAttachment(0);
+    formData.right = new FormAttachment(100);
+    textForCopy.setLayoutData(formData);
     
     final Button radioDonate = new Button(shell,SWT.RADIO);
     Messages.setLanguageText(radioDonate,"DonationWindow.options.donate");        
     formData = new FormData();
-    formData.top = new FormAttachment(text);
+    formData.top = new FormAttachment(textForCopy);
     radioDonate.setLayoutData(formData);        
     
     final Button radioNoDonate = new Button(shell,SWT.RADIO);
