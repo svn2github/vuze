@@ -1169,7 +1169,7 @@ public class PeerManager extends Thread {
     return _diskManager.getPieceLength();
   }
 
-  public synchronized boolean validateHandshaking(PeerSocket pc, byte[] peerId) {
+  public boolean validateHandshaking(PeerSocket pc, byte[] peerId) {
     PeerSocket pcTest = new PeerSocket(this, peerId, pc.getIp(), pc.getPort(), true);
     synchronized (_connections) {
       return !_connections.contains(pcTest);

@@ -77,6 +77,14 @@ public class PeerStats {
   public String getSendingSpeed() {
     return format(sendingSpeed.getAverage()) + "/s";
   }
+  
+  public int getDownloadSpeedRaw() {
+    return receptionSpeed.getAverage();
+  }
+  
+  public int getuploadSpeedRaw() {
+      return sendingSpeed.getAverage();
+    }
 
   public String getOverAllDownloadSpeed() {
     return format(overallSpeed.getAverage()) + "/s";
