@@ -9,7 +9,6 @@ import java.util.Arrays;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -295,7 +294,6 @@ public class GeneralView extends AbstractIView {
     Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
     trackerUrlValue = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
     trackerUrlValue.setLayoutData(gridData);
     
     Button button = new Button(gInfo, SWT.LEFT);
