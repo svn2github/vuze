@@ -108,7 +108,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
           
       
                   
-      /*if(System.getProperty("os.name").equalsIgnoreCase("Linux") || System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
+      if(System.getProperty("os.name").equalsIgnoreCase("Linux") || System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
         File fUpdate = new File(userPath + "/updateSWT");
         String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
         + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
@@ -118,8 +118,8 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         fosUpdate.close();
         Process pChMod = Runtime.getRuntime().exec("chmod 755 " + userPath + "/updateSWT");
         pChMod.waitFor();
-        //Process p = Runtime.getRuntime().exec(new String[]{"sh","-c","\"" + userPath + "/updateSWT\""});
-        Program.launch(exec);
+        Process p = Runtime.getRuntime().exec("./updateSWT");
+        //Program.launch(exec);
       } else {
         String exec[] = {
             javaPath + "java" ,
@@ -148,18 +148,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         fosLog.close();
         //Runtime.getRuntime().exec(exec,env,userDir);
       
-      }*/
-      String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
-      + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
-      + userPath + "\" \"" + libraryPath + "\"";
-      
-      LGLogger.log("SWT Updater is about to execute : " + exec);
-      
-      File f = new File("updateSWT.log");
-      FileOutputStream fosLog = new FileOutputStream(f,true);
-      fosLog.write(("SWT Updater is about to execute : " + exec + "\n").getBytes());  
-      
-      Program.launch(exec);
+      }
     } catch(Exception e) {
       e.printStackTrace();
     }

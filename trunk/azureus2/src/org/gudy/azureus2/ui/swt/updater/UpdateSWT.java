@@ -28,6 +28,8 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.eclipse.swt.program.Program;
+
 /**
  * @author Olivier Chalouhi
  *
