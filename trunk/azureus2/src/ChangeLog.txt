@@ -32,7 +32,7 @@ BUGFIX: Fix for excess thread creation when tracker does not support single-info
 BUGFIX: Fix for hash checking 0-byte files: Bug #853126 [Nolar]
 BUGFIX: Fix for opening files via Files tab when using MoveOnComplete: Bugs #860822, #878795 [Nolar] 
 BUGFIX: Fix for 100% cpu usage after network disconnect/reconnect: Bugs #873957, #879498 [Nolar]
-
+BUGFIX: More reliable .config and .torrent file writing [Nolar]
 
 
 
