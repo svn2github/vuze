@@ -29,6 +29,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableStructureEventDispatcher;
 
 
 /** Table Column definition and modification routines.
@@ -110,8 +111,14 @@ public class TableColumnImpl
   }
 
   public void setWidth(int width) {
-    // TODO: Notify Listeners (TableStructureEventDispatcher)
+    if (width == iWidth || width < 0)
+      return;
     iWidth = width;
+
+    if (bColumnAdded && iPosition != TableColumnCore.POSITION_INVISIBLE) {
+      TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
+      tsed.columnSizeChanged(this);
+    }
   }
 
   public int getWidth() {

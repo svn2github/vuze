@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 
 /**
  * @author Olivier
@@ -76,12 +77,12 @@ public class TableStructureEventDispatcher implements ITableStructureModificatio
    }
   }
   
-  public void columnSizeChanged(int columnNumber,int newWidth) {
+  public void columnSizeChanged(TableColumnCore tableColumn) {
    synchronized(listeners) {
      Iterator iter = listeners.iterator();
      while(iter.hasNext()) {
        ITableStructureModificationListener listener = (ITableStructureModificationListener) iter.next();
-       listener.columnSizeChanged(columnNumber,newWidth);
+       listener.columnSizeChanged(tableColumn);
      }
    }
   }

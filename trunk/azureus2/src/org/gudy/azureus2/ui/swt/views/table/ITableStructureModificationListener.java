@@ -27,5 +27,5 @@ package org.gudy.azureus2.ui.swt.views.table;
  */
 public interface ITableStructureModificationListener {
   void tableStructureChanged();
-  void columnSizeChanged(int columnNumber,int newWidth);
+  void columnSizeChanged(TableColumnCore tableColumn);
 }

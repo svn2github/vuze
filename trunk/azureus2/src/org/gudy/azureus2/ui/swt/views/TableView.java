@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -115,6 +116,12 @@ public class TableView
   /** How often graphic cells get updated
    */
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+  /** Check Column Widths every 10 seconds on Mac if view is active.  
+   * Other OSes can capture column width changes automatically */
+  private int checkColumnWidthsEvery = Constants.isOSX ?
+                                       10000 / COConfigurationManager.getIntParameter("GUI Refresh") :
+                                       0;
+
 
   /**
    * Main Initializer
@@ -228,17 +235,18 @@ public class TableView
 
     sorter = new TableSorter(this, sTableID, sDefaultSortOn, true);
 
+    // OSX doesn't call this!! :(
     ControlListener resizeListener = new ControlAdapter() {
       public void controlResized(ControlEvent e) {
-        // OSX doesn't call this!! :(
         TableColumn column = (TableColumn) e.widget;
-        int columnNumber = table.indexOf(column);
-        // TODO: Move TableStructureEventDispatcher into tc.setWidth
-        TableColumnManager tcManager = TableColumnManager.getInstance();
-        TableColumnCore tc = tcManager.getTableColumnCore(sTableID, (String)column.getData("Name"));
+        if (column == null || column.isDisposed())
+          return;
+
+        TableColumnCore tc = (TableColumnCore)column.getData("TableColumnCore");
         if (tc != null)
           tc.setWidth(column.getWidth());
-        TableStructureEventDispatcher.getInstance(sTableID).columnSizeChanged(columnNumber, column.getWidth());
+
+        int columnNumber = table.indexOf(column);
     		locationChanged(columnNumber);
       }
     };
@@ -274,10 +282,12 @@ public class TableView
       Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
       column.setAlignment(tableColumns[i].getSWTAlign());
       column.setWidth(tableColumns[i].getWidth());
+      column.setData("TableColumnCore", tableColumns[i]);
       column.setData("configName", "Table." + sTableID + "." + sName);
       column.setData("Name", sName);
-      column.addControlListener(resizeListener);
 
+      // OSX doesn't call these listeners
+      column.addControlListener(resizeListener);
       column.addListener(SWT.Selection, new ColumnListener(tableColumns[i]));
     }
 
@@ -505,7 +515,19 @@ public class TableView
   public void refresh() {
     if(getComposite() == null || getComposite().isDisposed())
       return;
-      
+
+    // Since OSX can't handle TableColumn ControlListener, check widths
+    if (checkColumnWidthsEvery != 0 && 
+        (checkColumnWidthsEvery % loopFactor) == 0) {
+      TableColumn[] tableColumnsSWT = table.getColumns();
+      for (int i = 0; i < tableColumnsSWT.length; i++) {
+        TableColumnCore tc = (TableColumnCore)tableColumnsSWT[i].getData("TableColumnCore");
+        if (tc != null && tc.getWidth() != tableColumnsSWT[i].getWidth()) {
+          tc.setWidth(tableColumnsSWT[i].getWidth());
+        }
+      }
+    }
+
     sorter.reOrder(false);
 
     //Refresh all items in table...
@@ -544,12 +566,9 @@ public class TableView
    */
   public void delete() {
     TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
-    Utils.saveTableColumn(table.getColumns());
-/*
-    // This is the proper way to save them.. however it does not work yet on OSX
     for (int i = 0; i < tableColumns.length; i++)
       tableColumns[i].saveSettings();
-*/
+
  	  TableRowCoreUtils.delete(objectToSortableItem.values());
     if (table != null && !table.isDisposed())
       table.dispose();
@@ -630,7 +649,7 @@ public class TableView
 	public void removeAllTableRows() {
 	  // clear all table items first, so that TableRowCore.delete() doesn't remove
 	  // them one by one (slow)
-	  table.clearAll();
+	  table.removeAll();
 
     synchronized (objectToSortableItem) {
    	  TableRowCoreUtils.delete(objectToSortableItem.values());
@@ -668,8 +687,6 @@ public class TableView
     
     //3. Dispose the old table
     if (table != null && !table.isDisposed()) {
-      // this wouldn't be needed if Macs triggered a column resize
-      Utils.saveTableColumn(table.getColumns());
       table.dispose();
     }
     menu.dispose();
@@ -688,10 +705,19 @@ public class TableView
    * @param columnNumber # of column which size has changed for
    * @param newWidth New width of column
    */
-  public void columnSizeChanged(int columnNumber,int newWidth) {
+  public void columnSizeChanged(TableColumnCore tableColumn) {
+    int newWidth = tableColumn.getWidth();
     if (table == null || table.isDisposed())
       return;
-    TableColumn column = table.getColumn(columnNumber);
+    
+    TableColumn column = null;
+    TableColumn[] tableColumnsSWT = table.getColumns();
+    for (int i = 0; i < tableColumnsSWT.length; i++) {
+      if (tableColumnsSWT[i].getData("TableColumnCore") == tableColumn) {
+        column = tableColumnsSWT[i];
+        break;
+      }
+    }
     if (column == null || column.isDisposed() || (column.getWidth() == newWidth))
       return;
 
@@ -915,6 +941,9 @@ public class TableView
       event = e;
       runForSelectedRows(this);
     }
+    
+    public abstract void run(TableRowCore row);
+    
   }
   
   /** Handle sorting of a column based on clicking the Table Header */
