@@ -804,7 +804,10 @@ TRTrackerClientClassicImpl
  					is = new GZIPInputStream( is );
  				}
  				
- 				int content_length = con.getContentLength();
+ 					// there are some trackers out there that don't set content length correctly
+ 					// so we can't reliably use it :(
+ 				
+ 				int content_length = -1; //con.getContentLength();
  				
  				//      System.out.println(length);
  				
@@ -812,7 +815,7 @@ TRTrackerClientClassicImpl
  				
  				int	num_read = 0;
  				
- 				// some trackers don't return content-length
+ 					// some trackers don't return content-length
  				
  				while ( content_length <= 0 || num_read < content_length ){
  					
@@ -1296,13 +1299,16 @@ TRTrackerClientClassicImpl
 					
 					String	trace_data = new String(data);
 					
+					LGLogger.log("TRTrackerClient::invalid reply:" + trace_data );
+							
 					if ( trace_data.length() > 20 ){
 						
 						trace_data = trace_data.substring(0,20) + "...";
 					}
 					
 					failure_reason = "invalid reply:" + trace_data;
-				
+	
+					
 				}else{
 					
 					long	time_to_wait;
