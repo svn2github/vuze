@@ -322,10 +322,6 @@ TRTrackerClientClassicImpl
 									current_timer_event.cancel();
 								}
 								
-                
-                String msg = "perform():: New tracker update event scheduled for " +target_time+ " [+" +(target_time - SystemTime.getCurrentTime())+ "ms], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
-                LGLogger.log( msg );
-                
 								current_timer_event = 
 									tracker_timer.addEvent( target_time, this );
 							}
@@ -454,9 +450,6 @@ TRTrackerClientClassicImpl
 						
 						current_timer_event.cancel();
 						
-            String msg = "setRefreshDelayOverrides():: New tracker update event scheduled for " +target_time+ " [+" +(target_time - SystemTime.getCurrentTime())+ "ms], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
-            LGLogger.log( msg );
-            
 						current_timer_event = 
 							tracker_timer.addEvent( 
 								start,
@@ -540,9 +533,6 @@ TRTrackerClientClassicImpl
 				
 				current_timer_event.cancel();
 			}
-
-      String msg = "requestUpdate():: New tracker update event scheduled for " +SystemTime.getCurrentTime()+ " [+" +(SystemTime.getCurrentTime() - SystemTime.getCurrentTime())+ "ms], old time=" + (current_timer_event == null ? -1 : current_timer_event.getWhen());
-      LGLogger.log( msg );
       
       rd_last_override = SystemTime.getCurrentTime();  //"pause" overrides for 10s
       
@@ -560,8 +550,6 @@ TRTrackerClientClassicImpl
 	requestUpdateSupport()
 	{
     
-    LGLogger.log( "requestUpdateSupport() started" );
-    
 		boolean	clear_progress = true;
 		
 		try{
@@ -570,8 +558,6 @@ TRTrackerClientClassicImpl
 
 				if ( update_in_progress ){
 					
-          LGLogger.log( "requestUpdateSupport():: update_in_progress" );
-          
 					clear_progress = false;
 					
 					return( getErrorRetryInterval() );
@@ -1424,7 +1410,7 @@ TRTrackerClientClassicImpl
       request.append("&numwant=" + numwant);
       
       //no_peer_id has been made obsolete by 'compact'
-      // TODO: remove this 2.0.9.0 or beyond
+      //remove this 2.0.9.0 or beyond
       
       //request.append("&no_peer_id=1");
       
@@ -1773,7 +1759,6 @@ TRTrackerClientClassicImpl
 								int peer_port = ((Long) s_port).intValue(); 
                 
                 if( peer_port < 0 || peer_port > 65535 ) {
-                  Debug.out( "Invalid peer port given: " +ip+ ": " +peer_port );
                   LGLogger.log( LGLogger.ERROR, "Invalid peer port given: " +ip+ ": " +peer_port );
                   continue;
                 }
@@ -1828,7 +1813,6 @@ TRTrackerClientClassicImpl
 				    		int		peer_port 	= po1*256+po2;
 				    		
                 if( peer_port < 0 || peer_port > 65535 ) {
-                  Debug.out( "Invalid compact peer port given: " +ip+ ": " +peer_port );
                   LGLogger.log( LGLogger.ERROR, "Invalid compact peer port given: " +ip+ ": " +peer_port );
                   continue;
                 }

@@ -86,7 +86,7 @@ public class OutgoingBTHaveMessageAggregator {
       else {
         int pending_bytes = pending_haves.size() * 9;
         if( pending_bytes >= NetworkManager.getSingleton().getTcpMssSize() ) {
-          System.out.println("enough pending haves for a full packet!");
+          //System.out.println("enough pending haves for a full packet!");
           //there's enough pending bytes to fill a packet payload
           sendPendingHaves();
         }
