@@ -44,7 +44,7 @@ public class ConfigurationManager {
     BufferedInputStream bin = null;
     try {
       //open the file
-      fin = new FileInputStream(getApplicationPath() + filename);
+      fin = new FileInputStream(FileUtil.getApplicationPath() + filename);
       bin = new BufferedInputStream(fin);
       propertiesMap = BDecoder.decode(bin);
       if (propertiesMap == null)
@@ -53,7 +53,7 @@ public class ConfigurationManager {
     } catch (FileNotFoundException e) {
       //create the file!
       try {
-        File newConfigFile = new File(getApplicationPath() + filename);
+        File newConfigFile = new File(FileUtil.getApplicationPath() + filename);
         if (System.getProperty("os.name").equals("Linux"))
           newConfigFile.getParentFile().mkdir();
         newConfigFile.createNewFile();
@@ -86,7 +86,7 @@ public class ConfigurationManager {
     //open a file stream
     FileOutputStream fos = null;
     try {
-      fos = new FileOutputStream(getApplicationPath() + filename);
+      fos = new FileOutputStream(FileUtil.getApplicationPath() + filename);
       //write the data out
       fos.write(torrentData);
     } catch (Exception e) {
@@ -223,12 +223,4 @@ public class ConfigurationManager {
     }
   }
   
-  //TODO:: Move this to a FileManager class?
-  public static String getApplicationPath() {
-    if (System.getProperty("os.name").equals("Linux")) {
-      return System.getProperty("user.home") + System.getProperty("file.separator") + ".azureus" + System.getProperty("file.separator");
-    } else {
-      return System.getProperty("user.dir") + System.getProperty("file.separator");
-    }
-  }
 }

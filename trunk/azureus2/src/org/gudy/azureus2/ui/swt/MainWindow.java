@@ -78,6 +78,7 @@ import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.FileUtil;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -1480,21 +1481,8 @@ public class MainWindow implements IComponentListener {
     return window;
   }
 
-  private String getCanonicalFileName(String filename) {
-    // Sometimes Windows use filename in 8.3 form and cannot
-    // match .torrent extension. To solve this, canonical path
-    // is used to get back the long form
-
-    String canonicalFileName = filename;
-    try {
-      canonicalFileName = new File(filename).getCanonicalPath();
-    }
-    catch (IOException ignore) {}
-    return canonicalFileName;
-  }
-
   public void openTorrent(final String fileName) {
-    if (!getCanonicalFileName(fileName).endsWith(".torrent")) //$NON-NLS-1$
+    if (!FileUtil.getCanonicalFileName(fileName).endsWith(".torrent")) //$NON-NLS-1$
       return;
     display.asyncExec(new Runnable() {
       public void run() {
@@ -1549,7 +1537,7 @@ public class MainWindow implements IComponentListener {
 
         String separator = System.getProperty("file.separator"); //$NON-NLS-1$
         for (int i = 0; i < fileNames.length; i++) {
-          if (!getCanonicalFileName(fileNames[i]).endsWith(".torrent")) //$NON-NLS-1$
+          if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".torrent")) //$NON-NLS-1$
             continue;
           String savePath = getSavePath(path + separator + fileNames[i]);
           if (savePath == null)
@@ -1566,7 +1554,7 @@ public class MainWindow implements IComponentListener {
       return;
     File[] files = f.listFiles(new FileFilter() {
       public boolean accept(File arg0) {
-        if (getCanonicalFileName(arg0.getName()).endsWith(".torrent")) //$NON-NLS-1$
+        if (FileUtil.getCanonicalFileName(arg0.getName()).endsWith(".torrent")) //$NON-NLS-1$
           return true;
         return false;
       }

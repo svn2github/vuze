@@ -36,7 +36,7 @@ public class Main implements ILocaleUtilChooser {
     System.setProperties(p);
     gm = new GlobalManager();
     server = new Jhttpp2Server(gm, true);
-    ci = new ConsoleInput(gm, server, System.in, System.out);
+    ci = new ConsoleInput(gm, System.in, System.out);
     new Thread(server, "Webinterface Server").start();
     System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
   }

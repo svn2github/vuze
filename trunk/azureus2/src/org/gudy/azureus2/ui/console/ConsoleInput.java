@@ -29,7 +29,6 @@ import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.PeerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.web.Jhttpp2Server;
 
 /**
  *
@@ -37,16 +36,14 @@ import org.gudy.azureus2.ui.web.Jhttpp2Server;
  */
 public class ConsoleInput extends Thread {
   
-  Jhttpp2Server server;
   GlobalManager gm;
   BufferedReader br;
   PrintStream out;
   ArrayList torrents = null;
   
   /** Creates a new instance of ConsoleInput */
-  public ConsoleInput(GlobalManager _gm, Jhttpp2Server _server, InputStream _in, PrintStream _out) {
+  public ConsoleInput(GlobalManager _gm, InputStream _in, PrintStream _out) {
     super("Console Input");
-    server = _server;
     gm = _gm;
     out = _out;
     br = new BufferedReader(new InputStreamReader(_in));
@@ -108,12 +105,7 @@ public class ConsoleInput extends Thread {
           }
           out.println("> -----");
         } else if (command.equalsIgnoreCase("quit"))  {
-          if (server != null)
-            server.shutdownServer();
-          else {
-            gm.stopAll();
-            System.exit(0);
-          }
+          org.gudy.azureus2.ui.common.Main.shutdown();
         } else if (command.equalsIgnoreCase("show")) {
           if (subcommand != null) {
             if (subcommand.equalsIgnoreCase("torrents")) {

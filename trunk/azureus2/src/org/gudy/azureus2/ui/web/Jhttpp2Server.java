@@ -30,7 +30,6 @@ import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.ILoggerListener;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.console.ConsoleInput;
 
 public class Jhttpp2Server implements Runnable, ILoggerListener {
   private static final String CRLF="\r\n";
@@ -215,8 +214,6 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     +"Copyright (c) 2001-2003 Benjamin Kohl <bkohl@users.sourceforge.net>\r\n"
     +"This software comes with ABSOLUTELY NO WARRANTY OF ANY KIND.\r\n"
     +"http://jhttp2.sourceforge.net/");
-    System.out.println();
-    ConsoleInput.printconsolehelp(System.out);
     System.out.println();
     init(_gm);
   }
@@ -509,10 +506,8 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     }
   }*/
   public void shutdownServer() {
-    //closeLog();
     loggerWeb.info("Server shutdown.");
-    gm.stopAll();
-    System.exit(0);
+    org.gudy.azureus2.ui.common.Main.shutdown();
   }
   
 }
