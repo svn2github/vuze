@@ -71,7 +71,6 @@ PEPeerTransportProtocol
 	private String ip;
 	private String ip_resolved;
 	private int port;
-	private int hashcode;
 	
 	private PEPeerStatsImpl stats;
   private List 		requested 		= new ArrayList();
@@ -228,8 +227,6 @@ PEPeerTransportProtocol
 		ip 		= _ip;
 		port 	= _port;
 	 	
-	 	this.hashcode = (ip + String.valueOf(port)).hashCode();
-    
 		if ( fake ){
 			return;
 		}
