@@ -2,8 +2,11 @@ package org.gudy.azureus2.core;
 
 
 import java.net.InetSocketAddress;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Iterator;
 
 /**
  * The Bittorrent server to accept incoming connections.
@@ -21,10 +24,12 @@ public class Server extends Thread
 //  private static final int MAX_CONNECTIONS = 50;
   private int port;
   private ServerSocketChannel sck;
+  private Selector selector;
   private boolean bContinue;
   private PeerManager manager;
-  
-  
+
+  private static int instanceCount = 0;
+
   public Server()
   {
     super("Bt Server");
@@ -36,6 +41,7 @@ public class Server extends Thread
     port = lowPort;
     sck = null;
     bContinue = true;
+    setPriority(Thread.MIN_PRIORITY);
     while (sck == null && port <= highPort) {
       try {
         sck = ServerSocketChannel.open();
@@ -49,6 +55,7 @@ public class Server extends Thread
     
     if (sck != null) {
       Logger.getLogger().log(componentID,evtLyfeCycle,Logger.INFORMATION,"BT Server is bound on port " + port);
+      instanceCount++;
     } else {
       Logger.getLogger().log(componentID,evtLyfeCycle,Logger.INFORMATION,"BT was unable to bind on a port from "+ lowPort + " to " + highPort);            
       port = 0;
@@ -56,26 +63,52 @@ public class Server extends Thread
   }
   
   public void run()
-  {    
+  {
     try {
-      sck.configureBlocking(true);
+      sck.configureBlocking(false);
+      selector = Selector.open();
+      sck.register(selector, SelectionKey.OP_ACCEPT);
       Logger.getLogger().log(componentID,evtLyfeCycle,Logger.INFORMATION,"BT Server is ready to accept incoming connections");
       while (bContinue) {
-        SocketChannel sckClient = sck.accept();
-        if (sckClient != null) {
-          Logger.getLogger().log(componentID,evtNewConnection,Logger.INFORMATION,"BT Server has accepted an incoming connection from : " + sckClient.socket().getInetAddress().getHostAddress());
-          sckClient.configureBlocking(false);
-          manager.addPeer(sckClient);
+        if(manager.uploadsFree()) {
+          if (selector.select() > 0) {
+            Iterator it = selector.selectedKeys().iterator();
+            SelectionKey key = (SelectionKey) it.next();
+            it.remove();
+            if (key.isValid() && key.isAcceptable()) {
+              try {
+                ServerSocketChannel keyChannel = (ServerSocketChannel)key.channel();
+                SocketChannel sckClient = keyChannel.accept();
+                if(sckClient != null) {
+                  Logger.getLogger().log(componentID,evtNewConnection,Logger.INFORMATION,"BT Server has accepted an incoming connection from : " + sckClient.socket().getInetAddress().getHostAddress());
+                  sckClient.configureBlocking(false);
+                  manager.addPeer(sckClient);
+                }
+              } catch(Exception e) {
+                key.cancel();
+              }
+            }
+          }
+        }
+        try {
+          Thread.sleep(50);
+        } catch(Exception ignore) {
         }
       }
-    } catch (Exception e)  {               
-      if (bContinue)            
-        Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"BT Server has catched an error : " + e);            
+    } catch (Exception e)  {
+      if (bContinue)
+        Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"BT Server has catched an error : " + e);
+    } finally {
+      if(selector != null)
+        try {
+          selector.close();
+        } catch (Exception ignore) {
+        }
     }
-    
+
     Logger.getLogger().log(componentID,evtLyfeCycle,Logger.INFORMATION,"BT Server is stopped");
   }
-  
+
   public void stopServer()
   {    
     bContinue = false;
@@ -88,8 +121,13 @@ public class Server extends Thread
     {
       Logger.getLogger().log(componentID,evtErrors,Logger.ERROR,"Error catched while stopping server : " + e);  
     }
+    instanceCount--;
   }
-  
+
+  public static boolean portsFree() {
+    return Math.abs(ConfigurationManager.getInstance().getIntParameter("Low Port",6881) - ConfigurationManager.getInstance().getIntParameter("High Port",6889))+1 > instanceCount;
+  }
+
   public int getPort()
   {
     return port;
