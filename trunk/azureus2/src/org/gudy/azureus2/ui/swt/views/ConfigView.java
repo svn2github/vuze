@@ -763,7 +763,9 @@ public class ConfigView extends AbstractIView {
 
 	label = new Label(gFile, SWT.NULL);
 	Messages.setLanguageText(label, "ConfigView.section.file.decoder.label"); //$NON-NLS-1$
-	
+	new Label(gFile, SWT.NULL);
+	new Label(gFile, SWT.NULL);
+  
 	LocaleUtilDecoder[]	decoders = LocaleUtil.getDecoders();
 	
 	String decoderLabels[] = new String[decoders.length + 1];
