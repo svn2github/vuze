@@ -336,7 +336,7 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.socket.SO_SNDBUF", new Long(0) );
     def.put( "network.tcp.socket.SO_RCVBUF", new Long(0) );
     def.put( "network.tcp.socket.IPTOS", "" );
-    def.put( "confirm_torrent_removal", new Long(1) );
+    def.put( "confirm_torrent_removal", new Long(0) );
     def.put( "add_torrents_silently", new Long(0) );
     
   }
