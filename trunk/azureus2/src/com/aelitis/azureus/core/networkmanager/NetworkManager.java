@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 
 /**
- *
+ * TODO
  */
 public class NetworkManager {
   private static final NetworkManager instance = new NetworkManager();
@@ -38,7 +38,7 @@ public class NetworkManager {
   private int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
   private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
   private final WriteController write_controller = new WriteController();
-  
+  private final ReadController read_controller = new ReadController();
 
   
   private NetworkManager() {
@@ -65,7 +65,7 @@ public class NetworkManager {
    */
   public Connection createNewConnection( ConnectionOwner owner, String remote_address, int remote_port ) {
     if( remote_port < 0 || remote_port > 65535 ) {
-      Debug.out( "remove_port invalid: " + remote_port );
+      Debug.out( "remote_port invalid: " + remote_port );
       remote_port = 0;
     }
     Connection conn = new Connection( owner, new InetSocketAddress( remote_address, remote_port ) );
@@ -75,6 +75,7 @@ public class NetworkManager {
   
   /**
    * TEMP METHOD UNTIL INBOUND CONNECTIONS ARE HANDLED INTERNALLY
+   * TODO
    */
   public Connection createNewInboundConnection( ConnectionOwner owner, SocketChannel channel ) {
     Connection conn = new Connection( owner, channel );
@@ -115,6 +116,13 @@ public class NetworkManager {
   protected WriteController getWriteController() {  return write_controller;  }
   
   
+  /**
+   * Get the socket read controller.
+   * @return controller
+   */
+  protected ReadController getReadController() {  return read_controller;  }
+  
+  
   
   /**
    * Get the configured TCP MSS (Maximum Segment Size) unit, i.e. the max (preferred) packet payload size.
@@ -124,6 +132,4 @@ public class NetworkManager {
    */
   public int getTcpMssSize() {  return tcp_mss_size;  }
   
-
-
 }
