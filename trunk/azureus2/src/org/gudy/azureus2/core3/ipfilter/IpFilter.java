@@ -49,4 +49,7 @@ IpFilter
 	
 	public abstract IpRange
 	createRange(boolean sessionOnly);
+	
+	public abstract int getNbRanges();
+	public abstract int getNbIpsBlocked();
 }

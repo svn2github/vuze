@@ -83,11 +83,13 @@ public class IconBar {
     while(iter.hasNext()) {
       String key = (String) iter.next();
       ToolItem toolItem = (ToolItem) itemKeyToControl.get(key);
+      if(toolItem == null || toolItem.isDisposed())
+        continue;
       if(currentEnabler != null) {
         toolItem.setEnabled(currentEnabler.isEnabled(key));
         toolItem.setSelection(currentEnabler.isSelected(key));
       }
-      else {
+      else {        
         toolItem.setEnabled(false);
         toolItem.setSelection(false);
       }

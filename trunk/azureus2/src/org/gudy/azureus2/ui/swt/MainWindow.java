@@ -64,7 +64,6 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -73,6 +72,7 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
@@ -132,6 +132,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   private Composite folder;
   
   private CLabel statusText;
+  private CLabel ipBlocked;
   private CLabel statusDown;
   private CLabel statusUp;
 
@@ -203,6 +204,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
               Tab.refresh();
             }
 
+            ipBlocked.setText("IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
             statusDown.setText("D: " + DisplayFormatters.formatByteCountToKBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
             statusUp.setText("U: " + DisplayFormatters.formatByteCountToKBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
 					}
@@ -730,7 +732,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Composite statusBar = new Composite(mainWindow, SWT.SHADOW_IN);
     statusBar.setLayoutData(gridData);
     GridLayout layout_status = new GridLayout();
-    layout_status.numColumns = 3;
+    layout_status.numColumns = 4;
     layout_status.horizontalSpacing = 1;
     layout_status.verticalSpacing = 0;
     layout_status.marginHeight = 0;
@@ -746,6 +748,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     new VersionChecker().start();
 	}
 
+		gridData = new GridData();
+		gridData.widthHint = 105;
+		ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
+		ipBlocked.setText("IPs:"); //$NON-NLS-1$
+		ipBlocked.setLayoutData(gridData);
+		Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
+		
     gridData = new GridData();
     gridData.widthHint = 105;
     statusDown = new CLabel(statusBar, SWT.SHADOW_IN);

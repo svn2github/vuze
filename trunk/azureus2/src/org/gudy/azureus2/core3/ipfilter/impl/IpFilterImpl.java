@@ -49,12 +49,13 @@ IpFilterImpl
 	private static IpFilterImpl ipFilter;
   
 	private List ipRanges;
-  
+  private int ipBlocked;
  
   
 	private IpFilterImpl() {
 	  ipFilter = this;
 	  ipRanges = new ArrayList();
+	  ipBlocked = 0;
 	  loadFilters();
 	}
   
@@ -134,6 +135,7 @@ IpFilterImpl
 		  IpRange ipRange = (IpRange) iter.next();
 		  if(ipRange.isInRange(ipAddress)) {
 			LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
+			ipBlocked++;
 			return true;
 		  }
 		}
@@ -152,5 +154,13 @@ IpFilterImpl
 	createRange(boolean sessionOnly)
 	{
 		return( new IpRangeImpl("","","",sessionOnly));
+	}
+	
+	public int getNbRanges() {
+	  return ipRanges.size();
+	}
+	
+	public int getNbIpsBlocked() {
+	  return ipBlocked;
 	}
 }
