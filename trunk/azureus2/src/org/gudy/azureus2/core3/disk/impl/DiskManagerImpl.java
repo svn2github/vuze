@@ -2214,6 +2214,9 @@ DiskManagerImpl
       boolean moveOnlyInDefault = COConfigurationManager.getBooleanParameter("Move Only When In Default Save Dir", true);
       if (moveOnlyInDefault) {
         String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
+        
+        System.out.println("MOVE_TEST: defSaveDir="+defSaveDir+"   rPath="+rPath);
+        
         if (!rPath.equals(defSaveDir)) {
           LGLogger.log(LGLogger.INFORMATION, "Not moving-on-complete since data is not within default save dir");
           return returnName;
