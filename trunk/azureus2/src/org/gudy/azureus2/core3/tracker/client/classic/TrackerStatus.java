@@ -226,8 +226,16 @@ public class TrackerStatus {
     	      //retrieve values
     	      int seeds = ((Long)scrapeMap.get("complete")).intValue();
     	      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
-    
-    	      
+              
+            //make sure we dont use invalid replies
+            if ( seeds < 0 || peers < 0 ) {
+            	response.setNextScrapeStartTime(System.currentTimeMillis() + FAULTY_SCRAPE_RETRY_INTERVAL);
+            	response.setStatus(TRTrackerScraperResponse.ST_ERROR);
+              response.setStatusString(MessageText.getString("Scrape.status.error") + MessageText.getString("Scrape.status.error.invalid"));
+              scraper.scrapeReceived( response );
+              return;
+            }
+
     	      // decode additional flags - see http://anime-xtreme.com/tracker/blah.txt for example
     	      int scrapeInterval = 10 * 60;
     	      Map mapFlags = (Map) map.get("flags");
