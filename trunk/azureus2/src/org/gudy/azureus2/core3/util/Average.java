@@ -76,7 +76,7 @@ public class Average {
     //huge number of time, so if it's really old, we change it so we'll only
     //erase the buffer once.
     if (lastUpdate < timeFactor - nbElements)
-      lastUpdate = timeFactor - nbElements;
+      lastUpdate = timeFactor - nbElements - 1;
 
     //For all values between lastUpdate + 1 (next value than last updated)
     //and timeFactor (which is the new value insertion position) 
@@ -84,7 +84,7 @@ public class Average {
       //We set the value to 0.
       values[(int) (i % nbElements)] = 0;
     }
-    //We also clear the nex value to be inserted (so on next time change...)
+    //We also clear the next value to be inserted (so on next time change...)
     values[(int) ((timeFactor + 1) % nbElements)] = 0;
 
     //And we update lastUpdate.
