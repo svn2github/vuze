@@ -153,12 +153,16 @@ public class FileItem {
         int a1 = ((i + 1) * nbPieces) / width;
         if (a1 == a0)
           a1++;
-        if (a1 > nbPieces)
+        if (a1 > nbPieces && nbPieces > 0)
           a1 = nbPieces;
         int nbAvailable = 0;
-        for (int j = a0; j < a1; j++)
-          if (available[j+firstPiece])
-            nbAvailable++;
+        if(firstPiece > -1) {               
+          for (int j = a0; j < a1; j++)
+           if (available[j+firstPiece])
+              nbAvailable++;        
+        } else {
+           nbAvailable = 1;    
+        }
         int index = (nbAvailable * 4) / (a1 - a0);
         //System.out.print(index);
         gcImage.setBackground(blues[index]);
