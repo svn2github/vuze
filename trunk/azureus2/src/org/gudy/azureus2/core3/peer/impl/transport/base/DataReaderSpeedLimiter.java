@@ -30,6 +30,7 @@ package org.gudy.azureus2.core3.peer.impl.transport.base;
 import java.io.*;
 import java.nio.channels.*;
 
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransportDataReader;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
@@ -80,7 +81,7 @@ DataReaderSpeedLimiter
 		bytes_per_slot	= bytes_per_second/slot_count;
 	}
 	
-	public DataReader
+	public PEPeerTransportDataReader
 	getDataReader(
 		DataReaderOwner		owner )
 	{
@@ -89,7 +90,7 @@ DataReaderSpeedLimiter
 	
 	protected class
 	unlimitedDataReader
-		implements DataReader
+		implements PEPeerTransportDataReader
 	{
 		public int
 		read(
@@ -100,16 +101,11 @@ DataReaderSpeedLimiter
 		{
 			return( direct_buffer.read(DirectByteBuffer.SS_PEER,channel));
 		}
-		
-		public void
-		destroy()
-		{
-		}
 	}
 	
 	protected class
 	limitedDataReader
-		implements DataReader
+		implements PEPeerTransportDataReader
 	{
 		protected DataReaderOwner	owner;
 				
@@ -329,11 +325,6 @@ DataReaderSpeedLimiter
 				System.out.println( "    max_bytes = " + debug_max_bytes + ", limit = " + debug_limit );
 				throw( e );
 			}
-		}
-		
-		public void
-		destroy()
-		{
 		}
 	}
 }

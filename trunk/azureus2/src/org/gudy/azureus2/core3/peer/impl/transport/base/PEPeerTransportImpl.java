@@ -31,7 +31,6 @@ import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
-import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 
@@ -47,9 +46,7 @@ PEPeerTransportImpl
 {
 	private static final boolean	TRACE	= false;
 
-	private SocketChannel 		socket 			= null;
-	private volatile			DataReader		data_reader;
-	
+	private SocketChannel 				socket;	
 	
 	  /**
 	   * The Default Contructor for outgoing connections.
@@ -90,64 +87,14 @@ PEPeerTransportImpl
      	socket 			= sck;
   	}
   
-  	protected void
-	setupSpeedLimiter()
-  	{
-  		try{
-  			this_mon.enter();
-  		
-	  		final DownloadManager	dm = getControl().getDownloadManager();
-	  		
-	  		data_reader = (DataReader)dm.getData( "PEPeerTransport::DataReader" );
-	  		
-	  		if ( data_reader == null ){
-	  			
-	  			data_reader = 
-	  				DataReaderSpeedLimiter.getSingleton().getDataReader(
-	  						new DataReaderOwner()
-							{
-	  							public int
-	  							getMaximumBytesPerSecond()
-	  							{
-	  								return( dm.getStats().getMaxDownloadKBSpeed() * 1024 );
-	  							}
-							});
-	  			
-	  			dm.setData( "PEPeerTransport::DataReader", data_reader );
-	  		}
-  		}finally{
-  			
-  			this_mon.exit();
-  		}
-  	}
-  
-  //TODO
-	protected void startConnectionX() {
-	  setupSpeedLimiter();
-	}
-
-
-  //TODO
-	protected void closeConnectionX() {
-    if( data_reader != null ) {
-      data_reader.destroy();
-      data_reader = null;
-  	  DownloadManager	dm = getControl().getDownloadManager();
-      dm.setData( "PEPeerTransport::DataReader", null );
-    }
-	}
-
-
-  
-  
 	protected int 
 	readData( 
 		DirectByteBuffer	buffer )
 	
 		throws IOException 
 	{
-		DataReader		data_reader_copy	= data_reader;
-		SocketChannel	socket_copy			= socket;
+		PEPeerTransportDataReader		data_reader_copy	= getDataReader();
+		SocketChannel					socket_copy			= socket;
 		
 		if ( data_reader_copy == null ){
 			

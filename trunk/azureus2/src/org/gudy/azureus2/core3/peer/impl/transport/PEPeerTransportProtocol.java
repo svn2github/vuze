@@ -364,9 +364,7 @@ PEPeerTransportProtocol
 	      outgoing_have_message_aggregator.destroy();
 	      //outgoing_have_message_aggregator = null;
 	    }
-	    
-	    closeConnectionX();  //cleanup of download limiter
-	    
+	    	    
 	    if( connection != null ) {
 	    	if( connection_registered ) {
 	    		UploadManager.getSingleton().cancelStandardPeerConnection( connection );
@@ -498,7 +496,6 @@ PEPeerTransportProtocol
       connection_established_time = SystemTime.getCurrentTime();
       
       allocateAll();
-      startConnectionX();  //sets up the download speed limiter
     }
     
     public int process() 
@@ -877,7 +874,6 @@ PEPeerTransportProtocol
       
       if ( !already_initialised ){
     		allocateAll();
-    		startConnectionX();  //sets up the download speed limiter
     	}
       
       handshake_read_buff = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_PT_READ, 68 );
@@ -1748,8 +1744,6 @@ StateTransfering
   public void setSnubbed(boolean b) {  snubbed = b;  }
 
   //TODO: remove abstract methods
-  protected abstract void startConnectionX();
-  protected abstract void closeConnectionX();
   protected abstract void setChannel( SocketChannel channel );
   protected abstract int readData( DirectByteBuffer	buffer ) throws IOException;
   
@@ -1766,6 +1760,11 @@ StateTransfering
   public long getLastReadTime() { return lastReadTime; }
   public void setLastReadTime(long time) { lastReadTime = time; }
 
+  protected PEPeerTransportDataReader
+  getDataReader()
+  {
+  	return( manager.getDataReader());
+  }
 
   /** To retreive arbitrary objects against a peer. */
   public Object getData (String key) {

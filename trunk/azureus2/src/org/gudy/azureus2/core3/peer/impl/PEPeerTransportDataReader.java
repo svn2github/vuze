@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.peer.impl.transport.base;
+package org.gudy.azureus2.core3.peer.impl;
 
 /**
  * @author parg
@@ -33,7 +33,7 @@ import java.nio.channels.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 public interface 
-DataReader 
+PEPeerTransportDataReader 
 {
 	public int
 	read(
@@ -41,7 +41,5 @@ DataReader
 		DirectByteBuffer	buffer )
 	
 		throws IOException;
-	
-	public void
-	destroy();
+
 }

@@ -23,6 +23,8 @@ import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.impl.transport.base.DataReaderOwner;
+import org.gudy.azureus2.core3.peer.impl.transport.base.DataReaderSpeedLimiter;
 import org.gudy.azureus2.core3.peer.util.*;
 
 import com.aelitis.azureus.core.networkmanager.ConnectDisconnectManager;
@@ -135,6 +137,8 @@ PEPeerControlImpl
   
   private Map		user_data;
   
+  private PEPeerTransportDataReader		download_speed_limiter;
+  
   private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
     public int getRateLimitBytesPerSecond() {
       return _downloadManager.getStats().getUploadRateLimitBytesPerSecond();
@@ -238,6 +242,16 @@ PEPeerControlImpl
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
+	download_speed_limiter = 
+				DataReaderSpeedLimiter.getSingleton().getDataReader(
+						new DataReaderOwner()
+					{
+							public int
+							getMaximumBytesPerSecond()
+							{
+								return( _downloadManager.getStats().getMaxDownloadKBSpeed() * 1024 );
+							}
+					});
     
     setDiskManager(_diskManager);
     
@@ -420,6 +434,8 @@ PEPeerControlImpl
     }
 
 
+	download_speed_limiter	= null;
+	
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
     COConfigurationManager.removeParameterListener("Ip Filter Enabled", this);
@@ -2891,6 +2907,11 @@ PEPeerControlImpl
   
   public DiskManager getDiskManager() {  return _diskManager;   }
   
+  public PEPeerTransportDataReader
+  getDataReader()
+  {
+  	return( download_speed_limiter );
+  }
   
   public LimitedRateGroup getUploadLimitedRateGroup() {  return upload_limited_rate_group;  }
   

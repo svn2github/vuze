@@ -74,4 +74,7 @@ PEPeerControl
   */
   
 	public DiskManager getDiskManager();
+	
+	public PEPeerTransportDataReader
+	getDataReader();
 }
