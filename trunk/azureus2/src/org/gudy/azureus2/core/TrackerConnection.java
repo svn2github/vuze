@@ -190,7 +190,9 @@ public class TrackerConnection {
     if (evt.length() != 0)
       request.append("&event=").append(evt);
     if (evt.equals("stopped"))
-      request.append("&numpeers=0");
+      request.append("&num_peers=0");
+    else
+      request.append("&num_peers=50");
     String ip = ConfigurationManager.getInstance().getStringParameter("Override Ip", "");
     if (ip.length() != 0)
       request.append("&ip=").append(ip);
