@@ -182,9 +182,9 @@ public class PEPeerTransportSpeedLimiter {
       //2. Allocate bandwith for each levels
       this.limit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
       int toBeAllowedTotal = limit / 10;      
-      //2.1 LOW level, max 30% of bandwith used      
-      int toBeAllowed = (30 * toBeAllowedTotal) / 100;
-      // 70% left in the total bandwith
+      //2.1 LOW level uploaders get 50% less than high
+      int toBeAllowed = (nbUploadersLowPriority * toBeAllowedTotal) / (nbUploadersLowPriority + 2 * nbUploadersHighPriority );
+      //left in the total bandwith
       toBeAllowedTotal -= toBeAllowed;
       
       Iterator iter = sortedList.iterator();
