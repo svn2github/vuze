@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.server.impl;
+package org.gudy.azureus2.core3.tracker.server.impl.tcp;
 
 
 import java.io.*;
@@ -29,13 +29,14 @@ import java.util.*;
 import sun.misc.BASE64Decoder;
 
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.tracker.server.impl.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
-TRTrackerServerProcessor
-	implements Runnable
+TRTrackerServerProcessorTCP
+	implements 	Runnable
 {
 	protected static final int SOCKET_TIMEOUT				= 5000;
 
@@ -44,13 +45,13 @@ TRTrackerServerProcessor
 	protected static final String	NL			= "\015\012";
 
 							
-	protected TRTrackerServerImpl		server;
+	protected TRTrackerServerTCP	server;
 	protected Socket					socket;
 	
 	protected
-	TRTrackerServerProcessor(
-		TRTrackerServerImpl	_server,
-		Socket				_socket )
+	TRTrackerServerProcessorTCP(
+		TRTrackerServerTCP	_server,
+		Socket					_socket )
 	{
 		server	= _server;
 		socket	= _socket;

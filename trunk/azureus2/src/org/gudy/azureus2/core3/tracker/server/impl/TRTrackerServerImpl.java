@@ -1,7 +1,7 @@
 /*
  * File    : TRTrackerServerImpl.java
- * Created : 5 Oct. 2003
- * By      : Parg 
+ * Created : 19-Jan-2004
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -21,32 +21,28 @@
 
 package org.gudy.azureus2.core3.tracker.server.impl;
 
+/**
+ * @author parg
+ *
+ */
 
-import java.net.*;
-import java.io.*;
+
 import java.util.*;
-
-import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.ipfilter.*;
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
-import org.gudy.azureus2.core3.security.*;
 
-public class 
+public abstract class 
 TRTrackerServerImpl 
-	implements TRTrackerServer
+	implements 	TRTrackerServer
 {
-	protected static final int THREAD_POOL_SIZE				= 10;
-	
 	protected static final int RETRY_MINIMUM_SECS			= 60;
 	protected static final int RETRY_MINIMUM_MILLIS			= RETRY_MINIMUM_SECS*1000;
 	protected static final int CLIENT_TIMEOUT_MULTIPLIER	= 3;
 	
 	protected static final int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
-		
 	
 	protected static boolean	send_peer_ids	= true;
 	
@@ -56,16 +52,16 @@ TRTrackerServerImpl
 		send_peer_ids = COConfigurationManager.getBooleanParameter( param, true );
 		
 		COConfigurationManager.addParameterListener(
-			param,
-			new ParameterListener()
-			{
-				public void
-				parameterChanged(
-					String	value )
+				param,
+				new ParameterListener()
 				{
-					send_peer_ids = COConfigurationManager.getBooleanParameter( param, true );
-				}
-			});
+					public void
+					parameterChanged(
+							String	value )
+					{
+						send_peer_ids = COConfigurationManager.getBooleanParameter( param, true );
+					}
+				});
 	}
 	
 	protected static boolean
@@ -73,150 +69,19 @@ TRTrackerServerImpl
 	{
 		return( send_peer_ids );
 	}
-
+	
 	protected IpFilter	ip_filter	= IpFilter.getInstance();
 	
-	protected int	port;
+	protected Map		torrent_map = new HashMap(); 
 	
-	protected Map	torrent_map = new HashMap(); 
-		
-	protected int	current_retry_interval;
+	protected int		current_retry_interval;
 	
 	protected Vector	listeners 			= new Vector();
-	protected Vector	request_listeners 	= new Vector();
-	
-	protected ThreadPool	thread_pool;
-	
-	protected boolean	web_password_enabled;
-	protected boolean	tracker_password_enabled;
-	protected String	password_user;
-	protected byte[]	password_pw;
-	
-	
-	public
-	TRTrackerServerImpl(
-		int			_port,
-		boolean		_ssl  )
 		
-		throws TRTrackerServerException
+	
+	protected
+	TRTrackerServerImpl()
 	{
-		port					= _port;
-
-		COConfigurationManager.addListener(
-			new COConfigurationListener()
-			{
-				public void
-				configurationSaved()
-				{
-					readPasswordSettings();
-				}
-			});
-			
-		readPasswordSettings();
-				
-		thread_pool = new ThreadPool( "TrackerServer:"+port, THREAD_POOL_SIZE );			
-		current_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
-		
-		if ( current_retry_interval < RETRY_MINIMUM_SECS ){
-			
-			current_retry_interval = RETRY_MINIMUM_SECS;
-		}
-
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-
-		if ( _ssl ){
-			
-			try {
-				
- 	      
-				SSLServerSocketFactory factory = SESecurityManager.getSSLServerSocketFactory();
- 
-				SSLServerSocket ssl_server_socket;
-				
-				if ( bind_ip.length() < 7 ){
-					
-					ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128 );
-					
-				}else{
-					
-					ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128, InetAddress.getByName(bind_ip));
-				}
-
-				String cipherSuites[] = ssl_server_socket.getSupportedCipherSuites();
-  
-				ssl_server_socket.setEnabledCipherSuites(cipherSuites);
- 
-				ssl_server_socket.setNeedClientAuth(false);
-				
-				ssl_server_socket.setReuseAddress(true);
-												
-				final SSLServerSocket	f_ss = ssl_server_socket;
-				
-				Thread accept_thread = 
-						new Thread("TRTrackerServer:accept.loop(ssl)")
-						{
-							public void
-							run()
-							{
-								acceptLoop( f_ss );
-							}
-						};
-			
-				accept_thread.setDaemon( true );
-			
-				accept_thread.start();									
-			
-				LGLogger.log( "TRTrackerServer: SSL listener established on port " + port ); 
-				
-			}catch( Throwable e){
-			
-				LGLogger.log( "TRTrackerServer: SSL listener failed on port " + port, e ); 
-				  
-				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
-   
-			}
-		}else{
-			
-			try{
-				ServerSocket ss;
-				
-				if ( bind_ip.length() < 7 ){
-					
-					ss = new ServerSocket( port, 128 );
-					
-				}else{
-					
-					ss = new ServerSocket( port, 128, InetAddress.getByName(bind_ip));
-				}
-				
-				ss.setReuseAddress(true);
-				
-				final ServerSocket	f_ss = ss;
-				
-				Thread accept_thread = 
-						new Thread("TRTrackerServer:accept.loop")
-						{
-							public void
-							run()
-							{
-								acceptLoop( f_ss );
-							}
-						};
-			
-				accept_thread.setDaemon( true );
-			
-				accept_thread.start();									
-			
-				LGLogger.log( "TRTrackerServer: listener established on port " + port ); 
-				
-			}catch( Throwable e){
-			
-				LGLogger.log( "TRTrackerServer: listener failed on port " + port, e ); 
-							
-				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
-			}			
-		}
-			 
 		Thread timer_thread = 
 			new Thread("TrackerServer:timer.loop")
 			{
@@ -226,102 +91,78 @@ TRTrackerServerImpl
 					timerLoop();
 				}
 			};
-			
+		
 		timer_thread.setDaemon( true );
-			
+		
 		timer_thread.start();
 	}
 	
-
-	int req_num;
-	
-	protected void
-	acceptLoop(
-		ServerSocket	ss )
+	public int
+	getRetryInterval()
 	{		
-		while(true){
-			
-			try{				
-				final Socket socket = ss.accept();
-				
-				String	ip = socket.getInetAddress().getHostAddress();
-				
-				if ( !ip_filter.isInRange( ip )){
-					
-					thread_pool.run( new TRTrackerServerProcessor( this, socket ));
-					
-				}else{
-					
-					socket.close();
-				}
-				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();		
-			}
-		}
+		return( current_retry_interval );
 	}
-		
+	
 	protected void
 	timerLoop()
 	{
 		long	time_to_go = TIMEOUT_CHECK;
 		
 		while(true){
-	
+			
 			try{
 				Thread.sleep( RETRY_MINIMUM_MILLIS );
 				
 				time_to_go -= RETRY_MINIMUM_MILLIS;
-					
-					// recalc tracker interval every minute
-					
+				
+				// recalc tracker interval every minute
+				
 				int	min 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 				int	max 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Max", DEFAULT_MAX_RETRY_DELAY );
 				int	inc_by 	= COConfigurationManager.getIntParameter("Tracker Poll Inc By", DEFAULT_INC_BY );
 				int	inc_per = COConfigurationManager.getIntParameter("Tracker Poll Inc Per", DEFAULT_INC_PER );
-			
+				
 				int	retry = min;
-						
+				
 				int	clients = 0;
-						
+				
 				synchronized(this){
-						
+					
 					Iterator	it = torrent_map.values().iterator();
-						
+					
 					while(it.hasNext()){
-							
+						
 						Map	temp = new HashMap();
-							
-							// this triggers timeouts...
-								
+						
+						// this triggers timeouts...
+						
 						TRTrackerServerTorrentImpl	t = (TRTrackerServerTorrentImpl)it.next();
-							
+						
 						clients += t.getPeers().length;
 					}
 				}
-						
+				
 				if ( inc_by > 0 && inc_per > 0 ){
-							
+					
 					retry += inc_by * (clients/inc_per);
 				}
-						
+				
 				if ( max > 0 && retry > max ){
-							
+					
 					retry = max;
 				}
-						
+				
 				if ( retry < RETRY_MINIMUM_SECS ){
-							
+					
 					retry = RETRY_MINIMUM_SECS;
 				}
-						
-				current_retry_interval = retry;
-											
-					// timeout dead clients
-						
-				if ( time_to_go <= 0 ){
 				
+				current_retry_interval = retry;
+				
+				// timeout dead clients
+				
+				if ( time_to_go <= 0 ){
+					
 					time_to_go = TIMEOUT_CHECK;
 					
 					synchronized(this){
@@ -332,8 +173,8 @@ TRTrackerServerImpl
 							
 							Map	temp = new HashMap();
 							
-								// this triggers timeouts...
-								
+							// this triggers timeouts...
+							
 							TRTrackerServerTorrentImpl	t = (TRTrackerServerTorrentImpl)it.next();
 							
 							t.exportPeersToMap( temp );
@@ -349,53 +190,11 @@ TRTrackerServerImpl
 		}
 	}
 	
-	protected void
-	readPasswordSettings()
-	{		
-		web_password_enabled 		= COConfigurationManager.getBooleanParameter("Tracker Password Enable Web", false);
-		tracker_password_enabled 	= COConfigurationManager.getBooleanParameter("Tracker Password Enable Torrent", false);
-
-		if ( web_password_enabled || tracker_password_enabled ){
-			
-			password_user	= COConfigurationManager.getStringParameter("Tracker Username", "");
-			password_pw		= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
-		}
-	}
-	
-	public boolean
-	isWebPasswordEnabled()
-	{
-		return( web_password_enabled );
-	}
-	
-	public boolean
-	isTrackerPasswordEnabled()
-	{
-		return( tracker_password_enabled );
-	}
-	
-	public String
-	getUsername()
-	{
-		return( password_user );
-	}
-	public byte[]
-	getPassword()
-	{
-		return( password_pw );
-	}
-	
-	public int
-	getRetryInterval()
-	{		
-		return( current_retry_interval );
-	}
-		
 	public synchronized void
 	permit(
 		byte[]		_hash,
 		boolean		_explicit )
-		
+	
 		throws TRTrackerServerException
 	{
 		// System.out.println( "TRTrackerServerImpl::permit( " + _explicit + ")");
@@ -407,9 +206,9 @@ TRTrackerServerImpl
 		if ( entry == null ){
 			
 			for (int i=0;i<listeners.size();i++){
-			
+				
 				if ( !((TRTrackerServerListener)listeners.elementAt(i)).permitted( _hash, _explicit )){
-		
+					
 					throw( new TRTrackerServerException( "operation denied"));			
 				}
 			}
@@ -419,12 +218,12 @@ TRTrackerServerImpl
 			torrent_map.put( hash, entry );
 		}
 	}
-		
+	
 	public synchronized void
 	deny(
 		byte[]		_hash,
 		boolean		_explicit )
-		
+	
 		throws TRTrackerServerException
 	{
 		// System.out.println( "TRTrackerServerImpl::deny( " + _explicit + ")");
@@ -436,20 +235,20 @@ TRTrackerServerImpl
 		for (int i=0;i<listeners.size();i++){
 			
 			if ( !((TRTrackerServerListener)listeners.elementAt(i)).denied( _hash, _explicit )){				
-		
+				
 				throw( new TRTrackerServerException( "operation denied"));			
 			}
 		}
 	}
 	
-	protected TRTrackerServerTorrentImpl
+	public TRTrackerServerTorrentImpl
 	getTorrent(
 		byte[]		hash )
 	{
 		return((TRTrackerServerTorrentImpl)torrent_map.get(new HashWrapper(hash)));
 	}
 	
-	protected synchronized TRTrackerServerTorrentImpl[]
+	public synchronized TRTrackerServerTorrentImpl[]
 	getTorrents()
 	{
 		TRTrackerServerTorrentImpl[]	res = new TRTrackerServerTorrentImpl[torrent_map.size()];
@@ -487,66 +286,17 @@ TRTrackerServerImpl
 		return( torrent.getPeers());
 	}
 	
-	protected synchronized boolean
-	handleExternalRequest(
-		String			header,
-		OutputStream	os )
-		
-		throws IOException
-	{
-		for (int i=0;i<listeners.size();i++){
-			
-			if (((TRTrackerServerListener)listeners.elementAt(i)).handleExternalRequest( header, os )){
-				
-				return( true );
-			}
-		}
-		
-		return( false );
-	}
-	
-	protected void
-	postProcess(
-		TRTrackerServerTorrentImpl	torrent,
-		int							type,
-		Map							response )
-	{
-		if ( request_listeners.size() > 0 ){
-			
-			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, torrent, type, response );
-			
-			for (int i=0;i<request_listeners.size();i++){
-				
-				((TRTrackerServerRequestListener)request_listeners.elementAt(i)).postProcess( req );
-			}
-		}
-	}
-	
 	public synchronized void
 	addListener(
-		TRTrackerServerListener	l )
+			TRTrackerServerListener	l )
 	{
 		listeners.addElement( l );
 	}
-		
+	
 	public synchronized void
 	removeListener(
-		TRTrackerServerListener	l )
+			TRTrackerServerListener	l )
 	{
 		listeners.removeElement(l);
-	}
-	
-	public void
-	addRequestListener(
-		TRTrackerServerRequestListener	l )
-	{
-		request_listeners.addElement( l );
-	}
-	
-	public void
-	removeRequestListener(
-		TRTrackerServerRequestListener	l )
-	{
-		request_listeners.removeElement(l);
 	}
 }

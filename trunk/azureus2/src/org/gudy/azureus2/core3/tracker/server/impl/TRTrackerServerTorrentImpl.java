@@ -45,8 +45,8 @@ TRTrackerServerTorrentImpl
 		
 	protected
 	TRTrackerServerTorrentImpl(
-		TRTrackerServerImpl	_server,
-		HashWrapper			_hash )
+		TRTrackerServerImpl		_server,
+		HashWrapper				_hash )
 	{
 		server		= _server;
 		hash		= _hash;
@@ -55,7 +55,7 @@ TRTrackerServerTorrentImpl
 	}
 	
 	
-	protected synchronized void
+	public synchronized void
 	peerContact(
 		String		event,
 		String		peer_id,
@@ -135,7 +135,7 @@ TRTrackerServerTorrentImpl
 		}
 	}
 	
-	protected synchronized void
+	public synchronized void
 	exportPeersToMap(
 		Map		map )
 	{
@@ -147,7 +147,7 @@ TRTrackerServerTorrentImpl
 	
 		Iterator	it = peer_map.values().iterator();
 				
-		boolean	send_peer_ids = server.getSendPeerIds();
+		boolean	send_peer_ids = TRTrackerServerImpl.getSendPeerIds();
 		
 		while(it.hasNext()){
 	
@@ -182,7 +182,7 @@ TRTrackerServerTorrentImpl
 		return( stats );
 	}
 	
-	protected synchronized TRTrackerServerPeer[]
+	public synchronized TRTrackerServerPeer[]
 	getPeers()
 	{
 		TRTrackerServerPeer[]	res = new TRTrackerServerPeer[peer_map.size()];

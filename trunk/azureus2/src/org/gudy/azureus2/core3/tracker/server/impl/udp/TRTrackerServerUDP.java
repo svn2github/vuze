@@ -1,6 +1,6 @@
 /*
- * File    : TRTrackerServerRequestImpl.java
- * Created : 13-Dec-2003
+ * File    : TRTrackerServerUDP.java
+ * Created : 19-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,53 +19,42 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.server.impl;
+package org.gudy.azureus2.core3.tracker.server.impl.udp;
 
 /**
  * @author parg
  *
  */
-
+import java.net.*;
+import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.tracker.server.impl.*;
 
 public class 
-TRTrackerServerRequestImpl
-	implements TRTrackerServerRequest
+TRTrackerServerUDP
+	extends 	TRTrackerServerImpl
 {
-	protected TRTrackerServerImpl			server;
-	protected TRTrackerServerTorrentImpl	torrent;
-	protected int							type;
-	protected Map							response;
-	
 	public
-	TRTrackerServerRequestImpl(
-		TRTrackerServerImpl				_server,
-		TRTrackerServerTorrentImpl		_torrent,
-		int								_type,
-		Map								_response )
+	TRTrackerServerUDP(
+		int		_port )
 	{
-		server		= _server;
-		torrent		= _torrent;
-		type		= _type;
-		response	= _response;
+	
 	}
 	
-	public int
-	getType()
+	public void
+	addRequestListener(
+		TRTrackerServerRequestListener	l )
 	{
-		return( type );
-	}
-	public TRTrackerServerTorrent
-	getTorrent()
-	{
-		return( torrent );	
 	}
 	
-	public Map
-	getResponse()
+	public void
+	removeRequestListener(
+		TRTrackerServerRequestListener	l )
 	{
-		return( response );
 	}
 }

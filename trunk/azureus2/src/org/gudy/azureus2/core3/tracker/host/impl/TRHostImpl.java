@@ -107,7 +107,7 @@ TRHostImpl
 													
 													int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 												
-													startServer( port, false );
+													startServer( TRTrackerServerFactory.PR_TCP, port, false );
 													
 												}catch( Throwable e ){
 												
@@ -121,7 +121,7 @@ TRHostImpl
 													
 														int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
 												
-														startServer( port, true );
+														startServer( TRTrackerServerFactory.PR_TCP, port, true );
 														
 													}catch( Throwable e ){
 												
@@ -293,7 +293,7 @@ TRHostImpl
 			}
 		}
 		
-		TRTrackerServer server = startServer( port, ssl );
+		TRTrackerServer server = startServer( TRTrackerServerFactory.PR_TCP, port, ssl );
 		
 		TRHostTorrent host_torrent;
 	
@@ -331,6 +331,7 @@ TRHostImpl
 	
 	protected synchronized TRTrackerServer
 	startServer(
+		int		protocol,
 		int		port,
 		boolean	ssl )
 		
@@ -345,11 +346,11 @@ TRHostImpl
 				
 				if ( ssl ){
 					
-					server = TRTrackerServerFactory.createSSL( port );
+					server = TRTrackerServerFactory.createSSL( protocol, port );
 				
 				}else{
 				
-					server = TRTrackerServerFactory.create( port );
+					server = TRTrackerServerFactory.create( protocol, port );
 				}
 					
 				server_map.put( new Integer( port ), server );

@@ -27,22 +27,27 @@ import org.gudy.azureus2.core3.tracker.server.impl.*;
 public class 
 TRTrackerServerFactory 
 {
+	public static final int PR_TCP	= 1;
+	public static final int PR_UDP	= 2;
+	
 	public static TRTrackerServer
 	create(
+		int		protocol,
 		int		port )
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( port, false ));
+		return( TRTrackerServerFactoryImpl.create( protocol, port, false ));
 	}
 	
 	public static TRTrackerServer
 	createSSL(
+		int		protocol,
 		int		port )
 		
 		throws TRTrackerServerException
 	{
-		return( TRTrackerServerFactoryImpl.create( port, true ));
+		return( TRTrackerServerFactoryImpl.create( protocol, port, true ));
 	}
 	
 	public static void

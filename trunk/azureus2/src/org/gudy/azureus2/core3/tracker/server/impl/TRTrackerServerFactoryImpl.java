@@ -29,6 +29,8 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.tracker.server.impl.tcp.*;
+import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
 
 public class 
 TRTrackerServerFactoryImpl 
@@ -38,12 +40,27 @@ TRTrackerServerFactoryImpl
 	
 	public static synchronized TRTrackerServer
 	create(
+		int			protocol,
 		int			port,
 		boolean		ssl)
 	
 		throws TRTrackerServerException
 	{
-		TRTrackerServerImpl	server = new TRTrackerServerImpl( port, ssl );
+		TRTrackerServerImpl	server;
+		
+		if ( protocol == TRTrackerServerFactory.PR_TCP ){
+			
+			server = new TRTrackerServerTCP( port, ssl );
+			
+		}else{
+			
+			if ( ssl ){
+				
+				throw( new TRTrackerServerException( "TRTrackerServerFactory: UDP doesn't support SSL"));
+			}
+			
+			server = new TRTrackerServerUDP( port );
+		}
 		
 		servers.add( server );
 		

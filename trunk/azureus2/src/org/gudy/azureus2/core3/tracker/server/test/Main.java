@@ -48,7 +48,7 @@ Main
 		
 		try{
 
-			TRTrackerServerFactory.create( 6969 );
+			TRTrackerServerFactory.create( TRTrackerServerFactory.PR_UDP, 6969 );
 													 
 		}catch( Throwable e ){
 			
