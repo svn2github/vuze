@@ -23,6 +23,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.*;
+import java.io.File;
 import org.eclipse.swt.SWT;
 
 import org.eclipse.swt.dnd.*;
@@ -52,10 +53,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
@@ -1191,6 +1189,16 @@ public class MyTorrentsView
           	TOTorrent torrent = dm.getTorrent();
           	if ( torrent != null ){
               TorrentUtils.delete( torrent );
+          	}else{
+          		String	torrent_file_name = dm.getTorrentFileName();
+
+          			// if torrent is broken we get no Torrent object back - try
+          			// and delete the file directly
+          		
+          		if ( torrent_file_name != null ){
+          			
+          			new File(torrent_file_name).delete();
+          		}
           	}
           }
         } catch (GlobalManagerDownloadRemovalVetoException f) {
