@@ -426,8 +426,8 @@ DownloadManagerImpl
     String fname = diskManager.getFileName();
     return FileUtil.smartFullName(path, fname); 
 	}
-   //otherwise use downloadmanager's initial values
-   else return FileUtil.smartFullName(savePath, name);
+   //otherwise use downloadmanager's initial value
+   else return savePath;
   }
 
 
