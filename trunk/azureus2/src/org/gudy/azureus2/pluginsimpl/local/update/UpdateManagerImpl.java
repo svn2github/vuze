@@ -59,8 +59,7 @@ UpdateManagerImpl
 			PlatformManagerFactory.getPlatformManager();
 			
 		}catch( Throwable e ){
-			
-			e.printStackTrace();
+		
 		}
 	}
 	

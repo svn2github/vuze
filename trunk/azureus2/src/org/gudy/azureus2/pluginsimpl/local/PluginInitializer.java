@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 
@@ -113,7 +112,6 @@ PluginInitializer
    
   private STProgressListener listener;
   
-  private TRHost		tracker_host;
   private GlobalManager	global_manager;
   
   private PluginInterface	default_plugin;
@@ -180,9 +178,7 @@ PluginInitializer
     this.listener 	= listener;
     
     UpdateManagerImpl.getSingleton();	// initialise the update manager
-    
-    tracker_host	= TRHostFactory.getSingleton();
-    
+       
     plugin_manager = PluginManagerImpl.getSingleton( this );
     
     UpdaterUpdateChecker.checkPlugin();
@@ -752,12 +748,6 @@ PluginInitializer
   	}
   }
  	
-  protected TRHost
-  getTrackerHost()
-  {
-  	return( tracker_host );
-  }
-  
   protected GlobalManager
   getGlobalManager()
   {

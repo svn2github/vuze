@@ -273,7 +273,7 @@ PluginInterfaceImpl
   }
 
   public Tracker getTracker() {
-  	return( TrackerImpl.getSingleton( initialiser.getTrackerHost()));
+  	return( TrackerImpl.getSingleton());
   }
   
   public ShareManager

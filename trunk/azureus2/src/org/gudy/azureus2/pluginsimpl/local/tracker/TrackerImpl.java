@@ -52,12 +52,11 @@ TrackerImpl
 	
 	
 	public static synchronized Tracker
-	getSingleton(
-		TRHost		host )
+	getSingleton()
 	{
 		if ( tracker == null ){
-			
-			tracker	= new TrackerImpl( host );
+						
+			tracker	= new TrackerImpl( TRHostFactory.getSingleton());
 		}		
 		
 		return( tracker );

@@ -35,9 +35,6 @@ import javax.net.ssl.*;
 import java.security.*;
 import java.security.cert.*;
 
-import org.bouncycastle.jce.*;
-import org.bouncycastle.asn1.x509.X509Name;
-
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
@@ -92,11 +89,11 @@ SESecurityManagerImpl
 		}
 		
 		try{
-			Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+			SESecurityManagerBC.initialise();
 			
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			LGLogger.log( LGLogger.ERROR, "Bouncy Castle not available" );
 		}
 	}
 	
@@ -323,42 +320,7 @@ SESecurityManagerImpl
 	
 		throws Exception
 	{
-		KeyPairGenerator	kg = KeyPairGenerator.getInstance( "RSA" );
-		
-		kg.initialize(strength, new SecureRandom());
-
-		KeyPair pair = kg.generateKeyPair();
-					
-		X509V3CertificateGenerator certificateGenerator = 
-			new X509V3CertificateGenerator();
-		
-		certificateGenerator.setSignatureAlgorithm( "MD5WithRSAEncryption" );
-		
-		certificateGenerator.setSerialNumber( new BigInteger( ""+System.currentTimeMillis()));
-					
-		X509Name	issuer_dn = new X509Name(true,cert_dn);
-		
-		certificateGenerator.setIssuerDN(issuer_dn);
-		
-		X509Name	subject_dn = new X509Name(true,cert_dn);
-		
-		certificateGenerator.setSubjectDN(subject_dn);
-		
-		Calendar	not_after = Calendar.getInstance();
-		
-		not_after.add(Calendar.YEAR, 1);
-		
-		certificateGenerator.setNotAfter( not_after.getTime());
-		
-		certificateGenerator.setNotBefore(Calendar.getInstance().getTime());
-		
-		certificateGenerator.setPublicKey( pair.getPublic());
-		
-		X509Certificate certificate = certificateGenerator.generateX509Certificate(pair.getPrivate());
-		
-		java.security.cert.Certificate[] certChain = {(java.security.cert.Certificate) certificate };
-
-		addCertToKeyStore( alias, pair.getPrivate(), certChain );
+		SESecurityManagerBC.createSelfSignedCertificate( this, alias, cert_dn, strength );
 	}
 	
 	public synchronized boolean
