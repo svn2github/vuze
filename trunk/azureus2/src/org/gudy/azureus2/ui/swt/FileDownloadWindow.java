@@ -152,7 +152,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
         status.setText("");
         downloader.cancel();       
         downloader = 
-        	TorrentDownloaderFactory.download(
+        	TorrentDownloaderFactory.create(
         			FileDownloadWindow.this,
 					url,
 					referrer,
@@ -210,7 +210,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     
     shell.open();
     
-    downloader = TorrentDownloaderFactory.download(this,url,referrer,dirName);
+    downloader = TorrentDownloaderFactory.create(this,url,referrer,dirName);
     downloader.start();
   }    
     

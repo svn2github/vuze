@@ -182,6 +182,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       boolean useTorrentSave = COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
 
       if (file_str != null) {
+      	// not completely sure about the whole logic in this block
         File temp = new File(file_str);
 
         //if we're not using a default torrent save dir
@@ -204,7 +205,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
           filename = temp.getName();
         }
       }
-
+      // what would happen here if directoryname == null and file_str == null??
+      
       this.state = STATE_INIT;
       this.notifyListener();
     } catch (java.net.MalformedURLException e) {

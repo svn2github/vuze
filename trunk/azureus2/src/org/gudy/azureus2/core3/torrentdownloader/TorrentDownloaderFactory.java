@@ -26,8 +26,21 @@ public class TorrentDownloaderFactory {
     }
   }
   
+  /**
+   * creates and initializes a TorrentDownloader object with the specified parameters.
+   * NOTE: this does not actually start the TorrentDownloader object
+   * @param callback object to notify about torrent download status
+   * @param url url of torrent file to download
+   * @param referrer url of referrer to set as HTTP_REFERER header when requesting torrent
+   * @param fileordir path to a file or directory that the actual 
+   *        torrent file should be saved to. if a default save directory is not specified, this will be used instead.
+   * 		even if a default save directory is specified, if this parameter path refers to a file, the filename will
+   * 		be used when saving the torrent  
+   * @param whether or not logging is enabled for the torrent download. this is performed through the TorrentDownloaderLoggedImpl class which is only available in the uis project
+   * @return
+   */
   public static TorrentDownloader 
-  download(
+  create(
   	TorrentDownloaderCallBackInterface 	callback, 
 	String 								url,
 	String								referrer,
@@ -41,37 +54,37 @@ public class TorrentDownloaderFactory {
   }
   
   public static TorrentDownloader 
-  download(
+  create(
   		TorrentDownloaderCallBackInterface 	callback, 
 		String 								url,
 		String								referrer,
 		String 								fileordir) 
   {
-    return download(callback, url, referrer, fileordir, false);
+    return create(callback, url, referrer, fileordir, false);
   }
   
-  public static TorrentDownloader download(TorrentDownloaderCallBackInterface callback, String url, boolean logged) {
-    return download(callback, url, null, null, logged);
+  public static TorrentDownloader create(TorrentDownloaderCallBackInterface callback, String url, boolean logged) {
+    return create(callback, url, null, null, logged);
   }
   
-  public static TorrentDownloader download(TorrentDownloaderCallBackInterface callback, String url) {
-      return download(callback, url, null, null, false);
+  public static TorrentDownloader create(TorrentDownloaderCallBackInterface callback, String url) {
+      return create(callback, url, null, null, false);
   }
   
-  public static TorrentDownloader download(String url, String fileordir, boolean logged) {
-    return download(null, url, null, fileordir, logged);
+  public static TorrentDownloader create(String url, String fileordir, boolean logged) {
+    return create(null, url, null, fileordir, logged);
   }
   
-  public static TorrentDownloader download(String url, String fileordir) {
-    return download(null, url, null, fileordir, false);
+  public static TorrentDownloader create(String url, String fileordir) {
+    return create(null, url, null, fileordir, false);
   }
   
-  public static TorrentDownloader download(String url, boolean logged) {
-    return download(null, url, null, null, logged);
+  public static TorrentDownloader create(String url, boolean logged) {
+    return create(null, url, null, null, logged);
   }
   
-  public static TorrentDownloader download(String url) {
-    return download(null, url, null, null, false);
+  public static TorrentDownloader create(String url) {
+    return create(null, url, null, null, false);
   }
   
   public static void initManager(GlobalManager gm, boolean logged, boolean autostart, String downloaddir) {

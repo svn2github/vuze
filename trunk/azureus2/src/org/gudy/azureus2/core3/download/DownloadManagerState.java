@@ -36,6 +36,7 @@ DownloadManagerState
 {
 	public static final String AT_CATEGORY		= "category";
 	public static final String AT_NETWORKS		= "networks";
+	public static final String AT_USER		= "user";
 	
 	public TOTorrent
 	getTorrent();

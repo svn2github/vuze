@@ -54,7 +54,7 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
             this.downloaddir = _downloaddir;
     }
     
-    private TorrentDownloader download(TorrentDownloader dl) {
+    public TorrentDownloader add(TorrentDownloader dl) {
         if (dl.getDownloadState()==TorrentDownloader.STATE_ERROR)
             this.errors.add(dl);
         else if (this.running.contains(dl) || this.queued.contains(dl)) {
@@ -69,19 +69,19 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
     }
     
     public TorrentDownloader download(String url, String fileordir, boolean logged) {
-        return download(TorrentDownloaderFactory.download(this, url, null, fileordir, logged));
+        return add(TorrentDownloaderFactory.create(this, url, null, fileordir, logged));
     }
     
     public TorrentDownloader download(String url, boolean logged) {
-        return download(TorrentDownloaderFactory.download(this, url, null, null, logged));
+        return add(TorrentDownloaderFactory.create(this, url, null, null, logged));
     }
     
     public TorrentDownloader download(String url, String fileordir) {
-        return download(TorrentDownloaderFactory.download(this, url, null, fileordir, this.logged));
+        return add(TorrentDownloaderFactory.create(this, url, null, fileordir, this.logged));
     }
     
     public TorrentDownloader download(String url) {
-        return download(TorrentDownloaderFactory.download(this, url, this.logged));
+        return add(TorrentDownloaderFactory.create(this, url, this.logged));
     }
     
     public void TorrentDownloaderEvent(int state, org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader inf) {
@@ -93,22 +93,26 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
                     this.running.add(inf);
                 break;
             case TorrentDownloader.STATE_FINISHED:
-                if (this.running.contains(inf))
-                    this.running.remove(inf);
-                if (this.queued.contains(inf))
-                    this.queued.remove(inf);
+                remove(inf);
                 if ((gm != null) && (downloaddir != null)) {
                     gm.addDownloadManager(inf.getFile().getAbsolutePath(), downloaddir);
                 }
                 break;
             case TorrentDownloader.STATE_ERROR:
-                if (this.running.contains(inf))
-                    this.running.remove(inf);
-                if (this.queued.contains(inf))
-                    this.queued.remove(inf);
+                remove(inf);
                 this.errors.add(inf);
                 break;
         }
     }
+
+	/**
+	 * @param inf
+	 */
+	public void remove(TorrentDownloader inf) {
+		if (this.running.contains(inf))
+		    this.running.remove(inf);
+		if (this.queued.contains(inf))
+		    this.queued.remove(inf);
+	}
     
 }
