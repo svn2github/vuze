@@ -633,7 +633,8 @@ Test
 	
 	public DHTStorageKey
 	keyCreated(
-		HashWrapper		key )
+		HashWrapper		key,
+		boolean			local )
 	{
 		System.out.println( "key created" );
 		
@@ -674,7 +675,8 @@ Test
 	public void
 	valueUpdated(
 		DHTStorageKey		key,
-		DHTTransportValue	value )
+		DHTTransportValue	old_value,
+		DHTTransportValue	new_value)
 	{
 		System.out.println( "value updated" );
 	}

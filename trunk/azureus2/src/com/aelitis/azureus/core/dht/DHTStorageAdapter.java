@@ -37,9 +37,15 @@ DHTStorageAdapter
 {
 		// local value operations
 	
+		/**
+		 * Create a new storage key for a given key
+		 * @return null if the key shouldn't be allocated (e.g.out of space)
+		 */
+	
 	public DHTStorageKey
 	keyCreated(
-		HashWrapper		key );
+		HashWrapper		key,
+		boolean			local );
 	
 	public void
 	keyDeleted(
@@ -58,7 +64,8 @@ DHTStorageAdapter
 	public void
 	valueUpdated(
 		DHTStorageKey		key,
-		DHTTransportValue	value );
+		DHTTransportValue	old_value,
+		DHTTransportValue	new_value );
 	
 	public void
 	valueDeleted(

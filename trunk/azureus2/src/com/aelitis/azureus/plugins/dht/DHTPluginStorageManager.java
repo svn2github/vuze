@@ -269,21 +269,17 @@ DHTPluginStorageManager
 		}
 	}
 	
+	
+		// key storage
+	
 	public DHTStorageKey
 	keyCreated(
-		HashWrapper		key )
+		HashWrapper		key,
+		boolean			local )
 	{
 		//System.out.println( "DHT key created");
 		
-		return(
-			new DHTStorageKey()
-			{
-				public byte
-				getDiversificationType()
-				{
-					return( DHT.DT_NONE );
-				}
-			});
+		return(	getStorageKey( key ));
 	}
 	
 	public void
@@ -291,6 +287,8 @@ DHTPluginStorageManager
 		DHTStorageKey		key )
 	{
 		//System.out.println( "DHT key deleted" );
+		
+		deleteStorageKey((storageKey)key );
 	}
 	
 	public void
@@ -299,6 +297,8 @@ DHTPluginStorageManager
 		DHTTransportContact		contact )
 	{
 		//System.out.println( "DHT value read" );
+		
+		((storageKey)key).read();
 	}
 	
 	public void
@@ -307,14 +307,19 @@ DHTPluginStorageManager
 		DHTTransportValue	value )
 	{
 		//System.out.println( "DHT value added" );
+		
+		((storageKey)key).sizeChanged( value.getValue().length);
 	}
 	
 	public void
 	valueUpdated(
 		DHTStorageKey		key,
-		DHTTransportValue	value )
+		DHTTransportValue	old_value,
+		DHTTransportValue	new_value )
 	{
 		//System.out.println( "DHT value updated" );
+		
+		((storageKey)key).sizeChanged( new_value.getValue().length - old_value.getValue().length);
 	}
 	
 	public void
@@ -323,6 +328,9 @@ DHTPluginStorageManager
 		DHTTransportValue	value )
 	{
 		//System.out.println( "DHT value deleted" );
+		
+		((storageKey)key).sizeChanged( -value.getValue().length);
+
 	}
 	
 		// get diversifications for put operations must deterministically return the same end points
@@ -385,6 +393,21 @@ DHTPluginStorageManager
 		}
 	} 
 	
+	protected storageKey
+	getStorageKey(
+		HashWrapper		key )
+	{
+		return( new storageKey( DHT.DT_NONE, key )); 
+	}
+	
+	protected void
+	deleteStorageKey(
+		storageKey		key )
+	{
+		
+	}
+	
+	
 	protected diversification
 	lookupDiversification(
 		HashWrapper	wrapper )
@@ -431,6 +454,46 @@ DHTPluginStorageManager
 			}
 			
 			return( new byte[][]{ key.getHash()});
+		}
+	}
+	
+	protected class
+	storageKey
+		implements DHTStorageKey
+	{
+		private HashWrapper		key;	
+		private byte			type;
+		
+		private int				size;
+		
+		protected
+		storageKey(
+			byte		_type,
+			HashWrapper	_key )
+		{
+			type		= _type;
+			key			= _key;
+		}
+		
+		public byte
+		getDiversificationType()
+		{
+			return( type );
+		}
+		
+		protected void
+		read()
+		{
+			//System.out.println( "read" );
+		}
+		
+		protected void
+		sizeChanged(
+			int		diff )
+		{
+			size	+= diff;
+			
+			//System.out.println( "size changed:" + size + ", diff = " + diff  );
 		}
 	}
 }

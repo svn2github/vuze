@@ -58,7 +58,8 @@ DHTDBMapping
 	protected
 	DHTDBMapping(
 		DHTStorageAdapter	_adapter,
-		HashWrapper			_key )
+		HashWrapper			_key,
+		boolean				_local )
 	{
 		adapter		= _adapter;
 		key			= _key;
@@ -66,7 +67,7 @@ DHTDBMapping
 		try{
 			if ( adapter != null ){
 				
-				adapter_key = adapter.keyCreated( key );
+				adapter_key = adapter.keyCreated( key, _local );
 				
 				if ( adapter_key != null ){
 					
@@ -463,7 +464,7 @@ DHTDBMapping
 			
 		}else{
 			
-			informUpdated( value );
+			informUpdated( old, value );
 		}
 	}
 	
@@ -518,7 +519,7 @@ DHTDBMapping
 			
 		}else{
 			
-			informUpdated( value );
+			informUpdated( old, value );
 		}
 	}
 	
@@ -564,6 +565,9 @@ DHTDBMapping
 			if ( adapter_key != null ){
 				
 				adapter.valueDeleted( adapter_key, value );
+				
+				diversification_state	= adapter_key.getDiversificationType();
+				
 			}
 		}catch( Throwable e ){
 			
@@ -579,6 +583,8 @@ DHTDBMapping
 			if ( adapter_key != null ){
 				
 				adapter.valueAdded( adapter_key, value );
+				
+				diversification_state	= adapter_key.getDiversificationType();
 			}
 		}catch( Throwable e ){
 			
@@ -588,18 +594,22 @@ DHTDBMapping
 	
 	private void
 	informUpdated(
-		DHTDBValueImpl		value ){
+		DHTDBValueImpl		old_value,
+		DHTDBValueImpl		new_value){
 		
 		try{
 			if ( adapter_key != null ){
 				
-				adapter.valueUpdated( adapter_key, value );
+				adapter.valueUpdated( adapter_key, old_value, new_value );
+				
+				diversification_state	= adapter_key.getDiversificationType();
 			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
 		}
 	}
+	
 	private void
 	informRead(
 		DHTTransportContact		contact ){
@@ -608,6 +618,8 @@ DHTDBMapping
 			if ( adapter_key != null && contact != null ){
 				
 				adapter.keyRead( adapter_key, contact );
+				
+				diversification_state	= adapter_key.getDiversificationType();
 			}
 		}catch( Throwable e ){
 			

@@ -634,11 +634,10 @@ DHTControlImpl
 		final boolean							consider_diversification )
 	{		
 			// only diversify on one hit as we're storing at closest 'n' so we only need to
-			// do it once
+			// do it once for each key
 		
 		final boolean[]	diversified = new boolean[encoded_keys.length];
 		
-
 		for (int i=0;i<contacts.size();i++){
 		
 			DHTTransportContact	contact = (DHTTransportContact)contacts.get(i);
@@ -772,7 +771,7 @@ DHTControlImpl
 		final long							timeout,
 		final DHTOperationListenerDemuxer	get_listener )
 	{
-		// get the initial starting point for the put - may have previously been diversified
+			// get the initial starting point for the get - may have previously been diversified
 		
 		byte[][]	encoded_keys	= adapter.diversify( false, true, initial_encoded_key, DHT.DT_NONE );
 
@@ -802,9 +801,11 @@ DHTControlImpl
 							
 							if ( !diversified[0]){
 								
-								int	rem = max_values - found_values.size();
+								diversified[0] = true;
+
+								int	rem = max_values==0?0:( max_values - found_values.size());
 								
-								if ( max_values > 0 && rem > 0 ){
+								if ( max_values == 0 || rem > 0 ){
 									
 									byte[][]	diversified_keys = adapter.diversify( false, false, encoded_key, diversification_type );
 									
@@ -815,9 +816,7 @@ DHTControlImpl
 										
 										getSupport( diversified_keys[i], flags, rem,  timeout, get_listener );
 									}
-								}
-								
-								diversified[0] = true;
+								}								
 							}
 						}
 						
@@ -860,6 +859,9 @@ DHTControlImpl
 													DHTTransportContact _contact,
 													byte[]				_diversifications )
 												{
+														// don't consider diversification for cache stores as we're not that
+														// bothered
+													
 													DHTLog.log( "Cache store OK " + DHTLog.getString( _contact ));
 													
 													router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
@@ -1691,7 +1693,9 @@ DHTControlImpl
 							DHTTransportContact _contact,
 							byte[]				_diversifications )
 						{
-								// TODO: send store diversifications
+								// don't consider diversifications for node additions as they're not interested
+								// in getting values from us, they need to get them from nodes 'near' to the 
+								// diversification targets or the originator
 							
 							DHTLog.log( "add store ok" );
 							

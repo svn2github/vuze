@@ -198,7 +198,7 @@ DHTDBImpl
 			
 			if ( mapping == null ){
 				
-				mapping = new DHTDBMapping( adapter, key );
+				mapping = new DHTDBMapping( adapter, key, true );
 				
 				stored_values.put( key, mapping );
 			}
@@ -310,7 +310,7 @@ DHTDBImpl
 				
 				if ( mapping == null ){
 					
-					mapping = new DHTDBMapping( adapter, key );
+					mapping = new DHTDBMapping( adapter, key, false );
 					
 					stored_values.put( key, mapping );
 				}
