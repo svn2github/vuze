@@ -249,6 +249,8 @@ StatsWriterImpl
 										
 											indent();
 										
+											writeTag( "IP", peer.getIp());
+											
 											writeRawCookedTag( "DOWNLOADED", peer_stats.getTotalReceived());
 											writeRawCookedTag( "UPLOADED", peer_stats.getTotalSent());
 											
