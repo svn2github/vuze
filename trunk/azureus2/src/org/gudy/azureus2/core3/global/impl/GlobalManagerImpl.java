@@ -729,7 +729,7 @@ public class GlobalManagerImpl
             long lDownloadedValue = lDownloaded.longValue();
             if (bCompleted && (lDownloadedValue == 0)) {
               lDownloadedValue = dm.getSize();
-              if ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio)
+              if (lDownloadedValue != 0 && ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio) )
                 lUploadedValue = dm.getSize() * minQueueingShareRatio / 1000;
             }
             stats.setSavedDownloadedUploaded(lDownloadedValue, lUploadedValue);
