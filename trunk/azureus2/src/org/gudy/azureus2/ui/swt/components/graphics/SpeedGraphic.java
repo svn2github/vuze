@@ -22,8 +22,12 @@ package org.gudy.azureus2.ui.swt.components.graphics;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
@@ -31,7 +35,13 @@ import org.gudy.azureus2.ui.swt.MainWindow;
  * @author Olivier
  *
  */
-public class SpeedGraphic extends ScaledGraphic {
+public class SpeedGraphic extends ScaledGraphic implements ParameterListener {    
+  
+  private int internalLoop;
+  private int graphicsUpdate;
+  private Point oldSize;
+  
+  protected Image bufferImage;
   
   private int max = 1;
   private int average = 0;
@@ -41,11 +51,15 @@ public class SpeedGraphic extends ScaledGraphic {
   private int currentPosition;
   
   
+  
   private SpeedGraphic(Scale scale,ValueFormater formater) {
     super(scale,formater);
     
     currentPosition = 0;
     values = new int[2000];
+    
+    COConfigurationManager.addParameterListener("Graphics Update",this);
+    parameterChanged("Graphics Update");
   }
   
   public static SpeedGraphic getInstance() {
@@ -74,61 +88,64 @@ public class SpeedGraphic extends ScaledGraphic {
     }
   }
   
-  public void refresh() {
-    super.drawScale();    
+  public void refresh() {  
     if(drawCanvas == null || drawCanvas.isDisposed())
       return;
-    
-    drawBackGround();
-    drawScale();
-    drawShart();
-    
     
     Rectangle bounds = drawCanvas.getClientArea();
     if(bounds.height < 30 || bounds.width  < 100)
       return;
+    
+    boolean sizeChanged = (oldSize == null || (oldSize.x != bounds.width && oldSize.y != bounds.height));
+    oldSize = new Point(bounds.width,bounds.height);
+    
+    internalLoop++;
+    if(internalLoop > graphicsUpdate)
+      internalLoop = 0;
+    
+    
+    if(internalLoop == 0 || sizeChanged) {
+	    drawChart(sizeChanged);
+    }
     
     GC gc = new GC(drawCanvas);
     gc.drawImage(bufferImage,bounds.x,bounds.y);
     gc.dispose();    
   }
   
-  protected void drawShart() {
+  protected void drawChart(boolean sizeChanged) {
     synchronized(this) {
-      if(drawCanvas == null || drawCanvas.isDisposed())
-        return;
-      Rectangle bounds = drawCanvas.getClientArea();
-      if(bounds.height < 30 || bounds.width  < 100)
-        return;
-      GC gcImage = new GC(super.bufferImage);        
+      drawScale(sizeChanged);
       
+      Rectangle bounds = drawCanvas.getClientArea();    
+        
+      //If bufferedImage is not null, dispose it
+      if(bufferImage != null && ! bufferImage.isDisposed())
+        bufferImage.dispose();
+      
+      bufferImage = new Image(drawCanvas.getDisplay(),bounds);
+      
+      GC gcImage = new GC(bufferImage);
+      
+      gcImage.drawImage(bufferScale,0,0);
       
       int oldAverage = 0;
       Display display = drawCanvas.getDisplay();
+      int maxHeight = scale.getScaledValue(max);
+      Color background = MainWindow.blues[4];
+      Color foreground = MainWindow.blues[1];      
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
         if(position < 0)
           position+= 2000;
         int value = values[position];
         int xDraw = bounds.width - 71 - x;
-        int height = scale.getScaledValue(value);
-        int percent = value * 255 / max;
-        Color background = MainWindow.blues[4];
-        Color foreground = MainWindow.blues[1];
-        int r1 = background.getRed();
-        int g1 = background.getGreen();
-        int b1 = background.getBlue();
-        int r2 = foreground.getRed();
-        int g2 = foreground.getGreen();
-        int b2 = foreground.getBlue();
-        int r = (percent * r1) / 255 + ((255-percent) * r2) / 255;
-        int g = (percent * g1) / 255 + ((255-percent) * g2) / 255;
-        int b = (percent * b1) / 255 + ((255-percent) * b2) / 255;
-        Color tempcolor = new Color(display,r,g,b);
-        gcImage.setForeground(tempcolor);
-        gcImage.setBackground(foreground);        
-        gcImage.fillGradientRectangle(xDraw,bounds.height - 1 - height,1, height,true);
-        tempcolor.dispose();
+        int height = scale.getScaledValue(value);        
+        gcImage.setForeground(background);
+        gcImage.setBackground(foreground); 
+        gcImage.setClipping(xDraw,bounds.height - 1 - height,1, height);
+        gcImage.fillGradientRectangle(xDraw,bounds.height - 1 - maxHeight,1, maxHeight,true);
+        gcImage.setClipping(0,0,bounds.width, bounds.height);
         
         int average = computeAverage(position);
         if(x > 6) {
@@ -144,10 +161,10 @@ public class SpeedGraphic extends ScaledGraphic {
         int height = bounds.height - scale.getScaledValue(computeAverage(currentPosition-6)) - 2;
         gcImage.setForeground(MainWindow.red);
         gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12,true);
-      }
-      
+      }    
       
       gcImage.dispose();
+
     }
   }
   
@@ -165,6 +182,14 @@ public class SpeedGraphic extends ScaledGraphic {
     
   }
   
+  public void parameterChanged(String parameter) {
+    graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+  }
   
+  public void dispose() {
+    super.dispose();
+    if(bufferImage != null && ! bufferImage.isDisposed())
+      bufferImage.dispose();
+  }
 
 }

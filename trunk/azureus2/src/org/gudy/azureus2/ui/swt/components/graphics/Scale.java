@@ -52,6 +52,10 @@ public class Scale {
     computeValues();
   }
   
+  public int getMax() {
+    return this.max;
+  }
+  
   public void setNbPixels(int nbPixels) {
     this.nbPixels = nbPixels;
     if(nbPixels < 1)
