@@ -850,8 +850,13 @@ public class TableView
   		this_mon.enter();
  
 	    try {
-	      if (objectToSortableItem.containsKey(dataSource) || panel.isDisposed())
+	      if ( 	objectToSortableItem.containsKey(dataSource) || 
+	      		panel.isDisposed() ||
+				table.isDisposed()){
+	      
 	        return;
+	      }
+	      
 	      try{
 	      	objectToSortableItem_mon.enter();
 	        // Since adding to objectToSortableItem is async, there's a chance
