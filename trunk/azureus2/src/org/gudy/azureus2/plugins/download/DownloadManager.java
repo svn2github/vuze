@@ -113,6 +113,16 @@ DownloadManager
 	getDownloads();
 	
 	/**
+	 * Gets all the downloads. 
+	 * @param bSorted true - Returned in Download "index" order.<BR>
+	 *                false - Order not guaranteed.  Faster retrieval.
+	 * @return array of Download object
+	 */
+	
+	public Download[]
+	getDownloads(boolean bSorted);
+
+	/**
 	 * Add a listener that will be informed when a download is added to/removed from Azureus
 	 * @param l
 	 */

@@ -163,7 +163,13 @@ public class MessageText {
       //      System.out.println("ResourceBundle: " + bundles[i]);
       String locale = sBundle.substring(prefix.length(), sBundle.length() - extension.length());
       //      System.out.println("Locale: " + locale);
-      foundLocales[i++] = locale.length() == 0 ? LOCALE_ENGLISH : new Locale(locale.substring(1, 3), locale.substring(4, 6));
+      if (locale.length() >= 6) {
+        foundLocales[i++] = new Locale(locale.substring(1, 3), locale.substring(4, 6));
+      } else if (locale.length() >= 3) {
+        foundLocales[i++] = new Locale(locale.substring(1, 3));
+      } else {
+        foundLocales[i++] = LOCALE_ENGLISH;
+      }
     }
 
     Arrays.sort(foundLocales, new Comparator() {

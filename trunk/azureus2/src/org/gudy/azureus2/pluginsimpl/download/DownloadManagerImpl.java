@@ -312,6 +312,19 @@ DownloadManagerImpl
 		return( res );
 	}
 	
+	public Download[]
+	getDownloads(boolean bSorted)
+	{
+	  if (bSorted)
+	    return getDownloads();
+
+		synchronized( listeners ){
+			Download[]	res = new Download[downloads.size()];
+			downloads.toArray( res );
+			return( res );
+		}
+	}
+
 	public void
 	addListener(
 		DownloadManagerListener	l )
