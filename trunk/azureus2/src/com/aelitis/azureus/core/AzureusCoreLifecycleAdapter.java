@@ -56,7 +56,7 @@ AzureusCoreLifecycleAdapter
 	
 		throws AzureusCoreException
 	{
-		return( false );
+		return( true );
 	}
 	
 	public boolean
@@ -65,6 +65,6 @@ AzureusCoreLifecycleAdapter
 	
 		throws AzureusCoreException
 	{
-		return( false );
+		return( true );
 	}
 }
