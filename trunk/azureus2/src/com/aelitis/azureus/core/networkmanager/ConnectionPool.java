@@ -190,6 +190,7 @@ public class ConnectionPool {
   /**
    * Get the pool's write rate percentage, i.e. the percentage of the 
    * global maximum upload rate that this pool is allowed to use.
+   * NOTE: Percentages are given as a float value between 0.0 and 1.0.
    * NOTE: Pool bandwidth rates are calculated as percentages of the global
    * max rates, so the real byte rate of a pool = percentage * global max rate
    * @return write percentage
@@ -202,6 +203,7 @@ public class ConnectionPool {
    * global maximum upload rate that this pool is allowed to use.
    * Bandwidth percentage rates for fellow and children pools are
    * dynamically adjusted up/down to compensate for the given change.
+   * NOTE: Percentages are calculated as a float value between 0.0 and 1.0.
    * NOTE: Pool bandwidth rates are calculated as percentages of the global
    * max rates, so the real byte rate of a pool = percentage * global max rate
    * @param new_percentage
