@@ -402,20 +402,24 @@ public class DiskManager {
     private String _name;
     private String _originalName = null;
     private long _length;
-    private static final String[] unsupportedChars = {"[\\/:?*\\p{Lo}]"}; // 0 = Windows: \ / : ? * and any other Unicode letters ('?')
+    //private static final String[] unsupportedChars = {"[\\/:?*\\p{Lo}]"}; // 0 = Windows: \ / : ? * and any other Unicode letters ('?')
 
     public BtFile(String path, String name, long length) {
       _path = path;
       _length = length;
       _name = name;
-      String newName = name.replace('"', '\''); 
+      
+      /*String newName = name.replace('"', '\'');
+       
       if(System.getProperty("os.name").startsWith("Windows")) {
         newName = newName.replaceAll(unsupportedChars[0], "_");
       }
+      
       if(!name.equals(newName)) {
         _name = newName;
         _originalName = name;
       }
+      */
     }
     public long getLength() {
       return _length;
