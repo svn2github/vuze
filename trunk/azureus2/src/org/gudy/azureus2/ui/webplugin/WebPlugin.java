@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.plugins.ui.model.*;
 
 
 public class 
@@ -71,7 +72,37 @@ WebPlugin
 		plugin_interface	= _plugin_interface;
 		
 		log = plugin_interface.getLogger().getChannel("WebPlugin");
+
+		final BasicPluginViewModel model = plugin_interface.getUIManager().getBasicPluginViewModel( plugin_interface.getPluginName());
 		
+		model.getStatus().setText( "Running" );
+		model.getActivity().setVisible( false );
+		model.getProgress().setVisible( false );
+		
+		log.addListener(
+			new LoggerChannelListener()
+			{
+				public void
+				messageLogged(
+					int		type,
+					String	message )
+				{
+					model.getLogArea().setText( model.getLogArea().getText()+message+"\n");
+				}
+				
+				public void
+				messageLogged(
+					String		str,
+					Throwable	error )
+				{
+					model.getLogArea().setText( model.getLogArea().getText()+error.toString()+"\n");
+				}
+			});
+		
+		PluginView view = plugin_interface.getUIManager().createPluginView( model );
+		
+		plugin_interface.addView( view );
+
 		tracker = plugin_interface.getTracker();
 	
 		Properties	props = plugin_interface.getPluginProperties();

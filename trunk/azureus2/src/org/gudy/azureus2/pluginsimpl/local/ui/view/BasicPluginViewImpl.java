@@ -127,6 +127,7 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
       gridData = new GridData(GridData.FILL_BOTH);
       gridData.horizontalSpan = 2;
       log.setLayoutData(gridData);
+      log.setText( model.getLogArea().getText());
       model.getLogArea().addPropertyChangeListener(this);
     }
   }

@@ -22,6 +22,7 @@
 package org.gudy.azureus2.pluginsimpl.local;
 
 import java.util.*;
+import java.io.File;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.Logger;
@@ -155,6 +156,22 @@ PluginInterfaceImpl
     new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url);
   }
       
+  public String getPluginName()
+  {
+  	String	name = null;
+  	
+  	if ( props != null ){
+  		name = (String)props.get( "plugin.name");
+  	}
+  	
+  	if ( name == null ){
+  		
+  		name = new File(pluginDir).getName();
+  	}
+  	
+  	return( name );
+  }
+
   public Properties getPluginProperties() {
     return props;
   }

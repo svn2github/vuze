@@ -195,6 +195,13 @@ public interface PluginInterface {
   public String getPluginDirectoryName();
   
   /**
+   * Returns the value of plugin.name if it exists in the properties file, dirctory name otherwise
+   * @return
+   */
+  
+  public String getPluginName();
+  
+  /**
    * gives access to the plugin config interface
    * @return the PluginConfig object associated with this plugin
    */
