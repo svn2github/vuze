@@ -37,7 +37,6 @@ import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
  * Priority-based outbound peer message queue.
  */
 public class OutgoingMessageQueue {
-  private final Transport peer_transport;
   private final List queue = new LinkedList();
   private int total_size = 0;
   private final ArrayList add_listeners = new ArrayList();
@@ -48,11 +47,10 @@ public class OutgoingMessageQueue {
   
   
   /**
-   * Create a new message queue transmitting over the given transport.
-   * @param peer_transport
+   * Create a new message queue.
    */
-  protected OutgoingMessageQueue( Transport peer_transport ) {
-    this.peer_transport = peer_transport;
+  protected OutgoingMessageQueue() {
+    //nothing
   }
   
 
@@ -128,7 +126,6 @@ public class OutgoingMessageQueue {
             total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
             msg.destroy();
         		i.remove();
-        		LGLogger.log( LGLogger.CORE_NETWORK, "Removing previously-unsent " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
             break;
         	}
         }
@@ -151,8 +148,7 @@ public class OutgoingMessageQueue {
           if( msg == urgent_message ) urgent_message = null;  
           total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
           msg.destroy();
-          queue.remove( index );  
-          LGLogger.log( LGLogger.CORE_NETWORK, "Removing " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
+          queue.remove( index );
           return true;
         }
       }
@@ -162,12 +158,13 @@ public class OutgoingMessageQueue {
   
   
   /**
-   * Deliver (write) message data to underlying transport.
+   * Deliver (write) message(s) data to the given transport.
+   * @param transport to transmit over 
    * @param max_bytes maximum number of bytes to deliver
    * @return number of bytes delivered
    * @throws IOException
    */
-  protected int deliverToTransport( int max_bytes ) throws IOException {    
+  protected int deliverToTransport( Transport transport, int max_bytes ) throws IOException {    
     int written = 0;
     synchronized( queue ) {
     	if( !queue.isEmpty() ) {
@@ -186,7 +183,7 @@ public class OutgoingMessageQueue {
     		if( total_sofar > max_bytes ) {
     			buffers[ pos ].limit( orig_limit - (total_sofar - max_bytes) );
     		}
-        written = new Long( peer_transport.write( buffers, 0, pos + 1 ) ).intValue();
+        written = new Long( transport.write( buffers, 0, pos + 1 ) ).intValue();
         notifyByteListeners( written );
         //System.out.println( peer_transport.getDescription() + " written=" + written );
         buffers[ pos ].limit( orig_limit );
@@ -198,7 +195,7 @@ public class OutgoingMessageQueue {
             if( msg == urgent_message ) urgent_message = null;
             total_size -= bb.limit() - starting_pos[ pos ];
             queue.remove( 0 );
-            LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
+            LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + transport.getDescription() );
             notifySentListeners( msg );
             msg.destroy();
           }

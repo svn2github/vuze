@@ -112,7 +112,7 @@ public class SelectorGuard {
     
     try {
       //sleep a bit to allow underlying network recovery
-      Thread.sleep(3000);
+      Thread.sleep(5000);
         
     	//open new
     	Selector newSelector = Selector.open();

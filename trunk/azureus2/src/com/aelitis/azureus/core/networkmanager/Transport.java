@@ -23,8 +23,10 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+
 
 
 /**
@@ -32,11 +34,27 @@ import java.nio.channels.SocketChannel;
  */
 public class Transport {
   private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
-  private final SocketChannel socket_channel;
+  private SocketChannel socket_channel;
+  private boolean is_connected;
+  private ConnectDisconnectManager.ConnectListener connect_request_key;
   
-
+  /**
+   * Constructor for disconnected transport.
+   */
+  protected Transport() {
+    socket_channel = null;
+    is_connected = false;
+    connect_request_key = null;
+  }
+  
+  /**
+   * Constructor for connected transport.
+   * @param channel connection
+   */
   protected Transport( SocketChannel channel ) {
     this.socket_channel = channel;
+    is_connected = true;
+    connect_request_key = null;
   }
   
   /**
@@ -51,6 +69,7 @@ public class Transport {
    * @return description
    */
   protected String getDescription() {
+    if( !is_connected )  return "";
     return socket_channel.socket().getInetAddress().getHostAddress() + ":" + socket_channel.socket().getPort();
   }
   
@@ -92,8 +111,75 @@ public class Transport {
   }
   
   
-  protected void destroy() {
-    //TODO
+ 
+  /**
+   * Request the transport connection be established.
+   * @param address remote peer address to connect to
+   * @param listener establishment failure/success listener
+   */
+  protected void establishOutboundConnection( InetSocketAddress address, final ConnectListener listener ) {
+    if( is_connected ) {
+      System.out.println( "transport already connected" );
+      listener.connectSuccess();
+      return;
+    }
+    
+    ConnectDisconnectManager.ConnectListener connect_listener = new ConnectDisconnectManager.ConnectListener() {
+      public void connectSuccess( SocketChannel channel ) {
+        socket_channel = channel;
+        is_connected = true;
+        connect_request_key = null;
+        listener.connectSuccess();
+      }
+
+      public void connectFailure( Throwable failure_msg ) {
+        socket_channel = null;
+        is_connected = false;
+        connect_request_key = null;
+        listener.connectFailure( failure_msg );
+      }
+    };
+    
+    connect_request_key = connect_listener;
+    NetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( address, connect_listener );
   }
+  
+  
+  /**
+   * Close the transport connection.
+   */
+  protected void close() {
+    if( is_connected ) {
+      is_connected = false;
+      NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
+    }
+    else if( connect_request_key != null ) {
+      NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
+    }
+    else System.out.println( "transport not connected and not pending" );
+  }
+  
+  
+  
+////////////////////////////////////
+  /**
+   * Listener for notification of connection establishment.
+   */
+   protected interface ConnectListener {
+     /**
+      * The connection attempt succeeded.
+      * The connection is now established.
+      */
+     public void connectSuccess() ;
+    
+    /**
+     * The connection attempt failed.
+     * @param failure_msg failure reason
+     */
+    public void connectFailure( Throwable failure_msg );
+  }
+///////////////////////////////////
+   
+   
   
 }

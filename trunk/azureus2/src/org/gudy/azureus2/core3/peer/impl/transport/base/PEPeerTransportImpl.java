@@ -26,7 +26,6 @@
 package org.gudy.azureus2.core3.peer.impl.transport.base;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.channels.*;
 
 
@@ -49,39 +48,30 @@ PEPeerTransportImpl
 	private static final boolean	TRACE	= false;
 
 	private SocketChannel 		socket 			= null;
-	private volatile boolean 	connected 		= false;
-	private volatile boolean 	connect_error 	= false;
-	private volatile 			String msg 		= "";
 	private volatile			DataReader		data_reader;
 	
-	private SocketManager.OutboundConnectionListener listener = null;
-  
 	
 	  /**
 	   * The Default Contructor for outgoing connections.
 	   * @param manager the manager that will handle this PeerTransport
-	   * @param table the graphical table in which this PeerTransport should display its info
-	   * @param peerId the other's peerId which will be checked during Handshaking
 	   * @param ip the peer Ip Address
 	   * @param port the peer port
 	   */
   
   	public 
   	PEPeerTransportImpl(
-  		PEPeerControl 	manager, 
-  		byte[] 			peerId, 
+  		PEPeerControl 	manager,
   		String 			ip, 
   		int 			port, 
   		boolean 		fake )
  	{
-    	super(manager, peerId, ip, port, false, null, fake);
+    	super(manager, ip, port, false, null, null, fake);
   	}
 
 
 	  /**
 	   * The default Contructor for incoming connections
 	   * @param manager the manager that will handle this PeerTransport
-	   * @param table the graphical table in which this PeerTransport should display its info
 	   * @param sck the SocketChannel that handles the connection
 	   */
 	  
@@ -92,18 +82,14 @@ PEPeerTransportImpl
   		byte[]			_leading_data ) 
   	{
     	super( 	manager, 
-    			null,		// no peer id 
     			sck.socket().getInetAddress().getHostAddress(), 
     			sck.socket().getPort(),
     			true,
+          sck,
     			_leading_data,
     			false ) ;
       
      	socket 			= sck;
-    				
-		setupSpeedLimiter();
-	
-		connected = true;
   	}
   
   	protected synchronized void
@@ -137,68 +123,22 @@ PEPeerTransportImpl
 	}
 	
   
-	protected void startConnection() {
-    try {
-      connected = false;
-      connect_error = false;
-
-      InetSocketAddress address = new InetSocketAddress( getIp(), getPort() );
-    
-      listener = new SocketManager.OutboundConnectionListener() {
-        public void connectionDone( SocketChannel channel, String error_msg ) {
-          if ( channel != null ) {
-          	
-            socket = channel;
-            
-    		setupSpeedLimiter();
-
-            connected = true;
-          }
-          else {
-            msg = error_msg;
-            connect_error = true;
-          }
-        }
-      };
-    
-      SocketManager.requestOutboundConnection( address, listener );
-    }
-    catch (Throwable t){
-      msg = t.getMessage();
-      connect_error = true;
-    }
-	}
-
-
   
-	protected void closeConnection() {
-    if ( connected ) {
-    	if (socket == null) System.out.println("socket = null");
-    	SocketManager.closeConnection( socket );
-        socket = null;
-		data_reader.destroy();
-		data_reader = null;
-        connected = false;
-        return;
-    }
-    
-    if ( !connect_error && listener != null ) {
-      SocketManager.cancelOutboundRequest( listener );
-      listener = null;
-      return;
+  //TODO
+	protected void startConnectionX() {
+	  setupSpeedLimiter();
+	}
+
+
+  //TODO
+	protected void closeConnectionX() {
+    if( data_reader != null ) {
+      data_reader.destroy();
+      data_reader = null;
     }
 	}
 
-  
-	protected boolean 
-	completeConnection() 
-		throws IOException 
-	{
-		if ( connect_error ) {
-			throw new IOException(msg);
-		}
-		return connected;
-	}
+
   
   
 	protected int 
@@ -244,11 +184,10 @@ PEPeerTransportImpl
 		}
 
 	}
-  
-    
-  
-  protected SocketChannel getSocketChannel() {
-    return socket;
+
+  protected void setChannel( SocketChannel channel ) {
+    this.socket = channel;
   }
+  
   
 }

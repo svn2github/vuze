@@ -25,9 +25,7 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 
-import com.aelitis.azureus.core.networkmanager.ConnectionPool;
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.peermanager.NewPeerManager;
+import com.aelitis.azureus.core.networkmanager.*;
 
 
 public class 
@@ -100,28 +98,8 @@ PEPeerControlImpl
   
   private ConnectionPool connection_pool = NetworkManager.getSingleton().getRootConnectionPool().createChildConnectionPool();
   
-  private final NewPeerManager.Listener new_peer_manager_listener = new NewPeerManager.Listener() {
-    public boolean isNewPeerNeeded() {
-      int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
-      if( allowed == -1 ) return true;
-      if( allowed > 0 ) return true;
-      return false;
-    }
-    
-    public boolean isAlreadyConnected( PEPeerTransport peer ) {
-      synchronized( _peer_transports ) {
-        if( _peer_transports.contains( peer ) ) return true;
-        return false;
-      }
-    }
-    
-    public void addNewPeer( PEPeerTransport peer ) {
-      addToPeerTransports( PEPeerTransportFactory.createTransport( peer.getControl(), peer.getId(), peer.getIp(), peer.getPort(), false ) ); 
-    }
-  };
-  
-  
-  
+  private final HashMap reconnect_counts = new HashMap();
+
   
   
   public PEPeerControlImpl(
@@ -262,6 +240,8 @@ PEPeerControlImpl
             PEPeerTransport ps = (PEPeerTransport) _peer_transports.get(i);
             
             if (ps.getState() == PEPeer.DISCONNECTED) {
+              //TODO
+              System.out.println( "PEPeer.DISCONNECTED" );
               removeFromPeerTransports( ps, ps.getIp()+":"+ps.getPort()+ " Disconnected" );
             }
             else {
@@ -346,7 +326,6 @@ PEPeerControlImpl
     t.setDaemon(true);
     t.start();
 
-    NewPeerManager.cancelAllNewPeers( new_peer_manager_listener );
     
     //  Stop the server
     _server.stopServer();
@@ -506,11 +485,42 @@ PEPeerControlImpl
 		for (int i = 0; i < peers.length; i++){
       	
 			TRTrackerResponsePeer	peer = peers[i];
-          
-			insertPeerSocket( peer.getPeerId(), peer.getIPAddress(), peer.getPort());     
+
+			makeNewOutgoingConnection( peer.getIPAddress(), peer.getPort() );
+
 		}
-    
  	}
+  
+  
+  /**
+   * Request a new outgoing peer connection.
+   * @param address ip of remote peer
+   * @param port remote peer listen port
+   */
+  private void makeNewOutgoingConnection( String address, int port ) {
+    //make sure this connection is not already established
+    PEPeerTransport test = PEPeerTransportFactory.createTransport( this, address, port, true );
+    synchronized( _peer_transports ) {
+      if( _peer_transports.contains( test ) )  return;
+    }
+    
+    //make sure this connection isn't filtered
+    if( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( address, _downloadManager.getDisplayName() ) ) {
+      return;
+    }
+    
+    //make sure we need a new connection
+    int needed = PeerUtils.numNewConnectionsAllowed( _hash );
+    if( needed == 0 )  return;
+
+    //start the connection
+    PEPeerTransport real = PEPeerTransportFactory.createTransport( this, address, port, false );
+    addToPeerTransports( real );
+  }
+  
+  
+  
+  
 
   /**
    * A private method that checks if pieces being downloaded are finished
@@ -1045,16 +1055,6 @@ PEPeerControlImpl
     }
   }
 
-  /**
-    * private method to add a new outgoing peerConnection
-    */
-  private synchronized void insertPeerSocket(byte[] peerId, String ip, int port) {
-    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ip, _downloadManager.getDisplayName())) {
-      //create a 'light' peer transport
-      PEPeerTransport testPS = PEPeerTransportFactory.createTransport(this, peerId, ip, port, true);
-      NewPeerManager.registerNewPeer( new_peer_manager_listener, testPS );
-    }
-  }
   
   
  /**
@@ -1753,6 +1753,42 @@ PEPeerControlImpl
   	 	((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
   	 }
   }
+  
+  
+  public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect ) {
+    synchronized( _peer_transports ) {
+      _peer_transports.remove( peer );
+    }
+    
+    for( int i=0; i < peer_transport_listeners.size(); i++ ){
+      ((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( peer );
+    }
+    
+    String key = peer.getIp() + ":" + peer.getPort();
+    if( reconnect ) {
+      synchronized( reconnect_counts ) {  //only allow 3 reconnect attempts
+        Integer reconnect_count = (Integer)reconnect_counts.get( key );
+        int count = 0;
+        if( reconnect_count != null )  count = reconnect_count.intValue();
+        if( count < 3 ) {
+          reconnect_counts.put( key, new Integer( count + 1 ) );
+          makeNewOutgoingConnection( peer.getIp(), peer.getPort() );
+        }
+        else { //don't reconnect this time, but allow at some later time if needed
+          LGLogger.log(LGLogger.INFORMATION, "Reconnect aborted: already reconnected 3 times this session." );
+          reconnect_counts.remove( key );
+        }
+      }
+    }
+    else { //cleanup any reconnect count
+      synchronized( reconnect_counts ) {
+        reconnect_counts.remove( key );
+      }
+    }
+  }
+  
+  
+  
 
   	// these should be replaced by above methods + listeners
   

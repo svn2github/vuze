@@ -46,8 +46,11 @@ public class ConnectionPool {
   private float write_percent_of_max;
   
   private static final VirtualChannelSelector.VirtualSelectorListener write_select_listener = new VirtualChannelSelector.VirtualSelectorListener() {
-    public void channelSuccessfullySelected( Object attachment ) {
+    public void selectSuccess( Object attachment ) {
       ((Connection)attachment).setTransportReadyForWrite( true );
+    }
+    public void selectFailure( Throwable msg ) {
+      //TODO
     }
   };
   
@@ -430,7 +433,7 @@ public class ConnectionPool {
           
           int written = 0;
           try {
-            written = omq.deliverToTransport( num_bytes_to_write );
+            written = omq.deliverToTransport( conn.getTransport(), num_bytes_to_write );
             if( written < num_bytes_to_write ) {  //unable to deliver all data....add to selector for readiness notification
               conn.setTransportReadyForWrite( false );
               NetworkManager.getSingleton().getWriteSelector().register( conn.getTransport().getSocketChannel(), write_select_listener, conn );

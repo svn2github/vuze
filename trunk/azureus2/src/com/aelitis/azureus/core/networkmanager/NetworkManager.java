@@ -22,11 +22,12 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.SystemTime;
+
 
 /**
  *
@@ -36,14 +37,21 @@ public class NetworkManager {
   private static final NetworkManager instance = new NetworkManager();
   private int max_write_rate_bytes_per_sec = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
   private int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
+  private final ConnectDisconnectManager connect_disconnect_manager;
+  
+  
+  
+  
   private final ConnectionPool root_connection_pool = new ConnectionPool( max_write_rate_bytes_per_sec );
   private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
   
+
   
-  public static final int WRITE_WINDOW_SIZE = 64*1024;
   
   
   private NetworkManager() {
+    connect_disconnect_manager = new ConnectDisconnectManager();
+    
     Thread write_processing_thread = new Thread( "NetworkManager:Write" ) {
       public void run() {
         writeProcessingLoop();
@@ -70,9 +78,41 @@ public class NetworkManager {
    * Get the singleton instance of the network manager.
    * @return the network manager
    */
-  public static synchronized NetworkManager getSingleton() {
+  public static NetworkManager getSingleton() {
     return instance;
   }
+  
+  
+  /**
+   * Create a new unconnected remote peer connection.
+   * @param remote_address ip address or hostname of remote peer
+   * @param remote_port to connect to
+   * @return a new connection
+   */
+  public Connection createNewConnection( String remote_address, int remote_port ) {
+    Connection conn = new Connection( new InetSocketAddress( remote_address, remote_port ) );
+    return conn;
+  }
+  
+  
+  /**
+   * TEMP METHOD UNTIL INBOUND CONNECTIONS ARE HANDLED INTERNALLY
+   */
+  public Connection createNewInboundConnection( SocketChannel channel ) {
+    Connection conn = new Connection( channel );
+    return conn;
+  }
+  
+  
+  
+  /**
+   * Get the socket connect and disconnect manager.
+   * @return manager
+   */
+  protected ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
+  
+  
+  //////////////////////////////////////////////////////////////
   
   
   /**
@@ -82,13 +122,10 @@ public class NetworkManager {
   public ConnectionPool getRootConnectionPool() {  return root_connection_pool;  }
   
   
-  //TODO replace with a proper async new connection establishment
-  //NOTE: a connection must be added to a connection pool in order for messages to be transmitted/received
-  public Connection createNewConnection( SocketChannel channel, Connection.ConnectionListener listener ) {
-    Transport transport = new Transport( channel );
-    Connection connection = new Connection( transport, listener );
-    return connection;
-  }
+  
+
+  
+
   
   
   /**

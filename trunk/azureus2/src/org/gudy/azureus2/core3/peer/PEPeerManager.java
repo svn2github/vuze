@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.peer;
 import java.util.List;
 
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -199,4 +200,12 @@ PEPeerManager
   public boolean isBlockAlreadyWritten( int piece_number, int offset );
   
   public ConnectionPool getConnectionPool();
+  
+  
+  /**
+   * Notify the manager that the given peer connection has been closed.
+   * @param peer closed
+   * @param reconnect if true, attempt to reestablish this peer connection
+   */
+  public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect );
 }

@@ -32,7 +32,6 @@ import org.gudy.azureus2.core3.util.*;
  * Provides a simplified and safe (selectable-channel) socket single-op selector.
  */
 public class VirtualChannelSelector {
-    public static final int OP_ACCEPT = SelectionKey.OP_ACCEPT;
     public static final int OP_CONNECT = SelectionKey.OP_CONNECT;
     public static final int OP_READ = SelectionKey.OP_READ;
     public static final int OP_WRITE = SelectionKey.OP_WRITE;
@@ -57,7 +56,7 @@ public class VirtualChannelSelector {
     	try {
     		selector = Selector.open();
     	}
-      catch (Exception e) {  Debug.out( e.getMessage() );  }
+      catch (Throwable t) {  Debug.out( t );  }
     }
     
   
@@ -102,12 +101,16 @@ public class VirtualChannelSelector {
         for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
           SelectionKey key = (SelectionKey)i.next();
           i.remove();
+          RegistrationData data = (RegistrationData)key.attachment();
           if( key.isValid() ) {
-            RegistrationData data = (RegistrationData)key.attachment();
-            data.listener.channelSuccessfullySelected( data.attachment );
+            data.listener.selectSuccess( data.attachment );
             key.cancel();
           }
-          else Debug.out( "key is invalid!" );
+          else {
+            data.listener.selectFailure( new Throwable( "key is invalid" ) );
+            key.cancel();
+            Debug.out( "key is invalid" );
+          }
         }
       }
       
@@ -120,8 +123,15 @@ public class VirtualChannelSelector {
               if( data.channel.isOpen() ) {
                 data.channel.register( selector, interest_op, data );
               }
+              else {
+                data.listener.selectFailure( new Throwable( "channel is closed" ) );
+                Debug.out( "channel is closed" );
+              }
             }
-            catch (Throwable t) {  t.printStackTrace();  }
+            catch (Throwable t) {
+              data.listener.selectFailure( t );
+              t.printStackTrace();
+            }
           }
           register_list.clear();
         }
@@ -152,7 +162,13 @@ public class VirtualChannelSelector {
        * Called when a channel is successfully selected for readyness.
        * @param attachment originally given with the channel's registration
        */
-      public void channelSuccessfullySelected( Object attachment );
+      public void selectSuccess( Object attachment );
+      
+      /**
+       * Called when a channel selection fails.
+       * @param msg failure message
+       */
+      public void selectFailure( Throwable msg );
     }
     
 }
