@@ -41,6 +41,7 @@ public class Server extends Thread {
     while (sck == null && port <= highPort) {
       try {
         sck = ServerSocketChannel.open();
+        sck.socket().setReuseAddress(true);
         sck.socket().bind(new InetSocketAddress(port));
       }
       catch (Exception e) {
@@ -86,9 +87,7 @@ public class Server extends Thread {
             "BT Server has accepted an incoming connection from : "
               + sckClient.socket().getInetAddress().getHostAddress());
           sckClient.configureBlocking(false);
-          String ipAddress = sckClient.socket().getInetAddress().getHostAddress();
-          if(!IpFilter.getInstance().isInRange(ipAddress))
-            manager.addPeer(sckClient);
+          manager.addPeer(sckClient);
         }
         else {
           Thread.sleep(50);
