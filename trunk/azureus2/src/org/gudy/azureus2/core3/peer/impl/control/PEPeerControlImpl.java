@@ -95,6 +95,8 @@ PEPeerControlImpl
   private List	peer_manager_listeners 		= new ArrayList();
   private List	peer_transport_listeners 	= new ArrayList();
   
+  private List failedPieceChecks = new ArrayList();
+  private List successPieceChecks = new ArrayList();
   
   private boolean superSeedMode;
   private int superSeedModeCurrentPiece;
@@ -332,6 +334,7 @@ PEPeerControlImpl
       try {
         long timeStart = System.currentTimeMillis();
         checkTracker(timeStart / 1000); //check the tracker status, update peers
+        processPieceChecks();
         checkCompletedPieces();
         //check to see if we've completed anything else
         computeAvailability(); //compute the availablity                   
@@ -528,6 +531,36 @@ PEPeerControlImpl
       }
     }
   }
+  
+  /**
+   * Private method to process the results given by DiskManager's
+   * piece checking thread via asyncPieceChecked(..)
+   */
+  private void processPieceChecks() {
+    
+    // process complete piece results
+    synchronized( successPieceChecks ) {
+    	Iterator it = successPieceChecks.iterator();
+      while (it.hasNext()) {
+        Integer pieceNum = (Integer)it.next();
+        it.remove();
+        pieceChecked(pieceNum.intValue(), true);
+      }
+    }
+    
+    // process incomplete piece results
+    synchronized( failedPieceChecks ) {
+      Iterator it = failedPieceChecks.iterator();
+      while (it.hasNext()) {
+        Integer pieceNum = (Integer)it.next();
+        it.remove();
+        pieceChecked(pieceNum.intValue(), false);
+      }
+    }
+    
+  }
+  
+  
 
   /**
    * This method scans all peers and if downloading from them is possible,
@@ -1727,8 +1760,27 @@ PEPeerControlImpl
   public String getElapsedTime() {
     return TimeFormater.format(System.currentTimeMillis() / 1000 - _timeStarted);
   }
+  
+  
+  /**
+   * DiskManager places the result of a piece check here, so that they can be
+   * analyzed in the PeerControl thread asyc.
+   */
+  public void asyncPieceChecked ( int pieceNumber, boolean result ){
+     if (result) {
+        synchronized( successPieceChecks ) {
+            successPieceChecks.add(new Integer(pieceNumber));
+        }
+     }
+     else {
+        synchronized( failedPieceChecks ) {
+            failedPieceChecks.add(new Integer(pieceNumber));
+        }
+     }
+  }
 
-  public void pieceChecked(int pieceNumber, boolean result) {
+  
+  private void pieceChecked(int pieceNumber, boolean result) {
     this.pieceRemoved(_pieces[pieceNumber]);
     //  the piece has been written correctly
     if (result) {

@@ -135,7 +135,6 @@
 
 	public boolean isChecking();
   
-	public boolean isWriteThreadRunning();
    
 	public void
 	addListener(

@@ -649,8 +649,6 @@ DiskManagerImpl
 
 	public class DiskWriteThread extends Thread {
 		private boolean bContinue = true;
-    
-		private boolean isRunning = true;
 
 		public DiskWriteThread() {
 			super("Disk Writer & Checker");
@@ -658,10 +656,19 @@ DiskManagerImpl
 		}
 
 		public void run() {
+         int count;
+         long sleepTime;
+
 			while (bContinue) {
-				while (writeQueue.size() != 0) {
+            
+            count = 0;
+            sleepTime = 1000;
+            
+				if (writeQueue.size() > 64) sleepTime = 20;
+
+            //allow up to 64 blocks to be written at once
+            while (writeQueue.size() != 0 && count < 64) {
 					QueueElement elt = (QueueElement)writeQueue.remove(0);
-					//FIX for bug 814062
 					//Do not allow to write in a piece marked as done.
 					int pieceNumber = elt.getPieceNumber();					
 					if(!pieceDone[pieceNumber]) {
@@ -670,10 +677,17 @@ DiskManagerImpl
 					} else {
 					  ByteBufferPool.freeBuffer(elt.getData());
 					  elt.data = null;
-					}					
+					}
+
+               count++;
 				}
-        
-				if (checkQueue.size() != 0) {
+            
+            count = 0;
+
+            if (checkQueue.size() > 10) sleepTime = 20;
+
+            //allow up to 10 piece checks at once
+				while (checkQueue.size() != 0 && count < 10) {
 				  QueueElement elt = (QueueElement)checkQueue.remove(0);
 				  boolean correct = checkPiece(elt.getPieceNumber());
 					
@@ -687,12 +701,14 @@ DiskManagerImpl
 				      MD5CheckPiece(elt.getPieceNumber(),true);
 				    }
 				  }
-				  
-				  manager.pieceChecked(elt.getPieceNumber(), correct);
+
+				  manager.asyncPieceChecked(elt.getPieceNumber(), correct);
+              count++;
 				}
-				
-				isRunning = true;
-				try { Thread.sleep(15); } catch (Exception e) { e.printStackTrace(); }
+            				
+				try {
+                Thread.sleep(sleepTime);
+            } catch (Exception e) { e.printStackTrace(); }
 			}
 		}
 
@@ -704,14 +720,7 @@ DiskManagerImpl
 				elt.data = null;
 			}
 		}
-    
-		public boolean isStillRunning() {
-		  if (isRunning) {
-		    isRunning = false;
-		    return true;
-		  }
-		  return false;
-		}
+       
 	}
 
 	private int allocateFiles(String rootPath, List fileList) {
@@ -887,6 +896,9 @@ DiskManagerImpl
   
 
 	public synchronized boolean checkPiece(int pieceNumber) {
+        
+      if (this.bContinue == false) return false;
+
 		allocateAndTestBuffer.position(0);
 
 		int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
@@ -900,11 +912,12 @@ DiskManagerImpl
 		for (int i = 0; i < pieceList.size(); i++) {
 			//get the piece and the file 
 			PieceMapEntry tempPiece = pieceList.get(i);
-			synchronized (tempPiece.getFile()) {
+            
+         FileChannel fc = tempPiece.getFile().getRaf().getChannel();
+            
+			synchronized (fc) {
 				//grab it's data and return it
 				try {
-					RandomAccessFile raf = tempPiece.getFile().getRaf();
-					FileChannel fc = raf.getChannel();
                     
 					if (fc.isOpen()) {
 					   //if the file is large enough
@@ -919,7 +932,10 @@ DiskManagerImpl
 							return false;
 						}
 					}
-				} catch (IOException e) {
+               else {
+               	Debug.out("file channel is not open");
+               }
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -1339,16 +1355,16 @@ DiskManagerImpl
 
 		if (!noError) {
 			// continue the error report
-			PieceMapEntry tempPiece = pieceList.get(currentFile);
-			System.out.println("ERROR IN READ BLOCK (CONTINUATION FROM READ FILE INFO INTO BUFFER): *Debug Information*");
-			System.out.println("BufferLimit: " + buffer.limit());
-			System.out.println("BufferRemaining: " + buffer.remaining());
-			System.out.println("PieceNumber: " + pieceNumber);
-			System.out.println("Offset: " + fileOffset);
-			System.out.println("Length  " + length);
-			System.out.println("PieceLength: " + tempPiece.getLength());
-			System.out.println("PieceOffset: " + tempPiece.getOffset());
-			System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
+			//PieceMapEntry tempPiece = pieceList.get(currentFile);
+			//System.out.println("ERROR IN READ BLOCK (CONTINUATION FROM READ FILE INFO INTO BUFFER): *Debug Information*");
+			//System.out.println("BufferLimit: " + buffer.limit());
+			//System.out.println("BufferRemaining: " + buffer.remaining());
+			//System.out.println("PieceNumber: " + pieceNumber);
+			//System.out.println("Offset: " + fileOffset);
+			//System.out.println("Length  " + length);
+			//System.out.println("PieceLength: " + tempPiece.getLength());
+			//System.out.println("PieceOffset: " + tempPiece.getOffset());
+			//System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
 		}
 
 		buffer.position(0);
@@ -1358,9 +1374,9 @@ DiskManagerImpl
 	// refactored out of readBlock() - Moti
 	// reads a file into a buffer, returns true when no error, otherwise false.
 	private boolean readFileInfoIntoBuffer(DiskManagerFileInfoImpl file, ByteBuffer buffer, long offset) {
-		synchronized (file) {
-			RandomAccessFile raf = file.getRaf();
-			FileChannel fc = raf.getChannel();
+		  FileChannel fc = file.getRaf().getChannel();
+        
+        synchronized (fc) {
       
 			if (!fc.isOpen()) {
 			  Debug.out("FileChannel is closed: " + file.getFile().getAbsolutePath());
@@ -1380,11 +1396,6 @@ DiskManagerImpl
 				return true;
 			} catch (Exception e) {	
 				e.printStackTrace();
-
-				System.out.println("ERROR IN READ FILE INFO INTO BUFFER: *Debug Information*");
-				System.out.println("fc.position: " + fcposition);
-				System.out.println("fc.size: " + fcsize);
-
 				return false;
 			}
 		}
@@ -1451,6 +1462,10 @@ DiskManagerImpl
 		int pieceNumber = e.getPieceNumber();
 		int offset = e.getOffset();
 		ByteBuffer buffer = e.getData();
+       
+      if (buffer == null) {
+        Debug.out("buffer is null");
+      }
 
 		int previousFilesLength = 0;
 		int currentFile = 0;
@@ -1467,35 +1482,39 @@ DiskManagerImpl
 		//Now tempPiece points to the first file that contains data for this block
 		while (buffer.hasRemaining()) {
 			tempPiece = pieceList.get(currentFile);
-      
-			synchronized (tempPiece.getFile()) {
+            
+         FileChannel fc = tempPiece.getFile().getRaf().getChannel();
+            
+			synchronized (fc) {
 				try {
-					RandomAccessFile raf = tempPiece.getFile().getRaf();
-					FileChannel fc = raf.getChannel();
+					if (fc.isOpen()) {
+						fc.position(fileOffset + (offset - previousFilesLength));
+					   int realLimit = buffer.limit();
+					   
+					   long limit = buffer.position() + ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
+          
+					   if (limit < realLimit) {
+					    	buffer.limit((int)limit);
+					   }
 
-					fc.position(fileOffset + (offset - previousFilesLength));
-					int realLimit = buffer.limit();
-          
-					long limit = buffer.position() + ((tempPiece.getFile().getLength() - tempPiece.getOffset()) - (offset - previousFilesLength));
-          
-					if (limit < realLimit) {
-						buffer.limit((int)limit);
-          }
+					   if (buffer.position() < buffer.limit()) {
+					   	fc.write(buffer);
+					   }
+					   else { 
+					   	Debug.out("buffer.position [" +buffer.position()+ "] is not < buffer.limit [" +buffer.limit()+ "]");
+					   }
                     
-          // Patch thanks to Gijs Overvliet
-          if (buffer.position() < buffer.limit()) {
-            fc.write(buffer);
-          }
-          else { 
-            Debug.out("buffer.position [" +buffer.position()+ "] is not < buffer.limit [" +buffer.limit()+ "]");
-          }
+					   buffer.limit(realLimit);
+					}
+               else {
+               	Debug.out("file channel is not open !");
+               }
                     
-					buffer.limit(realLimit);
-                    
-				} catch (IOException ex) {
+				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
+            
 			currentFile++;
 			fileOffset = 0;
 			previousFilesLength = offset;
@@ -1504,6 +1523,7 @@ DiskManagerImpl
 		ByteBufferPool.freeBuffer(buffer);
 		buffer = null;
 	}
+    
 
 	public int getPiecesNumber() {
 		return nbPieces;
@@ -1560,31 +1580,36 @@ DiskManagerImpl
 
 	public void stopIt() {
         
+    this.bContinue = false; 
+
 		// remove configuration parameter listeners
-		COConfigurationManager.removeParameterListener("Use Resume", this);
+	 COConfigurationManager.removeParameterListener("Use Resume", this);
     COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
 		
 		if (writeThread != null)
 			writeThread.stopIt();
 		if (readThread != null)
 			readThread.stopIt();
-		this.bContinue = false;
+		
 		if (files != null) {
 			for (int i = 0; i < files.length; i++) {
 				try {
-					if (files[i] != null)
-						files[i].getRaf().close();
+					if (files[i] != null) {
+						RandomAccessFile raf = files[i].getRaf();
+                  synchronized( raf.getChannel() ) {
+                    raf.close();
+                  }
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}
         
-    if (allocateAndTestBuffer != null) {
-        allocateAndTestBuffer.clear();
-        allocateAndTestBuffer = null;
-    }
+      allocateAndTestBuffer = null;
+
 	}
+
 
 	public void computeFilesDone(int pieceNumber) {
 		for (int i = 0; i < files.length; i++) {
@@ -2012,15 +2037,7 @@ DiskManagerImpl
     if (checkQueue.size() == 0) return false;
     else return true;
   }
-  
-  public boolean isWriteThreadRunning() {
-    if (writeThread == null) {
-        return false;
-    }
-    else {
-        return writeThread.isStillRunning();
-    }
-  }
+
 
   /**
    * @param parameterName the name of the parameter that has changed

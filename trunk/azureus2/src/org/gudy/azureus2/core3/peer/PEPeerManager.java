@@ -57,7 +57,7 @@ PEPeerManager
     PEPeer peer);
 	
 	public void 
-	pieceChecked(
+	asyncPieceChecked(
 		int pieceNumber, 
 		boolean result );
 
