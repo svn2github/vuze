@@ -1563,7 +1563,8 @@ DiskManagerImpl
       
       //remove the old dir
       File tFile = new File(rPath, fileName);
-      if (tFile.isDirectory()) FileUtil.recursiveDelete(tFile);
+      if (tFile.isDirectory() && (!moveToDir.equals(rPath))) FileUtil.recursiveDelete(tFile);
+
       
       //update internal path
       path = FileUtil.smartPath(moveToDir, fileName);
@@ -1574,13 +1575,15 @@ DiskManagerImpl
         File oldTorrentFile = new File(oldFullName);
         String oldFileName = oldTorrentFile.getName();
         File newTorrentFile = new File(moveToDir, oldFileName);
-        //save torrent to new file
-        torrent.serialiseToBEncodedFile(newTorrentFile);
-        //remove old torrent file
-        oldTorrentFile.delete();
-        //update torrent meta-info to point to new torrent file
-        torrent.setAdditionalStringProperty("torrent filename", newTorrentFile.getCanonicalPath());
-        returnName = newTorrentFile.getCanonicalPath();
+        if (!newTorrentFile.equals(oldTorrentFile)) {
+          //save torrent to new file
+          torrent.serialiseToBEncodedFile(newTorrentFile);
+          //remove old torrent file
+          oldTorrentFile.delete();
+          //update torrent meta-info to point to new torrent file
+          torrent.setAdditionalStringProperty("torrent filename", newTorrentFile.getCanonicalPath());
+          returnName = newTorrentFile.getCanonicalPath();
+        }
       }
       
     } catch (Exception e) { e.printStackTrace(); }
