@@ -43,10 +43,11 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new UpSpeedItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new ETAItem(),    
     new ShareRatioItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-    new UpItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+    new UpItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),    
+    new UpSpeedLimitItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new TrackerStatusItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
-
-    // Initially Invisible
+    
+    // Initially Invisible    
     new RemainingItem(),
     new PiecesItem(),
     new CompletionItem(),
@@ -73,7 +74,8 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new UpSpeedItem(TableManager.TABLE_MYTORRENTS_COMPLETE),    
     new ShareRatioItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new UpItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
-
+    new UpSpeedLimitItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+    
     // Initially Invisible
     new MaxUploadsItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new TotalSpeedItem(TableManager.TABLE_MYTORRENTS_COMPLETE),

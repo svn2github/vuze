@@ -617,15 +617,29 @@ public class MyTorrentsView
           itemCurrentSpeed.setText(speedText.toString());          
           
           
-          int maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
+          int maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0) * 1024;
           //using 1MB/s as the default limit when no limit set.
           if(maxUpload == 0) maxUpload = 1024 * 1024;
           
           
-          for(int i = 2 ; i < 12 ; i++) {
-            int limit = maxUpload / 10 * (12 - i);
-            itemsSpeed[i].setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
-            itemsSpeed[i].setData("maxul", new Integer(limit));
+          if(dms.length > 0) {
+	          for(int i = 2 ; i < 12 ; i++) {
+	            int limit = maxUpload / (10 * dms.length) * (12 - i);
+	            StringBuffer speed = new StringBuffer();
+	            speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit * dms.length));
+	            if(dms.length > 1) {
+	              speed.append(" ");
+	              speed.append(MessageText.getString("MyTorrentsView.menu.setSpeed.in"));
+	              speed.append(" ");
+	              speed.append(dms.length);
+	              speed.append(" ");
+	              speed.append(MessageText.getString("MyTorrentsView.menu.setSpeed.slots"));
+	              speed.append(" ");
+	              speed.append( DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));	            
+	            }
+	            itemsSpeed[i].setText(speed.toString());
+	            itemsSpeed[i].setData("maxul", new Integer(limit));
+	          }
           }
                     
           itemEditTracker.setEnabled(true);
