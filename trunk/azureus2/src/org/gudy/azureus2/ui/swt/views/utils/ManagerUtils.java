@@ -1,6 +1,6 @@
 /*
  * File    : ManagerUtils.java
- * Created : 7 déc. 2003}
+ * Created : 7 dï¿½c. 2003}
  * By      : Olivier
  *
  * Copyright (C) 2004 Aelitis SARL, All rights Reserved
@@ -23,17 +23,20 @@
  */
 package org.gudy.azureus2.ui.swt.views.utils;
 
+import com.aelitis.azureus.core.AzureusCore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MessageBox;
-
-import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+
+import java.io.IOException;
 
 /**
  * @author Olivier
@@ -46,10 +49,47 @@ public class ManagerUtils {
       Program.launch(dm.getTorrentSaveDirAndFile());
     }
   }
-  
+
+ /**
+  * Opens the parent folder of dm's path
+  * @param dm DownloadManager instance
+  */
   public static void open(DownloadManager dm) {
     if(dm != null) {
-      Program.launch(dm.getTorrentSaveDir());
+        if(!Constants.isOSX && !Constants.isWindows) {
+            Program.launch(dm.getTorrentSaveDir()); // default launcher
+        }
+        else {
+            // Highlights the given file/directory
+            try {
+                if(Constants.isOSX) {
+                    // Path Finder is a popular Finder replacement, and apps tend to keep it in mind
+                    Runtime.getRuntime().exec(new String[] {
+                        "osascript",
+                        "-e", "set hfsname to (POSIX file \""+ dm.getTorrentSaveDirAndFile() + "\") as file",
+                        "-e", "tell application \"System Events\"",
+                        "-e",     "if name of application processes contains \"Path Finder\" then",
+                        "-e",         "tell application \"Path Finder\"",
+                        "-e",             "activate",
+                        "-e",             "reveal hfsname as alias",
+                        "-e",         "end tell",
+                        "-e",     "else",
+                        "-e",         "tell application \"Finder\"",
+                        "-e",             "activate",
+                        "-e",             "reveal hfsname as alias",
+                        "-e",         "end tell",
+                        "-e",     "end if",
+                        "-e", "end tell"
+                    });
+                }
+                else { // Windows
+                    Runtime.getRuntime().exec("explorer.exe /e,/select," + dm.getTorrentSaveDirAndFile());
+                }
+            }
+            catch(IOException e) {
+                Debug.printStackTrace(e);
+            }
+        }
     }
   }
   
