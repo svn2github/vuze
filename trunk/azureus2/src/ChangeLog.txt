@@ -1,6 +1,16 @@
 CHANGELOG
 ---------
 
+xx.01.04 | Azureus 2.0.6.1
+
+FEATURE: 
+
+CHANGE: Azureus now identifies itself via User-Agent in tracker http communications [Nolar]
+
+BUGFIX:
+
+
+
 19.12.03 | Azureus 2.0.6.0
 
 FEATURE: Intelligent Tracker Checking: optimizes tracker re-ask interval for quicker download speed ramp up [Nolar]
