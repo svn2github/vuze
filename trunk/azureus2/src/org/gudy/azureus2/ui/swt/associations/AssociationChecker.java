@@ -128,6 +128,13 @@ AssociationChecker
 		gridData.horizontalSpan = 2;
 		checkBox.setLayoutData(gridData);
 		
+		// line
+		
+		Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 3;
+		labelSeparator.setLayoutData(gridData);
+
 			// buttons
 			
 		label = new Label(shell,SWT.NULL);
