@@ -46,6 +46,8 @@ RPObject
 	protected static long	next_key		= new Random(System.currentTimeMillis()).nextLong();
 	
 	protected Long	object_id;
+	
+	protected transient Object				_delegate;
 	protected transient	RPRequestDispatcher	dispatcher;
 	
 	protected static RPObject
@@ -54,7 +56,14 @@ RPObject
 	{
 		synchronized( object_registry ){
 			
-			return((RPObject)object_registry.get(key));
+			RPObject	res = (RPObject)object_registry.get(key);
+			
+			if ( res != null ){
+				
+				res._setLocal();
+			}
+			
+			return( res );
 		}
 	}
 			
@@ -79,9 +88,23 @@ RPObject
 				object_registry_reverse.put( object_id, key );
 			}
 		}
+		
+		_delegate	= key;
+		
+		_setDelegate( _delegate );
 	}
 	
+	protected abstract void
+	_setDelegate(
+		Object		_delegate );
+	
 	protected Object
+	_getDelegate()
+	{
+		return( _delegate );
+	}
+	
+	protected void
 	_fixupLocal()
 	
 		throws RPException
@@ -93,7 +116,7 @@ RPObject
 			throw( new RPException( "Object no longer exists"));
 		}
 		
-		return( res );
+		_setDelegate( res );
 	}
 	
 	public void
@@ -109,6 +132,14 @@ RPObject
 	
 	public abstract void
 	_setLocal();
+	
+	public void
+	_refresh()
+	{
+		RPObject	res = (RPObject)dispatcher.dispatch( new RPRequest( this, "_refresh", null )).getResponse();
+		
+		_setDelegate( res );
+	}
 	
 	public void
 	notSupported()

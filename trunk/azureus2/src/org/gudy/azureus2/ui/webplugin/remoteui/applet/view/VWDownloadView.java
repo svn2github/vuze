@@ -39,13 +39,15 @@ VWDownloadView
 {
 	protected JComponent	component;
 	
+	protected JTable		table;
+	
 	public
 	VWDownloadView(
 		MDDownloadModel		model )
 	{
 		TableSorter  sorter = new TableSorter(model);
 		
-		JTable    table = new JTable(sorter);
+		table = new JTable(sorter);
 		
 		TableColumnModel cm = table.getColumnModel();
 
@@ -108,11 +110,11 @@ VWDownloadView
 						
 						pb.setMaximum(100);
 						
-						pb.setValue(value );
+						pb.setValue(value/10);
 						
 						pb.setStringPainted(true);
 						
-						pb.setString(""+value+"%");
+						pb.setString(""+((double)value)/10+"%");
 						
 						return( pb );
 					}
@@ -129,5 +131,13 @@ VWDownloadView
 	getComponent()
 	{
 		return( component );
+	}
+	
+	public void
+	refresh()
+	{
+		component.revalidate();
+		
+		component.repaint();
 	}
 }

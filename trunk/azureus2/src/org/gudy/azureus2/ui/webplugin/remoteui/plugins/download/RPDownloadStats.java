@@ -31,7 +31,7 @@ import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 
 public class 
-PRDownloadStats
+RPDownloadStats
 	extends		RPObject
 	implements 	DownloadStats
 {
@@ -40,30 +40,35 @@ PRDownloadStats
 	protected long				downloaded;
 	protected int				completed;
 	
-	public static PRDownloadStats
+	public static RPDownloadStats
 	create(
 		DownloadStats		_delegate )
 	{
-		PRDownloadStats	res =(PRDownloadStats)_lookupLocal( _delegate );
+		RPDownloadStats	res =(RPDownloadStats)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new PRDownloadStats( _delegate );
+			res = new RPDownloadStats( _delegate );
 		}
 		
 		return( res );
 	}
 	
 	protected
-	PRDownloadStats(
+	RPDownloadStats(
 		DownloadStats		_delegate )
 	{
 		super( _delegate );
+	}
+	
+	protected void
+	_setDelegate(
+		Object		_delegate )
+	{
+		delegate = (DownloadStats)_delegate;
 		
-		delegate	= _delegate;
-		
-		downloaded	= _delegate.getDownloaded();
-		completed	= _delegate.getCompleted();
+		downloaded	= delegate.getDownloaded();
+		completed	= delegate.getCompleted();	
 	}
 	
 	public void
@@ -71,7 +76,7 @@ PRDownloadStats
 	
 		throws RPException
 	{
-		delegate = (DownloadStats)_fixupLocal();
+		_fixupLocal();
 	}
 	
 	public RPReply
@@ -83,6 +88,9 @@ PRDownloadStats
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
+	
+		// ***************************************************
+	
 	public String
 	getStatus()
 	{
@@ -90,6 +98,7 @@ PRDownloadStats
 		
 		return( null );
 	}	
+	
 	public String
 	getDownloadDirectory()
 	{
@@ -97,6 +106,7 @@ PRDownloadStats
 		
 		return( null );
 	}	
+	
 	public String
 	getTargetFileOrDir()
 	{
@@ -104,23 +114,27 @@ PRDownloadStats
 		
 		return( null );
 	}	
+	
 	public String
 	getTrackerStatus()
 	{
 		notSupported();
 		
 		return( null );
-	}	
+	}
+	
 	public int
 	getCompleted()
 	{
 		return( completed );
-	}	
+	}
+	
 	public long
 	getDownloaded()
 	{
 		return( downloaded );
 	}
+	
 	public long
 	getUploaded()
 	{
@@ -128,34 +142,39 @@ PRDownloadStats
 		
 		return( 0 );
 	}
+	
 	public long
 	getDiscarded()
 	{
 		notSupported();
 		
 		return( 0 );
-	}	
+	}
+	
 	public long
 	getDownloadAverage()
 	{
 		notSupported();
 		
 		return( 0 );
-	}	
+	}
+	
 	public long
 	getUploadAverage()
 	{
 		notSupported();
 		
 		return( 0 );
-	}	
+	}
+	
 	public long
 	getTotalAverage()
 	{
 		notSupported();
 		
 		return( 0 );
-	}	
+	}
+	
 	public String
 	getElapsedTime()
 	{
@@ -163,20 +182,23 @@ PRDownloadStats
 		
 		return( null );
 	}	
+	
 	public String
 	getETA()
 	{
 		notSupported();
 		
 		return( null );
-	}	
+	}
+	
 	public long
 	getHashFails()
 	{
 		notSupported();
 		
 		return( 0 );
-	}	
+	}
+	
 	public int
 	getShareRatio()
 	{

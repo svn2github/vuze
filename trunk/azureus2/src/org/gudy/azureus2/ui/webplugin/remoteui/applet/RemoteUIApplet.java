@@ -31,13 +31,13 @@ import java.net.*;
 import java.io.*;
 
 import java.applet.*;
-import javax.swing.*;
 import java.awt.*;
 
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.download.*;
 
 import org.gudy.azureus2.plugins.*;
 
@@ -66,7 +66,7 @@ RemoteUIApplet
 	start()
 	{
 		try{
-			PluginInterface pi = RPFactory.getPlugin( this );
+			final PluginInterface pi = RPFactory.getPlugin( this );
 			
 			System.out.println( "got pi:" + pi );
 			
@@ -74,7 +74,17 @@ RemoteUIApplet
 			
 			System.out.println( "props = " + props );
 			
-			JPanel	panel = new RemoteUIMainPanel( pi );
+			RemoteUIMainPanel	panel = new RemoteUIMainPanel( pi );
+			
+			panel.addListener(
+				new RemoteUIMainPanelListener()
+				{
+					public void
+					refresh()
+					{
+						((RPDownloadManager)pi.getDownloadManager())._refresh();
+					}
+				});
 			
 			setLayout(new BorderLayout());
 			

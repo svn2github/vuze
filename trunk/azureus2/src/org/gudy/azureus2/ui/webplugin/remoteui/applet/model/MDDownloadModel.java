@@ -49,6 +49,14 @@ MDDownloadModel
 		loadData();
 	}
 	
+	public void
+	refresh()
+	{
+		loadData();
+		
+		fireTableDataChanged();
+	}
+	
 	protected void
 	loadData()
 	{
@@ -92,7 +100,7 @@ MDDownloadModel
 			
 		}else if ( col == 4 ){
 			
-			return(new Integer( download.getStats().getCompleted()/10 ));
+			return(new Integer( download.getStats().getCompleted()));
 		}
 		
 		return( null );

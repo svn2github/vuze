@@ -34,51 +34,56 @@ import org.gudy.azureus2.ui.webplugin.remoteui.plugins.torrent.*;
 
 
 public class 
-PRDownload
+RPDownload
 	extends		RPObject
 	implements 	Download
 {
 	protected transient Download		delegate;
 
 	protected int				state;
-	protected PRTorrent			torrent;
-	protected PRDownloadStats	stats;
+	protected RPTorrent			torrent;
+	protected RPDownloadStats	stats;
 	
-	public static PRDownload
+	public static RPDownload
 	create(
 		Download		_delegate )
 	{
-		PRDownload	res =(PRDownload)_lookupLocal( _delegate );
+		RPDownload	res =(RPDownload)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new PRDownload( _delegate );
+			res = new RPDownload( _delegate );
 		}
 			
 		return( res );
 	}
 	
 	protected
-	PRDownload(
+	RPDownload(
 		Download		_delegate )
 	{
 		super( _delegate );
-		
-		delegate	= _delegate;
-		
-		torrent = (PRTorrent)_lookupLocal( _delegate.getTorrent());
+				
+		torrent = (RPTorrent)_lookupLocal( delegate.getTorrent());
 		
 		if ( torrent == null ){
 			
-			torrent = PRTorrent.create( _delegate.getTorrent());
+			torrent = RPTorrent.create( delegate.getTorrent());
 		}
 		
-		stats = (PRDownloadStats)_lookupLocal( _delegate.getStats());
+		stats = (RPDownloadStats)_lookupLocal( delegate.getStats());
 		
 		if ( stats == null ){
 			
-			stats = PRDownloadStats.create( _delegate.getStats());
+			stats = RPDownloadStats.create( delegate.getStats());
 		}
+	}
+	
+	protected void
+	_setDelegate(
+		Object		_delegate )
+	{
+		delegate = (Download)_delegate;
 	}
 	
 	public void
@@ -86,7 +91,7 @@ PRDownload
 	
 		throws RPException
 	{
-		delegate = (Download)_fixupLocal();
+		_fixupLocal();
 		
 		torrent._setLocal();
 		
@@ -121,6 +126,8 @@ PRDownload
 		
 		throw( new RPException( "Unknown method: " + method ));
 	}
+	
+		// ***************************************************
 	
 	public int
 	getState()

@@ -26,7 +26,9 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet;
  *
  */
 
+import java.util.*;
 import java.awt.*;
+import java.awt.event.*;
 
 import javax.swing.*;
 
@@ -42,6 +44,8 @@ RemoteUIMainPanel
 {
 	protected PluginInterface		pi;
 	
+	protected ArrayList					listeners = new ArrayList();
+	
 	public
 	RemoteUIMainPanel(
 		PluginInterface	_pi )
@@ -50,8 +54,43 @@ RemoteUIMainPanel
 	
 		setLayout( new BorderLayout());
 		
-		VWDownloadView view = new VWDownloadView(new MDDownloadModel( pi.getDownloadManager()));
+		JToolBar tb = new JToolBar();
+		
+		JButton	refresh = new JButton( "Refresh");
+		
+		tb.add( refresh );
+		
+		add( tb, BorderLayout.NORTH );
+		
+		final MDDownloadModel	model 	= new MDDownloadModel( pi.getDownloadManager());
+		
+		final VWDownloadView 	view 	= new VWDownloadView(model);
 		
 		add( view.getComponent(), BorderLayout.CENTER );
+		
+		refresh.addActionListener(
+				new ActionListener()
+				{
+					public void
+					actionPerformed(
+							ActionEvent	ev )
+					{
+						for (int i=0;i<listeners.size();i++){
+							
+							((RemoteUIMainPanelListener)listeners.get(i)).refresh();
+						}
+						
+						model.refresh();
+						
+						view.refresh();
+					}
+				});
+	}
+	
+	public void
+	addListener(
+		RemoteUIMainPanelListener	l )
+	{
+		listeners.add(l);
 	}
 }

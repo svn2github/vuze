@@ -34,7 +34,7 @@ import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 
 public class 
-PRTorrent
+RPTorrent
 	extends		RPObject
 	implements 	Torrent
 {
@@ -43,30 +43,37 @@ PRTorrent
 	protected String		name;
 	protected long			size;
 	
-	public static PRTorrent
+	public static RPTorrent
 	create(
 		Torrent		_delegate )
 	{
-		PRTorrent	res =(PRTorrent)_lookupLocal( _delegate );
+		RPTorrent	res =(RPTorrent)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new PRTorrent( _delegate );
+			res = new RPTorrent( _delegate );
 		}
 		
 		return( res );
 	}
 	
 	protected
-	PRTorrent(
+	RPTorrent(
 		Torrent		_delegate )
 	{
 		super( _delegate );
 		
-		delegate	= _delegate;
+		delegate	= _delegate;		
+	}
+	
+	protected void
+	_setDelegate(
+		Object		_delegate )
+	{
+		delegate = (Torrent)_delegate;
 		
-		name		= _delegate.getName();
-		size		= _delegate.getSize();
+		name		= delegate.getName();
+		size		= delegate.getSize();
 	}
 	
 	public void
@@ -74,7 +81,7 @@ PRTorrent
 	
 		throws RPException
 	{
-		delegate = (Torrent)_fixupLocal();
+		_fixupLocal();
 	}
 	
 	

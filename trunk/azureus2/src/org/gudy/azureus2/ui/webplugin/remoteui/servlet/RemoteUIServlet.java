@@ -105,10 +105,18 @@ RemoteUIServlet
 				return( reply );
 				
 			}else{
-				
 				object._setLocal();
 				
-				return( object._process( request ));
+				if ( method.equals( "_refresh" )){
+				
+					RPReply	reply = new RPReply( object );
+				
+					return( reply );
+					
+				}else{
+								
+					return( object._process( request ));
+				}
 			}
 		}catch( RPException e ){
 			

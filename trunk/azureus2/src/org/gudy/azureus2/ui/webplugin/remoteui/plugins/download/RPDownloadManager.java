@@ -35,33 +35,38 @@ import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
 
 public class 
-PRDownloadManager
+RPDownloadManager
 	extends		RPObject
 	implements 	DownloadManager
 {
 	protected transient DownloadManager		delegate;
 	
-	public static PRDownloadManager
+	public static RPDownloadManager
 	create(
 		DownloadManager		_delegate )
 	{
-		PRDownloadManager	res =(PRDownloadManager)_lookupLocal( _delegate );
+		RPDownloadManager	res =(RPDownloadManager)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new PRDownloadManager( _delegate );
+			res = new RPDownloadManager( _delegate );
 		}
 		
 		return( res );
 	}
 	
 	protected
-	PRDownloadManager(
+	RPDownloadManager(
 		DownloadManager		_delegate )
 	{
 		super( _delegate );
-		
-		delegate	= _delegate;
+	}
+	
+	protected void
+	_setDelegate(
+		Object		_delegate )
+	{
+		delegate = (DownloadManager)_delegate;
 	}
 	
 	public void
@@ -69,13 +74,13 @@ PRDownloadManager
 	
 		throws RPException
 	{
-		delegate = (DownloadManager)_fixupLocal();
+		_fixupLocal();
 	}
 	
 	
 	public RPReply
 	_process(
-			RPRequest	request	)
+		RPRequest	request	)
 	{
 		String	method = request.getMethod();
 		
@@ -83,11 +88,11 @@ PRDownloadManager
 			
 			Download[]	downloads = delegate.getDownloads();
 			
-			PRDownload[]	res = new PRDownload[downloads.length];
+			RPDownload[]	res = new RPDownload[downloads.length];
 			
 			for (int i=0;i<res.length;i++){
 				
-				res[i] = PRDownload.create( downloads[i]);
+				res[i] = RPDownload.create( downloads[i]);
 			}
 			
 			return( new RPReply( res ));
@@ -157,7 +162,7 @@ PRDownloadManager
 	public Download[]
 	getDownloads()
 	{
-		PRDownload[]	res = (PRDownload[])dispatcher.dispatch( new RPRequest( this, "getDownloads", null )).getResponse();
+		RPDownload[]	res = (RPDownload[])dispatcher.dispatch( new RPRequest( this, "getDownloads", null )).getResponse();
 		
 		for (int i=0;i<res.length;i++){
 			

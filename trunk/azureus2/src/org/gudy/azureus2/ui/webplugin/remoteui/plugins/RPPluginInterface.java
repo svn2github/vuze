@@ -67,8 +67,13 @@ RPPluginInterface
 		PluginInterface		_delegate )
 	{
 		super( _delegate );
-		
-		delegate	= _delegate;
+	}
+	
+	protected void
+	_setDelegate(
+		Object		_delegate )
+	{
+		delegate = (PluginInterface)_delegate;
 	}
 	
 	public void
@@ -76,7 +81,7 @@ RPPluginInterface
 	
 		throws RPException
 	{
-		delegate = (PluginInterface)_fixupLocal();
+		_fixupLocal();
 	}
 	
 	
@@ -92,7 +97,7 @@ RPPluginInterface
 			
 		}else if ( method.equals( "getDownloadManager")){
 				
-			return( new RPReply( PRDownloadManager.create(delegate.getDownloadManager())));
+			return( new RPReply( RPDownloadManager.create(delegate.getDownloadManager())));
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -133,7 +138,7 @@ RPPluginInterface
 	public DownloadManager
 	getDownloadManager()
 	{
-		PRDownloadManager	res = (PRDownloadManager)dispatcher.dispatch( new RPRequest( this, "getDownloadManager", null )).getResponse();
+		RPDownloadManager	res = (RPDownloadManager)dispatcher.dispatch( new RPRequest( this, "getDownloadManager", null )).getResponse();
 	
 		res._setRemote( dispatcher );
 		
