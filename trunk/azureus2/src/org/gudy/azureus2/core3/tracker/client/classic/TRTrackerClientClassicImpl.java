@@ -1516,16 +1516,16 @@ TRTrackerClientClassicImpl
     }
     else if (failure_added_time < (REFRESH_MINIMUM_SECS * 2)) {
       //use quicker retry in the very beginning
-      failure_added_time += REFRESH_MINIMUM_SECS / 4;
+      failure_added_time += REFRESH_MINIMUM_SECS / 5;
     }
     else {
       //increase re-check time after each failure
       failure_added_time += REFRESH_MINIMUM_SECS;
     }
 
-    //make sure we're not waiting longer than an hour
-    if (failure_added_time > 3600) {
-      failure_added_time = 3600;
+    //make sure we're not waiting longer than 20min
+    if (failure_added_time > 1200) {
+      failure_added_time = 1200;
     }
 
     return failure_added_time;
