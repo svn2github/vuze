@@ -313,6 +313,12 @@ TRTrackerClientClassicImpl
 		return( (int)((current_timer_event.getWhen() - System.currentTimeMillis())/1000));
 	}
 
+	public int
+	getLastUpdateTime()
+	{
+		return( last_update_time_secs );
+	}
+
 	public void
 	update(
 		boolean		force )

@@ -73,6 +73,9 @@ TRTrackerClient
 	
 	public int
 	getTimeUntilNextUpdate();
+	
+	public int
+	getLastUpdateTime();
 			
 	public void
 	update(

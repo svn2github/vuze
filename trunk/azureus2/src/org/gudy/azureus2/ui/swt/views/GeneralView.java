@@ -84,6 +84,7 @@ public class GeneralView extends AbstractIView {
   BufferedLabel comment;
   BufferedLabel hashFails;
   BufferedLabel shareRatio;
+  Button		updateButton;
 
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
@@ -314,12 +315,12 @@ public class GeneralView extends AbstractIView {
     trackerUpdateIn.setLayoutData(gridData);
     
 
-    Button button = new Button(gInfo, SWT.LEFT);
-    Messages.setLanguageText(button, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
+    updateButton = new Button(gInfo, SWT.LEFT);
+    Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-    button.setLayoutData(gridData);
+	updateButton.setLayoutData(gridData);
     
-    button.addSelectionListener(new SelectionAdapter() {
+	updateButton.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
         manager.checkTracker();
       }
@@ -701,6 +702,8 @@ public class GeneralView extends AbstractIView {
 		trackerUpdateIn.setText(  minutes + ":" + strSeconds); 
 	}
     
+    boolean	update_state;
+    
     if(trackerClient != null){
     	
     	String trackerURL = trackerClient.getTrackerUrl();
@@ -709,6 +712,16 @@ public class GeneralView extends AbstractIView {
     	
 			trackerUrlValue.setText( trackerURL);
     	}
+    	
+    	update_state = ((System.currentTimeMillis()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
+    	
+    }else{
+    	update_state = false;
+    }
+    
+    if ( updateButton.getEnabled() != update_state ){
+    
+    	updateButton.setEnabled( update_state );
     }
   }
 
