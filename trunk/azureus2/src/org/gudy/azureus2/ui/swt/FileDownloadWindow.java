@@ -184,12 +184,13 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
               MainWindow.getWindow().openTorrent(downloader.getFile().getAbsolutePath());
             }
           }
-          
-          if(state == TorrentDownloader.STATE_ERROR) {
-            retry.setEnabled(true); 
-          }
-          
+   
           if ( !shell.isDisposed()){
+          	
+          	if(state == TorrentDownloader.STATE_ERROR) {
+          		retry.setEnabled(true); 
+          	}
+          
           	shell.pack();
           }
         }
