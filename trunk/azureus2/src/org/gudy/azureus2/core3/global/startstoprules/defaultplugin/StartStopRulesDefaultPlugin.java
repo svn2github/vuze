@@ -234,7 +234,7 @@ public class StartStopRulesDefaultPlugin
   private class RecalcSeedingRanksTask extends TimerTask 
   {
     public void run() {
-      System.out.println("RecalcAllSeedingRanks");
+      // System.out.println("RecalcAllSeedingRanks");
       recalcAllSeedingRanks(false);
     }
   }
