@@ -25,7 +25,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /**
  * @author Olivier
@@ -47,6 +47,8 @@ BooleanParameterImpl
 	{ 
 		super( config, key, label);
  
+		COConfigurationManager.setBooleanDefault( getKey(), defaultValue );
+		
 		this.defaultValue = defaultValue;
  
 	}

@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  *
  */
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.PluginConfig;
 
 public class DirectoryParameter extends ParameterImpl
@@ -35,7 +36,10 @@ public class DirectoryParameter extends ParameterImpl
 	public DirectoryParameter(PluginConfig config,String key, String label, String defaultValue)
 	{ 
 		super(config,key, label);
-    this.defaultValue = defaultValue;
+		
+		this.defaultValue = defaultValue;
+    
+		COConfigurationManager.setStringDefault(getKey(), getDefaultValue());
 	}
 	/**
 	 * @return Returns the defaultValue.

@@ -219,8 +219,32 @@ COConfigurationManager
         
   public static void
   registerExternalDefaults(
-  				Map							addmap)
+  	Map							addmap)
   {
   	ConfigurationDefaults.getInstance().registerExternalDefaults(addmap);
+  }
+  
+  public static void
+  setBooleanDefault(
+  	String	parameter,
+	boolean	_default )
+  {
+  	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
+  }
+  
+  public static void
+  setIntDefault(
+  	String	parameter,
+	int	_default )
+  {
+  	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
+  }
+  
+  public static void
+  setStringDefault(
+  	String	parameter,
+	String	_default )
+  {
+  	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
   }
 }

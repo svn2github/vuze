@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  *
  */
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 
@@ -36,7 +37,10 @@ public class StringParameterImpl extends ParameterImpl implements StringParamete
 	public StringParameterImpl(PluginConfig config,String key, String label, String defaultValue)
 	{ 
 		super(config,key, label);
-    this.defaultValue = defaultValue;
+		
+		COConfigurationManager.setStringDefault( getKey(), defaultValue );
+
+		this.defaultValue = defaultValue;
 	}
 	/**
 	 * @return Returns the defaultValue.

@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  *
  */
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.PluginConfig;
 
 public class IntsParameter extends ParameterImpl
@@ -45,9 +46,11 @@ public class IntsParameter extends ParameterImpl
 			String[] labels)
 	{ 
 		super(config,key, label);
-    this.defaultValue = defaultValue;
-    this.values = values;
-    this.labels = labels;
+		this.defaultValue = defaultValue;
+		this.values = values;
+		this.labels = labels;
+		
+		COConfigurationManager.setIntDefault(getKey(), getDefaultValue());
 	}
 
 
