@@ -100,7 +100,7 @@ public class ConfigView extends AbstractIView {
 
   private static final int logFileSizes[] =
      {
-       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 75, 100,
+       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 75, 100, 200, 300, 500
      };
 
   IpFilter filter;
@@ -485,16 +485,16 @@ public class ConfigView extends AbstractIView {
     GridData gridData;
     Label label;
 
-    Composite gFilter = new Composite(cConfigSection, SWT.NULL);
+    Composite gFilter = createConfigSection("ipfilter");
     gridData = new GridData(GridData.FILL_BOTH);
     gFilter.setLayoutData(gridData);
     GridLayout layoutFilter = new GridLayout();
     layoutFilter.numColumns = 3;
     gFilter.setLayout(layoutFilter);
 
-    TreeItem itemFilter = new TreeItem(tree, SWT.NULL);
-    Messages.setLanguageText(itemFilter, "ipFilter.shortTitle"); //$NON-NLS-1$
-    itemFilter.setData("Panel", gFilter);
+    //TreeItem itemFilter = new TreeItem(tree, SWT.NULL);
+    //Messages.setLanguageText(itemFilter, "ConfigView.section.ipfilter"); //$NON-NLS-1$
+    //itemFilter.setData("Panel", gFilter);
 
     // start controls
     gridData = new GridData(GridData.BEGINNING);
@@ -505,7 +505,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ipFilter.enable"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.section.ipfilter.enable"); //$NON-NLS-1$
 
 
     gridData = new GridData(GridData.BEGINNING);
@@ -516,10 +516,10 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ipFilter.allow");
+    Messages.setLanguageText(label, "ConfigView.section.ipfilter.allow");
 
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
-    String[] headers = { "ipFilter.description", "ipFilter.start", "ipFilter.end" };
+    String[] headers = { "ConfigView.section.ipfilter.description", "ConfigView.section.ipfilter.start", "ConfigView.section.ipfilter.end" };
     int[] sizes = { 200, 110, 110 };
     int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER };
     for (int i = 0; i < headers.length; i++) {
@@ -541,7 +541,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.CENTER);
     gridData.widthHint = 100;
     add.setLayoutData(gridData);
-    Messages.setLanguageText(add, "ipFilter.add");
+    Messages.setLanguageText(add, "ConfigView.section.ipfilter.add");
     add.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
         addRange();
@@ -552,7 +552,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.CENTER);
     gridData.widthHint = 100;
     remove.setLayoutData(gridData);
-    Messages.setLanguageText(remove, "ipFilter.remove");
+    Messages.setLanguageText(remove, "ConfigView.section.ipfilter.remove");
     remove.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
         TableItem[] selection = table.getSelection();
@@ -568,7 +568,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData(GridData.CENTER);
     gridData.widthHint = 100;
     edit.setLayoutData(gridData);
-    Messages.setLanguageText(edit, "ipFilter.edit");
+    Messages.setLanguageText(edit, "ConfigView.section.ipfilter.edit");
     edit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
         TableItem[] selection = table.getSelection();
@@ -2072,7 +2072,7 @@ public class ConfigView extends AbstractIView {
     GridLayout layout;
     Label label;
 
-    Composite gLogging = new Composite(cConfigSection, SWT.NULL);
+    Composite gLogging = createConfigSection("logging");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gLogging.setLayoutData(gridData);
     layout = new GridLayout();
