@@ -127,9 +127,11 @@ public class OutgoingBTHaveMessageAggregator {
     
       for( int i=0; i < pending_haves.size(); i++ ) {
         Integer piece_num = (Integer)pending_haves.get( i ); 
-        outgoing_message_q.addMessage( new BTHave( piece_num.intValue() ), false );
+        outgoing_message_q.addMessage( new BTHave( piece_num.intValue() ), true );
       }
+      outgoing_message_q.doListenerNotifications();
       pending_haves.clear();
+      
     }finally{
     	
       pending_haves_mon.exit();
