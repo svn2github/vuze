@@ -105,7 +105,7 @@ public class PeerIDByteDecoder {
         return "XBT " + v1 + "." + v2 + "." + v3;
       }
       
-      String bow = new String(peerID, 0, 3, Constants.BYTE_ENCODING);
+      String bow = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
       if( bow.equals( "BoW" ) ) {
         String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
         return "BitsOnWheels " + version;
@@ -289,8 +289,8 @@ public class PeerIDByteDecoder {
   
   private static String decodeTornadoStyle( byte[] id, String ident, String name ) {
     try {
-      if( (id[4] == (byte)45) && (id[5] == (byte)45) && (id[6] == (byte)45)
-          && (id[7] == (byte)45) && (id[8] == (byte)45)) {
+     if( (id[4] == (byte)45) && (id[5] == (byte)45) ) {
+      if( (id[6] == (byte)45) && (id[7] == (byte)45) && (id[8] == (byte)45)) {
         String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
         if( decoded.equals( ident ) ) {
           int v1 = Integer.parseInt( new String( id, 1, 1, Constants.BYTE_ENCODING ), 16 );
@@ -299,6 +299,17 @@ public class PeerIDByteDecoder {
           return name + " " + v1 + "." + v2 + "." + v3;
         }
       }
+      
+      if( (id[6] == (byte)48) ) {
+          String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
+          if( decoded.equals( ident ) ) {
+            int v1 = Integer.parseInt( new String( id, 1, 1, Constants.BYTE_ENCODING ), 16 );
+            int v2 = Integer.parseInt( new String( id, 2, 1, Constants.BYTE_ENCODING ), 16 );
+            int v3 = Integer.parseInt( new String( id, 3, 1, Constants.BYTE_ENCODING ), 16 );
+            return name + " LM" + " " + v1 + "." + v2 + "." + v3;
+          }
+        }
+     }
     }
     catch( Exception e ) {  return null;  }
     return null;
