@@ -951,6 +951,8 @@ public class DiskManager {
     boolean noError = true;
     while (buffer.hasRemaining() && noError) {
       tempPiece = (PieceMapEntry) pieceList.get(currentFile);
+      long fcposition = 0;
+      long fcsize = 0;
       
       synchronized (tempPiece.getFile()) {
         RandomAccessFile raf = tempPiece.getFile().getRaf();
@@ -958,6 +960,8 @@ public class DiskManager {
         try {
           fc.position(fileOffset + (offset - previousFilesLength));
           while(fc.position() < (fc.size()-1) && buffer.hasRemaining())
+            fcposition = fc.position();
+            fcsize = fc.size();
             fc.read(buffer);
         }
         catch (Exception e) {
@@ -967,11 +971,15 @@ public class DiskManager {
           System.out.println("PieceNumber: " + pieceNumber);
           System.out.println("Offset: " + offset);
           System.out.println("Length  " + length);
-          System.out.println("BufferLimit: " + buffer.limit() + ", BufferRemaining: " + buffer.remaining());
+          System.out.println("BufferLimit: " + buffer.limit());
+          System.out.println("BufferRemaining: " + buffer.remaining());
           System.out.println("PieceListSize: " + pieceList.size());
           System.out.println("CurrentFile: " + currentFile);
-          System.out.println("TempPieceLength: " + tempPiece.getLength() + ", TempPieceOffset: " + tempPiece.getOffset());
+          System.out.println("TempPieceLength: " + tempPiece.getLength());
+          System.out.println("TempPieceOffset: " + tempPiece.getOffset());
           System.out.println("TotalNumPieces(this.nbPieces): " + this.nbPieces);
+          System.out.println("fc.position: " + fcposition);
+          System.out.println("fc.size: " + fcsize);
           e.printStackTrace();
        }
       }
