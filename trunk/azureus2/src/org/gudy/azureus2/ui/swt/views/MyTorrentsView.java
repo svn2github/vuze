@@ -112,7 +112,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   };
   
 	// table item index, where the drag has started
-  private int drag_drop_line_start;
+  private int drag_drop_line_start = -1;
   
   
   private int loopFactor;
@@ -794,16 +794,55 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           drag_drop_line_start = table.getSelectionIndex();
          } else {
           event.doit = false;
+          drag_drop_line_start = -1;
         }
       }
     });
 
-    DropTarget dropTarget = new DropTarget(table, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+    DropTarget dropTarget = new DropTarget(table, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
     dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(), FileTransfer.getInstance(), TextTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
+/*
+      public void dragEnter(DropTargetEvent event) {
+        System.out.print("dragEnter typ id: " + event.currentDataType.type + ",types count: " + event.dataTypes.length + " = ");
+        for (int i = 0; i < event.dataTypes.length; i++) {
+          System.out.print(event.dataTypes[i].type + ",");
+        }
+        System.out.println();
+      }
+      public void dropAccept(DropTargetEvent event) {
+        System.out.print("dropAccept typ id: " + event.currentDataType.type + ",types count: " + event.dataTypes.length + " = ");
+        for (int i = 0; i < event.dataTypes.length; i++) {
+          System.out.print(event.dataTypes[i].type + ",");
+        }
+        System.out.println();
+      }
+      public void dragOperationChanged(DropTargetEvent event) {
+        System.out.print("dragOperationChanged typ id: " + event.currentDataType.type + ",types count: " + event.dataTypes.length + " = ");
+        for (int i = 0; i < event.dataTypes.length; i++) {
+          System.out.print(event.dataTypes[i].type + ",");
+        }
+        System.out.println();
+      }
+      public void dragLeave(DropTargetEvent event) {
+        System.out.print("dragLeave typ id: " + event.currentDataType.type + ",types count: " + event.dataTypes.length + " = ");
+        for (int i = 0; i < event.dataTypes.length; i++) {
+          System.out.print(event.dataTypes[i].type + ",");
+        }
+        System.out.println();
+      }
+//*/
       public void dragOver(DropTargetEvent event) {
-        if(event.dataTypes.length >= 5 && URLTransfer.getInstance().isSupportedType(event.currentDataType)) {
-          event.detail = DND.DROP_LINK;
+/*
+        System.out.print("dragOver typ id: " + event.currentDataType.type + ",types count: " + event.dataTypes.length + " = ");
+        for (int i = 0; i < event.dataTypes.length; i++) {
+          System.out.print(event.dataTypes[i].type + ",");
+        }
+        System.out.println();
+//*/
+        if(drag_drop_line_start < 0) {
+          if(event.detail != DND.DROP_COPY)
+            event.detail = DND.DROP_LINK;
         } else if(TextTransfer.getInstance().isSupportedType(event.currentDataType)) {
           event.feedback = DND.FEEDBACK_EXPAND | DND.FEEDBACK_SCROLL | DND.FEEDBACK_SELECT | DND.FEEDBACK_INSERT_BEFORE | DND.FEEDBACK_INSERT_AFTER;
           event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
@@ -811,12 +850,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       }
       public void drop(DropTargetEvent event) {
         // Torrent file from shell dropped
-        if(event.data == null) {
+        if(drag_drop_line_start >= 0) { // event.data == null
           event.detail = DND.DROP_NONE;
           if(event.item == null)
             return;
           int drag_drop_line_end = table.indexOf((TableItem)event.item);
           moveSelectedTorrents(drag_drop_line_start, drag_drop_line_end);
+          drag_drop_line_start = -1;
         } else {
           MainWindow.getWindow().openDroppedTorrents(event);
         }
