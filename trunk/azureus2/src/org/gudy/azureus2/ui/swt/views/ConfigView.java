@@ -485,11 +485,11 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startRatioPeers"); //$NON-NLS-1$
-    final String startRatioPeersLabels[] = new String[11];
-    final int startRatioPeersValues[] = new int[11];
+    final String startRatioPeersLabels[] = new String[13];
+    final int startRatioPeersValues[] = new int[13];
     startRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStart");
     startRatioPeersValues[0] = 0;
-    for (int i = 1; i < 11; i++) {
+    for (int i = 1; i < 13; i++) {
       startRatioPeersLabels[i] = (i + 3) + " " + peers; //$NON-NLS-1$
       startRatioPeersValues[i] = i + 3;
     }
@@ -498,11 +498,11 @@ public class ConfigView extends AbstractIView {
     String seeds = MessageText.getString("ConfigView.label.seeds");
     label = new Label(gDownloads, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.startNumSeeds"); //$NON-NLS-1$
-    final String startNumSeedsLabels[] = new String[11];
-    final int startNumSeedsValues[] = new int[11];
+    final String startNumSeedsLabels[] = new String[16];
+    final int startNumSeedsValues[] = new int[16];
     startNumSeedsLabels[0] = MessageText.getString("ConfigView.text.neverStart");
     startNumSeedsValues[0] = 0;
-    for (int i = 1; i < 11; i++) {
+    for (int i = 1; i < 16; i++) {
       startNumSeedsLabels[i] = i + " " + seeds; //$NON-NLS-1$
       startNumSeedsValues[i] = i;
     }
