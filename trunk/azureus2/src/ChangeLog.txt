@@ -18,6 +18,7 @@ FEATURE: Details view can now be customized (choice of columns and order) [Gudy]
 FEATURE: SSL now supported for tracker web and tracker updates [Parg]
 FEATURE: Added Drag and Drop of URLs [Rele]
 FEATURE: Multi-Trackers torrent can now be created [Gudy]
+FEATURE: Menu option to force a re-check of downloaded data [Nolar]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
@@ -29,7 +30,7 @@ CHANGE: FilesView now shows files even in other states than Downloading (configu
 
 BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
 BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale encodings in dialog box [Akilgard]
-
+BUGFIX: System tray icon re-shown after explorer.exe crash [Rele]
 
 
 
