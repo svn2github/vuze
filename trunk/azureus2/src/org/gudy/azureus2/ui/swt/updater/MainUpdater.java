@@ -107,7 +107,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
           
       
                   
-      if(System.getProperty("os.name").equalsIgnoreCase("linux") || System.getProperty("os.name").equalsIgnoreCase("osx")) {
+      if(System.getProperty("os.name").equalsIgnoreCase("Linux") || System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
         File fUpdate = new File(userPath + "/updateSWT");
         String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
         + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
