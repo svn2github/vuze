@@ -743,10 +743,10 @@ public class MainWindow implements IComponentListener {
         fis.close();
         Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
         Map info = (Map) map.get("info");
-        Object test = info.get("length");
+        singleFileName = new String((byte[]) info.get("name"), "ISO-8859-1");
+        Object test = info.get("length");        
         if (test != null) {        
-          singleFile = true;
-          singleFileName = new String((byte[]) info.get("name"), "ISO-8859-1");
+          singleFile = true;          
         }
       }
       catch (Exception e) {
@@ -756,14 +756,14 @@ public class MainWindow implements IComponentListener {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
         fDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", ""));
         fDialog.setFileName(singleFileName);
-        fDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath"));
+        fDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")");
         savePath = fDialog.open();
 
       }
       else {
         DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
         dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
-        dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath")); //$NON-NLS-1$
+        dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$
         savePath = dDialog.open();
       }
       if (savePath == null)

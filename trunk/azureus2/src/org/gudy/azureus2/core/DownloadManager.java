@@ -164,6 +164,8 @@ public class DownloadManager extends Component {
       return STATE_CHECKING;
     if (diskManagerState == DiskManager.READY)
       return STATE_READY;
+    if(diskManagerState == DiskManager.FAULTY)
+      return STATE_ERROR;
     return STATE_ERROR;
   }
 
@@ -417,6 +419,13 @@ public class DownloadManager extends Component {
     if(trackerConnection != null)
       return globalManager.getTrackerChecker().getHashData(trackerConnection.getTrackerUrl(),hash);
     else return null;
+  }
+
+  /**
+   * @param string
+   */
+  public void setErrorDetail(String string) {
+    errorDetail = string;
   }
 
 }

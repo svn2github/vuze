@@ -32,6 +32,8 @@ public class DiskManager {
   public static final int FAULTY = 10;
 
   private int state;
+  private String errorMessage = "";
+  
   private int pieceLength;
   private int lastPieceLength;
 
@@ -80,6 +82,10 @@ public class DiskManager {
     Thread init = new Thread() {
       public void run() {
         initialize();
+        if(state == DiskManager.FAULTY)
+        {
+          stopIt();
+        }
       }
     };
     init.setPriority(Thread.MIN_PRIORITY);
@@ -97,6 +103,7 @@ public class DiskManager {
     }
     catch (UnsupportedEncodingException e) {
       this.state = FAULTY;
+      this.errorMessage = e.getMessage();
       return;
     }
 
@@ -120,6 +127,7 @@ public class DiskManager {
     }
     catch (UnsupportedEncodingException e) {
       this.state = FAULTY;
+      this.errorMessage = e.getMessage();
       return;
     }
 
@@ -187,6 +195,7 @@ public class DiskManager {
             }
             catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
+              this.errorMessage = e.getMessage();
               return;
             }
 
@@ -201,6 +210,7 @@ public class DiskManager {
             }
             catch (UnsupportedEncodingException e) {
               this.state = FAULTY;
+              this.errorMessage = e.getMessage();
               return;
             }
           }
@@ -553,6 +563,7 @@ public class DiskManager {
         }
         catch (Exception e) {
           this.state = FAULTY;
+          this.errorMessage = e.getMessage();
           return false;
         }
 
@@ -568,6 +579,7 @@ public class DiskManager {
         }
         catch (FileNotFoundException e) {
           this.state = FAULTY;
+          this.errorMessage = e.getMessage();
           return false;
         }
         allocated += length;
@@ -603,6 +615,7 @@ public class DiskManager {
     }
     catch (IOException e) {
       this.state = FAULTY;
+      this.errorMessage = e.getMessage();
       return;
     }
     long writen = 0;
@@ -1198,6 +1211,13 @@ public class DiskManager {
    */
   public String getPath() {
     return path;
+  }
+
+  /**
+   * @return
+   */
+  public String getErrorMessage() {
+    return errorMessage;
   }
 
 }

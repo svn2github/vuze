@@ -81,6 +81,12 @@ public class GlobalManager extends Component {
               || (manager.getState() == DownloadManager.STATE_INITIALIZED))) {
               alreadyOneAllocatingOrChecking = true;
             }
+            
+            if(manager.getState() == DownloadManager.STATE_ERROR) {
+              DiskManager dm = manager.diskManager;
+              if(dm != null && dm.getState() == DiskManager.FAULTY)
+                manager.setErrorDetail(dm.getErrorMessage());
+            }
 
             if ((manager.getState() == DownloadManager.STATE_SEEDING)
               && (manager.getPriority() == DownloadManager.HIGH_PRIORITY)

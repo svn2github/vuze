@@ -63,13 +63,14 @@ public class ByteBufferPool {
     try {
       ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE+1);
       buffers.add(buffer);
+      //System.out.println("Pool Size :" + buffers.size());
       return buffer;
     } catch (Exception e) {
       Logger.getLogger().log(
         componentID,
         evtAllocation,
         Logger.ERROR,
-        "Memory allocation failed. Reason : " + e);
+        "Memory allocation failed. Reason : " + e);     
       return null;
     }
   }
