@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 import javax.net.ssl.*;
 
@@ -51,9 +52,15 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
     setDaemon(true);
   }
 
-  public void init(TorrentDownloaderCallBackInterface _iface, String _url) {
-    this.setName("TorrentDownloader: " + _url);
+  private void init(TorrentDownloaderCallBackInterface _iface, String _url) {
     this.iface = _iface;
+    
+    	// it's possible that the URL hasn't been encoded (see Bug 878990)
+    
+    _url = _url.replaceAll( " ", "%20" );
+    
+    this.setName("TorrentDownloader: " + _url);
+    
     this._url = _url;
   }
 
