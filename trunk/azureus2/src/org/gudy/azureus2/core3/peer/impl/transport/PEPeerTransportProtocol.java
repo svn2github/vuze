@@ -249,7 +249,7 @@ PEPeerTransportProtocol
 	  bufferHandshakeS.position(0);
 	  bufferHandshakeS.limit(68);
 	  sendProtocol(bufferHandshakeS);
-	  readBuffer = ByteBufferPool.getInstance().getFreeBuffer(68);
+	  readBuffer = ByteBufferPool.getFreeBuffer(68);
 	  if (readBuffer == null) {
 		 closeAll(ip + " : PeerSocket::handShake:: readBuffer null", true, false);
 		 return;
@@ -391,7 +391,7 @@ PEPeerTransportProtocol
 
 	//3. release the read Buffer
 	if (readBuffer != null) {
-	  ByteBufferPool.getInstance().freeBuffer(readBuffer);
+	  ByteBufferPool.freeBuffer(readBuffer);
 	  readBuffer = null;
    }
 
@@ -399,7 +399,7 @@ PEPeerTransportProtocol
 	if (writeBuffer != null) {      
 	  if (writeData) {
 		PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
-		ByteBufferPool.getInstance().freeBuffer(writeBuffer);
+		ByteBufferPool.freeBuffer(writeBuffer);
 		writeBuffer = null;
 	  }
 	}
@@ -408,7 +408,7 @@ PEPeerTransportProtocol
 	for (int i = dataQueue.size() - 1; i >= 0; i--) {
 	  DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
 	  if (item.isLoaded()) {
-		ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+		ByteBufferPool.freeBuffer(item.getBuffer());
 		item.setBuffer(null);
 	  }
 	  else if (item.isLoading()) {
@@ -520,12 +520,12 @@ PEPeerTransportProtocol
         if (length > 0) {
          //return old readBuffer to pool if it's too small
 			if(readBuffer != null && readBuffer.capacity() < length) {
-			  ByteBufferPool.getInstance().freeBuffer(readBuffer);
+			  ByteBufferPool.freeBuffer(readBuffer);
 			  readBuffer = null;
 			}
       
 			if(readBuffer == null) {
-			  ByteBuffer newbuff = ByteBufferPool.getInstance().getFreeBuffer(length);
+			  ByteBuffer newbuff = ByteBufferPool.getFreeBuffer(length);
 			  if (newbuff == null) {				
 			    closeAll(ip + " newbuff null",true, false);
 			    return;
@@ -1031,7 +1031,7 @@ PEPeerTransportProtocol
 	  DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(i);
 	  if (item.getRequest().equals(request)) {
 		if (item.isLoaded()) {
-		  ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+		  ByteBufferPool.freeBuffer(item.getBuffer());
 		  item.setBuffer(null);
 		}
 		if (item.isLoading()) {
@@ -1095,7 +1095,7 @@ PEPeerTransportProtocol
 	  if (!writeBuffer.hasRemaining()) {
 		//If we were sending data, we must free the writeBuffer
 		if (writeData) {
-		  ByteBufferPool.getInstance().freeBuffer(writeBuffer);
+		  ByteBufferPool.freeBuffer(writeBuffer);
 		  writeBuffer = null;
 		  PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
 		}
@@ -1190,7 +1190,7 @@ PEPeerTransportProtocol
 		  }
 		  if (item.isLoaded()) {
 			dataQueue.remove(item);
-			ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+			ByteBufferPool.freeBuffer(item.getBuffer());
 			item.setBuffer(null);
 		  }
 		  return;
