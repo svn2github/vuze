@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.ui.swt.config.wizard.WelcomePanel;
 
 /**
  * @author Olivier
@@ -920,11 +921,16 @@ DownloadManagerImpl
       int nbPeers = getNbPeers();
       int nbRemotes = peerManager.getNbRemoteConnections();
       int trackerStatus = tracker_client.getLastResponse().getStatus();
-      if( (nbSeeds + nbPeers) == 0)
-        return WEALTH_KO;     
+      boolean isSeed = (state == STATE_SEEDING);
+      
+      if( (nbSeeds + nbPeers) == 0) {
+        if(isSeed)
+          return WEALTH_NO_TRACKER;        
+        return WEALTH_KO;        
+      }
       if( trackerStatus == TRTrackerResponse.ST_OFFLINE)
         return WEALTH_NO_TRACKER;
-      if( nbRemotes == 0)
+      if( nbRemotes == 0 )
         return WEALTH_NO_REMOTE;
       return WEALTH_OK;
     } else {
