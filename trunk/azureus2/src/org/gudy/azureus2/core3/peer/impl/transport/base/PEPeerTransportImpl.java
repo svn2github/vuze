@@ -49,6 +49,7 @@ PEPeerTransportImpl
   private volatile boolean connected = false;
   private volatile boolean connect_error = false;
   private volatile String msg = "";
+  SocketManager.OutboundConnectionListener listener = null;
   
 	
 	  /**
@@ -108,21 +109,21 @@ PEPeerTransportImpl
     connect_error = false;
 
     InetSocketAddress address = new InetSocketAddress( getIp(), getPort() );
-		
-    SocketManager.requestOutboundConnection( address,
-      new SocketManager.OutboundConnectionListener() {
-      		public void connectionDone( SocketChannel channel, String error_msg ) {
-      		  if ( channel != null ) {
-      		    socket = channel;
-      		    connected = true;
-      		  }
-      		  else {
-      		    msg = error_msg;
-      		    connect_error = true;
-      		  }
-      		}
+    
+    listener = new SocketManager.OutboundConnectionListener() {
+    	public void connectionDone( SocketChannel channel, String error_msg ) {
+    		if ( channel != null ) {
+    			socket = channel;
+    			connected = true;
     		}
-    );
+    		else {
+    			msg = error_msg;
+    			connect_error = true;
+    		}
+    	}
+    };
+    
+    SocketManager.requestOutboundConnection( address, listener );
 	}
 
 
@@ -132,6 +133,10 @@ PEPeerTransportImpl
 	    SocketManager.closeConnection( socket );
 	    socket = null;
 	  }
+    else {
+      SocketManager.cancelOutboundRequest( listener );
+      listener = null;
+    }
 	}
 
   

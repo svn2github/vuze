@@ -25,8 +25,8 @@ public class SocketManager {
   private final SelectorGuard guard = new SelectorGuard( 50, 100 );
   private final HashMap newConnectionRequests = new HashMap();
   private final HashMap pendingOutboundConnections = new HashMap();
-  //private final HashMap establishedConnections = new HashMap();
   private final ArrayList connectionsToClose = new ArrayList();
+  private final ArrayList listenersToClose = new ArrayList();
   private Selector selector = null;
   
   
@@ -107,25 +107,38 @@ public class SocketManager {
       SocketChannel channel = (SocketChannel)key.channel();
       OutboundConnectionListener listener = (OutboundConnectionListener)pendingOutboundConnections.remove( key );
       key.cancel();
-      try {
-        	if ( channel.finishConnect() ) {
-        	  //synchronized( establishedConnections ) {
-        	  //  establishedConnections.put( channel, null );
-        	  //}
-        	  listener.connectionDone( channel, null );
-        	}
-        	else { //should never happen
-        	  listener.connectionDone( null, "finishConnect() failed" );
-        	  synchronized( connectionsToClose ) {
-        	    connectionsToClose.add( channel );
-        	  }
-        	}
-      }
-      catch (Throwable t) {
-        listener.connectionDone( null, t.getMessage() );
-        synchronized( connectionsToClose ) {
-          connectionsToClose.add( channel );
+            
+      boolean canceled = false;
+      synchronized( listenersToClose ) {
+        if ( listenersToClose.contains( listener )) {
+        	listenersToClose.remove( listener );
+          canceled = true;
         }
+      }
+      
+      if ( canceled ) {
+      	synchronized( connectionsToClose ) {
+      		connectionsToClose.add( channel );
+      	} 
+      }
+      else {
+      	try {
+      		if ( channel.finishConnect() ) {
+      			listener.connectionDone( channel, null );
+      		}
+      		else { //should never happen
+      			listener.connectionDone( null, "finishConnect() failed" );
+      			synchronized( connectionsToClose ) {
+      				connectionsToClose.add( channel );
+      			}
+      		}
+      	}
+      	catch (Throwable t) {
+      		listener.connectionDone( null, t.getMessage() );
+      		synchronized( connectionsToClose ) {
+      			connectionsToClose.add( channel );
+      		}
+      	}
       }
     }
   }
@@ -182,13 +195,15 @@ public class SocketManager {
   }
   
   
-  /*
-  public static void registerInboundConnection( SocketChannel channel ) {
-    HashMap map = manager.establishedConnections;
-    synchronized( map ) {
-      map.put( channel, null );
+  /**
+   * Tell the manager to cancel the given connection request.
+   * @param listener listener used in the initial request
+   */
+  public static void cancelOutboundRequest( OutboundConnectionListener listener ) {
+  	ArrayList list = manager.listenersToClose;
+    synchronized( list ) {
+    	list.add( listener );
     }
   }
-  */
 
 }
