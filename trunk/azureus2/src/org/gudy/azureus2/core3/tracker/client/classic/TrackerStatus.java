@@ -128,8 +128,7 @@ public class TrackerStatus {
 
     responsesToUpdate.add(response);
     
-    	// TODO: Go through hashes and pick out other scrapes that are "close to"
-    	//       wanting a new scrape.
+   // Go through hashes and pick out other scrapes that are "close to" wanting a new scrape.
     
     if (!bSingleHashScrapes){
     	
