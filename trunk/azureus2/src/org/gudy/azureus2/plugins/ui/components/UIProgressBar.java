@@ -30,6 +30,11 @@ public interface
 UIProgressBar
 	extends UIComponent
 {
+		/**
+		 * Setting values results in a PT_VALUE property change with an Integer value
+		 * @param precentage
+		 */
+	
 	public void
 	setPercentageComplete(
 		int		precentage );

@@ -37,4 +37,16 @@ UIComponent
 	setProperty(
 		int		property_type,
 		Object	property_value );
+	
+	public Object
+	getProperty(
+		int		property_type );
+	
+	public void
+	addPropertyChangeListener(
+		UIPropertyChangeListener	l );
+	
+	public void
+	removePropertyChangeListener(
+		UIPropertyChangeListener	l );
 }

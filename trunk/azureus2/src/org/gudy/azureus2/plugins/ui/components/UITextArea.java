@@ -31,6 +31,11 @@ UITextArea
 	extends UIComponent
 
 {
+	/**
+	 * Setting values results in a PT_VALUE property change with a String value
+	 * @param precentage
+	 */
+	
 	public void
 	setText(
 		String		text );
