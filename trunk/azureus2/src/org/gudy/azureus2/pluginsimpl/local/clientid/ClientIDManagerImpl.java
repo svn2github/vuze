@@ -315,6 +315,20 @@ ClientIDManagerImpl
 				String	target_host	= cid.substring( 0, p3 );
 				int		target_port	= Integer.parseInt( cid.substring(p3+1));
 				
+					// fix up the Host: entry with the target details
+				
+				for (int i=1;i<lines_in.length;i++){
+					
+					String	line = lines_in[i];
+					
+					if ( line.toLowerCase().indexOf( "host:" ) != -1 ){
+						
+						lines_in[i] = "Host: " + target_host + ":" + target_port;
+						
+						break;
+					}
+				}
+				
 				get = get.substring( 0, p1+1 ) + get.substring( p2+1 );
 				
 				lines_in[0] = get;
