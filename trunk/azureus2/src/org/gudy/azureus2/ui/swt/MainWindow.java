@@ -1705,6 +1705,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   }
 
   public static void main(String args[]) {
+  	
+  	COConfigurationManager.setSystemProperties();
+  	
     LocaleUtil lu = new LocaleUtilSWT();
     LocaleUtil.setLocaleUtilChooser(lu);
     GlobalManager gm = 

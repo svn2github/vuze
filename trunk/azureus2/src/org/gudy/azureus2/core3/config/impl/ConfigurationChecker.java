@@ -38,13 +38,21 @@ import org.gudy.azureus2.core3.security.*;
  */
 public class ConfigurationChecker {
   
-  private static boolean checked = false;
-  public static boolean changed = false;
+  private static boolean system_properties_set	= false;
+  private static boolean checked 				= false;
+  private static boolean changed 				= false;
   
  
-  public static void
+  public static synchronized void
   setSystemProperties()
   {
+  	if ( system_properties_set ){
+  		
+  		return;
+  	}
+  	
+  	system_properties_set	= true;
+  	
   	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
   	
   	if ( handlers == null ){
