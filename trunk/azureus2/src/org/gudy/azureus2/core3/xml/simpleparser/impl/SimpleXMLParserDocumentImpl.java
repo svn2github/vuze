@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.xml.simpleparser.impl;
 import javax.xml.parsers.*;
 import org.xml.sax.*;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
+import org.gudy.azureus2.core3.util.Constants;
 import org.w3c.dom.*;
 
 import java.io.*;
@@ -58,7 +59,12 @@ SimpleXMLParserDocumentImpl
 		
 		throws SimpleXMLParserDocumentException
 	{
-		this( new ByteArrayInputStream( data.getBytes()));
+		try{
+			create( new ByteArrayInputStream( data.getBytes( Constants.DEFAULT_ENCODING )));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+		}
 	}
 
 	public
