@@ -139,11 +139,11 @@ DDBaseHelpers
 	
 		throws DistributedDatabaseException
 	{
-		String	name = c.getCanonicalName();
+		String	name = c.getName();
 		
 		if ( name == null ){
 			
-			throw( new DistributedDatabaseException( "Canonical name doesn't exist for '" + c.getName() + "'" ));
+			throw( new DistributedDatabaseException( "name doesn't exist for '" + c.getName() + "'" ));
 		}
 			
 		return( new HashWrapper(new SHA1Hasher().calculateHash(name.getBytes())));
