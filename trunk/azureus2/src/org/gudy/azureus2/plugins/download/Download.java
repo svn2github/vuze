@@ -186,6 +186,20 @@ Download
 		throws DownloadException;
 	
 	
+		/**
+		 * Performs a complete recheck of the downloaded data 
+		 * Download must be in stopped, queued or error state
+		 * Action is performed asynchronously and will progress the download through
+		 * states PREPARING back to the relevant state
+		 * @throws DownloadException
+		 * @since 2.1.0.3
+		 */
+	
+	public void
+	recheckData()
+	
+		throws DownloadException;
+	
 	/**
 	 * When a download is "start-stop locked" it means that seeding rules shouldn't start or
 	 * stop the download as it is under manual control

@@ -577,6 +577,14 @@ RPDownload
 		notSupported();
 	}
 	
+	public void
+	recheckData()
+	
+		throws DownloadException
+	{
+		notSupported();
+	}
+	
 	public String getName() {
 		notSupported();
 		return ("");

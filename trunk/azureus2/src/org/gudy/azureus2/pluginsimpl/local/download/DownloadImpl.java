@@ -297,6 +297,19 @@ DownloadImpl
 			throw( new DownloadException( "Download::stopAndQueue: download already queued" ));
 	}
 	
+	public void
+	recheckData()
+	
+		throws DownloadException
+	{
+		if ( !download_manager.canForceRecheck()){
+			
+			throw( new DownloadException( "Download::recheckData: download must be stopped, quued or in error state" ));
+		}
+		
+		download_manager.forceRecheck();
+	}
+	
 	public boolean
 	isStartStopLocked()
 	{
