@@ -552,7 +552,7 @@ CacheFileImpl
 			}
 		}finally{
 			
-			if ( AEDiagnostics.USE_DUMMY_FILE_DATA ){
+			if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
 				
 				long	temp_position = file_position + file_offset_in_torrent;
 			
@@ -600,7 +600,7 @@ CacheFileImpl
 				return;	// nothing to do
 			}
 			
-			if ( AEDiagnostics.USE_DUMMY_FILE_DATA ){
+			if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
 			
 				long	temp_position = file_position + file_offset_in_torrent;
 				

@@ -56,6 +56,9 @@ DiskManagerImpl
 	implements DiskManagerHelper 
 {  
 	private String	dm_name	= "";
+	
+	private boolean	used	= false;
+	
 	private boolean started = false;
   
 	private int state_set_via_method;
@@ -223,6 +226,13 @@ DiskManagerImpl
 	public void 
 	start() 
 	{
+		if ( used ){
+			
+			Debug.out( "DiskManager reuse not supported!!!!" );
+		}
+		
+		used	= true;
+		
 		try{
 			this_mon.enter();
 		
@@ -931,6 +941,14 @@ DiskManagerImpl
 	}
 	
   
+	public void 
+	enqueueCompleteRecheckRequest(
+		final DiskManagerCheckRequestListener 	listener,
+		final Object							user_data ) 
+	{
+	  	writer_and_checker.enqueueCompleteRecheckRequest( listener, user_data );
+	}
+
 	public void 
 	enqueueCheckRequest(
 		int 							pieceNumber,

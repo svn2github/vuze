@@ -52,7 +52,6 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.diskmanager.*;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
 
@@ -500,13 +499,6 @@ Test
 		getPriority()
 		{
 			return( 9 );
-			
-		}
-		
-		public void
-		setPriority(
-			int		priority )
-		{
 			
 		}
 	  

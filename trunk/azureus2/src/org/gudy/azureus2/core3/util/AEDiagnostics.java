@@ -38,6 +38,7 @@ AEDiagnostics
 {
 	public static final boolean	ALWAYS_PASS_HASH_CHECKS			= false;
 	public static final boolean	USE_DUMMY_FILE_DATA				= false;
+	public static final boolean	CHECK_DUMMY_FILE_DATA			= false;
 	
 	static{
 		if ( ALWAYS_PASS_HASH_CHECKS ){
@@ -45,6 +46,9 @@ AEDiagnostics
 		}
 		if ( USE_DUMMY_FILE_DATA ){
 			System.out.println( "**** Using dummy file data ****" );
+		}
+		if ( CHECK_DUMMY_FILE_DATA ){
+			System.out.println( "**** Checking dummy file data ****" );
 		}
 	}
 	

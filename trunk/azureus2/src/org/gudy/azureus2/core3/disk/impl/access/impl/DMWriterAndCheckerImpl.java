@@ -110,6 +110,8 @@ DMWriterAndCheckerImpl
 	
 	protected int		nbPieces;
 	
+	protected boolean	complete_recheck_in_progress;
+	
 	protected AEMonitor	this_mon	= new AEMonitor( "DMW&C" );
 	
 	public
@@ -123,6 +125,8 @@ DMWriterAndCheckerImpl
 		totalLength		= disk_manager.getTotalLength();
 		
 		nbPieces		= disk_manager.getNumberOfPieces();
+		
+		// System.out.println( "DMW&C: write sem = " + global_write_queue_block_sem.getValue() + ", check = " + global_check_queue_block_sem.getValue());
 	}
 	
 	public void
@@ -164,7 +168,7 @@ DMWriterAndCheckerImpl
 	public boolean 
 	isChecking() 
 	{
-	   return (checkQueue.size() != 0);
+	   return( complete_recheck_in_progress );
 	}
 
 	public boolean 
@@ -234,7 +238,90 @@ DMWriterAndCheckerImpl
 		return true;
 	}
 	  
-
+	public void 
+	enqueueCompleteRecheckRequest(
+		final DiskManagerCheckRequestListener 	listener,
+		final Object							user_data ) 
+	{  	
+	 	Thread t = new AEThread("PEPeerControl:checker")
+		{
+	  		public void
+			runSupport()
+	  		{
+	  			try{
+	  				complete_recheck_in_progress	= true;
+	  					
+	  				final AESemaphore	sem = new AESemaphore( "PEPeerControl:checker" );
+	  				
+	  				int	checks_submitted	= 0;
+	  				
+	  				for ( int i=0; i < nbPieces; i++ ){
+	        
+	  					if ( !bOverallContinue ){
+	  						
+	  						break;
+	  					}
+	  					
+	  					enqueueCheckRequest( 
+	  	       				i, 
+	  	       				new DiskManagerCheckRequestListener()
+							{
+		  	       				public void
+								pieceChecked( 
+									int 		_pieceNumber, 
+									boolean 	_result,
+									Object		_user_data )
+		  	       				{
+		  	       					try{
+		  	       						listener.pieceChecked( _pieceNumber, _result, _user_data );
+		  	       						
+		  	       					}finally{
+		  	       						
+		  	       						sem.release();
+		  	       					}
+		  	       				}
+							},
+							user_data );
+	  					
+	  					checks_submitted++;
+	  					
+	  						// no hurry here, we don't want to discourage the user
+	  						// from doing this by killing the machine
+	  					
+	  					int	delay = pieceLength/1024;
+	  					
+	  					delay = Math.min( delay, 1000 );
+	  					delay = Math.max( delay, 100 );
+	  					
+	  					Thread.sleep(delay);
+	  				}
+	  				
+	  				if ( bOverallContinue ){
+	  					
+	  						// wait for all to complete
+	  					
+	  					for (int i=0;i<checks_submitted;i++){
+	  						
+	  						sem.reserve();
+	  					}
+	  				}
+	  	       }catch( Throwable e ){
+	  	       	
+	  	       			// we get here if the disk manager's stopped running
+	  	       	
+	  	       		Ignore.ignore(e);
+	  	       }finally{
+	  	       	
+	  	       		complete_recheck_in_progress	= false;
+	  	       }
+	        }     			
+	 	};
+	
+	 	t.setDaemon(true);
+	 	
+	 	t.start();
+	}
+	
 	public void 
 	enqueueCheckRequest(
 		int 							pieceNumber,

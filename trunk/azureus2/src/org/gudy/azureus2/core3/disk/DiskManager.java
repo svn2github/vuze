@@ -85,23 +85,42 @@ DiskManager
 		int offset,
 		int length );
 	
-  /**
-   * Enqueue an async disk read request.
-   * @param request
-   * @param listener
-   */
+		  /**
+		   * Enqueue an async disk read request.
+		   * @param request
+		   * @param listener
+		   */
 	
 	public void 
 	enqueueReadRequest( 
 		DiskManagerReadRequest 			request, 
 		DiskManagerReadRequestListener listener );
 
+		/**
+		 * enqueue an asynchronous single piece check
+		 * @param pieceNumber
+		 * @param listener
+		 * @param user_data
+		 */
+	
 	public void
 	enqueueCheckRequest(
 		int								pieceNumber,
 		DiskManagerCheckRequestListener	listener,
 		Object							user_data );
   
+	
+		/**
+		 * recheck the entire torrent asynchronously, reporting each piece to the listener
+		 * @param listener
+		 * @param user_data
+		 */
+	
+	public void
+	enqueueCompleteRecheckRequest(
+		DiskManagerCheckRequestListener	listener,
+		Object							user_data );
+	
 	public void
     dumpResumeDataToDisk(
     	boolean savePartialPieces, 
@@ -150,7 +169,13 @@ DiskManager
 	public String
 	moveCompletedFiles();
 
-	public boolean isChecking();
+		/**
+		 * returns true if a complete recheck is in progress
+		 * @return
+		 */
+	
+	public boolean 
+	isChecking();
   
 		/**
 		 * method for checking that the block details are sensible

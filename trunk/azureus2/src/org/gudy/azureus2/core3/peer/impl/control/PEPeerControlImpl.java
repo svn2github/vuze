@@ -817,10 +817,7 @@ PEPeerControlImpl
       
       if (checkPieces && !start_of_day) {
       	
-        for(int i=0; i < dm_pieces.length; i++){
-        	
-          _diskManager.enqueueCheckRequest( i, this, new Boolean(true) );
-        }
+      	_diskManager.enqueueCompleteRecheckRequest( this, new Boolean( true ));
       }
       
       boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);

@@ -51,6 +51,11 @@ DMWriterAndChecker
 		Object					user_data );
 	
 	public void 
+	enqueueCompleteRecheckRequest(
+		final DiskManagerCheckRequestListener 	listener,
+		final Object							user_data ) ;
+	
+	public void 
 	enqueueCheckRequest(
 		int 							pieceNumber,
 		DiskManagerCheckRequestListener	listener,

@@ -1343,7 +1343,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength - 1);
         }
         
-        if ( AEDiagnostics.USE_DUMMY_FILE_DATA ){
+        if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
         	
         	int	pos = message_buff.position( DirectByteBuffer.SS_PEER );
         	

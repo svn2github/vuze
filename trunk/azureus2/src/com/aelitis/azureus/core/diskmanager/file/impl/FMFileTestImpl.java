@@ -26,6 +26,7 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.torrent.*;
 
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.diskmanager.file.*;
@@ -74,11 +75,17 @@ FMFileTestImpl
 	
 		throws FMFileManagerException
 	{
-		offset	+= file_offset_in_torrent;
-		
-		while( buffer.hasRemaining( DirectByteBuffer.SS_FILE )){
+		if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
 			
-			buffer.put( DirectByteBuffer.SS_FILE, (byte)offset++ );
+			offset	+= file_offset_in_torrent;
+			
+			while( buffer.hasRemaining( DirectByteBuffer.SS_FILE )){
+				
+				buffer.put( DirectByteBuffer.SS_FILE, (byte)offset++ );
+			}
+		}else{
+			
+			buffer.position( DirectByteBuffer.SS_FILE, buffer.limit( DirectByteBuffer.SS_FILE ));
 		}
 	}
 	
@@ -95,21 +102,24 @@ FMFileTestImpl
 			
 			DirectByteBuffer	buffer = buffers[i];
 			
-			while( buffer.hasRemaining( DirectByteBuffer.SS_FILE )){
-				
-				byte	v = buffer.get( DirectByteBuffer.SS_FILE );
-				
-				if ((byte)offset != v ){
-					
-					System.out.println( "FMFileTest: write is bad at " + offset +
-										": expected = " + (byte)offset + ", actual = " + v );
+			if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
 
-					offset += buffer.remaining( DirectByteBuffer.SS_FILE ) + 1;
+				while( buffer.hasRemaining( DirectByteBuffer.SS_FILE )){
 					
-					break;
+					byte	v = buffer.get( DirectByteBuffer.SS_FILE );
+					
+					if ((byte)offset != v ){
+						
+						System.out.println( "FMFileTest: write is bad at " + offset +
+											": expected = " + (byte)offset + ", actual = " + v );
+	
+						offset += buffer.remaining( DirectByteBuffer.SS_FILE ) + 1;
+						
+						break;
+					}
+					
+					offset++;
 				}
-				
-				offset++;
 			}
 			
 			buffer.position( DirectByteBuffer.SS_FILE, buffer.limit( DirectByteBuffer.SS_FILE ));
