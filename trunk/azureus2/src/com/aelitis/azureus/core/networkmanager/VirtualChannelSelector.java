@@ -37,7 +37,7 @@ public class VirtualChannelSelector {
     public static final int OP_WRITE = SelectionKey.OP_WRITE;
   
   
-    private static final int SELECTOR_FAIL_COUNT_MAX = 1000;
+    private static final int SELECTOR_FAIL_COUNT_MAX = 10000;  // a real selector spin will easily reach this
     
     private Selector selector;
     private final SelectorGuard selector_guard;
@@ -47,7 +47,7 @@ public class VirtualChannelSelector {
     private final ArrayList cancel_list = new ArrayList();
     private final AEMonitor cancel_list_mon = new AEMonitor( "VirtualChannelSelector:CL" );
     
-    private final int interest_op;
+    private final int INTEREST_OP;
 
 
     /**
@@ -56,7 +56,7 @@ public class VirtualChannelSelector {
      * @param interest_op operation set of OP_ACCEPT, OP_CONNECT, OP_READ, OP_WRITE
      */
     protected VirtualChannelSelector( int interest_op ) {
-      this.interest_op = interest_op;
+      this.INTEREST_OP = interest_op;
       selector_guard = new SelectorGuard( SELECTOR_FAIL_COUNT_MAX );
     	try {
     		selector = Selector.open();
@@ -68,6 +68,10 @@ public class VirtualChannelSelector {
     /**
      * Register the given selectable channel, using the given listener for notification
      * of completed select operation.
+     * NOTE: For OP_CONNECT and OP_WRITE -type selectors, once a selection request op
+     * completes, the channel's listener registration is automatically canceled; any
+     * future selection notification requires re-registration.  For OP_READ selectors,
+     * a registration is valid until actively canceled, no matter how many it is selected.
      * @param channel socket to listen for
      * @param listener op-complete listener
      * @param attachment object to be passed back with listener notification
@@ -169,7 +173,9 @@ public class VirtualChannelSelector {
           RegistrationData data = (RegistrationData)key.attachment();
           if( key.isValid() ) {
             data.listener.selectSuccess( data.attachment );
-            key.cancel();
+            if( INTEREST_OP != OP_READ ) { //read selections don't auto-remove
+              key.cancel();
+            }
           }
           else {
             data.listener.selectFailure( new Throwable( "key is invalid" ) );
@@ -187,7 +193,7 @@ public class VirtualChannelSelector {
       	  RegistrationData data = (RegistrationData)register_list.get( i );
       	  try {
       	    if( data.channel.isOpen() ) {
-      	      data.channel.register( selector, interest_op, data );
+      	      data.channel.register( selector, INTEREST_OP, data );
       	    }
       	    else {
       	      data.listener.selectFailure( new Throwable( "channel is closed" ) );
