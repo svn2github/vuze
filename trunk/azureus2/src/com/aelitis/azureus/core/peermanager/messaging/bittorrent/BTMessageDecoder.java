@@ -79,7 +79,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     int bytes_remaining = max_bytes;
     
     while( bytes_remaining > 0 ) {
-      if( destroyed )  break;
+      //if( destroyed )  break;
       
       int bytes_possible = preReadProcess( bytes_remaining );
       
