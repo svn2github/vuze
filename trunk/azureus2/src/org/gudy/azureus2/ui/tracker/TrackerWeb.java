@@ -516,6 +516,8 @@ TrackerWeb
 			response_type = "text/html";
 		}else if (file_type.equals("css")){
 			response_type = "text/css";
+		}else if (file_type.equals("xsl")){
+			response_type = "text/xml";
 		}else if (file_type.equals("jpg") || file_type.equals("jpeg")) {
 			response_type="image/jpeg";
 		}else if (file_type.equals("gif")) {
