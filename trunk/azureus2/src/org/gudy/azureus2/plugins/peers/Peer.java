@@ -69,8 +69,6 @@ Peer
  	
 	public boolean isIncoming();
 
-	public int getDownloadPriority();
-
 	public int getPercentDone();
 
 	public String getClient();

@@ -1632,8 +1632,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   public int getPort() {  return port;  }
   public String getClient() {  return client;  }
   
-  public boolean isIncoming() {  return incoming;  }
-  public int getDownloadPriority() {  return manager.getDownloadPriority();  }
+  public boolean isIncoming() {  return incoming;  }  
   public boolean isOptimisticUnchoke() {  return manager.isOptimisticUnchoke(this);  }
   public boolean isReadyToRequest() {  return readyToRequest;  }
   

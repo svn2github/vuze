@@ -294,12 +294,6 @@ PeerForeignDelegate
 	}
 
 	public int 
-	getDownloadPriority() 
-	{
-	    return( foreign.getDownloadPriority());
-	}
-
-	public int 
 	getPercentDone()
 	{
 		return( foreign.getPercentDone());

@@ -79,11 +79,6 @@ public class ConfigSectionSeeding implements ConfigSectionSWT {
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(cSeeding, "Switch Priority", false,
-                         "ConfigView.label.switchpriority").setLayoutData(gridData);
-
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
     new BooleanParameter(cSeeding, "Use Super Seeding", false,
                          "ConfigView.label.userSuperSeeding").setLayoutData(gridData);
 

@@ -193,8 +193,6 @@ DownloadManagerImpl
   
 	private int prevState = -1;
 
-	private int priority;
-
 	private String errorDetail;
 
 	private GlobalManager globalManager;
@@ -275,8 +273,6 @@ DownloadManagerImpl
 		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
 	 
 		forceStarted = false;
-  
-		priority = HIGH_PRIORITY;
 	
 		torrentFileName = _torrentFileName;
 	
@@ -1037,20 +1033,6 @@ DownloadManagerImpl
   /**
    * @return
    */
-  public int getPriority() {
-	return priority;
-  }
-
-  /**
-   * @param i
-   */
-  public void setPriority(int i) {
-	priority = i;
-  }
-
-  /**
-   * @return
-   */
   public String getTorrentFileName() {
 	return torrentFileName;
   }
@@ -1438,10 +1420,6 @@ DownloadManagerImpl
   downloadEnded()
   {
     download_ended = true;
-
-    if (getPriority() == HIGH_PRIORITY &&
-        COConfigurationManager.getBooleanParameter("Switch Priority", false))
-      setPriority(LOW_PRIORITY);
 
     if (isForceStart()) {
       setForceStart(false);

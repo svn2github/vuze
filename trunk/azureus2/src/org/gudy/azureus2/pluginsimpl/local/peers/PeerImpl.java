@@ -159,11 +159,6 @@ PeerImpl
 		return( delegate.isIncoming());
 	}
 
-	public int getDownloadPriority()
-	{
-		return( delegate.getDownloadPriority());
-	}
-
 	public int getPercentDone()
 	{
 		return( delegate.getPercentDone());

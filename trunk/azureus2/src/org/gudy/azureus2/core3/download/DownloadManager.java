@@ -47,9 +47,6 @@ DownloadManager
 	// Queued: Same as stopped, except can be automatically started
 	public static final int STATE_QUEUED = 75;
 	public static final int STATE_ERROR = 100;
-
-	public static final int LOW_PRIORITY = 1;
-	public static final int HIGH_PRIORITY = 2;
 	
 	public static final int WEALTH_STOPPED    = 1;
 	public static final int WEALTH_NO_TRACKER = 2;
@@ -174,13 +171,6 @@ DownloadManager
  	public void 
 	setTorrentSaveDir(
 		String sPath );
-	
-	public int
-	getPriority();
-	
-	public void
-	setPriority(
-		int		priority );
   
   	public boolean isForceStart();
   

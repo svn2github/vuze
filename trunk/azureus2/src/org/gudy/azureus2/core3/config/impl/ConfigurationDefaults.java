@@ -111,7 +111,6 @@ public class ConfigurationDefaults {
     def.put("Stop Ratio", new Float(0));
     def.put("Stop Peers Ratio", new Long(0));
     def.put("Disconnect Seed", new Long(1));
-    def.put("Switch Priority", new Long(0));
     def.put("priorityExtensions", "");
     def.put("priorityExtensionsIgnoreCase", new Long(0));
     def.put("Ip Filter Enabled", new Long(1));

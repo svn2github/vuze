@@ -2280,10 +2280,6 @@ PEPeerControlImpl
     return _pieces;
   }
 
-  public int getDownloadPriority() {
-    return _downloadManager.getPriority();
-  }
-
 
   public boolean isOptimisticUnchoke(PEPeer pc) {
     return pc == currentOptimisticUnchoke;

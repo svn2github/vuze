@@ -109,9 +109,7 @@ PEPeerManager
   public int getPieceLength(int pieceNumber);
 		
 	public long getRemaining();
-
-	public int getDownloadPriority();
-
+	
 	public long getETA();
 
 	public String getElapsedTime();

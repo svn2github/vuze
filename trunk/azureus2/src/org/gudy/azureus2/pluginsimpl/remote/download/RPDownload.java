@@ -384,16 +384,15 @@ RPDownload
 	public int
 	getPriority()
 	{
-		notSupported();
-		
-		return( 0 );
+		//do nothing deprecated
+	  return 0;
 	}
 	
 	public void
 	setPriority(
 		int		priority )
 	{
-		_dispatcher.dispatch( new RPRequest( this, "setPriority[int]", new Object[]{new Integer(priority)} )).getResponse();		
+		//Do nothing, deprecated
 	}
 	
 	/**
@@ -403,7 +402,7 @@ RPDownload
 	public boolean
 	isPriorityLocked()
 	{
-		notSupported();
+	  	//	Do nothing, deprecated
 		
 		return( false );
 	}

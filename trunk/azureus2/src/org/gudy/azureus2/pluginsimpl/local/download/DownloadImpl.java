@@ -310,33 +310,6 @@ DownloadImpl
 	}
 	
 	public int
-	getPriority()
-	{
-		if ( download_manager.getPriority() == DownloadManager.HIGH_PRIORITY ){
-			
-			return( PR_HIGH_PRIORITY );
-			
-		}else{
-			
-			return( PR_LOW_PRIORITY );
-		}
-	}
-	
-	public void
-	setPriority(
-		int		priority )
-	{
-		download_manager.setPriority(
-			priority==PR_HIGH_PRIORITY?DownloadManager.HIGH_PRIORITY:DownloadManager.LOW_PRIORITY );
-	}
-	
-	public boolean
-	isPriorityLocked()
-	{
-		return( false );
-	}
-	
-	public int
 	getPosition()
 	{
 		return download_manager.getPosition();
@@ -895,4 +868,17 @@ DownloadImpl
  	{
  		download_manager.checkTracker();
  	}
+ 	
+ 	// Deprecated methods
+
+  public int getPriority() {
+    return 0;
+  }
+  
+  public boolean isPriorityLocked() {
+    return false;
+  }  
+
+  public void setPriority(int priority) {
+  }
 }

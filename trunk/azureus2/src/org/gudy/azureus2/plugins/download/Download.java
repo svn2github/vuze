@@ -216,8 +216,9 @@ Download
 	/**
 	 * Downloads can either be low or high priority (see PR_ constants above)
 	 * @return the download's priority
-   *
-   * @since 2.0.7.0
+	 *
+	 * @deprecated >= 2.1.0.6 does nothing
+	 * @since 2.0.7.0
 	 */
 	public int
 	getPriority();
@@ -225,8 +226,9 @@ Download
 	/**
 	 * This method sets a download's priority
 	 * @param priority the required priority, see PR_ constants above
-   *
-   * @since 2.0.7.0
+	 * @deprecated >= 2.1.0.6 does nothing
+	 *
+	 * @since 2.0.7.0
 	 */
 	public void
 	setPriority(

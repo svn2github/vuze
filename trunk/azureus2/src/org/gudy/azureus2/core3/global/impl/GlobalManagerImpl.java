@@ -827,6 +827,8 @@ public class GlobalManagerImpl
           
           int nbUploads = ((Long) mDownload.get("uploads")).intValue();
           int maxDL = mDownload.get("maxdl")==null?0:((Long) mDownload.get("maxdl")).intValue();
+          int maxUL = mDownload.get("maxul")==null?0:((Long) mDownload.get("maxul")).intValue();
+          
           int state = DownloadManager.STATE_WAITING;
           if (debug)
             state = DownloadManager.STATE_STOPPED;
@@ -843,8 +845,7 @@ public class GlobalManagerImpl
               if (stopped == 1)
                 state = DownloadManager.STATE_STOPPED;
             } 
-          }
-          Long lPriority = (Long) mDownload.get("priority");
+          }          
           Long lDownloaded = (Long) mDownload.get("downloaded");
           Long lUploaded = (Long) mDownload.get("uploaded");
           Long lCompleted = (Long) mDownload.get("completed");
@@ -865,9 +866,8 @@ public class GlobalManagerImpl
           DownloadManagerStats stats = dm.getStats();
           stats.setMaxUploads(nbUploads);
           stats.setMaxDownloadKBSpeed( maxDL );
-          if (lPriority != null) {
-            dm.setPriority(lPriority.intValue());
-          }
+          stats.setUploadRateLimitBytesPerSecond(maxUL);
+          
           if (lCompleted != null) {
             stats.setDownloadCompleted(lCompleted.intValue());
           }
@@ -1004,6 +1004,7 @@ public class GlobalManagerImpl
 		      }
 		      dmMap.put("uploads", new Long(stats.getMaxUploads()));
 		      dmMap.put("maxdl", new Long(stats.getMaxDownloadKBSpeed()));
+		      dmMap.put("maxul", new Long(stats.getUploadRateLimitBytesPerSecond()));
           int state = dm.getState();
           if (dm.getOnlySeeding() && !dm.isForceStart() && 
               state != DownloadManager.STATE_STOPPED) {
@@ -1014,8 +1015,7 @@ public class GlobalManagerImpl
                   state != DownloadManager.STATE_QUEUED &&
                   state != DownloadManager.STATE_WAITING)
             state = DownloadManager.STATE_WAITING;
-          dmMap.put("state", new Long(state));
-		      dmMap.put("priority", new Long(dm.getPriority()));
+          dmMap.put("state", new Long(state));		      
 		      dmMap.put("position", new Long(dm.getPosition()));
 		      dmMap.put("downloaded", new Long(stats.getDownloaded()));
 		      dmMap.put("uploaded", new Long(stats.getUploaded()));
