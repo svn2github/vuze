@@ -398,6 +398,16 @@ public class MessageText {
     return false;
   }
 
+  // TODO: This is slow. For every call, IntegratedResourceBundle creates
+  //       a hashtables and fills it with the old resourceBundle, then adds
+  //       the new one, and then puts it all back into a ListResourceBundle.
+  //       As we get more plugins, the time to add a new plugin's language file
+  //       increases dramatically (even if the language file only has 1 entry!)
+  //       Fix this by:
+  //         - Create only one IntegratedResourceBundle
+  //         - extending ResourceBundle
+  //         - override handleGetObject, store in hashtable
+  //         - function to add another ResourceBundle, adds to hashtable
   public static boolean integratePluginMessages(String localizationPath,ClassLoader classLoader) {
     boolean integratedSuccessfully = false;
     if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.containsKey(localizationPath)) {
