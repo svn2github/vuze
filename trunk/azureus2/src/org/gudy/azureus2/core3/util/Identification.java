@@ -32,7 +32,7 @@ public class Identification {
         
         if (peerID[8] == (byte)45) {
           String version = new String(peerID, 1, 3, Constants.BYTE_ENCODING);
-          String name = "Shadow ";
+          String name = "Shad0w ";
           for (int i = 0; i < 2; i++) {
             name = name.concat(version.charAt(i) + ".");
           }
@@ -41,7 +41,7 @@ public class Identification {
         }
         
         if (peerID[8] == (byte)0) {  // is next Burst version still using this?
-          String name = "Shadow ";
+          String name = "Shad0w ";
           for (int i = 1; i < 3; i++) {
             name = name.concat(String.valueOf(peerID[i]) + ".");
           }
@@ -98,8 +98,12 @@ public class Identification {
       
       
       String bittorrentplus = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
-      if (bittorrentplus.equals("Plus---")) return "BitTorrent Plus";   
-  
+      if (bittorrentplus.equals("Plus---")) return "BitTorrent Plus!";   
+      
+      
+      String deadman = new String(peerID, 0, 16, Constants.BYTE_ENCODING);
+      if (deadman.equals("Deadman Walking-")) return "Deadman";
+      
       
       String libtorrent = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
       if (libtorrent.equals("LT")) {
