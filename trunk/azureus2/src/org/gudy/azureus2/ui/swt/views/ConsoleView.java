@@ -35,7 +35,7 @@ public class ConsoleView extends AbstractIView {
   private static ConsoleView instance;
 
   private static final int PREFERRED_LINES = 256;
-  private static final int MAX_LINES = 4096 + PREFERRED_LINES;
+  private static final int MAX_LINES = 1024 + PREFERRED_LINES;
   private static final int COLORS_NUM = 4;
 
   private static final List logHistory;
@@ -89,7 +89,8 @@ public class ConsoleView extends AbstractIView {
           {
               public void runSupport()
               {
-                  ConsoleView.instance.consoleText.setTopIndex(ConsoleView.instance.consoleText.getLineCount() - 1);
+                  if(ConsoleView.instance != null && ConsoleView.instance.consoleText != null && !ConsoleView.instance.consoleText.isDisposed())
+                    ConsoleView.instance.consoleText.setTopIndex(ConsoleView.instance.consoleText.getLineCount() - 1);
               }
           });
       }
