@@ -208,6 +208,10 @@ PEPeerControlImpl
             PEPeerTransport ps = (PEPeerTransport) iter.next();
             if (ps.getState() == PEPeer.DISCONNECTED) {
               iter.remove();
+              
+              for (int i=0;i<peer_transport_listeners.size();i++){
+                ((PEPeerControlListener)peer_transport_listeners.get(i)).peerRemoved( ps );
+              }
             }
             else {
               ps.process();
