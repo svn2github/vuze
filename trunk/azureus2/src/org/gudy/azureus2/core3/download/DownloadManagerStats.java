@@ -31,6 +31,46 @@ DownloadManagerStats
 	public int
 	getMaxUploads();
 	
+	public int
+	getCompleted();
+				
+	public long
+	getDownloaded();
+	
+	public long
+	getUploaded();
+	
+	public long
+	getDiscarded();
+	
+	public long
+	getHashFails();
+	
+	public int
+	getShareRatio();
+	
+	public int
+	getDownloadAverage();
+		
+	public int
+	getUploadAverage();
+
+	public int
+	getTotalAverage();
+			
+	public String
+	getElapsed();
+	
+	public String
+	getETA();
+		
+		// set methods
+
+	public void
+	setDownloadedUploaded(
+		long	d,
+		long	u );
+
 	public void
 	setMaxUploads(
 		int		max );
@@ -39,53 +79,6 @@ DownloadManagerStats
 	setCompleted(
 		int		c );
 		
-	public int
-	getCompleted();
-	
-	public void
-	setDownloadedUploaded(
-		long	d,
-		long	u );
-		
-	public String
-	getDownloaded();
-	
-	public String
-	getUploaded();
-	
-	public long
-	getDownloadedRaw();
-	
-	public long
-	getUploadedRaw();
-	
-	public int
-	getShareRatio();
-	
-	public String
-	getDownloadSpeed();
-	
-	public int
-	getDownloadSpeedRaw();
-	
-	public String
-	getUploadSpeed();
-	
-	public int
-	getUploadSpeedRaw();
-	
-	public String
-	getElapsed();
-	
-	public String
-	getETA();
-	
-	public String
-	getTotalSpeed();
-	
-	public String
-	getHashFails();
-	// sdsd
 		
 	public void
 	received(

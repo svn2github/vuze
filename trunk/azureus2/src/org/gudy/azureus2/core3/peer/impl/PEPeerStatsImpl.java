@@ -26,7 +26,6 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
-import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -99,51 +98,23 @@ PEPeerStatsImpl
 		statisticSentSpeed.addValue(length);
 	  }
 
-	  public String getDownloadSpeed() { 
-		return DisplayFormatters.formatByteCountToKBEtc(receptionSpeed.getAverage()) + "/s";
+	  public int getDownloadAverage() { 
+		return( receptionSpeed.getAverage());
 	  }
 
 	  public int getReception() {
 		return chokingReceptionSpeed.getAverage();
 	  }
 
-	  public String getUploadSpeed() {
-		return DisplayFormatters.formatByteCountToKBEtc(sendingSpeed.getAverage()) + "/s";
+	  public int getUploadAverage() {
+		return( sendingSpeed.getAverage());
 	  }
   
-	  public int getDownloadSpeedRaw() {
-		return receptionSpeed.getAverage();
-	  }
-  
-	  public int getUploadSpeedRaw() {
-		  return sendingSpeed.getAverage();
-		}
-
-	  public String getOverAllDownloadSpeed() {
-		return DisplayFormatters.formatByteCountToKBEtc(overallSpeed.getAverage()) + "/s";
-	  }
-
-	  public String getTotalSent() {
-		return DisplayFormatters.formatByteCountToKBEtc(totalSent);
-	  }
-
-	  public String getTotalReceived() {
-		return DisplayFormatters.formatByteCountToKBEtc(totalReceived);
-	  }
-  
-	  public String getReallyReceived() {
-		if(totalDiscarded == 0)
-		  return DisplayFormatters.formatByteCountToKBEtc(totalReceived);
-		else {
-		  return DisplayFormatters.formatByteCountToKBEtc(totalReceived) + " ( " + DisplayFormatters.formatByteCountToKBEtc(totalDiscarded) + " " + MessageText.getString("discarded") + " )"; 
-		}
-	  }
-  
-	  public String getTotalDiscarded() {
-		return DisplayFormatters.formatByteCountToKBEtc(totalDiscarded);
+	  public long getTotalDiscarded() {
+		return( totalDiscarded );
 	  }  
 
-	  public long getTotalSentRaw() {
+	  public long getTotalSent() {
 		return totalSent;
 	  }
   
@@ -151,23 +122,21 @@ PEPeerStatsImpl
 		 totalSent = sent;
 	   }
 
-	  public long getTotalReceivedRaw() {
+	  public long getTotalReceived() {
 		return totalReceived;
 	  }
   
-	  public void setTotalReceivedRaw(long received) {
+	  public void setTotalReceived(long received) {
 		totalReceived = received;
 	  }
   
-	  public long getTotalDiscardedRaw() {
-		  return totalDiscarded;
+	  public int 
+	  getTotalAverage() 
+	  {
+	  	return( overallSpeed.getAverage());
 	  }
 
-	  public String getStatisticSent() {
-		return DisplayFormatters.formatByteCountToKBEtc(statisticSentSpeed.getAverage()) + "/s";
-	  }
-
-	  public int getStatisticSentRaw() {
+	  public int getStatisticSentAverage() {
 		return statisticSentSpeed.getAverage();
 	  }
 }

@@ -75,16 +75,8 @@ PEPeerManager
 	public int getPiecesNumber();
 
 	public int getPieceLength();
-
-	public String getUploaded();
-	
-	public String getTotalSpeed();
 	
 	public int getTrackerTime();
-
-	public long downloaded();
-
-	public long uploaded();
 	
 	public long getRemaining();
 

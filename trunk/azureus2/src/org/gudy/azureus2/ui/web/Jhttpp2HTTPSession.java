@@ -477,9 +477,9 @@ public class Jhttpp2HTTPSession extends Thread {
           ps = dm.getPeerManager().getStats();
         } catch (Exception e) {ps = null;}
         if (ps != null) {
-          totalReceived += ps.getTotalReceivedRaw();
-          totalSent += ps.getTotalSentRaw();
-          totalDiscarded += ps.getTotalDiscardedRaw();
+          totalReceived += ps.getTotalReceived();
+          totalSent += ps.getTotalSent();
+          totalDiscarded += ps.getTotalDiscarded();
           connectedSeeds += dm.getNbSeeds();
           connectedPeers += dm.getNbPeers();
         }
@@ -506,8 +506,8 @@ public class Jhttpp2HTTPSession extends Thread {
           h.put("Torrents_Torrent_PercentDonePrec", Float.toString(((float) stats.getCompleted())/10));
           h.put("Torrents_Torrent_PercentLeftPrec", Float.toString((1000- (float) stats.getCompleted())/10));
         } catch (ArithmeticException e) {}
-        h.put("Torrents_Torrent_SpeedDown", stats.getDownloadSpeed());
-        h.put("Torrents_Torrent_SpeedUp", stats.getUploadSpeed());
+        h.put("Torrents_Torrent_SpeedDown", DisplayFormatters.formatByteCountToKBEtcPerSec( stats.getDownloadAverage()));
+        h.put("Torrents_Torrent_SpeedUp", DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getUploadAverage()));
         h.put("Torrents_Torrent_FileSize", DisplayFormatters.formatByteCountToKBEtc(dm.getSize()));
         try {
           h.put("Torrents_Torrent_FileSizeDone", DisplayFormatters.formatByteCountToKBEtc((((long) stats.getCompleted())*((long) dm.getSize()))/1000));
@@ -529,16 +529,16 @@ public class Jhttpp2HTTPSession extends Thread {
         h.put("Torrents_Torrent_SeedsConnected", Integer.toString(dm.getNbSeeds()));
         h.put("Torrents_Torrent_PeersConnected", Integer.toString(dm.getNbPeers()));
         h.put("Torrents_Torrent_ETA", (stats.getETA()=="")?"&nbsp;":stats.getETA());
-        h.put("Torrents_Torrent_SizeDown", stats.getDownloaded());
-        h.put("Torrents_Torrent_SizeUp", stats.getUploaded());
+        h.put("Torrents_Torrent_SizeDown", DisplayFormatters.formatDownloaded(stats));
+        h.put("Torrents_Torrent_SizeUp", DisplayFormatters.formatByteCountToKBEtc(stats.getUploaded()));
         h.put("Torrents_Torrent_Hash", ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
         if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || COConfigurationManager.getBooleanParameter("Server_bNoJavaScript"))
           h.put("Global_NoJavaScript", Boolean.TRUE);
         v.addElement(h);
       }
       tmpl.setParam("Torrents_Torrents", v);
-      tmpl.setParam("Torrents_TotalSpeedDown", server.gm.getStats().getDownloadSpeed());
-      tmpl.setParam("Torrents_TotalSpeedUp", server.gm.getStats().getUploadSpeed());
+      tmpl.setParam("Torrents_TotalSpeedDown", DisplayFormatters.formatByteCountToKBEtcPerSec(server.gm.getStats().getDownloadAverage()));
+      tmpl.setParam("Torrents_TotalSpeedUp", DisplayFormatters.formatByteCountToKBEtcPerSec(server.gm.getStats().getUploadAverage()));
       tmpl.setParam("Torrents_TotalSizeDown", DisplayFormatters.formatByteCountToKBEtc(totalReceived));
       tmpl.setParam("Torrents_TotalSizeUp", DisplayFormatters.formatByteCountToKBEtc(totalSent));
       tmpl.setParam("Torrents_TotalSizeDiscarded", DisplayFormatters.formatByteCountToKBEtc(totalDiscarded));

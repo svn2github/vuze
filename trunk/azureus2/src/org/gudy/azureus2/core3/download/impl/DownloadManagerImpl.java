@@ -48,12 +48,14 @@ import org.gudy.azureus2.core3.download.*;
 
 public class 
 DownloadManagerImpl 
-	implements DownloadManager, DownloadManagerStats
+	implements DownloadManager
 {
 	private Vector	listeners 		= new Vector();
 	private Vector	current_peers 	= new Vector();
 	private Vector	current_pieces	= new Vector();
   
+  	private DownloadManagerStatsImpl	stats;
+  	
   private int state;
 
   private int priority;
@@ -81,14 +83,8 @@ DownloadManagerImpl
   public DiskManager diskManager;
   public PEPeerManager peerManager;
   
-  //saved downloaded and uploaded
-  private long downloaded;
-  private long uploaded;
-  
-  //Completed (used for auto-starting purposes)
-  private int completed;
+   
 
-  private int maxUploads = 4;
 
   /**
    * @param nameFromUser the new filename for this torrent 
@@ -116,13 +112,21 @@ DownloadManagerImpl
   }
 
   public DownloadManagerImpl(GlobalManager gm, String torrentFileName, String savePath) {
+  	
+  	stats = new DownloadManagerStatsImpl( this );
+  	
 	this.globalManager = gm;
-	this.maxUploads = COConfigurationManager.getIntParameter("Max Uploads", 4); //$NON-NLS-1$
+	
+	stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads", 4));
+	 
 	this.state = STATE_WAITING;
+	
 	this.priority = HIGH_PRIORITY;
+	
 	this.torrentFileName = torrentFileName;
+	
 	this.savePath = savePath;
-    
+	
 	readTorrent();
   }
 
@@ -158,8 +162,10 @@ DownloadManagerImpl
   public void startDownload() {
 	this.state = STATE_DOWNLOADING;
 	peerManager = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
-	peerManager.getStats().setTotalReceivedRaw(downloaded);
-	peerManager.getStats().setTotalSent(uploaded);
+	
+	peerManager.getStats().setTotalReceived(stats.getDownloadedInternal());
+	
+	peerManager.getStats().setTotalSent(stats.getUploadedInternal());
   }
 
 	private void 
@@ -264,18 +270,7 @@ DownloadManagerImpl
 	if (diskManager == null)
 	  return name;
 	return diskManager.getFileName();
-  }
-
-  public int getCompleted() {
-	if (diskManager == null)
-	  return completed;
-	if (diskManager.getState() == DiskManager.ALLOCATING || diskManager.getState() == DiskManager.CHECKING || diskManager.getState() == DiskManager.INITIALIZING)
-	  return diskManager.getPercentDone();
-	else {
-	  long total = diskManager.getTotalLength();
-	  return total == 0 ? 0 : (int) ((1000 * (total - diskManager.getRemaining())) / total);
-	}
-  }
+  }	
 
   public String getErrorDetails() {
 	return errorDetail;
@@ -300,8 +295,8 @@ DownloadManagerImpl
 	  public void run() {
 		state = DownloadManager.STATE_STOPPING;
 		if (peerManager != null) {
-		  uploaded = peerManager.getStats().getTotalSentRaw();
-		  downloaded = peerManager.getStats().getTotalReceivedRaw();
+		  stats.setUploadedInternal( peerManager.getStats().getTotalSent());
+		  stats.setDownloadedInternal(peerManager.getStats().getTotalReceived());
 		  peerManager.stopAll();  
 		}      
 		if (diskManager != null) {
@@ -333,29 +328,7 @@ DownloadManagerImpl
 	return 0;
   }
 
-  public String getDownloadSpeed() {
-	if (peerManager != null)
-	  return peerManager.getStats().getDownloadSpeed();
-	return "";
-  }
   
-  public int getDownloadSpeedRaw() {
-	if (peerManager != null)
-	  return peerManager.getStats().getDownloadSpeedRaw();
-	return 0;
-  }
-
-  public String getUploadSpeed() {
-	if (peerManager != null)
-	  return peerManager.getStats().getUploadSpeed();
-	return ""; //$NON-NLS-1$
-  }
-  
-  public int getUploadSpeedRaw() {
-	if (peerManager != null)
-	  return peerManager.getStats().getUploadSpeedRaw();
-	return 0;
-  }
 
   public String getTrackerStatus() {
 	if (peerManager != null)
@@ -369,25 +342,6 @@ DownloadManagerImpl
 	return( tracker_client );
   }
   
-  public String getETA() {
-	if (peerManager != null)
-	  return peerManager.getETA();
-	return ""; //$NON-NLS-1$
-  }
-
-  /**
-   * @return
-   */
-  public int getMaxUploads() {
-	return maxUploads;
-  }
-
-  /**
-   * @param i
-   */
-  public void setMaxUploads(int i) {
-	maxUploads = i;
-  }
 
   /**
    * @return
@@ -396,31 +350,6 @@ DownloadManagerImpl
 	return nbPieces;
   }
 
-  public String getElapsed() {
-	if (peerManager != null)
-	  return peerManager.getElpased();
-	return ""; //$NON-NLS-1$
-  }
-
-  public String getDownloaded() {
-	if (peerManager != null) {
-	  PEPeerStats ps = peerManager.getStats();
-	  return ps.getReallyReceived();
-	}
-	return ""; //$NON-NLS-1$
-  }
-
-  public String getUploaded() {
-	if (peerManager != null)
-	  return peerManager.getUploaded();
-	return ""; //$NON-NLS-1$
-  }
-
-  public String getTotalSpeed() {
-	if (peerManager != null)
-	  return peerManager.getTotalSpeed();
-	return ""; //$NON-NLS-1$
-  }
 
   public int getTrackerTime() {
 	if (peerManager != null)
@@ -460,23 +389,6 @@ DownloadManagerImpl
 	if (diskManager != null)
 	  return diskManager.getPath() + System.getProperty("file.separator") + diskManager.getFileName(); //$NON-NLS-1$
 	return savePath;
-  }
-
-  public void received(int length) {
-	if (length > 0 && globalManager != null) {
-	  globalManager.getStats().received(length);
-	}
-  }
-  
-  public void discarded(int length) {
-	if (length > 0 && globalManager != null) {
-	  globalManager.getStats().discarded(length);
-	}
-  }
-
-  public void sent(int length) {
-	if (length > 0 && globalManager != null)
-	  globalManager.getStats().sent(length);
   }
 
   /**
@@ -615,55 +527,13 @@ DownloadManagerImpl
 	  globalManager.moveDown(this);
   }      
   
-  public String getHashFails() {
-	if(peerManager != null) {
-	  int nbFails = peerManager.getNbHashFails();
-	  long size = nbFails * diskManager.getPieceLength();
-	  String result = nbFails + " ( ~ " + DisplayFormatters.formatByteCountToKBEtc(size) + " )";
-	  return result;
-	}
-	return "";
-  }
-  
-  public long getDownloadedRaw() {
-	if(peerManager != null)
-	  return peerManager.getStats().getTotalReceivedRaw();
-	return this.downloaded;
-  }
-  
-  public long getUploadedRaw() {
-	if(peerManager != null)
-	  return peerManager.getStats().getTotalSentRaw();
-	return uploaded;    
-  }
-  
-  public void setDownloadedUploaded(long downloaded,long uploaded) {
-	this.downloaded = downloaded;
-	this.uploaded = uploaded;
-  }
-  
-  public void setCompleted(int completed) {
-	this.completed = completed;
-  }
-  
-  public int getShareRatio() {
-	long downloaded,uploaded;
-	if(peerManager != null) {
-	  downloaded = peerManager.getStats().getTotalReceivedRaw();
-	  uploaded = peerManager.getStats().getTotalSentRaw();
-	} else {
-	  downloaded = this.downloaded;
-	  uploaded = this.uploaded;
-	}
-        
-	if(downloaded == 0) {
-	  return -1;
-	}
-	else {
-	  return (int) ((1000 * uploaded) / downloaded);
-	}
-  }
 
+	public GlobalManager
+	getGlobalManager()
+	{
+		return( globalManager );
+	}
+	
   public DiskManager
   getDiskManager()
   {
@@ -771,6 +641,6 @@ DownloadManagerImpl
 	public DownloadManagerStats
 	getStats()
 	{
-		return( this );
+		return( stats );
 	}
 }

@@ -997,7 +997,7 @@ PEPeerControlImpl
         if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
           int upRate = 0;
           if (_finished) {
-            upRate = pc.getStats().getStatisticSentRaw();
+            upRate = pc.getStats().getStatisticSentAverage();
             if (pc.isSnubbed())
               upRate = -1;
           }
@@ -1024,7 +1024,7 @@ PEPeerControlImpl
             && pc.isInterested()
             && bestUploaders.size() < upRates.length
             && !pc.isSnubbed()
-            && (pc.getStats().getTotalSentRaw() / (pc.getStats().getTotalReceivedRaw() + 16000)) < 10) {
+            && (pc.getStats().getTotalSent() / (pc.getStats().getTotalReceived() + 16000)) < 10) {
             bestUploaders.add(pc);
           }
         }
@@ -1046,7 +1046,7 @@ PEPeerControlImpl
             int upRate = 0;
             //If peer we'll use the overall uploaded value
             if (!_finished)
-              upRate = (int) pc.getStats().getTotalReceivedRaw();
+              upRate = (int) pc.getStats().getTotalReceived();
             else {
               upRate = pc.getPercentDone();
               if (pc.isSnubbed())
@@ -1319,14 +1319,6 @@ PEPeerControlImpl
     this.start();
   }
 
-  public long downloaded() {
-    return _stats.getTotalReceivedRaw();
-  }
-
-  public long uploaded() {
-    return _stats.getTotalSentRaw();
-  }
-
   public void haveNewPiece() {
     _stats.haveNewPiece();
   }
@@ -1468,26 +1460,6 @@ PEPeerControlImpl
 
   public String getElpased() {
     return TimeFormater.format(System.currentTimeMillis() / 1000 - _timeStarted);
-  }
-
-  public String getDownloaded() {
-    return _stats.getTotalReceived();
-  }
-
-  public String getUploaded() {
-    return _stats.getTotalSent();
-  }
-
-  public String getDownloadSpeed() {
-    return _stats.getDownloadSpeed();
-  }
-
-  public String getUploadSpeed() {
-    return _stats.getUploadSpeed();
-  }
-
-  public String getTotalSpeed() {
-    return _stats.getOverAllDownloadSpeed();
   }
 
   public int getTrackerTime() {

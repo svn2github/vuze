@@ -5,6 +5,7 @@
 package org.gudy.azureus2.cl;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 
@@ -67,13 +68,13 @@ public class Main {
       buf.append(" P:");
       buf.append(manager.getNbPeers());
       buf.append(" D:");
-      buf.append(stats.getDownloaded());
+      buf.append(DisplayFormatters.formatDownloaded(stats));
       buf.append(" U:");
-      buf.append(stats.getUploaded());
+      buf.append(DisplayFormatters.formatByteCountToKBEtc(stats.getUploaded()));
       buf.append(" DS:");
-      buf.append(stats.getDownloadSpeed());
+      buf.append(DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage()));
       buf.append(" US:");
-      buf.append(stats.getUploadSpeed());
+      buf.append(DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getUploadAverage()));
       buf.append(" T:");
       buf.append(manager.getTrackerStatus());
       while(buf.length() < 80) {

@@ -25,6 +25,12 @@ package org.gudy.azureus2.core3.util;
  * @author gardnerpar
  *
  */
+
+import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.internat.*;
+
 public class 
 DisplayFormatters 
 {
@@ -63,4 +69,49 @@ DisplayFormatters
 		  + " GB";
 	  return "A lot !!!";
 	}
+	
+	public static String
+	formatByteCountToKBEtcPerSec(
+		long		n )
+	{
+		return( formatByteCountToKBEtc(n) + "/s");
+	}
+	
+	public static String
+	formatDownloaded(
+		DownloadManagerStats	stats )
+	{
+		long	total_discarded = stats.getDiscarded();
+		long	total_received 	= stats.getDownloaded();
+		
+		if(total_discarded == 0){
+		
+			return formatByteCountToKBEtc(total_received);
+			
+		}else{
+			
+			return formatByteCountToKBEtc(total_received) + " ( " + DisplayFormatters.formatByteCountToKBEtc(total_discarded) + " " + MessageText.getString("discarded") + " )"; 
+		}
+	}
+	
+	public static String
+	formatHashFails(
+		DownloadManager		download_manager )
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+		DiskManager		dm = download_manager.getDiskManager();
+			
+	  	if(pm != null){
+	  	
+			int nbFails = pm.getNbHashFails();
+		
+			long size = nbFails * dm.getPieceLength();
+			
+			String result = nbFails + " ( ~ " + formatByteCountToKBEtc(size) + " )";
+			
+			return result;
+  		}
+  		
+  		return "";
+	}		
 }

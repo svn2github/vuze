@@ -24,7 +24,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
-
+import org.gudy.azureus2.core3.util.*;
 /**
  * @author Olivier
  * 
@@ -174,9 +174,9 @@ public class TrayWindow implements GlobalManagerListener {
         toolTip.append(" -- C: ");
         toolTip.append(completed);
         toolTip.append(", D : ");
-        toolTip.append(stats.getDownloadSpeed());
+        toolTip.append(DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage()));
         toolTip.append(", U : ");
-        toolTip.append(stats.getUploadSpeed());
+        toolTip.append(DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getUploadAverage()));
         separator = "\n"; //$NON-NLS-1$
       }
     }

@@ -185,13 +185,13 @@ public class ManagerItem {
       item.setText(6, tmp);
     }
 
-    tmp = "" + manager.getStats().getDownloadSpeed(); //$NON-NLS-1$
+    tmp = "" + DisplayFormatters.formatByteCountToKBEtcPerSec(manager.getStats().getDownloadAverage());
     if (!(tmp.equals(this.downSpeed))) {
       downSpeed = tmp;
       item.setText(7, tmp);
     }
 
-    tmp = "" + manager.getStats().getUploadSpeed(); //$NON-NLS-1$
+    tmp = "" + DisplayFormatters.formatByteCountToKBEtcPerSec(manager.getStats().getUploadAverage());
     if (!(tmp.equals(this.upSpeed))) {
       upSpeed = tmp;
       item.setText(8, tmp);

@@ -380,14 +380,14 @@ public class GeneralView extends AbstractIView {
     DownloadManagerStats	stats = manager.getStats();
     
     setStats(
-		stats.getDownloaded(),
-		stats.getUploaded(),
-		stats.getDownloadSpeed(),
-		stats.getUploadSpeed(),
-		stats.getTotalSpeed(),
+		DisplayFormatters.formatDownloaded(stats),
+		DisplayFormatters.formatByteCountToKBEtc(stats.getUploaded()),
+		DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage()),
+		DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getUploadAverage()),
+		DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getTotalAverage()),
       	seeds,
       	peers,
-		stats.getHashFails(),
+		DisplayFormatters.formatHashFails(manager),
       _shareRatio);
     setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerClient());
     setInfos(

@@ -28,6 +28,14 @@ package org.gudy.azureus2.core3.global;
 public interface 
 GlobalManagerStats 
 {
+	public int 
+	getDownloadAverage();
+	
+	public int 
+	getUploadAverage();
+	
+		// set methods
+		
 	public void
 	sent(
 		int		bytes );
@@ -39,17 +47,4 @@ GlobalManagerStats
 	public void
 	discarded(
 		int		bytes );
-		
-	public String 
-	getDownloadSpeed();
-	
-	public int 
-	getDownloadSpeedRaw();
-
-	public String 
-	getUploadSpeed();
-	
-	public int 
-	getUploadSpeedRaw();
-
 }

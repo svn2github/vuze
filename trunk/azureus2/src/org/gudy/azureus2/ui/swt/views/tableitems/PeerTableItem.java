@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
@@ -256,38 +257,38 @@ public class PeerTableItem {
     String tmp;
     PEPeerStats stats = peerSocket.getStats();
 
-    tmp = stats.getDownloadSpeed();
+    tmp = DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getDownloadAverage());
     if (!(oldTexts[7].equals(tmp))) {
       item.setText(7, tmp);
       oldTexts[7] = tmp;
     }
 
-    tmp = stats.getTotalReceived();
+    tmp = DisplayFormatters.formatByteCountToKBEtc(stats.getTotalReceived());
     if (!(oldTexts[8].equals(tmp))) {
       item.setText(8, tmp);
       oldTexts[8] = tmp;
     }
 
-    tmp = stats.getUploadSpeed();
+    tmp = DisplayFormatters.formatByteCountToKBEtcPerSec( stats.getUploadAverage());
     if (!(oldTexts[11].equals(tmp))) {
       item.setText(11, tmp);
       oldTexts[11] = tmp;
     }
 
-    tmp = stats.getTotalSent();
+    tmp = DisplayFormatters.formatByteCountToKBEtc(stats.getTotalSent());
     if (!(oldTexts[12].equals(tmp))) {
       item.setText(12, tmp);
       oldTexts[12] = tmp;
 
     }
 
-    tmp = stats.getStatisticSent();
+    tmp = DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getStatisticSentAverage());
     if (!(oldTexts[13].equals(tmp))) {
       item.setText(13, tmp);
       oldTexts[13] = tmp;
     }
 
-    tmp = stats.getOverAllDownloadSpeed();
+    tmp = DisplayFormatters.formatByteCountToKBEtcPerSec(stats.getTotalAverage());
     if (!(oldTexts[15].equals(tmp))) {
       item.setText(15, tmp);
       oldTexts[15] = tmp;
@@ -301,7 +302,7 @@ public class PeerTableItem {
       oldTexts[16] = tmp;
     }
     
-    tmp = "" + stats.getTotalDiscarded();
+    tmp = "" + DisplayFormatters.formatByteCountToKBEtc(stats.getTotalDiscarded());
             if (!(oldTexts[18].equals(tmp))) {
               item.setText(18, tmp);
               oldTexts[18] = tmp;

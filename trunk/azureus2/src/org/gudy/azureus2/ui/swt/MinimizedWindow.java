@@ -18,7 +18,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.download.DownloadManager;
-
+import org.gudy.azureus2.core3.util.*;
 /**
  * @author Olivier
  * 
@@ -291,8 +291,8 @@ public class MinimizedWindow {
     splashFile.setText(manager.getName());
     int percent = manager.getStats().getCompleted();
     splashPercent.setText((percent / 10) + "." + (percent % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
-    splashDown.setText(manager.getStats().getDownloadSpeed());
-    splashUp.setText(manager.getStats().getUploadSpeed());
+    splashDown.setText(DisplayFormatters.formatByteCountToKBEtcPerSec(manager.getStats().getDownloadAverage()));
+    splashUp.setText(DisplayFormatters.formatByteCountToKBEtcPerSec(manager.getStats().getUploadAverage()));
   }
 
   public void setVisible(boolean visible) {

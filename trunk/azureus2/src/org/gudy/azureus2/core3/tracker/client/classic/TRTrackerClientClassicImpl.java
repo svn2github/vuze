@@ -366,8 +366,8 @@ TRTrackerClientClassicImpl
 	request.append(info_hash);
 	request.append(peer_id);
 	request.append(port);
-	request.append("&uploaded=").append(manager.uploaded());
-	request.append("&downloaded=").append(manager.downloaded());
+	request.append("&uploaded=").append(manager.getStats().getTotalSent());
+	request.append("&downloaded=").append(manager.getStats().getTotalReceived());
 	request.append("&left=").append(manager.getRemaining());
 	if (evt.length() != 0)
 	  request.append("&event=").append(evt);

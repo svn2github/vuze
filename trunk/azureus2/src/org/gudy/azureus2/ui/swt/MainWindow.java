@@ -80,9 +80,7 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.*;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -183,8 +181,8 @@ public class MainWindow implements GlobalManagerListener {
               Tab.refresh();
             }
 
-            statusDown.setText("D: " + globalManager.getStats().getDownloadSpeed()); //$NON-NLS-1$
-            statusUp.setText("U: " + globalManager.getStats().getUploadSpeed()); //$NON-NLS-1$
+            statusDown.setText("D: " + DisplayFormatters.formatByteCountToKBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
+            statusUp.setText("U: " + DisplayFormatters.formatByteCountToKBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
           }
           if (!mainWindow.isDisposed()) {            
             try {

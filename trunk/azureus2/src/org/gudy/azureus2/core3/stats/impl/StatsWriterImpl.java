@@ -246,8 +246,8 @@ StatsWriterImpl
 						
 						GlobalManagerStats	gm_stats = global.getStats();
 											
-						writeRawCookedTag( "DOWNLOAD_SPEED", gm_stats.getDownloadSpeedRaw(), 	gm_stats.getDownloadSpeed());
-						writeRawCookedTag( "UPLOAD_SPEED", 	gm_stats.getUploadSpeedRaw(), 		gm_stats.getUploadSpeed());
+						writeRawCookedAverageTag( "DOWNLOAD_SPEED", gm_stats.getDownloadAverage() );
+						writeRawCookedAverageTag( "UPLOAD_SPEED", 	gm_stats.getUploadAverage() );
 						
 					}finally{
 						
@@ -314,14 +314,16 @@ StatsWriterImpl
 							
 								writeTag( "COMPLETED", 		dm_stats.getCompleted());
 								
-								writeRawCookedTag( "DOWNLOADED", 		dm_stats.getDownloadedRaw(), 	dm_stats.getDownloaded());
-								writeRawCookedTag( "UPLOADED", 			dm_stats.getUploadedRaw(), 		dm_stats.getUploaded());
-								writeRawCookedTag( "DOWNLOAD_SPEED", 	dm_stats.getDownloadSpeedRaw(), dm_stats.getDownloadSpeed());
-								writeRawCookedTag( "UPLOAD_SPEED", 		dm_stats.getUploadSpeedRaw(), 	dm_stats.getUploadSpeed());
+								writeRawCookedTag( "DOWNLOADED", 		dm_stats.getDownloaded());
+								writeRawCookedTag( "UPLOADED", 			dm_stats.getUploaded());
+								writeRawCookedTag( "DISCARDED", 		dm_stats.getDiscarded());
+								
+								writeRawCookedAverageTag( "DOWNLOAD_SPEED", 	dm_stats.getDownloadAverage());
+								writeRawCookedAverageTag( "UPLOAD_SPEED", 		dm_stats.getUploadAverage());
+								writeRawCookedAverageTag( "TOTAL_SPEED", 		dm_stats.getTotalAverage());
 																						
 								writeTag( "ELAPSED", 		dm_stats.getElapsed());
 								writeTag( "ETA", 			dm_stats.getETA());
-								writeTag( "TOTAL_SPEED", 	dm_stats.getTotalSpeed());
 								writeTag( "HASH_FAILS", 	dm_stats.getHashFails());
 								writeTag( "SHARE_RATIO", 	dm_stats.getShareRatio());
 					
@@ -355,15 +357,14 @@ StatsWriterImpl
 		protected void
 		writeRawCookedTag(
 			String	tag,
-			long	raw,
-			String	cooked )
+			long	raw )
 		{
 			writeLine( "<" + tag + ">");
 							
 			try{
 				indent();
 								
-				writeTag( "TEXT",	cooked );
+				writeTag( "TEXT",	DisplayFormatters.formatByteCountToKBEtc( raw ));
 				writeTag( "RAW",	raw);
 								
 			}finally{
@@ -371,6 +372,27 @@ StatsWriterImpl
 				exdent();
 			}
 							
+			writeLine( "</" + tag + ">");
+		}
+		
+		protected void
+		writeRawCookedAverageTag(
+			String	tag,
+			long	raw )
+		{
+			writeLine( "<" + tag + ">");
+							
+			try{
+				indent();
+								
+				writeTag( "TEXT",	DisplayFormatters.formatByteCountToKBEtcPerSec( raw ));
+				writeTag( "RAW",	raw);
+								
+			}finally{
+								
+				exdent();
+			}
+									
 			writeLine( "</" + tag + ">");
 		}
 	}

@@ -252,7 +252,7 @@ public class GlobalManagerImpl
   }
 
   public GlobalManagerImpl() {
-    stats = new GlobalManagerStatsImpl(0);
+    stats = new GlobalManagerStatsImpl();
     managers = new ArrayList();
     trackerScraper = TRTrackerScraperFactory.create();
     loadDownloads();
@@ -471,8 +471,8 @@ public class GlobalManagerImpl
       int priority = dm.getPriority();
       dmMap.put("priority", new Long(priority));
       dmMap.put("position", new Long(i));
-      dmMap.put("downloaded", new Long(dm.getStats().getDownloadedRaw()));
-      dmMap.put("uploaded", new Long(dm.getStats().getUploadedRaw()));
+      dmMap.put("downloaded", new Long(dm.getStats().getDownloaded()));
+      dmMap.put("uploaded", new Long(dm.getStats().getUploaded()));
       dmMap.put("completed", new Long(dm.getStats().getCompleted()));
       list.add(dmMap);
     }

@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.core3.download;
 
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -65,6 +66,9 @@ DownloadManager
 		
 	public void
 	stopIt();
+	
+	public GlobalManager
+	getGlobalManager();
 	
 	public DiskManager
 	getDiskManager();

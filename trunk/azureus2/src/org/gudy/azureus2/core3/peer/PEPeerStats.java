@@ -32,42 +32,25 @@
 public interface 
 PEPeerStats 
 {   
-  public String getDownloadSpeed();
+  public int getDownloadAverage();
 
   public int getReception();
 
-  public String getUploadSpeed();
-  
-  public int getDownloadSpeedRaw();
-  
-  public int getUploadSpeedRaw();
+  public int getUploadAverage();
+   
+  public int getTotalAverage();
+   
+  public long getTotalDiscarded();
  
-  public String getOverAllDownloadSpeed();
+  public long getTotalSent();
+  
+  public long getTotalReceived();
+ 
+  public int getStatisticSentAverage();
 
-  public String getTotalSent();
-
-  public String getTotalReceived();
-  
-  public String getReallyReceived();
- 
-  
-  public String getTotalDiscarded();
- 
-  public long getTotalSentRaw();
-  
-  
+	// set methods
+	  
   public void setTotalSent(long sent);
  
-  public long getTotalReceivedRaw();
- 
-  public void setTotalReceivedRaw(long received);
-
-  
-  public long getTotalDiscardedRaw();
-
-  public String getStatisticSent();
-
-
-  public int getStatisticSentRaw();
-
+  public void setTotalReceived(long received);
 }

@@ -319,16 +319,16 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
       return peerSocket.getPercentDone();
 
     if (field.equals("ds")) //$NON-NLS-1$
-      return peerSocket.getStats().getDownloadSpeedRaw();
+      return peerSocket.getStats().getDownloadAverage();
 
     if (field.equals("us")) //$NON-NLS-1$
-      return peerSocket.getStats().getUploadSpeedRaw();
+      return peerSocket.getStats().getUploadAverage();
 
     if (field.equals("down")) //$NON-NLS-1$
-      return peerSocket.getStats().getTotalReceivedRaw();
+      return peerSocket.getStats().getTotalReceived();
 
     if (field.equals("up")) //$NON-NLS-1$
-      return peerSocket.getStats().getTotalSentRaw();
+      return peerSocket.getStats().getTotalSent();
 
     if (getBooleanFiedl(peerSocket, field))
       return 1;

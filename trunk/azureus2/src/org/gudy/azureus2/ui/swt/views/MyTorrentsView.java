@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -683,10 +684,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       return manager.getName();
 
     if (field.equals("ds")) //$NON-NLS-1$
-      return manager.getStats().getDownloadSpeed();
+      return DisplayFormatters.formatByteCountToKBEtcPerSec( manager.getStats().getDownloadAverage());
 
     if (field.equals("us")) //$NON-NLS-1$
-      return manager.getStats().getUploadSpeed();
+      return DisplayFormatters.formatByteCountToKBEtcPerSec( manager.getStats().getUploadAverage());
 
     if (field.equals("eta")) //$NON-NLS-1$
       return manager.getStats().getETA();

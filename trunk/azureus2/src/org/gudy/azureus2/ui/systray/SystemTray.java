@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
 
@@ -83,9 +84,9 @@ public class SystemTray extends SysTrayMenuAdapter {
 		toolTip.append(MessageText.getString("SystemTray.tooltip.seeding")); //$NON-NLS-1$
 		toolTip.append(downloading);
 		toolTip.append(MessageText.getString("SystemTray.tooltip.downloading") + "D: "); //$NON-NLS-1$
-		toolTip.append(main.getGlobalManager().getStats().getDownloadSpeed());
+		toolTip.append(DisplayFormatters.formatByteCountToKBEtcPerSec(main.getGlobalManager().getStats().getDownloadAverage()));
 		toolTip.append(", U: ");
-		toolTip.append(main.getGlobalManager().getStats().getUploadSpeed());
+		toolTip.append(DisplayFormatters.formatByteCountToKBEtcPerSec(main.getGlobalManager().getStats().getUploadAverage()));
 
 		menu.setToolTip(toolTip.toString());
     if(!menu.isIconVisible())
