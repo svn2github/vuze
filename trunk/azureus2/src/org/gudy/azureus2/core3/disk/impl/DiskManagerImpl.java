@@ -57,7 +57,8 @@ public class
 DiskManagerImpl
 	implements DiskManagerHelper 
 {  
-
+	protected static final boolean		TRUNCATE_IF_TOO_BIG	= true;
+	
 	private String	dm_name	= "";
 	private boolean started = false;
   
@@ -175,19 +176,17 @@ DiskManagerImpl
 		TOTorrentFile[] torrent_files = torrent.getFiles();
 
 		if ( torrent.isSimpleTorrent()){
-			
-			totalLength = torrent_files[0].getLength();
-  								
+			 								
 			piece_mapper.buildFileLookupTables( torrent_files[0], dmanager.getTorrentSaveFile());
 
 		}else{
 
 			piece_mapper.buildFileLookupTables( torrent_files, locale_decoder );
+		}
+		
+		if ( getState() == FAULTY){
 			
-			if (getState() == FAULTY){
-			
-				return;
-			}
+			return;
 		}
 
 		totalLength	= piece_mapper.getTotalLength();
@@ -366,11 +365,27 @@ DiskManagerImpl
 					}
 					
 					try{
-						if ( file_info.getCacheFile().getLength() != length ){
+							// only test for too big as if incremental creation selected
+							// then too small is OK
+						
+						long	existing_length = file_info.getCacheFile().getLength();
+						
+						if ( existing_length > length ){
 							
-							errorMessage = f.toString() + " not correct size.";
+							if ( TRUNCATE_IF_TOO_BIG ){
+								
+								file_info.setAccessMode( DiskManagerFileInfo.WRITE );
+
+								file_info.getCacheFile().setLength( length );
+								
+								Debug.out( "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath() + ", truncating" );
+
+							}else{
+
+								errorMessage = "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath();
 						  
-							return false;
+								return false;
+							}
 						}
 					}finally{
 						
@@ -469,20 +484,33 @@ DiskManagerImpl
 			fileInfo.setLength(length);
 			fileInfo.setDownloaded(0);
 			
-						//do file allocation
-			if( file_exists ) {  //file already exists
+			if( file_exists ){
+				
 			  try {
 
-				//make sure the existing file length isn't too large
-				if( fileInfo.getCacheFile().getLength() > length ){
+			  		//make sure the existing file length isn't too large
+			  	
+			  	long	existing_length = fileInfo.getCacheFile().getLength();
+			  	
+				if(  existing_length > length ){
+				
+					if ( TRUNCATE_IF_TOO_BIG ){
 					
-		          this.errorMessage = "Existing data file length too large [" +f.length()+ ">" +length+ "]: " + f.getAbsolutePath();
+					  	fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+
+						fileInfo.getCacheFile().setLength( length );
+					
+						Debug.out( "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath() + ", truncating" );
+
+					}else{
+					
+						this.errorMessage = "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath();
 		          
-		          setState( FAULTY );
+						setState( FAULTY );
 		          
-		          return -1;
+						return -1;
+					}
 				}
-        
 			  	
 			  	fileInfo.setAccessMode( DiskManagerFileInfo.READ );
 			  	
@@ -495,44 +523,59 @@ DiskManagerImpl
 			  	
 			  	return -1;
         }
+			  
         allocated += length;
-      }
-      else {  //we need to allocate it
+        
+      }else {  //we need to allocate it
         
         //make sure it hasn't previously been allocated
-        if( dmanager.isDataAlreadyAllocated() ) {
+        if( dmanager.isDataAlreadyAllocated() ){
+        	
           this.errorMessage = "Data file missing: " + f.getAbsolutePath();
+          
           setState( FAULTY );
+          
           return -1;
         }
         
         try {
           File directory = new File( tempPath );
+          
           if( !directory.exists() ) {
+          	
             if( !directory.mkdirs() ) throw new Exception( "directory creation failed: " +directory);
           }
+          
           f.getCanonicalPath();  //TEST: throws Exception if filename is not supported by os
+          
           fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+          
           if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
-            //do incremental stuff
+          	
+          	//	do incremental stuff
+          	
             fileInfo.getCacheFile().setLength( 0 );
-          }
-          else {  //fully allocate
+            
+          }else {  //fully allocate
             if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
               if( !writer_and_checker.zeroFile( fileInfo, length ) ) {
                 setState( FAULTY );
                 return -1;
               }
-            }
-            else {  //reserve the full file size with the OS file system
+            }else {  //reserve the full file size with the OS file system
+            	
               fileInfo.getCacheFile().setLength( length );
+              
               allocated += length;
             }
           }
-        }
-        catch ( Exception e ) {
-          try {  fileInfo.getCacheFile().close();  }
-          catch (CacheFileManagerException ex) {  ex.printStackTrace();  }
+        }catch ( Exception e ) {
+          try {  
+          	fileInfo.getCacheFile().close();  
+          }catch ( CacheFileManagerException ex) {  
+          	ex.printStackTrace();  
+          }
+          
           this.errorMessage = (e.getCause() != null
               ? e.getCause().getMessage()
               : e.getMessage())
@@ -540,6 +583,7 @@ DiskManagerImpl
           setState( FAULTY );
           return -1;
         }
+        
         numNewFiles++;
       }
 
@@ -641,8 +685,8 @@ DiskManagerImpl
 	}
 
 
-	public void setPeerManager(PEPeerManager manager) {
-		this.manager = manager;
+	public void setPeerManager(PEPeerManager _manager) {
+		manager = _manager;
 	}
 
 	public void stopIt() 
