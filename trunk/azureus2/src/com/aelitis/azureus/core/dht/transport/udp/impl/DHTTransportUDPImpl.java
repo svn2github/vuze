@@ -1109,9 +1109,7 @@ DHTTransportUDPImpl
 
 			}
 		}catch( Throwable e ){
-				
-			e.printStackTrace();
-			
+							
 			stats.storeFailed();
 			
 			if ( packet_count <= 1 ){
