@@ -121,7 +121,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 			 * @see java.lang.Runnable#run()
 			 */
 			public void run() {
-        if(ConfigurationManager.getInstance().getByteParameter("Password","".getBytes()).length == 0)          
+        if (!ConfigurationManager.getInstance().getBooleanParameter("Password enabled",false))          
 				  main.setVisible(true);
         else
           PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());

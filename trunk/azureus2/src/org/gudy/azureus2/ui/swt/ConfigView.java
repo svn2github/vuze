@@ -70,6 +70,7 @@ public class ConfigView extends AbstractIView {
       1000 };
 
   Composite gConfig;
+  Label passwordMatch;
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
@@ -304,6 +305,19 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     gridData.widthHint = 150;
     new PasswordParameter(gSecurity, "Password").setLayoutData(gridData); //$NON-NLS-1$
+    
+    label = new Label(gSecurity, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.passwordconfirm"); //$NON-NLS-1$
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    new PasswordParameter(gSecurity, "Password Confirm").setLayoutData(gridData); //$NON-NLS-1$
+    
+    label = new Label(gSecurity, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.passwordmatch"); //$NON-NLS-1$
+    passwordMatch = new Label(gSecurity,SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    passwordMatch.setLayoutData(gridData);
 
     Button enter = new Button(gConfig, SWT.PUSH);
     Messages.setLanguageText(enter, "ConfigView.button.save"); //$NON-NLS-1$
@@ -331,7 +345,33 @@ public class ConfigView extends AbstractIView {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
-  public void refresh() {}
+  public void refresh() {
+  byte[] password = ConfigurationManager.getInstance().getByteParameter("Password","".getBytes());
+  ConfigurationManager.getInstance().setParameter("Password enabled",false);
+  if(password.length == 0)
+    {
+      passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchnone"));
+    }
+    else {
+      byte[] confirm = ConfigurationManager.getInstance().getByteParameter("Password Confirm","".getBytes());     
+      if(confirm.length == 0)
+        {
+          passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
+        } else {
+          boolean same = true;
+          for(int i = 0 ; i < password.length ;i++) {
+            if(password[i] != confirm[i])
+              same = false;
+          }
+          if(same) {
+            passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchyes"));
+            ConfigurationManager.getInstance().setParameter("Password enabled",true);
+          } else {
+            passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
+          }
+        }
+    }
+  }
 
   public void updateLanguage() {
     super.updateLanguage();

@@ -562,7 +562,7 @@ public class MainWindow implements IComponentListener {
     if (ConfigurationManager.getInstance().getBooleanParameter("Start Minimized", false))
       minimizeToTray(null);
 
-    if (ConfigurationManager.getInstance().getByteParameter("Password", "".getBytes()).length > 0) {
+    if (ConfigurationManager.getInstance().getBooleanParameter("Password enabled",false)) {
       mainWindow.setVisible(false);
       PasswordWindow.showPasswordWindow(display);
     }
