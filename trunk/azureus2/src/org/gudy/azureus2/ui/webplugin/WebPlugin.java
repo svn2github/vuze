@@ -50,37 +50,37 @@ WebPlugin
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
 	
 	public static final String	CONFIG_PASSWORD_ENABLE			= "Password Enable";
-	public static final boolean	CONFIG_PASSWORD_ENABLE_DEFAULT	= false;
+	public        final boolean	CONFIG_PASSWORD_ENABLE_DEFAULT	= false;
 	
 	public static final String	CONFIG_USER				= "User";
-	public static final String	CONFIG_USER_DEFAULT		= "";
+	public        final String	CONFIG_USER_DEFAULT		= "";
 	
 	public static final String	CONFIG_PASSWORD			= "Password";
-	public static final byte[]	CONFIG_PASSWORD_DEFAULT	= {};
+	public        final byte[]	CONFIG_PASSWORD_DEFAULT	= {};
 	
 	public static final String 	CONFIG_PORT						= "Port";
-	public static int	 		CONFIG_PORT_DEFAULT				= 8089;
+	public int			 		CONFIG_PORT_DEFAULT				= 8089;
 	
 	public static final String 	CONFIG_PROTOCOL					= "Protocol";
-	public static final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
+	public 		  final String 	CONFIG_PROTOCOL_DEFAULT			= "HTTP";
 
 	public static final String	CONFIG_UPNP_ENABLE				= "UPnP Enable";
-	public static final boolean	CONFIG_UPNP_ENABLE_DEFAULT		= true;
+	public    	  final boolean	CONFIG_UPNP_ENABLE_DEFAULT		= true;
 
 	public static final String 	CONFIG_HOME_PAGE				= "Home Page";
-	public static final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
+	public        final String 	CONFIG_HOME_PAGE_DEFAULT		= "index.html";
 	
 	public static final String 	CONFIG_ROOT_DIR					= "Root Dir";
-	public static final String 	CONFIG_ROOT_DIR_DEFAULT			= "";
+	public        final String 	CONFIG_ROOT_DIR_DEFAULT			= "";
 	
 	public static final String 	CONFIG_ROOT_RESOURCE			= "Root Resource";
-	public static final String 	CONFIG_ROOT_RESOURCE_DEFAULT	= "";
+	public              String 	CONFIG_ROOT_RESOURCE_DEFAULT	= "";
 	
 	public static final String 	CONFIG_MODE						= "Mode";
-	public static final String 	CONFIG_MODE_DEFAULT				= "full";
+	public        final String 	CONFIG_MODE_DEFAULT				= "full";
 	
 	public static final String 	CONFIG_ACCESS					= "Access";
-	public static final String 	CONFIG_ACCESS_DEFAULT			= "all";
+	public        final String 	CONFIG_ACCESS_DEFAULT			= "all";
 	
 	protected static final String	NL			= "\r\n";
 	
@@ -113,6 +113,13 @@ WebPlugin
 		if ( i != null ){
 		
 			CONFIG_PORT_DEFAULT	= i.intValue();
+		}
+		
+		String	s = (String)defaults.get( CONFIG_ROOT_RESOURCE );
+		
+		if( s != null ){
+			
+			CONFIG_ROOT_RESOURCE_DEFAULT	= s;
 		}
 	}
 	
