@@ -294,6 +294,8 @@ DownloadManagerImpl
   public void 
   initialize() 
   {
+    setState( STATE_INITIALIZING );
+    
   	initial_tracker_response_cache	= null;
   	
     // If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
@@ -310,8 +312,6 @@ DownloadManagerImpl
 
     errorDetail = "";
 
-    setState( STATE_INITIALIZING );
-    
     startServer();
     
     if ( state == STATE_WAITING || state == STATE_ERROR ){
