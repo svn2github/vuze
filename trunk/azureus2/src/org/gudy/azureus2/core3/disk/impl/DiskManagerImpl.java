@@ -337,46 +337,47 @@ DiskManagerImpl
 			  
 			  return false;
 			  
-			}
+			}else{
 			
-				// use the cache file to ascertain length in case the caching/writing algorithm
-				// fiddles with the real length
-				// Unfortunately we may be called here BEFORE the disk manager has been 
-				// started and hence BEFORE the file info has been setup...
-				// Maybe one day we could allocate the file info earlier. However, if we do
-				// this then we'll need to handle the "already moved" stuff too...
-			
-			DiskManagerFileInfoImpl	file_info = tempFile.getFileInfo();
-			
-			boolean	close_it	= false;
-			
-			try{
-				if ( file_info == null ){
-					
-					file_info = new DiskManagerFileInfoImpl( this, f, tempFile.getTorrentFile());
-	
-					close_it	= true;					
-				}
+					// use the cache file to ascertain length in case the caching/writing algorithm
+					// fiddles with the real length
+					// Unfortunately we may be called here BEFORE the disk manager has been 
+					// started and hence BEFORE the file info has been setup...
+					// Maybe one day we could allocate the file info earlier. However, if we do
+					// this then we'll need to handle the "already moved" stuff too...
+				
+				DiskManagerFileInfoImpl	file_info = tempFile.getFileInfo();
+				
+				boolean	close_it	= false;
 				
 				try{
-					if ( file_info.getCacheFile().getLength() != length ){
+					if ( file_info == null ){
 						
-						errorMessage = f.toString() + " not correct size.";
-					  
-						return false;
+						file_info = new DiskManagerFileInfoImpl( this, f, tempFile.getTorrentFile());
+		
+						close_it	= true;					
 					}
-				}finally{
 					
-					if ( close_it ){
+					try{
+						if ( file_info.getCacheFile().getLength() != length ){
+							
+							errorMessage = f.toString() + " not correct size.";
+						  
+							return false;
+						}
+					}finally{
 						
-						file_info.getCacheFile().close();
+						if ( close_it ){
+							
+							file_info.getCacheFile().close();
+						}
 					}
-				}
-			}catch( CacheFileManagerException e ){
-			
-				errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (filesExist:" + f.toString() + ")";
+				}catch( CacheFileManagerException e ){
 				
-				return( false );
+					errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (filesExist:" + f.toString() + ")";
+					
+					return( false );
+				}
 			}
 		}
 		
@@ -412,6 +413,11 @@ DiskManagerImpl
 			final File f = new File(tempPath, tempName);
 
 			DiskManagerFileInfoImpl fileInfo;
+			
+				// ascertain whether or not the file exists here in case the creation of the cache file
+				// by DiskManagerFileInfoImpl pre-creates the file if it isn't present
+			
+			boolean	file_exists	= f.exists();
 			
 			try{
 				fileInfo = new DiskManagerFileInfoImpl( this, f, tempFile.getTorrentFile());
@@ -456,8 +462,8 @@ DiskManagerImpl
 			fileInfo.setLength(length);
 			fileInfo.setDownloaded(0);
 			
-      //do file allocation
-			if( f.exists() ) {  //file already exists
+						//do file allocation
+			if( file_exists ) {  //file already exists
 			  try {
 
 				//make sure the existing file length isn't too large
