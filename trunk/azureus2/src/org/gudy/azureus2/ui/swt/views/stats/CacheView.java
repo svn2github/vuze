@@ -184,7 +184,7 @@ public class CacheView extends AbstractIView {
     GridData gridData;
     
     Group gCacheSpeeds = new Group(panel,SWT.NULL);
-    Messages.setLanguageText(gCacheSpeeds,"CacheView.reads.title");
+    Messages.setLanguageText(gCacheSpeeds,"CacheView.speeds.title");
     gCacheSpeeds.setLayoutData(new GridData(GridData.FILL_BOTH));
     
     GridLayout layoutGeneral = new GridLayout();
