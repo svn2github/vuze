@@ -86,6 +86,24 @@ public class ConfigSectionQueue implements ConfigSectionSWT {
     }
     new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveDL", activeDLLabels, activeDLValues);
 
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveSeeding");
+    final String activeSeedingLabels[] = new String[24];
+    final int activeSeedingValues[] = new int[24];
+    pos = 0;
+    for (int i = 0; i < 1024; i += 256) {
+      activeSeedingLabels[pos] = "" + i + " B/s";
+      activeSeedingValues[pos] = i;
+      pos++;
+    }
+    for (int i = 1; pos < activeSeedingLabels.length; i++) {
+      activeSeedingLabels[pos] = "" + i + " KB/s";
+      activeSeedingValues[pos] = i * 1024;
+      pos++;
+    }
+    new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveSeeding", 
+                         activeSeedingLabels, activeSeedingValues);
+
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     new BooleanParameter(gMainTab, "Alert on close", true,

@@ -133,6 +133,7 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iFakeFullCopySeedStart", new Long(1));
     def.put("StartStopManager_iMinPeersToBoostNoSeeds", new Long(1));
     def.put("StartStopManager_iMinSpeedForActiveDL", new Long(512));
+    def.put("StartStopManager_iMinSpeedForActiveSeeding", new Long(512));
     def.put("StartStopManager_iRankType", new Long(org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.RANK_SPRATIO));
     def.put("StartStopManager_iRankTypeSeedFallback", new Long(0));
     def.put("StartStopManager_bAutoReposition", new Long(0));
