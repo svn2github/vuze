@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.config.*;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messages.*;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
+
 
 
 /**
@@ -155,6 +157,8 @@ PEPeerTransportProtocol
     }
   };
   
+  
+  private static final boolean SHOW_DISCARD_RATE_STATS = System.getProperty( "show.discard.rate.stats" ).equals( "1" );
   private static int requests_discarded = 0;
   private static int requests_recovered = 0;
   private static int requests_completed = 0;
@@ -315,19 +319,24 @@ PEPeerTransportProtocol
 	   closeAll(toString() + " has sent handshake, but handshake is of wrong size(4) : " + readBuffer.remaining(),true, true);
 	   return;
 	}
-	else readBuffer.get(otherPeerId);
+	readBuffer.get(otherPeerId);
 
   this.id = otherPeerId;
   
+  //decode a client identification string from the given peerID
+  client = PeerClassifier.getClientDescription( otherPeerId );
   
-  
+  //make sure the client type is not banned
+  if( !PeerClassifier.isClientTypeAllowed( client ) ) {
+    closeAll( client+ " client type not allowed to connect, banned", false, false );
+    return;
+  }
+
   //make sure we are not connected to ourselves
   if ( Arrays.equals( manager.getPeerId(), otherPeerId )) {
     closeAll("OOPS, peerID matches myself", false, false);
     return;
   }
-  
-
   
   //make sure we are not already connected to this peer
   boolean sameIdentity = PeerIdentityManager.containsIdentity( otherHash, otherPeerId );
@@ -358,9 +367,6 @@ PEPeerTransportProtocol
   PeerIdentityManager.addIdentity( otherHash, otherPeerId, ip );
   identityAdded = true;
  
-  
-	//decode a client identification string from the given peerID
-	client = Identification.decode(otherPeerId);
 
   LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
                toString() + " has sent a handshake");
@@ -791,7 +797,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
 			                                  toString() + " has requested #" + 
 			                                  pieceNumber + ":" + pieceOffset + "->" + 
-			                                  (pieceOffset + pieceLength));
+			                                  (pieceOffset + pieceLength -1));
 			
 			if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
 			  if( !choking ) {
@@ -832,7 +838,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			pieceLength = buffer.limit() - buffer.position();
       String msg = "";
 			if ( logging_is_on ){
-        msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength);
+        msg += toString() + " has sent #" + pieceNumber + ": " + pieceOffset + "->" + (pieceOffset + pieceLength -1);
 			}
 			DiskManagerRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
       
@@ -871,7 +877,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
               stats.discarded( pieceLength );
               manager.discarded( pieceLength );
               requests_discarded++;
-              System.out.println("~~~ NEVER REQUESTED ~~~");
+              printRequestStats();
             }
           }
           else {
@@ -879,6 +885,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
             stats.discarded( pieceLength );
             manager.discarded( pieceLength );
             requests_discarded++;
+            printRequestStats();
           }
         }
       }
@@ -887,6 +894,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         stats.discarded( pieceLength );
         manager.discarded( pieceLength );
         requests_discarded++;
+        printRequestStats();
       }
 
       if( logging_is_on )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, msg );
@@ -906,7 +914,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 					componentID,
 					evtProtocol,
 					LGLogger.RECEIVED,
-					toString() + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
+					toString() + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength -1));
 			}
       outgoing_piece_message_handler.removePieceRequest( pieceNumber, pieceOffset, pieceLength );
 			readMessage(buffer);
@@ -918,11 +926,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
   
   
-  //TODO
   private void printRequestStats() {
-    float discard_percentage = (requests_discarded * 100F) / ((requests_completed + requests_recovered + requests_discarded) * 1F);
-    float recover_percentage = (requests_recovered * 100F) / ((requests_recovered + requests_discarded) * 1F);
-    //System.out.println( "c="+requests_completed+ " d="+requests_discarded+ " r="+requests_recovered+ " dp="+discard_percentage+ "% rp="+recover_percentage+ "%" );
+    if( SHOW_DISCARD_RATE_STATS ) {
+      float discard_percentage = (requests_discarded * 100F) / ((requests_completed + requests_recovered + requests_discarded) * 1F);
+      float recover_percentage = (requests_recovered * 100F) / ((requests_recovered + requests_discarded) * 1F);
+      System.out.println( "c="+requests_completed+ " d="+requests_discarded+ " r="+requests_recovered+ " dp="+discard_percentage+ "% rp="+recover_percentage+ "%" );
+    }
   }
   
 
