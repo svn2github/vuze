@@ -8,7 +8,7 @@
  * Created on 31. August 2003, 18:16
  */
 
-package org.gudy.azureus2.ui.web;
+package org.gudy.azureus2.ui.common.util;
 
 import java.util.Hashtable;
 

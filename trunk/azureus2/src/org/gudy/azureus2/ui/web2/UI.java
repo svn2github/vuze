@@ -70,30 +70,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   SandstormConfig cfg = null;
   Sandstorm storm = null;
   public static Hashtable messagetextmap = null;
-  public static Hashtable parameterlegacy = null;
   public static Hashtable status = null;
 
   static {
-    parameterlegacy = new LegacyHashtable();
-    parameterlegacy.put("Core_sOverrideIP", "Override Ip");
-    parameterlegacy.put("Core_bAllocateNew", "Zero New");
-    parameterlegacy.put("Core_iLowPort", "TCP.Listen.Port");
-    parameterlegacy.put("Core_iHighPort", "High Port");
-    parameterlegacy.put("Core_iMaxActiveTorrents", "max active torrents");
-    parameterlegacy.put("Core_iMaxDownloads", "max downloads");
-    parameterlegacy.put("Core_iMaxClients", "Max Clients");
-    parameterlegacy.put("Core_iMaxUploads", "Max Uploads");
-    parameterlegacy.put("Core_iMaxUploadSpeed", "Max Upload Speed");
-    parameterlegacy.put("Core_bUseResume", "Use Resume");
-    parameterlegacy.put("Core_iSaveResumeInterval", "Save Resume Interval");
-    parameterlegacy.put("Core_bIncrementalAllocate", "Enable incremental file creation");
-    parameterlegacy.put("Core_bCheckPiecesOnCompletion", "Check Pieces on Completion");
-    parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
-    parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
-    parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
-    //parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
-    parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
-    parameterlegacy.put("Core_sPriorityExtensions", "priorityExtensions");
     messagetextmap = new LegacyHashtable();
     messagetextmap.put("allocatenew", "zeronewfiles");
     messagetextmap.put("lowport", "serverportlow");

@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.config;
 
 import java.util.Map;
+import java.util.Set;
 import java.io.IOException;
 
 import org.gudy.azureus2.core3.config.impl.*;
@@ -132,7 +133,7 @@ COConfigurationManager
 	{
 		return( ConfigurationManager.getInstance().getDirectoryParameter( _name ));
 	}
-
+	
 	public static void
 	save()
 	{
@@ -164,11 +165,18 @@ COConfigurationManager
 	{
 		ConfigurationManager.getInstance().removeListener( listener );
 	}
-        
+  
+  public static Set
+  getAllowedParameters()
+  {
+  	return ConfigurationDefaults.getInstance().getAllowedParameters();
+  }
         public static boolean
         doesParameterExist(
                 String                          parameter)
         {
                 return ConfigurationDefaults.getInstance().doesParameterExist(parameter);
         }
+        
+
 }

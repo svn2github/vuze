@@ -80,14 +80,14 @@ public class TemplateHandler implements httpRequestHandlerIF {
     String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_" + name + "_D", po);
-    tmpl.setParam("Options_" + name, COConfigurationManager.getIntParameter(UI.parameterlegacy.get(name).toString()));
+    tmpl.setParam("Options_" + name, COConfigurationManager.getIntParameter(UIConst.parameterlegacy.get(name).toString()));
   }
 
   private void handleConfigBool(Template tmpl, String name) {
     String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_" + name + "_D", po);
-    if (COConfigurationManager.getBooleanParameter(UI.parameterlegacy.get(name).toString()))
+    if (COConfigurationManager.getBooleanParameter(UIConst.parameterlegacy.get(name).toString()))
       tmpl.setParam("Options_" + name, 1);
   }
 
@@ -95,7 +95,7 @@ public class TemplateHandler implements httpRequestHandlerIF {
     String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_" + name + "_D", po);
-    tmpl.setParam("Options_" + name, COConfigurationManager.getStringParameter(UI.parameterlegacy.get(name).toString()));
+    tmpl.setParam("Options_" + name, COConfigurationManager.getStringParameter(UIConst.parameterlegacy.get(name).toString()));
   }
 
   private void handleConfig(Template tmpl) {

@@ -182,8 +182,8 @@ public class ConfigurationManager {
   }
   
   public int getIntParameter(String parameter) {
-    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-    int result;
+  	ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+  	int result;
     try {
       result = getIntParameter(parameter, def.getIntParameter(parameter));
     } catch (ConfigurationParameterNotFoundException e) {
@@ -227,7 +227,7 @@ public class ConfigurationManager {
     }
     return result;
   }
-  
+   
   public String getDirectoryParameter(String parameter) throws IOException {
     String dir = getStringParameter(parameter);
     File temp = new File(dir);

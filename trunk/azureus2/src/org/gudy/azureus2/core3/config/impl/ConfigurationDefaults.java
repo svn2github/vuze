@@ -11,7 +11,9 @@
 package org.gudy.azureus2.core3.config.impl;
 
 import java.util.HashMap;
+import java.util.Set;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 /**
@@ -25,7 +27,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
  *   General_ for, well, general things =)
  *   Server_ for webinterface specific things
  *   GUI_ (eventually) for GUI specific things
- *   Core_ (ebentually) for core specific things
+ *   Core_ (eventually) for core specific things
  * - Second is some identifing term. It starts with a small letter denoting
  *   the vaiable type.
  *   b Boolean
@@ -122,24 +124,37 @@ public class ConfigurationDefaults {
     //def.put("Core_sPriorityExtensions", ""); *
     def.put("priorityExtensions", "");
     // whether priorityExtensions are case insensitive
+    //def.put("Core_bPriorityExtensionsIgnoreCase", new Long(0)); *
     def.put("priorityExtensionsIgnoreCase", new Long(0));
     //Use or not the ip filtering feature
+    //def.put("Core_bIpFilterEnabled", new Long(1));
     def.put("Ip Filter Enabled", new Long(1));
     //Use the filters as 'allow' rules
+    //def.put("Core_bIpFilterAllow",new Long(0));
     def.put("Ip Filter Allow",new Long(0));
     //Allow for multiple peers with the same IP
+    //def.put("Core_bAllowSameIPPeers",new Long(0));
     def.put("Allow Same IP Peers",new Long(0));
     //Use Super-seeding
+    //def.put("Core_bUseSuperSeeding",new Long(0));
     def.put("Use Super Seeding",new Long(0));
         
     /** SWT GUI Settings **/
+    //def.put("SWT_bUseCustomTab",new Long(1));    
     def.put("useCustomTab",new Long(1));    
+    //def.put("SWT_iGUIRefresh",new Long(250));
     def.put("GUI Refresh",new Long(250));
+    //def.put("SWT_iGraphicsUpdate",new Long(4));
     def.put("Graphics Update",new Long(4));
+    //def.put("SWT_iReOrderDelay",new Long(0));
     def.put("ReOrder Delay",new Long(0));
+    //def.put("SWT_bSendVersionInfo",new Long(1));
     def.put("Send Version Info",new Long(1));
+    //def.put("SWT_bShowDownloadBasket",new Long(0));
     def.put("Show Download Basket",new Long(0));
+    //def.put("SWT_bAlwaysRefreshMyTorrents",new Long(0));
     def.put("config.style.refreshMT",new Long(0));
+    //def.put("SWT_bOpenDetails", new Long(0));
     def.put("Open Details", new Long(0));
     
     /** Headless Server settings **/
@@ -228,6 +243,10 @@ public class ConfigurationDefaults {
   
   public boolean doesParameterExist(String p) {
     return def.containsKey(p);
+  }
+  
+  public Set getAllowedParameters() {
+  	return def.keySet();
   }
   
 }

@@ -86,9 +86,9 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
           }
         }
         if (option.substring(option.indexOf('_') + 1).startsWith("s"))
-          COConfigurationManager.setParameter(UI.parameterlegacy.get(option).toString(), value);
+          COConfigurationManager.setParameter(UIConst.parameterlegacy.get(option).toString(), value);
         else
-          COConfigurationManager.setParameter(UI.parameterlegacy.get(option).toString(), Integer.parseInt(value));
+          COConfigurationManager.setParameter(UIConst.parameterlegacy.get(option).toString(), Integer.parseInt(value));
       }
     }
     COConfigurationManager.save();
