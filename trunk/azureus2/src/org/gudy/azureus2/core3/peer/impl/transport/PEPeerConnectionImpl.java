@@ -232,7 +232,7 @@ PEPeerConnectionImpl
         return true;
       }
       else {
-      	LGLogger.log(0,0,LGLogger.ERROR,"Piece #"+request.getPieceNumber()+"not requested");
+      	LGLogger.log(0,0,LGLogger.ERROR,"Piece #"+request.getPieceNumber()+" not requested");
         return false;
       }
     }
