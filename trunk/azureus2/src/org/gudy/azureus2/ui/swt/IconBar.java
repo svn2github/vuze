@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -59,7 +60,7 @@ public class IconBar {
     this.coolBar = new CoolBar(parent,SWT.NONE);
     initBar();
     new Label(parent,SWT.SEPARATOR | SWT.HORIZONTAL).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));    
-    this.coolBar.setLocked(true);
+    //this.coolBar.setLocked(true);
   }
   
   public void setEnabled(String itemKey,boolean enabled) {
@@ -115,18 +116,18 @@ public class IconBar {
   private void initBar() {
     //The File Menu
     CoolItem coolItem = new CoolItem(coolBar,SWT.NULL); 
-    ToolBar toolBar = new ToolBar(coolBar,SWT.FLAT);
+    ToolBar toolBar = new ToolBar(coolBar,SWT.WRAP);
     createBufferedToolItem(toolBar,SWT.PUSH,"open","cb_open","iconBar.open.tooltip");    
     createBufferedToolItem(toolBar,SWT.PUSH,"open_no_default","cb_open_no_default","iconBar.openNoDefault.tooltip");    
     createBufferedToolItem(toolBar,SWT.PUSH,"open_url","cb_open_url","iconBar.openURL.tooltip");    
     createBufferedToolItem(toolBar,SWT.PUSH,"open_folder","cb_open_folder","iconBar.openFolder.tooltip");            
     createBufferedToolItem(toolBar,SWT.PUSH,"new","cb_new","iconBar.new.tooltip");
-    toolBar.pack();
+    toolBar.pack(); 
     Point p = toolBar.getSize();
     coolItem.setControl(toolBar);
     coolItem.setSize(p.x,p.y);
     coolItem.setMinimumSize(p.x,p.y);
-    
+   
     
     coolItem = new CoolItem(coolBar,SWT.NULL); 
     toolBar = new ToolBar(coolBar,SWT.FLAT);    
@@ -145,7 +146,7 @@ public class IconBar {
     p = toolBar.getSize();
     coolItem.setControl(toolBar);
     coolItem.setSize(p.x,p.y);
-    coolItem.setMinimumSize(p.x,p.y);
+    coolItem.setMinimumSize(p.x,p.y);    
   }
   
   void setLayoutData(Object layoutData) {
