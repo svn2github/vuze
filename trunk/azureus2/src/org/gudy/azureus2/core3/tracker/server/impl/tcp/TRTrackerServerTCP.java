@@ -27,20 +27,18 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
-import org.gudy.azureus2.core3.security.*;
 
-public class 
+
+public abstract class 
 TRTrackerServerTCP 
 	extends 	TRTrackerServerImpl
 {
-	protected static int 	THREAD_POOL_SIZE		= COConfigurationManager.getIntParameter( "Tracker Max Threads" );
+	private static int 	THREAD_POOL_SIZE		= COConfigurationManager.getIntParameter( "Tracker Max Threads" );
 	
 	public static long PROCESSING_GET_LIMIT			= COConfigurationManager.getIntParameter( "Tracker Max GET Time" )*1000;
 	public static int  PROCESSING_POST_MULTIPLIER	= COConfigurationManager.getIntParameter( "Tracker Max POST Time Multiplier" );
@@ -59,16 +57,15 @@ TRTrackerServerTCP
 		}
 	}
 	
-	protected String	name;
-	protected boolean	ssl;
-	protected int		port;
-	protected boolean	apply_ip_filter;
+	private boolean	ssl;
+	private int		port;
+	private boolean	apply_ip_filter;
 	
-	protected Vector	request_listeners 	= new Vector();
+	private Vector	request_listeners 	= new Vector();
 	
-	protected ThreadPool	thread_pool;
+	private ThreadPool	thread_pool;
 	
-	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTCP" );
+	private AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTCP" );
 
 	public
 	TRTrackerServerTCP(
@@ -97,172 +94,19 @@ TRTrackerServerTCP
 			
 			current_announce_retry_interval = RETRY_MINIMUM_SECS;
 		}
-
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-
-		if ( _ssl ){
-			
-			try { 	      
-				SSLServerSocketFactory factory = SESecurityManager.getSSLServerSocketFactory();
- 
-				if ( factory == null ){
-										
-					throw( new TRTrackerServerException( "TRTrackerServer: failed to get SSL factory" ));
-					  
-				}else{
-					SSLServerSocket ssl_server_socket;
-					
-					if ( bind_ip.length() < 7 ){
-						
-						ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128 );
-						
-					}else{
-						
-						ssl_server_socket = (SSLServerSocket)factory.createServerSocket( port, 128, InetAddress.getByName(bind_ip));
-					}
-	
-					String cipherSuites[] = ssl_server_socket.getSupportedCipherSuites();
-	  
-					ssl_server_socket.setEnabledCipherSuites(cipherSuites);
-	 
-					ssl_server_socket.setNeedClientAuth(false);
-					
-					ssl_server_socket.setReuseAddress(true);
-													
-					final SSLServerSocket	f_ss = ssl_server_socket;
-					
-					Thread accept_thread = 
-							new AEThread("TRTrackerServer:accept.loop(ssl)")
-							{
-								public void
-								runSupport()
-								{
-									acceptLoop( f_ss );
-								}
-							};
-				
-					accept_thread.setDaemon( true );
-				
-					accept_thread.start();									
-				
-					LGLogger.log( "TRTrackerServer: SSL listener established on port " + port ); 
-				}
-				
-			}catch( Throwable e){
-								
-				LGLogger.logUnrepeatableAlertUsingResource( 
-						LGLogger.AT_ERROR,
-						"Tracker.alert.listenfail",
-						new String[]{ ""+port });
-				
-				LGLogger.log( "TRTrackerServer: SSL listener failed on port " + port, e ); 
-				  
-				if ( e instanceof TRTrackerServerException ){
-					
-					throw((TRTrackerServerException)e);
-					
-				}else{
-					
-					throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
-				}
-			}
-			
-		}else{
-			
-			try{
-				ServerSocket ss;
-				
-				if ( bind_ip.length() < 7 ){
-					
-					ss = new ServerSocket( port, 1024 );
-					
-				}else{
-					
-					ss = new ServerSocket( port, 1024, InetAddress.getByName(bind_ip));
-				}
-				
-				ss.setReuseAddress(true);
-				
-				final ServerSocket	f_ss = ss;
-				
-				Thread accept_thread = 
-						new AEThread("TRTrackerServer:accept.loop")
-						{
-							public void
-							runSupport()
-							{
-								acceptLoop( f_ss );
-							}
-						};
-			
-				accept_thread.setDaemon( true );
-			
-				accept_thread.start();									
-			
-				LGLogger.log( "TRTrackerServer: listener established on port " + port ); 
-				
-			}catch( Throwable e){
-			
-				LGLogger.logUnrepeatableAlertUsingResource( 
-						LGLogger.AT_ERROR,
-						"Tracker.alert.listenfail",
-						new String[]{ ""+port });
-		
-				LGLogger.log( "TRTrackerServer: listener failed on port " + port, e ); 
-							
-				throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
-			}			
-		}
 	}
 	
-
-	int req_num;
-	
 	protected void
-	acceptLoop(
-		ServerSocket	ss )
-	{		
-		long	successfull_accepts = 0;
-		long	failed_accepts		= 0;
-		
-		while(true){
-			
-			try{				
-				Socket socket = ss.accept();
-					
-				successfull_accepts++;
-				
-				String	ip = socket.getInetAddress().getHostAddress();
-								
-				if ( (!apply_ip_filter) || (!ip_filter.isInRange( ip, "Tracker" ))){
-					
-					thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
-					
-				}else{
-					
-					socket.close();
-				}
-				
-			}catch( Throwable e ){
-				
-				failed_accepts++;
-				
-				LGLogger.log( "TRTrackerServer: listener failed on port " + port, e ); 
-				
-				if ( failed_accepts > 100 && successfull_accepts == 0 ){
-
-						// looks like its not going to work...
-						// some kind of socket problem
-									
-					LGLogger.logUnrepeatableAlertUsingResource( 
-							LGLogger.AT_ERROR,
-							"Network.alert.acceptfail",
-							new String[]{ ""+port, "TCP" } );
-			
-					break;
-				}
-			}
-		}
+	runProcessor(
+		TRTrackerServerProcessorTCP	processor )
+	{
+		thread_pool.run( processor );
+	}
+	
+	protected boolean
+	isIPFilterEnabled()
+	{
+		return( apply_ip_filter );
 	}
 	
 	static boolean	LOG_DOS_TO_FILE	= false;

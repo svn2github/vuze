@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.server.*;
-import org.gudy.azureus2.core3.tracker.server.impl.tcp.*;
+import org.gudy.azureus2.core3.tracker.server.impl.tcp.blocking.TRBlockingServer;
 import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
@@ -57,7 +57,7 @@ TRTrackerServerFactoryImpl
 			
 			if ( protocol == TRTrackerServerFactory.PR_TCP ){
 				
-				server = new TRTrackerServerTCP( name, port, ssl, apply_ip_filter );
+				server = new TRBlockingServer( name, port, ssl, apply_ip_filter );
 				
 			}else{
 				

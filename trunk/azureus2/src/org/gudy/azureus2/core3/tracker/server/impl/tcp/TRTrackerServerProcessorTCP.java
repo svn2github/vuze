@@ -31,10 +31,9 @@ import sun.misc.BASE64Decoder;
 
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
-public class 
+public abstract class 
 TRTrackerServerProcessorTCP
 	extends 	TRTrackerServerProcessor
 {
@@ -55,336 +54,31 @@ TRTrackerServerProcessorTCP
 	protected static final byte[]	HTTP_RESPONSE_END_GZIP 		= (NL + "Content-Encoding: gzip" + NL + NL).getBytes();
 	protected static final byte[]	HTTP_RESPONSE_END_NOGZIP 	= (NL + NL).getBytes();
 	
-	protected TRTrackerServerTCP	server;
-	protected Socket				socket;
+	private TRTrackerServerTCP	server;
 	
+	private boolean			disable_timeouts 	= false;
 
-	protected int					timeout_ticks		= 1;
-	protected boolean				disable_timeouts 	= false;
-	protected String				current_request;
 	
 	protected
 	TRTrackerServerProcessorTCP(
-		TRTrackerServerTCP		_server,
-		Socket					_socket )
+		TRTrackerServerTCP		_server )
 	{
 		server	= _server;
-		socket	= _socket;
-	}
-	
-	public void
-	runSupport()
+	}	
+
+	protected boolean
+	areTimeoutsDisabled()
 	{
-		try{
-	
-			setTaskState( "entry" );
-			
-			try{
-												
-				socket.setSoTimeout( SOCKET_TIMEOUT );
-										
-			}catch ( SocketException e ){
-													
-				// e.printStackTrace();
-			}
-										
-			String	header_plus = "";
-			
-			setTaskState( "reading header" );
-
-			try{
-										
-				InputStream	is = socket.getInputStream();
-				
-				byte[]	buffer = new byte[1024];
-				
-				while( header_plus.length()< 4096 ){
-						
-					int	len = is.read(buffer);
-						
-					if ( len == -1 ){
-					
-						break;
-					}
-									
-					header_plus += new String( buffer, 0, len, Constants.BYTE_ENCODING );
-									
-					if ( 	header_plus.endsWith(NL+NL) ||
-							header_plus.indexOf( NL+NL ) != -1 ){
-						
-						break;
-					}
-				}
-		
-				if ( LGLogger.isLoggingOn()){
-					
-					String	log_str = header_plus;
-					
-					int	pos = log_str.indexOf( NL );
-					
-					if ( pos != -1 ){
-						
-						log_str = log_str.substring(0,pos);
-					}
-					
-					LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
-				}				
-					
-				// System.out.println( "got header:" + header_plus );
-				
-				InputStream	post_is 	= null;
-				File		post_file	= null;
-				
-				String	actual_header;
-				String	lowercase_header;
-				
-				boolean	head	= false;
-				
-				if ( header_plus.startsWith( "GET " )){
-				
-					timeout_ticks		= 1;
-					
-					actual_header		= header_plus;
-					lowercase_header	= actual_header.toLowerCase();
-	
-				}else if ( header_plus.startsWith( "HEAD " )){
-					
-					timeout_ticks		= 1;
-					
-					actual_header		= header_plus;
-					lowercase_header	= actual_header.toLowerCase();			
-
-					head	= true;
-					
-				}else if ( header_plus.startsWith( "POST ")){
-					
-					timeout_ticks	= TRTrackerServerTCP.PROCESSING_POST_MULTIPLIER;
-					
-					if ( timeout_ticks == 0 ){
-						
-						disable_timeouts	= true;
-					}
-					
-					setTaskState( "reading content" );
-
-					int	header_end = header_plus.indexOf(NL+NL);
-					
-					if ( header_end == -1 ){
-					
-						throw( new TRTrackerServerException( "header truncated" ));
-					}
-					
-					actual_header 		= header_plus.substring(0,header_end+4);
-					lowercase_header	= actual_header.toLowerCase();
-					
-					int	cl_start = lowercase_header.indexOf("content-length:");
-					
-					if ( cl_start == -1 ){
-						
-						throw( new TRTrackerServerException( "header Content-Length start missing" ));
-					}
-					
-					int	cl_end = actual_header.indexOf( NL, cl_start );
-					
-					if ( cl_end == -1 ){
-						
-						throw( new TRTrackerServerException( "header Content-Length end missing" ));
-					}
-					
-					int	content_length = Integer.parseInt( actual_header.substring(cl_start+15,cl_end ).trim());
-				
-					ByteArrayOutputStream	baos		= null;
-					FileOutputStream		fos			= null;
-				
-					OutputStream	data_os;
-					
-					if ( content_length <= 256*1024 ){
-						
-						baos = new ByteArrayOutputStream();
-					
-						data_os	= baos;
-						
-					}else{
-						
-						post_file	= AETemporaryFileHandler.createTempFile( "AZU", null );
-						
-						post_file.deleteOnExit();
-						
-						fos	= new FileOutputStream( post_file );
-						
-						data_os	= fos;
-					}
-					
-						// if we have X<NL><NL>Y get Y
-					
-					int	rem = header_plus.length() - (header_end+4);
-					
-					if ( rem > 0 ){
-						
-						content_length	-= rem;
-						
-						data_os.write( header_plus.substring(header_plus.length()-rem).getBytes( Constants.BYTE_ENCODING ));
-					}
-					
-					while( content_length > 0 ){
-						
-						int	len = is.read( buffer );
-						
-						if ( len < 0 ){
-							
-							throw( new TRTrackerServerException( "premature end of input stream" ));
-						}
-						
-						data_os.write( buffer, 0, len );
-						
-						content_length -= len;
-					}
-					
-					if ( baos != null ){
-						
-						post_is = new ByteArrayInputStream(baos.toByteArray());
-						
-					}else{
-						
-						fos.close();
-						
-						post_is = new BufferedInputStream( new FileInputStream( post_file ), 256*1024 );
-					}
-					
-					// System.out.println( "TRTrackerServerProcessorTCP: request data = " + baos.size());
-				}else{
-					
-					throw( new TRTrackerServerException( "header doesn't start with GET or POST ('" + (header_plus.length()>256?header_plus.substring(0,256):header_plus)+"')" ));
-				}
-				
-				setTaskState( "processing request" );
-
-				current_request	= actual_header;
-				
-				try{
-					if ( post_is == null ){
-						
-							// set up a default input stream 
-						
-						post_is = new ByteArrayInputStream(new byte[0]);
-					}
-					
-					String	url = actual_header.substring(4).trim();
-					
-					int	pos = url.indexOf( " " );
-					
-					if ( pos == -1 ){
-						
-						throw( new TRTrackerServerException( "header doesn't have space in right place" ));
-					}
-									
-					url = url.substring(0,pos);
-					
-					if ( head ){
-						
-						ByteArrayOutputStream	head_response = new ByteArrayOutputStream(4096);
-						
-						processRequest( actual_header,
-								lowercase_header,
-								url, 
-								socket.getInetAddress().getHostAddress(),
-								post_is,
-								head_response );
-						
-						byte[]	head_data = head_response.toByteArray();
-						
-						int	header_length = head_data.length;
-						
-						for (int i=3;i<head_data.length;i++){
-							
-							if ( 	head_data[i-3] 	== CR &&
-									head_data[i-2] 	== FF &&
-									head_data[i-1] 	== CR &&
-									head_data[i]	== FF ){
-								
-								header_length = i+1;
-						
-								break;
-							}
-						}
-												
-						setTaskState( "writing head response" );
-
-						socket.getOutputStream().write( head_data, 0, header_length );
-						
-						socket.getOutputStream().flush();
-						
-					}else{
-					
-						processRequest( actual_header,
-										lowercase_header,
-										url, 
-										socket.getInetAddress().getHostAddress(),
-										post_is,
-										socket.getOutputStream() );
-					}
-				}finally{
-					
-					if ( post_is != null ){
-						
-						post_is.close();
-					}
-					
-					if ( post_file != null ){
-						
-						post_file.delete();
-					}
-				}
-			}catch( SocketTimeoutException e ){
-				
-				// System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
-				// ignore it
-							
-			}catch( Throwable e ){
-				
-				 // e.printStackTrace();
-			}
-	
-		}finally{
-					
-			setTaskState( "final socket close" );
-
-			try{
-				socket.close();
-																							
-			}catch( Throwable e ){
-													
-				// e.printStackTrace();
-			}
-		}
+		return( disable_timeouts );
 	}
 	
-	public void
-	interruptTask()
+	protected void
+	setTimeoutsDisabled(
+		boolean	d )
 	{
-		try{
-			if ( disable_timeouts ){
-				
-				// Debug.out( "External tracker request timeout ignored: state = " + getTaskState() + ", req = " + current_request  );
-				
-			}else{
-				
-				timeout_ticks--;
-					
-				if ( timeout_ticks <= 0 ){
-					
-					System.out.println( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded for " + socket.getInetAddress() );
-					
-					socket.close();
-				}
-			}
-																						
-		}catch( Throwable e ){
-												
-			// e.printStackTrace();
-		}
+		disable_timeouts	= d;
 	}
-
+	
 	protected void
 	processRequest(
 		String			input_header,
