@@ -55,11 +55,11 @@ PEPeerServerImpl
   private static int instanceCount = 0;
 
   public static boolean portsFree() {
-	 return Math.abs(
-	   COConfigurationManager.getIntParameter("Low Port", 6881)
-		 - COConfigurationManager.getIntParameter("High Port", 6889))
-	   + 1
-	   > instanceCount;
+    int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
+    int hp = COConfigurationManager.getIntParameter("High Port", 6889);
+    int lowPort = Math.min(lp, hp);
+    int highPort = Math.max(lp, hp);
+	 return Math.abs(lowPort - highPort) + 1 > instanceCount;
    }
 
 	 public static PEPeerServer
@@ -81,11 +81,11 @@ PEPeerServerImpl
   public PEPeerServerImpl() {
     super("Bt Server");
     //Will create a Server on any socket from 6881 to 6889
-    int lowPort = COConfigurationManager.getIntParameter("Low Port", 6881);
-    int highPort = COConfigurationManager.getIntParameter("High Port", 6889);
     String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-    lowPort = Math.min(lowPort, highPort);
-    highPort = Math.max(lowPort, highPort);
+    int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
+    int hp = COConfigurationManager.getIntParameter("High Port", 6889);
+    int lowPort = Math.min(lp, hp);
+    int highPort = Math.max(lp, hp);
     port = lowPort;
     sck = null;
     bContinue = true;
