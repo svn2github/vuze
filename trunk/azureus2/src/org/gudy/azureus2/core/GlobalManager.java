@@ -150,7 +150,9 @@ public class GlobalManager extends Component {
     return addDownloadManager(manager);
   }
 
-  private boolean addDownloadManager(DownloadManager manager) {
+
+  //Public method !!! and don't touch it !
+  public boolean addDownloadManager(DownloadManager manager) {
     synchronized (managers) {
       if (managers.contains(manager)) {
         manager.setState(DownloadManager.STATE_DUPLICATE);
