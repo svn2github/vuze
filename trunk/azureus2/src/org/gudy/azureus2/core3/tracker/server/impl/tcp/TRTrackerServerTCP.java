@@ -222,11 +222,16 @@ TRTrackerServerTCP
 	acceptLoop(
 		ServerSocket	ss )
 	{		
+		long	successfull_accepts = 0;
+		long	failed_accepts		= 0;
+		
 		while(true){
 			
 			try{				
 				final Socket socket = ss.accept();
-								
+					
+				successfull_accepts++;
+				
 				String	ip = socket.getInetAddress().getHostAddress();
 				
 				//if ( checkDOS( ip )){
@@ -247,7 +252,19 @@ TRTrackerServerTCP
 				
 			}catch( Throwable e ){
 				
-				// e.printStackTrace();		
+				failed_accepts++;
+				
+				if ( failed_accepts > 100 && successfull_accepts == 0 ){
+
+						// looks like its not going to work...
+						// some kind of socket problem
+					
+					LGLogger.logUnrepeatableAlert( "Tracker: too many successive errors on TCP port '" + port + "', abandoning", e );
+					
+					Debug.printStackTrace(e);
+					
+					break;
+				}
 			}
 		}
 	}
