@@ -76,8 +76,8 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
         SWT.RIGHT,
         SWT.RIGHT,
         SWT.RIGHT,
-        SWT.LEFT,
-        SWT.LEFT,
+        SWT.CENTER,
+        SWT.RIGHT,
         SWT.LEFT,
         SWT.LEFT,
         SWT.CENTER };
