@@ -137,7 +137,7 @@ public class ConfigurationChecker {
       changed = true;
     }
     
-    /*
+    
     //migrate to new dual connection limit option
     int maxclients = COConfigurationManager.getIntParameter("Max Clients", -1);
     if ( maxclients > -1 ) {      
@@ -145,7 +145,7 @@ public class ConfigurationChecker {
       COConfigurationManager.setParameter("Max Clients", -1);
       changed = true;
     }
-    */
+    
     
     int maxUpSpeed = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
     if(maxUpSpeed > 0 && maxUpSpeed < 5) {

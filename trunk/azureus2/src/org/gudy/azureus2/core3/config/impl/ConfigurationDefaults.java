@@ -68,100 +68,49 @@ public class ConfigurationDefaults {
     def.put("General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
     
     /** Core settings **/
-    // (currently only a reference list for me)
-    // Override Ip ("Override Ip")
-    //def.put("Core_sOverrideIP", "");
+
     def.put("Override Ip", "");
-    //def.put("Core_bAllocateNew", new Long(0));
-    //def.put("Zero New", new Long(0));
-    //def.put("Core_bIncrementalAllocate", new Long(0)); *
     def.put("Enable incremental file creation", new Long(0));
-    // Lower port to use for BT ("Low Port")
-    //def.put("Core_iLowPort", new Long(6881));
-    //def.put("Low Port", new Long(6881));
-    //def.put("Core_iTCPListenPort", new Long(6881));
     def.put("TCP.Listen.Port", new Long(6881));
-    // Upper port to use for BT ("High Port")
-    //def.put("Core_iHighPort", new Long(6889));
-    //def.put("High Port", new Long(6889));
-    // Maximal active torrents ("max active torrents")
-    //def.put("Core_iMaxActiveTorrents", new Long(4));
     def.put("max active torrents", new Long(4));
-    // Maximal active downloads (torrents!=seed) ("max downloads")
-    //def.put("Core_iMaxDownloads", new Long(4));
     def.put("max downloads", new Long(4));
-    // Maxmail number of connections (0=unlimited) ("Max Clients")
-    //def.put("Core_iMaxClients", new Long(0));
-    def.put("Max Clients", new Long(100));
-    // Default max uploads per torrent ("Max Uploads")
-    //def.put("Core_iMaxUploads", new Long(4));
+
+    def.put("Max.Peer.Connections.Per.Torrent", new Long(100));
+    def.put("Max.Peer.Connections.Total", new Long(0));
+
     def.put("Max Uploads", new Long(4));
-    // Maximal upload speed (globally, 0=unlimited) ("Max Upload Speed")
-    //def.put("Core_iMaxUploadSpeed", new Long(0));
     def.put("Max Upload Speed KBs", new Long(0));
-    // Fast Resume
-    //def.put("Core_bUseResume", new Long(0));
     def.put("Use Resume", new Long(1));
-    // Save Resume Interval (minutes)
-    //def.put("Core_iSaveResumeInterval", new Long(5));
     def.put("Save Resume Interval", new Long(5));
-    // Recheck pices on completed download
-    //def.put("Core_bCheckPiecesOnCompletion", new Long(0)); *
     def.put("Check Pieces on Completion", new Long(1));
-    // Stop seeding when share ratio reaches
-    //def.put("Core_iSeedingShareStop", new Long(0)); *
     def.put("Stop Ratio", new Long(0));
-    // Stop seeding when there is at least 1 seed for X peers
-    //def.put("Core_iSeedingRatioStop", new Long(0)); *
     def.put("Stop Peers Ratio", new Long(0));
-    // Disconnect Seeds on completion
-    //def.put("Core_bDisconnectSeed", new Long(0)); *
     def.put("Disconnect Seed", new Long(1));
-    // Set to low priority on completion
-    //def.put("Core_bSwitchPriority", new Long(1)); *
     def.put("Switch Priority", new Long(0));
-    // Automatically switch these extensions to high priority (eg ".exe;.txt")
-    //def.put("Core_sPriorityExtensions", ""); *
     def.put("priorityExtensions", "");
-    // whether priorityExtensions are case insensitive
-    //def.put("Core_bPriorityExtensionsIgnoreCase", new Long(0)); *
     def.put("priorityExtensionsIgnoreCase", new Long(0));
-    //Use or not the ip filtering feature
-    //def.put("Core_bIpFilterEnabled", new Long(1));
     def.put("Ip Filter Enabled", new Long(1));
-    //Use the filters as 'allow' rules
-    //def.put("Core_bIpFilterAllow",new Long(0));
     def.put("Ip Filter Allow",new Long(0));
-    //Allow for multiple peers with the same IP
-    //def.put("Core_bAllowSameIPPeers",new Long(0));
     def.put("Allow Same IP Peers",new Long(0));
-    //Use Super-seeding
-    //def.put("Core_bUseSuperSeeding",new Long(0));
     def.put("Use Super Seeding",new Long(0));
         
     /** SWT GUI Settings **/
-    //def.put("SWT_bUseCustomTab",new Long(1));    
     def.put("useCustomTab",new Long(1));    
-    //def.put("SWT_iGUIRefresh",new Long(250));
     def.put("GUI Refresh",new Long(250));
-    //def.put("SWT_iGraphicsUpdate",new Long(4));
     def.put("Graphics Update",new Long(4));
-    //def.put("SWT_iReOrderDelay",new Long(0));
     def.put("ReOrder Delay",new Long(0));
-    //def.put("SWT_bSendVersionInfo",new Long(1));
     def.put("Send Version Info",new Long(1));
-    //def.put("SWT_bShowDownloadBasket",new Long(0));
     def.put("Show Download Basket",new Long(0));
-    //def.put("SWT_bAlwaysRefreshMyTorrents",new Long(0));
     def.put("config.style.refreshMT",new Long(0));
-    //def.put("SWT_bOpenDetails", new Long(0));
     def.put("Open Details", new Long(0));
+    
     boolean bGTKTableBug = false;
     try {
       bGTKTableBug = System.getProperty("os.name").equals("Linux") && SWT.getPlatform().equals("gtk");
     } catch (NoClassDefFoundError e) {
       /* Ignore, SWT not installed */
     }
+    
     def.put("SWT_bGTKTableBug", new Long(bGTKTableBug ? 1: 0));
     def.put("Colors.progressBar.override", new Long(0));
     
