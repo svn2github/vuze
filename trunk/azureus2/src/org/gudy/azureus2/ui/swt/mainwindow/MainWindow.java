@@ -312,9 +312,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       ((CTabFolder)folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 
       try {
-        ((CTabFolder)folder).setSimpleTab(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
+        /* Pre 3.0M8 doesn't have Simple-mode (it's always simple mode)
+           in 3.0M9, it was called setSimpleTab(boolean)
+           in 3.0RC1, it's called setSimple(boolean)
+           Prepare for the future, and use setSimple()
+         */
+        ((CTabFolder)folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
       } catch (NoSuchMethodError e) { 
-        /** < SWT 3.0M8 **/ 
+        /** < SWT 3.0RC1 **/ 
       }
     }
     
@@ -1191,10 +1196,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         folder instanceof CTabFolder && 
         folder != null && !folder.isDisposed()) {
       try {
-        ((CTabFolder)folder).setSimpleTab(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
-        
+        ((CTabFolder)folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
       } catch (NoSuchMethodError e) { 
-        /** < SWT 3.0M8 **/ 
+        /** < SWT 3.0RC1 **/ 
       }
     }     
   }
