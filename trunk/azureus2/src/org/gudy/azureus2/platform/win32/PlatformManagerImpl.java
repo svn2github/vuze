@@ -111,7 +111,9 @@ PlatformManagerImpl
 			
 			//System.out.println( "target = " + target );
 			
-			if ( !current.equals(target)){
+				// only patch if Azureus.exe in there
+			
+			if ( current.indexOf( "Azureus.exe" ) != -1 && !current.equals(target)){
 				
 				access.writeStringValue( 	
 						AEWin32Access.HKEY_CLASSES_ROOT,
