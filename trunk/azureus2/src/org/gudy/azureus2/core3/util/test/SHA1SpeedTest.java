@@ -17,8 +17,8 @@ public class SHA1SpeedTest {
   
   private static final int BUFF_MAX_SIZE = 4 * 1024 * 1024;
   
-  private static final int[] LOOPS = {20000, 10000, 4000, 3000, 2000, 1200};
-  private static final int[] TESTS = {   16,    64,  256,  512, 1024, 2048};
+  private static final int[] LOOPS = {30000, 15000, 4000, 3000, 2000, 1200,  800};
+  private static final int[] TESTS = {   16,    64,  256,  512, 1024, 2048, 4096};
   
 	public static void main(String[] args) {
     
