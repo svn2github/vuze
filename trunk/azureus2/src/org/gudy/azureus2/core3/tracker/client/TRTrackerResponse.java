@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.core3.tracker.client;
 
+import java.net.URL;
 import java.util.Map;
 
 public interface 
@@ -65,6 +66,9 @@ TRTrackerResponse
 	
 	public Map
 	getExtensions();
+	
+	public URL
+	getURL();
 	
 	public void
 	print();

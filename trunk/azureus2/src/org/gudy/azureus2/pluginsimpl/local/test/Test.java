@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeEvent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeListener;
@@ -126,7 +128,32 @@ Test
 				});
 			
 			ta.addDefinedValue( "wibble" );
+					
+			
+			plugin_interface.getDownloadManager().addListener(
+				new DownloadManagerListener()
+				{
+					public void
+					downloadAdded(
+						Download	download )
+					{
+						try{
+							download.setAttribute( ta, "wibble" );
 							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+					
+					public void
+					downloadRemoved(
+						Download	download )
+					{
+						
+					}
+				});
+				
 		}catch( Throwable e ){
 			
 			e.printStackTrace();

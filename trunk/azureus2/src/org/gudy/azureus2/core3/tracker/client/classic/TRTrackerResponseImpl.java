@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.core3.tracker.client.classic;
 
+import java.net.URL;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -29,6 +30,7 @@ public class
 TRTrackerResponseImpl
 	implements TRTrackerResponse 
 {
+	protected URL		url;
 	protected int		status;
 	protected long		time_to_wait;
 	protected String	failure_reason;
@@ -39,19 +41,23 @@ TRTrackerResponseImpl
 	
 	protected
 	TRTrackerResponseImpl(
+		URL		_url,
 		int		_status,
 		long	_time_to_wait  )
 	{
+		url				= _url;
 		status			= _status;	
 		time_to_wait	= _time_to_wait;
 	}
 	
 	protected
 	TRTrackerResponseImpl(
+		URL		_url,
 		int		_status,
 		long	_time_to_wait,
 		String	_failure_reason )
 	{
+		url				= _url;
 		status			= _status;	
 		time_to_wait	= _time_to_wait;
 		failure_reason	= _failure_reason;
@@ -59,10 +65,12 @@ TRTrackerResponseImpl
 	
 	protected
 	TRTrackerResponseImpl(
+		URL						_url,
 		int						_status,
 		long					_time_to_wait,
 		TRTrackerResponsePeer[]	_peers )
 	{
+		url				= _url;
 		status			= _status;	
 		time_to_wait	= _time_to_wait;
 		peers			= _peers;
@@ -110,6 +118,12 @@ TRTrackerResponseImpl
 	getExtensions()
 	{
 		return( extensions );
+	}
+	
+	public URL
+	getURL()
+	{
+		return( url );
 	}
 	
 	public void

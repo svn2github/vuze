@@ -323,7 +323,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
     long lResponseNextScrapeTime = response.getNextScrapeStartTime();
     if (lResponseNextScrapeTime < lNextScrapeTime) {
       // next in line
-      nextTrackerStatus = response.getTrackerStatus();
+      nextTrackerStatus = ((TRTrackerScraperResponseImpl)response).getTrackerStatus();
       nextTrackerHash = response.getHash();
       lNextScrapeTime = lResponseNextScrapeTime;
       //System.out.println("Next Scrape Time set to " + lNextScrapeTime);

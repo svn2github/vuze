@@ -10,6 +10,8 @@ package org.gudy.azureus2.core3.tracker.client.classic;
  * @author TuxPaper
  */
 
+import java.net.URL;
+
 import org.gudy.azureus2.core3.tracker.client.*;
 
 public class TRTrackerScraperResponseImpl 
@@ -116,8 +118,8 @@ public class TRTrackerScraperResponseImpl
     return nextScrapeStartTime;
   }
  
-  public void setNextScrapeStartTime(long nextScrapeStartTime) {
-    this.nextScrapeStartTime = nextScrapeStartTime;
+  public void setNextScrapeStartTime(long _nextScrapeStartTime) {
+    nextScrapeStartTime = _nextScrapeStartTime;
   }
    
   public String getStatusString() {
@@ -126,5 +128,11 @@ public class TRTrackerScraperResponseImpl
   
   public boolean isValid() {
     return !(seeds == -1 && peers == -1);
+  }
+  
+  public URL
+  getURL()
+  {
+  	return( ts.getTrackerURL());
   }
 }

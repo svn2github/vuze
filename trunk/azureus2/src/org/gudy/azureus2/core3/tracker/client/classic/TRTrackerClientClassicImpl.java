@@ -806,7 +806,7 @@ TRTrackerClientClassicImpl
 		  
 		  	request_url = constructUrl(evt,url);
 			  					  	  			  
-			TRTrackerResponseImpl resp = decodeTrackerResponse( updateOld(request_url));
+			TRTrackerResponseImpl resp = decodeTrackerResponse( url, updateOld(request_url));
 			  
 		    if ( resp.getStatus() == TRTrackerResponse.ST_ONLINE ){
 					
@@ -834,6 +834,7 @@ TRTrackerClientClassicImpl
 		  	
 		  	last_failure_resp = 
 		  		new TRTrackerResponseImpl( 
+		  				url,
 		  				TRTrackerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						"malformed URL '" + (request_url==null?"<null>":request_url.toString()) + "'" );
@@ -843,7 +844,8 @@ TRTrackerClientClassicImpl
 		  	//e.printStackTrace();
 		  	
 		  	last_failure_resp = 
-		  		new TRTrackerResponseImpl( 
+		  		new TRTrackerResponseImpl(
+		  				url,
 		  				TRTrackerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						e.getMessage());
@@ -862,6 +864,7 @@ TRTrackerClientClassicImpl
 			
 		  	last_failure_resp = 
 		  		new TRTrackerResponseImpl( 
+		  				null,
 		  				TRTrackerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						"Reason Unknown" );
@@ -1724,6 +1727,7 @@ TRTrackerClientClassicImpl
   
   	protected TRTrackerResponseImpl
   	decodeTrackerResponse(
+  		URL			url,
   		byte[]		data )
   	{
   		String	failure_reason;
@@ -1806,7 +1810,7 @@ TRTrackerClientClassicImpl
 							
 				       System.out.println("Problems with Tracker, will retry in 1 minute");
 											   			
-				       return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval() ));
+				       return( new TRTrackerResponseImpl( url, TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval() ));
 	
 				     }else{
 				     	
@@ -1814,7 +1818,7 @@ TRTrackerClientClassicImpl
 				     	
 				       failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
                             				
-				       return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
+				       return( new TRTrackerResponseImpl( url, TRTrackerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
 				     }
 				   }
 				   
@@ -1958,7 +1962,7 @@ TRTrackerClientClassicImpl
 					
 					addToTrackerCache( peers);
 					
-					TRTrackerResponseImpl resp = new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers );
+					TRTrackerResponseImpl resp = new TRTrackerResponseImpl( url, TRTrackerResponse.ST_ONLINE, time_to_wait, peers );
           
 						//reset failure retry interval on successful connect
 					
@@ -2043,7 +2047,7 @@ TRTrackerClientClassicImpl
 			}
   		}
 
-		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval(), failure_reason ));
+		return( new TRTrackerResponseImpl( url, TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval(), failure_reason ));
   	}
   	
 	protected void
@@ -2064,9 +2068,11 @@ TRTrackerClientClassicImpl
 	public TRTrackerResponse
 	getLastResponse()
 	{
-    if( last_response == null ) {
-      return new TRTrackerResponseImpl(TRTrackerResponse.ST_OFFLINE, TRTrackerClient.REFRESH_MINIMUM_SECS );
-    }
+		if( last_response == null ){
+			
+			return new TRTrackerResponseImpl( null, TRTrackerResponse.ST_OFFLINE, TRTrackerClient.REFRESH_MINIMUM_SECS );
+		}
+		
 		return( last_response );
 	}
 	

@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  *
  */
 
+import java.net.URL;
+
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
@@ -103,4 +105,10 @@ DownloadScrapeResultImpl
   	
   	return("");
   }
+  
+	public URL
+	getURL()
+	{
+		return( response.getURL());
+	}
 }

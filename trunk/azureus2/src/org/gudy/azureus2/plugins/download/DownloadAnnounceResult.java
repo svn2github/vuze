@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.download;
 
+import java.net.URL;
+
 /**
  * @author parg
  * This class represents the results of an "announce" made to a tracker.
@@ -92,4 +94,12 @@ DownloadAnnounceResult
 	
 	public String
 	getError();
+	
+		/**
+		 * The URL for the tracker. 
+		 * @return WILL BE NULL if the torrent isn't running
+		 */
+	
+	public URL
+	getURL();
 }

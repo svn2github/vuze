@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  *
  */
 
+import java.net.URL;
+
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 
@@ -116,5 +118,11 @@ DownloadAnnounceResultImpl
 	getError()
 	{
 		return( response==null?"No Response":response.getFailureReason());
+	}
+	
+	public URL
+	getURL()
+	{
+		return( response.getURL());
 	}
 }

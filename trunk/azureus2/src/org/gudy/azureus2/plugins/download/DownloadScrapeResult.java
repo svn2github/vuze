@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.download;
 
+import java.net.URL;
+
 /**
  * @author parg
  * This class represents the results of scrapes for the download
@@ -92,4 +94,12 @@ DownloadScrapeResult
   
   public String
   getStatus();
+  
+	/**
+	 * The URL for the tracker
+	 * @return
+	 */
+
+  public URL
+  getURL();
 }

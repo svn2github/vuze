@@ -782,20 +782,20 @@ public class TrackerStatus {
 							}
 							*/
 							
-							byte[][]	hashes 		= scrape_reply.getHashes();
-							int[]		complete 	= scrape_reply.getComplete();
-							int[]		downloaded 	= scrape_reply.getDownloaded();
-							int[]		incomplete 	= scrape_reply.getIncomplete();
+							byte[][]	reply_hashes 	= scrape_reply.getHashes();
+							int[]		complete 		= scrape_reply.getComplete();
+							int[]		downloaded 		= scrape_reply.getDownloaded();
+							int[]		incomplete 		= scrape_reply.getIncomplete();
 							
 							Map	files = new ByteEncodedKeyHashMap();
 							
 							map.put( "files", files );
 							
-							for (int i=0;i<hashes.length;i++){
+							for (int i=0;i<reply_hashes.length;i++){
 								
 								Map	file = new HashMap();
 								
-								byte[]	resp_hash = hashes[i];
+								byte[]	resp_hash = reply_hashes[i];
 								
 								// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
 							
