@@ -84,10 +84,6 @@ public class StreamDecoder {
         throw new IOException( "end of stream on socket read [handshaking]" );
       }
       
-      if( bytes_read == 0 ) {
-        Debug.out( "bytes_read == 0" );
-      }
-      
       if( !handshake_buffer.hasRemaining() ) {  //process handshake
         handshake_buffer.flip();
         if( handshake_buffer.get() != (byte)HANDSHAKE.length() ) {

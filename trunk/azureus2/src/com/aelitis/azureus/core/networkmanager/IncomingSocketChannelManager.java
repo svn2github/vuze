@@ -215,7 +215,6 @@ public class IncomingSocketChannelManager {
                   }
                   
                   if( bytes_read == 0 ) {
-                    System.out.println( "bytes_read == 0" );
                     return false;
                   }
                   
