@@ -33,8 +33,9 @@ import org.gudy.azureus2.core3.torrent.*;
  */
 public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
 
-  private String _url;
-  private String _file;
+  private String 	url_str;
+  private String	referrer;
+  private String 	file_str;
   
   private URL url;
   private HttpURLConnection con;
@@ -65,10 +66,11 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
     
     _url = _url.replaceAll( " ", "%20" );
     
-    this.setName("TorrentDownloader: " + _url);
+    setName("TorrentDownloader: " + _url);
     
-    this._url = _url;
-    this._file	= _file;
+    url_str 	= _url;
+    referrer	= _referrer;
+    file_str	= _file;
   }
 
   public void notifyListener() {
@@ -92,7 +94,7 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
 
   public void run() {
     try {
-      url = new URL(_url);
+      url = new URL(url_str);
       
       if ( url.getProtocol().equalsIgnoreCase("https")){
       	
@@ -124,16 +126,10 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       
       con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
       
-     /*
-      String	referrer = url.toString();
-      int		x_pos	= referrer.indexOf( "://" );
-      x_pos	= referrer.indexOf( "/", x_pos+3);
-      referrer.substring(0,x_pos+1);
+      if ( referrer != null && referrer.length() > 0 ){
       
-      referrer = "http://69.50.168.139/";
-      
-      con.setRequestProperty( "Referer", referrer );
-     */
+      	con.setRequestProperty( "Referer", referrer );
+      }
       
       this.con.connect();
 
@@ -171,8 +167,8 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
       this.directoryname = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
       boolean useTorrentSave = COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
 
-      if (_file != null) {
-        File temp = new File(_file);
+      if (file_str != null) {
+        File temp = new File(file_str);
 
         //if we're not using a default torrent save dir
         if (!useTorrentSave || directoryname.length() == 0) {
