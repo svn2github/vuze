@@ -538,7 +538,9 @@ DownloadManagerImpl
 		// currently can only seed if whole torrent exists
 		if (diskManager == null) {
   		DiskManager dm = DiskManagerFactory.createNoStart( torrent, FileUtil.smartFullName(savePath, name));
-  		if (!dm.filesExist()) 
+  		if (dm.getState() == DiskManager.FAULTY)
+  		  strErrMessage = dm.getErrorMessage();
+  		else if (!dm.filesExist()) 
   		  strErrMessage = dm.getErrorMessage();
   		dm = null;
   	} else {

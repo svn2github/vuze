@@ -854,6 +854,11 @@ DiskManagerImpl
 	}
 
 	public boolean filesExist() {
+	  if (rootPath == null) {
+			this.errorMessage = "filesExist() called while rootPath null!";
+			setState( FAULTY );
+	    return false;
+	  }
 		//String basePath = path + System.getProperty("file.separator") + rootPath;
 		
 		// ok, we sometimes end up here with
