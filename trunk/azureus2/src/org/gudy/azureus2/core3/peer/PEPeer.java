@@ -90,4 +90,6 @@ PEPeer
 	public void setUniqueAnnounce(int uniquePieceNumber);
 	
 	public int getUniqueAnnounce();
+	
+	public int getAllowed();
 }

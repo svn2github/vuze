@@ -1051,7 +1051,7 @@ PEPeerTransportProtocol
 		int limit = realLimit;
 		int uploadAllowed = 0;
 		if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
-		  if ((loopFactor % 5) == 0) {
+		  if ((loopFactor % 10) == 0) {
 			allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms(this);
 			used = 0;
 		  }
@@ -1072,11 +1072,11 @@ PEPeerTransportProtocol
 		  manager.sent(written);
 		  if (PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
 			used += written;
-			if ((loopFactor % 5) == 4) {
-			  if (used >= allowed) // (100 * allowed) / 100
-				maxUpload = max(110 * allowed, 20);
-			  if (used < (95 * allowed) / 100)
-				maxUpload = max((100 * written) / 100, 20);
+			if ((loopFactor % 10) == 9) {
+			  if (used >= (95 * allowed) / 100)
+				maxUpload = max(110 * allowed / 100, 50);
+			  if (used < (90 * allowed) / 100)
+				maxUpload = max((100 * used) / 100, 10);
 			}
 		  }
 		}
@@ -1344,6 +1344,10 @@ PEPeerTransportProtocol
   
   public int getUniqueAnnounce() {
     return this.uniquePiece;
+  }
+
+  public int getAllowed() {
+    return allowed;
   }
 
 }

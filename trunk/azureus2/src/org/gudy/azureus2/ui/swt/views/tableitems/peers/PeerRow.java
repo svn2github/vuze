@@ -91,6 +91,7 @@ public class PeerRow implements SortableItem {
         items.add(new DiscardedItem(PeerRow.this,itemEnumerator.getPositionByName("discarded")));
         items.add(new UniquePieceItem(PeerRow.this,itemEnumerator.getPositionByName("uniquepiece")));
         items.add(new TimeToSendPieceItem(PeerRow.this,itemEnumerator.getPositionByName("timetosend")));
+        items.add(new AllowedUpItem(PeerRow.this,itemEnumerator.getPositionByName("allowedup")));
         
         Map extensions = PeersTableExtensions.getInstance().getExtensions();
         Iterator iter = extensions.keySet().iterator();

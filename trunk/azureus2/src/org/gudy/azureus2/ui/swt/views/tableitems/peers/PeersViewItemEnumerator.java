@@ -54,7 +54,9 @@ public class PeersViewItemEnumerator {
    ,"client;L;S;105;15"
    ,"discarded;R;I;60;16"
    ,"uniquepiece;L;I;60;-1"
-   ,"timetosend;L;I;60;-1"};
+   ,"timetosend;L;I;60;-1"
+   //,"allowedup;L;I;60;-1"
+	 };
   
   public static ConfigBasedItemEnumerator getItemEnumerator() {
     List items = new ArrayList(basicItems.length);

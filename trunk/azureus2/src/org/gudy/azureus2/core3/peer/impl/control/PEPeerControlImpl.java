@@ -1084,7 +1084,7 @@ PEPeerControlImpl
         if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
           int upRate = 0;
           if (_finished) {
-            upRate = pc.getStats().getStatisticSentAverage();
+            upRate = pc.getStats().getUploadAverage();
             if (pc.isSnubbed())
               upRate = -1;
           }
@@ -1935,10 +1935,9 @@ PEPeerControlImpl
     
     //Use the same number of announces than unchoke
     int nbUnchoke = _manager.getStats().getMaxUploads();
-    if(superSeedModeNumberOfAnnounces >= nbUnchoke)
+    if(superSeedModeNumberOfAnnounces >= 2 * nbUnchoke)
       return;
     
-   
     
     //Find an available Peer
     PEPeer selectedPeer = null;
