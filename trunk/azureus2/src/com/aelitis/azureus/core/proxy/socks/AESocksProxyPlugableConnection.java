@@ -1,5 +1,5 @@
 /*
- * Created on 08-Dec-2004
+ * Created on 13-Dec-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,47 +20,44 @@
  *
  */
 
-package com.aelitis.azureus.core.proxy.socks.impl;
+package com.aelitis.azureus.core.proxy.socks;
 
-import com.aelitis.azureus.core.proxy.socks.*;
-import com.aelitis.azureus.core.proxy.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+
+
 
 /**
  * @author parg
  *
  */
 
-public class 
-AESocksProxyImpl 
-	implements AESocksProxy, AEProxyHandler
+public interface 
+AESocksProxyPlugableConnection 
 {
-	protected AEProxy									proxy;
-	protected AESocksProxyPlugableConnectionFactory		connection_factory;
+	public String
+	getName();
 	
-	public
-	AESocksProxyImpl(
-		int										_port,
-		long									_ct,
-		long									_rt,
-		AESocksProxyPlugableConnectionFactory	_connection_factory )
-	
-		throws AEProxyException
-	{
-		connection_factory	= _connection_factory;
-		
-		proxy = AEProxyFactory.create( _port, _ct, _rt, this );
-	}
+	public InetAddress
+	getAddress();
 	
 	public int
-	getPort()
-	{
-		return( proxy.getPort());
-	}
+	getPort();
+
+	public void
+	connect(
+		InetSocketAddress		_address )
+		
+		throws IOException;
 	
-	public AEProxyState
-	getInitialState(
-		AEProxyConnection	connection )
-	{
-		return( new AESocksProxyConnectionImpl( connection_factory, connection ).getInitialState());
-	}
+	public void
+	relayData()
+	
+		throws IOException;
+	
+	public void
+	close()
+	
+		throws IOException;
 }

@@ -41,6 +41,29 @@ AESocksProxyFactory
 	
 		throws AEProxyException
 	{
-		return( new AESocksProxyImpl( port, connect_timeout, read_timeout ));
+		return( create( port, 
+						connect_timeout,
+						read_timeout,
+						new AESocksProxyPlugableConnectionFactory()
+						{
+							public AESocksProxyPlugableConnection
+							create(
+								AESocksProxyConnection	connection )
+							{
+								return( new AESocksProxyPlugableConnectionDefault( connection ));
+							}
+						}));
+	}
+	
+	public static AESocksProxy
+	create(
+		int										port,
+		long									connect_timeout,
+		long									read_timeout,
+		AESocksProxyPlugableConnectionFactory	connection_factory )
+	
+			throws AEProxyException
+	{
+		return( new AESocksProxyImpl( port, connect_timeout, read_timeout, connection_factory ));
 	}
 }

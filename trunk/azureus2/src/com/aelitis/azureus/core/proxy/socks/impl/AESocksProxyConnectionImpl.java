@@ -28,13 +28,13 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.HostNameToIPResolverListener;
 
 import com.aelitis.azureus.core.proxy.*;
+import com.aelitis.azureus.core.proxy.socks.*;
 
 /**
  * @author parg
@@ -43,23 +43,30 @@ import com.aelitis.azureus.core.proxy.*;
 
 public class 
 AESocksProxyConnectionImpl
-	implements AEProxyConnectionListener
+	implements AESocksProxyConnection, AEProxyConnectionListener
 {
 	public static final boolean	TRACE	= false;
 	
 	protected AEProxyConnection		connection;
+	
 	protected SocketChannel			source_channel;
-	protected SocketChannel			target_channel;
+	
+	protected int					socks_version;
+	
+	protected AESocksProxyPlugableConnection	plugable_connection;
 	
 	protected
 	AESocksProxyConnectionImpl(
-		AEProxyConnection	_connection )
+		AESocksProxyPlugableConnectionFactory	_connection_factory,
+		AEProxyConnection						_connection )
 	{
 		connection	= _connection;
 		
 		connection.addListener( this );
 		
 		source_channel	= connection.getSourceChannel();
+		
+		plugable_connection	= _connection_factory.create( this );
 		
 		if ( TRACE ){
 			
@@ -71,11 +78,8 @@ AESocksProxyConnectionImpl
 	getName()
 	{
 		String	name = connection.getName();
-		
-		if ( target_channel != null ){
-			
-			name += target_channel.socket().getInetAddress() + ":" + target_channel.socket().getPort();
-		}
+					
+		name += plugable_connection.getName();
 		
 		return( name );
 	}
@@ -90,139 +94,38 @@ AESocksProxyConnectionImpl
 	connectionClosed(
 		AEProxyConnection	con )
 	{
-		if ( target_channel != null ){
+		try{
+			plugable_connection.close();
 			
-			try{
-				con.cancelReadSelect( target_channel );
-				
-				target_channel.close();
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}	
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
 	}
 	
-	protected class
-	proxyState
-		implements AEProxyState
+	public AEProxyConnection
+	getConnection()
 	{
-		protected ByteBuffer	buffer;
-
-		protected
-		proxyState()
-		{
-			if ( TRACE ){
-				
-				LGLogger.log( getName() + ":" + getStateName());
-			}
-		}
-		
-		public String
-		getStateName()
-		{
-			String	state = this.getClass().getName();
-			
-			int	pos = state.indexOf( "$");
-			
-			state = state.substring(pos+1);
-			
-			return( state );
-		}
-		
-		public final void
-		read(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			try{
-				readSupport(sc);
-				
-			}finally{
-				
-				trace();
-			}
-		}
-		
-		protected void
-		readSupport(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			throw( new IOException( "Read not supported: " + sc ));
-		}
-		
-		public final void
-		write(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			try{
-				writeSupport(sc);
-				
-			}finally{
-				
-				trace();
-			}		
-		}	
-		
-		protected void
-		writeSupport(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			throw( new IOException( "Write not supported: " + sc ));
-		}	
-		
-		public final void
-		connect(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			try{
-				connectSupport(sc);
-				
-			}finally{
-				
-				trace();
-			}
-		}	
-		
-		protected void
-		connectSupport(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			throw( new IOException( "Connect not supported: " + sc ));
-		}	
-		
-		protected void
-		trace()
-		{
-			if ( TRACE ){
-				
-				LGLogger.log( getName() + ":" + getStateName() + ", " + buffer );
-			}
-		}
+		return( connection );
 	}
 	
+	public void
+	close()
 	
+		throws IOException
+	{
+		new proxyStateClose();
+	}
 	
 	protected class
 	proxyStateVersion
-		extends proxyState
+		extends AESocksProxyState
 	{
-		
 		protected
 		proxyStateVersion()
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.setReadState( this );
 			
 			buffer	= ByteBuffer.allocate(1);
@@ -268,7 +171,7 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV4Request
-		extends proxyState
+		extends AESocksProxyState
 	{
 		boolean		got_header;
 		
@@ -278,6 +181,8 @@ AESocksProxyConnectionImpl
 		protected
 		proxyStateV4Request()
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.setReadState( this );
 
 			buffer	= ByteBuffer.allocate(7);
@@ -324,8 +229,11 @@ AESocksProxyConnectionImpl
 						new proxyStateV4aRequest( port );
 						
 					}else{
-																	
-						new proxyStateRelayConnect( new InetSocketAddress( InetAddress.getByAddress( address ), port ), 4);
+							
+						socks_version	= 4;
+						
+						plugable_connection.connect( new InetSocketAddress( InetAddress.getByAddress( address ), port ));
+						
 					}
 				}else{
 				
@@ -363,7 +271,7 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV4aRequest
-		extends proxyState
+		extends AESocksProxyState
 	{
 		protected String	dns_address;
 		protected int		port;
@@ -372,6 +280,8 @@ AESocksProxyConnectionImpl
 		proxyStateV4aRequest(
 			int		_port )
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			port		= _port;
 			dns_address	= "";
 			
@@ -423,8 +333,10 @@ AESocksProxyConnectionImpl
 							}else{
 								
 								try{
-									new proxyStateRelayConnect( new InetSocketAddress( address, port ), 4);
+									socks_version	= 4;
 									
+									plugable_connection.connect( new InetSocketAddress( address, port ));
+		
 										// re-activate the read select suspended while resolving
 									
 									connection.requestReadSelect( sc );
@@ -454,13 +366,15 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV4Reply
-		extends proxyState
+		extends AESocksProxyState
 	{
 		protected
 		proxyStateV4Reply()
 		
 			throws IOException
 		{		
+			super( AESocksProxyConnectionImpl.this );
+			
 			/*
 			+----+----+----+----+----+----+----+----+
 			| VN | CD | DSTPORT |      DSTIP        |
@@ -470,8 +384,8 @@ AESocksProxyConnectionImpl
 
 			connection.setWriteState( this );
 			
-			byte[]	addr = target_channel.socket().getInetAddress().getAddress();
-			int		port = target_channel.socket().getPort();
+			byte[]	addr = plugable_connection.getAddress().getAddress();
+			int		port = plugable_connection.getPort();
 			
 			buffer	= ByteBuffer.wrap(
 					new byte[]{	(byte)0,(byte)90,
@@ -496,7 +410,7 @@ AESocksProxyConnectionImpl
 				
 			}else{
 	
-				new proxyStateRelayData();
+				plugable_connection.relayData();
 			}
 		}
 	}
@@ -505,12 +419,14 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV5MethodNumber
-		extends proxyState
+		extends AESocksProxyState
 	{
 		
 		protected
 		proxyStateV5MethodNumber()
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.setReadState( this );
 
 			buffer	= ByteBuffer.allocate(1);
@@ -542,13 +458,15 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV5Methods
-		extends proxyState
+		extends AESocksProxyState
 	{
 		
 		protected
 		proxyStateV5Methods(
 			int		methods )
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.setReadState( this );
 
 			buffer	= ByteBuffer.allocate(methods);
@@ -578,7 +496,7 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV5MethodsReply
-		extends proxyState
+		extends AESocksProxyState
 	{
 		
 		protected
@@ -586,6 +504,8 @@ AESocksProxyConnectionImpl
 		
 			throws IOException
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			new proxyStateV5Request();
 			
 			connection.setWriteState( this );
@@ -636,12 +556,14 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV5Request
-		extends proxyState
+		extends AESocksProxyState
 	{
 		
 		protected
 		proxyStateV5Request()
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.setReadState( this );
 			
 			buffer	= ByteBuffer.allocate(4);
@@ -695,12 +617,14 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV5RequestIP
-		extends proxyState
+		extends AESocksProxyState
 	{
 		
 		protected
 		proxyStateV5RequestIP()
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.setReadState( this );
 			
 			buffer	= ByteBuffer.allocate(4);
@@ -736,13 +660,15 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV5RequestDNS
-		extends proxyState
+		extends AESocksProxyState
 	{
 		boolean	got_length	= false;
 		
 		protected
 		proxyStateV5RequestDNS()
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.setReadState( this );
 			
 			buffer	= ByteBuffer.allocate(1);
@@ -813,7 +739,7 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV5RequestPort
-		extends proxyState
+		extends AESocksProxyState
 	{
 		protected InetAddress	address;
 		
@@ -821,6 +747,8 @@ AESocksProxyConnectionImpl
 		proxyStateV5RequestPort(
 			InetAddress	_address )
 		{
+			super( AESocksProxyConnectionImpl.this );
+			
 			address	= _address;
 			
 			connection.setReadState( this );
@@ -848,69 +776,9 @@ AESocksProxyConnectionImpl
 						
 			int	port = (((int)buffer.get() & 0xff) << 8 ) + ((int)buffer.get() & 0xff);
 			
-			new proxyStateRelayConnect( new InetSocketAddress( address, port ), 5);
-		}
-	}
-	
-	protected class
-	proxyStateRelayConnect
-		extends proxyState
-	{
-		protected InetSocketAddress	address;
-		protected int				socks_version;
-		
-		protected
-		proxyStateRelayConnect(
-			InetSocketAddress	_address,
-			int					_socks_version )
-		
-			throws IOException
-		{
-			address			= _address;
-			socks_version	= _socks_version;
+			socks_version	= 5;
 			
-				// OK, we're almost ready to roll. Unregister the read select until we're 
-				// connected
-		
-			connection.cancelReadSelect( source_channel );
-
-			connection.setConnectState( this );
-			
-			target_channel = SocketChannel.open();
-			
-		    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-		    
-	        if ( bindIP.length() > 6 ){
-	        	
-	        	target_channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
-	        }
-	        
-	        target_channel.configureBlocking( false );
-	        
-	        target_channel.connect( address );
-	   
-	        connection.requestConnectSelect( target_channel );
-		}
-		
-		protected void
-		connectSupport(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			if( !sc.finishConnect()){
-				
-				throw( new IOException( "finishConnect returned false" ));
-			}
-	           
-			if( socks_version == 4 ){
-				
-				new proxyStateV4Reply();
-				
-			}else{
-				
-				new proxyStateV5Reply();
-			}
+			plugable_connection.connect( new InetSocketAddress( address, port ));
 		}
 	}
 	
@@ -948,17 +816,19 @@ AESocksProxyConnectionImpl
 	
 	protected class
 	proxyStateV5Reply
-		extends proxyState
+		extends AESocksProxyState
 	{
 		protected
 		proxyStateV5Reply()
 		
 			throws IOException
-		{					
+		{		
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.setWriteState( this );
 			
-			byte[]	addr = target_channel.socket().getLocalAddress().getAddress();
-			int		port = target_channel.socket().getLocalPort();
+			byte[]	addr = plugable_connection.getAddress().getAddress();
+			int		port = plugable_connection.getPort();
 			
 			buffer	= ByteBuffer.wrap(
 					new byte[]{(byte)5,(byte)0,(byte)0,(byte)1,
@@ -983,153 +853,38 @@ AESocksProxyConnectionImpl
 				
 			}else{
 	
-				new proxyStateRelayData();
+				plugable_connection.relayData();
 			}
 		}
 	}
 	
+	public void
+	connected()
 	
-	protected class
-	proxyStateRelayData
-		extends proxyState
+		throws IOException
 	{
-		protected ByteBuffer		source_buffer;
-		protected ByteBuffer		target_buffer;
-		
-		protected long				outward_bytes	= 0;
-		protected long				inward_bytes	= 0;
-		
-		protected
-		proxyStateRelayData()
-		
-			throws IOException
-		{				
-			source_buffer	= ByteBuffer.allocate( 1024 );
-			target_buffer	= ByteBuffer.allocate( 1024 );
+		if ( socks_version == 4 ){
 			
-			connection.setReadState( this );
+			new proxyStateV4Reply();
 			
-			connection.setWriteState( this );
+		}else{
 			
-			connection.requestReadSelect( source_channel );
-			
-			connection.requestReadSelect( target_channel );
-			
-			connection.setConnected();
-		}
-		
-		protected void
-		readSupport(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-			connection.setTimeStamp();
-			
-			SocketChannel	chan1 = sc;
-			SocketChannel	chan2 = sc==source_channel?target_channel:source_channel;
-			
-			ByteBuffer	read_buffer = sc==source_channel?source_buffer:target_buffer;
-									
-			int	len = chan1.read( read_buffer );
-	
-			if ( len == -1 ){
-				
-					//means that the channel has been shutdown
-				
-				new proxyStateClose();
-				
-			}else{
-				
-				if ( read_buffer.position() > 0 ){
-					
-					read_buffer.flip();
-					
-					int	written = chan2.write( read_buffer );
-									
-					if ( chan1 == source_channel ){
-						
-						outward_bytes += written;
-						
-					}else{
-						
-						inward_bytes += written;
-					}
-					
-					if ( read_buffer.hasRemaining()){
-						
-						connection.cancelReadSelect( chan1 );
-						
-						connection.requestWriteSelect( chan2 );
-						
-					}else{
-						
-						read_buffer.position(0);
-						
-						read_buffer.limit( read_buffer.capacity());
-					}
-				}
-			}
-		}
-		
-		protected void
-		writeSupport(
-			SocketChannel 		sc )
-		
-			throws IOException
-		{
-				// socket SX -> SY via BX
-				// so if SX = source_channel then BX is target buffer
-			
-			SocketChannel	chan1 = sc;
-			SocketChannel	chan2 = sc==source_channel?target_channel:source_channel;
-			
-			ByteBuffer	read_buffer = sc==source_channel?target_buffer:source_buffer;
-			
-			int written = chan1.write( read_buffer );
-						
-			if ( chan1 == target_channel ){
-				
-				outward_bytes += written;
-				
-			}else{
-				
-				inward_bytes += written;
-			}
-			
-			if ( read_buffer.hasRemaining()){
-								
-				connection.requestWriteSelect( chan1 );
-				
-			}else{
-				
-				read_buffer.position(0);
-				
-				read_buffer.limit( read_buffer.capacity());
-				
-				connection.requestReadSelect( chan2 );
-			}
-		}
-		
-		protected void
-		trace()
-		{
-			if ( TRACE ){
-				
-				LGLogger.log( getName() + ":" + getStateName() + "[out=" + outward_bytes +",in=" + inward_bytes +"] " + source_buffer + " / " + target_buffer );
-			}
+			new proxyStateV5Reply();
 		}
 	}
+
 	
 	protected class
 	proxyStateClose
-		extends proxyState
+		extends AESocksProxyState
 	{
 		protected
 		proxyStateClose()
 		
 			throws IOException
-		{					
+		{	
+			super( AESocksProxyConnectionImpl.this );
+			
 			connection.close();
 			
 			connection.setReadState( null);
