@@ -62,10 +62,42 @@ public class SystemProperties {
     String OS = System.getProperty("os.name").toLowerCase();
     
     if ( OS.indexOf("windows") >= 0 ) {
+    	
       String user_dir_win = null;
       
-      if ( !home_overridden ) {
+      if ( !home_overridden ){
+      		// we'd like to use APPDATA, which is on ascii systems something like
+      		// c:\documents and settings\<user>\application data
+      		// However, on non-ascii systems chars get mangled when getting APPDATA (something
+      		// to do with code pages/java encoding mismatches. SO the scheme is
+      		// 1) if the dir exists, use it
+      		// 2) if it doesn't, try and grab the last component of APPDATA and stick this
+      		//    on user.home. If this exists, use it.
+      		// 3) otherwise use the windows default
+      	
         user_dir_win = getEnvironmentalVariable( "APPDATA" );
+        
+        if ( user_dir_win != null ){
+        	
+	        if ( !new File( user_dir_win ).exists()){
+	        	
+		       	int	sp = user_dir_win.lastIndexOf( SEP );
+		        	
+		       	if ( sp == -1 ){
+		        		
+		       		user_dir_win = null;
+		       		
+		       	}else{
+		        		
+		       		user_dir_win = userhome +  user_dir_win.substring( sp );
+		       		
+		       		if ( !new File(user_dir_win).exists()){
+		       			
+		       			user_dir_win	= null;
+		       		}
+		       	}
+	        }
+        }
       }
       
       if ( user_dir_win == null || user_dir_win.length() < 1 ) {  //couldn't find env var, use default
