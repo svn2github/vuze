@@ -27,12 +27,12 @@ package org.gudy.azureus2.core3.peer.impl.transport.base;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.*;
 
 
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 
 
@@ -160,13 +160,13 @@ PEPeerTransportImpl
 	}
   
   
-	protected int readData( ByteBuffer	buffer ) throws IOException {
-		return(socket.read(buffer));
+	protected int readData( DirectByteBuffer	buffer ) throws IOException {
+		return(socket.read(buffer.buff));
 	}
   
   
-	protected int writeData( ByteBuffer	buffer ) throws IOException {
-		return(socket.write(buffer));
+	protected int writeData( DirectByteBuffer	buffer ) throws IOException {
+		return(socket.write(buffer.buff));
 	}
   
 }

@@ -31,6 +31,7 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 public interface 
@@ -183,12 +184,12 @@ PEPeerManager
 	checkBlock(
 		int 		pieceNumber, 
 		int 		offset, 
-		ByteBuffer 	data );
+		DirectByteBuffer 	data );
 	
 	public void 
 	writeBlock(
 		int 		pieceNumber, 
 		int 		offset, 
-		ByteBuffer 	data,
+		DirectByteBuffer 	data,
 		PEPeer 		sender);		
 }

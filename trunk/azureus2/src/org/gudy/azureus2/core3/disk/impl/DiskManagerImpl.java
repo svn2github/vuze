@@ -96,7 +96,7 @@ DiskManagerImpl
     
 	private	TOTorrent		torrent;
 
-	private ByteBuffer allocateAndTestBuffer;
+	private DirectByteBuffer allocateAndTestBuffer;
 	
 	private List 		writeQueue;
 	private List 		checkQueue;
@@ -123,7 +123,7 @@ DiskManagerImpl
   private PEPeerManager manager;
 	private SHA1Hasher hasher;
   private Md5Hasher md5;
-  private ByteBuffer md5Result;
+  private DirectByteBuffer md5Result;
 	private boolean bOverallContinue = true;
 	private PEPiece[] pieces;
 	private boolean alreadyMoved = false;
@@ -169,7 +169,7 @@ DiskManagerImpl
 
 		started = true;
 		md5 = new Md5Hasher();
-		md5Result = ByteBuffer.allocate(16);
+    md5Result = DirectByteBufferPool.getBuffer( 16 );
     
 		hasher = new SHA1Hasher();
     
@@ -293,13 +293,13 @@ DiskManagerImpl
 		}
 
 		//Create the ByteBuffer for checking (size : pieceLength)
-        allocateAndTestBuffer = DirectByteBufferPool.getFreeBuffer(pieceLength);
+        allocateAndTestBuffer = DirectByteBufferPool.getBuffer(pieceLength);
     
-		allocateAndTestBuffer.limit(pieceLength);
-		for (int i = 0; i < allocateAndTestBuffer.limit(); i++) {
-			allocateAndTestBuffer.put((byte)0);
+		allocateAndTestBuffer.buff.limit(pieceLength);
+		for (int i = 0; i < allocateAndTestBuffer.buff.limit(); i++) {
+			allocateAndTestBuffer.buff.put((byte)0);
 		}
-		allocateAndTestBuffer.position(0);
+		allocateAndTestBuffer.buff.position(0);
 
 		//Create the new Queue
 		
@@ -611,10 +611,10 @@ DiskManagerImpl
 	public class QueueElement {
 		private int pieceNumber;
 		private int offset;
-		private ByteBuffer data;
+		private DirectByteBuffer data;
     private PEPeer sender; 
 
-		public QueueElement(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
+		public QueueElement(int pieceNumber, int offset, DirectByteBuffer data, PEPeer sender) {
 			this.pieceNumber = pieceNumber;
 			this.offset = offset;
 			this.data = data;
@@ -629,7 +629,7 @@ DiskManagerImpl
 			return this.offset;
 		}
 
-		public ByteBuffer getData() {
+		public DirectByteBuffer getData() {
 			return this.data;
 		}
     
@@ -670,7 +670,7 @@ DiskManagerImpl
 						DiskManagerRequest request = item.getRequest();
 		
 							// temporary fix for bug 784306
-						ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+						DirectByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
 						if (buffer != null) {
 							item.setBuffer(buffer);
 						} else {
@@ -773,8 +773,6 @@ DiskManagerImpl
 							  		// worth the effort as user intervention is no doubt required to
 							  		// fix the problem 
 							  	
-							  	DirectByteBufferPool.freeBuffer(elt.getData());
-								  
 								elt.data = null;
 								  
 								stopIt();
@@ -784,9 +782,7 @@ DiskManagerImpl
 							  }
 							  
 							}else{
-								
-							  DirectByteBufferPool.freeBuffer(elt.getData());
-							  
+		  
 							  elt.data = null;
 							}
 							
@@ -839,8 +835,6 @@ DiskManagerImpl
 				global_write_queue_block_sem.release();
 				
 				QueueElement elt = (QueueElement)writeQueue.remove(0);
-				
-				DirectByteBufferPool.freeBuffer(elt.data);
 				
 				elt.data = null;
 			}
@@ -1105,11 +1099,11 @@ DiskManagerImpl
 		synchronized (file){
 			try{
 				while (written < length && bOverallContinue) {
-					allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
-					if ((length - written) < allocateAndTestBuffer.remaining())
-						allocateAndTestBuffer.limit((int) (length - written));
+					allocateAndTestBuffer.buff.limit(allocateAndTestBuffer.buff.capacity());
+					if ((length - written) < allocateAndTestBuffer.buff.remaining())
+						allocateAndTestBuffer.buff.limit((int) (length - written));
 					int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
-					allocateAndTestBuffer.position(0);
+					allocateAndTestBuffer.buff.position(0);
 					written += deltaWriten;
 					allocated += deltaWriten;
 					percentDone = (int) ((allocated * 1000) / totalLength);
@@ -1168,11 +1162,11 @@ DiskManagerImpl
         
       if (bOverallContinue == false) return false;
 
-		allocateAndTestBuffer.position(0);
+		allocateAndTestBuffer.buff.position(0);
 
 		int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
 
-		allocateAndTestBuffer.limit(length);
+		allocateAndTestBuffer.buff.limit(length);
 
 		//get the piece list
 		PieceList pieceList = pieceMap[pieceNumber];
@@ -1193,7 +1187,7 @@ DiskManagerImpl
 				}else{
 						   //too small, can't be a complete piece
 					
-					allocateAndTestBuffer.clear();
+					allocateAndTestBuffer.buff.clear();
 					
 					pieceDone[pieceNumber] = false;
 					
@@ -1209,9 +1203,9 @@ DiskManagerImpl
       
       if (bOverallContinue == false) return false;
       
-			allocateAndTestBuffer.position(0);
+			allocateAndTestBuffer.buff.position(0);
 
-			byte[] testHash = hasher.calculateHash(allocateAndTestBuffer);
+			byte[] testHash = hasher.calculateHash(allocateAndTestBuffer.buff);
 			int i = 0;
 			for (i = 0; i < 20; i++) {
 				if (testHash[i] != piecesHash[pieceNumber][i])
@@ -1584,21 +1578,21 @@ DiskManagerImpl
 		readQueueSem.release();
 	}
 
-	public ByteBuffer readBlock(int pieceNumber, int offset, int length) {
+	public DirectByteBuffer readBlock(int pieceNumber, int offset, int length) {
 
-		ByteBuffer buffer = DirectByteBufferPool.getFreeBuffer(length+13);
+		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer(length+13);
 
 		if (buffer == null) { // Fix for bug #804874
 			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
 			return null;
 		}
 
-		buffer.position(0);
-		buffer.limit(length + 13);
-		buffer.putInt(length + 9);
-		buffer.put((byte)7);
-		buffer.putInt(pieceNumber);
-		buffer.putInt(offset);
+		buffer.buff.position(0);
+		buffer.buff.limit(length + 13);
+		buffer.buff.putInt(length + 9);
+		buffer.buff.put((byte)7);
+		buffer.buff.putInt(pieceNumber);
+		buffer.buff.putInt(offset);
 
 		long previousFilesLength = 0;
 		int currentFile = 0;
@@ -1621,7 +1615,7 @@ DiskManagerImpl
 		fileOffset += offset - previousFilesLength;
 		// noError is only used for error reporting, it could probably be removed
 		boolean noError = true;
-		while (buffer.hasRemaining()
+		while (buffer.buff.hasRemaining()
 			&& currentFile < pieceList.size()
 			&& (noError = readFileInfoIntoBuffer(pieceList.get(currentFile).getFile(), buffer, fileOffset))) {
 
@@ -1649,7 +1643,7 @@ DiskManagerImpl
 			setState( FAULTY );
 		}
 
-		buffer.position(0);
+		buffer.buff.position(0);
 		return buffer;
 	}
 
@@ -1658,7 +1652,7 @@ DiskManagerImpl
 	private boolean 
 	readFileInfoIntoBuffer(
 		DiskManagerFileInfoImpl file, 
-		ByteBuffer buffer, 
+		DirectByteBuffer buffer, 
 		long offset) 
 	{
 		try{
@@ -1678,7 +1672,7 @@ DiskManagerImpl
 	writeBlock(
 		int pieceNumber, 
 		int offset, 
-		ByteBuffer data,
+		DirectByteBuffer data,
 		PEPeer sender) 
 	{		
 		global_write_queue_block_sem.reserve();
@@ -1694,7 +1688,7 @@ DiskManagerImpl
 	}
 
   
-	public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
+	public boolean checkBlock(int pieceNumber, int offset, DirectByteBuffer data) {
 		if (pieceNumber < 0) {
       LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" < 0");
 			return false;
@@ -1715,7 +1709,7 @@ DiskManagerImpl
       LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
 			return false;
     }
-		int size = data.remaining();
+		int size = data.buff.remaining();
 		if (offset + size > length) {
       LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
 			return false;
@@ -1771,8 +1765,8 @@ DiskManagerImpl
 	{
 		int pieceNumber 	= queue_entry.getPieceNumber();
 		int offset		 	= queue_entry.getOffset();
-		ByteBuffer buffer 	= queue_entry.getData();
-		int	initial_buffer_position = buffer.position();
+		DirectByteBuffer buffer 	= queue_entry.getData();
+		int	initial_buffer_position = buffer.buff.position();
 
 		PieceMapEntry current_piece = null;
 		
@@ -1790,7 +1784,7 @@ DiskManagerImpl
 			}
 	
 			//Now tempPiece points to the first file that contains data for this block
-			while (buffer.hasRemaining()) {
+			while (buffer.buff.hasRemaining()) {
 				current_piece = pieceList.get(currentFile);
 	
 				if (current_piece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
@@ -1800,27 +1794,25 @@ DiskManagerImpl
 					current_piece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
 				}
 				
-				int realLimit = buffer.limit();
+				int realLimit = buffer.buff.limit();
 					
-				long limit = buffer.position() + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
+				long limit = buffer.buff.position() + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
 	       
 				if (limit < realLimit) {
-					buffer.limit((int)limit);
+					buffer.buff.limit((int)limit);
 				}
 	
-				if ( buffer.hasRemaining() ){
+				if ( buffer.buff.hasRemaining() ){
 
 					current_piece.getFile().getFMFile().write( buffer, fileOffset + (offset - previousFilesLength));
 				}
 					
-				buffer.limit(realLimit);
+				buffer.buff.limit(realLimit);
 				
 				currentFile++;
 				fileOffset = 0;
 				previousFilesLength = offset;
 			}
-	
-			DirectByteBufferPool.freeBuffer(buffer);
 			
 			return( true );
 			
@@ -1834,7 +1826,7 @@ DiskManagerImpl
 			
 			LGLogger.logAlert( LGLogger.AT_ERROR, errorMessage );
 			
-			buffer.position(initial_buffer_position);
+			buffer.buff.position(initial_buffer_position);
 			
 			return( false );
 		}
@@ -1921,7 +1913,6 @@ DiskManagerImpl
 		}
     
     if (allocateAndTestBuffer != null) {
-      DirectByteBufferPool.freeBuffer(allocateAndTestBuffer);
       allocateAndTestBuffer = null;
     }
   }
@@ -2386,17 +2377,17 @@ DiskManagerImpl
   }
    
     
-  private byte[] computeMd5Hash(ByteBuffer buffer) {
+  private byte[] computeMd5Hash(DirectByteBuffer buffer) {
     md5.reset();
-    int position = buffer.position();
-    md5.update(buffer);
-    buffer.position(position);
-    md5Result.position(0);
-    md5.finalDigest(md5Result);
+    int position = buffer.buff.position();
+    md5.update(buffer.buff);
+    buffer.buff.position(position);
+    md5Result.buff.position(0);
+    md5.finalDigest(md5Result.buff);
     byte[] result = new byte[16];
-    md5Result.position(0);
+    md5Result.buff.position(0);
     for(int i = 0 ; i < result.length ; i++) {
-      result[i] = md5Result.get();
+      result[i] = md5Result.buff.get();
     }    
     return result;    
   }
@@ -2412,10 +2403,9 @@ DiskManagerImpl
       int length = piece.getBlockSize(i);
       PEPeer peer = writers[i];
       if(peer != null) {
-        ByteBuffer buffer = readBlock(pieceNumber,offset,length);
-        buffer.position(13);
+        DirectByteBuffer buffer = readBlock(pieceNumber,offset,length);
+        buffer.buff.position(13);
         byte[] hash = computeMd5Hash(buffer);
-        DirectByteBufferPool.freeBuffer(buffer);
         buffer = null;
         piece.addWrite(i,peer,hash,correct);        
       }

@@ -9,7 +9,6 @@
 package org.gudy.azureus2.core3.peer.impl.control;
 
 
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.net.URL;
 
@@ -1550,7 +1549,7 @@ PEPeerControlImpl
     }    
   }
 
-  public void writeBlock(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
+  public void writeBlock(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender) {
     PEPiece piece = _pieces[pieceNumber];
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
@@ -1580,7 +1579,7 @@ PEPeerControlImpl
     return _diskManager.checkBlock(pieceNumber, offset, length);
   }
 
-  public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
+  public boolean checkBlock(int pieceNumber, int offset, DirectByteBuffer data) {
     return _diskManager.checkBlock(pieceNumber, offset, data);
   }
 
@@ -1964,7 +1963,6 @@ PEPeerControlImpl
         if (item.isLoaded()) {
           requestsToFree.remove(item);
           i--;
-          DirectByteBufferPool.freeBuffer(item.getBuffer());
           item.setBuffer(null);
         }
         if (!item.isLoading()) {

@@ -83,11 +83,11 @@ PEPeerTransportProtocol
 
 		//The reference to the current ByteBuffer used for reading on the socket.
 	
-	private ByteBuffer readBuffer;
+	private DirectByteBuffer readBuffer;
 	
 		//The Buffer for reading the length of the messages
 		
-	private ByteBuffer lengthBuffer;
+	private DirectByteBuffer lengthBuffer;
 	
 		//A flag to indicate if we're reading the length or the message
 		
@@ -95,7 +95,7 @@ PEPeerTransportProtocol
 	
 		//The reference tp the current ByteBuffer used to write on the socket
 		
-	private ByteBuffer writeBuffer;
+	private DirectByteBuffer writeBuffer;
 	
 		//A flag to indicate if we're sending protocol messages or data
 		
@@ -248,7 +248,7 @@ PEPeerTransportProtocol
 	this.closing = false;
 	this.protocolQueue = new ArrayList();
 	this.dataQueue = new ArrayList();
-	this.lengthBuffer = ByteBuffer.allocate(4);
+  this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
 
 	this.allowed = 0;
 	this.used = 0;
@@ -264,21 +264,21 @@ PEPeerTransportProtocol
 	  byte[] hash = manager.getHash();
 	  byte[] myPeerId = manager.getPeerId();
 
-	  ByteBuffer bufferHandshakeS = ByteBuffer.allocate(68);
-	  bufferHandshakeS.put((byte) PROTOCOL.length()).put(protocol).put(reserved).put(hash).put(myPeerId);
+    DirectByteBuffer bufferHandshakeS = DirectByteBufferPool.getBuffer( 68 );
+	  bufferHandshakeS.buff.put((byte) PROTOCOL.length()).put(protocol).put(reserved).put(hash).put(myPeerId);
 
-	  bufferHandshakeS.position(0);
-	  bufferHandshakeS.limit(68);
+	  bufferHandshakeS.buff.position(0);
+	  bufferHandshakeS.buff.limit(68);
 	  sendProtocol(bufferHandshakeS);
-	  readBuffer = DirectByteBufferPool.getFreeBuffer(68);
+	  readBuffer = DirectByteBufferPool.getBuffer(68);
 	  if (readBuffer == null) {
 		 closeAll(ip + " : PeerSocket::handShake:: readBuffer null", true, false);
 		 return;
 	  }
-	  readBuffer.limit(68);
-	  readBuffer.position(0);
+	  readBuffer.buff.limit(68);
+	  readBuffer.buff.position(0);
 	  if ( data_already_read != null ){
-	  	readBuffer.put( data_already_read );
+	  	readBuffer.buff.put( data_already_read );
 	  }
 	}
 	catch (Exception e) {
@@ -287,22 +287,22 @@ PEPeerTransportProtocol
   }
 
   protected void handleHandShakeResponse() {
-	readBuffer.position(0);
+	readBuffer.buff.position(0);
 	//Now test for data...
 
    byte b;
-	if ((b = readBuffer.get()) != (byte) PROTOCOL.length()) {
+	if ((b = readBuffer.buff.get()) != (byte) PROTOCOL.length()) {
 	   closeAll(ip + " has sent handshake, but handshake starts with wrong byte : " + b,true, true);
 	   return;
 	}
 
 	byte[] protocol = PROTOCOL.getBytes();
-	if (readBuffer.remaining() < protocol.length) {
-	   closeAll(ip + " has sent handshake, but handshake is of wrong size : " + readBuffer.remaining(),true, true);
+	if (readBuffer.buff.remaining() < protocol.length) {
+	   closeAll(ip + " has sent handshake, but handshake is of wrong size : " + readBuffer.buff.remaining(),true, true);
 	   return;
 	}
 	else {
-	   readBuffer.get(protocol);
+	   readBuffer.buff.get(protocol);
 	   if (!(new String(protocol)).equals(PROTOCOL)) {
 		  closeAll(ip + " has sent handshake, but protocol is wrong : " + new String(protocol),true, false);
 		  return;
@@ -310,22 +310,22 @@ PEPeerTransportProtocol
 	}
 
 	byte[] reserved = new byte[8];
-	if (readBuffer.remaining() < reserved.length) {
-	   closeAll(ip + " has sent handshake, but handshake is of wrong size(2) : " + readBuffer.remaining(),true, true);
+	if (readBuffer.buff.remaining() < reserved.length) {
+	   closeAll(ip + " has sent handshake, but handshake is of wrong size(2) : " + readBuffer.buff.remaining(),true, true);
 	   return;
 	}
-	else readBuffer.get(reserved);
+	else readBuffer.buff.get(reserved);
 	//Ignores reserved bytes
 
 
 	byte[] hash = manager.getHash();
 	byte[] otherHash = new byte[20];
-	if (readBuffer.remaining() < otherHash.length) {
-	   closeAll(ip + " has sent handshake, but handshake is of wrong size(3) : " + readBuffer.remaining(),true, true);
+	if (readBuffer.buff.remaining() < otherHash.length) {
+	   closeAll(ip + " has sent handshake, but handshake is of wrong size(3) : " + readBuffer.buff.remaining(),true, true);
 	   return;
 	}
 	else {
-	   readBuffer.get(otherHash);
+	   readBuffer.buff.get(otherHash);
 	   for (int i = 0; i < 20; i++) {
 		  if (otherHash[i] != hash[i]) {
 			 closeAll(ip + " has sent handshake, but infohash is wrong",true, false);
@@ -336,11 +336,11 @@ PEPeerTransportProtocol
 
     
 	byte[] otherPeerId = new byte[20];
-	if (readBuffer.remaining() < otherPeerId.length) {
-	   closeAll(ip + " has sent handshake, but handshake is of wrong size(4) : " + readBuffer.remaining(),true, true);
+	if (readBuffer.buff.remaining() < otherPeerId.length) {
+	   closeAll(ip + " has sent handshake, but handshake is of wrong size(4) : " + readBuffer.buff.remaining(),true, true);
 	   return;
 	}
-	else readBuffer.get(otherPeerId);
+	else readBuffer.buff.get(otherPeerId);
 
   this.id = otherPeerId;
   
@@ -394,14 +394,14 @@ PEPeerTransportProtocol
 	currentState = new StateTransfering();
   }
 
-  protected void readMessage(ByteBuffer buffer) {
-	lengthBuffer.position(0);
-	if (buffer != null) buffer.position(0);
+  protected void readMessage(DirectByteBuffer buffer) {
+	lengthBuffer.buff.position(0);
+	if (buffer != null) buffer.buff.position(0);
 	readBuffer = buffer;
 	readingLength = true;
   }
 
-  protected void sendProtocol(ByteBuffer buffer) {
+  protected void sendProtocol(DirectByteBuffer buffer) {
     synchronized( protocolQueue ) {
     	protocolQueue.add(buffer);
     }
@@ -434,7 +434,6 @@ PEPeerTransportProtocol
   	
   	//release the read Buffer
   	if (readBuffer != null) {
-  		DirectByteBufferPool.freeBuffer(readBuffer);
   		readBuffer = null;
   	}
   	
@@ -442,7 +441,6 @@ PEPeerTransportProtocol
   	if (writeBuffer != null) {      
   		if (writeData) {
   			PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
-  			DirectByteBufferPool.freeBuffer(writeBuffer);
   			writeBuffer = null;
   		}
   	}
@@ -452,7 +450,6 @@ PEPeerTransportProtocol
   		for (int i = dataQueue.size() - 1; i >= 0; i--) {
   			DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
   			if (item.isLoaded()) {
-  				DirectByteBufferPool.freeBuffer(item.getBuffer());
   				item.setBuffer(null);
   			}
   			else if (item.isLoading()) {
@@ -519,7 +516,7 @@ PEPeerTransportProtocol
 		
   private class StateHandshaking implements PEPeerTransportProtocolState {
 		public synchronized int process() {
-			if (readBuffer.hasRemaining()) {
+			if (readBuffer.buff.hasRemaining()) {
 				try {
 					int read = readData(readBuffer);
           if (read == 0) {
@@ -534,7 +531,7 @@ PEPeerTransportProtocol
 				}
 			}
       
-			if (readBuffer.remaining() == 0) {
+			if (readBuffer.buff.remaining() == 0) {
 				handleHandShakeResponse();
 			}
       
@@ -554,14 +551,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       return PEPeerControl.NO_SLEEP;
           
     if (readingLength) {
-      if (lengthBuffer.hasRemaining() ) {          
+      if (lengthBuffer.buff.hasRemaining() ) {          
         try {
           int read = readData(lengthBuffer);
           
           if (read == 0) {
             //If there's nothing pending on the socket, then
             //we can quite safely send a request while we wait
-            if(lengthBuffer.remaining() == 4) {
+            if(lengthBuffer.buff.remaining() == 4) {
               readyToRequest = true;
               return PEPeerControl.WAITING_SLEEP;
             }
@@ -575,13 +572,13 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           }
         }
         catch (IOException e) {
-          closeAll(ip + " : StateTransfering::End of Stream Reached (reading length)",true, true);
+          closeAll(ip + " : StateTransfering::" + e.getMessage()+ " (reading length)",true, true);
           return PEPeerControl.NO_SLEEP;
         }
 			}
 
-			if (!lengthBuffer.hasRemaining()) {
-				int length = lengthBuffer.getInt(0);
+			if (!lengthBuffer.buff.hasRemaining()) {
+				int length = lengthBuffer.buff.getInt(0);
 		  
 				if(length < 0) {
 					closeAll(ip + " : length negative : " + length,true, true);
@@ -595,13 +592,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         
 				if (length > 0) {
 					//return old readBuffer to pool if it's too small
-					if(readBuffer != null && readBuffer.capacity() < length) {
-						DirectByteBufferPool.freeBuffer(readBuffer);
+					if(readBuffer != null && readBuffer.buff.capacity() < length) {
 						readBuffer = null;
 					}
       
 					if(readBuffer == null) {
-            readBuffer = DirectByteBufferPool.getFreeBuffer(length);
+            readBuffer = DirectByteBufferPool.getBuffer(length);
             
 						if (readBuffer == null) {				
 							closeAll(ip + " readBuffer null",true, false);
@@ -609,8 +605,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 						}
 					}
 					
-					readBuffer.position(0);
-					readBuffer.limit(length);
+					readBuffer.buff.position(0);
+					readBuffer.buff.limit(length);
           
 					//'piece' data messages are greater than length 13
           if ( length > 13 ) {
@@ -642,7 +638,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	  			throw new IOException("End of Stream Reached");
 	  		}
 	  		else  {
-        if (readBuffer.limit() > 13) {
+        if (readBuffer.buff.limit() > 13) {
 	  				stats.received(read);
         }
 	  		}
@@ -652,7 +648,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	  		return PEPeerControl.NO_SLEEP;
 	  	}
     
-	  	if (!readBuffer.hasRemaining()) {
+	  	if (!readBuffer.buff.hasRemaining()) {
 	  		//After each message has been received, we're not ready to request anymore,
 	  		//Unless we finish the socket's queue, or we start receiving a piece.
 	  		readyToRequest = false;
@@ -730,15 +726,15 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	return (!choked && interested);
   }
 
-  private void analyseBuffer(ByteBuffer buffer) {
+  private void analyseBuffer(DirectByteBuffer buffer) {
   	boolean	logging_is_on = LGLogger.isLoggingOn();
-	buffer.position(0);
+	buffer.buff.position(0);
 	int pieceNumber, pieceOffset, pieceLength;
-	byte cmd = buffer.get();
+	byte cmd = buffer.buff.get();
 	switch (cmd) {
 	  case BT_CHOKED :
-			if (buffer.limit() != 1) {
-			  closeAll(ip + " choking received, but message of wrong size : " + buffer.limit(),true, true);
+			if (buffer.buff.limit() != 1) {
+			  closeAll(ip + " choking received, but message of wrong size : " + buffer.buff.limit(),true, true);
 			  break;
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
@@ -747,8 +743,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			readMessage(readBuffer);
 			break;
 	  case BT_UNCHOKED :
-			if (buffer.limit() != 1) {
-			  closeAll(ip + " unchoking received, but message of wrong size : " + buffer.limit(),true, true);
+			if (buffer.buff.limit() != 1) {
+			  closeAll(ip + " unchoking received, but message of wrong size : " + buffer.buff.limit(),true, true);
 			  break;
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
@@ -756,8 +752,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			readMessage(readBuffer);
 			break;
 	  case BT_INTERESTED :
-			if (buffer.limit() != 1) {
-			  closeAll(ip + " interested received, but message of wrong size : " + buffer.limit(),true, true);
+			if (buffer.buff.limit() != 1) {
+			  closeAll(ip + " interested received, but message of wrong size : " + buffer.buff.limit(),true, true);
 			  break;
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
@@ -765,8 +761,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			readMessage(readBuffer);
 			break;
 	  case BT_UNINTERESTED :
-			if (buffer.limit() != 1) {
-			  closeAll(ip + " uninterested received, but message of wrong size : " + buffer.limit(),true, true);
+			if (buffer.buff.limit() != 1) {
+			  closeAll(ip + " uninterested received, but message of wrong size : " + buffer.buff.limit(),true, true);
 			  break;
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
@@ -774,30 +770,30 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			readMessage(readBuffer);
 			break;
 	  case BT_HAVE :
-			if (buffer.limit() != 5) {
-			  closeAll(ip + " have received, but message of wrong size : " + buffer.limit(),true, true);
+			if (buffer.buff.limit() != 5) {
+			  closeAll(ip + " have received, but message of wrong size : " + buffer.buff.limit(),true, true);
 			  break;
 			}
-			pieceNumber = buffer.getInt();
+			pieceNumber = buffer.buff.getInt();
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has " + pieceNumber);
 			have(pieceNumber);
 			readMessage(readBuffer);
 			break;
 	  case BT_BITFIELD :
 	  	if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " has sent BitField");
-			setBitField(buffer);
+			setBitField(buffer.buff);
 			checkInterested();
 			checkSeed();
 			readMessage(readBuffer);
 			break;
 	  case BT_REQUEST :
-			if (buffer.limit() != 13) {
-			  closeAll(ip + " request received, but message of wrong size : " + buffer.limit(),true, true);
+			if (buffer.buff.limit() != 13) {
+			  closeAll(ip + " request received, but message of wrong size : " + buffer.buff.limit(),true, true);
 			  break;
 			}
-			pieceNumber = buffer.getInt();
-			pieceOffset = buffer.getInt();
-			pieceLength = buffer.getInt();
+			pieceNumber = buffer.buff.getInt();
+			pieceOffset = buffer.buff.getInt();
+			pieceLength = buffer.buff.getInt();
 			
 			if ( logging_is_on ){
 				LGLogger.log(
@@ -839,13 +835,13 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			readMessage(readBuffer);
 			break;
 	  case BT_PIECE :
-			if (buffer.limit() < 9) {
-			   closeAll(ip + " piece block received, but message of wrong size : " + buffer.limit(),true, true);
+			if (buffer.buff.limit() < 9) {
+			   closeAll(ip + " piece block received, but message of wrong size : " + buffer.buff.limit(),true, true);
 			   break;
 			}
-			pieceNumber = buffer.getInt();
-			pieceOffset = buffer.getInt();
-			pieceLength = buffer.limit() - buffer.position();
+			pieceNumber = buffer.buff.getInt();
+			pieceOffset = buffer.buff.getInt();
+			pieceLength = buffer.buff.limit() - buffer.buff.position();
 			if ( logging_is_on ){
 				LGLogger.log(
 					componentID,
@@ -877,13 +873,13 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 			break;
 	  case BT_CANCEL :
-			if (buffer.limit() != 13) {
-			  closeAll(ip + " cancel received, but message of wrong size : " + buffer.limit(),true, true);
+			if (buffer.buff.limit() != 13) {
+			  closeAll(ip + " cancel received, but message of wrong size : " + buffer.buff.limit(),true, true);
 			  break;
 			}
-			pieceNumber = buffer.getInt();
-			pieceOffset = buffer.getInt();
-			pieceLength = buffer.getInt();
+			pieceNumber = buffer.buff.getInt();
+			pieceOffset = buffer.buff.getInt();
+			pieceLength = buffer.buff.getInt();
 			if ( logging_is_on ){
 				LGLogger.log(
 					componentID,
@@ -944,14 +940,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		  LGLogger.SENT,
 		  ip + " is asked for #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
 		addRequest( request );
-		ByteBuffer buffer = ByteBuffer.allocate(17);
-		buffer.putInt(13);
-		buffer.put(BT_REQUEST);
-		buffer.putInt(pieceNumber);
-		buffer.putInt(pieceOffset);
-		buffer.putInt(pieceLength);
-		buffer.position(0);
-		buffer.limit(17);
+    DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 17 );
+		buffer.buff.putInt(13);
+		buffer.buff.put(BT_REQUEST);
+		buffer.buff.putInt(pieceNumber);
+		buffer.buff.putInt(pieceOffset);
+		buffer.buff.putInt(pieceLength);
+		buffer.buff.position(0);
+		buffer.buff.limit(17);
 		sendProtocol(buffer);
     return true;
 	}
@@ -974,14 +970,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 				+ "->"
 				+ (request.getOffset() + request.getLength()));
 	  removeRequest(request);
-	  ByteBuffer buffer = ByteBuffer.allocate(17);
-	  buffer.putInt(13);
-	  buffer.put(BT_CANCEL);
-	  buffer.putInt(request.getPieceNumber());
-	  buffer.putInt(request.getOffset());
-	  buffer.putInt(request.getLength());
-	  buffer.position(0);
-	  buffer.limit(17);
+    DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 17 );
+	  buffer.buff.putInt(13);
+	  buffer.buff.put(BT_CANCEL);
+	  buffer.buff.putInt(request.getPieceNumber());
+	  buffer.buff.putInt(request.getOffset());
+	  buffer.buff.putInt(request.getLength());
+	  buffer.buff.position(0);
+	  buffer.buff.limit(17);
 	  sendProtocol(buffer);
 	}
   }
@@ -990,12 +986,12 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	if (getState() != TRANSFERING)
 	  return;
 	LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is notified you have " + pieceNumber);
-	ByteBuffer buffer = ByteBuffer.allocate(9);
-	buffer.putInt(5);
-	buffer.put(BT_HAVE);
-	buffer.putInt(pieceNumber);
-	buffer.position(0);
-	buffer.limit(9);
+  DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 9 );
+	buffer.buff.putInt(5);
+	buffer.buff.put(BT_HAVE);
+	buffer.buff.putInt(pieceNumber);
+	buffer.buff.position(0);
+	buffer.buff.limit(9);
 	sendProtocol(buffer);
 	checkInterested();
   }
@@ -1017,11 +1013,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   private void sendSimpleCommand(byte command) {
-	ByteBuffer buffer = ByteBuffer.allocate(5);
-	buffer.putInt(1);
-	buffer.put(command);
-	buffer.position(0);
-	buffer.limit(5);
+  DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 5 );
+	buffer.buff.putInt(1);
+	buffer.buff.put(command);
+	buffer.buff.position(0);
+	buffer.buff.limit(5);
 	sendProtocol(buffer);
   }
 
@@ -1102,7 +1098,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   if(manager.isSuperSeedMode())
     return;
   
-	ByteBuffer buffer = ByteBuffer.allocate(5 + (manager.getPiecesNumber() + 7) / 8);
+  int size = 5 + (manager.getPiecesNumber() + 7) / 8;
+  ByteBuffer buffer = ByteBuffer.allocate( size );
 	buffer.putInt(buffer.capacity() - 4);
 	buffer.put(BT_BITFIELD);
 	boolean atLeastOne = false;
@@ -1128,7 +1125,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	buffer.position(0);
 	if (atLeastOne) {
 	  buffer.limit(buffer.capacity());
-	  sendProtocol(buffer);
+	  sendProtocol(new DirectByteBuffer(buffer));
 	  LGLogger.log(componentID, evtProtocol, LGLogger.SENT, ip + " is sent your bitfield");
 	}
   }
@@ -1139,7 +1136,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(i);
     		if (item.getRequest().equals(request)) {
     			if (item.isLoaded()) {
-    				DirectByteBufferPool.freeBuffer(item.getBuffer());
     				item.setBuffer(null);
     			}
     			if (item.isLoading()) {
@@ -1162,7 +1158,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	//If we are already sending something, we simply continue
   	if (writeBuffer != null) {
   		try {
-  			int realLimit = writeBuffer.limit();
+  			int realLimit = writeBuffer.buff.limit();
   			int limit = realLimit;
   			int uploadAllowed = 0;
   			if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
@@ -1171,16 +1167,16 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   					used = 0;
   				}
   				uploadAllowed = allowed - used;
-  				limit = writeBuffer.position() + uploadAllowed;
+  				limit = writeBuffer.buff.position() + uploadAllowed;
   				if ((limit > realLimit) || (limit < 0))
   					limit = realLimit;
   			}
   			
-  			writeBuffer.limit(limit);
+  			writeBuffer.buff.limit(limit);
   			int written = writeData(writeBuffer);
   			if (written < 0)
   				throw new IOException("End of Stream Reached");
-  			writeBuffer.limit(realLimit);
+  			writeBuffer.buff.limit(realLimit);
   			
   			if (writeData) {
   				stats.sent(written);
@@ -1202,10 +1198,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   		}
   		
   		//If we have finished sending this buffer
-  		if (!writeBuffer.hasRemaining()) {
+  		if (!writeBuffer.buff.hasRemaining()) {
   			//If we were sending data, we must free the writeBuffer
   			if (writeData) {
-  				DirectByteBufferPool.freeBuffer(writeBuffer);
   				writeBuffer = null;
   				PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
   			}
@@ -1223,7 +1218,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       		waitingChokeToBeSent = false;
       		//Assign the current buffer ...
       		keepAlive = 0;
-      		writeBuffer = (ByteBuffer) protocolQueue.remove(0);
+      		writeBuffer = (DirectByteBuffer) protocolQueue.remove(0);
   			
       		if (writeBuffer == null){
       			closeAll(ip + " : Empty write Buffer on protocol message !!!",true, false);
@@ -1236,7 +1231,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       			return PEPeerControl.NO_SLEEP;
       		}
   			
-      		writeBuffer.position(0);
+      		writeBuffer.buff.position(0);
   			  writeData = false;
   			  //and loop
   			  write();
@@ -1282,7 +1277,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       					return PEPeerControl.NO_SLEEP;
       				}
       				
-      				writeBuffer.position(0);
+      				writeBuffer.buff.position(0);
       				writeData = true;
       				PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
       				// and loop
@@ -1297,7 +1292,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       			}
       			if (item.isLoaded()) {
       				dataQueue.remove(item);
-      				DirectByteBufferPool.freeBuffer(item.getBuffer());
       				item.setBuffer(null);
       			}
       			return PEPeerControl.NO_SLEEP;
@@ -1327,15 +1321,15 @@ private class StateTransfering implements PEPeerTransportProtocolState {
    * Verifies that the buffer length is correct.
    * Returns true if the buffer length is OK.
    */
-  private boolean verifyLength(ByteBuffer buffer) {
+  private boolean verifyLength(DirectByteBuffer buffer) {
     //check for a handshake message
-    if (buffer.get(0) == (byte)PROTOCOL.length()) {
+    if (buffer.buff.get(0) == (byte)PROTOCOL.length()) {
       //make sure the length is correct for a handshake
-      if (buffer.limit() != 68) {
+      if (buffer.buff.limit() != 68) {
         //make sure it isn't a normal message
-        int length =  buffer.getInt(0);
-        if (length != buffer.limit() - 4) {
-          Debug.out("PROTOCOL: givenLength=" + length + " realLength=" + buffer.limit());
+        int length =  buffer.buff.getInt(0);
+        if (length != buffer.buff.limit() - 4) {
+          Debug.out("PROTOCOL: givenLength=" + length + " realLength=" + buffer.buff.limit());
           return false;
         }
         return true; 
@@ -1343,9 +1337,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       return true;
     }
     
-    int length =  buffer.getInt(0);
-    if (length != buffer.limit() - 4) {
-      Debug.out("givenLength=" + length + " realLength=" + buffer.limit());
+    int length =  buffer.buff.getInt(0);
+    if (length != buffer.buff.limit() - 4) {
+      Debug.out("givenLength=" + length + " realLength=" + buffer.buff.limit());
       return false;
     }
     return true;
@@ -1356,10 +1350,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   private void sendKeepAlive() {
-  	ByteBuffer buffer = ByteBuffer.allocate(4);
-  	buffer.putInt(0);
-  	buffer.limit(4);
-  	buffer.position(0);
+  	DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( 4 );
+  	buffer.buff.putInt(0);
+  	buffer.buff.limit(4);
+  	buffer.buff.position(0);
   
   	synchronized( protocolQueue ) {
   		protocolQueue.add(buffer);
@@ -1436,13 +1430,13 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	
   protected abstract int
   readData(
-	  ByteBuffer	buffer )
+	  DirectByteBuffer	buffer )
 		
 	  throws IOException;
 
   protected abstract int
   writeData(
-		ByteBuffer	buffer )
+		DirectByteBuffer	buffer )
 		
 		throws IOException;
   

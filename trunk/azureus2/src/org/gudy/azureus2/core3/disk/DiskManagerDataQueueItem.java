@@ -6,6 +6,8 @@ package org.gudy.azureus2.core3.disk;
 
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
 
 /**
  * @author Olivier
@@ -18,9 +20,9 @@ DiskManagerDataQueueItem
 	
 	public boolean isLoading();
 		
-	public ByteBuffer getBuffer();
+	public DirectByteBuffer getBuffer();
   
-	public void setBuffer(ByteBuffer buffer);
+	public void setBuffer(DirectByteBuffer buffer);
 	
 	public DiskManagerRequest getRequest();
 }

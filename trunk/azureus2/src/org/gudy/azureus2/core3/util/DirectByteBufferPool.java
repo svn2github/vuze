@@ -8,6 +8,7 @@ package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.lang.ref.*;
 import java.math.*;
 
 
@@ -31,25 +32,23 @@ public class DirectByteBufferPool {
   
   public static final int MAX_SIZE = BigInteger.valueOf(2).pow(END_POWER).intValue();
   
-  private final Map buffersMap;
-  private final Object poolsLock;
+  private final Map buffersMap = new LinkedHashMap(END_POWER - START_POWER + 1);
+  private final Object poolsLock = new Object();
   private final Timer compactionTimer;
+  private final ReferenceQueue refQueue = new ReferenceQueue();
+  private final Map refMap = new HashMap();
   
   private static final long COMPACTION_CHECK_PERIOD = 10*60*1000; //10 min
   private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
   
   
   private DirectByteBufferPool() {
-    buffersMap = new LinkedHashMap(END_POWER - START_POWER + 1);
-    
     //create the buffer pool for each buffer size
     for (int p=START_POWER; p <= END_POWER; p++) {
         Integer size = new Integer(BigInteger.valueOf(2).pow(p).intValue());
         ArrayList bufferPool = new ArrayList();
         buffersMap.put(size, bufferPool);
     }
-
-    poolsLock = new Object();
     
     //initiate periodic timer to check free memory usage
     compactionTimer = new Timer("BufferPool Checker");
@@ -92,7 +91,7 @@ public class DirectByteBufferPool {
    * Retrieve a buffer from the buffer pool of size at least
    * <b>length</b>, and no larger than <b>DirectByteBufferPool.MAX_SIZE</b>
    */
-  public static ByteBuffer getFreeBuffer(final int _length) {
+  public static DirectByteBuffer getBuffer(final int _length) {
     if (_length < 1) {
         Debug.out("requested length [" +_length+ "] < 1");
         return null;
@@ -103,7 +102,7 @@ public class DirectByteBufferPool {
         return null;
     }
 
-    return pool.getBuffer(_length);
+    return pool.getBufferHelper(_length);
   }
   
   
@@ -111,7 +110,16 @@ public class DirectByteBufferPool {
    * Retrieve an appropriate buffer from the free pool, or
    * create a new one if the pool is empty.
    */
-  private ByteBuffer getBuffer(final int _length) {
+  private DirectByteBuffer getBufferHelper(final int _length) {
+    //Reclaim any unused buffers
+    Reference ref;
+    while ( (ref = refQueue.poll()) != null ) {
+      synchronized( refMap ) {
+        ByteBuffer buff = (ByteBuffer) refMap.remove( ref );
+        free( buff );
+      }
+    }
+    
     Integer reqVal = new Integer(_length);
     
     //loop through the buffer pools to find a buffer big enough
@@ -137,7 +145,14 @@ public class DirectByteBufferPool {
           }
         }
         buff.clear();   //scrub the buffer
-        return buff;
+        
+        //register it for later reclaiming
+        DirectByteBuffer dbb = new DirectByteBuffer( buff );
+        synchronized( refMap ) {
+          refMap.put( new WeakReference( dbb, refQueue ), buff );
+        }
+        
+        return dbb;
       }
     }
     
@@ -152,9 +167,9 @@ public class DirectByteBufferPool {
    * *** Remember to set the local buffer reference to
    * null after returning the buffer to the pool ***
    */
-  public static void freeBuffer(ByteBuffer _buffer) {
-    pool.free(_buffer);
-  }
+  //public static void freeBuffer(ByteBuffer _buffer) {
+  //  pool.free(_buffer);
+  //}
   
   
   /**

@@ -29,6 +29,8 @@ package org.gudy.azureus2.core3.disk.file;
 import java.io.File;
 import java.nio.ByteBuffer;
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
 
 public interface 
 FMFile 
@@ -72,7 +74,7 @@ FMFile
 	
 	public void
 	read(
-		ByteBuffer	buffer,
+		DirectByteBuffer	buffer,
 		long		offset )
 	
 		throws FMFileManagerException;
@@ -80,7 +82,7 @@ FMFile
 	
 	public int
 	write(
-		ByteBuffer	buffer,
+		DirectByteBuffer	buffer,
 		long		position )
 	
 		throws FMFileManagerException;

@@ -27,9 +27,8 @@ package org.gudy.azureus2.core3.disk.impl;
  */
  
 
-import java.nio.ByteBuffer;
-
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 
 /**
@@ -42,7 +41,7 @@ DiskManagerDataQueueItemImpl
 {
   private DiskManagerRequest request;
   
-  private ByteBuffer buffer;
+  private DirectByteBuffer buffer;
   private boolean loading;
   
   public DiskManagerDataQueueItemImpl(DiskManagerRequest request)
@@ -72,7 +71,7 @@ DiskManagerDataQueueItemImpl
   /**
    * @return
    */
-  public ByteBuffer getBuffer() {
+  public DirectByteBuffer getBuffer() {
     return buffer;
   }
 
@@ -86,7 +85,7 @@ DiskManagerDataQueueItemImpl
   /**
    * @param buffer
    */
-  public void setBuffer(ByteBuffer buffer) {
+  public void setBuffer(DirectByteBuffer buffer) {
     this.buffer = buffer;
   }
 

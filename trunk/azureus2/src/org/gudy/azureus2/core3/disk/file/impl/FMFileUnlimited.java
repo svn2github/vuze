@@ -26,10 +26,10 @@ package org.gudy.azureus2.core3.disk.file.impl;
  *
  */
 
-import java.nio.ByteBuffer;
 import java.io.File;
 
 import org.gudy.azureus2.core3.disk.file.*;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 public class 
 FMFileUnlimited
@@ -94,7 +94,7 @@ FMFileUnlimited
 	
 	public synchronized void
 	read(
-		ByteBuffer	buffer,
+		DirectByteBuffer	buffer,
 		long		offset )
 	
 		throws FMFileManagerException
@@ -105,7 +105,7 @@ FMFileUnlimited
 	
 	public synchronized int
 	write(
-		ByteBuffer	buffer,
+		DirectByteBuffer	buffer,
 		long		position )
 	
 		throws FMFileManagerException

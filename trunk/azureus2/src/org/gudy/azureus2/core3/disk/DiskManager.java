@@ -21,9 +21,9 @@
  
  package org.gudy.azureus2.core3.disk;
  
- import java.nio.ByteBuffer;
  
- import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
  
  public interface
  DiskManager
@@ -54,14 +54,14 @@
 	writeBlock(
 		int 		pieceNumber, 
 		int 		offset, 
-		ByteBuffer 	data,
+		DirectByteBuffer 	data,
     PEPeer sender);
 
 	public boolean 
 	checkBlock(
 		int 		pieceNumber, 
 		int 		offset, 
-		ByteBuffer 	data );
+		DirectByteBuffer 	data );
 
 	public boolean 
 	checkBlock(

@@ -30,7 +30,6 @@ import java.util.*;
 
 import java.io.File;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import org.gudy.azureus2.core3.util.*;
@@ -253,7 +252,7 @@ FMFileImpl
 	
 	protected void
 	readSupport(
-		ByteBuffer		buffer,
+		DirectByteBuffer		buffer,
 		long			offset )
 	
 		throws FMFileManagerException
@@ -275,9 +274,9 @@ FMFileImpl
 		try{
 			fc.position(offset);
 			
-			while (fc.position() < (fc.size() - 1) && buffer.hasRemaining()){
+			while (fc.position() < (fc.size() - 1) && buffer.buff.hasRemaining()){
 				
-				fc.read(buffer);
+				fc.read(buffer.buff);
 			}
 			
 		}catch ( Exception e ){
@@ -290,7 +289,7 @@ FMFileImpl
 	
 	protected int
 	writeSupport(
-		ByteBuffer		buffer,
+		DirectByteBuffer		buffer,
 		long			position )
 	
 		throws FMFileManagerException
@@ -308,7 +307,7 @@ FMFileImpl
 				
 				fc.position( position );
 				
-				return( fc.write(buffer));
+				return( fc.write(buffer.buff));
 				
 			}else{
 				
