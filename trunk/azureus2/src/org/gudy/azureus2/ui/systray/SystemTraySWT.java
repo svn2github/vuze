@@ -71,26 +71,26 @@ public class SystemTraySWT {
     Messages.setLanguageText(itemShow,"SystemTray.menu.show");
     
     
-    MenuItem itemSeparator = new MenuItem(menu,SWT.SEPARATOR);
+    new MenuItem(menu,SWT.SEPARATOR);
     
     final MenuItem itemCloseAll = new MenuItem(menu,SWT.NULL);
     Messages.setLanguageText(itemCloseAll,"SystemTray.menu.closealldownloadbars");
     
-    itemSeparator = new MenuItem(menu,SWT.SEPARATOR);
+    new MenuItem(menu,SWT.SEPARATOR);
     
     final MenuItem itemStartAll = new MenuItem(menu,SWT.NULL);
-    Messages.setLanguageText(itemStartAll,"SystemTray.menu.startalldownloads");
+    Messages.setLanguageText(itemStartAll,"SystemTray.menu.startalltransfers");
     
     final MenuItem itemStopAll = new MenuItem(menu,SWT.NULL);
-    Messages.setLanguageText(itemStopAll,"SystemTray.menu.stopalldownloads");
+    Messages.setLanguageText(itemStopAll,"SystemTray.menu.stopalltransfers");
     
     final MenuItem itemPause = new MenuItem(menu,SWT.NULL);
-    Messages.setLanguageText(itemPause,"SystemTray.menu.pausedownloads");
+    Messages.setLanguageText(itemPause,"SystemTray.menu.pausetransfers");
     
     final MenuItem itemResume = new MenuItem(menu,SWT.NULL);
-    Messages.setLanguageText(itemResume,"SystemTray.menu.resumedownloads");
+    Messages.setLanguageText(itemResume,"SystemTray.menu.resumetransfers");
     
-    itemSeparator = new MenuItem(menu,SWT.SEPARATOR);
+    new MenuItem(menu,SWT.SEPARATOR);
     
     final MenuItem itemExit = new MenuItem(menu,SWT.NULL);
     Messages.setLanguageText(itemExit,"SystemTray.menu.exit");

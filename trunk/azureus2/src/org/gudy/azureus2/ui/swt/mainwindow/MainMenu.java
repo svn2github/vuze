@@ -237,7 +237,7 @@ public class MainMenu {
       	// ******** The Download Menu
       
       MenuItem downloadItem = new MenuItem(menuBar, SWT.CASCADE);
-      Messages.setLanguageText(downloadItem, "MainWindow.menu.download"); //$NON-NLS-1$
+      Messages.setLanguageText(downloadItem, "MainWindow.menu.transfers"); //$NON-NLS-1$
       Menu downloadMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
       downloadItem.setMenu(downloadMenu);
 
@@ -246,16 +246,16 @@ public class MainMenu {
       // new MenuItem(fileMenu,SWT.SEPARATOR);
       
       final MenuItem itemStartAll = new MenuItem(downloadMenu,SWT.NULL);
-      Messages.setLanguageText(itemStartAll,"MainWindow.menu.download.startalldownloads");
+      Messages.setLanguageText(itemStartAll,"MainWindow.menu.transfers.startalltransfers");
       
       final MenuItem itemStopAll = new MenuItem(downloadMenu,SWT.NULL); 
-      Messages.setLanguageText(itemStopAll,"MainWindow.menu.download.stopalldownloads");
+      Messages.setLanguageText(itemStopAll,"MainWindow.menu.transfers.stopalltransfers");
 
       final MenuItem itemPause = new MenuItem(downloadMenu,SWT.NULL);
-      Messages.setLanguageText(itemPause,"MainWindow.menu.download.pausedownloads");
+      Messages.setLanguageText(itemPause,"MainWindow.menu.transfers.pausetransfers");
       
       final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL); 
-      Messages.setLanguageText(itemResume,"MainWindow.menu.download.resumedownloads");
+      Messages.setLanguageText(itemResume,"MainWindow.menu.transfers.resumetransfers");
 
       itemStartAll.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
