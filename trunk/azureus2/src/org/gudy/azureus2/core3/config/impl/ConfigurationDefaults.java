@@ -87,15 +87,7 @@ public class ConfigurationDefaults {
   ConfigurationDefaults() 
   {
     def = new HashMap();
-    
-    
-    
-    //NOTE: only used in the console UI AFAIK; replaced by "Default save path"
-    def.put("General_sDefaultSave_Directory", SystemProperties.getUserPath()+"downloads");
-    
-    
-    // Default torrent directory
-    def.put("General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
+
     
     /** Core settings **/
 
@@ -135,14 +127,11 @@ public class ConfigurationDefaults {
     def.put("Show Download Basket",new Long(0));
     def.put("config.style.refreshMT",new Long(0));
     def.put("Open Details", new Long(0));    
-    def.put("Use default data dir", new Long(0));	// default is OFF user really needs to select
-    												// their own location
-    String	default_save_path = SystemProperties.getUserPath()+"downloads";
-    File	default_save_path_file = new File( default_save_path );
-    if ( !default_save_path_file.exists()){
-    	default_save_path_file.mkdir();
-    }
-    def.put("Default save path", default_save_path );
+    
+    //default data location options
+    def.put("Use default data dir", new Long(0));	
+    def.put("Default save path", "" );
+    
     def.put("GUI_SWT_bFancyTab", new Long(1));
     def.put("GUI_SWT_bAlternateTablePainting", new Long(0));
     def.put("update.start",new Long(1));
@@ -233,7 +222,11 @@ public class ConfigurationDefaults {
     def.put( "Move Only When In Default Save Dir", new Long(1) );
     def.put( "Move Torrent When Done", new Long(1) );
     def.put( "File.save.peers.enable", new Long(1) );
+    
+    //default torrent directory option
     def.put( "Save Torrent Files", new Long(1) );
+    def.put("General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
+
     def.put( "Old.Socket.Polling.Style", new Long(0) );
     def.put( "Max Download Speed KBs", new Long(0) );
     def.put( "Bind IP", "" );

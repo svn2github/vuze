@@ -77,11 +77,7 @@ public class TorrentDownloaderFactory {
   public static void initManager(GlobalManager gm, boolean logged, boolean autostart, String downloaddir) {
     TorrentDownloaderManager.getInstance().init(gm, logged, autostart, downloaddir);
   }
-  
-  public static void initManager(GlobalManager gm, boolean logged, boolean autostart) {
-    TorrentDownloaderManager.getInstance().init(gm, logged, autostart, null);
-  }
-  
+    
   public static TorrentDownloader downloadManaged(String url, String fileordir, boolean logged) {
     return TorrentDownloaderManager.getInstance().download(url, fileordir, logged);
   }

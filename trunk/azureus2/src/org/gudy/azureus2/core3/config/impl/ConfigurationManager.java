@@ -246,13 +246,16 @@ public class ConfigurationManager {
    
   public String getDirectoryParameter(String parameter) throws IOException {
     String dir = getStringParameter(parameter);
-    File temp = new File(dir);
-    if (!temp.exists())
-      temp.mkdirs();
-    else if (!temp.isDirectory()) {
-      throw new IOException(
-      "Configuration error. This is not a directory: " + dir);
+    
+    if( dir.length() > 0 ) {
+      File temp = new File(dir);
+      if (!temp.exists())
+        temp.mkdirs();
+      else if (!temp.isDirectory()) {
+        throw new IOException("Configuration error. This is not a directory: " + dir);
+      }
     }
+
     return dir;
   }
   

@@ -33,7 +33,7 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
     
     public TorrentDownloaderManager() {
         try {
-            downloaddir = COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory");
+            downloaddir = COConfigurationManager.getDirectoryParameter("Default save path");
         } catch (Exception e) {
             //this.error = e.getMessage();
             downloaddir = null;
