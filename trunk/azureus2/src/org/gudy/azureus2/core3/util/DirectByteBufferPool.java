@@ -69,10 +69,10 @@ public class DirectByteBufferPool {
     
     Timer printer = new Timer("printer");
     printer.addPeriodicEvent(
-        20*1000,
+        60*1000,
         new TimerEventPerformer() {
           public void perform( TimerEvent ev ) {
-            System.out.println("Out=" +bytesOut/1024/1024+ ", In=" +bytesIn/1024/1024+ ", diff=" +(bytesOut-bytesIn)/1024/1024);
+            //System.out.println("Out=" +bytesOut/1024/1024+ ", In=" +bytesIn/1024/1024+ ", diff=" +(bytesOut-bytesIn)/1024/1024);
           }
         }
      );
@@ -337,14 +337,14 @@ public class DirectByteBufferPool {
       synchronized( refs ) {
         returned = ((Boolean)refs.remove( ref )).booleanValue();
         if ( !returned ) {
-          System.out.print("not returned");
+          //System.out.print(new Date(System.currentTimeMillis())+ ": not returned");
         }
       }
       synchronized( refMap ) {
         ByteBuffer buff = (ByteBuffer) refMap.remove( ref );
         bytesIn += buff.capacity();
         if ( !returned ) {
-          System.out.println(" ["+buff.limit()+"]["+buff.capacity()+"]");
+          //System.out.println(" ["+buff.limit()+"]["+buff.capacity()+"]");
         }
         free( buff );
       }

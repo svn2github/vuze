@@ -247,7 +247,6 @@ PEPeerTransportProtocol
 
   	this.closing = false;
   	//TODO
-  	//this.lengthBuffer = ByteBuffer.allocate( 4 );
   	this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
 
   	this.allowed = 0;
