@@ -27,24 +27,91 @@ package org.gudy.azureus2.plugins;
  */
 public interface PluginConfig {  
 
-  //TODO : Add proper documentation for javadoc  
-  
-  //Azureus's parameters accessor
+  /**
+   * returns the value of a core int parameter
+   * @param key the parameter name
+   * @return the value of the parameter
+   */
   public int getIntParameter(String key);
+  
+  /**
+   * returns the value of a core String parameter
+   * @param key the parameter name
+   * @return the value of the parameter
+   */
   public String getStringParameter(String key);
+  
+  /**
+   * returns the value of a core boolean parameter
+   * @param key the parameter name
+   * @return the value of the parameter
+   */
   public boolean getBooleanParameter(String key);
   
-  //Plugin specific parameters
+  /**
+   * returns the value of a plugin int parameter
+   * @param key the parameter name
+   * @return the value or 0 if the parameter doesn't exist
+   */
   public int getPluginIntParameter(String key);
+  
+  /**
+   * returns the value of a plugin int parameter
+   * @param key the parameter name
+   * @param defaultValue the parameter default value
+   * @return the value of defaultValue if the parameter doesn't exist
+   */
   public int getPluginIntParameter(String key,int defaultValue);
   
+  /**
+   * returns the value of a plugin String parameter
+   * @param key the parameter name
+   * @return the value or an empty String if the parameter doesn't exist
+   */
   public String getPluginStringParameter(String key);
+  
+  /**
+   * returns the value of a plugin String parameter
+   * @param key the parameter name
+   * @param defaultValue the parameter default value
+   * @return the value of defaultValue if the parameter doesn't exist
+   */
   public String getPluginStringParameter(String key,String defaultValue);
-    
+  
+  /**
+   * returns the value of a plugin boolean parameter
+   * @param key the parameter name
+   * @return the value or false if the parameter doesn't exist
+   */
   public boolean getPluginBooleanParameter(String key);
+  
+  /**
+   * returns the value of a plugin boolean parameter
+   * @param key the parameter name
+   * @param defaultValue the parameter default value
+   * @return the value of defaultValue if the parameter doesn't exist
+   */
   public boolean getPluginBooleanParameter(String key,boolean defaultValue);
     
+  /**
+   * sets a plugin int parameter value
+   * @param key the parameter name
+   * @param value the parameter value
+   */
   public void setPluginParameter(String key,int value);
+  
+  /**
+   * sets a plugin String parameter value
+   * @param key the parameter name
+   * @param value the parameter value
+   */
   public void setPluginParameter(String key,String value);
-  public void setPluginParameter(String key,boolean value);  
+  
+  /**
+   * sets a plugin boolean parameter value
+   * @param key the parameter name
+   * @param value the parameter value
+   */
+  public void setPluginParameter(String key,boolean value);
+  
 }

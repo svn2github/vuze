@@ -42,52 +42,57 @@ public interface PluginInterface {
   public void addView(PluginView view);
   
   /**
-   * TODO: write this
-   * @param fileName
+   * adds a tab under the 'plugins' tab in the config view.<br>
+   * @param parameters the Parameter(s) to be edited
+   * @param displayName the under which it should display.<br>
+   * Azureus will look-up for ConfigView.plugins.displayName into the lang files
+   * in order to find the localized displayName. (see i18n)
    */
-  public void addConfigUIParameters(Parameter parameters[], String displayName);
+  public void addConfigUIParameters(Parameter[] parameters, String displayName);
   
   /**
-   * 
-   * @param columnName
-   * @param item
+   * adds a column to the peers table.<br>
+   * @param columnName the key name of the column
+   * @param factory the factory responsible of creating items.
+   * Azureus will look-up for PeersView.columnName into the lang files
+   * in order to find the localized displayName. (see i18n)
    */
-  public void addColumnToPeersTable(String columnName,PluginPeerItemFactory item);
+  public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
   
   /**
-   * A Plugin might ask Azureus to open a Torrent file
+   * opens a torrent file given its name
    * @param fileName The Name of the file that azureus must open
    */
   public void openTorrentFile(String fileName);
   
   /**
-   * A Plugin might ask Azureus to open an URL pointing to a torrent
+   * opens a torrent file given the url it's at
    * @param url The String representation of the url pointing to a torrent file
    */
   public void openTorrentURL(String url);
   
   /**
-   * An access to the plugin properties
+   * gives access to the plugin properties
    * @return the properties from the file plugin.properties
    */
   public Properties getPluginProperties();
   
   /**
-   * An access to the plugin installation directory
+   * gives access to the plugin installation path
    * @return the full path the plugin is installed in
    */
   public String getPluginDirectoryName();
   
   /**
-   * An access to the plugin Config
-   * @return TODO: write this
+   * gives access to the plugin config interface
+   * @return the PluginConfig object associated with this plugin
    */
   public PluginConfig getPluginconfig();
   
   
   /**
-   * TODO : write this
-   * @return
+   * gives acess to the plugin Config UI Factory
+   * @return the PluginConfigUIFactory associated with this plugin
    */
   public PluginConfigUIFactory getPluginConfigUIFactory();
 }
