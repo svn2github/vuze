@@ -1,6 +1,15 @@
 CHANGELOG
 ---------
 
+xx.xx.04 | Azureus 2.0.8.5
+
+FEATURE: 
+
+CHANGE: 
+
+BUGFIX: 
+
+
 
 16.03.04 | Azureus 2.0.8.4
 
