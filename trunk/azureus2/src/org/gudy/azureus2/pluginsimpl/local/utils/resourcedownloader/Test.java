@@ -46,7 +46,7 @@ Test
 		try{
 			ResourceDownloaderFactory	rdf = pi.getUtilities().getResourceDownloaderFactory();
 			
-			ResourceDownloader rd_t = rdf.create(new URL("http://play.aelitis.com/torrents/Azureus2201-B22.jar.torrent"));
+			// ResourceDownloader rd_t = rdf.create(new URL("http://play.aelitis.com/torrents/Azureus2201-B22.jar.torrent"));
 			
 			//rd_t = rdf.getMetaRefreshDownloader(rd_t);
 			
@@ -54,15 +54,19 @@ Test
 			
 			//rd_t = rdf.getTimeoutDownloader(rd_t,1000);
 			
-			rd_t = rdf.getTorrentDownloader(rd_t, true, new File("C:\\temp"));
+			//rd_t = rdf.getTorrentDownloader(rd_t, true, new File("C:\\temp"));
 
-			ResourceDownloader rd_u = rdf.create(new URL("http://azureus.sourceforge.net/cvs/Azureus2201-B22.jar"));
+			//ResourceDownloader rd_u = rdf.create(new URL("http://azureus.sourceforge.net/cvs/Azureus2201-B22.jar"));
 			
 			//rd_u = rdf.getMetaRefreshDownloader(rd_u);
 			
-			rd_u = rdf.getRetryDownloader(rd_u, 3);
+			//rd_u = rdf.getRetryDownloader(rd_u, 3);
 			
-			rd_u = rdf.getSuffixBasedDownloader(rd_u);
+			//rd_u = rdf.getSuffixBasedDownloader(rd_u);
+
+			ResourceDownloader rd_u = rdf.create( new URL( "http://12.7.123.37:6969/announcetorrents/MalloyShow-%282004-Dec-13%29.mp3.torrent?3F1ADFDA9F5DD232051B912693E0E23B965CAF4C" ));
+			
+		
 
 			rd_u.addListener(
 					new ResourceDownloaderListener()
@@ -103,7 +107,9 @@ Test
 				        }
 				    });
 
+			rd_u.download();
 
+			/*
 			ResourceDownloader top_downloader =
 				rdf.getAlternateDownloader(
 						new ResourceDownloader[]{rd_t,rd_u,});
@@ -150,7 +156,8 @@ Test
 			    });
 					
 			top_downloader.asyncDownload();
-
+				*/
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );

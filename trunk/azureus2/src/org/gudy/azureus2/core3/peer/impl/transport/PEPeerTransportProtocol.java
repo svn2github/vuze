@@ -519,7 +519,7 @@ PEPeerTransportProtocol
                 
                 try{
                 	
-                	byte[]	ip_bytes = InetAddress.getByName(ip).getAddress();
+                	byte[]	ip_bytes = HostNameToIPResolver.syncResolve(ip).getAddress();
                 
 	                socks_out.put(ip_bytes[0]);
 	                socks_out.put(ip_bytes[1]);
@@ -607,7 +607,7 @@ PEPeerTransportProtocol
   	    			                	
 	                try{
 	                	
-	                	byte[]	ip_bytes = InetAddress.getByName(mapped_ip).getAddress();
+	                	byte[]	ip_bytes = HostNameToIPResolver.syncResolve(mapped_ip).getAddress();
 	                
      	    			socks_out.put((byte)1);				// IP4			
 

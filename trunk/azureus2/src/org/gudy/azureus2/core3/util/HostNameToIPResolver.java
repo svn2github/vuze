@@ -43,6 +43,22 @@ HostNameToIPResolver
 
 	static protected AESemaphore	request_semaphore	= new AESemaphore("HostNameToIPResolver");
 	
+	public static InetAddress
+	syncResolve(
+		String	host )
+	
+		throws UnknownHostException
+	{
+		String	lc_host	 = host.toLowerCase();
+		
+		if ( lc_host.endsWith(".i2p" ) || lc_host.endsWith( ".onion" )){
+			
+			throw( new HostNameToIPResolverException( "non-DNS name '" + host + "'", true ));
+		}
+		
+		return( InetAddress.getByName( host));	
+	}
+	
 	public static void
 	addResolverRequest(
 		String							host,
@@ -94,7 +110,7 @@ HostNameToIPResolver
 									}
 									
 									try{
-										InetAddress addr = InetAddress.getByName( req.getHost());
+										InetAddress addr = syncResolve( req.getHost());
 										
 										req.getListener().hostNameResolutionComplete( addr );
 											

@@ -39,7 +39,7 @@ PRHelpers
 	
 		throws UnknownHostException
 	{
-		InetAddress i_address = InetAddress.getByName(address);
+		InetAddress i_address = HostNameToIPResolver.syncResolve(address);
 		
 		byte[]	bytes = i_address.getAddress();
 		
@@ -81,7 +81,7 @@ PRHelpers
 	
 		throws UnknownHostException
 	{
-		InetAddress i_address = InetAddress.getByName(address);
+		InetAddress i_address = HostNameToIPResolver.syncResolve(address);
 		
 		byte[]	bytes = i_address.getAddress();
 	
@@ -94,6 +94,6 @@ PRHelpers
 	
 		throws UnknownHostException
 	{
-		return( InetAddress.getByName(dns_name).getHostAddress());
+		return( HostNameToIPResolver.syncResolve(dns_name).getHostAddress());
 	}
 }

@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.proxy.socks.impl;
 import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyAddress;
 
@@ -96,7 +97,7 @@ AESocksProxyAddressImpl
 			if ( ok && dots == 3 ){
 			
 				try{
-					address = InetAddress.getByName( unresolved_address );
+					address = HostNameToIPResolver.syncResolve( unresolved_address );
 					
 				}catch( Throwable e ){
 					
