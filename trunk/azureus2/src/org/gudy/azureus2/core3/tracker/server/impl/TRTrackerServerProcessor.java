@@ -72,7 +72,7 @@ TRTrackerServerProcessor
 				}
 			}
 	
-			System.out.println( "got header:" + header );
+			// System.out.println( "got header:" + header );
 			
 			if ( !header.startsWith( "GET " )){
 				

@@ -39,4 +39,7 @@ TRTrackerClientListener
 	urlChanged(
 		String		url,
 		boolean		explicit );
+		
+	public void
+	urlRefresh();
 }

@@ -150,6 +150,11 @@ DownloadManagerImpl
 	}
     
 	try{
+		if ( tracker_client != null ){
+			
+			tracker_client.destroy();
+		}
+		
 		tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
     
 		tracker_client.addListener( this );
@@ -316,6 +321,8 @@ DownloadManagerImpl
 		
 			tracker_client.removeListener( DownloadManagerImpl.this );
 	
+			tracker_client.destroy();
+			
 			tracker_client = null;
 		}
 		
@@ -367,6 +374,11 @@ DownloadManagerImpl
   	}
   }
   
+  public void
+  urlRefresh()
+  {
+  	checkTracker( true );
+  }
   /**
    * @return
    */

@@ -68,6 +68,17 @@ TRTrackerClient
 	stop();
 	
 	public void
+	destroy();
+	
+	/**
+	 * This method forces all listeners to get an explicit "urlChanged" event to get them
+	 * to re-examine the tracker
+	 */
+	
+	public void
+	refreshListeners();
+	
+	public void
 	addListener(
 		TRTrackerClientListener	l );
 		

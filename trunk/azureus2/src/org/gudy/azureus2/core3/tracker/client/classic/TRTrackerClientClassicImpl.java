@@ -464,8 +464,21 @@ TRTrackerClientClassicImpl
   resetTrackerUrl()
   {
 	constructTrackerUrlLists();
-  }
+ 	
+	if ( trackerUrlLists.size() == 0 ){
+		
+		return;
+	}
 	
+	informURLChange((String)((List)trackerUrlLists.get(0)).get(0), true );       	
+ }
+	
+  public void
+  refreshListeners()
+  {
+  	informURLRefresh();
+  }
+
   public void
   setIPOverride(
 	  String		override )
@@ -676,7 +689,7 @@ TRTrackerClientClassicImpl
 		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60, failure_reason ));
   	}
   	
-  	protected synchronized void
+	protected synchronized void
 	informURLChange(
 		String	url,
 		boolean	explicit  )
@@ -684,6 +697,15 @@ TRTrackerClientClassicImpl
 		for (int i=0;i<listeners.size();i++){
 			
 			((TRTrackerClientListener)listeners.elementAt(i)).urlChanged( url, explicit );
+		}
+	}
+	
+	protected synchronized void
+	informURLRefresh()
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRTrackerClientListener)listeners.elementAt(i)).urlRefresh();
 		}
 	}
 	
@@ -699,5 +721,11 @@ TRTrackerClientClassicImpl
 		TRTrackerClientListener	l )
 	{
 		listeners.removeElement(l);
+	}
+	
+	public void
+	destroy()
+	{
+		TRTrackerClientFactoryImpl.destroy( this );
 	}
 }

@@ -34,8 +34,21 @@ TRTrackerClientFactory
 		int				port )
 		
 		throws TRTrackerClientException
-
 	{
-		return( new TRTrackerClientClassicImpl( torrent, port ));
+		return( TRTrackerClientFactoryImpl.create( torrent, port ));
+	}
+	
+	public static void
+	addListener(
+		TRTrackerClientFactoryListener	l )
+	{
+		TRTrackerClientFactoryImpl.addListener(l);	
+	}
+		
+	public static void
+	removeListener(
+		TRTrackerClientFactoryListener	l )
+	{
+		TRTrackerClientFactoryImpl.removeListener(l);	
 	}
 }

@@ -535,22 +535,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 		 
 			 DownloadManager dm = (DownloadManager) managers.get(ti);
 		 	
-		 		// hack for the moment...
-		 		
-		 	 TRTrackerClient tc = dm.getTrackerClient();
-		 	 
-		 	 if ( tc != null ){	 	
+			 TOTorrent	torrent = dm.getTorrent();
 			 
-				TRHostFactory.create().addTorrent( tc );
-		 	 	
-		 	 }else{
-		 	 
-				 TOTorrent	torrent = dm.getTorrent();
+			 if ( torrent != null ){
 			 
-				 if ( torrent != null ){
-			 
-			 		TRHostFactory.create().addTorrent( torrent );
-				 } 
+				TRHostFactory.create().addTorrent( torrent );
 		 	 }
 		 }
 		 

@@ -69,6 +69,8 @@ TRHostTorrentImpl
 		
 			status = TS_STARTED;
 			
+			host.hostTorrentStateChange( this );
+			
 		}catch( TOTorrentException e ){
 			
 			e.printStackTrace();
@@ -83,6 +85,8 @@ TRHostTorrentImpl
 			server.deny( torrent.getHash());
 		
 			status = TS_STOPPED;
+	
+			host.hostTorrentStateChange( this );
 			
 		}catch( TOTorrentException e ){
 			

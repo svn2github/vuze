@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.torrent.*;
 
 public class 
 TRHostImpl
-	implements TRHost 
+	implements TRHost, TRTrackerClientFactoryListener 
 {
 	public static final int RETRY_DELAY 	= 120;	// seconds
 	public static final int DEFAULT_PORT	= 80;	// port to use if none in announce URL
@@ -44,9 +44,12 @@ TRHostImpl
 	
 	protected Hashtable	server_map 	= new Hashtable();
 	
-	protected List	torrents	= new ArrayList();
+	protected List	host_torrents		= new ArrayList();
 	
-	protected List	listeners	= new ArrayList();
+	protected Map	host_torrent_map	= new HashMap();
+	protected Map	tracker_client_map	= new HashMap();
+	
+	protected List	listeners			= new ArrayList();
 	
 	public static synchronized TRHost
 	create()
@@ -59,62 +62,26 @@ TRHostImpl
 		return( singleton );
 	}
 	
-	public void
-	addTorrent(
-		TRTrackerClient	tracker_client )
-	{
-		TOTorrent	torrent = tracker_client.getTorrent();	
-		
-		TRHostTorrentImpl	ht = addTorrentSupport( torrent );
-		
-		if ( ht == null ){
-			
-			return;
-		}
-		
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-
-		String	url = "http://";
-		
-		if ( bind_ip.length() < 7 ){
-				
-			url += "127.0.0.1";
-				
-		}else{
-				
-			url += bind_ip;
-		}
-
-			// set the ip override so that we announce ourselves to other peers via the 
-			// real external address, not the local one used to connect to the tracker 
-			
-		tracker_client.setIPOverride( ht.getTorrent().getAnnounceURL().getHost());
-		
-		tracker_client.setTrackerUrl(url + ":" + ht.getPort() + "/announce");	
-		
-		ht.start();
+	protected
+	TRHostImpl()
+	{			
+		TRTrackerClientFactory.addListener( this );
 	}
+	
 
 	public synchronized void
 	addTorrent(
 		TOTorrent		torrent )
 	{
-		addTorrentSupport( torrent );
-	}
-	
-	protected synchronized TRHostTorrentImpl
-	addTorrentSupport(
-			TOTorrent		torrent )
-	{
-		for (int i=0;i<torrents.size();i++){
+		for (int i=0;i<host_torrents.size();i++){
 			
-			TRHostTorrent	ht = (TRHostTorrent)torrents.get(i);
+			TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
 			
 			if ( ht.getTorrent() == torrent ){
 		
 					// already there
 							
-				return( null );
+				return;
 			}
 		}
 		
@@ -143,36 +110,176 @@ TRHostImpl
 		
 		TRHostTorrentImpl host_torrent = new TRHostTorrentImpl( this, server, torrent, port );
 		
-		torrents.add( host_torrent );
+		host_torrents.add( host_torrent );
+		host_torrent_map.put( torrent, host_torrent );
 		
+		startHosting( host_torrent );
+		
+			// start off running
+					
+		host_torrent.start();
+
 		for (int i=0;i<listeners.size();i++){
 			
 			((TRHostListener)listeners.get(i)).torrentAdded( host_torrent );
 		}
-		
-		return( host_torrent );
 	}
 	
+	protected void
+	startHosting(
+		TRHostTorrentImpl	host_torrent )
+	{
+		TOTorrent	torrent = host_torrent.getTorrent();
+		
+		TRTrackerClient tc = (TRTrackerClient)tracker_client_map.get( torrent );
+		
+		if ( tc != null ){
+			
+			startHosting( host_torrent, tc );
+		}
+	}
+	
+	protected void
+	startHosting(
+		TRTrackerClient	tracker_client )
+	{
+		TRHostTorrentImpl	host_torrent = (TRHostTorrentImpl)host_torrent_map.get( tracker_client.getTorrent());
+			
+		if ( host_torrent != null ){
+			
+			startHosting( host_torrent, tracker_client );
+		}
+	}
+	
+	protected void
+	startHosting(
+		TRHostTorrentImpl	host_torrent,
+		TRTrackerClient 	tracker_client )
+	{
+		TOTorrent	torrent = host_torrent.getTorrent();	
+				
+		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
+
+		String	url = "http://";
+		
+		if ( bind_ip.length() < 7 ){
+				
+			url += "127.0.0.1";
+				
+		}else{
+				
+			url += bind_ip;
+		}
+
+			// set the ip override so that we announce ourselves to other peers via the 
+			// real external address, not the local one used to connect to the tracker 
+			
+		tracker_client.setIPOverride( torrent.getAnnounceURL().getHost());
+		
+		tracker_client.setTrackerUrl(url + ":" + host_torrent.getPort() + "/announce");	
+	}
+
 	protected synchronized void
 	remove(
 		TRHostTorrent	host_torrent )
 	{
-		torrents.remove( host_torrent );
-		
-		for (int i=0;i<listeners.size();i++){
+		if ( !host_torrents.contains( host_torrent )){
 			
-			((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
+			return;
+		}
+		
+		host_torrents.remove( host_torrent );
+		host_torrent_map.remove( host_torrent.getTorrent());
+		
+		if ( host_torrent != null ){
+			
+			stopHosting((TRHostTorrentImpl)host_torrent );
+			
+			for (int i=0;i<listeners.size();i++){
+			
+				((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
+			}
 		}		
+	}
+	
+	protected void
+	stopHosting(
+		TRHostTorrentImpl	host_torrent )
+	{
+		TOTorrent	torrent = host_torrent.getTorrent();
+		
+		TRTrackerClient tc = (TRTrackerClient)tracker_client_map.get( torrent );
+		
+		if ( tc != null ){
+			
+			stopHosting( host_torrent, tc );
+		}
+	}
+	
+	protected void
+	stopHosting(
+		TRTrackerClient	tracker_client )
+	{
+		TRHostTorrentImpl	host_torrent = (TRHostTorrentImpl)host_torrent_map.get( tracker_client.getTorrent());
+			
+		if ( host_torrent != null ){
+			
+			stopHosting( host_torrent, tracker_client );
+		}
+	}
+	
+	protected void
+	stopHosting(
+		TRHostTorrentImpl	host_torrent,
+		TRTrackerClient 	tracker_client )
+	{
+		TOTorrent	torrent = host_torrent.getTorrent();	
+						
+		tracker_client.clearIPOverride();
+		
+		tracker_client.resetTrackerUrl();	
+	}
+	
+	protected synchronized void
+	hostTorrentStateChange(
+		TRHostTorrentImpl host_torrent )
+	{
+		TOTorrent	torrent = host_torrent.getTorrent();
+		
+		TRTrackerClient tc = (TRTrackerClient)tracker_client_map.get( torrent );
+		
+		if ( tc != null ){
+			
+			tc.refreshListeners();
+		}			
 	}
 	
 	public synchronized TRHostTorrent[]
 	getTorrents()
 	{
-		TRHostTorrent[]	res = new TRHostTorrent[torrents.size()];
+		TRHostTorrent[]	res = new TRHostTorrent[host_torrents.size()];
 		
-		torrents.toArray( res );
+		host_torrents.toArray( res );
 		
 		return( res );
+	}
+	
+	public synchronized void
+	clientCreated(
+		TRTrackerClient		client )
+	{
+		tracker_client_map.put( client.getTorrent(), client );
+		
+		startHosting( client );
+	}
+	
+	public synchronized void
+	clientDestroyed(
+		TRTrackerClient		client )
+	{
+		tracker_client_map.remove( client.getTorrent());
+		
+		stopHosting( client );
 	}
 	
 	public synchronized void
@@ -181,9 +288,9 @@ TRHostImpl
 	{
 		listeners.add( l );
 		
-		for (int i=0;i<torrents.size();i++){
+		for (int i=0;i<host_torrents.size();i++){
 			
-			l.torrentAdded((TRHostTorrent)torrents.get(i));
+			l.torrentAdded((TRHostTorrent)host_torrents.get(i));
 		}
 	}
 		
