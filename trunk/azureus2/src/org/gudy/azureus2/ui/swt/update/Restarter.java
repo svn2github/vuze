@@ -68,8 +68,16 @@ public class Restarter {
                     + "bin"
                     + System.getProperty("file.separator");
     
+    String libraryPath = System.getProperty("java.library.path");
+    
+    if ( libraryPath == null ){
+    	libraryPath	= "";
+    }else if ( libraryPath.length() > 0 ){
+    	libraryPath = "-Djava.library.path=\"" + libraryPath + "\" ";
+    }
+    
     String exec = "\"" + javaPath + "javaw\" -classpath \"" + classPath
-    + "\" " + mainClass;
+    + "\" " + libraryPath + mainClass;
     
     exec = addParameters( exec );
     

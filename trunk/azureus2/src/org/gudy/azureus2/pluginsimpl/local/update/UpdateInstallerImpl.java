@@ -37,6 +37,8 @@ public class
 UpdateInstallerImpl
 	implements UpdateInstaller
 {
+		// change these and you'll need to change the Updater!!!!
+	
 	protected static final String	UPDATE_DIR 	= "updates";
 	protected static final String	ACTIONS		= "install.act";
 	
@@ -49,7 +51,10 @@ UpdateInstallerImpl
 	{
 		synchronized( UpdateInstallerImpl.class){
 			
-			String	update_dir = getInstallDir() + File.separator + UPDATE_DIR;
+				// updates are in general user-specific (e.g. plugin updates) so store here
+				// obviously core ones will affect all users
+			
+			String	update_dir = getUserDir() + File.separator + UPDATE_DIR;
 			
 			for (int i=1;i<1024;i++){
 				
