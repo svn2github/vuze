@@ -416,6 +416,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     GridData advanced_grid_data;
     
     final IntParameter mtu_size = new IntParameter( advanced_group, "network.tcp.mtu.size" );
+    mtu_size.setMaximumValue(512*1024);
     advanced_grid_data = new GridData();
     advanced_grid_data.widthHint = 40;
     mtu_size.setLayoutData( advanced_grid_data );
