@@ -713,8 +713,7 @@ DHTControlImpl
 												}
 											}else{
 												
-												DHTLog.log( "    already queried: " + DHTLog.getString( contact ));
-												
+												// DHTLog.log( "    already queried: " + DHTLog.getString( contact ));
 											}
 										}
 									}

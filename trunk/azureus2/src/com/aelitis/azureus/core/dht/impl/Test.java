@@ -47,27 +47,29 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 public class 
 Test 
 {
-	static boolean	AELITIS_TEST	= false;
+	static boolean	AELITIS_TEST	= true;
 	static InetSocketAddress	AELITIS_ADDRESS = new InetSocketAddress("213.186.46.164", 6881);
 	
-	static int	num_dhts	= 10;
-	static int	num_stores	= 10;
+	static int num_dhts		= 1;
+	static int num_stores	= 0;
+	static int MAX_VALUES	= 10000;
+	
 	static boolean	udp_protocol	= true;
 	static int		udp_timeout		= 1000;
 	
 
-	static int		K			= 5;
+	static int		K			= 20;
 	static int		B			= 1;
-	static int		ID_BYTES	= 4;
+	static int		ID_BYTES	= 20;
 	
 	static int		fail_percentage	= 00;
 	
 	static Properties	dht_props = new Properties();
 
 	static{
-		dht_props.put( DHT.PR_CONTACTS_PER_NODE, new Integer(5));
-		dht_props.put( DHT.PR_NODE_SPLIT_FACTOR, new Integer(1));
-		dht_props.put( DHT.PR_MAX_VALUES_STORED, new Integer(1000));
+		dht_props.put( DHT.PR_CONTACTS_PER_NODE, new Integer(K));
+		dht_props.put( DHT.PR_NODE_SPLIT_FACTOR, new Integer(B));
+		dht_props.put( DHT.PR_MAX_VALUES_STORED, new Integer(MAX_VALUES));
 	}
 	
 	static Map	check = new HashMap();
@@ -266,9 +268,12 @@ Test
 					perform(
 						TimerEvent event) 
 					{
-						DHTTransportStats stats = DHTTransportLoopbackImpl.getOverallStats();
+						if ( !udp_protocol ){
+							
+							DHTTransportStats stats = DHTTransportLoopbackImpl.getOverallStats();
 						
-						System.out.println( "Overall stats: " + stats.getString());
+							System.out.println( "Overall stats: " + stats.getString());
+						}
 					}
 				});
 			

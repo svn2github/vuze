@@ -197,8 +197,10 @@ DHTUDPUtils
 			os.writeByte( CT_UDP );
 			
 			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
-						
-			os.writeInt( c.getInstanceID());
+					
+				// TODO: remove instance id
+			
+			os.writeInt( 0 ); // );
 			
 			serialiseAddress( os, c.getAddress() );
 			
@@ -222,7 +224,14 @@ DHTUDPUtils
 			throw( new IOException( "Unsupported contact type:" + ct ));
 		}
 	
+			// TODO: remove instance id
+		
 		int	instance_id	= is.readInt();
+		
+			// we don't transport instance ids around via this router as they are just
+			// cached versions and not useful
+		
+		instance_id	= 0;
 		
 		return( new DHTTransportUDPContactImpl( transport, deserialiseAddress( is ), instance_id));
 	}

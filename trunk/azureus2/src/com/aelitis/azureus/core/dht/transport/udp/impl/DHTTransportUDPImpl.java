@@ -253,7 +253,8 @@ DHTTransportUDPImpl
 	
 	protected synchronized boolean
 	externalAddressChange(
-		InetSocketAddress		new_address )
+		DHTTransportUDPContactImpl	reporter,
+		InetSocketAddress			new_address )
 	{
 			/*
 			 * A node has reported that our external address and the one he's seen a 
@@ -273,12 +274,10 @@ DHTTransportUDPImpl
 		
 		if ( new_address.getPort() != port ){
 
-			// port has changed. we don't support anything automatic here as it is
-			// indicative of a configuration problem
+			// port differs. we don't support anything automatic here as it is
+			// indicative of the notifier being proxied or something
 		
-			logger.logAlert( 
-					LoggerChannel.LT_WARNING,
-					"Node has reported differing port (current=" + port + ", reported = " + new_address.getPort() + ") - check configuration" );
+			logger.log(	"Node " + reporter.getString() + " has reported differing port (current=" + port + ", reported = " + new_address + ")" );
 			
 			return( false );
 		}
@@ -299,9 +298,19 @@ DHTTransportUDPImpl
 			return( false );
 		}
 		
+		logger.log( "Node " + reporter.getString() + " has reported that your external IP address is '" + new_address + "'" );
+		
 		last_address_change	= now;
 		
 		String	a = getExternalAddress( true, new_ip, logger );
+		
+		if ( a.equals( external_address )){
+			
+				// address hasn't changed, notifier must be perceiving different address
+				// due to proxy or something
+							
+			return( true );
+		}
 		
 		InetSocketAddress	s_address = new InetSocketAddress( a, port );
 		
@@ -440,7 +449,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceID( packet.getTargetInstanceID());
 							
-							if ( handleErrorReply( packet )){
+							if ( handleErrorReply( contact, packet )){
 								
 								retry_count++;
 								
@@ -464,13 +473,15 @@ DHTTransportUDPImpl
 							
 								handler.pingReply( contact );
 							}
+						}catch( PRUDPPacketHandlerException e ){
+							
+							error( e );
+							
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace(e);
 							
-							stats.pingFailed();
-							
-							handler.failed( contact );
+							error( new PRUDPPacketHandlerException( "ping failed", e ));
 						}
 					}
 					
@@ -556,7 +567,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceID( packet.getTargetInstanceID());
 							
-							if ( handleErrorReply( packet )){
+							if ( handleErrorReply( contact, packet )){
 								
 								retry_count++;
 								
@@ -581,13 +592,15 @@ DHTTransportUDPImpl
 								handler.storeReply( contact );
 							}
 							
+						}catch( PRUDPPacketHandlerException e ){
+							
+							error( e );
+							
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace(e);
 							
-							stats.storeFailed();
-							
-							handler.failed( contact );
+							error( new PRUDPPacketHandlerException( "store failed", e ));
 						}
 					}
 					
@@ -669,7 +682,7 @@ DHTTransportUDPImpl
 
 							contact.setInstanceID( packet.getTargetInstanceID());
 							
-							if ( handleErrorReply( packet )){
+							if ( handleErrorReply( contact, packet )){
 								
 								retry_count++;
 								
@@ -695,14 +708,15 @@ DHTTransportUDPImpl
 								
 								handler.findNodeReply( contact, reply.getContacts());
 							}
+						}catch( PRUDPPacketHandlerException e ){
+							
+							error( e );
 							
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace(e);
 							
-							stats.findNodeFailed();
-							
-							handler.failed( contact );
+							error( new PRUDPPacketHandlerException( "findNode failed", e ));
 						}
 					}
 					
@@ -784,7 +798,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceID( packet.getTargetInstanceID());
 							
-							if ( handleErrorReply( packet )){
+							if ( handleErrorReply( contact, packet )){
 								
 								retry_count++;
 								
@@ -819,13 +833,15 @@ DHTTransportUDPImpl
 									handler.findValueReply( contact, reply.getContacts());
 								}
 							}
+						}catch( PRUDPPacketHandlerException e ){
+							
+							error( e );
+							
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace(e);
 							
-							stats.findValueFailed();
-							
-							handler.failed( contact );
+							error( new PRUDPPacketHandlerException( "findValue failed", e ));
 						}
 					}
 					
@@ -960,27 +976,51 @@ DHTTransportUDPImpl
 		}
 	}
 	
+		/**
+		 * Returns false if this isn't an error reply, true if it is and a retry can be
+		 * performed, throws an exception otherwise
+		 * @param reply
+		 * @return
+		 * @throws PRUDPPacketHandlerException
+		 */
+	
 	protected boolean
 	handleErrorReply(
-		DHTUDPPacketReply		reply )
+		DHTTransportUDPContactImpl	contact,
+		DHTUDPPacketReply			reply )
+	
+		throws PRUDPPacketHandlerException
 	{
 		if ( reply.getAction() == DHTUDPPacket.ACT_REPLY_ERROR ){
 			
 			DHTUDPPacketReplyError	error = (DHTUDPPacketReplyError)reply;
 			
+			boolean	ok_to_retry = false;
+			
 			switch( error.getErrorType()){
 			
 				case DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG:
 				{
-					return( externalAddressChange( error.getOriginatingAddress()));
+					ok_to_retry = externalAddressChange( contact, error.getOriginatingAddress());
+					
+					break;
 				}
 				default:
 				{
 					Debug.out( "Unknown error type received" );
+					
+					break;
 				}
 			}
 			
-			return( false );
+			if ( ok_to_retry ){
+				
+				return( true );
+				
+			}else{
+				
+				throw( new PRUDPPacketHandlerException( "retry no permitted" ));
+			}
 			
 		}else{
 			
