@@ -490,7 +490,7 @@ PEPeerControlImpl
         break;
       }
     }
-    if(_loopFactor % 10 == 0) playDownloadFinished();
+
     //set finished
     _finished = temp;
         
