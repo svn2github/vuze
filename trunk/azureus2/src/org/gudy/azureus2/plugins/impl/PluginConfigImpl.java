@@ -1,13 +1,27 @@
 /*
- * Created on Nov 10, 2003
+ * File    : PluginConfigImpl.java
+ * Created : 10 nov. 2003
+ * By      : epall
+ * 
+ * Azureus - a Java Bittorrent client
  *
- * To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
 package org.gudy.azureus2.plugins.impl;
 
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
-import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginConfig;
 
 /**
@@ -24,27 +38,6 @@ public class PluginConfigImpl
   
 	public PluginConfigImpl(String key) {
 		config = ConfigurationManager.getInstance();
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#SetParameter(java.lang.String, java.lang.String, org.gudy.azureus2.plugins.Plugin)
-	 */
-	public void setPluginParameter(String name, String value, Plugin setter) {
-		config.setParameter("plugin."+setter.getClass().getName()+name, value);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#SetParameter(java.lang.String, int, org.gudy.azureus2.plugins.Plugin)
-	 */
-	public void setPluginParameter(String name, int value, Plugin setter) {
-		config.setParameter("plugin."+setter.getClass().getName()+name, value);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.PluginConfig#SetParameter(java.lang.String, boolean, org.gudy.azureus2.plugins.Plugin)
-	 */
-	public void setPluginParameter(String name, boolean value, Plugin setter) {
-		config.setParameter("plugin."+setter.getClass().getName()+name, value);
 	}
 
 	/* (non-Javadoc)
@@ -66,5 +59,77 @@ public class PluginConfigImpl
 	 */
 	public boolean getBooleanParameter(String name) {
 		return config.getBooleanParameter(name);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginIntParameter(java.lang.String)
+	 */
+	public int getPluginIntParameter(String key)
+	{
+		return getIntParameter(this.key+key);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginIntParameter(java.lang.String, int)
+	 */
+	public int getPluginIntParameter(String key, int defaultValue)
+	{
+		return config.getIntParameter(this.key+key, defaultValue);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginStringParameter(java.lang.String)
+	 */
+	public String getPluginStringParameter(String key)
+	{
+		return getStringParameter(this.key+key);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginStringParameter(java.lang.String, int)
+	 */
+	public String getPluginStringParameter(String key, String defaultValue)
+	{
+		return config.getStringParameter(this.key+key, defaultValue);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginBooleanParameter(java.lang.String)
+	 */
+	public boolean getPluginBooleanParameter(String key)
+	{
+		return getBooleanParameter(this.key+key);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginBooleanParameter(java.lang.String, int)
+	 */
+	public boolean getPluginBooleanParameter(String key, boolean defaultValue)
+	{
+		return config.getBooleanParameter(this.key+key, defaultValue);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, int)
+	 */
+	public void setPluginParameter(String key, int value)
+	{
+		config.setParameter(this.key+key, value);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, java.lang.String)
+	 */
+	public void setPluginParameter(String key, String value)
+	{
+		config.setParameter(this.key+key, value);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, boolean)
+	 */
+	public void setPluginParameter(String key, boolean value)
+	{
+		config.setParameter(this.key+key, value);
 	}
 }
