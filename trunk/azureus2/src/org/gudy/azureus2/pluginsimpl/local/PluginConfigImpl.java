@@ -23,8 +23,10 @@ package org.gudy.azureus2.pluginsimpl.local;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.config.ConfigParameter;
+import org.gudy.azureus2.pluginsimpl.local.config.*;
 
 /**
  * @author Eric Allen
@@ -47,12 +49,10 @@ PluginConfigImpl
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT, 		"Max.Peer.Connections.Per.Torrent" );
 	}
 
-	private ConfigurationManager config;
 	private String key;
   
 	public PluginConfigImpl(String key) {
     this.key = key + ".";
-		config = ConfigurationManager.getInstance();
 	}
 
 	public String
@@ -65,30 +65,30 @@ PluginConfigImpl
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getStringParameter(java.lang.String)
 	 */
 	public String getStringParameter(String name) {
-		return config.getStringParameter(mapKeyName(name));
+		return COConfigurationManager.getStringParameter(mapKeyName(name));
 	}
 
     public String getStringParameter(String name, String _default )
 	{
-		return config.getStringParameter(mapKeyName(name), _default);
+		return COConfigurationManager.getStringParameter(mapKeyName(name), _default);
     }
 
 	public float getFloatParameter(String name) {
-		return config.getFloatParameter(mapKeyName(name));
+		return COConfigurationManager.getFloatParameter(mapKeyName(name));
 	}
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
 	 */
 	public int getIntParameter(String name) {
-		return config.getIntParameter(mapKeyName(name));
+		return COConfigurationManager.getIntParameter(mapKeyName(name));
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getIntParameter(java.lang.String)
 	 */
 	public int getIntParameter(String name, int default_value) {
-		return config.getIntParameter(mapKeyName(name), default_value);
+		return COConfigurationManager.getIntParameter(mapKeyName(name), default_value);
 	}
 
 	public void
@@ -103,23 +103,23 @@ PluginConfigImpl
 			throw( new RuntimeException("Invalid code int parameter (" + key + ")"));
 		}
 		
-		config.setParameter( target_key, value );
+		COConfigurationManager.setParameter( target_key, value );
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getBooleanParameter(java.lang.String)
 	 */
 	public boolean getBooleanParameter(String name) {
-		return config.getBooleanParameter(mapKeyName(name));
+		return COConfigurationManager.getBooleanParameter(mapKeyName(name));
 	}
 	
 	public boolean getBooleanParameter(String name, boolean _default) {
-		return config.getBooleanParameter(mapKeyName(name), _default);
+		return COConfigurationManager.getBooleanParameter(mapKeyName(name), _default);
 	}
 	
     public byte[] getByteParameter(String name, byte[] _default )
     {
-		return config.getByteParameter(mapKeyName(name), _default);
+		return COConfigurationManager.getByteParameter(mapKeyName(name), _default);
     }
 
 	/* (non-Javadoc)
@@ -135,7 +135,7 @@ PluginConfigImpl
 	 */
 	public int getPluginIntParameter(String key, int defaultValue)
 	{
-		return config.getIntParameter(this.key+key, defaultValue);
+		return COConfigurationManager.getIntParameter(this.key+key, defaultValue);
 	}
 
 	/* (non-Javadoc)
@@ -151,7 +151,7 @@ PluginConfigImpl
 	 */
 	public String getPluginStringParameter(String key, String defaultValue)
 	{
-		return config.getStringParameter(this.key+key, defaultValue);
+		return COConfigurationManager.getStringParameter(this.key+key, defaultValue);
 	}
 
 	/* (non-Javadoc)
@@ -167,7 +167,7 @@ PluginConfigImpl
 	 */
 	public boolean getPluginBooleanParameter(String key, boolean defaultValue)
 	{
-		return config.getBooleanParameter(this.key+key, defaultValue);
+		return COConfigurationManager.getBooleanParameter(this.key+key, defaultValue);
 	}
 
 	/* (non-Javadoc)
@@ -175,7 +175,7 @@ PluginConfigImpl
 	 */
 	public void setPluginParameter(String key, int value)
 	{
-		config.setParameter(this.key+key, value);
+		COConfigurationManager.setParameter(this.key+key, value);
 	}
 
 	/* (non-Javadoc)
@@ -183,7 +183,7 @@ PluginConfigImpl
 	 */
 	public void setPluginParameter(String key, String value)
 	{
-		config.setParameter(this.key+key, value);
+		COConfigurationManager.setParameter(this.key+key, value);
 	}
 
 	/* (non-Javadoc)
@@ -191,18 +191,32 @@ PluginConfigImpl
 	 */
 	public void setPluginParameter(String key, boolean value)
 	{
-		config.setParameter(this.key+key, value);
+		COConfigurationManager.setParameter(this.key+key, value);
 	}
 	
 	public void setPluginParameter(String key,byte[] value)
 	{
-		config.setParameter(this.key+key, value);
+		COConfigurationManager.setParameter(this.key+key, value);
 	}
 
+	public ConfigParameter
+	getParameter(
+		String		key )
+	{
+		return( new ConfigParameterImpl( mapKeyName(key)));
+	}
+	
+	public ConfigParameter
+	getPluginParameter(
+	  	String		key )
+	{
+		return( new ConfigParameterImpl( this.key+key ));
+	}
+	
 	public void
 	save()
 	{
-		config.save();
+		COConfigurationManager.save();
 	}
 	
 	protected String

@@ -272,7 +272,7 @@ CacheFileImpl
 							
 							if ( TRACE ){
 								
-								System.out.println( "\tread head miss" );
+								System.out.println( "\tread ahead miss" );
 							}
 							
 							flushCache( file_position, read_length, true, -1 );

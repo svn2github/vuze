@@ -28,6 +28,8 @@ package org.gudy.azureus2.pluginsimpl.remote;
 
 import java.util.Properties;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.config.ConfigParameter;
+import org.gudy.azureus2.pluginsimpl.local.config.ConfigParameterImpl;
 
 public class 
 RPPluginConfig
@@ -300,6 +302,25 @@ RPPluginConfig
 	  {
 	  	notSupported();
 	  }
+	  
+	  public ConfigParameter
+	  getParameter(
+		String		key )
+	  {
+	  	notSupported();
+	  	
+	  	return( null );
+	  }
+		
+	  public ConfigParameter
+	  getPluginParameter(
+	  		String		key )
+	  {
+	  	notSupported();
+	  	
+	  	return( null );
+	  }
+		
 	  
 	  public void
 	  save()

@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.plugins.config.*;
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
@@ -93,7 +94,16 @@ ParameterImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((ParameterListener)listeners.get(i)).parameterChanged( this );
+			Object o = listeners.get(i);
+			
+			if ( o instanceof ParameterListener ){
+				
+				((ParameterListener)o).parameterChanged( this );
+				
+			}else{
+				
+				((ConfigParameterListener)o).configParameterChanged( this );
+			}
 		}
 	}
 	
@@ -112,6 +122,30 @@ ParameterImpl
 	public void
 	removeListener(
 		ParameterListener	l )
+	{
+		listeners.remove(l);
+		
+		if ( listeners.size() == 0 ){
+			
+			COConfigurationManager.removeParameterListener( key, this );
+		}
+	}
+	
+	public void
+	addConfigParameterListener(
+		ConfigParameterListener	l )
+	{
+		listeners.add(l);
+		
+		if ( listeners.size() == 1 ){
+			
+			COConfigurationManager.addParameterListener( key, this );
+		}
+	}
+			
+	public void
+	removeConfigParameterListener(
+		ConfigParameterListener	l )
 	{
 		listeners.remove(l);
 		

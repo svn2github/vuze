@@ -26,6 +26,8 @@ package org.gudy.azureus2.plugins;
  *
  */
 
+import org.gudy.azureus2.plugins.config.*;
+
 public interface 
 PluginConfig 
 {  
@@ -240,9 +242,18 @@ PluginConfig
    *
    * @since 2.1.0.0
    */
+  
   public String
   getPluginConfigKeyPrefix();
 
+  public ConfigParameter
+  getParameter(
+  	String		key );
+  
+  public ConfigParameter
+  getPluginParameter(
+  	String		key );
+  
   /**
    * make sure you save it after making changes!
    *

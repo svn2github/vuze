@@ -1,5 +1,5 @@
 /*
- * Created on 02-Jun-2004
+ * Created on 30-Aug-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.plugins.ui.config;
+package org.gudy.azureus2.plugins.config;
 
 /**
  * @author parg
@@ -28,9 +28,9 @@ package org.gudy.azureus2.plugins.ui.config;
  */
 
 public interface 
-ParameterListener 
+ConfigParameterListener 
 {
 	public void
-	parameterChanged(
-		Parameter	param );
+	configParameterChanged(
+		ConfigParameter	param );
 }

@@ -27,13 +27,17 @@ package org.gudy.azureus2.plugins.ui.config;
  *
  */
 
+import org.gudy.azureus2.plugins.config.ConfigParameter;
+
 public interface
-Parameter 
+Parameter
+	extends ConfigParameter
 {
+
 	public void
 	addListener(
-		ParameterListener	l );	
-		
+		ParameterListener	l );
+	
 	public void
 	removeListener(
 		ParameterListener	l );
