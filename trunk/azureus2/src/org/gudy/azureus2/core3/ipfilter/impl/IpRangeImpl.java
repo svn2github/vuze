@@ -343,6 +343,24 @@ IpRangeImpl
    	return( startIp instanceof Integer?PRHelpers.intToAddress(((Integer)startIp).intValue()):(String)startIp);
    }
 	
+   protected long
+   getStartIpLong()
+   {
+   	if ( startIp instanceof Integer ){
+   		
+   		long	val = ((Integer)startIp).intValue();
+   		
+   		if ( val < 0 ){
+   			
+   			val += 0x100000000L;
+   		}
+   		
+   		return( val );
+   	}else{
+   		return( -1 );
+   	}
+   }
+   
 	public void
 	setStartIp(
 		String	str )
@@ -365,6 +383,24 @@ IpRangeImpl
    getEndIp()
    {
    	return( endIp instanceof Integer?PRHelpers.intToAddress(((Integer)endIp).intValue()):(String)endIp);
+   }
+   
+   protected long
+   getEndIpLong()
+   {
+   	if ( endIp instanceof Integer ){
+   		
+   		long	val = ((Integer)endIp).intValue();
+   		
+   		if ( val < 0 ){
+   			
+   			val += 0x100000000L;
+   		}
+   		
+   		return( val );
+   	}else{
+   		return( -1 );
+   	}
    }
    
    public void
@@ -406,4 +442,18 @@ IpRangeImpl
     sessionOnly = _sessionOnly;
   }
 
+	public int
+	compareStartIpTo(
+		IpRange	other )
+	{
+		long l = getStartIpLong() - ((IpRangeImpl)other).getStartIpLong();
+		
+		if ( l < 0 ){
+			return( -1 );
+		}else if ( l > 0 ){
+			return( 1 );
+		}else{
+			return(0);
+		}
+	}
  }

@@ -24,6 +24,9 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -37,18 +40,15 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.widgets.Display;
 
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.AERunnable;
 
 public class ConfigSectionIPFilter implements ConfigSectionSWT {
   AzureusCore	azureus_core;
@@ -153,7 +153,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
         if (selection.length == 0)
           return;
         removeRange((IpRange) selection[0].getData());
-        ipRanges = filter.getRanges();
+        ipRanges = getSortedRanges(filter.getRanges());
         table.setItemCount(ipRanges.length);
         table.clearAll();
         table.redraw();
@@ -190,7 +190,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     IAdditionalActionPerformer enabler = new ChangeSelectionActionPerformer(controls);
     enabled.setAdditionalActionPerformer(enabler);
 
-    ipRanges = filter.getRanges();
+    ipRanges = getSortedRanges(filter.getRanges());
 
     table.addListener(SWT.SetData,new Listener() {
       public void handleEvent(Event event) {
@@ -246,7 +246,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     
     display.asyncExec( new AERunnable() {
       public void runSupport() {
-        IpRange[] IpRanges = filter.getRanges();
+        IpRange[] IpRanges = getSortedRanged(filter.getRanges());
         
         for( int i=0; i < IpRanges.length; i++ ) {
           IpRange range = IpRanges[i];
@@ -302,5 +302,30 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
         items[i].setText(2, range.getEndIp());
 
     }
+  }
+  
+  protected IpRange[]
+  getSortedRanges(
+  		IpRange[]	ranges )
+  {
+  	Arrays.sort(
+  		ranges,
+		new Comparator()
+		{
+  			public int 
+			compare(
+				Object o1, 
+				Object o2 )
+  			{
+  				IpRange	r1 = (IpRange)o1;
+  				IpRange r2 = (IpRange)o2;
+  				
+  				return( r1.compareStartIpTo( r2 ));
+  			}
+
+		});
+  	
+  	return( ranges );
+	
   }
 }

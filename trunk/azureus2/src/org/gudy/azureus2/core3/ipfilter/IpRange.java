@@ -62,4 +62,8 @@ IpRange
 	public boolean isInRange(String ipAddress);
 	
 	public void checkValid();
+	
+	public int
+	compareStartIpTo(
+		IpRange	other );
 }
