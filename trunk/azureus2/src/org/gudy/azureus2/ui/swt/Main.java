@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
@@ -32,15 +33,23 @@ public class Main implements ILocaleUtilChooser {
 
       Socket sck = null;
       PrintWriter pw = null;
-      try {      
+      try {  
+      	LGLogger.log( "Main::startSocket: starting connect to 6880");
+      	
         sck = new Socket("localhost",6880);
+        
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
+        
         StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING + ";args;");
+        
         for(int i = 0 ; i < args.length ; i++) {
           String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
           buffer.append(arg);
           buffer.append(';');
         }
+        
+     	LGLogger.log( "Main::startSocket: sending '" + buffer.toString() + "'");
+     	 
         pw.println(buffer.toString());
         pw.flush();
       } catch(Exception e) {
@@ -65,7 +74,11 @@ public class Main implements ILocaleUtilChooser {
   	String	mi_str = (String)System.getProperty( PR_MULTI_INSTANCE );
   	
   	boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
-  		
+  	
+    COConfigurationManager.checkConfiguration();
+    
+ 	LGLogger.initialise();
+
     LocaleUtil.setLocaleUtilChooser(this);
     startServer = new StartServer(this);
 
@@ -74,7 +87,6 @@ public class Main implements ILocaleUtilChooser {
       // create a MainWindow regardless to the server state
       gm = GlobalManagerFactory.create(false);
       
-      COConfigurationManager.checkConfiguration();
       mainWindow = new MainWindow(gm, startServer);
       
       mainWindow.waitForClose();
@@ -85,7 +97,6 @@ public class Main implements ILocaleUtilChooser {
       startServer.start();
       gm = GlobalManagerFactory.create(false);
       
-      COConfigurationManager.checkConfiguration();
       mainWindow = new MainWindow(gm, startServer);      
       if (args.length != 0) {
         // Sometimes Windows use filename in 8.3 form and cannot
@@ -114,6 +125,8 @@ public class Main implements ILocaleUtilChooser {
       if(args[0].equals("args")) {
         if(args.length > 1)
         {
+          LGLogger.log( "Main::useParam: open '" + args[1] + "'");
+
           mainWindow.openTorrent(args[1]);
         }
       }

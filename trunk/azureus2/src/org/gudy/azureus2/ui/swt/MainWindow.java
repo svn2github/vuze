@@ -2147,11 +2147,16 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     try {
       if (!FileUtil.isTorrentFile(fileName)){
       	
+        LGLogger.log( "MainWindow::openTorrent: file it not a torrent file, sharing" );
+
         ShareUtils.shareFile( fileName );
         
         return;
       }
     } catch (Exception e) {
+    	
+      LGLogger.log( "MainWindow::openTorrent: check fails", e );
+
       return;
     }
 
@@ -2163,15 +2168,27 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           
           new Thread() {
             public void run() {
-              String savePath = getSavePath(fileName);
-              if (savePath == null)
-                return;
-              // set to STATE_WAITING if we don't want to startInStoppedState
-              // so that auto-open details will work (even if the torrent
-              // immediately goes to queued)
-              globalManager.addDownloadManager(fileName, savePath, 
-                                               startInStoppedState ? DownloadManager.STATE_STOPPED 
-                                                                   : DownloadManager.STATE_WAITING);
+              try{
+	              String savePath = getSavePath(fileName);
+	              if (savePath == null){
+	                LGLogger.log( "MainWindow::openTorrent: save path not set, aborting" );
+	
+	                return;
+	              }
+	              // set to STATE_WAITING if we don't want to startInStoppedState
+	              // so that auto-open details will work (even if the torrent
+	              // immediately goes to queued)
+	              
+	              LGLogger.log( "MainWindow::openTorrent: adding download" );
+	
+	              globalManager.addDownloadManager(fileName, savePath, 
+	                                               startInStoppedState ? DownloadManager.STATE_STOPPED 
+	                                                                   : DownloadManager.STATE_WAITING);
+              }catch( Throwable e ){
+              	
+                LGLogger.log( "MainWindow::openTorrent: torrent addition fails", e );
+
+              }
             }
           }
           .start();

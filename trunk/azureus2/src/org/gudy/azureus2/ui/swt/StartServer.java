@@ -12,6 +12,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.logging.*;
+
 /**
  * @author Olivier
  * 
@@ -31,6 +33,9 @@ public class StartServer extends Thread {
     super("Start Server");
     try {
       this.main = main;
+      
+   	  LGLogger.log( "Main::startServer: starting listen on 6880");
+    
       //socket = new ServerSocket(6880);
 	  socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
       state = STATE_LISTENING;
@@ -51,6 +56,9 @@ public class StartServer extends Thread {
           br = new BufferedReader(new InputStreamReader(sck.getInputStream()));
           String line = br.readLine();
           //System.out.println("received : " + line);
+          
+      	  LGLogger.log( "Main::startServer: received '" + line + "'");
+      	 
           if (line != null) {
             main.showMainWindow();
             StringTokenizer st = new StringTokenizer(line, ";");           
@@ -59,9 +67,19 @@ public class StartServer extends Thread {
               String args[] = new String[st.countTokens() - 1];
               String checker = st.nextToken();
                 if(checker.equals(ACCESS_STRING)) {
+                	
+                  String debug_str = "";
+                  	
                   while (st.hasMoreElements()) {              
-                    args[i++] = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
+                    String bit = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
+                    
+                    debug_str += (debug_str.length()==0?"":" ; ") + bit;
+                    
+                    args[i++] = bit;
                   }
+                  
+              	  LGLogger.log( "Main::startServer: decoded to '" + debug_str + "'");
+              	                  
                   main.useParam(args);
               }
             }
