@@ -94,6 +94,13 @@ RPPluginInterface
 		synchronized( RPPluginInterface.class ){
 			
 			_connection_id = connection_id_next++;
+			
+				// avoid 0 as it has special meaning (-> no connection for singleton calls);
+			
+			if ( _connection_id == 0 ){
+				
+				_connection_id = connection_id_next++;
+			}
 		}
 	}
 	
