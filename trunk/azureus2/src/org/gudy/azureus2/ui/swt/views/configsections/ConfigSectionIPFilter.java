@@ -62,18 +62,19 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
   class FilterComparator implements Comparator {
     
     boolean ascending = true;
-    int field = 0;
     
     static final int FIELD_NAME = 0;
     static final int FIELD_START_IP = 1;
     static final int FIELD_END_IP = 2;
     
+    int field = FIELD_START_IP;
+   
     
     public int compare(Object arg0,Object arg1) {
       IpRange range0 = (IpRange) arg0;
       IpRange range1 = (IpRange) arg1;
       if(field == FIELD_NAME) {
-        return (ascending ? 1 : -1) * range0.getDescription().compareTo(range1.getDescription());
+        return (ascending ? 1 : -1) * ( range0.compareDescription( range1 ));
       }
       if(field == FIELD_START_IP) {
         return (ascending ? 1 : -1) * ( range0.compareStartIpTo( range1 ));

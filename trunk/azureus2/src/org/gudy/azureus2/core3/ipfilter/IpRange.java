@@ -67,6 +67,11 @@ IpRange
 	compareStartIpTo(
 		IpRange	other );
 	
-	public int compareEndIpTo(
+	public int 
+	compareEndIpTo(
 	    IpRange other );
+	
+	public int 
+	compareDescription(
+		IpRange other );
 }

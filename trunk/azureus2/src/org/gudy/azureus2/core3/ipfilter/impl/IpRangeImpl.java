@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.ipfilter.impl;
 
 import java.net.UnknownHostException;
+import java.util.Stack;
 
 // import java.util.*;
 
@@ -470,5 +471,78 @@ IpRangeImpl
 		}else{
 			return(0);
 		}
+	}
+	
+	public int
+	compareDescription(
+		IpRange	other )
+	{
+		byte[]	other_description = ((IpRangeImpl)other).description;
+		
+		if ( description == null || other_description == null ){
+			
+			return(0);
+		}
+				
+		int	pos = 0;
+		
+		byte[]	this_b	= description;
+		byte[]	other_b	= other_description;
+		
+		while(true){
+			if ( pos == this_b.length || pos == other_b.length ){
+				
+				break;
+			}
+			
+			byte	b1 = this_b[pos];
+			byte	b2 = other_b[pos];
+						
+			pos++;
+			
+			if ( b1 != b2 ){
+			
+				if ( b1 < 0 ){
+					
+					pos--;
+					
+					byte[]	word 		= frequent_words[128+b1];
+					int		word_len 	= word.length;
+					
+					byte[]	new_b = new byte[ word_len + this_b.length ];
+					
+					System.arraycopy( word,		0, 		new_b, pos, word_len );
+					System.arraycopy( this_b, 	pos, 	new_b, pos+word_len, this_b.length - pos );
+					
+					this_b = new_b;
+					
+					b1 = this_b[pos++];
+				}
+				
+				if ( b2 < 0 ){
+					
+					pos--;
+					
+					byte[]	word 		= frequent_words[128+b2];
+					int		word_len 	= word.length;
+					
+					byte[]	new_b = new byte[ word_len + other_b.length ];
+					
+					System.arraycopy( word,		0, 		new_b, pos, word_len );
+					System.arraycopy( other_b, 	pos, 	new_b, pos+word_len, other_b.length - pos );
+					
+					other_b = new_b;
+					
+					b2 = other_b[pos++];
+				}
+				
+				if ( b1 != b2 ){
+					
+					return( b1 - b2 );
+				}
+			}
+		}
+		
+		return( this_b.length - other_b.length );
 	}
  }
