@@ -27,6 +27,7 @@ import java.nio.channels.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -35,8 +36,26 @@ import org.gudy.azureus2.core3.util.*;
  * Manages new connection establishment and ended connection termination.
  */
 public class ConnectDisconnectManager {
-  private static final int MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;  //NOTE: WinXP SP2 limits to 10 max at any given time
-  private static final int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;
+  private static int MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;  
+  private static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;  //NOTE: WinXP SP2 limits to 10 max at any given time
+  static {
+    MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = COConfigurationManager.getIntParameter( "network.max.simultaneous.connect.attempts" );
+    MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - 2;
+    if( MIN_SIMULTANIOUS_CONNECT_ATTEMPTS < 1 ) {
+      MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0 ? 0 : 1;  //max 0 = outbound disabled
+    }
+    COConfigurationManager.addParameterListener( "network.max.simultaneous.connect.attempts", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = COConfigurationManager.getIntParameter( "network.max.simultaneous.connect.attempts" );
+        MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - 2;
+        if( MIN_SIMULTANIOUS_CONNECT_ATTEMPTS < 1 ) {
+          MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0 ? 0 : 1;  //max 0 = outbound disabled
+        }
+      }
+    });
+  }
+  
+  
   private static final int CONNECT_ATTEMPT_TIMEOUT = 30*1000;  //30sec
   private static final int CONNECT_ATTEMPT_STALL_TIME = 3*1000;  //3sec
   
