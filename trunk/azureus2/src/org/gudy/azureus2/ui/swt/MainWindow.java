@@ -2456,6 +2456,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     String notInRange = MessageText.getString("ipFilter.list.notinrange");    
     while(iter.hasNext()) {
       BlockedIp bIp = (BlockedIp) iter.next();
+      sb.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
+      sb.append("\t");
       sb.append(bIp.getBlockedIp());
       IpRange range = bIp.getBlockingRange();
       if(range == null) {
@@ -2471,9 +2473,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
     if(mainWindow == null || mainWindow.isDisposed())
       return;
-    MessageBox mb = new MessageBox(mainWindow,SWT.ICON_INFORMATION | SWT.OK);
-    mb.setMessage(sb.toString());
-    mb.setText(MessageText.getString("ipFilter.list.title"));
-    mb.open();
+    BlockedIpsWindow.show(mainWindow.getDisplay(),sb.toString());
   }
 }

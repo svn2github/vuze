@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
+import java.util.Calendar;
+
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -283,6 +285,30 @@ DisplayFormatters
   
   public static String formatPercentFromThousands(int thousands) {
     return (thousands / 10) + "." + (thousands % 10) + " %";
+  }
+  
+  public static String formatTimeStamp(long time) {
+    StringBuffer sb = new StringBuffer();
+    Calendar calendar = Calendar.getInstance();    
+    calendar.setTimeInMillis(time);
+    sb.append("[");
+    sb.append(formatIntToTwoDigits(calendar.get(Calendar.DAY_OF_MONTH)));
+    sb.append(".");
+    sb.append(formatIntToTwoDigits(calendar.get(Calendar.MONTH)));
+    sb.append(".");
+    sb.append(calendar.get(Calendar.YEAR));
+    sb.append(" ");
+    sb.append(formatIntToTwoDigits(calendar.get(Calendar.HOUR_OF_DAY)));
+    sb.append(":");
+    sb.append(formatIntToTwoDigits(calendar.get(Calendar.MINUTE)));
+    sb.append(":");
+    sb.append(formatIntToTwoDigits(calendar.get(Calendar.SECOND)));
+    sb.append("]");
+    return sb.toString();
+  }
+  
+  public static String formatIntToTwoDigits(int n) {
+    return n < 10 ? "0" + n : "" + n;
   }
   
 }

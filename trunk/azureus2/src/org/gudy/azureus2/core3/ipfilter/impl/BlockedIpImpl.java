@@ -30,11 +30,13 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 public class BlockedIpImpl implements BlockedIp {
 
   private String ip;
+  private long time;
   private IpRange range;
   
   public BlockedIpImpl(String ip,IpRange range) {
     this.ip = ip;
     this.range = range;
+    this.time = System.currentTimeMillis();
   }
   
   public String getBlockedIp() {
@@ -43,6 +45,10 @@ public class BlockedIpImpl implements BlockedIp {
 
   public IpRange getBlockingRange() {
     return this.range;
+  }
+  
+  public long getBlockedTime() {
+    return time;
   }
 
 }
