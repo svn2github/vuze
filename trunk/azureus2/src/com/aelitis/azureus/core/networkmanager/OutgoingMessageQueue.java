@@ -383,7 +383,6 @@ public class OutgoingMessageQueue {
       queue_mon.exit();
     }
     
-    
     if( written > 0 ) {
       if( manual_listener_notify ) {
         NotificationItem item = new NotificationItem( NotificationItem.BYTES_SENT );
@@ -407,16 +406,22 @@ public class OutgoingMessageQueue {
         finally {
           listeners_mon.exit();
         }
-      
-        for( int x=0; x < messages_sent.size(); x++ ) {
-          ProtocolMessage msg = (ProtocolMessage)messages_sent.get( x );
+        
+        int num_listeners = listeners_copy.size();
+        for( int i=0; i < num_listeners; i++ ) {
+          MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
           
-          for( int i=0; i < listeners_copy.size(); i++ ) {
-            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
-            listener.bytesSent( written );
+          listener.bytesSent( written );
+          
+          for( int x=0; x < messages_sent.size(); x++ ) {
+            ProtocolMessage msg = (ProtocolMessage)messages_sent.get( x );
+            
             listener.messageSent( msg );
+            
+            if( i == num_listeners - 1 ) {  //the last listener notification, so destroy
+              msg.destroy();
+            }
           }
-          msg.destroy();
         }
       }
     }
