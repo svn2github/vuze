@@ -307,12 +307,12 @@ public class GeneralView extends AbstractIView {
       public void mouseDoubleClick(MouseEvent arg0) {
         String announce = trackerUrlValue.getText();
         if(announce != null && announce.length() != 0)
-          new Clipboard(display).setContents(new Object[] {announce, new Transfer[] {TextTransfer.getInstance()});
+          new Clipboard(display).setContents(new Object[] {announce}, new Transfer[] {TextTransfer.getInstance()});
       }
       public void mouseDown(MouseEvent arg0) {
         String announce = trackerUrlValue.getText();
         if(announce != null && announce.length() != 0)
-          new Clipboard(display).setContents(new Object[] {announce, new Transfer[] {TextTransfer.getInstance()});
+          new Clipboard(display).setContents(new Object[] {announce}, new Transfer[] {TextTransfer.getInstance()});
       }
     });
     trackerUrlValue = new BufferedLabel(gInfo, SWT.LEFT);
