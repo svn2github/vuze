@@ -40,6 +40,9 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/ipfilter.png", "ipfilter");
     loadImage(display, "org/gudy/azureus2/ui/icons/start2.png", "start");
     loadImage(display, "org/gudy/azureus2/ui/icons/stop2.png", "stop");
+    loadImage(display, "org/gudy/azureus2/ui/icons/downloadBar.png", "downloadBar");
+    loadImage(display, "org/gudy/azureus2/ui/icons/delete.png", "delete");
+    loadImage(display, "org/gudy/azureus2/ui/icons/lock.png", "lock");
     loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash",64);
   }
 
