@@ -201,17 +201,20 @@ public class TransferPanel extends AbstractWizardPanel {
 
   public void computeAll(int maxUploadSpeed) {
     if (maxUploadSpeed != 0) {
-      int speedPerTorrent = (maxUploadSpeed + 60) / 13;
-      int nbMaxDownloads = maxUploadSpeed / speedPerTorrent;
-      int nbMaxActive = (15 * nbMaxDownloads) / 10;
-      int realSpeed = maxUploadSpeed / nbMaxDownloads;
-      int nbMaxUploads = (realSpeed) / 2;
+
+      int nbMaxActive = (int) (Math.pow(maxUploadSpeed,0.34) * 0.92);
+      int nbMaxUploads = (int) (Math.pow(maxUploadSpeed,0.25) * 1.68);
+      int nbMaxDownloads = (nbMaxActive * 4) / 5;
+      
+      if (nbMaxDownloads == 0)
+      	nbMaxDownloads = 1;
       if (nbMaxUploads > 50)
         nbMaxUploads = 50;
 
       ((ConfigureWizard) wizard).maxActiveTorrents = nbMaxActive;
       ((ConfigureWizard) wizard).maxDownloads = nbMaxDownloads;
       ((ConfigureWizard) wizard).nbUploadsPerTorrent = nbMaxUploads;
+    	
     }
     else {
       ((ConfigureWizard) wizard).maxActiveTorrents = 0;
