@@ -472,6 +472,7 @@ DownloadManagerImpl
 	}
 	
   public void setOnlySeeding(boolean onlySeeding) {
+     //LGLogger.log(getName()+"] setOnlySeeding("+onlySeeding+") was " + this.onlySeeding);
     if (this.onlySeeding != onlySeeding) {
       this.onlySeeding = onlySeeding;
 
@@ -483,7 +484,6 @@ DownloadManagerImpl
         }
       }
 
-      //LGLogger.log("setOnlySeeding("+onlySeeding+")");
   	  // we are in a new list, move to the end
   	  // -1 position means it hasn't been added to the global list.  We shouldn't
   	  // touch it, since it'll get a position once it's adding is complete
@@ -1111,6 +1111,7 @@ DownloadManagerImpl
   					}
   					
   					if (oldDMState == DiskManager.CHECKING) {
+      				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
   				    DownloadManagerImpl.this.setOnlySeeding(diskManager.getRemaining() == 0);
             }
   					  

@@ -892,18 +892,20 @@ public class GlobalManagerImpl
         int endPosComplete = 0;
         int endPosIncomplete = 0;
         for (int j = 0; j < managers.size(); j++) {
-			DownloadManager dm = (DownloadManager) managers.get(j);
-			if (dm.getStats().getDownloadCompleted(false) == 1000)
-				endPosComplete++;
-			else
-				endPosIncomplete++;
+          DownloadManager dm = (DownloadManager) managers.get(j);
+          if (dm.getStats().getDownloadCompleted(false) == 1000)
+            endPosComplete++;
+          else
+            endPosIncomplete++;
         }
-		  for (int i = manager.length - 1; i >= 0; i--)
-				if (manager[i].getStats().getDownloadCompleted(false) == 1000 && endPosComplete > 0)
-	        		moveTo(manager[i], endPosComplete--);
-	        	else if (endPosIncomplete > 0)
-	        		moveTo(manager[i], endPosIncomplete--);
-		}
+        for (int i = manager.length - 1; i >= 0; i--) {
+          if (manager[i].getStats().getDownloadCompleted(false) == 1000 && endPosComplete > 0) {
+            moveTo(manager[i], endPosComplete--);
+          } else if (endPosIncomplete > 0) {
+            moveTo(manager[i], endPosIncomplete--);
+          }
+        }
+      }
   }
   
   public void moveTo(DownloadManager manager, int newPosition) {

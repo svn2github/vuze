@@ -139,7 +139,7 @@ public class CategoryManagerImpl  {
       catch (Exception e) {}
     }
 
-    if (map != null) {
+    if (map != null && catNames.size() > 0) {
       synchronized (categories) {
         makeSpecialCategories();
 
