@@ -481,7 +481,10 @@ DirectByteBuffer
     	
 			DirectByteBufferPool.registerReturn( ref );
       
-			ref.enqueue();
+			if ( !ref.enqueue()){
+				
+				Debug.out( "Reference enqueue fails" );
+			}
 		}
 	}
 	

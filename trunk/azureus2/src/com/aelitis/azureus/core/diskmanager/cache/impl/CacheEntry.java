@@ -27,7 +27,7 @@ package com.aelitis.azureus.core.diskmanager.cache.impl;
  *
  */
 
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 CacheEntry 
@@ -37,6 +37,7 @@ CacheEntry
 	protected long				offset;
 	protected int				size;
 	protected int				buffer_pos;
+	protected int				buffer_limit;
 	
 	protected boolean			dirty;
 	
@@ -52,7 +53,13 @@ CacheEntry
 		offset		= _offset;
 		size		= _size;
 		
-		buffer_pos	= buffer.position();
+		buffer_pos		= buffer.position();
+		buffer_limit	= buffer.limit();
+		
+		if ( size != buffer_limit - buffer_pos ){
+			
+			Debug.out( "CacheEntry: initial size incorrect - size =" + size + ", pos = " + buffer_pos + ", lim = " + buffer_limit );
+		}
 		
 		dirty		= true;
 	}

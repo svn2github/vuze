@@ -85,6 +85,13 @@ CacheFile
 	
 		throws CacheFileManagerException;
 	
+		/**
+		 * writes the block to the cache and gives control of the buffer to the cache.
+		 * @param buffer
+		 * @param position
+		 * @throws CacheFileManagerException	write failed and buffer *not* taken - i.e. caller must de-allocate
+		 */
+	
 	public void
 	writeAndHandoverBuffer(
 		DirectByteBuffer	buffer,

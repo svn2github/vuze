@@ -360,7 +360,17 @@ public class DirectByteBufferPool {
   protected static void registerReturn( Reference ref ) {
     Map refs = pool.refs;
     synchronized( refs ) {
-      refs.put( ref, new Boolean( true ));
+    	
+      Boolean	old_val = (Boolean)refs.put( ref, new Boolean( true ));
+      
+      if ( old_val == null ){
+      	
+      	Debug.out( "entry not found");
+      	
+      }else if ( old_val.booleanValue()){
+      	
+      	Debug.out( "entry already returned" );
+      }
     }
   }
 }

@@ -232,6 +232,8 @@ CacheFileImpl
 						LGLogger.log( "cacheRead: cache use fails, reverting to plain read" );
 					}
 							
+						// reset in case we've done some partial reads
+					
 					file_buffer.position( file_buffer_position );
 					
 					try{
@@ -332,6 +334,7 @@ CacheFileImpl
 		throws CacheFileManagerException
 	{
 		boolean	buffer_cached	= false;
+		boolean	failed			= false;
 		
 		try{
 			int	file_buffer_position	= file_buffer.position();
@@ -372,10 +375,11 @@ CacheFileImpl
 							
 							printCache();
 						}
+												
+						manager.cacheBytesWritten( write_length );
 						
 						buffer_cached	= true;
 						
-						manager.cacheBytesWritten( write_length );
 					}else{
 						
 						getFMFile().write( file_buffer, file_position );
@@ -390,13 +394,18 @@ CacheFileImpl
 			
 		}catch( FMFileManagerException e ){
 			
+			failed	= true;
+			
 			manager.rethrow(e);
 			
 		}finally{
 			
-			if ( buffer_handed_over && !buffer_cached ){
+			if ( buffer_handed_over ){
 				
-				file_buffer.returnToPool();
+				if ( !(failed || buffer_cached )){
+					
+					file_buffer.returnToPool();
+				}
 			}
 		}
 	}
