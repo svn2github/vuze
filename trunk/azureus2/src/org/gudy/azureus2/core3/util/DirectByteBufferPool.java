@@ -392,11 +392,7 @@ public class DirectByteBufferPool {
       pos++;
     }
     
-    //force garbage collection if we've free'd more than the max
-    //i.e. we had used more than 2X the max
-    if (bytesToFree > MAX_FREE_BYTES) {
-      runGarbageCollection();
-    }
+    runGarbageCollection();
   }
   
   protected void
