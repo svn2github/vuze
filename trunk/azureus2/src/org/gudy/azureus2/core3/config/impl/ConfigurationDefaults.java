@@ -226,6 +226,20 @@ public class ConfigurationDefaults {
     def.put("Server_iLogLevelCore", new Long(20000));
     // Number of remembered log entries
     def.put("Server_iLogCount", new Long(200));
+
+    def.put("Logging Enable", new Long(0));
+    def.put("Logging Dir", "");
+    def.put("Logging Max Size", new Long(0));
+    int[] logComponents = { 0, 1, 2, 4 };
+    for (int i = 0; i < logComponents.length; i++)
+      for (int j = 0; j <= 3; j++)
+        def.put("bLog" + logComponents[i] + "-" + j, new Long(1));
+
+    // Start/Stop Automation Stuff
+    def.put("numPeersAsFullCopy", new Long(0));
+    def.put("iFakeFullCopySeedStart", new Long(1));
+    def.put("minPeersToBoostNoSeeds", new Long(1));
+    def.put("minSpeedForActiveDL", new Long(512));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
