@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
- package org.gudy.azureus2.core3.peer.impl.control;
+package org.gudy.azureus2.core3.peer.impl.control;
 
 
 import java.nio.ByteBuffer;
@@ -1916,7 +1916,8 @@ PEPeerControlImpl
 
   public boolean isSuperSeedMode() {
     return superSeedMode;
- }
+  }
+
   public void setSuperSeedMode(boolean superSeedMode) {
     this.superSeedMode = superSeedMode;
   }    
@@ -1924,23 +1925,41 @@ PEPeerControlImpl
   private void updatePeersInSuperSeedMode() {
     if(!superSeedMode) {
       return;
+    }  
+    
+    //Refresh the update time in case this is needed
+    for(int i = 0 ; i < superSeedPieces.length ; i++) {
+      superSeedPieces[i].updateTime();
     }
+    
     //Use the same number of announces than unchoke
     int nbUnchoke = _manager.getStats().getMaxUploads();
     if(superSeedModeNumberOfAnnounces >= nbUnchoke)
       return;
     
+   
     
     //Find an available Peer
-    PEPeer selectedPeer;
+    PEPeer selectedPeer = null;
+    List sortedPeers = null;
     synchronized(_connections) {
-      if(_connections.size() == 0)
-				return;
-      int random = (int) (Math.random() * _connections.size());
-      selectedPeer = (PEPeer) _connections.get(random);
+      sortedPeers = new ArrayList(_connections.size());
+      Iterator iter = _connections.iterator();
+      while(iter.hasNext()) {
+        sortedPeers.add(new SuperSeedPeer((PEPeer)iter.next()));
+      }      
     }
+    Collections.sort(sortedPeers);
+    Iterator iter = sortedPeers.iterator();
+    while(iter.hasNext()) {
+      PEPeer peer = ((SuperSeedPeer)iter.next()).peer;
+      if((peer.getUniqueAnnounce() == -1) && (peer.getState() == PEPeer.TRANSFERING)) {
+        selectedPeer = peer;
+        break;
+      }
+    }      
 
-    if(selectedPeer == null || (selectedPeer.getUniqueAnnounce() != -1) || (selectedPeer.getState() != PEPeer.TRANSFERING)) {
+    if(selectedPeer == null) {
 			return;
 		}
 

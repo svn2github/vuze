@@ -90,6 +90,7 @@ public class PeerRow implements SortableItem {
         items.add(new ClientItem(PeerRow.this,itemEnumerator.getPositionByName("client")));
         items.add(new DiscardedItem(PeerRow.this,itemEnumerator.getPositionByName("discarded")));
         items.add(new UniquePieceItem(PeerRow.this,itemEnumerator.getPositionByName("uniquepiece")));
+        items.add(new TimeToSendPieceItem(PeerRow.this,itemEnumerator.getPositionByName("timetosend")));
         
         Map extensions = PeersTableExtensions.getInstance().getExtensions();
         Iterator iter = extensions.keySet().iterator();
@@ -221,6 +222,12 @@ public class PeerRow implements SortableItem {
     if (field.equals("discarded"))
       return peerSocket.getStats().getTotalDiscarded();
 
+    if(field.equals("uniquepiece"))
+      return peerSocket.getUniqueAnnounce();
+    
+    if(field.equals("timetosend"))
+      return peerSocket.getUploadHint();
+    
     if (getBooleanField(field))
       return 1;
 

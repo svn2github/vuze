@@ -37,7 +37,7 @@ public class SuperSeedPiece {
   private long timeFirstDistributed;
   private PEPeer firstReceiver;
   private int numberOfPeersWhenFirstReceived;
-  private int timeToReach25Percent;
+  private int timeToReachAnotherPeer;
   
   
   public SuperSeedPiece(PEPeerControl manager,int pieceNumber) {
@@ -47,20 +47,17 @@ public class SuperSeedPiece {
   }
   
   public synchronized void peerHasPiece(PEPeer peer) {
-    if(firstReceiver == null) {
+    if(level < 2) {
       firstReceiver = peer;
       timeFirstDistributed = System.currentTimeMillis();
       numberOfPeersWhenFirstReceived = manager.getNbPeers();
-    }
-    int availLevel = manager.getAvailability(pieceNumber);
-    if(availLevel == 10) {
-      timeToReach25Percent = (int) (System.currentTimeMillis() - timeFirstDistributed);
-      if(firstReceiver != null) {
-        firstReceiver.setUploadHint(timeToReach25Percent);
+    } else {
+      if(peer != null && firstReceiver != null) {
+        timeToReachAnotherPeer = (int) (System.currentTimeMillis() - timeFirstDistributed);
+        firstReceiver.setUploadHint(timeToReachAnotherPeer);
       }
     }
-    //Ok, the idea is to go from 0 to 2, from 1 to 2, from 2 to 4, from 3 to 4 ...
-    level = 2 * (level / 2) + 2;
+    level = 2;
   }
   
   public int getLevel() {
@@ -68,8 +65,7 @@ public class SuperSeedPiece {
   }
   
   public synchronized void pieceRevealedToPeer() {
-    //0->1 , 1->1 , 2->3 , 3->3
-    level = 2 * (level / 2) + 1;
+    level = 1;
   }
   /**
    * @return Returns the pieceNumber.
@@ -79,7 +75,19 @@ public class SuperSeedPiece {
   }
   
   public void peerLeft() {
-    level = 2 * (level / 2);
+    level = 0;
+  }
+  
+  public void updateTime() {
+    if(level < 2)
+      return;
+    if(timeToReachAnotherPeer > 0)
+      return;
+    if(firstReceiver == null)
+      return;
+    int timeToSend = (int) (System.currentTimeMillis() - timeFirstDistributed);
+    if(timeToSend > firstReceiver.getUploadHint())
+      firstReceiver.setUploadHint(timeToSend);
   }
 
 }
