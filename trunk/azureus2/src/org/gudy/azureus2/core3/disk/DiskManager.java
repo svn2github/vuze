@@ -130,11 +130,18 @@
 	public String
 	getErrorMessage();
   
-  public String
-  moveCompletedFiles();
+	public String
+	moveCompletedFiles();
 
-  public boolean isChecking();
+	public boolean isChecking();
   
-  public boolean isWriteThreadRunning();
-  
+	public boolean isWriteThreadRunning();
+   
+	public void
+	addListener(
+		DiskManagerListener	l );
+	
+	public void
+	removeListener(
+		DiskManagerListener	l );
  }

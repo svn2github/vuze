@@ -91,9 +91,10 @@ DownloadManagerImpl
 	private TRTrackerClient 			tracker_client;
 	private TRTrackerClientListener	tracker_client_listener;
 	
-	private DiskManager diskManager;
+	private DiskManager 			diskManager;
+	private DiskManagerListener		disk_manager_listener;
   
-	private PEPeerManager 		peerManager;
+	private PEPeerManager 			peerManager;
 	private PEPeerManagerListener	peer_manager_listener;
    
 	public 
@@ -202,7 +203,7 @@ DownloadManagerImpl
 			
 		tracker_client.addListener( tracker_client_listener );
 
-    initializeDiskManager();
+		initializeDiskManager();
 
 		setState( STATE_INITIALIZED );
 									
@@ -423,7 +424,7 @@ DownloadManagerImpl
 		}      
 		
 		if (diskManager != null){
-      stats.setCompleted(stats.getCompleted());
+			stats.setCompleted(stats.getCompleted());
       
 		  if (diskManager.getState() == DiskManager.READY){
 		    diskManager.dumpResumeDataToDisk(true, false);
@@ -435,6 +436,8 @@ DownloadManagerImpl
 		  
 		  diskManager.stopIt();
 		  	
+		  diskManager.addListener( disk_manager_listener );
+		  
 		  diskManager = null;
 		}
 				
@@ -445,10 +448,18 @@ DownloadManagerImpl
 	stopThread.start();
   }
 
-  public void setState(int state) {
-	this.state = state;
+  public void setState(int _state){
+  	
+  		// note: there is a DIFFERENCE between the state held on the DownloadManager and
+  		// that reported via getState as getState incorporated DiskManager states when
+  		// the DownloadManager is INITIALIZED
+  	
+  	if ( state != _state ){
+  		
+		state = _state;
 	
-	informStateChanged();
+		informStateChanged( state );
+  	}
   }
 
   public int getNbSeeds() {
@@ -754,13 +765,14 @@ DownloadManagerImpl
 	}
 	
 	protected void
-	informStateChanged()
+	informStateChanged(
+		int		new_state )
 	{
 		synchronized( listeners ){
 		
 			for (int i=0;i<listeners.size();i++){
 				
-				((DownloadManagerListener)listeners.elementAt(i)).stateChanged( state );
+				((DownloadManagerListener)listeners.elementAt(i)).stateChanged( new_state );
 			}
 		}
 	}
@@ -917,12 +929,32 @@ DownloadManagerImpl
 	informDownloadEnded();
   }
 
-  public void initializeDiskManager() {
-    if(diskManager == null) {
-      diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
-    }
+  public void initializeDiskManager() 
+  {
+  	if(diskManager == null) {
+  		diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
+      
+  		disk_manager_listener = 
+  			new DiskManagerListener()
+  			{
+  				public void
+  				stateChanged(
+  					int		disk_manager_state )
+  				{
+  					int	dl_state = getState();
+  					
+  					if ( dl_state != state ){
+  						
+  						informStateChanged( dl_state );
+  					}
+  				}
+  			};
+  		
+  		diskManager.addListener( disk_manager_listener );
+  	}
     
-    if (forcedRecheck) {
+    if (forcedRecheck){
+    	
       forcedRecheck = false;
       while (diskManager.getState() == DiskManager.INITIALIZING) {
         try { Thread.sleep(50); } catch (Exception ignore) {}

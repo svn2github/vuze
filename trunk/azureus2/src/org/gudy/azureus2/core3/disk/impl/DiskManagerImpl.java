@@ -114,6 +114,8 @@ DiskManagerImpl
 	private PEPiece[] pieces;
 	private boolean alreadyMoved = false;
 
+	private List	listeners = new ArrayList();
+	
   private static boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
   private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   
@@ -1377,7 +1379,18 @@ DiskManagerImpl
 	setState(
 		int		_state ) 
 	{
-		state_set_via_method = _state;
+		if ( state_set_via_method != _state ){
+			
+			state_set_via_method = _state;
+			
+			synchronized( listeners ){
+				
+				for (int i=0;i<listeners.size();i++){
+			
+					((DiskManagerListener)listeners.get(i)).stateChanged(state_set_via_method );
+				}
+			}
+		}
 	}
 	
 	public String getFileName() {
@@ -1861,4 +1874,21 @@ DiskManagerImpl
     firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   }
 
+  public void
+  addListener(
+  	DiskManagerListener	l )
+  {
+  	synchronized( listeners ){
+  		listeners.add( l );
+  	}
+  }
+  
+  public void
+  removeListener(
+  	DiskManagerListener	l )
+  {
+  	synchronized( listeners ){
+  		listeners.remove(l);
+  	}
+  }
 }
