@@ -386,7 +386,10 @@ DownloadManagerImpl
 	return ""; //$NON-NLS-1$
   }
 
-  public String getFileName() {
+  /**
+   * Returns the full path including file/dir name
+   */
+  public String getFullName() {
 	if (diskManager != null)
 	  return diskManager.getPath() + System.getProperty("file.separator") + diskManager.getFileName(); //$NON-NLS-1$
 	return savePath;

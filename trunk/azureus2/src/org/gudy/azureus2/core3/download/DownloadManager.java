@@ -115,6 +115,8 @@ DownloadManager
 	
 	public String
 	getName();
+  
+   public String getFullName();
 	
 	public long
 	getSize();
