@@ -111,7 +111,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 
     Group cResumeGroup = new Group(gFile, SWT.NULL);
 	    layout = new GridLayout();
-	    layout.marginHeight = 4;
+	    layout.marginHeight = 0;
 	    layout.marginWidth = 4;
 	    layout.numColumns = 3;
 	    cResumeGroup.setLayout(layout);
@@ -144,14 +144,14 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 	    gridData = new GridData();
 	    gridData.widthHint = 30;
 	    savePeersMax.setLayoutData(gridData); 
-	    label = new Label(cResumeGroup, SWT.NULL);
+	    final Label lblPerTorrent = new Label(cResumeGroup, SWT.NULL);
+	    Messages.setLanguageText(lblPerTorrent, "ConfigView.section.file.save.peers.pertorrent");
 	    
 	   
-	    final Control[] controls = { 	
-	    						lblMinutes, 
-	    						lblSaveResumeInterval,	paramSaveInterval.getControl(),
+	    final Control[] controls = { 	 
+	    						lblSaveResumeInterval,	paramSaveInterval.getControl(), lblMinutes,
 	    						lblSavePeers, save_peers.getControl(),
-	    						lblSavePeersMax, savePeersMax.getControl()};
+	    						lblSavePeersMax, savePeersMax.getControl(), lblPerTorrent };
 	   
 	    /*
 	    IAdditionalActionPerformer performer = new ChangeSelectionActionPerformer(controls);
@@ -170,6 +170,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 	            	
 	            	lblSavePeersMax.setEnabled( save_peers.isSelected());
 	            	savePeersMax.getControl().setEnabled( save_peers.isSelected());
+	            	lblPerTorrent.setEnabled( save_peers.isSelected());
 	            }
 	        }
 	      };
