@@ -50,7 +50,8 @@ BUGFIX: Core | Fix potential connection establishment backlog [Nolar]
 BUGFIX: Core | Fix potential DOS by timing out stalled connections [Nolar]
 BUGFIX: UI   | Fix Health icons sometimes not refreshing [Nolar]
 BUGFIX: Core | Fix bug in re-announce interval override calculation when connection limit has been reached [Nolar]
-
+BUGFIX: UI   | Fix bug with Azureus crashing when quitting on OS X if the stats view has been opened [Gudy]
+BUGFIX: UI   | Fix the icon bug on OS X [Gudy]
 
 
 
