@@ -70,7 +70,7 @@ public class ConfigSectionServer implements ConfigSectionSWT {
 
  ///////////////////////
     
-    IntParameter tcplisten = new IntParameter(cServer, "TCP.Listen.Port", 6881);
+    IntParameter tcplisten = new IntParameter(cServer, "TCP.Listen.Port", 6881,false);
     formData = new FormData();
     formData.top = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
