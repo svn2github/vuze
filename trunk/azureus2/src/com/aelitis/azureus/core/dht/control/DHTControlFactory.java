@@ -37,19 +37,21 @@ DHTControlFactory
 {
 	public static DHTControl
 	create(
-		DHTTransport	transport,
-		int				K,
-		int				B,
-		int				max_rep_per_node,
-		int				search_concurrency,
-		int				lookup_concurrency,
-		int				original_republish_interval,
-		int				cache_republish_interval,
-		int				cache_at_closest_n,
-		int				max_values_stored,
-		LoggerChannel	logger )
+		DHTControlAdapter	adapter,
+		DHTTransport		transport,
+		int					K,
+		int					B,
+		int					max_rep_per_node,
+		int					search_concurrency,
+		int					lookup_concurrency,
+		int					original_republish_interval,
+		int					cache_republish_interval,
+		int					cache_at_closest_n,
+		int					max_values_stored,
+		LoggerChannel		logger )
 	{
-		return( new DHTControlImpl( 
+		return( new DHTControlImpl(
+						adapter,
 						transport, 
 						K, B, max_rep_per_node,
 						search_concurrency,

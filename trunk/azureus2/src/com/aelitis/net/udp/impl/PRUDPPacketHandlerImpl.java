@@ -419,7 +419,16 @@ PRUDPPacketHandlerImpl
 				try{
 					requests_mon.enter();
 					
-					request = (PRUDPPacketHandlerRequest)requests.remove(new Integer(packet.getTransactionId()));
+					if ( packet.hasContinuation()){
+					
+							// don't remove the request if there are more replies to come
+						
+						request = (PRUDPPacketHandlerRequest)requests.get(new Integer(packet.getTransactionId()));
+
+					}else{
+					
+						request = (PRUDPPacketHandlerRequest)requests.remove(new Integer(packet.getTransactionId()));
+					}
 
 				}finally{
 					

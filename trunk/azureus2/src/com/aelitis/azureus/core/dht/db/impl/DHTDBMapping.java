@@ -44,6 +44,7 @@ DHTDBMapping
 	private Map				indirect_originator_value_map	= new LinkedHashMap(16, 0.75f, true );
 	
 	private int				hits;
+	private int				indirect_data_size;
 	
 	protected
 	DHTDBMapping(
@@ -158,7 +159,7 @@ DHTDBMapping
 			
 				// remove any indirect value we might already have for this
 			
-			indirect_originator_value_map.remove( originator_value_id );
+			removeIndirectValue( originator_value_id );
 			
 		}else{
 			
@@ -183,7 +184,7 @@ DHTDBMapping
 					
 					if ( new_value.getCreationTime() > existing_value.getCreationTime()){
 					
-						indirect_originator_value_map.put( originator_value_id, new_value );
+						addIndirectValue( originator_value_id, new_value );
 						
 					}else{
 					
@@ -198,13 +199,13 @@ DHTDBMapping
 					
 						// overwrite further away entry for this sender
 					
-					indirect_originator_value_map.put( originator_value_id, new_value );
+					addIndirectValue( originator_value_id, new_value );
 					
 					//System.out.println( "    replacing existing" );
 				}				
 			}else{
 			
-				indirect_originator_value_map.put( originator_value_id, new_value );
+				addIndirectValue( originator_value_id, new_value );
 			}	
 		}
 	}
@@ -238,6 +239,12 @@ DHTDBMapping
 	getHits()
 	{
 		return( hits );
+	}
+	
+	protected int
+	getIndirectSize()
+	{
+		return( indirect_data_size );
 	}
 	
 	protected DHTDBValueImpl[]
@@ -350,14 +357,43 @@ DHTDBMapping
 		return( new valueIterator());
 	}
 	
+	protected void
+	addIndirectValue(
+		HashWrapper		value_key,
+		DHTDBValueImpl	value )
+	{
+		DHTDBValueImpl	old = (DHTDBValueImpl)indirect_originator_value_map.put( value_key, value );
+		
+		if ( old != null ){
+			
+			indirect_data_size -= old.getValue().length;
+		}
+		
+		indirect_data_size += value.getValue().length;
+	}
+	
+	protected void
+	removeIndirectValue(
+		HashWrapper		value_key )
+	{
+		DHTDBValueImpl	old = (DHTDBValueImpl)indirect_originator_value_map.remove( value_key );
+		
+		if ( old != null ){
+			
+			indirect_data_size -= old.getValue().length;
+		}
+	}
+	
 	protected class
 	valueIterator
 		implements Iterator
 	{
-		Map[]	maps 		= new Map[]{ direct_originator_map, indirect_originator_value_map };
-		int		map_index 	= 0;
+		private Map[]	maps 		= new Map[]{ direct_originator_map, indirect_originator_value_map };
+		private int		map_index 	= 0;
 		
-		Iterator	it;
+		private Map				map;
+		private Iterator		it;
+		private DHTDBValueImpl	value;
 		
 		public boolean
 		hasNext()
@@ -369,7 +405,9 @@ DHTDBMapping
 			
 			while( map_index < maps.length ){
 				
-				it = maps[map_index++].values().iterator();
+				map = maps[map_index++];
+				
+				it = map.values().iterator();
 				
 				if ( it.hasNext()){
 					
@@ -385,7 +423,9 @@ DHTDBMapping
 		{
 			if ( hasNext()){
 			
-				return( it.next());
+				value = (DHTDBValueImpl)it.next();
+				
+				return( value );
 			}
 			
 			throw( new NoSuchElementException());
@@ -398,6 +438,11 @@ DHTDBMapping
 							
 				throw( new IllegalStateException());
 			}	
+			
+			if ( value != null && map == indirect_originator_value_map ){
+				
+				indirect_data_size -= value.getValue().length;
+			}
 			
 			it.remove();
 		}

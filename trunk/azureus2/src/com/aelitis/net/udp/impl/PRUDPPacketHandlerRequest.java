@@ -79,9 +79,21 @@ PRUDPPacketHandlerRequest
 		PRUDPPacket			packet,
 		InetSocketAddress	originator )
 	{
-		reply	= packet;
+		if ( reply == null ){
+			
+			reply	= packet;
+			
+		}else{
+			
+			packet.setPreviousPacket( reply );
+			
+			reply	= packet;
+		}
 		
-		sem.release();
+		if( !packet.hasContinuation()){
+			
+			sem.release();
+		}
 		
 		if ( receiver != null ){
 			
@@ -93,12 +105,24 @@ PRUDPPacketHandlerRequest
 	setException(
 		PRUDPPacketHandlerException	e )
 	{
-		exception	= e;
+			// don't override existing reply for synchronous callers as they can
+			// do what they want with it
+		
+		if ( reply == null ){
+			
+			exception	= e;
+		}
 		
 		sem.release();
+			
+			// still report errors to asyn clients (even when a reply has been received)
+			// as they need something to indicate that a continuation packet wasn't received
+			// and that the request has timed-out. ie. a multi-packet reply must terminate
+			// either with the reception of a non-continuation (i.e. last) packet *or* a
+			// timeout/error
 		
 		if ( receiver != null ){
-			
+				
 			receiver.error( e );
 		}
 	}

@@ -131,7 +131,7 @@ DHTTransportUDPImpl
 			// limit send and receive rates. Receive rate is lower as we want a stricter limit
 			// on the max speed we generate packets than those we're willing to process.
 		
-		packet_handler.setDelays( 100, 50 );
+		packet_handler.setDelays( 50, 25 );
 		
 		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		
@@ -1186,19 +1186,6 @@ DHTTransportUDPImpl
 
 		final long	connection_id = getConnectionID();
 		
-			// value len of 16...
-		
-		int	reply_max = 
-			( DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReply.DHT_HEADER_SIZE )/
-			( DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE + 16 );
-		
-			// TODO: hack here to keep replies a sensible size
-		
-		if ( max_values > reply_max ){
-			
-			max_values = reply_max;
-		}
-		
 		try{
 			checkAddress( contact );
 			
@@ -1261,7 +1248,7 @@ DHTTransportUDPImpl
 								
 								if ( res != null ){
 									
-									handler.findValueReply( contact, res );
+									handler.findValueReply( contact, res, reply.getDiversificationType(), reply.hasContinuation());
 									
 								}else{
 									
@@ -1894,7 +1881,7 @@ DHTTransportUDPImpl
 					
 					DHTUDPPacketRequestFindValue	find_request = (DHTUDPPacketRequestFindValue)request;
 				
-					Object res = 
+					DHTTransportFindValueReply res = 
 						request_handler.findValueRequest(
 									originating_contact,
 									find_request.getID(),
@@ -1908,16 +1895,66 @@ DHTTransportUDPImpl
 							local_contact,
 							originating_contact );
 					
-					if ( res instanceof DHTTransportValue[] ){
+					if ( res.hit()){
 						
-						reply.setValues((DHTTransportValue[])res);
-	
+						DHTTransportValue[]	res_values = res.getValues();
+						
+						int		max_size = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_HEADER_SIZE;
+						
+						List	values 		= new ArrayList();
+						int		values_size	= 0;
+						
+						int	pos = 0;
+						
+						while( pos < res_values.length ){
+					
+							DHTTransportValue	v = res_values[pos];
+							
+							int	v_len = v.getValue().length + DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_TV_HEADER_SIZE;
+							
+							if ( 	values_size > 0 && // if value too big, cram it in anyway 
+									values_size + v_len > max_size ){
+								
+									// won't fit, send what we've got
+								
+								DHTTransportValue[]	x = new DHTTransportValue[values.size()];
+								
+								values.toArray( x );
+								
+								reply.setValues( x, res.getDiversificationType(), true );	// continuation = true
+																
+								packet_handler.send( reply, request.getAddress());
+								
+								values_size	= 0;
+								
+								values		= new ArrayList();
+								
+							}else{
+								
+								values.add(v);
+								
+								values_size	+= v_len;
+								
+								pos++;
+							}
+						}
+						
+							// send the remaining (possible zero length) non-continuation values
+							
+						DHTTransportValue[]	x = new DHTTransportValue[values.size()];
+							
+						values.toArray( x );
+							
+						reply.setValues( x, res.getDiversificationType(), false );
+							
+						packet_handler.send( reply, request.getAddress());
+					
 					}else{
 						
-						reply.setContacts((DHTTransportContact[])res );
+						reply.setContacts(res.getContacts());
+						
+						packet_handler.send( reply, request.getAddress());
 					}
-					
-					packet_handler.send( reply, request.getAddress());
 					
 				}else if ( request instanceof DHTUDPPacketData ){
 					
@@ -2027,7 +2064,7 @@ DHTTransportUDPImpl
 	{
 		listeners.remove(l);
 	}
-	
+
 	protected transferQueue
 	lookupTransferQueue(
 		long		id )

@@ -375,7 +375,6 @@ DHTUDPUtils
 	
 		for (int i=0;i<values.length;i++){
 			
-			
 			serialiseTransportValue( os, values[i], skew );
 		}
 	}

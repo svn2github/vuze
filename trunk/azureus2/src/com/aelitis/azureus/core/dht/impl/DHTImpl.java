@@ -69,6 +69,25 @@ DHTImpl
 		int		max_v 	= getProp( PR_MAX_VALUES_STORED, 			DHTControl.MAX_VALUES_STORED_DEFAULT );
 		
 		control = DHTControlFactory.create( 
+				new DHTControlAdapter()
+				{
+					public byte[]
+					diversify(
+						boolean		put_operation,
+						boolean		existing,
+						byte[]		key )
+					{
+						logger.log( "diversify: op=" + (put_operation?"put":"get") + ",new=" +
+									(existing?"no":"yes")+", key=" + DHTLog.getString2( key ));
+						
+						if ( existing ){
+							
+							return( key );
+						}
+						
+						return( null );
+					}
+				},
 				_transport, 
 				K, B, max_r,
 				s_conc, l_conc, 

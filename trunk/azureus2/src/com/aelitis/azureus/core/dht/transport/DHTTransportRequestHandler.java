@@ -49,13 +49,12 @@ DHTTransportRequestHandler
 		DHTTransportContact contact, 
 		byte[]				id );
 	
-	public Object
+	public DHTTransportFindValueReply
 	findValueRequest(
 		DHTTransportContact contact, 
 		byte[]				key,
 		int					max_values,
 		byte				flags );
-	
 
 		/**
 		 * Mechanism for reporting that a contact has been imported

@@ -30,14 +30,22 @@ import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
+import com.aelitis.azureus.core.dht.transport.DHTTransportFindValueReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
 DHTUDPPacketReplyFindValue
 	extends DHTUDPPacketReply
 {
+	public static final int DHT_FIND_VALUE_HEADER_SIZE 		= DHTUDPPacketReply.DHT_HEADER_SIZE + 1 + 1 + 2;
+	
+	public static final int DHT_FIND_VALUE_TV_HEADER_SIZE	= DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE;
+		
 	private DHTTransportContact[]		contacts;
 	private DHTTransportValue[]			values;
+	
+	private boolean						has_continuation;
+	private byte						diversification_type	= DHTTransportFindValueReply.DT_NONE;
 	
 	public
 	DHTUDPPacketReplyFindValue(
@@ -59,10 +67,20 @@ DHTUDPPacketReplyFindValue
 	{
 		super( is, DHTUDPPacket.ACT_REPLY_FIND_VALUE, trans_id );
 		
+		if ( getVersion() >= 6 ){
+						
+			diversification_type	= is.readByte();
+		}
+		
 		boolean	is_value = is.readBoolean();
 		
 		if ( is_value ){
 			
+			if ( getVersion() >= 6 ){
+								
+				diversification_type	= is.readByte();
+			}
+
 			values = DHTUDPUtils.deserialiseTransportValues( transport, is, 0 );
 			
 		}else{
@@ -79,6 +97,11 @@ DHTUDPPacketReplyFindValue
 	{
 		super.serialise(os);
 		
+		if ( getVersion() >= 6 ){
+			
+			os.writeBoolean( has_continuation );
+		}
+		
 		os.writeBoolean( values != null );
 		
 		if ( values == null ){
@@ -87,6 +110,11 @@ DHTUDPPacketReplyFindValue
 			
 		}else{
 			
+			if ( getVersion() >= 6 ){
+								
+				os.writeByte( diversification_type );
+			}
+
 			// values returned to a caller are adjusted by - skew
 			
 			try{
@@ -99,17 +127,33 @@ DHTUDPPacketReplyFindValue
 		}
 	}
 	
+	public boolean
+	hasContinuation()
+	{
+		return( has_continuation );
+	}
+	
 	protected void
 	setValues(
-		DHTTransportValue[]	_values )
+		DHTTransportValue[]	_values,
+		byte				_diversification_type,
+		boolean				_has_continuation )
 	{
-		values	= _values;
+		has_continuation		= _has_continuation;
+		diversification_type	= _diversification_type;
+		values					= _values;
 	}
 	
 	protected DHTTransportValue[]
 	getValues()
 	{
 		return( values );
+	}
+	
+	protected byte
+	getDiversificationType()
+	{
+		return( diversification_type );
 	}
 	
 	protected void

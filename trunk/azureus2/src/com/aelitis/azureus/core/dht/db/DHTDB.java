@@ -54,11 +54,17 @@ DHTDB
 		HashWrapper				key,
 		DHTTransportValue[]		values );
 	
+		/**
+		 * Internal lookup for locally originated values
+		 * @param key
+		 * @return
+		 */
+	
 	public DHTDBValue
 	get(
 		HashWrapper		key );
 	
-	public DHTDBValue[]
+	public DHTDBLookupResult
 	get(
 		HashWrapper		key,
 		int				max_values,

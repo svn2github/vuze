@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.transport.util;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportFindValueReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportRequestHandler;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
@@ -87,7 +88,7 @@ DHTTransportRequestCounter
 		return( delegate.findNodeRequest( contact, id ));
 	}
 	
-	public Object
+	public DHTTransportFindValueReply
 	findValueRequest(
 		DHTTransportContact contact, 
 		byte[]				key,

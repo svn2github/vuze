@@ -95,6 +95,14 @@ DHTUDPPacket
 				
 					throws IOException
 				{
+					if ( handler == null ){
+					
+							// most likely cause is DHT packet ending up on the UDP tracker as it'll get
+							// router here but with a null-handler
+						
+						throw( new IOException( "No handler available for DHT packet decode" ));
+					}
+					
 					DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)handler.getRequestHandler();
 
 					switch( action ){

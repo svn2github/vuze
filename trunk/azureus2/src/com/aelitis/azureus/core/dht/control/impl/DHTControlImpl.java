@@ -56,6 +56,7 @@ DHTControlImpl
 	
 	private static final int RANDOM_QUERY_PERIOD			= 5*60*1000;
 	
+	private DHTControlAdapter		adapter;
 	private DHTTransport			transport;
 	private DHTTransportContact		local_contact;
 	
@@ -88,18 +89,20 @@ DHTControlImpl
 	
 	public
 	DHTControlImpl(
-		DHTTransport	_transport,
-		int				_K,
-		int				_B,
-		int				_max_rep_per_node,
-		int				_search_concurrency,
-		int				_lookup_concurrency,
-		int				_original_republish_interval,
-		int				_cache_republish_interval,
-		int				_cache_at_closest_n,
-		int				_max_values_stored,
-		LoggerChannel	_logger )
+		DHTControlAdapter	_adapter,
+		DHTTransport		_transport,
+		int					_K,
+		int					_B,
+		int					_max_rep_per_node,
+		int					_search_concurrency,
+		int					_lookup_concurrency,
+		int					_original_republish_interval,
+		int					_cache_republish_interval,
+		int					_cache_at_closest_n,
+		int					_max_values_stored,
+		LoggerChannel		_logger )
 	{
+		adapter		= _adapter;
 		transport	= _transport;
 		logger		= _logger;
 		
@@ -230,6 +233,12 @@ DHTControlImpl
 								{
 								}
 
+								public void
+								diversify(
+									byte	diversification_type )
+								{
+								}
+								
 								public void
 								read(
 									DHTTransportContact	contact,
@@ -486,7 +495,13 @@ DHTControlImpl
 						DHTTransportContact	contact )
 					{
 					}
-
+					
+					public void
+					diversify(
+						byte	diversification_type )
+					{
+					}
+					
 					public void
 					read(
 						DHTTransportContact	contact,
@@ -590,11 +605,17 @@ DHTControlImpl
 	
 	protected void
 	put(
-		final byte[]				encoded_key,
+		final byte[]				initial_encoded_key,
 		final DHTTransportValue		value,
 		final long					timeout,
 		final DHTOperationListener	listener )
 	{
+		final boolean[]	diversified = { false };
+		
+			// get the initial starting point for the put - may have previously been diversified
+		
+		final byte[]	encoded_key	= adapter.diversify( true, true, initial_encoded_key );
+		
 		lookup( put_pool,
 				encoded_key, 
 				(byte)0,
@@ -626,6 +647,23 @@ DHTControlImpl
 							listener.found( contact );
 						}
 					}
+					
+					public void
+					diversify(
+						byte		diversification_type )
+					{
+						if ( !diversified[0]){
+							
+							byte[]	diversified_key = adapter.diversify( true, false, encoded_key );
+							
+							if ( diversified_key != null ){
+								
+								put( diversified_key, value, timeout, listener );
+							}
+							
+							diversified[0] = true;
+						}
+					}
 
 					public void
 					read(
@@ -655,7 +693,10 @@ DHTControlImpl
 					{	
 						if ( listener != null ){
 							
-							listener.complete( _timeout );
+							if ( !diversified[0] ){
+							
+								listener.complete( _timeout );
+							}
 						}
 					}
 					
@@ -816,6 +857,23 @@ DHTControlImpl
 
 		DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
 		
+		getSupport( encoded_key, flags, max_values, timeout, get_listener );
+	}
+	
+	public void
+	getSupport(
+		final byte[]					initial_encoded_key,
+		final byte						flags,
+		final int						max_values,
+		final long						timeout,
+		final DHTOperationListener		get_listener )
+	{
+		final boolean[]	diversified = { false };
+
+		// get the initial starting point for the put - may have previously been diversified
+		
+		final byte[]	encoded_key	= adapter.diversify( false, true, initial_encoded_key );
+
 		lookup( external_lookup_pool,
 				encoded_key, 
 				flags,
@@ -845,6 +903,28 @@ DHTControlImpl
 					}
 
 					public void
+					diversify(
+						byte	diversification_type )
+					{
+						if ( !diversified[0]){
+							
+							int	rem = max_values - found_values.size();
+							
+							if ( max_values > 0 && rem > 0 ){
+								
+								byte[]	diversified_key = adapter.diversify( false, false, encoded_key );
+								
+								if ( diversified_key != null ){
+									
+									getSupport( diversified_key, flags, rem,  timeout, get_listener );
+								}
+							}
+							
+							diversified[0] = true;
+						}
+					}
+					
+					public void
 					read(
 						DHTTransportContact	contact,
 						DHTTransportValue	value )
@@ -866,28 +946,32 @@ DHTControlImpl
 					complete(
 						boolean				timeout_occurred )
 					{	
-						get_listener.complete( timeout_occurred );
+						if ( !diversified[0] ){
+							
+							get_listener.complete( timeout_occurred );
+						}
 					}
 	
 					public void
 					closest(
 						List	closest )
 					{
-							// TODO: multiple values!!!!
-							// TODO: also, make sure we don't store values at the same
-							// place they came from!
-						
 						if ( found_values.size() > 0 ){
 								
-							DHTTransportValue	value = (DHTTransportValue)found_values.get(0);
+							DHTTransportValue[]	values = new DHTTransportValue[found_values.size()];
 							
-								// cache the value at the 'n' closest seen locations
+							found_values.toArray( values );
+							
+								// cache the values at the 'n' closest seen locations
 							
 							for (int i=0;i<Math.min(cache_at_closest_n,closest.size());i++){
 								
 								DHTTransportContact	contact = (DHTTransportContact)(DHTTransportContact)closest.get(i);
 								
-								wrote( contact, value );
+								for (int j=0;j<values.length;j++){
+									
+									wrote( contact, values[j] );
+								}
 								
 								contact.sendStore( 
 										new DHTTransportReplyHandlerAdapter()
@@ -912,7 +996,7 @@ DHTControlImpl
 											}
 										},
 										new byte[][]{ encoded_key }, 
-										new DHTTransportValue[][]{{ value }});
+										new DHTTransportValue[][]{ values });
 							}
 						}
 					}
@@ -1178,6 +1262,8 @@ DHTControlImpl
 					DHTTransportReplyHandlerAdapter	handler = 
 						new DHTTransportReplyHandlerAdapter()
 						{
+							private boolean	value_reply_received	= false;
+							
 							public void
 							findNodeReply(
 								DHTTransportContact 	target_contact,
@@ -1276,10 +1362,21 @@ DHTControlImpl
 							public void
 							findValueReply(
 								DHTTransportContact 	contact,
-								DHTTransportValue[]		values )
+								DHTTransportValue[]		values,
+								byte					diversification_type,
+								boolean					more_to_come )
 							{
+								DHTLog.log( "findValueReply: " + DHTLog.getString( values ) + ",mtc=" + more_to_come + ", dt=" + diversification_type );
+
 								try{
-									DHTLog.log( "findValueReply: " + DHTLog.getString( values ));
+									if ( diversification_type != DHTTransportFindValueReply.DT_NONE ){
+										
+											// diversification instruction									
+	
+										result_handler.diversify( diversification_type );									
+									}
+									
+									value_reply_received	= true;
 									
 									router.contactAlive( contact.getID(), new DHTControlContactImpl(contact));
 									
@@ -1317,7 +1414,10 @@ DHTControlImpl
 									try{
 										contacts_to_query_mon.enter();
 
-										value_replies[0]++;
+										if ( !more_to_come ){
+											
+											value_replies[0]++;
+										}
 										
 										values_found[0] += new_values;
 										
@@ -1325,20 +1425,22 @@ DHTControlImpl
 										
 										contacts_to_query_mon.exit();
 									}
-		
 								}finally{
 									
-									try{
-										contacts_to_query_mon.enter();
+									if ( !more_to_come ){
 
-										active_searches[0]--;
-										
-									}finally{
-										
-										contacts_to_query_mon.exit();
-									}
+										try{
+											contacts_to_query_mon.enter();
+												
+											active_searches[0]--;
+											
+										}finally{
+											
+											contacts_to_query_mon.exit();
+										}
 									
-									search_sem.release();
+										search_sem.release();
+									}
 								}						
 							}
 							
@@ -1356,9 +1458,16 @@ DHTControlImpl
 								Throwable 				error )
 							{
 								try{
-									DHTLog.log( "findNode/findValue " + DHTLog.getString( target_contact ) + " -> failed: " + error.getMessage());
+										// if at least one reply has been received then we
+										// don't treat subsequent failure as indication of
+										// a contact failure (just packet loss)
 									
-									router.contactDead( target_contact.getID(), new DHTControlContactImpl(target_contact));
+									if ( !value_reply_received ){
+										
+										DHTLog.log( "findNode/findValue " + DHTLog.getString( target_contact ) + " -> failed: " + error.getMessage());
+									
+										router.contactDead( target_contact.getID(), new DHTControlContactImpl(target_contact));
+									}
 		
 								}finally{
 									
@@ -1488,7 +1597,7 @@ DHTControlImpl
 		return( res );
 	}
 	
-	public Object
+	public DHTTransportFindValueReply
 	findValueRequest(
 		DHTTransportContact originating_contact, 
 		byte[]				key,
@@ -1496,18 +1605,18 @@ DHTControlImpl
 		byte				flags )
 	{
 		DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
-
-		DHTDBValue[]	values	= database.get( new HashWrapper( key ), max_values, true );
+		
+		DHTDBLookupResult	result	= database.get( new HashWrapper( key ), max_values, true );
 					
-		if ( values.length > 0 ){
+		if ( result != null ){
 			
 			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 
-			return( values );
+			return( new DHTTransportFindValueReplyImpl( result.getDiversificationType(), result.getValues()));
 			
 		}else{
 			
-			return( findNodeRequest( originating_contact, key ));
+			return( new DHTTransportFindValueReplyImpl( findNodeRequest( originating_contact, key )));
 		}
 	}
 	
@@ -1603,14 +1712,20 @@ DHTControlImpl
 			
 			byte[]	encoded_key		= key.getHash();
 			
-			DHTDBValue[]	values	= database.get( key, 0, false );
+			DHTDBLookupResult	result = database.get( key, 0, false );
 			
-			if ( values.length == 0 ){
+			if ( result == null  ){
 				
 					// deleted in the meantime
 				
 				continue;
 			}
+			
+				// even if a result has been diversified we continue to maintain the base value set
+				// until the original publisher picks up the diversification (next publish period) and
+				// publishes to the correct place
+			
+			DHTDBValue[]	values = result.getValues();
 			
 			List	values_to_store = new ArrayList();
 			
@@ -1904,5 +2019,58 @@ DHTControlImpl
 		public void
 		closest(
 			List		res );
+		
+		public void
+		diversify(
+			byte		diversification_type );
+	}
+	
+	class
+	DHTTransportFindValueReplyImpl
+		implements DHTTransportFindValueReply
+	{
+		private byte					dt = DHTTransportFindValueReply.DT_NONE;
+		private DHTTransportValue[]		values;
+		private DHTTransportContact[]	contacts;
+		
+		protected
+		DHTTransportFindValueReplyImpl(
+			byte				_dt,
+			DHTTransportValue[]	_values )
+		{
+			dt		= _dt;
+			values	= _values;
+		}
+		
+		protected
+		DHTTransportFindValueReplyImpl(
+			DHTTransportContact[]	_contacts )
+		{
+			contacts	= _contacts;
+		}
+		
+		public byte
+		getDiversificationType()
+		{
+			return( dt );
+		}
+		
+		public boolean
+		hit()
+		{
+			return( values != null );
+		}
+		
+		public DHTTransportValue[]
+		getValues()
+		{
+			return( values );
+		}
+		
+		public DHTTransportContact[]
+		getContacts()
+		{
+			return( contacts );
+		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Created on 12-Jan-2005
+ * Created on 10-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport;
+package com.aelitis.azureus.core.dht.db;
 
 /**
  * @author parg
@@ -28,41 +28,15 @@ package com.aelitis.azureus.core.dht.transport;
  */
 
 public interface 
-DHTTransportReplyHandler 
+DHTDBLookupResult 
 {
-	public void
-	pingReply(
-		DHTTransportContact contact );
-		
-	public void
-	statsReply(
-		DHTTransportContact 	contact,
-		DHTTransportFullStats	stats );
+	public static final byte	DT_NONE			= 1;
+	public static final byte	DT_FREQUENCY	= 2;
+	public static final byte	DT_SIZE			= 3;
 
-	public void
-	storeReply(
-		DHTTransportContact contact );
+	public DHTDBValue[]
+	getValues();
 	
-	public void
-	findNodeReply(
-		DHTTransportContact 	contact,
-		DHTTransportContact[]	contacts );
-	
-	public void
-	findValueReply(
-		DHTTransportContact 	contact,
-		DHTTransportValue[]		values,
-		byte					diversification_type,
-		boolean					more_to_come );
-	
-	public void
-	findValueReply(
-		DHTTransportContact 	contact,
-		DHTTransportContact[]	contacts );
-	
-	public void
-	failed(
-		DHTTransportContact 	contact,
-		Throwable				error );
-
+	public byte
+	getDiversificationType();
 }

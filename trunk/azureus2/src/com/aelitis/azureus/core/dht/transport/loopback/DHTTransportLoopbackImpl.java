@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.dht.transport.loopback;
 
 import java.util.*;
 import java.io.*;
-import java.net.InetSocketAddress;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -514,14 +513,18 @@ DHTTransportLoopbackImpl
 			
 			stats.findValueOK();
 			
-			Object o_res =
+			DHTTransportFindValueReply find_res =
 				target.getRequestHandler().findValueRequest( 
 					new DHTTransportLoopbackContactImpl( target, node_id ),
 					key, max, flags );
 			
-			if ( o_res instanceof DHTTransportContact[]){
+			if ( find_res.hit()){
 				
-				DHTTransportContact[]	res  = (DHTTransportContact[])o_res;
+				handler.findValueReply( contact, find_res.getValues(), find_res.getDiversificationType(), false );
+
+			}else{
+				
+				DHTTransportContact[]	res  = find_res.getContacts();
 				
 				DHTTransportContact[] trans_res = new DHTTransportContact[res.length];
 				  
@@ -532,9 +535,6 @@ DHTTransportLoopbackImpl
 
 				handler.findValueReply( contact, trans_res );
 				
-			}else{
-				
-				handler.findValueReply( contact, (DHTTransportValue[])o_res );
 			}
 		}
 	}

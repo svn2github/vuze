@@ -47,6 +47,8 @@ PRUDPPacket
 	private int		type;
 	private int		transaction_id;
 	
+	private PRUDPPacket	previous_packet;
+	
 	protected
 	PRUDPPacket(
 		int		_type,
@@ -71,6 +73,19 @@ PRUDPPacket
 			
 			class_mon.exit();
 		}
+	}
+	
+	public boolean
+	hasContinuation()
+	{
+		return( false );
+	}
+	
+	public void
+	setPreviousPacket(
+		PRUDPPacket	p )
+	{
+		previous_packet = p;
 	}
 	
 	public void

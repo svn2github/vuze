@@ -318,7 +318,7 @@ DHTDBImpl
 		}
 	}
 	
-	public DHTDBValue[]
+	public DHTDBLookupResult
 	get(
 		HashWrapper		key,
 		int				max_values,	// 0 -> all
@@ -333,7 +333,7 @@ DHTDBImpl
 			
 			if ( mapping == null ){
 				
-				return( new DHTDBValueImpl[0]);
+				return( null );
 			}
 			
 			if ( external_request ){
@@ -341,8 +341,37 @@ DHTDBImpl
 				mapping.addHit();
 			}
 			
-			return( mapping.get( max_values, true ));
+			final DHTDBValue[]	values = mapping.get( max_values, true );
 
+			byte	dt = DHTDBLookupResult.DT_NONE;
+			
+			/*
+			if ( values.length > 1 ){
+			
+				System.out.println( "pretend diversification" );
+				
+				dt	= DHTDBLookupResult.DT_SIZE;
+			}
+			*/
+			
+			final byte f_dt = dt;
+			
+			return(
+				new DHTDBLookupResult()
+				{
+					public DHTDBValue[]
+					getValues()
+					{
+						return( values );
+					}
+					
+					public byte
+					getDiversificationType()
+					{
+						return( f_dt );
+					}
+				});
+			
 		}finally{
 			
 			this_mon.exit();
@@ -901,7 +930,7 @@ DHTDBImpl
 				
 				str_entries++;
 				
-				str += (str_entries==1?"":", ") + DHTLog.getString2(value_key.getHash()) + " -> " + mapping.getSize() + "/" + mapping.getHits();
+				str += (str_entries==1?"":", ") + DHTLog.getString2(value_key.getHash()) + " -> " + mapping.getSize() + "/" + mapping.getHits()+"["+mapping.getIndirectSize() + "]";
 			}
 			
 			if ( str_entries > 0 ){
@@ -912,7 +941,5 @@ DHTDBImpl
 			
 			this_mon.exit();
 		}
-				
-
 	}
 }

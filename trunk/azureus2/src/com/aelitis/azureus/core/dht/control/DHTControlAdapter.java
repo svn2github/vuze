@@ -1,5 +1,5 @@
 /*
- * Created on 12-Jan-2005
+ * Created on 10-Mar-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport;
+package com.aelitis.azureus.core.dht.control;
 
 /**
  * @author parg
@@ -28,41 +28,11 @@ package com.aelitis.azureus.core.dht.transport;
  */
 
 public interface 
-DHTTransportReplyHandler 
+DHTControlAdapter 
 {
-	public void
-	pingReply(
-		DHTTransportContact contact );
-		
-	public void
-	statsReply(
-		DHTTransportContact 	contact,
-		DHTTransportFullStats	stats );
-
-	public void
-	storeReply(
-		DHTTransportContact contact );
-	
-	public void
-	findNodeReply(
-		DHTTransportContact 	contact,
-		DHTTransportContact[]	contacts );
-	
-	public void
-	findValueReply(
-		DHTTransportContact 	contact,
-		DHTTransportValue[]		values,
-		byte					diversification_type,
-		boolean					more_to_come );
-	
-	public void
-	findValueReply(
-		DHTTransportContact 	contact,
-		DHTTransportContact[]	contacts );
-	
-	public void
-	failed(
-		DHTTransportContact 	contact,
-		Throwable				error );
-
+	public byte[]
+	diversify(
+		boolean		put_operation,
+		boolean		existing,
+		byte[]		key );
 }

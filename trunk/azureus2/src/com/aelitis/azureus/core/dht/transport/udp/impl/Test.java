@@ -176,7 +176,9 @@ Test
 						public void
 						findValueReply(
 							DHTTransportContact 	contact,
-							DHTTransportValue[]		values )
+							DHTTransportValue[]		values,
+							byte					diversification_type,
+							boolean					more_to_come )
 						{
 							System.out.println( "findValue value reply" );
 						}
@@ -226,16 +228,42 @@ Test
 		return( new DHTTransportContact[]{ contact } );
 	}
 	
-	public Object
+	public DHTTransportFindValueReply
 	findValueRequest(
-		DHTTransportContact contact, 
-		byte[]				key,
-		int					max_values,
-		byte				flags )
+		final DHTTransportContact contact, 
+		byte[]					key,
+		int						max_values,
+		byte					flags )
 	{
 		System.out.println( "TransportHandler: findValue" );
 		
-		return( new DHTTransportContact[]{ contact } );
+		return( 
+				new DHTTransportFindValueReply()
+				{
+					public boolean
+					hit()
+					{
+						return( false );
+					}
+					
+					public byte
+					getDiversificationType()
+					{
+						return( DHTTransportFindValueReply.DT_NONE );
+					}
+					
+					public DHTTransportValue[]
+					getValues()
+					{
+						return( null );
+					}
+					
+					public DHTTransportContact[]
+					getContacts()
+					{
+						return( new DHTTransportContact[]{ contact } );
+					}
+				});
 	}
 
 	public void

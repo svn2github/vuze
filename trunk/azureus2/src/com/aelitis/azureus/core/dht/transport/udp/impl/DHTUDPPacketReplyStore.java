@@ -34,6 +34,8 @@ public class
 DHTUDPPacketReplyStore
 	extends DHTUDPPacketReply
 {
+	private boolean	diversify;
+	
 	public
 	DHTUDPPacketReplyStore(
 		int						trans_id,
@@ -52,6 +54,11 @@ DHTUDPPacketReplyStore
 		throws IOException
 	{
 		super( is, DHTUDPPacket.ACT_REPLY_STORE, trans_id );
+		
+		if ( getVersion() >= 6 ){
+			
+			diversify = is.readBoolean();
+		}
 	}
 	
 	public void
@@ -61,5 +68,23 @@ DHTUDPPacketReplyStore
 		throws IOException
 	{
 		super.serialise(os);
+		
+		if ( getVersion() >= 6 ){
+			
+			os.writeBoolean( diversify );
+		}
+	}
+	
+	public void
+	setDetails(
+		boolean		_diversify )
+	{
+		diversify	= _diversify;
+	}
+	
+	public boolean
+	getDiversify()
+	{
+		return( diversify );
 	}
 }

@@ -64,7 +64,9 @@ DHTTransportReplyHandlerAdapter
 	public void
 	findValueReply(
 		DHTTransportContact 	contact,
-		DHTTransportValue[]		values )
+		DHTTransportValue[]		values,
+		byte					diversification_type,
+		boolean					more_to_come )
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}
