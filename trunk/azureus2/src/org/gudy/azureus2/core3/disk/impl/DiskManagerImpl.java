@@ -645,11 +645,35 @@ DiskManagerImpl
 	public long getRemaining() {
 		return remaining;
 	}
+	
 	public void
-	setRemaining(
-		long		num )
+	incrementRemaining(
+		long	num )
 	{
-		remaining	= num;
+		try{
+			this_mon.enter();
+		
+			remaining	+= num;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+
+	public void
+	decrementRemaining(
+		long	num )
+	{
+		try{
+			this_mon.enter();
+		
+			remaining	-= num;
+			
+		}finally{
+			
+			this_mon.exit();
+		}	
 	}
 	
 	public long

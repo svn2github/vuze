@@ -51,6 +51,8 @@ public class
 DMWriterAndCheckerImpl 
 	implements DMWriterAndChecker
 {
+	protected static final boolean	CONCURRENT_CHECKING	= true;
+	
 	protected static final int	QUEUE_REPORT_CHUNK	= 32;
 	
 	private static int			global_write_queue_block_sem_size;
@@ -104,7 +106,7 @@ DMWriterAndCheckerImpl
 	private AESemaphore		writeCheckQueueSem;
 	private	AEMonitor		writeCheckQueueLock_mon	= new AEMonitor( "DMW&C:WCQ");
 		
-	protected ConcurrentHasherRequest	current_hash_request;
+	protected volatile ConcurrentHasherRequest	current_hash_request;
 	
 	protected Md5Hasher md5;			
 
@@ -278,98 +280,187 @@ DMWriterAndCheckerImpl
 	   	writeCheckQueueSem.release();
 	}  
 	  
-	public boolean 
+	public void
 	checkPiece(
-		int 				pieceNumber )
+		final int 						pieceNumber,
+		final CheckPieceResultHandler	_result_handler )
 	{
-		try{
-			this_mon.enter();
-		
-	        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_CHECK,pieceLength);
-	                
-			try{
-			    if( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
-			    	
-			    	try{  Thread.sleep( 100 );  }catch(Exception e) { Debug.printStackTrace( e ); }
-			    }
-			       
-			    boolean[]	pieceDone	= disk_manager.getPiecesDone();
-			    
-			    if ( bOverallContinue == false ){
-			    	
-			    	return false;
-			    }
-	
-			    buffer.position(DirectByteBuffer.SS_DW, 0);
-	
-				int length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
-	
-				buffer.limit(DirectByteBuffer.SS_DW, length);
-	
-					//get the piece list
-				
-				PieceList pieceList = disk_manager.getPieceList(pieceNumber);
-	
-					//for each piece
-				
-				for (int i = 0; i < pieceList.size(); i++) {
-					
-						//get the piece and the file
-					
-					PieceMapEntry tempPiece = pieceList.get(i);
-		            
-	
-					try {
-		                    
-							   //if the file is large enough
+		final int this_piece_length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
+
+		final CheckPieceResultHandler	result_handler =
+			new CheckPieceResultHandler()
+			{
+				public void
+				processResult(
+					int		piece_number,
+					boolean	success )
+				{
+					try{						
+				    	boolean[]	pieceDone	= disk_manager.getPiecesDone();
+				    		
+						boolean	piece_was_done	= pieceDone[ pieceNumber ]; 
 						
-						if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
+						if ( success ){
 							
-							tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());
+							pieceDone[ pieceNumber] = true;
 							
+							if ( !piece_was_done ){
+							
+								disk_manager.decrementRemaining( this_piece_length );
+								
+								disk_manager.computeFilesDone(pieceNumber);
+							}
 						}else{
-								   //too small, can't be a complete piece
 							
-							buffer.clear(DirectByteBuffer.SS_DW);
-							
-							pieceDone[pieceNumber] = false;
-							
-							return false;
+							pieceDone[ pieceNumber ] = false;
+								
+							if ( piece_was_done ){
+								
+								disk_manager.incrementRemaining( this_piece_length );
+							}
 						}
-					}catch (Exception e){
-						
-						Debug.printStackTrace( e );
+					}finally{
+												
+						if ( _result_handler != null ){
+							
+							_result_handler.processResult( pieceNumber, success );
+						}
 					}
 				}
+			};
+			
+			
+		boolean	check_result	= false;
+		
+        DirectByteBuffer	buffer	= null;
+              
+        boolean	async_request	= false;
+        
+		try{
+			
+	        buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_CHECK,this_piece_length);
+
+		    if ( COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ) ){
+		    	
+		    	try{  
+		    		Thread.sleep( 100 );
+		    		
+		    	}catch( Exception e ){ 
+		    		
+		    		Debug.printStackTrace( e ); 
+		    	}
+		    }
+		       			    
+		    if ( bOverallContinue == false ){
+		    	
+		    	return;
+		    }
 	
+				//get the piece list
+			
+			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
+
+				//for each piece
+			
+			for (int i = 0; i < pieceList.size(); i++) {
+				
+					//get the piece and the file
+				
+				PieceMapEntry tempPiece = pieceList.get(i);
+	            
+
 				try {
-		      
-					if (bOverallContinue == false) return false;
-		      
-		      		buffer.position(DirectByteBuffer.SS_DW, 0);
-	
-					// byte[] testHash = hasher.calculateHash(buffer.getBuffer());
-		      		
-		      			// running torrents have highest priority. 
-		      			// for checking torrents, smaller torrents have higher priority to get them
-		      			// checked and running ASAP
-		      		
-		      		long	hash_priority	= disk_manager.getState() == DiskManager.CHECKING?disk_manager.getTotalLength():0;
-		      		
-		      		try{
-		      			this_mon.enter();
-		      			
-		    		    if ( !bOverallContinue ){
-		    		    	
-		    		    	return false;
-		    		    }
-	
-		    		    current_hash_request = ConcurrentHasher.getSingleton().addRequest(buffer.getBuffer(DirectByteBuffer.SS_DW),hash_priority);
-		      		}finally{
-		      			
-		      			this_mon.exit();
-		      		}
+	                    
+						   //if the file is large enough
 					
+					if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
+						
+						tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());
+						
+					}else{
+							// file is too small, therefore required data hasn't been 
+							// written yet -> check fails
+								
+						return;
+					}
+				}catch (Exception e){
+					
+					Debug.printStackTrace( e );
+					
+					return;
+				}
+			}
+
+			try {
+	      
+				if ( !bOverallContinue ){
+											
+					return;
+				}
+	      
+	      		buffer.position(DirectByteBuffer.SS_DW, 0);
+
+				// byte[] testHash = hasher.calculateHash(buffer.getBuffer());
+	      		
+    		    if ( !bOverallContinue ){
+    		    		    		    	
+    		    	return;
+    		    }
+
+    		    if ( CONCURRENT_CHECKING ){
+
+    		    	async_request	= true;
+    		    	
+    		    	final	DirectByteBuffer	f_buffer	= buffer;
+    		    	
+	    		    current_hash_request = 
+	    		    	ConcurrentHasher.getSingleton().addRequest(
+	    		    			buffer.getBuffer(DirectByteBuffer.SS_DW),
+								new ConcurrentHasherRequestListener()
+								{
+	    		    				public void
+									complete(
+										ConcurrentHasherRequest	request )
+	    		    				{
+	    		    					boolean	async_check_result	= false;
+	    		    					
+	    		    					try{
+	    		    						
+		    								byte[] testHash = request.getResult();
+		    										    								
+		    								if ( testHash == null ){
+		    								
+		    										// cancelled
+		    															
+		    									return;
+		    								}
+		    								
+		    								byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
+		    								
+		    								async_check_result	= true;
+		    								
+		    								for (int i = 0; i < 20; i++){
+		    									
+		    									if ( testHash[i] != required_hash[i]){
+		    										
+		    										async_check_result	= false;
+		    										
+		    										break;
+		    									}
+		    								}
+	    		    					}finally{
+	    		    						
+	    		    						f_buffer.returnToPool();
+
+	    		    						result_handler.processResult( pieceNumber, async_check_result );
+	    		    					}
+	    		    				}
+	    		    				
+								});
+	
+    		    }else{
+	    		    current_hash_request = ConcurrentHasher.getSingleton().addRequest(buffer.getBuffer(DirectByteBuffer.SS_DW));
+
 					byte[] testHash = current_hash_request.getResult();
 					
 					current_hash_request	= null;
@@ -377,59 +468,41 @@ DMWriterAndCheckerImpl
 					if ( testHash == null ){
 					
 							// cancelled
-						
-						return( false );
+												
+						return;
 					}
 					
 					byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
 					
-					int i = 0;
+					check_result	= true;
 					
-					for (i = 0; i < 20; i++){
+					for (int i = 0; i < 20; i++){
 						
-						if (testHash[i] != required_hash[i]){
+						if ( testHash[i] != required_hash[i]){
+							
+							check_result	= false;
 							
 							break;
 						}
 					}
-					
-					if (i >= 20){
-						
-							//mark the piece as done..
-						
-						if (!pieceDone[pieceNumber]) {
-							
-							pieceDone[pieceNumber] = true;
-							
-							disk_manager.setRemaining( disk_manager.getRemaining() - length );
-							
-							disk_manager.computeFilesDone(pieceNumber);
-						}
-						
-						return true;
-					}
-					
-					if( pieceDone[pieceNumber]){
-						
-						pieceDone[pieceNumber] = false;
-						
-						disk_manager.setRemaining( disk_manager.getRemaining() + length );
-					}
-					
-				} catch (Exception e) {
-					
-					Debug.printStackTrace( e );
-				}
+    		    }
+														
+			}catch( Throwable  e){
 				
-				return false;
-					
-			}finally{
+				Debug.printStackTrace( e );
 				
-				buffer.returnToPool();
 			}
-		}finally{
-			
-			this_mon.exit();
+		}finally{				
+				
+			if ( !async_request ){
+				
+				if ( buffer != null ){
+					
+					buffer.returnToPool();
+				}
+
+				result_handler.processResult( pieceNumber, check_result );
+			}
 		}
 	}
 		
@@ -792,25 +865,35 @@ DMWriterAndCheckerImpl
 							
 						}else{
 							
-						  boolean correct = checkPiece(elt.getPieceNumber());
+						  checkPiece( 
+						  		elt.getPieceNumber(),
+								new CheckPieceResultHandler()
+								{
+						  			public void
+									processResult(
+										int			pieceNumber,
+										boolean		success )
+						  			{
+						  				if ( success ){
+									  								  	
+						  					LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + pieceNumber + " passed hash check.");
+									    
+						  					if( disk_manager.getPeerManager().needsMD5CheckOnCompletion(pieceNumber)){
+									    	
+						  						MD5CheckPiece(pieceNumber,true);
+						  					}
+	
+						  				}else{
 
-						  if(!correct){
-						  	
-						    MD5CheckPiece(elt.getPieceNumber(),false);
-						    
-						    LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
-						    
-						  }else{
-						  	
-						    LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
-						    
-						    if( disk_manager.getPeerManager().needsMD5CheckOnCompletion(elt.getPieceNumber())){
-						    	
-						      MD5CheckPiece(elt.getPieceNumber(),true);
-						    }
-						  }
+						  					MD5CheckPiece(pieceNumber,false);
+										    
+							  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " failed hash check.");
+
+						  				}
 		
-						  disk_manager.getPeerManager().asyncPieceChecked(elt.getPieceNumber(), correct);
+									  	disk_manager.getPeerManager().asyncPieceChecked(pieceNumber, success);
+						  			}
+								});
 					  }
 					}
 				}catch( Throwable e ){
@@ -894,6 +977,4 @@ DMWriterAndCheckerImpl
 	      return sender;
 		}
 	}
-
-
 }

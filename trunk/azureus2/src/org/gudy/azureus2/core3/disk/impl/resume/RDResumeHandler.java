@@ -122,6 +122,10 @@ RDResumeHandler
 			
 			boolean	resume_data_complete = false;
 			
+			
+			final AESemaphore	pending_checks_sem 	= new AESemaphore( "RD:PendingChecks" );
+			int					pending_check_num	= 0;
+
 			if (resumeEnabled){
 				boolean resumeValid = false;
 				byte[] resumeArray = null;
@@ -228,28 +232,52 @@ RDResumeHandler
 					}
 				}
 				
+				
+				
 				boolean[]	pieceDone	= disk_manager.getPiecesDone();
 				
 				if (resumeEnabled && (resumeArray != null) && (resumeArray.length <= pieceDone.length)) {
+					
 					startPos = resumeArray.length;
+					
 					for (int i = 0; i < resumeArray.length && bOverallContinue; i++) { //parse the array
+						
 						disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
-						//mark the pieces
+						
+							//mark the pieces
+						
 						if (resumeArray[i] == 0) {
-							if (!resumeValid) pieceDone[i] = writer_and_checker.checkPiece(i);
-						}
-						else {
+							
+							if (!resumeValid){
+								
+								pending_check_num++;
+								
+								writer_and_checker.checkPiece(
+									i,
+									new CheckPieceResultHandler()
+									{
+										public void
+										processResult(
+											int		p,
+											boolean	b )
+										{
+											pending_checks_sem.release();
+										}
+									});
+							}
+						}else{
+							
 							disk_manager.computeFilesDone(i);
 							
 							pieceDone[i] = true;
 							
 							if (i < nbPieces - 1) {
 								
-								disk_manager.setRemaining( disk_manager.getRemaining() - pieceLength );
-							}
-							if (i == nbPieces - 1) {
+								disk_manager.decrementRemaining(  pieceLength );
 								
-								disk_manager.setRemaining( disk_manager.getRemaining() - lastPieceLength );
+							}else{
+								
+								disk_manager.decrementRemaining(  lastPieceLength );
 							}
 						}
 					}
@@ -282,7 +310,27 @@ RDResumeHandler
 				
 				disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces);
 				
-				writer_and_checker.checkPiece(i);
+				pending_check_num++;
+				
+				writer_and_checker.checkPiece(
+					i,
+					new CheckPieceResultHandler()
+					{
+						public void
+						processResult(
+							int		p,
+							boolean	b )
+						{
+							pending_checks_sem.release();
+						}
+					});
+			}
+			
+			while( pending_check_num > 0 ){
+				
+				pending_checks_sem.reserve();
+				
+				pending_check_num--;
 			}
 			
 				//dump the newly built resume data to the disk/torrent
@@ -298,7 +346,7 @@ RDResumeHandler
 				}
 			}
 		}finally{
-			//System.out.println( "Check of '" + disk_manager.getDownloadManager().getDisplayName() + "' completed in " + (System.currentTimeMillis() - start));
+			// System.out.println( "Check of '" + disk_manager.getDownloadManager().getDisplayName() + "' completed in " + (System.currentTimeMillis() - start));
 		}
 	}
 	

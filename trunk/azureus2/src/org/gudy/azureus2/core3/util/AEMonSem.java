@@ -33,7 +33,7 @@ public abstract class
 AEMonSem 
 {
 	protected static boolean	DEBUG					= true;
-	protected static boolean	DEBUG_CHECK_DUPLICATES	= true;
+	protected static boolean	DEBUG_CHECK_DUPLICATES	= false;
 	
 	protected static long		DEBUG_TIMER				= 30000;
 	

@@ -37,7 +37,6 @@ ConcurrentHasher
 	protected static ConcurrentHasher		singleton	= new ConcurrentHasher();
 	
 	
-	protected int			processor_num;
 	protected List			requests		= new LinkedList();
 	protected List			hashers			= new ArrayList();
 	
@@ -52,9 +51,18 @@ ConcurrentHasher
 			// TODO: number of processors can apparently change....
 			// so periodically grab num + reserve/release as necessary
 		
-		processor_num = Runtime.getRuntime().availableProcessors();
+		int processor_num = Runtime.getRuntime().availableProcessors();
 		
-		for (int i=0;i<processor_num;i++){
+			// just in case :P
+		
+		if ( processor_num <= 0 ){
+			
+			processor_num	= 1;
+		}
+			
+			// one more that proc num seems to improve performance ;)
+		
+		for (int i=0;i<processor_num + 1;i++){
 			
 			scheduler_sem.release();
 		}
@@ -69,13 +77,9 @@ ConcurrentHasher
 				{
 					while(true){
 						
-							// first get a request to run
+							// get a request to run
 						
 						request_sem.reserve();
-						
-							// now get permission to run a request
-						
-						scheduler_sem.reserve();
 						
 							// now extract the request
 						
@@ -110,9 +114,16 @@ ConcurrentHasher
 											req.run( hasher );
 											
 										}finally{
+											try{
+												requests_mon.enter();
+
+												hashers.add( hasher );
 											
-											hashers.add( hasher );
-											
+											}finally{
+												
+												requests_mon.exit();
+											}
+
 											scheduler_sem.release();
 										}
 									}
@@ -139,10 +150,9 @@ ConcurrentHasher
 	
 	public ConcurrentHasherRequest
 	addRequest(
-		ByteBuffer		buffer,
-		long			priority )
+		ByteBuffer		buffer )
 	{
-		return( addRequest( buffer, priority, null ));
+		return( addRequest( buffer, null ));
 	}
 	
 		/**
@@ -156,41 +166,31 @@ ConcurrentHasher
 	public ConcurrentHasherRequest
 	addRequest(
 		ByteBuffer							buffer,
-		long								priority,
 		ConcurrentHasherRequestListener		listener )
 	{
-		final ConcurrentHasherRequest	req = new ConcurrentHasherRequest( this, buffer, priority, listener );
+		final ConcurrentHasherRequest	req = new ConcurrentHasherRequest( this, buffer, listener );
 			
+			// get permission to run a request
+		
+
+		// test code to force synchronous checking
+		//SHA1Hasher	hasher = new SHA1Hasher();
+		//req.run( hasher );
+		
+		scheduler_sem.reserve();
+		
 		try{
 			requests_mon.enter();
 			
-			boolean	done = false;
-			
-			for (int i=0;i<requests.size();i++){
-				
-				ConcurrentHasherRequest r = (ConcurrentHasherRequest)requests.get(i);
-				
-				if ( r.getPriority() > priority ){
-					
-					requests.add( i, req );
-					
-					done	= true;
-					
-					break;
-				}
-			}
-			
-			if ( !done ){
-				
-				requests.add( req );
-			}
+			requests.add( req );
+		
 		}finally{
 			
 			requests_mon.exit();
 		}
 		
 		request_sem.release();
-	
+		
 		return( req );
 	}
 	
@@ -200,7 +200,7 @@ ConcurrentHasher
 	{
 		final ConcurrentHasher	hasher = ConcurrentHasher.getSingleton();
 		
-		int		threads			= 2;
+		int		threads			= 1;
 		
 		final long	buffer_size		= 32*1024;
 		final long	loop			= 1024;
@@ -212,6 +212,8 @@ ConcurrentHasher
 				public void
 				run()
 				{
+					SHA1Hasher sha1_hasher = new SHA1Hasher();
+					
 					ByteBuffer	buffer = ByteBuffer.allocate((int)buffer_size);
 					
 					long	start = System.currentTimeMillis();
@@ -220,7 +222,8 @@ ConcurrentHasher
 						
 						buffer.position(0);
 						
-						hasher.addRequest( buffer, 0 ).getResult();
+						//sha1_hasher.calculateHash( buffer );
+						hasher.addRequest( buffer ).getResult();
 					}
 					
 					long	elapsed = System.currentTimeMillis() - start;

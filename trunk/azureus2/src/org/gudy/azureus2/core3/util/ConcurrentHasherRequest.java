@@ -32,9 +32,10 @@ import java.nio.ByteBuffer;
 public class 
 ConcurrentHasherRequest 
 {
+	protected static AEMonitor		class_mon = new AEMonitor( "ConcHashRequest:class" );
+	
 	protected ConcurrentHasher						concurrent_hasher;
 	protected ByteBuffer							buffer;
-	protected long									priority;
 	protected ConcurrentHasherRequestListener		listener;
 
 	protected byte[]								result;
@@ -46,12 +47,10 @@ ConcurrentHasherRequest
 	ConcurrentHasherRequest(
 		ConcurrentHasher					_concurrent_hasher,
 		ByteBuffer							_buffer,
-		long								_priority,
 		ConcurrentHasherRequestListener		_listener )
 	{
 		concurrent_hasher	= _concurrent_hasher;
 		buffer				= _buffer;
-		priority			= _priority;
 		listener			= _listener;
 	}
 	
@@ -76,25 +75,37 @@ ConcurrentHasherRequest
 	public void
 	cancel()
 	{	
-		cancelled	= true;
-		
-		if ( listener != null ){
+		if ( !cancelled ){
 			
-			listener.complete( this );
+			cancelled	= true;
+			
+			sem.releaseForever();
+			
+			ConcurrentHasherRequestListener	listener_copy;
+			
+			try{
+				class_mon.enter();
+			
+				listener_copy	= listener;
+				
+				listener	= null;
+				
+			}finally{
+				
+				class_mon.exit();
+			}
+			
+			if ( listener_copy != null ){
+				
+				listener_copy.complete( this );
+			}
 		}
-		
-		sem.releaseForever();
 	}
 	
 	public boolean
 	getCancelled()
 	{
 		return( cancelled );
-	}
-	public long
-	getPriority()
-	{
-		return( priority );
 	}
 	
 	protected void
@@ -105,12 +116,29 @@ ConcurrentHasherRequest
 			
 			result = hasher.calculateHash( buffer );
 		
-			if ( listener != null ){
-				
-				listener.complete( this );
-			}
-			
 			sem.releaseForever();
+
+			if ( !cancelled ){
+				
+				ConcurrentHasherRequestListener	listener_copy;
+				
+				try{
+					class_mon.enter();
+				
+					listener_copy	= listener;
+					
+					listener	= null;
+					
+				}finally{
+					
+					class_mon.exit();
+				}
+				
+				if ( listener_copy != null ){
+					
+					listener_copy.complete( this );
+				}	
+			}
 		}
 	}
 }

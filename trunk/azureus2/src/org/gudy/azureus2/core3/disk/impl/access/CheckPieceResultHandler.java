@@ -1,5 +1,5 @@
 /*
- * Created on 31-Jul-2004
+ * Created on 24-Sep-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,59 +20,17 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.impl;
+package org.gudy.azureus2.core3.disk.impl.access;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.torrent.*;
-
 public interface 
-DiskManagerHelper 
-	extends DiskManager
+CheckPieceResultHandler 
 {
-	public PieceList
-	getPieceList(
-		int	piece_number );
-	
-	public byte[]
-	getPieceHash(
-		int	piece_number );
-	
 	public void
-	setState(
-		int	state );
-	
-	public void
-	setErrorMessage(
-		String	str );
-	
-	public long
-	getAllocated();
-	
-	public void
-	setAllocated(
-		long		num );
-	
-	public void
-	incrementRemaining(
-		long		num );
-	
-	public void
-	decrementRemaining(
-		long		num );
-	
-	public void
-	setPercentDone(
-		int			num );
-	
-	public void 
-	computeFilesDone(
-		int pieceNumber ); 
-	
-	public TOTorrent
-	getTorrent();
+	processResult(
+		int			piece_number,
+		boolean		success );
 }

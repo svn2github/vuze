@@ -44,9 +44,10 @@ DMWriterAndChecker
 		DiskManagerFileInfoImpl file, 
 		long 					length );
 
-	public boolean 
+	public void 
 	checkPiece(
-		int pieceNumber );
+		int 					pieceNumber,
+		CheckPieceResultHandler	result_handler );
 	
 	public void 
 	aSyncCheckPiece(
