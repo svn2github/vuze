@@ -107,8 +107,19 @@ public class GUIUpdater extends Thread implements ParameterListener {
 					"/" + 
 	      			BadIps.getInstance().getNbBadIps());
 					
-		    mainWindow.statusDown.setText(MessageText.getString("ConfigView.download.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
-            mainWindow.statusUp.setText(MessageText.getString("ConfigView.upload.abbreviated") + " " + DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
+            int	ul_limit = COConfigurationManager.getIntParameter("Max Upload Speed KBs");
+            int	dl_limit = COConfigurationManager.getIntParameter("Max Download Speed KBs");
+            
+       
+		    mainWindow.statusDown.setText(
+		    		MessageText.getString("ConfigView.download.abbreviated") + " " + 
+					(dl_limit==0?"":"[" + dl_limit + "K] " ) +
+					DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDownloadAverage()));
+		    
+            mainWindow.statusUp.setText(
+            		MessageText.getString("ConfigView.upload.abbreviated") + " " + 
+					(ul_limit==0?"":"[" + ul_limit + "K] " ) +
+					DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getUploadAverage()));
           }
           
           if(mainWindow.systemTraySWT != null)
