@@ -37,7 +37,7 @@ public class TrackerStatusItem
        implements TableCellRefreshListener
 {
   public TrackerStatusItem(String sTableID) {
-    super("tracker", ALIGN_TRAIL, POSITION_LAST, 90, sTableID);
+    super("tracker", POSITION_LAST, 90, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
