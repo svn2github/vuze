@@ -51,13 +51,13 @@ public class ParameterRepository
 	
 	public int getSize()
 	{
-		return 1;
+		return 2;
 //		return params.size();
 	}
 	
 	public String[] getNames()
 	{
-		String[] x = {"Hello, World!"};
+		String[] x = {"Hello, World!", "plugin 2"};
 		return x;
 //		return (String[])params.keySet().toArray();
 	}
@@ -65,6 +65,8 @@ public class ParameterRepository
 	public Parameter[] getParameterBlock(String key)
 	{
 		Parameter[] x = new Parameter[2];
+		PluginConfigUIFactoryImpl factory = new PluginConfigUIFactoryImpl();
+		x[0] = factory.createStringParameter("test.1", "first parameter", false);
 		return x;
 //		return (Parameter[])params.get(key);
 	}
