@@ -134,6 +134,8 @@ public class GlobalManagerImpl
 	private GlobalManagerStatsWriter 	stats_writer;
 	private GlobalManagerHostSupport	host_support;
   
+	private Map							saved_download_manager_state	= new HashMap();
+	
   private TorrentFolderWatcher torrent_folder_watcher;
   
   private ArrayList paused_list = new ArrayList();
@@ -309,14 +311,22 @@ public class GlobalManagerImpl
     torrent_folder_watcher = new TorrentFolderWatcher( this );
   }
 
-  public DownloadManager addDownloadManager(String fileName, String savePath) {
+  public DownloadManager 
+  addDownloadManager(
+  		String fileName, 
+		String savePath) 
+  {
   	return addDownloadManager(fileName, savePath, DownloadManager.STATE_WAITING, true);
   }
    
-  public DownloadManager 
-  addDownloadManager(String fileName, String savePath, int initialState ) {
-  	return( addDownloadManager(fileName, savePath, initialState, true ));
-  }
+  	public DownloadManager 
+	addDownloadManager(
+  		String 	fileName, 
+		String 	savePath, 
+		int 	initialState ) 
+  	{
+  		return( addDownloadManager(fileName, savePath, initialState, true ));
+  	}
   	
 	public DownloadManager
 	addDownloadManager(
@@ -333,13 +343,39 @@ public class GlobalManagerImpl
    *
    * @author Rene Leonhardt
    */
+	
   public DownloadManager 
-  addDownloadManager(String fileName, String savePath, int initialState, boolean persistent, boolean for_seeding ) {
+  addDownloadManager(
+  		String torrent_file_name, 
+		String savePath, 
+		int initialState, 
+		boolean persistent, 
+		boolean for_seeding ) 
+  {
+  		/* to recover the initial state for non-persistent downloads the simplest way is to do it here
+  		 */
+  	
+  	if (!persistent){
+  	
+        Map	save_download_state	= (Map)saved_download_manager_state.get(torrent_file_name);
+        
+        if ( save_download_state != null && save_download_state.containsKey( "state" )){
+        	
+            int	saved_state = ((Long) save_download_state.get("state")).intValue();
+            
+            if ( saved_state == DownloadManager.STATE_STOPPED ){
+            	
+            	initialState	= saved_state;
+            }
+
+        }
+  	}
+  	
 	File torrentDir	= null;
 	File fDest		= null;
 	
     try {
-      File f = new File(fileName);
+      File f = new File(torrent_file_name);
       
       boolean saveTorrents = persistent&&COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
       if (saveTorrents) torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
@@ -375,6 +411,8 @@ public class GlobalManagerImpl
       }
       
       String fName = fDest.getCanonicalPath();
+    
+      	// now do the creation!
       
       DownloadManager new_manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent, false, for_seeding );
       
@@ -394,36 +432,166 @@ public class GlobalManagerImpl
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       Debug.printStackTrace( e );
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false, for_seeding );
+      DownloadManager manager = DownloadManagerFactory.create(this, torrent_file_name, savePath, initialState, persistent, false, for_seeding );
       return addDownloadManager(manager, true);
     }
     catch (Exception e) {
     	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false, for_seeding );
+      DownloadManager manager = DownloadManagerFactory.create(this, torrent_file_name, savePath, initialState, persistent, false, for_seeding );
       return addDownloadManager(manager, true);
     }
   }
 
 
 
-   protected DownloadManager addDownloadManager(DownloadManager manager, boolean save) {
+   protected DownloadManager 
+   addDownloadManager(
+   		DownloadManager 	download_manager, 
+		boolean 			save) 
+   {
     if (!isStopped) {
       try{
       	managers_mon.enter();
       	
-      	int	existing_index = managers.indexOf( manager );
+      	int	existing_index = managers.indexOf( download_manager );
       	
         if (existing_index != -1) {
         	
         	DownloadManager existing = (DownloadManager)managers.get(existing_index);
                 	
-        	existing.mergeTorrentDetails( manager );
+        	existing.mergeTorrentDetails( download_manager );
         	
         	return( existing );
         }
         
-        boolean isCompleted = manager.getStats().getDownloadCompleted(false) == 1000;
-	      if (manager.getPosition() == -1) {
+        int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
+        
+        DownloadManagerStats dm_stats = download_manager.getStats();
+
+        String	torrent_file_name = download_manager.getTorrentFileName();
+        
+        Map	save_download_state	= (Map)saved_download_manager_state.get(torrent_file_name);
+        
+        if ( save_download_state != null ){
+        	
+        		// once the state's been used we remove it
+        	
+        	saved_download_manager_state.remove( torrent_file_name );
+        	
+	        int nbUploads = ((Long) save_download_state.get("uploads")).intValue();
+	        int maxDL = save_download_state.get("maxdl")==null?0:((Long) save_download_state.get("maxdl")).intValue();
+	        int maxUL = save_download_state.get("maxul")==null?0:((Long) save_download_state.get("maxul")).intValue();
+	        
+	        Long lDownloaded = (Long) save_download_state.get("downloaded");
+	        Long lUploaded = (Long) save_download_state.get("uploaded");
+	        Long lCompleted = (Long) save_download_state.get("completed");
+	        Long lDiscarded = (Long) save_download_state.get("discarded");
+	        Long lHashFails = (Long) save_download_state.get("hashfails");
+	
+	
+	        dm_stats.setMaxUploads(nbUploads);
+	        dm_stats.setMaxDownloadKBSpeed( maxDL );
+	        dm_stats.setUploadRateLimitBytesPerSecond(maxUL);
+	        
+	        if (lCompleted != null) {
+	          dm_stats.setDownloadCompleted(lCompleted.intValue());
+	        }
+	        
+	        if (lDiscarded != null) {
+	          dm_stats.saveDiscarded(lDiscarded.longValue());
+	        }
+	        if (lHashFails != null) {
+	          dm_stats.saveHashFails(lHashFails.longValue());
+	        }
+	        
+	        Long lPosition = (Long) save_download_state.get("position");
+	        String sCategory = null;
+	        if (save_download_state.containsKey("category")){
+	        	try{
+	        		sCategory = new String((byte[]) save_download_state.get("category"), Constants.DEFAULT_ENCODING);
+	        	}catch( UnsupportedEncodingException e ){
+	        		
+	        		Debug.printStackTrace(e);
+	        	}
+	        }
+	
+	        if (sCategory != null) {
+	          Category cat = CategoryManager.getCategory(sCategory);
+	          if (cat != null) download_manager.setCategory(cat);
+	        }
+	
+	        
+	        boolean bCompleted = dm_stats.getDownloadCompleted(false) == 1000;
+	      
+	        download_manager.setOnlySeeding(bCompleted);
+	        
+	        if (lDownloaded != null && lUploaded != null) {
+	          long lUploadedValue = lUploaded.longValue();
+	          long lDownloadedValue = lDownloaded.longValue();
+	          if (bCompleted && (lDownloadedValue == 0)) {
+	            lDownloadedValue = download_manager.getSize();
+	            	
+	            if (lDownloadedValue != 0 && ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio) )
+	              lUploadedValue = download_manager.getSize() * minQueueingShareRatio / 1000;
+	          }
+	          dm_stats.setSavedDownloadedUploaded(lDownloadedValue, lUploadedValue);
+	        }
+	
+	        if (lPosition != null)
+	        	download_manager.setPosition(lPosition.intValue());
+	        // no longer needed code
+	        //  else if (dm_stats.getDownloadCompleted(false) < 1000)
+	        //  dm.setPosition(bCompleted ? numCompleted : numDownloading);
+	
+	        Long lSecondsDLing = (Long)save_download_state.get("secondsDownloading");
+	        if (lSecondsDLing != null) {
+	          dm_stats.setSecondsDownloading(lSecondsDLing.longValue());
+	        }
+	
+	        Long lSecondsOnlySeeding = (Long)save_download_state.get("secondsOnlySeeding");
+	        if (lSecondsOnlySeeding != null) {
+	          dm_stats.setSecondsOnlySeeding(lSecondsOnlySeeding.longValue());
+	        }
+	        
+	        Long already_allocated = (Long)save_download_state.get( "allocated" );
+	        if( already_allocated != null && already_allocated.intValue() == 1 ) {
+	        	download_manager.setDataAlreadyAllocated( true );
+	        }
+	        
+	        Long creation_time = (Long)save_download_state.get( "creationTime" );
+	        
+	        if ( creation_time != null ){
+	        	
+	        	long	ct = creation_time.longValue();
+	        	
+	        	if ( ct < SystemTime.getCurrentTime()){
+	        	
+	        		download_manager.setCreationTime( ct );
+	        	}
+	        }
+	        
+	        //TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
+	        try {
+	        	//load file priorities
+	        	List file_priorities = (List) save_download_state.get("file_priorities");
+	        	if ( file_priorities != null ) download_manager.setData( "file_priorities", file_priorities );
+	        }
+	        catch (Throwable t) { Debug.printStackTrace( t ); }
+        }else{
+        	
+        		// no stats, bodge the uploaded for seeds
+           
+        	if ( dm_stats.getDownloadCompleted(false) == 1000 ){
+
+	            long lUploadedValue = download_manager.getSize() * minQueueingShareRatio / 1000;
+	                  
+		        dm_stats.setSavedDownloadedUploaded(download_manager.getSize(), lUploadedValue);
+	        }
+        }
+        
+        boolean isCompleted = download_manager.getStats().getDownloadCompleted(false) == 1000;
+	   
+        if (download_manager.getPosition() == -1) {
 	        int endPosition = 0;
 	        for (int i = 0; i < managers.size(); i++) {
 	          DownloadManager dm = (DownloadManager) managers.get(i);
@@ -431,7 +599,7 @@ public class GlobalManagerImpl
 	          if (dmIsCompleted == isCompleted)
 	            endPosition++;
 	        }
-	        manager.setPosition(endPosition + 1);
+	        download_manager.setPosition(endPosition + 1);
 	      }
 	      
 	      // Even though when the DownloadManager was created, onlySeeding was
@@ -439,16 +607,16 @@ public class GlobalManagerImpl
 	      // readTorrent), there's a chance that the torrent file didn't have the
 	      // resume data.  If it didn't, but we marked it as complete in our
 	      // downloads config file, we should set to onlySeeding
-	      manager.setOnlySeeding(isCompleted);
+	      download_manager.setOnlySeeding(isCompleted);
 
-        managers.add(manager);
+        managers.add(download_manager);
         
-        TOTorrent	torrent = manager.getTorrent();
+        TOTorrent	torrent = download_manager.getTorrent();
         
         if ( torrent != null ){
         	
         	try{
-        		manager_map.put( new HashWrapper(torrent.getHash()), manager );
+        		manager_map.put( new HashWrapper(torrent.getHash()), download_manager );
         		
         	}catch( TOTorrentException e ){
         		
@@ -456,8 +624,26 @@ public class GlobalManagerImpl
         	}
         }
 
-        listeners.dispatch( LDT_MANAGER_ADDED, manager );
-        manager.addListener(this);
+        listeners.dispatch( LDT_MANAGER_ADDED, download_manager );
+        
+        download_manager.addListener(this);
+        
+        if ( save_download_state != null ){
+        	
+            Long lForceStart = (Long) save_download_state.get("forceStart");
+            if (lForceStart == null) {
+                Long lStartStopLocked = (Long) save_download_state.get("startStopLocked");
+                if(lStartStopLocked != null) {
+                	lForceStart = lStartStopLocked;
+                }
+              }     
+
+            if(lForceStart != null) {
+              if(lForceStart.intValue() == 1) {
+                download_manager.setForceStart(true);
+              }
+            }
+        }
       }finally{
       	
       	managers_mon.exit();
@@ -466,7 +652,7 @@ public class GlobalManagerImpl
       if (save)
         saveDownloads();
       
-      return( manager );
+      return( download_manager );
     }
     else {
       LGLogger.log(
@@ -739,13 +925,10 @@ public class GlobalManagerImpl
   private void loadDownloads(AzureusCoreListener listener) 
   {
   	try{
-      int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
-      Map map = FileUtil.readResilientConfigFile("downloads.config");
+       Map map = FileUtil.readResilientConfigFile("downloads.config");
       
       boolean debug = Boolean.getBoolean("debug");
-      int numDownloading = 0;
-      int numCompleted = 0;
-
+ 
       Iterator iter = null;
       //v2.0.3.0+ vs older mode
       List downloads = (List) map.get("downloads");
@@ -765,16 +948,23 @@ public class GlobalManagerImpl
         currentDownload++;        
         Map mDownload = (Map) iter.next();
         try {
+          Long	lPersistent = (Long)mDownload.get( "persistent" );
+          
+          boolean	persistent = lPersistent==null || lPersistent.longValue()==1;
+          
           String fileName = new String((byte[]) mDownload.get("torrent"), Constants.DEFAULT_ENCODING);
-          if(listener != null && nbDownloads > 0) {
+          
+          if( listener != null && nbDownloads > 0 ){
+          	
             listener.reportPercent(100 * currentDownload / nbDownloads);
           }
+          
           if(listener != null) {
+          	
             listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
                 + " " + currentDownload + " "
                 + MessageText.getString("splash.of") + " " + nbDownloads
-                + " : " + fileName
-                );
+                + " : " + fileName );
           }
           
           //migration from using a single savePath to a separate dir and file entry
@@ -805,131 +995,42 @@ public class GlobalManagerImpl
           
           
           
-          int nbUploads = ((Long) mDownload.get("uploads")).intValue();
-          int maxDL = mDownload.get("maxdl")==null?0:((Long) mDownload.get("maxdl")).intValue();
-          int maxUL = mDownload.get("maxul")==null?0:((Long) mDownload.get("maxul")).intValue();
-          
           int state = DownloadManager.STATE_WAITING;
-          if (debug)
+          if (debug){
+          	
             state = DownloadManager.STATE_STOPPED;
-          else {
+            
+          }else {
+          	
             if (mDownload.containsKey("state")) {
               state = ((Long) mDownload.get("state")).intValue();
               if (state != DownloadManager.STATE_STOPPED &&
                   state != DownloadManager.STATE_QUEUED &&
                   state != DownloadManager.STATE_WAITING)
+              	
                 state = DownloadManager.STATE_QUEUED;
-            }
-            else {
+              
+            }else{
+            	
               int stopped = ((Long) mDownload.get("stopped")).intValue();
-              if (stopped == 1)
+              
+              if (stopped == 1){
+              	
                 state = DownloadManager.STATE_STOPPED;
+              }
             } 
-          }          
-          Long lDownloaded = (Long) mDownload.get("downloaded");
-          Long lUploaded = (Long) mDownload.get("uploaded");
-          Long lCompleted = (Long) mDownload.get("completed");
-          Long lDiscarded = (Long) mDownload.get("discarded");
-          Long lHashFails = (Long) mDownload.get("hashfails");
-          Long lForceStart = (Long) mDownload.get("forceStart");
-          if (lForceStart == null) {
-	          Long lStartStopLocked = (Long) mDownload.get("startStopLocked");
-	          if(lStartStopLocked != null) {
-	          	lForceStart = lStartStopLocked;
-	          }
-	        }
-          Long lPosition = (Long) mDownload.get("position");
-          String sCategory = null;
-          if (mDownload.containsKey("category"))
-            sCategory = new String((byte[]) mDownload.get("category"), Constants.DEFAULT_ENCODING);
-          DownloadManager dm = DownloadManagerFactory.create(this, fileName, torrent_save_dir, torrent_save_file, state, true, true );
-          DownloadManagerStats dm_stats = dm.getStats();
-          dm_stats.setMaxUploads(nbUploads);
-          dm_stats.setMaxDownloadKBSpeed( maxDL );
-          dm_stats.setUploadRateLimitBytesPerSecond(maxUL);
-          
-          if (lCompleted != null) {
-            dm_stats.setDownloadCompleted(lCompleted.intValue());
-          }
-          
-          if (lDiscarded != null) {
-            dm_stats.saveDiscarded(lDiscarded.longValue());
-          }
-          if (lHashFails != null) {
-            dm_stats.saveHashFails(lHashFails.longValue());
-          }
-          
-          if (sCategory != null) {
-            Category cat = CategoryManager.getCategory(sCategory);
-            if (cat != null) dm.setCategory(cat);
-          }
+          }        
 
-          boolean bCompleted = dm_stats.getDownloadCompleted(false) == 1000;
-          if (bCompleted) 
-            ++numCompleted;
-          else
-            ++numDownloading;
-  	      dm.setOnlySeeding(bCompleted);
-  	      bCompleted = dm_stats.getDownloadCompleted(false) == 1000;
-
-          if (lDownloaded != null && lUploaded != null) {
-            long lUploadedValue = lUploaded.longValue();
-            long lDownloadedValue = lDownloaded.longValue();
-            if (bCompleted && (lDownloadedValue == 0)) {
-              lDownloadedValue = dm.getSize();
-              if (lDownloadedValue != 0 && ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio) )
-                lUploadedValue = dm.getSize() * minQueueingShareRatio / 1000;
-            }
-            dm_stats.setSavedDownloadedUploaded(lDownloadedValue, lUploadedValue);
-          }
-
-          if (lPosition != null)
-            dm.setPosition(lPosition.intValue());
-          else if (dm_stats.getDownloadCompleted(false) < 1000)
-            dm.setPosition(bCompleted ? numCompleted : numDownloading);
-
-          Long lSecondsDLing = (Long)mDownload.get("secondsDownloading");
-          if (lSecondsDLing != null) {
-            dm_stats.setSecondsDownloading(lSecondsDLing.longValue());
-          }
-
-          Long lSecondsOnlySeeding = (Long)mDownload.get("secondsOnlySeeding");
-          if (lSecondsOnlySeeding != null) {
-            dm_stats.setSecondsOnlySeeding(lSecondsOnlySeeding.longValue());
-          }
+          saved_download_manager_state.put( fileName, mDownload );
           
-          Long already_allocated = (Long)mDownload.get( "allocated" );
-          if( already_allocated != null && already_allocated.intValue() == 1 ) {
-            dm.setDataAlreadyAllocated( true );
-          }
+          	// for non-persistent downloads the state will be picked up if the download is re-added
+          	// it won't get saved unless it is picked up, hence dead data is dropped as required
           
-          Long creation_time = (Long)mDownload.get( "creationTime" );
-          
-          if ( creation_time != null ){
+          if ( persistent ){
           	
-          	long	ct = creation_time.longValue();
+          	DownloadManager dm = DownloadManagerFactory.create(this, fileName, torrent_save_dir, torrent_save_file, state, true, true );
           	
-          	if ( ct < SystemTime.getCurrentTime()){
-          	
-          		dm.setCreationTime( ct );
-          	}
-          }
-          
-          //TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
-          try {
-          	//load file priorities
-          	List file_priorities = (List) mDownload.get("file_priorities");
-          	if ( file_priorities != null ) dm.setData( "file_priorities", file_priorities );
-          }
-          catch (Throwable t) { Debug.printStackTrace( t ); }
-
-          
-          this.addDownloadManager(dm, false);
-
-          if(lForceStart != null) {
-            if(lForceStart.intValue() == 1) {
-              dm.setForceStart(true);
-            }
+            addDownloadManager(dm, false);
           }
         }
         catch (UnsupportedEncodingException e1) {
@@ -966,6 +1067,7 @@ public class GlobalManagerImpl
   	}
   }
 
+
   private void saveDownloads() 
   {
     //    if(Boolean.getBoolean("debug")) return;
@@ -979,9 +1081,9 @@ public class GlobalManagerImpl
 	    for (int i = 0; i < managers.size(); i++) {
 	      DownloadManager dm = (DownloadManager) managers.get(i);
 	      
-	      if ( dm.isPersistent()){
 	      	DownloadManagerStats dm_stats = dm.getStats();
 		      Map dmMap = new HashMap();
+		      dmMap.put("persistent", new Long(dm.isPersistent()?1:0));
 		      dmMap.put("torrent", dm.getTorrentFileName());
 		      dmMap.put("save_dir", dm.getTorrentSaveDir());
 		      dmMap.put("save_file", dm.getTorrentSaveFile());
@@ -1036,7 +1138,7 @@ public class GlobalManagerImpl
 
 		      list.add(dmMap);
 	      }
-	    }
+	   
 	    map.put("downloads", list);
       
       //save pause/resume state
