@@ -328,4 +328,20 @@ PlatformManagerImpl
 			throw( new PlatformManagerException( "Failed to write registry details", e ));
 		}
 	}
+	
+	public void
+	createProcess(
+		String	command_line,
+		boolean	inherit_handles )
+	
+		throws PlatformManagerException
+	{
+		try{
+			access.createProcess( command_line, inherit_handles );
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to create process", e ));
+		}	
+	}
 }

@@ -96,4 +96,11 @@ AEWin32Access
 	getAzureusInstallDir()
 		
 		throws AEWin32AccessException;
+	
+	public void
+	createProcess(
+		String		command_line,
+		boolean		inherit_handles )
+	
+		throws AEWin32AccessException;
 }

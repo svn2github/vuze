@@ -90,4 +90,11 @@ AEWin32AccessInterface
 		String 	value_namae )
 	
 		throws AEWin32AccessExceptionImpl;
+	
+	public static native void
+	createProcess(
+		String		command_line,
+		boolean		inherit_handles )
+	
+		throws AEWin32AccessException;
 }

@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.update;
 
 import java.io.*;
 
+import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
@@ -129,11 +130,27 @@ Restarter
     if ( log != null ){
     	log.println( "  " + exec );
     }
-    try {                
-      Runtime.getRuntime().exec(exec);
-    } catch(Exception e) {
+    try{
+    		// we need to spawn without inheriting handles
+    	
+    	PlatformManager pm = PlatformManagerFactory.getPlatformManager();
+    	
+    	pm.createProcess( exec, false );
+    	   	
+    }catch(Throwable e) {
+    	
         e.printStackTrace(log);
-   }
+       
+        	// hmm, try java method - this WILL inherit handles but might work :)
+        
+        try{
+        	Runtime.getRuntime().exec(exec);
+        	
+        }catch(Throwable f){
+        	
+        	f.printStackTrace( log );
+        }
+    }
   }
   
   private static void 

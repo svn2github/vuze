@@ -49,4 +49,11 @@ PlatformManager
 	registerApplication()
 	
 		throws PlatformManagerException;
+	
+	public void
+	createProcess(
+		String	command_line,
+		boolean	inherit_handles )
+	
+		throws PlatformManagerException;
 }

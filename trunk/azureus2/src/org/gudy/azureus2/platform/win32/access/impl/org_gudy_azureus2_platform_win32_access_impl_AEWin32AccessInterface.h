@@ -63,6 +63,14 @@ JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32
 JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_deleteValue
   (JNIEnv *, jclass, jint, jstring, jstring);
 
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    createProcess
+ * Signature: (Ljava/lang/String;Z)V
+ */
+JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createProcess
+  (JNIEnv *, jclass, jstring, jboolean);
+
 #ifdef __cplusplus
 }
 #endif

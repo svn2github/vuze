@@ -26,12 +26,13 @@
 #include "stdlib.h"
 #include "windows.h"
 #include "shlwapi.h"
+#include "process.h"
 
 
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 
 HMODULE	application_module;
@@ -506,3 +507,47 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_deleteV
 		}
 	}
 }
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createProcess(
+	JNIEnv*		env,
+	jclass		cla, 
+	jstring		_command_line, 
+	jboolean	_inherit_handles )
+{
+	char		command_line[16000];
+
+	STARTUPINFO				start_info;
+	PROCESS_INFORMATION		proc_info;
+
+	if ( !jstringToChars( env, _command_line, command_line, sizeof( command_line ))){
+
+		return;
+	}
+
+	memset( &start_info, 0, sizeof( STARTUPINFO ));
+
+	start_info.cb = sizeof( STARTUPINFO );
+
+	if ( CreateProcess(
+			NULL,				// LPCTSTR lpApplicationName,
+			command_line,		// LPTSTR lpCommandLine,
+			NULL,				// LPSECURITY_ATTRIBUTES lpProcessAttributes,
+			NULL,				// LPSECURITY_ATTRIBUTES lpThreadAttributes,
+			_inherit_handles,	// BOOL bInheritHandles,
+			DETACHED_PROCESS,	// DWORD dwCreationFlags,
+			NULL,				// LPVOID lpEnvironment,
+			NULL,				// LPCTSTR lpCurrentDirectory,
+			&start_info,		// LPSTARTUPINFO lpStartupInfo,
+			&proc_info )){		// LPPROCESS_INFORMATION lpProcessInformation
+
+
+		CloseHandle( proc_info.hThread );
+        CloseHandle( proc_info.hProcess );
+
+	}else{
+
+		throwException( env, "createProcess", "CreateProcess failed" );
+	}
+};
+

@@ -147,4 +147,14 @@ AEWin32AccessImpl
 				"software\\azureus",
 				null ));		
 	}
+	
+	public void
+	createProcess(
+		String		command_line,
+		boolean		inherit_handles )
+	
+		throws AEWin32AccessException
+	{
+		AEWin32AccessInterface.createProcess( command_line, inherit_handles );
+	}	
 }
