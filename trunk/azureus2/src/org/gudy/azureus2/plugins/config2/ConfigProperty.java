@@ -14,6 +14,6 @@ package org.gudy.azureus2.plugins.config2;
  */
 public interface ConfigProperty
 {
-	public String getIdentifier();
-	public String getLabel();
+//	public String getIdentifier();
+//	public String getLabel();
 }

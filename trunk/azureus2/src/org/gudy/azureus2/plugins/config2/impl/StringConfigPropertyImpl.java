@@ -20,7 +20,7 @@ public class StringConfigPropertyImpl
 {
 	protected String value;
 	
-	public String getValue()
+	String getValue()
 	{
 		return value;
 	}

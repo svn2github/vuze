@@ -14,5 +14,5 @@ package org.gudy.azureus2.plugins.config2;
  */
 public interface StringConfigProperty extends ConfigProperty
 {
-	public String getValue();
+//	public String getValue();
 }

@@ -21,7 +21,7 @@ public class ConfigPropertyImpl implements ConfigProperty
 	/**
 	 * @return Returns the identifier.
 	 */
-	public String getIdentifier()
+	String getIdentifier()
 	{
 		return identifier;
 	}
@@ -29,7 +29,7 @@ public class ConfigPropertyImpl implements ConfigProperty
 	/**
 	 * @return Returns the label.
 	 */
-	public String getLabel()
+	String getLabel()
 	{
 		return label;
 	}
