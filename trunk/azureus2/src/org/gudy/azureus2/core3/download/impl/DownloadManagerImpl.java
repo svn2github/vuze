@@ -441,6 +441,18 @@ DownloadManagerImpl
 			 
 			 if ( torrent_save_file == null ){
 			 		 	
+			 		// make sure we're working off a canonical save dir if possible
+			 	
+			 	try{
+			 		if ( save_dir_file.exists()){
+			 			
+			 			save_dir_file = save_dir_file.getCanonicalFile();
+			 		}
+			 	}catch( Throwable e ){
+			 			
+			 		Debug.printStackTrace(e);
+			 	}
+	
 			 	if ( torrent.isSimpleTorrent()){
 			 		
 			 			// if target save location is a directory then we use that as the save
