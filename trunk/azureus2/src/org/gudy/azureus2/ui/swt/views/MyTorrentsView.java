@@ -202,7 +202,7 @@ public class MyTorrentsView
         rowLayout.marginBottom = 0;
         rowLayout.marginLeft = 0;
         rowLayout.marginRight = 0;
-        rowLayout.spacing = 0;
+        rowLayout.spacing = (Constants.isOSX) ? 3 : 0; // this fixes display artifacts
         rowLayout.wrap = true;
         cCategories.setLayout(rowLayout);
 
