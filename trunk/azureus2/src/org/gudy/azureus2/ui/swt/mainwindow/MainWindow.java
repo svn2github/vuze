@@ -469,6 +469,12 @@ MainWindow
     statusDown.setLayoutData(gridData);
     Messages.setLanguageText(statusDown,"MainWindow.status.updowndetails.tooltip");
 
+    Listener lStats = new Listener() {
+    	public void handleEvent(Event e) {
+    		showStats();
+    	}
+    };
+    
     gridData = new GridData();
     gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
     statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
@@ -476,6 +482,9 @@ MainWindow
     statusUp.setLayoutData(gridData);
     Messages.setLanguageText(statusUp,"MainWindow.status.updowndetails.tooltip");
    
+    statusDown.addListener(SWT.MouseDoubleClick,lStats);
+    statusUp.addListener(SWT.MouseDoubleClick,lStats);
+    
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);    
     menuUpSpeed.addListener(SWT.Show,new Listener() {
       public void handleEvent(Event e) {
@@ -586,6 +595,7 @@ MainWindow
       }
     });    
     statusDown.setMenu(menuDownSpeed);
+    
     
     
     LGLogger.log("Initializing GUI complete");
