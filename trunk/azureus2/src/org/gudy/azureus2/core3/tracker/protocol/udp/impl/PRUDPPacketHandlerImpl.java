@@ -150,7 +150,7 @@ PRUDPPacketHandlerImpl
 					
 					if ( now - request.getCreateTime() >= RECEIVE_TIMEOUT ){
 						
-						request.setException(new PRUDPPacketHandlerException("receive timeout"));
+						request.setException(new PRUDPPacketHandlerException("timed out"));
 					}
 				}
 			}
@@ -227,6 +227,9 @@ PRUDPPacketHandlerImpl
 					requests.remove( new Integer( request_packet.getTransactionId()));
 				}
 			}
+		}catch( PRUDPPacketHandlerException e ){
+			
+			throw( e );
 			
 		}catch( Throwable e ){
 			

@@ -172,8 +172,6 @@ PRUDPPacketRequestAnnounce
 		short		_port,
 		long		_uploaded )
 	{
-		// TODO: IP Address
-		
 		hash		= _hash;
 		peer_id		= _peer_id;
 		downloaded	= _downloaded;
