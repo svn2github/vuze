@@ -33,8 +33,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -454,10 +452,6 @@ public class MultiTrackerEditor {
     editor.grabHorizontal = true;
     editor.minimumWidth = 50;
 
-    Font f = text.getFont();
-    FontData fd = f.getFontData()[0];
-    int iHeightPoints = fd.getHeight();
-    int iHeightPixels = (iHeightPoints * text.getDisplay().getDPI().y) / 72;
     Rectangle r = text.computeTrim(0, 0, 100, text.getLineHeight());
     editor.minimumHeight = r.height;
 
