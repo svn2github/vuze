@@ -41,6 +41,8 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadPropertyEvent;
+import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
@@ -67,7 +69,7 @@ import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 
 public class 
 DHTTrackerPlugin 
-	implements Plugin, DownloadListener
+	implements Plugin, DownloadListener, DownloadPropertyListener
 {
 	private static final int	ANNOUNCE_TIMEOUT	= 2*60*1000;
 	private static final int	ANNOUNCE_MIN		= 2*60*1000;
@@ -91,6 +93,9 @@ DHTTrackerPlugin
 	
 	private DHTPlugin			dht;
 	
+	private TorrentAttribute 	ta_networks;
+	private TorrentAttribute 	ta_peer_sources;
+
 	private Set					running_downloads 		= new HashSet();
 	private Map					registered_downloads 	= new HashMap();
 	
@@ -110,6 +115,10 @@ DHTTrackerPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "DHT Tracker" );
 
 		log = plugin_interface.getLogger().getTimeStampedChannel("DHT Tracker");
+
+		
+		ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
+		ta_peer_sources = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
@@ -375,9 +384,6 @@ DHTTrackerPlugin
 	protected void
 	initialise()
 	{
-		final TorrentAttribute tan = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
-		final TorrentAttribute tas = plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_PEER_SOURCES );
-
 		plugin_interface.getDownloadManager().addListener(
 				new DownloadManagerListener()
 				{
@@ -385,74 +391,17 @@ DHTTrackerPlugin
 					downloadAdded(
 						Download	download )
 					{
-						String[]	networks = download.getListAttribute( tan );
+						download.addPropertyListener( DHTTrackerPlugin.this );
 						
-						Torrent	torrent = download.getTorrent();
-						
-						if ( torrent != null && networks != null ){
-							
-							boolean	public_net = false;
-							
-							for (int i=0;i<networks.length;i++){
-								
-								if ( networks[i].equalsIgnoreCase( "Public" )){
-										
-									public_net	= true;
-									
-									break;
-								}
-							}
-							
-							if ( public_net ){
-								
-								if ( torrent.isDecentralised()){
-									
-									registerDownload( download );
-									
-								}else{
-									
-									if ( torrent.isDecentralisedBackupEnabled()){
-										
-										String[]	sources = download.getListAttribute( tas );
-
-										boolean	ok = false;
-										
-										for (int i=0;i<sources.length;i++){
-											
-											if ( sources[i].equalsIgnoreCase( "DHT")){
-												
-												ok	= true;
-												
-												break;
-											}
-										}
-
-										if ( ok ){
-											
-											registerDownload( download );
-											
-										}else{
-											
-											log.log( "Not registering '" + download.getName() + "' as decentralised peer source disabled" );
-
-										}
-									}else{
-										
-										log.log( "Not registering '" + download.getName() + "' as decentralised backup disabled" );
-									}
-								}
-								
-							}else{
-								
-								log.log( "Not registering '" + download.getName() + "' as not public" );
-							}
-						}
+						checkDownloadForRegistration( download );
 					}
 					
 					public void
 					downloadRemoved(
 						Download	download )
 					{
+						download.removePropertyListener( DHTTrackerPlugin.this );
+						
 						unregisterDownload( download );
 					}
 				});
@@ -468,6 +417,114 @@ DHTTrackerPlugin
 					processRegistrations();
 				}
 			});
+	}
+	
+	public void
+	propertyChanged(
+		Download				download,
+		DownloadPropertyEvent	event )
+	{
+		if ( event.getType() == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE ){
+			
+			if ( 	event.getData() == ta_networks ||
+					event.getData() == ta_peer_sources ){
+				
+				checkDownloadForRegistration( download );
+			}
+		}
+	}
+	
+	protected void
+	checkDownloadForRegistration(
+		Download		download )
+	{
+		String[]	networks = download.getListAttribute( ta_networks );
+		
+		Torrent	torrent = download.getTorrent();
+		
+		boolean	register_it	= false;
+		
+		if ( torrent != null && networks != null ){
+			
+			boolean	public_net = false;
+			
+			for (int i=0;i<networks.length;i++){
+				
+				if ( networks[i].equalsIgnoreCase( "Public" )){
+						
+					public_net	= true;
+					
+					break;
+				}
+			}
+			
+			if ( public_net ){
+				
+				if ( torrent.isDecentralised()){
+					
+						// peer source not relevant for decentralised torrents
+					
+					register_it	= true;
+					
+				}else{
+					
+					if ( torrent.isDecentralisedBackupEnabled()){
+						
+						String[]	sources = download.getListAttribute( ta_peer_sources );
+
+						boolean	ok = false;
+						
+						for (int i=0;i<sources.length;i++){
+							
+							if ( sources[i].equalsIgnoreCase( "DHT")){
+								
+								ok	= true;
+								
+								break;
+							}
+						}
+
+						if ( ok ){
+							
+							register_it	= true;
+							
+						}else{
+							
+							log.log( "Not registering '" + download.getName() + "' as decentralised peer source disabled" );
+
+						}
+					}else{
+						
+						log.log( "Not registering '" + download.getName() + "' as decentralised backup disabled" );
+					}
+				}
+				
+			}else{
+				
+				log.log( "Not registering '" + download.getName() + "' as not public" );
+			}
+		}
+		
+		try{
+			this_mon.enter();
+
+			if ( register_it ){
+			
+				if ( !running_downloads.contains( download )){
+					
+					registerDownload( download );
+				}
+			}else{
+				
+				if ( running_downloads.contains( download )){
+					
+					unregisterDownload( download );
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected void

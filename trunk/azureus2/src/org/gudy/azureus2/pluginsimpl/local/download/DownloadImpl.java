@@ -764,41 +764,38 @@ DownloadImpl
 			
 			String	name = (String)event.getData();
 			
-			if ( name.equals( DownloadManagerState.AT_CATEGORY )){
+			List	property_listeners_ref = property_listeners;
+			
+			final TorrentAttribute	attr = convertAttribute( name );
+			
+			if ( attr != null ){
 				
-				List	property_listeners_ref = property_listeners;
-				
-				final TorrentAttribute	attr = convertAttribute( name );
-				
-				if ( attr != null ){
+				for (int i=0;i<property_listeners_ref.size();i++){
 					
-					for (int i=0;i<property_listeners_ref.size();i++){
-						
-						try{						
-							((DownloadPropertyListener)property_listeners_ref.get(i)).propertyChanged(
-									this,
-									new DownloadPropertyEvent()
+					try{						
+						((DownloadPropertyListener)property_listeners_ref.get(i)).propertyChanged(
+								this,
+								new DownloadPropertyEvent()
+								{
+									public int
+									getType()
 									{
-										public int
-										getType()
-										{
-											return( DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE );
-										}
-										
-										public Object
-										getData()
-										{
-											return( attr );
-										}
-									});
-	
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace( e );
-						}
+										return( DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE );
+									}
+									
+									public Object
+									getData()
+									{
+										return( attr );
+									}
+								});
+
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
 					}
-				}			
-			}
+				}
+			}			
 		}
 	}
 	

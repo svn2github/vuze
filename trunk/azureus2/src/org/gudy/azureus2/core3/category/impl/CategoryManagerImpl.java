@@ -140,12 +140,13 @@ public class CategoryManagerImpl  {
       catch (Exception e) {}
     }
 
+    makeSpecialCategories();
+
     if (map != null && catNames.size() > 0) {
       try{
       	categories_mon.enter();
      
-        makeSpecialCategories();
-
+ 
         for (int i = 0; i < catNames.size(); i++) {
           String name = (String)catNames.get(i);
           Category cat = new CategoryImpl(name);
