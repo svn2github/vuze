@@ -46,6 +46,7 @@ public class VirtualChannelSelector {
     private final LinkedList 	register_cancel_list 		= new LinkedList();
     private final AEMonitor 	register_cancel_list_mon	= new AEMonitor( "VirtualChannelSelector:RCL");
 
+    private final HashMap paused_states = new HashMap();
     
     private final int 		INTEREST_OP;
     private final boolean	pause_after_select;
@@ -149,8 +150,16 @@ public class VirtualChannelSelector {
       if( key != null ) {
         key.interestOps( key.interestOps() & ~INTEREST_OP );
       }
-      else {
+      else {  //channel not (yet?) registered
         Debug.printStackTrace( new Exception( "pauseSelects( " +channel+ " ):: selection key not found" ) );
+
+        try{  register_cancel_list_mon.enter();
+          
+          paused_states.put( channel, new Boolean( true ) );  //ensure the op is paused upon reg select-time reg
+
+        }
+        finally{  register_cancel_list_mon.exit();  }
+        
       }
     }
     
@@ -162,16 +171,25 @@ public class VirtualChannelSelector {
     public void resumeSelects( SocketChannel channel ) {
       
       if( channel == null ) {
-        Debug.printStackTrace( new Exception( "resumeSelects()" ) );
+        Debug.printStackTrace( new Exception( "resumeSelects():: channel == null" ) );
         return;
       }
       
       SelectionKey key = channel.keyFor( selector );
+      
       if( key != null ) {
         key.interestOps( key.interestOps() | INTEREST_OP );
       }
-      else {
-        //Debug.printStackTrace( new Exception( "resumeSelects( " +channel+ " ):: selection key not found" ) );
+      else {  //channel not (yet?) registered
+        try{  register_cancel_list_mon.enter();
+        
+          Object paused = paused_states.remove( channel );  //check if the channel's op has been already paused before select-time reg
+          
+          if( paused != null ) {
+            System.out.println( "resumeSelects( " +channel+ " ):: selection key not found BUT IT WAS PAUSED" );
+          }
+        }
+        finally{  register_cancel_list_mon.exit();  }
       }
     }
 
@@ -277,65 +295,73 @@ public class VirtualChannelSelector {
       	
         while( register_cancel_list.size() > 0 ){
         	
-         Object	obj = register_cancel_list.remove(0);
+          Object	obj = register_cancel_list.remove(0);
          
-         if ( obj instanceof SocketChannel ){
+          if ( obj instanceof SocketChannel ){
            
          		// process cancellation
          	
-         	SocketChannel	canceled_channel = (SocketChannel)obj;
+            SocketChannel	canceled_channel = (SocketChannel)obj;
   
-         	try{
-	         	SelectionKey key = canceled_channel.keyFor( selector );
+            try{
+              SelectionKey key = canceled_channel.keyFor( selector );
 	            
-	            if( key != null ){
+              if( key != null ){
 	            	
-	            	key.cancel();  //cancel the key, since already registered
-	            }
+                key.cancel();  //cancel the key, since already registered
+              }
 	            
-         	}catch( Throwable e ){
+            }catch( Throwable e ){
          		
-         		Debug.printStackTrace(e);
-         	}
-         }else{
-         		//process new registrations  
+              Debug.printStackTrace(e);
+            }
+          }else{
+            //process new registrations  
  
-         	RegistrationData data = (RegistrationData)obj;
+            RegistrationData data = (RegistrationData)obj;
             	
             try {
-                if( data.channel.isOpen() ){
+              if( data.channel.isOpen() ){
                 	
-                		// see if already registered
-                	
-                  SelectionKey key = data.channel.keyFor( selector );
+                // see if already registered
+                SelectionKey key = data.channel.keyFor( selector );
                   
-                  if ( key != null && key.isValid()){
-                  	key.attach( data );
-                  	key.interestOps( key.interestOps() | INTEREST_OP );  //ensure op is enabled
-                  }
-                  else{
-                  	data.channel.register( selector, INTEREST_OP, data );
-                  }             
+                if ( key != null && key.isValid()){  //already registered
+                  key.attach( data );
+                  key.interestOps( key.interestOps() | INTEREST_OP );  //ensure op is enabled
                 }
                 else{
+                  data.channel.register( selector, INTEREST_OP, data );
+                }
+                  
+                //check if op has been paused before registration moment
+                Object paused = paused_states.get( data.channel );
+                  
+                if( paused != null ) {
+                  pauseSelects( data.channel );  //pause it
+                }
+              }
+              else{
             	
-                	data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "select registration: channel is closed" ) );
-            	    //Debug.out( "channel is closed" );
-            	}
-           	}catch (Throwable t){
-                     	    
-           	    Debug.printStackTrace(t);
- 
-           		try{
-           			data.listener.selectFailure( this, data.channel, data.attachment, t );
+                data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "select registration: channel is closed" ) );
+                //Debug.out( "channel is closed" );
+              }
+            }catch (Throwable t){
+              
+              Debug.printStackTrace(t);
+           	    
+              try{
+                data.listener.selectFailure( this, data.channel, data.attachment, t );
            			
-           		}catch( Throwable e ){
+              }catch( Throwable e ){
            			
-           			Debug.printStackTrace(e);
-           		}
-             } 	
-         }
+                Debug.printStackTrace(e);
+              }
+            } 	
+          }
         }
+        
+        paused_states.clear();  //reset after every registration round
                
       }finally { 
       	register_cancel_list_mon.exit();
