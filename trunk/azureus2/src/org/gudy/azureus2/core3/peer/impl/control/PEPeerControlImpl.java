@@ -965,11 +965,11 @@ PEPeerControlImpl
   		return;
   	}
  	
-    //reset the availability
-    int[] new_availability = new int[availability_cow.length];
-    Arrays.fill(new_availability, 0); //:: should be faster -Tyler
-
-    //for all clients
+ 		//reset the availability
+  
+ 	int[] new_availability = new int[availability_cow.length];
+  
+ 		//for all clients
     
     List	peer_transports = peer_transports_cow;
         
