@@ -469,15 +469,17 @@ public class MainMenu {
       Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
       Menu helpMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
       helpItem.setMenu(helpMenu);
-  
-      MenuItem help_about = new MenuItem(helpMenu, SWT.NULL);
-      Messages.setLanguageText(help_about, "MainWindow.menu.help.about"); //$NON-NLS-1$
-      help_about.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          AboutWindow.show(display);
-        }
-      });
-      
+
+      if(!Constants.isOSX) {
+          MenuItem help_about = new MenuItem(helpMenu, SWT.NULL);
+          Messages.setLanguageText(help_about, "MainWindow.menu.help.about"); //$NON-NLS-1$
+          help_about.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+              AboutWindow.show(display);
+            }
+          });
+      }
+
       if ( !SystemProperties.isJavaWebStartInstance()){
         
         MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
