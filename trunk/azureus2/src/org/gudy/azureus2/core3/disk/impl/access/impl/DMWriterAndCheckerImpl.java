@@ -103,8 +103,12 @@ DMWriterAndCheckerImpl
 	private List 			checkQueue;
 	private AESemaphore		writeCheckQueueSem;
 		
-	protected volatile ConcurrentHasherRequest	current_hash_request;
+	protected volatile 		ConcurrentHasherRequest	current_hash_request;
 	
+	protected long			total_async_check_requests;
+	protected AESemaphore	async_check_request_sem 	= new AESemaphore("DMW&C::asyncReq");
+	
+	protected boolean	started;
 	protected boolean	bOverallContinue		= true;
 	
 	protected int		pieceLength;
@@ -115,7 +119,9 @@ DMWriterAndCheckerImpl
 	
 	protected boolean	complete_recheck_in_progress;
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "DMW&C" );
+	protected AEMonitor		this_mon	= new AEMonitor( "DMW&C" );
+	
+	protected AESemaphore	stop_sem	= new AESemaphore( "DMW&C::stop");
 	
 	public
 	DMWriterAndCheckerImpl(
@@ -135,7 +141,12 @@ DMWriterAndCheckerImpl
 	public void
 	start()
 	{
-		bOverallContinue	= true;
+		if ( started ){
+			
+			throw( new RuntimeException( "DMW&C: start while started"));
+		}
+		
+		started	= true;
 		
 		writeQueue			= new LinkedList();
 		checkQueue			= new LinkedList();
@@ -148,6 +159,14 @@ DMWriterAndCheckerImpl
 	public void
 	stop()
 	{
+		if ( !started ){
+			
+			return;
+		}
+		
+			// when we exit here we guarantee that all file usage operations have completed
+			// i.e. writes and checks (checks being doubly async)
+		
 		try{
 			this_mon.enter();
 			
@@ -161,10 +180,18 @@ DMWriterAndCheckerImpl
 			
 			this_mon.exit();
 		}
+					
+		writeThread.stopIt();
 		
-		if (writeThread != null){
+			// wait until the thread has stopped
+		
+		stop_sem.reserve();
+		
+			// now wait until any outstanding piece checks have completed
+		
+		for (int i=0;i<total_async_check_requests;i++){
 			
-			writeThread.stopIt();
+			async_check_request_sem.reserve();
 		}
 	}
 	
@@ -236,7 +263,12 @@ DMWriterAndCheckerImpl
 				   
 				return false;
 			}
-		} catch (Exception e) {  Debug.printStackTrace( e );  }
+		}catch (Exception e){ 
+			
+			Debug.printStackTrace( e );
+			
+			return( false );
+		}
 			
 		return true;
 	}
@@ -474,6 +506,8 @@ DMWriterAndCheckerImpl
 
     		    	async_request	= true;
     		    	
+    		    	total_async_check_requests++;
+    		    	
     		    	final	DirectByteBuffer	f_buffer	= buffer;
     		    	
 	    		    current_hash_request = 
@@ -509,12 +543,18 @@ DMWriterAndCheckerImpl
 		    								}
 	    		    					}finally{
 	    		    						
-	    		    						f_buffer.returnToPool();
-
-	    		    						result_handler.processResult( 
-	    		    								pieceNumber, 
-													async_result,
-													user_data );
+	    		    						try{
+		    		    						f_buffer.returnToPool();
+	
+		    		    						result_handler.processResult( 
+		    		    								pieceNumber, 
+														async_result,
+														user_data );
+		    		    						
+	    		    						}finally{
+	    		    							
+	    		    							async_check_request_sem.release();
+	    		    						}
 	    		    					}
 	    		    				}
 	    		    				
@@ -787,133 +827,138 @@ DMWriterAndCheckerImpl
 			setDaemon(true);
 		}
 
-		public void runSupport() 
+		public void 
+		runSupport() 
 		{
-			while (bWriteContinue){
-				
-				try{
-					int	entry_count = writeCheckQueueSem.reserveSet( 64 );
-										
-					for (int i=0;i<entry_count;i++){
-						
-						final QueueElement	elt;
-						
-						boolean			elt_is_write;
-						
-						try{
-							this_mon.enter();
+			try{
+				while (bWriteContinue){
+					
+					try{
+						int	entry_count = writeCheckQueueSem.reserveSet( 64 );
+											
+						for (int i=0;i<entry_count;i++){
 							
-							if ( !bWriteContinue){
+							final QueueElement	elt;
+							
+							boolean			elt_is_write;
+							
+							try{
+								this_mon.enter();
+								
+								if ( !bWriteContinue){
+																
+									break;
+								}
+								
+								if ( writeQueue.size() > checkQueue.size()){
+									
+									elt	= (QueueElement)writeQueue.remove(0);
+									
+									// System.out.println( "releasing global write slot" );
+		
+									global_write_queue_block_sem.release();
+									
+									elt_is_write	= true;
+									
+								}else{
+									
+									elt	= (QueueElement)checkQueue.remove(0);
+									
+									global_check_queue_block_sem.release();
 															
-								break;
+									elt_is_write	= false;
+								}
+							}finally{
+								
+								this_mon.exit();
 							}
-							
-							if ( writeQueue.size() > checkQueue.size()){
+			
+							if ( elt_is_write ){
 								
-								elt	= (QueueElement)writeQueue.remove(0);
+									//Do not allow to write in a piece marked as done.
 								
-								// System.out.println( "releasing global write slot" );
-	
-								global_write_queue_block_sem.release();
+								int pieceNumber = elt.getPieceNumber();
 								
-								elt_is_write	= true;
-								
-							}else{
-								
-								elt	= (QueueElement)checkQueue.remove(0);
-								
-								global_check_queue_block_sem.release();
-														
-								elt_is_write	= false;
-							}
-						}finally{
-							
-							this_mon.exit();
-						}
-		
-						if ( elt_is_write ){
-							
-								//Do not allow to write in a piece marked as done.
-							
-							int pieceNumber = elt.getPieceNumber();
-							
-							if(!disk_manager.getPieces()[pieceNumber].getDone()){
-								
-							  if ( dumpBlockToDisk(elt)){
-							  
-							  	DiskManagerWriteRequestListener	listener = (DiskManagerWriteRequestListener)elt.getListener();
-							  	
-							  	if ( listener != null ){
-							  	
-							  		listener.blockWritten( elt.getPieceNumber(), elt.getOffset(),elt.getUserData());
-							  	}
-							  }else{
-							  	
-							  		// could try and recover if, say, disk full. however, not really
-							  		// worth the effort as user intervention is no doubt required to
-							  		// fix the problem 
-							  	
-								elt.data.returnToPool();
-										
-								elt.data = null;
+								if(!disk_manager.getPieces()[pieceNumber].getDone()){
+									
+								  if ( dumpBlockToDisk(elt)){
 								  
-								stopIt();
+								  	DiskManagerWriteRequestListener	listener = (DiskManagerWriteRequestListener)elt.getListener();
+								  	
+								  	if ( listener != null ){
+								  	
+								  		listener.blockWritten( elt.getPieceNumber(), elt.getOffset(),elt.getUserData());
+								  	}
+								  }else{
+								  	
+								  		// could try and recover if, say, disk full. however, not really
+								  		// worth the effort as user intervention is no doubt required to
+								  		// fix the problem 
+								  	
+									elt.data.returnToPool();
+											
+									elt.data = null;
+									  
+									stopIt();
+									
+									disk_manager.setState( DiskManager.FAULTY );
+									
+								  }
+								  
+								}else{
+			  
+									elt.data.returnToPool();
+									
+								  elt.data = null;
+								}
 								
-								disk_manager.setState( DiskManager.FAULTY );
-								
-							  }
-							  
 							}else{
-		  
-								elt.data.returnToPool();
 								
-							  elt.data = null;
-							}
-							
-						}else{
-							
-						  checkPiece( 
-						  		elt.getPieceNumber(),
-								new CheckPieceResultHandler()
-								{
-						  			public void
-									processResult(
-										int			pieceNumber,
-										int			result,
-										Object		user_data )
-						  			{
-						  				if ( result == CheckPieceResultHandler.OP_SUCCESS ){
-									  								  	
-						  					LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + pieceNumber + " passed hash check.");
-									   
-						  				}else if ( result == CheckPieceResultHandler.OP_FAILURE ){
-
-							  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " failed hash check.");
-
-						  				}else{
-						  					
-							  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " hash check cancelled.");
-						  					
-						  				}
-		
-									  	DiskManagerCheckRequestListener	listener = (DiskManagerCheckRequestListener)elt.getListener();
-									  	
-									  	if ( listener != null ){
-
-									  		listener.pieceChecked(pieceNumber, result == CheckPieceResultHandler.OP_SUCCESS, user_data );
-									  	}
-						  			}
-								},
-								elt.getUserData());
-					  }
+							  checkPiece( 
+							  		elt.getPieceNumber(),
+									new CheckPieceResultHandler()
+									{
+							  			public void
+										processResult(
+											int			pieceNumber,
+											int			result,
+											Object		user_data )
+							  			{
+							  				if ( result == CheckPieceResultHandler.OP_SUCCESS ){
+										  								  	
+							  					LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + pieceNumber + " passed hash check.");
+										   
+							  				}else if ( result == CheckPieceResultHandler.OP_FAILURE ){
+	
+								  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " failed hash check.");
+	
+							  				}else{
+							  					
+								  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " hash check cancelled.");
+							  					
+							  				}
+			
+										  	DiskManagerCheckRequestListener	listener = (DiskManagerCheckRequestListener)elt.getListener();
+										  	
+										  	if ( listener != null ){
+	
+										  		listener.pieceChecked(pieceNumber, result == CheckPieceResultHandler.OP_SUCCESS, user_data );
+										  	}
+							  			}
+									},
+									elt.getUserData());
+						  }
+						}
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
+						
+						Debug.out( "DiskWriteThread: error occurred during processing: " + e.toString());
 					}
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
-					
-					Debug.out( "DiskWriteThread: error occurred during processing: " + e.toString());
 				}
-        
+			}finally{
+					
+				stop_sem.releaseForever();
 			}
 		}
 

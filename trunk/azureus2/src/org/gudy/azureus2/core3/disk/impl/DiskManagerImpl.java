@@ -334,6 +334,45 @@ DiskManagerImpl
 		setState( READY );
 	}
 
+	public void stop() 
+	{	
+		if ( !started ){
+			
+			return;
+		}
+		
+		started	= false;
+		
+    	writer_and_checker.stop();
+    	
+		reader.stop();
+		
+		resume_handler.stop();
+		
+		piece_picker.stop();
+		
+		if (files != null){
+			
+			for (int i = 0; i < files.length; i++){
+				
+				try{
+					if (files[i] != null) {
+						
+						files[i].getCacheFile().close();
+					}
+				}catch (Exception e){
+					
+					Debug.printStackTrace( e );
+				}
+			}
+		}
+	}
+
+	
+	
+	
+	
+	
 	public boolean
 	filesExist()
 	{
@@ -807,41 +846,6 @@ DiskManagerImpl
 			listeners.dispatch( LDT_STATECHANGED, params);
 		}
 	}
-
-	public void stop() 
-	{	
-		if ( !started ){
-			
-			return;
-		}
-		
-		started	= false;
-		
-    	writer_and_checker.stop();
-    	
-		reader.stop();
-		
-		resume_handler.stop();
-		
-		piece_picker.stop();
-		
-		if (files != null){
-			
-			for (int i = 0; i < files.length; i++){
-				
-				try{
-					if (files[i] != null) {
-						
-						files[i].getCacheFile().close();
-					}
-				}catch (Exception e){
-					
-					Debug.printStackTrace( e );
-				}
-			}
-		}
-  }
-
 
 	public void computeFilesDone(int pieceNumber) {
 		for (int i = 0; i < files.length; i++){

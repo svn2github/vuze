@@ -45,12 +45,18 @@ DMReaderImpl
 	
 	protected DiskManagerHelper	disk_manager;
 
+	private boolean		bOverallContinue	= true;
+	
 	private List		readQueue;
 	private AESemaphore	readQueueSem;
-	private AEMonitor	readQueue_mon		= new AEMonitor( "DMReader:RQ");
+	
+	private AEMonitor	this_mon		= new AEMonitor( "DMReader");
 	
 	private int			next_report_size	= 0;
 	
+	private boolean			started;
+	private AESemaphore		stop_sem	= new AESemaphore( "DMReader::stop");
+
 	private DiskReadThread readThread;
 
 	public
@@ -63,6 +69,13 @@ DMReaderImpl
 	public void
 	start()
 	{
+		if ( started ){
+			
+			throw( new RuntimeException( "DMReader: start while started"));
+		}
+		
+		started	= true;
+		
 		readQueue			= new LinkedList();
 		readQueueSem		= new AESemaphore("readQ");
 		next_report_size	= QUEUE_REPORT_CHUNK;
@@ -75,10 +88,26 @@ DMReaderImpl
 	public void
 	stop()
 	{
-		if (readThread != null){
-		
-			readThread.stopIt();
+		if ( !started ){
+			
+			return;
 		}
+		
+		try{
+			this_mon.enter();
+
+			bOverallContinue	= false;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		readThread.stopIt();
+		
+			// wait until the thread has stopped
+		
+		stop_sem.reserve();
 	}
 	
 	public DiskManagerReadRequest
@@ -98,13 +127,18 @@ DMReaderImpl
 		DiskReadRequest drr = new DiskReadRequest( request, listener );
 	    
 	   try{
-	   		readQueue_mon.enter();
+	   		this_mon.enter();
 	   
+	  		if ( !bOverallContinue ){
+	  				  			
+	  			throw( new RuntimeException( "Reader stopped" ));
+	  		}
+	  		
 	   		readQueue.add( drr );
 	   		
 	    }finally{
 	    	
-	    	readQueue_mon.exit();
+	    	this_mon.exit();
 	    }
 	    
 	    readQueueSem.release();
@@ -127,6 +161,11 @@ DMReaderImpl
 		int offset, 
 		int length ) 
 	{
+		if ( !bOverallContinue ){
+			
+			Debug.out( "DMReader:readBlock: called when stopped" );
+		}
+		
 		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ,length );
 
 		if (buffer == null) { // Fix for bug #804874
@@ -235,7 +274,10 @@ DMReaderImpl
 		}
 	}
 
-	public class DiskReadThread extends AEThread {
+	public class 
+	DiskReadThread 
+		extends AEThread 
+	{
 		private boolean bReadContinue = true;
 
 		public DiskReadThread() {
@@ -243,66 +285,72 @@ DMReaderImpl
 			setDaemon(true);
 		}
 
-		public void runSupport() {
+		public void 
+		runSupport() 
+		{
+			try{
+				while (bReadContinue){	
 			
-			while (bReadContinue){	
-		
-				try{
-					int	entry_count = readQueueSem.reserveSet( 10 );
-					
-					for (int i=0;i<entry_count;i++){
+					try{
+						int	entry_count = readQueueSem.reserveSet( 10 );
 						
-						DiskReadRequest drr;
-						
-						try{
-							readQueue_mon.enter();
+						for (int i=0;i<entry_count;i++){
 							
-							if ( !bReadContinue){
-														
-								break;
+							DiskReadRequest drr;
+							
+							try{
+								this_mon.enter();
+								
+								if ( !bReadContinue){
+															
+									break;
+								}
+							
+								drr = (DiskReadRequest)readQueue.remove(0);
+								
+							}finally{
+								
+								this_mon.exit();
 							}
+			
+							DiskManagerReadRequest request = drr.getRequest();
+			
+							DirectByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+	            
+							if (buffer != null) {
+								
+								drr.readCompleted( buffer );
+								
+							}else {
+								
+								String err_msg = "Failed loading piece " +request.getPieceNumber()+ ":" +request.getOffset()+ "->" +(request.getOffset() + request.getLength());
+								LGLogger.log( LGLogger.ERROR, err_msg );
+								System.out.println( err_msg );
+							}
+						}
+					}catch( Throwable e ){
 						
-							drr = (DiskReadRequest)readQueue.remove(0);
-							
-						}finally{
-							
-							readQueue_mon.exit();
-						}
-		
-						DiskManagerReadRequest request = drr.getRequest();
-		
-						DirectByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
-            
-						if (buffer != null) {
-							
-							drr.readCompleted( buffer );
-							
-						}else {
-							
-							String err_msg = "Failed loading piece " +request.getPieceNumber()+ ":" +request.getOffset()+ "->" +(request.getOffset() + request.getLength());
-							LGLogger.log( LGLogger.ERROR, err_msg );
-							System.out.println( err_msg );
-						}
+						Debug.printStackTrace( e );
+						
+						Debug.out( "DiskReadThread: error occurred during processing: " + e.toString());
 					}
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
-					
-					Debug.out( "DiskReadThread: error occurred during processing: " + e.toString());
 				}
+			}finally{
+				
+				stop_sem.release();
 			}
 		}
 
 		public void stopIt() {
 
 			try{
-				readQueue_mon.enter();
+				this_mon.enter();
 				
 				bReadContinue = false;
 				
 			}finally{
 				
-				readQueue_mon.exit();
+				this_mon.exit();
 			}
 			
 			readQueueSem.releaseForever();
