@@ -120,6 +120,20 @@ TOTorrentDeserialiseImpl
 		
 		try{
 			byte[] buf = new byte[32*1024];	// raised this limit as 2k was rather too small
+			
+			// do a check to see if it's a BEncode file.
+			int iFirstByte = is.read();
+			if (iFirstByte != 'd' &&
+			    iFirstByte != 'e' &&
+			    iFirstByte != 'i' &&
+			    !(iFirstByte >= '0' && iFirstByte <= '9')) {
+  			throw( new TOTorrentException( "TOTorrentDeserialise: Not BEncoded",
+	  										TOTorrentException.RT_READ_FAILS ));
+      }
+			      
+			    
+			
+			metaInfo.write(iFirstByte);
 		
 			int nbRead;
 				
