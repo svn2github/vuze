@@ -109,7 +109,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
                   
       if(System.getProperty("os.name").equalsIgnoreCase("Linux") || System.getProperty("os.name").equalsIgnoreCase("Mac OS X")) {
         File fUpdate = new File(userPath + "/updateSWT");
-        String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
+        String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
         + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
         + userPath + "\" \"" + libraryPath + "\"";
         FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
@@ -117,7 +117,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         fosUpdate.close();
         Process pChMod = Runtime.getRuntime().exec("chmod 755 " + userPath + "/updateSWT");
         pChMod.waitFor();
-        Process p = Runtime.getRuntime().exec(userPath + "/updateSWT");
+        Process p = Runtime.getRuntime().exec(new String[]{"sh","-c","\"" + userPath + "/updateSWT\""});
       } else {
         String exec[] = {
             javaPath + "java" ,
