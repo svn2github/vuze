@@ -79,6 +79,53 @@ public class GlobalManager extends Component {
             }
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {
               nbStarted++;
+              //Checks if any condition to stop seeding is met
+              int minShareRatio = 1000 * ConfigurationManager.getInstance().getIntParameter("Share Ratio",0);
+              //0 means unlimited
+              if(minShareRatio != 0) {
+                int shareRatio = manager.getShareRatio();
+                if(shareRatio > minShareRatio)
+                  manager.stopIt();
+              }
+              
+              
+              int minSeedsPerPeersRatio = ConfigurationManager.getInstance().getIntParameter("Stop Peers Ratio",0);    
+              //0 means never stop
+              if(minSeedsPerPeersRatio != 0) {
+                HashData hd = manager.getHashData();    
+                if(hd != null) {            
+                  int nbPeers = hd.peers;
+                  int nbSeeds = hd.seeds;
+                  //If there are no seeds, avoid / by 0
+                  if(nbSeeds != 0) {
+                    int ratio = nbPeers / nbSeeds;
+                    if(ratio < minSeedsPerPeersRatio)
+                      manager.stopIt();
+                  }
+                }
+              }         
+            } else if(manager.getState() == DownloadManager.STATE_STOPPED && manager.getCompleted() == 1000) {
+              //Checks if any condition to start seeding is met
+              int minSeedsPerPeersRatio = ConfigurationManager.getInstance().getIntParameter("Start Peers Ratio",0); 
+              //0 means never start
+              if(minSeedsPerPeersRatio != 0) {
+                HashData hd = manager.getHashData();  
+                if(hd != null) {              
+                  int nbPeers = hd.peers;
+                  int nbSeeds = hd.seeds;
+                  //If there are no seeds, avoid / by 0
+                  if(nbPeers != 0) {
+                    if(nbSeeds != 0) {                  
+                      int ratio = nbPeers / nbSeeds;
+                      if(ratio >= minSeedsPerPeersRatio)
+                        manager.setState(DownloadManager.STATE_WAITING);
+                    } else {
+                      //No seeds, at least 1 peer, let's start download.
+                      manager.setState(DownloadManager.STATE_WAITING);
+                    }
+                  }
+                }
+              }
             }
           }
           boolean alreadyOneAllocatingOrChecking = false;
@@ -256,6 +303,7 @@ public class GlobalManager extends Component {
           Long lPriority = (Long) mDownload.get("priority");   
           Long lDownloaded = (Long) mDownload.get("downloaded");
           Long lUploaded = (Long) mDownload.get("uploaded");
+          Long lCompleted = (Long) mDownload.get("completed");
           DownloadManager dm = new DownloadManager(this, fileName, savePath, stopped == 1);
           dm.setMaxUploads(nbUploads);
           if(lPriority != null) {
@@ -263,6 +311,9 @@ public class GlobalManager extends Component {
           }
           if(lDownloaded !=  null && lUploaded != null) {
             dm.setDownloadedUploaded(lDownloaded.longValue(),lUploaded.longValue());
+          }
+          if(lCompleted !=  null ) {
+            dm.setCompleted(lCompleted.intValue());
           }
           this.addDownloadManager(dm);
         }
@@ -311,6 +362,7 @@ public class GlobalManager extends Component {
       dmMap.put("position", new Long(i));
       dmMap.put("downloaded",new Long(dm.getDownloadedRaw()));
       dmMap.put("uploaded",new Long(dm.getUploadedRaw()));
+      dmMap.put("completed",new Long(dm.getCompleted()));
       list.add(dmMap);
     }
     map.put("downloads",list);

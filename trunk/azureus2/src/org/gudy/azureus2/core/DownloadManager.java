@@ -69,6 +69,9 @@ public class DownloadManager extends Component {
   //saved downloaded and uploaded
   private long downloaded;
   private long uploaded;
+  
+  //Completed (used for auto-starting purposes)
+  private int completed;
 
   private int maxUploads = 4;
 
@@ -252,7 +255,7 @@ public class DownloadManager extends Component {
 
   public int getCompleted() {
     if (diskManager == null)
-      return 0;
+      return completed;
     if (diskManager.getState() == DiskManager.ALLOCATING || diskManager.getState() == DiskManager.CHECKING || diskManager.getState() == DiskManager.INITIALIZING)
       return diskManager.getPercentDone();
     else {
@@ -615,6 +618,10 @@ public class DownloadManager extends Component {
   public void setDownloadedUploaded(long downloaded,long uploaded) {
     this.downloaded = downloaded;
     this.uploaded = uploaded;
+  }
+  
+  public void setCompleted(int completed) {
+    this.completed = completed;
   }
   
   public int getShareRatio() {
