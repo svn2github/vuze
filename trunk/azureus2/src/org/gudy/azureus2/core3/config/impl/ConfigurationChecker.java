@@ -273,7 +273,7 @@ public class ConfigurationChecker {
         "azureus.statistics", "tracker.log", "tracker.config",
         "trackers.config", "sharing.config", "plugins", "shares", "web" };
     
-    //migrate files/folders
+    //migrate files/folders from pre-2080 location
     for (int i=0; i < fileNames.length; i++) {
       try {
         File oldFile = FileUtil.getApplicationFile( fileNames[i] );
@@ -293,6 +293,36 @@ public class ConfigurationChecker {
         LGLogger.log(t);
       }
     }
+    
+    
+    //migrate from old APPDATA dir to new registry-culled dir
+    String oldappdata = SystemProperties.getEnvironmentalVariable( "APPDATA" );
+    if ( oldappdata != null && oldappdata.length() > 0 ) {
+      oldappdata = oldappdata + SystemProperties.SEP + "Azureus" + SystemProperties.SEP;
+      File oldpath = new File( oldappdata );
+      if ( oldpath.exists() ) {
+        for (int i=0; i < fileNames.length; i++) {
+          try {
+            File oldFile = new File( oldpath, fileNames[i] );
+            if ( oldFile.exists() ) {
+              File newFile = FileUtil.getUserFile( fileNames[i] );
+              boolean result = oldFile.renameTo(newFile);
+              if (result) {
+                successes += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : OK\n";
+              }
+              else {
+                failures += oldFile.toURI().getPath() + "\n---> " + newFile.toURI().getPath() + " : FAILED\n\n";
+              }
+            }
+          } catch (Throwable t) {
+            failures += fileNames[i] + "\n---> " + t.getMessage() + ": FAILED\n\n";
+            t.printStackTrace();
+            LGLogger.log(t);
+          }
+        }
+      }
+    }
+    
     
     //migrate from old /.azureus/ dir
     String oldLinuxAndWebStartPath = System.getProperty("user.home") + SystemProperties.SEP + ".azureus" + SystemProperties.SEP;
