@@ -37,6 +37,15 @@ IPRange
 	setDescription(
 		String	str );
 		
+		/**
+		 * For a range to be usable it has to be valid. To make it valid you have
+		 * to call checkValid. Failure to do so will leave newly created ranges
+		 * as invalid and therefore checks won't be made against it!!!!
+		 */
+	
+	public void
+	checkValid();
+	
 	public boolean
 	isValid();
   

@@ -68,6 +68,12 @@ IPRangeImpl
 		return( range.isValid());
 	}
   
+	public void
+	checkValid()
+	{
+		range.checkValid();
+	}
+	
 	public boolean
 	isSessionOnly()
 	{
