@@ -94,6 +94,19 @@ TRHostTorrentHostImpl
 	public void
 	start()
 	{
+			// there's a potential deadlock situation if we call the server while holding
+			// the torrent lock, as the server then calls back to the host and we get
+			// a torrent -> host monitor chain. We already have a host->torrent chain.
+			// easiest solution is to delegate call to the host, which will grab the host
+			// monitor and then call back out to startSupport. Hence the chain is in the
+			// right direction
+		
+		host.startTorrent( this );
+	}
+	
+	protected void
+	startSupport()
+	{
 		try{
 			this_mon.enter();
 			
@@ -122,6 +135,12 @@ TRHostTorrentHostImpl
 	
 	public void
 	stop()
+	{
+		host.stopTorrent( this );
+	}
+	
+	protected void
+	stopSupport()
 	{
 		try{
 			this_mon.enter();
@@ -180,9 +199,21 @@ TRHostTorrentHostImpl
 	
 		throws TRHostTorrentRemovalVetoException
 	{
-		for (int i=0;i<removal_listeners.size();i++){
+		ArrayList	listeners_copy;
+		
+		try{
+			this_mon.enter();
+		
+			listeners_copy = new ArrayList( removal_listeners );
+		
+		}finally{
 			
-			((TRHostTorrentWillBeRemovedListener)removal_listeners.get(i)).torrentWillBeRemoved( this );
+			this_mon.exit();
+		}
+		
+		for (int i=0;i<listeners_copy.size();i++){
+			
+			((TRHostTorrentWillBeRemovedListener)listeners_copy.get(i)).torrentWillBeRemoved( this );
 		}
 		
 		return( true );
@@ -546,16 +577,21 @@ TRHostTorrentHostImpl
 	
 		throws TRHostException
 	{
+		ArrayList	listeners_copy;
+		
 		try{
 			this_mon.enter();
 		
-			for (int i=0;i<listeners.size();i++){
-			
-				((TRHostTorrentListener)listeners.get(i)).postProcess(req);
-			}
+			listeners_copy = new ArrayList( listeners );
+		
 		}finally{
-
+			
 			this_mon.exit();
+		}
+	
+		for (int i=0;i<listeners_copy.size();i++){
+		
+			((TRHostTorrentListener)listeners_copy.get(i)).postProcess(req);
 		}
 	}
 	

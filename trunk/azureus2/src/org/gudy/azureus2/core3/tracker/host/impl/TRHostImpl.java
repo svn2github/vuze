@@ -31,8 +31,6 @@ import java.net.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
@@ -651,9 +649,7 @@ TRHostImpl
 	stopHosting(
 		final TRHostTorrentHostImpl	host_torrent,
 		final TRTrackerClient 		tracker_client )
-	{
-		TOTorrent	torrent = host_torrent.getTorrent();	
-				
+	{				
 			// unfortunately a lot of the "stop" operations that occur when a tracker client
 			// connection is closed happen async. In particular the "stopped" message to the
 			// tracker. Hence, if we switch the URL back here the "stopped" doesn't get
@@ -1093,6 +1089,39 @@ TRHostImpl
 					((TRTrackerServer)it.next()).removeAuthenticationListener( this );
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+		// see comment in TRHostTorrentHost impl for reason for this delegation + monitor
+		// aquisition
+	
+	protected void
+	startTorrent(
+		TRHostTorrentHostImpl	torrent )
+	{
+		try{
+			this_mon.enter();
+			
+			torrent.startSupport();
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	stopTorrent(
+		TRHostTorrentHostImpl	torrent )
+	{
+		try{
+			this_mon.enter();
+			
+			torrent.stopSupport();
+			
 		}finally{
 			
 			this_mon.exit();
