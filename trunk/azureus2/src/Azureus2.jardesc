@@ -73,6 +73,7 @@
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.telnet"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.global.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.messaging.core"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.db.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.tableitems"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.xml.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils"/>
@@ -108,6 +109,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.router.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.common"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.xml.schemas"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.db"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.uploadmanager"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.tables.mytorrents"/>
@@ -206,8 +208,8 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.pluginsinstaller"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.pluginsuninstaller"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.disk"/>
-<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.dht"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ipfilter"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.dht"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.console"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.crypto.generators"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swing"/>
@@ -258,8 +260,8 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.update"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web2.stages.hdapi.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.animations"/>
-<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.transport.udp.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.crypto"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.transport.udp.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.math.ec"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.utils"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote"/>

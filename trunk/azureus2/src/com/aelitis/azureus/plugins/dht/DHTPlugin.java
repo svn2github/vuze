@@ -225,27 +225,30 @@ DHTPlugin
 										perform(
 											UTTimerEvent		event )
 										{
-											DHTRouterStats	r_stats = dht.getRouter().getStats();
-											
-											long[]	rs = r_stats.getStats();
-		
-											log.log( "Router Stats    " +
-														":no=" + rs[DHTRouterStats.ST_NODES] +
-														",le=" + rs[DHTRouterStats.ST_LEAVES] +
-														",co=" + rs[DHTRouterStats.ST_CONTACTS] +
-														",re=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
-														",cl=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
-														",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
-														",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
-															
-											DHTTransportUDPStats t_stats = (DHTTransportUDPStats)transport.getStats();
-											
-											log.log( "Transport Stats" + 
-														":ps=" + t_stats.getPacketsSent() +
-														",pr=" + t_stats.getPacketsReceived() +
-														",bs=" + t_stats.getBytesSent() +
-														",br=" + t_stats.getBytesReceived() +
-														",to=" + t_stats.getRequestsTimedOut());
+											if ( dht != null ){
+												
+												DHTRouterStats	r_stats = dht.getRouter().getStats();
+												
+												long[]	rs = r_stats.getStats();
+			
+												log.log( "Router Stats    " +
+															":no=" + rs[DHTRouterStats.ST_NODES] +
+															",le=" + rs[DHTRouterStats.ST_LEAVES] +
+															",co=" + rs[DHTRouterStats.ST_CONTACTS] +
+															",re=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
+															",cl=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
+															",cu=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
+															",cd=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
+																
+												DHTTransportUDPStats t_stats = (DHTTransportUDPStats)transport.getStats();
+												
+												log.log( "Transport Stats" + 
+															":ps=" + t_stats.getPacketsSent() +
+															",pr=" + t_stats.getPacketsReceived() +
+															",bs=" + t_stats.getBytesSent() +
+															",br=" + t_stats.getBytesReceived() +
+															",to=" + t_stats.getRequestsTimedOut());
+											}
 										}
 									});
 							
@@ -296,6 +299,8 @@ DHTPlugin
 							log.log( "Performed test put of '" + new String( key ) + "'" );
 							
 						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
 							
 							log.log( "DHT integrtion fails", e );
 							
