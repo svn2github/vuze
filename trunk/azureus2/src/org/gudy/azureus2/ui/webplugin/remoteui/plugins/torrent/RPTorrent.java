@@ -42,6 +42,8 @@ RPTorrent
 {
 	protected transient Torrent		delegate;
 
+		// don't change these field names as they are visible on XML serialisation
+	
 	public String		name;
 	public long			size;
 	

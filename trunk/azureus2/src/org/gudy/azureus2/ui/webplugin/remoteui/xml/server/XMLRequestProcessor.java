@@ -132,11 +132,11 @@ XMLRequestProcessor
 						
 						if ( type == String.class ){
 							
-							field.set( obj, child.getValue());
+							field.set( obj, child.getValue().trim());
 							
 						}else if ( type == long.class ){
 							
-							field.setLong( obj,Long.parseLong( child.getValue()));
+							field.setLong( obj,Long.parseLong( child.getValue().trim()));
 							
 						}else if ( type == boolean.class ){
 							
@@ -168,7 +168,7 @@ XMLRequestProcessor
 					
 						}else if ( type == Long.class || type == long.class ){
 							
-							field.set( obj, new Long(Long.parseLong( child.getValue())));
+							field.set( obj, new Long(Long.parseLong( child.getValue().trim())));
 							
 						}else{
 							

@@ -37,6 +37,8 @@ RPDownloadScrapeResult
 {
 	protected transient DownloadScrapeResult		delegate;
 
+		// don't change these field names as they are visible on XML serialisation
+
 	public int				seed_count;
 	public int				non_seed_count;
 	

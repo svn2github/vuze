@@ -37,6 +37,8 @@ RPDownloadStats
 {
 	protected transient DownloadStats		delegate;
 
+		// don't change these field names as they are visible on XML serialisation
+
 	public long				downloaded;
 	public long				uploaded;
 	public int				completed;

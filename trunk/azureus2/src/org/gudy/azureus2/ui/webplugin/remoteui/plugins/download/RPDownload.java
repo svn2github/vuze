@@ -40,6 +40,8 @@ RPDownload
 {
 	protected transient Download		delegate;
 
+		// don't change these field names as they are visible on XML serialisation
+	
 	public RPTorrent				torrent;
 	public RPDownloadStats			stats;
 	public RPDownloadAnnounceResult	announce_result;
