@@ -54,23 +54,26 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 public class PluginInterfaceImpl implements PluginInterface {
   
   protected PluginInitializer	initialiser;
+  protected ClassLoader			class_loader;
   protected List				listeners = new ArrayList();
-  String pluginConfigKey;
-  Properties props;
-  String pluginDir;
-  PluginConfig config;
+  protected String 				pluginConfigKey;
+  protected Properties 			props;
+  protected String 				pluginDir;
+  protected PluginConfig 		config;
 
   public PluginInterfaceImpl(
   		PluginInitializer	_initialiser,
-      String key,
-      Properties props,
-      String pluginDir) 
+		ClassLoader			_class_loader,
+		String 				_key,
+		Properties 			_props,
+		String 				_pluginDir) 
   {
-  	initialiser	= _initialiser;
-  	this.pluginConfigKey = "Plugin." + key;
-    this.props = props;
-    this.pluginDir = pluginDir;
-    this.config = new PluginConfigImpl(pluginConfigKey);
+  	initialiser			= _initialiser;
+  	class_loader		= _class_loader;
+  	pluginConfigKey 	= "Plugin." + _key;
+    props 				= _props;
+    pluginDir 			= _pluginDir;
+    config 				= new PluginConfigImpl(pluginConfigKey);
   }
 
   public void addView(PluginView view)
@@ -192,6 +195,12 @@ public class PluginInterfaceImpl implements PluginInterface {
   			e.printStackTrace();
   		}
   	}
+  }
+  
+  public ClassLoader
+  getPluginClassLoader()
+  {
+  	return( class_loader );
   }
   
   public void

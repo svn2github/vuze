@@ -145,6 +145,14 @@ public interface PluginInterface {
    */
   public PluginConfigUIFactory getPluginConfigUIFactory();
   
+  /**
+   * gives access to the ClassLoader used to load the plugin
+   * @return
+   */
+  
+  public ClassLoader
+  getPluginClassLoader();
+  
   public void
   addListener(
   	PluginListener	l );

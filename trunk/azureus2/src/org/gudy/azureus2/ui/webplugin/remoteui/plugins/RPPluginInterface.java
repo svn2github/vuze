@@ -208,6 +208,14 @@ RPPluginInterface
 		return( null );
 	}
 	
+	public ClassLoader
+	getPluginClassLoader()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public void
 	addListener(
 			PluginListener	l )

@@ -197,6 +197,8 @@ WebPlugin
 	
 		throws IOException
 	{
+		// System.out.println( "WebPlugin::generate:" + request.getURL());
+		
 		if ( generateSupport( request, response )){
 			
 			return(true);
@@ -241,21 +243,30 @@ WebPlugin
 			
 			resource_name = resource_name.substring(1);
 		}
-			
-		if ( resource_root != null && !resource_name.startsWith( resource_root )){
-			
-			resource_name = resource_root + "/" + resource_name;
-		}
-		
+					
 		int	pos = resource_name.lastIndexOf(".");
 		
 		if ( pos != -1 ){
 			
 			String	type = resource_name.substring( pos+1 );
 		
-			InputStream is = WebPlugin.class.getClassLoader().getResourceAsStream( resource_name );
+			ClassLoader	cl = plugin_interface.getPluginClassLoader();
+			
+			InputStream is = cl.getResourceAsStream( resource_name );
 		
-			// System.out.println( resource_name + "->" + is );
+			if ( is == null ){
+				
+				// failed absolute load, try relative
+				
+				if ( resource_root != null ){ 
+					
+					resource_name = resource_root + "/" + resource_name;
+					
+					is = cl.getResourceAsStream( resource_name );	
+				}
+			}
+			
+			// System.out.println( resource_name + "->" + is + ", url = " + url );
 		
 			if (is != null ){
 			

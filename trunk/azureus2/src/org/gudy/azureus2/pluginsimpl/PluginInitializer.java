@@ -200,13 +200,15 @@ PluginInitializer
 
       plugin_class = (String)props.get( "plugin.class");
       
+      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
+      
       Class c = classLoader.loadClass(plugin_class);
       
       Plugin plugin = (Plugin) c.newInstance();
       
       MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
       
-      PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(this,directory.getName(),props,directory.getAbsolutePath());
+      PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(this,classLoader,directory.getName(),props,directory.getAbsolutePath());
       
       plugin.initialize(plugin_interface);
       
@@ -252,7 +254,7 @@ PluginInitializer
   	try{
   		Plugin plugin = (Plugin) plugin_class.newInstance();
   		
-  		PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(this,"",new Properties(),"");
+  		PluginInterfaceImpl plugin_interface = new PluginInterfaceImpl(this,plugin_class.getClassLoader(),"",new Properties(),"");
   		
   		plugin.initialize(plugin_interface);
   		
@@ -289,7 +291,7 @@ PluginInitializer
   
   	if ( default_plugin == null ){
   		
-  		default_plugin = new PluginInterfaceImpl(this,"default",new Properties(),null);
+  		default_plugin = new PluginInterfaceImpl(this,getClass().getClassLoader(),"default",new Properties(),null);
   	}
   	
   	return( default_plugin );

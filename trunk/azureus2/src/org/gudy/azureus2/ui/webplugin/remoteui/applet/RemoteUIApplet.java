@@ -135,7 +135,7 @@ RemoteUIApplet
 		try{
 			URL	url = this.getDocumentBase();
 		
-		url = new URL( url.getProtocol() + "://" +url.getHost() + ":" + url.getPort() + "/process.cgi" );
+		    url = new URL( url.getProtocol() + "://" +url.getHost() + ":" + url.getPort() + "/process.cgi" );
 			
 			System.out.println( "doc base = " + url );
 			
