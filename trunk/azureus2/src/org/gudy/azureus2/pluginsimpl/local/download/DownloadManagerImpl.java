@@ -181,6 +181,14 @@ DownloadManagerImpl
 	addDownload(
 		final URL	url) 
 	{
+		addDownload(url,null);
+	}
+	
+	public void 
+	addDownload(
+		final URL	url,
+		final URL 	referer) 
+	{
 		Display	display = MainWindow.getWindow().getDisplay();
 		
 		display.syncExec(
@@ -189,7 +197,7 @@ DownloadManagerImpl
 					public void
 					run()
 					{
-						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString(), null);
+						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString(), referer.toString());
 					}
 				});
 	}

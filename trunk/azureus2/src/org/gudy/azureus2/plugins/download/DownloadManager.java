@@ -63,6 +63,20 @@ DownloadManager
 		throws DownloadException;
 	
 	/**
+	 * add a torrent from a URL. This will prompt the user for download location etc. if required
+	 * This is an async operation so no Download returned
+	 * @param url
+	 * @param referer
+	 * @throws DownloadException
+	 *
+	 * @since 2.1.0.6
+	 */
+	public void 
+	addDownload(
+		final URL	url,
+		final URL 	referer);
+	
+	/**
 	 * add a torrent from a "Torrent" object. The default torrent file and data locations will be
 	 * used if defined - exception if they're not 
 	 * @param torrent
