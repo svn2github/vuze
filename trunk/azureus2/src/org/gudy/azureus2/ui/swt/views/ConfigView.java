@@ -1573,7 +1573,27 @@ public class ConfigView extends AbstractIView {
 	  label.setLayoutData( gridData );
 
 		// row
-		
+	  //My new Item
+	  label = new Label(gTracker, SWT.NULL);
+	  Messages.setLanguageText(label, "ConfigView.section.tracker.torrentsperpage"); 
+	  
+	  final IntParameter tracker_skip = new IntParameter(gTracker, "Tracker Skip", 20 );
+	  
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  gridData.widthHint = 100;
+	  tracker_skip.setLayoutData( gridData );
+
+	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gTracker, SWT.NULL);
+	  gridData = new GridData();
+	  gridData.horizontalSpan = 2;
+	  label.setLayoutData( gridData );
+
+		 // row
+	  //My new Item end
+	  
+	  
 	  label = new Label(gTracker, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.username"); 
 	  
