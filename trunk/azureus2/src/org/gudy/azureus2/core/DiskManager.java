@@ -1138,18 +1138,6 @@ public class DiskManager {
         return outputData;
     }
 
-    public ByteBuffer readDataBloc2(int pieceNumber, int offset, int length) {
-        ByteBuffer buffer = ByteBufferPool.getInstance().getFreeBuffer();
-        buffer.limit(length + 13);
-        buffer.putInt(length + 9);
-        //BT PIECE byte
-        buffer.put((byte)7);
-        buffer.putInt(pieceNumber);
-        buffer.putInt(offset);
-
-        return buffer;
-    }
-
     public int getPiecesNumber() {
         return nbPieces;
     }
