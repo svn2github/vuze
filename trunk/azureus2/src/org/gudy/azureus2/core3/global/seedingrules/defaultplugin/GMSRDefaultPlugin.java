@@ -215,7 +215,7 @@ GMSRDefaultPlugin
 		t.start();
 	}
 	
-	protected synchronized void
+	protected void
 	process()
 	{
 		long	process_time = System.currentTimeMillis();
