@@ -1735,6 +1735,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     if (visible) {
       if (tray != null)
         tray.setVisible(false);
+      if (trayIcon != null)
+        trayIcon.showIcon();
       mainWindow.forceActive();
       mainWindow.setMinimized(false);
     }

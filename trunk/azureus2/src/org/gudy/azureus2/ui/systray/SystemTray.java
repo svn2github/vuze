@@ -152,4 +152,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 		});
 	}
 
+  public void showIcon() {
+    menu.showIcon();
+  }
 }
