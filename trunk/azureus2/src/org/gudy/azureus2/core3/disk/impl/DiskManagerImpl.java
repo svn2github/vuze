@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.disk.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
@@ -903,7 +904,29 @@ DiskManagerImpl
 				try {
 					buildDirectoryStructure(tempPath);
 					//test: throws Exception if filename is not supported by os
-					f.getCanonicalPath();
+							
+					try{
+						f.getCanonicalPath();
+						
+					}catch( IOException e ){
+						
+						String	message = e.getMessage();
+						
+							// some problem on windows 2003 with this failing. temporary hack
+							// to allow things to continue, it'll fail later if things are 
+							// badly wrong
+						
+						if ( message != null && message.indexOf( "Bad pathname") != -1 ){
+							
+							if ( !f.getParentFile().exists()){
+								
+								throw( e );
+							}
+						}else{
+							
+							throw( e );
+						}
+					}
 					//create the new file
 					
 					fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
@@ -935,6 +958,7 @@ DiskManagerImpl
 	
 					} catch (FMFileManagerException ex) { ex.printStackTrace(); }
 					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles new:" + f.toString() + ")";
+					//e.printStackTrace();
 					setState( FAULTY );
 					return -1;
 				}
@@ -945,6 +969,7 @@ DiskManagerImpl
 					fileInfo.setAccessMode( DiskManagerFileInfo.READ );
 				} catch (FMFileManagerException e) {
 					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles existing:" + f.toString() + ")";
+					//e.printStackTrace();
 					setState( FAULTY );
 					return -1;
 				}
@@ -1005,9 +1030,18 @@ DiskManagerImpl
 	}
   
 
-	private void buildDirectoryStructure(String file) {
+	private void 
+	buildDirectoryStructure(
+		String 	file )
+	
+		throws IOException
+	{
 		File tempFile = new File(file);
-		tempFile.mkdirs();
+		
+		if ( !tempFile.mkdirs()){
+			
+			throw( new IOException( "Directory creation fails for '" + file + "'"));
+		}
 	}
 
   
