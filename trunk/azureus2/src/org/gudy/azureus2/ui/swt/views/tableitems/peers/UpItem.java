@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : UpItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -23,21 +23,30 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class UpItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public UpItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+public class UpItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public UpItem() {
+    super("upload", 70, TableManager.TABLE_TORRENT_PEERS);
+    setRefreshInterval(INTERVAL_LIVE);
   }
-  
-  public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKiBEtc(peerRow.getPeerSocket().getStats().getTotalSent()));
+
+  public void refresh(TableCell cell) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    long value = (peer == null) ? 0 : peer.getStats().getTotalSent();
+
+    cell.setSortValue(value);
+    cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : ChokingItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -21,24 +21,30 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class ChokingItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public ChokingItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+public class ChokingItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public ChokingItem() {
+    super("C2", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+    setRefreshInterval(INTERVAL_LIVE);
   }
-  
-  public void refresh() {
-    if(peerRow.getPeerSocket().isChoking())
-      setText("*");
-    else
-      setText("");
+
+  public void refresh(TableCell cell) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    long value = (peer == null) ? 0 : (peer.isChoking() ? 1 : 0);
+
+    cell.setSortValue(value);
+    cell.setText((value == 1) ? "*" : "");
   }
 }

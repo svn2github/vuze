@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : PortItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -21,21 +21,29 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class PortItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public PortItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+public class PortItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public PortItem() {
+    super("port", 40, TableManager.TABLE_TORRENT_PEERS);
   }
-  
-  public void refresh() {
-    setText(""+peerRow.getPeerSocket().getPort());
+
+  public void refresh(TableCell cell) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    int value = (peer == null) ? 0 : peer.getPort();
+
+    cell.setSortValue(value);
+    cell.setText(""+value);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : SnubbedItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,32 +22,35 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class SnubbedItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public SnubbedItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+public class SnubbedItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public SnubbedItem() {
+    super("S", ALIGN_CENTER, POSITION_INVISIBLE, 20, TableManager.TABLE_TORRENT_PEERS);
+    setRefreshInterval(INTERVAL_LIVE);
   }
-  
-  public void refresh() {
-    if(peerRow.getPeerSocket().isSnubbed()) {
-      if(setText("*")) {
-        peerRow.getRow().setForeground(Colors.grey);
-      }
-    }
-    else {
-      if(setText("")) {
-        peerRow.getRow().setForeground(null);
-      }
+
+  public void refresh(TableCell cell) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    long value = (peer == null) ? 0 : (peer.isSnubbed() ? 1 : 0);
+
+    cell.setSortValue(value);
+    if (cell.setText((value == 1) ? "*" : "")) {
+      ((TableCellCore)cell).getTableRowCore().setForeground((value == 1) ? Colors.grey 
+                                                                     : null);
     }
   }
 }

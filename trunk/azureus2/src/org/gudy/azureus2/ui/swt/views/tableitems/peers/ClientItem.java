@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : ClientItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -21,21 +21,27 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class ClientItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public ClientItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+public class ClientItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public ClientItem() {
+    super("client", POSITION_LAST, 100, TableManager.TABLE_TORRENT_PEERS);
   }
-  
-  public void refresh() {
-    setText(peerRow.getPeerSocket().getClient());
+
+  public void refresh(TableCell cell) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    String sText = (peer == null) ? "" : peer.getClient();
+    cell.setText(sText);
   }
 }

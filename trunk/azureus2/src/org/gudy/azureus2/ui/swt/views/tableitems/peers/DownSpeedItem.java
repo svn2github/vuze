@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : DownSpeedItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -22,22 +22,30 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class DownSpeedItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public DownSpeedItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+public class DownSpeedItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public DownSpeedItem() {
+    super("downloadspeed", POSITION_LAST, 65, TableManager.TABLE_TORRENT_PEERS);
+    setRefreshInterval(INTERVAL_LIVE);
   }
-  
-  public void refresh() {
-    setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(peerRow.getPeerSocket().getStats().getDownloadAverage()));
+
+  public void refresh(TableCell cell) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    long value = (peer == null) ? 0 : peer.getStats().getDownloadAverage();
+
+    cell.setSortValue(value);
+    cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : IpItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -20,22 +20,28 @@
  */
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class IpItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public IpItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+public class IpItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public IpItem() {
+    super("ip", POSITION_LAST, 100, TableManager.TABLE_TORRENT_PEERS);
   }
-  
-  public void refresh() {
-    setText(peerRow.getPeerSocket().getIp());
+
+  public void refresh(TableCell cell) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    String sText = (peer == null) ? "" : peer.getIp();
+
+    cell.setText(sText);
   }
 }

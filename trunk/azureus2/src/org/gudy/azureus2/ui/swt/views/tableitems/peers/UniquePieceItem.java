@@ -1,5 +1,5 @@
 /*
- * File    : TorrentItem.java
+ * File    : UniquePieceItem.java
  * Created : 24 nov. 2003
  * By      : Olivier
  *
@@ -23,25 +23,31 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 /**
- * @author Olivier
  *
+ * @author Olivier
+ * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class UniquePieceItem extends PeerItem  {
-  
-  /**
-   * @param row
-   * @param position
-   */
-  public UniquePieceItem(PeerRow peerRow, int position) {
-    super(peerRow, position);
+public class UniquePieceItem
+       extends CoreTableColumn 
+       implements TableCellRefreshListener
+{
+  /** Default Constructor */
+  public UniquePieceItem() {
+    super("uniquepiece", 60, TableManager.TABLE_TORRENT_PEERS);
+    setRefreshInterval(INTERVAL_LIVE);
   }
-  
-  public void refresh() {
-    int piece = peerRow.getPeerSocket().getUniqueAnnounce();
-    if(piece == -1)
-      setText(MessageText.getString("PeersView.uniquepiece.none"));
-    else
-      setText("" + piece);
+
+  public void refresh(TableCell cell) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    long value = (peer == null) ? 0 : peer.getUniqueAnnounce();
+
+    cell.setSortValue(value);
+    cell.setText((value == -1) ? MessageText.getString("PeersView.uniquepiece.none")
+                                        : "" + value);
   }
 }
