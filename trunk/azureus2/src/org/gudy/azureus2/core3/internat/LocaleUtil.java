@@ -20,7 +20,9 @@ LocaleUtil
   private static final String[] manual_charset = {
 	systemEncoding,	// must be first entry due to code below that gets the system decoder
 	"Big5","EUC-JP","EUC-KR","GB18030","GB2312","GBK","ISO-2022-JP","ISO-2022-KR",
-	"Shift_JIS","KOI8-R",Constants.DEFAULT_ENCODING,"windows-1251",Constants.BYTE_ENCODING 
+	"Shift_JIS","KOI8-R",
+	"TIS-620",	// added for bug #1008848 
+	Constants.DEFAULT_ENCODING,"windows-1251",Constants.BYTE_ENCODING 
   };
   
 	// the general ones *must* also be members of the above manual ones

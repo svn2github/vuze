@@ -66,26 +66,55 @@ GlobalManager
 	public List
 	getDownloadManagers();
 
-  public DownloadManager 
-  getDownloadManager(TOTorrent torrent);
+	public DownloadManager 
+	getDownloadManager(TOTorrent torrent);
 
 	public void
 	stopAll();
 
-  /**
-   * Stops all downloads without removing them
-   *
-   * @author Rene Leonhardt
-   */
-  public void
-  stopAllDownloads();
+	/**
+	 * Stops all downloads without removing them
+	 *	
+	 *	 @author Rene Leonhardt
+	 */
+	
+	public void
+	stopAllDownloads();
   
-  /**
-   * Starts all downloads
-   */
-  public void
-  startAllDownloads();
+	/**
+	 * Starts all downloads
+	 */
+	
+    public void
+    startAllDownloads();
     
+    /**
+     * pauses (stops) all running downloads
+     * @return an object to supply when resuming the downloads - defines the paused state
+     */
+    
+    public Object
+	pauseDownloads();
+    
+    /**
+     * resume (starts) all downloads paused by an earlier pauseDownloads call
+     * @param pause_state
+     */
+    
+    public void
+	resumeDownloads(
+		Object	pause_state );
+    
+    /**
+     * Indicates whether the supplied "pause state" is still valid (refers to downloads that aren't running)
+     * @param pause_state
+     * @return
+     */
+    
+    public boolean
+	canResumeDownloads(
+		Object	pause_state );
+	
 	public TRTrackerScraper
 	getTrackerScraper();
 	

@@ -613,6 +613,35 @@ public class GlobalManagerImpl
   }
   
 
+  	public Object
+	pauseDownloads()
+  	{
+  		return( null );
+  	}
+  
+  	public void
+	resumeDownloads(
+		Object	pause_state )
+  	{
+  		if ( pause_state == null ){
+  			
+  			return;
+  		}
+  	}
+  
+  	public boolean
+	canResumeDownloads(
+		Object	pause_state )
+  	{
+  		if ( pause_state == null ){
+  			
+  			return( false );
+  		}
+  		
+  		return( true );
+  	}
+  
+  
   private void loadDownloads(AzureusCoreListener listener) 
   {
   	try{

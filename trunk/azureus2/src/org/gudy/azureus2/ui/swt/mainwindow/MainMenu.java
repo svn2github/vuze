@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.Decorations;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Widget;
@@ -49,7 +51,6 @@ import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
-import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 /**
  * @author Olivier Chalouhi
@@ -99,14 +100,6 @@ public class MainMenu {
       MenuItem file_configure = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_configure, "MainWindow.menu.file.configure"); //$NON-NLS-1$
   
-      new MenuItem(fileMenu,SWT.SEPARATOR);
-      
-      final MenuItem itemStartAll = new MenuItem(fileMenu,SWT.NULL);
-      Messages.setLanguageText(itemStartAll,"MainWindow.menu.file.startalldownloads");
-      
-      final MenuItem itemStopAll = new MenuItem(fileMenu,SWT.NULL); 
-      Messages.setLanguageText(itemStopAll,"MainWindow.menu.file.stopalldownloads");
-
       new MenuItem(fileMenu, SWT.SEPARATOR);
   
       MenuItem file_export = new MenuItem(fileMenu, SWT.NULL);
@@ -222,18 +215,6 @@ public class MainMenu {
           new ConfigureWizard(mainWindow.getAzureusCore(), display);
         }
       });
-  
-      itemStartAll.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event arg0) {
-        	mainWindow.getGlobalManager().startAllDownloads();
-        }
-      });
-      
-      itemStopAll.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event arg0) {
-        	mainWindow.getGlobalManager().stopAllDownloads();
-        }
-      });
       
       file_export.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
@@ -252,8 +233,82 @@ public class MainMenu {
           mainWindow.dispose();
         }
       });
+
+      	// ******** The Download Menu
+      
+      MenuItem downloadItem = new MenuItem(menuBar, SWT.CASCADE);
+      Messages.setLanguageText(downloadItem, "MainWindow.menu.download"); //$NON-NLS-1$
+      Menu downloadMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+      downloadItem.setMenu(downloadMenu);
+
   
-      //The View Menu
+      
+      // new MenuItem(fileMenu,SWT.SEPARATOR);
+      
+      final MenuItem itemStartAll = new MenuItem(downloadMenu,SWT.NULL);
+      Messages.setLanguageText(itemStartAll,"MainWindow.menu.download.startalldownloads");
+      
+      final MenuItem itemStopAll = new MenuItem(downloadMenu,SWT.NULL); 
+      Messages.setLanguageText(itemStopAll,"MainWindow.menu.download.stopalldownloads");
+
+      final MenuItem itemPause = new MenuItem(downloadMenu,SWT.NULL);
+      Messages.setLanguageText(itemPause,"MainWindow.menu.download.pausedownloads");
+      
+      final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL); 
+      Messages.setLanguageText(itemResume,"MainWindow.menu.download.resumedownloads");
+
+      final Object[]	currentPauseData = new Object[1];
+      
+      
+      itemStartAll.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+        	mainWindow.getGlobalManager().startAllDownloads();
+        }
+      });
+      
+      itemStopAll.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+        	mainWindow.getGlobalManager().stopAllDownloads();
+        }
+      });
+
+      itemPause.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) 
+        {
+        	currentPauseData[0] = mainWindow.getGlobalManager().pauseDownloads();
+        }
+      });
+      
+      itemResume.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) 
+        {
+ 			mainWindow.getGlobalManager().resumeDownloads(currentPauseData[0]);
+        }
+      });
+      
+      downloadMenu.addMenuListener(
+          	new MenuListener()
+    		{
+          		public void
+    			menuShown(
+    				MenuEvent	menu )
+          		{
+          			boolean	can_resume = 	currentPauseData[0] != null &&
+          									mainWindow.getGlobalManager().canResumeDownloads(currentPauseData[0]);
+          			
+          			itemResume.setEnabled(can_resume);
+          		}
+          		
+        		public void
+    			menuHidden(
+    				MenuEvent	menu )
+          		{
+          			
+          		}
+    		});
+      
+      	// ******** The View Menu
+      
       MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
       Menu viewMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
