@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -73,36 +74,35 @@ public class HealthItem
       TRHostTorrent ht = tracker_host.getHostTorrent( dm.getTorrent());
       
       String image_name;
+      String sHelpID;
 
-      if ( ht == null ){
-	      if(wealth == DownloadManager.WEALTH_KO) {
-	      	image_name = "st_ko";   
-	      } else if (wealth == DownloadManager.WEALTH_OK) {
-	      	image_name = "st_ok";   
-	      } else if (wealth == DownloadManager.WEALTH_NO_TRACKER) {
-	      	image_name = "st_no_tracker";   
-	      }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
-	      	image_name = "st_no_remote";   
-	      }else{
-	      	image_name = "st_stopped";
-	      }
+      if(wealth == DownloadManager.WEALTH_KO) {
+      	image_name = "st_ko";   
+      	sHelpID = "health.explain.red";
+      } else if (wealth == DownloadManager.WEALTH_OK) {
+      	image_name = "st_ok";   
+      	sHelpID = "health.explain.green";
+      } else if (wealth == DownloadManager.WEALTH_NO_TRACKER) {
+      	image_name = "st_no_tracker";   
+      	sHelpID = "health.explain.blue";
+      }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
+      	image_name = "st_no_remote";   
+      	sHelpID = "health.explain.yellow";
       }else{
-      	
-        if(wealth == DownloadManager.WEALTH_KO) {
-	      	image_name = "st_ko_shared";   
-	      } else if (wealth == DownloadManager.WEALTH_OK) {
-	      	image_name = "st_ok_shared";   
-	      } else if (wealth == DownloadManager.WEALTH_NO_TRACKER) {
-	      	image_name = "st_no_tracker_shared";   
-	      }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
-	      	image_name = "st_no_remote_shared";   
-	      }else{
-	      	image_name = "st_stopped_shared";
-	      }
+      	image_name = "st_stopped";
+      	sHelpID = "health.explain.grey";
+      }
+
+      if ( ht != null ){
+      	image_name += "_shared";
       }
       
       if (!sLastImageName.equals(image_name) || !cell.isValid()) {
         ((TableCellCore)cell).setGraphic(ImageRepository.getImage(image_name));
+        String sToolTip = MessageText.getString(sHelpID);
+        if (ht != null)
+          sToolTip += "\n" + MessageText.getString("health.explain.share");
+        cell.setToolTip(sToolTip);
         sLastImageName = image_name;
       }
     }
