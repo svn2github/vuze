@@ -58,8 +58,27 @@ public class Set implements IConsoleCommand {
       else if( COConfigurationManager.doesParameterExist( parameter ) ) {
         try {
           if (setto == null) {
-            ci.out.println("parameter=["+parameter+"]");
-            ci.out.println("> " + parameter + ": " + COConfigurationManager.getStringParameter( parameter ) );
+            try {
+              ci.out.println("> " + parameter + ": " + COConfigurationManager.getStringParameter( parameter ) );
+            } 
+            catch( ClassCastException cce1 ) {
+              try {
+                ci.out.println("> " + parameter + ": " + COConfigurationManager.getFloatParameter( parameter ) );
+              }
+              catch( ClassCastException cce2 ) {
+                try {
+                  ci.out.println("> " + parameter + ": " + COConfigurationManager.getIntParameter( parameter ) );
+                }
+                catch( ClassCastException cce3 ) {
+                  try {
+                    ci.out.println("> " + parameter + ": " + COConfigurationManager.getBooleanParameter( parameter ) );
+                  }
+                  catch( ClassCastException cce4 ) {
+                    ci.out.println("Error: cannot determine parameter type");
+                  }
+                }
+              }
+            }
           }
         	else if( args.size() == 3 ) {
         		String type = (String)args.get( 2 );
