@@ -41,6 +41,14 @@ PeerManager
 	
 		throws DownloadException;
 	
+	public void
+	addPeer(
+		Peer		peer );
+	
+	public void
+	removePeer(
+		Peer		peer );
+	
 	public DiskManager
 	getDiskManager();
 	

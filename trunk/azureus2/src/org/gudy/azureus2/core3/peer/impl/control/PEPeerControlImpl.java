@@ -513,6 +513,51 @@ PEPeerControlImpl
 		}
 	}
 	
+	public void
+	addPeer(
+		PEPeer		_transport )
+	{
+		if ( !( _transport instanceof PEPeerTransport )){
+			
+			throw( new RuntimeException("invalid class"));
+		}
+		
+		PEPeerTransport	transport = (PEPeerTransport)_transport;
+		
+		synchronized( _peer_transports ){
+				
+			if ( !_peer_transports.contains(transport)){
+				
+				addToPeerTransports( transport.getRealTransport());
+				
+			}else{
+			  
+				transport.closeAll("Already Connected",false,false);
+			}
+		}
+	}
+
+	public void
+	removePeer(
+		PEPeer	_transport )
+	{
+		if ( !( _transport instanceof PEPeerTransport )){
+			
+			throw( new RuntimeException("invalid class"));
+		}
+		
+		PEPeerTransport	transport = (PEPeerTransport)_transport;
+		
+		synchronized( _peer_transports ){
+				
+			if ( _peer_transports.contains(transport)){
+				
+				removeFromPeerTransports( transport.getRealTransport());
+				
+			}	
+		}
+	}
+	
  	private void 
  	addPeersFromTracker(
  		TRTrackerResponsePeer[]		peers )

@@ -110,11 +110,25 @@ PeerManagerImpl
 	addPeer(
 		Peer		peer )
 	{
-		manager.peerAdded( mapForeignPeer( peer ));
+		manager.addPeer(mapForeignPeer( peer ));
 	}
 	
 	public void
 	removePeer(
+		Peer		peer )
+	{
+		manager.removePeer(mapForeignPeer( peer ));
+	}
+	
+	protected  void
+	peerAdded(
+		Peer		peer )
+	{
+		manager.peerAdded( mapForeignPeer( peer ));
+	}
+	
+	protected void
+	peerRemoved(
 		Peer		peer )
 	{
 		manager.peerRemoved( mapForeignPeer( peer ));

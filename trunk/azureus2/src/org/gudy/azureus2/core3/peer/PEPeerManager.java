@@ -148,6 +148,14 @@ PEPeerManager
 	public PEPeerStats
 	createPeerStats();
 	
+	public void
+	addPeer(
+		PEPeer	peer );
+	
+	public void
+	removePeer(
+		PEPeer	peer );
+	
 	public void 
 	peerAdded(PEPeer pc);
 

@@ -62,7 +62,7 @@ PeerForeignDelegate
 	{
 		foreign.initialize();
 			    
-		manager.addPeer( foreign );	// add here so we see connect errors in the peers view
+		manager.peerAdded( foreign );	// add here so we see connect errors in the peers view
 
 		return( this );
 	}
@@ -121,7 +121,7 @@ PeerForeignDelegate
 	{
 		foreign.close( reason, closedOnError, attemptReconnect );
 		
-	  	manager.removePeer(foreign);
+	  	manager.peerRemoved(foreign);
 	}
 			
 	public boolean isReadyToRequest() {    
