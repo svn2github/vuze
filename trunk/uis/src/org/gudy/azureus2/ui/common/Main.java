@@ -39,7 +39,6 @@ import org.apache.log4j.varia.DenyAllFilter;
 
 import com.aelitis.azureus.core.*;
 
-import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UserInterfaceFactory;
 /**
@@ -111,6 +110,11 @@ public class Main {
   
   public static void main(String[] args) 
   {
+    
+    String  mi_str = System.getProperty( "MULTI_INSTANCE" );
+    boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
+    
+
     initRootLogger();
     
     try{
@@ -118,6 +122,11 @@ public class Main {
   
     	CommandLine commands = parseCommands(args, true);
 
+      if( mi ) {
+        processArgs(args, core, commands);
+        return;
+      }
+      
     	start = new StartServer();
       
 	    if ((start == null) || (start.getServerState()==StartServer.STATE_FAULTY)) {
