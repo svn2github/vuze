@@ -1,6 +1,6 @@
 /*
- * File    : LoggerChannel.java
- * Created : 28-Dec-2003
+ * File    : LoggerChannelListener.java
+ * Created : 04-Feb-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -26,35 +26,15 @@ package org.gudy.azureus2.plugins.logging;
  *
  */
 public interface 
-LoggerChannel 
+LoggerChannelListener 
 {
-	public static final int	LT_INFORMATION	= 1;
-	public static final int LT_WARNING		= 2;
-	public static final int LT_ERROR		= 3;
-	
-	public String
-	getName();
+	public void
+	messageLogged(
+		int		type,
+		String	content );
 	
 	public void
-	log(
-		int		log_type,
-		String	data );
-	
-	public void
-	log(
-		Throwable 	error );
-	
-	public void
-	log(
-		String		data,
-		Throwable 	error );
-	
-	public void
-	addListener(
-		LoggerChannelListener	l );
-	
-	public void
-	removeListener(
-		LoggerChannelListener	l );
-	
+	messageLogged(
+		String		str,
+		Throwable	error );
 }

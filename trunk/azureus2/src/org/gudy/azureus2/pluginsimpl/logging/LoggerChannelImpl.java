@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.logging;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.core3.logging.*;
 
@@ -34,6 +36,7 @@ LoggerChannelImpl
 	implements LoggerChannel
 {
 	protected String	name;
+	protected List		listeners = new ArrayList();
 	
 	protected
 	LoggerChannelImpl(
@@ -53,6 +56,17 @@ LoggerChannelImpl
 		int		log_type,
 		String	data )
 	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((LoggerChannelListener)listeners.get(i)).messageLogged( log_type, data );
+	
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
 		data = "[".concat(name).concat("] ").concat(data);
 		
 		if ( log_type == LT_INFORMATION ){
@@ -73,6 +87,17 @@ LoggerChannelImpl
 	log(
 		Throwable 	error )
 	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((LoggerChannelListener)listeners.get(i)).messageLogged( "", error );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
 		LGLogger.log("[".concat(name).concat("]"), error);
 	}
 	
@@ -81,6 +106,31 @@ LoggerChannelImpl
 		String		str,
 		Throwable 	error )
 	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((LoggerChannelListener)listeners.get(i)).messageLogged( str, error );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
 		LGLogger.log("[".concat(name).concat("] ").concat(str), error);
+	}
+	
+	public void
+	addListener(
+		LoggerChannelListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		LoggerChannelListener	l )
+	{
+		listeners.remove(l);
 	}
 }
