@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.net.*;
 import java.net.URLEncoder;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.*;
 

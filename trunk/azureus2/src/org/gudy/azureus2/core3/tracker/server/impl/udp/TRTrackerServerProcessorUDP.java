@@ -368,13 +368,7 @@ TRTrackerServerProcessorUDP
 				
 				s_complete[pos] 	= ((Long)details.get("complete")).intValue();
 				s_incomplete[pos] 	= ((Long)details.get("incomplete")).intValue();
-				
-				Long	dl = (Long)details.get("downloaded");
-				
-				if (dl != null ){
-					
-					s_downloaded[pos] = dl.intValue();
-				}
+				s_downloaded[pos] 	= ((Long)details.get("downloaded")).intValue();
 				
 				pos++;
 			}

@@ -139,6 +139,7 @@ TRTrackerServerProcessor
 				
 				hash_entry.put( "complete", new Long( seeds ));
 				hash_entry.put( "incomplete", new Long( non_seeds ));
+				hash_entry.put( "downloaded", new Long(torrent.getStats().getCompletedCount()));
 				
 				root.put( "files", files );
 			}
