@@ -182,6 +182,18 @@ ConfigurationChecker
 	      changed = true;
 	    }
 	    
+	    // migrate to split tracker client/server key config
+	    
+	    if ( !COConfigurationManager.doesParameterExist( "Tracker Key Enable Client")){
+	    	
+	    	boolean	old_value = COConfigurationManager.getBooleanParameter("Tracker Key Enable");
+	    	
+	    	COConfigurationManager.setParameter("Tracker Key Enable Client", old_value);
+	    	
+	    	COConfigurationManager.setParameter("Tracker Key Enable Server", old_value);
+	    	
+	    	changed = true;
+	    }
 	    
 	    int maxUpSpeed 		= COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
 	    int maxDownSpeed 	= COConfigurationManager.getIntParameter("Max Download Speed KBs",0);

@@ -253,7 +253,8 @@ public class ConfigurationDefaults {
     def.put( "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
     def.put( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
     def.put( "Tracker Compact Enable", new Long(1) );
-    def.put( "Tracker Key Enable", new Long(1) );
+    def.put( "Tracker Key Enable Client", new Long(1) );
+    def.put( "Tracker Key Enable Server", new Long(1) );
     def.put( "Tracker Separate Peer IDs", new Long(0));
     def.put( "File.save.peers.max", new Long( TRTrackerClient.DEFAULT_PEERS_TO_CACHE ) );
     def.put( "Tracker Public Enable", new Long(0) );

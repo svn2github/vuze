@@ -35,6 +35,7 @@ public interface ConfigSection {
    * Configuration panel will be added to the plugins view area.
    */
   public static final String SECTION_PLUGINS = "plugins";
+  public static final String SECTION_TRACKER = "tracker";
   public static final String SECTION_FILES = "files";
   public static final String SECTION_INTERFACE = "style";
 

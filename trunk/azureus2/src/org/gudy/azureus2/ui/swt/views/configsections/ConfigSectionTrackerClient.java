@@ -31,16 +31,20 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.gudy.azureus2.ui.swt.Messages;
 
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 
-public class ConfigSectionTrackerExt implements ConfigSectionSWT {
+public class 
+ConfigSectionTrackerClient 
+	implements ConfigSectionSWT 
+{
   public String configSectionGetParentSection() {
-    return "tracker";
+    return ConfigSection.SECTION_TRACKER;
   }
 
 	public String configSectionGetName() {
-		return "tracker.extensions";
+		return "tracker.client";
 	}
 
   public void configSectionSave() {
@@ -63,37 +67,13 @@ public class ConfigSectionTrackerExt implements ConfigSectionSWT {
     gExtTab.setLayout(layout);
 
 
-    // **** extensions tab ****
-    // row
-    new BooleanParameter(gExtTab, "Tracker Send Peer IDs", true, 
-                         "ConfigView.section.tracker.sendpeerids");
-
-    Label label = new Label(gExtTab, SWT.NULL);
-    
-    // row
-    new BooleanParameter(gExtTab, "Tracker Port UDP Enable", false, 
-                         "ConfigView.section.tracker.enableudp");
-
-    label = new Label(gExtTab, SWT.NULL);
-    // row
-    
-    label = new Label(gExtTab, SWT.NULL);
-    Messages.setLanguageText(label,  "ConfigView.section.tracker.udpversion");
-    gridData = new GridData();
-    gridData.widthHint = 40;
-    new IntParameter(gExtTab, "Tracker Port UDP Version", 2).setLayoutData(gridData);
-
-    // row
-    new BooleanParameter(gExtTab, "Tracker Compact Enable", true,
-                         "ConfigView.section.tracker.enablecompact");
-
-    label = new Label(gExtTab, SWT.NULL);
+ 
     // row
 
-    new BooleanParameter(gExtTab, "Tracker Key Enable", true,
+    new BooleanParameter(gExtTab, "Tracker Key Enable Client", true,
                          "ConfigView.section.tracker.enablekey");
 
-    label = new Label(gExtTab, SWT.NULL);
+    Label label = new Label(gExtTab, SWT.NULL);
     
     // row
 

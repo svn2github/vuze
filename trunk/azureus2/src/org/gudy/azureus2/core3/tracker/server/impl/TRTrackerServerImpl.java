@@ -200,7 +200,7 @@ TRTrackerServerImpl
 		
 		compact_enabled = COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true );
 		
-		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable", true );
+		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable Server", true );
 	}
 
 

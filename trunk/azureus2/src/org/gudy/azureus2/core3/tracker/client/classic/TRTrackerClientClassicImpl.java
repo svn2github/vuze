@@ -1460,7 +1460,7 @@ TRTrackerClientClassicImpl
     	request.append("&ip=").append(ip2);
     }
 	
-    if ( COConfigurationManager.getBooleanParameter("Tracker Key Enable", true )){
+    if ( COConfigurationManager.getBooleanParameter("Tracker Key Enable Client", true )){
       	
       	request.append( "&key=" + key_id);
     }
