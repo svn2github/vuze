@@ -6,6 +6,7 @@ package org.gudy.azureus2.cl;
 
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
 
 /**
  * @author Olivier
@@ -18,16 +19,16 @@ public class Main {
       
     String torrentFile = args[args.length - 2];
     String path = args[args.length - 1];
+    LocaleUtil.setLocaleUtilChooser(new LocaleUtilCL());
     DownloadManager manager = new DownloadManager(null, torrentFile, path);
-    final boolean initStoppedDownloads = false;
+    manager.initialize();    
     while (true) {
-      manager.startDownloadInitialized(initStoppedDownloads);
-
       StringBuffer buf = new StringBuffer();
-      int state = manager.getState();
+      int state = manager.getState();    
       switch (state) {
         case DownloadManager.STATE_WAITING :
           buf.append("Waiting");
+          
           break;
         case DownloadManager.STATE_ALLOCATING :
           buf.append("Allocating");
@@ -37,6 +38,7 @@ public class Main {
           break;
         case DownloadManager.STATE_READY :
           buf.append("Ready");
+          manager.startDownload();
           break;
         case DownloadManager.STATE_DOWNLOADING :
           buf.append("Downloading");

@@ -43,7 +43,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-    table = new Table(composite, SWT.SINGLE | SWT.FULL_SELECTION);
+    table = new Table(composite, SWT.MULTI | SWT.FULL_SELECTION);
     table.setLinesVisible(false);
     table.setHeaderVisible(true);
     String[] titles = { "ip", //$NON-NLS-1$
@@ -123,12 +123,16 @@ public class PeersView extends AbstractIView implements IComponentListener {
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(item, "PeersView.menu.snubbed"); //$NON-NLS-1$
+    
+    final MenuItem itemClose = new MenuItem(menu, SWT.CHECK);
+    Messages.setLanguageText(itemClose, "PeersView.menu.close"); //$NON-NLS-1$
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
           item.setEnabled(false);
+          itemClose.setEnabled(false);
           return;
         }
         item.setEnabled(true);
@@ -151,6 +155,21 @@ public class PeersView extends AbstractIView implements IComponentListener {
           pti.setSnubbed(item.getSelection());
       }
     });
+    
+    itemClose.addListener(SWT.Selection, new Listener() {
+    public void handleEvent(Event e) {
+      TableItem[] tis = table.getSelection();
+      if (tis.length == 0) {
+        return;
+      }
+      for(int i = 0 ; i < tis.length ; i ++) {
+        TableItem ti = tis[i];
+        PeerTableItem pti = (PeerTableItem) PeerTableItem.tableItems.get(ti);
+        if (pti != null)
+          pti.getPeerSocket().closeAll(false);
+      }
+    }
+  });
     table.setMenu(menu);
 
     //    manager.addListener(this);

@@ -37,6 +37,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/integer.png", "int");
     loadImage(display, "org/gudy/azureus2/ui/icons/string.png", "string");
     loadImage(display, "org/gudy/azureus2/ui/icons/data.png", "data");
+    loadImage(display, "org/gudy/azureus2/ui/icons/ipfilter.png", "ipfilter");
   }
 
   public static Image loadImage(Display display, String res, String name) {

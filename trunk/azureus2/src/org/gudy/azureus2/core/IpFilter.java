@@ -24,11 +24,12 @@ package org.gudy.azureus2.core;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -42,81 +43,7 @@ public class IpFilter {
   
   private List ipRanges;
   
-  private class IpRange {
-    
-    private String description;
-    
-    private String startIp;
-    private String endIp;
-    
-    private int[] start;
-    private int[] end;
-    
-    private boolean valid;
-    
-    public IpRange(String description, String startIp, String endIp) {
-      this.valid = false;
-      this.description = description;  
-      if(startIp == null || endIp == null) {        
-        return;
-      }
-      this.startIp = startIp.trim();
-      this.endIp = endIp.trim();
-      checkValid(); 
-    }
-    
-    private void checkValid() {   
-      StringTokenizer stStart = new StringTokenizer(startIp,".");
-      StringTokenizer stEnd = new StringTokenizer(endIp,".");
-      if(stStart.countTokens() != 4 || stEnd.countTokens() != 4) {      
-        return;
-      }   
-      start = new int[4];
-      end = new int[4];
-      int i = 0;
-      while(stStart.hasMoreTokens() && i < start.length) {
-        try {
-          start[i++] = Integer.parseInt(stStart.nextToken());
-        } catch(Exception e) {
-          return;
-        }
-      }
-      i = 0;
-      while(stEnd.hasMoreTokens() && i < end.length) {
-        try {
-          end[i++] = Integer.parseInt(stEnd.nextToken());
-        } catch(Exception e) {
-          return;
-        }
-      }
-      this.valid = true;
-    }
-    
-    public boolean isValid() {
-      return this.valid;
-    }
-    
-    public boolean isInRange(String ipAddress) {
-      StringTokenizer st = new StringTokenizer(ipAddress,".");
-      if(st.countTokens() != 4)
-        return false;    
-      for(int i = 0 ; i < 4 ; i++) {
-        int n = 0;
-        try {
-          n = Integer.parseInt(st.nextToken());
-        } catch(Exception e) {
-          return false;
-        }
-        if(n < start[i] || n > end[i])
-          return false;
-      }
-      return true;
-    }
-    
-    public String toString() {
-      return description + " : " + startIp + " - " + endIp; 
-    }
-  }
+ 
   
   private IpFilter() {
     ipFilter = this;
@@ -129,6 +56,37 @@ public class IpFilter {
       ipFilter = new IpFilter();
     }
     return ipFilter;
+  }
+  
+  public void save() {
+      
+    try {
+      //Open the file
+      File filtersFile = getApplicationFile("filters.config");
+      FileOutputStream fos = new FileOutputStream(filtersFile);
+      Map map = new HashMap();
+      List filters = new ArrayList();
+      map.put("ranges",filters);
+      Iterator iter = this.ipRanges.iterator();
+      while(iter.hasNext()) {
+        IpRange range = (IpRange) iter.next();
+        if(range.isValid()) {
+          String description =  range.description;
+          String startIp = range.startIp;
+          String endIp = range.endIp;
+          Map mapRange = new HashMap();
+          mapRange.put("description",description);
+          mapRange.put("start",startIp);
+          mapRange.put("end",endIp);
+          filters.add(mapRange);
+        }
+      }
+      fos.write(BEncoder.encode(map));
+      fos.close();     
+    } catch (Exception e) {
+      e.printStackTrace();
+      // TODO: handle exception
+    }
   }
   
   //TODO:: Move this to a FileManager class?
@@ -168,17 +126,25 @@ public class IpFilter {
     }
   }
   
-  public boolean isInRange(String ipAddress) {   
-    Iterator iter = ipRanges.iterator();
-    while(iter.hasNext()) {
-      IpRange ipRange = (IpRange) iter.next();
-      if(ipRange.isInRange(ipAddress)) {
-        Logger.getLogger().log(0,0,Logger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
-        return true;
+  public boolean isInRange(String ipAddress) {  
+    synchronized(ipRanges) { 
+      Iterator iter = ipRanges.iterator();
+      while(iter.hasNext()) {
+        IpRange ipRange = (IpRange) iter.next();
+        if(ipRange.isInRange(ipAddress)) {
+          Logger.getLogger().log(0,0,Logger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
+          return true;
+        }
       }
     }
-    
     return false;
   }
   
+  /**
+   * @return
+   */
+  public List getIpRanges() {
+    return ipRanges;
+  }
+
 }

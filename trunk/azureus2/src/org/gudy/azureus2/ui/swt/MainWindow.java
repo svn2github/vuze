@@ -126,6 +126,7 @@ public class MainWindow implements IComponentListener {
   private Tab console;
   private Tab config;
   private Tab irc;
+  private Tab ipFilter;
 
   private MenuItem selectedLanguageItem;
 
@@ -443,6 +444,19 @@ public class MainWindow implements IComponentListener {
           irc.setFocus();
       }
     });
+    
+    MenuItem view_ipFilter = new MenuItem(viewMenu, SWT.NULL);
+    Messages.setLanguageText(view_ipFilter, "MainWindow.menu.view.ipFilter"); //$NON-NLS-1$
+    //view_ipFilter.setImage(ImageRepository.getImage("ipfilter"));
+    view_ipFilter.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        if (ipFilter == null)
+        ipFilter = new Tab(new IpFilterView());
+        else
+        ipFilter.setFocus();
+      }
+    });
+    
 
     new MenuItem(viewMenu, SWT.SEPARATOR);
 
@@ -1600,6 +1614,20 @@ public class MainWindow implements IComponentListener {
    */
   public void setConfig(Tab tab) {
     config = tab;
+  }
+  
+  /**
+   * @return
+   */
+  public Tab getIpfilter() {
+    return ipFilter;
+  }
+
+  /**
+   * @param tab
+   */
+  public void setIpFilter(Tab tab) {
+    ipFilter = tab;
   }
 
   /**
