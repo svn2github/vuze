@@ -107,6 +107,7 @@ UpdateMonitor
 		  	
 	  	UpdateChecker[]	checkers = current_instance.getCheckers();
 	  	
+	  	/*
 	  	for (int i=0;i<checkers.length;i++){
 	  		
 	  		UpdateChecker	checker = checkers[i];
@@ -138,6 +139,7 @@ UpdateMonitor
 					}
 	  			});
 	  	}
+	  	*/
 	  	
 	  	current_instance.start();		
 	}

@@ -152,7 +152,7 @@ public class ConfigurationChecker {
     
     if(	maxUpSpeed > 0 && 
     	maxUpSpeed < COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED &&
-		(	maxDownSpeed == 0 || maxDownSpeed > maxUpSpeed )){
+		(	maxDownSpeed == 0 || maxDownSpeed > (2*maxUpSpeed ))){
     	
       changed = true;
       COConfigurationManager.setParameter("Max Upload Speed KBs", COConfigurationManager.CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED);

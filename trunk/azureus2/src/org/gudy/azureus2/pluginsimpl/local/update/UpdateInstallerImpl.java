@@ -53,27 +53,30 @@ UpdateInstallerImpl
 			
 			File[]	dirs = update_dir.listFiles();
 			
-			boolean	found_failure = false;
-			
-			for (int i=0;i<dirs.length;i++){
+			if ( dirs != null ){
 				
-				File	dir = dirs[i];
+				boolean	found_failure = false;
 				
-				if ( dir.isDirectory()){
+				for (int i=0;i<dirs.length;i++){
 					
-						// if somethings here then the install failed
+					File	dir = dirs[i];
 					
-					found_failure	= true;
-					
-					FileUtil.recursiveDelete( dir );
+					if ( dir.isDirectory()){
+						
+							// if somethings here then the install failed
+						
+						found_failure	= true;
+						
+						FileUtil.recursiveDelete( dir );
+					}
 				}
-			}
-			
-			if ( found_failure ){
 				
-				LGLogger.logAlert( 
-						LGLogger.AT_ERROR, 
-						"Installation of at least one component failed - see 'update.log' for details" );
+				if ( found_failure ){
+					
+					LGLogger.logAlert( 
+							LGLogger.AT_ERROR, 
+							"Installation of at least one component failed - see 'update.log' for details" );
+				}
 			}
 		}catch( Throwable e ){
 			
