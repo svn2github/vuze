@@ -654,10 +654,37 @@ public class ConfigView extends AbstractIView {
       public void handleEvent(Event event) {
         DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(torrentPathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); //$NON-NLS-1$
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaulttorrentpath")); //$NON-NLS-1$
         String path = dialog.open();
         if (path != null) {
           torrentPathParameter.setValue(path);
+        }
+      }
+    });
+    
+    
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.movecompleted"); //$NON-NLS-1$
+    BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); //$NON-NLS-1$
+    new Label(gFile, SWT.NULL);
+    
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.moveCompletedPath"); //$NON-NLS-1$
+
+    gridData = new GridData();
+    gridData.widthHint = 150;
+    final StringParameter movePathParameter = new StringParameter(gFile, "Completed Files Directory", "");
+    movePathParameter.setLayoutData(gridData);
+    Button browse3 = new Button(gFile, SWT.PUSH);
+    Messages.setLanguageText(browse3, "ConfigView.button.browse"); //$NON-NLS-1$
+    browse3.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        DirectoryDialog dialog = new DirectoryDialog(ctfConfig.getShell(), SWT.APPLICATION_MODAL);
+        dialog.setFilterPath(movePathParameter.getValue());
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosemovepath")); //$NON-NLS-1$
+        String path = dialog.open();
+        if (path != null) {
+          movePathParameter.setValue(path);
         }
       }
     });

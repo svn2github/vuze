@@ -525,7 +525,7 @@ PEPeerControlImpl
       
       boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
       if (moveWhenDone) {
-        //_diskManager.moveCompletedFiles;
+        _diskManager.moveCompletedFiles();
       }
       
       _manager.setState(DownloadManager.STATE_SEEDING);

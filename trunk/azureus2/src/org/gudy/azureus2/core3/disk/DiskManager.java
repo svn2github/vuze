@@ -129,4 +129,6 @@
 	
 	public String
 	getErrorMessage();
+  
+   public void moveCompletedFiles();
  }

@@ -268,10 +268,24 @@ public class GlobalManagerImpl
     try {
       File f = new File(fileName);
       File torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
+
+      //if the torrent is already in the completed files dir, use this
+      //torrent instead of creating a new one in the default dir
+      boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+      String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+      if (moveWhenDone && completedDir.length() > 0) {
+        if (f.getParent().startsWith(completedDir)) {
+          //set the torrentDir to the completedDir
+          torrentDir = new File(completedDir);
+        }
+      }
+        
       torrentDir.mkdirs();
+      
       File fDest = new File(torrentDir, f.getName().replaceAll("%20","."));
-      if (fDest.equals(f))
+      if (fDest.equals(f)) {
         throw new Exception("Same files");
+      }
       String prefix = "_";
       while (fDest.exists()) {
         fDest = new File(torrentDir, "_" + fDest.getName());

@@ -109,16 +109,31 @@ DiskManagerImpl
 
 	private PEPeerManager manager;
 	private SHA1Hasher hasher;
-
 	private boolean bContinue = true;
-
 	private PEPiece[] pieces;
+	private boolean alreadyMoved = false;
 
+  
 	public DiskManagerImpl(TOTorrent	_torrent, String path) {
 		this.state = INITIALIZING;
 		this.percentDone = 0;
 		this.torrent = _torrent;
 		this.path = path;
+    
+		//if the torrent is already in the completed files dir,
+		//we want to use the data already moved there  
+		boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+		String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+		String torrentFullName = torrent.getAdditionalStringProperty("torrent filename");
+		if (moveWhenDone && completedDir.length() > 0) {
+		  //if the torrent file resides in the completed files dir
+		  if (new File(torrentFullName).getParent().startsWith(completedDir)) {
+		    //set the completed dir as the save path
+		    this.path = completedDir;
+          alreadyMoved = true;
+		  }
+		}
+
 		try {
 			hasher = new SHA1Hasher();
 		} catch (NoSuchAlgorithmException ignore) {
@@ -252,7 +267,7 @@ DiskManagerImpl
 		if (newFiles == 0) checkAllPieces(false);
 		//if not a fresh torrent, check pieces ignoring fast resume data
 		else if (newFiles != btFileList.size()) checkAllPieces(true);
-
+    
 		//3.Change State   
 		state = READY;
 	}
@@ -1545,5 +1560,90 @@ DiskManagerImpl
 	{
 		return( new DiskManagerDataQueueItemImpl( request ));
 	}
+  
+  
+  /**
+   * Moves files to the CompletedFiles directory.
+   */
+  public void moveCompletedFiles() {
+    String fullPath;
+    String subPath;
+    File destDir;
+    File delDir;
+    
+    //make sure the torrent hasn't already been moved
+    if (alreadyMoved) return;
+    alreadyMoved = true;
+    
+    boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+    if (!moveWhenDone) return;
+    
+    String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
+    if (moveToDir.length() == 0) return;
+    
+    try {
+      for (int i=0; i < files.length; i++) {
+        synchronized (files[i]) {
+          //get old file pointer
+          File oldFile = files[i].getFile();
+          //get old file's parent path
+          fullPath = oldFile.getParent();
+          //compute the file's sub-path off from the default save path
+          subPath = fullPath.substring(fullPath.indexOf(path) + path.length());
+          //create the destination dir
+          destDir = new File(moveToDir + subPath);
+          destDir.mkdirs();
+          //points to the file's parent dir, used for later deletion
+          delDir = new File(fullPath);
+          //create the destination file pointer
+          File newFile = new File(destDir, oldFile.getName());
+           
+          if (newFile.exists()) {
+            System.out.println("DiskManagerImpl::ERROR: " + oldFile.getName() + " already exists in MoveTo destination dir");
+            continue;
+          }
+          
+          //close the currently open stream to we can move the file
+          files[i].getRaf().close();
+          
+          //move the file ~ rename old file pointer to new file pointer
+          if (oldFile.renameTo(newFile)) {
+            //open the stream from the new file
+            RandomAccessFile newRaf = new RandomAccessFile(newFile, "r");
+            //set new pointers
+            files[i].setRaf(newRaf);
+            files[i].setAccessmode(DiskManagerFileInfo.READ);
+            files[i].setFile(newFile);
+          } else System.out.println("DiskManagerImpl::ERROR: failed to move " + oldFile.getName());
+          
+          //delete the parent dir if empty
+          if (subPath.length() > 0) {
+            if (delDir.listFiles().length == 0) {
+              delDir.delete();
+            }
+          }
+          
+        }
+      }
+      
+      //move the torrent file as well
+      synchronized (torrent) {
+        String oldFullName = torrent.getAdditionalStringProperty("torrent filename");
+        File oldTorrentFile = new File(oldFullName);
+        String oldFileName = oldTorrentFile.getName();
+        File newTorrentFile = new File(moveToDir, oldFileName);
+        //save torrent to new file
+        torrent.serialiseToBEncodedFile(newTorrentFile);
+        //remove old torrent file
+        oldTorrentFile.delete();
+        //update torrent meta-info to point to new torrent file
+        torrent.setAdditionalStringProperty("torrent filename", newTorrentFile.getCanonicalPath());
+      }
+      
+    } catch (Exception e) { e.printStackTrace(); }
+    
+  }
+   
+    
 
 }
