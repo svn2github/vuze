@@ -75,17 +75,34 @@ DownloadManagerState
 	public String[]		// from AENetworkClassifier constants
 	getNetworks();
 	
+	public boolean 
+	isNetworkEnabled(
+	    String		network); //from AENetworkClassifier constants
+	
 	public void
 	setNetworks(
-		String[]		networks );	// from AENetworkClassifier constants
+		String[]	networks );	// from AENetworkClassifier constants
+	
+	public void
+	setNetworkEnabled(
+	    String		network,				// from AENetworkClassifier constants
+	    boolean		enabled);
 	
 	public String[]		// from PEPeerSource constants
 	getPeerSources();
 	
+	public boolean
+	isPeerSourceEnabled(
+	    String		peerSource); // from PEPeerSource constants
+	
 	public void
 	setPeerSources(
-		String[]		sources );	// from PEPeerSource constants
+		String[]	sources );	// from PEPeerSource constants
 
+	public void
+	setPeerSourceEnabled(
+	    String		source,		// from PEPeerSource constants
+	    boolean		enabled);
 	
 	public void
 	setAttribute(

@@ -631,6 +631,12 @@ DownloadManagerStateImpl
 		
 		return( x );
 	}
+	
+	  public boolean isNetworkEnabled(
+	      String network) {
+	    List	values = getListAttributeSupport( AT_NETWORKS );
+	    return values.contains(network);
+	  }
 					
 	public void
 	setNetworks(
@@ -650,6 +656,30 @@ DownloadManagerStateImpl
 		
 		setListAttribute( AT_NETWORKS, l );
 	}
+	
+	  public void 
+	  setNetworkEnabled(
+	      String network,
+	      boolean enabled) {
+	    List	values = getListAttributeSupport( AT_NETWORKS );
+	    boolean alreadyEnabled = values.contains(network);
+	    List	l = new ArrayList();
+	    	  
+	    if(enabled && !alreadyEnabled) {	      	
+	      for (int i=0;i<values.size();i++){
+	        l.add(values.get(i));
+	      }	
+	      l.add(network);
+	      setListAttribute( AT_NETWORKS, l );
+	    }
+	    if(!enabled && alreadyEnabled) {
+	      for (int i=0;i<values.size();i++){
+	        l.add(values.get(i));
+	      }	
+	      l.remove(network);
+	      setListAttribute( AT_NETWORKS, l );
+	    }
+	  }
 	
 		// peer sources
 	
@@ -683,6 +713,11 @@ DownloadManagerStateImpl
 		
 		return( x );
 	}
+	
+  public boolean isPeerSourceEnabled(String peerSource) {
+    List	values = getListAttributeSupport( AT_PEER_SOURCES );
+    return values.contains(peerSource);
+  }
 					
 	public void
 	setPeerSources(
@@ -702,6 +737,30 @@ DownloadManagerStateImpl
 		
 		setListAttribute( AT_PEER_SOURCES, l );
 	}
+	
+	  public void
+	  setPeerSourceEnabled(
+	      String source,
+	      boolean enabled) {
+	    List	values = getListAttributeSupport( AT_PEER_SOURCES );
+	    boolean alreadyEnabled = values.contains(source);
+	    List	l = new ArrayList();
+  	  
+		  if(enabled && !alreadyEnabled) {	      	
+		    for (int i=0;i<values.size();i++){
+		      l.add(values.get(i));
+		    }	
+		    l.add(source);
+		    setListAttribute( AT_PEER_SOURCES, l );
+		  }
+		  if(!enabled && alreadyEnabled) {
+		    for (int i=0;i<values.size();i++){
+		      l.add(values.get(i));
+		    }	
+		    l.remove(source);
+		    setListAttribute( AT_PEER_SOURCES, l );
+		  }
+	  }
 					
 	
 		// general stuff
@@ -1078,6 +1137,11 @@ DownloadManagerStateImpl
 		{
 			return( new String[0] );
 		}
+		
+		
+	    public boolean isNetworkEnabled(String network) {	      
+	      return false;
+	    }
 						
 		public void
 		setNetworks(
@@ -1085,17 +1149,36 @@ DownloadManagerStateImpl
 		{
 		}
 		
+
+	    public void setNetworkEnabled(
+	        String network,
+	        boolean enabled) {	      
+	    }
+		
 		public String[]		
 		getPeerSources()
 		{
 			return( new String[0] );
 		}
-						
+		
+	    public boolean
+	    isPeerSourceEnabled(
+	        String peerSource) {
+	      return false;
+	    }
+		
 		public void
 		setPeerSources(
 			String[]		networks )
 		{
 		}
+		
+
+	    public void
+	    setPeerSourceEnabled(
+	        String source,
+	        boolean enabled) {
+	    }
 		
 		public void
 		save()
