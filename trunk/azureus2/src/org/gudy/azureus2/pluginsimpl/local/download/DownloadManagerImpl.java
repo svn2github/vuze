@@ -227,7 +227,7 @@ DownloadManagerImpl
 		      }catch(Exception egnore){}
 		    }
 		    
-		    if ( torrent_dir == null ){
+		    if ( torrent_dir == null || torrent_dir.length() == 0 ){
 		    	
 		    	throw( new DownloadException("DownloadManager::addDownload: default torrent save directory must be configured" ));
 		    }
@@ -254,7 +254,7 @@ DownloadManagerImpl
 		    	data_dir = COConfigurationManager.getStringParameter("Default save path");
 		    }
 		    
-		    if ( data_dir == null ){
+		    if ( data_dir == null || data_dir.length() == 0 ){
 		    	
 		    	throw( new DownloadException("DownloadManager::addDownload: default data save directory must be configured" ));
 		    }
