@@ -38,9 +38,9 @@ TRTrackerServerNATChecker
 {
 	protected static TRTrackerServerNATChecker		singleton	= new TRTrackerServerNATChecker();
 	
-	protected static final int THREAD_POOL_SIZE		= 8;
-	protected static final int CHECK_TIME_LIMIT		= 30000;
-	protected static final int CHECK_QUEUE_LIMIT	= 1024; 
+	protected static final int THREAD_POOL_SIZE		= 32;
+	protected static final int CHECK_TIME_LIMIT		= 10000;
+	protected static final int CHECK_QUEUE_LIMIT	= 2048; 
 	
 	protected static TRTrackerServerNATChecker
 	getSingleton()
@@ -151,6 +151,8 @@ TRTrackerServerNATChecker
 						{
 							boolean	ok = false;
 							
+							long	start = SystemTime.getCurrentTime();
+							
 							try{
 								InetSocketAddress address = new InetSocketAddress( host, port );
 								
@@ -168,7 +170,9 @@ TRTrackerServerNATChecker
 								
 							}finally{
 								
-								System.out.println( "NAT Check: " + host + ":" + port + " -> " + ok );
+								long	now = SystemTime.getCurrentTime();
+
+								System.out.println( "NAT Check: " + host + ":" + port + " -> " + ok +", time = " + (now-start) + ", queue = " + check_queue.size());
 								
 								listener.NATCheckComplete( ok );
 								

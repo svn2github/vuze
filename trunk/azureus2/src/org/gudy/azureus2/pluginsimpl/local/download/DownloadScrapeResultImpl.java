@@ -97,6 +97,10 @@ DownloadScrapeResultImpl
   public String
   getStatus()
   {
-  	return( response.getStatusString());
+  	if ( response != null ){
+  		return( response.getStatusString());
+  	}
+  	
+  	return("");
   }
 }
