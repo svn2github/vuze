@@ -21,7 +21,7 @@
  
 package org.gudy.azureus2.ui.swt.config;
 
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Button;
 
 /**
  * @author Olivier
@@ -31,20 +31,22 @@ public class ExclusiveSelectionActionPerformer implements IAdditionalActionPerfo
 
   boolean selected = false;
 
-  Control[] controls;
+  Button[] buttons;
   
-  public ExclusiveSelectionActionPerformer(Control[] controls) {
-    this.controls = controls;
+  public ExclusiveSelectionActionPerformer(Button[] buttons) {
+    this.buttons = buttons;
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.AdditionalActionPerformer#performAction()
    */
   public void performAction() {
-    if(controls == null)
+    if(buttons == null)
       return;
-    for(int i = 0 ; i < controls.length ; i++) {
-      controls[i].setEnabled(selected);
+    if(!selected)
+      return;
+    for(int i = 0 ; i < buttons.length ; i++) {
+      buttons[i].setSelection(false);      
     }
   }
 

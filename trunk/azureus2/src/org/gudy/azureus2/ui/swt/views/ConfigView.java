@@ -601,14 +601,22 @@ public class ConfigView extends AbstractIView {
     
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.zeronewfiles"); //$NON-NLS-1$
-    new BooleanParameter(gFile, "Zero New", false); //$NON-NLS-1$
+    BooleanParameter zeroNew = new BooleanParameter(gFile, "Zero New", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
-    new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
+    BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
     new Label(gFile, SWT.NULL);
 
+    //Make the incremental checkbox (button) deselect when zero new is used
+    Button[] btnIncremental = {(Button)incremental.getControl()};
+    zeroNew.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnIncremental));
+    
+    //Make the zero new checkbox(button) deselct when incremental is used
+    Button[] btnZeroNew = {(Button)zeroNew.getControl()}; 
+    incremental.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnZeroNew));
+    
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
     BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", false); //$NON-NLS-1$
