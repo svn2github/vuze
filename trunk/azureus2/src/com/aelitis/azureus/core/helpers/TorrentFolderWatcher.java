@@ -48,8 +48,11 @@ public class TorrentFolderWatcher {
   protected AEMonitor this_mon 	= new AEMonitor( "TorrentFolderWatcher" );
 
   private FilenameFilter filename_filter = new FilenameFilter() {
-    public boolean accept( File dir, String name ) {
-      return name.toLowerCase().endsWith(".torrent");
+    public boolean accept( File dir, String name )
+    {
+    	String lc_name = name.toLowerCase();
+    	
+    	return( lc_name.endsWith(".torrent") || lc_name.endsWith( ".tor" ));
     }
   };
   
@@ -152,10 +155,21 @@ public class TorrentFolderWatcher {
 	    	f.mkdirs();
 	    }
 	    
-	    //delete torrents from the previous import run
+	    	//delete torrents from the previous import run
+	    
 	    for( int i=0; i < to_delete.size(); i++ ) {
-	      ((File)to_delete.get( i )).delete();
+	    	
+	    	TOTorrent	torrent = (TOTorrent)to_delete.get( i );
+	    	
+	    	try{
+	    		TorrentUtils.delete( torrent );
+	    		
+	    	}catch( Throwable e ){
+	    		
+	    		Debug.printStackTrace(e);
+	    	}
 	    }
+	    
 	    to_delete.clear();
 	    
 	    String[] currentFileList = folder.list( filename_filter );
@@ -222,7 +236,7 @@ public class TorrentFolderWatcher {
 						data_save_path, 
 						start_state );
 		        
-		        to_delete.add( file );  //add file for deletion, since there will be a saved copy elsewhere
+		        to_delete.add( torrent );  //add torrent for deletion, since there will be a saved copy elsewhere
 		      }
 		      
 		      LGLogger.log( LGLogger.INFORMATION, "Auto-imported " + file.getAbsolutePath() );
