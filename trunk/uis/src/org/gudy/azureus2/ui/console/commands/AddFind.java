@@ -149,6 +149,7 @@ public class AddFind implements IConsoleCommand {
 		try {
 			ConsoleInput.RegisterCommand("add", AddFind.class.getMethod("commandAdd", ConsoleCommandParameters));
 			ConsoleInput.RegisterCommand("a", AddFind.class.getMethod("commandAdd", ConsoleCommandParameters));
+      ConsoleInput.RegisterHelp("add [.torrent path|url]\t\t+\tAdd a download from the given .torrent file path or url. Example: 'add /path/to/the.torrent' or 'add http://www.url.com/to/the.torrent'");
 		} catch (Exception e) {e.printStackTrace();}
 	}
 }
