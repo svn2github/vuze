@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager;
 import java.nio.channels.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -81,7 +82,33 @@ public class VirtualChannelSelector {
     	try {
     		selector = Selector.open();
     	}
-      catch (Throwable t) {  Debug.out( t );  }
+      catch (Throwable t) {
+        Debug.out( "ERROR: caught exception on Selector.open()", t );
+        
+        try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
+        
+        int fail_count = 1;
+        
+        while( fail_count < 10 ) {
+          try {
+            selector = Selector.open();
+            break;
+          }
+          catch( Throwable f ) {
+            Debug.out( f );
+            fail_count++;
+            try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
+          }
+        }
+        
+        if( fail_count < 10 ) { //success ! 
+          Debug.out( "NOTICE: socket Selector successfully opened after " +fail_count+ " failures." );
+        }
+        else {  //failure
+          LGLogger.logRepeatableAlert( "ERROR: socket Selector.open() failed 10 times, aborting.\nSomething is very wrong!", t );
+        }
+        
+      }
     }
     
   
@@ -105,7 +132,7 @@ public class VirtualChannelSelector {
     {
     	addRegOrCancel( new RegistrationData( channel, listener, attachment ));
  
-    	selector.wakeup();
+    	if( selector != null )  selector.wakeup();
     }
     
 	    /**
@@ -190,6 +217,14 @@ public class VirtualChannelSelector {
      * @return number of sockets selected
      */
     public int select( long timeout ) {
+      
+      if( selector == null ) {
+        System.out.println( "VirtualChannelSelector.select() op called with null selector, sleeping " +timeout+ " ms..." );
+        try {  Thread.sleep( timeout );  }catch( Throwable x ) {x.printStackTrace();}
+        return 0;
+      }      
+      
+      
       //process cancellations
       try {
       	register_cancel_list_mon.enter();
