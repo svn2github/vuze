@@ -106,7 +106,7 @@ PEPeerTransportDebugger
 	 
 	protected static final int	BT_READING_LENGTH_AND_TYPE	= 1234567;
 	
-	protected int		state		= BTProtocolMessage.BT_HANDSHAKE;
+	protected int		state		= -1;  //bt handshake
 	protected byte[]	data_read	= new byte[68];
 	protected int		data_read_pos;
 	
@@ -154,7 +154,7 @@ PEPeerTransportDebugger
 					
 					//System.out.println( "msg:" + state );
 					
-					if ( state == BTProtocolMessage.BT_PIECE ){
+					if ( state == 7 ){  //bt piece
 					
 						ByteBuffer bb = ByteBuffer.wrap( data_read );
 						

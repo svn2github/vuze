@@ -26,48 +26,29 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-
 /**
  * BitTorrent have message.
  */
 public class BTHave implements BTProtocolMessage {
-  
   private final DirectByteBuffer buffer;
-  private final int piece_number;
-  private final int total_byte_size;
+  private final String description;
 
   public BTHave( int piece_number ) {
-    this.piece_number = piece_number;
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 9 ) );
-    
-    buffer.putInt( DirectByteBuffer.SS_BT, 5 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)4 );
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
     buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
-    buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, 9 );
+    buffer.flip( DirectByteBuffer.SS_BT );
     
-    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
+    description = BTProtocolMessage.ID_BT_HAVE + " piece #" + piece_number;
   }
   
-  public int getType() {  return BTProtocolMessage.BT_HAVE;  }
   
-  public DirectByteBuffer getPayload() {  return buffer;  }
+
+  public String getID() {  return BTProtocolMessage.ID_BT_HAVE;  }
   
-  public int getTotalMessageByteSize() {  return total_byte_size;  }
+  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+    
+  public String getDescription() {  return description;  }
   
-  public String getDescription() {
-    return "Have piece #" + piece_number;
-  }
-  
-  public int getPriority() {  return Message.PRIORITY_LOW;  }
-  
-  public boolean isNoDelay() {  return false;  }
-  
-  public boolean isDataMessage() {  return false;  }
-  
-  public void destroy() { }
-  
-  public int[] typesToRemove() {  return null;  }
-  
+  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{ buffer };  }
+
 }

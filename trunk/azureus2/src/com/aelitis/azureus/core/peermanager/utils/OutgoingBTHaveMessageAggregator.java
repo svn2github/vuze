@@ -27,8 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
@@ -50,7 +49,7 @@ public class OutgoingBTHaveMessageAggregator {
   private final OutgoingMessageQueue.MessageQueueListener added_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
     public void messageAdded( Message message ) {
       //if another message is going to be sent anyway, add our haves as well
-      if( message.getType() != BTProtocolMessage.BT_HAVE ) {
+      if( !message.getID().equals( BTProtocolMessage.ID_BT_HAVE ) ) {
         sendPendingHaves();
       }
     }

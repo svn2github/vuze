@@ -22,50 +22,25 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
  * BitTorrent interested message.
  */
 public class BTInterested implements BTProtocolMessage {
   
-  private final DirectByteBuffer buffer;
-  private static final int[] to_remove = { BTProtocolMessage.BT_UNINTERESTED };
-  private final int total_byte_size;
-  
   public BTInterested() {
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
-    
-    buffer.putInt( DirectByteBuffer.SS_BT, 1 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)2 );
-    buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, 5 );
-    
-    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
+    /* nothing */
   }
+    
+  public String getID() {  return BTProtocolMessage.ID_BT_INTERESTED;  }
   
-  public int getType() {  return BTProtocolMessage.BT_INTERESTED;  }
+  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+    
+  public String getDescription() {  return BTProtocolMessage.ID_BT_INTERESTED;  }
   
-  public DirectByteBuffer getPayload() {  return buffer;  }
-  
-  public int getTotalMessageByteSize() {  return total_byte_size;  }
-  
-  public String getDescription() {
-    return "Interested";
-  }
-  
-  public int getPriority() {  return Message.PRIORITY_HIGH;  }
-  
-  public boolean isNoDelay() {  return true;  }
-  
-  public boolean isDataMessage() {  return false;  }
-  
-  public void destroy() { }
-  
-  public int[] typesToRemove() {  return to_remove;  }
-  
+  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[] {};  }
+    
 }

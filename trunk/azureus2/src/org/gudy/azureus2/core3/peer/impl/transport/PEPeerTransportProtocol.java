@@ -37,8 +37,7 @@ import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.UploadManager;
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
@@ -1743,6 +1742,8 @@ StateTransfering
 			buffer.put( (byte)bToSend );
 		}
 
+    buffer.flip();
+    
 		if ( atLeastOne ) {
       connection.getOutgoingMessageQueue().addMessage( new BTBitfield( buffer ), false );
 		}
@@ -1883,7 +1884,7 @@ StateTransfering
 	      }
 	      if( !closing ) {
 	        //cancel any unsent requests in the queue
-	        int[] type = { BTProtocolMessage.BT_REQUEST };
+	        Message[] type = { new BTRequest() };
 	        connection.getOutgoingMessageQueue().removeMessagesOfType( type, false );
 	      }
 		}
@@ -1971,8 +1972,6 @@ StateTransfering
 	    	}
 	    	BTRequest msg = new BTRequest( request.getPieceNumber(), request.getOffset(), request.getLength() );
 	    	connection.getOutgoingMessageQueue().removeMessage( msg, false );
-        msg.destroy();  //we need to destroy this manually, as the queue removal only destroys the original message
-                        //in the queue, not the new one we just created
 		}
 		
 		protected void 

@@ -28,9 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.Transport;
 
@@ -49,7 +47,7 @@ public class OutgoingMessageQueue {
   private final AEMonitor listeners_mon		= new AEMonitor( "OutgoingMessageQueue:L");
   
   private int total_size = 0;
-  private Message urgent_message = null;
+  private RawMessage urgent_message = null;
   private boolean destroyed = false;
   
   
@@ -70,7 +68,7 @@ public class OutgoingMessageQueue {
       queue_mon.enter();
     
       while( !queue.isEmpty() ) {
-      	((Message)queue.remove( 0 )).destroy();
+      	((RawMessage)queue.remove( 0 )).destroy();
       }
     }finally{
       queue_mon.exit();
@@ -105,36 +103,44 @@ public class OutgoingMessageQueue {
    */
   public void addMessage( Message message, boolean manual_listener_notify ) {
     
+    //TODO check for type
+    RawMessage rmesg = RawMessageFactory.createLegacyRawMessage( message );
+    
+    
     if( destroyed ) {  //queue is shutdown, drop any added messages
-      message.destroy();
+      rmesg.destroy();
       return;
     }
     
-    removeMessagesOfType( message.typesToRemove(), manual_listener_notify );
+    removeMessagesOfType( rmesg.messagesToRemove(), manual_listener_notify );
     try{
       queue_mon.enter();
     
       int pos = 0;
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
-        Message msg = (Message)i.next();
-        if( message.getPriority() > msg.getPriority() 
-            && msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
+        RawMessage msg = (RawMessage)i.next();
+        if( rmesg.getPriority() > msg.getPriority() 
+          && msg.getRawPayload()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
           break;
         }
         pos++;
       }
-      if( message.isNoDelay() ) {
-        urgent_message = message;
+      if( rmesg.isNoDelay() ) {
+        urgent_message = rmesg;
       }
-      queue.add( pos, message );
-      total_size += message.getPayload().remaining(DirectByteBuffer.SS_NET);
+      queue.add( pos, rmesg );
+      
+      DirectByteBuffer[] payload = rmesg.getRawPayload();
+      for( int i=0; i < payload.length; i++ ) {
+        total_size += payload[i].remaining(DirectByteBuffer.SS_NET);
+      }
     }finally{
       queue_mon.exit();
     }
     
     if( manual_listener_notify ) {  //register listener event for later, manual notification
       NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_ADDED );
-      item.message = message;
+      item.message = rmesg;
       try {
         delayed_notifications_mon.enter();
         
@@ -149,11 +155,12 @@ public class OutgoingMessageQueue {
     
       for( int i=0; i < listeners_ref.size(); i++ ) {
         MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
-        listener.messageAdded( message );
+        listener.messageAdded( rmesg );
       }
     }
   }
   
+
   
   /**
    * Remove all messages of the given types from the queue.
@@ -165,7 +172,7 @@ public class OutgoingMessageQueue {
    * @param message_types type to remove
    * @param manual_listener_notify true for manual notification, false for automatic
    */
-  public void removeMessagesOfType( int[] message_types, boolean manual_listener_notify ) {
+  public void removeMessagesOfType( Message[] message_types, boolean manual_listener_notify ) {
     if( message_types == null ) return;
     
     ArrayList messages_removed = null;
@@ -174,11 +181,17 @@ public class OutgoingMessageQueue {
       queue_mon.enter();
     
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
-        Message msg = (Message)i.next();
+        RawMessage msg = (RawMessage)i.next();
         for( int t=0; t < message_types.length; t++ ) {
-        	if( msg.getType() == message_types[ t ] && msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
-            if( msg == urgent_message ) urgent_message = null;            
-            total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
+          boolean same_type = message_types[t].getID().equals( msg.getID() ) && message_types[t].getVersion() == msg.getVersion();
+        	if( same_type && msg.getRawPayload()[0].position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
+            if( msg == urgent_message ) urgent_message = null;
+            
+            DirectByteBuffer[] payload = msg.getRawPayload();
+            for( int x=0; x < payload.length; x++ ) {
+              total_size -= payload[x].remaining(DirectByteBuffer.SS_NET);
+            }
+            
             if( manual_listener_notify ) {
               NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_REMOVED );
               item.message = msg;
@@ -211,7 +224,7 @@ public class OutgoingMessageQueue {
       ArrayList listeners_ref = listeners;
         
       for( int x=0; x < messages_removed.size(); x++ ) {
-        Message msg = (Message)messages_removed.get( x );
+        RawMessage msg = (RawMessage)messages_removed.get( x );
         
         for( int i=0; i < listeners_ref.size(); i++ ) {
           MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
@@ -229,7 +242,8 @@ public class OutgoingMessageQueue {
    * which may not necessarily be the one passed as the method parameter,
    * as some messages override equals() (i.e. BTRequest messages) instead of using reference
    * equality, and could be a completely different object, and would need to be destroyed
-   * manually.
+   * manually.  If the message does not override equals, then any such method will likely
+   * *not* be found and removed, as internal queued object was a new allocation on insertion.
    * NOTE: Allows for manual listener notification at some later time,
    * using doListenerNotifications(), instead of notifying immediately
    * from within this method.  This is useful if you want to invoke
@@ -240,17 +254,22 @@ public class OutgoingMessageQueue {
    * @return true if the message was removed, false otherwise
    */
   public boolean removeMessage( Message message, boolean manual_listener_notify ) {
-    Message msg_removed = null;
+    RawMessage msg_removed = null;
     
     try{
       queue_mon.enter();
     
       int index = queue.indexOf( message );
       if( index != -1 ) {
-        Message msg = (Message)queue.get( index );
-        if( msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
+        RawMessage msg = (RawMessage)queue.get( index );
+        if( msg.getRawPayload()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
           if( msg == urgent_message ) urgent_message = null;  
-          total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
+          
+          DirectByteBuffer[] payload = msg.getRawPayload();
+          for( int x=0; x < payload.length; x++ ) {
+            total_size -= payload[x].remaining(DirectByteBuffer.SS_NET);
+          }
+
           queue.remove( index );
           msg_removed = msg;
         }
@@ -318,67 +337,55 @@ public class OutgoingMessageQueue {
       queue_mon.enter();
 
     	if( !queue.isEmpty() ) {
-        ByteBuffer[] buffers = new ByteBuffer[ queue.size() ];
-        int[] starting_pos = new int[ queue.size() ];
-        int pos = 0;
-    		int total_sofar = 0;
-        while( total_sofar < max_bytes && pos < buffers.length ) {
-          buffers[ pos ] = ((Message)queue.get( pos )).getPayload().getBuffer(DirectByteBuffer.SS_NET);
-          total_sofar += buffers[ pos ].remaining();
-          starting_pos[ pos ] = buffers[ pos ].position();
-          pos++;
-    		}
-        pos--; //remove last while loop auto-increment
-    		int orig_limit = buffers[ pos ].limit();
-    		if( total_sofar > max_bytes ) {
-    			buffers[ pos ].limit( orig_limit - (total_sofar - max_bytes) );
-    		}
-             
-        transport.write( buffers, 0, pos + 1 );
-
-        buffers[ pos ].limit( orig_limit );
-        pos = 0;
-        while( !queue.isEmpty() ) {
-          Message msg = (Message)queue.get( 0 );
-          ByteBuffer bb = msg.getPayload().getBuffer(DirectByteBuffer.SS_NET);
-          if( !bb.hasRemaining() ) {
-            if( msg == urgent_message ) urgent_message = null;
+        ArrayList raw_buffers = new ArrayList();
+        ArrayList orig_positions = new ArrayList();
+        int total_sofar = 0;
+        
+        for( Iterator i = queue.iterator(); i.hasNext(); ) {
+          DirectByteBuffer[] payloads = ((RawMessage)i.next()).getRawPayload();
+          boolean stop = false;
+          
+          for( int x=0; x < payloads.length; x++ ) {
+            ByteBuffer buff = payloads[x].getBuffer( DirectByteBuffer.SS_NET );
+            raw_buffers.add( buff );
+            orig_positions.add( new Integer( buff.position() ) );
+            total_sofar += buff.remaining();
             
-            int bytes_written = bb.limit() - starting_pos[ pos ];
-            total_size -= bytes_written;
-            
-            if( msg.isDataMessage() ) {
-              data_written += bytes_written;
+            if( total_sofar >= max_bytes ) {
+              stop = true;
+              break;
             }
-            else {
-              protocol_written += bytes_written;
-            }
-            
-            queue.remove( 0 );
-            if( manual_listener_notify ) {
-              NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
-              item.message = msg;
-              item.transport = transport;
-              try {
-                delayed_notifications_mon.enter();
+          }
+          
+          if( stop )  break;
+        }
                 
-                delayed_notifications.add( item );
-              }
-              finally {
-                delayed_notifications_mon.exit();
-              }
-            }
-            else {
-              if ( messages_sent == null ){
-              	
-              	messages_sent = new ArrayList();
-              }
-              
-              messages_sent.add( msg );
-            }
-          }
-          else {           
-            int bytes_written = (bb.limit() - bb.remaining()) - starting_pos[ pos ];
+        int num_raw = raw_buffers.size();
+        
+        ByteBuffer last_buff = (ByteBuffer)raw_buffers.get( num_raw - 1 );
+        int orig_last_limit = last_buff.limit();
+    		if( total_sofar > max_bytes ) {
+          last_buff.limit( orig_last_limit - (total_sofar - max_bytes) );
+    		}
+        
+        ByteBuffer[] buffs = new ByteBuffer[ num_raw ];
+        raw_buffers.toArray( buffs );
+        
+        transport.write( buffs, 0, num_raw );
+        
+        last_buff.limit( orig_last_limit );
+        
+        int pos = 0;
+        boolean stop = false;
+        
+        while( !queue.isEmpty() && !stop ) {
+          RawMessage msg = (RawMessage)queue.get( 0 );
+          DirectByteBuffer[] payloads = msg.getRawPayload();
+                    
+          for( int x=0; x < payloads.length; x++ ) {
+            ByteBuffer bb = payloads[x].getBuffer( DirectByteBuffer.SS_NET );
+            
+            int bytes_written = (bb.limit() - bb.remaining()) - ((Integer)orig_positions.get( pos )).intValue();
             total_size -= bytes_written;
             
             if( msg.isDataMessage() ) {
@@ -388,9 +395,37 @@ public class OutgoingMessageQueue {
               protocol_written += bytes_written;
             }
             
-            break;
+            if( bb.hasRemaining() ) {  //still data left to send in this message
+              stop = true;  //so don't bother checking later messages for completion
+              break;
+            }
+            else if( x == payloads.length - 1 ) {  //last payload buffer of message is empty
+              if( msg == urgent_message ) urgent_message = null;
+            
+              queue.remove( 0 );
+              
+              if( manual_listener_notify ) {
+                NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
+                item.message = msg;
+                item.transport = transport;
+                try {  delayed_notifications_mon.enter();
+                  delayed_notifications.add( item );
+                } finally {  delayed_notifications_mon.exit();  }
+              }
+              else {
+                if( messages_sent == null ) {
+                  messages_sent = new ArrayList();
+                }
+                messages_sent.add( msg );
+              }
+            }
+            
+            pos++;
+            if( pos >= num_raw ) {
+              stop = true;
+              break;
+            }
           }
-          pos++;
         }
     	}
     }finally{
@@ -439,7 +474,7 @@ public class OutgoingMessageQueue {
           if ( messages_sent != null ){
           	
 	          for( int x=0; x < messages_sent.size(); x++ ) {
-	            Message msg = (Message)messages_sent.get( x );
+	            RawMessage msg = (RawMessage)messages_sent.get( x );
 	
 	            listener.messageSent( msg );
 	            
@@ -603,12 +638,12 @@ public class OutgoingMessageQueue {
     private static final int DATA_BYTES_SENT      = 3;
     private static final int PROTOCOL_BYTES_SENT  = 4;
     private final int type;
-    private Message message;
+    private RawMessage message;
     private Transport transport;
     private int byte_count = 0;
     private NotificationItem( int notification_type ) {
       type = notification_type;
     }
   }
-
+  
 }

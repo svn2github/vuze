@@ -1,7 +1,7 @@
 /*
- * Created on Apr 30, 2004
+ * Created on Jan 8, 2005
  * Created by Alon Rohter
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,71 +24,35 @@ package com.aelitis.azureus.core.peermanager.messaging;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
+
+
 /**
- * A peer protocol message.
+ * Basic peer message.
+ * A message type is uniquely identified by the combination of ID and version.
  */
 public interface Message {
-  
-  public static final int PRIORITY_LOW    = 0;
-  public static final int PRIORITY_NORMAL = 1;
-  public static final int PRIORITY_HIGH   = 2;
-  
-  
+
   /**
-   * Get the message's type.
-   * @return type
+   * Get message type id.
+   * @return id
    */
-  public int getType();
+  public String getID();
   
   /**
-   * Get the message's data payload.
-   * @return data payload
+   * Get message type version.
+   * @return version
    */
-  public DirectByteBuffer getPayload();
-  
+  public byte getVersion();
+    
   /**
-   * Get the total size (in bytes) of the message, i.e. headers + data.
-   * @return total size in bytes
-   */
-  public int getTotalMessageByteSize();
-  
-  /**
-   * Get the message's textual description.
+   * Get textual description of this particular message.
    * @return description
    */
   public String getDescription();
   
   /**
-   * Get the message's queue priority.
-   * @return priority
+   * Get message payload data.
+   * @return message data buffers
    */
-  public int getPriority();
-  
-  /**
-   * Is this a no-delay message.
-   * No-delay messages are transmitted immediately,
-   * i.e. force-flushed out the transport.
-   * @return true if a no-delay message
-   */
-  public boolean isNoDelay();
-  
-  /**
-   * Is this a message containing (piece) data payload.
-   * @return true if data message, false if protocol message
-   */
-  public boolean isDataMessage();
-  
-  /**
-   * Destroy the message; i.e. perform cleanup actions.
-   */
-  public void destroy();
-  
-  /**
-   * Get the types of yet-unsent messages that should be removed
-   * before queueing this message for sending.
-   * @return message types; null if no types
-   */
-  public int[] typesToRemove();
-  
-  
+  public DirectByteBuffer[] getData();
 }

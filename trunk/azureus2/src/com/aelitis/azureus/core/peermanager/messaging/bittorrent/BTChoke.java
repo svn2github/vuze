@@ -22,49 +22,25 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
  * BitTorrent choke message.
  */
 public class BTChoke implements BTProtocolMessage {
   
-  private final DirectByteBuffer buffer;
-  private static final int[] to_remove = { BTProtocolMessage.BT_UNCHOKE, BTProtocolMessage.BT_PIECE };
-  private final int total_byte_size;
-  
   public BTChoke() {
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
-
-    buffer.putInt( DirectByteBuffer.SS_BT, 1 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)0 );
-    buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, 5 );
+    /* nothing */
+  }
     
-    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
-  }
+  public String getID() {  return BTProtocolMessage.ID_BT_CHOKE;  }
   
-  public int getType() {  return BTProtocolMessage.BT_CHOKE;  }
+  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+    
+  public String getDescription() {  return BTProtocolMessage.ID_BT_CHOKE;  }
   
-  public DirectByteBuffer getPayload() {  return buffer;  }
+  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[] {};  }
   
-  public int getTotalMessageByteSize() {  return total_byte_size;  }
-  
-  public String getDescription() {
-    return "Choke";
-  }
-  
-  public int getPriority() {  return Message.PRIORITY_HIGH;  }
-  
-  public boolean isNoDelay() {  return true;  }
-  
-  public boolean isDataMessage() {  return false;  }
-  
-  public void destroy() { }
-  
-  public int[] typesToRemove() {  return to_remove;  }
 }

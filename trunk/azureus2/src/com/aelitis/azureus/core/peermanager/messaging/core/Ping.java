@@ -22,19 +22,24 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.core;
 
-import com.aelitis.azureus.core.peermanager.messaging.PeerMessage;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+
 
 /**
  *
  */
-public class Ping implements PeerMessage {
-  private static final String message_id = "Ping";
-  private static final int msg_version = 1;
+public class Ping implements Message {
+  private static final String id = "PING";
+  private static final byte version = (byte)1;
   
-  public String getMessageID() {  return message_id;  }
+  public String getID() {  return id;  }
+
+  public byte getVersion() {  return version;  }
+
+  public String getDescription() {  return id;  }
   
-  
-  public int getVersion() {  return msg_version;  }
-  
+  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{};  } 
   
 }

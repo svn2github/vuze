@@ -22,47 +22,57 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
+
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.RawMessage;
+
 
 /**
  * BitTorrent keep-alive message.
  */
-public class BTKeepAlive implements BTProtocolMessage {
+public class BTKeepAlive implements BTProtocolMessage, RawMessage {
+  private DirectByteBuffer[] buffer = null;
   
-  private final DirectByteBuffer buffer;
-  private final int total_byte_size;
-
+  
   public BTKeepAlive() {
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
+    /* nothing */    
+  }
+
+  
+  // message
+  public String getID() {  return BTProtocolMessage.ID_BT_KEEP_ALIVE;  }
+  
+  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
     
-    buffer.putInt( DirectByteBuffer.SS_BT, 0 );
-    buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, 4 );
-    
-    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
+  public String getDescription() {  return BTProtocolMessage.ID_BT_KEEP_ALIVE;  }
+  
+  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{};  }
+
+  
+  
+  // raw message
+  public DirectByteBuffer[] getRawPayload() {
+    if( buffer == null ) {
+      DirectByteBuffer dbb = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
+      dbb.putInt( DirectByteBuffer.SS_BT, 0 );
+      dbb.flip( DirectByteBuffer.SS_BT );
+      buffer =  new DirectByteBuffer[]{ dbb };
+    }
+    return buffer;
   }
   
-  public int getType() {  return BTProtocolMessage.BT_KEEP_ALIVE;  }
-  
-  public DirectByteBuffer getPayload() {  return buffer;  }
-  
-  public int getTotalMessageByteSize() {  return total_byte_size;  }
-  
-  public String getDescription() {
-    return "Keep-alive";
-  }
-  
-  public int getPriority() {  return Message.PRIORITY_LOW;  }
-  
+  public int getPriority() {  return RawMessage.PRIORITY_LOW;  }
+
   public boolean isNoDelay() {  return false;  }
-  
+
   public boolean isDataMessage() {  return false;  }
-  
-  public void destroy() { }
-  
-  public int[] typesToRemove() {  return null;  }
+ 
+  public Message[] messagesToRemove() {  return null;  }
+
+  public void destroy() {  }
+
 }

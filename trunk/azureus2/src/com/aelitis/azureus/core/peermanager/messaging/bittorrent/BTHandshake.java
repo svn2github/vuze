@@ -27,64 +27,68 @@ import java.nio.ByteBuffer;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.RawMessage;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 
 
 /**
  * BitTorrent handshake message.
  */
-public class BTHandshake implements BTProtocolMessage {
+public class BTHandshake implements BTProtocolMessage, RawMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
-  public byte[] RESERVED = new byte[] { (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
+  public static final byte[] RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
   
-  private final DirectByteBuffer buffer;
-  private final byte[] data_hash;
-  private final byte[] peer_id;
-  private final int total_byte_size;
+  
+  private final DirectByteBuffer[] buffer;
+  private final String description;
+  
   
   public BTHandshake( byte[] data_hash, byte[] peer_id ) {
-    this.data_hash = data_hash;
-    this.peer_id = peer_id;
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 68 ) );
+    DirectByteBuffer dbb = new DirectByteBuffer( ByteBuffer.allocate( 68 ) );
+    dbb.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
+    dbb.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
+    dbb.put( DirectByteBuffer.SS_BT, RESERVED );
+    dbb.put( DirectByteBuffer.SS_BT, data_hash );
+    dbb.put( DirectByteBuffer.SS_BT, peer_id );
+    dbb.flip( DirectByteBuffer.SS_BT );
+    buffer = new DirectByteBuffer[] { dbb };
+
+    description = BTProtocolMessage.ID_BT_HANDSHAKE +
+                  " of dataID: " +ByteFormatter.nicePrint( data_hash, true ) +
+                  " peerID: " +PeerClassifier.getPrintablePeerID( peer_id );
     
-    /*
-    for( int i=7; i >= 0; i-- ) {
-      byte b = (byte) (RESERVED[0] >> i);
-      int val = b & 0x01;
-      System.out.print( val == 1 ? "x" : "." );
-    }
-    System.out.println();
-    */
-    
-    buffer.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
-    buffer.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
-    buffer.put( DirectByteBuffer.SS_BT, RESERVED );
-    buffer.put( DirectByteBuffer.SS_BT, data_hash );
-    buffer.put( DirectByteBuffer.SS_BT, peer_id );
-    buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, 68 );
-    
-    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
+    /* for( int i=7; i >= 0; i-- ) {
+         byte b = (byte) (RESERVED[0] >> i);
+         int val = b & 0x01;
+         System.out.print( val == 1 ? "x" : "." );
+       }
+       System.out.println();  */
   }
   
-  public int getType() {  return BTProtocolMessage.BT_HANDSHAKE;  }
+
+
+  // message
+  public String getID() {  return BTProtocolMessage.ID_BT_HANDSHAKE;  }
   
-  public DirectByteBuffer getPayload() {  return buffer;  }
+  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+    
+  public String getDescription() {  return description;  }
   
-  public int getTotalMessageByteSize() {  return total_byte_size;  }
+  public DirectByteBuffer[] getData() {  return buffer;  }
+
   
-  public String getDescription() {
-    return "Handshake of DataID: " +ByteFormatter.nicePrint( data_hash, true )
-                     + " PeerID: " +PeerClassifier.getPrintablePeerID( peer_id );
-  }
   
-  public int getPriority() {  return Message.PRIORITY_HIGH;  }
+  // raw message
+  public DirectByteBuffer[] getRawPayload() {  return buffer;  }
   
+  public int getPriority() {  return RawMessage.PRIORITY_HIGH;  }
+
   public boolean isNoDelay() {  return true;  }
-  
+
   public boolean isDataMessage() {  return false;  }
+ 
+  public Message[] messagesToRemove() {  return null;  }
+
+  public void destroy() {  }
   
-  public void destroy() { }
-  
-  public int[] typesToRemove() {  return null;  }
 }

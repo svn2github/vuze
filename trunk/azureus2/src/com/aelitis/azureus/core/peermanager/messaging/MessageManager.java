@@ -27,7 +27,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.core.Handshake;
 
 
 
@@ -52,13 +51,13 @@ public class MessageManager {
   
   
 
-  public void registerMessage( PeerMessage message ) throws MessageException {
+  public void registerMessage( Message message ) throws MessageException {
     MessageData md = new MessageData( message );
     
     try {  message_map_mon.enter();
     
       if( message_map.containsKey( md ) ) {
-        throw new MessageException( "Message type [" +message.getMessageID()+ ", v" +message.getVersion()+ "] already registered." );
+        throw new MessageException( "Message type [" +message.getID()+ ", v" +message.getVersion()+ "] already registered." );
       }
       
       message_map.put( md, null );
@@ -68,7 +67,7 @@ public class MessageManager {
   }
   
 
-  public void unregisterMessage( PeerMessage message ) throws MessageException {
+  public void unregisterMessage( Message message ) throws MessageException {
     MessageData md = new MessageData( message );
     
     try {  message_map_mon.enter();
@@ -76,7 +75,7 @@ public class MessageManager {
       Object result = message_map.remove( md );
       
       if( result == null ) {
-        throw new MessageException( "Message type [" +message.getMessageID()+ ", v" +message.getVersion()+ "] not registered." );
+        throw new MessageException( "Message type [" +message.getID()+ ", v" +message.getVersion()+ "] not registered." );
       }
       
       message_list_payload_dirty = true;
@@ -86,14 +85,7 @@ public class MessageManager {
   
 
   
-  public PeerMessage getHandshakeMessage() {
-    if( message_list_payload_dirty ) {
-      message_list_payload = constructMessageListPayload();
-    }
-    
-    return new Handshake( message_list_payload );
-  }
-  
+
   
   
   
@@ -115,7 +107,6 @@ public class MessageManager {
         message.put( "value", new Long( value ) );
         
         //TODO store value-message key
-        
         value++;
         
         message_list.add( message );
@@ -140,14 +131,14 @@ public class MessageManager {
   
   
   private static class MessageData {
-    private final PeerMessage message;
+    private final Message message;
     private final String id;
     private final int version;
     private final int hashcode;
     
-    private MessageData( PeerMessage message ) {
+    private MessageData( Message message ) {
       this.message = message;
-      this.id = message.getMessageID();
+      this.id = message.getID();
       this.version = message.getVersion();
       hashcode = id.hashCode() + version;
     }

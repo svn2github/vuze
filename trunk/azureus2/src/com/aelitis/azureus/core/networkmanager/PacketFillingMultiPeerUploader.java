@@ -27,8 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
 
@@ -244,7 +243,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   
   //connections ready to write
-  private void addToReadyList( final Connection conn ) {  //TODO
+  private void addToReadyList( final Connection conn ) {
     
     if( conn.getOutgoingMessageQueue().getTotalSize() < 1 ) {
       Debug.out( "~~~ added conn size < 1 " );

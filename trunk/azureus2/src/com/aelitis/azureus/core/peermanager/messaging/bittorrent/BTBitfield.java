@@ -26,49 +26,34 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
+
 
 /**
  * BitTorrent bitfield message.
  */
 public class BTBitfield implements BTProtocolMessage {
-  
-  private final DirectByteBuffer buffer;
-  private final int total_byte_size;
+  private final DirectByteBuffer[] buffer;
+
   
   public BTBitfield( ByteBuffer bitfield ) {
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( bitfield.capacity() + 5 ) );
-    
-    bitfield.position( 0 );
-    bitfield.limit( bitfield.capacity() );
-    
-    buffer.putInt( DirectByteBuffer.SS_BT, bitfield.capacity() + 1 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)5 );
-    buffer.put( DirectByteBuffer.SS_BT, bitfield );
-    buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, bitfield.capacity() + 5 );
-    
-    total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
+    buffer = new DirectByteBuffer[] { new DirectByteBuffer( bitfield ) };
   }
   
-  public int getType() {  return BTProtocolMessage.BT_BITFIELD;  }
+
+  public String getID() {  return BTProtocolMessage.ID_BT_BITFIELD;  }
   
-  public DirectByteBuffer getPayload() {  return buffer;  }
+  public byte getVersion() {  return BTProtocolMessage.BT_DEFAULT_VERSION;  }
+    
+  public String getDescription() {  return BTProtocolMessage.ID_BT_BITFIELD;  }
   
-  public int getTotalMessageByteSize() {  return total_byte_size;  }
+  public DirectByteBuffer[] getData() {  return buffer;  }
+
   
-  public String getDescription() {
-    return "Bitfield";
-  }
   
-  public int getPriority() {  return Message.PRIORITY_HIGH;  }
+
   
-  public boolean isNoDelay() {  return true;  }
   
-  public boolean isDataMessage() {  return false;  }
-   
-  public void destroy() { }
   
-  public int[] typesToRemove() {  return null;  }
+
   
 }

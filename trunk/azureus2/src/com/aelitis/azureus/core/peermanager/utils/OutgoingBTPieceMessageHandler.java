@@ -28,8 +28,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
@@ -85,7 +84,7 @@ public class OutgoingBTPieceMessageHandler {
   
   private final OutgoingMessageQueue.MessageQueueListener sent_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
     public void messageSent( Message message ) {
-      if( message.getType() == BTProtocolMessage.BT_PIECE ) {
+      if( message.getID().equals( BTProtocolMessage.ID_BT_PIECE ) ) {
         try{
           lock_mon.enter();
         
