@@ -70,6 +70,8 @@ PEPeerTransportProtocol
 	private byte[] id;
 	private String ip;
 	private String ip_resolved;
+	private IPToHostNameResolverRequest	ip_resolver_request;
+	
 	private int port;
 	
 	private PEPeerStatsImpl stats;
@@ -380,7 +382,10 @@ PEPeerTransportProtocol
 	    	recent_outgoing_requests_mon.exit();
 	    }
 	    
-	    
+	    if ( ip_resolver_request != null ){
+	    	
+	    	ip_resolver_request.cancel();
+	    }
 	    
 	    
 	  	//remove identity
@@ -1779,7 +1784,7 @@ StateTransfering
 			
 			ip_resolved = ip;
 		
-			IPToHostNameResolver.addResolverRequest( 
+			ip_resolver_request = IPToHostNameResolver.addResolverRequest( 
 				ip_resolved,
 				new IPToHostNameResolverListener()
 				{

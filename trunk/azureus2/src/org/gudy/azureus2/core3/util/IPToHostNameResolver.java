@@ -39,7 +39,7 @@ IPToHostNameResolver
 
 	static protected AESemaphore	request_semaphore	= new AESemaphore("IPToHostNameResolver");
 	
-	public static void
+	public static IPToHostNameResolverRequest
 	addResolverRequest(
 		String							ip,
 		IPToHostNameResolverListener	l )
@@ -47,7 +47,9 @@ IPToHostNameResolver
 		try{
 			request_mon.enter();
 			
-			request_queue.add( new request( ip, l ));
+			IPToHostNameResolverRequest	request = new IPToHostNameResolverRequest( ip, l );
+			
+			request_queue.add( request );
 			
 			request_semaphore.release();
 			
@@ -64,27 +66,34 @@ IPToHostNameResolver
 								try{
 									request_semaphore.reserve();
 									
-									request	req;
+									IPToHostNameResolverRequest	req;
 									
 									try{
 										request_mon.enter();
 										
-										req	= (request)request_queue.remove(0);
+										req	= (IPToHostNameResolverRequest)request_queue.remove(0);
 										
 									}finally{
 										
 										request_mon.exit();
 									}
 									
-									try{
-										InetAddress addr = InetAddress.getByName( req.getIP());
-											
-										req.getListener().IPResolutionComplete( addr.getHostName(), true );
-											
-									}catch( Throwable e ){
+									IPToHostNameResolverListener	listener = req.getListener();
+									
+										// if listener is null the request has been cancelled
+									
+									if ( listener != null ){
 										
-										req.getListener().IPResolutionComplete( req.getIP(), false );
-										
+										try{
+											InetAddress addr = InetAddress.getByName( req.getIP());
+												
+											req.getListener().IPResolutionComplete( addr.getHostName(), true );
+												
+										}catch( Throwable e ){
+											
+											req.getListener().IPResolutionComplete( req.getIP(), false );
+											
+										}
 									}
 								}catch( Throwable e ){
 									
@@ -98,37 +107,12 @@ IPToHostNameResolver
 					
 				resolver_thread.start();
 			}
+			
+			return( request );
+			
 		}finally{
 			
 			request_mon.exit();
-		}
-	}
-	
-	protected static class
-	request
-	{
-		protected String						ip;
-		protected IPToHostNameResolverListener	listener;
-		
-		protected
-		request(
-			String							_ip,
-			IPToHostNameResolverListener	_listener )
-		{
-			ip			= _ip;
-			listener	= _listener;
-		}
-		
-		protected String
-		getIP()
-		{
-			return( ip );
-		}
-		
-		protected IPToHostNameResolverListener
-		getListener()
-		{
-			return( listener );
 		}
 	}
 }
