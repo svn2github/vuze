@@ -1,5 +1,5 @@
 /*
- * Created on 06-Dec-2004
+ * Created on 08-Dec-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,9 +20,10 @@
  *
  */
 
-package com.aelitis.azureus.core.proxy;
+package com.aelitis.azureus.core.proxy.socks.impl;
 
-import com.aelitis.azureus.core.proxy.impl.AEProxyImpl;
+import com.aelitis.azureus.core.proxy.socks.*;
+import com.aelitis.azureus.core.proxy.*;
 
 /**
  * @author parg
@@ -30,25 +31,32 @@ import com.aelitis.azureus.core.proxy.impl.AEProxyImpl;
  */
 
 public class 
-AEProxyFactory 
+AESocksProxyImpl 
+	implements AESocksProxy, AEProxyHandler
 {
-		/**
-		 * @param port				0 = free port
-		 * @param connect_timeout	0 = no timeout
-		 * @param read_timeout		0 = no timeout
-		 * @return
-		 * @throws AEProxyException
-		 */
+	protected AEProxy	proxy;
 	
-	public static AEProxy
-	create(
-		int					port,
-		long				connect_timeout,
-		long				read_timeout,
-		AEProxyHandler		state_factory )	
+	public
+	AESocksProxyImpl(
+		int		port,
+		long	ct,
+		long	rt )
 	
 		throws AEProxyException
 	{
-		return( new AEProxyImpl(port,connect_timeout,read_timeout,state_factory));
+		proxy = AEProxyFactory.create( port, ct, rt, this );
+	}
+	
+	public int
+	getPort()
+	{
+		return( proxy.getPort());
+	}
+	
+	public AEProxyState
+	getInitialState(
+		AEProxyConnection	connection )
+	{
+		return( new AESocksProxyConnectionImpl( connection ).getInitialState());
 	}
 }

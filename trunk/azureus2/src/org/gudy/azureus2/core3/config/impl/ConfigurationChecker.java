@@ -30,8 +30,8 @@ import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
-import com.aelitis.azureus.core.proxy.AEProxy;
-import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.socks.*;
+
 
 /**
  * 
@@ -160,10 +160,10 @@ ConfigurationChecker
 	    }else{
 	    		// no explicit proxy, install our own baby for testing purposes at the moment
 	    	
-	    	/*
+	    	
 	    	try{
-	    		AEProxy	proxy = 
-	    			AEProxyFactory.create( 0, 0 );
+	    		AESocksProxy	proxy = 
+	    			AESocksProxyFactory.create( 0, 0, 0 );
 	    		
 		        System.setProperty("socksProxyHost", "127.0.0.1");
 		        System.setProperty("socksProxyPort", "" + proxy.getPort());
@@ -173,7 +173,7 @@ ConfigurationChecker
 	    		
 	    		Debug.printStackTrace(e);
 	    	}
-	    	*/
+	    
 	    }
 	  
 	  	SESecurityManager.initialise();

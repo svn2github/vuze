@@ -36,8 +36,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
-import com.aelitis.azureus.core.proxy.AEProxy;
-import com.aelitis.azureus.core.proxy.AEProxyException;
+
+import com.aelitis.azureus.core.proxy.*;
 
 /**
  * @author parg
@@ -48,11 +48,10 @@ public class
 AEProxyImpl 
 	implements AEProxy, VirtualChannelSelector.VirtualSelectorListener
 {
-	public static final int		THREAD_POOL_SIZE	= 16;
-		
 	protected int				port;
 	protected long				connect_timeout;
 	protected long				read_timeout;
+	protected AEProxyHandler	proxy_handler;
 	
 	protected VirtualChannelSelector	read_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_READ );
 	protected VirtualChannelSelector	connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT );
@@ -64,15 +63,17 @@ AEProxyImpl
 	
 	public 
 	AEProxyImpl(
-		int		_port,
-		long	_connect_timeout,
-		long	_read_timeout )
+		int				_port,
+		long			_connect_timeout,
+		long			_read_timeout,
+		AEProxyHandler	_proxy_handler )
 	
 		throws AEProxyException
 	{
 		port				= _port;
 		connect_timeout		= _connect_timeout;
 		read_timeout		= _read_timeout;
+		proxy_handler		= _proxy_handler;
 		
 		try{
 			
@@ -178,7 +179,7 @@ AEProxyImpl
 						
 				socket_channel.configureBlocking(false);
 
-				AEProxyProcessor processor = new AEProxyProcessor(this, socket_channel);
+				AEProxyConnectionImpl processor = new AEProxyConnectionImpl(this, socket_channel, proxy_handler);
 				
 				try{
 					this_mon.enter();
@@ -203,7 +204,7 @@ AEProxyImpl
 	
 	protected void
 	close(
-		AEProxyProcessor	processor )
+		AEProxyConnectionImpl	processor )
 	{
 		try{
 			this_mon.enter();
@@ -270,7 +271,7 @@ AEProxyImpl
 			
 			while( it.hasNext()){
 				
-				AEProxyProcessor	processor = (AEProxyProcessor)it.next();
+				AEProxyConnectionImpl	processor = (AEProxyConnectionImpl)it.next();
 				
 				long diff = now - processor.getTimeStamp();
 				
@@ -294,21 +295,28 @@ AEProxyImpl
 		
 		for (int i=0;i<closes.size();i++){
 			
-			((AEProxyProcessor)closes.get(i)).failed( new Throwable( "timeout" ));
+			((AEProxyConnectionImpl)closes.get(i)).failed( new Throwable( "timeout" ));
 		}
 	}
 	
 	protected void
 	requestWriteSelect(
-		AEProxyProcessor	processor,
-		SocketChannel 		sc )
+		AEProxyConnectionImpl	processor,
+		SocketChannel 			sc )
 	{
 		write_selector.register( sc, this, processor );
 	}
 	
 	protected void
+	cancelWriteSelect(
+		SocketChannel 			sc )
+	{
+		write_selector.cancel( sc );
+	}
+	
+	protected void
 	requestReadSelect(
-		AEProxyProcessor	processor,
+		AEProxyConnectionImpl	processor,
 		SocketChannel 		sc )
 	{
 		read_selector.register( sc, this, processor );
@@ -316,7 +324,6 @@ AEProxyImpl
 	
 	protected void
 	cancelReadSelect(
-		AEProxyProcessor	processor,
 		SocketChannel 		sc )
 	{
 		read_selector.cancel( sc );
@@ -324,10 +331,17 @@ AEProxyImpl
 	
 	protected void
 	requestConnectSelect(
-		AEProxyProcessor	processor,
-		SocketChannel 		sc )
+		AEProxyConnectionImpl	processor,
+		SocketChannel 			sc )
 	{
 		connect_selector.register( sc, this, processor );
+	}
+	
+	protected void
+	cancelConnectSelect(
+		SocketChannel 		sc )
+	{
+		connect_selector.cancel( sc );
 	}
 	
     public void 
@@ -336,7 +350,7 @@ AEProxyImpl
 		SocketChannel 			sc,
 		Object 					attachment )
     {
-    	AEProxyProcessor	processor = (AEProxyProcessor)attachment;
+    	AEProxyConnectionImpl	processor = (AEProxyConnectionImpl)attachment;
     	   	
     	if ( selector == read_selector ){
     		
@@ -359,7 +373,7 @@ AEProxyImpl
 		Object 					attachment,
 		Throwable 				msg )
     {
-    	AEProxyProcessor	processor = (AEProxyProcessor)attachment;
+    	AEProxyConnectionImpl	processor = (AEProxyConnectionImpl)attachment;
     	
     	processor.failed( msg );
     }

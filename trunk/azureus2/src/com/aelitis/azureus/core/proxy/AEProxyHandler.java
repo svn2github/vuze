@@ -1,5 +1,5 @@
 /*
- * Created on 06-Dec-2004
+ * Created on 08-Dec-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,33 +22,15 @@
 
 package com.aelitis.azureus.core.proxy;
 
-import com.aelitis.azureus.core.proxy.impl.AEProxyImpl;
-
 /**
  * @author parg
  *
  */
 
-public class 
-AEProxyFactory 
+public interface 
+AEProxyHandler 
 {
-		/**
-		 * @param port				0 = free port
-		 * @param connect_timeout	0 = no timeout
-		 * @param read_timeout		0 = no timeout
-		 * @return
-		 * @throws AEProxyException
-		 */
-	
-	public static AEProxy
-	create(
-		int					port,
-		long				connect_timeout,
-		long				read_timeout,
-		AEProxyHandler		state_factory )	
-	
-		throws AEProxyException
-	{
-		return( new AEProxyImpl(port,connect_timeout,read_timeout,state_factory));
-	}
+	public AEProxyState
+	getInitialState(
+		AEProxyConnection	connection );
 }
