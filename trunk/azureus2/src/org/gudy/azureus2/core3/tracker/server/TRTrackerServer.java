@@ -26,7 +26,7 @@ public interface
 TRTrackerServer 
 {
 	public static final int DEFAULT_MIN_RETRY_DELAY 		= 120;
-	public static final int DEFAULT_MAX_RETRY_DELAY 		= 0;
+	public static final int DEFAULT_MAX_RETRY_DELAY 		= 3600;
 	public static final int DEFAULT_INC_BY					= 60;
 	public static final int DEFAULT_INC_PER			 		= 10;
 	public static final int DEFAULT_SCRAPE_RETRY_PERCENTAGE	= 200;
