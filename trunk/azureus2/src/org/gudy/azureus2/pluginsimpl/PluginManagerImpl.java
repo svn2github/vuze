@@ -1,6 +1,6 @@
 /*
- * File    : TRHostServerRequest.java
- * Created : 13-Dec-2003
+ * File    : PluginManagerImpl.java
+ * Created : 14-Dec-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,21 +19,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.tracker.host;
+package org.gudy.azureus2.pluginsimpl;
 
 /**
  * @author parg
  *
  */
-
-import java.util.Map;
-
-public interface 
-TRHostTorrentRequest
+public class 
+PluginManagerImpl 
 {
-	public TRHostTorrent
-	getTorrent();
-	
-	public Map
-	getResponse();
+	public static void
+	registerPlugin(
+		Class		plugin_class )
+	{
+		PluginInitializer.queueRegistration( plugin_class );
+	}
 }

@@ -715,7 +715,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
     
     setSplashPercentage(50);        
-    new PluginInitializer(globalManager,splash_maybe_null).initializePlugins();        
+    PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
 
     closeSplashWindow();
     

@@ -39,8 +39,9 @@ TrackerImpl
 {
 	protected static TrackerImpl	tracker;
 	
-	protected  List	generators = new ArrayList();
-		
+	protected List	generators 	= new ArrayList();
+	protected List	listeners	= new ArrayList();
+	
 	protected TRHost		host;
 	
 	public static synchronized Tracker
@@ -111,15 +112,22 @@ TrackerImpl
 	public void
 	torrentAdded(
 		TRHostTorrent		t )
-	{		
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((TrackerListener)listeners.get(i)).torrentAdded(new TrackerTorrentImpl(t));
+		}
 	}
 	
 	public void
 	torrentRemoved(
-			TRHostTorrent		t )	
+		TRHostTorrent		t )	
 	{	
+		for (int i=0;i<listeners.size();i++){
+			
+			((TrackerListener)listeners.get(i)).torrentRemoved(new TrackerTorrentImpl(t));
+		}
 	}
-	
 	
 	public boolean
 	handleExternalRequest(
@@ -146,4 +154,18 @@ TrackerImpl
 		
 		return( false );
 	}	
+	
+	public void
+	addListener(
+		TrackerListener		listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		TrackerListener		listener )
+	{
+		listeners.remove( listener );
+	}
 }

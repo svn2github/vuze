@@ -54,4 +54,12 @@ Tracker
     public void
     addPageGenerator(
     	TrackerWebPageGenerator	generator );
+    
+    public void
+    addListener(
+   		TrackerListener		listener );
+    
+    public void
+    removeListener(
+   		TrackerListener		listener );
 }

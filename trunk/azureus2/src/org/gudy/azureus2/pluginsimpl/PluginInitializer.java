@@ -24,7 +24,7 @@ package org.gudy.azureus2.pluginsimpl;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Properties;
+import java.util.*;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -45,13 +45,51 @@ public class PluginInitializer {
   private Class[]	builtin_plugins = new Class[]{ 	TrackerWebDefaultStaticPlugin.class,
   													TrackerWebDefaultTrackerPlugin.class,};
   
-  URLClassLoader classLoader;
+  private static PluginInitializer	singleton;
+  private static List		registration_queue = new ArrayList();
+  
+  private URLClassLoader classLoader;
   private GlobalManager gm;
   private SplashWindow splash;
   
   private TRHost	tracker_host;
   
-  public PluginInitializer(GlobalManager gm,SplashWindow splash) {
+  
+  public static synchronized PluginInitializer
+  getSingleton(
+  	GlobalManager 	gm,
+	SplashWindow 	splash )
+  {
+  	if ( singleton == null ){
+  		
+  		singleton = new PluginInitializer( gm, splash );
+  		
+  		for (int i=0;i<registration_queue.size();i++){
+  			
+  			singleton.initializePluginFromClass((Class)registration_queue.get(i));
+  		}
+  		
+  		registration_queue.clear();
+  	}
+  	
+  	return( singleton );
+  }
+  
+  protected static synchronized void
+  queueRegistration(
+  	Class	_class )
+  {
+  	if ( singleton == null ){
+  		
+  		registration_queue.add( _class );
+ 
+  	}else{
+  		
+  		singleton.initializePluginFromClass( _class );
+  	}
+  }
+  
+  protected PluginInitializer(GlobalManager gm,SplashWindow splash) {
     this.gm = gm;
     this.splash = splash;
     
@@ -128,7 +166,7 @@ public class PluginInitializer {
     }
   }
   
-  private void initializePluginFromClass(Class plugin_class) {
+  protected void initializePluginFromClass(Class plugin_class) {
   	classLoader = null;
  
   	try{
