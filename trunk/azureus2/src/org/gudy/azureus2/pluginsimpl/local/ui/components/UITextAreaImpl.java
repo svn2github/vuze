@@ -45,6 +45,11 @@ UITextAreaImpl
 	setText(
 		String		text )
 	{
+		if ( text.length() > 60000 ){
+						
+			text = text.substring( text.length() - 50000 );
+		}
+		
 		setProperty( PT_VALUE, text );
 	}
 		

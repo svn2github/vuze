@@ -172,17 +172,9 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
         String new_value = (String) ev.getNewPropertyValue();
      
         if ( new_value.startsWith( old_value )){
-        	
-        		// simple stuff to ensure log doesn't grow too large
-        	
-        	if ( new_value.length() > 60000 ){
-        		       		
-        		model.getLogArea().setText( new_value.substring( new_value.length() - 50000 ));
-        		
-        	}else{
-        		
-        		log.append( new_value.substring(old_value.length()));
-        	}
+               		
+        	log.append( new_value.substring(old_value.length()));
+       
         }else{
         	log.setText(new_value);
         }
