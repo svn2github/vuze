@@ -73,6 +73,38 @@ TrackerTorrent
 	public long
 	getCompletedCount();
 	
+		/**
+		 * total bytes received by the tracker for this torrent - announce and scrape requests
+		 * @return
+		 */
+	
+	public long
+	getTotalBytesIn();
+	
+		/**
+		 * average rate of bytes in
+		 * @return
+		 */
+	
+	public long
+	getAverageBytesIn();
+	
+		/**
+		 * total bytes sent as response by the tracker - announce and scrape responses
+		 * @return
+		 */
+	
+	public long
+	getTotalBytesOut();
+	
+		/**
+		 * average bytes sent
+		 * @return
+		 */
+	
+	public long
+	getAverageBytesOut();
+	
 	public Object
 	getAdditionalProperty(
 		String		name );

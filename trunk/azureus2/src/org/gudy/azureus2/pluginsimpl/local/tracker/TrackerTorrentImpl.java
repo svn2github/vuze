@@ -159,6 +159,30 @@ TrackerTorrentImpl
 		return( host_torrent.getCompletedCount());
 	}
 	
+	public long
+	getTotalBytesIn()
+	{
+		return( host_torrent.getTotalBytesIn());
+	}	
+	
+	public long
+	getAverageBytesIn()
+	{
+		return( host_torrent.getAverageBytesIn());
+	}
+	
+	public long
+	getTotalBytesOut()
+	{
+		return( host_torrent.getTotalBytesOut());
+	}
+	
+	public long
+	getAverageBytesOut()
+	{
+		return( host_torrent.getAverageBytesOut());
+	}
+	
 	public Object
 	getAdditionalProperty(
 		String		name )

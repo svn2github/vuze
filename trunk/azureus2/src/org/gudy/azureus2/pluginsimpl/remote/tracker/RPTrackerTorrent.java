@@ -176,7 +176,39 @@ RPTrackerTorrent
 		
 		return( 0 );	
 	}
+
+	public long
+	getTotalBytesIn()
+	{
+		notSupported();
+		
+		return( 0 );	
+	}	
 	
+	public long
+	getAverageBytesIn()
+	{
+		notSupported();
+		
+		return( 0 );	
+	}
+	
+	public long
+	getTotalBytesOut()
+	{
+		notSupported();
+		
+		return( 0 );	
+	}
+	
+	public long
+	getAverageBytesOut()
+	{
+		notSupported();
+		
+		return( 0 );	
+	}	
+
 	public Object
 	getAdditionalProperty(
 		String		name )
