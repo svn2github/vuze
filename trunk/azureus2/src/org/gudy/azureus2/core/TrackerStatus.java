@@ -26,10 +26,16 @@ public class TrackerStatus {
   public TrackerStatus(String trackerUrl) {    
     this.hashes = new HashMap();
     try {
-      if(trackerUrl.endsWith("/announce"))
+      int position = trackerUrl.lastIndexOf("/");
+      if(position < 0) 
+        this.scrapeURL = null;
+      if(trackerUrl.substring(position+1,position+9).equals("announce"))
+        this.scrapeURL = new URL(trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9));
+         /*     
+      if(trackerUrl.contains("/announce"))
         this.scrapeURL = new URL(trackerUrl.substring(0,trackerUrl.length()-9)  + "/scrape");
       else
-        this.scrapeURL = new URL(trackerUrl + "/scrape");
+        this.scrapeURL = new URL(trackerUrl + "/scrape");*/
     } catch (Exception e) {
       e.printStackTrace();
     } 
@@ -43,6 +49,8 @@ public class TrackerStatus {
   public synchronized void update() {
     InputStream is = null;
     try {
+      if(scrapeURL == null)
+        return;
       HttpURLConnection con = (HttpURLConnection) scrapeURL.openConnection();
       con.connect();
       is = con.getInputStream();
