@@ -65,12 +65,6 @@ TRHostPeerHostImpl
 		return( peer.getAmountLeft());
 	}
 	
-	public int
-	getNumberOfPeers()
-	{
-		return( peer.getNumberOfPeers());
-	}
-	
 	public String
 	getIP()
 	{

@@ -59,7 +59,7 @@ TRTrackerServerTorrentImpl
 	protected List				listeners	= new ArrayList();
 	protected boolean			deleted;
 	
-	protected
+	public
 	TRTrackerServerTorrentImpl(
 		HashWrapper				_hash )
 	{
@@ -186,7 +186,7 @@ TRTrackerServerTorrentImpl
 				
 			le_diff = stopped?0:(left - peer.getAmountLeft());
 			
-			peer.setStats( uploaded, downloaded, left, numwant );
+			peer.setStats( uploaded, downloaded, left );
 		}
 		
 		stats.addAnnounce( ul_diff, dl_diff, le_diff );

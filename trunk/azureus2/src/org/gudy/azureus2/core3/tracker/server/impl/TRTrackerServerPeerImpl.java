@@ -45,7 +45,6 @@ TRTrackerServerPeerImpl
 	protected long			uploaded;
 	protected long			downloaded;
 	protected long			amount_left;
-	protected int			numwant;
 	
 	protected
 	TRTrackerServerPeerImpl(
@@ -175,13 +174,11 @@ TRTrackerServerPeerImpl
 	setStats(
 		long		_uploaded,
 		long		_downloaded,
-		long		_amount_left,
-		int			_numwant )
+		long		_amount_left )
 	{
 		uploaded	= _uploaded;
 		downloaded	= _downloaded;
 		amount_left	= _amount_left;
-		numwant	= _numwant;
 	}
 	
 	public long
@@ -206,12 +203,6 @@ TRTrackerServerPeerImpl
 	isSeed()
 	{
 		return( amount_left == 0 );
-	}
-	
-	public int
-	getNumberOfPeers()
-	{
-		return( numwant );
 	}
 	
 	protected String

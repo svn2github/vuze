@@ -36,6 +36,8 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.core3.util.*;
 
+import org.gudy.azureus2.core3.tracker.server.impl.*;
+
 public class 
 Main
 	implements Plugin, PluginListener
@@ -94,6 +96,7 @@ Main
 		
 		// getSingleton();
 		
+		/*
 		try{
 			URL	tracker = new URL("http://192.168.0.2:6969/announce" );
 			
@@ -107,6 +110,31 @@ Main
 			
 			e.printStackTrace();
 		}
+		*/
+		
+		HashWrapper	hash = new HashWrapper("kjlklk".getBytes());
+		
+		TRTrackerServerTorrentImpl torrent = new TRTrackerServerTorrentImpl( hash );
+
+		Runtime	rt= Runtime.getRuntime();
+		
+		System.out.println( "used = " + ( rt.totalMemory() - rt.freeMemory()));
+		
+		for (int i=0;i<50000;i++){
+			
+			try{
+				if ( i%1000 == 0 ){
+					System.out.println(i);
+				}
+				torrent.peerContact("started", "wee" + i, 1234, "moo" + i, "", 0, 0, 0, 100, 100000 );
+			}catch( Throwable e ){
+				e.printStackTrace();
+			}
+		}
+		
+		rt.gc();
+		
+		System.out.println( "used = " + ( rt.totalMemory() - rt.freeMemory()));
 	}
 
 	protected static Semaphore			init_sem = new Semaphore();

@@ -37,9 +37,6 @@ TRTrackerServerPeer
 	public long
 	getAmountLeft();
 	
-	public int
-	getNumberOfPeers();
-	
 	public String
 	getIP();
 	
