@@ -8,9 +8,12 @@ package org.gudy.azureus2.ui.common;
 
 import java.io.FileReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.StringReader;
 
+import java.lang.reflect.Constructor;
 import java.net.Socket;
 
 import java.text.SimpleDateFormat;
@@ -36,8 +39,6 @@ import org.apache.log4j.PatternLayout;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.pluginsimpl.PluginInitializer;
-
-import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  *
@@ -190,18 +191,41 @@ public class Main {
       if (UIConst.GM != null)
       	UIConst.GM.startChecker();
       
+      Class clConsoleInput;
+      Constructor conConsoleInput =null;
+      try {
+      	clConsoleInput = Class.forName("org.gudy.azureus2.ui.console.ConsoleInput");
+      	Class params[] = {String.class, GlobalManager.class, Reader.class, PrintStream.class, Boolean.class};
+      	conConsoleInput=clConsoleInput.getConstructor(params);
+      } catch (Exception e) {
+      	e.printStackTrace();
+      }
       if (commands.hasOption('e')) {
-        try {
-          new ConsoleInput(commands.getOptionValue('e'), UIConst.GM, new FileReader(commands.getOptionValue('e')), System.out, false);
-        } catch (java.io.FileNotFoundException e) {
-          Logger.getLogger("azureus2").error("Script file not found: "+e.toString());
-        }
+      	if (conConsoleInput != null) {
+	        try {
+	        	Object params[] = {commands.getOptionValue('e'), UIConst.GM, new FileReader(commands.getOptionValue('e')), System.out, Boolean.FALSE};
+	        	conConsoleInput.newInstance(params);
+	        } catch (java.io.FileNotFoundException e) {
+	          Logger.getLogger("azureus2").error("Script file not found: "+e.toString());
+	        } catch (Exception e) {
+	        	Logger.getLogger("azureus2").error("Error invocating the script processor: "+e.toString());
+	        }
+      	} else
+      		Logger.getLogger("azureus2").error("ConsoleInput class not found. You need the console ui package to use '-e'");
       }
       
       if (commands.hasOption('c')) {
-        String comm = commands.getOptionValue('c');
-        comm+="\nlogout\n";
-        new ConsoleInput(commands.getOptionValue('c'), UIConst.GM, new StringReader(comm), System.out, false);
+      	if (conConsoleInput != null) {
+	        String comm = commands.getOptionValue('c');
+	        comm+="\nlogout\n";
+	        Object params[] = {commands.getOptionValue('c'), UIConst.GM, new StringReader(comm), System.out, Boolean.FALSE};
+	        try {
+	        	conConsoleInput.newInstance(params);
+	        } catch (Exception e) {
+	        	Logger.getLogger("azureus2").error("Error invocating the script processor: "+e.toString());
+	        }
+      	} else
+      		Logger.getLogger("azureus2").error("ConsoleInput class not found. You need the console ui package to use '-e'");
       }
       
       openTorrents(theRest);

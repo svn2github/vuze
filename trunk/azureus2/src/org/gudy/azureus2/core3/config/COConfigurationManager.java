@@ -178,5 +178,10 @@ COConfigurationManager
                 return ConfigurationDefaults.getInstance().doesParameterExist(parameter);
         }
         
-
+  public static void
+  registerExternalDefaults(
+  				Map							addmap)
+  {
+  	ConfigurationDefaults.getInstance().registerExternalDefaults(addmap);
+  }
 }
