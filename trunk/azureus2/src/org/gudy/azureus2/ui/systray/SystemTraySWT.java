@@ -34,6 +34,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import java.util.List;
 
@@ -51,8 +52,8 @@ public class SystemTraySWT {
   
   Menu menu;
 
-  public SystemTraySWT(MainWindow mainWindow) {
-    this.mainWindow = mainWindow;
+  public SystemTraySWT(MainWindow _mainWindow) {
+    this.mainWindow = _mainWindow;
     this.display = mainWindow.getDisplay();
     
     tray = display.getSystemTray();
@@ -112,14 +113,14 @@ public class SystemTraySWT {
     
     itemStopAll.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        SystemTraySWT.this.mainWindow.getGlobalManager().stopAllDownloads();
+      	ManagerUtils.asyncStopAll();
       }
     });
     
     
     itemPause.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
-        	SystemTraySWT.this.mainWindow.getGlobalManager().pauseDownloads();
+        	ManagerUtils.asyncPause();
         }
       });
       

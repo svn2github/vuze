@@ -1370,8 +1370,9 @@ public class MyTorrentsView
 //*/
         if (e.stateMask == (SWT.CTRL|SWT.SHIFT)) {
           // CTRL+SHIFT+S stop all Torrents
-          if(e.character == 0x13)
-            globalManager.stopAllDownloads();
+          if(e.character == 0x13){
+          	ManagerUtils.asyncStopAll();
+          }
         } else if (e.stateMask == SWT.CTRL) {
           // CTRL+CURSOR DOWN move selected Torrents one down
           if(e.keyCode == 0x1000001)
@@ -1451,7 +1452,7 @@ public class MyTorrentsView
     }
   }
 
-  private void removeTorrent(DownloadManager dm, boolean bDeleteTorrent, boolean bDeleteData) {
+  private void removeTorrent(final DownloadManager dm, final boolean bDeleteTorrent, final boolean bDeleteData) {
     
     if( COConfigurationManager.getBooleanParameter( "confirm_torrent_removal" ) ) {
     	
@@ -1488,16 +1489,24 @@ public class MyTorrentsView
     }
 
     if (choice == SWT.YES) {
-      try {
-        dm.stopIt( DownloadManager.STATE_STOPPED, bDeleteTorrent, bDeleteData );
-        dm.getGlobalManager().removeDownloadManager( dm );
-      }
-      catch (GlobalManagerDownloadRemovalVetoException f) {
-        Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
-      }
-      catch (Exception ex) {
-        Debug.printStackTrace( ex );
-      }
+      	new AEThread( "asyncStop", true )
+		{
+    		public void
+			runSupport()
+    		{
+
+		      try {
+		        dm.stopIt( DownloadManager.STATE_STOPPED, bDeleteTorrent, bDeleteData );
+		        dm.getGlobalManager().removeDownloadManager( dm );
+		      }
+		      catch (GlobalManagerDownloadRemovalVetoException f) {
+		        Alerts.showErrorMessageBoxUsingResourceString("globalmanager.download.remove.veto", f);
+		      }
+		      catch (Exception ex) {
+		        Debug.printStackTrace( ex );
+		      }
+    		}
+		}.start();
     }
   }
 

@@ -37,6 +37,15 @@ AEThread
 	{
 		super(name);
 	}
+	public
+	AEThread(
+		String	name,
+		boolean	daemon )
+	{
+		super(name);
+		
+		setDaemon( daemon );
+	}
 	
 	public void
 	run()

@@ -17,6 +17,7 @@ import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -248,7 +249,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	    return;
 	  }
 	  if(itemKey.equals("remove")) {
-	  	try{
+	  
         
         if( COConfigurationManager.getBooleanParameter( "confirm_torrent_removal" ) ) {
           MessageBox mb = new MessageBox(folder.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
@@ -259,15 +260,23 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
           }
         }
         
-        manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
-        manager.getGlobalManager().removeDownloadManager( manager );
-	  		
-	  	}catch( GlobalManagerDownloadRemovalVetoException e ){
-	  		
-	  		Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
-	  	}
-	  	
-	    return;
+       	new AEThread( "asyncStop", true )
+			{
+        		public void
+				runSupport()
+        		{
+        			try{
+        		        
+				        manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
+				        
+				        manager.getGlobalManager().removeDownloadManager( manager );
+					  		
+        			}catch( GlobalManagerDownloadRemovalVetoException e ){
+					  		
+        				Alerts.showErrorMessageBoxUsingResourceString( "globalmanager.download.remove.veto", e );
+					}
+        		}
+			}.start();
 	  }
   }
   

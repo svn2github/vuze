@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 /**
  * @author Olivier
  * 
@@ -145,7 +146,7 @@ public class TrayWindow implements GlobalManagerListener {
     Messages.setLanguageText(file_stopalldownloads, "TrayWindow.menu.stopalldownloads"); //$NON-NLS-1$
     file_stopalldownloads.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        globalManager.stopAllDownloads();
+      	ManagerUtils.asyncStopAll();
       }
     });
 

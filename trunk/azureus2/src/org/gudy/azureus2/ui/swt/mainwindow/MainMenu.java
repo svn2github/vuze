@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -51,6 +52,7 @@ import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import java.util.Locale;
 
@@ -307,14 +309,14 @@ public class MainMenu {
       
       itemStopAll.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
-        	mainWindow.getGlobalManager().stopAllDownloads();
+        	ManagerUtils.asyncStopAll();
         }
       });
 
       itemPause.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) 
         {
-        	mainWindow.getGlobalManager().pauseDownloads();
+        	ManagerUtils.asyncPause();
         }
       });
       

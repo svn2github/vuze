@@ -33,8 +33,10 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 import java.io.IOException;
 
@@ -100,7 +102,8 @@ public class ManagerUtils {
     if(dm == null)
       return false;
     int state = dm.getState();
-    if (state == DownloadManager.STATE_STOPPED) {
+    if (	state == DownloadManager.STATE_STOPPED ||
+    		state == DownloadManager.STATE_STOPPING	) {
       return false;
     }
     return true;
@@ -168,13 +171,21 @@ public class ManagerUtils {
   }
   
   
-  public static void start(DownloadManager dm) {
+  public static void 
+  start(
+  		DownloadManager dm) 
+  {
     if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
+    	
       dm.setState(DownloadManager.STATE_WAITING);
     }
   }
 
-  public static void queue(DownloadManager dm,Composite panel) {
+  public static void 
+  queue(
+  		DownloadManager dm,
+		Composite panel) 
+  {
     if (dm != null) {
     	if (dm.getState() == DownloadManager.STATE_STOPPED){
     		
@@ -197,8 +208,18 @@ public class ManagerUtils {
   	stop(dm, panel, DownloadManager.STATE_STOPPED);
   }
   
-  public static void stop(DownloadManager dm,Composite panel,int stateAfterStopped) {
-    if (dm != null && dm.getState() != DownloadManager.STATE_STOPPED && dm.getState() != stateAfterStopped) {
+  public static void 
+  stop(
+  		DownloadManager dm,
+		Composite panel,
+		int stateAfterStopped ) 
+  {
+  	
+    if (	dm != null && 
+    		dm.getState() != DownloadManager.STATE_STOPPED &&
+			dm.getState() != DownloadManager.STATE_STOPPING && 
+			dm.getState() != stateAfterStopped) {
+    	
       if (dm.getState() == DownloadManager.STATE_SEEDING
           && dm.getStats().getShareRatio() >= 0
           && dm.getStats().getShareRatio() < 1000
@@ -211,13 +232,55 @@ public class ManagerUtils {
             + "%.\n"
             + MessageText.getString("seedmore.uploadmore"));
         int action = mb.open();
-        if (action == SWT.YES)
-          dm.stopIt( stateAfterStopped, false, false );
-      }
-      else {
-        dm.stopIt( stateAfterStopped, false, false );
+        if (action == SWT.YES){
+        	asyncStop( dm, stateAfterStopped );
+        }
+      }else {
+  
+      	asyncStop( dm, stateAfterStopped );
       }
     }
   }
   
+  	public static void
+	asyncStop(
+		final DownloadManager	dm,
+		final int 				stateAfterStopped )
+  	{
+    	new AEThread( "asyncStop", true )
+		{
+    		public void
+			runSupport()
+    		{
+    			dm.stopIt( stateAfterStopped, false, false );
+    		}
+		}.start();
+  	}
+  	
+  	public static void
+	asyncStopAll()
+  	{
+		new AEThread( "asyncStopAll", true )
+		{
+			public void
+			runSupport()
+			{
+       			MainWindow.getWindow().getGlobalManager().stopAllDownloads();
+			}
+			
+		}.start();
+  	}
+  	
+  	public static void
+	asyncPause()
+  	{
+     	new AEThread( "asyncPause", true )
+		{
+    		public void
+			runSupport()
+    		{
+    			MainWindow.getWindow().getGlobalManager().pauseDownloads();
+    		}
+		}.start();
+  	}
 }
