@@ -67,13 +67,12 @@ public class SocketManager {
         try {
           channel = SocketChannel.open();
           
+          channel.socket().setReceiveBufferSize( 256*1024 );
+          
           String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
           if ( bindIP.length() > 6 ) {
             channel.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), 0));
           }
-          
-          channel.socket().setReceiveBufferSize( PEPeerTransport.RECEIVE_BUFF_SIZE );
-          //channel.socket().setSendBufferSize( COConfigurationManager.getIntParameter("MTU.Size") );
           
           channel.configureBlocking( false );
           channel.connect( address );
