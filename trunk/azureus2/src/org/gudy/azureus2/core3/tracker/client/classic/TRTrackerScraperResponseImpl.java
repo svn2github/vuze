@@ -79,11 +79,6 @@ public class TRTrackerScraperResponseImpl
   }
   
   protected void setStatus(int iStatus, String sStatus) {
-    setStatus(iStatus, sStatus, false);
-  }
-
-  protected void setStatus(int iStatus, String sStatus, 
-                           boolean bAppendNextScrapeTime) {
     if (last_status != status)
       last_status = status;
     if (iStatus == TRTrackerScraperResponse.ST_ONLINE) {
@@ -92,20 +87,9 @@ public class TRTrackerScraperResponseImpl
       status = iStatus;
     }
 
-    String sNewStatus = sStatus;
-    if (bAppendNextScrapeTime) {
-      if (!sNewStatus.endsWith(".")) {
-        sNewStatus += ".  ";
-      } else if (!sNewStatus.equals("")) {
-        sNewStatus += "  ";
-      }
-      String[] params = { DisplayFormatters.formatTime(nextScrapeStartTime) };
-      sNewStatus += MessageText.getString("Scrape.status.nextScrapeAt", params);
-    }
-
-    if (!sLastStatus.equals(sNewStatus)) {
-      sLastStatus = sStatus;
-      this.sStatus = sNewStatus;
+    if (!sLastStatus.equals(sStatus)) {
+      sLastStatus = this.sStatus;
+      this.sStatus = sStatus;
     }
   }
   

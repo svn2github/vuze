@@ -7,6 +7,7 @@ package org.gudy.azureus2.core3.tracker.client.classic;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileNotFoundException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -220,12 +221,14 @@ public class TrackerStatus {
         }
           
               
-        LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
-                     "Response from scrape interface : " + message);
-        
         Map map = BDecoder.decode(message.toByteArray());
-        
         Map mapFiles = (Map) map.get("files");
+
+        LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
+                     "Response from scrape interface " + scrapeURL + ": " + 
+                     ((mapFiles == null) ? "null" : ""+mapFiles.size()) +
+                     " returned");
+
         if (mapFiles == null || mapFiles.size() == 0) {
           if (responses.size() > 1) {
             // multi were requested, 0 returned.  Therefore, multi not supported
@@ -235,8 +238,7 @@ public class TrackerStatus {
             for (int i = 0; i < responses.size(); i++) {
 		          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
               response.setStatus(TRTrackerScraperResponse.ST_ERROR,
-                                 MessageText.getString("Scrape.status.error.invalid"),
-                                 true);
+                                 MessageText.getString("Scrape.status.error.invalid"));
             }
           } else {
             // 1 was requested, 0 returned.  Therefore, hash not found.
@@ -281,7 +283,7 @@ public class TrackerStatus {
               // will attempt to scrape again because we didn't reset the 
               // nextscrapestarttime.  But the next time, bSingleHashScrapes
               // will be false, and only 1 has will be requested, so there
-              // will be infinite looping
+              // will not be infinite looping
             }
           	// System.out.println("scrape: hash missing from reply");
           } else {
@@ -291,10 +293,20 @@ public class TrackerStatus {
               
             //make sure we dont use invalid replies
             if ( seeds < 0 || peers < 0 ) {
+              System.out.println("scrapeMap="+scrapeMap);
+              // We requested multiple hashes, but tracker didn't support
+              // multiple hashes and returned 1 hash.  However, that hash is
+              // invalid because seeds or peers was < 0.  So, exit.  Scrape
+              // manager will run scrapes for each individual hash.
+              if (responses.size() > 1 && bSingleHashScrapes)
+                return;
             	response.setNextScrapeStartTime(SystemTime.getCurrentTime() + FAULTY_SCRAPE_RETRY_INTERVAL);
             	response.setStatus(TRTrackerScraperResponse.ST_ERROR,
                                  MessageText.getString("Scrape.status.error") +
-                                 MessageText.getString("Scrape.status.error.invalid"));
+                                 MessageText.getString("Scrape.status.error.invalid") + " " +
+                                 (seeds < 0 ? MessageText.getString("MyTorrentsView.seeds") + " == " + seeds + ". " : "") +
+                                 (peers < 0 ? MessageText.getString("MyTorrentsView.peers") + " == " + peers + ". " : "")
+                                 );
               scraper.scrapeReceived( response );
               return;
             }
@@ -331,9 +343,10 @@ public class TrackerStatus {
     	      //create the response
     	      response.setScrapeStartTime(scrapeStartTime);
     	      response.seeds = seeds;
-    	      response.peers = peers; 
-            response.setStatus(TRTrackerScraperResponse.ST_ONLINE,
-                               MessageText.getString("Scrape.status.ok"), true);
+    	      response.peers = peers;
+            response.setStatus(TRTrackerScraperResponse.ST_ONLINE, 
+                               MessageText.getString("Scrape.status.ok") +
+                               ((bSingleHashScrapes) ? " " + MessageText.getString("Scrape.status.NoMultiSupport") : ""));
 
             //notifiy listeners
             scraper.scrapeReceived( response );
@@ -347,21 +360,41 @@ public class TrackerStatus {
                                           FAULTY_SCRAPE_RETRY_INTERVAL);
           response.setStatus(TRTrackerScraperResponse.ST_ERROR,
                              MessageText.getString("Scrape.status.error") + 
-                             ignoreSSL.getMessage(), true);
+                             ignoreSSL.getMessage());
           //notifiy listeners
           scraper.scrapeReceived( response );
         }
-      } catch (Exception e) {
-        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
-  									"Response from scrape interface " + scrapeURL + " : " + e);
-   
+      } catch (FileNotFoundException e) {
         for (int i = 0; i < responses.size(); i++) {
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
           response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                           FAULTY_SCRAPE_RETRY_INTERVAL);
           response.setStatus(TRTrackerScraperResponse.ST_ERROR,
                              MessageText.getString("Scrape.status.error") + 
-                             e.getMessage(), true);
+                             MessageText.getString("DownloadManager.error.filenotfound"));
+          //notifiy listeners
+          scraper.scrapeReceived( response );
+        }
+      } catch (ConnectException e) {
+        for (int i = 0; i < responses.size(); i++) {
+          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
+          response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
+                                          FAULTY_SCRAPE_RETRY_INTERVAL);
+          response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                             MessageText.getString("Scrape.status.error") + e.getLocalizedMessage());
+          //notifiy listeners
+          scraper.scrapeReceived( response );
+        }
+      } catch (Exception e) {
+        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
+  									"Error from scrape interface " + scrapeURL + " : " + e);
+   
+        for (int i = 0; i < responses.size(); i++) {
+          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
+          response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
+                                          FAULTY_SCRAPE_RETRY_INTERVAL);
+          response.setStatus(TRTrackerScraperResponse.ST_ERROR,
+                             MessageText.getString("Scrape.status.error") + e);
           //notifiy listeners
           scraper.scrapeReceived( response );
         }
