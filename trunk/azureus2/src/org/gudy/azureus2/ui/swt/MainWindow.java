@@ -99,6 +99,7 @@ import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 import org.gudy.azureus2.ui.swt.auth.*;
+import org.gudy.azureus2.ui.swt.sharing.*;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -392,8 +393,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Messages.setLanguageText(fileItem, "MainWindow.menu.file"); //$NON-NLS-1$
     Menu fileMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     fileItem.setMenu(fileMenu);
+    
     MenuItem file_new = new MenuItem(fileMenu, SWT.CASCADE);
     Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
+    
+    MenuItem file_share= new MenuItem(fileMenu, SWT.CASCADE);
+    Messages.setLanguageText(file_share, "MainWindow.menu.file.share"); //$NON-NLS-1$
+    
     MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
 
@@ -413,6 +419,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
 
+    	// file->open submenus
+    
     Menu newMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     file_new.setMenu(newMenu);
 
@@ -447,6 +455,43 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
     });
 
+    	// file->share submenus
+    
+    Menu shareMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+    file_share.setMenu(shareMenu);
+
+    MenuItem file_share_file = new MenuItem(shareMenu, SWT.NULL);
+    Messages.setLanguageText(file_share_file, "MainWindow.menu.file.share.file");
+    file_share_file.addListener(SWT.Selection, new Listener() {
+    	public void handleEvent(Event e) {
+    		ShareUtils.shareFile( mainWindow );
+    	}
+    });
+    
+    MenuItem file_share_dir = new MenuItem(shareMenu, SWT.NULL);
+    Messages.setLanguageText(file_share_dir, "MainWindow.menu.file.share.dir");
+    file_share_dir.addListener(SWT.Selection, new Listener() {
+    	public void handleEvent(Event e) {
+    		ShareUtils.shareDir( mainWindow );
+    	}
+    });
+    
+    MenuItem file_share_dircontents = new MenuItem(shareMenu, SWT.NULL);
+    Messages.setLanguageText(file_share_dircontents, "MainWindow.menu.file.share.dircontents");
+    file_share_dircontents.addListener(SWT.Selection, new Listener() {
+    	public void handleEvent(Event e) {
+    		ShareUtils.shareDirContents( mainWindow, false );
+    	}
+    });
+    MenuItem file_share_dircontents_rec = new MenuItem(shareMenu, SWT.NULL);
+    Messages.setLanguageText(file_share_dircontents_rec, "MainWindow.menu.file.share.dircontentsrecursive");
+    file_share_dircontents_rec.addListener(SWT.Selection, new Listener() {
+    	public void handleEvent(Event e) {
+    		ShareUtils.shareDirContents( mainWindow, true );
+    	}
+    });
+       	// file->create
+    
     file_create.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         new NewTorrentWizard(display);
@@ -1849,7 +1894,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     try {
       if (!FileUtil.isTorrentFile(fileName)){
       	
-        shareFile( fileName );
+        ShareUtils.shareFile( fileName );
         
         return;
       }
@@ -1874,19 +1919,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           .start();
         }
       });
-  }
-
-  protected void
-  shareFile(
-  	String	file_name )
-  {
-  	try{
-  		PluginInitializer.getDefaultInterface().getShareManager().addFile(new File(file_name));
-  		
-  	}catch( Throwable e ){
-  		
-  		e.printStackTrace();
-  	}
   }
   
   public String getSavePath(String fileName) {
