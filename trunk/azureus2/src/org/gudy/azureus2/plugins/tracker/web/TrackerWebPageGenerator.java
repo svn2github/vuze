@@ -1,8 +1,8 @@
 /*
- * File    : Tracker.java
- * Created : 30 nov. 2003
- * By      : Olivier
- *
+ * File    : TrackerWebPageGenerator.java
+ * Created : 08-Dec-2003
+ * By      : parg
+ * 
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,30 +18,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.plugins.tracker;
+
+package org.gudy.azureus2.plugins.tracker.web;
 
 /**
- * @author Olivier
+ * @author parg
  *
  */
 
-import org.gudy.azureus2.plugins.tracker.web.*;
-
-public interface Tracker {
-    /**
-     * adds an identificator to the tracker
-     * @param indentificator the Identificator
-     */
-    public void addTrackerIdentificator(Identificator identificator);
-    
-    /**
-     * adds a stats listener to the tracker
-     * @param listener
-     */
-    public void addTrackerStatsListener(StatsListener listener);
-    
-    public void
-    addPageGenerator(
-    	TrackerWebPageGenerator	generator );
+public interface 
+TrackerWebPageGenerator 
+{
+	public void
+	generate(
+		TrackerWebPageRequest		request,
+		TrackerWebPageResponse		response );
 }
