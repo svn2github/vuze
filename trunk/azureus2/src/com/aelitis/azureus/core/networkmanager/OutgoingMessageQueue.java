@@ -333,44 +333,56 @@ public class OutgoingMessageQueue {
   
   
   private void notifyAddListeners( ProtocolMessage msg ) {
+    ArrayList listeners;
+    
     try{
       add_listeners_mon.enter();
-    
-      for( int i=0; i < add_listeners.size(); i++ ) {
-        AddedMessageListener listener = (AddedMessageListener)add_listeners.get( i );
-        listener.messageAdded( msg );
-      }
-    }finally{
+      listeners = (ArrayList)add_listeners.clone();
+    }
+    finally{
       add_listeners_mon.exit();
+    } 
+    
+    //notify outside the sync block using a copy of the listeners list to avoid potential deadlock
+    for( int i=0; i < listeners.size(); i++ ) {
+      AddedMessageListener listener = (AddedMessageListener)listeners.get( i );
+      listener.messageAdded( msg );
     }
   }
   
   
   private void notifySentListeners( ProtocolMessage msg ) {
+    ArrayList listeners;
+    
     try{
       sent_listeners_mon.enter();
-    
-      for( int i=0; i < sent_listeners.size(); i++ ) {
-        SentMessageListener listener = (SentMessageListener)sent_listeners.get( i );
-        listener.messageSent( msg );
-      }
-    }finally{
+      listeners = (ArrayList)sent_listeners.clone();
+    }
+    finally{
       sent_listeners_mon.exit();
+    } 
+      
+    for( int i=0; i < listeners.size(); i++ ) {
+      SentMessageListener listener = (SentMessageListener)listeners.get( i );
+      listener.messageSent( msg );
     }
   }
   
   
   private void notifyByteListeners( int byte_count ) {
+    ArrayList listeners;
+
     try{
       byte_listeners_mon.enter();
-    
-      for( int i=0; i < byte_listeners.size(); i++ ) {
-        ByteListener listener = (ByteListener)byte_listeners.get( i );
-        listener.bytesSent( byte_count );
-      }
-    }finally{
+      listeners = (ArrayList)byte_listeners.clone();
+    }
+    finally{
       byte_listeners_mon.exit();
     }
+    
+    for( int i=0; i < listeners.size(); i++ ) {
+      ByteListener listener = (ByteListener)listeners.get( i );
+      listener.bytesSent( byte_count );
+    }
   }
-  
 }
