@@ -46,16 +46,37 @@ public class VirtualChannelSelector {
     private final AEMonitor 	register_cancel_list_mon	= new AEMonitor( "VirtualChannelSelector:RCL");
 
     
-    private final int INTEREST_OP;
-
+    private final int 		INTEREST_OP;
+    private final boolean	deregister_after_select_success;
+    
 
     /**
      * Create a new virtual selectable-channel selector,
      * selecting over the given interest-op(s).
+     * OP_READ will be left registered after select success, all others are cancelled
      * @param interest_op operation set of OP_ACCEPT, OP_CONNECT, OP_READ, OP_WRITE
      */
+    
     public VirtualChannelSelector( int interest_op ) {
-      this.INTEREST_OP = interest_op;
+    	this( interest_op, interest_op != SelectionKey.OP_READ );
+    }
+    
+    /**
+     * Create a new virtual selectable-channel selector,
+     * selecting over the given interest-op(s).
+     * @param _interest_op operation set of OP_ACCEPT, OP_CONNECT, OP_READ, OP_WRITE
+     * @param _deregister_after_select_success	whether or not to deregister after select success  
+     */
+    
+    public 
+	VirtualChannelSelector( 
+		int 		_interest_op,
+		boolean		_deregister_after_select_success ) 
+    {	 
+      INTEREST_OP = _interest_op;
+      
+      deregister_after_select_success	= _deregister_after_select_success;
+      
       selector_guard = new SelectorGuard( SELECTOR_FAIL_COUNT_MAX );
     	try {
     		selector = Selector.open();
@@ -278,7 +299,7 @@ public class VirtualChannelSelector {
           i.remove();
           RegistrationData data = (RegistrationData)key.attachment();
           if( key.isValid() ) {
-            if( INTEREST_OP != OP_READ ) { //read selections don't auto-remove
+            if( deregister_after_select_success ) { 
                 key.cancel();
             }
             data.listener.selectSuccess( this, data.channel, data.attachment );
@@ -301,10 +322,10 @@ public class VirtualChannelSelector {
         private final VirtualSelectorListener listener;
         private final Object attachment;
         
-      	private RegistrationData( SocketChannel channel, VirtualSelectorListener listener, Object attach ) {
-      		this.channel = channel;
-          this.listener = listener;
-          this.attachment = attach;
+      	private RegistrationData( SocketChannel _channel, VirtualSelectorListener _listener, Object _attachment ) {
+      		channel 		= _channel;
+      		listener		= _listener;
+      		attachment 		= _attachment;
       	}
       }
       
