@@ -10,7 +10,7 @@ FEATURE: Slowly establish new connections to peers (for those with internet disc
 FEATURE: Bind to local IP address [Nolar]
 FEATURE: Export/import torrent file to/from XML file [Parg]
 FEATURE: Export of runtime statistics to XML file [Parg]
-FEATURE: Hosting of torrents on built-in tracker [Parg]
+FEATURE: Hosting of torrents using built-in tracker [Parg]
 FEATURE: Trackers used in the 'make torrent' wizard are now remembered.
 
 CHANGE: Some GUI Changes, so that SWT WinXP theme is better supported [Gudy]
@@ -27,3 +27,4 @@ BUGFIX: Max torrent file size was limited to 1MB - limit removed [Parg]
 BUGFIX: Fix for several exceptions thrown during socket reads [Nolar]
 BUGFIX: Fix for exception thrown when peer sends an invalid bitfield [Nolar]
 BUGFIX: AZ was reporting cumulative upload/download stats to tracker - should be per session [Parg]
+BUGFIX: Fix for handling single data files larger than 2GB [Nolar]
