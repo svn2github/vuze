@@ -52,7 +52,12 @@ public class ConfigurationManager {
     BufferedInputStream bin = null;
     try {
       //open the file
-      fin = new FileInputStream(FileUtil.getApplicationPath() + filename);
+      String file_name = FileUtil.getApplicationPath() + filename;
+      
+      //System.out.println("file name = " + file_name );
+      
+      fin = new FileInputStream(file_name);
+      
       bin = new BufferedInputStream(fin);
       propertiesMap = BDecoder.decode(bin);
       if (propertiesMap == null)

@@ -78,13 +78,18 @@ public class MessageText {
     	
     		// java web start returns a url like "jar:file:c:/sdsd" which then fails as the file
     		// part doesn't start with a "/". Add it in!
-    		
+			// here's an example 
+			// jar:file:C:/Documents%20and%20Settings/stuff/.javaws/cache/http/Dparg.homeip.net/P9090/DMazureus-jnlp/DMlib/XMAzureus2.jar1070487037531!/org/gudy/azureus2/internat/MessagesBundle.properties
+			
     	if ( !urlString.startsWith("jar:file:/")){
     		urlString = "jar:file:/" + urlString.substring(9);
     	}
       try {
-        int posDirectory = urlString.indexOf(".jar!", 11);
-        String jarName = urlString.substring(4, posDirectory + 4);
+      	// you can see that the '!' must be present and that we can safely use the last occurrence of it
+      	
+        int posPling = urlString.lastIndexOf("!");
+        
+        String jarName = urlString.substring(4, posPling);
         //        System.out.println("jarName: " + jarName);
         URI uri = URI.create(jarName);
         File jar = new File(uri);

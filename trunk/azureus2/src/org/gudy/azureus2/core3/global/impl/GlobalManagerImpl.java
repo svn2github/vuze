@@ -65,9 +65,9 @@ public class GlobalManagerImpl
   private Checker checker;
   private GlobalManagerStatsImpl	stats;
   private TRTrackerScraper 			trackerScraper;
-  private StatsWriterPeriodic				stats_writer;
+  private StatsWriterPeriodic		stats_writer;
   private boolean 					isStopped = false;
-
+  private boolean					destroyed;
   
   public class Checker extends Thread {
     boolean finished = false;
@@ -283,6 +283,8 @@ public class GlobalManagerImpl
   public GlobalManagerImpl(
   	final GlobalManagerAdapter	_adapter ) 
   {
+    //Debug.dumpThreadsLoop("Active threads");
+  	
   	LGLogger.initialise();
   	
     stats = new GlobalManagerStatsImpl();
@@ -699,6 +701,44 @@ public class GlobalManagerImpl
   	protected void
   	informDestroyed()
   	{
+  		if ( destroyed )
+  		{
+  			return;
+  		}
+  		
+  		destroyed = true;
+  		
+		Thread t = new Thread("Azureus: destroy checker")
+			{
+				public void
+				run()
+				{
+					long	start = System.currentTimeMillis();
+							
+					while(true){
+								
+						try{
+							Thread.sleep(2500);
+						}catch( Throwable e ){
+							e.printStackTrace();
+						}
+								
+						if ( System.currentTimeMillis() - start > 10000 ){
+									
+								// java web start problem here...
+								
+							// Debug.dumpThreads("Azureus: slow stop - thread dump");
+							
+							// Debug.killAWTThreads(); doesn't work
+						}
+					}
+				}						
+			};
+					
+		t.setDaemon(true);
+				
+		t.start();
+
   		synchronized( listeners ){
   			
   			for (int i=0;i<listeners.size();i++){
@@ -719,7 +759,7 @@ public class GlobalManagerImpl
 				listener.destroyed();
 				
 			}else{			
-			
+							
 				listeners.addElement(listener);
 			
 				for (int i=0;i<managers.size();i++){
@@ -739,6 +779,4 @@ public class GlobalManagerImpl
 			listeners.removeElement(listener);
 		}
 	}
-  
-
 }

@@ -42,6 +42,7 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
 
   public TorrentDownloaderImpl() {
     super("Torrent Downloader");
+    setDaemon(true);
   }
 
   public void init(TorrentDownloaderCallBackInterface _iface, String _url) {

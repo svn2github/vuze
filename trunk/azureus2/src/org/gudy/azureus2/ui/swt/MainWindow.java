@@ -261,6 +261,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     
     public VersionChecker() {
       super("Version Checker");
+      
+      setDaemon(true);
     }
     public void run() {
       latestVersion = MessageText.getString("MainWindow.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$

@@ -77,7 +77,7 @@ StatsWriterPeriodicImpl
 		readConfigValues();
 		
 		while( true ){
-						
+									
 			synchronized( singleton ){
 				
 				if ( Thread.currentThread() != current_thread ){

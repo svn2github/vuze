@@ -39,4 +39,100 @@ public class Debug {
     System.out.println("  " + debug_message + "\n");
   }
 
+	public static void
+	killAWTThreads()
+	{
+		ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+			
+		killAWTThreads( threadGroup );
+	}
+	
+	public static void
+	killAWTThreads(
+		   ThreadGroup	threadGroup )
+	{
+		 Thread[] threadList = new Thread[threadGroup.activeCount()];
+			
+		 threadGroup.enumerate(threadList);
+			
+		 for (int i = 0;	i < threadList.length;	i++){
+
+		 	Thread t = 	threadList[i];
+		 	
+		 	if ( t != null ){
+		 		
+		 		String 	name = t.getName();
+		 		
+		 		if ( name.startsWith( "AWT" )){
+		 			
+		 			System.out.println( "Interrupting thread '" + t + "'" );
+		 			
+		 			t.interrupt();
+		 		}
+			}
+		}
+		
+		if ( threadGroup.getParent() != null ){
+	  	
+			killAWTThreads(threadGroup.getParent());
+		}	
+	}
+		
+	public static void
+	dumpThreads(
+		String	name )
+	{
+		System.out.println(name+":");
+			
+	  	ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+			
+	  	dumpThreads( threadGroup, "\t" );
+	}
+   
+   public static void
+   dumpThreads(
+   		ThreadGroup	threadGroup,
+   		String		indent )
+   {
+	  Thread[] threadList = new Thread[threadGroup.activeCount()];
+			
+	  threadGroup.enumerate(threadList);
+			
+	  for (int i = 0;	i < threadList.length;	i++){
+
+		Thread t = 	threadList[i];
+		
+		if ( t != null ){		
+		
+		   System.out.println( indent + "active thread = " + t + ", daemon = " + t.isDaemon());
+		}
+	  }
+	  
+	  if ( threadGroup.getParent() != null ){
+	  	
+	  	dumpThreads(threadGroup.getParent(),indent+"\t");
+	  }
+   }
+   
+   public static void
+   dumpThreadsLoop(
+   	final String	name )
+   {
+   	new Thread("Thread Dumper")
+	   {
+		   public void 
+		   run()
+		   {	
+			   while(true){
+				   Debug.dumpThreads(name);
+				   
+				   try{
+				   	Thread.sleep(5000);
+				   }catch( Throwable e ){
+				   	e.printStackTrace();
+				   }
+			   }
+		   }
+	   }.start();
+   }
 }
