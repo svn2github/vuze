@@ -158,6 +158,23 @@ CacheFileManagerImpl
 		return( cache_enabled );
 	}
 	
+		/**
+		 * allocates space but does NOT add it to the cache list due to synchronization issues. Basically
+		 * the caller mustn't hold their monitor when calling allocate, as a flush may result in one or more
+		 * other files being flushed which results in their monitor being taken, and we've got an A->B and 
+		 * B->A classic deadlock situation. However, we must keep the file's cache and our cache in step.
+		 * It is not acceptable to have an entry inserted into our records but not in the file's as this
+		 * then screws up the flush algorithm (which assumes that if it finds an entry in our list, a flush
+		 * of that file is guaranteed to release space). Therefore we add the cache entry in addCacheSpace
+		 * so that the caller can safely do this while synchronised firstly on its monitor and then we can
+		 * sync on our. Hence we only ever get A->B monitor grabs which won't deadlock
+		 * @param file
+		 * @param buffer
+		 * @param file_position
+		 * @param length
+		 * @return
+		 * @throws CacheFileManagerException
+		 */
 	protected CacheEntry
 	allocateCacheSpace(
 		CacheFileImpl		file,
@@ -168,49 +185,7 @@ CacheFileManagerImpl
 		throws CacheFileManagerException
 	{
 		boolean	ok 	= false;
-		boolean	log	= false;
-		
-		if ( DEBUG ){
-			
-			synchronized( this ){
-			
-				long	total_cache_size	= 0;
-				
-				int		my_count = 0;
-
-				Iterator it = cache_entries.keySet().iterator();
-				
-				while( it.hasNext()){
-					
-					CacheEntry	entry = (CacheEntry)it.next();
-					
-					total_cache_size	+= entry.getLength();
-					
-					if ( entry.getFile() == file ){
-						
-						my_count++;
-					}
-				}
-			
-				if ( my_count != file.cache.size()){
-					
-					System.out.println( "Cache inconsistency: my count = " + my_count + ", file = " + file.cache.size());
-					
-				}else{
-					
-					//System.out.println( "Cache: file_count = " + my_count );
-				}
-				
-				if ( total_cache_size != cache_size - cache_space_free ){
-					
-					System.out.println( "Cache inconsistency: used_size = " + total_cache_size + ", free = " + cache_space_free + ", size = " + cache_size );
-					
-				}else{
-					
-					//System.out.println( "Cache: usage = " + total_cache_size );
-				}
-			}
-		}
+		boolean	log	= false;		
 		
 		while( !ok ){
 			
@@ -251,8 +226,6 @@ CacheFileManagerImpl
 			
 			CacheEntry	entry = new CacheEntry( file, buffer, file_position, length );
 			
-			cache_entries.put( entry, entry );
-			
 			if ( log ){
 				
 				LGLogger.log( 
@@ -261,6 +234,60 @@ CacheFileManagerImpl
 			}
 			
 			return( entry );
+		}
+	}
+	
+	protected void
+	addCacheSpace(
+		CacheEntry		new_entry )
+	{
+		synchronized( this ){
+	
+			cache_entries.put( new_entry, new_entry );
+			
+			if ( DEBUG ){
+				
+				CacheFileImpl	file	= new_entry.getFile();
+				
+				synchronized( this ){
+				
+					long	total_cache_size	= 0;
+					
+					int		my_count = 0;
+
+					Iterator it = cache_entries.keySet().iterator();
+					
+					while( it.hasNext()){
+						
+						CacheEntry	entry = (CacheEntry)it.next();
+						
+						total_cache_size	+= entry.getLength();
+						
+						if ( entry.getFile() == file ){
+							
+							my_count++;
+						}
+					}
+				
+					if ( my_count != file.cache.size()){
+						
+						System.out.println( "Cache inconsistency: my count = " + my_count + ", file = " + file.cache.size());
+						
+					}else{
+						
+						//System.out.println( "Cache: file_count = " + my_count );
+					}
+					
+					if ( total_cache_size != cache_size - cache_space_free ){
+						
+						System.out.println( "Cache inconsistency: used_size = " + total_cache_size + ", free = " + cache_space_free + ", size = " + cache_size );
+						
+					}else{
+						
+						//System.out.println( "Cache: usage = " + total_cache_size );
+					}
+				}
+			}
 		}
 	}
 	

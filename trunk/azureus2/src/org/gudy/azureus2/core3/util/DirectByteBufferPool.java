@@ -495,6 +495,16 @@ public class DirectByteBufferPool {
   	private void
 	printInUse()
   	{
+  		CacheFileManager cm	= null;
+  		
+		try{
+ 			cm = CacheFileManagerFactory.getSingleton();
+ 			
+		}catch( Throwable e ){
+				
+			e.printStackTrace();
+		}
+ 
   		synchronized( handed_out ){
     	
   			Iterator	it = handed_out.values().iterator();
@@ -561,8 +571,7 @@ public class DirectByteBufferPool {
   	        	System.out.print("[" + DirectByteBuffer.AL_DESCS[key.intValue()]+ " x " +count.value+ "] ");
   			}
   			
-  			try{
-  				CacheFileManager cm = CacheFileManagerFactory.getSingleton();
+  			if ( cm != null ){
   				
   				CacheFileManagerStats stats = cm.getStats();
   				
@@ -574,9 +583,6 @@ public class DirectByteBufferPool {
 				System.out.print( ",fw=" + stats.getBytesWrittenToFile());
 				System.out.print( ",fr=" + stats.getBytesReadFromFile());
 				
-  			}catch( Throwable e ){
-  				
-  				e.printStackTrace();
   			}
   			
   			System.out.println();

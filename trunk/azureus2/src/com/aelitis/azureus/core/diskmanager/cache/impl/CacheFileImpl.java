@@ -125,7 +125,8 @@ CacheFileImpl
 	protected void
 	readCache(
 		DirectByteBuffer	file_buffer,
-		long				file_position )
+		long				file_position,
+		boolean				recursive )
 	
 		throws CacheFileManagerException
 	{
@@ -146,19 +147,20 @@ CacheFileImpl
 				
 				return;	// nothing to do
 			}
+							
+			long	writing_file_position	= file_position;
+			int		writing_left			= read_length;
+
+			boolean	ok 				= true;
+			int		used_entries	= 0;
 			
-			synchronized( this ){
-				
-				long	writing_file_position	= file_position;
-				int		writing_left			= read_length;
 		
 					// if we can totally satisfy the read from the cache, then use it
 					// otherwise flush the cache (not so smart here to only read missing)
-				
+			
+			synchronized( this ){
+
 				Iterator	it = cache.iterator();
-				
-				boolean	ok 				= true;
-				int		used_entries	= 0;
 				
 				while( ok && writing_left > 0 && it.hasNext()){
 				
@@ -226,104 +228,112 @@ CacheFileImpl
 						writing_left			-= available;
 					}
 				}
-				
-				if ( ok && writing_left == 0 ){
+			}
+			
+			if ( ok && writing_left == 0 ){
 					
-					manager.cacheBytesRead( read_length );
+				manager.cacheBytesRead( read_length );
 					
-					if ( TRACE ){
+				if ( TRACE ){
 						
-						LGLogger.log( "cacheRead: cache use ok [entries = " + used_entries + "]" );
-					}
+					LGLogger.log( "cacheRead: cache use ok [entries = " + used_entries + "]" );
+				}
 									
-				}else{
+			}else{
 					
-					if ( TRACE ){
+				if ( TRACE ){
 						
-						LGLogger.log( "cacheRead: cache use fails, reverting to plain read" );
-					}
+					LGLogger.log( "cacheRead: cache use fails, reverting to plain read" );
+				}
 							
-						// reset in case we've done some partial reads
+					// reset in case we've done some partial reads
 					
-					file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
+				file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
 					
-					try{
-						if ( 	READAHEAD_ENABLE &&
-								read_length <  read_ahead_size &&
-								file_position + read_ahead_size <= file.getLength()){
+				try{
+					if ( 	!recursive &&
+							READAHEAD_ENABLE &&
+							read_length <  read_ahead_size &&
+							file_position + read_ahead_size <= file.getLength()){
 							
-							if ( TRACE ){
+						if ( TRACE ){
 								
-								LGLogger.log( "\tread ahead hit" );
-							}
+							LGLogger.log( "\tperforming read-ahead" );
+						}
+							
+						DirectByteBuffer	cache_buffer = 
+								DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, read_ahead_size );
+							
+						cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
+							
+						cache_buffer.limit( DirectByteBuffer.SS_CACHE, read_ahead_size );
+							
+						boolean	buffer_cached	= false;
+							
+						try{
+								// flush before read so that any bits in cache get re-read correctly on read
 							
 							flushCache( file_position, read_ahead_size, true, -1 );
 							
-							DirectByteBuffer	cache_buffer = 
-								DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, read_ahead_size );
-							
-							cache_buffer.position(DirectByteBuffer.SS_CACHE, 0);
-							
-							cache_buffer.limit( DirectByteBuffer.SS_CACHE, read_ahead_size );
-							
-							boolean	buffer_cached	= false;
-							
-							try{
-								getFMFile().read( cache_buffer, file_position );
+							getFMFile().read( cache_buffer, file_position );
 		
-								manager.fileBytesRead( read_ahead_size );
+							manager.fileBytesRead( read_ahead_size );
 								
-								cache_buffer.position(DirectByteBuffer.SS_CACHE,0);
+							cache_buffer.position(DirectByteBuffer.SS_CACHE,0);
 							
-								CacheEntry	entry = manager.allocateCacheSpace( this, cache_buffer, file_position, read_ahead_size );
+							CacheEntry	entry = manager.allocateCacheSpace( this, cache_buffer, file_position, read_ahead_size );
 							
-								entry.setClean();
+							entry.setClean();
+			
+							synchronized( this ){
 							
+								flushCache( file_position, read_ahead_size, true, -1 );
+
 								cache.add( entry );
 								
-								buffer_cached	= true;
+								manager.addCacheSpace( entry );
+							}
 								
-								manager.cacheBytesWritten( read_ahead_size );
+							buffer_cached	= true;
 								
-							}finally{
+							manager.cacheBytesWritten( read_ahead_size );
 								
-								if ( !buffer_cached ){
+						}finally{
+								
+							if ( !buffer_cached ){
 									
-										// if the read operation failed, and hence the buffer
-										// wasn't added to the cache, then release it here
+									// if the read operation failed, and hence the buffer
+									// wasn't added to the cache, then release it here
 									
-									cache_buffer.returnToPool();
-								}
+								cache_buffer.returnToPool();
 							}
-							
-							if ( TRACE_CACHE_CONTENTS ){
-								
-								printCache();
-							}
-
-								// this recursive readCache is guaranteed to hit
-							
-							readCache( file_buffer, file_position );
-							
-						}else{
-							
-							if ( TRACE ){
-								
-								LGLogger.log( "\tread ahead miss" );
-							}
-							
-							flushCache( file_position, read_length, true, -1 );
-							
-							getFMFile().read( file_buffer, file_position );
-							
-							manager.fileBytesRead( read_length );
 						}
-						
-					}catch( FMFileManagerException e ){
 							
-						manager.rethrow(e);
-					}				
-				}
+						if ( TRACE_CACHE_CONTENTS ){
+								
+							printCache();
+						}
+							
+						readCache( file_buffer, file_position, true );
+					
+					}else{
+							
+						if ( TRACE ){
+								
+							LGLogger.log( "\tnot performing read-ahead" );
+						}
+							
+						flushCache( file_position, read_length, true, -1 );
+						
+						getFMFile().read( file_buffer, file_position );
+							
+						manager.fileBytesRead( read_length );
+					}
+						
+				}catch( FMFileManagerException e ){
+						
+					manager.rethrow(e);
+				}				
 			}
 		}else{
 			
@@ -363,43 +373,54 @@ CacheFileImpl
 			
 			if ( manager.isCacheEnabled() ){
 				
-				synchronized( this ){
+				if ( TRACE ){
 					
-					if ( TRACE ){
-						
-						LGLogger.log( 
-								"writeCache: " + getName() + ", " + file_position + " - " + (file_position + write_length - 1 ) + 
-								":" + file_buffer_position + "/" + file_buffer_limit );
-					}
-					
-						// if we are overwriting stuff already in the cache then force-write overlapped
-						// data (easiest solution as this should only occur on hash-fails)
-					
-					flushCache( file_position, write_length, true, -1 );
+					LGLogger.log( 
+							"writeCache: " + getName() + ", " + file_position + " - " + (file_position + write_length - 1 ) + 
+							":" + file_buffer_position + "/" + file_buffer_limit );
+				}
 				
-					if ( buffer_handed_over ){
+				// if we are overwriting stuff already in the cache then force-write overlapped
+				// data (easiest solution as this should only occur on hash-fails)
+			
+				if ( buffer_handed_over ){
+					
+						// cache this write
+	
+					CacheEntry	entry = manager.allocateCacheSpace( this, file_buffer, file_position, write_length );
+					
+					synchronized( this ){
+
+							// do the flush and add sychronized to avoid possibility of another
+							// thread getting in-between and adding same block thus causing mutiple entries
+							// for same space
 						
-							// cache this write
-		
-						CacheEntry	entry = manager.allocateCacheSpace( this, file_buffer, file_position, write_length );
+						flushCache( file_position, write_length, true, -1 );
 						
 						cache.add( entry );
-						
-						if ( TRACE_CACHE_CONTENTS ){
-							
-							printCache();
-						}
-												
-						manager.cacheBytesWritten( write_length );
-						
-						buffer_cached	= true;
-						
-					}else{
-						
-						getFMFile().write( file_buffer, file_position );
-												
-						manager.fileBytesWritten( write_length );
+					
+						manager.addCacheSpace( entry );
 					}
+					
+					if ( TRACE_CACHE_CONTENTS ){
+						
+						printCache();
+					}
+											
+					manager.cacheBytesWritten( write_length );
+					
+					buffer_cached	= true;
+					
+				}else{
+
+						// not handed over, invalidate any cache that exists for the area
+						// as it is now out of date
+					
+					flushCache( file_position, write_length, true, -1 );
+
+					getFMFile().write( file_buffer, file_position );
+											
+					manager.fileBytesWritten( write_length );
 				}
 			}else{
 				
@@ -830,7 +851,7 @@ CacheFileImpl
 	
 		throws CacheFileManagerException
 	{
-		readCache( buffer, position );
+		readCache( buffer, position, false );
 	}
 		
 	public void
