@@ -140,10 +140,19 @@ public class ManagerUtils {
 
   public static void queue(DownloadManager dm,Composite panel) {
     if (dm != null) {
-    	if (dm.getState() == DownloadManager.STATE_STOPPED)
-      	dm.setState(DownloadManager.STATE_QUEUED);
-      else if (dm.getState() == DownloadManager.STATE_DOWNLOADING || dm.getState() == DownloadManager.STATE_SEEDING) {
-      	stop(dm,panel,DownloadManager.STATE_QUEUED);
+    	if (dm.getState() == DownloadManager.STATE_STOPPED){
+    		
+    		dm.setState(DownloadManager.STATE_QUEUED);
+    		
+    		/* parg - removed this - why would we want to effectively stop + restart
+    		 * torrents that are running? This is what happens if the code is left in.
+    		 * e.g. select two torrents, one stopped and one downloading, then hit "queue"
+    		 
+    		 }else if (	dm.getState() == DownloadManager.STATE_DOWNLOADING || 
+    				dm.getState() == DownloadManager.STATE_SEEDING) {
+    		
+    			stop(dm,panel,DownloadManager.STATE_QUEUED);
+    		*/
       }
     }
   }
