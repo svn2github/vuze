@@ -38,7 +38,7 @@ import org.gudy.azureus2.core.GlobalManager;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.0.1";
+  private static final String VERSION = "2.0.0.2";
 
   private static MainWindow window;
 
