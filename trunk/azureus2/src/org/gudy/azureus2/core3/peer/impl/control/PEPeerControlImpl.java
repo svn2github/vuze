@@ -1837,7 +1837,6 @@ PEPeerControlImpl
     else { 
       PEPiece piece = _pieces[pieceNumber];
       if (piece != null) {            
-        piece.reset();
         PEPeer[] writers = piece.getWriters();
         if((writers.length > 0) && writers[0] != null) {
           PEPeer writer = writers[0];
@@ -1846,9 +1845,19 @@ PEPeerControlImpl
             uniqueWriter = uniqueWriter && writer.equals(writers[i]);            
           }
           if(uniqueWriter) {
+          	
+          		// we don't know how many chunks are invalid, assume all were invalid
+          	
+          	for (int i=0;i<writers.length;i++){
+          		
+          		writer.hasSentABadChunk();
+          	}
+          	
             badPeerDetected(writer);
           }
-        }        
+        }
+        
+        piece.reset();
       }
       //Mark this piece as non downloading
       _downloading[pieceNumber] = false;
@@ -1881,8 +1890,12 @@ PEPeerControlImpl
     if(nbBadChunks > BAD_CHUNKS_LIMIT) {
       //Ban fist to avoid a fast reco of the bad peer
       int nbWarnings = BadIps.getInstance().addWarningForIp(ip);
+      
+      	// no need to reset the bad chunk count as the peer is going to be disconnected and
+      	// if it comes back it'll start afresh
+      
       if(nbWarnings > WARNINGS_LIMIT) {
-        IpFilter.getInstance().ban(ip);                    
+        IpFilter.getInstance().ban(ip, _downloadManager.getName());                    
       }
       //Close connection in 2nd
       ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
