@@ -52,6 +52,12 @@ IPBlockedImpl
 		return( blocked.getBlockedIp());
 	}
 	 
+	public String
+	getBlockedTorrentName()
+	{
+		return(blocked.getTorrentName());
+	}
+	
 	public long 
 	getBlockedTime()
 	{

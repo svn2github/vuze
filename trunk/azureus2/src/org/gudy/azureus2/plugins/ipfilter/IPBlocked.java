@@ -31,6 +31,14 @@ IPBlocked
 	 public String 
 	 getBlockedIP();
 	 
+	 	/**
+	 	 * returns the torrent name the IP was blocked trying to access
+	 	 * @return
+	 	 */
+	 
+	 public String
+	 getBlockedTorrentName();
+	 
 	 public long 
 	 getBlockedTime();
 	 
