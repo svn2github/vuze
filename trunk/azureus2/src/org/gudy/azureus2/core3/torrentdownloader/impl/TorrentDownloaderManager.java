@@ -26,7 +26,7 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
     private boolean autostart = false;
     private GlobalManager gm = null;
     private String downloaddir;
-    private String error;
+    //private String error;
     private ArrayList running = new ArrayList();
     private ArrayList queued = new ArrayList();
     private ArrayList errors = new ArrayList();
@@ -35,7 +35,7 @@ public class TorrentDownloaderManager implements TorrentDownloaderCallBackInterf
         try {
             downloaddir = COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory");
         } catch (Exception e) {
-            this.error = e.getMessage();
+            //this.error = e.getMessage();
             downloaddir = null;
         }
     }

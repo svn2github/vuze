@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.peer.PEPiece;
  */
 public class EndGameModeChunk {
     
-  private PEPiece piece;
+  //private PEPiece piece;
   private int blockNumber;
   
   private int pieceNumber;
@@ -37,7 +37,7 @@ public class EndGameModeChunk {
   private int offset;
   
   public EndGameModeChunk(PEPiece piece,int blockNumber) {
-    this.piece = piece;
+    //this.piece = piece;
     this.blockNumber = blockNumber;
     this.pieceNumber = piece.getPieceNumber();
     this.length = piece.getBlockSize(blockNumber);

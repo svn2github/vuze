@@ -38,7 +38,7 @@ import org.eclipse.swt.widgets.Shell;
 public class BlockedIpsWindow {
   
   public static void show(Display display,String ips) {
-    final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(window,"ipFilter.list.title");
     window.setImage(ImageRepository.getImage("azureus"));
     
@@ -50,21 +50,21 @@ public class BlockedIpsWindow {
     FormData formData;
     
     StyledText text = new StyledText(window,SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+    Button btnOk = new Button(window,SWT.PUSH);
+    
     formData = new FormData();
-    //formData.left = new FormAttachment(window);
-    //formData.right = new FormAttachment(window);
-    //formData.top = new FormAttachment(window);
-    formData.height = 300;
-    formData.width  = 500;
+    formData.left = new FormAttachment(0,0);
+    formData.right = new FormAttachment(100,0);
+    formData.top = new FormAttachment(0,0);   
+    formData.bottom = new FormAttachment(btnOk);   
     text.setLayoutData(formData);
     text.setText(ips);
     
-    Button btnOk = new Button(window,SWT.PUSH);
+    
     Messages.setLanguageText(btnOk,"authenticator.ok");
     formData = new FormData();
-    formData.right = new FormAttachment(100,0);
-    formData.top = new FormAttachment(text);
-    
+    formData.right = new FormAttachment(100,0);    
+    formData.bottom = new FormAttachment(100,0);
     formData.width = 70;
     btnOk.setLayoutData(formData);
     btnOk.addListener(SWT.Selection,new Listener() {
@@ -72,8 +72,9 @@ public class BlockedIpsWindow {
       window.dispose();
     }
     });
-    
-    window.pack();
+        
+    window.setSize(420,320);
+    window.layout();
     window.open();    
   }
 }

@@ -47,7 +47,6 @@ PEPeerControlImpl
 	implements 	PEPeerControl, ParameterListener
 {
   private static final int MAX_REQUESTS = 16;
-  private static final boolean DEBUG = false;
   private static final int BAD_CHUNKS_LIMIT = 3;
   private static final int WARNINGS_LIMIT = 3;
   private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
@@ -90,10 +89,6 @@ PEPeerControlImpl
   boolean slowConnect;
   private SlowConnector slowConnector;
   private List slowQueue;
-  
-  private int uploadCount = 0;
-  
-  private List RequestExpired;
   
   private int nbHashFails;
 
@@ -1095,14 +1090,15 @@ PEPeerControlImpl
       pc.sendChoke();
     }
   }
-  
+ 
+  /*
   private void uniqueAdd(List list,Object obj) {
     if(obj == null || list == null)
       return;
     if(list.contains(obj))
       return;
     list.add(obj);
-  }
+  }*/
 
   // refactored out of unChoke() - Moti
   private void prepareBestUnChokedPeers(int numUpRates) {
@@ -1814,7 +1810,7 @@ PEPeerControlImpl
 
   private void badPeerDetected(PEPeer peer) {
     String ip = peer.getIp();
-    Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");             
+    //Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");             
     int nbBadChunks = peer.getNbBadChunks();
     if(nbBadChunks > BAD_CHUNKS_LIMIT) {
       //Ban fist to avoid a fast reco of the bad peer
@@ -2015,7 +2011,7 @@ PEPeerControlImpl
 		       piece.markBlock(chunk.getBlockNumber());
 		      } else {
 		        endGameModeChunks.remove(chunk);
-		        System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" + chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
+		        //System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" + chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
 		        return false;
 		      }
 		      return true;

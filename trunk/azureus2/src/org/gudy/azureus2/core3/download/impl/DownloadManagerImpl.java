@@ -78,7 +78,7 @@ DownloadManagerImpl
   private String savePath;
   
   //Used when trackerConnection is not yet created.
-  private String trackerUrl;
+ // private String trackerUrl;
   
   private boolean forcedRecheck;
   
@@ -224,7 +224,7 @@ DownloadManagerImpl
 	readTorrent()
 	{
 		name				= torrentFileName;	// default if things go wrong decoding it
-		trackerUrl			= "";
+		//trackerUrl			= "";
 		torrent_comment		= "";
 		torrent_created_by	= "";
 		nbPieces			= 0;
@@ -246,7 +246,7 @@ DownloadManagerImpl
             	}
           	 }
           
-			 trackerUrl = torrent.getAnnounceURL().toString();
+			 //trackerUrl = torrent.getAnnounceURL().toString();
          
 			 torrent_comment = locale_decoder.decodeString(torrent.getComment());
          

@@ -30,18 +30,18 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 public class SuperSeedPiece {
   
   
-  private PEPeerControl manager;
+  //private PEPeerControl manager;
   private int pieceNumber;
   
   private int level;
   private long timeFirstDistributed;
   private PEPeer firstReceiver;
-  private int numberOfPeersWhenFirstReceived;
+  //private int numberOfPeersWhenFirstReceived;
   private int timeToReachAnotherPeer;
   
   
   public SuperSeedPiece(PEPeerControl manager,int pieceNumber) {
-    this.manager = manager;
+    //this.manager = manager;
     this.pieceNumber = pieceNumber;
     level = 0;
   }
@@ -50,7 +50,7 @@ public class SuperSeedPiece {
     if(level < 2) {
       firstReceiver = peer;
       timeFirstDistributed = System.currentTimeMillis();
-      numberOfPeersWhenFirstReceived = manager.getNbPeers();
+      //numberOfPeersWhenFirstReceived = manager.getNbPeers();
     } else {
       if(peer != null && firstReceiver != null) {
         timeToReachAnotherPeer = (int) (System.currentTimeMillis() - timeFirstDistributed);

@@ -613,9 +613,7 @@ DiskManagerImpl
 		private int pieceNumber;
 		private int offset;
 		private ByteBuffer data;
-    private PEPeer sender;
-    private boolean md5Check;
-    private int md5CheckBlocNumber;
+    private PEPeer sender; 
 
 		public QueueElement(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
 			this.pieceNumber = pieceNumber;

@@ -49,7 +49,7 @@ public class PluginInitializer {
   private static List		registration_queue = new ArrayList();
   
   private URLClassLoader classLoader;
-  private GlobalManager gm;
+  //private GlobalManager gm;
   private SplashWindow splash;
   
   private TRHost	tracker_host;
@@ -90,7 +90,7 @@ public class PluginInitializer {
   }
   
   protected PluginInitializer(GlobalManager gm,SplashWindow splash) {
-    this.gm = gm;
+    //this.gm = gm;
     this.splash = splash;
     
     tracker_host	= TRHostFactory.create();
