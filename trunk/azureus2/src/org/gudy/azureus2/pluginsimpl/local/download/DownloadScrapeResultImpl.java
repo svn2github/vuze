@@ -88,4 +88,9 @@ DownloadScrapeResultImpl
   public long getScrapeStartTime() {
 		return( response==null?-1:response.getScrapeStartTime());
   }
+
+  public void setNextScrapeStartTime(long nextScrapeStartTime) {
+    if (response != null)
+      response.setNextScrapeStartTime(nextScrapeStartTime);
+  }
 }
