@@ -1538,9 +1538,9 @@ TRTrackerClientClassicImpl
 	 				
 	 				LGLogger.log("TRTrackerClient::invalid reply: " + trace_data );
 	 				
-	 				if ( trace_data.length() > 50 ){
+	 				if ( trace_data.length() > 100 ){
 	 					
-	 					trace_data = trace_data.substring(0,50) + "...";
+	 					trace_data = trace_data.substring(0,100) + "...";
 	 				}
 	 				
 	 				failure_reason = "invalid reply: " + trace_data;
