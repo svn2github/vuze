@@ -7,25 +7,13 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileWriter;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.StringTokenizer;
-import java.util.Date;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -39,8 +27,6 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.Clipboard;
 
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -51,10 +37,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -62,7 +44,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Decorations;
@@ -70,13 +51,11 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -101,7 +80,6 @@ import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.*;
-import org.gudy.azureus2.ui.common.util.HSLColor;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
@@ -115,7 +93,6 @@ import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.IconBar;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.LocaleUtilSWT;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
@@ -124,7 +101,6 @@ import org.gudy.azureus2.ui.swt.PasswordWindow;
 import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.TrayWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
-import org.gudy.azureus2.ui.swt.updater.RestartUtil;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.gudy.azureus2.ui.swt.sharing.*;
@@ -142,9 +118,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static final String VERSION = Constants.AZUREUS_VERSION;
   private static final int DONATIONS_ASK_AFTER = 168;
   private static final int RECOMMENDED_SWT_VERSION = 3044; // M8 (M7 = 3038)
-  
-  private String latestVersion = ""; //$NON-NLS-1$
-  private String latestVersionFileName = null;
 
   private static MainWindow window;
 
@@ -1201,8 +1174,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 						}
 					});
 				}
-      }
-      sText += "Azureus " + VERSION + " / " + MessageText.getString("MainWindow.status.latestversion") + " : " + latestVersion;
+      }      
       statusText.setText(MessageText.getStringForSentence(statusTextKey));
     }
       }

@@ -27,7 +27,6 @@ public class Main implements ILocaleUtilChooser {
   public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";	// values "true" or "false"
 	
   StartServer startServer;
-  MainWindow mainWindow;
   
   public static class StartSocket {
     public StartSocket(String args[]) {
@@ -155,7 +154,7 @@ public class Main implements ILocaleUtilChooser {
         {
           LGLogger.log( "Main::useParam: open '" + args[1] + "'");
 
-          mainWindow.openTorrent(args[1]);
+          MainWindow.getWindow().openTorrent(args[1]);
         }
       }
     }
@@ -173,11 +172,11 @@ public class Main implements ILocaleUtilChooser {
   }
 
   public void showMainWindow() {
-    if(mainWindow != null) {
+    if(MainWindow.getWindow() != null) {
       MainWindow.getWindow().getDisplay().asyncExec(new Runnable() {
         public void run() {
-          if (!COConfigurationManager.getBooleanParameter("Password enabled",false) || mainWindow.isVisible())          
-            mainWindow.setVisible(true);
+          if (!COConfigurationManager.getBooleanParameter("Password enabled",false) || MainWindow.getWindow().isVisible())          
+            MainWindow.getWindow().setVisible(true);
           else
             PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());
         }
