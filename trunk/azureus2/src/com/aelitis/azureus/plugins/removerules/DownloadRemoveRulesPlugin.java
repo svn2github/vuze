@@ -45,7 +45,9 @@ DownloadRemoveRulesPlugin
 {
 	public static final int			INITIAL_DELAY			= 30000;
 	public static final int			DELAYED_REMOVAL_PERIOD	= 30000;
-	public static final int			AELITIS_SEED_LIMIT		= 10000;
+	
+	public static final int			AELITIS_BIG_TORRENT_SEED_LIMIT		= 10000;
+	public static final int			AELITIS_SMALL_TORRENT_SEED_LIMIT	= 1000;
 		
 	public static final String		AELITIS_HOST	= "aelitis.com";	// needs to be lowercase
 	
@@ -254,13 +256,23 @@ DownloadRemoveRulesPlugin
 						// try to maintain an upper bound on seeds that isn't going to
 						// kill the tracker
 					
-					long	running_hours = ( SystemTime.getCurrentTime() - creation_time )/(60*60*1000);
+					long	running_mins = ( SystemTime.getCurrentTime() - creation_time )/(60*1000);
 					
-					if ( seeds > AELITIS_SEED_LIMIT && running_hours > 0 ){
+					if ( running_mins > 30 ){
+					
+							// big is a relative term here and generally distinguishes between core updates
+							// and plugin updates
+						
+						boolean	big_torrent = torrent.getSize() > 1024*1024;
+						
+						if ( 	( seeds > AELITIS_BIG_TORRENT_SEED_LIMIT && big_torrent ) ||
+								( seeds > AELITIS_SMALL_TORRENT_SEED_LIMIT && !big_torrent )){
+					
 
-						log.log( "Download '" + download.getName() + "' being removed to reduce swarm size" );
+							log.log( "Download '" + download.getName() + "' being removed to reduce swarm size" );
 					
-						removeDownloadDelayed( download );							
+							removeDownloadDelayed( download );		
+						}
 					}
 				}
 			}
