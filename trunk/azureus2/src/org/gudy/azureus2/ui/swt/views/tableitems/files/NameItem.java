@@ -25,9 +25,10 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.program.Program;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -57,8 +58,7 @@ public class NameItem
       if (fileInfo == null) {
         icon = null;
       } else {
-        Program program = Program.findProgram(fileInfo.getExtension());
-        icon = ImageRepository.getIconFromProgram(program);
+        icon = ImageRepository.getPathIcon(fileInfo.getFile().getPath());
       }
       // cheat for core, since we really know it's a TabeCellImpl and want to use
       // those special functions not available to Plugins

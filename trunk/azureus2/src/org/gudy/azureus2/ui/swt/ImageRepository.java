@@ -4,14 +4,21 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.util.Constants;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * @author Olivier
@@ -19,10 +26,13 @@ import java.util.Iterator;
  */
 public class ImageRepository {
 
-  private static HashMap images;
+  private static final HashMap images;
+  private static final WeakHashMap weakRegistry;
+  private static final String[] noCacheExtList = new String[] {".exe"};
 
   static {
     images = new HashMap();
+    weakRegistry = new WeakHashMap();
   }
 
   public static void loadImagesForSplashWindow(Display display) {
@@ -143,10 +153,18 @@ public class ImageRepository {
   }
   
   public static void unLoadImages() {
-    Iterator iter = images.values().iterator();
+    Iterator iter;
+    iter = images.values().iterator();
     while (iter.hasNext()) {
       Image im = (Image) iter.next();
       im.dispose();
+    }
+
+    iter = weakRegistry.values().iterator();
+    while (iter.hasNext()) {
+      Image im = (Image) iter.next();
+      if(im != null)
+        im.dispose();
     }
   }
 
@@ -185,10 +203,139 @@ public class ImageRepository {
     }
     return image;
   }
-  
+
+  /**
+   * @deprecated Does not account for custom or native folder icons
+   * @see ImageRepository#getPathIcon(String)
+   */
   public static Image
   getFolderImage()
   {
   	return( (Image) images.get("folder"));
   }
+
+    /**
+     * <p>Gets a small-sized iconic representation of the file or directory at the path</p>
+     * <p>For most platforms, the icon is a 16x16 image; weak-referencing caching is used to avoid abundant reallocation.</p>
+     * @param path Absolute path to the file or directory
+     * @return The image
+     */
+    public static Image getPathIcon(final String path)
+    {
+        // temporary workaround
+        if(Constants.isOSX)
+            return getIconFromProgram(Program.findProgram(path));
+
+        try
+        {
+            final File file = new File(path);
+
+            String key;
+            if(file.isDirectory())
+            {
+                key = file.getPath();
+            }
+            else
+            {
+                final int lookIndex = file.getName().lastIndexOf(".");
+
+                if(lookIndex == -1)
+                {
+                    key = "?!blank";
+                }
+                else
+                {
+                    final String ext =  file.getName().substring(lookIndex);
+                    key = ext;
+
+                    // case-insensitive file systems
+                    for (int i = 0; i < noCacheExtList.length; i++)
+                    {
+                        if(noCacheExtList[i].equalsIgnoreCase(ext))
+                        {
+                            key = file.getPath();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // this method mostly deals with incoming torrent files, so there's less concern for
+            // custom icons (unless user sets a custom icon in a later session)
+
+            // other platforms - try sun.awt
+            Image image = (Image)weakRegistry.get(key);
+            if(image != null)
+                return image;
+
+            final Class sfClass = Class.forName("sun.awt.shell.ShellFolder");
+            final Object sfInstance = sfClass.getMethod("getShellFolder", new Class[]{File.class}).invoke(null, new Object[]{file});
+
+            final java.awt.Image awtImage = (java.awt.Image)sfClass.getMethod("getIcon", new Class[]{Boolean.TYPE}).invoke(sfInstance, new Object[]{new Boolean(false)});
+
+            final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+            ImageIO.write((BufferedImage)awtImage, "png", outStream);
+            final ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
+
+            image = new Image(null, inStream);
+
+            // recomposite to avoid artifacts - transparency mask does not work
+            final Image dstImage = new Image(Display.getCurrent(), image.getBounds().width, image.getBounds().height);
+            GC gc = new GC(dstImage);
+            gc.drawImage(image, 0, 0);
+            gc.dispose();
+
+            weakRegistry.put(key, dstImage);
+            image.dispose();
+
+            return dstImage;
+        }
+        catch (Exception e)
+        {
+            //Debug.printStackTrace(e);
+            return getIconFromProgram(Program.findProgram(path));
+        }
+    }
+
+    /**
+     * <p>Gets an image with the specified canvas size</p>
+     * <p>No scaling is performed on the original image, and a cached version will be used if found.</p>
+     * @param name ImageRepository image resource name
+     * @param canvasSize Size of image
+     * @return The image
+     */
+    public static Image getImageWithSize(String name, Point canvasSize)
+    {
+        String key =
+                new StringBuffer()
+                    .append(name)
+                    .append('.')
+                    .append(canvasSize.x)
+                    .append('.')
+                    .append(canvasSize.y)
+                .toString();
+
+        Image newImage = (Image)images.get(key);
+
+        if(newImage == null)
+        {
+            Image oldImage = getImage(name);
+
+            if(oldImage == null)
+                return null;
+
+            newImage = new Image(Display.getCurrent(), canvasSize.x, canvasSize.y);
+            GC gc = new GC(newImage);
+
+            int width = Math.max(0, (canvasSize.x - oldImage.getBounds().width)/2);
+            int height = Math.max(0, (canvasSize.y - oldImage.getBounds().height)/2);
+            gc.drawImage(oldImage, width, height);
+
+            gc.dispose();
+
+            images.put(key, newImage);
+        }
+
+        return newImage;
+    }
 }
