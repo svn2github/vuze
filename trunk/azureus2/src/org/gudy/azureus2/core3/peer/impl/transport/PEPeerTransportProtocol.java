@@ -815,18 +815,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  readMessage(null);      
 			}
 			else {
-			  LGLogger.log(
-				componentID,
-				evtErrors,
-				LGLogger.ERROR,
-				ip + " [" + client + "]"
-				  + " has sent #"
-				  + pieceNumber
-				  + ":"
-				  + pieceOffset
-				  + "->"
-				  + (pieceOffset + pieceLength)
-				  + " but piece was discarded (either not requested or invalid)");
+        String msg = ip + " [" + client + "]" + " has sent #" + pieceNumber + ":"
+                     + pieceOffset + "->" + (pieceOffset + pieceLength);
+        if (alreadyRequested(request))
+          msg += " but piece was discarded as invalid";
+        else 
+          msg += " but piece was discarded as unrequested";
+        
+			  LGLogger.log( componentID, evtErrors, LGLogger.ERROR, msg);
 			  stats.discarded(pieceLength);
 			  manager.discarded(pieceLength);
 			  readMessage(readBuffer);

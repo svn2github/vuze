@@ -228,13 +228,7 @@ PEPeerConnectionImpl
 		DiskManagerRequest	request )
 	{
     synchronized (requested) {
-      if ( requested.contains( request )) {
-        return true;
-      }
-      else {
-      	LGLogger.log(0,0,LGLogger.ERROR,"Piece #"+request.getPieceNumber()+" not requested");
-        return false;
-      }
+      return requested.contains( request );
     }
 	}
 	
