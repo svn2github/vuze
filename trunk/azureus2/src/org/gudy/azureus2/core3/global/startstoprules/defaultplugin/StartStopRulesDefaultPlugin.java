@@ -1607,7 +1607,7 @@ public class StartStopRulesDefaultPlugin
       }
 
       //not FP if no peers  //Nolar, 2105
-      if( numPeers == 0 ) {
+      if( numPeers == 0 && scrapeResultOk(dl) ) {
         if (bDebugLog) sExplainFP += "Not FP: 0 peers\n";
         return false;
       }
