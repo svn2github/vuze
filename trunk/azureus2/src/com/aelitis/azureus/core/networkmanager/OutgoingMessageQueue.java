@@ -692,7 +692,7 @@ public class OutgoingMessageQueue {
       }
     }
     
-    System.out.println( "notifiedOfExternallySentMessage:: [" +message.getID()+ "] size=" +size );
+    //System.out.println( "notifiedOfExternallySentMessage:: [" +message.getID()+ "] size=" +size );
     
   }
   
