@@ -350,12 +350,24 @@ public class MyTorrentsView
       final Integer totalWidthBox = new Integer(totalWidth);
       catResizeAdapter = new ControlAdapter() {
           public void controlResized(ControlEvent event) {
+              if(getComposite().isDisposed() || cCategories.isDisposed())
+                  return;
+
               final Shell shell = MainWindow.getWindow().getShell();
               if(shell.isDisposed() || !shell.isVisible())
                   return;
 
+              final Control[] childControls = getComposite().getChildren();
+
+              if(childControls.length < 1)
+                  return;
+
+              final Control label = childControls[0];
+              if(label.isDisposed())
+                  return;
+
               final int totalWidth = totalWidthBox.intValue();
-              final int labelWidth = getComposite().getChildren()[0].getSize().x;
+              final int labelWidth = label.getSize().x;
               int delta = MainWindow.getWindow().getShell().getSize().x - labelWidth - 5;
               GridData tmpData = (GridData)cCategories.getLayoutData();
               if(totalWidth > delta) {
