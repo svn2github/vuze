@@ -22,6 +22,8 @@
 package org.gudy.azureus2.core3.config.impl;
 
 
+import java.util.HashMap;
+
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -91,16 +93,7 @@ public class ConfigurationChecker {
     
     String uniqueId = COConfigurationManager.getStringParameter("ID",null);
     if(uniqueId == null || uniqueId.length() != 20) {
-      uniqueId = "";
-      long currentTime = System.currentTimeMillis();
-      for(int i = 0 ; i < currentTime % 1000 ; i++)
-        Math.random();            
-      //Allocate a 10 random chars ID
-      String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      for(int i = 0 ; i < 20 ; i++) {
-        int pos = (int) ( Math.random() * chars.length());
-        uniqueId += chars.charAt(pos);
-      }
+      uniqueId = generatePeerId();      
       COConfigurationManager.setParameter("ID", uniqueId);
       changed = true;
     }
@@ -112,11 +105,53 @@ public class ConfigurationChecker {
     if(astf) {
       COConfigurationManager.setParameter("Always Show Torrent Files",false);
       changed = true;
-    }
+    }    
     
+    /**
+     * Special Patch for OSX users, do not play sound when done
+     */
+    if(System.getProperty("os.name").equals("Mac OS X")) {
+      boolean sound = COConfigurationManager.getBooleanParameter("Play Download Finished",true);
+      if(sound) {
+        COConfigurationManager.setParameter("Play Download Finished",false);
+        changed = true;
+      }
+    }
     
     if(changed) {
       COConfigurationManager.save();
     }    
+  }
+  
+  public static String generatePeerId() {
+    String uniqueId = "";
+    long currentTime = System.currentTimeMillis();
+    for(int i = 0 ; i < currentTime % 1000 ; i++)
+      Math.random();            
+    //Allocate a 10 random chars ID
+    String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for(int i = 0 ; i < 20 ; i++) {
+      int pos = (int) ( Math.random() * chars.length());
+      uniqueId += chars.charAt(pos);
+    }
+    return uniqueId;
+  }
+  
+  public static void main(String args[]) {
+    Integer obj = new Integer(1);
+    HashMap test = new HashMap();
+    int collisions = 0;
+    for(int i = 0 ; i < 1000000 ; i++) {
+      String id = generatePeerId();
+      if(test.containsKey(id)) {
+        collisions++;
+      } else {
+        test.put(id,obj);
+      }
+      if(i%1000 == 0) {
+        System.out.println(i + " : " + id + " : " + collisions);
+      }
+    }
+    System.out.println("\n" + collisions);
   }
 }

@@ -547,10 +547,11 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.allowsameip"); //$NON-NLS-1$
     new BooleanParameter(gTransfer, "Allow Same IP Peers", false); //$NON-NLS-1$
     
-    label = new Label(gTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.playdownloadfinished"); //$NON-NLS-1$
-    new BooleanParameter(gTransfer, "Play Download Finished", true); //$NON-NLS-1$
-
+    if(!System.getProperty("os.name").equals("Mac OS X")) {
+      label = new Label(gTransfer, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.playdownloadfinished"); //$NON-NLS-1$
+      new BooleanParameter(gTransfer, "Play Download Finished", true); //$NON-NLS-1$
+    }
     
     
     itemTransfer.setControl(gTransfer);
