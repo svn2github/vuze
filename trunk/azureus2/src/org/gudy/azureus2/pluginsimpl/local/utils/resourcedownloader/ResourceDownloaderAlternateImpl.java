@@ -101,7 +101,7 @@ ResourceDownloaderAlternateImpl
 			res += (i==0?"":",") + delegates[i].getName();
 		}
 		
-		return( res );
+		return( res + "]");
 	}	
 	
 	
