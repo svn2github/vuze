@@ -157,9 +157,8 @@ ConfigurationChecker
 	        }
 	      }
 	    }else{
-	    		// no explicit proxy, install our own baby
+	    		// no explicit proxy, install our own baby for testing purposes at the moment
 	    	
-	    	/*
 	    	try{
 	    		AEProxy	proxy = AEProxyFactory.create( (read_timeout + connect_timeout )*1000);
 	    		
@@ -171,7 +170,7 @@ ConfigurationChecker
 	    		
 	    		Debug.printStackTrace(e);
 	    	}
-	    	*/
+	    	
 	    }
 	  
 	  	SESecurityManager.initialise();

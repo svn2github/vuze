@@ -60,7 +60,7 @@ AEProxyProcessor
 		
 		if ( TRACE ){
 			
-			System.out.println( "ProxyProcessor: " + getName());
+			LGLogger.log( "ProxyProcessor: " + getName());
 		}
 		
 		proxy_read_state = new proxyStateVersion();
@@ -153,7 +153,7 @@ AEProxyProcessor
 		Throwable			reason )
 	{
 		try{
-			Debug.out( reason );
+			LGLogger.log( reason );
 			
 			sc.close();
 			
@@ -290,7 +290,7 @@ AEProxyProcessor
 		{
 			if ( TRACE ){
 				
-				System.out.println( getName() + ":" + getStateName() + ", " + buffer );
+				LGLogger.log( getName() + ":" + getStateName() + ", " + buffer );
 			}
 		}
 	}
