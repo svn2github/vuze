@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.ipfilter.impl.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 
@@ -72,6 +73,8 @@ PEPeerControlImpl
   private Average _averageReceptionSpeed;
   private PEPeerTransport currentOptimisticUnchoke;
   
+  private boolean endGameMode;
+  
   private DownloadManager _manager;
   private List requestsToFree;
   private PeerUpdater peerUpdater;
@@ -103,6 +106,8 @@ PEPeerControlImpl
   public void
   start()
   {  
+    
+    endGameMode = false;
     //This torrent Hash
     
     try{
@@ -418,7 +423,7 @@ PEPeerControlImpl
    * This method scans all peers and if downloading from them is possible,
    * it will try to find blocks to download.
    * If the peer is marked as snubbed then only one block will be downloaded
-   * otherwise it will queue up 5 requests.
+   * otherwise it will queue up 16 requests.
    * 
    */
   private void checkDLPossible() {
@@ -444,6 +449,8 @@ PEPeerControlImpl
         }
       }
     }
+    
+    checkEndGameMode();
 
     for (int i = 0; i < bestUploaders.size(); i++) {
       //get a connection 
@@ -845,6 +852,8 @@ PEPeerControlImpl
 
     //We add a 90 % range
     pieceMinAvailability = ((100+rangePercent) * pieceMinAvailability) / 100;
+
+    //If availability is greater than 10, then grab any piece avail (999 should be enough)
     if(pieceMinAvailability > 10 && pieceMinAvailability < 999) pieceMinAvailability = 999;
     //For all pieces
     for (int i = 0; i < _nbPieces; i++) {
@@ -1683,6 +1692,26 @@ PEPeerControlImpl
    */
   public void parameterChanged(String parameterName) {
     maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+  }
+  
+  
+  private void checkEndGameMode() {
+    //We can't come back from end-game mode
+    if(endGameMode)
+      return;
+    for(int i = 0 ; i < _pieces.length ; i++) {
+      //If the piece is downloaded, let's simply continue
+      if(_downloaded[i])
+        continue;
+      //If the piece is being downloaded (fully requested), let's simply continue
+      if(_downloading[i])
+        continue;
+      //Else, the piece is not downloaded / not fully requested, this isn't end game mode
+      return;     
+    }
+    endGameMode = true;
+    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode");
+    System.out.println("End-Game Mode activated");
   }
 
  }
