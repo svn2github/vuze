@@ -30,6 +30,14 @@ package org.gudy.azureus2.core3.upnp;
 public interface 
 UPnP 
 {
+		/**
+		 * resets by removing all root devices and then rediscovering them
+		 *
+		 */
+	
+	public void
+	reset();
+	
 	public void
 	addRootDeviceListener(
 		UPnPListener	l );

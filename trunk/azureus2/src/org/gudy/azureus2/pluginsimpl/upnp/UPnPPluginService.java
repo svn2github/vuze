@@ -66,8 +66,11 @@ UPnPPluginService
 	protected void
 	checkMapping(
 		LoggerChannel		log,
-		UPnPMapping			mapping )
+		UPnPMapping			mapping,
+		boolean				grab_ports )
 	{
+		String	grab_in_progress	= null;
+		
 		String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 		
 		for (int i=0;i<service_mappings.size();i++){
@@ -75,30 +78,44 @@ UPnPPluginService
 			serviceMapping	sm = (serviceMapping)service_mappings.get(i);
 			
 			if ( 	sm.isTCP() == mapping.isTCP() &&
-					sm.getPort() == mapping.getPort()){
-				
-				if ( !sm.getLogged()){
+					sm.getPort() == mapping.getPort()){				
+		
+				if ( sm.getInternalHost().equals( local_address )){
 					
-					sm.setLogged();
-					
-					if ( sm.getInternalHost().equals( local_address )){
+					if ( !sm.getLogged()){
+						
+						sm.setLogged();
 						
 						log.log( "Mapping " + mapping.getString() + " already established" );
+					}
+					
+					return;
+					
+				}else{
+					
+					if ( !grab_ports ){
+
+						if ( !sm.getLogged()){
+							
+							sm.setLogged();
 						
-					}else{
-						
-						String	text = 
-							MessageText.getString( 
+							String	text = 
+								MessageText.getString( 
 									"upnp.alert.differenthost", 
 									new String[]{ mapping.getString(), sm.getInternalHost()});
 						
-						log.log( text );
+							log.log( text );
 						
-						log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+							log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+						}
+						
+						return;
+						
+					}else{
+						
+						grab_in_progress	= sm.getInternalHost();
 					}
 				}
-				
-				return;
 			}
 		}
 		
@@ -109,10 +126,19 @@ UPnPPluginService
 			connection.addPortMapping( 
 				mapping.isTCP(), mapping.getPort(),"AZ" + mapping.getPort());
 		
-			String	text = 
-				MessageText.getString( 
+			String	text;
+			
+			if ( grab_in_progress != null ){
+				
+				text = MessageText.getString( 
+						"upnp.alert.mappinggrabbed", 
+						new String[]{ mapping.getString(), grab_in_progress });
+			}else{
+				
+				text = MessageText.getString( 
 						"upnp.alert.mappingok", 
 						new String[]{ mapping.getString()});
+			}
 			
 			log.log( text );
 			

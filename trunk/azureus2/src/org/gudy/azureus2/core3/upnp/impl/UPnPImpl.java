@@ -172,6 +172,28 @@ UPnPImpl
 		root_device.destroy( false );
 	}
 	
+	public void
+	reset()
+	{
+		log( "UPnP: reset" );
+
+		List	roots;
+		
+		synchronized( rd_listeners ){
+
+			roots = new ArrayList(root_locations.values());
+			
+			root_locations.clear();
+		}
+		
+		for (int i=0;i<roots.size();i++){
+			
+			((UPnPRootDeviceImpl)roots.get(i)).destroy( true );
+		}
+		
+		ssdp.searchNow();
+	}
+	
 	public SimpleXMLParserDocument
 	parseXML(
 		InputStream		_is )

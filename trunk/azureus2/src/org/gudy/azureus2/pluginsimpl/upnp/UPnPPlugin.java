@@ -90,7 +90,7 @@ UPnPPlugin
 				parameterChanged(
 					Parameter	param )
 				{
-					System.out.println( "refresh!!!!" );
+					upnp.reset();
 				}
 			});
 		
@@ -361,7 +361,7 @@ UPnPPlugin
 				
 				UPnPPluginService	service = (UPnPPluginService)services.get(j);
 				
-				service.checkMapping( log, mapping );
+				service.checkMapping( log, mapping, grab_ports_param.getValue() );
 			}
 		}
 	}
