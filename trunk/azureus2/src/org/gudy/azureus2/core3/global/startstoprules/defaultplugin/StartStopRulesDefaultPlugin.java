@@ -48,6 +48,8 @@ public class
 StartStopRulesDefaultPlugin 
   implements Plugin
 { 
+  private static final boolean DEBUG = false;
+
   protected PluginInterface     plugin_interface;
   protected PluginConfig        plugin_config;
   protected DownloadManager     download_manager;
@@ -69,10 +71,13 @@ StartStopRulesDefaultPlugin
   int minPeersToBoostNoSeeds;
   int minSpeedForActiveDL;
   int minShareRatio;
-  int maxSeedingsDL;
-  int maxSeedingsNoDL;
+  int numPeersAsFullCopy;
+  int maxActive;
   int maxDownloads;
+  // Ignore torrent if seed count is at least..
+  int ignoreSeedCount;
   boolean enableQR;
+  int iFakeFullCopySeedStart;
 
   public void 
   initialize(
@@ -218,18 +223,22 @@ StartStopRulesDefaultPlugin
   private void reloadConfigParams() {
     enableQR = plugin_config.getBooleanParameter("Enable QR", true);
     minPeersPerSeed = plugin_config.getIntParameter("Stop Peers Ratio", 0);
-    minPeersToBoostNoSeeds = plugin_config.getIntParameter("Min Peers to Boost NoSeeds", 1);
-    minSpeedForActiveDL = plugin_config.getIntParameter("active dl min speed", 512);
+    minPeersToBoostNoSeeds = plugin_config.getIntParameter("minPeersToBoostNoSeeds");
+    minSpeedForActiveDL = plugin_config.getIntParameter("minSpeedForActiveDL");
     minShareRatio = 1000 * plugin_config.getIntParameter("Stop Ratio", 0);
-    maxSeedingsDL = plugin_config.getIntParameter("max seeding when dling", 1);
-    maxSeedingsNoDL = plugin_config.getIntParameter("max seeding no dling", 3);
-    maxDownloads = plugin_config.getIntParameter("max downloads", 4);
+    maxActive = plugin_config.getIntParameter("max active torrents");
+    maxDownloads = plugin_config.getIntParameter("max downloads");
+    numPeersAsFullCopy = plugin_config.getIntParameter("numPeersAsFullCopy");
+    // Ignore torrent if seed count is at least..
+    ignoreSeedCount = plugin_config.getIntParameter("Ignore Seed Count", 0);
+    iFakeFullCopySeedStart = plugin_config.getIntParameter("iFakeFullCopySeedStart");
   }
   
   protected void process() {
     long  process_time = System.currentTimeMillis();
     
     int totalSeeding = 0;
+    int totalForcedSeeding = 0;
     int totalWaitingToSeed = 0;
     int totalWaitingToDL = 0;
     int totalDownloading = 0;
@@ -293,8 +302,11 @@ StartStopRulesDefaultPlugin
               state == Download.ST_WAITING ||
               state == Download.ST_PREPARING)
             totalWaitingToSeed++;
-          else if (state == Download.ST_SEEDING)
+          else if (state == Download.ST_SEEDING) {
             totalSeeding++;
+            if (download.isForceStart())
+              totalForcedSeeding++;
+          }
           else if (state == Download.ST_QUEUED)
             totalCompleteQueued++;
         } else {
@@ -333,7 +345,8 @@ StartStopRulesDefaultPlugin
         }
       }
       
-      int maxSeeders = (activeDLCount > 0) ? maxSeedingsDL : maxSeedingsNoDL;
+      int maxSeeders = (maxActive == 0) ? 99999 : maxActive - activeDLCount;
+      // XXX put in subtraction logic here
   
       // We can also quit early if:
       // - we don't have any torrents waiting (these have to either be started, queued, or stopped)
@@ -358,7 +371,7 @@ StartStopRulesDefaultPlugin
 
       iter = download_data.iterator();
   
-      int numWaitingOrSeeding = 0; // Running Count
+      int numWaitingOrSeeding = totalForcedSeeding; // Running Count
       int numWaitingOrDLing = 0;   // Running Count
       /**
        * store whether there's a torrent higher in the list that is queued
@@ -446,8 +459,8 @@ StartStopRulesDefaultPlugin
             
             if (download.getState() == Download.ST_DOWNLOADING) {
               activeDLCount++;
-              if (activeDLCount == 1)
-                maxSeeders = plugin_config.getIntParameter("max seeding when dling", 1);
+              maxSeeders = (maxActive == 0) ? 99999 : maxActive - activeDLCount;
+              // XXX put in subtraction logic here
             }
           }
         }
@@ -483,10 +496,18 @@ StartStopRulesDefaultPlugin
               download.getState() == Download.ST_WAITING ||
               download.getState() == Download.ST_PREPARING)
             numWaitingOrSeeding++;
-                
+
+          if (DEBUG)
+            log.log(LoggerChannel.LT_INFORMATION, 
+                    "["+download.getTorrent().getName()+"]: state="+state+
+                    ";numWaitingorSeeding="+numWaitingOrSeeding+
+                    ";okToQueue="+okToQueue+
+                    ";okToStop="+okToStop+
+                    ";qr="+dl_data.getQR());
+
           // Change to waiting if queued and we have an open slot
           if ((download.getState() == Download.ST_QUEUED) && 
-              (totalSeeding + totalWaitingToSeed < maxSeeders) &&
+              (numWaitingOrSeeding < maxSeeders) &&
               (dl_data.getQR() > -2) &&
               !higherQueued) {
             try {
@@ -522,10 +543,12 @@ StartStopRulesDefaultPlugin
           if (okToQueue &&
               ((numWaitingOrSeeding > maxSeeders) || higherQueued)) {
             try {
+              if (download.getState() == Download.ST_READY)
+                totalWaitingToSeed--;
+
               download.stopAndQueue();
               // okToQueue only allows READY and SEEDING state.. and in both cases
               // we have to reduce counts
-              totalWaitingToSeed--;
               numWaitingOrSeeding--;
             } catch (Exception ignore) {/*ignore*/}
           }
@@ -685,14 +708,12 @@ StartStopRulesDefaultPlugin
         return qr;
       }
   
-      int minPeersPerSeed = plugin_config.getIntParameter("Stop Peers Ratio", 0);
-      int minPeersToBoostNoSeeds = plugin_config.getIntParameter("Min Peers to Boost NoSeeds", 2);
-      // Ignore torrent if seed count is at least..
-      int ignoreSeedCount = plugin_config.getIntParameter("Ignore Seed Count", 0);
       int shareRatio = stats.getShareRatio();
       
       int numPeers = calcPeersNoUs(dl);
       int numSeeds = calcSeedsNoUs(dl, startedSeedingOn);
+      if (numPeersAsFullCopy != 0 && numSeeds >= iFakeFullCopySeedStart)
+          numSeeds += numPeers / numPeersAsFullCopy;
 
   //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: Peers="+numPeers+"; Seeds="+numSeeds);
   
@@ -865,8 +886,14 @@ StartStopRulesDefaultPlugin
       Messages.setLanguageText(label, "ConfigView.label.maxdownloads"); //$NON-NLS-1$
       gridData = new GridData();
       gridData.widthHint = 40;
-      new IntParameter(gMainTab, "max downloads", 4).setLayoutData(gridData); //$NON-NLS-1$
+      new IntParameter(gMainTab, "max downloads").setLayoutData(gridData); //$NON-NLS-1$
   
+      label = new Label(gMainTab, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$    
+      gridData = new GridData();
+      gridData.widthHint = 40;
+      new IntParameter(gMainTab, "max active torrents").setLayoutData(gridData); //$NON-NLS-1$
+
       label = new Label(gMainTab, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveDL"); //$NON-NLS-1$
       final String activeDLLabels[] = new String[53];
@@ -882,21 +909,8 @@ StartStopRulesDefaultPlugin
         activeDLValues[pos] = i * 1024;
         pos++;
       }
-      new IntListParameter(gMainTab, "active dl min speed", 512, activeDLLabels, activeDLValues);
-  
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.maxSeedingsWithDLs"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.widthHint = 40;
-      new IntParameter(gMainTab, "max seeding when dling", 1).setLayoutData(gridData); //$NON-NLS-1$
-  
-      label = new Label(gMainTab, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.maxSeedingsNoDLs"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.widthHint = 40;
-      new IntParameter(gMainTab, "max seeding no dling", 3).setLayoutData(gridData); //$NON-NLS-1$
-  
-  
+      new IntListParameter(gMainTab, "minSpeedForActiveDL", 512, activeDLLabels, activeDLValues);
+
       label = new Label(gMainTab, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.disconnetseed"); //$NON-NLS-1$
       new BooleanParameter(gMainTab, "Disconnect Seed", true); //$NON-NLS-1$
@@ -968,7 +982,7 @@ StartStopRulesDefaultPlugin
       new IntParameter(gQR, "Min Seeding Time", 60*3).setLayoutData(gridData);
   
       label = new Label(gQR, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.minPeersBoostNoSeeds"); //$NON-NLS-1$    
+      Messages.setLanguageText(label, "ConfigView.label.minPeersToBoostNoSeeds"); //$NON-NLS-1$    
       final String boostQRPeersLabels[] = new String[10];
       final int boostQRPeersValues[] = new int[10];
       String peers = MessageText.getString("ConfigView.text.peers");
@@ -977,7 +991,7 @@ StartStopRulesDefaultPlugin
         boostQRPeersValues[i] = i;
       }
       gridData = new GridData();
-      new IntListParameter(gQR, "Min Peers to Boost NoSeeds", 1, boostQRPeersLabels, boostQRPeersValues);
+      new IntListParameter(gQR, "minPeersToBoostNoSeeds", boostQRPeersLabels, boostQRPeersValues);
       
       label = new Label(gQR, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.ignoreSeeds"); //$NON-NLS-1$
@@ -1003,7 +1017,7 @@ StartStopRulesDefaultPlugin
       Messages.setLanguageText(label, "ConfigView.label.stopRatioPeers"); //$NON-NLS-1$    
       final String stopRatioPeersLabels[] = new String[15];
       final int stopRatioPeersValues[] = new int[15];
-      stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverStop");
+      stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverIgnore");
       stopRatioPeersValues[0] = 0;
       for (int i = 1; i < stopRatioPeersValues.length; i++) {
         stopRatioPeersLabels[i] = i + " " + peers; //$NON-NLS-1$
@@ -1011,6 +1025,44 @@ StartStopRulesDefaultPlugin
       }
       new IntListParameter(gQR, "Stop Peers Ratio", 0, stopRatioPeersLabels, stopRatioPeersValues);
   
+
+      label = new Label(gQR, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.qr.numPeersAsFullCopy");
+      
+      Composite cArea = new Composite(gQR, SWT.NULL);
+      layout = new GridLayout();
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
+      layout.numColumns = 2;
+      cArea.setLayout(layout);
+      cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+      gridData = new GridData();
+      gridData.widthHint = 20;
+      new IntParameter(cArea, "numPeersAsFullCopy").setLayoutData(gridData);
+      label = new Label(cArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.text.peers");
+
+      cArea = new Composite(gQR, SWT.NULL);
+      layout = new GridLayout();
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
+      layout.numColumns = 3;
+      cArea.setLayout(layout);
+      gridData = new GridData(GridData.FILL_HORIZONTAL);
+      gridData.horizontalIndent = 15;
+      gridData.horizontalSpan = 2;
+      cArea.setLayoutData(gridData);
+      
+      label = new Label(cArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.qr.iFakeFullCopySeedStart");
+      gridData = new GridData();
+      gridData.widthHint = 20;
+      new IntParameter(cArea, "iFakeFullCopySeedStart").setLayoutData(gridData);
+      label = new Label(cArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeds");
+
+
       return gQR;
     }
   
@@ -1076,16 +1128,13 @@ StartStopRulesDefaultPlugin
       final int stopAfterValues[] = new int[15];
       String sMinutes = MessageText.getString("ConfigView.text.minutes");
       String sHours = MessageText.getString("ConfigView.text.hours");
-      int curMin = 30;
       stopAfterLabels[0] = MessageText.getString("ConfigView.text.ignoreRule");
       stopAfterValues[0] = 0;
-      for (int i = 1; i < stopAfterValues.length; i++) {
-        stopAfterLabels[i] = (curMin >= 120) ? (curMin / 60) + " " + sHours : (curMin + " " + sMinutes);
-        stopAfterValues[i] = curMin;
-        if (curMin >= 120)
-          curMin += 60;
-        else
-          curMin += 30;
+      stopAfterLabels[1] = "90 " + MessageText.getString("ConfigView.text.minutes");
+      stopAfterValues[1] = 90;
+      for (int i = 2; i < stopAfterValues.length; i++) {
+        stopAfterLabels[i] = i + " " + sHours ;
+        stopAfterValues[i] = i * 60;
       }
       IntListParameter stopAfterParam = new IntListParameter(gStop, "Stop After Minutes", 0, 
                                                              stopAfterLabels, stopAfterValues);
