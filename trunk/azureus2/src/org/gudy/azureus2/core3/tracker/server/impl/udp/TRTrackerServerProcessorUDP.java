@@ -305,7 +305,7 @@ TRTrackerServerProcessorUDP
 				server, root_out, peer_out, 
 				request_type,
 				hash_bytes,
-				peer_id, false,	false, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned
+				peer_id, false,	false, null, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned / key
 				event,
 				port,
 				client_ip_address,

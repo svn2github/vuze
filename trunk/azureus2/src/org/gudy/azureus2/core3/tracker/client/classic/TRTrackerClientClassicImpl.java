@@ -92,10 +92,14 @@ TRTrackerClientClassicImpl
 	private String info_hash = "?info_hash=";
 	private byte[] peerId;
 	private String peer_id = "&peer_id=";
+	
+	private String key_id			= "";
+	private int	   key_id_length	= 8;
+	
 	private String port;
 	private String ip_override;
   
-  private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients");
+    private static int maxConnections = COConfigurationManager.getIntParameter("Max Clients");
   
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 
@@ -155,7 +159,7 @@ TRTrackerClientClassicImpl
 		
 	constructTrackerUrlLists( true );
     
-   addConfigListeners();  
+    addConfigListeners();  
    
 		//Create our unique peerId
 		
@@ -167,10 +171,15 @@ TRTrackerClientClassicImpl
 	  peerId[i] = version[i];
     }
     
-   String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	for (int i = 8; i < 20; i++) {
 	  int pos = (int) ( Math.random() * chars.length());
      peerId[i] = (byte)chars.charAt(pos);
+	}
+
+	for (int i = 0; i < key_id_length; i++) {
+		int pos = (int) ( Math.random() * chars.length());
+	    key_id +=  chars.charAt(pos);
 	}
 	
 	try {
@@ -1120,9 +1129,9 @@ TRTrackerClientClassicImpl
       
     	// latest space saving measure, a compact return type where peers are returned
     	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
-      // TODO: remove the enable/disable option once we know our implementation works properly in the wild
+        // TODO: remove the enable/disable option once we know our implementation works properly in the wild
       
-      if ( COConfigurationManager.getBooleanParameter("ConfigView.section.tracker.enablecompact", true )){
+      if ( COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true )){
       	
       	request.append( "&compact=1");
       }
@@ -1149,6 +1158,11 @@ TRTrackerClientClassicImpl
     	request.append("&ip=").append(ip2);
     }
 	
+    if ( COConfigurationManager.getBooleanParameter("Tracker Key Enable", true )){
+      	
+      	request.append( "&key=" + key_id);
+    }
+    
     return request.toString();
   }
 

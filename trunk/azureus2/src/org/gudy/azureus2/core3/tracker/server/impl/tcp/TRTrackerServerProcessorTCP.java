@@ -321,6 +321,7 @@ TRTrackerServerProcessorTCP
 				int			num_want		= -1;
 				boolean		no_peer_id		= false;
 				boolean		compact			= false;
+				String		key				= null;
 				
 				while(pos < str.length()){
 						
@@ -368,6 +369,12 @@ TRTrackerServerProcessorTCP
 						if ( server.isCompactEnabled()){
 							
 							compact = rhs.equals("1");
+						}
+					}else if ( lhs.equals( "key" )){
+						
+						if ( server.isKeyEnabled()){
+							
+							key = rhs;
 						}
 						
 					}else if ( lhs.equals( "port" )){
@@ -424,7 +431,7 @@ TRTrackerServerProcessorTCP
 							server, root_out, peer_out,
 							request_type,
 							hash_bytes,
-							peer_id, no_peer_id, compact,
+							peer_id, no_peer_id, compact, key, 
 							event,
 							port,
 							client_ip_address,

@@ -47,6 +47,7 @@ TRTrackerServerProcessor
 		String						peer_id,
 		boolean						no_peer_id,
 		boolean						compact,
+		String						key,
 		String						event,
 		int							port,
 		String						client_ip_address,
@@ -107,7 +108,7 @@ TRTrackerServerProcessor
 				
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
-						event, peer_id, port, client_ip_address,
+						event, peer_id, port, client_ip_address, key,
 						uploaded, downloaded, left, num_peers,
 						interval );
 				

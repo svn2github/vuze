@@ -30,6 +30,8 @@ TRTrackerServerPeerImpl
 	implements TRTrackerServerPeer
 {
 	protected byte[]		peer_id;
+	protected String		key;
+	
 	protected byte[]		ip;
 	protected int			port;
 	protected String		ip_str;
@@ -45,10 +47,12 @@ TRTrackerServerPeerImpl
 	protected
 	TRTrackerServerPeerImpl(
 		byte[]		_peer_id,
+		String		_key,
 		byte[]		_ip,
 		int			_port )
 	{
 		peer_id		= _peer_id;
+		key			= _key;
 		ip			= _ip;
 		port		= _port;
 	}
@@ -57,6 +61,12 @@ TRTrackerServerPeerImpl
 	getPeerId()
 	{
 		return( peer_id );
+	}
+	
+	protected String
+	getKey()
+	{
+		return( key );
 	}
 	
 	protected byte[]

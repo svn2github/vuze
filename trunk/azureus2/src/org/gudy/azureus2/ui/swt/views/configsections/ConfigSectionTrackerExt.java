@@ -78,12 +78,21 @@ public class ConfigSectionTrackerExt implements ConfigSectionSWT {
     new BooleanParameter(gExtTab, "Tracker Port UDP Enable", false);
 
     // row
+    
     label = new Label(gExtTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.enablecompact");
 
     new BooleanParameter(gExtTab, "Tracker Compact Enable", true);
 
+    // row
+    
+    label = new Label(gExtTab, SWT.NULL);
+    
+    Messages.setLanguageText(label, "ConfigView.section.tracker.enablekey");
 
+    new BooleanParameter(gExtTab, "Tracker Key Enable", true);
+
+    
     return gExtTab;
   }
 }

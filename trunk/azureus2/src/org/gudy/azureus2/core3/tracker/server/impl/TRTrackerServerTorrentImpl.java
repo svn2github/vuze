@@ -75,11 +75,14 @@ TRTrackerServerTorrentImpl
 		String		peer_id,
 		int			port,
 		String		ip_address,
+		String		tracker_key,
 		long		uploaded,
 		long		downloaded,
 		long		left,
 		int			numwant,
 		long		interval_requested )
+	
+		throws Exception
 	{
 		boolean	stopped 	= event != null && event.equalsIgnoreCase("stopped");
 		boolean	completed 	= event != null && event.equalsIgnoreCase("completed");
@@ -110,7 +113,7 @@ TRTrackerServerTorrentImpl
 					
 					byte[]	peer_bytes = peer_id.getBytes( Constants.BYTE_ENCODING );
 					
-					peer = new TRTrackerServerPeerImpl( peer_bytes, ip_address.getBytes(), port );
+					peer = new TRTrackerServerPeerImpl( peer_bytes, tracker_key, ip_address.getBytes(), port );
 					
 					peer_map.put( peer_id, peer );
 					
@@ -124,6 +127,22 @@ TRTrackerServerTorrentImpl
 				}
 			}
 		}else{
+			
+			String	existing_tracker_key = peer.getKey();
+	
+			// System.out.println( "tracker_key:" + existing_tracker_key + "/" + tracker_key );
+				
+			if ( existing_tracker_key == null && tracker_key == null ){
+				
+			}else if ( existing_tracker_key == null || tracker_key == null ){
+				
+				throw( new Exception( "Unauthorised: key mismatch "));
+				
+			}else if ( !existing_tracker_key.equals( tracker_key )){
+		
+				throw( new Exception( "Unauthorised: key mismatch "));
+				
+			}
 			
 			if ( stopped ){
 				

@@ -52,7 +52,7 @@ TRTrackerServerTCP
 	protected String	password_user;
 	protected byte[]	password_pw;
 	protected boolean	compact_enabled;
-	
+	protected boolean	key_enabled;
 	
 	public
 	TRTrackerServerTCP(
@@ -232,7 +232,9 @@ TRTrackerServerTCP
 			password_pw		= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
 		}
 		
-		compact_enabled = COConfigurationManager.getBooleanParameter("ConfigView.section.tracker.enablecompact", true );
+		compact_enabled = COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true );
+		
+		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable", true );
 	}
 	
 	public boolean
@@ -251,6 +253,11 @@ TRTrackerServerTCP
 	isCompactEnabled()
 	{
 		return( compact_enabled );
+	}
+	public boolean
+	isKeyEnabled()
+	{
+		return( key_enabled );
 	}
 	
 	public String
