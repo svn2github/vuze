@@ -36,6 +36,11 @@ import org.gudy.azureus2.core3.security.*;
  * on one tracker.
  */
 public class TrackerStatus {
+	public final static int componentID = 2;
+	public final static int evtLifeCycle = 0;
+	public final static int evtFullTrace = 1;
+	public final static int evtErrors = 2;
+
   private final static int FAULTY_SCRAPE_RETRY_INTERVAL = 60 * 10 * 1000;
   private String scrapeURL = null;
  
@@ -68,7 +73,7 @@ public class TrackerStatus {
       	scrapeURL = trackerUrl;
       	
        } else {
-        LGLogger.log(0, 0, LGLogger.INFORMATION,
+        LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
                      "can't scrape using '" + trackerUrl + "' as it doesn't end in '/announce'");		
        }
     } catch (Exception e) {
@@ -178,7 +183,8 @@ public class TrackerStatus {
 
         URL reqUrl = new URL(scrapeURL + info_hash);
         
-        LGLogger.log(0,0,LGLogger.SENT,"Accessing scrape interface using url : " + reqUrl);
+        LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT,
+                     "Accessing scrape interface using url : " + reqUrl);
    
         ByteArrayOutputStream message = new ByteArrayOutputStream();
         
@@ -193,7 +199,8 @@ public class TrackerStatus {
         }
           
               
-        LGLogger.log(0, 0, LGLogger.RECEIVED, "Response from scrape interface : " + message);
+        LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
+                     "Response from scrape interface : " + message);
         
         Map map = BDecoder.decode(message.toByteArray());
         
@@ -202,7 +209,8 @@ public class TrackerStatus {
           if (responses.size() > 1) {
             // multi were requested, 0 returned.  Therefore, multi not supported
             bSingleHashScrapes = true;
-            LGLogger.log(scrapeURL + " doesn't properly support multi-hash scrapes");
+            LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION,
+                         scrapeURL + " doesn't properly support multi-hash scrapes");
           } else {
             // 1 was requested, 0 returned.  Therefore, hash not found.
             TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(0);
@@ -217,7 +225,8 @@ public class TrackerStatus {
         }
         if (!bSingleHashScrapes && responses.size() > 1 && mapFiles.size() == 1) {
           bSingleHashScrapes = true;
-          LGLogger.log(scrapeURL + " only returned " + mapFiles.size() + " hash scrape(s), but we asked for " + responses.size());
+          LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION,
+                       scrapeURL + " only returned " + mapFiles.size() + " hash scrape(s), but we asked for " + responses.size());
         }
         
         for (int i = 0; i < responses.size(); i++) {
@@ -322,7 +331,7 @@ public class TrackerStatus {
           scraper.scrapeReceived( response );
         }
       } catch (Exception e) {
-        LGLogger.log(LGLogger.ERROR, 
+        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
   									"Response from scrape interface " + scrapeURL + " : " + e);
    
         for (int i = 0; i < responses.size(); i++) {
@@ -554,13 +563,13 @@ public class TrackerStatus {
 					}
 				}else{
 					
-					LGLogger.log(LGLogger.ERROR, 
-									"Response from scrape interface : " +
-										((PRUDPPacketReplyError)reply).getMessage());
+					LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
+    									"Response from scrape interface : " +
+    										((PRUDPPacketReplyError)reply).getMessage());
 				}
 			}else{
 				
-				LGLogger.log(LGLogger.ERROR, 
+				LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
 						"Response from scrape interface : " +
 						((PRUDPPacketReplyError)reply).getMessage());
 			}
