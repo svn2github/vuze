@@ -28,6 +28,8 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsremote.RPException;
 
@@ -37,6 +39,7 @@ MDConfigModel
 	protected PluginInterface	pi;
 	
 	protected int		refresh_period;
+	protected int		max_upload;
 	
 	protected List		listeners = new ArrayList();
 	
@@ -49,6 +52,9 @@ MDConfigModel
 		PluginConfig	plugin_config = pi.getPluginconfig();
 		
 		refresh_period = plugin_config.getPluginIntParameter( "MDConfigModel:refresh_period", 30 );
+		
+		max_upload = pi.getPluginconfig().getIntParameter( PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC );
+
 	}
 	
 	public int
@@ -76,6 +82,36 @@ MDConfigModel
 		}
 		
 		fireEvent( MDConfigModelPropertyChangeEvent.PT_REFRESH_PERIOD, new Integer( refresh_period ));
+	}
+	
+	public int
+	getMaxUploadSpeed()
+	{
+		return( max_upload );
+	}
+	
+	public void
+	setMaxUploadSpeed(
+		int		v )
+	{
+		if ( v > 0 && v < COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED ){
+			
+			throw( new RPException( "Maximum upload speed must be at least " + COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED ));
+		}
+		
+		max_upload = v;
+		
+		PluginConfig	plugin_config = pi.getPluginconfig();
+		
+		plugin_config.setIntParameter( PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC, max_upload );
+		
+		try{
+			plugin_config.save();
+			
+		}catch( PluginException e ){
+			
+			throw( new RPException("setMaxUploadSpeed Fails", e ));
+		}		
 	}
 	
 	protected void

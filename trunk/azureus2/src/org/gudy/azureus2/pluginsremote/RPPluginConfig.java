@@ -94,6 +94,14 @@ RPPluginConfig
 				
 			delegate.setPluginParameter((String)params[0],((Integer)params[1]).intValue());
 				
+		}else if ( method.equals( "getIntParameter")){
+				
+				return( new RPReply( new Integer( delegate.getIntParameter((String)params[0],((Integer)params[1]).intValue()))));
+				
+		}else if ( method.equals( "setParameter[int]")){
+					
+			delegate.setIntParameter((String)params[0],((Integer)params[1]).intValue());
+					
 		}else if ( method.equals( "save")){
 			
 			try{ 
@@ -128,17 +136,17 @@ RPPluginConfig
 
 	  public int getIntParameter(String key, int default_value)
 	  {
-	  	notSupported();
-	  	
-	  	return(0);
+		Integer	res = (Integer)_dispatcher.dispatch( new RPRequest( this, "getIntParameter", new Object[]{key,new Integer(default_value)} )).getResponse();
+		
+		return( res.intValue());
 	  }
 		
 	  public void
-	  setIntParameter(
-		  	String	key, 
-			int		value )
+	  setIntParameter( 
+		String	key, 
+		int		value )
 	  {
-	  	notSupported();
+		_dispatcher.dispatch( new RPRequest( this, "setParameter[int]", new Object[]{key,new Integer(value)} ));
 	  }
 	  
 	  public String getStringParameter(String key)

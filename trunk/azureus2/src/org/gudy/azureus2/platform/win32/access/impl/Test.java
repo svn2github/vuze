@@ -58,6 +58,12 @@ Test
 				//<Nolar>   	WriteRegStr HKCR "BitTorrent\shell\open\command" "" '"$INSTDIR\Azureus.exe" "%1"'
 				//<Nolar>   	WriteRegStr HKCR "BitTorrent\Content Type" "" "application/x-bittorrent"
 				
+				System.out.println( "current = " + 
+						access.readStringValue( 	
+						AEWin32Access.HKEY_CLASSES_ROOT,
+						"BitTorrent\\shell\\open\\command",
+						"" ));
+				
 				access.deleteKey( 	AEWin32Access.HKEY_CLASSES_ROOT,
 									".torrent" );
 			

@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 public class ConfigSectionTransfer implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -69,7 +70,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     cTransfer.setLayout(layout);
 
     
-    IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", 5, -1, true);    
+    IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", COConfigurationManager.CONFIG_MIN_MAX_UPLOAD_SPEED, -1, true);    
     formData = new FormData();
     formData.top = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0

@@ -48,9 +48,13 @@ VWConfigView
 	{
 		component = new JPanel(new GridBagLayout());
 		
+		int	row = 0;
+		
+			// refresh rate
+		
 		component.add( 	new JLabel("Auto-refresh period (secs) - 0 = never"),
 						new VWGridBagConstraints(
-								0, 0, 1, 1, 0.0, 0.0,
+								0, row, 1, 1, 0.0, 0.0,
 								GridBagConstraints.WEST,
 								GridBagConstraints.HORIZONTAL, 
 								new Insets(0, 8, 0, 0), 0, 0 ));
@@ -96,21 +100,89 @@ VWConfigView
 		
 		component.add( 	tf,
 						new VWGridBagConstraints(
-							1, 0, 1, 1, 0.0, 0.0,
+							1, row, 1, 1, 0.0, 0.0,
 							GridBagConstraints.WEST,
 							GridBagConstraints.HORIZONTAL, 
 							new Insets(0, 8, 0, 0), 0, 0 ));
 		
 		component.add( 	new JPanel(),
 						new VWGridBagConstraints(
-							2, 0, 1, 1, 1.0, 0.0,
+							2, row, 1, 1, 1.0, 0.0,
+							GridBagConstraints.WEST,
+							GridBagConstraints.HORIZONTAL, 
+							new Insets(0, 8, 0, 0), 0, 0 ));
+		
+		row++;
+		
+			// max upload
+		
+		component.add( 	new JLabel("Max global upload speed KB/s [0: unlimited]"),
+						new VWGridBagConstraints(
+								0, row, 1, 1, 0.0, 0.0,
+								GridBagConstraints.WEST,
+								GridBagConstraints.HORIZONTAL, 
+								new Insets(0, 8, 0, 0), 0, 0 ));
+
+		NumberFormat nf2 = NumberFormat.getNumberInstance();
+		
+		nf2.setParseIntegerOnly(true);
+		
+		final JFormattedTextField	tf2 = new JFormattedTextField(nf);
+		
+		tf2.setColumns(6);
+		tf2.setHorizontalAlignment( JFormattedTextField.RIGHT );
+		
+		tf2.setValue( new Long( _model.getMaxUploadSpeed()));
+		
+		tf2.addPropertyChangeListener(
+				"value",
+				new PropertyChangeListener()
+				{
+					public void
+					propertyChange(
+						PropertyChangeEvent	ev )
+					{
+						Long l = (Long)tf2.getValue();
+						
+						int	val = l.intValue();
+						
+						if ( val < 0 ){
+							 
+							val = 0;
+						}
+						
+						try{
+							_model.setMaxUploadSpeed(val);
+							
+						}catch( Throwable e ){
+							
+							tf2.setValue(new Long(_model.getMaxUploadSpeed()));
+							
+							_main.reportError(e);
+						}
+					}
+				});
+		
+		
+		component.add( 	tf2,
+						new VWGridBagConstraints(
+							1, row, 1, 1, 0.0, 0.0,
 							GridBagConstraints.WEST,
 							GridBagConstraints.HORIZONTAL, 
 							new Insets(0, 8, 0, 0), 0, 0 ));
 		
 		component.add( 	new JPanel(),
 						new VWGridBagConstraints(
-							0, 1, 3, 1, 1.0, 1.0,
+							2, row, 1, 1, 1.0, 0.0,
+							GridBagConstraints.WEST,
+							GridBagConstraints.HORIZONTAL, 
+							new Insets(0, 8, 0, 0), 0, 0 ));
+		
+		row++;	
+		
+		component.add( 	new JPanel(),
+						new VWGridBagConstraints(
+							0, row++, 3, 1, 1.0, 1.0,
 							GridBagConstraints.WEST,
 							GridBagConstraints.BOTH, 
 							new Insets(0, 0, 0, 0), 0, 0 ));
