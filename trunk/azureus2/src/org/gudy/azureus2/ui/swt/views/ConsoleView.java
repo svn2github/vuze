@@ -16,6 +16,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -77,10 +78,20 @@ public class ConsoleView extends AbstractIView {
       }
 
       // prefill history text
-      Iterator iter = logHistory.iterator();
-      for(int i = 0; i < logHistory.size(); i++)
+      try
       {
-          ConsoleView.instance.doLog((LogInfo)iter.next(), true);
+          synchronized(logHistory)
+          {
+              Iterator iter = logHistory.iterator();
+              for(int i = 0; i < logHistory.size(); i++)
+              {
+                  ConsoleView.instance.doLog((LogInfo)iter.next(), true);
+              }
+          }
+      }
+      catch(ConcurrentModificationException e)
+      {
+          Debug.out(e);
       }
 
       if(logHistory.size() > 0)
