@@ -43,6 +43,7 @@ LGLoggerImpl
 	public static final int[] components = { 0, 1, 2, 4 };
 	
 	private static boolean			initialised = false;
+	private static List				log_history	= new ArrayList();	// reported to at most one listener and then only pre-init crud
 	
 	private static ILoggerListener listener;
 
@@ -77,6 +78,22 @@ LGLoggerImpl
 			doRedirects();
 			
 			LGLogger.log( "**** Logging starts ****" );
+			
+			if ( log_to_file ){
+				
+				for (int i=0;i<log_history.size();i++){
+					
+					Object[]	entry = (Object[])log_history.get(i);
+					
+					log(	((Integer)entry[0]).intValue(),
+							((Integer)entry[1]).intValue(),
+							((Integer)entry[2]).intValue(),
+							(String)entry[3] );
+				}
+			}
+			
+			log_history.clear();
+	
 		}
 	}
 	
@@ -118,22 +135,32 @@ LGLoggerImpl
 		int color, 
 		String text) 
 	{
-		if ( log_to_file ){
-		  int logTypeIndex = 0;
-  		for (int i = 0; i < components.length; i++) {
-  		  if (components[i] == componentId) {
-  		    logTypeIndex = i;
-  		    break;
-  		  }
-  		}
-  		if ((log_types[logTypeIndex] & (1 << color)) != 0)
-  			logToFile("{" + componentId + ":" + event + ":" + color + "}  " + text + NL);
+		if ( initialised ){
+			
+			if ( log_to_file ){
+			  int logTypeIndex = 0;
+	  		for (int i = 0; i < components.length; i++) {
+	  		  if (components[i] == componentId) {
+	  		    logTypeIndex = i;
+	  		    break;
+	  		  }
+	  		}
+	  		if ((log_types[logTypeIndex] & (1 << color)) != 0)
+	  			logToFile("{" + componentId + ":" + event + ":" + color + "}  " + text + NL);
+			}
+			
+			if( listener !=  null ){
+			
+				listener.log(componentId,event,color,text);
+			} 
+		}else{
+			
+			log_history.add( new Object[]{	new Integer(componentId),
+											new Integer(event),
+											new Integer( color ),
+											text  });
+									
 		}
-		
-		if( listener !=  null ){
-		
-			listener.log(componentId,event,color,text);
-		}    
 	}
   
 	public static boolean

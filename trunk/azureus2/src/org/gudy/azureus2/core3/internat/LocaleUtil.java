@@ -77,6 +77,12 @@ LocaleUtil
 	decoders.toArray( charsetDecoders);
   }
   
+  public static String
+  getSystemEncoding()
+  {
+  	return( systemEncoding );
+  }
+  
   public static LocaleUtilDecoder[]
   getDecoders()
   {
