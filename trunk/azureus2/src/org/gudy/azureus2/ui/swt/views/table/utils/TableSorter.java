@@ -86,6 +86,10 @@ public class TableSorter implements ParameterListener {
       return "";
     return lastSortedTableColumn.getName();
   }
+  
+  public boolean isAscending() {
+    return bLastAscending;
+  }
 
   public void sortColumn(boolean bForce) {
     sortColumn(lastSortedTableColumn, bLastAscending, bForce);

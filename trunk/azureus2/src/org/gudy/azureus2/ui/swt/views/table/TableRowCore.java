@@ -80,6 +80,8 @@ public interface TableRowCore
    */
   public boolean setIndex(int newIndex);
 
+  public int getIndex();
+
   /** Set the data source that's related to this row
    *
    * @param dataSource Data Source related to this row
