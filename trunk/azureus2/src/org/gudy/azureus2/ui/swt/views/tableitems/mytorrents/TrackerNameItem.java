@@ -47,7 +47,7 @@ public class TrackerNameItem
     
     if( dm != null ) {
       try {
-        name = dm.getTorrent().getAnnounceURL().toURI().getHost();
+        name = dm.getTorrent().getAnnounceURL().getHost();
       }
       catch( Throwable e ) { /*nothing*/ }
     }
