@@ -57,19 +57,19 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/move.gif", "move");
     loadImage(display, "org/gudy/azureus2/ui/icons/publish.gif", "publish");
     
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/open.gif", "cb_open");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/open_no_default.gif", "cb_open_no_default");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/open_folder.gif", "cb_open_folder");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/open_url.gif", "cb_open_url");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/new.gif", "cb_new");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/up.gif", "cb_up");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/down.gif", "cb_down");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/run.gif", "cb_run");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/start.gif", "cb_start");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/stop.gif", "cb_stop");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/remove.gif", "cb_remove");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/host.gif", "cb_host");
-    loadImage(display, "org/gudy/azureus2/ui/icons/coolBar/publish.gif", "cb_publish");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/open.gif", "cb_open");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/open_no_default.gif", "cb_open_no_default");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/open_folder.gif", "cb_open_folder");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/open_url.gif", "cb_open_url");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/new.gif", "cb_new");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/up.gif", "cb_up");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/down.gif", "cb_down");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/run.gif", "cb_run");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/start.gif", "cb_start");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/stop.gif", "cb_stop");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/remove.gif", "cb_remove");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/host.gif", "cb_host");
+    loadImage(display, "org/gudy/azureus2/ui/icons/coolbar/publish.gif", "cb_publish");
     
   }
 
