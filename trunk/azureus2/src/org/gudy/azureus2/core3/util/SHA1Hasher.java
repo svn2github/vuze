@@ -57,7 +57,16 @@ public final class SHA1Hasher {
   update(
   	byte[]		data )
   {
-  	sha1.update( ByteBuffer.wrap( data ));
+  	update( data, 0, data.length );
+  }
+  
+  public void
+  update(
+  	byte[]		data,
+	int			pos,
+	int			len )
+  {
+  	sha1.update( ByteBuffer.wrap( data, pos, len ));
   }
   
   public byte[]

@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 TOTorrentFileHasher 
 {
+	protected boolean	do_per_file_hash;
 	protected int		piece_length;
 	
 	protected Vector	pieces = new Vector();
@@ -40,29 +41,25 @@ TOTorrentFileHasher
 	protected int		buffer_pos;
 	 
 	protected SHA1Hasher					overall_sha1_hash;
-	protected MD4Hasher						overall_md4_hash;
-	protected Md5Hasher						overall_md5_hash;
 	protected ED2KHasher					overall_ed2k_hash;
 	
-	protected byte[]						md4_digest;
-	protected byte[]						md5_digest;
 	protected byte[]						sha1_digest;
 	protected byte[]						ed2k_digest;
+	
+	protected byte[]						per_file_sha1_digest;
+	protected byte[]						per_file_ed2k_digest;
 	
 	protected TOTorrentFileHasherListener	listener;
 		
 	protected
 	TOTorrentFileHasher(
+		boolean							_do_per_file_hash,				
 		int								_piece_length,
 		TOTorrentFileHasherListener		_listener )
 	{
 		try{
 			overall_sha1_hash 	= new SHA1Hasher();
-			
-			overall_md4_hash 	= new MD4Hasher();
-			
-			overall_md5_hash 	= new Md5Hasher();
-			
+						
 			overall_ed2k_hash 	= new ED2KHasher();
 			
 		}catch( NoSuchAlgorithmException e ){
@@ -70,8 +67,9 @@ TOTorrentFileHasher
 			e.printStackTrace();
 		}
 		
-		piece_length	= _piece_length;
-		listener		= _listener;
+		do_per_file_hash	= _do_per_file_hash;
+		piece_length		= _piece_length;
+		listener			= _listener;
 		
 		buffer = new byte[piece_length];
 	}
@@ -86,7 +84,15 @@ TOTorrentFileHasher
 		
 		InputStream is = null;
 		
+		SHA1Hasher	sha1_hash		= null;
+		ED2KHasher	ed2k_hash		= null;
+		
 		try{
+			if ( do_per_file_hash ){
+				
+				sha1_hash		= new SHA1Hasher();
+				ed2k_hash		= new ED2KHasher();
+			}
 			
 			is = new BufferedInputStream(new FileInputStream( _file ));
 
@@ -95,6 +101,13 @@ TOTorrentFileHasher
 				int	len = is.read( buffer, buffer_pos, piece_length - buffer_pos );
 				
 				if ( len > 0 ){
+					
+					if ( do_per_file_hash ){
+						
+						sha1_hash.update( buffer, buffer_pos, len );
+						ed2k_hash.update( buffer, buffer_pos, len );
+					}
+					
 					
 					file_length += len;
 					
@@ -107,8 +120,6 @@ TOTorrentFileHasher
 						byte[] hash = new SHA1Hasher().calculateHash(buffer);
 
 						overall_sha1_hash.update( buffer );
-						overall_md4_hash.update( buffer );
-						overall_md5_hash.update( buffer );
 						overall_ed2k_hash.update( buffer );
 						
 						pieces.add( hash );
@@ -124,6 +135,12 @@ TOTorrentFileHasher
 					
 					break;
 				}		
+			}
+			
+			if ( do_per_file_hash ){
+				
+				per_file_sha1_digest = sha1_hash.getDigest();
+				per_file_ed2k_digest = ed2k_hash.getDigest();
 			}
 			
 		}catch( Throwable e ){
@@ -143,6 +160,18 @@ TOTorrentFileHasher
 		return( file_length );
 	}
 	
+	protected byte[]
+	getPerFileSHA1Digest()
+	{
+		return( per_file_sha1_digest );
+	}
+	
+	protected byte[]
+	getPerFileED2KDigest()
+	{
+		return( per_file_ed2k_digest );
+	}
+	
 	protected byte[][]
 	getPieces()
 		
@@ -158,8 +187,6 @@ TOTorrentFileHasher
 				pieces.addElement(new SHA1Hasher().calculateHash(rem));
 				
 				overall_sha1_hash.update( rem );
-				overall_md4_hash.update( rem );
-				overall_md5_hash.update( rem );
 				overall_ed2k_hash.update( rem );
 				
 				if ( listener != null ){
@@ -170,10 +197,8 @@ TOTorrentFileHasher
 				buffer_pos = 0;
 			}
 		
-			if ( md5_digest == null ){
+			if ( sha1_digest == null ){
 				
-				md5_digest	= overall_md5_hash.getDigest();
-				md4_digest	= overall_md4_hash.getDigest();			
 				sha1_digest	= overall_sha1_hash.getDigest();
 				ed2k_digest	= overall_ed2k_hash.getDigest();
 			}
@@ -189,32 +214,6 @@ TOTorrentFileHasher
 			throw( new TOTorrentException( 	"TOTorrentFileHasher: file read fails '" + e.toString() + "'",
 											TOTorrentException.RT_READ_FAILS ));
 		}
-	}
-	
-	protected byte[]
-	getMD5Digest()
-	
-		throws TOTorrentException
-	{
-		if ( md5_digest == null ){
-			
-			getPieces();
-		}
-		
-		return( md5_digest );
-	}
-	
-	protected byte[]
-	getMD4Digest()
-	
-		throws TOTorrentException
-	{
-		if ( md4_digest == null ){
-			
-			getPieces();
-		}
-		
-		return( md4_digest );
 	}
 	
 	protected byte[]

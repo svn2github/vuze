@@ -704,11 +704,11 @@ TOTorrentImpl
 		
 	protected void
 	addAdditionalInfoProperty(
-			String			name,
-			Object			value )
-		{
-			additional_info_properties.put( name, value );
-		}	
+		String			name,
+		Object			value )
+	{
+		additional_info_properties.put( name, value );
+	}	
 	
 	protected Map
 	getAdditionalInfoProperties()

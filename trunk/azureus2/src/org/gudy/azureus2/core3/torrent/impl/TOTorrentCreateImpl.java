@@ -99,8 +99,6 @@ TOTorrentCreateImpl
 		
 		report( MessageText.getString("Torrent.create.progress.piecelength") + DisplayFormatters.formatByteCountToKiBEtc(_piece_length ));
 		
-		TOTorrentFileHasher	hasher = new TOTorrentFileHasher((int)_piece_length, progress_listener==null?null:this );
-		
 		piece_count = calculateNumberOfPieces( _torrent_base,_piece_length );
 		
 		if ( piece_count == 0 ){
@@ -111,6 +109,8 @@ TOTorrentCreateImpl
 		
 		report( MessageText.getString("Torrent.create.progress.hashing"));
 
+		TOTorrentFileHasher	hasher = new TOTorrentFileHasher(!getSimpleTorrent(),(int)_piece_length, progress_listener==null?null:this );
+		
 		if ( getSimpleTorrent()){
 							
 			long length = hasher.add( _torrent_base );
@@ -135,10 +135,14 @@ TOTorrentCreateImpl
 										 
 		setPieces( hasher.getPieces());
 		
-		System.out.println( "sha1 = " + ByteFormatter.nicePrint( hasher.getSHA1Digest(), true));
-		System.out.println( "md5  = " + ByteFormatter.nicePrint( hasher.getMD5Digest(), true));
-		System.out.println( "md4  = " + ByteFormatter.nicePrint( hasher.getMD4Digest(), true));
-		System.out.println( "ed2k = " + ByteFormatter.nicePrint( hasher.getED2KDigest(), true));
+		byte[]	sha1_digest = hasher.getSHA1Digest();
+		byte[]	ed2k_digest = hasher.getED2KDigest();
+		
+		addAdditionalInfoProperty( "sha1", sha1_digest );
+		addAdditionalInfoProperty( "ed2k", ed2k_digest );
+		
+		//System.out.println( "overall:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true));
+		//System.out.println( "overall:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true));
 	}
 	
 	protected void
@@ -184,8 +188,19 @@ TOTorrentCreateImpl
 					}
 					
 					long length = hasher.add( file );
-										
-					encoded.addElement( new TOTorrentFileImpl( length, file_name));
+						
+					byte[]	ed2k_digest	= hasher.getPerFileED2KDigest();
+					byte[]	sha1_digest	= hasher.getPerFileSHA1Digest();
+					
+					//System.out.println( "file:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true ));
+					//System.out.println( "file:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true ));
+					
+					TOTorrentFileImpl	tf = new TOTorrentFileImpl( length, file_name);
+					
+					tf.setAdditionalProperty( "sha1", sha1_digest );
+					tf.setAdditionalProperty( "ed2k", ed2k_digest );
+					
+					encoded.addElement( tf );
 				}
 			}
 		}

@@ -41,13 +41,21 @@ ED2KHasher
 	{
 		
 	}
-	
+
 	public void
 	update(
 		byte[]		data )
 	{
-		int		rem = data.length;
-		int		pos	= 0;
+		update( data, 0, data.length );
+	}
+	
+	public void
+	update(
+		byte[]		data,
+		int			pos,
+		int			len )
+	{
+		int		rem = len;
 		
 		while( rem > 0 ){
 			
