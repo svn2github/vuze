@@ -30,6 +30,8 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
+import sun.misc.BASE64Decoder;
+
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -208,8 +210,49 @@ PRUDPPacketHandlerImpl
 			
 			if ( auth != null ){
 				
-				System.out.println("PRUDPHandler - auth = " + auth.getUserName() + "/" + new String(auth.getPassword()));
+				//<parg_home> so <new_packet> = <old_packet> + <user_padded_to_8_bytes> + <hash>
+				//<parg_home> where <hash> = first 8 bytes of sha1(<old_packet> + <user_padded_to_8> + sha1(pass))
+				//<XTF> Yes
 				
+				SHA1Hasher hasher = new SHA1Hasher();
+
+				String	user_name 	= auth.getUserName();
+				String	password	= new String(auth.getPassword());
+				
+				byte[]	sha1_password;
+				
+				if ( user_name.equals( "<internal>")){
+					
+					sha1_password = new BASE64Decoder().decodeBuffer(password);
+
+				}else{
+					
+					sha1_password = hasher.calculateHash(password.getBytes());			
+				}
+				
+				byte[]	user_bytes = new byte[8];
+				
+				Arrays.fill( user_bytes, (byte)0);
+				
+				for (int i=0;i<user_bytes.length&&i<user_name.length();i++){
+					
+					user_bytes[i] = (byte)user_name.charAt(i);
+				}
+				
+				hasher = new SHA1Hasher();
+				
+				hasher.update( buffer );
+				hasher.update( user_bytes );
+				hasher.update( sha1_password );
+				
+				byte[]	overall_hash = hasher.getDigest();
+				
+				//System.out.println("PRUDPHandler - auth = " + auth.getUserName() + "/" + new String(auth.getPassword()));
+								
+				baos.write( user_bytes );
+				baos.write( overall_hash, 0, 8 );
+				
+				buffer = baos.toByteArray();
 			}
 			
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );

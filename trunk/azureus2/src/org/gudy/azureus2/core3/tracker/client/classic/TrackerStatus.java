@@ -60,6 +60,12 @@ public class TrackerStatus {
 
         this.scrapeURL = trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9);
         // System.out.println( "url = " + trackerUrl + ", scrape =" + scrapeURL );
+        
+      }else if ( trackerUrl.toLowerCase().startsWith("udp:")){
+      		// UDP scrapes aren't based on URL rewriting, just carry on
+      	
+      	scrapeURL = trackerUrl;
+      	
        } else {
         LGLogger.log(0, 0, LGLogger.INFORMATION,
                      "can't scrape using '" + trackerUrl + "' as it doesn't end in '/announce'");		

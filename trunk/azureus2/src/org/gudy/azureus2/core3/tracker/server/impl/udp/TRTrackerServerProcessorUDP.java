@@ -69,7 +69,52 @@ TRTrackerServerProcessorUDP
 	public void
 	run()
 	{		
-		DataInputStream is = new DataInputStream(new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
+		byte[]	_data = packet.getData();
+		
+		byte[]	data = new byte[packet.getLength()];
+		
+		System.arraycopy( _data, 0, data, 0, data.length );
+		
+		int	packet_data_length = data.length;
+		
+		String	auth_user			= null;
+		byte[] 	auth_user_bytes		= null;
+		byte[]	auth_hash			= null;
+		
+		
+		if ( server.isTrackerPasswordEnabled()){
+		
+				// auth detail should be attached to the packet. Auth details are 16
+				// bytes
+			
+			if ( data.length < 17 ){
+				
+				LGLogger.log( "TRTrackerServerProcessorUDP: packet received but authorisation missing" ); 
+
+				return;
+			}
+			
+			packet_data_length -= 16;
+			
+			auth_user_bytes = new byte[8];
+			
+			auth_hash = new byte[8];
+			
+			System.arraycopy( data, packet_data_length, auth_user_bytes, 0, 8 );
+			
+			int	user_len = 0;
+			
+			while( user_len < 8 && auth_user_bytes[user_len] != 0 ){
+				
+				user_len++;
+			}
+			
+			auth_user = new String( auth_user_bytes, 0, user_len );
+			
+			System.arraycopy( data, packet_data_length+8, auth_hash, 0, 8 );
+		}
+				
+		DataInputStream is = new DataInputStream(new ByteArrayInputStream(data, 0, packet_data_length ));
 		
 		try{
 			String	client_ip_address = packet.getAddress().getHostAddress();
@@ -78,39 +123,71 @@ TRTrackerServerProcessorUDP
 			
 			LGLogger.log( "TRTrackerServerProcessorUDP: packet received: " + request.getString()); 
 			
-			PRUDPPacket	reply;
+			PRUDPPacket	reply = null;
 			
-			try{
-				int	type = request.getAction();
+			if ( auth_user_bytes != null ){
 				
-				if ( type == PRUDPPacket.ACT_REQUEST_CONNECT ){
+				// user name is irrelevant as we only have one at the moment
+	
+				//<parg_home> so <new_packet> = <old_packet> + <user_padded_to_8_bytes> + <hash>
+				//<parg_home> where <hash> = first 8 bytes of sha1(<old_packet> + <user_padded_to_8> + sha1(pass))
+				//<XTF> Yes
+				
+				SHA1Hasher	hasher = new SHA1Hasher();
+				
+				hasher.update( data, 0, packet_data_length);
+				hasher.update( auth_user_bytes );
+				hasher.update( server.getPassword());
+				
+				byte[]	digest = hasher.getDigest();
+				
+				for (int i=0;i<auth_hash.length;i++){
 					
-					reply = handleConnect( client_ip_address, request );
-					
-				}else if (type == PRUDPPacket.ACT_REQUEST_ANNOUNCE ){
-					
-					reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
-					
-				}else if ( type == PRUDPPacket.ACT_REQUEST_SCRAPE ){
-					
-					reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
-					
-				}else{
-					
-					reply = new PRUDPPacketReplyError( request.getTransactionId(), "unsupported action");
+					if ( auth_hash[i] != digest[i] ){
+				
+						LGLogger.log( "TRTrackerServerProcessorUDP: auth fails for user '" + auth_user + "'"); 
+
+						reply = new PRUDPPacketReplyError( request.getTransactionId(), "Access Denied" );
+						
+						break;
+					}
 				}
-			}catch( Throwable e ){
+			}
+			
+			if( reply == null ){
 				
-				e.printStackTrace();
-				
-				String	error = e.getMessage();
-				
-				if ( error == null ){
+				try{
+					int	type = request.getAction();
 					
-					error = e.toString();
+					if ( type == PRUDPPacket.ACT_REQUEST_CONNECT ){
+						
+						reply = handleConnect( client_ip_address, request );
+						
+					}else if (type == PRUDPPacket.ACT_REQUEST_ANNOUNCE ){
+						
+						reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
+						
+					}else if ( type == PRUDPPacket.ACT_REQUEST_SCRAPE ){
+						
+						reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
+						
+					}else{
+						
+						reply = new PRUDPPacketReplyError( request.getTransactionId(), "unsupported action");
+					}
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+					
+					String	error = e.getMessage();
+					
+					if ( error == null ){
+						
+						error = e.toString();
+					}
+					
+					reply = new PRUDPPacketReplyError( request.getTransactionId(), error );
 				}
-				
-				reply = new PRUDPPacketReplyError( request.getTransactionId(), error );
 			}
 			
 			if ( reply != null ){

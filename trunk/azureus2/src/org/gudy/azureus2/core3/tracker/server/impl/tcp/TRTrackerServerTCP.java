@@ -48,13 +48,6 @@ TRTrackerServerTCP
 	
 	protected ThreadPool	thread_pool;
 	
-	protected boolean	web_password_enabled;
-	protected boolean	tracker_password_enabled;
-	protected String	password_user;
-	protected byte[]	password_pw;
-	protected boolean	compact_enabled;
-	protected boolean	key_enabled;
-	
 	public
 	TRTrackerServerTCP(
 		int			_port,
@@ -65,18 +58,6 @@ TRTrackerServerTCP
 		port					= _port;
 		ssl						= _ssl;
 
-		COConfigurationManager.addListener(
-			new COConfigurationListener()
-			{
-				public void
-				configurationSaved()
-				{
-					readConfigSettings();
-				}
-			});
-			
-		readConfigSettings();
-				
 		thread_pool = new ThreadPool( "TrackerServer:TCP:"+port, THREAD_POOL_SIZE );			
 		current_announce_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 		
@@ -222,22 +203,6 @@ TRTrackerServerTCP
 	}
 		
 
-	protected void
-	readConfigSettings()
-	{		
-		web_password_enabled 		= COConfigurationManager.getBooleanParameter("Tracker Password Enable Web", false);
-		tracker_password_enabled 	= COConfigurationManager.getBooleanParameter("Tracker Password Enable Torrent", false);
-
-		if ( web_password_enabled || tracker_password_enabled ){
-			
-			password_user	= COConfigurationManager.getStringParameter("Tracker Username", "");
-			password_pw		= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
-		}
-		
-		compact_enabled = COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true );
-		
-		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable", true );
-	}
 	
 	public int
 	getPort()
@@ -257,42 +222,6 @@ TRTrackerServerTCP
 		return( ssl );
 	}
 	
-	public boolean
-	isWebPasswordEnabled()
-	{
-		return( web_password_enabled );
-	}
-	
-	public boolean
-	isTrackerPasswordEnabled()
-	{
-		return( tracker_password_enabled );
-	}
-	
-	public boolean
-	isCompactEnabled()
-	{
-		return( compact_enabled );
-	}
-	public boolean
-	isKeyEnabled()
-	{
-		return( key_enabled );
-	}
-	
-	public String
-	getUsername()
-	{
-		return( password_user );
-	}
-	
-	public byte[]
-	getPassword()
-	{
-		return( password_pw );
-	}
-	
-
 	
 	protected boolean
 	handleExternalRequest(

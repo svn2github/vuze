@@ -171,12 +171,32 @@ TRTrackerServerImpl
 	
 	protected TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
 	
+	protected boolean	web_password_enabled;
+	protected boolean	tracker_password_enabled;
+	protected String	password_user;
+	protected byte[]	password_pw;
+	protected boolean	compact_enabled;
+	protected boolean	key_enabled;
+	
+
 	protected Vector	listeners 			= new Vector();
 		
 	
 	protected
 	TRTrackerServerImpl()
 	{
+		COConfigurationManager.addListener(
+				new COConfigurationListener()
+				{
+					public void
+					configurationSaved()
+					{
+						readConfigSettings();
+					}
+				});
+				
+		readConfigSettings();
+					
 		int	min 				= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
 		int	scrape_percentage 	= COConfigurationManager.getIntParameter("Tracker Scrape Retry Percentage", DEFAULT_SCRAPE_RETRY_PERCENTAGE );
 		
@@ -197,6 +217,58 @@ TRTrackerServerImpl
 		timer_thread.setDaemon( true );
 		
 		timer_thread.start();
+	}
+	
+	protected void
+	readConfigSettings()
+	{		
+		web_password_enabled 		= COConfigurationManager.getBooleanParameter("Tracker Password Enable Web", false);
+		tracker_password_enabled 	= COConfigurationManager.getBooleanParameter("Tracker Password Enable Torrent", false);
+
+		if ( web_password_enabled || tracker_password_enabled ){
+			
+			password_user	= COConfigurationManager.getStringParameter("Tracker Username", "");
+			password_pw		= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
+		}
+		
+		compact_enabled = COConfigurationManager.getBooleanParameter("Tracker Compact Enable", true );
+		
+		key_enabled = COConfigurationManager.getBooleanParameter("Tracker Key Enable", true );
+	}
+
+	public boolean
+	isWebPasswordEnabled()
+	{
+		return( web_password_enabled );
+	}
+	
+	public boolean
+	isTrackerPasswordEnabled()
+	{
+		return( tracker_password_enabled );
+	}
+	
+	public boolean
+	isCompactEnabled()
+	{
+		return( compact_enabled );
+	}
+	public boolean
+	isKeyEnabled()
+	{
+		return( key_enabled );
+	}
+	
+	public String
+	getUsername()
+	{
+		return( password_user );
+	}
+	
+	public byte[]
+	getPassword()
+	{
+		return( password_pw );
 	}
 	
 	public int
