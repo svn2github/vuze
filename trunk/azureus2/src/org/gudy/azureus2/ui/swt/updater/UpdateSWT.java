@@ -38,7 +38,7 @@ public class UpdateSWT {
     if(args.length < 4)
       return;
     try {
-      Thread.sleep(3000);
+      Thread.sleep(1000);
       String platform = args[0];
       
       if(platform.equals("carbon"))
@@ -72,11 +72,14 @@ public class UpdateSWT {
     Enumeration enum = zipFile.entries();
     while(enum.hasMoreElements()) {
       ZipEntry zipEntry = (ZipEntry) enum.nextElement();
+      if(zipEntry.getName().equals("java_swt")) {        
+        writeFile(zipFile,zipEntry,"Azureus.app/Contents/MacOS/");
+      }
       if(zipEntry.getName().equals("swt.jar")) {        
-        writeFile(zipFile,zipEntry,null);
+        writeFile(zipFile,zipEntry,"Azureus.app/Contents/Resources/Java/");
       }
       if(zipEntry.getName().startsWith("libswt-carbon-") && zipEntry.getName().endsWith(".jnilib")) {
-        writeFile(zipFile,zipEntry,null);
+        writeFile(zipFile,zipEntry,"Azureus.app/Contents/Resources/Java/dll/");
       }
     }    
   }
@@ -107,8 +110,9 @@ public class UpdateSWT {
   }
   
   public static File openFile(String path,String name) {
-    if(path != null)
-      return new File(path,name);
+    if(path != null) {
+      return new File(path + System.getProperty("file.separator") + name);
+    }
     return new File(name);
   }
   
