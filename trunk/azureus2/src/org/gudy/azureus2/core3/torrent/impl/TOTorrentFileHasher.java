@@ -77,7 +77,7 @@ TOTorrentFileHasher
 				ed2k_hash		= new ED2KHasher();
 			}
 			
-			is = new BufferedInputStream(new FileInputStream( _file ), 8192);
+			is = new BufferedInputStream(new FileInputStream( _file ), 65536);
 
 			while(true){
 				
