@@ -110,11 +110,11 @@ UPnPPluginService
 					
 					serviceMapping	sm = (serviceMapping)service_mappings.get(i);
 					
-					if ( sm.getMapping() == mapping ){
+					if ( sm.getMappings().contains( mapping )){
 				
 						if ( sm.getPort() != mapping.getPort()){
 							
-							removeMapping( log, sm, false );
+							removeMapping( log, mapping, sm, false );
 						}
 					}
 				}
@@ -135,7 +135,7 @@ UPnPPluginService
 								// make sure we tie this to the mapping in case it
 								// was external to begin with
 							
-							sm.setMapping( mapping  );
+							sm.addMapping( mapping  );
 							
 							if ( !sm.getLogged()){
 								
@@ -173,7 +173,7 @@ UPnPPluginService
 								
 									// we're going to grab it
 								
-								sm.setMapping( mapping  );
+								sm.addMapping( mapping  );
 	
 								grab_in_progress	= sm;
 							}
@@ -251,18 +251,16 @@ UPnPPluginService
 	{
 		try{
 			this_mon.enter();
-		
-			String local_address = connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
-			
+					
 			for (int i=0;i<service_mappings.size();i++){
 				
 				serviceMapping	sm = (serviceMapping)service_mappings.get(i);
 				
 				if ( 	sm.isTCP() == mapping.isTCP() &&
 						sm.getPort() == mapping.getPort() &&
-						sm.getMapping() != null ){
+						sm.getMappings().contains( mapping )){
 					
-					removeMapping( log, sm, end_of_day );
+					removeMapping( log, mapping, sm, end_of_day );
 	
 					return;
 				}
@@ -276,15 +274,44 @@ UPnPPluginService
 	protected void
 	removeMapping(
 		LoggerChannel		log,
-		serviceMapping		mapping, 
+		UPnPMapping			upnp_mapping,
+		serviceMapping		service_mapping, 
 		boolean				end_of_day )
 	{
-		if ( mapping.isExternal()){
+		if ( service_mapping.isExternal()){
 		
-			log.log( "Mapping " + mapping.getString() + " not removed as not created by Azureus" );
+			log.log( "Mapping " + service_mapping.getString() + " not removed as not created by Azureus" );
 			
 		}else{
-			int	persistent = mapping.getMapping().getPersistent(); 
+			int	persistent	=  UPnPMapping.PT_DEFAULT;
+			
+			List	mappings = service_mapping.getMappings();
+			
+			for (int i=0;i<mappings.size();i++){
+				
+				UPnPMapping	map = (UPnPMapping)mappings.get(i); 
+					
+				int	p = map.getPersistent(); 
+				
+				if ( p == UPnPMapping.PT_DEFAULT ){
+				
+						// default - leave as is
+					
+				}else if ( p == UPnPMapping.PT_TRANSIENT ){
+					
+						// transient overrides default
+					
+					if ( persistent == UPnPMapping.PT_DEFAULT ){
+						
+						persistent	= p;
+					}
+				}else{
+					
+						// persistent overrides all others
+					
+					persistent	= UPnPMapping.PT_PERSISTENT;
+				}
+			}
 			
 				// set effective persistency
 			
@@ -298,22 +325,37 @@ UPnPPluginService
 			
 			if ( end_of_day && persistent == UPnPMapping.PT_PERSISTENT ){
 
-				log.log( "Mapping " + mapping.getString() + " not removed as mapping is persistent" );
+				log.log( "Mapping " + service_mapping.getString() + " not removed as mapping is persistent" );
 	
 			}else{
 				
-				try{
-					connection.deletePortMapping( 
-						mapping.isTCP(), mapping.getPort());
-			
-					log.log( "Mapping " + mapping.getString() + " removed" );
-					
-				}catch( Throwable e ){
-					
-					log.log( "Mapping " + mapping.getString() + " failed to delete", e );
-				}
+					// get the name here for the deletion case so that the subsequent message makes 
+					// sense (as the name is derived from the current mappings, so getting it after
+					// deleting it results in a name of <external>)
 				
-				service_mappings.remove(mapping);
+				String	service_name = service_mapping.getString();
+				
+				service_mapping.removeMapping( upnp_mapping );
+				
+				if ( service_mapping.getMappings().size() == 0 ){
+				
+					try{
+						connection.deletePortMapping( 
+								service_mapping.isTCP(), service_mapping.getPort());
+				
+						log.log( "Mapping " + service_name + " removed" );
+						
+					}catch( Throwable e ){
+						
+						log.log( "Mapping " + service_name + " failed to delete", e );
+					}
+					
+					service_mappings.remove(service_mapping);
+					
+				}else{
+					
+					log.log( "Mapping " + service_mapping.getString() + " not removed as interest remains" );
+				}
 			}
 		}
 	}
@@ -321,7 +363,7 @@ UPnPPluginService
 	protected class
 	serviceMapping
 	{
-		protected UPnPMapping	mapping;
+		protected List			mappings	= new ArrayList();
 		
 		protected boolean		tcp;
 		protected int			port;
@@ -352,9 +394,10 @@ UPnPPluginService
 		serviceMapping(
 			UPnPMapping		_mapping )
 		{
-			mapping			= _mapping;
-			tcp				= mapping.isTCP();
-			port			= mapping.getPort();
+			mappings.add( _mapping );
+			
+			tcp				= _mapping.isTCP();
+			port			= _mapping.getPort();
 			internal_host	= connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 		}
 		
@@ -364,17 +407,27 @@ UPnPPluginService
 			return( external );
 		}
 		
-		protected UPnPMapping
-		getMapping()
+		protected List
+		getMappings()
 		{
-			return( mapping );
+			return( mappings );
 		}
 		
 		protected void
-		setMapping(
+		addMapping(
 			UPnPMapping	_mapping )
 		{
-			mapping	= _mapping;
+			if ( !mappings.contains( _mapping )){
+				
+				mappings.add( _mapping );
+			}
+		}
+		
+		protected void
+		removeMapping(
+			UPnPMapping	_mapping )
+		{
+			mappings.remove( _mapping );
 		}
 		
 		protected boolean
@@ -410,13 +463,19 @@ UPnPPluginService
 		public String
 		getString()
 		{
-			if ( mapping == null ){
+			if ( mappings.size() == 0 ){
 				
 				return( "<external> (" + (isTCP()?"TCP":"UDP")+"/"+getPort()+")" ); 
 				
 			}else{
 				
-				return( mapping.getString( getPort()));
+				String	str = "";
+				
+				for (int i=0;i<mappings.size();i++){
+					str += (i==0?"":",")+ ((UPnPMapping)mappings.get(i)).getString( getPort());
+				}
+				
+				return( str );
 			}
 		}
 	}

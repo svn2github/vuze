@@ -92,7 +92,13 @@ public class VersionCheckClient {
     return last_check_data;
   }
   
-  
+  public boolean
+  isVersionCheckDataValid()
+  {
+  	getVersionCheckInfo();
+  	
+  	return( last_check_data != null && last_check_data.size() > 0 ); 
+  }
   
   /**
    * Get the ip address seen by the version check server.

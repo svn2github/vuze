@@ -325,6 +325,8 @@ PRUDPPacketHandlerImpl
 			
 			if ( request_packet ){
 					
+				// System.out.println( "Incoming from " + dg_packet.getAddress());
+				
 				if ( TRACE_REQUESTS ){
 				
 					LGLogger.log( "PRUDPPacketHandler: request packet received: " + packet.getString()); 
@@ -549,7 +551,7 @@ PRUDPPacketHandlerImpl
 				buffer = baos.toByteArray();
 			}
 			
-			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );
+			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, destination_address );
 			
 			PRUDPPacketHandlerRequest	request = new PRUDPPacketHandlerRequest( receiver, timeout );
 		
@@ -564,6 +566,8 @@ PRUDPPacketHandlerImpl
 			}
 			
 			try{
+				// System.out.println( "Outgoing to " + dg_packet.getAddress());
+
 				if ( send_delay > 0 ){
 									
 					try{
@@ -575,7 +579,7 @@ PRUDPPacketHandlerImpl
 							
 								// synchronous write holding lock to block senders
 							
-							socket.send( packet );
+							socket.send( dg_packet );
 							
 							stats.packetSent( buffer.length );
 							
@@ -588,15 +592,15 @@ PRUDPPacketHandlerImpl
 							
 						}else{
 							
-							send_queue_data_size	+= packet.getLength();
+							send_queue_data_size	+= dg_packet.getLength();
 														
 							if ( low_priority ){
 								
-								send_queue_lp.add( new Object[]{ packet, request });
+								send_queue_lp.add( new Object[]{ dg_packet, request });
 								
 							}else{
 								
-								send_queue_hp.add( new Object[]{ packet, request });
+								send_queue_hp.add( new Object[]{ dg_packet, request });
 							}
 							
 							if ( TRACE_REQUESTS ){
@@ -680,7 +684,7 @@ PRUDPPacketHandlerImpl
 					
 					request.sent();
 					
-					socket.send( packet );
+					socket.send( dg_packet );
 					
 					// System.out.println( "sent:" + buffer.length );
 					
@@ -740,16 +744,16 @@ PRUDPPacketHandlerImpl
 			
 			byte[]	buffer = baos.toByteArray();
 			
-			DatagramPacket packet = new DatagramPacket(buffer, buffer.length, destination_address );
+			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, destination_address );
 			
-			// System.out.println( "sent:" + buffer.length );
+			// System.out.println( "Outgoing to " + dg_packet.getAddress());	
 			
 			if ( TRACE_REQUESTS ){
 				
 					LGLogger.log( "PRUDPPacketHandler: reply packet sent: " + request_packet.getString());
 			}
 			
-			socket.send( packet );
+			socket.send( dg_packet );
 			
 			stats.packetSent( buffer.length );
 			
