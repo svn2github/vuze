@@ -67,7 +67,7 @@ PEPeerControlImpl
   private DiskManagerPiece[]	dm_pieces;
   
   private boolean[] _downloading;
-  private boolean 	_finished;
+  private boolean 	seeding_mode;
   private boolean	restart_initiated;
   
   private boolean[] 			_piecesRarest;
@@ -128,7 +128,7 @@ PEPeerControlImpl
   private int superSeedModeNumberOfAnnounces;
   private SuperSeedPiece[] superSeedPieces;
   
-  private final PeerConnectInfoStorage peer_info_storage = new PeerConnectInfoStorage( PeerUtils.MAX_CONNECTIONS_PER_TORRENT * 2 );
+  private final PeerConnectInfoStorage peer_info_storage = new PeerConnectInfoStorage( 200 );  //size will be updated later on
   
   private final HashMap 	reconnect_counts 		= new HashMap();
   private final AEMonitor	reconnect_counts_mon	= new AEMonitor( "PEPeerControl:RC");
@@ -356,7 +356,7 @@ PEPeerControlImpl
 
         checkFastPieces();
 
-        if( !_finished ) { //if we're not finished
+        if( !seeding_mode ) { //if we're not finished
 
           _diskManager.computePriorityIndicator();
 
@@ -369,7 +369,7 @@ PEPeerControlImpl
 
         updatePeersInSuperSeedMode();
 
-        unChoke();
+        doUnchokes();
         
 
         long loop_time = SystemTime.getCurrentTime() - timeStart;
@@ -699,16 +699,7 @@ PEPeerControlImpl
   
   
 
-  /**
-   * This method scans all peers and if downloading from them is possible,
-   * it will try to find blocks to download.
-   * If the peer is marked as snubbed then only one block will be downloaded
-   * otherwise it will queue up 16 requests.
-   * 
-   */
   private void checkDLPossible() {
-    //::updated this method to work with List -Tyler
-    //for all peers
     List bestUploaders = new ArrayList();
     
     List	peer_transports = peer_transports_cow;
@@ -721,7 +712,7 @@ PEPeerControlImpl
 
 	    if (pc.transferAvailable()) {
 	    	long upRate = pc.getStats().getReception();
-	      testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
+        updateLargestValueFirstSort( upRate, upRates, pc, bestUploaders, 0 );
 	    }
 	  }
  
@@ -770,22 +761,17 @@ PEPeerControlImpl
   checkFinished(
   	boolean	start_of_day ) 
   {
-    boolean temp = true;
+    seeding_mode = true;
    
-    for (int i = 0; i < _nbPieces; i++) {
- 
-    	temp = temp && dm_pieces[i].getDone();
-
-    	if (!temp){
-    		
+    //check if we still have (incomplete) pieces to download
+    for( int i = 0; i < _nbPieces; i++ ) {
+      seeding_mode = seeding_mode && dm_pieces[i].getDone();
+    	if( !seeding_mode ) {
     		break;
       }
     }
 
-    //set finished
-    _finished = temp;
-        
-    if (_finished) {
+    if (seeding_mode) {
           	
       if(endGameMode) {
 	      try{
@@ -975,7 +961,7 @@ PEPeerControlImpl
       }
       
       //lower limit to swarm size if necessary
-      int swarmSize = _finished ? swarmPeers : swarmPeers + swarmSeeds;  //if seeding, only use peer count
+      int swarmSize = seeding_mode ? swarmPeers : swarmPeers + swarmSeeds;  //if seeding, only use peer count
       if (swarmSize > 0 && num_wanted > swarmSize) {
         num_wanted = swarmSize;
       }
@@ -1288,296 +1274,205 @@ PEPeerControlImpl
  }
 
   
-  private void 
-  unChoke() 
-  {  
-  		// Determine how many uploads we should consider    
-
-    int nbUnchoke = _downloadManager.getStats().getMaxUploads();
-
-    int	choking_count					= 0;
-    int	non_choking_count				= 0;
-    int	interesting_and_choking_count	= 0;
+ 
+ /**
+  * Do all peer choke/unchoke processing.
+  */
+  private void doUnchokes() {  
+  	//Determine how many simultaneous uploads we should consider    
+    int max_to_unchoke = _downloadManager.getStats().getMaxUploads();
+    List unchoked_peers = getUnchokedPeers();
     
-    	// for efficiency count the choking peers first
-    
-    List	peer_transports = peer_transports_cow;
-    
-    for (int i = 0; i < peer_transports.size(); i++){
+    //if there are less currently-unchoked peers than max allowed
+    if( unchoked_peers.size() < max_to_unchoke ) {
+      List peer_transports = peer_transports_cow;
+      
+      for( int i=0; i < peer_transports.size(); i++ ) {
+        PEPeerTransport pc = (PEPeerTransport)peer_transports.get( i );
 
-      PEPeerTransport	pc = (PEPeerTransport)peer_transports.get(i);
-        	
-      if ( pc.isChoking()){
-            	
-        choking_count++;
-            	
-        if ( pc.isInteresting()){
-            		
-          interesting_and_choking_count++;
+        //unchoke (possibly temporarily) any currently-choked right away
+        if( pc.isInterestedInMe() && pc.isChokedByMe() && !pc.isSnubbed() ) {
+          pc.sendUnChoke();
+          unchoked_peers.add( pc );
+          if( unchoked_peers.size() == max_to_unchoke ) {
+            break;
+          }
         }
-      }else{
-        non_choking_count++;
-      }
-
-    }
-
-    	// lazily initialise this list
-    
-    List	nonChoking	= null;
-    
-    	// if we have a mismatch between the required unchoking count and actual
-    
-    if ( nbUnchoke != non_choking_count ){
-    
-    	if ( non_choking_count > nbUnchoke ){
-	    	
-    			// Then, in any case if we have too many unchoked pple we need to choke some
-
-	    	nonChoking = getNonChokingPeers(); 
-		    
-		    while( nonChoking.size() > nbUnchoke ){
-		    	
-		    	PEPeerTransport pc = (PEPeerTransport) nonChoking.remove(0);
-		      
-		    	pc.sendChoke();
-		    }
-    	}else if ( non_choking_count < nbUnchoke ){
-		    	
-    			//   If we lack unchoke pple, find new ones
-    		
-		    	//Determine the N (nbUnchoke best peers)
-		    	//Maybe we'll need some other test when we are a seed ...
-		    	
-		   		// only interesting, choked peers are considered 
-		    	
-		   	if ( interesting_and_choking_count > 0 ){
-		    	
-		   		prepareBestUnChokedPeers( nbUnchoke - non_choking_count );
-		   	}
-		    
-		   		// return here as we've found peers to unchoke or all are unchoked
-		   	
-		   	return;
-		}
-    }
-    
-    	//  Only Choke-Unchoke Every 10 secs
-    
-    if ((mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL) != 0){
-    	
-      return;
-    }
-
-    if ( nonChoking == null ){
-    	
-    	nonChoking = getNonChokingPeers();
-    }
-    
-    	// Determine the N (nbUnchoke best peers)
-    	// Maybe we'll need some other test when we are a seed ...
-    
-    List bestUploaders = getBestUnChokedPeers(nbUnchoke);
-
-    	// optimistic unchoke every 30 seconds
-    
-    if ((mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL) == 0 || (currentOptimisticUnchoke == null)) {
-      performOptimisticUnChoke();
-    }
-    
-    if(currentOptimisticUnchoke != null) {
-      if(!bestUploaders.contains(currentOptimisticUnchoke)) {
-        if(bestUploaders.size() > 0) {
-          bestUploaders.remove(bestUploaders.size()-1);
-        }
-        bestUploaders.add(currentOptimisticUnchoke);
       }
     }
 
-    for (int i = 0; i < bestUploaders.size(); i++) {
-      PEPeerTransport pc = (PEPeerTransport) bestUploaders.get(i);
-      if (nonChoking.contains(pc)) {
-        nonChoking.remove(pc);
-      }
-      else {
-        pc.sendUnChoke();
-      }
-    }
+    //do main choke/unchoke every 10 secs
+    if( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 ) {
+      
+      //refresh optimistic unchoke every 30 seconds
+      boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0 || currentOptimisticUnchoke == null;
+      
+      List best_peers = getBestPeersToUnchoke( max_to_unchoke, refresh );
 
-    for (int i = 0; i < nonChoking.size(); i++) {
-      PEPeerTransport pc = (PEPeerTransport) nonChoking.get(i);
-      pc.sendChoke();
+      //send chokes to those no longer 'best'
+      unchoked_peers.removeAll( best_peers );
+      for( int i=0; i < unchoked_peers.size(); i++ ) {
+        PEPeerTransport pc = (PEPeerTransport)unchoked_peers.get( i );
+        pc.sendChoke();
+      }
+      
+      //send unchokes to the 'best' that are not already unchoked
+      for( int i=0; i < best_peers.size(); i++ ) {
+        PEPeerTransport pc = (PEPeerTransport)best_peers.get( i );
+        if( pc.isChokedByMe() )  pc.sendUnChoke();
+      }
     }
   }
  
-  private List
-  getNonChokingPeers()
-  {
-    List nonChoking = new ArrayList();
+  
+  
+  /**
+   * Get a list of all the peers currently unchoked.
+   * @return unchoked peers
+   */
+  private List getUnchokedPeers() {
+    List unchoked = new ArrayList();
     
     List	peer_transports = peer_transports_cow;    
    
     for (int i = 0; i < peer_transports.size(); i++) {
       	
-        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-                 
-        if (!pc.isChoking()){
-        	
-          nonChoking.add(pc);
-        }
-      }
- 
-    
-    return( nonChoking );
-  }
-
-  // refactored out of unChoke() - Moti
-  private void prepareBestUnChokedPeers(int numUpRates) {
-    if (numUpRates <= 0)
-      return;
-
-    long[] upRates = new long[numUpRates];
-    Arrays.fill(upRates, 0);
-
-    List bestUploaders = new ArrayList();
-    
-    List	peer_transports = peer_transports_cow;
-    
-    for (int i = 0; i < peer_transports.size(); i++) {
       PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+                 
+      if( !pc.isChokedByMe() ) {
+        	
+        unchoked.add(pc);
+      }
+    }
+ 
+    return( unchoked );
+  }
+  
 
-      if (pc.isInteresting() && pc.isChoking()) {
-      	long upRate = pc.getStats().getReception();
-        testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
+  
+  /**
+   * Get a list of the best possible peers (including the optimistic unchoke)
+   * that should be in state unchoked, some of which may already be unchoked.
+   * @param max_wanted max number of peers wanted
+   * @param refresh_opt_unchoke find a new optimistic unchoke
+   * @return list of best peers
+   */
+  private List getBestPeersToUnchoke( int max_wanted, boolean refresh_opt_unchoke ) {
+    max_wanted--;  //reserve the last spot for the opt unchoke
+    
+    long[] best_rates = new long[ max_wanted ];  //0-initialized
+    List best_peers = new ArrayList();
+    List peer_transports = peer_transports_cow;
+    
+    //(1) fill with fastest-transfering peers
+    for( int i=0; i < peer_transports.size(); i++ ) {
+      PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+      
+      if( pc == currentOptimisticUnchoke && !refresh_opt_unchoke )  continue;  //skip opt unchoke if not being refreshed
+      
+      boolean interesting = seeding_mode ? true : pc.isInterestingToMe();
+      if( interesting && pc.isInterestedInMe() && !pc.isSnubbed() ) {
+        long upRate = seeding_mode ? pc.getStats().getUploadAverage() : pc.getStats().getReception();
+        if( upRate > 256 ) {  //need to be uploading at least 256kbs to qualify
+          updateLargestValueFirstSort( upRate, best_rates, pc, best_peers, 0 );
+        }
       }
     }
 
-    for (int i = 0; i < bestUploaders.size(); i++) {
-      PEPeerTransport pc = (PEPeerTransport) bestUploaders.get(i);
-      pc.sendUnChoke();
-    }
-  }
-
-  // refactored out of unChoke() - Moti
-  private List getBestUnChokedPeers(int nbUnchoke) {
-    long[] upRates = new long[nbUnchoke];
-    Arrays.fill(upRates, 0);
-
-    List bestUploaders = new ArrayList();
-    
-    List	peer_transports = peer_transports_cow;
-    
-      for (int i = 0; i < peer_transports.size(); i++) {
+    //(2) if necessary, fill with peers we are interested in and have reciprocated in the past
+    if( !seeding_mode && best_peers.size() < max_wanted ) {
+      int sort_start_pos = best_peers.size();
+      
+      for( int i=0; i < peer_transports.size(); i++ ) {
         PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-  
-        if (pc.isInteresting()) {
-        	long upRate = 0;
-          if (_finished) {
-            upRate = pc.getStats().getUploadAverage();
-            //int totalUploaded = (int) (pc.getStats().getTotalSent() / (1024l*1024l)) + 1;
-            //upRate = upRate / totalUploaded;
-            if (pc.isSnubbed())
-              upRate = -1;
+
+        if( pc == currentOptimisticUnchoke && !refresh_opt_unchoke )  continue;  //skip opt unchoke if not being refreshed
+        
+        if( pc.isInterestingToMe() && pc.isInterestedInMe() && !pc.isSnubbed() && !best_peers.contains( pc ) ) { 
+          long uploaded_ratio = pc.getStats().getTotalSent() / (pc.getStats().getTotalReceived() + 16383); //assumes 16KB piece chunks
+          if( uploaded_ratio < 10 ) {  //make sure we haven't already uploaded 10 times as much data as they've sent us
+            updateLargestValueFirstSort( pc.getStats().getTotalReceived(), best_rates, pc, best_peers, sort_start_pos );
           }
-          else
-            upRate = pc.getStats().getReception();
-          if (upRate > 256)
-            testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
         }
       }
-
-    if (!_finished && bestUploaders.size() < upRates.length) {
+    }
+    
+    //(3) if necessary, fill with peers who have uploaded the most to us
+    if( best_peers.size() < max_wanted ) {
+      int sort_start_pos = best_peers.size();
       
-        for (int i = 0; i < peer_transports.size(); i++) {
-          PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-
-          if (pc != currentOptimisticUnchoke
-            && pc.isInteresting()
-            && pc.isInterested()
-            && bestUploaders.size() < upRates.length
-            && !pc.isSnubbed()
-            && (_downloadManager.getStats().getUploaded() / (_downloadManager.getStats().getDownloaded() + 16000)) < 10) {
+      for( int i=0; i < peer_transports.size(); i++ ) {
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+        
+        if( pc == currentOptimisticUnchoke && !refresh_opt_unchoke )  continue;  //skip opt unchoke if not being refreshed
+        
+        if( pc.isInterestedInMe() && !pc.isSnubbed() && !best_peers.contains( pc ) ) {
+          long total = pc.getStats().getTotalReceived();  //either 0 or >=16384
             
-              bestUploaders.add(pc);
+          if( total == 0 ) {  //has never sent us any data
+            total = 1000 - pc.getPercentDoneInThousandNotation();  //so prioritize least-completed peers
           }
+            
+          updateLargestValueFirstSort( total, best_rates, pc, best_peers, sort_start_pos );
         }
-  
-    }
-
-    if (bestUploaders.size() < upRates.length) {
-      int start = bestUploaders.size();
-
-      
-        for (int i = 0; i < peer_transports.size(); i++) {
-          PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-
-          if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
-            long upRate = 0;
-            	//If peer we'll use the overall uploaded value
-            if (!_finished){
-            	
-              upRate = pc.getStats().getTotalReceived();
-              
-            }else{
-              
-              upRate = pc.getPercentDone();
-              
-              if (pc.isSnubbed()){
-               
-              	upRate = -1;
-              }
-            }
-            if( upRate >= 0 ) {
-              testAndSortBest(upRate, upRates, pc, bestUploaders, start);
-            }
-          }
-        }
-    }
-    return bestUploaders;
-  }
-
-  // refactored out of unChoke() - Moti
-  private void performOptimisticUnChoke() {
-    int index = 0;
-    List	peer_transports = peer_transports_cow;
-     
-      for (int i = 0; i <peer_transports.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport)peer_transports.get(i);
-        if (pc == currentOptimisticUnchoke)
-          index = i + 1;
       }
-      if (index >= peer_transports.size())
-        index = 0;
-
-      currentOptimisticUnchoke = null;
-
-      for (int i = index; i < peer_transports.size() + index; i++) {
-        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i % peer_transports.size());
-        if (!pc.isSeed() && pc.isInteresting() && !pc.isSnubbed()) {
+    }
+    
+    //append the optimistic unchoke
+    if( refresh_opt_unchoke ) {
+      int index = 0;
+      
+      if( currentOptimisticUnchoke != null ) {
+        index = peer_transports.indexOf( currentOptimisticUnchoke ) + 1;
+        index = index >= peer_transports.size() ? 0 : index;
+      }
+      
+      for( int i = index; i < peer_transports.size() + index; i++ ) {
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get( i % peer_transports.size() );
+        
+        if( !pc.isSeed() && pc.isInterestedInMe() && !pc.isSnubbed() && !best_peers.contains( pc ) ) {
           currentOptimisticUnchoke = pc;
           break;
         }
       }
+    }
+
+    if( currentOptimisticUnchoke != null ) {
+      best_peers.add( currentOptimisticUnchoke );
+    }
+
+    return best_peers;
   }
 
-  private void testAndSortBest(long upRate, long[] upRates, PEPeerTransport pc, List best, int start) {
-    if(best == null || pc == null)
-      return;
-    if(best.contains(pc))
-      return;
-    int i;
-    for (i = start; i < upRates.length; i++) {
-      if (upRate >= upRates[i])
-        break;
-    }
-    if (i < upRates.length) {
-      best.add(i, pc);
-      for (int j = upRates.length - 2; j >= i; j--) {
-        upRates[j + 1] = upRates[j];
+  
+  
+
+  /**
+   * Update (if necessary) the given list with the given value while maintaining
+   * a largest-value-first (as seen so far) sort order.
+   * @param new_value to use
+   * @param values existing values array
+   * @param new_item to insert
+   * @param items existing items
+   * @param start_pos index at which to start compare
+   */
+  private void updateLargestValueFirstSort( long new_value, long[] values, PEPeerTransport new_item, List items, int start_pos ) {  
+    for( int i=start_pos; i < values.length; i++ ) {
+      if( new_value >= values[ i ] ) {
+        for( int j = values.length - 2; j >= i; j-- ) {  //shift displaced values to the right
+          values[j + 1] = values[ j ];
+        }
+        
+        values[ i ] = new_value;
+        items.add( i, new_item );
+        
+        if( items.size() > values.length ) {  //throw away last item if list too large 
+          items.remove( values.length );
+        }
+        
+        return;
       }
-      upRates[i] = upRate;
     }
-    if (best.size() > upRates.length)
-      best.remove(upRates.length);
   }
 
 
@@ -1604,7 +1499,7 @@ PEPeerControlImpl
   	}
 	
     //If we are not ourself a seed, return
-    if (!forceDisconnect && ((!_finished) || !disconnect_seeds_when_seeding )){
+    if (!forceDisconnect && (!seeding_mode || !disconnect_seeds_when_seeding )){
       return;
     }
     
@@ -2056,17 +1951,17 @@ PEPeerControlImpl
 	 
 			//connection_found	= true;
 			
-		  	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
+	  	  ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
 		  	
 		  	new_peer_transports.remove(peer);
 		  	 
 		  	peer_transports_cow = new_peer_transports;
 	  		 	
-		 	peerRemoved( peer );
+		  	peerRemoved( peer );
 
-		  		//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
+		  	//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
 	 	 
-		 	peer.closeAll( peer.getIp() + ": " + reason ,false, false);
+		  	peer.closeAll( peer.getIp() + ": " + reason ,false, false);
 	  	}
 	}finally{
 		
@@ -2175,6 +2070,9 @@ PEPeerControlImpl
       superSeedModeNumberOfAnnounces--;
       superSeedPieces[piece].peerLeft();
     }
+    
+    if( pc == currentOptimisticUnchoke )  currentOptimisticUnchoke = null;
+    
     _downloadManager.removePeer(pc);
   }
 
@@ -2438,13 +2336,14 @@ PEPeerControlImpl
 	    }
   	}finally{
   		
-  		if ( !_finished ){
+  		if ( !seeding_mode ){
   			
            checkFinished( false );	 
   		}
   	}
   }
 
+  
   private void badPeerDetected(PEPeer peer) {
     String ip = peer.getIp();
     //Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");             
@@ -2998,7 +2897,6 @@ PEPeerControlImpl
           }
         }
       }
-
     }
     
     //every 5 seconds
@@ -3017,7 +2915,7 @@ PEPeerControlImpl
 
       //update storage capacity
       int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
-      if( allowed == -1 )  allowed = PeerUtils.MAX_CONNECTIONS_PER_TORRENT;
+      if( allowed == -1 )  allowed = 100;
       peer_info_storage.setMaxCapacity( allowed * 2 );
     }
     
