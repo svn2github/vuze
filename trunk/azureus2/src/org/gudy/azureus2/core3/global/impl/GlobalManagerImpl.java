@@ -28,7 +28,6 @@ package org.gudy.azureus2.core3.global.impl;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,11 +42,8 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.client.*;
-import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.startup.STProgressListener;
-import org.gudy.azureus2.core3.stats.*;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.Category;
@@ -127,12 +123,14 @@ public class GlobalManagerImpl
 	private List 	managers			= new ArrayList();
 	private Map		manager_map			= new HashMap();
 	
-	private TRHost	tracker_host;
+	private Object	tracker_host;	// don't make this TRHost as it drags in hosting support
 	
 	private Checker checker;
-	private GlobalManagerStatsImpl	stats;
-  private TRTrackerScraper 			trackerScraper;
-  private StatsWriterPeriodic		stats_writer;
+	private GlobalManagerStatsImpl		stats;
+	private TRTrackerScraper 			trackerScraper;
+	private GlobalManagerStatsWriter 	stats_writer;
+	private GlobalManagerHostSupport	host_support;
+  
   /* Whether the GlobalManager is active (false) or stopped (true) */
   private boolean 					isStopped = false;
   private boolean					destroyed;
@@ -226,8 +224,14 @@ public class GlobalManagerImpl
   	LGLogger.initialise();
   	
     stats = new GlobalManagerStatsImpl();
-    
-    StatsFactory.initialize(this);
+       
+    try{
+    	stats_writer = new GlobalManagerStatsWriter( this );
+    	
+    }catch( Throwable e ){
+    	
+    	LGLogger.log( "Stats unavailable", e );
+    }
            
     if (listener != null)
       listener.reportCurrentTask(MessageText.getString("splash.initializeGM") + ": " +
@@ -254,45 +258,25 @@ public class GlobalManagerImpl
     		}
     	});
     
-    tracker_host = TRHostFactory.getSingleton();
-    
-    tracker_host.initialise( 
-    	new TRHostTorrentFinder()
-    	{
-    		public TOTorrent
-    		lookupTorrent(
-    			byte[]		hash )
-    		{
-    			for (int i=0;i<managers.size();i++){
-    				
-    				DownloadManager	dm = (DownloadManager)managers.get(i);
-    				
-    				TOTorrent t = dm.getTorrent();
-    				
-    				if ( t != null ){
-    					
-    					try{
-    						if ( Arrays.equals( hash, t.getHash())){
-    							
-    							return( t );
-    						}
-    					}catch( TOTorrentException e ){
-    						
-    						e.printStackTrace();
-    					}
-    				}
-    			}
-    			
-    			return( null );
-    		}
-    	});
+    try{  
+	    host_support = new GlobalManagerHostSupport( this, managers ); 
+
+    }catch( Throwable e ){
     	
-    checker = new Checker();    
-    if(initialiseStarted) checker.start();
+    	LGLogger.log( "Hosting unavailable", e );
+    }
     
-    stats_writer = StatsWriterFactory.createPeriodicDumper( this );
+    checker = new Checker();   
     
-    stats_writer.start();
+    if ( initialiseStarted ){
+    	
+    	checker.start();
+    }
+    
+    if ( stats_writer != null ){
+    	
+    	stats_writer.initialisationComplete();
+    }
   }
 
   public DownloadManager addDownloadManager(String fileName, String savePath) {
@@ -531,6 +515,11 @@ public class GlobalManagerImpl
     	
     	informDestroyInitiated();
     	
+    	if ( host_support != null ){
+    		
+    		host_support.destroy();
+    	}
+    	
     		// kick off a non-daemon task. This will ensure that we hang around
     		// for at least LINGER_PERIOD to run other non-daemon tasks such as writing
     		// torrent resume data...
@@ -542,8 +531,6 @@ public class GlobalManagerImpl
 	    				public Object
 	    				run()
 	    				{	
-	    					tracker_host.close();
-	    					
 	    					return( null );
 	    				}
 	    			});
@@ -557,12 +544,15 @@ public class GlobalManagerImpl
       
       stopAllDownloads();
 
+      if ( stats_writer != null ){
+      	
+      	stats_writer.destroy();
+      }
+      
       managers.clear();
       manager_map.clear();
       
       isStopped = true;
-      
-      stats_writer.stop();
       
       informDestroyed();
     }
@@ -1153,5 +1143,5 @@ public class GlobalManagerImpl
   public void completionChanged(DownloadManager manager, boolean bCompleted) { }
   
   public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
-  }
+  };
 }

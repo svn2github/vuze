@@ -31,6 +31,7 @@ import java.net.URL;
 import java.net.URI;
 import java.security.PrivateKey;
 import java.util.jar.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.security.SEKeyDetails;
 import org.gudy.azureus2.core3.security.SESecurityManager;
@@ -40,6 +41,35 @@ import org.gudy.azureus2.core3.logging.*;
 public class 
 WUJarBuilder 
 {	
+	public static long
+	buildFromPackages(
+		JarOutputStream		jos,
+		ClassLoader			class_loader,
+		String[]			package_names,
+		Map					package_map,
+		String				sign_alias )
+		
+			throws IOException
+	{
+		List	resource_names = new ArrayList();
+		
+		for (int i=0;i<package_names.length;i++){
+			
+			List	entries = (List)package_map.get(package_names[i]);
+			
+			for (int j=0;j<entries.size();j++){
+				
+				resource_names.add( package_names[i] + "/" + entries.get(j));
+			}
+		}
+		
+		String[]	res = new String[resource_names.size()];
+		
+		resource_names.toArray( res );
+		
+		return( buildFromResources2( jos, class_loader, null, res, sign_alias ));	
+	}
+	
 	public static void
 	buildFromResources(
 		JarOutputStream		jos,
