@@ -338,6 +338,12 @@ ShareManagerImpl
 		return( announce_url );
 	}
 	
+	protected boolean
+	getAddHashes()
+	{
+		return( COConfigurationManager.getBooleanParameter( "Sharing Add Hashes", true ));
+	}
+	
 	public ShareResource[]
 	getShares()
 	{

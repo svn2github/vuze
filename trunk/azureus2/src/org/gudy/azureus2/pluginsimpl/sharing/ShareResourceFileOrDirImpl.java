@@ -151,6 +151,7 @@ ShareResourceFileOrDirImpl
 			TOTorrent	to_torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
 										file,
 										manager.getAnnounceURL(),
+										manager.getAddHashes(),
 										manager );
 	
 			TorrentUtils.setDefaultTorrentEncoding( to_torrent );

@@ -2069,6 +2069,14 @@ public class ConfigView extends AbstractIView {
     BooleanParameter sharingSSL = new BooleanParameter(gSharing, "Sharing Use SSL", false);
 
     label = new Label(gSharing, SWT.NULL);
+    
+    // row
+
+    label = new Label(gSharing, SWT.NULL);
+    Messages.setLanguageText(label, "wizard.createtorrent.extrahashes");
+    BooleanParameter extraHashes = new BooleanParameter(gSharing, "Sharing Add Hashes", true);
+
+    label = new Label(gSharing, SWT.NULL);
   }
 
 
