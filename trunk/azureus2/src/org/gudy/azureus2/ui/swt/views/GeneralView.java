@@ -296,23 +296,26 @@ public class GeneralView extends AbstractIView {
     pieceSize.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
+    trackerUrlValue = new Label(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    trackerUrlValue.setLayoutData(gridData);
+    
+    label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
     tracker = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    tracker.setLayoutData(gridData);
-
+    gridData.horizontalSpan = 3;
+    tracker.setLayoutData(gridData);    
+        
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.updatein"); //$NON-NLS-1$
     trackerUpdateIn = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     trackerUpdateIn.setLayoutData(gridData);
-
-    label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
-    trackerUrlValue = new Label(gInfo, SWT.LEFT);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    trackerUrlValue.setLayoutData(gridData);
     
+
     Button button = new Button(gInfo, SWT.LEFT);
     Messages.setLanguageText(button, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
@@ -332,6 +335,7 @@ public class GeneralView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     comment.setLayoutData(gridData);
+    
     
     genComposite.addListener(SWT.Resize, new Listener() {
       public void handleEvent(Event e) {
