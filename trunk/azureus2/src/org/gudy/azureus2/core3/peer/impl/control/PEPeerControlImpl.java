@@ -1,22 +1,9 @@
 /*
- * File    : PEPeerManagerImpl
- * Created : 15-Oct-2003
- * By      : Olivier
+ * Created on Oct 15, 2003
+ * Created by Olivier Chalouhi
+ * Modified Apr 13, 2004 by Alon Rohter
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
  * 
- * Azureus - a Java Bittorrent client
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details ( see the LICENSE file ).
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
 package org.gudy.azureus2.core3.peer.impl.control;
@@ -122,6 +109,7 @@ PEPeerControlImpl
   	  _tracker = tracker;
   	  this._diskManager = diskManager;
   	  COConfigurationManager.addParameterListener("Old.Socket.Polling.Style", this);
+      COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
  }
   
 	public DownloadManager
@@ -444,6 +432,7 @@ PEPeerControlImpl
 
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Old.Socket.Polling.Style", this);
+    COConfigurationManager.removeParameterListener("Ip Filter Enabled", this);
   }
 
   /**
@@ -2047,6 +2036,18 @@ PEPeerControlImpl
    */
   public void parameterChanged(String parameterName) {
     oldPolling = COConfigurationManager.getBooleanParameter("Old.Socket.Polling.Style");
+    
+    //if ipfiltering becomes enabled, remove any existing filtered connections
+    if (parameterName.equals("Ip Filter Enabled") && IpFilterImpl.getInstance().isEnabled()) {
+      synchronized( _peer_transports ) {
+        for (int i=0; i < _peer_transports.size(); i++) {
+          PEPeerTransport conn = (PEPeerTransport)_peer_transports.get( i );
+          if ( IpFilterImpl.getInstance().isInRange( conn.getIp() )) {
+            conn.closeAll( "IPFilter banned IP address", false, false );
+          }
+        }
+      }
+    }
   }
   
   
