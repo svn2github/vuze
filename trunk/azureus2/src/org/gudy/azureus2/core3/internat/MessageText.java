@@ -11,6 +11,7 @@ import java.io.FilenameFilter;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -260,7 +261,10 @@ public class MessageText {
     // Any duplicates will be ignored
     bundleSet.addAll(Arrays.asList(bundles));
 
-    Locale[] foundLocales = new Locale[bundleSet.size()];
+    List foundLocalesList = new ArrayList(bundleSet.size());
+    
+  	foundLocalesList.add( LOCALE_ENGLISH );
+
     Iterator val = bundleSet.iterator();
     int i = 0;
     while (val.hasNext()) {
@@ -273,31 +277,38 @@ public class MessageText {
         String[] sLocalesSplit = locale.split("_", 3);
         if (sLocalesSplit.length > 0 && sLocalesSplit[0].length() == 2) {
           if (sLocalesSplit.length == 3) {
-            foundLocales[i++] = new Locale(sLocalesSplit[0], sLocalesSplit[1], sLocalesSplit[2]);
+          	foundLocalesList.add( new Locale(sLocalesSplit[0], sLocalesSplit[1], sLocalesSplit[2]));
           } else if (sLocalesSplit.length == 2 && sLocalesSplit[1].length() == 2) {
-            foundLocales[i++] = new Locale(sLocalesSplit[0], sLocalesSplit[1]);
+          	foundLocalesList.add( new Locale(sLocalesSplit[0], sLocalesSplit[1]));
           } else {
-            foundLocales[i++] = new Locale(sLocalesSplit[0]);
+          	foundLocalesList.add( new Locale(sLocalesSplit[0]));
           }
         } else {
           if (sLocalesSplit.length == 3 && 
               sLocalesSplit[0].length() == 0 && 
               sLocalesSplit[2].length() > 0) {
-            foundLocales[i++] = new Locale(sLocalesSplit[0], sLocalesSplit[1], sLocalesSplit[2]);
-          } else {
-            foundLocales[i++] = LOCALE_ENGLISH;
+          	foundLocalesList.add( new Locale(sLocalesSplit[0], sLocalesSplit[1], sLocalesSplit[2]));
           }
         }
-      } else {
-        foundLocales[i++] = LOCALE_ENGLISH;
-      }
+       }
     }
 
-    Arrays.sort(foundLocales, new Comparator() {
-      public final int compare (Object a, Object b) {
-        return ((Locale)a).getDisplayName((Locale)a).compareToIgnoreCase(((Locale)b).getDisplayName((Locale)b));
-      }
-    });
+    Locale[] foundLocales = new Locale[foundLocalesList.size()];
+    
+    foundLocalesList.toArray( foundLocales );
+
+    try{
+	    Arrays.sort(foundLocales, new Comparator() {
+	      public final int compare (Object a, Object b) {
+	        return ((Locale)a).getDisplayName((Locale)a).compareToIgnoreCase(((Locale)b).getDisplayName((Locale)b));
+	      }
+	    });
+    }catch( Throwable e ){
+    	// user has a problem whereby a null-pointer exception occurs when sorting the
+    	// list - I've done some fixes to the locale list construction but am
+    	// putting this in here just in case
+    	e.printStackTrace();
+    }
     return foundLocales;
   }
 
