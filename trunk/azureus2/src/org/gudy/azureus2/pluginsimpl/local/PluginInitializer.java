@@ -391,6 +391,30 @@ PluginInitializer
     	return( loaded_pis );
     }
     
+    	// first sanity check - dir must include either a plugin.properties or
+    	// at least one .jar file
+    
+    boolean	looks_like_plugin	= false;
+    
+    for (int i=0;i<pluginContents.length;i++){
+    	
+    	String	name = pluginContents[i].getName().toLowerCase();
+    	
+    	if ( name.endsWith( ".jar") || name.equals( "plugin.properties" )){
+    		
+    		looks_like_plugin = true;
+    		
+    		break;
+    	}
+    }
+    
+    if ( !looks_like_plugin ){
+    	
+    	LGLogger.log( "Plugin directory '" + directory + "' has no plugin.properties or .jar files, skipping" );
+    	
+    	return( loaded_pis );
+    }
+    
     	// take only the highest version numbers of jars that look versioned
     
     String[]	plugin_version = {null};
@@ -477,6 +501,7 @@ PluginInitializer
       }catch( Throwable e ){
       	
       	Debug.printStackTrace( e );
+      	
       	String	msg =  "Can't read 'plugin.properties' for plugin '" + pluginName + "': file may be missing";
       	
       	LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, msg );

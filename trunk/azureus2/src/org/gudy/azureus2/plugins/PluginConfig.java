@@ -26,6 +26,8 @@ package org.gudy.azureus2.plugins;
  *
  */
 
+import java.io.File;
+
 import org.gudy.azureus2.plugins.config.*;
 
 public interface 
@@ -263,4 +265,15 @@ PluginConfig
 	public void
 	save()
 		throws PluginException;
+	
+		/**
+		 * Returns a file that can be used by the plugin to save user-specific state
+		 * This will be "azureus-user-dir"/plugins/<plugin name>/name 
+		 * @param name
+		 * @return
+		 */
+	
+	public File
+	getPluginUserFile(
+		String	name );
 }

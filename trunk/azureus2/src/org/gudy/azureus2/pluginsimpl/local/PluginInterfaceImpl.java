@@ -107,7 +107,7 @@ PluginInterfaceImpl
   	pluginConfigKey 	= "Plugin." + _key;
     props 				= new propertyWrapper(_props );
     pluginDir 			= _pluginDir;
-    config 				= new PluginConfigImpl(pluginConfigKey);
+    config 				= new PluginConfigImpl(this,pluginConfigKey);
     plugin_id			= _plugin_id;
     plugin_version		= _plugin_version;
   }

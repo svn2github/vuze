@@ -21,10 +21,12 @@
 
 package org.gudy.azureus2.pluginsimpl.local;
 
+import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.config.ConfigParameter;
 import org.gudy.azureus2.pluginsimpl.local.config.*;
 
@@ -50,10 +52,17 @@ PluginConfigImpl
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION, 	"Proxy.Data.SOCKS.inform" );
 	}
 
-	private String key;
+	private PluginInterface	plugin_interface;
+	private String 			key;
   
-	public PluginConfigImpl(String key) {
-    this.key = key + ".";
+	public 
+	PluginConfigImpl(
+		PluginInterface		_plugin_interface,
+		String			 	_key ) 
+	{
+		plugin_interface	= _plugin_interface;
+		
+		key = _key + ".";
 	}
 
 	public String
@@ -232,5 +241,35 @@ PluginConfigImpl
 		}
 		
 		return( key );
+	}
+	
+	public File
+	getPluginUserFile(
+		String	name )
+	{
+		
+		String	dir = plugin_interface.getUtilities().getAzureusUserDir();
+		
+		File	file = new File( dir, "plugins" );
+
+		String	p_dir = plugin_interface.getPluginDirectoryName();
+		
+		if ( p_dir.length() == 0 ){
+			
+			throw( new RuntimeException( "Plugin was not loaded from a directory" ));
+		}
+		
+		int	lp = p_dir.lastIndexOf(File.separatorChar);
+		
+		if ( lp != -1 ){
+			
+			p_dir = p_dir.substring(lp+1);
+		}
+		
+		file = new File( file, p_dir );
+		
+		file.mkdirs();
+		
+		return( new File( file, name ));
 	}
 }
