@@ -680,8 +680,12 @@ public class StartStopRulesDefaultPlugin
       dlData.sTrace = "";
 
       // Initialize STATE_WAITING torrents
-      if ((download.getState() == Download.ST_WAITING) &&
-          !getAlreadyAllocatingOrChecking()) {
+      
+      if (	download.getState() == Download.ST_WAITING &&
+      			( 	download.getStats().getDownloadCompleted(false) == 1000	||	// PARG - kick off all seeders straight away
+      																			// as we don't want time-consuming rechecking 
+																				// to hold up seeding
+      				!getAlreadyAllocatingOrChecking())) {
         try{
           download.initialize();
         }catch (Exception ignore) {/*ignore*/}
