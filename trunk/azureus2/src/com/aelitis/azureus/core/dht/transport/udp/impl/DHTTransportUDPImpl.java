@@ -94,6 +94,19 @@ DHTTransportUDPImpl
 			}
 		};
 		
+	private static final int RECENT_REPORTS_HISTORY_MAX = 32;
+
+	private Map	recent_reports = 
+			new LinkedHashMap(RECENT_REPORTS_HISTORY_MAX,0.75f,true)
+			{
+				protected boolean 
+				removeEldestEntry(
+			   		Map.Entry eldest) 
+				{
+					return size() > RECENT_REPORTS_HISTORY_MAX;
+				}
+			};
+		
 		// TODO: secure enough?
 	
 	private	Random		random = new Random( SystemTime.getCurrentTime());
@@ -264,7 +277,7 @@ DHTTransportUDPImpl
 								if ( returned_address == null ){
 									
 									returned_address = ip;
-									
+																		
 									log.log( "    : contact " + contact.getString() + " reported external address as '" + ip + "'" );
 									
 									returned_matches++;
@@ -1803,7 +1816,14 @@ DHTTransportUDPImpl
 
 			if ( !originating_contact.addressMatchesID()){
 				
-				logger.log( "Node " + originating_contact.getString() + " has incorrect ID, reporting it to them" );
+				String	contact_string = originating_contact.getString();
+
+				if ( recent_reports.get(contact_string) == null ){
+					
+					recent_reports.put( contact_string, "" );
+					
+					logger.log( "Node " + contact_string + " has incorrect ID, reporting it to them" );
+				}
 				
 				DHTUDPPacketReplyError	reply = 
 					new DHTUDPPacketReplyError(
