@@ -259,7 +259,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
                 Tab.refresh();
               }
   
-              ipBlocked.setText( "{"+DisplayFormatters.formatDate(IpFilter.getInstance().getLastUpdateTime()) + "} IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
+              ipBlocked.setText( "{"+DisplayFormatters.formatDateShort(IpFilter.getInstance().getLastUpdateTime()) + "} IPs: " + IpFilter.getInstance().getNbRanges() + " - " + IpFilter.getInstance().getNbIpsBlocked());
               statusDown.setText("D: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getDownloadAverage())); //$NON-NLS-1$
               statusUp.setText("U: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(globalManager.getStats().getUploadAverage())); //$NON-NLS-1$
   					}
@@ -846,7 +846,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		checkForNewVersion();
 
 		gridData = new GridData();
-		gridData.widthHint = 205;
+		gridData.widthHint = 225;
 		ipBlocked = new CLabel(statusBar, SWT.SHADOW_IN);
 		ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
 		ipBlocked.setLayoutData(gridData);
@@ -877,18 +877,34 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
          items[i].dispose(); 
         }
         
-        int upLimit = COConfigurationManager.getIntParameter("Max Upload Speed",0);
-        int index = findIndex(upLimit/1024,ConfigView.upRates);
+        int upLimit = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
+        //int index = findIndex(upLimit/1024,ConfigView.upRates);
         
         MenuItem item = new MenuItem(menuUpSpeed,SWT.RADIO);
         item.setText(MessageText.getString("ConfigView.unlimited"));
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
-            COConfigurationManager.setParameter("Max Upload Speed",0); 
+            COConfigurationManager.setParameter("Max Upload Speed KBs",0); 
           }
         });
-        if(index == 0) item.setSelection(true);
+        if(upLimit == 0) item.setSelection(true);
         
+        
+        int start = upLimit - 15;
+        if (start < 5) start = 5;
+        for (int i = start; i < start + 30; i++) {
+          final int fi = i;
+          item = new MenuItem(menuUpSpeed,SWT.RADIO);
+          item.setText(i + " KB/s");
+          item.addListener(SWT.Selection,new Listener() {
+            public void handleEvent(Event e) {
+             COConfigurationManager.setParameter("Max Upload Speed KBs", fi); 
+            }
+          });
+          if(upLimit == i) item.setSelection(true);
+        }
+        
+        /*
         int start = index - 10;
         if(start < 1) start = 1;
         for(int i = start ; i < start + 20 && i < ConfigView.upRates.length ; i++) {
@@ -897,13 +913,15 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           item.setText(ConfigView.upRates[i] + " KB/s");
           item.addListener(SWT.Selection,new Listener() {
             public void handleEvent(Event e) {
-             COConfigurationManager.setParameter("Max Upload Speed",ConfigView.upRates[fi]*1024); 
+             COConfigurationManager.setParameter("Max Upload Speed KBs",ConfigView.upRates[fi]*1024); 
             }
           });
           if(i == index) item.setSelection(true);
         }
-      }           
+        */
+      }
       
+      /*
       private int findIndex(int value,int values[]) {
         for(int i = 0 ; i < values.length ;i++) {
           if(values[i] == value)
@@ -911,6 +929,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         }
         return 0;
       }
+      */
       
     });
     
