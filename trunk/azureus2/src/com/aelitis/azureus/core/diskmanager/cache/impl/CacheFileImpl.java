@@ -252,15 +252,35 @@ CacheFileImpl
 							
 							cache_buffer.limit( read_ahead_size );
 							
-							getFMFile().read( cache_buffer, file_position );
+							boolean	buffer_cached	= false;
+							
+							try{
+								getFMFile().read( cache_buffer, file_position );
 		
-							cache_buffer.position(0);
+								manager.fileBytesRead( read_ahead_size );
+								
+								cache_buffer.position(0);
 							
-							CacheEntry	entry = manager.allocateCacheSpace( this, cache_buffer, file_position, read_ahead_size );
+								CacheEntry	entry = manager.allocateCacheSpace( this, cache_buffer, file_position, read_ahead_size );
 							
-							entry.setClean();
+								entry.setClean();
 							
-							cache.add( entry );
+								cache.add( entry );
+								
+								buffer_cached	= true;
+								
+								manager.cacheBytesWritten( read_ahead_size );
+								
+							}finally{
+								
+								if ( !buffer_cached ){
+									
+										// if the read operation failed, and hence the buffer
+										// wasn't added to the cache, then release it here
+									
+									cache_buffer.returnToPool();
+								}
+							}
 							
 							if ( TRACE_CACHE_CONTENTS ){
 								
@@ -353,6 +373,7 @@ CacheFileImpl
 						
 						buffer_cached	= true;
 						
+						manager.cacheBytesWritten( write_length );
 					}else{
 						
 						getFMFile().write( file_buffer, file_position );
@@ -559,7 +580,7 @@ CacheFileImpl
 			
 			getFMFile().write( buffers, multi_block_start );
 									
-			manager.cacheBytesWritten( expected_overall_write );
+			manager.fileBytesWritten( expected_overall_write );
 			
 		}catch( FMFileManagerException e ){
 			
