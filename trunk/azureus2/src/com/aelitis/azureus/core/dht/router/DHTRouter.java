@@ -105,7 +105,8 @@ DHTRouter
 	
 	public List
 	findClosestContacts(
-		byte[]	node_id );
+		byte[]		node_id,
+		boolean		live_only );
 		
 	public void
 	recordLookup(

@@ -396,13 +396,14 @@ DHTRouterImpl
 	
 	public synchronized List
 	findClosestContacts(
-		byte[]	node_id )
+		byte[]		node_id,
+		boolean		live_only )
 	{
 			// find the K-ish closest nodes - consider all buckets, not just the closest
 
 		List res = new ArrayList();
 				
-		findClosestContacts( node_id, 0, root, res );
+		findClosestContacts( node_id, 0, root, live_only, res );
 		
 		return( res );
 	}
@@ -412,15 +413,26 @@ DHTRouterImpl
 		byte[]					node_id,
 		int						depth,
 		DHTRouterNodeImpl		current_node,
+		boolean					live_only,
 		List					res )
 	{
 		List	buckets = current_node.getBuckets();
 		
 		if ( buckets != null ){
 			
+				// add everything from the buckets - caller will sort and select
+				// the best ones as required
+			
 			for (int i=0;i<buckets.size();i++){
-								
-				res.add( buckets.get(i));
+				
+				DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
+
+					// use !failing at the moment to include unknown ones
+				
+				if ( ! ( live_only && contact.isFailing())){
+					
+					res.add( contact );
+				}
 			}			
 		}else{
 		
@@ -441,11 +453,11 @@ DHTRouterImpl
 				worse_node = current_node.getLeft();
 			}
 	
-			findClosestContacts( node_id, depth+1, best_node, res  );
+			findClosestContacts( node_id, depth+1, best_node, live_only, res  );
 			
 			if ( res.size() < K ){
 				
-				findClosestContacts( node_id, depth+1, worse_node, res );
+				findClosestContacts( node_id, depth+1, worse_node, live_only, res );
 			}
 		}
 	}

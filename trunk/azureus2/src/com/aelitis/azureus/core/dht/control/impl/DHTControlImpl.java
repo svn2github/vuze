@@ -859,7 +859,8 @@ DHTControlImpl
 				// contacts remaining to query
 				// closest at front
 	
-			final Set	contacts_to_query	= getClosestContactsSet( lookup_id ); 
+			final Set	contacts_to_query	= getClosestContactsSet( lookup_id, false );
+			
 			final Map	level_map			= new HashMap();
 			
 			Iterator	it = contacts_to_query.iterator();
@@ -1238,7 +1239,7 @@ DHTControlImpl
 
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 		
-		List	l = getClosestKContactsList( id );
+		List	l = getClosestKContactsList( id, false );
 		
 		DHTTransportContact[]	res = new DHTTransportContact[l.size()];
 		
@@ -1327,7 +1328,7 @@ DHTControlImpl
 			
 			// see if we're one of the K closest to the new node
 		
-		List	closest_contacts = getClosestKContactsList( new_contact.getID());
+		List	closest_contacts = getClosestKContactsList( new_contact.getID(), false );
 		
 		boolean	close	= false;
 		
@@ -1385,7 +1386,7 @@ DHTControlImpl
 					continue;
 				}
 				
-				List		sorted_contacts	= getClosestKContactsList( encoded_key ); 
+				List		sorted_contacts	= getClosestKContactsList( encoded_key, false ); 
 				
 					// if we're closest to the key, or the new node is closest and
 					// we're second closest, then we take responsibility for storing
@@ -1487,9 +1488,10 @@ DHTControlImpl
 	
 	protected Set
 	getClosestContactsSet(
-		byte[]	id )
+		byte[]		id,
+		boolean		live_only )
 	{
-		List	l = router.findClosestContacts( id );
+		List	l = router.findClosestContacts( id, live_only );
 		
 		Set	sorted_set	= new sortedContactSet( id, true ).getSet(); 
 
@@ -1503,9 +1505,10 @@ DHTControlImpl
 	
 	public List
 	getClosestKContactsList(
-		byte[]	id )
+		byte[]		id,
+		boolean		live_only )
 	{
-		Set	sorted_set	= getClosestContactsSet(id);
+		Set	sorted_set	= getClosestContactsSet( id, live_only );
 					
 		List	res = new ArrayList(K);
 		

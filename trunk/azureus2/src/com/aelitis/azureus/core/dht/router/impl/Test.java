@@ -90,7 +90,7 @@ Test
 		
 		byte[]	search = getSHA1();
 		
-		List	l = router.findClosestContacts( search );
+		List	l = router.findClosestContacts( search, false );
 		
 		System.out.println( "search: " + ByteFormatter.nicePrint( search ));
 		

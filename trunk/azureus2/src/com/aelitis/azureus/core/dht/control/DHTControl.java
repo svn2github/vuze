@@ -111,7 +111,8 @@ DHTControl
 	
 	public List
 	getClosestKContactsList(
-		byte[]	id );
+		byte[]		id,
+		boolean		live_only );
 	
 	public void
 	put(

@@ -181,6 +181,35 @@ DHTDBImpl
 		HashWrapper				key,
 		DHTTransportValue		value )
 	{
+			// remote store for cache values
+		
+			// Make sure that we only accept values for storing that are reasonable.
+			// Assumption is that the caller has made a reasonable effort to ascertain
+			// the correct place to store a value. Part of this will in general have 
+			// needed them to query us for example. Therefore, limit values to those
+			// that are at least as close to us
+		
+		List closest_contacts = control.getClosestKContactsList( key.getHash(), true );
+		
+		boolean	store_it	= false;
+		
+		for (int i=0;i<closest_contacts.size();i++){
+			
+			if ( router.isID(((DHTTransportContact)closest_contacts.get(i)).getID())){
+				
+				store_it	= true;
+				
+				break;
+			}		
+		}
+		
+		if ( !store_it ){
+			
+			// System.out.println( "Not storing " + DHTLog.getString2(key.getHash()) + " -> " + value.getString() + " as too far away" );
+			
+			return( null );
+		}
+		
 		synchronized( stored_values ){
 			
 				// TODO:size
@@ -447,7 +476,7 @@ DHTDBImpl
 					
 					byte[]	lookup_id	= key.getHash();
 					
-					List	contacts = control.getClosestKContactsList( lookup_id );
+					List	contacts = control.getClosestKContactsList( lookup_id, true );
 								
 						// if we are no longer one of the K closest contacts then we shouldn't
 						// cache the value
