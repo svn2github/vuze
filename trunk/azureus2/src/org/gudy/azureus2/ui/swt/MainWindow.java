@@ -737,6 +737,13 @@ public class MainWindow implements IComponentListener {
     });
     
     s.pack();
+
+    Rectangle parent = mainWindow.getBounds();
+    Rectangle child = s.getBounds();
+    child.x = parent.x + (parent.width - child.width) / 2;
+    child.y = parent.y + (parent.height - child.height) / 2;
+    s.setBounds(child);
+
     s.open();
     s.setFocus();
 
