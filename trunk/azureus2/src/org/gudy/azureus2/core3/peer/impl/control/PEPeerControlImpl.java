@@ -51,9 +51,11 @@ PEPeerControlImpl
   private int[] 	_availability;
   private AEMonitor	_availability_mon		= new AEMonitor( "PEPeerControl:Avail");
   
-  private boolean _bContinue;                
-  private ArrayList _peer_transports;
-  private AEMonitor	_peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
+  private boolean _bContinue;    
+  
+  private volatile ArrayList peer_transports_cow;	// Copy on write!
+  
+  private AEMonitor	peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
   
   private DiskManager 			_diskManager;
   private DiskManagerPiece[]	dm_pieces;
@@ -214,7 +216,7 @@ PEPeerControlImpl
     _myPeerId = _tracker.getPeerId();
 
     //The peer connections
-    _peer_transports = new ArrayList();
+    peer_transports_cow = new ArrayList();
 
     //The Server that handle incoming connections
      _server.setServerAdapter(this);
@@ -267,11 +269,10 @@ PEPeerControlImpl
         
         long start_time = SystemTime.getCurrentTime();
         
-       try{
-       	  _peer_transports_mon.enter();
-       	
-          for (int i=0; i < _peer_transports.size(); i++) {
-            PEPeerTransport ps = (PEPeerTransport) _peer_transports.get(i);
+        List	peer_transports = peer_transports_cow;
+               	
+          for (int i=0; i < peer_transports.size(); i++) {
+            PEPeerTransport ps = (PEPeerTransport) peer_transports.get(i);
 
             if (SystemTime.isErrorLast5sec() || oldPolling || (SystemTime.getCurrentTime() > (ps.getLastReadTime() + ps.getReadSleepTime()))) {
               ps.setReadSleepTime( ps.processRead() );
@@ -281,11 +282,7 @@ PEPeerControlImpl
             }
             
           }
-        }finally{
-        	
-          _peer_transports_mon.exit();
-        }
-        
+         
         long loop_time = SystemTime.getCurrentTime() - start_time;
         
         //TODO : BOTTLENECK for download speed HERE (100 : max 500kB/s from BitTornado, 50 : 1MB/s, 25 : 2MB/s, 10 : 3MB/s
@@ -385,16 +382,16 @@ PEPeerControlImpl
     _server.clearServerAdapter();
     
     // Close all clients
-    if (_peer_transports != null) {
+    if ( peer_transports_cow != null) {
       try{
-      	_peer_transports_mon.enter();
+      	peer_transports_mon.enter();
       
-        while (_peer_transports.size() != 0) {
-          removeFromPeerTransports((PEPeerTransport)_peer_transports.get(0), "Closing all Connections");
+        while (peer_transports_cow.size() != 0) {
+          removeFromPeerTransports((PEPeerTransport)peer_transports_cow.get(0), "Closing all Connections");
         }
       }finally{
       	
-      	_peer_transports_mon.exit();
+      	peer_transports_mon.exit();
       }
     }
     
@@ -467,19 +464,12 @@ PEPeerControlImpl
 			Map	protocol = (Map)protocols.get(protocol_name);
 			
 			List	transports = PEPeerTransportFactory.createExtendedTransports( this, protocol_name, protocol );
-			
-			try{
-				 _peer_transports_mon.enter();
-			
-					
-				for (int i=0;i<transports.size();i++){
-					
-					PEPeer	transport = (PEPeer)transports.get(i);
-					
-					addPeer( transport );
-				}
-			}finally{
-				_peer_transports_mon.exit();
+								
+			for (int i=0;i<transports.size();i++){
+				
+				PEPeer	transport = (PEPeer)transports.get(i);
+				
+				addPeer( transport );
 			}
 		}
 	}
@@ -487,14 +477,7 @@ PEPeerControlImpl
 	public List
 	getPeers()
 	{
-		try{
-			_peer_transports_mon.enter();
-			
-			return( new ArrayList( _peer_transports ));
-		}finally{
-			
-			_peer_transports_mon.exit();
-		}
+		return( new ArrayList( peer_transports_cow ));
 	}
 	
 	public void
@@ -509,9 +492,9 @@ PEPeerControlImpl
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
 		try{
-			_peer_transports_mon.enter();
+			peer_transports_mon.enter();
 				
-			if ( !_peer_transports.contains(transport)){ //TODO does nothing as peertransport no longer overrides equals()
+			if ( !peer_transports_cow.contains(transport)){ //TODO does nothing as peertransport no longer overrides equals()
 				
 				addToPeerTransports( transport.getRealTransport());
 				
@@ -521,7 +504,7 @@ PEPeerControlImpl
 			}
 		}finally{
 			
-			_peer_transports_mon.exit();
+			peer_transports_mon.exit();
 		}
 	}
 
@@ -537,14 +520,14 @@ PEPeerControlImpl
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
 		try{
-			_peer_transports_mon.enter();
+			peer_transports_mon.enter();
 				
-			if ( _peer_transports.contains(transport)){//TODO does nothing as peertransport no longer overrides equals()
+			if ( peer_transports_cow.contains(transport)){//TODO does nothing as peertransport no longer overrides equals()
 				
 				removeFromPeerTransports( transport, "Peer Removed" );			
 			}	
 		}finally{
-			_peer_transports_mon.exit();
+			peer_transports_mon.exit();
 		}
 	}
 	
@@ -572,12 +555,12 @@ PEPeerControlImpl
     //make sure this connection is not already established
     PEPeerTransport test = PEPeerTransportFactory.createTransport( this, address, port, true );
     try{
-    	_peer_transports_mon.enter();
+    	peer_transports_mon.enter();
     	
-      if( _peer_transports.contains( test ) )  return;  //TODO does nothing as peertransport no longer overrides equals()
+      if( peer_transports_cow.contains( test ) )  return;  //TODO does nothing as peertransport no longer overrides equals()
     }finally{
     	
-    	_peer_transports_mon.exit();
+    	peer_transports_mon.exit();
     }
     
     //make sure this connection isn't filtered
@@ -692,29 +675,27 @@ PEPeerControlImpl
     //::updated this method to work with List -Tyler
     //for all peers
     List bestUploaders = new ArrayList();
-    try{
-      _peer_transports_mon.enter();
+    
+    List	peer_transports = peer_transports_cow;
     	
-      long[] upRates = new long[_peer_transports.size()];
-      Arrays.fill(upRates, -1);
-
-      for (int i = 0; i < _peer_transports.size(); i++) {
-        PEPeerTransport pc = null;
-        try {
-          pc = (PEPeerTransport) _peer_transports.get(i);
-        }
-        catch (Exception e) {
-        	Debug.printStackTrace( e );
-          break;
-        }
-        if (pc.transferAvailable()) {
-        	long upRate = pc.getStats().getReception();
-          testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
-        }
-      }
-    }finally{
-    	_peer_transports_mon.exit();
-    }
+	  long[] upRates = new long[peer_transports.size()];
+	  Arrays.fill(upRates, -1);
+	
+	  for (int i = 0; i < peer_transports.size(); i++) {
+	    PEPeerTransport pc = null;
+	    try {
+	      pc = (PEPeerTransport) peer_transports.get(i);
+	    }
+	    catch (Exception e) {
+	    	Debug.printStackTrace( e );
+	      break;
+	    }
+	    if (pc.transferAvailable()) {
+	    	long upRate = pc.getStats().getReception();
+	      testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
+	    }
+	  }
+ 
     
     checkEndGameMode();
 
@@ -794,20 +775,17 @@ PEPeerControlImpl
       _downloadManager.setState(DownloadManager.STATE_FINISHING);
       
       _timeFinished = SystemTime.getCurrentTime();
-            
-      //remove previous snubbing
-      try{
-      	_peer_transports_mon.enter();
+           
+      List	peer_transports = peer_transports_cow;
       
-        for (int i = 0; i < _peer_transports.size(); i++) {
-          PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
-          if (pc != null) {
-            pc.setSnubbed(false);
-          }
+      //remove previous snubbing
+      
+        for (int i = 0; i < peer_transports.size(); i++){
+        	
+          PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+         
+          pc.setSnubbed(false);
         }
-      }finally{
-      	_peer_transports_mon.exit();
-      }
       
       //Disconnect seeds
       checkSeeds(true);
@@ -869,11 +847,10 @@ PEPeerControlImpl
    */
   private void checkRequests() {
     //for every connection
-    try{
-      _peer_transports_mon.enter();
-    
-      for (int i = 0; i < _peer_transports.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
+  	List	peer_transports = peer_transports_cow;
+  	    
+      for (int i = 0; i < peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
         if (pc.getState() == PEPeer.TRANSFERING) {
           List expired = pc.getExpiredRequests();
 
@@ -916,9 +893,6 @@ PEPeerControlImpl
           }
         }
       }
-    }finally{
-    	_peer_transports_mon.exit();
-    }
   }
 
   /**
@@ -979,13 +953,13 @@ PEPeerControlImpl
     Arrays.fill(availability, 0); //:: should be faster -Tyler
 
     //for all clients
-    try{
-      _peer_transports_mon.enter();
     
-      for (int i = _peer_transports.size() - 1; i >= 0; i--) //::Possible optimization to break early when you reach 100%
+    List	peer_transports = peer_transports_cow;
+        
+      for (int i = peer_transports.size() - 1; i >= 0; i--) //::Possible optimization to break early when you reach 100%
         {
         //get the peer connection
-        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
 
         //get an array of available pieces    
         boolean[] piecesAvailable = pc.getAvailable();
@@ -998,10 +972,6 @@ PEPeerControlImpl
           }
         }
       }
-    }finally{
-    	
-    	_peer_transports_mon.exit();
-    }
 
     //Then adds our own availability.
     for (int i = dm_pieces.length - 1; i >= 0; i--) {
@@ -1235,9 +1205,9 @@ PEPeerControlImpl
 	    String reason = "";
 	    if (!IpFilterManagerFactory.getSingleton().getIPFilter().isInRange(ps.getIp(), _downloadManager.getDisplayName())) {
 	       try{
-	       	_peer_transports_mon.enter();
+	       	peer_transports_mon.enter();
 	       
-	          if (!_peer_transports.contains(ps)) {//TODO does nothing as peertransport no longer overrides equals()
+	          if (!peer_transports_cow.contains(ps)) {//TODO does nothing as peertransport no longer overrides equals()
 	          	/* add connection */
 	          	addToPeerTransports(ps);
 	          }
@@ -1247,7 +1217,7 @@ PEPeerControlImpl
 	          }
 	       }finally{
 	       	
-	       	_peer_transports_mon.exit();
+	       	peer_transports_mon.exit();
 	       }
 	    }
 	    else {
@@ -1277,32 +1247,28 @@ PEPeerControlImpl
     
     	// for efficiency count the choking peers first
     
-    try{
-    	_peer_transports_mon.enter();
-      
-        for (int i = 0; i < _peer_transports.size(); i++){
-        
-	        try {
-	        	PEPeerTransport	pc = (PEPeerTransport)_peer_transports.get(i);
-	        	
-	            if ( pc.isChoking()){
-	            	
-	            	choking_count++;
-	            	
-	            	if ( pc.isInteresting()){
-	            		
-	            		interesting_and_choking_count++;
-	            	}
-	            }else{
-	            	non_choking_count++;
-	            }
-	        }catch (Exception e) {
-	          	
-	            continue;
-	        }
+    List	peer_transports = peer_transports_cow;
+    
+    for (int i = 0; i < peer_transports.size(); i++){
+    
+        try {
+        	PEPeerTransport	pc = (PEPeerTransport)peer_transports.get(i);
+        	
+            if ( pc.isChoking()){
+            	
+            	choking_count++;
+            	
+            	if ( pc.isInteresting()){
+            		
+            		interesting_and_choking_count++;
+            	}
+            }else{
+            	non_choking_count++;
+            }
+        }catch (Exception e) {
+          	
+            continue;
         }
-    }finally{
-        _peer_transports_mon.exit();
     }
 
     	// lazily initialise this list
@@ -1398,29 +1364,18 @@ PEPeerControlImpl
   {
     List nonChoking = new ArrayList();
     
-    try{
-      _peer_transports_mon.enter();
-    
-      for (int i = 0; i < _peer_transports.size(); i++) {
+    List	peer_transports = peer_transports_cow;    
+   
+    for (int i = 0; i < peer_transports.size(); i++) {
       	
-        PEPeerTransport pc = null;
-        
-        try {
-          pc = (PEPeerTransport) _peer_transports.get(i);
-          
-        }catch (Exception e){
-        	
-          continue;
-        }
-        
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+                 
         if (!pc.isChoking()){
         	
           nonChoking.add(pc);
         }
       }
-    }finally{
-      _peer_transports_mon.exit();
-    }
+ 
     
     return( nonChoking );
   }
@@ -1434,10 +1389,13 @@ PEPeerControlImpl
     Arrays.fill(upRates, 0);
 
     List bestUploaders = new ArrayList();
-    for (int i = 0; i < _peer_transports.size(); i++) {
+    
+    List	peer_transports = peer_transports_cow;
+    
+    for (int i = 0; i < peer_transports.size(); i++) {
       PEPeerTransport pc = null;
       try {
-        pc = (PEPeerTransport) _peer_transports.get(i);
+        pc = (PEPeerTransport) peer_transports.get(i);
       }
       catch (Exception e) {
         break;
@@ -1460,17 +1418,12 @@ PEPeerControlImpl
     Arrays.fill(upRates, 0);
 
     List bestUploaders = new ArrayList();
-    try{
-      _peer_transports_mon.enter();
     
-      for (int i = 0; i < _peer_transports.size(); i++) {
-        PEPeerTransport pc = null;
-        try {
-          pc = (PEPeerTransport) _peer_transports.get(i);
-        }
-        catch (Exception e) {
-          continue;
-        }
+    List	peer_transports = peer_transports_cow;
+    
+      for (int i = 0; i < peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+  
         if (pc.isInteresting()) {
         	long upRate = 0;
           if (_finished) {
@@ -1486,18 +1439,13 @@ PEPeerControlImpl
             testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
         }
       }
-    }finally{
-    	_peer_transports_mon.exit();
-    }
 
     if (!_finished && bestUploaders.size() < upRates.length) {
-      try{
-      	_peer_transports_mon.enter();
       
-        for (int i = 0; i < _peer_transports.size(); i++) {
+        for (int i = 0; i < peer_transports.size(); i++) {
           PEPeerTransport pc = null;
           try {
-            pc = (PEPeerTransport) _peer_transports.get(i);
+            pc = (PEPeerTransport) peer_transports.get(i);
           }
           catch (Exception e) {
             break;
@@ -1511,21 +1459,17 @@ PEPeerControlImpl
             bestUploaders.add(pc);
           }
         }
-      }finally{
-      	
-      	_peer_transports_mon.exit();
-      }
+  
     }
 
     if (bestUploaders.size() < upRates.length) {
       int start = bestUploaders.size();
-      try{
-      	_peer_transports_mon.enter();
+
       
-        for (int i = 0; i < _peer_transports.size(); i++) {
+        for (int i = 0; i < peer_transports.size(); i++) {
           PEPeerTransport pc = null;
           try {
-            pc = (PEPeerTransport) _peer_transports.get(i);
+            pc = (PEPeerTransport) peer_transports.get(i);
           }
           catch (Exception e) {
             continue;
@@ -1544,9 +1488,6 @@ PEPeerControlImpl
             testAndSortBest(upRate, upRates, pc, bestUploaders, start);
           }
         }
-      }finally{
-      	_peer_transports_mon.exit();
-      }
     }
     return bestUploaders;
   }
@@ -1554,29 +1495,25 @@ PEPeerControlImpl
   // refactored out of unChoke() - Moti
   private void performOptimisticUnChoke() {
     int index = 0;
-    try{
-      _peer_transports_mon.enter();
-    
-      for (int i = 0; i < _peer_transports.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
+    List	peer_transports = peer_transports_cow;
+     
+      for (int i = 0; i <peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport)peer_transports.get(i);
         if (pc == currentOptimisticUnchoke)
           index = i + 1;
       }
-      if (index >= _peer_transports.size())
+      if (index >= peer_transports.size())
         index = 0;
 
       currentOptimisticUnchoke = null;
 
-      for (int i = index; i < _peer_transports.size() + index; i++) {
-        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i % _peer_transports.size());
+      for (int i = index; i < peer_transports.size() + index; i++) {
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i % peer_transports.size());
         if (!pc.isSeed() && pc.isInteresting() && !pc.isSnubbed()) {
           currentOptimisticUnchoke = pc;
           break;
         }
       }
-    }finally{
-    	_peer_transports_mon.exit();
-    }
   }
 
   private void testAndSortBest(long upRate, long[] upRates, PEPeerTransport pc, List best, int start) {
@@ -1603,20 +1540,16 @@ PEPeerControlImpl
 
   //send the have requests out
   private void sendHave(int pieceNumber) {
-    //for all clients
-    try{
-      _peer_transports_mon.enter();
+    //fo
+  	List	peer_transports = peer_transports_cow;
     
-      for (int i = 0; i < _peer_transports.size(); i++) {
+      for (int i = 0; i < peer_transports.size(); i++) {
         //get a peer connection
-        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
         //send the have message
         pc.sendHave(pieceNumber);
       }
-    }finally{
-    	
-      _peer_transports_mon.exit();
-    }
+  
   }
 
   //Method that checks if we are connected to another seed, and if so, disconnect from him.
@@ -1624,32 +1557,25 @@ PEPeerControlImpl
     //If we are not ourself a seed, return
     if (!forceDisconnect && ((!_finished) || !COConfigurationManager.getBooleanParameter("Disconnect Seed", true))) //$NON-NLS-1$
       return;
-    try{
-      _peer_transports_mon.enter();
-    
-      	// although we should take a copy of the list here (as closeAll removes from it)
-      	// we don't (for perf reasons) as checkSeeds is called often and any missed entries will be picked up
-      	// next iteration
-      
-      for (int i = 0; i < _peer_transports.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
+
+    List	peer_transports = peer_transports_cow;
+          
+      for (int i = 0; i < peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
         if (pc != null && pc.getState() == PEPeer.TRANSFERING && pc.isSeed()) {
           pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false, false);
         }
       }
-    }finally{
-      _peer_transports_mon.exit();
-    }
+ 
   }  
 
   private void updateStats() {   
     //calculate seeds vs peers
-    try{
-      _peer_transports_mon.enter();
-    
+  	List	peer_transports = peer_transports_cow;
+  	
       _seeds = _peers = _remotes = 0;
-      for (int i = 0; i < _peer_transports.size(); i++) {
-        PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
+      for (int i = 0; i < peer_transports.size(); i++) {
+        PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
         if (pc.getState() == PEPeer.TRANSFERING) {
           if (pc.isSeed())
             _seeds++;
@@ -1661,10 +1587,7 @@ PEPeerControlImpl
           }
         }
       }
-    }finally{
-      _peer_transports_mon.exit();
-    }
-  }
+   }
   /**
    * The way to unmark a request as being downloaded.
    * Called by Peer connections objects when connection is closed or choked
@@ -1811,21 +1734,22 @@ PEPeerControlImpl
         //In case we are in endGame mode, remove the piece from the chunk list
         removeFromEndGameModeChunks(pieceNumber,offset);
         //For all connections cancel the request
-        try{
-          _peer_transports_mon.enter();
         
-          Iterator iter = _peer_transports.iterator();
-          while(iter.hasNext()) {
-            PEPeerTransport connection = (PEPeerTransport) iter.next();
+        List	peer_transports = peer_transports_cow;
+        
+        for (int i=0;i<peer_transports.size();i++){
+
+            PEPeerTransport connection = (PEPeerTransport)peer_transports.get(i);
+            
             DiskManagerReadRequest dmr = _diskManager.createReadRequest( pieceNumber, offset, piece.getBlockSize(blockNumber));
+            
             connection.sendCancel( dmr );
           }
-        }finally{
-          _peer_transports_mon.exit();
-        }
       }
+    }else{
+    	
+    	data.returnToPool();
     }
-    else data.returnToPool();
   }
   
   
@@ -1843,20 +1767,21 @@ PEPeerControlImpl
       _diskManager.enqueueWriteRequest(pieceNumber, offset, data, sender, this);
 
       //cancel any matching outstanding requests
-      try{
-      	_peer_transports_mon.enter();
       
-        Iterator iter = _peer_transports.iterator();
-        while(iter.hasNext()) {
-          PEPeerTransport connection = (PEPeerTransport) iter.next();
+      List	peer_transports = peer_transports_cow;
+      
+      for (int i=0;i<peer_transports.size();i++){
+       
+          PEPeerTransport connection = (PEPeerTransport)peer_transports.get(i);
+          
           DiskManagerReadRequest dmr = _diskManager.createReadRequest( pieceNumber, offset, piece.getBlockSize(blockNumber));
+          
           connection.sendCancel( dmr );   
         }
-      }finally{
-      	_peer_transports_mon.exit();
-      }
+    }else{
+    	
+    	data.returnToPool();
     }
-    else data.returnToPool();
   }
   
   
@@ -1954,21 +1879,18 @@ PEPeerControlImpl
       if (availability <= 0)
         return;
       //for all peers
-      try{
-      	_peer_transports_mon.enter();
       
-        for (int i = _peer_transports.size() - 1; i >= 0; i--) {
-          PEPeerTransport pc = (PEPeerTransport) _peer_transports.get(i);
-          if (pc != null && pc != pcOrigin && pc.getState() == PEPeer.TRANSFERING) {
+      List	peer_transports = peer_transports_cow;
+
+      
+        for (int i = peer_transports.size() - 1; i >= 0; i--) {
+          PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+          if (pc != pcOrigin && pc.getState() == PEPeer.TRANSFERING) {
             boolean[] peerAvailable = pc.getAvailable();
             if (peerAvailable[pieceNumber])
               ((PEPeerStatsImpl)pc.getStats()).statisticSent(pieceLength / availability);
           }
         }
-      }finally{
-      	
-      	_peer_transports_mon.exit();
-      }
     }
   }
 
@@ -2052,13 +1974,21 @@ PEPeerControlImpl
   {
   	// System.out.println( "PEPeerControl::addToPeerTransports:" + peer );
     try{
-      _peer_transports_mon.enter();
+      peer_transports_mon.enter();
     
-      _peer_transports.add(peer);
+      	// copy-on-write semantics
+      
+      ArrayList	new_peer_transports = new ArrayList( peer_transports_cow.size() + 1 );
+      
+      new_peer_transports.addAll( peer_transports_cow );
+      
+      new_peer_transports.add( peer );
+      
+     peer_transports_cow	= new_peer_transports;
       
     }finally{
     	
-      _peer_transports_mon.exit();
+      peer_transports_mon.exit();
     }
       
   	for (int i=0;i<peer_transport_listeners.size();i++){
@@ -2066,13 +1996,26 @@ PEPeerControlImpl
   	}
   }
   
+  	/**
+  	 * Monitor *must* be held when calling this
+  	 * @param peer
+  	 * @param reason
+  	 */
+  
   private void
   removeFromPeerTransports(
   	PEPeerTransport		peer,
 	String				reason )
   {
-  	 _peer_transports.remove(peer);
+  		// copy-on-write semantics
+  		// MONITOR ALREADY HELD BY CALLER
+  	
+  	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
+  	
+  	new_peer_transports.remove(peer);
   	 
+  	peer_transports_cow = new_peer_transports;
+  	
  	//  System.out.println( "closing:" + peer.getClient() + "/" + peer.getIp() );
  	 
  	 peer.closeAll( reason ,false, false);
@@ -2085,11 +2028,16 @@ PEPeerControlImpl
   
   public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect ) {
     try{
-    	_peer_transports_mon.enter();
+    	peer_transports_mon.enter();
   
-      _peer_transports.remove( peer );
+     	ArrayList	new_peer_transports = new ArrayList( peer_transports_cow );
+      	
+      	new_peer_transports.remove(peer);
+      	 
+      	peer_transports_cow = new_peer_transports;
+      	
     }finally{
-    	_peer_transports_mon.exit();
+    	peer_transports_mon.exit();
     }
     
     for( int i=0; i < peer_transport_listeners.size(); i++ ){
@@ -2438,11 +2386,6 @@ PEPeerControlImpl
   }
 
 
-
-  public List get_connections() {
-    return _peer_transports;
-  }
-
   public PEPiece[] getPieces() {
     return _pieces;
   }
@@ -2536,22 +2479,16 @@ PEPeerControlImpl
     
     //if ipfiltering becomes enabled, remove any existing filtered connections
     if (parameterName.equals("Ip Filter Enabled") && IpFilterManagerFactory.getSingleton().getIPFilter().isEnabled()) {
-      try{
-      	_peer_transports_mon.enter();
-      
-      		// copy as closeAll removed from list
+
       	
-      	ArrayList	pt_copy = new ArrayList( _peer_transports );
+      	ArrayList	peer_transports = peer_transports_cow;
       	
-        for (int i=0; i < pt_copy.size(); i++) {
-          PEPeerTransport conn = (PEPeerTransport)pt_copy.get( i );
+        for (int i=0; i < peer_transports.size(); i++) {
+          PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
           if ( IpFilterManagerFactory.getSingleton().getIPFilter().isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
             conn.closeAll( "IPFilter banned IP address", false, false );
           }
         }
-      }finally{
-      	_peer_transports_mon.exit();
-      }
     }
   }
   
@@ -2721,19 +2658,18 @@ PEPeerControlImpl
     //Find an available Peer
     PEPeer selectedPeer = null;
     List sortedPeers = null;
-    try{
-    	_peer_transports_mon.enter();
+ 
     
-      sortedPeers = new ArrayList(_peer_transports.size());
-      Iterator iter = _peer_transports.iterator();
+    ArrayList	peer_transports = peer_transports_cow;
+    
+      sortedPeers = new ArrayList(peer_transports.size());
+      Iterator iter = peer_transports.iterator();
       while(iter.hasNext()) {
         sortedPeers.add(new SuperSeedPeer((PEPeer)iter.next()));
       }      
-    }finally{
-    	_peer_transports_mon.exit();
-    }
+ 
     Collections.sort(sortedPeers);
-    Iterator iter = sortedPeers.iterator();
+    iter = sortedPeers.iterator();
     while(iter.hasNext()) {
       PEPeer peer = ((SuperSeedPeer)iter.next()).peer;
       if((peer.getUniqueAnnounce() == -1) && (peer.getState() == PEPeer.TRANSFERING)) {
@@ -2794,26 +2730,23 @@ PEPeerControlImpl
     }
   }
   
-  private void quitSuperSeedMode() {
+  private void 
+  quitSuperSeedMode() 
+  {
     superSeedMode = false;
-    try{
-    	_peer_transports_mon.enter();
-    
+     
     		// closing a transport can result in it being removed from teh list. Therefore
     		// copy the list first else we get a "concurrent modification exception"	
     	
-    	ArrayList	pt_copy = new ArrayList( _peer_transports );
+    ArrayList	peer_transports = peer_transports_cow;
     	
-      Iterator iter = pt_copy.iterator();
+    Iterator iter = peer_transports.iterator();
      
-      while(iter.hasNext()) {
+    while(iter.hasNext()) {
       	
         PEPeerTransport peer = (PEPeerTransport) iter.next();
         
         peer.closeAll(peer.getIp() + " : Quiting SuperSeed Mode",false,true);
-      }
-    }finally{
-    	_peer_transports_mon.exit();
     }
   }
   
@@ -2822,19 +2755,19 @@ PEPeerControlImpl
   	PEPeerControlListener	l )
   {
   	try{
-  		_peer_transports_mon.enter();
+  		peer_transports_mon.enter();
   	
   		if ( !peer_transport_listeners.contains( l )){
   			
   			peer_transport_listeners.add(l);
   		
-  			for (int i=0;i<_peer_transports.size();i++){
+  			for (int i=0;i<peer_transports_cow.size();i++){
   			
-  				l.peerAdded( (PEPeerTransport)_peer_transports.get(i));
+  				l.peerAdded( (PEPeerTransport)peer_transports_cow.get(i));
   			}
   		}
   	}finally{
-  		_peer_transports_mon.exit();
+  		peer_transports_mon.exit();
   	}
   }
   
@@ -2843,11 +2776,11 @@ PEPeerControlImpl
   	PEPeerControlListener	l )
   {
   	try{
-  		_peer_transports_mon.enter();
+  		peer_transports_mon.enter();
   		
   		peer_transport_listeners.remove(l);
   	}finally{
-  		_peer_transports_mon.exit();
+  		peer_transports_mon.exit();
   	}
   }
   
