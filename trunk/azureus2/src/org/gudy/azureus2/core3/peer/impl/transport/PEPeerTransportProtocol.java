@@ -1221,13 +1221,22 @@ PEPeerTransportProtocol
   private boolean verifyLength(ByteBuffer buffer) {
     //check for a handshake message
     if (buffer.get(0) == (byte)PROTOCOL.length()) {
+      //make sure the length is correct for a handshake
+      if (buffer.limit() != 68) {
+        //make sure it isn't a normal message
+        int length =  buffer.getInt(0);
+        if (length != buffer.limit() - 4) {
+          Debug.out("PROTOCOL: givenLength=" + length + " realLength=" + buffer.limit());
+          return false;
+        }
+        return true; 
+      }
       return true;
     }
     
     int length =  buffer.getInt(0);
     if (length != buffer.limit() - 4) {
-      String header = "PEPeerTransportProtocol::verifyLength:: ";
-      System.out.println(header + "givenLength=" + length + " realLength=" + buffer.limit());
+      Debug.out("givenLength=" + length + " realLength=" + buffer.limit());
       return false;
     }
     return true;
