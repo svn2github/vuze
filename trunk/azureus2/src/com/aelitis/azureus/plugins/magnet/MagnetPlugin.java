@@ -292,7 +292,7 @@ MagnetPlugin
 									runSupport()
 									{
 										try{
-											boolean	alive = value.getContact().isAlive(10000);
+											boolean	alive = value.getContact().isAlive(20*1000);
 																							
 											listener.reportActivity( value.getContact().getName() + " is " + (alive?"":"not ") + "alive" );
 											

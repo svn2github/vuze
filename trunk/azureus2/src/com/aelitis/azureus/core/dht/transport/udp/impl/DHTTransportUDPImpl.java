@@ -1568,7 +1568,7 @@ DHTTransportUDPImpl
 		try{
 			long	start = SystemTime.getCurrentTime();
 			
-			listener.reportActivity( "Requesting entire transfer" );
+			listener.reportActivity( "Requesting entire transfer from " + target.getString());
 
 			entire_request_count++;
 			
@@ -1608,7 +1608,7 @@ DHTTransportUDPImpl
 					
 					if ( !duplicate ){
 						
-						listener.reportActivity( "Received " + reply.getStartPosition() + " to " + (reply.getStartPosition() + reply.getLength()));
+						listener.reportActivity( "Received " + reply.getStartPosition() + " to " + (reply.getStartPosition() + reply.getLength()) + " from " + target.getString() );
 
 						transferred += reply.getLength();
 						
@@ -1681,7 +1681,7 @@ DHTTransportUDPImpl
 						
 						entire_request_count++;
 						
-						listener.reportActivity( "Re-requesting entire transfer" );
+						listener.reportActivity( "Re-requesting entire transfer from " + target.getString() );
 						
 						sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
 						
@@ -1703,7 +1703,7 @@ DHTTransportUDPImpl
 							
 							if ( p.getStartPosition() != pos ){
 								
-								listener.reportActivity( "Re-requesting " + pos + " to " + p.getStartPosition());
+								listener.reportActivity( "Re-requesting " + pos + " to " + p.getStartPosition() +  " from " + target.getString());
 								
 								sendReadRequest( 
 										connection_id, 
@@ -1720,7 +1720,7 @@ DHTTransportUDPImpl
 						
 						if ( pos != actual_end ){
 							
-							listener.reportActivity( "Re-requesting " + pos + " to " + actual_end );
+							listener.reportActivity( "Re-requesting " + pos + " to " + actual_end + " from " + target.getString());
 
 							sendReadRequest( 
 									connection_id, 
