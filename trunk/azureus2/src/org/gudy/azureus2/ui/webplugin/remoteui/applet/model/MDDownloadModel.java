@@ -123,11 +123,11 @@ MDDownloadModel
 			
 		}else if ( col == 9 ){
 			
-			return(new Long( download.getStats().getDownloadAverage()));
+			return(new Long( download.getStats().getUploadAverage()));
 			
 		}else if ( col == 10 ){
 			
-			return(new Long( download.getStats().getUploadAverage()));
+			return(new Long( download.getStats().getDownloadAverage()));
 			
 		}else if ( col == 11 ){
 			

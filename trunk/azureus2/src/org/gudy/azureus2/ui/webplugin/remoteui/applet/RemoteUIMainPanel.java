@@ -262,7 +262,15 @@ RemoteUIMainPanel
 		
 			if ( ticks >= refresh_period ){
 				
-				refresh();
+				SwingUtilities.invokeLater(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								refresh();
+							}
+						});
 				
 				ticks = 0;
 			}

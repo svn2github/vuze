@@ -113,6 +113,15 @@ RemoteUIServlet
 		"core3/util/DisplayFormatters.class",
 		"core3/config/ParameterListener.class",
 		"core3/util/DisplayFormatters$1.class",
+		"plugins/ui/tables/mytorrents/PluginMyTorrentsItemFactory.class",
+		"ui/webplugin/remoteui/applet/model/MDConfigModelListener.class",
+		"ui/webplugin/remoteui/applet/model/MDConfigModel.class",
+		"ui/webplugin/remoteui/plugins/RPPluginConfig.class",
+		"ui/webplugin/remoteui/applet/view/VWConfigView.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$6.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$7.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$8.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$9.class",
 	};
 	
 	protected Map	reply_cache	= new HashMap();

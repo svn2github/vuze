@@ -102,18 +102,7 @@ RemoteUIApplet
 					error(
 						Throwable 		e )
 					{
-						Throwable cause = e.getCause();
-						
-						if ( cause != null ){
-							
-							e	= cause;
-						}
-						
-						JOptionPane.showMessageDialog( 
-								RemoteUIApplet.this, 
-								e.toString(),
-								"Error Occurred",  
-								JOptionPane.ERROR_MESSAGE );
+						showError( e );
 					}
 				});
 			
@@ -123,10 +112,30 @@ RemoteUIApplet
 			
 			validate();
 			
-		}catch( RPException e ){
+		}catch( Throwable e ){
 			
-			e.printStackTrace();
+			showError( e );
 		}
+	}
+	
+	protected void
+	showError(
+		Throwable e )
+	{
+		e.printStackTrace();
+		
+		Throwable cause = e.getCause();
+		
+		if ( cause != null ){
+			
+			e	= cause;
+		}
+		
+		JOptionPane.showMessageDialog( 
+				RemoteUIApplet.this, 
+				e.toString(),
+				"Error Occurred",  
+				JOptionPane.ERROR_MESSAGE );
 	}
 	
 	public RPPluginInterface

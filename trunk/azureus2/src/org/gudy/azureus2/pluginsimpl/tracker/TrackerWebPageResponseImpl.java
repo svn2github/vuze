@@ -63,9 +63,11 @@ TrackerWebPageResponseImpl
 		
 		SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
 		
-		setHeader( "Last Modified",	format.format(new Date()));
+		String	formatted_date = format.format(new Date());
 		
-		setHeader( "Expires", "Sun, 17 Jan 2038 01:01:01 GMT" );
+		setHeader( "Last-Modified",	formatted_date );
+		
+		setHeader( "Expires", formatted_date );
 	}
 	
 	public void
