@@ -3,7 +3,7 @@ AZUREUS CHANGELOG
 
 2004.06.xx | Azureus 2.1.0.1
 
-FEATURE:
+FEATURE:Plug | Tracker plugin supports simple category view
 
 CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
 CHANGE: Plug | Tracker web plugin configuration moved to plugin config from core config
