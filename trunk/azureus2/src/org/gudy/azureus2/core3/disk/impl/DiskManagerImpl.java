@@ -968,12 +968,23 @@ DiskManagerImpl
 				
 				// see bug 869749 for explanation of this mangling
 				
+				/*
+				System.out.println( "Resume map");
+				
+				Iterator it = resumeMap.keySet().iterator();
+				
+				while( it.hasNext()){
+					
+					System.out.println( "\tmap:" + ByteFormatter.nicePrint((String)it.next()));
+				}
+				*/
+				
 				String mangled_path;
 				
 				try{
-					mangled_path = new String(this.path.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+					mangled_path = new String(path.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
 					
-					// System.out.println( "resume: path = " + path + ", mangled_path = " + mangled_path );
+					// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
 					
 				}catch( Throwable e ){
 					
@@ -983,14 +994,33 @@ DiskManagerImpl
 				}
 				
 				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
+				
+				if ( resumeDirectory == null ){
+					
+						// unfortunately, if the torrent hasn't been saved and restored then the
+						// mangling with not yet have taken place. So we have to also try the 
+						// original key (see 878015)
+					
+					resumeDirectory = (Map)resumeMap.get(path);
+				}
+				
 				if (resumeDirectory != null) {
+					
 					try {
+						
 						resumeArray = (byte[])resumeDirectory.get("resume data");
 						partialPieces = (Map)resumeDirectory.get("blocks");
 						resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
 						resumeDirectory.put("valid", new Long(0));
 						saveTorrent();
-					} catch (Exception ignore) { /* ignore */ }
+						
+					}catch(Exception ignore){
+						/* ignore */ 
+					}
+					
+				}else{
+					
+					// System.out.println( "resume dir not found");
 				}
 			}
 			
@@ -1064,6 +1094,8 @@ DiskManagerImpl
 	  
 	  	// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
 	  	// currently fixed by mangling such that decode works
+	  
+	  // System.out.println( "writing resume data: key = " + ByteFormatter.nicePrint(path));
 	  
 	  resumeMap.put(path, resumeDirectory);
 	  

@@ -41,6 +41,12 @@ public class ByteFormatter
 	return( nicePrint( hash, tight ));
   }
 
+  public static String
+  nicePrint(
+  	String	str )
+  {
+  	return( nicePrint(str.getBytes(),true));
+  }
   public static String nicePrint(byte[] data) {
 	 return( nicePrint( data, false ));
    }
