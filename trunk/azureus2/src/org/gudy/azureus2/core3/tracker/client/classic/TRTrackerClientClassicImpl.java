@@ -1788,42 +1788,17 @@ TRTrackerClientClassicImpl
 	protected TRTrackerResponsePeer[]
 	getPeersFromCache()
 	{
-		int	num_want = calculateNumWant();
-	
 		synchronized( tracker_peer_cache ){
-
-			if ( tracker_peer_cache.size() <= num_want ){
-				
-				TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[tracker_peer_cache.size()];
-				
-				tracker_peer_cache.values().toArray( res );
-				
-				LGLogger.log( "TRTrackerClient: returned " + res.length + " cached peers" );
-
-				return( res );
-			}
+      
+			TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[tracker_peer_cache.size()];
 			
-			TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[num_want];
+      tracker_peer_cache.values().toArray( res );
 			
-			Iterator	it = tracker_peer_cache.keySet().iterator();
+      LGLogger.log( "TRTrackerClient: returned " + res.length + " cached peers" );
 			
-			for (int i=0;i<num_want;i++){
-				
-				String	key = (String)it.next();
-				
-				res[i] = (TRTrackerResponsePeer)tracker_peer_cache.get(key);
-				
-				it.remove();
-			}
-			
-			for (int i=0;i<num_want;i++){
-				
-				tracker_peer_cache.put( res[i].getIPAddress(), res[i] );
-			}
-			
-			LGLogger.log( "TRTrackerClient: returned " + res.length + " cached peers" );
-			
-			return( res );
+      return( res );
 		}
 	}
+  
+  
 }
