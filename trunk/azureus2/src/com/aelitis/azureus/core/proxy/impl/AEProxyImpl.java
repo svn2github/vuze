@@ -61,6 +61,7 @@ AEProxyImpl
 	private VirtualChannelSelector	write_selector	 = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
 	
 	private List				processors = new ArrayList();
+  private final HashMap write_select_regs = new HashMap();
 	
 	private AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
 	
@@ -351,13 +352,21 @@ AEProxyImpl
 		AEProxyConnectionImpl	processor,
 		SocketChannel 			sc )
 	{
-		write_selector.register( sc, this, processor );
+    
+    if( write_select_regs.containsKey( sc ) ) {  //already been registered, just resume
+      write_selector.resumeSelects( sc );
+    }
+    else {  //not yet registered
+      write_select_regs.put( sc, null );
+      write_selector.register( sc, this, processor );
+    }
 	}
 	
 	protected void
 	cancelWriteSelect(
 		SocketChannel 			sc )
 	{
+    write_select_regs.remove( sc );
 		write_selector.cancel( sc );
 	}
 	

@@ -115,7 +115,8 @@ AESocksProxyPlugableConnectionDefault
 			
 			try{
 				connection.cancelReadSelect( target_channel );
-				
+				connection.cancelWriteSelect( target_channel );
+        
 				target_channel.close();
 				
 			}catch( Throwable e ){

@@ -293,14 +293,16 @@ TRNonBlockingServer
 	              
 	            		if( write_result > 0 ) { //more writing is needed
 	            			
-	            			write_selector.register( sc, this, null );  //re-register for more writing
+	            			write_selector.resumeSelects( sc );  //resume for more writing
 	            			
 	            		}else if( write_result == 0 ) {  //write processing is complete
 	            			
+                    write_selector.cancel( sc );
 	            			removeAndCloseConnection( processor );
 	
 	            		}else if( write_result < 0 ) {  //a write error occured
 	            			
+                    write_selector.cancel( sc );
 	            			removeAndCloseConnection( processor );
 	            		}
             		}catch( Throwable e ){

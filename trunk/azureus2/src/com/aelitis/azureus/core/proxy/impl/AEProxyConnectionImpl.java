@@ -221,6 +221,7 @@ AEProxyConnectionImpl
 		try{
 			try{
 				cancelReadSelect( source_channel );
+        cancelWriteSelect( source_channel );
 				
 				source_channel.close();
 				

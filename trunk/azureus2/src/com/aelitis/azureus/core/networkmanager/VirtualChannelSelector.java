@@ -48,35 +48,33 @@ public class VirtualChannelSelector {
 
     
     private final int 		INTEREST_OP;
-    private final boolean	deregister_after_select_success;
+    private final boolean	pause_after_select;
     
 
     /**
-     * Create a new virtual selectable-channel selector,
-     * selecting over the given interest-op(s).
-     * OP_READ will be left registered after select success, all others are cancelled
-     * @param interest_op operation set of OP_ACCEPT, OP_CONNECT, OP_READ, OP_WRITE
+     * Create a new virtual selectable-channel selector, selecting over the given interest-op(s).
+     * OP_READ will be left enabled after select, all others disabled.
+     * @param interest_op operation set of OP_CONNECT, OP_READ, OP_WRITE
      */
     
     public VirtualChannelSelector( int interest_op ) {
-    	this( interest_op, interest_op != SelectionKey.OP_READ );
+    	this( interest_op, interest_op != OP_READ );
     }
     
     /**
      * Create a new virtual selectable-channel selector,
      * selecting over the given interest-op(s).
-     * @param _interest_op operation set of OP_ACCEPT, OP_CONNECT, OP_READ, OP_WRITE
-     * @param _deregister_after_select_success	whether or not to deregister after select success  
+     * @param _interest_op operation set of OP_CONNECT, OP_READ, OP_WRITE
+     * @param _pause_after_select	whether or not to disable op after select  
      */
-    
     public 
 	VirtualChannelSelector( 
 		int 		_interest_op,
-		boolean		_deregister_after_select_success ) 
+		boolean		_pause_after_select ) 
     {	 
       INTEREST_OP = _interest_op;
       
-      deregister_after_select_success	= _deregister_after_select_success;
+      pause_after_select	= _pause_after_select;
       
       selector_guard = new SelectorGuard( SELECTOR_FAIL_COUNT_MAX );
     	try {
@@ -114,12 +112,11 @@ public class VirtualChannelSelector {
   
     /**
      * Register the given selectable channel, using the given listener for notification
-     * of completed select operation.
+     * of completed select operations.
      * NOTE: For OP_CONNECT and OP_WRITE -type selectors, once a selection request op
-     * completes, the channel's listener registration is automatically canceled; any
-     * future selection notification requires re-registration.  For OP_READ selectors,
-     * a registration is valid until actively canceled, no matter how many times it is
-     * selected.
+     * completes, the channel's op registration is automatically disabled (paused); any
+     * future wanted selection notification requires re-enabling via resume.  For OP_READ selectors,
+     * it stays enabled until actively paused, no matter how many times it is selected.
      * @param channel socket to listen for
      * @param listener op-complete listener
      * @param attachment object to be passed back with listener notification
@@ -135,19 +132,53 @@ public class VirtualChannelSelector {
     	if( selector != null )  selector.wakeup();
     }
     
+    
+    
+    /**
+     * Pause selection operations for the given channel
+     * @param channel to pause
+     */
+    public void pauseSelects( SocketChannel channel ) {
+      
+      if( channel == null ) {
+        Debug.printStackTrace( new Exception( "pauseSelects()" ) );
+        return;
+      }
+      
+      SelectionKey key = channel.keyFor( selector );
+      if( key != null )  key.interestOps( key.interestOps() & ~INTEREST_OP );
+    }
+    
+    
+    /**
+     * Resume selection operations for the given channel
+     * @param channel to resume
+     */
+    public void resumeSelects( SocketChannel channel ) {
+      
+      if( channel == null ) {
+        Debug.printStackTrace( new Exception( "resumeSelects()" ) );
+        return;
+      }
+      
+      SelectionKey key = channel.keyFor( selector );
+      if( key != null )  key.interestOps( key.interestOps() | INTEREST_OP );
+    }
+
+    
 	    /**
-	     * Cancel the select request.
-	     * Once canceled, the channel is unregistered and the listener will never be invoked.
+	     * Cancel the selection operations for the given channel.
 	     * @param channel channel originally registered
 	     */
-    
     public void 
 	cancel( 
 		SocketChannel channel ) 
     {
+      pauseSelects( channel );
     	addRegOrCancel( channel ); 
     }
    
+    
     private void 
     addRegOrCancel( 
     	Object	obj_to_add ) 
@@ -171,9 +202,7 @@ public class VirtualChannelSelector {
     								((RegistrationData)obj).channel == obj_to_add )){
     					
     					// remove existing cancel or register
-    				
     					remove_it = true;
-   				
      				}
     				
     			}else{
@@ -185,7 +214,6 @@ public class VirtualChannelSelector {
     								((RegistrationData)obj).channel == rd.channel )){
  						
     					remove_it = true;
-    					
     				}
     			}
     			
@@ -242,7 +270,7 @@ public class VirtualChannelSelector {
          Object	obj = register_cancel_list.remove(0);
          
          if ( obj instanceof SocketChannel ){
-         	
+           
          		// process cancellation
          	
          	SocketChannel	canceled_channel = (SocketChannel)obj;
@@ -272,17 +300,16 @@ public class VirtualChannelSelector {
                   SelectionKey key = data.channel.keyFor( selector );
                   
                   if ( key != null && key.isValid()){
-                  	
                   	key.attach( data );
-                  	
-                  }else{
-                  	
-                  	data.channel.register( selector, INTEREST_OP, data );
+                  	key.interestOps( key.interestOps() | INTEREST_OP );  //ensure op is enabled
                   }
-                  
-                }else{
+                  else{
+                  	data.channel.register( selector, INTEREST_OP, data );
+                  }             
+                }
+                else{
             	
-                	data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "channel is closed" ) );
+                	data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "select registration: channel is closed" ) );
             	    //Debug.out( "channel is closed" );
             	}
            	}catch (Throwable t){
@@ -312,7 +339,7 @@ public class VirtualChannelSelector {
         count = selector.select( timeout );
       }
       catch (Throwable t) {
-        Debug.out( "Caught exception on selector.select() op:", t );
+        Debug.out( "Caught exception on selector.select() op: " +t.getMessage(), t );
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
       
@@ -326,9 +353,15 @@ public class VirtualChannelSelector {
           SelectionKey key = (SelectionKey)i.next();
           i.remove();
           RegistrationData data = (RegistrationData)key.attachment();
+
           if( key.isValid() ) {
-            if( deregister_after_select_success ) { 
-                key.cancel();
+            if( (key.interestOps() & INTEREST_OP) == 0 ) {  //it must have been paused between select and notification
+              System.out.println( "select op PAUSED after select, skipping" );
+              continue;
+            }            
+            
+            if( pause_after_select ) { 
+              key.interestOps( key.interestOps() & ~INTEREST_OP );
             }
                         
             boolean	progress_made = data.listener.selectSuccess( this, data.channel, data.attachment );
@@ -362,7 +395,7 @@ public class VirtualChannelSelector {
           }
           else {
             key.cancel();
-            data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "key is invalid" ) );
+            data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "select notification: key is invalid" ) );
             // can get this if socket has been closed between select and here
           }
         }
