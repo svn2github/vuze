@@ -58,7 +58,7 @@ ShareResourceDirContentsImpl
 		
 		if ( !root.exists()){
 			
-			throw( new ShareException( "Dir '" + root.getName() + "' not found"));
+			throw( new ShareException( "Dir '".concat(root.getName()).concat("' not found")));
 		}
 		
 		if ( root.isFile()){
@@ -87,7 +87,7 @@ ShareResourceDirContentsImpl
 		
 		if ( !root.exists()){
 			
-			throw( new ShareException( "Dir '" + root.getName() + "' not found"));
+			throw( new ShareException( "Dir '".concat(root.getName()).concat("' not found")));
 		}
 		
 		if ( root.isFile()){

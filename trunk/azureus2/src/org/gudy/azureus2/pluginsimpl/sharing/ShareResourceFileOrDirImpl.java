@@ -75,7 +75,7 @@ ShareResourceFileOrDirImpl
 			
 			if ( !file.exists()){
 			
-				throw( new ShareException( "File '" + file.getName() + "' not found"));
+				throw( new ShareException( "File '".concat(file.getName()).concat("' not found")));
 			}
 		
 			if ( !file.isFile()){
@@ -86,7 +86,7 @@ ShareResourceFileOrDirImpl
 			
 			if ( !file.exists()){
 				
-				throw( new ShareException( "Dir '" + file.getName() + "' not found"));
+				throw( new ShareException( "Dir '".concat(file.getName()).concat("' not found")));
 			}
 			
 			if ( file.isFile()){
@@ -146,7 +146,7 @@ ShareResourceFileOrDirImpl
 		throws ShareException
 	{
 		try{
-			manager.reportCurrentTask( (item==null?"Creating":"Re-creating") + " torrent for '" + file.toString() + "'" );
+			manager.reportCurrentTask( (item==null?"Creating":"Re-creating").concat(" torrent for '").concat(file.toString()).concat("'" ));
 			
 			TOTorrent	to_torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
 										file,

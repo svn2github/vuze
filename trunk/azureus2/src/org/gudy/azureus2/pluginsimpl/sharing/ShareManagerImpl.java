@@ -279,7 +279,7 @@ ShareManagerImpl
 	{
 		File	torrent_file = getTorrentFile(item);
 		
-		System.out.println( "deleting torrent '" + torrent_file.toString() + "'");
+		System.out.println( "deleting torrent '".concat(torrent_file.toString()).concat("'"));
 		
 		torrent_file.delete();
 	}
@@ -326,7 +326,7 @@ ShareManagerImpl
 			}
 			
 			try{
-				announce_url = new URL( (use_ssl?"https":"http") + "://" + tracker_ip + ":" + port + "/announce" );
+				announce_url = new URL( (use_ssl?"https":"http").concat("://").concat(tracker_ip).concat(":").concat(String.valueOf(port)).concat("/announce") );
 				
 			}catch( MalformedURLException e ){
 				
@@ -419,13 +419,13 @@ ShareManagerImpl
 		
 		if ( type == ShareResource.ST_FILE ){
 	
-			reportCurrentTask( "Adding file '" + file.toString() + "'");
+			reportCurrentTask( "Adding file '".concat(file.toString()).concat("'"));
 			
 			new_resource = new ShareResourceFileImpl( this, file );
 			
 		}else{
 			
-			reportCurrentTask( "Adding dir '" + file.toString() + "'");
+			reportCurrentTask( "Adding dir '".concat(file.toString()).concat("'"));
 			
 			new_resource = new ShareResourceDirImpl( this, file );
 		}
@@ -472,7 +472,7 @@ ShareManagerImpl
 		throws ShareException, ShareResourceDeletionVetoException
 	{
 		try{
-			reportCurrentTask( "Adding dir contents '" + dir.toString() + "'");
+			reportCurrentTask( "Adding dir contents '".concat(dir.toString()).concat("'"));
 			
 			ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive );
 	

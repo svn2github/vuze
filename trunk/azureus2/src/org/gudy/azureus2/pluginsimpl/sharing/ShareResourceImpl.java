@@ -148,7 +148,7 @@ ShareResourceImpl
 				long	mod 	= file.lastModified();
 				long	size	= file.length();
 			
-				String	finger_print = file.getName()+":"+mod+":"+size;
+				String	finger_print = file.getName().concat(":").concat(String.valueOf(mod)).concat(":").concat(String.valueOf(size));
 			
 				return( finger_print );
 				
@@ -170,7 +170,7 @@ ShareResourceImpl
 					
 					if ( !(file_name.equals( "." ) || file_name.equals( ".." ))){
 						
-						res += ":" + getFingerPrintSupport( f );
+						res = res.concat(":").concat(getFingerPrintSupport( f ));
 					}
 				}
 				
@@ -178,7 +178,7 @@ ShareResourceImpl
 				
 			}else{
 				
-				throw( new ShareException( "ShareResource::getFingetPrint: '" + file.toString() + "' doesn't exist" ));
+				throw( new ShareException( "ShareResource::getFingetPrint: '".concat(file.toString()).concat("' doesn't exist" )));
 			}
 			
 		}catch( Throwable e ){
