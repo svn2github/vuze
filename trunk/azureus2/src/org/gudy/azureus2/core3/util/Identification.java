@@ -22,6 +22,7 @@ public class Identification {
    * Decodes the given peerID, returning an identification string.
    */  
   public static String decode(byte[] peer_id) {
+    String decoded = null;
     byte[] peerID = new byte[peer_id.length];
     System.arraycopy(peer_id, 0, peerID, 0, peer_id.length);
          
@@ -30,7 +31,51 @@ public class Identification {
     File logFile = FileUtil.getUserFile("identification.log");
     
     try {
+      if( (decoded = decodeAzStyle( peerID, "AZ", "Azureus" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "LT", "libtorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "TS", "TorrentStorm" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "MT", "MoonlightTorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "XT", "XanTorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "bk", "BitKitten (libtorrent)" )) != null ) return decoded;
+      if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
+      if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
+      if( (decoded = decodeMainlineStyle( peerID, "M", "Mainline" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "martini", "Martini Man" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "oernu", "BTugaXP" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "BTDWV-", "Deadman Walking" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "PRC.P---", "BitTorrent Plus! II" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "P87.P---", "BitTorrent Plus!" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "S587Plus", "BitTorrent Plus!" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 5, "Azureus", "Azureus 2.0.3.2" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "-G3", "G3 Torrent" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 4, "btfans", "SimpleBT" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "btuga", "BTugaXP" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "DansClient", "XanTorrent" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "Deadman Walking-", "Deadman" )) != null ) return decoded;
 
+
+      String burst = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
+      if( burst.equals( "Mbrst" ) ) {
+        String major = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
+        String minor = new String(peerID, 7, 1, Constants.BYTE_ENCODING);
+        String sub   = new String(peerID, 9, 1, Constants.BYTE_ENCODING);
+        return "Burst! " + major + "." + minor + "." + sub;
+      }
+            
+      String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
+      if (turbobt.equals("turbobt")) {
+        return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
+      }
+      
+      //not 100% sure on this one
+      String plus = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
+      if( plus.equals( "Plus" ) ) {
+        String v1 = new String(peerID, 4, 1, Constants.BYTE_ENCODING);
+        String v2 = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
+        String v3 = new String(peerID, 6, 1, Constants.BYTE_ENCODING);
+        return "Plus! " + v1 + "." + v2 + "." + v3;
+      }
+      
       String shadow = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (shadow.equals("S")) {
         
@@ -55,61 +100,13 @@ public class Identification {
         }
       }
       
-      
-      String bittornado = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
-      if (bittornado.equals("T")) {
-        if ( (peerID[6] == (byte)45) && (peerID[7] == (byte)45) && (peerID[8] == (byte)45) ) {
-          String name = "BitTornado ";
-          for (int i = 1; i < 3; i++) {
-            String v = new String(peerID, i, 1, Constants.BYTE_ENCODING);
-            name = name.concat( Integer.parseInt(v, 16) + "." );
-          }
-          String v = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
-          name = name.concat( "" + Integer.parseInt(v, 16) );
-          return name;
-        }
-      }
-      
-      
-      
-      String azureus = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
-      if (azureus.equals("AZ")) {
-        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
-        String name = "Azureus ";
-        for (int i = 0; i < 3; i++) {
-          name = name.concat(version.charAt(i) + ".");
-        }
-        name = name + version.charAt(3);
-        return name;
-      }
-      
-
-      //Bram's original client
-      String mainline = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
-      if ( mainline.equals("M") ) {
-      	if ( (peerID[2] == (byte)45) &&
-             (peerID[4] == (byte)45) &&
-             (peerID[6] == (byte)45) &&
-             (peerID[7] == (byte)45) ) {
-      		String major = new String(peerID, 1, 1, Constants.BYTE_ENCODING);
-          String minor = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
-          String sub   = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
-          return "Mainline " + major + "." + minor + "." + sub;
-        }
-      }
-
-      
-      String old_azureus = new String(peerID, 5, 7, Constants.BYTE_ENCODING);
-      if (old_azureus.equals("Azureus")) return "Azureus 2.0.3.2";
-      
-      
+     
       String bitspirit = new String(peerID, 2, 2, Constants.BYTE_ENCODING);
       if (bitspirit.equals("BS")) {
         if (peerID[1] == (byte)0)  return "BitSpirit v1";
         if (peerID[1] == (byte)2)  return "BitSpirit v2";
       }
             
-      
       String upnp = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (upnp.equals("U")) {
         if (peerID[8] == (byte)45) {
@@ -123,74 +120,12 @@ public class Identification {
         }  
       }
       
-      
       String bitcomet = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
       if (bitcomet.equals("exbc")) {
         String name = "BitComet ";
         name = name.concat(String.valueOf(peerID[4]) + ".");
         name = name.concat(String.valueOf(peerID[5]/10));
         name = name.concat(String.valueOf(peerID[5]%10));
-        return name;
-      }
-      
-      
-      /*
-       <xxx> i think S587Plus is burst! or burst!+
-       <xxx> or upnp client
-       <xxx> [oernuBTugaXP ?!?³?~] is http://www.btuga.org/
-       <xxx> [BTDWV-.... is "BitTorrent Deadman Walking"
-       <xxx> "BitTorrent Deadman Walking" seems to be some chinese client
-       */
-      
-      
-      String turbobt = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
-      if (turbobt.equals("turbobt")) {
-        return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
-      }
-      
-      
-      String g3torrent = new String(peerID, 0, 3, Constants.BYTE_ENCODING);
-      if (g3torrent.equals("-G3")) return "G3 Torrent";
-      
-      
-      String bittorrentplus = new String(peerID, 0, 7, Constants.BYTE_ENCODING);
-      if (bittorrentplus.equals("Plus---")) return "BitTorrent Plus!";   
-      
-      
-      String deadman = new String(peerID, 0, 16, Constants.BYTE_ENCODING);
-      if (deadman.equals("Deadman Walking-")) return "Deadman";
-      
-      
-      String libtorrent = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
-      if (libtorrent.equals("LT")) {
-        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
-        String name = "libtorrent ";
-        for (int i = 0; i < 3; i++) {
-          name = name.concat(version.charAt(i) + ".");
-        }
-        name = name + version.charAt(3);
-        return name;
-      }
-      
-      String torrentstorm = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
-      if (torrentstorm.equals("TS")) {
-        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
-        String name = "TorrentStorm ";
-        for (int i = 0; i < 3; i++) {
-          name = name.concat(version.charAt(i) + ".");
-        }
-        name = name + version.charAt(3);
-        return name;
-      }
-      
-      String moonlight = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
-      if (moonlight.equals("MT")) {
-        String version = new String(peerID, 3, 4, Constants.BYTE_ENCODING);
-        String name = "MoonlightTorrent ";
-        for (int i = 0; i < 3; i++) {
-          name = name.concat(version.charAt(i) + ".");
-        }
-        name = name + version.charAt(3);
         return name;
       }
       
@@ -208,16 +143,6 @@ public class Identification {
       }
       
       
-      String btuga = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
-      if (btuga.equals("btuga")) return "BTugaXP";
-      
-      String btfans = new String(peerID, 4, 6, Constants.BYTE_ENCODING);
-      if (btfans.equals("btfans")) return "SimpleBT";
-      
-      String xantorrent = new String(peerID, 0, 10, Constants.BYTE_ENCODING);
-      if (xantorrent.equals("DansClient")) return "XanTorrent";
-      
-      
       boolean allZero = true;
       for (int i = 0; i < 12; i++) {
         if (peerID[i] != (byte)0) { allZero = false; break; }
@@ -229,13 +154,7 @@ public class Identification {
       if ((allZero) && (peerID[12] == (byte)0) && (peerID[13] == (byte)0)) {
         return "Experimental 3.1";
       }
-      if (allZero) return MessageText.getString("PeerSocket.generic");
-      
-      	// check for internally generated 'ID' when none provided by tracker
-      
-      if( peerID[0]==NON_SUPPLIED_PEER_ID_BYTE1 && peerID[1]==NON_SUPPLIED_PEER_ID_BYTE2){
-      	return( "ID not available");
-      }
+      if (allZero) return "Generic";
       
     }
     catch (Exception e) { Debug.out(e.toString()); }
@@ -273,6 +192,71 @@ public class Identification {
     
     return MessageText.getString("PeerSocket.unknown") + " [" + sPeerID + "]";
 }
+  
+  
+  
+  private static String decodeAzStyle( byte[] id, String ident, String name ) {
+    try {
+      if( (id[0] == (byte)45) && (id[7] == (byte)45) ) {
+        String decoded = new String( id, 1, 2, Constants.BYTE_ENCODING );
+        if( decoded.equals( ident ) ) {
+          String v1 = new String( id, 3, 1, Constants.BYTE_ENCODING );
+          String v2 = new String( id, 4, 1, Constants.BYTE_ENCODING );
+          String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
+          String v4 = new String( id, 6, 1, Constants.BYTE_ENCODING );
+          return name + " " + v1 + "." + v2 + "." + v3 + "." + v4;
+        }
+      }
+    }
+    catch( Exception e ) {  return null;  }
+    return null;
+  }
+  
+  
+  private static String decodeTornadoStyle( byte[] id, String ident, String name ) {
+    try {
+      if( (id[4] == (byte)45) && (id[5] == (byte)45) && (id[6] == (byte)45)
+          && (id[7] == (byte)45) && (id[8] == (byte)45)) {
+        String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
+        if( decoded.equals( ident ) ) {
+          int v1 = Integer.parseInt( new String( id, 1, 1, Constants.BYTE_ENCODING ), 16 );
+          int v2 = Integer.parseInt( new String( id, 2, 1, Constants.BYTE_ENCODING ), 16 );
+          int v3 = Integer.parseInt( new String( id, 3, 1, Constants.BYTE_ENCODING ), 16 );
+          return name + " " + v1 + "." + v2 + "." + v3;
+        }
+      }
+    }
+    catch( Exception e ) {  return null;  }
+    return null;
+  }
+  
+  
+  private static String decodeSimpleStyle( byte[] id, int start_pos, String ident, String name ) {
+    try {
+      String decoded = new String( id, start_pos, ident.length(), Constants.BYTE_ENCODING );
+      if( decoded.equals( ident ) ) return name;
+    }
+    catch( Exception e ) {  return null;  }
+    return null;
+  }
+  
+  
+  private static String decodeMainlineStyle( byte[] id, String ident, String name ) {
+    try {
+      if ( (id[2] == (byte)45) && (id[4] == (byte)45) && (id[6] == (byte)45) && (id[7] == (byte)45) ) {
+        String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
+        if( decoded.equals( ident ) ) {
+          String v1 = new String( id, 1, 1, Constants.BYTE_ENCODING );
+          String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
+          String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
+          return name + " " + v1 + "." + v2 + "." + v3;
+        }
+      }
+    }
+    catch( Exception e ) {  return null;  }
+    return null;
+  }
+  
   
   public static String
   getPrintablePeerID(
