@@ -22,32 +22,14 @@
  */
 package org.gudy.azureus2.ui.swt.update;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.aelitis.azureus.core.AzureusCore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-
-import com.aelitis.azureus.core.*;
-
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -62,6 +44,10 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+
+import java.io.InputStream;
+import java.util.*;
+import java.util.List;
 
 /**
  * @author Olivier Chalouhi
@@ -130,7 +116,7 @@ UpdateWindow
     //Do not use ~SWT.CLOSE cause on some linux/GTK platform it
     //forces the window to be only 200x200
     //catch close event instead, and never do it
-    updateWindow = new Shell(display,(SWT.DIALOG_TRIM | SWT.RESIZE) );
+    updateWindow = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,(SWT.DIALOG_TRIM | SWT.RESIZE) );
     
     updateWindow.addListener(SWT.Close,new Listener() {
       public void handleEvent(Event e) {

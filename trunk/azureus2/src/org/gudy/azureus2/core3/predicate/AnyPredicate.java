@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.predicate;
 
 import java.util.List;
 import java.util.Iterator;
+import java.util.Arrays;
 
 /**
  * <p>
@@ -43,6 +44,15 @@ public final class AnyPredicate implements Predicable
     public AnyPredicate(List predicableList)
     {
         this.predicableList = predicableList;
+    }
+
+    /**
+     * Creates an AnyPredicate
+     * @param predicates An array of Predicables
+     */
+    public AnyPredicate(Predicable[] predicables)
+    {
+        this(Arrays.asList(predicables));
     }
 
      /**

@@ -17,6 +17,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
+import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 
 import java.util.Vector;
 /**
@@ -33,6 +34,7 @@ public class MinimizedWindow {
   private Rectangle screen;
 
   private static final Vector downloadBars = new Vector();
+  private static final ShellManager shellManager = new ShellManager();
 
   private int xPressed, yPressed;
   private boolean moving;
@@ -51,7 +53,8 @@ public class MinimizedWindow {
     this.stucked = null;
 
     //   The splash Screen setup
-    splash = new Shell(SWT.ON_TOP);
+    splash = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.ON_TOP);
+    shellManager.addWindow(splash);
     main.addDisposeListener(new DisposeListener() {
         public void widgetDisposed(DisposeEvent event) {
             close();
@@ -218,6 +221,10 @@ public class MinimizedWindow {
     splash.setVisible(true);
     
     
+  }
+
+  public static ShellManager getShellManager() {
+      return shellManager;
   }
 
   private void setSnapLocation(Point currentLoc) {

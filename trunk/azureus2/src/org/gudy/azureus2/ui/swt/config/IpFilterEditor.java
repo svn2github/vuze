@@ -72,7 +72,7 @@ public class IpFilterEditor {
       range = azureus_core.getIpFilterManager().getIPFilter().createRange(false);
     }
 
-    final Shell shell = new Shell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(shell,"ConfigView.section.ipfilter.editFilter");
     if(! Constants.isOSX) {
       shell.setImage(ImageRepository.getImage("ipfilter"));

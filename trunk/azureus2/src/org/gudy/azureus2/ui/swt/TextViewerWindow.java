@@ -22,7 +22,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 public class TextViewerWindow {
   public TextViewerWindow(String sTitleID, String sMessageID, String sText) {
     final Display display = SWTThread.getInstance().getDisplay();
-    final Shell shell = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 
     if (sTitleID != null) shell.setText(MessageText.getString(sTitleID));
     

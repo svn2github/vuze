@@ -6,29 +6,18 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import java.io.File;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.ui.swt.Messages;
+
+import java.io.File;
 
 
 public class OpenTorrentWindow {
@@ -41,7 +30,7 @@ public class OpenTorrentWindow {
   public OpenTorrentWindow(final Display display, GlobalManager gm) {
     GridData gridData;
     Label label;
-    shell = new Shell(display, SWT.RESIZE | SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.RESIZE | SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     
     shell.setText(MessageText.getString("OpenTorrentWindow.title"));
     if(! Constants.isOSX) {

@@ -23,24 +23,23 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.predicate.AllPredicate;
+import org.gudy.azureus2.core3.predicate.NotPredicate;
+import org.gudy.azureus2.core3.predicate.Predicable;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
-import org.gudy.azureus2.ui.swt.KeyBindings;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Tab;
+import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
@@ -50,49 +49,81 @@ import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
+import org.gudy.azureus2.ui.swt.predicate.shell.*;
+import org.gudy.azureus2.ui.swt.predicate.shellmanager.AllManagedShellsAreMinimizedPredicate;
+import org.gudy.azureus2.ui.swt.predicate.shellmanager.ShellManagerIsEmptyPredicate;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import java.util.Iterator;
 import java.util.Locale;
 
 /**
  * @author Olivier Chalouhi
- *
+ * @author James Yeh Accessibility: Changes to allow better validation and unified menu bar state
  */
 public class MainMenu {
 
   private Display display;
   private MainWindow mainWindow;
-    
+  private Shell attachedShell;
+
   private Menu menuBar;
   
   private MenuItem menu_plugin;
   private Menu pluginMenu;
 
+  /**
+   * <p>Creates the main menu bar and attaches it to a shell that is not the main window</p>
+   * <p>This constructor call is intended to be used with platforms that have a singular menu bar,
+   * such as Mac OS X</p>
+   * @param shell A shell
+   * @throws IllegalStateException If the main window is not initialized or if this constructor is called by the main window
+   */
+  public MainMenu(final Shell shell) throws IllegalStateException {
+      mainWindow = MainWindow.getWindow();
+      if(mainWindow == null)
+          throw new IllegalStateException("MainWindow has not initialized yet; Shell attemped: " + shell.hashCode());
+      if(shell == mainWindow.getShell())
+          throw new IllegalStateException("Invalid MainMenu registration with MainWindow shell; use MainMenu._ctor(MainWindow) instead");
 
-  public MainMenu(MainWindow mainWindow) {
+      this.display = SWTThread.getInstance().getDisplay();
+      attachedShell = shell;
+
+      buildMenu(MessageText.getLocales(), shell);
+  }
+
+  public MainMenu(final MainWindow mainWindow) {
     this.mainWindow = mainWindow;
     this.display = SWTThread.getInstance().getDisplay();
+    attachedShell = mainWindow.getShell();
+
+    buildMenu(MessageText.getLocales(), mainWindow.getShell());
   }
 
   /**
    * Populates Azureus' menu bar
    * @param locales
+   * @param parent
    */
-  public void buildMenu(Locale[] locales) {
+  private void buildMenu(Locale[] locales, final Shell parent) {
     try {
       
       //The Main Menu
-      menuBar = new Menu(mainWindow.getShell(), SWT.BAR);
-      mainWindow.getShell().setMenuBar(menuBar);
-      
-      
+      menuBar = new Menu(parent, SWT.BAR);
+      parent.setMenuBar(menuBar);
+
+      // one time disable conditions
+      boolean notMainWindow = (attachedShell != mainWindow.getShell());
+      boolean isModal = new ShellIsModalPredicate().evaluate(attachedShell);
+
       //The File Menu
       MenuItem fileItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(fileItem, "MainWindow.menu.file"); //$NON-NLS-1$
-      Menu fileMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+      Menu fileMenu = new Menu(parent, SWT.DROP_DOWN);
       fileItem.setMenu(fileMenu);
+      if(isModal) {performOneTimeDisable(fileItem, true);}
 
       MenuItem file_create = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
@@ -117,7 +148,8 @@ public class MainMenu {
       new MenuItem(fileMenu, SWT.SEPARATOR);
 
       addCloseWindowMenuItem(fileMenu);
-      addCloseTabMenuItem(fileMenu);
+      MenuItem closeTabItem = addCloseTabMenuItem(fileMenu);
+      if(notMainWindow) {performOneTimeDisable(closeTabItem, false);}
       addCloseDetailsMenuItem(fileMenu);
       addCloseDownloadBarsToMenu(fileMenu);
 
@@ -167,7 +199,7 @@ public class MainMenu {
 
       // file->open submenus
       
-      Menu newMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+      Menu newMenu = new Menu(parent, SWT.DROP_DOWN);
       file_new.setMenu(newMenu);
   
       MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
@@ -216,7 +248,7 @@ public class MainMenu {
   
       	// file->share submenus
       
-      Menu shareMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+      Menu shareMenu = new Menu(parent, SWT.DROP_DOWN);
       file_share.setMenu(shareMenu);
   
       MenuItem file_share_file = new MenuItem(shareMenu, SWT.NULL);
@@ -224,7 +256,7 @@ public class MainMenu {
       Messages.setLanguageText(file_share_file, "MainWindow.menu.file.share.file");
       file_share_file.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
-      		ShareUtils.shareFile( mainWindow.getAzureusCore(),mainWindow.getShell() );
+      		ShareUtils.shareFile( mainWindow.getAzureusCore(),parent );
       	}
       });
       
@@ -233,7 +265,7 @@ public class MainMenu {
       Messages.setLanguageText(file_share_dir, "MainWindow.menu.file.share.dir");
       file_share_dir.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
-      		ShareUtils.shareDir( mainWindow.getAzureusCore(), mainWindow.getShell() );
+      		ShareUtils.shareDir( mainWindow.getAzureusCore(), parent );
       	}
       });
       
@@ -242,7 +274,7 @@ public class MainMenu {
       Messages.setLanguageText(file_share_dircontents, "MainWindow.menu.file.share.dircontents");
       file_share_dircontents.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
-      		ShareUtils.shareDirContents( mainWindow.getAzureusCore(),mainWindow.getShell(), false );
+      		ShareUtils.shareDirContents( mainWindow.getAzureusCore(),parent, false );
       	}
       });
       MenuItem file_share_dircontents_rec = new MenuItem(shareMenu, SWT.NULL);
@@ -250,7 +282,7 @@ public class MainMenu {
       Messages.setLanguageText(file_share_dircontents_rec, "MainWindow.menu.file.share.dircontentsrecursive");
       file_share_dircontents_rec.addListener(SWT.Selection, new Listener() {
       	public void handleEvent(Event e) {
-      		ShareUtils.shareDirContents( mainWindow.getAzureusCore(),mainWindow.getShell(), true );
+      		ShareUtils.shareDirContents( mainWindow.getAzureusCore(),parent, true );
       	}
       });
          	// file->create
@@ -278,11 +310,12 @@ public class MainMenu {
       
       MenuItem downloadItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(downloadItem, "MainWindow.menu.transfers"); //$NON-NLS-1$
-      Menu downloadMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+      Menu downloadMenu = new Menu(parent, SWT.DROP_DOWN);
       downloadItem.setMenu(downloadMenu);
+      if(isModal) {performOneTimeDisable(downloadItem, true);}
 
-  
-      
+
+
       // new MenuItem(fileMenu,SWT.SEPARATOR);
       
       final MenuItem itemStartAll = new MenuItem(downloadMenu,SWT.NULL);
@@ -296,10 +329,12 @@ public class MainMenu {
       final MenuItem itemPause = new MenuItem(downloadMenu,SWT.NULL);
       KeyBindings.setAccelerator(itemPause, "MainWindow.menu.transfers.pausetransfers");
       Messages.setLanguageText(itemPause,"MainWindow.menu.transfers.pausetransfers");
-      
+      if(notMainWindow) {performOneTimeDisable(itemPause, true);}
+
       final MenuItem itemResume = new MenuItem(downloadMenu,SWT.NULL);
       KeyBindings.setAccelerator(itemResume, "MainWindow.menu.transfers.resumetransfers");
       Messages.setLanguageText(itemResume,"MainWindow.menu.transfers.resumetransfers");
+      if(notMainWindow) {performOneTimeDisable(itemResume, true);}
 
       itemStartAll.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event arg0) {
@@ -350,8 +385,9 @@ public class MainMenu {
       	// ******** The View Menu
       MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(viewItem, "MainWindow.menu.view"); //$NON-NLS-1$
-      Menu viewMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+      Menu viewMenu = new Menu(parent, SWT.DROP_DOWN);
       viewItem.setMenu(viewMenu);
+      if(notMainWindow) {performOneTimeDisable(viewItem, true);}
 
       addMenuItemLabel(viewMenu, "MainWindow.menu.view.show");
       indent(addMyTorrentsMenuItem(viewMenu));
@@ -367,7 +403,7 @@ public class MainMenu {
         if(!Constants.isOSX) {
             MenuItem menu_tools = new MenuItem(menuBar,SWT.CASCADE);
             Messages.setLanguageText(menu_tools, "MainWindow.menu.tools"); //$NON-NLS-1$
-            Menu toolsMenu = new Menu(mainWindow.getShell(),SWT.DROP_DOWN);
+            Menu toolsMenu = new Menu(parent,SWT.DROP_DOWN);
             menu_tools.setMenu(toolsMenu);
 
             addBlockedIPsMenuItem(toolsMenu);
@@ -377,7 +413,6 @@ public class MainMenu {
 
             addConfigWizardMenuItem(toolsMenu);
 
-            //No need for configuration on OS X
             MenuItem view_config = new MenuItem(toolsMenu, SWT.NULL);
             KeyBindings.setAccelerator(view_config, "MainWindow.menu.view.configuration");
             Messages.setLanguageText(view_config, "MainWindow.menu.view.configuration"); //$NON-NLS-1$
@@ -386,15 +421,18 @@ public class MainMenu {
             mainWindow.showConfig();
             }
             });
+
+            if(isModal) {performOneTimeDisable(menu_tools, true);}
       }
       
       //the Plugins menu
       menu_plugin = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(menu_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
-      pluginMenu = new Menu(mainWindow.getShell(),SWT.DROP_DOWN);
+      pluginMenu = new Menu(parent,SWT.DROP_DOWN);
       menu_plugin.setEnabled(false);
       menu_plugin.setMenu(pluginMenu);
-      
+      if(notMainWindow) {performOneTimeDisable(menu_plugin, true);}
+
       new MenuItem(pluginMenu, SWT.SEPARATOR);
       
       MenuItem plugins_install_wizard = new MenuItem(pluginMenu, SWT.NULL);
@@ -420,23 +458,29 @@ public class MainMenu {
           // Window menu
           final MenuItem menu_window = new MenuItem(menuBar, SWT.CASCADE);
           Messages.setLanguageText(menu_window, "MainWindow.menu.window");
-          Menu windowMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+          final Menu windowMenu = new Menu(parent, SWT.DROP_DOWN);
           menu_window.setMenu(windowMenu);
+          if(isModal) {performOneTimeDisable(menu_window, true);}
 
           // minimize, zoom
           addMinimizeWindowMenuItem(windowMenu);
           addZoomWindowMenuItem(windowMenu);
           new MenuItem(windowMenu, SWT.SEPARATOR);
           addBlockedIPsMenuItem(windowMenu);
-          new MenuItem(windowMenu, SWT.SEPARATOR);
+          /*new MenuItem(windowMenu, SWT.SEPARATOR);
           addBringAllToFrontMenuItem(windowMenu);
+          new MenuItem(windowMenu, SWT.SEPARATOR);
+
+          appendWindowMenuItems(windowMenu);*/
+
       }
 
       //The Help Menu
       MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
-      Menu helpMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
+      Menu helpMenu = new Menu(parent, SWT.DROP_DOWN);
       helpItem.setMenu(helpMenu);
+      if(isModal) {performOneTimeDisable(helpItem, true);}
 
       if(!Constants.isOSX) {
           MenuItem help_about = new MenuItem(helpMenu, SWT.NULL);
@@ -462,6 +506,7 @@ public class MainMenu {
           Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
           help_checkupdate.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
+        mainWindow.getShell().setFocus();
         UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck();
       }
     });
@@ -514,7 +559,7 @@ public class MainMenu {
     }
   }
 
-    private static final MenuItem addMenuItem(Menu menu, String localizationKey, Listener selListener) {
+  private static final MenuItem addMenuItem(Menu menu, String localizationKey, Listener selListener) {
       MenuItem item = new MenuItem(menu, SWT.NULL);
       Messages.setLanguageText(item, localizationKey);
       KeyBindings.setAccelerator(item, localizationKey);
@@ -576,34 +621,64 @@ public class MainMenu {
         });
     }
 
-    private void addConfigWizardMenuItem(Menu menu) {
-        addMenuItem(menu, "MainWindow.menu.file.configure", new Listener() {
+    private MenuItem addConfigWizardMenuItem(Menu menu) {
+        return addMenuItem(menu, "MainWindow.menu.file.configure", new Listener() {
           public void handleEvent(Event e) {
             new ConfigureWizard(mainWindow.getAzureusCore(), display);
           }
         });
     }
 
-   private void addCloseDetailsMenuItem(Menu menu) {
-       addMenuItem(menu, "MainWindow.menu.closealldetails", new Listener() {
+   private MenuItem addCloseDetailsMenuItem(Menu menu) {
+       final MenuItem item = addMenuItem(menu, "MainWindow.menu.closealldetails", new Listener() {
          public void handleEvent(Event e) {
            Tab.closeAllDetails();
          }
       });
+
+       Listener enableHandler = new Listener() {
+        public void handleEvent(Event event) {
+            if(!item.isDisposed() && !event.widget.isDisposed())
+                item.setEnabled(mainWindow.getShell() == attachedShell && Tab.hasDetails());
+        }
+      };
+
+      menu.addListener(SWT.Show,  enableHandler);
+      attachedShell.addListener(SWT.FocusIn,  enableHandler);
+      Tab.addTabAddedListener(enableHandler);
+      Tab.addTabRemovedListener(enableHandler);
+
+      return item;
   }
 
-  private void addCloseWindowMenuItem(Menu menu) {
-      addMenuItem(menu, "MainWindow.menu.file.closewindow", new Listener() {
+  private MenuItem addCloseWindowMenuItem(Menu menu) {
+      final boolean isMainWindow = (mainWindow.getShell() == attachedShell);
+      MenuItem item = addMenuItem(menu, "MainWindow.menu.file.closewindow", new Listener() {
           public void handleEvent(Event event) {
-              if(MainWindow.isAlreadyDead) {return;}
+              if(isMainWindow)
+              {
+                  if(MainWindow.isAlreadyDead) {return;}
 
-              mainWindow.close();
+                  mainWindow.close();
+              }
+              else if(attachedShell != null && !attachedShell.isDisposed())
+              {
+                  attachedShell.close();
+              }
           }
       });
+
+      if(!isMainWindow)
+      {
+          String oldText = item.getText();
+          KeyBindings.setAccelerator(item, "MainWindow.menu.file.closetab");
+          item.setText(oldText);
+      }
+      return item;
   }
 
-  private void addCloseTabMenuItem(Menu menu) {
-      addMenuItem(menu, "MainWindow.menu.file.closetab", new Listener() {
+  private MenuItem addCloseTabMenuItem(Menu menu) {
+      return addMenuItem(menu, "MainWindow.menu.file.closetab", new Listener() {
           public void handleEvent(Event event) {
               if(MainWindow.isAlreadyDead) {return;}
 
@@ -612,38 +687,71 @@ public class MainMenu {
       });
   }
 
-  private void addMinimizeWindowMenuItem(Menu menu) {
-      addMenuItem(menu, "MainWindow.menu.window.minimize", new Listener() {
+  private MenuItem addMinimizeWindowMenuItem(Menu menu) {
+      final Predicable pred = new AllPredicate(new Predicable[]{new ShellCanMinimizePredicate(), new NotPredicate(new ShellIsMinimizedPredicate())});
+      final MenuItem item = addMenuItem(menu, "MainWindow.menu.window.minimize", new Listener() {
           public void handleEvent(Event event) {
-              if(MainWindow.isAlreadyDead) {return;}
+              if(attachedShell.isDisposed()) {event.doit = false; return;}
 
-              mainWindow.getShell().setMinimized(true);
+              attachedShell.setMinimized(true);
           }
       });
+
+      Listener enableHandler = getEnableHandler(item, pred, attachedShell);
+
+      menu.addListener(SWT.Show, enableHandler);
+      attachedShell.addListener(SWT.FocusIn,  enableHandler);
+      attachedShell.addListener(SWT.Iconify, enableHandler);
+      attachedShell.addListener(SWT.Deiconify, enableHandler);
+
+      return item;
   }
 
-  private void addZoomWindowMenuItem(Menu menu) {
-      addMenuItem(menu, "MainWindow.menu.window.zoom", new Listener() {
+  private MenuItem addZoomWindowMenuItem(Menu menu) {
+      final Predicable pred = new AllPredicate(new Predicable[]{new ShellCanMaximizePredicate(), new NotPredicate(new ShellIsMinimizedPredicate())});
+      final MenuItem item = addMenuItem(menu, "MainWindow.menu.window.zoom", new Listener() {
           public void handleEvent(Event event) {
-              if(MainWindow.isAlreadyDead) {return;}
+              if(attachedShell.isDisposed()) {event.doit = false; return;}
 
-              mainWindow.getShell().setMaximized(!MainWindow.getWindow().getShell().getMaximized());
+              attachedShell.setMaximized(!attachedShell.getMaximized());
           }
       });
+
+      Listener enableHandler = getEnableHandler(item, pred, attachedShell);
+
+      menu.addListener(SWT.Show, enableHandler);
+      attachedShell.addListener(SWT.FocusIn,  enableHandler);
+      attachedShell.addListener(SWT.Iconify, enableHandler);
+      attachedShell.addListener(SWT.Deiconify, enableHandler);
+
+      return item;
   }
 
-  private void addBringAllToFrontMenuItem(Menu menu) {
-      addMenuItem(menu, "MainWindow.menu.window.alltofront", new Listener() {
+  private MenuItem addBringAllToFrontMenuItem(Menu menu) {
+      final Predicable pred = new NotPredicate(new AllManagedShellsAreMinimizedPredicate());
+      final MenuItem item = addMenuItem(menu, "MainWindow.menu.window.alltofront", new Listener() {
           public void handleEvent(Event event) {
-              if(MainWindow.isAlreadyDead) {return;}
-
-              mainWindow.getShell().setMinimized(false);
+              Iterator iter = ShellManager.sharedManager().getWindows();
+              while (iter.hasNext())
+              {
+                  Shell shell = (Shell) iter.next();
+                  if(!shell.isDisposed())
+                      shell.setMinimized(false);
+              }
           }
       });
+
+      Listener enableHandler = getEnableHandler(item, pred, ShellManager.sharedManager());
+
+      menu.addListener(SWT.Show, enableHandler);
+      attachedShell.addListener(SWT.FocusIn,  enableHandler);
+      setHandlerForShellManager(item, ShellManager.sharedManager(), enableHandler);
+
+      return item;
   }
 
-  private void addBlockedIPsMenuItem(Menu menu) {
-      addMenuItem(menu, "ConfigView.section.ipfilter.list.title", new Listener() {
+    private MenuItem addBlockedIPsMenuItem(Menu menu) {
+      return addMenuItem(menu, "ConfigView.section.ipfilter.list.title", new Listener() {
           public void handleEvent(Event event) {
               if(MainWindow.isAlreadyDead) {return;}
 
@@ -652,12 +760,21 @@ public class MainMenu {
       });
   }
 
-  public void addCloseDownloadBarsToMenu(Menu menu) {
-    addMenuItem(menu, "MainWindow.menu.closealldownloadbars", new Listener() {
+  public MenuItem addCloseDownloadBarsToMenu(Menu menu) {
+    final MenuItem item = addMenuItem(menu, "MainWindow.menu.closealldownloadbars", new Listener() {
       public void handleEvent(Event e) {
         mainWindow.closeDownloadBars();
       }
     });
+
+    final NotPredicate pred = new NotPredicate(new ShellManagerIsEmptyPredicate());
+    final Listener enableHandler = getEnableHandler(item, pred, MinimizedWindow.getShellManager());
+
+    menu.addListener(SWT.Show, enableHandler);
+    attachedShell.addListener(SWT.FocusIn,  enableHandler);
+    setHandlerForShellManager(item, MinimizedWindow.getShellManager(), enableHandler);
+
+    return item;
   }
 
 
@@ -729,6 +846,47 @@ public class MainMenu {
       }
     }); 
   }
+
+  private static void setHandlerForShellManager(MenuItem item, final ShellManager mgr, final Listener evtHandler)
+  {
+      mgr.addWindowAddedListener(evtHandler);
+      mgr.addWindowRemovedListener(evtHandler);
+      item.addDisposeListener(new DisposeListener()
+      {
+          public void widgetDisposed(DisposeEvent event) {
+              mgr.removeWindowAddedListener(evtHandler);
+              mgr.removeWindowRemovedListener(evtHandler);
+          }
+      });
+  }
+
+  private static Listener getEnableHandler(final MenuItem item, final Predicable pred, final Object evalObj)
+  {
+      Listener enableHandler = new Listener() {
+        public void handleEvent(Event event) {
+            if(!item.isDisposed() && !event.widget.isDisposed())
+              item.setEnabled(pred.evaluate(evalObj));
+        }
+      };
+      return enableHandler;
+  }
+
+  private void performOneTimeDisable(MenuItem item, boolean affectsChildMenuItems)
+  {
+      item.setEnabled(false);
+      if(affectsChildMenuItems)
+      {
+          Menu childMenu = item.getMenu();
+          if(childMenu == null)
+            return;
+
+          for(int i = 0; i < childMenu.getItemCount(); i++)
+          {
+              childMenu.getItem(i).setEnabled(false);
+          }
+      }
+  }
+
 }
 
 

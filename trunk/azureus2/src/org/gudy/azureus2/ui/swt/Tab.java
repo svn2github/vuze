@@ -4,35 +4,29 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.util.HashMap;
-import java.util.Iterator;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Item;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
-import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.views.*;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.LinkedList;
 
 /**
  * @author Olivier
- *  
+ * @author James Yeh Added Add/Remove event listeners
  */
 public class Tab {
 
@@ -56,9 +50,14 @@ public class Tab {
 
   private IView view;
 
+   // events
+   private static List tabAddListeners;
+   private static List tabRemoveListeners;
 
   static {
     tabs = new HashMap();
+    tabAddListeners = new LinkedList();
+    tabRemoveListeners = new LinkedList();
   }
 
 
@@ -170,6 +169,14 @@ public class Tab {
     }
     MainWindow.getWindow().refreshIconBar();
     selectedItem = tabItem;
+
+    // events
+    notifyListeners(tabAddListeners, tabItem);
+    tabItem.addDisposeListener(new DisposeListener() {
+        public void widgetDisposed(DisposeEvent event) {
+            notifyListeners(tabRemoveListeners, tabItem);
+        }
+    });
 //    System.out.println("selected: "+selectedItem.getText());
   }
 
@@ -275,7 +282,33 @@ public class Tab {
       }
   }
 
-  public static void 
+  public static boolean hasDetails()
+  {
+      boolean hasDetails = false;
+      try
+      {
+          class_mon.enter();
+
+          Iterator iter = tabs.values().iterator();
+          while (iter.hasNext())
+          {
+              IView view = (IView) iter.next();
+              if(view instanceof ManagerView)
+              {
+                  hasDetails = true;
+                  break;
+              }
+          }
+      }
+      finally
+      {
+          class_mon.exit();
+      }
+
+      return hasDetails;
+  }
+
+  public static void
   closeAllDetails() 
   {
   	Item[] tab_items;
@@ -523,5 +556,75 @@ public class Tab {
 			}
     }
   }
-  
+
+  public static void addTabAddedListener(Listener listener)
+  {
+      addListener(tabAddListeners, listener);
+  }
+
+  public static void removeTabAddedListener(Listener listener)
+  {
+      removeListener(tabAddListeners, listener);
+  }
+
+  public static void addTabRemovedListener(Listener listener)
+  {
+      addListener(tabRemoveListeners, listener);
+  }
+
+  public static void removeTabRemovedListener(Listener listener)
+  {
+      removeListener(tabRemoveListeners, listener);
+  }
+
+  private static void addListener(List listenerList, Listener listener)
+  {
+      try
+      {
+          class_mon.enter();
+          listenerList.add(listener);
+      }
+      finally
+      {
+          class_mon.exit();
+      }
+  }
+
+  private static void removeListener(List listenerList, Listener listener)
+  {
+      try
+      {
+          class_mon.enter();
+          listenerList.remove(listener);
+      }
+      finally
+      {
+          class_mon.exit();
+      }
+  }
+
+  private static void notifyListeners(List listenerList, Item sender)
+  {
+      try
+      {
+          class_mon.enter();
+
+          Iterator iter = listenerList.iterator();
+          for (int i = 0; i < listenerList.size(); i++)
+          {
+                ((Listener)iter.next()).handleEvent(getEvent(sender));
+          }
+      }
+      finally
+      {
+          class_mon.exit();
+      }
+  }
+
+  private static Event getEvent(Item sender)
+  {
+      Event e = new Event();
+      e.widget = sender;
+      return e;
+  }
 }

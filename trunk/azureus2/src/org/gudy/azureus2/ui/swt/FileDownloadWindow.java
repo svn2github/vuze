@@ -83,7 +83,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     if(dirName == null) return;
     
     this.display = display;
-    this.shell = new Shell(display,SWT.CLOSE | SWT.BORDER | SWT.TITLE);
+    this.shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,SWT.CLOSE | SWT.BORDER | SWT.TITLE);
     shell.setText(MessageText.getString("fileDownloadWindow.title"));
     if(! Constants.isOSX) {
       shell.setImage(ImageRepository.getImage("azureus"));

@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
@@ -185,14 +186,13 @@ MainWindow
 	        ImageRepository.getImage("azureus128"),
 	    }); //$NON-NLS-1$
     }
-    
-    
+    // register window
+    ShellManager.sharedManager().addWindow(mainWindow);
+
     //The Torrent Opener
     TorrentOpener.init(mainWindow,globalManager);
     
     mainMenu = new MainMenu(this);
-    mainMenu.
-    buildMenu(MessageText.getLocales());
 
     createDropTarget(mainWindow);
 
@@ -234,8 +234,8 @@ MainWindow
       folder = new TabFolder(mainWindow, SWT.V_SCROLL);
     } else {
       folder = new CTabFolder(mainWindow, SWT.CLOSE | SWT.FLAT);
-      final Color bg = ColorUtils.getShade(folder.getBackground(), (Constants.isOSX) ? -25 : -5);
-      final Color fg = ColorUtils.getShade(folder.getForeground(), (Constants.isOSX) ? 25 : 5);
+      final Color bg = ColorUtils.getShade(folder.getBackground(), (Constants.isOSX) ? -25 : -6);
+      final Color fg = ColorUtils.getShade(folder.getForeground(), (Constants.isOSX) ? 25 : 6);
       folder.setBackground(bg);
       folder.setForeground(fg);
       ((CTabFolder)folder).setBorderVisible(false);

@@ -64,7 +64,7 @@ public class TableColumnEditorWindow {
     
     blue = new Color(display,0,0,128);
     
-    shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+    shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
     if(!Constants.isOSX) {
         shell.setImage(ImageRepository.getImage("azureus"));
     }

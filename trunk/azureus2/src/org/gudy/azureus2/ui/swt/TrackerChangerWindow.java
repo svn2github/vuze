@@ -26,7 +26,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
  */
 public class TrackerChangerWindow {
   public TrackerChangerWindow(final Display display, final TRTrackerAnnouncer trackerConnection) {
-    final Shell shell = new Shell(display);
+    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display);
     shell.setText(MessageText.getString("TrackerChangerWindow.title"));
     if(! Constants.isOSX) {
       shell.setImage(ImageRepository.getImage("azureus"));

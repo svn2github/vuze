@@ -1,6 +1,6 @@
 /*
  * File    : BlockedIpsWindow.java
- * Created : 17 déc. 2003}
+ * Created : 17 dï¿½c. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -21,6 +21,8 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -46,17 +48,50 @@ public class
 BlockedIpsWindow 
 {  
   static AzureusCore	azureus_core;
-  
-  public static void 
+  static Shell instance;
+
+  private BlockedIpsWindow(){}
+
+  public static void
   show(
+  		AzureusCore		_azureus_core,
+		Display 		display,
+		String 			ipsBlocked,
+		String 			ipsBanned)
+  {
+      if(instance == null || instance.isDisposed())
+      {
+          instance = create(_azureus_core, display, ipsBlocked, ipsBanned);
+          instance.addDisposeListener(new DisposeListener() {
+              public void widgetDisposed(DisposeEvent event) {
+                  instance = null;
+              }
+          });
+      }
+      else
+      {
+          instance.open();
+      }
+  }
+
+  private static Shell
+  create(
   		AzureusCore		_azureus_core,
 		Display 		display,
 		String 			ipsBlocked,
 		String 			ipsBanned) 
   {
   	azureus_core	= _azureus_core;
-  	
-    final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
+
+    final int styles;
+    if(Constants.isOSX) {
+        styles = SWT.SHELL_TRIM;
+    }
+    else {
+        styles = SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL;
+    }
+
+    final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,styles);
     Messages.setLanguageText(window,"ConfigView.section.ipfilter.list.title");
     if(! Constants.isOSX) {
       window.setImage(ImageRepository.getImage("azureus"));
@@ -187,10 +222,12 @@ BlockedIpsWindow
     
     window.setSize(620,450);
     window.layout();
+
+    if(!Constants.isOSX)
+        Utils.centreWindow( window );
     
-    Utils.centreWindow( window );
-    
-    window.open();    
+    window.open();
+    return window;
   }
   
   public static void 

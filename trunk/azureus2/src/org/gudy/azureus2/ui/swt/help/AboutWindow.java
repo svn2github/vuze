@@ -68,7 +68,7 @@ public class AboutWindow {
       return;
     }
         
-    final Shell window = new Shell(display, (Constants.isOSX) ? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
+    final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, (Constants.isOSX) ? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
     if(! Constants.isOSX) {
       window.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     }

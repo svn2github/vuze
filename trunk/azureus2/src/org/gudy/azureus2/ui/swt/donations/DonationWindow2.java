@@ -102,7 +102,7 @@ public class DonationWindow2 {
   }  
 
   public void show() {
-    shell = new Shell(SWT.BORDER | SWT.APPLICATION_MODAL);
+    shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.BORDER | SWT.APPLICATION_MODAL);
     FormLayout layout = new FormLayout();
     shell.setLayout(layout);
     

@@ -24,7 +24,7 @@ import org.gudy.azureus2.ui.swt.components.ControlUtils;
 public class CategoryAdderWindow {
   private Category newCategory = null;
   public CategoryAdderWindow(final Display display) {
-    final Shell shell = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 
     shell.setText(MessageText.getString("CategoryAddWindow.title"));
     if(! Constants.isOSX) {

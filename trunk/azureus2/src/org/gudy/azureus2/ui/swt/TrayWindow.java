@@ -4,9 +4,6 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -15,19 +12,20 @@ import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 /**
  * @author Olivier
  * 
@@ -55,7 +53,7 @@ public class TrayWindow implements GlobalManagerListener {
     this.managers = new ArrayList();
     this.main = _main;
     this.display = main.getDisplay();
-    minimized = new Shell(main.getShell(), SWT.ON_TOP);
+    minimized = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(main.getShell(), SWT.ON_TOP);
     minimized.setText("Azureus"); //$NON-NLS-1$
     label = new Label(minimized, SWT.NULL);
     Image img = ImageRepository.getImage("tray");

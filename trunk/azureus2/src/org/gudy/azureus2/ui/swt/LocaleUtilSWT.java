@@ -6,9 +6,7 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
+import com.aelitis.azureus.core.AzureusCore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -16,19 +14,17 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-
-import com.aelitis.azureus.core.*;
+import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  *
@@ -202,7 +198,7 @@ LocaleUtilSWT
 		final 				LocaleUtilDecoderCandidate[] 	candidates,
 		final 				LocaleUtilDecoderCandidate[]	selected_candidate ) 
   {
-    final Shell s = new Shell(shell, SWT.TITLE | SWT.RESIZE | SWT.PRIMARY_MODAL );
+    final Shell s = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(shell, SWT.TITLE | SWT.RESIZE | SWT.PRIMARY_MODAL );
     if(! Constants.isOSX) {
       s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
     }
@@ -214,7 +210,7 @@ LocaleUtilSWT
     Label label = new Label(s, SWT.NONE);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
     label.setLayoutData(gridData);
-    label.setText("Bitte wählen Sie das Encoding, welches am besten passt");
+    label.setText("Bitte wï¿½hlen Sie das Encoding, welches am besten passt");
 */
    /* Group gChoose = new Group(s, SWT.NULL);
     gChoose.setLayout(new GridLayout(3, false));

@@ -1,6 +1,6 @@
 /*
  * File    : HealthHelpWindow.java
- * Created : 18 déc. 2003}
+ * Created : 18 dï¿½c. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -46,7 +46,7 @@ public class HealthHelpWindow {
   static Image grey,red,blue,yellow,green,share;
   
   public static void show(Display display) {    
-    final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     if(! Constants.isOSX) {
       window.setImage(ImageRepository.getImage("azureus"));
     }
