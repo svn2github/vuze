@@ -145,6 +145,8 @@ CoreUpdateChecker
 			
 				latest_version = new String( b_version );
 				
+				plugin_interface.getPluginProperties().setProperty( "latest_version", latest_version );
+				
 			}else{
 				
 				throw( new Exception( "No version found in reply" ));

@@ -153,7 +153,7 @@ UpdateInstallerImpl
 			
 			pw = new PrintWriter(new FileWriter( install_dir.toString() + File.separator + ACTIONS, true ));
 
-			pw.print( data );
+			pw.println( data );
 			
 		}catch( Throwable e ){
 			
