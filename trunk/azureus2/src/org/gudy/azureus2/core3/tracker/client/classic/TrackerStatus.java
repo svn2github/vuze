@@ -168,6 +168,8 @@ public class TrackerStatus {
   
   	throws IOException
   {
+	reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
+
   	//System.out.println( "trying " + scrape.toString());
   	
   	InputStream is = null;
@@ -258,6 +260,8 @@ public class TrackerStatus {
   
   		throws Exception
   {
+	reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
+
 	int port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
 	
 	PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( port );

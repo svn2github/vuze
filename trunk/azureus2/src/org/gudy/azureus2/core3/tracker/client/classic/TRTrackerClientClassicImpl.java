@@ -743,6 +743,8 @@ TRTrackerClientClassicImpl
  	
  		throws IOException
  	{
+ 		reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
+ 		
  		String	failure_reason = null;
  		
  		HttpURLConnection con;
@@ -884,6 +886,8 @@ TRTrackerClientClassicImpl
  	
  		throws IOException
  	{
+ 		reqUrl = TRTrackerClientUtils.adjustURLForHosting( reqUrl );
+
  		String	failure_reason = null;
  		
  		try{

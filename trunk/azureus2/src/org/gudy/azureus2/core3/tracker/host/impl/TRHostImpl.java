@@ -439,26 +439,11 @@ TRHostImpl
 		TRTrackerClient 		tracker_client )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();	
-				
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
-
-		String	url = torrent.getAnnounceURL().getProtocol() + "://";
-		
-		if ( bind_ip.length() < 7 ){
-				
-			url += "127.0.0.1";
-				
-		}else{
-				
-			url += bind_ip;
-		}
 
 			// set the ip override so that we announce ourselves to other peers via the 
 			// real external address, not the local one used to connect to the tracker 
 			
 		tracker_client.setIPOverride( torrent.getAnnounceURL().getHost());
-		
-		tracker_client.setTrackerUrl(url + ":" + host_torrent.getPort() + "/announce");	
 	}
 
 	protected synchronized void
@@ -563,8 +548,6 @@ TRHostImpl
 								 	ht.getStatus() == TRHostTorrent.TS_STOPPED )){
 					
 							tracker_client.clearIPOverride();
-		
-							tracker_client.resetTrackerUrl( true );							
 						}
 					}
 				}
