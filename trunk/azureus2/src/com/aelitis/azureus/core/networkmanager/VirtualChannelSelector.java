@@ -32,9 +32,9 @@ import org.gudy.azureus2.core3.util.*;
  * Provides a simplified and safe (selectable-channel) socket single-op selector.
  */
 public class VirtualChannelSelector {
-    public static final int OP_CONNECT = SelectionKey.OP_CONNECT;
-    public static final int OP_READ = SelectionKey.OP_READ;
-    public static final int OP_WRITE = SelectionKey.OP_WRITE;
+    public static final int OP_CONNECT 	= SelectionKey.OP_CONNECT;
+    public static final int OP_READ 	= SelectionKey.OP_READ;
+    public static final int OP_WRITE 	= SelectionKey.OP_WRITE;
   
   
     private static final int SELECTOR_FAIL_COUNT_MAX = 10000;  // a real selector spin will easily reach this
@@ -127,13 +127,16 @@ public class VirtualChannelSelector {
     {
     	try{
     		register_cancel_list_mon.enter();
-      	
+      	   		
+    			// ensure that there's only one operation outstanding for a given channel
+    			// at any one time (the latest operation requested )
+    		
     		for (Iterator it = register_cancel_list.iterator();it.hasNext();){
     			
     			Object	obj = it.next();
     			
     			boolean	remove_it	= false;
-    			
+    		
     			if ( obj_to_add instanceof SocketChannel ){
     				
     				if ( obj_to_add == obj ||
@@ -163,24 +166,11 @@ public class VirtualChannelSelector {
     				
     				it.remove();
     				
-    				if (obj instanceof RegistrationData ){
-    					
-    					RegistrationData	data = (RegistrationData)obj;
-    					
-    					try{
-    						data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "registration superceded" ));
-    						
-    					}catch( Throwable e ){
-    						
-    						Debug.printStackTrace(e);
-    					}
-    				}
-    				
     				break;
     			}
     		}
-    		
-    		register_cancel_list.add( obj_to_add );
+    		   			
+  			register_cancel_list.add( obj_to_add );
     		
     	}finally{
     		
@@ -246,7 +236,7 @@ public class VirtualChannelSelector {
                 	
                   SelectionKey key = data.channel.keyFor( selector );
                   
-                  if ( key != null ){
+                  if ( key != null && key.isValid()){
                   	
                   	key.attach( data );
                   	
