@@ -31,6 +31,7 @@ import java.util.*;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -324,10 +325,20 @@ FMFileImpl
   	}
 	}
 	
-	protected int
+	protected long
 	writeSupport(
 		DirectByteBuffer		buffer,
-		long			position )
+		long					position )
+	
+		throws FMFileManagerException
+	{
+		return( writeSupport(new DirectByteBuffer[]{buffer}, position ));
+	}
+	
+	protected long
+	writeSupport(
+		DirectByteBuffer[]		buffers,
+		long					position )
 	
 		throws FMFileManagerException
 	{
@@ -344,8 +355,21 @@ FMFileImpl
 				
 				fc.position( position );
 				
-				return( buffer.write(fc));
-				
+				if ( buffers.length == 1 ){
+					
+					return( buffers[0].write(fc));
+					
+				}else{
+					
+					ByteBuffer[]	bbs = new ByteBuffer[buffers.length];
+					
+					for (int i=0;i<bbs.length;i++){
+						
+						bbs[i] = buffers[i].getBuffer();
+					}
+					
+					return( fc.write( bbs ));
+				}
 			}else{
 				
 				Debug.out("file channel is not open !");

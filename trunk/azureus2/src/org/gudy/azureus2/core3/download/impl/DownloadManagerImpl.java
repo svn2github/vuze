@@ -1399,11 +1399,14 @@ DownloadManagerImpl
     informDownloadEnded();
   }
 
-  public void initializeDiskManager() 
+  public DiskManager 
+  initializeDiskManager() 
   {
-  	if( diskManager == null) {
+  	DiskManager	res = diskManager;
+  	
+  	if( res == null) {
 
-  		diskManager = DiskManagerFactory.create( torrent, this);
+  		res = diskManager = DiskManagerFactory.create( torrent, this);
       
   		disk_manager_listener = 
   			new DiskManagerListener()
@@ -1453,6 +1456,8 @@ DownloadManagerImpl
   		
   		diskManager.addListener( disk_manager_listener );
   	}
+  	
+  	return( res );
   }
   
   public boolean canForceRecheck() {
@@ -1467,64 +1472,91 @@ DownloadManagerImpl
   		return;
   	}
   	
-    Thread recheck = new AEThread("forceRecheck") {
+    Thread recheck = 
+    	new AEThread("forceRecheck") 
+		{
 			public void run() {
 				int prevState = DownloadManagerImpl.this.getState();
+				
 				setState(STATE_CHECKING);
-      	// remove resume data
-		  	torrent.removeAdditionalProperty("resume");
-		  	// For extra protection from a plugin stopping a checking torrent,
-		  	// fake a forced start
-		  	boolean wasForceStarted = forceStarted;
-		  	forceStarted = true;
-		  	initializeDiskManager();
-				while (diskManager != null &&
-				       diskManager.getState() != DiskManager.FAULTY &&
-				       diskManager.getState() != DiskManager.READY) {
+				
+					// remove resume data
+				
+				torrent.removeAdditionalProperty("resume");
+				
+				// For extra protection from a plugin stopping a checking torrent,
+				// fake a forced start. 
+				
+				boolean wasForceStarted = forceStarted;
+				
+				forceStarted = true;
+				
+					// if a file has been deleted we want this recheck to recreate the file and mark
+					// it as 0%, not fail the recheck. Otherwise the only way of recovering is to remove and
+					// re-add the torrent
+				
+				setDataAlreadyAllocated( false );
+				
+				DiskManager recheck_disk_manager = initializeDiskManager();
+				
+				while ( recheck_disk_manager.getState() != DiskManager.FAULTY &&
+						recheck_disk_manager.getState() != DiskManager.READY){
+					
 					try {
+						
 						Thread.sleep(100);
+						
 					} catch (Exception e) {
+						
 						e.printStackTrace();
 					}
 				}
+				
 				forceStarted = wasForceStarted;
+				
 				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-				if (diskManager == null) {
-				  LGLogger.log(LGLogger.ERROR, "diskManager destroyed while trying to recheck!");
-				  setState(STATE_STOPPED);
-				  return;
+				
+				if (recheck_disk_manager.getState() == DiskManager.READY){
+					
+				  	try{
+				  		recheck_disk_manager.dumpResumeDataToDisk(true, false);
+				  		
+						recheck_disk_manager.stopIt();
+						
+						setOnlySeeding(recheck_disk_manager.getRemaining() == 0);
+						
+						diskManager = null;
+						
+						if (prevState == STATE_ERROR){
+							
+							setState(STATE_STOPPED);
+							
+						}else{
+							
+							setState(prevState);
+						}
+				  	}catch( Exception e ){
+				  		
+						errorDetail = "Resume data save fails: " + e.getMessage();
+	
+						setState( STATE_ERROR );
+				  	}
+				  	
+				  }else{ // Faulty
+				  	
+				  	setErrorDetail( recheck_disk_manager.getErrorMessage());
+					
+				  	recheck_disk_manager.stopIt();
+					
+				  	setOnlySeeding(false);
+					
+				  	diskManager = null;
+					
+				  	setState(STATE_ERROR);
+				  }
 				}
-			  if (diskManager.getState() == DiskManager.READY) {
-			  	try{
-			  		diskManager.dumpResumeDataToDisk(true, false);
-			  		
-					diskManager.stopIt();
-					
-					setOnlySeeding(diskManager.getRemaining() == 0);
-					
-					diskManager = null;
-					
-					if (prevState == STATE_ERROR){
-						setState(STATE_STOPPED);
-					}else{
-						setState(prevState);
-					}
-			  	}catch( Exception e ){
-			  		
-					errorDetail = "Resume data save fails: " + e.getMessage();
-
-					setState( STATE_ERROR );
-			  	}
-			  }
-			  else { // Faulty
-			  	setErrorDetail( diskManager.getErrorMessage());
-					diskManager.stopIt();
-					setOnlySeeding(false);
-					diskManager = null;
-					setState(STATE_ERROR);
-			  }
-			}
-		};
+			};
+		
 		recheck.setPriority(Thread.MIN_PRIORITY);
 		recheck.start();
   }
@@ -1684,9 +1716,16 @@ DownloadManagerImpl
   }
   
   
-  public boolean isDataAlreadyAllocated() {  return data_already_allocated;  }
+  public boolean 
+  isDataAlreadyAllocated() 
+  {  
+  	return data_already_allocated;  
+  }
   
-  public void setDataAlreadyAllocated( boolean already_allocated ) {
+  public void 
+  setDataAlreadyAllocated( 
+  	boolean already_allocated ) 
+  {
     data_already_allocated = already_allocated;
   }
     

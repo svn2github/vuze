@@ -44,8 +44,81 @@ Test
 		String	[]args )
 	{
 		try{
-			CacheFileManager	manager = CacheFileManagerFactory.getSingleton();
+			CacheFileManagerImpl	manager = (CacheFileManagerImpl)CacheFileManagerFactory.getSingleton();
 			
+			manager.initialise( false, 8*1024*1024 );
+	
+			new Test().writeTest(manager);
+			
+			manager.initialise( true, 8*1024*1024 );
+
+			new Test().writeTest(manager);
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	public void
+	writeTest(
+		CacheFileManagerImpl	manager )
+	{
+		try{
+			final File	f = new File("C:\\temp\\cachetest.dat" );
+			
+			f.delete();
+			
+			CacheFile	cf = manager.createFile(
+					new CacheFileOwner()
+					{
+						public String
+						getCacheFileOwnerName()
+						{
+							return( "file " + f.toString() );
+						}
+						
+						public TOTorrentFile
+						getCacheFileTorrentFile()
+						{
+							return( null );
+						}
+					},
+					f );
+			
+			long	start = System.currentTimeMillis();
+			
+			int		loop	= 100000;
+			int		block	= 1*1024;
+			
+			for (int i=0;i<loop;i++){
+				
+				DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(block);
+				
+				cf.writeAndHandoverBuffer( buffer, i*block);
+			}
+			
+			cf.close();
+			
+			long 	now = System.currentTimeMillis();
+			
+			long	total = loop*block;
+			
+			long	elapsed = now - start;
+			
+			System.out.println( "time = " + elapsed + ", speed = " + (total/elapsed));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	public void
+	randomTest(
+		CacheFileManager	manager )
+	{
+		try{			
 			CacheFile[]	files = new CacheFile[3];
 			
 			byte[][]	file_data	= new byte[3][];

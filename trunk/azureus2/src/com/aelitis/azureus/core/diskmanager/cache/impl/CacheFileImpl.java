@@ -117,7 +117,7 @@ CacheFileImpl
 				return;	// nothing to do
 			}
 			
-			synchronized( file ){
+			synchronized( this ){
 				
 				long	writing_file_position	= file_position;
 				long	writing_buffer_position	= file_buffer_position;
@@ -265,6 +265,7 @@ CacheFileImpl
 				synchronized( this ){
 					
 					if ( TRACE ){
+						
 						System.out.println( 
 								"writeCache: " + getName() + ", " + file_position + " - " + (file_position + write_length - 1 ) + 
 								":" + file_buffer_position + "/" + file_buffer_limit );
@@ -333,13 +334,17 @@ CacheFileImpl
 	
 		throws CacheFileManagerException
 	{
-		synchronized( file ){
+		synchronized( this ){
 							
 			Iterator	it = cache.iterator();
 			
 			Throwable	last_failure = null;
 			
 			long	entry_total_released = 0;
+			
+			List	multi_block_entries		= new ArrayList();
+			long	multi_block_start		= -1;
+			long	multi_block_next		= -1;
 			
 			while( it.hasNext()){
 			
@@ -362,33 +367,46 @@ CacheFileImpl
 				}
 				
 					// overlap!!!!
-				
+
+				boolean	dirty = entry.isDirty();
+
 				try{
-					if ( entry.isDirty()){
 						
-						DirectByteBuffer	entry_buffer = entry.getBuffer();
-						
-						int	pos = entry_buffer.position();
+					if ( dirty ){
+																	
+						if ( multi_block_start == -1 ){
+							
+								// start of day
+							
+							multi_block_start	= entry_file_position;
+							
+							multi_block_next	= entry_file_position + entry_length;
+							
+							multi_block_entries.add( entry );
+							
+						}else if ( multi_block_next == entry_file_position ){
+							
+								// continuation, add in
+							
+							multi_block_next = entry_file_position + entry_length;
 					
-						try{
-							if ( TRACE ){
-								System.out.println( "flushCache: writing " + entry.getString());
-							}
+							multi_block_entries.add( entry );
 							
-							int	actual_size = getFMFile().write( entry_buffer, entry.getFilePosition());
-					
-							if ( actual_size != entry.getLength()){
-								
-								throw( new CacheFileManagerException( "Short write: required = " + entry.getLength() + ", actual = " + actual_size ));
-							}
+						}else{
 							
-							manager.cacheBytesWritten( actual_size );
+								// we've got a gap - flush current and start another series
 							
-							entry.setClean();
+							multiBlockFlush(
+									multi_block_entries,
+									multi_block_start,
+									multi_block_next,
+									release_entries );
+
+							multi_block_start	= entry_file_position;
 							
-						}finally{
+							multi_block_next	= entry_file_position + entry_length;
 							
-							entry_buffer.position( pos );
+							multi_block_entries.add( entry );
 						}
 					}
 				}catch( Throwable e ){
@@ -403,16 +421,30 @@ CacheFileImpl
 					
 						it.remove();
 						
+							// if it is dirty it will be released when the flush is done
+						
+						if ( !dirty ){
+	
+							manager.releaseCacheSpace( entry );
+						}
+						
 						entry_total_released += entry.getLength();
 
-						manager.releaseCacheSpace( entry );
-						
 						if ( minimum_to_release != -1 && entry_total_released > minimum_to_release ){
 							
 							break;
 						}
 					}
 				}
+			}
+			
+			if ( multi_block_start != -1 ){
+				
+				multiBlockFlush(
+						multi_block_entries,
+						multi_block_start,
+						multi_block_next,
+						release_entries );
 			}
 			
 			if ( last_failure != null ){
@@ -428,6 +460,65 @@ CacheFileImpl
 	}
 	
 	protected void
+	multiBlockFlush(
+		List		multi_block_entries,
+		long		multi_block_start,
+		long		multi_block_next,
+		boolean		release_entries )
+	
+		throws CacheFileManagerException
+	{
+		try{
+			if ( TRACE ){
+				
+				System.out.println( "flushCache: writing " + multi_block_entries.size() + " entries" );
+			}
+			
+			DirectByteBuffer[]	buffers = new DirectByteBuffer[ multi_block_entries.size()];
+			
+			for (int i=0;i<buffers.length;i++){
+				
+				buffers[i] = ((CacheEntry)multi_block_entries.get(i)).getBuffer();
+			}
+			
+			long	actual_size = getFMFile().write( buffers, multi_block_start );
+			
+			long	expected	= multi_block_next - multi_block_start;
+			
+			if ( actual_size != expected ){
+				
+				throw( new CacheFileManagerException( "Short write: required = " + expected + ", actual = " + actual_size ));
+			}
+			
+			manager.cacheBytesWritten( expected );
+			
+		}catch( FMFileManagerException e ){
+			
+			throw( new CacheFileManagerException( "flush fails", e ));
+			
+		}finally{			
+			
+			for (int i=0;i<multi_block_entries.size();i++){
+				
+				CacheEntry	entry = (CacheEntry)multi_block_entries.get(i);
+				
+				if ( release_entries ){
+
+					manager.releaseCacheSpace( entry );
+					
+				}else{
+					
+					entry.resetBufferPosition();
+					
+					entry.setClean();
+				}
+			}
+						
+			multi_block_entries.clear();
+		}
+	}
+	
+	protected void
 	flushCache(
 		boolean				release_entries,
 		long				minumum_to_release )
@@ -439,6 +530,7 @@ CacheFileImpl
 			synchronized( this ){
 				
 				if ( TRACE ){
+					
 					System.out.println( "flushCache: " + getName());
 				}
 				

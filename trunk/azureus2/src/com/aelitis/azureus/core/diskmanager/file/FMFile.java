@@ -79,15 +79,22 @@ FMFile
 	public void
 	read(
 		DirectByteBuffer	buffer,
-		long		offset )
+		long				offset )
 	
 		throws FMFileManagerException;
 	
 	
-	public int
+	public long
 	write(
 		DirectByteBuffer	buffer,
-		long		position )
+		long				position )
+	
+		throws FMFileManagerException;
+	
+	public long
+	write(
+		DirectByteBuffer[]	buffers,
+		long				position )
 	
 		throws FMFileManagerException;
 	

@@ -281,7 +281,7 @@ DownloadManager
    */
     public void downloadEnded();
 
-    public void initializeDiskManager();
+    public DiskManager initializeDiskManager();
   
     public boolean canForceRecheck();
 

@@ -36,6 +36,7 @@ CacheEntry
 	protected DirectByteBuffer	buffer;
 	protected long				offset;
 	protected int				size;
+	protected int				buffer_pos;
 	
 	protected boolean			dirty;
 	
@@ -50,6 +51,8 @@ CacheEntry
 		buffer		= _buffer;
 		offset		= _offset;
 		size		= _size;
+		
+		buffer_pos	= buffer.position();
 		
 		dirty		= true;
 	}
@@ -88,6 +91,12 @@ CacheEntry
 	setClean()
 	{
 		dirty	= false;
+	}
+	
+	protected void
+	resetBufferPosition()
+	{
+		buffer.position( buffer_pos );
 	}
 	
 	protected String

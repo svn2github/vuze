@@ -41,6 +41,8 @@ public class
 CacheFileManagerImpl 
 	implements CacheFileManager
 {
+	public static final boolean	DEBUG	= false;
+	
 	protected boolean	cache_enabled;
 	protected long		cache_size;
 	protected long		cache_minimum_free_size;
@@ -52,6 +54,8 @@ CacheFileManagerImpl
 	
 	protected LinkedHashMap		cache_entries = new LinkedHashMap(1024, 0.75f, true );
 	
+	protected CacheFileManagerStats	stats;
+	
 	protected long				cache_bytes_written;
 	protected long				cache_bytes_read;
 	protected long				file_bytes_written;
@@ -62,13 +66,26 @@ CacheFileManagerImpl
 	{
 		file_manager	= FMFileManagerFactory.getSingleton();
 		
-		cache_enabled	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable" );
+		boolean	enabled	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable" );
 		
-		cache_size		= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
+		int		size	= 1024*1024*COConfigurationManager.getIntParameter( "diskmanager.perf.cache.size" );
+		
+		initialise( enabled, size );
+	}
+
+	protected void
+	initialise(
+		boolean	enabled,
+		long	size )
+	{
+		cache_enabled			= enabled;
+		cache_size				= size;
 		
 		cache_minimum_free_size	= cache_size/4;
 		
 		cache_space_free		= cache_size;
+		
+		stats = new CacheFileManagerStatsImpl( this );
 		
 		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", size = " + cache_size + " MB" );
 	}
@@ -102,6 +119,12 @@ CacheFileManagerImpl
 		}
 	}
 	
+	public CacheFileManagerStats
+	getStats()
+	{
+		return( stats );
+	}
+	
 	protected boolean
 	isCacheEnabled()
 	{
@@ -120,13 +143,45 @@ CacheFileManagerImpl
 		boolean	ok 	= false;
 		boolean	log	= false;
 		
+		if ( DEBUG ){
+			
+			synchronized( this ){
+			
+				int	my_count = 0;
+
+				Iterator it = cache_entries.keySet().iterator();
+				
+				while( it.hasNext()){
+					
+					if (((CacheEntry)it.next()).getFile() == file ){
+						
+						my_count++;
+					}
+				}
+			
+				if ( my_count != file.cache.size()){
+					
+					System.out.println( "Cache inconsistency: my count = " + my_count + ", file = " + file.cache.size());
+				}
+			}
+		}
+		
 		while( !ok ){
+			
+				// musn't invoke synchronized CacheFile methods while holding manager lock as this
+				// can cause deadlocks (as CacheFile calls manager methods with locks)
+			
+			CacheFileImpl	oldest_file	= null;
 			
 			synchronized( this ){
 			
 				if ( length < cache_space_free || cache_space_free == cache_size ){
 				
 					ok	= true;
+					
+				}else{
+					
+					oldest_file = ((CacheEntry)cache_entries.keySet().iterator().next()).getFile();
 				}
 			}
 			
@@ -134,13 +189,11 @@ CacheFileManagerImpl
 				
 				log	= true;
 				
-				CacheEntry	oldest = (CacheEntry)cache_entries.keySet().iterator().next();
-				
 				long	old_cw	= cache_bytes_written;
+			
+				oldest_file.flushCache( true, cache_minimum_free_size );
 				
-				oldest.getFile().flushCache( true, cache_minimum_free_size );
-				
-				LGLogger.log( "DiskCache: cache full, flushed " + ( cache_bytes_written - old_cw ) + " from " + oldest.getFile().getName());
+				LGLogger.log( "DiskCache: cache full, flushed " + ( cache_bytes_written - old_cw ) + " from " + oldest_file.getName());
 			}
 		}
 		
@@ -191,9 +244,28 @@ CacheFileManagerImpl
 		}
 	}
 	
+	protected long
+	getCacheSize()
+	{
+		return( cache_size );
+	}
+	
+	protected long
+	getCacheUsed()
+	{
+		long free = cache_space_free;
+		
+		if ( free < 0 ){
+			
+			free	= 0;
+		}
+		
+		return( cache_size - free );
+	}
+	
 	protected synchronized void
 	cacheBytesWritten(
-		int		num )
+		long		num )
 	{
 		cache_bytes_written	+= num;
 	}

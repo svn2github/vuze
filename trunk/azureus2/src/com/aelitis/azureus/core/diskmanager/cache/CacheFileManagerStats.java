@@ -1,5 +1,5 @@
 /*
- * Created on 03-Aug-2004
+ * Created on 06-Aug-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -22,23 +22,16 @@
 
 package com.aelitis.azureus.core.diskmanager.cache;
 
-import java.io.File;
-
 /**
  * @author parg
  *
  */
-
 public interface 
-CacheFileManager 
+CacheFileManagerStats 
 {
-	public CacheFile
-	createFile(
-		CacheFileOwner	owner,
-		File			file )
+	public long
+	getSize();
 	
-		throws CacheFileManagerException;
-	
-	public CacheFileManagerStats
-	getStats();
+	public long
+	getUsedSize();
 }

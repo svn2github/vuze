@@ -74,6 +74,7 @@ FMFileUnlimited
 		throws FMFileManagerException
 	{
 		ensureOpen();
+		
 		return( getSizeSupport());
 	}
 	
@@ -83,6 +84,7 @@ FMFileUnlimited
 		throws FMFileManagerException
 	{
 		ensureOpen();
+		
 		return( getLengthSupport());
 	}
 
@@ -93,6 +95,7 @@ FMFileUnlimited
 		throws FMFileManagerException
 	{
 		ensureOpen();
+		
 		setLengthSupport( length );
 	}
 	
@@ -104,11 +107,12 @@ FMFileUnlimited
 		throws FMFileManagerException
 	{
 		ensureOpen();
+		
 		readSupport( buffer, offset );
 	}
 	
 	
-	public synchronized int
+	public synchronized long
 	write(
 		DirectByteBuffer	buffer,
 		long		position )
@@ -116,7 +120,20 @@ FMFileUnlimited
 		throws FMFileManagerException
 	{
 		ensureOpen();
+		
 		return( writeSupport( buffer, position ));
+	}
+	
+	public synchronized long
+	write(
+		DirectByteBuffer[]	buffers,
+		long				position )
+	
+		throws FMFileManagerException
+	{
+		ensureOpen();
+		
+		return( writeSupport( buffers, position ));
 	}
 	
 	public synchronized void
