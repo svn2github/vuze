@@ -74,19 +74,18 @@ public class OutgoingBTPieceMessageHandler {
         queued_messages.put( msg, request );
         num_messages_in_queue++;
         
-        outgoing_message_queue.addMessage( msg );//needs to be outside a synchronised(lock) block due to deadlock with outgoing_message_queue methods
- 
+        outgoing_message_queue.addMessage( msg, true );
       }
       finally{
       	lock_mon.exit();
       }
 
-      
-      
+      outgoing_message_queue.doListenerNotifications();
     }
   };
   
-  private final OutgoingMessageQueue.SentMessageListener sent_message_listener = new OutgoingMessageQueue.SentMessageListener() {
+  
+  private final OutgoingMessageQueue.MessageQueueListener sent_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
     public void messageSent( ProtocolMessage message ) {
       if( message.getType() == BTProtocolMessage.BT_PIECE ) {
         try{
@@ -100,7 +99,11 @@ public class OutgoingBTPieceMessageHandler {
         }
       }
     }
+    public void messageAdded( ProtocolMessage message ) {/*nothing*/}
+    public void messageRemoved( ProtocolMessage message ) {/*nothing*/}
+    public void bytesSent( int byte_count ) {/*nothing*/}
   };
+  
   
   
   /**
@@ -113,7 +116,7 @@ public class OutgoingBTPieceMessageHandler {
   public OutgoingBTPieceMessageHandler( DiskManager disk_manager, OutgoingMessageQueue outgoing_message_q ) {
     this.disk_manager = disk_manager;
     this.outgoing_message_queue = outgoing_message_q;
-    outgoing_message_queue.registerSentListener( sent_message_listener );
+    outgoing_message_queue.registerQueueListener( sent_message_listener );
   }
   
   
@@ -165,7 +168,7 @@ public class OutgoingBTPieceMessageHandler {
         Map.Entry entry = (Map.Entry)i.next();
         if( entry.getValue().equals( dmr ) ) {
           BTPiece msg = (BTPiece)entry.getKey();
-          if( outgoing_message_queue.removeMessage( msg ) ) {
+          if( outgoing_message_queue.removeMessage( msg, true ) ) {
             i.remove();
             num_messages_in_queue--;
           }
@@ -176,6 +179,8 @@ public class OutgoingBTPieceMessageHandler {
     finally{
       lock_mon.exit();
     }
+    
+    outgoing_message_queue.doListenerNotifications();
   }
   
   
@@ -192,7 +197,7 @@ public class OutgoingBTPieceMessageHandler {
       
       for( Iterator i = queued_messages.keySet().iterator(); i.hasNext(); ) {
         BTPiece msg = (BTPiece)i.next();
-        if( outgoing_message_queue.removeMessage( msg ) ) {
+        if( outgoing_message_queue.removeMessage( msg, true ) ) {
           i.remove();
           num_messages_in_queue--;
         }
@@ -201,6 +206,8 @@ public class OutgoingBTPieceMessageHandler {
     finally{
       lock_mon.exit();
     }
+    
+    outgoing_message_queue.doListenerNotifications();
   }
       
 

@@ -25,10 +25,6 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.util.SystemTime;
-
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
-
 
 /**
  * Represents a managed peer connection,
@@ -41,12 +37,7 @@ public class Connection {
   private final OutgoingMessageQueue outgoing_message_queue = new OutgoingMessageQueue();
   private boolean is_connected;
   
-  private final OutgoingMessageQueue.AddedMessageListener added_write_message_listener = new OutgoingMessageQueue.AddedMessageListener() {
-    public void messageAdded( ProtocolMessage message ) {
-      last_new_write_data_added_time = SystemTime.getCurrentTime();
-    }
-  };
-  
+
   
   /**
    * Constructor for new OUTbound connection.
@@ -56,7 +47,6 @@ public class Connection {
   protected Connection( InetSocketAddress remote_address ) {
     this.remote_address = remote_address;
     transport = new Transport();
-    outgoing_message_queue.registerAddedListener( added_write_message_listener );
     is_connected = false;
   }
   
@@ -69,7 +59,6 @@ public class Connection {
   protected Connection( SocketChannel remote_channel ) {
     remote_address = new InetSocketAddress( remote_channel.socket().getInetAddress(), remote_channel.socket().getPort() );
     transport = new Transport( remote_channel );
-    outgoing_message_queue.registerAddedListener( added_write_message_listener );
     is_connected = true;
   }
   
@@ -101,6 +90,14 @@ public class Connection {
       }
     });
   }
+  
+  
+  /**
+   * Tells whether or not this connection's transport is connected,
+   * i.e. the connection has been successfully established.
+   * @return true if connected, false if not yet connected
+   */
+  public boolean isConnected() {  return is_connected;  }
   
   
   /**
@@ -190,28 +187,6 @@ public class Connection {
      */
     public void exceptionThrown( Throwable error );
   }
-  
-  
-  
-  
-  
-  
-  
-///////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////
-
-
-  
-  private long last_new_write_data_added_time = 0;
-  
-  
-  /**
-   * Get the last time a new message (data) was added to the outbound queue.
-   * @return time
-   */
-  protected long getLastNewWriteDataAddedTime() {  return last_new_write_data_added_time;  }
-  
-
 
   
 }

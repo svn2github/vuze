@@ -115,8 +115,6 @@ PEPeerControlImpl
   private int superSeedModeNumberOfAnnounces;
   private SuperSeedPiece[] superSeedPieces;
   
-  private ConnectionPool connection_pool = NetworkManager.getSingleton().getRootConnectionPool().createChildConnectionPool();
-  
   private final HashMap 	reconnect_counts 		= new HashMap();
   private final AEMonitor	reconnect_counts_mon	= new AEMonitor( "PEPeerControl:RC");
 
@@ -376,8 +374,6 @@ PEPeerControlImpl
     
     // Stop the peer updater
     peerUpdater.stopIt();
-    
-    connection_pool.destroy();
 
     //clear pieces
     for (int i = 0; i < _pieces.length; i++) {
@@ -2642,7 +2638,5 @@ PEPeerControlImpl
   
   
   public DiskManager getDiskManager() {  return _diskManager;   }
-    
-  public ConnectionPool getConnectionPool() {  return connection_pool;  }
   
  }

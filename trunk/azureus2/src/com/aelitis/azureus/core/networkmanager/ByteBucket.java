@@ -43,11 +43,12 @@ public class ByteBucket {
    * Burst rate is set to default 1.2X of given fill rate.
    * @param rate_bytes_per_sec
    */
-  protected ByteBucket( int rate_bytes_per_sec ) {
+  public ByteBucket( int rate_bytes_per_sec ) {
     this.rate = rate_bytes_per_sec;
     burst_rate = rate_bytes_per_sec + (rate_bytes_per_sec/5);
     avail_bytes = 0; //start bucket empty
     prev_update_time = SystemTime.getCurrentTime();
+    ensureByteBucketMinBurstRate();
   }
   
   
@@ -55,7 +56,7 @@ public class ByteBucket {
    * Get the number of bytes currently available for use.
    * @return number of free bytes
    */
-  protected int getAvailableByteCount() {
+  public int getAvailableByteCount() {
     update_avail_byte_count();
     return avail_bytes;
   }
@@ -65,7 +66,7 @@ public class ByteBucket {
    * Update the bucket with the number of bytes just used.
    * @param bytes_used
    */
-  protected void setBytesUsed( int bytes_used ) {
+  public void setBytesUsed( int bytes_used ) {
     avail_bytes -= bytes_used;
     //System.out.println("  bytes_used="+bytes_used+", avail_bytes="+avail_bytes);
   }
@@ -75,21 +76,21 @@ public class ByteBucket {
    * Get the configured fill rate.
    * @return guaranteed rate in bytes per sec
    */
-  protected int getRate() {  return rate;  }
+  public int getRate() {  return rate;  }
   
   
   /**
    * Get the configured burst rate.
    * @return burst rate in bytes per sec
    */
-  protected int getBurstRate() {  return burst_rate;  }
+  public int getBurstRate() {  return burst_rate;  }
   
   
   /**
    * Set the current fill/guaranteed rate, with a burst rate of 1.2X the given rate.
    * @param rate_bytes_per_sec
    */
-  protected void setRate( int rate_bytes_per_sec ) {
+  public void setRate( int rate_bytes_per_sec ) {
     setRate( rate_bytes_per_sec, rate_bytes_per_sec + (rate_bytes_per_sec/5));
   }
   
@@ -99,7 +100,7 @@ public class ByteBucket {
    * @param rate_bytes_per_sec
    * @param burst_rate
    */
-  protected void setRate( int rate_bytes_per_sec, int burst_rate ) {
+  public void setRate( int rate_bytes_per_sec, int burst_rate ) {
     if( rate_bytes_per_sec < 0 ) {
       Debug.out("rate_bytes_per_sec [" +rate_bytes_per_sec+ "] < 0");
       rate_bytes_per_sec = 0;
@@ -110,6 +111,7 @@ public class ByteBucket {
     }
     this.rate = rate_bytes_per_sec;
     this.burst_rate = burst_rate;
+    ensureByteBucketMinBurstRate();
   }
   
   
@@ -125,4 +127,16 @@ public class ByteBucket {
     //System.out.println("time_diff="+time_diff+", rate=" +rate+ ", num_new_bytes=" +num_new_bytes+", avail_bytes="+avail_bytes);
   }
 
+  
+  /**
+   * Make sure the bucket's burst rate is at least MSS-sized,
+   * otherwise it will never allow a full packet's worth of data.
+   */
+  private void ensureByteBucketMinBurstRate() {
+    int mss = NetworkManager.getSingleton().getTcpMssSize();
+    if( burst_rate < mss ) {  //oops, this won't ever allow a full packet
+      burst_rate = mss;  //so increase the max byte size
+    }
+  }
+  
 }

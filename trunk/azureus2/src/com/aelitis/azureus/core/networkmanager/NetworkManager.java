@@ -25,56 +25,28 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
-
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.*;
 
 
 /**
  *
  */
 public class NetworkManager {
-  protected static final int UNLIMITED_WRITE_RATE = 1024 * 1024 * 100; //100 mbyte/s
   private static final NetworkManager instance = new NetworkManager();
-  private int max_write_rate_bytes_per_sec = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
-  private int max_write_rate_bytes_per_sec_seeding = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
+
   private int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
-  private final ConnectDisconnectManager connect_disconnect_manager;
-  
-  
-  
-  
-  private final ConnectionPool root_connection_pool = new ConnectionPool( max_write_rate_bytes_per_sec );
-  private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
+  private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
+  private final WriteController write_controller = new WriteController();
   
 
   
-  
-  
   private NetworkManager() {
-    connect_disconnect_manager = new ConnectDisconnectManager();
-    
-    Thread write_processing_thread = new AEThread( "NetworkManager:Write" ) {
-      public void runSupport() {
-        writeProcessingLoop();
-      }
-    };
-    write_processing_thread.setDaemon( true );
-    write_processing_thread.start();
-    
-    COConfigurationManager.addListener( new COConfigurationListener() {
-      public void configurationSaved() {       
-        max_write_rate_bytes_per_sec = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
-        max_write_rate_bytes_per_sec_seeding = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
-        root_connection_pool.updateBucketRates();
-        
+    COConfigurationManager.addParameterListener( "network.tcp.mtu.size", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
         tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
       }
-    });
-    
+    });    
   }
-  
-  
   
   
   /**
@@ -107,6 +79,24 @@ public class NetworkManager {
   }
   
   
+  /**
+   * Add an upload entity for write processing.
+   * @param entity to add
+   */
+  public void addWriteEntity( RateControlledWriteEntity entity ) {
+    write_controller.addWriteEntity( entity );
+  }
+  
+  
+  /**
+   * Remove an upload entity from write processing.
+   * @param entity to remove
+   */
+  public void removeWriteEntity( RateControlledWriteEntity entity ) {
+    write_controller.removeWriteEntity( entity );
+  }
+  
+  
   
   /**
    * Get the socket connect and disconnect manager.
@@ -116,36 +106,12 @@ public class NetworkManager {
   
   
   /**
-   * Get the virtual selector for socket channel write readyness.
-   * @return selector
+   * Get the socket write controller.
+   * @return controller
    */
-  protected VirtualChannelSelector getWriteSelector() {  return write_selector;  }
+  protected WriteController getWriteController() {  return write_controller;  }
   
   
-  
-  //////////////////////////////////////////////////////////////
-  
-  
-  /**
-   * Get the root connection pool.
-   * @return root pool
-   */
-  public ConnectionPool getRootConnectionPool() {  return root_connection_pool;  }
-  
-  
-  
-  
-
-  
-
-  
-  
-  /**
-   * Get the max write rate (upload speed) in bytes per second.
-   * @return bytes per sec
-   */
-  public int getMaxWriteRateBytesPerSec() {  return max_write_rate_bytes_per_sec;  }
-
   
   /**
    * Get the configured TCP MSS (Maximum Segment Size) unit, i.e. the max (preferred) packet payload size.
@@ -154,32 +120,6 @@ public class NetworkManager {
    * @return mss size in bytes
    */
   public int getTcpMssSize() {  return tcp_mss_size;  }
-  
-
-  private void writeProcessingLoop() {
-    try {  Thread.sleep( 1000 );  }catch( Exception e ) {}
-    
-    while( true ) {
-      try {
-        //long start_time = System.currentTimeMillis();
-        
-        write_selector.select( 50 );
-        root_connection_pool.doWrites();
-      
-        //long processing_time = System.currentTimeMillis() - start_time;
-        //System.out.println("processing_time="+processing_time);
-        //if( processing_time < 1000 ) {
-        //  try{  Thread.sleep( 1000 - processing_time );  }catch( Exception e) {e.printStackTrace();}
-        //}
-      }
-      catch( Throwable t ) {
-      	Debug.printStackTrace(t);
-        try{ Thread.sleep( 1000 );  }catch( Exception e) {}
-      }
-    }
-  }
-  
-
   
 
 

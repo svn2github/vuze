@@ -139,7 +139,6 @@ public class VirtualChannelSelector {
           if( !found_in_registration_list ) {
             SelectionKey key = canceled_channel.keyFor( selector );
             if( key != null )  key.cancel();  //cancel the key, since already registered
-            else Debug.out( "null selection key returned for channel" );
           }
         }
         cancel_list.clear();        

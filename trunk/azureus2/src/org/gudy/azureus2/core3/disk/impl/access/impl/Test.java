@@ -53,7 +53,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.*;
 import com.aelitis.azureus.core.diskmanager.cache.*;
-import com.aelitis.azureus.core.networkmanager.ConnectionPool;
+
 
 /**
  * @author parg
@@ -1172,10 +1172,6 @@ Test
 	}
 
 	  
-	  public ConnectionPool getConnectionPool()
-		{
-	  	return( null );
-	}
 	}
 	/*
 	protected class

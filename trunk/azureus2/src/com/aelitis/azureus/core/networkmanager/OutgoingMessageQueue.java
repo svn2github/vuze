@@ -29,6 +29,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
@@ -38,16 +39,15 @@ import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
  * Priority-based outbound peer message queue.
  */
 public class OutgoingMessageQueue {
-  private final List 		queue		= new LinkedList();
-  private final AEMonitor	queue_mon	= new AEMonitor( "OutgoingMessageQueue:Q");
+  private final LinkedList 		queue		= new LinkedList();
+  private final AEMonitor	queue_mon	= new AEMonitor( "OutgoingMessageQueue:queue" );
 
+  private final ArrayList delayed_notifications = new ArrayList();
+  private final AEMonitor delayed_notifications_mon = new AEMonitor( "OutgoingMessageQueue:DN" );
+  
   private int total_size = 0;
-  private final ArrayList add_listeners 		= new ArrayList();
-  private final AEMonitor add_listeners_mon		= new AEMonitor( "OutgoingMessageQueue:AL");
-  private final ArrayList sent_listeners 		= new ArrayList();
-  private final AEMonitor sent_listeners_mon	= new AEMonitor( "OutgoingMessageQueue:SL");
-  private final ArrayList byte_listeners		= new ArrayList();
-  private final AEMonitor byte_listeners_mon	= new AEMonitor( "OutgoingMessageQueue:BL");
+  private final ArrayList listeners 		= new ArrayList();
+  private final AEMonitor listeners_mon		= new AEMonitor( "OutgoingMessageQueue:L");
   private ProtocolMessage urgent_message = null;
   private volatile boolean destroyed = false;
   
@@ -94,13 +94,19 @@ public class OutgoingMessageQueue {
   
   /**
    * Add a message to the message queue.
+   * NOTE: Allows for manual listener notification at some later time,
+   * using doListenerNotifications(), instead of notifying immediately
+   * from within this method.  This is useful if you want to invoke
+   * listeners outside of some greater synchronized block to avoid
+   * deadlock.
    * @param message message to add
+   * @param manual_listener_notify true for manual notification, false for automatic
    */
-  public void addMessage( ProtocolMessage message ) {
+  public void addMessage( ProtocolMessage message, boolean manual_listener_notify ) {
     
     if( destroyed ) System.out.println("addMessage:: already destroyed");
     
-    removeMessagesOfType( message.typesToRemove() );
+    removeMessagesOfType( message.typesToRemove(), manual_listener_notify );
     try{
       queue_mon.enter();
     
@@ -121,16 +127,54 @@ public class OutgoingMessageQueue {
     }finally{
       queue_mon.exit();
     }
-    notifyAddListeners( message );
+    
+    if( manual_listener_notify ) {  //register listener event for later, manual notification
+      NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_ADDED );
+      item.message = message;
+      try {
+        delayed_notifications_mon.enter();
+        
+        delayed_notifications.add( item );
+      }
+      finally {
+        delayed_notifications_mon.exit();
+      }
+    }
+    else { //do listener notification now
+      ArrayList listeners_copy;
+      try {
+        listeners_mon.enter();
+      
+        listeners_copy = new ArrayList( listeners );
+      }
+      finally {
+        listeners_mon.exit();
+      }
+    
+      for( int i=0; i < listeners_copy.size(); i++ ) {
+        MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+        listener.messageAdded( message );
+      }
+    }
   }
   
   
   /**
    * Remove all messages of the given types from the queue.
+   * NOTE: Allows for manual listener notification at some later time,
+   * using doListenerNotifications(), instead of notifying immediately
+   * from within this method.  This is useful if you want to invoke
+   * listeners outside of some greater synchronized block to avoid
+   * deadlock.
    * @param message_types type to remove
+   * @param manual_listener_notify true for manual notification, false for automatic
    */
-  public void removeMessagesOfType( int[] message_types ) {
+  public void removeMessagesOfType( int[] message_types, boolean manual_listener_notify ) {
     if( message_types == null ) return;
+    
+    ArrayList messages_removed = null;
+    if( !manual_listener_notify ) messages_removed = new ArrayList();
+    
     try{
       queue_mon.enter();
     
@@ -140,7 +184,21 @@ public class OutgoingMessageQueue {
         	if( msg.getType() == message_types[ t ] && msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
             if( msg == urgent_message ) urgent_message = null;            
             total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
-            msg.destroy();
+            if( manual_listener_notify ) {
+              NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_REMOVED );
+              item.message = msg;
+              try {
+                delayed_notifications_mon.enter();
+                
+                delayed_notifications.add( item );
+              }
+              finally {
+                delayed_notifications_mon.exit();
+              }
+            }
+            else {
+              messages_removed.add( msg );
+            }
         		i.remove();
             break;
         	}
@@ -149,15 +207,51 @@ public class OutgoingMessageQueue {
     }finally{
       queue_mon.exit();
     }
+
+    if( !manual_listener_notify && messages_removed.size() > 0 ) {
+      //do listener notifications now
+      ArrayList listeners_copy;
+      try {
+        listeners_mon.enter();
+          
+        listeners_copy = new ArrayList( listeners );
+      }
+      finally {
+        listeners_mon.exit();
+      }
+        
+      for( int x=0; x < messages_removed.size(); x++ ) {
+        ProtocolMessage msg = (ProtocolMessage)messages_removed.get( x );
+        
+        for( int i=0; i < listeners_copy.size(); i++ ) {
+          MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+          listener.messageRemoved( msg );
+        }
+        msg.destroy();
+      }
+    }
   }
   
   
   /**
    * Remove a particular message from the queue.
-   * @param message
+   * NOTE: Only the original message found in the queue will be destroyed upon removal,
+   * which may not necessarily be the one passed as the method parameter,
+   * as some messages override equals() (i.e. BTRequest messages) instead of using reference
+   * equality, and could be a completely different object, and would need to be destroyed
+   * manually.
+   * NOTE: Allows for manual listener notification at some later time,
+   * using doListenerNotifications(), instead of notifying immediately
+   * from within this method.  This is useful if you want to invoke
+   * listeners outside of some greater synchronized block to avoid
+   * deadlock.
+   * @param message to remove
+   * @param manual_listener_notify true for manual notification, false for automatic
    * @return true if the message was removed, false otherwise
    */
-  public boolean removeMessage( ProtocolMessage message ) {
+  public boolean removeMessage( ProtocolMessage message, boolean manual_listener_notify ) {
+    ProtocolMessage msg_removed = null;
+    
     try{
       queue_mon.enter();
     
@@ -167,28 +261,70 @@ public class OutgoingMessageQueue {
         if( msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
           if( msg == urgent_message ) urgent_message = null;  
           total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
-          msg.destroy();
           queue.remove( index );
-          return true;
+          msg_removed = msg;
         }
       }
     }finally{
       queue_mon.exit();
     }
+    
+    
+    if( msg_removed != null ) {
+      if( manual_listener_notify ) { //delayed manual notification
+        NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_REMOVED );
+        item.message = msg_removed;
+        try {
+          delayed_notifications_mon.enter();
+          
+          delayed_notifications.add( item );
+        }
+        finally {
+          delayed_notifications_mon.exit();
+        }
+      }
+      else {   //do listener notification now
+        ArrayList listeners_copy;
+        try {
+          listeners_mon.enter();
+        
+          listeners_copy = new ArrayList( listeners );
+        }
+        finally {
+          listeners_mon.exit();
+        }
+      
+        for( int i=0; i < listeners_copy.size(); i++ ) {
+          MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+          listener.messageRemoved( msg_removed );
+        }
+        msg_removed.destroy();
+      }
+      return true;
+    }
+    
     return false;
   }
   
   
   /**
    * Deliver (write) message(s) data to the given transport.
+   * 
+   * NOTE: Allows for manual listener notification at some later time,
+   * using doListenerNotifications(), instead of notifying immediately
+   * from within this method.  This is useful if you want to invoke
+   * listeners outside of some greater synchronized block to avoid
+   * deadlock.
    * @param transport to transmit over 
    * @param max_bytes maximum number of bytes to deliver
+   * @param manual_listener_notify true for manual notification, false for automatic
    * @return number of bytes delivered
    * @throws IOException
    */
-  protected int deliverToTransport( Transport transport, int max_bytes ) throws IOException {    
+  protected int deliverToTransport( Transport transport, int max_bytes, boolean manual_listener_notify ) throws IOException {    
     int written = 0;
-    ArrayList messages_sent = new ArrayList();
+    ArrayList messages_sent = null;
+    if( !manual_listener_notify ) messages_sent = new ArrayList();
     
     try{
       queue_mon.enter();
@@ -220,7 +356,21 @@ public class OutgoingMessageQueue {
             total_size -= bb.limit() - starting_pos[ pos ];
             queue.remove( 0 );
             LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +msg.getDescription()+ " message to " + transport.getDescription() );
-            messages_sent.add( msg );
+            if( manual_listener_notify ) {
+              NotificationItem item = new NotificationItem( NotificationItem.MESSAGE_SENT );
+              item.message = msg;
+              try {
+                delayed_notifications_mon.enter();
+                
+                delayed_notifications.add( item );
+              }
+              finally {
+                delayed_notifications_mon.exit();
+              }
+            }
+            else {
+              messages_sent.add( msg );
+            }
           }
           else {
             total_size -= (bb.limit() - bb.remaining()) - starting_pos[ pos ];
@@ -233,156 +383,193 @@ public class OutgoingMessageQueue {
       queue_mon.exit();
     }
     
-    if( written > 0 ) {
-      notifyByteListeners( written );
-    }
     
-    for( int i=0; i < messages_sent.size(); i++ ) {
-      ProtocolMessage msg = (ProtocolMessage)messages_sent.get( i );
-      notifySentListeners( msg );
-      msg.destroy();
+    if( written > 0 ) {
+      if( manual_listener_notify ) {
+        NotificationItem item = new NotificationItem( NotificationItem.BYTES_SENT );
+        item.byte_count = written;
+        try {
+          delayed_notifications_mon.enter();
+          
+          delayed_notifications.add( item );
+        }
+        finally {
+          delayed_notifications_mon.exit();
+        }
+      }
+      else {  //do listener notification now
+        ArrayList listeners_copy;
+        try {
+          listeners_mon.enter();
+        
+          listeners_copy = new ArrayList( listeners );
+        }
+        finally {
+          listeners_mon.exit();
+        }
+      
+        for( int x=0; x < messages_sent.size(); x++ ) {
+          ProtocolMessage msg = (ProtocolMessage)messages_sent.get( x );
+          
+          for( int i=0; i < listeners_copy.size(); i++ ) {
+            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+            listener.bytesSent( written );
+            listener.messageSent( msg );
+          }
+          msg.destroy();
+        }
+      }
     }
     
     return written;
   }
+  
+  
+  /**
+   * Manually send any unsent listener notifications.
+   */
+  public void doListenerNotifications() {
+    ArrayList notifications_copy;
+    try {
+      delayed_notifications_mon.enter();
+      
+      if( delayed_notifications.size() == 0 )  return;
+      notifications_copy = new ArrayList( delayed_notifications );
+      delayed_notifications.clear();
+    }
+    finally {
+      delayed_notifications_mon.exit();
+    }
+    
+    ArrayList listeners_copy;
+    try {
+      listeners_mon.enter();
+    
+      if( listeners.size() == 0 )  return;
+      listeners_copy = new ArrayList( listeners );
+    }
+    finally {
+      listeners_mon.exit();
+    }
+    
+    for( int j=0; j < notifications_copy.size(); j++ ) {  //for each notification
+      NotificationItem item = (NotificationItem)notifications_copy.get( j );
+
+      switch( item.type ) {
+        case NotificationItem.MESSAGE_ADDED:
+          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+            listener.messageAdded( item.message );
+          }
+          break;
+          
+        case NotificationItem.MESSAGE_REMOVED:
+          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+            listener.messageRemoved( item.message );
+          }
+          item.message.destroy();
+          break;
+          
+        case NotificationItem.MESSAGE_SENT:
+          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+            listener.messageSent( item.message );
+          }
+          item.message.destroy();
+          break;
+          
+        case NotificationItem.BYTES_SENT:
+          for( int i=0; i < listeners_copy.size(); i++ ) {  //for each listener
+            MessageQueueListener listener = (MessageQueueListener)listeners_copy.get( i );
+            listener.bytesSent( item.byte_count );
+          }
+          break;
+          
+        default:
+          Debug.out( "NotificationItem.type unknown :" + item.type );
+      }
+    }
+  }
+  
 
   /////////////////////////////////////////////////////////////////
   
   /**
    * Receive notification when a new message is added to the queue.
    */
-  public interface AddedMessageListener {
+  public interface MessageQueueListener {
     /**
      * The given message has just been queued for sending out the transport.
      * @param message queued
      */
     public void messageAdded( ProtocolMessage message );
-  }
-  
-  
-  /**
-   * Receive notification when a message has been transmitted.
-   */
-  public interface SentMessageListener {
+    
+    /**
+     * The given message has just been forcibly removed from the queue,
+     * i.e. it was *not* sent out the transport.
+     * @param message removed
+     */
+    public void messageRemoved( ProtocolMessage message );
+    
     /**
      * The given message has been completely sent out through the transport.
      * @param message sent
      */
     public void messageSent( ProtocolMessage message );
-  }
-  
-  
-  /**
-   * Receive notification when bytes are written to the transport.
-   */
-  public interface ByteListener {
+    
     /**
      * The given number of bytes has been written to the transport.
      * @param byte_count number of bytes
      */
     public void bytesSent( int byte_count );
   }
+  
 
   
   /**
-   * Add a listener to be notified when a new message is added to the queue.
+   * Add a listener to be notified of queue events.
    * @param listener
    */
-  public void registerAddedListener( AddedMessageListener listener ) {
+  public void registerQueueListener( MessageQueueListener listener ) {
     try{
-      add_listeners_mon.enter();
+      listeners_mon.enter();
     
-      add_listeners.add( listener );
-    }finally{
-    
-      add_listeners_mon.exit();
+      listeners.add( listener );
+    }
+    finally{
+      listeners_mon.exit();
     }
   }
   
   
   /**
-   * Add a listener to be notified when a message is sent.
+   * Cancel queue event notification listener.
    * @param listener
    */
-  public void registerSentListener( SentMessageListener listener ) {
+  public void cancelQueueListener( MessageQueueListener listener ) {
     try{
-      sent_listeners_mon.enter();
-   
-      sent_listeners.add( listener );
-      
-    }finally{
-    	
-      sent_listeners_mon.exit();
-    }
-  }
-  
-  
-  /**
-   * Add a listener to be notified when bytes are sent.
-   * @param listener
-   */
-  public void registerByteListener( ByteListener listener ) {
-    try{
-      byte_listeners_mon.enter();
+      listeners_mon.enter();
     
-      byte_listeners.add( listener );
-    }finally{
-      byte_listeners_mon.exit();
-    }
-  }
-  
-  
-  private void notifyAddListeners( ProtocolMessage msg ) {
-    ArrayList listeners;
-    
-    try{
-      add_listeners_mon.enter();
-      listeners = new ArrayList( add_listeners );
+      listeners.remove( listener );
     }
     finally{
-      add_listeners_mon.exit();
-    } 
-    
-    //notify outside the sync block using a copy of the listeners list to avoid potential deadlock
-    for( int i=0; i < listeners.size(); i++ ) {
-      AddedMessageListener listener = (AddedMessageListener)listeners.get( i );
-      listener.messageAdded( msg );
+      listeners_mon.exit();
     }
   }
-  
-  
-  private void notifySentListeners( ProtocolMessage msg ) {
-    ArrayList listeners;
-    
-    try{
-      sent_listeners_mon.enter();
-      listeners = new ArrayList( sent_listeners );
-    }
-    finally{
-      sent_listeners_mon.exit();
-    } 
-      
-    for( int i=0; i < listeners.size(); i++ ) {
-      SentMessageListener listener = (SentMessageListener)listeners.get( i );
-      listener.messageSent( msg );
-    }
-  }
-  
-  
-  private void notifyByteListeners( int byte_count ) {
-    ArrayList listeners;
 
-    try{
-      byte_listeners_mon.enter();
-      listeners = new ArrayList( byte_listeners );
-    }
-    finally{
-      byte_listeners_mon.exit();
-    }
-    
-    for( int i=0; i < listeners.size(); i++ ) {
-      ByteListener listener = (ByteListener)listeners.get( i );
-      listener.bytesSent( byte_count );
+  
+  private static class NotificationItem {
+    private static final int MESSAGE_ADDED =    0;
+    private static final int MESSAGE_REMOVED =  1;
+    private static final int MESSAGE_SENT =     2;
+    private static final int BYTES_SENT =       3;
+    private final int type;
+    private ProtocolMessage message;
+    private int byte_count = 0;
+    private NotificationItem( int notification_type ) {
+      type = notification_type;
     }
   }
+
 }

@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
-import com.aelitis.azureus.core.networkmanager.ConnectionPool;
 
 public interface 
 PEPeerManager 
@@ -198,9 +197,7 @@ PEPeerManager
   public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender);
   
   public boolean isBlockAlreadyWritten( int piece_number, int offset );
-  
-  public ConnectionPool getConnectionPool();
-  
+
   
   /**
    * Notify the manager that the given peer connection has been closed.

@@ -100,43 +100,49 @@ public class Transport {
   protected long write( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
     if( !is_ready_for_write )  return 0;
     
-    if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
+    try { 
+      if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
     
-    if( enable_efficient_write ) {
-      long num_bytes_requested = 0;
+      if( enable_efficient_write ) {
+        long num_bytes_requested = 0;
+        for( int i=array_offset; i < array_length; i++ ) {
+          num_bytes_requested += buffers[ i ].remaining();
+        }
+      
+        try {
+          long written = socket_channel.write( buffers, array_offset, array_length );
+          if( written < num_bytes_requested )  requestWriteSelect();
+          return written;
+        }
+        catch( IOException e ) {
+          //a bug only fixed in Tiger (1.5 series):
+          //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
+          if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
+            enable_efficient_write = false;
+            Debug.out( "ERROR: Multi-buffer socket write failed; switching to single-buffer mode. Upgrade to JRE 1.5 series to fix." );
+          }
+          throw e;
+        }
+      }
+    
+      //single-buffer mode
+      long written_sofar = 0;
       for( int i=array_offset; i < array_length; i++ ) {
-        num_bytes_requested += buffers[ i ].remaining();
+        int data_length = buffers[ i ].remaining();
+        int written = socket_channel.write( buffers[ i ] );
+        written_sofar += written;
+        if( written < data_length ) {
+          requestWriteSelect();
+          break;
+        }
       }
       
-      try {
-        long written = socket_channel.write( buffers, array_offset, array_length );
-        if( written < num_bytes_requested )  requestWriteSelect();
-        return written;
-      }
-      catch( IOException e ) {
-        //a bug only fixed in Tiger (1.5 series):
-        //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-        if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
-          enable_efficient_write = false;
-          Debug.out( "ERROR: Multi-buffer socket write failed; switching to single-buffer mode. Upgrade to JRE 1.5 series to fix." );
-        }
-        throw e;
-      }
+      return written_sofar;
     }
-    
-    //single-buffer mode
-    long written_sofar = 0;
-    for( int i=array_offset; i < array_length; i++ ) {
-      int data_length = buffers[ i ].remaining();
-      int written = socket_channel.write( buffers[ i ] );
-      written_sofar += written;
-      if( written < data_length ) {
-        requestWriteSelect();
-        break;
-      }
+    catch( IOException e ) {
+      is_ready_for_write = false;  //once an exception is thrown on write, disable any future writing
+      throw e;
     }
-    
-    return written_sofar;
   }
   
   
@@ -145,14 +151,15 @@ public class Transport {
     is_ready_for_write = false;
     is_write_select_pending = true;
     
-    NetworkManager.getSingleton().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+    
+    NetworkManager.getSingleton().getWriteController().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
       public void selectSuccess( Object attachment ) {
         is_ready_for_write = true;
         is_write_select_pending = false;
       }
 
       public void selectFailure( Throwable msg ) {
-        is_ready_for_write = true;
+        is_ready_for_write = true;  //set to true so that the next write attempt will throw an exception
         is_write_select_pending = false;
         write_select_failure = msg;
         Debug.out( "~~~ write select failure ~~~" );
@@ -205,7 +212,7 @@ public class Transport {
     if( is_connected ) {
       is_connected = false;
       if( is_write_select_pending ) {
-        NetworkManager.getSingleton().getWriteSelector().cancel( socket_channel );
+        NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
         is_write_select_pending = false;
       }
       NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );

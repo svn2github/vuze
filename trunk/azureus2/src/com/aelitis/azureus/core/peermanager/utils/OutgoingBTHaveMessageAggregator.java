@@ -44,14 +44,19 @@ public class OutgoingBTHaveMessageAggregator {
 
   private final OutgoingMessageQueue outgoing_message_q;
     
-  private final OutgoingMessageQueue.AddedMessageListener added_message_listener = new OutgoingMessageQueue.AddedMessageListener() {
+  private final OutgoingMessageQueue.MessageQueueListener added_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
     public void messageAdded( ProtocolMessage message ) {
       //if another message is going to be sent anyway, add our haves as well
       if( message.getType() != BTProtocolMessage.BT_HAVE ) {
         sendPendingHaves();
       }
     }
+    public void messageRemoved( ProtocolMessage message ) {/*nothing*/}
+    public void messageSent( ProtocolMessage message ) {/*nothing*/}
+    public void bytesSent( int byte_count ) {/*nothing*/}
   };
+  
+  
   
   
   /**
@@ -60,7 +65,7 @@ public class OutgoingBTHaveMessageAggregator {
    */
   public OutgoingBTHaveMessageAggregator( OutgoingMessageQueue outgoing_message_q ) {
     this.outgoing_message_q = outgoing_message_q;
-    outgoing_message_q.registerAddedListener( added_message_listener );
+    outgoing_message_q.registerQueueListener( added_message_listener );
   }
   
   
@@ -121,7 +126,7 @@ public class OutgoingBTHaveMessageAggregator {
     
       for( int i=0; i < pending_haves.size(); i++ ) {
         Integer piece_num = (Integer)pending_haves.get( i ); 
-        outgoing_message_q.addMessage( new BTHave( piece_num.intValue() ) );
+        outgoing_message_q.addMessage( new BTHave( piece_num.intValue() ), false );
       }
       pending_haves.clear();
     }finally{
