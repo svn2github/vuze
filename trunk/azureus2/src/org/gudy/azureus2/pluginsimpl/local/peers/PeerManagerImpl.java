@@ -209,66 +209,32 @@ PeerManagerImpl
 		
 			final Map	peer_map = new HashMap();
 			
-			DownloadManagerPeerListener	pml = 
-				new DownloadManagerPeerListener()
-				{
-					public void
-					peerManagerAdded(
-						PEPeerManager	manager )
-					{
-					}
-					
-					public void
-					peerManagerRemoved(
-						PEPeerManager	manager )
-					{
-					}
-									
-					public void
-					peerAdded(
-						PEPeer 	peer )
-					{
-						PeerImpl pi = new PeerImpl( peer );
-											
-						peer_map.put( peer, pi );
-						
-						l.peerAdded( PeerManagerImpl.this, pi );
-					}
-						
-					public void
-					peerRemoved(
-						PEPeer	peer )
-					{	
-						PeerImpl	pi = (PeerImpl)peer_map.remove( peer );
-						
-						if ( pi == null ){
-							
-							// somewhat inconsistently we get told here about the removal of
-							// peers that never connected (and weren't added)
-							// Debug.out( "PeerManager: peer not found");
-							
-						}else{
-													
-							l.peerRemoved( PeerManagerImpl.this, pi );
-						}
-					}
-						
-					public void
-					pieceAdded(
-						PEPiece 	piece )
-					{	
-					}
-						
-					public void
-					pieceRemoved(
-						PEPiece		piece )
-					{
-					}
-				};
-	
-			listener_map.put( l, pml );
+      PEPeerManagerListener core_listener = new PEPeerManagerListener() {
+        public void stateChanged( int state ) { /* nothing */ }
+
+        public void peerAdded( PEPeerManager manager, PEPeer peer ) {
+          PeerImpl pi = new PeerImpl( peer );
+          peer_map.put( peer, pi );
+          l.peerAdded( PeerManagerImpl.this, pi );
+        }
+
+        public void peerRemoved( PEPeerManager manager, PEPeer peer ) {
+          PeerImpl  pi = (PeerImpl)peer_map.remove( peer );
+          
+          if ( pi == null ){
+            // somewhat inconsistently we get told here about the removal of
+            // peers that never connected (and weren't added)
+            // Debug.out( "PeerManager: peer not found");
+          }
+          else{         
+            l.peerRemoved( PeerManagerImpl.this, pi );
+          }
+        }
+      };
+      
+			listener_map.put( l, core_listener );
 		
-			manager.getDownloadManager().addPeerListener(pml);
+			manager.addListener( core_listener );
 		}finally{
 			
 			this_mon.exit();
@@ -282,16 +248,13 @@ PeerManagerImpl
 		try{
 			this_mon.enter();
 		
-		DownloadManagerPeerListener	pml = (DownloadManagerPeerListener)listener_map.get( l );
+			PEPeerManagerListener core_listener	= (PEPeerManagerListener)listener_map.remove( l );
 		
-			if ( pml != null ){
-			
-				manager.getDownloadManager().removePeerListener( pml );
-				
-				listener_map.remove( l );
+			if ( core_listener != null ){
+				manager.removeListener( core_listener );
 			}
+      
 		}finally{
-			
 			this_mon.exit();
 		}
 	}

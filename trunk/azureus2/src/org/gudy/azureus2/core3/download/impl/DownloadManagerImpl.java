@@ -377,11 +377,9 @@ DownloadManagerImpl
 	peer_manager_listener = 	
 		new PEPeerManagerListener()
 		{
-			public void
-			stateChanged(
-				int	new_state )
-			{
-			}
+			public void	stateChanged(	int	new_state ){}
+      public void peerAdded( PEPeerManager manager, PEPeer peer ) {}
+      public void peerRemoved( PEPeerManager manager, PEPeer peer ) {}
 		};
 		
 	temp.addListener( peer_manager_listener );

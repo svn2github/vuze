@@ -31,4 +31,20 @@ PEPeerManagerListener
 	public void
 	stateChanged(
 		int		state );
+  
+  
+  /**
+   * The given peer has been added to the given manager.
+   * @param manager to which peer belongs
+   * @param peer added
+   */
+  public void peerAdded( PEPeerManager manager, PEPeer peer );
+  
+  
+  /**
+   * The given peer has been removed from the given manager.
+   * @param manager to which peer belongs
+   * @param peer removed
+   */
+  public void peerRemoved( PEPeerManager manager, PEPeer peer );
 }

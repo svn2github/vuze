@@ -113,8 +113,8 @@ PEPeerControlImpl
   
   
 
-  private List	peer_manager_listeners 		= new ArrayList();
-  //private List	peer_transport_listeners 	= new ArrayList();
+  private volatile ArrayList peer_manager_listeners_cow = new ArrayList();  //copy on write
+
   
   private List 		piece_check_result_list 	= new ArrayList();
   private AEMonitor	piece_check_result_list_mon	= new AEMonitor( "PEPeerControl:PCRL");
@@ -2021,7 +2021,14 @@ PEPeerControlImpl
   peerAdded(
   	PEPeer pc) 
   {
-    _downloadManager.addPeer(pc);
+    _downloadManager.addPeer(pc);  //async downloadmanager notification
+
+    //sync peermanager notification
+    ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+    
+    for( int i=0; i < peer_manager_listeners.size(); i++ ) {
+      ((PEPeerManagerListener)peer_manager_listeners.get(i)).peerAdded( this, pc );
+    }
   }
 
   public void 
@@ -2394,19 +2401,15 @@ PEPeerControlImpl
   changeState(
   	int		new_state )
   {
-  	try{
-  		this_mon.enter();
+    peer_manager_state = new_state;
+    
+    ArrayList peer_manager_listeners = peer_manager_listeners_cow;
   	
-  		peer_manager_state = new_state;
-  	
-  		for (int i=0;i<peer_manager_listeners.size();i++){
+    for (int i=0;i<peer_manager_listeners.size();i++){
   		
-  			((PEPeerManagerListener)peer_manager_listeners.get(i)).stateChanged( peer_manager_state );
-  		}
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
+      ((PEPeerManagerListener)peer_manager_listeners.get(i)).stateChanged( peer_manager_state );
+    }
+
   }
 	
   public void
@@ -2416,7 +2419,12 @@ PEPeerControlImpl
   	try{
   		this_mon.enter();
   	
-  		peer_manager_listeners.add( l );
+      //copy on write
+      ArrayList peer_manager_listeners = new ArrayList( peer_manager_listeners_cow.size() + 1 );      
+      peer_manager_listeners.addAll( peer_manager_listeners_cow );
+      peer_manager_listeners.add( l );
+      peer_manager_listeners_cow = peer_manager_listeners;
+
   	}finally{
   		
   		this_mon.exit();
@@ -2430,7 +2438,11 @@ PEPeerControlImpl
   	try{
   		this_mon.enter();
   	
-  		peer_manager_listeners.remove(l);
+  		//copy on write
+      ArrayList peer_manager_listeners = new ArrayList( peer_manager_listeners_cow );      
+      peer_manager_listeners.remove( l );
+      peer_manager_listeners_cow = peer_manager_listeners;
+
   	}finally{
   		
   		this_mon.exit();
