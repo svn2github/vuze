@@ -1,0 +1,9 @@
+In order to compile this Azureus source you will need : 
+SWT, available at http://www.eclipse.org 
+
+NOTE: If you are compiling the web/web2/console UI code,
+you will also need:
+
+Log4j, http://apache.mirrors.pair.com/jakarta/log4j/
+Commons-CLI, http://apache.oregonstate.edu/jakarta/commons/cli/binaries/cli-1.0.zip
+SEDA, http://azureus.sourceforge.net/cvs/seda.zip
