@@ -53,7 +53,12 @@ public class PeerManager extends Thread {
 
   private int uploadCount = 0;
 
-  public PeerManager(DownloadManager manager, byte[] hash, Server server, TrackerConnection tracker, DiskManager diskManager) {
+  public PeerManager(
+    DownloadManager manager,
+    byte[] hash,
+    Server server,
+    TrackerConnection tracker,
+    DiskManager diskManager) {
     super("Peer Manager"); //$NON-NLS-1$
     this._manager = manager;
     //This torrent Hash
@@ -116,10 +121,12 @@ public class PeerManager extends Thread {
             if (ps.getState() == PeerSocket.DISCONNECTED) {
               _connections.remove(ps);
               i--;
-            } else {
+            }
+            else {
               try {
                 ps.process();
-              } catch (Exception e) {
+              }
+              catch (Exception e) {
                 ps.closeAll();
               }
             }
@@ -143,7 +150,8 @@ public class PeerManager extends Thread {
 
           if (wait > 10)
             Thread.sleep(wait);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           e.printStackTrace();
         }
       }
@@ -187,7 +195,8 @@ public class PeerManager extends Thread {
           timeWait = 10;
         Thread.sleep(timeWait); //sleep
 
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -212,14 +221,15 @@ public class PeerManager extends Thread {
 
     Thread t = new Thread("Cleaner - Tracker Ender") {
       public void run() {
-        //1. Send disconnect to Tracker
-			  _tracker.stop();
+          //1. Send disconnect to Tracker
+  _tracker.stop();
         try {
           while (requestsToFree.size() != 0) {
             freeRequests();
             Thread.sleep(100);
           }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           e.printStackTrace();
         }
       }
@@ -250,7 +260,8 @@ public class PeerManager extends Thread {
       _trackerStatus = MessageText.getString("PeerManager.status.offline"); //set the status to offline       //$NON-NLS-1$
       _timeToWait = 60; //retry in 60 seconds
       return; //break
-    } else //otherwise
+    }
+    else //otherwise
       {
       try {
         //parse the metadata
@@ -262,7 +273,8 @@ public class PeerManager extends Thread {
         try {
           //set the timeout			
           _timeToWait = (2 * ((Long) metaData.get("interval")).intValue()) / 3; //$NON-NLS-1$
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           _trackerStatus = new String((byte[]) metaData.get("failure reason"), Constants.DEFAULT_ENCODING); //$NON-NLS-1$ //$NON-NLS-2$
           _timeToWait = 120;
           return;
@@ -279,7 +291,8 @@ public class PeerManager extends Thread {
         _trackerState = TRACKER_UPDATE;
         _trackerStatus = MessageText.getString("PeerManager.status.ok"); //set the status		   //$NON-NLS-1$
         return; //break						
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         //TODO:: WE SHOULD CLEAN THIS UP
         //tracker not working		
         System.out.println("Problems with Tracker, will retry in 1 minute");
@@ -290,18 +303,18 @@ public class PeerManager extends Thread {
   }
 
   private void addPeersFromTracker(Map metaData) {
-    if(metaData == null)
+    if (metaData == null)
       return;
     try {
       //build the list of peers
       List peers = (List) metaData.get("peers"); //$NON-NLS-1$
-      
+
       //OLD WAY
       //BtList peers = (BtList) metaData.getValue("peers");
-      
+
       //count the number of peers
       int nbPeers = peers.size();
-      
+
       //for every peer
       for (int i = 0; i < nbPeers; i++) {
         Map peer = (Map) peers.get(i);
@@ -312,7 +325,7 @@ public class PeerManager extends Thread {
         //get the peer ip address
         int port = ((Long) peer.get("port")).intValue(); //$NON-NLS-1$
         //get the peer port number
-      
+
         if (!Arrays.equals(peerId, _myPeerId))
           //::this should be quicker -Tyler
           {
@@ -324,7 +337,8 @@ public class PeerManager extends Thread {
         //System.out.print(same + " ");
         //}		                   
       }
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       System.out.println("Problems with peer informations from Tracker");
       e.printStackTrace();
     }
@@ -369,7 +383,8 @@ public class PeerManager extends Thread {
         PeerSocket pc = null;
         try {
           pc = (PeerSocket) _connections.get(i);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           break;
         }
         if (pc.transfertAvailable()) {
@@ -483,7 +498,7 @@ public class PeerManager extends Thread {
       _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
       _timeLastUpdate = time; //update last checked time
         Thread t = new Thread("Tracker Checker") {//$NON-NLS-1$
-    public void run() {
+  public void run() {
           try {
             String result;
             if (_trackerState == TRACKER_UPDATE)
@@ -491,7 +506,8 @@ public class PeerManager extends Thread {
             else
               result = _tracker.start();
             analyseTrackerResponse(result == null ? null : result.getBytes(Constants.BYTE_ENCODING));
-          } catch (UnsupportedEncodingException e) {
+          }
+          catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
           }
@@ -600,12 +616,14 @@ public class PeerManager extends Thread {
             blockNumber = tempBlock;
             //The new completed level
             lastCompleted = _pieces[i].getCompleted();
-          } else {
+          }
+          else {
             //This piece is not intersting, but we have marked it as
             //being downloaded, we have to unmark it.
             _pieces[i].unmarkBlock(tempBlock);
           }
-        } else {
+        }
+        else {
           //So ..... we have a piece not marked as being downloaded ...
           //but without any free block to request ...
           //let's correct this situation :p
@@ -699,17 +717,15 @@ public class PeerManager extends Thread {
   	* created by Tyler
   	* @param pc
   	*/
-  private synchronized void insertPeerSocket(PeerSocket pc) {
+  /*private synchronized void insertPeerSocket(PeerSocket pc) {
     //Get the max number of connections allowed
     int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0); //$NON-NLS-1$
-
+  
     synchronized (_connections) {
       //does our list already contain this PeerConnection?  
       if (!_connections.contains(pc)) //if not
         {
         if (maxConnections == 0 || _connections.size() < maxConnections) {
-          if(pc.isFake())
-            pc.initialize();
           _connections.add(pc); //add the connection
         }
       } else //our list already contains this connection
@@ -717,7 +733,7 @@ public class PeerManager extends Thread {
         pc = null; //do nothing ...
       }
     }
-  }
+  }*/
 
   private void unChoke() {
     //1. We retreive the current non-choking peers
@@ -727,7 +743,8 @@ public class PeerManager extends Thread {
         PeerSocket pc = null;
         try {
           pc = (PeerSocket) _connections.get(i);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           continue;
         }
         if (!pc.isChoking()) {
@@ -759,7 +776,8 @@ public class PeerManager extends Thread {
         PeerSocket pc = null;
         try {
           pc = (PeerSocket) _connections.get(i);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           break;
         }
         if (pc.isInteresting() && pc.isChoking()) {
@@ -799,7 +817,8 @@ public class PeerManager extends Thread {
         PeerSocket pc = null;
         try {
           pc = (PeerSocket) _connections.get(i);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           continue;
         }
         if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
@@ -808,7 +827,8 @@ public class PeerManager extends Thread {
             upRate = pc.getStats().getStatisticSentRaw();
             if (pc.isSnubbed())
               upRate = -1;
-          } else
+          }
+          else
             upRate = pc.getStats().getReception();
           if (upRate > 256)
             testAndSortBest(upRate, upRates, pc, bestUploaders, 0);
@@ -822,7 +842,8 @@ public class PeerManager extends Thread {
           PeerSocket pc = null;
           try {
             pc = (PeerSocket) _connections.get(i);
-          } catch (Exception e) {
+          }
+          catch (Exception e) {
             break;
           }
           if (pc != currentOptimisticUnchoke
@@ -844,7 +865,8 @@ public class PeerManager extends Thread {
           PeerSocket pc = null;
           try {
             pc = (PeerSocket) _connections.get(i);
-          } catch (Exception e) {
+          }
+          catch (Exception e) {
             continue;
           }
           if (pc != currentOptimisticUnchoke && pc.isInteresting()) {
@@ -894,7 +916,8 @@ public class PeerManager extends Thread {
       PeerSocket pc = (PeerSocket) bestUploaders.get(i);
       if (nonChoking.contains(pc)) {
         nonChoking.remove(pc);
-      } else {
+      }
+      else {
         pc.sendUnChoke();
       }
     }
@@ -1004,356 +1027,365 @@ public class PeerManager extends Thread {
    * @param sckClient the incoming connection socket
    */
   public void addPeer(SocketChannel sckClient) {
-    //create a peer connection and insert it to the list    
-    if(uploadsFree()) {
-      uploadCount++; 
-      insertPeerSocket(new PeerSocket(this, sckClient));
-    } else {
-      try {
-        sckClient.close();
-      } catch (Exception ignore) {
-      }
-    }
-  }
-
-  public boolean uploadsFree() {
-    return uploadCount < getMaxUploads();
-  }
-
-  /**
-   * This method is used to add a peer with its id, ip and port
-   * @param peerId
-   * @param ip
-   * @param port
-   */
-  public void addPeer(byte[] peerId, String ip, int port) {
-    //create a peer connection and insert it to the list    
-    this.insertPeerSocket(new PeerSocket(this, peerId, ip, port, true));
-  }
-
-  /**
-   * The way to remove a peer from our peer list.
-   * @param pc
-   */
-  public void removePeer(PeerSocket pc) {
+    //create a peer connection and insert it to the list
+    //Get the max number of connections allowed
+    int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0); //$NON-NLS-1$    
     synchronized (_connections) {
-      if(_connections.remove(pc) && pc.isIncoming()) {
-        uploadCount--;
+      if (maxConnections == 0 || maxConnections < _connections.size()) {
+        _connections.add(new PeerSocket(this, sckClient));
+      }
+      else {
+        try {
+          sckClient.close();
+        }
+        catch (Exception ignore) {}
       }
     }
   }
 
-  //get the hash value
-  public byte[] getHash() {
-    return _hash;
-  }
+    /**
+     * This method is used to add a peer with its id, ip and port
+     * @param peerId
+     * @param ip
+     * @param port
+     */
+    public void addPeer(byte[] peerId, String ip, int port) {
+      //create a peer connection and insert it to the list    
+      PeerSocket psTest = new PeerSocket(this, peerId, ip, port, true);
+      //Get the max number of connections allowed
+      int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0); //$NON-NLS-1$
 
-  //get the peer id value
-  public byte[] getPeerId() {
-    return _myPeerId;
-  }
-
-  //get the piece length
-  public int getPieceLength() {
-    return _diskManager.getPieceLength();
-  }
-
-  //get the number of pieces
-  public int getPiecesNumber() {
-    return _nbPieces;
-  }
-
-  //get the status array
-  public boolean[] getPiecesStatus() {
-    return _downloaded;
-  }
-
-  //get the remaining percentage
-  public long getRemaining() {
-    return _diskManager.getRemaining();
-  }
-
-  //:: possibly rename to setRecieved()? -Tyler
-  //set recieved bytes
-  public void received(int length) {
-    if (length > 0) {
-      _stats.received(length);
-      _averageReceptionSpeed.addValue(length);
-    }
-    _manager.received(length);
-  }
-
-  //::possibly update to setSent() -Tyler
-  //set the send value
-  public void sent(int length) {
-    if (length > 0)
-      _stats.sent(length);
-    _manager.sent(length);
-  }
-
-  //setup the diskManager
-  public void setDiskManager(DiskManager diskManager) {
-    //the diskManager that handles read/write operations
-    _diskManager = diskManager;
-    _downloaded = _diskManager.getPiecesStatus();
-    _nbPieces = _diskManager.getPiecesNumber();
-
-    //the bitfield indicating if pieces are currently downloading or not
-    _downloading = new boolean[_nbPieces];
-    Arrays.fill(_downloading, false);
-
-    _piecesRarest = new boolean[_nbPieces];
-
-    //the pieces
-    _pieces = new Piece[_nbPieces];
-
-    //the availability level of each piece in the network
-    _availability = new int[_nbPieces];
-
-    //the stats
-    _stats = new PeerStats(diskManager.getPieceLength());
-
-    _server.start();
-
-    this.start();
-  }
-
-  public long downloaded() {
-    return _stats.getTotalReceivedRaw();
-  }
-
-  public long uploaded() {
-    return _stats.getTotalSentRaw();
-  }
-
-  public void haveNewPiece() {
-    _stats.haveNewPiece();
-  }
-
-  public void blockWritten(int pieceNumber, int offset) {
-    Piece piece = _pieces[pieceNumber];
-    if (piece != null) {
-      piece.setWritten(offset / BLOCK_SIZE);
-    }
-  }
-
-  public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
-    Piece piece = _pieces[pieceNumber];
-    int blockNumber = offset / BLOCK_SIZE;
-    if (piece != null && !piece.isWritten(blockNumber)) {
-      piece.setBloc(blockNumber);
-      _diskManager.writeBlock(pieceNumber, offset, data);
-    }
-  }
-
-  public boolean checkBlock(int pieceNumber, int offset, int length) {
-    return _diskManager.checkBlock(pieceNumber, offset, length);
-  }
-
-  public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
-    return _diskManager.checkBlock(pieceNumber, offset, data);
-  }
-
-  public int getAvailability(int pieceNumber) {
-    return _availability[pieceNumber];
-  }
-
-  public int[] getAvailability() {
-    return _availability;
-  }
-
-  public void havePiece(int pieceNumber, PeerSocket pcOrigin) {
-    int length = getPieceLength(pieceNumber);
-    int availability = _availability[pieceNumber];
-    if (availability < 4) {
-      if (_downloaded[pieceNumber])
-        availability--;
-      if (availability <= 0)
-        return;
-      //for all peers
       synchronized (_connections) {
-        for (int i = _connections.size() - 1; i >= 0; i--) {
-          PeerSocket pc = (PeerSocket) _connections.get(i);
-          if (pc != null && pc != pcOrigin && pc.getState() == PeerSocket.TRANSFERING) {
-            boolean[] peerAvailable = pc.getAvailable();
-            if (peerAvailable[pieceNumber])
-              pc.getStats().staticticSent(length / availability);
+        //does our list already contain this PeerConnection?  
+        if (!_connections.contains(psTest)) //if not
+          {
+          if (maxConnections == 0 || _connections.size() < maxConnections) {
+            _connections.add(new PeerSocket(this, peerId, ip, port, false)); //add the connection
           }
         }
       }
     }
-  }
 
-  public int getPieceLength(int pieceNumber) {
-    if (pieceNumber == _nbPieces - 1)
-      return _diskManager.getLastPieceLength();
-    return _diskManager.getPieceLength();
-  }
-
-  public boolean validateHandshaking(PeerSocket pc, byte[] peerId) {
-    PeerSocket pcTest = new PeerSocket(this, peerId, pc.getIp(), pc.getPort(), true);
-    synchronized (_connections) {
-      return !_connections.contains(pcTest);
-    }
-  }
-
-  public int getMaxUploads() {
-    return _manager.getMaxUploads();
-  }
-
-  public int getNbPeers() {
-    return _peers;
-  }
-
-  public int getNbSeeds() {
-    return _seeds;
-  }
-
-  public PeerStats getStats() {
-    return _stats;
-  }
-
-  public String getTrackerStatus() {
-    return _trackerStatus;
-  }
-
-  public String getETA() {
-    String remaining;
-    int writtenNotChecked = 0;
-    for (int i = 0; i < _pieces.length; i++) {
-      if (_pieces[i] != null) {
-        writtenNotChecked += _pieces[i].getCompleted() * BLOCK_SIZE;
+    /**
+     * The way to remove a peer from our peer list.
+     * @param pc
+     */
+    public void removePeer(PeerSocket pc) {
+      synchronized (_connections) {
+        _connections.remove(pc);
       }
     }
-    long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
-    if (dataRemaining == 0) {
-      remaining = MessageText.getString("PeerManager.status.finished"); //$NON-NLS-1$
-    } else {
-      int averageSpeed = _averageReceptionSpeed.getAverage();
-      if (averageSpeed < 256) {
-        remaining = "oo"; //$NON-NLS-1$
-      } else {
-        long timeRemaining = dataRemaining / averageSpeed;
-        remaining = TimeFormater.format(timeRemaining);
+
+    //get the hash value
+    public byte[] getHash() {
+      return _hash;
+    }
+
+    //get the peer id value
+    public byte[] getPeerId() {
+      return _myPeerId;
+    }
+
+    //get the piece length
+    public int getPieceLength() {
+      return _diskManager.getPieceLength();
+    }
+
+    //get the number of pieces
+    public int getPiecesNumber() {
+      return _nbPieces;
+    }
+
+    //get the status array
+    public boolean[] getPiecesStatus() {
+      return _downloaded;
+    }
+
+    //get the remaining percentage
+    public long getRemaining() {
+      return _diskManager.getRemaining();
+    }
+
+    //:: possibly rename to setRecieved()? -Tyler
+    //set recieved bytes
+    public void received(int length) {
+      if (length > 0) {
+        _stats.received(length);
+        _averageReceptionSpeed.addValue(length);
+      }
+      _manager.received(length);
+    }
+
+    //::possibly update to setSent() -Tyler
+    //set the send value
+    public void sent(int length) {
+      if (length > 0)
+        _stats.sent(length);
+      _manager.sent(length);
+    }
+
+    //setup the diskManager
+    public void setDiskManager(DiskManager diskManager) {
+      //the diskManager that handles read/write operations
+      _diskManager = diskManager;
+      _downloaded = _diskManager.getPiecesStatus();
+      _nbPieces = _diskManager.getPiecesNumber();
+
+      //the bitfield indicating if pieces are currently downloading or not
+      _downloading = new boolean[_nbPieces];
+      Arrays.fill(_downloading, false);
+
+      _piecesRarest = new boolean[_nbPieces];
+
+      //the pieces
+      _pieces = new Piece[_nbPieces];
+
+      //the availability level of each piece in the network
+      _availability = new int[_nbPieces];
+
+      //the stats
+      _stats = new PeerStats(diskManager.getPieceLength());
+
+      _server.start();
+
+      this.start();
+    }
+
+    public long downloaded() {
+      return _stats.getTotalReceivedRaw();
+    }
+
+    public long uploaded() {
+      return _stats.getTotalSentRaw();
+    }
+
+    public void haveNewPiece() {
+      _stats.haveNewPiece();
+    }
+
+    public void blockWritten(int pieceNumber, int offset) {
+      Piece piece = _pieces[pieceNumber];
+      if (piece != null) {
+        piece.setWritten(offset / BLOCK_SIZE);
       }
     }
-    return remaining;
-  }
 
-  public void peerAdded(PeerSocket pc) {
-    _manager.objectAdded(pc);
-  }
-
-  public void peerRemoved(PeerSocket pc) {
-    _manager.objectRemoved(pc);
-  }
-
-  public void pieceAdded(Piece p) {
-    _manager.objectAdded(p);
-  }
-
-  public void pieceRemoved(Piece p) {
-    _manager.objectRemoved(p);
-  }
-
-  public String getElpased() {
-    return TimeFormater.format(System.currentTimeMillis() / 1000 - _timeStarted);
-  }
-
-  public String getDownloaded() {
-    return _stats.getTotalReceived();
-  }
-
-  public String getUploaded() {
-    return _stats.getTotalSent();
-  }
-
-  public String getDownloadSpeed() {
-    return _stats.getReceptionSpeed();
-  }
-
-  public String getUploadSpeed() {
-    return _stats.getSendingSpeed();
-  }
-
-  public String getTotalSpeed() {
-    return _stats.getOverAllDownloadSpeed();
-  }
-
-  public int getTrackerTime() {
-    return _timeToWait - (int) (System.currentTimeMillis() / 1000 - _timeLastUpdate);
-  }
-
-  public void pieceChecked(int pieceNumber, boolean result) {
-    this.pieceRemoved(_pieces[pieceNumber]);
-    //  the piece has been written correctly
-    if (result) {
-
-      _pieces[pieceNumber].free();
-      _pieces[pieceNumber] = null;
-
-      //mark this piece as downloaded
-      _downloaded[pieceNumber] = true;
-
-      //send all clients an have message
-      sendHave(pieceNumber);
-
-    } else {
-
-      _pieces[pieceNumber].free();
-      _pieces[pieceNumber] = null;
-
-      //Mark this piece as non downloading
-      _downloading[pieceNumber] = false;
+    public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
+      Piece piece = _pieces[pieceNumber];
+      int blockNumber = offset / BLOCK_SIZE;
+      if (piece != null && !piece.isWritten(blockNumber)) {
+        piece.setBloc(blockNumber);
+        _diskManager.writeBlock(pieceNumber, offset, data);
+      }
     }
-  }
 
-  public void enqueueReadRequest(DataQueueItem item) {
-    _diskManager.enqueueReadRequest(item);
-  }
-
-  /**
-   * @return
-   */
-  public List get_connections() {
-    return _connections;
-  }
-
-  public Piece[] getPieces() {
-    return _pieces;
-  }
-
-  public int getDownloadPriority() {
-    return _manager.getPriority();
-  }
-
-  public void freeRequest(DataQueueItem item) {
-    synchronized (requestsToFree) {
-      requestsToFree.add(item);
+    public boolean checkBlock(int pieceNumber, int offset, int length) {
+      return _diskManager.checkBlock(pieceNumber, offset, length);
     }
-  }
 
-  private void freeRequests() {
-    if (requestsToFree == null)
-      return;
-    synchronized (requestsToFree) {
-      for (int i = 0; i < requestsToFree.size(); i++) {
-        DataQueueItem item = (DataQueueItem) requestsToFree.get(i);
-        if (item.isLoaded()) {
-          requestsToFree.remove(item);
-          i--;
-          ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
-        }
-        if (!item.isLoading()) {
-          requestsToFree.remove(item);
-          i--;
+    public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
+      return _diskManager.checkBlock(pieceNumber, offset, data);
+    }
+
+    public int getAvailability(int pieceNumber) {
+      return _availability[pieceNumber];
+    }
+
+    public int[] getAvailability() {
+      return _availability;
+    }
+
+    public void havePiece(int pieceNumber, PeerSocket pcOrigin) {
+      int length = getPieceLength(pieceNumber);
+      int availability = _availability[pieceNumber];
+      if (availability < 4) {
+        if (_downloaded[pieceNumber])
+          availability--;
+        if (availability <= 0)
+          return;
+        //for all peers
+        synchronized (_connections) {
+          for (int i = _connections.size() - 1; i >= 0; i--) {
+            PeerSocket pc = (PeerSocket) _connections.get(i);
+            if (pc != null && pc != pcOrigin && pc.getState() == PeerSocket.TRANSFERING) {
+              boolean[] peerAvailable = pc.getAvailable();
+              if (peerAvailable[pieceNumber])
+                pc.getStats().staticticSent(length / availability);
+            }
+          }
         }
       }
     }
-  }
 
-  public boolean isOptimisticUnchoke(PeerSocket pc) {
-    return pc == currentOptimisticUnchoke;
-  }
+    public int getPieceLength(int pieceNumber) {
+      if (pieceNumber == _nbPieces - 1)
+        return _diskManager.getLastPieceLength();
+      return _diskManager.getPieceLength();
+    }
 
-}
+    public boolean validateHandshaking(PeerSocket pc, byte[] peerId) {
+      PeerSocket pcTest = new PeerSocket(this, peerId, pc.getIp(), pc.getPort(), true);
+      synchronized (_connections) {
+        return !_connections.contains(pcTest);
+      }
+    }
+
+    public int getNbPeers() {
+      return _peers;
+    }
+
+    public int getNbSeeds() {
+      return _seeds;
+    }
+
+    public PeerStats getStats() {
+      return _stats;
+    }
+
+    public String getTrackerStatus() {
+      return _trackerStatus;
+    }
+
+    public String getETA() {
+      String remaining;
+      int writtenNotChecked = 0;
+      for (int i = 0; i < _pieces.length; i++) {
+        if (_pieces[i] != null) {
+          writtenNotChecked += _pieces[i].getCompleted() * BLOCK_SIZE;
+        }
+      }
+      long dataRemaining = _diskManager.getRemaining() - writtenNotChecked;
+      if (dataRemaining == 0) {
+        remaining = MessageText.getString("PeerManager.status.finished"); //$NON-NLS-1$
+      }
+      else {
+        int averageSpeed = _averageReceptionSpeed.getAverage();
+        if (averageSpeed < 256) {
+          remaining = "oo"; //$NON-NLS-1$
+        }
+        else {
+          long timeRemaining = dataRemaining / averageSpeed;
+          remaining = TimeFormater.format(timeRemaining);
+        }
+      }
+      return remaining;
+    }
+
+    public void peerAdded(PeerSocket pc) {
+      _manager.objectAdded(pc);
+    }
+
+    public void peerRemoved(PeerSocket pc) {
+      _manager.objectRemoved(pc);
+    }
+
+    public void pieceAdded(Piece p) {
+      _manager.objectAdded(p);
+    }
+
+    public void pieceRemoved(Piece p) {
+      _manager.objectRemoved(p);
+    }
+
+    public String getElpased() {
+      return TimeFormater.format(System.currentTimeMillis() / 1000 - _timeStarted);
+    }
+
+    public String getDownloaded() {
+      return _stats.getTotalReceived();
+    }
+
+    public String getUploaded() {
+      return _stats.getTotalSent();
+    }
+
+    public String getDownloadSpeed() {
+      return _stats.getReceptionSpeed();
+    }
+
+    public String getUploadSpeed() {
+      return _stats.getSendingSpeed();
+    }
+
+    public String getTotalSpeed() {
+      return _stats.getOverAllDownloadSpeed();
+    }
+
+    public int getTrackerTime() {
+      return _timeToWait - (int) (System.currentTimeMillis() / 1000 - _timeLastUpdate);
+    }
+
+    public void pieceChecked(int pieceNumber, boolean result) {
+      this.pieceRemoved(_pieces[pieceNumber]);
+      //  the piece has been written correctly
+      if (result) {
+
+        _pieces[pieceNumber].free();
+        _pieces[pieceNumber] = null;
+
+        //mark this piece as downloaded
+        _downloaded[pieceNumber] = true;
+
+        //send all clients an have message
+        sendHave(pieceNumber);
+
+      }
+      else {
+
+        _pieces[pieceNumber].free();
+        _pieces[pieceNumber] = null;
+
+        //Mark this piece as non downloading
+        _downloading[pieceNumber] = false;
+      }
+    }
+
+    public void enqueueReadRequest(DataQueueItem item) {
+      _diskManager.enqueueReadRequest(item);
+    }
+
+    /**
+     * @return
+     */
+    public List get_connections() {
+      return _connections;
+    }
+
+    public Piece[] getPieces() {
+      return _pieces;
+    }
+
+    public int getDownloadPriority() {
+      return _manager.getPriority();
+    }
+
+    public void freeRequest(DataQueueItem item) {
+      synchronized (requestsToFree) {
+        requestsToFree.add(item);
+      }
+    }
+
+    private void freeRequests() {
+      if (requestsToFree == null)
+        return;
+      synchronized (requestsToFree) {
+        for (int i = 0; i < requestsToFree.size(); i++) {
+          DataQueueItem item = (DataQueueItem) requestsToFree.get(i);
+          if (item.isLoaded()) {
+            requestsToFree.remove(item);
+            i--;
+            ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+          }
+          if (!item.isLoading()) {
+            requestsToFree.remove(item);
+            i--;
+          }
+        }
+      }
+    }
+
+    public boolean isOptimisticUnchoke(PeerSocket pc) {
+      return pc == currentOptimisticUnchoke;
+    }
+
+  }

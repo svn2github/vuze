@@ -43,14 +43,12 @@ public class PeerSocket extends PeerConnection {
   public PeerSocket(PeerManager manager, byte[] peerId, String ip, int port, boolean fake) {
     super(manager, peerId, ip, port);
     if (fake) {
-      this.fake = true;
       return;
     }
     initialize();
   }
 
   public void initialize() {
-    this.fake = false;
     this.incoming = false;
     allocateAll();
 //    logger.log(componentID, evtLifeCycle, Logger.INFORMATION, "Creating outgoing connection to " + ip + " : " + port);
@@ -949,7 +947,7 @@ public class PeerSocket extends PeerConnection {
   private int used;
   private int loopFactor;
 
-  private boolean fake = false;
+  //private boolean fake = false;
 
   //The keepAlive counter
   private int keepAlive;
@@ -1013,13 +1011,6 @@ public class PeerSocket extends PeerConnection {
 
   public boolean isOptimisticUnchoke() {
     return manager.isOptimisticUnchoke(this);
-  }
-
-  /**
-   * @return true, if an incoming connection is not initialized yet
-   */
-  public boolean isFake() {
-    return fake;
   }
 
 }
