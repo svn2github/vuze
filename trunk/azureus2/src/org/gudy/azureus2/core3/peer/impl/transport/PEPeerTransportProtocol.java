@@ -80,9 +80,9 @@ PEPeerTransportProtocol
 
   private HashMap data;
   
-  private boolean choked = true;
+  private boolean choked_by_other_peer = true;
+  private boolean choking_other_peer = true;
   private boolean interested_in_other_peer = false;
-  private boolean choking = true;
   private boolean other_peer_interested_in_me = false;
   private boolean snubbed = false;
   private boolean[] other_peer_has_pieces;
@@ -1156,7 +1156,8 @@ StateTransfering
 	  			throw new IOException("End of Stream Reached");
 	  		}
 	  		else {
-	  		  if (message_read_buff.limit(DirectByteBuffer.SS_PEER) > 13) {
+	  		  if( message_read_buff.limit(DirectByteBuffer.SS_PEER) > 13 &&
+              connection_state != PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD ) {
 	  		    stats.received(read);
 	  		  }
 	  		}
@@ -1230,22 +1231,24 @@ StateTransfering
 	return 0;
   }
 
-  public int getPercentDone() {
-	int sum = 0;
-	if ( other_peer_has_pieces == null ){
-		return(0);
-	}
-	for (int i = 0; i < other_peer_has_pieces.length; i++) {
-	  if (other_peer_has_pieces[i])
-		sum++;
-	}
+  
+  public int getPercentDoneInThousandNotation() {
+    if( other_peer_has_pieces == null ) {  return 0;  }
+    
+    int sum = 0;
+    for( int i=0; i < other_peer_has_pieces.length; i++ ) {
+      if( other_peer_has_pieces[i] ) {
+        sum++;
+      }
+    }
 
-	sum = (sum * 1000) / other_peer_has_pieces.length;
-	return sum;
+    sum = (sum * 1000) / other_peer_has_pieces.length;
+    return sum;
   }
+  
 
   public boolean transferAvailable() {
-	return (!choked && interested_in_other_peer);
+    return (!choked_by_other_peer && interested_in_other_peer);
   }
 
   
@@ -1274,7 +1277,7 @@ StateTransfering
         if( logging_is_on ) {
           LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is choking you" );
         }
-        choked = true;
+        choked_by_other_peer = true;
         cancelRequests();
         message_buff.returnToPool();
         return true;
@@ -1287,7 +1290,7 @@ StateTransfering
         if( logging_is_on ) {
           LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " is unchoking you" );
         }
-        choked = false;
+        choked_by_other_peer = false;
         message_buff.returnToPool();
         return true;
       case BT_INTERESTED :
@@ -1357,7 +1360,7 @@ StateTransfering
         }
 
         if( manager.checkBlock( pieceNumber, pieceOffset, pieceLength ) ) {
-          if( !choking ) {
+          if( !choking_other_peer ) {
             outgoing_piece_message_handler.addPieceRequest( pieceNumber, pieceOffset, pieceLength );
           }
           else {
@@ -1589,14 +1592,14 @@ StateTransfering
   	if ( getState() != TRANSFERING ) return;
     outgoing_piece_message_handler.removeAllPieceRequests();
     connection.getOutgoingMessageQueue().addMessage( new BTChoke(), false );
-  	choking = true;
+    choking_other_peer = true;
   }
 
   
   public void sendUnChoke() {
     if ( getState() != TRANSFERING ) return;
     connection.getOutgoingMessageQueue().addMessage( new BTUnchoke(), false );
-    choking = false;
+    choking_other_peer = false;
   }
 
 
@@ -1608,7 +1611,7 @@ StateTransfering
   
   private void setBitField(DirectByteBuffer buffer) {
 	byte[] dataf = new byte[(manager.getPiecesNumber() + 7) / 8];
-   
+     
 	if (buffer.remaining(DirectByteBuffer.SS_PEER) < dataf.length) {
      LGLogger.log(componentID, evtProtocol, LGLogger.ERROR, 
                   toString() + " has sent invalid BitField: too short");
@@ -1729,18 +1732,13 @@ StateTransfering
   public PEPeerStats getStats() {  return stats;  }
   
   public boolean[] getAvailable() {  return other_peer_has_pieces;  }
-  public boolean isChoked() {  return choked;  }
-  public boolean isChoking() {  return choking;  }
-  public boolean isInterested() {  return interested_in_other_peer;  }
-  public boolean isInteresting() {  return other_peer_interested_in_me;  }
+  
+  public boolean isChokingMe() {  return choked_by_other_peer;  }
+  public boolean isChokedByMe() {  return choking_other_peer;  }
+  public boolean isInterestingToMe() {  return interested_in_other_peer;  }
+  public boolean isInterestedInMe() {  return other_peer_interested_in_me;  }
   public boolean isSeed() {  return seed;  }
   public boolean isSnubbed() {  return snubbed;  }
-
-  public void setChoked(boolean b) {  choked = b;  }
-  public void setChoking(boolean b) {  choking = b;  }
-  public void setInterested(boolean b) {  interested_in_other_peer = b;  }
-  public void setInteresting(boolean b) {  other_peer_interested_in_me = b;  }
-  public void setSeed(boolean b) {  seed = b;  }
   public void setSnubbed(boolean b) {  snubbed = b;  }
 
   //TODO: remove abstract methods
@@ -2038,7 +2036,7 @@ StateTransfering
         return false;
       }
       
-      if( wait_time > 2*60*1000 ) { //2min timeout
+      if( wait_time > 3*60*1000 ) { //3min timeout
         String phase = connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ? "handshaking" : "bitfield";
         closeAll( toString() + ": Timed out while waiting in " +phase+ " phase", true, true );
         return true;
