@@ -42,7 +42,6 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   
   protected Image bufferImage;
   
-  private int max = 1;
   private int average = 0;
   private int nbValues = 0;
   
@@ -71,10 +70,6 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   
   public void addIntValue(int value) {
     synchronized(this) {
-	    if(value > max) {
-	      max = value;
-	      scale.setMax(max);
-	    }
 	    average += value - values[currentPosition];
 	    values[currentPosition++] = value;
 	    
@@ -128,10 +123,19 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       
       gcImage.drawImage(bufferScale,0,0);
       
-      int oldAverage = 0;
-      int maxHeight = scale.getScaledValue(max);
+      int oldAverage = 0;      
       Color background = Colors.blues[Colors.BLUES_DARKEST];
       Color foreground = Colors.blues[Colors.BLUES_MIDLIGHT];
+      int max = 0;
+      for(int x = 0 ; x < bounds.width - 71 ; x++) {
+        int position = currentPosition - x -1;
+        if(position < 0)
+          position+= 2000;
+        int value = values[position];
+        if(value > max) max = value;
+      }
+      scale.setMax(max);
+      int maxHeight = scale.getScaledValue(max);
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
         if(position < 0)
