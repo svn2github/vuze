@@ -95,8 +95,13 @@ public class DiskManager {
     }
     Thread init = new Thread() {
       public void run() {
-        initialize();
-        if (state == DiskManager.FAULTY) {
+        try {
+          initialize();
+        } catch(Exception e) {
+          e.printStackTrace();
+          state = DiskManager.FAULTY;
+        }
+        if (state == DiskManager.FAULTY || bContinue == false) {
           stopIt();
         }
       }
@@ -611,6 +616,18 @@ public class DiskManager {
       //Test if files exists
       RandomAccessFile raf = null;
 
+      FileInfo fileInfo = new FileInfo();
+      fileInfo.setPath(tempPath);
+      fileInfo.setName(tempName);
+      int separator = tempName.lastIndexOf('.');
+      if (separator == -1)
+        separator = 0;
+      fileInfo.setExtension(tempName.substring(separator));
+      fileInfo.setLength(length);
+      fileInfo.setDownloaded(0);
+      fileInfo.setFile(f);
+      fileInfo.setAccessmode(FileInfo.WRITE);
+
       if (!(f.exists() && f.length() == length)) {
         //File doesn't exist
         buildDirectoryStructure(tempPath);
@@ -622,11 +639,23 @@ public class DiskManager {
         } catch (Exception e) {
           this.state = FAULTY;
           this.errorMessage = e.getMessage();
+          if(raf != null) {
+            try {
+              raf.close();
+            } catch (IOException ignore) {
+            }
+          }
           return false;
         }
 
-        if (ConfigurationManager.getInstance().getBooleanParameter("Allocate New", true))
-          clearFile(raf);
+        if (ConfigurationManager.getInstance().getBooleanParameter("Allocate New", true)) {
+          if(!clearFile(raf)) {
+            try {
+              raf.close();
+            } catch (IOException ignore) {
+            }
+          }
+        }
         newFiles = true;
       } else {
         try {
@@ -641,18 +670,7 @@ public class DiskManager {
 
       //add the file to the array
 
-      FileInfo fileInfo = new FileInfo();
-      fileInfo.setPath(tempPath);
-      fileInfo.setName(tempName);
-      int separator = tempName.lastIndexOf(".");
-      if (separator == -1)
-        separator = 0;
-      fileInfo.setExtension(tempName.substring(separator));
-      fileInfo.setLength(length);
-      fileInfo.setDownloaded(0);
-      fileInfo.setFile(f);
       fileInfo.setRaf(raf);
-      fileInfo.setAccessmode(FileInfo.WRITE);
       files[i] = fileInfo;
 
       //setup this files RAF reference
@@ -661,7 +679,7 @@ public class DiskManager {
     return newFiles;
   }
 
-  private void clearFile(RandomAccessFile file) {
+  private boolean clearFile(RandomAccessFile file) {
     FileChannel fc = file.getChannel();
     long length = 0;
     try {
@@ -669,26 +687,28 @@ public class DiskManager {
     } catch (IOException e) {
       this.state = FAULTY;
       this.errorMessage = e.getMessage();
-      return;
+      return false;
     }
-    long writen = 0;
+    long written = 0;
     synchronized (file) {
       try {
         fc.position(0);
-        while (writen < length && bContinue) {
+        while (written < length && bContinue) {
           allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
-          if ((length - writen) < allocateAndTestBuffer.remaining())
-            allocateAndTestBuffer.limit((int) (length - writen));
-          int deltaWriten = fc.write(allocateAndTestBuffer);
+          if ((length - written) < allocateAndTestBuffer.remaining())
+            allocateAndTestBuffer.limit((int) (length - written));
+          int deltaWritten = fc.write(allocateAndTestBuffer);
           allocateAndTestBuffer.position(0);
-          writen += deltaWriten;
-          allocated += deltaWriten;
+          written += deltaWritten;
+          allocated += deltaWritten;
           percentDone = (int) ((allocated * 1000) / totalLength);
         }
       } catch (Exception e) {
         e.printStackTrace();
+        return false;
       }
     }
+    return true;
   }
 
   private void buildDirectoryStructure(String file) {
@@ -998,43 +1018,6 @@ public class DiskManager {
     }
 
     ByteBufferPool.getInstance().freeBuffer(buffer);
-  }
-
-  public void updateResumeInfo() {
-    FileOutputStream fos = null;
-    try {
-      //  TODO CLEAN UP
-      //build the piece byte[] 
-      byte[] resumeData = new byte[pieceDone.length];
-      for (int i = 0; i < resumeData.length; i++) {
-        if (pieceDone[i] == false) {
-          resumeData[i] = (byte) 0;
-        } else {
-          resumeData[i] = (byte) 1;
-        }
-      }
-
-      //Attach the resume data
-      metaData.put("resume data", resumeData);
-
-      //TODO:: CLEAN UP - fix the conversion to a string...
-      //open the torrent file       
-      File torrent = new File(new String((byte[]) metaData.get("torrent filename"), Constants.DEFAULT_ENCODING));
-      //re-encode the data
-      byte[] torrentData = BEncoder.encode(metaData);
-      //open a file stream
-      fos = new FileOutputStream(torrent);
-      //write the data out
-      fos.write(torrentData);
-    } catch (Exception e) {
-      e.printStackTrace();
-    } finally {
-      try {
-        if (fos != null)
-          fos.close();
-      } catch (Exception e) {
-      }
-    }
   }
 
   public byte[] readDataBloc(int pieceNumber, int offset, int length) {
