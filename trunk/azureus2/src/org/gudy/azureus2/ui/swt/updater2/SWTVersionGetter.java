@@ -32,6 +32,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 /**
@@ -40,6 +41,15 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDown
  */
 public class SWTVersionGetter {
   
+	 public static String[] swtURLProviders = {
+	 	      "http://azureus.sourceforge.net/swt_version.php",
+	 	      "http://azureus.aelitis.com/swt_version.php",
+	 	      "http://www.keecall.com/azureus/swt_version.php",
+	 	      "http://www.gudy.org/azureus/swt_version.php"
+	 	  };
+	 	  
+	 public static final int	VERSION_TIMEOUT_MILLIS	= 30000;
+	 
   private String platform;
   private int index;
   
@@ -65,12 +75,17 @@ public class SWTVersionGetter {
   }
   
   private void downloadLatestVersion() {
-    String url = SWTUpdateChecker. swtURLProviders[index];
+    String url = swtURLProviders[index];
     String downloadURL = url + "?platform=" + platform;
     LGLogger.log("Requesting latest SWT version/mirrors by opening URL : " + downloadURL);
     try {
-      ResourceDownloader downloader = ResourceDownloaderFactoryImpl.getSingleton().create(new URL(downloadURL));
-    	  processData(downloader.download());
+      ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
+      
+      ResourceDownloader downloader = rdf.create(new URL(downloadURL));
+      
+      downloader = rdf.getTimeoutDownloader(downloader, VERSION_TIMEOUT_MILLIS );
+      
+      processData(downloader.download());
     } catch(Exception e) {
       nextTry();
     }
@@ -78,7 +93,7 @@ public class SWTVersionGetter {
   
   private void nextTry() {
     index++;
-    if(index >= SWTUpdateChecker.swtURLProviders.length) {
+    if(index >= swtURLProviders.length) {
       return;
     }
     downloadLatestVersion();

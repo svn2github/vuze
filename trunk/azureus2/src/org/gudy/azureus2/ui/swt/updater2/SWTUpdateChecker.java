@@ -40,7 +40,7 @@ import org.gudy.azureus2.plugins.update.UpdateInstaller;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
@@ -50,14 +50,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
  */
 public class SWTUpdateChecker implements UpdatableComponent
 {
-  
-  public static String[] swtURLProviders = {
-      "http://azureus.sourceforge.net/swt_version.php",
-      "http://azureus.aelitis.com/swt_version.php",
-      "http://www.keecall.com/azureus/swt_version.php",
-      "http://www.gudy.org/azureus/swt_version.php"
-  };
-  
   public static void
   initialize()
   {
@@ -74,9 +66,8 @@ public class SWTUpdateChecker implements UpdatableComponent
         
         String[] mirrors = versionGetter.getMirrors();
 	      
-	      //TODO : Create the correct downloader for the URLs ...
 	      ResourceDownloader swtDownloader = null;
-	      try {
+	      
           ResourceDownloaderFactory factory = ResourceDownloaderFactoryImpl.getSingleton();
           List downloaders =  new ArrayList();
           for(int i = 0 ; i < mirrors.length ; i++) {
@@ -92,36 +83,24 @@ public class SWTUpdateChecker implements UpdatableComponent
             downloaders.toArray(new ResourceDownloader[downloaders.size()]);
           
           swtDownloader = factory.getRandomDownloader(resourceDownloaders);
-          
-	      } catch(Exception e) {
-	        e.printStackTrace();
-	      }
-	      
-	      swtDownloader.addListener(new ResourceDownloaderListener() {
+          	      
+	      swtDownloader.addListener(new ResourceDownloaderAdapter() {
 	        
 	        public boolean completed(ResourceDownloader downloader, InputStream data) {
 	          //On completion, process the InputStream to store temp files
 	          return processData(checker,data);
 	        }
-	        
-	        public void failed(ResourceDownloader downloader,
-	            ResourceDownloaderException e) {
-	          // We're not interested in failure
-	
-	        }
-	
-	        public void reportActivity(ResourceDownloader downloader,
-	            String activity) {
-	          // We're not interested in activity
-	
-	        }
-	
-	        public void reportPercentComplete(ResourceDownloader downloader,
-	            int percentage) {
-	          // We're not interested in percent
-	
-	        }
 	      });
+	      
+	      	// get the size so its cached up
+	      
+	      try{
+	      	swtDownloader.getSize();
+	      	
+	      }catch( ResourceDownloaderException e ){
+	      
+	      	e.printStackTrace();
+	      }
 	      
 	      checker.addUpdate("SWT Libray for " + versionGetter.getPlatform(),
 	          new String[] {"SWT is the graphical library used by Azureus"},
@@ -131,6 +110,12 @@ public class SWTUpdateChecker implements UpdatableComponent
 	          );      
 	      
 	    }
+  	}catch( Throwable e ){
+  		
+  		LGLogger.log( "SWT Version check failed", e );
+  		
+  		checker.failed();
+  		
   	}finally{
   		
   		checker.completed();
