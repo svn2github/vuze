@@ -27,7 +27,7 @@ public class LegacyHashtable extends Hashtable {
     if (containsKey(key))
       return super.get(key);
     else
-      return key;
+      return "";
   }
   
 }
