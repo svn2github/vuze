@@ -73,11 +73,11 @@ PEPeerTransportProtocol
   private HashMap data;
   
   private boolean choked;
-  private boolean interested;
+  private boolean interested_in_other_peer;
   private boolean choking;
-  private boolean interesting;
+  private boolean other_peer_interested_in_me;
   private boolean snubbed;
-  private boolean[] available;
+  private boolean[] other_peer_has_pieces;
   private boolean seed;
 
 	//The reference to the current ByteBuffer used for reading on the socket.
@@ -94,6 +94,8 @@ PEPeerTransportProtocol
   private Connection connection;
   private OutgoingMessageQueue outgoing_message_queue;
   private OutgoingBTPieceMessageHandler outgoing_piece_message_handler;
+  private OutgoingBTHaveMessageAggregator outgoing_have_message_aggregator;
+  
   private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
   
   //The client name identification	
@@ -213,12 +215,12 @@ PEPeerTransportProtocol
   private void allocateAll() {
   	seed = false;
   	choked = true;
-  	interested = false;
+  	interested_in_other_peer = false;
   	requested = new ArrayList();
   	choking = true;
-  	interesting = false;
-  	available = new boolean[manager.getPiecesNumber()];
-  	Arrays.fill(available, false);
+  	other_peer_interested_in_me = false;
+  	other_peer_has_pieces = new boolean[manager.getPiecesNumber()];
+  	Arrays.fill(other_peer_has_pieces, false);
   	stats = (PEPeerStatsImpl)manager.createPeerStats();
   	this.closing = false;
   	this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
@@ -411,8 +413,15 @@ PEPeerTransportProtocol
     
     if( outgoing_piece_message_handler != null ) {
       outgoing_piece_message_handler.removeAllPieceRequests();
+      outgoing_piece_message_handler.destroy();
       outgoing_piece_message_handler = null;
     }
+    
+    if( outgoing_have_message_aggregator != null ) {
+      outgoing_have_message_aggregator.destroy();
+      outgoing_have_message_aggregator = null;
+    }
+    
     
     if( connection != null ) {
       manager.getConnectionPool().removeConnection( connection );
@@ -691,17 +700,17 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 
   public int getPercentDone() {
 	int sum = 0;
-	for (int i = 0; i < available.length; i++) {
-	  if (available[i])
+	for (int i = 0; i < other_peer_has_pieces.length; i++) {
+	  if (other_peer_has_pieces[i])
 		sum++;
 	}
 
-	sum = (sum * 1000) / available.length;
+	sum = (sum * 1000) / other_peer_has_pieces.length;
 	return sum;
   }
 
   public boolean transferAvailable() {
-	return (!choked && interested);
+	return (!choked && interested_in_other_peer);
   }
 
   private void analyseBuffer(DirectByteBuffer buffer) {
@@ -738,7 +747,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
 			                                  toString() + " is interested");
-			interesting = true;
+			other_peer_interested_in_me = true;
 			readMessage(buffer);
 			break;
 	  case BT_UNINTERESTED :
@@ -748,7 +757,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 			if ( logging_is_on ) LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED,
 			                                  toString() + " is not interested");
-			interesting = false;
+			other_peer_interested_in_me = false;
+      
+      //force send any pending haves in case one of them would make the other peer interested again
+      if( outgoing_have_message_aggregator != null )  outgoing_have_message_aggregator.forceSendOfPending();
+      
 			readMessage(buffer);
 			break;
 	  case BT_HAVE :
@@ -879,27 +892,27 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   }
 
   private void have(int pieceNumber) {
-	if ((pieceNumber >= available.length) || (pieceNumber < 0)) {
-	   closeAll(toString() + " gave invalid pieceNumber:" + pieceNumber,true, true);
-      return;
-	}
-	else {    
-	  available[pieceNumber] = true;
-    int pieceLength = manager.getPieceLength(pieceNumber);
-	  stats.haveNewPiece(pieceLength);
-	  manager.havePiece(pieceNumber, pieceLength, this);
-	  if (!interested)
-		 checkInterested(pieceNumber);
-	  checkSeed();
-	}
+    if ((pieceNumber >= other_peer_has_pieces.length) || (pieceNumber < 0)) {
+      closeAll(toString() + " gave invalid pieceNumber:" + pieceNumber,true, true);
+    }
+    else {    
+      other_peer_has_pieces[pieceNumber] = true;
+      int pieceLength = manager.getPieceLength(pieceNumber);
+      stats.haveNewPiece(pieceLength);
+      manager.havePiece(pieceNumber, pieceLength, this);
+      if (!interested_in_other_peer) {
+        checkInterested(pieceNumber);
+      }
+      checkSeed();
+    }
   }
 
   /**
 	 * Checks if it's a seed or not.
 	 */
   private void checkSeed() {
-	for (int i = 0; i < available.length; i++) {
-	  if (!available[i])
+	for (int i = 0; i < other_peer_has_pieces.length; i++) {
+	  if (!other_peer_has_pieces[i])
 		return;
 	}
 	seed = true;
@@ -932,7 +945,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   
   public void sendHave( int pieceNumber ) {
 		if ( getState() != TRANSFERING ) return;
-    outgoing_message_queue.addMessage( new BTHave( pieceNumber ) );
+    //only force if the other peer doesn't have this piece and is not yet interested
+    boolean force = !other_peer_has_pieces[ pieceNumber ] && !other_peer_interested_in_me;
+    outgoing_have_message_aggregator.queueHaveMessage( pieceNumber, force );
 		checkInterested();
 	}
 
@@ -968,17 +983,17 @@ private class StateTransfering implements PEPeerTransportProtocolState {
    }
    
 	buffer.get(dataf);
-	for (int i = 0; i < available.length; i++) {
+	for (int i = 0; i < other_peer_has_pieces.length; i++) {
 	  int index = i / 8;
 	  int bit = 7 - (i % 8);
 	  byte bData = dataf[index];
 	  byte b = (byte) (bData >> bit);
 	  if ((b & 0x01) == 1) {
-	    available[i] = true;
+	    other_peer_has_pieces[i] = true;
 	    manager.updateSuperSeedPiece(this,i);
 	  }
 	  else {
-		available[i] = false;
+      other_peer_has_pieces[i] = false;
 	  }
 	}
   }
@@ -992,18 +1007,18 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		boolean newInterested = false;
 		boolean[] myStatus = manager.getPiecesStatus();
 		for (int i = 0; i < myStatus.length; i++) {
-			if ( !myStatus[i] && available[i] ) {
+			if ( !myStatus[i] && other_peer_has_pieces[i] ) {
 				newInterested = true;
 				break;
 			}
 		}
-		if ( newInterested && !interested ) {
+		if ( newInterested && !interested_in_other_peer ) {
       outgoing_message_queue.addMessage( new BTInterested() );
 		}
-    else if ( !newInterested && interested ) {
+    else if ( !newInterested && interested_in_other_peer ) {
       outgoing_message_queue.addMessage( new BTUninterested() );
 		}
-		interested = newInterested;
+		interested_in_other_peer = newInterested;
 	}
 
   
@@ -1014,13 +1029,13 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   private void checkInterested( int pieceNumber ) {
 		boolean[] myStatus = manager.getPiecesStatus();
 		boolean newInterested = !myStatus[ pieceNumber ];
-		if ( newInterested && !interested ) {
+		if ( newInterested && !interested_in_other_peer ) {
       outgoing_message_queue.addMessage( new BTInterested() );
 		}
-    else if ( !newInterested && interested ) {
+    else if ( !newInterested && interested_in_other_peer ) {
       outgoing_message_queue.addMessage( new BTUninterested() );
 		}
-		interested = newInterested;
+		interested_in_other_peer = newInterested;
 	}
   
 
@@ -1072,18 +1087,18 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   public PEPeerManager getManager() {  return manager;  }
   public PEPeerStats getStats() {  return stats;  }
   
-  public boolean[] getAvailable() {  return available;  }
+  public boolean[] getAvailable() {  return other_peer_has_pieces;  }
   public boolean isChoked() {  return choked;  }
   public boolean isChoking() {  return choking;  }
-  public boolean isInterested() {  return interested;  }
-  public boolean isInteresting() {  return interesting;  }
+  public boolean isInterested() {  return interested_in_other_peer;  }
+  public boolean isInteresting() {  return other_peer_interested_in_me;  }
   public boolean isSeed() {  return seed;  }
   public boolean isSnubbed() {  return snubbed;  }
 
   public void setChoked(boolean b) {  choked = b;  }
   public void setChoking(boolean b) {  choking = b;  }
-  public void setInterested(boolean b) {  interested = b;  }
-  public void setInteresting(boolean b) {  interesting = b;  }
+  public void setInterested(boolean b) {  interested_in_other_peer = b;  }
+  public void setInteresting(boolean b) {  other_peer_interested_in_me = b;  }
   public void setSeed(boolean b) {  seed = b;  }
   public void setSnubbed(boolean b) {  snubbed = b;  }
 
@@ -1312,6 +1327,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     
     //link in outgoing piece handler
     outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), outgoing_message_queue );
+    
+    //link in outgoing have message aggregator
+    outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( outgoing_message_queue );
     
     //register bytes sent listener
     outgoing_message_queue.registerByteListener( bytes_sent_listener );
