@@ -22,22 +22,13 @@ package org.gudy.azureus2.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -45,6 +36,11 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
 import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
+
+import java.lang.ref.WeakReference;
+import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 /**
@@ -56,14 +52,23 @@ public class MessagePopupShell implements AnimableShell {
   private Shell shell;
   private Shell detailsShell;  
   Image shellImg;
-  private Display display;  
-  
+  private Display display;
+
   public static final String ICON_ERROR 	= "error";
   public static final String ICON_WARNING 	= "warning";
   public static final String ICON_INFO	 	= "info";
-  
-  public MessagePopupShell(Display display,String icon,String title,String errorMessage,String details) {    
-    this.display = display;    
+
+   private static LinkedList viewStack;
+   private Timer closeTimer;
+
+  static {
+      viewStack = new LinkedList();
+  }
+
+  public MessagePopupShell(Display display,String icon,String title,String errorMessage,String details) {
+    closeTimer = new Timer(true);
+
+    this.display = display;
     detailsShell = new Shell(display,SWT.BORDER | SWT.ON_TOP);
     if(! Constants.isOSX) {
       detailsShell.setImage(ImageRepository.getImage("azureus"));
@@ -130,7 +135,7 @@ public class MessagePopupShell implements AnimableShell {
     Messages.setLanguageText(btnDetails,"popup.error.details");    
     btnDetails.setEnabled(details != null);
     
-    Button btnHide = new Button(shell,SWT.PUSH);
+    final Button btnHide = new Button(shell,SWT.PUSH);
     Messages.setLanguageText(btnHide,"popup.error.hide");    
     
     Label lblImage = new Label(shell,SWT.NULL);
@@ -154,18 +159,13 @@ public class MessagePopupShell implements AnimableShell {
     lblImage.setLayoutData(formData);
     
     shell.layout();
-    
-    
+    shell.setTabList(new Control[] {btnDetails, btnHide});
+
     btnHide.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event arg0) {
-        if(currentAnimator == null) {
-          detailsShell.setVisible(false);
-          detailsShell.forceActive();
-          detailsShell.forceFocus();
-          currentAnimator = new LinearAnimator(MessagePopupShell.this,new Point(x0,y1),new Point(x1,y1),20,30);
-          currentAnimator.start();
-          closeAfterAnimation = true;
-        }
+          btnHide.setEnabled(false);
+          btnDetails.setEnabled(false);
+          hideShell();
       }
     });
     
@@ -183,14 +183,27 @@ public class MessagePopupShell implements AnimableShell {
     y1 = bounds.y + bounds.height - 155;
     
     shell.setLocation(x0,y0);
+    viewStack.addFirst(new WeakReference(this));
     detailsShell.setLocation(x1-detailsShell.getSize().x,y1-detailsShell.getSize().y);
     currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),20,30);
     currentAnimator.start();
     shell.open();
-  }
-  
-  
-  
+    }
+
+    private void hideShell()
+    {
+        if(currentAnimator == null) {
+          closeTimer.cancel();
+          detailsShell.setVisible(false);
+          detailsShell.forceActive();
+          detailsShell.forceFocus();
+          currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x1,y1),20,30);
+          currentAnimator.start();
+          closeAfterAnimation = true;
+        }
+    }
+
+
   private Animator currentAnimator;
   private boolean closeAfterAnimation;
   int x0,y0,x1,y1;
@@ -204,15 +217,58 @@ public class MessagePopupShell implements AnimableShell {
         return;
       display.asyncExec(new AERunnable(){
         public void runSupport() {
+          viewStack.removeFirst();
           shell.dispose();
           detailsShell.dispose();
           shellImg.dispose();          
         }
       });     
     }
+    else {
+        scheduleAutocloseTask();
+    }
   }
 
-  public void animationStarted(Animator source) {   
+   private void scheduleAutocloseTask() {
+       final int delay = COConfigurationManager.getIntParameter("Message Popup Autoclose in Seconds") * 1000;
+        if(delay < 1000)
+            return;
+
+       closeTimer.scheduleAtFixedRate(new TimerTask() {
+           public void run() {
+               display.syncExec(new AERunnable() {
+                    public void runSupport() {
+                        if(shell.isDisposed()) {
+                            closeTimer.cancel();
+                            return;
+                        }
+
+                        final boolean notTopWindow = ((WeakReference)viewStack.getFirst()).get() != MessagePopupShell.this;
+                        final boolean animationInProgress = currentAnimator != null;
+
+                        final Control cc = display.getCursorControl();
+                        boolean mouseOver = (cc == shell);
+                        if(!mouseOver) {
+                            final Control[] childControls = shell.getChildren();
+                            for(int i = 0; i < childControls.length; i++) {
+                                if(childControls[i] == cc) {
+                                    mouseOver = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(notTopWindow || mouseOver || animationInProgress)
+                            return;
+
+                        hideShell();
+                    }
+                });
+           }
+       }, delay, delay);
+   }
+
+  public void animationStarted(Animator source) {
   }
 
   
