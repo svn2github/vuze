@@ -552,13 +552,29 @@ PEPeerTransportProtocol
     	    			
     	    				// request
     	    			
-     	    			socks_out.put((byte)5);				// version			
+    	                socks_out.put((byte)5);				// version			
     	    			socks_out.put((byte)1);				// connect			
       	    			socks_out.put((byte)0);				// reserved			
-     	    			socks_out.put((byte)3);				// address type = domain name			
-     	    			socks_out.put((byte)ip.length());	// address type = domain name			
-     	    			socks_out.put( ip.getBytes()); 	    			    	    			     	    			  	    				
-    	                socks_out.putShort((short)port);    // port
+
+    	                try{
+    	                	
+    	                	byte[]	ip_bytes = InetAddress.getByName(ip).getAddress();
+    	                
+         	    			socks_out.put((byte)1);				// IP4			
+
+    		                socks_out.put(ip_bytes[0]);
+    		                socks_out.put(ip_bytes[1]);
+    		                socks_out.put(ip_bytes[2]);
+    		                socks_out.put(ip_bytes[3]);
+    	                
+    	                }catch( Throwable e ){
+    	                	
+	      	    			socks_out.put((byte)3);				// address type = domain name			
+	     	    			socks_out.put((byte)ip.length());	// address type = domain name			
+	     	    			socks_out.put( ip.getBytes());
+    	                }
+    	                
+	    	            socks_out.putShort((short)port);    // port
 
     	                	// reply has to be processed in two parts as it has
     	                	// a variable length component
@@ -648,8 +664,18 @@ PEPeerTransportProtocol
 	      if( !socks_handshake_read_buff.hasRemaining( DirectByteBuffer.SS_PEER ) ) {
 	      	
 	      	try{
+	      		/*
 	      		socks_handshake_read_buff.position(DirectByteBuffer.SS_PEER ,0);
 	        
+  				byte[]	trace = new byte[socks_handshake_read_buff.limit(DirectByteBuffer.SS_PEER)];
+  				
+  				socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER, trace );
+  				
+  				System.out.println( PEPeerTransportProtocol.this + ":state= " + handshake_phase + ", v5l = " + socks_v5_reply_rem_length + ", data = '" + new String(trace) + "' / " + ByteFormatter.nicePrint(trace) );
+  				*/
+	      		
+  	      		socks_handshake_read_buff.position(DirectByteBuffer.SS_PEER ,0);
+  	      	
 	      		if ( socks_version.equals( "V4" ) || socks_version.equals( "V4a")){
 	      			
 			        byte	ver 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );
@@ -717,8 +743,22 @@ PEPeerTransportProtocol
 				        byte	rep 	= socks_handshake_read_buff.get( DirectByteBuffer.SS_PEER  );		        
 				        
 				        if ( rep != 0 ){
-					
-				        	closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: request failure ( " + rep + ")", true, false );
+				        	
+				        	String	error_msgs[] = {
+				        			"",
+					        		"General SOCKS server failure",			        	
+						            "connection not allowed by ruleset",	
+						            "Network unreachable",	
+						            "Host unreachable",	
+						            "Connection refused",	
+						            "TTL expired",	
+						            "Command not supported",	
+						            "Address type not supported",	
+				        	};
+				        	
+				        	String	error_msg = rep<error_msgs.length?error_msgs[rep]:"Unknown error";
+	
+				        	closeAll( PEPeerTransportProtocol.this + ": SOCKS StateHandshaking: request failure ( " + error_msg + "/" + rep + " )", true, false );
 					        
 							return 0;
 				        }
@@ -749,7 +789,10 @@ PEPeerTransportProtocol
 				        }
 				        
 				        socks_v5_reply_rem_length	= address_len + 2; // 2 for port
-	      			}    
+	      			}else{
+	
+	      				// last part of v5 request
+	      			}
 	      		}
 	      	}finally{
 	      		

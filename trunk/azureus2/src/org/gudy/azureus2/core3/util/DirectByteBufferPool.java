@@ -247,10 +247,12 @@ DirectByteBufferPool
             }
           }
         }
-        
-        buff.clear();   //scrub the buffer
+
+        buff.position( 0 );
         
         buff.limit( _length );
+
+        // buff.clear();   //scrub the buffer
         
         bytesOut += buff.capacity();
               
