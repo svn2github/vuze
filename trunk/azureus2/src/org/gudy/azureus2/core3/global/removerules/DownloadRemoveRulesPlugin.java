@@ -161,50 +161,49 @@ DownloadRemoveRulesPlugin
 		if ( 	status.indexOf( "not authori" ) != -1 ||
 				status.toLowerCase().indexOf( "unauthori" ) != -1 ){
 	
-			if ( !remove_unauthorised.getValue()){
+			if ( remove_unauthorised.getValue() &&
+				 (	(!remove_unauthorised_seeding_only.getValue()) ||
+				 	download_completed )){
+			
+				log.log( "Download '" + download.getName() + "' is unauthorised and removal triggered" );
+			
+				removeDownload( download );
 				
 				return;
 			}
-			
-			if ( remove_unauthorised_seeding_only.getValue() && !download_completed ){
-				
-				return;
-			}
-			
-			log.log( "Download '" + download.getName() + "' is unauthorised and removal triggered" );
-			
-			removeDownload( download );
-			
-		}else{
-			
-			Torrent	torrent = download.getTorrent();
-			
-			if ( torrent != null && torrent.getAnnounceURL() != null ){
-			
-				if ( torrent.getAnnounceURL().toString().toLowerCase().indexOf( "aelitis.com") != -1 ){
+		}
+						
+		Torrent	torrent = download.getTorrent();
 		
-						// emergency instruction from tracker
+		if ( torrent != null && torrent.getAnnounceURL() != null ){
+		
+			if ( torrent.getAnnounceURL().toString().toLowerCase().indexOf( "aelitis.com") != -1 ){
+	
+					// emergency instruction from tracker
+				
+				if ( 	( download_completed && status.indexOf( "too many seeds" ) != -1 ) ||
+						status.indexOf( "too many peers" ) != -1 ){
+		
+					log.log( "Download '" + download.getName() + "' being removed on instruction from the tracker" );
+
+					removeDownloadDelayed( download );
 					
-					if ( 	( download_completed && status.indexOf( "too many seeds" ) != -1 ) ||
-							status.indexOf( "too many peers" ) != -1 ){
-			
-						removeDownloadDelayed( download );
-						
-					}else if ( download_completed && remove_update_torrents.getValue()){
-						
-						long	creation_time	= download.getCreationTime();
-						
-						long	seeds	= download.getLastScrapeResult().getSeedCount();
-												
-							// try to maintain an upper bound on seeds that isn't going to
-							// kill the tracker
-						
-						long	running_hours = ( System.currentTimeMillis() - creation_time )/(60*60*1000);
-						
-						if ( seeds > 20000 && running_hours > 0 ){
-							
-							removeDownloadDelayed( download );							
-						}
+				}else if ( download_completed && remove_update_torrents.getValue()){
+					
+					long	creation_time	= download.getCreationTime();
+					
+					long	seeds	= download.getLastScrapeResult().getSeedCount();
+											
+						// try to maintain an upper bound on seeds that isn't going to
+						// kill the tracker
+					
+					long	running_hours = ( System.currentTimeMillis() - creation_time )/(60*60*1000);
+					
+					if ( seeds > 20000 && running_hours > 0 ){
+
+						log.log( "Download '" + download.getName() + "' being removed to reduce swarm size" );
+					
+						removeDownloadDelayed( download );							
 					}
 				}
 			}
