@@ -174,9 +174,12 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     gridData.horizontalSpan = 2;
     cColorOverride.setLayoutData(gridData);
     
-    String[] sColorsToOverride = { "progressBar", "error" };
+    String[] sColorsToOverride = { "progressBar", "error", "warning", "altRow" };
     Color[] colorsToOverride = { MainWindow.colorProgressBar, 
-                                  MainWindow.colorError };
+                                 MainWindow.colorError,
+                                 MainWindow.colorWarning,
+                                 MainWindow.colorAltRow
+                                  };
 
     for (int i = 0; i < sColorsToOverride.length; i++) {
       label = new Label(cColorOverride, SWT.NULL);

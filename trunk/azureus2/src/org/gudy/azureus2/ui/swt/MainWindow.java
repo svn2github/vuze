@@ -155,7 +155,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static Color colorShiftLeft;
   public static Color colorShiftRight;
   public static Color colorError;
-  public static Color color2ndRow;
+  public static Color colorAltRow;
   public static Color colorWarning;
   public static Color black;
   public static Color blue;
@@ -450,14 +450,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if (instanceCount == 0) {      
       try {
         allocateDynamicColors();
+        allocateNonDynamicColors();
         
-        black = new Color(display, new RGB(0, 0, 0));
-        blue = new Color(display, new RGB(0, 0, 170));
-        grey = new Color(display, new RGB(170, 170, 170));
-        red = new Color(display, new RGB(255, 0, 0));
-        white = new Color(display, new RGB(255, 255, 255));
-        background = new Color(display , new RGB(248,248,248));
-        red_ConsoleView = new Color(display, new RGB(255, 192, 192));
         handCursor = new Cursor(display, SWT.CURSOR_HAND);
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Error allocating colors");
@@ -1098,6 +1092,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     COConfigurationManager.addParameterListener("Colors.progressBar", this);
     COConfigurationManager.addParameterListener("Colors.error.override", this);
     COConfigurationManager.addParameterListener("Colors.error", this);
+    COConfigurationManager.addParameterListener("Colors.warning.override", this);
+    COConfigurationManager.addParameterListener("Colors.warning", this);
+    COConfigurationManager.addParameterListener("Colors.altRow.override", this);
+    COConfigurationManager.addParameterListener("Colors.altRow", this);
     Tab.addTabKeyListenerToComposite(folder);
     
     gm.startChecker();
@@ -1270,24 +1268,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
         toBeDisposed.dispose();
       }
-
-      hslColor.initHSLbyRGB(tR, tG, tB);
-      int lum = hslColor.getLuminence();
-      if (lum > 127)
-        lum -= 10;
-      else
-        lum += 30; // it's usually harder to see difference in darkness
-      hslColor.setLuminence(lum);
-      color2ndRow = new AllocateColor("2ndRow", 
-                                      new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
-                                      color2ndRow).getColor();
-
-      HSLColor hslBG = new HSLColor();
-      hslBG.initHSLbyRGB(tR, tG, tB);
-      hslColor.initRGBbyHSL(25, 200, lum > 127 ? lum - 128 : lum + 92);
-      colorWarning = new AllocateColor("Warning", 
-                                      new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
-                                      colorWarning).getColor();
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error allocating colors");
       e.printStackTrace();
@@ -2245,7 +2225,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
       Color[] colorsToDispose = { colorInverse, colorShiftLeft, colorShiftRight,
                                   colorError, grey, black, blue, red, white,
-                                  red_ConsoleView, color2ndRow, colorWarning };
+                                  red_ConsoleView, colorAltRow, colorWarning };
       for (int i = 0; i < colorsToDispose.length; i++) {
         if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
           colorsToDispose[i].dispose();
@@ -2693,7 +2673,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-    System.out.println("parameterChanged:"+parameterName);
+    //System.out.println("parameterChanged:"+parameterName);
     if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
       if(tray == null) {
         tray = new TrayWindow(this);
@@ -2718,14 +2698,33 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       allocateColorProgressBar();      
     }
     if(parameterName.startsWith("Colors.error")) {
-      allocateColorError();      
+      allocateColorError();
+    }
+    if(parameterName.startsWith("Colors.warning")) {
+      allocateColorWarning();
+    }
+    if(parameterName.startsWith("Colors.altRow")) {
+      allocateColorAltRow();
     }
   }
   
   private void allocateDynamicColors() {
     allocateBlues();
     allocateColorProgressBar();
+  }
+
+  private void allocateNonDynamicColors() {
+    allocateColorWarning();
     allocateColorError();
+    allocateColorAltRow();
+    
+    black = new Color(display, new RGB(0, 0, 0));
+    blue = new Color(display, new RGB(0, 0, 170));
+    grey = new Color(display, new RGB(170, 170, 170));
+    red = new Color(display, new RGB(255, 0, 0));
+    white = new Color(display, new RGB(255, 255, 255));
+    background = new Color(display , new RGB(248,248,248));
+    red_ConsoleView = new Color(display, new RGB(255, 192, 192));
   }
 
   /**
@@ -2737,6 +2736,35 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   private void allocateColorError() {
     colorError = new AllocateColor("error", new RGB(255, 68, 68), colorError).getColor();
+  }
+
+  private void allocateColorWarning() {
+    Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+    HSLColor hslBG = new HSLColor();
+    hslBG.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(), colorTables.getBlue());
+    int lum = hslBG.getLuminence();
+
+    HSLColor hslColor = new HSLColor();
+    hslColor.initRGBbyHSL(25, 200, lum > 127 ? lum - 128 : lum + 92);
+    colorWarning = new AllocateColor("warning", 
+                                      new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
+                                      colorWarning).getColor();
+  }
+
+  private void allocateColorAltRow() {
+    Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+    HSLColor hslColor = new HSLColor();
+    hslColor.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(), colorTables.getBlue());
+
+    int lum = hslColor.getLuminence();
+    if (lum > 127)
+      lum -= 10;
+    else
+      lum += 30; // it's usually harder to see difference in darkness
+    hslColor.setLuminence(lum);
+    colorAltRow = new AllocateColor("altRow", 
+                                    new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
+                                    colorAltRow).getColor();
   }
 
   /** Allocates a color */

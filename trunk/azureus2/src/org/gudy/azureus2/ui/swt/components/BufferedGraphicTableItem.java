@@ -99,30 +99,35 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
   /** Paint the bar without updating it's data.  Unless the size changed.
    */
   public void doPaint(GC gc) {
+    //debugOut("doPaint()" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())), false);
     //Compute bounds ...
     Rectangle bounds = getBoundsForCanvas();
     //In case item isn't displayed bounds is null
-    if (bounds == null) {
+    if (bounds == null || image == null || image.isDisposed()) {
       return;
     }
 
-    if (image == null) {
-      refresh();
-      return;
-    }
     if (fillCell) {
       Rectangle imageBounds = image.getBounds();
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
-        refresh();
+/*
+        // Enable this for semi-fast visual update with some flicker
+        if (gc != null) {
+          gc.drawImage(image, 0, 0, imageBounds.width, imageBounds.height, 
+                       bounds.x, bounds.y, bounds.width, bounds.height);
+        }
+        // _OR_ enable refresh() for slower visual update with lots of flicker
+        //refresh();
+        
+        // OR, disable both and image will be updated on next graphic bar update
+        
+        // TODO: make config option to choose
+*/
         return;
       }
     }
     
-    if (image == null || image.isDisposed()) {
-      return;
-    }
-
     boolean ourGC = (gc == null);
     if (ourGC) {
       Table table = getTable();

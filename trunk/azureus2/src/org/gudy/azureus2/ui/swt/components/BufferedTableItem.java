@@ -26,6 +26,8 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author Olivier
@@ -91,5 +93,19 @@ public abstract class BufferedTableItem {
 
   public int getPosition() {
     return position;
+  }
+
+  public void debugOut(String s, boolean bStackTrace) {
+    Table table = row.getTable();
+    if (table == null || table.isDisposed())
+      return;
+    TableItem[] ti = table.getSelection();
+    for (int i = 0; i < ti.length; i++) {
+      if (ti[i] == row.getItem()) {
+        System.out.println(i + "-" + ti[i] + ": " + s);
+        if (bStackTrace) Debug.outStackTrace(3);
+        break;
+      }
+    }
   }
 }

@@ -311,7 +311,7 @@ public class Utils {
   public static void alternateTableBackground(Table table) {
     TableItem[] rows = table.getItems();
     Color[] colors = { table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-                       MainWindow.color2ndRow };
+                       MainWindow.colorAltRow };
     for (int i = 0; i < rows.length; i++) {
       Color newColor = colors[i % colors.length];
       if (!rows[i].getBackground().equals(newColor)) {
