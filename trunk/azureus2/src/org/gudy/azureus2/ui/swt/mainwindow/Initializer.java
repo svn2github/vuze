@@ -57,11 +57,14 @@ public class Initializer implements STProgressListener, Application {
   private StartServer startServer;
   
   private ArrayList listeners;
+  private String[] args;
   
-  public Initializer(StartServer server) {
+  public Initializer(StartServer server,String[] args) {
     
     this.listeners = new ArrayList();
+    
     this.startServer = server;
+    this.args = args;
     
     try {
       SWTThread.createInstance(this);
@@ -132,6 +135,11 @@ public class Initializer implements STProgressListener, Application {
     nextTask();
     
     
+    //Finally, open torrents if any.
+    if (args.length != 0) {
+      TorrentOpener.openTorrent( args[0]);
+    }
+    
      
   }
   
@@ -167,7 +175,7 @@ public class Initializer implements STProgressListener, Application {
   }
   
   public static void main(String args[]) {
-    new Initializer(null);
+    new Initializer(null,args);
   }
   
   public void reportCurrentTask(String currentTask) {

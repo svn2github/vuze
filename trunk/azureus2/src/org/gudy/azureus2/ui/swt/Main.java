@@ -27,50 +27,6 @@ public class Main implements ILocaleUtilChooser {
 	
   StartServer startServer;
   
-  public static class StartSocket {
-    public StartSocket(String args[]) {
-//      if(args.length == 0)
-//        return;
-
-      Socket sck = null;
-      PrintWriter pw = null;
-      try {  
-      	LGLogger.log( "Main::startSocket: starting connect to 6880");
-        System.out.println("StartSocket: passing startup args to already-running process.");
-      	
-        sck = new Socket("127.0.0.1", 6880);
-        
-        pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),Constants.DEFAULT_ENCODING));
-        
-        StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING + ";args;");
-        
-        for(int i = 0 ; i < args.length ; i++) {
-          String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
-          buffer.append(arg);
-          buffer.append(';');
-        }
-        
-     	LGLogger.log( "Main::startSocket: sending '" + buffer.toString() + "'");
-     	 
-        pw.println(buffer.toString());
-        pw.flush();
-      } catch(Exception e) {
-        e.printStackTrace();
-      } finally {
-        try {
-          if (pw != null)
-            pw.close();
-        } catch (Exception e) {
-        }
-        try {
-          if (sck != null)
-            sck.close();
-        } catch (Exception e) {
-        }
-      }
-    }
-  }
-  
   public Main(String args[]) {
   	
   	String	mi_str = System.getProperty( PR_MULTI_INSTANCE );
@@ -87,7 +43,7 @@ public class Main implements ILocaleUtilChooser {
     boolean debugGUI = Boolean.getBoolean("debug");
     if( mi || debugGUI) {
       // create a MainWindow regardless to the server state
-      new Initializer(startServer);
+      new Initializer(startServer,args);
       return;
       
     }
@@ -110,14 +66,8 @@ public class Main implements ILocaleUtilChooser {
 
       startServer.pollForConnections();
 
-      new Initializer(startServer);
+      new Initializer(startServer,args);
       
-      if (args.length != 0) {
-
-        TorrentOpener.openTorrent( args[0]);
-      }
-      
-
     }else{
     	
       new StartSocket(args);
