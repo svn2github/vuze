@@ -117,6 +117,11 @@ PluginConfigImpl
 		return config.getBooleanParameter(mapKeyName(name), _default);
 	}
 	
+    public byte[] getByteParameter(String name, byte[] _default )
+    {
+		return config.getByteParameter(mapKeyName(name), _default);
+    }
+
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#getPluginIntParameter(java.lang.String)
 	 */

@@ -133,6 +133,16 @@ PluginConfig
   public boolean getBooleanParameter(String key, boolean _default );
   
   /**
+   * 
+   * @param key
+   * @param _default
+   * @return
+   * @since 2.1.0.2
+   */
+  
+  public byte[] getByteParameter(String key, byte[] _default );
+  
+  /**
    * returns the value of a plugin int parameter
    * @param key the parameter name
    * @return the value or 0 if the parameter doesn't exist

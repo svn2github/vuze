@@ -152,6 +152,20 @@ BasicPluginConfigModelImpl
 		return( res );	
 	}
 	
+	public org.gudy.azureus2.plugins.ui.config.PasswordParameter
+	addPasswordParameter2(
+		String 		key,
+		String 		resource_name,
+		int			encoding_type,	
+		String	 	defaultValue )
+	{
+		PasswordParameterImpl res = new PasswordParameterImpl( pi.getPluginconfig(), key_prefix + key, resource_name, encoding_type, defaultValue );
+		
+		parameters.add( res );
+			
+		return( res );			
+	}
+	
 	public org.gudy.azureus2.plugins.ui.config.IntParameter
 	addIntParameter2(
 		String 		key,
@@ -246,6 +260,16 @@ BasicPluginConfigModelImpl
 				gridData.widthHint = 150;
 
 				swt_param = new StringParameter(gMainTab, key, ((StringParameterImpl)param).getDefaultValue());
+				
+				swt_param.setLayoutData( gridData );
+				
+			}else if ( param instanceof PasswordParameterImpl ){
+				
+				GridData gridData = new GridData();
+				
+				gridData.widthHint = 150;
+
+				swt_param = new PasswordParameter(gMainTab, key, ((PasswordParameterImpl)param).getEncodingType() == PasswordParameterImpl.ET_SHA1 );
 				
 				swt_param.setLayoutData( gridData );
 				

@@ -317,6 +317,9 @@ public class ConfigurationDefaults {
   public void addParameter(String sKey, int iParameter) {
     def.put(sKey, new Long(iParameter));
   }
+  public void addParameter(String sKey, byte[] bParameter) {
+    def.put(sKey, bParameter);
+  }
 
   public void addParameter(String sKey, boolean bParameter) {
     Long lParameter = new Long(bParameter ? 1 : 0);

@@ -247,4 +247,12 @@ COConfigurationManager
   {
   	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
   }
+  
+  public static void
+  setByteDefault(
+  	String	parameter,
+	byte[]	_default )
+  {
+  	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
+  }
 }

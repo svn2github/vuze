@@ -227,6 +227,13 @@ RPPluginConfig
 	  	return( false );
 	  }
 	  
+	  public byte[] getByteParameter(String name, byte[] _default )
+	  {
+	  	notSupported();
+	  	
+	  	return( null );
+	  }
+	   
 	  public int getPluginIntParameter(String key)
 	  {	
 	  	notSupported();

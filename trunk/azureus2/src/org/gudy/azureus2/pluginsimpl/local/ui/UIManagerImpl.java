@@ -207,6 +207,16 @@ UIManagerImpl
 		return( new StringParameterImpl(pi.getPluginconfig(),key,resource_name,defaultValue));
 	}
 	
+	public PasswordParameter
+	addPasswordParameter2(
+		String 		key,
+		String 		resource_name,
+		int			encoding_type,	
+		String	 	defaultValue )
+	{
+		return( new PasswordParameterImpl(pi.getPluginconfig(),key,resource_name,encoding_type, defaultValue));
+	}
+	
 	public IntParameter
 	addIntParameter2(
 		final String 	key,

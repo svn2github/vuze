@@ -75,6 +75,13 @@ BasicPluginConfigModel
 		String 		resource_name,
 		String	 	defaultValue );
 	
+	public PasswordParameter
+	addPasswordParameter2(
+		String 		key,
+		String 		resource_name,
+		int			encoding_type,		// see PasswordParameter.ET_ constants
+		String	 	defaultValue );
+	
 	public IntParameter
 	addIntParameter2(
 		String 		key,

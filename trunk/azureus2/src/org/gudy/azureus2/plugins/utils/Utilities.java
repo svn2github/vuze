@@ -67,4 +67,14 @@ Utilities
 
 	public ResourceDownloaderFactory
 	getResourceDownloaderFactory();
+	
+		/**
+		 * returns the SHA1 hash of the input data
+		 * @param data_in
+		 * @return
+		 */
+	
+	public byte[]
+	calculateSHA1(
+		byte[]		data_in );
 }

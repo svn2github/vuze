@@ -17,12 +17,28 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
  * @author Olivier
  * 
  */
-public class PasswordParameter {
+public class 
+PasswordParameter
+	extends Parameter
+{
 
   String name;
   Text inputField;
 
-  public PasswordParameter(Composite composite,final String name) {
+  public 
+  PasswordParameter(
+  	Composite composite,
+	final String name) 
+  {
+  	this( composite, name, true );
+  }
+  
+  public 
+  PasswordParameter(
+  	Composite 		composite,
+	final String 	name,
+	final boolean	sha1 ) 
+  {
     this.name = name;
     inputField = new Text(composite, SWT.BORDER);
     inputField.setEchoChar('*');
@@ -35,7 +51,7 @@ public class PasswordParameter {
           SHA1Hasher hasher = new SHA1Hasher();
           byte[] password = inputField.getText().getBytes();
           byte[] encoded;
-          if(password.length > 0)
+          if(password.length > 0 && sha1)
             encoded = hasher.calculateHash(password);
           else
             encoded = password;
