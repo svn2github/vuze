@@ -534,15 +534,25 @@ public class TrackerStatus {
         }
       } catch (Exception e) {
       	
+      		// for apache we can get error 414 - URL too long. simplest solution for this
+      		// is to fall back to single scraping
+      	
+      	String	error_message = e.getMessage();
+      	
+      	if ( error_message != null && error_message.indexOf( "414" ) != -1 ){
+      		
+      		bSingleHashScrapes	= true;
+      	}
+      	
         LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
-  									"Error from scrape interface " + scrapeURL + " : " + e);
+  									"Error from scrape interface " + scrapeURL + " : " + Debug.getNestedExceptionMessage(e));
    
         for (int i = 0; i < responses.size(); i++) {
           TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
           response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
                                           FAULTY_SCRAPE_RETRY_INTERVAL);
           response.setStatus(TRTrackerScraperResponse.ST_ERROR,
-                             MessageText.getString("Scrape.status.error") + e);
+                             MessageText.getString("Scrape.status.error") + Debug.getNestedExceptionMessage(e));
           //notifiy listeners
           scraper.scrapeReceived( response );
         }
