@@ -22,14 +22,21 @@ package org.gudy.azureus2.core3.upnp;
 
 import java.util.*;
 
+import org.cybergarage.http.HTTPRequest;
 import org.cybergarage.upnp.Action;
+import org.cybergarage.upnp.Argument;
+import org.cybergarage.upnp.ArgumentList;
 import org.cybergarage.upnp.ControlPoint;
 import org.cybergarage.upnp.Device;
 import org.cybergarage.upnp.DeviceList;
 import org.cybergarage.upnp.Service;
 import org.cybergarage.upnp.ServiceList;
+import org.cybergarage.upnp.UPnPStatus;
 import org.cybergarage.upnp.device.*;
 import org.cybergarage.upnp.ssdp.*;
+import org.cybergarage.upnp.event.*;
+import org.cybergarage.upnp.control.*;
+import org.cybergarage.util.Debug;
 
 /**
  * @author Olivier
@@ -42,6 +49,8 @@ Tests
 	public static void 
 	main(String args[]) 
 	{   
+		Debug.on();
+		
     	final ControlPoint ctrlPoint = new ControlPoint();
     	
     	ctrlPoint.start();
@@ -53,14 +62,18 @@ Tests
 				deviceSearchResponseReceived(SSDPPacket packet) 
 				{			
     				System.out.println(packet.getUSN() + " - " + packet.getST() + " - " + packet.getLocation());
-    
+        				
+    				ctrlPoint.print();
+    				
     				processDevices( "", ctrlPoint.getDeviceList());
 				}
     		};
 
     	ctrlPoint.addSearchResponseListener(listener);
 
-    	ctrlPoint.search("upnp:rootdevice");   
+    	//ctrlPoint.search("upnp:rootdevice");   
+    	
+    	ctrlPoint.search( "urn:schemas-upnp-org:service:WANIPConnection:1" );
     	
 
   
@@ -77,7 +90,7 @@ Tests
 		for(int i =0 ; i < devices.size() ; i++){
 		
 			Device dev = devices.getDevice(i);
-			
+						
 			String devType = dev.getDeviceType();
 				     	
 			System.out.println(indent+"device type:" + devType );
@@ -101,17 +114,51 @@ Tests
 				    System.out.println( indent + "    - action = " + action.getName());
 				    
 				   	if ( action.getName().equals( "AddPortMapping" )){
+		       
+						ArgumentList args = action.getInputArgumentList();
 				   		
-				        action.setArgumentValue("NewRemoteHost","0");
-				        action.setArgumentValue("NewExternalPort","7007");
+				   		for (int z=0;z<args.size();z++){
+				   		
+				   			Argument arg = args.getArgument(z);
+				   			
+				   			System.out.println( "arg=" + arg.getName() + "/" + arg.getValue());
+				   		}
+				   			
+				        //action.setArgumentValue("NewRemoteHost","");
+				        action.setArgumentValue("NewExternalPort",7007);
 				        action.setArgumentValue("NewProtocol","TCP");
-				        action.setArgumentValue("NewInternalPort","7007");
+				        action.setArgumentValue("NewInternalPort",7007);
 				        action.setArgumentValue("NewInternalClient","192.168.0.2");
-				        action.setArgumentValue("NewEnabled","1");
-				        action.setArgumentValue("NewPortMappingDescription","Azureus Port Mapping");
-				        action.setArgumentValue("NewLeaseDuration","0");
+				        action.setArgumentValue("NewEnabled",1);
+				        action.setArgumentValue("NewPortMappingDescription","AZTest");
+				        action.setArgumentValue("NewLeaseDuration",9999);
+				       
+				        action.setActionListener(
+				        		new ActionListener()
+								{
+				        			
+				        			public boolean
+									actionControlReceived(
+										Action	action )
+									{
+				        			
+				        				System.out.println( "control received" );
+				        				
+				        				return( true );
+									}
+									
+				        		});
+				        
+				       
+				        
 				        System.out.println(action.postControlAction());
-				   	}
+				     
+				        UPnPStatus status = action.getStatus();
+				        
+				        System.out.println( "status = " + status.getDescription());
+				        
+				        System.exit(0);
+					}
 				}
 			}
 				      		      		
