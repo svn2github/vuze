@@ -12,6 +12,7 @@
 package org.gudy.azureus2.ui.console;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,11 +25,14 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Vector;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.AddFind;
+import org.gudy.azureus2.ui.console.commands.Alias;
 import org.gudy.azureus2.ui.console.commands.Hack;
 import org.gudy.azureus2.ui.console.commands.IConsoleCommand;
 import org.gudy.azureus2.ui.console.commands.Log;
@@ -52,6 +56,7 @@ import com.aelitis.azureus.core.AzureusCore;
  */
 public class ConsoleInput extends Thread {
 
+	private static final String ALIASES_CONFIG_FILE = "console.aliases.properties";
 	public final AzureusCore azureus_core;
 	public final GlobalManager gm;
 	public final PrintStream out;
@@ -65,6 +70,7 @@ public class ConsoleInput extends Thread {
 	private final Vector oldcommand = new Vector();
 	
 	private final static List pluginCommands = new ArrayList();
+	private final Properties aliases = new Properties();
 	private final Map commands = new LinkedHashMap();
 	private final List helpItems = new ArrayList();
 	private final List extraHelpItems = new ArrayList();	
@@ -95,16 +101,21 @@ public class ConsoleInput extends Thread {
 		Boolean 	_controlling) 
 	{
 		super("Console Input: " + con);
-		out = _out;
+		this.out = _out;
+		this.azureus_core	= _azureus_core;
+		this.gm  			= _azureus_core.getGlobalManager();
+		this.controlling = _controlling.booleanValue();
+		this.br = new CommandReader(_in);
 		registerCommands();
 		registerPluginCommands();
+		try {
+			loadAliases();
+		} catch (IOException e) {
+			out.println("Error while loading aliases: " + e.getMessage());
+		}
 		// populate the old command so that '.' does something sensible first time around
 		oldcommand.add("sh");
 		oldcommand.add("t");
-		azureus_core	= _azureus_core;
-		gm  			= _azureus_core.getGlobalManager();
-		controlling = _controlling.booleanValue();
-		br = new CommandReader(_in);
 		start();
 	}
 
@@ -151,6 +162,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new CommandLogout());
 		registerCommand(new CommandQuit());
 		registerCommand(new CommandHelp());
+//		registerCommand(new Alias());
 	}
 
 	/**
@@ -350,8 +362,35 @@ public class ConsoleInput extends Thread {
 			}
 		}
 	}
-
-	public boolean invokeCommand(String command, List cargs) {		
+	
+	private void loadAliases() throws IOException
+	{
+		PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+		String azureusUserDir = pi.getUtilities().getAzureusUserDir();
+		File aliasesFile = new File(azureusUserDir, ALIASES_CONFIG_FILE);
+		out.println("Attempting to load aliases from: " + aliasesFile.getCanonicalPath());
+		if ( aliasesFile.exists() )
+		{
+			FileInputStream fr = new FileInputStream(aliasesFile);
+			aliases.clear();
+			try {
+				aliases.load(fr);
+			} finally {
+				fr.close();
+			}
+		}
+	}
+	
+	
+	public boolean invokeCommand(String command, List cargs) {
+		if( command.startsWith("\\") )
+			command = command.substring(1);
+		else if( aliases.containsKey(command) )
+		{
+			List list = br.parseCommandLine(aliases.getProperty(command));
+			String newCommand = list.remove(0).toString().toLowerCase();
+			return invokeCommand(newCommand, list);
+		}
 		if (commands.containsKey(command)) {
 			IConsoleCommand cmd = (IConsoleCommand) commands.get(command);
 			try {
@@ -370,31 +409,31 @@ public class ConsoleInput extends Thread {
 
 	public void run() {
 		String command;
-		Vector comargs = new Vector();
+		List comargs;
 		running = true;
 		while (running) {
 			try {
-				br.readLine();
-				comargs = (Vector) br.commandargs.clone();
+				String line = br.readLine();
+				comargs = br.parseCommandLine(line);
 			} catch (Exception e) {
+				out.println("Stopping console input reader because of exception: " + e.getMessage());
 				running = false;
+				break;
 			}
 			if (!comargs.isEmpty()) {
-				command = (String) comargs.get(0);
-				if (oldcommand != null) {
-					if (command.equals("."))
-					{
+				command = ((String) comargs.get(0)).toLowerCase();
+				if( ".".equals(command) )
+				{
+					if (oldcommand != null) {
 						comargs.clear();
 						comargs.addAll(oldcommand);
-					}
-				} else {
-					if (command.equals("."))
+					} else {
 						out.println("No old command. Remove commands are not repeated to prevent errors");
+					}
 				}
 				oldcommand.clear();
 				oldcommand.addAll(comargs);
-				command = comargs.get(0).toString().toLowerCase();
-				comargs.removeElementAt(0);
+				comargs.remove(0);
 				if (!invokeCommand(command, comargs)) {
 					out.println("> Command '" + command + "' unknown (or . used without prior command)");
 				}
