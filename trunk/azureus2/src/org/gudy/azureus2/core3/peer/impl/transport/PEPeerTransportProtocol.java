@@ -1551,32 +1551,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     return hashcode;
   }
   
-  
-  
-  /*
-	public boolean equals(Object o) {
-		if (!(o instanceof PEPeerImpl))
-		  return false;
-		PEPeerImpl p = (PEPeerImpl) o;
-		//At least the same instance is equal to itself :p
-		if (this == p)
-		  return true;
-		if (!(p.ip).equals(this.ip))
-		  return false;		
-		//same ip, we'll check peerId
-		byte[] otherId;
-		if (this.id == null || (otherId = p.getId()) == null)
-		  return false;
-    
-		//same ip check for config to know if we allow
-		//multiple peers from same ip
-		if(!COConfigurationManager.getBooleanParameter("Allow Same IP Peers",false))
-		  return true;
-		
-		
-		return Arrays.equals(this.id, otherId);
-	  }
-    */
 
 	public PEPeerControl 
 	getControl() {
