@@ -13,7 +13,7 @@ import org.gudy.azureus2.plugins.config2.ConfigProperty;
  * To change the template for this generated type comment go to
  * Window - Preferences - Java - Code Generation - Code and Comments
  */
-public class ConfigPropertyImpl implements ConfigProperty
+public abstract class ConfigPropertyImpl implements ConfigProperty
 {
 	protected String identifier;
 	protected String label;
