@@ -730,6 +730,18 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     });
 
     table.setMenu(menu);
+    table.addKeyListener(new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+        String string = "DOWN";
+        string += ": stateMask=0x" + Integer.toHexString(e.stateMask);
+        if ((e.stateMask & SWT.CTRL) != 0) {
+          if(e.keyCode == 0x1000001)
+            moveSelectedTorrents(1, 0);
+          else if(e.keyCode == 0x1000002)
+            moveSelectedTorrents(0, 1);
+        }
+      }
+    });
 
     //toolBar.setSelection(itemAll);
     /*DropTarget dt = new DropTarget(table,DND.DROP_LINK);
@@ -775,41 +787,45 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         if(event.item == null)
           return;
         int drag_drop_line_end = table.indexOf((TableItem)event.item);
-        if(drag_drop_line_end == drag_drop_line_start)
-          return;
-          
-        TableItem[] tis = table.getSelection();
-        List list = Arrays.asList(tis);
-        final boolean moveDown = drag_drop_line_end > drag_drop_line_start;
-        DownloadManager dm = (DownloadManager) tableItemToObject.get(tis[moveDown ? tis.length-1 : 0]);
-        int lastIndex = dm.getIndex();
-        if (moveDown) {
-          Collections.reverse(list);
-          lastIndex += drag_drop_line_end - drag_drop_line_start + 1;
-        } else {
-          lastIndex -= drag_drop_line_start - drag_drop_line_end + 1;
-        }
-        for (Iterator iter = list.iterator(); iter.hasNext();) {
-          TableItem ti = (TableItem) iter.next();
-          dm = (DownloadManager) tableItemToObject.get(ti);
-          if (dm != null) {
-            if (!moveDown) {
-              for (int j = drag_drop_line_start - drag_drop_line_end; j > 0; j--) {
-                if (dm.isMoveableUp() && dm.getIndex() > lastIndex+1)
-                  dm.moveUp();
-              }
-            } else {
-              for (int j = drag_drop_line_end - drag_drop_line_start; j > 0; j--) {
-                if (dm.isMoveableDown() && dm.getIndex() < lastIndex-1)
-                  dm.moveDown();
-              }
-            }
-            lastIndex = dm.getIndex();
-          }
-        }
-        sorter.orderField("#", true);
+        moveSelectedTorrents(drag_drop_line_start, drag_drop_line_end);
       }
     });
+  }
+
+  private void moveSelectedTorrents(int drag_drop_line_start, int drag_drop_line_end) {
+    if (drag_drop_line_end == drag_drop_line_start)
+      return;
+
+    TableItem[] tis = table.getSelection();
+    List list = Arrays.asList(tis);
+    final boolean moveDown = drag_drop_line_end > drag_drop_line_start;
+    DownloadManager dm = (DownloadManager) tableItemToObject.get(tis[moveDown ? tis.length - 1 : 0]);
+    int lastIndex = dm.getIndex();
+    if (moveDown) {
+      Collections.reverse(list);
+      lastIndex += drag_drop_line_end - drag_drop_line_start + 1;
+    } else {
+      lastIndex -= drag_drop_line_start - drag_drop_line_end + 1;
+    }
+    for (Iterator iter = list.iterator(); iter.hasNext();) {
+      TableItem ti = (TableItem) iter.next();
+      dm = (DownloadManager) tableItemToObject.get(ti);
+      if (dm != null) {
+        if (!moveDown) {
+          for (int j = drag_drop_line_start - drag_drop_line_end; j > 0; j--) {
+            if (dm.isMoveableUp() && dm.getIndex() > lastIndex + 1)
+              dm.moveUp();
+          }
+        } else {
+          for (int j = drag_drop_line_end - drag_drop_line_start; j > 0; j--) {
+            if (dm.isMoveableDown() && dm.getIndex() < lastIndex - 1)
+              dm.moveDown();
+          }
+        }
+        lastIndex = dm.getIndex();
+      }
+    }
+    sorter.orderField("#", true);
   }
 
   /* (non-Javadoc)
