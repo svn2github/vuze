@@ -98,34 +98,54 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
       + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
       + userPath + "\" \"" + libraryPath + "\"";*/
       
-      String exec[] = {
-          javaPath + "java" ,
-          "-classpath",
-          classPath,
-          "-Duser.dir=\"" + userPath + "\"",
-          "org.gudy.azureus2.ui.swt.updater.UpdateSWT",
-          platform,
-          "swtTemp.zip",
-          userPath,
-          libraryPath         
-      };
+      
+      
       
       //System.out.println(exec);
-      String execLog = "";
-      for(int i = 0 ; i < exec.length ; i++) {
-        execLog += exec[i] + "\n";
+      
+      
+          
+      
+                  
+      if(System.getProperty("os.name").equalsIgnoreCase("linux") || System.getProperty("os.name").equalsIgnoreCase("osx")) {
+        File fUpdate = new File(userPath + "/updateSWT");
+        String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
+        + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
+        + userPath + "\" \"" + libraryPath + "\"";
+        FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+        fosUpdate.write(exec.getBytes());
+        fosUpdate.close();
+        Process pChMod = Runtime.getRuntime().exec("chmod 755 " + userPath + "/updateSWT");
+        pChMod.waitFor();
+        Process p = Runtime.getRuntime().exec(userPath + "/updateSWT");
+      } else {
+        String exec[] = {
+            javaPath + "java" ,
+            "-classpath",
+            classPath,
+            "-Duser.dir=\"" + userPath + "\"",
+            "org.gudy.azureus2.ui.swt.updater.UpdateSWT",
+            platform,
+            "swtTemp.zip",
+            userPath,
+            libraryPath         
+        };
+        String execLog = "";
+        for(int i = 0 ; i < exec.length ; i++) {
+          execLog += exec[i] + " ";
+        }
+        
+        LGLogger.log("SWT Updater is about to execute : " + execLog);
+        
+        File f = new File("updateSWT.log");
+        FileOutputStream fosLog = new FileOutputStream(f,true);
+        fosLog.write(("SWT Updater is about to execute : " + execLog + "\n").getBytes());     
+        
+        File userDir = new File(userPath);
+        String[] env = {"user.dir=" + userPath };
+        fosLog.close();
+        Runtime.getRuntime().exec(exec,env,userDir);
       }
-      LGLogger.log("SWT Updater is about to execute : " + execLog);
-      
-      File f = new File("updateSWT.log");
-      FileOutputStream fosLog = new FileOutputStream(f,true);
-      fosLog.write(("SWT Updater is about to execute : " + execLog + "\n").getBytes());         
-      fosLog.close();
-      
-      File userDir = new File(userPath);
-      String[] env = {"user.dir=" + userPath };
-      
-      Runtime.getRuntime().exec(exec,env,userDir);
     } catch(Exception e) {
       e.printStackTrace();
     }
