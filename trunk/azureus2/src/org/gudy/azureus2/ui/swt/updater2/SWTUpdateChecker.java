@@ -22,11 +22,13 @@
  */
 package org.gudy.azureus2.ui.swt.updater2;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.update.UpdatableComponent;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
@@ -75,7 +77,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 	        e.printStackTrace();
 	      }
 	      
-	      /*swtDownloader.addListener(new ResourceDownloaderListener() {
+	      swtDownloader.addListener(new ResourceDownloaderListener() {
 	        
 	        public boolean completed(ResourceDownloader downloader, InputStream data) {
 	          //On completion, process the InputStream to store temp files
@@ -99,7 +101,7 @@ public class SWTUpdateChecker implements UpdatableComponent
 	          // We're not interested in percent
 	
 	        }
-	      });*/
+	      });
 	      
 	      checker.addUpdate("SWT Libray for " + versionGetter.getPlatform(),
 	          new String[] {"SWT is the graphical library used by Azureus"},
@@ -122,8 +124,57 @@ public class SWTUpdateChecker implements UpdatableComponent
       ZipInputStream zip = new ZipInputStream(data);
       ZipEntry entry = null;
       while((entry = zip.getNextEntry()) != null) {
-        System.out.println(entry.getName());        
+        String name = entry.getName();
+        
+        //swt.jar on all platforms ...
+        if(name.equals("swt.jar")) {
+          installer.addResource(name,zip,false);
+          if(Constants.isOSX) {
+            installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/swt.jar");
+          } else {
+            installer.addMoveAction(name,installer.getInstallDir() + File.separator + "swt.jar");
+          }
+          continue;
+        }
+        
+        //on OS X, libswt-carbon-XXXX.jnilib
+        if(name.startsWith("libswt-carbon-")) {
+          installer.addResource(name,zip,false);
+          installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/dll/" + name);
+          continue;
+        }
+        
+        //on OS X, java_swt (the launcher to start SWT applications)
+        if(name.equals("java_swt")) {
+          installer.addResource(name,zip,false);
+          installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/MacOS/" + name);
+          continue;
+        }
+        
+        //on windows, swt-win32-XXXX.dll
+        if(name.startsWith("swt-win32-") && name.endsWith(".dll")) {
+          installer.addResource(name,zip,false);
+          installer.addMoveAction(name,installer.getInstallDir() + "\\" + name);
+          continue;
+        }
+        
+        //on linux, all .jar an .so ;)
+        if(Constants.isLinux) {
+          
+          if(name.endsWith(".jar")) {
+            installer.addResource(name,zip,false);
+            installer.addMoveAction(name,installer.getInstallDir() + "/" + name);
+            continue;
+          }
+          
+          if(name.endsWith(".so")) {
+            installer.addResource(name,zip,false);
+            installer.addMoveAction(name,installer.getInstallDir() + "/" + name);
+            continue;
+          }
+        }
       }
+      zip.close();      
     } catch(Exception e) {
       e.printStackTrace();
       return false;
