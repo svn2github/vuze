@@ -37,7 +37,7 @@ public class ManagerItem {
     this.table = table;
     this.manager = manager;
     initialize();
-  }
+  } 
 
   public TableItem getTableItem() {
     return this.item;
@@ -177,5 +177,17 @@ public class ManagerItem {
       priority = tmp;
       item.setText(10, tmp);
     }
+  }
+  
+  public void setManager(DownloadManager manager) {
+    this.manager = manager;
+  }
+  
+  public int getIndex() {
+    return table.indexOf(item);
+  }
+  
+  public DownloadManager getManager() {
+    return this.manager;
   }
 }

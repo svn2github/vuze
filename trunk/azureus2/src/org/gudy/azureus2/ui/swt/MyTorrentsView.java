@@ -4,19 +4,20 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.text.Collator;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
@@ -52,23 +53,12 @@ public class MyTorrentsView implements IView, IComponentListener {
   private HashMap downloadBars;
 
   public MyTorrentsView(GlobalManager globalManager) {
+    this.ascending = true;
+    this.lastField = "";
     this.globalManager = globalManager;
     managerItems = new HashMap();
     managers = new HashMap();
     downloadBars = MainWindow.getWindow().getDownloadBars();
-  }
-
-  private class TabListener implements Listener {
-
-    public void handleEvent(Event e) {
-      synchronized (managerItems) {
-        Iterator iter = managerItems.keySet().iterator();
-        while (iter.hasNext()) {
-          DownloadManager manager = (DownloadManager) iter.next();
-          checkItem(manager, getCurrentStates());
-        }
-      }
-    }
   }
 
   /* (non-Javadoc)
@@ -82,32 +72,10 @@ public class MyTorrentsView implements IView, IComponentListener {
     layout.verticalSpacing = 0;
     panel.setLayout(layout);
 
-    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-    toolBar = new CTabFolder(panel, SWT.TOP);
-    toolBar.setSelectionBackground(new Color[] { MainWindow.white }, new int[0]);
-    toolBar.setLayoutData(gridData);
-    CTabItem itemAll = new CTabItem(toolBar, SWT.NULL);
-    itemAll.setText("All");
-    itemAll.setControl(new Label(toolBar, SWT.NULL));
-
-    CTabItem itemWaiting = new CTabItem(toolBar, SWT.NULL);
-    itemWaiting.setText("Waiting");
-    itemWaiting.setControl(new Label(toolBar, SWT.NULL));
-
-    CTabItem itemDownloading = new CTabItem(toolBar, SWT.NULL);
-    itemDownloading.setText("Downloading");
-    itemDownloading.setControl(new Label(toolBar, SWT.NULL));
-
-    CTabItem itemSeeding = new CTabItem(toolBar, SWT.NULL);
-    itemSeeding.setText("Seeding");
-    itemSeeding.setControl(new Label(toolBar, SWT.NULL));
-
-    CTabItem itemStopped = new CTabItem(toolBar, SWT.NULL);
-    itemStopped.setText("Stopped");
-    itemStopped.setControl(new Label(toolBar, SWT.NULL));
+    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);    
 
     gridData = new GridData(GridData.FILL_BOTH);
-    table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+    table = new Table(panel, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
     table.setLayoutData(gridData);
     String[] columnsHeader =
       { "Name", "Size", "Done", "Status", "Seeds", "Peers", "Down Speed", "Up Speed", "ETA", "Tracker", "Priority" };
@@ -117,6 +85,19 @@ public class MyTorrentsView implements IView, IComponentListener {
       column.setText(columnsHeader[i]);
       column.setWidth(columnsSize[i]);
     }
+    table.getColumn(0).addListener(SWT.Selection,new StringColumnListener("name"));
+    table.getColumn(1).addListener(SWT.Selection,new IntColumnListener("size"));
+    table.getColumn(2).addListener(SWT.Selection,new IntColumnListener("done"));
+    table.getColumn(3).addListener(SWT.Selection,new IntColumnListener("status"));
+    table.getColumn(4).addListener(SWT.Selection,new IntColumnListener("seeds"));
+    table.getColumn(5).addListener(SWT.Selection,new IntColumnListener("peers"));
+    table.getColumn(6).addListener(SWT.Selection,new StringColumnListener("ds"));
+    table.getColumn(7).addListener(SWT.Selection,new StringColumnListener("us"));
+    table.getColumn(8).addListener(SWT.Selection,new StringColumnListener("eta"));
+    table.getColumn(9).addListener(SWT.Selection,new StringColumnListener("tracker"));
+    table.getColumn(10).addListener(SWT.Selection,new IntColumnListener("priority"));
+    
+    
     table.setHeaderVisible(true);
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
 
@@ -177,7 +158,9 @@ public class MyTorrentsView implements IView, IComponentListener {
             itemStop.setEnabled(false);
             itemRemove.setEnabled(true);
           }
-          if (state == DownloadManager.STATE_WAITING || state == DownloadManager.STATE_STOPPED || state == DownloadManager.STATE_READY) {
+          if (state == DownloadManager.STATE_WAITING
+            || state == DownloadManager.STATE_STOPPED
+            || state == DownloadManager.STATE_READY) {
             itemStart.setEnabled(true);
           }
         }
@@ -197,7 +180,7 @@ public class MyTorrentsView implements IView, IComponentListener {
           if (dm.getState() == DownloadManager.STATE_WAITING || dm.getState() == DownloadManager.STATE_STOPPED) {
             dm.initialize();
           }
-          if(dm.getState() == DownloadManager.STATE_READY) {
+          if (dm.getState() == DownloadManager.STATE_READY) {
             dm.startDownload();
           }
         }
@@ -223,7 +206,7 @@ public class MyTorrentsView implements IView, IComponentListener {
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
           return;
-        }
+        }        
         TableItem ti = tis[0];
         DownloadManager dm = (DownloadManager) managers.get(ti);
         if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
@@ -303,7 +286,7 @@ public class MyTorrentsView implements IView, IComponentListener {
 
     table.setMenu(menu);
 
-    toolBar.setSelection(itemAll);
+    //toolBar.setSelection(itemAll);
 
     globalManager.addListener(this);
   }
@@ -312,7 +295,6 @@ public class MyTorrentsView implements IView, IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
    */
   public Composite getComposite() {
-    // TODO Auto-generated method stub
     return panel;
   }
 
@@ -325,13 +307,11 @@ public class MyTorrentsView implements IView, IComponentListener {
       if (this.panel.isDisposed())
         return;
       DownloadManager manager = (DownloadManager) iter.next();
-      checkItem(manager, getCurrentStates());
       ManagerItem item = (ManagerItem) managerItems.get(manager);
       if (item != null) {
         item.refresh();
       }
     }
-
   }
 
   /* (non-Javadoc)
@@ -362,7 +342,14 @@ public class MyTorrentsView implements IView, IComponentListener {
   public void objectAdded(Object created) {
     if (!(created instanceof DownloadManager))
       return;
-    checkItem((DownloadManager) created, getCurrentStates());
+    DownloadManager manager = (DownloadManager) created;
+    synchronized (managerItems) {
+      ManagerItem item = (ManagerItem) managerItems.get(manager);
+      if (item == null)
+        item = new ManagerItem(table, (DownloadManager) manager);
+      managerItems.put(manager, item);
+      managers.put(item.getTableItem(),manager);
+    }
   }
 
   /* (non-Javadoc)
@@ -380,40 +367,176 @@ public class MyTorrentsView implements IView, IComponentListener {
     }
   }
 
-  public boolean contains(int values[], int value) {
-    for (int i = 0; i < values.length; i++) {
-      if (values[i] == value)
-        return true;
-    }
-    return false;
+  private String getStringField(DownloadManager manager, String field) {
+    if (field.equals("name"))
+      return manager.getName();
+
+    if (field.equals("ds"))
+      return manager.getDownloadSpeed();
+
+    if (field.equals("us"))
+      return manager.getUploadSpeed();
+
+    if (field.equals("eta"))
+      return manager.getETA();
+
+    if (field.equals("tracker"))
+      return manager.getTrackerStatus();
+
+    if (field.equals("priority"))
+      return manager.getName();
+
+    return "";
   }
 
-  public int[] getCurrentStates() {
-    if (toolBar.isDisposed())
-      return new int[0];
-    /*
-    ToolItem items[] = toolBar.getItems();
-    int selected = 0;
-    for (; selected < items.length; selected++) {
-      if (items[selected].getSelection())
-        break;
-    }*/
-    return MyTorrentsView.tabStates[toolBar.getSelectionIndex()];
+  private long getIntField(DownloadManager manager, String field) {
+
+    if (field.equals("size"))
+      return manager.getSize();
+
+    if (field.equals("done"))
+      return manager.getCompleted();
+
+    if (field.equals("status"))
+      return manager.getState();
+
+    if (field.equals("seeds"))
+      return manager.getNbSeeds();
+
+    if (field.equals("peers"))
+      return manager.getNbPeers();
+
+    if (field.equals("priority"))
+      return manager.getPriority();
+
+    return 0;
   }
 
-  public void checkItem(DownloadManager manager, int[] states) {
-    ManagerItem item = (ManagerItem) managerItems.get(manager);
-    int state = ((DownloadManager) manager).getState();
-    if (item == null && contains(states, state))
-      item = new ManagerItem(table, (DownloadManager) manager);
-    if (item != null && !contains(states, state)) {
-      item.delete();
-      managers.remove(item);
-      item = null;
+  //Ordering
+  private boolean ascending;
+  private String lastField;
+
+  private void orderInt(String field) {
+    if (lastField.equals(field))
+      ascending = !ascending;
+    else {
+      lastField = field;
+      ascending = true;
     }
-    managerItems.put(manager, item);
-    if (item != null && item.getTableItem() != null)
-      managers.put(item.getTableItem(), manager);
+    synchronized (managerItems) {
+      List ordered = new ArrayList(managerItems.size());
+      ManagerItem items[] = new ManagerItem[managerItems.size()];
+      Iterator iter = managerItems.keySet().iterator();
+      while (iter.hasNext()) {
+        DownloadManager manager = (DownloadManager) iter.next();
+        ManagerItem item = (ManagerItem) managerItems.get(manager);
+        items[item.getIndex()] = item;
+        long value = getIntField(manager, field);
+        int i;
+        for (i = 0; i < ordered.size(); i++) {
+          DownloadManager manageri = (DownloadManager) ordered.get(i);
+          long valuei = getIntField(manageri, field);
+          if (ascending) {
+            if (valuei >= value)
+              break;
+          }
+          else {
+            if (valuei <= value)
+              break;
+          }          
+        }    
+        ordered.add(i,manager);
+      }
+      
+          
+      
+      for(int i = 0 ; i < ordered.size() ; i++) {
+        DownloadManager manager = (DownloadManager) ordered.get(i);
+        //ManagerItem item = (ManagerItem) managerItems.get(manager);
+        //DownloadManager oldManager = items[i].getManager();
+        
+        items[i].setManager(manager);
+        //item.setManager(oldManager);
+                        
+        managerItems.put(manager,items[i]);
+        managers.put(items[i].getTableItem(),manager);
+      }
+    }
+  }
+  
+  private class IntColumnListener implements Listener {
+    
+    private String field;
+    
+    public IntColumnListener(String field) {
+      this.field = field;
+    }
+    
+    public void handleEvent(Event e) {
+      orderInt(field);
+    }        
+  }
+  
+  private class StringColumnListener implements Listener {
+    
+      private String field;
+    
+      public StringColumnListener(String field) {
+        this.field = field;
+      }
+    
+      public void handleEvent(Event e) {
+        orderString(field);
+      }        
+    }
+  
+  private void orderString(String field) {
+    if (lastField.equals(field))
+      ascending = !ascending;
+    else {
+      lastField = field;
+      ascending = true;
+    }
+    synchronized (managerItems) {
+      Collator collator = Collator.getInstance(Locale.getDefault());
+      List ordered = new ArrayList(managerItems.size());
+      ManagerItem items[] = new ManagerItem[managerItems.size()];
+      Iterator iter = managerItems.keySet().iterator();
+      while (iter.hasNext()) {
+        DownloadManager manager = (DownloadManager) iter.next();
+        ManagerItem item = (ManagerItem) managerItems.get(manager);
+        items[item.getIndex()] = item;
+        String value = getStringField(manager, field);
+        int i;
+        for (i = 0; i < ordered.size(); i++) {
+          DownloadManager manageri = (DownloadManager) ordered.get(i);
+          String valuei = getStringField(manageri, field);
+          if (ascending) {
+            if (collator.compare(valuei, value) <= 0)
+              break;
+          }
+          else {
+            if (collator.compare(valuei, value) >= 0)
+              break;
+          }          
+        }    
+        ordered.add(i,manager);
+      }
+      
+          
+      
+      for(int i = 0 ; i < ordered.size() ; i++) {
+        DownloadManager manager = (DownloadManager) ordered.get(i);
+        //ManagerItem item = (ManagerItem) managerItems.get(manager);
+        //DownloadManager oldManager = items[i].getManager();
+        
+        items[i].setManager(manager);
+        //item.setManager(oldManager);
+                        
+        managerItems.put(manager,items[i]);
+        managers.put(items[i].getTableItem(),manager);
+      }
+    }
   }
 
 }
