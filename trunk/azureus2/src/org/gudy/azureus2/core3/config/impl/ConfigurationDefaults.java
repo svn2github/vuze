@@ -121,7 +121,9 @@ public class ConfigurationDefaults {
     //def.put("Core_sPriorityExtensions", ""); *
     def.put("priorityExtensions", "");
     //Use or not the ip filtering feature
-    def.put("Ip Filter Enabled", new Long(0));
+    def.put("Ip Filter Enabled", new Long(1));
+    //Use the filters as 'allow' rules
+    def.put("Ip Filter Allow",new Long(0));
     
     /** SWT GUI Settings **/
     def.put("useCustomTab",new Long(1));    

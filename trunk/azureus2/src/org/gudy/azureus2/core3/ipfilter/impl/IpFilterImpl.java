@@ -50,14 +50,22 @@ IpFilterImpl
   
 	private List ipRanges;
 	private List bannedIps;
-  private int ipBlocked;
+	
+	//Number of ip Blocked
+  private int nbIpsBlocked;
+  
+  //Map ip blocked -> matching range
+  private List ipsBlocked;
  
   
 	private IpFilterImpl() {
 	  ipFilter = this;
 	  ipRanges = new ArrayList();
 	  bannedIps = new ArrayList();
-	  ipBlocked = 0;
+	  
+	  nbIpsBlocked = 0;
+	  ipsBlocked = new ArrayList();
+	  
 	  loadFilters();
 	}
   
@@ -133,18 +141,34 @@ IpFilterImpl
 	  if(isBanned(ipAddress))
 	    return true;
 	  
-	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",false))
+	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true))
 	    return false;
+	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
 	  synchronized(ipRanges) { 
-		Iterator iter = ipRanges.iterator();
-		while(iter.hasNext()) {
-		  IpRange ipRange = (IpRange) iter.next();
-		  if(ipRange.isInRange(ipAddress)) {
-			LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
-			ipBlocked++;
-			return true;
-		  }
+			Iterator iter = ipRanges.iterator();
+			while(iter.hasNext()) {
+			  IpRange ipRange = (IpRange) iter.next();
+			  if(ipRange.isInRange(ipAddress)) {
+			    if(!allow) {
+			      synchronized(ipsBlocked) {
+			        ipsBlocked.add(new BlockedIpImpl(ipAddress,ipRange));
+			      }
+						LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + ipRange);
+						nbIpsBlocked++;
+						return true;
+			    } else {		      
+			      return false;
+			    }
+			  }
+			}
 		}
+	  if(allow) {
+	    synchronized(ipsBlocked) {
+	      ipsBlocked.add(new BlockedIpImpl(ipAddress,null));
+	    }
+	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
+	    nbIpsBlocked++;
+	    return true;
 	  }
 	  return false;
 	}
@@ -173,11 +197,17 @@ IpFilterImpl
 	}
 	
 	public int getNbIpsBlocked() {
-	  return ipBlocked;
+	  return nbIpsBlocked;
 	}
 	
 	public void ban(String ipAddress) {
 	  if(!bannedIps.contains(ipAddress))
 	    bannedIps.add(ipAddress);
 	}
+	
+  public List getBlockedIps() {
+  	synchronized(ipsBlocked) {
+  	  return new ArrayList(ipsBlocked);
+  	}
+  }
 }

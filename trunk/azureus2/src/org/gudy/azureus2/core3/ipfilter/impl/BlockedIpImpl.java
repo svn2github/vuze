@@ -1,8 +1,8 @@
 /*
- * File    : IpFilter.java
- * Created : 1 oct. 2003 12:27:26
- * By      : Olivier 
- * 
+ * File    : BlockedIpImpl.java
+ * Created : 12 déc. 2003}
+ * By      : Olivier
+ *
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,45 +18,31 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.core3.ipfilter;
+package org.gudy.azureus2.core3.ipfilter.impl;
 
-
+import org.gudy.azureus2.core3.ipfilter.BlockedIp;
+import org.gudy.azureus2.core3.ipfilter.IpRange;
 
 /**
  * @author Olivier
- * 
+ *
  */
+public class BlockedIpImpl implements BlockedIp {
 
-import java.util.List;
-import java.util.Map;
+  private String ip;
+  private IpRange range;
+  
+  public BlockedIpImpl(String ip,IpRange range) {
+    this.ip = ip;
+    this.range = range;
+  }
+  
+  public String getBlockedIp() {
+    return this.ip;
+  }
 
-import org.gudy.azureus2.core3.ipfilter.impl.*;
+  public IpRange getBlockingRange() {
+    return this.range;
+  }
 
-public abstract class 
-IpFilter 
-{
-	public static IpFilter
-	getInstance()
-	{
-		return( IpFilterImpl.getInstance());
-	}
-	
-	public abstract void save();
-	
-	public abstract List getIpRanges();
-
-	public abstract boolean isInRange(String ipAddress);
-	
-	public abstract IpRange
-	createRange(boolean sessionOnly);
-	
-	public abstract int getNbRanges();
-	
-	public abstract int getNbIpsBlocked();
-	
-	public abstract List getBlockedIps();
-	
-	
-	public abstract void ban(String ipAddress);
 }

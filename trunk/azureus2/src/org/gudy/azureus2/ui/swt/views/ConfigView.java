@@ -222,7 +222,7 @@ public class ConfigView extends AbstractIView {
     gFilter.setLayout(layoutFilter);
 
     gridData = new GridData(GridData.BEGINNING);
-    BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled",false); //$NON-NLS-1$
+    BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled",true); //$NON-NLS-1$
     enabled.setLayoutData(gridData);
         
     label = new Label(gFilter, SWT.NULL);
@@ -231,6 +231,16 @@ public class ConfigView extends AbstractIView {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ipFilter.enable"); //$NON-NLS-1$
     
+    
+    gridData = new GridData(GridData.BEGINNING);
+    BooleanParameter deny = new BooleanParameter(gFilter, "Ip Filter Allow",false); //$NON-NLS-1$
+    enabled.setLayoutData(gridData);
+    
+    label = new Label(gFilter, SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "ipFilter.allow");
     
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
     String[] headers = { "ipFilter.description", "ipFilter.start", "ipFilter.end" };

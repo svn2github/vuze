@@ -80,7 +80,9 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.ipfilter.BlockedIp;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
 import org.gudy.azureus2.core3.util.*;
@@ -673,6 +675,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 		ipBlocked.setText("IPs:"); //$NON-NLS-1$
 		ipBlocked.setLayoutData(gridData);
 		Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
+		ipBlocked.addMouseListener(new MouseAdapter() {
+	    public void mouseDoubleClick(MouseEvent arg0) {
+	     showBlockedIps();
+	    }
+		});
 		
     gridData = new GridData();
     gridData.widthHint = 105;
@@ -2326,5 +2333,32 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   			}
   		}
   	}
+  }
+  
+  private void showBlockedIps() {
+    StringBuffer sb = new StringBuffer();
+    List blocked = IpFilter.getInstance().getBlockedIps();
+    Iterator iter = blocked.iterator();
+    String inRange = MessageText.getString("ipFilter.list.inrange");
+    String notInRange = MessageText.getString("ipFilter.list.notinrange");    
+    while(iter.hasNext()) {
+      BlockedIp bIp = (BlockedIp) iter.next();
+      sb.append(bIp.getBlockedIp());
+      IpRange range = bIp.getBlockingRange();
+      if(range == null) {
+        sb.append(notInRange);
+        sb.append("\n");
+      } else {
+        sb.append(inRange);
+        sb.append(range.toString());
+        sb.append("\n");
+      }
+    }
+    if(mainWindow == null || mainWindow.isDisposed())
+      return;
+    MessageBox mb = new MessageBox(mainWindow,SWT.ICON_INFORMATION | SWT.OK);
+    mb.setMessage(sb.toString());
+    mb.setText(MessageText.getString("ipFilter.list.title"));
+    mb.open();
   }
 }
