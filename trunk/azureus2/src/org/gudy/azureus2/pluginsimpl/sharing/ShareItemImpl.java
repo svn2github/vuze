@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  *
  */
 
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
@@ -33,18 +35,115 @@ public class
 ShareItemImpl
 	implements ShareItem
 {
-	protected Torrent		torrent;
+	protected ShareResourceImpl		resource;
+	protected byte[]				fingerprint;
+	protected Torrent				torrent;
+	
+	protected String				torrent_save_location;
 	
 	protected
 	ShareItemImpl(
-		Torrent		_torrent )
+		ShareResourceImpl	_resource,
+		byte[]				_fingerprint,
+		Torrent				_torrent )
+	
+		throws ShareException
 	{
-		torrent = _torrent;
+		resource	= _resource;
+		fingerprint	= _fingerprint;
+		torrent 	= _torrent;
+		
+		writeTorrent();
+	}
+	
+	protected
+	ShareItemImpl(
+		ShareResourceImpl	_resource,
+		byte[]				_fingerprint,
+		String				_save_location )
+	
+		throws ShareException
+	{
+		resource				= _resource;
+		fingerprint				= _fingerprint;		
+		torrent_save_location 	= _save_location;
 	}
 	
 	public Torrent
 	getTorrent()
+	
+		throws ShareException
 	{
+			// TODO: we don't want to hold all torrents in memory. we probably want to
+			// create a TorrentFacade that caches enough data to run, say, the sharing UI
+			// and then load the torrent from file on demand.
+		
+		if( torrent == null ){
+			
+			resource.readTorrent(this);
+		}
+		
 		return( torrent );
+	}
+	
+	protected void
+	writeTorrent()
+	
+		throws ShareException
+	{
+		if ( torrent_save_location == null ){
+			
+			torrent_save_location = resource.getNewTorrentLocation();
+		}
+		
+		resource.writeTorrent( this );
+	}
+	
+	protected void
+	setTorrent(
+		Torrent		_torrent )
+	{
+		torrent	= _torrent;
+	}
+	
+	public String
+	getTorrentLocation()
+	{
+		return( torrent_save_location );
+	}
+	
+	public byte[]
+	getFingerPrint()
+	{
+		return( fingerprint );
+	}
+	
+	protected void
+	delete()
+	{
+		resource.deleteTorrent(this);
+	}
+	
+	protected void
+	serialiseItem(
+		Map		map )
+	{
+		map.put( "ihash", fingerprint );
+		
+		map.put( "ifile", torrent_save_location );
+	}
+	
+	protected static ShareItemImpl
+	deserialiseItem(
+		ShareResourceImpl	resource,
+		Map					map )
+	
+		throws ShareException
+	{
+		byte[]	hash = (byte[])map.get( "ihash");
+		
+		String	save_location = new String((byte[])map.get("ifile"));
+		
+		return( new ShareItemImpl(resource,hash,save_location));
 	}
 }

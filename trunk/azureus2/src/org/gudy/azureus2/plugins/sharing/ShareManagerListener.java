@@ -1,6 +1,6 @@
 /*
- * File    : ShareItem.java
- * Created : 30-Dec-2003
+ * File    : ShareManagerListener.java
+ * Created : 02-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -25,14 +25,26 @@ package org.gudy.azureus2.plugins.sharing;
  * @author parg
  *
  */
-
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
 public interface 
-ShareItem 
+ShareManagerListener 
 {
-	public Torrent
-	getTorrent()
+	public void
+	resourceAdded(
+		ShareResource		resource );
 	
-		throws ShareException;
+	public void
+	resourceModified(
+		ShareResource		resource );
+	
+	public void
+	resourceDeleted(
+		ShareResource		resource );
+	
+	public void
+	reportProgress(
+		int		percent_complete );
+	
+	public void
+	reportCurrentTask(
+		String	task_description );
 }

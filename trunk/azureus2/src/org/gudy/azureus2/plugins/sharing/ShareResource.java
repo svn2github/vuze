@@ -30,10 +30,13 @@ ShareResource
 {
 	public static final int	ST_FILE			= 1;
 	public static final int	ST_DIR			= 2;
-	public static final int	ST_DIR_CONTENTS	= 2;
+	public static final int	ST_DIR_CONTENTS	= 3;
 	
 	public int
 	getType();
+	
+	public String
+	getName();
 	
 	public void
 	delete();

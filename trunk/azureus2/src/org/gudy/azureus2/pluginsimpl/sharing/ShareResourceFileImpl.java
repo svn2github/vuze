@@ -1,6 +1,6 @@
 /*
  * File    : ShareResourceFileImpl.java
- * Created : 31-Dec-2003
+ * Created : 02-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -26,23 +26,16 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  *
  */
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.sharing.*;
-import org.gudy.azureus2.pluginsimpl.torrent.*;
-
-import org.gudy.azureus2.core3.torrent.*;
 
 public class 
 ShareResourceFileImpl
-	extends		ShareResourceImpl
+	extends 	ShareResourceFileOrDirImpl
 	implements 	ShareResourceFile
 {
-	protected File		file;
-	
-	protected ShareItemImpl		item;
-	
 	protected
 	ShareResourceFileImpl(
 		ShareManagerImpl	_manager,
@@ -50,104 +43,25 @@ ShareResourceFileImpl
 	
 		throws ShareException
 	{
-		super( _manager, ST_FILE );
-		
-		file		= _file;
-		
-		if ( !file.exists()){
-		
-			throw( new ShareException( "File '" + file.getName() + "' not found"));
-		}
-	
-		if ( !file.isFile()){
-		
-			throw( new ShareException( "Not a file"));
-		}
-		
-		try{
-			file = file.getCanonicalFile();
-						
-		}catch( IOException e ){
-	
-			throw( new ShareException("ShareResourceFile: failed to get canonical file name", e));
-		}
-		
-		try{
-			TOTorrent	to_torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
-										file,
-										manager.getAnnounceURL());
-			
-			item = new ShareItemImpl(new TorrentImpl(to_torrent));
-			
-		}catch( TOTorrentException e ){
-			
-			throw( new ShareException("ShareResourceFile:Torrent create failed", e));
-		}
+		super( _manager, ST_FILE, _file );
 	}
 	
-	protected static ShareResourceImpl
-	deserialiseResource(
-		ShareManagerImpl	manager,
-		Map					map )
+	protected
+	ShareResourceFileImpl(
+		ShareManagerImpl	_manager,
+		File				_file,
+		Map					_map)
 	
 		throws ShareException
 	{
-		File file = new File(new String((byte[])map.get("file")));
-		
-		return( new ShareResourceFileImpl( manager, file ));
+		super( _manager, ST_FILE, _file, _map );
 	}
 	
-	protected void
-	serialiseResource(
-		Map		map )
+	protected byte[]
+	getFingerPrint()
+	
+		throws ShareException
 	{
-		map.put( "type", new Long(getType()));
-		
-		map.put( "file", file.toString());
-	}
-	
-	public File
-	getFile()
-	{
-		return( file );
-	}
-	
-	public ShareItem
-	getItem()
-	{
-		return( item );
-	}
-	
-	public int
-	compareTo(
-		Object	other )
-	{		
-		if ( other instanceof ShareResourceFileImpl ){
-			
-			int res = file.compareTo(((ShareResourceFileImpl)other).getFile());
-						
-			return( res );
-					
-		}else{
-			
-			return( 1 );
-		}
-	}
-	
-	public boolean
-	equals(
-		Object	other )
-	{
-		System.out.println( "equals");
-		if ( other instanceof ShareResourceFileImpl ){
-			
-			boolean res = file.equals(((ShareResourceFileImpl)other).getFile());
-			
-			return( res );
-			
-		}else{
-			
-			return( false );
-		}		
+		return( getFingerPrint( getFile()));
 	}
 }

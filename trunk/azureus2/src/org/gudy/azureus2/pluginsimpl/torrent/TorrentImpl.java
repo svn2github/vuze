@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.torrent;
  *
  */
 
+import java.io.File;
+
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.plugins.torrent.*;
@@ -154,5 +156,20 @@ TorrentImpl
 		}
 		
 		return( "" );
+	}
+	
+	public void
+	writeToFile(
+		File		file )
+	
+		throws TorrentException
+	{
+		try{
+			torrent.serialiseToBEncodedFile( file );
+			
+		}catch( TOTorrentException e ){
+			
+			throw( new TorrentException( "Torrent::writeToFile: fails", e ));
+		}
 	}
 }

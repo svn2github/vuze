@@ -1,6 +1,6 @@
 /*
- * File    : ShareItem.java
- * Created : 30-Dec-2003
+ * File    : ShareResourceDirImpl.java
+ * Created : 02-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,20 +19,54 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.sharing;
+package org.gudy.azureus2.pluginsimpl.sharing;
 
 /**
  * @author parg
  *
  */
 
-import org.gudy.azureus2.plugins.torrent.Torrent;
+import java.io.File;
+import java.util.Map;
 
-public interface 
-ShareItem 
+import org.gudy.azureus2.plugins.sharing.*;
+
+public class 
+ShareResourceDirImpl
+	extends 	ShareResourceFileOrDirImpl
+	implements 	ShareResourceDir
 {
-	public Torrent
-	getTorrent()
+	protected
+	ShareResourceDirImpl(
+		ShareManagerImpl	_manager,
+		File				_file )
 	
-		throws ShareException;
+		throws ShareException
+	{
+		super( _manager, ST_DIR, _file );
+	}
+	
+	protected
+	ShareResourceDirImpl(
+		ShareManagerImpl	_manager,
+		File				_file,
+		Map					_map)
+	
+		throws ShareException
+	{
+		super( _manager, ST_DIR, _file, _map );
+	}
+	
+	protected byte[]
+	getFingerPrint()
+		throws ShareException
+	{
+		return( getFingerPrint( getFile()));
+	}
+	
+	public File
+	getDir()
+	{
+		return( getFile());
+	}
 }

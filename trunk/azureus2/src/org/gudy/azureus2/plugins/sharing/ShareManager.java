@@ -31,6 +31,11 @@ import java.io.File;
 public interface 
 ShareManager 
 {
+	public void
+	initialise()
+	
+		throws ShareException;
+	
 	public ShareResource[]
 	getShares();
 	
@@ -52,4 +57,12 @@ ShareManager
 		boolean	recursive )
 	
 		throws ShareException;
+	
+	public void
+	addListener(
+		ShareManagerListener	listener );
+	
+	public void
+	removeListener(
+		ShareManagerListener	listener );
 }

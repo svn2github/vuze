@@ -25,6 +25,9 @@ package org.gudy.azureus2.plugins.torrent;
  * @author parg
  *
  */
+
+import java.io.File;
+
 public interface 
 Torrent
 {
@@ -59,4 +62,10 @@ Torrent
 	
 	public TorrentFile[]
 	getFiles();
+	
+	public void
+	writeToFile(
+		File		file )
+	
+		throws TorrentException;
 }

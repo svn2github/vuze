@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 
 public class 
 ShareTester
-	implements Plugin, PluginListener
+	implements Plugin, PluginListener, ShareManagerListener
 {
 	protected static Semaphore			init_sem = new Semaphore();
 	
@@ -95,7 +95,11 @@ ShareTester
 		try{
 			ShareManager	sm = plugin_interface.getShareManager();
 		
-			ShareResourceFile res = sm.addFile( new File("C:\\temp\\wap.cer"));
+			sm.addListener( this );
+			
+			sm.initialise();
+			
+			ShareResourceDir res = sm.addDir( new File("C:\\temp\\wapdir"));
 			
 			Torrent t = res.getItem().getTorrent();
 			
@@ -111,6 +115,39 @@ ShareTester
 	
 	}
 	
+	public void
+	resourceAdded(
+		ShareResource		resource )
+	{
+		System.out.println( "resource added:" + resource.getName());
+	}
+	
+	public void
+	resourceModified(
+		ShareResource		resource )
+	{
+		System.out.println( "resource modified:" + resource.getName());
+	}
+	
+	public void
+	resourceDeleted(
+		ShareResource		resource )
+	{
+		System.out.println( "resource deleted:" + resource.getName());
+	}
+	
+	public void
+	reportProgress(
+		int		percent_complete )
+	{
+	}
+	
+	public void
+	reportCurrentTask(
+		String	task_description )
+	{
+		System.out.println( task_description );
+	}
 	
 	public static void
 	main(

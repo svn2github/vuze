@@ -27,13 +27,17 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  */
 
 import java.util.*;
+import java.io.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.core3.util.*;
 
 public abstract class 
 ShareResourceImpl
 	implements ShareResource, Comparable
 {
+	protected static Md5Hasher	hasher = new Md5Hasher();
+	
 	protected ShareManagerImpl		manager;
 	protected int					type;
 	
@@ -60,6 +64,66 @@ ShareResourceImpl
 	public void
 	delete()
 	{
-	// TODO:	
+		manager.delete(this);
 	}
+	
+	protected abstract void
+	deleteInternal();
+	
+	protected byte[]
+	getFingerPrint(
+		File		file )
+	
+		throws ShareException
+	{
+		try{
+			long	mod 	= file.lastModified();
+			long	size	= file.length();
+			
+			String	finger_print = file.getName()+":"+mod+":"+size;
+					
+			return( hasher.calculateHash(finger_print.getBytes()));
+			
+		}catch( Throwable e ){
+			
+			throw( new ShareException( "ShareResource::getFingerPring: fails", e ));
+		}
+	}
+	
+	protected String
+	getNewTorrentLocation()
+	
+		throws ShareException
+	{
+		return( manager.getNewTorrentLocation());
+	}
+	
+	protected void
+	writeTorrent(
+		ShareItemImpl		item )
+	
+		throws ShareException
+	{
+		manager.writeTorrent( item );
+	}
+	
+	protected void
+	readTorrent(
+		ShareItemImpl		item )
+	
+		throws ShareException
+	{
+		manager.readTorrent( item );
+	}	
+	
+	protected void
+	deleteTorrent(
+		ShareItemImpl		item )
+	{
+		manager.deleteTorrent( item );
+	}
+	
+	protected abstract void
+	checkConsistency();
+	
 }

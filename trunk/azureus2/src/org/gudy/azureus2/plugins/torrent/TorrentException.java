@@ -1,6 +1,6 @@
 /*
- * File    : ShareItem.java
- * Created : 30-Dec-2003
+ * File    : TorrentException.java
+ * Created : 02-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -19,20 +19,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.sharing;
+package org.gudy.azureus2.plugins.torrent;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
-public interface 
-ShareItem 
+public class 
+TorrentException
+	extends Exception
 {
-	public Torrent
-	getTorrent()
+	public
+	TorrentException(
+		String	str )
+	{
+		super(str);
+	}
 	
-		throws ShareException;
+	public
+	TorrentException(
+		String		str,
+		Throwable 	cause )
+	{
+		super(str,cause);
+	}
 }
