@@ -1014,8 +1014,6 @@ PEPeerTransportProtocol
       System.out.println( "Peer " +ip+ " [" +client+ "] handshake indicates extended AZ messaging support." );
       
       if( client.indexOf( "Azureus" ) != -1 ) {  //for now, filter out non-az clients, as ABC seems to set our reserved flag
-        System.out.println( "Switching to extended AZ messaging support." );
-        
         az_messaging_mode = true;
         connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
         connection.getOutgoingMessageQueue().setEncoder( new AZMessageEncoder() );
