@@ -26,9 +26,8 @@ package org.gudy.azureus2.core3.peer.impl.transport;
  *
  */
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerStatsImpl;
@@ -43,11 +42,10 @@ PEPeerConnectionImpl
 
 	protected boolean choked;
 	protected boolean interested;
-	private Vector requested;
+	private List requested;
 
 	protected boolean choking;
 	protected boolean interesting;
-	private Vector requesting;
 
 	protected boolean snubbed;
 
@@ -69,16 +67,15 @@ PEPeerConnectionImpl
 
 	  choked = true;
 	  interested = false;
-	  requested = new Vector();
+	  requested = new ArrayList();
 
 	  choking = true;
 	  interesting = false;
-	  requesting = new Vector();
 
 	  available = new boolean[manager.getPiecesNumber()];
 	  Arrays.fill(available, false);
 
-	  stats = (PEPeerStatsImpl)manager.createPeerStats();
+	  stats = manager.createPeerStats();
 	}
 
 
@@ -117,19 +114,6 @@ PEPeerConnectionImpl
 	  return interesting;
 	}
 
-	/**
-	 * @return
-	 */
-	public List getRequested() {
-	  return requested;
-	}
-
-	/**
-	 * @return
-	 */
-	public List getRequesting() {
-	  return requesting;
-	}
 
 	/**
 	 * @return
@@ -217,22 +201,24 @@ PEPeerConnectionImpl
 	
 	public List 
 	getExpiredRequests() {
-		Vector result = null;
-		for (int i = 0; i < requested.size(); i++) {
-			try {
-				DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
-				if (request.isExpired()) {
-					if ( result == null ){
-						result = new Vector();
-					}
-					result.add(request);
-				}
-			}
-			catch (ArrayIndexOutOfBoundsException e) {
-				//Keep going, most probably, piece removed...
-				//Hopefully we'll find it later :p
-			}
-		}
+		List result = null;
+    synchronized (requested) {
+    	for (int i = 0; i < requested.size(); i++) {
+    		try {
+    			DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
+    			if (request.isExpired()) {
+    				if ( result == null ){
+    					result = new ArrayList();
+    				}
+    				result.add(request);
+    			}
+    		}
+    		catch (ArrayIndexOutOfBoundsException e) {
+    			//Keep going, most probably, piece removed...
+    			//Hopefully we'll find it later :p
+    		}
+    	}
+    }
 		return result;
 	}
 	
@@ -240,34 +226,43 @@ PEPeerConnectionImpl
 	alreadyRequested(
 		DiskManagerRequest	request )
 	{
-		return( requested.contains( request ));
+    synchronized (requested) {
+      return( requested.contains( request ));
+    }
 	}
 	
 	protected void
 	addRequest(
 		DiskManagerRequest	request )
 	{
-		requested.add(request);
+    synchronized (requested) {
+    	requested.add(request);
+    }
 	}
 	
 	protected void
 	removeRequest(
 		DiskManagerRequest	request )
 	{
-		requested.remove(request);
+    synchronized (requested) {
+    	requested.remove(request);
+    }
 	}
 	
 	protected void 
 	reSetRequestsTime() {
-		for (int i = 0; i < requested.size(); i++) {
-			DiskManagerRequest request = null;
-			try {
-				request = (DiskManagerRequest) requested.get(i);
-			}
-			catch (Exception e) {}
-			if (request != null)
-				request.reSetTime();
-		}
+    synchronized (requested) {
+		  for (int i = 0; i < requested.size(); i++) {
+		  	DiskManagerRequest request = null;
+		  	try {
+		  		request = (DiskManagerRequest) requested.get(i);
+		  	}
+		  	catch (Exception e) {}
+        
+		  	if (request != null)
+		  		request.reSetTime();
+		  }
+    }
 	}
 	
 }
