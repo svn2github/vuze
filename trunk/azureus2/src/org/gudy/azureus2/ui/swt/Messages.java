@@ -13,6 +13,8 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.CoolBar;
+import org.eclipse.swt.widgets.CoolItem;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
@@ -22,6 +24,8 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.ui.swt.components.*;
@@ -64,6 +68,19 @@ public class Messages {
         updateLanguageForControl(items[i].getControl());
       }
     }
+    else if(widget instanceof CoolBar) {
+      CoolItem[] items = ((CoolBar)widget).getItems();
+      for(int i = 0 ; i < items.length ; i++) {
+        Control control = items[i].getControl();
+        updateLanguageForControl(control);
+      }
+    }
+    else if(widget instanceof ToolBar) {
+      ToolItem[] items = ((ToolBar)widget).getItems();
+      for(int i = 0 ; i < items.length ; i++) {
+        updateLanguageForControl(items[i]);
+      }
+    }
     else if (widget instanceof Composite) {
       Composite group = (Composite) widget;
       Control[] controls = group.getChildren();
@@ -94,6 +111,7 @@ public class Messages {
         updateLanguageForControl(items[i]);
       }
     }
+    
   }
 
   public static void setLanguageText(Widget widget, String key) {
@@ -124,6 +142,16 @@ public class Messages {
         String toolTip = MessageText.getString(key);
         if(!toolTip.equals('!' + key + '!')) {
           ((Control)widget).setToolTipText(toolTip);
+        }
+      }
+    } else if(widget instanceof ToolItem) {
+      String key = (String) widget.getData();
+      if(key != null) {
+        if(!key.endsWith(".tooltip"))
+          key += ".tooltip";
+        String toolTip = MessageText.getString(key);
+        if(!toolTip.equals('!' + key + '!')) {
+          ((ToolItem)widget).setToolTipText(toolTip);
         }
       }
     }

@@ -111,6 +111,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
   private Display display;
   private Shell mainWindow;
   private Menu menuBar;
+  private IconBar iconBar;
 
   public static Color[] blues = new Color[5];
   public static Color black;
@@ -696,9 +697,15 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
 
     GridLayout mainLayout = new GridLayout();
     mainLayout.numColumns = 1;
-    mainLayout.marginHeight = 1;
+    mainLayout.marginHeight = 0;
     mainLayout.marginWidth = 0;
+    mainLayout.horizontalSpacing = 0;
+    mainLayout.verticalSpacing = 0;
     mainWindow.setLayout(mainLayout);
+    
+    this.iconBar = new IconBar(mainWindow);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    this.iconBar.setLayoutData(gridData);
     
     gridData = new GridData(GridData.FILL_BOTH);
     if(!useCustomTab) {
