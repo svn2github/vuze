@@ -255,6 +255,8 @@ VWDownloadView
 		
 		sorter.addMouseListenerToHeaderInTable(table);
 
+		sorter.sortByColumn( 0, true );
+		
 		JScrollPane scrollpane = new JScrollPane(table);
 		
 		component	= scrollpane;
