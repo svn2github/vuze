@@ -51,7 +51,8 @@ UPnPPlugin
 	protected UPnP	upnp;
 	
 	protected BooleanParameter	alert_success_param;
-	
+	protected BooleanParameter	grab_ports_param;
+		
 	protected List	mappings	= new ArrayList();
 	protected List	services	= new ArrayList();
 	
@@ -78,7 +79,13 @@ UPnPPlugin
 		
 		alert_success_param = config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", true );
 		
+		grab_ports_param = config.addBooleanParameter2( "upnp.grabports", "upnp.grabports", false );
+		
+		ActionParameter refresh_param = config.addActionParameter2( "upnp.refresh.label", "upnp.refresh.button" );
+		
 		enable_param.addEnabledOnSelection( alert_success_param );
+		enable_param.addEnabledOnSelection( grab_ports_param );
+		enable_param.addEnabledOnSelection( refresh_param );
 		
 		boolean	enabled = enable_param.getValue();
 		

@@ -104,4 +104,9 @@ BasicPluginConfigModel
 		String 		key,
 		String 		resource_name,
 		String	 	defaultValue );
+	
+	public ActionParameter
+	addActionParameter2(
+		String 		label_resource_name,
+		String		action_resource_name );
 }

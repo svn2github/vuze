@@ -251,5 +251,13 @@ UIManagerImpl
 	{
 		return( new DirectoryParameterImpl(pi.getPluginconfig(),key, resource_name,defaultValue));
 	}
+	
+	public ActionParameter
+	addActionParameter2(
+		String 		label_resource_name,
+		String		action_resource_name )
+	{
+		return( new ActionParameterImpl(pi.getPluginconfig(), label_resource_name, action_resource_name));
+	}
   }
 }

@@ -36,6 +36,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.*;
 
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
@@ -217,6 +219,19 @@ BasicPluginConfigModelImpl
 		return( res );		
 	}
 
+	
+	public ActionParameter
+	addActionParameter2(
+		String 		label_resource_name,
+		String		action_resource_name )	
+	{
+		ActionParameterImpl res = new ActionParameterImpl( pi.getPluginconfig(), label_resource_name, action_resource_name );
+		
+		parameters.add( res );
+		
+		return( res );			
+	}
+	
 	public Composite 
 	configSectionCreate(
 		Composite parent ) 
@@ -316,7 +331,10 @@ BasicPluginConfigModelImpl
 				area.setLayout(layout);				
 				
 				swt_param = new DirectoryParameter(area, key, ((DirectoryParameterImpl)param).getDefaultValue());
+		
+			}else if ( param instanceof ActionParameterImpl ){
 				
+				swt_param = new ButtonParameter( gMainTab, MessageText.getString(((ActionParameterImpl)param).getActionResource()));
 			}else{
 				
 					// label
