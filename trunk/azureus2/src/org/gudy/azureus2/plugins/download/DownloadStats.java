@@ -29,6 +29,12 @@ package org.gudy.azureus2.plugins.download;
 public interface 
 DownloadStats 
 {
+	public static final int HEALTH_STOPPED    		= 1;
+	public static final int HEALTH_NO_TRACKER 		= 2;
+	public static final int HEALTH_NO_REMOTE  		= 3;
+	public static final int HEALTH_OK  				= 4;
+	public static final int HEALTH_KO 				= 5;
+	
 	/**
 	 * Returns an overall string representing the state of the download
 	 * @return
@@ -240,4 +246,12 @@ DownloadStats
 	 */
 	public long 
 	getSecondsOnlySeeding();
+	
+	/**
+	 * returns an indication of the health of the torrent 
+	 * @return	see above HEALTH constants
+	 */
+	
+	public int
+	getHealth();
 }

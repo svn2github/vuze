@@ -165,4 +165,10 @@ DownloadStatsImpl
 	public long getTimeStartedSeeding() {
 	  return dm_stats.getTimeStartedSeeding();
 	}
+	
+	public int
+	getHealth()
+	{
+		return( dm.getHealthStatus());
+	}
 }

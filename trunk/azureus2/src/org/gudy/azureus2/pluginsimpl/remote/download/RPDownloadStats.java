@@ -50,6 +50,7 @@ RPDownloadStats
 	public String			eta;
 	public int				share_ratio;
 	public float			availability;
+	public int				health;
 	
 	public static RPDownloadStats
 	create(
@@ -89,6 +90,7 @@ RPDownloadStats
 		eta							= delegate.getETA();
 		share_ratio					= delegate.getShareRatio();
 		availability				= delegate.getAvailability();
+		health						= delegate.getHealth();
 	}
 	
 	public Object
@@ -249,4 +251,9 @@ RPDownloadStats
 		 return ( 0 );
   }
   
+	public int
+	getHealth()
+	{
+		return( health );
+	}
 }
