@@ -4,29 +4,29 @@
  * Copyright (C) 2003-2004 Alon Rohter, All Rights Reserved.
  * 
  */
-package org.gudy.azureus2.core3.util;
+package com.aelitis.azureus.core.peermanager.utils;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 
 import java.io.*;
 
 /**
  * Used for identifying clients by their peerID.
  */
-public class Identification {
-  
-	public static final byte NON_SUPPLIED_PEER_ID_BYTE1 = (byte)'[';
-	public static final byte NON_SUPPLIED_PEER_ID_BYTE2 = (byte)']';
+public class PeerIDByteDecoder {
 	
   /**
    * Decodes the given peerID, returning an identification string.
    */  
-  public static String decode(byte[] peer_id) {
+  protected static String decode(byte[] peer_id) {
     String decoded = null;
     byte[] peerID = new byte[peer_id.length];
     System.arraycopy(peer_id, 0, peerID, 0, peer_id.length);
          
-    final boolean LOG_UNKNOWN = System.getProperty("log.unknown.peerids") != null;
+    final boolean LOG_UNKNOWN = System.getProperty("log.unknown.peerids").equals( "1" );
     FileWriter log = null;
     File logFile = FileUtil.getUserFile("identification.log");
     
@@ -279,14 +279,8 @@ public class Identification {
   }
   
   
-  public static String
-  getPrintablePeerID(
-  	byte[]		peerID)
-  {
-    return getPrintablePeerID(peerID, 0);
-  }
 
-  public static String
+  protected static String
   getPrintablePeerID(
   	byte[]		peerID,
   	int iStartAtPos )

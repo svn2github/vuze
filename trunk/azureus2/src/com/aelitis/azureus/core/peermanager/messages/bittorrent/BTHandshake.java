@@ -27,6 +27,8 @@ import java.nio.ByteBuffer;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
+
 
 /**
  * BitTorrent handshake message.
@@ -64,7 +66,7 @@ public class BTHandshake implements BTProtocolMessage {
   
   public String getDescription() {
     return "Handshake of DataID: " +ByteFormatter.nicePrint( data_hash, true )
-                     + " PeerID: " +Identification.getPrintablePeerID( peer_id );
+                     + " PeerID: " +PeerClassifier.getPrintablePeerID( peer_id );
   }
   
   public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }

@@ -37,6 +37,9 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.*;
 
+import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
+
+
 public class 
 StatsWriterImpl
 	extends XUXmlWriter
@@ -276,7 +279,7 @@ StatsWriterImpl
 										}
 										
 										try{
-											String	peer_id = Identification.getPrintablePeerID( id );
+											String	peer_id = PeerClassifier.getPrintablePeerID( id );
 											
 											peer_id = escapeXML(peer_id);
 											

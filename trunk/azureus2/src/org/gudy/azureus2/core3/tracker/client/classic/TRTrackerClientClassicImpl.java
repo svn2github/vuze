@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
 import org.gudy.azureus2.core3.tracker.util.impl.*;
 
+
 /**
  * 
  * This class handles communication with the tracker
@@ -1882,10 +1883,10 @@ TRTrackerClientClassicImpl
 	{
   		byte[] anon_peer_id = new byte[20];
 	
-  		// unique initial two bytes to identify this as fake (See Identification.java)
+  		// unique initial two bytes to identify this as fake
 
-  		anon_peer_id[0] = Identification.NON_SUPPLIED_PEER_ID_BYTE1;
-  		anon_peer_id[1] = Identification.NON_SUPPLIED_PEER_ID_BYTE2;
+  		anon_peer_id[0] = (byte)'[';
+  		anon_peer_id[1] = (byte)']';
 
   		try{
 	  		byte[]	ip_bytes 	= my_ip.getBytes( Constants.DEFAULT_ENCODING );
