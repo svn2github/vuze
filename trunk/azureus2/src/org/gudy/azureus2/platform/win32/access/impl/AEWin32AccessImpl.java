@@ -106,6 +106,17 @@ AEWin32AccessImpl
 		AEWin32AccessInterface.deleteKey( type, subkey, recursive );
 	}
 	
+	public void
+	deleteValue(
+		int			type,
+		String		subkey,
+		String		value_name )
+	
+		throws AEWin32AccessException
+	{
+		AEWin32AccessInterface.deleteValue( type, subkey, value_name );	
+	}
+	
 	public String
 	getUserAppData()
 	

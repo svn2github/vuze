@@ -78,4 +78,12 @@ AEWin32AccessInterface
 		boolean	recursive )
 	
 		throws AEWin32AccessExceptionImpl;
+	
+	protected static native void
+	deleteValue(
+		int		type,
+		String	subkey,
+		String 	value_namae )
+	
+		throws AEWin32AccessExceptionImpl;
 }

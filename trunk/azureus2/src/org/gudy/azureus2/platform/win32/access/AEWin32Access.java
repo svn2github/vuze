@@ -77,7 +77,13 @@ AEWin32Access
 	
 		throws AEWin32AccessException;
 	
+	public void
+	deleteValue(
+		int			type,
+		String		subkey,
+		String		value_name )
 	
+		throws AEWin32AccessException;
 	
 	public String
 	getUserAppData()

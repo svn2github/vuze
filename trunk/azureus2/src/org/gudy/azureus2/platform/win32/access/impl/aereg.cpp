@@ -446,3 +446,47 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_deleteK
 		}
 	}
 }
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_deleteValue(
+	JNIEnv		*env,
+	jclass		cla,
+	jint		_type, 
+	jstring		_subkey_name,
+	jstring		_value_name )
+{
+	HKEY		key;
+	HKEY		subkey;
+	char		subkey_name[1024];
+	char		value_name[1024];
+
+	jstring		result	= NULL;
+
+	key	= mapHKEY( env, _type );
+
+	if ( key == NULL ){
+
+		return;
+	}
+
+	if ( !jstringToChars( env, _subkey_name, subkey_name, sizeof( subkey_name ))){
+
+		return;
+	}
+
+	if ( !jstringToChars( env, _value_name, value_name, sizeof( value_name ))){
+
+		return;
+	}
+
+	if ( RegOpenKey( key, subkey_name, &subkey ) == ERROR_SUCCESS ){
+
+
+		RegCloseKey(subkey);
+
+		if ( SHDeleteValue( key, subkey_name, value_name ) != ERROR_SUCCESS ){
+
+			throwException( env, "deleteValue", "SHDeleteValue failed" );
+		}
+	}
+}

@@ -72,7 +72,7 @@ PlatformManagerImpl
 	
 	protected AEWin32Access		access;
 	
-	protected File				az_exe;
+	protected File				_az_exe;
 	
 	protected
 	PlatformManagerImpl(
@@ -81,22 +81,36 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		access	= _access;
+	}
 	
-		try{
-			String az_home = access.getAzureusInstallDir();
+	protected File
+	getAureusEXELocation()
+		throws PlatformManagerException
+	{
+		if ( _az_exe == null ){
 			
-			az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
-		
-		}catch( Throwable e ){
+			String az_home;
+			
+			try{
+				az_home = access.getAzureusInstallDir();
 				
-			throw( new PlatformManagerException( "Failed to read Azureus install location"));
+				_az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
 			
+			}catch( Throwable e ){
+					
+				throw( new PlatformManagerException( "Failed to read Azureus install location from the registry, please re-install"));
+				
+			}
+			
+			if ( !_az_exe.exists()){
+				
+				_az_exe = null;
+				
+				throw( new PlatformManagerException( "Azureus.exe not found in " + az_home + ", please re-install"));
+			}
 		}
 		
-		if ( !az_exe.exists()){
-			
-			throw( new PlatformManagerException( "Azureus.exe not found"));
-		}
+		return( _az_exe );
 	}
 	
 	public int
@@ -124,6 +138,8 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
+		String	az_exe_str = getAureusEXELocation().toString();
+		
 		try{
 			String	test1 = 
 				access.readStringValue( 	
@@ -131,11 +147,37 @@ PlatformManagerImpl
 					"BitTorrent\\shell\\open\\command",
 					"" );
 			
-			if ( !test1.equals( "\"" + az_exe.toString() + "\" \"%1\"" )){
+			if ( !test1.equals( "\"" + az_exe_str + "\" \"%1\"" )){
 				
 				return( false );
 			}
 			
+				// MRU list is just that, to remove the "always open with" we need to kill
+				// the "application" entry, if it exists
+			
+			try{
+				String	always_open_with = 
+					access.readStringValue( 
+						AEWin32Access.HKEY_CURRENT_USER,
+						"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.torrent",
+						"Application" );
+				
+				//System.out.println( "mru_list = " + mru_list );
+
+				if ( always_open_with.length() > 0 ){
+				
+					// AZ is default so if this entry exists it denotes another (non-AZ) app
+					
+					return( false );
+				}
+			}catch( Throwable e ){
+				
+				// e.printStackTrace();
+				
+				// failure means things are OK
+			}
+			
+			/*
 			try{
 				String	mru_list = 
 					access.readStringValue( 
@@ -163,6 +205,7 @@ PlatformManagerImpl
 				
 				// failure means things are OK
 			}
+			*/
 			
 			return( true );
 			
@@ -192,11 +235,14 @@ PlatformManagerImpl
 		
 
 		try{
+			String	az_exe_string	= getAureusEXELocation().toString();
+			
 			try{
-				access.deleteKey( 	
+		
+				access.deleteValue( 	
 					AEWin32Access.HKEY_CURRENT_USER,
 					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.torrent",
-					true );
+					"Application" );
 				
 			}catch( Throwable e ){
 				
@@ -246,19 +292,23 @@ PlatformManagerImpl
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					"BitTorrent\\DefaultIcon",
 					"",
-					az_exe.toString() + ",0" );	// this was 1 but it seems it should be 0
+					az_exe_string + ",0" );	// this was 1 but it seems it should be 0
 			
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					"BitTorrent\\shell\\open\\command",
 					"",
-					"\"" + az_exe.toString() + "\" \"%1\"" );
+					"\"" + az_exe_string + "\" \"%1\"" );
 					
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
 					"BitTorrent\\Content Type" ,
 					"",
 					"application/x-bittorrent" );
+			
+		}catch( PlatformManagerException e ){
+			
+			throw(e );
 			
 		}catch( Throwable e ){
 			

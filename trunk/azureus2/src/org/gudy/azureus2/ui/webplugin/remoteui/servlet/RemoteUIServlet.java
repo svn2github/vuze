@@ -131,6 +131,7 @@ RemoteUIServlet
 		"core3/torrent/TOTorrentException.class",
 		"core3/util/SystemTime.class",
 		"core3/util/SystemTime$1.class",
+		"core3/util/DisplayFormatters$2.class",		
 		
 		"pluginsremote/RPRequestDispatcher.class",
 		"pluginsremote/RPException.class",
@@ -193,7 +194,7 @@ RemoteUIServlet
 		"plugins/ipfilter/IPBlocked.class",
 		"plugins/Plugin.class",
 		"plugins/PluginManager.class",
-		
+		"plugins/ui/UIManager.class",
 
 	};
 	
