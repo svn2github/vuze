@@ -111,7 +111,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     if (bounds == null || image == null || image.isDisposed()) {
       return;
     }
-    //debugOut("doPaint()" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
+    //debugOut("doPnt:" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
     //         "ta="+table.getClientArea()+";bounds="+bounds, false);
 
     Rectangle imageBounds = image.getBounds();
@@ -174,8 +174,13 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     // - Q) .height may be effected (smaller than it should be).  How does this effect clipping?
     // - Q) At what version does this bug start appearing?
     //   A) Reports suggest at least 2.1.1
-    bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
-    clipping.y += VerticalAligner.getTableAdjustVerticalBy(table);
+    int iAdj = VerticalAligner.getTableAdjustVerticalBy(table);
+    bounds.y += iAdj;
+    clipping.y += iAdj;
+    // New: GTK M8+ has a bounds.x bug.. works fine in M7, but assume people have M8 or higher (3.0final)
+    iAdj = VerticalAligner.getTableAdjustHorizontallyBy(table);
+    bounds.x += iAdj;
+    clipping.y += iAdj;
 
     boolean ourGC = (gc == null);
     if (ourGC) {
@@ -185,9 +190,8 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
       }
     }
     gc.setClipping(clipping);
-    // I believe GTK M8 has a bounds.x bug.. because this works fine in M7
     gc.drawImage(image, bounds.x, bounds.y);
-    //debugOut("doPaint()"+gc+": ourGC="+ourGC+"clip:+"+ gc.getClipping()+";bounds:"+bounds+";ca="+table.getClientArea(), false);
+    //debugOut("doPnt:"+gc+": ourGC="+ourGC+"clp:"+ gc.getClipping()+";bounds:"+bounds+";ca="+table.getClientArea(), false);
     if (ourGC) {
       gc.dispose();
     }
