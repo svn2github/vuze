@@ -428,8 +428,10 @@ public class TrackerStatus {
     	      int peers = ((Long)scrapeMap.get("incomplete")).intValue();
               
             //make sure we dont use invalid replies
-            if ( seeds < 0 || peers < 0 ) {
-              System.out.println("scrapeMap="+scrapeMap);
+            if ( seeds < 0 || peers < 0 ){
+            	
+              Debug.out("Invalid scrape response from '" + reqUrl + "': map = "+scrapeMap);
+              
               // We requested multiple hashes, but tracker didn't support
               // multiple hashes and returned 1 hash.  However, that hash is
               // invalid because seeds or peers was < 0.  So, exit.  Scrape
