@@ -61,8 +61,18 @@ public class Main {
        startServer.start();
        gm = new GlobalManager();
        mainWindow = new MainWindow(gm,startServer);
-       if(args.length != 0)
-        mainWindow.openTorrent(args[0]);
+       if(args.length != 0) {
+       	// Sometimes Windows use filename in 8.3 form and cannot
+       	// match .torrent extension. To solve this, canonical path
+       	// is used to get back the long form
+       	String filename=args[0];
+       	try {
+       		filename=new java.io.File(args[0]).getCanonicalPath();
+       	}
+       	catch (java.io.IOException ioe) {
+       	}
+        mainWindow.openTorrent(filename);
+       }
        mainWindow.waitForClose();
      }
      else {
