@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.*;
 
 /**
  * @author Olivier
@@ -49,43 +50,40 @@ public class GeneralView extends AbstractIView {
 
   Composite genComposite;
   Group gFile;
-  Label piecesInfo;
   Canvas piecesImage;
   Image pImage;
-  Label piecesPercent;
-  Label fileInfo;
+  BufferedLabel piecesPercent;
   Canvas fileImage;
   Image fImage;
-  Label filePercent;
+  BufferedLabel filePercent;
   Group gAvailability;
-  Label availabilityInfo;
   Canvas availabilityImage;
   Image aImage;
-  Label availabilityPercent;
+  BufferedLabel availabilityPercent;
   Group gTransfer;
-  Label timeElapsed;
-  Label timeRemaining;
-  Label download;
-  Label downloadSpeed;
-  Label upload;
-  Label uploadSpeed;
+  BufferedLabel timeElapsed;
+  BufferedLabel timeRemaining;
+  BufferedLabel download;
+  BufferedLabel downloadSpeed;
+  BufferedLabel upload;
+  BufferedLabel uploadSpeed;
   Combo maxUploads;
-  Label totalSpeed;
-  Label seeds;
-  Label peers;
+  BufferedLabel totalSpeed;
+  BufferedLabel seeds;
+  BufferedLabel peers;
   Group gInfo;
-  Label fileName;
-  Label fileSize;
-  Label saveIn;
-  Label hash;
-  Label tracker;
-  Label trackerUpdateIn;
-  Label trackerUrlValue;
-  Label pieceNumber;
-  Label pieceSize;
-  Label comment;
-  Label hashFails;
-  Label shareRatio;
+  BufferedLabel fileName;
+  BufferedLabel fileSize;
+  BufferedLabel saveIn;
+  BufferedLabel hash;
+  BufferedLabel tracker;
+  BufferedLabel trackerUpdateIn;
+  BufferedLabel trackerUrlValue;
+  BufferedLabel pieceNumber;
+  BufferedLabel pieceSize;
+  BufferedLabel comment;
+  BufferedLabel hashFails;
+  BufferedLabel shareRatio;
 
   public GeneralView(DownloadManager manager) {
     this.manager = manager;
@@ -110,7 +108,7 @@ public class GeneralView extends AbstractIView {
     fileLayout.numColumns = 3;
     gFile.setLayout(fileLayout);
 
-    fileInfo = new Label(gFile, SWT.LEFT);
+    Label fileInfo = new Label(gFile, SWT.LEFT);
     Messages.setLanguageText(fileInfo, "GeneralView.label.status.file"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     fileInfo.setLayoutData(gridData);
@@ -121,12 +119,12 @@ public class GeneralView extends AbstractIView {
     gridData.heightHint = 30;
     fileImage.setLayoutData(gridData);
 
-    filePercent = new Label(gFile, SWT.RIGHT);
+    filePercent = new BufferedLabel(gFile, SWT.RIGHT);
     filePercent.setText("\t"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     filePercent.setLayoutData(gridData);
 
-    piecesInfo = new Label(gFile, SWT.LEFT);
+    Label piecesInfo = new Label(gFile, SWT.LEFT);
     Messages.setLanguageText(piecesInfo, "GeneralView.label.status.pieces"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     piecesInfo.setLayoutData(gridData);
@@ -137,7 +135,7 @@ public class GeneralView extends AbstractIView {
     gridData.heightHint = 30;
     piecesImage.setLayoutData(gridData);
 
-    piecesPercent = new Label(gFile, SWT.RIGHT);
+    piecesPercent = new BufferedLabel(gFile, SWT.RIGHT);
     piecesPercent.setText("\t"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     piecesPercent.setLayoutData(gridData);
@@ -151,7 +149,7 @@ public class GeneralView extends AbstractIView {
     availabilityLayout.numColumns = 3;
     gAvailability.setLayout(availabilityLayout);
 
-    availabilityInfo = new Label(gAvailability, SWT.LEFT);
+    Label availabilityInfo = new Label(gAvailability, SWT.LEFT);
     Messages.setLanguageText(availabilityInfo, "GeneralView.label.status.pieces_available"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     availabilityInfo.setLayoutData(gridData);
@@ -163,7 +161,7 @@ public class GeneralView extends AbstractIView {
     availabilityImage.setLayoutData(gridData);
     Messages.setLanguageText(availabilityImage, "GeneralView.label.status.pieces_available.tooltip");
 
-    availabilityPercent = new Label(gAvailability, SWT.RIGHT);
+    availabilityPercent = new BufferedLabel(gAvailability, SWT.RIGHT);
     availabilityPercent.setText("\t"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     availabilityPercent.setLayoutData(gridData);
@@ -180,44 +178,44 @@ public class GeneralView extends AbstractIView {
 
     Label label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.timeelapsed"); //$NON-NLS-1$
-    timeElapsed = new Label(gTransfer, SWT.LEFT);
+    timeElapsed = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     timeElapsed.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.remaining"); //$NON-NLS-1$
-    timeRemaining = new Label(gTransfer, SWT.LEFT);
+    timeRemaining = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     timeRemaining.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
     Messages.setLanguageText(label, "GeneralView.label.shareRatio");
-    shareRatio = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
+    shareRatio = new BufferedLabel(gTransfer, SWT.LEFT); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     shareRatio.setLayoutData(gridData);
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.downloaded"); //$NON-NLS-1$
-    download = new Label(gTransfer, SWT.LEFT);
+    download = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     download.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.downloadspeed"); //$NON-NLS-1$
-    downloadSpeed = new Label(gTransfer, SWT.LEFT);
+    downloadSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     downloadSpeed.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
     Messages.setLanguageText(label, "GeneralView.label.hashfails");
-    hashFails = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
+    hashFails = new BufferedLabel(gTransfer, SWT.LEFT); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     hashFails.setLayoutData(gridData);
     
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.uploaded"); //$NON-NLS-1$
-    upload = new Label(gTransfer, SWT.LEFT);
+    upload = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     upload.setLayoutData(gridData);    
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.uploadspeed"); //$NON-NLS-1$
-    uploadSpeed = new Label(gTransfer, SWT.LEFT);
+    uploadSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     uploadSpeed.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT);
@@ -234,19 +232,19 @@ public class GeneralView extends AbstractIView {
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.seeds"); //$NON-NLS-1$
-    seeds = new Label(gTransfer, SWT.LEFT);
+    seeds = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     seeds.setLayoutData(gridData);
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.peers"); //$NON-NLS-1$
-    peers = new Label(gTransfer, SWT.LEFT);
+    peers = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     peers.setLayoutData(gridData);
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.totalspeed"); //$NON-NLS-1$
-    totalSpeed = new Label(gTransfer, SWT.LEFT);
+    totalSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalSpeed.setLayoutData(gridData);
 
@@ -261,57 +259,57 @@ public class GeneralView extends AbstractIView {
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.filename"); //$NON-NLS-1$
-    fileName = new Label(gInfo, SWT.LEFT);
+    fileName = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     fileName.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.totalsize"); //$NON-NLS-1$
-    fileSize = new Label(gInfo, SWT.LEFT);
+    fileSize = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     fileSize.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.savein"); //$NON-NLS-1$
-    saveIn = new Label(gInfo, SWT.LEFT);
+    saveIn = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     saveIn.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.hash"); //$NON-NLS-1$
-    hash = new Label(gInfo, SWT.LEFT);
+    hash = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     hash.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.numberofpieces"); //$NON-NLS-1$
-    pieceNumber = new Label(gInfo, SWT.LEFT);
+    pieceNumber = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     pieceNumber.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.size"); //$NON-NLS-1$
-    pieceSize = new Label(gInfo, SWT.LEFT);
+    pieceSize = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     pieceSize.setLayoutData(gridData);
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
-    trackerUrlValue = new Label(gInfo, SWT.LEFT);
+    trackerUrlValue = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     trackerUrlValue.setLayoutData(gridData);
     
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
-    tracker = new Label(gInfo, SWT.LEFT);
+    tracker = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     tracker.setLayoutData(gridData);    
         
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.updatein"); //$NON-NLS-1$
-    trackerUpdateIn = new Label(gInfo, SWT.LEFT);
+    trackerUpdateIn = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     trackerUpdateIn.setLayoutData(gridData);
     
@@ -331,7 +329,7 @@ public class GeneralView extends AbstractIView {
     
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.comment"); //$NON-NLS-1$
-    comment = new Label(gInfo, SWT.LEFT);
+    comment = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     comment.setLayoutData(gridData);
@@ -654,8 +652,8 @@ public class GeneralView extends AbstractIView {
     gc.dispose();
   }
   public void setTime(String elapsed, String remaining) {
-    ViewUtils.setText( timeElapsed, elapsed );
-    ViewUtils.setText( timeRemaining, remaining);
+    timeElapsed.setText( elapsed );
+    timeRemaining.setText( remaining);
   }
 
   public void setStats(String _dl, String _ul, String _dls, String _uls, String _ts, String _s, String _p,String _hashFails,String _shareRatio) {
@@ -670,27 +668,27 @@ public class GeneralView extends AbstractIView {
     final String s = _s;
     final String p = _p;
     
-    ViewUtils.setText( download, dl );
-    ViewUtils.setText( downloadSpeed, dls );
-    ViewUtils.setText( upload, ul );
-    ViewUtils.setText( uploadSpeed, uls );
- 	ViewUtils.setText( totalSpeed,ts );
-	ViewUtils.setText( seeds, s); //$NON-NLS-1$
-	ViewUtils.setText( peers, p); //$NON-NLS-1$
- 	ViewUtils.setText( hashFails,_hashFails);
-	ViewUtils.setText( shareRatio,_shareRatio);     
+	download.setText( dl );
+	downloadSpeed.setText( dls );
+	upload.setText( ul );
+	uploadSpeed.setText( uls );
+	totalSpeed.setText( ts );
+	seeds.setText( s); //$NON-NLS-1$
+	peers.setText( p); //$NON-NLS-1$
+	hashFails.setText( _hashFails);
+	shareRatio.setText( _shareRatio);     
   }
 
   public void setTracker(final String status, final int time, TRTrackerClient trackerClient ){
     if (display == null || display.isDisposed())
       return;
- 	ViewUtils.setText( tracker,status);
+	tracker.setText( status);
     int minutes = time / 60;
     int seconds = time % 60;
     String strSeconds = "" + seconds; //$NON-NLS-1$
     if (seconds < 10)
       strSeconds = "0" + seconds; //$NON-NLS-1$
-	ViewUtils.setText( trackerUpdateIn,minutes + ":" + strSeconds); //$NON-NLS-1$
+	trackerUpdateIn.setText( minutes + ":" + strSeconds); //$NON-NLS-1$
     
     if(trackerClient != null){
     	
@@ -698,7 +696,7 @@ public class GeneralView extends AbstractIView {
     
     	if ( trackerURL != null ){
     	
-			ViewUtils.setText( trackerUrlValue, trackerURL);
+			trackerUrlValue.setText( trackerURL);
     	}
     }
   }
@@ -715,13 +713,13 @@ public class GeneralView extends AbstractIView {
       return;
     display.asyncExec(new Runnable() {
       public void run() {
-		ViewUtils.setText( fileName,_fileName);
-		ViewUtils.setText( fileSize, _fileSize);
-		ViewUtils.setText( saveIn,_path);
-		ViewUtils.setText( hash, _hash);
-		ViewUtils.setText( pieceNumber,"" + _pieceNumber); //$NON-NLS-1$
-		ViewUtils.setText( pieceSize, _pieceLength);
-		ViewUtils.setText( comment, _comment);
+		fileName.setText(_fileName);
+		fileSize.setText( _fileSize);
+		saveIn.setText( _path);
+		hash.setText( _hash);
+		pieceNumber.setText( "" + _pieceNumber); //$NON-NLS-1$
+		pieceSize.setText( _pieceLength);
+		comment.setText( _comment);
       }
     });
   }

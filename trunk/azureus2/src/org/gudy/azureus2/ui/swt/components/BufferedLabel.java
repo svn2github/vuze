@@ -1,6 +1,6 @@
 /*
- * File    : ViewUtils.java
- * Created : 24-Oct-2003
+ * File    : BufferedLabel.java
+ * Created : 24-Nov-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -18,42 +18,71 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.ui.swt.views;
+
+package org.gudy.azureus2.ui.swt.components;
 
 /**
  * @author parg
+ *
  */
 
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.layout.GridData;
 
 public class 
-ViewUtils 
+BufferedLabel
+	extends BufferedWidget 
 {
-	public static void
-	setText(
-		TableItem	item,
-		int			index,
-		String		value )
+	protected Label	label;
+	
+	protected String	value = "";
+	
+	public
+	BufferedLabel(
+		Group		group,
+		int			attrs )
 	{
-		if ( item.isDisposed()){
+		super( new Label( group, attrs ));
+		
+		label = (Label)getWidget();
+	}
+		
+	public boolean
+	isDisposed()
+	{
+		return( label.isDisposed());
+	}
+	
+	public void
+	setLayoutData(
+		GridData	gd )
+	{
+		label.setLayoutData( gd );
+	}
+	
+	public void
+	setText(
+		String	new_value )
+	{
+		if ( label.isDisposed()){
 			return;
 		}
-		
-		String old_value = item.getText( index );
-		
-		if ( old_value == value ){
+				
+		if ( new_value == value ){
 			
 			return;
 		}
 		
-		if (	old_value != null && 
+		if (	new_value != null && 
 				value != null &&
-				old_value.equals( value )){
+				new_value.equals( value )){
 					
 			return;
 		}
 		
-		item.setText( index, value==null?"":value );
+		value = new_value;
+		
+		label.setText( value==null?"":value );	
 	}
 }

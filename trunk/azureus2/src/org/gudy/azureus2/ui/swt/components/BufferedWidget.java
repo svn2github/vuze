@@ -1,6 +1,6 @@
 /*
- * File    : ViewUtils.java
- * Created : 24-Oct-2003
+ * File    : BufferedWidget.java
+ * Created : 24-Nov-2003
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -18,42 +18,45 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.ui.swt.views;
+
+package org.gudy.azureus2.ui.swt.components;
 
 /**
  * @author parg
+ *
  */
 
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Widget;
 
 public class 
-ViewUtils 
+BufferedWidget 
 {
-	public static void
-	setText(
-		TableItem	item,
-		int			index,
-		String		value )
+	protected Widget	widget;
+	protected Object	data;
+	
+	protected
+	BufferedWidget(
+		Widget		_widget )
 	{
-		if ( item.isDisposed()){
-			return;
-		}
-		
-		String old_value = item.getText( index );
-		
-		if ( old_value == value ){
-			
-			return;
-		}
-		
-		if (	old_value != null && 
-				value != null &&
-				old_value.equals( value )){
-					
-			return;
-		}
-		
-		item.setText( index, value==null?"":value );
+		widget	= _widget;
+	}
+	
+	public Widget
+	getWidget()
+	{
+		return( widget );
+	}
+	
+	public void
+	setData(
+		Object	d )
+	{
+		data	= d;
+	}
+	
+	public Object
+	getData()
+	{
+		return( data );
 	}
 }

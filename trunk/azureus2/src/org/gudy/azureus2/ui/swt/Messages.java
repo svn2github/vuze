@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Widget;
+import org.gudy.azureus2.ui.swt.components.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 /**
@@ -94,11 +95,18 @@ public class Messages {
   }
 
   public static void setLanguageText(Widget widget, String key) {
-    widget.setData(key);
-    updateLanguageFromData(widget);
-    updateToolTipFromData(widget);
+	widget.setData(key);
+	updateLanguageFromData(widget);
+	updateToolTipFromData(widget);
   }
   
+  public static void setLanguageText(BufferedWidget buffered_widget, String key) {
+  	Widget widget = buffered_widget.getWidget();
+	widget.setData(key);
+	updateLanguageFromData(widget);
+	updateToolTipFromData(widget);
+  }
+    
   
   private static void updateToolTipFromData(Widget widget) {
     if(widget instanceof Control) {
