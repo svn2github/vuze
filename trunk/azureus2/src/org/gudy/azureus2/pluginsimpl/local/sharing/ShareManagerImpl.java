@@ -35,6 +35,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 
@@ -84,6 +85,8 @@ ShareManagerImpl
 	protected ShareConfigImpl	config;
 	
 	protected Map				shares 		= new HashMap();
+	
+	protected shareScanner		current_scanner;
 	
 	protected List				listeners	= new ArrayList();
 	
@@ -166,7 +169,6 @@ ShareManagerImpl
 	readAZConfig()
 	{
 		COConfigurationManager.addParameterListener( "Sharing Rescan Enable", this );	
-		COConfigurationManager.addParameterListener( "Sharing Rescan Period", this );	
 		
 		readAZConfigSupport();
 	}
@@ -181,7 +183,24 @@ ShareManagerImpl
 	protected void
 	readAZConfigSupport()
 	{
+		try{
+			this_mon.enter();
 		
+			boolean	scan_enabled	= COConfigurationManager.getBooleanParameter( "Sharing Rescan Enable" );
+						
+			if ( !scan_enabled ){
+			
+				current_scanner	= null;
+				
+			}else if ( current_scanner == null ){
+				
+				current_scanner = new shareScanner();
+			}
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected void
@@ -420,6 +439,8 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		LGLogger.log( "ShareManager: addFile '" + file.toString()+ "'" );
+
 		try{
 			return( (ShareResourceFile)addFileOrDir( file, ShareResource.ST_FILE, false ));
 			
@@ -446,6 +467,8 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		LGLogger.log( "ShareManager: addDir '" + dir.toString()+ "'" );
+
 		try{
 			this_mon.enter();
 			
@@ -546,6 +569,8 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		LGLogger.log( "ShareManager: addDirContents '" + dir.toString()+ "'" );
+
 		try{
 			this_mon.enter();
 			
@@ -599,6 +624,8 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
+		LGLogger.log( "ShareManager: resource '" + resource.getName() + "' deleted" );
+		
 		try{
 			this_mon.enter();
 		
@@ -623,6 +650,16 @@ ShareManagerImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	protected void
+	scanShares()
+	
+		throws ShareException
+	{
+		LGLogger.log( "ShareManager: scanning resources for changes" );
+
+		checkConsistency();
 	}
 	
 		// bit of a hack this, but to do it properly would require extensive rework to decouple the
@@ -707,5 +744,49 @@ ShareManagerImpl
 		ShareManagerListener		l )
 	{
 		listeners.remove(l);
+	}
+	
+	protected class
+	shareScanner
+	{
+		boolean	run = true;
+		
+		protected
+		shareScanner()
+		{
+			current_scanner	= this;
+			
+			Thread t = 
+				new AEThread( "ShareManager::scanner" )
+				{
+					public void
+					runSupport()
+					{
+						while( current_scanner == shareScanner.this ){
+						
+							try{
+								
+								int		scan_period		= COConfigurationManager.getIntParameter( "Sharing Rescan Period" );
+
+								Thread.sleep( scan_period * 1000 );
+								
+								if ( current_scanner == shareScanner.this ){
+									
+									scanShares();
+								}
+
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+				};
+				
+			t.setDaemon(true);
+			
+			t.start();
+			
+		}
 	}
 }
