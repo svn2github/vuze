@@ -25,9 +25,11 @@ package com.aelitis.azureus.core.peermanager;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.*;
@@ -47,6 +49,7 @@ public class PeerManager {
   private static final PeerManager instance = new PeerManager();
   
   private final PeerUploadManager upload_manager = new PeerUploadManager();
+  private final PeerDownloadManager download_manager = new PeerDownloadManager();
   
   private final HashMap legacy_managers = new HashMap();
   
@@ -78,6 +81,14 @@ public class PeerManager {
    * @return upload manager
    */
   public PeerUploadManager getUploadManager() {  return upload_manager;  }
+  
+  
+  /**
+   * Get the peer download manager.
+   * @return download manager
+   */
+  public PeerDownloadManager getDownloadManager() {  return download_manager;  }
+  
   
   
   /**
@@ -119,6 +130,16 @@ public class PeerManager {
         matcher,
         new NetworkManager.RoutingListener() {
           public void connectionRouted( NetworkConnection connection ) {
+            
+            //make sure not already connected to the same IP address; allow loopback connects for co-located proxy-based connections and testing
+            String address = connection.getAddress().getAddress().getHostAddress();
+            boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
+            if( !same_allowed && PeerIdentityManager.containsIPAddress( manager.getPeerIdentityDataID(), address ) ){  
+              LGLogger.log( "Incoming TCP connection from [" +connection+ "] dropped as IP address already connected for [" +manager.getDownloadManager().getDisplayName()+ "]" );
+              connection.close();
+              return;
+            }
+            
             LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
             manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
           }
