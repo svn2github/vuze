@@ -81,6 +81,10 @@ PRUDPPacketRequest
 			{
 				return( new PRUDPPacketRequestConnect(is, connection_id,transaction_id));
 			}
+			case ACT_REQUEST_ANNOUNCE:
+			{
+				return( new PRUDPPacketRequestAnnounce(is, connection_id,transaction_id));
+			}
 		}
 		
 		

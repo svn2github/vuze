@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketReply.java
+ * File    : PRUDPPacketRequestAnnounce.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -25,62 +25,41 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
  * @author parg
  *
  */
+
 import java.io.*;
 
-public abstract class 
-PRUDPPacketReply
-	extends PRUDPPacket
-{		
+public class 
+PRUDPPacketRequestAnnounce 
+extends PRUDPPacketRequest
+{
 	public
-	PRUDPPacketReply(
-		int		_action,
-		int		_tran_id )
+	PRUDPPacketRequestAnnounce(
+		long				con_id )
 	{
-		super( _action, _tran_id );
+		super( ACT_REQUEST_ANNOUNCE, con_id );
 	}
-		
+	
+	protected
+	PRUDPPacketRequestAnnounce(
+		DataInputStream		is,
+		long				con_id,
+		int					trans_id )
+	{
+		super( ACT_REQUEST_ANNOUNCE, con_id, trans_id );
+	}
+	
 	public void
 	serialise(
 		DataOutputStream	os )
 	
 	throws IOException
 	{
-		os.writeInt( type );
-		os.writeInt( transaction_id );
-	}
-	
-	public static PRUDPPacketReply
-	deserialiseReply(
-		DataInputStream		is )
-	
-		throws IOException
-	{
-		int		action			= is.readInt();
-		int		transaction_id	= is.readInt();
-		
-		switch( action ){
-			
-			case ACT_REPLY_CONNECT:
-			{
-				return( new PRUDPPacketReplyConnect(is, transaction_id));
-			}
-			case ACT_REPLY_ANNOUNCE:
-			{
-				return( new PRUDPPacketReplyAnnounce(is, transaction_id));
-			}
-			case ACT_REPLY_ERROR:
-			{
-				return( new PRUDPPacketReplyError(is, transaction_id));
-			}
-		}
-		
-		
-		throw( new IOException( "unsupported reply type"));
+		super.serialise(os);
 	}
 	
 	public String
 	getString()
 	{
-		return( super.getString() + ":reply[trans=" + transaction_id + "]" );
+		return( super.getString());
 	}
 }

@@ -886,7 +886,31 @@ TRTrackerClientClassicImpl
  			
  			PRUDPPacket request_packet = new PRUDPPacketRequestConnect(0);
  			
- 			PRUDPPacket reply_packet = handler.sendAndReceive( request_packet, destination );
+ 			PRUDPPacket reply = handler.sendAndReceive( request_packet, destination );
+ 			
+ 			if ( reply.getAction() == PRUDPPacket.ACT_REPLY_CONNECT ){
+ 			
+ 				PRUDPPacketReplyConnect connect_reply = (PRUDPPacketReplyConnect)reply;
+ 				
+ 				long	my_connection = connect_reply.getConnectionId();
+ 			
+ 				request_packet = new PRUDPPacketRequestAnnounce( my_connection );
+ 		
+ 				reply = handler.sendAndReceive( request_packet, destination );
+ 			
+ 				if ( reply.getAction() == PRUDPPacket.ACT_REPLY_ANNOUNCE ){
+ 					
+ 					PRUDPPacketReplyAnnounce	announce_reply = (PRUDPPacketReplyAnnounce)reply;
+ 					
+ 					// TODO:
+ 				}else{
+ 			
+ 					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
+ 				}
+ 			}else{
+ 				
+ 				failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
+ 			}
  			
  		}catch( Throwable e ){
  		

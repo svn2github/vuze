@@ -68,18 +68,40 @@ TRTrackerServerProcessorUDP
 			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( is );
 			
 			System.out.println( "UDPRequest:" + request.getString());
-						
+			
+			PRUDPPacket	reply;
+			
+			try{
+				int	type = request.getAction();
+				
+				if ( type == PRUDPPacket.ACT_REQUEST_CONNECT ){
+					
+					reply = handleConnect( request );
+					
+				}else if (type == PRUDPPacket.ACT_REQUEST_ANNOUNCE ){
+					
+					reply = handleAnnounce( request );
+					
+				}else if ( type == PRUDPPacket.ACT_REQUEST_SCRAPE ){
+					
+					reply = handleScrape( request );
+					
+				}else{
+					
+					reply = new PRUDPPacketReplyError( request.getTransactionId(), "unsupported action");
+				}
+			}catch( Throwable e ){
+				
+				reply = new PRUDPPacketReplyError( request.getTransactionId(), "error:" + e.toString());
+			}
+			
 			InetAddress address = packet.getAddress();
 			
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			
 			DataOutputStream os = new DataOutputStream( baos );
-			
-			long	conn_id = 232323;
-			
-			PRUDPPacket data_packet = new PRUDPPacketReplyConnect(request.getTransactionId(), conn_id );
-			
-			data_packet.serialise(os);
+									
+			reply.serialise(os);
 			
 			byte[]	buffer = baos.toByteArray();
 			
@@ -91,5 +113,30 @@ TRTrackerServerProcessorUDP
 			
 			e.printStackTrace();
 		}
+	}
+	
+	protected PRUDPPacket
+	handleConnect(
+		PRUDPPacket		request )
+	{
+		long	conn_id = 232323; // TODO:
+		
+		PRUDPPacket reply = new PRUDPPacketReplyConnect(request.getTransactionId(), conn_id );
+		
+		return( reply );
+	}
+	
+	protected PRUDPPacket
+	handleAnnounce(
+		PRUDPPacket		request )
+	{
+		throw( new RuntimeException( "Moo"));
+	}
+	
+	protected PRUDPPacket
+	handleScrape(
+		PRUDPPacket		request )
+	{
+		throw( new RuntimeException( "Moo"));
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketReplyConnect.java
+ * File    : PRUDPPacketReplyAnnounce.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -29,53 +29,34 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 import java.io.*;
 
 public class 
-PRUDPPacketReplyConnect
-	extends PRUDPPacketReply
+PRUDPPacketReplyAnnounce
+extends PRUDPPacketReply
 {
-	protected long	connection_id;
-	
 	public
-	PRUDPPacketReplyConnect(
-		int			trans_id,
-		long		conn_id )
+	PRUDPPacketReplyAnnounce(
+		int			trans_id )
 	{
-		super( ACT_REPLY_CONNECT, trans_id );
-		
-		connection_id	= conn_id;
+		super( ACT_REPLY_ANNOUNCE, trans_id );
 	}
 	
 	protected
-	PRUDPPacketReplyConnect(
+	PRUDPPacketReplyAnnounce(
 		DataInputStream		is,
 		int					trans_id )
 	
 		throws IOException
 	{
-		super( ACT_REPLY_CONNECT, trans_id );
-		
-		connection_id = is.readLong();
+		super( ACT_REPLY_ANNOUNCE, trans_id );
 	}
 	
-	public long
-	getConnectionId()
-	{
-		return( connection_id );
-	}
 	
 	public void
 	serialise(
 		DataOutputStream	os )
 	
-		throws IOException
+	throws IOException
 	{
 		super.serialise(os);
-		
-		os.writeLong( connection_id );
-	}
-	
-	public String
-	getString()
-	{
-		return( super.getString() + ",[con=" + connection_id + "]");
 	}
 }
+
