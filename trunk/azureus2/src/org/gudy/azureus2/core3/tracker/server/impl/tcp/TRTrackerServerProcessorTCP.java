@@ -373,7 +373,7 @@ TRTrackerServerProcessorTCP
 					
 				if ( timeout_ticks <= 0 ){
 					
-					Debug.out( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded" );
+					System.out.println( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded for " + socket.getInetAddress() );
 					
 					socket.close();
 				}
