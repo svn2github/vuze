@@ -1,6 +1,6 @@
 /*
  * File    : Plugin.java
- * Created : 24 oct. 2003 12:26:35
+ * Created : 2 nov. 2003 18:43:21
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -21,61 +21,10 @@
  
 package org.gudy.core3.plugins;
 
-import org.gudy.core3.plugins.files.data.PiecePickingData;
-
 /**
- * This Interface is the base interface for all plugins
- * Any plugin should implement this interface.
- * 
  * @author Olivier
  * 
  */
-public interface Plugin {
-    
-  /**
-   * @return the plugin name
-   */
-  public String getPluginName();
-  
-  /**
-   * Initialisation is done when plugin is loaded
-   * @param pluginContext The context in which this plugin is going to work
-   * @param pluginInterface The command interface
-   */
-  public void initPlugin(PluginContext pluginContext,PluginInterface pluginInterface);
-  
-  
-  /**
-   * Called when plugin is started. manually, or when azureus starts.  
-   */  
-  public void startPlugin();
-  
-  
-  /**
-   * Called when azureus plugin is stopped : manually, or when azureus quits.  
-   */
-  public void stopPlugin();
-  
-  
-  //Callbacks
-  
-  /**
-   * The CallBack for Plugins requesting a timer trigger
-   */
-  public void onTimerTrigger();
-  
-  
-  /**
-   * The CallBack for Plugins requesting a Tab into the Config panel
-   * This method must use the PluginConfigContructorInterface
-   * to contruct its config panel.
-   */
-  public void constructConfigPanel();
-  
-  
-  /**
-   * The CallBack for Plugins requesting to personalize piece picking.
-   * @author Olivier
-   */
-  public void changePiecePickingOrder(PiecePickingData data);
+public interface Plugin {  
+  public void initialize(PluginInterface pluginInterface);
 }

@@ -37,7 +37,6 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -58,8 +57,6 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.CoolBar;
-import org.eclipse.swt.widgets.CoolItem;
 import org.eclipse.swt.widgets.Decorations;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
@@ -88,6 +85,8 @@ import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.core3.plugins.PluginView;
+import org.gudy.core3.plugins.impl.PluginInitializer;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -550,6 +549,14 @@ public class MainWindow implements GlobalManagerListener {
     });
 
     new MenuItem(viewMenu, SWT.SEPARATOR);
+    
+    view_plugin = new MenuItem(viewMenu, SWT.CASCADE);
+    Messages.setLanguageText(view_plugin, "MainWindow.menu.view.plugins"); //$NON-NLS-1$
+    pluginMenu = new Menu(mainWindow,SWT.DROP_DOWN);
+    view_plugin.setEnabled(false);
+    view_plugin.setMenu(pluginMenu);
+    
+    new MenuItem(viewMenu, SWT.SEPARATOR);
 
     MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
     Messages.setLanguageText(view_closeDetails, "MainWindow.menu.closealldetails"); //$NON-NLS-1$
@@ -680,7 +687,9 @@ public class MainWindow implements GlobalManagerListener {
       }
       catch (Exception e) {}
     }
-
+    
+    new PluginInitializer(globalManager).initializePlugins();
+    
     closeSplashWindow();
 
     mainWindow.open();
@@ -727,7 +736,7 @@ public class MainWindow implements GlobalManagerListener {
 
     if (!COConfigurationManager.getBooleanParameter("Wizard Completed", false)) {
       new ConfigureWizard(display);
-    }
+    }       
   }
 
 	public void
@@ -1803,6 +1812,33 @@ public class MainWindow implements GlobalManagerListener {
    */
   public boolean isUseCustomTab() {
     return useCustomTab;
+  }    
+  
+  
+  MenuItem view_plugin;
+  Menu pluginMenu;
+  
+  Map pluginTabs = new HashMap();
+  
+  public void addPluginView(final PluginView view) {
+    MenuItem item = new MenuItem(pluginMenu,SWT.NULL);
+    item.setText(view.getPluginViewName());
+    item.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        Tab tab = (Tab) pluginTabs.get(view.getPluginViewName());
+        if(tab != null) {
+          tab.setFocus();
+        } else {
+          tab = new Tab(view);
+          pluginTabs.put(view.getPluginViewName(),tab);         
+        }
+      }
+    });
+    view_plugin.setEnabled(true);
+  }
+  
+  public void removeActivePluginView(final PluginView view) {
+    pluginTabs.remove(view.getPluginViewName());
   }
 
 }

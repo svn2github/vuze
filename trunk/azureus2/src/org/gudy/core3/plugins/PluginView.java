@@ -1,6 +1,6 @@
 /*
- * File    : PluginStatsInterface.java
- * Created : 24 oct. 2003 13:13:35
+ * File    : PluginView.java
+ * Created : 2 nov. 2003 20:58:14
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -19,10 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
  
-package org.gudy.core3.plugins.stats;
+package org.gudy.core3.plugins;
+
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 /**
  * @author Olivier
  * 
  */
-public interface PluginStatsInterface {}
+public abstract class PluginView extends AbstractIView {
+  
+  public abstract String getPluginViewName();
+
+}

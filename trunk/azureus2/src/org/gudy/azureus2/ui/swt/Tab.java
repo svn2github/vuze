@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.core3.plugins.PluginView;
 
 /**
  * @author Olivier
@@ -267,6 +268,9 @@ public class Tab {
     }
     if (view != null) {
       try {
+        if(view instanceof PluginView) {
+          MainWindow.getWindow().removeActivePluginView((PluginView)view);
+        }
         view.delete();
       }
       catch (Exception ignore) {
@@ -293,8 +297,12 @@ public class Tab {
       tabs.remove(tabItem);
     }
     try {
-      if (view != null)
+      if (view != null) {
+        if(view instanceof PluginView) {
+          MainWindow.getWindow().removeActivePluginView((PluginView)view);
+        }
         view.delete();
+      }
       tabItem.dispose();
     }
     catch (Exception e) {}

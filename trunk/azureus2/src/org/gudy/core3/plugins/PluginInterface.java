@@ -1,6 +1,6 @@
 /*
  * File    : PluginInterface.java
- * Created : 24 oct. 2003 12:25:51
+ * Created : 2 nov. 2003 18:48:47
  * By      : Olivier 
  * 
  * Azureus - a Java Bittorrent client
@@ -21,17 +21,13 @@
  
 package org.gudy.core3.plugins;
 
-import org.gudy.core3.plugins.files.PluginFilesInterface;
-import org.gudy.core3.plugins.stats.PluginStatsInterface;
-import org.gudy.core3.plugins.torrents.PluginTorrentsInterface;
+import org.gudy.azureus2.core3.global.GlobalManager;
 
 /**
  * @author Olivier
  * 
  */
-public interface PluginInterface 
-extends 
-  PluginFilesInterface
- ,PluginStatsInterface
- ,PluginTorrentsInterface {
+public interface PluginInterface {
+  public GlobalManager getGlobalManager();
+  public void addView(PluginView view);
 }
