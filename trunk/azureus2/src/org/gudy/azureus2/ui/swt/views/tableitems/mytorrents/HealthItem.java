@@ -70,10 +70,11 @@ public class HealthItem
       DownloadManager dm = (DownloadManager)cell.getDataSource();
       int health = (dm == null) ? 0 : dm.getHealthStatus();
       
-      if (!cell.setSortValue(health) && cell.isValid())
+      TRHostTorrent ht = tracker_host.getHostTorrent( dm.getTorrent());
+
+      if (!cell.setSortValue(health+(ht==null?0:256)) && cell.isValid())
         return;
 
-      TRHostTorrent ht = tracker_host.getHostTorrent( dm.getTorrent());
       
       String image_name;
       String sHelpID;
