@@ -246,44 +246,41 @@ CacheFileManagerImpl
 			if ( DEBUG ){
 				
 				CacheFileImpl	file	= new_entry.getFile();
+								
+				long	total_cache_size	= 0;
 				
-				synchronized( this ){
-				
-					long	total_cache_size	= 0;
-					
-					int		my_count = 0;
+				int		my_count = 0;
 
-					Iterator it = cache_entries.keySet().iterator();
-					
-					while( it.hasNext()){
-						
-						CacheEntry	entry = (CacheEntry)it.next();
-						
-						total_cache_size	+= entry.getLength();
-						
-						if ( entry.getFile() == file ){
-							
-							my_count++;
-						}
-					}
+				Iterator it = cache_entries.keySet().iterator();
 				
-					if ( my_count != file.cache.size()){
-						
-						System.out.println( "Cache inconsistency: my count = " + my_count + ", file = " + file.cache.size());
-						
-					}else{
-						
-						//System.out.println( "Cache: file_count = " + my_count );
-					}
+				while( it.hasNext()){
 					
-					if ( total_cache_size != cache_size - cache_space_free ){
+					CacheEntry	entry = (CacheEntry)it.next();
+					
+					total_cache_size	+= entry.getLength();
+					
+					if ( entry.getFile() == file ){
 						
-						System.out.println( "Cache inconsistency: used_size = " + total_cache_size + ", free = " + cache_space_free + ", size = " + cache_size );
-						
-					}else{
-						
-						//System.out.println( "Cache: usage = " + total_cache_size );
+						my_count++;
 					}
+				}
+			
+				if ( my_count != file.cache.size()){
+					
+					System.out.println( "Cache inconsistency: my count = " + my_count + ", file = " + file.cache.size());
+					
+				}else{
+					
+					//System.out.println( "Cache: file_count = " + my_count );
+				}
+				
+				if ( total_cache_size != cache_size - cache_space_free ){
+					
+					System.out.println( "Cache inconsistency: used_size = " + total_cache_size + ", free = " + cache_space_free + ", size = " + cache_size );
+					
+				}else{
+					
+					//System.out.println( "Cache: usage = " + total_cache_size );
 				}
 			}
 		}

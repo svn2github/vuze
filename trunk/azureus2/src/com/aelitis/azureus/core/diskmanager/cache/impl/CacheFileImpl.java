@@ -291,9 +291,9 @@ CacheFileImpl
 								cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
 								
 								cache.add( entry );
+								
+								manager.addCacheSpace( entry );
 							}
-							
-							manager.addCacheSpace( entry );
 								
 							buffer_cached	= true;
 								
