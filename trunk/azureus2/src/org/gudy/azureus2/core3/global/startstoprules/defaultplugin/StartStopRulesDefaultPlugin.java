@@ -199,6 +199,10 @@ public class StartStopRulesDefaultPlugin
   }
   
   private void recalcAllSeedingRanks(boolean force) {
+  	if ( closingDown ){
+  		return;
+  	}
+  	
   	try{
   		this_mon.enter();
   	
