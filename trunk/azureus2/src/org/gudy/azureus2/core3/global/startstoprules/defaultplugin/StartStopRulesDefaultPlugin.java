@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.TimeFormater;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class
 StartStopRulesDefaultPlugin
@@ -101,7 +102,8 @@ StartStopRulesDefaultPlugin
   int iRankTypeSeedFallback;
   boolean bAutoReposition;
   long minTimeAlive;
-  boolean bSeed0Peers;
+  boolean bIgnore0Peers;
+  boolean bPreferLargerSwarms;
 
   public void
   initialize(
@@ -142,6 +144,7 @@ StartStopRulesDefaultPlugin
       plugin_interface.addColumnToMyTorrentsTable("SeedingRank", new SeedingRankColumn());
       plugin_interface.addConfigSection(new ConfigSectionQueue());
       plugin_interface.addConfigSection(new ConfigSectionStarting());
+      plugin_interface.addConfigSection(new ConfigSectionStartingIgnore());
       plugin_interface.addConfigSection(new ConfigSectionStopping());
     } catch (NoClassDefFoundError e) {
       /* Ignore. SWT probably not installed */
@@ -259,13 +262,18 @@ StartStopRulesDefaultPlugin
     iRankTypeSeedFallback = plugin_config.getIntParameter("StartStopManager_iRankTypeSeedFallback");
     bAutoReposition = plugin_config.getBooleanParameter("StartStopManager_bAutoReposition");
     minTimeAlive = plugin_config.getIntParameter("StartStopManager_iMinSeedingTime") * 1000;
-    bSeed0Peers = plugin_config.getBooleanParameter("StartStopManager_bSeed0Peers");
-    // shorted recalc for timed rank type, since the calculation is fast and we want to stop on the second
-    if (iRankType == RANK_TIMED)
-      RECALC_QR_EVERY = 1000;
+    bIgnore0Peers = plugin_config.getBooleanParameter("StartStopManager_bIgnore0Peers");
+    bPreferLargerSwarms = plugin_config.getBooleanParameter("StartStopManager_bPreferLargerSwarms");
+
 
     if (iNewRankType != iRankType) {
       iRankType = iNewRankType;
+      
+      // shorted recalc for timed rank type, since the calculation is fast and we want to stop on the second
+      if (iRankType == RANK_TIMED)
+        RECALC_QR_EVERY = 1000;
+      else
+        RECALC_QR_EVERY = 1000 * 15;
       lastQRcalcTime = 0;
       downloadData[] dlDataArray;
       dlDataArray = (downloadData[])
@@ -789,7 +797,7 @@ StartStopRulesDefaultPlugin
 
   //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: Peers="+numPeers+"; Seeds="+numSeeds);
 
-      if (numSeeds == 0 && numPeers == 0 && bScrapeResultsOk && !bSeed0Peers) {
+      if (numSeeds == 0 && numPeers == 0 && bScrapeResultsOk && bIgnore0Peers) {
         setQR(QR_0SEEDSPEERS);
         return QR_0SEEDSPEERS;
       }
@@ -876,35 +884,31 @@ StartStopRulesDefaultPlugin
       if ((iRankType == RANK_SEEDCOUNT) && 
           (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > numSeeds))
       {
-        int maxSeeds = ignoreSeedCount;
-        if (maxSeeds == 0)
-          maxSeeds = 1000;
-
-        if (numSeeds > 0 || (numSeeds == 0 && numPeers >= minPeersToBoostNoSeeds)) {
-          newQR += 9999999 - (numSeeds * 9999999 / maxSeeds);
-        }
-        // Note, this will "break" if we have over 2000 peers and cause the torrent
-        // with more than 2000 peers to be above one with less peers
-        newQR += (int) ((float)(9999999.0 / (float)maxSeeds / 2000.0) * (float)numPeers);
+        newQR += 490000000/(numSeeds + 1) +
+                 ((bPreferLargerSwarms ? 1 : -1) * numPeers * 5);
+        if (numSeeds == 0 && numPeers >= minPeersToBoostNoSeeds)
+          newQR += 490000000;
 
       } else if (iRankType == RANK_SPRATIO) {
         if (numPeers != 0) {
           if (numSeeds == 0) {
             if (numPeers >= minPeersToBoostNoSeeds)
-              newQR += 2000;
-
-            newQR += numPeers * 50;
+              newQR += 20000;
           }
           else { // numSeeds != 0 && numPeers != 0
             if (numPeers > numSeeds) {
-              // give poor seeds:peer ratio a boost of up to 1000
-              newQR += 1000 - (numSeeds * 1000 / numPeers);
+              // give poor seeds:peer ratio a boost 
+              newQR += 10000 - (numSeeds * 10000 / numPeers);
             }
             else { // Peers <= Seeds
-              // only up to 100 points
-              newQR += numPeers * 100 / numSeeds;
+              newQR += numPeers * 1000 / numSeeds;
             }
           }
+
+          if (bPreferLargerSwarms)
+            newQR += numPeers * 5;
+          else
+            newQR -= numPeers * 5;
         }
       }
 
@@ -1022,7 +1026,10 @@ StartStopRulesDefaultPlugin
 
       layout = new GridLayout();
       layout.numColumns = 2;
+      layout.marginHeight = 0;
       gQR.setLayout(layout);
+      gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+      gQR.setLayoutData(gridData);
 
       label = new Label(gQR, SWT.WRAP);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -1086,7 +1093,9 @@ StartStopRulesDefaultPlugin
       layout.marginWidth = 2;
       layout.numColumns = 3;
       gSeedCount.setLayout(layout);
-      gSeedCount.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+      gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+      gridData.verticalSpan = 1;
+      gSeedCount.setLayoutData(gridData);
       Messages.setLanguageText(gSeedCount, "ConfigView.label.seeding.rankType.seed.options");
 
       label = new Label(gSeedCount, SWT.NULL);
@@ -1103,6 +1112,7 @@ StartStopRulesDefaultPlugin
 
       Control[] controlsSeedCount = { gSeedCount };
       rparamSeedCount.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsSeedCount));
+
 
       // timed rotation ranking type
       RadioParameter rparamTimed =
@@ -1134,6 +1144,27 @@ StartStopRulesDefaultPlugin
       new IntParameter(gQR, "StartStopManager_iMinSeedingTime").setLayoutData(gridData);
 
       label = new Label(gQR, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.autoReposition"); //$NON-NLS-1$
+      new BooleanParameter(gQR, "StartStopManager_bAutoReposition");
+
+
+      Composite cNoTimeNone = (Composite)new Group(gQR, SWT.NULL);
+      layout = new GridLayout();
+//      layout.marginHeight = 0;
+//      layout.marginWidth = 0;
+      layout.numColumns = 2;
+      cNoTimeNone.setLayout(layout);
+      gridData = new GridData();
+      gridData.horizontalSpan = 2;
+      cNoTimeNone.setLayoutData(gridData);
+      
+      label = new Label(cNoTimeNone, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.preferLargerSwarms"); //$NON-NLS-1$
+      new BooleanParameter(cNoTimeNone, "StartStopManager_bPreferLargerSwarms");
+
+
+
+      label = new Label(cNoTimeNone, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.minPeersToBoostNoSeeds"); //$NON-NLS-1$
       final String boostQRPeersLabels[] = new String[9];
       final int boostQRPeersValues[] = new int[9];
@@ -1143,7 +1174,146 @@ StartStopRulesDefaultPlugin
         boostQRPeersValues[i] = (i+1);
       }
       gridData = new GridData();
-      new IntListParameter(gQR, "StartStopManager_iMinPeersToBoostNoSeeds", boostQRPeersLabels, boostQRPeersValues);
+      new IntListParameter(cNoTimeNone, "StartStopManager_iMinPeersToBoostNoSeeds", boostQRPeersLabels, boostQRPeersValues);
+
+
+      label = new Label(cNoTimeNone, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.qr.numPeersAsFullCopy");
+
+      cArea = new Composite(cNoTimeNone, SWT.NULL);
+      layout = new GridLayout();
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
+      layout.numColumns = 2;
+      cArea.setLayout(layout);
+      gridData = new GridData();
+      cArea.setLayoutData(gridData);
+
+      gridData = new GridData();
+      gridData.widthHint = 20;
+      IntParameter paramFakeFullCopy = new IntParameter(cArea, "StartStopManager_iNumPeersAsFullCopy");
+      paramFakeFullCopy.setLayoutData(gridData);
+      final Text txtFakeFullCopy = (Text)paramFakeFullCopy.getControl();
+
+      label = new Label(cArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.peers");
+
+      label = new Label(cNoTimeNone, SWT.NULL);
+      gridData = new GridData();
+      gridData.horizontalIndent = 15;
+      label.setLayoutData(gridData);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
+
+      final Composite cFullCopyOptionsArea = new Composite(cNoTimeNone, SWT.NULL);
+      layout = new GridLayout();
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
+      layout.numColumns = 2;
+      cFullCopyOptionsArea.setLayout(layout);
+      gridData = new GridData();
+      cFullCopyOptionsArea.setLayoutData(gridData);
+
+      gridData = new GridData();
+      gridData.widthHint = 20;
+      new IntParameter(cFullCopyOptionsArea, "StartStopManager_iFakeFullCopySeedStart").setLayoutData(gridData);
+      label = new Label(cFullCopyOptionsArea, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeds");
+      
+      final int iNumPeersAsFullCopy = StartStopRulesDefaultPlugin.this.plugin_config.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
+      controlsSetEnabled(cFullCopyOptionsArea.getChildren(), iNumPeersAsFullCopy != 0);
+
+      paramFakeFullCopy.getControl().addListener(SWT.Modify, new Listener() {
+          public void handleEvent(Event event) {
+            try {
+              Text control = (Text)event.widget;
+              if (control.getEnabled()) {
+                int value = Integer.parseInt(control.getText());
+                boolean enabled = (value != 0);
+                if (cFullCopyOptionsArea.getEnabled() != enabled) {
+                  cFullCopyOptionsArea.setEnabled(enabled);
+                  controlsSetEnabled(cFullCopyOptionsArea.getChildren(), enabled);
+                }
+              }
+            }
+            catch (Exception e) {}
+          }
+      });
+
+      Control[] controlsNoTimeNone = { cNoTimeNone };
+      rparamPeerSeed.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsNoTimeNone) {
+        public void performAction() {
+          super.performAction();
+          Event e = new Event();
+          e.widget = txtFakeFullCopy;
+          txtFakeFullCopy.notifyListeners(SWT.Modify, e);
+        }
+      });
+      rparamSeedCount.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsNoTimeNone) {
+        public void performAction() {
+          super.performAction();
+          Event e = new Event();
+          e.widget = txtFakeFullCopy;
+          txtFakeFullCopy.notifyListeners(SWT.Modify, e);
+        }
+      });
+      
+      
+      boolean enable = (StartStopRulesDefaultPlugin.this.iRankType == RANK_SPRATIO || 
+                        StartStopRulesDefaultPlugin.this.iRankType == RANK_SEEDCOUNT);
+      controlsSetEnabled(controlsNoTimeNone, enable);
+        
+
+
+      return gQR;
+    }
+
+    private void controlsSetEnabled(Control[] controls, boolean bEnabled) {
+      for(int i = 0 ; i < controls.length ; i++) {
+        if (controls[i] instanceof Composite)
+          controlsSetEnabled(((Composite)controls[i]).getChildren(), bEnabled);
+        controls[i].setEnabled(bEnabled);
+      }
+    }
+
+  	public String configSectionGetName() {
+  		return "queue.autoSeeding";
+  	}
+
+    public void configSectionSave() {
+      reloadConfigParams();
+    }
+
+    public void configSectionDelete() {
+    }
+  }
+
+
+  class ConfigSectionStartingIgnore implements ConfigSection {
+    public String configSectionGetParentSection() {
+      return "queue.autoSeeding";
+    }
+
+    public Composite configSectionCreate(Composite parent) {
+      // Seeding Automation Setup
+      GridData gridData;
+      GridLayout layout;
+      Label label;
+      Composite cArea;
+
+      Composite gQR = new Composite(parent, SWT.NULL);
+      gQR.addControlListener(new Utils.LabelWrapControlListener());
+
+      layout = new GridLayout();
+      layout.numColumns = 2;
+      layout.marginHeight = 0;
+      gQR.setLayout(layout);
+
+      label = new Label(gQR, SWT.WRAP);
+      gridData = new GridData(GridData.FILL_HORIZONTAL);
+      gridData.horizontalSpan = 2;
+      label.setLayoutData(gridData);
+      Messages.setLanguageText(label, "ConfigView.label.autoSeedingIgnoreInfo"); //$NON-NLS-1$
+
 
       label = new Label(gQR, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.ignoreSeeds"); //$NON-NLS-1$
@@ -1171,94 +1341,22 @@ StartStopRulesDefaultPlugin
       final int stopRatioPeersValues[] = new int[15];
       stopRatioPeersLabels[0] = MessageText.getString("ConfigView.text.neverIgnore");
       stopRatioPeersValues[0] = 0;
+      String peers = MessageText.getString("ConfigView.text.peers");
       for (int i = 1; i < stopRatioPeersValues.length; i++) {
         stopRatioPeersLabels[i] = i + " " + peers; //$NON-NLS-1$
         stopRatioPeersValues[i] = i;
       }
       new IntListParameter(gQR, "Stop Peers Ratio", 0, stopRatioPeersLabels, stopRatioPeersValues);
 
-
       label = new Label(gQR, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.qr.numPeersAsFullCopy");
-
-      cArea = new Composite(gQR, SWT.NULL);
-      layout = new GridLayout();
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
-      layout.numColumns = 2;
-      cArea.setLayout(layout);
-      gridData = new GridData();
-      cArea.setLayoutData(gridData);
-
-      gridData = new GridData();
-      gridData.widthHint = 20;
-      IntParameter paramFakeFullCopy = new IntParameter(cArea, "StartStopManager_iNumPeersAsFullCopy");
-      paramFakeFullCopy.setLayoutData(gridData);
-
-      label = new Label(cArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.peers");
-
-      label = new Label(gQR, SWT.NULL);
-      gridData = new GridData();
-      gridData.horizontalIndent = 15;
-      label.setLayoutData(gridData);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
-
-      final Composite cFullCopyOptionsArea = new Composite(gQR, SWT.NULL);
-      layout = new GridLayout();
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
-      layout.numColumns = 2;
-      cFullCopyOptionsArea.setLayout(layout);
-      gridData = new GridData();
-      cFullCopyOptionsArea.setLayoutData(gridData);
-
-      gridData = new GridData();
-      gridData.widthHint = 20;
-      new IntParameter(cFullCopyOptionsArea, "StartStopManager_iFakeFullCopySeedStart").setLayoutData(gridData);
-      label = new Label(cFullCopyOptionsArea, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeds");
-      
-      final int iNumPeersAsFullCopy = StartStopRulesDefaultPlugin.this.plugin_config.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
-      controlsSetEnabled(cFullCopyOptionsArea.getChildren(), iNumPeersAsFullCopy != 0);
-
-      paramFakeFullCopy.getControl().addListener(SWT.Modify, new Listener() {
-          boolean wasEnabled = (iNumPeersAsFullCopy != 0);
-          public void handleEvent(Event event) {
-            try {
-              Text control = (Text)event.widget;
-              int value = Integer.parseInt(control.getText());
-              boolean enabled = (value != 0);
-              if (wasEnabled != enabled) {
-                controlsSetEnabled(cFullCopyOptionsArea.getChildren(), enabled);
-                wasEnabled = enabled;
-              }
-            }
-            catch (Exception e) {}
-          }
-      });
-
-      label = new Label(gQR, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.autoReposition"); //$NON-NLS-1$
-      new BooleanParameter(gQR, "StartStopManager_bAutoReposition");
-
-      label = new Label(gQR, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.label.seeding.seed0Peers"); //$NON-NLS-1$
-      new BooleanParameter(gQR, "StartStopManager_bSeed0Peers");
+      Messages.setLanguageText(label, "ConfigView.label.seeding.ignore0Peers"); //$NON-NLS-1$
+      new BooleanParameter(gQR, "StartStopManager_bIgnore0Peers");
 
       return gQR;
     }
 
-    private void controlsSetEnabled(Control[] controls, boolean bEnabled) {
-      for(int i = 0 ; i < controls.length ; i++) {
-        if (controls[i] instanceof Composite)
-          controlsSetEnabled(((Composite)controls[i]).getChildren(), bEnabled);
-        controls[i].setEnabled(bEnabled);
-      }
-    }
-
   	public String configSectionGetName() {
-  		return "queue.autoSeeding";
+  		return "queue.autoSeeding.ignore";
   	}
 
     public void configSectionSave() {
@@ -1268,7 +1366,6 @@ StartStopRulesDefaultPlugin
     public void configSectionDelete() {
     }
   }
-
 
   class ConfigSectionStopping implements ConfigSection {
 

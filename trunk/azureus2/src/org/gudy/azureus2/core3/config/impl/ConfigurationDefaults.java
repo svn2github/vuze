@@ -244,7 +244,8 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iRankTypeSeedFallback", new Long(0));
     def.put("StartStopManager_bAutoReposition", new Long(0));
     def.put("StartStopManager_iMinSeedingTime", new Long(60*3));
-    def.put("StartStopManager_bSeed0Peers", new Long(0));
+    def.put("StartStopManager_bIgnore0Peers", new Long(1));
+    def.put("StartStopManager_bPreferLargerSwarms", new Long(1));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
