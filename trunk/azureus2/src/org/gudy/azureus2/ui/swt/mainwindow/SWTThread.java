@@ -21,12 +21,12 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.lang.reflect.Constructor;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer;
 
 /**
  * The main SWT Thread, the only one that should run any GUI code.
@@ -66,10 +66,25 @@ public class SWTThread {
     instance = this;
     
     display = new Display();
+    
     Display.setAppName("Azureus");
     
-    if(Constants.isOSX) {
-      new CarbonUIEnhancer();
+    if ( Constants.isOSX ){
+    	
+    		// use reflection here so we decouple generic SWT from OSX specific stuff to an extent
+    	
+    	 try{
+    	 	
+            Class ehancerClass = Class.forName("org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer");
+            
+            Constructor constructor = ehancerClass.getConstructor(new Class[]{});
+            
+            constructor.newInstance(new Object[] {});
+            
+        } catch (Exception e) {
+        	
+            Debug.printStackTrace(e);
+        }
     }
     
     runner = new Thread( new AERunnable(){ public void runSupport(){app.run();}},"Main Thread");
