@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,6 +35,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -872,6 +874,58 @@ public class ConfigView extends AbstractIView {
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.useCustomTabs"); //$NON-NLS-1$
    BooleanParameter useCustomTabs = new BooleanParameter(gStyle, "useCustomTab",true); //$NON-NLS-1$
+   
+   String osName = System.getProperty("os.name");
+   if (osName.equals("Windows XP")) {
+     label = new Label(gStyle, SWT.NULL);
+     Messages.setLanguageText(label, "ConfigView.section.style.enableXPStyle"); //$NON-NLS-1$
+     final Button enableXPStyle = new Button(gStyle, SWT.CHECK);
+     boolean enabled = false;
+     boolean valid = true;
+     try {
+       File f =
+         new File(
+           System.getProperty("java.home")
+             + "\\bin\\javaw.exe.manifest");
+       if (f.exists()) {
+         enabled = true;
+       }
+     } catch (Exception e) {
+       e.printStackTrace();
+       valid = false;
+     }
+     enableXPStyle.setEnabled(valid);
+     enableXPStyle.setSelection(enabled);
+     enableXPStyle.addListener(SWT.Selection, new Listener() {
+       public void handleEvent(Event arg0) {
+         //In case we enable the XP Style
+         if (enableXPStyle.getSelection()) {
+           try {
+             File fDest =
+               new File(
+                 System.getProperty("java.home")
+                   + "\\bin\\javaw.exe.manifest");
+             File fOrigin = new File("javaw.exe.manifest");
+             if (!fDest.exists() && fOrigin.exists()) {
+               FileUtil.copyFile(fOrigin, fDest);
+             }
+           } catch (Exception e) {
+             e.printStackTrace();
+           }
+         } else {
+           try {
+             File fDest =
+               new File(
+                 System.getProperty("java.home")
+                   + "\\bin\\javaw.exe.manifest");
+             fDest.delete();
+           } catch (Exception e) {
+             e.printStackTrace();
+           }
+         }
+       }
+     });
+   }
    
    itemStyle.setControl(gStyle);
   }
