@@ -354,16 +354,35 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
-		if ( pi.isMandatory()){
+		uninstall( new PluginInterface[]{ pi });
+	}
+	
+	public void
+	uninstall(
+		final PluginInterface[]		pis )
+	
+		throws PluginException
+	{
+		for (int i=0;i<pis.length;i++){
 			
-			throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is mandatory, can't uninstall" ));
-		}
-		
-		final String	plugin_dir = pi.getPluginDirectoryName();
-		
-		if ( plugin_dir == null || !new File(plugin_dir).exists()){
-
-			throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is not loaded from the file system, can't uninstall" ));
+			PluginInterface	pi = pis[i];
+			
+			if ( pi.isMandatory()){
+				
+				throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is mandatory, can't uninstall" ));
+			}
+			
+			if ( pi.isBuiltIn()){
+				
+				throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is built-in, can't uninstall" ));
+			}
+			
+			String	plugin_dir = pi.getPluginDirectoryName();
+			
+			if ( plugin_dir == null || !new File(plugin_dir).exists()){
+	
+				throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is not loaded from the file system, can't uninstall" ));
+			}
 		}
 		
 		try{
@@ -372,7 +391,13 @@ PluginInstallerImpl
 			UpdateCheckInstance	inst = 
 				uman.createEmptyUpdateCheckInstance(UpdateCheckInstance.UCI_UNINSTALL );
 
-			inst.addUpdatableComponent(
+			for (int i=0;i<pis.length;i++){
+				
+				final PluginInterface	pi = pis[i];
+				
+				final String	plugin_dir = pi.getPluginDirectoryName();
+
+				inst.addUpdatableComponent(
 					new UpdatableComponent()
 					{
 						public String
@@ -480,6 +505,7 @@ PluginInstallerImpl
 								
 						}
 					}, false );
+			}
 
 			inst.start();
 			

@@ -374,6 +374,11 @@ PluginUpdatePlugin
 						
 						SFPluginDetails	details = loader.getPluginDetails( plugin_id );
 		
+						if ( plugin_names.length() == 0 ){
+							
+							plugin_names = details.getName();
+						}
+						
 						boolean az_cvs = plugin_interface.getUtilities().isCVSVersion();
 						
 						String pi_version_info = pi_being_checked.getPluginProperties().getProperty( "plugin.version.info" );

@@ -25,6 +25,7 @@ package org.gudy.azureus2.plugins.installer;
 import java.io.File;
 
 import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.PluginInterface;
 
 /**
  * @author parg
@@ -69,6 +70,20 @@ PluginInstaller
 	public FilePluginInstaller
 	installFromFile(
 		File		file )
+	
+		throws PluginException;
+	
+	public void
+	uninstall(
+		PluginInterface		plugin_interface )
+	
+	
+		throws PluginException;
+	
+	public void
+	uninstall(
+		PluginInterface[]	plugin_interfaces )
+	
 	
 		throws PluginException;
 }

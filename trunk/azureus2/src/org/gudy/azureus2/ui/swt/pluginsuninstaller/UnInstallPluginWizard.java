@@ -68,11 +68,11 @@ public class UnInstallPluginWizard extends Wizard {
   	  
   	  plugins.toArray( ps );
   	  
-  	  for(int i = 0 ; i < ps.length ; i++) {
+  	  if ( ps.length > 0 ){
   	  	
   	    try{
   	    	
-  	      ps[i].uninstall();
+  	      ps[0].getPluginManager().getPluginInstaller().uninstall( ps );
   	      
   	    }catch(Exception e){
   	    	
