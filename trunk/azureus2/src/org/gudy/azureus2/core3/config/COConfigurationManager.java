@@ -35,6 +35,15 @@ COConfigurationManager
 	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT	= 80;
 	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL		= 400;
 	
+	public static final int CONFIG_CACHE_SIZE_MAX_MB;
+	
+	static{
+		long max_mem_bytes 	= Runtime.getRuntime().maxMemory();
+	    long mb_1			= 1*1024*1024;
+	    long mb_32			= 32*mb_1;
+	    CONFIG_CACHE_SIZE_MAX_MB = (int)(( max_mem_bytes - mb_32 )/mb_1);
+	}
+	
 	public static void
 	initialise()
 	{

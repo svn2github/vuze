@@ -25,14 +25,20 @@ package org.gudy.azureus2.core3.tracker.client.impl.dht;
 import java.net.URL;
 
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerImpl;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponseImpl;
+import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerAnnouncerResponsePeerImpl;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 /**
@@ -49,6 +55,10 @@ TRTrackerDHTAnnouncerImpl
 	
 	private byte[]			data_peer_id;
 	
+	private String						tracker_status_str;
+	
+	private TRTrackerAnnouncerResponse	last_response;
+		
 	public
 	TRTrackerDHTAnnouncerImpl(
 		TOTorrent		_torrent,
@@ -66,6 +76,13 @@ TRTrackerDHTAnnouncerImpl
 
 			 throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: Peer ID generation fails", e ));
 		}
+		
+		last_response = 
+			new TRTrackerAnnouncerResponseImpl( 
+				torrent.getAnnounceURL(),
+				TRTrackerAnnouncerResponse.ST_OFFLINE, 0 );
+		
+		tracker_status_str = MessageText.getString("PeerManager.status.checking") + "...";
 	}
 	
 	public void
@@ -166,13 +183,13 @@ TRTrackerDHTAnnouncerImpl
 	public String
 	getStatusString()
 	{
-		return( "OK" );	// TODO:
+		return( tracker_status_str );
 	}
 	
 	public TRTrackerAnnouncerResponse
 	getLastResponse()
 	{
-		return( null );	// TODO:
+		return( last_response );
 	}
 	
 	public void
@@ -184,6 +201,50 @@ TRTrackerDHTAnnouncerImpl
 	setAnnounceResult(
 		DownloadAnnounceResult	result )
 	{
-		// TODO:
+		TRTrackerAnnouncerResponseImpl response;
+		
+		if ( result.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
+			
+			tracker_status_str = MessageText.getString("PeerManager.status.error"); 
+		      
+			String	reason = result.getError();
+	
+			if ( reason != null ){
+		
+				tracker_status_str += " (" + reason + ")";		
+			}
+			
+	  		response = new TRTrackerAnnouncerResponseImpl(
+				  				result.getURL(),
+				  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
+								result.getTimeToWait(), 
+								reason );
+		}else{
+			DownloadAnnounceResultPeer[]	ext_peers = result.getPeers();
+			
+			TRTrackerAnnouncerResponsePeer[] peers = new TRTrackerAnnouncerResponsePeer[ext_peers.length];
+				
+			for (int i=0;i<ext_peers.length;i++){
+				
+	    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+	    				"EXTERNAL PEER: ip=" +ext_peers[i].getAddress() + " port=" +ext_peers[i].getPort());
+
+				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
+									ext_peers[i].getSource(),
+									ext_peers[i].getPeerID(),
+									ext_peers[i].getAddress(), 
+									ext_peers[i].getPort());
+			}
+			
+			addToTrackerCache( peers);
+		
+			tracker_status_str = MessageText.getString("PeerManager.status.ok") + " (" + result.getURL() + ")";
+
+			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
+		}
+		
+		last_response = response;
+		
+		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
 	}
 }

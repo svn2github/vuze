@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -144,6 +145,10 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     
    	// diskmanager.perf.cache.size
     
+    long max_mem_bytes 	= Runtime.getRuntime().maxMemory();
+    long mb_1			= 1*1024*1024;
+    long mb_32			= 32*mb_1;
+    
     Label cache_size_label = new Label(cSection, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     cache_size_label.setLayoutData(gridData);
@@ -151,6 +156,7 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     IntParameter cache_size = new IntParameter(cSection, "diskmanager.perf.cache.size" );
     cache_size.setAllowZero(false);
     cache_size.setMinimumValue(1);
+    cache_size.setMaximumValue(COConfigurationManager.CONFIG_CACHE_SIZE_MAX_MB );
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.widthHint = 30;
     cache_size.setLayoutData( gridData );
@@ -163,8 +169,8 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
     		cache_explain_label, 
 			"ConfigView.section.file.perf.cache.size.explain",
 			new String[]{ 
-    			DisplayFormatters.formatByteCountToKiBEtc(32*1024*1024),
-    			DisplayFormatters.formatByteCountToKiBEtc(Runtime.getRuntime().maxMemory()),
+    			DisplayFormatters.formatByteCountToKiBEtc(mb_32),
+    			DisplayFormatters.formatByteCountToKiBEtc(max_mem_bytes),
 				Constants.AELITIS_WEB_SITE + "wiki/"
 			});
     

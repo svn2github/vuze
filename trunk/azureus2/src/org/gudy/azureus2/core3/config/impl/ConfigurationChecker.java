@@ -349,6 +349,12 @@ ConfigurationChecker
 	      changed = true;
 	    }
 	    
+	    int cache_max = COConfigurationManager.getIntParameter("diskmanager.perf.cache.size");
+	    if (cache_max > COConfigurationManager.CONFIG_CACHE_SIZE_MAX_MB ) {
+	      COConfigurationManager.setParameter("diskmanager.perf.cache.size", COConfigurationManager.CONFIG_CACHE_SIZE_MAX_MB );
+	      changed = true;
+	    }
+	    
 	    
 	    /**
 	     * Special Patch for OSX users
