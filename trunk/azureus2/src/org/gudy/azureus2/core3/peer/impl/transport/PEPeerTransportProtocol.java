@@ -157,6 +157,7 @@ PEPeerTransportProtocol
   
   private static int requests_discarded = 0;
   private static int requests_recovered = 0;
+  private static int requests_completed = 0;
   
   
   
@@ -843,6 +844,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
           reSetRequestsTime();
           manager.writeBlock( pieceNumber, pieceOffset, buffer, this );
           buffer = DirectByteBufferPool.getBuffer( buffer.limit() );
+          requests_completed++;
         }
         else {  //initial request may have already expired, but check if we can use the data anyway
           if( !manager.isBlockAlreadyWritten( pieceNumber, pieceOffset ) ) {
@@ -858,13 +860,14 @@ private class StateTransfering implements PEPeerTransportProtocolState {
               buffer = DirectByteBufferPool.getBuffer( buffer.limit() );
               msg += ", piece block data recovered as useful";
               requests_recovered++;
-              //System.out.println("recovered="+requests_recovered+", "+(requests_recovered*100) /(requests_recovered+requests_discarded) + "%");
+              printRequestStats();
             }
             else {
               msg += ", but piece block discarded as never requested";
               stats.discarded( pieceLength );
               manager.discarded( pieceLength );
               requests_discarded++;
+              printRequestStats();
             }
           }
           else {
@@ -872,6 +875,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
             stats.discarded( pieceLength );
             manager.discarded( pieceLength );
             requests_discarded++;
+            printRequestStats();
           }
         }
       }
@@ -880,6 +884,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         stats.discarded( pieceLength );
         manager.discarded( pieceLength );
         requests_discarded++;
+        printRequestStats();
       }
 
       if( logging_is_on )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, msg );
@@ -909,6 +914,15 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	    closeAll(toString() + " has sent a wrong message " + cmd,true, true);
 	}
   }
+  
+  
+  //TODO
+  private void printRequestStats() {
+    float discard_percentage = (requests_discarded * 100F) / ((requests_completed + requests_recovered + requests_discarded) * 1F);
+    float recover_percentage = (requests_recovered * 100F) / ((requests_recovered + requests_discarded) * 1F);
+    //System.out.println( "c="+requests_completed+ " d="+requests_discarded+ " r="+requests_recovered+ " dp="+discard_percentage+ "% rp="+recover_percentage+ "%" );
+  }
+  
 
   private void have(int pieceNumber) {
     if ((pieceNumber >= other_peer_has_pieces.length) || (pieceNumber < 0)) {
@@ -1284,6 +1298,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 	    synchronized (requested) {
 	    	requested.remove(request);
 	    }
+      BTRequest msg = new BTRequest( request.getPieceNumber(), request.getOffset(), request.getLength() );
+      outgoing_message_queue.removeMessage( msg );
 		}
 		
 		protected void 

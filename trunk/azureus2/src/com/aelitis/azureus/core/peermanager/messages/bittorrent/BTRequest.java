@@ -38,11 +38,13 @@ public class BTRequest implements BTProtocolMessage {
   private final int piece_offset;
   private final int length;
   private final int total_byte_size;
+  private final int hashcode;
 
   public BTRequest( int piece_number, int piece_offset, int length ) {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
     this.length = length;
+    this.hashcode = piece_number + piece_offset + length;
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 17 ) );
     
     buffer.putInt( 13 );
@@ -73,4 +75,21 @@ public class BTRequest implements BTProtocolMessage {
   public void destroy() { }
   
   public int[] typesToRemove() {  return null;  }
+  
+   
+  //used for removing individual requests from the message queue
+  public boolean equals( Object obj ) {
+    if( this == obj )  return true;
+    if( obj != null && obj instanceof BTRequest ) {
+      BTRequest other = (BTRequest)obj;
+      if( other.piece_number == this.piece_number &&
+          other.piece_offset == this.piece_offset &&
+          other.length == this.length )  return true;
+    }
+    return false;
+  }
+
+  public int hashCode() {
+    return hashcode;
+  }
 }
