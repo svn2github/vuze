@@ -123,6 +123,119 @@ TrackerWebPageResponseImpl
 		os.flush();
 	}
 	
+	public boolean
+	useFile(
+		String		root_dir,
+		String		relative_url )
+	
+		throws IOException
+	{
+		String	target = root_dir + relative_url.replace('/',File.separatorChar);
+		
+		File canonical_file = new File(target).getCanonicalFile();
+		
+			// make sure some fool isn't trying to use ../../ to escape from web dir
+		
+		if ( !canonical_file.toString().startsWith( root_dir )){
+			
+			return( false );
+		}
+		
+		if ( canonical_file.isDirectory()){
+			
+			return( false );
+		}
+
+		if ( canonical_file.canRead()){
+			
+			String str = canonical_file.toString().toLowerCase();
+			
+			int	pos = str.lastIndexOf( "." );
+			
+			if ( pos == -1 ){
+				
+				return( false );
+			}
+			
+			String	file_type = str.substring(pos+1);
+				
+			FileInputStream	fis = null;
+				
+			try{
+				fis = new FileInputStream(canonical_file);
+					
+				useStream( file_type, fis );
+					
+				return( true );
+				
+			}finally{
+				
+				if ( fis != null ){
+					
+					fis.close();
+				}
+			}
+		}
+		
+		return( false );
+	}
+	
+	public void
+	useStream(
+		String		file_type,
+		InputStream	input_stream )
+		
+		throws IOException
+	{
+		String	response_type = null;
+		
+		if (file_type.equals("html") || file_type.equals("htm")){
+			response_type = "text/html";
+		}else if (file_type.equals("css")){
+			response_type = "text/css";
+		}else if (file_type.equals("xsl")){
+			response_type = "text/xml";
+		}else if (file_type.equals("jpg") || file_type.equals("jpeg")) {
+			response_type="image/jpeg";
+		}else if (file_type.equals("gif")) {
+			response_type="image/gif";
+		}else if (file_type.equals("tiff")) {
+			response_type="image/tiff";
+		}else if (file_type.equals("bmp")) {
+			response_type="image/bmp";
+		}else if (file_type.equals("png")) {
+			response_type="image/png";
+		}else if (file_type.equals("torrent") || file_type.equals( "tor" )) {
+			response_type="application/x-bittorrent";
+		}else if ( file_type.equals( "zip")){
+			response_type = "application/zip";
+		}else if ( file_type.equals( "txt" )){
+			response_type = "text/plain";
+		}else if ( file_type.equals( "mp3" )){
+			response_type = "audio/x-mpeg";
+		}else{
+			response_type = "application/octet-stream";
+		}
+
+		OutputStream	os = getOutputStream();
+			
+		setContentType( response_type );
+			
+		byte[]	buffer = new byte[4096];
+			
+		while(true){
+				
+			int	len = input_stream.read(buffer);
+				
+			if ( len <= 0 ){
+					
+				break;
+			}
+				
+			os.write( buffer, 0, len );
+		}
+	}
+	
 	public void
 	writeTorrent(
 		TrackerTorrent	tracker_torrent )

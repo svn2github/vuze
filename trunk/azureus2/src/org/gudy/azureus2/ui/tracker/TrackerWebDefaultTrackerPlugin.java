@@ -172,7 +172,9 @@ TrackerWebDefaultTrackerPlugin
 							
 					}else{ 
 													
-						return( transferFile( file_type, is, response ));
+						response.useStream( file_type, is );
+						
+						return( true );
 					}	
 				}finally{
 													

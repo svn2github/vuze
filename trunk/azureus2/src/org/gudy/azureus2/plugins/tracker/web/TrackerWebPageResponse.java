@@ -26,6 +26,7 @@ package org.gudy.azureus2.plugins.tracker.web;
  *
  */
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 import org.gudy.azureus2.plugins.tracker.*;
@@ -48,6 +49,29 @@ TrackerWebPageResponse
 	setHeader(
 		String		name,
 		String		value );
+	
+		/**
+		 * use a file contents as the response. returns true of loaded ok, false if doesn't exist
+		 * exception if error occurred during processing.
+		 * @param root_dir			e.g. c:\temp\parp  or /tmp/trout/
+		 * @param relative_url		e.g. /here/there/wibble.html
+		 * @return
+		 * @throws IOException
+		 */
+	
+	public boolean
+	useFile(
+		String		root_dir,
+		String		relative_url )
+	
+		throws IOException;
+	
+	public void
+	useStream(
+		String		file_type,
+		InputStream	stream )
+	
+		throws IOException;
 	
 	public void
 	writeTorrent(

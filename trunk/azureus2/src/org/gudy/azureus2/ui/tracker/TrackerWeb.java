@@ -497,69 +497,6 @@ TrackerWeb
 		return( true );
 	}
 	
-	protected boolean
-	transferFile(
-		String					file_type,
-		InputStream				is,
-		TrackerWebPageResponse	response )
-	
-		throws IOException
-	{
-		String	response_type = null;
-		
-		if (file_type.equals("html") || file_type.equals("htm")){
-			response_type = "text/html";
-		}else if (file_type.equals("css")){
-			response_type = "text/css";
-		}else if (file_type.equals("xsl")){
-			response_type = "text/xml";
-		}else if (file_type.equals("jpg") || file_type.equals("jpeg")) {
-			response_type="image/jpeg";
-		}else if (file_type.equals("gif")) {
-			response_type="image/gif";
-		}else if (file_type.equals("tiff")) {
-			response_type="image/tiff";
-		}else if (file_type.equals("bmp")) {
-			response_type="image/bmp";
-		}else if (file_type.equals("png")) {
-			response_type="image/png";
-		}else if (file_type.equals("torrent") || file_type.equals( "tor" )) {
-			response_type="application/x-bittorrent";
-		}else if ( file_type.equals( "zip")){
-			response_type = "application/zip";
-		}else if ( file_type.equals( "txt" )){
-			response_type = "text/plain";
-		}else if ( file_type.equals( "mp3" )){
-			response_type = "audio/x-mpeg";
-		}else{
-			response_type = "application/octet-stream";
-		}
-		if ( response_type == null ){
-				
-			return( false );
-		}
-		
-		OutputStream	os = response.getOutputStream();
-		
-		response.setContentType( response_type );
-				
-		byte[]	buffer = new byte[4096];
-				
-		while(true){
-						
-			int	len = is.read(buffer);
-						
-			if ( len <= 0 ){
-									
-				break;
-			}
-						
-			os.write( buffer, 0, len );
-		}
-
-		return( true );				
-	}
-	
 	private String hideLastIpBlock(String ip) {
 	  if(ip == null)
 	    return null;

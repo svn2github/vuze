@@ -108,7 +108,9 @@ TrackerWebDefaultStaticPlugin
 				try{
 					fis = new FileInputStream(canonical_file);
 					
-					return( transferFile( file_type, fis, response ));
+					response.useStream( file_type, fis );
+					
+					return( true );
 					
 				}finally{
 					
