@@ -185,7 +185,7 @@ IpFilterImpl
 		        
 				  IpRange ipRange = new IpRangeImpl(description,startIp,endIp,false);
 
-				  addRange( ipRange );
+				  new_ipRanges.add( ipRange );
 				}
 				bin.close();
 				fin.close();
@@ -193,6 +193,13 @@ IpFilterImpl
 		  }finally{
 		  
 		  	all_ip_ranges 	= new_ipRanges;
+		  	
+		  	Iterator	it = all_ip_ranges.iterator();
+		  	
+		  	while( it.hasNext()){
+		  		
+		  		((IpRange)it.next()).checkValid();
+		  	}
 		  	
 		  	markAsUpToDate();
 		  }
