@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Arrays;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -44,8 +45,7 @@ import org.gudy.azureus2.core3.config.*;
  */
 public abstract class 
 PEPeerTransportProtocol
-	extends PEPeerConnectionImpl
-	implements PEPeer, PEPeerTransport
+	implements PEPeerTransport
 {
 	public final static byte BT_CHOKED 			= 0;
 	public final static byte BT_UNCHOKED 		= 1;
@@ -57,7 +57,29 @@ PEPeerTransportProtocol
 	public final static byte BT_PIECE 			= 7;
 	public final static byte BT_CANCEL 			= 8;
 
-  private HashMap data;
+	
+	private PEPeerControl manager;
+	private byte[] id;
+	private String ip;
+	private int port;
+	private int hashcode;
+	
+	
+	protected PEPeerStatsImpl stats;
+
+	protected boolean choked;
+	protected boolean interested;
+	private List requested;
+
+	protected boolean choking;
+	protected boolean interesting;
+
+	protected boolean snubbed;
+
+	protected boolean[] available;
+	protected boolean seed;
+
+    private HashMap data;
 
 		//The reference to the current ByteBuffer used for reading on the socket.
 	
@@ -176,9 +198,13 @@ PEPeerTransportProtocol
   		boolean			incoming_connection, 
   		byte[]			data_already_read,
   		boolean 		fake ) 
-	{
-		super(manager, peerId, ip, port);
-		
+	{		
+		this.manager	= manager;
+		this.ip 		= ip;
+		this.port 		= port;
+	 	this.id 		= peerId;
+	 	
+	 	this.hashcode = (ip + String.valueOf(port)).hashCode();
 		if ( fake ){
 		
 			return;
@@ -232,7 +258,7 @@ PEPeerTransportProtocol
    */
   protected void allocateAll() {
 
-	super.allocateAll();
+	allocateAllSupport();
 
 	this.closing = false;
 	this.protocolQueue = new ArrayList();
@@ -1467,4 +1493,284 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       data.put(key, value);
     }
   }
+ 
+	/**
+	 * @return
+	 */
+	public byte[] getId() {
+	  return id;
+	}
+
+	/**
+	 * @return
+	 */
+	public String getIp() {
+	  return ip;
+	}
+
+	/**
+	 * @return
+	 */
+	public int getPort() {
+	  return port;
+	}
+  
+  
+  public boolean equals( Object obj ) {
+    if (this == obj)  return true;
+    if (obj != null && obj instanceof PEPeerTransportProtocol) {
+    	PEPeerTransportProtocol other = (PEPeerTransportProtocol)obj;
+      if ( this.ip.equals(other.ip) && this.port == other.port ) {
+      	return true;
+      }
+    }
+    return false;
+  }
+  
+  public int hashCode() {
+    return hashcode;
+  }
+  
+  
+  
+  /*
+	public boolean equals(Object o) {
+		if (!(o instanceof PEPeerImpl))
+		  return false;
+		PEPeerImpl p = (PEPeerImpl) o;
+		//At least the same instance is equal to itself :p
+		if (this == p)
+		  return true;
+		if (!(p.ip).equals(this.ip))
+		  return false;		
+		//same ip, we'll check peerId
+		byte[] otherId;
+		if (this.id == null || (otherId = p.getId()) == null)
+		  return false;
+    
+		//same ip check for config to know if we allow
+		//multiple peers from same ip
+		if(!COConfigurationManager.getBooleanParameter("Allow Same IP Peers",false))
+		  return true;
+		
+		
+		return Arrays.equals(this.id, otherId);
+	  }
+    */
+
+	public PEPeerControl 
+	getControl() {
+	  return manager;
+	}
+
+	public PEPeerManager
+	getManager()
+	{
+		return( manager );
+	}
+	
+	
+	protected void allocateAllSupport() {
+		  seed = false;
+
+		  choked = true;
+		  interested = false;
+		  requested = new ArrayList();
+
+		  choking = true;
+		  interesting = false;
+
+		  available = new boolean[manager.getPiecesNumber()];
+		  Arrays.fill(available, false);
+
+		  stats = (PEPeerStatsImpl)manager.createPeerStats();
+		}
+
+
+		/**
+		 * @return
+		 */
+		public boolean[] getAvailable() {
+		  return available;
+		}
+
+		/**
+		 * @return
+		 */
+		public boolean isChoked() {
+		  return choked;
+		}
+
+		/**
+		 * @return
+		 */
+		public boolean isChoking() {
+		  return choking;
+		}
+
+		/**
+		 * @return
+		 */
+		public boolean isInterested() {
+		  return interested;
+		}
+
+		/**
+		 * @return
+		 */
+		public boolean isInteresting() {
+		  return interesting;
+		}
+
+
+		/**
+		 * @return
+		 */
+		public boolean isSeed() {
+		  return seed;
+		}
+
+		/**
+		 * @return
+		 */
+		public boolean isSnubbed() {
+		  return snubbed;
+		}
+
+		/**
+		 * @return
+		 */
+		public PEPeerStats getStats() {
+		  return stats;
+		}
+
+		/**
+		 * @param b
+		 */
+		public void setChoked(boolean b) {
+		  choked = b;
+		}
+
+		/**
+		 * @param b
+		 */
+		public void setChoking(boolean b) {
+		  choking = b;
+		}
+
+		/**
+		 * @param b
+		 */
+		public void setInterested(boolean b) {
+		  interested = b;
+		}
+
+		/**
+		 * @param b
+		 */
+		public void setInteresting(boolean b) {
+		  interesting = b;
+		}
+
+		/**
+		 * @param b
+		 */
+		public void setSeed(boolean b) {
+		  seed = b;
+		}
+
+		/**
+		 * @param b
+		 */
+		public void setSnubbed(boolean b) {
+		  snubbed = b;
+		}
+		
+		protected void cancelRequests() {
+			if (requested == null)
+				return;
+			synchronized (requested) {
+				for (int i = requested.size() - 1; i >= 0; i--) {
+					DiskManagerRequest request = (DiskManagerRequest) requested.remove(i);
+					manager.requestCanceled(request);
+				}
+			}
+		}
+
+		public int 
+		getNbRequests() {
+			return requested.size();
+		}
+
+		/**
+		 * 
+		 * @return	may be null for performance purposes
+		 */
+		
+		public List 
+		getExpiredRequests() {
+			List result = null;
+	    synchronized (requested) {
+	    	for (int i = 0; i < requested.size(); i++) {
+	    		try {
+	    			DiskManagerRequest request = (DiskManagerRequest) requested.get(i);
+	    			if (request.isExpired()) {
+	    				if ( result == null ){
+	    					result = new ArrayList();
+	    				}
+	    				result.add(request);
+	    			}
+	    		}
+	    		catch (ArrayIndexOutOfBoundsException e) {
+	    			//Keep going, most probably, piece removed...
+	    			//Hopefully we'll find it later :p
+	    		}
+	    	}
+	    }
+			return result;
+		}
+		
+		protected boolean
+		alreadyRequested(
+			DiskManagerRequest	request )
+		{
+	    synchronized (requested) {
+	      return requested.contains( request );
+	    }
+		}
+		
+		protected void
+		addRequest(
+			DiskManagerRequest	request )
+		{
+	    synchronized (requested) {
+	    	requested.add(request);
+	    }
+		}
+		
+		protected void
+		removeRequest(
+			DiskManagerRequest	request )
+		{
+	    synchronized (requested) {
+	    	requested.remove(request);
+	    }
+		}
+		
+		protected void 
+		reSetRequestsTime() {
+	    synchronized (requested) {
+			  for (int i = 0; i < requested.size(); i++) {
+			  	DiskManagerRequest request = null;
+			  	try {
+			  		request = (DiskManagerRequest) requested.get(i);
+			  	}
+			  	catch (Exception e) {}
+	        
+			  	if (request != null)
+			  		request.reSetTime();
+			  }
+	    }
+	}
+		
 }

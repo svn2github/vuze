@@ -28,7 +28,6 @@ package org.gudy.azureus2.pluginsimpl.peers;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
-import org.gudy.azureus2.core3.peer.impl.transport.PEPeerConnectionImpl;
 
 public class 
 PeerForeignDelegate

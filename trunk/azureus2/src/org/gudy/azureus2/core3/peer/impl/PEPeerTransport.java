@@ -33,14 +33,12 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 
 public interface
 PEPeerTransport
+	extends PEPeer
 {
 	public static final int HIGH_PRIORITY	= DownloadManager.HIGH_PRIORITY;
   
-  public static final int RECEIVE_BUFF_SIZE = 32*1024;
-	
-	public int
-	getState();
-	
+    public static final int RECEIVE_BUFF_SIZE = 32*1024;
+		
 	/**
 	 * Fake transports are created to permit equivalence testing prior to adding to 
 	 * the active transport set. This method exists to convert such fake transports into
@@ -54,8 +52,8 @@ PEPeerTransport
 	public int
 	processRead();
   
-  public int
-  processWrite();
+    public int
+    processWrite();
 	
 	public void
 	sendChoke();
@@ -86,41 +84,19 @@ PEPeerTransport
 
 	public void
 	closeAll(
-    String reason,
-	 boolean closedOnError,
-	 boolean attemptReconnect);
-		
-	public void
-	setSnubbed(
-		boolean	snubbed );
-		
+      String reason,
+	  boolean closedOnError,
+	  boolean attemptReconnect);
+			
 	public boolean
 	isReadyToRequest();
-	
-	public boolean
-	isChoking();
-	
-	public boolean
-	isSnubbed();
-	
-	public boolean
-	isInteresting();
-	
-	public boolean
-	isInterested();
-
-	public boolean
-	isSeed();
-	
+		
 	public boolean
 	transferAvailable();
 	
 	public List
 	getExpiredRequests();
-  	
-	public boolean[]
-	getAvailable();
-	
+  		
 	public int
 	getNbRequests();
 	
@@ -129,29 +105,16 @@ PEPeerTransport
 	
 	public PEPeerControl
 	getControl();
-	
-	public String 
-	getIp();
-
-	public int
-	getPort();
-	
-	public byte[]
-	getId();
-	
-	public PEPeerStats
-	getStats();
   
+    public int getReadSleepTime();
+    public int getWriteSleepTime();
+    public long getLastReadTime();
+    public long getLastWriteTime();
   
-  public int getReadSleepTime();
-  public int getWriteSleepTime();
-  public long getLastReadTime();
-  public long getLastWriteTime();
-  
-  public void setReadSleepTime(int time);
-  public void setWriteSleepTime(int time);
-  public void setLastReadTime(long time);
-  public void setLastWriteTime(long time);
+    public void setReadSleepTime(int time);
+    public void setWriteSleepTime(int time);
+    public void setLastReadTime(long time);
+    public void setLastWriteTime(long time);
   
   
 }
