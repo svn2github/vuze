@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
@@ -38,17 +39,38 @@ public class PiecesItem extends TorrentGraphicItem  {
   private final static int borderSplit = 1;
   private final static int completionHeight = 2;
   
-  int[] imageBuffer = {};
-
   /**
    * @param row
    * @param position
    */
   public PiecesItem(TorrentRow torrentRow, int position) {
     super(torrentRow, position);
+    /* We dispose of our own images because we store them against DownloadManager */
+    disposeGraphic = false;
   }
   
+  public void dispose() {
+    setGraphic(null);
+    DownloadManager infoObj = torrentRow.getManager();
+    if (infoObj == null)
+      return;
+    Image img = (Image)infoObj.getData("Image");
+    if (img != null && !img.isDisposed())
+      img.dispose();
+
+    infoObj.setData("ImageBuffer", null);
+    infoObj.setData("Image", null);
+  }
+
   public void refresh() {
+    /* Notes:
+     * We store our image and imageBufer in DownloadManager using
+     * setData & getData.
+     * This means, we can ignore peerRow.isValid(). peerRow gets marked
+     * invalid when its link between peerRow and the table row changes.
+     * However, since our data isn't reliant on the table row, it may not 
+     * really be invalid.
+     */
     boolean valid = torrentRow.isValid();
     BufferedTableRow row = torrentRow.getRow();    
     if (row == null || row.isDisposed())
@@ -61,6 +83,8 @@ public class PiecesItem extends TorrentGraphicItem  {
     if(bounds == null)
       return;
       
+    DownloadManager infoObj = torrentRow.getManager();
+      
     int x0 = borderVerticalSize;
     int x1 = bounds.width - 1 - borderVerticalSize;
     int y0 = completionHeight + borderHorizontalSize + borderSplit;
@@ -69,17 +93,17 @@ public class PiecesItem extends TorrentGraphicItem  {
     if (drawWidth < 10 || y1 < 3)
       return;
     boolean bImageBufferValid = true;
-    boolean bImageChanged = false;
-    if (imageBuffer.length != x1 || !torrentRow.isValid()) {
+    int[] imageBuffer = (int [])infoObj.getData("ImageBuffer");
+    if (imageBuffer == null || imageBuffer.length != x1) {
       imageBuffer = new int[x1];
       bImageBufferValid = false;
     }
     
-    Image image = getGraphic();
+    Image image = (Image)infoObj.getData("Image");
     GC gcImage;
     boolean bImageSizeChanged;
     Rectangle imageBounds;
-    if (image == null) {
+    if (image == null || image.isDisposed()) {
       bImageSizeChanged = true;
     } else {
       imageBounds = image.getBounds();
@@ -87,6 +111,9 @@ public class PiecesItem extends TorrentGraphicItem  {
                           imageBounds.height != bounds.height;
     }
     if (bImageSizeChanged) {      
+      if (image != null && !image.isDisposed()) {
+        image.dispose();
+      }
       image = new Image(torrentRow.getTableItem().getDisplay(), bounds.width, bounds.height);
       imageBounds = image.getBounds();
       bImageBufferValid = false;
@@ -115,7 +142,8 @@ public class PiecesItem extends TorrentGraphicItem  {
       gcImage = new GC(image);
     }
 
-    boolean available[] = torrentRow.getManager().getPiecesStatus();
+    boolean bImageChanged = false;
+    boolean available[] = infoObj.getPiecesStatus();
     if (available != null && available.length > 0) {
       int nbComplete = 0;
       int nbPieces = available.length;
@@ -134,7 +162,7 @@ public class PiecesItem extends TorrentGraphicItem  {
           a1 = ((i + 1) * nbPieces) / (drawWidth);
         }
         
-        int index = 0;
+        int index;
         
         if (a1 <= a0) {
           index = imageBuffer[i - 1];
@@ -168,9 +196,11 @@ public class PiecesItem extends TorrentGraphicItem  {
     }
     gcImage.dispose();
 
-    if (bImageChanged) {
-  	  //tableRow.debugOut("tr.refresh() "+image+ ";V"+ tableRow.isValid(), false);
+    Image oldImage = getGraphic();
+    if (bImageChanged || image != oldImage) {
       setGraphic(image);
+      infoObj.setData("Image", image);
+      infoObj.setData("ImageBuffer", imageBuffer);
     }
   }
 }

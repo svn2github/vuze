@@ -97,4 +97,8 @@ PEPeer
   public void setLimit(int newLimit);
   public void addLimitIfNotZero(int addToLimit);
   
+  /** To retreive arbitrary objects against a peer. */
+  public Object getData (String key);
+  /** To store arbitrary objects against a peer. */
+  public void setData (String key, Object value);
 }

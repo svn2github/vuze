@@ -21,6 +21,7 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.PeersView;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
+import org.gudy.azureus2.ui.swt.views.utils.DataHolder;
 
 /**
  * This class (GUI) represents a row into the peers table.
@@ -28,7 +29,7 @@ import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
  * @author Olivier
  *
  */
-public class PeerRow implements SortableItem {
+public class PeerRow implements SortableItem  {
 
   private Display display;
   private Table table;
@@ -134,37 +135,12 @@ public class PeerRow implements SortableItem {
   		return;
   	if (row == null || row.isDisposed())
   		return;
-  		
-    Rectangle dirtyBounds = gc.getClipping();
-    Rectangle tableBounds = table.getClientArea();
-    // all OSes, scrollbars are excluded (I hope!)
-    // some OSes (all?), table header is included in client area
-    if (tableBounds.y < table.getHeaderHeight()) {
-      tableBounds.y = table.getHeaderHeight();
-    }
 
   	Iterator iter = items.iterator();
   	while(iter.hasNext()) {
   		BufferedTableItem item = (BufferedTableItem) iter.next();
   		if (item.needsPainting()) {
-  		  Rectangle cellBounds = item.getBounds();
-  		  if (cellBounds != null && cellBounds.y >= table.getHeaderHeight()) {
-    		  Rectangle clippedBounds = dirtyBounds.intersection(cellBounds.intersection(tableBounds));
-    		  if (clippedBounds.width > 0 && clippedBounds.height > 0) {
-      		  gc.setClipping(clippedBounds);
-/*
-            debugOut("doPaint()"+gc+
-                    "\nClippingOld: "+dirtyBounds+
-                    "\nclippingNew: "+clippedBounds+
-                    "\nclippingNew: "+gc.getClipping()+
-                    "\ndirtyBounds: "+dirtyBounds+
-                    "\ncellbounds: "+cellBounds,
-                    false);
-*/
-      			item.doPaint(gc);
-      			gc.setClipping(dirtyBounds);
-      		}
-    		}
+  			item.doPaint(gc);
   		}
   	}
   }

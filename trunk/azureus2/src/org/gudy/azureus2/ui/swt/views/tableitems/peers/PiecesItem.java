@@ -24,7 +24,9 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 
 /**
  * @author Olivier
@@ -37,23 +39,45 @@ public class PiecesItem extends PeerGraphicItem  {
   private final static int borderSplit = 1;
   private final static int completionHeight = 2;
   
-  int[] imageBuffer = {};
-
   /**
    * @param row
    * @param position
    */
   public PiecesItem(PeerRow peerRow, int position) {
     super(peerRow, position);
+    /* We dispose of our own images because we store them against PEPeer */
+    disposeGraphic = false;
+  }
+  
+  public void dispose() {
+    PEPeer infoObj = peerRow.getPeerSocket();
+
+    setGraphic(null);
+    Image img = (Image)infoObj.getData("Image");
+    if (img != null && !img.isDisposed())
+      img.dispose();
+
+    infoObj.setData("ImageBuffer", null);
+    infoObj.setData("Image", null);
   }
   
   public void refresh() {
+    /* Notes:
+     * We store our image and imageBufer in PEPeer using
+     * setData & getData.
+     * This means, we can ignore peerRow.isValid(). peerRow gets marked
+     * invalid when its link between peerRow and the table row changes.
+     * However, since our data isn't reliant on the table row, it may not 
+     * really be invalid.
+     */
     //Bounds of canvas without padding
     Rectangle bounds = getBoundsForCanvas();
     
     //In case item isn't displayed bounds is null
     if(bounds == null)
       return;
+      
+    PEPeer infoObj = peerRow.getPeerSocket();
 
     int x0 = borderVerticalSize;
     int x1 = bounds.width - 1 - borderVerticalSize;
@@ -63,17 +87,17 @@ public class PiecesItem extends PeerGraphicItem  {
     if (drawWidth < 10 || y1 < 3)
       return;
     boolean bImageBufferValid = true;
-    boolean bImageChanged = false;
-    if (imageBuffer.length != x1 || !peerRow.isValid()) {
+    int[] imageBuffer = (int [])infoObj.getData("ImageBuffer");
+    if (imageBuffer == null || imageBuffer.length != x1) {
       imageBuffer = new int[x1];
       bImageBufferValid = false;
     }
     
-    Image image = getGraphic();
+    Image image = (Image)infoObj.getData("Image");
     GC gcImage;
     boolean bImageSizeChanged;
     Rectangle imageBounds;
-    if (image == null) {
+    if (image == null || image.isDisposed()) {
       bImageSizeChanged = true;
     } else {
       imageBounds = image.getBounds();
@@ -81,6 +105,9 @@ public class PiecesItem extends PeerGraphicItem  {
                           imageBounds.height != bounds.height;
     }
     if (bImageSizeChanged) {
+      if (image != null && !image.isDisposed()) {
+        image.dispose();
+      }
       image = new Image(peerRow.getTableItem().getDisplay(), bounds.width, bounds.height);
       imageBounds = image.getBounds();
       bImageBufferValid = false;
@@ -109,7 +136,8 @@ public class PiecesItem extends PeerGraphicItem  {
       gcImage = new GC(image);
     }
 
-    boolean available[] = peerRow.getPeerSocket().getAvailable();
+    boolean bImageChanged = false;
+    boolean available[] = infoObj.getAvailable();
     if (available != null && available.length > 0) {
       int nbComplete = 0;
       int nbPieces = available.length;
@@ -154,17 +182,19 @@ public class PiecesItem extends PeerGraphicItem  {
       if (limit < drawWidth) {
         gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
         gcImage.fillRectangle(limit+x0, borderHorizontalSize,
-                              x1-limit, completionHeight + borderHorizontalSize);
+                              x1-limit, completionHeight);
       }
       gcImage.setBackground(MainWindow.colorProgressBar);
       gcImage.fillRectangle(x0, borderHorizontalSize,
-                            limit, completionHeight + borderHorizontalSize);
+                            limit, completionHeight);
     }
     gcImage.dispose();
 
-    if (bImageChanged) {
-  	  //peerRow.debugOut("refresh() "+image+ ";V"+ peerRow.isValid(), false);
+    Image oldImage = getGraphic();
+    if (bImageChanged || image != oldImage) {
       setGraphic(image);
+      infoObj.setData("Image", image);
+      infoObj.setData("ImageBuffer", imageBuffer);
     }
   }
 }

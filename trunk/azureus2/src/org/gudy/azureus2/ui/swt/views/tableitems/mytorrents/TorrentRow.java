@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.PluginItem;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
@@ -175,27 +176,11 @@ public class TorrentRow implements SortableItem {
     if (row == null || row.isDisposed())
       return;
 
-    Rectangle dirtyBounds = gc.getClipping();
-    Rectangle tableBounds = table.getClientArea();
-    // all OSes, scrollbars are excluded (I hope!)
-    // some OSes (all?), table header is included in client area
-    if (tableBounds.y < table.getHeaderHeight()) {
-      tableBounds.y = table.getHeaderHeight();
-    }
-
     Iterator iter = items.iterator();
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
   		if (item.needsPainting()) {
-  		  Rectangle cellBounds = item.getBounds();
-  		  if (cellBounds != null && cellBounds.y >= table.getHeaderHeight()) {
-    		  Rectangle clippedBounds = dirtyBounds.intersection(cellBounds.intersection(tableBounds));
-    		  if (clippedBounds.width > 0 && clippedBounds.height > 0) {
-      		  gc.setClipping(clippedBounds);
-      			item.doPaint(gc);
-      			gc.setClipping(dirtyBounds);
-      		}
-    		}
+  			item.doPaint(gc);
   		}
     }
   }

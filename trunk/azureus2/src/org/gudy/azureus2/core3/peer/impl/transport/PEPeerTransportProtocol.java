@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -53,6 +54,7 @@ PEPeerTransportProtocol
 	public final static byte BT_PIECE 			= 7;
 	public final static byte BT_CANCEL 			= 8;
 
+  private HashMap data;
 
 		//The reference to the current ByteBuffer used for reading on the socket.
 	
@@ -1437,4 +1439,22 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   public void setLastReadTime(long time) { lastReadTime = time; }
   public void setLastWriteTime(long time) { lastWriteTime = time; }
 
+  /** To retreive arbitrary objects against a peer. */
+  public Object getData (String key) {
+  	if (data == null) return null;
+    return data.get(key);
+  }
+
+  /** To store arbitrary objects against a peer. */
+  public synchronized void setData (String key, Object value) {
+  	if (data == null) {
+  	  data = new HashMap();
+  	}
+    if (value == null) {
+      if (data.containsKey(key))
+        data.remove(key);
+    } else {
+      data.put(key, value);
+    }
+  }
 }

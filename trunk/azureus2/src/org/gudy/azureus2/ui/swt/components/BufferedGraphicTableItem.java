@@ -99,13 +99,15 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
   /** Paint the bar without updating it's data.  Unless the size changed.
    */
   public void doPaint(GC gc) {
-    //debugOut("doPaint()" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())), false);
+    Table table = getTable();
     //Compute bounds ...
     Rectangle bounds = getBoundsForCanvas();
     //In case item isn't displayed bounds is null
     if (bounds == null || image == null || image.isDisposed()) {
       return;
     }
+    //debugOut("doPaint()" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
+    //         "ta="+table.getClientArea()+";bounds="+bounds, false);
 
     if (fillCell) {
       Rectangle imageBounds = image.getBounds();
@@ -124,45 +126,55 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
         
         // TODO: make config option to choose
 */
+        //debugOut("doPaint() sizewrong", false);
         return;
       }
     }
     
-    Table table = getTable();
-    boolean ourGC = (gc == null);
-    if (ourGC) {
-      Rectangle tableBounds = table.getClientArea();
-      // all OSes, scrollbars are excluded (I hope!)
-      // some OSes (all?), table header is included in client area
-      if (tableBounds.y < table.getHeaderHeight()) {
-        tableBounds.y = table.getHeaderHeight();
-      }
-
-      if (bounds == null || bounds.y < table.getHeaderHeight()) {
-        return;
-      }
-
-      bounds = bounds.intersection(tableBounds);
-      if (bounds.width <= 0 && bounds.height <= 0) {
-        return;
-      }
-
-      gc = new GC(table);
-      if (gc == null) {
-        return;
-      }
-      gc.setClipping(bounds);
+    Rectangle tableBounds = table.getClientArea();
+    if (bounds.y + bounds.height < table.getHeaderHeight() || bounds.y > tableBounds.height) {
+      //debugOut("doPaint() "+String.valueOf(bounds.y + bounds.height)+"<"+tableBounds.y, false);
+      return;
     }
+    
+    Rectangle clipping = new Rectangle(bounds.x, bounds.y, 
+                                       bounds.width, 
+                                       bounds.height);
+    if (clipping.y < table.getHeaderHeight()) {
+      clipping.height -= table.getHeaderHeight() - clipping.y;
+      clipping.y = table.getHeaderHeight();
+    }
+    if (clipping.y + clipping.height > tableBounds.height)
+      clipping.height = tableBounds.height - clipping.y + 1;
+
+    //debugOut("doPaint() clipping="+clipping, false);
+
+    if (clipping.width <= 0 && clipping.height <= 0) {
+      return;
+    }
+
     // See Eclipse Bug 42416
     // "[Platform Inconsistency] GC(Table) has wrong origin"
     // Notes/Questions:
+    // - GTK's "new GC(table)" starts under header, instead of above
+    //   -- so, adjust bounds up
     // - Appears to apply to new GC(table) AND GC passed by PaintEvent
     // - Q) .height may be effected (smaller than it should be).  How does this effect clipping?
     // - Q) At what version does this bug start appearing?
     //   A) Reports suggest at least 2.1.1
     bounds.y += VerticalAligner.getTableAdjustVerticalBy(table);
+    clipping.y += VerticalAligner.getTableAdjustVerticalBy(table);
+
+    boolean ourGC = (gc == null);
+    if (ourGC) {
+      gc = new GC(table);
+      if (gc == null) {
+        return;
+      }
+    }
+    gc.setClipping(clipping);
     gc.drawImage(image, bounds.x, bounds.y);
-    //tableRow.debugOut("doPaint()"+gc+": "+ gc.getClipping(), false);
+    //debugOut("doPaint()"+gc+": "+ gc.getClipping()+";bounds:"+bounds+";ca="+table.getClientArea(), false);
     if (ourGC) {
       gc.dispose();
     }
@@ -173,6 +185,7 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
     if(disposeGraphic && image != null && ! image.isDisposed()) {
       image.dispose();
     }
+    image = null;
   }
   
   /** Calculate the bounds of the receiver should be drawing in

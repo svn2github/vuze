@@ -213,6 +213,8 @@ DownloadManagerImpl
   
 	private PEPeerManager 			peerManager;
 	private PEPeerManagerListener	peer_manager_listener;
+
+  private HashMap data;
    
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	public 
@@ -1346,5 +1348,24 @@ DownloadManagerImpl
   
   public void deleteDataFiles() {
     DiskManagerFactory.deleteDataFiles(torrent, FileUtil.smartPath(savePath, name));
+  }
+
+  /** To retreive arbitrary objects against a peer. */
+  public Object getData (String key) {
+  	if (data == null) return null;
+    return data.get(key);
+  }
+
+  /** To store arbitrary objects against a peer. */
+  public synchronized void setData (String key, Object value) {
+  	if (data == null) {
+  	  data = new HashMap();
+  	}
+    if (value == null) {
+      if (data.containsKey(key))
+        data.remove(key);
+    } else {
+      data.put(key, value);
+    }
   }
 }
