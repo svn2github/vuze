@@ -430,12 +430,14 @@ public class MyTorrentsView
       itemsSpeed[i].addListener(SWT.Selection,itemsSpeedListener);
     }
     
+    
+    /*  //TODO ensure that all limits combined don't go under the min 5kbs ?
     //Disable at the end of the list, thus the first item of the array is instanciated last.
     itemsSpeed[0] = new MenuItem(menuSpeed,SWT.PUSH);
     Messages.setLanguageText(itemsSpeed[0],"MyTorrentsView.menu.setSpeed.disable");
     itemsSpeed[0].setData("maxul", new Integer(-1));    
     itemsSpeed[0].addListener(SWT.Selection,itemsSpeedListener);
-        
+     */
 
     // Category
 
