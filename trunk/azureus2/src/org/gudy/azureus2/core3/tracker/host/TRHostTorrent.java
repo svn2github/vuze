@@ -40,6 +40,9 @@ TRHostTorrent
 	public void
 	stop();
 	
+	public void
+	remove();
+	
 	public int
 	getStatus();
 	

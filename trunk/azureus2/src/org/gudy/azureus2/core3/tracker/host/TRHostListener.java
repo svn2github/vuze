@@ -1,7 +1,7 @@
 /*
- * File    : TRHost.java
- * Created : 24-Oct-2003
- * By      : parg
+ * File    : TRHostListener.java
+ * Created : 30-Oct-2003
+ * By      : stuff
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,30 +18,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.core3.tracker.host;
 
 /**
  * @author parg
+ *
  */
-
-import org.gudy.azureus2.core3.torrent.*;
-
 public interface 
-TRHost 
+TRHostListener 
 {
 	public void
-	addTorrent(
-		TOTorrent		torrent );
-		
-	public TRHostTorrent[]
-	getTorrents();
-	
-	public void
-	addListener(
-		TRHostListener	l );
+	torrentAdded(
+		TRHostTorrent		t );	
 		
 	public void
-	removeListener(
-		TRHostListener	l );
+	torrentRemoved(
+		TRHostTorrent		t );
 }

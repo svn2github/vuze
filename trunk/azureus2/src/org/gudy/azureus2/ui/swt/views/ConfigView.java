@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.IpFilter;
 import org.gudy.azureus2.core3.peer.IpRange;
-import org.gudy.azureus2.core3.stats.StatsWriter;
+import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -809,7 +809,7 @@ public class ConfigView extends AbstractIView {
 	
 	gridData = new GridData();
 	gridData.widthHint = 150;
-	final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriter.DEFAULT_STATS_FILE_NAME ); 
+	final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME ); 
 	fileParameter.setLayoutData(gridData);
 
 	label = new Label(gStats, SWT.NULL);

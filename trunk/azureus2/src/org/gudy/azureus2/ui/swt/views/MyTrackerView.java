@@ -26,11 +26,7 @@ package org.gudy.azureus2.ui.swt.views;
  *
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
@@ -63,23 +59,21 @@ import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.MinimizedWindow;
-import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
-import org.gudy.azureus2.ui.swt.views.tableitems.ManagerItem;
-import org.gudy.azureus2.ui.swt.exporttorrent.wizard.*;
+import org.gudy.azureus2.ui.swt.views.tableitems.TrackerTableItem;
+
+import org.gudy.azureus2.core3.tracker.host.*;
 
 public class 
 MyTrackerView 
 	extends AbstractIView
+	implements TRHostListener
 {
-	private Composite composite;
+	private Composite composite; 
 	private Composite panel;
 	private Table table;
-	private HashMap managerItems;
-	private HashMap managers;
-	private Menu menu;
-
-	private HashMap downloadBars;
+	
+	private Map 	host_torrent_items = new HashMap();
+	private Map 	host_torrents		= new HashMap();
 
 	public MyTrackerView(GlobalManager globalManager) {
 	}
@@ -87,10 +81,14 @@ MyTrackerView
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
 	 */
-	public void initialize(Composite composite0) {
+	 
+	public void 
+	initialize(Composite composite0) 
+	{
 	  if(panel != null) {      
 		return;
 	  }
+	  
 	  composite = new Composite(composite0, SWT.NULL);
 	  GridLayout layout = new GridLayout();
 	  layout.numColumns = 1;
@@ -110,19 +108,211 @@ MyTrackerView
 	  layout.verticalSpacing = 0;
 	  layout.horizontalSpacing = 0;
 	  panel.setLayout(layout);
+	  
+	  table = new Table(panel, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+	  
+	  gridData = new GridData(GridData.FILL_BOTH); 
+	  
+	  table.setLayoutData(gridData);
+	  
+	  String[] columnsHeader = { "name", "status" };
+	  
+	  int[] columnsSize = { 250, 100 };
+	  
+	  for (int i = 0; i < columnsHeader.length; i++){
+	  	
+		columnsSize[i] = COConfigurationManager.getIntParameter("MyTrackerView." + columnsHeader[i], columnsSize[i]);
+	  }
+
+	  ControlListener resizeListener = new ControlAdapter() {
+		public void controlResized(ControlEvent e) {
+		  saveTableColumns((TableColumn) e.widget);
+		}
+	  };
+	  
+	  for (int i = 0; i < columnsHeader.length; i++){
+	  	
+		TableColumn column = new TableColumn(table, SWT.NULL);
+		
+		Messages.setLanguageText(column, "MyTrackerView." + columnsHeader[i]);
+		
+		column.setWidth(columnsSize[i]);
+		
+		column.addControlListener(resizeListener);
+	  }
+	  
+	  /*
+	  table.getColumn(0).addListener(SWT.Selection, new IntColumnListener("#")); //$NON-NLS-1$
+	  table.getColumn(1).addListener(SWT.Selection, new StringColumnListener("name")); //$NON-NLS-1$
+	  table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("size")); //$NON-NLS-1$
+	  table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
+	  table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("status")); //$NON-NLS-1$
+	  table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("seeds")); //$NON-NLS-1$
+	  table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("peers")); //$NON-NLS-1$
+	  table.getColumn(7).addListener(SWT.Selection, new StringColumnListener("ds")); //$NON-NLS-1$
+	  table.getColumn(8).addListener(SWT.Selection, new StringColumnListener("us")); //$NON-NLS-1$
+	  table.getColumn(9).addListener(SWT.Selection, new StringColumnListener("eta")); //$NON-NLS-1$
+	  table.getColumn(10).addListener(SWT.Selection, new StringColumnListener("tracker")); //$NON-NLS-1$
+	  table.getColumn(11).addListener(SWT.Selection, new IntColumnListener("priority")); //$NON-NLS-1$
+	*/
+	
+	  table.setHeaderVisible(true);
+	  //table.addKeyListener(createKeyListener());
+
+
+		Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
+
+    
+	   final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
+	   Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
+
+	   final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
+	   Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
+
+	   final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
+	   Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
+
+
+	   menu.addListener(SWT.Show, new Listener() {
+		 public void handleEvent(Event e) {
+		   TableItem[] tis = table.getSelection();
+
+		   itemStart.setEnabled(false);
+		   itemStop.setEnabled(false);
+		   itemRemove.setEnabled(false);
+
+			// TODO: !!!!
+			
+		   if (tis.length > 0) {
+		   		itemStart.setEnabled(true);
+			 itemStop.setEnabled(true);
+			 itemRemove.setEnabled(true);
+
+		   }
+		 }
+	   });
+
+	   itemStart.addListener(SWT.Selection, new Listener() {
+		 public void handleEvent(Event e) {
+		   TableItem[] tis = table.getSelection();
+		   final boolean initStoppedDownloads = true;
+		   for (int i = 0; i < tis.length; i++) {
+			 TableItem ti = tis[i];
+			 
+			TRHostTorrent	torrent = (TRHostTorrent)host_torrents.get(ti);
+			 if (torrent != null){
+			 	
+				torrent.start();
+			 }
+		   }
+		 }
+	   });
+	   
+	   itemStop.addListener(SWT.Selection, new Listener() {
+		 public void handleEvent(Event e) {
+		   TableItem[] tis = table.getSelection();
+		   final boolean initStoppedDownloads = true;
+		   for (int i = 0; i < tis.length; i++) {
+			 TableItem ti = tis[i];
+			 
+			TRHostTorrent	torrent = (TRHostTorrent)host_torrents.get(ti);
+			 if (torrent != null){
+			 	
+				torrent.stop();
+			 }
+		   }
+		 }
+	   });
+	   
+	   itemRemove.addListener(SWT.Selection, new Listener() {
+		 public void handleEvent(Event e) {
+		   TableItem[] tis = table.getSelection();
+		   final boolean initStoppedDownloads = true;
+		   for (int i = 0; i < tis.length; i++) {
+			 TableItem ti = tis[i];
+			 
+			TRHostTorrent	torrent = (TRHostTorrent)host_torrents.get(ti);
+			 if (torrent != null){
+			 	
+				torrent.remove();
+			 }
+		   }
+		 }
+	   });
+	   
+		table.setMenu( menu );
+	   
+		TRHostFactory.create().addListener( this );
+	}
+	
+	public void
+	torrentAdded(
+		TRHostTorrent		host_torrent )
+	{	
+		synchronized ( host_torrents ){
+			
+			TrackerTableItem item = (TrackerTableItem)host_torrents.get(host_torrent);
+		  
+		  	if (item == null){
+		  	
+				item = new TrackerTableItem(table, host_torrent);
+				
+		  		host_torrent_items.put(host_torrent, item);
+		  		
+				host_torrents.put(item.getTableItem(), host_torrent);
+			}	
+		}
+	}
+	
+	public void
+	torrentRemoved(
+		TRHostTorrent		host_torrent )
+	{
+		TrackerTableItem item = (TrackerTableItem) host_torrent_items.remove(host_torrent);
+		
+		if (item != null) {
+			
+			host_torrents.remove( item.getTableItem());
+			
+			item.delete();
+		}		
+	}
+
+ 
+
+
+	private void saveTableColumns(TableColumn t)
+	{
+	  COConfigurationManager.setParameter((String) t.getData(), t.getWidth());
+	  COConfigurationManager.save();
 	}
 	
 	public Composite getComposite() {
 	   return composite;
 	 }
 
-	 /* (non-Javadoc)
-	  * @see org.gudy.azureus2.ui.swt.IView#refresh()
-	  */
-	 public void refresh() {
-	   if (getComposite() == null || getComposite().isDisposed())
-		 return;
-	 }
+	public void 
+	refresh() 
+	{
+		if (getComposite() == null || getComposite().isDisposed()){
+	   
+			return;
+	   	}
+		
+		Iterator iter = host_torrent_items.values().iterator();
+		
+		while (iter.hasNext()){
+			
+			if (panel.isDisposed()){
+		  
+				return;
+		  	}
+		  
+		  	TrackerTableItem item = (TrackerTableItem) iter.next();
+		  
+		  	item.refresh();
+		}
+	}	 
 
 	 /* (non-Javadoc)
 	  * @see org.gudy.azureus2.ui.swt.IView#delete()

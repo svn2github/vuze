@@ -80,6 +80,14 @@ TRHostTorrentImpl
 		}
 	}
 	
+	public synchronized void
+	remove()
+	{
+		stop();
+		
+		host.remove( this );
+	}
+	
 	public int
 	getStatus()
 	{

@@ -43,6 +43,8 @@ TRHostImpl
 	
 	protected List	torrents	= new ArrayList();
 	
+	protected List	listeners	= new ArrayList();
+	
 	public static synchronized TRHost
 	create()
 	{
@@ -76,7 +78,26 @@ TRHostImpl
 			}
 		}
 		
-		torrents.add( new TRHostTorrentImpl( this, server, torrent ));
+		TRHostTorrent host_torrent = new TRHostTorrentImpl( this, server, torrent );
+		
+		torrents.add( host_torrent );
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRHostListener)listeners.get(i)).torrentAdded( host_torrent );
+		}
+	}
+	
+	protected synchronized void
+	remove(
+		TRHostTorrent	host_torrent )
+	{
+		torrents.remove( host_torrent );
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
+		}		
 	}
 	
 	public TRHostTorrent[]
@@ -87,5 +108,24 @@ TRHostImpl
 		torrents.toArray( res );
 		
 		return( res );
+	}
+	
+	public synchronized void
+	addListener(
+		TRHostListener	l )
+	{
+		listeners.add( l );
+		
+		for (int i=0;i<torrents.size();i++){
+			
+			l.torrentAdded((TRHostTorrent)torrents.get(i));
+		}
+	}
+		
+	public synchronized void
+	removeListener(
+		TRHostListener	l )
+	{
+		listeners.remove( l );
 	}
 }
