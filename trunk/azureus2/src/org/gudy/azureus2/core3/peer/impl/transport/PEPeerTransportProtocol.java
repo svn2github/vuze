@@ -231,26 +231,10 @@ PEPeerTransportProtocol
 			
 			nbConnections = 0;
 			
-			createConnection();
-	  	}
+			currentState = new StateConnecting();
+		}
 	}
 
-  
-  protected void 
-  createConnection()
-  {
-  	this.nbConnections++;
-  	allocateAll();
-  	LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + ip + " : " + port);
-
-  	try {
-  		startConnection();
-  		this.currentState = new StateConnecting();
-  	}
-  	catch (Exception e) {
-  		closeAll("Error in createConnection() : " + e,false, false);
-  	}
-}
 
 
   /**
@@ -427,75 +411,91 @@ PEPeerTransportProtocol
     }
   }
 
+  
   public synchronized void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
-	  LGLogger.log(
-         componentID,
-         evtProtocol,
-         closedOnError?LGLogger.ERROR:LGLogger.INFORMATION,
-         reason);
-    
-   if (closing) {
-     return;
-   }
-	closing = true;         
-    
-	//Cancel any pending requests (on the manager side)
-	cancelRequests();
-
-	//Close the socket
-	closeConnection();
-
-	//release the read Buffer
-	if (readBuffer != null) {
-	  DirectByteBufferPool.freeBuffer(readBuffer);
-	  readBuffer = null;
-   }
-
-	//release the write Buffer
-	if (writeBuffer != null) {      
-	  if (writeData) {
-		PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
-		DirectByteBufferPool.freeBuffer(writeBuffer);
-		writeBuffer = null;
-	  }
-	}
-
-  synchronized( dataQueue ) {
-  	//release all buffers in dataQueue
-  	for (int i = dataQueue.size() - 1; i >= 0; i--) {
-  		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
-  		if (item.isLoaded()) {
-  			DirectByteBufferPool.freeBuffer(item.getBuffer());
-  			item.setBuffer(null);
-  		}
-  		else if (item.isLoading()) {
-  			manager.freeRequest(item);
+  	LGLogger.log(
+  			componentID,
+				evtProtocol,
+				closedOnError?LGLogger.ERROR:LGLogger.INFORMATION,
+						reason);
+  	
+  	if (closing) {
+  		return;
+  	}
+  	closing = true;         
+  	
+  	//Cancel any pending requests (on the manager side)
+  	cancelRequests();
+  	
+  	//Close the socket
+  	closeConnection();
+  	
+  	//release the read Buffer
+  	if (readBuffer != null) {
+  		DirectByteBufferPool.freeBuffer(readBuffer);
+  		readBuffer = null;
+  	}
+  	
+  	//release the write Buffer
+  	if (writeBuffer != null) {      
+  		if (writeData) {
+  			PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
+  			DirectByteBufferPool.freeBuffer(writeBuffer);
+  			writeBuffer = null;
   		}
   	}
-  }
-
-  //remove identity
-  if ( this.id != null && identityAdded ) {
-  	PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
-  }
-  
-	//Send removed event ...
-	manager.peerRemoved(this);
-
-	//Send a logger event
-	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
-
-  this.currentState = new StateClosed();
-  
-  if((attemptReconnect) && (this.currentState != null) && (this.currentState.getState() == TRANSFERING) && (incoming == false) && (nbConnections < 3)) {
-  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
-	  	
-  	createConnection();
-  }
+  	
+  	synchronized( dataQueue ) {
+  		//release all buffers in dataQueue
+  		for (int i = dataQueue.size() - 1; i >= 0; i--) {
+  			DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
+  			if (item.isLoaded()) {
+  				DirectByteBufferPool.freeBuffer(item.getBuffer());
+  				item.setBuffer(null);
+  			}
+  			else if (item.isLoading()) {
+  				manager.freeRequest(item);
+  			}
+  		}
+  	}
+  	
+  	//remove identity
+  	if ( this.id != null && identityAdded ) {
+  		PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
+  	}
+  	
+  	//Send removed event ...
+  	manager.peerRemoved(this);
+  	
+  	//Send a logger event
+  	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Connection Ended with " + ip + " : " + port + " ( " + client + " )");
+  	
+  	if ( (attemptReconnect)
+		  && (currentState != null)
+		  && (currentState.getState() == TRANSFERING || currentState.getState() == HANDSHAKING)
+			&& (incoming == false)
+			&& (nbConnections < 3)) {
+      
+  		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Attempting to reconnect with " + ip + " : " + port + " ( " + client + " )");
+  		currentState = new StateConnecting();
+  	}
+  	else {
+  		currentState = new StateClosed();
+  	}
+  	
   }
 
 	
   private class StateConnecting implements PEPeerTransportProtocolState {
+    
+    private StateConnecting() {
+      nbConnections++;
+      allocateAll();
+      LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " + ip + " : " + port);
+
+      startConnection();
+    }
+    
   	public int process() {
   		try {
   			if ( completeConnection() ) {
@@ -527,7 +527,7 @@ PEPeerTransportProtocol
 						throw new IOException("End of Stream Reached");
           }
 				} catch (IOException e) {
-					closeAll(ip + " : StateHandshaking::End of Stream Reached", true, true);
+					closeAll(ip + " : StateHandshaking:: " + e, true, false);
 					return 0;
 				}
 			}
@@ -1420,10 +1420,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 
 
   protected abstract void
-  startConnection()
-
-	  throws IOException;
-	
+  startConnection();
 
   protected abstract void
   closeConnection();

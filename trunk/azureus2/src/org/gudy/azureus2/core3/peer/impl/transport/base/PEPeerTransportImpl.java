@@ -105,9 +105,11 @@ PEPeerTransportImpl
 	}
 	
   
-	protected void startConnection() throws IOException {
+	protected void startConnection() {
+    connected = false;
+    connect_error = false;
     
-		Thread connect = new Thread("Socket Connect") {
+		Thread connect = new Thread("Outgoing Socket Connect") {
 			public void run() {
 				Selector sel = null;
 				try {
