@@ -47,6 +47,24 @@ UpdateInstaller
 		InputStream		is )
 	
 		throws UpdateException;
+  
+  /**
+   * Add a resource to the installation. The file will be saved away for later use.
+   * 
+   * @param resource_name non-qualified name for the resource - i.e. not an absolute file
+   *            name but rather something local like "fred". This can then be used
+   *            later in actions
+   * @param is
+   * @param closeInputStream if false, the InputStream is won't be closed 
+   */
+
+  public void
+  addResource(
+    String      resource_name,
+    InputStream   is,
+    boolean closeInputStream)
+  
+    throws UpdateException;
 	
 		/**
 		 * Returns the absolute path of the Azureus install dir (i.e. where Azureus2.jar etc is located)

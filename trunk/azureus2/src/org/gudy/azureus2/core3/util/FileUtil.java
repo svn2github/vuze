@@ -501,11 +501,19 @@ public class FileUtil {
     }
     
     
+    public static void 
+    copyFile( 
+      InputStream   is,
+      OutputStream  os ) 
+    throws IOException {
+      copyFile(is,os,true);
+    }
     
     public static void 
 	copyFile( 
 		InputStream		is,
-		OutputStream	os )
+		OutputStream	os,
+    boolean closeInputStream)
 	
 		throws IOException
 	{
@@ -531,7 +539,8 @@ public class FileUtil {
     		}
     	}finally{
     		try{
-    			is.close();
+        if(closeInputStream)
+    			  is.close();
     		}catch( IOException e ){
     			
     		}
