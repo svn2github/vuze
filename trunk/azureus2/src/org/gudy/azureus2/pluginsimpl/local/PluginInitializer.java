@@ -273,6 +273,11 @@ PluginInitializer
 	    File[] pluginsDirectory = pluginDirectory.listFiles();
 	    
 	    for(int i = 0 ; i < pluginsDirectory.length ; i++) {
+        
+        if( pluginsDirectory[i].getName().equals( "CVS" ) ) {
+          LGLogger.log("Skipping plugin " + pluginsDirectory[i].getName());
+          continue;
+        }
 	    	
 	      LGLogger.log("Initializing plugin " + pluginsDirectory[i].getName());
 
