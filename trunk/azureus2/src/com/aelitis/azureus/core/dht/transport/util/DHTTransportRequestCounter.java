@@ -90,11 +90,13 @@ DHTTransportRequestCounter
 	public Object
 	findValueRequest(
 		DHTTransportContact contact, 
-		byte[]				key )
+		byte[]				key,
+		int					max,
+		byte				flags )
 	{
 		stats.findValueReceived();
 		
-		return( delegate.findValueRequest( contact, key ));
+		return( delegate.findValueRequest( contact, key, max, flags ));
 	}
 		
 	public void

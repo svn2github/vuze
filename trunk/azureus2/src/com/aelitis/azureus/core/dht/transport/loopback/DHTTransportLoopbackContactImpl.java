@@ -110,9 +110,11 @@ DHTTransportLoopbackContactImpl
 	public void
 	sendFindValue(
 		DHTTransportReplyHandler	handler,
-		byte[]						key )
+		byte[]						key,
+		int							max,
+		byte						flags )
 	{
-		transport.sendFindValue( this, handler, key );
+		transport.sendFindValue( this, handler, key, max, flags );
 	}
 	
 	public DHTTransportFullStats

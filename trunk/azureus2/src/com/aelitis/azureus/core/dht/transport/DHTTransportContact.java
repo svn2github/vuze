@@ -72,7 +72,9 @@ DHTTransportContact
 	public void
 	sendFindValue(
 		DHTTransportReplyHandler	handler,
-		byte[]						key );
+		byte[]						key,
+		int							max_values,
+		byte						flags );
 		
 	public DHTTransportFullStats
 	getStats();

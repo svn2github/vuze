@@ -447,7 +447,9 @@ DHTTransportLoopbackImpl
 	sendFindValue(
 		final DHTTransportContact		contact,
 		final DHTTransportReplyHandler	handler,
-		final byte[]					key )
+		final byte[]					key,
+		final int						max,
+		final byte						flags )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -455,7 +457,7 @@ DHTTransportLoopbackImpl
 				public void
 				runSupport()
 				{
-					sendFindValueSupport( contact, handler, key );
+					sendFindValueSupport( contact, handler, key, max, flags );
 				}
 			};
 		
@@ -466,7 +468,9 @@ DHTTransportLoopbackImpl
 	sendFindValueSupport(
 		DHTTransportContact			contact,
 		DHTTransportReplyHandler	handler,
-		byte[]						key )
+		byte[]						key,
+		int							max,
+		byte						flags )
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
@@ -485,7 +489,7 @@ DHTTransportLoopbackImpl
 			Object o_res =
 				target.getRequestHandler().findValueRequest( 
 					new DHTTransportLoopbackContactImpl( target, node_id ),
-					key );
+					key, max, flags );
 			
 			if ( o_res instanceof DHTTransportContact[]){
 				

@@ -174,8 +174,8 @@ Test
 		
 		try{
 			
-			DHT[]			dhts 		= new DHT[num_dhts*2];
-			DHTTransport[]	transports 	= new DHTTransport[num_dhts*2];
+			DHT[]			dhts 		= new DHT[num_dhts*2+30];
+			DHTTransport[]	transports 	= new DHTTransport[num_dhts*2+30];
 			
 			
 			for (int i=0;i<num_dhts;i++){

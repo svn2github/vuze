@@ -169,9 +169,11 @@ DHTTransportUDPContactImpl
 	public void
 	sendFindValue(
 		DHTTransportReplyHandler	handler,
-		byte[]						key )
+		byte[]						key,
+		int							max_values,
+		byte						flags )
 	{
-		transport.sendFindValue( this, handler, key );
+		transport.sendFindValue( this, handler, key, max_values, flags );
 	}
 	
 	public DHTTransportFullStats

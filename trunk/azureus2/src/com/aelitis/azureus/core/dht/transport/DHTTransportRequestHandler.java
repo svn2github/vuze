@@ -52,7 +52,9 @@ DHTTransportRequestHandler
 	public Object
 	findValueRequest(
 		DHTTransportContact contact, 
-		byte[]				key );
+		byte[]				key,
+		int					max_values,
+		byte				flags );
 	
 
 		/**

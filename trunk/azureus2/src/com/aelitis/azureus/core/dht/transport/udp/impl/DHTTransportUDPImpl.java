@@ -933,9 +933,9 @@ DHTTransportUDPImpl
 			final DHTUDPPacketRequestStore	request = 
 				new DHTUDPPacketRequestStore( connection_id, local_contact );
 			
-			request.setKey( key );
+			request.setKeys( new byte[][]{ key });
 			
-			request.setValues( values );
+			request.setValueSets( new DHTTransportValue[][]{ values });
 			
 			packet_handler.sendAndReceive(
 				request,
@@ -1139,7 +1139,9 @@ DHTTransportUDPImpl
 	sendFindValue(
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler,
-		final byte[]						key )
+		final byte[]						key,
+		final int							max_values,
+		final byte							flags )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -1147,7 +1149,7 @@ DHTTransportUDPImpl
 				public void
 				runSupport()
 				{
-					sendFindValueSupport( contact, handler, key );
+					sendFindValueSupport( contact, handler, key, max_values, flags );
 				}
 			};
 		
@@ -1158,7 +1160,9 @@ DHTTransportUDPImpl
 	sendFindValueSupport(
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler,
-		byte[]								key )
+		byte[]								key,
+		int									max_values,
+		byte								flags )
 	{
 		stats.findValueSent();
 
@@ -1171,6 +1175,10 @@ DHTTransportUDPImpl
 				new DHTUDPPacketRequestFindValue( connection_id, local_contact );
 			
 			request.setID( key );
+			
+			request.setMaximumValues( max_values );
+			
+			request.setFlags( flags );
 			
 			packet_handler.sendAndReceive(
 				request,
@@ -1390,8 +1398,8 @@ DHTTransportUDPImpl
 					
 					request_handler.storeRequest(
 							originating_contact, 
-							store_request.getKey(), 
-							store_request.getValues());
+							store_request.getKeys()[0], 
+							store_request.getValueSets()[0]);
 					
 					DHTUDPPacketReplyStore	reply = 
 						new DHTUDPPacketReplyStore(
@@ -1427,7 +1435,9 @@ DHTTransportUDPImpl
 					Object res = 
 						request_handler.findValueRequest(
 									originating_contact,
-									find_request.getID());
+									find_request.getID(),
+									find_request.getMaximumValues(),
+									find_request.getFlags());
 					
 					DHTUDPPacketReplyFindValue	reply = 
 						new DHTUDPPacketReplyFindValue(

@@ -72,6 +72,8 @@ DHTTransportStatsImpl
 		clone.find_nodes	= (long[])find_nodes.clone();
 		clone.find_values	= (long[])find_values.clone();
 		clone.stores		= (long[])stores.clone();
+		
+		clone.incoming_requests	= incoming_requests;
 	}
 		// ping
 	

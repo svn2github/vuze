@@ -38,6 +38,7 @@ DHTUDPPacketRequestFindValue
 {
 	private byte[]		id;
 	private byte		flags;
+	private byte		maximum_values;
 	
 	public
 	DHTUDPPacketRequestFindValue(
@@ -60,6 +61,8 @@ DHTUDPPacketRequestFindValue
 		id = DHTUDPUtils.deserialiseByteArray( is, 64 );
 		
 		flags = is.readByte();
+		
+		maximum_values	= is.readByte();
 	}
 	
 	public void
@@ -73,6 +76,8 @@ DHTUDPPacketRequestFindValue
 		DHTUDPUtils.serialiseByteArray( os, id, 64 );
 		
 		os.writeByte( flags );
+		
+		os.writeByte( maximum_values );
 	}
 	
 	protected void
@@ -86,6 +91,37 @@ DHTUDPPacketRequestFindValue
 	getID()
 	{
 		return( id );
+	}
+	
+	protected byte
+	getFlags()
+	{
+		return( flags );
+	}
+	
+	protected void
+	setFlags(
+		byte		_flags )
+	{
+		flags	= _flags;
+	}
+	
+	protected void
+	setMaximumValues(
+		int		max )
+	{
+		if ( max > 255 ){
+			
+			max	= 255;
+		}
+		
+		maximum_values	= (byte)max;
+	}
+	
+	protected int
+	getMaximumValues()
+	{
+		return( maximum_values&0xff );
 	}
 	
 	public String

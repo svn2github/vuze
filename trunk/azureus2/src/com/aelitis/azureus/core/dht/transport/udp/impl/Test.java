@@ -185,7 +185,7 @@ Test
 							System.out.println( "findValue failed" );
 						}
 					},
-					new byte[3]);
+					new byte[3], 1, (byte)0 );
 			
 			System.out.println( "sending complete" );
 
@@ -225,7 +225,9 @@ Test
 	public Object
 	findValueRequest(
 		DHTTransportContact contact, 
-		byte[]				key )
+		byte[]				key,
+		int					max_values,
+		byte				flags )
 	{
 		System.out.println( "TransportHandler: findValue" );
 		

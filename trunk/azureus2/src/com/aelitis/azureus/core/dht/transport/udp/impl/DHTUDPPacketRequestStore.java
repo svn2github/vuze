@@ -39,8 +39,8 @@ public class
 DHTUDPPacketRequestStore 
 	extends DHTUDPPacketRequest
 {
-	private byte[]				key;
-	private	DHTTransportValue[]	values;
+	private byte[][]				keys;
+	private	DHTTransportValue[][]	value_sets;
 	
 	public
 	DHTUDPPacketRequestStore(
@@ -61,11 +61,11 @@ DHTUDPPacketRequestStore
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_STORE, con_id, trans_id );
 		
-		key		= DHTUDPUtils.deserialiseByteArray( is, 64 );
+		keys		= DHTUDPUtils.deserialiseByteArrayArray( is, 64 );
 		
 			// times receieved are adjusted by + skew
 				
-		values 	= DHTUDPUtils.deserialiseTransportValues( transport, is, getClockSkew());
+		value_sets 	= DHTUDPUtils.deserialiseTransportValuesArray( transport, is, getClockSkew(), 64);
 	}
 	
 	public void
@@ -76,10 +76,10 @@ DHTUDPPacketRequestStore
 	{
 		super.serialise(os);
 		
-		DHTUDPUtils.serialiseByteArray( os, key, 64 );
+		DHTUDPUtils.serialiseByteArrayArray( os, keys, 64 );
 		
 		try{
-			DHTUDPUtils.serialiseTransportValues( os, values, 0 );
+			DHTUDPUtils.serialiseTransportValuesArray( os, value_sets, 0, 64 );
 			
 		}catch( DHTTransportException e ){
 			
@@ -88,29 +88,29 @@ DHTUDPPacketRequestStore
 	}
 
 	protected void
-	setValues(
-		DHTTransportValue[]	_values )
+	setValueSets(
+		DHTTransportValue[][]	_values )
 	{
-		values	= _values;
+		value_sets	= _values;
 	}
 	
-	protected DHTTransportValue[]
-	getValues()
+	protected DHTTransportValue[][]
+	getValueSets()
 	{
-		return( values);
+		return( value_sets );
 	}
 	
 	protected void
-	setKey(
-		byte[]		_key )
+	setKeys(
+		byte[][]		_key )
 	{
-		key	= _key;
+		keys	= _key;
 	}
 	
-	protected byte[]
-	getKey()
+	protected byte[][]
+	getKeys()
 	{
-		return( key );
+		return( keys );
 	}
 	
 	public String

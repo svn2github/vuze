@@ -832,6 +832,8 @@ DHTControlImpl
 	{
 		boolean		timeout_occurred	= false;
 		
+		final byte	flags = 0;
+		
 		try{
 			DHTLog.log( "lookup for " + DHTLog.getString( lookup_id ));
 			
@@ -1113,7 +1115,16 @@ DHTControlImpl
 					
 					if ( value_search ){
 						
-						closest.sendFindValue( handler, lookup_id );
+						int	rem = max_values - values_found[0];
+						
+						if ( rem <= 0 ){
+							
+							Debug.out( "eh?" );
+							
+							rem = 1;
+						}
+						
+						closest.sendFindValue( handler, lookup_id, rem, flags );
 						
 					}else{
 						
@@ -1190,7 +1201,9 @@ DHTControlImpl
 	public Object
 	findValueRequest(
 		DHTTransportContact originating_contact, 
-		byte[]				key )
+		byte[]				key,
+		int					max_values,
+		byte				flags )
 	{
 		DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
 
@@ -1307,10 +1320,12 @@ DHTControlImpl
 				
 				continue;
 			}
-				// we neither consider the node's originating values, nor any cached
-				// further away than the initial location, for transfer
 			
-			if ( value.getTransportValue().getCacheDistance() != 1 ){
+				// we don't consider any cached further away than the initial location, for transfer
+				// however, we *do* include ones we originate as, if we're the closest, we have to
+				// take responsibility for xfer (as others won't)
+			
+			if ( value.getTransportValue().getCacheDistance() > 1 ){
 				
 				continue;
 			}

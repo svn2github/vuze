@@ -72,14 +72,41 @@ DHTUDPUtils
 		}
 	}
 	
-	protected static byte[]
-	deserialiseByteArray(
+	protected static void
+	serialiseLength(
+		DataOutputStream	os,
+		int					len,
+		int					max_length )
+	
+		throws IOException
+	{
+		if ( len > max_length ){
+			
+			throw( new IOException( "Invalid data length" ));
+		}
+		
+		if ( max_length < 256 ){
+			
+			os.writeByte( len );
+			
+		}else if ( max_length < 65536 ){
+			
+			os.writeShort( len );
+			
+		}else{
+			
+			os.writeInt( len );
+		}
+	}
+	
+	protected static int
+	deserialiseLength(
 		DataInputStream	is,
 		int				max_length )
 	
 		throws IOException
 	{
-		int	len;
+		int		len;
 		
 		if ( max_length < 256 ){
 			
@@ -99,6 +126,18 @@ DHTUDPUtils
 			throw( new IOException( "Invalid data length" ));
 		}
 		
+		return( len );
+	}
+	
+	protected static byte[]
+	deserialiseByteArray(
+		DataInputStream	is,
+		int				max_length )
+	
+		throws IOException
+	{
+		int	len = deserialiseLength( is, max_length );
+		
 		byte[] data	= new byte[len];
 		
 		is.read(data);
@@ -114,27 +153,82 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		int	len = data.length;
-		
-		if ( len > max_length ){
-			
-			throw( new IOException( "Invalid data length" ));
-		}
-		
-		if ( max_length < 256 ){
-			
-			os.writeByte( len );
-			
-		}else if ( max_length < 65536 ){
-			
-			os.writeShort( len );
-			
-		}else{
-			
-			os.writeInt( len );
-		}
+		serialiseLength( os, data.length, max_length );
 		
 		os.write( data );
+	}
+	
+	protected static void
+	serialiseByteArrayArray(
+		DataOutputStream		os,
+		byte[][]				data,
+		int						max_length )
+	
+		throws IOException
+	{
+		serialiseLength(os,data.length,max_length);
+		
+		for (int i=0;i<data.length;i++){
+			
+			serialiseByteArray( os, data[i], max_length );
+		}
+	}
+	
+	protected static byte[][]
+	deserialiseByteArrayArray(
+		DataInputStream	is,
+		int				max_length )
+	
+		throws IOException
+	{
+		int	len = deserialiseLength( is, max_length );
+		
+		byte[][] data	= new byte[len][];
+		
+		for (int i=0;i<data.length;i++){
+			
+			data[i] = deserialiseByteArray( is, max_length );
+		}
+		
+		return( data );
+	}
+	
+	protected static DHTTransportValue[][]
+	deserialiseTransportValuesArray(
+		DHTTransportUDPImpl		transport,
+		DataInputStream			is,
+		long					skew,
+		int						max_length )
+	
+		throws IOException
+	{
+		int	len = deserialiseLength( is, max_length );
+		
+		DHTTransportValue[][] data	= new DHTTransportValue[len][];
+		
+		for (int i=0;i<data.length;i++){
+			
+			data[i] = deserialiseTransportValues( transport, is, skew );
+		}
+		
+		return( data );	
+	}
+	
+	protected static void
+	serialiseTransportValuesArray(
+		DataOutputStream		os,
+		DHTTransportValue[][]	values,
+		long					skew,
+		int						max_length )
+	
+		throws IOException, DHTTransportException
+	{
+		serialiseLength(os,values.length,max_length);
+		
+		for (int i=0;i<values.length;i++){
+			
+			serialiseTransportValues( os, values[i], skew );
+		}	
 	}
 	
 	protected static DHTTransportValue[]
@@ -145,12 +239,7 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		short	len = is.readShort();
-		
-		if ( len > 1024 ){
-			
-			throw( new IOException( "too many values" ));
-		}
+		int	len = deserialiseLength( is, 65535 );
 		
 		List	l = new ArrayList( len );
 		
@@ -181,7 +270,7 @@ DHTUDPUtils
 	
 		throws IOException, DHTTransportException
 	{
-		os.writeShort( values.length );
+		serialiseLength( os, values.length, 65535 );
 	
 		for (int i=0;i<values.length;i++){
 			
@@ -279,7 +368,7 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		os.writeShort( contacts.length );
+		serialiseLength( os, contacts.length, 65535 );
 		
 		for (int i=0;i<contacts.length;i++){
 			
@@ -304,12 +393,7 @@ DHTUDPUtils
 	
 		throws IOException
 	{
-		short	len = is.readShort();
-		
-		if ( len > 1024 ){
-			
-			throw( new IOException( "too many contacts" ));
-		}
+		int	len = deserialiseLength( is, 65535 );
 		
 		List	l = new ArrayList( len );
 		
