@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
  * AELITIS, SARL au capital de 30,000 euros,
- * 8 Alle Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 package org.gudy.azureus2.ui.swt.update;
 
