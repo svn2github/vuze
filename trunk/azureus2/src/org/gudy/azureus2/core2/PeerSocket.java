@@ -18,7 +18,6 @@ import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerManager;
 import org.gudy.azureus2.core.Request;
 import org.gudy.azureus2.core.SpeedLimiter;
-import org.gudy.azureus2.ui.swt.Messages;
 
 /**
  * @author Olivier
@@ -292,8 +291,10 @@ public class PeerSocket extends PeerConnection {
       if (readBuffer.hasRemaining()) {
         try {
           int read = socket.read(readBuffer);
-          if (read < 0)
-            throw new IOException("End of Stream Reached");
+          if (read < 0) {
+            closeAll();
+            return;
+          }
         }
         catch (IOException e) {
           //e.printStackTrace();
@@ -317,8 +318,10 @@ public class PeerSocket extends PeerConnection {
         if (lengthBuffer.hasRemaining()) {
           try {
             int read = socket.read(lengthBuffer);
-            if (read < 0)
-              throw new IOException("End of Stream Reached");
+            if (read < 0) {
+              closeAll();
+              return;
+            }
           }
           catch (IOException e) {
             closeAll();
@@ -339,8 +342,10 @@ public class PeerSocket extends PeerConnection {
       if (!readingLength) {
         try {
           int read = socket.read(readBuffer);
-          if (read < 0)
-            throw new IOException("End of Stream Reached");
+          if (read < 0) {
+            closeAll();
+            return;
+          }
           //hack to statistically determine when we're receving data...
           if (readBuffer.limit() > 8192) {
             stats.received(read);
@@ -364,7 +369,7 @@ public class PeerSocket extends PeerConnection {
     }
   }
 
-  private class StateClosed implements State {
+  private static class StateClosed implements State {
     public void process() {}
 
     public int getState() {
@@ -799,28 +804,32 @@ public class PeerSocket extends PeerConnection {
         }
         writeBuffer.limit(limit);
         int written = socket.write(writeBuffer);
-        if (written < 0)
-          throw new IOException("End of Stream Reached");
-        writeBuffer.limit(realLimit);
-
-        if (writeData) {
-          stats.sent(written);
-          manager.sent(written);
-          if (SpeedLimiter.getLimiter().isLimited(this)) {
-            used += written;
-            if ((loopFactor % 5) == 4) {
-              if (used >= (100 * allowed) / 100)
-                maxUpload = max(110 * allowed, 20);
-              if (used < (95 * allowed) / 100)
-                maxUpload = max((100 * written) / 100, 20);
+        // End of Stream Reached
+        if (written >= 0) {
+          writeBuffer.limit(realLimit);
+  
+          if (writeData) {
+            stats.sent(written);
+            manager.sent(written);
+            if (SpeedLimiter.getLimiter().isLimited(this)) {
+              used += written;
+              if ((loopFactor % 5) == 4) {
+                if (used >= (100 * allowed) / 100)
+                  maxUpload = max(110 * allowed, 20);
+                if (used < (95 * allowed) / 100)
+                  maxUpload = max((100 * written) / 100, 20);
+              }
             }
           }
+        } else {
+          closeAll();
         }
       }
-      catch (IOException e) {
+      catch (Exception e) {
         //e.printStackTrace();
         closeAll();
-      } //If we have finished sending this buffer
+      }
+      //If we have finished sending this buffer
       if (!writeBuffer.hasRemaining()) {
         //If we were sending data, we must free the writeBuffer
         if (writeData) {
