@@ -513,12 +513,18 @@ public class ConfigView extends AbstractIView {
       upsLabels[i] = " " + upRates[i] + " KB/s"; //$NON-NLS-1$ //$NON-NLS-2$
       upsValues[i] = 1024 * upRates[i];
     }
-    new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$  
-
+    new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$      
+    
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.allowsameip"); //$NON-NLS-1$
+    new BooleanParameter(gTransfer, "Allow Same IP Peers", false); //$NON-NLS-1$
+    
     label = new Label(gTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.playdownloadfinished"); //$NON-NLS-1$
     new BooleanParameter(gTransfer, "Play Download Finished", true); //$NON-NLS-1$
 
+    
+    
     itemTransfer.setControl(gTransfer);
   }
 

@@ -124,7 +124,9 @@ public class ConfigurationDefaults {
     def.put("Ip Filter Enabled", new Long(1));
     //Use the filters as 'allow' rules
     def.put("Ip Filter Allow",new Long(0));
-    
+    //Allow for multiple peers with the same IP
+    def.put("Allow Same IP Peers",new Long(0));
+        
     /** SWT GUI Settings **/
     def.put("useCustomTab",new Long(1));    
     def.put("GUI Refresh",new Long(250));

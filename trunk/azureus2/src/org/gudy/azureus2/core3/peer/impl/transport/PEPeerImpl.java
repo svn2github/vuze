@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 import java.util.Arrays;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 
 public class 
@@ -83,6 +84,10 @@ PEPeerImpl
 		  return true;
 		if (!(p.ip).equals(this.ip))
 		  return false;
+		//same ip check for config to know if we allow
+		//multiple peers from same ip
+		if(!COConfigurationManager.getBooleanParameter("Allow Same IP Peers",false))
+		  return true;
 		//same ip, we'll check peerId
 		byte[] otherId;
 		if (this.id == null || (otherId = p.getId()) == null)
