@@ -836,15 +836,18 @@ DiskManagerImpl
 			//Implemented a more general way of dealing with it.
 			String extensions = COConfigurationManager.getStringParameter("priorityExtensions","");
 			if(!extensions.equals("")) {
+			  boolean bIgnoreCase = COConfigurationManager.getBooleanParameter("priorityExtensionsIgnoreCase");
 				StringTokenizer st = new StringTokenizer(extensions,";");
 				while(st.hasMoreTokens()) {
 				  String extension = st.nextToken();
 				  extension = extension.trim();
 				  if(!extension.startsWith("."))
 					extension = "." + extension;
-				  if(fileInfo.getExtension().equals(extension)) {
-					fileInfo.setPriority(true);
-				  }                    
+					boolean bHighPriority = (bIgnoreCase) ? 
+					                   fileInfo.getExtension().equalsIgnoreCase(extension) : 
+					                   fileInfo.getExtension().equals(extension);
+				  if (bHighPriority)
+            fileInfo.setPriority(true);
 				}
 			}
             

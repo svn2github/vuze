@@ -25,6 +25,10 @@ public class BooleanParameter implements IParameter{
   
   List	performers	= new ArrayList();
   
+  public BooleanParameter(Composite composite, final String name) {
+    this(composite,name,COConfigurationManager.getBooleanParameter(name),null);
+  }
+
   public BooleanParameter(Composite composite, final String name, boolean defaultValue) {
     this(composite,name,defaultValue,null);
   }

@@ -614,7 +614,7 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.opendetails"); //$NON-NLS-1$
-    new BooleanParameter(cDisplay, "Open Details", true); //$NON-NLS-1$
+    new BooleanParameter(cDisplay, "Open Details"); //$NON-NLS-1$
 
     label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.openbar"); //$NON-NLS-1$
@@ -959,6 +959,7 @@ public class ConfigView extends AbstractIView {
   private void initGroupFile() {
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
     GridData gridData;
+    Composite cArea;
 
     Composite gFile = new Composite(cConfigSection, SWT.NULL);
 
@@ -967,23 +968,17 @@ public class ConfigView extends AbstractIView {
     treeFile.setData(gFile);
 
     GridLayout layout = new GridLayout();
-    layout.numColumns = 4;
+    layout.numColumns = 2;
     gFile.setLayout(layout);
     Label label;
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.zeronewfiles"); //$NON-NLS-1$
     BooleanParameter zeroNew = new BooleanParameter(gFile, "Zero New", false); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
-    zeroNew.setLayoutData(gridData);
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
     BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
-    incremental.setLayoutData(gridData);
 
     //Make the incremental checkbox (button) deselect when zero new is used
     Button[] btnIncremental = {(Button)incremental.getControl()};
@@ -995,16 +990,22 @@ public class ConfigView extends AbstractIView {
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
-    new BooleanParameter(gFile, "Check Pieces on Completion", true).setLayoutData(gridData);
+    new BooleanParameter(gFile, "Check Pieces on Completion", true);
 
 
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
-    BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", true); //$NON-NLS-1$
+    cArea = new Composite(gFile, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 3;
+    cArea.setLayout(layout);
+    cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    
+    BooleanParameter bpUseResume = new BooleanParameter(cArea, "Use Resume", true); //$NON-NLS-1$
 
-    label = new Label(gFile, SWT.NULL);
+    label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); //$NON-NLS-1$
 
     final String saveResumeLabels[] = new String[19];
@@ -1014,7 +1015,7 @@ public class ConfigView extends AbstractIView {
       saveResumeValues[i - 2] = i;
     }
 
-    IntListParameter listSave = new IntListParameter(gFile, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$
+    IntListParameter listSave = new IntListParameter(cArea, "Save Resume Interval", 5, saveResumeLabels, saveResumeValues); //$NON-NLS-1$
 
     Control[] controls = new Control[2];
     controls[0] = label;
@@ -1025,13 +1026,22 @@ public class ConfigView extends AbstractIView {
     // savepath
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
-    BooleanParameter saveDefault = new BooleanParameter(gFile, "Use default data dir", true); //$NON-NLS-1$
+
+    cArea = new Composite(gFile, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 3;
+    cArea.setLayout(layout);
+    cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+    BooleanParameter saveDefault = new BooleanParameter(cArea, "Use default data dir", true); //$NON-NLS-1$
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final StringParameter pathParameter = new StringParameter(gFile, "Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    final StringParameter pathParameter = new StringParameter(cArea, "Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
     pathParameter.setLayoutData(gridData);
 
-    Button browse = new Button(gFile, SWT.PUSH);
+    Button browse = new Button(cArea, SWT.PUSH);
     browse.setImage(imgOpenFolder);
     imgOpenFolder.setBackground(browse.getBackground());
     browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
@@ -1061,14 +1071,11 @@ public class ConfigView extends AbstractIView {
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.movecompleted"); //$NON-NLS-1$
     BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
-    moveCompleted.setLayoutData(gridData);
 
     Composite gMoveCompleted = new Composite(gFile, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalIndent = 10;
-    gridData.horizontalSpan = 4;
+    gridData.horizontalIndent = 15;
+    gridData.horizontalSpan = 2;
     gMoveCompleted.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
@@ -1132,16 +1139,25 @@ public class ConfigView extends AbstractIView {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
 
+    cArea = new Composite(gFile, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 3;
+    cArea.setLayout(layout);
+    cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
-    new StringParameter(gFile, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$
+    new StringParameter(cArea, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$
+
+    label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.ignoreCase");
+    new BooleanParameter(cArea, "priorityExtensionsIgnoreCase");
 
     // Confirm Delete
     label = new Label(gFile, SWT.NULL);
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
     Messages.setLanguageText(label, "ConfigView.section.file.confirm_data_delete");
-    new BooleanParameter(gFile, "Confirm Data Delete", true).setLayoutData(gridData);
+    new BooleanParameter(gFile, "Confirm Data Delete", true);
 
 
     // Sub-Section: File -> Torrent

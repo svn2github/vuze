@@ -121,6 +121,8 @@ public class ConfigurationDefaults {
     // Automatically switch these extensions to high priority (eg ".exe;.txt")
     //def.put("Core_sPriorityExtensions", ""); *
     def.put("priorityExtensions", "");
+    // whether priorityExtensions are case insensitive
+    def.put("priorityExtensionsIgnoreCase", new Long(0));
     //Use or not the ip filtering feature
     def.put("Ip Filter Enabled", new Long(1));
     //Use the filters as 'allow' rules
@@ -138,6 +140,7 @@ public class ConfigurationDefaults {
     def.put("Send Version Info",new Long(1));
     def.put("Show Download Basket",new Long(0));
     def.put("config.style.refreshMT",new Long(0));
+    def.put("Open Details", new Long(0));
     
     /** Headless Server settings **/
     // Server Name

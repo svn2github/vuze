@@ -31,16 +31,6 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 public interface 
 Download 
 {
-	public static final int ST_WAITING			= 1;	// waiting to be told to start preparing
-	public static final int ST_PREPARING		= 2;	// getting files ready (allocating/checking)
-	public static final int ST_READY			= 3;	// ready to be started if required
-	public static final int ST_DOWNLOADING		= 4;	// downloading
-	public static final int ST_SEEDING			= 5;	// seeding
-	public static final int ST_STOPPING			= 6;	// stopping
-	public static final int ST_STOPPED			= 7;	// stopped, don't auto-start!
-	public static final int ST_ERROR			= 8;	// failed
-	public static final int ST_QUEUED			= 9;	// stopped, but ready for auto-starting
-	
   /* A download's lifecycle:
    * torrent gets added
    *    state -> QUEUED
@@ -53,15 +43,26 @@ Download
    *    state -> SEEDING -or- DOWNLOADING
    * if torrent is DOWNLOADING, and completes, state changes to SEEDING
    *
-   * Path 1                                | Path 2
-   * execute "stop" method                 | startstop rules are met, execute "stopandQueue"
-   *    state -> STOPPING                  |     state -> STOPPING
-   *    state -> STOPPED                   |     state -> STOPPED
-   *                                       |     state -> QUEUED
+   * Path 1                   | Path 2
+   * -------------------------+------------------------------------------------
+   * execute "stop" method    | startstop rules are met, execute "stopandQueue"
+   *    state -> STOPPING     |     state -> STOPPING
+   *    state -> STOPPED      |     state -> STOPPED
+   *                          |     state -> QUEUED
    *
    * execute "remove" method -> deletes the download
    * a "stop" method call can be made when the download is in all states except STOPPED
    */
+	
+	public static final int ST_WAITING			= 1;	// waiting to be told to start preparing
+	public static final int ST_PREPARING		= 2;	// getting files ready (allocating/checking)
+	public static final int ST_READY			= 3;	// ready to be started if required
+	public static final int ST_DOWNLOADING		= 4;	// downloading
+	public static final int ST_SEEDING			= 5;	// seeding
+	public static final int ST_STOPPING			= 6;	// stopping
+	public static final int ST_STOPPED			= 7;	// stopped, don't auto-start!
+	public static final int ST_ERROR			= 8;	// failed
+	public static final int ST_QUEUED			= 9;	// stopped, but ready for auto-starting
 	
 	public static final int	PR_HIGH_PRIORITY	= 1;
 	public static final int	PR_LOW_PRIORITY		= 2;

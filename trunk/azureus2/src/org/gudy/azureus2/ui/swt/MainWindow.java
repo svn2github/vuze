@@ -1763,7 +1763,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 			public void
 			run()
 			{
-			    if (COConfigurationManager.getBooleanParameter("Open Details", true)){
+			    if (COConfigurationManager.getBooleanParameter("Open Details")){
 			    
 			      openManagerView(created);
 			    }
