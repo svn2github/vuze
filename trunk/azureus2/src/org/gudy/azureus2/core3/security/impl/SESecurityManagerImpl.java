@@ -182,9 +182,9 @@ SESecurityManagerImpl
 		try{
 			KeyStore key_store = loadKeyStore();
 			
-			Enumeration enum = key_store.aliases();
+			Enumeration enumx = key_store.aliases();
 			
-			if ( !enum.hasMoreElements()){
+			if ( !enumx.hasMoreElements()){
 				
 				LGLogger.logAlertUsingResource( 
 						LGLogger.AT_ERROR,

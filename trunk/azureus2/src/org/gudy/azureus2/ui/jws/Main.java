@@ -148,11 +148,11 @@ Main
 		
 		Properties props = System.getProperties();
 		
-		Enumeration enum = props.keys();
+		Enumeration enumx = props.keys();
 		
-		while( enum.hasMoreElements()){
+		while( enumx.hasMoreElements()){
 		
-			String	key = (String)enum.nextElement();
+			String	key = (String)enumx.nextElement();
 			
 			log.log(LoggerChannel.LT_INFORMATION, "\t" + key + " = '" + props.get(key) + "'");
 		}

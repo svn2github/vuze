@@ -77,17 +77,17 @@ public  class PKIXCertPath
 		{
 		    throw new CertificateException("input stream does not contain a ASN1 SEQUENCE while reading PkiPath encoded data to load CertPath" );
 		}
-		Enumeration enum = ((ASN1Sequence)derObject).getObjects();
+		Enumeration enumx = ((ASN1Sequence)derObject).getObjects();
 		InputStream certInStream;
 		ByteArrayOutputStream outStream;
 		DEROutputStream derOutStream;
 		certificates = new ArrayList();
 		CertificateFactory certFactory= CertificateFactory.getInstance( "X.509", "BC" );
-		while ( enum.hasMoreElements() ) {
+		while ( enumx.hasMoreElements() ) {
 		    outStream = new ByteArrayOutputStream();
 		    derOutStream = new DEROutputStream(outStream);
     
-        	    derOutStream.writeObject(enum.nextElement());
+        	    derOutStream.writeObject(enumx.nextElement());
         	    derOutStream.close();
 
 		    certInStream = new ByteArrayInputStream(outStream.toByteArray());
