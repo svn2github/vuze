@@ -20,6 +20,7 @@ public class IntParameter {
 
   Text inputField;
   int iMinValue = 0;
+  int iMaxValue = -1;
   int iDefaultValue;
   String sParamName;
   boolean allowZero = false;
@@ -33,6 +34,16 @@ public class IntParameter {
     iDefaultValue = defaultValue;
     initialize(composite, name);
   }
+  
+  
+  public IntParameter(Composite composite, final String name, int minValue, int maxValue, boolean allowZero) {
+    iDefaultValue = COConfigurationManager.getIntParameter(name);
+    initialize(composite,name);
+    iMinValue = minValue;
+    iMaxValue = maxValue;
+    this.allowZero = allowZero;
+  }
+  
     
   public void initialize(Composite composite, final String name) {
     sParamName = name;
@@ -63,7 +74,12 @@ public class IntParameter {
             	val = iMinValue;
             }
           }
-		  COConfigurationManager.setParameter(name, val);
+          if (val > iMaxValue) {
+            if (iMaxValue > -1) {
+              val = iMaxValue;
+            }
+          }
+          COConfigurationManager.setParameter(name, val);
         }
         catch (Exception e) {}
       }
@@ -79,23 +95,16 @@ public class IntParameter {
               COConfigurationManager.setParameter(name, iMinValue);
             }
           }
+          if (val > iMaxValue) {
+            if (iMaxValue > -1) {
+            	inputField.setText(String.valueOf(iMaxValue));
+            	COConfigurationManager.setParameter(name, iMaxValue);
+            }
+          }
         }
         catch (Exception e) {}
       }
     });
-  }
-  
-  public void setMinValue(int iNewMin) {
-    iMinValue = iNewMin;
-    if (COConfigurationManager.getIntParameter(sParamName, iDefaultValue) < iMinValue) {
-      COConfigurationManager.setParameter(sParamName, iMinValue);
-      inputField.setText(String.valueOf(iMinValue));
-    }
-  } 
-  
-  
-  public void allowZeroValue(boolean allow) {
-    allowZero = allow;
   }
   
 

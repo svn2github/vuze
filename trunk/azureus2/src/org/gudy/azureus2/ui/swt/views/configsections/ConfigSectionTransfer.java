@@ -1,3 +1,4 @@
+
 /*
  * File    : ConfigPanel*.java
  * Created : 11 mar. 2004
@@ -78,9 +79,8 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     gridData = new GridData();
     gridData.widthHint = 30;
     gridData.horizontalSpan = 2;
-    IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads"); 
+    IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false); 
     paramMaxUploads.setLayoutData(gridData);
-    paramMaxUploads.setMinValue(2);
     
     
     label = new Label(cTransfer, SWT.NULL);
@@ -88,26 +88,11 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     gridData = new GridData();
     gridData.widthHint = 30;
     gridData.horizontalSpan = 1;
-    IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs");
+    IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", 5, -1, true);
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed.kbs");
     paramMaxUploadSpeed.setLayoutData(gridData);
-    paramMaxUploadSpeed.allowZeroValue(true);
-    paramMaxUploadSpeed.setMinValue(5);
 
-    /*
-    label = new Label(cTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed"); //$NON-NLS-1$
-    final String upsLabels[] = new String[ConfigView.upRates.length];
-    final int upsValues[] = new int[ConfigView.upRates.length];
-    upsLabels[0] = MessageText.getString("ConfigView.unlimited"); //$NON-NLS-1$
-    upsValues[0] = 0;
-    for (int i = 1; i < ConfigView.upRates.length; i++) {
-      upsLabels[i] = " " + ConfigView.upRates[i] + " KB/s"; //$NON-NLS-1$ //$NON-NLS-2$
-      upsValues[i] = 1024 * ConfigView.upRates[i];
-    }
-    new IntListParameter(cTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$
-    */
     
     label = new Label(cTransfer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.allowsameip"); //$NON-NLS-1$

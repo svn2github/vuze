@@ -156,9 +156,8 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 15;
-    IntParameter graphicUpdate = new IntParameter(cLook, "Graphics Update");
+    IntParameter graphicUpdate = new IntParameter(cLook, "Graphics Update", 1, -1, false);
     graphicUpdate.setLayoutData(gridData);
-    graphicUpdate.setMinValue(1);
     
     
     label = new Label(cLook, SWT.NULL);
@@ -167,8 +166,6 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     gridData.widthHint = 15;
     IntParameter reorderDelay = new IntParameter(cLook, "ReOrder Delay");
     reorderDelay.setLayoutData(gridData);
-    reorderDelay.setMinValue(0);
-    
     
     if (osName.equals("Linux") && SWT.getPlatform().equals("gtk")) {
      label = new Label(cLook, SWT.NULL);
