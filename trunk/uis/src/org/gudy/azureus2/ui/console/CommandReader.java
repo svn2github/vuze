@@ -186,6 +186,11 @@ public class CommandReader extends Reader {
   			break;
   		}
     }
+	if ((state == ENTER) && (current.toString().trim().length() > 0 || allowEmpty) )
+	{
+		String arg = current.toString().trim();
+		args.addElement(arg);
+	}
   	return args;
   }
 }
