@@ -25,10 +25,7 @@ package org.gudy.azureus2.ui.swt.views;
  * @author parg
  */
 
-import org.eclipse.swt.widgets.TableItem;
-
 public class 
 ViewUtils 
 {
-
 }
