@@ -15,6 +15,8 @@ FEATURE: Plug | Run the web interface standalone (outside of a browser) [Parg]
 FEATURE: Plug | Option to keep hold of UPnP port mappings when closing Azureus [Parg]
 FEATURE: Core | Tracker seed retention limit added to limit tracker memory on torrents with high seed counts [Parg]
 FEATURE: Core | Show Bad ips/banned ips in ipfilter window + allow clear/reset [Parg]
+FEATURE: Core | Option to start torrents in a stopped stats [Parg]
+FEATURE: Core | Torrent removal rules. Initially to handle unauthorised torrents + AZ update torrents [Parg]
 
 CHANGE: Core | More sensible merging of plugin.properties on plugin update [Parg]
 CHANGE: Core | Retuned tracker connect failure retry interval [Nolar]
