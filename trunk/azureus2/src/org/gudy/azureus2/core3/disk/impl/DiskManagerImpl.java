@@ -476,9 +476,9 @@ DiskManagerImpl
 		        int pieceNumber = Integer.parseInt((String)key.getKey());
 		        PEPiece piece;
 		        if (pieceNumber < nbPieces - 1)
-		          piece = PEPieceFactory.create(null, getPieceLength(), pieceNumber);
+		          piece = PEPieceFactory.create(manager, getPieceLength(), pieceNumber);
 		        else
-		          piece = PEPieceFactory.create(null, getLastPieceLength(), pieceNumber);
+		          piece = PEPieceFactory.create(manager, getLastPieceLength(), pieceNumber);
 		        List blocks = (List)partialPieces.get(key.getKey());
 		        Iterator iterBlock = blocks.iterator();
 		        while (iterBlock.hasNext()) {
