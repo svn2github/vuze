@@ -510,9 +510,9 @@ public class MyTorrentsView
         if (hasSelection) {
           bChangeDir = true;
           boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened,
-                  forceStart, forceStartEnabled, recheck, manualUpdate;
+                  forceStart, forceStartEnabled, recheck, manualUpdate, changeSpeed;
           moveUp = moveDown = start = stop = remove = changeUrl = barsOpened =
-                   forceStart = forceStartEnabled = recheck = manualUpdate = true;
+                   forceStart = forceStartEnabled = recheck = manualUpdate = changeSpeed = true;
           
           float totalSpeed = 0;
           for (int i = 0; i < dms.length; i++) {
@@ -520,7 +520,10 @@ public class MyTorrentsView
             
             try {
               totalSpeed = (totalSpeed * i) + dm.getPeerManager().getConnectionPool().getWritePercentOfMax();
-            } catch(Exception ex) {
+            } catch(NullPointerException ex) {
+              changeSpeed  = false;
+              //ex.printStackTrace();
+            } catch (Exception ex) {
               ex.printStackTrace();
             }
             
@@ -561,7 +564,7 @@ public class MyTorrentsView
             bChangeDir &= (state == DownloadManager.STATE_ERROR && !dm.filesExist());
           }
           
-          itemCurrentSpeed.setText((float) ((int) (totalSpeed * 10)) / 10 + " %"); 
+          itemCurrentSpeed.setText((float) ((int) (totalSpeed * 1000)) / 10 + " %"); 
           
           itemBar.setSelection(barsOpened);
 
@@ -1531,7 +1534,7 @@ public class MyTorrentsView
   private void setSelectedTorrentsSpeed(int speed) {      
     Object[] dms = getSelectedDataSources();
     if(dms.length > 0) {
-      float realSpeedPerTorrent  = (float) speed / dms.length;
+      float realSpeedPerTorrent  = (float) speed / (dms.length * 100);
       
       for (int i = 0; i < dms.length; i++) {
         try {
