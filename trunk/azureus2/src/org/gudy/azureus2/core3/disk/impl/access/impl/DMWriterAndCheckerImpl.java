@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.disk.impl.access.impl;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -89,9 +90,7 @@ DMWriterAndCheckerImpl
 	private Object			writeCheckQueueLock;
 	
 	private SHA1Hasher hasher;
-	private Md5Hasher md5;
-	private DirectByteBuffer md5Result;
-			
+	private Md5Hasher md5;			
 
 	protected boolean	bOverallContinue		= true;
 	
@@ -115,8 +114,8 @@ DMWriterAndCheckerImpl
 		
 		nbPieces		= disk_manager.getNumberOfPieces();
 		
-		md5 = new Md5Hasher();
-		hasher = new SHA1Hasher();
+		md5 	= new Md5Hasher();
+		hasher 	= new SHA1Hasher();
 	}
 	
 	public void
@@ -128,9 +127,7 @@ DMWriterAndCheckerImpl
 		checkQueue			= new LinkedList();
 		writeCheckQueueSem	= new Semaphore();
 		writeCheckQueueLock	= new Object();
-    
-    md5Result = DirectByteBufferPool.getBuffer( 16 );
-				
+    				
 		writeThread = new DiskWriteThread();
 		writeThread.start();
 	}
@@ -139,9 +136,7 @@ DMWriterAndCheckerImpl
 	stop()
 	{
 		bOverallContinue	= false;
-    
-    md5Result.returnToPool();
-		
+    		
 		if (writeThread != null){
 			
 			writeThread.stopIt();
@@ -329,18 +324,33 @@ DMWriterAndCheckerImpl
 	}
 		
 		
-		 private byte[] computeMd5Hash(DirectByteBuffer buffer) {
+		private byte[] 
+		computeMd5Hash(
+			DirectByteBuffer buffer) 
+		{ 	
 		    md5.reset();
+		    
 		    int position = buffer.position();
+		    
 		    md5.update(buffer.getBuffer());
+		    
 		    buffer.position(position);
+		    
+		    ByteBuffer md5Result	= ByteBuffer.allocate(16);
+		    
 		    md5Result.position(0);
-		    md5.finalDigest(md5Result.getBuffer());
+		    
+		    md5.finalDigest( md5Result );
+		    
 		    byte[] result = new byte[16];
+		    
 		    md5Result.position(0);
+		    
 		    for(int i = 0 ; i < result.length ; i++) {
+		    	
 		      result[i] = md5Result.get();
-		    }    
+		    }   
+		    
 		    return result;    
 		  }
 		  
