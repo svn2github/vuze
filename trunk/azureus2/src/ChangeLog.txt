@@ -9,6 +9,7 @@ FEATURE: Support for "key" tracker announce protocol [Parg]
 FEATURE: Download Speed column in "My Torrents" turns red if below speed set in Queue config. [TuxPaper]
 
 CHANGE: All config/pref files utilize .bak backup files [Parg]
+CHANGE: Option to limit outstanding disk writes and piece hash checks [Parg]
 
 BUGFIX: Fix of startup issues under Win95/98/Me [TuxPaper]
 BUGFIX: Locale-specific dir creation [Parg]
