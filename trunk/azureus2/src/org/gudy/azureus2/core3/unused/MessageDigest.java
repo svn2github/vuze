@@ -1,4 +1,4 @@
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.unused;
 
 /*
  * @(#)MessageDigest.java	1.7 95/08/15
