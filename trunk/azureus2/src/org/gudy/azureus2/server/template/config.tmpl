@@ -41,6 +41,7 @@
                                 <table style="font-size:x-small">
                                     <tr><td width="1%"></td><td align=right>50000</td><td width="100%">Only Severe Errors</td></tr>
                                     <tr><td width="1%"></td><td align=right>40000</td><td width="100%">Errors</td></tr>
+                                    <tr><td width="1%"></td><td align=right>35000</td><td width="100%">Access Violation (Webinterface Logger only)</td></tr>
                                     <tr><td width="1%"></td><td align=right>30000</td><td width="100%">Warnings</td></tr>
                                     <tr><td width="1%"></td><td align=right>20000</td><td width="100%">Informational</td></tr>
                                     <tr><td width="1%"></td><td align=right>12000</td><td width="100%">HTTP Access (Webinterface Logger only)</td></tr>
@@ -158,6 +159,23 @@
                         </tr>
                     </table></td>
                 </tr>
+                <tr>
+                    <td><table border=1 width="100%">
+                        <tr>
+                            <td><TMPL_VAR Options_Core_bUseResume_D></td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Options_Core_bUseResume  value="0">
+                                <input type=checkbox name=Options_Core_bUseResume <TMPL_IF Options_Core_bUseResume>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><TMPL_VAR Options_Core_iSaveResumeInterval_D></td>
+                            <td width="5%">
+                                <input type=text style="width:100%" name=Options_Core_iSaveResumeInterval value="<TMPL_VAR Options_Core_iSaveResumeInterval>">
+                            </td>
+                        </tr>
+                    </table></td>
+                </tr>
             </table>
             <p>
             <table width="100%" border=1 bgcolor="#CCCCFF" cellpadding=2>
@@ -200,9 +218,21 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Allow access from external IPs (separated by space)</td>
+                            <td>Allow access from external static hosts/IPs (separated by space)</td>
                             <td width="30%">
-                                <input type=text style="width:100%" name=Access_ValidIPs value="<TMPL_VAR access_validips>">
+                                <input type=text style="width:100%" name=Options_Server_sAllowStatic value="<TMPL_VAR Options_Server_sAllowStatic>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Allow access from external dynamic hosts (separated by space)</td>
+                            <td width="30%">
+                                <input type=text style="width:100%" name=Options_Server_sAllowDynamic value="<TMPL_VAR Options_Server_sAllowDynamic>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Refetch IPs of dynamic hosts every (minutes)</td>
+                            <td width="30%">
+                                <input type=text style="width:100%" name=Options_Server_iRecheckDynamic value="<TMPL_VAR Options_Server_iRecheckDynamic>">
                             </td>
                         </tr>
                     </table></td>

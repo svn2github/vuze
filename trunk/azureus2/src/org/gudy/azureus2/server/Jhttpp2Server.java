@@ -14,10 +14,12 @@ import java.net.BindException;
 import java.io.*;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.apache.log4j.BasicConfigurator;
@@ -85,12 +87,18 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   public Logger loggerWeb = Logger.getLogger("azureus2.webinterface");
   public Logger loggerCore = Logger.getLogger("azureus2.core");
   public List logList = new LinkedList();
+  private List allowedIPs;
+  private List staticIPs;
+  private List dynamicHosts;
+  private List dynamicHostResolvers = null;
+  private Date dynamicHostUpdate;
   
   void init(GlobalManager _gm) {
     
     gm = _gm;
     ConfigurationManager cm = ConfigurationManager.getInstance();
     initLoggers();
+    initAccess();
     
     try {
       logfile=new BufferedWriter(new FileWriter(MAIN_LOGFILE,true));
@@ -143,6 +151,51 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     loggerWeb.setLevel(SLevel.toLevel(cm.getIntParameter("Server_iLogLevelWebinterface")));
   }
   
+  public void initAccess() {
+    staticIPs = new LinkedList();
+    String theip = "";
+    StringTokenizer tok = new StringTokenizer(ConfigurationManager.getInstance().getStringParameter("Server_sAllowStatic"), " ");
+    while (tok.hasMoreTokens()) {
+      try {
+        theip = tok.nextToken();
+        staticIPs.add(InetAddress.getByName(theip));
+      } catch (Exception e) {
+        loggerWeb.error("Host "+theip+" not found while updating allowed static hosts.", e);
+      }
+    }
+    tok = new StringTokenizer(ConfigurationManager.getInstance().getStringParameter("Server_sAllowDynamic"), " ");
+    if (tok.hasMoreTokens()) {
+      dynamicHosts = new LinkedList();
+      while (tok.hasMoreTokens()) {
+        dynamicHosts.add(tok.nextToken());
+      }
+    } else
+      dynamicHosts = null;
+    rebuildAccess();
+  }
+  
+  private void rebuildAccess() {
+    allowedIPs = (LinkedList) ((LinkedList)staticIPs).clone();
+    Iterator it;
+    if (dynamicHostResolvers != null) {
+      it = dynamicHostResolvers.iterator();
+      while (it.hasNext()) {
+        HostResolver res = (HostResolver) it.next();
+        if (res.isAlive())
+          res.interrupt();
+      }
+    }
+    
+    if (dynamicHosts != null) {
+      dynamicHostResolvers = new LinkedList();
+      it = dynamicHosts.iterator();
+      while (it.hasNext()) {
+        dynamicHostResolvers.add(new HostResolver(this, allowedIPs, (String) it.next()));
+      }
+    }
+    dynamicHostUpdate = new Date();
+  }
+  
   public Jhttpp2Server(GlobalManager _gm) {
     init(_gm);
   }
@@ -161,7 +214,18 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     try {
       while(true) {
         Socket client = listen.accept();
-        new Jhttpp2HTTPSession(this,client);
+        
+        if ((dynamicHosts != null) && ((new Date()).getTime() > (dynamicHostUpdate.getTime()+(ConfigurationManager.getInstance().getIntParameter("Server_iRecheckDynamic")*60000)))) {
+          rebuildAccess();
+        }
+        
+        if (allowedIPs.contains(client.getInetAddress()))
+          new Jhttpp2HTTPSession(this,client);
+        else
+          try {
+            loggerWeb.log(SLevel.ACCESS_VIOLATION, "Denied access for host "+client.getInetAddress().toString());
+            client.close();
+          } catch (Exception e) {}
       }
     }
     catch (Exception e) {

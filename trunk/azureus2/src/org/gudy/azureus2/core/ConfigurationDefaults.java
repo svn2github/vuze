@@ -86,6 +86,12 @@ public class ConfigurationDefaults {
     // Maximal upload speed (globally, 0=unlimited) ("Max Upload Speed")
     //def.put("Core_iMaxUploadSpeed", new Long(0));
     def.put("Max Upload Speed", new Long(0));
+    // Fast Resume
+    //def.put("Core_bUseResume", new Long(0));
+    def.put("Use Resume", new Long(0));
+    // Save Resume Interval (minutes)
+    //def.put("Core_iSaveResumeInterval, new Long(5));
+    def.put("Save Resume Interval", new Long(5));
     
     /** Headless Server settings **/
     // Server Name
@@ -102,6 +108,12 @@ public class ConfigurationDefaults {
     def.put("Server_iMaxHTTPConnections", new Long(5));
     // Auto-refresh torrents every (seconds, 0 = off);
     def.put("Server_iRefresh", new Long(20));
+    // Allowed static ips (space separated list)
+    def.put("Server_sAllowStatic", "127.0.0.1");
+    // Allowed dynamic hosts (space separated list)
+    def.put("Server_sAllowDynamic", "");
+    // Recheck dynamic hosts every (minutes)
+    def.put("Server_iRecheckDynamic", new Long(30));
     
     // Relevant for the proxy part
     // Fake hostname to access the webinterface when used in proxy mode

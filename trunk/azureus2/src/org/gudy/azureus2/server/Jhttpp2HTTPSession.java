@@ -95,10 +95,13 @@ public class Jhttpp2HTTPSession extends Thread {
         parameterlegacy.put("Core_iMaxClients", "Max Clients");
         parameterlegacy.put("Core_iMaxUploads", "Max Uploads");
         parameterlegacy.put("Core_iMaxUploadSpeed", "Max Upload Speed");
+        parameterlegacy.put("Core_bUseResume", "Use Resume");
+        parameterlegacy.put("Core_iSaveResumeInterval", "Save Resume Interval");
         messagetextmap = new LegacyHashtable();
         messagetextmap.put("allocatenew", "allocatenewfiles");
         messagetextmap.put("lowport", "serverportlow");
         messagetextmap.put("highport", "serverporthigh");
+        messagetextmap.put("useresume", "usefastresume");
       }
       if ((this.status == null) || (locale != this.server.locale)) {
         if (status != null)
@@ -393,6 +396,8 @@ public class Jhttpp2HTTPSession extends Thread {
     handleConfigInt(tmpl, "Core_iMaxClients");
     handleConfigInt(tmpl, "Core_iMaxUploads");
     handleConfigInt(tmpl, "Core_iMaxUploadSpeed");
+    handleConfigBool(tmpl,"Core_bUseResume");
+    handleConfigInt(tmpl, "Core_iSaveResumeInterval");
     handleConfigStr(tmpl, "Server_sName");
     handleConfigStr(tmpl, "Server_sBindIP");
     handleConfigInt(tmpl, "Server_iPort");
@@ -400,6 +405,9 @@ public class Jhttpp2HTTPSession extends Thread {
     handleConfigStr(tmpl, "Server_sTemplate_Directory");
     handleConfigInt(tmpl, "Server_iMaxHTTPConnections");
     handleConfigInt(tmpl, "Server_iRefresh");
+    handleConfigStr(tmpl, "Server_sAllowStatic");
+    handleConfigStr(tmpl, "Server_sAllowDynamic");
+    handleConfigInt(tmpl, "Server_iRecheckDynamic");
     handleConfigStr(tmpl, "Server_sAccessHost");
     handleConfigBool(tmpl,"Server_bProxyEnableCookies");
     handleConfigBool(tmpl,"Server_bProxyBlockURLs");
@@ -531,6 +539,7 @@ public class Jhttpp2HTTPSession extends Thread {
     }
     cm.save();
     server.initLoggers();
+    server.initAccess();
   }
   
   private void ProcessAdd(HashMap URIvars) {
