@@ -790,7 +790,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           minimizeToTray(event);
         }
         else {
-          dispose();
+          event.doit = dispose();
         }
       }
 
