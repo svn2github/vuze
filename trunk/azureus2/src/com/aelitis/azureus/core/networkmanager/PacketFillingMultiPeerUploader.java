@@ -176,8 +176,6 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         return true;
       }
       
-      //Debug.out( "removePeerConnection: NOT FOUND: " + peer_connection.getTransport().getDescription() );
-      
       return false;
     }
     finally {
