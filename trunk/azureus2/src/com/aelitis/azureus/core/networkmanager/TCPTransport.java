@@ -276,7 +276,7 @@ public class TCPTransport {
    * Disable transport read selection.
    */
   public void cancelReadSelects() {
-    if( is_read_select_registered ) {
+    if( is_read_select_registered ) {      
       NetworkManager.getSingleton().getReadController().getReadSelector().pauseSelects( socket_channel );
     }
   }
@@ -462,6 +462,7 @@ public class TCPTransport {
    */
   public void close() {
     if( is_read_select_registered ) {
+      is_read_select_registered = false;
       NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
     }
     
