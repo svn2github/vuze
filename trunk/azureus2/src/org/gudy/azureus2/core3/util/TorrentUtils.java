@@ -104,61 +104,35 @@ TorrentUtils
 	   try{
 	   		torrent.getMonitor().enter();
 	    	
-	   			// do this on non-daemon thread so it can't be interrupted during a
-	   			// normal closedown (possibly leading to corrupt torrent files)
-	   		
-			try{
-				NonDaemonTaskRunner.run(
-					new NonDaemonTask()
-					{
-						public Object
-						run()
-						
-							throws Throwable
-						{
-					    	String str = torrent.getAdditionalStringProperty("torrent filename");
-					    	
-					    	if (str == null){
-					    		
-					    		throw (new TOTorrentException("TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
-					    	}
-					    		    	
-					    	File torrent_file = new File(str);
-					    	
-					    	if (COConfigurationManager.getBooleanParameter("Save Torrent Backup", false) && torrent_file.exists()) {
-					    		
-					    		File torrent_file_bak = new File(str + ".bak");
-					    		
-					    		try{
-					    			
-					    			if (torrent_file_bak.exists()){
-					    				
-					    				torrent_file_bak.delete();
-					    			}
-					    			
-					    			torrent_file.renameTo(torrent_file_bak);
-					    			
-					    		}catch( SecurityException e){
-					    			
-					    			Debug.printStackTrace( e );
-					    		}
-					    	}
-					      
-					    	torrent.serialiseToBEncodedFile(torrent_file);
-					    	
-					    	return( null );
-						}
-					});
-
-			}catch( Throwable e ){
-				
-				if ( e instanceof RuntimeException ){
-					
-					throw((RuntimeException)e);
-				}
-				
-				throw((TOTorrentException)e);
-			}
+	    	String str = torrent.getAdditionalStringProperty("torrent filename");
+	    	
+	    	if (str == null){
+	    		
+	    		throw (new TOTorrentException("TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
+	    	}
+	    		    	
+	    	File torrent_file = new File(str);
+	    	
+	    	if (COConfigurationManager.getBooleanParameter("Save Torrent Backup", false) && torrent_file.exists()) {
+	    		
+	    		File torrent_file_bak = new File(str + ".bak");
+	    		
+	    		try{
+	    			
+	    			if (torrent_file_bak.exists()){
+	    				
+	    				torrent_file_bak.delete();
+	    			}
+	    			
+	    			torrent_file.renameTo(torrent_file_bak);
+	    			
+	    		}catch( SecurityException e){
+	    			
+	    			Debug.printStackTrace( e );
+	    		}
+	    	}
+	      
+	    	torrent.serialiseToBEncodedFile(torrent_file);
 			
 	   	}finally{
 	   		
