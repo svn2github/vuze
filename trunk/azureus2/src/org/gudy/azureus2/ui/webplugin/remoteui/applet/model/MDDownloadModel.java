@@ -135,7 +135,11 @@ MDDownloadModel
 			
 		}else if ( col == 12 ){
 			
-			return(new Integer( download.getStats().getShareRatio()));
+			int	sr = download.getStats().getShareRatio();
+			if ( sr == -1 ){
+				sr = 0x7fffffff;
+			}
+			return(new Integer( sr));
 		}
 		
 		return( null );

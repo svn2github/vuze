@@ -193,7 +193,7 @@ VWDownloadView
 						
 						JLabel	res;
 						
-						if ( value >= 0 ){
+						if ( value < 0x7fffffff ){
 
 							double d = ((double)value)/1000;
 							
