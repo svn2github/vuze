@@ -153,6 +153,17 @@ PEPeerManager
 	public void
 	addPeer(
 		PEPeer	peer );
+  
+  
+  /**
+   * Add a new peer, using the default internal PEPeer implementation
+   * (like for peers given in announce reply), using the given address
+   * and port.
+   * @param ip_address of peer to inject
+   * @param port of peer to inject
+   */
+  public void addPeer( String ip_address, int port );
+  
 	
 	public void
 	removePeer(

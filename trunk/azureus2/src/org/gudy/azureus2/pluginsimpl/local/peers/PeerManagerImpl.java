@@ -131,6 +131,12 @@ PeerManagerImpl
 		manager.addPeer(mapForeignPeer( peer ));
 	}
 	
+  
+  public void addPeer( String ip_address, int port ) {
+    manager.addPeer( ip_address, port );
+  }
+  
+  
 	public void
 	removePeer(
 		Peer		peer )

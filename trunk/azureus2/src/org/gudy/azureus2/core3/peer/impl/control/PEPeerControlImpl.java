@@ -557,6 +557,20 @@ PEPeerControlImpl
 		removeFromPeerTransports( transport, "Peer Removed" );			
 	}
 	
+  
+  
+  public void addPeer( final String ip_address, final int port ) {
+    TRTrackerResponsePeer peer = new TRTrackerResponsePeer() {
+      public byte[] getPeerId() {  return new byte[20];  }     
+      public String getIPAddress() {  return ip_address;  }         
+      public int getPort() {  return port;  }
+    };
+    
+    addPeersFromTracker( new TRTrackerResponsePeer[]{ peer } );
+  }
+  
+  
+  
  	private void 
  	addPeersFromTracker(
  		TRTrackerResponsePeer[]		peers )

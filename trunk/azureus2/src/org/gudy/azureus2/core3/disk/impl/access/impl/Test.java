@@ -1113,6 +1113,9 @@ Test
 			
 		}
 
+    
+    public void addPeer( String ip, int port ) {  /* nothing */   }
+    
 		
 		public void
 		removePeer(
