@@ -89,7 +89,7 @@ PluginInitializer
 		{ "i18nPlugin.i18nPlugin", 
   				"i18nAZ", 			"i18nAZ",				"1.0" },
 		{ "info.baeker.markus.plugins.azureus.RSSImport", 
-  				"rssimport", 		"RSS Importer", 		"1.0" },
+  				"RSSImport", 		"RSS Importer", 		"1.0" },
   };
   
   private static PluginInitializer	singleton;
@@ -367,6 +367,15 @@ PluginInitializer
       		  	new_props.put( "plugin.name", plugin_name );
       		  }
       		  
+     		  if ( new_props.get( "plugin.id") == null && plugin_id[0] != null ){
+      		  	
+      		  	new_props.put( "plugin.id", plugin_id[0]);
+      		  }
+     		  
+     		  if ( new_props.get( "plugin.version") == null && plugin_version[0] != null ){
+      		  	
+      		  	new_props.put( "version", plugin_version[0]);
+      		  }
       		  
 	 	      // System.out.println( "loading plugin '" + plugin_class + "' using cl " + classLoader);
 		      
@@ -699,7 +708,11 @@ PluginInitializer
   				
   				int	sep_pos = name.lastIndexOf("_");
   				
-  				if ( sep_pos == -1 ){
+  				if ( 	sep_pos == -1 || 
+  						sep_pos == name.length()-1 ||
+						!Character.isDigit(name.charAt(sep_pos+1))){
+  					
+  						// not a versioned jar
   					
   					res.add( f );
   					
@@ -727,6 +740,15 @@ PluginInitializer
   				
   				res.add( f );
   			}
+  		}
+  		
+  			// If any of the jars are versioned then the assumption is that all of them are
+  			// For migration purposes (i.e. on the first real introduction of the update versioning
+  			// system) we drop all non-versioned jars from the set
+  		
+  		if ( version_map.size() > 0 ){
+  			
+  			res.clear();
   		}
   		
   		Iterator	it = version_map.keySet().iterator();

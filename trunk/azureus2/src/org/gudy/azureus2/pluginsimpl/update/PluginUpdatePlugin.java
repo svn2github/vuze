@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.update;
  */
 
 import java.util.*;
+import java.util.zip.*;
 import java.net.URL;
 import java.io.*;
 
@@ -307,17 +308,48 @@ PluginUpdatePlugin
 									
 								public boolean
 								completed(
-									ResourceDownloader	downloader,
-									InputStream			data )
+									final ResourceDownloader	downloader,
+									InputStream					data )
 								{	
-									installUpdate( 
-											pi,
-											plugin_unloadable,
-											f_sf_plugin_download, 
-											f_sf_plugin_version, 
-											data );
+										// during the update phase report any messages
+										// to the downloader
 									
-									return( true );
+									LoggerChannelListener	list = 
+										new LoggerChannelListener()
+										{
+										public void
+											messageLogged(
+												int		type,
+												String	content )
+											{
+												downloader.reportActivity( content );
+											}
+											
+											public void
+											messageLogged(
+												String		str,
+												Throwable	error )
+											{
+												downloader.reportActivity( str );
+											}
+										};
+							
+									try{
+										
+										log.addListener(list);
+											
+										installUpdate( 
+												pi,
+												plugin_unloadable,
+												f_sf_plugin_download, 
+												f_sf_plugin_version, 
+												data );
+										
+										return( true );
+									}finally{
+										
+										log.removeListener( list );
+									}
 								}
 								
 								public void
@@ -370,48 +402,222 @@ PluginUpdatePlugin
 	{
 		log.log( LoggerChannel.LT_INFORMATION,
 				 "Installing plugin " + plugin.getPluginID() + ", version " + version );
-		
-			// .jar files get copied straight in with the right version number
-			// .zip files need to be unzipped. There are various possibilities for
-			// target dir depending on the contents of the zip file. Basically we
-			// need to remove any zip paths to ensure it ends up in the right place
-			// There's also the issue of overwriting stuff like "plugin.properties"
-			// and any other config files....
-		
-		if ( download.toLowerCase().endsWith(".jar")){
+
+		String	target_version = version.endsWith("_CVS")?version.substring(0,version.length()-4):version;
+
+		try{				
+
+				// .jar files get copied straight in with the right version number
+				// .zip files need to be unzipped. There are various possibilities for
+				// target dir depending on the contents of the zip file. Basically we
+				// need to remove any zip paths to ensure it ends up in the right place
+				// There's also the issue of overwriting stuff like "plugin.properties"
+				// and any other config files....
 			
-			String	target_version = version.endsWith("_CVS")?version.substring(0,version.length()-4):version;
-			
+			boolean jar = download.toLowerCase().endsWith(".jar");
+				
 			String	target = plugin.getPluginDirectoryName() + File.separator + 
-								plugin.getPluginID() + "_" + target_version + ".jar";
+								plugin.getPluginID() + "_" + target_version + (jar?".jar":".zip");
 			
-			try{				
-				FileUtil.copyFile( data, new FileOutputStream(target));
-			
-				if ( unloadable ){
-					
-					plugin.reload();	// this will reload all if > 1 defined
-				}	
-				
-				String msg =   "Version " + version + " of plugin '" + 
-								plugin.getPluginID() + "' " +
-								"installed successfully";
-
-				log.logAlert( LoggerChannel.LT_INFORMATION, msg );
-				
-			}catch( Throwable e ){
-							
-				String msg =   "Version " + version + " of plugin '" + 
-								plugin.getPluginID() + "' " +
-								"failed to install" + (e.getMessage());
-
-				log.log( msg, e );
-				
-				log.logAlert( LoggerChannel.LT_ERROR, msg );
-			}
-		}
+			FileUtil.copyFile( data, new FileOutputStream(target));
 		
-		// TODO: zip installs!!!!
+			if ( !jar ){
+				
+				ZipInputStream	zis = 
+					new ZipInputStream( 
+							new BufferedInputStream( new FileInputStream( target ) ));
+				
+				
+					// first look for a common dir prefix 
+				
+				String	common_prefix = null;
+				
+				try{
+					while( true ){
+						
+						ZipEntry	entry = zis.getNextEntry();
+							
+						if ( entry == null ){
+							
+							break;
+						}
+						
+						String	name = entry.getName();
+						
+						if ( !name.endsWith("/")){
+							if ( common_prefix == null ){
+								
+								common_prefix = name;
+								
+							}else{
+								int	len = 0;
+								
+								for (int i=0;i<Math.min(common_prefix.length(), name.length());i++){
+									
+									if ( common_prefix.charAt(i) == name.charAt(i)){
+										
+										len++;
+										
+									}else{
+										
+										break;
+									}
+								}
+								
+								common_prefix = common_prefix.substring(0,len);
+							}
+						}
+						
+						long	rem = entry.getSize();
+											
+						byte[]	buffer = new byte[65536];
+						
+						while( rem > 0 ){
+						
+							int	len = zis.read( buffer, 0, buffer.length>rem?(int)rem:buffer.length);
+							
+							if ( len <= 0 ){
+								
+								break;
+							}
+							
+							rem -= len;
+						}
+						
+						if ( rem != 0 ){
+							
+							throw( new Exception( "Invalid ZIP file" ));
+						}
+					}
+				}finally{
+					
+					zis.close();
+				}
+				
+
+				if ( common_prefix != null ){
+					
+					int	pos = common_prefix.lastIndexOf("/");
+					
+					if ( pos == -1 ){
+						
+						common_prefix = "";
+					}else{
+						
+						common_prefix = common_prefix.substring(0,pos+1);
+					}
+				
+					
+					zis = new ZipInputStream( 
+								new BufferedInputStream( new FileInputStream( target ) ));
+										
+					try{
+						while( true ){
+								
+							ZipEntry	entry = zis.getNextEntry();
+									
+							if ( entry == null ){
+									
+								break;
+							}
+							
+							String	name = entry.getName();
+							
+							OutputStream	entry_os = null;
+							
+							try{
+								if ( 	name.length() >= common_prefix.length() &&
+										!name.endsWith("/")){
+									
+									String	file_name = entry.getName().substring( common_prefix.length());
+									
+									File entry_file = new File( plugin.getPluginDirectoryName() + File.separator + file_name );
+																
+									if ( entry_file.exists()){
+										
+										if ( 	file_name.toLowerCase().endsWith(".properties") ||
+												file_name.toLowerCase().endsWith(".config" )){
+											
+											String	old_file_name = file_name;
+											
+											file_name = file_name + "." + target_version;
+											
+											entry_file = new File( plugin.getPluginDirectoryName() + File.separator + file_name );
+											
+											log.log( LoggerChannel.LT_INFORMATION,
+														"saving new file '" + old_file_name + "'as '" + file_name +"'" );
+										}else{
+											
+											log.log( LoggerChannel.LT_INFORMATION,
+													"overwriting '" + file_name +"'" );
+										}
+									}
+									
+									entry_os = new FileOutputStream( entry_file );
+								}
+								
+								long	rem = entry.getSize();
+								
+								byte[]	buffer = new byte[65536];
+								
+								while( rem > 0 ){
+								
+									int	len = zis.read( buffer, 0, buffer.length>rem?(int)rem:buffer.length);
+									
+									if ( len <= 0 ){
+										
+										break;
+									}
+									
+									rem -= len;
+									
+									if ( entry_os != null ){
+										
+										entry_os.write( buffer, 0, len );
+									}
+								}
+							}finally{
+								
+								if ( entry_os != null ){
+									
+									entry_os.close();
+								}
+							}
+							
+						}
+					}finally{
+							
+						zis.close();
+					}
+		
+				
+					System.out.println( "common_prefix = " + common_prefix );
+					
+				}
+			}
+			
+			
+			if ( unloadable ){
+				
+				plugin.reload();	// this will reload all if > 1 defined
+			}	
+			
+			String msg =   "Version " + version + " of plugin '" + 
+							plugin.getPluginID() + "' " +
+							"installed successfully";
+
+			log.logAlert( LoggerChannel.LT_INFORMATION, msg );			
+
+		}catch( Throwable e ){
+					
+			String msg =   "Version " + version + " of plugin '" + 
+							plugin.getPluginID() + "' " +
+							"failed to install - " + (e.getMessage());
+
+			log.log( msg, e );
+		
+			log.logAlert( LoggerChannel.LT_ERROR, msg );
+		}	
 	}
 	
 	protected void

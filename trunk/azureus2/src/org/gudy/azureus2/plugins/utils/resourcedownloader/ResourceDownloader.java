@@ -77,6 +77,10 @@ ResourceDownloader
 	cancel();
 	
 	public void
+	reportActivity(
+		String				activity );
+
+	public void
 	addListener(
 		ResourceDownloaderListener	l );
 	

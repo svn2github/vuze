@@ -52,6 +52,13 @@ ResourceDownloaderBaseImpl
 		}
 	}
 	
+	public void
+	reportActivity(
+		String	str )
+	{
+		informActivity( str );
+	}
+	
 	protected void
 	informActivity(
 		String	activity )
@@ -61,6 +68,7 @@ ResourceDownloaderBaseImpl
 			((ResourceDownloaderListener)listeners.get(i)).reportActivity(this,activity);
 		}
 	}
+	
 	protected boolean
 	informComplete(
 		InputStream	is )

@@ -21,9 +21,6 @@
  
 package org.gudy.azureus2.core3.config;
 
-//import org.eclipse.swt.graphics.Color;
-//import org.eclipse.swt.graphics.RGB;
-
 import java.util.Map;
 import java.util.Set;
 import java.io.IOException;

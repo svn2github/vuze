@@ -198,13 +198,25 @@ PluginInterfaceImpl
   public String
   getPluginVersion()
   {
-  	return( plugin_version==null?(String)props.get("plugin.version"):plugin_version );
+	String	version = (String)props.get("plugin.version");
+  	
+  	if ( version == null ){
+  		
+  		version = plugin_version;
+  	}
+  	
+  	return( version );
   }
 
   public String
   getPluginID()
   {
-  	String	id = plugin_id==null?(String)props.get("plugin.id"):plugin_id;
+  	String	id = (String)props.get("plugin.id");
+  	
+  	if ( id == null ){
+  		
+  		id = plugin_id;
+  	}
   	
   	return( id==null?"<none>":id );
   }

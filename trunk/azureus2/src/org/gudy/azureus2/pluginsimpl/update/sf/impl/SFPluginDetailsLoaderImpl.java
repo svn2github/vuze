@@ -133,7 +133,7 @@ SFPluginDetailsLoaderImpl
 			
 			if ( res == null ){
 				
-				throw( new SFPluginDetailsException( "Plugin details load fails: data not found" ));
+				throw( new SFPluginDetailsException( "Plugin details load fails for '" + plugin_name + "': data not found" ));
 			}
 			
 			return( res );
