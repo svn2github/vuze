@@ -43,6 +43,8 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.peer.util.*;
+import org.gudy.azureus2.core3.peer.PEPeerServer;
+import org.gudy.azureus2.core3.peer.PEPeerServerListener;
 
 import org.gudy.azureus2.core3.tracker.protocol.*;
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
@@ -57,7 +59,7 @@ import org.gudy.azureus2.core3.tracker.util.impl.*;
  */
 public class 
 TRTrackerClientClassicImpl
-	implements TRTrackerClient, ParameterListener
+	implements TRTrackerClient, PEPeerServerListener, ParameterListener
 {
 	
 		
@@ -68,6 +70,8 @@ TRTrackerClientClassicImpl
 	public static String 	UDP_REALM = "UDP Tracker";
 	
 	private TOTorrent				torrent;
+	private PEPeerServer			peer_server;
+	
 	private TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;
 	
@@ -193,13 +197,14 @@ TRTrackerClientClassicImpl
 	
   public 
   TRTrackerClientClassicImpl(
-  	TOTorrent	_torrent,
-  	int 		_port ) 
+  	TOTorrent		_torrent,
+  	PEPeerServer 	_peer_server ) 
   	
   	throws TRTrackerClientException
   {
   	torrent		= _torrent;
-
+  	peer_server	= _peer_server;
+  	
 		//Get the Tracker url
 		
 	constructTrackerUrlLists( true );
@@ -235,7 +240,9 @@ TRTrackerClientClassicImpl
 		throw( new TRTrackerClientException( "TRTrackerClient: URL encode fails"));	
 	}
 	
-	this.port = "&port=" + _port;
+	peer_server.addListener( this );
+	
+	setPort();
 	   
 	timer_event_action =  
 		new TimerEventPerformer()
@@ -304,6 +311,21 @@ TRTrackerClientClassicImpl
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
   }
 	
+	public void
+	portChanged(
+		int		new_port )
+	{
+		setPort();
+		
+		update( true );
+	}
+	
+  	protected void
+	setPort()
+  	{
+  		port = "&port=" + peer_server.getPort();
+  	}
+  	
 	protected long
 	getAdjustedSecsToWait()
 	{
@@ -1747,8 +1769,10 @@ TRTrackerClientClassicImpl
 	public void
 	destroy()
 	{
-    removeConfigListeners();
+		removeConfigListeners();
        
+		peer_server.removeListener( this );
+		
 		TRTrackerClientFactoryImpl.destroy( this );
 	}
     

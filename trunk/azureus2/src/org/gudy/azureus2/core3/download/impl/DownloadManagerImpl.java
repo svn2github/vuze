@@ -303,7 +303,7 @@ DownloadManagerImpl
         tracker_client.destroy();
       }
 
-      tracker_client = TRTrackerClientFactory.create( torrent, server.getPort());
+      tracker_client = TRTrackerClientFactory.create( torrent, server );
     
       tracker_client.setTrackerResponseCache( tracker_response_cache );
 

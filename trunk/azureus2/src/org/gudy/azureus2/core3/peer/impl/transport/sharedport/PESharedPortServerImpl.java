@@ -26,10 +26,13 @@ package org.gudy.azureus2.core3.peer.impl.transport.sharedport;
  *
  */
 
+import java.util.*;
+
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.peer.PEPeerServerListener;
 import org.gudy.azureus2.core3.peer.impl.*;
 
 import org.gudy.azureus2.core3.peer.impl.transport.base.*;
@@ -42,6 +45,8 @@ PESharedPortServerImpl
 	protected static PESharedPortSelector	selector;
 	
 	protected PEPeerServerAdapter	adapter;
+
+	protected List					listeners	= new ArrayList();
 	
 	public
 	PESharedPortServerImpl()
@@ -64,6 +69,20 @@ PESharedPortServerImpl
 						
 					}else{
 					
+						server_delegate.addListener(
+							new PEPeerServerListener()
+							{
+								public void
+								portChanged(
+									int		port )
+								{
+									for (int i=0;i<listeners.size();i++){
+										
+										((PEPeerServerListener)listeners.get(i)).portChanged( port );
+									}
+								}
+							});
+						
 						server_delegate.setServerAdapter( 
 							new PEPeerServerAdapter()
 							{
@@ -157,5 +176,19 @@ PESharedPortServerImpl
 		byte[]			data	= (byte[])temp[1];
 				
 		return( new PEPeerTransportImpl( adapter.getControl(), channel, data ));
+	}
+	
+	public void
+	addListener(
+		PEPeerServerListener	l )
+	{	
+		listeners.add(l);
+	}
+		
+	public void
+	removeListener(
+		PEPeerServerListener	l )
+	{
+		listeners.remove( l );
 	}
 }

@@ -32,4 +32,12 @@ PEPeerServer
 	
 	public void
 	stopServer();
+	
+	public void
+	addListener(
+		PEPeerServerListener	l );
+	
+	public void
+	removeListener(
+		PEPeerServerListener	l );
 }

@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.core3.peer.impl.transport.base;
 
+import java.util.*;
 import java.net.*;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -28,6 +29,7 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.peer.PEPeerServerListener;
 import org.gudy.azureus2.core3.peer.impl.*;
 
 /**
@@ -236,6 +238,17 @@ PEPeerServerImpl
   	adapter	= null;
   }
   
+	public void
+	addListener(
+		PEPeerServerListener	l )
+	{	
+	}
+		
+	public void
+	removeListener(
+		PEPeerServerListener	l )
+	{
+	}
     
   	protected static class
 	serverHelperDelegate
@@ -247,6 +260,8 @@ PEPeerServerImpl
   		protected boolean					started;
   		protected PEPeerServerAdapter		adapter;
 
+  		protected List						listeners	= new ArrayList();
+  		
   		protected
   		serverHelperDelegate(
   			int		_port )
@@ -279,6 +294,11 @@ PEPeerServerImpl
   			if ( started ){
   				
   				_delegate.startServer();
+  			}
+  			
+  			for (int i=0;i<listeners.size();i++){
+  				
+  				((PEPeerServerListener)listeners.get(i)).portChanged( port );
   			}
   		}
   		
@@ -372,6 +392,20 @@ PEPeerServerImpl
 			
 				return( delegate.createPeerTransport(param));
 			}		
+		}
+		
+		public void
+		addListener(
+			PEPeerServerListener	l )
+		{	
+			listeners.add(l);
+		}
+			
+		public void
+		removeListener(
+			PEPeerServerListener	l )
+		{
+			listeners.remove( l );
 		}
 	}
 }
