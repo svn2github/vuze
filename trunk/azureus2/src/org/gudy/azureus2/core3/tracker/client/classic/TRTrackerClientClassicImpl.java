@@ -53,7 +53,7 @@ public class
 TRTrackerClientClassicImpl
 	implements TRTrackerClient, ParameterListener
 {
-	private static final int REFRESH_ERROR_SECS			= 120;
+
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
 	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
@@ -68,7 +68,8 @@ TRTrackerClientClassicImpl
 	private int					last_update_time_secs;
 	private int					current_time_to_wait_secs;
   
-  private int         failure_added_time = 0;
+	private int  failure_added_time = 0;
+   private long failure_time_last_updated = 0;
 	
 	private boolean			stopped;
 	private boolean			completed;
@@ -153,7 +154,7 @@ TRTrackerClientClassicImpl
 		
 	constructTrackerUrlLists( true );
     
-  addConfigListeners();  
+   addConfigListeners();  
    
 		//Create our unique peerId
 		
@@ -201,7 +202,7 @@ TRTrackerClientClassicImpl
 			perform(
 				TimerEvent	this_event )
 			{
-				int	secs_to_wait = REFRESH_MINIMUM_SECS;
+				int	secs_to_wait = getErrorRetryInterval();
 							
 				try{
 															
@@ -266,16 +267,15 @@ TRTrackerClientClassicImpl
 	{
   		int		secs_to_wait = current_time_to_wait_secs;
 													
-  		if ( rd_override_use_minimum ){
-								
-	  		secs_to_wait = REFRESH_MINIMUM_SECS;
+  		if ( rd_override_use_minimum ||
+          (last_response.getStatus() != TRTrackerResponse.ST_ONLINE)){
+         secs_to_wait = getErrorRetryInterval();
 										
   		}else{
 							
 	  		secs_to_wait = (secs_to_wait*rd_override_percentage)/100;
 									
 	  		if ( secs_to_wait < REFRESH_MINIMUM_SECS ){
-										
 		  		secs_to_wait = REFRESH_MINIMUM_SECS;
 	  		}
   		}
@@ -353,7 +353,7 @@ TRTrackerClientClassicImpl
 	{
 		if ( current_timer_event == null ){
 			
-			return( REFRESH_MINIMUM_SECS );
+			return( getErrorRetryInterval() );
 		}
 				
 		int rem = (int)((current_timer_event.getWhen() - System.currentTimeMillis())/1000);
@@ -427,7 +427,7 @@ TRTrackerClientClassicImpl
 					
 					clear_progress = false;
 					
-					return( REFRESH_MINIMUM_SECS );
+					return( getErrorRetryInterval() );
 				}
 				
 				update_in_progress = true;
@@ -525,13 +525,13 @@ TRTrackerClientClassicImpl
 				
 				tracker_status_str = "";
 				
-				return( REFRESH_MINIMUM_SECS );
+				return( getErrorRetryInterval() );
 			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
 			
-			return( REFRESH_MINIMUM_SECS );
+			return( getErrorRetryInterval() );
 			
 		}finally{
 			
@@ -649,7 +649,7 @@ TRTrackerClientClassicImpl
 		}
 	  } 
 	   
-	  return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, REFRESH_MINIMUM_SECS, last_failure_reason ));
+	  return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval(), last_failure_reason ));
   }
 
  	private byte[] 
@@ -815,7 +815,7 @@ TRTrackerClientClassicImpl
  				
  				int	num_read = 0;
  				
- 					// some trackers don't return content-length
+ 				// some trackers don't return content-length
  				
  				while ( content_length <= 0 || num_read < content_length ){
  					
@@ -1298,70 +1298,40 @@ TRTrackerClientClassicImpl
 				if ( metaData == null ){
 					
 					String	trace_data = new String(data);
+          
+					LGLogger.log("TRTrackerClient::invalid reply: " + trace_data );
 					
-					LGLogger.log("TRTrackerClient::invalid reply:" + trace_data );
-							
-					if ( trace_data.length() > 20 ){
+					if ( trace_data.length() > 50 ){
 						
-						trace_data = trace_data.substring(0,20) + "...";
+						trace_data = trace_data.substring(0,50) + "...";
 					}
 					
-					failure_reason = "invalid reply:" + trace_data;
-	
-					
+					failure_reason = "invalid reply: " + trace_data;
+				
 				}else{
 					
 					long	time_to_wait;
 										
-					
-					try{
-						// * In fact we use 3/4 of what tracker is asking us to wait, in order not to be considered as timed-out by it.
-						
+					try {
+						//use 3/4 of what tracker is asking us to wait, in order not to be considered as timed-out by it
 						time_to_wait = (3 * ((Long) metaData.get("interval")).intValue()) / 4; //$NON-NLS-1$
-                        
-            //reset failure time on successful connect
-            failure_added_time = 0;
-										
-				   	}catch( Exception e ){
+									
+				   }catch( Exception e ){
 				   	
-				   		byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
+				     byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
 						
-				   		if ( failure_reason_bytes == null ){
+				     if ( failure_reason_bytes == null ){
 							
-				   			System.out.println("Problems with Tracker, will retry in 1 minute");
-							
-				   			//increase re-check time after each failure
-				   			if (failure_added_time == 0) {
-				   				failure_added_time = REFRESH_MINIMUM_SECS;
-				   			}
-				   			else {
-				   				failure_added_time = failure_added_time * 2;
-				   			}
-
-				   			if (failure_added_time > 3600) failure_added_time = 3600;
-							
-				   			time_to_wait = failure_added_time;
+				       System.out.println("Problems with Tracker, will retry in 1 minute");
+											   			
+				       return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval() ));
 	
-				   			return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, time_to_wait ));
-	
-				   		}else{
-				   			failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
-                            
-				   			//increase re-check time after each failure
-                if (failure_added_time == 0) {
-                	failure_added_time = REFRESH_ERROR_SECS;
-                }
-                else {
-                	failure_added_time = failure_added_time * 2;
-                }
-
-                if (failure_added_time > 3600) failure_added_time = 3600;
-                
-                time_to_wait = failure_added_time;            
-						
-				   			return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, time_to_wait, failure_reason ));
-				   		}
-				 	}
+				     }else{
+				       failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
+                            				
+				       return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
+				     }
+				   }
 						
 						//build the list of peers
 						
@@ -1436,18 +1406,21 @@ TRTrackerClientClassicImpl
 							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));
 							
 						} 
-					} 
+					}
 					
 					TRTrackerResponsePeer[] peers=new TRTrackerResponsePeer[valid_meta_peers.size()];
 					peers=(TRTrackerResponsePeer[]) valid_meta_peers.toArray(peers);
 					
 					TRTrackerResponseImpl resp = new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers );
+          
+					//reset failure retry interval on successful connect
+					failure_added_time = 0;
 					
 					resp.setExtensions((Map)metaData.get( "extensions" ));
 					
 					return( resp );  
 
-				}			
+				}
 			}catch( Exception e ){
 				
 				e.printStackTrace();
@@ -1456,7 +1429,7 @@ TRTrackerClientClassicImpl
 			}
   		}
 
-		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, REFRESH_MINIMUM_SECS, failure_reason ));
+		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval(), failure_reason ));
   	}
   	
 	protected void
@@ -1513,6 +1486,41 @@ TRTrackerClientClassicImpl
   
   public void parameterChanged(String parameterName) {
     maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+  }
+  
+  
+  /**
+   * Retrieve the retry interval to use on announce errors.
+   */
+  private int getErrorRetryInterval() {
+    long currentTime = System.currentTimeMillis() /1000;
+    
+    //use previously calculated interval if it's not time to update
+    if ((currentTime - failure_time_last_updated) < (failure_added_time)) {
+      return failure_added_time;
+    }
+
+    //update previous change time
+    failure_time_last_updated = currentTime;
+    
+    if (failure_added_time == 0) {
+      failure_added_time = REFRESH_MINIMUM_SECS;
+    }
+    else if (failure_added_time < (REFRESH_MINIMUM_SECS * 2)) {
+      //use quicker retry in the very beginning
+      failure_added_time += REFRESH_MINIMUM_SECS / 4;
+    }
+    else {
+      //increase re-check time after each failure
+      failure_added_time += REFRESH_MINIMUM_SECS;
+    }
+
+    //make sure we're not waiting longer than an hour
+    if (failure_added_time > 3600) {
+      failure_added_time = 3600;
+    }
+
+    return failure_added_time;
   }
   
 }
