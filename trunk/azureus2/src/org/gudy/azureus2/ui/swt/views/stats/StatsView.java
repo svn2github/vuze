@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -159,6 +160,20 @@ public class StatsView extends AbstractIView {
   public void delete() {
     updateThread.stopIt();
     MainWindow.getWindow().setStats(null);    
+    
+    //Don't ask me why, but without this an exception is thrown further
+    // (in folder.dispose() )
+    //TODO : Investigate to see if it's a platform (OSX-Carbon) BUG, and report to SWT team.
+    if(Constants.isOSX) {
+      if(folder != null && !folder.isDisposed()) {
+        TabItem[] items = folder.getItems();
+        for(int i=0 ; i < items.length ; i++) {
+          if (!items[i].isDisposed())
+            items[i].dispose();
+        }
+      }
+    }
+    
     viewActivity.delete();
     viewStats.delete();
     viewCache.delete();
