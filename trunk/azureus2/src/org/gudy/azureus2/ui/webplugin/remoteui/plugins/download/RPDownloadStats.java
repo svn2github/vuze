@@ -49,6 +49,7 @@ RPDownloadStats
 	public long				download_average;
 	public String			eta;
 	public int				share_ratio;
+	public float			availability;
 	
 	public static RPDownloadStats
 	create(
@@ -87,6 +88,7 @@ RPDownloadStats
 		download_average			= delegate.getDownloadAverage();
 		eta							= delegate.getETA();
 		share_ratio					= delegate.getShareRatio();
+		availability				= delegate.getAvailability();
 	}
 	
 	public Object
@@ -226,4 +228,9 @@ RPDownloadStats
 		 return ( 0 );
 	}
 	
+	public float
+	getAvailability()
+	{
+		return( availability );
+	}
 }

@@ -315,4 +315,17 @@ DownloadManagerStatsImpl
 	{
 		return( saved_uploaded );
 	}
+	
+	public float
+	getAvailability()
+	{
+	    PEPeerManager  pm = download_manager.getPeerManager();
+
+	    if ( pm == null ){
+	    	
+	    	return( -1 );
+	    }
+		
+	    return( pm.getMinAvailability());
+	}
 }

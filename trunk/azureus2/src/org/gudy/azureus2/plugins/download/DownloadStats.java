@@ -177,4 +177,12 @@ DownloadStats
 	// in ms
 	public long
 	getTimeStarted();
+	
+	/**
+	 * gives the currently seen availability of the torrent
+	 * @return
+	 */
+	
+	public float
+	getAvailability();
 }

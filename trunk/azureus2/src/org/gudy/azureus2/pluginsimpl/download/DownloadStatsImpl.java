@@ -157,4 +157,9 @@ DownloadStatsImpl
 		return (dm_stats.getTimeStarted());
 	}
 	
+	public float
+	getAvailability()
+	{
+		return( dm_stats.getAvailability());
+	}
 }

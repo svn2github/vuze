@@ -111,6 +111,9 @@ DownloadManagerStats
 		
 	public long
 	getETA();
+	
+	public float
+	getAvailability();
 		
 		// set methods
 
