@@ -6,12 +6,24 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
@@ -32,26 +44,28 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.core3.tracker.host.*;
-import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.host.TRHostException;
+import org.gudy.azureus2.core3.tracker.host.TRHostFactory;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
+import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentRow;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ConfigBasedItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemDescriptor;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
 import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
-import org.gudy.azureus2.ui.swt.exporttorrent.wizard.*;
 
 /**
  * @author Olivier
@@ -72,6 +86,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
   private ItemEnumerator itemEnumerator;
   private TableSorter sorter;
+
+	// table item index, where the drag has started
+  private int drag_drop_line_start;
   
   /**
    * @return Returns the itemEnumerator.
@@ -192,13 +209,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
   	Messages.setLanguageText(itemExport, "MyTorrentsView.menu.export"); //$NON-NLS-1$
     //itemExport.setImage(ImageRepository.getImage("stop"));
     
-	final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
-	//itemHost.setImage(ImageRepository.getImage("stop"));
+		final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
+		//itemHost.setImage(ImageRepository.getImage("stop"));
 	
-	final MenuItem itemPublish = new MenuItem(menu, SWT.PUSH);
-	Messages.setLanguageText(itemPublish, "MyTorrentsView.menu.publish"); //$NON-NLS-1$
-	//itemPublish.setImage(ImageRepository.getImage("stop"));
+		final MenuItem itemPublish = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemPublish, "MyTorrentsView.menu.publish"); //$NON-NLS-1$
+		//itemPublish.setImage(ImageRepository.getImage("stop"));
     
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -275,8 +292,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
         itemOpen.setEnabled(false);
         itemExport.setEnabled(false);
-		itemHost.setEnabled(false);
-		itemPublish.setEnabled(false);
+				itemHost.setEnabled(false);
+				itemPublish.setEnabled(false);
 
         itemMove.setEnabled(false);
         itemPriority.setEnabled(false);
@@ -296,8 +313,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
           itemOpen.setEnabled(true);
           itemExport.setEnabled(true);
-		  itemHost.setEnabled(true);
-		  itemPublish.setEnabled(true);
+          itemHost.setEnabled(true);
+          itemPublish.setEnabled(true);
 
           itemMove.setEnabled(true);
           itemPriority.setEnabled(true);
@@ -573,79 +590,49 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 	   }
 	 });
 
-	itemHost.addListener(SWT.Selection, new Listener() {
-	   public void handleEvent(Event event) {
-
-		 TableItem[] tis = table.getSelection();
-
-		 for (int i = 0; i < tis.length; i++) {
-
-		   TableItem ti = tis[i];
-		 
-			 DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-		 	
-			 TOTorrent	torrent = dm.getTorrent();
-			 
-			 if ( torrent != null ){
-			 
-							 	try{
-			 	
-					TRHostFactory.create().hostTorrent( torrent );
-					
-			 	}catch( TRHostException e ){
-			 		
-					MessageBox mb = new MessageBox(panel.getShell(),SWT.ICON_ERROR | SWT.OK );
-		
-					mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
-		
-					mb.setMessage(	MessageText.getString("MyTorrentsView.menu.host.error.message")+"\n" +
-									e.toString());
-			
-					mb.open();
-			 	}
-		 	 }
-		 }
-		 
-		 MainWindow.getWindow().showMyTracker();
-	   }
-	 });
+	  itemHost.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+          TOTorrent torrent = dm.getTorrent();
+          if (torrent != null) {
+            try {
+              TRHostFactory.create().hostTorrent(torrent);
+            } catch (TRHostException e) {
+              MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
+              mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
+              mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message") + "\n" + e.toString());
+              mb.open();
+            }
+          }
+        }
+        MainWindow.getWindow().showMyTracker();
+      }
+    });
 	 
-	itemPublish.addListener(SWT.Selection, new Listener() {
-	   public void handleEvent(Event event) {
-
-		 TableItem[] tis = table.getSelection();
-
-		 for (int i = 0; i < tis.length; i++) {
-
-		   TableItem ti = tis[i];
-		 
-			 DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
-		 	
-			 TOTorrent	torrent = dm.getTorrent();
-			 
-			 if ( torrent != null ){
-			 
-				try{
-			 	
-					TRHostFactory.create().publishTorrent( torrent );
-					
-				}catch( TRHostException e ){
-			 		
-					MessageBox mb = new MessageBox(panel.getShell(),SWT.ICON_ERROR | SWT.OK );
-		
-					mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
-		
-					mb.setMessage(	MessageText.getString("MyTorrentsView.menu.host.error.message")+"\n" +
-									e.toString());
-			
-					mb.open();
-				}
-			 }
-		 }
-		 
-		 MainWindow.getWindow().showMyTracker();
-	   }
-	 });
+	  itemPublish.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+          TOTorrent torrent = dm.getTorrent();
+          if (torrent != null) {
+            try {
+              TRHostFactory.create().publishTorrent(torrent);
+            } catch (TRHostException e) {
+              MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
+              mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));
+              mb.setMessage(MessageText.getString("MyTorrentsView.menu.host.error.message") + "\n" + e.toString());
+              mb.open();
+            }
+          }
+        }
+        MainWindow.getWindow().showMyTracker();
+      }
+    });
 	 
     itemBar.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
@@ -691,7 +678,6 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
           if (dm != null && dm.isMoveableUp()) {
             dm.moveUp();
-
           }
         }
         if (sorter.getLastField().equals("#"))
@@ -751,8 +737,80 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     dt.setTransfer(transfers);*/
 
     globalManager.addListener(this);
+    createDragDrop();
   }
 
+  private void createDragDrop() {
+    Transfer[] types = new Transfer[] { TextTransfer.getInstance()};
+
+    DragSource dragSource = new DragSource(table, DND.DROP_MOVE);
+    dragSource.setTransfer(types);
+    dragSource.addDragListener(new DragSourceAdapter() {
+      public void dragStart(DragSourceEvent event) {
+        if (table.getSelectionCount() != 0 && table.getSelectionCount() != table.getItemCount()) {
+          event.doit = true;
+          drag_drop_line_start = table.getSelectionIndex();
+         } else {
+          event.doit = false;
+        }
+      }
+    });
+
+    DropTarget dropTarget = new DropTarget(table, DND.DROP_MOVE | DND.DROP_COPY);
+    dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance(), TextTransfer.getInstance()});
+    dropTarget.addDropListener(new DropTargetAdapter() {
+      public void dragOver(DropTargetEvent event) {
+        if(TextTransfer.getInstance().isSupportedType(event.currentDataType)) {
+          event.feedback = DND.FEEDBACK_EXPAND | DND.FEEDBACK_SCROLL | DND.FEEDBACK_SELECT | DND.FEEDBACK_INSERT_BEFORE | DND.FEEDBACK_INSERT_AFTER;
+          event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
+        }
+      }
+      public void drop(DropTargetEvent event) {
+        // Torrent file from shell dropped
+        if(event.data instanceof String[]) {
+          MainWindow.getWindow().openDroppedTorrents(event);
+          return;
+        }
+        event.detail = DND.DROP_NONE;
+        if(event.item == null)
+          return;
+        int drag_drop_line_end = table.indexOf((TableItem)event.item);
+        if(drag_drop_line_end == drag_drop_line_start)
+          return;
+          
+        TableItem[] tis = table.getSelection();
+        List list = Arrays.asList(tis);
+        final boolean moveDown = drag_drop_line_end > drag_drop_line_start;
+        DownloadManager dm = (DownloadManager) tableItemToObject.get(tis[moveDown ? tis.length-1 : 0]);
+        int lastIndex = dm.getIndex();
+        if (moveDown) {
+          Collections.reverse(list);
+          lastIndex += drag_drop_line_end - drag_drop_line_start + 1;
+        } else {
+          lastIndex -= drag_drop_line_start - drag_drop_line_end + 1;
+        }
+        for (Iterator iter = list.iterator(); iter.hasNext();) {
+          TableItem ti = (TableItem) iter.next();
+          dm = (DownloadManager) tableItemToObject.get(ti);
+          if (dm != null) {
+            if (!moveDown) {
+              for (int j = drag_drop_line_start - drag_drop_line_end; j > 0; j--) {
+                if (dm.isMoveableUp() && dm.getIndex() > lastIndex+1)
+                  dm.moveUp();
+              }
+            } else {
+              for (int j = drag_drop_line_end - drag_drop_line_start; j > 0; j--) {
+                if (dm.isMoveableDown() && dm.getIndex() < lastIndex-1)
+                  dm.moveDown();
+              }
+            }
+            lastIndex = dm.getIndex();
+          }
+        }
+        sorter.orderField("#", true);
+      }
+    });
+  }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()

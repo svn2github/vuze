@@ -79,6 +79,16 @@ public class TableSorter implements ParameterListener {
     }
   }
 
+  public void orderField(String field, boolean isInt) {
+    loopFactor = 0;
+    lastField = field;
+    ascending = true;
+    if(isInt)
+      orderInt(field);
+    else
+      orderString(field);
+  }
+
   public void addIntColumnListener(TableColumn column, String field) {
     column.addListener(SWT.Selection, new IntColumnListener(field));
   }
