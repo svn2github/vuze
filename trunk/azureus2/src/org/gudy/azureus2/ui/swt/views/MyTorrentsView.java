@@ -581,8 +581,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
                 globalManager.removeDownloadManager(dm);                
                 File f = new File(path);
                 FileUtil.recursiveDelete(f);
-              }
-              catch (Exception ex) {
+              
+              }catch( GlobalManagerDownloadRemovalVetoException f ){
+              	
+              	MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", f );
+              	
+              }catch (Exception ex) {
+              	
                 ex.printStackTrace();
               }
             }
@@ -615,8 +620,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
                 FileUtil.recursiveDelete(f);
                 f = new File(dm.getTorrentFileName());
                 f.delete();
-              }
-              catch (Exception ex) {
+             
+              }catch( GlobalManagerDownloadRemovalVetoException f ){
+              	
+              	MainWindow.showErrorMessageBox( "globalmanager.download.remove.veto", f );
+              	
+              }catch (Exception ex) {
+              	
                 ex.printStackTrace();
               }
             }

@@ -1305,24 +1305,50 @@ public class ConfigView extends AbstractIView {
 		GridData gridData;
 		GridLayout layout;
 		Label label;
-		TabItem itemStats = new TabItem(tfConfig, SWT.NULL);
-		Messages.setLanguageText(itemStats, "ConfigView.section.tracker"); //$NON-NLS-1$
+		TabItem itemTracker = new TabItem(tfConfig, SWT.NULL);
+		Messages.setLanguageText(itemTracker, "ConfigView.section.tracker"); //$NON-NLS-1$
 
-		Group gTracker = new Group(tfConfig, SWT.NULL);
+		TabFolder tfTracker = new TabFolder(tfConfig, SWT.TOP | SWT.FLAT);
+		
+		itemTracker.setControl( tfTracker );
+		
+		TabItem mainTab = new TabItem(tfTracker, SWT.NULL);
+		Messages.setLanguageText(mainTab, "ConfigView.section.tracker.main");
+		
+		// main tab
+		Group gMainTab = new Group(tfTracker, SWT.NULL);
+		
+		mainTab.setControl( gMainTab );
+		
 	    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-		gTracker.setLayoutData(gridData);
+		gMainTab.setLayoutData(gridData);
 		layout = new GridLayout();
 		layout.numColumns = 6;	
-		gTracker.setLayout(layout);
+		gMainTab.setLayout(layout);
 
+		TabItem webTab = new TabItem(tfTracker, SWT.NULL);
+		Messages.setLanguageText(webTab, "ConfigView.section.tracker.web");
+		
+		// web tab
+		
+		Group gWebTab = new Group(tfTracker, SWT.NULL);
+		
+		webTab.setControl( gWebTab );
+		
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gWebTab.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 6;	
+		gWebTab.setLayout(layout);
+		
 		// row
 		
-		label = new Label(gTracker, SWT.NULL);
+		label = new Label(gMainTab, SWT.NULL);
 		Messages.setLanguageText(label, "ConfigView.section.tracker.pollinterval"); 
 		gridData = new GridData();
 		label.setLayoutData( gridData );
    
-		Group gPollStuff = new Group(gTracker, SWT.NULL);
+		Group gPollStuff = new Group(gMainTab, SWT.NULL);
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		gridData.horizontalSpan = 5;
 		gPollStuff.setLayoutData(gridData);
@@ -1378,21 +1404,21 @@ public class ConfigView extends AbstractIView {
 		
 	   // row
 		
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.ip"); 
 	  
-      final StringParameter tracker_ip = new StringParameter(gTracker, "Tracker IP", "" );
+      final StringParameter tracker_ip = new StringParameter(gMainTab, "Tracker IP", "" );
 	  
 	  gridData = new GridData();
 	  gridData.widthHint = 100;
 	  gridData.horizontalSpan = 2;
 	  tracker_ip.setLayoutData( gridData );
 	  
-	  Button check_button = new Button(gTracker, SWT.PUSH);
+	  Button check_button = new Button(gMainTab, SWT.PUSH);
 	  
 	  Messages.setLanguageText(check_button, "ConfigView.section.tracker.checkip"); //$NON-NLS-1$
 
-      final Display display = gTracker.getDisplay();
+      final Display display = gMainTab.getDisplay();
     
 	  check_button.addListener(SWT.Selection, new Listener() {
 
@@ -1416,55 +1442,55 @@ public class ConfigView extends AbstractIView {
 		 }
 	   });
 	   
-	   label = new Label(gTracker, SWT.NULL);
+	   label = new Label(gMainTab, SWT.NULL);
 	   gridData = new GridData();
 	   gridData.horizontalSpan = 2;
 	   label.setLayoutData( gridData );
 		
 	   // row
 		
-	   label = new Label(gTracker, SWT.NULL);
+	   label = new Label(gMainTab, SWT.NULL);
 	   Messages.setLanguageText(label, "ConfigView.section.tracker.port"); 
     
-	   IntParameter tracker_port = new IntParameter(gTracker, "Tracker Port", TRHost.DEFAULT_PORT );
+	   IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port", TRHost.DEFAULT_PORT );
 
 	   gridData = new GridData();
 	   gridData.widthHint = 50;
 	   tracker_port.setLayoutData( gridData );
 	  
-	   final BooleanParameter nonsslEnable = new BooleanParameter(gTracker, "Tracker Port Enable", true);
+	   final BooleanParameter nonsslEnable = new BooleanParameter(gMainTab, "Tracker Port Enable", true);
 
 	   Control[] non_ssl_controls = new Control[1];
 	   non_ssl_controls[0] = tracker_port.getControl();
 	  					
 	   nonsslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_ssl_controls ));
 	  
-	   label = new Label(gTracker, SWT.NULL);
+	   label = new Label(gMainTab, SWT.NULL);
 	   Messages.setLanguageText(label, "ConfigView.section.tracker.forceport"); 
 	   
-	   BooleanParameter forcePortDetails = new BooleanParameter(gTracker,  "Tracker Port Force External", false);
-	   label = new Label(gTracker, SWT.NULL);
+	   BooleanParameter forcePortDetails = new BooleanParameter(gMainTab,  "Tracker Port Force External", false);
+	   label = new Label(gMainTab, SWT.NULL);
 
 		
 	   // row
 		
-	   label = new Label(gTracker, SWT.NULL);
+	   label = new Label(gMainTab, SWT.NULL);
 	   Messages.setLanguageText(label, "ConfigView.section.tracker.sslport"); 
     
-	   IntParameter tracker_port_ssl = new IntParameter(gTracker, "Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+	   IntParameter tracker_port_ssl = new IntParameter(gMainTab, "Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
 
 	   gridData = new GridData();
 	   gridData.widthHint = 50;
 	   tracker_port_ssl.setLayoutData( gridData );
 
-	   final BooleanParameter sslEnable = new BooleanParameter(gTracker, "Tracker Port SSL Enable", false);
+	   final BooleanParameter sslEnable = new BooleanParameter(gMainTab, "Tracker Port SSL Enable", false);
 	   
 	   Control[] ssl_controls = new Control[1];
 	   ssl_controls[0] = tracker_port_ssl.getControl();
 	  					
 	   sslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( ssl_controls ));
 	    
-	   label = new Label(gTracker, SWT.NULL);
+	   label = new Label(gMainTab, SWT.NULL);
 	   Messages.setLanguageText(label, "ConfigView.section.tracker.sslport.info");
      final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
      label.setCursor(MainWindow.handCursor);
@@ -1477,7 +1503,7 @@ public class ConfigView extends AbstractIView {
          Program.launch(linkFAQ);
        }
      });
-	 label = new Label(gTracker, SWT.NULL);
+	 label = new Label(gMainTab, SWT.NULL);
 	 gridData = new GridData();
 	 gridData.horizontalSpan = 2;
 	 label.setLayoutData( gridData );
@@ -1503,19 +1529,19 @@ public class ConfigView extends AbstractIView {
 	 
     // row
 			
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable"); 
     
-      BooleanParameter enablePublish = new BooleanParameter(gTracker, "Tracker Publish Enable", true);
+      BooleanParameter enablePublish = new BooleanParameter(gMainTab, "Tracker Publish Enable", true);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  enablePublish.setLayoutData( gridData );
 
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.publishenabledetails"); 
 	  
-	  BooleanParameter enablePublishDetails = new BooleanParameter(gTracker, "Tracker Publish Enable Details", true);
-	  label = new Label(gTracker, SWT.NULL);
+	  BooleanParameter enablePublishDetails = new BooleanParameter(gMainTab, "Tracker Publish Enable Details", true);
+	  label = new Label(gMainTab, SWT.NULL);
 
 	  Control[] publish_controls = new Control[1];
 	  publish_controls[0] = enablePublishDetails.getControl();
@@ -1524,69 +1550,70 @@ public class ConfigView extends AbstractIView {
 	  
       // row
 			
-      label = new Label(gTracker, SWT.NULL);
+      label = new Label(gMainTab, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable"); 
     
-      BooleanParameter publicPublish = new BooleanParameter(gTracker, "Tracker Public Enable", false);
+      BooleanParameter publicPublish = new BooleanParameter(gMainTab, "Tracker Public Enable", false);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  publicPublish.setLayoutData( gridData );
 
-      label = new Label(gTracker, SWT.NULL);
-	  label = new Label(gTracker, SWT.NULL);
+      label = new Label(gMainTab, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  label.setLayoutData( gridData );
 
 	  // row
 
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenableweb"); 
     
-	  final BooleanParameter passwordEnableWeb = new BooleanParameter(gTracker, "Tracker Password Enable Web", false);
+	  final BooleanParameter passwordEnableWeb = new BooleanParameter(gMainTab, "Tracker Password Enable Web", false);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  passwordEnableWeb.setLayoutData( gridData );
 
-	  label = new Label(gTracker, SWT.NULL);
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  label.setLayoutData( gridData );
 	  
 	  // row
 
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenabletorrent"); 
     
-	  final BooleanParameter passwordEnableTorrent = new BooleanParameter(gTracker, "Tracker Password Enable Torrent", false);
+	  final BooleanParameter passwordEnableTorrent = new BooleanParameter(gMainTab, "Tracker Password Enable Torrent", false);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  passwordEnableTorrent.setLayoutData( gridData );
 
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenabletorrent.info"); 
 
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  label.setLayoutData( gridData );
 
 		// row
 	  //My new Item
-	  label = new Label(gTracker, SWT.NULL);
+	  
+	  label = new Label(gWebTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.torrentsperpage"); 
 	  
-	  final IntParameter tracker_skip = new IntParameter(gTracker, "Tracker Skip", 0 );
+	  final IntParameter tracker_skip = new IntParameter(gWebTab, "Tracker Skip", 0 );
 	  
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 1;
 	  gridData.widthHint = 100;
 	  tracker_skip.setLayoutData( gridData );
 
-	  label = new Label(gTracker, SWT.NULL);
-	  label = new Label(gTracker, SWT.NULL);
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gWebTab, SWT.NULL);
+	  label = new Label(gWebTab, SWT.NULL);
+	  label = new Label(gWebTab, SWT.NULL);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  label.setLayoutData( gridData );
@@ -1595,35 +1622,35 @@ public class ConfigView extends AbstractIView {
 	  //My new Item end
 	  
 	  
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.username"); 
 	  
-	  final StringParameter tracker_username = new StringParameter(gTracker, "Tracker Username", "" );
+	  final StringParameter tracker_username = new StringParameter(gMainTab, "Tracker Username", "" );
 	  
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  gridData.widthHint = 100;
 	  tracker_username.setLayoutData( gridData );
 
-	  label = new Label(gTracker, SWT.NULL);
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  gridData = new GridData();
 	  gridData.horizontalSpan = 2;
 	  label.setLayoutData( gridData );
 
 	 	 // row
 		
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 	  Messages.setLanguageText(label, "ConfigView.section.tracker.password"); 
 	  
-	  final PasswordParameter tracker_password = new PasswordParameter(gTracker, "Tracker Password" );
+	  final PasswordParameter tracker_password = new PasswordParameter(gMainTab, "Tracker Password" );
 	  
 	  gridData = new GridData();
 	  gridData.widthHint = 100;
 	  gridData.horizontalSpan = 2;
 	  tracker_password.setLayoutData( gridData );
 
-	  label = new Label(gTracker, SWT.NULL);
+	  label = new Label(gMainTab, SWT.NULL);
 
 
  	  Control[] x_controls = new Control[2];
@@ -1647,8 +1674,6 @@ public class ConfigView extends AbstractIView {
   					
 	  passwordEnableWeb.setAdditionalActionPerformer(enabler); 
 	  passwordEnableTorrent.setAdditionalActionPerformer(enabler); 
-
-	  itemStats.setControl(gTracker);
 	}
 	
 	

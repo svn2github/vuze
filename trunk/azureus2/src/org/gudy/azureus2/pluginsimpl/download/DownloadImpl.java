@@ -122,7 +122,7 @@ DownloadImpl
 	public void
 	remove()
 	
-		throws DownloadException
+		throws DownloadException, DownloadRemovalVetoException
 	{
 		if ( download_manager.getState() == DownloadManager.STATE_STOPPED){
 			
@@ -133,7 +133,7 @@ DownloadImpl
 				
 			}catch( GlobalManagerDownloadRemovalVetoException e ){
 				
-				throw( new DownloadException( "Download::remove: operation denied", e ));
+				throw( new DownloadRemovalVetoException( "Download::remove: operation vetoed" ));
 			}
 			
 		}else{

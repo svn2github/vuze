@@ -114,7 +114,11 @@ ShareResourceImpl
 				String	res = "";
 				
 				File[]	dir_file_list = file.listFiles();
-								
+						
+				if ( dir_file_list == null ){
+					
+					System.out.println( "dir file list null for " + file.toString());
+				}
 				List file_list = new ArrayList(Arrays.asList(dir_file_list));
 				
 				Collections.sort(file_list);
@@ -136,7 +140,9 @@ ShareResourceImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new ShareException( "ShareResource::getFingerPring: fails", e ));
+			e.printStackTrace();
+			
+			throw( new ShareException( "ShareResource::getFingerPrint: fails", e ));
 		}
 	}
 	protected String

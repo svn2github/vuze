@@ -58,7 +58,7 @@ Download
 	public void
 	remove()
 	
-		throws DownloadException;
+		throws DownloadException, DownloadRemovalVetoException;
 	
 	public DownloadStats
 	getStats();
