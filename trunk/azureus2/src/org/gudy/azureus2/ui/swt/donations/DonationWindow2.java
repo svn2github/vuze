@@ -58,9 +58,7 @@ public class DonationWindow2 {
   Image workingImage;
   Image background;
   Font mainFont;
-  Animator animator;
-  
-  private String letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+  Animator animator;    
   
   public DonationWindow2(Display display) {
       this.display = display;   
@@ -79,6 +77,9 @@ public class DonationWindow2 {
     shell = new Shell(SWT.BORDER | SWT.APPLICATION_MODAL);
     FormLayout layout = new FormLayout();
     shell.setLayout(layout);
+    
+    shell.setImage(ImageRepository.getImage("azureus"));
+    shell.setText(MessageText.getString("DonationWindow.title"));
     
     background = ImageRepository.getImage("donation");
     workingImage = new Image(display,background,SWT.IMAGE_COPY);
@@ -130,21 +131,15 @@ public class DonationWindow2 {
         display.asyncExec(new Runnable() {
           public void run() {
            Image tempImage = new Image(display,background,SWT.IMAGE_COPY);
-           /*transformImage(tempImage);
-           if(background != null && !background.isDisposed())
-           	 background.dispose();
-           background = tempImage;
-           tempImage = new Image(display,background,SWT.IMAGE_COPY);*/
-           
-           
+          
            nbchars++;
            if(nbchars <= mainText.length()) {
             String textToSet = mainText.substring(0,nbchars);
             GC tempGC = new GC(tempImage);
-            tempGC.setForeground(MainWindow.white);
+            //tempGC.setForeground(MainWindow.white);
             if(mainFont == null || mainFont.isDisposed()) return;
             tempGC.setFont(mainFont);
-            tempGC.drawText(textToSet,50,30,true);
+            tempGC.drawText(textToSet,10,60,true);
             tempGC.dispose();
             Image oldImage = workingImage;
             workingImage = tempImage;
@@ -183,43 +178,4 @@ public class DonationWindow2 {
     gcShell.dispose();
   }
   
-  /*private void transformImage(Image image) {
-   ImageData data = image.getImageData();
-   int height,width;
-   int depth = data.depth;
-   width = data.width;
-   height = data.height;
-   for(int x = 0 ; x < width ; x++) {
-    for(int y = 0 ; y < height ; y++) {
-      int c0=0,c1=0,c2=0;
-      if(x > 0) c0 = data.getPixel(x-1,y);
-      c1 = data.getPixel(x,y);
-      if(x < width -1) c2 = data.getPixel(x+1,y);
-      data.setPixel(x,y,max(c0,c1,c2));
-    }
-   }
-  }
-  
-  private int max(int a,int b,int c) {
-    return a > b ? (a > c ? a : c) : (b > c ? b : c);
-  }*/
-  
-  private String scrambleText(String text) {
-   int length = 10;
-   if(text.length() < 10) length = text.length();
-   int start = text.length() - length;
-   StringBuffer scramble = new StringBuffer(text.length());
-   if(start > 0) scramble.append(text.substring(0,start));
-   for(int i = start ; i < length+start ; i++) {
-    char ch = text.charAt(i);
-    if(ch != '\n') {
-    	int random =(int)( Math.random() * letters.length());
-    	scramble.append(letters.charAt(random));
-    } else {
-     scramble.append('\n'); 
-    }
-   }   
-   
-   return scramble.toString();
-  }
 }
