@@ -112,11 +112,10 @@ public class MainMenu {
       MenuItem file_import = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_import, "MainWindow.menu.file.import"); //$NON-NLS-1$
        
+      new MenuItem(fileMenu, SWT.SEPARATOR);
       
       MenuItem file_restart = new MenuItem(fileMenu, SWT.NULL);
       Messages.setLanguageText(file_restart, "MainWindow.menu.file.restart"); //$NON-NLS-1$
-      
-      new MenuItem(fileMenu, SWT.SEPARATOR);
       
       file_restart.addListener(SWT.Selection, new Listener() {
 
