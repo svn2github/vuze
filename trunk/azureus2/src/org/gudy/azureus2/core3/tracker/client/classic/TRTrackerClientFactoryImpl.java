@@ -32,13 +32,15 @@ import org.gudy.azureus2.core3.peer.PEPeerServer;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 TRTrackerClientFactoryImpl 
 {
 	protected static Vector	listeners 	= new Vector();
 	protected static Vector	clients		= new Vector();
-	
+	protected static AEMonitor 		class_mon 	= new AEMonitor( "TRTrackerClientFactory" );
+
 	public static TRTrackerClient
 	create(
 		TOTorrent		torrent,
@@ -48,7 +50,8 @@ TRTrackerClientFactoryImpl
 	{
 		TRTrackerClient	client = new TRTrackerClientClassicImpl( torrent, peer_server );
 		
-		synchronized( TRTrackerClientFactoryImpl.class ){
+		try{
+			class_mon.enter();
 			
 			clients.addElement( client );
 			
@@ -56,40 +59,64 @@ TRTrackerClientFactoryImpl
 			
 				((TRTrackerClientFactoryListener)listeners.elementAt(i)).clientCreated( client );	
 			}
+		}finally{
+			
+			class_mon.exit();
 		}
 		
 		return( client );
 	}
 	
-	public static synchronized void
+	public static void
 	addListener(
 		 TRTrackerClientFactoryListener	l )
 	{
-		listeners.addElement(l);
+		try{
+			class_mon.enter();
 		
-		for (int i=0;i<clients.size();i++){
+			listeners.addElement(l);
 			
-			l.clientCreated((TRTrackerClient)clients.elementAt(i));	
+			for (int i=0;i<clients.size();i++){
+				
+				l.clientCreated((TRTrackerClient)clients.elementAt(i));	
+			}
+		}finally{
+			
+			class_mon.exit();
 		}
-		
 	}
 	
-	public static synchronized void
+	public static void
 	removeListener(
 		 TRTrackerClientFactoryListener	l )
 	{
-		listeners.removeElement(l);
+		try{
+			class_mon.enter();
+		
+			listeners.removeElement(l);
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 
-	public static synchronized void
+	public static void
 	destroy(
 		TRTrackerClient	client )
 	{
-		clients.removeElement( client );
+		try{
+			class_mon.enter();
 		
-		for (int i=0;i<listeners.size();i++){
+			clients.removeElement( client );
 			
-			((TRTrackerClientFactoryListener)listeners.elementAt(i)).clientDestroyed( client );	
+			for (int i=0;i<listeners.size();i++){
+				
+				((TRTrackerClientFactoryListener)listeners.elementAt(i)).clientDestroyed( client );	
+			}
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 }

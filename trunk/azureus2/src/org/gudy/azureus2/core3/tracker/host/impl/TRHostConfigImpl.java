@@ -42,12 +42,14 @@ TRHostConfigImpl
 	
 	protected TRHostImpl	host;
 	
-	protected Object		save_lock	= new Object(){};
+	protected AEMonitor 	save_lock_mon 	= new AEMonitor( "TRHostConfig:SL" );
 	
 	protected String		log_dir;
 	
 	protected boolean		loading	= false;
-	
+
+	protected AEMonitor this_mon 	= new AEMonitor( "TRHostConfig" );
+
 	protected
 	TRHostConfigImpl(
 		TRHostImpl	_host )
@@ -57,11 +59,13 @@ TRHostConfigImpl
 		log_dir = SystemProperties.getUserPath();
 	}
 	
-	protected synchronized void
+	protected void
 	loadConfig(
 		TRHostTorrentFinder		finder ) 
 	{
 	   	try{
+	   		this_mon.enter();
+	   		
 	   		loading	= true;
 	   		
 	   		Map	map = FileUtil.readResilientConfigFile("tracker.config");
@@ -146,7 +150,9 @@ TRHostConfigImpl
 			  
 	   	}finally{
 		 	
-		 	loading	= false;
+	   		loading	= false;
+	   		
+	   		this_mon.exit();
 	   	}
 	}
 
@@ -258,7 +264,8 @@ TRHostConfigImpl
 		   	
 		   	map.put("torrents", list);
 		   	
-		   	synchronized( save_lock ){
+		   try{
+		   		save_lock_mon.enter();
 		   		
 		   		FileUtil.writeResilientConfigFile( "tracker.config", map );
 			   	
@@ -305,6 +312,9 @@ TRHostConfigImpl
 				   		e.printStackTrace();
 				   	}
 			   	}
+		   	}finally{
+		   		
+		   		save_lock_mon.exit();
 		   	}
 		}catch( Throwable e ){
 			

@@ -35,7 +35,8 @@ TRTrackerScraperImpl
 	implements TRTrackerScraper 
 {
 	protected static TRTrackerScraperImpl	singleton;
-	
+	protected static AEMonitor 				class_mon 	= new AEMonitor( "TRTrackerScraper" );
+
 	protected TrackerChecker						tracker_checker;
 	protected TRTrackerScraperClientResolver		client_resolver;
 	
@@ -59,15 +60,22 @@ TRTrackerScraperImpl
 				}
 			});	
 	
-	public static synchronized TRTrackerScraperImpl
+	public static TRTrackerScraperImpl
 	create()
 	{
-		if ( singleton == null ){
+		try{
+			class_mon.enter();
 		
-			singleton =  new TRTrackerScraperImpl();
+			if ( singleton == null ){
+			
+				singleton =  new TRTrackerScraperImpl();
+			}
+			
+			return( singleton );
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( singleton );
 	}
 	
 	protected

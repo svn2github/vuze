@@ -48,8 +48,9 @@ TRHostImpl
 	
 	protected static final int STATS_PERIOD_SECS	= 60;
 		
-	protected static TRHostImpl		singleton;
-	
+	protected static TRHostImpl	singleton;
+	protected static AEMonitor 	class_mon 	= new AEMonitor( "TRHost:class" );
+
 	protected TRHostConfigImpl		config;
 		
 	protected Hashtable				server_map 	= new Hashtable();
@@ -60,21 +61,32 @@ TRHostImpl
 	protected Map	host_torrent_map		= new HashMap();
 	protected Map	tracker_client_map		= new HashMap();
 	
-	protected List	listeners			= new ArrayList();
+	protected List		listeners			= new ArrayList();
+	protected AEMonitor listeners_mon 		= new AEMonitor( "TRHost:L" );
 	
 	protected List	auth_listeners		= new ArrayList();
 	
 	protected boolean	server_factory_listener_added;
 	
-	public static synchronized TRHost
+	protected AEMonitor this_mon 	= new AEMonitor( "TRHost" );
+
+	public static TRHost
 	create()
 	{
-		if ( singleton == null ){
-			
-			singleton = new TRHostImpl();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton = new TRHostImpl();
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	protected
@@ -87,7 +99,8 @@ TRHostImpl
 			// announce/scrape and result in the creation of an "external" torrent when
 			// it should really be using an existing torrent 
 			 
-		synchronized(this){
+		try{
+			this_mon.enter();
 					
 			config = new TRHostConfigImpl(this);	
 			
@@ -183,6 +196,10 @@ TRHostImpl
 			t.setPriority( Thread.MAX_PRIORITY );
 			
 			t.start();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -199,7 +216,7 @@ TRHostImpl
 		return( TRTrackerServer.DEFAULT_NAME );
 	}
 	
-	public synchronized TRHostTorrent
+	public TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent )
 		
@@ -208,7 +225,7 @@ TRHostImpl
 		return( hostTorrent( torrent, true ));
 	}
 
-	public synchronized TRHostTorrent
+	public TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent,
 		boolean			persistent )
@@ -218,7 +235,7 @@ TRHostImpl
 		return( addTorrent( torrent, TRHostTorrent.TS_STARTED, persistent ));
 	}
 	
-	public synchronized TRHostTorrent
+	public TRHostTorrent
 	publishTorrent(
 		TOTorrent		torrent )
 		
@@ -227,7 +244,7 @@ TRHostImpl
 		return( addTorrent( torrent, TRHostTorrent.TS_PUBLISHED, true ));
 	}
 	
-	protected synchronized TRHostTorrent
+	protected TRHostTorrent
 	addTorrent(
 		TOTorrent		torrent,
 		int				state,
@@ -235,153 +252,161 @@ TRHostImpl
 		
 		throws TRHostException
 	{
-		TRHostTorrent	ht = lookupHostTorrent( torrent );
+		try{
+			this_mon.enter();
 		
-		if ( ht != null ){
+			TRHostTorrent	ht = lookupHostTorrent( torrent );
+			
+			if ( ht != null ){
+						
+				// check that this isn't the explicit publish/host of a torrent already there
+				// as an external torrent. If so then just replace the torrent
+				
+				try{
+				
+					ht = lookupHostTorrentViaHash( torrent.getHash());
+				
+					if ( ht instanceof TRHostTorrentHostImpl ){
+						
+						TRHostTorrentHostImpl hti = (TRHostTorrentHostImpl)ht;
+						
+						if ( hti.getTorrent() != torrent ){
+							
+							hti.setTorrent( torrent );	
+						
+							if ( persistent && !hti.isPersistent()){
+								
+								hti.setPersistent( true );
+							}
+							
+							if ( state != TRHostTorrent.TS_PUBLISHED ){
 					
-			// check that this isn't the explicit publish/host of a torrent already there
-			// as an external torrent. If so then just replace the torrent
+								startHosting( hti );
+					
+								if ( state == TRHostTorrent.TS_STARTED ){
+								
+									hti.start();
+								}
+							}	
+							
+							for (int i=0;i<listeners.size();i++){
+								
+								((TRHostListener)listeners.get(i)).torrentChanged( ht );
+							}
+						}
+					}
+				}catch( TOTorrentException e ){
+					
+					e.printStackTrace();	
+				}
+				
+				return( ht );
+			}
+			
+			int		port;
+			boolean	ssl;
+			int		protocol	= TRTrackerServerFactory.PR_TCP;
+			
+			if ( state == TRHostTorrent.TS_PUBLISHED ){
+			
+				port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+				
+				ssl	= false;		
+			}else{
+			
+				URL	announce_url = torrent.getAnnounceURL();
+				
+				String	protocol_str = announce_url.getProtocol();
+				
+				ssl = protocol_str.equalsIgnoreCase("https");
+				
+				if ( protocol_str.equalsIgnoreCase("udp")){
+					
+					protocol = TRTrackerServerFactory.PR_UDP;
+				}
+				
+				boolean force_external = COConfigurationManager.getBooleanParameter("Tracker Port Force External", false );
+				
+				port = announce_url.getPort();
+				
+				if ( force_external ){
+					
+					String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+		
+					if ( 	tracker_ip.length() > 0 &&
+							!announce_url.getHost().equalsIgnoreCase( tracker_ip )){
+							
+						if ( ssl ){
+			
+							port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+							
+						}else{
+							
+							port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+							
+						}
+					}
+				}
+				
+				if ( port == -1 ){
+					
+					port = ssl?URL_DEFAULT_PORT_SSL:URL_DEFAULT_PORT;
+				}
+			}
+			
+			TRTrackerServer server = startServer( protocol, port, ssl );
+			
+			TRHostTorrent host_torrent;
+		
+			if ( state == TRHostTorrent.TS_PUBLISHED ){
+	
+				host_torrent = new TRHostTorrentPublishImpl( this, torrent );
+	
+			}else{
+			
+				host_torrent = new TRHostTorrentHostImpl( this, server, torrent, port );
+			}
+			
+			host_torrent.setPersistent( persistent );
+			
+			host_torrents.add( host_torrent );
 			
 			try{
-			
-				ht = lookupHostTorrentViaHash( torrent.getHash());
-			
-				if ( ht instanceof TRHostTorrentHostImpl ){
-					
-					TRHostTorrentHostImpl hti = (TRHostTorrentHostImpl)ht;
-					
-					if ( hti.getTorrent() != torrent ){
-						
-						hti.setTorrent( torrent );	
-					
-						if ( persistent && !hti.isPersistent()){
-							
-							hti.setPersistent( true );
-						}
-						
-						if ( state != TRHostTorrent.TS_PUBLISHED ){
+				host_torrent_hash_map.put( new HashWrapper( torrent.getHash()), host_torrent );
 				
-							startHosting( hti );
-				
-							if ( state == TRHostTorrent.TS_STARTED ){
-							
-								hti.start();
-							}
-						}	
-						
-						for (int i=0;i<listeners.size();i++){
-							
-							((TRHostListener)listeners.get(i)).torrentChanged( ht );
-						}
-					}
-				}
 			}catch( TOTorrentException e ){
 				
-				e.printStackTrace();	
+				e.printStackTrace();
 			}
+					
+			host_torrent_map.put( torrent, host_torrent );
 			
-			return( ht );
-		}
-		
-		int		port;
-		boolean	ssl;
-		int		protocol	= TRTrackerServerFactory.PR_TCP;
-		
-		if ( state == TRHostTorrent.TS_PUBLISHED ){
-		
-			port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+			if ( state != TRHostTorrent.TS_PUBLISHED ){
 			
-			ssl	= false;		
-		}else{
-		
-			URL	announce_url = torrent.getAnnounceURL();
+				startHosting((TRHostTorrentHostImpl)host_torrent );
 			
-			String	protocol_str = announce_url.getProtocol();
-			
-			ssl = protocol_str.equalsIgnoreCase("https");
-			
-			if ( protocol_str.equalsIgnoreCase("udp")){
-				
-				protocol = TRTrackerServerFactory.PR_UDP;
-			}
-			
-			boolean force_external = COConfigurationManager.getBooleanParameter("Tracker Port Force External", false );
-			
-			port = announce_url.getPort();
-			
-			if ( force_external ){
-				
-				String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-	
-				if ( 	tracker_ip.length() > 0 &&
-						!announce_url.getHost().equalsIgnoreCase( tracker_ip )){
+				if ( state == TRHostTorrent.TS_STARTED ){
 						
-					if ( ssl ){
-		
-						port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
-						
-					}else{
-						
-						port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-						
-					}
+					host_torrent.start();
 				}
 			}
-			
-			if ( port == -1 ){
-				
-				port = ssl?URL_DEFAULT_PORT_SSL:URL_DEFAULT_PORT;
-			}
-		}
-		
-		TRTrackerServer server = startServer( protocol, port, ssl );
-		
-		TRHostTorrent host_torrent;
 	
-		if ( state == TRHostTorrent.TS_PUBLISHED ){
-
-			host_torrent = new TRHostTorrentPublishImpl( this, torrent );
-
-		}else{
-		
-			host_torrent = new TRHostTorrentHostImpl( this, server, torrent, port );
-		}
-		
-		host_torrent.setPersistent( persistent );
-		
-		host_torrents.add( host_torrent );
-		
-		try{
-			host_torrent_hash_map.put( new HashWrapper( torrent.getHash()), host_torrent );
-			
-		}catch( TOTorrentException e ){
-			
-			e.printStackTrace();
-		}
+			for (int i=0;i<listeners.size();i++){
 				
-		host_torrent_map.put( torrent, host_torrent );
-		
-		if ( state != TRHostTorrent.TS_PUBLISHED ){
-		
-			startHosting((TRHostTorrentHostImpl)host_torrent );
-		
-			if ( state == TRHostTorrent.TS_STARTED ){
-					
-				host_torrent.start();
+				((TRHostListener)listeners.get(i)).torrentAdded( host_torrent );
 			}
-		}
-
-		for (int i=0;i<listeners.size();i++){
 			
-			((TRHostListener)listeners.get(i)).torrentAdded( host_torrent );
+			config.saveConfig();
+			
+			return( host_torrent );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		config.saveConfig();
-		
-		return( host_torrent );
 	}
 	
-	protected synchronized TRTrackerServer
+	protected TRTrackerServer
 	startServer(
 		int		protocol,
 		int		port,
@@ -389,41 +414,49 @@ TRHostImpl
 		
 		throws TRHostException
 	{
-		String	key = ""+protocol+ ":" + port;
+		try{
+			this_mon.enter();
 		
-		TRTrackerServer	server = (TRTrackerServer)server_map.get( key );
+			String	key = ""+protocol+ ":" + port;
 			
-		if ( server == null ){
+			TRTrackerServer	server = (TRTrackerServer)server_map.get( key );
 				
-			try{
-				
-				if ( ssl ){
+			if ( server == null ){
 					
-					server = TRTrackerServerFactory.createSSL( protocol, port, true );
-				
-				}else{
-				
-					server = TRTrackerServerFactory.create( protocol, port, true );
-				}
+				try{
 					
-				server_map.put( key, server );
-					
-				if ( auth_listeners.size() > 0 ){
-					
-					server.addAuthenticationListener( this );
-				}
-				
-				server.addListener( this );
+					if ( ssl ){
 						
-			}catch( TRTrackerServerException e ){
+						server = TRTrackerServerFactory.createSSL( protocol, port, true );
 					
-				LGLogger.log(0, 0, LGLogger.ERROR, "Tracker Host: failed to start server: " + e.toString());
-	
-				throw( new TRHostException( e.getMessage()));
-			}
-		}
+					}else{
+					
+						server = TRTrackerServerFactory.create( protocol, port, true );
+					}
+						
+					server_map.put( key, server );
+						
+					if ( auth_listeners.size() > 0 ){
+						
+						server.addAuthenticationListener( this );
+					}
+					
+					server.addListener( this );
+							
+				}catch( TRTrackerServerException e ){
+						
+					LGLogger.log(0, 0, LGLogger.ERROR, "Tracker Host: failed to start server: " + e.toString());
 		
-		return( server );
+					throw( new TRHostException( e.getMessage()));
+				}
+			}
+			
+			return( server );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected TRHostTorrent
@@ -519,40 +552,48 @@ TRHostImpl
 		tracker_client.refreshListeners();
 	}
 
-	protected synchronized void
+	protected void
 	remove(
 		TRHostTorrent	host_torrent )
 	{
-		if ( !host_torrents.contains( host_torrent )){
-			
-			return;
-		}
-		
-		host_torrents.remove( host_torrent );
-		
-		TOTorrent	torrent = host_torrent.getTorrent();
-		
 		try{
-			host_torrent_hash_map.remove(new HashWrapper(torrent.getHash()));
+			this_mon.enter();
+		
+			if ( !host_torrents.contains( host_torrent )){
+				
+				return;
+			}
 			
-		}catch( TOTorrentException e ){
+			host_torrents.remove( host_torrent );
 			
-			e.printStackTrace();
+			TOTorrent	torrent = host_torrent.getTorrent();
+			
+			try{
+				host_torrent_hash_map.remove(new HashWrapper(torrent.getHash()));
+				
+			}catch( TOTorrentException e ){
+				
+				e.printStackTrace();
+			}
+			
+			host_torrent_map.remove( torrent );
+			
+			if ( host_torrent instanceof TRHostTorrentHostImpl ){
+				
+				stopHosting((TRHostTorrentHostImpl)host_torrent );
+			}
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
+			}
+			
+			config.saveConfig();	
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		host_torrent_map.remove( torrent );
-		
-		if ( host_torrent instanceof TRHostTorrentHostImpl ){
-			
-			stopHosting((TRHostTorrentHostImpl)host_torrent );
-		}
-		
-		for (int i=0;i<listeners.size();i++){
-			
-			((TRHostListener)listeners.get(i)).torrentRemoved( host_torrent );
-		}
-		
-		config.saveConfig();		
 	}
 	
 	protected void
@@ -607,7 +648,8 @@ TRHostImpl
 						
 					}
 					
-					synchronized( TRHostImpl.this ){
+					try{
+						this_mon.enter();
 						
 							// got to look up the host torrent again as may have been
 							// removed and re-added
@@ -622,6 +664,9 @@ TRHostImpl
 					
 							tracker_client.clearIPOverride();
 						}
+					}finally{
+						
+						this_mon.exit();
 					}
 				}
 			};
@@ -631,55 +676,95 @@ TRHostImpl
 		thread.start();
 	}
 	
-	protected synchronized TRTrackerClient
+	protected TRTrackerClient
 	getTrackerClient(
 		TRHostTorrent host_torrent )
 	{
-		return((TRTrackerClient)tracker_client_map.get( host_torrent.getTorrent()));
+		try{
+			this_mon.enter();
+		
+			return((TRTrackerClient)tracker_client_map.get( host_torrent.getTorrent()));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	hostTorrentStateChange(
 		TRHostTorrent host_torrent )
 	{
-		TOTorrent	torrent = host_torrent.getTorrent();
+		try{
+			this_mon.enter();
 		
-		TRTrackerClient tc = (TRTrackerClient)tracker_client_map.get( torrent );
-		
-		if ( tc != null ){
+			TOTorrent	torrent = host_torrent.getTorrent();
 			
-			tc.refreshListeners();
+			TRTrackerClient tc = (TRTrackerClient)tracker_client_map.get( torrent );
+			
+			if ( tc != null ){
+				
+				tc.refreshListeners();
+			}
+			
+			config.saveConfig();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		config.saveConfig();			
 	}
 	
-	public synchronized TRHostTorrent[]
+	public TRHostTorrent[]
 	getTorrents()
 	{
-		TRHostTorrent[]	res = new TRHostTorrent[host_torrents.size()];
+		try{
+			this_mon.enter();
 		
-		host_torrents.toArray( res );
+			TRHostTorrent[]	res = new TRHostTorrent[host_torrents.size()];
 		
-		return( res );
+			host_torrents.toArray( res );
+		
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	clientCreated(
 		TRTrackerClient		client )
 	{
-		tracker_client_map.put( client.getTorrent(), client );
+		try{
+			this_mon.enter();
 		
-		startHosting( client );
+			tracker_client_map.put( client.getTorrent(), client );
+		
+			startHosting( client );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	clientDestroyed(
 		TRTrackerClient		client )
 	{
-		tracker_client_map.remove( client.getTorrent());
+		try{
+			this_mon.enter();
 		
-		stopHosting( client );
+			tracker_client_map.remove( client.getTorrent());
+		
+			stopHosting( client );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected TRHostTorrent
@@ -694,59 +779,75 @@ TRHostImpl
 		// the the server is allowing public hosting and this is a new hash
 		// create an 'external' entry for it
 		
-	public synchronized boolean
+	public boolean
 	permitted(
 		byte[]		hash,
 		boolean		explicit  )
 	{
-		TRHostTorrent ht = lookupHostTorrentViaHash( hash );
+		try{
+			this_mon.enter();
 		
-		if ( ht != null ){
-		
-			if ( !explicit ){
-				
-				if ( ht.getStatus() != TRHostTorrent.TS_STARTED ){
+			TRHostTorrent ht = lookupHostTorrentViaHash( hash );
+			
+			if ( ht != null ){
+			
+				if ( !explicit ){
 					
-					return( false );
+					if ( ht.getStatus() != TRHostTorrent.TS_STARTED ){
+						
+						return( false );
+					}
 				}
+				
+				return( true );
 			}
 			
+			addExternalTorrent( hash, TRHostTorrent.TS_STARTED );
+			
 			return( true );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		addExternalTorrent( hash, TRHostTorrent.TS_STARTED );
-		
-		return( true );
 	}
 	
-	protected synchronized void
+	protected void
 	addExternalTorrent(
 		byte[]		hash,
 		int			state )
 	{
-		if ( lookupHostTorrentViaHash( hash ) != null ){
-			
-			return;
-		}
-		
-		String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "127.0.0.1");
-						
-			// external torrents don't care whether ssl or not so just assume non-ssl for simplicity 
-			
-		int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-
 		try{
-			TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + tracker_ip + ":" + port + "/announce"));
+			this_mon.enter();
 		
-			addTorrent( external_torrent, state, true );	
+			if ( lookupHostTorrentViaHash( hash ) != null ){
+				
+				return;
+			}
 			
-		}catch( Throwable e ){
+			String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "127.0.0.1");
+							
+				// external torrents don't care whether ssl or not so just assume non-ssl for simplicity 
+				
+			int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+	
+			try{
+				TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + tracker_ip + ":" + port + "/announce"));
 			
-			e.printStackTrace();
+				addTorrent( external_torrent, state, true );	
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized boolean
+	public boolean
 	denied(
 		byte[]		hash,
 		boolean		permitted )
@@ -769,7 +870,8 @@ TRHostImpl
 
 			TRHostListener	listener;
 			
-			synchronized( listeners ){
+			try{
+				listeners_mon.enter();
 				
 				if ( i >= listeners.size()){
 					
@@ -777,6 +879,10 @@ TRHostImpl
 				}
 				
 				listener	= (TRHostListener)listeners.get(i);
+				
+			}finally{
+				
+				listeners_mon.exit();
 			}
 			
 			if ( listener.handleExternalRequest( client_address, url, header, is, os )){
@@ -795,33 +901,55 @@ TRHostImpl
 		return( lookupHostTorrent( torrent ));
 	}
 	
-	public synchronized void
+	public void
 	addListener(
 		TRHostListener	l )
 	{
-		listeners.add( l );
+		try{
+			listeners_mon.enter();
 		
-		for (int i=0;i<host_torrents.size();i++){
+			listeners.add( l );
 			
-			l.torrentAdded((TRHostTorrent)host_torrents.get(i));
+			for (int i=0;i<host_torrents.size();i++){
+				
+				l.torrentAdded((TRHostTorrent)host_torrents.get(i));
+			}
+		}finally{
+			
+			listeners_mon.exit();
 		}
 	}
 		
-	public synchronized void
+	public void
 	removeListener(
 		TRHostListener	l )
 	{
-		listeners.remove( l );
+		try{
+			listeners_mon.enter();
+		
+			listeners.remove( l );
+			
+		}finally{
+			
+			listeners_mon.exit();
+		}
 	}
 	
-	protected synchronized void
+	protected void
 	torrentListenerRegistered()
 	{
-		if ( !server_factory_listener_added ){
+		try{
+			this_mon.enter();
+		
+			if ( !server_factory_listener_added ){
+				
+				server_factory_listener_added	= true;
+				
+				TRTrackerServerFactory.addListener( this );
+			}
+		}finally{
 			
-			server_factory_listener_added	= true;
-			
-			TRTrackerServerFactory.addListener( this );
+			this_mon.exit();
 		}
 	}
 	
@@ -920,37 +1048,51 @@ TRHostImpl
 		return( null );
 	}
 	
-	public synchronized void
+	public void
 	addAuthenticationListener(
 		TRHostAuthenticationListener	l )
 	{	
-		auth_listeners.add(l);
+		try{
+			this_mon.enter();
 		
-		if ( auth_listeners.size() == 1 ){
+			auth_listeners.add(l);
 			
-			Iterator it = server_map.values().iterator();
-			
-			while( it.hasNext()){
+			if ( auth_listeners.size() == 1 ){
 				
-				((TRTrackerServer)it.next()).addAuthenticationListener( this );
-			}			
+				Iterator it = server_map.values().iterator();
+				
+				while( it.hasNext()){
+					
+					((TRTrackerServer)it.next()).addAuthenticationListener( this );
+				}			
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	removeAuthenticationListener(
 		TRHostAuthenticationListener	l )
 	{	
-		auth_listeners.remove(l);
+		try{
+			this_mon.enter();
 		
-		if ( auth_listeners.size() == 0 ){
+			auth_listeners.remove(l);
 			
-			Iterator it = server_map.values().iterator();
-			
-			while( it.hasNext()){
+			if ( auth_listeners.size() == 0 ){
 				
-				((TRTrackerServer)it.next()).removeAuthenticationListener( this );
+				Iterator it = server_map.values().iterator();
+				
+				while( it.hasNext()){
+					
+					((TRTrackerServer)it.next()).removeAuthenticationListener( this );
+				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 }

@@ -117,7 +117,10 @@ TRTrackerClientClassicImpl
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 	
 	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
+	private AEMonitor tracker_peer_cache_mon 	= new AEMonitor( "TRTrackerClientClassic:PC" );
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerClientClassic" );
+
 	public final static int componentID = 2;
 	public final static int evtLifeCycle = 0;
 	public final static int evtFullTrace = 1;
@@ -270,7 +273,8 @@ TRTrackerClientClassicImpl
 					}else{
 						
 					
-						synchronized( TRTrackerClientClassicImpl.this ){
+						try{
+							this_mon.enter();
 						
 								// it is possible that the current event was being processed
 								// when another thread cancelled it and created a further timer
@@ -304,6 +308,9 @@ TRTrackerClientClassicImpl
 								current_timer_event = 
 									tracker_timer.addEvent( target_time, this );
 							}
+						}finally{
+							
+							this_mon.exit();
 						}
 					}
 				}
@@ -384,7 +391,8 @@ TRTrackerClientClassicImpl
 
 		if ( ( SystemTime.isErrorLast10sec() || now - rd_last_override > OVERRIDE_PERIOD ) && rd_override_percentage != percentage ){
 		
-			synchronized(this){
+			try{
+				this_mon.enter();
 
 				rd_last_override	= now;
 				
@@ -410,21 +418,32 @@ TRTrackerClientClassicImpl
 								timer_event_action );					
 					}			
 				}
+			}finally{
+				
+				this_mon.exit();
 			}
 		}
 	}
 	
-	public synchronized int
+	public int
 	getTimeUntilNextUpdate()
 	{
-		if ( current_timer_event == null ){
+		try{
+			this_mon.enter();
+		
+			if ( current_timer_event == null ){
+				
+				return( getErrorRetryInterval() );
+			}
+					
+			int rem = (int)((current_timer_event.getWhen() - SystemTime.getCurrentTime())/1000);
+					
+			return( rem );
 			
-			return( getErrorRetryInterval() );
+		}finally{
+			
+			this_mon.exit();
 		}
-				
-		int rem = (int)((current_timer_event.getWhen() - SystemTime.getCurrentTime())/1000);
-				
-		return( rem );
 	}
 
 	public int
@@ -467,18 +486,25 @@ TRTrackerClientClassicImpl
 		requestUpdate();
 	}
 	
-	protected synchronized void
+	protected void
 	requestUpdate()
 	{
-		if ( current_timer_event != null ){
+		try{
+			this_mon.enter();
 			
-			current_timer_event.cancel();
+			if ( current_timer_event != null ){
+				
+				current_timer_event.cancel();
+			}
+			
+			current_timer_event = 
+				tracker_timer.addEvent( 
+					SystemTime.getCurrentTime(),
+					timer_event_action );
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		current_timer_event = 
-			tracker_timer.addEvent( 
-				SystemTime.getCurrentTime(),
-				timer_event_action );
 	}
 	
 	protected long
@@ -487,7 +513,8 @@ TRTrackerClientClassicImpl
 		boolean	clear_progress = true;
 		
 		try{
-			synchronized( this ){
+			try{
+				this_mon.enter();
 
 				if ( update_in_progress ){
 					
@@ -497,6 +524,10 @@ TRTrackerClientClassicImpl
 				}
 				
 				update_in_progress = true;
+				
+			}finally{
+				
+				this_mon.exit();
 			}
 	
 			last_update_time_secs	= SystemTime.getCurrentTime()/1000;
@@ -619,12 +650,16 @@ TRTrackerClientClassicImpl
 			
 		}finally{
 			
-			synchronized( this ){
+			try{
+				this_mon.enter();
 			
 				if ( clear_progress ){
 					
 					update_in_progress = false;
 				}
+			}finally{
+				
+				this_mon.exit();
 			}
 		}
 	}
@@ -1976,7 +2011,8 @@ TRTrackerClientClassicImpl
 		
 		res.put( "tracker_peers", peers );
 		
-		synchronized( tracker_peer_cache ){
+		try{
+			tracker_peer_cache_mon.enter();
 			
 			Iterator it = tracker_peer_cache.values().iterator();
 			
@@ -1992,8 +2028,11 @@ TRTrackerClientClassicImpl
 				peers.add( entry );
 			}
 		
-      LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+			LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 			             "TRTrackerClient: exported " + tracker_peer_cache.size() + " cached peers" );
+		}finally{
+			
+			tracker_peer_cache_mon.exit();
 		}
 		
 		return( res );
@@ -2016,7 +2055,8 @@ TRTrackerClientClassicImpl
 				return( 0 );
 			}
 			
-			synchronized( tracker_peer_cache ){
+			try{
+				tracker_peer_cache_mon.enter();
 				
 				for (int i=0;i<peers.size();i++){
 					
@@ -2034,7 +2074,11 @@ TRTrackerClientClassicImpl
 				}
 				
 				return( tracker_peer_cache.size());
-			}	
+				
+			}finally{
+				
+				tracker_peer_cache_mon.exit();
+			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
@@ -2051,7 +2095,8 @@ TRTrackerClientClassicImpl
 		
 		// System.out.println( "max peers= " + max );
 		
-		synchronized( tracker_peer_cache ){
+		try{
+			tracker_peer_cache_mon.enter();
 			
 			for (int i=0;i<peers.length;i++){
 				
@@ -2075,6 +2120,9 @@ TRTrackerClientClassicImpl
 					it.remove();
 				}
 			}
+		}finally{
+			
+			tracker_peer_cache_mon.exit();
 		}
 	}
 	
@@ -2126,7 +2174,8 @@ TRTrackerClientClassicImpl
 		
 		int	num_want = calculateNumWant() * 2;
 	
-		synchronized( tracker_peer_cache ){
+		try{
+			tracker_peer_cache_mon.enter();
 
 			if ( tracker_peer_cache.size() <= num_want ){
 				
@@ -2165,6 +2214,10 @@ TRTrackerClientClassicImpl
 	                   "TRTrackerClient: returned " + res.length + " cached peers" );
 		    
 			return( res );
+			
+		}finally{
+			
+			tracker_peer_cache_mon.exit();
 		}
 	} 
 }
