@@ -95,12 +95,13 @@ public class GlobalManagerImpl
 
         loopFactor++;
         determineSaveResumeDataInterval();
-        // Changed to 20 mins :D
-        // Should be user configurable.
-        if (loopFactor >= 1200) {
+
+        //update tracker scrape every 10min
+        if (loopFactor >= 600) {
           loopFactor = 0;
           trackerScraper.update();
         }
+        
 
         synchronized (managers) {
           int nbStarted = 0;
@@ -112,6 +113,15 @@ public class GlobalManagerImpl
 
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager manager = (DownloadManager) managers.get(i);
+            
+            //temp debug check to see if DiskManager's write thread is dying
+            if (loopFactor % 300 == 0) {
+              if (manager.getDiskManager().getState() != DiskManager.INITIALIZING) {
+                if (!manager.getDiskManager().isWriteThreadRunning()) {
+                  Debug.out("ERROR: ["+ i +"]DiskManager.writeThread is not running");
+                }
+              }
+            }
             
             //make sure we update 'downloads.config' on state changes
             if (manager.getPrevState() != manager.getState()) {
