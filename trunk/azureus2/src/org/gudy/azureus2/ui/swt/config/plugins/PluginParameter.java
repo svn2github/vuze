@@ -31,6 +31,7 @@ import org.gudy.azureus2.pluginsimpl.ui.config.IntParameter;
 import org.gudy.azureus2.pluginsimpl.ui.config.IntsParameter;
 import org.gudy.azureus2.pluginsimpl.ui.config.StringParameter;
 import org.gudy.azureus2.pluginsimpl.ui.config.StringsParameter;
+import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
 
 /**
  * @author Olivier
@@ -62,5 +63,11 @@ public class PluginParameter {
   
   public Control[] getControls() {
     return implementation.getControls();
+  }
+  
+  public void setAdditionalActionPerfomer(IAdditionalActionPerformer performer) {
+    if(implementation instanceof PluginBooleanParameter) {
+      ((PluginBooleanParameter)implementation).setAdditionalActionPerfomer(performer);
+    }
   }
 }

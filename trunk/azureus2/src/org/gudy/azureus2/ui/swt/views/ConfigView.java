@@ -5,6 +5,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +40,6 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.pluginsimpl.ui.config.ParameterRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.config.plugins.PluginBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
@@ -186,10 +187,46 @@ public class ConfigView extends AbstractIView {
 				parameterToPluginParameter.put(parameter,new PluginParameter(pluginGroup,parameter));
 			}
 			//Check for dependencies
-			for(int j = 0; j < parameters.length; j++)
-			 {
+			for(int j = 0; j < parameters.length; j++) {
 			  Parameter parameter = parameters[j];
-			  if(parameter instanceof EnablerParameter) {
+			  if(parameter instanceof org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter) {
+				  List parametersToEnable = 
+				  	((org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter)parameter).getEnabledOnSelectionParameters();			 
+				  List controlsToEnable = new ArrayList();
+					Iterator iter = parametersToEnable.iterator();
+				  while(iter.hasNext()) {
+				    Parameter parameterToEnable = (Parameter) iter.next();
+				    PluginParameter pp = (PluginParameter) parameterToPluginParameter.get(parameterToEnable);
+				    Control[] controls = pp.getControls();
+				    for(int k = 0 ; k < controls.length ; k++) {
+				      controlsToEnable.add(controls[k]);
+				    }
+				  }
+				  
+				  List parametersToDisable = 
+				  ((org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter)parameter).getDisabledOnSelectionParameters();			 
+				  List controlsToDisable = new ArrayList();
+				  iter = parametersToDisable.iterator();
+				  while(iter.hasNext()) {
+				    Parameter parameterToDisable = (Parameter) iter.next();
+				    PluginParameter pp = (PluginParameter) parameterToPluginParameter.get(parameterToDisable);
+				    Control[] controls = pp.getControls();
+				    for(int k = 0 ; k < controls.length ; k++) {
+				      controlsToDisable.add(controls[k]);
+				    }
+				  }
+				  
+				  Control[] ce = new Control[controlsToEnable.size()];
+				  Control[] cd = new Control[controlsToDisable.size()];
+				  
+				  if(ce.length + cd.length > 0) {
+				    IAdditionalActionPerformer ap = new DualChangeSelectionActionPerformer(
+				        (Control[]) controlsToEnable.toArray(ce),
+				        (Control[]) controlsToDisable.toArray(cd));
+				    PluginParameter pp = (PluginParameter) parameterToPluginParameter.get(parameter);
+				    pp.setAdditionalActionPerfomer(ap);
+				  }
+				  
 			  }			  
 			}
 			pluginTab.setControl(pluginGroup);

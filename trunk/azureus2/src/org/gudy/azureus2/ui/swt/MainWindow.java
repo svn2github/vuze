@@ -673,9 +673,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   	}
 	
     if (COConfigurationManager.getBooleanParameter("Open Console", false))
-      console = new Tab(new ConsoleView());
-    if (COConfigurationManager.getBooleanParameter("Open Config", false))
-      config = new Tab(new ConfigView());
+      console = new Tab(new ConsoleView());    
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
 
@@ -746,6 +744,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     PluginInitializer.getSingleton(globalManager,splash_maybe_null).initializePlugins();        
 
     closeSplashWindow();
+    
+    if (COConfigurationManager.getBooleanParameter("Open Config", false))
+      config = new Tab(new ConfigView());
     
     mainWindow.open();
     mainWindow.forceActive();

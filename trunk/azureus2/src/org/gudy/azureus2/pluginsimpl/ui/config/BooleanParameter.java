@@ -21,6 +21,9 @@
  
 package org.gudy.azureus2.pluginsimpl.ui.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 
@@ -31,11 +34,16 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
  */
 public class BooleanParameter extends GenericParameter implements EnablerParameter
 {
+  private List toDisable;
+  private List toEnable;
+  
 	private boolean defaultValue;
 	public BooleanParameter(String key, String label, boolean defaultValue)
 	{ 
 		super(key, label);
     this.defaultValue = defaultValue;
+    this.toDisable = new ArrayList();
+    this.toEnable = new ArrayList();
 	}
 	
 	public boolean getDefaultValue()
@@ -44,10 +52,18 @@ public class BooleanParameter extends GenericParameter implements EnablerParamet
 	}
 
   public void addDisabledOnSelection(Parameter parameter) {
-    
+    toDisable.add(parameter);
   }
   
   public void addEnabledOnSelection(Parameter parameter) {    
-
+    toEnable.add(parameter);
+  }
+  
+  public List getDisabledOnSelectionParameters() {
+    return toDisable;
+  }
+  
+  public List getEnabledOnSelectionParameters() {
+    return toEnable;
   }
 }

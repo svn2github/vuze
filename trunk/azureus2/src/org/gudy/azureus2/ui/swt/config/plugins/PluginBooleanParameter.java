@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.pluginsimpl.ui.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
 
 /**
  * @author Olivier
@@ -34,6 +35,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 public class PluginBooleanParameter implements PluginParameterImpl {
   
   Control[] controls;
+  org.gudy.azureus2.ui.swt.config.BooleanParameter booleanParameter;
   
   public PluginBooleanParameter(Group pluginGroup,BooleanParameter parameter) {
     controls = new Control[2];
@@ -41,17 +43,21 @@ public class PluginBooleanParameter implements PluginParameterImpl {
     controls[0] = new Label(pluginGroup,SWT.NULL);
     Messages.setLanguageText(controls[0],parameter.getLabel());
     
-    org.gudy.azureus2.ui.swt.config.BooleanParameter bp =
+    booleanParameter =
     	new org.gudy.azureus2.ui.swt.config.BooleanParameter(
     	    pluginGroup,
     	    parameter.getKey(),
 					parameter.getDefaultValue());
-    controls[1] = bp.getControl();    
+    controls[1] = booleanParameter.getControl();    
     new Label(pluginGroup,SWT.NULL);
   }
   
   public Control[] getControls(){
     return controls;
+  }
+  
+  public void setAdditionalActionPerfomer(IAdditionalActionPerformer performer) {
+    booleanParameter.setAdditionalActionPerformer(performer);
   }
 
 }
