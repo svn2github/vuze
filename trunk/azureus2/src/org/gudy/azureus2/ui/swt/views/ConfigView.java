@@ -15,6 +15,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -1260,9 +1261,20 @@ public class ConfigView extends AbstractIView {
 	   sslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( ssl_controls ));
 	    
 	   label = new Label(gTracker, SWT.NULL);
-	   Messages.setLanguageText(label, "ConfigView.section.tracker.sslport.info"); 
-		
-	  // row
+	   Messages.setLanguageText(label, "ConfigView.section.tracker.sslport.info");
+     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#17";
+     label.setCursor(MainWindow.handCursor);
+     label.setForeground(MainWindow.blue);
+     label.addMouseListener(new MouseAdapter() {
+       public void mouseDoubleClick(MouseEvent arg0) {
+         Program.launch(linkFAQ);
+       }
+       public void mouseDown(MouseEvent arg0) {
+         Program.launch(linkFAQ);
+       }
+     });
+
+    // row
 			
 	  label = new Label(gTracker, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.section.tracker.publishenable"); 
