@@ -307,7 +307,7 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.cache.size", new Long(4));		// 4 MB
     def.put( "network.tcp.mtu.size", new Long(1500) );
     def.put( "File.truncate.if.too.large", new Long(0));
-    def.put( "diskmanager.perf.cache.trace", new Long(1));
+    def.put( "diskmanager.perf.cache.trace", new Long(0));
     def.put( "Enable System Tray", new Long(1));
     def.put( "config.style.table.sortDefaultAscending", new Long(1));
   }

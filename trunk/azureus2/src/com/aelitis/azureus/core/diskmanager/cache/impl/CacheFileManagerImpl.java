@@ -41,7 +41,7 @@ public class
 CacheFileManagerImpl 
 	implements CacheFileManager
 {
-	public static final boolean	DEBUG	= true;
+	public static final boolean	DEBUG	= false;
 	
 	public static final int	CACHE_CLEANER_TICKS		= 15;	// every 15 seconds
 	
