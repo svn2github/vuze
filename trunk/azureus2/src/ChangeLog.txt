@@ -57,6 +57,10 @@ BUGFIX: Tracker status column sortable [TuxPaper]
 BUGFIX: Fix for system clock changes stalling downloads: Bug #918193 [Nolar]
 BUGFIX: Individual file priorities remembered after Stop-Start [Nolar]
 BUGFIX: Fix for saving of .torrent file in wrong dir: Bug #916137 [Nolar]
+BUGFIX: Fix for the toolbar on linux / OS X [Gudy]
+BUGFIX: Fix for the General View in a torrent details, not being layout correctly [Gudy]
+BUGFIX: Fix for the Torrent Maker not getting the correct Tracker when choosing from the Combo on OS X [Gudy]
+BUGFIX: Close on OS X should now always be ok [Gudy]
 
 
 
