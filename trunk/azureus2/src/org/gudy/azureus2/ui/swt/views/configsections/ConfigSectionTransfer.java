@@ -244,14 +244,6 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
       formData.top = new FormAttachment(firstPiece.getControl());
       playSound.setLayoutData(formData);
     }
-
-    if( Constants.isOSX ) {
-      BooleanParameter panic_fix = new BooleanParameter(cTransfer, "network.experimental.osx.kernel.panic.fix", false, "ConfigView.label.experimental.osx.kernel.panic.fix");
-      formData = new FormData();
-      formData.top = new FormAttachment(firstPiece.getControl(), 10);
-      panic_fix.setLayoutData(formData);
-    }
-    
     
     return cTransfer;
   }
