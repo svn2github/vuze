@@ -65,11 +65,8 @@ public class SystemProperties {
     	
       String user_dir_win = null;
       
-      if ( !home_overridden ){
-/* // this will probably work 9x.. but not for WinME?
       if ( !home_overridden && (OS.indexOf("windows 9") == -1) && 
            !new File(userhome + SEP + WIN_DEFAULT).exists()){
-*/
       		// we'd like to use APPDATA, which is on ascii systems something like
       		// c:\documents and settings\<user>\application data
       		// However, on non-ascii systems chars get mangled when getting APPDATA (something
