@@ -292,8 +292,13 @@ public class PeerSocket extends PeerConnection {
       if (readBuffer.hasRemaining()) {
         try {
           int read = socket.read(readBuffer);
-          if (read < 0)
-            throw new IOException("End of Stream Reached");
+          
+          //Gudy 31.08.2003 : commented to see if this helps
+          // keeping the connections.
+          
+          
+          //if (read < 0)
+            //throw new IOException("End of Stream Reached");
         }
         catch (IOException e) {
           closeAll();
@@ -316,10 +321,15 @@ public class PeerSocket extends PeerConnection {
         if (lengthBuffer.hasRemaining()) {
           try {
             int read = socket.read(lengthBuffer);
-            if (read < 0)
-              throw new IOException("End of Stream Reached");
+            
+            //Gudy 31.08.2003 : commented to see if this helps
+            // keeping the connections.
+            
+            //if (read < 0)
+              //throw new IOException("End of Stream Reached");
           }
           catch (IOException e) {
+            e.printStackTrace();
             closeAll();
             return;
           }
@@ -915,7 +925,7 @@ public class PeerSocket extends PeerConnection {
       }
       if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
         keepAlive++;
-        if (keepAlive == 100 * 120) {
+        if (keepAlive == 50 * 60) {
           keepAlive = 0;
           sendKeepAlive();
         }
@@ -929,6 +939,7 @@ public class PeerSocket extends PeerConnection {
 
   private void sendKeepAlive() {
     ByteBuffer buffer = ByteBuffer.allocate(4);
+    buffer.position(0);
     buffer.putInt(0);
     buffer.limit(4);
     buffer.position(0);
