@@ -213,7 +213,15 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       int position = items[i].getPosition();
       if (position != -1) {
         TableColumn column = new TableColumn(table, SWT.NULL);
-        //Assign length and titles
+      }
+    }
+    //Assign length and titles
+    //We can only do it after ALL columns are created, as position (order)
+    //may not be in the natural order (if the user re-order the columns).    
+    for (int i = 0; i < items.length; i++) {
+      int position = items[i].getPosition();
+      if(position != -1) {
+        TableColumn column = table.getColumn(position);
         Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
         column.setWidth(items[i].getWidth());
         if (items[i].getType() == ItemDescriptor.TYPE_INT) {
