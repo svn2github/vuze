@@ -94,7 +94,7 @@ PEPeerServerImpl
       try {
         sck = ServerSocketChannel.open();
         //sck.socket().setReuseAddress(true);
-        if (bindIP == "") {
+        if (bindIP.length() < 7) {
            sck.socket().bind(new InetSocketAddress(port));
         }
         else {
@@ -128,7 +128,6 @@ PEPeerServerImpl
 
   public void run() {
     try {
-      //sck.configureBlocking(false);
       LGLogger.log(
         componentID,
         evtLyfeCycle,
@@ -136,7 +135,6 @@ PEPeerServerImpl
         "BT Server is ready to accept incoming connections");
       while (bContinue) {
         SocketChannel sckClient = sck.accept();
-        System.out.println("new incoming connection");
         if (sckClient != null) {
           LGLogger.log(
             componentID,
@@ -146,11 +144,8 @@ PEPeerServerImpl
               + sckClient.socket().getInetAddress().getHostAddress());
           sckClient.configureBlocking(false);
           manager.addPeerTransport(new PEPeerTransportImpl(manager,sckClient));
-        }
-        else {
-          //Thread.sleep(50);
-        }    
-      }    
+        } 
+      }  
     }
     catch (Exception e) {
       if (bContinue)
