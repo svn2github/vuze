@@ -99,9 +99,13 @@ ListenerManager
 	addListener(
 		Object		listener )
 	{
-		synchronized( listeners ){
+		synchronized( this ){
 			
-			listeners.add( listener );
+			ArrayList	new_listeners	= new ArrayList( listeners );
+			
+			new_listeners.add( listener );
+			
+			listeners	= new_listeners;
 			
 			if ( async && listeners.size() == 1 ){
 				
@@ -125,9 +129,13 @@ ListenerManager
 	removeListener(
 		Object		listener )
 	{
-		synchronized( listeners ){
+		synchronized( this ){
 			
-			listeners.remove( listener );
+			ArrayList	new_listeners = new ArrayList( listeners );
+			
+			new_listeners.remove( listener );
+			
+			listeners	= new_listeners;
 			
 			if ( async && listeners.size() == 0 ){
 				
@@ -147,7 +155,7 @@ ListenerManager
 	{
 		if ( async ){
 			
-			synchronized( listeners ){
+			synchronized( this ){
 				
 					// if there's nobody listening then no point in queueing 
 				
@@ -156,19 +164,14 @@ ListenerManager
 					return;
 				}
 				
-					// gotta copy the listeners here to ensure that the message is dispatched
-					// relative to the listeners in existence *now*, not at the point the 
-					// dispatch occurs (otherwise could get the same message delivered > once
-					// to the same listener...
-				
-				Object[]	listeners_copy = new Object[ listeners.size() ];
-					
-				listeners.toArray( listeners_copy );
-				
-				dispatch_queue.add(new Object[]{listeners_copy, new Integer(type), value});
-				
-				dispatch_sem.release();
+					// listeners are "copy on write" updated, hence we grab a reference to the 
+					// current listeners here. Any subsequent change won't affect our listeners
+												
+				dispatch_queue.add(new Object[]{listeners, new Integer(type), value});
 			}
+			
+			dispatch_sem.release();
+			
 		}else{
 			
 			if ( target_with_exception != null ){
@@ -176,18 +179,15 @@ ListenerManager
 				throw( new RuntimeException( "call dispatchWithException, not dispatch"));
 			}
 			
-			Object[]	listeners_copy;
+			List	listeners_ref;
 			
-			synchronized( listeners ){
+			synchronized( this ){
 				
-				listeners_copy = new Object[ listeners.size() ];
-				
-				listeners.toArray( listeners_copy );
-				
+				listeners_ref = listeners;				
 			}	
 			
 			try{
-				dispatchInternal( listeners_copy, type, value );
+				dispatchInternal( listeners_ref, type, value );
 				
 			}catch( Throwable e ){
 				
@@ -203,17 +203,14 @@ ListenerManager
 	
 		throws Throwable
 	{
-		Object[]	listeners_copy;
+		List	listeners_ref;
 		
-		synchronized( listeners ){
+		synchronized( this ){
 			
-			listeners_copy = new Object[ listeners.size() ];
-			
-			listeners.toArray( listeners_copy );
-			
+			listeners_ref = listeners;			
 		}
 		
-		dispatchInternal( listeners_copy, type, value );
+		dispatchInternal( listeners_ref, type, value );
 	}
 	
 	public void
@@ -224,7 +221,7 @@ ListenerManager
 	{
 		if ( async ){
 			
-			synchronized( listeners ){
+			synchronized( this ){
 				
 					// no point in queueing if no listeners
 				
@@ -233,10 +230,11 @@ ListenerManager
 					return;
 				}
 				
-				dispatch_queue.add(new Object[]{ new Object[]{listener}, new Integer(type), value});
-				
-				dispatch_sem.release();
+				dispatch_queue.add(new Object[]{ listener, new Integer(type), value, null });	// 4 entries
 			}
+			
+			dispatch_sem.release();
+			
 		}else{
 			
 			if ( target_with_exception != null ){
@@ -244,42 +242,72 @@ ListenerManager
 				throw( new RuntimeException( "call dispatchWithException, not dispatch"));
 			}
 			
-			target.dispatch( listener, type, value );
+			try{
+				target.dispatch( listener, type, value );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
 		}
 	}
 
 	protected void
 	dispatchInternal(
-		Object[]	listeners_copy,
+		List		listeners_ref,
 		int			type,
 		Object		value )
 	
 		throws Throwable
-	{
-			// take a copy of the listeners as concurrent modification is possible as
-			// we're not synchronized on them
+	{		
+		for (int i=0;i<listeners_ref.size();i++){
 		
-		
-		for (int i=0;i<listeners_copy.length;i++){
+			try{
 			
+				if ( target_with_exception != null ){
+					
+					// System.out.println( name + ":dispatchWithException" );
+					
+					target_with_exception.dispatchWithException( listeners_ref.get(i), type, value );
+					
+				}else{
+					
+						// System.out.println( name + ":dispatch" );
+						
+					target.dispatch( listeners_ref.get(i), type, value );
+				}
+			}catch( Throwable e ){
+					
+				Debug.printStackTrace( e );
+			}
+		}
+	}
+	
+	protected void
+	dispatchInternal(
+		Object		listener,
+		int			type,
+		Object		value )
+	
+		throws Throwable
+	{		
+		try{
 			if ( target_with_exception != null ){
 				
-				// System.out.println( name + ":dispatchWithException" );
+					// System.out.println( name + ":dispatchWithException" );
 				
-				target_with_exception.dispatchWithException( listeners_copy[i], type, value );
+				target_with_exception.dispatchWithException( listener, type, value );
 				
 			}else{
 				
-				try{
 					// System.out.println( name + ":dispatch" );
-					
-					target.dispatch( listeners_copy[i], type, value );
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
-				}
+				
+				target.dispatch( listener, type, value );
 			}
+			
+		}catch( Throwable e ){
+					
+			Debug.printStackTrace( e );
 		}
 	}
 	
@@ -294,7 +322,7 @@ ListenerManager
 			
 			Object[] data = null;
 			
-			synchronized( listeners ){
+			synchronized( this ){
 				
 				if ( async_thread != Thread.currentThread()){
 					
@@ -316,7 +344,14 @@ ListenerManager
 			if ( data != null ){
 			
 				try{						
-					dispatchInternal((Object[])data[0], ((Integer)data[1]).intValue(), data[2] );
+					if ( data.length == 3 ){
+					
+						dispatchInternal((List)data[0], ((Integer)data[1]).intValue(), data[2] );
+						
+					}else{
+						
+						dispatchInternal( data[0], ((Integer)data[1]).intValue(), data[2] );
+					}
 					
 				}catch( Throwable e ){
 					

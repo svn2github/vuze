@@ -106,10 +106,13 @@ DownloadManagerImpl
 				downloadManagerRemoved(
 					DownloadManager	dm )
 				{
+					List			listeners_ref	= null;
+					DownloadImpl	dl				= null;
+					
 					try{
 						listeners_mon.enter();
 						
-						DownloadImpl	dl = (DownloadImpl)download_map.get( dm );
+						dl = (DownloadImpl)download_map.get( dm );
 						
 						if ( dl == null ){
 							
@@ -122,15 +125,21 @@ DownloadManagerImpl
 							download_map.remove( dm );
 							
 							dl.destroy();
-							
-							for (int i=0;i<listeners.size();i++){
-								
-								((DownloadManagerListener)listeners.get(i)).downloadRemoved( dl );
-							}
+						
+							listeners_ref = listeners;
 						}
+						
 					}finally{
 						
 						listeners_mon.exit();
+					}
+					
+					if ( dl != null ){
+							
+						for (int i=0;i<listeners_ref.size();i++){
+								
+							((DownloadManagerListener)listeners_ref.get(i)).downloadRemoved( dl );
+						}
 					}
 				}
 				
@@ -206,31 +215,39 @@ DownloadManagerImpl
 	addDownloadManager(
 		DownloadManager	dm )
 	{
+		List			listeners_ref 	= null;
+		DownloadImpl	dl				= null;
+		
 		try{
 			listeners_mon.enter();
 			
 			if ( download_map.get(dm) == null ){
 	
-				DownloadImpl	dl = new DownloadImpl(dm);
+				dl = new DownloadImpl(dm);
 				
 				downloads.add( dl );
 				
 				download_map.put( dm, dl );
 				
-				for (int i=0;i<listeners.size();i++){
-					
-					try{
-						((DownloadManagerListener)listeners.get(i)).downloadAdded( dl );
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace( e );
-					}
-				}
+				listeners_ref = listeners;
 			}
 		}finally{
 			
 			listeners_mon.exit();
+		}
+		
+		if ( dl != null ){
+			
+			for (int i=0;i<listeners_ref.size();i++){
+					
+				try{
+					((DownloadManagerListener)listeners_ref.get(i)).downloadAdded( dl );
+					
+				}catch( Throwable e ){
+						
+					Debug.printStackTrace( e );
+				}
+			}
 		}
 	}
 	
@@ -464,14 +481,14 @@ DownloadManagerImpl
 	{
 		List	res_l = new ArrayList();
 	
+		// we have to use the global manager's ordering as it
+		// hold this
+
+		List dms = global_manager.getDownloadManagers();
+
 		try{
 			listeners_mon.enter();
 
-				// we have to use the global manager's ordering as it
-				// hold this
-		
-			List dms = global_manager.getDownloadManagers();
-		
 			for (int i=0;i<dms.size();i++){
 			
 				Object	dl = download_map.get( dms.get(i));
@@ -496,16 +513,22 @@ DownloadManagerImpl
 	public Download[]
 	getDownloads(boolean bSorted)
 	{
-	  if (bSorted)
-	    return getDownloads();
-
+		if (bSorted){
+	  
+			return getDownloads();
+		}
+	  
 		try{
 			listeners_mon.enter();
 		
 			Download[]	res = new Download[downloads.size()];
+			
 			downloads.toArray( res );
+			
 			return( res );
+			
 		}finally{
+			
 			listeners_mon.exit();
 		}
 	}
@@ -514,25 +537,35 @@ DownloadManagerImpl
 	addListener(
 		DownloadManagerListener	l )
 	{
+		List	downloads_copy;
+		
 		try{
 			listeners_mon.enter();
 			
-			listeners.add( l );
+			List	new_listeners = new ArrayList( listeners );
 			
-			for (int i=0;i<downloads.size();i++){
-				
-				try{
-						
-					l.downloadAdded((Download)downloads.get(i));
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
-				}
-			}
+			new_listeners.add( l );
+		
+			listeners	= new_listeners;
+			
+			downloads_copy = new ArrayList( downloads );
+	
 		}finally{
+			
 			listeners_mon.exit();
 		}	
+		
+		for (int i=0;i<downloads_copy.size();i++){
+			
+			try{
+					
+				l.downloadAdded((Download)downloads_copy.get(i));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
 	}
 	
 	public void
@@ -542,7 +575,12 @@ DownloadManagerImpl
 		try{
 			listeners_mon.enter();
 			
-			listeners.remove(l);
+			List	new_listeners	= new ArrayList( listeners );
+			
+			new_listeners.remove(l);
+			
+			listeners	= new_listeners;
+			
 		}finally{
 			listeners_mon.exit();
 		}	
