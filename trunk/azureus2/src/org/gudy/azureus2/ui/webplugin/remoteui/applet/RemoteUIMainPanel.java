@@ -33,6 +33,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.event.*;
 
 import org.gudy.azureus2.ui.swing.*;
 
@@ -51,10 +52,17 @@ RemoteUIMainPanel
 	protected Properties				properties;
 	protected DownloadManager			download_manager;
 	protected RemoteUIMainPanelAdaptor	adapter;
+		
+	protected MDDownloadModel	download_full_model;
+	protected MDDownloadModel	downloading_model;
+	protected MDDownloadModel	seeding_model;
+							
+	protected VWDownloadView downloading_view;
+	protected VWDownloadView seeding_view;
 	
-	protected MDDownloadModel			download_model;
-	protected VWDownloadView			download_view;
-	
+	protected MDDownloadModel	current_download_model;
+	protected VWDownloadView	current_download_view;
+
 	protected VWStatusAreaView			status_area;
 		
 	protected JTextArea		log_area;
@@ -77,7 +85,7 @@ RemoteUIMainPanel
 
 			String	mode_str = (String)properties.get("mode");
 						
-			boolean view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
+			final boolean view_mode = mode_str != null && mode_str.trim().equalsIgnoreCase("view");
 			
 			setLayout( new BorderLayout());
 			
@@ -132,24 +140,24 @@ RemoteUIMainPanel
 			
 				// move up
 			
-			JButton	move_up = 
+			final JButton	move_up = 
 				new JButton( 	new ImageIcon(UISwingImageRepository.getImage(
 										adapter.getResource("org/gudy/azureus2/ui/icons/up.gif"))));
 
 			move_up.setToolTipText("Move Up");
 
-			move_up.setEnabled( !view_mode );
+			move_up.setEnabled( false );
 			tb.add( move_up );
 
 				// move down
 			
-			JButton	move_down = 
+			final JButton	move_down = 
 				new JButton( 	new ImageIcon(UISwingImageRepository.getImage(
 										adapter.getResource("org/gudy/azureus2/ui/icons/down.gif"))));
 
-			move_down.setToolTipText("Move Up");
+			move_down.setToolTipText("Move Down");
 
-			move_down.setEnabled( !view_mode );
+			move_down.setEnabled( false );
 			tb.add( move_down );
 			
 				// open 
@@ -172,13 +180,79 @@ RemoteUIMainPanel
 
 			add( tb, BorderLayout.NORTH );
 			
-			download_model 	= new MDDownloadModel( download_manager );
 			
-			download_view 	= new VWDownloadView(download_model);
+			MDDownloadSplitModel	split_model	= new MDDownloadSplitModel( download_manager );
+			
+			downloading_model	= split_model.getDownloadingModel();
+			seeding_model		= split_model.getSeedingModel();
+									
+			download_full_model	= split_model.getFullModel();
+
+			downloading_view 	= new VWDownloadView(downloading_model);
+			
+			downloading_view.addListener(
+					new VWDownloadViewListener()
+					{
+						public void
+						selectionChanged(
+							int[]		rows )
+						{
+							if ( current_download_view == downloading_view && !view_mode ){
+								
+								if ( rows.length == 0 ){
+									
+									move_up.setEnabled(false);
+									
+									move_down.setEnabled( false );
+									
+								}else{
+									
+									Download	dl = downloading_model.getDownload( rows[0]);
+									
+									move_up.setEnabled(dl.getPosition() > 1 );
+									
+									move_down.setEnabled(dl.getPosition() < downloading_model.getDownloads().length );
+								}
+							}
+						}
+					});
+			
+			seeding_view 	= new VWDownloadView(seeding_model);
+			
+			seeding_view.addListener(
+					new VWDownloadViewListener()
+					{
+						public void
+						selectionChanged(
+							int[]		rows )
+						{
+							if ( current_download_view == seeding_view && !view_mode ){
+								
+								if ( rows.length == 0 ){
+									
+									move_up.setEnabled(false);
+									
+									move_down.setEnabled( false );
+									
+								}else{
+									
+									Download	dl = seeding_model.getDownload( rows[0]);
+									
+									move_up.setEnabled(dl.getPosition() > 1 );
+									
+									move_down.setEnabled(dl.getPosition() < seeding_model.getDownloads().length );
+								}
+							}
+						}
+					});
+			
+			current_download_model	=	downloading_model;
+			current_download_view	=	downloading_view;
 			
 			MDConfigModel			config_model	= new MDConfigModel( _pi );
 			
 			VWConfigView			config_view 	= new VWConfigView( this, config_model );
+			
 			
 			refresh_period = config_model.getRefreshPeriod();
 			
@@ -200,8 +274,37 @@ RemoteUIMainPanel
 			
 			JTabbedPane	tabs = new JTabbedPane();
 			
-			tabs.addTab( "Downloads", 	download_view.getComponent());
+			tabs.addTab( "Downloads", 	downloading_view.getComponent());
+			tabs.addTab( "Seeds", 		seeding_view.getComponent());
 			tabs.addTab( "Config", 		config_view.getComponent());
+			
+			tabs.addChangeListener(
+					new ChangeListener()
+					{
+				        public void 
+						stateChanged(
+							ChangeEvent 	evt ) 
+						{
+				            JTabbedPane pane = (JTabbedPane)evt.getSource();
+				    
+				            int sel = pane.getSelectedIndex();
+				            
+				            if ( sel == 0 ){
+				            	
+				            	current_download_model	= downloading_model;
+				            	
+								current_download_view	= downloading_view;
+								
+				            }else if ( sel == 1 ){
+				            	
+				            	current_download_model	= seeding_model;
+				            	
+								current_download_view	= seeding_view;
+				            }
+				            
+				            current_download_view.refresh();
+				        }
+				    });
 			
 			add( tabs, BorderLayout.CENTER );
 			
@@ -217,7 +320,7 @@ RemoteUIMainPanel
 			bottom_panel.add( new JScrollPane(log_area), BorderLayout.CENTER );
 			
 			
-			status_area =  new VWStatusAreaView(new MDStatusAreaModel( _pi, download_model ));
+			status_area =  new VWStatusAreaView(new MDStatusAreaModel( _pi, download_full_model ));
 			
 			bottom_panel.add( status_area.getComponent(), BorderLayout.SOUTH );
 			
@@ -243,7 +346,7 @@ RemoteUIMainPanel
 						{
 							try{
 						
-								download_model.start(download_view.getSelectedRows());
+								current_download_model.start(current_download_view.getSelectedRows());
 								
 								refresh();
 								
@@ -265,7 +368,7 @@ RemoteUIMainPanel
 						{
 							try{
 						
-								download_model.forceStart(download_view.getSelectedRows());
+								current_download_model.forceStart(current_download_view.getSelectedRows());
 								
 								refresh();
 								
@@ -287,7 +390,7 @@ RemoteUIMainPanel
 						{
 							try{
 								
-								download_model.stop(download_view.getSelectedRows());
+								current_download_model.stop(current_download_view.getSelectedRows());
 								
 								refresh();
 								
@@ -309,7 +412,7 @@ RemoteUIMainPanel
 						{
 							try{
 								
-								download_model.remove(download_view.getSelectedRows());
+								current_download_model.remove(current_download_view.getSelectedRows());
 								
 								refresh();
 								
@@ -331,7 +434,7 @@ RemoteUIMainPanel
 						{
 							try{
 								
-								download_model.moveUp(download_view.getSelectedRows());
+								current_download_model.moveUp(current_download_view.getSelectedRows());
 								
 								refresh();
 								
@@ -353,7 +456,7 @@ RemoteUIMainPanel
 						{
 							try{
 								
-								download_model.moveDown(download_view.getSelectedRows());
+								current_download_model.moveDown(current_download_view.getSelectedRows());
 								
 								refresh();
 								
@@ -365,6 +468,7 @@ RemoteUIMainPanel
 							}
 						}
 					});
+			
 			AbstractAction open_action = 
 				new AbstractAction()
 				{
@@ -480,11 +584,13 @@ RemoteUIMainPanel
 		try{
 			adapter.refresh();
 			
-			int[]	old_rows = download_view.getSelectedRows();
+			int[]	old_dl_rows = downloading_view.getSelectedRows();
+			int[]	old_se_rows = seeding_view.getSelectedRows();
 			
-			download_model.refresh();
+			download_full_model.refresh();
 			
-			download_view.setSelectedRows( old_rows );
+			downloading_view.setSelectedRows( old_dl_rows );
+			seeding_view.setSelectedRows( old_se_rows );
 			
 			status_area.refresh();
 			

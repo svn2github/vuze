@@ -103,6 +103,18 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$10.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$11.class",
 		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$12.class",
+		"ui/webplugin/remoteui/applet/view/VWDownloadViewListener.class",
+		"ui/webplugin/remoteui/applet/model/MDDownloadSplitModel.class",
+		"ui/webplugin/remoteui/applet/model/MDDownloadFilter.class",
+		"ui/webplugin/remoteui/applet/model/MDDownloadFullModel.class",
+		"ui/webplugin/remoteui/applet/model/MDDownloadFilterModel.class",
+		"ui/webplugin/remoteui/applet/model/MDDownloadSplitModel$1.class",
+		"ui/webplugin/remoteui/applet/model/MDDownloadFilterModel$1.class",
+		"ui/webplugin/remoteui/applet/model/MDDownloadSplitModel$2.class",
+		"ui/webplugin/remoteui/applet/view/VWDownloadView$6.class",
+		"/ui/webplugin/remoteui/applet/RemoteUIMainPanel$13.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$14.class",
+		"ui/webplugin/remoteui/applet/RemoteUIMainPanel$15.class",
 		
 		"ui/webplugin/util/WUJarReader.class",
 		

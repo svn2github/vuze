@@ -1,5 +1,5 @@
 /*
- * File    : MDDownloadModel.java
+ * File    : VWDownloadViewListener.java
  * Created : 01-Apr-2004
  * By      : parg
  * 
@@ -19,52 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
+package org.gudy.azureus2.ui.webplugin.remoteui.applet.view;
 
 /**
  * @author parg
  *
  */
-
-import javax.swing.table.*;
-
-import org.gudy.azureus2.plugins.download.*;
-
 public interface 
-MDDownloadModel
-	extends TableModel
+VWDownloadViewListener 
 {
-	public Download[]
-	getDownloads();
-					
-	public Download
-	getDownload(
-		int		row );
-	
 	public void
-	refresh();
-	
-	public void
-	start(
-		int[]		rows );
-	
-	public void
-	forceStart(
-		int[]		rows );
-	
-	public void
-	stop(
-		int[]		rows );
-	
-	public void
-	remove(
-		int[]		rows );
-	
-	public void
-	moveUp(
-		int[]		rows );
-	
-	public void
-	moveDown(
-		int[]		rows );
+	selectionChanged(
+		int[]	selected_rows );
 }

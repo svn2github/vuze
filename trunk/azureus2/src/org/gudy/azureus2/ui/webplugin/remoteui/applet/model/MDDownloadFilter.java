@@ -1,5 +1,5 @@
 /*
- * File    : MDDownloadModel.java
+ * File    : MDDownloadFilter.java
  * Created : 01-Apr-2004
  * By      : parg
  * 
@@ -26,45 +26,12 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
  *
  */
 
-import javax.swing.table.*;
-
 import org.gudy.azureus2.plugins.download.*;
 
 public interface 
-MDDownloadModel
-	extends TableModel
+MDDownloadFilter 
 {
-	public Download[]
-	getDownloads();
-					
-	public Download
-	getDownload(
-		int		row );
-	
-	public void
-	refresh();
-	
-	public void
-	start(
-		int[]		rows );
-	
-	public void
-	forceStart(
-		int[]		rows );
-	
-	public void
-	stop(
-		int[]		rows );
-	
-	public void
-	remove(
-		int[]		rows );
-	
-	public void
-	moveUp(
-		int[]		rows );
-	
-	public void
-	moveDown(
-		int[]		rows );
+	public boolean
+	isSelected(
+		Download		download );
 }

@@ -230,6 +230,20 @@ Download
 		int newPosition);
 
 	/**
+	 * Moves the download position up one
+	 */
+	
+	public void
+	moveUp();
+	
+	/**
+	 * Moves the download down one position
+	 */
+	
+	public void
+	moveDown();
+	
+	/**
 	 * Tests whether or not a download can be removed. Due to synchronization issues it is possible
 	 * for a download to report OK here but still fail removal.
 	 * @return

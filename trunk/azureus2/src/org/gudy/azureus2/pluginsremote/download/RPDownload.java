@@ -223,6 +223,18 @@ RPDownload
 			delegate.setPosition( p );
 			
 			return( null );
+			
+		}else if ( method.equals( "moveUp")){
+						
+			delegate.moveUp();
+			
+			return( null );
+			
+		}else if ( method.equals( "moveDown")){
+			
+			delegate.moveDown();
+			
+			return( null );
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -494,6 +506,17 @@ RPDownload
 		_dispatcher.dispatch( new RPRequest( this, "setPosition", new Integer(new_position ))).getResponse();
 	}
 	
+	public void
+	moveUp()
+	{
+		_dispatcher.dispatch( new RPRequest( this, "moveUp", null)).getResponse();
+	}
+	
+	public void
+	moveDown()
+	{
+		_dispatcher.dispatch( new RPRequest( this, "moveDown", null)).getResponse();
+	}
 	public void stopAndQueue() throws DownloadException {
 		notSupported();
 	}

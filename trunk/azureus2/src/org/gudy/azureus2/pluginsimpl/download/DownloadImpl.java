@@ -323,6 +323,18 @@ DownloadImpl
 		download_manager.setPosition(newPosition);
 	}
 	
+	public void
+	moveUp()
+	{
+		download_manager.moveUp();
+	}
+	
+	public void
+	moveDown()
+	{
+		download_manager.moveDown();
+	}
+	
 	public String 
 	getName()
 	{

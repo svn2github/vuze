@@ -26,10 +26,12 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.view;
  *
  */
 
+import java.util.*;
 import java.awt.*;
 
 import javax.swing.*;
 import javax.swing.table.*;
+import javax.swing.event.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.model.*;
 import org.gudy.azureus2.core3.util.*;
@@ -42,6 +44,8 @@ VWDownloadView
 	protected TableSorter	sorter;
 	protected JTable		table;
 	
+	protected ArrayList	listeners	= new ArrayList();
+	
 	public
 	VWDownloadView(
 		MDDownloadModel		model )
@@ -49,6 +53,23 @@ VWDownloadView
 		sorter = new TableSorter(model);
 		
 		table = new JTable(sorter);
+		
+		table.setAutoscrolls( true );
+		
+		table.setShowHorizontalLines( true );
+		
+		table.setShowVerticalLines( true );
+		
+		table.getSelectionModel().addListSelectionListener(
+				new ListSelectionListener()
+				{
+					public void
+					valueChanged(
+						ListSelectionEvent	ev )
+					{
+						informCurrentSelection();
+					}
+				});
 		
 		TableColumnModel cm = table.getColumnModel();
 
@@ -86,9 +107,14 @@ VWDownloadView
 	
 						String	str = DisplayFormatters.formatByteCountToKiBEtc(value);
 						
-						JLabel	res = (JLabel)super.getTableCellRendererComponent( table, str, isSelected, hasFocus, row,column );
+						JLabel	res = (JLabel)super.getTableCellRendererComponent( table, str, isSelected, hasFocus, row, column );
 						
 						res.setHorizontalAlignment( JLabel.RIGHT );
+						
+						if ( column%2==1 ){
+							
+							// res.setBackground(Color.lightGray);
+						}
 						
 						return( res );
 					}
@@ -119,6 +145,11 @@ VWDownloadView
 							
 							res.setHorizontalAlignment( JLabel.RIGHT );
 							
+							if ( column%2==1 ){
+								
+								// res.setBackground(Color.lightGray);
+							}
+							
 							return( res );
 						}
 					});
@@ -144,6 +175,12 @@ VWDownloadView
 							
 							res.setHorizontalAlignment( JLabel.RIGHT );
 							
+							if ( column%2==1 ){
+								
+								// res.setBackground(Color.lightGray);
+							}
+							
+
 							return( res );
 						}
 					});
@@ -205,7 +242,13 @@ VWDownloadView
 						}
 							
 						res.setHorizontalAlignment( JLabel.RIGHT );
+						
+						if ( column%2==1 ){
 							
+							// res.setBackground(Color.lightGray);
+						}
+						
+	
 						return( res );
 					}
 				});
@@ -229,6 +272,17 @@ VWDownloadView
 		component.revalidate();
 		
 		component.repaint();
+		
+		informCurrentSelection();
+	}
+	
+	protected void
+	informCurrentSelection()
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((VWDownloadViewListener)listeners.get(i)).selectionChanged( getSelectedRows());
+		}
 	}
 	
 	public int[]
@@ -243,12 +297,33 @@ VWDownloadView
 	{
 		rows = sorter.unmapRows( rows );
 		
+		int	first = 0x7fffffff;
+		
 		for (int i=0;i<rows.length;i++){
 			
 			if ( rows[i] != -1 ){
+		
+				int	index = rows[i];
 				
-				table.getSelectionModel().addSelectionInterval(rows[i], rows[i]);
+				if ( index < first ){
+					
+					first	= index;
+				}
+				
+				table.getSelectionModel().addSelectionInterval(index, index);
 			}
 		}
+		
+		if ( first != 0x7fffffff ){
+			
+			table.scrollRectToVisible(table.getCellRect(first, 0, true ));
+		}
+	}
+	
+	public void
+	addListener(
+		VWDownloadViewListener	l )
+	{
+		listeners.add( l );
 	}
 }
