@@ -35,9 +35,11 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 TRTrackerServerProcessor 
 {
+	protected TRTrackerServerImpl		server;
+	
 	protected TRTrackerServerTorrentImpl
 	processTrackerRequest(
-		TRTrackerServerImpl		server,
+		TRTrackerServerImpl		_server,
 		Map						root,
 		int						request_type,
 		byte[]					hash,
@@ -53,6 +55,8 @@ TRTrackerServerProcessor
 	
 		throws Exception
 	{
+		server	= _server;
+		
 		TRTrackerServerTorrentImpl	torrent = null;
 		
 		if ( request_type != TRTrackerServerRequest.RT_FULL_SCRAPE ){
@@ -96,7 +100,7 @@ TRTrackerServerProcessor
 					throw( new Exception( "peer_id missing from request"));
 				}
 				
-				long	interval = server.getRetryInterval();
+				long	interval = server.getAnnounceRetryInterval();
 				
 				torrent.peerContact( 	
 						event, peer_id, port, client_ip_address,
@@ -122,6 +126,8 @@ TRTrackerServerProcessor
 				
 				files.put( str_hash, hash_entry );
 				
+				addInterval( root );
+				
 				root.put( "files", files );
 			}
 		}else{
@@ -145,9 +151,27 @@ TRTrackerServerProcessor
 				files.put( str_hash, hash_entry );
 			}
 			
+			addInterval( root );
+			
 			root.put( "files", files );
 		}
 		
 		return( torrent );
+	}
+	
+	protected void
+	addInterval(
+		Map	root )
+	{
+		int interval = server.getScrapeRetryInterval();
+		
+		if ( interval > 0 ){
+			
+			Map	flags = new HashMap();
+			
+			flags.put("min_request_interval", new Long(interval));
+			
+			root.put( "flags", flags );
+		}
 	}
 }

@@ -31,12 +31,13 @@ import org.gudy.azureus2.core3.tracker.server.*;
 public interface 
 TRHost
 {
-	public static final int DEFAULT_MIN_RETRY_DELAY 	= TRTrackerServer.DEFAULT_MIN_RETRY_DELAY;
-	public static final int DEFAULT_MAX_RETRY_DELAY 	= TRTrackerServer.DEFAULT_MAX_RETRY_DELAY;
-	public static final int DEFAULT_INC_BY				= TRTrackerServer.DEFAULT_INC_BY;
-	public static final int DEFAULT_INC_PER			 	= TRTrackerServer.DEFAULT_INC_PER;
-	public static final int DEFAULT_PORT 				= TRTrackerServer.DEFAULT_TRACKER_PORT;
-	public static final int DEFAULT_PORT_SSL			= TRTrackerServer.DEFAULT_TRACKER_PORT_SSL;
+	public static final int DEFAULT_MIN_RETRY_DELAY 		= TRTrackerServer.DEFAULT_MIN_RETRY_DELAY;
+	public static final int DEFAULT_MAX_RETRY_DELAY 		= TRTrackerServer.DEFAULT_MAX_RETRY_DELAY;
+	public static final int DEFAULT_INC_BY					= TRTrackerServer.DEFAULT_INC_BY;
+	public static final int DEFAULT_INC_PER			 		= TRTrackerServer.DEFAULT_INC_PER;
+	public static final int DEFAULT_SCRAPE_RETRY_PERCENTAGE	= TRTrackerServer.DEFAULT_SCRAPE_RETRY_PERCENTAGE;
+	public static final int DEFAULT_PORT 					= TRTrackerServer.DEFAULT_TRACKER_PORT;
+	public static final int DEFAULT_PORT_SSL				= TRTrackerServer.DEFAULT_TRACKER_PORT_SSL;
 
 	public void
 	initialise(

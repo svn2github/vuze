@@ -1549,6 +1549,20 @@ public class ConfigView extends AbstractIView {
     gridData.widthHint = 30;
     pollIntervalIncPer.setLayoutData( gridData );
 
+    // row
+    
+    label = new Label(gPollStuff, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.announcescrapepercentage");
+    gridData = new GridData();
+    gridData.horizontalSpan	= 3;
+    label.setLayoutData( gridData );
+
+    IntParameter scrapeannouncepercentage = new IntParameter(gPollStuff, "Tracker Scrape Retry Percentage", TRHost.DEFAULT_SCRAPE_RETRY_PERCENTAGE );
+
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    scrapeannouncepercentage.setLayoutData( gridData );
+    
 
     // row
 

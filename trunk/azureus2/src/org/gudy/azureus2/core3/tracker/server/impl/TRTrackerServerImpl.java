@@ -97,7 +97,8 @@ TRTrackerServerImpl
 	
 	protected Map		torrent_map = new HashMap(); 
 	
-	protected int		current_retry_interval;
+	protected int		current_announce_retry_interval;
+	protected int		current_scrape_retry_interval;
 	
 	protected Vector	listeners 			= new Vector();
 		
@@ -105,6 +106,13 @@ TRTrackerServerImpl
 	protected
 	TRTrackerServerImpl()
 	{
+		int	min 				= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
+		int	scrape_percentage 	= COConfigurationManager.getIntParameter("Tracker Scrape Retry Percentage", DEFAULT_SCRAPE_RETRY_PERCENTAGE );
+		
+		current_announce_retry_interval = min;
+		
+		current_scrape_retry_interval	= (current_announce_retry_interval*scrape_percentage)/100;
+		
 		Thread timer_thread = 
 			new Thread("TrackerServer:timer.loop")
 			{
@@ -121,9 +129,15 @@ TRTrackerServerImpl
 	}
 	
 	public int
-	getRetryInterval()
+	getAnnounceRetryInterval()
 	{		
-		return( current_retry_interval );
+		return( current_announce_retry_interval );
+	}
+	
+	public int
+	getScrapeRetryInterval()
+	{		
+		return( current_scrape_retry_interval );
 	}
 	
 	protected void
@@ -144,6 +158,8 @@ TRTrackerServerImpl
 				int	max 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Max", DEFAULT_MAX_RETRY_DELAY );
 				int	inc_by 	= COConfigurationManager.getIntParameter("Tracker Poll Inc By", DEFAULT_INC_BY );
 				int	inc_per = COConfigurationManager.getIntParameter("Tracker Poll Inc Per", DEFAULT_INC_PER );
+				
+				int	scrape_percentage = COConfigurationManager.getIntParameter("Tracker Scrape Retry Percentage", DEFAULT_SCRAPE_RETRY_PERCENTAGE );
 				
 				int	retry = min;
 				
@@ -180,7 +196,9 @@ TRTrackerServerImpl
 					retry = RETRY_MINIMUM_SECS;
 				}
 				
-				current_retry_interval = retry;
+				current_announce_retry_interval = retry;
+				
+				current_scrape_retry_interval	= (current_announce_retry_interval*scrape_percentage)/100;
 				
 				// timeout dead clients
 				

@@ -144,7 +144,7 @@ public class TrackerStatus {
            long nextScrapeTime = System.currentTimeMillis() + (scrapeInterval * 1000);
            response.setNextScrapeStartTime(nextScrapeTime);
            
-           Debug.out("scrape min_request_interval = " +scrapeInterval);
+           //Debug.out("scrape min_request_interval = " +scrapeInterval);
 	      }
 
 	      //update the hash list
