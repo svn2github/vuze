@@ -350,7 +350,7 @@ public class VirtualChannelSelector {
             	Debug.printStackTrace(t);
            	    
            		select_fail_data	= data;
-           		select_fail_excep	= new Throwable( "select registration: channel is closed" );
+           		select_fail_excep	= t;
             } 	
           }
         }
