@@ -29,14 +29,12 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
 
 public interface
 PEPeerTransport
 	extends PEPeer
 {
-	public static final int HIGH_PRIORITY	= DownloadManager.HIGH_PRIORITY;
-  	
+ 	
 	/**
 	 * Fake transports are created to permit equivalence testing prior to adding to 
 	 * the active transport set. This method exists to convert such fake transports into
