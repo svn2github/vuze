@@ -27,6 +27,7 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -59,6 +60,8 @@ public class Wizard {
   Button previous, next, finish, cancel;
 
   Listener closeCatcher;
+  
+  int wizardHeight;
   
   public Wizard(Display display,String keyTitle) {
     this(display);
@@ -153,8 +156,6 @@ public class Wizard {
     cancel.setLayoutData(gridData);
     Messages.setLanguageText(cancel, "wizard.cancel");
 
-    refresh();
-
     previous.addListener(SWT.Selection, new Listener() {
       /* (non-Javadoc)
        * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
@@ -176,8 +177,6 @@ public class Wizard {
         refresh();
       }
     });
-
-    final Wizard wizard = this;
 
     closeCatcher = new Listener() {
       /* (non-Javadoc)
@@ -225,15 +224,9 @@ public class Wizard {
 			}
 		}
 	});
-
-		
- 	//Higher, for macOSX needs.
- 	// TODO Dynamically adjust size
-    wizardWindow.setSize(400, 500);
-    
-	Utils.centreWindow( wizardWindow );
-
-    wizardWindow.open();
+ 	
+ 	wizardHeight = wizardWindow.computeSize(400,SWT.DEFAULT).y - 50;
+ 	wizardWindow.setSize(400,400);
 
   }
   
@@ -275,11 +268,11 @@ public class Wizard {
     
     finish.setEnabled(currentPanel.isFinishEnabled());
     
-	setDefaultButton();
-	
+	setDefaultButton();	
     currentPanel.show();
     panel.layout();
     panel.redraw();
+    insureSize();
   }
 
 	private void
@@ -356,6 +349,9 @@ public class Wizard {
   public void setFirstPanel(IWizardPanel panel) {
     this.currentPanel = panel;
     refresh();
+    insureSize();
+    Utils.centreWindow( wizardWindow );
+    wizardWindow.open();
   }
 
   public Shell getWizardWindow() {
@@ -398,6 +394,14 @@ public class Wizard {
    */
   public IWizardPanel getCurrentPanel() {
     return currentPanel;
+  }
+  
+  private void insureSize() {
+  	panel.pack();
+  	Point p = panel.computeSize(400,SWT.DEFAULT);
+  	int height = p.y + wizardHeight;
+  	if(height > wizardWindow.getSize().y)
+  		wizardWindow.setSize(400,height);
   }
 
 }

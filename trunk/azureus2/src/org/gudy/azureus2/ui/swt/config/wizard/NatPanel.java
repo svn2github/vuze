@@ -178,18 +178,19 @@ public class NatPanel extends AbstractWizardPanel {
       }
     });
 
-
+    final Button sharePort = new Button(panel,SWT.CHECK);
+    sharePort.setSelection(((ConfigureWizard)wizard).serverSharePort);
+    sharePort.addListener(SWT.Selection,new Listener() {
+    	public void handleEvent(Event arg0) {
+    		((ConfigureWizard)wizard).serverSharePort = sharePort.getSelection();
+    		textServerHigh.setEnabled(!((ConfigureWizard)wizard).serverSharePort);
+    	}
+    });
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+    sharePort.setLayoutData(gridData);
+    
 	label = new Label(panel,SWT.NULL);
 	Messages.setLanguageText(label, "configureWizard.nat.sharePort");
-
-	final Button sharePort = new Button(panel,SWT.CHECK);
-	sharePort.setSelection(((ConfigureWizard)wizard).serverSharePort);
-	sharePort.addListener(SWT.Selection,new Listener() {
-	   public void handleEvent(Event arg0) {
-		 ((ConfigureWizard)wizard).serverSharePort = sharePort.getSelection();
-		  textServerHigh.setEnabled(!((ConfigureWizard)wizard).serverSharePort);
-	   }
-	 });
 	 
     textServerHigh.setEnabled(!((ConfigureWizard)wizard).serverSharePort);
 
