@@ -36,6 +36,10 @@ PluginManager
 {
 	public static final int	UI_SWT		= 1;
 	
+		// property keys
+	
+	public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";	// values "true" or "false"
+	
 	public static void
 	startAzureus(
 		int			ui_type,

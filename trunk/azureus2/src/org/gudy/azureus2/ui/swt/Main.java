@@ -19,6 +19,8 @@ import org.gudy.azureus2.core3.internat.LocaleUtil;
  */
 public class Main implements ILocaleUtilChooser {  
   
+  public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";	// values "true" or "false"
+	
   StartServer startServer;
   MainWindow mainWindow;
   GlobalManager gm;
@@ -59,11 +61,16 @@ public class Main implements ILocaleUtilChooser {
   }
   
   public Main(String args[]) {
+  	
+  	String	mi_str = (String)System.getProperty( PR_MULTI_INSTANCE );
+  	
+  	boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
+  		
     LocaleUtil.setLocaleUtilChooser(this);
     startServer = new StartServer(this);
 
     boolean debugGUI = Boolean.getBoolean("debug");
-    if(debugGUI) {
+    if( mi || debugGUI) {
       // create a MainWindow regardless to the server state
       gm = GlobalManagerFactory.create();
       

@@ -41,6 +41,16 @@ PluginManagerImpl
 	{
 		if ( ui_type == PluginManager.UI_SWT ){
 			
+			if ( properties != null ){
+				
+				String	mi = (String)properties.get( PluginManager.PR_MULTI_INSTANCE );
+				
+				if ( mi != null && mi.equalsIgnoreCase("true")){
+					
+					System.setProperty( Main.PR_MULTI_INSTANCE, "true" );
+				}
+			}
+			
 			Main.main(new String[0]);
 		}
 	}

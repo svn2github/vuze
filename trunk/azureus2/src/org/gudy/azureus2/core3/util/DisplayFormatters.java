@@ -179,9 +179,11 @@ DisplayFormatters
 			
 	  	if(pm != null){
 	  	
-			int nbFails = pm.getNbHashFails();
+			long nbFails = pm.getNbHashFails();
 		
-			long size = nbFails * dm.getPieceLength();
+				// size can exceed int so ensure longs used in multiplication
+			
+			long size = nbFails * (long)dm.getPieceLength();
 			
 			String result = nbFails + " ( ~ " + formatByteCountToKiBEtc(size) + " )";
 			
