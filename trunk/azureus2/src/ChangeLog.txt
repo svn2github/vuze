@@ -32,6 +32,8 @@ FEATURE: Opening a second torrent with same hash as existing download causes sec
 FEATURE: Option to not accept multiple connections from the same IP [Gudy]
 FEATURE: Option to use the Ip Filter list as an 'ALLOW' list [Gudy]
 FEATURE: Super-Seed Mode [Gudy]
+FEATURE: Pressing a character selects the next download with a name beginning with this character in MyTorrents view [Rele]
+FEATURE: Option to move-on-complete only when data is inside the default save dir [Nolar]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
@@ -47,6 +49,7 @@ BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #82
 BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale encodings in dialog box [Akilgard]
 BUGFIX: System tray icon re-shown after explorer.exe crash [Rele]
 BUGFIX: Completed downloads shown in different color when Stopped [Nolar]
+BUGFIX: Fix possible data loss when moving complete files if not enough free space avail: Bug #855284 [Nolar]
 
 
 
