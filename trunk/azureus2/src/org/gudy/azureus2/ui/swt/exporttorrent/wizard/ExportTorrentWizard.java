@@ -71,9 +71,12 @@ ExportTorrentWizard
 	
 		setFirstPanel(output_panel);
 	}
+	
  	public void 
  	onClose() 
  	{
+ 		// Call the parent class to clean up resources
+ 		super.onClose();	
  	}
 
 	protected void

@@ -64,6 +64,7 @@ public class ConfigureWizard extends Wizard {
   }
   
   public void onClose() {
+  	
     if(!completed && !COConfigurationManager.getBooleanParameter("Wizard Completed",false)) {
       MessageBox mb = new MessageBox(this.getWizardWindow(),SWT.ICON_QUESTION | SWT.YES | SWT.NO);
       mb.setText(MessageText.getString("wizard.close.confirmation"));
@@ -74,5 +75,7 @@ public class ConfigureWizard extends Wizard {
         COConfigurationManager.save();
       }         
     }
+    
+    super.onClose();
   }
 }

@@ -54,7 +54,7 @@ public class Wizard {
   Label errorMessage;
   IWizardPanel currentPanel;
   Composite panel;
-
+  Font titleFont;
   Button previous, next, finish, cancel;
 
   Listener closeCatcher;
@@ -76,7 +76,7 @@ public class Wizard {
     wizardWindow.setLayout(layout);
     wizardWindow.setImage(ImageRepository.getImage("azureus"));
     Composite cTitle = new Composite(wizardWindow, SWT.NULL);
-    Color white = new Color(display, 255, 255, 255);
+    Color white = display.getSystemColor(SWT.COLOR_WHITE);
     cTitle.setBackground(white);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     cTitle.setLayoutData(gridData);
@@ -92,7 +92,8 @@ public class Wizard {
     for(int i = 0 ; i < data.length ; i++) {
       data[i].setStyle(SWT.BOLD);
     }
-    title.setFont(new Font(display, data));
+    titleFont=new Font(display,data);
+    title.setFont(titleFont);
     currentInfo = new Label(cTitle, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     currentInfo.setLayoutData(gridData);
@@ -101,7 +102,7 @@ public class Wizard {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     errorMessage.setLayoutData(gridData);
     errorMessage.setBackground(white);
-    Color red = new Color(display, 255, 0, 0);
+    Color red = display.getSystemColor(SWT.COLOR_RED);
     errorMessage.setForeground(red);
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -366,5 +367,9 @@ public class Wizard {
   }
   
   public void onClose() {
+  	if (titleFont != null && !titleFont.isDisposed()) {
+  		titleFont.dispose();
+  		titleFont=null;
+  	}
   }  
 }

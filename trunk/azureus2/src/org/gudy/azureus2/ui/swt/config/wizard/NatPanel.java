@@ -23,7 +23,6 @@ package org.gudy.azureus2.ui.swt.config.wizard;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -193,7 +192,7 @@ public class NatPanel extends AbstractWizardPanel {
     gridData.heightHint = 100;
     gridData.horizontalSpan = 2;
     textResults.setLayoutData(gridData);
-    textResults.setBackground(new Color(panel.getDisplay(), 255, 255, 255));
+    textResults.setBackground(panel.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
     bTest.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {

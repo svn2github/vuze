@@ -71,7 +71,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
     panel.setLayout(layout);
 
     tasks = new Text(panel, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
-    tasks.setBackground(new Color(wizard.getDisplay(), 255, 255, 255));
+    tasks.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.heightHint = 120;
     tasks.setLayoutData(gridData);

@@ -61,6 +61,8 @@ ImportTorrentWizard
 	public void 
 	onClose() 
 	{
+		// Call the parent class to clean up resources
+		super.onClose();	
 	}
 
 	protected void
