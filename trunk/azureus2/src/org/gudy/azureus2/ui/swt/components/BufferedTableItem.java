@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.ui.swt.components;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
@@ -47,6 +48,10 @@ public abstract class BufferedTableItem {
   public void setImage(Image img) {
     if(position != -1)
       row.setImage(position,img);
+  }
+  
+  public void setForeground(Color color) {
+    row.setForeground(color);
   }
   
   public Rectangle getBounds() {

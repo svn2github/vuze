@@ -216,5 +216,8 @@ DisplayFormatters
 		return( tmp );
 	}
   
+  public static String formatPercentFromThousands(int thousands) {
+    return (thousands / 10) + "." + (thousands % 10) + " %";
+  }
   
 }
