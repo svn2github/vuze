@@ -10,6 +10,7 @@ import java.util.Iterator;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 
@@ -38,14 +39,27 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/string.png", "string");
     loadImage(display, "org/gudy/azureus2/ui/icons/data.png", "data");
     loadImage(display, "org/gudy/azureus2/ui/icons/ipfilter.png", "ipfilter");
+    loadImage(display, "org/gudy/azureus2/ui/icons/start2.png", "start");
+    loadImage(display, "org/gudy/azureus2/ui/icons/stop2.png", "stop");
   }
 
+  
   public static Image loadImage(Display display, String res, String name) {
+    return loadImage(display,res,name,-1,-1,-1);
+  }
+  
+  public static Image loadImage(Display display, String res, String name,int r,int g,int b) {
     Image im = getImage(name);
     if(null == im) {
       InputStream is = ClassLoader.getSystemResourceAsStream(res);
       if(null != is) {
-        im = new Image(display, is);
+        if(r == -1) {
+          im = new Image(display, is);          
+        } else {
+          ImageData icone = new ImageData(is);
+          icone.transparentPixel = icone.palette.getPixel(new RGB(r,g,b));
+          im = new Image(display,icone);
+        }
         images.put(name, im);
       } else {
         System.out.println("ImageRepository:loadImage:: Resource not found: " + res);
