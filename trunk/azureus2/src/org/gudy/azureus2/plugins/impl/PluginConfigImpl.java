@@ -20,8 +20,9 @@ public class PluginConfigImpl
 	implements PluginConfig {
 
 	private ConfigurationManager config;
-	
-	public PluginConfigImpl() {
+	private String key;
+  
+	public PluginConfigImpl(String key) {
 		config = ConfigurationManager.getInstance();
 	}
 	

@@ -23,8 +23,11 @@ package org.gudy.azureus2.plugins.impl;
 
 import java.util.Properties;
 
+import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.Parameter;
+import org.gudy.azureus2.plugins.ui.PluginConfigUIFactory;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
@@ -34,37 +37,56 @@ import org.gudy.azureus2.ui.swt.MainWindow;
  */
 public class PluginInterfaceImpl implements PluginInterface {
   
-    Properties props;
-    String pluginDir;
-  
-    public PluginInterfaceImpl(
-        Properties props,
-        String pluginDir) {
-      this.props = props;
-      this.pluginDir = pluginDir;
-    }
-  
-    public void addView(PluginView view)
-    {
-      MainWindow window = MainWindow.getWindow();
-      if(window != null) {
-        window.addPluginView(view);
-      }
-    } 
+  Properties props;
+  String pluginDir;
+  PluginConfig config;
 
-    public void openTorrentFile(String fileName) {
-      MainWindow.getWindow().openTorrent(fileName);
-    }
+  public PluginInterfaceImpl(
+      String key,
+      Properties props,
+      String pluginDir) {
+    this.props = props;
+    this.pluginDir = pluginDir;
+    this.config = new PluginConfigImpl(key);
+  }
 
-    public void openTorrentURL(String url) {
-      new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url);
+  public void addView(PluginView view)
+  {
+    MainWindow window = MainWindow.getWindow();
+    if(window != null) {
+      window.addPluginView(view);
     }
-        
-    public Properties getPluginProperties() {
-      return props;
-    }
-    
-    public String getPluginDirectoryName() {
-      return pluginDir;
-    }
+  } 
+
+  public void openTorrentFile(String fileName) {
+    MainWindow.getWindow().openTorrent(fileName);
+  }
+
+  public void openTorrentURL(String url) {
+    new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url);
+  }
+      
+  public Properties getPluginProperties() {
+    return props;
+  }
+  
+  public String getPluginDirectoryName() {
+    return pluginDir;
+  }
+
+  public void addConfigUIParameters(Parameter[] parameters) {
+    // TODO Auto-generated method stub
+  }
+
+
+  public PluginConfig getPluginconfig() {
+    return config;
+  }
+
+
+  public PluginConfigUIFactory getPluginConfigUIFactory() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }

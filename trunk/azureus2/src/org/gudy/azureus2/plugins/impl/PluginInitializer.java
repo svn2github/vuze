@@ -85,7 +85,7 @@ public class PluginInitializer {
 
       Class c = classLoader.loadClass((String)props.get("plugin.class"));
       Plugin plugin = (Plugin) c.newInstance();
-      plugin.initialize(new PluginInterfaceImpl(props,directory.getAbsolutePath()));
+      plugin.initialize(new PluginInterfaceImpl(directory.getName(),props,directory.getAbsolutePath()));
     } catch(Exception e) {
       e.printStackTrace();
       System.out.println("Error while loading class :" + ((String)props.get("plugin.class")));      
