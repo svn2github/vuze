@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
  */
 public class SystemTime {
   
-  public static final long TIME_GRANULARITY_MILLIS = 25;   //internal update time ms
+  public static final long TIME_GRANULARITY_MILLIS = 20;   //internal update time ms
   
   private static final SystemTime instance = new SystemTime();
   private final Thread updater;
