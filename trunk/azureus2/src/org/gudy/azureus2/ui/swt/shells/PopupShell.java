@@ -45,7 +45,7 @@ public class PopupShell {
       return;
     }
     
-    shell = new Shell(display,SWT.NO_TRIM | SWT.ON_TOP);            
+    shell = new Shell(display,SWT.NO_TRIM | SWT.ON_TOP );            
     
     Region region = new Region();
     int[] border = {0,0 , 0,144 , 244,144 , 244,0}; 

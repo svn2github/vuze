@@ -107,6 +107,7 @@ import org.gudy.azureus2.ui.swt.animations.shell.TestWindow;
 import org.gudy.azureus2.ui.swt.auth.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
+import org.gudy.azureus2.ui.swt.shells.ErrorPopupShell;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -2911,8 +2912,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 	Throwable	error )
   {
   	String error_message = LGLogger.exceptionToString( error );
-  
-  	showMessageBox( SWT.ICON_ERROR, title, error_message );
+    String msg = error.getMessage();
+  	showMessageBox( SWT.ICON_ERROR, title, error.getMessage(),error_message );
   } 
   
   public static void
@@ -2921,21 +2922,26 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     String		key,
 	String		message )
   {
-  	showMessageBox( type,MessageText.getString(key), message );
+  	showMessageBox( type,MessageText.getString(key), message,null);
   }
   
   public static void
   showMessageBox(
   	final int			type,
     final String		title,
-	final String		message )
+    final String		message,
+    final String details
+   )
   {
-  	Display display = getWindow().getDisplay();
+  	final Display display = getWindow().getDisplay();
   
  	display.asyncExec(new Runnable() {
 		public void 
 		run()
 		{
+      
+      //Uncomment following to restore old popup system.
+      /*
 			MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(), type | SWT.OK );
     	
 			mb.setText(title);
@@ -2943,6 +2949,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 			mb.setMessage(	message );
   	  	
 			mb.open();
+      */
+      
+      ErrorPopupShell eps = new ErrorPopupShell(display,title,message,details);
 		}
  	});
    }
