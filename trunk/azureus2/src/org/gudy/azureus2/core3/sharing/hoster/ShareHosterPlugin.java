@@ -163,7 +163,7 @@ ShareHosterPlugin
 								downloadWillBeRemoved(
 									Download	dl )
 								
-								throws DownloadRemovalVetoException
+									throws DownloadRemovalVetoException
 								{
 									throw( new DownloadRemovalVetoException(MessageText.getString("plugin.sharing.download.remove.veto")));
 								}

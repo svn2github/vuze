@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
@@ -59,8 +58,71 @@ import org.gudy.azureus2.core3.util.*;
 public class GlobalManagerImpl 
 	implements 	GlobalManager
 {
-	private Vector	listeners 			= new Vector();
-	private List	removal_listeners 	= new ArrayList();
+		// GlobalManagerListener support
+		// Must be an async listener to support the non-synchronized invocation of
+		// listeners when a new listener is added and existing downloads need to be
+		// reported
+	
+	private static final int LDT_MANAGER_ADDED			= 1;
+	private static final int LDT_MANAGER_REMOVED		= 2;
+	private static final int LDT_DESTROY_INITIATED		= 3;
+	private static final int LDT_DESTROYED				= 4;
+	
+	private ListenerManager	listeners 	= ListenerManager.createAsyncManager(
+		"GM:ListenDispatcher",
+		new ListenerManagerDispatcher()
+		{
+			public void
+			dispatch(
+				Object		_listener,
+				int			type,
+				Object		value )
+			{
+				GlobalManagerListener	target = (GlobalManagerListener)_listener;
+		
+				if ( type == LDT_MANAGER_ADDED ){
+					
+					target.downloadManagerAdded((DownloadManager)value);
+					
+				}else if ( type == LDT_MANAGER_REMOVED ){
+					
+					target.downloadManagerRemoved((DownloadManager)value);
+					
+				}else if ( type == LDT_DESTROY_INITIATED ){
+					
+					target.destroyInitiated();
+					
+				}else if ( type == LDT_DESTROYED ){
+					
+					target.destroyed();
+					
+				}
+			}
+		});
+	
+		// GlobalManagerDownloadWillBeRemovedListener support
+		// Not async (doesn't need to be and can't be anyway coz it has an exception)
+	
+	private static final int LDT_MANAGER_WBR			= 1;
+	
+	private ListenerManager	removal_listeners 	= ListenerManager.createManager(
+			"GM:DLWBRMListenDispatcher",
+			new ListenerManagerDispatcherWithException()
+			{
+				public void
+				dispatchWithException(
+					Object		_listener,
+					int			type,
+					Object		value )
+				
+					throws GlobalManagerDownloadRemovalVetoException
+				{					
+					GlobalManagerDownloadWillBeRemovedListener	target = (GlobalManagerDownloadWillBeRemovedListener)_listener;
+					
+					target.downloadWillBeRemoved((DownloadManager)value);
+				}
+			});
+	
 	private List 	managers			= new ArrayList();
 	private Map		manager_map			= new HashMap();
 	
@@ -497,15 +559,9 @@ public class GlobalManagerImpl
         		e.printStackTrace();
         	}
         }
-      }
 
-	  synchronized( listeners ){
-	  	
-	  	for (int i=0;i<listeners.size();i++){
-	  		
-	  		((GlobalManagerListener)listeners.elementAt(i)).downloadManagerAdded( manager );
-	  	}
-	  }
+        listeners.dispatch( LDT_MANAGER_ADDED, manager );
+      }
  
       saveDownloads();
       
@@ -527,16 +583,16 @@ public class GlobalManagerImpl
 
   public void 
   removeDownloadManager(
-  		DownloadManager manager) 
+  	DownloadManager manager) 
   
   	throws GlobalManagerDownloadRemovalVetoException
   {
-  	synchronized( removal_listeners ){
-  	
-  		for (int i=0;i<removal_listeners.size();i++){
-  			
-  			((GlobalManagerDownloadWillBeRemovedListener)removal_listeners.get(i)).downloadWillBeRemoved( manager );
-  		}
+  	try{
+  		removal_listeners.dispatchWithException( LDT_MANAGER_WBR, manager );
+  		
+  	}catch( Throwable e ){
+  		
+  		throw((GlobalManagerDownloadRemovalVetoException)e);
   	}
   	
     synchronized (managers){
@@ -557,13 +613,8 @@ public class GlobalManagerImpl
       }
     }
     
-	synchronized( listeners ){
-	  	
-	  for (int i=0;i<listeners.size();i++){
-	  		
-		  ((GlobalManagerListener)listeners.elementAt(i)).downloadManagerRemoved( manager );
-	  }
-	}
+    listeners.dispatch( LDT_MANAGER_REMOVED, manager );
+    
     saveDownloads();
 
     if (manager.getTrackerClient() != null) {
@@ -909,45 +960,33 @@ public class GlobalManagerImpl
 		t.start();
 		*/
 
-  		synchronized( listeners ){
-  			
-  			for (int i=0;i<listeners.size();i++){
-  			
-  				((GlobalManagerListener)listeners.elementAt(i)).destroyed();
-  			}
-  		}
+  		listeners.dispatch( LDT_DESTROYED, null );
   	}
   	
   	public void
   	informDestroyInitiated()
   	{
-  		synchronized( listeners ){
-  			
-  			for (int i=0;i<listeners.size();i++){
-  				
-  				((GlobalManagerListener)listeners.elementAt(i)).destroyInitiated();
-  			}
-  		}
+  		listeners.dispatch( LDT_DESTROY_INITIATED, null );		
   	}
   	
  	public void
 	addListener(
 		GlobalManagerListener	listener )
 	{
-		synchronized( listeners ){
-			
-			if ( isStopped ){
+		if ( isStopped ){
 				
-				listener.destroyed();
+			listener.destroyed();
 				
-			}else{			
+		}else{			
 							
-				listeners.addElement(listener);
+			listeners.addListener(listener);
 			
+			synchronized( managers ){
+					
 				for (int i=0;i<managers.size();i++){
 				
-					listener.downloadManagerAdded((DownloadManager)managers.get(i));
-				}
+					listeners.dispatch( listener, LDT_MANAGER_ADDED, managers.get(i) );
+				}	
 			}
 		}
 	}
@@ -955,25 +994,22 @@ public class GlobalManagerImpl
 	public void
  	removeListener(
 		GlobalManagerListener	listener )
-	{
-		synchronized( listeners ){
-			
-			listeners.removeElement(listener);
-		}
+	{			
+		listeners.removeListener(listener);
 	}
 	
 	public void
 	addDownloadWillBeRemovedListener(
 		GlobalManagerDownloadWillBeRemovedListener	l )
 	{
-		removal_listeners.add( l );
+		removal_listeners.addListener( l );
 	}
 	
 	public void
 	removeDownloadWillBeRemovedListener(
 		GlobalManagerDownloadWillBeRemovedListener	l )
 	{
-		removal_listeners.remove( l );
+		removal_listeners.removeListener( l );
 	}
 	
 

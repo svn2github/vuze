@@ -79,20 +79,9 @@ DownloadManagerImpl
 				downloadManagerAdded(
 					DownloadManager	dm )
 				{
-					synchronized( listeners ){
-						
-						DownloadImpl	dl = new DownloadImpl(dm);
-						
-						downloads.add( dl );
-						
-						download_map.put( dm, dl );
-						
-						for (int i=0;i<listeners.size();i++){
-							
-							((DownloadManagerListener)listeners.get(i)).downloadAdded( dl );
-						}
-					}
+					addDownloadManager( dm );
 				}
+				
 				public void
 				downloadManagerRemoved(
 					DownloadManager	dm )
@@ -140,11 +129,11 @@ DownloadManagerImpl
 					DownloadManager	dm )
 				
 					throws GlobalManagerDownloadRemovalVetoException
-				{
+				{					
 					DownloadImpl	download = (DownloadImpl)download_map.get( dm );
 				
 					if ( download != null ){
-						
+					
 						try{ 
 							download.isRemovable();
 							
@@ -171,6 +160,28 @@ DownloadManagerImpl
 		new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url.toString());
 	}
 	
+	protected void
+	addDownloadManager(
+		DownloadManager	dm )
+	{
+		synchronized( listeners ){
+			
+			if ( download_map.get(dm) == null ){
+	
+				DownloadImpl	dl = new DownloadImpl(dm);
+				
+				downloads.add( dl );
+				
+				download_map.put( dm, dl );
+				
+				for (int i=0;i<listeners.size();i++){
+					
+					((DownloadManagerListener)listeners.get(i)).downloadAdded( dl );
+				}
+			}
+		}
+	}
+	
 	public Download
 	addDownload(
 		Torrent		torrent,
@@ -185,6 +196,8 @@ DownloadManagerImpl
 			
 			throw( new DownloadException( "DownloadManager::addDownload - failed"));
 		}
+		
+		addDownloadManager( dm );
 		
 		return( getDownload( dm ));
 	}
@@ -203,6 +216,8 @@ DownloadManagerImpl
 			
 			throw( new DownloadException( "DownloadManager::addDownload - failed"));
 		}
+		
+		addDownloadManager( dm );
 		
 		return( getDownload( dm ));
 	}
