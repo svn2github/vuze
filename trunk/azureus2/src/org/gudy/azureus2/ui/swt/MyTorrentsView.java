@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -302,7 +303,17 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null) {
-            dm.stopIt();
+            if(dm.getState() == DownloadManager.STATE_SEEDING && dm.getShareRatio() >= 0 && dm.getShareRatio() < 1000 && ConfigurationManager.getInstance().getBooleanParameter("Alert on close",true)) {
+              MessageBox mb = new MessageBox(panel.getShell(),SWT.ICON_WARNING | SWT.YES | SWT.NO);
+              mb.setText(MessageText.getString("seedmore.title"));
+              mb.setMessage(MessageText.getString("seedmore.shareratio") + (dm.getShareRatio()/10) + "% ." + MessageText.getString("seedmore.uploadmore"));
+              int action = mb.open();
+              if(action == SWT.YES)
+                dm.stopIt();  
+            } else {
+              dm.stopIt();
+            }
+            
           }
         }
       }
