@@ -106,7 +106,7 @@ public class SpeedGraphic extends ScaledGraphic {
       int oldAverage = 0;
       Display display = drawCanvas.getDisplay();
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
-        int position = currentPosition - x;
+        int position = currentPosition - x -1;
         if(position < 0)
           position+= 2000;
         int value = values[position];
