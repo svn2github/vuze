@@ -22,9 +22,7 @@ package org.gudy.azureus2.ui.swt.updater;
 
 import java.io.InputStream;
 
-import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloader;
-import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloaderFactory;
-import org.gudy.azureus2.core3.resourcedownloader.ResourceDownloaderListener;
+import org.gudy.azureus2.core3.resourcedownloader.*;
 
 /**
  * @author Olivier Chalouhi
@@ -69,7 +67,21 @@ public class URLDownloader implements ResourceDownloaderListener{
     this.listener.reportPercent(percentage);
   }
   
-  public void cancel() {
-    downloader.cancel();
-  }
+	public void
+	completed(
+		InputStream		data )
+	{
+	}
+	
+	public void
+	failed(
+		ResourceDownloaderException e )
+	{
+	}
+	
+	public void 
+	cancel() 
+	{
+		downloader.cancel();
+	}
 }

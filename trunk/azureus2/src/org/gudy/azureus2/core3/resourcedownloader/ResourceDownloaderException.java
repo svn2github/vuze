@@ -36,4 +36,12 @@ ResourceDownloaderException
 	{
 		super(str);
 	}
+	
+	public
+	ResourceDownloaderException(
+		String		str,
+		Throwable	cause )
+	{
+		super(str, cause);
+	}
 }

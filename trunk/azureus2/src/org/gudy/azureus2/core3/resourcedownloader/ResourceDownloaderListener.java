@@ -25,10 +25,21 @@ package org.gudy.azureus2.core3.resourcedownloader;
  * @author parg
  *
  */
+
+import java.io.*;
+
 public interface 
 ResourceDownloaderListener 
 {
 	public void
 	percentComplete(
 		int		percentage );
+	
+	public void
+	completed(
+		InputStream		data );
+	
+	public void
+	failed(
+		ResourceDownloaderException e );
 }

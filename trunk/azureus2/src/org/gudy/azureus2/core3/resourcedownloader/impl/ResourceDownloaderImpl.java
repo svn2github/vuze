@@ -42,6 +42,7 @@ ResourceDownloaderImpl
 {
 	protected String		url_str;
 	
+	protected InputStream 	input_stream;
 	protected boolean		cancel_download	= false;
 	protected List			listeners		= new ArrayList();
 	
@@ -52,100 +53,141 @@ ResourceDownloaderImpl
 		url_str = _url_str.replaceAll( " ", "%20" );	   
 	}
 	
+	public void
+	asyncDownload()
+	{
+		Thread	t = 
+			new Thread( "ResourceDownloader:asyncDownload")
+			{
+				public void
+				run()
+				{
+					try{
+						download();
+						
+					}catch ( ResourceDownloaderException e ){
+					}
+				}
+			};
+			
+		t.setDaemon(false);
+		
+		t.start();
+	}
+
 	public InputStream
 	download()
 	
 		throws ResourceDownloaderException
 	{
 		try{
-			URL	url = new URL( url_str );
-		      
-			HttpURLConnection	con;
-			
-			if ( url.getProtocol().equalsIgnoreCase("https")){
-		      	
-					// see ConfigurationChecker for SSL client defaults
-
-				HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
-
-					// allow for certs that contain IP addresses rather than dns names
-  	
-				ssl_con.setHostnameVerifier(
-						new HostnameVerifier()
-						{
-							public boolean
-							verify(
-									String		host,
-									SSLSession	session )
+			try{
+				URL	url = new URL( url_str );
+			      
+				HttpURLConnection	con;
+				
+				if ( url.getProtocol().equalsIgnoreCase("https")){
+			      	
+						// see ConfigurationChecker for SSL client defaults
+	
+					HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+	
+						// allow for certs that contain IP addresses rather than dns names
+	  	
+					ssl_con.setHostnameVerifier(
+							new HostnameVerifier()
 							{
-								return( true );
-							}
-						});
-  	
-				con = ssl_con;
-  	
-			}else{
-  	
-				con = (HttpURLConnection) url.openConnection();
-  	
-			}
-  
-			con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-  
-			con.connect();
-
-			int response = con.getResponseCode();
-			
-			if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
-				
-				throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
-			}
-
-			InputStream in = con.getInputStream();
-
-			byte[] buf = new byte[8192];
-			
-			int	total_read	= 0;
-			
-			int size = con.getContentLength();
-			
-			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			
-			while( !cancel_download ){
-				
-				int read = in.read(buf);
-					
-				if (read > 0){
-					
-					baos.write(buf, 0, read);
-					
-					total_read += read;
-			        
-					if (size > 0){
-						
-						informPercentDone(( 100 * total_read ) / size );
-					}
+								public boolean
+								verify(
+										String		host,
+										SSLSession	session )
+								{
+									return( true );
+								}
+							});
+	  	
+					con = ssl_con;
+	  	
 				}else{
-					
-					break;
+	  	
+					con = (HttpURLConnection) url.openConnection();
+	  	
 				}
-			}
-			
-			in.close();
+	  
+				con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+	  
+				con.connect();
+	
+				int response = con.getResponseCode();
+				
+				if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+					
+					throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+				}
+					
+				synchronized( this ){
+					
+					input_stream = con.getInputStream();
+				}
+				
+				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 
-			return( new ByteArrayInputStream( baos.toByteArray()));
+				try{
+					byte[] buf = new byte[8192];
+					
+					int	total_read	= 0;
+					
+						// unfortunately not all servers set content length
+					
+					int size = con.getContentLength();					
+					
+					while( !cancel_download ){
+						
+						int read = input_stream.read(buf);
+							
+						if ( read > 0 ){
+							
+							baos.write(buf, 0, read);
+							
+							total_read += read;
+					        
+							if ( size > 0){
+								
+								informPercentDone(( 100 * total_read ) / size );
+							}
+						}else{
+							
+							break;
+						}
+					}
+				}finally{
+					
+					input_stream.close();
+				}
+	
+				InputStream	res = new ByteArrayInputStream( baos.toByteArray());
+				
+				informComplete( res );
+				
+				return( res );
+				
+			}catch (java.net.MalformedURLException e){
+				
+				throw( new ResourceDownloaderException("Exception while parsing URL '" + url_str + "':" + e.getMessage(), e));
+				
+			}catch (java.net.UnknownHostException e){
+				
+				throw( new ResourceDownloaderException("Exception while initializing download of '" + url_str + "': Unknown Host '" + e.getMessage() + "'", e));
+				
+			}catch (java.io.IOException e ){
+				
+				throw( new ResourceDownloaderException("I/O Exception while downloading '" + url_str + "':" + e.toString(), e ));
+			}
+		}catch( ResourceDownloaderException e ){
 			
-		}catch (java.net.MalformedURLException e){
+			informFailed(e);
 			
-			throw( new ResourceDownloaderException("Exception while parsing URL '" + url_str + "':" + e.getMessage()));
-			
-		}catch (java.net.UnknownHostException e){
-			
-			throw( new ResourceDownloaderException("Exception while initializing download of '" + url_str + "': Unknown Host '" + e.getMessage() + "'"));
-			
-		}catch (java.io.IOException ioe){
-			
-			throw( new ResourceDownloaderException("I/O Exception while downloading '" + url_str + "':" + ioe.toString()));
+			throw( e );
 		}
 	}
 	
@@ -153,6 +195,21 @@ ResourceDownloaderImpl
 	cancel()
 	{
 		cancel_download	= true;
+		
+		synchronized( this ){
+			
+			if ( input_stream != null ){
+				
+				try{
+					input_stream.close();
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		informFailed( new ResourceDownloaderException( "Download cancelled" ));
+
 	}
 	
 	protected void
@@ -162,6 +219,26 @@ ResourceDownloaderImpl
 		for (int i=0;i<listeners.size();i++){
 			
 			((ResourceDownloaderListener)listeners.get(i)).percentComplete(percentage);
+		}
+	}
+	
+	protected void
+	informComplete(
+		InputStream	is )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((ResourceDownloaderListener)listeners.get(i)).completed(is);
+		}
+	}
+	
+	protected void
+	informFailed(
+		ResourceDownloaderException	e )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			((ResourceDownloaderListener)listeners.get(i)).failed(e);
 		}
 	}
 	

@@ -37,6 +37,9 @@ ResourceDownloader
 		throws ResourceDownloaderException;
 	
 	public void
+	asyncDownload();
+	
+	public void
 	cancel();
 	
 	public void
