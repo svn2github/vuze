@@ -152,9 +152,9 @@ StatsWriterImpl
 								
 								writeTag( "FILE_COUNT", torrent.getFiles().length );
 								
-								writeTag( "COMMENT", torrent.getComment());
+								writeTag( "COMMENT", dm.getTorrentComment());
 								
-								writeTag( "CREATED_BY", torrent.getCreatedBy());
+								writeTag( "CREATED_BY", dm.getTorrentCreatedBy());
 								
 								writeTag( "CREATION_DATE", torrent.getCreationDate());
 							}

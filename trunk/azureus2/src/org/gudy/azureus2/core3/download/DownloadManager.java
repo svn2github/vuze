@@ -151,7 +151,10 @@ DownloadManager
 	getTrackerTime();
 	
 	public String
-	getComment();
+	getTorrentComment();
+	
+	public String
+	getTorrentCreatedBy();
 	
 	public int
 	getNbPieces();

@@ -203,29 +203,11 @@ TOTorrentDeserialiseImpl
 					}
 				}else if ( key.equalsIgnoreCase( TK_COMMENT )){
 					
-						// non standard, don't fail if format wrong
+					setComment((byte[])meta_data.get( TK_COMMENT ));
 						
-					try{
-					
-						setComment( readStringFromMetaData( meta_data, TK_COMMENT ));
-						
-					}catch( Exception e ){
-						
-						System.out.println( "TOTorrentDeserialise: comment extraction fails, ignoring");
-					}
-					
 				}else if ( key.equalsIgnoreCase( TK_CREATED_BY )){
 			
-						// non standard, don't fail if format wrong
-						
-					try{
-									
-						setCreatedBy( readStringFromMetaData( meta_data, TK_CREATED_BY ));
-						
-					}catch( Exception e ){
-						
-						System.out.println( "TOTorrentDeserialise: created_by extraction fails, ignoring");
-					}
+					setCreatedBy((byte[])meta_data.get( TK_CREATED_BY ));
 
 				}else if ( key.equalsIgnoreCase( TK_CREATION_DATE )){
 			

@@ -5,15 +5,16 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 
 public class LocaleUtil implements ILocaleUtilChooser {
   
   private static final String systemEncoding = System.getProperty("file.encoding"); //$NON-NLS-1$
   
-  private static final String[] charset = {
+  private static final String[] manual_charset = {
     systemEncoding,
-    "Big5","EUC-JP","EUC-KR","GB18030","GBK","ISO-2022-JP","ISO-2022-KR", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$
+    "Big5","EUC-JP","EUC-KR","GB18030","GB2312","GBK","ISO-2022-JP","ISO-2022-KR", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$
     "Shift_JIS","KOI8-R","UTF-8","windows-1251","ISO-8859-1" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
   };
   
@@ -21,15 +22,56 @@ public class LocaleUtil implements ILocaleUtilChooser {
     "ISO-8859-1", "UTF-8", systemEncoding  //$NON-NLS-1$ //$NON-NLS-2$
   };
   
-  private static final CharsetDecoder[] charsetDecoder = new CharsetDecoder[charset.length];
+  private static String[]			charsetNames;
+  private static CharsetDecoder[] 	charsetDecoder;
   
   static {
-    for (int i = 0; i < charset.length; i++) {
-      try {
-        charsetDecoder[i] = Charset.forName(charset[i]).newDecoder();
-      } catch (Exception ignore) {
-      }
-    }
+  	
+  	ArrayList	decoders 	= new ArrayList();
+  	ArrayList	names		= new ArrayList();
+  	
+	for (int i = 0; i < manual_charset.length; i++) {
+	   try {
+		 CharsetDecoder decoder = Charset.forName(manual_charset[i]).newDecoder();
+		 
+		 decoders.add( decoder );
+		 
+		 names.add( manual_charset[i]);
+		 
+	   } catch (Exception ignore) {
+	   }
+	 }
+
+	/*
+	Map m = Charset.availableCharsets();
+  	
+	Iterator it = m.keySet().iterator();
+
+  	while(it.hasNext()){
+  		
+  		String	charset_name = (String)it.next();
+  		
+  		if ( !names.contains( charset_name)){
+  		
+			try {
+			  CharsetDecoder decoder = Charset.forName(charset_name).newDecoder();
+			 
+			  decoders.add( decoder );
+			  names.add( charset_name );
+			 
+			} catch (Exception ignore) {
+			}
+	  	}
+  	}
+    */
+    
+	charsetDecoder	= new CharsetDecoder[ decoders.size()];
+	
+	decoders.toArray( charsetDecoder);
+	
+	charsetNames = new String[ names.size()];
+	
+	names.toArray( charsetNames );
   }
   
   protected boolean rememberEncodingDecision = true;
@@ -48,17 +90,42 @@ public class LocaleUtil implements ILocaleUtilChooser {
     chooser=ch;
   }
   
-  public static String getCharsetString(byte[] array) throws UnsupportedEncodingException {
+  public static String getCharsetString(byte[] array) throws UnsupportedEncodingException 
+  {
+  	if ( array == null ){
+  		
+  		return( null );
+  	}
+  	
     return new String(array, getCharset(array));
   }
   
-  public static String getCharset(byte[] array) {
+  public static String 
+  getCharset(byte[] array) 
+  {
+  	if ( array == null ){
+  		return( null );
+  	}
     Candidate[] candidates = getCandidates(array);
-    
+  
     String defaultString = candidates[0].name;
     
     Arrays.sort(candidates);
     
+    /*
+	System.out.println( "num candidates = " + candidates.length );
+	for (int i=0;i<candidates.length;i++){
+		Candidate	cand = candidates[i];
+		
+		if ( cand != null ){
+		
+			String	name = cand.getName();
+			
+			System.out.println( cand.getCharset() + "/" + (name==null?-1:name.length()) + "/" + name );
+		}  
+	}
+	*/
+	
     int minlength = candidates[0].name.length();
     
                 /*
@@ -87,14 +154,14 @@ public class LocaleUtil implements ILocaleUtilChooser {
   }
   
   protected static Candidate[] getCandidates(byte[] array) {
-    Candidate[] candidates = new Candidate[charset.length];
+    Candidate[] candidates = new Candidate[charsetDecoder.length];
     int j=0;
-    for (int i = 0; i < charset.length; i++) {
+    for (int i = 0; i < charsetDecoder.length; i++) {
       candidates[i] = new Candidate();
       try {
       	if (charsetDecoder[i] != null) {
         	candidates[j].name = charsetDecoder[i].decode(ByteBuffer.wrap(array)).toString();
-        	candidates[j].charset = charset[i];
+        	candidates[j].charset = charsetNames[i];
         	j++;
       	}
       } catch (Exception ignore) {
@@ -150,8 +217,8 @@ public class LocaleUtil implements ILocaleUtilChooser {
     super();
     if(lastEncoding != null) {
       String encoding = lastEncoding instanceof byte[] ? new String((byte[]) lastEncoding) : (String) lastEncoding;
-      for (int i = 0; i < charset.length; i++) {
-        if(charset[i].equals(encoding)) {
+      for (int i = 0; i < charsetNames.length; i++) {
+        if(charsetNames[i].equals(encoding)) {
           lastChoosedEncoding = encoding;
           return;
         }

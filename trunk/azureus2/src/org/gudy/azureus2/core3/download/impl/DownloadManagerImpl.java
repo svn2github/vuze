@@ -76,12 +76,13 @@ DownloadManagerImpl
   //Used when trackerConnection is not yet created.
   private String trackerUrl;
   
-  //The comment field in the metaData
-  private String comment;
 
   private PEPeerServer server;
   private TOTorrent			torrent;
+  private String torrent_comment;
+  private String torrent_created_by;
   private TRTrackerClient 	tracker_client;
+  
   public DiskManager diskManager;
   public PEPeerManager peerManager;
   
@@ -160,29 +161,40 @@ DownloadManagerImpl
 	private void 
 	readTorrent()
 	{
-		name		= torrentFileName;	// default if things go wrong decoding it
-		trackerUrl	= "";
-		comment		= "";
-		nbPieces	= 0;
+		name				= torrentFileName;	// default if things go wrong decoding it
+		trackerUrl			= "";
+		torrent_comment		= "";
+		torrent_created_by	= "";
+		nbPieces			= 0;
 		
 		try {
   	
 			 torrent	= TOTorrentFactory.deserialiseFromBEncodedFile(new File(torrentFileName));
 			
-          name = LocaleUtil.getCharsetString( torrent.getName());
+             name = LocaleUtil.getCharsetString( torrent.getName());
           
-          if (torrent.isSimpleTorrent()) {
-            File testFile = new File(savePath);
-            if (!testFile.isDirectory()) name = testFile.getName();
-          }
+         	 if (torrent.isSimpleTorrent()){
+          	
+            	File testFile = new File(savePath);
+            
+            	if (!testFile.isDirectory()){
+            		 name = testFile.getName(); 
+            	}
+          	 }
           
 			 trackerUrl = torrent.getAnnounceURL().toString();
          
-			 comment = torrent.getComment();
+			torrent_comment = LocaleUtil.getCharsetString(torrent.getComment());
          
-			 if ( comment == null ){
-				comment	= "";
-			 }
+			if ( torrent_comment == null ){
+			   torrent_comment	= "";
+			}
+			
+			torrent_created_by = LocaleUtil.getCharsetString(torrent.getCreatedBy());
+         
+			if ( torrent_created_by == null ){
+				torrent_created_by	= "";
+			}
 			 
 			 nbPieces = torrent.getPieces().length;
 			 
@@ -545,8 +557,14 @@ DownloadManagerImpl
   /**
    * @return
    */
-  public String getComment() {
-	return comment;
+  public String 
+  getTorrentComment() {
+	return torrent_comment;
+  }
+  
+  public String 
+  getTorrentCreatedBy() {
+	return torrent_created_by;
   }
 
   /**

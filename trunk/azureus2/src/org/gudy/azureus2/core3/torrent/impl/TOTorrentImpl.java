@@ -48,7 +48,7 @@ TOTorrentImpl
 	protected static final String TK_PIECES				= "pieces";
 		
 	private byte[]							torrent_name;
-	private String							comment;
+	private byte[]							comment;
 	private URL								announce_url;
 	private TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl();
 	
@@ -61,7 +61,7 @@ TOTorrentImpl
 	private TOTorrentFileImpl[]	files;
 
 	private long				creation_date;
-	private String				created_by;
+	private byte[]				created_by;
 	
 	private Map					additional_properties 		= new HashMap();
 	private Map					additional_info_properties	= new HashMap();
@@ -191,7 +191,7 @@ TOTorrentImpl
 		
 		if ( comment != null ){
 			
-			writeStringToMetaData( root, TK_COMMENT, comment );			
+			root.put( TK_COMMENT, comment );			
 		}
 		
 		if ( creation_date != 0 ){
@@ -201,7 +201,7 @@ TOTorrentImpl
 		
 		if ( created_by != null ){
 			
-			writeStringToMetaData( root, TK_CREATED_BY, created_by );						
+			root.put( TK_CREATED_BY, created_by );						
 		}
 		
 		Map info = new HashMap();
@@ -323,17 +323,34 @@ TOTorrentImpl
 		return( simple_torrent );
 	}
 	
-	public String
+	public byte[]
 	getComment()
 	{
 		return( comment );
+	}
+	
+	protected void
+	setComment(
+		byte[]		_comment )
+	
+	{
+		comment = _comment;
 	}
 	
 	public void
 	setComment(
 		String	_comment )
 	{
-		comment = _comment;
+		try{
+		
+			setComment( _comment.getBytes( Constants.DEFAULT_ENCODING ));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			e.printStackTrace();
+			
+			comment = null;
+		}
 	}
 		
 	public URL
@@ -364,12 +381,28 @@ TOTorrentImpl
 	
 	protected void
 	setCreatedBy(
-		String		str )
+		byte[]		_created_by )
 	{
-		created_by	= str;
+		created_by	= _created_by;
 	}
 	
-	public String
+	protected void
+	setCreatedBy(
+		String		_created_by )
+	{
+		try{
+		
+			setCreatedBy( _created_by.getBytes( Constants.DEFAULT_ENCODING ));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			e.printStackTrace();
+			
+			created_by = null;
+		}	
+	}
+	
+	public byte[]
 	getCreatedBy()
 	{
 		return( created_by );

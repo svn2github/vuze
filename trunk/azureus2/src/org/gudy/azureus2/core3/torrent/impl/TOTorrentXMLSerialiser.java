@@ -134,11 +134,13 @@ TOTorrentXMLSerialiser
 				writeLine( "</ANNOUNCE_LIST>");
 			}
 		
-			String comment = torrent.getComment();
+			byte[] comment = torrent.getComment();
 			
 			if ( comment != null ){
 				
-				writeTag( "COMMENT", comment );	
+					// for the moment we'll go with a UTF-8 assumption
+					
+				writeTag( "COMMENT", getUTF(comment));	
 			}
 		
 			long creation_date = torrent.getCreationDate();
@@ -148,11 +150,13 @@ TOTorrentXMLSerialiser
 				writeTag( "CREATION_DATE", creation_date );	
 			}
 		
-			String	created_by = torrent.getCreatedBy();
+			byte[]	created_by = torrent.getCreatedBy();
 			
 			if ( created_by != null ){
-			
-				writeTag( "CREATED_BY", created_by );					
+				
+				// for the moment we'll go with a UTF-8 assumption
+		
+				writeTag( "CREATED_BY", getUTF(created_by));					
 			}
 			
 			writeTag( "TORRENT_HASH", torrent.getHash());
@@ -441,5 +445,20 @@ TOTorrentXMLSerialiser
 										TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 		*/
+	}
+	
+	protected String
+	getUTF(
+		byte[]	bytes )
+	{
+		try{
+			return( new String(bytes,Constants.DEFAULT_ENCODING));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			e.printStackTrace();
+			
+			return( "" );
+		}
 	}
 }

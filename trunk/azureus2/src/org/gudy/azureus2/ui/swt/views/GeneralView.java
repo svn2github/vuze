@@ -404,7 +404,7 @@ public class GeneralView extends AbstractIView {
       ByteFormatter.nicePrintTorrentHash(manager.getTorrent()),
       manager.getNbPieces(),
       manager.getPieceLength(),
-      manager.getComment());
+      manager.getTorrentComment());
   }
 
   /* (non-Javadoc)

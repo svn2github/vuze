@@ -50,7 +50,7 @@ TOTorrent
 	 * @return
 	 */
 	
-	public String
+	public byte[]
 	getComment();
 
 	public void
@@ -69,7 +69,7 @@ TOTorrent
 	setCreationDate(
 		long		date );
 	
-	public String
+	public byte[]
 	getCreatedBy();
 	
 	/**
