@@ -1256,6 +1256,10 @@ StartStopRulesDefaultPlugin
           dl.getState() == Download.ST_STOPPED)
         return false;
 
+      // A torrent with 0 seeds really shouldn't be the first priority
+      if (calcPeersNoUs(dl) == 0)
+        return false;
+
       int shareRatio = dl.getStats().getShareRatio();
       boolean bLastMatched = (shareRatio != -1) && (shareRatio < minQueueingShareRatio);
       boolean bAnyMatched = bLastMatched;
