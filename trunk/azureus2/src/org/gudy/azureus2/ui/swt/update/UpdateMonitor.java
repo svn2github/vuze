@@ -66,9 +66,7 @@ UpdateMonitor
 	protected 
 	UpdateMonitor() 
 	{
-		Timer version_check_timer = new Timer("Auto-update timer");
-
-	    version_check_timer.addPeriodicEvent( 
+	    SimpleTimer.addPeriodicEvent( 
 	            AUTO_UPDATE_CHECK_PERIOD,
 	            new TimerEventPerformer()
 	            {

@@ -41,9 +41,7 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
   GlobalManager manager;
   Map statisticsMap;
   Map overallMap;
-  
-  Timer timer;
-  
+   
   long totalDownloaded;
   long totalUploaded;
   long totalUptime;
@@ -94,8 +92,8 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
     manager.addListener(this);
     load();
     validateAndLoadValues();
-    timer = new Timer("Stats Recorder");
-    timer.addPeriodicEvent(1000 * 60,this);
+
+    SimpleTimer.addPeriodicEvent(1000 * 60,this);
   }
   
 	public String getXMLExport() {

@@ -33,8 +33,11 @@ ThreadPool
 {
 	protected static final int	IDLE_LINGER_TIME	= 10000;
 	
-	protected static final boolean	LOG_WARNINGS	= true;
+	protected static final boolean	LOG_WARNINGS	= false;
 	protected static final int		WARN_TIME		= 10000;
+	
+	protected static List		busy_pools			= new ArrayList();
+	protected static boolean	busy_pool_timer_set	= false;
 	
 	protected String	name;
 	protected int		thread_name_index	= 1;
@@ -45,6 +48,25 @@ ThreadPool
 	protected List		busy;
 	
 	protected Semaphore	thread_sem;
+	
+	protected static void
+	checkAllTimeouts()
+	{
+		List	pools;	
+	
+			// copy the busy pools to avoid potential deadlock due to synchronization
+			// nestings
+		
+		synchronized( busy_pools ){
+			
+			pools	= new ArrayList( busy_pools );
+		}
+		
+		for (int i=0;i<pools.size();i++){
+			
+			((ThreadPool)pools.get(i)).checkTimeouts();
+		}
+	}
 	
 	public
 	ThreadPool(
@@ -95,9 +117,15 @@ ThreadPool
 			
 			allocated_worker.run( runnable );
 		}
-		
-		synchronized( ThreadPool.this ){
 			
+		return( allocated_worker );
+	}
+	
+	protected void
+	checkTimeouts()
+	{
+		synchronized( ThreadPool.this ){
+		
 			long	now = SystemTime.getCurrentTime();
 			
 			for (int i=0;i<busy.size();i++){
@@ -123,21 +151,24 @@ ThreadPool
 						}
 						
 						Runnable r = x.runnable;
-						
-						if ( r instanceof ThreadPoolTask ){
+
+						try{
+							if ( r instanceof ThreadPoolTask ){
+								
+								((ThreadPoolTask)r).interruptTask();
+								
+							}else{
+								
+								x.worker_thread.interrupt();
+							}
+						}catch( Throwable e ){
 							
-							((ThreadPoolTask)r).interruptTask();
-							
-						}else{
-							
-							x.worker_thread.interrupt();
+							e.printStackTrace();
 						}
 					}
 				}
 			}
 		}
-		
-		return( allocated_worker );
 	}
 	
 	public class
@@ -194,6 +225,36 @@ outer:
 										warn_count		= 0;
 										
 										busy.add( threadPoolWorker.this );
+										
+										if ( busy.size() == 1 ){
+											
+											synchronized( busy_pools ){
+												
+												busy_pools.add( ThreadPool.this );
+												
+												if  ( !busy_pool_timer_set ){
+													
+														// we have to defer this action rather
+														// than running as a static initialiser
+														// due to the dependency between
+														// ThreadPool, Timer and ThreadPool again
+													
+													busy_pool_timer_set	= true;
+													
+													SimpleTimer.addPeriodicEvent(
+															WARN_TIME,
+															new TimerEventPerformer()
+															{
+																public void
+																perform(
+																	TimerEvent	event )
+																{
+																	checkAllTimeouts();
+																}
+															});
+												}
+											}
+										}
 									}
 									
 									runnable.run();
@@ -210,6 +271,14 @@ outer:
 										}
 										
 										busy.remove( threadPoolWorker.this );
+										
+										if ( busy.size() == 0 ){
+											
+											synchronized( busy_pools ){
+											
+												busy_pools.remove( ThreadPool.this );
+											}
+										}
 									}
 									
 									runnable	= null;
@@ -246,6 +315,12 @@ outer:
 			//System.out.println( "state = " + _state );
 			
 			state	= _state;
+		}
+		
+		public String
+		getState()
+		{
+			return( state );
 		}
 		
 		protected String

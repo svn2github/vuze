@@ -40,6 +40,12 @@ ThreadPoolTask
 		worker.setState( state );
 	}
 	
+	public String
+	getTaskState()
+	{
+		return( worker.getState());
+	}
+	
 	public abstract void
 	interruptTask();
 }

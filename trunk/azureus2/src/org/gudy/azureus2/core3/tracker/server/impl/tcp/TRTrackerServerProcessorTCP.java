@@ -346,6 +346,8 @@ TRTrackerServerProcessorTCP
 	interruptTask()
 	{
 		try{
+			Debug.out( "Tracker task interrupted in state '" + getTaskState() + "' : processing time limit exceeded" );
+			
 			socket.close();
 																						
 		}catch( Throwable e ){

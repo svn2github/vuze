@@ -1,5 +1,5 @@
 /*
- * Created on 12-May-2004
+ * Created on 12-Jul-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -26,26 +26,31 @@ package org.gudy.azureus2.core3.util;
  * @author parg
  *
  */
+
 public class 
-DelayedEvent 
+SimpleTimer 
 {
-	public
-	DelayedEvent(
-		long			delay_millis,
-		final Runnable	target )
-	{		
-		SimpleTimer.addEvent( SystemTime.getCurrentTime() + delay_millis,
-						new TimerEventPerformer()
-						{
-							public void
-							perform(
-								TimerEvent	event )
-							{
-								try{
-									target.run();
-								}finally{									
-								}
-							}					
-						});
+		/**
+		 * A simple timer class for use by application components that want to schedule 
+		 * low-overhead events (i.e. when fired the event shouldn't take significant processing
+		 * time as there is a limited thread pool to service it 
+		 */
+	
+	protected static final Timer	timer = new Timer("Simple Timer",8);
+	
+	public static TimerEvent
+	addEvent(
+		long				when,
+		TimerEventPerformer	performer )
+	{
+		return(timer.addEvent( when, performer ));
+	}
+	
+	public static TimerEventPeriodic
+	addPeriodicEvent(
+		long				frequency,
+		TimerEventPerformer	performer )
+	{
+		return( timer.addPeriodicEvent( frequency, performer ));
 	}
 }
