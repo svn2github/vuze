@@ -58,19 +58,29 @@ public class
 DiskManagerImpl
 	implements DiskManager, ParameterListener, FMFileOwner 
 {  
-		// each block is PeerManager.BLOCK_SIZE bytes (current 16k)
-	
-	public 	static final int	GLOBAL_WRITE_QUEUE_BLOCK_LIMIT	= 128;	// 0 -> unlimited;
-	
 	private static Semaphore	global_write_queue_block_sem;
+	private static Semaphore	global_check_queue_block_sem;
 	
 	static{
-		global_write_queue_block_sem = new Semaphore(GLOBAL_WRITE_QUEUE_BLOCK_LIMIT);
+		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
+
+		global_write_queue_block_sem = new Semaphore(write_limit_blocks);
 		
-		if ( GLOBAL_WRITE_QUEUE_BLOCK_LIMIT == 0 ){
+		if ( write_limit_blocks == 0 ){
 			
 			global_write_queue_block_sem.releaseForever();
 		}
+		
+		int	check_limit_pieces = COConfigurationManager.getIntParameter("DiskManager Check Queue Piece Limit", 0);
+
+		global_check_queue_block_sem = new Semaphore(check_limit_pieces);
+		
+		if ( check_limit_pieces == 0 ){
+			
+			global_check_queue_block_sem.releaseForever();
+		}
+		
+		// System.out.println( "global writes = " + write_limit_blocks + ", global checks = " + check_limit_pieces );
 	}
 
 	private String	dm_name	= "";
@@ -745,7 +755,9 @@ DiskManagerImpl
 						}else{
 							
 							elt	= (QueueElement)checkQueue.remove(0);
-														
+							
+							global_check_queue_block_sem.release();
+													
 							elt_is_write	= false;
 						}
 					}
@@ -816,6 +828,15 @@ DiskManagerImpl
 				DirectByteBufferPool.freeBuffer(elt.data);
 				
 				elt.data = null;
+			}
+			
+			while (checkQueue.size() != 0){
+				
+				// System.out.println( "releasing global write slot (tidy up)" );
+
+				global_check_queue_block_sem.release();
+				
+				QueueElement elt = (QueueElement)checkQueue.remove(0);
 			}
 		}
 	}
@@ -1110,21 +1131,15 @@ DiskManagerImpl
    public void 
    aSyncCheckPiece(
    		int pieceNumber) 
-   {
-   		//boolean	block_required	= false;
+   {  		
+   		global_check_queue_block_sem.reserve();
    		
-   		synchronized( writeCheckQueueLock ){
-
-   			//block_required = checkQueue.size() >= CHECK_QUEUE_BLOCK_LIMIT;
-		
+  		synchronized( writeCheckQueueLock ){
+ 		
    			checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
     	}
    		
    		writeCheckQueueSem.release();
-   		
-   		//if ( block_required ){
-   		//	check_queue_block_sem.reserve();
-   		//}
    }
   
 

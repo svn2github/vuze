@@ -29,11 +29,14 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.DirectoryDialog;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -68,12 +71,12 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     Label label;
 
     label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.zeronewfiles"); //$NON-NLS-1$
-    BooleanParameter zeroNew = new BooleanParameter(gFile, "Zero New", false); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.zeronewfiles"); 
+    BooleanParameter zeroNew = new BooleanParameter(gFile, "Zero New", false); 
 
     label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); //$NON-NLS-1$
-    BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.incrementalfile"); 
+    BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false); 
 
     //Make the incremental checkbox (button) deselect when zero new is used
     Button[] btnIncremental = {(Button)incremental.getControl()};
@@ -84,12 +87,12 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     incremental.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnZeroNew));
 
     label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.checkOncompletion"); 
     new BooleanParameter(gFile, "Check Pieces on Completion", true);
 
 
     label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.usefastresume"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.usefastresume"); 
     cArea = new Composite(gFile, SWT.NULL);
     layout = new GridLayout();
     layout.marginHeight = 0;
@@ -98,10 +101,10 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     cArea.setLayout(layout);
     cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
-    BooleanParameter bpUseResume = new BooleanParameter(cArea, "Use Resume", true); //$NON-NLS-1$
+    BooleanParameter bpUseResume = new BooleanParameter(cArea, "Use Resume", true); 
 
     label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.saveresumeinterval"); 
     
     gridData = new GridData();
     gridData.widthHint = 30;
@@ -117,7 +120,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 
     // savepath
     label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.defaultsavepath"); 
 
     cArea = new Composite(gFile, SWT.NULL);
     layout = new GridLayout();
@@ -127,10 +130,10 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     cArea.setLayout(layout);
     cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-    BooleanParameter saveDefault = new BooleanParameter(cArea, "Use default data dir", true); //$NON-NLS-1$
+    BooleanParameter saveDefault = new BooleanParameter(cArea, "Use default data dir", true); 
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final StringParameter pathParameter = new StringParameter(cArea, "Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    final StringParameter pathParameter = new StringParameter(cArea, "Default save path", "");  //$NON-NLS-2$
     pathParameter.setLayoutData(gridData);
 
     Button browse = new Button(cArea, SWT.PUSH);
@@ -145,7 +148,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
       public void handleEvent(Event event) {
         DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(pathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); //$NON-NLS-1$
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosedefaultsavepath")); 
         String path = dialog.open();
         if (path != null) {
           pathParameter.setValue(path);
@@ -161,8 +164,8 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 
     // Move Completed
     label = new Label(gFile, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.movecompleted"); //$NON-NLS-1$
-    BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.movecompleted"); 
+    BooleanParameter moveCompleted = new BooleanParameter(gFile, "Move Completed When Done", false); 
 
     Composite gMoveCompleted = new Composite(gFile, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -174,7 +177,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     gMoveCompleted.setLayout(layout);
 
     label = new Label(gMoveCompleted, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.directory"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.directory"); 
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     final StringParameter movePathParameter = new StringParameter(gMoveCompleted, "Completed Files Directory", "");
@@ -189,7 +192,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
       public void handleEvent(Event event) {
         DirectoryDialog dialog = new DirectoryDialog(parent.getShell(), SWT.APPLICATION_MODAL);
         dialog.setFilterPath(movePathParameter.getValue());
-        dialog.setText(MessageText.getString("ConfigView.dialog.choosemovepath")); //$NON-NLS-1$
+        dialog.setText(MessageText.getString("ConfigView.dialog.choosemovepath")); 
         String path = dialog.open();
         if (path != null) {
           movePathParameter.setValue(path);
@@ -199,15 +202,15 @@ public class ConfigSectionFile implements ConfigSectionSWT {
 
 
     Label lMoveTorrent = new Label(gMoveCompleted, SWT.NULL);
-    Messages.setLanguageText(lMoveTorrent, "ConfigView.label.movetorrent"); //$NON-NLS-1$
-    BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted, "Move Torrent When Done", true); //$NON-NLS-1$
+    Messages.setLanguageText(lMoveTorrent, "ConfigView.label.movetorrent"); 
+    BooleanParameter moveTorrent = new BooleanParameter(gMoveCompleted, "Move Torrent When Done", true); 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     moveTorrent.setLayoutData(gridData);
 
     Label lMoveOnly = new Label(gMoveCompleted, SWT.NULL);
-    Messages.setLanguageText(lMoveOnly, "ConfigView.label.moveonlyusingdefaultsave"); //$NON-NLS-1$
-    BooleanParameter moveOnly = new BooleanParameter(gMoveCompleted, "Move Only When In Default Save Dir", true); //$NON-NLS-1$
+    Messages.setLanguageText(lMoveOnly, "ConfigView.label.moveonlyusingdefaultsave"); 
+    BooleanParameter moveOnly = new BooleanParameter(gMoveCompleted, "Move Only When In Default Save Dir", true); 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     moveOnly.setLayoutData(gridData);
@@ -229,7 +232,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     gridData = new GridData();
     gridData.widthHint = 180;
     label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.priorityExtensions"); 
 
     cArea = new Composite(gFile, SWT.NULL);
     layout = new GridLayout();
@@ -240,7 +243,7 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    new StringParameter(cArea, "priorityExtensions", "").setLayoutData(gridData); //$NON-NLS-1$
+    new StringParameter(cArea, "priorityExtensions", "").setLayoutData(gridData); 
 
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.ignoreCase");
@@ -250,15 +253,63 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.file.confirm_data_delete");
     new BooleanParameter(gFile, "Confirm Data Delete", true);
+    
+    
+    Group gPerf = new Group(gFile, SWT.NULL);
+    layout = new GridLayout();
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    layout.marginHeight = 4;
+    layout.marginWidth = 4;
+    layout.numColumns = 3;
+    gPerf.setLayout(layout);
+    gPerf.setLayoutData( gridData );
+    Messages.setLanguageText(gPerf, "ConfigView.section.file.perf");
+
+    label = new Label(gPerf, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.file.perf.explain");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    label.setLayoutData( gridData );
+     
+
     // Max Open Files
     
-    label = new Label(gFile, SWT.NULL);
+    label = new Label(gPerf, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.file.max_open_files");
-    IntParameter file_max_open = new IntParameter(gFile, "File Max Open", 0);
+    IntParameter file_max_open = new IntParameter(gPerf, "File Max Open", 0);
     gridData = new GridData();
     gridData.widthHint = 30;
     file_max_open.setLayoutData( gridData );
+    label = new Label(gPerf, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.file.max_open_files.explain");
     
+    	// write block limit
+    
+    label = new Label(gPerf, SWT.NULL);
+    String label_text = 
+    	MessageText.getString( 
+    		"ConfigView.section.file.write_block_limit", 
+    		new String[]{ DisplayFormatters.formatByteCountToKiBEtc( PEPeerManager.BLOCK_SIZE )});
+    label.setText(label_text);
+    IntParameter write_block_limit = new IntParameter(gPerf, "DiskManager Write Queue Block Limit", 0);
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    write_block_limit.setLayoutData( gridData );
+    label = new Label(gPerf, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.file.write_block_limit.explain");
+         
+    	// check piece limit
+    
+    label = new Label(gPerf, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit");
+    IntParameter check_piece_limit = new IntParameter(gPerf, "DiskManager Check Queue Piece Limit", 0);
+    gridData = new GridData();
+    gridData.widthHint = 30;
+    check_piece_limit.setLayoutData( gridData );
+    label = new Label(gPerf, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit.explain");
+           
     return gFile;
   }
     
