@@ -567,4 +567,13 @@ RPDownload
 		return ("");
  }
   
+  public String getCategoryName() {
+ 		notSupported();
+		return ("");
+  }
+  
+  public void setCategory(String sName) {
+ 		notSupported();
+  }
+  
 }
