@@ -77,6 +77,13 @@ public class TemplateHandler implements httpRequestHandlerIF {
     }
   }
 
+  private void handleConfigFloat(Template tmpl, String name) {
+    String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
+    if (!po.startsWith("!"))
+      tmpl.setParam("Options_" + name + "_D", po);
+    tmpl.setParam("Options_" + name, new Float(COConfigurationManager.getFloatParameter(ExternalUIConst.parameterlegacy.get(name).toString())));
+  }
+
   private void handleConfigInt(Template tmpl, String name) {
     String po = MessageText.getString("ConfigView.label." + UI.messagetextmap.get(name.substring(name.indexOf('_') + 2).toLowerCase()));
     if (!po.startsWith("!"))
@@ -115,7 +122,7 @@ public class TemplateHandler implements httpRequestHandlerIF {
     handleConfigInt(tmpl, "Core_iSaveResumeInterval");
     handleConfigBool(tmpl, "Core_bIncrementalAllocate");
     handleConfigBool(tmpl, "Core_bCheckPiecesOnCompletion");
-    handleConfigInt(tmpl, "Core_iSeedingShareStop");
+    handleConfigFloat(tmpl, "Core_fSeedingShareStop");
     handleConfigInt(tmpl, "Core_iSeedingRatioStop");
     handleConfigBool(tmpl, "Core_bDisconnectSeed");
     handleConfigBool(tmpl, "Core_bSwitchPriority");

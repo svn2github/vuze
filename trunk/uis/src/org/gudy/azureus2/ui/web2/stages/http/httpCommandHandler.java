@@ -88,6 +88,8 @@ public class httpCommandHandler implements WebConst, EventHandlerIF {
         }
         if (option.substring(option.indexOf('_') + 1).startsWith("s"))
           COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(option).toString(), value);
+        else if (option.substring(option.indexOf('_') + 1).startsWith("f"))
+          COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(option).toString(), Float.parseFloat(value));
         else
           COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(option).toString(), Integer.parseInt(value));
       }

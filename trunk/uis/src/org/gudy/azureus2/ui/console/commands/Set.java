@@ -42,6 +42,8 @@ public class Set implements IConsoleCommand {
 					} else {
 						if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s")) {
 							COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), setto);
+						} else if (parameter.substring(parameter.indexOf('_') + 1).startsWith("s")) {
+							COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), Float.parseFloat(setto));
 						} else {
 							COConfigurationManager.setParameter(ExternalUIConst.parameterlegacy.get(parameter).toString(), Integer.parseInt(setto));
 						}

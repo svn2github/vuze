@@ -106,7 +106,7 @@ public class Jhttpp2HTTPSession extends Thread {
         parameterlegacy.put("Core_iSaveResumeInterval", "Save Resume Interval");
         parameterlegacy.put("Core_bIncrementalAllocate", "Enable incremental file creation");
         parameterlegacy.put("Core_bCheckPiecesOnCompletion", "Check Pieces on Completion");
-        parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
+        parameterlegacy.put("Core_fSeedingShareStop", "Stop Ratio");
         parameterlegacy.put("Core_iSeedingRatioStop", "Stop Peers Ratio");
         //parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
         parameterlegacy.put("Core_bSwitchPriority", "Switch Priority");
@@ -387,6 +387,13 @@ public class Jhttpp2HTTPSession extends Thread {
       tmpl.setParam("Options_"+name+"_D", po);
     tmpl.setParam("Options_"+name, COConfigurationManager.getIntParameter(parameterlegacy.get(name).toString()));
   }
+
+  private void handleConfigFloat(Template tmpl, String name) {
+    String po = MessageText.getString("ConfigView.label."+messagetextmap.get(name.substring(name.indexOf('_')+2).toLowerCase()));
+    if (!po.startsWith("!"))
+      tmpl.setParam("Options_"+name+"_D", po);
+    tmpl.setParam("Options_"+name, new Float(COConfigurationManager.getFloatParameter(parameterlegacy.get(name).toString())));
+  }
   
   private void handleConfigBool(Template tmpl, String name) {
     String po = MessageText.getString("ConfigView.label."+messagetextmap.get(name.substring(name.indexOf('_')+2).toLowerCase()));
@@ -419,7 +426,7 @@ public class Jhttpp2HTTPSession extends Thread {
     handleConfigInt(tmpl, "Core_iSaveResumeInterval");
     handleConfigBool(tmpl,"Core_bIncrementalAllocate");
     handleConfigBool(tmpl,"Core_bCheckPiecesOnCompletion");
-    handleConfigInt(tmpl, "Core_iSeedingShareStop");
+    handleConfigFloat(tmpl, "Core_fSeedingShareStop");
     handleConfigInt(tmpl, "Core_iSeedingRatioStop");
     handleConfigBool(tmpl,"Core_bDisconnectSeed");
     handleConfigBool(tmpl,"Core_bSwitchPriority");
@@ -595,6 +602,8 @@ public class Jhttpp2HTTPSession extends Thread {
         }
         if (option.substring(option.indexOf('_')+1).startsWith("s"))
 			COConfigurationManager.setParameter(parameterlegacy.get(option).toString(), value);
+        else if (option.substring(option.indexOf('_')+1).startsWith("f"))
+			COConfigurationManager.setParameter(parameterlegacy.get(option).toString(), Float.parseFloat(value));
         else
 			COConfigurationManager.setParameter(parameterlegacy.get(option).toString(), Integer.parseInt(value));
       }

@@ -39,7 +39,7 @@ public class ExternalUIConst {
 		parameterlegacy.put("Core_iSaveResumeInterval", "Save Resume Interval");
 		parameterlegacy.put("Core_bIncrementalAllocate", "Enable incremental file creation");
 		parameterlegacy.put("Core_bCheckPiecesOnCompletion", "Check Pieces on Completion");
-		parameterlegacy.put("Core_iSeedingShareStop", "Stop Ratio");
+		parameterlegacy.put("Core_fSeedingShareStop", "Stop Ratio");
 		parameterlegacy.put("StartStopManager_bIgnoreRatioPeers", "Stop Peers Ratio");
 		parameterlegacy.put("Core_iSeedingRatioStart", "Start Peers Ratio");
 		parameterlegacy.put("Core_bDisconnectSeed", "Disconnect Seed");
