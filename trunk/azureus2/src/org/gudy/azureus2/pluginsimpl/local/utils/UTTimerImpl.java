@@ -37,6 +37,8 @@ UTTimerImpl
 	implements UTTimer
 {
 	protected Timer		timer;
+
+	protected boolean		destroyed;
 	
 	protected
 	UTTimerImpl(
@@ -51,6 +53,12 @@ UTTimerImpl
 		long						periodic_millis,
 		final UTTimerEventPerformer	performer )
 	{
+		if ( destroyed ){
+			
+			throw( new RuntimeException( "Timer has been destroyed" ));
+			
+		}
+		
 		final timerEvent	res = new timerEvent();
 			
 		TimerEventPeriodic ev = timer.addPeriodicEvent( 
@@ -68,6 +76,14 @@ UTTimerImpl
 		res.setEvent( ev );
 		
 		return( res );
+	}
+	
+	public void
+	destroy()
+	{
+		destroyed	= true;
+		
+		timer.destroy();
 	}
 	
 	protected class

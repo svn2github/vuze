@@ -37,6 +37,8 @@ public class Timer
 		
 	protected long	unique_id_next	= 0;
 	
+	protected boolean	destroyed;
+	
 	public
 	Timer(
 		String	name )
@@ -61,12 +63,17 @@ public class Timer
 	public void
 	run()
 	{
-		while(true){
+		while( true ){
 			
 			try{
 				List	events_to_run = new ArrayList();
 				
 				synchronized(this){
+					
+					if ( destroyed ){
+						
+						break;
+					}
 					
 					if ( events.isEmpty()){
 						
@@ -89,6 +96,11 @@ public class Timer
 						}
 					}
 				
+					if ( destroyed ){
+						
+						break;
+					}
+					
 					long	now = SystemTime.getCurrentTime();
 					
 					Iterator	it = events.iterator();
@@ -171,6 +183,14 @@ public class Timer
 	
 			notify();
 		}
+	}
+	
+	public synchronized void
+	destroy()
+	{
+		destroyed	= true;
+		
+		notify();
 	}
 	
 	public synchronized void

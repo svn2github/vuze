@@ -30,8 +30,23 @@ package org.gudy.azureus2.plugins.utils;
 public interface 
 UTTimer 
 {
+		/**
+		 * Create a periodic event that will fire every specified number of milliseconds until cancelled
+		 * or the timer is destroyed
+		 * @param periodic_millis
+		 * @param performer
+		 * @return
+		 */
+	
 	public UTTimerEvent
 	addPeriodicEvent(
 		long					periodic_millis,
 		UTTimerEventPerformer	performer );
+	
+		/**
+		 * Releases resources associated with this timer and renders it unusable
+		 */
+	
+	public void
+	destroy();
 }
