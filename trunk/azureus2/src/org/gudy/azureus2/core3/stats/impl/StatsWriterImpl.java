@@ -91,6 +91,8 @@ StatsWriterImpl
 		try{
 			indent();
 		
+			writeTag( "AZUREUS_VERSION", Constants.AZUREUS_VERSION );
+			
 			writeLine( "<GLOBAL>" );
 			
 			try{
@@ -142,6 +144,8 @@ StatsWriterImpl
 								
 								writeTag( "HASH", ByteFormatter.nicePrintTorrentHash(torrent, true));
 							
+								writeRawCookedTag( "SIZE", torrent.getSize());
+								
 								writeTag( "PIECE_LENGTH", torrent.getPieceLength());
 								
 								writeTag( "PIECE_COUNT", torrent.getPieces().length );
