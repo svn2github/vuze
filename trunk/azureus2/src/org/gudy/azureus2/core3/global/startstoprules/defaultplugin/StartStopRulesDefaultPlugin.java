@@ -1427,7 +1427,7 @@ public class StartStopRulesDefaultPlugin
     /** Does the torrent match First Priority criteria? */
     public boolean isFirstPriority() {
       if (bDebugLog) sExplainFP = "FP Calculations.  Using " + 
-                                  (iFirstPrioritySeedingMinutes == FIRSTPRIORITY_ALL ? "All": "Any") + 
+                                  (iFirstPriorityType == FIRSTPRIORITY_ALL ? "All": "Any") + 
                                   ":\n";
       
       if (!dl.isPersistent()) {
@@ -1465,7 +1465,7 @@ public class StartStopRulesDefaultPlugin
         long timeSeeding = dl.getStats().getSecondsOnlySeeding();
         if (timeSeeding > 0) {
           bLastMatched = (timeSeeding < (iFirstPrioritySeedingMinutes * 60));
-          if (bDebugLog) sExplainFP += "  SeedingTime("+timeSeeding+") < "+iFirstPrioritySeedingMinutes*60+"="+bLastMatched+"\n";
+          if (bDebugLog) sExplainFP += "  SeedingTime("+timeSeeding+") < "+(iFirstPrioritySeedingMinutes*60)+"="+bLastMatched+"\n";
           if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
             if (bDebugLog) sExplainFP += "..Not FP.  Exit Early\n";
             return false;
@@ -1484,7 +1484,7 @@ public class StartStopRulesDefaultPlugin
         long timeDLing = dl.getStats().getSecondsDownloading();
         if (timeDLing > 0) {
           bLastMatched = (timeDLing < (iFirstPriorityDLMinutes * 60));
-          if (bDebugLog) sExplainFP += "  DLTime("+timeDLing+") < "+iFirstPriorityDLMinutes+"="+bLastMatched+"\n";
+          if (bDebugLog) sExplainFP += "  DLTime("+timeDLing+") < "+(iFirstPriorityDLMinutes*60)+"="+bLastMatched+"\n";
           if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
             if (bDebugLog) sExplainFP += "..Not FP.  Exit Early\n";
             return false;
