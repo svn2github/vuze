@@ -30,14 +30,27 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import com.aelitis.azureus.core.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.download.*;
 
 public class 
 TorrentUtils 
 {
+	private static ThreadLocal		tls	= 
+		new ThreadLocal()
+		{
+			public Object
+			initialValue()
+			{
+				return( new HashMap());
+			}
+		};
+		
 	public static TOTorrent
 	readFromFile(
 		String		file_name )
@@ -553,5 +566,47 @@ TorrentUtils
 			
 			return( new String( torrent.getName()));
 		}
+	}
+	
+	public static void
+	setTLSTorrentHash(
+		byte[]		hash )
+	{
+		((Map)tls.get()).put( "hash", hash );
+	}
+	
+	public static TOTorrent
+	getTLSTorrent()
+	{
+		byte[]	hash = (byte[])((Map)tls.get()).get("hash");
+		
+		if ( hash != null ){
+			
+			try{
+				AzureusCore	core = AzureusCoreFactory.getSingleton();
+				
+				List	managers = core.getGlobalManager().getDownloadManagers();
+				
+				for (int i=0;i<managers.size();i++){
+					
+					DownloadManager	dm = (DownloadManager)managers.get(i);
+					
+					TOTorrent	torrent = dm.getTorrent();
+					
+					if ( torrent != null ){
+						
+						if ( Arrays.equals(torrent.getHash(),hash)){
+							
+							return( torrent );
+						}
+					}
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( null );
 	}
 }

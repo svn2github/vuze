@@ -52,7 +52,11 @@ public class TrackerStatus {
     
   protected AEMonitor hashes_mon 	= new AEMonitor( "TrackerStatus:hashes" );
 
-  public TrackerStatus(TRTrackerScraperImpl	_scraper, String trackerUrl) {    	
+  public 
+  TrackerStatus(
+  	TRTrackerScraperImpl	_scraper, 
+	String 					trackerUrl) 
+  {    	
   	scraper		= _scraper;
     
     hashes = new HashMap();
@@ -222,6 +226,8 @@ public class TrackerStatus {
       try {
       		// if URL already includes a query component then just append our params
       	
+      	byte[]	one_of_the_hashes	= null;
+      	
       	char	first_separator = scrapeURL.indexOf('?')==-1?'?':'&';
       	
         String info_hash = "";
@@ -230,11 +236,25 @@ public class TrackerStatus {
           response.setStatus(TRTrackerScraperResponse.ST_SCRAPING,
                              MessageText.getString("Scrape.status.scraping"));
           byte[] hash = response.getHash();
+          
+          one_of_the_hashes	= hash;
+          
           info_hash += ((i > 0) ? '&' : first_separator) + "info_hash=";
           info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
                                          Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
         }
 
+        if ( one_of_the_hashes == null ){
+        	
+        	Debug.out( "No hashes for scrape" );
+        	
+        }else{
+        	
+        		// set context in case authentication dialog is required
+        	
+        	TorrentUtils.setTLSTorrentHash( one_of_the_hashes );
+        }
+        
         URL reqUrl = new URL(scrapeURL + info_hash);
         
         LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT,

@@ -853,6 +853,10 @@ TRTrackerClientClassicImpl
   		throws Exception
 	{
  		
+   		// set context in case authentication dialog is required
+    	
+    	TorrentUtils.setTLSTorrentHash( torrent_hash );
+    	
  			// loop to possibly retry update on SSL certificate install
  		
  		for (int i=0;i<2;i++){	

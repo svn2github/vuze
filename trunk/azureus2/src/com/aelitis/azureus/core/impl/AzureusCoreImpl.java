@@ -73,6 +73,19 @@ AzureusCoreImpl
 		}
 	}
 	
+	public static AzureusCore
+	getSingleton()
+	
+		throws AzureusCoreException
+	{
+		if ( singleton == null ){
+			
+			throw( new AzureusCoreException( "core not instantiated"));
+		}
+		
+		return( singleton );
+	}	
+
 	protected GlobalManager		global_manager;
 	
 	

@@ -32,6 +32,12 @@ import com.aelitis.azureus.core.impl.*;
 public class 
 AzureusCoreFactory 
 {
+		/**
+		 * Azureus core is a singleton that must be initially created by someone, and initialised
+		 * @return
+		 * @throws AzureusCoreException
+		 */
+	
 	public static AzureusCore
 	create()
 	
@@ -39,4 +45,18 @@ AzureusCoreFactory
 	{
 		return( AzureusCoreImpl.create());
 	}
+	
+		/**
+		 * Once created the singleton can be accessed via this method
+		 * @return
+		 * @throws AzureusCoreException
+		 */
+	
+	public static AzureusCore
+	getSingleton()
+	
+		throws AzureusCoreException
+	{
+		return( AzureusCoreImpl.getSingleton());
+	}	
 }

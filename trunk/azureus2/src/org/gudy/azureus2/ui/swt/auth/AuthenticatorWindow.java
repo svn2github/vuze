@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
@@ -220,6 +221,19 @@ AuthenticatorWindow
 		
 		final authDialog[]	dialog = new authDialog[1];
 		
+		TOTorrent		torrent = TorrentUtils.getTLSTorrent();
+		
+		final	String	torrent_name;
+		
+		if ( torrent == null ){
+			
+			torrent_name	= null;
+			
+		}else{
+			
+			torrent_name	= TorrentUtils.getLocalisedName( torrent );
+		}
+		
 		try{
 			display.asyncExec(
 				new AERunnable()
@@ -227,7 +241,7 @@ AuthenticatorWindow
 					public void
 					runSupport()
 					{
-						dialog[0] = new authDialog( sem, display, realm, tracker );
+						dialog[0] = new authDialog( sem, display, realm, tracker, torrent_name );
 					}
 				});
 		}catch( Throwable e ){
@@ -263,7 +277,8 @@ AuthenticatorWindow
 			AESemaphore		_sem,
 			Display			display,
 			String			realm,
-			String			tracker )
+			String			tracker,
+			String			torrent_name )
 		{
 			sem	= _sem;
 			
@@ -314,6 +329,20 @@ AuthenticatorWindow
 			gridData.horizontalSpan = 2;
 			tracker_value.setLayoutData(gridData);
 	    		
+			if ( torrent_name != null ){
+				
+				Label torrent_label = new Label(shell,SWT.NULL);
+				torrent_label.setText(MessageText.getString("authenticator.torrent"));
+				gridData = new GridData(GridData.FILL_BOTH);
+				gridData.horizontalSpan = 1;
+				torrent_label.setLayoutData(gridData);
+				
+				Label torrent_value = new Label(shell,SWT.NULL);
+				torrent_value.setText(torrent_name);
+				gridData = new GridData(GridData.FILL_BOTH);
+				gridData.horizontalSpan = 2;
+				torrent_value.setLayoutData(gridData);
+			}
 	    		// user
 	    		
 			Label user_label = new Label(shell,SWT.NULL);
