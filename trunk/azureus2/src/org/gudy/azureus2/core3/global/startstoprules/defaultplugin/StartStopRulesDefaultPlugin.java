@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.TabFolder;
 
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.*;
@@ -40,6 +41,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 public class 
@@ -937,13 +939,14 @@ StartStopRulesDefaultPlugin
       Label label;
       
       Composite gQR = new Composite(parent, SWT.NULL);
+      gQR.addControlListener(new Utils.LabelWrapControlListener());  
       
       layout = new GridLayout();
       layout.numColumns = 2;
       gQR.setLayout(layout);
       
       label = new Label(gQR, SWT.WRAP);
-      gridData = new GridData();
+      gridData = new GridData(GridData.FILL_HORIZONTAL);
       gridData.horizontalSpan = 2;
       label.setLayoutData(gridData);
       Messages.setLanguageText(label, "ConfigView.label.autoSeedingInfo"); //$NON-NLS-1$
@@ -1023,6 +1026,7 @@ StartStopRulesDefaultPlugin
 
 
   class ConfigSectionStopping implements ConfigSection {
+
     public String configSectionGetParentSection() {
       return "ConfigView.section.queue";
     }
@@ -1033,9 +1037,10 @@ StartStopRulesDefaultPlugin
       GridLayout layout;
       Label label;
       Composite gStop = new Composite(parent, SWT.NONE);
+      gStop.addControlListener(new Utils.LabelWrapControlListener());  
   
       layout = new GridLayout();
-      layout.numColumns = 3;
+      layout.numColumns = 2;
       gStop.setLayout(layout);
       gridData = new GridData(GridData.FILL_BOTH);
       gStop.setLayoutData(gridData);
@@ -1043,10 +1048,10 @@ StartStopRulesDefaultPlugin
       
       label = new Label(gStop, SWT.WRAP);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
-      gridData.horizontalSpan = 3;
+      gridData.horizontalSpan = 2;
       label.setLayoutData(gridData);
       Messages.setLanguageText(label, "ConfigView.label.autoStoppingInfo"); //$NON-NLS-1$
-  
+
       label = new Label(gStop, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.stopRatio"); //$NON-NLS-1$
       final String stopRatioLabels[] = new String[11];
@@ -1057,23 +1062,34 @@ StartStopRulesDefaultPlugin
         stopRatioLabels[i] = i + ":" + 1; //$NON-NLS-1$
         stopRatioValues[i] = i;
       }
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new IntListParameter(gStop, "Stop Ratio", 0, stopRatioLabels, stopRatioValues).setLayoutData(gridData);
+      new IntListParameter(gStop, "Stop Ratio", 0, stopRatioLabels, stopRatioValues);
       
-      label = new Label(gStop, SWT.NULL);
+      label = new Label(gStop, SWT.WRAP);
       Messages.setLanguageText(label, "ConfigView.label.stopAfterMinutes"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.widthHint = 30;
-      new IntParameter(gStop, "Stop After Minutes", 0).setLayoutData(gridData);
-      label = new Label(gStop, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.text.minutes"); //$NON-NLS-1$
-      
+      final String stopAfterLabels[] = new String[15];
+      final int stopAfterValues[] = new int[15];
+      String sMinutes = MessageText.getString("ConfigView.text.minutes");
+      String sHours = MessageText.getString("ConfigView.text.hours");
+      int curMin = 30;
+      stopAfterLabels[0] = MessageText.getString("ConfigView.text.ignoreRule");
+      stopAfterValues[0] = 0;
+      for (int i = 1; i < stopAfterValues.length; i++) {
+        stopAfterLabels[i] = (curMin >= 120) ? (curMin / 60) + " " + sHours : (curMin + " " + sMinutes);
+        stopAfterValues[i] = curMin;
+        if (curMin >= 120)
+          curMin += 60;
+        else
+          curMin += 30;
+      }
+      IntListParameter stopAfterParam = new IntListParameter(gStop, "Stop After Minutes", 0, 
+                                                             stopAfterLabels, stopAfterValues);
+      label.setEnabled(false);
+
+
       label = new Label(gStop, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.removeOnStop"); //$NON-NLS-1$
-      gridData = new GridData();
-      gridData.horizontalSpan = 2;
-      new BooleanParameter(gStop, "Remove On Stop", false).setLayoutData(gridData);
+      BooleanParameter removeOnStopParam = new BooleanParameter(gStop, "Remove On Stop", false);
+      label.setEnabled(false);
   
       return gStop;
     }
@@ -1094,3 +1110,4 @@ StartStopRulesDefaultPlugin
     }
   }
 } // class
+

@@ -338,19 +338,20 @@ public class ConfigView extends AbstractIView {
   {
     GridData gridData;
 
+    Composite infoGroup = new Composite(cConfigSection, SWT.NULL);
+    infoGroup.setLayout(new GridLayout());
+    infoGroup.addControlListener(new Utils.LabelWrapControlListener());  
+
     treePlugins = new TreeItem(tree, SWT.NULL);
     Messages.setLanguageText(treePlugins, ConfigSection.SECTION_PLUGINS);
-
-    Composite infoGroup = new Composite(cConfigSection, SWT.NULL);
     treePlugins.setData(infoGroup);
     treePlugins.setData("ID", ConfigSection.SECTION_PLUGINS);
 
-    GridLayout infoLayout = new GridLayout();
-    infoLayout.numColumns = 1;
-    infoGroup.setLayout(infoLayout);
 
     List pluginIFs = PluginInitializer.getPluginInterfaces();
-    Label labelInfo = new Label(infoGroup, SWT.NULL);
+    Label labelInfo = new Label(infoGroup, SWT.WRAP);
+    labelInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    
     int numPlugins = 0;
     for (int i = 0; i < pluginIFs.size(); i++) {
       PluginInterface pluginIF = (PluginInterface)pluginIFs.get(i);
@@ -1494,7 +1495,7 @@ public class ConfigView extends AbstractIView {
     gridData = new GridData();
     label.setLayoutData( gridData );
 
-    Composite gPollStuff = new Composite(gMainTab, SWT.NULL);
+    Group gPollStuff = new Group(gMainTab, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 5;
     gPollStuff.setLayoutData(gridData);

@@ -129,7 +129,7 @@ public class MyTorrentsView extends AbstractIView
     // Default Health to first column and no one will notice ;)
     final String[] tableItemsDL = {
         "health;L;I;18;0"
-        ,"#;R;I;45;1"
+        ,"#;R;I;30;1"
         ,"name;L;S;250;2"
         ,"size;R;I;70;3"
         ,"down;R;I;70;4"
@@ -138,9 +138,9 @@ public class MyTorrentsView extends AbstractIView
         ,"seeds;C;I;60;7"
         ,"peers;C;I;60;8"
         ,"downspeed;R;I;70;9"
-        ,"upspeed;R;I;70;10"    
+        ,"upspeed;R;I;60;10"    
         ,"eta;L;I;70;11"      
-        ,"priority;L;I;70;12"
+        ,"priority;L;I;50;12"
   			
         ,"tracker;L;I;70;-1"
         ,"shareRatio;R;I;70;-1"      
@@ -155,14 +155,14 @@ public class MyTorrentsView extends AbstractIView
   
     final String[] tableItemsSeeder = {
         "health;L;I;18;0"
-        ,"#;R;I;45;1"
+        ,"#;R;I;30;1"
         ,"name;L;S;250;2"
         ,"size;R;I;70;3"
         ,"status;L;I;80;4"      
         ,"seeds;C;I;60;5"
         ,"peers;C;I;60;6"
-        ,"upspeed;R;I;70;7"    
-        ,"priority;L;I;70;8"
+        ,"upspeed;R;I;60;7"    
+        ,"priority;L;I;50;8"
         ,"shareRatio;R;I;70;9"
         ,"up;R;I;70;10"
   			

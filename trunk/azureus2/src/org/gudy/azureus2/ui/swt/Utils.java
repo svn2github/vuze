@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -31,17 +32,22 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /**
@@ -217,4 +223,43 @@ public class Utils {
       }
     });
   }
+
+  /**
+   * Force label to use more vertical space if wrapped and in a GridLayout
+   * Place this listener on the _parent_ of the label
+   * See Eclipse SWT Bug #9866 (GridLayout does not handle wrapped Label properly)
+   * This workaround only works for labels who:
+   *   - horizontally span their whole parent 
+   *     (ie. the parent has 3 columns, the label must span 3 columns)
+   *   - GridData style has GridData.FILL_HORIZONTAL
+   *   - Label style has SWT.WRAP
+   *
+   * @author TuxPaper
+   */
+  public static class LabelWrapControlListener extends ControlAdapter{
+  	public void controlResized(ControlEvent e){
+  	  Composite parent = (Composite)e.widget;
+  	  Control children[] = parent.getChildren();
+  	  if (children.length > 0) {
+  	    Point size = parent.getSize();
+        GridLayout parentLayout = (GridLayout)parent.getLayout();
+        boolean oneChanged = false;
+    	  for (int i = 0; i < children.length; i++) {
+    	    if ((children[i] instanceof Label) &&
+    	        (children[i].getStyle() & SWT.WRAP) == SWT.WRAP) {
+    	      GridData gd = (GridData)children[i].getLayoutData();
+    	      if (gd != null && 
+    	          gd.horizontalSpan == parentLayout.numColumns && 
+    	          gd.horizontalAlignment == GridData.FILL) {
+    		      gd.widthHint = size.x - 2 * parentLayout.marginWidth;
+    		      oneChanged = true;
+    		    }
+    		  }
+    		}
+    		if (oneChanged)
+    		  parent.layout(true);
+    	} // size
+  	} // controlResized
+  } // class
 }
+
