@@ -455,6 +455,9 @@ UpdateWindow
           }
         });
         if(restartRequired) {
+          ((FormData)btnOk.getLayoutData()).width = 150;
+          ((FormData)btnCancel.getLayoutData()).width = 150;
+          updateWindow.layout();
           Messages.setLanguageText(btnOk,"swt.update.window.restart");
           btnCancel.removeListener(SWT.Selection,lCancel);
           Messages.setLanguageText(btnCancel,"swt.update.window.restartLater");
