@@ -709,9 +709,9 @@ TorrentUtils
 		// this class exists to minimise memory requirements by discarding the piece hash values
 		// when "idle" 
 	
-	static final int	PIECE_HASH_TIMEOUT	= 120*1000;
+	private static final int	PIECE_HASH_TIMEOUT	= 3*60*1000;
 	
-	static Map	torrent_delegates = new WeakHashMap();
+	private static Map	torrent_delegates = new WeakHashMap();
 	
 	static{
 		SimpleTimer.addPeriodicEvent(
