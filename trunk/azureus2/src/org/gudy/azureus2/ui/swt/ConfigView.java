@@ -211,11 +211,6 @@ public class ConfigView extends AbstractIView {
     }
     new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$
 
-    /*label = new Label(gTransfer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.useudpdownload"); //$NON-NLS-1$
-    new BooleanParameter(gTransfer, "UDP Download", true); //$NON-NLS-1$
-    */
-    
     Group gDisplay = new Group(gConfig, SWT.NULL);
     Messages.setLanguageText(gDisplay, "ConfigView.section.display"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -239,6 +234,10 @@ public class ConfigView extends AbstractIView {
     layout = new GridLayout();
     layout.numColumns = 2;
     gStart.setLayout(layout);
+
+    label = new Label(gStart, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.showsplash"); //$NON-NLS-1$
+    new BooleanParameter(gStart, "Show Splash", true); //$NON-NLS-1$
 
     label = new Label(gStart, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.autoupdate"); //$NON-NLS-1$

@@ -44,6 +44,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -82,6 +83,7 @@ public class MainWindow implements IComponentListener {
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
+  private static Shell splash;
   
   private static boolean jarDownloaded = false;
   private static boolean updateJar = false;
@@ -266,6 +268,12 @@ public class MainWindow implements IComponentListener {
     if (window != null)
       return;
 
+    //The display
+    display = new Display();
+    if(ConfigurationManager.getInstance().getBooleanParameter("Show Splash", true)) {
+      showSplashWindow();
+    }
+
     window = this;
     this.startServer = server;
     this.globalManager = gm;
@@ -274,8 +282,6 @@ public class MainWindow implements IComponentListener {
     config = null;
     downloadViews = new HashMap();
     downloadBars = new HashMap();
-    //The display
-    display = new Display();
     ImageRepository.loadImages(display);
 
     if(instanceCount == 0) {
@@ -492,7 +498,9 @@ public class MainWindow implements IComponentListener {
       } catch (Exception e) {
       }
     }
-    
+
+    closeSplashWindow();
+
     mainWindow.open();
     updater = new GUIUpdater();
     updater.start();
@@ -607,6 +615,29 @@ public class MainWindow implements IComponentListener {
     Tab.updateLanguage();
 
     setStatusVersion();
+  }
+
+  private void showSplashWindow() {
+    if(splash == null) {
+      splash = new Shell(display, SWT.ON_TOP);
+      Label label = new Label(splash, SWT.NONE);
+      label.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash"));
+      splash.setLayout(new FormLayout());
+      splash.pack();
+      Rectangle splashRect = splash.getBounds();
+      Rectangle displayRect = display.getBounds();
+      int x = (displayRect.width - splashRect.width) / 2;
+      int y = (displayRect.height - splashRect.height) / 2;
+      splash.setLocation(x, y);
+      splash.open();
+    }
+  }
+
+  private void closeSplashWindow() {
+    if(splash != null) {
+      splash.close();
+      splash = null;
+    }
   }
 
   private void showAboutWindow() {
