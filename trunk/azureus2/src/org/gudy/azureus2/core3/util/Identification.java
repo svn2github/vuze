@@ -193,7 +193,22 @@ public class Identification {
       
     }
 
-    return MessageText.getString("PeerSocket.unknown");
+    String sPeerID = "";
+    for (int i = 0; i < peerID.length; i++) {
+      int num = 0xFF & peerID[i];
+      if (num < 16) sPeerID += "0";
+      sPeerID += Integer.toHexString(num).toUpperCase();
+    }
+    sPeerID += ": ";
+    for (int i = 0; i < peerID.length; i++) {
+      if ((int)(0xFF & peerID[i]) < 32)
+        peerID[i] = 32;
+      if ((int)(0xFF & peerID[i]) > 127)
+        peerID[i] = 32;
+    }
+    sPeerID += new String(peerID).replaceAll(" ", "");
+      
+    return MessageText.getString("PeerSocket.unknown") + " (" + sPeerID + ")";
   }
 
 }
