@@ -257,6 +257,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
         
         // TODO: make config option to choose
 */
+        invalidate();
         return;
       }
     }
@@ -364,5 +365,8 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
     } else {
       return getBackground();
     }
+  }
+
+  public void invalidate() {
   }
 }

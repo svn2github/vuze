@@ -120,12 +120,12 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
     if (fillCell) {
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
-/*
         // Enable this for semi-fast visual update with some flicker
         if (gc != null) {
           gc.drawImage(image, 0, 0, imageBounds.width, imageBounds.height, 
                        bounds.x, bounds.y, bounds.width, bounds.height);
         }
+/*
         // _OR_ enable refresh() for slower visual update with lots of flicker
         //refresh();
         
@@ -133,7 +133,8 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
         
         // TODO: make config option to choose
 */
-        //debugOut("doPaint() sizewrong", false);
+        //debugOut("doPaint() sizewrong.  Image="+imageBounds +";us="+bounds, false);
+        invalidate();
         return;
       }
     } else if (imageBounds.width < bounds.width) {
@@ -215,5 +216,8 @@ public abstract class BufferedGraphicTableItem extends BufferedTableItem {
       return new Point(0, 0);
     return new Point(bounds.width - (marginWidth * 2), 
                      bounds.height - (marginHeight * 2));
+  }
+  
+  public void invalidate() {
   }
 }
