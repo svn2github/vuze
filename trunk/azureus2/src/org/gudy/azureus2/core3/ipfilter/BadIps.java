@@ -1,8 +1,8 @@
 /*
- * File    : PEPieceWriteImpl.java
- * Created : 7 nov. 2003 16:04:47
- * By      : Olivier 
- * 
+ * File    : BadIps.java
+ * Created : 10 nov. 2003}
+ * By      : Olivier
+ *
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,30 +18,22 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
-package org.gudy.azureus2.core3.peer;
+package org.gudy.azureus2.core3.ipfilter;
 
+import org.gudy.azureus2.core3.ipfilter.impl.BadIpsImpl;
 
 /**
  * @author Olivier
- * 
+ *
  */
-public class PEPieceWrite {
+public abstract class BadIps {
   
-  public int blockNumber;
-  public PEPeer sender;
-  public byte[] hash;
-  public boolean correct;
-  
-  public PEPieceWrite(int blockNumber,PEPeer sender, byte[] hash) {
-    this(blockNumber,sender,hash,false);
+  public static BadIps getInstance() {
+    return (BadIpsImpl.getInstance());
   }
   
-  public PEPieceWrite(int blockNumber,PEPeer sender, byte[] hash,boolean correct) {
-    this.blockNumber = blockNumber;
-    this.sender = sender;
-    this.hash = hash;
-    this.correct = correct;
-  }
+  public abstract int addWarningForIp(String ip);
   
+  public abstract int getNbWarningForIp(String ip);
+
 }

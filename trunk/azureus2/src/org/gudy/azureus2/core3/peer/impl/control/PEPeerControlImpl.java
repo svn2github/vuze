@@ -1632,7 +1632,7 @@ PEPeerControlImpl
                     IpFilter.getInstance().ban(ip);                    
                   }
                   //Close connection in 2nd
-                  ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false);
+                  ((PEPeerTransport)peer).closeAll(ip + " : has sent too many bad chunks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)",false,false);
                   //Trace the ban in third
                   if(nbWarnings > WARNINGS_LIMIT) {
                     LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");

@@ -52,4 +52,6 @@ IpFilter
 	
 	public abstract int getNbRanges();
 	public abstract int getNbIpsBlocked();
+	
+	public abstract void ban(String ipAddress);
 }

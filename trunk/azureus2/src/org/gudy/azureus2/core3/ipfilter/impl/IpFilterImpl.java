@@ -49,12 +49,14 @@ IpFilterImpl
 	private static IpFilterImpl ipFilter;
   
 	private List ipRanges;
+	private List bannedIps;
   private int ipBlocked;
  
   
 	private IpFilterImpl() {
 	  ipFilter = this;
 	  ipRanges = new ArrayList();
+	  bannedIps = new ArrayList();
 	  ipBlocked = 0;
 	  loadFilters();
 	}
@@ -127,8 +129,12 @@ IpFilterImpl
 	}
   
 	public boolean isInRange(String ipAddress) {
+	  //In all cases, block banned ip addresses
+	  if(isBanned(ipAddress))
+	    return true;
+	  
 	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",false))
-		return false;
+	    return false;
 	  synchronized(ipRanges) { 
 		Iterator iter = ipRanges.iterator();
 		while(iter.hasNext()) {
@@ -141,6 +147,12 @@ IpFilterImpl
 		}
 	  }
 	  return false;
+	}
+	
+	private boolean isBanned(String ipAddress) {
+	  synchronized(bannedIps) {
+	    return bannedIps.contains(ipAddress);
+	  }
 	}
   
 	/**
@@ -162,5 +174,10 @@ IpFilterImpl
 	
 	public int getNbIpsBlocked() {
 	  return ipBlocked;
+	}
+	
+	public void ban(String ipAddress) {
+	  if(!bannedIps.contains(ipAddress))
+	    bannedIps.add(ipAddress);
 	}
 }

@@ -155,4 +155,9 @@ PluginPEPeerWrapper
 	{
 		return( delegate.isOptimisticUnchoke());
 	}
+	
+	public int getNbBadChunks()
+	{
+	  return( delegate.getNbBadChunks());
+	}
 }

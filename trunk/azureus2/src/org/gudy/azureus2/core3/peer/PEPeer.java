@@ -76,4 +76,8 @@ PEPeer
 	public String getClient();
 
 	public boolean isOptimisticUnchoke();
+	
+	public void hasSentABadChunk();
+	
+	public int getNbBadChunks();
 }

@@ -105,4 +105,6 @@ PEPeerManager
 		PEPeerManagerListener	l );
   
   public void pieceAdded(PEPiece piece);
+  
+  public boolean needsMD5CheckOnCompletion(int pieceNumber);
 }

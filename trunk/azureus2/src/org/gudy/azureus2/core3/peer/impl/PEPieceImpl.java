@@ -62,7 +62,7 @@ PEPieceImpl
   
 	this.length = length;
 	nbBlocs = (length + PEPeerManager.BLOCK_SIZE - 1) / PEPeerManager.BLOCK_SIZE;
-  this.writes = new ArrayList(nbBlocs);
+  this.writes = new ArrayList(0);
 	downloaded = new boolean[nbBlocs];
 	requested = new boolean[nbBlocs];
 	written = new boolean[nbBlocs];
@@ -199,7 +199,7 @@ PEPieceImpl
   }
 
 
-  public List getPieceWrites(int blocNumber) {
+  public List getPieceWrites(int blockNumber) {
     List result;
     synchronized(writes) {
       result = new ArrayList(writes);
@@ -207,7 +207,7 @@ PEPieceImpl
     Iterator iter = result.iterator();
     while(iter.hasNext()) {
       PEPieceWrite write = (PEPieceWrite) iter.next();
-      if(write.blocNumber != blocNumber)
+      if(write.blockNumber != blockNumber)
         iter.remove();
     }
     return result;
