@@ -1428,7 +1428,7 @@ TRTrackerClientClassicImpl
     }else {
       //calculate how many peers we should ask for
     	
-      int numwant = calculateNumWant();
+      int numwant = calculateNumWant() * 2; //send 2X as usually 50% of peers are firewalled
 
 
       request.append("&numwant=" + numwant);
@@ -2290,7 +2290,7 @@ TRTrackerClientClassicImpl
 			// use double the num_want as no doubt a fair few connections will fail and
 			// we want to get a decent reconnect rate
 		
-		int	num_want = calculateNumWant() * 2;
+		int	num_want = calculateNumWant() * 4;
 	
 		try{
 			tracker_peer_cache_mon.enter();
