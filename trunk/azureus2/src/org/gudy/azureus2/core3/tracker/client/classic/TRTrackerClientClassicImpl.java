@@ -57,6 +57,7 @@ TRTrackerClientClassicImpl
   
   private String info_hash = "?info_hash=";
   private byte[] peerId;
+  private byte[] version;
   private String peer_id = "&peer_id=";
   private String port;
   private String ip_override;
@@ -84,16 +85,14 @@ TRTrackerClientClassicImpl
 	//Get the Tracker url
 	constructTrackerUrlLists();     
 
-	//Create a peerId
+	//Create our unique peerId
 	peerId = new byte[20];
-	for (int i = 12; i < 20; i++) {
-	  peerId[i] = (byte) (Math.random() * 254);
-	}
-	for (int i = 5; i < 12; i++) {
-	  peerId[i] = azureus[i - 5];
-	}
-	for (int i = 4; i >= 0; i--) {
-	  peerId[i] = (byte) 0;
+   version = Constants.VERSION_ID;
+	for (int i = 0; i < 8; i++) {
+	  peerId[i] = version[i];
+   }
+	for (int i = 8; i < 20; i++) {
+	  peerId[i] = (byte)(Math.random() * 254);
 	}
 
 	// System.out.println("TrackerClient: new peer - " + ByteFormatter.nicePrint(peerId));
