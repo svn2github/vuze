@@ -13,6 +13,7 @@ package org.gudy.azureus2.core3.tracker.client.classic;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.*;
 
 public class TRTrackerScraperResponseImpl 
   implements TRTrackerScraperResponse
@@ -78,19 +79,22 @@ public class TRTrackerScraperResponseImpl
     return status;
   }
   
-  protected void setStatus(int iStatus, String sStatus) {
+  protected void setStatus(int iNewStatus, String sNewStatus) {
     if (last_status != status)
       last_status = status;
-    if (iStatus == TRTrackerScraperResponse.ST_ONLINE) {
+    if (iNewStatus == TRTrackerScraperResponse.ST_ONLINE) {
       status = (isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE;
     } else {
-      status = iStatus;
+      status = iNewStatus;
     }
+    
+    if (sNewStatus == null)
+      return;
 
-    if (sStatus != null && !sLastStatus.equals(sStatus)) {
-      sLastStatus = this.sStatus;
-      this.sStatus = sStatus;
+    if (!sLastStatus.equals(sStatus)) {
+      sLastStatus = sStatus;
     }
+    sStatus = sNewStatus;
   }
   
   protected void revertStatus() {

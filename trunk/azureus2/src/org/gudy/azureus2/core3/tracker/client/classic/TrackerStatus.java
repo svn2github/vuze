@@ -261,7 +261,7 @@ public class TrackerStatus {
           return;
         }
 
-        /* If we requested mutliple hases, but only one was returned, revert to
+        /* If we requested mutliple hashes, but only one was returned, revert to
            Single Hash Scrapes, but continue on to process the one has that was
            returned (it may be a random one from the list)
         */
@@ -317,7 +317,7 @@ public class TrackerStatus {
               // invalid because seeds or peers was < 0.  So, exit.  Scrape
               // manager will run scrapes for each individual hash.
               if (responses.size() > 1 && bSingleHashScrapes)
-                return;
+                continue;
             	response.setNextScrapeStartTime(SystemTime.getCurrentTime() + 
             	                                FAULTY_SCRAPE_RETRY_INTERVAL);
             	response.setStatus(TRTrackerScraperResponse.ST_ERROR,
