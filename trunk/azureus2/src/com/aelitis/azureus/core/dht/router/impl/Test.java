@@ -1,0 +1,109 @@
+/*
+ * Created on 11-Jan-2005
+ * Created by Paul Gardner
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * AELITIS, SARL au capital de 30,000 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
+ */
+
+package com.aelitis.azureus.core.dht.router.impl;
+
+/**
+ * @author parg
+ *
+ */
+
+import org.gudy.azureus2.core3.util.SHA1Hasher;
+
+import com.aelitis.azureus.core.dht.router.*;
+
+
+public class 
+Test 
+{
+	public static void
+	main(
+		String[]	args )
+	{
+		DHTRouter	router = DHTRouterFactory.create();
+		
+		randomTest( router );
+		
+		router.print();
+	}
+	
+	protected static void
+	simpleTest(
+		DHTRouter	router )
+	{
+		router.setNodeID( new byte[]{ 0 });
+		
+		byte[][]	node_ids ={ 
+				{ toByte( "11111111" ) },		
+				{ toByte( "01111111" ) },		
+				{ toByte( "00101111" ) },		
+				{ toByte( "00100111" ) },		
+				//{ toByte( "00111111" ) },		
+		};
+		
+		for (int i=0;i<node_ids.length;i++){
+						
+			router.addNode( node_ids[i] );
+		}
+
+			// byte[]	node_id = new byte[]{ 1,1,1,1 }; //new SHA1Hasher().calculateHash( (""+i).getBytes());
+
+		router.print();
+	}
+	
+	protected static void
+	randomTest(
+		DHTRouter	router )
+	{
+		router.setNodeID( getSHA1());
+		
+		for (int i=0;i<10000;i++){
+			
+			router.addNode( getSHA1());
+		}
+	}
+	
+	protected static long next_sha1_seed = 0;
+	
+	protected static byte[]
+	getSHA1()
+	{
+		return( new SHA1Hasher().calculateHash( ( "" + ( next_sha1_seed++ )).getBytes()));
+	}
+	
+	protected static byte
+	toByte(
+		String	str )
+	{
+		int	res = 0;
+		
+		for (int i=0;i<8;i++){
+		
+			if ( str.charAt(i) == '1' ){
+				
+				res += 1<<(7-i);
+			}
+		}
+		
+		return((byte)res);
+	}
+}
