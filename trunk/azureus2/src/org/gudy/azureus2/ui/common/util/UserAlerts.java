@@ -57,7 +57,13 @@ UserAlerts
 				public void downloadManagerRemoved(DownloadManager removed) 
 				{
 					removed.removeListener(download_manager_listener);
-				}   		
+				}  
+				
+				public void
+				destroyed()
+				{
+					tidyUp();
+				} 		
 			}); 			
      }
 
@@ -82,5 +88,36 @@ UserAlerts
   			
   			e.printStackTrace();
   		}
+  	}
+  	
+  	protected void
+  	tidyUp()
+  	{
+		/*
+		The Java audio system keeps some threads running even after playback is finished.
+		One of them, named "Java Sound event dispatcher", is *not* a daemon
+		thread and keeps the VM alive.
+		We have to locate and interrupt it explicitely.
+		*/
+		
+		try{
+		
+			ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+			
+			Thread[] threadList = new Thread[threadGroup.activeCount()];
+			
+			threadGroup.enumerate(threadList);
+			
+			for (int i = 0;	i < threadList.length;	i++){
+			
+				if("Java Sound event dispatcher".equals(threadList[i].getName())){
+									
+					threadList[i].interrupt();
+				}
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
   	}
 }

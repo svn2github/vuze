@@ -38,4 +38,7 @@ GlobalManagerListener
 	public void
 	downloadManagerRemoved(
 		DownloadManager	dm );
+		
+	public void
+	destroyed();
 }

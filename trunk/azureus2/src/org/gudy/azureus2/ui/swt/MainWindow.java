@@ -1616,7 +1616,13 @@ public class MainWindow implements GlobalManagerListener {
     mw.waitForClose();
   }
 
-
+	// globalmanagerlistener
+	
+  public void
+  destroyed()
+  {
+  }
+  
   public void 
   downloadManagerAdded(
   	final DownloadManager created) 

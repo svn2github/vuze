@@ -480,9 +480,12 @@ public class GlobalManagerImpl
       saveDownloads();
       stopAllDownloads();
       managers.clear();
+      
       isStopped = true;
       
       stats_writer.stop();
+      
+      informDestroyed();
     }
   }
 
@@ -693,17 +696,36 @@ public class GlobalManagerImpl
     }
   }
   
+  	protected void
+  	informDestroyed()
+  	{
+  		synchronized( listeners ){
+  			
+  			for (int i=0;i<listeners.size();i++){
+  			
+  				((GlobalManagerListener)listeners.elementAt(i)).destroyed();
+  			}
+  		}
+  	}
+  	
  	public void
 	addListener(
 		GlobalManagerListener	listener )
 	{
 		synchronized( listeners ){
 			
-			listeners.addElement(listener);
-			
-			for (int i=0;i<managers.size();i++){
+			if ( isStopped ){
 				
-				listener.downloadManagerAdded((DownloadManager)managers.get(i));
+				listener.destroyed();
+				
+			}else{			
+			
+				listeners.addElement(listener);
+			
+				for (int i=0;i<managers.size();i++){
+				
+					listener.downloadManagerAdded((DownloadManager)managers.get(i));
+				}
 			}
 		}
 	}

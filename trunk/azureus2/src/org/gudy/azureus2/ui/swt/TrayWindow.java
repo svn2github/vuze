@@ -204,6 +204,13 @@ public class TrayWindow implements GlobalManagerListener {
     }
   }
 
+  // globalmanagerlistener
+	
+	public void
+	destroyed()
+	{
+	}
+	
   public void updateLanguage() {
     MainWindow.updateMenuText(menu);
   }
