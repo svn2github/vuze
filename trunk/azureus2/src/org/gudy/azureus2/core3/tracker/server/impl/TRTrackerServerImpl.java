@@ -35,12 +35,20 @@ public class
 TRTrackerServerImpl 
 	implements TRTrackerServer
 {
+	protected static final int RETRY_MINIMUM_SECS			= 60;
+	protected static final int RETRY_MINIMUM_MILLIS			= RETRY_MINIMUM_SECS*1000;
+	protected static final int CLIENT_TIMEOUT_MULTIPLIER	= 3;
+	
+	protected static final int TIMEOUT_CHECK 				= RETRY_MINIMUM_MILLIS*CLIENT_TIMEOUT_MULTIPLIER;
+	
 	protected IpFilter	ip_filter	= IpFilter.getInstance();
 	
 	protected int	port;
 	
 	protected Map	torrent_map = new HashMap(); 
 		
+	protected int	current_retry_interval;
+	
 	protected Vector	listeners = new Vector();
 	
 	public
@@ -51,6 +59,13 @@ TRTrackerServerImpl
 	{
 		port					= _port;
 		
+		current_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
+		
+		if ( current_retry_interval < RETRY_MINIMUM_SECS ){
+			
+			current_retry_interval = RETRY_MINIMUM_SECS;
+		}
+
 		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
 
 		try{
@@ -158,22 +173,79 @@ TRTrackerServerImpl
 	protected void
 	timerLoop()
 	{
+		long	time_to_go = TIMEOUT_CHECK;
+		
 		while(true){
 	
 			try{
-				Thread.sleep( getTimeoutIntervalInMillis() );		
+				Thread.sleep( RETRY_MINIMUM_MILLIS );
 				
+				time_to_go -= RETRY_MINIMUM_MILLIS;
+	
+					// recalc tracker interval every minute
+					
+				int	min 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
+				int	max 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Max", DEFAULT_MAX_RETRY_DELAY );
+				int	inc_by 	= COConfigurationManager.getIntParameter("Tracker Poll Inc By", DEFAULT_INC_BY );
+				int	inc_per = COConfigurationManager.getIntParameter("Tracker Poll Inc Per", DEFAULT_INC_PER );
+			
+				int	retry = min;
+						
+				int	clients = 0;
+						
 				synchronized(this){
-					
+						
 					Iterator	it = torrent_map.values().iterator();
-					
+						
 					while(it.hasNext()){
-						
-						Map	temp = new HashMap();
-						
-							// this triggers timeouts...
 							
-						((TRTrackerServerTorrent)it.next()).exportPeersToMap( temp );
+						Map	temp = new HashMap();
+							
+							// this triggers timeouts...
+								
+						TRTrackerServerTorrent	t = (TRTrackerServerTorrent)it.next();
+							
+						clients += t.getPeers().length;
+					}
+				}
+						
+				if ( inc_by > 0 && inc_per > 0 ){
+							
+					retry += inc_by * (clients/inc_per);
+				}
+						
+				if ( max > 0 && retry > max ){
+							
+					retry = max;
+				}
+						
+				if ( retry < RETRY_MINIMUM_SECS ){
+							
+					retry = RETRY_MINIMUM_SECS;
+				}
+						
+				current_retry_interval = retry;
+											
+					// timeout dead clients
+						
+				if ( time_to_go <= 0 ){
+				
+					time_to_go = TIMEOUT_CHECK;
+					
+					synchronized(this){
+						
+						Iterator	it = torrent_map.values().iterator();
+						
+						while(it.hasNext()){
+							
+							Map	temp = new HashMap();
+							
+								// this triggers timeouts...
+								
+							TRTrackerServerTorrent	t = (TRTrackerServerTorrent)it.next();
+							
+							t.exportPeersToMap( temp );
+						}
 					}
 				}
 				
@@ -187,16 +259,10 @@ TRTrackerServerImpl
 	
 	public int
 	getRetryInterval()
-	{
-		return( COConfigurationManager.getIntParameter("Tracker Poll Interval", DEFAULT_RETRY_DELAY ));
+	{		
+		return( current_retry_interval );
 	}
-	
-	protected long
-	getTimeoutIntervalInMillis()
-	{
-		return( getRetryInterval() * 1000 * 3 );
-	}
-	
+		
 	public synchronized void
 	permit(
 		byte[]		_hash )

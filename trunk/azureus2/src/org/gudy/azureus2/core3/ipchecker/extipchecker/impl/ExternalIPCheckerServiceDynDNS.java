@@ -27,36 +27,13 @@ package org.gudy.azureus2.core3.ipchecker.extipchecker.impl;
  */
 public class 
 ExternalIPCheckerServiceDynDNS
-	extends ExternalIPCheckerServiceImpl 
+	extends ExternalIPCheckerServiceSimple
 {
 	protected static final String	CHECKER_URL	= "http://checkip.dyndns.org/";
 	
 	protected
 	ExternalIPCheckerServiceDynDNS()
 	{
-		super( "IPChecker.external.service.dyndns" );
-	}
-	
-	public void
-	initiateCheck(
-		long		timeout )
-	{
-		super.initiateCheck( timeout );
-	}
-	
-	protected void
-	initiateCheckSupport()
-	{
-		reportProgress( "Loading web page '" + CHECKER_URL + "'");
-		
-		String	page = loadPage( CHECKER_URL );
-
-		reportProgress( "Analysing Response" );		
-				
-		String	IP = extractIPAddress( page );
-				
-		reportProgress( "Extracted IP address '" + IP + "'" );
-		
-		informSuccess( IP==null?"":IP );
+		super( "IPChecker.external.service.dyndns", CHECKER_URL );
 	}
 }

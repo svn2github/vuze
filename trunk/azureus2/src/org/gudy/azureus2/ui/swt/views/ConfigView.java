@@ -956,13 +956,61 @@ public class ConfigView extends AbstractIView {
 
 		// row
 		
-	   label = new Label(gTracker, SWT.NULL);
+		label = new Label(gTracker, SWT.NULL);
 		
-	   Messages.setLanguageText(label, "ConfigView.section.tracker.pollinterval"); 
+		Messages.setLanguageText(label, "ConfigView.section.tracker.pollinterval"); 
 		
-	   IntParameter pollInterval = new IntParameter(gTracker, "Tracker Poll Interval", TRHost.DEFAULT_RETRY_DELAY );
-
-	   label = new Label(gTracker, SWT.NULL);
+		label = new Label(gTracker, SWT.NULL);
+		
+		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmin"); 
+		
+		IntParameter pollIntervalMin = new IntParameter(gTracker, "Tracker Poll Interval Min", TRHost.DEFAULT_MIN_RETRY_DELAY );
+	
+		gridData = new GridData();
+		gridData.widthHint = 30;
+		pollIntervalMin.setLayoutData( gridData );
+		
+		// row
+		
+		label = new Label(gTracker, SWT.NULL);
+				
+		label = new Label(gTracker, SWT.NULL);
+		
+		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalmax"); 
+		
+		IntParameter pollIntervalMax = new IntParameter(gTracker, "Tracker Poll Interval Max", TRHost.DEFAULT_MAX_RETRY_DELAY );
+	
+		gridData = new GridData();
+		gridData.widthHint = 30;
+		pollIntervalMax.setLayoutData( gridData );
+		
+		// row
+		
+		label = new Label(gTracker, SWT.NULL);
+				
+		label = new Label(gTracker, SWT.NULL);
+		
+		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincby"); 
+		
+		IntParameter pollIntervalIncBy = new IntParameter(gTracker, "Tracker Poll Inc By", TRHost.DEFAULT_INC_BY );
+		
+		gridData = new GridData();
+		gridData.widthHint = 30;
+		pollIntervalIncBy.setLayoutData( gridData );
+		
+		// row
+		
+		label = new Label(gTracker, SWT.NULL);
+				
+		label = new Label(gTracker, SWT.NULL);
+		
+		Messages.setLanguageText(label, "ConfigView.section.tracker.pollintervalincper"); 
+		
+		IntParameter pollIntervalIncPer = new IntParameter(gTracker, "Tracker Poll Inc Per", TRHost.DEFAULT_INC_PER );
+		
+		gridData = new GridData();
+		gridData.widthHint = 30;
+		pollIntervalIncPer.setLayoutData( gridData );
 		
 	   // row
 		
@@ -985,71 +1033,23 @@ public class ConfigView extends AbstractIView {
     
 	  check_button.addListener(SWT.Selection, new Listener() {
 
-		 public void 
-		 handleEvent(Event event) 
-		 {
+ 	  public void 
+	  handleEvent(Event event) 
+	  {
       IpCheckerWizard wizard = new IpCheckerWizard(cConfig.getDisplay());
       wizard.setIpSetterCallBack(new IpSetterCallBack() {
         public void setIp(final String ip) {
           if(display == null || display.isDisposed())
             return;
-          display.asyncExec(new Runnable() {
+            display.asyncExec(new Runnable() {
             public void run() {
               if(tracker_ip != null)
                 tracker_ip.setValue(ip);
             }
           });
         }
-      });
-		 		// hack for the moment - this will kick off "check ip" wizard
-		 	/*	
-			ExternalIPChecker checker = ExternalIPCheckerFactory.create();
-			
-			ExternalIPCheckerService[]	services = checker.getServices();
-			
-			services[0].addListener(
-				new ExternalIPCheckerServiceListener()
-				{
-					public void
-					checkComplete(
-						ExternalIPCheckerService		service,
-						final String					ip )
-					{
-						Display	display = cConfig.getDisplay();
-						
-						if ( !display.isDisposed()){
-						
-							display.asyncExec(
-								new Runnable()
-								{
-							  		public void 
-							  		run() 
-							  		{
-										tracker_ip.setValue( ip );
-							  		}
-								});
-						}
-					}
-		
-					public void
-					checkFailed(
-						ExternalIPCheckerService	service,
-						String						reason )
-					{
-						System.out.println( "oops - " + reason );
-					}
-		
-					public void
-					reportProgress(
-						ExternalIPCheckerService	service,
-						String						message )
-					{
-						System.out.println( "progress - " + message );
-					}
-			});
-			
-			services[0].initiateCheck(10000);
-      */
+       });
+
 		 }
 	   });
 		

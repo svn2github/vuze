@@ -1,7 +1,7 @@
 /*
- * File    : LGLoggerImpl.java
- * Created : 16-Oct-2003
- * By      : stuff
+ * File    : ExternalIPCheckerServiceSimple.java
+ * Created : 10-Nov-2003
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -19,46 +19,54 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.logging.impl;
+package org.gudy.azureus2.core3.ipchecker.extipchecker.impl;
 
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.core3.logging.*;
-
 public class 
-LGLoggerImpl
+ExternalIPCheckerServiceSimple
+	extends ExternalIPCheckerServiceImpl 
 {
-	private static ILoggerListener listener;
-
-	public static synchronized void 
-	log(
-		int componentId, 
-		int event, 
-		int color, 
-		String text) 
+	protected String	url;
+	
+	protected
+	ExternalIPCheckerServiceSimple(
+		String		_key,
+		String		_url )
 	{
-		if( listener !=  null ){
+		super( _key );
 		
-			listener.log(componentId,event,color,text);
-		}    
-	}
-  
-	public static boolean
-	isLoggingOn()
-	{
-		return( listener != null );
+		url		= _url;
 	}
 	
-	public static synchronized void 
-	setListener(ILoggerListener _listener) {
-	  listener = _listener;
+	public void
+	initiateCheck(
+		long		timeout )
+	{
+		super.initiateCheck( timeout );
 	}
-  
-	public static synchronized void 
-	removeListener() {
-	  listener = null;
+	
+	protected void
+	initiateCheckSupport()
+	{
+		reportProgress( "loadingwebpage", url );
+		
+		String	page = loadPage( url );
+
+		if ( page != null ){
+		
+			reportProgress( "analysingresponse" );		
+				
+			String	IP = extractIPAddress( page );
+			
+			if ( IP != null ){	
+		
+				reportProgress( "addressextracted", IP );
+		
+				informSuccess( IP );
+			}
+		}
 	}
 }

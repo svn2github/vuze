@@ -37,11 +37,14 @@ public abstract class
 ExternalIPCheckerServiceImpl 
 	implements ExternalIPCheckerService
 {
-	protected static final int	MAX_PAGE_SIZE	= 4096;
+	protected static final int		MAX_PAGE_SIZE	= 4096;
+	protected static final String	MSG_KEY_ROOT	= "IPChecker.external";
 	
 	protected String		name;
 	protected String		description;
 	protected String		url;
+	
+	protected boolean		completed;
 	
 	protected Vector		listeners	= new Vector();
 	
@@ -56,7 +59,7 @@ ExternalIPCheckerServiceImpl
 	
 	public void
 	initiateCheck(
-		long		timeout )
+		final long		timeout )
 	{
 		Thread	t = 
 			new Thread()
@@ -64,17 +67,59 @@ ExternalIPCheckerServiceImpl
 				public void
 				run()
 				{
-					initiateCheckSupport();
+					try{
+						
+						initiateCheckSupport();
+						
+					}finally{
+						
+						setComplete();
+					}
 				}
 			};
 			
 		t.setDaemon( true );
 		
 		t.start();
+		
+		if ( timeout > 0 ){
+			
+			Thread	t2 = 
+				new Thread()
+				{
+					public void
+					run()
+					{
+						try{
+							
+							Thread.sleep( timeout );
+							
+							if ( !completed ){
+								
+								informFailure( "timeout" );
+							}
+						}catch( InterruptedException e ){
+							
+							e.printStackTrace();
+						}
+					}
+				};
+			
+			t2.setDaemon( true );
+		
+			t2.start();
+			
+		}
 	}
 	
 	protected abstract void
 	initiateCheckSupport();
+	
+	protected void
+	setComplete()
+	{
+		completed = true;
+	}
 	
 	protected String
 	loadPage(
@@ -89,8 +134,6 @@ ExternalIPCheckerServiceImpl
 			
 			try{
 				connection = (HttpURLConnection)url.openConnection();
-			
-				
 				
 				int	response = connection.getResponseCode();
 				
@@ -115,33 +158,34 @@ ExternalIPCheckerServiceImpl
 					}
 					
 					return( page );
+					
 				}else{
 					
-					System.out.println( "invalid response"); // TODO:
+					informFailure( "httpinvalidresponse", "" + response );
 					
 					return( null );
 				}
 			}finally{
 				
-				if ( is != null ){
-					
-					is.close();
-				}
+				try{
 				
-				if ( connection != null ){
+					if ( is != null ){
+						
+						is.close();
+					}
 					
-					connection.disconnect();
+					if ( connection != null ){
+						
+						connection.disconnect();
+					}
+				}catch( Throwable e){
+					
+					e.printStackTrace();
 				}
 			}
-		}catch( MalformedURLException e ){
+		}catch( Throwable e ){
 			
-			e.printStackTrace();
-			
-			return( null );
-	
-		}catch( IOException e ){
-			
-			e.printStackTrace();
+			informFailure( "httploadfail", e.toString());
 			
 			return( null );
 		}
@@ -151,11 +195,6 @@ ExternalIPCheckerServiceImpl
 	extractIPAddress(
 		String		str )
 	{
-		if ( str == null ){
-			
-			return( null );
-		}
-		
 		int		pos = 0;
 		
 		while(pos < str.length()){
@@ -244,9 +283,48 @@ ExternalIPCheckerServiceImpl
 	}
 	
 	protected synchronized void
-	reportProgress(
-		String		message )
+	informFailure(
+		String		msg_key )
 	{
+		informFailure( msg_key, null );
+	}
+	
+	protected synchronized void
+	informFailure(
+		String		msg_key,
+		String		extra )
+	{
+		String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
+		
+		if ( extra != null ){
+			
+			message += ": " + extra;
+		}
+		
+		for ( int i=0;i<listeners.size();i++){
+			
+			((ExternalIPCheckerServiceListener)listeners.elementAt(i)).checkFailed( this, message );
+		}
+	}
+	
+	protected synchronized void
+	reportProgress(
+		String		msg_key )
+	{
+		reportProgress( msg_key,  null );
+	}
+	
+	protected synchronized void
+	reportProgress(
+			String		msg_key,
+			String		extra )
+		{
+		String	message = MessageText.getString( MSG_KEY_ROOT + "." + msg_key );
+		
+		if ( extra != null ){
+			
+			message += ": " + extra;
+		}
 		for ( int i=0;i<listeners.size();i++){
 			
 			((ExternalIPCheckerServiceListener)listeners.elementAt(i)).reportProgress( this, message );

@@ -61,7 +61,8 @@ TRTrackerServerTorrent
 		long		uploaded,
 		long		downloaded,
 		long		left,
-		int			num_peers )
+		int			num_peers,
+		long		interval_requested )
 	{
 		boolean	stopped = event != null && event.equalsIgnoreCase("stopped");
 		
@@ -117,7 +118,7 @@ TRTrackerServerTorrent
 		
 		if ( peer != null ){
 		
-			peer.setLastContactTime( System.currentTimeMillis());
+			peer.setTimeout( System.currentTimeMillis() + ( interval_requested * 1000 * TRTrackerServerImpl.CLIENT_TIMEOUT_MULTIPLIER ));
 		
 			peer.setStats( uploaded, downloaded, left, num_peers );
 		}
@@ -141,7 +142,7 @@ TRTrackerServerTorrent
 	
 			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
 							
-			if ( (now - peer.getLastContactTime()) > server.getTimeoutIntervalInMillis() ){
+			if ( now > peer.getTimeout()){
 							
 				System.out.println( "removing timed out client '" + peer.getString());
 								

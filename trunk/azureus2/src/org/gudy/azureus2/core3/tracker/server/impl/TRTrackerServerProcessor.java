@@ -76,7 +76,19 @@ TRTrackerServerProcessor
 				}
 			}
 	
-			LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + header + "'" );				
+			if ( LGLogger.isLoggingOn()){
+				
+				String	log_str = header;
+				
+				int	pos = log_str.indexOf( NL );
+				
+				if ( pos != -1 ){
+					
+					log_str = log_str.substring(0,pos);
+				}
+				
+				LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
+			}				
 
 			// System.out.println( "got header:" + header );
 			
@@ -251,13 +263,16 @@ TRTrackerServerProcessor
 						throw( new Exception( "peer_id missing from request"));
 					}
 					
+					long	interval = server.getRetryInterval();
+					
 					torrent.peerContact( 	event, 
 											peer_id, port, client_ip_address,
-											uploaded, downloaded, left, num_peers );
+											uploaded, downloaded, left, num_peers,
+											interval );
 					
 					torrent.exportPeersToMap( root );
 	
-					root.put( "interval", new Long( server.getRetryInterval()));
+					root.put( "interval", new Long( interval ));
 					
 				}else{
 					

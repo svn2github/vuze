@@ -39,6 +39,12 @@ LGLogger {
 		LGLoggerImpl.log(componentId,event,ERROR,text + " ('" + e.toString() + "')" );
 	}
 	
+	public static boolean
+	isLoggingOn()
+	{
+		return( LGLoggerImpl.isLoggingOn());
+	}
+	
 	public static void
 	setListener(
 		ILoggerListener	listener )

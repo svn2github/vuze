@@ -37,6 +37,7 @@ ExternalIPCheckerImpl
 	static{
 		services = new ExternalIPCheckerService[]{
 							new ExternalIPCheckerServiceDynDNS(),
+							new ExternalIPCheckerServiceDiscoveryVIP(),
 						};
 	}
 	public ExternalIPCheckerService[]

@@ -31,7 +31,7 @@ TRTrackerServerPeerImpl
 	protected byte[]		ip;
 	protected int			port;
 	
-	protected long			last_contact_time;
+	protected long			timeout;
 	
 	protected long			uploaded;
 	protected long			downloaded;
@@ -68,16 +68,16 @@ TRTrackerServerPeerImpl
 	}
 	
 	protected void
-	setLastContactTime(
+	setTimeout(
 		long		_t )
 	{
-		last_contact_time	= _t;
+		timeout	= _t;
 	}
 	
 	protected long
-	getLastContactTime()
+	getTimeout()
 	{
-		return( last_contact_time );
+		return( timeout );
 	}
 
 	protected void
