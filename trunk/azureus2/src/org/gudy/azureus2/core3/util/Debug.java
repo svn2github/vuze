@@ -289,11 +289,16 @@ public class Debug {
 	{
 		String	last_message	= null;
 		
-		while(e != null){
+		while( true ){
 			
 			if ( e.getMessage() != null ){
 				
 				last_message	= e.getMessage() + ( last_message==null?"":(", " + last_message ));
+			}
+			
+			if ( e.getCause() == null ){
+				
+				break;
 			}
 			
 			e	= e.getCause();
