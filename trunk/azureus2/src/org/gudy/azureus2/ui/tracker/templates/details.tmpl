@@ -118,7 +118,7 @@
               </thead>
 			  <tmpl_loop peer_info>
 	            <tr>
-	              <td><tmpl_var peer_is_seed></td>
+	              <td><tmpl_if peer_is_seed>Yes<tmpl_else>No</tmpl_if></td>
 	              <td><tmpl_var peer_uploaded></td>
 	              <td><tmpl_var peer_downloaded></td>
 	              <td><tmpl_var peer_left></td>

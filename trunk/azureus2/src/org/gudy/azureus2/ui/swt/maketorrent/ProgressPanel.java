@@ -100,21 +100,36 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
   }
 
   public void makeTorrent() {
-    if(!((NewTorrentWizard)wizard).localTracker)
-      TrackersUtil.getInstance().addTracker(((NewTorrentWizard)wizard).trackerURL);
+  	NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
+  	
+    if(!_wizard.localTracker){
+      TrackersUtil.getInstance().addTracker(_wizard.trackerURL);
+    }
+    
     File f;
-    if (((NewTorrentWizard)wizard).mode) {
-      f = new File(((NewTorrentWizard)wizard).directoryPath);
+    
+    if (_wizard.mode) {
+      f = new File(_wizard.directoryPath);
     }
     else {
-      f = new File(((NewTorrentWizard)wizard).singlePath);
+      f = new File(_wizard.singlePath);
     }
 
     try {
-       URL url = new URL(((NewTorrentWizard)wizard).trackerURL);
-      TOTorrent torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(f, url, this);
-      torrent.setComment(((NewTorrentWizard)wizard).getComment());
-      if(((NewTorrentWizard)wizard).useMultiTracker) {
+      URL url = new URL(_wizard.trackerURL);
+      
+      TOTorrent torrent;
+      
+      if ( _wizard.getPieceSizeComputed()){
+      	
+      	torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(f, url, this);
+      	
+      }else{
+      	torrent = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(f,url,_wizard.getPieceSizeManual(),this);
+      }
+      torrent.setComment(_wizard.getComment());
+      
+      if(_wizard.useMultiTracker) {
         this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
         TorrentUtils.listToAnnounceGroups(((NewTorrentWizard)wizard).trackers, torrent);
        }

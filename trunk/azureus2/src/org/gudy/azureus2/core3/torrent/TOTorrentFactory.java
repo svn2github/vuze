@@ -39,6 +39,12 @@ TOTorrentFactory
 	public static final long	TO_DEFAULT_VARIABLE_PIECE_NUM_LOWER = 1024;
 	public static final long	TO_DEFAULT_VARIABLE_PIECE_NUM_UPPER = 2048;
 	
+	
+	public static final long[]	STANDARD_PIECE_SIZES = { 32*1024, 48*1024, 64*1024, 96*1024, 
+														 128*1024, 192*1024, 256*1024, 384*1024,
+														 512*1024, 768*1024, 1024*1024,
+														 1536*1024, 2*1024*1024, 3*1024*1024, 4*1024*1024 };
+	
 		// deserialisation methods
 		
 	public static TOTorrent
@@ -185,5 +191,32 @@ TOTorrentFactory
 						file, announce_url, piece_min_size, piece_max_size,
 						piece_num_lower, piece_num_upper, progress_listener ));
 
+	}
+	
+	public static long
+	getTorrentDataSizeFromFileOrDir(
+		File			file_or_dir )
+	{
+		return( TOTorrentCreateImpl.getTorrentDataSizeFromFileOrDir( file_or_dir ));
+	}	
+	
+	public static long
+	getComputedPieceSize(
+		long 	data_size )
+	{
+		return( TOTorrentCreateImpl.getComputedPieceSize( 
+					data_size,
+					TO_DEFAULT_VARIABLE_PIECE_SIZE_MIN, 
+					TO_DEFAULT_VARIABLE_PIECE_SIZE_MAX,
+					TO_DEFAULT_VARIABLE_PIECE_NUM_LOWER,
+					TO_DEFAULT_VARIABLE_PIECE_NUM_UPPER	));
+	}
+	
+	public static long
+	getPieceCount(
+		long		total_size,
+		long		piece_size )
+	{
+		return( TOTorrentCreateImpl.getPieceCount( total_size, piece_size ));
 	}
 }

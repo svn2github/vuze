@@ -49,7 +49,8 @@ public class NewTorrentWizard extends Wizard {
   String comment = "";
   boolean localTracker = true;
   String trackerURL = "http://";
-  File droppedFile = null;
+  boolean computed_piece_size = true;
+  long	  manual_piece_size;
   
   boolean useMultiTracker = false;
   String multiTrackerConfig = "";
@@ -88,7 +89,7 @@ public class NewTorrentWizard extends Wizard {
             event.detail = DND.DROP_NONE;
           if (event.detail == DND.DROP_NONE)
             return;
-          droppedFile = new File(sourceNames[0]);
+          File droppedFile = new File(sourceNames[0]);
           if (getCurrentPanel() instanceof ModePanel) {
             if (droppedFile.isFile()) {
               singlePath = droppedFile.getAbsolutePath();
@@ -112,4 +113,29 @@ public class NewTorrentWizard extends Wizard {
     });
   }
 
+  protected void
+  setPieceSizeComputed()
+  {
+  	computed_piece_size = true;
+  }
+  
+  public boolean
+  getPieceSizeComputed()
+  {
+  	return( computed_piece_size );
+  }
+  
+  protected void
+  setPieceSizeManual(
+  	long	_value )
+  {
+  	computed_piece_size	= false;
+  	manual_piece_size	= _value;
+  }
+  
+  protected long
+  getPieceSizeManual()
+  {
+  	return( manual_piece_size );
+  }
 }

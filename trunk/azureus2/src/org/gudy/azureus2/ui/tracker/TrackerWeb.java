@@ -306,24 +306,29 @@ TrackerWeb
 					
 					Vector	peer_info = new Vector();
 					
-					for (int j=0;j<peers.length;j++){
+						// peers details for published torrents are dummy and not useful
+					
+					if ( status != TrackerTorrent.TS_PUBLISHED ){
 						
-						Hashtable p_row = new Hashtable();
-						
-						peer_info.add( p_row );
-						
-						TrackerPeer	peer = peers[j];
-						
-						p_row.put( "peer_is_seed", peer.isSeed()?"1":"0" );
-						p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKBEtc(peer.getUploaded()));
-						p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKBEtc(peer.getDownloaded()));
-						p_row.put( "peer_left", DisplayFormatters.formatByteCountToKBEtc(peer.getAmountLeft()));
-						p_row.put( "peer_ip", hideLastIpBlock(peer.getIP()) );
-						p_row.put( "peer_ip_full", peer.getIP());
+						for (int j=0;j<peers.length;j++){
+							
+							Hashtable p_row = new Hashtable();
+							
+							peer_info.add( p_row );
+							
+							TrackerPeer	peer = peers[j];
+							
+							p_row.put( "peer_is_seed", peer.isSeed()?"1":"0" );
+							p_row.put( "peer_uploaded", DisplayFormatters.formatByteCountToKBEtc(peer.getUploaded()));
+							p_row.put( "peer_downloaded", DisplayFormatters.formatByteCountToKBEtc(peer.getDownloaded()));
+							p_row.put( "peer_left", DisplayFormatters.formatByteCountToKBEtc(peer.getAmountLeft()));
+							p_row.put( "peer_ip", hideLastIpBlock(peer.getIP()) );
+							p_row.put( "peer_ip_full", peer.getIP());
+						}
 					}
 					
 					t_row.put( "peer_info", peer_info );
-					t_row.put( "peer_info_count", ""+peers.length );
+					t_row.put( "peer_info_count", ""+peer_info.size());
 				}
 			}
 		}

@@ -29,6 +29,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
@@ -36,6 +37,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
@@ -45,6 +48,9 @@ import org.gudy.azureus2.ui.swt.wizard.*;
  */
 public class SavePathPanel extends AbstractWizardPanel {
 
+	protected long	file_size;
+	protected long	piece_size;
+	protected long	piece_count;	
 
   public SavePathPanel(NewTorrentWizard wizard,AbstractWizardPanel previousPanel) {
     super(wizard,previousPanel);
@@ -54,6 +60,18 @@ public class SavePathPanel extends AbstractWizardPanel {
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#show()
    */
   public void show() {
+  	
+  	final NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
+  	
+  	try{
+  		file_size = TOTorrentFactory.getTorrentDataSizeFromFileOrDir(new File(_wizard.mode?_wizard.directoryPath:_wizard.singlePath));
+  		
+  		piece_size = TOTorrentFactory.getComputedPieceSize( file_size );
+  		
+  		piece_count = TOTorrentFactory.getPieceCount( file_size, piece_size );
+  	}catch( Throwable e ){
+  		e.printStackTrace();
+  	}
     wizard.setTitle(MessageText.getString("wizard.torrentFile"));
     wizard.setCurrentInfo(MessageText.getString("wizard.choosetorrent"));
     Composite panel = wizard.getPanel();
@@ -107,6 +125,94 @@ public class SavePathPanel extends AbstractWizardPanel {
       }
     });   
     Messages.setLanguageText(browse,"wizard.browse");
+ 
+    	// ----------------------
+    
+    label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    label.setLayoutData(gridData);
+  
+    Composite gFileStuff = new Composite(panel, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 3;
+    gFileStuff.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 4;	
+    gFileStuff.setLayout(layout);
+    
+    	// file size
+    
+    label = new Label(gFileStuff, SWT.NULL);
+    Messages.setLanguageText(label, "wizard.maketorrent.filesize");
+    
+    Label file_size_label = new Label(gFileStuff, SWT.NULL);
+    file_size_label.setText( DisplayFormatters.formatByteCountToKBEtc(file_size));
+ 
+    label = new Label(gFileStuff, SWT.NULL);
+    label = new Label(gFileStuff, SWT.NULL);
+    
+    	// piece count
+    
+    label = new Label(gFileStuff, SWT.NULL);
+    Messages.setLanguageText(label, "wizard.maketorrent.piececount");
+    
+    final Label piece_count_label = new Label(gFileStuff, SWT.NULL);
+    piece_count_label.setText( ""+piece_count );
+    label = new Label(gFileStuff, SWT.NULL);
+    label = new Label(gFileStuff, SWT.NULL);
+    
+   		// piece size
+    
+    label = new Label(gFileStuff, SWT.NULL);
+    Messages.setLanguageText(label, "wizard.maketorrent.piecesize");
+    
+    final Label piece_size_label = new Label(gFileStuff, SWT.NULL);
+    gridData = new GridData();
+    gridData.widthHint = 75;
+    piece_size_label.setLayoutData(gridData);
+    piece_size_label.setText( DisplayFormatters.formatByteCountToKBEtc( piece_size ));
+    
+    final Combo manual = new Combo(gFileStuff, SWT.SINGLE | SWT.READ_ONLY);
+ 
+    final long[] sizes = TOTorrentFactory.STANDARD_PIECE_SIZES;
+ 
+    manual.add( MessageText.getString( "wizard.maketorrent.auto"));
+    
+    for (int i=0;i<sizes.length;i++){
+    	manual.add(DisplayFormatters.formatByteCountToKBEtc(sizes[i]));
+    }
+    
+    manual.select(0);
+    
+    manual.addListener(SWT.Selection, new Listener() {
+    	public void 
+    	handleEvent(
+    			Event e) 
+    	{
+    		int	index = manual.getSelectionIndex();
+    		
+    		if ( index == 0 ){
+    			
+    			_wizard.setPieceSizeComputed();
+    			
+    			piece_size = TOTorrentFactory.getComputedPieceSize( file_size );
+    			
+     		}else{
+    			piece_size = sizes[index-1];
+    			
+    			_wizard.setPieceSizeManual(piece_size);	
+    		}
+    		
+    		piece_count = TOTorrentFactory.getPieceCount( file_size, piece_size );
+ 
+    		piece_size_label.setText( DisplayFormatters.formatByteCountToKBEtc(piece_size));
+    		piece_count_label.setText( ""+piece_count );
+    	}
+    });
+    
+    label = new Label(gFileStuff, SWT.NULL);
+   
   }
   
   public IWizardPanel getFinishPanel() {

@@ -79,33 +79,7 @@ TOTorrentCreateImpl
 		
 		long	total_size = calculateTotalFileSize( _torrent_base );
 		
-		long	piece_length = -1;
-		
-		long	current_piece_size = _piece_min_size;
-		
-		while( current_piece_size <= _piece_max_size ){
-			
-			long	pieces = total_size / current_piece_size;
-			
-			if ( pieces <= _piece_num_upper ){
-				
-				piece_length = current_piece_size;
-				
-				break;
-			}
-			
-			current_piece_size = current_piece_size << 1;
-		}
-		
-			// if we haven't set a piece length here then there are too many pieces even
-			// at maximum piece size. Go for largest piece size
-			
-		if ( piece_length == -1 ){
-		
-				// just go for the maximum piece size
-				
-			piece_length = 	_piece_max_size;
-		}
+		long	piece_length = getComputedPieceSize( total_size, _piece_min_size, _piece_max_size, _piece_num_lower, _piece_num_upper );
 		
 		constructFixed( _torrent_base, piece_length );
 	}
@@ -231,7 +205,7 @@ TOTorrentCreateImpl
 		
 		throws TOTorrentException
 	{
-		long	res = (calculateTotalFileSize( file ) + (piece_length-1))/piece_length;
+		long	res = getPieceCount(calculateTotalFileSize( file ), piece_length );
 		
 		report( MessageText.getString("Torrent.create.progress.piececount") + res );
 		
@@ -317,5 +291,94 @@ TOTorrentCreateImpl
 			
 			progress_listener.reportCurrentTask( str );		
 		}
+	}
+	
+	protected static long
+	getTorrentDataSizeFromFileOrDirSupport(
+		File				file )
+	{
+		String	name = file.getName();
+		
+		if ( name.equals( "." ) || name.equals( ".." )){
+			
+			return( 0 );
+		}
+		
+		if ( !file.exists()){
+		
+			return(0);
+		}
+		
+		if ( file.isFile()){
+						
+			return( file.length());
+			
+		}else{
+			
+			File[]	dir_files = file.listFiles();
+			
+			long	length = 0;
+			
+			for (int i=0;i<dir_files.length;i++){
+				
+				length += getTorrentDataSizeFromFileOrDirSupport( dir_files[i] );
+			}
+			
+			return( length );
+		}
+	}
+	
+	public static long
+	getTorrentDataSizeFromFileOrDir(
+		File			file_or_dir )
+	{
+		return( getTorrentDataSizeFromFileOrDirSupport( file_or_dir ));
+	}	
+	
+	public static long
+	getComputedPieceSize(
+		long 	total_size,
+		long	_piece_min_size,
+		long	_piece_max_size,
+		long	_piece_num_lower,
+		long	_piece_num_upper )
+	{
+		long	piece_length = -1;
+		
+		long	current_piece_size = _piece_min_size;
+		
+		while( current_piece_size <= _piece_max_size ){
+			
+			long	pieces = total_size / current_piece_size;
+			
+			if ( pieces <= _piece_num_upper ){
+				
+				piece_length = current_piece_size;
+				
+				break;
+			}
+			
+			current_piece_size = current_piece_size << 1;
+		}
+		
+		// if we haven't set a piece length here then there are too many pieces even
+		// at maximum piece size. Go for largest piece size
+		
+		if ( piece_length == -1 ){
+			
+			// just go for the maximum piece size
+			
+			piece_length = 	_piece_max_size;
+		}
+		
+		return( piece_length );
+	}
+	
+	public static long
+	getPieceCount(
+		long		total_size,
+		long		piece_size )
+	{
+		return( (total_size + (piece_size-1))/piece_size );
 	}
 }
