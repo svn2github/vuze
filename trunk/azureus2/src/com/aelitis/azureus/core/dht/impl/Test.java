@@ -44,19 +44,21 @@ Test
 			int		B			= 1;
 			int		ID_BYTES	= 4;
 			
-			DHT	dht = DHTFactory.create( K, B );
+			DHT	dht1 = DHTFactory.create( K, B );
 			
-			dht.setNodeID( new byte[ID_BYTES] );
+			DHTTransport	transport1 = DHTTransportFactory.createLoopback(ID_BYTES);
 			
-			DHTTransport	transport = DHTTransportFactory.createLoopback(ID_BYTES);
+			dht1.addTransport( transport1 );
 			
-			dht.addTransport( transport );
+			DHT	dht2 = DHTFactory.create( K, B );
 			
-			ByteArrayInputStream	bais = new ByteArrayInputStream( new byte[]{1,2,3,4});
+			DHTTransport	transport2 = DHTTransportFactory.createLoopback(ID_BYTES);
 			
-			transport.importContact( bais );
+			dht2.addTransport( transport2 );			
 			
-			dht.print();
+			transport1.importContact( new ByteArrayInputStream( transport2.getNodeID()));
+			
+			dht1.print();
 			
 		}catch( Throwable e ){
 			

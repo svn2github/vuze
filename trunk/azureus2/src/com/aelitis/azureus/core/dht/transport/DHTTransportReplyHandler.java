@@ -20,65 +20,41 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.impl;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.dht.control.*;
-import com.aelitis.azureus.core.dht.router.*;
-import com.aelitis.azureus.core.dht.transport.*;
+package com.aelitis.azureus.core.dht.transport;
 
 /**
  * @author parg
  *
  */
 
-public class 
-DHTImpl 
-	implements DHT
+public interface 
+DHTTransportReplyHandler 
 {
-	private DHTRouter		router;
-	private DHTControl		control;
-	
-	public 
-	DHTImpl(
-		int		K,
-		int		B )
-	{
-		router	= DHTRouterFactory.create( K, B );
-		
-		control = DHTControlFactory.create( router );
-	}
+	public void
+	pingReply(
+		DHTTransportContact contact );
+			
+	public void
+	storeReply(
+		DHTTransportContact contact );
 	
 	public void
-	addTransport(
-		DHTTransport	transport )
-	{
-		control.addTransport( transport );
-	}
+	findNodeReply(
+		DHTTransportContact 	contact,
+		DHTTransportContact[]	contacts );
 	
 	public void
-	exportState(
-		OutputStream	os )
-	
-		throws IOException
-	{	
-	}
+	findValueReply(
+		DHTTransportContact 	contact,
+		byte[]					value );
 	
 	public void
-	importState(
-		InputStream		is )
-	
-		throws IOException
-	{	
-	}
+	findValueReply(
+		DHTTransportContact 	contact,
+		DHTTransportContact[]	contacts );
 	
 	public void
-	print()
-	{
-		router.print();
-	}
+	failed(
+		DHTTransportContact 	contact );
+
 }

@@ -34,12 +34,6 @@ import com.aelitis.azureus.core.dht.transport.DHTTransport;
 public interface 
 DHT 
 {
-		// all these methods are going to change
-	
-	public void
-	setNodeID(
-		byte[]		id );
-	
 	public void
 	addTransport(
 		DHTTransport	transport );

@@ -20,65 +20,43 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.impl;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.dht.control.*;
-import com.aelitis.azureus.core.dht.router.*;
-import com.aelitis.azureus.core.dht.transport.*;
+package com.aelitis.azureus.core.dht.transport;
 
 /**
  * @author parg
  *
  */
 
-public class 
-DHTImpl 
-	implements DHT
+public interface 
+DHTTransportRequestHandler 
 {
-	private DHTRouter		router;
-	private DHTControl		control;
-	
-	public 
-	DHTImpl(
-		int		K,
-		int		B )
-	{
-		router	= DHTRouterFactory.create( K, B );
+	public void
+	pingRequest(
+		DHTTransportContact contact );
 		
-		control = DHTControlFactory.create( router );
-	}
-	
 	public void
-	addTransport(
-		DHTTransport	transport )
-	{
-		control.addTransport( transport );
-	}
+	storeRequest(
+		DHTTransportContact contact, 
+		byte[]				key,
+		byte[]				value );
 	
+	public DHTTransportContact[]
+	findNodeRequest(
+		DHTTransportContact contact, 
+		byte[]				id );
+	
+	public Object
+	findValueRequest(
+		DHTTransportContact contact, 
+		byte[]				key );
+	
+
+		/**
+		 * Mechanism for reporting that a contact has been imported
+		 * @param contact
+		 */
+
 	public void
-	exportState(
-		OutputStream	os )
-	
-		throws IOException
-	{	
-	}
-	
-	public void
-	importState(
-		InputStream		is )
-	
-		throws IOException
-	{	
-	}
-	
-	public void
-	print()
-	{
-		router.print();
-	}
+	contactImported(
+		DHTTransportContact	contact );
 }

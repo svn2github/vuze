@@ -22,9 +22,12 @@
 
 package com.aelitis.azureus.core.dht.transport.loopback;
 
+import java.util.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+
+import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -37,22 +40,59 @@ public class
 DHTTransportLoopbackImpl
 	implements DHTTransport
 {
+	private static long	node_id_seed_next	= 0;
+	private static Map	node_map	= new HashMap();
+	
+	private byte[]		node_id;
 	private int			id_byte_length;
 	
-	private List		receivers	= new ArrayList();
+	private DHTTransportRequestHandler		request_handler;
 	
 	public
 	DHTTransportLoopbackImpl(
-		int		_id_byte_length )
-	{
+		int							_id_byte_length )
+	{	
 		id_byte_length	= _id_byte_length;
+		
+		synchronized( DHTTransportLoopbackImpl.class ){
+			
+			byte[]	temp = new SHA1Hasher().calculateHash( ( "" + ( node_id_seed_next++ )).getBytes());
+			
+			node_id	= new byte[id_byte_length];
+			
+			System.arraycopy( temp, 0, node_id, 0, id_byte_length );
+			
+			node_map.put( new HashWrapper( node_id ), this );
+		}
+	}
+	
+	public byte[]
+	getNodeID()
+	{
+		return( node_id );
+	}
+	
+	protected DHTTransportLoopbackImpl
+	findTarget(
+		byte[]		id )
+	{
+		synchronized( DHTTransportLoopbackImpl.class ){
+			
+			return((DHTTransportLoopbackImpl)node_map.get( new HashWrapper( id )));
+		}
 	}
 	
 	public void
-	ping(
-		DHTTransportContact	contact )
+	setRequestHandler(
+		DHTTransportRequestHandler	_request_handler )
 	{
-		
+		request_handler = _request_handler;
+	}
+	
+	protected DHTTransportRequestHandler
+	getRequestHandler()
+	{
+		return( request_handler );
 	}
 	
 	public void
@@ -77,20 +117,51 @@ DHTTransportLoopbackImpl
 			read	+= len;
 		}
 		
+		DHTTransportContact contact = new DHTTransportLoopbackContactImpl( this, id );
 		
+		request_handler.contactImported( contact );
 	}
 	
 	public void
-	addReceiver(
-		DHTTransportReceiver	receiver )
+	sendPing(
+		DHTTransportContact			contact,
+		DHTTransportReplyHandler	handler )
 	{
-		receivers.add( receiver );
+		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
+		
+		if ( target == null ){
+			
+			handler.failed(contact);
+		}else{
+			
+			target.getRequestHandler().pingRequest( new DHTTransportLoopbackContactImpl( target, node_id ));
+			
+			handler.pingReply(contact);
+		}
+	}
+		
+	public void
+	sendStore(
+		DHTTransportContact			contact,
+		DHTTransportReplyHandler	handler,
+		byte[]						key,
+		byte[]						value )
+	{
 	}
 	
 	public void
-	removeReceiver(
-		DHTTransportReceiver	receiver )
+	sendFindNode(
+		DHTTransportContact			contact,
+		DHTTransportReplyHandler	handler,
+		byte[]						nid )
 	{
-		receivers.remove( receiver );
+	}
+		
+	public void
+	sendFindValue(
+		DHTTransportContact			contact,
+		DHTTransportReplyHandler	handler,
+		byte[]						key )
+	{
 	}
 }

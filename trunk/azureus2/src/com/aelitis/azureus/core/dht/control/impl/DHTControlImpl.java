@@ -33,7 +33,7 @@ import com.aelitis.azureus.core.dht.transport.*;
 
 public class 
 DHTControlImpl 
-	implements DHTControl
+	implements DHTControl, DHTTransportRequestHandler
 {
 	private DHTRouter		router;
 	
@@ -41,13 +41,60 @@ DHTControlImpl
 	DHTControlImpl(
 		DHTRouter		_router )
 	{
-		
+		router	= _router;
 	}
 	
 	public void
 	addTransport(
 		DHTTransport	transport )
 	{
+		transport.setRequestHandler( this );
 		
+		router.setNodeID( transport.getNodeID());
+	}
+	
+	public void
+	contactImported(
+		DHTTransportContact	contact )
+	{
+		router.addContact( contact.getID());
+		
+		contact.sendPing(
+			new DHTReplyHandlerAdapter()
+			{
+				
+			});
+	}
+	
+	public void
+	pingRequest(
+		DHTTransportContact contact )
+	{
+		throw( new RuntimeException(""));
+	}
+		
+	public void
+	storeRequest(
+		DHTTransportContact contact, 
+		byte[]				key,
+		byte[]				value )
+	{
+		throw( new RuntimeException(""));
+	}
+	
+	public DHTTransportContact[]
+	findNodeRequest(
+		DHTTransportContact contact, 
+		byte[]				id )
+	{
+		throw( new RuntimeException(""));
+	}
+	
+	public Object
+	findValueRequest(
+		DHTTransportContact contact, 
+		byte[]				key )
+	{
+		throw( new RuntimeException(""));
 	}
 }

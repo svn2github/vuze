@@ -37,9 +37,13 @@ DHTTransport
 	
 	public static final int	TT_LOOPBACK		= 1;
 	
-	public void
-	ping(
-		DHTTransportContact		contact );
+	/**
+	 * Gives access to the node ID for this transport 
+	 * @return
+	 */
+	
+	public byte[]
+	getNodeID();
 	
 	public void
 	importContact(
@@ -47,11 +51,12 @@ DHTTransport
 	
 		throws IOException;
 	
-	public void
-	addReceiver(
-		DHTTransportReceiver	receiver );
+		/**
+		 * Set the handler for incoming requests
+		 * @param receiver
+		 */
 	
 	public void
-	removeReceiver(
-		DHTTransportReceiver	receiver );
+	setRequestHandler(
+		DHTTransportRequestHandler	receiver );
 }

@@ -36,6 +36,26 @@ DHTTransportContact
 	getID();
 	
 	public void
+	sendPing(
+		DHTTransportReplyHandler	handler );
+	
+	public void
+	sendStore(
+		DHTTransportReplyHandler	handler,
+		byte[]						key,
+		byte[]						value );
+	
+	public void
+	sendFindNode(
+		DHTTransportReplyHandler	handler,
+		byte[]						id );
+		
+	public void
+	sendFindValue(
+		DHTTransportReplyHandler	handler,
+		byte[]						key );
+		
+	public void
 	exportState(
 		OutputStream	os )
 	

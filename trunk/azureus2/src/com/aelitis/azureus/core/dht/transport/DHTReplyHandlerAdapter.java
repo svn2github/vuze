@@ -27,8 +27,52 @@ package com.aelitis.azureus.core.dht.transport;
  *
  */
 
-public interface 
-DHTTransportReceiver 
+public class 
+DHTReplyHandlerAdapter
+	implements DHTTransportReplyHandler
 {
-
+	public void
+	pingReply(
+		DHTTransportContact contact )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+			
+	public void
+	storeReply(
+		DHTTransportContact contact )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public void
+	findNodeReply(
+		DHTTransportContact 	contact,
+		DHTTransportContact[]	contacts )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public void
+	findValueReply(
+		DHTTransportContact 	contact,
+		byte[]					value )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public void
+	findValueReply(
+		DHTTransportContact 	contact,
+		DHTTransportContact[]	contacts )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public void
+	failed(
+		DHTTransportContact 	contact )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
 }

@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.dht.transport.loopback;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.*;
 
 /**
  * @author parg
@@ -36,13 +36,49 @@ public class
 DHTTransportLoopbackContactImpl
 	implements DHTTransportContact
 {
+	private DHTTransportLoopbackImpl	transport;
+	
 	private byte[]		id;
 	
 	protected
 	DHTTransportLoopbackContactImpl(
-		byte[]		_id )
+		DHTTransportLoopbackImpl	_transport,
+		byte[]						_id )
 	{
-		id		= _id;
+		transport	= _transport;
+		id			= _id;
+	}
+	
+	public void
+	sendPing(
+		DHTTransportReplyHandler	handler )
+	{
+		transport.sendPing( this, handler );
+	}
+		
+	public void
+	sendStore(
+		DHTTransportReplyHandler	handler,
+		byte[]						key,
+		byte[]						value )
+	{
+		transport.sendStore( this, handler, key, value );
+	}
+	
+	public void
+	sendFindNode(
+		DHTTransportReplyHandler	handler,
+		byte[]						nid )
+	{
+		transport.sendFindNode( this, handler, nid );
+	}
+		
+	public void
+	sendFindValue(
+		DHTTransportReplyHandler	handler,
+		byte[]						key )
+	{
+		transport.sendFindValue( this, handler, key );
 	}
 	
 	public byte[]
