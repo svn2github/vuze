@@ -27,6 +27,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -45,8 +46,11 @@ import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
+import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
+import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPStats;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
@@ -67,6 +71,8 @@ DHTPlugin
 	private DHTTransportUDP		transport;
 	
 	private boolean				enabled;
+	
+	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
 	
 	private LoggerChannel		log;
 	
@@ -152,14 +158,16 @@ DHTPlugin
 											
 											if ( pos != -1 ){
 												
-												dht.put( 	rhs.substring(0,pos).getBytes(),
-															rhs.substring(pos+1).getBytes());
+												DHTPlugin.this.put( 
+														rhs.substring(0,pos).getBytes(),
+														rhs.substring(pos+1).getBytes(),
+														null );
 											}
 										}else{
 											
-											byte[] res = dht.get( rhs.getBytes(), 10000);
-											
-											log.log( "Get result:" + ( res==null?"<null>":new String( res )));
+											DHTPlugin.this.get(
+												rhs.getBytes(), 1, 10000, null );
+
 										}
 									}
 								}
@@ -309,7 +317,12 @@ DHTPlugin
 							log.log( "DHT integrtion fails", e );
 							
 							model.getStatus().setText( "DHT Integration fails: " + Debug.getNestedExceptionMessage( e ));
+							
+						}finally{
+							
+							init_sem.releaseForever();
 						}
+						
 					}
 				};
 				
@@ -415,16 +428,164 @@ DHTPlugin
 	
 	public void
 	put(
-		byte[]	key,
-		byte[]	value )
+		final byte[]						key,
+		final byte[]						value,
+		final DHTPluginOperationListener	listener)
 	{
-		dht.put( key, value );
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		init_sem.reserve();
+		
+		dht.put( 	key, 
+					value,
+					new DHTOperationListener()
+					{
+						public void
+						searching(
+							DHTTransportContact	contact,
+							int					level,
+							int					active_searches )
+						{
+							String	indent = "";
+							
+							for (int i=0;i<level;i++){
+								
+								indent += "  ";
+							}
+							
+							log.log( indent + "Put: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
+						}
+						
+						public void
+						found(
+							DHTTransportContact	contact,
+							DHTTransportValue	value )
+						{
+							log.log( "Put: found " + value.getString() + " from " + contact.getString());
+						}
+						
+						public void
+						complete(
+							boolean				timeout )
+						{
+							log.log( "Put: complete, timeout = " + timeout );
+						
+							if ( listener != null ){
+								
+								listener.complete( timeout );
+							}
+						}
+					});
+	}
+	
+	public void
+	get(
+		final byte[]								key,
+		final int									max_values,
+		final long									timeout,
+		final DHTPluginOperationListener			listener )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		init_sem.reserve();
+		
+		dht.get( 	key, max_values, timeout,
+					new DHTOperationListener()
+					{
+						public void
+						searching(
+							DHTTransportContact	contact,
+							int					level,
+							int					active_searches )
+						{
+							String	indent = "";
+							
+							for (int i=0;i<level;i++){
+								
+								indent += "  ";
+							}
+							
+							log.log( indent + "Get: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
+						}
+						
+						public void
+						found(
+							DHTTransportContact	contact,
+							DHTTransportValue	value )
+						{
+							log.log( "Get: found " + value.getString() + " from " + contact.getString());
+						}
+						
+						public void
+						complete(
+							boolean				timeout )
+						{
+							log.log( "Get: complete, timeout = " + timeout );
+							
+							if ( listener != null ){
+								
+								listener.complete( timeout );
+							}
+						}
+					});
 	}
 	
 	public void
 	remove(
-		byte[]	key )
+		final byte[]						key,
+		final DHTPluginOperationListener	listener )
 	{
-		dht.remove( key );
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		init_sem.reserve();
+		
+		dht.remove( 	key,
+						new DHTOperationListener()
+						{
+							public void
+							searching(
+								DHTTransportContact	contact,
+								int					level,
+								int					active_searches )
+							{
+								String	indent = "";
+								
+								for (int i=0;i<level;i++){
+									
+									indent += "  ";
+								}
+								
+								log.log( indent + "Remove: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
+							}
+							
+							public void
+							found(
+								DHTTransportContact	contact,
+								DHTTransportValue	value )
+							{
+								log.log( "Remove: found " + value.getString() + " from " + contact.getString());
+							}
+							
+							public void
+							complete(
+								boolean				timeout )
+							{
+								log.log( "Remove: complete, timeout = " + timeout );
+							
+								if ( listener != null ){
+								
+									listener.complete( timeout );
+								}
+							}			
+						});
 	}
 }

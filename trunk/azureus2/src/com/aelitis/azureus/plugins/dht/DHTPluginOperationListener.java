@@ -1,5 +1,5 @@
 /*
- * Created on 31-Jan-2005
+ * Created on 01-Feb-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,10 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
-
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
-import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
+package com.aelitis.azureus.plugins.dht;
 
 /**
  * @author parg
@@ -31,19 +28,9 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
  */
 
 public interface 
-DHTGetListener 
+DHTPluginOperationListener 
 {
 	public void
-	searching(
-		DHTTransportContact	contact,
-		int					level );
-	
-	public void
-	found(
-		DHTTransportContact	contact,
-		DHTTransportValue	value );
-	
-	public void
 	complete(
-		boolean				timeout );
+		boolean	timeout_occurred );
 }

@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
-import com.aelitis.azureus.core.dht.DHTGetListener;
+import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.impl.*;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.db.*;
@@ -50,6 +50,9 @@ public class
 DHTControlImpl 
 	implements DHTControl, DHTTransportRequestHandler
 {
+	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 3;
+	private static final int EXTERNAL_PUT_CONCURRENCY		= 3;
+	
 	private DHTTransport			transport;
 	private DHTTransportContact		local_contact;
 	
@@ -111,8 +114,8 @@ DHTControlImpl
 			internal_lookup_pool = new ThreadPool("DHTControl:internallookups", lookup_concurrency );
 		}
 		
-		external_lookup_pool 	= new ThreadPool("DHTControl:externallookups", 1 );
-		put_pool 				= new ThreadPool("DHTControl:puts", 1 );
+		external_lookup_pool 	= new ThreadPool("DHTControl:externallookups", EXTERNAL_LOOKUP_CONCURRENCY );
+		put_pool 				= new ThreadPool("DHTControl:puts", EXTERNAL_PUT_CONCURRENCY );
 
 		createRouter( transport.getLocalContact());
 
@@ -189,12 +192,14 @@ DHTControlImpl
 							false, 
 							0, 
 							search_concurrency, 
+							1,
 							new lookupResultHandler()
 							{
 								public void
 								searching(
 									DHTTransportContact	contact,
-									int					level )
+									int					level,
+									int					active_searches )
 								{
 								}
 								
@@ -411,13 +416,16 @@ DHTControlImpl
 				false, 
 				0,
 				search_concurrency*4,
+				1,
 				new lookupResultHandler()
 				{
 					public void
 					searching(
 						DHTTransportContact	contact,
-						int					level )
+						int					level,
+						int					active_searches )
 					{
+						// System.out.println( "Seed: searching " + level + ", active = " + active_searches + ":" + contact.getString());
 					}
 					
 					public void
@@ -455,53 +463,87 @@ DHTControlImpl
 		final byte[]		_unencoded_key,
 		final byte[]		_value )
 	{
+		put( _unencoded_key, _value, null );
+	}
+
+	public void
+	put(
+		byte[]					_unencoded_key,
+		byte[]					_value,
+		DHTOperationListener	_listener )
+	{
 		byte[]	encoded_key = encodeKey( _unencoded_key );
 		
 		DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
 		
 		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value );
 		
-		put( encoded_key, value.getTransportValue(), 0 );
+		put( encoded_key, value.getTransportValue(), 0, _listener );		
 	}
-
+	
 	public void
 	put(
 		final byte[]			encoded_key,
 		final DHTTransportValue	value,
 		final long				timeout )
 	{
+		put( encoded_key, value, timeout, null );
+	}
+	
+	
+	protected void
+	put(
+		final byte[]				encoded_key,
+		final DHTTransportValue		value,
+		final long					timeout,
+		final DHTOperationListener	listener )
+	{
 		lookup( put_pool,
 				encoded_key, 
 				false, 
 				timeout,
 				search_concurrency,
+				1,
 				new lookupResultHandler()
 				{
 					public void
 					searching(
-						DHTTransportContact	contact,
-						int					level )
+						DHTTransportContact	_contact,
+						int					_level,
+						int					_active_searches )
 					{	
+						if ( listener != null ){
+							
+							listener.searching( _contact, _level, _active_searches );
+						}
 					}
 					
 					public void
 					found(
-						DHTTransportContact	contact,
-						DHTTransportValue	value )
+						DHTTransportContact	_contact,
+						DHTTransportValue	_value )
 					{	
+						if ( listener != null ){
+							
+							listener.found( _contact, _value );
+						}
 					}
 					
 					public void
 					complete(
-						boolean				timeout )
+						boolean				_timeout )
 					{	
+						if ( listener != null ){
+							
+							listener.complete( _timeout );
+						}
 					}
 					
 					public void
 					closest(
-						List		closest )
+						List				_closest )
 					{
-						put( encoded_key, value, closest );		
+						put( encoded_key, value, _closest );		
 					}
 				});
 	}
@@ -558,12 +600,13 @@ DHTControlImpl
 			unencoded_key,
 			1,
 			timeout,
-			new DHTGetListener()
+			new DHTOperationListener()
 			{
 				public void
 				searching(
 					DHTTransportContact	contact,
-					int					level )
+					int					level,
+					int					active_searches )
 				{
 				}
 				
@@ -577,7 +620,7 @@ DHTControlImpl
 				
 				public void
 				complete(
-					boolean				timeout )
+					boolean				_timeout_occurred )
 				{
 					sem.release();
 				}
@@ -593,7 +636,7 @@ DHTControlImpl
 		byte[]					unencoded_key,
 		int						max_values,
 		long					timeout,
-		final DHTGetListener	get_listener )
+		final DHTOperationListener	get_listener )
 	{
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
@@ -604,6 +647,7 @@ DHTControlImpl
 				true, 
 				timeout,
 				search_concurrency,
+				max_values,
 				new lookupResultHandler()
 				{
 					private List	found_contacts	= new ArrayList();
@@ -612,9 +656,10 @@ DHTControlImpl
 					public void
 					searching(
 						DHTTransportContact	contact,
-						int					level )
+						int					level,
+						int					active_searches )
 					{	
-						get_listener.searching( contact, level );
+						get_listener.searching( contact, level, active_searches );
 					}
 					
 					public void
@@ -630,9 +675,9 @@ DHTControlImpl
 					
 					public void
 					complete(
-						boolean				timeout )
+						boolean				timeout_occurred )
 					{	
-						get_listener.complete( timeout );
+						get_listener.complete( timeout_occurred );
 					}
 	
 					public void
@@ -684,6 +729,15 @@ DHTControlImpl
 	remove(
 		byte[]		unencoded_key )
 	{
+		return( remove( unencoded_key, null ));
+	}
+	
+	public byte[]
+	remove(
+		byte[]					unencoded_key,
+		DHTOperationListener	listener )
+	{
+		
 			// TODO: push the deletion out rather than letting values timeout
 		
 		final byte[]	encoded_key = encodeKey( unencoded_key );
@@ -715,12 +769,13 @@ DHTControlImpl
 		final boolean				value_search,
 		final long					timeout,
 		final int					concurrency,
+		final int					max_values,
 		final lookupResultHandler	handler )
 	{
 		if ( thread_pool == null ){
 			
 			try{
-				lookupSupport( lookup_id, value_search, timeout, concurrency, handler );
+				lookupSupport( lookup_id, value_search, timeout, concurrency, max_values, handler );
 	
 			}catch( Throwable e ){
 				
@@ -740,7 +795,7 @@ DHTControlImpl
 					runSupport()
 					{
 						try{
-							lookupSupport( lookup_id, value_search, timeout, concurrency, handler );
+							lookupSupport( lookup_id, value_search, timeout, concurrency, max_values, handler );
 							
 						}catch( Throwable e ){
 							
@@ -762,6 +817,7 @@ DHTControlImpl
 		boolean						value_search,
 		long						timeout,
 		int							concurrency,
+		int							max_values,
 		final lookupResultHandler	result_handler )
 	{
 		boolean		timeout_occurred	= false;
@@ -792,7 +848,15 @@ DHTControlImpl
 				// closest at front
 	
 			final Set	contacts_to_query	= getClosestContactsSet( lookup_id ); 
-	
+			final Map	level_map			= new HashMap();
+			
+			Iterator	it = contacts_to_query.iterator();
+			
+			while( it.hasNext()){
+				
+				level_map.put( it.next(), new Integer(0));
+			}
+			
 				// record the set of contacts we've queried to avoid re-queries
 			
 			final Map			contacts_queried = new HashMap();
@@ -845,10 +909,8 @@ DHTControlImpl
 					
 					search_sem.reserve();
 				}
-	
-					// TODO:
-				
-				if ( values_found[0] > 0 ){
+					
+				if ( values_found[0] >= max_values ){
 					
 					break;
 				}
@@ -908,7 +970,11 @@ DHTControlImpl
 						continue;
 					}
 	
-					active_searches[0]++;
+					final int	search_level = ((Integer)level_map.get(closest)).intValue();
+
+					active_searches[0]++;				
+					
+					result_handler.searching( closest, search_level, active_searches[0] );
 					
 					DHTTransportReplyHandlerAdapter	handler = 
 						new DHTTransportReplyHandlerAdapter()
@@ -931,11 +997,11 @@ DHTControlImpl
 											
 												// delete the furthest away
 											
-											Iterator it = ok_contacts.iterator();
+											Iterator ok_it = ok_contacts.iterator();
 											
-											it.next();
+											ok_it.next();
 											
-											it.remove();
+											ok_it.remove();
 										}
 										
 										for (int i=0;i<reply_contacts.length;i++){
@@ -960,6 +1026,8 @@ DHTControlImpl
 												
 												contacts_to_query.add( contact );
 												
+												level_map.put( contact, new Integer( search_level+1));
+				
 												if ( idle_searches[0] > 0 ){
 													
 													idle_searches[0]--;
@@ -1481,7 +1549,7 @@ DHTControlImpl
 	
 	interface
 	lookupResultHandler
-		extends DHTGetListener
+		extends DHTOperationListener
 	{
 		public void
 		closest(

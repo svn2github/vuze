@@ -28,7 +28,7 @@ import java.util.Properties;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.dht.DHTGetListener;
+import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.*;
@@ -107,6 +107,15 @@ DHTImpl
 		control.put( key, value );
 	}
 	
+	public void
+	put(
+		byte[]			key,
+		byte[]			value,
+		DHTOperationListener	listener )
+	{
+		control.put( key, value, listener );
+	}
+	
 	public byte[]
 	get(
 		byte[]		key,
@@ -120,7 +129,7 @@ DHTImpl
 		byte[]			key,
 		int				max_values,
 		long			timeout,
-		DHTGetListener	listener )
+		DHTOperationListener	listener )
 	{
 		control.get( key, max_values, timeout, listener );
 	}
@@ -130,6 +139,14 @@ DHTImpl
 		byte[]		key )
 	{
 		return( control.remove( key ));
+	}
+	
+	public byte[]
+	remove(
+		byte[]			key,
+		DHTOperationListener	listener )
+	{
+		return( control.remove( key, listener ));
 	}
 	
 	public DHTTransport

@@ -27,7 +27,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.List;
 
-import com.aelitis.azureus.core.dht.DHTGetListener;
+import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -57,6 +57,12 @@ DHTControl
 		byte[]		key,
 		byte[]		value );
 	
+	public void
+	put(
+		byte[]			key,
+		byte[]			value,
+		DHTOperationListener	listener );
+	
 	public byte[]
 	get(
 		byte[]		key,
@@ -67,12 +73,17 @@ DHTControl
 		byte[]			key,
 		int				max_values,
 		long			timeout,
-		DHTGetListener	listener );
+		DHTOperationListener	listener );
 	
 	public byte[]
 	remove(
 		byte[]		key );
-		
+	
+	public byte[]
+	remove(
+		byte[]					key,
+		DHTOperationListener	listener );
+	
 	public DHTTransport
 	getTransport();
 	

@@ -47,31 +47,60 @@ DHT
 	public static final String	PR_CACHE_REPUBLISH_INTERVAL				= "CacheRepublishInterval";
 	public static final String	PR_MAX_VALUES_STORED					= "MaxValuesStored";
 
+		/**
+		 * Simple synchronous put
+		 * @param key
+		 * @param value
+		 */
+	
+	
 	public void
 	put(
 		byte[]		key,
 		byte[]		value );
 	
+	public void
+	put(
+		byte[]			key,
+		byte[]			value,
+		DHTOperationListener	listener );
+	
 		/**
-		 * timeout of 0 -> user underlying transport timeouts 
-		 */	
+		 * Simple synchronous lookup
+		 * @param key
+		 * @param timeout
+		 * @return
+		 */
 	
 	public byte[]
 	get(
 		byte[]		key,
 		long		timeout );
 	
+		/**
+		 * Async lookup
+		 * @param key
+		 * @param max_values
+		 * @param timeout
+		 * @param listener
+		 */
+	
 	public void
 	get(
 		byte[]			key,
 		int				max_values,
 		long			timeout,
-		DHTGetListener	listener );
+		DHTOperationListener	listener );
 	
 	
 	public byte[]
 	remove(
 		byte[]		key );
+	
+	public byte[]
+	remove(
+		byte[]			key,
+		DHTOperationListener	listener );
 	
 	public int
 	getIntProperty(

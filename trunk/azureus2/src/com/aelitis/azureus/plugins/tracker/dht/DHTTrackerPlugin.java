@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.tracker.dht;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -45,6 +46,7 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 
 /**
  * @author parg
@@ -194,16 +196,28 @@ DHTTrackerPlugin
 		
 		while( it.hasNext()){
 			
-			Download	dl = (Download)it.next();
+			final Download	dl = (Download)it.next();
 			
 			if ( !registered_downloads.contains( dl )){
 				
-				
 				log.log( "Registering download '" + dl.getName() + "'" );
+				
+				final 	long	start = SystemTime.getCurrentTime();
 				
 				registered_downloads.add( dl );
 				
-				dht.put( dl.getTorrent().getHash(), "wibble".getBytes());
+				dht.put( 
+						dl.getTorrent().getHash(), 
+						"wibble".getBytes(), 
+						new DHTPluginOperationListener()
+						{
+							public void
+							complete(
+								boolean	timeout_occurred )
+							{
+								log.log( "Registration of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + ")");
+							}
+						});
 			}
 		}
 		
@@ -211,15 +225,27 @@ DHTTrackerPlugin
 		
 		while( it.hasNext()){
 			
-			Download	dl = (Download)it.next();
+			final Download	dl = (Download)it.next();
 			
 			if ( !running_downloads.contains( dl )){
 				
 				log.log( "Unregistering download '" + dl.getName() + "'" );
 				
+				final long	start = SystemTime.getCurrentTime();
+				
 				it.remove();
 				
-				dht.remove( dl.getTorrent().getHash());
+				dht.remove( 
+						dl.getTorrent().getHash(),
+						new DHTPluginOperationListener()
+						{
+							public void
+							complete(
+								boolean	timeout_occurred )
+							{
+								log.log( "Unregistration of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + ")");
+							}
+						});
 			}
 		}
 	}
