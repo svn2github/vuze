@@ -227,6 +227,8 @@ public class ConfigView extends AbstractIView {
     	// slip the non-standard "plugins" initialisation inbetween the internal ones
     	// and the plugin ones so plugin ones can be children of it
     	
+      boolean	plugin_section = i >= internalSections.length;
+      
       if ( i == internalSections.length ){
         // for now, init plugins seperately
         try {
@@ -269,7 +271,23 @@ public class ConfigView extends AbstractIView {
   
           //Composite c = ((ConfigSectionSWT)section).configSectionCreate(sc);
   
-          Messages.setLanguageText(treeItem, sSectionPrefix + name);
+          String	section_key = name;
+          
+          if ( plugin_section ){
+          		// if resource exists without prefix then use it as plugins don't
+          		// need to start with the prefix
+          	
+          	if ( !MessageText.keyExists(section_key)){
+          		
+          		section_key = sSectionPrefix + name;
+          	}
+          	
+          }else{
+          	
+          	section_key = sSectionPrefix + name;
+          }
+          
+          Messages.setLanguageText(treeItem, section_key);
           treeItem.setData("Panel", sc);
           treeItem.setData("ID", name);
           treeItem.setData("ConfigSectionSWT", section);
