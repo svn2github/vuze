@@ -248,12 +248,12 @@ DirectByteBufferPool
           }
         }
 
-        buff.position( 0 );
+        	// clear doesn't actually zero the data, it just sets pos to 0 etc.
+        
+        buff.clear();   //scrub the buffer
         
         buff.limit( _length );
 
-        // buff.clear();   //scrub the buffer
-        
         bytesOut += buff.capacity();
               
         DirectByteBuffer dbb = new DirectByteBuffer( _allocator, buff, this );
