@@ -169,6 +169,8 @@ TRTrackerServerImpl
 	protected int		current_announce_retry_interval;
 	protected int		current_scrape_retry_interval;
 	
+	protected TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
+	
 	protected Vector	listeners 			= new Vector();
 		
 	
@@ -207,6 +209,58 @@ TRTrackerServerImpl
 	getScrapeRetryInterval()
 	{		
 		return( current_scrape_retry_interval );
+	}
+	
+	public TRTrackerServerStats
+	getStats()
+	{
+		return( stats );
+	}
+	
+	public synchronized void
+	updateStats(
+		TRTrackerServerTorrentImpl	torrent,
+		int							bytes_in,
+		int							bytes_out )
+	{
+		stats.update( bytes_in, bytes_out );
+		
+		if ( torrent != null ){
+			
+			torrent.updateXferStats( bytes_in, bytes_out );
+			
+		}else{
+			
+			int	num = torrent_map.size();
+			
+			if ( num > 0 ){
+			
+					// full scrape or error - spread the reported bytes across the torrents
+			
+				int	ave_in	= bytes_in/num;
+				int	ave_out	= bytes_out/num;
+				
+				int	rem_in 	= bytes_in-(ave_in*num);
+				int rem_out	= bytes_out-(ave_out*num);
+				
+				Iterator	it = torrent_map.values().iterator();
+			
+				while(it.hasNext()){
+								
+					TRTrackerServerTorrentImpl	this_torrent = (TRTrackerServerTorrentImpl)it.next();
+					
+					if ( it.hasNext()){
+						
+						this_torrent.updateXferStats( ave_in, ave_out );
+						
+					}else{
+						
+						this_torrent.updateXferStats( ave_in+rem_in, ave_out+rem_out );
+						
+					}
+				}
+			}
+		}
 	}
 	
 	protected void

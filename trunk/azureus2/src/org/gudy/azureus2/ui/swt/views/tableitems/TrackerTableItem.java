@@ -218,6 +218,15 @@ implements SortableItem
 		
 		item.setText( 10, "" + DisplayFormatters.formatByteCountToKiBEtc(left));
 		
+		item.setText( 11, "" + DisplayFormatters.formatByteCountToKiBEtc(torrent.getTotalBytesIn()));
+		
+		item.setText( 12, "" + DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageBytesIn()));
+		
+		item.setText( 13, "" + DisplayFormatters.formatByteCountToKiBEtc(torrent.getTotalBytesOut()));
+		
+		item.setText( 14, "" + DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageBytesOut()));
+		
+		
 		if ( seed_count != 0 ){
 			
 			if ( !item.getForeground().equals( MainWindow.blues[3])){

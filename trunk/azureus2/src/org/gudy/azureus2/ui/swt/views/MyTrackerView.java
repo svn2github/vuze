@@ -122,10 +122,12 @@ MyTrackerView
 	  table.setLayoutData(gridData);
 	  
 	  String[] columnsHeader = 	{ 	"name", 	"tracker", 		"status", 	"seeds", 		"peers",	"announces",
-	  								"scrapes",	"completed",	"uploaded", "downloaded", 	"left" };
+	  								"scrapes",	"completed",	"uploaded", "downloaded", 	"left",		"bytesin",
+	  								"bytesinave",	"bytesout",	"bytesoutave"};
 	  
 	  int[] columnsSize = 		{ 	250, 		250,			60,			60,				60,			70,
-	  								60,			70,				70,			70,				50 };
+	  								60,			70,				70,			70,				50,			50,
+	  								50,			50,				50 };
 	  
 	  for (int i = 0; i < columnsHeader.length; i++){
 	  	
@@ -162,7 +164,11 @@ MyTrackerView
     sorter.addIntColumnListener(table.getColumn(8),"uploaded");
     sorter.addIntColumnListener(table.getColumn(9),"downloaded");
     sorter.addIntColumnListener(table.getColumn(10),"left");        
-	
+    sorter.addIntColumnListener(table.getColumn(11),"bytesin");
+    sorter.addIntColumnListener(table.getColumn(12),"bytesinave");
+    sorter.addIntColumnListener(table.getColumn(13),"bytesout");
+    sorter.addIntColumnListener(table.getColumn(14),"bytesoutave");
+    
 	  table.setHeaderVisible(true);	 
 
 		Menu menu = new Menu(composite.getShell(), SWT.POP_UP);

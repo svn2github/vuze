@@ -111,8 +111,6 @@ TRTrackerServerProcessor
 								
 			}else{
 				
-				torrent.addScrape();
-				
 				Map	files = new ByteEncodedKeyHashMap();
 				
 				Map	hash_entry = torrent.exportScrapeToMap();
@@ -142,9 +140,7 @@ TRTrackerServerProcessor
 			for (int i=0;i<torrents.length;i++){
 				
 				TRTrackerServerTorrentImpl	this_torrent = torrents[i];
-				
-				this_torrent.addScrape();
-				
+								
 				byte[]	torrent_hash = this_torrent.getHash().getHash();
 				
 				String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );

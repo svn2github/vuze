@@ -209,6 +209,30 @@ TRHostTorrentPublishImpl
 		return( 0 );
 	}
 	
+	public long
+	getTotalBytesIn()
+	{
+		return( 0 );
+	}
+	
+	public long
+	getTotalBytesOut()
+	{
+		return( 0 );
+	}
+	
+	public long
+	getAverageBytesIn()
+	{
+		return( 0 );
+	}
+	
+	public long
+	getAverageBytesOut()
+	{
+		return( 0 );
+	}
+	
 	protected synchronized void
 	postProcess(
 		TRHostTorrentRequest	req )

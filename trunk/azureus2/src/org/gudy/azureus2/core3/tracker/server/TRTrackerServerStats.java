@@ -1,6 +1,6 @@
 /*
  * File    : TRTrackerServerStats.java
- * Created : 31-Oct-2003
+ * Created : 09-Feb-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -18,48 +18,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.core3.tracker.server;
 
 /**
  * @author parg
+ *
  */
+
 public interface 
-TRTrackerServerTorrentStats 
+TRTrackerServerStats 
 {
-	public int
-	getScrapeCount();
-	
-	public void
-	setScrapeCount(
-		int		count );
-	
-	public int
-	getAnnounceCount();
-
-	public void
-	setAnnounceCount(
-		int		count );
-	
-	public int
-	getCompletedCount();
-	
-	public void
-	setCompletedCount(
-		int		count );
-
-	public long
-	getUploaded();
-	
-	public long
-	getDownloaded();
-	
-	public long
-	getAmountLeft();
-	
-	public int
-	getNumberOfPeers();
-	
 	public long
 	getBytesIn();
 	

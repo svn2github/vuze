@@ -51,14 +51,20 @@ TRHostTorrentHostImpl
 	protected long				total_uploaded;
 	protected long				total_downloaded;
 	protected long				total_left;
+	protected long				total_bytes_in;
+	protected long				total_bytes_out;
 	
 	protected long				last_uploaded;
 	protected long				last_downloaded;
-
+	protected long				last_bytes_in;
+	protected long				last_bytes_out;
+	
 		//average over 10 periods, update every period.
 
 	protected Average			average_uploaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	protected Average			average_downloaded		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	protected Average			average_bytes_in		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
+	protected Average			average_bytes_out		= Average.getInstance(TRHostImpl.STATS_PERIOD_SECS*1000,TRHostImpl.STATS_PERIOD_SECS*10);
 	
 	protected
 	TRHostTorrentHostImpl(
@@ -320,7 +326,6 @@ TRHostTorrentHostImpl
 			if ( stats != null ){
 			
 				long	current_uploaded 	= stats.getUploaded();
-				long	current_downloaded 	= stats.getDownloaded();
 				
 					// bit crap this as the maintained values are only for *active*
 					// peers - stats are lost when they disconnect
@@ -340,6 +345,10 @@ TRHostTorrentHostImpl
 				
 				last_uploaded = current_uploaded;
 				
+					// downloaded 
+				
+				long	current_downloaded 	= stats.getDownloaded();
+				
 				long dl_diff = current_downloaded - last_downloaded;
 					
 				if ( dl_diff > 0 ){
@@ -354,6 +363,47 @@ TRHostTorrentHostImpl
 				average_downloaded.addValue((int)dl_diff);
 				
 				last_downloaded = current_downloaded;
+				
+				// bytes in 
+				
+				long	current_bytes_in 	= stats.getBytesIn();
+				
+				long bi_diff = current_bytes_in - last_bytes_in;
+				
+				if ( bi_diff > 0 ){
+					
+					total_bytes_in += bi_diff;
+					
+				}else{
+					
+					bi_diff = 0;
+				}
+				
+				average_bytes_in.addValue((int)bi_diff);
+				
+				last_bytes_in = current_bytes_in;
+
+				// bytes out 
+				
+				long	current_bytes_out 	= stats.getBytesOut();
+				
+				long bo_diff = current_bytes_out - last_bytes_out;
+				
+				if ( bo_diff > 0 ){
+					
+					total_bytes_out += bo_diff;
+					
+				}else{
+					
+					bo_diff = 0;
+				}
+				
+				average_bytes_out.addValue((int)bo_diff);
+				
+				last_bytes_out = current_bytes_out;
+				
+				
+					// left
 				
 				total_left = stats.getAmountLeft();
 				
@@ -415,9 +465,48 @@ TRHostTorrentHostImpl
 		return( average_downloaded.getAverage() );
 	}
 	
+	public long
+	getTotalBytesIn()
+	{
+		return( total_bytes_in );
+	}
+	
+	protected void
+	setTotalBytesIn(
+		long	l )
+	{
+		total_bytes_in	= l;
+	}
+	
+	
+	public long
+	getTotalBytesOut()
+	{
+		return( total_bytes_out );
+	}
+	
+	protected void
+	setTotalBytesOut(
+		long	l )
+	{
+		total_bytes_out	= l;
+	}
+	
+	public long
+	getAverageBytesIn()
+	{
+		return( average_bytes_in.getAverage());
+	}
+	
+	public long
+	getAverageBytesOut()
+	{
+		return( average_bytes_out.getAverage() );
+	}
+	
 	protected synchronized void
 	postProcess(
-			TRHostTorrentRequest	req )
+		TRHostTorrentRequest	req )
 	{
 		for (int i=0;i<listeners.size();i++){
 			

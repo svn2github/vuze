@@ -63,6 +63,9 @@ TRTrackerServer
 	getPeers(
 		byte[]		hash );
 
+	public TRTrackerServerStats
+	getStats();
+	
 	public void
 	addListener(
 		TRTrackerServerListener	l );

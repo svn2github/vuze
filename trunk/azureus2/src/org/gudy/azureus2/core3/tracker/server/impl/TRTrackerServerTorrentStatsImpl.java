@@ -36,6 +36,9 @@ TRTrackerServerTorrentStatsImpl
 	protected int							scrape_count;
 	protected int							completed_count;
 	
+	protected long							bytes_in;
+	protected long							bytes_out;
+	
 	protected
 	TRTrackerServerTorrentStatsImpl(
 		TRTrackerServerTorrentImpl 	_torrent )
@@ -175,5 +178,26 @@ TRTrackerServerTorrentStatsImpl
 		}
 		
 		return( res );
+	}
+	
+	protected void
+	addXferStats(
+		int		in,
+		int		out )
+	{
+		bytes_in	+= in;
+		bytes_out	+= out;
+	}
+	
+	public long
+	getBytesIn()
+	{
+		return( bytes_in );
+	}
+	
+	public long
+	getBytesOut()
+	{
+		return( bytes_out );
 	}
 }

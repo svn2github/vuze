@@ -97,6 +97,8 @@ TRHostConfigImpl
 			 	long	scrapes		= 0;
 			 	long	total_up	= 0;
 			 	long	total_down	= 0;
+			 	long	bytes_in	= 0;
+			 	long	bytes_out	= 0;
 			 	
 			 	Map	s_map	= (Map)t_map.get( "stats" );
 			 	
@@ -108,10 +110,16 @@ TRHostConfigImpl
 			 		total_down	= ((Long)s_map.get( "downloaded")).longValue();
 			 		
 			 		Long	scrapes_l = (Long)s_map.get( "scrapes" );
-			 		
-			 		if ( scrapes_l != null ){
-			 			
+			 		if ( scrapes_l != null ){		 			
 			 			scrapes	= scrapes_l.longValue();
+			 		}
+			 		Long	bytes_in_l = (Long)s_map.get( "bytesin" );
+			 		if ( bytes_in_l != null ){		 			
+			 			bytes_in	= bytes_in_l.longValue();
+			 		}
+			 		Long	bytes_out_l = (Long)s_map.get( "bytesout" );
+			 		if ( bytes_out_l != null ){		 			
+			 			bytes_out	= bytes_out_l.longValue();
 			 		}
 			 	}
 			 	
@@ -135,6 +143,8 @@ TRHostConfigImpl
 			 			hth.setScrapeCount( (int)scrapes );
 			 			hth.setTotalUploaded( total_up );
 			 			hth.setTotalDownloaded( total_down );
+			 			hth.setTotalBytesIn( bytes_in );
+			 			hth.setTotalBytesOut( bytes_out );
 			 		}
 			 	
 			 	}else{
@@ -204,7 +214,9 @@ TRHostConfigImpl
 						long	scrapes		= torrent.getScrapeCount();
 						long	uploaded	= torrent.getTotalUploaded();
 						long	downloaded	= torrent.getTotalDownloaded();
-	
+						long	bytes_in	= torrent.getTotalBytesIn();
+						long	bytes_out	= torrent.getTotalBytesOut();
+						
 						TRHostPeer[]	peers = torrent.getPeers();
 						
 						int	seed_count 		= 0;
@@ -238,6 +250,8 @@ TRHostConfigImpl
 						s_map.put( "scrapes", new Long(scrapes));
 						s_map.put( "uploaded", new Long(uploaded));
 						s_map.put( "downloaded", new Long(downloaded));
+						s_map.put( "bytesin", new Long(bytes_in));
+						s_map.put( "bytesout", new Long(bytes_out));
 						
 						
 						stats_entry.append( new String(name, Constants.DEFAULT_ENCODING ));
@@ -265,6 +279,14 @@ TRHostConfigImpl
 						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageDownloaded()));
 						stats_entry.append(",");
 						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( torrent.getTotalLeft()));
+						stats_entry.append(",");
+						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( bytes_in ));
+						stats_entry.append(",");
+						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtc( bytes_out ));
+						stats_entry.append(",");
+						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageBytesIn()));
+						stats_entry.append(",");
+						stats_entry.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(torrent.getAverageBytesOut()));
 						
 						stats_entry.append( "\r\n");
 						

@@ -230,8 +230,8 @@ TRTrackerServerProcessorTCP
 
 	protected void
 	processRequest(
-		String			header,
-		String			lowercase_header,
+		String			input_header,
+		String			lowercase_input_header,
 		String			str,
 		String			client_ip_address,
 		InputStream		is,
@@ -242,6 +242,8 @@ TRTrackerServerProcessorTCP
 		try{
 			Map	root = null;
 				
+			TRTrackerServerTorrentImpl	specific_torrent	= null;
+			
 			boolean	gzip_reply = false;
 			
 			try{
@@ -269,12 +271,12 @@ TRTrackerServerProcessorTCP
 					
 						// check non-tracker authentication
 						
-					if ( !doAuthentication( header, os, false )){
+					if ( !doAuthentication( input_header, os, false )){
 					
 						return;
 					}
 					
-					if ( handleExternalRequest( str, header, is, os )){
+					if ( handleExternalRequest( str, input_header, is, os )){
 					
 						return;
 					}
@@ -286,21 +288,21 @@ TRTrackerServerProcessorTCP
 				
 					// check tracker authentication
 					
-				if ( !doAuthentication( header, os, true )){
+				if ( !doAuthentication( input_header, os, true )){
 					
 					return;
 				}
 				
 				
-				int	enc_pos = lowercase_header.indexOf( "accept-encoding:");
+				int	enc_pos = lowercase_input_header.indexOf( "accept-encoding:");
 				
 				if ( enc_pos != -1 ){
 					
-					int	e_pos = header.indexOf( NL, enc_pos );
+					int	e_pos = input_header.indexOf( NL, enc_pos );
 					
 					if ( e_pos != -1 ){
 						
-						gzip_reply = header.substring(enc_pos+16,e_pos).toLowerCase().indexOf("gzip") != -1;
+						gzip_reply = input_header.substring(enc_pos+16,e_pos).toLowerCase().indexOf("gzip") != -1;
 					}
 				}
 				
@@ -402,7 +404,7 @@ TRTrackerServerProcessorTCP
 				
 				Map[]	root_out = new Map[1];
 				
-				TRTrackerServerTorrentImpl	torrent = 
+				specific_torrent = 
 						processTrackerRequest( 
 							server, root_out,
 							request_type,
@@ -416,7 +418,12 @@ TRTrackerServerProcessorTCP
 				
 				root	= root_out[0];
 				
-				server.postProcess( torrent, request_type, root );
+					// only post-process if this isn't a cached entry
+				
+				if ( root.get( "_data" ) == null ){
+	
+					server.postProcess( specific_torrent, request_type, root );
+				}
 				
 			}catch( Exception e ){
 				
@@ -486,9 +493,13 @@ TRTrackerServerProcessorTCP
 				
 			output_header.append( NL );
 	
-			os.write( output_header.toString().getBytes());
+			byte[]	header_data	= output_header.toString().getBytes();
+			
+			os.write( header_data );
 						
 			os.write( data );
+			
+			server.updateStats( specific_torrent, input_header.length(), header_data.length+data.length );
 							
 		}finally{
 			

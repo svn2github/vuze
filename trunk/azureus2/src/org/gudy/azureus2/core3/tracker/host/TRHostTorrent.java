@@ -101,6 +101,18 @@ TRHostTorrent
 	public long
 	getAverageDownloaded();
 	
+	public long
+	getTotalBytesIn();
+	
+	public long
+	getAverageBytesIn();
+	
+	public long
+	getTotalBytesOut();
+	
+	public long
+	getAverageBytesOut();
+	
 	public void
 	addListener(
 		TRHostTorrentListener	l );

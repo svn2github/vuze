@@ -433,6 +433,8 @@ TRTrackerServerTorrentImpl
 	protected synchronized Map
 	exportScrapeToMap()
 	{
+		stats.addScrape();
+		
 		long	now = System.currentTimeMillis();
 		
 		if ( last_scrape != null && now - last_scrape_calc_time < TRTrackerServerImpl.getScrapeCachePeriod()){
@@ -467,6 +469,14 @@ TRTrackerServerTorrentImpl
 		return( last_scrape );
 	}
 	
+	protected void
+	updateXferStats(
+		int		bytes_in,
+		int		bytes_out )
+	{
+		stats.addXferStats( bytes_in, bytes_out );
+	}
+	
 	protected TRTrackerServerTorrentStats
 	getStats()
 	{
@@ -488,13 +498,7 @@ TRTrackerServerTorrentImpl
 	{
 		return( hash );
 	}
-	
-	protected void
-	addScrape()
-	{
-		stats.addScrape();
-	}
-	
+		
 	static class
 	announceCacheEntry
 	{
