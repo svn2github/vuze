@@ -33,6 +33,12 @@ public class StringParameter extends Parameter{
     inputField.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event event) {
         COConfigurationManager.setParameter(name, inputField.getText());
+        
+        if( change_listeners != null ) {
+          for (int i=0;i<change_listeners.size();i++){
+            ((ParameterChangeListener)change_listeners.get(i)).parameterChanged(StringParameter.this,false);
+          }
+        }
       }
     });
   }

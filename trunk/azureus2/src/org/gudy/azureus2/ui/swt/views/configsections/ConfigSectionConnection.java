@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -34,10 +35,18 @@ import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerException;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.Messages;
+
+
 
 public class ConfigSectionConnection implements ConfigSectionSWT {
   public String configSectionGetParentSection() {
@@ -440,14 +449,53 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     Messages.setLanguageText(lreceiv, "ConfigView.section.connection.advanced.SO_RCVBUF");
     
 
-    StringParameter IPTOS = new StringParameter( advanced_group, "network.tcp.socket.IPTOS" );
+    final StringParameter IPTOS = new StringParameter( advanced_group, "network.tcp.socket.IPTOS" );
     grid_data = new GridData();
     grid_data.widthHint = 30;
     IPTOS.setLayoutData( grid_data );
     Label ltos = new Label(advanced_group, SWT.NULL);
     Messages.setLanguageText(ltos, "ConfigView.section.connection.advanced.IPTOS");
     
+    //do simple input verification, and registry key setting for TOS field
+    IPTOS.addChangeListener( new ParameterChangeListener() {
+      
+      final Color obg = IPTOS.getControl().getBackground();
+      final Color ofg = IPTOS.getControl().getForeground();
+      
+      public void parameterChanged( Parameter p, boolean caused_internally ) {
+        String raw = IPTOS.getValue();
+        int value = -1;
+        
+        try {
+          value = Integer.decode( raw ).intValue();
+        }
+        catch( Throwable t ){}
+        
+        if( value < 0 || value > 255 ) {  //invalid or no value entered
+          ConfigurationManager.getInstance().removeParameter( "network.tcp.socket.IPTOS" );
 
+          if( raw != null && raw.length() > 0 ) {  //error state
+            IPTOS.getControl().setBackground( Colors.red );
+            IPTOS.getControl().setForeground( Colors.white );
+          }
+          else {  //no value state
+            IPTOS.getControl().setBackground( obg );
+            IPTOS.getControl().setForeground( ofg );
+          }
+          
+          enableTOSRegistrySetting( false );  //disable registry setting if necessary
+        }
+        else { //passes test
+          IPTOS.getControl().setBackground( obg );
+          IPTOS.getControl().setForeground( ofg );
+          
+          enableTOSRegistrySetting( true );  //enable registry setting if necessary
+        }
+      }
+    });
+    
+    
+    
     Control[] advanced_controls = { advanced_group,
                                     mtu_size.getControl(),
                                     lmtu,
@@ -482,4 +530,22 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     return cServer;
 
   }
+  
+  
+  
+  
+  
+  private void enableTOSRegistrySetting( boolean enable ) {
+    PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+    
+    if( mgr.hasCapability( PlatformManagerCapabilities.SetTCPTOSEnabled ) ){  //see http://azureus.aelitis.com/wiki/index.php/AdvancedNetworkSettings
+      try{
+        mgr.setTCPTOSEnabled( enable );
+      }
+      catch( PlatformManagerException pe ) {  
+        Debug.printStackTrace( pe );
+      }
+    }
+  }
+  
 }
