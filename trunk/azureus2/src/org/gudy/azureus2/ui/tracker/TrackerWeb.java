@@ -251,6 +251,8 @@ TrackerWeb
 		
 		if (file_type.equals("html") || file_type.equals("htm")){
 			response_type = "text/html";
+		}else if (file_type.equals("css")){
+			response_type = "text/css";
 		}else if (file_type.equals("jpg") || file_type.equals("jpeg")) {
 			response_type="image/jpeg";
 		}else if (file_type.equals("gif")) {
@@ -261,6 +263,8 @@ TrackerWeb
 			response_type="image/bmp";
 		}else if (file_type.equals("png")) {
 			response_type="image/png";
+		}else if (file_type.equals("torrent") || file_type.equals( "tor" )) {
+			response_type="application/x-bittorrent";
 		}
 								
 		if ( response_type == null ){
