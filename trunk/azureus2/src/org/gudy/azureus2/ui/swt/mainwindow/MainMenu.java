@@ -53,6 +53,7 @@ import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * @author Olivier Chalouhi
@@ -126,6 +127,19 @@ public class MainMenu {
           }
         });
       }
+      
+      MenuItem file_restart = new MenuItem(fileMenu, SWT.NULL);
+      Messages.setLanguageText(file_restart, "MainWindow.menu.file.restart"); //$NON-NLS-1$
+      
+      file_restart.addListener(SWT.Selection, new Listener() {
+
+        public void handleEvent(Event event) {
+        // this HAS to be done this way around else the restart inherits
+      	// the 6880 port listen. However, this is a general problem....
+        MainWindow.getWindow().dispose();
+        AzureusCoreFactory.getSingleton().restart( false );
+        }
+      });
       	// file->open submenus
       
       Menu newMenu = new Menu(mainWindow.getShell(), SWT.DROP_DOWN);
