@@ -502,6 +502,10 @@ public class ConfigView extends AbstractIView {
     }
     new IntListParameter(gTransfer, "Max Upload Speed", 0, upsLabels, upsValues); //$NON-NLS-1$  
 
+    label = new Label(gTransfer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.playdownloadfinished"); //$NON-NLS-1$
+    new BooleanParameter(gTransfer, "Play Download Finished", true); //$NON-NLS-1$
+
     itemTransfer.setControl(gTransfer);
   }
 
