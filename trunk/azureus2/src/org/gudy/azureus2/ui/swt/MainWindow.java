@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
@@ -63,7 +64,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core.BDecoder;
 import org.gudy.azureus2.core.ConfigurationManager;
-import org.gudy.azureus2.core.Constants;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.LocaleUtil;
@@ -146,6 +146,7 @@ public class MainWindow implements IComponentListener {
     }
 
     private void update() {
+      if(display != null && !display.isDisposed())
       display.asyncExec(new Runnable() {
         public void run() {
           if (!mainWindow.isDisposed() && mainWindow.isVisible() && !mainWindow.getMinimized()) {
@@ -385,6 +386,20 @@ public class MainWindow implements IComponentListener {
 
     createLanguageMenu(menuBar);
 
+    //The Help Menu
+    MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
+    Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
+    Menu helpMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+    helpItem.setMenu(helpMenu);
+
+    MenuItem help_about = new MenuItem(helpMenu, SWT.NULL);
+    Messages.setLanguageText(help_about, "MainWindow.menu.help.about"); //$NON-NLS-1$
+    help_about.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        showAboutWindow();
+      }
+    });
+
     createDropTarget(mainWindow);
 
     GridLayout mainLayout = new GridLayout();
@@ -576,6 +591,62 @@ public class MainWindow implements IComponentListener {
     Tab.updateLanguage();
 
     setStatusVersion();
+  }
+
+  private void showAboutWindow() {
+    final Shell s = new Shell(mainWindow, SWT.CLOSE | SWT.PRIMARY_MODAL);
+    s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    s.setText(MessageText.getString("MainWindow.about.title")); //$NON-NLS-1$
+    GridData gridData;
+    s.setLayout(new GridLayout(1, true));
+    s.setLayoutData(gridData = new GridData());
+
+    Label label = new Label(s, SWT.NONE);
+    label.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash"));
+    label.setLayoutData(gridData = new GridData());
+
+    Properties properties = new Properties();
+    try {
+      properties.load(ClassLoader.getSystemResourceAsStream("org/gudy/azureus2/ui/swt/about.properties"));
+    } catch (Exception e1) {
+      e1.printStackTrace();
+    }
+
+    Group gDevelopers = new Group(s, SWT.NULL);
+    gDevelopers.setLayout(new GridLayout());
+    Messages.setLanguageText(gDevelopers, "MainWindow.about.section.developers"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gDevelopers.setLayoutData(gridData);
+
+    label = new Label(gDevelopers, SWT.LEFT);
+    label.setText(properties.getProperty("developers")); //$NON-NLS-1$ //$NON-NLS-2$
+    label.setLayoutData(gridData = new GridData());
+
+    Group gTranslators = new Group(s, SWT.NULL);
+    gTranslators.setLayout(new GridLayout());
+    Messages.setLanguageText(gTranslators, "MainWindow.about.section.translators"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gTranslators.setLayoutData(gridData);
+
+    label = new Label(gTranslators, SWT.LEFT);
+    label.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
+    label.setLayoutData(gridData = new GridData());
+
+    s.pack();
+    Rectangle splashRect = s.getBounds();
+    Rectangle displayRect = display.getBounds();
+    int x = (displayRect.width - splashRect.width) / 2;
+    int y = (displayRect.height - splashRect.height) / 2;
+    s.setLocation(x, y);
+    s.open();
+    while (!s.isDisposed()) {
+      try {
+        if (!display.readAndDispatch())
+          display.sleep();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   private void showUpgradeWindow() {
