@@ -35,4 +35,7 @@ TRTrackerScraperResponse
 	
 	public int
 	getPeers();
+  
+  public boolean
+  isValid();
 }

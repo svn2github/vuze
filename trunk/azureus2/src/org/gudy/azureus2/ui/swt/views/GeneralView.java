@@ -359,12 +359,12 @@ public class GeneralView extends AbstractIView {
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = "" + manager.getNbSeeds();
     String peers = "" + manager.getNbPeers();
-    if(hd != null) {
+    if(hd != null && hd.isValid()) {
       seeds += " (" + hd.getSeeds() + ")";
       peers += " (" + hd.getPeers() + ")";
     } else {
-      seeds += " (?)";
-      peers += " (?)";
+      //seeds += " (?)";
+      //peers += " (?)";
     }
     String _shareRatio = "";
     int sr = manager.getShareRatio();

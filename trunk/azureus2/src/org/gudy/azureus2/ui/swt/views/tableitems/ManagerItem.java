@@ -166,20 +166,20 @@ public class ManagerItem {
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     
     tmp = "" + manager.getNbSeeds(); //$NON-NLS-1$
-    if(hd!=null)
+    if(hd!=null && hd.isValid())
       tmp += " (" + hd.getSeeds() + ")";
-    else
-      tmp += " (?)";
+    //else
+    //  tmp += " (?)";
     if (!(tmp.equals(this.nbSeeds))) {
       nbSeeds = tmp;
       item.setText(5, tmp);
     }
 
     tmp = "" + manager.getNbPeers(); //$NON-NLS-1$
-    if(hd!=null)
-          tmp += " (" + hd.getPeers() + ")";
-        else
-          tmp += " (?)";
+    if(hd!=null && hd.isValid())
+      tmp += " (" + hd.getPeers() + ")";
+    //else
+    //  tmp += " (?)";
     if (!(tmp.equals(this.nbPeers))) {
       nbPeers = tmp;
       item.setText(6, tmp);

@@ -514,7 +514,7 @@ public class Jhttpp2HTTPSession extends Thread {
         if (dmstate == DownloadManager.STATE_ERROR)
           h.put("Torrents_Torrent_Error", dm.getErrorDetails());
         h.put("Torrents_Torrent_Status", Jhttpp2HTTPSession.status.get(new Integer(dmstate)));
-        if (hd == null) {
+        if (hd == null || !hd.isValid()) {
           h.put("Torrents_Torrent_Seeds", "?");
           h.put("Torrents_Torrent_Peers", "?");
         } else {

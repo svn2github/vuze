@@ -173,7 +173,7 @@ public class ConsoleInput extends Thread {
                   tstate+=dm.getUploadSpeed()+"\t";
                   tstate+=dm.getDownloaded()+" / ";
                   tstate+=dm.getUploaded()+"\t";
-                  if (hd == null) {
+                  if (hd == null || ! hd.isValid()) {
                     tstate+=Integer.toString(dm.getNbSeeds())+"(?) / ";
                     tstate+=Integer.toString(dm.getNbPeers())+"(?)";
                   } else {

@@ -17,10 +17,16 @@ TRTrackerScraperResponseImpl
 {
     protected int seeds;
     protected int peers;
+    protected boolean valid;
 
     protected TRTrackerScraperResponseImpl(int seeds, int peers) {
       this.seeds = seeds;
       this.peers = peers;
+      if(seeds == -1 && peers == -1) {
+        valid = false;
+      } else {
+        valid = true;
+      }
     }
 
 	public int
@@ -34,4 +40,10 @@ TRTrackerScraperResponseImpl
 	{
 		return( peers);
 	}
+  
+  public boolean
+  isValid()
+  {
+    return( valid);
+  }
 }

@@ -318,13 +318,7 @@ public class DownloadManager extends Component {
         }
         tracker_client = null;
         peerManager = null;
-        state = DownloadManager.STATE_STOPPED;
-                
-        //globalManager.startWaitingDownloads();
-
-        // remove all free buffers to regain memory 
-        // Gudy :SILLY IDEA as those are DIRECT buffers, not managed by GC ... 
-        //ByteBufferPool.getInstance().clearFreeBuffers();
+        state = DownloadManager.STATE_STOPPED;                
       }
     };
     stopThread.start();
