@@ -167,7 +167,8 @@ public class IrcView extends AbstractIView implements IrcListener {
         String timeStamp = "[" + now.get(Calendar.HOUR_OF_DAY) + ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "]  "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
         nbLines = consoleText.getLineCount();
         consoleText.append(timeStamp + _text + "\n"); //$NON-NLS-1$
-        consoleText.setLineBackground(nbLines - 1, 1, colors[_color]);        
+        consoleText.setLineBackground(nbLines - 1, 1, colors[_color]);
+        nbLines = consoleText.getLineCount();
         consoleText.setTopIndex(nbLines);
       }
     });
