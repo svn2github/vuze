@@ -892,7 +892,7 @@ public class ConfigView extends AbstractIView {
      Messages.setLanguageText(label, "ConfigView.section.style.enableXPStyle"); //$NON-NLS-1$
      final Button enableXPStyle = new Button(gStyle, SWT.CHECK);
      boolean enabled = false;
-     boolean valid = true;
+     boolean valid = false;
      try {
        File f =
          new File(
@@ -900,6 +900,9 @@ public class ConfigView extends AbstractIView {
              + "\\bin\\javaw.exe.manifest");
        if (f.exists()) {
          enabled = true;
+       f= new File("javaw.exe.manifest");
+       if(f.exists())
+           valid = true;
        }
      } catch (Exception e) {
        e.printStackTrace();
