@@ -56,7 +56,7 @@ public class ByteBufferPool {
     poolsLock = new Object();
     
     //initiate periodic timer to check free memory usage
-    compactionTimer = new Timer("BufferPool Checker", 1);
+    compactionTimer = new Timer("BufferPool Checker");
     compactionTimer.addPeriodicEvent(
         COMPACTION_CHECK_PERIOD,
         new TimerEventPerformer() {
