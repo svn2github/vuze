@@ -70,7 +70,7 @@ PluginUpdatePlugin
 		
 		boolean enabled = plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true );
 
-		model.getStatus().setText( enabled?"Running":"Disabled" );
+		model.getStatus().setText( enabled?"Running":"Optional checks disabled" );
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
 		
