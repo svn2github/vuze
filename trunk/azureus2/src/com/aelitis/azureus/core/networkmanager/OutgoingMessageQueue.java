@@ -322,6 +322,11 @@ public class OutgoingMessageQueue {
    * @throws IOException
    */
   protected int deliverToTransport( Transport transport, int max_bytes, boolean manual_listener_notify ) throws IOException {    
+    if( max_bytes < 1 ) {
+      Debug.out( "max_bytes < 1: " +max_bytes );
+      return 0;
+    }
+    
     int written = 0;
     ArrayList messages_sent = null;
     if( !manual_listener_notify ) messages_sent = new ArrayList();

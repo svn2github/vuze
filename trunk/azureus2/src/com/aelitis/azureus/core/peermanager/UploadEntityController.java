@@ -93,7 +93,9 @@ public class UploadEntityController {
    * @param handler connection write rate handler
    */
   protected void upgradePeerConnection( Connection connection, RateHandler handler ) {
-    global_uploader.removePeerConnection( connection );  //remove it from the general upload pool
+    boolean rm = global_uploader.removePeerConnection( connection );  //remove it from the general upload pool
+    if( !rm ) System.out.println( "upgradePeerConnection:: not removed !" );
+    
     BurstingSinglePeerUploader upload_entity = new BurstingSinglePeerUploader( connection, handler );
         
     try {
