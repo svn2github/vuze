@@ -28,7 +28,6 @@ package org.gudy.azureus2.ui.swt.auth;
  */
 
 import org.gudy.azureus2.core3.security.*;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.logging.*;
 
 import org.eclipse.swt.*;
@@ -39,7 +38,6 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
 
 
 public class 

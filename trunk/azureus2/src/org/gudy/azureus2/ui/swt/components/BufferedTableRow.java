@@ -32,7 +32,6 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.RGB;
 
 public class 
 BufferedTableRow 

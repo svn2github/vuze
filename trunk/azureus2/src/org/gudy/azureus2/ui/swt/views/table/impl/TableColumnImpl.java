@@ -81,7 +81,7 @@ public class TableColumnImpl
   }
 
   public void initialize(int iAlignment, int iPosition, 
-                         int iSize, int iInterval) {
+                         int iWidth, int iInterval) {
     if (bColumnAdded)
 			throw(new UIRuntimeException("Can't set properties. Column '" + sName + " already added"));
 

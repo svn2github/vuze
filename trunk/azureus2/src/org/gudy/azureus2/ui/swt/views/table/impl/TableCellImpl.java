@@ -37,7 +37,6 @@ import org.eclipse.swt.graphics.Point;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;

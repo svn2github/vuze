@@ -4,12 +4,7 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.Socket;
 
-import org.eclipse.swt.SWT;
-import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;

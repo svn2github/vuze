@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier

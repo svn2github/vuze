@@ -32,7 +32,6 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
-import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
 import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;

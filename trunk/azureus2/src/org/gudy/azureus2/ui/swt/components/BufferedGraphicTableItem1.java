@@ -26,7 +26,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
-import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /** Draws an image at a column in a row of a table using direct paints to the 
