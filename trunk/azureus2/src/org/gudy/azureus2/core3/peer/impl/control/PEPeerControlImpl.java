@@ -997,10 +997,24 @@ PEPeerControlImpl
     return true;
   }
 
+  	// set FORCE_PIECE if trying to diagnose piece problems and only want to d/l a specific
+  	// piece from a torrent
+  
+  private static final int FORCE_PIECE	= -1;
+  
   private void getRarestPieces(PEPeerTransport pc,int rangePercent) {
     boolean[] piecesAvailable = pc.getAvailable();
     Arrays.fill(_piecesRarest, false);
 
+    if ( FORCE_PIECE != -1 ){
+    	if ( !_downloaded[FORCE_PIECE] && !_downloading[FORCE_PIECE] && piecesAvailable[FORCE_PIECE]){
+    		
+    		_piecesRarest[FORCE_PIECE]	= true;
+    	}
+    	
+    	return;
+    }
+ 
     //This will represent the minimum piece availability level.
     int pieceMinAvailability = -1;
 
