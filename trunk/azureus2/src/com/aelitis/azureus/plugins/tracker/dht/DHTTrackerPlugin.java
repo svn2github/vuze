@@ -1086,6 +1086,8 @@ DHTTrackerPlugin
 			
 			this_mon.exit();
 		}
+		
+		checkDownloadForRegistration( download, false );
 	}
  
 	public void
