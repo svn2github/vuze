@@ -214,9 +214,25 @@ public class MainWindow implements IComponentListener {
           public void run() {
             if (statusText.isDisposed())
               return;
-            setStatusVersion();
-            if(!VERSION.equals(latestVersion))
-              showUpgradeWindow();
+            if(!VERSION.equals(latestVersion)) {
+              latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
+              setStatusVersion();
+              statusText.setForeground(red);
+              statusText.setCursor(new Cursor(display, SWT.CURSOR_HAND));
+              statusText.addMouseListener(new MouseAdapter() {
+                public void mouseDoubleClick(MouseEvent arg0) {
+                  showUpgradeWindow();
+                }
+                public void mouseDown(MouseEvent arg0) {
+                  showUpgradeWindow();
+                }
+              });
+              if(ConfigurationManager.getInstance().getBooleanParameter("Auto Update", true)) {
+                showUpgradeWindow();
+              }
+            } else {
+              setStatusVersion();
+            }
           }
         });
       } catch (Exception e) {
