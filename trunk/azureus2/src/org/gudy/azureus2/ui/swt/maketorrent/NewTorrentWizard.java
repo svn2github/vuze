@@ -34,6 +34,8 @@ public class NewTorrentWizard extends org.gudy.azureus2.ui.swt.wizard.Wizard {
   String singlePath = "";
   String directoryPath = "";
   String savePath = "";
+  
+  boolean localTracker = true;
   String trackerURL = "http://";
   
   public NewTorrentWizard(Display display) {

@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -62,15 +63,58 @@ public class ModePanel extends AbstractWizardPanel {
     layout.numColumns = 1;
     rootPanel.setLayout(layout);
 
-    Composite panel = new Composite(rootPanel, SWT.NULL);
+    Composite panel = new Composite(rootPanel, SWT.NO_RADIO_GROUP);
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
     panel.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 3;
     panel.setLayout(layout);
 
+    final Button btnLocalTracker = new Button(panel,SWT.RADIO);
+    Label labelLocalTracker = new Label(panel,SWT.NULL);
+    Messages.setLanguageText(labelLocalTracker,"wizard.tracker.local");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    labelLocalTracker.setLayoutData(gridData);
+    
+    String localTrackerHost = COConfigurationManager.getStringParameter("Tracker IP","");
+    int localTrackePort = COConfigurationManager.getIntParameter("Tracker Port",6969);
+    final String localTrackerUrl;
+    
+    Label localTrackerValue = new Label(panel,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    localTrackerValue.setLayoutData(gridData);    
+    
+    final Button btnExternalTracker = new Button(panel,SWT.RADIO);
     Label label = new Label(panel,SWT.NULL);
-    Messages.setLanguageText(label,"wizard.tracker");
+    Messages.setLanguageText(label,"wizard.tracker.external");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    label.setLayoutData(gridData);
+          
+    if(localTrackerHost != null && !localTrackerHost.equals("")) {
+      localTrackerUrl = "http://" + localTrackerHost + ":" + localTrackePort + "/announce";
+      localTrackerValue.setText("\t" + localTrackerUrl);        
+    } else {    
+      localTrackerUrl = "";
+      Messages.setLanguageText(localTrackerValue,"wizard.tracker.howToLocal");
+      btnLocalTracker.setSelection(false);
+      btnLocalTracker.setEnabled(false);
+      localTrackerValue.setEnabled(false);
+      labelLocalTracker.setEnabled(false);      
+      ((NewTorrentWizard)wizard).localTracker = false;
+    }
+    
+    btnLocalTracker.setSelection(((NewTorrentWizard)wizard).localTracker);
+    btnExternalTracker.setSelection(!((NewTorrentWizard)wizard).localTracker);
+    
+    label = new Label(panel,SWT.NULL);
+    Messages.setLanguageText(label,"wizard.announceUrl");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    label.setLayoutData(gridData);
+        
     final Combo tracker = new Combo(panel,SWT.NULL);
     List trackers = TrackersUtil.getInstance().getTrackersList();
     Iterator iter = trackers.iterator();
@@ -101,15 +145,19 @@ public class ModePanel extends AbstractWizardPanel {
     });
     tracker.setText(((NewTorrentWizard)wizard).trackerURL);
     
+    label = new Label(panel,SWT.SEPARATOR | SWT.HORIZONTAL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    label.setLayoutData(gridData);
 
-    Button bSingle = new Button(panel, SWT.RADIO);
+    final Button bSingle = new Button(panel, SWT.RADIO);
     bSingle.setSelection(!((NewTorrentWizard)wizard).mode);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     bSingle.setLayoutData(gridData);
     Messages.setLanguageText(bSingle, "wizard.singlefile");
 
-    Button bDirectory = new Button(panel, SWT.RADIO);
+    final Button bDirectory = new Button(panel, SWT.RADIO);
     bDirectory.setSelection(((NewTorrentWizard)wizard).mode);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
@@ -117,22 +165,37 @@ public class ModePanel extends AbstractWizardPanel {
     Messages.setLanguageText(bDirectory, "wizard.directory");
 
     bSingle.addListener(SWT.Selection, new Listener() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-       */
       public void handleEvent(Event arg0) {
         wizard.setCurrentInfo(MessageText.getString("wizard.singlefile.help"));
         ((NewTorrentWizard)wizard).mode = false;
+        bDirectory.setSelection(false);
+        bSingle.setSelection(true);
       }
     });
 
     bDirectory.addListener(SWT.Selection, new Listener() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-       */
       public void handleEvent(Event arg0) {
         wizard.setCurrentInfo(MessageText.getString("wizard.directory.help"));
         ((NewTorrentWizard)wizard).mode = true;
+        bSingle.setSelection(false);
+        bDirectory.setSelection(true);
+      }
+    });
+    
+    btnLocalTracker.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event arg0) {              
+        ((NewTorrentWizard)wizard).localTracker = true;
+        ((NewTorrentWizard)wizard).trackerURL = localTrackerUrl;
+        btnExternalTracker.setSelection(false);
+        btnLocalTracker.setSelection(true);
+      }
+    });
+    
+    btnExternalTracker.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event arg0) {              
+        ((NewTorrentWizard)wizard).localTracker = false;
+        btnLocalTracker.setSelection(false);
+        btnExternalTracker.setSelection(true);
       }
     });
   }

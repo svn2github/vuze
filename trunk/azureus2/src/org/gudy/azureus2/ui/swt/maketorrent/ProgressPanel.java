@@ -98,7 +98,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
   }
 
   public void makeTorrent() {
-    TrackersUtil.getInstance().addTracker(((NewTorrentWizard)wizard).trackerURL);
+    if(!((NewTorrentWizard)wizard).localTracker)
+      TrackersUtil.getInstance().addTracker(((NewTorrentWizard)wizard).trackerURL);
     File f;
     if (((NewTorrentWizard)wizard).mode) {
       f = new File(((NewTorrentWizard)wizard).directoryPath);
