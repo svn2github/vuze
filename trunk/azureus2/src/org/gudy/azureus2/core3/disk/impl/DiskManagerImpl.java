@@ -86,7 +86,7 @@ DiskManagerImpl
 
 	private ByteBuffer allocateAndTestBuffer;
 
-	public static final int	CHECK_QUEUE_BLOCK_LIMIT	= 1;
+	public static final int	CHECK_QUEUE_BLOCK_LIMIT	= 1000;
 	private Semaphore	check_queue_block_sem;
 	
 	private List 		writeQueue;
@@ -701,10 +701,7 @@ DiskManagerImpl
 							
 							elt	= (QueueElement)checkQueue.remove(0);
 							
-							if ( checkQueue.size() >= DiskManagerImpl.CHECK_QUEUE_BLOCK_LIMIT ){
-								
-								System.out.println( "checkQueue: blocking released");
-								
+							if ( checkQueue.size() >= DiskManagerImpl.CHECK_QUEUE_BLOCK_LIMIT ){			
 								check_queue_block_sem.release();
 							}
 							
@@ -1069,9 +1066,6 @@ DiskManagerImpl
    		writeCheckQueueSem.release();
    		
    		if ( block_required ){
-   			
-			System.out.println( "checkQueue: blocking reserved");
-
    			check_queue_block_sem.reserve();
    		}
    }
