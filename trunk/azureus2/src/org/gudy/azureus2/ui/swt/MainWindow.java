@@ -1795,8 +1795,11 @@ public class MainWindow implements GlobalManagerListener {
       public void run() {
         String separator = System.getProperty("file.separator"); //$NON-NLS-1$
         for (int i = 0; i < fileNames.length; i++) {
-          if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".torrent")) //$NON-NLS-1$
-            continue;
+          if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".torrent")) {
+            if (!FileUtil.getCanonicalFileName(fileNames[i]).endsWith(".tor")) {
+              continue;
+            }
+          }
           String savePath = getSavePath(path + separator + fileNames[i],useDefault);
           if (savePath == null)
             continue;
@@ -1813,6 +1816,8 @@ public class MainWindow implements GlobalManagerListener {
     File[] files = f.listFiles(new FileFilter() {
       public boolean accept(File arg0) {
         if (FileUtil.getCanonicalFileName(arg0.getName()).endsWith(".torrent")) //$NON-NLS-1$
+          return true;
+        if (FileUtil.getCanonicalFileName(arg0.getName()).endsWith(".tor")) //$NON-NLS-1$
           return true;
         return false;
       }

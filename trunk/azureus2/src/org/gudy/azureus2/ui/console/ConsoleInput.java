@@ -346,7 +346,7 @@ public class ConsoleInput extends Thread {
                   File test = new File(whatelse[j]);
                   if (test.exists()) {
                     if (test.isDirectory()) {
-                      File[] toadd = FileFinder.findFiles(whatelse[j], "*.torrent", false);
+                      File[] toadd = FileFinder.findFiles(whatelse[j], "*.torrent;*.tor", false);
                       if ((toadd != null) && (toadd.length>0)) {
                         for(int i=0;i<toadd.length;i++) {
                           gm.addDownloadManager(toadd[i].getAbsolutePath(), outputDir);
