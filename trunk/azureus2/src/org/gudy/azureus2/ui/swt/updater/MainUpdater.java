@@ -94,12 +94,27 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
                       + "bin"
                       + System.getProperty("file.separator");
       
-      String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
+      /*String exec = "\"" + javaPath + "java\" -classpath \"" + classPath
       + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
-      + userPath + "\" \"" + libraryPath + "\"";
+      + userPath + "\" \"" + libraryPath + "\"";*/
+      
+      String exec[] = {
+          "\"" + javaPath + "java\"" ,
+          "-classpath",
+          "\"" + classPath + "\"",
+          "\" -Duser.dir=\"" + userPath + "\"",
+          "org.gudy.azureus2.ui.swt.updater.UpdateSWT",
+          "\"" + platform + "\"",
+          "\"swtTemp.zip\"",
+          "\""+ userPath + "\"",
+          "\"" + libraryPath + "\""         
+      };
       
       //System.out.println(exec);
-      
+      String execLog = "";
+      for(int i = 0 ; i < exec.length ; i++) {
+        execLog = exec[i] + "\n;";
+      }
       LGLogger.log("SWT Updater is about to execute : " + exec);
       
       File f = new File("updateSWT.log");

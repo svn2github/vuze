@@ -552,10 +552,21 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     Tab.setFolder(folder);   
     SelectionAdapter selectionAdapter = new SelectionAdapter() {
-      public void widgetSelected(SelectionEvent event) {
+      public void widgetSelected(final SelectionEvent event) {
         if(display != null && ! display.isDisposed())
           display.asyncExec(new Runnable() {
 	          public void run() {
+              if(useCustomTab) {
+                CTabItem item = (CTabItem) event.item;
+                if(item != null && ! item.isDisposed() && ! folder.isDisposed()) {
+                  try {
+                  ((CTabFolder)folder).setTabPosition(((CTabFolder)folder).indexOf(item));
+                  ((CTabFolder)folder).setSelection(item);
+                  } catch(Throwable e) {
+                    //Do nothing
+                  }
+                }
+              }    
 	            iconBar.setCurrentEnabler(MainWindow.this);
 	          }
           });       
