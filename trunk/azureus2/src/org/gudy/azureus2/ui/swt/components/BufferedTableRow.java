@@ -50,7 +50,16 @@ BufferedTableRow
 	/** Must be initialized from the Display thread */
 	public BufferedTableRow(Table _table)
 	{
-		item = new TableItem( _table, SWT.NULL );
+	  this(_table, -1);
+	}
+
+	/** Must be initialized from the Display thread */
+	public BufferedTableRow(Table _table, int index)
+	{
+    if (index >= 0 && index < _table.getItemCount())
+      item = new TableItem( _table, SWT.NULL, index );
+    else
+      item = new TableItem( _table, SWT.NULL );
 	}
 
 		// prefer not to have this one but need to introduce BufferedTable to do it...
