@@ -37,6 +37,7 @@ import org.gudy.azureus2.core.HashData;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 /**
  * One HTTP connection
@@ -81,6 +82,7 @@ public class Jhttpp2HTTPSession extends Thread {
   private HashMap dls = new HashMap();
   
   public Jhttpp2HTTPSession(Jhttpp2Server server,Socket client) {
+    super("HTTP Session "+((server==null)?"(serverless)":"#"+Integer.toString(server.numconnections+1)));
     try {
       in = new Jhttpp2ClientInputStream(server,this,client.getInputStream());//,true);
       out = new BufferedOutputStream(client.getOutputStream());
@@ -505,9 +507,9 @@ public class Jhttpp2HTTPSession extends Thread {
         } catch (ArithmeticException e) {}
         h.put("Torrents_Torrent_SpeedDown", dm.getDownloadSpeed());
         h.put("Torrents_Torrent_SpeedUp", dm.getUploadSpeed());
-        h.put("Torrents_Torrent_FileSize", PeerStats.format(dm.getSize()));
+        h.put("Torrents_Torrent_FileSize", DisplayFormatters.formatByteCountToKBEtc(dm.getSize()));
         try {
-          h.put("Torrents_Torrent_FileSizeDone", PeerStats.format((((long) dm.getCompleted())*((long) dm.getSize()))/1000));
+          h.put("Torrents_Torrent_FileSizeDone", DisplayFormatters.formatByteCountToKBEtc((((long) dm.getCompleted())*((long) dm.getSize()))/1000));
         } catch (ArithmeticException e) {}
         if (dm.getName()==null)
           h.put("Torrents_Torrent_FileName", "?");
@@ -536,9 +538,9 @@ public class Jhttpp2HTTPSession extends Thread {
       tmpl.setParam("Torrents_Torrents", v);
       tmpl.setParam("Torrents_TotalSpeedDown", server.gm.getDownloadSpeed());
       tmpl.setParam("Torrents_TotalSpeedUp", server.gm.getUploadSpeed());
-      tmpl.setParam("Torrents_TotalSizeDown", PeerStats.format(totalReceived));
-      tmpl.setParam("Torrents_TotalSizeUp", PeerStats.format(totalSent));
-      tmpl.setParam("Torrents_TotalSizeDiscarded", PeerStats.format(totalDiscarded));
+      tmpl.setParam("Torrents_TotalSizeDown", DisplayFormatters.formatByteCountToKBEtc(totalReceived));
+      tmpl.setParam("Torrents_TotalSizeUp", DisplayFormatters.formatByteCountToKBEtc(totalSent));
+      tmpl.setParam("Torrents_TotalSizeDiscarded", DisplayFormatters.formatByteCountToKBEtc(totalDiscarded));
       tmpl.setParam("Torrents_TotalSeedsConnected", Integer.toString(connectedSeeds));
       tmpl.setParam("Torrents_TotalPeersConnected", Integer.toString(connectedPeers));
     }

@@ -1,4 +1,8 @@
-/*
+/* Written and copyright 2001-2003 Tobias Minich.
+ * Distributed under the GNU General Public License; see the README file.
+ * This code comes with NO WARRANTY.
+ *
+ *
  * HTTPDownloader.java
  *
  * Created on 17. August 2003, 22:22

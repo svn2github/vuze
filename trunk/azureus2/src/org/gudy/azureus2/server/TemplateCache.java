@@ -1,4 +1,8 @@
-/*
+/* Written and copyright 2001-2003 Tobias Minich.
+ * Distributed under the GNU General Public License; see the README file.
+ * This code comes with NO WARRANTY.
+ *
+ *
  * TemplateCache.java
  *
  * Created on 23. August 2003, 01:11

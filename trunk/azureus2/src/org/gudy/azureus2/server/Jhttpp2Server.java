@@ -22,7 +22,8 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Appender;
+import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
@@ -51,7 +52,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   
   private long bytesread;
   private long byteswritten;
-  private int numconnections;
+  public int numconnections;
   
   //private boolean enable_cookies_by_default=true;
   private WildcardDictionary dic = new WildcardDictionary();
@@ -139,11 +140,19 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   public void initLoggers() {
     ConfigurationManager cm = ConfigurationManager.getInstance();
     Logger.getRootLogger().removeAllAppenders();
-    BasicConfigurator.configure();
-    Logger.getRootLogger().addAppender(new WebLogAppender(logList));
+    //BasicConfigurator.configure();
+    Appender app;
+    app = new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN));
+    app.setName("ConsoleAppender");
+    Logger.getRootLogger().addAppender(app);
+    app = new WebLogAppender(logList);
+    app.setName("WebLogAppender");
+    Logger.getRootLogger().addAppender(app);
     if (cm.getBooleanParameter("Server_bLogFile")) {
       try{
-        Logger.getRootLogger().addAppender(new FileAppender(new PatternLayout(), cm.getStringParameter("Server_sLogFile"),true));
+        app = new FileAppender(new PatternLayout(), cm.getStringParameter("Server_sLogFile"),true);
+        app.setName("LogFileAppender");
+        Logger.getRootLogger().addAppender(app);
       }catch (Exception e){}
     }
     org.gudy.azureus2.core.Logger.getLogger().setListener(this);
@@ -209,6 +218,9 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     +"Copyright (c) 2001-2003 Benjamin Kohl <bkohl@users.sourceforge.net>\r\n"
     +"This software comes with ABSOLUTELY NO WARRANTY OF ANY KIND.\r\n"
     +"http://jhttp2.sourceforge.net/");
+    System.out.println();
+    ConsoleInput.printconsolehelp(System.out);
+    System.out.println();
     init(_gm);
   }
   /** calls init(), sets up the serverport and starts for each connection

@@ -8,34 +8,31 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 /**
-	File: Jhttpp2Read.java
-	reads from a Jhttpp2ClientInputStream and writes to the BufferedOutputStream
-
-	@author Benjamin Kohl
-*/
-public class Jhttpp2Read extends Thread
-{
-	private final int BUFFER_SIZE=96000;
-	private BufferedInputStream in;
-	private BufferedOutputStream out;
-	private Jhttpp2HTTPSession connection;
-	private static Jhttpp2Server server;
-
-	public Jhttpp2Read(Jhttpp2Server server,Jhttpp2HTTPSession connection,BufferedInputStream l_in, BufferedOutputStream l_out)
-	{
-          in=l_in;
-	  out=l_out;
-	  this.connection=connection;
-          this.server=server;
-	  setPriority(Thread.MIN_PRIORITY);
-	  start();
-	}
-	public void run()
-	{
-          read();
-	}
-  private void read()
-  {
+ * File: Jhttpp2Read.java
+ * reads from a Jhttpp2ClientInputStream and writes to the BufferedOutputStream
+ *
+ * @author Benjamin Kohl
+ */
+public class Jhttpp2Read extends Thread {
+  private final int BUFFER_SIZE=96000;
+  private BufferedInputStream in;
+  private BufferedOutputStream out;
+  private Jhttpp2HTTPSession connection;
+  private static Jhttpp2Server server;
+  
+  public Jhttpp2Read(Jhttpp2Server server, Jhttpp2HTTPSession connection, BufferedInputStream l_in, BufferedOutputStream l_out) {
+    super("HTTP Reader");
+    in=l_in;
+    out=l_out;
+    this.connection=connection;
+    this.server=server;
+    setPriority(Thread.MIN_PRIORITY);
+    start();
+  }
+  public void run() {
+    read();
+  }
+  private void read() {
     int bytes_read=0;
     byte[] buf=new byte[BUFFER_SIZE];
     try {
@@ -48,19 +45,18 @@ public class Jhttpp2Read extends Thread
         } else break;
       }
     } catch (IOException e) {}
-
+    
     try {
       if (connection.getStatus()!=connection.SC_CONNECTING_TO_HOST) // *uaaahhh*: fixes a very strange bug
         connection.getLocalSocket().close();
-        // why? If we are connecting to a new host (and this thread is already running!) , the upstream
-        // socket will be closed. So we get here and close our own downstream socket..... and the browser
-        // displays an empty page because jhttpp2
-        // closes the connection..... so close the downstream socket only when NOT connecting to a new host....
+      // why? If we are connecting to a new host (and this thread is already running!) , the upstream
+      // socket will be closed. So we get here and close our own downstream socket..... and the browser
+      // displays an empty page because jhttpp2
+      // closes the connection..... so close the downstream socket only when NOT connecting to a new host....
     }
     catch(IOException e_socket_close) {}
   }
-  public void close()
-  {
+  public void close() {
     try {
       in.close();
     }

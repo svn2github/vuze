@@ -1,4 +1,8 @@
-/*
+/* Written and copyright 2001-2003 Tobias Minich.
+ * Distributed under the GNU General Public License; see the README file.
+ * This code comes with NO WARRANTY.
+ *
+ *
  * WebLogAppender.java
  *
  * Created on 26. August 2003, 02:18
@@ -16,7 +20,7 @@ import org.gudy.azureus2.core.ConfigurationManager;
 
 /**
  *
- * @author  tobi
+ * @author  Tobias Minich
  */
 public class WebLogAppender extends AppenderSkeleton implements Appender {
   

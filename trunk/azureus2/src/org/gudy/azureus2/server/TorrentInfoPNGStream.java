@@ -1,4 +1,8 @@
-/*
+/* Written and copyright 2001-2003 Tobias Minich.
+ * Distributed under the GNU General Public License; see the README file.
+ * This code comes with NO WARRANTY.
+ *
+ *
  * TorrentInfoPNGStream.java
  *
  * Created on 27. September 2003, 01:08
@@ -21,7 +25,7 @@ import org.gudy.azureus2.core.DownloadManager;
 
 /**
  *
- * @author  tobi
+ * @author  Tobias Minich
  */
 public class TorrentInfoPNGStream extends InputStream {
   

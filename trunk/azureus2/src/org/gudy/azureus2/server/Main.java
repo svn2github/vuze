@@ -1,4 +1,8 @@
-/*
+/* Written and copyright 2001-2003 Tobias Minich.
+ * Distributed under the GNU General Public License; see the README file.
+ * This code comes with NO WARRANTY.
+ *
+ *
  * Main.java
  *
  * Created on 22. August 2003, 00:04
@@ -21,6 +25,7 @@ public class Main implements ILocaleUtilChooser {
   
   Jhttpp2Server server;
   GlobalManager gm;
+  ConsoleInput ci;
   
   /** Creates a new instance of Main */
   public Main(String args[]) {
@@ -30,7 +35,8 @@ public class Main implements ILocaleUtilChooser {
     System.setProperties(p);
     gm = new GlobalManager();
     server = new Jhttpp2Server(gm, true);
-    new Thread(server).start();
+    ci = new ConsoleInput(gm, server, System.in, System.out);
+    new Thread(server, "Webinterface Server").start();
     System.out.println("Running on port " + ConfigurationManager.getInstance().getIntParameter("Server_iPort"));
   }
   

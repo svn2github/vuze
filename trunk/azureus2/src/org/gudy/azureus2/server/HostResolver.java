@@ -1,4 +1,8 @@
-/*
+/* Written and copyright 2001-2003 Tobias Minich.
+ * Distributed under the GNU General Public License; see the README file.
+ * This code comes with NO WARRANTY.
+ *
+ *
  * HostResolver.java
  *
  * Created on 12. September 2003, 22:00
@@ -21,6 +25,7 @@ public class HostResolver extends Thread {
   
   /** Creates a new instance of HostResolver */
   public HostResolver(Jhttpp2Server _server, List _addto, String _host) {
+    super("Host Resolver");
     addto = _addto;
     server = _server;
     host = _host;
