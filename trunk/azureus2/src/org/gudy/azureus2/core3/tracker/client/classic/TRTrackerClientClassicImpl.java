@@ -26,6 +26,7 @@ import java.net.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.HashMap;
 
 import javax.net.ssl.*;
 
@@ -889,6 +890,8 @@ TRTrackerClientClassicImpl
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort());
  			
+ 				// TODO: loop 4 times if connect fails? 15 secs each ?
+ 			
  			PRUDPPacket connect_request = new PRUDPPacketRequestConnect(0);
  			
  			PRUDPPacket reply = handler.sendAndReceive( connect_request, destination );
@@ -955,8 +958,31 @@ TRTrackerClientClassicImpl
  					
  					PRUDPPacketReplyAnnounce	announce_reply = (PRUDPPacketReplyAnnounce)reply;
  					
+ 					Map	map = new HashMap();
  					
- 					// TODO:
+ 					map.put( "interval", new Long( announce_reply.getInterval()));
+ 					
+ 					int[]	addresses 	= announce_reply.getAddresses();
+ 					short[]	ports		= announce_reply.getPorts();
+ 					
+ 					List	peers = new ArrayList();
+ 					
+ 					map.put( "peers", peers );
+ 					
+ 					for (int i=0;i<addresses.length;i++){
+ 						
+ 						Map	peer = new HashMap();
+ 						
+ 						peers.add( peer );
+ 						
+ 						peer.put( "ip", PRUDPPacket.intToAddress(addresses[i]).getBytes());
+ 						peer.put( "port", new Long( ports[i]));
+ 					}
+ 					
+ 					byte[] data = BEncoder.encode( map );
+ 					
+ 					message.write( data );
+ 					
  				}else{
  			
  					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
