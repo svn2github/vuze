@@ -32,7 +32,7 @@ TRTrackerServer
 	public static final int DEFAULT_SCRAPE_RETRY_PERCENTAGE	= 200;
 	
 	public static final int	DEFAULT_SCRAPE_CACHE_PERIOD				= 5000;
-	public static final int	DEFAULT_ANNOUNCE_CACHE_PERIOD			= 0;
+	public static final int	DEFAULT_ANNOUNCE_CACHE_PERIOD			= 1000;
 	public static final int	DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD	= 500;
 	
 	public static final int DEFAULT_TRACKER_PORT 		= 6969;

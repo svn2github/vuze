@@ -208,10 +208,19 @@ TRTrackerServerTorrentImpl
 	exportPeersToList(
 		int		num_want )
 	{
+		int		total_peers	= peer_map.size();
+
+		if ( total_peers >= TRTrackerServerImpl.getAnnounceCachePeerThreshold()){
+			
+			int	cache_millis	 	= TRTrackerServerImpl.getAnnounceCachePeriod();
+			
+			System.out.println( "cache period = " + cache_millis );
+		}
+		
+		
 		List	rep_peers = new ArrayList();
 		
 		int		max_peers	= TRTrackerServerImpl.getMaxPeersToSend();
-		int		total_peers	= peer_map.size();
 		
 			// num_want < 0 -> not supplied to give them max
 		
