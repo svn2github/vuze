@@ -9,7 +9,7 @@ THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, B
 
 You can find seda at http://seda.sourceforge.net
 
-This a jar compiled from seda-release-20020712. It needs two jni c libraries, 
+This a jar compiled from seda-cvs on 10-Nov-2003. It needs two jni c libraries, 
 for which I provided the sources and binaries for linux and windows cygwin.
 The nbio library doesn't compile in cygwin, but it is not essential, seda
 also works with the normal java classes (although it seems to work better with
