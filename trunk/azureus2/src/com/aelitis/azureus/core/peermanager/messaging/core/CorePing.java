@@ -31,8 +31,8 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 /**
  *
  */
-public class Ping implements Message {
-  private static final String msg_id = "PING";
+public class CorePing implements Message {
+  private static final String msg_id = "CORE_PING";
   private static final byte msg_version = (byte)1;
   
   public String getID() {  return msg_id;  }
@@ -52,7 +52,7 @@ public class Ping implements Message {
     
     if( data != null )  data.returnToPool();
     
-    return new Ping();
+    return new CorePing();
   }
   
   public void destroy() { /*nothing*/ } 

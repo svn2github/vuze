@@ -210,8 +210,6 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
 
       if( !payload_buffer.hasRemaining() ) {  //full message received!
         payload_buffer.position( 0 );  //prepare for use
-        
-        int payload_size = payload_buffer.remaining();
 
         DirectByteBuffer payload = direct_payload_buffer == null ? new DirectByteBuffer( payload_buffer ) : direct_payload_buffer;  
           
@@ -225,7 +223,7 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
           }
         }
         catch( MessageException me ) {
-          throw new IOException( "message decode failed [payload_size=" +payload_size+ "]: " + me.getMessage() );
+          throw new IOException( "message decode failed: " + me.getMessage() );
         }
         
         payload_buffer = null;
@@ -250,8 +248,7 @@ public class CoreMessageDecoder implements MessageStreamDecoder {
         length_buffer.position( 0 );  //reset it for next length read      
 
         if( message_length < MIN_MESSAGE_LENGTH || message_length > MAX_MESSAGE_LENGTH ) {
-          String msg = "Invalid message length given for legacy message decode: " + message_length;
-          throw new IOException( msg );
+          throw new IOException( "Invalid message length given for core message decode: " + message_length );
         }
         
         if( message_length > 4095 ) {  //4K min to bother with direct buffers

@@ -31,8 +31,8 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 /**
  *
  */
-public class Pong implements Message {
-  private static final String msg_id = "PONG";
+public class CorePong implements Message {
+  private static final String msg_id = "CORE_PONG";
   private static final byte msg_version = (byte)1;
   
   public String getID() {  return msg_id;  }
@@ -52,7 +52,7 @@ public class Pong implements Message {
     
     if( data != null )  data.returnToPool();
     
-    return new Pong();
+    return new CorePong();
   }
   
   public void destroy() { /*nothing*/ } 

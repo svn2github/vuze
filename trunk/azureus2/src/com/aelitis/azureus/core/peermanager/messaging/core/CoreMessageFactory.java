@@ -66,8 +66,8 @@ public class CoreMessageFactory {
    * Initialize the factory, i.e. register the messages with the message manager.
    */
   public static void init() {
-    MessageManager.getSingleton().registerMessage( new Ping() );
-    MessageManager.getSingleton().registerMessage( new Pong() );
+    MessageManager.getSingleton().registerMessage( new CorePing() );
+    MessageManager.getSingleton().registerMessage( new CorePong() );
   }
   
   
