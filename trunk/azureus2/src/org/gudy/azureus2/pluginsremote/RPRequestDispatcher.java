@@ -1,5 +1,5 @@
 /*
- * File    : RPException.java
+ * File    : RPRequestDispatcher.java
  * Created : 28-Jan-2004
  * By      : parg
  * 
@@ -19,28 +19,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.webplugin.remoteui.plugins;
+package org.gudy.azureus2.pluginsremote;
 
 /**
  * @author parg
  *
  */
-public class 
-RPException
-	extends RuntimeException
+public interface 
+RPRequestDispatcher 
 {
-	public 
-	RPException(
-		String		str )
-	{
-		super(str);
-	}
+	public RPPluginInterface
+	getPlugin();
 	
-	public
-	RPException(
-		String		str,
-		Throwable	e )
-	{
-		super( str, e );
-	}
+	public RPReply
+	dispatch(
+		RPRequest	request )
+	
+		throws RPException;
 }

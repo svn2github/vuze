@@ -1,5 +1,5 @@
 /*
- * File    : RPReply.java
+ * File    : RPException.java
  * Created : 28-Jan-2004
  * By      : parg
  * 
@@ -19,41 +19,28 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.webplugin.remoteui.plugins;
-
-import java.io.Serializable;
+package org.gudy.azureus2.pluginsremote;
 
 /**
  * @author parg
  *
  */
 public class 
-RPReply 
-	implements Serializable
+RPException
+	extends RuntimeException
 {
-	public Object	response;
-	
-	public
-	RPReply(
-		Object		_response )
+	public 
+	RPException(
+		String		str )
 	{
-		response	= _response;
+		super(str);
 	}
 	
-	public Object
-	getResponse()
-	
-		throws RPException
+	public
+	RPException(
+		String		str,
+		Throwable	e )
 	{
-		if ( response instanceof RPException ){
-			
-			throw((RPException)response);
-			
-		}else if ( response instanceof Throwable ){
-			
-			throw( new RPException("RPReply: exception occurred", (Throwable)response ));
-		}
-		
-		return( response );
+		super( str, e );
 	}
 }

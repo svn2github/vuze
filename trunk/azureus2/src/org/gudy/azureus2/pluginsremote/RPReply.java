@@ -1,5 +1,5 @@
 /*
- * File    : RPRequestDispatcher.java
+ * File    : RPReply.java
  * Created : 28-Jan-2004
  * By      : parg
  * 
@@ -19,21 +19,41 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.webplugin.remoteui.plugins;
+package org.gudy.azureus2.pluginsremote;
+
+import java.io.Serializable;
 
 /**
  * @author parg
  *
  */
-public interface 
-RPRequestDispatcher 
+public class 
+RPReply 
+	implements Serializable
 {
-	public RPPluginInterface
-	getPlugin();
+	public Object	response;
 	
-	public RPReply
-	dispatch(
-		RPRequest	request )
+	public
+	RPReply(
+		Object		_response )
+	{
+		response	= _response;
+	}
 	
-		throws RPException;
+	public Object
+	getResponse()
+	
+		throws RPException
+	{
+		if ( response instanceof RPException ){
+			
+			throw((RPException)response);
+			
+		}else if ( response instanceof Throwable ){
+			
+			throw( new RPException("RPReply: exception occurred", (Throwable)response ));
+		}
+		
+		return( response );
+	}
 }

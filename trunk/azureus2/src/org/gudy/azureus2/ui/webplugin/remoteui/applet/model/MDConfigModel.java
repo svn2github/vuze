@@ -29,7 +29,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.RPException;
+import org.gudy.azureus2.pluginsremote.RPException;
 
 public class 
 MDConfigModel 

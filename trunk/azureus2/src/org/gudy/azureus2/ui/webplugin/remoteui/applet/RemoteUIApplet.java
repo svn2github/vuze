@@ -39,7 +39,7 @@ import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Semaphore;
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
+import org.gudy.azureus2.pluginsremote.*;
 
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.view.*;

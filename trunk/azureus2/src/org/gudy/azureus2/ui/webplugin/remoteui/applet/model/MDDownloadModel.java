@@ -30,7 +30,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
 import javax.swing.table.*;
 
 import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.RPException;
+import org.gudy.azureus2.pluginsremote.RPException;
 
 public class 
 MDDownloadModel

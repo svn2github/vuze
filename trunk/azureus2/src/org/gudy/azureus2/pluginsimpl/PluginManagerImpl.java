@@ -100,8 +100,20 @@ PluginManagerImpl
 				
 		if ( ui_type == PluginManager.UI_NONE ){
 			
-			org.gudy.azureus2.ui.common.Main.shutdown();
+				// can't invoke directly as the ui.common stuff isn't part of the core distribution
+				// org.gudy.azureus2.ui.common.Main.shutdown();
 			
+			try{
+				Class	main = Class.forName("org.gudy.azureus2.ui.common.Main");
+				
+				Method method = main.getMethod( "shutdown", new Class[]{});
+				
+				method.invoke( null, null );
+				
+			}catch( Throwable e ){
+							
+				throw( new PluginException( "PluginManager: Azureus close action failed", e));
+			}
 		}else if ( ui_type == PluginManager.UI_SWT ){
 			
 			if ( !MainWindow.getWindow().dispose()){

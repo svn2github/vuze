@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.webplugin.remoteui.plugins;
+package org.gudy.azureus2.pluginsremote;
 
 /**
  * @author parg
@@ -43,8 +43,8 @@ import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.download.*;
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.torrent.*;
+import org.gudy.azureus2.pluginsremote.download.*;
+import org.gudy.azureus2.pluginsremote.torrent.*;
 
 public class 
 RPPluginInterface

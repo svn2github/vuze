@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.webplugin.remoteui.plugins.download;
+package org.gudy.azureus2.pluginsremote.download;
 
 /**
  * @author parg
@@ -27,38 +27,38 @@ package org.gudy.azureus2.ui.webplugin.remoteui.plugins.download;
  */
 import org.gudy.azureus2.plugins.download.*;
 
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
+import org.gudy.azureus2.pluginsremote.*;
 
 
 public class 
-RPDownloadAnnounceResult
+RPDownloadScrapeResult
 	extends		RPObject
-	implements 	DownloadAnnounceResult
+	implements 	DownloadScrapeResult 
 {
-	protected transient DownloadAnnounceResult		delegate;
+	protected transient DownloadScrapeResult		delegate;
 
 		// don't change these field names as they are visible on XML serialisation
-	
+
 	public int				seed_count;
 	public int				non_seed_count;
 	
-	public static RPDownloadAnnounceResult
+	public static RPDownloadScrapeResult
 	create(
-		DownloadAnnounceResult		_delegate )
+		DownloadScrapeResult		_delegate )
 	{
-		RPDownloadAnnounceResult	res =(RPDownloadAnnounceResult)_lookupLocal( _delegate );
+		RPDownloadScrapeResult	res =(RPDownloadScrapeResult)_lookupLocal( _delegate );
 		
 		if ( res == null ){
 			
-			res = new RPDownloadAnnounceResult( _delegate );
+			res = new RPDownloadScrapeResult( _delegate );
 		}
 		
 		return( res );
 	}
 	
 	protected
-	RPDownloadAnnounceResult(
-		DownloadAnnounceResult		_delegate )
+	RPDownloadScrapeResult(
+		DownloadScrapeResult		_delegate )
 	{
 		super( _delegate );
 	}
@@ -67,7 +67,7 @@ RPDownloadAnnounceResult
 	_setDelegate(
 		Object		_delegate )
 	{
-		delegate = (DownloadAnnounceResult)_delegate;
+		delegate = (DownloadScrapeResult)_delegate;
 		
 		seed_count		= delegate.getSeedCount();
 		non_seed_count	= delegate.getNonSeedCount();	
@@ -108,15 +108,7 @@ RPDownloadAnnounceResult
 
 		return( 0 );
 	}
-	
-	public int
-	getReportedPeerCount()
-	{
-		notSupported();
-
-		return( 0 );
-	}
-	
+		
 	public int
 	getSeedCount()
 	{
@@ -129,11 +121,10 @@ RPDownloadAnnounceResult
 		return( non_seed_count );
 	}
 	
-	public String
-	getError()
-	{
+	public long getScrapeStartTime() {
 		notSupported();
 
-		return( null );
+		return( 0 );
 	}
+	
 }

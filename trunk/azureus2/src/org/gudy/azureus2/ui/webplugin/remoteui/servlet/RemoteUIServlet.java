@@ -35,7 +35,7 @@ import java.util.jar.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.*;
 
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
+import org.gudy.azureus2.pluginsremote.*;
 import org.gudy.azureus2.ui.webplugin.util.*;
 
 public class 
