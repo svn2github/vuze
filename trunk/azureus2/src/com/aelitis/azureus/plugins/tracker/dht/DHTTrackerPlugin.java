@@ -22,17 +22,15 @@
 
 package com.aelitis.azureus.plugins.tracker.dht;
 
-import java.net.InetSocketAddress;
+
 import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -44,16 +42,13 @@ import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPropertyEvent;
 import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
-import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.plugins.ui.config.ParameterListener;
-import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
@@ -70,11 +65,15 @@ import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 
 public class 
 DHTTrackerPlugin 
-	implements Plugin, DownloadListener, DownloadPropertyListener
+	implements Plugin, DownloadListener, DownloadPropertyListener, DownloadTrackerListener
 {
+	private static final String	PLUGIN_NAME			= "Distributed Tracker";
+	
 	private static final int	ANNOUNCE_TIMEOUT	= 2*60*1000;
 	private static final int	ANNOUNCE_MIN		= 2*60*1000;
 	private static final int	ANNOUNCE_MAX		= 60*60*1000;
+	
+	private static final boolean	TRACK_NORMAL_DEFAULT	= false;
 	
 	private static final int	NUM_WANT			= 35;	// Limit to ensure replies fit in 1 packet
 
@@ -102,6 +101,8 @@ DHTTrackerPlugin
 	
 	private Map					query_map			 	= new HashMap();
 	
+	private BooleanParameter	track_normal_when_offline;
+	
 	private LoggerChannel		log;
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DHTTrackerPlugin" );
@@ -113,9 +114,9 @@ DHTTrackerPlugin
 	{
 		plugin_interface	= _plugin_interface;
 				
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", "DHT Tracker" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", PLUGIN_NAME );
 
-		log = plugin_interface.getLogger().getTimeStampedChannel("DHT Tracker");
+		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 
 		
 		ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
@@ -124,11 +125,18 @@ DHTTrackerPlugin
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
 		final BasicPluginViewModel model = 
-			ui_manager.createBasicPluginViewModel( "DHT Tracker");
+			ui_manager.createBasicPluginViewModel( PLUGIN_NAME);
 		
 		BasicPluginConfigModel	config = 
-			ui_manager.createBasicPluginConfigModel( "Plugins", "DHT Tracker" );
+			ui_manager.createBasicPluginConfigModel( "Plugins", "plugins.dhttracker" );
 			
+		track_normal_when_offline = config.addBooleanParameter2( "dhttracker.tracknormalwhenoffline", "dhttracker.tracknormalwhenoffline", TRACK_NORMAL_DEFAULT );
+
+		if ( !TRACK_NORMAL_DEFAULT ){
+			// should be TRUE by default
+			System.out.println( "**** DHT Tracker default set for testing purposes ****" );
+		}
+		
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
 		
@@ -154,7 +162,7 @@ DHTTrackerPlugin
 
 		model.getStatus().setText( "Initialising" );
 		
-		log.log( "Waiting for DHT initialisation" );
+		log.log( "Waiting for Distributed Database initialisation" );
 		
 		plugin_interface.addListener(
 			new PluginListener()
@@ -186,7 +194,7 @@ DHTTrackerPlugin
 											
 										}else{
 											
-											model.getStatus().setText( "Disabled, DHT not available" );
+											model.getStatus().setText( "Disabled, Distributed database not available" );
 											
 											notRunning();
 										}
@@ -285,7 +293,7 @@ DHTTrackerPlugin
 															public String
 															getError()
 															{
-																return( "DHT Offline" );
+																return( "Distributed Database Offline" );
 															}
 																										
 															public URL
@@ -368,7 +376,7 @@ DHTTrackerPlugin
 										public String
 										getStatus()
 										{
-											return( "DHT Offline" );
+											return( "Distributed Database Offline" );
 										}
 
 										public URL
@@ -400,7 +408,11 @@ DHTTrackerPlugin
 					{
 						download.addPropertyListener( DHTTrackerPlugin.this );
 						
-						checkDownloadForRegistration( download );
+						download.addTrackerListener( DHTTrackerPlugin.this );
+						
+						download.addListener( DHTTrackerPlugin.this );
+						
+						checkDownloadForRegistration( download, true );
 					}
 					
 					public void
@@ -409,7 +421,19 @@ DHTTrackerPlugin
 					{
 						download.removePropertyListener( DHTTrackerPlugin.this );
 						
-						unregisterDownload( download );
+						download.removeTrackerListener( DHTTrackerPlugin.this );
+
+						download.removeListener( DHTTrackerPlugin.this );
+						
+						try{
+							this_mon.enter();
+				
+							running_downloads.remove( download );
+							
+						}finally{
+							
+							this_mon.exit();
+						}
 					}
 				});
 		
@@ -436,101 +460,189 @@ DHTTrackerPlugin
 			if ( 	event.getData() == ta_networks ||
 					event.getData() == ta_peer_sources ){
 				
-				checkDownloadForRegistration( download );
+				checkDownloadForRegistration( download, false );
 			}
 		}
 	}
 	
+	public void
+	scrapeResult(
+		DownloadScrapeResult	result )
+	{
+		checkDownloadForRegistration( result.getDownload(), false );
+	}
+	
+	public void
+	announceResult(
+		DownloadAnnounceResult	result )
+	{
+		checkDownloadForRegistration( result.getDownload(), false );
+	}
+	
 	protected void
 	checkDownloadForRegistration(
-		Download		download )
+		Download		download,
+		boolean			first_time )
 	{
-		String[]	networks = download.getListAttribute( ta_networks );
-		
-		Torrent	torrent = download.getTorrent();
-		
+		int	state = download.getState();
+			
 		boolean	register_it	= false;
 		
-		if ( torrent != null && networks != null ){
+		String	register_reason;
+		
+		if ( 	state == Download.ST_DOWNLOADING 	||
+				state == Download.ST_SEEDING 		||
+				state == Download.ST_QUEUED ){
 			
-			boolean	public_net = false;
+			String[]	networks = download.getListAttribute( ta_networks );
 			
-			for (int i=0;i<networks.length;i++){
+			Torrent	torrent = download.getTorrent();
+			
+			if ( torrent != null && networks != null ){
 				
-				if ( networks[i].equalsIgnoreCase( "Public" )){
-						
-					public_net	= true;
-					
-					break;
-				}
-			}
-			
-			if ( public_net ){
+				boolean	public_net = false;
 				
-				if ( torrent.isDecentralised()){
+				for (int i=0;i<networks.length;i++){
 					
-						// peer source not relevant for decentralised torrents
-					
-					register_it	= true;
-					
-				}else{
-					
-					if ( torrent.isDecentralisedBackupEnabled()){
+					if ( networks[i].equalsIgnoreCase( "Public" )){
+							
+						public_net	= true;
 						
-						String[]	sources = download.getListAttribute( ta_peer_sources );
-
-						boolean	ok = false;
-						
-						for (int i=0;i<sources.length;i++){
-							
-							if ( sources[i].equalsIgnoreCase( "DHT")){
-								
-								ok	= true;
-								
-								break;
-							}
-						}
-
-						if ( ok ){
-							
-							register_it	= true;
-							
-						}else{
-							
-							log.log( "Not registering '" + download.getName() + "' as decentralised peer source disabled" );
-
-						}
-					}else{
-						
-						log.log( "Not registering '" + download.getName() + "' as decentralised backup disabled" );
+						break;
 					}
 				}
 				
+				if ( public_net ){
+					
+					if ( torrent.isDecentralised()){
+						
+							// peer source not relevant for decentralised torrents
+						
+						register_it	= true;
+						
+						register_reason = "decentralised";
+	
+					}else{
+						
+						if ( torrent.isDecentralisedBackupEnabled()){
+								
+							String[]	sources = download.getListAttribute( ta_peer_sources );
+	
+							boolean	ok = false;
+							
+							for (int i=0;i<sources.length;i++){
+								
+								if ( sources[i].equalsIgnoreCase( "DHT")){
+									
+									ok	= true;
+									
+									break;
+								}
+							}
+	
+							if ( !ok ){
+											
+								register_reason = "decentralised peer source disabled";
+								
+							}else{
+														
+								if ( track_normal_when_offline.getValue()){
+									
+										// only track if torrent's tracker is not available
+																
+									if ( 	state == Download.ST_DOWNLOADING ||
+											state == Download.ST_SEEDING ){
+										
+										DownloadAnnounceResult result = download.getLastAnnounceResult();
+										
+										if (	result != null &&
+												result.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
+											
+											register_it	= true;
+											
+											register_reason = "tracker unavailable (announce)";
+											
+										}else{	
+											
+											register_reason = "tracker available (announce)";								
+										}
+									}else{
+										
+										DownloadScrapeResult result = download.getLastScrapeResult();
+										
+										if (	result != null &&
+												result.getResponseType() == DownloadScrapeResult.RT_ERROR ){
+											
+											register_it	= true;
+											
+											register_reason = "tracker unavailable (scrape)";
+											
+										}else{
+											
+											register_reason = "tracker available (scrape)";								
+										}
+									}
+								}else{
+									register_it	= true;
+									
+									register_reason = "peer source enabled";
+								}
+							}
+						}else{
+							
+							register_reason = "decentralised backup disabled for the torrent";
+						}
+					}
+				}else{
+					
+					register_reason = "not public";
+				}
 			}else{
 				
-				log.log( "Not registering '" + download.getName() + "' as not public" );
+				register_reason = "torrent is broken";
 			}
+		}else if ( 	state == Download.ST_STOPPED ||
+					state == Download.ST_ERROR ){
+			
+			register_reason	= "not running";
+			
+		}else{
+			
+			register_reason	= "";
 		}
 		
-		try{
-			this_mon.enter();
-
-			if ( register_it ){
+		if ( register_reason.length() > 0 ){
 			
-				if ( !running_downloads.contains( download )){
-					
-					registerDownload( download );
-				}
-			}else{
+			try{
+				this_mon.enter();
+	
+				if ( register_it ){
 				
-				if ( running_downloads.contains( download )){
+					if ( !running_downloads.contains( download )){
+						
+						log.log( "Monitoring '" + download.getName() + "': " + register_reason );
+						
+						running_downloads.add( download );
+					}
+				}else{
 					
-					unregisterDownload( download );
+					if ( running_downloads.contains( download )){
+						
+						log.log( "Not monitoring '" + download.getName() + "': " + register_reason );
+	
+						running_downloads.remove( download );
+					}else{
+						
+						if ( first_time ){
+							
+							log.log( "Not monitoring '" + download.getName() + "': " + register_reason );
+						}
+					}
 				}
+			}finally{
+				
+				this_mon.exit();
 			}
-		}finally{
-			
-			this_mon.exit();
 		}
 	}
 	
@@ -947,38 +1059,6 @@ DHTTrackerPlugin
 		}
 	}
 	
-	protected void
-	registerDownload(
-		Download	download )
-	{
-		log.log( "Tracking starts for download ' " + download.getName() + "'" );
-		
-		download.addListener( this );
-		
-			// pick up initial state
-		
-		stateChanged( download, download.getState(), download.getState());
-	}
-	
-	protected void
-	unregisterDownload(
-		Download	download )
-	{
-		log.log( "Tracking stops for download ' " + download.getName() + "'" );
-
-		download.removeListener( this );
-		
-		try{
-			this_mon.enter();
-
-			running_downloads.remove( download );
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
 	public void
 	stateChanged(
 		Download		download,
@@ -1000,15 +1080,7 @@ DHTTrackerPlugin
 						// force requery
 					
 					query_map.put( download, new Long( SystemTime.getCurrentTime()));
-					
-				}else{
-					
-					running_downloads.add( download );
 				}
-				
-			}else{
-				
-				running_downloads.remove( download );
 			}
 		}finally{
 			

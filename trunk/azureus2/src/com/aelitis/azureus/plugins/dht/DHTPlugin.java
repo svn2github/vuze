@@ -81,7 +81,8 @@ DHTPlugin
 	public static final byte		FLAG_MULTI_VALUE	= DHT.FLAG_MULTI_VALUE;
 	
 	public static final int			MAX_VALUE_SIZE		= DHT.MAX_VALUE_SIZE;
-	
+
+	private static final String	PLUGIN_NAME		= "Distributed DB";
 	private static final String	SEED_ADDRESS	= "aelitis.com";
 	private static final int	SEED_PORT		= 6881;
 		
@@ -105,20 +106,21 @@ DHTPlugin
 	{
 		plugin_interface	= _plugin_interface;
 				
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", "DHT" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", PLUGIN_NAME );
 
 		int	dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
-
-		log = plugin_interface.getLogger().getTimeStampedChannel("DHT");
+		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
 		final BasicPluginViewModel model = 
-			ui_manager.createBasicPluginViewModel( "DHT");
+			ui_manager.createBasicPluginViewModel( PLUGIN_NAME);
 		
-		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "DHT" );
+		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "plugins.dht" );
 			
+		config.addLabelParameter2( "dht.info" );
+		
 		final BooleanParameter	enabled_param = config.addBooleanParameter2( "dht.enabled", "dht.enabled", true );
 
 		final BooleanParameter	use_default_port = config.addBooleanParameter2( "dht.portdefault", "dht.portdefault", true );
