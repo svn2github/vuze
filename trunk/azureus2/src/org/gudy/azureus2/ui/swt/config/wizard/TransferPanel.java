@@ -29,7 +29,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -44,6 +43,46 @@ public class TransferPanel extends AbstractWizardPanel {
   Label nbMaxActive;
   Label nbMaxDownloads;
   Label nbMaxUploadsPerTorrent;
+
+  private static final int upRates[] =
+    {
+      0,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      20,
+      25,
+      30,
+      35,
+      40,
+      45,
+      50,
+      60,
+      70,
+      80,
+      90,
+      100,
+      150,
+      200,
+      250,
+      300,
+      350,
+      400,
+      450,
+      500,
+      600,
+      700,
+      800,
+      900,
+      1000 };
 
   public TransferPanel(ConfigureWizard wizard, IWizardPanel previous) {
     super(wizard, previous);
@@ -80,110 +119,125 @@ public class TransferPanel extends AbstractWizardPanel {
     final Combo connections = new Combo(panel, SWT.SINGLE | SWT.READ_ONLY);
     for (int i = 0; i < 5; i++) {
       connections.add(MessageText.getString("configureWizard.transfer.connection." + i));
-    }    
+    }
 
     label = new Label(panel, SWT.NULL);
     Messages.setLanguageText(label, "configureWizard.transfer.maxUpSpeed");
 
-    final Text textMaxUpSpeed = new Text(panel, SWT.BORDER);
+    final String upsLabels[] = new String[upRates.length];
+    final int upsValues[] = new int[upRates.length];
+    upsLabels[0] = MessageText.getString("ConfigView.unlimited"); //$NON-NLS-1$
+    upsValues[0] = 0;
+    for (int i = 1; i < upRates.length; i++) {
+      upsLabels[i] = " " + upRates[i] + "kB/s"; //$NON-NLS-1$ //$NON-NLS-2$
+      upsValues[i] = 1024 * upRates[i];
+    }
+    final Combo cMaxUpSpeed = new Combo(panel, SWT.SINGLE | SWT.READ_ONLY);
+    for (int i = 0; i < upRates.length; i++) {
+      cMaxUpSpeed.add(upsLabels[i]);
+    }
+
+    //final Text textMaxUpSpeed = new Text(panel, SWT.BORDER);
     gridData = new GridData();
     gridData.widthHint = 100;
-    textMaxUpSpeed.setLayoutData(gridData);
-        
-    label = new Label(panel,SWT.NULL);
-    Messages.setLanguageText(label, "configureWizard.transfer.maxActiveTorrents");    
-    nbMaxActive = new Label(panel,SWT.NULL);
+    cMaxUpSpeed.setLayoutData(gridData);
+
+    label = new Label(panel, SWT.NULL);
+    Messages.setLanguageText(label, "configureWizard.transfer.maxActiveTorrents");
+    nbMaxActive = new Label(panel, SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
     nbMaxActive.setLayoutData(gridData);
-    
-    label = new Label(panel,SWT.NULL);
-    Messages.setLanguageText(label, "configureWizard.transfer.maxDownloads");    
-    nbMaxDownloads = new Label(panel,SWT.NULL);
+
+    label = new Label(panel, SWT.NULL);
+    Messages.setLanguageText(label, "configureWizard.transfer.maxDownloads");
+    nbMaxDownloads = new Label(panel, SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
     nbMaxDownloads.setLayoutData(gridData);
-    
-    
-    label = new Label(panel,SWT.NULL);
-    Messages.setLanguageText(label, "configureWizard.transfer.maxUploadsPerTorrent");    
-    nbMaxUploadsPerTorrent = new Label(panel,SWT.NULL);    
+
+    label = new Label(panel, SWT.NULL);
+    Messages.setLanguageText(label, "configureWizard.transfer.maxUploadsPerTorrent");
+    nbMaxUploadsPerTorrent = new Label(panel, SWT.NULL);
     gridData = new GridData();
     gridData.widthHint = 100;
     nbMaxUploadsPerTorrent.setLayoutData(gridData);
-        
+
     connections.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         int index = connections.getSelectionIndex();
-        ((ConfigureWizard)wizard).upSpeed = index;
+        ((ConfigureWizard) wizard).upSpeed = index;
         if (index == 0) {
-          textMaxUpSpeed.setEnabled(true);
+          cMaxUpSpeed.setEnabled(true);
         }
         else {
-          textMaxUpSpeed.setEnabled(false);
-          int upSpeeds[] = { 0, 5, 13, 28, 43 };
-          textMaxUpSpeed.setText("" + upSpeeds[index]);
-        }
-      }
-    });
-
-    textMaxUpSpeed.addListener(SWT.Modify, new Listener() {
-      public void handleEvent(Event event) {
-        int maxUp = 0;
-        try {
-          maxUp = Integer.parseInt(textMaxUpSpeed.getText());
-        } catch (Exception e) {}
-        ((ConfigureWizard)wizard).maxUpSpeed = maxUp;
-        if(maxUp < 5 && maxUp > 0) {
-          wizard.setErrorMessage(MessageText.getString("configureWizard.transfer.uploadTooLow"));
-          wizard.setNextEnabled(false);
-        } else {
-          wizard.setErrorMessage("");
-          wizard.setNextEnabled(true);          
+          cMaxUpSpeed.setEnabled(false);
+          int upSpeeds[] = { 0, 5, 13, 25, 40 };
+          cMaxUpSpeed.select(findIndex(upSpeeds[index], upRates));
+          int maxUp = upRates[cMaxUpSpeed.getSelectionIndex()];
+          ((ConfigureWizard) wizard).maxUpSpeed = maxUp;
           computeAll(maxUp);
         }
-        
       }
     });
 
-    textMaxUpSpeed.addListener(SWT.Verify, new Listener() {
+    cMaxUpSpeed.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
-        String text = event.text;
-        char[] chars = new char[text.length()];
-        text.getChars(0, chars.length, chars, 0);
-        for (int i = 0; i < chars.length; i++) {
-          if (!('0' <= chars[i] && chars[i] <= '9')) {
-            event.doit = false;
-            return;
-          }
-        }
+        int maxUp = upRates[cMaxUpSpeed.getSelectionIndex()];
+        ((ConfigureWizard) wizard).maxUpSpeed = maxUp;
+        computeAll(maxUp);
       }
     });
-    
-    connections.select(((ConfigureWizard)wizard).upSpeed);    
-    textMaxUpSpeed.setText("" + ((ConfigureWizard)wizard).maxUpSpeed);
-    textMaxUpSpeed.setEnabled(((ConfigureWizard)wizard).upSpeed == 0);
-    computeAll(((ConfigureWizard)wizard).maxUpSpeed);
-    
+
+    connections.select(((ConfigureWizard) wizard).upSpeed);
+    cMaxUpSpeed.select(findIndex(((ConfigureWizard) wizard).maxUpSpeed, upRates));
+    cMaxUpSpeed.setEnabled(((ConfigureWizard) wizard).upSpeed == 0);
+    computeAll(((ConfigureWizard) wizard).maxUpSpeed);
+
   }
 
   public void computeAll(int maxUploadSpeed) {
-    int speedPerTorrent = (maxUploadSpeed + 60) / 13;
-    int nbMaxDownloads = maxUploadSpeed / speedPerTorrent;    
-    int nbMaxActive = nbMaxDownloads + maxUploadSpeed / 10;
-    int nbMaxUploads = (maxUploadSpeed / (nbMaxDownloads/2+1)) / 2;
-    
-    ((ConfigureWizard)wizard).maxActiveTorrents = nbMaxActive;
-    ((ConfigureWizard)wizard).maxDownloads = nbMaxDownloads;
-    ((ConfigureWizard)wizard).nbUploadsPerTorrent = nbMaxUploads;
-    
+    if (maxUploadSpeed != 0) {
+      int speedPerTorrent = (maxUploadSpeed + 60) / 13;
+      int nbMaxDownloads = maxUploadSpeed / speedPerTorrent;
+      int nbMaxActive = (15 * nbMaxDownloads) / 10;
+      int realSpeed = maxUploadSpeed / nbMaxDownloads;
+      int nbMaxUploads = (realSpeed) / 2;
+      if (nbMaxUploads > 50)
+        nbMaxUploads = 50;
+
+      ((ConfigureWizard) wizard).maxActiveTorrents = nbMaxActive;
+      ((ConfigureWizard) wizard).maxDownloads = nbMaxDownloads;
+      ((ConfigureWizard) wizard).nbUploadsPerTorrent = nbMaxUploads;
+    }
+    else {
+      ((ConfigureWizard) wizard).maxActiveTorrents = 0;
+      ((ConfigureWizard) wizard).maxDownloads = 0;
+      ((ConfigureWizard) wizard).nbUploadsPerTorrent = 4;
+    }
     refresh();
   }
 
-
   public void refresh() {
-    nbMaxActive.setText("" + ((ConfigureWizard)wizard).maxActiveTorrents);
-    nbMaxDownloads.setText("" + ((ConfigureWizard)wizard).maxDownloads);
-    nbMaxUploadsPerTorrent.setText("" + ((ConfigureWizard)wizard).nbUploadsPerTorrent);
+    nbMaxActive.setText("" + ((ConfigureWizard) wizard).maxActiveTorrents);
+    nbMaxDownloads.setText("" + ((ConfigureWizard) wizard).maxDownloads);
+    nbMaxUploadsPerTorrent.setText("" + ((ConfigureWizard) wizard).nbUploadsPerTorrent);
   }
+
+  private int findIndex(int value, int values[]) {
+    for (int i = 0; i < values.length; i++) {
+      if (values[i] == value)
+        return i;
+    }
+    return 0;
+  }
+  
+  public boolean isNextEnabled() {
+    return true;
+  }
+  
+  public IWizardPanel getNextPanel() {
+    return new NatPanel(((ConfigureWizard)wizard),this);
+  }
+
 }

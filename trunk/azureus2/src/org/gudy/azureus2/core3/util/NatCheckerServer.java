@@ -45,9 +45,6 @@ public class NatCheckerServer extends Thread{
         bContinue = true;
         valid = true;
       } catch(Exception e) {
-        //TODO : Remove after debug
-        e.printStackTrace();
-        
         //Do nothing;
       }      
     }
@@ -73,8 +70,6 @@ public class NatCheckerServer extends Thread{
       if(server != null && server.isBound())
         server.close();
       } catch(Exception e) {
-        //TODO : Remove after debug
-        e.printStackTrace();
       }
     }
   }

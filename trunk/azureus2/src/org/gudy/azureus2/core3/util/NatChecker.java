@@ -33,7 +33,11 @@ import java.util.Map;
  */
 public class NatChecker {
 
-  public static boolean test(int port) {
+  public static final int NAT_OK = 1;
+  public static final int NAT_KO = 2;
+  public static final int NAT_UNABLE = 3;
+
+  public static int test(int port) {
     String check = "azureus_rand_" + (int) (Math.random() * 100000);
     NatCheckerServer server = new NatCheckerServer(port, check);
     if (server.isValid()) {
@@ -58,20 +62,24 @@ public class NatChecker {
         }
         Map map = BDecoder.decode(message.toByteArray());
         int result = ((Long)map.get("result")).intValue();
-        return result == 1;
+        switch(result) {
+          case 0 :
+            return NAT_KO;
+          case 1 :
+            return NAT_OK;
+          default:
+            return NAT_UNABLE;            
+        }
       }
-      catch (Exception e) {
-        //TODO : Remove after debug
-        e.printStackTrace();
-
-        return false;
+      catch (Exception e) {       
+        return NAT_UNABLE;
       }
       finally {
         server.stopIt();
       }
     }
     else {
-      return false;
+      return NAT_UNABLE;
     }
   }
   
