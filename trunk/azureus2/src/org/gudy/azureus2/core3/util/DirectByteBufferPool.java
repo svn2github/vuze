@@ -18,7 +18,7 @@ import java.math.*;
  */
 public class DirectByteBufferPool {
 
-  private static DirectByteBufferPool pool;
+  private static final DirectByteBufferPool pool = new DirectByteBufferPool();
   
   // There is no point in allocating buffers smaller than 4K,
   // as direct ByteBuffers are page-aligned to the underlying
@@ -88,12 +88,6 @@ public class DirectByteBufferPool {
   }
 
   
-  private static synchronized DirectByteBufferPool getInstance() {
-    if (pool == null)  pool = new DirectByteBufferPool();
-    return pool;
-  }
-
-  
   /**
    * Retrieve a buffer from the buffer pool of size at least
    * <b>length</b>, and no larger than <b>DirectByteBufferPool.MAX_SIZE</b>
@@ -109,7 +103,7 @@ public class DirectByteBufferPool {
         return null;
     }
 
-    return DirectByteBufferPool.getInstance().getBuffer(_length);
+    return pool.getBuffer(_length);
   }
   
   
@@ -159,7 +153,7 @@ public class DirectByteBufferPool {
    * null after returning the buffer to the pool ***
    */
   public static void freeBuffer(ByteBuffer _buffer) {
-    DirectByteBufferPool.getInstance().free(_buffer);
+    pool.free(_buffer);
   }
   
   
