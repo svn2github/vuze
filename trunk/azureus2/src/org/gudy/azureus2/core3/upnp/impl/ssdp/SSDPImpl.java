@@ -102,7 +102,7 @@ SSDPImpl
 						
 						final InetSocketAddress group_address = new InetSocketAddress(InetAddress.getByName(SSDP_GROUP_ADDRESS), SSDP_GROUP_PORT);
 							
-						upnp.log( "UPnP::SSDP: group = " + group_address +"/" + network_interface.getName() + ":" + bind_address );
+						upnp.log( "UPnP::SSDP: group = " + group_address +"/" + network_interface.getName() + ":" + ni_address.toString());
 						
 						mc_sock.joinGroup( group_address, network_interface );
 					
