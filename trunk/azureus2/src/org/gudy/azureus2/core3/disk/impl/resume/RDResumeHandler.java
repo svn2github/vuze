@@ -105,9 +105,7 @@ RDResumeHandler
 		
 		try{
 			disk_manager.setState( DiskManager.CHECKING );
-			
-			int startPos = 0;
-			
+						
 			boolean resumeEnabled = useFastResume;
 			//disable fast resume if a new file was created
 			if (newfiles) resumeEnabled = false;
@@ -118,7 +116,7 @@ RDResumeHandler
 			final AESemaphore	pending_checks_sem 	= new AESemaphore( "RD:PendingChecks" );
 			int					pending_check_num	= 0;
 
-			if (resumeEnabled){
+			if ( resumeEnabled ){
 				
 				boolean resumeValid = false;
 				
@@ -210,7 +208,8 @@ RDResumeHandler
 							
 							partialPieces = (Map)resumeDirectory.get("blocks");
 							
-							resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
+							resumeValid = 	resumeArray != null &&
+											((Long)resumeDirectory.get("valid")).intValue() == 1;
 							
 								// if the torrent download is complete we don't need to invalidate the
 								// resume data
@@ -239,61 +238,55 @@ RDResumeHandler
 						// System.out.println( "resume dir not found");
 					}
 				}
-				
-				
-				if ( resumeArray != null ){
-										
-					for (int i = 0; i < pieces.length && bOverallContinue; i++) { //parse the array
-						
-						DiskManagerPiece	dm_piece	= pieces[i];
-						
-						disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
-						
-							//mark the pieces
-						
-						if ( resumeArray[i] == 0 ){
-							
-							if ( !resumeValid ){
 								
-								pending_check_num++;
-								
-								writer_and_checker.checkPiece(
-									i,
-									new CheckPieceResultHandler()
-									{
-										public void
-										processResult(
-											int		p,
-											int		r )
-										{
-											pending_checks_sem.release();
-										}
-									});
-							}
-						}else{
-											
-							dm_piece.setDone(true);
-						}
-					}
+				for (int i = 0; i < pieces.length && bOverallContinue; i++){ 
 					
-					if ( partialPieces != null && resumeValid ){
-															
-						Iterator iter = partialPieces.entrySet().iterator();
+					DiskManagerPiece	dm_piece	= pieces[i];
+					
+					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
+					
+					if ( resumeArray == null || resumeArray[i] == 0 ){
 						
-						while (iter.hasNext()) {
+						if ( !resumeValid ){
 							
-							Map.Entry key = (Map.Entry)iter.next();
+							pending_check_num++;
 							
-							int pieceNumber = Integer.parseInt((String)key.getKey());
+							writer_and_checker.checkPiece(
+								i,
+								new CheckPieceResultHandler()
+								{
+									public void
+									processResult(
+										int		p,
+										int		r )
+									{
+										pending_checks_sem.release();
+									}
+								});
+						}
+					}else{
+										
+						dm_piece.setDone(true);
+					}
+				}
+					
+				if ( partialPieces != null && resumeValid ){
 														
-							List blocks = (List)partialPieces.get(key.getKey());
+					Iterator iter = partialPieces.entrySet().iterator();
+					
+					while (iter.hasNext()) {
+						
+						Map.Entry key = (Map.Entry)iter.next();
+						
+						int pieceNumber = Integer.parseInt((String)key.getKey());
+													
+						List blocks = (List)partialPieces.get(key.getKey());
+						
+						Iterator iterBlock = blocks.iterator();
+						
+						while (iterBlock.hasNext()) {
 							
-							Iterator iterBlock = blocks.iterator();
-							
-							while (iterBlock.hasNext()) {
-								
-								pieces[pieceNumber].setWritten(((Long)iterBlock.next()).intValue());
-							}
+							pieces[pieceNumber].setWritten(((Long)iterBlock.next()).intValue());
 						}
 					}
 				}
