@@ -327,7 +327,8 @@ public class GlobalManagerImpl
       boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
       String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
       if (moveWhenDone && completedDir.length() > 0) {
-        if (f.getParent().startsWith(completedDir)) {
+        File cFile = new File( completedDir, f.getName() );
+        if ( cFile.exists() ) {
           //set the torrentDir to the completedDir
           torrentDir = new File(completedDir);
         }
