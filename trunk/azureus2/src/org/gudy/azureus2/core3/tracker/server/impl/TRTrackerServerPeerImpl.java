@@ -33,6 +33,7 @@ TRTrackerServerPeerImpl
 	protected byte[]		peer_id;
 	protected String		key;
 	
+	protected byte[]		ip_when_created;
 	protected byte[]		ip;
 	protected int			port;
 	protected String		ip_str;
@@ -52,10 +53,11 @@ TRTrackerServerPeerImpl
 		byte[]		_ip,
 		int			_port )
 	{
-		peer_id		= _peer_id;
-		key			= _key;
-		ip			= _ip;
-		port		= _port;
+		peer_id			= _peer_id;
+		key				= _key;
+		ip_when_created	= _ip;
+		ip				= _ip;
+		port			= _port;
 	}
 	
 	protected void
@@ -80,6 +82,14 @@ TRTrackerServerPeerImpl
 	getKey()
 	{
 		return( key );
+	}
+	
+		// the original IP is used as a key so we need to keep track of it
+	
+	protected byte[]
+	getIPWhenCreated()
+	{
+		return( ip_when_created );
 	}
 	
 	protected byte[]

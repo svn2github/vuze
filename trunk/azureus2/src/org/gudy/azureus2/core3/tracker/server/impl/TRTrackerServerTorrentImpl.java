@@ -200,7 +200,7 @@ TRTrackerServerTorrentImpl
 		}
 		
 		try{
-			Object o = peer_reuse_map.remove( new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
+			Object o = peer_reuse_map.remove( new String( peer.getIPWhenCreated(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
 		
 			if ( o == null ){
 				
@@ -229,7 +229,7 @@ TRTrackerServerTorrentImpl
 		}
 		
 		try{
-			Object o = peer_reuse_map.remove( new String( peer.getIPAsRead(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
+			Object o = peer_reuse_map.remove( new String( peer.getIPWhenCreated(), Constants.BYTE_ENCODING ) + ":" + peer.getPort());
 			
 			if ( o == null ){
 				
