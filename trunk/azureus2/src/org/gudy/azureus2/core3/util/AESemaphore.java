@@ -84,7 +84,7 @@ AESemaphore
 	{
 		synchronized(this){
 
-			System.out.println( name + "::reserve");
+			//System.out.println( name + "::reserve");
 			
 			if ( released_forever ){
 
@@ -140,7 +140,7 @@ AESemaphore
 	release()
 	{
 		synchronized(this){
-			System.out.println( name + "::release");
+			//System.out.println( name + "::release");
 
 			total_release++;
 
