@@ -40,7 +40,7 @@ public class StatusItem extends TorrentItem {
 
   public void refresh() {
     //setText returns true only if text has changed (ie status has changed)
-    if(setText(DisplayFormatters.formatDownloadStatus(torrentRow.getManager()))) {
+    if(setText(DisplayFormatters.formatDownloadStatus(torrentRow.getManager())) || !torrentRow.isValid()) {
       int state = torrentRow.getManager().getState();
       if (state == DownloadManager.STATE_SEEDING)
         setForeground(MainWindow.blues[MainWindow.BLUES_MIDDARK]);

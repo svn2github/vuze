@@ -95,6 +95,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
+import org.gudy.azureus2.ui.common.util.HSLColor;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
@@ -149,7 +150,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static final int BLUES_MIDLIGHT = (BLUES_DARKEST+1) / 4;
   public static final int BLUES_MIDDARK = ((BLUES_DARKEST+1) / 2) + BLUES_MIDLIGHT;
   public static Color[] blues = new Color[BLUES_DARKEST + 1];
-  public static Color progressBarColor;
+  public static Color colorProgressBar;
   public static Color colorInverse;
   public static Color colorShiftLeft;
   public static Color colorShiftRight;
@@ -446,7 +447,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     if (instanceCount == 0) {      
       try {
-        allocateBlues();
+        allocateDynamicColors();
         
         black = new Color(display, new RGB(0, 0, 0));
         blue = new Color(display, new RGB(0, 0, 170));
@@ -456,8 +457,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         background = new Color(display , new RGB(248,248,248));
         red_ConsoleView = new Color(display, new RGB(255, 192, 192));
         handCursor = new Cursor(display, SWT.CURSOR_HAND);
-        allocateProgressBarColor();
-        allocateColorError();
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Error allocating colors");
         e.printStackTrace();
@@ -1092,14 +1091,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     startFolderWatcher();
     COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
     COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
+    COConfigurationManager.addParameterListener("Color Scheme", this);
     COConfigurationManager.addParameterListener("Colors.progressBar.override", this);
-    COConfigurationManager.addParameterListener("Colors.progressBar.red", this);
-    COConfigurationManager.addParameterListener("Colors.progressBar.green", this);
-    COConfigurationManager.addParameterListener("Colors.progressBar.blue", this);
+    COConfigurationManager.addParameterListener("Colors.progressBar", this);
     COConfigurationManager.addParameterListener("Colors.error.override", this);
-    COConfigurationManager.addParameterListener("Colors.error.red", this);
-    COConfigurationManager.addParameterListener("Colors.error.green", this);
-    COConfigurationManager.addParameterListener("Colors.error.blue", this);
+    COConfigurationManager.addParameterListener("Colors.error", this);
     Tab.addTabKeyListenerToComposite(folder);
     
     gm.startChecker();
@@ -2069,8 +2065,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   
   private void disposeColors() {
     
-    if(progressBarColor != null && !progressBarColor.isDisposed())
-      progressBarColor.dispose();
+    if(colorProgressBar != null && !colorProgressBar.isDisposed())
+      colorProgressBar.dispose();
   }
 
   public static void main(String args[]) {
@@ -2677,6 +2673,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
+    System.out.println("parameterChanged:"+parameterName);
     if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
       if(tray == null) {
         tray = new TrayWindow(this);
@@ -2693,21 +2690,29 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if("Watch Torrent Folder Path".equals(parameterName))
       startFolderWatcher();
     
+    if (parameterName.equals("Color Scheme")) {
+      allocateDynamicColors();
+    }
+
     if(parameterName.startsWith("Colors.progressBar")) {
-      allocateProgressBarColor();      
+      allocateColorProgressBar();      
     }
     if(parameterName.startsWith("Colors.error")) {
       allocateColorError();      
     }
   }
   
-  
+  private void allocateDynamicColors() {
+    allocateBlues();
+    allocateColorProgressBar();
+    allocateColorError();
+  }
 
   /**
    * 
    */
-  private void allocateProgressBarColor() {
-    progressBarColor = new AllocateColor("progressBar", colorShiftRight.getRGB(), progressBarColor).getColor();
+  private void allocateColorProgressBar() {
+    colorProgressBar = new AllocateColor("progressBar", colorShiftRight.getRGB(), colorProgressBar).getColor();
   }
 
   private void allocateColorError() {
@@ -2743,6 +2748,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
                                                   rgbDefault.blue));
       } else {
         newColor = new Color(display, rgbDefault);
+        // Since the color is not longer overriden, reset back to default
+        // so that the user sees the correct color in Config.
+        COConfigurationManager.setParameter("Colors." + sName, rgbDefault); 
       }
 
       if (toBeDeleted != null && !toBeDeleted.isDisposed())

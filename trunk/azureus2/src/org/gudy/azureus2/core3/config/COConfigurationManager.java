@@ -21,6 +21,9 @@
  
 package org.gudy.azureus2.core3.config;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
+
 import java.util.Map;
 import java.util.Set;
 import java.io.IOException;
@@ -64,10 +67,10 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getStringParameter( _name, _default ));
 	}
 	
-	public static void 
+	public static boolean
 	setParameter(String parameter, String value) 
 	{
-		ConfigurationManager.getInstance().setParameter( parameter, value );
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
 	}
 
 	public static boolean
@@ -85,10 +88,10 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getBooleanParameter( _name, _default ));
 	}
 	
-	public static void 
+	public static boolean  
 	setParameter(String parameter, boolean value) 
 	{
-		ConfigurationManager.getInstance().setParameter( parameter, value );
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
 	}
 	
 	public static int
@@ -106,10 +109,10 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getIntParameter( _name, _default ));
 	}
 	
-	public static void 
+	public static boolean 
 	setParameter(String parameter, int value) 
 	{
-		ConfigurationManager.getInstance().setParameter( parameter, value );
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
 	}
 	
 	public static byte[]
@@ -120,10 +123,10 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getByteParameter( _name, _default ));
 	}
 	
-	public static void 
+	public static boolean
 	setParameter(String parameter, byte[] value) 
 	{
-		ConfigurationManager.getInstance().setParameter( parameter, value );
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
 	}
 	
 	public static String
@@ -134,7 +137,26 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getDirectoryParameter( _name ));
 	}
 	
-	public static void
+	public static boolean
+	setParameter(String parameter, Color value) 
+	{
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
+	}
+
+	public static boolean
+	setParameter(String parameter, RGB value) 
+	{
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
+	}
+
+	public static boolean
+	setRGBParameter(String parameter, int red, int green, int blue) 
+	{
+		return ConfigurationManager.getInstance().setRGBParameter( parameter, red, green, blue);
+	}
+
+
+  public static void
 	save()
 	{
 		ConfigurationManager.getInstance().save();

@@ -1,4 +1,4 @@
-package org.gudy.azureus2.core3.util;
+package org.gudy.azureus2.ui.common.util;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;

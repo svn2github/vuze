@@ -856,7 +856,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       
       // draw file % bar above
       int limit = (xMax * total) / 1000;
-      gcImage.setBackground(MainWindow.progressBarColor);
+      gcImage.setBackground(MainWindow.colorProgressBar);
       gcImage.fillRectangle(1,1,limit,5);
       if (limit < xMax) {
         gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);

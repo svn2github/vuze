@@ -29,35 +29,44 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.core3.config.ParameterListener;
 
 
 /**
  * @author Olivier
  *
  */
-public class ColorParameter implements IParameter {
+public class ColorParameter implements IParameter, ParameterListener {
 
-  
   Button colorChooser;
+  String sParamName;
   Image img;
 
-  public ColorParameter(
-    final Composite composite,
-    final String name,
-    int r,
-    int g,
-    int b,
-		final boolean changeMainWindowColors) {
+  public ColorParameter(final Composite composite,
+                        final String name,
+                        int r,
+                        int g,
+                        int b) {
+    sParamName = name;
     colorChooser = new Button(composite,SWT.PUSH);
     final int rV = COConfigurationManager.getIntParameter(name+".red",r);
     final int gV = COConfigurationManager.getIntParameter(name+".green",g);
     final int bV = COConfigurationManager.getIntParameter(name+".blue",b);
-    updateButtonColor(composite, rV, gV, bV);
+    updateButtonColor(composite.getDisplay(), rV, gV, bV);
+
+    COConfigurationManager.addParameterListener(sParamName, this);
+    
+    colorChooser.addListener(SWT.Dispose, new Listener() {
+      public void handleEvent(Event e) {
+        COConfigurationManager.removeParameterListener(sParamName, ColorParameter.this);
+      }
+    });
+
     colorChooser.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         ColorDialog cd = new ColorDialog(composite.getShell());
@@ -65,21 +74,16 @@ public class ColorParameter implements IParameter {
         RGB newColor = cd.open();
         if(newColor == null)
           return;
-        updateButtonColor(composite,newColor.red,newColor.green,newColor.blue);             
-        COConfigurationManager.setParameter(name+".red",newColor.red);
-        COConfigurationManager.setParameter(name+".green",newColor.green);
-        COConfigurationManager.setParameter(name+".blue",newColor.blue);   
-        if(changeMainWindowColors)
-          MainWindow.getWindow().allocateBlues();
+        COConfigurationManager.setParameter(name, newColor);
       }
     });
     
   }
   
-  private void updateButtonColor(final Composite composite, final int rV, final int gV, final int bV) {
+  private void updateButtonColor(final Display display, final int rV, final int gV, final int bV) {
     Image oldImg = img;
-    Color color = new Color(composite.getDisplay(),rV,gV,bV);
-    img = new Image(composite.getDisplay(),25,10);
+    Color color = new Color(display,rV,gV,bV);
+    img = new Image(display,25,10);
     GC gc = new GC(img);
     gc.setBackground(color);
     gc.fillRectangle(0,0,25,10);
@@ -98,4 +102,10 @@ public class ColorParameter implements IParameter {
     colorChooser.setLayoutData(layoutData);
   }
 
+  public void parameterChanged(String parameterName) {
+    final int rV = COConfigurationManager.getIntParameter(sParamName+".red");
+    final int gV = COConfigurationManager.getIntParameter(sParamName+".green");
+    final int bV = COConfigurationManager.getIntParameter(sParamName+".blue");
+    updateButtonColor(colorChooser.getDisplay(), rV, gV, bV);
+  }
 }

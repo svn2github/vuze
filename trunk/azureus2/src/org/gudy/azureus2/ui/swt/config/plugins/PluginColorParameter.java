@@ -47,8 +47,7 @@ public class PluginColorParameter implements PluginParameterImpl {
     	    parameter.getKey(),
 					parameter.getDefaultRed(),
 					parameter.getDefaultGreen(),
-					parameter.getDefaultBlue(),
-					false);
+					parameter.getDefaultBlue());
     controls[1] = cp.getControl();
     new Label(pluginGroup,SWT.NULL);
   }

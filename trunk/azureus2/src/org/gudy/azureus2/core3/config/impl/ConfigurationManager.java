@@ -14,6 +14,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.RGB;
+
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
@@ -100,8 +103,8 @@ public class ConfigurationManager {
     return result == 0 ? false : true;
   }
   
-  public void setParameter(String parameter, boolean value) {
-    setParameter(parameter, value ? 1 : 0);
+  public boolean setParameter(String parameter, boolean value) {
+    return setParameter(parameter, value ? 1 : 0);
   }
   
   private Long getIntParameterRaw(String parameter) {
@@ -177,39 +180,64 @@ public class ConfigurationManager {
     return dir;
   }
   
-  public void setParameter(String parameter, int defaultValue) {
+  public boolean setParameter(String parameter, int defaultValue) {
     Long newValue = new Long(defaultValue);
     Long oldValue = (Long) propertiesMap.put(parameter, newValue);
-    notifyParameterListenersIfChanged(parameter, newValue, oldValue);
+    return notifyParameterListenersIfChanged(parameter, newValue, oldValue);
   }
   
-  public void setParameter(String parameter, byte[] defaultValue) {
+  public boolean setParameter(String parameter, byte[] defaultValue) {
     byte[] oldValue = (byte[]) propertiesMap.put(parameter, defaultValue);
-    notifyParameterListenersIfChanged(parameter, defaultValue, oldValue);
+    return notifyParameterListenersIfChanged(parameter, defaultValue, oldValue);
    }
   
-  public void setParameter(String parameter, String defaultValue) {
-    setParameter(parameter, defaultValue.getBytes());
+  public boolean setParameter(String parameter, String defaultValue) {
+    return setParameter(parameter, defaultValue.getBytes());
+  }
+
+	public boolean setRGBParameter(String parameter, int red, int green, int blue) {
+    boolean bAnyChanged = false;
+    bAnyChanged |= setParameter(parameter + ".red", red);
+    bAnyChanged |= setParameter(parameter + ".green", green);
+    bAnyChanged |= setParameter(parameter + ".blue", blue);
+    if (bAnyChanged)
+      notifyParameterListeners(parameter);
+
+    return bAnyChanged;
+	}
+
+  public boolean setParameter(String parameter, Color newColor) {
+    return setParameter(parameter, newColor.getRGB());
+  }
+
+  public boolean setParameter(String parameter, RGB newColor) {
+    return setRGBParameter(parameter, newColor.red, newColor.green, newColor.blue);
   }
   
   // Sets a parameter back to its default
-  public void setParameter(String parameter) throws ConfigurationParameterNotFoundException {
+  public boolean setParameter(String parameter) throws ConfigurationParameterNotFoundException {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
     try {
-      setParameter(parameter, def.getIntParameter(parameter));
+      return setParameter(parameter, def.getIntParameter(parameter));
     } catch (Exception e) {
-      setParameter(parameter, def.getStringParameter(parameter));
+      return setParameter(parameter, def.getStringParameter(parameter));
     }
   }
   
-  private void notifyParameterListenersIfChanged(String parameter, Long newValue, Long oldValue) {
-    if(oldValue == null || 0 != newValue.compareTo(oldValue))
+  private boolean  notifyParameterListenersIfChanged(String parameter, Long newValue, Long oldValue) {
+    if(oldValue == null || 0 != newValue.compareTo(oldValue)) {
       notifyParameterListeners(parameter);
+      return true;
+    }
+    return false;
   }
 
-  private void notifyParameterListenersIfChanged(String parameter, byte[] newValue, byte[] oldValue) {
-    if(oldValue == null || Arrays.equals(newValue, oldValue))
+  private boolean notifyParameterListenersIfChanged(String parameter, byte[] newValue, byte[] oldValue) {
+    if(oldValue == null || Arrays.equals(newValue, oldValue)) {
       notifyParameterListeners(parameter);
+      return true;
+    }
+    return false;
   }
     
   private void notifyParameterListeners(String parameter) {

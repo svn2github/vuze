@@ -160,7 +160,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.colorScheme");
-    ColorParameter colorScheme = new ColorParameter(cArea, "Color Scheme",0,128,255,true);
+    ColorParameter colorScheme = new ColorParameter(cArea, "Color Scheme",0,128,255);
     gridData = new GridData();
     gridData.widthHint = 50;
     colorScheme.setLayoutData(gridData);
@@ -175,7 +175,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     cColorOverride.setLayoutData(gridData);
     
     String[] sColorsToOverride = { "progressBar", "error" };
-    Color[] colorsToOverride = { MainWindow.progressBarColor, 
+    Color[] colorsToOverride = { MainWindow.colorProgressBar, 
                                   MainWindow.colorError };
 
     for (int i = 0; i < sColorsToOverride.length; i++) {
@@ -185,7 +185,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
           new ColorParameter(cColorOverride, "Colors."  + sColorsToOverride[i],
                              colorsToOverride[i].getRed(), 
                              colorsToOverride[i].getGreen(), 
-                             colorsToOverride[i].getBlue(), false);
+                             colorsToOverride[i].getBlue());
       gridData = new GridData();
       gridData.widthHint = 50;
       colorParm.setLayoutData(gridData);

@@ -115,11 +115,8 @@ BufferedTableRow
 	setForeground(
 		Color	c )
 	{
-		if ( 	foreground != null &&
-				foreground.equals( c )){
-				
-			return;
-		}
+		if (foreground == c)
+		  return;
 		
 		foreground = c;
 		
