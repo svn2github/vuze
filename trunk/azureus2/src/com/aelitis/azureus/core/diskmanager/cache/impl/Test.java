@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
@@ -43,6 +44,19 @@ Test
 	main(
 		String	[]args )
 	{
+		System.setProperty("azureus.log.stdout","1");
+		
+		LGLogger.initialise();
+		
+		LGLogger.setListener(
+			new ILoggerListener()
+			{
+				public void log(int componentId,int event,int color,String text)
+				{
+					System.out.println( text );
+				}
+			});
+		
 		try{
 			CacheFileManagerImpl	manager = (CacheFileManagerImpl)CacheFileManagerFactory.getSingleton();
 			
@@ -50,9 +64,9 @@ Test
 	
 			//new Test().writeTest(manager);
 			
-			manager.initialise( true, 1*1024*1024 );
+			manager.initialise( true, 10*1024*1024 );
 
-			new Test().randomTest(manager);
+			new Test().writeTest(manager);
 			
 		}catch( Throwable e ){
 			
@@ -85,6 +99,8 @@ Test
 						}
 					},
 					f );
+			
+			cf.setAccessMode( CacheFile.CF_WRITE );
 			
 			long	start = System.currentTimeMillis();
 			

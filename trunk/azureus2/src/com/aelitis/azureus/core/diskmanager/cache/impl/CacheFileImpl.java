@@ -97,15 +97,16 @@ CacheFileImpl
 		if ( _torrent_file != null ){
 			
 			TOTorrent	torrent = _torrent_file.getTorrent();
-			
-			TOTorrentFile[]	torrent_files = torrent.getFiles();
-			
+						
 			read_ahead_size	= (int)torrent.getPieceLength();
 			
 			if ( read_ahead_size > READAHEAD_MAX ){
 				
 				read_ahead_size	= READAHEAD_MAX;
 			}
+		}else{
+			
+			read_ahead_size	= READAHEAD_MAX;
 		}
 	}
 	
@@ -138,11 +139,10 @@ CacheFileImpl
 			synchronized( this ){
 				
 				long	writing_file_position	= file_position;
-				long	writing_buffer_position	= file_buffer_position;
 				int		writing_left			= read_length;
 		
-				// if we can totally satisfy the read from the cache, then use it
-				// otherwise flush the cache - no read cache at the moment
+					// if we can totally satisfy the read from the cache, then use it
+					// otherwise flush the cache (not so smart here to only read missing)
 				
 				Iterator	it = cache.iterator();
 				
@@ -187,10 +187,10 @@ CacheFileImpl
 						
 						try{
 														
+							entry_buffer.limit( entry_buffer_position + skip + available );
+							
 							entry_buffer.position( entry_buffer_position + skip );
 							
-							entry_buffer.limit( entry_buffer_position + skip + available );
-						
 							if ( TRACE ){
 								LGLogger.log( 
 										"cacheRead: using " + entry.getString() + 
@@ -206,9 +206,9 @@ CacheFileImpl
 							
 						}finally{
 							
-							entry_buffer.position( entry_buffer_position );
-							
 							entry_buffer.limit( entry_buffer_limit );
+							
+							entry_buffer.position( entry_buffer_position );						
 						}
 						
 						writing_file_position	+= available;
@@ -287,6 +287,8 @@ CacheFileImpl
 								printCache();
 							}
 
+								// this recursive readCache is guaranteed to hit
+							
 							readCache( file_buffer, file_position );
 							
 						}else{
@@ -470,17 +472,26 @@ CacheFileImpl
 							
 								// we've got a gap - flush current and start another series
 							
-							multiBlockFlush(
-									multi_block_entries,
-									multi_block_start,
-									multi_block_next,
-									release_entries );
-
+								// set up ready for next block in case the flush fails - we try
+								// and flush as much as possible in the face of failure
+							
+							List	f_multi_block_entries	= multi_block_entries;
+							long	f_multi_block_start		= multi_block_start;
+							long	f_multi_block_next		= multi_block_next;
+							
 							multi_block_start	= entry_file_position;
 							
 							multi_block_next	= entry_file_position + entry_length;
 							
+							multi_block_entries	= new ArrayList();
+							
 							multi_block_entries.add( entry );
+							
+							multiBlockFlush(
+									f_multi_block_entries,
+									f_multi_block_start,
+									f_multi_block_next,
+									release_entries );
 						}
 					}
 				}catch( Throwable e ){
@@ -505,6 +516,8 @@ CacheFileImpl
 						entry_total_released += entry.getLength();
 
 						if ( minimum_to_release != -1 && entry_total_released > minimum_to_release ){
+							
+							multi_block_start	= -1;		// don't release any more
 							
 							break;
 						}
@@ -542,6 +555,8 @@ CacheFileImpl
 	
 		throws CacheFileManagerException
 	{
+		boolean	write_ok	= false;
+		
 		try{
 			if ( TRACE ){
 				
@@ -582,6 +597,8 @@ CacheFileImpl
 									
 			manager.fileBytesWritten( expected_overall_write );
 			
+			write_ok	= true;
+			
 		}catch( FMFileManagerException e ){
 			
 			throw( new CacheFileManagerException( "flush fails", e ));
@@ -599,12 +616,13 @@ CacheFileImpl
 				}else{
 					
 					entry.resetBufferPosition();
-					
-					entry.setClean();
+			
+					if ( write_ok ){
+						
+						entry.setClean();
+					}
 				}
 			}
-						
-			multi_block_entries.clear();
 		}
 	}
 	
