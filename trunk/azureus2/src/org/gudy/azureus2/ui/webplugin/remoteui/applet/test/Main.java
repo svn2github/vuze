@@ -32,6 +32,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.utils.*;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.*;
 
@@ -55,7 +56,30 @@ Main
 			e.printStackTrace();
 		}
 		
-
+		/*
+		UTTimer tim = _plugin_interface.getUtilities().createTimer("poo");
+		
+		tim.addPeriodicEvent(
+			1000,
+			new UTTimerEventPerformer()
+			{
+				
+				public void
+				perform(
+					UTTimerEvent	ev )
+				{
+					System.out.println( "poo");
+					
+					try{
+						PluginManager.stopAzureus();
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+				}
+			});
+		*/
+		
 		/*
 		_plugin_interface.getDownloadManager().addListener(
 				new DownloadManagerListener()

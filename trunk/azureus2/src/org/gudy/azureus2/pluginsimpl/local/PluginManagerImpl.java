@@ -108,11 +108,17 @@ PluginManagerImpl
 	
 		throws PluginException
 	{
+		/* removed this tests as some plugins don't start AZ but want to stop it
+		 * For example the CVS updater
+		 */
+		
+		/*
 		if ( !running ){
 			
 			throw( new RuntimeException( "Azureus is not running"));
 		}
-				
+		*/
+		
 		if ( ui_type == PluginManager.UI_NONE ){
 			
 				// can't invoke directly as the ui.common stuff isn't part of the core distribution
