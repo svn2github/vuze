@@ -35,6 +35,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -281,7 +282,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     
     table.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent event) {
-        doPaint();
+				if(event.count > 1)
+					return;
+				doPaint();
 			}
     });
     
@@ -978,8 +981,10 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
         if (item != null) {
           //Every N GUI updates we unvalidate the images
-          if (loopFactor % graphicsUpdate == 0)
+          if (loopFactor % graphicsUpdate == 0) {
             item.invalidate();
+            table.redraw();
+          }
           
           item.refresh();
         }

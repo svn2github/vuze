@@ -118,7 +118,21 @@ public class PeerRow implements SortableItem {
       BufferedTableItem item = (BufferedTableItem) iter.next();
       item.refresh();
     }
-    valid = true;
+  }
+  
+  public void doPaint() {
+  	if (table == null || table.isDisposed())
+  		return;
+  	if (row == null || row.isDisposed())
+  		return;
+
+  	Iterator iter = items.iterator();
+  	while(iter.hasNext()) {
+  		BufferedTableItem item = (BufferedTableItem) iter.next();
+  		if(item.needsPainting())
+  			item.doPaint();
+  	}
+  	valid = true;
   }
 
   public void delete() {

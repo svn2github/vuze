@@ -13,6 +13,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -184,6 +186,14 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
       }
     }   
 
+    table.addPaintListener(new PaintListener() {
+    	public void paintControl(PaintEvent event) {
+    		if(event.count > 1)
+    			return;
+    		doPaint();
+    	}
+    });
+    
     table.setHeaderVisible(true);
     table.setMenu(menu);
   }
@@ -265,6 +275,19 @@ public class PeersView extends AbstractIView implements DownloadManagerPeerListe
         
       }
     }
+  }
+  
+  private void doPaint() {
+  	if (getComposite() == null || getComposite().isDisposed())
+  		return;
+  	
+  	synchronized(objectToSortableItem) {
+  		Iterator iter = objectToSortableItem.values().iterator();
+  		while (iter.hasNext()) {
+  			PeerRow pr = (PeerRow) iter.next();  		  			
+  			pr.doPaint();  			
+  		}
+  	}
   }
 
   public void delete() {

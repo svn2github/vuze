@@ -81,7 +81,6 @@ public class PiecesItem extends TorrentItem  {
     
     //  Get the table GC
     GC gc = new GC(row.getTable());
-    gc.setClipping(bounds);
     if (valid && image != null) {      
       //If the image is still valid, simply copy it :)
       gc.drawImage(image, x0, y0);      
@@ -117,8 +116,8 @@ public class PiecesItem extends TorrentItem  {
         gcImage.drawRectangle(0, 0, width-1, height-1);
       }
       gcImage.dispose();
-      gc.drawImage(image, x0, y0);
-      gc.dispose();      
+      gc.drawImage(image, x0, y0);     
+      gc.dispose();
       if (oldImage != null && !oldImage.isDisposed())
         oldImage.dispose();
     }

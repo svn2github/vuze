@@ -27,6 +27,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
@@ -48,6 +49,14 @@ public class PiecesItem extends PeerItem  {
   }
   
   public void refresh() {
+  	
+  }
+  
+  public boolean needsPainting() {
+  	return true;
+  }
+  
+  public void doPaint() {
     boolean valid = peerRow.isValid();    
     BufferedTableRow row = peerRow.getRow();
     
@@ -61,7 +70,7 @@ public class PiecesItem extends PeerItem  {
       return;
     int width = bounds.width - 1;
     int x0 = bounds.x;
-    int y0 = bounds.y + 1;
+    int y0 = bounds.y + 1 + VerticalAligner.getAlignement();
     int height = bounds.height - 3;
     if (width < 10 || height < 3)
       return;
