@@ -102,7 +102,10 @@ public class IncomingMessageQueue {
         }
         
         if( !handled ) {
-          System.out.println( "no registered listeners [out of " +listeners_ref.size()+ "] handled decoded message [" +msg.getDescription()+ "]" );
+          if( listeners_ref.size() > 0 ) {
+            System.out.println( "no registered listeners [out of " +listeners_ref.size()+ "] handled decoded message [" +msg.getDescription()+ "]" );
+          }
+          
           DirectByteBuffer[] buffs = msg.getData();
           for( int x=0; x < buffs.length; x++ ) {
             buffs[ x ].returnToPool();
