@@ -62,7 +62,7 @@ public class GlobalManager extends Component {
               nbStarted++;
               nbDownloading++;
               if (loopFactor % dumpResumeLoopCount == 0) {
-                manager.diskManager.dumpResumeDataToDisk();
+                manager.diskManager.dumpResumeDataToDisk(false);
               }
             }
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {

@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -80,6 +81,8 @@ public class DiskManager {
   private SHA1Hasher hasher;
 
   private boolean bContinue = true;
+  
+  private Piece[] pieces;
 
   public DiskManager(Map metaData, String path) {
     this.state = INITIALIZING;
@@ -327,15 +330,25 @@ public class DiskManager {
   private void checkAllPieces() {
     state = CHECKING;
     boolean resumeEnabled = ConfigurationManager.getInstance().getBooleanParameter("Use Resume", false);
+    boolean resumeValid = false;
     byte[] resumeArray = null;
+    Map partialPieces = null;
     Map resumeMap = (Map) metaData.get("resume");
     if (resumeMap != null) {
       Map resumeDirectory = (Map) resumeMap.get(this.path);
-      if (resumeDirectory != null)
-        resumeArray = (byte[]) resumeDirectory.get("resume data");
+      if (resumeDirectory != null) {
+        try {      
+          resumeArray = (byte[]) resumeDirectory.get("resume data");
+          partialPieces = (Map) resumeDirectory.get("blocks");        
+          resumeValid = ((Long) resumeDirectory.get("valid")).intValue() == 1;
+          resumeDirectory.put("valid", new Long(0));
+          saveTorrent();
+        }
+        catch (Exception ignore) {}
+      }
     }
 
-    if (resumeEnabled && (resumeArray != null) && (resumeArray.length == pieceDone.length)) {
+    if (resumeValid && resumeEnabled && (resumeArray != null) && (resumeArray.length == pieceDone.length)) {
       for (int i = 0; i < resumeArray.length; i++) //parse the array
         {
         //mark the pieces
@@ -353,6 +366,25 @@ public class DiskManager {
           }
         }
       }
+      if(partialPieces != null) {
+        pieces = new Piece[nbPieces];
+        Iterator iter = partialPieces.entrySet().iterator();
+        while(iter.hasNext()) {
+          Map.Entry key = (Map.Entry) iter.next();
+          int pieceNumber = Integer.parseInt((String)key.getKey());
+          Piece piece;
+          if (pieceNumber < nbPieces - 1)
+            piece = new Piece(null, getPieceLength(), pieceNumber);
+          else
+            piece = new Piece(null, getLastPieceLength(), pieceNumber);
+          List blocks = (List) partialPieces.get(key.getKey());
+          Iterator iterBlock = blocks.iterator();
+          while(iterBlock.hasNext()) {
+            piece.setWritten(((Long)iterBlock.next()).intValue());
+          }
+          pieces[pieceNumber] = piece;          
+        }        
+      }       
     }
     else //no resume data.. rebuild it
       {
@@ -362,7 +394,7 @@ public class DiskManager {
       }
       //Patch:: dump the newly built resume data to the disk / torrent --Tyler
       if (bContinue && resumeEnabled)
-        this.dumpResumeDataToDisk();
+        this.dumpResumeDataToDisk(false);
     }
   }
 
@@ -410,20 +442,21 @@ public class DiskManager {
   private static class FlyWeightInteger {
     private static Vector array = new Vector(1024);
 
-	public static synchronized Integer getInteger(int value) {
-		Integer tmp = null;
-		if (value >= array.size()) {
-			array.setSize(value+256);
-		} else {
-			tmp = (Integer) array.get(value);
-		}
-		if (tmp == null) {
-			tmp = new Integer(value);
-			array.set(value, tmp);
-		}
-		return tmp;
+    public static synchronized Integer getInteger(int value) {
+      Integer tmp = null;
+      if (value >= array.size()) {
+        array.setSize(value + 256);
+      }
+      else {
+        tmp = (Integer) array.get(value);
+      }
+      if (tmp == null) {
+        tmp = new Integer(value);
+        array.set(value, tmp);
+      }
+      return tmp;
 
-	}
+    }
   }
 
   private static class BtFile {
@@ -533,29 +566,29 @@ public class DiskManager {
 
     public void run() {
       while (bContinue) {
-	      while (readQueue.size() != 0) {
-	        DataQueueItem item = (DataQueueItem) readQueue.remove(0);
-	        Request request = item.getRequest();
-	        		
-			// temporary fix for bug 784306
-			ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
-			if (buffer != null)
-				item.setBuffer(buffer);
-	      }
-	      try {
-	        Thread.sleep(15);
-	      }
-	      catch (Exception e) {
-	        e.printStackTrace();
-	      }
-       }
+        while (readQueue.size() != 0) {
+          DataQueueItem item = (DataQueueItem) readQueue.remove(0);
+          Request request = item.getRequest();
+
+          // temporary fix for bug 784306
+          ByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+          if (buffer != null)
+            item.setBuffer(buffer);
+        }
+        try {
+          Thread.sleep(15);
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
     }
 
     public void stopIt() {
       this.bContinue = false;
       while (readQueue.size() != 0) {
-         DataQueueItem item = (DataQueueItem) readQueue.remove(0);
-         item.setLoading(false);
+        DataQueueItem item = (DataQueueItem) readQueue.remove(0);
+        item.setLoading(false);
       }
     }
   }
@@ -590,10 +623,10 @@ public class DiskManager {
 
     public void stopIt() {
       this.bContinue = false;
-        while (writeQueue.size() != 0) {
-          WriteElement elt = (WriteElement) writeQueue.remove(0);
-          ByteBufferPool.getInstance().freeBuffer(elt.data);
-        }      
+      while (writeQueue.size() != 0) {
+        WriteElement elt = (WriteElement) writeQueue.remove(0);
+        ByteBufferPool.getInstance().freeBuffer(elt.data);
+      }
     }
   }
 
@@ -707,7 +740,7 @@ public class DiskManager {
   }
 
   public void aSyncCheckPiece(int pieceNumber) {
-      checkQueue.add(new WriteElement(pieceNumber, 0, null));   
+    checkQueue.add(new WriteElement(pieceNumber, 0, null));
   }
 
   public synchronized boolean checkPiece(int pieceNumber) {
@@ -765,7 +798,7 @@ public class DiskManager {
     return false;
   }
 
-  public void dumpResumeDataToDisk() {
+  public void dumpResumeDataToDisk(boolean savePartialPieces) {
     //TODO CLEAN UP
     //build the piece byte[] 
     byte[] resumeData = new byte[pieceDone.length];
@@ -782,7 +815,27 @@ public class DiskManager {
     Map resumeDirectory = new HashMap();
     resumeMap.put(path, resumeDirectory);
     resumeDirectory.put("resume data", resumeData);
-
+    Map partialPieces = new HashMap();
+    if (savePartialPieces) {
+      Piece[] pieces = manager.getPieces();
+      for (int i = 0; i < pieces.length; i++) {
+        Piece piece = pieces[i];
+        if (piece != null) {
+          boolean[] downloaded = piece.downloaded;
+          List blocks = new ArrayList();
+          for (int j = 0; j < downloaded.length; j++) {
+            if (downloaded[j])
+              blocks.add(new Long(j));
+          }
+          partialPieces.put("" + i, blocks);
+        }
+      }
+      resumeDirectory.put("blocks", partialPieces);
+      resumeDirectory.put("valid", new Long(1));
+    }
+    else {
+      resumeDirectory.put("valid", new Long(0));
+    }
     saveTorrent();
   }
 
@@ -820,7 +873,7 @@ public class DiskManager {
   }
 
   public void enqueueReadRequest(DataQueueItem item) {
-      readQueue.add(item);
+    readQueue.add(item);
   }
 
   //MODIFY THIS TO WORK WITH PATH/FILES
@@ -902,19 +955,19 @@ public class DiskManager {
       currentFile++;
       fileOffset = 0;
       previousFilesLength = offset;
-      if(buffer.hasRemaining() && currentFile > pieceList.size()) {
+      if (buffer.hasRemaining() && currentFile > pieceList.size()) {
         noError = false;
         System.out.println("Error in read Block : *Debug Information*");
         System.out.println("PieceNumber : " + pieceNumber);
         System.out.println("Offset : " + offset);
         System.out.println("Length : " + length);
-        System.out.println("Buffer - limit : " + buffer.limit() +", remaining : " + buffer.remaining());
+        System.out.println("Buffer - limit : " + buffer.limit() + ", remaining : " + buffer.remaining());
         System.out.println("PieceList - size : " + pieceList.size());
         System.out.println("currentFile : " + currentFile);
         System.out.println("tempPiece - length : " + tempPiece.getLength() + ", offset : " + tempPiece.getOffset());
-        
+
       }
-        
+
     }
 
     buffer.position(0);
@@ -922,7 +975,7 @@ public class DiskManager {
   }
 
   public void writeBlock(int pieceNumber, int offset, ByteBuffer data) {
-      writeQueue.add(new WriteElement(pieceNumber, offset, data));
+    writeQueue.add(new WriteElement(pieceNumber, offset, data));
   }
 
   public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
@@ -1381,4 +1434,11 @@ public class DiskManager {
       return pieceNumber;
     }
   */
+  /**
+   * @return
+   */
+  public Piece[] getPieces() {
+    return pieces;
+  }
+
 }

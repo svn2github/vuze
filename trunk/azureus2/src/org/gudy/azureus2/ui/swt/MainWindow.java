@@ -323,6 +323,8 @@ public class MainWindow implements IComponentListener {
     fileItem.setMenu(fileMenu);
     MenuItem file_new = new MenuItem(fileMenu, SWT.CASCADE);
     Messages.setLanguageText(file_new, "MainWindow.menu.file.open"); //$NON-NLS-1$
+    //MenuItem file_create = new MenuItem(fileMenu, SWT.CASCADE);
+    //Messages.setLanguageText(file_create, "MainWindow.menu.file.create"); //$NON-NLS-1$
     new MenuItem(fileMenu, SWT.SEPARATOR);
     MenuItem file_exit = new MenuItem(fileMenu, SWT.NULL);
     Messages.setLanguageText(file_exit, "MainWindow.menu.file.exit"); //$NON-NLS-1$
@@ -343,6 +345,7 @@ public class MainWindow implements IComponentListener {
         openTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
       }
     });
+    
     // MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
     //file_new_url.setText("URL");
     MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
@@ -357,12 +360,22 @@ public class MainWindow implements IComponentListener {
         openTorrentsFromDirectory(fileName);
       }
     });
+    
+    /*
+    Menu createMenu = new Menu(mainWindow, SWT.DROP_DOWN);
+    file_create.setMenu(createMenu);
+    MenuItem file_create_file = new MenuItem(createMenu,SWT.NULL);
+    Messages.setLanguageText(file_create_file, "MainWindow.menu.file.create.fromfile");
+    MenuItem file_create_folder = new MenuItem(createMenu,SWT.NULL);
+    Messages.setLanguageText(file_create_folder, "MainWindow.menu.file.create.fromdir");
+    */
 
     file_exit.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         dispose();
       }
     });
+
 
     //The View Menu
     MenuItem viewItem = new MenuItem(menuBar, SWT.CASCADE);

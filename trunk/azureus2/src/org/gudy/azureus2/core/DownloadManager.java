@@ -260,13 +260,13 @@ public class DownloadManager extends Component {
       public void run() {
         state = DownloadManager.STATE_STOPPING;
         if (peerManager != null)
-          peerManager.stopAll();
-        peerManager = null;
+          peerManager.stopAll();        
         if (diskManager != null)
           diskManager.stopIt();
         trackerConnection = null;
+        peerManager = null;
         state = DownloadManager.STATE_STOPPED;
-
+                
         //globalManager.startWaitingDownloads();
 
         // remove all free buffers to regain memory 

@@ -112,4 +112,11 @@ public class Piece {
     return this.isBeingChecked;
   }
 
+  /**
+   * @param manager
+   */
+  public void setManager(PeerManager manager) {
+    this.manager = manager;
+  }
+
 }

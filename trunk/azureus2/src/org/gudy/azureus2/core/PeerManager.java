@@ -206,10 +206,15 @@ public class PeerManager extends Thread {
 
     //3. Stop the server
     _server.stopServer();
+    
+    for(int i=0 ; i < _pieces.length ; i++) {
+      if(_pieces[i] != null)
+        pieceRemoved(_pieces[i]);
+    }    
 
     //3.Dump resume Data
     if (_diskManager.getState() == DiskManager.READY)
-      _diskManager.dumpResumeDataToDisk();
+      _diskManager.dumpResumeDataToDisk(true);
 
     //Asynchronous cleaner
 
@@ -429,7 +434,7 @@ public class PeerManager extends Thread {
     if (_finished) {
       _manager.setState(DownloadManager.STATE_SEEDING);
       //_diskManager.changeToReadOnly();
-      _diskManager.dumpResumeDataToDisk();
+      _diskManager.dumpResumeDataToDisk(true);
       synchronized (_connections) {
         for (int i = 0; i < _connections.size(); i++) {
           PeerSocket pc = (PeerSocket) _connections.get(i);
@@ -1134,7 +1139,15 @@ public class PeerManager extends Thread {
     _piecesRarest = new boolean[_nbPieces];
 
     //the pieces
-    _pieces = new Piece[_nbPieces];
+    _pieces = diskManager.getPieces();
+    if(_pieces == null)
+       _pieces = new Piece[_nbPieces];
+    for(int i = 0 ; i < _pieces.length ; i++) {
+      if(_pieces[i] != null) {
+        _pieces[i].setManager(this);
+        pieceAdded(_pieces[i]);
+      }
+    }
 
     //the availability level of each piece in the network
     _availability = new int[_nbPieces];
