@@ -71,10 +71,20 @@ public class Utils {
         if(control instanceof Composite) {
           disposeComposite((Composite) control);
         }
-        control.dispose();
+        try {
+          control.dispose();
+        } catch (SWTException e) {
+          e.printStackTrace();
+        }
       }
-    }    
-    composite.dispose();
+    }
+    // It's possible that the composite was destroyed by the child
+    if (!composite.isDisposed())
+      try {
+        composite.dispose();
+      } catch (SWTException e) {
+        e.printStackTrace();
+      }
   }
   
   public static void changeBackgroundComposite(Composite composite,Color color) {
