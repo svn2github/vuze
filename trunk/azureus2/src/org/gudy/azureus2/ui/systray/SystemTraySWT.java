@@ -25,6 +25,7 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
@@ -49,7 +50,7 @@ public class SystemTraySWT {
   TrayItem trayItem;
   
   Menu menu;
-  
+
   public SystemTraySWT(MainWindow mainWindow) {
     this.mainWindow = mainWindow;
     this.display = mainWindow.getDisplay();
@@ -281,15 +282,12 @@ public class SystemTraySWT {
                     if(items[i] == event.widget)
                     {
                         items[i].setSelection(true);
-                        COConfigurationManager.setParameter(configKey, ((Integer)items[i].getData("maxkb")).intValue());
-                        COConfigurationManager.save();
+                        TransferSpeedValidator.validateAndSave(configKey, items[i].getData("maxkb"));
                     }
                     else {
                         items[i].setSelection(false);
                     }
                 }
-
-               // do not recompute speed limit partitions to avoid items jumping around the place from the user's POV
            }
        };
    }
