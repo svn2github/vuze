@@ -963,6 +963,8 @@ DiskManagerImpl
 		//disable fast resume if a new file was created
 		if (newfiles) resumeEnabled = false;
 		
+		boolean	resume_data_complete = false;
+		
 		if (resumeEnabled) {
 			boolean resumeValid = false;
 			byte[] resumeArray = null;
@@ -1009,15 +1011,27 @@ DiskManagerImpl
 					resumeDirectory = (Map)resumeMap.get(path);
 				}
 				
-				if (resumeDirectory != null) {
+				if ( resumeDirectory != null ){
 					
 					try {
 						
 						resumeArray = (byte[])resumeDirectory.get("resume data");
 						partialPieces = (Map)resumeDirectory.get("blocks");
 						resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
-						resumeDirectory.put("valid", new Long(0));
-						saveTorrent();
+						
+							// if the torrent download is complete we don't need to invalidate the
+							// resume data
+						
+						if ( isTorrentResumeDataComplete( torrent, path )){
+							
+							resume_data_complete	= true;
+									
+						}else{
+							
+							resumeDirectory.put("valid", new Long(0));
+							
+							saveTorrent();
+						}
 						
 					}catch(Exception ignore){
 						/* ignore */ 
@@ -1075,15 +1089,25 @@ DiskManagerImpl
 			percentDone = ((i + 1) * 1000) / nbPieces;
 			checkPiece(i);
 		}
-		//dump the newly built resume data to the disk/torrent
-		if (bContinue && resumeEnabled) this.dumpResumeDataToDisk(false, false);
-
+		
+			//dump the newly built resume data to the disk/torrent
+		
+		if (bContinue && resumeEnabled && !resume_data_complete){
+			
+			dumpResumeDataToDisk(false, false);
+		}
 	}
 	
-	public void dumpResumeDataToDisk(boolean savePartialPieces, boolean invalidate) {
+	public void 
+	dumpResumeDataToDisk(
+		boolean savePartialPieces, 
+		boolean invalidate )
+	{
 		if(!useFastResume)
 		  return;
-        
+    
+		boolean	was_complete = isTorrentResumeDataComplete( torrent, path );
+		
 		//build the piece byte[] 
 		byte[] resumeData = new byte[pieceDone.length];
 		for (int i = 0; i < resumeData.length; i++) {
@@ -1130,7 +1154,16 @@ DiskManagerImpl
 	    resumeDirectory.put("valid", new Long(0));
 	  }
 		
-	  saveTorrent();    
+	  boolean	is_complete = isTorrentResumeDataComplete( torrent, path );
+	  
+	  if ( was_complete && is_complete ){
+	 
+	  		// no change, no point in writing
+	  		  	
+	  }else{
+	  	
+	  	saveTorrent();
+	  }
 	}
 
 	public static void
@@ -1167,15 +1200,89 @@ DiskManagerImpl
 		resumeDirectory.put("valid", new Long(1));	
 	}
 	
+	public static boolean
+	isTorrentResumeDataComplete(
+		TOTorrent	torrent,
+		String		data_dir )
+	{
+		try{
+			int	piece_count = torrent.getPieces().length;
+		
+			Map resumeMap = torrent.getAdditionalMapProperty("resume");
+		
+			if (resumeMap != null) {
+			
+					// see bug 869749 for explanation of this mangling
+				
+				String mangled_path;
+				
+				try{
+					mangled_path = new String(data_dir.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+									
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+					
+					mangled_path = data_dir;
+				}
+				
+				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
+				
+				if ( resumeDirectory == null ){
+					
+					// unfortunately, if the torrent hasn't been saved and restored then the
+					// mangling with not yet have taken place. So we have to also try the 
+					// original key (see 878015)
+					
+					resumeDirectory = (Map)resumeMap.get(data_dir);
+				}
+				
+				if (resumeDirectory != null) {
+										
+					byte[] 	resume_data =  (byte[])resumeDirectory.get("resume data");
+					Map		blocks		= (Map)resumeDirectory.get("blocks");
+					boolean	valid		= ((Long)resumeDirectory.get("valid")).intValue() == 1;
+					
+						// any partial pieced -> not complete
+					if ( blocks == null || blocks.size() > 0 ){
+						
+						return( false );
+					}
+					
+					if ( valid && resume_data.length == piece_count ){
+						
+						for (int i=0;i<resume_data.length;i++){
+	
+							if ( resume_data[i] == 0 ){
+								
+									// missing piece
+								
+								return( false );
+							}
+						}
+						
+						return( true );
+					}
+				}
+			}
+		}catch( Throwable e ){
+		
+			e.printStackTrace();
+		}	
+		
+		return( false );
+	}
+	
 		// RESUME DATA STUFF ENDS
 	
 	private void 
 	saveTorrent() 
 	{
-		try {
+		try{
 			TorrentUtils.writeToFile( torrent );
 						
 		} catch (TOTorrentException e) {
+			
 			e.printStackTrace();
 		}
 	}

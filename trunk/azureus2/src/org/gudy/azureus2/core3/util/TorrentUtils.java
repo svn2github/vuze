@@ -87,7 +87,7 @@ TorrentUtils
 	    		
 	    		throw (new TOTorrentException("TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
 	    	}
-	
+	    		    	
 	    	File torrent_file = new File(str);
 	    	
 	    	if (COConfigurationManager.getBooleanParameter("Save Torrent Backup", false) && torrent_file.exists()) {

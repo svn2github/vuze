@@ -60,16 +60,58 @@ WebPlugin
 	public void 
 	initialize(
 		PluginInterface _plugin_interface )
+	
+		throws PluginException
 	{	
 		plugin_interface	= _plugin_interface;
 		
 		log = plugin_interface.getLogger().getChannel("WebPlugin");
 		
-		
 		tracker = plugin_interface.getTracker();
+	
+		Properties	props = plugin_interface.getPluginProperties();
 		
-		file_root = FileUtil.getApplicationPath() + "web";
+		String	home_page = (String)props.get("homepage");
+		
+		String	root_dir	= (String)props.get("rootdir");
+		
+		if ( root_dir == null ){
+			
+			file_root = FileUtil.getApplicationPath() + "web";
+			
+		}else{
+			
+			if ( root_dir.startsWith(File.separator) || root_dir.indexOf(":") != -1 ){
+				
+				file_root = root_dir;
+				
+			}else{
+				
+				file_root = FileUtil.getApplicationPath() + "web" + File.separator + root_dir;
+				
+			}
+		}
 
+		File	f_root = new File( file_root );
+		
+		if ( !f_root.exists()){
+	
+			String	error = "WebPlugin: root dir '" + file_root + "' doesn't exist";
+			
+			log.log( LoggerChannel.LT_ERROR, error );
+			
+			throw( new PluginException( error ));
+		}
+
+		if ( !f_root.isDirectory()){
+			
+			String	error = "WebPlugin: root dir '" + file_root + "' isn't a directory";
+			
+			log.log( LoggerChannel.LT_ERROR, error );
+			
+			throw( new PluginException( error ));
+		}
+		
 		welcome_files = new File[welcome_pages.length];
 		
 		for (int i=0;i<welcome_pages.length;i++){
@@ -77,7 +119,6 @@ WebPlugin
 			welcome_files[i] = new File( file_root + File.separator + welcome_pages[i] );
 		}
 		
-		Properties	props = plugin_interface.getPluginProperties();
 					
 		int port	= Integer.parseInt( props.getProperty( "port", DEFAULT_PORT ));
 
@@ -104,7 +145,7 @@ WebPlugin
 		TrackerWebPageRequest		request,
 		TrackerWebPageResponse		response )
 	
-	throws IOException
+		throws IOException
 	{
 		OutputStream os = response.getOutputStream();
 		

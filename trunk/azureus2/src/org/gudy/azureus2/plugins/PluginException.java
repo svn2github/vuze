@@ -1,7 +1,7 @@
 /*
- * File    : Plugin.java
- * Created : 2 nov. 2003 18:43:21
- * By      : Olivier 
+ * File    : PluginException.java
+ * Created : 25-Jan-2004
+ * By      : parg
  * 
  * Azureus - a Java Bittorrent client
  *
@@ -18,22 +18,30 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.plugins;
 
 /**
- * Defines the plugin interface to implement in order to create a Plugin
- * @author Olivier
+ * @author parg
+ *
  */
-public interface Plugin {  
-	/**
-	 * This method is called when the Plugin is loaded by Azureus
-	 * @param pluginInterface the interface that the plugin must use to communicate with Azureus
-	 */
+
+public class 
+PluginException
+	extends Exception
+{
+	public
+	PluginException(
+		String		str )
+	{
+		super( str );
+	}
 	
-  public void 
-  initialize(
-  		PluginInterface pluginInterface )
-  
-  	throws PluginException;
+	public
+	PluginException(
+		String		str,
+		Throwable 	e )
+	{
+		super( str, e );
+	}
 }
