@@ -271,6 +271,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
     restartRequired = false;
     TableItem[] items = table.getItems();
     for(int i = 0 ; i < items.length ; i++) {
+      if(! items[i].getChecked()) continue;
       Update update = (Update) items[i].getData();
       int required = update.getRestartRequired();
       if((required == Update.RESTART_REQUIRED_MAYBE) ||
