@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.update;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.*;
 
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -97,8 +98,16 @@ UpdateMonitor
 	performAutoCheck(
 		final boolean		start_of_day )
 	{
-		boolean check_at_start	= COConfigurationManager.getBooleanParameter( "update.start", true );
-		boolean check_periodic	= COConfigurationManager.getBooleanParameter( "update.periodic", true );
+		boolean check_at_start	= false;
+		boolean check_periodic	= false;
+	
+			// no update checks for java web start
+		
+		if ( !SystemProperties.isJavaWebStartInstance()){
+					
+			check_at_start	= COConfigurationManager.getBooleanParameter( "update.start", true );
+			check_periodic	= COConfigurationManager.getBooleanParameter( "update.periodic", true );
+		}
 		
 			// periodic -> check at start as well
 		
@@ -136,13 +145,23 @@ UpdateMonitor
 	public void
 	performCheck()
 	{
-    if(current_window != null && ! current_window.isDisposed()) {
-      SWTThread.getInstance().getDisplay().syncExec(new Runnable() {
-        public void run() {               
-          current_window.dispose();         
-        }
-      });
-    }
+		if ( SystemProperties.isJavaWebStartInstance()){
+			
+				// just in case we get here somehome!
+			
+			LGLogger.log( "skipping update check as java web start");
+			
+			return;
+		}
+
+	    if(current_window != null && ! current_window.isDisposed()) {
+	      SWTThread.getInstance().getDisplay().syncExec(new Runnable() {
+	        public void run() {               
+	          current_window.dispose();         
+	        }
+	      });
+	    }
+	    
 		MainWindow mainWindow = MainWindow.getWindow();
 		
 	    mainWindow.setStatusText( Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION + " / MainWindow.status.checking ...");

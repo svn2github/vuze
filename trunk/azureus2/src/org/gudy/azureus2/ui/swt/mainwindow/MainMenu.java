@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginView;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Tab;
@@ -365,6 +364,15 @@ public class MainMenu {
             }
           });
       
+      MenuItem help_plugin= new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_plugin, "MainWindow.menu.help.plugins"); //$NON-NLS-1$
+      help_plugin.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+            String pluginString = "http://azureus.sourceforge.net/plugin_list.php";
+            Program.launch(pluginString);
+          }
+        });
+    
       if ( !SystemProperties.isJavaWebStartInstance()){
       	
       MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
