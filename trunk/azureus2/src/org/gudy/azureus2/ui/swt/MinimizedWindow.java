@@ -94,16 +94,16 @@ public class MinimizedWindow {
       }
     };
 
-    splash.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
-    splash.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
+    splash.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+    splash.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
     splash.addMouseListener(mListener);
     splash.addMouseMoveListener(mMoveListener);
     lDrag.addMouseListener(mListener);
     lDrag.addMouseMoveListener(mMoveListener);
 
     Label l1 = new Label(splash, SWT.NONE);
-    l1.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
-    l1.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
+    l1.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+    l1.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
     Messages.setLanguageText(l1, "MinimizedWindow.name"); //$NON-NLS-1$
     l1.addMouseListener(mListener);
     l1.addMouseMoveListener(mMoveListener);
@@ -115,7 +115,7 @@ public class MinimizedWindow {
     hSize = hSizeText > hSizeImage ? hSizeText : hSizeImage;
 
     splashFile = new Label(splash, SWT.NONE);
-    splashFile.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+    splashFile.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
     splashFile.setText(""); //$NON-NLS-1$
     splashFile.addMouseListener(mListener);
     splashFile.addMouseMoveListener(mMoveListener);
@@ -124,8 +124,8 @@ public class MinimizedWindow {
     xSize += 250 + 3;
 
     Label l2 = new Label(splash, SWT.NONE);
-    l2.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
-    l2.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
+    l2.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+    l2.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
     l2.setText(MessageText.getString("ConfigView.complete.abbreviated"));
     l2.addMouseListener(mListener);
     l2.addMouseMoveListener(mMoveListener);
@@ -134,7 +134,7 @@ public class MinimizedWindow {
     xSize += l2.getSize().x + 3;
 
     splashPercent = new Label(splash, SWT.NONE);
-    splashPercent.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+    splashPercent.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
     splashPercent.setText(""); //$NON-NLS-1$
     splashPercent.addMouseListener(mListener);
     splashPercent.addMouseMoveListener(mMoveListener);
@@ -143,8 +143,8 @@ public class MinimizedWindow {
     xSize += 45 + 3;
 
     Label l3 = new Label(splash, SWT.NONE);
-    l3.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
-    l3.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
+    l3.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+    l3.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
     l3.setText(MessageText.getString("ConfigView.download.abbreviated"));
     l3.addMouseListener(mListener);
     l3.addMouseMoveListener(mMoveListener);
@@ -153,7 +153,7 @@ public class MinimizedWindow {
     xSize += l3.getSize().x + 3;
 
     splashDown = new Label(splash, SWT.NONE);
-    splashDown.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+    splashDown.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
     splashDown.setText(""); //$NON-NLS-1$
     splashDown.addMouseListener(mListener);
     splashDown.addMouseMoveListener(mMoveListener);
@@ -162,8 +162,8 @@ public class MinimizedWindow {
     xSize += 65 + 3;
 
     Label l4 = new Label(splash, SWT.NONE);
-    l4.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
-    l4.setForeground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
+    l4.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+    l4.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
     l4.setText(MessageText.getString("ConfigView.upload.abbreviated"));
     l4.addMouseListener(mListener);
     l4.addMouseMoveListener(mMoveListener);
@@ -172,7 +172,7 @@ public class MinimizedWindow {
     xSize += l4.getSize().x + 3;
 
     splashUp = new Label(splash, SWT.NONE);
-    splashUp.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+    splashUp.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
     splashUp.setText(""); //$NON-NLS-1$
     splashUp.addMouseListener(mListener);
     splashUp.addMouseMoveListener(mMoveListener);

@@ -38,17 +38,17 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
   private static final String[] sColorsToOverride = { "progressBar", "error", "warning", "altRow" };
-  private Color[] colorsToOverride = { MainWindow.colorProgressBar, 
-                                       MainWindow.colorError,
-                                       MainWindow.colorWarning,
-                                       MainWindow.colorAltRow
+  private Color[] colorsToOverride = { Colors.colorProgressBar, 
+      Colors.colorError,
+      Colors.colorWarning,
+      Colors.colorAltRow
                                       };
   private Button[] btnColorReset = new Button[sColorsToOverride.length];
 

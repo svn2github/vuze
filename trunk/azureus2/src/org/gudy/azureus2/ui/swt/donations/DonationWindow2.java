@@ -49,7 +49,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
  * @author Olivier
@@ -94,7 +94,7 @@ public class DonationWindow2 {
     
     shell.setImage(ImageRepository.getImage("azureus"));
     shell.setText(MessageText.getString("DonationWindow.title"));
-    shell.setBackground(MainWindow.white);
+    shell.setBackground(Colors.white);
     
     background = ImageRepository.getImage("donation");    
     
@@ -264,7 +264,7 @@ public class DonationWindow2 {
       final Button radioDonate = new Button(shell,SWT.RADIO);
       Messages.setLanguageText(radioDonate,"DonationWindow.options.donate");
       radioDonate.setFont(mainFont);
-      radioDonate.setBackground(MainWindow.white);
+      radioDonate.setBackground(Colors.white);
       formData = new FormData();
       formData.top = new FormAttachment(65, 0); // added ",0" for Pre 3.0 SWT
       formData.left = new FormAttachment(0,140);
@@ -275,8 +275,8 @@ public class DonationWindow2 {
       final Label textFooter = new Label(shell,SWT.NULL);    
       textFooter.setFont(smallFont);
       textFooter.setText(footerText);
-      textFooter.setForeground(MainWindow.black);
-      textFooter.setBackground(MainWindow.white);
+      textFooter.setForeground(Colors.black);
+      textFooter.setBackground(Colors.white);
       formData = new FormData();
       formData.top = new FormAttachment(radioDonate);
       formData.left = new FormAttachment(0,140);
@@ -287,7 +287,7 @@ public class DonationWindow2 {
       final Button radioNoDonate = new Button(shell,SWT.RADIO);
       Messages.setLanguageText(radioNoDonate,"DonationWindow.options.nodonate");
       radioNoDonate.setFont(mediumFont);
-      radioNoDonate.setBackground(MainWindow.white);
+      radioNoDonate.setBackground(Colors.white);
       formData = new FormData();
       formData.top = new FormAttachment(textFooter);
       formData.left = new FormAttachment(0,140);
@@ -297,7 +297,7 @@ public class DonationWindow2 {
       final Button radioLater = new Button(shell,SWT.RADIO);
       Messages.setLanguageText(radioLater,"DonationWindow.options.later");
       radioLater.setFont(mediumFont);
-      radioLater.setBackground(MainWindow.white);
+      radioLater.setBackground(Colors.white);
       formData = new FormData();
       formData.top = new FormAttachment(radioNoDonate);
       formData.left = new FormAttachment(0,140);
@@ -307,7 +307,7 @@ public class DonationWindow2 {
       final Button radioAlready = new Button(shell,SWT.RADIO);
       Messages.setLanguageText(radioAlready,"DonationWindow.options.already");      
       radioAlready.setFont(mediumFont);
-      radioAlready.setBackground(MainWindow.white);
+      radioAlready.setBackground(Colors.white);
       formData = new FormData();
       formData.top = new FormAttachment(radioLater);
       formData.left = new FormAttachment(0,140);

@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.tableitems.FileItem;
 import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
@@ -237,7 +238,7 @@ public class FilesView extends AbstractIView implements SortableTable {
       if (files[i] != null) {
         FileItem fileItem = (FileItem) objectToSortableItem.get(files[i]);
         if (fileItem == null) {
-          fileItem = new FileItem(table, manager, files[i], MainWindow.blues);
+          fileItem = new FileItem(table, manager, files[i], Colors.blues);
           objectToSortableItem.put(files[i], fileItem);
           tableItemToObject.put(fileItem.getItem(), files[i]);
         }

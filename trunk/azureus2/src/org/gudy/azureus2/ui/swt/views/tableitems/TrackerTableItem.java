@@ -35,6 +35,7 @@ import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
@@ -229,9 +230,9 @@ implements SortableItem
 		
 		if ( seed_count != 0 ){
 			
-			if ( !item.getForeground().equals( MainWindow.blues[MainWindow.BLUES_MIDDARK])){
+			if ( !item.getForeground().equals( Colors.blues[Colors.BLUES_MIDDARK])){
 				
-				item.setForeground( MainWindow.blues[MainWindow.BLUES_MIDDARK]);
+				item.setForeground( Colors.blues[Colors.BLUES_MIDDARK]);
 			}
 		}
 	}

@@ -106,6 +106,7 @@ public class Initializer implements STProgressListener, Application {
     
     nextTask();
     reportCurrentTaskByKey("splash.initializeGui");
+    new Colors();
     new MainWindow(gm,this);
     
     nextTask();  
@@ -156,7 +157,7 @@ public class Initializer implements STProgressListener, Application {
   }
   
   public static void main(String args[]) {
-    Initializer init = new Initializer(null);
+    new Initializer(null);
   }
   
   public void reportCurrentTask(String currentTask) {
@@ -198,7 +199,7 @@ public class Initializer implements STProgressListener, Application {
   
   private void nextTask() {
     currentTask++;
-    currentPercent = (int) 100 * currentTask / (nbTasks) ;
+    currentPercent = 100 * currentTask / (nbTasks) ;
     //0% done of current task
     reportPercent(0);
   }

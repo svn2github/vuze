@@ -57,6 +57,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -413,8 +414,8 @@ public class MultiTrackerEditor {
       		text.setForeground( null );
       		item.setForeground( null );
       	}else{
-      		text.setForeground( MainWindow.colorError );
-      		item.setForeground( MainWindow.colorError );
+      		text.setForeground( Colors.colorError );
+      		item.setForeground( Colors.colorError );
       	}
       	item.setText(url);
         computeSaveEnable();
@@ -429,8 +430,8 @@ public class MultiTrackerEditor {
     			text.setForeground( null );
     			item.setForeground( null );
     		}else{
-    			text.setForeground( MainWindow.colorError );
-    			item.setForeground( MainWindow.colorError );
+    			text.setForeground( Colors.colorError );
+    			item.setForeground( Colors.colorError );
     		}
     		item.setText(url);
      		computeSaveEnable();

@@ -163,26 +163,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   public static boolean isAlreadyDead = false;
   public static boolean isDisposeFromListener = false;
   
-  public static final int BLUES_LIGHTEST = 0;
-  public static final int BLUES_DARKEST = 9;
-  public static final int BLUES_MIDLIGHT = (BLUES_DARKEST+1) / 4;
-  public static final int BLUES_MIDDARK = ((BLUES_DARKEST+1) / 2) + BLUES_MIDLIGHT;
-  public static Color[] blues = new Color[BLUES_DARKEST + 1];
-  public static Color colorProgressBar;
-  public static Color colorInverse;
-  public static Color colorShiftLeft;
-  public static Color colorShiftRight;
-  public static Color colorError;
-  public static Color colorAltRow;
-  public static Color colorWarning;
-  public static Color black;
-  public static Color blue;
-  public static Color grey;
-  public static Color red;
-  public static Color white;
-  private static Color background;
-  
-  public static Color red_ConsoleView;
   public static Cursor handCursor;
 
   private boolean useCustomTab;
@@ -369,9 +349,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     downloadBars = new HashMap();
     
      
-    try {
-      allocateDynamicColors();
-      allocateNonDynamicColors();     
+    try {    
       handCursor = new Cursor(display, SWT.CURSOR_HAND);
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error allocating colors");
@@ -759,15 +737,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     startFolderWatcher();
     COConfigurationManager.addParameterListener("Watch Torrent Folder", this);
     COConfigurationManager.addParameterListener("Watch Torrent Folder Path", this);
-    COConfigurationManager.addParameterListener("Color Scheme", this);
-    COConfigurationManager.addParameterListener("Colors.progressBar.override", this);
-    COConfigurationManager.addParameterListener("Colors.progressBar", this);
-    COConfigurationManager.addParameterListener("Colors.error.override", this);
-    COConfigurationManager.addParameterListener("Colors.error", this);
-    COConfigurationManager.addParameterListener("Colors.warning.override", this);
-    COConfigurationManager.addParameterListener("Colors.warning", this);
-    COConfigurationManager.addParameterListener("Colors.altRow.override", this);
-    COConfigurationManager.addParameterListener("Colors.altRow", this);
     COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
     Tab.addTabKeyListenerToComposite(folder);
     
@@ -1115,64 +1084,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
   }
 
-  public void allocateBlues() {
-    int r = 0;
-    int g = 128;
-    int b = 255;
-    try {
-      r = COConfigurationManager.getIntParameter("Color Scheme.red",r);
-      g = COConfigurationManager.getIntParameter("Color Scheme.green",g);
-      b = COConfigurationManager.getIntParameter("Color Scheme.blue",b);
-      HSLColor hslColor = new HSLColor();
-      Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-      int tR = colorTables.getRed();
-      int tG = colorTables.getGreen();
-      int tB = colorTables.getBlue();
-      // 0 == window background (white)
-      // [blues.length-1] == rgb
-      // in between == blend
-      for (int i = 0; i < blues.length ; i++) {
-        Color toBeDisposed = blues[i];
-        hslColor.initHSLbyRGB(r, g, b);
-        float blendBy = (i == 0) ? 1 : (float)1.0 - ((float)i / (float)(blues.length - 1));
-        hslColor.blend(tR, tG, tB, blendBy);
-        
-        blues[i] = new Color(display, hslColor.getRed(), hslColor.getGreen(), 
-                             hslColor.getBlue());
-
-        if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
-          toBeDisposed.dispose();
-        }
-      }
-      
-      Color toBeDisposed = colorInverse;
-      hslColor.initHSLbyRGB(r, g, b);
-      hslColor.reverseColor();
-      colorInverse = new Color(display, hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
-      if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
-        toBeDisposed.dispose();
-      }
-
-      toBeDisposed = colorShiftRight;
-      hslColor.initHSLbyRGB(r, g, b);
-      hslColor.setHue(hslColor.getHue() + 20);
-      colorShiftRight = new Color(display, hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
-      if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
-        toBeDisposed.dispose();
-      }
-
-      toBeDisposed = colorShiftLeft;
-      hslColor.initHSLbyRGB(r, g, b);
-      hslColor.setHue(hslColor.getHue() - 20);
-      colorShiftLeft = new Color(display, hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
-      if(toBeDisposed != null && ! toBeDisposed.isDisposed()) {
-        toBeDisposed.dispose();
-      }
-    } catch (Exception e) {
-      LGLogger.log(LGLogger.ERROR, "Error allocating colors");
-      e.printStackTrace();
-    }
-  }
+  
 
   public void showMyTracker() {
   	if (my_tracker_tab == null) {
@@ -1288,7 +1200,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         String sParam[] = {"SWT v"+ iSWTVer};
         sText += MessageText.getString("MainWindow.status.tooOld", sParam) + " ";
         
-        if (!statusText.getForeground().equals(red)) {
+        if (!statusText.getForeground().equals(Colors.red)) {
 					statusText.setCursor(handCursor);
 					statusText.addMouseListener(new MouseAdapter() {
 						public void mouseDown(MouseEvent arg0) {
@@ -1447,7 +1359,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     final Label linklabel = new Label(gManual, SWT.NULL);
     linklabel.setText(downloadLink);
     linklabel.setCursor(handCursor);
-    linklabel.setForeground(blue);
+    linklabel.setForeground(Colors.blue);
     linklabel.setLayoutData(gridData = new GridData());
 
     linklabel.addMouseListener(new MouseAdapter() {
@@ -1473,7 +1385,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
     final Label step1 = new Label(gAutomatic, SWT.LEFT);
     step1.setText("- " + MessageText.getString("MainWindow.upgrade.step1")); //$NON-NLS-1$ //$NON-NLS-2$
-    step1.setForeground(blue);
+    step1.setForeground(Colors.blue);
     step1.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
@@ -1528,11 +1440,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           }
           else {
             next.setEnabled(false);
-            step1.setForeground(black);
-            step2.setForeground(blue);
+            step1.setForeground(Colors.black);
+            step2.setForeground(Colors.blue);
             s.setDefaultButton(finish);
             hint.setText(MessageText.getString("MainWindow.upgrade.hint2") + "."); //$NON-NLS-1$ //$NON-NLS-2$
-            hint.setForeground(black);
+            hint.setForeground(Colors.black);
             hint.pack();
             linklabel.setEnabled(false);
           }
@@ -1544,7 +1456,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
           }
           else {
             hint.setText(MessageText.getString("MainWindow.upgrade.error.downloading.hint") + "!"); //$NON-NLS-1$ //$NON-NLS-2$
-            hint.setForeground(red);
+            hint.setForeground(Colors.red);
             hint.pack();
             next.setEnabled(false);
             finish.setEnabled(false);
@@ -1939,44 +1851,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     }
   }
 
-  public void waitForClose() {
-    while (!display.isDisposed() && !mainWindow.isDisposed()) {
-      try {
-        if (!display.readAndDispatch())
-          display.sleep();
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-
-    if (tray != null)
-      tray.dispose();
-
-    display.dispose();
-    disposeColors();
-  }
-  
-  private void disposeColors() {
-    
-    if(colorProgressBar != null && !colorProgressBar.isDisposed())
-      colorProgressBar.dispose();
-  }
-
-  public static void main(String args[]) {
-  	
-  	COConfigurationManager.setSystemProperties();
-  	
-    LocaleUtil lu = new LocaleUtilSWT();
-    LocaleUtil.setLocaleUtilChooser(lu);
-    GlobalManager gm = 
-    	GlobalManagerFactory.create(); 
- 
-    		
-    MainWindow mw = new MainWindow(gm, null);
-    mw.waitForClose();
-  }
-
 	// globalmanagerlistener
 	
   public void
@@ -2122,25 +1996,13 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     	mainWindow.dispose();
     }
 
-    for (int i = 0; i < blues.length; i++) {
-      if (blues[i] != null && !blues[i].isDisposed())
-        blues[i].dispose();
-    }
-
-    Color[] colorsToDispose = { colorInverse, colorShiftLeft, colorShiftRight,
-                                colorError, grey, black, blue, red, white,
-                                red_ConsoleView, colorAltRow, colorWarning };
-    for (int i = 0; i < colorsToDispose.length; i++) {
-      if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
-        colorsToDispose[i].dispose();
-      }
+    
      
 
       if (handCursor != null && !handCursor.isDisposed())
         handCursor.dispose();
-    }
+      
     if (updateJar){
-    
       updateJar();
     }
     
@@ -2527,24 +2389,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     return tray;
   }
 
-  /**
-   * @return Returns the background.
-   */
-  public Color getBackground() {
-    return background;
-  }
 
-  /**
-   * @param background The background to set.
-   */
-  public void setBackground(Color background) {
-    if(MainWindow.background != null && !MainWindow.background.isDisposed()) {
-      Color old = MainWindow.background;
-      MainWindow.background = background;
-      old.dispose();
-    }
-    
-  }
 
   /**
    * @return Returns the useCustomTab.
@@ -2617,23 +2462,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     if("Watch Torrent Folder Path".equals(parameterName))
       startFolderWatcher();
     
-    if (parameterName.equals("Color Scheme")) {
-      allocateDynamicColors();
-    }
-
-    if(parameterName.startsWith("Colors.progressBar")) {
-      allocateColorProgressBar();      
-    }
-    if(parameterName.startsWith("Colors.error")) {
-      allocateColorError();
-    }
-    if(parameterName.startsWith("Colors.warning")) {
-      allocateColorWarning();
-    }
-    if(parameterName.startsWith("Colors.altRow")) {
-      allocateColorAltRow();
-    }
-    
     if (parameterName.equals("GUI_SWT_bFancyTab") && 
         folder instanceof CTabFolder && 
         folder != null && !folder.isDisposed()) {
@@ -2643,107 +2471,14 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       } catch (NoSuchMethodError e) { 
         /** < SWT 3.0M8 **/ 
       }
-    }
-      
+    }     
   }
   
-  private void allocateDynamicColors() {
-    allocateBlues();
-    allocateColorProgressBar();
-  }
-
-  private void allocateNonDynamicColors() {
-    allocateColorWarning();
-    allocateColorError();
-    allocateColorAltRow();
-    
-    black = new Color(display, new RGB(0, 0, 0));
-    blue = new Color(display, new RGB(0, 0, 170));
-    grey = new Color(display, new RGB(170, 170, 170));
-    red = new Color(display, new RGB(255, 0, 0));
-    white = new Color(display, new RGB(255, 255, 255));
-    background = new Color(display , new RGB(248,248,248));
-    red_ConsoleView = new Color(display, new RGB(255, 192, 192));
-  }
-
+ 
   /**
    * 
    */
-  private void allocateColorProgressBar() {
-    colorProgressBar = new AllocateColor("progressBar", colorShiftRight.getRGB(), colorProgressBar).getColor();
-  }
-
-  private void allocateColorError() {
-    colorError = new AllocateColor("error", new RGB(255, 68, 68), colorError).getColor();
-  }
-
-  private void allocateColorWarning() {
-    Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-    HSLColor hslBG = new HSLColor();
-    hslBG.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(), colorTables.getBlue());
-    int lum = hslBG.getLuminence();
-
-    HSLColor hslColor = new HSLColor();
-    hslColor.initRGBbyHSL(25, 200, lum > 127 ? lum - 128 : lum + 92);
-    colorWarning = new AllocateColor("warning", 
-                                      new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
-                                      colorWarning).getColor();
-  }
-
-  private void allocateColorAltRow() {
-    Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-    HSLColor hslColor = new HSLColor();
-    hslColor.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(), colorTables.getBlue());
-
-    int lum = hslColor.getLuminence();
-    if (lum > 127)
-      lum -= 10;
-    else
-      lum += 30; // it's usually harder to see difference in darkness
-    hslColor.setLuminence(lum);
-    colorAltRow = new AllocateColor("altRow", 
-                                    new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
-                                    colorAltRow).getColor();
-  }
-
-  /** Allocates a color */
-  private class AllocateColor implements Runnable {
-    private Color toBeDeleted = null;
-    private String sName;
-    private RGB rgbDefault;
-    private Color newColor;
-    
-    public AllocateColor(String sName, RGB rgbDefault, Color colorOld) {
-      toBeDeleted = colorOld;
-      this.sName = sName;
-      this.rgbDefault = rgbDefault;
-    }
-    
-    public Color getColor() {
-      display.syncExec(this);
-      return newColor;
-    }
-
-    public void run() {
-      if (COConfigurationManager.getBooleanParameter("Colors." + sName + ".override")) {
-        newColor = new Color(display,
-           COConfigurationManager.getIntParameter("Colors." + sName + ".red", 
-                                                  rgbDefault.red),
-           COConfigurationManager.getIntParameter("Colors." + sName + ".green",
-                                                  rgbDefault.green),
-           COConfigurationManager.getIntParameter("Colors." + sName + ".blue",
-                                                  rgbDefault.blue));
-      } else {
-        newColor = new Color(display, rgbDefault);
-        // Since the color is not longer overriden, reset back to default
-        // so that the user sees the correct color in Config.
-        COConfigurationManager.setParameter("Colors." + sName, rgbDefault); 
-      }
-
-      if (toBeDeleted != null && !toBeDeleted.isDisposed())
-        toBeDeleted.dispose();
-    }
-  }
+  
 
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("open"))
@@ -2942,7 +2677,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   					if (!SystemProperties.isJavaWebStartInstance() &&  VERSION.compareTo(latestVersion) < 0) {
   						latestVersion += " (" + MessageText.getString("MainWindow.status.latestversion.clickupdate") + ")";
   						setStatusVersion();
-  						statusText.setForeground(red);
+  						statusText.setForeground(Colors.red);
   						statusText.setCursor(handCursor);
   						statusText.addMouseListener(new MouseAdapter() {
   							public void mouseDoubleClick(MouseEvent arg0) {

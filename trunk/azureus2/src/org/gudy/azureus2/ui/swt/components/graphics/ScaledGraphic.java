@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.components.graphics;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -66,7 +67,7 @@ public class ScaledGraphic extends BackGroundGraphic {
       
       GC gcBuffer = new GC(bufferScale);
       gcBuffer.drawImage(bufferBackground,0,0);
-      gcBuffer.setForeground(MainWindow.black);
+      gcBuffer.setForeground(Colors.black);
       //gcImage.setBackground(null);
       scale.setNbPixels(bounds.height - 16);
       int[] levels = scale.getScaleValues();

@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
@@ -66,7 +67,7 @@ public class DownSpeedItem extends TorrentItem implements ParameterListener {
   private void changeColor(long iDLAverage, int iState) {
     try {
       setItemForeground((iDLAverage < iMinActiveSpeed && 
-                         iState == DownloadManager.STATE_DOWNLOADING) ? MainWindow.colorWarning : null);
+                         iState == DownloadManager.STATE_DOWNLOADING) ? Colors.colorWarning : null);
       iLastState = iState;
     } catch (Exception e) {
       e.printStackTrace();

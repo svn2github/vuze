@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 
@@ -43,9 +44,9 @@ public class StatusItem extends TorrentItem {
     if(setText(DisplayFormatters.formatDownloadStatus(torrentRow.getManager())) || !torrentRow.isValid()) {
       int state = torrentRow.getManager().getState();
       if (state == DownloadManager.STATE_SEEDING)
-        setForeground(MainWindow.blues[MainWindow.BLUES_MIDDARK]);
+        setForeground(Colors.blues[Colors.BLUES_MIDDARK]);
       else if (state == DownloadManager.STATE_ERROR)
-        setForeground(MainWindow.colorError);
+        setForeground(Colors.colorError);
       else
         setForeground(null);
     }

@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -68,7 +69,7 @@ public class BackGroundGraphic implements Graphic{
       bufferBackground = new Image(drawCanvas.getDisplay(),bounds);
       
       Color colors[] = new Color[4];
-      colors[0] = MainWindow.white;
+      colors[0] = Colors.white;
       colors[1] = lightGrey;
       colors[2] = lightGrey2;
       colors[3] = lightGrey;
@@ -77,7 +78,7 @@ public class BackGroundGraphic implements Graphic{
         gcBuffer.setForeground(colors[i%4]);
         gcBuffer.drawLine(1,i+1,bounds.width-1,i+1);
       }       
-      gcBuffer.setForeground(MainWindow.black);
+      gcBuffer.setForeground(Colors.black);
       gcBuffer.drawLine(bounds.width-70,0,bounds.width-70,bounds.height-1);    
       
       gcBuffer.drawRectangle(0,0,bounds.width-1,bounds.height-1);

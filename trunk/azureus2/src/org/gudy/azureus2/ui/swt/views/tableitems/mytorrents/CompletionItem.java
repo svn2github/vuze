@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -92,20 +93,20 @@ public class CompletionItem extends TorrentGraphicItem  {
 
       // draw border
       gcImage = new GC(image);
-      gcImage.setForeground(MainWindow.grey);
+      gcImage.setForeground(Colors.grey);
       gcImage.drawRectangle(0, 0, bounds.width - 1, bounds.height - 1);
     } else {
       gcImage = new GC(image);
     }
 
-    gcImage.setForeground(MainWindow.grey);
+    gcImage.setForeground(Colors.grey);
     gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
 
     int limit = (x1 * percentDone) / 1000;
-    gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_DARKEST]);
+    gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
     gcImage.fillRectangle(1,1,limit,y1);
     if (limit < x1) {
-      gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+      gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
       gcImage.fillRectangle(limit+1,1,x1-limit,y1);
     }
 

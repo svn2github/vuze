@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
@@ -33,7 +34,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
  *
  */
 public class PiecesItem extends PeerGraphicItem  {
-  private final static int INDEX_COLOR_INVERSE = MainWindow.BLUES_DARKEST + 1;
+  private final static int INDEX_COLOR_INVERSE = Colors.BLUES_DARKEST + 1;
   // only supports 0 or 1 border width
   private final static int borderHorizontalSize = 1;
   private final static int borderVerticalSize = 1;
@@ -117,7 +118,7 @@ public class PiecesItem extends PeerGraphicItem  {
 
       // draw border
       gcImage = new GC(image);
-      gcImage.setForeground(MainWindow.grey);
+      gcImage.setForeground(Colors.grey);
       if (borderHorizontalSize > 0) {
         if (borderVerticalSize > 0) {
           gcImage.drawRectangle(0, 0, bounds.width - 1, bounds.height - 1);
@@ -131,7 +132,7 @@ public class PiecesItem extends PeerGraphicItem  {
       }
 
       if (borderSplit > 0) {
-        gcImage.setForeground(MainWindow.white);
+        gcImage.setForeground(Colors.white);
         gcImage.drawLine(x0, completionHeight + borderHorizontalSize,
                          x1, completionHeight + borderHorizontalSize);
       }
@@ -181,7 +182,7 @@ public class PiecesItem extends PeerGraphicItem  {
             // cheat
             index = INDEX_COLOR_INVERSE;
           } else {
-            index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
+            index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
           }
         }
 
@@ -189,19 +190,19 @@ public class PiecesItem extends PeerGraphicItem  {
           imageBuffer[i] = index;
           bImageChanged = true;
           if (imageBuffer[i] == INDEX_COLOR_INVERSE)
-            gcImage.setForeground(MainWindow.colorInverse);
+            gcImage.setForeground(Colors.colorInverse);
           else
-            gcImage.setForeground(MainWindow.blues[index]);
+            gcImage.setForeground(Colors.blues[index]);
           gcImage.drawLine(i + x0, y0, i + x0, y1);
         }
       }
       int limit = (drawWidth * nbComplete) / nbPieces;
       if (limit < drawWidth) {
-        gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+        gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
         gcImage.fillRectangle(limit+x0, borderHorizontalSize,
                               x1-limit, completionHeight);
       }
-      gcImage.setBackground(MainWindow.colorProgressBar);
+      gcImage.setBackground(Colors.colorProgressBar);
       gcImage.fillRectangle(x0, borderHorizontalSize,
                             limit, completionHeight);
     } catch (Exception e) {

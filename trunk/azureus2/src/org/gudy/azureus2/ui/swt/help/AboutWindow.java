@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -117,7 +118,7 @@ public class AboutWindow {
       linkLabel.setText(MessageText.getString("MainWindow.about.internet." + link[0][i]));
       linkLabel.setData(link[1][i]);
       linkLabel.setCursor(MainWindow.handCursor);
-      linkLabel.setForeground(MainWindow.blue);
+      linkLabel.setForeground(Colors.blue);
       linkLabel.setLayoutData(gridData = new GridData());
       linkLabel.addMouseListener(new MouseAdapter() {
         public void mouseDoubleClick(MouseEvent arg0) {

@@ -16,6 +16,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -92,7 +93,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     
 	  	if (folder == null) {
 	    folder = new TabFolder(composite, SWT.LEFT);
-	    folder.setBackground(MainWindow.getWindow().getBackground());
+	    folder.setBackground(Colors.background);
 	  	} else {
 	  	  System.out.println("ManagerView::initialize : folder isn't null !!!");
 	  	}

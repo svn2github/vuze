@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.components.*;
@@ -314,7 +315,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     hash.setLayoutData(gridData);
     	// click on hash -> copy to clipboard
     hash.setCursor(MainWindow.handCursor);
-    hash.setForeground(MainWindow.blue);
+    hash.setForeground(Colors.blue);
     label.addMouseListener(new MouseAdapter() {
     	public void mouseDoubleClick(MouseEvent arg0) {
     		String hash_str = hash.getText();
@@ -355,7 +356,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
     label.setCursor(MainWindow.handCursor);
-    label.setForeground(MainWindow.blue);
+    label.setForeground(Colors.blue);
     label.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
         String announce = trackerUrlValue.getText();
@@ -690,7 +691,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       aImage.dispose();
     aImage = new Image(display, bounds.width, bounds.height);
     GC gcImage = new GC(aImage);
-    gcImage.setForeground(MainWindow.grey);
+    gcImage.setForeground(Colors.grey);
     gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
     int allMin = 0;
     int allMax = 0;
@@ -714,7 +715,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       int maxAboveMin = allMax - allMin;
       if (maxAboveMin == 0) {
         // all the same.. easy paint
-        gcImage.setBackground(MainWindow.blues[allMin == 0 ? MainWindow.BLUES_LIGHTEST : MainWindow.BLUES_DARKEST]);
+        gcImage.setBackground(Colors.blues[allMin == 0 ? Colors.BLUES_LIGHTEST : Colors.BLUES_DARKEST]);
         gcImage.fillRectangle(1, 1, xMax, yMax);
       } else {
         for (int i = 0; i < nbPieces; i++) {
@@ -764,14 +765,14 @@ public class GeneralView extends AbstractIView implements ParameterListener {
             index = 0;
           } else {
             // we will always have allMin, so subtract that
-            index = (pond - allMin) * (MainWindow.BLUES_DARKEST - 1) / maxAboveMin + 1;
+            index = (pond - allMin) * (Colors.BLUES_DARKEST - 1) / maxAboveMin + 1;
             // just in case?
-            if (index > MainWindow.BLUES_DARKEST) {
-              index = MainWindow.BLUES_DARKEST;
+            if (index > Colors.BLUES_DARKEST) {
+              index = Colors.BLUES_DARKEST;
             }
           }
             
-          gcImage.setBackground(MainWindow.blues[index]);
+          gcImage.setBackground(Colors.blues[index]);
           gcImage.fillRectangle(i+1, 1, 1, yMax);
         }
       }
@@ -826,7 +827,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
         return;
       pImage = new Image(display, bounds.width, bounds.height);
       GC gcImage = new GC(pImage);
-      gcImage.setForeground(MainWindow.grey);
+      gcImage.setForeground(Colors.grey);
       gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
       gcImage.drawLine(1,6,xMax,6);
 
@@ -849,8 +850,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
             if (pieces[j]) {
               nbAvailable++;
             }
-            int index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
-            gcImage.setBackground(MainWindow.blues[index]);
+            int index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
+            gcImage.setBackground(Colors.blues[index]);
             gcImage.fillRectangle(i+1,7,1,yMax);
           }
         }
@@ -862,10 +863,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       
       // draw file % bar above
       int limit = (xMax * total) / 1000;
-      gcImage.setBackground(MainWindow.colorProgressBar);
+      gcImage.setBackground(Colors.colorProgressBar);
       gcImage.fillRectangle(1,1,limit,5);
       if (limit < xMax) {
-        gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+        gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
         gcImage.fillRectangle(limit+1,1,xMax-limit,5);
       }
       
@@ -944,7 +945,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     	
 				trackerUrlValue.setText( trackerURL);
 				if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://")) && (trackerURL.indexOf("/announce") != -1)) {
-				  trackerUrlValue.setForeground(MainWindow.blue);
+				  trackerUrlValue.setForeground(Colors.blue);
 				  trackerUrlValue.setCursor(MainWindow.handCursor);
 				  Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen.tooltip", true);
 				} else {

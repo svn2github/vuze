@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.PiecesView;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
@@ -127,12 +128,12 @@ public class PieceTableItem implements SortableItem{
     if (x1 < 10 || y1 < 3)
       return;
     Image image = new Image(display, bounds.width, bounds.height);
-    Color blue = MainWindow.blues[MainWindow.BLUES_DARKEST];
-    Color green = MainWindow.blues[MainWindow.BLUES_MIDLIGHT];
-    Color downloaded = MainWindow.red;
+    Color blue = Colors.blues[Colors.BLUES_DARKEST];
+    Color green = Colors.blues[Colors.BLUES_MIDLIGHT];
+    Color downloaded = Colors.red;
     Color color;
     GC gcImage = new GC(image);
-    gcImage.setForeground(MainWindow.grey);
+    gcImage.setForeground(Colors.grey);
     gcImage.drawRectangle(0, 0, x1 + 1, y1 + 1);
     int iPixelsPerBlock = (x1 + 1) / piece.getNbBlocs();
     for (int i = 0; i < piece.getNbBlocs(); i++) {
@@ -140,7 +141,7 @@ public class PieceTableItem implements SortableItem{
       if (i == piece.getNbBlocs() - 1) {
         nextWidth = x1 - (iPixelsPerBlock * (piece.getNbBlocs() - 1));
       }
-      color = MainWindow.white;
+      color = Colors.white;
 
       if (piece.getWritten()[i]) {
         color = blue;

@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.ILoggerListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -35,10 +36,10 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
     display = composite.getDisplay();
     consoleText = new StyledText(composite, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL);    
     colors = new Color[4];
-    colors[0] = MainWindow.blues[3];
-    colors[1] = MainWindow.blues[2];
-    colors[2] = MainWindow.blues[1];
-    colors[3] = MainWindow.red_ConsoleView;
+    colors[0] = Colors.blues[3];
+    colors[1] = Colors.blues[2];
+    colors[2] = Colors.blues[1];
+    colors[3] = Colors.red_ConsoleView;
     LGLogger.setListener(this);
   }
 

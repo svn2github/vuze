@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -120,7 +121,7 @@ public class PiecesItem extends TorrentGraphicItem  {
 
       // draw border
       gcImage = new GC(image);
-      gcImage.setForeground(MainWindow.grey);
+      gcImage.setForeground(Colors.grey);
       if (borderHorizontalSize > 0) {
         if (borderVerticalSize > 0) {
           gcImage.drawRectangle(0, 0, bounds.width - 1, bounds.height - 1);
@@ -134,7 +135,7 @@ public class PiecesItem extends TorrentGraphicItem  {
       }
 
       if (borderSplit > 0) {
-        gcImage.setForeground(MainWindow.white);
+        gcImage.setForeground(Colors.white);
         gcImage.drawLine(x0, completionHeight + borderHorizontalSize,
                          x1, completionHeight + borderHorizontalSize);
       }
@@ -171,25 +172,25 @@ public class PiecesItem extends TorrentGraphicItem  {
             if (available[j])
               nbAvailable++;
           nbComplete += nbAvailable;
-          index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
+          index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
           //System.out.println("i="+i+";nbAvailable="+nbAvailable+";nbComplete="+nbComplete+";nbPieces="+nbPieces+";a0="+a0+";a1="+a1);
         }
 
         if (!bImageBufferValid || imageBuffer[i] != index) {
           imageBuffer[i] = index;
           bImageChanged = true;
-          gcImage.setForeground(MainWindow.blues[index]);
+          gcImage.setForeground(Colors.blues[index]);
           gcImage.drawLine(i + x0, y0, i + x0, y1);
         }
       }
 
       int limit = (drawWidth * nbComplete) / nbPieces;
       if (limit < drawWidth) {
-        gcImage.setBackground(MainWindow.blues[MainWindow.BLUES_LIGHTEST]);
+        gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
         gcImage.fillRectangle(limit+x0, borderHorizontalSize,
                               x1-limit, completionHeight);
       }
-      gcImage.setBackground(MainWindow.colorProgressBar);
+      gcImage.setBackground(Colors.colorProgressBar);
       gcImage.fillRectangle(x0, borderHorizontalSize,
                             limit, completionHeight);
     }

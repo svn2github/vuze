@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -130,8 +131,8 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       
       int oldAverage = 0;
       int maxHeight = scale.getScaledValue(max);
-      Color background = MainWindow.blues[MainWindow.BLUES_DARKEST];
-      Color foreground = MainWindow.blues[MainWindow.BLUES_MIDLIGHT];
+      Color background = Colors.blues[Colors.BLUES_DARKEST];
+      Color foreground = Colors.blues[Colors.BLUES_MIDLIGHT];
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
         if(position < 0)
@@ -149,7 +150,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         if(x > 6) {
           int h1 = bounds.height - scale.getScaledValue(average) - 2;
           int h2 = bounds.height - scale.getScaledValue(oldAverage) - 2;
-          gcImage.setForeground(MainWindow.red);
+          gcImage.setForeground(Colors.red);
           gcImage.drawLine(xDraw,h1,xDraw+1, h2);
         }
         oldAverage = average;
@@ -157,7 +158,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       
       if(nbValues > 0) {
         int height = bounds.height - scale.getScaledValue(computeAverage(currentPosition-6)) - 2;
-        gcImage.setForeground(MainWindow.red);
+        gcImage.setForeground(Colors.red);
         gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12,true);
       }    
       

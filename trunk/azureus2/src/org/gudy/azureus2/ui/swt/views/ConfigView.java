@@ -52,6 +52,7 @@ import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
@@ -438,7 +439,7 @@ public class ConfigView extends AbstractIView {
     label = new Label(infoGroup, SWT.WRAP);
     label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     label.setText(sPluginDir);
-    label.setForeground(MainWindow.blue);
+    label.setForeground(Colors.blue);
     label.setCursor(MainWindow.handCursor);
     
     final String _sPluginDir = sPluginDir;

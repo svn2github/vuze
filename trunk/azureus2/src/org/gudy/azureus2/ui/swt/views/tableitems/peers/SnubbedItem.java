@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**
@@ -40,7 +41,7 @@ public class SnubbedItem extends PeerItem  {
   public void refresh() {
     if(peerRow.getPeerSocket().isSnubbed()) {
       if(setText("*")) {
-        peerRow.getRow().setForeground(MainWindow.grey);
+        peerRow.getRow().setForeground(Colors.grey);
       }
     }
     else {

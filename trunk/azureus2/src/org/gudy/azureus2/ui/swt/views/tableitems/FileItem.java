@@ -21,6 +21,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
@@ -214,17 +215,17 @@ public class FileItem implements SortableItem{
            nbAvailable = 1;    
         }
         
-        int index = (nbAvailable * MainWindow.BLUES_DARKEST) / (a1 - a0);
+        int index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
         //System.out.print(index);
-        gcImage.setBackground(written?MainWindow.red:requested?MainWindow.grey:blues[index]);
-        gcImage.setForeground( fileInfo.getDownloaded() == fileInfo.getLength() ? blues[MainWindow.BLUES_DARKEST] : black );
+        gcImage.setBackground(written?Colors.red:requested?Colors.grey:blues[index]);
+        gcImage.setForeground( fileInfo.getDownloaded() == fileInfo.getLength() ? blues[Colors.BLUES_DARKEST] : black );
         gcImage.fillRectangle(i,1,1,height);
       }
       gcImage.dispose();
       
       last_draw_time = SystemTime.getCurrentTime();
     }
-    gc.setForeground(blues[MainWindow.BLUES_DARKEST]);
+    gc.setForeground(blues[Colors.BLUES_DARKEST]);
     gc.drawImage(piecesImage, x0, y0);
     gc.drawRectangle(x0, y0, width, height);
     gc.dispose();
