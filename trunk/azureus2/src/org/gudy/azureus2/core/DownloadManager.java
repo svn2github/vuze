@@ -267,7 +267,7 @@ public class DownloadManager extends Component {
         trackerConnection = null;
         state = DownloadManager.STATE_STOPPED;
 
-        globalManager.startWaitingDownloads();
+        //globalManager.startWaitingDownloads();
 
         // remove all free buffers to regain memory 
         ByteBufferPool.getInstance().clearFreeBuffers();

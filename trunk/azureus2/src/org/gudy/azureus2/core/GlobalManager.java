@@ -33,7 +33,7 @@ public class GlobalManager extends Component {
     boolean finished = false;
     int loopFactor;
     private static final int waitTime = 1000;
-		// 10 minutes dump resume data interval
+    // 10 minutes dump resume data interval
     private static final int dumpResumeLoopCount = 600000 / waitTime;
 
     public Checker() {
@@ -61,14 +61,24 @@ public class GlobalManager extends Component {
             if (manager.getState() == DownloadManager.STATE_DOWNLOADING) {
               nbStarted++;
               nbDownloading++;
-              if(loopFactor % dumpResumeLoopCount == 0) {
+              if (loopFactor % dumpResumeLoopCount == 0) {
                 manager.diskManager.dumpResumeDataToDisk();
               }
-            } else if (manager.getState() == DownloadManager.STATE_SEEDING) {
+            }
+            else if (manager.getState() == DownloadManager.STATE_SEEDING) {
               nbStarted++;
             }
           }
           boolean alreadyOneAllocatingOrChecking = false;
+          for (int i = 0; i < managers.size(); i++) {
+            DownloadManager manager = (DownloadManager) managers.get(i);
+            if (((manager.getState() == DownloadManager.STATE_ALLOCATING)
+              || (manager.getState() == DownloadManager.STATE_CHECKING)
+              || (manager.getState() == DownloadManager.STATE_INITIALIZED))) {
+              alreadyOneAllocatingOrChecking = true;
+            }
+          }
+          
           for (int i = 0; i < managers.size(); i++) {
             DownloadManager manager = (DownloadManager) managers.get(i);
             if ((manager.getState() == DownloadManager.STATE_WAITING) && !alreadyOneAllocatingOrChecking) {
@@ -77,22 +87,18 @@ public class GlobalManager extends Component {
             }
             int nbMax = ConfigurationManager.getInstance().getIntParameter("max active torrents", 4);
             int nbMaxDownloads = ConfigurationManager.getInstance().getIntParameter("max downloads", 4);
-            if (manager.getState() == DownloadManager.STATE_READY && ((nbMax == 0) || (nbStarted < nbMax)) && ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads))) {
+            if (manager.getState() == DownloadManager.STATE_READY
+              && ((nbMax == 0) || (nbStarted < nbMax))
+              && ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads))) {
               manager.startDownload();
               nbStarted++;
-              if(manager.getCompleted() != 1000)
+              if (manager.getCompleted() != 1000)
                 nbDownloading++;
             }
 
-            if (((manager.getState() == DownloadManager.STATE_ALLOCATING)
-              || (manager.getState() == DownloadManager.STATE_CHECKING)
-              || (manager.getState() == DownloadManager.STATE_INITIALIZED))) {
-              alreadyOneAllocatingOrChecking = true;
-            }
-            
-            if(manager.getState() == DownloadManager.STATE_ERROR) {
+            if (manager.getState() == DownloadManager.STATE_ERROR) {
               DiskManager dm = manager.diskManager;
-              if(dm != null && dm.getState() == DiskManager.FAULTY)
+              if (dm != null && dm.getState() == DiskManager.FAULTY)
                 manager.setErrorDetail(dm.getErrorMessage());
             }
 
@@ -138,7 +144,7 @@ public class GlobalManager extends Component {
 
   private boolean addDownloadManager(DownloadManager manager) {
     synchronized (managers) {
-      if(managers.contains(manager)) {
+      if (managers.contains(manager)) {
         manager.setState(DownloadManager.STATE_DUPLICATE);
         return false;
       }
@@ -243,22 +249,23 @@ public class GlobalManager extends Component {
     }
     catch (Exception e) {
       // TODO Auto-generated catch block     
-    } finally {
+    }
+    finally {
       try {
         if (bin != null)
           bin.close();
-      } catch (Exception e) {
       }
+      catch (Exception e) {}
       try {
         if (fin != null)
           fin.close();
-      } catch (Exception e) {
       }
+      catch (Exception e) {}
     }
   }
 
   private void saveDownloads() {
-//    if(Boolean.getBoolean("debug")) return;
+    //    if(Boolean.getBoolean("debug")) return;
 
     Map map = new HashMap();
     for (int i = 0; i < managers.size(); i++) {
@@ -281,14 +288,16 @@ public class GlobalManager extends Component {
       fos = new FileOutputStream(getApplicationFile("downloads.config"));
       //write the data out
       fos.write(torrentData);
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
-    } finally {
+    }
+    finally {
       try {
         if (fos != null)
           fos.close();
-      } catch (Exception e) {
       }
+      catch (Exception e) {}
     }
   }
 

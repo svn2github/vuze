@@ -229,7 +229,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null) {
-            dm.startDownloadInitialized(initStoppedDownloads);
+            dm.setState(DownloadManager.STATE_WAITING);
           }
         }
       }
