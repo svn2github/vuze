@@ -27,13 +27,12 @@ public class ByteBufferPool {
 
   // Here's the logic of SIZE, piece packet are assumed to be
   // the biggest packet (only bitfield could be bigger, but that'd require
-  // a torrent of more than 32768 * 8 pieces)
-  // 1 : free or not
+  // a torrent of more than 65536 * 8 pieces)
   // 4 : length in BT protocol (int)
   // 1 : command in BT protocol (byte)
   // 4 : pieceNumber in BT protocol (int)
   // 4 : offset in BT protocol (int)    
-  private static final int SIZE = (1 + 4 + 1 + 4 + 4 + 65536);
+  private static final int SIZE = (4 + 1 + 4 + 4 + 65536 + 1);
 
   private static final int INITIAL_CAPACITY = 1009;
 
@@ -43,13 +42,19 @@ public class ByteBufferPool {
 
   private ByteBuffer allocateNewBuffer() {
     try {
-      ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE+1);
-      //System.out.println("Pool Size :" + buffers.size());
+      ByteBuffer buffer = ByteBuffer.allocateDirect(SIZE);
       return buffer;
-    } catch (OutOfMemoryError e) {
+    }
+    catch (OutOfMemoryError e) {
       System.out.println("Memory allocation failed:");
       e.printStackTrace();
-      System.out.println("freeMemory=" + Runtime.getRuntime().freeMemory() + ", totalMemory=" + Runtime.getRuntime().totalMemory() + ", maxMemory=" + Runtime.getRuntime().maxMemory());
+      System.out.println(
+        "freeMemory="
+          + Runtime.getRuntime().freeMemory()
+          + ", totalMemory="
+          + Runtime.getRuntime().totalMemory()
+          + ", maxMemory="
+          + Runtime.getRuntime().maxMemory());
       return null;
     }
   }
@@ -61,17 +66,26 @@ public class ByteBufferPool {
     return pool;
   }
 
-  public synchronized ByteBuffer getFreeBuffer() {
-    if(freeBuffers.size() == 0) {
-      return allocateNewBuffer();
-    } else {
-      return (ByteBuffer) freeBuffers.remove(freeBuffers.size()-1);
+  public ByteBuffer getFreeBuffer() {
+    synchronized (this) {
+      if (freeBuffers.size() == 0) {
+        return allocateNewBuffer();
+      }
+      else {
+        return (ByteBuffer) freeBuffers.remove(freeBuffers.size() - 1);
+      }
     }
   }
 
-  public synchronized void freeBuffer(ByteBuffer buffer) {
+  public void freeBuffer(ByteBuffer buffer) {
+    synchronized (this) {
+      if (buffer.capacity() != SIZE) {
+        System.out.println("Wrong buffer passed back to ByteBufferPool::freeBuffer");
+        return;
+      }       
       buffer.clear();
       freeBuffers.add(buffer);
+    }
   }
 
   public synchronized void clearFreeBuffers() {
