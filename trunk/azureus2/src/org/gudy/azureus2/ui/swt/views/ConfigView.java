@@ -616,18 +616,21 @@ public class ConfigView extends AbstractIView {
     Messages.setLanguageText(label, "ConfigView.label.opendetails"); //$NON-NLS-1$
     new BooleanParameter(cDisplay, "Open Details"); //$NON-NLS-1$
 
+    
     label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.openbar"); //$NON-NLS-1$
     new BooleanParameter(cDisplay, "Open Bar", false); //$NON-NLS-1$
 
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.closetotray"); //$NON-NLS-1$
-    new BooleanParameter(cDisplay, "Close To Tray", true); //$NON-NLS-1$
+    if(!System.getProperty("os.name").equals("Mac OS X")) {
+      label = new Label(cDisplay, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.closetotray"); //$NON-NLS-1$
+      new BooleanParameter(cDisplay, "Close To Tray", true); //$NON-NLS-1$
 
-    label = new Label(cDisplay, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.minimizetotray"); //$NON-NLS-1$
-    new BooleanParameter(cDisplay, "Minimize To Tray", false); //$NON-NLS-1$
-
+      label = new Label(cDisplay, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.minimizetotray"); //$NON-NLS-1$
+      new BooleanParameter(cDisplay, "Minimize To Tray", false); //$NON-NLS-1$
+    }
+    
     label = new Label(cDisplay, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.password"); //$NON-NLS-1$
 

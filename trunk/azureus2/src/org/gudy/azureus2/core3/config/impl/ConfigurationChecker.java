@@ -156,12 +156,17 @@ public class ConfigurationChecker {
     }    
     
     /**
-     * Special Patch for OSX users, do not play sound when done
+     * Special Patch for OSX users
      */
-    if(System.getProperty("os.name").equals("Mac OS X")) {
+    if (System.getProperty("os.name").equals("Mac OS X")) {
       boolean sound = COConfigurationManager.getBooleanParameter("Play Download Finished",true);
-      if(sound) {
+      boolean close = COConfigurationManager.getBooleanParameter("Close To Tray",true);
+      boolean min = COConfigurationManager.getBooleanParameter("Minimize To Tray",true);
+      
+      if ( sound || close || min ) {
         COConfigurationManager.setParameter("Play Download Finished",false);
+        COConfigurationManager.setParameter("Close To Tray",false);
+        COConfigurationManager.setParameter("Minimize To Tray",false);
         changed = true;
       }
     }
