@@ -89,10 +89,12 @@ public class TorrentOpener {
 	  boolean     from_drag_and_drop ) 
   {
     //catch a http url
-    if( fileName.toUpperCase().startsWith( "HTTP://" ) ) {
+    int index = fileName.toUpperCase().indexOf( "HTTP:/" );
+    if( index > -1 ) {
+      final String url = fileName.substring( index );
       AERunnable r = new AERunnable() {
         public void runSupport() {
-          openUrl( azureus_core, fileName );
+          openUrl( azureus_core, url );
         }
       };
       display.asyncExec( r );
