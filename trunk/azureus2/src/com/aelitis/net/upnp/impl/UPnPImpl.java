@@ -127,29 +127,32 @@ UPnPImpl
 		if ( root_device != null ){
 	
 				// device is still there with same IP, however 
-				// 1) port of UPnP device might have changed (it does on mine when enabling/disabling UPnP)
-				// 2) our local IP might have changed (DHCP reassignment)
 			
-			if ( 	root_device.getLocation().equals( location ) &&
-					root_device.getLocalAddress().equals( local_address )){
+			if ( root_device.getLocation().equals( location )){
+				
+				
+					// 1) port of UPnP device might have changed (it does on mine when enabling/disabling UPnP)
+					// 2) our local IP might have changed (DHCP reassignment)
+
+				if ( root_device.getLocalAddress().equals( local_address )){
 				
 					// everythings the same, nothing to do
 				
-				return;
-			}
+					return;
+				}
 			
-				// an alternative situation is where the same device is discovered by two network interfaces
-				// (see https://sourceforge.net/forum/message.php?msg_id=2912370 )
-				// if this is the case we just use the first NI through which it was discovered and
-				// map to that NI's local address
+					// an alternative situation is where the same device is discovered by two network interfaces
+					// (see https://sourceforge.net/forum/message.php?msg_id=2912370 )
+					// if this is the case we just use the first NI through which it was discovered and
+					// map to that NI's local address
 			
-			if ( 	root_device.getLocation().equals( location ) &&
-					root_device.getNetworkInterface().equals( network_interface )){
-			
-				log( "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
-						root_device.getNetworkInterface());
-
-				return;
+				if ( !root_device.getNetworkInterface().equals( network_interface )){
+				
+					log( "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
+							root_device.getNetworkInterface());
+	
+					return;
+				}
 			}
 			
 				// something changed, resetablish everything
