@@ -125,6 +125,9 @@ TRTrackerServerImpl
 	
 	protected int		current_announce_retry_interval;
 	protected int		current_scrape_retry_interval;
+	protected int		current_total_clients;
+	
+	protected int		current_min_poll_interval;
 	
 	protected TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
 		
@@ -160,10 +163,10 @@ TRTrackerServerImpl
 				
 		readConfigSettings();
 					
-		int	min 				= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
-		int	scrape_percentage 	= COConfigurationManager.getIntParameter("Tracker Scrape Retry Percentage", DEFAULT_SCRAPE_RETRY_PERCENTAGE );
+		current_min_poll_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
+		int	scrape_percentage 		= COConfigurationManager.getIntParameter("Tracker Scrape Retry Percentage", DEFAULT_SCRAPE_RETRY_PERCENTAGE );
 		
-		current_announce_retry_interval = min;
+		current_announce_retry_interval = current_min_poll_interval;
 		
 		current_scrape_retry_interval	= (current_announce_retry_interval*scrape_percentage)/100;
 		
@@ -300,16 +303,46 @@ TRTrackerServerImpl
 		return( password_pw );
 	}
 	
-	public int
-	getAnnounceRetryInterval()
+	public long
+	getAnnounceRetryInterval(
+		TRTrackerServerTorrentImpl	torrent )
 	{		
-		return( current_announce_retry_interval );
+		long	clients = current_total_clients;
+		
+		if ( clients == 0 ){
+			
+			return( current_announce_retry_interval );
+		}
+		
+		long	res = ( torrent.getPeerCount() * current_announce_retry_interval ) / clients;
+		
+		if ( res < current_min_poll_interval ){
+			
+			res = current_min_poll_interval;
+		}
+		
+		return( res );
 	}
 	
-	public int
-	getScrapeRetryInterval()
+	public long
+	getScrapeRetryInterval(
+		TRTrackerServerTorrentImpl	torrent )
 	{		
-		return( current_scrape_retry_interval );
+		long	clients = current_total_clients;
+		
+		if ( torrent == null || clients == 0 ){
+			
+			return( current_scrape_retry_interval );
+		}
+		
+		long	res = ( torrent.getPeerCount() * current_scrape_retry_interval ) / clients;
+		
+		if ( res < current_min_poll_interval ){
+			
+			res = current_min_poll_interval;
+		}
+		
+		return( res );
 	}
 	
 	public TRTrackerServerStats
@@ -378,7 +411,9 @@ TRTrackerServerImpl
 				
 				// recalc tracker interval every minute
 				
-				int	min 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
+				current_min_poll_interval 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
+				
+				int	min		= current_min_poll_interval;
 				int	max 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Max", DEFAULT_MAX_RETRY_DELAY );
 				int	inc_by 	= COConfigurationManager.getIntParameter("Tracker Poll Inc By", DEFAULT_INC_BY );
 				int	inc_per = COConfigurationManager.getIntParameter("Tracker Poll Inc Per", DEFAULT_INC_PER );
@@ -419,6 +454,8 @@ TRTrackerServerImpl
 				current_announce_retry_interval = retry;
 				
 				current_scrape_retry_interval	= (current_announce_retry_interval*scrape_percentage)/100;
+				
+				current_total_clients	= clients;
 				
 				// timeout dead clients
 				

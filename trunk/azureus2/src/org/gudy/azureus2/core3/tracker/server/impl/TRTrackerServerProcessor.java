@@ -109,7 +109,7 @@ TRTrackerServerProcessor
 					throw( new Exception( "peer_id missing from request"));
 				}
 				
-				long	interval = server.getAnnounceRetryInterval();
+				long	interval = server.getAnnounceRetryInterval( torrent );
 				
 				TRTrackerServerPeerImpl peer = 
 					torrent.peerContact( 	
@@ -148,7 +148,7 @@ TRTrackerServerProcessor
 				
 				root_out[0] = root;
 				
-				addInterval( root );
+				addScrapeInterval( torrent, root );
 				
 				root.put( "files", files );
 			}
@@ -177,7 +177,7 @@ TRTrackerServerProcessor
 			
 			root_out[0] = root;
 			
-			addInterval( root );
+			addScrapeInterval( null, root );
 			
 			root.put( "files", files );
 		}
@@ -186,10 +186,11 @@ TRTrackerServerProcessor
 	}
 	
 	protected void
-	addInterval(
-		Map	root )
+	addScrapeInterval(
+		TRTrackerServerTorrentImpl	torrent,
+		Map							root )
 	{
-		int interval = server.getScrapeRetryInterval();
+		long interval = server.getScrapeRetryInterval( torrent );
 		
 		if ( interval > 0 ){
 			

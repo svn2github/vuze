@@ -52,10 +52,7 @@ TRTrackerServer
 	
 	public boolean
 	isSSL();
-	
-	public int
-	getAnnounceRetryInterval();
-	
+		
 	public TRTrackerServerTorrent
 	permit(
 		byte[]		hash,
