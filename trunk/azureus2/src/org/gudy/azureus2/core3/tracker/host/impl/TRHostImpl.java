@@ -234,10 +234,18 @@ TRHostImpl
 		TRTrackerClient 	tracker_client )
 	{
 		TOTorrent	torrent = host_torrent.getTorrent();	
-						
-		tracker_client.clearIPOverride();
+				
+			// unfortunately a lot of the "stop" operations that occur when a tracker client
+			// connection is closed happen async. In particular the "stopped" message to the
+			// tracker. Hence, if we switch the URL back here the "stopped" doesn't get
+			// through.
+			
+			// For the moment leave the torrent in its hosted state - its most likely that
+			// it'll only be restarted or removed anyway.
+					
+		// tracker_client.clearIPOverride();
 		
-		tracker_client.resetTrackerUrl();	
+		// tracker_client.resetTrackerUrl();	
 	}
 	
 	protected synchronized void

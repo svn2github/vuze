@@ -400,6 +400,8 @@ PEPeerControlImpl
 		
 				// ignore ourselves
 				
+			// System.out.println( "addPeer: myPeerId=" + ByteFormatter.nicePrint(_myPeerId ) + ", received = " + ByteFormatter.nicePrint(this_peer_id));
+			
         	if (!Arrays.equals(this_peer_id, _myPeerId)){
            
         	   insertPeerSocket( this_peer_id, peer.getIPAddress(), peer.getPort());

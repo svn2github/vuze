@@ -232,9 +232,13 @@ TRTrackerServerProcessor
 					throw( new Exception( "Hash missing from request "));
 				}
 										
+				byte[]	hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
+				
 				System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
-																		
-				TRTrackerServerTorrent	torrent = server.getTorrent( hash_str.getBytes(Constants.BYTE_ENCODING));
+									
+				// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash_bytes));
+													
+				TRTrackerServerTorrent	torrent = server.getTorrent( hash_bytes );
 					
 				if ( torrent == null ){
 							
@@ -266,7 +270,7 @@ TRTrackerServerProcessor
 									
 					String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
 				
-					//System.out.println( "xxx: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
+					// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
 	
 					files.put( str_hash, hash_entry );
 					
@@ -293,7 +297,16 @@ TRTrackerServerProcessor
 				
 			}catch( Exception e ){
 				
-				root.put( "failure reason", e.getMessage());
+				String	message = e.getMessage();
+				
+				if ( message == null || message.length() == 0 ){
+
+					e.printStackTrace();
+								
+					message = e.toString();
+				}
+				
+				root.put( "failure reason", message );
 			}
 		
 			byte[] data = BEncoder.encode( root );

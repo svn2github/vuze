@@ -96,6 +96,8 @@ TRTrackerClientClassicImpl
 	  peerId[i] = (byte) 0;
 	}
 
+	// System.out.println("TrackerClient: new peer - " + ByteFormatter.nicePrint(peerId));
+	
 	try {
 	  //1.4 Version
 	  this.info_hash += URLEncoder.encode(new String(_torrent.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");

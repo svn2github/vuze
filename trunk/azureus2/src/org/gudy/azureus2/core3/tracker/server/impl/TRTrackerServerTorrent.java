@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
  */
 
 import java.util.*;
+import java.io.*;
 
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
@@ -71,17 +72,21 @@ TRTrackerServerTorrent
 				// check to see if this peer already has an entry against this torrent
 				// and if so delete it (assumption is that the client has quit and
 				// restarted with new peer id
-									
+				
+			//System.out.println( "new peer" );
+								
 			Iterator	it = peer_map.values().iterator();
 							
 			while (it.hasNext()){
 							
 				TRTrackerServerPeerImpl this_peer = (TRTrackerServerPeerImpl)it.next();
-															
+					
+				//System.out.println( "checking " + new String(this_peer.getIP()) + ":" + this_peer.getPort() + " against " + ip_address + ":" + port );
+														
 				if (	this_peer.getPort() == port &&
 						new String(this_peer.getIP()).equals( ip_address )){
 									
-					System.out.println( "removing dead client '" + peer.getString());
+					System.out.println( "removing dead client '" + this_peer.getString());
 									
 					it.remove();
 				}
@@ -89,9 +94,18 @@ TRTrackerServerTorrent
 				
 			if ( !stopped ){			
 			
-				peer = new TRTrackerServerPeerImpl( peer_id.getBytes(), ip_address.getBytes(), port );
+				try{
+				
+					byte[]	peer_bytes = peer_id.getBytes( Constants.BYTE_ENCODING );
+				
+					peer = new TRTrackerServerPeerImpl( peer_bytes, ip_address.getBytes(), port );
 							
-				peer_map.put( peer_id, peer );
+					peer_map.put( peer_id, peer );
+					
+				}catch( UnsupportedEncodingException e){
+					
+					e.printStackTrace();
+				}
 			}
 		}else{
 			
