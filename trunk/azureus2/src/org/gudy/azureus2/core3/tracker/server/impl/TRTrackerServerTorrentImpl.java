@@ -406,7 +406,7 @@ TRTrackerServerTorrentImpl
 		
 		if ( add_to_cache ){
 						
-			announce_cache.put( new Integer(num_want/10), new announceCacheEntry( root ));
+			announce_cache.put( new Integer((num_want+9)/10), new announceCacheEntry( root ));
 		}
 		
 		return( root );
