@@ -47,6 +47,7 @@ DiskManagerFileInfoImpl
   private long 			downloaded;
   private int 			firstPieceNumber = -1;
   private int 			nbPieces = 0;
+  private DiskManager diskManager;
   
   private boolean priority = false;  
   private boolean skipped = false;
@@ -58,6 +59,7 @@ DiskManagerFileInfoImpl
   
   	throws FMFileManagerException
   {
+    this.diskManager = (DiskManager)owner;
   	try{
       path	= file.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
       name	= file.getName();
@@ -230,4 +232,7 @@ DiskManagerFileInfoImpl
 	this.skipped = skipped;
   }
 
+  public DiskManager getDiskManager() {
+    return diskManager;
+  }
 }
