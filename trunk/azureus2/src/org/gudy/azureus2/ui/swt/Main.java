@@ -61,6 +61,11 @@ public class Main implements ILocaleUtilChooser {
   public Main(String args[]) {
     LocaleUtil.setLocaleUtilChooser(this);
     startServer = new StartServer(this);
+    
+    // Set the HTTPConnection connection and read-timeout
+	System.setProperty( "sun.net.client.defaultConnectTimeout", "120000");
+	System.setProperty( "sun.net.client.defaultReadTimeout", "60000" );
+	
     if (startServer.getState() == StartServer.STATE_LISTENING) {
       startServer.start();
       gm = new GlobalManager();
