@@ -20,10 +20,12 @@
  */
 package org.gudy.azureus2.ui.swt.updater;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -50,15 +52,15 @@ public class UpdateSWT {
     try {
       
       UpdateLogger.log("user.dir="  + userDir);      
-      UpdateLogger.log("SWT Updater is waiting 1 sec");
+      UpdateLogger.log("SWT Updater is waiting 3 sec");
 
-      Thread.sleep(1000);
+      Thread.sleep(3000);
       
       String platform = args[0];
       
       UpdateLogger.log("SWT Updater has detected platform : " + platform );
       
-      String file = "tempSWT.zip";
+      String file = "swtTemp.zip";
       
       if(platform.equals("carbon"))
         updateSWT_carbon(file);
@@ -66,7 +68,7 @@ public class UpdateSWT {
         updateSWT_generic(file);
       }     
       
-      File swt = new File(userDir + "tempSWT.zip");
+      File swt = new File(userDir + file);
       if(swt.exists()) swt.delete();
       
       restart();
@@ -107,7 +109,8 @@ public class UpdateSWT {
       if(zipEntry.getName().startsWith("swt-win32-") && zipEntry.getName().endsWith(".dll")) {
         writeFile(zipFile,zipEntry,userDir);
       }
-    }    
+    }
+    zipFile.close();
   }
   
   public static void updateSWT_carbon(String zipFileName) throws Exception{
@@ -137,6 +140,7 @@ public class UpdateSWT {
         writeFile(zipFile,zipEntry,userDir + "Azureus.app/Contents/Resources/Java/dll/");
       }
     }    
+    zipFile.close();
   }
    
   public static void writeFile(ZipFile zipFile,ZipEntry zipEntry,String path) throws Exception {
@@ -216,13 +220,28 @@ public class UpdateSWT {
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec = "\"" + javaPath + "java\" -classpath \"" + classPath + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
-    
+    //String exec = "\"" + javaPath + "java\" -classpath \"" + classPath + "\" -Duser.dir=\"" + userPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
+    String exec = "java -classpath \"" + classPath + "\" -Djava.library.path=\"" + userPath + "\" org.gudy.azureus2.ui.swt.Main";
     UpdateLogger.log("Restarting with command line (win32): " + exec);
-    
-    File userDir = new File(userPath);
-    String[] env = {"user.dir=" + userPath , "java.library.path=" + userPath};
-    Runtime.getRuntime().exec(exec,env,userDir);
+
+    Process p = Runtime.getRuntime().exec(exec);
+    try {
+      p.waitFor();
+      BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+      String line = null;
+      UpdateLogger.log("output:");
+      while((line = br.readLine()) != null ) {
+        UpdateLogger.log(line);
+      }
+      UpdateLogger.log("errors:");
+      br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+      line = null;
+      while((line = br.readLine()) != null ) {
+        UpdateLogger.log(line);
+      }
+    } catch(Exception e) {
+      UpdateLogger.log("Exception while waiting for process : " + e);
+    }
   }
   
   
