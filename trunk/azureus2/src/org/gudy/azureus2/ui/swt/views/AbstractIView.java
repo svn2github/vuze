@@ -2,10 +2,11 @@
  * Created on 29 juin 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.ui.swt.Messages;
 
 /**
  * @author René

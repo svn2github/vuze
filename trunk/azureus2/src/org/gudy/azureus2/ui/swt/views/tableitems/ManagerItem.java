@@ -2,7 +2,7 @@
  * Created on 30 juin 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views.tableitems;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -14,6 +14,8 @@ import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
  * @author Olivier

@@ -27,7 +27,7 @@ public class MessageText {
 
   public static final Locale LOCALE_ENGLISH = new Locale("en", "EN");
   public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english 
-  private static final String BUNDLE_NAME = "org.gudy.azureus2.ui.swt.MessagesBundle"; //$NON-NLS-1$
+  private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
   private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT);
 
   /**

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views.config;
 
 import java.util.List;
 
@@ -38,6 +38,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.IpRange;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
 
 /**
  * @author Olivier

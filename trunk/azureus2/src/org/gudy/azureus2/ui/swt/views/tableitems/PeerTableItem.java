@@ -1,4 +1,4 @@
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views.tableitems;
 
 import java.util.HashMap;
 
@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.PeerStats;
 import org.gudy.azureus2.core2.PeerSocket;
+import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
  * This class (GUI) represents a row into the peers table.

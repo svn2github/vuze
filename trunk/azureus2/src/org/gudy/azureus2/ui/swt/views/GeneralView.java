@@ -2,7 +2,7 @@
  * Created on 2 juil. 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views;
 
 import java.util.Arrays;
 
@@ -29,6 +29,9 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier

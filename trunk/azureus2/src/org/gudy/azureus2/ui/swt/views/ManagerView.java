@@ -2,7 +2,7 @@
  * Created on 2 juil. 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -10,6 +10,9 @@ import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.ui.swt.IComponentListener;
+import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.Messages;
 
 /**
  * @author Olivier

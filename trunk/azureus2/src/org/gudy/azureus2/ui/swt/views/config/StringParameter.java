@@ -2,10 +2,11 @@
  * Created on 9 juil. 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views.config;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
@@ -15,7 +16,7 @@ import org.gudy.azureus2.core3.config.*;
  * @author Olivier
  * 
  */
-public class StringParameter {
+public class StringParameter implements IParameter{
 
   String name;
   Text inputField;
@@ -43,6 +44,13 @@ public class StringParameter {
   
   public String getValue() {
     return inputField.getText();
+  }
+
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.ui.swt.IParameter#getControl()
+   */
+  public Control getControl() {
+    return inputField;
   }
 
 }

@@ -2,7 +2,7 @@
  * Created on 17 juil. 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views.tableitems;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -17,6 +17,7 @@ import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.FileInfo;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 
 /**
  * @author Olivier

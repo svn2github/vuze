@@ -2,7 +2,7 @@
  * Created on 2 juil. 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views;
 
 import java.text.Collator;
 import java.util.ArrayList;
@@ -23,6 +23,9 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core2.PeerSocket;
+import org.gudy.azureus2.ui.swt.IComponentListener;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.views.tableitems.PeerTableItem;
 
 /**
  * @author Olivier

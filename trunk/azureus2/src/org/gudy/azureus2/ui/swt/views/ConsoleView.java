@@ -2,7 +2,7 @@
  * Created on 8 juil. 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -16,6 +16,7 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core.ILoggerListener;
 import org.gudy.azureus2.core.Logger;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
  * @author Olivier

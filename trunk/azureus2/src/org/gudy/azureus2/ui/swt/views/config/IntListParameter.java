@@ -2,11 +2,12 @@
  * Created on 10 juil. 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views.config;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.*;
@@ -15,7 +16,7 @@ import org.gudy.azureus2.core3.config.*;
  * @author Olivier
  * 
  */
-public class IntListParameter {
+public class IntListParameter implements IParameter {
 
   Combo list;
 
@@ -56,4 +57,8 @@ public class IntListParameter {
   public void setLayoutData(Object layoutData) {
     list.setLayoutData(layoutData);
    }
+   
+  public Control getControl() {
+    return list;
+  }
 }

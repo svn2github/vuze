@@ -2,7 +2,7 @@
  * Created on 6 sept. 2003
  *
  */
-package org.gudy.azureus2.ui.swt;
+package org.gudy.azureus2.ui.swt.views;
 
 import java.text.Collator;
 import java.util.Calendar;
@@ -26,6 +26,8 @@ import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.irc.IrcClient;
 import org.gudy.azureus2.irc.IrcListener;
+import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier

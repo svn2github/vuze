@@ -14,6 +14,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.gudy.azureus2.ui.swt.views.*;
 
 /**
  * @author Olivier

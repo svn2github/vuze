@@ -71,6 +71,7 @@ import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.maketorrent.Wizard;
+import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 
 import org.gudy.azureus2.core3.config.*;
@@ -106,14 +107,14 @@ public class MainWindow implements IComponentListener {
   private Shell mainWindow;
   private Menu menuBar;
 
-  protected static final Color[] blues = new Color[5];
+  public static final Color[] blues = new Color[5];
   public static Color black;
   public static Color blue;
-  protected static Color grey;
+  public static Color grey;
   public static Color red;
   public static Color white;
-  protected static Color red_ConsoleView;
-  protected static Color red_ManagerItem;
+  public static Color red_ConsoleView;
+  public static Color red_ManagerItem;
   public static Cursor handCursor;
 
   private CTabFolder folder;
