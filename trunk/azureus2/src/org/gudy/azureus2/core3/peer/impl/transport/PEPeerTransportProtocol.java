@@ -479,7 +479,7 @@ PEPeerTransportProtocol
 			  throw new IOException("End of Stream Reached");
 		  }
 		  catch (IOException e) {
-			closeAll(ip + " : StateTransfering::End of Stream Reached(reading length)",true);
+			closeAll(ip + " : StateTransfering::End of Stream Reached (reading length)",true);
 			return;
 		  }
 		}
@@ -492,13 +492,13 @@ PEPeerTransportProtocol
 		  
 		  if(length < 0) {
 		    closeAll(ip + " : length negative : " + length,true);
-		    System.out.println("PEPeerTransportProtocol:: length negative: "+ip+" "+client+": "+ length);
+		    Debug.out("message length negative: "+ip+" "+client+": "+ length);
 		    return;
 		  }
       
         if(length >= ByteBufferPool.MAX_SIZE) {
           closeAll(ip + " : length greater than max size : " + length,true);
-          System.out.println("PEPeerTransportProtocol: length too large: "+ip+" "+client+": "+ length);
+          Debug.out("message length too large: "+ip+" "+client+": "+ length);
           return;
 		  }
         
@@ -512,12 +512,12 @@ PEPeerTransportProtocol
 			if(readBuffer == null) {
 			  ByteBuffer newbuff = ByteBufferPool.getInstance().getFreeBuffer(length);
 			  if (newbuff == null) {				
-			    closeAll(ip + " PeerSocket::analyseBuffer:: newbuff null",true);
+			    closeAll(ip + " newbuff null",true);
 			    return;
 			  }
         
 			  if (newbuff.capacity() < length) {
-			    System.out.println("newbuff.capacity<length: "+newbuff.capacity()+"<"+length);
+			    Debug.out("newbuff.capacity<length: "+newbuff.capacity()+"<"+length);
 			  }
         
 			  readBuffer = newbuff;
@@ -525,7 +525,7 @@ PEPeerTransportProtocol
 			}
       
 			int pos = readBuffer.position();
-			if (pos !=0) System.out.println("readBuffer.position!=0:"+ pos);
+			if (pos !=0) Debug.out("readBuffer.position!=0:"+ pos);
       
 			readBuffer.position(0);
 			readBuffer.limit(length);
@@ -552,7 +552,7 @@ PEPeerTransportProtocol
 		}
 		catch (IOException e) {
 		  //e.printStackTrace();
-		  closeAll(ip + " : StateTransfering::End of Stream Reached(reading data)",true);
+		  closeAll(ip + " : StateTransfering::End of Stream Reached (reading data)",true);
 		  return;
 		}
     
