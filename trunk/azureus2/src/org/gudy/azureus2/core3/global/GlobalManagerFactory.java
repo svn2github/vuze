@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.global;
 
 import org.gudy.azureus2.core3.global.impl.*;
 
+import org.gudy.azureus2.ui.swt.SplashWindow;
+
 public class 
 GlobalManagerFactory 
 {
@@ -35,6 +37,13 @@ GlobalManagerFactory
 	create(boolean initializeStarted)
 	{
 		return( new GlobalManagerImpl(initializeStarted));
+	}
+
+	public static GlobalManager
+	create(boolean initializeStarted,
+	       SplashWindow 	splash)
+	{
+		return( new GlobalManagerImpl(initializeStarted, splash));
 	}
   
   public static GlobalManager

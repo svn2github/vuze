@@ -39,6 +39,7 @@ import java.util.Collections;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -48,6 +49,7 @@ import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.ui.swt.SplashWindow;
 
 /**
  * @author Olivier
@@ -162,14 +164,7 @@ public class GlobalManagerImpl
       	try{
 	        loopFactor++;
 	        determineSaveResumeDataInterval();
-	
-	        //update tracker scrape every 10min - temporary, until scrape code gets reworked
-	        if (loopFactor >= 10*60) {
-	          loopFactor = 0;
-	          trackerScraper.update();
-	        }
-	        
-	
+
 	        synchronized (managers) {
 	          if ((loopFactor % saveResumeLoopCount == 0) || needsSaving) {
 	            saveDownloads();
@@ -219,7 +214,11 @@ public class GlobalManagerImpl
     }
   }
 
-  public GlobalManagerImpl(boolean initialiseStarted)
+  public GlobalManagerImpl(boolean initialiseStarted) {
+    this(initialiseStarted, null);
+  }
+
+  public GlobalManagerImpl(boolean initialiseStarted, SplashWindow splash)
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
@@ -234,13 +233,11 @@ public class GlobalManagerImpl
     trackerScraper.addListener(
     	new TRTrackerScraperListener()
     	{
-    		public void
-    		scrapeReceived(
-    			TRTrackerScraperResponse		response )
+    		public void scrapeReceived(TRTrackerScraperResponse response)
     		{
     			byte[]	hash = response.getHash();
     			
-    			if ( hash != null ){
+    			if ( response.isValid() ){
     				
     				DownloadManager manager = (DownloadManager)manager_map.get(new HashWrapper(hash));
     				
@@ -252,7 +249,12 @@ public class GlobalManagerImpl
     		}
     	});
     
+    if (splash != null)
+      splash.setCurrentTask(MessageText.getString("splash.initializeGM") + ": " +
+                            MessageText.getString("splash.laodingTorrents"));
     loadDownloads();
+    if (splash != null)
+      splash.setCurrentTask(MessageText.getString("splash.initializeGM"));
     	
     tracker_host = TRHostFactory.create();
     
@@ -728,9 +730,10 @@ public class GlobalManagerImpl
 		      dmMap.put("path", dm.getFullName());
 		      dmMap.put("uploads", new Long(stats.getMaxUploads()));
           int state = dm.getState();
-          if (state == DownloadManager.STATE_SEEDING)
+          if (dm.getOnlySeeding() && !dm.isForceStart() && 
+              state != DownloadManager.STATE_STOPPED) {
             state = DownloadManager.STATE_QUEUED;
-          else if (state == DownloadManager.STATE_ERROR)
+          } else if (state == DownloadManager.STATE_ERROR)
             state = DownloadManager.STATE_STOPPED;
           else if (state != DownloadManager.STATE_STOPPED &&
                   state != DownloadManager.STATE_QUEUED &&

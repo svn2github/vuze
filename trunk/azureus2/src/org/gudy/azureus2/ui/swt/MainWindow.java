@@ -399,7 +399,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     splashNextTask();
     if (gm == null) {
       setSplashTask( "splash.initializeGM");
-      gm = GlobalManagerFactory.create(false);
+      gm = GlobalManagerFactory.create(false, splash_maybe_null);
     }
 
 
