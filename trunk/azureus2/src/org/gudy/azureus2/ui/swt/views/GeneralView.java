@@ -842,7 +842,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       gcImage.drawLine(1,6,xMax,6);
 
       int total = 0;
-      if (pieces != null) {
+      if (pieces != null && pieces.length != 0) {
         int nbPieces = pieces.length;
         for (int i = 0; i < nbPieces; i++) {
           if (pieces[i])
