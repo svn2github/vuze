@@ -1,5 +1,6 @@
 package org.gudy.azureus2.core;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.CharBuffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -15,7 +16,11 @@ public class LocaleUtil {
 		"Big5","EUC-JP","EUC-KR","GB18030","GBK","ISO-2022-JP","ISO-2022-KR",
 		"Shift_JIS","KOI8-R","UTF-8","windows-1251","ISO-8859-1"
 	};    
-    
+
+  public static String getCharsetString(byte[] array) throws UnsupportedEncodingException {
+    return new String(array, getCharset(array));
+  }
+
 	public static String getCharset(byte[] array) {
 
 		class Candidate implements Comparable {

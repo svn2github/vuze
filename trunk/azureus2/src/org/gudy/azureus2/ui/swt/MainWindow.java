@@ -1122,7 +1122,7 @@ public class MainWindow implements IComponentListener {
           metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
         Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
         Map info = (Map) map.get("info"); //$NON-NLS-1$
-        singleFileName = new String((byte[]) info.get("name"), LocaleUtil.getCharset((byte[]) info.get("name"))); //$NON-NLS-1$ //$NON-NLS-2$
+        singleFileName = LocaleUtil.getCharsetString((byte[]) info.get("name")); //$NON-NLS-1$ //$NON-NLS-2$
         Object test = info.get("length"); //$NON-NLS-1$
         if (test != null) {        
           singleFile = true;          
