@@ -212,6 +212,9 @@ StatsWriterImpl
 						writeTag( "HASH_FAILS", 	dm_stats.getHashFails());
 						writeTag( "SHARE_RATIO", 	dm_stats.getShareRatio());
 			
+						writeTag( "TOTAL_SEEDS", dm.getNbSeeds());
+						writeTag( "TOTAL_LEECHERS", dm.getNbPeers());
+						
 						if ( export_peer_stats ){
 							
 							try{
@@ -250,6 +253,8 @@ StatsWriterImpl
 											indent();
 										
 											writeTag( "IP", peer.getIp());
+											
+											writeTag( "IS_SEED", peer.isSeed());
 											
 											writeRawCookedTag( "DOWNLOADED", peer_stats.getTotalReceived());
 											writeRawCookedTag( "UPLOADED", peer_stats.getTotalSent());

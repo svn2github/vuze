@@ -86,6 +86,14 @@ XUXmlWriter
 	}
 		
 	protected void
+	writeTag(
+		String		tag,
+		boolean		content )
+	{
+		writeLineRaw( "<" + tag + ">" + (content?"YES":"NO") + "</" + tag + ">" );	
+	}
+	
+	protected void
 	writeLineRaw(
 		String	str )
 	{

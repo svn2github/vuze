@@ -85,6 +85,8 @@ PluginInterfaceImpl
   protected boolean				operational;
   protected Logger				logger;
   
+  protected boolean				initialisation_complete;
+  
   public 
   PluginInterfaceImpl(
   		Plugin				_plugin,
@@ -435,6 +437,8 @@ PluginInterfaceImpl
   protected void
   initialisationComplete()
   {
+  	initialisation_complete	= true;
+  	
   	for (int i=0;i<listeners.size();i++){
   		
   		try{
@@ -504,6 +508,11 @@ PluginInterfaceImpl
   	PluginListener	l )
   {
   	listeners.add(l);
+  	
+  	if ( initialisation_complete ){
+  		
+  		l.initializationComplete();
+  	}
   }
   
   public void
