@@ -463,6 +463,12 @@ DownloadManagerImpl
 			 			
 			 				// doesn't exist, assume it refers directly to the file
 			 			
+			 			if ( save_dir_file.getParent() == null ){
+			 				
+			 				throw( new Exception( "Data location '" + torrent_save_dir + "' is invalid" ));
+
+			 			}
+			 			
 		 				torrent_save_dir	= save_dir_file.getParent().toString();
 		 				
 		 				torrent_save_file	= save_dir_file.getName(); 			
