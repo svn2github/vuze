@@ -7,8 +7,12 @@ package org.gudy.azureus2.ui.swt;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,26 +31,35 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core.BDecoder;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
+import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.systray.SystemTray;
+import org.gudy.azureus2.update.Updater;
 
 import snoozesoft.systray4j.SysTrayMenu;
 
@@ -56,18 +69,25 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.0.9"; //$NON-NLS-1$
+  private static final String VERSION = "2.0.0.10"; //$NON-NLS-1$
   private String latestVersion = ""; //$NON-NLS-1$
 
   private static MainWindow window;
+  
+  private static boolean jarDownloaded = false;
+  private static boolean updateJar = false;
 
-  private Updater updater;
+  private GUIUpdater updater;
 
   private Display display;
   private Shell mainWindow;
   private Menu menuBar;
+
+  public static Color black;
   public static Color blue;
+  public static Color red;
   public static Color white;
+
   private CTabFolder folder;
   private CLabel statusText;
   private CLabel statusDown;
@@ -89,11 +109,11 @@ public class MainWindow implements IComponentListener {
 
   private StartServer startServer;
 
-  private class Updater extends Thread {
+  private class GUIUpdater extends Thread {
     boolean finished = false;
     int waitTime = 250;
 
-    public Updater() {
+    public GUIUpdater() {
       super("GUI updater"); //$NON-NLS-1$
     }
 
@@ -126,8 +146,8 @@ public class MainWindow implements IComponentListener {
             if (!mainWindow.isDisposed() && mainWindow.isVisible()) {
               view.refresh();
               Tab.refresh();
-              statusDown.setText("D: " + globalManager.getDownloadSpeed());
-              statusUp.setText("U: " + globalManager.getUploadSpeed());
+              statusDown.setText("D: " + globalManager.getDownloadSpeed()); //$NON-NLS-1$
+              statusUp.setText("U: " + globalManager.getUploadSpeed()); //$NON-NLS-1$
             }
             if (trayIcon != null)
               trayIcon.refresh();
@@ -178,6 +198,8 @@ public class MainWindow implements IComponentListener {
             if (statusText.isDisposed())
               return;
             setStatusVersion();
+            if(!VERSION.equals(latestVersion))
+              showUpgradeWindow();
           }
         });
       }
@@ -188,7 +210,7 @@ public class MainWindow implements IComponentListener {
           public void run() {
             if (statusText.isDisposed())
               return;
-            latestVersion = Messages.getString("MainWindow.status.unknown");
+            latestVersion = MessageText.getString("MainWindow.status.unknown"); //$NON-NLS-1$
             setStatusVersion();
           }
         });
@@ -212,8 +234,11 @@ public class MainWindow implements IComponentListener {
     display = new Display();
     ImageRepository.loadImages(display);
 
+    black = new Color(display, new RGB(0, 0, 0));
     blue = new Color(display, new RGB(128, 128, 255));
+    red = new Color(display, new RGB(255, 0, 0));
     white = new Color(display, new RGB(255, 255, 255));
+
     //The Main Window    
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
@@ -241,7 +266,7 @@ public class MainWindow implements IComponentListener {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
         fDialog.setFilterExtensions(new String[] { "*.torrent" }); //$NON-NLS-1$
         fDialog.setFilterNames(new String[] { "*.torrent" }); //$NON-NLS-1$
-        fDialog.setText(Messages.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
+        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
         String fileName = fDialog.open();
         if (fileName == null)
           return;
@@ -255,7 +280,7 @@ public class MainWindow implements IComponentListener {
     file_new_folder.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-        fDialog.setText(Messages.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
+        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
         String fileName = fDialog.open();
         if (fileName == null)
           return;
@@ -379,7 +404,7 @@ public class MainWindow implements IComponentListener {
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     statusText = new CLabel(statusBar, SWT.SHADOW_IN);
-    latestVersion = Messages.getString("MainWindow.status.checking") + "...";
+    latestVersion = MessageText.getString("MainWindow.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
     setStatusVersion();
     statusText.setLayoutData(gridData);
 
@@ -389,19 +414,19 @@ public class MainWindow implements IComponentListener {
     gridData = new GridData();
     gridData.widthHint = 90;
     statusDown = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusDown.setText("D:");
+    statusDown.setText("D:"); //$NON-NLS-1$
     statusDown.setLayoutData(gridData);
 
     gridData = new GridData();
     gridData.widthHint = 90;
     statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
-    statusUp.setText("U:");
+    statusUp.setText("U:"); //$NON-NLS-1$
     statusUp.setLayoutData(gridData);
 
     globalManager.addListener(this);
 
     mainWindow.open();
-    updater = new Updater();
+    updater = new GUIUpdater();
     updater.start();
 
     boolean available = false;
@@ -440,17 +465,39 @@ public class MainWindow implements IComponentListener {
     Menu languageMenu = new Menu(mainWindow, SWT.DROP_DOWN);
     languageItem.setMenu(languageMenu);
 
-    Locale[] locales = Messages.getLocales();
+    Locale[] locales = MessageText.getLocales();
+    String savedLocaleString = ConfigurationManager.getInstance().getStringParameter("locale", Locale.getDefault().toString());
+    Locale savedLocale = new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5)); 
+
+    MenuItem[] items = new MenuItem[locales.length];
+    
     for (int i = 0; i < locales.length; i++) {
 //      System.out.println("found Locale: " + locales[i]);
-      MenuItem language = new MenuItem(languageMenu, SWT.RADIO);
-      createLanguageMenuitem(language, locales[i]);
+      items[i] = new MenuItem(languageMenu, SWT.RADIO);
+      createLanguageMenuitem(items[i], locales[i]);
+    }
+
+    Locale currentLocale = MessageText.getCurrentLocale();
+    if(MessageText.changeLocale(savedLocale)) {
+      for (int i = 0; i < items.length; i++) {
+        if(currentLocale.equals(items[i].getData())) {
+          items[i].setSelection(false);
+          break;
+        }      
+      }
+      for (int i = 0; i < items.length; i++) {
+        if(savedLocale.equals(items[i].getData())) {
+          items[i].setSelection(true);
+          setSelectedLanguageItem(items[i]);
+          break;
+        }      
+      }
     }
   }
 
   private void setStatusVersion() {
     if(statusText != null)
-      statusText.setText("Azureus " + VERSION + " / " + Messages.getString("MainWindow.status.latestversion") + " : " + latestVersion);
+      statusText.setText("Azureus " + VERSION + " / " + MessageText.getString("MainWindow.status.latestversion") + " : " + latestVersion); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
   }
 
   private void createLanguageMenuitem(MenuItem language, final Locale locale) {
@@ -459,7 +506,9 @@ public class MainWindow implements IComponentListener {
     language.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
         if (isSelectedLanguageDifferent(e.widget)) {
-          if (Messages.changeLocale(locale)) {
+          if (MessageText.changeLocale(locale)) {
+            ConfigurationManager.getInstance().setParameter("locale", locale.toString());
+            ConfigurationManager.getInstance().save();
             setSelectedLanguageItem((MenuItem) e.widget);
           } else {
             ((MenuItem) e.widget).setSelection(false);
@@ -468,9 +517,9 @@ public class MainWindow implements IComponentListener {
         }
       }
     });
-    language.setSelection(Messages.isCurrentLocale(locale));
+    language.setSelection(MessageText.isCurrentLocale(locale));
     if(language.getSelection())
-      setSelectedLanguageItem(language);
+      selectedLanguageItem = language;
   }
   
   private synchronized void setSelectedLanguageItem(MenuItem newLanguage) {
@@ -488,13 +537,185 @@ public class MainWindow implements IComponentListener {
     if(tray != null)
       tray.updateLanguage();
 
-//    Tab.refresh();
     Tab.updateLanguage();
 
     setStatusVersion();
+  }
+
+  private void showUpgradeWindow() {
+    final Shell s = new Shell(mainWindow, SWT.CLOSE | SWT.PRIMARY_MODAL);
+    s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    s.setText(MessageText.getString("MainWindow.upgrade.assistant")); //$NON-NLS-1$
+    s.setSize(250, 300);
+    s.setLayout(new GridLayout(3, true));
+    GridData gridData;
+
+    Label label = new Label(s, SWT.CENTER);
+    label.setText(MessageText.getString("MainWindow.upgrade.newerversion")+": " + latestVersion + "\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    FontData[] fontData = label.getFont().getFontData();
+    for (int i = 0; i < fontData.length; i++) {
+      fontData[i].setStyle(SWT.BOLD);
+    }
+    label.setFont(new Font(display, fontData));
+    label.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    label = new Label(s, SWT.LEFT);
+    label.setText(MessageText.getString("MainWindow.upgrade.explanation")+".\n\n"); //$NON-NLS-1$ //$NON-NLS-2$
+    label.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
     
-//    mainWindow.redraw();
-//    display.update();
+    final Label step1 = new Label(s, SWT.LEFT);
+    step1.setText("- "+MessageText.getString("MainWindow.upgrade.step1")); //$NON-NLS-1$ //$NON-NLS-2$
+    step1.setForeground(blue);
+    step1.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    final Label step2 = new Label(s, SWT.LEFT);
+    step2.setText("- "+MessageText.getString("MainWindow.upgrade.setp2")+"\n\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    step2.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    final Label hint = new Label(s, SWT.LEFT);
+    hint.setText(MessageText.getString("MainWindow.upgrade.hint1")+"."); //$NON-NLS-1$ //$NON-NLS-2$
+    hint.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    label = new Label(s, SWT.LEFT);
+    label.setText("\n\n"); //$NON-NLS-1$
+    label.setLayoutData(gridData = new GridData());
+    gridData.horizontalSpan = 3;
+
+    final Button next = new Button(s, SWT.PUSH);
+    next.setText(" " + MessageText.getString("Button.next") + " > "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
+    
+    gridData = new GridData();
+    next.setLayoutData(gridData);
+
+    final Button finish = new Button(s, SWT.PUSH);
+    finish.setText(" "+MessageText.getString("Button.finish")+" "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
+    finish.setLayoutData(new GridData()); // GridData.HORIZONTAL_ALIGN_BEGINNING | GridData.GRAB_HORIZONTAL
+
+    final Button cancel = new Button(s, SWT.PUSH);
+    cancel.setText(" "+MessageText.getString("Button.cancel")+" "); //$NON-NLS-1$ //$NON-NLS-3$ //$NON-NLS-2$
+    cancel.setLayoutData(new GridData());
+
+    SelectionAdapter update = new SelectionAdapter() {
+      public void widgetSelected(SelectionEvent event) {
+        downloadJar();
+        if (jarDownloaded) {
+          if(event.widget == finish) {
+            updateJar = true;
+            s.dispose();
+            dispose();
+          } else {
+            next.setEnabled(false);
+            step1.setForeground(black);
+            step2.setForeground(blue);
+            s.setDefaultButton(finish);
+            hint.setText(MessageText.getString("MainWindow.upgrade.hint2")+"."); //$NON-NLS-1$ //$NON-NLS-2$
+            hint.setForeground(black);
+            hint.pack();
+          }
+        } else {
+          if(event.widget == finish) {
+            MessageBox messageBox = new MessageBox(s, SWT.PRIMARY_MODAL | SWT.ICON_ERROR | SWT.OK);
+            messageBox.setText(MessageText.getString("MainWindow.upgrade.error.downloading")); //$NON-NLS-1$
+            String downloadLink = "http://azureus.sourceforge.net/Azureus2.jar";  //$NON-NLS-1$
+            messageBox.setMessage(MessageText.getString("MainWindow.upgrade.error.downloading.explanation")+":\n"+downloadLink); //$NON-NLS-1$ //$NON-NLS-2$
+            messageBox.open();
+            s.dispose();
+          } else {
+            hint.setText(MessageText.getString("MainWindow.upgrade.error.downloading.hint")+"!"); //$NON-NLS-1$ //$NON-NLS-2$
+            hint.setForeground(red);
+            hint.pack();
+          }
+        }
+      }
+    };
+
+    next.addSelectionListener(update);
+    finish.addSelectionListener(update);
+    
+    cancel.addSelectionListener(new SelectionAdapter() {
+      public void widgetSelected(SelectionEvent event) {
+        s.dispose();
+      }
+    });
+    
+    s.pack();
+    s.open();
+    while (!s.isDisposed()) {
+      if (!display.readAndDispatch())
+      display.sleep();
+    } //end while
+//    System.exit(0);
+}
+
+  private void updateJar() {
+    try {
+      String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+      String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
+      String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+
+      File updaterJar = Updater.getFileFromClassJar(MainWindow.class, "Updater.jar"); //$NON-NLS-1$
+      if (!updaterJar.isFile()) {
+        URL reqUrl = new URL("http://azureus.sourceforge.net/Updater.jar"); //$NON-NLS-1$
+        HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
+        con.connect();
+        InputStream in = con.getInputStream();
+        FileOutputStream out = new FileOutputStream(updaterJar);
+        byte[] buffer = new byte[1024];
+        int c;
+        while ((c = in.read(buffer)) != -1)
+          out.write(buffer, 0, c);
+        in.close();
+        out.close();
+      }
+
+      String exec = "java -classpath \"" + updaterJar.getAbsolutePath() + "\" org.gudy.azureus2.update.Updater \"" //$NON-NLS-1$ //$NON-NLS-2$
+          + classPath + "\" \"" + libraryPath + "\" \"" + userPath + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+//      System.out.println("Azureus exec: " + exec);
+
+      Runtime.getRuntime().exec(exec);
+/*
+      BufferedReader d = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      String text;
+      while((text = d.readLine()) != null && text.length() != 0)
+        System.out.println(text);
+//*/
+    } catch (Exception e1) {
+      e1.printStackTrace();
+      updateJar = false;
+    }
+  }
+
+  private void downloadJar() {
+    if(jarDownloaded) return;
+
+    try {
+      File originFile = Updater.getFileFromClassJar(MainWindow.class, "Azureus2.jar"); //$NON-NLS-1$
+      File newFile = new File(originFile.getParentFile(), "Azureus2-new.jar"); //$NON-NLS-1$
+      
+      URL reqUrl = new URL("http://azureus.sourceforge.net/Azureus2.jar"); //$NON-NLS-1$
+      HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
+      con.connect();
+      InputStream in = con.getInputStream();
+      FileOutputStream out = new FileOutputStream(newFile);
+      byte[] buffer = new byte[1024];
+      int c;
+      while ((c = in.read(buffer)) != -1)
+        out.write(buffer, 0, c);
+      in.close();
+      out.close();
+      jarDownloaded = true;
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public static void updateMenuText(Object menu) {
@@ -509,7 +730,7 @@ public class MainWindow implements IComponentListener {
       MenuItem item = (MenuItem) menu;
       if (item.getData() != null) {
         if (item.getData() instanceof String)
-          item.setText(Messages.getString((String) item.getData()));
+          item.setText(MessageText.getString((String) item.getData()));
         else
           item.setText(((Locale) item.getData()).getDisplayLanguage());
         updateMenuText(item.getMenu());  
@@ -674,6 +895,8 @@ public class MainWindow implements IComponentListener {
     updater.stopIt();
     globalManager.stopAll();
     mainWindow.dispose();
+    if(updateJar)
+      updateJar();
   }
 
   public GlobalManager getGlobalManager() {
@@ -732,7 +955,7 @@ public class MainWindow implements IComponentListener {
     if (savePath.length() == 0) {
       mainWindow.setActive();
       boolean singleFile = false;
-      String singleFileName = "";
+      String singleFileName = ""; //$NON-NLS-1$
       try {
         byte[] buf = new byte[1024];
         int nbRead;
@@ -754,16 +977,16 @@ public class MainWindow implements IComponentListener {
       }
       if (singleFile) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
-        fDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", ""));
+        fDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
         fDialog.setFileName(singleFileName);
-        fDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")");
+        fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$
         savePath = fDialog.open();
 
       }
       else {
         DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
         dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
-        dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$
+        dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$
         savePath = dDialog.open();
       }
       if (savePath == null)
@@ -804,7 +1027,7 @@ public class MainWindow implements IComponentListener {
     if (files.length == 0)
       return;
     DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-    dDialog.setText(Messages.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
+    dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
     String savePath = dDialog.open();
     if (savePath == null)
       return;
