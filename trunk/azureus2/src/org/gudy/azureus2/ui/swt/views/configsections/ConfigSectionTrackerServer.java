@@ -27,8 +27,6 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
@@ -507,6 +505,7 @@ ConfigSectionTrackerServer
 
     IntParameter maxThreadsTime = new IntParameter(gProcessing, "Tracker Max Threads", 48 );
     maxThreadsTime.setMinimumValue(1);
+    maxThreadsTime.setMaximumValue(4096);
     gridData = new GridData();
     gridData.widthHint = 50;
     maxThreadsTime.setLayoutData( gridData );

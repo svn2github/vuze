@@ -106,6 +106,12 @@ IntParameter
   {
   	iMinValue	= value;
   }
+  public void
+  setMaximumValue(
+  	int		value )
+  {
+  	iMaxValue	= value;
+  }
   
   protected void
   checkValue()
@@ -116,7 +122,7 @@ IntParameter
         int new_val = Integer.parseInt(inputField.getText());
         
         int	original_new_val	= new_val;
-        
+               
         if (new_val < iMinValue) {
           if (!(allowZero && new_val == 0)) {
           	new_val = iMinValue;
@@ -129,8 +135,14 @@ IntParameter
           }
         }
         
-        if ( new_val != old_val ){
+        if ( new_val == old_val ){
         	
+        	if ( new_val != original_new_val ){
+        		
+        		inputField.setText(String.valueOf(new_val));
+        	}
+        	
+        }else{
         	COConfigurationManager.setParameter(sParamName, new_val);
         	
         	if ( new_val != original_new_val ){
