@@ -1491,7 +1491,7 @@ TRTrackerClientClassicImpl
 				    		
 				    		byte[]	peer_id = getAnonymousPeerId( ip, port );
 							
-								//System.out.println("COMPACT PEER: ip=" +ip+ " port=" +port);
+                LGLogger.log("COMPACT PEER: ip=" +ip+ " port=" +port);
 							
 							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peerId, ip, port ));							
 				    	}
