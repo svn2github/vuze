@@ -38,6 +38,8 @@ import java.util.Collections;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -687,7 +689,11 @@ public class GlobalManagerImpl
             stats.setSecondsOnlySeeding(lSecondsOnlySeeding.longValue());
           }
 
+          //load file priorities
+          Map file_priorities = (Map) mDownload.get("file_priorities");
+          dm.setData( "file_priorities", file_priorities );
 
+          
           this.addDownloadManager(dm, false);
 
           if(lForceStart != null) {
@@ -757,7 +763,14 @@ public class GlobalManagerImpl
 		      dmMap.put("priorityLocked", new Long(0));
 		      dmMap.put("startStopLocked", new Long(0));
 		      dmMap.put("stopped", new Long(1));
+          
+		      //save file priorities
+          DiskManager disk_manager = dm.getDiskManager();
+          if ( disk_manager != null ) disk_manager.storeFilePriorities();
+          Map file_priorities = (Map)dm.getData( "file_priorities" );
+          dmMap.put( "file_priorities" , file_priorities );
 
+          
 		      list.add(dmMap);
 	      }
 	    }

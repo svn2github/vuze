@@ -155,4 +155,12 @@
 	public void
 	removeListener(
 		DiskManagerListener	l );
+  
+  
+  /**
+   * Save the individual file priorities map to
+   * DownloadManager.getData( "file_priorities" ).
+   */
+  public void storeFilePriorities();
+  
  }

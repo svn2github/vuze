@@ -34,7 +34,7 @@ BUGFIX: First Priority rules based on time now work across sessions [TuxPaper]
 BUGFIX: Freeze on exit under OSX [Gudy]
 BUGFIX: Tracker status column sortable [TuxPaper]
 BUGFIX: Fix for system clock changes stalling downloads: Bug #918193 [Nolar]
-
+BUGFIX: Individual file priorities remembered after Stop [Nolar]
 
 
 

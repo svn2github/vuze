@@ -24,6 +24,7 @@ import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.file.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -117,8 +118,9 @@ DiskManagerImpl
 	//private int[][] priorityLists;
 
 	private DiskManagerFileInfoImpl[] files;
+  private DownloadManager dmanager;
 
-	private PEPeerManager manager;
+  private PEPeerManager manager;
 	private SHA1Hasher hasher;
   private Md5Hasher md5;
   private ByteBuffer md5Result;
@@ -152,11 +154,12 @@ DiskManagerImpl
   private static boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
   private static boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
   
-	public DiskManagerImpl(TOTorrent	_torrent, String path) {
+	public DiskManagerImpl(TOTorrent	_torrent, String path, DownloadManager dmanager) {
     setState( INITIALIZING );
     this.percentDone = 0;
     this.torrent = _torrent;
     this.path = path;
+    this.dmanager = dmanager;
     initialize1();
 	}
 
@@ -1053,13 +1056,14 @@ DiskManagerImpl
 			}
 
 			//add the file to the array
-
-
 			files[i] = fileInfo;
 
 			//setup this files RAF reference
 			tempFile.setFileInfo(files[i]);
 		}
+    
+    loadFilePriorities();
+    
 		return numNewFiles;
 	}
 
@@ -1873,7 +1877,7 @@ DiskManagerImpl
 			writeThread.stopIt();
 		if (readThread != null)
 			readThread.stopIt();
-		
+    
 		if (files != null) {
 			for (int i = 0; i < files.length; i++) {
 				try {
@@ -2497,4 +2501,38 @@ DiskManagerImpl
 			e.printStackTrace();
 		}
 	}
+  
+    
+  
+  private void loadFilePriorities() {
+    if ( files == null ) return;
+    Map file_priorities = (Map)dmanager.getData( "file_priorities" );
+    for (int i=0; i < files.length; i++) {
+      DiskManagerFileInfo file = files[i];
+      if (file == null) return;
+      String name = file.getPath() + file.getName();
+      int priority = ((Long)file_priorities.get( name )).intValue();
+      if ( priority == 0 ) file.setSkipped( true );
+      else if (priority == 1) file.setPriority( true );
+    }
+  }
+  
+  
+  public void storeFilePriorities() {
+    if ( files == null ) return;
+    Map file_priorities = new HashMap();
+    for (int i=0; i < files.length; i++) {
+      DiskManagerFileInfo file = files[i];
+      if (file == null) return;
+      boolean skipped = file.isSkipped();
+      boolean priority = file.isPriority();
+      int value = -1;
+      if ( skipped ) value = 0;
+      else if ( priority ) value = 1;
+      String name = file.getPath() + file.getName();
+      file_priorities.put( name, new Long(value));            
+    }
+    dmanager.setData( "file_priorities", file_priorities );
+  }
+  
 }

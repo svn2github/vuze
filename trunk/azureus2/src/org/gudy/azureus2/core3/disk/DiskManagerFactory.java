@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.disk;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.impl.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 
 public class 
 DiskManagerFactory 
@@ -35,9 +36,10 @@ DiskManagerFactory
 	public static DiskManager
 	create(
 		TOTorrent	torrent, 
-		String 		path )
+		String 		path,
+    DownloadManager manager)
 	{
-		DiskManagerImpl dm = new DiskManagerImpl( torrent, path );
+		DiskManagerImpl dm = new DiskManagerImpl( torrent, path, manager );
 		dm.start();
 		return dm;
 	}
@@ -45,9 +47,10 @@ DiskManagerFactory
 	public static DiskManager
 	createNoStart(
 		TOTorrent	torrent, 
-		String 		path )
+		String 		path,
+    DownloadManager manager)
 	{
-		return( new DiskManagerImpl( torrent, path ));
+		return( new DiskManagerImpl( torrent, path, manager ));
 	}
 
 		/**

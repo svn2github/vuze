@@ -528,7 +528,7 @@ DownloadManagerImpl
 		String strErrMessage = "";
 		// currently can only seed if whole torrent exists
 		if (diskManager == null) {
-  		DiskManager dm = DiskManagerFactory.createNoStart( torrent, FileUtil.smartFullName(savePath, name));
+  		DiskManager dm = DiskManagerFactory.createNoStart( torrent, FileUtil.smartFullName(savePath, name), this);
   		if (dm.getState() == DiskManager.FAULTY)
   		  strErrMessage = dm.getErrorMessage();
   		else if (!dm.filesExist()) 
@@ -661,6 +661,7 @@ DownloadManagerImpl
 			  savePath = diskManager.getPath();
 			  name = diskManager.getFileName();
 			  
+        diskManager.storeFilePriorities();        
 			  diskManager.stopIt();
 			  	
 			  diskManager.removeListener( disk_manager_listener );
@@ -1205,7 +1206,8 @@ DownloadManagerImpl
   public void initializeDiskManager() 
   {
   	if(diskManager == null) {
-  		diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name));
+
+  		diskManager = DiskManagerFactory.create( torrent, FileUtil.smartFullName(savePath, name), this);
       
   		disk_manager_listener = 
   			new DiskManagerListener()
