@@ -56,7 +56,7 @@ DownloadManagerStatsImpl
 	protected long saved_SecondsDownloading = 0;
 	protected long saved_SecondsOnlySeeding = 0;
 	
-  protected int max_upload_rate_bps = -1;  //-1 for unlimited
+  protected int max_upload_rate_bps = 0;  //0 for unlimited
   
 
 	protected

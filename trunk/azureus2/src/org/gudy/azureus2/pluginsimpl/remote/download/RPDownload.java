@@ -609,6 +609,14 @@ RPDownload
  	{
 		notSupported();
  	}
+  
+  public int getUploadRateLimitBytesPerSecond() {
+    notSupported();
+    return 0;
+  }
+
+  public void setUploadRateLimitBytesPerSecond( int max_rate_bps ) {  notSupported();  }
+  
   	
   	public int
 	getMaximumDownloadKBPerSecond()
