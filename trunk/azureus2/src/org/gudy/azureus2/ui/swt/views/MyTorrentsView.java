@@ -1778,7 +1778,8 @@ public class MyTorrentsView extends AbstractIView
 
 	// globalmanagerlistener Functions
 	public void	downloadManagerAdded( DownloadManager	dm ) {
-	  if (skipDMAdding || currentCategory.getType() == Category.TYPE_USER)
+	  if (skipDMAdding || 
+	      (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
 	    return;
 	  Category cat = dm.getCategory();
 	  if (cat == null)
@@ -1786,7 +1787,8 @@ public class MyTorrentsView extends AbstractIView
   }
 		
 	public void	downloadManagerRemoved(	DownloadManager	dm ) {
-	  if (skipDMAdding || currentCategory.getType() == Category.TYPE_USER)
+	  if (skipDMAdding || 
+	      (currentCategory != null && currentCategory.getType() == Category.TYPE_USER))
 	    return;
 	  Category cat = dm.getCategory();
 	  if (cat == null)
