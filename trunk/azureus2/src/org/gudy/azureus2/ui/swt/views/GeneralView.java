@@ -875,12 +875,17 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       if (newPieces == null) {
         pieces = null;
       } else {
-        for (int i = 0; i < pieces.length; i++) {
-          if (pieces[i] != newPieces[i]) {
-            valid = false;
-            pieces[i] = newPieces[i];
-          }
-        }
+      	if (pieces == null ){
+      		 pieces = (boolean[])newPieces.clone();
+      		 valid = false;
+      	}else{
+	        for (int i = 0; i < pieces.length; i++) {
+	          if (pieces[i] != newPieces[i]) {
+	            valid = false;
+	            pieces[i] = newPieces[i];
+	          }
+	        }
+      	}
       }
     } else {
       // clone so it doesn't auto-update..
