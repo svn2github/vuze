@@ -23,7 +23,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.program.Program;
-import org.gudy.azureus2.ui.common.ImageRepository;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 
 /**
  * @author Olivier

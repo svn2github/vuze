@@ -31,7 +31,7 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.common.*;
+import org.gudy.azureus2.ui.common.UIImageRepository;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.tracker.*;
@@ -275,7 +275,7 @@ TrackerWebDefaultPlugin
 				response.setHeader( "Expires",
 									"Sun, 17 Jan 2038 01:01:01 GMT" );
 				
-				InputStream is = ImageRepository.getImageAsStream( "favicon.ico" );
+				InputStream is = UIImageRepository.getImageAsStream( "favicon.ico" );
 				
 				if ( is == null ){
 										

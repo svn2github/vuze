@@ -2,7 +2,7 @@
  * Created on 29 juin 2003
  *
  */
-package org.gudy.azureus2.ui.common;
+package org.gudy.azureus2.ui.swt;
 
 import java.io.InputStream;
 import java.util.HashMap;
@@ -95,13 +95,6 @@ public class ImageRepository {
       }
     }
     return im;
-  }
-
-  public static InputStream 
-  getImageAsStream(
-  	String	name ) 
-  {
-      return(ImageRepository.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/icons/" + name));
   }
   
   public static void unLoadImages() {
