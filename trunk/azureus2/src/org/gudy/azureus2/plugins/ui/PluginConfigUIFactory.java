@@ -27,16 +27,105 @@ package org.gudy.azureus2.plugins.ui;
  */
 public interface PluginConfigUIFactory {
 
-  public EnablerParameter createBooleanParameter(String key,String label,boolean defaultValue);
-  public Parameter createIntParameter(String key,String label,int defaultValue);
-  public Parameter createStringParameter(String key,String label,String defaultValue);
-  public Parameter createFileParameter(String key,String label,String defaultValue);  
   /**
-   * Note : each color component is stored as an int parameter with the keys key.red, key.blue, key.green
-   * @param key
-   * @param label
-   * @param defaultValue
-   * @return
+   * Creates a boolean parameter.<br>
+   * The UI component used will be a checkBox.<br>
+   * The parameter can be accessed using the PluginConfig.getPluginBooleanParameter(String key).<br>
+   * The return object, and EnablerParameter, can be used to add dependency to other parameters.
+   * For example, you can use a boolean parameter to choose from logging or not, and a file parameter
+   * to choose the logging file. You can call the EnablerParameter.addEnabledOnSelection method with the 
+   * file Parameter in argument, so that the file parameter will only be enabled if the 'logging' (boolean) one is.
+   * @param key the parameter key
+   * @param label the label for this checkBox (cf. i18n)
+   * @param defaultValue the default value of the parameter
+   * @return an EnablerParameter
    */
-  public Parameter createColorParameter(String key,String label,int defaultValueRed,int defaultValueGreen,int defaultValueblue);
+  public EnablerParameter createBooleanParameter(String key,String label,boolean defaultValue);
+  
+  /**
+   * Creates an int parameter.<br>
+   * The UI component will be a Text field, but only accepting int values.<br>
+   * The parameter can be accessed using the PluginConfig.getPluginIntParameter(String key).<br>
+   * @param key the parameter key
+   * @param label the label for this field (cf. i18n)
+   * @param defaultValue the default value of the parameter
+   * @return a Parameter
+   */
+  public Parameter createIntParameter(String key,String label,int defaultValue);
+  
+  /**
+   * Creates an int parameter.<br>
+   * The UI component will be a List.<br>
+   * The parameter can be accessed using the PluginConfig.getPluginIntParameter(String key).<br>
+   * @param key the parameter key
+   * @param label the label for this field (cf. i18n)
+   * @param defaultValue the default value of the parameter
+   * @param values the list of values
+   * @param labels the list of labels (no i18n here)
+   * @return a Parameter
+   */
+  public Parameter createIntParameter(String key,String label,int defaultValue,int[] values,String labels[]);
+  
+  /**
+   * Creates a String parameter.<br>
+   * The UI Component will be a Text field.<br>
+   * The parameter can be accessed using the PluginConfig.getPluginStringParameter(String key).<br>
+   * @param key the parameter key
+   * @param label the label for this field (cf. i18n)
+   * @param defaultValue the default value of the parameter
+   * @return a Parameter
+   */
+  public Parameter createStringParameter(String key,String label,String defaultValue);
+  
+  /**
+   * Creates an String parameter.<br>
+   * The UI component will be a List.<br>
+   * The parameter can be accessed using the PluginConfig.getPluginStringParameter(String key).<br>
+   * @param key the parameter key
+   * @param label The label for this field (cf. i18n)
+   * @param defaultValue the default value of the parameter
+   * @param values the list of values
+   * @param labels the list of labels (no i18n here)
+   * @return a Parameter
+   */
+  public Parameter createIntParameter(String key,String label,int defaultValue,String[] values,String labels[]);
+  
+  /**
+   * Creates a File Parameter.<br>
+   * The UI component will be a Text field with a browse button.<br>
+   * The parameter can be accessed using the PluginConfig.getPluginStringParameter(String key).<br>
+   * @param key the parameter key
+   * @param label the label for this field (cf. i18n)
+   * @param defaultValue the default value of the parameter
+   * @return a File Parameter
+   */
+  public Parameter createFileParameter(String key,String label,String defaultValue);
+  
+  /**
+   * Creates a Directory Parameter.<br>
+   * The UI component will be a Text field with a browse button.<br>
+   * The parameter can be accessed using the PluginConfig.getPluginStringParameter(String key).<br>
+   * @param key the parameter key
+   * @param label the label for this field (cf. i18n)
+   * @param defaultValue the default value of the parameter
+   * @return a File Parameter
+   */
+  public Parameter createDirectoryParameter(String key,String label,String defaultValue);
+  
+  /**
+   * Creates a Color Parameter.<br>
+   * The UI component will be a button with a Color area.<br>
+   * The parameter is in fact separacted in 3 parameters:<br>
+   * key.red<br>
+   * key.green<br>
+   * key.blue<br>
+   * Each color component is stored as an int parameter and can be accessed using PluginConfig.getPluginIntParameter(String key.(red|green|blue)).<br>
+   * @param key the parameter key
+   * @param label the label for this field (cf. i18n)
+   * @param defaultValueRed the red component of the default color (0-255)
+   * @param defaultValueGreen the green component of the default color (0-255)
+   * @param defaultValueBlue the blue component of the default color (0-255)
+   * @return a Color Parameter
+   */
+  public Parameter createColorParameter(String key,String label,int defaultValueRed,int defaultValueGreen,int defaultValueBlue);
 }

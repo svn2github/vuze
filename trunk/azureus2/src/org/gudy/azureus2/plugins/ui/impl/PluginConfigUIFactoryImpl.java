@@ -32,6 +32,43 @@ import org.gudy.azureus2.plugins.ui.PluginConfigUIFactory;
 public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 {
 
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createDirectoryParameter(java.lang.String, java.lang.String, java.lang.String)
+   */
+  public Parameter createDirectoryParameter(
+    String key,
+    String label,
+    String defaultValue) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createIntParameter(java.lang.String, java.lang.String, int, int[], java.lang.String[])
+   */
+  public Parameter createIntParameter(
+    String key,
+    String label,
+    int defaultValue,
+    int[] values,
+    String[] labels) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createIntParameter(java.lang.String, java.lang.String, int, java.lang.String[], java.lang.String[])
+   */
+  public Parameter createIntParameter(
+    String key,
+    String label,
+    int defaultValue,
+    String[] values,
+    String[] labels) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createBooleanParameter(java.lang.String, java.lang.String, boolean)
 	 */

@@ -22,6 +22,8 @@
 package org.gudy.azureus2.plugins.ui;
 
 /**
+ * represents an UI Parameter description.<br>
+ * Parameters must be instanciated using the PluginConfigUIFactory
  * @author Olivier
  *
  */
