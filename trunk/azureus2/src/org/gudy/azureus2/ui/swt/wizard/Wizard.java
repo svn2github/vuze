@@ -397,7 +397,7 @@ public class Wizard {
   }
   
   private void insureSize() {
-  	panel.pack();
+  	//panel.pack();
   	Point p = panel.computeSize(400,SWT.DEFAULT);
   	int height = p.y + wizardHeight;
   	if(height > wizardWindow.getSize().y)
