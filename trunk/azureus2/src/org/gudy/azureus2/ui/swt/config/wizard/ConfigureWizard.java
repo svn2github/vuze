@@ -44,7 +44,7 @@ public class ConfigureWizard extends Wizard {
   //Server / NAT Settings
   //int	  serverMinPort = 6881;
   //int 	  serverMaxPort = 6889;
-  int serverTCPListenPort = 6881;
+  int serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
   //boolean serverSharePort = true;
   //Files / Torrents
   String torrentPath;
