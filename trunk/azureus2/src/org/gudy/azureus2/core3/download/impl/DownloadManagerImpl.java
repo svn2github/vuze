@@ -1729,6 +1729,7 @@ DownloadManagerImpl
 				}
 			};
 		
+		recheck.setDaemon( true );
 		recheck.setPriority(Thread.MIN_PRIORITY);
 		recheck.start();
   }
