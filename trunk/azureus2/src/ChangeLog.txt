@@ -3,20 +3,20 @@ CHANGELOG
 
 xx.xx.04 | Azureus 2.0.7.1
 
-FEATURE: QUEUED status.  Torrents that are queued are stopped, but available for automatic starting [TuxPaper]
+FEATURE: QUEUED status. Torrents that are queued are stopped, but available for automatic starting [TuxPaper]
 FEATURE: Partial support for Read-Only data (for seeding) [TuxPaper]
 FEATURE: Added "Forced-Start" to force a torrent to start, ignoring download limits or seeding rules [TuxPaper]
 FEATURE: Auto-positioning of finished torrent based on how badly the torrent needs seeding [TuxPaper]
 FEATURE: Added SavePath, Max # Uploads, and Total Speed columns to My Torrents view [TuxPaper]
 FEATURE: Categories to group your torrents in (right click on My Torrents and select Set Category to get started) [TuxPaper]
-FEATURE: More auto-seeding options.
-FEATURE: Ability to limit the number of files opened for read/write [Parg]
+FEATURE: More auto-seeding options [TuxPaper]
+FEATURE: Ability to limit maximum number of file handles open/in-use at any given time [Parg]
 FEATURE: Tracker - various performance enhancements such as announce/scrape caching. Tested to 500,000 peers on single torrent [Parg]
-FEATURE: Tracker activity logging to %azhome%/tracker.log
-FEATURE: Tracker bytes in/out + scrapes recorded
-FEATURE: Tracker - ability to limit number of peers returned
-FEATURE: Share ratio now shown on tracker web pages
-FEATURE: Tracker/client support for "no_peer_id" spec for bandwidth saving [Parg/Nolar]
+FEATURE: Tracker activity logging to %azhome%/tracker.log [Parg]
+FEATURE: Tracker bytes in/out + scrapes recorded [Parg]
+FEATURE: Tracker - ability to limit number of peers returned [Parg]
+FEATURE: Share ratio now shown on tracker web pages [Parg]
+FEATURE: Tracker/client support for "no_peer_id" spec for bandwidth savings [Parg/Nolar]
 
 CHANGE: Split torrents in My Torrents view into 2 lists: Downloading and Seeding (Completed) [TuxPaper]
 CHANGE: STOPPED status now means the torrent never auto-starts [TuxPaper]

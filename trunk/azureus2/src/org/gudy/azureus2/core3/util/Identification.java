@@ -1,6 +1,6 @@
 /*
  * Created on Nov 12, 2003
- * Created by nolar
+ * Created by Alon Rohter
  *
  */
 package org.gudy.azureus2.core3.util;
@@ -11,8 +11,6 @@ import java.io.*;
 
 /**
  * Used for identifying clients by their peerID.
- * 
- * @author Nolar
  */
 public class Identification {
   
@@ -198,7 +196,7 @@ public class Identification {
       int num = 0xFF & peerID[i];
       if (num < 16) sPeerID += "0";
       sPeerID += Integer.toHexString(num).toUpperCase();
-    }
+  }
     sPeerID += ": ";
     for (int i = 0; i < peerID.length; i++) {
       if ((int)(0xFF & peerID[i]) < 32)
@@ -207,8 +205,7 @@ public class Identification {
         peerID[i] = 32;
     }
     sPeerID += new String(peerID).replaceAll(" ", "");
-      
-    return MessageText.getString("PeerSocket.unknown") + " (" + sPeerID + ")";
-  }
 
+    return MessageText.getString("PeerSocket.unknown") + " (" + sPeerID + ")";
+}
 }
