@@ -40,7 +40,7 @@ Test
 		SFPluginDetailsLoader dl = SFPluginDetailsLoaderFactory.getSingleton();
 		
 		try{
-			String[]	keys = dl.getPluginNames();
+			String[]	keys = dl.getPluginIDs();
 			
 			for (int i=0;i<keys.length;i++){
 				

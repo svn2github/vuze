@@ -24,10 +24,21 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.FilePluginInstaller;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.plugins.update.UpdatableComponent;
+import org.gudy.azureus2.plugins.update.Update;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateChecker;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoader;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoaderFactory;
 
 /**
  * @author parg
@@ -36,7 +47,7 @@ import org.gudy.azureus2.plugins.installer.PluginInstaller;
 
 public class 
 FilePluginInstallerImpl
-	implements FilePluginInstaller
+	implements FilePluginInstaller, InstallablePluginImpl
 {
 	protected PluginInstallerImpl		installer;
 	protected File						file;
@@ -47,16 +58,67 @@ FilePluginInstallerImpl
 	protected
 	FilePluginInstallerImpl(
 		PluginInstallerImpl	_installer,
-		File				_file,
-		String				_id,
-		String				_version,
-		boolean				_is_jar )
+		File				_file )
+
+		throws PluginException
 	{
 		installer	= _installer;
 		file		= _file;
-		id			= _id;
-		version		= _version;
-		is_jar		= _is_jar;
+
+		String	name = file.getName();
+		
+		int	pos = name.lastIndexOf( "." );
+		
+		boolean	ok = false;
+		
+		if ( pos != -1 ){
+			
+			String	prefix = name.substring(0,pos);
+			String	suffix = name.substring(pos+1);
+			
+			if ( 	suffix.toLowerCase().equals( "jar") ||
+					suffix.toLowerCase().equals( "zip" )){
+		
+				pos = prefix.lastIndexOf("_");
+		
+				if ( pos != -1 ){
+		
+					id 			= prefix.substring(0,pos);
+
+						// see if we can normalise the ID based on SF values
+					
+					try{
+						SFPluginDetailsLoader	loader = SFPluginDetailsLoaderFactory.getSingleton();
+					
+						String[]	ids = loader.getPluginIDs();
+						
+						for (int i=0;i<ids.length;i++){
+							
+							if ( ids[i].equalsIgnoreCase(id)){
+								
+								id = ids[i];
+								
+								break;
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+
+					version		= prefix.substring(pos+1);
+
+					is_jar		= suffix.toLowerCase().equals( "jar");
+						
+					ok	= true;
+				}
+			}
+		}
+		
+		if ( !ok ){
+			
+			throw( new PluginException( "Invalid plugin file name: must be of form <pluginid>_<version>.[jar|zip]" ));
+		}
 	}
 	
 	public File
@@ -101,7 +163,7 @@ FilePluginInstallerImpl
 	
 		throws PluginException
 	{
-		installer.install( new String[]{ getId() }, shared, file, version, is_jar );
+		installer.install( this, shared );
 	}	
 	
 	
@@ -117,5 +179,54 @@ FilePluginInstallerImpl
 	getInstaller()
 	{
 		return( installer );
+	}
+	
+	public void
+	addUpdate(
+		UpdateCheckInstance	inst,
+		final PluginUpdatePlugin	plugin_update_plugin,
+		final Plugin				plugin,
+		final PluginInterface		plugin_interface )
+	{
+		inst.addUpdatableComponent(
+				new UpdatableComponent()
+				{
+					public String
+					getName()
+					{
+						return( file.getName());
+					}
+				
+					public int
+					getMaximumCheckTime()
+					{
+						return( 0 );
+					}
+					
+					public void
+					checkForUpdate(
+						UpdateChecker	checker )
+					{
+						try{
+							ResourceDownloader rd = 
+								plugin_interface.getUtilities().getResourceDownloaderFactory().create( file );
+							
+							plugin_update_plugin.addUpdate(
+								plugin_interface,
+								checker,
+								getName(),
+								new String[]{"Installation from file: " + file.toString()},
+								version,
+								rd,
+								is_jar,
+								Update.RESTART_REQUIRED_NO );
+								
+						}finally{
+							
+							checker.completed();
+						}
+							
+					}
+				}, false );
 	}
 }

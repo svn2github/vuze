@@ -555,11 +555,32 @@ public class MainMenu {
     });
   }
   
-  public void addPluginView(final PluginView view) {
+  public void 
+  addPluginView(
+  	final PluginView view) 
+  {
     display.asyncExec(new AERunnable() {
-      public void runSupport() {
-        MenuItem item = new MenuItem(pluginMenu,SWT.NULL,0);
-        item.setText(view.getPluginViewName());
+      public void runSupport() 
+      {
+      	String	name = view.getPluginViewName();
+      	
+      	MenuItem[]	items = pluginMenu.getItems();
+      	
+      	int	insert_at	= items.length;
+      
+      	for (int i=0;i<items.length;i++){
+      	
+      		if ( 	items[i].getStyle() == SWT.SEPARATOR ||
+      				name.compareTo(items[i].getText()) < 0 ){
+      			
+      			insert_at  = i;
+      			
+      			break;
+      		}
+      	}
+      	      	      	
+        MenuItem item = new MenuItem(pluginMenu,SWT.NULL,insert_at);
+        item.setText( name );
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
             mainWindow.openPluginView(view);

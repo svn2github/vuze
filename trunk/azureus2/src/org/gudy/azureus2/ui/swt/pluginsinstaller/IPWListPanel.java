@@ -85,11 +85,13 @@ public class IPWListPanel extends AbstractWizardPanel {
 	panel.setLayout(layout);
 	
 	final Label lblStatus = new Label(panel,SWT.NULL);
+	GridData data = new GridData(GridData.FILL_HORIZONTAL);
+	lblStatus.setLayoutData(data);
 	Messages.setLanguageText(lblStatus,"installPluginsWizard.list.loading");
 	
 	pluginList = new Table(panel,SWT.BORDER | SWT.V_SCROLL | SWT.CHECK | SWT.FULL_SELECTION | SWT.SINGLE); 
 	pluginList.setHeaderVisible(true);
-	GridData data = new GridData(GridData.FILL_HORIZONTAL);
+	data = new GridData(GridData.FILL_HORIZONTAL);
 	data.heightHint = 120;
 	pluginList.setLayoutData(data);
 	

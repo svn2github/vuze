@@ -330,16 +330,16 @@ PluginUpdatePlugin
 					log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())));
 				}
 				
-				String[]	names = loader.getPluginNames();
+				String[]	ids = loader.getPluginIDs();
 				
-				String	name_list = "";
+				String	id_list = "";
 				
-				for (int i=0;i<names.length;i++){
+				for (int i=0;i<ids.length;i++){
 					
-					name_list += (i==0?"":",") + names[i];
+					id_list += (i==0?"":",") + ids[i];
 				}
 				
-				log.log( LoggerChannel.LT_INFORMATION, "Downloaded plugin ids = " + name_list );
+				log.log( LoggerChannel.LT_INFORMATION, "Downloaded plugin ids = " + id_list );
 				
 				for ( int i=0;i<plugins_to_check.size();i++){
 					
@@ -348,9 +348,9 @@ PluginUpdatePlugin
 									
 					boolean	found	= false;
 					
-					for (int j=0;j<names.length;j++){
+					for (int j=0;j<ids.length;j++){
 						
-						if ( names[j].equalsIgnoreCase( plugin_id )){
+						if ( ids[j].equalsIgnoreCase( plugin_id )){
 							
 							found	= true;
 							

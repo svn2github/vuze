@@ -237,7 +237,7 @@ PluginManagerImpl
 		
 		for (int i=0;i<p.length;i++){
 			
-			if ( p[i].getPluginID().equals( id )){
+			if ( p[i].getPluginID().equalsIgnoreCase( id )){
 				
 				return( p[i]);
 			}

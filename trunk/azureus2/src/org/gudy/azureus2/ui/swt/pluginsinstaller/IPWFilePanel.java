@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.installer.InstallablePlugin;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -116,7 +117,9 @@ public class IPWFilePanel extends AbstractWizardPanel {
         valid = true;
         return;
       }           
-    } catch(Exception e) {      
+    } catch(Exception e) {    
+    	
+    	Debug.printStackTrace(e);
     }
     valid = false;
     wizard.setErrorMessage(MessageText.getString("installPluginsWizard.file.invalidfile"));
@@ -134,4 +137,8 @@ public class IPWFilePanel extends AbstractWizardPanel {
 	{
 	   return( false );
 	}
+	
+	  public IWizardPanel getNextPanel() {
+	    return new IPWInstallModePanel(wizard,this);
+	  }
 }

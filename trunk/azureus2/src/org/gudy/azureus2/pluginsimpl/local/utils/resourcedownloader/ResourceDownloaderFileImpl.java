@@ -106,7 +106,7 @@ ResourceDownloaderFileImpl
 		
 			if ( !cancelled ){
 								
-				informActivity( getLogIndent() + "Downloading: " + getName());
+				informActivity( getLogIndent() + ( file.isDirectory()?"Processing: ":"Downloading: " ) + getName());
 				
 				Thread t = new AEThread( "ResourceDownloaderTimeout")
 					{

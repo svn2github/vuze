@@ -128,56 +128,18 @@ PluginInstallerImpl
 		File				file )
 	
 		throws PluginException
-	{
-		String	name = file.getName();
-				
-		int	pos = name.lastIndexOf( "." );
-		
-		if ( pos != -1 ){
-			
-			String	prefix = name.substring(0,pos);
-			String	suffix = name.substring(pos+1);
-			
-			if ( 	suffix.toLowerCase().equals( "jar") ||
-					suffix.toLowerCase().equals( "zip" )){
-	
-				pos = prefix.lastIndexOf("_");
-		
-				if ( pos != -1 ){
-		
-					String	plugin_id 	= prefix.substring(0,pos);
-					String	version		= prefix.substring(pos+1);
-					
-					if ( manager.getPluginInterfaceByID( plugin_id ) != null ){
-						
-						throw( new PluginException( "Plugin '" + plugin_id + "' is already installed" ));
-					}
-					
-					return( new FilePluginInstallerImpl(this,file,plugin_id, version,suffix.toLowerCase().equals( "jar")));
-				}
-			}
-		}
-					
-		throw( new PluginException( "Invalid plugin file name: must be of form <pluginid>_<version>.[jar|zip]" ));
+	{			
+		return( new FilePluginInstallerImpl(this,file));
 	}
 	
 	public void
 	install(
-		InstallablePlugin	standard_plugin,
+		InstallablePlugin	installable_plugin,
 		boolean				shared )
 	
 		throws PluginException
 	{
-		PluginInterface	pi = standard_plugin.getAlreadyInstalledPlugin();
-
-		if ( pi != null ){
-			
-			throw( new PluginException(" Plugin '" + standard_plugin.getId() + "' is already installed"));
-		}
-		
-		String	plugin_id	= standard_plugin.getId();
-		
-		install( new String[]{ plugin_id }, shared, null, null, false );
+		install( new InstallablePlugin[]{installable_plugin}, shared );
 	}
 	
 	public void
@@ -187,49 +149,23 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
-		List	ids = new ArrayList();
-		
-		for (int i=0;i<plugins.length;i++){
-			
-			InstallablePlugin	standard_plugin = plugins[i];
-			
-			PluginInterface	pi = standard_plugin.getAlreadyInstalledPlugin();
-
-			if ( pi != null ){
-				
-				throw( new PluginException(" Plugin '" + standard_plugin.getId() + "' is already installed"));
-			}
-			
-			ids.add( standard_plugin.getId());
-		}
-		
-		String[]	ids_a = new String[ids.size()];
-		
-		ids.toArray( ids_a );
-		
-		install( ids_a, shared, null, null, false );
-	}
-	
-	protected void
-	install(
-		final String[]				plugin_ids,
-		final boolean				shared,
-		final File					data_source,
-		final String				data_source_version,
-		final boolean				data_source_is_jar )
-	
-		throws PluginException
-	{
-		final PluginUpdatePlugin	pup = (PluginUpdatePlugin)manager.getPluginInterfaceByClass( PluginUpdatePlugin.class ).getPlugin();
+		PluginUpdatePlugin	pup = (PluginUpdatePlugin)manager.getPluginInterfaceByClass( PluginUpdatePlugin.class ).getPlugin();
 		
 		UpdateManager	uman = manager.getDefaultPluginInterface().getUpdateManager();
 		
 		UpdateCheckInstance	inst = 
 			uman.createEmptyUpdateCheckInstance(UpdateCheckInstance.UCI_INSTALL);
 		
-		for (int i=0;i<plugin_ids.length;i++){
+		for (int i=0;i<plugins.length;i++){
 			
-			String	plugin_id = plugin_ids[i];
+			InstallablePlugin	plugin	= plugins[i];
+			
+			String	plugin_id = plugin.getId();
+			
+			if ( manager.getPluginInterfaceByID( plugin_id ) != null ){
+				
+				throw( new PluginException( "Plugin '" + plugin_id + "' is already installed" ));
+			}
 			
 			String	target_dir;
 			
@@ -249,67 +185,14 @@ PluginInstallerImpl
 				// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
 				// installed version
 			
-			final dummyPlugin	p = new dummyPlugin( plugin_id, target_dir );
+			final dummyPlugin	dummy_plugin = new dummyPlugin( plugin_id, target_dir );
 			
-			PluginManager.registerPlugin( p, plugin_id );
+			PluginManager.registerPlugin( dummy_plugin, plugin_id );
 		
-			final PluginInterface p_pi = manager.getPluginInterfaceByID( plugin_id );
+			PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
 			
-				// null data source -> standard component from website, download it
-			
-			if ( data_source == null ){
-				
-				inst.addUpdatableComponent(
-					pup.getCustomUpdateableComponent( plugin_id, false), false );
-			
-			}else{
-			
-					// here the data's coming from a local file
-				
-				inst.addUpdatableComponent(
-					new UpdatableComponent()
-					{
-						public String
-						getName()
-						{
-							return( data_source.getName());
-						}
+			((InstallablePluginImpl)plugin).addUpdate( inst, pup, dummy_plugin, dummy_plugin_interface );
 					
-						public int
-						getMaximumCheckTime()
-						{
-							return( 0 );
-						}
-						
-						public void
-						checkForUpdate(
-							UpdateChecker	checker )
-						{
-							try{
-								ResourceDownloader rd = 
-									manager.getDefaultPluginInterface().getUtilities().getResourceDownloaderFactory().create( data_source );
-								
-	
-								pup.addUpdate(
-									p_pi,
-									checker,
-									getName(),
-									new String[]{"Installation from file"},
-									data_source_version,
-									rd,
-									data_source_is_jar,
-									Update.RESTART_REQUIRED_NO );
-									
-							}finally{
-								
-								checker.completed();
-							}
-								
-						}
-					}, false );
-				
-			}
-		
 			inst.addListener(
 				new UpdateCheckInstanceListener()
 				{
@@ -317,14 +200,14 @@ PluginInstallerImpl
 					cancelled(
 						UpdateCheckInstance		instance )
 					{
-						p.requestUnload();
+						dummy_plugin.requestUnload();
 					}
 					
 					public void
 					complete(
 						UpdateCheckInstance		instance )
 					{
-						p.requestUnload();
+						dummy_plugin.requestUnload();
 					}
 				});
 		}
@@ -519,17 +402,7 @@ PluginInstallerImpl
 	getAlreadyInstalledPlugin(
 		String	id )
 	{
-		PluginInterface[]	ifs = getPluginManager().getPluginInterfaces();
-		
-		for (int i=0;i<ifs.length;i++){
-			
-			if ( ifs[i].getPluginID().equals( id )){
-				
-				return( ifs[i]);
-			}
-		}
-		
-		return( null );
+		return( getPluginManager().getPluginInterfaceByID(id));
 	}
 	
 	protected class

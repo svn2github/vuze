@@ -72,10 +72,10 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
-	protected boolean	plugin_names_loaded;
-	protected long		plugin_names_loaded_at;
+	protected boolean	plugin_ids_loaded;
+	protected long		plugin_ids_loaded_at;
 	
-	protected List		plugin_names;
+	protected List		plugin_ids;
 	protected Map		plugin_map;
 	
 	protected List		listeners			= new ArrayList();
@@ -138,15 +138,15 @@ SFPluginDetailsLoaderImpl
 				String	version = (String)bits.get(0);
 				String	name	= (String)bits.get(1);
 				
-				plugin_names.add( plugin_id );
+				plugin_ids.add( plugin_id );
 				
 				plugin_map.put(plugin_id.toLowerCase(), 
 				               new SFPluginDetailsImpl( this, plugin_id, version, name ));
 			}
 			
-			plugin_names_loaded	= true;
+			plugin_ids_loaded	= true;
 			
-			plugin_names_loaded_at	= SystemTime.getCurrentTime();
+			plugin_ids_loaded_at	= SystemTime.getCurrentTime();
 			
 		}catch( Throwable e ){
 			
@@ -318,21 +318,21 @@ SFPluginDetailsLoaderImpl
 	}
 	
 	public String[]
-	getPluginNames()
+	getPluginIDs()
 		
 		throws SFPluginDetailsException
 	{
 		try{
 			this_mon.enter();
 		
-			if ( !plugin_names_loaded ){
+			if ( !plugin_ids_loaded ){
 				
 				loadPluginList();
 			}
 			
-			String[]	res = new String[plugin_names.size()];
+			String[]	res = new String[plugin_ids.size()];
 			
-			plugin_names.toArray( res );
+			plugin_ids.toArray( res );
 			
 			return( res );
 			
@@ -353,7 +353,7 @@ SFPluginDetailsLoaderImpl
 		
 				// make sure details are loaded
 			
-			getPluginNames();
+			getPluginIDs();
 			
 			SFPluginDetails details = (SFPluginDetails)plugin_map.get(name.toLowerCase()); 
 			
@@ -374,13 +374,13 @@ SFPluginDetailsLoaderImpl
 	
 		throws SFPluginDetailsException	
 	{
-		String[]	plugin_names = getPluginNames();
+		String[]	plugin_ids = getPluginIDs();
 		
-		SFPluginDetails[]	res = new SFPluginDetails[plugin_names.length];
+		SFPluginDetails[]	res = new SFPluginDetails[plugin_ids.length];
 	
-		for (int i=0;i<plugin_names.length;i++){
+		for (int i=0;i<plugin_ids.length;i++){
 			
-			res[i] = getPluginDetails(plugin_names[i]);
+			res[i] = getPluginDetails(plugin_ids[i]);
 		}
 		
 		return( res );
@@ -437,18 +437,18 @@ SFPluginDetailsLoaderImpl
 			
 				// handle backward time changes
 			
-			if ( now < plugin_names_loaded_at ){
+			if ( now < plugin_ids_loaded_at ){
 				
-				plugin_names_loaded_at	= 0;
+				plugin_ids_loaded_at	= 0;
 			}
 			
-			if ( now - plugin_names_loaded_at > RELOAD_MIN_TIME ){
+			if ( now - plugin_ids_loaded_at > RELOAD_MIN_TIME ){
 				
 				LGLogger.log( "SFPluginDetailsLoader: resetting values");
 				
-				plugin_names_loaded	= false;
+				plugin_ids_loaded	= false;
 			
-				plugin_names		= new ArrayList();
+				plugin_ids		= new ArrayList();
 				plugin_map			= new HashMap();
 				
 			}else{

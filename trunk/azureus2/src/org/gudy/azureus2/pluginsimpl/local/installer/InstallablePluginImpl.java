@@ -1,5 +1,5 @@
 /*
- * Created on 27-Apr-2004
+ * Created on 01-Dec-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,7 +20,11 @@
  *
  */
 
-package org.gudy.azureus2.pluginsimpl.update.sf;
+package org.gudy.azureus2.pluginsimpl.local.installer;
+
+import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
 
 /**
  * @author parg
@@ -28,32 +32,12 @@ package org.gudy.azureus2.pluginsimpl.update.sf;
  */
 
 public interface 
-SFPluginDetailsLoader 
+InstallablePluginImpl 
 {
-	public String[]
-	getPluginIDs()
-	
-		throws SFPluginDetailsException;
-	
-	public SFPluginDetails
-	getPluginDetails(
-		String		name )
-	
-		throws SFPluginDetailsException;
-	
-	public SFPluginDetails[]
-	getPluginDetails()
-	
-		throws SFPluginDetailsException;
-	
 	public void
-	reset();
-	
-	public void
-	addListener(
-		SFPluginDetailsLoaderListener		l );
-	
-	public void
-	removeListener(
-		SFPluginDetailsLoaderListener		l );
+	addUpdate(
+			UpdateCheckInstance	inst,
+			PluginUpdatePlugin	plugin_update_plugin,
+			Plugin				plugin,
+			PluginInterface		plugin_interface );
 }

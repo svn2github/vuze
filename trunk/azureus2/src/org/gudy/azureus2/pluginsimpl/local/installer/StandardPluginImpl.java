@@ -33,12 +33,13 @@ import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
 import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
-import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsException;
 
 public class 
 StandardPluginImpl 
-	implements StandardPlugin
+	implements StandardPlugin, InstallablePluginImpl
 {
 	protected PluginInstallerImpl	installer;
 	protected SFPluginDetails		details;
@@ -124,5 +125,16 @@ StandardPluginImpl
 	getInstaller()
 	{
 		return( installer );
+	}
+	
+	public void
+	addUpdate(
+			UpdateCheckInstance	inst,
+			PluginUpdatePlugin	plugin_update_plugin,
+			Plugin				plugin,
+			PluginInterface		plugin_interface )
+	{
+		inst.addUpdatableComponent(
+				plugin_update_plugin.getCustomUpdateableComponent( getId(), false), false );
 	}
 }
