@@ -68,7 +68,7 @@ public class DownSpeedItem
 
     public void refresh(TableCell cell) {
       DownloadManager dm = (DownloadManager)cell.getDataSource();
-      long value = (dm == null) ? 0 : dm.getStats().getUploadAverage();
+      long value = (dm == null) ? 0 : dm.getStats().getDownloadAverage();
       cell.setSortValue(value);
   
       if (dm != null) {
