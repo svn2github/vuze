@@ -129,7 +129,7 @@ MyTrackerView
 	  
 	  for (int i = 0; i < columnsHeader.length; i++){
 	  	
-		columnsSize[i] = COConfigurationManager.getIntParameter("MyTrackerView." + columnsHeader[i], columnsSize[i]);
+		columnsSize[i] = COConfigurationManager.getIntParameter("MyTrackerView.".concat(columnsHeader[i]), columnsSize[i]);
 	  }
 
 	  ControlListener resizeListener = new ControlAdapter() {
@@ -142,7 +142,7 @@ MyTrackerView
 	  	
 		TableColumn column = new TableColumn(table, SWT.NULL);
 		
-		Messages.setLanguageText(column, "MyTrackerView." + columnsHeader[i]);
+		Messages.setLanguageText(column, "MyTrackerView.".concat(columnsHeader[i]));
 		
 		column.setWidth(columnsSize[i]);
 		

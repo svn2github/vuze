@@ -249,7 +249,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       int position = items[i].getPosition();
       if(position != -1) {
         TableColumn column = table.getColumn(position);
-        Messages.setLanguageText(column, "MyTorrentsView." + items[i].getName());
+        Messages.setLanguageText(column, "MyTorrentsView.".concat(items[i].getName()));
         column.setAlignment(items[i].getAlign());
         column.setWidth(items[i].getWidth());
         if (items[i].getType() == ItemDescriptor.TYPE_INT) {
@@ -258,7 +258,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         if (items[i].getType() == ItemDescriptor.TYPE_STRING) {
           sorter.addStringColumnListener(column, items[i].getName());
         }
-        column.setData("configName", "Table.MyTorrents." + items[i].getName());
+        column.setData("configName", "Table.MyTorrents.".concat(items[i].getName()));
         column.addControlListener(resizeListener);
       }
     }   

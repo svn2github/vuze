@@ -45,12 +45,12 @@ public class NatChecker {
   };
 
   public static int test(int port) {
-    String check = "azureus_rand_" + (int) (Math.random() * 100000);
+    String check = "azureus_rand_".concat(String.valueOf((int) (Math.random() * 100000)));
     NatCheckerServer server = new NatCheckerServer(port, check);
     if (server.isValid()) {
       try {
         server.start();
-        String urlStr = urls[0] + "?port=" + port + "&check=" + check;
+        String urlStr = urls[0].concat("?port=").concat(String.valueOf(port)).concat("&check=").concat(check);
         URL url = new URL(urlStr);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.connect();
