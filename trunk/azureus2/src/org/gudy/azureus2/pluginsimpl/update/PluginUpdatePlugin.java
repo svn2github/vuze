@@ -654,9 +654,7 @@ PluginUpdatePlugin
 									// if we were smarter we could merge values from the
 									// old one into the new one, however this is too much like
 									// hard work
-								
-								System.out.println( "modifying plugin properties" );
-								
+																
 								File	tmp_file 	= new File(initial_target.toString() + ".tmp");
 								File	bak_file	= new File(initial_target.toString() + ".bak");
 								

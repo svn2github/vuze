@@ -32,6 +32,7 @@ import java.lang.reflect.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.update.Restarter;
 
 public class 
 PluginManagerImpl 
@@ -109,10 +110,6 @@ PluginManagerImpl
 	
 		throws PluginException
 	{
-		/* removed this tests as some plugins don't start AZ but want to stop it
-		 * For example the CVS updater
-		 */
-		
 		if ( !running ){
 			
 			throw( new RuntimeException( "Azureus is not running"));
@@ -168,12 +165,69 @@ PluginManagerImpl
 			sem.reserve();
 			
 			if ( error[0] != null ){
-				
+	
+				// removed reporting of error 
 			}
 		}
 		
 		running	= false;
 	}
+	
+	public static void
+	restartAzureus()
+	
+		throws PluginException
+	{
+		if ( !running ){
+			
+			throw( new RuntimeException( "Azureus is not running"));
+		}
+		
+		if ( ui_type != PluginManager.UI_SWT ){
+			
+			throw( new RuntimeException( "Only SWT type Azureus restart supported"));
+		}
+		
+		final Semaphore			sem 	= new Semaphore();
+		final PluginException[]	error 	= {null};
+			
+		try{
+			MainWindow.getWindow().getDisplay().asyncExec(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						try{				
+							if ( !MainWindow.getWindow().dispose()){
+									
+								error[0] = new PluginException( "PluginManager: Azureus close action failed");
+							}	
+							
+							Restarter.restartForUpgrade();
+						}finally{
+									
+							sem.release();
+						}
+					}
+				});
+		}catch( Throwable e ){
+				
+			error[0]	= new PluginException( "PluginManager: closeAzureus fails", e );
+				
+			sem.release();
+		}
+			
+		sem.reserve();
+			
+		if ( error[0] != null ){
+
+			// removed reporting of error 
+		
+		}
+			
+		running	= false;
+	}	
 	
 		/**
 		 * When AZ is started directly (i.e. not via a plugin) this method is called
@@ -197,6 +251,35 @@ PluginManagerImpl
 		PluginInitializer.queueRegistration( plugin_class );
 	}
 	
+	public static PluginInterface
+	getPluginInterfaceByID(
+		String		id )
+	{
+		PluginInterface[]	p = getPluginInterfaces();
+		
+		for (int i=0;i<p.length;i++){
+			
+			if ( p[i].getPluginID().equals( id )){
+				
+				return( p[i]);
+			}
+		}
+		
+		return( null );
+	}
+	
+	
+	public static PluginInterface[]
+	getPluginInterfaces()
+	{
+		List	l = PluginInitializer.getPluginInterfaces();
+		
+		PluginInterface[]	res = new PluginInterface[l.size()];
+		
+		l.toArray(res);
+		
+		return( res );
+	}
 	
 	protected PluginInitializer		pi;
 	

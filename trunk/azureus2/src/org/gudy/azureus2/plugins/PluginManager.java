@@ -78,6 +78,20 @@ PluginManager
 	}
 	
 	/**
+	 * restarts azureus and performs any Update actions defined via the plugin "update"
+	 * interface. Currently only works for SWT UIs.
+	 * @throws PluginException
+	 */
+	
+	public static void
+	restartAzureus()
+	
+		throws PluginException
+	{
+		PluginManagerImpl.restartAzureus();
+	}
+	
+	/**
 	 * Programatic plugin registration interface
 	 * @param plugin_class	this must implement Plugin
 	 */
@@ -90,10 +104,36 @@ PluginManager
 	}
 	
 	/**
+	 * returns the plugin interface with a given id, or null if not found
+	 * @param id
+	 * @return
+	 */
+	
+	public static PluginInterface
+	getPluginInterfaceByID(
+		String		id )
+	{
+		return( PluginManagerImpl.getPluginInterfaceByID(id));
+	}
+	
+	/**
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
 	 * results as plugin initialisation is non-deterministic.
 	 * @return
 	 */
+	
+	public static PluginInterface[]
+	getPluginInterfaces()
+	{
+		return( PluginManagerImpl.getPluginInterfaces());
+	}
+	
+	/**
+	 * Gets the current set of registered plugins. During initialisation this will probably give partial
+	 * results as plugin initialisation is non-deterministic.
+	 * @return
+	 */
+	
 	public abstract PluginInterface[]
 	getPlugins();
 }

@@ -61,7 +61,9 @@ UpdaterUpdateChecker
 		    try{
 		    	pw = new PrintWriter( new FileWriter( props ));
 		    	
-		    	pw.println( "plugin.class=org.gudy.azureus2.update.UpdaterUpdateChecker");
+		    	pw.println( "plugin.class=org.gudy.azureus2.update.UpdaterUpdateChecker" );
+		    	pw.println( "plugin.name=Azureus Update Support" );
+		    	
 		    }finally{
 		    	
 		    	if ( pw != null ){

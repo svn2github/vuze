@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.update;
 
 import java.io.*;
 
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.logging.LGLogger;
@@ -30,13 +31,34 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 public class 
 Restarter 
 {    
-	 private static final String mainClass 		= "org.gudy.azureus2.update.Updater";
-	 private static final String updater_jar 	= "Updater.jar";
+	private static final String MAIN_CLASS 		= "org.gudy.azureus2.update.Updater";
+	private static final String UPDATER_JAR 	= "Updater.jar";
   
   
-  public static void 
-  restartForUpgrade() 
-  {
+	protected String	classpath_prefix;
+	
+	public static void 
+	restartForUpgrade() 
+	{
+		new Restarter().restartForUpgradeSupport();
+	}
+	
+	protected void
+	restartForUpgradeSupport()
+	{
+		PluginInterface pi = PluginManager.getPluginInterfaceByID( "azupdater" );
+		
+		if ( pi == null ){
+			
+			LGLogger.logAlert( LGLogger.AT_ERROR, "Can't restart, mandatory plugin 'azupdater' not found" );
+			
+			return;
+		}
+		
+		String	updater_dir = pi.getPluginDirectoryName();
+		
+		classpath_prefix = updater_dir + File.separator + UPDATER_JAR;
+		
  	 	String	app_path = SystemProperties.getApplicationPath();
 	  	
 	  	if ( app_path.endsWith(File.separator)){
@@ -76,16 +98,33 @@ Restarter
 	  			}
 					
 	  		},
-			mainClass,
+			MAIN_CLASS,
 			new String[0],
 			parameters );
   }
   
-  private static boolean
-  win32NativeRestart(
-  	PrintWriter	log,
-	String		exec )
-  {
+	private String
+	getClassPathPrefix()
+	{
+		return( classpath_prefix );
+	}
+	
+	private String
+	getClassPath()
+	{
+		String classPath = System.getProperty("java.class.path");
+	    	
+    	classPath = classpath_prefix + System.getProperty("path.separator") + classPath;
+	    
+	    return( "-classpath \"" + classPath + "\" " );
+	}
+	  
+	
+	private boolean
+	win32NativeRestart(
+		PrintWriter	log,
+		String		exec )
+	{
 	    try{
 	    		// we need to spawn without inheriting handles
 	    	
@@ -101,16 +140,16 @@ Restarter
 	        
 	        return( false );
 	    }
-  }
+	}
   
-  // ****************** This code is copied into Updater so make changes there too !!!
+  // ****************** This code is copied into Restarter / Updater so make changes there too !!!
   
   //Beware that for OSX no SPECIAL Java will be used with
   //This method.
   
   private static final String restartScriptName = "restartScript";
   
-  public static void 
+  public void 
   restartAzureus(
   		PrintWriter log, 
 		String 		mainClass,
@@ -127,7 +166,7 @@ Restarter
     }
   }
   
-  private static void 
+  private void 
   restartAzureus_win32(
   		PrintWriter log,
 		String 		mainClass,
@@ -136,15 +175,13 @@ Restarter
   {
   	
     //Classic restart way using Runtime.exec directly on java(w)
-    String classPath = System.getProperty("java.class.path");
-        
-    String javaPath = System.getProperty("java.home")
+     String javaPath = System.getProperty("java.home")
                     + System.getProperty("file.separator")
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec = "\"" + javaPath + "javaw\" -classpath \"" + classPath
-						+ "\" " + getLibraryPath();
+    String exec = "\"" + javaPath + "javaw\" "+ getClassPath() +
+						getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
     	exec += properties[i] + " ";
@@ -174,22 +211,22 @@ Restarter
     }
   }
   
-  private static void 
+  private void 
   restartAzureus_OSX(
   		PrintWriter log,
 		String mainClass,
 		String[]	properties,
 		String[] parameters) 
   {
-    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
-    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String userPath = System.getProperty("user.dir");
     String javaPath = System.getProperty("java.home")
                     + System.getProperty("file.separator")
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec = "#!/bin/bash\n\"" + userPath + "/Azureus.app/Contents/MacOS/java_swt\" -classpath \"" + classPath
-    + "\" -Duser.dir=\"" + userPath + "\" " + getLibraryPath();
+    String exec = 	"#!/bin/bash\n\"" + 
+					userPath + "/Azureus.app/Contents/MacOS/java_swt\" " + getClassPath() +
+					"-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
     	exec += properties[i] + " ";
@@ -219,22 +256,21 @@ Restarter
     }
   }
   
-  private static void 
+  private void 
   restartAzureus_Linux(
   	PrintWriter log,
 	String 		mainClass,
 	String[]	properties,
 	String[] 	parameters) 
   {
-    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
-    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String userPath = System.getProperty("user.dir"); 
     String javaPath = System.getProperty("java.home")
                     + System.getProperty("file.separator")
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec = "#!/bin/bash\n\"" + javaPath + "java\" -classpath \"" + classPath
-    + "\" -Duser.dir=\"" + userPath + "\" " + getLibraryPath();
+    String exec = 	"#!/bin/bash\n\"" + javaPath + "java\" " + getClassPath() +
+    				"-Duser.dir=\"" + userPath + "\" " + getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
     	exec += properties[i] + " ";
@@ -265,7 +301,7 @@ Restarter
     }
   }
   
-  private static String
+  private String
   getLibraryPath()
   {
     String libraryPath = System.getProperty("java.library.path");
