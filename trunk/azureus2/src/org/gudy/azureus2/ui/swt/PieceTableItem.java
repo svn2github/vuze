@@ -36,14 +36,14 @@ public class PieceTableItem {
   }
 
   private void initialize() {
-    if (table.isDisposed())
+    if (table == null || table.isDisposed())
       return;
     this.display = table.getDisplay();
-    if (display.isDisposed())
+    if (display == null || display.isDisposed())
       return;
     display.syncExec(new Runnable() {
       public void run() {
-        if (table.isDisposed())
+        if (table == null || table.isDisposed())
           return;
         item = new TableItem(table, SWT.NULL);
       }
@@ -56,11 +56,9 @@ public class PieceTableItem {
   }
 
   public void updateDisplay() {
-    if (display.isDisposed())
+    if (display == null || display.isDisposed())
       return;
-    if (item == null)
-      return;
-    if (item.isDisposed())
+    if (item == null || item.isDisposed())
       return;
 
     String tmp;
@@ -135,11 +133,11 @@ public class PieceTableItem {
   }
 
   public void remove() {
-    if (display.isDisposed())
+    if (display == null || display.isDisposed())
       return;
     display.syncExec(new Runnable() {
       public void run() {
-        if (table.isDisposed())
+        if (table == null || table.isDisposed())
           return;
         table.remove(table.indexOf(item));
       }

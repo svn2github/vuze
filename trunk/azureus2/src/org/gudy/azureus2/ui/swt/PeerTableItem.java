@@ -41,8 +41,8 @@ public class PeerTableItem {
   private Color[] blues;
   private String[] oldTexts;
 
-  public PeerTableItem(Table table, PeerSocket pc) {
-    if (table.isDisposed()) {
+  public PeerTableItem(final Table table, PeerSocket pc) {
+    if (table == null || table.isDisposed()) {
       this.display = null;
       this.table = null;
       this.peerSocket = null;
@@ -57,19 +57,18 @@ public class PeerTableItem {
     for (int i = 0; i < oldTexts.length; i++)
       oldTexts[i] = "";
 
-    final Table _table = table;
     display.syncExec(new Runnable() {
       public void run() {
-        if (_table.isDisposed())
+        if (table == null || table.isDisposed())
           return;
-        item = new TableItem(_table, SWT.NULL);
-        _table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
+        item = new TableItem(table, SWT.NULL);
+        table.getColumn(5).addListener(SWT.Resize, listener = new Listener() {
           public void handleEvent(Event e) {
             valid = false;
           }
         });
 
-        colorGrey = new Color(_table.getDisplay(), new RGB(170, 170, 170));
+        colorGrey = new Color(table.getDisplay(), new RGB(170, 170, 170));
         blues[4] = new Color(display, new RGB(0, 128, 255));
         blues[3] = new Color(display, new RGB(64, 160, 255));
         blues[2] = new Color(display, new RGB(128, 192, 255));

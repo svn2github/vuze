@@ -91,14 +91,12 @@ public class ConsoleView extends AbstractIView implements ILoggerListener {
     doLog(color, text);
   }
 
-  private void doLog(int color, String text) {
-    final String _text = text;
-    final int _color = color;
-    if (display.isDisposed())
+  private void doLog(final int _color, final String _text) {
+    if (display == null || display.isDisposed())
       return;
     display.asyncExec(new Runnable() {
       public void run() {
-        if (consoleText.isDisposed())
+        if (consoleText == null || consoleText.isDisposed())
           return;
         ScrollBar sb = consoleText.getVerticalBar();
 
