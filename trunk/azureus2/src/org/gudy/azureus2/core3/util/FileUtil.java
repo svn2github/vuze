@@ -40,10 +40,14 @@ public class FileUtil {
 
   public static String getApplicationPath() {
     if (System.getProperty("os.name").equals("Linux")) {
-      return System.getProperty("user.home") + System.getProperty("file.separator") + ".azureus" + System.getProperty("file.separator");
-    } else {
-      return System.getProperty("user.dir") + System.getProperty("file.separator");
+      String path = System.getProperty("user.home") + System.getProperty("file.separator") + ".azureus";
+      //if the ~/.azureus dir exists, we use it, otherwise we use the normal program dir
+      if (new File(path).isDirectory()) {
+        return path + System.getProperty("file.separator");
+      }
     }
+    
+    return System.getProperty("user.dir") + System.getProperty("file.separator");
   }
   
   public static File getApplicationFile(String filename) {
