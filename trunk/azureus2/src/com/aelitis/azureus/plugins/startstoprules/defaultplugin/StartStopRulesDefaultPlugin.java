@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.Ignore;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.Plugin;
@@ -1485,9 +1486,7 @@ public class StartStopRulesDefaultPlugin
 		      // (we don't want leechers circumventing the 0.5 rule)
 	      
 			if (num_peers_excluding_us == 0 && 
-					bScrapeResultsOk && 
-					(bIgnore0Peers || bFirstPriorityIgnore0Peer) && 
-					shareRatio < iIgnoreShareRatio) 
+					( (bIgnore0Peers && shareRatio <= minQueueingShareRatio) || (bFirstPriorityIgnore0Peer)) ) 
 			{
 		         setSeedingRank(SR_0PEERS);
 		         return SR_0PEERS;
@@ -1501,7 +1500,7 @@ public class StartStopRulesDefaultPlugin
 		          setSeedingRank(SR_SPRATIOMET);
 		          return SR_SPRATIOMET;
 				}
-				else if ( shareRatio >= iIgnoreShareRatio ) {  
+				else if ( iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio ) {  
 					setSeedingRank(SR_SHARERATIOMET);
 			          return SR_SHARERATIOMET;
 				}
