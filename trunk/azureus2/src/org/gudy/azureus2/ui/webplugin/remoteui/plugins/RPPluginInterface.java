@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
+import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.download.*;
 
@@ -142,7 +143,12 @@ RPPluginInterface
 	{
 		notSupported();
 	}
-	
+
+  public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory)
+  {
+    notSupported();
+  }
+
 	public void addConfigSection(ConfigSection tab)
 	{
 		notSupported();
