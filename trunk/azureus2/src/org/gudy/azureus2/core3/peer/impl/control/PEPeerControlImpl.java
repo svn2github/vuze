@@ -343,7 +343,7 @@ PEPeerControlImpl
       synchronized (_connections) {
         while (_connections.size() != 0) {
           PEPeerTransport pc = (PEPeerTransport) _connections.remove(0);
-          pc.closeAll(false);
+          pc.closeAll("Closing all Connections",false);
         }
       }
   }
@@ -890,7 +890,7 @@ PEPeerControlImpl
     //Get the max number of connections allowed
     int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0); //$NON-NLS-1$
     boolean addFailed = false;
-    
+    String reason = "";
     if (!IpFilterImpl.getInstance().isInRange(ps.getIp())) {
        synchronized (_connections) {
           if (!_connections.contains(ps)) {
@@ -898,15 +898,24 @@ PEPeerControlImpl
                 /* add connection */
                 _connections.add(ps);
              }
-             else { addFailed = true; }
+             else {
+               addFailed = true;
+               reason=ps.getIp() + " : Too many connections";
+             }
           }
-          else { addFailed = true; }
+          else {
+            addFailed = true;
+            reason=ps.getIp() + " : Already Connected";
+          }
        }
     }
-    else { addFailed = true; }
+    else {
+      addFailed = true;
+      reason=ps.getIp() + " : Blocked IP";
+    }
     
     if (addFailed) {
-       ps.closeAll(false);
+       ps.closeAll(reason,false);
     }
  }
 
@@ -1187,7 +1196,7 @@ PEPeerControlImpl
       for (int i = 0; i < _connections.size(); i++) {
         PEPeerTransport pc = (PEPeerTransport) _connections.get(i);
         if (pc != null && pc.getState() == PEPeer.TRANSFERING && pc.isSeed()) {
-          pc.closeAll(false);
+          pc.closeAll(pc.getIp() + " : Disconnecting seeds when seed",false);
         }
       }
     }

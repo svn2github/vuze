@@ -64,6 +64,7 @@ PEPeerTransport
 
 	public void
 	closeAll(
+    String reason,
 		boolean closedOnError );
 		
 	public void

@@ -199,7 +199,7 @@ PEPeerTransportProtocol
 	this.currentState = new StateConnecting();
   }
   catch (Exception e) {
-	closeAll(false);
+	closeAll("Exception while connecting : " + e,false);
   }
 }
 
@@ -237,15 +237,14 @@ PEPeerTransportProtocol
 	  sendProtocol(bufferHandshakeS);
 	  readBuffer = ByteBufferPool.getInstance().getFreeBuffer(68);
 	  if (readBuffer == null) {
-		 System.out.println("PeerSocket::handShake:: readBuffer null");
-		 closeAll(true);
+		 closeAll(ip + " : PeerSocket::handShake:: readBuffer null", true);
 		 return;
 	  }
 	  readBuffer.limit(68);
 	  readBuffer.position(0);
 	}
 	catch (Exception e) {
-	  closeAll(true);
+	  closeAll(ip + " : Exception in handshake : " + e, true);
 	}
   }
 
@@ -255,41 +254,26 @@ PEPeerTransportProtocol
 
   byte b;
 	if ((b = readBuffer.get()) != (byte) PROTOCOL.length()) {
-     LGLogger.log(
-        componentID,
-        evtProtocol,
-        LGLogger.ERROR,
-        ip + " has sent handshake, but handshake starts with wrong byte : " + b);
-	   closeAll(true);
+	   closeAll(ip + " has sent handshake, but handshake starts with wrong byte : " + b,true);
 	   return;
 	}
 
 	byte[] protocol = PROTOCOL.getBytes();
 	if (readBuffer.remaining() < protocol.length) {
-     LGLogger.log(
-      componentID,
-      evtProtocol,
-      LGLogger.ERROR,
-      ip + " has sent handshake, but handshake is of wrong size : " + readBuffer.remaining());
-	   closeAll(true);
+	   closeAll(ip + " has sent handshake, but handshake is of wrong size : " + readBuffer.remaining(),true);
 	   return;
 	}
 	else {
 	   readBuffer.get(protocol);
 	   if (!(new String(protocol)).equals(PROTOCOL)) {
-       LGLogger.log(
-         componentID,
-         evtProtocol,
-         LGLogger.ERROR,
-         ip + " has sent handshake, but protocol is wrong : " + new String(protocol));
-		  closeAll(true);
+		  closeAll(ip + " has sent handshake, but protocol is wrong : " + new String(protocol),true);
 		  return;
 	   }
 	}
 
 	byte[] reserved = new byte[8];
 	if (readBuffer.remaining() < reserved.length) {
-	   closeAll(true);
+	   closeAll(ip + " has sent handshake, but handshake is of wrong size(2) : " + readBuffer.remaining(),true);
 	   return;
 	}
 	else readBuffer.get(reserved);
@@ -299,14 +283,14 @@ PEPeerTransportProtocol
 	byte[] hash = manager.getHash();
 	byte[] otherHash = new byte[20];
 	if (readBuffer.remaining() < otherHash.length) {
-	   closeAll(true);
+	   closeAll(ip + " has sent handshake, but handshake is of wrong size(3) : " + readBuffer.remaining(),true);
 	   return;
 	}
 	else {
 	   readBuffer.get(otherHash);
 	   for (int i = 0; i < 20; i++) {
 		  if (otherHash[i] != hash[i]) {
-			 closeAll(true);
+			 closeAll(ip + " has sent handshake, but hash is wrong",true);
 			 return;
 		  }
 	   }
@@ -315,7 +299,7 @@ PEPeerTransportProtocol
     
 	byte[] otherPeerId = new byte[20];
 	if (readBuffer.remaining() < otherPeerId.length) {
-	   closeAll(true);
+	   closeAll(ip + " has sent handshake, but handshake is of wrong size(4) : " + readBuffer.remaining(),true);
 	   return;
 	}
 	else readBuffer.get(otherPeerId);
@@ -325,11 +309,11 @@ PEPeerTransportProtocol
 	  //HandShaking is ok so far
 	  //We test if the handshaking is valid (no other connections with that peer)
 	  if (manager.validateHandshaking(this, otherPeerId)) {
-		//Store the peerId
-		this.id = otherPeerId;
+		  //Store the peerId
+		  this.id = otherPeerId;
 	  }
 	  else {
-		 closeAll(true);
+		 closeAll(ip + " has sent handshake, but peer ID already connected",true);
 		 return;
 	  }
 	}
@@ -340,7 +324,7 @@ PEPeerTransportProtocol
 		same = same && (this.id[j] == otherPeerId[j]);
 	  }
 	  if (!same) {
-		 closeAll(true);
+		 closeAll(ip + " has sent handshake, but peerId is wrong",true);
 		 return;
 	  }
 	}
@@ -369,8 +353,14 @@ PEPeerTransportProtocol
 	dataQueue.add(manager.createDiskManagerDataQueueItem(request));
   }
 
-  public synchronized void closeAll(boolean closedOnError) {
-	if (closing)
+  public synchronized void closeAll(String reason,boolean closedOnError) {
+	  LGLogger.log(
+         componentID,
+         evtProtocol,
+         closedOnError?LGLogger.ERROR:LGLogger.INFORMATION,
+         reason);
+    
+  if (closing)
 	  return;
 	closing = true;         
     
@@ -436,12 +426,7 @@ PEPeerTransportProtocol
 		}
 	  }
 	  catch (IOException e) {
-		LGLogger.log(
-		  componentID,
-		  evtErrors,
-		  LGLogger.ERROR,
-		  "Error in PeerConnection::initConnection (" + ip + " : " + port + " ) : " + e);
-		closeAll(true);
+		closeAll("Error in PeerConnection::initConnection (" + ip + " : " + port + " ) : " + e, true);
 		return;
 	  }
 
@@ -460,8 +445,8 @@ PEPeerTransportProtocol
 		  if (read < 0)
 			throw new IOException("End of Stream Reached");
 		}
-		catch (IOException e) {
-		  closeAll(true);
+		catch (IOException e) {      
+		  closeAll(ip + " : StateHandshaking::End of Stream Reached",true);
 		  return;
 		}
 	  }
@@ -488,12 +473,7 @@ PEPeerTransportProtocol
 			  throw new IOException("End of Stream Reached");
 		  }
 		  catch (IOException e) {
-			LGLogger.log(
-						componentID,
-						evtProtocol,
-						LGLogger.INFORMATION,
-						"End of Stream Reached from " + ip);
-			closeAll(true);
+			closeAll(ip + " : StateTransfering::End of Stream Reached(reading length)",true);
 			return;
 		  }
 		}
@@ -504,9 +484,9 @@ PEPeerTransportProtocol
 		if (!lengthBuffer.hasRemaining()) {
 		  int length = lengthBuffer.getInt(0);
 		  if(length < 0) {
-			closeAll(true);
+			closeAll(ip + " : length negative : " + length,true);
 		  } else if(length >= ByteBufferPool.MAX_SIZE) {
-			closeAll(true);
+			closeAll(ip + " : length greater than max size : " + length,true);
 		  } else if (length > 0) {
 			if(readBuffer != null && readBuffer.capacity() < length) {
 			  ByteBufferPool.getInstance().freeBuffer(readBuffer);
@@ -514,9 +494,8 @@ PEPeerTransportProtocol
 			}
 			if(readBuffer == null) {
 			  ByteBuffer newbuff = ByteBufferPool.getInstance().getFreeBuffer(length);
-			  if (newbuff == null) {
-				System.out.println("PeerSocket::analyseBuffer:: newbuff null");
-				closeAll(true);
+			  if (newbuff == null) {				
+				closeAll(ip + " PeerSocket::analyseBuffer:: newbuff null",true);
 				return;
 			  }
 			  readBuffer = newbuff;
@@ -544,7 +523,7 @@ PEPeerTransportProtocol
 		}
 		catch (IOException e) {
 		  //e.printStackTrace();
-		  closeAll(true);
+		  closeAll(ip + " : StateTransfering::End of Stream Reached(reading data)",true);
 		  return;
 		}
 		if (!readBuffer.hasRemaining()) {
@@ -584,7 +563,7 @@ PEPeerTransportProtocol
 	}
 	catch (Exception e) {
 	  e.printStackTrace();
-	  closeAll(true);
+	  closeAll(ip + " : Exception in process : " + e,true);
 	}
   }
 
@@ -616,12 +595,7 @@ PEPeerTransportProtocol
 	switch (cmd) {
 	  case BT_CHOKED :
 		if (buffer.limit() != 1) {
-		  LGLogger.log(
-			componentID,
-			evtProtocol,
-			LGLogger.ERROR,
-			ip + " choking received, but message of wrong size : " + buffer.limit());
-		  closeAll(true);
+		  closeAll(ip + " choking received, but message of wrong size : " + buffer.limit(),true);
 		  break;
 		}
 		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is choking you");
@@ -631,12 +605,7 @@ PEPeerTransportProtocol
 		break;
 	  case BT_UNCHOKED :
 		if (buffer.limit() != 1) {
-		  LGLogger.log(
-			componentID,
-			evtProtocol,
-			LGLogger.ERROR,
-			ip + " unchoking received, but message of wrong size : " + buffer.limit());
-		  closeAll(true);
+		  closeAll(ip + " unchoking received, but message of wrong size : " + buffer.limit(),true);
 		  break;
 		}
 		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is unchoking you");
@@ -645,12 +614,7 @@ PEPeerTransportProtocol
 		break;
 	  case BT_INTERESTED :
 		if (buffer.limit() != 1) {
-		  LGLogger.log(
-			componentID,
-			evtProtocol,
-			LGLogger.ERROR,
-			ip + " interested received, but message of wrong size : " + buffer.limit());
-		  closeAll(true);
+		  closeAll(ip + " interested received, but message of wrong size : " + buffer.limit(),true);
 		  break;
 		}
 		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is interested");
@@ -659,12 +623,7 @@ PEPeerTransportProtocol
 		break;
 	  case BT_UNINTERESTED :
 		if (buffer.limit() != 1) {
-		  LGLogger.log(
-			componentID,
-			evtProtocol,
-			LGLogger.ERROR,
-			ip + " uninterested received, but message of wrong size : " + buffer.limit());
-		  closeAll(true);
+		  closeAll(ip + " uninterested received, but message of wrong size : " + buffer.limit(),true);
 		  break;
 		}
 		LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " is not interested");
@@ -673,12 +632,7 @@ PEPeerTransportProtocol
 		break;
 	  case BT_HAVE :
 		if (buffer.limit() != 5) {
-		  LGLogger.log(
-			componentID,
-			evtProtocol,
-			LGLogger.ERROR,
-			ip + " interested received, but message of wrong size : " + buffer.limit());
-		  closeAll(true);
+		  closeAll(ip + " interested received, but message of wrong size : " + buffer.limit(),true);
 		  break;
 		}
 		pieceNumber = buffer.getInt();
@@ -695,12 +649,7 @@ PEPeerTransportProtocol
 		break;
 	  case BT_REQUEST :
 		if (buffer.limit() != 13) {
-		  LGLogger.log(
-			componentID,
-			evtProtocol,
-			LGLogger.ERROR,
-			ip + " request received, but message of wrong size : " + buffer.limit());
-		  closeAll(true);
+		  closeAll(ip + " request received, but message of wrong size : " + buffer.limit(),true);
 		  break;
 		}
 		pieceNumber = buffer.getInt();
@@ -715,31 +664,22 @@ PEPeerTransportProtocol
 		  sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
 		}
 		else {
-		  LGLogger.log(
-			componentID,
-			evtErrors,
-			LGLogger.ERROR,
-			ip
-			  + " has requested #"
-			  + pieceNumber
-			  + ":"
-			  + pieceOffset
-			  + "->"
-			  + pieceLength
-			  + " which is an invalid request.");
-		  closeAll(true);
+		  closeAll(ip
+        + " has requested #"
+        + pieceNumber
+        + ":"
+        + pieceOffset
+        + "->"
+        + pieceLength
+        + " which is an invalid request.",
+        true);
 		  return;
 		}
 		readMessage(readBuffer);
 		break;
 	  case BT_PIECE :
 		if (buffer.limit() < 9) {
-		   LGLogger.log(
-			 componentID,
-			 evtProtocol,
-			 LGLogger.ERROR,
-			 ip + " piece received, but message of wrong size : " + buffer.limit());
-		   closeAll(true);
+		   closeAll(ip + " piece received, but message of wrong size : " + buffer.limit(),true);
 		   break;
 		}
 		pieceNumber = buffer.getInt();
@@ -779,12 +719,7 @@ PEPeerTransportProtocol
 		break;
 	  case BT_CANCEL :
 		if (buffer.limit() != 13) {
-		  LGLogger.log(
-			componentID,
-			evtProtocol,
-			LGLogger.ERROR,
-			ip + " cancel received, but message of wrong size : " + buffer.limit());
-		  closeAll(true);
+		  closeAll(ip + " cancel received, but message of wrong size : " + buffer.limit(),true);
 		  break;
 		}
 		pieceNumber = buffer.getInt();
@@ -799,19 +734,13 @@ PEPeerTransportProtocol
 		readMessage(readBuffer);
 		break;
 	 default:
-   LGLogger.log(
-         componentID,
-         evtProtocol,
-         LGLogger.ERROR,
-         ip + " has sent a wrong message " + cmd);
-	  closeAll(true);
+	  closeAll(ip + " has sent a wrong message " + cmd,true);
 	}
   }
 
   private void have(int pieceNumber) {
 	if ((pieceNumber >= available.length) || (pieceNumber < 0)) {
-	   LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, ip + " gave invalid pieceNumber:" + pieceNumber);
-	   closeAll(true);
+	   closeAll(ip + " gave invalid pieceNumber:" + pieceNumber,true);
 	}
 	else {    
 	  available[pieceNumber] = true;
@@ -1131,12 +1060,7 @@ PEPeerTransportProtocol
 		}
 	  }
 	  catch (IOException e) {
-      LGLogger.log(
-           componentID,
-           evtProtocol,
-           LGLogger.ERROR,
-           "Error while writing to " + ip +" : " + e);
-		closeAll(true);
+		closeAll("Error while writing to " + ip +" : " + e,true);
 	  } //If we have finished sending this buffer
 	  if (!writeBuffer.hasRemaining()) {
 		//If we were sending data, we must free the writeBuffer
@@ -1159,8 +1083,7 @@ PEPeerTransportProtocol
 		writeBuffer = (ByteBuffer) protocolQueue.remove(0);
 		//
     if (writeBuffer == null){
-      System.out.println("Empty write Buffer on protocol message !!!");
-      closeAll(true);
+      closeAll(ip + " : Empty write Buffer on protocol message !!!",true);
     }
 		writeBuffer.position(0);
 		writeData = false;
