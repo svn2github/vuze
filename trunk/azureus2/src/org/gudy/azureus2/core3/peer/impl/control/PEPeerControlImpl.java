@@ -925,7 +925,9 @@ PEPeerControlImpl
     final int LIMIT = 100;
   	
     //if we're not downloading, use normal re-check rate
-    if (_downloadManager.getState() == DownloadManager.STATE_DOWNLOADING) {
+    if (_downloadManager.getState() == DownloadManager.STATE_DOWNLOADING ||
+        _downloadManager.getState() == DownloadManager.STATE_SEEDING ) {
+      
       int maxAllowed = PeerUtils.numNewConnectionsAllowed( _hash );
       if ( maxAllowed < 0 || maxAllowed > LIMIT ) {
       	maxAllowed = LIMIT;
@@ -942,7 +944,7 @@ PEPeerControlImpl
       }
       
       //lower limit to swarm size if necessary
-      int swarmSize = swarmPeers + swarmSeeds;
+      int swarmSize = _finished ? swarmPeers : swarmPeers + swarmSeeds;  //if seeding, only use peer count
       if (swarmSize > 0 && maxAllowed > swarmSize) {
         maxAllowed = swarmSize;
       }
@@ -951,7 +953,7 @@ PEPeerControlImpl
       if ( currConnectionCount == 0 ) {
         percentage = 0;  //no current connections, recheck in 1 min
       }
-      else if ( maxAllowed > 0 ) {
+      else if( maxAllowed >= 0 ) {
         float currConnectionPercent = ((float)currConnectionCount) / (currConnectionCount + maxAllowed);
         percentage = (int)(currConnectionPercent * 100);
       }
