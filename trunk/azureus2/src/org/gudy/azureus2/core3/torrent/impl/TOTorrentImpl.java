@@ -299,7 +299,9 @@ TOTorrentImpl
 		  
 	  throws TOTorrentException
 	{
-		throw( new TOTorrentException("parp", TOTorrentException.RT_WRITE_FAILS));
+		TOTorrentXMLSerialiser	serialiser = new TOTorrentXMLSerialiser( this );
+		
+		serialiser.serialiseToFile( file );
 	}
 	
 	public byte[]
@@ -358,6 +360,12 @@ TOTorrentImpl
 		String		str )
 	{
 		created_by	= str;
+	}
+	
+	protected String
+	getCreatedBy()
+	{
+		return( created_by );
 	}
 	
 	public byte[]
@@ -467,6 +475,12 @@ TOTorrentImpl
 		simple_torrent	= _simple_torrent;
 	}
 	
+	protected Map
+	getAdditionalProperties()
+	{
+		return( additional_properties );
+	}
+	
 	public void
 	setAdditionalStringProperty(
 		String		name,
@@ -568,7 +582,13 @@ TOTorrentImpl
 		Object			value )
 	{
 		additional_info_properties.put( name, value );
-	}		
+	}	
+	
+	protected Map
+	getAdditionalInfoProperties()
+	{
+		return( additional_info_properties );	
+	}
 	
 	protected String
 	readStringFromMetaData(
