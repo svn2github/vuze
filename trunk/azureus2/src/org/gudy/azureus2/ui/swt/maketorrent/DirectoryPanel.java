@@ -80,6 +80,13 @@ public class DirectoryPanel extends AbstractWizardPanel {
           File f = new File(file.getText());
           if (!f.exists() || !f.isDirectory()) {
             error = MessageText.getString("wizard.invaliddirectory");
+          }else{           
+            String	parent = f.getParent();
+            
+            if ( parent != null ){
+            	
+            	((NewTorrentWizard) wizard).setDefaultOpenDir( parent );
+            }
           }
         }
         wizard.setErrorMessage(error);

@@ -95,6 +95,13 @@ public class SavePathPanel extends AbstractWizardPanel {
           File f = new File(file.getText());
           if(f.exists() || f.isDirectory()) {
             error = MessageText.getString("wizard.invalidfile");
+          }else{           
+            String	parent = f.getParent();
+            
+            if ( parent != null ){
+            	
+            	((NewTorrentWizard) wizard).setDefaultSaveDir( parent );
+            }
           }
         }
         wizard.setErrorMessage(error);
