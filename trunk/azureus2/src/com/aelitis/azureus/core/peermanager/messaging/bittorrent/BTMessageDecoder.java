@@ -54,18 +54,18 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private int pre_read_start_position;
   
   private boolean last_received_was_keepalive = false;
-  
-  private final String id = "" + new Random( SystemTime.getCurrentTime() ).nextInt( 999999 );
-  private int destroyed_count = 0;
+
+  private volatile boolean destroyed = false;
   
   private ArrayList messages_last_read = new ArrayList();
   private int protocol_bytes_last_read = 0;
   private int data_bytes_last_read = 0;
   
   private int data_bytes_owed = 0;
+  
+  private volatile boolean is_paused = false;
 
   
-  private long total_bytes_read = 0;
   
   
   public BTMessageDecoder() {
@@ -80,17 +80,24 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
     int bytes_remaining = max_bytes;
     
-    while( bytes_remaining > 0 ) {
-      if( destroyed_count > 0 ) {
-        String msg = "BT decoder [#" +id+ "] already destroyed [" +destroyed_count+ "] times, transport closed=" + (transport.getSocketChannel() == null);
-        System.out.println( msg );
-        throw new IOException( msg );
+    while( bytes_remaining > 0 ) {     
+      if( destroyed ) {
+        System.out.println( "BT decoder already destroyed" );
+        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
+        break;
+      }
+      
+      if( is_paused ) {
+        //System.out.println( "BT decoder paused" );
+        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
+        break;
       }
       
       int bytes_possible = preReadProcess( bytes_remaining );
       
       if( bytes_possible < 1 ) {
-        System.out.println( "ERROR: bytes_possible < 1" );
+        System.out.println( "ERROR BT: bytes_possible < 1" );
+        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
         break;
       }
 
@@ -103,7 +110,6 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       
       int bytes_read = postReadProcess();
       
-      total_bytes_read += bytes_read;
       bytes_remaining -= bytes_read;
       
       if( bytes_read < bytes_possible ) {
@@ -143,8 +149,19 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
   
   public ByteBuffer destroy() {
-    int lbuff_read = length_buffer.position();
-    int pbuff_read = payload_buffer == null ? 0 : payload_buffer.position();
+    destroyed = true;
+
+    int lbuff_read = 0;
+    int pbuff_read = 0;
+
+    if( reading_length_mode ) {
+      lbuff_read = length_buffer.position();
+    }
+    else { //reading payload
+      length_buffer.position( 4 );
+      lbuff_read = 4;
+      pbuff_read = payload_buffer.position();
+    }
     
     ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read );
     
@@ -157,8 +174,6 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     }
     
     unused.flip();
-
-    destroyed_count++;
 
     if( direct_payload_buffer != null ) {
       direct_payload_buffer.returnToPool();
@@ -194,7 +209,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       ByteBuffer bb = decode_array[ i ];
       
       if( bb == null ) {
-        System.out.println( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed_count );
+        System.out.println( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed );
       }
       
       
@@ -242,7 +257,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       
       bytes_read += read;
 
-      if( !payload_buffer.hasRemaining() ) {  //full message received!
+      if( !payload_buffer.hasRemaining() && !is_paused ) {  //full message received!        
         payload_buffer.position( 0 );
         
         if( reading_handshake_message ) {  //decode handshake
@@ -258,8 +273,12 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             messages_last_read.add( handshake );
           }
           catch( MessageException me ) {
-            throw new IOException( "BT message decode failed: " + me.getMessage()+ ", total_bytes_read=" +total_bytes_read );
+            throw new IOException( "BT message decode failed: " + me.getMessage() );
           }
+          
+          //we need to auto-pause decoding until we're told to start again externally,
+          //as we don't want to accidentally read the next message on the stream if it's an AZ-format handshake
+          pauseDecoding();
         }
         else {  //decode normal message
           DirectByteBuffer payload = direct_payload_buffer == null ? new DirectByteBuffer( payload_buffer ) : direct_payload_buffer;  
@@ -350,5 +369,14 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
   
   
+  public void pauseDecoding() {
+    is_paused = true;
+  }
+  
+
+  public void resumeDecoding() {
+    is_paused = false;
+  }
+
 
 }

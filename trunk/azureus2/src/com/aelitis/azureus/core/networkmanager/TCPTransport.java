@@ -91,7 +91,10 @@ public class TCPTransport {
    * @param bytes_already_read data
    */
   public void setAlreadyRead( ByteBuffer bytes_already_read ) {
-    data_already_read = bytes_already_read;
+    if( bytes_already_read.hasRemaining() ) {
+      //System.out.println( "setAlreadyRead===" +bytes_already_read.remaining()+ " ["+description+"]");
+      data_already_read = bytes_already_read;
+    }
   }
   
   

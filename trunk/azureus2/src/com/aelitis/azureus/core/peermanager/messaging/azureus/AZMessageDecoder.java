@@ -53,7 +53,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   private int pre_read_start_buffer;
   private int pre_read_start_position;
   
-  private boolean destroyed = false;
+  private volatile boolean destroyed = false;
   
   private ArrayList messages_last_read = new ArrayList();
   private int protocol_bytes_last_read = 0;
@@ -61,6 +61,9 @@ public class AZMessageDecoder implements MessageStreamDecoder {
 
   private int data_bytes_owed = 0;
 
+  private volatile boolean is_paused = false;
+  
+  
   
   public AZMessageDecoder() {
     /*nothing*/
@@ -77,16 +80,24 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     while( bytes_remaining > 0 ) {
       if( destroyed ) {
         System.out.println( "AZ decoder already destroyed" );
-        throw new IOException( "AZ decoder already destroyed!" );
-      }
-      
-      int bytes_possible = preReadProcess( bytes_remaining );
-      
-      if( bytes_possible < 1 ) {
-        System.out.println( "ERROR: bytes_possible < 1" );
+        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
         break;
       }
 
+      if( is_paused ) {
+        System.out.println( "AZ decoder paused" );
+        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
+        break;
+      }
+      
+      int bytes_possible = preReadProcess( bytes_remaining );
+
+      if( bytes_possible < 1 ) {
+        System.out.println( "ERROR AZ: bytes_possible < 1" );
+        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
+        break;
+      }
+      
       if( reading_length_mode ) {
         transport.read( decode_array, 1, 1 );  //only read into length buffer
       }
@@ -127,8 +138,19 @@ public class AZMessageDecoder implements MessageStreamDecoder {
 
 
   public ByteBuffer destroy() {
-    int lbuff_read = length_buffer.position();
-    int pbuff_read = payload_buffer == null ? 0 : payload_buffer.position();
+    destroyed = true;
+
+    int lbuff_read = 0;
+    int pbuff_read = 0;
+
+    if( reading_length_mode ) {
+      lbuff_read = length_buffer.position();
+    }
+    else { //reading payload
+      length_buffer.position( 4 );
+      lbuff_read = 4;
+      pbuff_read = payload_buffer.position();
+    }
     
     ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read );
     
@@ -141,9 +163,6 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     }
     
     unused.flip();
-    
-    destroyed = true;
-    payload_buffer = null;
     
     if( direct_payload_buffer != null ) {
       direct_payload_buffer.returnToPool();
@@ -227,7 +246,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       
       bytes_read += read;
 
-      if( !payload_buffer.hasRemaining() ) {  //full message received!
+      if( !payload_buffer.hasRemaining() && !is_paused ) {  //full message received!
         payload_buffer.position( 0 );  //prepare for use
 
         DirectByteBuffer payload = direct_payload_buffer == null ? new DirectByteBuffer( payload_buffer ) : direct_payload_buffer;  
@@ -298,7 +317,15 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   }
   
   
+
+  public void pauseDecoding() {
+    is_paused = true;
+  }
   
+
+  public void resumeDecoding() {
+    is_paused = false;
+  }
   
   
 }

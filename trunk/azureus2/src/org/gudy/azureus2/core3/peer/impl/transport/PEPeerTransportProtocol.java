@@ -1035,6 +1035,9 @@ PEPeerTransportProtocol
     */
 
     if( !az_messaging_mode ) {  //otherwise we'll do this after receiving az handshake
+     
+      connection.getIncomingMessageQueue().startQueueProcessing();  //since BT decoder is auto-paused after initial handshake
+      
       //fudge to ensure optimistic-connect code processes connections that have never sent a data message
       last_data_message_received_time = SystemTime.getCurrentTime();
        

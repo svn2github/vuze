@@ -68,6 +68,10 @@ public class MessageStreamDecoderAdapter implements com.aelitis.azureus.core.pee
 
   public int getDataBytesDecoded() {  return plug_decoder.getDataBytesDecoded();  }
 
+  public void pauseDecoding() {  plug_decoder.pauseDecoding();  } 
+
+  public void resumeDecoding() {  plug_decoder.resumeDecoding();  } 
+  
   public ByteBuffer destroy() {  return plug_decoder.destroy();  }
 
 }

@@ -60,6 +60,16 @@ public interface MessageStreamDecoder {
   public int getDataBytesDecoded(); 
   
   /**
+   * Pause message decoding.
+   */
+  public void pauseDecoding();
+  
+  /**
+   * Resume message decoding.
+   */
+  public void resumeDecoding();
+  
+  /**
    * Destroy this decoder, i.e. perform cleanup.
    * @return any bytes already-read and still remaining within the decoder
    */

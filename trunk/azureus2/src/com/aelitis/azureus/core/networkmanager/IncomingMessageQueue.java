@@ -196,6 +196,7 @@ public class IncomingMessageQueue {
    */
   public void startQueueProcessing() {
     try{  listeners_mon.enter();
+      stream_decoder.resumeDecoding();  //this allows us to resume docoding externally, in case it was auto-paused internally
     
       if( !is_processing_enabled ) {
         connection.getTCPTransport().requestReadSelects( new TCPTransport.ReadListener() {
@@ -238,6 +239,7 @@ public class IncomingMessageQueue {
    */
   public void stopQueueProcessing() {
     try{  listeners_mon.enter();
+      stream_decoder.pauseDecoding();  //disallow decoding
     
       if( is_processing_enabled ) {
         is_processing_enabled = false;
