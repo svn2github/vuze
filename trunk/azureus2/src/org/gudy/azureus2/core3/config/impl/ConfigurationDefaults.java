@@ -77,7 +77,7 @@ public class ConfigurationDefaults {
     def.put("max downloads", new Long(4));
 
     def.put("Max.Peer.Connections.Per.Torrent", new Long(100));
-    def.put("Max.Peer.Connections.Total", new Long(0));
+    def.put("Max.Peer.Connections.Total", new Long(1000));
 
     def.put("File Max Open", new Long(50));
         
