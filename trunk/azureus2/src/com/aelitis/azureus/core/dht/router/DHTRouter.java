@@ -41,6 +41,9 @@ DHTRouter
 		Object	attachment );
 	
 	public DHTRouterContact
+	getLocalContact();
+	
+	public DHTRouterContact
 	addContact(
 		byte[]	node_id,
 		Object	attachment );

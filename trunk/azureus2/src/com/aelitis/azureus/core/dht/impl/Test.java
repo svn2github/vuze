@@ -26,6 +26,9 @@ import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.*;
 
 import java.io.*;
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.HashWrapper;
 
 /**
  * @author parg
@@ -44,8 +47,10 @@ Test
 			int		B			= 1;
 			int		ID_BYTES	= 4;
 			
-			DHT[]			dhts 		= new DHT[100];
+			DHT[]			dhts 		= new DHT[1000];
 			DHTTransport[]	transports 	= new DHTTransport[dhts.length];
+			
+			Map	check = new HashMap();
 			
 			for (int i=0;i<dhts.length;i++){
 				
@@ -55,6 +60,17 @@ Test
 				
 				DHTTransport	transport = DHTTransportFactory.createLoopback(ID_BYTES);
 			
+				HashWrapper	id = new HashWrapper( transport.getLocalContact().getID());
+				
+				if ( check.get(id) != null ){
+					
+					System.out.println( "Duplicate ID - aborting" );
+					
+					return;
+				}
+				
+				check.put(id,"");
+				
 				transports[i] = transport;
 				
 				dht.addTransport( transport );
@@ -66,12 +82,13 @@ Test
 			}
 			
 			transports[transports.length-1].importContact( new ByteArrayInputStream( transports[0].getLocalContact().getID()));
-
+			
 			//dht1.print();
 			
 			dhts[99].put( "fred".getBytes(), new byte[2]);
 			
 			System.out.println( "get:"  + dhts[0].get( "fred".getBytes()));
+			
 		}catch( Throwable e ){
 			
 			e.printStackTrace();

@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.*;
 
 /**
@@ -45,7 +46,8 @@ DHTRouterImpl
 	private int		SMALLEST_SUBTREE_MAX;
 	
 	
-	private byte[]	router_node_id;
+	private DHTRouterContactImpl	local_contact;
+	private byte[]					router_node_id;
 	
 	private DHTRouterNodeImpl		root;
 	private DHTRouterNodeImpl		smallest_subtree;
@@ -83,11 +85,19 @@ DHTRouterImpl
 		
 		List	buckets = new ArrayList();
 		
-		buckets.add( new DHTRouterContactImpl( router_node_id, _attachment ));
+		local_contact = new DHTRouterContactImpl( router_node_id, _attachment );
+		
+		buckets.add( local_contact );
 		
 		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
 		
 		smallest_subtree	= root;
+	}
+	
+	public DHTRouterContact
+	getLocalContact()
+	{
+		return( local_contact );
 	}
 	
 	public synchronized DHTRouterContact
@@ -103,9 +113,7 @@ DHTRouterImpl
 		byte[]	node_id,
 		Object	attachment,
 		boolean	known_to_be_alive )
-	{
-			// System.out.println( ByteFormatter.nicePrint( node_id ));
-		
+	{		
 		DHTRouterNodeImpl	current_node = root;
 			
 		boolean	part_of_smallest_subtree	= false;
@@ -124,9 +132,7 @@ DHTRouterImpl
 				}
 				
 				boolean	bit = ((b>>j)&0x01)==1?true:false;
-				
-				//System.out.print( bit?"1":"0" );
-				
+								
 				DHTRouterNodeImpl	next_node;
 				
 				if ( bit ){
@@ -496,7 +502,7 @@ DHTRouterImpl
 	requestPing(
 		DHTRouterContactImpl	contact )
 	{
-		System.out.println( "DHTRouter: requestPing:" + ByteFormatter.nicePrint( contact.getID(), true ));
+		DHTLog.log( "DHTRouter: requestPing:" + DHTLog.getString( contact.getID()));
 		
 		// TODO:!
 	}
@@ -504,7 +510,7 @@ DHTRouterImpl
 	public void
 	print()
 	{
-		System.out.println( "DHT: node count = " + getNodeCount()+ ", contacts =" + getContactCount());
+		DHTLog.log( "DHT: node count = " + getNodeCount()+ ", contacts =" + getContactCount());
 		
 		root.print( "", "" );
 	}

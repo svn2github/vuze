@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 
 /**
@@ -166,7 +167,7 @@ DHTRouterNodeImpl
 	alive(
 		DHTRouterContactImpl	contact )
 	{
-		System.out.println( ByteFormatter.nicePrint( contact.getID(), true ) + ": alive" );
+		DHTLog.log( DHTLog.getString( contact.getID()) + ": alive" );
 		
 			// only action this if still present
 		
@@ -184,7 +185,7 @@ DHTRouterNodeImpl
 	dead(
 		DHTRouterContactImpl	contact )
 	{
-		System.out.println( ByteFormatter.nicePrint( contact.getID(), true ) + ": dead" );
+		DHTLog.log( DHTLog.getString( contact.getID()) + ": dead" );
 		
 		if ( contact.failed()){
 			
@@ -211,11 +212,11 @@ DHTRouterNodeImpl
 	{
 		if ( left == null ){
 			
-			System.out.println( indent + prefix + ": buckets = " + buckets.size() + bucketsToString() + (contains_router_node_id?" *":""));
+			DHTLog.log( indent + prefix + ": buckets = " + buckets.size() + bucketsToString() + (contains_router_node_id?" *":""));
 			
 		}else{
 			
-			System.out.println( indent + prefix + ":" + (contains_router_node_id?" *":""));
+			DHTLog.log( indent + prefix + ":" + (contains_router_node_id?" *":""));
 			
 			left.print( indent + "  ", prefix + "1"  );
 						
