@@ -27,6 +27,7 @@ import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.tableitems.utils.ItemEnumerator;
 import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.PluginItem;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author Olivier
@@ -115,6 +116,8 @@ public class TorrentRow implements SortableItem {
         items.add(new CategoryItem(TorrentRow.this,itemEnumerator.getPositionByName("category")));
         items.add(new AvailabilityItem(TorrentRow.this,itemEnumerator.getPositionByName("availability")));
         items.add(new RemainingItem(TorrentRow.this,itemEnumerator.getPositionByName("remaining")));
+        items.add(new SecondsSeedingItem(TorrentRow.this,itemEnumerator.getPositionByName("secondsseeding")));
+        items.add(new SecondsDownloadingItem(TorrentRow.this,itemEnumerator.getPositionByName("secondsdownloading")));
 
         Map extensions = MyTorrentsTableExtensions.getInstance().getExtensions();
         Iterator iter = extensions.keySet().iterator();
@@ -304,6 +307,14 @@ public class TorrentRow implements SortableItem {
       return (int)pm.getMinAvailability() * 1000;
     }
     
+    if (field.equals("secondsseeding")) {
+      return manager.getStats().getSecondsDownloading() + manager.getStats().getSecondsOnlySeeding();
+    }
+
+    if (field.equals("secondsdownloading")) {
+      return manager.getStats().getSecondsDownloading();
+    }
+
     PluginItem item = (PluginItem)pluginItems.get(field);
     if(item != null)
       return item.pluginItem.getIntValue();
