@@ -30,7 +30,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.text.NumberFormat;
-import java.text.DecimalFormat;
+// import java.text.DecimalFormat;
 
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.config.*;
@@ -47,12 +47,12 @@ DisplayFormatters
 	final public static int UNIT_GB = 3;
 	final public static int UNIT_TB = 4;
 	
-	final protected static String UNITS_NUMBER_FORMAT[] = { "0", // B
-	                                                        "0.0", //KB
-	                                                        "0.0", //MB
-	                                                        "0.00", //GB
-	                                                        "0.000" //TB
-	                                                       };
+	final protected static int UNITS_PRECISION[] =	 {	 0, // B
+	                                                     1, //KB
+	                                                     1, //MB
+	                                                     2, //GB
+	                                                     3 //TB
+	                                                  };
 	protected static String[] units;
 	protected static String[] units_rate;
 	protected static int unitsStopAt = UNIT_TB;
@@ -61,7 +61,7 @@ DisplayFormatters
 	protected static boolean use_units_rate_bits;
     protected static boolean not_use_GB_TB;
 
-	private static String lastDecimalFormat = "";
+	// private static String lastDecimalFormat = "";
 
 	static{
 		use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
@@ -167,9 +167,10 @@ DisplayFormatters
 
     
     for (int i = 0; i <= unitsStopAt; i++) {
-      units[i] = UNITS_NUMBER_FORMAT[i] + units[i];
-      units_rate[i] = UNITS_NUMBER_FORMAT[i] + units_rate[i] + "/s";
+      units[i] 		= units[i];
+      units_rate[i] = units_rate[i] + "/s";
     }
+    
     NumberFormat.getPercentInstance().setMinimumFractionDigits(1);
     NumberFormat.getPercentInstance().setMaximumFractionDigits(1);
   }
@@ -178,13 +179,13 @@ DisplayFormatters
 	getRateUnit(
 		int		unit_size )
 	{
-		return( units_rate[unit_size].substring(units_rate[unit_size].indexOf(" ") + 1, units_rate[unit_size].length()) );
+		return( units_rate[unit_size].substring(1, units_rate[unit_size].length()) );
 	}
 	public static String
 	getUnit(
 		int		unit_size )
 	{
-		return( units[unit_size].substring(units[unit_size].indexOf(" ") + 1, units[unit_size].length()) );
+		return( units[unit_size].substring(1, units[unit_size].length()) );
 	}
 
 	public static String
@@ -205,15 +206,18 @@ DisplayFormatters
 		long	n,
 		boolean	rate )
 	{
-	  double dbl = (rate && use_units_rate_bits) ? n * 8 : n;
+		double dbl = (rate && use_units_rate_bits) ? n * 8 : n;
 
-    int unitIndex = UNIT_B;
-		while (dbl >= 1024 && unitIndex < unitsStopAt) {
+	  	int unitIndex = UNIT_B;
+	  	
+	  	while (dbl >= 1024 && unitIndex < unitsStopAt){ 
+	  	
 		  dbl /= 1024L;
 		  unitIndex++;
 		}
-		
-		return formatDecimal(dbl, rate ? units_rate[unitIndex] : units[unitIndex]);
+			 
+		return( formatDecimal( dbl, UNITS_PRECISION[unitIndex] ) +  
+				( rate ? units_rate[unitIndex] : units[unitIndex]));
 	}
 
 	public static String
@@ -517,13 +521,59 @@ DisplayFormatters
   }
 
   public static String
-  formatDecimal(double value, String sFormat) {
+  formatDecimal(
+  	double value, 
+  	int		precision )
+  {
     // this call returns a cached instance.. however, it might be worth
     // checking if caching the object ourselves gives any noticable perf gains.
+  	/* Don't use DecimalFormat - it ROUNDS which is not what we want
     NumberFormat nf = NumberFormat.getInstance();
     if (!lastDecimalFormat.equals(sFormat) && (nf instanceof DecimalFormat)) {
       ((DecimalFormat)nf).applyPattern(sFormat);
     }
     return nf.format(value);
+    */
+  	
+  	String	res = String.valueOf( value );
+  	
+  	int	pos = res.indexOf('.');
+  	
+  	if ( pos == -1 ){
+  		
+  		if ( precision != 0 ){
+  			
+	  		res += ".";
+	  		
+	  		for (int i=0;i<precision;i++){
+	  		
+	  			res += '0';
+	  		}
+  		}
+  	}else{
+  		
+  		if ( precision == 0 ){
+  			
+  			res = res.substring(0,pos);
+  			
+  		}else{
+  			
+	  		int	digits = res.length() - pos - 1;
+	  		
+	  		if ( digits < precision ){
+	  			
+		  		for (int i=0;i<precision-digits;i++){
+			  	
+			  		res += '0';
+			  	}
+	  			
+	  		}else if ( digits > precision ){
+	  		
+	  			res = res.substring( 0, pos+1+precision );
+	  		}
+  		}
+  	}
+  	
+  	return( res );
   }
 }

@@ -69,7 +69,7 @@ public class UpDownRatioItem
     else if (value == -1)
       s = "1:" + Constants.INFINITY_STRING;
     else
-      s = DisplayFormatters.formatDecimal(value, "0.00") + ":1";
+      s = DisplayFormatters.formatDecimal(value, 2) + ":1";
 
     cell.setText(s);
   }
