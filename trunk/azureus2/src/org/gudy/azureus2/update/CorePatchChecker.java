@@ -39,13 +39,23 @@ public class
 CorePatchChecker
 	implements Plugin, UpdatableComponent, UpdateCheckInstanceListener
 {
+	public static final boolean	TESTING	= true;
+	
 	public void 
 	initialize(
 		PluginInterface pi )
 	  
 	  	throws PluginException
 	{
-		pi.getUpdateManager().registerUpdatableComponent( this, true );
+		if ( TESTING || !Constants.isCVSVersion()){
+		
+			if ( TESTING ){
+				
+				System.out.println( "CorePatchChecker: TESTING !!!!" );
+			}
+			
+			pi.getUpdateManager().registerUpdatableComponent( this, true );
+		}
 	}
 	
 	public String
@@ -104,7 +114,7 @@ CorePatchChecker
 				
 				// OK, we have an updater update
 				
-				System.out.println( "Updater update!!!!" );
+				LGLogger.log( "Core Patcher: updater update found" );
 				
 				update.addListener(
 						new UpdateListener()
@@ -113,7 +123,7 @@ CorePatchChecker
 							complete(
 								Update	update )
 							{
-								System.out.println( "complete!!!!" );
+								LGLogger.log( "Core Patcher: updater update complete" );
 							}
 						});
 			}
