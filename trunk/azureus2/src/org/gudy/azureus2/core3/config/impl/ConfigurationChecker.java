@@ -160,12 +160,6 @@ public class ConfigurationChecker {
       changed = true;
     }
     
-    int stopRatio = COConfigurationManager.getIntParameter("Stop Ratio",0);
-    if(stopRatio < 0) {
-       COConfigurationManager.setParameter("Stop Ratio", 0);
-       changed = true;
-    }
-
     int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
     if (minQueueingShareRatio < 500) {
       COConfigurationManager.setParameter("StartStopManager_iFirstPriority_ShareRatio", 500);

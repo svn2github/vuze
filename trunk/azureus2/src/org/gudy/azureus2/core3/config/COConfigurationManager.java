@@ -156,6 +156,19 @@ COConfigurationManager
 	}
 
 
+	public static float
+	getFloatParameter(
+		String		_name)
+	{
+		return( ConfigurationManager.getInstance().getFloatParameter( _name ));
+	}
+	
+	public static boolean 
+	setParameter(String parameter, float value)
+	{
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
+	}
+
   public static void
 	save()
 	{

@@ -48,6 +48,7 @@ public class ConfigurationDefaults {
   private HashMap def = null;
   
   public int def_int = 0;
+  public float def_float = 0;
   public int def_boolean = 0;
   public String def_String = "";
   public byte[] def_bytes = null;
@@ -83,7 +84,7 @@ public class ConfigurationDefaults {
     def.put("Use Resume", new Long(1));
     def.put("Save Resume Interval", new Long(5));
     def.put("Check Pieces on Completion", new Long(1));
-    def.put("Stop Ratio", new Long(0));
+    def.put("Stop Ratio", new Float(0));
     def.put("Stop Peers Ratio", new Long(0));
     def.put("Disconnect Seed", new Long(1));
     def.put("Switch Priority", new Long(0));
@@ -106,6 +107,7 @@ public class ConfigurationDefaults {
     def.put("Open Details", new Long(0));
     def.put("General_sUpdateLanguageURL", "http://azureus.sf.net/update/langUpdate.php?lang=%s");
     def.put("General_bEnableLanguageUpdate", new Long(0));
+    def.put("Use default data dir", new Long(1));
     
     boolean bGTKTableBug = false;
     try {
@@ -145,9 +147,13 @@ public class ConfigurationDefaults {
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
-    if (def.containsKey(p))
-      return (String) def.get(p);
-    else
+    if (def.containsKey(p)) {
+      Object o = def.get(p);
+      if (o instanceof Number)
+        return ((Number)o).toString();
+
+      return (String)o;
+    } else
       throw new ConfigurationParameterNotFoundException(p);
   }
   
@@ -157,7 +163,14 @@ public class ConfigurationDefaults {
     else
       throw new ConfigurationParameterNotFoundException(p);
   }
-  
+
+  public float getFloatParameter(String p) throws ConfigurationParameterNotFoundException {
+    if (def.containsKey(p))
+      return ((Float) def.get(p)).floatValue();
+    else
+      throw new ConfigurationParameterNotFoundException(p);
+  }
+
   public boolean doesParameterExist(String p) {
     return def.containsKey(p);
   }

@@ -180,6 +180,34 @@ public class ConfigurationManager {
     return dir;
   }
   
+  public float getFloatParameter(String parameter) {
+    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+    try {
+      Object o = propertiesMap.get(parameter);
+      if (o instanceof Number) {
+        return ((Number)o).floatValue();
+      }
+      
+      String s = getStringParameter(parameter);
+      
+      if (!s.equals(def.def_String))
+        return Float.parseFloat(s);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    
+    try {
+      return def.getFloatParameter(parameter);
+    } catch (Exception e2) {
+      return def.def_float;
+    }
+  }
+
+  public boolean setParameter(String parameter, float defaultValue) {
+    String newValue = String.valueOf(defaultValue);
+    return setParameter(parameter, newValue.getBytes());
+  }
+
   public boolean setParameter(String parameter, int defaultValue) {
     Long newValue = new Long(defaultValue);
     Long oldValue = (Long) propertiesMap.put(parameter, newValue);
