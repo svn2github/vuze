@@ -194,7 +194,7 @@ TOTorrentDeserialiseImpl
 	
 					List	announce_list = (List)meta_data.get( TK_ANNOUNCE_LIST );
 					
-					if ( announce_list != null ){
+					if ( announce_list != null && announce_list.size() > 0 ){
             
             String announce_url = readStringFromMetaData( meta_data, TK_ANNOUNCE );
             announce_url = announce_url.replaceAll( " ", "" );
@@ -238,7 +238,7 @@ TOTorrentDeserialiseImpl
 						}
             
             //if the original announce url isn't found, add it to the list
-            if ( !announce_url_found && announce_list.size() > 0 ) {
+            if ( !announce_url_found ) {
               try {
               	Vector urls = new Vector();
               	urls.add( new URL( announce_url ));
