@@ -37,18 +37,24 @@ SFPluginDetailsImpl
 	protected String		version;
 	protected String		download_url;
 	protected String		author;
+	protected String		desc;
+	protected String		comment;
 	
 	protected
 	SFPluginDetailsImpl(
 		String	_name,
 		String	_version,
 		String	_download_url,
-		String	_author )
+		String	_author,
+		String	_desc,
+		String	_comment )
 	{
 		name			= _name;
 		version			= _version;
 		download_url	= _download_url;
 		author			= _author;
+		desc			= _desc;
+		comment			= _comment;
 	}
 	
 	public String
@@ -73,5 +79,17 @@ SFPluginDetailsImpl
 	getAuthor()
 	{
 		return( author );
+	}
+	
+	public String
+	getDescription()
+	{
+		return( desc );
+	}
+	
+	public String
+	getComment()
+	{
+		return( comment );
 	}
 }

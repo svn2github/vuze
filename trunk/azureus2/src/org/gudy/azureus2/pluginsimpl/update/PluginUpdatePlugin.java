@@ -172,12 +172,22 @@ PluginUpdatePlugin
 					
 					if ( comp > 0 ){
 						
+						log.log( LoggerChannel.LT_INFORMATION, "    Description:" );
+						
+						logMultiLine( "        ", details.getDescription());
+						
+						log.log( LoggerChannel.LT_INFORMATION, "    Comment:" );
+						
+						logMultiLine( "        ", details.getComment());
+						
 						String msg =   "A newer version (version " + details.getVersion() + ") of plugin '" + 
 										plugin_id + "' " +
 										(plugin_names.length()==0?"":"(" + plugin_names + ") " ) +
 										"is available. ";
 						
 						log.logAlert( LoggerChannel.LT_INFORMATION, msg +"See View->Plugins->Plugin Update");
+						
+						log.log( LoggerChannel.LT_INFORMATION, "" );
 						
 						log.log( LoggerChannel.LT_INFORMATION, "        " + msg + "Download from "+
 									details.getDownloadURL());
@@ -190,6 +200,41 @@ PluginUpdatePlugin
 		}catch( SFPluginDetailsException e ){
 			
 			log.log("Failed to load plugin details", e ); 
+		}
+	}
+	
+	protected void
+	logMultiLine(
+		String		indent,
+		String		text )
+	{
+		int		pos = 0;
+		
+		String	lc_text = text.toLowerCase();
+		
+		while( true ){
+			
+			String	line;
+			
+			int	p1 = lc_text.indexOf( "<br>", pos );
+			
+			if ( p1 == -1 ){
+				
+				line = text.substring(pos);
+				
+			}else{
+				
+				line = text.substring(pos,p1);
+				
+				pos = p1+4;
+			}
+			
+			log.log( LoggerChannel.LT_INFORMATION, indent + line );
+			
+			if ( p1 == -1 ){
+				
+				break;
+			}
 		}
 	}
 }

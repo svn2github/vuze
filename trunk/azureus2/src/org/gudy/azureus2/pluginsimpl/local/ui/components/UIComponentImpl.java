@@ -103,7 +103,7 @@ UIComponentImpl
 			
 		for (int i=0;i<listeners.size();i++){
 			
-			((UIPropertyChangeListener)listeners).propertyChanged( ev );
+			((UIPropertyChangeListener)listeners.get(i)).propertyChanged( ev );
 		}
 	}
 	

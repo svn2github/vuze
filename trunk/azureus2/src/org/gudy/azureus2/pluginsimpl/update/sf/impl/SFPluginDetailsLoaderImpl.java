@@ -141,7 +141,11 @@ SFPluginDetailsLoaderImpl
 	
 		throws SFPluginDetailsException
 	{
-		return( processPluginPage( name, page.getTables()));
+		HTMLTable[]	tables = page.getTables();
+		
+		// dumpTables("", tables );
+		
+		return( processPluginPage( name, tables ));
 	}
 	
 	protected SFPluginDetailsImpl
@@ -193,7 +197,9 @@ SFPluginDetailsLoaderImpl
 									plugin_name,
 									plugin_version,
 									plugin_download,
-									plugin_auth ));							
+									plugin_auth,
+									rows[5].getCells()[0].getContent(),
+									rows[8].getCells()[0].getContent()));							
 				}
 			}
 			

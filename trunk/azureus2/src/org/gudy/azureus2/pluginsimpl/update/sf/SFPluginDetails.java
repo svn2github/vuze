@@ -45,4 +45,10 @@ SFPluginDetails
 	
 	public String
 	getAuthor();
+	
+	public String
+	getDescription();
+	
+	public String
+	getComment();
 }
