@@ -22,7 +22,7 @@
 
 package org.gudy.azureus2.platform;
 
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.win32.PlatformManagerImpl;
 
 /**
@@ -34,23 +34,32 @@ PlatformManagerFactory
 {
 	protected static boolean				init_tried;
 	protected static PlatformManager		platform_manager;
+	protected static AEMonitor				class_mon	= new AEMonitor( "PlatformManagerFactory");
 	
-	public static synchronized PlatformManager
+	public static PlatformManager
 	getPlatformManager()
 	
 		throws PlatformManagerException
 	{
-		if ( platform_manager == null && !init_tried ){
+		try{
+			class_mon.enter();
 		
-			init_tried	= true;
-						    
-			if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
-				
-				platform_manager = PlatformManagerImpl.getSingleton();
+			if ( platform_manager == null && !init_tried ){
+			
+				init_tried	= true;
+							    
+				if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
+					
+					platform_manager = PlatformManagerImpl.getSingleton();
+				}
 			}
+			
+			return( platform_manager );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( platform_manager );
 	}
 	
 	public static int

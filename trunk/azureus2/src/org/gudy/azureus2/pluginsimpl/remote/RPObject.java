@@ -30,6 +30,7 @@ import java.io.Serializable;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
@@ -42,7 +43,9 @@ RPObject
 		//		object_id refers to RPObject
 		// so neither weak map is cleared down
 	
-	protected static Map	object_registry			 	= new WeakHashMap();
+	protected static Map		object_registry			= new WeakHashMap();
+	protected static AEMonitor	object_registry_mon		= new AEMonitor( "RPObject:OR" );
+
 	protected static Map	object_registry_reverse 	= new WeakHashMap();
 	
 	protected static long	next_key		= new Random(SystemTime.getCurrentTime()).nextLong();
@@ -56,7 +59,8 @@ RPObject
 	_lookupLocal(
 		Object		key )
 	{
-		synchronized( object_registry ){
+		try{
+			object_registry_mon.enter();
 			
 			RPObject	res = (RPObject)object_registry.get(key);
 			
@@ -66,6 +70,10 @@ RPObject
 			}
 			
 			return( res );
+			
+		}finally{
+			
+			object_registry_mon.exit();
 		}
 	}
 	
@@ -73,7 +81,8 @@ RPObject
 	_lookupLocal(
 		long		object_id )
 	{
-		synchronized( object_registry ){
+		try{
+			object_registry_mon.enter();
 			
 			Object	res = object_registry_reverse.get( new Long(object_id ));
 			
@@ -90,6 +99,10 @@ RPObject
 			}
 			
 			return( obj );
+			
+		}finally{
+			
+			object_registry_mon.exit();
 		}
 	}
 	
@@ -103,7 +116,8 @@ RPObject
 	RPObject(
 		Object		key )
 	{
-		synchronized( object_registry ){
+		try{
+			object_registry_mon.enter();
 			
 			RPObject	existing = (RPObject)object_registry.get(key);
 			
@@ -119,6 +133,9 @@ RPObject
 				
 				object_registry_reverse.put( _object_id, key );
 			}
+		}finally{
+			
+			object_registry_mon.exit();
 		}
 		
 		__delegate	= key;

@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.*;
 
 import com.aelitis.azureus.core.*;
@@ -39,19 +40,28 @@ PluginManagerImpl
 	protected static boolean	running		= false;
 	
 	protected static PluginManagerImpl	singleton;
-	
+	protected static AEMonitor			class_mon	= new AEMonitor( "PluginManager");
+
 	protected static AzureusCore		azureus_core;
 	
-	protected static synchronized PluginManagerImpl
+	protected static PluginManagerImpl
 	getSingleton(
 		PluginInitializer	pi )
 	{
-		if ( singleton == null ){
+		try{
+			class_mon.enter();
 			
-			singleton = new PluginManagerImpl( pi );
+			if ( singleton == null ){
+				
+				singleton = new PluginManagerImpl( pi );
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( singleton );
 	}
 	
 	public static PluginManager
@@ -59,7 +69,8 @@ PluginManagerImpl
 		int			ui_type,
 		Properties	properties )
 	{
-		synchronized( PluginManagerImpl.class ){
+		try{
+			class_mon.enter();
 			
 			if ( running ){
 				
@@ -67,6 +78,10 @@ PluginManagerImpl
 			}
 			
 			running	= true;
+			
+		}finally{
+			
+			class_mon.exit();
 		}
 		
 			// there's a small window here when an immediate "stop" wouldn't work coz
@@ -131,25 +146,33 @@ PluginManagerImpl
 		return( azureus_core.getPluginManager());
 	}
 	
-	public static synchronized void
+	public static void
 	stopAzureus()
 	
 		throws PluginException
 	{
-		if ( !running ){
-			
-			throw( new RuntimeException( "Azureus is not running"));
-		}
-					
 		try{
-			azureus_core.requestStop();
+			class_mon.enter();
+		
+			if ( !running ){
+				
+				throw( new RuntimeException( "Azureus is not running"));
+			}
+						
+			try{
+				azureus_core.requestStop();
+				
+			}catch( Throwable e ){
+								
+				throw( new PluginException( "PluginManager: Azureus close action failed", e));
+			}
+	
+			running	= false;
 			
-		}catch( Throwable e ){
-							
-			throw( new PluginException( "PluginManager: Azureus close action failed", e));
+		}finally{
+			
+			class_mon.exit();
 		}
-
-		running	= false;
 	}
 	
 	public static void

@@ -49,20 +49,27 @@ ResourceDownloaderDelayedImpl
 		factory	= _factory;
 	}
 	
-	protected synchronized void
+	protected void
 	getDelegate()
 	{
-		if ( delegate == null ){
-			
-			try{
-				delegate	= (ResourceDownloaderBaseImpl)factory.create();
+		try{
+			this_mon.enter();
+		
+			if ( delegate == null ){
 				
-				delegate.setParent( this );
-				
-			}catch(  ResourceDownloaderException e ){
-				
-				delegate = new ResourceDownloaderErrorImpl( this, e );
+				try{
+					delegate	= (ResourceDownloaderBaseImpl)factory.create();
+					
+					delegate.setParent( this );
+					
+				}catch(  ResourceDownloaderException e ){
+					
+					delegate = new ResourceDownloaderErrorImpl( this, e );
+				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	

@@ -136,12 +136,17 @@ public class GUIUpdater extends Thread implements ParameterListener {
           if(mainWindow.systemTraySWT != null)
             mainWindow.systemTraySWT.update();
           
-          synchronized (mainWindow.downloadBars) {
+          try{
+          	mainWindow.downloadBars_mon.enter();
+          
             Iterator iter = mainWindow.downloadBars.values().iterator();
             while (iter.hasNext()) {
               MinimizedWindow mw = (MinimizedWindow) iter.next();
               mw.refresh();
             }
+          }finally{
+          	
+          	mainWindow.downloadBars_mon.exit();
           }
         } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "Error while trying to update GUI");

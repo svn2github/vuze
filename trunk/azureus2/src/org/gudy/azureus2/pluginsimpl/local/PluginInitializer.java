@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
@@ -107,7 +108,8 @@ PluginInitializer
   };
   
   private static PluginInitializer	singleton;
-  
+  private static AEMonitor			class_mon	= new AEMonitor( "PluginInitializer");
+
   private static List		registration_queue = new ArrayList();
    
   private AzureusCoreListener listener;
@@ -123,50 +125,65 @@ PluginInitializer
   private boolean	initialisation_complete;
   
   
-  public static synchronized PluginInitializer
+  public static PluginInitializer
   getSingleton(
   	AzureusCore		 		azureus_core,
   	AzureusCoreListener 	listener )
   {
-  	if ( singleton == null ){
-  		
-  		singleton = new PluginInitializer( azureus_core, listener );
-  		
-  		for (int i=0;i<registration_queue.size();i++){
-  			
-  			try{
-  				Class cla = (Class)registration_queue.get(i);
-  				
-  				singleton.initializePluginFromClass(cla, "<internal>", cla.getName());
-  				
-  			}catch(PluginException e ){
-  				
-  			}
-  		}
-  		
-  		registration_queue.clear();
-  	}
+  	try{
+  		class_mon.enter();
   	
-  	return( singleton );
+	  	if ( singleton == null ){
+	  		
+	  		singleton = new PluginInitializer( azureus_core, listener );
+	  		
+	  		for (int i=0;i<registration_queue.size();i++){
+	  			
+	  			try{
+	  				Class cla = (Class)registration_queue.get(i);
+	  				
+	  				singleton.initializePluginFromClass(cla, "<internal>", cla.getName());
+	  				
+	  			}catch(PluginException e ){
+	  				
+	  			}
+	  		}
+	  		
+	  		registration_queue.clear();
+	  	}
+	 	
+	  	return( singleton );
+	 	 
+	}finally{
+	  		
+		class_mon.exit();
+	}  	
   }
   
-  protected static synchronized void
+  protected static void
   queueRegistration(
   	Class	_class )
   {
-  	if ( singleton == null ){
+  	try{
+  		class_mon.enter();
   		
-  		registration_queue.add( _class );
- 
-  	}else{
+	   	if ( singleton == null ){
+	  		
+	  		registration_queue.add( _class );
+	 
+	  	}else{
+	  		
+	  		try{
+	  			singleton.initializePluginFromClass( _class, "<internal>", _class.getName());
+	  			
+			}catch(PluginException e ){
+	  				
+	  		}
+	  	}
+	}finally{
   		
-  		try{
-  			singleton.initializePluginFromClass( _class, "<internal>", _class.getName());
-  			
-		}catch(PluginException e ){
-  				
-  		}
-  	}
+		class_mon.exit();
+	}  	
   }
   
   protected 

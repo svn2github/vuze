@@ -170,31 +170,38 @@ ResourceDownloaderTorrentImpl
 		throw((ResourceDownloaderException)result);
 	}
 	
-	public synchronized void
+	public void
 	asyncDownload()
 	{
-		if ( cancelled ){
-			
-			done_sem.release();
-			
-			informFailed((ResourceDownloaderException)result);
-			
-		}else{
-
-			if ( torrent == null ){
+		try{
+			this_mon.enter();
+		
+			if ( cancelled ){
 				
-				current_downloader = delegate.getClone( this );
+				done_sem.release();
 				
-				informActivity( getLogIndent() + "Downloading: " + getName());
-	
-				current_downloader.addListener( this );
-				
-				current_downloader.asyncDownload();
+				informFailed((ResourceDownloaderException)result);
 				
 			}else{
-				
-				downloadTorrent();
+	
+				if ( torrent == null ){
+					
+					current_downloader = delegate.getClone( this );
+					
+					informActivity( getLogIndent() + "Downloading: " + getName());
+		
+					current_downloader.addListener( this );
+					
+					current_downloader.asyncDownload();
+					
+				}else{
+					
+					downloadTorrent();
+				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -398,20 +405,27 @@ ResourceDownloaderTorrentImpl
 		}
 	}
 	
-	public synchronized void
+	public void
 	cancel()
 	{
-		result	= new ResourceDownloaderException( "Download cancelled");
+		try{
+			this_mon.enter();
 		
-		cancelled	= true;
-		
-		informFailed((ResourceDownloaderException)result );
-		
-		done_sem.release();
-		
-		if ( current_downloader != null ){
+			result	= new ResourceDownloaderException( "Download cancelled");
 			
-			current_downloader.cancel();
+			cancelled	= true;
+			
+			informFailed((ResourceDownloaderException)result );
+			
+			done_sem.release();
+			
+			if ( current_downloader != null ){
+				
+				current_downloader.cancel();
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}	
 	

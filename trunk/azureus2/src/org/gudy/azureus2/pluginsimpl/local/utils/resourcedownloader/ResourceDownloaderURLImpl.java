@@ -290,7 +290,8 @@ ResourceDownloaderURLImpl
 		try{
 			reportActivity(this, getLogIndent() + "Downloading: " + original_url );
 			
-			synchronized( this ){
+			try{
+				this_mon.enter();
 				
 				if ( download_initiated ){
 					
@@ -298,6 +299,10 @@ ResourceDownloaderURLImpl
 				}
 				
 				download_initiated	= true;
+				
+			}finally{
+				
+				this_mon.exit();
 			}
 			
 			try{
@@ -380,9 +385,14 @@ ResourceDownloaderURLImpl
 						throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 					}
 						
-					synchronized( this ){
+					try{
+						this_mon.enter();
 						
 						input_stream = con.getInputStream();
+						
+					}finally{
+						
+						this_mon.exit();
 					}
 					
 					ByteArrayOutputStream	baos;
@@ -481,7 +491,8 @@ ResourceDownloaderURLImpl
 	{
 		cancel_download	= true;
 		
-		synchronized( this ){
+		try{
+			this_mon.enter();
 			
 			if ( input_stream != null ){
 				
@@ -492,6 +503,9 @@ ResourceDownloaderURLImpl
 					
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		informFailed( new ResourceDownloaderException( "Download cancelled" ));

@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 
 import org.gudy.azureus2.pluginsimpl.remote.download.*;
@@ -59,10 +60,13 @@ RPPluginInterface
 	extends		RPObject
 	implements 	PluginInterface
 {
-	protected static long	connection_id_next	= new Random().nextLong();
-	
+	protected static long		connection_id_next	= new Random().nextLong();
+	protected static AEMonitor	class_mon			= new AEMonitor( "RPPluginInterface:class" );
+
 	protected transient PluginInterface		delegate;
 	protected transient long				request_id_next;
+	
+	protected AEMonitor	this_mon			= new AEMonitor( "RPPluginInterface" );
 	
 	// don't change these field names as they are visible on XML serialisation
 	
@@ -91,7 +95,8 @@ RPPluginInterface
 	{
 		super( _delegate );
 		
-		synchronized( RPPluginInterface.class ){
+		try{
+			class_mon.enter();
 			
 			_connection_id = connection_id_next++;
 			
@@ -101,6 +106,9 @@ RPPluginInterface
 				
 				_connection_id = connection_id_next++;
 			}
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	
@@ -110,10 +118,18 @@ RPPluginInterface
 		return( _connection_id );
 	}
 	
-	protected synchronized long
+	protected long
 	_getNextRequestId()
 	{
-		return( request_id_next++ );
+		try{
+			this_mon.enter();
+		
+			return( request_id_next++ );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected void

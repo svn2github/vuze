@@ -29,26 +29,36 @@ package org.gudy.azureus2.core3.tracker.protocol.udp.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.protocol.udp.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 PRUDPPacketHandlerFactoryImpl 
 {
-	protected static Map	receiver_map = new HashMap();
-	
+	protected static 			Map	receiver_map = new HashMap();
+	protected static AEMonitor	class_mon	= new AEMonitor( "PRUDPPHF" );
 
-	public static synchronized PRUDPPacketHandler
+
+	public static PRUDPPacketHandler
 	getHandler(
 		int		port )
 	{
-		PRUDPPacketHandler	receiver = (PRUDPPacketHandler)receiver_map.get(new Integer(port));
+		try{
+			class_mon.enter();
 		
-		if ( receiver == null ){
+			PRUDPPacketHandler	receiver = (PRUDPPacketHandler)receiver_map.get(new Integer(port));
 			
-			receiver = new PRUDPPacketHandlerImpl( port );
+			if ( receiver == null ){
+				
+				receiver = new PRUDPPacketHandlerImpl( port );
+				
+				receiver_map.put( new Integer(port), receiver );
+			}
 			
-			receiver_map.put( new Integer(port), receiver );
+			return( receiver );
+			
+		}finally{
+			
+			class_mon.exit();
 		}
-		
-		return( receiver );
 	}		
 }

@@ -43,13 +43,17 @@ IPAddressRangeManager
 	
 	protected entry[]	merged_entries	= new entry[0];
 	
-	public synchronized void
+	protected AEMonitor	this_mon	= new AEMonitor( "IPAddressRangeManager" );
+
+	public void
 	addRange(
 		String	start,
 		String	end,
 		Object	user_data )
 	{
 		try{
+			this_mon.enter();
+			
 			long	s = PRHelpers.addressToInt( start );
 			
 			if ( s < 0 ){
@@ -68,34 +72,55 @@ IPAddressRangeManager
 		}catch( UnknownHostException e ){
 			
 			e.printStackTrace();
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	addRange(
 		long	start_int,
 		long	end_int,
 		Object	user_data )
 	{
-		rebuild_required	= true;
+		try{
+			this_mon.enter();
+		
+			rebuild_required	= true;
 			
-		entries.put( user_data, new entry( start_int, end_int, user_data ));
+			entries.put( user_data, new entry( start_int, end_int, user_data ));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized void
+	public void
 	removeRange(
 		Object		user_data )
 	{
-		entries.remove( user_data );
+		try{
+			this_mon.enter();
 		
-		rebuild_required	= true;
+			entries.remove( user_data );
+		
+			rebuild_required	= true;
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
-	public synchronized Object
+	public Object
 	isInRange(
 		String	ip )
 	{
 		try{
+			this_mon.enter();
+			
 			long i = PRHelpers.addressToInt( ip );
 			
 			if ( i < 0 ){
@@ -114,104 +139,116 @@ IPAddressRangeManager
 			e.printStackTrace();
 			
 			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized Object
+	public Object
 	isInRange(
 		long	ip_int )
 	{
-		if ( rebuild_required ){
-			
-			rebuild_required	= false;
-			
-			rebuild();
-		}
-				
-		if ( merged_entries.length == 0 ){
-			
-			return( null );
-		}
-			
-			// assisted binary chop 
+		try{
+			this_mon.enter();
 		
-		int	bottom 	= 0;
-		int	top		= merged_entries.length-1;
-		
-		int	current	= -1;
-		
-		while( top >= 0 && bottom < merged_entries.length && bottom <= top){
-			
-			current = (bottom+top)/2;
-			
-			entry	e = merged_entries[current];
-			
-			long	this_start 	= e.getStart();
-			long this_end	= e.getMergedEnd();
-			
-			if ( ip_int == this_start ){
+			if ( rebuild_required ){
 				
-				break;
+				rebuild_required	= false;
 				
-			}else if ( ip_int > this_start ){
-				
-				if ( ip_int <= this_end ){
-					
-					break;
-				}
-				
-					// lies to the right of this entry
-				
-				bottom	= current + 1;
-				
-			}else if ( ip_int == this_end ){
-				
-				break;
-				
-			}else{
-				// < this_end
-				
-				if ( ip_int >= this_start ){
-					
-					break;
-				}
-				
-				top = current - 1;
+				rebuild();
 			}
-		}
-		
-		if ( top >= 0 && bottom < merged_entries.length && bottom <= top ){
-
-			entry	e = merged_entries[current];
-		
-			if ( ip_int <= e.getEnd()){
-				
-				return( e.getUserData());
-			}
-			
-			List	merged = e.getMergedEntries();
-			
-			if ( merged == null ){
-				
-				Debug.out( "IPAddressRangeManager: inconsistent merged details - no entries" );
+					
+			if ( merged_entries.length == 0 ){
 				
 				return( null );
 			}
+				
+				// assisted binary chop 
 			
-			for (int i=0;i<merged.size();i++){
+			int	bottom 	= 0;
+			int	top		= merged_entries.length-1;
+			
+			int	current	= -1;
+			
+			while( top >= 0 && bottom < merged_entries.length && bottom <= top){
 				
-				entry	me = (entry)merged.get(i);
+				current = (bottom+top)/2;
 				
-				if ( me.getStart() <= ip_int && me.getEnd() >= ip_int ){
+				entry	e = merged_entries[current];
+				
+				long	this_start 	= e.getStart();
+				long this_end	= e.getMergedEnd();
+				
+				if ( ip_int == this_start ){
 					
-					return( me.getUserData());
+					break;
+					
+				}else if ( ip_int > this_start ){
+					
+					if ( ip_int <= this_end ){
+						
+						break;
+					}
+					
+						// lies to the right of this entry
+					
+					bottom	= current + 1;
+					
+				}else if ( ip_int == this_end ){
+					
+					break;
+					
+				}else{
+					// < this_end
+					
+					if ( ip_int >= this_start ){
+						
+						break;
+					}
+					
+					top = current - 1;
 				}
 			}
 			
-			Debug.out( "IPAddressRangeManager: inconsistent merged details - entry not found" );
+			if ( top >= 0 && bottom < merged_entries.length && bottom <= top ){
+	
+				entry	e = merged_entries[current];
+			
+				if ( ip_int <= e.getEnd()){
+					
+					return( e.getUserData());
+				}
+				
+				List	merged = e.getMergedEntries();
+				
+				if ( merged == null ){
+					
+					Debug.out( "IPAddressRangeManager: inconsistent merged details - no entries" );
+					
+					return( null );
+				}
+				
+				for (int i=0;i<merged.size();i++){
+					
+					entry	me = (entry)merged.get(i);
+					
+					if ( me.getStart() <= ip_int && me.getEnd() >= ip_int ){
+						
+						return( me.getUserData());
+					}
+				}
+				
+				Debug.out( "IPAddressRangeManager: inconsistent merged details - entry not found" );
+			}
+			
+			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		return( null );
 	}
 	
 	protected void

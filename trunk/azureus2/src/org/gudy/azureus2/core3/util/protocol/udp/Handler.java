@@ -32,7 +32,7 @@ public class
 Handler 
 	extends URLStreamHandler 
 {
-	public synchronized URLConnection 
+	public URLConnection 
 	openConnection(URL u)
 	{	
 		return new UDPURLConnection(u);

@@ -36,7 +36,11 @@ public class
 HostNameToIPResolver 
 {
 	static protected Thread			resolver_thread;
+	
 	static protected List			request_queue		= new ArrayList();
+	
+	static protected AEMonitor		request_queue_mon	= new AEMonitor( "HostNameToIPResolver" );
+
 	static protected AESemaphore	request_semaphore	= new AESemaphore("HostNameToIPResolver");
 	
 	public static void
@@ -57,7 +61,8 @@ HostNameToIPResolver
 			}
 		}
 		
-		synchronized( request_queue ){
+		try{
+			request_queue_mon.enter();
 			
 			request_queue.add( new request( host, l ));
 			
@@ -78,9 +83,14 @@ HostNameToIPResolver
 									
 									request	req;
 									
-									synchronized( request_queue ){
+									try{
+										request_queue_mon.enter();
 										
 										req	= (request)request_queue.remove(0);
+										
+									}finally{
+										
+										request_queue_mon.exit();
 									}
 									
 									try{
@@ -105,6 +115,9 @@ HostNameToIPResolver
 					
 				resolver_thread.start();
 			}
+		}finally{
+			
+			request_queue_mon.exit();
 		}
 	}
 	

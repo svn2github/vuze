@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 import java.util.*;
 import java.io.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
 public abstract class 
@@ -43,6 +44,8 @@ ResourceDownloaderBaseImpl
 	protected ResourceDownloaderBaseImpl	parent;
 	protected List							children = new ArrayList();
 	
+	protected AEMonitor		this_mon	= new AEMonitor( "ResourceDownloader" );
+
 	protected
 	ResourceDownloaderBaseImpl(
 		ResourceDownloaderBaseImpl	_parent )

@@ -30,6 +30,7 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public abstract class 
@@ -58,8 +59,9 @@ PRUDPPacket
 
 	public static final long	INITIAL_CONNECTION_ID	= 0x41727101980L;
 	
-	protected static int	next_id = new Random(SystemTime.getCurrentTime()).nextInt();
-	
+	protected static int			next_id 	= new Random(SystemTime.getCurrentTime()).nextInt();
+	protected static AEMonitor		class_mon	= new AEMonitor( "PRUDPPacket" );
+
 	protected int		type;
 	protected int		transaction_id;
 	
@@ -78,9 +80,14 @@ PRUDPPacket
 	{
 		type			= _type;
 		
-		synchronized( PRUDPPacket.class ){
+		try{
+			class_mon.enter();
 			
 			transaction_id	= next_id++;
+			
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	

@@ -24,8 +24,9 @@ public class FileUtil {
   
   private static final int	RESERVED_FILE_HANDLE_COUNT	= 4;
 	
-  private static List	reserved_file_handles = new ArrayList();
-	
+  private static List		reserved_file_handles 	= new ArrayList();
+  private static AEMonitor	class_mon				= new AEMonitor( "FileUtil:class" );
+
 
   public static String getCanonicalFileName(String filename) {
     // Sometimes Windows use filename in 8.3 form and cannot
@@ -189,80 +190,94 @@ public class FileUtil {
 	return( file_name_out );
   }
   
-  	// synchronize it to prevent concurrent attempts to write the same file
+  	// synchronise it to prevent concurrent attempts to write the same file
   
-  public static synchronized void
+  public static void
   writeResilientConfigFile(
   	String		file_name,
 	Map			data )
   {
   	try{
-  		getReservedFileHandles();
-      File temp = new File( SystemProperties.getUserPath() + file_name + ".saving");
-	    BufferedOutputStream	baos = null;
-	    
-	    try{
-	    	byte[] encoded_data = BEncoder.encode(data);
-	    	baos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
-	    	baos.write( encoded_data );
-	    	baos.flush();
-        baos.close();
-        baos = null;
-           
-        //only use newly saved file if it got this far, i.e. it saved successfully
-        if ( temp.length() > 1L ) {
-        	File file = new File( SystemProperties.getUserPath() + file_name );
-        	if ( file.exists() ){
-        		file.delete();
-        	}
-        	temp.renameTo( file );
-        }
-
-	    }catch (Exception e) {
-	    
-	    	LGLogger.logAlert( "Save of '" + file_name + "' fails", e );
-	    	
-	    }finally{
-	    	
-	    	try {
-	    		if (baos != null){
-	    			
-	    			baos.close();
-	    		}
-	    	}catch( Exception e){
-	    		
-	        	LGLogger.logAlert( "Save of '" + file_name + "' fails", e ); 
-	    	}
-	    }
+  		class_mon.enter();
+  	
+	  	try{
+	  		getReservedFileHandles();
+	      File temp = new File( SystemProperties.getUserPath() + file_name + ".saving");
+		    BufferedOutputStream	baos = null;
+		    
+		    try{
+		    	byte[] encoded_data = BEncoder.encode(data);
+		    	baos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
+		    	baos.write( encoded_data );
+		    	baos.flush();
+	        baos.close();
+	        baos = null;
+	           
+	        //only use newly saved file if it got this far, i.e. it saved successfully
+	        if ( temp.length() > 1L ) {
+	        	File file = new File( SystemProperties.getUserPath() + file_name );
+	        	if ( file.exists() ){
+	        		file.delete();
+	        	}
+	        	temp.renameTo( file );
+	        }
+	
+		    }catch (Exception e) {
+		    
+		    	LGLogger.logAlert( "Save of '" + file_name + "' fails", e );
+		    	
+		    }finally{
+		    	
+		    	try {
+		    		if (baos != null){
+		    			
+		    			baos.close();
+		    		}
+		    	}catch( Exception e){
+		    		
+		        	LGLogger.logAlert( "Save of '" + file_name + "' fails", e ); 
+		    	}
+		    }
+	  	}finally{
+	  		
+	  		releaseReservedFileHandles();
+	  	}
   	}finally{
   		
-  		releaseReservedFileHandles();
+  		class_mon.exit();
   	}
   }
   
-  	// synchronized against writes to make sure we get a consistent view
+  	// synchronised against writes to make sure we get a consistent view
   
-  	public static synchronized Map
+  	public static Map
 	readResilientConfigFile(
 		String		file_name )
 	{
   		try{
-  			getReservedFileHandles();
-  	
-  			return(readResilientConfigFile( file_name, 0 ));
-  			
-  		}catch( Throwable e ){
-  			
-  				// just in case something went wrong, make sure we just return a blank
-  				// map
-  			
-  			e.printStackTrace();
-  			
-  			return( new HashMap());
-  			
+  			class_mon.enter();
+	  	
+	  		try{
+	  			getReservedFileHandles();
+	  	
+	  			return(readResilientConfigFile( file_name, 0 ));
+	  			
+	  		}catch( Throwable e ){
+	  			
+	  				// just in case something went wrong, make sure we just return a blank
+	  				// map
+	  			
+	  			e.printStackTrace();
+	  			
+	  			return( new HashMap());
+	  			
+	  		}finally{
+	  			
+	  			releaseReservedFileHandles();
+	  		}
   		}finally{
   			
-  			releaseReservedFileHandles();
+  			class_mon.exit();
   		}
   	}
   	
@@ -377,29 +392,39 @@ public class FileUtil {
 	}
   
 
-	private static synchronized void
+	private static void
 	getReservedFileHandles()
 	{
-		while( reserved_file_handles.size() > 0 ){
-			
-			// System.out.println( "releasing reserved file handle");
-			
-			InputStream	is = (InputStream)reserved_file_handles.remove(0);
-			
-			try{
-				is.close();
+		try{
+			class_mon.enter();
+		
+			while( reserved_file_handles.size() > 0 ){
 				
-			}catch( Throwable e ){
+				// System.out.println( "releasing reserved file handle");
 				
-				e.printStackTrace();
+				InputStream	is = (InputStream)reserved_file_handles.remove(0);
+				
+				try{
+					is.close();
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
+				}
 			}
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 			
-	private static synchronized void
+	private static void
 	releaseReservedFileHandles()
 	{
 		try{
+			
+			class_mon.enter();
+			
 			File	lock_file	= new File(SystemProperties.getUserPath() + ".lock");
 							
 			lock_file.createNewFile();
@@ -415,6 +440,10 @@ public class FileUtil {
 		}catch( Throwable e ){
 		
 			e.printStackTrace();
+			
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	

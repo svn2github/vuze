@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -61,6 +62,8 @@ Initializer
   private StartServer 		startServer;
   
   private ArrayList listeners;
+  private AEMonitor	listeners_mon	= new AEMonitor( "Initializer:l" );
+
   private String[] args;
   
   public 
@@ -294,14 +297,24 @@ Initializer
   }
   
   public void addListener(AzureusCoreListener listener){
-    synchronized(listeners) {
-      listeners.add(listener);
+    try{
+    	listeners_mon.enter();
+    	
+    	listeners.add(listener);
+    }finally{
+    	
+    	listeners_mon.exit();
     }
   }
   
   public void removeListener(AzureusCoreListener listener) {
-    synchronized(listeners) {
-      listeners.remove(listener);
+    try{
+    	listeners_mon.enter();
+		
+    	listeners.remove(listener);
+    }finally{
+    	
+    	listeners_mon.exit();
     }
   }
   public void disposeAllGUIElements() {
@@ -318,22 +331,32 @@ Initializer
   
   
   public void reportCurrentTask(String currentTaskString) {
-     synchronized(listeners) {
+     try{
+     	listeners_mon.enter();
+     
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
 	    	AzureusCoreListener listener = (AzureusCoreListener) iter.next();
 	      listener.reportCurrentTask(currentTaskString);
 	    }
+    }finally{
+    	
+    	listeners_mon.exit();
     }
   }
   
   public void reportPercent(int percent) {
-    synchronized(listeners) {
+    try{
+    	listeners_mon.enter();
+    
 	    Iterator iter = listeners.iterator();
 	    while(iter.hasNext()) {
 	    	AzureusCoreListener listener = (AzureusCoreListener) iter.next();
 	      listener.reportPercent(overallPercent(percent));
 	    }
+    }finally{
+    	
+    	listeners_mon.exit();
     }
   }
   

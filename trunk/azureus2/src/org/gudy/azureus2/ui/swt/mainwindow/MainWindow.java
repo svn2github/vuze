@@ -147,7 +147,11 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   SystemTraySWT systemTraySWT;
   
   private HashMap downloadViews;
-  HashMap downloadBars;
+  private AEMonitor	downloadViews_mon			= new AEMonitor( "MainWindow:dlviews" );
+
+  HashMap 	downloadBars;
+  AEMonitor	downloadBars_mon			= new AEMonitor( "MainWindow:dlbars" );
+
      
   private Tab 	mytorrents;
   private Tab 	my_tracker_tab;
@@ -156,6 +160,8 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   private Tab console;
   private Tab config;
   
+  protected AEMonitor	this_mon			= new AEMonitor( "MainWindow" );
+
   
   public 
   MainWindow(
@@ -791,12 +797,15 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     }
     if (tray != null)
       tray.setVisible(true);
-    synchronized (downloadBars) {
+    try{
+    	downloadBars_mon.enter();
       Iterator iter = downloadBars.values().iterator();
       while (iter.hasNext()) {
         MinimizedWindow mw = (MinimizedWindow) iter.next();
         mw.setVisible(true);
       }
+    }finally{
+    	downloadBars_mon.exit();
     }
   }
   
@@ -843,7 +852,9 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     display.asyncExec(new Runnable() {
 
       public void run() {
-        synchronized (downloadBars) {
+        try{
+        	downloadBars_mon.enter();
+        
           Iterator iter = downloadBars.keySet().iterator();
           while (iter.hasNext()) {
             DownloadManager dm = (DownloadManager) iter.next();
@@ -851,6 +862,9 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
             mw.close();
             iter.remove();
           }
+        }finally{
+        	
+        	downloadBars_mon.exit();
         }
       }
 
@@ -907,9 +921,14 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
 			    }
 			    
 			    if (COConfigurationManager.getBooleanParameter("Open Bar", false)) {
-			      synchronized (downloadBars) {
+			      try{
+			      	downloadBars_mon.enter();
+			      	
 			        MinimizedWindow mw = new MinimizedWindow(created, mainWindow);
 			        downloadBars.put(created, mw);
+			      }finally{
+			      
+			      	downloadBars_mon.exit();
 			      }
 			    }
 			}
@@ -919,7 +938,9 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
   }
 
   public void openManagerView(DownloadManager downloadManager) {
-    synchronized (downloadViews) {
+    try{
+    	downloadViews_mon.enter();
+    
       if (downloadViews.containsKey(downloadManager)) {
         Tab tab = (Tab) downloadViews.get(downloadManager);
         tab.setFocus();
@@ -929,17 +950,27 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         Tab tab = new Tab(new ManagerView(azureus_core, downloadManager));
         downloadViews.put(downloadManager, tab);
       }
+    }finally{
+    	
+    	downloadViews_mon.exit();
     }
   }
 
   public void removeManagerView(DownloadManager downloadManager) {
-    synchronized (downloadViews) {
-      downloadViews.remove(downloadManager);
+    try{
+    	downloadViews_mon.enter();
+      
+    	downloadViews.remove(downloadManager);
+    }finally{
+    	
+    	downloadViews_mon.exit();
     }
   }
 
    public void downloadManagerRemoved(DownloadManager removed) {
-    synchronized (downloadViews) {
+    try{
+    	downloadViews_mon.enter();
+    
       if (downloadViews.containsKey(removed)) {
         final Tab tab = (Tab) downloadViews.get(removed);
         if (display == null || display.isDisposed())
@@ -951,6 +982,9 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
         });
 
       }
+    }finally{
+    	
+    	downloadViews_mon.exit();
     }
   }
 
@@ -1329,33 +1363,41 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
       stats_tab.setFocus();
   }
 
-  public synchronized void setSelectedLanguageItem() {   
-    Messages.updateLanguageForControl(mainWindow.getShell());
-    
-    if ( systemTraySWT != null ){
-    	Messages.updateLanguageForControl(systemTraySWT.getMenu());
-    }
-    
-    if (statusText != null){
-    
-    	statusText.update();
-    }
-    
-    if (folder != null) {
-      if(useCustomTab) {
-        ((CTabFolder)folder).update();
-      } else {
-        ((TabFolder)folder).update();
-      }
-    }
-
-    if (tray != null){
-      tray.updateLanguage();
-    }
-    
-    Tab.updateLanguage();
-  
-    setStatusText(statusTextKey);
+  public void setSelectedLanguageItem() 
+  {
+  	try{
+  		this_mon.enter();
+  	
+	    Messages.updateLanguageForControl(mainWindow.getShell());
+	    
+	    if ( systemTraySWT != null ){
+	    	Messages.updateLanguageForControl(systemTraySWT.getMenu());
+	    }
+	    
+	    if (statusText != null){
+	    
+	    	statusText.update();
+	    }
+	    
+	    if (folder != null) {
+	      if(useCustomTab) {
+	        ((CTabFolder)folder).update();
+	      } else {
+	        ((TabFolder)folder).update();
+	      }
+	    }
+	
+	    if (tray != null){
+	      tray.updateLanguage();
+	    }
+	    
+	    Tab.updateLanguage();
+	  
+	    setStatusText(statusTextKey);
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   public MainMenu getMenu() {
@@ -1509,9 +1551,15 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
               }
               
               if (COConfigurationManager.getBooleanParameter("Open Bar", false)) {
-                synchronized (downloadBars) {
-                  MinimizedWindow mw = new MinimizedWindow(manager, mainWindow);
-                  downloadBars.put(manager, mw);
+                try{
+                	downloadBars_mon.enter();
+                
+                	MinimizedWindow mw = new MinimizedWindow(manager, mainWindow);
+                	
+                	downloadBars.put(manager, mw);
+                }finally{
+                	
+                	downloadBars_mon.exit();
                 }
               }
             }

@@ -133,39 +133,46 @@ ResourceDownloaderTimeoutImpl
 		throw((ResourceDownloaderException)result);
 	}
 	
-	public synchronized void
+	public void
 	asyncDownload()
 	{		
-		if ( !cancelled ){
-			
-			current_downloader = delegate.getClone( this );
-			
-			informActivity( getLogIndent() + "Downloading: " + getName());
-
-			current_downloader.addListener( this );
-			
-			current_downloader.asyncDownload();
+		try{
+			this_mon.enter();
 		
-			Thread t = new AEThread( "ResourceDownloaderTimeout")
-				{
-					public void
-					run()
-					{
-						try{
-							Thread.sleep( timeout_millis );
-							
-							cancel(new ResourceDownloaderException( "Download timeout"));
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-						}
-					}
-				};
-			
-			t.setDaemon(true);
+			if ( !cancelled ){
+				
+				current_downloader = delegate.getClone( this );
+				
+				informActivity( getLogIndent() + "Downloading: " + getName());
 	
-			t.start();
+				current_downloader.addListener( this );
+				
+				current_downloader.asyncDownload();
+			
+				Thread t = new AEThread( "ResourceDownloaderTimeout")
+					{
+						public void
+						run()
+						{
+							try{
+								Thread.sleep( timeout_millis );
+								
+								cancel(new ResourceDownloaderException( "Download timeout"));
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
+						}
+					};
+				
+				t.setDaemon(true);
+		
+				t.start();
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -186,78 +193,92 @@ ResourceDownloaderTimeoutImpl
 		throw((ResourceDownloaderException)result);
 	}
 	
-	public synchronized void
+	public void
 	asyncGetSize()
 	{		
-		if ( !cancelled ){
-			
-			current_downloader = delegate.getClone( this );
-					
-			Thread	size_thread = new AEThread( "ResourceDownloader:size getter" )
-				{
-					public void
-					run()
-					{
-						try{
-							long	res = current_downloader.getSize();
-							
-							result	= new Long(res);
-							
-							done_sem.release();
-							
-						}catch( ResourceDownloaderException e ){
-							
-							failed( current_downloader, e );
-						}
-					}
-				};
-				
-			size_thread.setDaemon( true );
+		try{
+			this_mon.enter();
 		
-			size_thread.start();
-			
-			Thread t = new AEThread( "ResourceDownloaderTimeout")
-				{
-					public void
-					run()
+			if ( !cancelled ){
+				
+				current_downloader = delegate.getClone( this );
+						
+				Thread	size_thread = new AEThread( "ResourceDownloader:size getter" )
 					{
-						try{
-							Thread.sleep( timeout_millis );
-							
-							cancel(new ResourceDownloaderException( "getSize timeout"));
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
+						public void
+						run()
+						{
+							try{
+								long	res = current_downloader.getSize();
+								
+								result	= new Long(res);
+								
+								done_sem.release();
+								
+							}catch( ResourceDownloaderException e ){
+								
+								failed( current_downloader, e );
+							}
 						}
-					}
-				};
+					};
+					
+				size_thread.setDaemon( true );
 			
-			t.setDaemon(true);
-	
-			t.start();
+				size_thread.start();
+				
+				Thread t = new AEThread( "ResourceDownloaderTimeout")
+					{
+						public void
+						run()
+						{
+							try{
+								Thread.sleep( timeout_millis );
+								
+								cancel(new ResourceDownloaderException( "getSize timeout"));
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
+						}
+					};
+				
+				t.setDaemon(true);
+		
+				t.start();
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	cancel()
 	{
 		cancel( new ResourceDownloaderException( "Download cancelled"));
 	}
 	
-	protected synchronized void
+	protected void
 	cancel(
 		ResourceDownloaderException reason )
 	{
-		result	= reason; 
+		try{
+			this_mon.enter();
 		
-		cancelled	= true;
-	
-		informFailed((ResourceDownloaderException)result );
-		
-		if ( current_downloader != null ){
+			result	= reason; 
 			
-			current_downloader.cancel();
+			cancelled	= true;
+		
+			informFailed((ResourceDownloaderException)result );
+			
+			if ( current_downloader != null ){
+				
+				current_downloader.cancel();
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}	
 	

@@ -46,8 +46,9 @@ PRUDPPacketHandlerImpl
 	
 	protected long		last_timeout_check;
 	
-	protected Map		requests = new HashMap();
-	
+	protected Map			requests = new HashMap();
+	protected AEMonitor		requests_mon	= new AEMonitor( "PRUDPPH:req" );
+
 	protected
 	PRUDPPacketHandlerImpl(
 		int		_port )
@@ -145,7 +146,8 @@ PRUDPPacketHandlerImpl
 			
 			last_timeout_check	= now;
 			
-			synchronized( requests ){
+			try{
+				requests_mon.enter();
 				
 				Iterator it = requests.values().iterator();
 				
@@ -162,6 +164,9 @@ PRUDPPacketHandlerImpl
 						request.setException(new PRUDPPacketHandlerException("timed out"));
 					}
 				}
+			}finally{
+				
+				requests_mon.exit();
 			}
 		}
 		
@@ -181,7 +186,8 @@ PRUDPPacketHandlerImpl
 
 		LGLogger.log( "PRUDPPacketHandler: reply packet received: ".concat(reply.getString())); 
 				
-		synchronized( requests ){
+		try{
+			requests_mon.enter();
 			
 			PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)requests.get(new Integer(reply.getTransactionId()));
 		
@@ -193,6 +199,9 @@ PRUDPPacketHandlerImpl
 			
 				request.setReply( reply );
 			}
+		}finally{
+			
+			requests_mon.exit();
 		}
 	}
 	
@@ -264,9 +273,14 @@ PRUDPPacketHandlerImpl
 			
 			PRUDPPacketHandlerRequest	request = new PRUDPPacketHandlerRequest();
 		
-			synchronized( requests ){
+			try{
+				requests_mon.enter();
 					
 				requests.put( new Integer( request_packet.getTransactionId()), request );
+				
+			}finally{
+				
+				requests_mon.exit();
 			}
 			
 			LGLogger.log( "PRUDPPacketHandler: request packet sent: ".concat(request_packet.getString())); 
@@ -278,9 +292,14 @@ PRUDPPacketHandlerImpl
 				
 			}finally{
 				
-				synchronized( requests ){
+				try{
+					requests_mon.enter();
 					
 					requests.remove( new Integer( request_packet.getTransactionId()));
+					
+				}finally{
+					
+					requests_mon.exit();
 				}
 			}
 		}catch( PRUDPPacketHandlerException e ){

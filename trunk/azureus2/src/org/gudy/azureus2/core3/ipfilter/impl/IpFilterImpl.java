@@ -47,18 +47,26 @@ IpFilterImpl
 {
 
 	private static IpFilterImpl ipFilter;
-  
-	private List 	all_ip_ranges;
+	private static AEMonitor	class_mon	= new AEMonitor( "IpFilter:class" );
+ 
+	private List 		all_ip_ranges;
+	private AEMonitor	all_ip_ranges_mon	= new AEMonitor( "IpFilter:all" );
 	
 	private IPAddressRangeManager	range_manager = new IPAddressRangeManager();
 	
-	private Map		bannedIps;
+	private Map			bannedIps;
+	private AEMonitor	bannedIps_mon	= new AEMonitor( "IpFilter:banned" );
 	 
     //Map ip blocked -> matching range
-    private List ipsBlocked;
- 
+	
+    private List		ipsBlocked;
+	private AEMonitor	ipsBlocked_mon	= new AEMonitor( "IpFilter:blocked" );
+
     private long	last_update_time;
     
+	
+	private AEMonitor	this_mon	= new AEMonitor( "IpFilter" );
+
   
 	private IpFilterImpl() 
 	{
@@ -78,11 +86,18 @@ IpFilterImpl
 	  }
 	}
   
-	public static synchronized IpFilter getInstance() {
-	  if(ipFilter == null) {
-		ipFilter = new IpFilterImpl();
-	  }
-	  return ipFilter;
+	public static IpFilter getInstance() {
+		try{
+			class_mon.enter();
+		
+			  if(ipFilter == null) {
+				ipFilter = new IpFilterImpl();
+			  }
+			  return ipFilter;
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
   
 	public File
@@ -98,89 +113,108 @@ IpFilterImpl
 		loadFilters();
 	}
 	
-	public synchronized void 
+	public void 
 	save() 
 	
 		throws Exception
 	{
-      Map map = new HashMap();
-	  synchronized(all_ip_ranges) { 
-
-		List filters = new ArrayList();
-		map.put("ranges",filters);
-		Iterator iter = all_ip_ranges.iterator();
-		while(iter.hasNext()) {
-		  IpRange range = (IpRange) iter.next();
-		  if(range.isValid() && ! range.isSessionOnly()) {
-			String description =  range.getDescription();
-			String startIp = range.getStartIp();
-			String endIp = range.getEndIp();
-			Map mapRange = new HashMap();
-			mapRange.put("description",description);
-			mapRange.put("start",startIp);
-			mapRange.put("end",endIp);
-			filters.add(mapRange);
-		  }
-		}
-	  }
-	  	FileOutputStream fos  = null;
-    
-    	try {
-      	
-    		//  Open the file
-    		
-    		File filtersFile = FileUtil.getUserFile("filters.config");
-        
-    		fos = new FileOutputStream(filtersFile);
-    		
-    		fos.write(BEncoder.encode(map));
-    		
-    	}finally{
-	  	
-	  		if ( fos != null ){
-	  			
-	  			fos.close();
-	  		}
-    	}
-	}
-  
-	private synchronized void loadFilters() 
-		throws Exception
-	{
+		try{
+			this_mon.enter();
 		
-	  List new_ipRanges = new ArrayList();
-
-	  FileInputStream fin = null;
-	  BufferedInputStream bin = null;
-	  try {
-		//open the file
-		File filtersFile = FileUtil.getUserFile("filters.config");
-		if (filtersFile.exists()) {
-			fin = new FileInputStream(filtersFile);
-			bin = new BufferedInputStream(fin, 8192);
-			Map map = BDecoder.decode(bin);
-			List list = (List) map.get("ranges");
-			Iterator iter = list.listIterator();
+	      Map map = new HashMap();
+		  try{
+		  	all_ip_ranges_mon.enter(); 
+		 
+	
+			List filters = new ArrayList();
+			map.put("ranges",filters);
+			Iterator iter = all_ip_ranges.iterator();
 			while(iter.hasNext()) {
-			  Map range = (Map) iter.next();
-			  String description =  new String((byte[])range.get("description"));
-			  String startIp =  new String((byte[])range.get("start"));
-			  String endIp = new String((byte[])range.get("end"));
-	        
-			  IpRange ipRange = new IpRangeImpl(description,startIp,endIp,false);
-			  if(ipRange.isValid()){
-				new_ipRanges.add(ipRange);
+			  IpRange range = (IpRange) iter.next();
+			  if(range.isValid() && ! range.isSessionOnly()) {
+				String description =  range.getDescription();
+				String startIp = range.getStartIp();
+				String endIp = range.getEndIp();
+				Map mapRange = new HashMap();
+				mapRange.put("description",description);
+				mapRange.put("start",startIp);
+				mapRange.put("end",endIp);
+				filters.add(mapRange);
 			  }
 			}
-			bin.close();
-			fin.close();
-		}		
-	  }finally{
-	  
-	  	all_ip_ranges 	= new_ipRanges;
-	  	
-	  	markAsUpToDate();
-	  }
+		  }finally{
+		  	
+		  	all_ip_ranges_mon.exit();
+		  }
+		  
+		  	FileOutputStream fos  = null;
+	    
+	    	try {
+	      	
+	    		//  Open the file
+	    		
+	    		File filtersFile = FileUtil.getUserFile("filters.config");
+	        
+	    		fos = new FileOutputStream(filtersFile);
+	    		
+	    		fos.write(BEncoder.encode(map));
+	    		
+	    	}finally{
+		  	
+		  		if ( fos != null ){
+		  			
+		  			fos.close();
+		  		}
+	    	}
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+  
+	private void loadFilters() 
+		throws Exception
+	{
+		try{
+			this_mon.enter();
+		
+		  List new_ipRanges = new ArrayList();
+	
+		  FileInputStream fin = null;
+		  BufferedInputStream bin = null;
+		  try {
+			//open the file
+			File filtersFile = FileUtil.getUserFile("filters.config");
+			if (filtersFile.exists()) {
+				fin = new FileInputStream(filtersFile);
+				bin = new BufferedInputStream(fin, 8192);
+				Map map = BDecoder.decode(bin);
+				List list = (List) map.get("ranges");
+				Iterator iter = list.listIterator();
+				while(iter.hasNext()) {
+				  Map range = (Map) iter.next();
+				  String description =  new String((byte[])range.get("description"));
+				  String startIp =  new String((byte[])range.get("start"));
+				  String endIp = new String((byte[])range.get("end"));
+		        
+				  IpRange ipRange = new IpRangeImpl(description,startIp,endIp,false);
+				  if(ipRange.isValid()){
+					new_ipRanges.add(ipRange);
+				  }
+				}
+				bin.close();
+				fin.close();
+			}		
+		  }finally{
+		  
+		  	all_ip_ranges 	= new_ipRanges;
+		  	
+		  	markAsUpToDate();
+		  }
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
   
   
@@ -207,21 +241,34 @@ IpFilterImpl
 
 	  if(match != null) {
 	    if(!allow) {
-	      synchronized(ipsBlocked) {
+	      try{
+	      	ipsBlocked_mon.enter();
+	     
 	        ipsBlocked.add(new BlockedIpImpl(ipAddress,match, torrent_name));
-	      }
-		
+	        
+		  }finally{
+		  	ipsBlocked_mon.exit();
+		  }
+		  
 	      LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + match);
 		  return true;
 	    }else {		      
 	      return false;
 	    }
 	  }
+
 	
 	  if(allow) {
-	    synchronized(ipsBlocked) {
-	      ipsBlocked.add(new BlockedIpImpl(ipAddress,null, torrent_name));
+	    try{
+	    	ipsBlocked_mon.enter();
+	      
+	    	ipsBlocked.add(new BlockedIpImpl(ipAddress,null, torrent_name));
+	    	
+	    }finally{
+	    	
+	    	ipsBlocked_mon.exit();
 	    }
+	    
 	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
 	    return true;
 	  }
@@ -229,8 +276,14 @@ IpFilterImpl
 	}
 	
 	private boolean isBanned(String ipAddress) {
-	  synchronized(bannedIps) {
+	  try{
+	  	bannedIps_mon.enter();
+	  
 	    return( bannedIps.get(ipAddress) != null );
+	    
+	  }finally{
+	  	
+	  	bannedIps_mon.exit();
 	  }
 	}
   
@@ -263,13 +316,18 @@ IpFilterImpl
 	public IpRange[]
 	getRanges()
 	{
-		synchronized( all_ip_ranges ){
+		try{
+			all_ip_ranges_mon.enter();
 			
 			IpRange[]	res = new IpRange[all_ip_ranges.size()];
 			
 			all_ip_ranges.toArray( res );
 			
 			return( res );
+			
+		}finally{
+			
+			all_ip_ranges_mon.exit();
 		}
 	}
 	
@@ -283,9 +341,14 @@ IpFilterImpl
 	addRange(
 		IpRange	range )
 	{
-		synchronized( all_ip_ranges ){
+		try{
+			all_ip_ranges_mon.enter();
 		
 			all_ip_ranges.add( range );
+			
+		}finally{
+			
+			all_ip_ranges_mon.exit();
 		}
 		
 		markAsUpToDate();
@@ -295,11 +358,16 @@ IpFilterImpl
 	removeRange(
 		IpRange	range )
 	{
-		synchronized( all_ip_ranges ){
+		try{
+			all_ip_ranges_mon.enter();
 		
 			all_ip_ranges.remove( range );
 			
 			range_manager.removeRange( range );
+			
+		}finally{
+			
+			all_ip_ranges_mon.exit();
 		}
 		
 		markAsUpToDate();
@@ -332,25 +400,35 @@ IpFilterImpl
 		String 	ipAddress,
 		String	torrent_name ) 
 	{
-		synchronized(ipsBlocked){
+		try{
+			ipsBlocked_mon.enter();
+			
 			if( bannedIps.get(ipAddress) == null ){
 				
 				bannedIps.put( ipAddress, new BannedIpImpl( ipAddress, torrent_name ));
 			}
+		}finally{
+			
+			ipsBlocked_mon.exit();
 		}
 	}
 	
 	public BannedIp[] 
 	getBannedIps() 
 	{
-		synchronized(bannedIps){
+		try{
+			bannedIps_mon.enter();
 			
 			BannedIp[]	res = new BannedIp[bannedIps.size()];
 		
 			bannedIps.values().toArray(res);
 			
 			return( res );
-		}	
+			
+		}finally{
+			
+			bannedIps_mon.exit();
+		}
   	}
 	
 	public int
@@ -362,31 +440,44 @@ IpFilterImpl
 	public void
 	clearBannedIps()
 	{
-		synchronized(bannedIps){
+		try{
+			bannedIps_mon.enter();
 		
 			bannedIps.clear();
+		}finally{
+			
+			bannedIps_mon.exit();
 		}
 	}
 	
 	public BlockedIp[] 
 	getBlockedIps() 
 	{
-		synchronized(ipsBlocked){
+		try{
+			ipsBlocked_mon.enter();
 			
 			BlockedIp[]	res = new BlockedIp[ipsBlocked.size()];
 		
 			ipsBlocked.toArray(res);
 			
 			return( res );
-		}	
+		}finally{
+			
+			ipsBlocked_mon.exit();
+		}
   	}
 	
 	public void
 	clearBlockedIPs()
 	{
-		synchronized(ipsBlocked){
+		try{
+			ipsBlocked_mon.enter();
 			
 			ipsBlocked.clear();
+			
+		}finally{
+			
+			ipsBlocked_mon.exit();
 		}
 	}
 	

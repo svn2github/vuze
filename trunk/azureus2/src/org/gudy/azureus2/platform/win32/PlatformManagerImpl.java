@@ -44,33 +44,42 @@ PlatformManagerImpl
 	protected static boolean					init_tried;
 	
 	protected static PlatformManagerImpl		singleton;
+	protected static AEMonitor					class_mon	= new AEMonitor( "PlatformManager");
 	
-	public static synchronized PlatformManagerImpl
+	public static PlatformManagerImpl
 	getSingleton()
 	
 		throws PlatformManagerException	
 	{
-		if ( singleton == null && !init_tried ){
-			
-			init_tried	= true;
-			
-			try{
-				singleton	= new PlatformManagerImpl( AEWin32Manager.getAccessor());
-				
-			}catch( Throwable e ){
-				
-				LGLogger.log( "Win32Platform: failed to initialise", e );
-				
-				if ( e instanceof PlatformManagerException ){
-					
-					throw((PlatformManagerException)e);
-				}
-				
-				throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
-			}
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null && !init_tried ){
+				
+				init_tried	= true;
+				
+				try{
+					singleton	= new PlatformManagerImpl( AEWin32Manager.getAccessor());
+					
+				}catch( Throwable e ){
+					
+					LGLogger.log( "Win32Platform: failed to initialise", e );
+					
+					if ( e instanceof PlatformManagerException ){
+						
+						throw((PlatformManagerException)e);
+					}
+					
+					throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
+				}
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	protected AEWin32Access		access;

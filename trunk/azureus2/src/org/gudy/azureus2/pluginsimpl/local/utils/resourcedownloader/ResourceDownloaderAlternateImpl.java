@@ -207,43 +207,57 @@ ResourceDownloaderAlternateImpl
 		throw((ResourceDownloaderException)result);
 	}
 	
-	public synchronized void
+	public void
 	asyncDownload()
 	{
-		if ( current_index == max_to_try || cancelled ){
-			
-			done_sem.release();
-			
-			informFailed((ResourceDownloaderException)result);
-			
-		}else{
+		try{
+			this_mon.enter();
 		
-			current_downloader = ((ResourceDownloaderBaseImpl)delegates[current_index]).getClone( this );
-							
-			informActivity( getLogIndent() + "Downloading: " + getName());
+			if ( current_index == max_to_try || cancelled ){
+				
+				done_sem.release();
+				
+				informFailed((ResourceDownloaderException)result);
+				
+			}else{
 			
-			current_index++;			
-
-			current_downloader.addListener( this );
+				current_downloader = ((ResourceDownloaderBaseImpl)delegates[current_index]).getClone( this );
+								
+				informActivity( getLogIndent() + "Downloading: " + getName());
+				
+				current_index++;			
+	
+				current_downloader.addListener( this );
+				
+				current_downloader.asyncDownload();
+			}
+		}finally{
 			
-			current_downloader.asyncDownload();
+			this_mon.exit();
 		}
 	}
 	
-	public synchronized void
+	public void
 	cancel()
 	{
-		result	= new ResourceDownloaderException( "Download cancelled");
+		try{
+			this_mon.enter();
 		
-		cancelled	= true;
-		
-		informFailed((ResourceDownloaderException)result );
-		
-		done_sem.release();
-		
-		if ( current_downloader != null ){
+			result	= new ResourceDownloaderException( "Download cancelled");
 			
-			current_downloader.cancel();
+			cancelled	= true;
+			
+			informFailed((ResourceDownloaderException)result );
+			
+			done_sem.release();
+			
+			if ( current_downloader != null ){
+				
+				current_downloader.cancel();
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}	
 	
