@@ -311,7 +311,10 @@ public class VirtualChannelSelector {
       try {
         count = selector.select( timeout );
       }
-      catch (Throwable t) {  Debug.printStackTrace(t);  }
+      catch (Throwable t) {
+        Debug.out( "Caught exception on selector.select() op:", t );
+        try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
+      }
       
       if( !selector_guard.isSelectorOK( count, 10 ) ) {
         selector = selector_guard.repairSelector( selector );
@@ -356,22 +359,14 @@ public class VirtualChannelSelector {
             		}
             	}
             }
-           }
+          }
           else {
             key.cancel();
             data.listener.selectFailure( this, data.channel, data.attachment, new Throwable( "key is invalid" ) );
             // can get this if socket has been closed between select and here
-            //Debug.out( "key is invalid" );
           }
         }
       }
-      
-      /*
-      try {
-        selector.selectNow();
-      }
-      catch (Throwable t) {  Debug.printStackTrace(t);  }
-      */
       
       return count;
     }

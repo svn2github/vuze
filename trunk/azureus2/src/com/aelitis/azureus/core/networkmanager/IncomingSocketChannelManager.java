@@ -256,7 +256,7 @@ public class IncomingSocketChannelManager {
               
               //FAILURE
               public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
-                Debug.out( msg );
+                Debug.out( "select failure:", msg );
                 removeConnection( ic, true );
               }
             }, null );

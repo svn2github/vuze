@@ -379,7 +379,9 @@ public class ConnectDisconnectManager {
           try{ 
             channel.close();
           }
-          catch( Throwable t ) {  Debug.printStackTrace(t);  }
+          catch( Throwable t ) {
+            /*Debug.printStackTrace(t);*/
+          }
         }
       }
     }finally{
