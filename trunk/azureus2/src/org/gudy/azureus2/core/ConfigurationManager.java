@@ -99,9 +99,7 @@ public class ConfigurationManager {
     save("azureus.config");
   }
   
-  public boolean getBooleanParameter(
-  String parameter,
-  boolean defaultValue) {
+  public boolean getBooleanParameter(String parameter, boolean defaultValue) {
     int defaultInt = defaultValue ? 1 : 0;
     int result = getIntParameter(parameter, defaultInt);
     return result == 0 ? false : true;
@@ -109,12 +107,7 @@ public class ConfigurationManager {
   
   public boolean getBooleanParameter(String parameter) {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-    int result =
-    getIntParameter(
-    parameter,
-    def.def.containsKey(parameter)
-    ? ((Long) def.def.get(parameter)).intValue()
-    : (def.def_boolean ? 1 : 0));
+    int result = getIntParameter(parameter, def.def.containsKey(parameter) ? ((Long) def.def.get(parameter)).intValue() : (def.def_boolean ? 1 : 0));
     return result == 0 ? false : true;
   }
   
@@ -139,11 +132,7 @@ public class ConfigurationManager {
   
   public int getIntParameter(String parameter) {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-    return getIntParameter(
-    parameter,
-    def.def.containsKey(parameter)
-    ? ((Long) def.def.get(parameter)).intValue()
-    : def.def_int);
+    return getIntParameter(parameter, def.def.containsKey(parameter) ? ((Long) def.def.get(parameter)).intValue() : def.def_int);
   }
   
   private byte[] getByteParameterRaw(String parameter) {
@@ -171,21 +160,13 @@ public class ConfigurationManager {
   
   public String getStringParameter(String parameter) {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
-    return getStringParameter(
-    parameter,
-    def.def.containsKey(parameter)
-    ? (String) def.def.get(parameter)
-    : def.def_String);
+    return getStringParameter(parameter, (String) (def.def.containsKey(parameter) ? def.def.get(parameter) : def.def_String));
   }
   
   public String getDirectoryParameter(String parameter) throws IOException {
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
     String dir =
-    getStringParameter(
-    parameter,
-    def.def.containsKey(parameter)
-    ? (String) def.def.get(parameter)
-    : def.def_String);
+    getStringParameter(parameter, (String) (def.def.containsKey(parameter) ? def.def.get(parameter) : def.def_String));
     File temp = new File(dir);
     if (!temp.exists())
       temp.mkdirs();
@@ -211,13 +192,9 @@ public class ConfigurationManager {
   //TODO:: Move this to a FileManager class?
   public static String getApplicationPath() {
     if (System.getProperty("os.name").equals("Linux")) {
-      return System.getProperty("user.home")
-      + System.getProperty("file.separator")
-      + ".azureus"
-      + System.getProperty("file.separator");
+      return System.getProperty("user.home") + System.getProperty("file.separator") + ".azureus" + System.getProperty("file.separator");
     } else {
-      return System.getProperty("user.dir")
-      + System.getProperty("file.separator");
+      return System.getProperty("user.dir") + System.getProperty("file.separator");
     }
   }
 }
