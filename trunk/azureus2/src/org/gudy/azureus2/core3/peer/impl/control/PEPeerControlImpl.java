@@ -930,6 +930,7 @@ PEPeerControlImpl
       //4.1 Determine the N (nbUnchoke best peers)
       //Maybe we'll need some other test when we are a seed ...
       prepareBestUnChokedPeers(nbUnchoke - nonChoking.size());
+      nonChoking = getNonChokingPeers();
     }
 
     //3. Only Choke-Unchoke Every 10 secs

@@ -29,18 +29,14 @@ import java.util.Properties;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.SplashWindow;
 import org.gudy.azureus2.plugins.Plugin;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author Olivier
  * 
  */
-public class PluginInitializer implements PluginInterface {
+public class PluginInitializer {
 
   URLClassLoader classLoader;
   private GlobalManager gm;
@@ -89,7 +85,7 @@ public class PluginInitializer implements PluginInterface {
 
       Class c = classLoader.loadClass((String)props.get("plugin.class"));
       Plugin plugin = (Plugin) c.newInstance();
-      plugin.initialize(this);
+      plugin.initialize(new PluginInterfaceImpl(props,directory.getAbsolutePath()));
     } catch(Exception e) {
       e.printStackTrace();
       System.out.println("Error while loading class :" + ((String)props.get("plugin.class")));      
@@ -111,25 +107,4 @@ public class PluginInitializer implements PluginInterface {
       e.printStackTrace();
     }
   }
-  
-  public void addView(PluginView view)
-  {
-    MainWindow window = MainWindow.getWindow();
-    if(window != null) {
-      window.addPluginView(view);
-    }
-  }
-  
-  public GlobalManager getGlobalManager() {
-    return gm;
-  }
-
-  public void openTorrentFile(String fileName) {
-    MainWindow.getWindow().openTorrent(fileName);
-  }
-
-  public void openTorrentURL(String url) {
-    new FileDownloadWindow(MainWindow.getWindow().getDisplay(),url);
-  }
-
 }

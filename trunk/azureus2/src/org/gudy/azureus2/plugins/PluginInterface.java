@@ -21,6 +21,8 @@
  
 package org.gudy.azureus2.plugins;
 
+import java.util.Properties;
+
 
 /**
  * Defines the communication interface between Azureus and Plugins
@@ -46,4 +48,17 @@ public interface PluginInterface {
    * @param url The String representation of the url pointing to a torrent file
    */
   public void openTorrentURL(String url);
+  
+  /**
+   * An access to the plugin properties
+   * @return te properties from the file plugin.properties
+   */
+  public Properties getPluginProperties();
+  
+  /**
+   * An access to the plugin installation directory
+   * @return the full path the plugin is installed in
+   */
+  public String getPluginDirectoryName();
+  
 }

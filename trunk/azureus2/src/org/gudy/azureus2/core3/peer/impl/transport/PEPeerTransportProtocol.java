@@ -1110,7 +1110,7 @@ PEPeerTransportProtocol
 		}
 	  }
 	  catch (IOException e) {
-		//e.printStackTrace();
+		e.printStackTrace();
 		closeAll(true);
 	  } //If we have finished sending this buffer
 	  if (!writeBuffer.hasRemaining()) {
@@ -1132,7 +1132,11 @@ PEPeerTransportProtocol
 		//Assign the current buffer ...
 		keepAlive = 0;
 		writeBuffer = (ByteBuffer) protocolQueue.remove(0);
-		if (writeBuffer == null) return;
+		//
+    if (writeBuffer == null){
+      System.out.println("Empty write Buffer on protocol message !!!");
+      closeAll(true);
+    }
 		writeBuffer.position(0);
 		writeData = false;
 		//and loop
