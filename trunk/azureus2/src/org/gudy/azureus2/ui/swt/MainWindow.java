@@ -47,7 +47,7 @@ import snoozesoft.systray4j.SysTrayMenu;
  */
 public class MainWindow implements IComponentListener {
 
-  private static final String VERSION = "2.0.0.4";
+  private static final String VERSION = "2.0.0.5";
   private String latestVersion = "";
 
   private static MainWindow window;

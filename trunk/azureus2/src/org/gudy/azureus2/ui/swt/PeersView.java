@@ -59,7 +59,8 @@ public class PeersView implements IView, IComponentListener {
         "Stat Up",
         "S",
         "Av. Lvl.",
-        "Opt. Unchoke" };
+        "Opt. Unchoke",
+        "Client" };
     int[] align =
       {
         SWT.LEFT,
@@ -76,6 +77,7 @@ public class PeersView implements IView, IComponentListener {
         SWT.RIGHT,
         SWT.RIGHT,
         SWT.RIGHT,
+        SWT.LEFT,
         SWT.LEFT,
         SWT.LEFT,
         SWT.LEFT };
@@ -100,6 +102,7 @@ public class PeersView implements IView, IComponentListener {
     table.getColumn(14).setWidth(20);
     table.getColumn(15).setWidth(40);
     table.getColumn(16).setWidth(40);
+	table.getColumn(17).setWidth(40);
 
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem item = new MenuItem(menu, SWT.CHECK);

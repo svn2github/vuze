@@ -48,11 +48,15 @@ public class TrackerConnection
     
     //Create a peerId
     peerId = new byte[20];
-    for(int i = 15 ; i < 20 ; i++)
+    for(int i = 12 ; i < 20 ; i++)
     {
       peerId[i] = (byte) (Math.random() * 254);
     }
-    for(int i = 0 ; i < 15 ; i++)
+    byte[] azureus = (new String("Azureus")).getBytes();
+    for(int i = 5 ;i < 12 ; i++) {
+    	peerId[i] = azureus[i-5];
+    }
+    for(int i = 0 ; i < 5 ; i++)
     {
       peerId[i] = (byte) 0;
     }
