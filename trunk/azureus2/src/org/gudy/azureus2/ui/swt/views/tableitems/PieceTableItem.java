@@ -15,21 +15,25 @@ import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.views.PiecesView;
+import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
 /**
  * @author Olivier
  * 
  */
-public class PieceTableItem {
+public class PieceTableItem implements SortableItem{
 
   Display display;
+  PiecesView view;
   Table table;
   PEPiece piece;
   TableItem item;
 
   private String[] oldTexts;
 
-  public PieceTableItem(Table table, PEPiece piece) {
+  public PieceTableItem(PiecesView view,Table table, PEPiece piece) {
+    this.view = view;
     this.table = table;
     this.piece = piece;
     initialize();
@@ -46,6 +50,7 @@ public class PieceTableItem {
         if (table == null || table.isDisposed())
           return;
         item = new TableItem(table, SWT.NULL);
+        view.setItem(item,piece);
       }
     });
 
@@ -140,18 +145,46 @@ public class PieceTableItem {
     catch (Exception ignore) {
     }
   }
-
-  /**
-   * @param piece
+         
+  /*
+   * SortableItem implementation
    */
-  public void setPiece(PEPiece piece) {
-    this.piece = piece;
-  }
   
+  public void setDataSource(Object piece) {
+    this.piece = (PEPiece) piece;
+  }
+
   public int getIndex() {
     if(table == null || table.isDisposed() || item == null || item.isDisposed())
       return -1;
     return table.indexOf(item);
+  }
+
+  public long getIntField(String field) {    
+    if (field.equals("#")) //$NON-NLS-1$
+      return this.piece.getPieceNumber();
+
+    if (field.equals("size")) //$NON-NLS-1$
+      return this.piece.getLength();
+
+    if (field.equals("nbBlocs")) //$NON-NLS-1$
+      return this.piece.getNbBlocs();
+
+    if (field.equals("done")) //$NON-NLS-1$
+      return this.piece.getCompleted();
+
+    if (field.equals("availability")) //$NON-NLS-1$
+      return this.piece.getAvailability();
+
+    return 0;
+  }
+
+  public String getStringField(String field) {
+    return "";
+  }
+  
+  public TableItem getTableItem() {
+    return item;
   }
 
 }

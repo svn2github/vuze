@@ -4,12 +4,10 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.text.Collator;
-import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -27,21 +25,26 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PeerTableItem;
+import org.gudy.azureus2.ui.swt.views.utils.SortableTable;
+import org.gudy.azureus2.ui.swt.views.utils.TableSorter;
 
 /**
  * @author Olivier
  * 
  */
-public class PeersView extends AbstractIView implements DownloadManagerListener {
+public class PeersView extends AbstractIView implements DownloadManagerListener ,SortableTable {
 
   DownloadManager manager;
   Table table;
-  HashMap items;
+  Map objectToSortableItem;
+  Map tableItemToObject;
+  
+  TableSorter sorter;
   int loopFactor;
-
   public PeersView(DownloadManager manager) {
     this.manager = manager;
-    items = new HashMap();
+    objectToSortableItem = new HashMap();
+    tableItemToObject = new HashMap();
   }
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
@@ -105,26 +108,28 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
     table.getColumn(17).setWidth(105);
     table.getColumn(18).setWidth(60);
 
-    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("ip")); //$NON-NLS-1$
-    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("port")); //$NON-NLS-1$
-    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("t")); //$NON-NLS-1$
-    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("i")); //$NON-NLS-1$
-    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("c")); //$NON-NLS-1$
-    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
-    table.getColumn(6).addListener(SWT.Selection, new IntColumnListener("done")); //$NON-NLS-1$
-    table.getColumn(7).addListener(SWT.Selection, new IntColumnListener("ds")); //$NON-NLS-1$
-    table.getColumn(8).addListener(SWT.Selection, new IntColumnListener("down")); //$NON-NLS-1$
-    table.getColumn(9).addListener(SWT.Selection, new IntColumnListener("i2")); //$NON-NLS-1$
-    table.getColumn(10).addListener(SWT.Selection, new IntColumnListener("c2")); //$NON-NLS-1$
-    table.getColumn(11).addListener(SWT.Selection, new IntColumnListener("us")); //$NON-NLS-1$
-    table.getColumn(12).addListener(SWT.Selection, new IntColumnListener("up")); //$NON-NLS-1$
-    table.getColumn(13).addListener(SWT.Selection, new IntColumnListener("su")); //$NON-NLS-1$
-    table.getColumn(14).addListener(SWT.Selection, new IntColumnListener("s")); //$NON-NLS-1$
-    table.getColumn(15).addListener(SWT.Selection, new IntColumnListener("od")); //$NON-NLS-1$
-    table.getColumn(16).addListener(SWT.Selection, new IntColumnListener("opt")); //$NON-NLS-1$
-    table.getColumn(17).addListener(SWT.Selection, new StringColumnListener("client")); //$NON-NLS-1$
-    table.getColumn(18).addListener(SWT.Selection, new IntColumnListener("discarded"));
-
+    sorter = new TableSorter(this,"done");
+    sorter.addStringColumnListener(table.getColumn(0),"ip");
+    sorter.addStringColumnListener(table.getColumn(17),"client");
+    
+    sorter.addIntColumnListener(table.getColumn(1),"port");
+    sorter.addIntColumnListener(table.getColumn(2),"t");
+    sorter.addIntColumnListener(table.getColumn(3),"i");
+    sorter.addIntColumnListener(table.getColumn(4),"c");
+    sorter.addIntColumnListener(table.getColumn(5),"done");
+    sorter.addIntColumnListener(table.getColumn(6),"done");
+    sorter.addIntColumnListener(table.getColumn(7),"ds");
+    sorter.addIntColumnListener(table.getColumn(8),"down");
+    sorter.addIntColumnListener(table.getColumn(9),"i2");
+    sorter.addIntColumnListener(table.getColumn(10),"c2");
+    sorter.addIntColumnListener(table.getColumn(11),"us");
+    sorter.addIntColumnListener(table.getColumn(12),"up");
+    sorter.addIntColumnListener(table.getColumn(13),"su");
+    sorter.addIntColumnListener(table.getColumn(14),"s");
+    sorter.addIntColumnListener(table.getColumn(15),"od");
+    sorter.addIntColumnListener(table.getColumn(16),"opt");
+    sorter.addIntColumnListener(table.getColumn(18),"discarded");
+        
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
     final MenuItem item = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(item, "PeersView.menu.snubbed"); //$NON-NLS-1$
@@ -199,9 +204,9 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
 
     loopFactor++;
     //Refresh all items in table...
-    synchronized (items) {
+    synchronized (objectToSortableItem) {
 
-      Iterator iter = items.values().iterator();
+      Iterator iter = objectToSortableItem.values().iterator();
       while (iter.hasNext()) {
         PeerTableItem pti = (PeerTableItem) iter.next();
         pti.updateAll();
@@ -219,7 +224,7 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
    */
   public void delete() {
     manager.removeListener(this);
-    Iterator iter = items.values().iterator();
+    Iterator iter = objectToSortableItem.values().iterator();
     while (iter.hasNext()) {
       PeerTableItem item = (PeerTableItem) iter.next();
       item.remove();
@@ -243,12 +248,12 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
    */
   public void peerAdded(PEPeer created) {
-    synchronized (items) {
-      if (items.containsKey(created))
+    synchronized (objectToSortableItem) {
+      if (objectToSortableItem.containsKey(created))
         return;
       try {
         PeerTableItem item = new PeerTableItem(table, (PEPeer) created);
-        items.put(created, item);
+        objectToSortableItem.put(created, item);
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -262,12 +267,13 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
   public void peerRemoved(PEPeer removed) {
     //System.out.println("removed : " + removed.getClass() + ":" + removed);
     PeerTableItem item;
-    synchronized (items) {
-      item = (PeerTableItem) items.remove(removed);
+    synchronized (objectToSortableItem) {
+      item = (PeerTableItem) objectToSortableItem.remove(removed);
     }
     if (item == null)
       return;
-
+    
+    tableItemToObject.remove(item.getTableItem());
     item.remove();
     //System.out.println("PC removed"); 
   }
@@ -283,189 +289,21 @@ public class PeersView extends AbstractIView implements DownloadManagerListener 
 	  PEPiece		piece )
  {
  }
- 
-  //Sorting methods
-  private boolean getBooleanFiedl(PEPeer peerSocket, String field) {
-    if (field.equals("t")) //$NON-NLS-1$
-      return peerSocket.isIncoming();
 
-    if (field.equals("i")) //$NON-NLS-1$
-      return peerSocket.isInterested();
+  /*
+   * SortableTable implementation
+   */
 
-    if (field.equals("c")) //$NON-NLS-1$
-      return peerSocket.isChoked();
-
-    if (field.equals("i2")) //$NON-NLS-1$
-      return peerSocket.isInteresting();
-
-    if (field.equals("i2")) //$NON-NLS-1$
-      return peerSocket.isChoking();
-    return false;
+  public Map getObjectToSortableItemMap() {
+    return objectToSortableItem;
   }
 
-  private String getStringField(PEPeer peerSocket, String field) {
-    if (field.equals("ip")) //$NON-NLS-1$
-      return peerSocket.getIp();
-
-    if (field.equals("client")) //$NON-NLS-1$
-      return peerSocket.getClient();
-
-    return ""; //$NON-NLS-1$
+  public Table getTable() {
+    return table;
   }
 
-  private long getIntField(PEPeer peerSocket, String field) {
-
-    if (field.equals("port")) //$NON-NLS-1$
-      return peerSocket.getPort();
-
-    if (field.equals("done")) //$NON-NLS-1$
-      return peerSocket.getPercentDone();
-
-    if (field.equals("ds")) //$NON-NLS-1$
-      return peerSocket.getStats().getDownloadAverage();
-
-    if (field.equals("us")) //$NON-NLS-1$
-      return peerSocket.getStats().getUploadAverage();
-
-    if (field.equals("down")) //$NON-NLS-1$
-      return peerSocket.getStats().getTotalReceived();
-
-    if (field.equals("up")) //$NON-NLS-1$
-      return peerSocket.getStats().getTotalSent();
-    
-    if (field.equals("su")) //$NON-NLS-1$
-      return peerSocket.getStats().getStatisticSentAverage();
-    
-    if (field.equals("od")) //$NON-NLS-1$
-      return peerSocket.getStats().getTotalAverage();
-    
-    if (field.equals("discarded"))
-      return peerSocket.getStats().getTotalDiscarded();
-
-    if (getBooleanFiedl(peerSocket, field))
-      return 1;
-
-    return 0;
-  }
-
-  private boolean ascending = false;
-  private String lastField = ""; //$NON-NLS-1$
-
-  private void orderInt(String field) {
-    if (lastField.equals(field))
-      ascending = !ascending;
-    else {
-      lastField = field;
-      ascending = true;
-    }
-    synchronized (items) {
-      List ordered = new ArrayList(items.size());
-      PeerTableItem psItems[] = new PeerTableItem[items.size()];
-      Iterator iter = items.keySet().iterator();
-      while (iter.hasNext()) {
-        PEPeer peerSocket = (PEPeer) iter.next();
-        PeerTableItem item = (PeerTableItem) items.get(peerSocket);
-        int index = item.getIndex();
-        if(index == -1)
-          continue;
-        psItems[index] = item;
-        long value = getIntField(peerSocket, field);
-        int i;
-        for (i = 0; i < ordered.size(); i++) {
-          PEPeer peerSocketi = (PEPeer) ordered.get(i);
-          long valuei = getIntField(peerSocketi, field);
-          if (ascending) {
-            if (valuei >= value)
-              break;
-          }
-          else {
-            if (valuei <= value)
-              break;
-          }
-        }
-        ordered.add(i, peerSocket);
-      }
-
-      for (int i = 0; i < ordered.size(); i++) {
-        PEPeer peerSocket = (PEPeer) ordered.get(i);
-        psItems[i].setPeerSocket(peerSocket);
-        psItems[i].invalidate();
-        items.put(peerSocket, psItems[i]);
-
-      }
-    }
-  }
-
-  private class IntColumnListener implements Listener {
-
-    private String field;
-
-    public IntColumnListener(String field) {
-      this.field = field;
-    }
-
-    public void handleEvent(Event e) {
-      orderInt(field);
-    }
-  }
-
-  private class StringColumnListener implements Listener {
-
-    private String field;
-
-    public StringColumnListener(String field) {
-      this.field = field;
-    }
-
-    public void handleEvent(Event e) {
-      orderString(field);
-    }
-  }
-
-  
-  private void orderString(String field) {
-    if (lastField.equals(field))
-      ascending = !ascending;
-    else {
-      lastField = field;
-      ascending = true;
-    }
-    synchronized (items) {
-      Collator collator = Collator.getInstance(Locale.getDefault());
-      List ordered = new ArrayList(items.size());
-      PeerTableItem psItems[] = new PeerTableItem[items.size()];
-      Iterator iter = items.keySet().iterator();
-      while (iter.hasNext()) {
-        PEPeer peerSocket = (PEPeer) iter.next();
-        PeerTableItem item = (PeerTableItem) items.get(peerSocket);
-        int index = item.getIndex();
-        if(index == -1)
-          continue;
-        psItems[index] = item;
-        String value = getStringField(peerSocket, field);
-        int i;
-        for (i = 0; i < ordered.size(); i++) {
-          PEPeer peerSocketi = (PEPeer) ordered.get(i);
-          String valuei = getStringField(peerSocketi, field);
-          if (!ascending) {
-            if (collator.compare(valuei, value) <= 0)
-              break;
-          }
-          else {
-            if (collator.compare(valuei, value) >= 0)
-              break;
-          }
-        }
-        ordered.add(i, peerSocket);
-      }
-
-      for (int i = 0; i < ordered.size(); i++) {
-        PEPeer peerSocket = (PEPeer) ordered.get(i);
-        psItems[i].setPeerSocket(peerSocket);
-        psItems[i].invalidate();
-        items.put(peerSocket, psItems[i]);
-      }
-    }
+  public Map getTableItemToObjectMap() {
+    return tableItemToObject;
   }
 
 }

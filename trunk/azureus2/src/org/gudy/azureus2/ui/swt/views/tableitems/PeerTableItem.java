@@ -17,6 +17,7 @@ import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
+import org.gudy.azureus2.ui.swt.views.utils.SortableItem;
 
 /**
  * This class (GUI) represents a row into the peers table.
@@ -24,7 +25,7 @@ import org.gudy.azureus2.ui.swt.MainWindow;
  * @author Olivier
  *
  */
-public class PeerTableItem {
+public class PeerTableItem implements SortableItem {
 
   public static final HashMap tableItems = new HashMap();
 
@@ -362,6 +363,81 @@ public class PeerTableItem {
     if(table == null || table.isDisposed() || item == null || item.isDisposed())
       return -1;
     return table.indexOf(item);
+  }
+  
+  /*
+   * SortableItem
+   */
+  
+  public String getStringField(String field) {
+    if (field.equals("ip")) //$NON-NLS-1$
+      return peerSocket.getIp();
+
+    if (field.equals("client")) //$NON-NLS-1$
+      return peerSocket.getClient();
+
+    return ""; //$NON-NLS-1$
+  }
+
+  public long getIntField(String field) {
+
+    if (field.equals("port")) //$NON-NLS-1$
+      return peerSocket.getPort();
+
+    if (field.equals("done")) //$NON-NLS-1$
+      return peerSocket.getPercentDone();
+
+    if (field.equals("ds")) //$NON-NLS-1$
+      return peerSocket.getStats().getDownloadAverage();
+
+    if (field.equals("us")) //$NON-NLS-1$
+      return peerSocket.getStats().getUploadAverage();
+
+    if (field.equals("down")) //$NON-NLS-1$
+      return peerSocket.getStats().getTotalReceived();
+
+    if (field.equals("up")) //$NON-NLS-1$
+      return peerSocket.getStats().getTotalSent();
+    
+    if (field.equals("su")) //$NON-NLS-1$
+      return peerSocket.getStats().getStatisticSentAverage();
+    
+    if (field.equals("od")) //$NON-NLS-1$
+      return peerSocket.getStats().getTotalAverage();
+    
+    if (field.equals("discarded"))
+      return peerSocket.getStats().getTotalDiscarded();
+
+    if (getBooleanField(field))
+      return 1;
+
+    return 0;
+  }
+  
+  private boolean getBooleanField(String field) {
+    if (field.equals("t")) //$NON-NLS-1$
+      return peerSocket.isIncoming();
+
+    if (field.equals("i")) //$NON-NLS-1$
+      return peerSocket.isInterested();
+
+    if (field.equals("c")) //$NON-NLS-1$
+      return peerSocket.isChoked();
+
+    if (field.equals("i2")) //$NON-NLS-1$
+      return peerSocket.isInteresting();
+
+    if (field.equals("i2")) //$NON-NLS-1$
+      return peerSocket.isChoking();
+    return false;
+  } 
+
+  public void setDataSource(Object dataSource) {
+    peerSocket = (PEPeer) dataSource;
+  }
+  
+  public TableItem getTableItem() {
+    return item;
   }
 
 }

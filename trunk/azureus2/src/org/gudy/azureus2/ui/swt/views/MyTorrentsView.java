@@ -795,6 +795,8 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     ManagerItem managerItem = (ManagerItem) managerItems.remove(removed);
     if (managerItem != null) {
+      TableItem tableItem = managerItem.getTableItem();
+      managers.remove(tableItem);
       managerItem.delete();
     }
   }

@@ -212,5 +212,6 @@ public class ManagerItem {
 
   public DownloadManager getManager() {
     return this.manager;
-  }
+  }  
+  
 }

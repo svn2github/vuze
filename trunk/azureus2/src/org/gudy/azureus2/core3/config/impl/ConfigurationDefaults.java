@@ -125,7 +125,7 @@ public class ConfigurationDefaults {
     
     /** SWT GUI Settings **/
     def.put("useCustomTab",new Long(1));
-    
+    def.put("ReOrder Delay",new Long(20));
     
     /** Headless Server settings **/
     // Server Name
