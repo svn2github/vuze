@@ -39,7 +39,9 @@ public class TorrentDownloaderImpl extends Thread implements TorrentDownloader {
   private String filename, directoryname;
   private File file = null;
   
-  public TorrentDownloaderImpl() {}
+  public TorrentDownloaderImpl() {
+    super("Torrent Downloader");
+  }
   
   public void init(TorrentDownloaderCallBackInterface _iface, String _url) {
     this.setName("TorrentDownloader: "+_url);

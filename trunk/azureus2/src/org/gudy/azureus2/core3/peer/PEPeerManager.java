@@ -44,8 +44,7 @@ PEPeerManager
 	blockWritten(
 		int pieceNumber, 
 		int offset,
-    PEPeer peer,
-    byte[] hash);
+    PEPeer peer);
 	
 	public void 
 	pieceChecked(

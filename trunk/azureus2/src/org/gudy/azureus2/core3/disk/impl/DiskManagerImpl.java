@@ -21,7 +21,6 @@
 
 package org.gudy.azureus2.core3.disk.impl;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -475,7 +474,7 @@ DiskManagerImpl
 		          List blocks = (List)partialPieces.get(key.getKey());
 		          Iterator iterBlock = blocks.iterator();
 		          while (iterBlock.hasNext()) {
-		            piece.setWritten(null,null,((Long)iterBlock.next()).intValue());
+		            piece.setWritten(null,((Long)iterBlock.next()).intValue());
 		          }
 		          pieces[pieceNumber] = piece;
 		      }
@@ -600,18 +599,20 @@ DiskManagerImpl
 		}
 	}
 
-	public static class WriteElement {
+	public class QueueElement {
 		private int pieceNumber;
 		private int offset;
 		private ByteBuffer data;
     private PEPeer sender;
+    private boolean md5Check;
+    private int md5CheckBlocNumber;
 
-		public WriteElement(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
+		public QueueElement(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
 			this.pieceNumber = pieceNumber;
 			this.offset = offset;
 			this.data = data;
       this.sender = sender;
-		}
+		}  
 
 		public int getPieceNumber() {
 			return this.pieceNumber;
@@ -675,23 +676,26 @@ DiskManagerImpl
 		public void run() {
 			while (bContinue) {
 				while (writeQueue.size() != 0) {
-					WriteElement elt = (WriteElement)writeQueue.remove(0);
+					QueueElement elt = (QueueElement)writeQueue.remove(0);
 					//FIX for bug 814062
 					//Do not allow to write in a piece marked as done.
 					int pieceNumber = elt.getPieceNumber();
-          		byte[] hash = computeMd5Hash(elt);
+					//byte[] hash = computeMd5Hash(elt);
 					if(!pieceDone[pieceNumber]) {
 					  dumpBlockToDisk(elt);
 					} else {
 					  ByteBufferPool.getInstance().freeBuffer(elt.getData());
 					}
-					manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender(),hash);
+					manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
 				}
         
 				
 				if (checkQueue.size() != 0) {
-					WriteElement elt = (WriteElement)checkQueue.remove(0);
+					QueueElement elt = (QueueElement)checkQueue.remove(0);
 					boolean correct = checkPiece(elt.getPieceNumber());
+          if(!correct) {
+            MD5CheckPiece(elt.getPieceNumber());
+          }
 					manager.pieceChecked(elt.getPieceNumber(), correct);
 					if (!correct) {
 					  LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
@@ -712,7 +716,7 @@ DiskManagerImpl
 		public void stopIt() {
 			this.bContinue = false;
 			while (writeQueue.size() != 0) {
-				WriteElement elt = (WriteElement)writeQueue.remove(0);
+				QueueElement elt = (QueueElement)writeQueue.remove(0);
 				ByteBufferPool.getInstance().freeBuffer(elt.data);
 			}
 		}
@@ -886,7 +890,7 @@ DiskManagerImpl
 
   
    public void aSyncCheckPiece(int pieceNumber) {
-		checkQueue.add(new WriteElement(pieceNumber, 0, null, null));
+		checkQueue.add(new QueueElement(pieceNumber, 0, null, null));
 	}
   
 
@@ -1016,34 +1020,6 @@ DiskManagerImpl
 		((DiskManagerDataQueueItemImpl)item).setLoading( true );
 	}
 
-	//MODIFY THIS TO WORK WITH PATH/FILES
-	public byte[] readPiece(int pieceNumber) {
-		//get the piece list
-		PieceList pieceList = pieceMap[pieceNumber];
-		//build the byte buffer
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-		//for each piece
-		for (int i = 0; i < pieceList.size(); i++) {
-			//get the piece and the file 
-			PieceMapEntry tempPiece = pieceList.get(i);
-			RandomAccessFile raf = tempPiece.getFile().getRaf();
-
-			//grab it's data and return it
-			try {
-				byte[] data = new byte[tempPiece.getLength()];
-				//create a databuffer
-				raf.seek(tempPiece.getOffset());
-				//seek to the correct point
-				raf.read(data); //read the data
-				bos.write(data); //write it to the stream
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return bos.toByteArray();
-	}
-
 	public ByteBuffer readBlock(int pieceNumber, int offset, int length) {
 
 		ByteBuffer buffer = ByteBufferPool.getInstance().getFreeBuffer(length+13);
@@ -1138,7 +1114,7 @@ DiskManagerImpl
 	}
 
 	public void writeBlock(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
-		writeQueue.add(new WriteElement(pieceNumber, offset, data,sender));
+		writeQueue.add(new QueueElement(pieceNumber, offset, data,sender));
 	}
 
 	public boolean checkBlock(int pieceNumber, int offset, ByteBuffer data) {
@@ -1180,7 +1156,7 @@ DiskManagerImpl
 		return true;
 	}
 
-	private void dumpBlockToDisk(WriteElement e) {
+	private void dumpBlockToDisk(QueueElement e) {
 		int pieceNumber = e.getPieceNumber();
 		int offset = e.getOffset();
 		ByteBuffer buffer = e.getData();
@@ -1225,62 +1201,6 @@ DiskManagerImpl
 		}
 
 		ByteBufferPool.getInstance().freeBuffer(buffer);
-	}
-
-	/*
-	public void updateResumeInfo() {
-		FileOutputStream fos = null;
-		try {
-			//build the piece byte[] 
-			byte[] resumeData = new byte[pieceDone.length];
-			for (int i = 0; i < resumeData.length; i++) {
-				if (pieceDone[i] == false) {
-					resumeData[i] = (byte)0;
-				} else {
-					resumeData[i] = (byte)1;
-				}
-			}
-
-			//Attach the resume data
-			torrent.setAdditionalMapProperty("resume data", resumeData);
-
-			//open the torrent file       
-			File torrent = new File(new String((byte[])metaData.get("torrent filename"), Constants.DEFAULT_ENCODING));
-			//re-encode the data
-			byte[] torrentData = BEncoder.encode(metaData);
-			//open a file stream
-			fos = new FileOutputStream(torrent);
-			//write the data out
-			fos.write(torrentData);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (fos != null)
-					fos.close();
-			} catch (Exception e) {
-			}
-		}
-	}
-*/
-
-	public byte[] readDataBloc(int pieceNumber, int offset, int length) {
-		/*
-		try{
-		long fileOffset = (long) pieceNumber * (long) pieceLength + offset;
-		byte[] data = new byte[length];
-		raf.seek(offset);
-		raf.read(data,0,length);
-		return data;
-		} catch (Exception e) {
-		e.printStackTrace();
-		}
-		return null;
-		*/
-		byte[] data = this.readPiece(pieceNumber);
-		byte[] outputData = new byte[length];
-		System.arraycopy(data, offset, outputData, 0, length);
-		return outputData;
 	}
 
 	public int getPiecesNumber() {
@@ -1667,9 +1587,8 @@ DiskManagerImpl
   }
    
     
-  private byte[] computeMd5Hash(WriteElement elt) {
+  private byte[] computeMd5Hash(ByteBuffer buffer) {
     md5.reset();
-    ByteBuffer buffer = elt.data;
     int position = buffer.position();
     md5.update(buffer);
     buffer.position(position);
@@ -1681,6 +1600,25 @@ DiskManagerImpl
       result[i] = md5Result.get();
     }    
     return result;    
+  }
+  
+  private void MD5CheckPiece(int pieceNumber) {
+    PEPiece piece = manager.getPieces()[pieceNumber];
+    if(piece == null) {
+      return;
+    }
+    PEPeer[] writers = piece.getWriters();
+    int offset = 0;
+    for(int i = 0 ; i < writers.length ; i++) {
+      int length = piece.getBlockSize(i);
+      PEPeer peer = writers[i];
+      if(peer != null) {
+        ByteBuffer buffer = readBlock(pieceNumber,offset,length);
+        byte[] hash = computeMd5Hash(buffer);
+        piece.addWrite(new PEPieceWrite(i,peer,hash));
+      }
+      offset += length;
+    }        
   }
 
 }

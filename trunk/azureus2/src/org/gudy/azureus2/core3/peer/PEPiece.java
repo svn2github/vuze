@@ -33,7 +33,7 @@ import java.util.List;
 public interface 
 PEPiece 
 {  
-  public void setWritten(PEPeer peer,byte[] hash,int blocNumber);
+  public void setWritten(PEPeer peer,int blocNumber);
  
   public void unmarkBlock(int blocNumber);
  
@@ -51,12 +51,34 @@ PEPiece
   
   public boolean[] getRequested(); 
   
+  public void addWrite(PEPieceWrite write);
+  
   public List getPieceWrites();
   
-  public List getPieceWrites(int blocNumber);
+  public List getPieceWrites(int blockNumber);
   
   public List getPieceWrites(PEPeer peer);
   
   public void reset();
+  
+  public PEPeer[] getWriters();
+  
+  public int getBlockSize(int blockNumber);
+  
+  public boolean isComplete();
+  
+  public void setBeingChecked();
+  
+  public boolean isBeingChecked();
+  
+  public int getAndMarkBlock();
+  
+  public void setManager(PEPeerManager manager);
+  
+  public boolean isWritten(int blockNumber);
+  
+  public void setBlockWritten(int blockNumber);
+  
+  public void free();
     
 }

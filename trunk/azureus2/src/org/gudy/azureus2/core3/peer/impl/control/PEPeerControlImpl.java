@@ -60,7 +60,7 @@ PEPeerControlImpl
   private int _loopFactor;
   private byte[] _myPeerId;
   private int _nbPieces;
-  private PEPieceImpl[] 				_pieces;
+  private PEPiece[] 				_pieces;
   private PEPeerServerHelper 			_server;
   private PEPeerManagerStatsImpl 		_stats;
   private long _timeLastUpdate;
@@ -420,7 +420,7 @@ PEPeerControlImpl
   private void checkCompletedPieces() {
     //for every piece
     for (int i = 0; i < _nbPieces; i++) {
-      PEPieceImpl currentPiece = _pieces[i]; //get the piece
+      PEPiece currentPiece = _pieces[i]; //get the piece
 
       //if piece is loaded, and completed
       if (currentPiece != null && currentPiece.isComplete() && !currentPiece.isBeingChecked()) {
@@ -1346,18 +1346,18 @@ PEPeerControlImpl
     _stats.haveNewPiece();
   }
 
-  public void blockWritten(int pieceNumber, int offset,PEPeer sender,byte[] hash) {
+  public void blockWritten(int pieceNumber, int offset,PEPeer sender) {
     PEPiece piece = _pieces[pieceNumber];
     if (piece != null) {
-      piece.setWritten(sender,hash,offset / BLOCK_SIZE);
+      piece.setWritten(sender,offset / BLOCK_SIZE);
     }
   }
 
   public void writeBlock(int pieceNumber, int offset, ByteBuffer data,PEPeer sender) {
-    PEPieceImpl piece = _pieces[pieceNumber];
+    PEPiece piece = _pieces[pieceNumber];
     int blockNumber = offset / BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
-      piece.setBloc(blockNumber);
+      piece.setBlockWritten(blockNumber);
       _diskManager.writeBlock(pieceNumber, offset, data,sender);
     }
   }
@@ -1494,7 +1494,7 @@ PEPeerControlImpl
     //  the piece has been written correctly
     if (result) {
 
-      PEPieceImpl piece = _pieces[pieceNumber];
+      PEPiece piece = _pieces[pieceNumber];
       
       if(piece != null) {
       	List list = piece.getPieceWrites();

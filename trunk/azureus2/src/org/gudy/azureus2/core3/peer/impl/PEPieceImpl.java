@@ -45,8 +45,10 @@ PEPieceImpl
   public boolean[] downloaded;
   public boolean[] requested;
   public boolean[] written;
-  public List writes;
   
+  private PEPeer[] writers;
+  public List writes;
+    
   public int completed;
   public boolean isBeingChecked = false;
 
@@ -64,6 +66,7 @@ PEPieceImpl
 	downloaded = new boolean[nbBlocs];
 	requested = new boolean[nbBlocs];
 	written = new boolean[nbBlocs];
+  writers = new PEPeer[nbBlocs];
 
 	if ((length % PEPeerManager.BLOCK_SIZE) != 0)
 	  lastBlocSize = length % PEPeerManager.BLOCK_SIZE;
@@ -77,10 +80,8 @@ PEPieceImpl
 	this.pieceNumber = pieceNumber;
   }
  
-  public void setWritten(PEPeer peer,byte[] hash,int blocNumber) {
-    synchronized(writes) {
-      writes.add(new PEPieceWrite(blocNumber,peer,hash));
-    }
+  public void setWritten(PEPeer peer,int blocNumber) {
+    writers[blocNumber] = peer;
     written[blocNumber] = true;
     completed++;
   }
@@ -115,7 +116,7 @@ PEPieceImpl
   public boolean[] getRequested(){
   	return( requested );
   }
-  public void setBloc(int blocNumber) {
+  public void setBlockWritten(int blocNumber) {
 	downloaded[blocNumber] = true;    
   }
 
@@ -225,8 +226,17 @@ PEPieceImpl
     downloaded = new boolean[nbBlocs];
     requested = new boolean[nbBlocs];
     written = new boolean[nbBlocs];
+    writers = new PEPeer[nbBlocs];
     isBeingChecked = false;
     completed = 0;
+  }
+  
+  public void addWrite(PEPieceWrite write) {
+    writes.add(write);
+  }
+  
+  public PEPeer[] getWriters() {
+    return writers;
   }
 
 }

@@ -131,5 +131,6 @@
 	public String
 	getErrorMessage();
   
-   public String moveCompletedFiles();
+  public String
+  moveCompletedFiles();  
  }

@@ -246,11 +246,10 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   private class VersionChecker extends Thread {
-    /*
-		 * (non-Javadoc)
-		 * 
-		 * @see java.lang.Thread#run()
-		 */
+    
+    public VersionChecker() {
+      super("Version Checker");
+    }
     public void run() {
       ByteArrayOutputStream message = new ByteArrayOutputStream(); //$NON-NLS-1$
 

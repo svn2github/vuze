@@ -37,7 +37,8 @@ public class NatCheckerServer extends Thread{
     
     boolean bContinue;
     
-    public NatCheckerServer(int port,String check) {      
+    public NatCheckerServer(int port,String check) {     
+      super("Nat Checker Server");
       try {
         this.port = port;
         this.check = check;
