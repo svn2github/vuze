@@ -61,7 +61,7 @@ TRTrackerDHTAnnouncerImpl
 	
 	private int							state = TS_INITIALISED;
 	
-	private TRTrackerAnnouncerResponse	last_response;
+	private TRTrackerAnnouncerResponseImpl	last_response;
 		
 	public
 	TRTrackerDHTAnnouncerImpl(
@@ -163,6 +163,8 @@ TRTrackerDHTAnnouncerImpl
 		boolean	force )
 	{
 		state = TS_DOWNLOADING;
+		
+		checkCache();
 	}	
 	
 	public void
@@ -257,5 +259,21 @@ TRTrackerDHTAnnouncerImpl
 		last_response = response;
 				
 		listeners.dispatch( LDT_TRACKER_RESPONSE, response );
+	}
+	
+	protected void
+	checkCache()
+	{
+		if ( last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ){
+			
+		     TRTrackerAnnouncerResponsePeer[]	cached_peers = getPeersFromCache(100);
+
+		     if ( cached_peers.length > 0 ){
+		     	
+		     	last_response.setPeers( cached_peers );
+		     	
+				listeners.dispatch( LDT_TRACKER_RESPONSE, last_response );
+		     }
+		}
 	}
 }
