@@ -3,6 +3,8 @@ CHANGELOG
 
 xx.xx.03 | Azureus 2.0.4.1
 
+FEATURE: Added tooltip general support [Gudy]
+
 CHANGE: Full scrape of embedded tracker now supported as SN requires this for hosting [Parg]
 CHANGE: Better peer client identification [Nolar]
 CHANGE: Added AZ version + torrent size to stats [Parg]
