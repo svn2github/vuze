@@ -21,14 +21,16 @@ import java.nio.charset.*;
 public class BDecoder {
   /** Creates a new instance of BeDecoder */
 	
-  Charset	byte_charset;
+	  Charset	byte_charset;
+	  Charset	default_charset;
 
   private 
   BDecoder() 
   {	
   	try{
-  		byte_charset = Charset.forName( Constants.BYTE_ENCODING );
-  		
+  		byte_charset 	= Charset.forName( Constants.BYTE_ENCODING );
+ 		default_charset = Charset.forName( Constants.DEFAULT_ENCODING );
+
 	}catch( Throwable e ){
 		
 		Debug.printStackTrace( e );
@@ -178,7 +180,12 @@ public class BDecoder {
     bais.skip(1);
 
     //return the value
-    return Long.parseLong(new String(tempArray));
+    
+    CharBuffer	cb = default_charset.decode(ByteBuffer.wrap(tempArray));
+    
+    String	str_value = new String(cb.array(),0,cb.limit());
+
+    return Long.parseLong(str_value);
   }
 
   private byte[] getByteArrayFromStream(InputStream bais) throws IOException {

@@ -148,27 +148,49 @@ public class FileUtil {
   {
   		// this rule originally from DiskManager
  
-	String file_name_out = file_name_in.replace('"', '\'');
-
+  	char[]	chars = file_name_in.toCharArray();
+  	
+  	for (int i=0;i<chars.length;i++){
+  		
+  		if ( chars[i] == '"' ){
+  			
+  			chars[i] = '\'';
+  		}
+  	}
+  	
   	if ( !Constants.isOSX ){
   		
   		if ( Constants.isWindows ){
   			
   				//  this rule originally from DiskManager
-  			
-  			final String unsupportedChars = "[\\/:?*]";
-  			
-  			file_name_out = file_name_out.replaceAll(unsupportedChars, "_");
+  		
+  		 	for (int i=0;i<chars.length;i++){
+  		 		
+  		 		char	c = chars[i];
+  		 		
+  		  		if ( c == '\\' || c == '/' || c == ':' || c == '?' || c == '*' ){
+  		  			
+  		  			chars[i] = '_';
+  		  		}
+  		  	}
   		}
   		
   			// '/' is valid in mac file names, replace with space
   			// so it seems are cr/lf
   		
-  		file_name_out = file_name_out.replace('/',' ');
-  		file_name_out = file_name_out.replace('\r',' ');
-  		file_name_out = file_name_out.replace('\n',' ');
+	 	for (int i=0;i<chars.length;i++){
+		 		
+			char	c = chars[i];
+				
+			if ( c == '/' || c == '\r' || c == '\n'  ){
+		  			
+				chars[i] = ' ';
+			}
+		}
   	}
 
+  	String	file_name_out = new String(chars);
+  	
 	try{
 		
 			// mac file names can end in space - fix this up by getting

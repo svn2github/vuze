@@ -68,7 +68,8 @@ CacheFileManagerImpl
 	
 		// copy on update semantics
 	
-	protected WeakHashMap		cache_files	= new WeakHashMap();
+	protected WeakHashMap		cache_files			= new WeakHashMap();
+	protected WeakHashMap		updated_cache_files	= null;
 	
 		// access order
 	
@@ -193,29 +194,29 @@ CacheFileManagerImpl
 			
 			CacheFile	cf = new CacheFileImpl( this, fm_file, tf );
 			
-			WeakHashMap	new_cache_files = new WeakHashMap( cache_files );
-			
-				// copy on write so readers don't need to synchronize or copy
-			
-			new_cache_files.put( cf, null );
-				
-			cache_files	= new_cache_files;
-			
-			if ( tf != null ){
+			try{
+				this_mon.enter();
 
-				try{
-					this_mon.enter();
-							
-					Map	new_map = new HashMap( torrent_to_cache_file_map );
-						
-					new_map.put( tf, cf );
-		
-					torrent_to_cache_file_map	= new_map;
-				
-				}finally{
-				
-					this_mon.exit();
+				if ( updated_cache_files == null ){
+					
+					updated_cache_files = new WeakHashMap( cache_files );
 				}
+					// copy on write so readers don't need to synchronize or copy
+				
+				updated_cache_files.put( cf, null );
+									
+				if ( tf != null ){
+	
+								
+					Map	new_map = new HashMap( torrent_to_cache_file_map );
+							
+					new_map.put( tf, cf );
+			
+					torrent_to_cache_file_map	= new_map;
+				}	
+			}finally{
+				
+				this_mon.exit();
 			}
 			
 			return( cf );
@@ -362,7 +363,7 @@ CacheFileManagerImpl
 			
 			
 			// System.out.println( "cache file count = " + cache_files.size());
-			
+								
 			Iterator	cf_it = cache_files.keySet().iterator();
 			
 			while(cf_it.hasNext()){
@@ -383,6 +384,13 @@ CacheFileManagerImpl
 				try{
 					this_mon.enter();
 			
+					if ( updated_cache_files != null ){
+						
+						cache_files	= updated_cache_files;
+							
+						updated_cache_files	= null;
+					}
+
 					if ( cache_entries.size() > 0 ){
 						
 						Iterator it = cache_entries.keySet().iterator();

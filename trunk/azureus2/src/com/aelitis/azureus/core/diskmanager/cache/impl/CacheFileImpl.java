@@ -760,6 +760,11 @@ CacheFileImpl
 	
 		throws CacheFileManagerException
 	{
+		if ( cache.size() == 0 ){
+			
+			return;
+		}
+		
 		try{
 			this_mon.enter();
 			
