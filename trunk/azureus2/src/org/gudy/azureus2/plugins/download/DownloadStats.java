@@ -1,6 +1,6 @@
 /*
- * File    : Download.java
- * Created : 06-Jan-2004
+ * File    : DownloadStats.java
+ * Created : 08-Jan-2004
  * By      : parg
  * 
  * Azureus - a Java Bittorrent client
@@ -26,40 +26,51 @@ package org.gudy.azureus2.plugins.download;
  *
  */
 
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
 public interface 
-Download 
+DownloadStats 
 {
-	public static final int ST_STOPPED		= 1;
-	public static final int ST_STARTED		= 2;
+	public String
+	getStatus();
 	
-	/**
-	 * get state from above ST_ set
-	 * @return
-	 */
+	public String
+	getDownloadDirectory();
+	
+	public String
+	getTargetFileOrDir();
+	
+	public String
+	getTrackerStatus();
 	
 	public int
-	getState();
+	getCompleted();
+	
+	public long
+	getDownloaded();
+	
+	public long
+	getUploaded();
 
-	public Torrent
-	getTorrent();
+	public long
+	getDiscarded();
 	
-	public void
-	start()
+	public long
+	getDownloadAverage();
 	
-		throws DownloadException;
+	public long
+	getUploadAverage();
 	
-	public void
-	stop()
+	public long
+	getTotalAverage();
 	
-		throws DownloadException;
+	public String
+	getElapsedTime();
 	
-	public void
-	remove()
+	public String
+	getETA();
 	
-		throws DownloadException;
+	public long
+	getHashFails();
 	
-	public DownloadStats
-	getStats();
+	public int
+	getShareRatio();
 }

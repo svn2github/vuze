@@ -28,7 +28,13 @@ package org.gudy.azureus2.pluginsimpl.download;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.torrent.*;
+
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.torrent.TorrentImpl;
+
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadException;
 
 public class 
@@ -62,6 +68,21 @@ DownloadImpl
 		}
 	}
 	
+	public Torrent
+	getTorrent()
+	{
+		TOTorrent	torrent = download_manager.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return( null );
+			
+		}else{
+			
+			return( new TorrentImpl( torrent ));
+		}
+	}
+
 	public void
 	start()
 	
@@ -107,5 +128,11 @@ DownloadImpl
 			
 			throw( new DownloadException( "Download::remove: download not stopped" ));
 		}
+	}
+	
+	public DownloadStats
+	getStats()
+	{
+		return( new DownloadStatsImpl( download_manager ));
 	}
 }
