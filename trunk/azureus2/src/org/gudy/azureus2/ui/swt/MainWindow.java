@@ -1663,8 +1663,22 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         final File source = new File(sourceNames[i]);
         if (source.isFile())
           openTorrent(source.getAbsolutePath(), startInStoppedState);
-        else if (source.isDirectory())
-          openTorrentsFromDirectory(source.getAbsolutePath(), startInStoppedState);
+        else if (source.isDirectory()){
+        	
+        	String	dir_name = source.getAbsolutePath();
+        	
+        	String	drop_action = COConfigurationManager.getStringParameter("config.style.dropdiraction", "0");
+        
+        	if ( drop_action.equals("1")){
+        		ShareUtils.shareDir(dir_name);
+        	}else if ( drop_action.equals("2")){
+        		ShareUtils.shareDirContents( dir_name, false );
+        	}else if ( drop_action.equals("3")){
+        		ShareUtils.shareDirContents( dir_name, true );
+        	}else{
+        		openTorrentsFromDirectory(dir_name, startInStoppedState);
+        	}
+        }
       }
     } else {
       openUrl(((URLTransfer.URLType)event.data).linkURL);
