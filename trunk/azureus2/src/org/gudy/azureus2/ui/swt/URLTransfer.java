@@ -23,11 +23,11 @@ public class URLTransfer extends ByteArrayTransfer {
 
   private static URLTransfer _instance = new URLTransfer();
 
-  // these types work on Windows XP: IE6 link=49362, IE6 bookmark=49458,
+  // these types work on Windows XP: IE6 link=49368/49362, IE6 bookmark=49458,
 	// Mozilla link=13, Mozilla bookmark=13
   // Opera 7 LINK DRAG & DROP IMPOSSIBLE (just inside Opera)
-  private static final String[] supportedTypes = new String[] { "UniformResourceLocator", "UniformResourceLocatorW", "CF_UNICODETEXT", "CF_TEXT" };
-  private static final int[] supportedTypeIds = new int[] { 49362, 49458, 13, 1 };
+  private static final String[] supportedTypes = new String[] { "UniformResourceLocator", "UniformResourceLocator", "UniformResourceLocatorW", "CF_UNICODETEXT", "CF_TEXT" };
+  private static final int[] supportedTypeIds = new int[] { 49368, 49362, 49458, 13, 1 };
 
   public static URLTransfer getInstance() {
     return _instance;
