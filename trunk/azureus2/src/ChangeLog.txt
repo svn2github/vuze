@@ -6,14 +6,16 @@ xx.01.04 | Azureus 2.0.6.1
 FEATURE: on Linux + GTK, Added an option to setup a vertical offset to re-align graphics [Gudy]
 FEATURE: SSL tracker client now gives option to import certificate rather than manually doing so via "keytool" [Parg]
 
-
 CHANGE: Azureus now identifies itself via User-Agent in tracker http communications [Nolar]
 CHANGE: Less flickering, on all platforms (tested on both windows and linux+GTK) [Gudy]
 CHANGE: Azureus now responds as Server: Azureus <version> in tracker http comms [Parg]
+CHANGE: Unwritten blocks in Pieces view shown in red [Gijs Overvliet]
 
 BUGFIX: Problem with tracker not responding with "Connection: close" causing SSL session maintainance with HttpsURLConnection to stuff up and fail clients with "recv fail" [Parg]
 BUGFIX: Fast resuming with Chinese directories: Bug #869749 [Parg]
 BUGFIX: System tray icon re-shown after explorer.exe crash (again) [Rele]
+BUGFIX: Fix for potential memory leaks [Nolar]
+BUGFIX: Fix for stalled piece writing [Gijs Overvliet]
 
 
 19.12.03 | Azureus 2.0.6.0
