@@ -1087,7 +1087,9 @@ PEPeerTransportProtocol
             !id.equals( BTMessage.ID_BT_PIECE ) &&
             !id.equals( BTMessage.ID_BT_REQUEST ) &&
             !id.equals( BTMessage.ID_BT_UNCHOKE ) &&
-            !id.equals( BTMessage.ID_BT_UNINTERESTED ) )
+            !id.equals( BTMessage.ID_BT_UNINTERESTED ) &&
+            !id.equals( AZMessage.ID_AZ_PING ) &&
+            !id.equals( AZMessage.ID_AZ_PONG ) )
         {
           mutual += "[" +id+ "] ";
         }
@@ -1096,7 +1098,9 @@ PEPeerTransportProtocol
     
     supported_messages = (Message[])messages.toArray( new Message[0] );
 
-    System.out.println( "[" +(incoming ? "R:" : "L:")+" " +ip+":"+port+" "+client+ "] Mutually supported messages: " +mutual );
+    if( mutual.length() > 2 ) {
+      System.out.println( "[" +(incoming ? "R:" : "L:")+" " +ip+":"+port+" "+client+ "] Mutually supported messages: " +mutual );
+    }
 
     //fudge to ensure optimistic-connect code processes connections that have never sent a data message
     last_data_message_received_time = SystemTime.getCurrentTime();
