@@ -26,7 +26,6 @@ import org.eclipse.swt.graphics.Image;
 
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
-import org.gudy.azureus2.core3.peer.impl.PEPieceImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -143,7 +142,7 @@ public class BlocksItem
         // System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
         if(bytes == length) {
           gcImage.setBackground(cache);
-          gcImage.fillRectangle(i * iPixelsPerBlock + 1,1,nextWidth,4);
+          gcImage.fillRectangle(i * iPixelsPerBlock + 1,1,nextWidth,3);
         }
         
       }
