@@ -331,10 +331,10 @@ DownloadManagerStatsImpl
 	  if (lTimeStartedDL >= 0) {
   	  long lTimeEndedDL = getTimeStartedSeeding();
   	  if (lTimeEndedDL == -1) {
-  	    lTimeEndedDL = System.currentTimeMillis() / 1000;
+  	    lTimeEndedDL = System.currentTimeMillis();
   	  }
   	  if (lTimeEndedDL > lTimeStartedDL) {
-    	  return saved_SecondsDownloading + (lTimeEndedDL - lTimeStartedDL);
+    	  return saved_SecondsDownloading + ((lTimeEndedDL - lTimeStartedDL) / 1000);
     	}
   	}
 	  return saved_SecondsDownloading;
