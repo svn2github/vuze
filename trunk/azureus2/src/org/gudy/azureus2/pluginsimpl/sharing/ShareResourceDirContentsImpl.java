@@ -26,10 +26,11 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  *
  */
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 ShareResourceDirContentsImpl
@@ -195,7 +196,13 @@ ShareResourceDirContentsImpl
 		
 		map.put( "recursive", new Long(recursive?1:0));
 		
-		map.put( "file", root.toString());
+		try{
+			map.put( "file", root.toString().getBytes( Constants.DEFAULT_ENCODING));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			e.printStackTrace();
+		}
 	}
 	
 	protected static ShareResourceImpl
@@ -205,11 +212,17 @@ ShareResourceDirContentsImpl
 	
 		throws ShareException
 	{
-		File root = new File(new String((byte[])map.get("file")));
+		try{
+			File root = new File(new String((byte[])map.get("file"), Constants.DEFAULT_ENCODING));
 		
-		boolean	recursive = ((Long)map.get("recursive")).longValue() == 1;
+			boolean	recursive = ((Long)map.get("recursive")).longValue() == 1;
 		
-		return( new ShareResourceDirContentsImpl( manager, root, recursive, map ));
+			return( new ShareResourceDirContentsImpl( manager, root, recursive, map ));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			throw( new ShareException( "internal error", e ));
+		}
 	}
 	
 	public String

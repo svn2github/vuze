@@ -204,25 +204,35 @@ ShareResourceFileOrDirImpl
 	
 		throws ShareException
 	{
-		File file = new File(new String((byte[])map.get("file")));
-		
-		if ( type == ST_FILE ){
+		try{
+			File file = new File(new String((byte[])map.get("file"), Constants.DEFAULT_ENCODING ));
 			
-			return( new ShareResourceFileImpl( manager, file, map ));
+			if ( type == ST_FILE ){
+				
+				return( new ShareResourceFileImpl( manager, file, map ));
+				
+			}else{
+				return( new ShareResourceDirImpl( manager, file, map ));
+				
+			}
+		}catch( UnsupportedEncodingException e ){
 			
-		}else{
-			return( new ShareResourceDirImpl( manager, file, map ));
-			
+			throw( new ShareException( "internal error", e ));
 		}
 	}
-	
 	protected void
 	serialiseResource(
 		Map		map )
 	{
 		map.put( "type", new Long(getType()));
 		
-		map.put( "file", file.toString());
+		try{
+			map.put( "file", file.toString().getBytes( Constants.DEFAULT_ENCODING));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			e.printStackTrace();
+		}
 		
 		item.serialiseItem( map );
 	}

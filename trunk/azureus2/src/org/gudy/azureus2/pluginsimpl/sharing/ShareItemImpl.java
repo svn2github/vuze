@@ -20,6 +20,7 @@
  */
 
 package org.gudy.azureus2.pluginsimpl.sharing;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author parg
@@ -27,7 +28,7 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  */
 
 import java.util.Map;
-import java.io.File;
+import java.io.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -137,7 +138,13 @@ ShareItemImpl
 	{
 		map.put( "ihash", fingerprint );
 		
-		map.put( "ifile", torrent_save_location );
+		try{
+			map.put( "ifile", torrent_save_location.getBytes( Constants.DEFAULT_ENCODING ) );
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			e.printStackTrace();
+		}
 	}
 	
 	protected static ShareItemImpl
@@ -147,10 +154,16 @@ ShareItemImpl
 	
 		throws ShareException
 	{
-		byte[]	hash = (byte[])map.get( "ihash");
+		try{
+			byte[]	hash = (byte[])map.get( "ihash");
 		
-		String	save_location = new String((byte[])map.get("ifile"));
+			String	save_location = new String((byte[])map.get("ifile"), Constants.DEFAULT_ENCODING );
 		
-		return( new ShareItemImpl(resource,hash,save_location));
+			return( new ShareItemImpl(resource,hash,save_location));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			throw( new ShareException( "internal error", e ));
+		}
 	}
 }
