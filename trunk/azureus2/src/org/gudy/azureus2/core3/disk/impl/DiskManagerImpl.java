@@ -137,7 +137,6 @@ DiskManagerImpl
 
 	private void initialize() {
 
-  
 		pieceLength = (int)torrent.getPieceLength();
 
 		piecesHash = torrent.getPieces();
@@ -240,9 +239,10 @@ DiskManagerImpl
 		//allocate / check every file
 		//fileArray = new RandomAccessFile[btFileList.size()];
 		files = new DiskManagerFileInfoImpl[btFileList.size()];
+      
 		boolean newFiles = this.allocateFiles(rootPath, btFileList);
-		if (this.state == FAULTY)
-			return;
+      
+		if (this.state == FAULTY) return;
 
 		constructPieceMap(btFileList);
 
@@ -740,7 +740,11 @@ DiskManagerImpl
 					 this.errorMessage = e.getMessage();
 					 return false;
 				  }
-				  clearFile(raf);
+				  boolean ok = clearFile(raf);
+				  if (!ok) {
+				     this.state = FAULTY;
+				     return false;
+				  }
 				}
    
 			} else {               
@@ -796,7 +800,7 @@ DiskManagerImpl
 		return newFiles;
 	}
 
-	private void clearFile(RandomAccessFile file) {
+	private boolean clearFile(RandomAccessFile file) {
 		FileChannel fc = file.getChannel();
 		long length = 0;
 		try {
@@ -804,7 +808,7 @@ DiskManagerImpl
 		} catch (IOException e) {
 			this.state = FAULTY;
 			this.errorMessage = e.getMessage();
-			return;
+			return false;
 		}
 		long writen = 0;
 		synchronized (file) {
@@ -820,10 +824,15 @@ DiskManagerImpl
 					allocated += deltaWriten;
 					percentDone = (int) ((allocated * 1000) / totalLength);
 				}
+				if (!bContinue) {
+				   fc.close();
+				   return false;
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+        return true;
 	}
 
 	private void buildDirectoryStructure(String file) {
