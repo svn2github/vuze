@@ -37,7 +37,7 @@ public class DiskManager {
   private int pieceLength;
   private int lastPieceLength;
 
-  private int[] _priorityPieces;
+//  private int[] _priorityPieces;
 
   private byte[] piecesHash;
   private int nbPieces;
@@ -115,7 +115,7 @@ public class DiskManager {
 //    priorityLists = new int[10][nbPieces + 1];
 
     // the piece numbers for getPiecenumberToDownload
-    _priorityPieces = new int[nbPieces + 1];
+//    _priorityPieces = new int[nbPieces + 1];
 
     pieceDone = new boolean[nbPieces];
 
