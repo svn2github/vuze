@@ -222,21 +222,33 @@ XMLRequestProcessor
 									
 									if ( p1 == -1 ){
 										
-										bit = sig.substring( sig_pos, sig.length()-1);
+										bit = sig.substring( sig_pos, sig.length()-1).toLowerCase();
 										
 									}else{
 										
-										bit = sig.substring( sig_pos, p1 );
+										bit = sig.substring( sig_pos, p1 ).toLowerCase();
 										
 										sig_pos = p1+1;
 									}
 									
 									String	sub_value = array_child.getValue().trim();
 									
-									if ( bit.equalsIgnoreCase("url")){
+									if ( bit.equals("string")){
+										
+										Array.set( array, j, sub_value );
+									
+									}else if ( bit.equals("int")){
+										
+										Array.set( array, j, Integer.valueOf( sub_value));
+									
+									}else if ( bit.equals("boolean")){
+										
+										Array.set( array, j, Boolean.valueOf( sub_value ));
+									
+									}else if ( bit.equals("url")){
 										
 										Array.set( array, j, new URL(sub_value));
-										
+									
 									}else{
 											// see if its an object
 										
