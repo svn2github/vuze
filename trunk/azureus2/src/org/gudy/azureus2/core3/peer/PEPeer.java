@@ -104,9 +104,13 @@ PEPeer
 	
 	public int getAllowed();
   
+  
+  //TODO: remove when refactoring speedlimiter
   public int getLimit();
   public void setLimit(int newLimit);
   public void addLimitIfNotZero(int addToLimit);
+  
+  
   
   /** To retreive arbitrary objects against a peer. */
   public Object getData (String key);
