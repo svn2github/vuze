@@ -241,7 +241,7 @@ PESharedPortSelector
 				
 			    	Iterator	keys_it = selector.keys().iterator();
 			    
-					long	now = System.currentTimeMillis();
+					long	now = SystemTime.getCurrentTime();
         
 					while( keys_it.hasNext() ){
 					
@@ -402,7 +402,7 @@ PESharedPortSelector
 	{
 		protected SocketChannel	socket;
 		protected ByteBuffer	buffer;
-		protected long			last_use_time	= System.currentTimeMillis();
+		protected long			last_use_time	= SystemTime.getCurrentTime();
 		
 		protected PESharedPortServerImpl	server;
 		protected byte[]					data;
@@ -429,7 +429,7 @@ PESharedPortSelector
 		protected ByteBuffer
 		getBuffer()
 		{
-			last_use_time	= System.currentTimeMillis();
+			last_use_time	= SystemTime.getCurrentTime();
 			
 			return( buffer );
 		}

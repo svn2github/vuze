@@ -30,6 +30,7 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 public abstract class 
 PRUDPPacket 
@@ -55,7 +56,7 @@ PRUDPPacket
 	public static final int	ACT_REPLY_SCRAPE		= 2;
 	public static final int	ACT_REPLY_ERROR			= 3;
 
-	protected static int	next_id = new Random(System.currentTimeMillis()).nextInt();
+	protected static int	next_id = new Random(SystemTime.getCurrentTime()).nextInt();
 	
 	protected int		type;
 	protected int		transaction_id;

@@ -86,7 +86,7 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
     totalDownloaded = ((Long)overallMap.get("downloaded")).longValue();
     totalUploaded = ((Long)overallMap.get("uploaded")).longValue();
     totalUptime = ((Long)overallMap.get("uptime")).longValue();
-    lastUptime = System.currentTimeMillis() / 1000;
+    lastUptime = SystemTime.getCurrentTime() / 1000;
   }
   
   public OverallStatsImpl(GlobalManager manager) {
@@ -159,8 +159,8 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
     totalUploaded +=  current_total_sent - lastUploaded;
     lastUploaded = current_total_sent;
     
-    totalUptime += System.currentTimeMillis() / 1000 - lastUptime;
-    lastUptime = System.currentTimeMillis() / 1000;
+    totalUptime += SystemTime.getCurrentTime() / 1000 - lastUptime;
+    lastUptime = SystemTime.getCurrentTime() / 1000;
     
     overallMap.put("downloaded",new Long(totalDownloaded));
     overallMap.put("uploaded",new Long(totalUploaded));

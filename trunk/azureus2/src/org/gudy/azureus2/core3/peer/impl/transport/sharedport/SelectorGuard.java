@@ -49,7 +49,7 @@ public class SelectorGuard {
       return true;
     }
     
-    long currentTime = System.currentTimeMillis();
+    long currentTime = SystemTime.getCurrentTime();
     long elapsedTime = currentTime - lastZeroSelectTime;
     
     lastZeroSelectTime = currentTime;

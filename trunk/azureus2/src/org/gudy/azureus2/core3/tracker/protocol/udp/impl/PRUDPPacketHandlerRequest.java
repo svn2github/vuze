@@ -42,7 +42,7 @@ PRUDPPacketHandlerRequest
 	protected
 	PRUDPPacketHandlerRequest()
 	{
-		create_time	= System.currentTimeMillis();
+		create_time	= SystemTime.getCurrentTime();
 	}
 	
 	protected long
