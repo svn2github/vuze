@@ -110,6 +110,13 @@ public class Messages {
           updateLanguageForControl(treeitems[i]);
         }
       }
+      else if (widget instanceof TreeItem) {
+        TreeItem treeItem = (TreeItem) widget;
+        TreeItem[] treeitems = treeItem.getItems();
+        for (int i = 0; i < treeitems.length; i++) {
+          updateLanguageForControl(treeitems[i]);
+        }
+      }
         
       group.layout();
     }
