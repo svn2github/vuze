@@ -532,7 +532,7 @@ public class GlobalManagerImpl
 	            lDownloadedValue = download_manager.getSize();
 	            	
 	            if (lDownloadedValue != 0 && ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio) )
-	              lUploadedValue = download_manager.getSize() * minQueueingShareRatio / 1000;
+	              lUploadedValue = ( download_manager.getSize()+999) * minQueueingShareRatio / 1000;
 	          }
 	          dm_stats.setSavedDownloadedUploaded(lDownloadedValue, lUploadedValue);
 	        }
@@ -583,7 +583,7 @@ public class GlobalManagerImpl
            
         	if ( dm_stats.getDownloadCompleted(false) == 1000 ){
 
-	            long lUploadedValue = download_manager.getSize() * minQueueingShareRatio / 1000;
+	            long lUploadedValue = ( download_manager.getSize()+999 ) * minQueueingShareRatio / 1000;
 	                  
 		        dm_stats.setSavedDownloadedUploaded(download_manager.getSize(), lUploadedValue);
 	        }
