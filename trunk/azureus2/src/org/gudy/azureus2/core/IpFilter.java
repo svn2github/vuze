@@ -63,7 +63,7 @@ public class IpFilter {
       
     try {
       //Open the file
-      File filtersFile = getApplicationFile("filters.config");
+      File filtersFile = FileUtil.getApplicationFile("filters.config");
       FileOutputStream fos = new FileOutputStream(filtersFile);
       Map map = new HashMap();
       List filters = new ArrayList();
@@ -90,21 +90,12 @@ public class IpFilter {
     }
   }
   
-  //TODO:: Move this to a FileManager class?
-  public static String getApplicationPath() {
-    return System.getProperty("user.dir");
-  }
-
-  public static File getApplicationFile(String filename) {
-    return new File(getApplicationPath(), filename);
-  }
-  
   private void loadFilters() {
     FileInputStream fin = null;
     BufferedInputStream bin = null;
     try {
       //open the file
-      File filtersFile = getApplicationFile("filters.config");
+      File filtersFile = FileUtil.getApplicationFile("filters.config");
       if (filtersFile.exists()) {
 	      fin = new FileInputStream(filtersFile);
 	      bin = new BufferedInputStream(fin);

@@ -229,7 +229,7 @@ public class GlobalManager extends Component {
   public boolean addDownloadManager(String fileName, String savePath) {
     try {
       File f = new File(fileName);
-      File torrentDir = new File(getApplicationPath() + System.getProperty("file.separator") + "torrents");
+      File torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
       torrentDir.mkdirs();
       File fDest = new File(torrentDir, f.getName());
       if (fDest.equals(f))
@@ -355,7 +355,7 @@ public class GlobalManager extends Component {
     BufferedInputStream bin = null;
     try {
       //open the file
-      File configFile = getApplicationFile("downloads.config");
+      File configFile = FileUtil.getApplicationFile("downloads.config");
       fin = new FileInputStream(configFile);
       bin = new BufferedInputStream(fin);
       Map map = BDecoder.decode(bin);
@@ -450,7 +450,7 @@ public class GlobalManager extends Component {
     //open a file stream
     FileOutputStream fos = null;
     try {
-      fos = new FileOutputStream(getApplicationFile("downloads.config"));
+      fos = new FileOutputStream(FileUtil.getApplicationFile("downloads.config"));
       //write the data out
       fos.write(torrentData);
     }
@@ -464,15 +464,6 @@ public class GlobalManager extends Component {
       }
       catch (Exception e) {}
     }
-  }
-
-  //TODO:: Move this to a FileManager class?
-  public static String getApplicationPath() {
-    return System.getProperty("user.dir");
-  }
-
-  public static File getApplicationFile(String filename) {
-    return new File(getApplicationPath(), filename);
   }
 
   /**

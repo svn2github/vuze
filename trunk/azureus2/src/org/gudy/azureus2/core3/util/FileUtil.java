@@ -35,4 +35,10 @@ public class FileUtil {
       return System.getProperty("user.dir") + System.getProperty("file.separator");
     }
   }
+  
+  public static File getApplicationFile(String filename) {
+    return new File(FileUtil.getApplicationPath(), filename);
+  }
+
+
 }

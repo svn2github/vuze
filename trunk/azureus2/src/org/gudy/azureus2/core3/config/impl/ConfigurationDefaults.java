@@ -210,8 +210,4 @@ public class ConfigurationDefaults {
       throw new ConfigurationParameterNotFoundException(p);
   }
   
-  //TODO:: Move this to a FileManager class?
-  private String getApplicationPath() {
-    return System.getProperty("user.dir")+System.getProperty("file.separator");
-  }
 }
