@@ -12,6 +12,7 @@ FEATURE: Plug | WebUI support for "host" operation [Parg]
 FEATURE: UI   | New peer columns to help track leechers [TuxPaper]
 
 CHANGE: Core | More sensible merging of plugin.properties on plugin update [Parg]
+CHANGE: Core | More "polite" hash checking...doesn't stress the cpu/system as much [Nolar]
 
 BUGFIX: Core | 99.X% / continuous hash fails fix [Parg]
 BUGFIX: UI   | Fix bug where failed-hashcheck pieces never reappeared in Pieces view [Nolar]
