@@ -162,7 +162,7 @@ CacheFileManagerImpl
 			
 		t.start();
 			
-		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", read = " + cache_read_enabled + ", write = " + cache_write_enabled + ", size = " + cache_size + " MB" );
+		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", read = " + cache_read_enabled + ", write = " + cache_write_enabled + ", size = " + cache_size + " B" );
 	}
 	
 	protected boolean
