@@ -1,6 +1,6 @@
 /*
  * File    : HealthHelpWindow.java
- * Created : 18 d�c. 2003}
+ * Created : 18 déc. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client

@@ -210,7 +210,7 @@ LocaleUtilSWT
     Label label = new Label(s, SWT.NONE);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
     label.setLayoutData(gridData);
-    label.setText("Bitte w�hlen Sie das Encoding, welches am besten passt");
+    label.setText("Bitte wählen Sie das Encoding, welches am besten passt");
 */
    /* Group gChoose = new Group(s, SWT.NULL);
     gChoose.setLayout(new GridLayout(3, false));
