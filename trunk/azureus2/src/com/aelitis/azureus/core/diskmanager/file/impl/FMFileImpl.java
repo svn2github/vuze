@@ -53,7 +53,7 @@ FMFileImpl
 	protected static Map			file_map = new HashMap();
 	
 	protected FMFileOwner			owner;
-	protected int					access_mode;
+	protected int					access_mode			= FM_READ;
 	protected File					file;
 	protected String				canonical_path;
 	protected RandomAccessFile		raf;
