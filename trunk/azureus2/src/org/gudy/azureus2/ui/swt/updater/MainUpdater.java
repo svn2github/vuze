@@ -113,7 +113,7 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
         
       } else {
         
-        String exec = javaPath + "java -classpath \"" + classPath
+        String exec ="\"" + javaPath + "java\" -classpath \"" + classPath
         + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + platform + "\" \"swtTemp.zip\" \""
         + userPath + "\" \"" + libraryPath + "\"";
         
