@@ -59,7 +59,7 @@ TOTorrentImpl
 	
 	private byte[]							comment;
 	private URL								announce_url;
-	private TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl();
+	private TOTorrentAnnounceURLGroupImpl	announce_group = new TOTorrentAnnounceURLGroupImpl(this);
 	
 	private long		piece_length;
 	private int			number_of_pieces;
@@ -106,7 +106,8 @@ TOTorrentImpl
 			
 			torrent_name_utf8	= torrent_name;
 			
-			announce_url		= _announce_url;
+			setAnnounceURL( _announce_url );
+			
 			simple_torrent		= _simple_torrent;
 			
 		}catch( UnsupportedEncodingException e ){
@@ -424,7 +425,7 @@ TOTorrentImpl
 	setAnnounceURL(
 		URL		url )
 	{
-		announce_url	= url;
+		announce_url	= anonymityTransform( url );
 	}
 
 	public long
@@ -545,7 +546,7 @@ TOTorrentImpl
 	addTorrentAnnounceURLSet(
 		URL[]		urls )
 	{
-		announce_group.addSet( new TOTorrentAnnounceURLSetImpl( urls ));
+		announce_group.addSet( new TOTorrentAnnounceURLSetImpl( this, urls ));
 	}
 	
 	public long
@@ -853,6 +854,42 @@ TOTorrentImpl
 			throw( new TOTorrentException( 	"TOTorrent::writeStringToMetaData: unsupported encoding for '" + value + "'",
 											TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
+	}
+	
+	protected URL
+	anonymityTransform(
+		URL		url )
+	{
+		/*
+		 * 	hmm, doing this is harder than it looks as we have issues hosting
+		 *  (both starting tracker instances and also short-cut loopback for seeding
+		 *  leave as is for the moment
+		if ( HostNameToIPResolver.isNonDNSName( url.getHost())){
+			
+			// remove the port as it is uninteresting and could leak information about the
+			// tracker
+			
+			String	url_string = url.toString();
+			
+			String	port_string = ":" + (url.getPort()==-1?url.getDefaultPort():url.getPort());
+			
+			int	port_pos = url_string.indexOf( ":" + url.getPort());
+			
+			if ( port_pos != -1 ){
+				
+				try{
+					
+					return( new URL( url_string.substring(0,port_pos) + url_string.substring(port_pos+port_string.length())));
+					
+				}catch( MalformedURLException e){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		*/
+		
+		return( url );
 	}
 	
 	public void

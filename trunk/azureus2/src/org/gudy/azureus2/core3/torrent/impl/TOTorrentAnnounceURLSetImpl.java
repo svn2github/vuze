@@ -25,16 +25,21 @@ import java.net.URL;
 
 import org.gudy.azureus2.core3.torrent.*;
 
-public class TOTorrentAnnounceURLSetImpl 
+public class 
+TOTorrentAnnounceURLSetImpl 
 	implements TOTorrentAnnounceURLSet
 {
-	protected URL[]	urls;
+	private TOTorrentImpl	torrent;
+	private URL[]			urls;
 	
 	protected
 	TOTorrentAnnounceURLSetImpl(
-		URL[]		_urls )
+		TOTorrentImpl	_torrent,
+		URL[]			_urls )
 	{
-		urls	= _urls;
+		torrent	= _torrent;
+	
+		setAnnounceURLs( _urls );
 	}
 	
 	public URL[]
@@ -48,6 +53,11 @@ public class TOTorrentAnnounceURLSetImpl
 	setAnnounceURLs(
 		URL[]	_urls )
 	{
-		urls	= _urls;
+		urls	= new URL[_urls.length];
+		
+		for (int i=0;i<urls.length;i++){
+		
+			urls[i]	= torrent.anonymityTransform( _urls[i] );
+		}
 	}
 }

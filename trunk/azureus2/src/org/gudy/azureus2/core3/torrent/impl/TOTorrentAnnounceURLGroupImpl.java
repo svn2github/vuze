@@ -29,11 +29,15 @@ public class
 TOTorrentAnnounceURLGroupImpl
 	implements TOTorrentAnnounceURLGroup 
 {
-	protected TOTorrentAnnounceURLSet[]		sets;
+	private TOTorrentImpl	torrent;
+	private TOTorrentAnnounceURLSet[]		sets;
 	
 	protected
-	TOTorrentAnnounceURLGroupImpl()
+	TOTorrentAnnounceURLGroupImpl(
+		TOTorrentImpl	_torrent )
 	{
+		torrent	= _torrent;
+		
 		sets = new TOTorrentAnnounceURLSet[0];
 	}
 
@@ -68,7 +72,7 @@ TOTorrentAnnounceURLGroupImpl
 	createAnnounceURLSet(
 		URL[]	urls )
 	{
-		return( new TOTorrentAnnounceURLSetImpl( urls ));	
+		return( new TOTorrentAnnounceURLSetImpl( torrent, urls ));	
 	}
 	
 }

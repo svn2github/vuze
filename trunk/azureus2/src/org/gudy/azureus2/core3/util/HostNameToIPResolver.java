@@ -43,15 +43,22 @@ HostNameToIPResolver
 
 	static protected AESemaphore	request_semaphore	= new AESemaphore("HostNameToIPResolver");
 	
+	public static boolean
+	isNonDNSName(
+		String	host )
+	{
+		String	lc_host	 = host.toLowerCase();
+		
+		return( lc_host.endsWith(".i2p" ) || lc_host.endsWith( ".onion" ));		
+	}
+	
 	public static InetAddress
 	syncResolve(
 		String	host )
 	
 		throws UnknownHostException
 	{
-		String	lc_host	 = host.toLowerCase();
-		
-		if ( lc_host.endsWith(".i2p" ) || lc_host.endsWith( ".onion" )){
+		if ( isNonDNSName( host )){
 			
 			throw( new HostNameToIPResolverException( "non-DNS name '" + host + "'", true ));
 		}

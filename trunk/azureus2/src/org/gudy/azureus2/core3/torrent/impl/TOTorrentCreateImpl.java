@@ -320,12 +320,12 @@ TOTorrentCreateImpl
 	
 	protected long
 	calculateNumberOfPieces(
-		File				file,
-		long				piece_length )
+		File				_file,
+		long				_piece_length )
 		
 		throws TOTorrentException
 	{
-		long	res = getPieceCount(calculateTotalFileSize( file ), piece_length );
+		long	res = getPieceCount(calculateTotalFileSize( _file ), _piece_length );
 		
 		report( "Torrent.create.progress.piececount", ""+res );
 		
