@@ -29,10 +29,14 @@ package org.gudy.azureus2.core3.security.impl;
 import java.util.*;
 import java.net.*;
 import java.io.*;
+import java.math.BigInteger;
 import javax.net.ssl.*;
 
 import java.security.*;
 import java.security.cert.*;
+
+import org.bouncycastle.jce.*;
+import org.bouncycastle.asn1.x509.X509Name;
 
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
@@ -100,6 +104,23 @@ SESecurityManagerImpl
 						return( res );
 					}
 				});
+		
+		try{
+			Security.addProvider((java.security.Provider)
+				Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+		try{
+			Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 	
 	public synchronized PasswordAuthentication
@@ -127,9 +148,6 @@ SESecurityManagerImpl
 	
 		throws Exception
 	{
-		Security.addProvider((java.security.Provider)
-				Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
-		
 		SSLContext context = SSLContext.getInstance( "SSL" );
 		
 		// Create the key manager factory used to extract the server key
@@ -166,9 +184,6 @@ SESecurityManagerImpl
 	
 		throws Exception
 	{
-		Security.addProvider((java.security.Provider)
-				Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
-				
 		// Create the key manager factory used to extract the server key
 		
 		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
@@ -215,6 +230,55 @@ SESecurityManagerImpl
 						return( res );
 					}
 				});
+	}
+	
+	public void
+	createSelfSignedCertificate()
+	{
+		try{
+			KeyPairGenerator	kg = KeyPairGenerator.getInstance( "RSA" );
+			
+			kg.initialize(1024, new SecureRandom());
+
+			KeyPair pair = kg.generateKeyPair();
+						
+			X509V3CertificateGenerator certificateGenerator = 
+				new X509V3CertificateGenerator();
+			
+			certificateGenerator.setSignatureAlgorithm( "MD5WithRSAEncryption" );
+			
+			certificateGenerator.setSerialNumber( new BigInteger("1234512345"));
+			
+			String xxx = "CN=azureus.sourceforge.net, OU=Azureus, O=SourceForge, L=Unknown, ST=Unknown, C=Unknown";
+			
+			X509Name	issuer_dn = new X509Name(true,xxx);
+			
+			certificateGenerator.setIssuerDN(issuer_dn);
+			
+			X509Name	subject_dn = new X509Name(true,xxx);
+			
+			certificateGenerator.setSubjectDN(subject_dn);
+			
+			Calendar	not_after = Calendar.getInstance();
+			
+			not_after.add(Calendar.YEAR, 1);
+			
+			certificateGenerator.setNotAfter( not_after.getTime());
+			
+			certificateGenerator.setNotBefore(Calendar.getInstance().getTime());
+			
+			certificateGenerator.setPublicKey( pair.getPublic());
+			
+			X509Certificate certificate = certificateGenerator.generateX509Certificate(pair.getPrivate());
+			
+			java.security.cert.Certificate[] certChain = {(java.security.cert.Certificate) certificate };
+
+			addCertToKeyStore( "SomeAlias", pair.getPrivate(), certChain );
+
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 	
 	public synchronized boolean
@@ -325,70 +389,135 @@ SESecurityManagerImpl
 	}
 	
 	protected synchronized void
+	addCertToKeyStore(
+		String								alias,
+		Key									public_key,
+		java.security.cert.Certificate[] 	certChain )
+	
+		throws Exception
+	{
+		KeyStore key_store = KeyStore.getInstance("JKS");
+		
+		if ( !new File(keystore).exists()){
+	
+			key_store.load(null,null);
+			
+		}else{
+		
+			FileInputStream		in 	= null;
+			
+			try{
+				in = new FileInputStream( keystore );
+		
+				key_store.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
+				
+			}finally{
+				
+				if ( in != null ){
+					
+					in.close();
+				}
+			}
+		}
+		
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+
+		keyManagerFactory.init(key_store, SESecurityManager.SSL_PASSWORD.toCharArray());
+
+		if( key_store.containsAlias( alias )){
+			
+			key_store.deleteEntry( alias );
+		}
+		
+		key_store.setKeyEntry( alias, public_key, SESecurityManager.SSL_PASSWORD.toCharArray(), certChain );
+		
+		FileOutputStream	out = null;
+		
+		try{
+			out = new FileOutputStream(keystore);
+		
+			key_store.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+		}finally{
+			
+			if ( out != null ){
+				
+				out.close();
+			}
+		}
+	}
+	
+	protected synchronized void
 	addCertToTrustStore(
 		String							alias,
 		java.security.cert.Certificate	cert )
 	
 		throws Exception
 	{
-		FileInputStream		in 	= null;
-		FileOutputStream	out = null;
-				
-		try {
-			KeyStore keystore = KeyStore.getInstance("JKS");
-			
-			if ( !new File(truststore).exists()){
+		KeyStore keystore = KeyStore.getInstance("JKS");
 		
-				keystore.load(null,null);
-				
-			}else{
+		if ( !new File(truststore).exists()){
+	
+			keystore.load(null,null);
 			
+		}else{
+		
+			FileInputStream		in 	= null;
+
+			try{
 				in = new FileInputStream(truststore);
-			
-				keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());				
-			}
-			
-			if ( cert != null ){
-				if ( keystore.containsAlias( alias )){
+		
+				keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
 				
-					keystore.deleteEntry( alias );
-				}
-							
-				keystore.setCertificateEntry(alias, cert);
+			}finally{
 				
-				out = new FileOutputStream(truststore);
-			
-				keystore.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
-			}
-			
-				// pick up the changed trust store
-			
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			
-			tmf.init(keystore);
-			
-			SSLContext ctx = SSLContext.getInstance("SSL");
-			
-			ctx.init(null, tmf.getTrustManagers(), null);
-						
-			HttpsURLConnection.setDefaultSSLSocketFactory(ctx.getSocketFactory());
-			
-		}finally{
-			
-			if ( in != null ){
-				try{
+				if ( in != null ){
+					
 					in.close();
-				}catch( Throwable e ){
 				}
 			}
-			if ( out != null ){
-				try{
-					out.close();
-				}catch( Throwable e ){
-				}
-			}
-			
 		}
+		
+		if ( cert != null ){
+			
+			if ( keystore.containsAlias( alias )){
+			
+				keystore.deleteEntry( alias );
+			}
+						
+			keystore.setCertificateEntry(alias, cert);
+
+			FileOutputStream	out = null;
+			
+			try{
+				out = new FileOutputStream(truststore);
+		
+				keystore.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
+		
+			}finally{
+				
+				if ( out != null ){
+					
+					out.close();
+				}						
+			}
+		}
+		
+			// pick up the changed trust store
+		
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		
+		tmf.init(keystore);
+		
+		SSLContext ctx = SSLContext.getInstance("SSL");
+		
+		ctx.init(null, tmf.getTrustManagers(), null);
+					
+		HttpsURLConnection.setDefaultSSLSocketFactory(ctx.getSocketFactory());
 	}
 	
 	public PasswordAuthentication
@@ -474,5 +603,16 @@ SESecurityManagerImpl
 		SECertificateListener	l )
 	{
 		certificate_listeners.remove(l);
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		SESecurityManagerImpl man = SESecurityManagerImpl.getSingleton();
+		
+		man.initialise();
+		
+		man.createSelfSignedCertificate();
 	}
 }

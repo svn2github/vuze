@@ -1,5 +1,5 @@
 /*
- * Created on 07-Jun-2004
+ * Created on 08-Jun-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,44 +20,33 @@
  *
  */
 
-package org.gudy.azureus2.ui.webplugin.util;
+package org.bouncycastle.jce.provider;
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
-import java.util.jar.*;
-import java.security.*;
-
-import org.gudy.azureus2.core3.security.*;
+import java.security.PublicKey;
+import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 
 public class 
-Test 
+JDKKeyFactoryRSAOnly 
 {
-	public static void
-	main(
-		String[]		args )
-	{
-		try{
-			SESecurityManager.initialise();
-			
-			String	alias = "SomeAlias"; // SESecurityManager.DEFAULT_ALIAS;
-			
-			SEKeyDetails	kd = SESecurityManager.getKeyDetails( alias );
-			
-			WUJarSigner signer = new WUJarSigner(alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
-			
-			FileOutputStream	fos = new FileOutputStream( "c:\\temp\\sj.jar");
-			
-			signer.signJarFile( new JarFile( "c:\\temp\\si.jar"), fos );
-			
-			fos.close();
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
-	}
+    static PublicKey createPublicKeyFromPublicKeyInfo(
+        SubjectPublicKeyInfo         info)
+    {
+        AlgorithmIdentifier     algId = info.getAlgorithmId();
+        
+        if (algId.getObjectId().equals(PKCSObjectIdentifiers.rsaEncryption)
+        	|| algId.getObjectId().equals(X509ObjectIdentifiers.id_ea_rsa))
+        {
+              return new JCERSAPublicKey(info);
+        }
+        else
+        {
+            throw new RuntimeException("algorithm identifier in key not recognised");
+        }
+    }
 }

@@ -30,7 +30,6 @@ import java.net.URL;
 import java.net.PasswordAuthentication;
 
 import javax.net.ssl.*;
-import java.security.*;
 
 import org.gudy.azureus2.core3.security.impl.*;
 
