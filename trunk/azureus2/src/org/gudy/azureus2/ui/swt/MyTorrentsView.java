@@ -159,60 +159,65 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         TableItem[] tis = table.getSelection();
-		itemOpen.setEnabled(false);
+        itemOpen.setEnabled(false);
         if (tis.length == 0) {
           itemStart.setEnabled(false);
           itemStop.setEnabled(false);
           itemRemove.setEnabled(false);
           return;
         }
-		if (tis.length == 1) {
-			itemOpen.setEnabled(true);
-	        itemStart.setEnabled(false);
-	        itemStop.setEnabled(true);
-	        itemRemove.setEnabled(false);
-	        itemBar.setSelection(false);
-	        TableItem ti = tis[0];
-	        DownloadManager dm = (DownloadManager) managers.get(ti);
-	        if (dm != null) {
-	          if (downloadBars.containsKey(dm))
-	            itemBar.setSelection(true);
-	          int state = dm.getState();
-	          if (state == DownloadManager.STATE_STOPPED) {
-	            itemStop.setEnabled(false);
-	            itemRemove.setEnabled(true);
-	          }
-	          if (state == DownloadManager.STATE_WAITING
-	            || state == DownloadManager.STATE_STOPPED
-	            || state == DownloadManager.STATE_READY) {
-	            itemStart.setEnabled(true);
-	          }
-	        }
-		} else {
-			boolean start = true;
-			boolean stop = true;
-			for (int i = 0; i < tis.length; i++) {
-				DownloadManager dm = (DownloadManager) managers.get(tis[i]);
-				if (dm != null) {
-				  int state = dm.getState();
-				  if (state == DownloadManager.STATE_STOPPED) {
-					stop = false;
-				  } else if (state == DownloadManager.STATE_WAITING || state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING) {
-					start = false;
-				  }
-				}
-			}
-			if(start == false && stop == false) {
-				itemStart.setEnabled(true);
-				itemStop.setEnabled(true);
-				itemRemove.setEnabled(false);
-			} else {
-				itemStart.setEnabled(start);
-				itemStop.setEnabled(stop);
-				itemRemove.setEnabled(!stop);
-			}
-		}
-
+        if (tis.length == 1) {
+          itemOpen.setEnabled(true);
+          itemStart.setEnabled(false);
+          itemStop.setEnabled(true);
+          itemRemove.setEnabled(false);
+          itemBar.setSelection(false);
+          TableItem ti = tis[0];
+          DownloadManager dm = (DownloadManager) managers.get(ti);
+          if (dm != null) {
+            if (downloadBars.containsKey(dm))
+              itemBar.setSelection(true);
+            int state = dm.getState();
+            if (state == DownloadManager.STATE_ERROR) {
+              itemStop.setEnabled(true);
+              itemRemove.setEnabled(true);
+            } else {
+              if (state == DownloadManager.STATE_STOPPED) {
+                itemStop.setEnabled(false);
+                itemRemove.setEnabled(true);
+              }
+              if (state == DownloadManager.STATE_WAITING || state == DownloadManager.STATE_STOPPED || state == DownloadManager.STATE_READY) {
+                itemStart.setEnabled(true);
+              }
+            }
+          }
+        } else {
+          boolean start = true;
+          boolean stop = true;
+          boolean remove = true;
+          for (int i = 0; i < tis.length; i++) {
+            DownloadManager dm = (DownloadManager) managers.get(tis[i]);
+            if (dm != null) {
+              int state = dm.getState();
+              if (state == DownloadManager.STATE_STOPPED) {
+                stop = false;
+              } else if (state == DownloadManager.STATE_WAITING || state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING) {
+                start = false;
+                remove = false;
+              } else if (state == DownloadManager.STATE_ERROR) {
+                start = false;
+              }
+            }
+          }
+          if (start == false && stop == false) {
+            itemStart.setEnabled(true);
+            itemStop.setEnabled(true);
+          } else {
+            itemStart.setEnabled(start);
+            itemStop.setEnabled(stop);
+          }
+          itemRemove.setEnabled(remove);
+        }
       }
     });
 
@@ -249,7 +254,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
         for (int i = 0; i < tis.length; i++) {
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) managers.get(ti);
-          if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
+          if (dm != null && (dm.getState() == DownloadManager.STATE_STOPPED || dm.getState() == DownloadManager.STATE_ERROR)) {
             globalManager.removeDownloadManager(dm);
           }
         }
