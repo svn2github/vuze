@@ -116,7 +116,7 @@ public class Average {
     update(timeFactor);
 
     //The sum of all elements used for the average.
-    int sum = 0;
+    long sum = 0;
 
     //Starting on oldest one (the one after the next one)
     //Ending on last one fully updated (the one previous current one)
@@ -126,6 +126,6 @@ public class Average {
     }
 
     //We return the sum divided by the period
-    return sum / period;
+    return (int) (sum / period);
   }
 }
