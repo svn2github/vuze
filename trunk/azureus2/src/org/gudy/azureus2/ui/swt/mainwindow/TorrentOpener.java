@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.Semaphore;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -81,11 +82,22 @@ public class TorrentOpener {
 
   public static void 
   openTorrent(
-  	  AzureusCore	azureus_core,
+  	  final AzureusCore	azureus_core,
       final String  fileName, 
 	  final boolean   startInStoppedState,
 	  boolean     from_drag_and_drop ) 
   {
+    //catch a http url
+    if( fileName.toUpperCase().startsWith( "HTTP://" ) ) {
+      Runnable r = new Runnable() {
+        public void run() {
+          openUrl( azureus_core, fileName );
+        }
+      };
+      display.asyncExec( r );
+      return;
+    }
+    
     try {
       if (!FileUtil.isTorrentFile(fileName)){
         
@@ -377,7 +389,7 @@ public class TorrentOpener {
   	AzureusCore	azureus_core,
 	String 		linkURL) 
   {
-    if(linkURL != null && linkURL.length() > 20 && COConfigurationManager.getBooleanParameter("Add URL Silently", false))
+    if(linkURL != null && linkURL.length() > 12 && COConfigurationManager.getBooleanParameter("Add URL Silently", false))
       new FileDownloadWindow(azureus_core,display, linkURL);
     else
       new OpenUrlWindow(azureus_core, display, linkURL);
