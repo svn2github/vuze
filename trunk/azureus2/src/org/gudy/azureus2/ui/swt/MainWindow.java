@@ -7,6 +7,7 @@ package org.gudy.azureus2.ui.swt;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileWriter;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,14 +15,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -866,7 +860,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
         toBeDisposed.dispose();
       }
     }
-
   }
 
   public void showMyTracker() {
@@ -997,7 +990,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
   }
 
   private void setSplashPercentage( int p ){
-   	if ( splash_maybe_null != null ){
+  	if ( splash_maybe_null != null ){
 		splash_maybe_null.setPercentDone(p);
   	}
   }
@@ -1312,9 +1305,22 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       if (libraryPath.endsWith("\\")) {
         libraryPath = libraryPath.substring(0, libraryPath.length() -1);
       }
+      
+      File logFile = new File( userPath, "update.log" );
+      FileWriter log = new FileWriter( logFile, true );
+      
+      log.write(new Date(System.currentTimeMillis()).toString() + "\n");
+      log.write("updateJar:: classPath=" + classPath
+                         + " libraryPath=" + libraryPath
+                         + " userPath=" + userPath + "\n");
     
-      File updaterJar = FileUtil.getApplicationFile("Updater.jar"); //$NON-NLS-1$
+      //File updaterJar = FileUtil.getApplicationFile("Updater.jar"); //$NON-NLS-1$
+      File updaterJar = new File(userPath, "Updater.jar");
+      
+      log.write("updateJar:: looking for " + updaterJar.getAbsolutePath() + "\n");
+      
       if (!updaterJar.isFile()) {
+        log.write("updateJar:: downloading new Updater.jar file .....");
         URL reqUrl = new URL("http://azureus.sourceforge.net/Updater.jar"); //$NON-NLS-1$
         HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
@@ -1326,18 +1332,19 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
           out.write(buffer, 0, c);
           display.readAndDispatch();
         }
+        log.write("done\n");
       }
+      else log.write("updateJar:: using existing Updater.jar file\n");
 
-        String exec = "java -classpath \"" + updaterJar.getAbsolutePath() + "\" org.gudy.azureus2.update.Updater \"" //$NON-NLS-1$ //$NON-NLS-2$
-  +classPath + "\" \"" + libraryPath + "\" \"" + userPath + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-      //      System.out.println("Azureus exec: " + exec);
+      String exec = "java -classpath \"" + updaterJar.getAbsolutePath()
+                  + "\" org.gudy.azureus2.update.Updater \"" + classPath
+                  + "\" \"" + libraryPath
+                  + "\" \"" + userPath + "\"";
 
+      log.write("updateJar:: executing command: " + exec + "\n");
+      if (log != null) log.close();
+      
       Runtime.getRuntime().exec(exec);
-      /*
-			 * BufferedReader d = new BufferedReader(new
-			 * InputStreamReader(process.getInputStream())); String text; while((text =
-			 * d.readLine()) != null && text.length() != 0) System.out.println(text);
-			 */
     }
     catch (Exception e1) {
       e1.printStackTrace();
@@ -1345,13 +1352,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     }
     finally {
       try {
-        if (out != null)
-          out.close();
-      }
-      catch (Exception e) {}
-      try {
-        if (in != null)
-          in.close();
+        if (out != null) out.close();
+        if (in != null) in.close();
       }
       catch (Exception e) {}
     }
@@ -1406,8 +1408,17 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     FileOutputStream fos = null;
     InputStream in = null;
     try {
-      File originFile = FileUtil.getApplicationFile("Azureus2.jar"); //$NON-NLS-1$
+      String userPath = System.getProperty("user.dir");
+      File logFile = new File( userPath, "update.log" );
+      FileWriter log = new FileWriter( logFile, true );
+      
+      //File originFile = FileUtil.getApplicationFile("Azureus2.jar"); //$NON-NLS-1$
+      File originFile = new File(userPath, "Azureus2.jar");
       File newFile = new File(originFile.getParentFile(), "Azureus2-new.jar"); //$NON-NLS-1$
+      
+      log.write("downloadJar:: originFile=" + originFile.getAbsolutePath()
+                           + " newFile=" + newFile.getAbsolutePath() + "\n");
+      
       URL reqUrl = null;
       if (latestVersionFileName == null) {
         reqUrl = new URL("http://azureus.sourceforge.net/Azureus2.jar"); //$NON-NLS-1$
@@ -1453,6 +1464,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
       if (reqUrl == null)
         return;
       hint.setText(MessageText.getString("MainWindow.upgrade.downloadingfrom") + reqUrl);
+      
+      log.write("downloadJar:: downloading new Azureus jar from " + reqUrl + " .....");
+      
       HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
       con.connect();
       in = con.getInputStream();
@@ -1476,6 +1490,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
         progressBar.update();
         display.readAndDispatch();
       }
+      log.write("done\n");
+      if (log != null) log.close();
+      
       jarDownloaded = true;
     }
     catch (MalformedURLException e) {
@@ -1492,13 +1509,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener {
     }
     finally {
       try {
-        if (fos != null)
-          fos.close();
-      }
-      catch (Exception e) {}
-      try {
-        if (in != null)
-          in.close();
+        if (fos != null) fos.close();
+        if (in != null) in.close();
       }
       catch (Exception e) {}
     }
