@@ -353,7 +353,7 @@ UPnPPlugin
 		for (int j=0;j<ports.length;j++){
 			
 			log.log( "      mapping:" + ports[j].getExternalPort() + "/" + 
-							(ports[j].isTCP()?"TCP":"UDP" ) + " -> " + ports[j].getInternalHost());
+							(ports[j].isTCP()?"TCP":"UDP" ) + " [" + ports[j].getDescription() + "] -> " + ports[j].getInternalHost());
 		}
 		
 		services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param, release_mappings_param ));

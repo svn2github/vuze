@@ -74,10 +74,21 @@ UPnPPluginService
 	}
 	
 	protected String
-	getDescriptionForPort(
+	getOldDescriptionForPort(
 		int		port )
 	{
+			// Remove one day - port name was changed as some routers use name uniqueness
+			// to manage ports, hence UDP and TCP with same name failed
+		
 		return( "Azureus UPnP " + port );
+	}
+	
+	protected String
+	getDescriptionForPort(
+		boolean	TCP,
+		int		port )
+	{
+		return( "Azureus UPnP " + port + " " + (TCP?"TCP":"UDP"));
 	}
 	
 	protected synchronized void
@@ -169,7 +180,8 @@ UPnPPluginService
 						
 			try{
 				connection.addPortMapping( 
-					mapping.isTCP(), mapping.getPort(), getDescriptionForPort( mapping.getPort()));
+					mapping.isTCP(), mapping.getPort(), 
+					getDescriptionForPort( mapping.isTCP(), mapping.getPort()));
 							
 				String	text;
 				
@@ -297,7 +309,9 @@ UPnPPluginService
 			
 			String	desc = mapping.getDescription();
 			
-			if ( desc == null || !desc.equalsIgnoreCase( getDescriptionForPort( port ))){
+			if ( 	desc == null || 
+					!(	desc.equalsIgnoreCase( getOldDescriptionForPort( port ))) &&
+						desc.equalsIgnoreCase( getDescriptionForPort( tcp, port ))){
 				
 				external		= true;
 			}
