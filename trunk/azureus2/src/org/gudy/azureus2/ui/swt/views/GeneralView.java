@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -372,7 +373,7 @@ public class GeneralView extends AbstractIView {
     String _shareRatio = "";
     int sr = manager.getStats().getShareRatio();
     
-    if(sr == -1) _shareRatio = "oo";
+    if(sr == -1) _shareRatio = Constants.INFINITY_STRING;
     if(sr >  0){ 
       String partial = "" + sr%1000;
       while(partial.length() < 3) partial = "0" + partial;

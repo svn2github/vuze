@@ -1457,7 +1457,7 @@ PEPeerControlImpl
     else {
       int averageSpeed = _averageReceptionSpeed.getAverage();
       if (averageSpeed < 256) {
-        remaining = "oo"; //$NON-NLS-1$
+        remaining = Constants.INFINITY_STRING;
       }
       else {
         long timeRemaining = dataRemaining / averageSpeed;
