@@ -816,9 +816,18 @@ DownloadManagerImpl
   
   public String 
   getTorrentCreatedBy() {
-	return torrent_created_by;
+  	return torrent_created_by;
   }
-
+  
+  public long 
+  getTorrentCreationDate() {
+  	if (torrent==null){
+  		return(0);
+  	}
+  	
+  	return( torrent.getCreationDate());
+  }
+  
   /**
    * @return
    */

@@ -99,6 +99,7 @@ public class GeneralView extends AbstractIView {
   BufferedLabel pieceNumber;
   BufferedLabel pieceSize;
   BufferedLabel comment;
+  BufferedLabel creation_date;
   BufferedLabel hashFails;
   BufferedLabel shareRatio;
   Button		updateButton;
@@ -517,12 +518,24 @@ public class GeneralView extends AbstractIView {
     
     label = new Label(gInfo, SWT.LEFT);
     
+    	// row
+    
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.comment"); //$NON-NLS-1$
     comment = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 1;
     comment.setLayoutData(gridData);
+ 
+    // row
+    
+    label = new Label(gInfo, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
+    creation_date = new BufferedLabel(gInfo, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 1;
+    creation_date.setLayoutData(gridData);
+    
     
     
     genComposite.addListener(SWT.Resize, new Listener() {
@@ -604,7 +617,8 @@ public class GeneralView extends AbstractIView {
       ByteFormatter.nicePrintTorrentHash(manager.getTorrent()),
       manager.getNbPieces(),
       manager.getPieceLength(),
-      manager.getTorrentComment());
+      manager.getTorrentComment(),
+	  DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000));
   }
 
   /* (non-Javadoc)
@@ -939,7 +953,8 @@ public class GeneralView extends AbstractIView {
     final String _hash,
     final int _pieceNumber,
     final String _pieceLength,
-    final String _comment) {
+    final String _comment,
+	final String _creation_date ) {
     if (display == null || display.isDisposed())
       return;
     display.asyncExec(new Runnable() {
@@ -951,6 +966,7 @@ public class GeneralView extends AbstractIView {
 		pieceNumber.setText( "" + _pieceNumber); //$NON-NLS-1$
 		pieceSize.setText( _pieceLength);
 		comment.setText( _comment);
+		creation_date.setText( _creation_date );
       }
     });
   }

@@ -27,6 +27,8 @@ package org.gudy.azureus2.core3.util;
  */
 
 import java.util.Calendar;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.config.*;
@@ -336,4 +338,16 @@ DisplayFormatters
     return n < 10 ? "0".concat(String.valueOf(n)) : String.valueOf(n);
   }
   
+  public static String
+  formatDate(
+  	long		date )
+  {
+  	if ( date == 0 ){
+  		return( "" );
+  	}
+  	
+  	SimpleDateFormat temp = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+  	
+  	return( temp.format(new Date(date)));
+  }
 }

@@ -186,6 +186,9 @@ DownloadManager
 	public String
 	getTorrentCreatedBy();
 	
+	public long
+	getTorrentCreationDate();
+	
 	public int
 	getNbPieces();
 	
