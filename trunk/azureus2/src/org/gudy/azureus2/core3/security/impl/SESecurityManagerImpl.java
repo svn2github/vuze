@@ -51,6 +51,9 @@ SESecurityManagerImpl
 	
 	protected Map	password_handlers		= new HashMap();
 	
+	protected boolean	 exit_vm_permitted	= false;
+	
+	
 	protected AEMonitor	this_mon	= new AEMonitor( "SESecurityManager" );
 	
 	public static SESecurityManagerImpl
@@ -95,6 +98,85 @@ SESecurityManagerImpl
 		}catch( Throwable e ){
 			
 			LGLogger.log( LGLogger.ERROR, "Bouncy Castle not available" );
+		}
+		
+		installSecurityManager();
+	}
+	
+	public String
+	getKeystoreName()
+	{
+		return( keystore_name );
+	}
+	
+	public String
+	getKeystorePassword()
+	{
+		return(	SESecurityManager.SSL_PASSWORD );	
+	}
+	
+	protected void
+	installSecurityManager()
+	{
+		try{
+			final SecurityManager	old_sec_man	= System.getSecurityManager();
+			
+			System.setSecurityManager(
+				new SecurityManager()
+				{
+					public void 
+					checkExit(int status) 
+					{
+						if ( old_sec_man != null ){
+						
+							old_sec_man.checkExit( status );
+						}
+						
+						if ( !exit_vm_permitted ){
+							
+							throw( new SecurityException( "VM exit operation prohibited"));
+						}
+					}
+					
+					public void 
+					checkPermission(Permission perm)
+					{
+						if ( old_sec_man != null ){
+							
+							old_sec_man.checkPermission( perm );
+						}
+					}
+					
+					public void 
+					checkPermission(
+						Permission 	perm, 
+						Object 		context) 
+					{
+						if ( old_sec_man != null ){
+							
+							old_sec_man.checkPermission( perm, context );
+						}
+					}
+	
+				});
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public void
+	exitVM(
+		int		status )
+	{
+		try{
+			exit_vm_permitted	= true;
+			
+			System.exit( status );
+			
+		}finally{
+			
+			exit_vm_permitted	= false;
 		}
 	}
 	

@@ -44,15 +44,22 @@ Test
 		try{
 			SESecurityManager.initialise();
 			
-			String	alias = "SomeAlias"; // SESecurityManager.DEFAULT_ALIAS;
+			System.out.println( System.getProperty( "java.home" ));
+			
+			String	alias = "Azureus"; // SESecurityManager.DEFAULT_ALIAS;
 			
 			SEKeyDetails	kd = SESecurityManager.getKeyDetails( alias );
 			
-			WUJarSigner signer = new WUJarSigner(alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
+			//WUJarSigner signer = new WUJarSigner(alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
+			WUJarSigner2 signer = 
+				new WUJarSigner2(
+						alias,
+						SESecurityManager.getKeystoreName(),
+						SESecurityManager.getKeystorePassword());
 			
 			FileOutputStream	fos = new FileOutputStream( "c:\\temp\\sj.jar");
 			
-			signer.signJarFile( new JarFile( "c:\\temp\\si.jar"), fos );
+			signer.signJarFile( new File( "c:\\temp\\si.jar"), fos );
 			
 			fos.close();
 			
@@ -60,5 +67,7 @@ Test
 			
 			Debug.printStackTrace( e );
 		}
+		
+		System.out.println("normal exit");
 	}
 }

@@ -65,6 +65,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.*;
@@ -1088,7 +1089,7 @@ MainWindow
 						Debug.printStackTrace( e );
 					}
 					
-					System.exit(1);
+					SESecurityManager.exitVM(1);
 				}
 			};
 			

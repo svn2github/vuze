@@ -164,8 +164,14 @@ WUJarBuilder
 					throw( new Exception( "Certificate alias '" + sign_alias + "' not found "));
 				}
 				
-				WUJarSigner signer = new WUJarSigner(sign_alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
+				// WUJarSigner signer = new WUJarSigner(sign_alias, (PrivateKey)kd.getKey(), kd.getCertificateChain());
 
+				WUJarSigner2 signer = 
+					new WUJarSigner2(
+							sign_alias,
+							SESecurityManager.getKeystoreName(),
+							SESecurityManager.getKeystorePassword());
+							
 				signer.signJarStream( new ByteArrayInputStream(baos.toByteArray()), jos );
 			
 				return( tim );

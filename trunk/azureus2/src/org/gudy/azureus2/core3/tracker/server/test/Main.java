@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.core3.util.*;
 
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 
 public class 
@@ -47,7 +48,7 @@ Main
 	{
 		System.err.println( "Usage:" );
 		
-		System.exit(1);
+		SESecurityManager.exitVM(1);
 	}
 	
 	public static void

@@ -5,6 +5,7 @@
 package org.gudy.azureus2.cl;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
@@ -119,6 +120,6 @@ public class Main {
     System.out.println("Usage : java org.gudy.azureus2.cl.Main [parameters] \"file.torrent\" \"save path\"");
     System.out.println("--maxUploads :\t\t Max number of simultaneous uploads");
     System.out.println("--maxSpeed :\t\t Max upload speed in KBytes/sec");
-    System.exit(0);
+    SESecurityManager.exitVM(0);
   }
 }

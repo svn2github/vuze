@@ -36,7 +36,9 @@ import java.util.jar.*;
 import org.gudy.azureus2.core3.util.Debug;
 
 import sun.misc.BASE64Encoder;
+
 import sun.security.util.ManifestDigester;
+
 import sun.security.util.SignatureFile;
 
 

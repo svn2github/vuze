@@ -51,9 +51,28 @@ SESecurityManager
 	}
 	
 	public static void
+	exitVM(
+		int		status )
+	{
+		SESecurityManagerImpl.getSingleton().exitVM(status);
+	}
+	
+	public static void
 	installAuthenticator()
 	{
 		SESecurityManagerImpl.getSingleton().installAuthenticator();
+	}
+	
+	public static String
+	getKeystoreName()
+	{
+		return(	SESecurityManagerImpl.getSingleton().getKeystoreName());
+	}
+	
+	public static String
+	getKeystorePassword()
+	{
+		return(	SESecurityManagerImpl.getSingleton().getKeystorePassword());
 	}
 	
 	public static SSLServerSocketFactory

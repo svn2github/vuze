@@ -25,6 +25,7 @@ package org.gudy.azureus2.core3.torrent.test;
 import java.io.*;
 import java.net.*;
 
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -40,7 +41,7 @@ Main
 	{
 		System.err.println( "Usage: encode|decode|create" );
 		
-		System.exit(1);
+		SESecurityManager.exitVM(1);
 	}
 	
 	public static void

@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.security.*;
 
 /**
  * @author Olivier
@@ -117,24 +118,24 @@ public class MakeTorrent implements TOTorrentProgressListener {
   public static void main(String args[]) {
     if(args.length < 2) {
       usage();
-      System.exit(0);
+      SESecurityManager.exitVM(0);
     }
     Map parameters = new HashMap();
     for(int i = 2 ; i < args.length ; i++) {
       boolean ok = parseParameter(args[i],parameters);
-      if(!ok) System.exit(-1);
+      if(!ok) SESecurityManager.exitVM(-1);
     }
     File f = new File(args[1]);
     if(!f.exists()) {
       System.out.println(args[1] + " is not a valid file / directory");
-      System.exit(-1);
+      SESecurityManager.exitVM(-1);
     }
     URL url = null;
     try {
       url = new URL(args[0]);
     } catch(Exception e) {
       System.out.println(args[0] + " is not a valid url");
-      System.exit(-1);
+      SESecurityManager.exitVM(-1);
     }
     new MakeTorrent(args[1],url,parameters);    
   }
