@@ -15,15 +15,24 @@
         <TMPL_ELSE>
           <form name="Torrent" method=post action='torrents' target='torrentlist'>
             <input type=hidden name=command value='Torrent'>
-            <input type=hidden name=subcommand value='Download'>
-            <p>
-            <center>
-                <table class="menu" cellspacing=0 cellpadding=0><tr>
-                    <td class="menuitem mvleft" onclick='eTorrent(0)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>P</b>ause</td>
-                    <td class="menuitem mvmid" onclick='eTorrent(1)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>D</b>ownload</td>
-                    <td class="menuitem mvright" onclick='eTorrent(2)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>C</b>ancel</td>
-                </tr></table>
-            </center>
+            <TMPL_UNLESS Global_NoJavaScript>
+                <input type=hidden name=subcommand value='Download'>
+                <p>
+                <center>
+                    <table class="menu" cellspacing=0 cellpadding=0><tr>
+                        <td class="menuitem mvleft" onclick='eTorrent(0)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>P</b>ause</td>
+                        <td class="menuitem mvmid" onclick='eTorrent(1)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>D</b>ownload</td>
+                        <td class="menuitem mvright" onclick='eTorrent(2)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'><b>C</b>ancel</td>
+                    </tr></table>
+                </center>
+            <TMPL_ELSE>
+                <p>
+                <center>
+                    <input type=submit name=subcommand value='Pause'>
+                    <input type=submit name=subcommand value='Start'>
+                    <input type=submit name=subcommand value='Cancel'>
+                </CENTER>
+            </TMPL_UNLESS>
             <p>
             <table class="torrent">
                 <tr>
@@ -44,7 +53,15 @@
                         <td align=left nowrap>
                             <table width="100%">
                                 <tr>
-                                    <td class="<TMPL_IF Torrents_Torrent_Seedless>seedless<TMPL_ELSE>seedy</TMPL_IF>"><TMPL_VAR Torrents_Torrent_FileName></td>
+                                    <td class="<TMPL_IF Torrents_Torrent_Seedless>seedless<TMPL_ELSE>seedy</TMPL_IF>">
+                                        <TMPL_IF Global_NoJavaScript>
+                                            <a href="torrentinfo?hash=<TMPL_VAR Torrents_Torrent_Hash>" target=torrentinfo>
+                                        </TMPL_IF>
+                                        <TMPL_VAR Torrents_Torrent_FileName>
+                                        <TMPL_IF Global_NoJavaScript>
+                                            </a>
+                                        </TMPL_IF>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>

@@ -114,6 +114,8 @@ public class ConfigurationDefaults {
     def.put("Server_sAllowDynamic", "");
     // Recheck dynamic hosts every (minutes)
     def.put("Server_iRecheckDynamic", new Long(30));
+    // Be not JavaScript-dependant
+    def.put("Server_bNoJavaScript", new Long(0));
     
     // Relevant for the proxy part
     // Fake hostname to access the webinterface when used in proxy mode

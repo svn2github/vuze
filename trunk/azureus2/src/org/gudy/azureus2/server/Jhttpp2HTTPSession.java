@@ -409,6 +409,7 @@ public class Jhttpp2HTTPSession extends Thread {
     handleConfigStr(tmpl, "Server_sTemplate_Directory");
     handleConfigInt(tmpl, "Server_iMaxHTTPConnections");
     handleConfigInt(tmpl, "Server_iRefresh");
+    handleConfigBool(tmpl,"Server_bNoJavaScript");
     handleConfigStr(tmpl, "Server_sAllowStatic");
     handleConfigStr(tmpl, "Server_sAllowDynamic");
     handleConfigInt(tmpl, "Server_iRecheckDynamic");
@@ -488,6 +489,8 @@ public class Jhttpp2HTTPSession extends Thread {
         h.put("Torrents_Torrent_SizeDown", dm.getDownloaded());
         h.put("Torrents_Torrent_SizeUp", dm.getUploaded());
         h.put("Torrents_Torrent_Hash", ByteFormater.nicePrint(dm.getHash(), true));
+        if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || ConfigurationManager.getInstance().getBooleanParameter("Server_bNoJavaScript"))
+          h.put("Global_NoJavaScript", Boolean.TRUE);
         v.addElement(h);
       }
       tmpl.setParam("Torrents_Torrents", v);
@@ -742,6 +745,8 @@ public class Jhttpp2HTTPSession extends Thread {
       tmpl.setParam("Global_ServerName", ConfigurationManager.getInstance().getStringParameter("Server_sName"));
       if (ConfigurationManager.getInstance().getIntParameter("Server_iRefresh")!=0)
         tmpl.setParam("Global_Refresh", ConfigurationManager.getInstance().getIntParameter("Server_iRefresh"));
+      if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || ConfigurationManager.getInstance().getBooleanParameter("Server_bNoJavaScript"))
+        tmpl.setParam("Global_NoJavaScript", Boolean.TRUE);
       TemplateCache tc = TemplateCache.getInstance();
       if (tc.needs(filename, "Options"))
         this.handleConfig(tmpl);

@@ -47,6 +47,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
   
   public String url;
   public String method;
+  public String useragent;
   public int remote_port = 0;
   public int post_data_len = 0;
   public HashMap vars = new HashMap();
@@ -174,6 +175,9 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
             lread=buf.length();
           }
         }
+        
+        if(server.startsWith(buf,"User-Agent"))
+          this.useragent = buf;
       }
       if (buf!=null) {
         rq+=buf;

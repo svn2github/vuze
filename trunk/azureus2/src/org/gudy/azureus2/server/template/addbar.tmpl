@@ -13,8 +13,15 @@
             <TD class="menuitem mvleft" width="100%">
                 <input class="addinput add" type=text name=Add_torrent title="Paste Torrent URLs here" onfocus='document.onkeypress=undefined' onblur='document.onkeypress=eKeyPress'>
             </td>
-             <td class="menuitem mvmid" onclick='eAdd(0)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Add</td>
-             <td class="menuitem mvright" onclick='eAdd(1)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Clear</td>
+            <TMPL_UNLESS Global_NoJavaScript>
+                <td class="menuitem mvmid" onclick='eAdd(0)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Add</td>
+                <td class="menuitem mvright" onclick='eAdd(1)' onmouseover='mOvr(this, "movr")' onmouseout='mOut(this)'>Clear</td>
+            <TMPL_ELSE>
+                <td><table><tr>
+                    <td><input type=submit name=command value='Add'></td>
+                    <td><input type=reset value='Clear'></td>
+                </tr></table></td>
+            </TMPL_UNLESS>
         </tr></table>
         </form>
         <form name="Command" method=POST action='torrentmain' target='main'>

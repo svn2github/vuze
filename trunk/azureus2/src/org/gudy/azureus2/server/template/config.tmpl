@@ -236,6 +236,13 @@
                                 <input type=text style="width:100%" name=Options_Server_iRecheckDynamic value="<TMPL_VAR Options_Server_iRecheckDynamic>">
                             </td>
                         </tr>
+                        <tr>
+                            <td>Do not depend on JavaScript (Automatically used for <a href="http://lynx.browser.org" target='_new'>Lynx</a> and <a href='http://atrey.karlin.mff.cuni.cz/~clock/twibright/links/' target='_new'>Links</a>)</td>
+                            <td width="5%" align=center>
+                                <input type=hidden name=Options_Server_bNoJavaScript value="0">
+                                <input type=checkbox name=Options_Server_bNoJavaScript <TMPL_IF Options_Server_bNoJavaScript>CHECKED</TMPL_IF> value="1">
+                            </td>
+                        </tr>
                     </table></td>
                 </tr>
                 <tr>
