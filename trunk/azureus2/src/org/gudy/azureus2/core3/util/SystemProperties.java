@@ -80,6 +80,7 @@ public class SystemProperties {
       		// 3) otherwise use the windows default
         try {      	
           user_dir_win = getEnvironmentalVariable( "APPDATA" );
+        	LGLogger.log( "SystemProperties::getUserPath: done getting environment variables");
         
           if ( user_dir_win != null && user_dir_win != "" ){
 
@@ -192,18 +193,23 @@ public class SystemProperties {
     	String line;
     	while( (line = br.readLine()) != null ) {
     		int idx = line.indexOf( '=' );
-    		String key = line.substring( 0, idx );
-    		String value = line.substring( idx+1 );
-    		
-    		LGLogger.log( "\t" + key + " = " + value );
-    		envVars.setProperty( key, value );
+    		if (idx >= 0) {
+      		String key = line.substring( 0, idx );
+      		String value = line.substring( idx+1 );
+      		
+      		LGLogger.log( "\t" + key + " = " + value );
+      		envVars.setProperty( key, value );
+      	}
     	}
+    	LGLogger.log( "SystemProperties::getUserPath: done getting environment variables1");
       br.close();
+    	LGLogger.log( "SystemProperties::getUserPath: done getting environment variables2");
     }
     catch (Throwable t) {
       if (br != null) try {  br.close();  } catch (Exception ingore) {}
     }
     
+    	LGLogger.log( "SystemProperties::getUserPath: done getting environment variables1");
     return envVars.getProperty( _var, "" );
   }
 
