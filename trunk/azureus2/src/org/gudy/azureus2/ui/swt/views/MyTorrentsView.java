@@ -55,6 +55,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
+import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.TrackerChangerWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -1112,7 +1113,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           // DEL remove selected Torrents
           if(e.keyCode == 127) {
             removeSelectedTorrentsIfStoppedOrError();
-          } else if(e.keyCode == 0) {
+          } else {
             // normal character: jump to next item with a name beginning with this character
             TableItem[] items = table.getSelection();
             int lastSelectedIndex = items.length == 0 ? -1 : table.indexOf(items[items.length-1]);
