@@ -75,7 +75,7 @@ TRTrackerServerImpl
 	{
 		send_peer_ids = COConfigurationManager.getBooleanParameter( "Tracker Send Peer IDs", true );
 				
-		max_peers_to_send = COConfigurationManager.getIntParameter( "Tracker Max Peers Returned", 0 );
+		max_peers_to_send = COConfigurationManager.getIntParameter( "Tracker Max Peers Returned" );
 				
 		scrape_cache_period = COConfigurationManager.getIntParameter( "Tracker Scrape Cache", TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD );
 				

@@ -252,7 +252,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Port UDP Enable", new Long(0) );
     def.put( "Tracker Port UDP Version", new Long(2) );
     def.put( "Tracker Send Peer IDs", new Long(1) );
-    def.put( "Tracker Max Peers Returned", new Long(0) );
+    def.put( "Tracker Max Peers Returned", new Long(100) );
     def.put( "Tracker Scrape Cache", new Long( TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD ) );
     def.put( "Tracker Announce Cache", new Long( TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD ) );
     def.put( "Tracker Announce Cache Min Peers", new Long( TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD ) );
