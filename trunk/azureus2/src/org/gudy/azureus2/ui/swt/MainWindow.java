@@ -20,11 +20,18 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolderAdapter;
 import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -237,25 +244,7 @@ public class MainWindow implements IComponentListener {
         String fileName = fDialog.open();
         if (fileName == null)
           return;
-        File f = new File(fileName);
-        if (!f.isDirectory())
-          return;
-        File[] files = f.listFiles(new FileFilter() {
-          public boolean accept(File arg0) {
-            if (arg0.getName().endsWith(".torrent"))
-              return true;
-            return false;
-          }
-        });
-        if (files.length == 0)
-          return;
-        DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-        dDialog.setText("Choose the save path for ALL the files");
-        String savePath = dDialog.open();
-        if (savePath == null)
-          return;
-        for (int i = 0; i < files.length; i++)
-          globalManager.addDownloadManager(new DownloadManager(globalManager, files[i].getAbsolutePath(), savePath));
+        openTorrentsFromDirectory(fileName);
       }
     });
 
@@ -306,21 +295,34 @@ public class MainWindow implements IComponentListener {
 
     new MenuItem(viewMenu, SWT.SEPARATOR);
 
-    MenuItem view_closeAll = new MenuItem(viewMenu, SWT.NULL);
-    view_closeAll.setText("Close All Download Bars");
-    view_closeAll.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        synchronized (downloadBars) {
-          Iterator iter = downloadBars.keySet().iterator();
-          while (iter.hasNext()) {
-            DownloadManager dm = (DownloadManager) iter.next();
-            MinimizedWindow mw = (MinimizedWindow) downloadBars.get(dm);
-            mw.close();
-            iter.remove();
-          }
-        }
-      }
-    });
+/*
+	MenuItem view_closeDetails = new MenuItem(viewMenu, SWT.NULL);
+	view_closeDetails.setText("Close all Details");
+	view_closeDetails.addListener(SWT.Selection, new Listener() {
+		public void handleEvent(Event e) {
+			synchronized (downloadViews) {
+//				Tab.closeAll();
+
+//				Iterator iter = downloadViews.values().iterator();
+//				while (iter.hasNext()) {
+//					Tab tab = (Tab) iter.next();
+//					Tab.closed(tab.getTabItem());
+//				}
+
+				Tab[] tab_items =
+					(Tab[]) downloadViews.values().toArray(new Tab[downloadViews.size()]);
+				for (int i = 0; i < tab_items.length; i++) {
+					Tab.closed(tab_items[i].getTabItem());
+				}
+
+				downloadViews.clear();
+			}
+		}
+	});
+*/
+	  addCloseDownloadBarsToMenu(viewMenu);
+    
+    createDropTarget(mainWindow);
 
     GridLayout mainLayout = new GridLayout();
     mainLayout.numColumns = 1;
@@ -414,7 +416,48 @@ public class MainWindow implements IComponentListener {
        
   }
 
-  public void waitForClose() {
+  protected void addCloseDownloadBarsToMenu(Menu menu) {
+		MenuItem view_closeAll = new MenuItem(menu, SWT.NULL);
+		view_closeAll.setText("Close All Download Bars");
+    view_closeAll.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+        closeDownloadBars();
+      }
+    });
+	}
+
+	public void closeDownloadBars() {
+	  synchronized (downloadBars) {
+  	  Iterator iter = downloadBars.keySet().iterator();
+    	while (iter.hasNext()) {
+	      DownloadManager dm = (DownloadManager) iter.next();
+  	    MinimizedWindow mw = (MinimizedWindow) downloadBars.get(dm);
+    	  mw.close();
+      	iter.remove();
+	    }
+  	}
+	}
+
+	private void createDropTarget(final Control control){
+  	DropTarget dropTarget = new DropTarget(control, DND.DROP_MOVE | DND.DROP_COPY);
+	  dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
+  	dropTarget.addDropListener(new DropTargetAdapter() {
+	    public void drop(DropTargetEvent event) {
+  	    final String[] sourceNames = (String[]) event.data;
+    	  if (sourceNames == null) event.detail = DND.DROP_NONE;
+      	if (event.detail == DND.DROP_NONE) return;
+	      for (int i = 0; (i < sourceNames.length); i++){
+  	      final File source = new File(sourceNames[i]);
+    	    if(source.isFile())
+      	    openTorrent(source.getAbsolutePath());
+	        else if(source.isDirectory())
+  	        openTorrentsFromDirectory(source.getAbsolutePath());
+    	  }
+	    }
+  	});
+	}
+
+	public void waitForClose() {
     while (!mainWindow.isDisposed()) {
       if (!display.readAndDispatch())
         display.sleep();
@@ -595,6 +638,28 @@ public class MainWindow implements IComponentListener {
         }
       }
     });
+  }
+
+  public void openTorrentsFromDirectory(String directoryName) {
+    File f = new File(directoryName);
+    if (!f.isDirectory())
+      return;
+    File[] files = f.listFiles(new FileFilter() {
+      public boolean accept(File arg0) {
+        if (arg0.getName().endsWith(".torrent"))
+          return true;
+        return false;
+      }
+    });
+    if (files.length == 0)
+      return;
+    DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
+    dDialog.setText("Choose the save path for ALL the files");
+    String savePath = dDialog.open();
+    if (savePath == null)
+      return;
+    for (int i = 0; i < files.length; i++)
+      globalManager.addDownloadManager(new DownloadManager(globalManager, files[i].getAbsolutePath(), savePath));
   }
 
   /**
