@@ -135,7 +135,13 @@ PlatformManagerImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new PlatformManagerException( "Failed to read registry details", e ));
+			if ( 	e.getMessage() == null || 
+					e.getMessage().indexOf("RegOpenKey failed") == -1 ){
+				
+				e.printStackTrace();
+			}
+
+			return( false );
 		}
 	}
 	

@@ -70,7 +70,7 @@ throwException(
 	char*			operation,
 	char*			message )
 {
-	jclass except = env->FindClass( "org/gudy/azureus2_platform/platform/win32/access/impl/AEWin32AccessExceptionImpl" );
+	jclass except = env->FindClass( "org/gudy/azureus2/platform/win32/access/impl/AEWin32AccessExceptionImpl" );
 	
 	bool	ok = false;
 

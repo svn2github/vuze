@@ -118,6 +118,7 @@ import org.gudy.azureus2.ui.swt.views.*;
 //import org.gudy.azureus2.ui.systray.SystemTray;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import org.gudy.azureus2.ui.swt.auth.*;
+import org.gudy.azureus2.ui.swt.associations.*;
 import org.gudy.azureus2.ui.swt.sharing.*;
 import org.gudy.azureus2.ui.swt.sharing.progress.*;
 import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
@@ -935,6 +936,10 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     Tab.addTabKeyListenerToComposite(folder);
     
     gm.startChecker();
+    
+    	// check file associations
+    
+    AssociationChecker.checkAssociations();
     
     new Thread("Init Complete")
     {

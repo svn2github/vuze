@@ -157,7 +157,7 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 	    
 	    if ( platform != null && platform.getPlatformType() == PlatformManager.PT_WINDOWS ){
 	    	
-		    Composite cResetAssoc = new Composite(cDisplay, SWT.NULL);
+		    Composite cResetAssoc = new Composite(cArea, SWT.NULL);
 		    layout = new GridLayout();
 		    layout.marginHeight = 0;
 		    layout.marginWidth = 0;
@@ -187,6 +187,8 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 		      	}
 		      }
 		    });
+		    
+		    new BooleanParameter(cArea, "config.interface.checkassoc",true, "ConfigView.section.interface.checkassoc");
 	    }
     }catch( PlatformManagerException e ){
     	
