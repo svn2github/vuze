@@ -131,7 +131,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     label.setLayoutData(formData);
      
     
-    BooleanParameter slowConnect = new BooleanParameter(cTransfer, "Slow Connect", false, "ConfigView.label.slowconnect");
+    BooleanParameter slowConnect = new BooleanParameter(cTransfer, "Slow Connect", true, "ConfigView.label.slowconnect");
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploads.getControl(), 10);
     slowConnect.setLayoutData(formData);    

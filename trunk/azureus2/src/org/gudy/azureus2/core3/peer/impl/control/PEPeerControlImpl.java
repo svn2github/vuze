@@ -215,7 +215,7 @@ PEPeerControlImpl
     peerUpdater.start();
     
     /* create new outgoing connections slowly */
-    slowConnect = COConfigurationManager.getBooleanParameter("Slow Connect", false);
+    slowConnect = COConfigurationManager.getBooleanParameter("Slow Connect");
     if (slowConnect) {
        slowQueue = Collections.synchronizedList(new LinkedList());
        slowConnector = new SlowConnector();
@@ -316,7 +316,7 @@ PEPeerControlImpl
             
             try {
                /* wait until notified of new connection to slow connect */
-               synchronized (slowQueue) { slowQueue.wait(1000); }
+               synchronized (slowQueue) { slowQueue.wait(500); }
                
                /* dequeue waiting connections and process */
                while ((slowQueue.size() > 0) && bContinue) {
@@ -331,7 +331,7 @@ PEPeerControlImpl
                      }
                   }
                   /* wait */
-                  Thread.sleep(1000);
+                  Thread.sleep(500);
                }
             } catch (Exception e) {
                e.printStackTrace();
