@@ -31,7 +31,6 @@ import java.net.URL;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 import com.aelitis.azureus.core.proxy.AEProxyAddressMapper;
 
@@ -57,7 +56,9 @@ AEProxyAddressMapperImpl
 	protected String	prefix;
 	protected long		next_value;
 	
-	protected Map		map	= new HashMap();
+	protected Map		map			= new HashMap();
+	protected Map		reverse_map	= new HashMap();
+	
 	
 	protected
 	AEProxyAddressMapperImpl()
@@ -107,14 +108,21 @@ AEProxyAddressMapperImpl
 		
 		synchronized( this ){
 			
-			target = prefix + (next_value++);
-		
-			while( target.length() < 255 ){
+			target = (String)reverse_map.get( address );
 			
-				target += "0";
+			if ( target == null ){
+				
+				target = prefix + (next_value++);
+			
+				while( target.length() < 255 ){
+				
+					target += "0";
+				}
+				
+				map.put( target, address );
+				
+				reverse_map.put( address, target );
 			}
-			
-			map.put( target, address );
 		}
 		
 		System.out.println( "AEProxyAddressMapper: internalise " + address + " -> " + target );

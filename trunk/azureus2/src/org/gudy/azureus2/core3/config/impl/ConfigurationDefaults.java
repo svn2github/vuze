@@ -245,7 +245,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Client Read Timeout", new Long(60));
     def.put( "Tracker Public Enable", new Long(0) );
     def.put( "Tracker Log Enable", new Long(0) );
-    def.put( "Tracker Port Enable", new Long(1) );
+    def.put( "Tracker Port Enable", new Long(0) );
     def.put( "Tracker Port", new Long( TRHost.DEFAULT_PORT ) );
     def.put( "Tracker Port SSL Enable", new Long(0) );
     def.put( "Tracker Port SSL", new Long( TRHost.DEFAULT_PORT_SSL ) );

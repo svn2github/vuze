@@ -217,12 +217,21 @@ ConfigurationChecker
 	    		// only do this on an already existing configuration. Easiest way to test
 	    		// for this is the "diagnostics.tidy_close" flag
 	    	
-	    	if ( 	COConfigurationManager.doesParameterNonDefaultExist( "diagnostics.tidy_close" ) && 
-	    			!COConfigurationManager.doesParameterNonDefaultExist( "Use default data dir" )){
+	    	if ( 	COConfigurationManager.doesParameterNonDefaultExist( "diagnostics.tidy_close" )){
 	    		
-	    		COConfigurationManager.setParameter( "Use default data dir", true );
+	    		if ( !COConfigurationManager.doesParameterNonDefaultExist( "Use default data dir" )){
 	    		
-	    		changed	= true;
+	    			COConfigurationManager.setParameter( "Use default data dir", true );
+	    		
+	    			changed	= true;
+	    		}
+	    		
+	    		if ( !COConfigurationManager.doesParameterNonDefaultExist( "Tracker Port Enable" )){
+		    		
+		    		COConfigurationManager.setParameter( "Tracker Port Enable", true );
+		    	
+		    		changed	= true;
+	    		}
 	    	}
 	    	
 	    		// also, if we now have a default data dir enabled (either explicitly or by

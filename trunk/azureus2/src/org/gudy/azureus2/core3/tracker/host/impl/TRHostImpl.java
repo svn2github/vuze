@@ -142,7 +142,7 @@ TRHostImpl
 								while(true){
 									
 									try{											
-										if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", true )){
+										if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", false )){
 										
 											try{
 													

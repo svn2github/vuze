@@ -373,7 +373,7 @@ ConfigSectionTrackerServer
     // row
 
     final BooleanParameter nonsslEnable = 
-        new BooleanParameter(gMainTab, "Tracker Port Enable", true, 
+        new BooleanParameter(gMainTab, "Tracker Port Enable", false, 
                              "ConfigView.section.tracker.port");
 
     IntParameter tracker_port = new IntParameter(gMainTab, "Tracker Port", TRHost.DEFAULT_PORT, false );

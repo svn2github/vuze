@@ -99,7 +99,7 @@ TrackerImpl
 		
 		if ( tracker_host.length() > 0 ){
 			
-			if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", true )){
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", false )){
 										
 				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 				
