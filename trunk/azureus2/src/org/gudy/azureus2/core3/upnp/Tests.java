@@ -63,9 +63,9 @@ Tests
 				{			
     				System.out.println(packet.getUSN() + " - " + packet.getST() + " - " + packet.getLocation());
         				
-    				ctrlPoint.print();
+    				//ctrlPoint.print();
     				
-    				//processDevices( "", ctrlPoint.getDeviceList());
+    				processDevices( "", ctrlPoint.getDeviceList());
 				}
     		};
 
