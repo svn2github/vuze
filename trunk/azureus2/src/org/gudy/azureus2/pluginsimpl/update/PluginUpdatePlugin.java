@@ -599,7 +599,8 @@ PluginUpdatePlugin
 								
 									// we've got to modify the plugin.version in the existing
 									// file (if it exists) otherwise we keep downloading the new 
-									// version!
+									// version! Or, if the key doesn't exist, add it!
+								
 									// if we were smarter we could merge values from the
 									// old one into the new one, however this is too much like
 									// hard work
@@ -618,6 +619,9 @@ PluginUpdatePlugin
 								
 									tmp = new PrintWriter(new FileWriter( tmp_file ));			
 								
+									tmp.println( "plugin.version=" + target_version );
+									
+								
 									while(true){
 										
 										String	line = lnr.readLine();
@@ -628,11 +632,12 @@ PluginUpdatePlugin
 										}
 										
 										if ( line.indexOf( "plugin.version" ) != -1 ){
-											
-											line = "plugin.version=" + target_version;
-										}
 										
-										tmp.println( line );
+												// skip existing entry
+										}else{
+										
+											tmp.println( line );
+										}
 									}
 								}finally{
 									

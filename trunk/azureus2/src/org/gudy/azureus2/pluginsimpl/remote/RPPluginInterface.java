@@ -131,8 +131,23 @@ RPPluginInterface
 		String	method = request.getMethod();
 		
 		if ( method.equals( "getPluginProperties")){
+				
+				// must copy properties as actual return is subtype + non serialisable
 			
-			return( new RPReply( delegate.getPluginProperties()));
+			Properties p = new Properties();
+			
+			Properties x = delegate.getPluginProperties();
+			
+			Iterator	it = x.keySet().iterator();
+			
+			while(it.hasNext()){
+				
+				Object	key = it.next();
+				
+				p.put( key, x.get(key));
+			}
+			
+			return( new RPReply( p ));
 			
 		}else if ( method.equals( "getDownloadManager")){
 			
