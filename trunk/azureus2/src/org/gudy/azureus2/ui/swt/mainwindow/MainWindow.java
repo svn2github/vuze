@@ -131,14 +131,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   HashMap downloadBars;
      
   private Tab 	mytorrents;
-  private IView viewMyTorrents;
-  
   private Tab 	my_tracker_tab;
-  private IView my_tracker_view;
-  
   private Tab 	my_shares_tab;
-  private IView my_shares_view;
-  
   private Tab 	stats_tab;
   private Tab console;
   private Tab config;
@@ -468,13 +462,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     
     
     LGLogger.log("Initializing GUI complete");
-    
-    
-    
-    
 
-	  	    
-    
     VersionChecker.checkForNewVersion();
     
     globalManager.addListener(this);
@@ -499,8 +487,6 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       }
       catch (Exception e) {}
     }
-    
-   
     
     //NICO catch the dispose event from file/quit on osx
     mainWindow.addDisposeListener(new DisposeListener() {
@@ -564,11 +550,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     showMyTorrents();
 
     if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
-      console = new Tab(new ConsoleView());
+      showConsole();
     }
     
     if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
-      config = new Tab(new ConfigView());
+      showConfig();
     }
   
     mainWindow.open();
@@ -651,10 +637,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
 
   public void showMyTracker() {
   	if (my_tracker_tab == null) {
-  		if (my_tracker_view == null) {
-  			my_tracker_view = new MyTrackerView(globalManager);
-  		}
-  		my_tracker_tab = new Tab(my_tracker_view);
+  		my_tracker_tab = new Tab(new MyTrackerView(globalManager));
   	} else {
   		my_tracker_tab.setFocus();
   		refreshIconBar();
@@ -665,10 +648,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   showMyShares() 
   {
   	if (my_shares_tab == null) {
-  		if (my_shares_view == null) {
-  			my_shares_view = new MySharesView(globalManager);
-  		}
-  		my_shares_tab = new Tab(my_shares_view);
+  		my_shares_tab = new Tab(new MySharesView(globalManager));
   	} else {
   		my_shares_tab.setFocus();
   		refreshIconBar();
@@ -677,10 +657,7 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   
   public void showMyTorrents() {
     if (mytorrents == null) {
-      if (viewMyTorrents == null)
-        mytorrents = new Tab(new MyTorrentsSuperView(globalManager));
-      else
-        mytorrents = new Tab(viewMyTorrents);
+      mytorrents = new Tab(new MyTorrentsSuperView(globalManager));
     } else
       mytorrents.setFocus();
     	refreshIconBar();
