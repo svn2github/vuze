@@ -1520,7 +1520,8 @@ TRTrackerClientClassicImpl
           Long lComplete = (Long)metaData.get("complete");
 				  if (lComplete != null) {
             lIncomplete = (Long)metaData.get("incomplete");
-            LGLogger.log( LGLogger.INFORMATION, "ANNOUNCE SCRAPE1: seeds=" +lComplete+ " peers=" +lIncomplete);
+            LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+                         "ANNOUNCE SCRAPE1: seeds=" +lComplete+ " peers=" +lIncomplete);
           }
 						
 						//build the list of peers
@@ -1602,7 +1603,8 @@ TRTrackerClientClassicImpl
 				    		
 				    		byte[]	peer_id = getAnonymousPeerId( ip, port );
 							
-                LGLogger.log(LGLogger.INFORMATION, "COMPACT PEER: ip=" +ip+ " port=" +port);
+                LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+                             "COMPACT PEER: ip=" +ip+ " port=" +port);
 							
 							valid_meta_peers.add(new TRTrackerResponsePeerImpl( peer_id, ip, port ));							
 				    	}
@@ -1627,7 +1629,8 @@ TRTrackerClientClassicImpl
             lComplete = (Long)extensions.get("complete");
   				  if (lComplete != null) {
               lIncomplete = (Long)extensions.get("incomplete");
-              LGLogger.log( LGLogger.INFORMATION, "ANNOUNCE SCRAPE2: seeds=" +lComplete+ " peers=" +lIncomplete);
+              LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+                           "ANNOUNCE SCRAPE2: seeds=" +lComplete+ " peers=" +lIncomplete);
   				  }
  				  }
 
@@ -1819,7 +1822,8 @@ TRTrackerClientClassicImpl
 	{
 		int	num = importTrackerCache( map );
 		
-		LGLogger.log( "TRTrackerClient: imported " + num + " cached peers" );
+    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+                 "TRTrackerClient: imported " + num + " cached peers" );
 	}
 	
 	protected Map
@@ -1847,7 +1851,8 @@ TRTrackerClientClassicImpl
 				peers.add( entry );
 			}
 		
-			LGLogger.log( "TRTrackerClient: exported " + tracker_peer_cache.size() + " cached peers" );
+      LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+			             "TRTrackerClient: exported " + tracker_peer_cache.size() + " cached peers" );
 		}
 		
 		return( res );
@@ -1956,7 +1961,8 @@ TRTrackerClientClassicImpl
 		
 		if ( p2 != null ){
 			
-			LGLogger.log( "TRTrackerClient: merged peer sets: p1 = " + peers.size() + ", p2 = " + p2.size());
+      LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+			             "TRTrackerClient: merged peer sets: p1 = " + peers.size() + ", p2 = " + p2.size());
 		
 			for (int i=0;i<p2.size();i++){
 				
@@ -1978,7 +1984,8 @@ TRTrackerClientClassicImpl
 			
       tracker_peer_cache.values().toArray( res );
 			
-      LGLogger.log( "TRTrackerClient: returned " + res.length + " cached peers" );
+      LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+                   "TRTrackerClient: returned " + res.length + " cached peers" );
 			
       return( res );
 		}
