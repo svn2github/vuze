@@ -1097,16 +1097,6 @@ DiskManagerImpl
 		long written = 0;
 		synchronized (file){
 		  try{
-		    while (written < length && bOverallContinue) {
-					allocateAndTestBuffer.limit(allocateAndTestBuffer.capacity());
-					if ((length - written) < allocateAndTestBuffer.remaining())
-					  allocateAndTestBuffer.limit((int) (length - written));
-					int deltaWriten = fm_file.write(allocateAndTestBuffer, written);
-					allocateAndTestBuffer.position(0);
-					written += deltaWriten;
-					allocated += deltaWriten;
-					percentDone = (int) ((allocated * 1000) / totalLength);
-		    }
 		    if( length == 0 ) { //create a zero-length file if it is listed in the torrent
           fm_file.setLength( 0 );
         }
