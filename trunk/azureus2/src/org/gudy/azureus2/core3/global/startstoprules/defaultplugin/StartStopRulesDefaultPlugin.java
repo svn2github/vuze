@@ -355,8 +355,18 @@ public class StartStopRulesDefaultPlugin
           
           // Check Seeders for change in activeness (speed threshold)
           // (The call sets somethingChanged it was changed)
-          if (dlDataArray[i].getActivelySeeding())
+          if (dlDataArray[i].getActivelySeeding()) {
             iNumCDing++;
+
+            int shareRatio = dl.getStats().getShareRatio();
+            int numSeeds = calcSeedsNoUs(dl);
+
+            if (iIgnoreShareRatio != 0 && 
+                shareRatio > iIgnoreShareRatio && 
+                numSeeds >= iIgnoreShareRatio_SeedStart &&
+                shareRatio != -1)
+              somethingChanged = true;
+          }
           
           /* READY downloads are usually waiting for a seeding torrent to
              stop (the seeding torrent probably is within the "Minumum Seeding
