@@ -599,4 +599,16 @@ Download
    * @since 2.1.0.5
    */
   public byte[] getDownloadPeerId();
+  
+  /**
+   * Is advanced AZ messaging enabled for this download.
+   * @return true if enabled, false if disabled
+   */
+  public boolean isMessagingEnabled();
+  
+  /**
+   * Enable or disable advanced AZ messaging for this download.
+   * @param enabled true to enabled, false to disabled
+   */
+  public void setMessagingEnabled( boolean enabled );
 }

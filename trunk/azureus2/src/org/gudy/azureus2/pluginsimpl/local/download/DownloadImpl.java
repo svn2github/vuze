@@ -1111,6 +1111,14 @@ DownloadImpl
   }
   
   
+  public boolean isMessagingEnabled() {  return download_manager.isAZMessagingEnabled();  }
+
+  public void setMessagingEnabled( boolean enabled ) {
+    download_manager.setAZMessagingEnabled( enabled );
+  }
+  
+  
+  
   
  	// Deprecated methods
 

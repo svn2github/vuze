@@ -47,7 +47,7 @@ public class BTMessageFactory {
       MessageManager.getSingleton().registerMessageType( new BTBitfield( null ) );
       MessageManager.getSingleton().registerMessageType( new BTCancel( -1, -1, -1 ) );
       MessageManager.getSingleton().registerMessageType( new BTChoke() );
-      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0] ) );
+      MessageManager.getSingleton().registerMessageType( new BTHandshake( new byte[0], new byte[0], true ) );
       MessageManager.getSingleton().registerMessageType( new BTHave( -1 ) );
       MessageManager.getSingleton().registerMessageType( new BTInterested() );
       MessageManager.getSingleton().registerMessageType( new BTKeepAlive() );

@@ -343,5 +343,17 @@ DownloadManager
 	public void
 	setScrapeResult(
 		DownloadScrapeResult	result );
+  
+  /**
+   * Is advanced AZ messaging enabled for this download.
+   * @return true if enabled, false if disabled
+   */
+  public boolean isAZMessagingEnabled();
+  
+  /**
+   * Enable or disable advanced AZ messaging for this download.
+   * @param enable true to enabled, false to disabled
+   */
+  public void setAZMessagingEnabled( boolean enable );
 
 }

@@ -262,6 +262,8 @@ DownloadManagerImpl
 	private boolean data_already_allocated = false;
   
 	private long	creation_time	= SystemTime.getCurrentTime();
+  
+  private boolean az_messaging_enabled = true;
    
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
@@ -1964,5 +1966,12 @@ DownloadManagerImpl
   	long		t )
   {
   	creation_time	= t;
+  }
+  
+  
+  public boolean isAZMessagingEnabled() {  return az_messaging_enabled;  }
+  
+  public void setAZMessagingEnabled( boolean enable ) {
+    az_messaging_enabled = enable;
   }
 }

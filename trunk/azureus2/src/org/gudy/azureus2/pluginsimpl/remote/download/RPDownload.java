@@ -303,6 +303,14 @@ RPDownload
   }
   
   
+  public boolean isMessagingEnabled() {  return delegate.isMessagingEnabled();  }
+
+  public void setMessagingEnabled( boolean enabled ) {
+    delegate.setMessagingEnabled( enabled );
+  }
+  
+  
+  
 	public void
 	initialize()
 	

@@ -331,6 +331,12 @@ Test
     public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data ) {
       
     }
+    
+    
+    public boolean isAZMessagingEnabled() { return true;  }
+
+    public void setAZMessagingEnabled( boolean enable ){}
+    
 
 		public GlobalManager
 		getGlobalManager()

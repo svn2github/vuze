@@ -359,7 +359,10 @@ PEPeerTransportProtocol
   
   
   private void sendBTHandshake() {
-    connection.getOutgoingMessageQueue().addMessage( new BTHandshake( manager.getHash(), manager.getPeerId() ), false );
+    connection.getOutgoingMessageQueue().addMessage(
+        new BTHandshake( manager.getHash(),
+                         manager.getPeerId(),
+                         manager.getDownloadManager().isAZMessagingEnabled() ), false );
   }
   
   
@@ -1018,7 +1021,10 @@ PEPeerTransportProtocol
     
     //extended protocol processing
     if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
-      if( client.indexOf( "Plus!" ) != -1 ) {
+      if( !manager.getDownloadManager().isAZMessagingEnabled() ) {
+        System.out.println( "Ignoring peer " +ip+ " [" +client+ "]'s extended AZ messaging support, as disabled for this download." );
+      }
+      else if( client.indexOf( "Plus!" ) != -1 ) {
         System.out.println( "Peer " +ip+ " [" +client+ "] handshake mistakingly indicates extended AZ messaging support....ignoring." );
       }
       else {
@@ -1509,5 +1515,8 @@ PEPeerTransportProtocol
       }
     }
   }
+  
+  
+  
   
 }

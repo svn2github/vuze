@@ -36,7 +36,8 @@ import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
  */
 public class BTHandshake implements BTMessage, RawMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
-  public static final byte[] RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte
+  public static final byte[] BT_RESERVED = new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0 };  //no reserve bit set
+  public static final byte[] AZ_RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte to indicate advanced AZ messaging support
   
   private final DirectByteBuffer[] buffer;
   private final String description;
@@ -51,9 +52,10 @@ public class BTHandshake implements BTMessage, RawMessage {
    * Used for outgoing handshake message.
    * @param data_hash
    * @param peer_id
+   * @param set_reserve_bit
    */
-  public BTHandshake( byte[] data_hash, byte[] peer_id ) {
-    this( null, data_hash, peer_id );
+  public BTHandshake( byte[] data_hash, byte[] peer_id, boolean set_reserve_bit ) {
+    this( set_reserve_bit ? AZ_RESERVED : BT_RESERVED, data_hash, peer_id );
   }
   
   
@@ -61,7 +63,7 @@ public class BTHandshake implements BTMessage, RawMessage {
     DirectByteBuffer dbb = new DirectByteBuffer( ByteBuffer.allocate( 68 ) );
     dbb.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
     dbb.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
-    dbb.put( DirectByteBuffer.SS_BT, reserved == null ? RESERVED : reserved );
+    dbb.put( DirectByteBuffer.SS_BT, reserved );
     dbb.put( DirectByteBuffer.SS_BT, data_hash );
     dbb.put( DirectByteBuffer.SS_BT, peer_id );
     dbb.flip( DirectByteBuffer.SS_BT );
