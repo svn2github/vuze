@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -40,6 +42,7 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -176,25 +179,29 @@ public class MainWindow implements IComponentListener {
      * @see java.lang.Thread#run()
      */
     public void run() {
-      String message = ""; //$NON-NLS-1$
+      byte[] message = null;
       int nbRead = 0;
+      InputStream is = null;
       try {
         URL reqUrl = new URL("http://azureus.sourceforge.net/version.php"); //$NON-NLS-1$
         HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
         con.connect();
-        InputStream is = con.getInputStream();
+        is = con.getInputStream();
 //        int length = con.getContentLength();
 //        System.out.println(length);
         byte[] data = new byte[1024];
 
-        while (nbRead != -1) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        while (nbRead >= 0) {
           nbRead = is.read(data);
-          if (nbRead != -1)
-            message += new String(data, 0, nbRead, "ISO-8859-1"); //$NON-NLS-1$
-          Thread.sleep(10);
+          if (nbRead >= 0) {
+            bos.write(data, 0, nbRead);
+          }
         }
-        Map decoded = BDecoder.decode(message.getBytes("ISO-8859-1")); //$NON-NLS-1$
-        latestVersion = new String((byte[])decoded.get("version")); //$NON-NLS-1$ //$NON-NLS-2$
+        message = bos.toByteArray();
+        Map decoded = BDecoder.decode(message);
+
+        latestVersion = new String((byte[]) decoded.get("version")); //$NON-NLS-1$ //$NON-NLS-2$
         if (display == null || display.isDisposed())
           return;
         display.asyncExec(new Runnable() {
@@ -206,8 +213,7 @@ public class MainWindow implements IComponentListener {
               showUpgradeWindow();
           }
         });
-      }
-      catch (Exception e) {
+      } catch (Exception e) {
         if (display == null || display.isDisposed())
           return;
         display.asyncExec(new Runnable() {
@@ -218,6 +224,12 @@ public class MainWindow implements IComponentListener {
             setStatusVersion();
           }
         });
+      } finally {
+        if (is != null)
+          try {
+            is.close();
+          } catch (IOException e1) {
+          }
       }
     }
   }
@@ -429,6 +441,22 @@ public class MainWindow implements IComponentListener {
 
     globalManager.addListener(this);
 
+    String windowRectangle = ConfigurationManager.getInstance().getStringParameter("window.rectangle", null); 
+    if(null != windowRectangle) {
+      int i = 0;
+      int[] values = new int[4]; 
+      StringTokenizer st = new StringTokenizer(windowRectangle, ",");
+      try {
+        while (st.hasMoreTokens() && i < 4) {
+          values[i++] = Integer.valueOf(st.nextToken()).intValue();
+        }
+        if (i == 4) {
+          mainWindow.setBounds(values[0], values[1], values[2], values[3]);
+        }
+      } catch (Exception e) {
+      }
+    }
+    
     mainWindow.open();
     updater = new GUIUpdater();
     updater.start();
@@ -471,7 +499,7 @@ public class MainWindow implements IComponentListener {
 
     Locale[] locales = MessageText.getLocales();
     String savedLocaleString = ConfigurationManager.getInstance().getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
-    Locale savedLocale = new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5)); 
+    Locale savedLocale = savedLocaleString.length() > 4 ? new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5)) : Locale.getDefault(); 
 
     MenuItem[] items = new MenuItem[locales.length];
     
@@ -1009,6 +1037,11 @@ public class MainWindow implements IComponentListener {
       startServer.stopIt();
     updater.stopIt();
     globalManager.stopAll();
+
+    Rectangle windowRectangle = mainWindow.getBounds();
+    ConfigurationManager.getInstance().setParameter("window.rectangle", windowRectangle.x + "," + windowRectangle.y + "," + windowRectangle.width + "," + windowRectangle.height);
+    ConfigurationManager.getInstance().save(); 
+
     mainWindow.dispose();
     if(updateJar)
       updateJar();
@@ -1079,20 +1112,16 @@ public class MainWindow implements IComponentListener {
         fis = new FileInputStream(fileName);
         while ((nbRead = fis.read(buf)) > 0)
           metaInfo.append(new String(buf, 0, nbRead, "ISO-8859-1")); //$NON-NLS-1$
-
-        fis.close();
-
-        Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1"));
-        Map info = (Map) map.get("info");
-        singleFileName = new String((byte[]) info.get("name"), "UTF8");
-        Object test = info.get("length");        
-
+        Map map = BDecoder.decode(metaInfo.toString().getBytes("ISO-8859-1")); //$NON-NLS-1$
+        Map info = (Map) map.get("info"); //$NON-NLS-1$
+        singleFileName = new String((byte[]) info.get("name"), "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
+        Object test = info.get("length"); //$NON-NLS-1$
         if (test != null) {        
           singleFile = true;          
         }
       }
       catch (Exception e) {
-        e.printStackTrace(); 
+        e.printStackTrace();
       } finally {
         try {
           if (fis != null)
