@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -199,7 +200,8 @@ public class FilesView extends AbstractIView implements SortableTable {
       }
     });
 
-    manager.initializeDiskManager();
+    if(COConfigurationManager.getBooleanParameter("Always Show Torrent Files", true))
+      manager.initializeDiskManager();
   }
 
   /* (non-Javadoc)
