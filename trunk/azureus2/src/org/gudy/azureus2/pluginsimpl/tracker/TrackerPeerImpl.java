@@ -83,4 +83,10 @@ TrackerPeerImpl
 	{
 		return( peer.getIP());
 	}
+	
+	public String
+	getIPRaw()
+	{
+		return( peer.getIPRaw());
+	}
 }

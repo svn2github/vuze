@@ -42,4 +42,7 @@ TRTrackerServerPeer
 	
 	public String
 	getIP();
+	
+	public String
+	getIPRaw();
 }

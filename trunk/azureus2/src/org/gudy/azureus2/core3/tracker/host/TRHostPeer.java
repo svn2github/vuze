@@ -45,4 +45,7 @@ TRHostPeer
 	
 	public String
 	getIP();
+	
+	public String
+	getIPRaw();
 }

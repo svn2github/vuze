@@ -47,4 +47,12 @@ TrackerPeer
 	
 	public String
 	getIP();
+	
+		/**
+		 * Raw value is as read, not InetAddress lookuped
+		 * @return
+		 */
+	
+	public String
+	getIPRaw();
 }

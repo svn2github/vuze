@@ -75,5 +75,11 @@ TRHostPeerPublishImpl
 	getIP()
 	{
 		return("");
+	}	
+	
+	public String
+	getIPRaw()
+	{
+		return("");
 	}
 }

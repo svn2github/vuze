@@ -65,6 +65,12 @@ TRTrackerServerPeerImpl
 	}
 	
 	public String
+	getIPRaw()
+	{
+		return( new String(ip));
+	}
+	
+	public String
 	getIP()
 	{
 		if ( ip_str == null ){
