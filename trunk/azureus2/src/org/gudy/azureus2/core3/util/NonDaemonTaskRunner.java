@@ -38,6 +38,8 @@ NonDaemonTaskRunner
 	protected Stack		tasks		= new Stack();
 	protected Semaphore	task_sem	= new Semaphore();
 	
+	protected List		wait_until_idle_list	= new ArrayList();
+	
 	protected Thread	current_thread;
 	
 	protected synchronized static NonDaemonTaskRunner
@@ -103,7 +105,14 @@ NonDaemonTaskRunner
 									if ( tasks.isEmpty()){
 	
 										current_thread = null;
-																				
+											
+										for (int i=0;i<wait_until_idle_list.size();i++){
+											
+											((Semaphore)wait_until_idle_list.get(i)).release();
+										}
+										
+										wait_until_idle_list.clear();
+										
 										break;
 										
 									}else{
@@ -177,5 +186,31 @@ NonDaemonTaskRunner
 			
 			return( result );
 		}
+	}
+	
+	public static void
+	waitUntilIdle()
+	{
+		getSingleton().waitUntilIdleSupport();
+	}
+	
+	protected void
+	waitUntilIdleSupport()
+	{
+		Semaphore	sem;
+		
+		synchronized( tasks ){
+			
+			if ( current_thread == null ){
+				
+				return;
+			}
+			
+			sem = new Semaphore();
+			
+			wait_until_idle_list.add( sem );
+		}	
+		
+		sem.reserve();
 	}
 }

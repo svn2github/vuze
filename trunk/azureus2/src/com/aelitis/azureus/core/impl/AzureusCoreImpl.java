@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.NonDaemonTaskRunner;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
@@ -150,6 +151,8 @@ AzureusCoreImpl
 			
 			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
 		}
+		
+		NonDaemonTaskRunner.waitUntilIdle();
 	}
 	
 	
