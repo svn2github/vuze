@@ -100,6 +100,14 @@ DHTRouter
 	findClosestContacts(
 		byte[]	node_id );
 		
+	public void
+	recordLookup(
+		byte[]	node_id );
+	
+	public void
+	refreshIdleLeaves(
+		long	idle_max );
+	
 	public DHTRouterStats
 	getStats();
 	

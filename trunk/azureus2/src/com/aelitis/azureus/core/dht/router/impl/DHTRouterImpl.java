@@ -55,6 +55,9 @@ DHTRouterImpl
 	private static long				random_seed	= SystemTime.getCurrentTime();
 	private Random					random;
 	
+	private List					outstanding_pings	= new ArrayList();
+	private List					outstanding_adds	= new ArrayList();
+	
 	private DHTRouterStatsImpl		stats	= new DHTRouterStatsImpl( this );
 	
 	
@@ -128,7 +131,7 @@ DHTRouterImpl
 		adapter	= _adapter;
 	}
 	
-	public synchronized DHTRouterContact
+	public DHTRouterContact
 	contactKnown(
 		byte[]	node_id,
 		Object	attachment )
@@ -136,8 +139,73 @@ DHTRouterImpl
 		return( addContact( node_id, attachment, false ));
 	}
 	
-	public synchronized DHTRouterContact
+	public DHTRouterContact
+	contactAlive(
+		byte[]	node_id,
+		Object	attachment )
+	{
+		return( addContact( node_id, attachment, true ));
+	}
+	
+	// all incoming node actions come through either contactDead or addContact
+	// A side effect of processing
+	// the node is that either a ping can be requested (if a replacement node
+	// is available and the router wants to check the liveness of an existing node)
+	// or a new node can be added (either directly to a node or indirectly via 
+	// a replacement becoming "live"
+	// To avoid requesting these actions while synchronized these are recorded
+	// in lists and then kicked off separately here
+
+
+	public DHTRouterContact
+	contactDead(
+		byte[]	node_id,
+		Object	attachment )
+	{
+		try{
+			synchronized( this ){
+
+				Object[]	res = findContactSupport( node_id );
+				
+				DHTRouterNodeImpl		node	= (DHTRouterNodeImpl)res[0];
+				DHTRouterContactImpl	contact = (DHTRouterContactImpl)res[1];
+				
+				if ( contact != null ){
+				
+					node.dead( contact );
+				}
+				
+				return( contact );
+			}
+		}finally{
+
+			dispatchPings();
+			
+			dispatchNodeAdds();
+		}
+	}
+	
+	public DHTRouterContact
 	addContact(
+		byte[]	node_id,
+		Object	attachment,
+		boolean	known_to_be_alive )
+	{	
+		try{
+			synchronized( this ){
+			
+				return( addContactSupport( node_id, attachment, known_to_be_alive ));
+			}
+		}finally{
+			
+			dispatchPings();
+			
+			dispatchNodeAdds();
+		}
+	}
+	
+	protected DHTRouterContact
+	addContactSupport(
 		byte[]	node_id,
 		Object	attachment,
 		boolean	known_to_be_alive )
@@ -174,14 +242,14 @@ DHTRouterImpl
 				
 				if ( next_node == null ){
 		
-					List	buckets = current_node.getBuckets();
-
 					DHTRouterContact	existing_contact = current_node.findNode( node_id, known_to_be_alive );
 					
 					if ( existing_contact != null ){
 						
 						return( existing_contact );
 					}
+
+					List	buckets = current_node.getBuckets();
 
 					if ( buckets.size() == K ){
 						
@@ -208,7 +276,9 @@ DHTRouterImpl
 								// in their tree by refreshing. If we blindly chopped at K entries
 								// (down to B levels) then a highly unbalanced tree would result in
 								// us dropping some of them and therefore not refreshing them and
-								// therefore dropping out of their trees. 
+								// therefore dropping out of their trees. There are also other benefits
+								// of maintaining this tree regarding stored value refresh
+							
 								// Note that it is rare for such an unbalanced tree. 
 								// However, a possible DOS here would be for a rogue node to 
 								// deliberately try and create such a tree with a large number
@@ -261,12 +331,18 @@ DHTRouterImpl
 							
 							current_node.split( new_left, new_right );
 							
-							if ( contains_router_node_id ){
+							if ( right_contains_rid ){
 							
 									// we've created a new smallest subtree
 									// TODO: tidy up old smallest subtree - remember to factor in B...
 								
-								smallest_subtree = current_node;
+								smallest_subtree = new_left;
+								
+							}else if ( left_contains_rid ){
+								
+									// TODO: tidy up old smallest subtree - remember to factor in B...
+								
+								smallest_subtree = new_right;
 							}
 							
 								// not complete, retry addition 
@@ -285,7 +361,7 @@ DHTRouterImpl
 		
 						DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment, known_to_be_alive );
 							
-						buckets.add( new_contact );	// complete - added to bucket
+						current_node.addNode( new_contact );	// complete - added to bucket
 						
 						return( new_contact );
 					}						
@@ -322,35 +398,7 @@ DHTRouterImpl
 		
 		return( res_l );
 	}
-	
-	public synchronized DHTRouterContact
-	contactAlive(
-		byte[]	node_id,
-		Object	attachment )
-	{
-		return( addContact( node_id, attachment, true ));
-	}
-
-	public synchronized DHTRouterContact
-	contactDead(
-		byte[]	node_id,
-		Object	attachment )
-	{
-		Object[]	res = findContactSupport( node_id );
 		
-		if ( res == null ){
-			
-			return( null );
-		}
-		
-		DHTRouterNodeImpl		node	= (DHTRouterNodeImpl)res[0];
-		DHTRouterContactImpl	contact = (DHTRouterContactImpl)res[1];
-		
-		node.dead( contact );
-		
-		return( contact );
-	}
-	
 	protected int
 	findClosestContacts(
 		byte[]					node_id,
@@ -408,13 +456,17 @@ DHTRouterImpl
 		byte[]		node_id )
 	{
 		Object[]	res = findContactSupport( node_id );
-		
-		if ( res == null ){
-			
-			return( null );
-		}
-		
+				
 		return((DHTRouterContact)res[1]);
+	}
+	
+	protected synchronized DHTRouterNodeImpl
+	findNode(
+		byte[]	node_id )
+	{
+		Object[]	res = findContactSupport( node_id );
+				
+		return((DHTRouterNodeImpl)res[0]);	
 	}
 	
 	protected synchronized Object[]
@@ -468,15 +520,13 @@ DHTRouterImpl
 			}
 		}
 		
-		return( null );
+		return( new Object[]{ current_node, null });
 	}
 	
 	public long
 	getNodeCount()
 	{
-		DHTRouterNodeImpl	current_node	= root;
-		
-		return( getNodeCount( current_node ));
+		return( getNodeCount( root ));
 	}
 	
 	protected long
@@ -493,12 +543,24 @@ DHTRouterImpl
 		}
 	}
 	
+	protected long
+	getLeafCount(
+		DHTRouterNodeImpl	node )
+	{
+		if ( node.getBuckets() != null ){
+			
+			return( 1 );
+			
+		}else{
+			
+			return( getLeafCount( node.getLeft())) + getLeafCount( node.getRight());
+		}
+	}
+	
 	public long
 	getContactCount()
 	{
-		DHTRouterNodeImpl	current_node	= root;
-		
-		return( getContactCount( current_node ));
+		return( getContactCount( root ));
 	}
 	
 	protected long
@@ -515,36 +577,65 @@ DHTRouterImpl
 		}
 	}
 	
-	public synchronized void
+	public void
 	seed()
 	{
 			// refresh all buckets apart from closest neighbour
 		
 		byte[]	path = new byte[router_node_id.length];
 		
-		seed( root, path );
+		List	ids = new ArrayList();
+		
+		synchronized( this ){
+			
+			refreshNodes( ids, root, path, true, 0 );
+		}
+		
+		for (int i=0;i<ids.size();i++){
+			
+			requestLookup((byte[])ids.get(i));
+		}
 	}
 	
 	protected void
-	seed(
+	refreshNodes(
+		List				nodes_to_refresh,
 		DHTRouterNodeImpl	node,
-		byte[]				path )
+		byte[]				path,
+		boolean				ignore_smallest_subtree,
+		long				max_permitted_idle )	// 0 -> don't check
 	{
-		if ( node == smallest_subtree ){
+			// when seeding we don't do the smallest subtree
+		
+		if ( ignore_smallest_subtree && node == smallest_subtree ){
 			
 			return;
 		}
 		
+		if ( max_permitted_idle != 0 ){
+			
+			if ( node.getTimeSinceLastLookup() <= max_permitted_idle ){
+				
+				return;
+			}
+		}
+		
 		if ( node.getBuckets() != null ){
+		
+				// and we also don't refresh the bucket containing the router id 
 			
 			if ( node.containsRouterNodeID()){
 				
 				return;
 			}
 			
-			refresh( node, path );
-			
-		}else{
+			refreshNode( nodes_to_refresh, node, path );		
+		}
+		
+			// synchronous refresh may result in this bucket being split
+			// so we retest here to refresh sub-buckets as required
+		
+		if ( node.getBuckets() == null ){
 			
 			int	depth = node.getDepth();
 			
@@ -552,16 +643,17 @@ DHTRouterImpl
 			
 			path[depth/8] = (byte)( path[depth/8] | mask );
 			
-			seed( node.getLeft(), path );
+			refreshNodes( nodes_to_refresh, node.getLeft(), path,ignore_smallest_subtree, max_permitted_idle  );
 			
 			path[depth/8] = (byte)( path[depth/8] & ~mask );
 		
-			seed( node.getRight(), path );
+			refreshNodes( nodes_to_refresh, node.getRight(), path,ignore_smallest_subtree, max_permitted_idle  );
 		}
 	}
 	
 	protected void
-	refresh(
+	refreshNode(
+		List				nodes_to_refresh,
 		DHTRouterNodeImpl	node,
 		byte[]				path )
 	{
@@ -589,17 +681,114 @@ DHTRouterImpl
 			}
 		}
 		
-		requestLookup( id );
+		nodes_to_refresh.add( id );
+	}
+	
+	protected DHTRouterNodeImpl
+	getSmallestSubtree()
+	{
+		return( smallest_subtree );
+	}
+	
+	public void
+	recordLookup(
+		byte[]	node_id )
+	{
+		findNode( node_id ).setLastLookupTime();
+	}
+	
+	public void
+	refreshIdleLeaves(
+		long	idle_max)
+	{
+		// while we are synchronously refreshing the smallest subtree the tree can mutate underneath us
+		// as new contacts are discovered. We NEVER merge things back together
+		
+		byte[]	path = new byte[router_node_id.length];
+		
+		List	ids = new ArrayList();
+		
+		synchronized( this ){
+			
+			refreshNodes( ids, root, path, false, idle_max );
+		}
+		
+		for (int i=0;i<ids.size();i++){
+			
+			requestLookup((byte[])ids.get(i));
+		}
 	}
 	
 	protected void
 	requestPing(
 		DHTRouterContactImpl	contact )
 	{
+			// make sure we don't do the ping when synchronized
+		
 		DHTLog.log( "DHTRouter: requestPing:" + DHTLog.getString( contact.getID()));
 		
-		adapter.requestPing( contact );
+		synchronized( this ){
+			
+			if ( !outstanding_pings.contains( contact )){
+			
+				outstanding_pings.add( contact );
+			}
+		}
 	}
+	
+	protected void
+	dispatchPings()
+	{
+		List	pings;
+		
+		synchronized( this ){
+		
+			pings	= outstanding_pings;
+			
+			outstanding_pings = new ArrayList();
+		}
+		
+		for (int i=0;i<pings.size();i++){
+			
+			adapter.requestPing((DHTRouterContactImpl)pings.get(i));
+		}
+	}
+	
+	protected void
+	requestNodeAdd(
+		DHTRouterContactImpl	contact )
+	{
+			// make sure we don't do the ping when synchronized
+		
+		DHTLog.log( "DHTRouter: requestNodeAdd:" + DHTLog.getString( contact.getID()));
+		
+		synchronized( this ){
+			
+			if ( !outstanding_adds.contains( contact )){
+			
+				outstanding_adds.add( contact );
+			}
+		}
+	}
+	
+	protected void
+	dispatchNodeAdds()
+	{
+		List	adds;
+		
+		synchronized( this ){
+		
+			adds	= outstanding_adds;
+			
+			outstanding_adds = new ArrayList();
+		}
+		
+		for (int i=0;i<adds.size();i++){
+			
+			adapter.requestAdd((DHTRouterContactImpl)adds.get(i));
+		}
+	}
+
 	
 	protected void
 	requestLookup(

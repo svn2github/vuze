@@ -108,6 +108,6 @@ DHTImpl
 	public void
 	print()
 	{
-		router.print();
+		control.print();
 	}
 }

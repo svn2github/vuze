@@ -40,33 +40,35 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 public class 
 DHTLog 
 {
+	private static boolean	LOGGING_DEFAULT	= false;
+	
 	private static ThreadLocal		tls	= 
 		new ThreadLocal()
 		{
 			public Object
 			initialValue()
 			{
-				Object[]	data = new Object[2];
+				Object[]	data = new Object[3];
 				
 				data[0] = new Stack();
 				
 				data[1] = "";
 				
+				data[2] = new Boolean(LOGGING_DEFAULT);
+				
 				return( data );
 			}
 		};
-		
-
-	private static boolean	logging_enabled	= true;
-	
+			
 	public static void
 	log(
 		String	str )
 	{
 		Object[]	data = (Object[])tls.get();
 		
-		Stack	stack 	= (Stack)data[0];
-		String	indent	= (String)data[1];
+		Stack	stack 			= (Stack)data[0];
+		String	indent			= (String)data[1];
+		boolean	logging_enabled = ((Boolean)data[2]).booleanValue();
 		
 		if ( logging_enabled ){
 			
@@ -85,7 +87,9 @@ DHTLog
 	setLoggingEnabled(
 		boolean	b )
 	{
-		logging_enabled	= b;
+		Object[]	data = (Object[])tls.get();
+
+		data[2] = new Boolean(b);
 	}
 	
 	public static void

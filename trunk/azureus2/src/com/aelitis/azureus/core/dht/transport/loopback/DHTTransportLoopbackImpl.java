@@ -26,10 +26,7 @@ import java.util.*;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -42,16 +39,9 @@ public class
 DHTTransportLoopbackImpl
 	implements DHTTransport
 {
-	public static 		boolean	SYNCHRONOUS	= true;
-	public static 		int		LATENCY		= 0;
-	
-	public static void
-	setSynchronous(
-		boolean	b )
-	{
-		SYNCHRONOUS	= b;
-	}
-	
+	public static 		int		LATENCY			= 0;
+	public static		int		FAIL_PERCENTAGE	= 0;
+		
 	public static void
 	setLatency(
 		int	_latency )
@@ -59,8 +49,54 @@ DHTTransportLoopbackImpl
 		LATENCY	= _latency;
 	}
 	
+	public static void
+	setFailPercentage(
+		int	p )
+	{
+		FAIL_PERCENTAGE	= p;
+	}
+	
 	private static long	node_id_seed_next	= 0;
 	private static Map	node_map	= new HashMap();
+	
+	private static List	dispatch_queue = new ArrayList();
+	private static AESemaphore	dispatch_queue_sem	= new AESemaphore("DHTTransportLoopback" );
+	
+	static{
+		AEThread	dispatcher = 
+			new AEThread("DHTTransportLoopback")
+			{
+				public void
+				runSupport()
+				{
+					while(true){
+						
+						dispatch_queue_sem.reserve();
+						
+						Runnable	r;
+						
+						synchronized( dispatch_queue ){
+							
+							r = (Runnable)dispatch_queue.remove(0);
+						}
+						
+						if ( LATENCY > 0 ){
+							
+							try{
+								Thread.sleep( LATENCY );
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+						
+						r.run();
+					}
+				}
+			};
+			
+			dispatcher.start();
+	}
 	
 	private byte[]				node_id;
 	private DHTTransportContact	local_contact;
@@ -72,6 +108,20 @@ DHTTransportLoopbackImpl
 	
 	private DHTTransportLoopbackStatsImpl	stats = new DHTTransportLoopbackStatsImpl();
 	
+	public static synchronized DHTTransportStats
+	getOverallStats()
+	{
+		DHTTransportLoopbackStatsImpl	overall_stats = new DHTTransportLoopbackStatsImpl();
+		
+		Iterator	it = node_map.values().iterator();
+		
+		while( it.hasNext()){
+			
+			overall_stats.add((DHTTransportLoopbackStatsImpl)((DHTTransportLoopbackImpl)it.next()).getStats());
+		}
+		
+		return( overall_stats );
+	}
 	
 	public
 	DHTTransportLoopbackImpl(
@@ -204,29 +254,12 @@ DHTTransportLoopbackImpl
 	run(
 		final AERunnable	r )
 	{
-		if ( SYNCHRONOUS ){
+		synchronized( dispatch_queue ){
 			
-			r.runSupport();
-		}else{
-			
-			new AEThread( "DHTTransportLoopback")
-			{
-				public void
-				runSupport()
-				{
-					if ( LATENCY > 0 ){
-						
-						try{
-							Thread.sleep( LATENCY );
-							
-						}catch( Throwable e ){
-							
-						}
-					}
-					r.runSupport();
-				}
-			}.start();
+			dispatch_queue.add( r );
 		}
+		
+		dispatch_queue_sem.release();
 	}
 	
 	public DHTTransportStats
@@ -266,7 +299,7 @@ DHTTransportLoopbackImpl
 		
 		stats.pingSent();
 		
-		if ( target == null ){
+		if ( target == null || triggerFailure()){
 		
 			stats.pingFailed();
 			
@@ -315,7 +348,7 @@ DHTTransportLoopbackImpl
 		
 		stats.storeSent();
 		
-		if ( target == null ){
+		if ( target == null  || triggerFailure()){
 		
 			stats.storeFailed();
 			
@@ -364,7 +397,7 @@ DHTTransportLoopbackImpl
 		
 		stats.findNodeSent();
 		
-		if ( target == null ){
+		if ( target == null  || triggerFailure() ){
 		
 			stats.findNodeFailed();
 			
@@ -421,7 +454,7 @@ DHTTransportLoopbackImpl
 		
 		stats.findValueSent();
 		
-		if ( target == null ){
+		if ( target == null  || triggerFailure()){
 		
 			stats.findValueFailed();
 			
@@ -454,5 +487,11 @@ DHTTransportLoopbackImpl
 				handler.findValueReply( contact, (DHTTransportValue)o_res );
 			}
 		}
+	}
+	
+	protected boolean
+	triggerFailure()
+	{
+		return( Math.random()*100 < FAIL_PERCENTAGE );
 	}
 }

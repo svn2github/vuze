@@ -46,4 +46,7 @@ DHTControl
 	
 	public DHTTransport
 	getTransport();
+	
+	public void
+	print();
 }

@@ -38,6 +38,26 @@ DHTTransportLoopbackStatsImpl
 	private long[]	find_values	= new long[4];
 	private long[]	stores		= new long[4];
 	
+	protected void
+	add(
+			DHTTransportLoopbackStatsImpl	other )
+	{
+		add( pings, other.pings );
+		add( find_nodes, other.find_nodes );
+		add( find_values, other.find_values );
+		add( stores, other.stores );
+	}
+	
+	protected void
+	add(
+		long[]	a,
+		long[] 	b )
+	{
+		for (int i=0;i<a.length;i++){
+			a[i]	+= b[i];
+		}
+	}
+	
 	public DHTTransportStats
 	snapshot()
 	{

@@ -1,5 +1,5 @@
 /*
- * Created on 17-Jan-2005
+ * Created on 18-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,25 +20,60 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.router;
+package com.aelitis.azureus.core.dht.control.impl;
+
+import org.gudy.azureus2.core3.util.SystemTime;
+
+import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DHTRouterAdapter 
+public class 
+DHTControlValueImpl
+	implements DHTTransportValue
 {
-	public void
-	requestAdd(
-		DHTRouterContact	contact );
+	private byte[]	value;
 	
-	public void
-	requestPing(
-		DHTRouterContact	contact );
+	private int		distance;
 	
-	public void
-	requestLookup(
-		byte[]	id );
+	private long	store_time;
+	
+	protected
+	DHTControlValueImpl(
+		byte[]		_value,
+		int			_distance )
+	{
+		value		= _value;
+		distance	= _distance;
+		
+		store_time	= SystemTime.getCurrentTime();
+	}
+	
+	protected void
+	setStoreTime(
+		long	l )
+	{
+		store_time	= l;
+	}
+	
+	protected long
+	getStoreTime()
+	{
+		return( store_time );
+	}
+	
+	public int 
+	getCacheDistance() 
+	{
+		return( distance );
+	}
+		
+	public byte[]
+	getValue()
+	{
+		return( value );
+	}
 }

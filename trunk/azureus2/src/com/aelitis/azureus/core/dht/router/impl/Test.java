@@ -43,13 +43,13 @@ Test
 	main(
 		String[]	args )
 	{
-		randomTest();
+		simpleTest();
 	}
 	
 	protected static void
 	simpleTest()
 	{
-		DHTRouter	router = DHTRouterFactory.create( 20, 5, new byte[]{ 0 }, null);
+		DHTRouter	router = DHTRouterFactory.create( 1, 1, new byte[]{ 0 }, null);
 		
 		byte[][]	node_ids ={ 
 				{ toByte( "11111111" ) },		

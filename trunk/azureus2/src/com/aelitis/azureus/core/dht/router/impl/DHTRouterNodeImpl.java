@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.router.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
@@ -48,6 +49,8 @@ DHTRouterNodeImpl
 	
 	private DHTRouterNodeImpl	left;
 	private DHTRouterNodeImpl	right;
+	
+	private long	last_lookup_time;
 	
 	protected
 	DHTRouterNodeImpl(
@@ -112,6 +115,15 @@ DHTRouterNodeImpl
 	getReplacements()
 	{
 		return( replacements );
+	}
+	
+	protected void
+	addNode(
+		DHTRouterContactImpl	node )
+	{
+		buckets.add( node );
+		
+		router.requestNodeAdd( node );
 	}
 	
 	protected DHTRouterContact
@@ -216,7 +228,7 @@ DHTRouterNodeImpl
 		byte[]		node_id,
 		boolean		known_to_be_alive )
 	{
-			for (int k=0;k<buckets.size();k++){
+		for (int k=0;k<buckets.size();k++){
 			
 			DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(k);
 			
@@ -289,8 +301,8 @@ DHTRouterNodeImpl
 				// check the contact is still present
 			
 			if ( buckets.remove( contact )){
-				
-				if ( replacements.size() > 0 ){
+								
+				if ( replacements != null && replacements.size() > 0 ){
 					
 						// take most recent alive one and add to buckets
 					
@@ -302,11 +314,15 @@ DHTRouterNodeImpl
 						
 						if ( rep.hasBeenAlive()){
 							
+							DHTLog.log( DHTLog.getString( contact.getID()) + ": using live replacement " + DHTLog.getString(rep.getID()));
+
 							replacements.remove( rep );
 							
 							buckets.add( rep );
 							
 							replaced	= true;
+														
+							router.requestNodeAdd( rep );
 							
 							break;
 						}
@@ -316,9 +332,13 @@ DHTRouterNodeImpl
 					
 					if ( !replaced ){
 						
-						Object	rep = replacements.remove( replacements.size() - 1 );
+						DHTRouterContactImpl	rep = (DHTRouterContactImpl)replacements.remove( replacements.size() - 1 );
 					
+						DHTLog.log( DHTLog.getString( contact.getID()) + ": using unknown replacement " + DHTLog.getString(rep.getID()));
+
 						buckets.add( rep );
+						
+						router.requestNodeAdd( rep );
 					}
 				}
 			}else{
@@ -326,6 +346,27 @@ DHTRouterNodeImpl
 				replacements.remove( contact );
 			}
 		}
+	}
+	
+	protected long
+	getTimeSinceLastLookup()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < last_lookup_time ){
+			
+				// clock changed, don't know so make as large as possible
+			
+			return( Long.MAX_VALUE );
+		}
+		
+		return( last_lookup_time );
+	}
+	
+	protected void
+	setLastLookupTime()
+	{
+		last_lookup_time = SystemTime.getCurrentTime();
 	}
 	
 	public void
@@ -339,11 +380,13 @@ DHTRouterNodeImpl
 					indent + prefix + 
 					": buckets = " + buckets.size() + contactsToString( buckets) + 
 					", replacements = " + (replacements==null?"null":( replacements.size() + contactsToString( replacements ))) + 
-					(contains_router_node_id?" *":""));
+					(contains_router_node_id?" *":" ") +
+					(this==router.getSmallestSubtree()?"SST":""));
 			
 		}else{
 			
-			DHTLog.log( indent + prefix + ":" + (contains_router_node_id?" *":""));
+			DHTLog.log( indent + prefix + ":" + (contains_router_node_id?" *":" ") +
+							(this==router.getSmallestSubtree()?"SST":""));
 			
 			left.print( indent + "  ", prefix + "1"  );
 						

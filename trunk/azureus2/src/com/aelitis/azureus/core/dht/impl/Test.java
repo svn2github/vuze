@@ -30,6 +30,9 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 /**
  * @author parg
@@ -39,6 +42,12 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 public class 
 Test 
 {
+	static int		K			= 5;
+	static int		B			= 1;
+	static int		ID_BYTES	= 4;
+	
+	static Map	check = new HashMap();
+
 	public static void
 	main(
 		String[]		args )
@@ -46,50 +55,30 @@ Test
 		DHTLog.setLoggingEnabled( false );
 		
 		try{
-			int		K			= 5;
-			int		B			= 1;
-			int		ID_BYTES	= 4;
+			int	num_dhts	= 100;
 			
-			DHT[]			dhts 		= new DHT[100];
-			DHTTransport[]	transports 	= new DHTTransport[dhts.length];
+			DHT[]			dhts 		= new DHT[num_dhts*2];
+			DHTTransport[]	transports 	= new DHTTransport[num_dhts*2];
 			
-			Map	check = new HashMap();
 			
-			for (int i=0;i<dhts.length;i++){
+			for (int i=0;i<num_dhts;i++){
 				
-				DHTTransport	transport = DHTTransportFactory.createLoopback(ID_BYTES);
-			
-				HashWrapper	id = new HashWrapper( transport.getLocalContact().getID());
-				
-				if ( check.get(id) != null ){
-					
-					System.out.println( "Duplicate ID - aborting" );
-					
-					return;
-				}
-				
-				check.put(id,"");
-				
-				DHT	dht = DHTFactory.create( transport, K, B );
-				
-				dhts[i]	= dht;					
-
-				transports[i] = transport;
+				createDHT( dhts, transports, i );
 			}
 
-			for (int i=0;i<dhts.length-1;i++){
+			for (int i=0;i<num_dhts-1;i++){
 			
 				transports[i+1].importContact( new ByteArrayInputStream( transports[i].getLocalContact().getID()));
 				
 				dhts[i].join();
 			}
 			
-			transports[transports.length-1].importContact( new ByteArrayInputStream( transports[0].getLocalContact().getID()));
+			transports[num_dhts-1].importContact( new ByteArrayInputStream( transports[0].getLocalContact().getID()));
 			
-			dhts[transports.length-1].join();
+			dhts[num_dhts-1].join();
 			
-			DHTLog.setLoggingEnabled( true );
-
+			DHTTransportLoopbackImpl.setFailPercentage(0);
+			
 			//dht1.print();
 			
 			//DHTTransportLoopbackImpl.setLatency( 500);
@@ -103,8 +92,35 @@ Test
 			System.out.println( "get:"  + dhts[77].get( "fred".getBytes()));
 			*/
 			
+			for (int i=0;i<1000;i++){
+				
+				int	dht_index = (int)(Math.random()*num_dhts);
+				
+				DHT	dht = dhts[dht_index];
+
+				dht.put( (""+i).getBytes(), new byte[4] );
+			}
+			
+			Timer	timer = new Timer("");
+			
+			timer.addPeriodicEvent(
+				10000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event) 
+					{
+						DHTTransportStats stats = DHTTransportLoopbackImpl.getOverallStats();
+						
+						// System.out.println( "Overall stats: " + stats.getString());
+					}
+				});
+			
 			LineNumberReader	reader = new LineNumberReader( new InputStreamReader( System.in ));
 			
+			DHTLog.setLoggingEnabled( true );
+
 			while( true ){
 				
 				System.out.print( "> " );
@@ -120,55 +136,128 @@ Test
 				
 				if ( pos == -1 || pos == 0 ){
 					
-					System.out.println( "syntax: [p g] <key>[=<value>]" );
+					usage();
 					
 					continue;
 				}
 				
-				int	dht_index = (int)(Math.random()*dhts.length);
+				int	dht_index = (int)(Math.random()*num_dhts);
 				
 				DHT	dht = dhts[dht_index];
-				
-				System.out.println( "Using dht " + dht_index );
 				
 				String	lhs = str.substring(0,pos);
 				String	rhs = str.substring(pos+1);
 				
-				DHTTransportStats	stats_before = dht.getTransport().getStats().snapshot();
+				DHTTransportStats	stats_before 	= null;
 				
-				if ( lhs.toLowerCase().startsWith("p")){
+				char command = lhs.toLowerCase().charAt(0);
+				
+				if ( command == 'p' ){
 					
 					pos = rhs.indexOf('=');
 					
 					if ( pos == -1 ){
 						
-						System.out.println( "syntax: [p g] <key>[=<value>]" );
+						usage();
 						
 					}else{
 					
+						System.out.println( "Using dht " + dht_index );
+						
+						stats_before = dht.getTransport().getStats().snapshot();
+
 						String	key = rhs.substring(0,pos);
 						String	val = rhs.substring(pos+1);
 						
 						dht.put( key.getBytes(), val.getBytes());
 					}
-				}else{
+				}else if ( command == 'g' ){
+					
+					System.out.println( "Using dht " + dht_index );
+					
+					stats_before = dht.getTransport().getStats().snapshot();
 					
 					byte[]	res = dht.get( rhs.getBytes());
 					
 					System.out.println( "-> " + (res==null?"null":new String(res)));
-				}
+					
+				}else if ( command == 'v' ){
+			
+					try{
+						int	index = Integer.parseInt( rhs );
 				
-				dht.print();
-				
-				DHTTransportStats	stats_after = dht.getTransport().getStats().snapshot();
+						dht = dhts[index];
 
-				System.out.println( "before:" + stats_before.getString());
-				System.out.println( "after:" + stats_after.getString());
-				
+						stats_before = dht.getTransport().getStats().snapshot();
+						
+						dht.print();
+
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+				}else if ( command == 'a' ){
+					
+					createDHT( dhts, transports, num_dhts++ );
+					
+					dht	= dhts[num_dhts-1];
+					
+					stats_before = transports[num_dhts-1].getStats().snapshot();
+					
+					transports[num_dhts-1].importContact( new ByteArrayInputStream( transports[(int)(Math.random()*(num_dhts-1))].getLocalContact().getID()));
+					
+					dht.join();
+
+					dht.print();
+					
+				}else{
+					
+					usage();
+				}
+								
+				if ( stats_before != null ){
+					
+					DHTTransportStats	stats_after = dht.getTransport().getStats().snapshot();
+
+					System.out.println( "before:" + stats_before.getString());
+					System.out.println( "after:" + stats_after.getString());
+				}
 			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
 		}
+	}
+	
+	protected static void
+	createDHT(
+		DHT[]			dhts,
+		DHTTransport[]	transports,
+		int				i )
+	{
+		DHTTransport	transport = DHTTransportFactory.createLoopback(ID_BYTES);
+		
+		HashWrapper	id = new HashWrapper( transport.getLocalContact().getID());
+		
+		if ( check.get(id) != null ){
+			
+			System.out.println( "Duplicate ID - aborting" );
+			
+			return;
+		}
+		
+		check.put(id,"");
+		
+		DHT	dht = DHTFactory.create( transport, K, B );
+		
+		dhts[i]	= dht;					
+
+		transports[i] = transport;
+	}
+	
+	protected static void
+	usage()
+	{
+		System.out.println( "syntax: [p g] <key>[=<value>]" );
 	}
 }

@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
@@ -112,15 +113,24 @@ DHTControlImpl
 				{
 					lookup( id, false );
 				}
+				
+				public void
+				requestAdd(
+					DHTRouterContact	contact )
+				{
+					nodeAddedToRouter( contact );
+				}
 			});
 		
 
 		transport.setRequestHandler( this );
 			
 		
+		Timer	timer = new Timer("DHT refresher");
+		
 		// TODO: add listener, pick up node ID changes + reseed if changed
 				
-		SimpleTimer.addPeriodicEvent(
+		timer.addPeriodicEvent(
 			ORIGINAL_REPUBLISH_INTERVAL,
 			new TimerEventPerformer()
 			{
@@ -140,8 +150,11 @@ DHTControlImpl
 				}
 			});
 				
-		SimpleTimer.addPeriodicEvent(
-				CACHE_REPUBLISH_INTERVAL,
+			// random skew here so that cache refresh isn't very synchronized, as the optimisations
+			// regarding non-republising benefit from this 
+		
+		timer.addPeriodicEvent(
+				CACHE_REPUBLISH_INTERVAL + 10000 - (int)(Math.random()*20000),
 				new TimerEventPerformer()
 				{
 					public void
@@ -190,8 +203,6 @@ DHTControlImpl
 		lookup( router.getID(), false );
 		
 		router.seed();
-		
-		router.print();
 	}
 	
 	public void
@@ -199,84 +210,84 @@ DHTControlImpl
 		final byte[]		_unencoded_key,
 		final byte[]		_value )
 	{
-		putSupport(	encodeKey( _unencoded_key ), _value );
+		try{
+			DHTLog.indent( router );
+			
+			byte[]	encoded_key = encodeKey( _unencoded_key );
+			
+			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
+			
+			putSupport(	encoded_key, _value, 0 );
+			
+		}finally{
+			
+			DHTLog.exdent();
+		}
 	}
 	
 	protected void
 	putSupport(
 		final byte[]	encoded_key,
-		final byte[]	value )
+		final byte[]	value,
+		int				cache_distance )
 	{
-		try{
-			DHTLog.indent( router );
-				
-			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
-		
-			List	closest = lookup( encoded_key, false );
+		List	closest = lookup( encoded_key, false );
 			
-			DHTTransportValue	t_value = 
-				new DHTTransportValue()
-				{
-					public int 
-					getCacheDistance() 
-					{
-						return 0;
-					}
-					
-					public byte[]
-					getValue()
-					{
-						return( value );
-					}
-				};
+		putSupport2( encoded_key, value, cache_distance, closest );
+	}
 	
-			synchronized( this ){
-					
-				stored_values.put( new HashWrapper( encoded_key ), t_value );
-			}
+	protected void
+	putSupport2(
+		final byte[]	encoded_key,
+		final byte[]	value,
+		int				cache_distance,
+		List			closest )
+	{
+		DHTTransportValue	c_value = new DHTControlValueImpl( value, cache_distance );
 
-			for (int i=0;i<closest.size();i++){
-			
-				DHTTransportContact	contact = (DHTTransportContact)closest.get(i);
+		synchronized( this ){
 				
-				if ( !router.isID( contact.getID())){
-										
-					contact.sendStore( 
-						new DHTTransportReplyHandlerAdapter()
-						{
-							public void
-							storeReply(
-								DHTTransportContact _contact )
-							{
-								DHTLog.indent( router );
-								
-								DHTLog.log( "store ok" );
-								
-								router.contactAlive( _contact.getID(), _contact );
-								
-								DHTLog.exdent();
-							}	
-							
-							public void
-							failed(
-								DHTTransportContact 	_contact )
-							{
-								DHTLog.indent( router );
-								
-								DHTLog.log( "store failed" );
-								
-								router.contactDead( _contact.getID(), _contact );
-								
-								DHTLog.exdent();
-							}
-						},
-						encoded_key, 
-						t_value );
-				}
-			}
-		}finally{
+			stored_values.put( new HashWrapper( encoded_key ), c_value );
+		}
+
+		for (int i=0;i<closest.size();i++){
+		
+			DHTTransportContact	contact = (DHTTransportContact)closest.get(i);
 			
-			DHTLog.exdent();
+			if ( !router.isID( contact.getID())){
+									
+				contact.sendStore( 
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						storeReply(
+							DHTTransportContact _contact )
+						{
+							DHTLog.indent( router );
+							
+							DHTLog.log( "store ok" );
+							
+							router.contactAlive( _contact.getID(), _contact );
+							
+							DHTLog.exdent();
+						}	
+						
+						public void
+						failed(
+							DHTTransportContact 	_contact )
+						{
+							DHTLog.indent( router );
+							
+							DHTLog.log( "store failed" );
+							
+							router.contactDead( _contact.getID(), _contact );
+							
+							DHTLog.exdent();
+						}
+					},
+					encoded_key, 
+					c_value );
+			}
 		}
 	}
 	
@@ -394,56 +405,19 @@ DHTControlImpl
 			
 			List	router_contacts	= router.findClosestContacts( lookup_id );
 			
-			final Set	contacts_to_query	= 
-				new TreeSet(
-						new Comparator()
-						{
-							public int
-							compare(
-								Object	o1,
-								Object	o2 )
-							{
-									// this comparator ensures that the closest to the key
-									// is first in the iterator traversal
-							
-								DHTTransportContact	t1 = (DHTTransportContact)o1;
-								DHTTransportContact t2 = (DHTTransportContact)o2;
-								
-								byte[] d1 = computeDistance( t1.getID(), lookup_id );
-								byte[] d2 = computeDistance( t2.getID(), lookup_id );
-								
-								return( compareDistances( d1, d2 ));
-							}
-						});
-			
-					// record the set of contacts we've queried to avoid re-queries
+				// contacts remaining to query
+				// closest at front
+
+			final Set	contacts_to_query	= new sortedContactSet( lookup_id, true ).getSet(); 
+
+				// record the set of contacts we've queried to avoid re-queries
 			
 			final Map			contacts_queried = new HashMap();
 			
 				// record the set of contacts that we've had a reply from
+				// furthest away at front
 			
-			final Set			ok_contacts = 
-				new TreeSet(
-					new Comparator()
-					{
-						public int
-						compare(
-							Object	o1,
-							Object	o2 )
-						{
-								// this comparator ensures that the furthest away from the key
-								// is first in the iterator traversal
-						
-							DHTTransportContact	t1 = (DHTTransportContact)o1;
-							DHTTransportContact t2 = (DHTTransportContact)o2;
-							
-							byte[] d1 = computeDistance( t1.getID(), lookup_id );
-							byte[] d2 = computeDistance( t2.getID(), lookup_id );
-							
-							return( -compareDistances( d1, d2 ));
-						}
-					});
-			
+			final Set			ok_contacts = new sortedContactSet( lookup_id, false ).getSet(); 
 
 				// populate the initial query set
 			
@@ -451,7 +425,7 @@ DHTControlImpl
 			
 				DHTRouterContact	contact = (DHTRouterContact)router_contacts.get(i);
 				
-				contacts_to_query.add( contact.getAttachment());
+				contacts_to_query.add(contact.getAttachment());
 			}
 			
 
@@ -485,7 +459,7 @@ DHTControlImpl
 						
 						if ( active_searches[0] == 0 ){
 							
-							DHTLog.log( "lookup: terminates as not contacts left to query" );
+							DHTLog.log( "lookup: terminates as no contacts left to query" );
 							
 							break;
 						}
@@ -652,6 +626,8 @@ DHTControlImpl
 							}
 						};
 						
+					router.recordLookup( lookup_id );
+					
 					if ( value_search ){
 						
 						closest.sendFindValue( handler, lookup_id );
@@ -731,25 +707,10 @@ DHTControlImpl
 			router.contactAlive( originating_contact.getID(), originating_contact );
 	
 			synchronized( this ){
-				stored_values.put( 
+				
+				stored_values.put(
 					new HashWrapper( key ), 
-					new DHTTransportValue()
-					{
-						private int	distance	= value.getCacheDistance() + 1;
-						private byte[] val		= value.getValue();
-						
-						public int
-						getCacheDistance()
-						{
-							return( distance );
-						}
-						
-						public byte[]
-						getValue()
-						{
-							return(val );
-						}
-					});
+					new DHTControlValueImpl( value.getValue(), value.getCacheDistance() + 1 ));
 			}
 			
 		}finally{
@@ -852,14 +813,21 @@ DHTControlImpl
 			
 			DHTTransportValue	value	= (DHTTransportValue)entry.getValue();
 			
-			putSupport( key.getHash(), value.getValue());
+			putSupport( key.getHash(), value.getValue(), 0 );
 		}
 	}
 	
 	protected void
 	republishCachedMappings()
 	{
+			// first refresh any leaves that have not performed at least one lookup in the
+			// last period
+		
+		router.refreshIdleLeaves( CACHE_REPUBLISH_INTERVAL );
+		
 		Map	republish = new HashMap();
+		
+		long	now = System.currentTimeMillis();
 		
 		synchronized( this ){
 			
@@ -871,19 +839,233 @@ DHTControlImpl
 				
 				HashWrapper			key		= (HashWrapper)entry.getKey();
 				
-				DHTTransportValue	value	= (DHTTransportValue)entry.getValue();
+				DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
 				
-				if ( value.getCacheDistance() > 0 ){
+				if ( 	value.getCacheDistance() > 0 ){
 					
-					republish.put( key, value );
+						// if this value was stored < period ago then we assume that it was
+						// also stored to the other k-1 locations at the same time and therefore
+						// we don't need to re-store it
+					
+					if ( now < value.getStoreTime()){
+						
+							// deal with clock changes
+						
+						value.setStoreTime( now );
+						
+					}else if ( now - value.getStoreTime() <= CACHE_REPUBLISH_INTERVAL ){
+						
+						// System.out.println( "skipping store" );
+						
+					}else{
+							
+						republish.put( key, value );
+					}
 				}
 			}
 		}
 		
 		if ( republish.size() > 0 ){
 			
-			System.out.println( "cache replublish" );
+			// System.out.println( "cache replublish" );
+			
+				// not sure I really understand this re-publish optimisation, however the approach
+				// is to refresh all leaves in the smallest subtree, thus populating the tree with
+				// sufficient information to directly know which nodes to republish the values
+				// to.
+			
+				// However, I'm going to rely on the "refresh idle leaves" logic above
+				// (that's required to keep the DHT alive in general) to ensure that all
+				// k-buckets are reasonably up-to-date
+					
+			Iterator	it = republish.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				HashWrapper			key		= (HashWrapper)entry.getKey();
+				
+				DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
+				
+				byte[]	lookup_id	= key.getHash();
+				
+				List	router_contacts = router.findClosestContacts( lookup_id );
+				
+				List	t_contacts = new ArrayList( router_contacts.size());
+				
+				for (int i=0;i<router_contacts.size();i++){
+					
+					t_contacts.add(((DHTRouterContact)router_contacts.get(i)).getAttachment());
+				}
+				
+				putSupport2( lookup_id, value.getValue(), value.getCacheDistance(), t_contacts );
+			}
 		}
+	}
+	
+	protected byte[]	last_new_contact;
+	
+	protected void
+	nodeAddedToRouter(
+		DHTRouterContact	new_contact )
+	{
+		// we keep a list of recently added node ids as a defence against a node being
+		// added, failing, getting added... This is a particular problem when running
+		// with a loopback connection with a high failure percentage and can end in 
+		// stack overflows (which obviously wouldn't happen with a real transport)
+		
+		if ( Arrays.equals( new_contact.getID(), last_new_contact )){
+			
+			//return;
+		}
+		
+		last_new_contact	= new_contact.getID();
+		
+		// when a new node is added we must check to see if we need to transfer
+		// any of our values to it.
+		
+		Map	values_to_store	= new HashMap();
+		
+		synchronized( this ){
+			
+			if ( stored_values.size() == 0 ){
+				
+				// nothing to do
+				
+				return;
+			}
+			
+				// see if we're one of the K closest to the new node
+			
+			List	closest_contacts = router.findClosestContacts( new_contact.getID());
+			
+			boolean	close	= false;
+			
+			for (int i=0;i<closest_contacts.size();i++){
+				
+				if ( router.isID(((DHTRouterContact)closest_contacts.get(i)).getID())){
+					
+					close	= true;
+					
+					break;
+				}
+			}
+			
+			if ( !close ){
+				
+				return;
+			}
+			
+				// ok, we're close enough to worry about transferring values				
+			
+			Iterator	it = stored_values.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				HashWrapper	key		= (HashWrapper)entry.getKey();
+				
+				byte[]	encoded_key		= key.getHash();
+				
+				DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
+								
+				closest_contacts = router.findClosestContacts( encoded_key );
+
+				Set		sorted_contacts	= new sortedContactSet( encoded_key, true ).getSet(); 
+
+				for (int i=0;i<closest_contacts.size();i++){
+					
+					DHTRouterContact	c = (DHTRouterContact)closest_contacts.get(i);
+						
+					sorted_contacts.add(c.getAttachment());
+				}
+
+				Iterator	sit = sorted_contacts.iterator();
+				
+					// if we're closest to the key, or the new node is closest and
+					// we're second closest, then we take responsibility for storing
+					// the value
+				
+				boolean	store_it	= false;
+				
+				if ( sit.hasNext()){
+					
+					DHTTransportContact	first = (DHTTransportContact)sit.next();
+					
+					if ( router.isID( first.getID())){
+						
+						store_it = true;
+						
+					}else if ( Arrays.equals( first.getID(), new_contact.getID()) && sit.hasNext()){
+						
+						store_it = router.isID(((DHTTransportContact)sit.next()).getID());
+						
+					}
+				}
+				
+				if ( store_it ){
+		
+					values_to_store.put( key, value );
+				}
+			}
+		}
+		
+		Iterator	it = values_to_store.entrySet().iterator();
+		
+		DHTTransportContact	t_contact = (DHTTransportContact)new_contact.getAttachment();
+
+		while( it.hasNext()){
+			
+			Map.Entry	entry = (Map.Entry)it.next();
+			
+			HashWrapper	key		= (HashWrapper)entry.getKey();
+			
+			DHTControlValueImpl	value	= (DHTControlValueImpl)entry.getValue();
+					
+			t_contact.sendStore( 
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						storeReply(
+							DHTTransportContact _contact )
+						{
+							DHTLog.indent( router );
+							
+							DHTLog.log( "add store ok" );
+							
+							router.contactAlive( _contact.getID(), _contact );
+							
+							DHTLog.exdent();
+						}	
+						
+						public void
+						failed(
+							DHTTransportContact 	_contact )
+						{
+							/*
+							DHTLog.indent( router );
+							
+							DHTLog.log( "add store failed" );
+							
+							router.contactDead( _contact.getID(), _contact );
+							
+							DHTLog.exdent();
+							*/
+						}
+					},
+					key.getHash(), 
+					value );
+		}
+	}
+	
+	public void
+	print()
+	{
+		router.print();
+		
+		DHTLog.log( "Stored values = " + stored_values.size()); 
 	}
 	
 	protected byte[]
@@ -950,5 +1132,59 @@ DHTControlImpl
 	getIndent()
 	{
 		return( "" );
+	}
+	
+	protected class
+	sortedContactSet
+	{
+		private TreeSet	tree_set;
+		
+		private byte[]	pivot;
+		private boolean	ascending;
+		
+		protected
+		sortedContactSet(
+			byte[]		_pivot,
+			boolean		_ascending )
+		{
+			pivot		= _pivot;
+			ascending	= _ascending;
+			
+			tree_set = new TreeSet(
+				new Comparator()
+				{
+					public int
+					compare(
+						Object	o1,
+						Object	o2 )
+					{
+							// this comparator ensures that the closest to the key
+							// is first in the iterator traversal
+					
+						DHTTransportContact	t1 = (DHTTransportContact)o1;
+						DHTTransportContact t2 = (DHTTransportContact)o2;
+						
+						byte[] d1 = computeDistance( t1.getID(), pivot);
+						byte[] d2 = computeDistance( t2.getID(), pivot);
+						
+						int	distance = compareDistances( d1, d2 );
+						
+						if ( ascending ){
+							
+							return( distance );
+							
+						}else{
+							
+							return( -distance );
+						}
+					}
+				});
+		}
+		
+		public Set
+		getSet()
+		{
+			return( tree_set );
+		}
 	}
 }
