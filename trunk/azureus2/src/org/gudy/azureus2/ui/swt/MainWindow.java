@@ -1184,7 +1184,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
       Messages.setLanguageText(view_irc, "MainWindow.menu.view.irc"); //$NON-NLS-1$
       view_irc.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-        	showAlert( LGLogger.AT_COMMENT, "Irc is now available as a plugin, see http://azureus.sourceforge.net/plugin_list.php");
+        	String msg = MessageText.getString( "MainWindow.menu.view.irc.moved");
+        	showAlert( LGLogger.AT_COMMENT, msg );
         	/*
           if (irc == null)
           	try{
