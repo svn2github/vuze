@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -371,6 +372,9 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
     final MenuItem itemChangeTracker = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
     
+    final MenuItem itemRecheck = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemRecheck, "MyTorrentsView.menu.recheck");
+    
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
@@ -400,6 +404,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         itemRemoveAnd.setEnabled(false);
 
         itemChangeTracker.setEnabled(false);
+        itemRecheck.setEnabled(false);
 
         if (tis.length > 0) {
           itemDetails.setEnabled(true);
@@ -419,9 +424,11 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
           itemRemove.setEnabled(false);
           itemBar.setSelection(false);
+          
+          //itemRecheck.setEnabled(true);
 
-          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, lockPriority, lockStartStop;
-          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = lockPriority = lockStartStop = true;
+          boolean moveUp, moveDown, start, stop, remove, changeUrl, barsOpened, lockPriority, lockStartStop, recheck;
+          moveUp = moveDown = start = stop = remove = changeUrl = barsOpened = lockPriority = lockStartStop = recheck = true;
           for (int i = 0; i < tis.length; i++) {
             TableItem ti = tis[i];
             DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
@@ -434,6 +441,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
               int state = dm.getState();
               if (state == DownloadManager.STATE_STOPPED) {
                 stop = false;
+                //recheck = false;
               }
               if (state != DownloadManager.STATE_STOPPED
                 && state != DownloadManager.STATE_ERROR
@@ -442,6 +450,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
               }
               if (state != DownloadManager.STATE_STOPPED) {
                 start = false;
+                recheck = false;
               }
 
               if (!dm.isMoveableDown())
@@ -469,6 +478,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           itemRemoveAnd.setEnabled(remove);
 
           itemChangeTracker.setEnabled(changeUrl);
+          itemRecheck.setEnabled(recheck);
 
         }
       }
@@ -774,6 +784,23 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
         }
       }
     });
+    
+    itemRecheck.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        TableItem[] tis = table.getSelection();
+        for (int i = 0; i < tis.length; i++) {
+          TableItem ti = tis[i];
+          DownloadManager dm = (DownloadManager) tableItemToObject.get(ti);
+          if (dm != null) {
+            dm.setState(DownloadManager.STATE_WAITING);
+            while (dm.getDiskManager() == null || dm.getDiskManager().getState() == DiskManager.INITIALIZING) {
+              try{ Thread.sleep(500); } catch(Exception ignore) {}
+            }
+            dm.restartDownload(false);
+          }
+        } 
+      }
+    });
   }
 
   private void createDragDrop() {
@@ -870,21 +897,21 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
     sorter.reOrder(false);
     synchronized(objectToSortableItem) {
-	    Iterator iter = objectToSortableItem.keySet().iterator();
-	    while (iter.hasNext()) {
-	      if (this.panel.isDisposed())
-	        return;
-	      DownloadManager manager = (DownloadManager) iter.next();
-	      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
-	      if (item != null) {
-	        //Every N GUI updates we unvalidate the images
-	        if (loopFactor % graphicsUpdate == 0)
-	          item.invalidate();
-	        
-	        item.refresh();
-	      }
-	    }
+    Iterator iter = objectToSortableItem.keySet().iterator();
+    while (iter.hasNext()) {
+      if (this.panel.isDisposed())
+        return;
+      DownloadManager manager = (DownloadManager) iter.next();
+      TorrentRow item = (TorrentRow) objectToSortableItem.get(manager);
+      if (item != null) {
+        //Every N GUI updates we unvalidate the images
+        if (loopFactor % graphicsUpdate == 0)
+          item.invalidate();
+        
+        item.refresh();
+      }
     }
+  }
   }
 
   /* (non-Javadoc)
@@ -1097,7 +1124,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       if (dm != null) {
         dm.setState(DownloadManager.STATE_WAITING);
       }
-    }    
+    }   
   }
     
   /**
