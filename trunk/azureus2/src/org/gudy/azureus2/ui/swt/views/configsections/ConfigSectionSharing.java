@@ -95,6 +95,15 @@ public class ConfigSectionSharing implements ConfigSectionSWT {
     rescan_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( rescan_period.getControls() ));
     rescan_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( new Control[]{period_label} ));
 	
+    	// comment
+    
+    Label comment_label = new Label(gSharing, SWT.NULL );
+    Messages.setLanguageText(comment_label, "ConfigView.section.sharing.torrentcomment");
+
+    StringParameter torrent_comment = new StringParameter(gSharing, "Sharing Torrent Comment", "" ); 
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    torrent_comment.setLayoutData(gridData);
+    
     return gSharing;
        
   }

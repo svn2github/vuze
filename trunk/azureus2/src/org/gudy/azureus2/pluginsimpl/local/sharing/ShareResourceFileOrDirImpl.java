@@ -32,6 +32,7 @@ import java.util.*;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
@@ -171,6 +172,13 @@ ShareResourceFileOrDirImpl
 			}
 			
 			LocaleUtil.getSingleton().setDefaultTorrentEncoding( to_torrent );
+			
+			String	comment = COConfigurationManager.getStringParameter( "Sharing Torrent Comment" ).trim();
+			
+			if ( comment.length() > 0 ){
+				
+				to_torrent.setComment( comment );
+			}
 			
 			File	save_dir;
 			

@@ -281,6 +281,8 @@ public class ConfigurationDefaults {
     def.put( "Sharing Add Hashes", new Long(0) );
     def.put( "Sharing Rescan Enable", new Long(0));
     def.put( "Sharing Rescan Period", new Long(60));
+    def.put( "Sharing Torrent Comment", "" );
+    
     def.put( "File.Decoder.Prompt", new Long(0) );
     def.put( "File.Decoder.Default", "" );
     def.put( "File.Decoder.ShowLax", new Long(0));
