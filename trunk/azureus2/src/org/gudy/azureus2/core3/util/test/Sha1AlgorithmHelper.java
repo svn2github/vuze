@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.gudy.azureus2.core3.util;
+package org.gudy.azureus2.core3.util.test;
 
 /**
  * @author Olivier
