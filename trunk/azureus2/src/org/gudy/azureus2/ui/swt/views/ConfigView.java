@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
@@ -1233,7 +1234,7 @@ public class ConfigView extends AbstractIView {
        }
      });
    }
-   
+      
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.colorScheme"); //$NON-NLS-1$
    ColorParameter colorScheme = new ColorParameter(gStyle, "Color Scheme",0,128,255,true); //$NON-NLS-1$
@@ -1256,6 +1257,12 @@ public class ConfigView extends AbstractIView {
      gLabels[i-1] = "" + i;
    }
    new IntListParameter(gStyle, "Graphics Update", 4, gLabels, gValues);
+   
+   if (osName.equals("Linux") && SWT.getPlatform().equals("gtk")) {
+    label = new Label(gStyle, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.verticaloffset"); //$NON-NLS-1$
+    new IntParameter(gStyle, VerticalAligner.parameterName,0); //$NON-NLS-1$
+   }
    
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay"); //$NON-NLS-1$

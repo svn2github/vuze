@@ -314,7 +314,7 @@ public class BencodedViewer {
 		if( args.length > 0 )
 			fileName = args[0];
 		else 
-			fileName = "d:/test2.torrent";
+			return;
 
 
 		final Shell mainWindow;
