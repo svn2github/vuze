@@ -3,7 +3,7 @@ AZUREUS CHANGELOG
 
 2004.06.xx | Azureus 2.1.0.1
 
-FEATURE:Plug | Tracker plugin supports simple category view
+FEATURE: Plug | Tracker plugin supports simple category view
 
 CHANGE: Core | Core update checker now uses aelitis.com server to grab latest version instead of SF's one [Gudy]
 CHANGE: Plug | Tracker web plugin configuration moved to plugin config from core config
@@ -12,6 +12,7 @@ BUGFIX: Core | Fix for Library Paths using single quotes [Parg]
 BUGFIX: Core | Fixed shared plugin dir location on OSX [Parg]
 BUGFIX: Core | File Open dialogs now correctly remember their last path [Nolar]
 BUGFIX: Core | Plugin loader picking up .zip files instead of corresponding .jar files [Parg]
+BUGFIX: Core | Don't delete the imported .torrent file if the import dir happens to also be the Save torrent dir [Nolar]
 BUGFIX: UI   | # Column now on by default again [TuxPaper]
 BUGFIX: UI   | Fix for Context Menu not appearing after setting up columns on Linux [TuxPaper]
 BUGFIX: UI   | IP column now sorts by hex groups [TuxPaper]
