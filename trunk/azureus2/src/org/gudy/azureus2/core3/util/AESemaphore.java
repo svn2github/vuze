@@ -101,6 +101,11 @@ AESemaphore
 				try{
 					waiting++;
 
+					if ( waiting > 1 ){
+						
+						// System.out.println( "AESemaphore: " + name + " contended" );
+					}
+
 					if ( millis == 0 ){
 						
 						wait();
@@ -125,7 +130,7 @@ AESemaphore
 
 					waiting--;
 
-					System.err.println( "**** semaphore operation interrupted ****" );
+					Debug.out( "**** semaphore operation interrupted ****" );
 
 					throw( new RuntimeException("Semaphore: operation interrupted" ));
 				}

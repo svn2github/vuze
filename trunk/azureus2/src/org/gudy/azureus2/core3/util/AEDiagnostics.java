@@ -31,20 +31,22 @@ import org.gudy.azureus2.core3.logging.*;
  */
 
 import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
 public class 
 AEDiagnostics 
 {
+	private static final int	MAX_FILE_SIZE	= 128*1024;	// get two of these per logger type
+	
 	private static final String	CONFIG_KEY	= "diagnostics.tidy_close";
 	
-	private static final File	debug_dir		= FileUtil.getUserFile( "debug" );
+	private static final File	debug_dir		= FileUtil.getUserFile( "logs" );
 
 	private static final File	debug_save_dir	= new File( debug_dir, "save" );
 
 	
 	private static boolean	started_up;
+	private static Map		loggers	= new HashMap();
 	
 	public static synchronized void
 	startup()
@@ -56,65 +58,204 @@ AEDiagnostics
 		
 		started_up	= true;
 		
-		boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
-		
-		COConfigurationManager.setParameter( CONFIG_KEY, false );
-		
-		COConfigurationManager.save();
-		
-		if ( debug_dir.exists()){
+		try{
+			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			
-			debug_save_dir.mkdir();
+			COConfigurationManager.setParameter( CONFIG_KEY, false );
 			
-			File[]	files = debug_dir.listFiles();
+			COConfigurationManager.save();
 			
-			if ( files != null ){
+			if ( debug_dir.exists()){
 				
-				boolean	file_moved	= false;
+				debug_save_dir.mkdir();
 				
-				long	now = SystemTime.getCurrentTime();
+				File[]	files = debug_dir.listFiles();
 				
-				for (int i=0;i<files.length;i++){
+				if ( files != null ){
 					
-					File	file = files[i];
+					boolean	file_moved	= false;
 					
-					if ( file.isDirectory()){
+					long	now = SystemTime.getCurrentTime();
+					
+					for (int i=0;i<files.length;i++){
 						
-						continue;
+						File	file = files[i];
+						
+						if ( file.isDirectory()){
+							
+							continue;
+						}
+						
+						if ( !was_tidy ){
+				
+							file_moved	= true;
+							
+							FileUtil.renameFile( file, new File( debug_save_dir, now + "_" + file.getName()));
+							
+						}else{
+							
+							// leave the file there, it'll get appended to
+							// file.delete();
+						}
 					}
 					
-					if ( !was_tidy ){
-			
-						file_moved	= true;
+					if ( file_moved ){
 						
-						FileUtil.renameFile( file, new File( debug_save_dir, now + "_" + file.getName()));
-						
-					}else{
-						
-						file.delete();
+						LGLogger.logAlertUsingResource(
+							LGLogger.AT_WARNING,
+							"diagnostics.log_found",
+							new String[]{ debug_save_dir.toString() } );
 					}
 				}
+			}else{
 				
-				if ( file_moved ){
-					
-					LGLogger.logAlertUsingResource(
-						LGLogger.AT_WARNING,
-						"diagnostics.log_found",
-						new String[]{ debug_save_dir.toString() } );
-				}
+				debug_dir.mkdir();
 			}
-		}else{
+		}catch( Throwable e ){
 			
-			debug_dir.mkdir();
+			e.printStackTrace();
 		}
 	}
-	//					String ts = new SimpleDateFormat("hh:mm:ss - ").format( new Date());
+	
+	public static synchronized AEDiagnosticsLogger
+	getLogger(
+		String		name )
+	{
+		AEDiagnosticsLogger	logger = (AEDiagnosticsLogger)loggers.get(name);
+		
+		if ( logger == null ){
+			
+			startup();
+			
+			logger	= new AEDiagnosticsLogger( name );
+			
+			try{
+				File	f1 = getLogFile( logger );
+				
+				logger.setFirstFile( false );
+				
+				File	f2 = getLogFile( logger );
+				
+				logger.setFirstFile( true );
+	
+					// if we were writing to the second file, carry on from there
+				
+				if ( f1.exists() && f2.exists()){
+		
+					if ( f1.lastModified() < f2.lastModified()){
+						
+						logger.setFirstFile( false );	
+					}
+				}
+			}catch( Throwable ignore ){
+				
+			}
+			
+			loggers.put( name, logger );
+		}
+		
+		return( logger );
+	}
 
+	protected static synchronized void
+	log(
+		AEDiagnosticsLogger		logger,
+		String					str )
+	{
+		try{
+			
+			File	log_file	= getLogFile( logger );
+			
+			if ( log_file.exists() && log_file.length() >= MAX_FILE_SIZE ){
+				
+				logger.setFirstFile(!logger.isFirstFile());
+				
+				log_file	= getLogFile( logger );
+			
+				if ( log_file.exists()){
+					
+					log_file.delete();
+				}
+			}
+			
+			Calendar now = GregorianCalendar.getInstance();
+	        
+			String timeStamp =
+				"[" + now.get(Calendar.HOUR_OF_DAY)+ ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "] ";        
+
+			str = timeStamp + str;
+	
+			PrintWriter	pw = null;
+	
+			try{		
+						
+				pw = new PrintWriter(new FileWriter( log_file, true ));
+			
+				pw.println( str );
+		 							
+			}finally{
+				
+				if ( pw != null ){
+										
+					pw.close();
+				}
+			}
+		}catch( Throwable ignore ){
+			
+		}
+	}
+	
+	private static File
+	getLogFile(
+		AEDiagnosticsLogger		logger )
+	{
+		return( new File( debug_dir, logger.getName() + "_" + (logger.isFirstFile()?"1":"2") + ".log" ));
+	}
+	
+	private static String 
+	format(
+		int 	n ) 
+	{
+		if (n < 10){
+	   	
+			return( "0" + n );
+	   }
+		
+	   return( String.valueOf(n));
+	}
+	
+	protected static void
+	log(
+		AEDiagnosticsLogger		logger,
+		Throwable				e )
+	{
+		try{
+			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			
+			PrintWriter	pw = new PrintWriter( new OutputStreamWriter( baos ));
+			
+			e.printStackTrace( pw );
+			
+			pw.close();
+			
+			log( logger, baos.toString());
+			
+		}catch( Throwable ignore ){
+			
+		}
+	}
+	
 	public static void
 	shutdown()
 	{
-		COConfigurationManager.setParameter( CONFIG_KEY, true );
-		
-		COConfigurationManager.save();
+		try{
+			COConfigurationManager.setParameter( CONFIG_KEY, true );
+			
+			COConfigurationManager.save();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }

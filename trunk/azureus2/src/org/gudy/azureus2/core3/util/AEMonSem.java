@@ -22,15 +22,7 @@
 
 package org.gudy.azureus2.core3.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-import java.util.WeakHashMap;
+import java.util.*;
 
 /**
  * @author parg
@@ -45,12 +37,7 @@ AEMonSem
 	
 	protected static long		DEBUG_TIMER				= 30000;
 	
-	static{
-		if ( DEBUG ){
-			
-			System.out.println( "**** AEMonitor/AESemaphore debug on ****" );
-		}
-	}
+	protected static AEDiagnosticsLogger				diag_logger;
 	
 	private static ThreadLocal		tls	= 
 		new ThreadLocal()
@@ -77,17 +64,24 @@ AEMonSem
 	private static Map	debug_semaphores		= new WeakHashMap();
 	
 	static{
-		new Timer("AEMonSem").addPeriodicEvent(
-				DEBUG_TIMER,
-				new TimerEventPerformer()
-				{
-					public void
-					perform(
-						TimerEvent	event )
+		if ( DEBUG ){
+			
+			System.out.println( "**** AEMonitor/AESemaphore debug on ****" );
+			
+			diag_logger	= AEDiagnostics.getLogger( "monsem" );
+		
+			new Timer("AEMonSem").addPeriodicEvent(
+					DEBUG_TIMER,
+					new TimerEventPerformer()
 					{
-						check();
-					}
-				});
+						public void
+						perform(
+							TimerEvent	event )
+						{
+							check();
+						}
+					});
+		}
 	}
 	
 	protected static void
@@ -99,7 +93,7 @@ AEMonSem
 		
 		synchronized( AEMonSem.class ){
 
-			System.out.println( 
+			diag_logger.log( 
 					"AEMonSem: mid = " + monitor_id_next +
 					", sid = " + semaphore_id_next +
 					", monitors = " + debug_monitors.size() + 
@@ -154,7 +148,7 @@ AEMonSem
 				}
 			}		
 			
-			System.out.println( 
+			diag_logger.log( 
 					"    activity: monitors = " + new_mon_entries + " - " + (new_mon_entries / (DEBUG_TIMER/1000)) + 
 					"/sec, semaphores = " + new_sem_entries + " - " +
 					(new_sem_entries / (DEBUG_TIMER/1000)) + "/sec ");
@@ -180,37 +174,37 @@ AEMonSem
 				}
 				
 			});
-		
-		System.out.print("    top activity:" );
+				
+		String	top_act_str = "    top activity: ";
 		
 		for (int i=0;i<Math.min(10,x.length);i++){
 			
-			System.out.print( (i==0?"":", ") + x[i].name + " = " + (x[i].entry_count - x[i].last_entry_count ));
+			top_act_str +=  (i==0?"":", ") + x[i].name + " = " + (x[i].entry_count - x[i].last_entry_count );
 		}
 		
-		System.out.println();
+		diag_logger.log( top_act_str );
 	
 		if ( waiting_monitors.size() > 0 ){
 			
-			System.out.println( "    waiting monitors" );
+			diag_logger.log( "    waiting monitors" );
 			
 			for (int i=0;i<waiting_monitors.size();i++){
 				
 				AEMonSem	ms = (AEMonSem)waiting_monitors.get(i);
 				
-				System.out.println( "        " + ms.name + " - " + ms.last_trace_key );
+				diag_logger.log( "        " + ms.name + " - " + ms.last_trace_key );
 			}
 		}
 		
 		if ( waiting_semaphores.size() > 0 ){
 			
-			System.out.println( "    waiting semaphores" );
+			diag_logger.log( "    waiting semaphores" );
 			
 			for (int i=0;i<waiting_semaphores.size();i++){
 				
 				AEMonSem	ms = (AEMonSem)waiting_semaphores.get(i);
 				
-				System.out.println( "        " + ms.name + " - " + ms.last_trace_key );
+				diag_logger.log( "        " + ms.name + " - " + ms.last_trace_key );
 			}
 		}
 		for (int i=0;i<x.length;i++){
@@ -286,7 +280,7 @@ AEMonSem
 						if ( 	( !existing_name_entry.owning_class.getName().equals( class_name )) ||
 								existing_name_entry.line_number != line_number ){
 							
-							new Exception("Duplicate AEMonSem name '" + name + "'").printStackTrace();
+							Debug.out( new Exception("Duplicate AEMonSem name '" + name + "'"));
 						}
 					}
 				}
@@ -449,11 +443,11 @@ AEMonSem
 											
 											debug_reciprocals.add( reciprocal_log );
 											
-											System.out.println(
-													"AEMonSem: Reciprocal usage:\n" +
-													"    " + trace_key + "\n" + 
-													"        [" + thread_name + "] " + stack_trace + "\n" +
-													"    " + old_key + "\n" +
+											Debug.out(
+													"AEMonSem: Reciprocal usage:\r\n" +
+													"    " + trace_key + "\r\n" + 
+													"        [" + thread_name + "] " + stack_trace + "\r\n" +
+													"    " + old_key + "\r\n" +
 													"        [" + old_thread_name + "] " + old_trace );
 										}
 									}

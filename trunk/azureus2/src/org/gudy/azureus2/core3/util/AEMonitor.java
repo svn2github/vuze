@@ -70,7 +70,7 @@ AEMonitor
 
 						if ( waiting > 1 ){
 							
-							System.out.println( "AEMonitor: " + name + " contended" );
+							// System.out.println( "AEMonitor: " + name + " contended" );
 						}
 						
 						wait();
@@ -84,7 +84,7 @@ AEMonitor
 
 						owner	= Thread.currentThread();
 						
-						System.out.println( "**** monitor interrupted ****" );
+						Debug.out( "**** monitor interrupted ****" );
 						
 						throw( new RuntimeException("AEMonitor:interrupted" ));
 					}
@@ -123,7 +123,7 @@ AEMonitor
 						
 						if ( dont_wait > 1 ){
 							
-							System.out.println( "**** AEMonitor '" + name + "': multiple exit detected" );
+							Debug.out( "**** AEMonitor '" + name + "': multiple exit detected" );
 						}
 					}
 				}

@@ -12,6 +12,8 @@ import java.util.*;
  */
 public class Debug {
   
+	private static AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "debug" );
+
   
   /**
    * Prints out the given debug message to System.out,
@@ -71,15 +73,15 @@ public class Debug {
       }
     }
     
-    System.out.println(header+className+(methodName)+lineNumber+":");
+    diag_logger.logAndOut(header+className+(methodName)+lineNumber+":");
     if (_debug_msg.length() > 0) {
-      System.out.println("  " + _debug_msg);
+    	diag_logger.logAndOut("  " + _debug_msg);
     }
     if ( trace_trace_tail != null ){
-    	System.out.println( "    " + trace_trace_tail );
+    	diag_logger.logAndOut( "    " + trace_trace_tail );
     }
     if (_exception != null) {
-      _exception.printStackTrace();
+    	diag_logger.logAndOut(_exception);
     }
   }
   
@@ -113,7 +115,7 @@ public class Debug {
       StackTraceElement st[] = e.getStackTrace();
       for (int i = 1; i < st.length - endNumToSkip; i++) {
         if (st[i].getMethodName() != "outStackTrace")
-          System.out.println(st[i].toString());
+        	diag_logger.logAndOut(st[i].toString());
       }
     }
   }
@@ -175,7 +177,7 @@ public class Debug {
 		 		
 		 		if ( name.startsWith( "AWT" )){
 		 			
-		 			System.out.println( "Interrupting thread '".concat(t.toString()).concat("'" ));
+		 			out( "Interrupting thread '".concat(t.toString()).concat("'" ));
 		 			
 		 			t.interrupt();
 		 		}
@@ -192,7 +194,7 @@ public class Debug {
 	dumpThreads(
 		String	name )
 	{
-		System.out.println(name+":");
+		out(name+":");
 			
 	  	ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
 			
@@ -214,7 +216,7 @@ public class Debug {
 		
 		if ( t != null ){		
 		
-		   System.out.println( indent.concat("active thread = ").concat(t.toString()).concat(", daemon = ").concat(String.valueOf(t.isDaemon())));
+		   out( indent.concat("active thread = ").concat(t.toString()).concat(", daemon = ").concat(String.valueOf(t.isDaemon())));
 		}
 	  }
 	  
@@ -249,7 +251,7 @@ public class Debug {
 	public static void
 	dumpSystemProperties()
 	{
-		System.out.println( "System Properties:");
+		out( "System Properties:");
 		
  		Properties props = System.getProperties();
  		
@@ -259,7 +261,7 @@ public class Debug {
  			
  			String	name = (String)it.next();
  			
- 			System.out.println( "\t".concat(name).concat(" = '").concat(props.get(name).toString()).concat("'" ));
+ 			out( "\t".concat(name).concat(" = '").concat(props.get(name).toString()).concat("'" ));
  		}
 	}
 	
