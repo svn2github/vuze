@@ -103,21 +103,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         destroyed_loop_count++;
         
         if( destroyed_loop_count % 50 == 0 ) {
-          int read = -1;
           
-          try{
-            ByteBuffer test = ByteBuffer.allocate( 10 );
-            
-            transport.read( new ByteBuffer[]{ test }, 0, 1 );
-            
-            read = test.position();
-          }
-          catch( Throwable t ) {
-            Debug.out( "test read error:", t );
-          }
-          
-
-          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] channel is null=" +(transport.getSocketChannel() == null)+ ", has_been_closed=" +transport.has_been_closed+ ", test read bytes="+read+", original destroy() trace:", destroyed_trace );
+          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] channel is null=" +(transport.getSocketChannel() == null)+ ", has_been_closed=" +transport.has_been_closed+ ", closed_error_msg=" +transport.has_been_closed_error+ ", original destroy() trace:", destroyed_trace );
           
           try{  Thread.sleep( 100 );  }catch(Throwable t){}
           

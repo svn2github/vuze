@@ -55,6 +55,7 @@ public class TCPTransport {
   
   
   public volatile boolean has_been_closed = false;
+  public String has_been_closed_error = null;
 
   
   
@@ -402,6 +403,11 @@ public class TCPTransport {
    * @param listener establishment failure/success listener
    */
   public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ) {
+    if( has_been_closed ) {
+      has_been_closed_error = "establishOutboundConnection():: transport has already been closed";
+      Debug.out( has_been_closed_error );
+    }
+    
     if( socket_channel != null ) {  //already connected
       Debug.out( "socket_channel != null" );
       listener.connectSuccess();
@@ -417,6 +423,13 @@ public class TCPTransport {
       }
       
       public void connectSuccess( SocketChannel channel ) {
+        if( has_been_closed ) {  //closed between select ops
+          has_been_closed_error = "connectSuccess():: transport has already been closed";
+          Debug.out( has_been_closed_error );
+          NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );  //just close it
+          return;
+        }
+        
         socket_channel = channel;
         connect_request_key = null;
         is_ready_for_write = true;
@@ -466,8 +479,11 @@ public class TCPTransport {
    * Close the transport connection.
    */
   public void close() {
-    
     has_been_closed = true;
+    
+    if( connect_request_key != null ) {
+      NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
+    }
     
     is_ready_for_write = false;
 
@@ -475,13 +491,7 @@ public class TCPTransport {
       NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
       NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
       NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
-    }
-
-    socket_channel = null;
-    
-    if( connect_request_key != null ) {
-      NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
-      connect_request_key = null;
+      socket_channel = null;
     }
   }
      

@@ -168,12 +168,31 @@ public class ConnectDisconnectManager {
                                     ", num_queued="+num_queued+
                                     ", num_connecting="+num_connecting);
               }
-                  
-              request.listener.connectSuccess( request.channel );
+              
+              
+              //ensure the request hasn't been canceled during the select op
+              boolean canceled = false;
+              try{  new_canceled_mon.enter();
+                canceled = canceled_requests.contains( request.listener );
+              }
+              finally{ new_canceled_mon.exit(); }
+              
+              if( canceled ) {
+                System.out.println( "ConnectDisconnectManager::selectSuccess():: connect request already canceled" );                
+                
+                try{  pending_closes_mon.enter();
+                  pending_closes.addLast( request.channel );  //just close it
+                }
+                finally{ pending_closes_mon.exit();  }
+              }
+              else {
+                request.listener.connectSuccess( request.channel );
+              }
             }
             else { //should never happen
               Debug.out( "finishConnect() failed" );
               request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
+              
               try{
                 pending_closes_mon.enter();
                   
