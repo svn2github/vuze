@@ -2,6 +2,7 @@ package org.gudy.azureus2.core;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -15,13 +16,19 @@ import java.util.Map;
  *
  */
 public class TrackerConnection {
+  private int timeout = 20000; // default timeout 20 seconds
+  private Thread httpConnecter = null;
+  private boolean httpConnected = false;
+
   private String trackerUrl;
-  private byte[] hash;
+  private String info_hash = "?info_hash=";
   private byte[] peerId;
+  private String peer_id = "&peer_id=";
+  private String port;
+
   //  private long uploaded;
   //  private long downloaded;
   //  private long remaining;
-  private int port;
 
   private PeerManager manager;
 
@@ -40,12 +47,6 @@ public class TrackerConnection {
       e.printStackTrace();
     }
 
-    //Copy the hash
-    this.hash = new byte[20];
-    for (int i = this.hash.length - 1; i >= 0; i--) {
-      this.hash[i] = hash[i];
-    }
-
     //Create a peerId
     peerId = new byte[20];
     for (int i = 12; i < 20; i++) {
@@ -58,11 +59,23 @@ public class TrackerConnection {
       peerId[i] = (byte) 0;
     }
 
+    try {
+      //1.3 Version
+      //request += "?info_hash=" + URLEncoder.encode(new String(hash,"ISO-8859-1"));
+      //request += "&peer_id=" + URLEncoder.encode(new String(peerId,"ISO-8859-1"));
+  
+      //1.4 Version
+      this.info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+      this.peer_id += URLEncoder.encode(new String(peerId, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+    } catch (UnsupportedEncodingException e1) {
+      e1.printStackTrace();
+    }
+    this.port = "&port=" + port;
+
     //    uploaded = 0;
     //    downloaded = 0;
     //    remaining = 0; 
 
-    this.port = port;
     Logger.getLogger().log(componentID, evtLifeCycle, Logger.INFORMATION, "Tracker Connection Created using url : " + trackerUrl);
     //Logger.getLogger().log(componentID,evtFullTrace,Logger.INFORMATION,"PeerId Generated : " + Main.nicePrint(peerId));
   }
@@ -88,73 +101,94 @@ public class TrackerConnection {
   }
 
   private String update(String evt) {
-    InputStream is = null;
     try {
       URL reqUrl = new URL(constructURL(evt));
       Logger.getLogger().log(componentID, evtFullTrace, Logger.INFORMATION, "Tracker is Requesting : " + reqUrl);
-      HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
-      con.connect();
-      is = con.getInputStream();
-      //      int length = con.getContentLength();
-      //      System.out.println(length);
-      byte[] data = new byte[1024];
-      ByteArrayOutputStream message = new ByteArrayOutputStream();
-      int nbRead = 0;
-      while (nbRead >= 0) {
-        try {
-          nbRead = is.read(data);
-          if (nbRead >= 0)
-            message.write(data, 0, nbRead);
-          Thread.sleep(10);
-        } catch (Exception e) {
-          Logger.getLogger().log(componentID, evtErrors, Logger.ERROR, "Exception while Requesting Tracker : " + e);
-          Logger.getLogger().log(componentID, evtFullTrace, Logger.ERROR, "Message Received was : " + message);
-          nbRead = -1;
-          message = null;
-        }
-      }
+      final HttpURLConnection con = (HttpURLConnection) reqUrl.openConnection();
+      final ByteArrayOutputStream message = new ByteArrayOutputStream();
 
-      Logger.getLogger().log(componentID, evtFullTrace, Logger.INFORMATION, "Tracker Connection has received : " + message);
-      return new String(message.toByteArray(), Constants.BYTE_ENCODING);
+      if(httpConnecter != null && httpConnecter.isAlive() && !httpConnecter.isInterrupted()) {
+        httpConnecter.interrupt();
+      }
+      httpConnected = false;
+      httpConnecter = new Thread("Tracker HTTP Connect") {
+        public void run() {
+          try {
+            con.connect();
+            httpConnected = true;
+          } catch (Exception ignore) {
+          }
+        }
+      };
+      httpConnecter.setDaemon(true);
+      httpConnecter.setPriority(Thread.MIN_PRIORITY);
+      httpConnecter.start();
+
+      try {
+        httpConnecter.join(timeout);
+      } catch (InterruptedException ignore) {
+       // if somebody interrupts us he knows what he is doing
+      }
+      if (httpConnecter.isAlive()) {
+        httpConnecter.interrupt();
+      }
+      httpConnecter = null;
+      if(httpConnected) {
+        InputStream is = null;
+        try {
+          is = con.getInputStream();
+          //      int length = con.getContentLength();
+          //      System.out.println(length);
+          byte[] data = new byte[1024];
+          int nbRead = 0;
+          while (nbRead >= 0) {
+            try {
+              nbRead = is.read(data);
+              if (nbRead >= 0)
+                message.write(data, 0, nbRead);
+              Thread.sleep(20);
+            } catch (Exception e) {
+              Logger.getLogger().log(componentID, evtErrors, Logger.ERROR, "Exception while Requesting Tracker : " + e);
+              Logger.getLogger().log(componentID, evtFullTrace, Logger.ERROR, "Message Received was : " + message);
+              nbRead = -1;
+            }
+          }
+          Logger.getLogger().log(componentID, evtFullTrace, Logger.INFORMATION, "Tracker Connection has received : " + message);
+        } catch (Exception ignore) {
+        } finally {
+          if (is != null) {
+            try {
+              is.close();
+            } catch (Exception e) {
+            }
+            is = null;
+          }
+        }
+        return new String(message.toByteArray(), Constants.BYTE_ENCODING);
+      }
     } catch (Exception e) {
       Logger.getLogger().log(componentID, evtErrors, Logger.ERROR, "Exception while creating the Tracker Request : " + e);
-      return null;
-    } finally {
-      try {
-        if (is != null)
-          is.close();
-      } catch (Exception e) {
-      }
     }
+    return null;
   }
 
   public String constructURL(String evt) {
-    String request = trackerUrl;
-    try {
-      //1.3 Version
-      //request += "?info_hash=" + URLEncoder.encode(new String(hash,"ISO-8859-1"));
-      //request += "&peer_id=" + URLEncoder.encode(new String(peerId,"ISO-8859-1"));
-
-      //1.4 Version
-      request += "?info_hash=" + URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
-      request += "&peer_id=" + URLEncoder.encode(new String(peerId, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    request += "&port=" + port;
-    request += "&uploaded=" + manager.uploaded();
-    request += "&downloaded=" + manager.downloaded();
-    request += "&left=" + manager.getRemaining();
+    StringBuffer request = new StringBuffer(trackerUrl);
+    request.append(info_hash);
+    request.append(peer_id);
+    request.append(port);
+    request.append("&uploaded=").append(manager.uploaded());
+    request.append("&downloaded=").append(manager.downloaded());
+    request.append("&left=").append(manager.getRemaining());
     if (evt.length() != 0)
-      request += "&event=" + evt;
+      request.append("&event=").append(evt);
     if (evt.equals("stopped"))
-      request += "&numpeers=0";
-    ConfigurationManager config = ConfigurationManager.getInstance();
-    String ip = config.getStringParameter("Override Ip", "");
+      request.append("&numpeers=0");
+    String ip = ConfigurationManager.getInstance().getStringParameter("Override Ip", "");
     if (ip.length() != 0)
-      request += "&ip=" + ip;
+      request.append("&ip=").append(ip);
 
-    return request;
+    return request.toString();
   }
 
   public byte[] getPeerId() {
@@ -167,6 +201,14 @@ public class TrackerConnection {
 
   public String getTrackerUrl() {
     return trackerUrl;
+  }
+
+  /**
+   * @param timeout maximum time in ms to wait for con.connect()
+   */
+  public void setTimeout(int timeout) {
+    if(timeout >= 0)
+      this.timeout = timeout;
   }
 
 }
