@@ -77,6 +77,7 @@ public class OutgoingMessageQueue {
    * @param message message to add
    */
   public void addMessage( ProtocolMessage message ) {
+    notifyAddListeners( message );
     removeMessagesOfType( message.typesToRemove() );
     synchronized( queue ) {
       int pos = 0;
@@ -88,7 +89,6 @@ public class OutgoingMessageQueue {
       queue.add( pos, message );
       total_size += message.getPayload().remaining();
     }
-    notifyAddListeners( message );
   }
   
   
@@ -149,35 +149,38 @@ public class OutgoingMessageQueue {
     synchronized( queue ) {     
     	if( !queue.isEmpty() ) {
         ByteBuffer[] buffers = new ByteBuffer[ queue.size() ];
-    		int pos = -1;
+        int[] starting_pos = new int[ queue.size() ];
+        int pos = 0;
     		int total_sofar = 0;
-    		while( total_sofar < max_bytes && pos + 1 < buffers.length ) {
-    			pos++;
-          buffers[ pos ] = ((ProtocolMessage)queue.get( pos )).getPayload().getBuffer();        
-    			total_sofar += buffers[ pos ].remaining();
+        while( total_sofar < max_bytes && pos < buffers.length ) {
+          buffers[ pos ] = ((ProtocolMessage)queue.get( pos )).getPayload().getBuffer();
+          total_sofar += buffers[ pos ].remaining();
+          starting_pos[ pos ] = buffers[ pos ].position();
+          pos++;
     		}
+        pos--; //remove last while loop auto-increment
     		int orig_limit = buffers[ pos ].limit();
     		if( total_sofar > max_bytes ) {
     			buffers[ pos ].limit( orig_limit - (total_sofar - max_bytes) );
     		}
         written = new Long( peer_transport.write( buffers, 0, pos + 1 ) ).intValue();
         buffers[ pos ].limit( orig_limit );
+        pos = 0;
         while( !queue.isEmpty() ) {
           ProtocolMessage msg = (ProtocolMessage)queue.get( 0 );
           ByteBuffer bb = msg.getPayload().getBuffer();
-          int spill = written;
           if( !bb.hasRemaining() ) {
-            spill -= bb.limit();
-            total_size -= bb.limit();
+            total_size -= bb.limit() - starting_pos[ pos ];
             queue.remove( 0 );
             LGLogger.log( LGLogger.CORE_NETWORK, "Sending " +msg.getDescription()+ " message to " + peer_transport.getDescription() );
             notifySentListeners( msg );
             msg.notifySent();
           }
           else {
-            total_size -= spill;
+            total_size -= (bb.limit() - bb.remaining()) - starting_pos[ pos ];
             break;
           }
+          pos++;
         }
     	}
     }

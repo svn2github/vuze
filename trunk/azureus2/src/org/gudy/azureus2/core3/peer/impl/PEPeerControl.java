@@ -27,9 +27,8 @@ package org.gudy.azureus2.core3.peer.impl;
  */
 
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.disk.DiskManagerRequest;
-import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 
 public interface
 PEPeerControl
@@ -39,35 +38,13 @@ PEPeerControl
   public static final int WAITING_SLEEP        = 100;
   public static final int DATA_EXPECTED_SLEEP  = 50;
   public static final int NO_SLEEP             = 20;
-   	
-
-	   
-	public DiskManagerDataQueueItem
-	createDiskManagerDataQueueItem(
-	  DiskManagerRequest	req );
-	
-	public void
-	enqueueReadRequest(
-		DiskManagerDataQueueItem	item );
-		
-	public void
-	freeRequest(
-		DiskManagerDataQueueItem	item );
-		
+   		
 
 	public boolean 
 	checkBlock(
 		int pieceNumber, 
 		int offset, 
 		int length );
-
-
-  /*
-	public boolean 
-	validateHandshaking( 
-		PEPeer pc, 
-		byte[] peerId );
-  */
 
 	public void 
 	havePiece(
@@ -92,5 +69,8 @@ PEPeerControl
 	public void
 	removeListener(
 		PEPeerControlListener	l );
+  
+  
+  public DiskManager getDiskManager();
 	
 }

@@ -27,14 +27,17 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
-import org.gudy.azureus2.core3.peer.impl.transport.protocol.*;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
+
+import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.peermanager.messages.OutgoingBTPieceMessageHandler;
+import com.aelitis.azureus.core.peermanager.messages.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
 
 
 /**
@@ -43,11 +46,11 @@ import org.gudy.azureus2.core3.config.*;
  */
 public abstract class 
 PEPeerTransportProtocol
-	implements PEPeerTransport
+	implements PEPeerTransport, PeerConnection
 {
-		// these appear in the plugin interface as well so don't renumber without
-		// fixing things up
-	
+	//TODO xx
+	// these appear in the plugin interface as well so don't renumber without
+	// fixing things up
 	public final static byte BT_CHOKED 			= 0;
 	public final static byte BT_UNCHOKED 		= 1;
 	public final static byte BT_INTERESTED 		= 2;
@@ -58,7 +61,6 @@ PEPeerTransportProtocol
 	public final static byte BT_PIECE 			= 7;
 	public final static byte BT_CANCEL 			= 8;
 
-	
 	private PEPeerControl manager;
 	private byte[] id;
 	private String ip;
@@ -66,92 +68,60 @@ PEPeerTransportProtocol
 	private int port;
 	private int hashcode;
 	
-	
-	protected PEPeerStatsImpl stats;
-
-	protected boolean choked;
-	protected boolean interested;
-	private List requested;
-
-	protected boolean choking;
-	protected boolean interesting;
-
-	protected boolean snubbed;
-
-	protected boolean[] available;
-	protected boolean seed;
-
-    private HashMap data;
-
-		//The reference to the current ByteBuffer used for reading on the socket.
-	
-	private DirectByteBuffer readBuffer;
-	
-		//The Buffer for reading the length of the messages
-		
-	private DirectByteBuffer lengthBuffer;
-	
-		//A flag to indicate if we're reading the length or the message
-		
-	private boolean readingLength;
-	
-		//The reference tp the current ByteBuffer used to write on the socket
-		
-	private DirectByteBuffer writeBuffer;
-	
-		//A flag to indicate if we're sending protocol messages or data
-		
-	private boolean writeData;
-	private int allowed;
-	private int used;
-    private int limit = 0;
-    private int loopFactor;
-
-		//The keepAlive counter
-		
-	private int keepAlive;
-
-		//The Queue for protocol messages
-		
-	private ArrayList protocolQueue = new ArrayList();
-
-		//The Queue for data messages
-		
-	private ArrayList dataQueue = new ArrayList();
-	private boolean incoming;
-	private volatile boolean closing;
-	private PEPeerTransportProtocolState currentState;
-
-		//The maxUpload ...
-		
-	int maxUpload = 1024 * 1024;
-
-  private static final int WRITE_CACHE_SIZE = System.getProperty("socket.write.cache") == null ? 1460 : Integer.parseInt( System.getProperty("socket.write.cache"));
-  private DirectByteBuffer cache_buffer;
-  private boolean actively_writing = false;
-  private boolean WRITE_DEBUG = System.getProperty("socket.write.debug") == null ? false : true;
+	private PEPeerStatsImpl stats;
+  private List requested;
+  private HashMap data;
   
+  private boolean choked;
+  private boolean interested;
+  private boolean choking;
+  private boolean interesting;
+  private boolean snubbed;
+  private boolean[] available;
+  private boolean seed;
+
+	//The reference to the current ByteBuffer used for reading on the socket.
+	private DirectByteBuffer readBuffer;
+	//The Buffer for reading the length of the messages
+	private DirectByteBuffer lengthBuffer;
+  //A flag to indicate if we're reading the length or the message
+	private boolean readingLength;
+
+  private int loopFactor;
+  private boolean incoming;
+  private volatile boolean closing;
+  private PEPeerTransportProtocolState currentState;
+  
+  private OutgoingMessageQueue outgoing_message_queue = new OutgoingMessageQueue( this );
+  private OutgoingBTPieceMessageHandler outgoing_piece_message_handler;
+  private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
+  
+  //socket writing vars:
+  private static final int WRITE_CACHE_SIZE = System.getProperty("socket.write.cache") == null ? 1460 : Integer.parseInt( System.getProperty("socket.write.cache"));
+  private boolean WRITE_DEBUG = System.getProperty("socket.write.debug") == null ? false : true;
+  private int allowed_to_write = 0;
+  private boolean force_flush_mode = false;
+  private long force_start_time = 0;
+  private long previous_queue_size = 0;
+  private int limit = 0;
+  private int allowed = 0;
+  private int used = 0;
+  private int maxUpload = 100*1024*1024;
+  private long last_write_time = 0;
   
   //The client name identification	
-	String client = "";
+	private String client = "";
 
-		//Reader / Writer Loop
-		
+	//Reader inner loop counter
 	private int processLoop;
   
-		//Number of connections made since creation
-		
+	//Number of connections made since creation
 	private int nbConnections;
   
-		//Flag to indicate if the connection is in a stable enough state to send a request.
-		//Used to reduce discarded pieces due to request / choke / unchoke / re-request , and both in fact taken into account.
-		
+	//Flag to indicate if the connection is in a stable enough state to send a request.
+	//Used to reduce discarded pieces due to request / choke / unchoke / re-request , and both in fact taken into account.
 	private boolean readyToRequest;
   
-		//Flag to determine when a choke message has really been sent
-		
-	private boolean waitingChokeToBeSent;
-	
 	//Number of bad chunks received from this peer
 	private int nbBadChunks;
 	
@@ -161,28 +131,19 @@ PEPeerTransportProtocol
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
 
+  //TODO xx
 	public final static int componentID = 1;
 	public final static int evtProtocol = 0;
+  public final static int evtLifeCycle = 1;
+  public final static int evtErrors = 2;
   
   private int readSleepTime;
   private int writeSleepTime;
   private long lastReadTime;
   private long lastWriteTime;
   
-  private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
-  
-	
-		// Protocol Info
-		
-	public final static int evtLifeCycle = 1;
-	
-		// PeerConnection Life Cycle
-		
-	public final static int evtErrors = 2;
-	
-		// PeerConnection Life Cycle
-		
-    private List		listeners;
+  private List		listeners;
+
  
   /*
 	 * This object constructors will let the PeerConnection partially created,
@@ -222,6 +183,8 @@ PEPeerTransportProtocol
 		uniquePiece = -1;
 		
 		incoming = incoming_connection;
+    
+    outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), outgoing_message_queue );
 		
 		if ( incoming ){
 			
@@ -247,16 +210,19 @@ PEPeerTransportProtocol
    * Private method that will finish fields allocation, once the handshaking is ok.
    * Hopefully, that will save some RAM.
    */
-  protected void allocateAll() {
-  	allocateAllSupport();
-    
-    cache_buffer = DirectByteBufferPool.getBuffer( WRITE_CACHE_SIZE );
-    
+  private void allocateAll() {
+  	seed = false;
+  	choked = true;
+  	interested = false;
+  	requested = new ArrayList();
+  	choking = true;
+  	interesting = false;
+  	available = new boolean[manager.getPiecesNumber()];
+  	Arrays.fill(available, false);
+  	stats = (PEPeerStatsImpl)manager.createPeerStats();
+    PEPeerTransportSpeedLimiter.getLimiter().addUploader( this );
   	this.closing = false;
   	this.lengthBuffer = DirectByteBufferPool.getBuffer( 4 );
-
-  	this.allowed = 0;
-  	this.used = 0;
   	this.loopFactor = 0;
   }
 
@@ -266,8 +232,7 @@ PEPeerTransportProtocol
   		byte[] hash = manager.getHash();
   		byte[] myPeerId = manager.getPeerId();
 
-  		BTMessage msg = new BTHandshake( hash, myPeerId );
-  		queueProtocolMessage( msg );
+      outgoing_message_queue.addMessage( new BTHandshake( hash, myPeerId ) );
     
   		readBuffer = DirectByteBufferPool.getBuffer( 68 );
   		if ( readBuffer == null ) {
@@ -356,7 +321,7 @@ PEPeerTransportProtocol
   //make sure we are not already connected to this peer
   boolean sameIdentity = PeerIdentityManager.containsIdentity( otherHash, otherPeerId );
   boolean sameIP = false;
-  if (! COConfigurationManager.getBooleanParameter("Allow Same IP Peers", false)) {
+  if (! COConfigurationManager.getBooleanParameter("Allow Same IP Peers")) {
     if ( PeerIdentityManager.containsIPAddress( otherHash, ip )) {
       sameIP = true;
     }
@@ -405,7 +370,8 @@ PEPeerTransportProtocol
     readBuffer = buffer;
   }
 
-  
+  /*
+  //from parg's changes....not method not used with my refactoring. -Nolar
   protected void queueProtocolMessage( BTMessage message ) {
     if ( closing ) return;
     
@@ -420,31 +386,9 @@ PEPeerTransportProtocol
     	// ignore an errors, in particular we aren't synchronized on listeners so there
     	// is a remote chance that the loop will fail due to listener removal
     }
-    
-  	synchronized( protocolQueue ) { 
-  		for (Iterator i = protocolQueue.iterator(); i.hasNext(); ) {
-        BTMessage msg = (BTMessage)i.next();
-        //remove any existing choke/unchoke messages
-        if ( message.getType() == BTMessage.BT_CHOKE || message.getType() == BTMessage.BT_UNCHOKE ) {
-          if ( msg.getType() == BTMessage.BT_CHOKE || msg.getType() == BTMessage.BT_UNCHOKE ) {
-            i.remove();
-            LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION,
-                         "Removing previously-unsent " +msg.getDescription()+ " message from protocol queue to " + toString());
-          }
-        }
-      }
-
-  		protocolQueue.add( message );
-  	}
-  }
-
+	}
+	*/
   
-  protected void sendData(DiskManagerRequest request) {
-    synchronized( dataQueue ) {
-    	dataQueue.add(manager.createDiskManagerDataQueueItem(request));
-    }
-  }
-
   
   public synchronized void closeAll(String reason, boolean closedOnError, boolean attemptReconnect) {
   	LGLogger.log(
@@ -461,55 +405,25 @@ PEPeerTransportProtocol
   	//Cancel any pending requests (on the manager side)
   	cancelRequests();
   	
+    outgoing_piece_message_handler.removeAllPieceRequests();
+    
+    PEPeerTransportSpeedLimiter.getLimiter().removeUploader( this );
+    
   	//Close the socket
   	closeConnection();
   	
-    
-    synchronized( protocolQueue ) {
-      for ( int i=0; i < protocolQueue.size(); i++ ) {
-        BTMessage msg = (BTMessage)protocolQueue.remove( i );
-        msg.getPayload().returnToPool();
-      }
-    }
-    
-    synchronized( dataQueue ) {
-      //release all buffers in dataQueue
-      for (int i=0; i < dataQueue.size(); i++) {
-        DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.remove(i);
-        if (item.isLoaded()) {
-          item.getBuffer().returnToPool();
-          item.setBuffer(null);
-        }
-        else if (item.isLoading()) {
-          manager.freeRequest(item);
-        }
-      }
-    }
-  
   	if (readBuffer != null) {
   		readBuffer.returnToPool();
   		readBuffer = null;
   	}
     
-    if ( cache_buffer != null ) {
-      cache_buffer.returnToPool();
-      cache_buffer = null;
-    }
-    
     if ( lengthBuffer != null ) {
       lengthBuffer.returnToPool();
       lengthBuffer = null;
     }
-  	
-  	if (writeBuffer != null) {      
-  		if (writeData) {
-  			PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
-  		}
-      writeBuffer.returnToPool();
-      writeBuffer = null;
-  	}
-  	
-
+    
+    outgoing_message_queue.destroy();
+    
   	//remove identity
   	if ( this.id != null && identityAdded ) {
   		PeerIdentityManager.removeIdentity( manager.getHash(), this.id );
@@ -740,7 +654,6 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   public int processWrite() {
     try {
       loopFactor++;
-      processLoop = 0;
       return write();
     }
     catch (Exception e) {
@@ -852,9 +765,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			                                  (pieceOffset + pieceLength));
 			
 			if (manager.checkBlock(pieceNumber, pieceOffset, pieceLength)) {
-			  if(!choking) {
-			    sendData(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
-			  } else {
+			  if( !choking ) {
+          outgoing_piece_message_handler.addPieceRequest( pieceNumber, pieceOffset, pieceLength );
+			  }
+        else {
 			    LGLogger.log(componentID, evtProtocol, LGLogger.RECEIVED, toString()
 	        + " has requested #"
 	        + pieceNumber
@@ -935,7 +849,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 					LGLogger.RECEIVED,
 					toString() + " has canceled #" + pieceNumber + ":" + pieceOffset + "->" + (pieceOffset + pieceLength));
 			}
-			removeRequestFromQueue(manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength));
+      outgoing_piece_message_handler.removePieceRequest( pieceNumber, pieceOffset, pieceLength );
 			readMessage(buffer);
 			break;
 	  default:
@@ -980,8 +894,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	DiskManagerRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
   	if ( !alreadyRequested( request ) ) {
   		addRequest( request );
-      BTMessage msg = new BTRequest( pieceNumber, pieceOffset, pieceLength );
-      queueProtocolMessage( msg );
+      outgoing_message_queue.addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ) );
   		return true;
   	}
   	return false;
@@ -992,39 +905,35 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	if ( getState() != TRANSFERING ) return;
 		if ( alreadyRequested( request ) ) {
 			removeRequest( request );
-      BTMessage msg = new BTCancel( request.getPieceNumber(), request.getOffset(), request.getLength() );
-      queueProtocolMessage( msg );
+      outgoing_message_queue.addMessage( new BTCancel( request.getPieceNumber(), request.getOffset(), request.getLength() ) );
 		}
   }
 
   
   public void sendHave( int pieceNumber ) {
 		if ( getState() != TRANSFERING ) return;
-    BTMessage msg = new BTHave( pieceNumber );
-    queueProtocolMessage( msg );
+    outgoing_message_queue.addMessage( new BTHave( pieceNumber ) );
 		checkInterested();
 	}
 
   
   public void sendChoke() {
   	if ( getState() != TRANSFERING ) return;
-    BTMessage msg = new BTChoke();
-    queueProtocolMessage( msg );
+    outgoing_piece_message_handler.removeAllPieceRequests();
+    outgoing_message_queue.addMessage( new BTChoke() );
   	choking = true;
   }
 
   
   public void sendUnChoke() {
     if ( getState() != TRANSFERING ) return;
-    BTMessage msg = new BTUnchoke();
-    queueProtocolMessage( msg );
+    outgoing_message_queue.addMessage( new BTUnchoke() );
     choking = false;
   }
 
 
   private void sendKeepAlive() {
-    BTMessage msg = new BTKeepAlive();
-    queueProtocolMessage( msg );
+    outgoing_message_queue.addMessage( new BTKeepAlive() );
   }
   
   
@@ -1068,12 +977,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			}
 		}
 		if ( newInterested && !interested ) {
-      BTMessage msg = new BTInterested();
-      queueProtocolMessage( msg );
+      outgoing_message_queue.addMessage( new BTInterested() );
 		}
     else if ( !newInterested && interested ) {
-    	BTMessage msg = new BTUninterested();
-      queueProtocolMessage( msg );
+      outgoing_message_queue.addMessage( new BTUninterested() );
 		}
 		interested = newInterested;
 	}
@@ -1087,12 +994,10 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		boolean[] myStatus = manager.getPiecesStatus();
 		boolean newInterested = !myStatus[ pieceNumber ];
 		if ( newInterested && !interested ) {
-      BTMessage msg = new BTInterested();
-      queueProtocolMessage( msg );
+      outgoing_message_queue.addMessage( new BTInterested() );
 		}
     else if ( !newInterested && interested ) {
-      BTMessage msg = new BTUninterested();
-      queueProtocolMessage( msg );
+      outgoing_message_queue.addMessage( new BTUninterested() );
 		}
 		interested = newInterested;
 	}
@@ -1127,412 +1032,158 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		}
 
 		if ( atLeastOne ) {
-			BTMessage msg = new BTBitfield( buffer );
-      queueProtocolMessage( msg );
+      outgoing_message_queue.addMessage( new BTBitfield( buffer ) );
 		}
 	}
 
-  
-  private void removeRequestFromQueue(DiskManagerRequest request) {
-    synchronized( dataQueue ) {
-    	for (int i = 0; i < dataQueue.size(); i++) {
-    		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(i);
-    		if (item.getRequest().equals(request)) {
-    			if (item.isLoaded()) {
-    				item.getBuffer().returnToPool();
-    				item.setBuffer(null);
-    			}
-    			if (item.isLoading()) {
-    				manager.freeRequest(item);
-    			}
-    			dataQueue.remove(item);
-    			i--;
-    		}
-    	}
-    }
-  }
 
  
   protected synchronized int write() {
-  	if ( currentState.getState() != HANDSHAKING && currentState.getState() != TRANSFERING )
+  	if( currentState.getState() != HANDSHAKING && currentState.getState() != TRANSFERING ) {
   		return PEPeerControl.WAITING_SLEEP;       
-  	if(++processLoop > 10)
-  		return PEPeerControl.NO_SLEEP;
-      
-  	//If we are already sending something, we simply continue
-  	if ( cache_buffer != null ) {
-  		try {
-                
-  			int uploadAllowed = 0;
-        int written = 0;
-        
-        if ( writeBuffer != null ) {
-          //ByteBuffer w_buff = writeBuffer.getBuffer();
-          int realLimit = writeBuffer.limit();
-          //compute allowed limited upload bytes
-          int new_limit = realLimit;
-          if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
-            if ((loopFactor % 10) == 0) {
-              allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms(this);
-              used = 0;
-            }
-            uploadAllowed = allowed - used;
-            new_limit = writeBuffer.position() + uploadAllowed;
-            if ((new_limit > realLimit) || (new_limit < 0)) new_limit = realLimit;
-          }
-          writeBuffer.limit( new_limit );
-            
-          //copy write-buffer data into cache buffer
-          if ( writeBuffer.hasRemaining() ) {
-            if ( !actively_writing ) { // do a normal append
-              int copy_len = writeBuffer.remaining() > cache_buffer.remaining() ? cache_buffer.remaining() : writeBuffer.remaining();
-              writeBuffer.limit( writeBuffer.position() + copy_len );
-              cache_buffer.put( writeBuffer );
-              written = copy_len;
-            }
-            else {  //we're in the middle of a write, so append new data only at the end of existing data
-              int orig_pos = cache_buffer.position();
-              int orig_lim = cache_buffer.limit();
-              cache_buffer.position( orig_lim );
-              cache_buffer.limit( WRITE_CACHE_SIZE );
-              
-              int copy_len = writeBuffer.remaining() > cache_buffer.remaining() ? cache_buffer.remaining() : writeBuffer.remaining();
-              writeBuffer.limit( writeBuffer.position() + copy_len );
-              cache_buffer.put( writeBuffer );
-              written = copy_len;
-              
-              cache_buffer.position( orig_pos );
-              cache_buffer.limit( orig_lim + copy_len );
-            }
-          }
-          
-          writeBuffer.limit( realLimit );
-        }
-        
-        boolean force_flush = writeBuffer == null && cache_buffer.position() != 0;
-        
-        if ( actively_writing || force_flush || cache_buffer.position() == WRITE_CACHE_SIZE ) {
-          if ( !actively_writing ) cache_buffer.flip();
-
-          int poss = cache_buffer.remaining();
-          
-          int wrote = writeData( cache_buffer );
-                   
-          if ( WRITE_DEBUG ) {  //TODO: remove debug
-            System.out.println("["+ip+"] " + wrote + " [" +poss+ "] " + (writeBuffer == null) );
-          }
-          
-          if ( !cache_buffer.hasRemaining() ) { //done writing the cache buffer
-            cache_buffer.position( 0 );
-            cache_buffer.limit( WRITE_CACHE_SIZE );
-            actively_writing = false;
-          }
-          else actively_writing = true;
-        }
-
-  			if (written < 0)
-  				throw new IOException("End of Stream Reached");
-  			
-  			if (writeData && written > 0 ) {
-  				stats.sent(written);
-  				manager.sent(written);
-  				if (PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
-  					used += written;
-  					if ((loopFactor % 10) == 9) {
-  						if (used >= (95 * allowed) / 100)
-  							maxUpload = max(110 * allowed / 100, 50);
-  						if (used < (90 * allowed) / 100)
-  							maxUpload = max((100 * used) / 100, 10);
-  					}
-  				}
-  			}
-  		}
-  		catch (IOException e) {
-  			closeAll("Error while writing to " + toString() +" : " + e,true, true);
-  			return PEPeerControl.NO_SLEEP;
-  		}
-  		
-  		//If we have finished sending this buffer
-  		if (writeBuffer != null && !writeBuffer.hasRemaining()) {
-  			//If we were sending data, we must free the writeBuffer
-  			if (writeData) {
-  				PEPeerTransportSpeedLimiter.getLimiter().removeUploader(this);
-  			}
-  			//We set it to null
-        writeBuffer.returnToPool();
-  			writeBuffer = null;
-  		}
-  	}
-  	
-  	if (writeBuffer == null) {
-      
-  		synchronized( protocolQueue ) {
-      	//So the ByteBuffer is null ... let's find out if there's any data in the protocol queue
-      	if ( protocolQueue.size() != 0 ) {
-      		//Correct in 1st approximation (a choke message queued (if any) will to be send soon after this)
-      		waitingChokeToBeSent = false;
-      		//Assign the current buffer ...
-      		keepAlive = 0;
-          BTMessage msg = (BTMessage)protocolQueue.remove( 0 );
-      		writeBuffer = msg.getPayload();
-  			  			
-      		//check to make sure we're sending a proper message length
-      		if ( !verifyLength( writeBuffer ) ) {
-      			closeAll("OOPS, we're sending a bad protocol message length !!!", true, true);
-      			return PEPeerControl.NO_SLEEP;
-      		}
-  			
-      		writeBuffer.position( 0 );
-  			  writeData = false;
-          String log = "Sending " +msg.getDescription()+ " message to " + toString();
-          LGLogger.log( componentID, evtProtocol, LGLogger.SENT, log );
-  			  //and loop
-  			  write();
-  			  return PEPeerControl.NO_SLEEP;
-      	}
-  		}
-  		
-      synchronized( dataQueue ) {
-      	//Check if there's any data to send from the dataQueue
-      	if (dataQueue.size() != 0) {
-      		DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) dataQueue.get(0);
-      		if (!choking) {
-      			if (!item.isLoading() && !choking) {
-      				manager.enqueueReadRequest(item);
-      			}
-      			if (item.isLoaded()) {
-      				dataQueue.remove(0);
-      				if (dataQueue.size() != 0) {
-      					DiskManagerDataQueueItem itemNext = (DiskManagerDataQueueItem) dataQueue.get(0);
-      					if (!itemNext.isLoading()) {
-      						manager.enqueueReadRequest(itemNext);
-      					}
-      				}
-      				DiskManagerRequest request = item.getRequest();
-      				LGLogger.log(
-      						componentID,
-									evtProtocol,
-									LGLogger.SENT,
-									toString()
-									+ " is being sent #"
-									+ request.getPieceNumber()
-									+ ":"
-									+ request.getOffset()
-									+ "->"
-									+ (request.getOffset() + request.getLength()));
-      				// Assign the current buffer ...
-      				keepAlive = 0;
-      				writeBuffer = item.getBuffer();
-      				
-      				//check to make sure we're sending a proper message length
-      				if (!verifyLength(writeBuffer)) {
-      					closeAll("OOPS, we're sending a bad data message length !!!", true, true);
-      					return PEPeerControl.NO_SLEEP;
-      				}
-      				
-      				writeBuffer.position(0);
-      				writeData = true;
-      				PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
-      				// and loop
-      				write();
-      				return PEPeerControl.NO_SLEEP;
-      			}
-      		}
-      		else {
-      			//We are choking the peer so ...
-      			if (!item.isLoading()) {
-      				dataQueue.remove(item);
-      			}
-      			if (item.isLoaded()) {
-      				dataQueue.remove(item);
-      				item.getBuffer().returnToPool();
-      				item.setBuffer(null);
-      			}
-      			return PEPeerControl.NO_SLEEP;
-      		}
-      	}
-      }
-      
-      synchronized( protocolQueue ) {
-        synchronized( dataQueue ) {
-        	if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
-        		keepAlive++;
-        		if (keepAlive == 50 * 60 * 3) {
-        			keepAlive = 0;
-        			sendKeepAlive();
-        		}
-        	}
+    }
+    
+    if( outgoing_message_queue.getTotalSize() > 0 ) {
+      //update allowed bytes
+      if( PEPeerTransportSpeedLimiter.getLimiter().isLimited( this ) ) {
+        if( loopFactor % 10 == 0 ) {
+          allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms( this );
+          allowed_to_write += allowed;
+          used = 0;
         }
       }
-    
-  	}
-    
+      else {
+        allowed_to_write = WRITE_CACHE_SIZE;
+      }
+                  
+      //we are allowed to write
+      if( allowed_to_write >= WRITE_CACHE_SIZE ) { //it is assumed that allowed_tw will always eventually fill
+        int data_ready = outgoing_message_queue.getTotalSize();
+        
+        //make sure the queue isnt still growing
+        if( force_flush_mode && data_ready > previous_queue_size ) {
+          force_flush_mode = false;
+        }
+        
+        boolean flush = force_flush_mode && SystemTime.getCurrentTime() - force_start_time > 1000;
+        
+        if( data_ready >= WRITE_CACHE_SIZE || flush ) {  //do the write
+          int written;
+          try {
+          	written = outgoing_message_queue.deliverToTransport( WRITE_CACHE_SIZE );
+            //System.out.println(ip+ ": ready=" +data_ready+ " written=" +written+ " ff=" +flush );
+          }
+          catch( Throwable t ) {
+            t.printStackTrace();
+            closeAll("Error while writing to " +ip+ ": " +t.getMessage(), true, true);
+            return PEPeerControl.NO_SLEEP;
+          }
+          
+          if( written < 0 ) {
+            closeAll("Error while writing to " +ip+ ": End Of Stream" , true, true);
+            return PEPeerControl.NO_SLEEP;
+          }
+          
+          if( written > 0 ) {  //update stats
+            //UploadSpeedCounter.updateStats( written );
+          	stats.sent( written );
+            manager.sent( written );
+            if( PEPeerTransportSpeedLimiter.getLimiter().isLimited( this ) ) {
+              used += written;
+              if( loopFactor % 10 == 9 ) {
+                if( used >= (95 * allowed) / 100 )
+                  maxUpload = max( 110 * allowed / 100, 50 );
+                if( used < (90 * allowed) / 100 )
+                  maxUpload = max( (100 * used) / 100, 10 );
+              }
+            }
+          }
+                    
+          force_flush_mode = false;
+          allowed_to_write = 0;
+          last_write_time = SystemTime.getCurrentTime();
+        }
+        else if( !force_flush_mode ) { //not enough data for a full write, start flush
+          force_flush_mode = true;
+          force_start_time = SystemTime.getCurrentTime();
+          previous_queue_size = data_ready;
+        }
+      }
+    }
+    else { //nothing in message queue, update keep-alive
+      if( last_write_time == 0 ) last_write_time = SystemTime.getCurrentTime();
+      if( SystemTime.getCurrentTime() - last_write_time > 2*60*1000 ) {
+        sendKeepAlive();
+      }
+    }
+        
     return PEPeerControl.NO_SLEEP;
   }
   
   
-  /**
-   * Verifies that the buffer length is correct.
-   * Returns true if the buffer length is OK.
-   */
-  private boolean verifyLength(DirectByteBuffer buffer) {
-    //check for a handshake message
-    if (buffer.get(0) == (byte)BTHandshake.PROTOCOL.length()) {
-      //make sure the length is correct for a handshake
-      if (buffer.limit() != 68) {
-        //make sure it isn't a normal message
-        int length =  buffer.getInt(0);
-        if (length != buffer.limit() - 4) {
-          Debug.out("PROTOCOL: givenLength=" + length + " realLength=" + buffer.limit());
-          return false;
-        }
-        return true; 
-      }
-      return true;
-    }
-    
-    int length =  buffer.getInt(0);
-    if (length != buffer.limit() - 4) {
-      Debug.out("givenLength=" + length + " realLength=" + buffer.limit());
-      return false;
-    }
-    return true;
-  }
+  private int max(int a, int b) {  return a > b ? a : b;  }
 
-  private int max(int a, int b) {
-	return a > b ? a : b;
-  }
-
-
-
-  public int getMaxUpload() {
-	return maxUpload;
-  }
-
-  public DiskManagerDataQueueItem getNextRequest() {
-    synchronized( dataQueue ) {
-    	if (dataQueue.size() != 0)
-    		return (DiskManagerDataQueueItem) dataQueue.get(0);
-    	return null;
-    }
-  }
-
-  /**
-   * @return
-   */
-  public boolean isIncoming() {
-	return incoming;
-  }
-
-  public int getDownloadPriority() {
-	return manager.getDownloadPriority();
-  }
-
-  /**
-   * @return
-   */
-  public String getClient() {
-	return client;
-  }
-
-  public boolean isOptimisticUnchoke() {
-	return manager.isOptimisticUnchoke(this);
-  }
-
-  /**
-   * @return
-   */
-  public boolean isReadyToRequest() {
-	return readyToRequest;
-  }
-
-  /**
-   * @return
-   */
-  public boolean isWaitingChokeToBeSent() {
-	return waitingChokeToBeSent;
-  }
-
-  /**
-   * @param waitingChokeToBeSent
-   */
-  public void setWaitingChokeToBeSent(boolean waitingChokeToBeSent) {
-	this.waitingChokeToBeSent = waitingChokeToBeSent;
-  }
-
-
-  protected abstract void
-  startConnection();
-
-  protected abstract void
-  closeConnection();
- 	
-  protected abstract boolean
-  completeConnection()
-	
-	  throws IOException;
-
-	
-  protected abstract int
-  readData(
-	  DirectByteBuffer	buffer )
-		
-	  throws IOException;
-
-  protected abstract int
-  writeData(
-		DirectByteBuffer	buffer )
-		
-		throws IOException;
   
-  public void hasSentABadChunk() {
-    nbBadChunks++;
-  }
+  public byte[] getId() {  return id;  }
+  public String getIp() {  return ip;  }
+  public int getPort() {  return port;  }
+  public String getClient() {  return client;  }
   
-  public int getNbBadChunks() {
-    return nbBadChunks;
-  }
+  public boolean isIncoming() {  return incoming;  }
+  public int getDownloadPriority() {  return manager.getDownloadPriority();  }
+  public boolean isOptimisticUnchoke() {  return manager.isOptimisticUnchoke(this);  }
+  public boolean isReadyToRequest() {  return readyToRequest;  }
   
-  public void setUploadHint(int spreadTime) {
-    spreadTimeHint = spreadTime;
-  }
+  public PEPeerControl getControl() {  return manager;  }
+  public PEPeerManager getManager() {  return manager;  }
+  public PEPeerStats getStats() {  return stats;  }
   
-  public int getUploadHint() {
-    return spreadTimeHint;
-  }
-  
-  public void setUniqueAnnounce(int uniquePiece) {
-    this.uniquePiece = uniquePiece;
-  }
-  
-  public int getUniqueAnnounce() {
-    return this.uniquePiece;
-  }
+  public boolean[] getAvailable() {  return available;  }
+  public boolean isChoked() {  return choked;  }
+  public boolean isChoking() {  return choking;  }
+  public boolean isInterested() {  return interested;  }
+  public boolean isInteresting() {  return interesting;  }
+  public boolean isSeed() {  return seed;  }
+  public boolean isSnubbed() {  return snubbed;  }
 
-  public int getAllowed() {
-    return allowed;
-  }
+  public void setChoked(boolean b) {  choked = b;  }
+  public void setChoking(boolean b) {  choking = b;  }
+  public void setInterested(boolean b) {  interested = b;  }
+  public void setInteresting(boolean b) {  interesting = b;  }
+  public void setSeed(boolean b) {  seed = b;  }
+  public void setSnubbed(boolean b) {  snubbed = b;  }
 
-  public int getLimit() {
-    return limit;
-  }
-  public void setLimit(int newLimit) {
-    limit = newLimit;
-  }
+  //abstract methods
+  protected abstract void startConnection();
+  protected abstract void closeConnection();
+  protected abstract boolean completeConnection() throws IOException;
+  //TODO: remove
+  protected abstract int readData( DirectByteBuffer	buffer ) throws IOException;
+  protected abstract int writeData( DirectByteBuffer	buffer ) throws IOException;
+  
+  public void hasSentABadChunk() {  nbBadChunks++;  }
+  public int getNbBadChunks() {  return nbBadChunks;  }
+
+  public void setUploadHint(int spreadTime) {  spreadTimeHint = spreadTime;  }
+  public int getUploadHint() {  return spreadTimeHint;  }
+  public void setUniqueAnnounce(int uniquePiece) {  this.uniquePiece = uniquePiece;  }
+  public int getUniqueAnnounce() {  return this.uniquePiece;  }
+
+  //TODO: remove when refactoring speedlimiter
+  public int getAllowed() {  return allowed;  }
+  public int getMaxUpload() {  return maxUpload;  }
+  public int getLimit() {  return limit;  }
+  public void setLimit(int newLimit) {  limit = newLimit;  }
   public void addLimitIfNotZero(int addToLimit) {
-    if(limit != 0)
-      limit += addToLimit;
+    if( limit != 0 ) limit += addToLimit;
   }
-  
+
   public int getReadSleepTime() { return readSleepTime; }
   public int getWriteSleepTime() { return writeSleepTime; }
-  
   public void setReadSleepTime(int time) { readSleepTime = time; }
   public void setWriteSleepTime(int time) { writeSleepTime = time; }
-  
   public long getLastReadTime() { return lastReadTime; }
   public long getLastWriteTime() { return lastWriteTime; }
-  
   public void setLastReadTime(long time) { lastReadTime = time; }
   public void setLastWriteTime(long time) { lastWriteTime = time; }
 
@@ -1554,20 +1205,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       data.put(key, value);
     }
   }
- 
-	/**
-	 * @return
-	 */
-	public byte[] getId() {
-	  return id;
-	}
 
-	/**
-	 * @return
-	 */
-	public String getIp() {
-	  return ip;
-	}
+
+
 
 	public String
 	getIPHostName()
@@ -1592,14 +1232,9 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 		
 		return( ip_resolved );
 	}
-	/**
-	 * @return
-	 */
-	public int getPort() {
-	  return port;
-	}
-  
-  
+	
+
+  /////////////////////////////////////////////////////////////////
   public boolean equals( Object obj ) {
     if (this == obj)  return true;
     if (obj != null && obj instanceof PEPeerTransportProtocol) {
@@ -1610,140 +1245,11 @@ private class StateTransfering implements PEPeerTransportProtocolState {
     }
     return false;
   }
-  
-  public int hashCode() {
-    return hashcode;
-  }
-  
-
-	public PEPeerControl 
-	getControl() {
-	  return manager;
-	}
-
-	public PEPeerManager
-	getManager()
-	{
-		return( manager );
-	}
-	
-	
-	protected void allocateAllSupport() {
-		  seed = false;
-
-		  choked = true;
-		  interested = false;
-		  requested = new ArrayList();
-
-		  choking = true;
-		  interesting = false;
-
-		  available = new boolean[manager.getPiecesNumber()];
-		  Arrays.fill(available, false);
-
-		  stats = (PEPeerStatsImpl)manager.createPeerStats();
-		}
+  public int hashCode() {  return hashcode;  }
+  /////////////////////////////////////////////////////////////////
 
 
-		/**
-		 * @return
-		 */
-		public boolean[] getAvailable() {
-		  return available;
-		}
-
-		/**
-		 * @return
-		 */
-		public boolean isChoked() {
-		  return choked;
-		}
-
-		/**
-		 * @return
-		 */
-		public boolean isChoking() {
-		  return choking;
-		}
-
-		/**
-		 * @return
-		 */
-		public boolean isInterested() {
-		  return interested;
-		}
-
-		/**
-		 * @return
-		 */
-		public boolean isInteresting() {
-		  return interesting;
-		}
-
-
-		/**
-		 * @return
-		 */
-		public boolean isSeed() {
-		  return seed;
-		}
-
-		/**
-		 * @return
-		 */
-		public boolean isSnubbed() {
-		  return snubbed;
-		}
-
-		/**
-		 * @return
-		 */
-		public PEPeerStats getStats() {
-		  return stats;
-		}
-
-		/**
-		 * @param b
-		 */
-		public void setChoked(boolean b) {
-		  choked = b;
-		}
-
-		/**
-		 * @param b
-		 */
-		public void setChoking(boolean b) {
-		  choking = b;
-		}
-
-		/**
-		 * @param b
-		 */
-		public void setInterested(boolean b) {
-		  interested = b;
-		}
-
-		/**
-		 * @param b
-		 */
-		public void setInteresting(boolean b) {
-		  interesting = b;
-		}
-
-		/**
-		 * @param b
-		 */
-		public void setSeed(boolean b) {
-		  seed = b;
-		}
-
-		/**
-		 * @param b
-		 */
-		public void setSnubbed(boolean b) {
-		  snubbed = b;
-		}
-		
+  //TODO: remove all this request stuff
 		protected void cancelRequests() {
 			if ( requested != null ) {
         synchronized (requested) {
@@ -1754,18 +1260,8 @@ private class StateTransfering implements PEPeerTransportProtocolState {
         }
       }
       //cancel any unsent requests in the queue
-      synchronized( protocolQueue ) { 
-        for (Iterator i = protocolQueue.iterator(); i.hasNext(); ) {
-          BTMessage msg = (BTMessage)i.next();
-          if ( msg.getType() == BTMessage.BT_REQUEST ) {
-            i.remove();
-            LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, 
-                         "Removing previously-unsent " +msg.getDescription()+ 
-                         " message from protocol queue to " + toString());
-          }
-        }
-      }
-			
+      int[] type = { BTProtocolMessage.BT_REQUEST };
+      outgoing_message_queue.removeMessagesOfType( type );
 		}
 
 		public int 
@@ -1844,6 +1340,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  }
 	    }
 	}
+    
 
 	public String toString() {
     return ip + ":" + port + " [" + client+ "]";

@@ -47,6 +47,8 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
+
 /**
  * 
  * The disk Wrapper.
@@ -589,6 +591,17 @@ DiskManagerImpl
       return tmp;
     }
 	}
+  
+  
+  private static class DiskReadRequest {
+    private final DiskManagerRequest request;
+    private final ReadRequestListener listener;
+    
+    private DiskReadRequest( DiskManagerRequest r, ReadRequestListener l ) {
+      this.request = r;
+      this.listener = l;
+    }
+  }
 
   
 	private static class BtFile {
@@ -687,7 +700,7 @@ DiskManagerImpl
 					
 					for (int i=0;i<entry_count;i++){
 						
-						DiskManagerDataQueueItemImpl	item;
+            DiskReadRequest drr;
 						
 						synchronized( readQueue ){
 							
@@ -696,22 +709,20 @@ DiskManagerImpl
 								break;
 							}
 						
-							item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
+							drr = (DiskReadRequest)readQueue.remove(0);
 						}
 		
-						DiskManagerRequest request = item.getRequest();
+						DiskManagerRequest request = drr.request;
 		
-							// temporary fix for bug 784306
 						DirectByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
+            
 						if (buffer != null) {
-							item.setBuffer(buffer);
-						} else {
-						  item.setLoading(false);
-						  LGLogger.log(LGLogger.ERROR,"Failed loading piece " + 
-						      item.getRequest().getPieceNumber() + ":" +
-						  		item.getRequest().getOffset() + "->" +
-						  		(item.getRequest().getOffset() + item.getRequest().getLength()));
-						  System.out.println("Read Error");
+              drr.listener.readCompleted( request, buffer );              
+						}
+            else {
+              String err_msg = "Failed loading piece " +request.getPieceNumber()+ ":" +request.getOffset()+ "->" +(request.getOffset() + request.getLength());
+						  LGLogger.log( LGLogger.ERROR, err_msg );
+						  System.out.println( err_msg );
 						}
 					}
 				}catch( Throwable e ){
@@ -730,12 +741,9 @@ DiskManagerImpl
 			}
 			
 			readQueueSem.releaseForever();
-			
-			//check_queue_block_sem.releaseForever();
-			
+						
 			while (readQueue.size() != 0) {
-				DiskManagerDataQueueItemImpl item = (DiskManagerDataQueueItemImpl)readQueue.remove(0);
-				item.setLoading(false);
+        readQueue.remove(0);
 			}
 		}
 	}
@@ -1565,35 +1573,24 @@ DiskManagerImpl
 		}
 	}
 
-	public void 
-	enqueueReadRequest(
-		DiskManagerDataQueueItem item) 
-	{
-		synchronized( readQueue ){
-			
-			readQueue.add(item);
-			
-			((DiskManagerDataQueueItemImpl)item).setLoading( true );
-		}
-		
-		readQueueSem.release();
-	}
+  
+  public void enqueueReadRequest( DiskManagerRequest request, ReadRequestListener listener ) {
+    DiskReadRequest drr = new DiskReadRequest( request, listener );
+    synchronized( readQueue ) {
+      readQueue.add( drr );
+    }
+    readQueueSem.release();
+  }
+  
 
 	public DirectByteBuffer readBlock(int pieceNumber, int offset, int length) {
 
-		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer(length+13);
+		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( length );
 
 		if (buffer == null) { // Fix for bug #804874
 			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
 			return null;
 		}
-
-		buffer.position(0);
-		buffer.limit(length + 13);
-		buffer.putInt(length + 9);
-		buffer.put((byte)7);
-		buffer.putInt(pieceNumber);
-		buffer.putInt(offset);
 
 		long previousFilesLength = 0;
 		int currentFile = 0;
@@ -2200,12 +2197,6 @@ DiskManagerImpl
 		return( new DiskManagerRequestImpl( pieceNumber, offset, length ));
 	}
 	
-	public DiskManagerDataQueueItem
-	createDataQueueItem(
-		DiskManagerRequest	request )
-	{
-		return( new DiskManagerDataQueueItemImpl( request ));
-	}
   
   
   /**
@@ -2417,7 +2408,6 @@ DiskManagerImpl
       PEPeer peer = writers[i];
       if(peer != null) {
         DirectByteBuffer buffer = readBlock(pieceNumber,offset,length);
-        buffer.position(13);
         byte[] hash = computeMd5Hash(buffer);
         buffer.returnToPool();
         buffer = null;

@@ -26,6 +26,8 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+
+import com.aelitis.azureus.core.diskmanager.ReadRequestListener;
  
  public interface
  DiskManager
@@ -76,14 +78,13 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 		int pieceNumber,
 		int offset,
 		int length );
-		
-	public DiskManagerDataQueueItem
-	createDataQueueItem(
-		DiskManagerRequest	request );
-		
-	public void 
-	enqueueReadRequest(
-		DiskManagerDataQueueItem item );
+	
+  /**
+   * Enqueue an async disk read request.
+   * @param request
+   * @param listener
+   */
+	public void enqueueReadRequest( DiskManagerRequest request, ReadRequestListener listener );
 
 	public void
 	stopIt();

@@ -16,7 +16,6 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -72,7 +71,6 @@ PEPeerControlImpl
   private List endGameModeChunks;
   
   private DownloadManager _downloadManager;
-  private List requestsToFree;
   private PeerUpdater peerUpdater;
   
   private int nbHashFails;
@@ -212,11 +210,6 @@ PEPeerControlImpl
       superSeedPieces[i] = new SuperSeedPiece(this,i);
     }
     
-    
-    requestsToFree = new ArrayList();
-
-    
-    
     peerUpdater = new PeerUpdater();
     peerUpdater.start();
     
@@ -312,7 +305,6 @@ PEPeerControlImpl
         checkCompletedPieces();  //check to see if we've completed anything else
         computeAvailability(); //compute the availablity                   
         updateStats();
-        freeRequests();
         
         if (!_finished) { //if we're not finished
           checkFinished(); //see if we've finished
@@ -348,15 +340,6 @@ PEPeerControlImpl
       public void run() {
           //1. Send disconnect to Tracker
         _tracker.stop();
-        try {
-          while (requestsToFree.size() != 0) {
-            freeRequests();
-            Thread.sleep(100);
-          }
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-        }
       }
     };
     t.setDaemon(true);
@@ -1248,6 +1231,7 @@ PEPeerControlImpl
             if (!_finished)
               upRate = pc.getStats().getTotalReceived();
             else {
+              //TODO: seeding to more-complete peers is not the best way to do things
               upRate = pc.getPercentDone();
               if (pc.isSnubbed())
                 upRate = -1;
@@ -1928,9 +1912,6 @@ PEPeerControlImpl
     }
   }
 
-  public void enqueueReadRequest(DiskManagerDataQueueItem item) {
-    _diskManager.enqueueReadRequest(item);
-  }
 
   /**
    * @return
@@ -1947,30 +1928,6 @@ PEPeerControlImpl
     return _downloadManager.getPriority();
   }
 
-  public void freeRequest(DiskManagerDataQueueItem item) {
-    synchronized (requestsToFree) {
-      requestsToFree.add(item);
-    }
-  }
-
-  private void freeRequests() {
-    if (requestsToFree == null)
-      return;
-    synchronized (requestsToFree) {
-      for (int i = 0; i < requestsToFree.size(); i++) {
-        DiskManagerDataQueueItem item = (DiskManagerDataQueueItem) requestsToFree.get(i);
-        if (item.isLoaded()) {
-          requestsToFree.remove(item);
-          i--;
-          item.setBuffer(null);
-        }
-        if (!item.isLoading()) {
-          requestsToFree.remove(item);
-          i--;
-        }
-      }
-    }
-  }
 
   public boolean isOptimisticUnchoke(PEPeer pc) {
     return pc == currentOptimisticUnchoke;
@@ -1994,6 +1951,7 @@ PEPeerControlImpl
   	return( new PEPeerStatsImpl() );
   }
 
+  
   public DiskManagerRequest
   createDiskManagerRequest(
   	int pieceNumber,
@@ -2003,12 +1961,7 @@ PEPeerControlImpl
   	return( _diskManager.createRequest( pieceNumber, offset, length ));
   }
   
-  public DiskManagerDataQueueItem
-  createDiskManagerDataQueueItem(
-  	DiskManagerRequest	req )
-  {
-  	return( _diskManager.createDataQueueItem( req ));
-  }
+  
   
   protected synchronized void
   changeState(
@@ -2275,6 +2228,8 @@ PEPeerControlImpl
   	}
   }
   
+  
+  public DiskManager getDiskManager() {  return _diskManager;   }
     
   
  }
