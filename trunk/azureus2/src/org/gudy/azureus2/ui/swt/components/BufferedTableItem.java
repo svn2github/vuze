@@ -68,4 +68,8 @@ public abstract class BufferedTableItem {
   public abstract void refresh();
   
   public void dispose() {}
+  
+  public boolean isShown() {
+    return position != -1;
+  }
 }

@@ -47,8 +47,9 @@ public class PluginItem extends PeerItem implements PeerTableItem {
   
   public void refresh() {
     try {
-      pluginItem.refresh();
-    } catch(Exception e) {
+      if(isShown())
+        pluginItem.refresh();
+    } catch(Throwable e) {
       LGLogger.log(LGLogger.ERROR,"Plugin in PeersView generated an exception : " + e );
     }
   }
