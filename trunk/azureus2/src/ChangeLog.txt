@@ -3,7 +3,7 @@ AZUREUS CHANGELOG
 
 2005.01.xx | Azureus 2.2.0.3
 
-
+BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 
 
 
