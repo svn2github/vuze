@@ -173,14 +173,14 @@ PEPeerControlImpl
     
     try{
     
-    	_hash = new PeerIdentityDataID( _tracker.getTorrent().getHash());
+    	_hash = PeerIdentityManager.createDataID( _tracker.getTorrent().getHash());
     	
     }catch( TOTorrentException e ){
     	
     		// this should never happen
     	Debug.printStackTrace( e );
     	
-    	_hash = new PeerIdentityDataID( new byte[20] ); 
+    	_hash = PeerIdentityManager.createDataID( new byte[20] ); 
     }
     
     this.nbHashFails = 0;

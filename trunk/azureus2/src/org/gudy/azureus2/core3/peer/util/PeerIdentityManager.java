@@ -17,23 +17,42 @@ import org.gudy.azureus2.core3.util.AEMonitor;
  */
 public class PeerIdentityManager {
 
-  private static PeerIdentityManager	peerIDManager = new PeerIdentityManager();
   private static final AEMonitor 		class_mon	= new AEMonitor( "PeerIdentityManager:class");
 
-  private final Map 		dataIdMap;
+  private static final Map 				dataMap = new HashMap();
 
   private static int totalIDs = 0;
   
   
-  private PeerIdentityManager() {
-    this.dataIdMap = new HashMap();
+    
+  public static PeerIdentityDataID
+  createDataID(
+  	byte[]		data )
+  {
+  	PeerIdentityDataID	data_id = new PeerIdentityDataID( data );
+  	
+  	Map peerMap;
+  	
+    try{
+        class_mon.enter();
+      
+        peerMap = (Map)dataMap.get( data_id );
+        
+        if( peerMap == null ){
+        	
+          peerMap = new HashMap();
+          
+          dataMap.put( data_id, peerMap );
+        }
+    }finally{
+    	
+    	class_mon.exit();
+    }
+	
+	data_id.setPeerMap( peerMap );
+	
+	return( data_id );
   }
-  
-  
-  private static PeerIdentityManager getInstance() {
-    return peerIDManager;
-  }
-  
   
   //Main peer identity container.
   //Add new identity items (like pgp key, authentication user/pass, etc)
@@ -70,7 +89,6 @@ public class PeerIdentityManager {
    */
   public static void 
   addIdentity( PeerIdentityDataID data_id, byte[] peer_id, String ip ) {
-    Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
      PeerIdentity peerID = new PeerIdentity( peer_id );
     
     try{
@@ -98,8 +116,7 @@ public class PeerIdentityManager {
    * @param peer_id id for this peer connection
    */
   public static void removeIdentity( PeerIdentityDataID data_id, byte[] peer_id ) {
-    Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
-    
+     
     try{
     	class_mon.enter();
       
@@ -125,7 +142,6 @@ public class PeerIdentityManager {
    * @return true if the peer identity is found, false if not found
    */
   public static boolean containsIdentity( PeerIdentityDataID data_id, byte[] peer_id ) {
-    Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
     PeerIdentity peerID = new PeerIdentity( peer_id );
     
     try{
@@ -159,21 +175,11 @@ public class PeerIdentityManager {
    * @param data_id data item to count over
    * @return total number of peers for this data item
    */
-  public static int getIdentityCount( PeerIdentityDataID data_id ) {
-    Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
-    
-    try{
-    	class_mon.enter();
-
-      Map peerMap = (Map)dataMap.get( data_id );
-      if( peerMap != null ) {
-        return peerMap.size();
-      }
-    }finally{
-    	class_mon.exit();
-    }
-    
-    return 0;
+  public static int 
+  getIdentityCount( 
+  	PeerIdentityDataID data_id )
+  {
+  	return( data_id.getPeerMap().size());
   }
   
   
@@ -186,7 +192,6 @@ public class PeerIdentityManager {
    * @return true if the IP is found, false if not found
    */
   public static boolean containsIPAddress( PeerIdentityDataID data_id, String ip ) {
-    Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
     
     try{
     	class_mon.enter();

@@ -22,7 +22,7 @@
 
 package org.gudy.azureus2.core3.peer.util;
 
-import java.util.Arrays;
+import java.util.*;
 
 
 public class 
@@ -31,9 +31,14 @@ PeerIdentityDataID
     private final byte[] dataId;
     private final int hashcode;
     
-    public 
-	PeerIdentityDataID( byte[] _data_id ) {
-      this.dataId = _data_id;
+    private Map		peer_map;
+    
+    protected 
+	PeerIdentityDataID( 
+		byte[] _data_id ) 
+    {
+      dataId 	= _data_id;
+      
       this.hashcode = new String( dataId ).hashCode();
     }
     
@@ -41,6 +46,19 @@ PeerIdentityDataID
 	getDataID()
     {
     	return( dataId );
+    }
+    
+    protected Map
+	getPeerMap()
+    {
+    	return( peer_map );
+    }
+
+    protected void
+	setPeerMap(
+		Map	m )
+    {
+    	peer_map	= m;
     }
     
     public boolean equals( Object obj ) {

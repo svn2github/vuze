@@ -247,7 +247,7 @@ TRTrackerClientClassicImpl
 	
 		torrent_hash = _torrent.getHash();
 		
-		peer_data_id = new PeerIdentityDataID( torrent_hash );
+		peer_data_id = PeerIdentityManager.createDataID( torrent_hash );
 		
 		this.info_hash += URLEncoder.encode(new String(torrent_hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
