@@ -192,15 +192,31 @@ PluginInitializer
   		// first do explicit plugins
   	  	
     File	user_dir = FileUtil.getUserFile("plugins");
+    
     File	app_dir	 = FileUtil.getApplicationFile("plugins");
+    
+    int	user_plugins	= 0;
+    int app_plugins		= 0;
+        
+    if ( user_dir.exists() && user_dir.isDirectory()){
+    	
+    	user_plugins = user_dir.listFiles().length;
+    	
+    }
+    
+    if ( app_dir.exists() && app_dir.isDirectory()){
+    	
+    	app_plugins = app_dir.listFiles().length;
+    	
+    }
     
     	// user ones first so they override app ones if present
     
-    initializePluginsFromDir( user_dir );
+    initializePluginsFromDir( user_dir, 0, user_plugins + app_plugins );
     
     if ( !user_dir.equals( app_dir )){
     	
-    	initializePluginsFromDir(app_dir );
+    	initializePluginsFromDir(app_dir, user_plugins, user_plugins + app_plugins );
     }
  
     	// some plugins try and steal the logger stdout redirects. re-establish them if needed
@@ -227,7 +243,9 @@ PluginInitializer
  
   private void
   initializePluginsFromDir(
-  	File	pluginDirectory )
+  	File	pluginDirectory,
+	int		plugin_offset,
+	int		plugin_total )
   {
     LGLogger.log("Plugin Directory is " + pluginDirectory);
     
@@ -241,10 +259,10 @@ PluginInitializer
 	    
 	    for(int i = 0 ; i < pluginsDirectory.length ; i++) {
 	    	
-	      if(listener != null) {
-          LGLogger.log("Initializing plugin " + pluginsDirectory[i].getName());
+	      LGLogger.log("Initializing plugin " + pluginsDirectory[i].getName());
 
-	      	
+	      if(listener != null) {
+  	      	
 	        listener.reportCurrentTask(MessageText.getString("splash.plugin") + pluginsDirectory[i].getName());
 	      }
 	      
@@ -255,8 +273,9 @@ PluginInitializer
 	      	
 	      }
 	      
-	      if(listener != null) {
-	        listener.reportPercent( 100 * i / pluginsDirectory.length);
+	      if( listener != null ){
+	      	
+	        listener.reportPercent( (100 * (i + plugin_offset)) / plugin_total );
 	      }
 	    }
     } 
@@ -634,6 +653,21 @@ PluginInitializer
   		return;
   	}
   	
+    if( listener != null ){
+	      	
+    	String	plugin_name = plugin_class.getName();
+    	
+    	int	pos = plugin_name.lastIndexOf(".");
+    	
+    	if ( pos != -1 ){
+    		
+    		plugin_name = plugin_name.substring( pos+1 );
+    		
+    	}
+    	
+        listener.reportCurrentTask(MessageText.getString("splash.plugin") + plugin_name );
+    }
+    
   	try{
   		Plugin plugin = (Plugin) plugin_class.newInstance();
   		
