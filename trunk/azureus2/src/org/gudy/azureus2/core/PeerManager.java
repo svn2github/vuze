@@ -476,13 +476,14 @@ public class PeerManager extends Thread {
       _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$
       _timeLastUpdate = time; //update last checked time
         Thread t = new Thread("Tracker Checker") {//$NON-NLS-1$
-  public void run() {
+    public void run() {
           try {
+            String result;
             if (_trackerState == TRACKER_UPDATE)
-              analyseTrackerResponse(_tracker.update().getBytes(Constants.BYTE_ENCODING));
-            //get the tracker response
-            if (_trackerState == TRACKER_START)
-              analyseTrackerResponse(_tracker.start().getBytes(Constants.BYTE_ENCODING));
+              result = _tracker.update();
+            else
+              result = _tracker.start();
+            analyseTrackerResponse(result == null ? null : result.getBytes(Constants.BYTE_ENCODING));
           } catch (UnsupportedEncodingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
