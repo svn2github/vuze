@@ -4,6 +4,8 @@
  */
 package org.gudy.azureus2.core;
 
+import java.util.Arrays;
+
 /**
  * @author Olivier
  * 
@@ -17,28 +19,25 @@ public class Hash {
     System.arraycopy(hash,0,this.hash,0,this.hash.length);
   }
   
-  public byte[] getHash() {
-    return this.hash;
-  }
-  
   public boolean equals(Object o) {
     if(! (o instanceof Hash))
       return false;
+    
     byte[] otherHash = ((Hash)o).getHash();
-    for(int i = 0 ; i < otherHash.length ; i++) {
-      if(otherHash[i] != this.hash[i])
-        return false;
-    }
-    return true;
+	return Arrays.equals(hash, otherHash);	
+  }
+  
+  public byte[] getHash() {
+    return this.hash;
   }
   
   /* (non-Javadoc)
    * @see java.lang.Object#hashCode()
    */
   public int hashCode() {
-    String str = "";
+    String str = null;
     try {    
-      str = new String(hash,"ISO-8859-1");
+      str = new String(hash);
     } catch (Exception e) {
       e.printStackTrace();
     }
