@@ -60,12 +60,12 @@ public class UploadManager {
       }
     });
     
-    standard_bucket = new ByteBucket( standard_max_rate_bps, standard_max_rate_bps );  //no burst
+    standard_bucket = new ByteBucket( standard_max_rate_bps ); 
     
     standard_entity_controller = new UploadEntityController( new RateHandler() {
       public int getCurrentNumBytesAllowed() {
         if( standard_bucket.getRate() != standard_max_rate_bps ) { //sync rate
-          standard_bucket.setRate( standard_max_rate_bps, standard_max_rate_bps );  //no burst
+          standard_bucket.setRate( standard_max_rate_bps );
         }
         return standard_bucket.getAvailableByteCount();
       }
@@ -97,13 +97,13 @@ public class UploadManager {
             standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
               public int getCurrentNumBytesAllowed() {                
                 //sync global rate
-                if( standard_bucket.getRate() != standard_max_rate_bps ) { 
-                  standard_bucket.setRate( standard_max_rate_bps, standard_max_rate_bps );
+                if( standard_bucket.getRate() != standard_max_rate_bps ) {
+                  standard_bucket.setRate( standard_max_rate_bps );
                 }
                 //sync group rate
                 int group_rate = getTranslatedLimit( group );
                 if( conn_data.group_bucket.getRate() != group_rate ) {
-                  conn_data.group_bucket.setRate( group_rate, group_rate );
+                  conn_data.group_bucket.setRate( group_rate );
                 }
                 
                 int group_allowed = conn_data.group_bucket.getAvailableByteCount();
@@ -150,7 +150,7 @@ public class UploadManager {
       group_data = (GroupData)group_buckets.get( group );
       if( group_data == null ) {
         int limit = getTranslatedLimit( group );
-        group_data = new GroupData( new ByteBucket( limit, limit ) );
+        group_data = new GroupData( new ByteBucket( limit ) );
         group_buckets.put( group, group_data );
       }
       group_data.group_size++;
