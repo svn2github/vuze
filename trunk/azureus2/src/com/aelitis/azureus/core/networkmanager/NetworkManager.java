@@ -37,6 +37,7 @@ public class NetworkManager {
   protected static final int UNLIMITED_WRITE_RATE = 1024 * 1024 * 100; //100 mbyte/s
   private static final NetworkManager instance = new NetworkManager();
   private int max_write_rate_bytes_per_sec = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
+  private int max_write_rate_bytes_per_sec_seeding = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
   private int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
   private final ConnectDisconnectManager connect_disconnect_manager;
   
@@ -64,6 +65,7 @@ public class NetworkManager {
     COConfigurationManager.addListener( new COConfigurationListener() {
       public void configurationSaved() {       
         max_write_rate_bytes_per_sec = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
+        max_write_rate_bytes_per_sec_seeding = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) == 0 ? UNLIMITED_WRITE_RATE : COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
         root_connection_pool.updateBucketRates();
         
         tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
