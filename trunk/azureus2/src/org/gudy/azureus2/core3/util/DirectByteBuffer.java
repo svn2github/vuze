@@ -470,7 +470,7 @@ DirectByteBuffer
 		
 		if ( pool != null ){
 			
-			if ( DirectByteBufferPool.DEBUG ){
+			if ( DirectByteBufferPool.DEBUG_TRACK_HANDEDOUT ){
 				
 				synchronized( this ){
 					

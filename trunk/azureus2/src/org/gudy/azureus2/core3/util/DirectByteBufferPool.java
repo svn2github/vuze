@@ -22,10 +22,11 @@ import org.gudy.azureus2.core3.logging.LGLogger;
  */
 public class DirectByteBufferPool {
 
-	protected static final boolean DEBUG = true;
+	protected static final boolean DEBUG_TRACK_HANDEDOUT 	= false;
+	protected static final boolean DEBUG_PRINT_MEM 			= true;
 	
 	static{
-		if ( DEBUG ){
+		if ( DEBUG_TRACK_HANDEDOUT || DEBUG_PRINT_MEM ){
 			System.out.println( "**** DirectByteBufferPool debugging on ****" );
 		}
 	}
@@ -106,7 +107,7 @@ public class DirectByteBufferPool {
         }
      );
     
-    if( DEBUG ) {
+    if( DEBUG_PRINT_MEM ) {
       Timer printer = new Timer("printer");
       printer.addPeriodicEvent(
           60*1000,
@@ -227,7 +228,7 @@ public class DirectByteBufferPool {
               
         DirectByteBuffer dbb = new DirectByteBuffer( buff, this );
                     
-        if ( DEBUG ){
+        if ( DEBUG_TRACK_HANDEDOUT ){
         	
         	synchronized( handed_out ){
         	        	
@@ -404,7 +405,7 @@ public class DirectByteBufferPool {
   {
     bytesIn += buffer.capacity();
     
-  	if ( DEBUG ){
+  	if ( DEBUG_TRACK_HANDEDOUT ){
   		
   		synchronized( handed_out ){
 
