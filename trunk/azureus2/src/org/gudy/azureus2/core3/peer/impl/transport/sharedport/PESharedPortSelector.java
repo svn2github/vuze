@@ -70,10 +70,23 @@ PESharedPortSelector
 	protected void
 	selectLoop()
 	{   
+		List	sockets_to_handover = new ArrayList();
+		
 		while (true){
 			
 			try {
-			  if ( selector.select(1000) > 0 ){
+			  int select_res = selector.select(1000);
+			  
+			  for (int i=0;i<sockets_to_handover.size();i++){
+			  	
+			  	socketData	sd = (socketData) sockets_to_handover.get(i);
+			  	                          
+				sd.getHandoverServer().connectionReceived( sd.getSocket(), sd.getHandoverData());
+			  }
+			  
+			  sockets_to_handover.clear();
+			  
+			  if ( select_res > 0 ){
 			  	
 			    Iterator ready_it = selector.selectedKeys().iterator();
 			    
@@ -118,8 +131,13 @@ PESharedPortSelector
                          else {
                            outstanding_sockets.remove( channel );
                            key.cancel();
-                           server.connectionReceived( channel, contents );
-                         }
+                           
+    					   socket_data.setHandoverServer( server );
+    					   
+                           socket_data.setHandoverData( contents );
+                           
+                           sockets_to_handover.add( socket_data );
+                          }
 						  	  }
 					  		}
 					    }
@@ -316,6 +334,9 @@ PESharedPortSelector
 		protected ByteBuffer	buffer;
 		protected long			last_use_time	= System.currentTimeMillis();
 		
+		protected PESharedPortServerImpl	server;
+		protected byte[]					data;
+		
 		protected
 		socketData(
 			SocketChannel	_socket )
@@ -347,6 +368,32 @@ PESharedPortSelector
 		getLastUseTime()
 		{
 			return( last_use_time );
+		}
+		
+		protected void
+		setHandoverData(
+			byte[]		d )
+		{
+			data	= d;
+		}
+		
+		protected byte[]
+		getHandoverData()
+		{
+			return( data );
+		}
+		
+		protected void
+		setHandoverServer(
+			PESharedPortServerImpl	s )
+		{
+			server	= s;
+		}
+		
+		protected PESharedPortServerImpl
+		getHandoverServer()
+		{
+			return( server );
 		}
 	}
 }
