@@ -186,7 +186,7 @@ TRTrackerServerTCP
 								
 				String	ip = socket.getInetAddress().getHostAddress();
 				
-				if ( !ip_filter.isInRange( ip )){
+				if ( !ip_filter.isInRange( ip, "Tracker" )){
 					
 					thread_pool.run( new TRTrackerServerProcessorTCP( this, socket ));
 					

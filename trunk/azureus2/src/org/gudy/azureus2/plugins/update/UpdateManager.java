@@ -50,6 +50,28 @@ UpdateManager
 	public UpdateCheckInstance
 	createUpdateCheckInstance();
 	
+		/**
+		 * create a stand alone update installer. you will need to restart Azureus for it to
+		 * be installed
+		 * @return
+		 * @throws UpdateException
+		 */
+	
+	public UpdateInstaller
+	createInstaller()
+		
+		throws UpdateException;
+	
+		/**
+		 * restart azureus
+		 * @throws UpdateException
+		 */
+	
+	public void
+	restart()
+	
+		throws UpdateException;
+	
 	public void
 	addListener(
 		UpdateManagerListener	l );

@@ -116,7 +116,7 @@ TRTrackerServerUDP
 				
 				String	ip = packet.getAddress().getHostAddress();
 								
-				if ( !ip_filter.isInRange( ip )){
+				if ( !ip_filter.isInRange( ip, "Tracker" )){
 										
 					thread_pool.run( new TRTrackerServerProcessorUDP( this, socket, packet ));
 				}					

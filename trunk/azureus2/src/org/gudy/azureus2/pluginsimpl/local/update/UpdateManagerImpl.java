@@ -31,6 +31,7 @@ import java.util.*;
 
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.plugins.*;
 
 public class 
 UpdateManagerImpl
@@ -87,6 +88,29 @@ UpdateManagerImpl
 		}
 		
 		return( res );
+	}
+	
+	public UpdateInstaller
+	createInstaller()
+		
+		throws UpdateException
+	{
+		return( new UpdateInstallerImpl());
+	}
+	
+	
+	public void
+	restart()
+	
+		throws UpdateException
+	{
+		try{
+			PluginManager.restartAzureus();
+			
+		}catch( Throwable e ){
+			
+			throw( new UpdateException( "UpdateManager:restart fails", e ));
+		}
 	}
 	
 	public void
