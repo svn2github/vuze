@@ -8,12 +8,12 @@ package org.gudy.azureus2.core3.disk;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.ui.swt.MainWindow;
 
 /**
@@ -88,12 +88,14 @@ public class FileImporter {
       if (watchFolder == null)
         return;
       String[] currentFileList = watchFolder.list(filterTorrents);
-      if (currentFileList != null) {
-        for (int i = 0; i < currentFileList.length; i++) {
-          if (!lastFileList.contains(currentFileList[i]))
-            mainWindow.openTorrent(watchFolderString + currentFileList[i], startWatchedTorrentsStopped);
-        }
-        lastFileList = Arrays.asList(currentFileList);
+
+      for (int i = 0; i < currentFileList.length; i++) {
+        File file = new File( watchFolderString, currentFileList[i] );
+        File imported = new File( watchFolderString, file.getName() + ".imported" );
+      	file.renameTo( imported );
+        
+        mainWindow.openTorrent(watchFolderString + imported.getName(), startWatchedTorrentsStopped);
+        LGLogger.log(LGLogger.INFORMATION, "Imported " + watchFolderString + "/" + currentFileList[i]);
       }
     }
 
