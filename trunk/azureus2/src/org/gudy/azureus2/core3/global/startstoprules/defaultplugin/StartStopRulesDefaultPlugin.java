@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
@@ -710,6 +711,45 @@ public class StartStopRulesDefaultPlugin
 	
 	    // Loop 2 of 2:
 	    // - Start/Stop torrents based on criteria
+	    
+	    	// find the smallest entry ready to be initialised so that we hash-check
+	    	// the smallest files first
+	    
+	    long	smallest_size		= 0x7fffffffffffffffL;
+	    int		smallest_size_index = -1;
+	    
+	    for (int i = 0; i < dlDataArray.length; i++) {
+	    	
+	    	downloadData dlData = dlDataArray[i];
+		    Download download = dlData.getDownloadObject();
+			      
+		    if (	download.getState() == Download.ST_WAITING &&
+		      			( 	download.getStats().getDownloadCompleted(false) == 1000	||	// PARG - kick off all seeders straight away
+		      																			// as we don't want time-consuming rechecking 
+																						// to hold up seeding
+		      				!getAlreadyAllocatingOrChecking())) {
+		    
+		    	Torrent	t = download.getTorrent();
+		    	
+		    	if ( t == null ){
+		    	
+		    			// broken torrent, set index in case nothing else matches
+		    		
+		    		smallest_size_index	= i;
+		    		
+		    	}else{
+		    		long	size = t.getSize();
+		    		
+		    		if ( size < smallest_size ){
+		    			
+		    			smallest_size	= size;
+		    			
+		    			smallest_size_index	= i;
+		    		}
+		    	}
+		    }
+	    }	    
+	    
 	    for (int i = 0; i < dlDataArray.length; i++) {
 	      downloadData dlData = dlDataArray[i];
 	      Download download = dlData.getDownloadObject();
@@ -717,13 +757,9 @@ public class StartStopRulesDefaultPlugin
 	      dlData.sTrace = "";
 	
 	      // Initialize STATE_WAITING torrents
-	      
-	      if (	download.getState() == Download.ST_WAITING &&
-	      			( 	download.getStats().getDownloadCompleted(false) == 1000	||	// PARG - kick off all seeders straight away
-	      																			// as we don't want time-consuming rechecking 
-																					// to hold up seeding
-	      				!getAlreadyAllocatingOrChecking())) {
-	        try{
+
+	      if ( i == smallest_size_index ){
+	      	try{
 	          download.initialize();
 	        }catch (Exception ignore) {/*ignore*/}
 	      }
