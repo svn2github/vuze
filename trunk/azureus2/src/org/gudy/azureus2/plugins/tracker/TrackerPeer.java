@@ -28,5 +28,7 @@ package org.gudy.azureus2.plugins.tracker;
 public interface TrackerPeer {
   
   public void associateKeyToPeer(Object peerKey);
+  
+  public Object getAssociatedKey();
 
 }
