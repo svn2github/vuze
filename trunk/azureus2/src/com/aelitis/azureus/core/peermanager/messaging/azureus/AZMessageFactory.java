@@ -86,7 +86,8 @@ public class AZMessageFactory {
     int id_length = stream_payload.getInt( bss );
 
     if( id_length < 1 || id_length > 1024 || id_length > stream_payload.remaining( bss ) - 1 ) {
-      throw new MessageException( "invalid AZ id length given: " +id_length+ ", stream_payload.remaining(): " +stream_payload.remaining( bss ) );
+      byte bt_id = stream_payload.get( (byte)0, 0 );
+      throw new MessageException( "invalid AZ id length given: " +id_length+ ", stream_payload.remaining(): " +stream_payload.remaining( bss )+ ", BT id?=" +bt_id );
     }
     
     byte[] id_bytes = new byte[ id_length ];

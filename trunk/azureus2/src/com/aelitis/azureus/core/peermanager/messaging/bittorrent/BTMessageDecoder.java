@@ -88,7 +88,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       }
       
       if( is_paused ) {
-        //System.out.println( "BT decoder paused" );
+        //System.out.println( "BT decoder paused" );  //TODO
         try {  Thread.sleep( 20 );  }catch(Throwable t) {}
         break;
       }
