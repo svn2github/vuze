@@ -38,6 +38,12 @@ StandardPlugin
 	public String
 	getVersion();
 	
+	public String
+	getName();
+	
+	public String
+	getDescription();
+	
 		/**
 		 * Returns the plugin's interface if already installed, null if it isn't
 		 * @return

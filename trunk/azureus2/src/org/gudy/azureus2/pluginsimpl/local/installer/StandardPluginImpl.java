@@ -61,6 +61,18 @@ StandardPluginImpl
 		return( version==null?"":version );
 	}
 	
+	public String
+	getName()
+	{
+		return( "Coming Soon" );
+	}
+	
+	public String
+	getDescription()
+	{
+		return( "Coming Soon");
+	}
+	
 		/**
 		 * Returns the plugin's interface if already installed, null if it isn't
 		 * @return
