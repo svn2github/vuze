@@ -1383,7 +1383,7 @@ DiskManagerImpl
 				}
                           
 				//if this is the first piece of the file
-				if (k == fileInfo.getFirstPieceNumber()) {
+				if (i == fileInfo.getFirstPieceNumber()) {
 				  completion = 99;   
 				}
         
