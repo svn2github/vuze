@@ -7,6 +7,14 @@ FEATURE: Intelligent Tracker Checking: optimizes tracker re-ask interval for qui
 FEATURE: Azureus can now run all downloads off one shared incoming port: only need to open/forward one port in your firewall/NAT [Parg]
 FEATURE: Drag-n-Drop moving of downloads in MyTorrents; moving of downloads in MyTorrents with Ctrl + Arrow-Up/Down [Rele]
 FEATURE: Password protected access to tracker web and torrents [Parg]
+FEATURE: GUI Update interval is configurable [Gudy]
+FEATURE: Images update interval is configurable [Gudy]
+FEATURE: Auto sort on tables possible, interval configurable [Gudy]
+FEATURE: My Torrents table can now be customized (choice of column and order)
+FEATURE: Added a column to My Torrents : 'Share Ratio'
+FEATURE: Added a column to My Torrents : 'Downloaded'
+FEATURE: Added a column to My Torrents : 'Uploaded'
+
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]

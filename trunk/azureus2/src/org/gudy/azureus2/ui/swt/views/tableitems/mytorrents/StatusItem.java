@@ -39,14 +39,16 @@ public class StatusItem extends TorrentItem {
   }
 
   public void refresh() {
-    setText(DisplayFormatters.formatDownloadStatus(torrentRow.getManager()));
-    int state = torrentRow.getManager().getState();
-    if (state == DownloadManager.STATE_SEEDING)
-      setForeground(MainWindow.blues[3]);
-    else if (state == DownloadManager.STATE_ERROR)
-      setForeground(MainWindow.red_ManagerItem);
-    else
-      setForeground(MainWindow.black);
+    //setText returns true only if text has changed (ie status has changed)
+    if(setText(DisplayFormatters.formatDownloadStatus(torrentRow.getManager()))) {
+      int state = torrentRow.getManager().getState();
+      if (state == DownloadManager.STATE_SEEDING)
+        setForeground(MainWindow.blues[3]);
+      else if (state == DownloadManager.STATE_ERROR)
+        setForeground(MainWindow.red_ManagerItem);
+      else
+        setForeground(null);
+    }
   }
 
 }

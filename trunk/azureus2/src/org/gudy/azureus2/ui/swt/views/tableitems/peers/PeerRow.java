@@ -86,8 +86,9 @@ public class PeerRow implements SortableItem {
         items.add(new DownItem(PeerRow.this,8));
         items.add(new InterestingItem(PeerRow.this,9));
         items.add(new ChokingItem(PeerRow.this,10));
-        items.add(new UpSpeedItem(PeerRow.this,11));
+        items.add(new UpSpeedItem(PeerRow.this,11));        
         items.add(new UpItem(PeerRow.this,12));
+        items.add(new SnubbedItem(PeerRow.this,14));
         items.add(new ClientItem(PeerRow.this,17));
         
         
@@ -182,22 +183,7 @@ public class PeerRow implements SortableItem {
     while(iter.hasNext()) {
       BufferedTableItem item = (BufferedTableItem) iter.next();
       item.refresh();
-    }   
-
-    String tmp;
-
-    tmp = "";
-    if (peerSocket.isSnubbed())
-      tmp = "*";
-    if (!(oldTexts[14].equals(tmp))) {
-      row.setText(14, tmp);
-      oldTexts[14] = tmp;
-      if (peerSocket.isSnubbed())
-        row.setForeground(MainWindow.grey);
-      else
-        row.setForeground(display.getSystemColor(SWT.COLOR_BLACK));
-    }        
-
+    }
   }
 
   public void updateStats() {

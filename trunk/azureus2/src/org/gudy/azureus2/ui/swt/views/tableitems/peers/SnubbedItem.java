@@ -21,6 +21,8 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import org.gudy.azureus2.ui.swt.MainWindow;
+
 /**
  * @author Olivier
  *
@@ -36,9 +38,15 @@ public class SnubbedItem extends PeerItem  {
   }
   
   public void refresh() {
-    if(peerRow.getPeerSocket().isChoked())
-      setText("*");
-    else
-      setText("");
+    if(peerRow.getPeerSocket().isSnubbed()) {
+      if(setText("*")) {
+        peerRow.getRow().setForeground(MainWindow.grey);
+      }
+    }
+    else {
+      if(setText("")) {
+        peerRow.getRow().setForeground(null);
+      }
+    }
   }
 }
