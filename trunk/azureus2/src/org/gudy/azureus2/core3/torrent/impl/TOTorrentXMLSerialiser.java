@@ -32,16 +32,13 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.xml.util.*;
 
 public class 
-TOTorrentXMLSerialiser 
+TOTorrentXMLSerialiser
+	extends XUXmlWriter
 {
-	protected static final int			INDENT_AMOUNT	= 4;
-	
 	protected TOTorrentImpl		torrent;
-	protected PrintWriter		writer = null;
-	
-	protected String		current_indent_string;
 	
 	protected
 	TOTorrentXMLSerialiser(
@@ -60,7 +57,7 @@ TOTorrentXMLSerialiser
 		
 		try{
 			
-			writer = new PrintWriter( new FileWriter( file ));
+			setWriter(new PrintWriter( new FileWriter( file )));
 			
 			writeRoot();
 			
@@ -68,18 +65,14 @@ TOTorrentXMLSerialiser
 			
 		}finally{
 			
-			if ( writer != null ){
+			try{
 				
-				try{					
-					writer.flush();
+				closeWriter();
 					
-					writer.close();
-					
-				}catch( Throwable e ){
+			}catch( Throwable e ){
 			
-					throw( new TOTorrentException( "TOTorrentXMLSerialiser: file close fails: " + e.toString(),
-													TOTorrentException.RT_WRITE_FAILS ));	
-				}
+				throw( new TOTorrentException( "TOTorrentXMLSerialiser: file close fails: " + e.toString(),
+												TOTorrentException.RT_WRITE_FAILS ));	
 			}
 		}
 	}
@@ -413,23 +406,7 @@ TOTorrentXMLSerialiser
 	{
 		writeTag( "LONG", ""+l );
 	}
-	
-	protected void
-	writeTag(
-		String		tag,
-		long		content )
-	{
-		writeLine( "<" + tag + ">" + content + "</" + tag + ">" );	
-	}
-	
-	protected void
-	writeTag(
-		String		tag,
-		String		content )
-	{
-		writeLine( "<" + tag + ">" + escapeXML( content ) + "</" + tag + ">" );	
-	}
-	
+		
 	protected void
 	writeTag(
 		String		tag,
@@ -439,35 +416,7 @@ TOTorrentXMLSerialiser
 	{
 		writeLine( "<" + tag + ">" + encodeBytes( content ) + "</" + tag + ">" );	
 	}
-	
-	protected void
-	writeLine(
-		String	str )
-	{
-		writer.println( current_indent_string + str );
-	}
-	
-	protected void
-	resetIndent()
-	{
-		current_indent_string	= "";
-	}
-	
-	protected void
-	indent()
-	{
-		for (int i=0;i<INDENT_AMOUNT;i++){
 		
-			current_indent_string += " ";
-		}
-	}
-	
-	protected void
-	exdent()
-	{
-		current_indent_string = current_indent_string.substring(0,current_indent_string.length()-4);
-	}
-	
 	protected String
 	encodeBytes(
 		byte[]	bytes )
@@ -489,17 +438,5 @@ TOTorrentXMLSerialiser
 										TOTorrentException.RT_UNSUPPORTED_ENCODING));
 		}
 		*/
-	}
-	protected String
-	escapeXML(
-		String	str )
-	{
-		str = str.replaceAll( "&", "&amp;" );
-		str = str.replaceAll( ">", "&gt;" );
-		str = str.replaceAll( "<", "&lt;" );
-		str = str.replaceAll( "\"", "&quot;" );
-		str = str.replaceAll( "--", "&#45;&#45;" );
-		
-		return( str );
 	}
 }

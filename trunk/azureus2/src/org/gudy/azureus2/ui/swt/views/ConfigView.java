@@ -86,7 +86,10 @@ public class ConfigView extends AbstractIView {
 
   private static final int statsPeriods[] =
 	  {
-	  	1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 40, 50, 60, 120, 180, 240, 360, 720, 1440,
+	  	1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50,
+	  	60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 
+	  	900, 1200, 1800, 2400, 3000, 3600, 
+	  	7200, 10800, 14400, 21600, 43200, 86400,
 	  };
 
   IpFilter filter;
@@ -727,23 +730,25 @@ public class ConfigView extends AbstractIView {
 	for (int i = 0; i < statsPeriods.length; i++) {
 		int	num = statsPeriods[i];
 		
-		if ( num%60 ==0 ){
+		if ( num%3600 ==0 ){
 	
-			spLabels[i] = " " + (statsPeriods[i]/60) + " " + MessageText.getString("ConfigView.section.stats.hours" );
+			spLabels[i] = " " + (statsPeriods[i]/3600) + " " + MessageText.getString("ConfigView.section.stats.hours" );
+		
+		}else if ( num%60 ==0 ){
+	
+			spLabels[i] = " " + (statsPeriods[i]/60) + " " + MessageText.getString("ConfigView.section.stats.minutes" );
 		
 		}else{
 	
-			spLabels[i] = " " + statsPeriods[i] + " " + MessageText.getString("ConfigView.section.stats.minutes" );
+			spLabels[i] = " " + statsPeriods[i] + " " + MessageText.getString("ConfigView.section.stats.seconds" );
 		}
 		
 		spValues[i] = statsPeriods[i];
 	}
+	
 	new IntListParameter(gStats, "Stats Period", 0, spLabels, spValues);  
 
-
-
-	 itemStats.setControl(gStats);
-
+	itemStats.setControl(gStats);
    }
 
   /* (non-Javadoc)

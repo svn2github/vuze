@@ -21,12 +21,15 @@
  
 package org.gudy.azureus2.core3.stats.impl;
 
+import java.util.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.xml.util.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.*;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.config.*;
 
 /**
@@ -35,14 +38,19 @@ import org.gudy.azureus2.core3.config.*;
 
 public class 
 StatsWriterImpl 
-	implements StatsWriter
+	implements StatsWriter, COConfigurationListener
 {
-	private static final int		SLEEP_PERIOD	= 60*1000;
+	private static final int		DEFAULT_SLEEP_PERIOD	= 30*1000;
+	
 	private static final String		STATS_FILE_NAME	= Constants.AZUREUS_NAME + "_Stats.xml";
 	
 	private static StatsWriterImpl	singleton;
 	private static int				start_count;
 	private static Thread			current_thread;
+	
+	private long			last_write_time	= 0;
+	private GlobalManager	global_manager;
+	
 	
 	public static synchronized StatsWriter
 	create(
@@ -50,17 +58,26 @@ StatsWriterImpl
 	{
 		if ( singleton == null ){
 			
-			singleton = new StatsWriterImpl();
+			singleton = new StatsWriterImpl(manager);
 		}
 		
 		return( singleton );	
+	}
+	
+	protected
+	StatsWriterImpl(
+		GlobalManager	manager )
+	{
+		global_manager	= manager;
+		
+		COConfigurationManager.addListener( this );	
 	}
 	
 	protected void
 	update()
 	{
 		while( true ){
-			
+						
 			synchronized( singleton ){
 				
 				if ( Thread.currentThread() != current_thread ){
@@ -68,14 +85,27 @@ StatsWriterImpl
 					break;
 				}
 				
-				if ( COConfigurationManager.getBooleanParameter( "Stats Enable", false )){
-					
-					writeStats();
-				}	
+				writeStats();	
 			}
 			
 			try{
-				Thread.sleep( SLEEP_PERIOD );
+				int	period;
+				
+				if (!COConfigurationManager.getBooleanParameter( "Stats Enable", false )){
+					
+					period = DEFAULT_SLEEP_PERIOD;
+								
+				}else{
+				
+				 	period = COConfigurationManager.getIntParameter( "Stats Period", DEFAULT_SLEEP_PERIOD )*1000;
+				}
+				
+				if ( period > DEFAULT_SLEEP_PERIOD ){
+					
+					period = DEFAULT_SLEEP_PERIOD;
+				}
+				
+				Thread.sleep( period );
 				
 			}catch( InterruptedException e ){
 				
@@ -86,7 +116,23 @@ StatsWriterImpl
 	
 	protected void
 	writeStats()
-	{
+	{							
+		if ( !COConfigurationManager.getBooleanParameter( "Stats Enable", false )){
+			
+			return;
+		}
+
+		int	period = COConfigurationManager.getIntParameter( "Stats Period", DEFAULT_SLEEP_PERIOD );
+		
+		long	now = System.currentTimeMillis()/1000;
+		
+		if ( now - last_write_time < period ){
+			
+			return;
+		}
+		
+		last_write_time	= now;
+		
 		try{
 			PrintWriter	writer = null;
 			
@@ -113,9 +159,7 @@ StatsWriterImpl
 				
 				writer = new PrintWriter( new FileOutputStream( file_name ));
 				
-				writer.println( "<STATS>");
-				
-				writer.println( "</STATS>");
+				new statsWriter( global_manager, writer ).write();
 				
 			}catch( IOException e ){
 			
@@ -132,6 +176,12 @@ StatsWriterImpl
 		
 			LGLogger.log(0, 0, "Stats Logging fails", e );		
 		}
+	}
+	
+	public void
+	configurationSaved()
+	{
+		writeStats();
 	}
 	
 	public void
@@ -168,6 +218,85 @@ StatsWriterImpl
 				
 				current_thread = null;
 			}
+		}
+	}
+	
+	protected static class
+	statsWriter
+		extends XUXmlWriter
+	{
+		protected GlobalManager		global;
+		
+		protected
+		statsWriter(
+			GlobalManager		_global,
+			PrintWriter			_writer )
+		{
+			super( _writer );
+			
+			global		= _global;
+		}
+		
+		protected void
+		write()
+		{
+			writeLine( "<STATS>");
+		
+			try{
+				indent();
+			
+				writeLine( "<GLOBAL>" );
+				
+				try{
+					
+					indent();
+					
+				}finally{
+					
+					exdent();
+				}
+			
+				writeLine( "</GLOBAL>" );
+				
+				writeLine( "<DOWNLOADS>");
+				
+				try{
+					
+					indent();
+					
+					List	dms = global.getDownloadManagers();
+				
+					for (int i=0;i<dms.size();i++){
+						
+						DownloadManager	dm = (DownloadManager)dms.get(i);
+						
+						writeLine( "<DOWNLOAD>");
+						
+						try{
+							
+							writeTag( "NAME", dm.getName());
+							
+							indent();
+						}finally{
+							
+							exdent();
+						}
+						
+						writeLine( "</DOWNLOAD>");
+					}
+					
+				}finally{
+					
+					exdent();
+				}
+					
+				writeLine( "</DOWNLOADS>" );
+				
+			}finally{
+				
+				exdent();
+			}
+			writeLine( "</STATS>");	
 		}
 	}
 }
