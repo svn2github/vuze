@@ -79,6 +79,12 @@ TRTrackerServerProcessorTCP
 		disable_timeouts	= d;
 	}
 	
+	protected TRTrackerServerTCP
+	getServer()
+	{
+		return( server );
+	}
+	
 	protected void
 	processRequest(
 		String			input_header,

@@ -626,6 +626,14 @@ ConfigSectionTrackerServer
 
     gridData = new GridData();
     gridData.horizontalSpan = 3;
+ 
+    new BooleanParameter(gMainTab, "Tracker TCP NonBlocking", false,
+                         "ConfigView.section.tracker.tcpnonblocking").setLayoutData(gridData);
+
+    // row
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
     new BooleanParameter(gMainTab, "Tracker Log Enable", false, 
                          "ConfigView.section.tracker.logenable").setLayoutData( gridData );
 

@@ -96,7 +96,7 @@ TRTrackerServerTCP
 		}
 	}
 	
-	protected void
+	public void
 	runProcessor(
 		TRTrackerServerProcessorTCP	processor )
 	{

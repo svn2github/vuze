@@ -28,8 +28,10 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.blocking.TRBlockingServer;
+import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlockingServer;
 import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
@@ -46,7 +48,8 @@ TRTrackerServerFactoryImpl
 		int			protocol,
 		int			port,
 		boolean		ssl,
-		boolean		apply_ip_filter )
+		boolean		apply_ip_filter,
+		boolean		main_tracker )
 	
 		throws TRTrackerServerException
 	{
@@ -57,7 +60,13 @@ TRTrackerServerFactoryImpl
 			
 			if ( protocol == TRTrackerServerFactory.PR_TCP ){
 				
-				server = new TRBlockingServer( name, port, ssl, apply_ip_filter );
+				if ( COConfigurationManager.getBooleanParameter( "Tracker TCP NonBlocking" ) && main_tracker && !ssl ){
+					
+					server = new TRNonBlockingServer( name, port, apply_ip_filter );
+				}else{
+					
+					server = new TRBlockingServer( name, port, ssl, apply_ip_filter );
+				}
 				
 			}else{
 				

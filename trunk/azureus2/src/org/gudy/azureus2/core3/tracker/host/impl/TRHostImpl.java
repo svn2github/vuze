@@ -460,11 +460,11 @@ TRHostImpl
 					
 					if ( ssl ){
 						
-						server = TRTrackerServerFactory.createSSL( protocol, port, true );
+						server = TRTrackerServerFactory.createSSL( protocol, port, true, true );
 					
 					}else{
 					
-						server = TRTrackerServerFactory.create( protocol, port, true );
+						server = TRTrackerServerFactory.create( protocol, port, true, true );
 					}
 						
 					server_map.put( key, server );
