@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -84,29 +85,43 @@ public class ModePanel extends AbstractWizardPanel {
     gridData.horizontalSpan = 2;
     labelLocalTracker.setLayoutData(gridData);
 
-    String localTrackerHost = COConfigurationManager.getStringParameter("Tracker IP", "");
-    int localTrackePort = COConfigurationManager.getIntParameter("Tracker Port", 6969);
-    final String localTrackerUrl;
+	Label label = new Label(panel, SWT.NULL);
+	label = new Label(panel, SWT.NULL);
+	Messages.setLanguageText(label, "wizard.tracker.ssl"); 
+    
+	final Button btnSSL = new Button(panel, SWT.CHECK);
+	gridData = new GridData();
+	gridData.horizontalSpan = 1;
+	btnSSL.setLayoutData( gridData );
 
-    Label localTrackerValue = new Label(panel, SWT.NULL);
+    final String localTrackerHost = COConfigurationManager.getStringParameter("Tracker IP", "");
+	final int localTrackerPort 	= COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+	final int localTrackerPortSSL = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+	
+    final String[] localTrackerUrl = new String[1];
+
+    final Label localTrackerValue = new Label(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     localTrackerValue.setLayoutData(gridData);
 
     final Button btnExternalTracker = new Button(panel, SWT.RADIO);
-    Label label = new Label(panel, SWT.NULL);
+    label = new Label(panel, SWT.NULL);
     Messages.setLanguageText(label, "wizard.tracker.external");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
 
+
     if (localTrackerHost != null && !localTrackerHost.equals("")) {
-      localTrackerUrl = "http://" + localTrackerHost + ":" + localTrackePort + "/announce";
-      localTrackerValue.setText("\t" + localTrackerUrl);
+      localTrackerUrl[0] = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
+      localTrackerValue.setText("\t" + localTrackerUrl[0]);
+	  btnSSL.setEnabled( true );
     } else {
-      localTrackerUrl = "";
+      localTrackerUrl[0] = "";
       Messages.setLanguageText(localTrackerValue, "wizard.tracker.howToLocal");
       btnLocalTracker.setSelection(false);
+	  btnSSL.setEnabled(false);
       btnLocalTracker.setEnabled(false);
       localTrackerValue.setEnabled(false);
       labelLocalTracker.setEnabled(false);
@@ -114,7 +129,7 @@ public class ModePanel extends AbstractWizardPanel {
     }
 
     if (((NewTorrentWizard) wizard).localTracker) {
-      ((NewTorrentWizard) wizard).trackerURL = localTrackerUrl;
+      ((NewTorrentWizard) wizard).trackerURL = localTrackerUrl[0];
     }
 
     btnLocalTracker.setSelection(((NewTorrentWizard) wizard).localTracker);
@@ -189,22 +204,44 @@ public class ModePanel extends AbstractWizardPanel {
       }
     });
 
+	btnSSL.addListener(SWT.Selection, new Listener() {
+	  public void handleEvent(Event arg0) {
+	  	String	url;
+	  	
+		if ( btnSSL.getSelection()){
+			url = "https://" + localTrackerHost + ":" + localTrackerPortSSL + "/announce";
+		}else{
+			url = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
+		}
+		
+		localTrackerValue.setText("\t" + url );
+		
+		localTrackerUrl[0] = url;
+		
+		((NewTorrentWizard) wizard).trackerURL = url;
+
+	  }
+	});
+	
     btnLocalTracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
         ((NewTorrentWizard) wizard).localTracker = true;
-        ((NewTorrentWizard) wizard).trackerURL = localTrackerUrl;
+        ((NewTorrentWizard) wizard).trackerURL = localTrackerUrl[0];
         btnExternalTracker.setSelection(false);
         btnLocalTracker.setSelection(true);
         tracker.setEnabled(false);
+        btnSSL.setEnabled(true);
       }
     });
 
     btnExternalTracker.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
         ((NewTorrentWizard) wizard).localTracker = false;
+		((NewTorrentWizard) wizard).trackerURL = tracker.getText();
         btnLocalTracker.setSelection(false);
         btnExternalTracker.setSelection(true);
         tracker.setEnabled(true);
+        btnSSL.setEnabled(false);
       }
     });
 
