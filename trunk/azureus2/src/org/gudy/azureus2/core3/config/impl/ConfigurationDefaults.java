@@ -280,7 +280,7 @@ public class ConfigurationDefaults {
     def.put( "Password Confirm", null );
     def.put( "Auto Update", new Long(1) );
     def.put( "Alert on close", new Long(1) );
-    def.put( "diskmanager.friendly.hashchecking", new Long(1) );
+    def.put( "diskmanager.friendly.hashchecking", new Long(0) );
     def.put( "Default Start Torrents Stopped", new Long(0));
     def.put( "Server Enable UDP", new Long(1));
     
