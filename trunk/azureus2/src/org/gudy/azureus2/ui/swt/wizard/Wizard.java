@@ -90,7 +90,7 @@ public class Wizard {
   	azureus_core	= _azureus_core;
     this.display 	= display;
     
-    wizardWindow = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+    wizardWindow = new Shell(display, SWT.DIALOG_TRIM);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
