@@ -53,6 +53,8 @@ LGLoggerImpl
 	
 	
 	private static boolean			log_to_file		= false;
+  private static boolean    log_to_stdout = System.getProperty("azureus.log.stdout") != null;
+  
 	private static String			log_dir			= "";
 	private static int				log_file_max	= 1;		// MB
 	private static int        log_types[] = new int[components.length];
@@ -295,6 +297,8 @@ LGLoggerImpl
 				pw = new PrintWriter(new FileWriter( file_name, true ));
 			
 				pw.print( str );
+        
+        if( log_to_stdout ) System.out.println( str );
 				
 			}catch( Throwable e ){
 				
