@@ -24,28 +24,28 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
+import com.aelitis.azureus.core.AzureusCore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
-
-import com.aelitis.azureus.core.*;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.tracker.host.TRHostListener;
+import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
+import org.gudy.azureus2.core3.tracker.host.TRHostTorrentRemovalVetoException;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Alerts;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 
 /**
@@ -127,15 +127,15 @@ MyTrackerView
   public void fillMenu(final Menu menu) {
 	   final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
-	   itemStart.setImage(ImageRepository.getImage("start"));
+	   Utils.setMenuItemImage(itemStart, "start");
 
 	   final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
-	   itemStop.setImage(ImageRepository.getImage("stop"));
+	   Utils.setMenuItemImage(itemStop, "stop");
 
 	   final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
-	   itemRemove.setImage(ImageRepository.getImage("delete"));
+	   Utils.setMenuItemImage(itemRemove, "delete");
 
      menu.addListener(SWT.Show, new Listener() {
 		 public void handleEvent(Event e) {

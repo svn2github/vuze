@@ -583,7 +583,7 @@ public class TableView
 
     final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns");
-    itemChangeTable.setImage(ImageRepository.getImage("columns"));
+    Utils.setMenuItemImage(itemChangeTable, "columns");
     
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {

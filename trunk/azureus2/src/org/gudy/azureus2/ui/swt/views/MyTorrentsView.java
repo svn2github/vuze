@@ -22,10 +22,8 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.*;
-import java.io.File;
+import com.aelitis.azureus.core.AzureusCore;
 import org.eclipse.swt.SWT;
-
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
@@ -36,9 +34,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
-
-import com.aelitis.azureus.core.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryListener;
 import org.gudy.azureus2.core3.category.CategoryManager;
@@ -57,17 +52,23 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
-import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
-
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Map;
 
 /** Displays a list of torrents in a table view.
  *
@@ -348,26 +349,26 @@ public class MyTorrentsView
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemDetails, "MyTorrentsView.menu.showdetails"); //$NON-NLS-1$
     menu.setDefaultItem(itemDetails);
-    itemDetails.setImage(ImageRepository.getImage("details"));
+    Utils.setMenuItemImage(itemDetails, "details");
 
     final MenuItem itemBar = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(itemBar, "MyTorrentsView.menu.showdownloadbar"); //$NON-NLS-1$
-    itemBar.setImage(ImageRepository.getImage("downloadBar"));
+    Utils.setMenuItemImage(itemBar, "downloadBar");
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "MyTorrentsView.menu.open"); //$NON-NLS-1$
-    itemOpen.setImage(ImageRepository.getImage("run"));
+    Utils.setMenuItemImage(itemOpen, "run");
 
     final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemExplore, "MyTorrentsView.menu.explore"); //$NON-NLS-1$
-    
+
     	// export menu
     
     final MenuItem itemExport = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemExport, "MyTorrentsView.menu.exportmenu"); //$NON-NLS-1$
-    itemExport.setImage(ImageRepository.getImage("export"));
+    Utils.setMenuItemImage(itemExport, "export");
 
     final Menu menuExport = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemExport.setMenu(menuExport);
@@ -381,40 +382,40 @@ public class MyTorrentsView
  
     final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
-    itemHost.setImage(ImageRepository.getImage("host"));
+    Utils.setMenuItemImage(itemHost, "host");
 
     final MenuItem itemPublish = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemPublish, "MyTorrentsView.menu.publish"); //$NON-NLS-1$
-    itemPublish.setImage(ImageRepository.getImage("publish"));
+    Utils.setMenuItemImage(itemPublish, "publish");
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     final MenuItem itemMove = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemMove, "MyTorrentsView.menu.move"); //$NON-NLS-1$
-    itemMove.setImage(ImageRepository.getImage("move"));
+    Utils.setMenuItemImage(itemMove, "move");
 
     final Menu menuMove = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemMove.setMenu(menuMove);
 
     final MenuItem itemMoveTop = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveTop, "MyTorrentsView.menu.moveTop"); //$NON-NLS-1$
-    itemMoveTop.setImage(ImageRepository.getImage("top"));
+    Utils.setMenuItemImage(itemMoveTop, "top");
 
     final MenuItem itemMoveUp = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveUp, "MyTorrentsView.menu.moveUp"); //$NON-NLS-1$
-    itemMoveUp.setImage(ImageRepository.getImage("up"));
+    Utils.setMenuItemImage(itemMoveUp, "up");
 
     final MenuItem itemMoveDown = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveDown, "MyTorrentsView.menu.moveDown"); //$NON-NLS-1$
-    itemMoveDown.setImage(ImageRepository.getImage("down"));
+    Utils.setMenuItemImage(itemMoveDown, "down");
 
     final MenuItem itemMoveEnd = new MenuItem(menuMove, SWT.PUSH);
     Messages.setLanguageText(itemMoveEnd, "MyTorrentsView.menu.moveEnd"); //$NON-NLS-1$
-    itemMoveEnd.setImage(ImageRepository.getImage("bottom"));
+    Utils.setMenuItemImage(itemMoveEnd, "bottom");
     
     final MenuItem itemSpeed = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemSpeed, "MyTorrentsView.menu.setSpeed"); //$NON-NLS-1$
-    itemSpeed.setImage(ImageRepository.getImage("speed"));    
+    Utils.setMenuItemImage(itemSpeed, "speed");
     
     final Menu menuSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemSpeed.setMenu(menuSpeed);
@@ -474,11 +475,11 @@ public class MyTorrentsView
 
     final MenuItem itemChangeTracker = new MenuItem(menuTracker, SWT.PUSH);
     Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
-    itemChangeTracker.setImage(ImageRepository.getImage("add_tracker"));
+    Utils.setMenuItemImage(itemChangeTracker, "add_tracker");
 
     final MenuItem itemEditTracker = new MenuItem(menuTracker, SWT.PUSH);
     Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker"); //$NON-NLS-1$
-    itemEditTracker.setImage(ImageRepository.getImage("edit_trackers"));
+    Utils.setMenuItemImage(itemEditTracker, "edit_trackers");
 
     final MenuItem itemManualUpdate = new MenuItem(menuTracker,SWT.PUSH);
     Messages.setLanguageText(itemManualUpdate, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
@@ -488,23 +489,23 @@ public class MyTorrentsView
 
     final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue"); //$NON-NLS-1$
-    itemQueue.setImage(ImageRepository.getImage("start"));
+    Utils.setMenuItemImage(itemQueue, "start");
 
     final MenuItem itemForceStart = new MenuItem(menu, SWT.CHECK);
     Messages.setLanguageText(itemForceStart, "MyTorrentsView.menu.forceStart");
-    itemForceStart.setImage(ImageRepository.getImage("forcestart"));
+    Utils.setMenuItemImage(itemForceStart, "forcestart");
 
     final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
-    itemStop.setImage(ImageRepository.getImage("stop"));
+    Utils.setMenuItemImage(itemStop, "stop");
 
     final MenuItem itemRemove = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
-    itemRemove.setImage(ImageRepository.getImage("delete"));
+    Utils.setMenuItemImage(itemRemove, "delete");
 
     final MenuItem itemRemoveAnd = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemRemoveAnd, "MyTorrentsView.menu.removeand"); //$NON-NLS-1$
-    itemRemoveAnd.setImage(ImageRepository.getImage("delete"));
+    Utils.setMenuItemImage(itemRemoveAnd, "delete");
 
     final Menu menuRemove = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemRemoveAnd.setMenu(menuRemove);
@@ -517,7 +518,7 @@ public class MyTorrentsView
 
     final MenuItem itemRecheck = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRecheck, "MyTorrentsView.menu.recheck");
-    itemRecheck.setImage(ImageRepository.getImage("recheck"));
+    Utils.setMenuItemImage(itemRecheck, "recheck");
 
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -1000,7 +1001,7 @@ public class MyTorrentsView
     if (sColumnName.equals("health")) {
       MenuItem item = new MenuItem(menuThisColumn, SWT.PUSH);
       Messages.setLanguageText(item, "MyTorrentsView.menu.health");
-      item.setImage(ImageRepository.getImage("st_explain"));
+      Utils.setMenuItemImage(item, "st_explain");
       item.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           HealthHelpWindow.show(table.getDisplay());

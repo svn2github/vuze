@@ -42,19 +42,11 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 /**
@@ -341,6 +333,21 @@ public class Utils {
         rows[i].setBackground(newColor);
       }
     }
+  }
+
+  /**
+   * <p>
+   * Set a MenuItem's image with the given ImageRepository key. In compliance with platform
+   * human interface guidelines, the images are not set under Mac OS X.
+   * </p>
+   * @param item SWT MenuItem
+   * @param repoKey ImageRepository image key
+   * @see <a href="http://developer.apple.com/documentation/UserExperience/Conceptual/OSXHIGuidelines/XHIGMenus/chapter_7_section_3.html#//apple_ref/doc/uid/TP30000356/TPXREF116">Apple HIG</a>
+   */
+  public static void setMenuItemImage(final MenuItem item, final String repoKey)
+  {
+      if(!Constants.isOSX)
+          item.setImage(ImageRepository.getImage(repoKey));
   }
 }
 
