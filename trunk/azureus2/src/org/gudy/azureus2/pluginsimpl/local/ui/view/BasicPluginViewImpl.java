@@ -175,6 +175,14 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
     });
   }
   
+  public void
+  delete()
+  {
+    model.getLogArea().removePropertyChangeListener( this );
+    
+  	super.delete();
+  }
+  
   public String getFullTitle() {
     return pluginName;
   }

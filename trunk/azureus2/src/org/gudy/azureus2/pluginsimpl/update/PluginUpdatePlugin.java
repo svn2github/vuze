@@ -65,7 +65,7 @@ PluginUpdatePlugin
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
 		final BasicPluginViewModel model = 
-			ui_manager.getBasicPluginViewModel( 
+			ui_manager.createBasicPluginViewModel( 
 					"Plugin Update");
 		
 		boolean enabled = plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true );
@@ -107,11 +107,7 @@ PluginUpdatePlugin
 					
 				}
 			});
-		
-		PluginView view = ui_manager.createPluginView( model );
-		
-		plugin_interface.addView( view );	
-		
+				
 		BasicPluginConfigModel config = ui_manager.createBasicPluginConfigModel( "plugins", "plugins.update");
 		
 		config.addBooleanParameter2( "enable.update", "Plugin.pluginupdate.enablecheck", true );
