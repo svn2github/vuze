@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
 
@@ -72,14 +73,18 @@ public class MakeTorrent implements TOTorrentProgressListener {
     if(pieceSizeStr != null) {
       try {     
         long pieceSize = 1l << Integer.parseInt(pieceSizeStr);
-        torrent = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(fSrc,url,pieceSize,this);        
+        TOTorrentCreator creator = TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(fSrc,url,pieceSize);
+        creator.addListener( this );
+        torrent = creator.create();
       }catch(Exception e) {
         e.printStackTrace();
         return;
       }
     } else {
       try {
-        torrent = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(fSrc,url,this);
+      	TOTorrentCreator creator = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(fSrc,url);
+        creator.addListener( this );
+        torrent = creator.create();
       } catch(Exception e) {
         e.printStackTrace();
         return;
