@@ -21,9 +21,10 @@
 
 package org.gudy.azureus2.plugins.download;
 
-/**
+/** Throws by various Download methods to indicate errors
+ *
  * @author parg
- * Throws by various Download methods to indicate errors
+ * @since 2.0.7.0
  */
 
 public class 

@@ -21,9 +21,10 @@
 
 package org.gudy.azureus2.plugins.download;
 
-/**
+/** This exception is thrown to prevent the removal of a download
+ *
  * @author parg
- * This exception is thrown to prevent the removal of a download
+ * @since 2.0.7.0
  */
 
 public class 

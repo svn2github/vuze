@@ -48,9 +48,24 @@ import org.gudy.azureus2.plugins.utils.ShortCuts;
  */
 public interface PluginInterface {  
 	
+	/** Retrieve the Application's name
+   *
+   * @return the Application's name
+   *
+   * @since 2.1.0.0
+   */
 	public String
 	getAzureusName();
 	
+	/** Retrieve the Application's version as a string.
+	 *
+	 * @return Application's version.  Typically in the following formats (regexp):<br>
+	 *         [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+<br>
+	 *         [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+_CVS<br>
+	 *         [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+_B[0-9]+
+   *
+   * @since 2.1.0.0
+	 */
 	public String
 	getAzureusVersion();
 	
@@ -58,6 +73,8 @@ public interface PluginInterface {
    * A Plugin might call this method to add a View to Azureus's views
    * The View will be accessible from View > Plugins > View name
    * @param view The PluginView to be added
+   *
+   * @since 2.0.4.0
    *
    * @deprecated use use {@link org.gudy.azureus2.plugins.ui.SWT.SWTManager#addView}
    */
@@ -73,6 +90,8 @@ public interface PluginInterface {
    * @param displayName the under which it should display.<br>
    * Azureus will look-up for ConfigView.section.plugins.<i>displayName</i>; into the lang files
    * in order to find the localized displayName. (see i18n)
+   *
+   * @since 2.0.6.0
    */
   public void addConfigUIParameters(Parameter[] parameters, String displayName);
   
@@ -82,6 +101,8 @@ public interface PluginInterface {
    * @param factory the factory responsible of creating items.
    * Azureus will look-up for PeersView.<i>columnName</i> into the lang files
    * in order to find the localized displayName. (see i18n)
+   *
+   * @since 2.0.6.0
    *
    * @deprecated use {@link org.gudy.azureus2.plugins.ui.tables.TableManager}
    */
@@ -94,6 +115,8 @@ public interface PluginInterface {
    * Azureus will look-up for MyTorrentsView.<i>columnName</i> into the lang files
    * in order to find the localized displayName. (see i18n)
    *
+   * @since 2.0.8.0
+   *
    * @deprecated use {@link org.gudy.azureus2.plugins.ui.tables.TableManager}
    */
   public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory);
@@ -102,53 +125,62 @@ public interface PluginInterface {
    * adds a ConfigSection to the config view.<p>
    * In contrast to addConfigUIParameters, this gives you total control over
    * a tab.  Please be kind and use localizable text.<BR>
+   *
    * @param section ConfigSection to be added to the Config view
+   *
+   * @since 2.0.8.0
    */
 	public void addConfigSection(ConfigSection section);
 
   /**
    * Gives access to the tracker functionality
    * @return The tracker
+   *
+   * @since 2.0.6.0
    */
-  
   public Tracker getTracker();
   
   /**
    * Gives access to the logger
    * @return The logger
+   *
+   * @since 2.0.7.0
    */
-  
   public Logger getLogger();
   
   /**
    * Gives access to the IP filter
-   * @return
+   * @return An object that allows access to IP Filtering
+   *
+   * @since 2.0.8.0
    */
-  
   public IPFilter
   getIPFilter();
   
   /**
    * Gives access to the download manager
-   * @return
+   * @return An object that allows management of downloads
+   *
+   * @since 2.0.7.0
    */
-  
   public DownloadManager
   getDownloadManager();
   
   /**
    * Gives access to the peer protocol manager
-   * @return
+   * @return An object that allows management of Peer Protocols
+   *
+   * @since 2.0.7.0
    */
-  
   public PeerProtocolManager
   getPeerProtocolManager();
   
   /**
    * Gives access to the sharing functionality
    * @return
+   *
+   * @since 2.0.7.0
    */
-  
   public ShareManager
   getShareManager()
   
@@ -156,15 +188,18 @@ public interface PluginInterface {
   
   /**
    * Gives access to the torrent manager
-   * @return
+   * @return An object to manage torrents
+   *
+   * @since 2.0.8.0
    */
-  
   public TorrentManager
   getTorrentManager();
   
   /**
    * access to various utility functions
    * @return
+   *
+   * @since 2.1.0.0
    */
   public Utilities
   getUtilities();
@@ -173,14 +208,17 @@ public interface PluginInterface {
    * access to a set of convenience routines for doing things in a quicker, although less
    * structured, fashion
    * @return
+   *
+   * @since 2.1.0.0
    */
-  
   public ShortCuts
   getShortCuts();
   
   /**
    * access to UI extension features 
    * @return
+   *
+   * @since 2.1.0.0
    */
   public UIManager
   getUIManager();
@@ -189,58 +227,73 @@ public interface PluginInterface {
    * access to the update manager used to update plugins. required for non-Azureus SF hosted
    * plugins (SF ones are managed automatically)
    * @return
+   *
+   * @since 2.1.0.0
    */
-  
   public UpdateManager
   getUpdateManager();
   
   /**
    * opens a torrent file given its name
    * @param fileName The Name of the file that azureus must open
-   * @deprecated Use getDownloadManager().addDownload()
+   *
+   * @since 2.0.4.0
+   *
+   * @deprecated Use {@link DownloadManager#addDownload}
    */
   public void openTorrentFile(String fileName);
   
   /**
    * opens a torrent file given the url it's at
    * @param url The String representation of the url pointing to a torrent file
-    *@deprecated Use getDownloadManager().addDownload()
-  */
+   *
+   * @since 2.0.4.0
+   *
+   * @deprecated Use {@link DownloadManager#addDownload}
+   */
   public void openTorrentURL(String url);
   
   /**
    * gives access to the plugin properties
    * @return the properties from the file plugin.properties
+   *
+   * @since 2.0.4.0
    */
   public Properties getPluginProperties();
   
   /**
    * gives access to the plugin installation path
    * @return the full path the plugin is installed in
+   *
+   * @since 2.0.4.0
    */
   public String getPluginDirectoryName();
   
   /**
    * Returns the value of plugin.name if it exists in the properties file, dirctory name otherwise
    * @return
+   *
+   * @since 2.1.0.0
    */
-  
   public String getPluginName();
   
   /**
    * Returns the version number of the plugin it if can be deduced from either the name of
    * the jar file it is loaded from or the properties file. null otherwise
-   * @return
+   *
+   * @return Version number as a string, or null
+   *
+   * @since 2.1.0.0
    */
-  
   public String
   getPluginVersion();
   
   /**
    * Returns an identifier used to identify this particular plugin 
    * @return
+   *
+   * @since 2.1.0.0
    */
-  
   public String
   getPluginID();
   
@@ -260,16 +313,18 @@ public interface PluginInterface {
   /**
    * gives access to the ClassLoader used to load the plugin
    * @return
+   *
+   * @since 2.0.8.0
    */
-  
   public ClassLoader
   getPluginClassLoader();
   
   /**
    * Gives access to the plugin itself
    * @return
+   *
+   * @since 2.1.0.0
    */
-  
   public Plugin
   getPlugin();
   
@@ -277,19 +332,32 @@ public interface PluginInterface {
    * If a plugin fails to load properly (i.e. the construction of the plugin object
    * fails) it is marked as non-operational (rather than not being present at all) 
    * @return whether or not the plugin is operational or not
+   *
+   * @since 2.1.0.0
    */
-  
   public boolean
   isOperational();
-  
+
+  /**
+   *
+   * @since 2.1.0.0
+   */
   public boolean
   isUnloadable();
-  
+
+  /**
+   *
+   * @since 2.1.0.0
+   */  
   public void
   unload()
   
   	throws PluginException;
-  
+
+  /**
+   *
+   * @since 2.1.0.0
+   */
   public void
   reload()
   
@@ -298,23 +366,40 @@ public interface PluginInterface {
   /**
    * gives access to the plugin manager
    * @return
+   *
+   * @since 2.1.0.0
    */
-  
   public PluginManager
   getPluginManager();
   
+  /**
+   *
+   * @since 2.0.7.0
+   */
   public void
   addListener(
   	PluginListener	l );
   
+  /**
+   *
+   * @since 2.0.7.0
+   */
   public void
   removeListener(
   	PluginListener	l );
   
+  /**
+   *
+   * @since 2.0.8.0
+   */
   public void
   addEventListener(
   	PluginEventListener	l );
   
+  /**
+   *
+   * @since 2.0.8.0
+   */
   public void
   removeEventListener(
   	PluginEventListener	l );

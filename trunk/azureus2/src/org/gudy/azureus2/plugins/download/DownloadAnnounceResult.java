@@ -35,6 +35,8 @@ DownloadAnnounceResult
 	/**
 	 * Gives access to the Download associated with this announce result
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	
 	public Download
@@ -43,6 +45,8 @@ DownloadAnnounceResult
 	/**
 	 * The response may represent a successful or failed announce
 	 * @return	either RT_SUCCESS or RT_ERROR
+   *
+   * @since 2.0.7.0
 	 */
 	
 	public int
@@ -51,6 +55,8 @@ DownloadAnnounceResult
 	/**
 	 * For RT_SUCCESS this gives the number of peers returned by the tracker
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	
 	public int
@@ -60,6 +66,8 @@ DownloadAnnounceResult
 	 * This method gives the number of seeds we know about (and may have received from a succession
 	 * of announces)
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	
 	public int
@@ -68,6 +76,8 @@ DownloadAnnounceResult
 	/**
 	 * This method gives the number of non-seeds we know about
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	
 	public int
@@ -76,6 +86,8 @@ DownloadAnnounceResult
 	/**
 	 * For RT_ERROR this gives error details
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	
 	public String

@@ -33,6 +33,8 @@ public abstract class PluginView extends AbstractIView {
 
   /**
    * @return The name of the Plugin, as seen in the View > Plugins menu
+   *
+   * @since 2.0.4.0
    */	
   public abstract String getPluginViewName();
 

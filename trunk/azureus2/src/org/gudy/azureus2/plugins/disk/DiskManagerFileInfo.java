@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.download.*;
 /**
  * @author TuxPaper
  *
+ * @since 2.1.0.0
  */
 
 public interface DiskManagerFileInfo {

@@ -24,6 +24,7 @@ package org.gudy.azureus2.plugins.disk;
 /**
  * @author parg
  *
+ * @since 2.1.0.0
  */
 public interface 
 DiskManagerRequest 

@@ -39,8 +39,9 @@ DownloadManager
 	 * This is an async operation so no Download returned
 	 * @param torrent_file
 	 * @throws DownloadException
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public void 
 	addDownload(
 		File 	torrent_file )
@@ -52,8 +53,9 @@ DownloadManager
 	 * This is an async operation so no Download returned
 	 * @param url
 	 * @throws DownloadException
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public void 
 	addDownload(
 		URL		url )
@@ -65,8 +67,9 @@ DownloadManager
 	 * used if defined - exception if they're not 
 	 * @param torrent
 	 * @return
+   *
+   * @since 2.0.8.0
 	 */
-	
 	public Download
 	addDownload(
 		Torrent		torrent )
@@ -80,8 +83,9 @@ DownloadManager
 	 * @param torrent_location
 	 * @param data_location
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public Download
 	addDownload(
 			Torrent		torrent,
@@ -98,8 +102,9 @@ DownloadManager
 	 * @param data_location
 	 * @return
 	 * @throws DownloadException
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public Download
 	addNonPersistentDownload(
 		Torrent		torrent,
@@ -112,8 +117,9 @@ DownloadManager
 	 * Gets the download for a particular torrent, returns null if not found
 	 * @param torrent
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public Download
 	getDownload(
 		Torrent		torrent );
@@ -121,8 +127,9 @@ DownloadManager
 	/**
 	 * Gets all the downloads. Returned in Download "index" order
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public Download[]
 	getDownloads();
 	
@@ -131,16 +138,18 @@ DownloadManager
 	 * @param bSorted true - Returned in Download "index" order.<BR>
 	 *                false - Order not guaranteed.  Faster retrieval.
 	 * @return array of Download object
+   *
+   * @since 2.0.8.0
 	 */
-	
 	public Download[]
 	getDownloads(boolean bSorted);
 
 	/**
 	 * Add a listener that will be informed when a download is added to/removed from Azureus
 	 * @param l
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public void
 	addListener(
 		DownloadManagerListener	l );
@@ -148,8 +157,9 @@ DownloadManager
 	/**
 	 * Removes listeners added above
 	 * @param l
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public void
 	removeListener(
 		DownloadManagerListener	l );

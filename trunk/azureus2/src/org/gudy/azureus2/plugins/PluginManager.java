@@ -37,10 +37,14 @@ PluginManager
 {
   /**
    * No user interface
+   *
+   * @since 2.0.8.0
    */  
 	public static final int	UI_NONE		= 0;
   /**
    * SWT user inferface
+   *
+   * @since 2.0.6.0
    */  
 	public static final int	UI_SWT		= 1;
 	
@@ -49,6 +53,8 @@ PluginManager
    * Property Key: Allow multiple instances.
    * Normally Azureus will only permit a single instance to run per machine.
    * Values for this key are: "true" or "false"
+   *
+   * @since 2.0.7.0
    */  
 	public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";
 	
@@ -56,6 +62,8 @@ PluginManager
    * Runs Azureus
    * @param ui_type Type of user interface to provide.  See UI_* Constants
    * @param properties A list of properties to pass Azureus.  See PR_* constants.
+   *
+   * @since 2.0.6.0
    */  
 	public static void
 	startAzureus(
@@ -68,6 +76,8 @@ PluginManager
   /**
    * Shuts down Azureus
    * @throws PluginException
+   *
+   * @since 2.0.8.0
    */  
 	public static void
 	stopAzureus()
@@ -81,6 +91,8 @@ PluginManager
 	 * restarts azureus and performs any Update actions defined via the plugin "update"
 	 * interface. Currently only works for SWT UIs.
 	 * @throws PluginException
+   *
+   * @since 2.1.0.0
 	 */
 	
 	public static void
@@ -94,6 +106,8 @@ PluginManager
 	/**
 	 * Programatic plugin registration interface
 	 * @param plugin_class	this must implement Plugin
+   *
+   * @since 2.0.6.0
 	 */
 	
 	public static void
@@ -107,6 +121,8 @@ PluginManager
 	 * returns the plugin interface with a given id, or null if not found
 	 * @param id
 	 * @return
+   *
+   * @since 2.1.0.0
 	 */
 	
 	public static PluginInterface
@@ -116,6 +132,10 @@ PluginManager
 		return( PluginManagerImpl.getPluginInterfaceByID(id));
 	}
 	
+	/**
+   *
+   * @since 2.1.0.0
+   */
 	public static PluginInterface
 	getPluginInterfaceByClass(
 		Class		c )
@@ -127,6 +147,8 @@ PluginManager
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
 	 * results as plugin initialisation is non-deterministic.
 	 * @return
+   *
+   * @since 2.1.0.0
 	 */
 	
 	public static PluginInterface[]
@@ -139,6 +161,8 @@ PluginManager
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
 	 * results as plugin initialisation is non-deterministic.
 	 * @return
+   *
+   * @since 2.1.0.0
 	 */
 	
 	public abstract PluginInterface[]

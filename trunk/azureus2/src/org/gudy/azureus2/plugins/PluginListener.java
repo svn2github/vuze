@@ -24,6 +24,7 @@ package org.gudy.azureus2.plugins;
 /**
  * @author parg
  *
+ * @since 2.0.7.0
  */
 public interface 
 PluginListener 

@@ -21,9 +21,10 @@
 
 package org.gudy.azureus2.plugins;
 
-/**
+/** allow config wizard progress to be determined
  * @author parg
  *
+ * @since 2.0.8.0
  */
 public interface 
 PluginEventListener 

@@ -29,6 +29,8 @@ public interface Plugin {
 	/**
 	 * This method is called when the Plugin is loaded by Azureus
 	 * @param pluginInterface the interface that the plugin must use to communicate with Azureus
+   *
+   * @since 2.0.4.0
 	 */
 	
   public void 

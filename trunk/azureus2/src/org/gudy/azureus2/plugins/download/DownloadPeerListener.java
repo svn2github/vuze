@@ -22,8 +22,9 @@
 package org.gudy.azureus2.plugins.download;
 
 /**
- * @author parg
  *
+ * @author parg
+ * @since 2.1.0.0
  */
 
 import org.gudy.azureus2.plugins.peers.*;

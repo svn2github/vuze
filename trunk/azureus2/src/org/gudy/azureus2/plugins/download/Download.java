@@ -82,12 +82,16 @@ Download
 	
 	/** get state from above ST_ set
    * @return ST_ constant
+   *
+   * @since 2.0.7.0
    */
 	public int
 	getState();
 
 	/** When the download state is ERROR this method returns the error details
    * @return
+   *
+   * @since 2.0.7.0
    */
 	public String
 	getErrorStateDetails();
@@ -95,6 +99,8 @@ Download
 	/**
 	 * Index of download. {@link #getPosition()}
 	 * @return	index - 0 based
+   *
+   * @since 2.0.7.0
 	 */
 	public int
 	getIndex();
@@ -102,6 +108,8 @@ Download
 	/**
 	 * Each download has a corresponding torrent
 	 * @return	the download's torrent
+   *
+   * @since 2.0.7.0
 	 */
 	public Torrent
 	getTorrent();
@@ -109,6 +117,8 @@ Download
 	/**
 	 * See lifecylce description above 
 	 * @throws DownloadException
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	initialize()
@@ -118,6 +128,8 @@ Download
 	/**
 	 * See lifecylce description above 
 	 * @throws DownloadException
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	start()
@@ -127,6 +139,8 @@ Download
 	/**
 	 * See lifecylce description above 
 	 * @throws DownloadException
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	stop()
@@ -136,6 +150,8 @@ Download
 	/**
 	 * See lifecylce description above 
 	 * @throws DownloadException
+   *
+   * @since 2.0.8.0
 	 */
 	public void
 	stopAndQueue()
@@ -145,6 +161,8 @@ Download
 	/**
 	 * See lifecylce description above 
 	 * @throws DownloadException
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	restart()
@@ -156,12 +174,16 @@ Download
 	 * When a download is "start-stop locked" it means that seeding rules shouldn't start or
 	 * stop the download as it is under manual control
 	 * @return True if download is locked and should not be started or stopped
+   *
+   * @since 2.0.7.0
 	 */
 	public boolean
 	isStartStopLocked();
 	
   /** Retrieves whether the download is force started
    * @return True if download is force started.  False if not.
+   *
+   * @since 2.0.8.0
    */  
 	public boolean
 	isForceStart();
@@ -170,6 +192,8 @@ Download
    * @param forceStart True - Download will start, despite any Start/Stop rules/limits<BR>
    * False - Turn forcestart state off.  Download may or may not stop, depending on
    * Start/Stop rules/limits
+   *
+   * @since 2.0.8.0
    */  
 	public void
 	setForceStart(boolean forceStart);
@@ -177,6 +201,8 @@ Download
 	/**
 	 * Downloads can either be low or high priority (see PR_ constants above)
 	 * @return the download's priority
+   *
+   * @since 2.0.7.0
 	 */
 	public int
 	getPriority();
@@ -184,6 +210,8 @@ Download
 	/**
 	 * This method sets a download's priority
 	 * @param priority the required priority, see PR_ constants above
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	setPriority(
@@ -192,7 +220,9 @@ Download
 	/** When a download's priority is locked this means that seeding rules should not change
    * a downloads priority, it is under manual control
    * @return whether it is locked or not
-   * @deprecated
+   * @deprecated >= 2.0.8.0 does nothing
+   *
+   * @since 2.0.7.0
    */
 	public boolean
 	isPriorityLocked();
@@ -200,6 +230,8 @@ Download
 	/** Returns the name of the torrent.  Similar to Torrent.getName() and is usefull
    * if getTorrent() returns null and you still need the name.
    * @return name of the torrent
+   *
+   * @since 2.0.8.0
    */
 	public String 
 	getName();
@@ -207,18 +239,24 @@ Download
 	/** Returns the full file path and name of the .torrent file
 	 *
 	 * @return File name of the torrent.
+   *
+   * @since 2.1.0.0
 	 */
   public String getTorrentFileName();
   
   /** Returns the name of the Category
    *
    * @return name of the category
+   *
+   * @since 2.1.0.0
    */
   public String getCategoryName();
   
   /** Sets the category for the download 
    *
    * @param sName Category name
+   *
+   * @since 2.1.0.0
    */
   public void setCategory(String sName);
 
@@ -227,6 +265,8 @@ Download
 	 * component does not want the removal to occur - in this case a "veto" exception is thrown
 	 * @throws DownloadException
 	 * @throws DownloadRemovalVetoException
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	remove()
@@ -237,6 +277,8 @@ Download
 	 * Returns the current position in the queue
 	 * Completed and Incompleted downloads have seperate position sets.  This means
 	 * we can have a position x for Completed, and position x for Incompleted.
+   *
+   * @since 2.0.8.0
 	 */
 	public int
 	getPosition();
@@ -244,6 +286,8 @@ Download
 	/**
 	 * Sets the position in the queue
 	 * Completed and Incompleted downloads have seperate position sets
+   *
+   * @since 2.0.8.0
 	 */
 	public void
 	setPosition(
@@ -251,15 +295,17 @@ Download
 
 	/**
 	 * Moves the download position up one
+   *
+   * @since 2.1.0.0
 	 */
-	
 	public void
 	moveUp();
 	
 	/**
 	 * Moves the download down one position
+   *
+   * @since 2.1.0.0
 	 */
-	
 	public void
 	moveDown();
 	
@@ -268,6 +314,8 @@ Download
 	 * for a download to report OK here but still fail removal.
 	 * @return
 	 * @throws DownloadRemovalVetoException
+   *
+   * @since 2.0.7.0
 	 */
 	public boolean
 	canBeRemoved()
@@ -277,6 +325,8 @@ Download
 	/**
 	 * Gives access to the last announce result received from the tracker for the download
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	public DownloadAnnounceResult
 	getLastAnnounceResult();
@@ -284,6 +334,8 @@ Download
 	/**
 	 * Gives access to the last scrape result received from the tracker for the download
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	public DownloadScrapeResult
 	getLastScrapeResult();
@@ -291,6 +343,8 @@ Download
 	/**
 	 * Gives access to the download's statistics
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	public DownloadStats
 	getStats();
@@ -300,6 +354,8 @@ Download
 	 *
 	 * @return true - persistent<br>
 	 *         false - non-persistent
+   *
+   * @since 2.1.0.0
 	 */
   public boolean
   isPersistent();
@@ -307,6 +363,8 @@ Download
 	/**
 	 * Adds a listener to the download that will be informed of changes in the download's state
 	 * @param l
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	addListener(
@@ -315,6 +373,8 @@ Download
 	/**
 	 * Removes listeners added above
 	 * @param l
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	removeListener(
@@ -323,6 +383,8 @@ Download
 	/**
 	 * Adds a listener that will be informed when the latest announce/scrape results change
 	 * @param l
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	addTrackerListener(
@@ -331,6 +393,8 @@ Download
 	/**
 	 * Removes listeners added above
 	 * @param l
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	removeTrackerListener(
@@ -340,6 +404,8 @@ Download
 	 * Adds a listener that will be informed when a download is about to be removed. This gives
 	 * the implementor the opportunity to veto the removal
 	 * @param l
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	addDownloadWillBeRemovedListener(
@@ -348,6 +414,8 @@ Download
 	/**
 	 * Removes the listener added above
 	 * @param l
+   *
+   * @since 2.0.7.0
 	 */
 	public void
 	removeDownloadWillBeRemovedListener(
@@ -356,8 +424,9 @@ Download
 	/**
 	 * Adds a listener to the download that will be informed of 
 	 * @param l
+   *
+   * @since 2.1.0.0
 	 */
-	
 	public void
 	addPeerListener(
 		DownloadPeerListener	l );
@@ -365,8 +434,9 @@ Download
 	/**
 	 * Removes listeners added above
 	 * @param l
+   *
+   * @since 2.1.0.0
 	 */
-	
 	public void
 	removePeerListener(
 		DownloadPeerListener	l );

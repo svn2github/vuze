@@ -31,6 +31,8 @@ public interface SWTManager
    * embed your calls in a Runnable, and use getDisplay().aSyncExec(Runnable r);
    *
    * @return SWT Display object that Azureus uses
+   *
+   * @since 2.1.0.0
    */
   public Display getDisplay();
 
@@ -38,6 +40,8 @@ public interface SWTManager
    *
    * @param img Image to assign to the object
    * @return a new UIImagetSWT object
+   *
+   * @since 2.1.0.0
    */
   public GraphicSWT createGraphic(Image img);
 
@@ -45,6 +49,8 @@ public interface SWTManager
    * A Plugin might call this method to add a View to Azureus's views
    * The View will be accessible from View > Plugins > View name
    * @param view The PluginView to be added
+   *
+   * @since 2.1.0.2
    */
   public void addView(PluginView view);
 
@@ -53,6 +59,8 @@ public interface SWTManager
    * The View will be accessible from View > Plugins > View name
    * @param view The PluginView to be added
    * @param autoOpen Whether the plugin should auto-open at startup
+   *
+   * @since 2.1.0.2
    */
   public void addView(PluginView view, boolean autoOpen);
 }

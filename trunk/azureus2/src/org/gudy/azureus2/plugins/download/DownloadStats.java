@@ -32,32 +32,36 @@ DownloadStats
 	/**
 	 * Returns an overall string representing the state of the download
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public String
 	getStatus();
 	
 	/**
 	 * Gives access to the directory into which the download is being saved
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public String
 	getDownloadDirectory();
 	
 	/**
 	 * Gives access to the target file or directory that the download is being saved to
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public String
 	getTargetFileOrDir();
 	
 	/**
 	 * returns an general status string for the tracker
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public String
 	getTrackerStatus();
 	
@@ -65,8 +69,9 @@ DownloadStats
 	 * returns a value between 0 and 1000 giving the completion status of the current download
 	 * task (e.g. checking, downloading)
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public int
 	getCompleted();
 	
@@ -91,90 +96,106 @@ DownloadStats
    *                       before of the torrent ST_PREPARING started.  
    *                       Otherwise, same as true.
    * @return 0 - 1000
-   */
+   *
+   * @since 2.0.8.0
+	 */
 	public int
 	getDownloadCompleted(boolean bLive);
 
 	/**
 	 * Gives the number of bytes downloaded
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public long
 	getDownloaded();
 	
 	/**
 	 * Gives the number of bytes uploaded
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public long
 	getUploaded();
 
 	/**
 	 * Gives the number of bytes discarded
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public long
 	getDiscarded();
 	
 	/**
 	 * Gives average number of bytes downloaded in last second 
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public long
 	getDownloadAverage();
 	
 	/**
 	 * Gives average number of bytes uploaded in last second 
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public long
 	getUploadAverage();
 	
 	/**
 	 * Gives average number of bytes computed for torrent in last second 
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public long
 	getTotalAverage();
 	
 	/**
 	 * Gives the elapsed download time as a string
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public String
 	getElapsedTime();
 	
 	/**
 	 * Gives the estimated time to completion as a string
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public String
 	getETA();
 
 	/**
 	 * Gives the number of bytes thrown away due to piece hash check fails
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
-	
 	public long
 	getHashFails();
 	
 	/**
 	 * Gives the share ratio of the torrent in 1000ths (i.e. 1000 = share ratio of 1)
 	 * @return
+   *
+   * @since 2.0.7.0
 	 */
 	public int
 	getShareRatio();
 
-	// in ms
+  /** in ms since epoch
+   *
+   * @since 2.0.8.0
+	 */
 	public long
 	getTimeStarted();
 	
@@ -183,13 +204,17 @@ DownloadStats
    *         started seeding and midnight, January 1, 1970 UTC.  see
    *         SystemTime.getCurrentTime().
    *         -1 is not seeding
-   */		
+   *
+   * @since 2.1.0.0
+	 */
 	public long
 	getTimeStartedSeeding();
 
 	/**
 	 * Gives the currently seen availability of the torrent
 	 * @return
+   *
+   * @since 2.0.8.2
 	 */
 	public float
 	getAvailability();
@@ -199,7 +224,9 @@ DownloadStats
    * number is totalled across sessions.
    *
    * @return -1 if it has never downloaded
-   */
+   *
+   * @since 2.1.0.0
+	 */
 	public long 
 	getSecondsDownloading();
 
@@ -208,7 +235,9 @@ DownloadStats
    * seeding during the download phase.
    *
    * @return -1 if it has never seeded
-   */
+   *
+   * @since 2.1.0.0
+	 */
 	public long 
 	getSecondsOnlySeeding();
 }
