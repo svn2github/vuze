@@ -239,7 +239,7 @@ public class IncomingSocketChannelManager {
                 }
                 catch( Throwable t ) {
                   try {
-                    LGLogger.log( "Incoming TCP connection [" +ic.channel+ "] socket read exception: " +t.getMessage() );
+                    LGLogger.log( "Incoming TCP connection [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] socket read exception: " +t.getMessage() );
                   }
                   catch( Throwable x ) {
                     Debug.out( "Caught exception on incoming exception log:" );
