@@ -122,6 +122,14 @@ public class ConfigurationChecker {
       }
     }
     
+    //if previous config did not use shared port, grab the port
+    if (!COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
+    	int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
+      COConfigurationManager.setParameter("TCP.Listen.Port", lp);
+      COConfigurationManager.setParameter("Server.shared.port", true);
+    }
+    
+    
     if(changed) {
       COConfigurationManager.save();
     }    

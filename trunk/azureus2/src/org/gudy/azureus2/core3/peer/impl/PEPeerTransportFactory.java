@@ -80,15 +80,15 @@ PEPeerTransportFactory
 	public static PEPeerServer
 	createServer()
 	{
-		boolean shared_port 	= COConfigurationManager.getBooleanParameter( "Server.shared.port", true );
+		//boolean shared_port 	= COConfigurationManager.getBooleanParameter( "Server.shared.port", true );
 		
-		if ( shared_port ){
+		//if ( shared_port ){
 			
 			return( new PESharedPortServerImpl());
 			
-		}else{
+		//}else{
 		
-			return( new PEPeerServerImpl());
-		}
+		//	return( new PEPeerServerImpl());
+		//}
 	}
 }

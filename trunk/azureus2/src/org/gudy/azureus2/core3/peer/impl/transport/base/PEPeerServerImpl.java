@@ -47,14 +47,16 @@ PEPeerServerImpl
   public static final int evtErrors = 2;
 
   //  private static final int MAX_CONNECTIONS = 50;
-  private int port;
+  //private int port;
+  int TCPListenPort;
   private ServerSocketChannel sck;
   private boolean bContinue;
   private PEPeerServerAdapter adapter;
 
-  private static int instanceCount = 0;
+  //private static int instanceCount = 0;
 
-  public static boolean portsFree() {
+  /*
+   public static boolean portsFree() {
     int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
 	
 	boolean sp = COConfigurationManager.getBooleanParameter("Server.shared.port", true);
@@ -71,20 +73,21 @@ PEPeerServerImpl
     int highPort = Math.max(lp, hp);
 	 return Math.abs(lowPort - highPort) + 1 > instanceCount;
    }
+   */
 
 	 public static PEPeerServer
 	 create()
 	 {
 		 synchronized( PEPeerServerImpl.class ){
 			
-			 if ( portsFree()){
+			 //if ( portsFree()){
 				
 				 return( new PEPeerServerImpl());
 				
-			 }else{
+			 //}else{
 				
-				 return( null );
-			 }
+			 //	 return( null );
+			 //}
 		 }
 	 }
 	
@@ -92,35 +95,37 @@ PEPeerServerImpl
     super("PEPeerServer");
     //Will create a Server on any socket from 6881 to 6889
     String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
-    int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
-    int hp = COConfigurationManager.getIntParameter("High Port", 6889);
-    int lowPort = Math.min(lp, hp);
-    int highPort = Math.max(lp, hp);
-    if (COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
+    TCPListenPort = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
+    
+    //int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
+    //int hp = COConfigurationManager.getIntParameter("High Port", 6889);
+    //int lowPort = Math.min(lp, hp);
+    //int highPort = Math.max(lp, hp);
+    //if (COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
       //Use real Low Port even if it's not the real lowest port
-      port = lp;
-    } else  {
+      //port = lp;
+    //} else  {
       //Otherwise, use the lowest port
-    	port = lowPort;
-    }
+    	//port = lowPort;
+    //}
     sck = null;
     bContinue = true;
     setPriority(Thread.MIN_PRIORITY);
-    while (sck == null && port <= highPort) {
+    //while (sck == null && port <= highPort) {
       try {
         sck = ServerSocketChannel.open();
         
         //this should only be set when using a single shared port config
-        if (COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
+        //if (COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
           // Allow the server socket to be immediately re-used, if not yet released by the OS
           sck.socket().setReuseAddress(true);
-        }
+        //}
         
         if (bindIP.length() < 7) {
-           sck.socket().bind(new InetSocketAddress(port));
+           sck.socket().bind(new InetSocketAddress(TCPListenPort));
         }
         else {
-           sck.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), port));
+           sck.socket().bind(new InetSocketAddress(InetAddress.getByName(bindIP), TCPListenPort));
         }
       }
       catch (Exception e) {
@@ -128,23 +133,23 @@ PEPeerServerImpl
           componentID,
           evtErrors,
           LGLogger.ERROR,
-          "PEPeerServer was unable to bind port " + port + ", reason : " + e);
-        port++;
+          "PEPeerServer was unable to bind port " + TCPListenPort + ", reason : " + e);
+        //port++;
         sck = null;
       }
-    }
+    //}
 
     if (sck != null) {
-      LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "PEPeerServer is bound on port " + port);
-      instanceCount++;
+      LGLogger.log(componentID, evtLyfeCycle, LGLogger.INFORMATION, "PEPeerServer is bound on port " + TCPListenPort);
+      //instanceCount++;
     }
     else {
       LGLogger.log(
         componentID,
         evtLyfeCycle,
         LGLogger.INFORMATION,
-        "BT was unable to bind on a port from " + lowPort + " to " + highPort);
-      port = 0;
+        "BT was unable to bind to port " + TCPListenPort);
+      //port = 0;
     }
   }
 
@@ -219,12 +224,12 @@ PEPeerServerImpl
       		LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Error catched while stopping server : " + e);
     	}
     	
-    	instanceCount--;
+    	//instanceCount--;
   	}
   
 
   public int getPort() {
-    return port;
+    return TCPListenPort;
   }
 
   public void 

@@ -74,10 +74,11 @@ public class ConfigurationDefaults {
     def.put("Enable incremental file creation", new Long(0));
     // Lower port to use for BT ("Low Port")
     //def.put("Core_iLowPort", new Long(6881));
-    def.put("Low Port", new Long(6881));
+    //def.put("Low Port", new Long(6881));
+    def.put("TCP.Listen.Port", new Long(6881));
     // Upper port to use for BT ("High Port")
     //def.put("Core_iHighPort", new Long(6889));
-    def.put("High Port", new Long(6889));
+    //def.put("High Port", new Long(6889));
     // Maximal active torrents ("max active torrents")
     //def.put("Core_iMaxActiveTorrents", new Long(4));
     def.put("max active torrents", new Long(4));

@@ -52,23 +52,26 @@ public class NatPanel extends AbstractWizardPanel {
 
   public class Checker extends Thread {
 
-    private int lowPort;
-    private int highPort;
+    //private int lowPort;
+    //private int highPort;
+    private int TCPListenPort;
 
     private boolean bContinue;
 
-    public Checker(int lowPort, int highPort) {
+    //public Checker(int lowPort, int highPort) {
+    public Checker(int tcp_listen_port) {
       super("NAT Checker");
-      this.lowPort = lowPort;
-      this.highPort = highPort;
+      //this.lowPort = lowPort;
+      //this.highPort = highPort;
+      this.TCPListenPort = tcp_listen_port;
       this.bContinue = true;
     }
 
     public void run() {
-      if (lowPort <= highPort && (highPort-lowPort < 10)) {
-        for (int port = lowPort; port <= highPort && bContinue; port++) {
-          printMessage(MessageText.getString("configureWizard.nat.testing") + " " + port + " ... ");
-          int portResult = NatChecker.test(port);
+      //if (lowPort <= highPort && (highPort-lowPort < 10)) {
+        //for (int port = lowPort; port <= highPort && bContinue; port++) {
+          printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
+          int portResult = NatChecker.test(TCPListenPort);
           switch (portResult) {
             case NatChecker.NAT_OK :
               printMessage(MessageText.getString("configureWizard.nat.ok") + "\n");
@@ -77,14 +80,18 @@ public class NatPanel extends AbstractWizardPanel {
               printMessage(MessageText.getString("configureWizard.nat.ko") + "\n");
               bContinue = false;
               break;
+             case NatChecker.NAT_ALREADY_LISTENING :
+              printMessage(MessageText.getString("configureWizard.nat.already_listening") + "\n");
+              bContinue = false;
+              break;
             default :
               printMessage(MessageText.getString("configureWizard.nat.unable") + "\n");
               break;
           }
-        }
-      }else {
-        printMessage(MessageText.getString("configureWizard.nat.tooManyPorts") + "\n");
-      }
+        //}
+      //}else {
+      //  printMessage(MessageText.getString("configureWizard.nat.tooManyPorts") + "\n");
+      //}
       enableNext();
     }
 
@@ -120,14 +127,14 @@ public class NatPanel extends AbstractWizardPanel {
     Messages.setLanguageText(label, "configureWizard.nat.message");
 
     label = new Label(panel, SWT.NULL);
-    Messages.setLanguageText(label, "configureWizard.nat.serverlow");
+    Messages.setLanguageText(label, "configureWizard.nat.server.tcp_listen_port");
 
-    final Text textServerLow = new Text(panel, SWT.BORDER);
+    final Text textServerTCPListen = new Text(panel, SWT.BORDER);
     gridData = new GridData();
     gridData.widthHint = 100;
-    textServerLow.setLayoutData(gridData);
-    textServerLow.setText("" + ((ConfigureWizard) wizard).serverMinPort);
-    textServerLow.addListener(SWT.Verify, new Listener() {
+    textServerTCPListen.setLayoutData(gridData);
+    textServerTCPListen.setText("" + ((ConfigureWizard) wizard).serverTCPListenPort);
+    textServerTCPListen.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
         String text = e.text;
         char[] chars = new char[text.length()];
@@ -140,13 +147,14 @@ public class NatPanel extends AbstractWizardPanel {
         }
       }
     });
-    textServerLow.addListener(SWT.Modify, new Listener() {
+    textServerTCPListen.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event e) {
-        final int lowPort = Integer.parseInt(textServerLow.getText());
-        ((ConfigureWizard) wizard).serverMinPort = lowPort;
+        final int TCPListenPort = Integer.parseInt(textServerTCPListen.getText());
+        ((ConfigureWizard) wizard).serverTCPListenPort = TCPListenPort;
       }
     });
 
+    /*
     label = new Label(panel, SWT.NULL);
     Messages.setLanguageText(label, "configureWizard.nat.serverhigh");
 
@@ -193,7 +201,7 @@ public class NatPanel extends AbstractWizardPanel {
 	Messages.setLanguageText(label, "configureWizard.nat.sharePort");
 	 
     textServerHigh.setEnabled(!((ConfigureWizard)wizard).serverSharePort);
-
+    */
 
     bTest = new Button(panel, SWT.PUSH);
     Messages.setLanguageText(bTest, "configureWizard.nat.test");
@@ -224,9 +232,10 @@ public class NatPanel extends AbstractWizardPanel {
         textResults.setText("");
         ConfigureWizard cw = (ConfigureWizard) wizard;
         
-        int lowPort = cw.serverMinPort;
-        int highPort = cw.serverSharePort?cw.serverMinPort:cw.serverMaxPort;
-        checker = new Checker(lowPort, highPort);
+        //int lowPort = cw.serverMinPort;
+        //int highPort = cw.serverSharePort?cw.serverMinPort:cw.serverMaxPort;
+        int TCPListenPort = cw.serverTCPListenPort;
+        checker = new Checker(TCPListenPort);
         checker.start();
       }
     });

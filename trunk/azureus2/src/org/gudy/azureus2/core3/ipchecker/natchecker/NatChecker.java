@@ -38,6 +38,7 @@ public class NatChecker {
   public static final int NAT_OK = 1;
   public static final int NAT_KO = 2;
   public static final int NAT_UNABLE = 3;
+  public static final int NAT_ALREADY_LISTENING = 4;
   
   private static final String[] urls = {
       "http://www.gudy.org/azureus/checkNat2.php"         
@@ -85,7 +86,8 @@ public class NatChecker {
       }
     }
     else {
-      return NAT_UNABLE;
+        if (server.isAlreadyListening()) return NAT_ALREADY_LISTENING;
+        else return NAT_UNABLE;
     }
   }
   

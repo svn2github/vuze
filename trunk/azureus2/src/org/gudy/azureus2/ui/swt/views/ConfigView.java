@@ -687,31 +687,10 @@ public class ConfigView extends AbstractIView {
     new StringParameter(gServer, "Bind IP", "").setLayoutData(gridData); //$NON-NLS-1$ //$NON-NLS-2$
     
     label = new Label(gServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.serverportrange"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "ConfigView.label.serverport"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
-    new IntParameter(gServer, "Low Port", 6881).setLayoutData(gridData); //$NON-NLS-1$
-
-    Label lDash = new Label(gServer, SWT.NULL);
-    lDash.setText(" - ");
-
-    gridData = new GridData();
-    gridData.widthHint = 40;
-    IntParameter high_port = new IntParameter(gServer, "High Port", 6889);
-    high_port.setLayoutData(gridData); //$NON-NLS-1$
-
-    label = new Label(gServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.serverportshared"); //$NON-NLS-1$
-    gridData = new GridData();
-    gridData.widthHint = 40;
-    BooleanParameter ssp = new BooleanParameter(gServer, "Server.shared.port", true);
-    ssp.setLayoutData(gridData); //$NON-NLS-1$
-
-    Control[] controls = new Control[2];
-    controls[0] = lDash;
-    controls[1] = high_port.getControl();
-    IAdditionalActionPerformer grayHighPort = new ChangeSelectionActionPerformer(controls, true);
-    ssp.setAdditionalActionPerformer(grayHighPort);
+    new IntParameter(gServer, "TCP.Listen.Port", 6881).setLayoutData(gridData); //$NON-NLS-1$
 
 	
     itemServer.setControl(gServer);

@@ -23,6 +23,9 @@ package org.gudy.azureus2.core3.ipchecker.natchecker;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.io.IOException;
+
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * @author Olivier
@@ -30,21 +33,29 @@ import java.net.Socket;
  */
 public class NatCheckerServer extends Thread{
     
-    int port;
-    String check;
-    ServerSocket server;
-    boolean valid;
+    private String check;
+    private ServerSocket server;
+    private boolean valid = false;
+    private boolean isAlreadyListening = false;
     
-    boolean bContinue;
+    private boolean bContinue = true;
     
-    public NatCheckerServer(int port,String check) {     
+    public NatCheckerServer(int port, String check) {     
       super("Nat Checker Server");
       try {
-        this.port = port;
         this.check = check;
         server = new ServerSocket(port);
-        bContinue = true;
         valid = true;
+      
+      } catch (IOException ioe) {
+      	int confPort = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
+      	if (port == confPort) {
+            //test port and currently-configured listening port
+            //are the same, so testing not possible
+            valid = false;
+            isAlreadyListening = true;
+      	}
+        
       } catch(Exception e) {
         //Do nothing;
       }      
@@ -53,8 +64,15 @@ public class NatCheckerServer extends Thread{
     public void run() {
       while(bContinue) {
         try {
-          Socket sck = server.accept();
-          sck.getOutputStream().write(check.getBytes());
+          if (isAlreadyListening) {
+            //already open, just NOOP loop sleep
+            Thread.sleep(20);
+          }
+          else {
+            //listen for accept
+          	Socket sck = server.accept();
+          	sck.getOutputStream().write(check.getBytes());
+          }
         } catch(Exception e) {
           bContinue = false;
         }
@@ -64,6 +82,8 @@ public class NatCheckerServer extends Thread{
     public boolean isValid() {
       return this.valid;
     }
+    
+    public boolean isAlreadyListening() { return this.isAlreadyListening; }
     
     public void stopIt() {
       try {
