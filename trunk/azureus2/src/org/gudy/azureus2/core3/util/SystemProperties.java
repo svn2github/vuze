@@ -24,8 +24,7 @@ public class SystemProperties {
   private static final String WIN_DEFAULT = "Application Data";
   private static final String OSX_DEFAULT = "Library";
   
-  private static String user_dir_win = null;
-  private static String user_path = null;
+   private static String user_path = null;
   
   
   /**
@@ -57,7 +56,9 @@ public class SystemProperties {
     String OS = System.getProperty("os.name").toLowerCase();
     
     if ( OS.indexOf("windows") >= 0 ) {
-      if ( user_dir_win == null && !home_overridden ) {
+      String user_dir_win = null;
+      
+      if ( !home_overridden ) {
         user_dir_win = getEnvironmentalVariable( "APPDATA" );
       }
       
