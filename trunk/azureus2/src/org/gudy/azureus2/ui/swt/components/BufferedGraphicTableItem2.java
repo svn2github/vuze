@@ -340,6 +340,10 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItem {
     bounds.height -= (marginHeight * 2);
     bounds.x += marginWidth;
     bounds.width -= (marginWidth * 2);
+    
+    if (bounds.width <= 0 || bounds.height <= 0)
+      return null;
+
     return bounds;
   }
   
