@@ -1,5 +1,5 @@
 /*
- * Created on 23-Jun-2004
+ * Created on 08-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -28,46 +28,9 @@ package org.gudy.azureus2.plugins.torrent;
  */
 
 public interface 
-TorrentAttribute 
+TorrentAttributeListener 
 {
-	public static final String	TA_CATEGORY	= "Category";
-
-	public String
-	getName();
-	
-		/**
-		 * Returns the currently defined values for this attribute
-		 * @return
-		 */
-	
-	public String[]
-	getDefinedValues();
-	
-		/**
-		 * Adds a new value to the attribute set
-		 * @param name
-		 */
-	
 	public void
-	addDefinedValue(
-		String		name );
-	
-		/**
-		 * Removes a value from the attribute set
-		 * @param name
-		 */
-	
-	public void
-	removeDefinedValue(
-		String		name );
-	
-	public void
-	addTorrentAttributeListener(
-		TorrentAttributeListener	l );
-	
-	public void
-	removeTorrentAttributeListener(
-		TorrentAttributeListener	l );
-	
-	
+	event(
+		TorrentAttributeEvent	ev );
 }

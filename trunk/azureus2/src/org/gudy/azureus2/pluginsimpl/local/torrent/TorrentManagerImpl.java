@@ -70,6 +70,7 @@ TorrentManagerImpl
 	protected
 	TorrentManagerImpl()
 	{
+
 	}
 	
 	public TorrentDownloader

@@ -32,11 +32,97 @@ import java.util.*;
 import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.core3.category.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 TorrentAttributeImpl
 	implements TorrentAttribute
 {
+	private List	listeners = new ArrayList();
+	
+	protected
+	TorrentAttributeImpl()
+	{
+		CategoryManager.addCategoryManagerListener(
+				new CategoryManagerListener()
+				{
+					public void
+					categoryAdded(
+						final Category category )
+					{
+						TorrentAttributeEvent	ev = 
+							new TorrentAttributeEvent()
+							{
+								public int
+								getType()
+								{
+									return( TorrentAttributeEvent.ET_ATTRIBUTE_VALUE_ADDED );
+								}
+							
+								public TorrentAttribute
+								getAttribte()
+								{
+									return( TorrentAttributeImpl.this );
+								}
+								
+								public Object
+								getData()
+								{
+									return( category.getName());
+								}
+							};
+							
+						for (int i=0;i<listeners.size();i++){
+							
+							try{
+								((TorrentAttributeListener)listeners.get(i)).event( ev );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+						
+					public void
+					categoryRemoved(
+						final Category category )
+					{
+						TorrentAttributeEvent	ev = 
+							new TorrentAttributeEvent()
+							{
+								public int
+								getType()
+								{
+									return( TorrentAttributeEvent.ET_ATTRIBUTE_VALUE_REMOVED );
+								}
+							
+								public TorrentAttribute
+								getAttribte()
+								{
+									return( TorrentAttributeImpl.this );
+								}
+								
+								public Object
+								getData()
+								{
+									return( category.getName());
+								}
+							};
+							
+						for (int i=0;i<listeners.size();i++){
+							
+							try{
+								((TorrentAttributeListener)listeners.get(i)).event( ev );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}					}
+				});
+	}
+	
 	public String
 	getName()
 	{
@@ -65,5 +151,39 @@ TorrentAttributeImpl
 		v.toArray( res );
 		
 		return( res );
+	}
+	
+	public void
+	addDefinedValue(
+		String		name )
+	{
+		CategoryManager.createCategory( name );
+	}
+	
+	
+	public void
+	removeDefinedValue(
+		String		name )
+	{
+		Category cat = CategoryManager.getCategory( name );
+		
+		if ( cat != null ){
+			
+			CategoryManager.removeCategory( cat );
+		}
+	}
+	
+	public void
+	addTorrentAttributeListener(
+		TorrentAttributeListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeTorrentAttributeListener(
+		TorrentAttributeListener	l )
+	{
+		listeners.remove( l );
 	}
 }
