@@ -224,6 +224,12 @@ public class PeerSocket extends PeerConnection {
     //2. Close the socket
     if (socket != null) {
       try {
+        System.out.print("isConnected:" + socket.isConnected());
+        System.out.print(" isConnectionPending:" + socket.isConnectionPending());
+        System.out.print(" isOpen:" + socket.isOpen());
+        System.out.print(" isBound:" + socket.socket().isBound());
+        System.out.print(" isInputShutdown:" + socket.socket().isInputShutdown());
+        System.out.println(" isOutputShutdown:" + socket.socket().isOutputShutdown());
         socket.close();
       }
       catch (Exception e) {
