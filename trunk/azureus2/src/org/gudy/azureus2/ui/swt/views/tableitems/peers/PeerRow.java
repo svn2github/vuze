@@ -125,6 +125,20 @@ public class PeerRow implements SortableItem  {
     valid = true;
   }
   
+  public void locationChanged(int iStartColumn) {
+  	if (table == null || table.isDisposed())
+  		return;
+  	if (row == null || row.isDisposed())
+  		return;
+
+  	Iterator iter = items.iterator();
+  	while(iter.hasNext()) {
+  		BufferedTableItem item = (BufferedTableItem) iter.next();
+  		if (item.getPosition() > iStartColumn)
+  		  item.locationChanged();
+  	}
+  }
+
   /** Calls doPaint for each BufferentTableItem in row if that item 
       has needsPainting set to true.
     */

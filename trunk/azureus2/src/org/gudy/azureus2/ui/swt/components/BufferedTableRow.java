@@ -237,4 +237,10 @@ BufferedTableRow
       return null;
     return item.getParent();
   }
+  
+  public Color getBackground() {
+    if(item == null || item.isDisposed())
+      return null;
+    return item.getBackground();
+  }
 }

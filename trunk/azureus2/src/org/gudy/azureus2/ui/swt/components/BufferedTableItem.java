@@ -63,6 +63,10 @@ public abstract class BufferedTableItem {
       return row.setForeground(position, color);
     return false;
   }
+  
+  public Color getBackground() {
+    return row.getBackground();
+  }
 
   public Rectangle getBounds() {
     if(position != -1)
@@ -72,6 +76,10 @@ public abstract class BufferedTableItem {
   
   public Table getTable() {
     return row.getTable();
+  }
+
+  public TableItem getTableItem() {
+    return row.getItem();
   }
   
   public abstract void refresh();
@@ -90,6 +98,12 @@ public abstract class BufferedTableItem {
    */
   public void doPaint(GC gc) {
   } 
+  
+  /** Column location (not position) changed.  Usually due to a resize of
+   * a column in a position prior to this one.
+   */
+  public void locationChanged() {
+  }
 
   public int getPosition() {
     return position;
