@@ -47,7 +47,7 @@ public class Main {
        startServer.start();
        gm = new GlobalManager();
        mainWindow = new MainWindow(gm,startServer);
-       if(args.length > 0)
+       if(args.length != 0)
         mainWindow.openTorrent(args[0]);
        mainWindow.waitForClose();
      }
@@ -57,7 +57,7 @@ public class Main {
   }
   
   public void useParam(String args[]) {
-    if(args.length > 0) {
+    if(args.length != 0) {
       if(args[0].equals("args")) {
         if(args.length > 1)
         {
