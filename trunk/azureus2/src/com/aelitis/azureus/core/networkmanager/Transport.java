@@ -31,12 +31,10 @@ import java.nio.channels.SocketChannel;
  * Represents a peer transport connection (eg. a network socket).
  */
 public class Transport {
-  
-  private static boolean enable_efficient_write = true;
-  
+  private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private final SocketChannel socket_channel;
   
-  
+
   protected Transport( SocketChannel channel ) {
     this.socket_channel = channel;
   }
