@@ -15,7 +15,7 @@ import org.gudy.azureus2.core.DownloadManager;
  * @author Olivier
  * 
  */
-public class ManagerView implements IView {
+public class ManagerView extends AbstractIView {
 
   DownloadManager manager;
   CTabFolder folder;

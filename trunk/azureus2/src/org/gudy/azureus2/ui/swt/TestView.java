@@ -14,7 +14,7 @@ import org.eclipse.swt.widgets.TableItem;
  * @author Olivier
  * 
  */
-public class TestView implements IView {
+public class TestView extends AbstractIView {
 
    String title;
    Table table;

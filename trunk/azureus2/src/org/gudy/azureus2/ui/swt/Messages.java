@@ -6,8 +6,20 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.Widget;
 
 /**
  * @author Arbeiten
@@ -19,8 +31,9 @@ public class Messages {
 
   private static final String BUNDLE_NAME = "org.gudy.azureus2.ui.swt.MessagesBundle"; //$NON-NLS-1$
 
-  private static final ResourceBundle RESOURCE_BUNDLE =
-    ResourceBundle.getBundle(BUNDLE_NAME);
+  private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
+  public static Locale LOCALE_ENGLISH = new Locale("en", "EN"); 
+  public static Locale LOCALE_DEFAULT = new Locale("", ""); // == english 
 
   /**
    * 
@@ -39,6 +52,81 @@ public class Messages {
       return RESOURCE_BUNDLE.getString(key);
     } catch (MissingResourceException e) {
       return '!' + key + '!';
+    }
+  }
+  
+  public static boolean isCurrentLocale(Locale locale) {
+    if(LOCALE_ENGLISH.equals(locale))
+      locale = LOCALE_DEFAULT;
+    return RESOURCE_BUNDLE.getLocale().equals(locale);
+  }
+  
+  public static boolean changeLocale(Locale newLocale) {
+    if(LOCALE_ENGLISH.equals(newLocale))
+      newLocale = LOCALE_DEFAULT;
+    if(! newLocale.equals(RESOURCE_BUNDLE.getLocale())) {
+      ResourceBundle newResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, newLocale);
+      if(newResourceBundle.getLocale().equals(newLocale)) { 
+        RESOURCE_BUNDLE = newResourceBundle;
+        Locale.setDefault(newLocale);
+        return true; 
+      }
+      else
+        System.out.println("Messages: no message properties for Locale " + newLocale.getDisplayLanguage());
+    }
+    return false; 
+  }
+
+  public static void updateLanguageForControl(Widget composite) {
+    if(composite == null)
+      return;
+  
+    updateLanguageFromData(composite);
+  
+    if(composite instanceof Composite) {
+      Composite group = (Composite) composite;
+      Control[] controls = group.getChildren();
+      for (int i = 0; i < controls.length; i++) {
+        updateLanguageForControl(controls[i]);
+      }
+      if(composite instanceof Table) {
+        Table table = (Table) composite;
+        TableColumn[] columns = table.getColumns();
+        for (int i = 0; i < columns.length; i++) {
+          updateLanguageFromData(columns[i]);
+        }
+        updateLanguageForControl(table.getMenu());
+      }
+    } else if(composite instanceof Menu) {
+      Menu menu = (Menu) composite;
+      MenuItem[] items = menu.getItems();
+      for (int i = 0; i < items.length; i++) {
+        updateLanguageFromData(items[i]);
+      } 
+    }
+//    composite.update();
+//    composite.redraw();
+  }
+
+  public static void setLanguageText(Widget widget, String key) {
+    widget.setData(key);
+    updateLanguageFromData(widget);
+  }
+
+  public static void updateLanguageFromData(Widget widget) {
+    if(widget.getData() != null) {
+      if(widget instanceof MenuItem)
+        ((MenuItem) widget).setText(getString((String)widget.getData()));
+      else if(widget instanceof TableColumn)
+        ((TableColumn) widget).setText(Messages.getString((String)widget.getData()));
+      else if(widget instanceof Label)
+        ((Label) widget).setText(Messages.getString((String)widget.getData()));
+      else if(widget instanceof Group)
+        ((Group) widget).setText(Messages.getString((String)widget.getData()));
+      else if(widget instanceof Button)
+        ((Button) widget).setText(getString((String)widget.getData()));
+      else
+        System.out.println("No cast for " + widget.getClass().getName());
     }
   }
 }
