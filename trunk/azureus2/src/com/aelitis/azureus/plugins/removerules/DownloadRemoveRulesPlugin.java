@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.global.removerules;
+package com.aelitis.azureus.plugins.removerules;
 
 /**
  * @author parg

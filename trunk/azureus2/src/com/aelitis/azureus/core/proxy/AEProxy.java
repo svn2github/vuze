@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.proxy;
+package com.aelitis.azureus.core.proxy;
 
 /**
  * @author parg

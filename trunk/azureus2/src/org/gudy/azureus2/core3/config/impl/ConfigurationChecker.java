@@ -26,11 +26,12 @@ import java.util.HashMap;
 import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.proxy.AEProxy;
-import org.gudy.azureus2.core3.proxy.AEProxyFactory;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
+
+import com.aelitis.azureus.core.proxy.AEProxy;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 /**
  * 

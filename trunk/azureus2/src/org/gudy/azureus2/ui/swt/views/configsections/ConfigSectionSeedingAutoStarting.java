@@ -39,8 +39,9 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 
 /** Auto Starting specific options
  * @author TuxPaper

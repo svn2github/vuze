@@ -32,7 +32,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
+
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 
 /** First Priority Specific options.
  * @author TuxPaper

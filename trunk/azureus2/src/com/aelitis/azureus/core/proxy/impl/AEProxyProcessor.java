@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.proxy.impl;
+package com.aelitis.azureus.core.proxy.impl;
 
 import java.io.*;
 import java.net.*;

@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.proxy.impl;
+package com.aelitis.azureus.core.proxy.impl;
 
 import java.util.*;
 import java.net.InetAddress;
@@ -30,13 +30,14 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.proxy.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
+import com.aelitis.azureus.core.proxy.AEProxy;
+import com.aelitis.azureus.core.proxy.AEProxyException;
 
 /**
  * @author parg

@@ -64,9 +64,9 @@ PluginInitializer
 
   private String[][]	builtin_plugins = { 
    			{	 PluginManagerDefaults.PID_START_STOP_RULES, 
-   					"org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin", "<internal>", "" },
+   					"com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin", "<internal>", "" },
    			{	 PluginManagerDefaults.PID_REMOVE_RULES, 
-   					"org.gudy.azureus2.core3.global.removerules.DownloadRemoveRulesPlugin", "<internal>", "" },
+   					"com.aelitis.azureus.plugins.removerules.DownloadRemoveRulesPlugin", "<internal>", "" },
     		{	 PluginManagerDefaults.PID_SHARE_HOSTER, 
    					"org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin", "<internal>", "ShareHoster" },
     		{    PluginManagerDefaults.PID_DEFAULT_TRACKER_WEB, 

@@ -20,9 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.core3.proxy;
-
-import org.gudy.azureus2.core3.proxy.impl.AEProxyImpl;
+package com.aelitis.azureus.core.proxy;
 
 /**
  * @author parg
@@ -30,34 +28,21 @@ import org.gudy.azureus2.core3.proxy.impl.AEProxyImpl;
  */
 
 public class 
-AEProxyFactory 
+AEProxyException 
+	extends Exception
 {
-		/**
-		 * create a proxy on free port
-		 * @param connect_timeout	0 = no timeout
-		 * @param read_timeout		0 = no timeout
-		 * @return
-		 * @throws AEProxyException
-		 */
-	
-	public static AEProxy
-	create(
-		long		connect_timeout,
-		long		read_timeout )
-	
-		throws AEProxyException
+	public
+	AEProxyException(
+		String		str )
 	{
-		return( create(0,connect_timeout,read_timeout));
+		super(str);
 	}
 	
-	public static AEProxy
-	create(
-		int			port,
-		long		connect_timeout,
-		long		read_timeout )	
-	
-		throws AEProxyException
+	public
+	AEProxyException(
+		String		str,
+		Throwable	e )
 	{
-		return( new AEProxyImpl(port,connect_timeout,read_timeout));
+		super(str,e);
 	}
 }

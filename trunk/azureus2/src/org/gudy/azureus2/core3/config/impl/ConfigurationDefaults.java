@@ -154,7 +154,7 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iMinPeersToBoostNoSeeds", new Long(1));
     def.put("StartStopManager_iMinSpeedForActiveDL", new Long(512));
     def.put("StartStopManager_iMinSpeedForActiveSeeding", new Long(512));
-    def.put("StartStopManager_iRankType", new Long(org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.RANK_SPRATIO));
+    def.put("StartStopManager_iRankType", new Long(com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.RANK_SPRATIO));
     def.put("StartStopManager_iRankTypeSeedFallback", new Long(0));
     def.put("StartStopManager_bAutoReposition", new Long(0));
     def.put("StartStopManager_iMinSeedingTime", new Long(60*3));
@@ -162,7 +162,7 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iIgnoreSeedCount", new Long(0));
     def.put("StartStopManager_bPreferLargerSwarms", new Long(1));
     def.put("StartStopManager_bDebugLog", new Long(0));
-    def.put("StartStopManager_iFirstPriority_Type", new Long(org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.FIRSTPRIORITY_ANY));
+    def.put("StartStopManager_iFirstPriority_Type", new Long(com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.FIRSTPRIORITY_ANY));
     def.put("StartStopManager_iFirstPriority_ShareRatio", new Long(500));
     def.put("StartStopManager_iFirstPriority_SeedingMinutes", new Long(0));
     def.put("StartStopManager_iFirstPriority_DLMinutes", new Long(0));
