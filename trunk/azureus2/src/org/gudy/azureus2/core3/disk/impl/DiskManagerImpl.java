@@ -1820,7 +1820,6 @@ DiskManagerImpl
 				previousFilesLength = offset;
 			}
 			
-			
 			buffer.returnToPool();
 			
 			return( true );
