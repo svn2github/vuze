@@ -72,7 +72,7 @@ public class SWTUpdateChecker implements UpdatableComponent
           List downloaders =  new ArrayList();
           for(int i = 0 ; i < mirrors.length ; i++) {
             try {
-              downloaders.add(factory.create(new URL(mirrors[i])));
+              downloaders.add(factory.getSuffixBasedDownloader(factory.create(new URL(mirrors[i]))));
             } catch(MalformedURLException e) {
               //Do nothing
               LGLogger.log("Cannot use URL " + mirrors[i] + " (not valid)");
