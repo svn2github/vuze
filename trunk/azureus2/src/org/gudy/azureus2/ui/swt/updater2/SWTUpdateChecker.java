@@ -43,7 +43,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.updater.SWTDownloader;
 
 /**
  * @author Olivier Chalouhi
@@ -71,7 +70,7 @@ public class SWTUpdateChecker implements UpdatableComponent
   public void checkForUpdate(final UpdateChecker checker) {
   	try{
 	    SWTVersionGetter versionGetter = new SWTVersionGetter();
-	    if( versionGetter.needsUpdate() && ! "1".equals(System.getProperty("azureus.skipSWTcheck"))) {
+	    if( versionGetter.needsUpdate() && System.getProperty("azureus.skipSWTcheck") == null ) {
         
         String[] mirrors = versionGetter.getMirrors();
 	      
