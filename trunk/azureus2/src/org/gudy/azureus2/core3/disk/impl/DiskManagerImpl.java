@@ -831,7 +831,7 @@ DiskManagerImpl
 			fileInfo.setDownloaded(0);
 			fileInfo.setFile(f);
 			fileInfo.setRaf(raf);
-			fileInfo.setAccessmode(DiskManagerFileInfoImpl.WRITE);
+			fileInfo.setAccessmode(DiskManagerFileInfo.WRITE);
 			files[i] = fileInfo;
 
 			//setup this files RAF reference
@@ -1203,9 +1203,6 @@ DiskManagerImpl
 				try {
 					RandomAccessFile raf = tempPiece.getFile().getRaf();
 					FileChannel fc = raf.getChannel();
-          
-          
-if (fileOffset < 0) System.out.println("fileOffset=" + fileOffset);
 
 					fc.position(fileOffset + (offset - previousFilesLength));
 					int realLimit = buffer.limit();
