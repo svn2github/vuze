@@ -113,8 +113,7 @@ COConfigurationManager
 	
 	public static String
 	getDirectoryParameter(
-		String		_name )
-		
+		String		_name )		
 		throws IOException
 	{
 		return( ConfigurationManager.getInstance().getDirectoryParameter( _name ));

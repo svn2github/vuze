@@ -242,5 +242,13 @@ public class NatPanel extends AbstractWizardPanel {
       }
     });
   }
+  
+  public boolean isNextEnabled() {
+    return true;
+  }
+  
+  public IWizardPanel getNextPanel() {
+    return new FilePanel(((ConfigureWizard)wizard),this);
+  }
 
 }

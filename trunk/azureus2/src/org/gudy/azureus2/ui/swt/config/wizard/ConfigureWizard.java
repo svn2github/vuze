@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.config.wizard;
 
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 /**
@@ -40,11 +41,20 @@ public class ConfigureWizard extends Wizard {
   //Server / NAT Settings
   int serverMinPort = 6881;
   int serverMaxPort = 6889;
+  
+  //Files / Torrents
+  String torrentPath;
+  boolean fastResume = true;
  
 
   public ConfigureWizard(Display display) {
     super(display,"configureWizard.title");
     WelcomePanel panel = new WelcomePanel(this,null);
     this.setFirstPanel(panel);
+    try  {
+      torrentPath = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
+    } catch(Exception e) {
+      torrentPath = ""; 
+    }
   }
 }

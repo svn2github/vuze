@@ -165,8 +165,6 @@ public class IrcView extends AbstractIView implements IrcListener {
           return;
         ScrollBar sb = consoleText.getVerticalBar();
 
-        //System.out.println(sb.getSelection()+ "/" + (sb.getMaximum() - sb.getThumb()));
-        boolean autoScroll = sb.getSelection() == (sb.getMaximum() - sb.getThumb());
         int nbLines = consoleText.getLineCount();
         if (nbLines > 4096 + 256)
           consoleText.replaceTextRange(0, consoleText.getOffsetAtLine(256), ""); //$NON-NLS-1$
@@ -175,8 +173,7 @@ public class IrcView extends AbstractIView implements IrcListener {
         nbLines = consoleText.getLineCount();
         consoleText.append(timeStamp + _text + "\n"); //$NON-NLS-1$
         consoleText.setLineBackground(nbLines - 1, 1, colors[_color]);        
-        if (autoScroll)
-          consoleText.setTopIndex(nbLines);
+        consoleText.setTopIndex(nbLines);
       }
     });
   }
