@@ -4,8 +4,8 @@
  */
 package org.gudy.azureus2.cl;
 
-import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 
 /**
@@ -20,7 +20,7 @@ public class Main {
     String torrentFile = args[args.length - 2];
     String path = args[args.length - 1];
     LocaleUtil.setLocaleUtilChooser(new LocaleUtilCL());
-    DownloadManager manager = new DownloadManager(null, torrentFile, path);
+    DownloadManager manager = DownloadManagerFactory.create(null, torrentFile, path);
     manager.initialize();    
     while (true) {
       StringBuffer buf = new StringBuffer();

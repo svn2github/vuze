@@ -26,7 +26,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
-import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.Server;
 
@@ -37,6 +36,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.DiskManagerDataQueueItem;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerRequest;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.*;
 
 
@@ -1439,19 +1439,19 @@ PEPeerManagerImpl
   }
 
   public void peerAdded(PEPeerSocket pc) {
-    _manager.objectAdded(pc);
+    _manager.addPeer(pc);
   }
 
   public void peerRemoved(PEPeerSocket pc) {
-    _manager.objectRemoved(pc);
+    _manager.removePeer(pc);
   }
 
   public void pieceAdded(PEPiece p) {
-    _manager.objectAdded(p);
+    _manager.addPiece(p);
   }
 
   public void pieceRemoved(PEPiece p) {
-    _manager.objectRemoved(p);
+    _manager.removePiece(p);
   }
 
   public String getElpased() {

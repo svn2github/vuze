@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
-import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 
 /**
  *
@@ -57,7 +57,7 @@ public class TorrentInfoPNGStream extends InputStream {
       } else if (URIvars.get("kind").toString().equalsIgnoreCase("availability")) {
         int pieces[];
         try {
-          pieces = dm.peerManager.getAvailability();
+          pieces = dm.getPeerManager().getAvailability();
         } catch (Exception e) {pieces = null;}
         if (pieces == null) {
           CreateNotAvailable();

@@ -23,10 +23,10 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -426,9 +426,9 @@ public class GeneralView extends AbstractIView {
   }
 
   public synchronized void updateAvailability() {
-    if (manager.peerManager == null)
+    if (manager.getPeerManager() == null)
       return;
-    final int[] available = manager.peerManager.getAvailability();
+    final int[] available = manager.getPeerManager().getAvailability();
     if (display == null || display.isDisposed())
       return;
 

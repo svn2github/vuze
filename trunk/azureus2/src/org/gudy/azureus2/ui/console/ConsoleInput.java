@@ -24,9 +24,9 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.varia.DenyAllFilter;
 
-import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -134,7 +134,7 @@ public class ConsoleInput extends Thread {
                   TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
                   dmstate = dm.getState();
                   try {
-                    ps = dm.peerManager.getStats();
+                    ps = dm.getPeerManager().getStats();
                   } catch (Exception e) {ps = null;}
                   if (ps != null) {
                     totalReceived += ps.getTotalReceivedRaw();

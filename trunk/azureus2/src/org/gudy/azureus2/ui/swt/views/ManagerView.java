@@ -9,8 +9,7 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
-import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.core.IComponentListener;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 
@@ -103,8 +102,8 @@ public class ManagerView extends AbstractIView {
     Messages.setLanguageText(itemFiles, viewFiles.getData());
     itemFiles.setControl(viewFiles.getComposite());
     folder.setSelection(itemGeneral);
-    manager.addListener((IComponentListener) viewPieces);
-    manager.addListener((IComponentListener) viewDetails);
+    manager.addListener((PiecesView)viewPieces);
+    manager.addListener((PeersView)viewDetails);
   }
 
   /* (non-Javadoc)

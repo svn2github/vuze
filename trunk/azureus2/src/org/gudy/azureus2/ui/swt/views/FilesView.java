@@ -23,10 +23,10 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.FileItem;
@@ -215,7 +215,7 @@ public class FilesView extends AbstractIView {
     if(getComposite() == null || getComposite().isDisposed())
       return;
 
-    DiskManager diskManager = manager.diskManager;
+    DiskManager diskManager = manager.getDiskManager();
     if (diskManager == null) {      
       return;      
     }
@@ -237,7 +237,7 @@ public class FilesView extends AbstractIView {
   }
   
   private void removeInvalidFileItems() {
-    DiskManager diskManager = manager.diskManager;
+    DiskManager diskManager = manager.getDiskManager();
     if(items == null || diskManager == null)
       return;
     DiskManagerFileInfo files[] = diskManager.getFiles();

@@ -29,9 +29,9 @@ import java.util.Vector;
 import org.apache.log4j.spi.LoggingEvent;
 
 import HTML.Template;
-import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -473,7 +473,7 @@ public class Jhttpp2HTTPSession extends Thread {
         TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
         dmstate = dm.getState();
         try {
-          ps = dm.peerManager.getStats();
+          ps = dm.getPeerManager().getStats();
         } catch (Exception e) {ps = null;}
         if (ps != null) {
           totalReceived += ps.getTotalReceivedRaw();

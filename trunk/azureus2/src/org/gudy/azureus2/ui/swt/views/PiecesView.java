@@ -16,10 +16,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.PEPeerSocket;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PieceTableItem;
 
@@ -27,7 +28,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.PieceTableItem;
  * @author Olivier
  * 
  */
-public class PiecesView extends AbstractIView implements IComponentListener {
+public class PiecesView extends AbstractIView implements DownloadManagerListener {
 
   DownloadManager manager;
   Table table;
@@ -125,9 +126,7 @@ public class PiecesView extends AbstractIView implements IComponentListener {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
    */
-  public void objectAdded(Object created) {
-    if (!(created instanceof PEPiece))
-      return;
+  public void pieceAdded(PEPiece created) {
     synchronized (items) {
       if (items.containsKey(created))
         return;
@@ -139,7 +138,7 @@ public class PiecesView extends AbstractIView implements IComponentListener {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
    */
-  public void objectRemoved(Object removed) {
+  public void pieceRemoved(PEPiece removed) {
     //System.out.println("removed : " + removed.getClass() + ":" + removed);
     PieceTableItem item;
     synchronized (items) {
@@ -150,6 +149,18 @@ public class PiecesView extends AbstractIView implements IComponentListener {
     item.remove();
   }
   
+  public void
+  peerAdded(
+	  PEPeerSocket 		peer )
+  {
+  }
+		
+  public void
+  peerRemoved(
+	  PEPeerSocket		peer )
+  {
+  }
+
   //Ordering
    private boolean ascending;
    private String lastField;

@@ -11,7 +11,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 
 /**
  * @author Olivier

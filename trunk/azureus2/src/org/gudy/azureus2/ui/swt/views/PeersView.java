@@ -20,10 +20,11 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.DownloadManager;
-import org.gudy.azureus2.core.IComponentListener;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeerSocket;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.tableitems.PeerTableItem;
 
@@ -31,7 +32,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.PeerTableItem;
  * @author Olivier
  * 
  */
-public class PeersView extends AbstractIView implements IComponentListener {
+public class PeersView extends AbstractIView implements DownloadManagerListener {
 
   DownloadManager manager;
   Table table;
@@ -238,9 +239,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object)
    */
-  public void objectAdded(Object created) {
-    if (!(created instanceof PEPeerSocket))
-      return;
+  public void peerAdded(PEPeerSocket created) {
     synchronized (items) {
       if (items.containsKey(created))
         return;
@@ -257,7 +256,7 @@ public class PeersView extends AbstractIView implements IComponentListener {
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object)
    */
-  public void objectRemoved(Object removed) {
+  public void peerRemoved(PEPeerSocket removed) {
     //System.out.println("removed : " + removed.getClass() + ":" + removed);
     PeerTableItem item;
     synchronized (items) {
@@ -270,6 +269,18 @@ public class PeersView extends AbstractIView implements IComponentListener {
     //System.out.println("PC removed"); 
   }
 
+  public void
+  pieceAdded(
+	  PEPiece 	piece )
+  {
+  }
+		
+  public void
+  pieceRemoved(
+	  PEPiece		piece )
+ {
+ }
+ 
   //Sorting methods
   private boolean getBooleanFiedl(PEPeerSocket peerSocket, String field) {
     if (field.equals("t")) //$NON-NLS-1$

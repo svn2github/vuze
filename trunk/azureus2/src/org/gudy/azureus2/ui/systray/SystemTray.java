@@ -10,9 +10,9 @@ import java.net.URL;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Display;
-import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
 

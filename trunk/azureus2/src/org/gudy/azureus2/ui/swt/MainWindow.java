@@ -68,7 +68,6 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core.*;
-import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -79,6 +78,7 @@ import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.systray.SystemTray;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.BDecoder;

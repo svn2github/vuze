@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
@@ -82,7 +83,7 @@ public class GlobalManager extends Component {
               nbStarted++;
               nbDownloading++;
               if (loopFactor % saveResumeLoopCount == 0) {
-                manager.diskManager.dumpResumeDataToDisk(false);
+                manager.getDiskManager().dumpResumeDataToDisk(false);
               }
             }
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {
@@ -191,7 +192,7 @@ public class GlobalManager extends Component {
             }
 
             if (manager.getState() == DownloadManager.STATE_ERROR) {
-              DiskManager dm = manager.diskManager;
+              DiskManager dm = manager.getDiskManager();
               if (dm != null && dm.getState() == DiskManager.FAULTY)
                 manager.setErrorDetail(dm.getErrorMessage());
             }
@@ -245,7 +246,7 @@ public class GlobalManager extends Component {
       }
       fDest.createNewFile();
       copyFile(f, fDest);
-      DownloadManager manager = new DownloadManager(this, fDest.getAbsolutePath(), savePath);
+      DownloadManager manager = DownloadManagerFactory.create(this, fDest.getAbsolutePath(), savePath);
       boolean correct = addDownloadManager(manager);
       if (!correct) {
         fDest.delete();
@@ -254,11 +255,11 @@ public class GlobalManager extends Component {
     }
     catch (IOException e) {
       e.printStackTrace();
-      DownloadManager manager = new DownloadManager(this, fileName, savePath);
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath);
       return addDownloadManager(manager);
     }
     catch (Exception e) {
-      DownloadManager manager = new DownloadManager(this, fileName, savePath);
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath);
       return addDownloadManager(manager);
     }
   }
@@ -400,7 +401,7 @@ public class GlobalManager extends Component {
           Long lDownloaded = (Long) mDownload.get("downloaded");
           Long lUploaded = (Long) mDownload.get("uploaded");
           Long lCompleted = (Long) mDownload.get("completed");
-          DownloadManager dm = new DownloadManager(this, fileName, savePath, stopped == 1);
+          DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, stopped == 1);
           dm.setMaxUploads(nbUploads);
           if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
