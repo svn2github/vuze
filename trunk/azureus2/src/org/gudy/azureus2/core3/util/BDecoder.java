@@ -195,7 +195,10 @@ public class BDecoder {
       return null;
     }
     
-    if ( length > 128*1024 ){
+    	// note that torrent hashes can be big (consider a 55GB file with 2MB pieces
+    	// this generates a pieces hash of 1/2 meg
+    
+    if ( length > 8*1024*1024 ){
     	
     	throw( new IOException( "Byte array length too large (" + length + ")"));
     }
