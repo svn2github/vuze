@@ -41,6 +41,7 @@ VWStatusAreaView
 	
 	protected VWLabel				upload_label;
 	protected VWLabel				download_label;
+	protected VWLabel				ipfilter_label;
 	
 	public
 	VWStatusAreaView(
@@ -75,7 +76,21 @@ VWStatusAreaView
 						new Insets(0, 0, 0, 0), 0, 0 ));
 
 		pad.setBorder( new VWStatusEntryBorder());
-
+	
+		ipfilter_label  = new VWLabel( "" );
+		
+		ipfilter_label.setMinimumWidth(175);
+			
+		ipfilter_label.setBorder( new VWStatusEntryBorder());
+			 
+		component.add( 
+				ipfilter_label,
+				new VWGridBagConstraints(
+						column++, 0, 1, 1, 0.0, 0.0,
+						GridBagConstraints.WEST,
+						GridBagConstraints.NONE, 
+						new Insets(0, 0, 0, 0), 0, 0 ));
+			
 		download_label  = new VWLabel( "" );
 	
 		download_label.setMinimumWidth(100);
@@ -114,6 +129,14 @@ VWStatusAreaView
 		download_label.setText( "D: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(model.getDownloadSpeed()));
 		
 		upload_label.setText( "U: " + DisplayFormatters.formatByteCountToKiBEtcPerSec(model.getUploadSpeed()));
+		
+		String	ip_text;
+		
+		ip_text = "{"+DisplayFormatters.formatDateShort(model.getIPFilterUpdateTime()) + "} IPs: " + 
+					model.getIPFilterNumberOfRanges() + " - " + 
+					model.getIPFilterNumberOfBlockedIPs();
+	
+		ipfilter_label.setText( ip_text );
 	}
 	
 	public JComponent

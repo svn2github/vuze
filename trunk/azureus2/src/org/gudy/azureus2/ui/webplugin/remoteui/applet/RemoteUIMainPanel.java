@@ -63,7 +63,8 @@ RemoteUIMainPanel
 	protected MDDownloadModel	current_download_model;
 	protected VWDownloadView	current_download_view;
 
-	protected VWStatusAreaView			status_area;
+	protected VWStatusAreaView			status_area_view;
+	protected MDStatusAreaModel			status_area_model;
 		
 	protected JTextArea		log_area;
 	
@@ -320,9 +321,11 @@ RemoteUIMainPanel
 			bottom_panel.add( new JScrollPane(log_area), BorderLayout.CENTER );
 			
 			
-			status_area =  new VWStatusAreaView(new MDStatusAreaModel( _pi, download_full_model ));
+			status_area_model =  new MDStatusAreaModel( _pi, download_full_model );
 			
-			bottom_panel.add( status_area.getComponent(), BorderLayout.SOUTH );
+			status_area_view =  new VWStatusAreaView(status_area_model);
+			
+			bottom_panel.add( status_area_view.getComponent(), BorderLayout.SOUTH );
 			
 			add( bottom_panel, BorderLayout.SOUTH );
 			
@@ -592,7 +595,9 @@ RemoteUIMainPanel
 			downloading_view.setSelectedRows( old_dl_rows );
 			seeding_view.setSelectedRows( old_se_rows );
 			
-			status_area.refresh();
+			status_area_model.refresh();
+			
+			status_area_view.refresh();
 			
 		}catch( Throwable e ){
 			

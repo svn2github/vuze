@@ -93,6 +93,18 @@ IPFilterImpl
 		return( res );
 	}
 
+	public int
+	getNumberOfRanges()
+	{
+		return( filter.getNbRanges());
+	}
+	
+	public int
+	getNumberOfBlockedIPs()
+	{
+		return( filter.getNbIpsBlocked());
+	}
+	
 	public boolean 
 	isInRange(
 		String IPAddress )

@@ -146,6 +146,7 @@ RemoteUIServlet
 		"pluginsremote/RPPluginConfig.class",
 		"pluginsremote/torrent/RPTorrentManager.class",
 		"pluginsremote/torrent/RPTorrentDownloader.class",
+		"pluginsremote/ipfilter/RPIPFilter.class",
 
 		"plugins/download/DownloadManager.class",
 		"plugins/PluginInterface.class",
@@ -184,6 +185,10 @@ RemoteUIServlet
 		"plugins/torrent/TorrentAnnounceURLList.class",
 		"plugins/utils/Utilities.class",
 		"plugins/download/DownloadPeerListener.class",
+		"plugins/ipfilter/IPFilterException.class",
+		"plugins/ipfilter/IPRange.class",
+		"plugins/ipfilter/IPBlocked.class",
+
 	};
 	
 	protected RPRequestHandler		request_handler;

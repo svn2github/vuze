@@ -28,12 +28,15 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.ipfilter.*;
+import org.gudy.azureus2.pluginsremote.*;
 
 public class 
 MDStatusAreaModel 
 {
 	protected PluginInterface		pi;
 	protected MDDownloadModel		dl_model;
+	protected IPFilter				ip_filter;
 	
 	public
 	MDStatusAreaModel(
@@ -42,6 +45,17 @@ MDStatusAreaModel
 	{
 		pi			= _pi;
 		dl_model	= _dl_model;
+		
+		ip_filter	= pi.getIPFilter();
+	}
+	
+	public void
+	refresh()
+	{
+		if ( ip_filter instanceof RPObject ){
+			
+			((RPObject)ip_filter)._refresh();
+		}
 	}
 	
 	public long
@@ -76,6 +90,24 @@ MDStatusAreaModel
 		}
 		
 		return( res );		
+	}
+	
+	public long
+	getIPFilterUpdateTime()
+	{
+		return( ip_filter.getLastUpdateTime());
+	}	
+	
+	public int
+	getIPFilterNumberOfRanges()
+	{
+		return( ip_filter.getNumberOfRanges());
+	}	
+	
+	public int
+	getIPFilterNumberOfBlockedIPs()
+	{
+		return( ip_filter.getNumberOfBlockedIPs());
 	}
 	
 	public String

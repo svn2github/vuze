@@ -87,6 +87,14 @@ IPFilter
 	getRanges();
 
 		/**
+		 * returns length of ranges list
+		 * @return
+		 */
+	
+	public int
+	getNumberOfRanges();
+	
+		/**
 		 * Checks an address to see if its in an allowed range
 		 * @param IPAddress
 		 * @return
@@ -103,6 +111,14 @@ IPFilter
 	
 	public IPBlocked[]
 	getBlockedIPs();
+	
+		/**
+		 * returns length of blocked ip list
+		 * @return
+		 */
+	
+	public int
+	getNumberOfBlockedIPs();
 	
 		/**
 		 * Explicitly blocks an address

@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.util.Constants;
 
 import org.gudy.azureus2.pluginsremote.download.*;
 import org.gudy.azureus2.pluginsremote.torrent.*;
+import org.gudy.azureus2.pluginsremote.ipfilter.*;
 
 public class 
 RPPluginInterface
@@ -139,10 +140,14 @@ RPPluginInterface
 			return( new RPReply( RPTorrentManager.create(delegate.getTorrentManager())));
 		
 		}else if ( method.equals( "getPluginconfig")){
-				
+			
 			return( new RPReply( RPPluginConfig.create(delegate.getPluginconfig())));
+			
+		}else if ( method.equals( "getIPFilter")){
+			
+			return( new RPReply( RPIPFilter.create(delegate.getIPFilter())));
 		}
-		
+			
 		throw( new RPException( "Unknown method: " + method ));
 	}
 	
@@ -200,11 +205,14 @@ RPPluginInterface
 		return( null );
 	}
 	
-	public IPFilter getIPFilter()
+	public IPFilter 
+	getIPFilter()
 	{
-		notSupported();
+		RPIPFilter	res = (RPIPFilter)_dispatcher.dispatch( new RPRequest( this, "getIPFilter", null )).getResponse();
 		
-		return( null );
+		res._setRemote( _dispatcher );
+			
+		return( res );	
 	}
 	
 	public DownloadManager
