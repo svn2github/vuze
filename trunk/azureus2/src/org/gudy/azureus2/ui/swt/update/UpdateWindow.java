@@ -399,7 +399,7 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   }
   
   public void reportActivity(ResourceDownloader downloader, final String activity) {
-    setStatusText(activity);
+    setStatusText(activity.trim());
     appendDetails(activity);
   }
   
@@ -443,6 +443,6 @@ public class UpdateWindow implements Runnable, ResourceDownloaderListener{
   protected boolean
   isDisposed()
   {
-  	return( display == null || display.isDisposed());
+  	return( display == null || display.isDisposed() || updateWindow == null || updateWindow.isDisposed());
   }
 }

@@ -512,10 +512,14 @@ public class ConfigView extends AbstractIView {
       
       String sDirName = pluginIF.getPluginDirectoryName();
       
+      boolean	user_plugin = false;
+      
       if (sDirName.length() > sUserPluginDir.length() && 
           sDirName.substring(0, sUserPluginDir.length()).equals(sUserPluginDir)){
       	
       	sDirName = sDirName.substring(sUserPluginDir.length());
+      
+      	user_plugin = true;
       	
       }else if (sDirName.length() > sAppPluginDir.length() && 
             sDirName.substring(0, sAppPluginDir.length()).equals(sAppPluginDir)){
@@ -528,7 +532,9 @@ public class ConfigView extends AbstractIView {
       	
       	String	broken_str = pluginIF.isOperational()?"":(" - " + MessageText.getString("ConfigView.pluginlist.broken"));
       	
-        label.setText( " - " + plugin_name + (plugin_version==null?"":(" " + plugin_version ))+ " (" + sDirName + ")" + broken_str);
+      	String shared_str = user_plugin?"":" [" + MessageText.getString("ConfigView.pluginlist.shared") + "]";
+      	
+        label.setText( " - " + plugin_name + (plugin_version==null?"":(" " + plugin_version ))+ " (" + sDirName + ")" + broken_str + shared_str );
         numPlugins++;
       }
     }
