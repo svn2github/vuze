@@ -224,8 +224,7 @@ public class PeerSocket extends PeerConnection {
     //2. Close the socket
     if (socket != null) {
       try {
-        if (socket.isOpen()) socket.close();    // See bug #804127
-        else System.out.println("PeerSocket::closeAll:: socket already closed");
+        if (!socket.socket().isClosed()) socket.close();    // See bug #804127
       }
       catch (Exception e) {
         System.out.println("PeerSocket::closeAll:: closing socket failed: " + ip + ":" + port);
