@@ -48,7 +48,9 @@ public class Utils {
   }
   
   public static void changeBackgroundComposite(Composite composite,Color color) {
-      if(composite == null || composite.isDisposed())
+    if(1==1)
+      return;  
+    if(composite == null || composite.isDisposed())
           return;
       Control[] controls = composite.getChildren();
       for(int i = 0 ; i < controls.length ; i++) {

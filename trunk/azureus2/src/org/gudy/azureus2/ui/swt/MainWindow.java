@@ -585,7 +585,7 @@ public class MainWindow implements GlobalManagerListener {
     gridData = new GridData(GridData.FILL_BOTH);
     folder = new TabFolder(mainWindow, SWT.V_SCROLL);
     //folder = new CTabFolder(mainWindow, SWT.NULL);
-    Tab.setFolder(folder);
+    Tab.setFolder(folder);   
     
     /*Menu menuFolder = new Menu(mainWindow,SWT.NULL);
     MenuItem closeTab = new MenuItem(menuFolder,SWT.NULL);

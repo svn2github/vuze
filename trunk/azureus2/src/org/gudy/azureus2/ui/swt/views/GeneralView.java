@@ -143,7 +143,6 @@ public class GeneralView extends AbstractIView {
     piecesPercent.setLayoutData(gridData);
 
     gAvailability = new Group(genComposite, SWT.SHADOW_OUT);
-    gAvailability.setBackground(MainWindow.getWindow().getBackground());
     Messages.setLanguageText(gAvailability, "GeneralView.section.availability"); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gAvailability.setLayoutData(gridData);

@@ -132,7 +132,8 @@ public class Tab {
     synchronized (tabs) {
       Iterator iter = tabs.keySet().iterator();
       while (iter.hasNext()) {
-        CTabItem item = (CTabItem) iter.next();
+        TabItem item = (TabItem) iter.next();
+        //CTabItem item = (CTabItem) iter.next();
         IView view = (IView) tabs.get(item);
         try {
           view.updateLanguage();
