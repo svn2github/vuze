@@ -576,4 +576,9 @@ RPDownload
  		notSupported();
   }
   
+  public boolean isPersistent() {
+ 		notSupported();
+		return false;
+  }
+  
 }
