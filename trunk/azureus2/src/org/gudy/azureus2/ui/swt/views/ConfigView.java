@@ -661,6 +661,13 @@ public class ConfigView extends AbstractIView {
       }
     });
     
+    
+    
+    label = new Label(gFile, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.savetorrents"); //$NON-NLS-1$
+    BooleanParameter saveTorrents = new BooleanParameter(gFile, "Save Torrent Files", true); //$NON-NLS-1$    
+    new Label(gFile, SWT.NULL);
+    
     label = new Label(gFile, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.defaultTorrentPath"); //$NON-NLS-1$
 
@@ -685,6 +692,12 @@ public class ConfigView extends AbstractIView {
         }
       }
     });
+    
+    controls = new Control[2];
+    controls[0] = torrentPathParameter.getControl();
+    controls[1] = browse2;
+    IAdditionalActionPerformer grayPathAndButton1 = new ChangeSelectionActionPerformer(controls);
+    saveTorrents.setAdditionalActionPerformer(grayPathAndButton1);
     
     
     label = new Label(gFile, SWT.NULL);
@@ -718,8 +731,8 @@ public class ConfigView extends AbstractIView {
     controls = new Control[2];
     controls[0] = movePathParameter.getControl();
     controls[1] = browse3;
-    IAdditionalActionPerformer grayPathAndButton = new ChangeSelectionActionPerformer(controls);
-    moveCompleted.setAdditionalActionPerformer(grayPathAndButton);
+    IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls);
+    moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
     
     
     label = new Label(gFile, SWT.NULL);
