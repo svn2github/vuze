@@ -362,7 +362,7 @@ public class MainWindow implements GlobalManagerListener {
     }
     
     setSplashPercentage( 0 );
-    setSplashTask("splash.loadImages");
+    setSplashTask("splash.loadingImages");
         
     ImageRepository.loadImages(display);
     

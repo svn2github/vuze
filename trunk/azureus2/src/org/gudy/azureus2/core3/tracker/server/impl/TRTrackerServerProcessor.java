@@ -319,9 +319,7 @@ TRTrackerServerProcessor
 								
 					message = e.toString();
 				}
-				
-				e.printStackTrace();
-				
+								
 				root.put( "failure reason", message );
 			}
 		

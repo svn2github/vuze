@@ -37,12 +37,15 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -57,9 +60,10 @@ MyTrackerView
 	extends AbstractIView
 	implements TRHostListener
 {
-	private Composite composite; 
-	private Composite panel;
-	private Table table;
+	private GlobalManager	global_manager;
+	private Composite 		composite; 
+	private Composite 		panel;
+	private Table 			table;
 	
 	private Map 	host_torrent_items 	= new HashMap();
 	private Map 	host_torrents		= new HashMap();
@@ -68,6 +72,7 @@ MyTrackerView
 	MyTrackerView(
 		GlobalManager globalManager) 
 	{
+		global_manager = globalManager;
 	}
 
 	/* (non-Javadoc)
@@ -193,11 +198,13 @@ MyTrackerView
 					
 					int	status = host_torrent.getStatus();
 					
-					if ( status == TRHostTorrent.TS_STARTED ){
+					if ( status != TRHostTorrent.TS_STOPPED ){
 						
 						start_ok	= false;
 						
-					}else if ( status != TRHostTorrent.TS_STARTED ){
+					}
+					
+					if ( status != TRHostTorrent.TS_STARTED ){
 						
 						stop_ok = false;
 					}
@@ -258,7 +265,35 @@ MyTrackerView
 	   });
 	   
 		table.setMenu( menu );
-	   
+		
+		table.addMouseListener(new MouseAdapter() {
+		   public void mouseDoubleClick(MouseEvent mEvent) {
+			 TableItem[] tis = table.getSelection();
+			 if (tis.length == 0) {
+			   return;
+			 }
+			 TableItem ti = tis[0];
+			
+			 TRHostTorrent	torrent = (TRHostTorrent)host_torrents.get(ti);
+			 
+			 if (torrent != null){
+			 	
+			 	List dms = global_manager.getDownloadManagers();
+			 	
+			 	for (int i=0;i<dms.size();i++){
+			 		
+			 		DownloadManager	dm = (DownloadManager)dms.get(i);
+			 		
+			 		if ( dm.getTorrent() == torrent.getTorrent()){
+			 		
+					 	MainWindow.getWindow().openManagerView(dm);
+					 	
+					 	break;
+			 		}
+			 	}
+			 }
+		   }
+		 });	   
 		TRHostFactory.create().addListener( this );
 	}
 	
