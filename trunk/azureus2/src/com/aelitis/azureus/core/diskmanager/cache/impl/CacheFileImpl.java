@@ -403,6 +403,12 @@ CacheFileImpl
 				getFMFile().write( file_buffer, file_position );
 			}
 			
+		}catch( CacheFileManagerException e ){
+			
+			failed	= true;
+			
+			throw( e );
+			
 		}catch( FMFileManagerException e ){
 			
 			failed	= true;
