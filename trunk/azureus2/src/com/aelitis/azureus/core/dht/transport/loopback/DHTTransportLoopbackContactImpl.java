@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,9 +20,12 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
+package com.aelitis.azureus.core.dht.transport.loopback;
 
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 /**
  * @author parg
@@ -30,13 +33,30 @@ import com.aelitis.azureus.core.dht.impl.DHTImpl;
  */
 
 public class 
-DHTFactory 
+DHTTransportLoopbackContactImpl
+	implements DHTTransportContact
 {
-	public static DHT
-	create(
-		int		K_constant,
-		int		B_constant )
+	private byte[]		id;
+	
+	protected
+	DHTTransportLoopbackContactImpl(
+		byte[]		_id )
 	{
-		return( new DHTImpl( K_constant, B_constant ));
+		id		= _id;
+	}
+	
+	public byte[]
+	getID()
+	{
+		return( id );
+	}
+	
+	public void
+	exportState(
+		OutputStream	os )
+	
+		throws IOException
+	{
+		os.write( id );
 	}
 }

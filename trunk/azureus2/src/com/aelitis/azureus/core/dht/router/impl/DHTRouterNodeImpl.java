@@ -122,7 +122,7 @@ DHTRouterNodeImpl
 		
 		for (int i=0;i<buckets.size();i++){
 			
-			res += ByteFormatter.nicePrint(((DHTRouterContact)buckets.get(i)).getID());
+			res += (i==0?"":", ") + ByteFormatter.nicePrint(((DHTRouterContact)buckets.get(i)).getID(), true);
 		}
 		
 		return( res + "}" );

@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,23 +20,22 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
-
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
+package com.aelitis.azureus.core.dht.transport;
 
 /**
  * @author parg
  *
  */
 
+import com.aelitis.azureus.core.dht.transport.loopback.*;
+
 public class 
-DHTFactory 
+DHTTransportFactory 
 {
-	public static DHT
-	create(
-		int		K_constant,
-		int		B_constant )
+	public static DHTTransport
+	createLoopback(
+		int		id_byte_num )
 	{
-		return( new DHTImpl( K_constant, B_constant ));
+		return( new DHTTransportLoopbackImpl( id_byte_num ));
 	}
 }

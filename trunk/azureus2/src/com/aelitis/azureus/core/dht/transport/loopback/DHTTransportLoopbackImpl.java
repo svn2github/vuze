@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,55 +20,77 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
+package com.aelitis.azureus.core.dht.transport.loopback;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
-import com.aelitis.azureus.core.dht.transport.DHTTransport;
+import com.aelitis.azureus.core.dht.transport.*;
 
 /**
  * @author parg
  *
  */
 
-public interface 
-DHT 
+public class 
+DHTTransportLoopbackImpl
+	implements DHTTransport
 {
-		// all these methods are going to change
+	private int			id_byte_length;
+	
+	private List		receivers	= new ArrayList();
+	
+	public
+	DHTTransportLoopbackImpl(
+		int		_id_byte_length )
+	{
+		id_byte_length	= _id_byte_length;
+	}
 	
 	public void
-	setNodeID(
-		byte[]		id );
+	ping(
+		DHTTransportContact	contact )
+	{
+		
+	}
 	
 	public void
-	addTransport(
-		DHTTransport	transport );
-	
-		/**
-		 * externalises information that allows the DHT to be recreated at a later date
-		 * and populated via the import method
-		 * @param os
-		 * @throws IOException
-		 */
-	
-	public void
-	exportState(
-		OutputStream	os )
-	
-		throws IOException;
-	
-		/**
-		 * populate the DHT with previously exported state 
-		 * @param is
-		 * @throws IOException
-		 */
-	
-	public void
-	importState(
+	importContact(
 		InputStream		is )
 	
-		throws IOException;
+		throws IOException
+	{
+		byte[]	id = new byte[id_byte_length];
+		
+		int	read = 0;
+		
+		while( read < id.length ){
+			
+			int	len = is.read( id, read, id.length - read );
+		
+			if ( len <= 0 ){
+				
+				throw( new IOException( "read fails" ));
+			}
+			
+			read	+= len;
+		}
+		
+		
+	}
 	
 	public void
-	print();
+	addReceiver(
+		DHTTransportReceiver	receiver )
+	{
+		receivers.add( receiver );
+	}
+	
+	public void
+	removeReceiver(
+		DHTTransportReceiver	receiver )
+	{
+		receivers.remove( receiver );
+	}
 }

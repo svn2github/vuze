@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,23 +20,38 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
-
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
+package com.aelitis.azureus.core.dht.transport;
 
 /**
  * @author parg
  *
  */
 
-public class 
-DHTFactory 
+import java.io.*;
+
+public interface 
+DHTTransport 
 {
-	public static DHT
-	create(
-		int		K_constant,
-		int		B_constant )
-	{
-		return( new DHTImpl( K_constant, B_constant ));
-	}
+		// all defined transports need to be declared here to support the export and import
+		// of state
+	
+	public static final int	TT_LOOPBACK		= 1;
+	
+	public void
+	ping(
+		DHTTransportContact		contact );
+	
+	public void
+	importContact(
+		InputStream		is )
+	
+		throws IOException;
+	
+	public void
+	addReceiver(
+		DHTTransportReceiver	receiver );
+	
+	public void
+	removeReceiver(
+		DHTTransportReceiver	receiver );
 }

@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,9 +20,16 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
+package com.aelitis.azureus.core.dht.impl;
 
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.control.*;
+import com.aelitis.azureus.core.dht.router.*;
+import com.aelitis.azureus.core.dht.transport.*;
 
 /**
  * @author parg
@@ -30,13 +37,55 @@ import com.aelitis.azureus.core.dht.impl.DHTImpl;
  */
 
 public class 
-DHTFactory 
+DHTImpl 
+	implements DHT
 {
-	public static DHT
-	create(
-		int		K_constant,
-		int		B_constant )
+	private DHTRouter		router;
+	private DHTControl		control;
+	
+	public 
+	DHTImpl(
+		int		K,
+		int		B )
 	{
-		return( new DHTImpl( K_constant, B_constant ));
+		router	= DHTRouterFactory.create( K, B );
+		
+		control = DHTControlFactory.create( router );
+	}
+	
+	public void
+	setNodeID(
+		byte[]		id )
+	{
+		router.setNodeID( id );
+	}
+	
+	public void
+	addTransport(
+		DHTTransport	transport )
+	{
+		control.addTransport( transport );
+	}
+	
+	public void
+	exportState(
+		OutputStream	os )
+	
+		throws IOException
+	{	
+	}
+	
+	public void
+	importState(
+		InputStream		is )
+	
+		throws IOException
+	{	
+	}
+	
+	public void
+	print()
+	{
+		router.print();
 	}
 }

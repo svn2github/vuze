@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,9 +20,11 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
+package com.aelitis.azureus.core.dht.control.impl;
 
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
+import com.aelitis.azureus.core.dht.control.*;
+import com.aelitis.azureus.core.dht.router.*;
+import com.aelitis.azureus.core.dht.transport.*;
 
 /**
  * @author parg
@@ -30,13 +32,22 @@ import com.aelitis.azureus.core.dht.impl.DHTImpl;
  */
 
 public class 
-DHTFactory 
+DHTControlImpl 
+	implements DHTControl
 {
-	public static DHT
-	create(
-		int		K_constant,
-		int		B_constant )
+	private DHTRouter		router;
+	
+	public
+	DHTControlImpl(
+		DHTRouter		_router )
 	{
-		return( new DHTImpl( K_constant, B_constant ));
+		
+	}
+	
+	public void
+	addTransport(
+		DHTTransport	transport )
+	{
+		
 	}
 }

@@ -42,7 +42,7 @@ Test
 	main(
 		String[]	args )
 	{
-		DHTRouter	router = DHTRouterFactory.create( 5, 5 );
+		DHTRouter	router = DHTRouterFactory.create( 20, 5 );
 		
 		randomTest( router );
 		

@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,23 +20,24 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
-
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
+package com.aelitis.azureus.core.dht.transport;
 
 /**
  * @author parg
  *
  */
 
-public class 
-DHTFactory 
+import java.io.*;
+
+public interface 
+DHTTransportContact 
 {
-	public static DHT
-	create(
-		int		K_constant,
-		int		B_constant )
-	{
-		return( new DHTImpl( K_constant, B_constant ));
-	}
+	public byte[]
+	getID();
+	
+	public void
+	exportState(
+		OutputStream	os )
+	
+		throws IOException;
 }

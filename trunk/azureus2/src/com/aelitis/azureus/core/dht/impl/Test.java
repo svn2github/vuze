@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 12-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,9 +20,12 @@
  *
  */
 
-package com.aelitis.azureus.core.dht;
+package com.aelitis.azureus.core.dht.impl;
 
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
+import com.aelitis.azureus.core.dht.*;
+import com.aelitis.azureus.core.dht.transport.*;
+
+import java.io.*;
 
 /**
  * @author parg
@@ -30,13 +33,34 @@ import com.aelitis.azureus.core.dht.impl.DHTImpl;
  */
 
 public class 
-DHTFactory 
+Test 
 {
-	public static DHT
-	create(
-		int		K_constant,
-		int		B_constant )
+	public static void
+	main(
+		String[]		args )
 	{
-		return( new DHTImpl( K_constant, B_constant ));
+		try{
+			int		K			= 5;
+			int		B			= 1;
+			int		ID_BYTES	= 4;
+			
+			DHT	dht = DHTFactory.create( K, B );
+			
+			dht.setNodeID( new byte[ID_BYTES] );
+			
+			DHTTransport	transport = DHTTransportFactory.createLoopback(ID_BYTES);
+			
+			dht.addTransport( transport );
+			
+			ByteArrayInputStream	bais = new ByteArrayInputStream( new byte[]{1,2,3,4});
+			
+			transport.importContact( bais );
+			
+			dht.print();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }
