@@ -755,13 +755,13 @@ public class MainWindow implements GlobalManagerListener {
     new VersionChecker().start();
 
     gridData = new GridData();
-    gridData.widthHint = 90;
+    gridData.widthHint = 105;
     statusDown = new CLabel(statusBar, SWT.SHADOW_IN);
     statusDown.setText("D:"); //$NON-NLS-1$
     statusDown.setLayoutData(gridData);
 
     gridData = new GridData();
-    gridData.widthHint = 90;
+    gridData.widthHint = 105;
     statusUp = new CLabel(statusBar, SWT.SHADOW_IN);
     statusUp.setText("U:"); //$NON-NLS-1$
     statusUp.setLayoutData(gridData);
