@@ -40,7 +40,10 @@ public interface PluginConfigUIFactory {
    * @param defaultValue the default value of the parameter
    * @return an EnablerParameter
    */
-  public EnablerParameter createBooleanParameter(String key,String label,boolean defaultValue);
+  public EnablerParameter createBooleanParameter(
+      String key,
+			String label,
+			boolean defaultValue);
   
   /**
    * Creates an int parameter.<br>
@@ -51,7 +54,10 @@ public interface PluginConfigUIFactory {
    * @param defaultValue the default value of the parameter
    * @return a Parameter
    */
-  public Parameter createIntParameter(String key,String label,int defaultValue);
+  public Parameter createIntParameter(
+      String key,
+			String label,
+			int defaultValue);
   
   /**
    * Creates an int parameter.<br>
@@ -64,7 +70,12 @@ public interface PluginConfigUIFactory {
    * @param labels the list of labels (no i18n here)
    * @return a Parameter
    */
-  public Parameter createIntParameter(String key,String label,int defaultValue,int[] values,String labels[]);
+  public Parameter createIntParameter(
+      String key,
+			String label,
+			int defaultValue,
+			int[] values,
+			String labels[]);
   
   /**
    * Creates a String parameter.<br>
@@ -75,7 +86,10 @@ public interface PluginConfigUIFactory {
    * @param defaultValue the default value of the parameter
    * @return a Parameter
    */
-  public Parameter createStringParameter(String key,String label,String defaultValue);
+  public Parameter createStringParameter(
+      String key,
+			String label,
+			String defaultValue);
   
   /**
    * Creates an String parameter.<br>
@@ -88,7 +102,12 @@ public interface PluginConfigUIFactory {
    * @param labels the list of labels (no i18n here)
    * @return a Parameter
    */
-  public Parameter createIntParameter(String key,String label,int defaultValue,String[] values,String labels[]);
+  public Parameter createStringParameter(
+      String key,
+			String label,
+			String defaultValue,
+			String[] values,
+			String labels[]);
   
   /**
    * Creates a File Parameter.<br>
@@ -99,7 +118,10 @@ public interface PluginConfigUIFactory {
    * @param defaultValue the default value of the parameter
    * @return a File Parameter
    */
-  public Parameter createFileParameter(String key,String label,String defaultValue);
+  public Parameter createFileParameter(
+      String key,
+			String label,
+			String defaultValue);
   
   /**
    * Creates a Directory Parameter.<br>
@@ -110,7 +132,10 @@ public interface PluginConfigUIFactory {
    * @param defaultValue the default value of the parameter
    * @return a File Parameter
    */
-  public Parameter createDirectoryParameter(String key,String label,String defaultValue);
+  public Parameter createDirectoryParameter(
+      String key,
+			String label,
+			String defaultValue);
   
   /**
    * Creates a Color Parameter.<br>
@@ -127,5 +152,10 @@ public interface PluginConfigUIFactory {
    * @param defaultValueBlue the blue component of the default color (0-255)
    * @return a Color Parameter
    */
-  public Parameter createColorParameter(String key,String label,int defaultValueRed,int defaultValueGreen,int defaultValueBlue);
+  public Parameter createColorParameter(
+      String key,
+			String label,
+			int defaultValueRed,
+			int defaultValueGreen,
+			int defaultValueBlue);
 }

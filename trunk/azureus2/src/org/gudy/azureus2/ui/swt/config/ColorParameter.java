@@ -51,7 +51,8 @@ public class ColorParameter implements IParameter {
     final String name,
     int r,
     int g,
-    int b) {
+    int b,
+		final boolean changeMainWindowColors) {
     colorChooser = new Button(composite,SWT.PUSH);
     final int rV = COConfigurationManager.getIntParameter(name+".red",r);
     final int gV = COConfigurationManager.getIntParameter(name+".green",g);
@@ -67,8 +68,9 @@ public class ColorParameter implements IParameter {
         updateButtonColor(composite,newColor.red,newColor.green,newColor.blue);             
         COConfigurationManager.setParameter(name+".red",newColor.red);
         COConfigurationManager.setParameter(name+".green",newColor.green);
-        COConfigurationManager.setParameter(name+".blue",newColor.blue);
-        MainWindow.getWindow().allocateBlues();
+        COConfigurationManager.setParameter(name+".blue",newColor.blue);   
+        if(changeMainWindowColors)
+          MainWindow.getWindow().allocateBlues();
       }
     });
     

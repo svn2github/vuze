@@ -1,5 +1,5 @@
 /*
- * File    : ParameterRepository.java
+ * File    : GenericParameter.java
  * Created : Nov 21, 2003
  * By      : epall
  * 
@@ -20,45 +20,46 @@
  */
  
 package org.gudy.azureus2.pluginsimpl.ui.config;
-import java.util.HashMap;
-import java.util.Set;
 
-import org.gudy.azureus2.plugins.ui.config.*;
 
 /**
  * @author epall
  *
  */
-public class ParameterRepository
+public class IntsParameter extends GenericParameter
 {
-	private static ParameterRepository instance;
-	private HashMap params;
+	private int defaultValue;
+	private int[] values;
+	private String[] labels;
 	
-	private ParameterRepository()
+	
+	public IntsParameter(
+	    String key,
+			String label,
+			int defaultValue,
+			int[] values,
+			String[] labels)
+	{ 
+		super(key, label);
+    this.defaultValue = defaultValue;
+    this.values = values;
+    this.labels = labels;
+	}
+
+
+	public int getDefaultValue()
 	{
-		params = new HashMap();
+		return defaultValue;
 	}
 	
-	public static synchronized ParameterRepository getInstance()
+	public int[] getValues()
 	{
-		if(instance == null)
-			instance = new ParameterRepository();
-		return instance;
+	  return values;
 	}
 	
-	public void addPlugin(Parameter[] parameters, String displayName)
+	public String[] getLabels()
 	{
-		params.put(displayName, parameters);
-	}	
-	
-	public String[] getNames()
-	{
-	  Set keys = params.keySet();
-	  return (String[])(keys.toArray(new String[keys.size()]));
+	  return labels;
 	}
-	
-	public Parameter[] getParameterBlock(String key)
-	{	
-		return (Parameter[])params.get(key);
-	}
+
 }

@@ -32,6 +32,7 @@ import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.pluginsimpl.tracker.*;
 import org.gudy.azureus2.pluginsimpl.ui.config.ParameterRepository;
+import org.gudy.azureus2.pluginsimpl.ui.config.PluginConfigUIFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -43,7 +44,8 @@ import org.gudy.azureus2.ui.swt.MainWindow;
 public class PluginInterfaceImpl implements PluginInterface {
   
 	protected PluginInitializer	initialiser;
-	
+
+	String pluginConfigKey;
   Properties props;
   String pluginDir;
   PluginConfig config;
@@ -55,9 +57,10 @@ public class PluginInterfaceImpl implements PluginInterface {
       String pluginDir) 
   {
   	initialiser	= _initialiser;
+  	this.pluginConfigKey = "Plugin." + key;
     this.props = props;
     this.pluginDir = pluginDir;
-    this.config = new PluginConfigImpl(key);
+    this.config = new PluginConfigImpl(pluginConfigKey);
   }
 
   public void addView(PluginView view)
@@ -95,8 +98,7 @@ public class PluginInterfaceImpl implements PluginInterface {
 
 
   public PluginConfigUIFactory getPluginConfigUIFactory() {
-    // TODO Auto-generated method stub
-    return null;
+    return new PluginConfigUIFactoryImpl(pluginConfigKey);
   }
   
   public void addColumnToPeersTable(String columnName, PluginPeerItemFactory item) {

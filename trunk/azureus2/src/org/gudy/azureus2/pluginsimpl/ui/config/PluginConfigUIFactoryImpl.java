@@ -32,93 +32,71 @@ import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
 {
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createDirectoryParameter(java.lang.String, java.lang.String, java.lang.String)
-   */ 
-  public Parameter createDirectoryParameter(
-    String key,
-    String label,
-    String defaultValue) {
-    // TODO Auto-generated method stub
-    return null;
+  String pluginKey;
+  
+  public PluginConfigUIFactoryImpl(String pluginKey) {
+    this.pluginKey = pluginKey;
   }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createIntParameter(java.lang.String, java.lang.String, int, int[], java.lang.String[])
-   */
+  
+  
   public Parameter createIntParameter(
     String key,
     String label,
     int defaultValue,
     int[] values,
     String[] labels) {
-    // TODO Auto-generated method stub
-    return null;
+    return new IntsParameter(pluginKey + "." + key,label,defaultValue,values,labels);
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createIntParameter(java.lang.String, java.lang.String, int, java.lang.String[], java.lang.String[])
-   */
-  public Parameter createIntParameter(
-    String key,
-    String label,
-    int defaultValue,
-    String[] values,
-    String[] labels) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createBooleanParameter(java.lang.String, java.lang.String, boolean)
-	 */
 	public EnablerParameter createBooleanParameter(
 		String key,
 		String label,
 		boolean defaultValue)
 	{
-		// TODO Auto-generated method stub
-		return null;
+	  return new BooleanParameter(pluginKey + "." + key, label, defaultValue);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createIntParameter(java.lang.String, java.lang.String, boolean)
-	 */
 	public Parameter createIntParameter(
 		String key,
 		String label,
 		int defaultValue)
 	{
-		// TODO Auto-generated method stub
-		return null;
+	  return new IntParameter(pluginKey + "." + key, label, defaultValue);
+		
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createStringParameter(java.lang.String, java.lang.String, boolean)
-	 */
 	public Parameter createStringParameter(
 		String key,
 		String label,
 		String defaultValue)
 	{
-		return new StringParameter(key, label, defaultValue);
+		return new StringParameter(pluginKey + "." + key, label, defaultValue);
+	}
+	
+	public Parameter createStringParameter(
+	    String key,
+			String label,
+			String defaultValue,
+			String[] values,
+			String[] labels) {
+	  return new StringsParameter(pluginKey + "." + key,label,defaultValue,values,labels);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createFileParameter(java.lang.String, java.lang.String, boolean)
-	 */
 	public Parameter createFileParameter(
 		String key,
 		String label,
 		String defaultValue)
 	{
-		// TODO Auto-generated method stub
-		return null;
+	  return new FileParameter(pluginKey + "." + key, label, defaultValue);
+	}
+	
+	public Parameter createDirectoryParameter(
+	    String key,
+			String label,
+			String defaultValue) {
+	  return new DirectoryParameter(pluginKey + "." + key, label, defaultValue);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.plugins.ui.PluginConfigUIFactory#createColorParameter(java.lang.String, java.lang.String, boolean)
-	 */
 	public Parameter createColorParameter(
 		String key,
 		String label,
@@ -126,8 +104,7 @@ public class PluginConfigUIFactoryImpl implements PluginConfigUIFactory
     int defaultValueGreen,
     int defaultValueBlue)
 	{
-		// TODO Auto-generated method stub
-		return null;
+	  return new ColorParameter(pluginKey + "." + key,label,defaultValueRed,defaultValueGreen,defaultValueBlue);
 	}
 
 }

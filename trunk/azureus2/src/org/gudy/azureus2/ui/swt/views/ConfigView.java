@@ -5,8 +5,10 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -37,14 +39,15 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.pluginsimpl.ui.config.GenericParameter;
 import org.gudy.azureus2.pluginsimpl.ui.config.ParameterRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
 
@@ -154,55 +157,44 @@ public class ConfigView extends AbstractIView {
   {
   	GridData gridData;
   	
-	TabItem itemPlugins = new TabItem(tfConfig, SWT.NULL);
-	itemPlugins.setText("Plugins");
-
-	TabFolder tfPlugins = new TabFolder(tfConfig, SWT.TOP | SWT.FLAT);
-	String[] names;
-	Parameter[] tempParams;
-	ParameterRepository repository = ParameterRepository.getInstance();
-	TabItem tempTab;
-	Group tempGroup;
-	GridLayout tempLayout;
-	Label tempLabel;
-	GenericParameter tempParam;
-	GridData gData;
-	
-	names = repository.getNames();
-	for(int i = 0; i < names.length; i++)
-	{
-		tempParams = repository.getParameterBlock(names[i]);
-		tempTab = new TabItem(tfPlugins, SWT.NULL);
-		tempTab.setText(names[i]);
+		TabItem itemPlugins = new TabItem(tfConfig, SWT.NULL);
+		Messages.setLanguageText(itemPlugins, "ConfigView.section.plugins");
 		
-		tempGroup = new Group(tfPlugins, SWT.NULL);
-		tempLayout = new GridLayout();
-		tempLayout.numColumns = 2;
-		tempGroup.setLayout(tempLayout);
-        
-		for(int j = 0; j < tempParams.length; j++)
+		TabFolder tfPlugins = new TabFolder(tfConfig, SWT.TOP | SWT.FLAT);
+		ParameterRepository repository = ParameterRepository.getInstance();							
+		
+		String[] names = repository.getNames();
+		
+		
+		for(int i = 0; i < names.length; i++)
 		{
-			tempParam = (GenericParameter)(tempParams[j]);
-			tempLabel = new Label(tempGroup, SWT.NULL);
-			if(tempParam == null)
-				tempLabel.setText("it's null!");
-			else
-				tempLabel.setText(String.valueOf(tempParams.length));
+		  String pluginName = names[i];
+		  Parameter[] parameters = repository.getParameterBlock(pluginName);
+		  TabItem pluginTab = new TabItem(tfPlugins, SWT.NULL);
+		  Messages.setLanguageText(pluginTab, pluginName);
 			
-			if(tempParam instanceof org.gudy.azureus2.pluginsimpl.ui.config.StringParameter)
+			Group pluginGroup = new Group(tfPlugins, SWT.NULL);
+			GridLayout pluginLayout = new GridLayout();
+			pluginLayout.numColumns = 3;
+			pluginGroup.setLayout(pluginLayout);
+			
+			Map parameterToPluginParameter = new HashMap();
+			//Add all parameters
+			for(int j = 0; j < parameters.length; j++)
 			{
-				org.gudy.azureus2.pluginsimpl.ui.config.StringParameter tpar = (org.gudy.azureus2.pluginsimpl.ui.config.StringParameter)(tempParam);
-//				String defaultVal = tpar.getDefaultValue();
-				String defaultVal = "test";
-				StringParameter uiParam = new StringParameter(tempGroup, tempParam.getKey(), defaultVal);
-				gData = new GridData();
-				gData.widthHint = 200;
-				uiParam.setLayoutData(gData);
+				Parameter parameter = parameters[j];
+				parameterToPluginParameter.put(parameter,new PluginParameter(pluginGroup,parameter));
 			}
+			//Check for dependencies
+			for(int j = 0; j < parameters.length; j++)
+			 {
+			  Parameter parameter = parameters[j];
+			  if(parameter instanceof EnablerParameter) {
+			  }			  
+			}
+			pluginTab.setControl(pluginGroup);
 		}
-		tempTab.setControl(tempGroup);
-	}
-	itemPlugins.setControl(tfPlugins);
+		itemPlugins.setControl(tfPlugins);
   }
 
   private void initGroupFilter() {
@@ -1203,10 +1195,10 @@ public class ConfigView extends AbstractIView {
    
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.colorScheme"); //$NON-NLS-1$
-   ColorParameter colorScheme = new ColorParameter(gStyle, "Color Scheme",0,128,255); //$NON-NLS-1$
+   ColorParameter colorScheme = new ColorParameter(gStyle, "Color Scheme",0,128,255,true); //$NON-NLS-1$
    gridData = new GridData();
    gridData.widthHint = 50;
-   colorScheme.setLayoutData(gridData);
+   colorScheme.setLayoutData(gridData);      
    
    label = new Label(gStyle, SWT.NULL);
    Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate"); //$NON-NLS-1$

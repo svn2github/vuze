@@ -1,5 +1,5 @@
 /*
- * File    : ParameterRepository.java
+ * File    : GenericParameter.java
  * Created : Nov 21, 2003
  * By      : epall
  * 
@@ -20,45 +20,39 @@
  */
  
 package org.gudy.azureus2.pluginsimpl.ui.config;
-import java.util.HashMap;
-import java.util.Set;
 
-import org.gudy.azureus2.plugins.ui.config.*;
 
 /**
- * @author epall
+ * @author Olivier
  *
  */
-public class ParameterRepository
+public class ColorParameter extends GenericParameter
 {
-	private static ParameterRepository instance;
-	private HashMap params;
+	private int defaultRed;
+	private int defaultGreen;
+	private int defaultBlue;
 	
-	private ParameterRepository()
-	{
-		params = new HashMap();
+	public ColorParameter(String key, String label, int red,int green,int blue)
+	{ 
+		super(key, label);
+    this.defaultRed = red;
+    this.defaultGreen = green;
+    this.defaultBlue = blue;
 	}
 	
-	public static synchronized ParameterRepository getInstance()
+	public int getDefaultRed()
 	{
-		if(instance == null)
-			instance = new ParameterRepository();
-		return instance;
+		return defaultRed;
 	}
 	
-	public void addPlugin(Parameter[] parameters, String displayName)
+	public int getDefaultGreen()
 	{
-		params.put(displayName, parameters);
-	}	
-	
-	public String[] getNames()
-	{
-	  Set keys = params.keySet();
-	  return (String[])(keys.toArray(new String[keys.size()]));
+	  return defaultGreen;
 	}
 	
-	public Parameter[] getParameterBlock(String key)
-	{	
-		return (Parameter[])params.get(key);
+	public int getDefaultBlue()
+	{
+	  return defaultBlue;
 	}
+
 }
