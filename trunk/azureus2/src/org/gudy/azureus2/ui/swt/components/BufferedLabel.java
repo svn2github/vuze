@@ -87,8 +87,8 @@ BufferedLabel
 		value = new_value;
 		
 		label.setText( value==null?"":value );	
-	}
-
+	}	
+	
   public String getText() {
     return label.getText();
   }
@@ -103,6 +103,10 @@ BufferedLabel
   
   public void setCursor(Cursor cursor) {
     label.setCursor(cursor);
+  }
+  
+  public void setToolTipText(String toolTipText) {
+    label.setToolTipText(toolTipText);
   }
       
 }

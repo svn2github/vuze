@@ -5,6 +5,8 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -29,9 +31,12 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -84,6 +89,8 @@ public class GeneralView extends AbstractIView {
   BufferedLabel hash;
   BufferedLabel tracker;
   BufferedLabel trackerUpdateIn;
+  Menu menuTracker;
+  MenuItem itemSelect;
   BufferedLabel trackerUrlValue;
   BufferedLabel pieceNumber;
   BufferedLabel pieceSize;
@@ -316,22 +323,81 @@ public class GeneralView extends AbstractIView {
           new Clipboard(display).setContents(new Object[] {announce}, new Transfer[] {TextTransfer.getInstance()});
       }
     });
-    trackerUrlValue = new BufferedLabel(gInfo, SWT.LEFT);
-    trackerUrlValue.setForeground(MainWindow.blue);
-    trackerUrlValue.setCursor(MainWindow.handCursor);
-    trackerUrlValue.addMouseListener(new MouseAdapter() {
-      public void mouseUp(MouseEvent event) {
-        String url = trackerUrlValue.getText();
-        if(url.startsWith("http://")) {
-          int pos = -1;
-          if((pos = url.indexOf("/announce")) != -1) {
-            url = url.substring(0,pos);
-            Program.launch(url);
+    
+    menuTracker = new Menu(genComposite.getShell(),SWT.POP_UP);
+    itemSelect = new MenuItem(menuTracker,SWT.CASCADE);
+    Messages.setLanguageText(itemSelect, "GeneralView.menu.selectTracker");
+    MenuItem itemEdit = new MenuItem(menuTracker,SWT.NULL);
+    Messages.setLanguageText(itemEdit, "MyTorrentsView.menu.editTracker");
+    //TODO : (parg) add the SWT.Selection event listener to the edit item
+    
+    
+    final Listener menuListener = new Listener() {
+      public void handleEvent(Event e) {
+        if(e.item instanceof MenuItem) {
+          String text = ((MenuItem)e.item).getText();
+          //TODO : (parg) Make this work
+          if(manager != null) {
+            manager.getTrackerClient().setTrackerUrl(text);
           }
         }
       }
+    };
+    
+    menuTracker.addListener(SWT.Show,new Listener() {
+      public void handleEvent(Event e) {
+    		Menu menuSelect = itemSelect.getMenu();
+    		if(menuSelect != null && ! menuSelect.isDisposed()) {
+    		  menuSelect.dispose();
+    		}
+    		if(manager == null || genComposite == null || genComposite.isDisposed())
+    		  return;
+    		TRTrackerClient tracker = manager.getTrackerClient();
+    		if(tracker == null)
+    		  return;
+    		List groups = TorrentUtils.announceGroupsToList(tracker.getTorrent());        		
+    		menuSelect = new Menu(genComposite.getShell(),SWT.DROP_DOWN);
+    		itemSelect.setMenu(menuSelect);
+    		Iterator iterGroups = groups.iterator();
+    		while(iterGroups.hasNext()) {
+    		  List trackers = (List) iterGroups.next();
+    		  MenuItem menuItem = new MenuItem(menuSelect,SWT.CASCADE);
+    		  Messages.setLanguageText(menuItem,"wizard.multitracker.group");
+    		  Menu menu = new Menu(genComposite.getShell(),SWT.DROP_DOWN);
+    		  menuItem.setMenu(menu);
+    		  Iterator iterTrackers = trackers.iterator();
+    		  while(iterTrackers.hasNext()) {
+    		    String url = (String) iterTrackers.next();
+    		    MenuItem menuItemTracker = new MenuItem(menu,SWT.CASCADE);
+    		    menuItemTracker.setText(url);
+    		    menuItemTracker.addListener(SWT.Selection,menuListener);
+    		  }
+    		}
+      }
     });
-    Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen.tooltip", true);
+    
+    trackerUrlValue = new BufferedLabel(gInfo, SWT.LEFT);        
+    
+    trackerUrlValue.addMouseListener(new MouseAdapter() {
+      public void mouseUp(MouseEvent event) {        
+        if(event.button == 1) {
+	        String url = trackerUrlValue.getText();
+	        if(url.startsWith("http://")) {
+	          int pos = -1;
+	          if((pos = url.indexOf("/announce")) != -1) {
+	            url = url.substring(0,pos);
+	            Program.launch(url);
+	          }
+        	}
+        } else if(event.button == 3){
+          menuTracker.setVisible(true);
+        }
+      }
+    });
+    
+    
+    
+    
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     trackerUrlValue.setLayoutData(gridData);
@@ -353,13 +419,13 @@ public class GeneralView extends AbstractIView {
     updateButton = new Button(gInfo, SWT.LEFT);
     Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-	updateButton.setLayoutData(gridData);
-    
-	updateButton.addSelectionListener(new SelectionAdapter() {
-      public void widgetSelected(SelectionEvent event) {
-        manager.checkTracker();
-      }
-    });
+		updateButton.setLayoutData(gridData);
+	    
+		updateButton.addSelectionListener(new SelectionAdapter() {
+	      public void widgetSelected(SelectionEvent event) {
+	        manager.checkTracker();
+	      }
+	    });
     
     label = new Label(gInfo, SWT.LEFT);
     
@@ -745,7 +811,17 @@ public class GeneralView extends AbstractIView {
     
     	if ( trackerURL != null ){
     	
-			trackerUrlValue.setText( trackerURL);
+				trackerUrlValue.setText( trackerURL);
+				if(trackerURL.startsWith("http://") && (trackerURL.indexOf("/announce") != -1)) {
+				  trackerUrlValue.setForeground(MainWindow.blue);
+				  trackerUrlValue.setCursor(MainWindow.handCursor);
+				  Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen.tooltip", true);
+				} else {
+				  trackerUrlValue.setForeground(null);
+				  trackerUrlValue.setCursor(null);
+				  Messages.setLanguageText(trackerUrlValue, null);	
+				  trackerUrlValue.setToolTipText(null);
+				}
     	}
     	
     	update_state = ((System.currentTimeMillis()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerClient.REFRESH_MINIMUM_SECS ));
