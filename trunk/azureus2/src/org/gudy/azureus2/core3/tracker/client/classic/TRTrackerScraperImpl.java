@@ -26,10 +26,9 @@ package org.gudy.azureus2.core3.tracker.client.classic;
  *
  */
 
-import java.util.*;
-
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 TRTrackerScraperImpl
@@ -39,7 +38,25 @@ TRTrackerScraperImpl
 	
 	protected TrackerChecker	tracker_checker;
 	
-	protected List				listeners = new ArrayList();
+	// DiskManager listeners
+	
+	private static final int LDT_SCRAPE_RECEIVED		= 1;
+	
+	private ListenerManager	listeners 	= ListenerManager.createManager(
+			"TrackerScraper:ListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					TRTrackerScraperListener	listener = (TRTrackerScraperListener)_listener;
+					
+					listener.scrapeReceived((TRTrackerScraperResponse)value);
+				}
+			});	
 	
 	public static synchronized TRTrackerScraperImpl
 	create()
@@ -104,22 +121,20 @@ TRTrackerScraperImpl
 	scrapeReceived(
 		TRTrackerScraperResponse		response )
 	{
-		for (int i=0;i<listeners.size();i++){
-			
-			((TRTrackerScraperListener)listeners.get(i)).scrapeReceived( response );
-		}
+		listeners.dispatch( LDT_SCRAPE_RECEIVED, response );
 	}
+	
 	public void
 	addListener(
 		TRTrackerScraperListener	l )
 	{
-		listeners.add(l);
+		listeners.addListener(l);
 	}
 	
 	public void
 	removeListener(
 		TRTrackerScraperListener	l )
 	{
-		listeners.remove(l);
+		listeners.removeListener(l);
 	}
 }

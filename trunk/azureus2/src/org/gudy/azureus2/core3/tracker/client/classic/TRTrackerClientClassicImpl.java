@@ -24,7 +24,6 @@ package org.gudy.azureus2.core3.tracker.client.classic;
 import java.io.*;
 import java.net.*;
 import java.util.List;
-import java.util.Vector;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -96,8 +95,43 @@ TRTrackerClientClassicImpl
 	public final static int evtFullTrace = 1;
 	public final static int evtErrors = 2;
 
-	private Vector	listeners = new Vector();
-  
+	// 	listener
+	
+	private static final int LDT_TRACKER_RESPONSE		= 1;
+	private static final int LDT_URL_CHANGED			= 2;
+	private static final int LDT_URL_REFRESH			= 3;
+	
+	private ListenerManager	listeners 	= ListenerManager.createManager(
+			"TrackerClient:ListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					TRTrackerClientListener	listener = (TRTrackerClientListener)_listener;
+					
+					if ( type == LDT_TRACKER_RESPONSE ){
+						
+						listener.receivedTrackerResponse((TRTrackerResponse)value);
+						
+					}else if ( type == LDT_URL_CHANGED ){
+						
+						Object[]	x = (Object[])value;
+						
+						String		url 	= (String)x[0];
+						boolean	explicit	= ((Boolean)x[1]).booleanValue();
+						
+						listener.urlChanged(url, explicit );
+						
+					}else{
+						
+						listener.urlRefresh();
+					}
+				}
+			});	  
   public 
   TRTrackerClientClassicImpl(
   	TOTorrent	_torrent,
@@ -470,10 +504,7 @@ TRTrackerClientClassicImpl
 				
 				last_response = response;
 				
-				for (int i=0;i<listeners.size();i++){
-					
-					((TRTrackerClientListener)listeners.get(i)).receivedTrackerResponse( response );	
-				}
+				listeners.dispatch( LDT_TRACKER_RESPONSE, response );
 				
 				return((int) response.getTimeToWait());
 			}else{
@@ -1135,24 +1166,19 @@ TRTrackerClientClassicImpl
 		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, REFRESH_MINIMUM_SECS, failure_reason ));
   	}
   	
-	protected synchronized void
+	protected void
 	informURLChange(
 		String	url,
 		boolean	explicit  )
 	{
-		for (int i=0;i<listeners.size();i++){
-			
-			((TRTrackerClientListener)listeners.elementAt(i)).urlChanged( url, explicit );
-		}
+		listeners.dispatch(	LDT_URL_CHANGED,
+							new Object[]{url,new Boolean(explicit)});
 	}
 	
-	protected synchronized void
+	protected void
 	informURLRefresh()
 	{
-		for (int i=0;i<listeners.size();i++){
-			
-			((TRTrackerClientListener)listeners.elementAt(i)).urlRefresh();
-		}
+		listeners.dispatch( LDT_URL_REFRESH, null );		
 	}
 	
 	public TRTrackerResponse
@@ -1161,18 +1187,18 @@ TRTrackerClientClassicImpl
 		return( last_response );
 	}
 	
-  	public synchronized void
+  	public void
 	addListener(
 		TRTrackerClientListener	l )
 	{
-		listeners.addElement( l );
+		listeners.addListener( l );
 	}
 		
-	public synchronized void
+	public void
 	removeListener(
 		TRTrackerClientListener	l )
 	{
-		listeners.removeElement(l);
+		listeners.removeListener(l);
 	}
 	
 	public void
