@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -106,6 +107,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	Messages.setLanguageText(lblDescription,"installPluginsWizard.list.description");
 	
 	final StyledText txtDescription = new StyledText(panel,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
+	txtDescription.setWordWrap(true);
 	txtDescription.setEditable(false);
 	
 	data = new GridData(GridData.FILL_HORIZONTAL);
@@ -176,8 +178,8 @@ public class IPWListPanel extends AbstractWizardPanel {
 	      
 	      
 	      AEThread detailsLoader = new AEThread("Detail Loader") {
-	        public void runSupport() {
-	         final String description = plugin.getDescription();
+	        public void runSupport() {	         
+	         final String description = HTMLUtils.convertListToString(HTMLUtils.convertHTMLToText(plugin.getDescription(),""));
 	         wizard.getDisplay().asyncExec(new AERunnable() {
 			      public void runSupport() {
 			        if(pluginList == null || pluginList.isDisposed() || pluginList.getSelectionCount() ==0)

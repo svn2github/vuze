@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.html;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -32,6 +33,7 @@ import java.util.List;
 public class 
 HTMLUtils 
 {
+  
 		/**
 		 * returns a list of strings for each line in a basic text representation
 		 * @param indent
@@ -46,7 +48,16 @@ HTMLUtils
 	{
 		int		pos = 0;
 		
-		String	lc_text = text.toLowerCase();
+		int orderedIndex = 0;
+		
+		text = text.replaceAll("<ol>","");
+		text = text.replaceAll("</ol>","");
+		text = text.replaceAll("<ul>","");
+		text = text.replaceAll("</ul>","");
+		text = text.replaceAll("</li>","");
+		text = text.replaceAll("<li>","\n\t*");
+		
+		String lc_text = text.toLowerCase();
 		
 		List	lines = new ArrayList();
 		
@@ -91,5 +102,20 @@ HTMLUtils
 		}
 		
 		return( lines );
+	}
+	
+	public static String convertListToString(List list) {
+	  
+	  StringBuffer result = new StringBuffer();
+	  String separator = "";
+	  Iterator iter = list.iterator();
+	  while(iter.hasNext()) {
+	    String line = iter.next().toString();
+	    result.append(separator);
+	    result.append(line);
+	    separator = "\n";
+	  }
+	  
+	  return result.toString();
 	}
 }
