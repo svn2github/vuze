@@ -86,6 +86,13 @@ TRTrackerResponseImpl
 		return( failure_reason );
 	}
 	
+	protected void
+	setPeers(
+		TRTrackerResponsePeer[]		_peers )
+	{
+		peers	= _peers;
+	}
+	
 	public TRTrackerResponsePeer[]
 	getPeers()
 	{

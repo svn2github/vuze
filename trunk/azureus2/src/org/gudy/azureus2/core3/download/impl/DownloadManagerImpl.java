@@ -201,6 +201,8 @@ DownloadManagerImpl
 	private String torrent_comment;
 	private String torrent_created_by;
 	
+	private static String				TRACKER_CACHE_KEY	= "tracker_cache";
+	
 	private Map							tracker_response_cache; 
   
 	private TRTrackerClient 			tracker_client;
@@ -219,7 +221,8 @@ DownloadManagerImpl
 		String 			_torrentFileName, 
 		String 			_savePath,
 		int   			_initialState,
-		boolean			_persistent ) 
+		boolean			_persistent,
+		boolean			_recovered ) 
 	{
 		persistent	= _persistent;
   	
@@ -237,7 +240,7 @@ DownloadManagerImpl
 	
 		savePath = _savePath;
 	
-		readTorrent();
+		readTorrent( persistent && !_recovered );
 	
 	  // must be after readTorrent, so that any listeners have a TOTorrent
 	  if (state == -1)
@@ -362,7 +365,8 @@ DownloadManagerImpl
   }
 
 	private void 
-	readTorrent()
+	readTorrent(
+		boolean		new_torrent )
 	{
 		name				= torrentFileName;	// default if things go wrong decoding it
 		//trackerUrl			= "";
@@ -373,7 +377,16 @@ DownloadManagerImpl
 		try {
 
 			 torrent = TorrentUtils.readFromFile( torrentFileName );
-			   	
+			 
+			 	// if this is a newly introduced torrent trash the tracker cache. We do this to
+			 	// prevent, say, someone publishing a torrent with a load of invalid cache entries
+			 	// in it and a bad tracker URL. This could be used as a DOS attack
+			 
+			 if ( new_torrent ){
+			 	
+			 	torrent.setAdditionalMapProperty( TRACKER_CACHE_KEY, new HashMap());
+			 }
+			 
 			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getTorrentEncoding( torrent );
 			 	
 			 name = locale_decoder.decodeString( torrent.getName());
@@ -405,7 +418,7 @@ DownloadManagerImpl
 			 
 			 nbPieces = torrent.getPieces().length;
 			 
-			 tracker_response_cache	= torrent.getAdditionalMapProperty("tracker_cache");
+			 tracker_response_cache	= torrent.getAdditionalMapProperty(TRACKER_CACHE_KEY);
 			 
 			 if ( tracker_response_cache == null ){
 			 	
@@ -678,9 +691,9 @@ DownloadManagerImpl
   {
   	if ( !BEncoder.mapsAreIdentical(
   				tracker_response_cache,
-				torrent.getAdditionalMapProperty( "tracker_cache" ))){
+				torrent.getAdditionalMapProperty( TRACKER_CACHE_KEY ))){
   		
-  		torrent.setAdditionalMapProperty("tracker_cache", tracker_response_cache );
+  		torrent.setAdditionalMapProperty(TRACKER_CACHE_KEY, tracker_response_cache );
   	
   		try{
   			//System.out.println( "writing tracker_cache");
@@ -855,7 +868,7 @@ DownloadManagerImpl
     if (!use_fast_resume) {
       //invalidate resume info
       diskManager.dumpResumeDataToDisk(false, true);
-      readTorrent();
+      readTorrent( false );
     }
     
     stopIt();

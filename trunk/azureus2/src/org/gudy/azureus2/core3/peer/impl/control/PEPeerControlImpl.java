@@ -462,18 +462,20 @@ PEPeerControlImpl
   	{
   		// tracker_response.print();
   		 				
-    	if ( tracker_response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+    	TRTrackerResponsePeer[]	peers = tracker_response.getPeers();
       	    	
+    	if ( peers != null ){
+    		
         	addPeersFromTracker( tracker_response.getPeers());  
+    	}
+    	
+        Map extensions = tracker_response.getExtensions();
         	
-        	Map extensions = tracker_response.getExtensions();
-        	
-        	if (extensions != null ){
+        if (extensions != null ){
         		
-        		System.out.println( "PEPeerControl: tracker response contained extensions");
+        	System.out.println( "PEPeerControl: tracker response contained extensions");
         		
-        		addExtendedPeersFromTracker( extensions );
-        	}
+        	addExtendedPeersFromTracker( extensions );
     	}
   	}
 

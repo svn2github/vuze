@@ -38,10 +38,12 @@ DownloadManagerFactory
  		String 			torrentFileName, 
  		String 			savePath, 
 		boolean 		stopped,
- 		boolean			persistent )
+ 		boolean			persistent,
+		boolean			recovered )
  	{
  		int state = (stopped) ? DownloadManager.STATE_STOPPED : DownloadManager.STATE_WAITING;
-		return( new DownloadManagerImpl( gm, torrentFileName, savePath, state, persistent ));
+ 		
+		return( new DownloadManagerImpl( gm, torrentFileName, savePath, state, persistent, recovered ));
  	}	
 
 	public static DownloadManager
@@ -50,8 +52,9 @@ DownloadManagerFactory
 		String 			torrentFileName, 
 		String 			savePath, 
 		int      		initialState,
-		boolean			persistent )
+		boolean			persistent,
+		boolean			recovered )
 	{
-		return( new DownloadManagerImpl( gm, torrentFileName, savePath, initialState, persistent ));
+		return( new DownloadManagerImpl( gm, torrentFileName, savePath, initialState, persistent, recovered ));
 	}	
 }

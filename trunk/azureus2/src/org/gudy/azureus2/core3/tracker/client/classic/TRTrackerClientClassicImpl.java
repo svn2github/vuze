@@ -26,7 +26,9 @@ import java.net.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.net.ssl.*;
 
@@ -104,7 +106,11 @@ TRTrackerClientClassicImpl
   
 	private TrackerClientAnnounceDataProvider 	announce_data_provider;
 
-  
+	private static final int TRACKER_PEER_CACHE_MAX	= 128;
+	
+	private Map	tracker_peer_cache		= new LinkedHashMap();	// insertion order - most recent at end
+	private int tracker_peer_cache_next	= 0;
+	
 	public final static int componentID = 2;
 	public final static int evtLifeCycle = 0;
 	public final static int evtFullTrace = 1;
@@ -662,7 +668,20 @@ TRTrackerClientClassicImpl
 		}
 	  } 
 	   
-	  return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval(), last_failure_reason ));
+		// things no good here
+	
+      TRTrackerResponseImpl res = new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, getErrorRetryInterval(), last_failure_reason );
+    
+      TRTrackerResponsePeer[]	cached_peers = getPeersFromCache();
+      
+      if ( cached_peers.length > 0 ){
+
+      	// System.out.println( "cached peers used:" + cached_peers.length );
+      	
+      	res.setPeers( cached_peers );
+      }
+      
+      return( res );
   }
 
  	private byte[] 
@@ -1111,19 +1130,9 @@ TRTrackerClientClassicImpl
     	request.append("&numwant=0");
     }else {
       //calculate how many peers we should ask for
-      int numwant;
-      int MAX_PEERS = 100;
-      
-      if (maxConnections != 0) {
-        numwant = maxConnections - announce_data_provider.getConnectionCount();
-        
-        if (numwant < 0) numwant = 0;
-        if (numwant > MAX_PEERS) numwant = MAX_PEERS;
-        
-      }else {
-      	
-        numwant = MAX_PEERS;
-      }
+    	
+      int numwant = calculateNumWant();
+
 
       request.append("&numwant=" + numwant);
       
@@ -1171,6 +1180,25 @@ TRTrackerClientClassicImpl
     return request.toString();
   }
 
+  protected int
+  calculateNumWant()
+  {
+  	int numwant;
+    int MAX_PEERS = 100;
+    
+    if (maxConnections != 0) {
+      numwant = maxConnections - announce_data_provider.getConnectionCount();
+      
+      if (numwant < 0) numwant = 0;
+      if (numwant > MAX_PEERS) numwant = MAX_PEERS;
+      
+    }else {
+    	
+      numwant = MAX_PEERS;
+    }
+    
+    return( numwant );
+  }
   
   public byte[] 
   getPeerId() 
@@ -1518,11 +1546,15 @@ TRTrackerClientClassicImpl
 				    }
 				    
 					TRTrackerResponsePeer[] peers=new TRTrackerResponsePeer[valid_meta_peers.size()];
-					peers=(TRTrackerResponsePeer[]) valid_meta_peers.toArray(peers);
+					
+					valid_meta_peers.toArray(peers);
+					
+					addToTrackerCache( peers);
 					
 					TRTrackerResponseImpl resp = new TRTrackerResponseImpl( TRTrackerResponse.ST_ONLINE, time_to_wait, peers );
           
-					//reset failure retry interval on successful connect
+						//reset failure retry interval on successful connect
+					
 					failure_added_time = 0;
 					
 					resp.setExtensions((Map)metaData.get( "extensions" ));
@@ -1647,14 +1679,13 @@ TRTrackerClientClassicImpl
     return failure_added_time;
   }
   
+  		// NOTE: tracker_cache is cleared out in DownloadManager when opening a torrent for the
+  		// first time as a DOS prevention measure
+  
 	public Map
 	getTrackerResponseCache()
-	{
-		//System.out.println( "TRTrackerClient::getTrackerResponseCache");
-		
-		// make sure we return a copy of the data, not the data itself!!!!
-		
-		return( new HashMap());
+	{				
+		return( exportTrackerCache());
 	}
 	
 	
@@ -1662,8 +1693,133 @@ TRTrackerClientClassicImpl
 	setTrackerResponseCache(
 		Map		map )
 	{
-		//System.out.println( "TRTrackerClient::setTrackerResponseCache");
+		importTrackerCache( map );
+	}
+	
+	protected Map
+	exportTrackerCache()
+	{
+		Map	res = new HashMap();
 		
-		// !! COPY iT!
+		List	peers = new ArrayList();
+		
+		res.put( "tracker_peers", peers );
+		
+		synchronized( tracker_peer_cache ){
+			
+			Iterator it = tracker_peer_cache.values().iterator();
+			
+			while( it.hasNext()){
+				
+				TRTrackerResponsePeer	peer = (TRTrackerResponsePeer)it.next();		
+
+				Map	entry = new HashMap();
+				
+				entry.put( "ip", peer.getIPAddress());
+				entry.put( "port", new Long(peer.getPort()));
+				entry.put( "peerid", peer.getPeerId());
+				
+				peers.add( entry );
+			}
+		}
+		
+		return( res );
+	}
+	
+	protected void
+	importTrackerCache(
+		Map		map )
+	{
+		try{
+			if ( map == null ){
+				
+				return;
+			}
+			
+			List	peers = (List)map.get( "tracker_peers" );
+	
+			synchronized( tracker_peer_cache ){
+				
+				for (int i=0;i<peers.size();i++){
+					
+					Map	peer = (Map)peers.get(i);
+					
+					String	ip_address  = new String((byte[])peer.get("ip"));
+					int		port		= ((Long)peer.get("port")).intValue();
+					byte[]	peer_id	 	= (byte[])peer.get("peerid");
+						
+					//System.out.println( "recovered " + ip_address + ":" + port );
+					
+					tracker_peer_cache.put( 
+							ip_address, 
+							new TRTrackerResponsePeerImpl(peer_id, ip_address, port ));
+				}
+			}	
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	protected void
+	addToTrackerCache(
+		TRTrackerResponsePeer[]		peers )
+	{
+		synchronized( tracker_peer_cache ){
+			
+			for (int i=0;i<peers.length;i++){
+				
+				TRTrackerResponsePeer	peer = peers[i];
+				
+				tracker_peer_cache.remove( peer.getIPAddress());
+				
+				tracker_peer_cache.put( peer.getIPAddress(), peer );
+			}
+			
+			Iterator	it = tracker_peer_cache.keySet().iterator();
+			
+			while ( tracker_peer_cache.size() > TRACKER_PEER_CACHE_MAX ){
+					
+				it.next();
+				
+				it.remove();
+			}
+		}
+	}
+	
+	protected TRTrackerResponsePeer[]
+	getPeersFromCache()
+	{
+		int	num_want = calculateNumWant();
+	
+		synchronized( tracker_peer_cache ){
+
+			if ( tracker_peer_cache.size() <= num_want ){
+				
+				TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[tracker_peer_cache.size()];
+				
+				tracker_peer_cache.values().toArray( res );
+				
+				return( res );
+			}
+			
+			TRTrackerResponsePeer[]	res = new TRTrackerResponsePeer[num_want];
+			
+			Iterator	it = tracker_peer_cache.keySet().iterator();
+			
+			for (int i=0;i<num_want;i++){
+				
+				res[i] = (TRTrackerResponsePeer)it.next();
+				
+				it.remove();
+			}
+			
+			for (int i=0;i<num_want;i++){
+				
+				tracker_peer_cache.put( res[i].getIPAddress(), res[i] );
+			}
+			
+			return( res );
+		}
 	}
 }

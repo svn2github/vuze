@@ -357,7 +357,7 @@ public class GlobalManagerImpl
       }
       
       String fName = fDest.getCanonicalPath();
-      DownloadManager manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent );
+      DownloadManager manager = DownloadManagerFactory.create(this, fName, savePath, initialState, persistent, false );
       manager = addDownloadManager(manager, true);
       if ( manager == null ) {
         fDest.delete();
@@ -370,12 +370,12 @@ public class GlobalManagerImpl
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       e.printStackTrace();
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent);
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false );
       return addDownloadManager(manager, true);
     }
     catch (Exception e) {
     	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent);
+      DownloadManager manager = DownloadManagerFactory.create(this, fileName, savePath, initialState, persistent, false );
       return addDownloadManager(manager, true);
     }
   }
@@ -658,7 +658,7 @@ public class GlobalManagerImpl
           String sCategory = null;
           if (mDownload.containsKey("category"))
             sCategory = new String((byte[]) mDownload.get("category"), Constants.DEFAULT_ENCODING);
-          DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, state, true );
+          DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, state, true, true );
           dm.getStats().setMaxUploads(nbUploads);
           if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
