@@ -241,8 +241,11 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     maxUploads = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
     
-    if( Constants.isLinux )  gridData.widthHint = 40;
-    else gridData.widthHint = 35;
+    if( Constants.isLinux ){
+    	gridData.widthHint = 45;
+    }else{
+    	gridData.widthHint = 40;
+    }
     
     maxUploads.setLayoutData(gridData);
     maxUploads.setText(String.valueOf(manager.getStats().getMaxUploads()));
