@@ -11,144 +11,180 @@
 package org.gudy.azureus2.ui.console.commands;
 
 import java.io.File;
-import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.OptionGroup;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 import org.pf.file.FileFinder;
 
 /**
- * @author tobi
+ * this class allows the user to add and find torrents.
+ * when adding, you may specify an output directory
+ * when finding, it will cache the files it finds into the ConsoleInput object
+ * so that they can then be added by id 
+ * @author tobi, fatal
  */
-public class AddFind extends IConsoleCommand {
+public class AddFind extends OptionsConsoleCommand {
 	
 	public AddFind()
 	{
 		super( new String[] { "add", "a" } );
+		
+		OptionBuilder.withArgName("outputDir");
+		OptionBuilder.withLongOpt("output");
+		OptionBuilder.hasArg();
+		OptionBuilder.withDescription("Output Directory");
+		OptionBuilder.withType(File.class);		
+		getOptions().addOption( OptionBuilder.create('o') );
+		getOptions().addOption("r", "recurse", false, "recurse sub-directories.");
+		getOptions().addOption("f", "find", false, "only find files, don't add.");
+		getOptions().addOption("h", "help", false, "display help about this command");
+		getOptions().addOption("l", "list", false, "list previous find results");
 	}
 	
 	public String getCommandDescriptions()
 	{
-		return "add [.torrent path|url]\t\t+\tAdd a download from the given .torrent file path or url. Example: 'add /path/to/the.torrent' or 'add http://www.url.com/to/the.torrent'";
+		return "add [addoptions] [.torrent path|url]\t\ta\tAdd a download from the given .torrent file path or url. Example: 'add /path/to/the.torrent' or 'add http://www.url.com/to/the.torrent'";
 	}
 	
-	public void execute(String commandName, ConsoleInput ci, List args) {
-		if ((args != null) && (!args.isEmpty())) {
-			String subcommand = "";
-			for (int i=0; i<args.size(); i++)
-				subcommand += (String) args.get(0) + " ";
-			subcommand = subcommand.trim();
-			boolean scansubdir = false;
-			CommandLine commands = null;
-			CommandLineParser parser = new PosixParser();
-			Options options = new Options();
-			OptionGroup addy = new OptionGroup();
-			options.addOption("o", "output", true, "Output Directory.");
-			addy.addOption(new Option("r", "recurse", false, "Recurse Subdirs."));
-
-			OptionBuilder.hasArgs();
-			OptionBuilder.withDescription("Add found file nr x.");
-			addy.addOption(OptionBuilder.create('n'));
-
-			options.addOption(new Option("f", "find", false, "Only find files, don't add."));
-			options.addOptionGroup(addy);
-			try {
-				commands = parser.parse(options, subcommand.split(" "), true);
-			} catch (ParseException exp) {
-				ci.out.println("> Parsing add commandline failed. Reason: " + exp.getMessage());
-			}
-			if (commands.hasOption('r'))
-				scansubdir = true;
-			String outputDir = "";
-			if (commands.hasOption('o'))
-				outputDir = commands.getOptionValue('o');
-			else
-				try {
-					outputDir = COConfigurationManager.getDirectoryParameter("Default save path");
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-			boolean Finding = false;
-
-			if (commands.hasOption('n')) {
-				String[] numbers = commands.getOptionValues('n');
-				ci.out.println("> Numbers:");
-				for (int i = 0; i < numbers.length; i++)
-					ci.out.println(numbers[i]);
-				String[] whatelse = commands.getArgs();
-				ci.out.println("> Else:");
-				for (int i = 0; i < whatelse.length; i++)
-					ci.out.println(whatelse[i]);
-			} else {
-				String[] whatelse = commands.getArgs();
-				for (int j = 0; j < whatelse.length; j++) {
-					if (whatelse[j].toUpperCase().startsWith("HTTP://")) {
-						/*
-						 * try { out.println("> Starting Download of
-						 * "+whatelse[j]+" ..."); HTTPDownloader dl = new
-						 * HTTPDownloader(whatelse[j],
-						 * COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
-						 * String file = dl.download();
-						 * gm.addDownloadManager(file, outputDir);
-						 * out.println("> Download of "+whatelse[j]+"
-						 * succeeded"); } catch (Exception e) { out.println(">
-						 * Download of "+whatelse[j]+" failed");
-						 */
-						ci.out.println("> Starting Download of " + whatelse[j] + " ...");
-						try {
-							TorrentDownloaderFactory.downloadManaged(whatelse[j]);
-						} catch (Exception e) {
-							e.printStackTrace(ci.out);
-						}
-					} else {
-						File test = new File(whatelse[j]);
-						if (test.exists()) {
-							if (test.isDirectory()) {
-								File[] toadd = FileFinder.findFiles(whatelse[j], "*.torrent;*.tor", false);
-								if ((toadd != null) && (toadd.length > 0)) {
-									for (int i = 0; i < toadd.length; i++) {
-										ci.gm.addDownloadManager(toadd[i].getAbsolutePath(), outputDir);
-										ci.out.println("> '" + toadd[i].getAbsolutePath() + "' added.");
-										ci.torrents.clear();
-									}
-								} else {
-									ci.out.println("> Directory '" + whatelse[j] + "' seems to contain no torrent files.");
-								}
-							} else {
-								ci.gm.addDownloadManager(whatelse[j], outputDir);
-								ci.out.println("> '" + whatelse[j] + "' added.");
-								ci.torrents.clear();
-							}
-						} else {
-							ci.adds = FileFinder.findFiles(whatelse[j].substring(0, whatelse[j].lastIndexOf(System.getProperty("file.separator"))), whatelse[j].substring(whatelse[j].lastIndexOf(System.getProperty("file.separator")) + 1), false);
-							if ((ci.adds != null) && (ci.adds.length > 0)) {
-								ci.out.println("> Found " + Integer.toString(ci.adds.length) + " files:");
-								for (int i = 0; i < ci.adds.length; i++) {
-									try {
-										ci.out.println(ci.adds[i].getCanonicalPath());
-									} catch (Exception e) {
-										ci.out.println(ci.adds[i].getAbsolutePath());
-									}
-								}
-							} else {
-								ci.out.println("> No files found. Searched for '" + subcommand.substring(subcommand.lastIndexOf(System.getProperty("file.separator")) + 1) + "' in '" + subcommand.substring(0, subcommand.lastIndexOf(System.getProperty("file.separator"))));
-							}
-						}
-					}
-				}
-			}
-		} else {
-			ci.out.println("> Missing subcommand for 'add'\r\n> add syntax: see 'help add'");
+	public void execute(String commandName, ConsoleInput ci, CommandLine commands) 
+	{
+		if( commands.hasOption('h') || commands.getArgs().length == 0 )
+		{
+			printHelp(ci.out, (String)null);
+			return;
 		}
+		if( commands.hasOption('l') )
+		{
+			showAdds(ci);
+			return;
+		}
+		String outputDir = ".";
+		if (commands.hasOption('o'))
+			outputDir = commands.getOptionValue('o');
+		else
+			try {
+				outputDir = COConfigurationManager.getDirectoryParameter("Default save path");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		boolean scansubdir = commands.hasOption('r'); 
+		boolean finding = commands.hasOption('f');
+
+		String[] whatelse = commands.getArgs();
+		for (int j = 0; j < whatelse.length; j++) {
+			String arg = whatelse[j];
+			
+			// firstly check if it is a URL
+			if (arg.toUpperCase().startsWith("HTTP://")) {
+				ci.out.println("> Starting Download of " + arg + " ...");
+				try {
+					TorrentDownloaderFactory.downloadManaged(arg);
+				} catch (Exception e) {
+					ci.out.println("An error occurred while downloading torrent: " + e.getMessage());
+					e.printStackTrace(ci.out);
+				}
+				continue;
+			} 
+			
+			// see if the argument is an existing file or directory
+			File test = new File(arg);
+			if (test.exists()) {
+				if (test.isDirectory()) {
+					File[] toadd = FileFinder.findFiles(arg, "*.torrent;*.tor", scansubdir);								
+					if ((toadd != null) && (toadd.length > 0)) {
+						addFiles( ci, toadd, finding, outputDir );
+					} else {
+						ci.adds = null;
+						ci.out.println("> Directory '" + arg + "' seems to contain no torrent files.");
+					}
+				} else {
+					ci.gm.addDownloadManager(arg, outputDir);
+					ci.out.println("> '" + arg + "' added.");
+					ci.torrents.clear();
+				}
+				continue;
+			} 
+
+			// check to see if they are numeric and if so, try and add them from the 'adds' in ci
+			try {
+				int id = Integer.parseInt(arg);
+				if( ci.adds != null && ci.adds.length > id )
+				{
+					String torrentPath = ci.adds[id].getAbsolutePath();
+					ci.gm.addDownloadManager(torrentPath, outputDir);
+					ci.out.println("> '" + torrentPath + "' added.");
+					ci.torrents.clear();
+				}
+				else
+				{
+					ci.out.println("> No such file id '" + id + "'. Try \"add -l\" to list available files");
+				}
+				continue;
+			} catch (NumberFormatException e)
+			{
+			}
+			
+			// last resort - try to process it as a directory/pattern eg: c:/torrents/*.torrent
+			int separatorIndex = arg.lastIndexOf(System.getProperty("file.separator"));
+			String dirName = arg.substring(0, separatorIndex);
+			String filePattern = arg.substring(separatorIndex + 1);
+			File []files = FileFinder.findFiles(dirName, filePattern, false);
+			if ((files != null) && (files.length > 0)) {
+				addFiles(ci, files, finding, outputDir );
+			} else {
+				ci.adds = null;
+				ci.out.println("> No files found. Searched for '" + filePattern + "' in '" + dirName);
+			}
+		}
+	}
+
+	/**
+	 * if finding is set, just print the available files and add them to the 'add' list inside the consoleinput object,
+	 * otherwise actually add the torrents, saving to the specified output directory
+	 * @param toadd
+	 * @param finding
+	 * @param outputDir
+	 */
+	private void addFiles(ConsoleInput ci, File[] toadd, boolean finding, String outputDir) {
+		ci.out.println("> Found " + toadd.length + " files:");
+		
+		if( finding )
+		{
+			ci.adds = toadd;
+			showAdds(ci);
+		}
+		else
+		{
+			for (int i = 0; i < toadd.length; i++) {
+				ci.gm.addDownloadManager(toadd[i].getAbsolutePath(), outputDir);
+				ci.out.println("> '" + toadd[i].getAbsolutePath() + "' added.");
+				ci.torrents.clear();
+			}
+		}
+	}
+
+	/**
+	 * prints out the files in the 'add' list that is stored in the console input object.
+	 * @param ci
+	 */
+	private void showAdds(ConsoleInput ci) {
+		if( ci.adds == null || ci.adds.length == 0 )
+		{
+			ci.out.println("No files found. Try \"add -f <path>\" first");
+			return;
+		}
+		for (int i = 0; i < ci.adds.length; i++) {
+			ci.out.print(">\t" + i + ":\t");
+			try {
+				ci.out.println(ci.adds[i].getCanonicalPath());
+			} catch (Exception e) {
+				ci.out.println(ci.adds[i].getAbsolutePath());
+			}
+		}
+		ci.out.println("> To add, simply type 'add <id>'");
 	}
 }
