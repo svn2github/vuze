@@ -64,7 +64,8 @@ PEPeerControlImpl
   private PEPeerServerHelper 			_server;
   private PEPeerManagerStatsImpl 		_stats;
   private long _timeLastUpdate;
-  private int _timeToWait;
+  private int timeToWait;
+  private int origTimeToWait = 120;
   private TRTrackerClient _tracker;
   private String _trackerStatus;
   //  private int _maxUploads;
@@ -140,7 +141,6 @@ PEPeerControlImpl
     //this could be start or update
     _trackerState = TRACKER_START;
     _trackerStatus = "..."; //$NON-NLS-1$
-    _timeToWait = 120;
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
@@ -364,7 +364,7 @@ PEPeerControlImpl
   		
   		int	status = tracker_response.getStatus();
   		
-		_timeToWait	= (int)tracker_response.getTimeToWait();
+		origTimeToWait	= (int)tracker_response.getTimeToWait();
 		
     	if ( status == TRTrackerResponse.ST_OFFLINE ){
       
@@ -614,8 +614,53 @@ PEPeerControlImpl
    *
    */
   private void checkTracker(long time) {
+    //if we're not downloading, use normal re-check rate
+    if (_manager.getState() != DownloadManager.STATE_DOWNLOADING) {
+      timeToWait = origTimeToWait;
+    }
+    //otherwise calculate a new rate...
+    else {
+      int swarmPeers = 0;
+      int swarmSeeds = 0;
+      int tempMaxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
+      int currentConnectionCount = _connections.size();
+      TRTrackerScraperResponse tsr = _manager.getTrackerScrapeResponse();
+    
+      //get current scrape values
+      if (tsr != null && tsr.isValid()) {
+        swarmPeers = tsr.getPeers();
+        swarmSeeds = tsr.getSeeds();
+      }
+      
+      //limit maximum number of peers to calculate with
+      if (tempMaxConnections == 0 || tempMaxConnections > 100) tempMaxConnections = 100;
+      
+      //lower limit to swarm size if necessary
+      if (tempMaxConnections > (swarmPeers + swarmSeeds)) {
+        tempMaxConnections = swarmPeers + swarmSeeds;
+      }
+      
+      //use only 3/4 the value
+      tempMaxConnections = (int)(tempMaxConnections * .75);
+
+      //if already over the limit, don't shorten the time
+      if (currentConnectionCount >= tempMaxConnections) timeToWait = origTimeToWait;
+      //if no connections, recheck in 1 minute
+      else if (currentConnectionCount == 0) timeToWait = 60;
+      //otherwise...
+      else {
+        //calculate the new wait time
+        float currentConnectionPercent = ((float)currentConnectionCount) / tempMaxConnections;
+        timeToWait =  (int)(currentConnectionPercent * origTimeToWait);
+      
+        //make sure the new wait time is sane
+        if (timeToWait > origTimeToWait) timeToWait = origTimeToWait;
+        if (timeToWait < 60) timeToWait = 60;
+      }
+    }
+    
     //has the timeout expired?
-    if ((time - _timeLastUpdate) > _timeToWait) //if so...
+    if ((time - _timeLastUpdate) > timeToWait) //if so...
       {
       _trackerStatus = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
       checkTracker( false );
@@ -1521,7 +1566,7 @@ PEPeerControlImpl
   }
 
   public int getTrackerTime() {
-    return _timeToWait - (int) (System.currentTimeMillis() / 1000 - _timeLastUpdate);
+    return timeToWait - (int) (System.currentTimeMillis() / 1000 - _timeLastUpdate);
   }
 
   public void pieceChecked(int pieceNumber, boolean result) {
