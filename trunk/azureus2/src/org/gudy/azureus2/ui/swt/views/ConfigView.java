@@ -486,7 +486,7 @@ public class ConfigView extends AbstractIView {
     //TODO : Fix it for windows
     label.addMouseListener(new MouseAdapter() {
       public void mouseUp(MouseEvent arg0) {
-        if(_sUserPluginDir.endsWith("/plugins/")) {
+        if(_sUserPluginDir.endsWith("/plugins/") || _sUserPluginDir.endsWith("\\plugins\\")) {
           File f = new File(_sUserPluginDir);
           if(f.exists() && f.isDirectory()) {
             Program.launch(_sUserPluginDir);
@@ -517,7 +517,7 @@ public class ConfigView extends AbstractIView {
     //TODO : Fix it for windows
     label.addMouseListener(new MouseAdapter() {
       public void mouseUp(MouseEvent arg0) {
-        if(_sAppPluginDir.endsWith("/plugins/")) {
+        if(_sAppPluginDir.endsWith("/plugins/") || _sAppPluginDir.endsWith("\\plugins\\")) {
           File f = new File(_sAppPluginDir);
           if(f.exists() && f.isDirectory()) {
             Program.launch(_sAppPluginDir);
