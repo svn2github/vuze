@@ -467,7 +467,7 @@ public class MainMenu {
       Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
       help_faq.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
-          String faqString = "http://azureus.sourceforge.net/wiki/";
+          String faqString = Constants.AELITIS_WEB_SITE + "wiki/";
           Program.launch(faqString);
         }
       });

@@ -165,7 +165,7 @@ public class ConfigSectionFilePerformance implements ConfigSectionSWT {
 			new String[]{ 
     			DisplayFormatters.formatByteCountToKiBEtc(32*1024*1024),
     			DisplayFormatters.formatByteCountToKiBEtc(Runtime.getRuntime().maxMemory()),
-				Constants.SF_WEB_SITE
+				Constants.AELITIS_WEB_SITE + "wiki/"
 			});
     
     // don't cache smaller than

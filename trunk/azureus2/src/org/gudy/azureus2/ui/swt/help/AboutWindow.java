@@ -117,7 +117,7 @@ public class AboutWindow {
           "http://sourceforge.net/project/showfiles.php?group_id=84122",
           "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",
           "http://sourceforge.net/forum/?group_id=84122",
-          "http://azureus.sourceforge.net/wiki/" }
+          Constants.AELITIS_WEB_SITE + "wiki/" }
     };
   
     for (int i = 0; i < link[0].length; i++) {
