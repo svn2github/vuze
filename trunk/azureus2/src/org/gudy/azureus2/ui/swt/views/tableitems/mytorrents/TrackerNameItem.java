@@ -46,10 +46,18 @@ public class TrackerNameItem
     String name = "";
     
     if( dm != null ) {
-      try {
-        name = dm.getTorrent().getAnnounceURL().getHost();
+      String[] parts = dm.getTorrent().getAnnounceURL().getHost().split( "\\." );
+        
+      int used = 0;
+      for( int i = parts.length-1; i >= 0; i-- ) {
+        String chunk = parts[ i ];
+        if( used < 2 || chunk.length() < 11 ) {  //use end two always, but trim out >10 chars (passkeys)
+          if( used == 0 ) name = chunk;
+          else name = chunk + "." + name;
+          used++;
+        }
+        else break;
       }
-      catch( Throwable e ) { /*nothing*/ }
     }
     
     cell.setText( name );
