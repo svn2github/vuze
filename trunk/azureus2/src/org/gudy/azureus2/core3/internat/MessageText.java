@@ -281,6 +281,9 @@ public class MessageText {
                                                       new URLClassLoader(urls));
         if (newResourceBundle == null || 
             !newResourceBundle.getLocale().getLanguage().equals(newLocale.getLanguage())) {
+          System.out.println("changeLocale: "+ newResourceBundle.getLocale() +
+                             "."  +newResourceBundle.getLocale().getLanguage()+
+                             " != "+newLocale.getLanguage()+". Searching w/o country..");
           // try it without the country
           Locale localeJustLang = new Locale(newLocale.getLanguage());
           newResourceBundle = ResourceBundle.getBundle("MessagesBundle", localeJustLang, 
@@ -289,6 +292,7 @@ public class MessageText {
           if (newResourceBundle == null ||
               !newResourceBundle.getLocale().getLanguage().equals(localeJustLang.getLanguage())) {
             // find first language we have in our list
+            System.out.println("changeLocale: Searching for language in any country..");
             Locale[] locales = getLocales();
             for (int i = 0; i < locales.length; i++) {
               if (locales[i].getLanguage() == newLocale.getLanguage()) {
@@ -316,7 +320,7 @@ public class MessageText {
             sNewLanguage = "default (English)";
           System.out.println("changeLocale: no message properties for Locale '"+ 
                              newLocale.getDisplayName() +
-                             "', using '" + sNewLanguage + "'");
+                             "' (" + newLocale + "), using '" + sNewLanguage + "'");
         }
         newLocale = newResourceBundle.getLocale();
         Locale.setDefault(newLocale);
