@@ -49,7 +49,6 @@ public class PluginInitializer {
   
   public void initializePlugins() {
     File pluginDirectory = FileUtil.getApplicationFile(System.getProperty("file.separator") + "plugins");
-    if(!pluginDirectory.exists()) return;
     if(!pluginDirectory.isDirectory()) return;
     File[] pluginsDirectory = pluginDirectory.listFiles();
     for(int i = 0 ; i < pluginsDirectory.length ; i++) {
@@ -65,7 +64,6 @@ public class PluginInitializer {
   
   private void initializePluginFromDir(File directory) {
     classLoader = null;
-    if(!directory.exists()) return;
     if(!directory.isDirectory()) return;
     String pluginName = directory.getName();
     File[] pluginContents = directory.listFiles();
