@@ -498,7 +498,9 @@ DownloadManagerImpl
 			 		// results in the creation of a local diretory in /Volumes that subsequently stuffs
 			 		// up recovery when the volume is mounted
 			 	
-			 	if ( !new_torrent ){
+			 		// changed this to only report the error on non-windows platforms 
+			 	
+			 	if ( !(new_torrent || Constants.isWindows )){
 			 		
 			 		throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + save_dir_file.toString()));
 			 	}
