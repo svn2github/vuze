@@ -227,9 +227,10 @@ public class PeerSocket extends PeerConnection {
         if (socket.isOpen()) socket.close();    // See bug #804127
         else System.out.println("PeerSocket::closeAll:: socket already closed");
       }
-      catch (IOException e) {
+      catch (Exception e) {
         System.out.println("PeerSocket::closeAll:: closing socket failed: " + ip + ":" + port);
         socket = null;     // See bug #804127
+        // logger.log(componentID, evtErrors, Logger.ERROR, "Error in PeerConnection::closeAll-sck.close() (" + ip + " : " + port + " ) : " + e);
       }
       socket = null;
     }
@@ -328,8 +329,12 @@ public class PeerSocket extends PeerConnection {
         }
         if (!lengthBuffer.hasRemaining()) {
           int length = lengthBuffer.getInt(0);
-          if (length > 0) {
-            readBuffer.limit(lengthBuffer.getInt(0));
+          if(length < 0) {
+            closeAll();
+          } else if(length >= readBuffer.capacity()) {
+            closeAll();
+          } else if (length > 0) {
+            readBuffer.limit(length);
             readingLength = false;
           }
           else {
@@ -584,6 +589,8 @@ public class PeerSocket extends PeerConnection {
         removeRequestFromQueue(new Request(pieceNumber, pieceOffset, pieceLength));
         readMessage(readBuffer);
         break;
+     default:
+      closeAll();
     }
   }
 
