@@ -121,11 +121,20 @@ TOTorrentImpl
             BufferedOutputStream bos = null;
 						
 						try{
-              bos = new BufferedOutputStream( new FileOutputStream( output_file, false ), 8192 );
+              File temp = new File( output_file.getParentFile(), output_file.getName() + ".saving");
+              
+              bos = new BufferedOutputStream( new FileOutputStream( temp, false ), 8192 );
 							bos.write( res );
 							bos.flush();
-              
               bos.close();
+              bos = null;
+              
+              //only use newly saved file if it got this far, i.e. it was written successfully
+              if ( output_file.exists() ) {
+                output_file.delete();
+              }
+              temp.renameTo( output_file );
+              
               return null;
 							
 						}catch( Throwable e){
