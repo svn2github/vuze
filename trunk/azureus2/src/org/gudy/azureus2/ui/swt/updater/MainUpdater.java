@@ -100,6 +100,8 @@ public class MainUpdater implements SWTDownloadURLsListener,SWTZipDownloadListen
       
       //System.out.println(exec);
       
+      LGLogger.log("SWT Updater is about to execute : " + exec);
+      
       File f = new File("updateSWT.log");
       FileOutputStream fosLog = new FileOutputStream(f,true);
       fosLog.write(("SWT Updater is about to execute : " + exec + "\n").getBytes());         
