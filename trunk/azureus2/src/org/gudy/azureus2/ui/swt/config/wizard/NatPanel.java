@@ -84,10 +84,6 @@ public class NatPanel extends AbstractWizardPanel {
               printMessage(MessageText.getString("configureWizard.nat.ko") + "\n");
               bContinue = false;
               break;
-             case NatChecker.NAT_ALREADY_LISTENING :
-              printMessage(MessageText.getString("configureWizard.nat.already_listening") + "\n");
-              bContinue = false;
-              break;
             default :
               printMessage(MessageText.getString("configureWizard.nat.unable") + "\n");
               break;

@@ -22,9 +22,11 @@ FEATURE: UI   | System tray menus for setting global upload and download bandwid
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar]
 CHANGE: Core | First piece priority option now also prioritizes last piece of file [Nolar]
+CHANGE: Core | NAT check functions even when downloads have already been started [Nolar]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
+
 
 
 

@@ -28,6 +28,8 @@ import java.net.URL;
 import java.util.Map;
 
 import com.aelitis.azureus.core.*;
+
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -45,7 +47,6 @@ public class NatChecker {
   public static final int NAT_OK = 1;
   public static final int NAT_KO = 2;
   public static final int NAT_UNABLE = 3;
-  public static final int NAT_ALREADY_LISTENING = 4;
   
   private static final String[] urls = {
       Constants.AELITIS_WEB_SITE + "natcheck.php"       
@@ -56,83 +57,90 @@ public class NatChecker {
   		AzureusCore	azureus_core,
 		int port) 
   {	
-    String check = "azureus_rand_".concat(String.valueOf((int) (Math.random() * 100000)));
-    NatCheckerServer server = new NatCheckerServer(port, check);
-    if (server.isValid()) {
-    	
-    	PluginInterface pi_upnp = azureus_core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
-			
-    	UPnPMapping	new_mapping = null;
-		
-		if ( pi_upnp != null ){
-			
-			UPnPPlugin	upnp = (UPnPPlugin)pi_upnp.getPlugin();
-			
-			UPnPMapping	mapping = upnp.getMapping( true, port );
-			
-			if ( mapping == null ){
-				
-				new_mapping = upnp.addMapping( "NAT Tester", true, port, true );
-				
-					// give UPnP a chance to work
-				
-				try{
-					Thread.sleep(500);
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
-				}
-			}
-		}
+    String check = "azureus_rand_" + String.valueOf( (int)(Math.random() * 100000) );
+    
+    NatCheckerServer server = new NatCheckerServer( port, check );
+    
+    if( !server.isValid() )  return NAT_UNABLE;
+    
 
-      try {
-      	
-        server.start();
-        String urlStr = urls[0].concat("?port=").concat(String.valueOf(port)).concat("&check=").concat(check);
-        URL url = new URL(urlStr);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.connect();
-        InputStream is = null;
-        ByteArrayOutputStream message = new ByteArrayOutputStream();
-        is = con.getInputStream();
-        //      int length = con.getContentLength();
-        //      System.out.println(length);
-        byte[] data = new byte[1024];
-        int nbRead = 0;
-        while (nbRead >= 0) {
-          nbRead = is.read(data);
-          if (nbRead >= 0)
-            message.write(data, 0, nbRead);
-          Thread.sleep(20);
+    //do UPnP if necessary
+    PluginInterface pi_upnp = azureus_core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+
+    UPnPMapping new_mapping = null;
+
+    if( pi_upnp != null ) {
+
+      UPnPPlugin upnp = (UPnPPlugin)pi_upnp.getPlugin();
+
+      UPnPMapping mapping = upnp.getMapping( true, port );
+
+      if( mapping == null ) {
+
+        new_mapping = upnp.addMapping( "NAT Tester", true, port, true );
+
+        // give UPnP a chance to work
+
+        try {
+          Thread.sleep( 500 );
+          
         }
-        Map map = BDecoder.decode(message.toByteArray()); 
-        int result = ((Long)map.get("result")).intValue();
-        switch(result) {
-          case 0 :
-            return NAT_KO;
-          case 1 :
-            return NAT_OK;
-          default:
-            return NAT_UNABLE;            
+        catch (Throwable e) {
+
+          Debug.printStackTrace( e );
         }
-      }
-      catch (Exception e) {       
-        return NAT_UNABLE;
-      }
-      finally {
-      	
-      	if (new_mapping != null ){
-      		
-      		new_mapping.destroy();
-      	}
-      	
-        server.stopIt();
       }
     }
-    else {
-        if (server.isAlreadyListening()) return NAT_ALREADY_LISTENING;
-        return NAT_UNABLE;
+
+    //run check
+    try {
+      server.start();
+      
+      String urlStr = urls[ 0 ] + "?port=" + String.valueOf( port ) + "&check=" + check;
+      URL url = new URL( urlStr );
+      HttpURLConnection con = (HttpURLConnection)url.openConnection();
+      con.connect();
+      
+      ByteArrayOutputStream message = new ByteArrayOutputStream();
+      InputStream is = con.getInputStream();
+      
+      byte[] data = new byte[ 1024 ];
+      
+      int nbRead = 0;
+      while( nbRead >= 0 ) {
+        nbRead = is.read( data );
+        if( nbRead >= 0 ) message.write( data, 0, nbRead );
+        Thread.sleep( 20 );
+      }
+      
+      Map map = BDecoder.decode( message.toByteArray() );
+      int result = ((Long)map.get( "result" )).intValue();
+      
+      switch( result ) {
+        case 0 :
+          byte[] reason = (byte[])map.get( "reason" );
+          if( reason != null ) {
+            LGLogger.log( "NAT CHECK FAILED: " + new String( reason ) );
+          }
+          return NAT_KO;
+        case 1 :
+          return NAT_OK;
+        default :
+          return NAT_UNABLE;
+      }
+    }
+    catch (Exception e) {
+      return NAT_UNABLE;
+    }
+    finally {
+
+      if( new_mapping != null ) {
+
+        new_mapping.destroy();
+      }
+
+      server.stopIt();
     }
   }
+  
 }

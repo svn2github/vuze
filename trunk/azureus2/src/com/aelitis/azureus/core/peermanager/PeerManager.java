@@ -110,7 +110,7 @@ public class PeerManager {
         matcher,
         new IncomingConnectionManager.MatchListener() {
           public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
-            System.out.println( "Incoming connection from [" +channel.socket().getInetAddress().getHostAddress()+ "] successfully routed to [" +manager.getDownloadManager().getDisplayName()+ "]" );
+            System.out.println( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] successfully routed to [" +manager.getDownloadManager().getDisplayName()+ "]" );
             PEPeerTransport transport = PEPeerTransportFactory.createTransport( manager, channel, read_so_far );
             manager.addPeerTransport( transport );
           }
