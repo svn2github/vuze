@@ -1,8 +1,4 @@
 /*
- * File    : NameItem.java
- * Created : 24 nov. 2003
- * By      : Olivier
- *
  * Copyright (C) 2004 Aelitis SARL, All rights Reserved
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,22 +20,24 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
+import java.io.File;
 import java.io.IOException;
 
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.ui.swt.views.FilesView;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-/** Torrent name cell for My Torrents.
- *
- * @author Olivier
- * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
- */
+
+
 public class PathItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+  
+  
   /** Default Constructor */
   public PathItem() {
     super("path", ALIGN_LEAD, POSITION_LAST, 200, TableManager.TABLE_TORRENT_FILES);
@@ -47,17 +45,34 @@ public class PathItem
 
   public void refresh(TableCell cell) {
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    String path = "<unknown>";
+    
+    String path = "";
+    
     if( fileInfo != null ) {
-      try {
-        path = fileInfo.getFile().getParentFile().getCanonicalPath();
+      if( FilesView.show_full_path ) { //display as full disk path
+        try {
+          path = fileInfo.getFile().getParentFile().getCanonicalPath() + File.separator;
+        }
+        catch( IOException e ) {
+          path = fileInfo.getFile().getParentFile().getAbsolutePath() + File.separator;
+        }
       }
-      catch( IOException e ) {
-        path = fileInfo.getFile().getParentFile().getAbsolutePath();
+      else {  //display as relative torrent path
+        DownloadManager dm = fileInfo.getDiskManager().getDownloadManager();
+
+        String root = dm.getTorrentSaveDir();
+        if( !dm.getTorrent().isSimpleTorrent() ) {
+          root += File.separator + dm.getTorrentSaveFile();
+        }
+         
+        int pos = fileInfo.getPath().indexOf( root );
+         
+        if( pos >= 0 ) {
+          path = fileInfo.getPath().substring( pos + root.length() );
+        }
       }
     }
     
     cell.setText( path );
-
   }
 }

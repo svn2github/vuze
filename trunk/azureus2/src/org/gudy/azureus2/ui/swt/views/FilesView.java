@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 public class FilesView 
        extends TableView
 {
+
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
     new PathItem(),
@@ -62,7 +63,12 @@ public class FilesView
     new ModeItem(),
     new PriorityItem()
   };
+  
   private DownloadManager manager;
+  
+  public static boolean show_full_path = COConfigurationManager.getBooleanParameter( "FilesView.show.full.path", false );
+  private MenuItem path_item;
+  
 
   public FilesView(DownloadManager manager) {
     super(TableManager.TABLE_TORRENT_FILES, "FilesView", 
@@ -88,6 +94,9 @@ public class FilesView
       manager.initializeDiskManager();
   }
 
+  
+  
+  
   public void fillMenu(final Menu menu) {
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "FilesView.menu.open"); //$NON-NLS-1$
@@ -214,4 +223,39 @@ public class FilesView
     }
     return false;
   }
+  
+
+  
+  /* SubMenu for column specific tasks.
+   */
+  public void addThisColumnSubMenu(String sColumnName, Menu menuThisColumn) {
+
+    if (sColumnName.equals("path")) {
+      path_item = new MenuItem( menuThisColumn, SWT.CHECK );
+      
+      menuThisColumn.addListener( SWT.Show, new Listener() {
+        public void handleEvent(Event e) {
+          path_item.setSelection( show_full_path );
+        }
+      });
+      
+      Messages.setLanguageText(path_item, "FilesView.fullpath");
+      
+      path_item.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          show_full_path = path_item.getSelection();
+          forceFullRefresh();
+          COConfigurationManager.setParameter( "FilesView.show.full.path", show_full_path );
+        }
+      });
+      
+    }
+  }
+  
+  
+  private void forceFullRefresh() {
+    super.tableInvalidate();
+    super.refresh();
+  }
+  
 }
