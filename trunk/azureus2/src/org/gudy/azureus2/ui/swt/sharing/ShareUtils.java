@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.config.*;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -51,8 +50,9 @@ ShareUtils
 			run()
 			{
 				Display display = shell.getDisplay();
-					
+        final String[] path = { null };
 				final Semaphore	sem = new Semaphore();
+        
 					
 				display.asyncExec(new Runnable() {
 					public void run()
@@ -64,7 +64,7 @@ ShareUtils
 													
 							dialog.setText(MessageText.getString("MainWindow.dialog.share.sharefile"));
 							
-              TorrentOpener.setFilterPathData( dialog.open() );
+              path[0] = TorrentOpener.setFilterPathData( dialog.open() );
 
 						}finally{
 							
@@ -75,11 +75,9 @@ ShareUtils
 				
 				sem.reserve();
 				
-				String	target = TorrentOpener.getFilterPathData();
-				
-				if ( target != null ){
+				if ( path[0] != null ){
 					
-					shareFile( target );
+					shareFile( path[0] );
 				}
 			}
 		}.start();
@@ -112,7 +110,7 @@ ShareUtils
 			run()
 			{
 				Display display = shell.getDisplay();
-				
+				final String[] path = { null };
 				final Semaphore	sem = new Semaphore();
 				
 				display.asyncExec(new Runnable() {
@@ -129,7 +127,7 @@ ShareUtils
 												(recursive?"("+MessageText.getString("MainWindow.dialog.share.sharedircontents.recursive")+")":""):
 										MessageText.getString("MainWindow.dialog.share.sharedir"));
 							
-							TorrentOpener.setFilterPathData( dialog.open() );
+							path[0] = TorrentOpener.setFilterPathData( dialog.open() );
 
 						}finally{
 							
@@ -140,17 +138,15 @@ ShareUtils
 				
 				sem.reserve();
 				
-				String	target = TorrentOpener.getFilterPathData();
-				
-				if ( target != null ){
+				if ( path[0] != null ){
 					
 					if ( contents ){
 						
-						shareDirContents( target, recursive );
+						shareDirContents( path[0], recursive );
 						
 					}else{
 						
-						shareDir( target );
+						shareDir( path[0] );
 					}
 				}
 			}

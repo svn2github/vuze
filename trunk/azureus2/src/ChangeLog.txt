@@ -9,11 +9,10 @@ CHANGE: Core | Core update checker now uses aelitis.com server to grab latest ve
 
 BUGFIX: Core | Fix for Library Paths using single quotes [Parg]
 BUGFIX: Core | Fixed shared plugin dir location on OSX [Parg]
-BUGFIX: Core | Better directory remembering [Nolar]
+BUGFIX: Core | File Open dialogs now correctly remember their last path [Nolar]
 BUGFIX: UI   | # Column now on by default again [TuxPaper]
 BUGFIX: UI   | Fix for Context Menu not appearing after setting up columns on Linux [TuxPaper]
 BUGFIX: UI   | IP column now sorts by hex groups [TuxPaper]
-BUGFIX:
 
 
 
