@@ -27,7 +27,6 @@ package org.gudy.azureus2.pluginsimpl.sharing;
  */
 
 import java.util.*;
-import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.sharing.*;
