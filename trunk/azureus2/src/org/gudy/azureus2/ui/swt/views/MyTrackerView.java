@@ -176,13 +176,31 @@ MyTrackerView
 		   itemStop.setEnabled(false);
 		   itemRemove.setEnabled(false);
 
-			// TODO: !!!!
-			
 		   if (tis.length > 0) {
-		   		itemStart.setEnabled(true);
-			 itemStop.setEnabled(true);
-			 itemRemove.setEnabled(true);
-
+		   	
+				boolean	start_ok 	= true;
+				boolean	stop_ok		= true;
+						
+				for (int i=0;i<tis.length;i++){
+					
+					TableItem	ti = tis[i];
+					
+					TRHostTorrent	host_torrent = (TRHostTorrent)host_torrents.get( ti );
+					
+					int	status = host_torrent.getStatus();
+					
+					if ( status != TRHostTorrent.TS_STOPPED ){
+						
+						start_ok	= false;
+						
+					}else if ( status != TRHostTorrent.TS_STARTED ){
+						
+						stop_ok = false;
+					}
+				}
+		   		itemStart.setEnabled(start_ok);
+			 	itemStop.setEnabled(stop_ok);
+			 	itemRemove.setEnabled(true);
 		   }
 		 }
 	   });

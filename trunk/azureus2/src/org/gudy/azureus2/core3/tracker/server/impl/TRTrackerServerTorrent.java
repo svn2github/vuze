@@ -127,7 +127,7 @@ TRTrackerServerTorrent
 	
 			TRTrackerServerPeerImpl	peer = (TRTrackerServerPeerImpl)it.next();
 							
-			if ( (now - peer.getLastContactTime()) > server.getRetryInterval()*1000*2 ){
+			if ( (now - peer.getLastContactTime()) > server.getTimeoutIntervalInMillis() ){
 							
 				System.out.println( "removing timed out client '" + peer.getString());
 								
@@ -160,5 +160,11 @@ TRTrackerServerTorrent
 		peer_map.values().toArray( res );
 		
 		return( res );
+	}
+	
+	protected HashWrapper
+	getHash()
+	{
+		return( hash );
 	}
 }

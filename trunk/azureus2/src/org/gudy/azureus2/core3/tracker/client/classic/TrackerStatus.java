@@ -38,10 +38,15 @@ public class TrackerStatus {
       int position = trackerUrl.lastIndexOf('/');
       if(	position >= 0 &&
       		trackerUrl.length() >= position+9 && 
-      		trackerUrl.substring(position+1,position+9).equals("announce"))
+      		trackerUrl.substring(position+1,position+9).equals("announce")){
+      		
       		
         this.scrapeURL = trackerUrl.substring(0,position+1) + "scrape" + trackerUrl.substring(position+9);
         
+        // System.out.println( "url = " + trackerUrl + ", scrape =" + scrapeURL );
+     }else{
+		LGLogger.log(0,0,LGLogger.INFORMATION,"can't scrape using '" + trackerUrl + "' as it doesn't end in '/announce'");		
+     }
     } catch (Exception e) {
     	
       e.printStackTrace();
@@ -81,6 +86,7 @@ public class TrackerStatus {
       info_hash += URLEncoder.encode(new String(hash.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
       URL scrape = new URL(scrapeURL + info_hash);
       LGLogger.log(0,0,LGLogger.INFORMATION,"Accessing scrape interface using url : " + scrape);
+      //System.out.println( "trying " + scrape.toString());
       HttpURLConnection con = (HttpURLConnection) scrape.openConnection();
       con.connect();
       is = con.getInputStream();
@@ -105,9 +111,12 @@ public class TrackerStatus {
       Iterator iter = map.keySet().iterator();
       while(iter.hasNext()) {
         String strKey = (String)iter.next();
+        
         byte[] key = (strKey).getBytes(Constants.BYTE_ENCODING);
+        
         Map hashMap = (Map)map.get(strKey);
-        //System.out.println(ByteFormater.nicePrint(key) + " :: " + hashMap);
+        
+        // System.out.println(ByteFormatter.nicePrint(hash.getHash()) + " -> " + ByteFormatter.nicePrint(key));
         int seeds = ((Long)hashMap.get("complete")).intValue();
         int peers = ((Long)hashMap.get("incomplete")).intValue();
         hashes.put(new HashWrapper(key),new TRTrackerScraperResponseImpl(seeds,peers));        

@@ -526,22 +526,24 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 
 	itemHost.addListener(SWT.Selection, new Listener() {
 	   public void handleEvent(Event event) {
+
 		 TableItem[] tis = table.getSelection();
-		 if (tis.length == 0) {
-		   return;
+
+		 for (int i = 0; i < tis.length; i++) {
+
+		   TableItem ti = tis[i];
+		 
+			 DownloadManager dm = (DownloadManager) managers.get(ti);
+		 
+			 TOTorrent	torrent = dm.getTorrent();
+		 
+			 if ( torrent != null ){
+		 
+		 		TRHostFactory.create().addTorrent( torrent );
+			 } 
 		 }
-		 TableItem ti = tis[0];
 		 
-		 DownloadManager dm = (DownloadManager) managers.get(ti);
-		 
-		 TOTorrent	torrent = dm.getTorrent();
-		 
-		 if ( torrent != null ){
-		 
-		 	TRHostFactory.create().addTorrent( torrent );
-		 	
-		 	MainWindow.getWindow().showMyTracker();
-		 }
+		 MainWindow.getWindow().showMyTracker();
 	   }
 	 });
 	 

@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.*;
 
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -160,11 +161,11 @@ TrackerTableItem
 		
 		ViewUtils.setText( item, 5, "" + torrent.getAnnounceCount());
 		
-		ViewUtils.setText( item, 6, "" + uploaded );
+		ViewUtils.setText( item, 6, "" + DisplayFormatters.formatByteCountToKBEtc(uploaded));
 		
-		ViewUtils.setText( item, 7, "" + downloaded );
+		ViewUtils.setText( item, 7, "" + DisplayFormatters.formatByteCountToKBEtc(downloaded));
 		
-		ViewUtils.setText( item, 8, "" + left );
+		ViewUtils.setText( item, 8, "" + DisplayFormatters.formatByteCountToKBEtc(left));
 	}
 
 	public int 

@@ -34,7 +34,7 @@ TRTrackerServerImpl
 	implements TRTrackerServer
 {
 	protected int	port;
-	protected int	retry_interval;
+	protected int	retry_interval_seconds;
 	
 	protected Map	torrent_map = new HashMap(); 
 	
@@ -43,8 +43,8 @@ TRTrackerServerImpl
 		int		_port,
 		int		_retry_interval )
 	{
-		port			= _port;
-		retry_interval	= _retry_interval;
+		port					= _port;
+		retry_interval_seconds	= _retry_interval;
 		
 		Thread accept_thread = 
 				new Thread()
@@ -78,7 +78,7 @@ TRTrackerServerImpl
 	protected void
 	acceptLoop()
 	{
-		System.out.println( "TRTrackerServerImpl: starts on port " + port );
+		//System.out.println( "TRTrackerServerImpl: starts on port " + port );
 		
 		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "");
 
@@ -114,7 +114,7 @@ TRTrackerServerImpl
 		while(true){
 	
 			try{
-				Thread.sleep( retry_interval*2*1000 );		
+				Thread.sleep( getTimeoutIntervalInMillis() );		
 				
 				synchronized(this){
 					
@@ -141,7 +141,13 @@ TRTrackerServerImpl
 	public int
 	getRetryInterval()
 	{
-		return( retry_interval );
+		return( retry_interval_seconds );
+	}
+	
+	protected long
+	getTimeoutIntervalInMillis()
+	{
+		return( retry_interval_seconds * 1000 * 3 );
 	}
 	
 	public synchronized void

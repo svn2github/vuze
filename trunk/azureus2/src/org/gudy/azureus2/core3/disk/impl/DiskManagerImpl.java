@@ -765,7 +765,11 @@ DiskManagerImpl
 
 				} catch (Exception e) {
 					try {
-						raf.close();
+							
+						if ( raf != null ){
+						
+							raf.close();
+						}
 					} catch (IOException ex) { ex.printStackTrace(); }
 					this.state = FAULTY;
 					this.errorMessage = e.getMessage();

@@ -61,6 +61,18 @@ TRHostImpl
 	addTorrent(
 		TOTorrent		torrent )
 	{
+		for (int i=0;i<torrents.size();i++){
+			
+			TRHostTorrent	ht = (TRHostTorrent)torrents.get(i);
+			
+			if ( ht.getTorrent() == torrent ){
+		
+					// already there
+							
+				return;
+			}
+		}
+		
 		int	port = torrent.getAnnounceURL().getPort();
 		
 		if ( port == -1 ){

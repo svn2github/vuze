@@ -42,6 +42,15 @@ public class BEncoder {
             Map tempMap = (Map)object;
             SortedMap tempTree = null;
             
+            	// unfortunately there are some occasions where we want to ensure that
+            	// the 'key' of the map is not mangled by assuming its UTF-8 encodable.
+            	// In particular the response from a tracker scrape request uses the
+            	// torrent hash as the KEY. Hence the introduction of the type below
+            	// to allow the constructor of the Map to indicate that the keys should
+            	// be extracted using a BYTE_ENCODING 
+            	
+            boolean	byte_keys = object instanceof ByteEncodedKeyHashMap;
+            
             //write the d            
             baos.write('d');
             
@@ -71,14 +80,35 @@ public class BEncoder {
                 }
             }while(true);
             
-            //encode all of the keys
-            for(int i = 0; i<keyList.size(); i++){
-                Object key = keyList.get(i);
-                //encode the key
-                BEncoder.encode(baos, key);
-                //encode the value
-                BEncoder.encode(baos, tempMap.get(key));
-            }           
+            	//encode all of the keys
+            
+            if ( byte_keys ){
+            	
+            	try{
+            	
+					for(int i = 0; i<keyList.size(); i++){
+						
+				   		String key = (String)keyList.get(i);
+				   			//encode the key
+				   		BEncoder.encode(baos,key.getBytes( Constants.BYTE_ENCODING ));
+				   			//encode the value
+				   		BEncoder.encode(baos, tempMap.get(key));
+			   		}
+            	}catch( UnsupportedEncodingException e ){
+            		
+            		e.printStackTrace();
+            	}
+            }else{                 
+           
+				for(int i = 0; i<keyList.size(); i++){
+					Object key = keyList.get(i);
+					//encode the key
+					BEncoder.encode(baos, key );	// Key goes in as UTF-8
+					//encode the value
+					BEncoder.encode(baos, tempMap.get(key));
+				}      
+            }          
+     
             
             baos.write('e');
             

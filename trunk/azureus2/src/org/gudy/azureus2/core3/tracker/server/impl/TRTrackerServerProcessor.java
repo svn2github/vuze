@@ -36,6 +36,9 @@ TRTrackerServerProcessor
 	protected static final char		FF			= '\012';
 	protected static final String	NL			= "\015\012";
 
+	protected static final int		RT_ANNOUNCE	= 1;
+	protected static final int		RT_SCRAPE	= 2;
+	
 	protected static Map	hash_map = new HashMap();
 						
 	protected TRTrackerServerImpl		server;
@@ -121,116 +124,168 @@ TRTrackerServerProcessor
 			Map	root = new HashMap();
 				
 			try{
+				int	request_type;
+			
 				if ( str.startsWith( "/announce?" )){
-				
+					
+					request_type	= RT_ANNOUNCE;
+					
 					str = str.substring(10);
 					
-					int	pos = 0;
+				}else if ( str.startsWith( "/scrape?" )){
 					
-					String		hash	= null;
-					String		peer_id	= null;
-					int			port	= 0;
-					String		event	= null;
+					request_type	= RT_SCRAPE;
 					
-					long		uploaded		= 0;
-					long		downloaded		= 0;
-					long		left			= 0;
-					int			num_peers		= 0;
-					
-					while(true){
-						
-						int	p1 = str.indexOf( '&', pos );
-						
-						String	token;
-						
-						if ( p1 == -1 ){
-							
-							token = str.substring( pos );
-							
-						}else{
-							
-							token = str.substring( pos, p1 );
-							
-							pos = p1+1;
-						}
-					
-						int	p2 = token.indexOf('=');
-						
-						if ( p2 == -1 ){
-							
-							throw( new Exception( "format invalid" ));
-						}
-						
-						String	lhs = token.substring( 0, p2 );
-						String	rhs = URLDecoder.decode(token.substring( p2+1 ), Constants.BYTE_ENCODING );
-						
-						// System.out.println( "param:" + lhs + " = " + rhs );
-						
-						if ( lhs.equals( "info_hash" )){
-							
-							hash	= rhs;
-							
-						}else if ( lhs.equals( "peer_id" )){
-							
-							peer_id	= rhs;
-								
-						}else if ( lhs.equals( "port" )){
-							
-							port = Integer.parseInt( rhs );
-						
-						}else if ( lhs.equals( "event" )){
-							
-							event = rhs;
-							
-						}else if ( lhs.equals( "uploaded" )){
-							
-							uploaded = Integer.parseInt( rhs );
-						
-						}else if ( lhs.equals( "downloaded" )){
-							
-							downloaded = Integer.parseInt( rhs );
-						
-						}else if ( lhs.equals( "left" )){
-							
-							left = Integer.parseInt( rhs );
-						
-						}else if ( lhs.equals( "num_peers" )){
-							
-							num_peers = Integer.parseInt( rhs );
-						}
-						
-						if ( p1 == -1 ){
-							
-							break;
-						}
-					}
+					str = str.substring(8);
 				
-					if ( hash != null && peer_id != null ){
-						
-						System.out.println( "event:" + event + " - " + client_ip_address + ":" + port );
-																		
-						TRTrackerServerTorrent	torrent = server.getTorrent( hash.getBytes(Constants.BYTE_ENCODING));
-					
-						if ( torrent == null ){
-							
-							throw( new Exception( "torrent unauthorised "));
-						}
-			
-						torrent.peerContact( 	event, 
-												peer_id, port, client_ip_address,
-												uploaded, downloaded, left, num_peers );
-					
-						torrent.exportPeersToMap( root );
-					}else{
-						
-						throw( new Exception( "Missing information in request" ));
-					}
 				}else{
-				
-					throw( new Exception( "Unsupported request"));
+					
+					throw( new Exception( "Unsupported Request Type"));
 				}
+					
+				int	pos = 0;
+					
+				String		hash_str	= null;
+				String		peer_id		= null;
+				int			port		= 0;
+				String		event		= null;
+					
+				long		uploaded		= 0;
+				long		downloaded		= 0;
+				long		left			= 0;
+				int			num_peers		= 0;
+					
+				while(true){
+						
+					int	p1 = str.indexOf( '&', pos );
+						
+					String	token;
+						
+					if ( p1 == -1 ){
+							
+						token = str.substring( pos );
+							
+					}else{
+							
+						token = str.substring( pos, p1 );
+							
+						pos = p1+1;
+					}
+					
+					int	p2 = token.indexOf('=');
+						
+					if ( p2 == -1 ){
+							
+						throw( new Exception( "format invalid" ));
+					}
+						
+					String	lhs = token.substring( 0, p2 );
+					String	rhs = URLDecoder.decode(token.substring( p2+1 ), Constants.BYTE_ENCODING );
+						
+					// System.out.println( "param:" + lhs + " = " + rhs );
+						
+					if ( lhs.equals( "info_hash" )){
+							
+						hash_str	= rhs;
+							
+					}else if ( lhs.equals( "peer_id" )){
+							
+						peer_id	= rhs;
+								
+					}else if ( lhs.equals( "port" )){
+							
+						port = Integer.parseInt( rhs );
+						
+					}else if ( lhs.equals( "event" )){
+							
+						event = rhs;
+							
+					}else if ( lhs.equals( "uploaded" )){
+							
+						uploaded = Integer.parseInt( rhs );
+						
+					}else if ( lhs.equals( "downloaded" )){
+							
+						downloaded = Integer.parseInt( rhs );
+						
+					}else if ( lhs.equals( "left" )){
+							
+						left = Integer.parseInt( rhs );
+						
+					}else if ( lhs.equals( "num_peers" )){
+							
+						num_peers = Integer.parseInt( rhs );
+					}
+						
+					if ( p1 == -1 ){
+							
+						break;
+					}
+				}
+
+				if ( hash_str == null ){
+					
+					throw( new Exception( "Hash missing from request "));
+				}
+										
+				System.out.println( "request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
+																		
+				TRTrackerServerTorrent	torrent = server.getTorrent( hash_str.getBytes(Constants.BYTE_ENCODING));
+					
+				if ( torrent == null ){
+							
+					throw( new Exception( "Torrent unauthorised "));
+				}
+			
+				if ( request_type == RT_ANNOUNCE ){
+				
+					if ( peer_id == null ){
+						
+						throw( new Exception( "peer_id missing from request"));
+					}
+					
+					torrent.peerContact( 	event, 
+											peer_id, port, client_ip_address,
+											uploaded, downloaded, left, num_peers );
+					
+					torrent.exportPeersToMap( root );
 	
-				root.put( "interval", new Long( server.getRetryInterval()));
+					root.put( "interval", new Long( server.getRetryInterval()));
+					
+				}else{
+					
+					Map	files = new ByteEncodedKeyHashMap();
+					
+					Map	hash_entry = new HashMap();
+					
+					byte[]	torrent_hash = torrent.getHash().getHash();
+									
+					String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
+				
+					//System.out.println( "xxx: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
+	
+					files.put( str_hash, hash_entry );
+					
+					TRTrackerServerPeer[]	peers = torrent.getPeers();
+					
+					long	seeds 		= 0;
+					long	non_seeds	= 0;
+					
+					for (int i=0;i<peers.length;i++){
+						
+						if ( peers[i].getAmountLeft() == 0 ){
+							
+							seeds++;
+						}else{
+							non_seeds++;
+						}
+					}
+					
+					hash_entry.put( "complete", new Long( seeds ));
+					hash_entry.put( "incomplete", new Long( non_seeds ));
+					
+					root.put( "files", files );
+				}
 				
 			}catch( Exception e ){
 				
