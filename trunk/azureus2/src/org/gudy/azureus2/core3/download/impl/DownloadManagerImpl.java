@@ -1060,7 +1060,7 @@ DownloadManagerImpl
     	
     	TRTrackerScraper	scraper = globalManager.getTrackerScraper();
     	
-    	if (tracker_client != null){
+    	if ( tracker_client != null ){
       	
     		r = scraper.scrape(tracker_client);
     	}
@@ -1070,6 +1070,8 @@ DownloadManagerImpl
 	    		// torrent not running. For multi-tracker torrents we need to behave sensibly
 	      		// here
 	      	
+	    	TRTrackerScraperResponse	non_null_response = null;
+	    	
 	    	TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
 	    	
 	    	if ( sets.length == 0 ){
@@ -1105,7 +1107,28 @@ DownloadManagerImpl
 				 	for (int j=0;r==null && j<rand_urls.size();j++){
 				 		
 				 		r = scraper.scrape(torrent, (URL)rand_urls.get(j));
+				 		
+				 		if ( r!= null ){
+				 			
+				 				// treat bad scrapes as missing so we go on to 
+				 				// the next tracker
+				 			
+				 			if ( (!r.isValid()) || r.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
+				 				
+				 				if ( non_null_response == null ){
+				 					
+				 					non_null_response	= r;
+				 				}
+				 				
+				 				r	= null;
+				 			}
+				 		}
 				 	}
+	    		}
+	    		
+	    		if ( r == null ){
+	    			
+	    			r = non_null_response;
 	    		}
 	    	}
 	    }
