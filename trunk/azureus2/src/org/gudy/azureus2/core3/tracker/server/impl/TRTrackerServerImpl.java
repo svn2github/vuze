@@ -385,6 +385,7 @@ TRTrackerServerImpl
 					run()
 					{
 						while(true){
+							
 							try{
 								my_sem.reserve();
 									
@@ -400,19 +401,23 @@ TRTrackerServerImpl
 									}
 											
 									new TRTrackerServerProcessor( TRTrackerServerImpl.this, socket );
-												
+										
 								}finally{
 												
 									try{
 										socket.close();
-											
-										socket	= null;
-												
+																							
 									}catch( Throwable e ){
 													
 										e.printStackTrace();
 									}
+									
+									socket	= null;
 								}
+							}catch( Throwable e ){
+									
+								e.printStackTrace();
+											
 							}finally{
 													
 								synchronized( TRTrackerServerImpl.this ){
