@@ -43,6 +43,9 @@ import seda.sandStorm.lib.aSocket.ATcpInPacket;
 public class HttpParser implements HttpConstants {
 
   public static final Logger logger = Logger.getLogger("azureus2.ui.web.stages.HttpParser");
+  static {
+    //logger.setLevel(org.apache.log4j.Level.DEBUG);
+  }
 
   protected static final int STATE_INIT = 0;
   protected static final int STATE_SECOND_WORD = 1;

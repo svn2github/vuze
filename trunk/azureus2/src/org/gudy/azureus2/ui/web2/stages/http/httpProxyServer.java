@@ -85,6 +85,9 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
       parser = new HttpParser("Parser-" + (pnum), conn, sink);
       outb = new HttpOutputBuffer(conn);
       conn.startReader(sink);
+      if (logger.isDebugEnabled()) {
+        logger.debug("Connstate for " + conn + " created.");
+      }
     }
 
     public String toString() {
@@ -131,7 +134,9 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
         logger.debug(XTAG + ": downstream connection is " + downstream.conn);
       if (logger.isDebugEnabled())
         logger.debug(XTAG + ": downstream parser is " + downstream.pnum);
-      xacts.put(connstate.conn, this);
+      synchronized (xacts) {
+        xacts.put(connstate.conn, this);
+      }
     }
 
     protected void set_upstream(ConnState connstate) {
@@ -140,7 +145,9 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
         logger.debug(XTAG + ": upstream connection is " + upstream.conn);
       if (logger.isDebugEnabled())
         logger.debug(XTAG + ": upstream parser is " + upstream.pnum);
-      xacts.put(connstate.conn, this);
+      synchronized (xacts) {
+        xacts.put(connstate.conn, this);
+      }
     }
 
     public int id;
@@ -183,13 +190,16 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
         if (logger.isDebugEnabled())
           logger.debug(XTAG + ": opening new one");
         // Resend it.
-        xacts.remove(upstream.conn);
+        synchronized (xacts) {
+          xacts.remove(upstream.conn);
+        }
         upstream = null;
 
         // Open up a new connection...
         ATcpClientSocket client_socket = new ATcpClientSocket(host, port, sink);
-        pending_connections.put(client_socket, this);
-
+        synchronized (pending_connections) {
+          pending_connections.put(client_socket, this);
+        }
         state = XactState.STATE_WAITING_FOR_PARENT_CONN;
       } else {
         upstream.closed = true;
@@ -275,8 +285,9 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
             logger.debug(XTAG + ": openning new connection");
 
           ATcpClientSocket client_socket = new ATcpClientSocket(host, port, sink);
-          pending_connections.put(client_socket, this);
-
+          synchronized (pending_connections) {
+            pending_connections.put(client_socket, this);
+          }
           state = STATE_WAITING_FOR_PARENT_CONN;
         } else {
           set_upstream(us);
@@ -399,7 +410,9 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
       if (upstream != null) {
         if (logger.isDebugEnabled())
           logger.debug(XTAG + ": taking " + upstream.conn + " out of xacts");
-        xacts.remove(upstream.conn);
+        synchronized (xacts) {
+          xacts.remove(upstream.conn);
+        }
 
         if (!upstream.closed) {
           if (server_resp.close) {
@@ -422,13 +435,16 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
         // For the downstream connection, the current recipient of
         // new incoming events may no longer be us, in which case
         // we can't take it out of xacts.
-
-        XactState owner = (XactState) xacts.get(downstream.conn);
+        XactState owner;
+        synchronized (xacts) {
+          owner = (XactState) xacts.get(downstream.conn);
+        }
         if (this == owner) {
           if (logger.isDebugEnabled())
             logger.debug(XTAG + ": taking " + downstream.conn + " out of xacts");
-          xacts.remove(downstream.conn);
-
+          synchronized (xacts) {
+            xacts.remove(downstream.conn);
+          }
           if (!downstream.closed) {
 
             if (client_resp == null || client_resp.close) {
@@ -719,14 +735,15 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
     }
 
     logger.info(pending_connections.size() + " pc, " + fpcsz + " fpc, " + free_child_connections.size() + " fcc, " + ((xacts.size() + 1) / 2) + " ar");
-
     i = xacts.keySet().iterator();
     LinkedList restart_them = null;
 
     while (i.hasNext()) {
       ATcpConnection c = (ATcpConnection) i.next();
-      XactState xs = (XactState) xacts.get(c);
-
+      XactState xs;
+      synchronized (xacts) {
+        xs = (XactState) xacts.get(c);
+      }
       if ((xs.upstream != null) && (c == xs.upstream.conn) && (now - xs.start_time > REQUEST_TIMEOUT * 1000)) {
 
         if (xs.state != XactState.STATE_SENT_REQUEST) {
@@ -742,12 +759,17 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
     while ((restart_them != null) && (!restart_them.isEmpty())) {
 
       ATcpConnection c = (ATcpConnection) restart_them.removeFirst();
-      XactState xs = (XactState) xacts.get(c);
+      XactState xs;
+      synchronized (xacts) {
+        xs = (XactState) xacts.get(c);
+      }
 
       System.err.println("Timeout: sending new request to " + xs.hostname);
 
       // Close the upstream connection and restart.
-      xacts.remove(c);
+      synchronized (xacts) {
+        xacts.remove(c);
+      }
       try {
         xs.upstream.conn.close(sink);
       } catch (SinkClosedException e) {
@@ -812,7 +834,10 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
       ATcpConnection connection = packet.getConnection();
       if (logger.isDebugEnabled())
         logger.debug("HttpProxy: Got Tcp Packet: " + packet);
-      XactState xact = (XactState) xacts.get(connection);
+      XactState xact;
+      synchronized (xacts) {
+        xact = (XactState) xacts.get(connection);
+      }
       if (xact != null) {
         if (logger.isDebugEnabled())
           logger.debug("HttpProxy." + xact.id + ": Got Tcp Packet: " + packet);
@@ -855,7 +880,10 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
         if (logger.isDebugEnabled())
           logger.debug("got sce for " + connection);
 
-        XactState xact = (XactState) xacts.get(connection);
+        XactState xact;
+        synchronized (xacts) {
+          xact = (XactState) xacts.get(connection);
+        }
         if (xact != null) {
           if ((xact.upstream != null) && (connection == xact.upstream.conn)) {
             xact.upstream_closed();
@@ -900,7 +928,10 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
     } else if (item instanceof ATcpConnectFailedEvent) {
       ATcpConnectFailedEvent failed = (ATcpConnectFailedEvent) item;
       ATcpClientSocket client_socket = failed.getSocket();
-      XactState xact = (XactState) pending_connections.remove(client_socket);
+      XactState xact;
+      synchronized (pending_connections) {
+        xact = (XactState) pending_connections.remove(client_socket);
+      }
       xact.parent_conn_retries += 1;
 
       if (xact.parent_conn_retries > 5) {
@@ -911,7 +942,9 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
         if (logger.isDebugEnabled())
           logger.debug("Connection to " + xact.host + ":" + xact.port + " failed.  Trying again.");
         client_socket = new ATcpClientSocket(xact.host, xact.port, sink);
-        pending_connections.put(client_socket, xact);
+        synchronized (pending_connections) {
+          pending_connections.put(client_socket, xact);
+        }
       }
     } else if (item instanceof HttpRequestHeader) {
       HttpRequestHeader hdr = (HttpRequestHeader) item;
@@ -941,7 +974,10 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
   protected void handle_connection_from_upstream(ATcpConnection connection, ATcpClientSocket client_socket) {
 
     // Look up the transaction.
-    XactState xact = (XactState) pending_connections.remove(client_socket);
+    XactState xact;
+    synchronized (pending_connections) {
+      xact = (XactState) pending_connections.remove(client_socket);
+    }
     if (xact == null) {
       throw new AssertionViolatedException("HttpProxy: got unknown connection " + connection);
     }
@@ -968,7 +1004,12 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
   protected void handle_request_header(HttpRequestHeader hdr) {
 
     ATcpConnection connection = hdr.connection;
-    XactState xact = (XactState) xacts.get(connection);
+    XactState xact;
+    synchronized (xacts) {
+      xact = (XactState) xacts.get(connection);
+    }
+    if (logger.isDebugEnabled())
+      logger.debug("HttpProxy." + ((xact == null) ? "?" : Integer.toString(xact.id)) + ": Got Request Header: " + hdr);
     if (xact == null) {
       // There is no transaction currently using this connection.
       xact = new_xact();
@@ -998,7 +1039,12 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
   protected void handle_response_header(HttpResponseHeader hdr) {
 
     ATcpConnection connection = hdr.connection;
-    XactState xact = (XactState) xacts.get(connection);
+    XactState xact;
+    synchronized (xacts) {
+      xact = (XactState) xacts.get(connection);
+    }
+    if (logger.isDebugEnabled())
+      logger.debug("HttpProxy." + ((xact == null) ? "?" : Integer.toString(xact.id)) + ": Got Response Header: " + hdr);
     if (xact == null)
       throw new AssertionViolatedException("no transaction for " + connection + ", resp was \"" + hdr + "\"");
 
@@ -1008,7 +1054,12 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
 
   protected void handle_body_fragment(HttpBodyFragment frag) {
     ATcpConnection connection = frag.connection;
-    XactState xact = (XactState) xacts.get(connection);
+    XactState xact;
+    synchronized (xacts) {
+      xact = (XactState) xacts.get(connection);
+    }
+    if (logger.isDebugEnabled())
+      logger.debug("HttpProxy." + ((xact == null) ? "?" : Integer.toString(xact.id)) + ": Got Body Fragment: " + frag);
     if (xact == null)
       throw new AssertionViolatedException("no transaction for " + connection + ", frag was \"" + frag + "\"");
 
@@ -1025,7 +1076,12 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
 
   protected void handle_body_done(HttpBodyDone done) {
     ATcpConnection connection = done.connection;
-    XactState xact = (XactState) xacts.get(connection);
+    XactState xact;
+    synchronized (xacts) {
+      xact = (XactState) xacts.get(connection);
+    }
+    if (logger.isDebugEnabled())
+      logger.debug("HttpProxy." + ((xact == null) ? "?" : Integer.toString(xact.id)) + ": Got Body Done: " + done);
     if (xact == null)
       throw new AssertionViolatedException("no transaction for " + connection + ", done was \"" + done + "\"");
 
@@ -1042,7 +1098,12 @@ public class httpProxyServer implements HttpConstants, EventHandlerIF, SingleThr
 
   protected void handle_no_body(HttpNoBody done) {
     ATcpConnection connection = done.connection;
-    XactState xact = (XactState) xacts.get(connection);
+    XactState xact;
+    synchronized (xacts) {
+      xact = (XactState) xacts.get(connection);
+    }
+    if (logger.isDebugEnabled())
+      logger.debug("HttpProxy." + ((xact == null) ? "?" : Integer.toString(xact.id)) + ": Got No Body: " + done);
 
     if (done.connection.getClientSocket() == null) {
       // This event is headed to the parent

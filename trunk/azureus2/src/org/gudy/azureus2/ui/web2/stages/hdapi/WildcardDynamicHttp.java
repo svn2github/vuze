@@ -90,8 +90,9 @@ public class WildcardDynamicHttp implements EventHandlerIF, WebConst {
 //			BufferElement configfile = new BufferElement((int) af.stat().length);
 
 			dynPages = new WildcardDictionary();
+            dynPages.put("/rss", "org.gudy.azureus2.ui.web2.stages.hdapi.impl.RSSHandler");
             dynPages.put("*.tmpl", "org.gudy.azureus2.ui.web2.stages.hdapi.impl.TemplateHandler");
-			handlerCache = new Hashtable();
+            handlerCache = new Hashtable();
 			stageCache = new Hashtable();
 //			af.read(configfile);
 

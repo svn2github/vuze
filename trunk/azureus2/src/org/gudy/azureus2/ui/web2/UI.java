@@ -143,7 +143,8 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       // Number of buffers
       "numBuffers=1024",
       // Server name
-      "serverName=" + COConfigurationManager.getStringParameter("Server_sName") + " v1.0\r\n" + "Cache-Control: no-cache, must-revalidate\r\nConnection: close",
+      "serverName=" + COConfigurationManager.getStringParameter("Server_sName") /* + " v1.0\r\n" + "Cache-Control: no-cache, must-revalidate\r\nConnection: close"*/
+      ,
       // Stats URL
       "specialURL=/stats",
       // Fake pass through URL
@@ -163,12 +164,13 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     cfg.putBoolean("global.batchController.enable", false);
     cfg.putBoolean("global.profile.enable", false);
     cfg.putBoolean("global.aSocket.enable", true);
-/*    try {
-      System.loadLibrary("NBIO");
-      cfg.putString("global.aSocket.provider", "NBIO");
-    } catch (UnsatisfiedLinkError e) {
-*/      cfg.putString("global.aSocket.provider", "NIO");
-//    }
+    /*    try {
+          System.loadLibrary("NBIO");
+          cfg.putString("global.aSocket.provider", "NBIO");
+        } catch (UnsatisfiedLinkError e) {
+    */
+    cfg.putString("global.aSocket.provider", "NIO");
+    //    }
     cfg.putBoolean("global.aDisk.enable", true);
     cfg.putInt("global.aDisk.threadPool.initialThreads", 1);
     cfg.putBoolean("global.aDisk.threadPool.sizeController.enable", true);
@@ -189,7 +191,12 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
       cfg.addStage(RESOURCE_STAGE, STAGES + "cache.ResourceReader", defaultargs);
       cfg.addStage(HTTP_HANDLER_STAGE, STAGES + "http.httpRequestHandler", defaultargs);
       cfg.addStage(DYNAMIC_HTTP_STAGE, STAGES + "hdapi.WildcardDynamicHttp", defaultargs);
-      cfg.addStage(HTTP_SERVER_STAGE, STAGES + "http.httpProxyServer", defaultargs);
+      cfg.addStage(HTTP_SERVER_STAGE, STAGES + "http.httpProxyServer", new String[] { //
+        "listen_port=" + Integer.toString(COConfigurationManager.getIntParameter("Server_iPort")), //
+        "fake_local_server=" + COConfigurationManager.getStringParameter("Server_sAccessHost"), //
+        "rtController.enable=false" //
+      });
+
     } catch (Exception e) {
       logger.fatal("Webinterface configuration failed: " + e.getMessage(), e);
     }
