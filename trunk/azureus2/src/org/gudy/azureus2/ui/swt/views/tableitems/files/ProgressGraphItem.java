@@ -85,9 +85,7 @@ public class ProgressGraphItem
       if (fileInfo != null && fileInfo.getLength() != 0)
         percentDone = (int)((1000 * fileInfo.getDownloaded()) / fileInfo.getLength());
       
-      if( !cell.setSortValue( percentDone ) && cell.isValid() ) {
-        return;
-      }
+      cell.setSortValue(percentDone);
 
       //Compute bounds ...
       int newWidth = cell.getWidth();
