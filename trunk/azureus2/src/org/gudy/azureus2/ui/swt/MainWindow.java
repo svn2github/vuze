@@ -567,10 +567,10 @@ public class MainWindow implements GlobalManagerListener {
     Messages.setLanguageText(view_console, "MainWindow.menu.view.console"); //$NON-NLS-1$
     view_console.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-//        if (console == null)
-//          console = new Tab(new ConsoleView());
-//        else
-//          console.setFocus();
+        if (console == null)
+          console = new Tab(new ConsoleView());
+        else
+          console.setFocus();
       }
     });
 
@@ -689,8 +689,8 @@ public class MainWindow implements GlobalManagerListener {
   		showMyTracker();
   	}
 	
-//    if (COConfigurationManager.getBooleanParameter("Open Console", false))
-//      console = new Tab(new ConsoleView());
+    if (COConfigurationManager.getBooleanParameter("Open Console", false))
+      console = new Tab(new ConsoleView());
     if (COConfigurationManager.getBooleanParameter("Open Config", false))
       config = new Tab(new ConfigView());
 
@@ -873,10 +873,10 @@ public class MainWindow implements GlobalManagerListener {
     }
 
     Locale currentLocale = MessageText.getCurrentLocale();
-    for (int i = 0; i < items.length; i++) {
+      for (int i = 0; i < items.length; i++) {
         items[i].setSelection(currentLocale.equals(items[i].getData()));
-    }
-  }
+        }
+      }
 
   private void setStatusVersion() {
     if (statusText != null)
