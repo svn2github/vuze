@@ -64,13 +64,15 @@ DHTDBMapping
 		key			= _key;
 		
 		try{
-			adapter_key = adapter.keyCreated( key );
-			
-			if ( adapter_key != null ){
+			if ( adapter != null ){
 				
-				diversification_state	= adapter_key.getDiversificationType();
+				adapter_key = adapter.keyCreated( key );
+				
+				if ( adapter_key != null ){
+					
+					diversification_state	= adapter_key.getDiversificationType();
+				}
 			}
-			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);

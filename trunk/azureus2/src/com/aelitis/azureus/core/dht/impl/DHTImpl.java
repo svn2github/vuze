@@ -88,13 +88,26 @@ DHTImpl
 						byte[]		key,
 						byte		type )
 					{
-						if ( existing ){
+						if ( storage_adapter != null ){
 							
-							return( storage_adapter.getExistingDiversification( key, put_operation ));
-							
+							if ( existing ){
+								
+								return( storage_adapter.getExistingDiversification( key, put_operation ));
+								
+							}else{
+								
+								return( storage_adapter.createNewDiversification( key, put_operation, type ));						
+							}
 						}else{
 							
-							return( storage_adapter.createNewDiversification( key, put_operation, type ));						
+							if ( existing ){
+								
+								return( new byte[][]{ key });
+								
+							}else{
+								
+								return( new byte[0][] );
+							}
 						}
 					}
 				},
