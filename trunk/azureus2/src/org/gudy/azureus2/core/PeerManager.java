@@ -225,10 +225,21 @@ public class PeerManager extends Thread {
         }
       }
 
-    //1. Send disconnect to Tracker
-    Thread t = new Thread() {
+    //Assynchronous cleaner
+    
+    Thread t = new Thread("Cleaner - Tracker Ender") {     
       public void run() {
+         //1. Send disconnect to Tracker
         _tracker.stop();
+        try {
+          while(requestsToFree.size() >  0)
+          {
+            freeRequests();
+            Thread.sleep(100);
+          }          
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
     };
     t.start();
@@ -1350,6 +1361,10 @@ public class PeerManager extends Thread {
           requestsToFree.remove(item);
           i--;
           ByteBufferPool.getInstance().freeBuffer(item.getBuffer());
+        }
+        if(!item.isLoading()) {
+          requestsToFree.remove(item);
+          i--;
         }
       }
     }

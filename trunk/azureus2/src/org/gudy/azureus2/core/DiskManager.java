@@ -482,6 +482,10 @@ public class DiskManager {
 
     public void stopIt() {
       this.bContinue = false;
+      while (readQueue.size() != 0) {
+         DataQueueItem item = (DataQueueItem) readQueue.remove(0);
+         item.setLoading(false);
+      }
     }
   }
 
@@ -515,6 +519,10 @@ public class DiskManager {
 
     public void stopIt() {
       this.bContinue = false;
+      while (writeQueue.size() != 0) {
+        WriteElement elt = (WriteElement) writeQueue.remove(0);
+        ByteBufferPool.getInstance().freeBuffer(elt.data);
+      }
     }
   }
 
