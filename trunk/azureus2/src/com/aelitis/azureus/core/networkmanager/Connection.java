@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
+import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+
 
 /**
  * Represents a managed peer connection,

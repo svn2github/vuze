@@ -28,8 +28,9 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
-import com.aelitis.azureus.core.peermanager.messages.bittorrent.BTProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTProtocolMessage;
 
 
 /**
@@ -90,7 +91,7 @@ public class UploadManager {
     final ConnectionData conn_data = new ConnectionData();
     
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
-      public void messageAdded( ProtocolMessage message ) {
+      public void messageAdded( Message message ) {
         if( message.getType() == BTProtocolMessage.BT_PIECE ) {  //is sending piece data
           if( conn_data.state == ConnectionData.STATE_NORMAL ) {  //so upgrade it
             
@@ -129,7 +130,7 @@ public class UploadManager {
         }
       }
 
-      public void messageSent( ProtocolMessage message ) {
+      public void messageSent( Message message ) {
         if( message.getType() == BTProtocolMessage.BT_CHOKE ) {  //is done sending piece data
           if( conn_data.state == ConnectionData.STATE_UPGRADED ) {  //so downgrade it
             standard_entity_controller.downgradePeerConnection( connection );
@@ -138,7 +139,7 @@ public class UploadManager {
         }
       }
 
-      public void messageRemoved( ProtocolMessage message ) {/*nothing*/}
+      public void messageRemoved( Message message ) {/*nothing*/}
       public void protocolBytesSent( int byte_count ) {/*ignore*/}
       public void dataBytesSent( int byte_count ) {/*ignore*/}
     };

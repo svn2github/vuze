@@ -20,61 +20,54 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages.bittorrent;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
+
+import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
- * BitTorrent piece message.
+ * BitTorrent bitfield message.
  */
-public class BTPiece implements BTProtocolMessage {
+public class BTBitfield implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
-  private final int piece_number;
-  private final int piece_offset;
-  private final int length;
   private final int total_byte_size;
   
-  public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
-    this.piece_number = piece_number;
-    this.piece_offset = piece_offset;
-    length = data.remaining(DirectByteBuffer.SS_BT);
-    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_BT_PIECE,length + 13 );
+  public BTBitfield( ByteBuffer bitfield ) {
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( bitfield.capacity() + 5 ) );
     
-    buffer.putInt( DirectByteBuffer.SS_BT, length + 9 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)7 );
-    buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
-    buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
-    buffer.put( DirectByteBuffer.SS_BT, data );
+    bitfield.position( 0 );
+    bitfield.limit( bitfield.capacity() );
+    
+    buffer.putInt( DirectByteBuffer.SS_BT, bitfield.capacity() + 1 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)5 );
+    buffer.put( DirectByteBuffer.SS_BT, bitfield );
     buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, length + 13 );
+    buffer.limit( DirectByteBuffer.SS_BT, bitfield.capacity() + 5 );
     
     total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
-    
-    data.returnToPool();
   }
   
-  public int getType() {  return BTProtocolMessage.BT_PIECE;  }
+  public int getType() {  return BTProtocolMessage.BT_BITFIELD;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
   
   public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
-    return "Piece data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+    return "Bitfield";
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_LOW;  }
+  public int getPriority() {  return Message.PRIORITY_HIGH;  }
   
-  public boolean isNoDelay() {  return false;  }
+  public boolean isNoDelay() {  return true;  }
   
-  public boolean isDataMessage() {  return true;  }
-  
-  public void destroy() {
-    buffer.returnToPool();
-  }
+  public boolean isDataMessage() {  return false;  }
+   
+  public void destroy() { }
   
   public int[] typesToRemove() {  return null;  }
   

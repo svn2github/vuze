@@ -20,13 +20,13 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages.bittorrent;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 
 
@@ -78,7 +78,7 @@ public class BTHandshake implements BTProtocolMessage {
                      + " PeerID: " +PeerClassifier.getPrintablePeerID( peer_id );
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
+  public int getPriority() {  return Message.PRIORITY_HIGH;  }
   
   public boolean isNoDelay() {  return true;  }
   

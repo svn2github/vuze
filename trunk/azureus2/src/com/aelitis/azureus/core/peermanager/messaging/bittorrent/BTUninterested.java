@@ -20,52 +20,52 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages.bittorrent;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+
 
 /**
- * BitTorrent interested message.
+ * BitTorrent uninterested message.
  */
-public class BTInterested implements BTProtocolMessage {
+public class BTUninterested implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
-  private static final int[] to_remove = { BTProtocolMessage.BT_UNINTERESTED };
+  private static final int[] to_remove = { BTProtocolMessage.BT_INTERESTED };
   private final int total_byte_size;
   
-  public BTInterested() {
+  public BTUninterested() {
     buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
     
     buffer.putInt( DirectByteBuffer.SS_BT, 1 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)2 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)3 );
     buffer.position( DirectByteBuffer.SS_BT, 0 );
     buffer.limit( DirectByteBuffer.SS_BT, 5 );
     
     total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
-  public int getType() {  return BTProtocolMessage.BT_INTERESTED;  }
+  public int getType() {  return BTProtocolMessage.BT_UNINTERESTED;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
   
   public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
-    return "Interested";
+    return "Uninterested";
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
+  public int getPriority() {  return Message.PRIORITY_NORMAL;  }
   
-  public boolean isNoDelay() {  return true;  }
+  public boolean isNoDelay() {  return false;  }
   
   public boolean isDataMessage() {  return false;  }
-  
+
   public void destroy() { }
   
   public int[] typesToRemove() {  return to_remove;  }
-  
 }

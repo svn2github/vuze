@@ -22,7 +22,6 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
@@ -38,8 +37,9 @@ import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.UploadManager;
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
-import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
@@ -293,10 +293,10 @@ PEPeerTransportProtocol
 	    
 	    //register bytes sent listener
 	    connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
-	      public void messageAdded( ProtocolMessage message ) { /*ignore*/ }
-	      public void messageRemoved( ProtocolMessage message ) { /*ignore*/ }
+	      public void messageAdded( Message message ) { /*ignore*/ }
+	      public void messageRemoved( Message message ) { /*ignore*/ }
 	      
-	      public void messageSent( ProtocolMessage message ) {
+	      public void messageSent( Message message ) {
 	        //update keep-alive info
 	        last_message_sent_time = SystemTime.getCurrentTime();
 	      }
@@ -964,8 +964,7 @@ PEPeerTransportProtocol
       handshake_data.returnToPool();
       return;
     }
-    else handshake_data.get(DirectByteBuffer.SS_PEER,reserved);
-    //Ignores reserved bytes
+    handshake_data.get(DirectByteBuffer.SS_PEER,reserved);   //Ignore reserved bytes
 
     PeerIdentityDataID	my_peer_data_id = manager.getPeerIdentityDataID();
     
@@ -1056,10 +1055,27 @@ PEPeerTransportProtocol
 
     LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );
 
-    sendBitField();
-   
     handshake_data.returnToPool();
     
+    
+    //extended protocol processing
+    if( (reserved[0] & 128) == 128 ) {  //if first (high) bit is set
+      System.out.println( "Peer " +ip+ " [" +client+ "] handshake indicates EXTENDED protocol support." );
+      
+      //TODO sendExtendedProtocolSupportList();
+    }
+
+    /*
+    for( int i=0; i < reserved.length; i++ ) {
+      int val = reserved[i] & 0xFF;
+      if( val != 0 ) {
+        System.out.println( "Peer "+ip+" ["+client+"] sent reserved byte #"+i+" to " +val);
+      }
+    }
+    */
+    
+    sendBitField();
+   
     connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
     
     //fudge to ensure optimistic-connect code processes connections that have never sent a data message
@@ -1128,7 +1144,7 @@ StateTransfering
       
 				//message size should never be greater than 16KB+9B, as we never request chunks > 16KB
 				if( length > 16393 ) {
-          Debug.out( PEPeerTransportProtocol.this + " : sent too-large incoming message size: " + length );
+          System.out.println( PEPeerTransportProtocol.this + " : sent too-large incoming message size: " + length );
 					closeAll(PEPeerTransportProtocol.this + " : sent too-large incoming message size: " + length,true, true);
 					return PEPeerControl.NO_SLEEP;
 				}
@@ -1150,7 +1166,8 @@ StateTransfering
           }
 				}
 				else {
-				  //length is 0 : Keep alive message, process next.
+				  //length is 0 : Keep alive message, process next
+          connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
           last_message_received_time = SystemTime.getCurrentTime();
           LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, PEPeerTransportProtocol.this + " sent keep-alive" );
 					readingLength = true;

@@ -26,7 +26,9 @@ import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
 
 
 
@@ -193,7 +195,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     final PeerData peer_data = new PeerData();
     
     OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
-      public void messageAdded( ProtocolMessage message ) {  //connection now has more data to send
+      public void messageAdded( Message message ) {  //connection now has more data to send
         try {
           lists_lock.enter();
           
@@ -219,8 +221,8 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
         }
       }
 
-      public void messageRemoved( ProtocolMessage message ) {/*ignore*/}
-      public void messageSent( ProtocolMessage message ) {/*ignore*/}
+      public void messageRemoved( Message message ) {/*ignore*/}
+      public void messageSent( Message message ) {/*ignore*/}
       public void protocolBytesSent( int byte_count ) {/*ignore*/}
       public void dataBytesSent( int byte_count ) {/*ignore*/}
     };

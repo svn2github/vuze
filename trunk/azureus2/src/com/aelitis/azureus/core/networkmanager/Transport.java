@@ -79,7 +79,7 @@ public class Transport {
    * Get a textual description for this transport.
    * @return description
    */
-  protected String getDescription() {  return description;  }
+  public String getDescription() {  return description;  }
   
   
   /**
@@ -99,7 +99,7 @@ public class Transport {
    * @return number of bytes written
    * @throws IOException
    */
-  protected long write( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
+  public long write( ByteBuffer[] buffers, int array_offset, int array_length ) throws IOException {
     if( !is_ready_for_write )  return 0;
     
     try { 

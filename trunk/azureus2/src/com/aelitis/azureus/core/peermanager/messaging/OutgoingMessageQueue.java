@@ -21,7 +21,7 @@
  */
 
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.peermanager.messaging;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.networkmanager.Transport;
 
 
 /**
@@ -49,14 +49,14 @@ public class OutgoingMessageQueue {
   private final AEMonitor listeners_mon		= new AEMonitor( "OutgoingMessageQueue:L");
   
   private int total_size = 0;
-  private ProtocolMessage urgent_message = null;
+  private Message urgent_message = null;
   private boolean destroyed = false;
   
   
   /**
    * Create a new message queue.
    */
-  protected OutgoingMessageQueue() {
+  public OutgoingMessageQueue() {
     //nothing
   }
   
@@ -64,13 +64,13 @@ public class OutgoingMessageQueue {
   /**
    * Destroy this queue; i.e. perform cleanup actions.
    */
-  protected void destroy() {
+  public void destroy() {
     destroyed = true;
     try{
       queue_mon.enter();
     
       while( !queue.isEmpty() ) {
-      	((ProtocolMessage)queue.remove( 0 )).destroy();
+      	((Message)queue.remove( 0 )).destroy();
       }
     }finally{
       queue_mon.exit();
@@ -103,7 +103,7 @@ public class OutgoingMessageQueue {
    * @param message message to add
    * @param manual_listener_notify true for manual notification, false for automatic
    */
-  public void addMessage( ProtocolMessage message, boolean manual_listener_notify ) {
+  public void addMessage( Message message, boolean manual_listener_notify ) {
     
     if( destroyed ) {  //queue is shutdown, drop any added messages
       message.destroy();
@@ -116,7 +116,7 @@ public class OutgoingMessageQueue {
     
       int pos = 0;
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
-        ProtocolMessage msg = (ProtocolMessage)i.next();
+        Message msg = (Message)i.next();
         if( message.getPriority() > msg.getPriority() 
             && msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {  //but don't insert in front of a half-sent message
           break;
@@ -174,7 +174,7 @@ public class OutgoingMessageQueue {
       queue_mon.enter();
     
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
-        ProtocolMessage msg = (ProtocolMessage)i.next();
+        Message msg = (Message)i.next();
         for( int t=0; t < message_types.length; t++ ) {
         	if( msg.getType() == message_types[ t ] && msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
             if( msg == urgent_message ) urgent_message = null;            
@@ -211,7 +211,7 @@ public class OutgoingMessageQueue {
       ArrayList listeners_ref = listeners;
         
       for( int x=0; x < messages_removed.size(); x++ ) {
-        ProtocolMessage msg = (ProtocolMessage)messages_removed.get( x );
+        Message msg = (Message)messages_removed.get( x );
         
         for( int i=0; i < listeners_ref.size(); i++ ) {
           MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
@@ -239,15 +239,15 @@ public class OutgoingMessageQueue {
    * @param manual_listener_notify true for manual notification, false for automatic
    * @return true if the message was removed, false otherwise
    */
-  public boolean removeMessage( ProtocolMessage message, boolean manual_listener_notify ) {
-    ProtocolMessage msg_removed = null;
+  public boolean removeMessage( Message message, boolean manual_listener_notify ) {
+    Message msg_removed = null;
     
     try{
       queue_mon.enter();
     
       int index = queue.indexOf( message );
       if( index != -1 ) {
-        ProtocolMessage msg = (ProtocolMessage)queue.get( index );
+        Message msg = (Message)queue.get( index );
         if( msg.getPayload().position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
           if( msg == urgent_message ) urgent_message = null;  
           total_size -= msg.getPayload().remaining(DirectByteBuffer.SS_NET);
@@ -303,7 +303,7 @@ public class OutgoingMessageQueue {
    * @return number of bytes delivered
    * @throws IOException
    */
-  protected int deliverToTransport( Transport transport, int max_bytes, boolean manual_listener_notify ) throws IOException {    
+  public int deliverToTransport( Transport transport, int max_bytes, boolean manual_listener_notify ) throws IOException {    
     if( max_bytes < 1 ) {
       Debug.out( "max_bytes < 1: " +max_bytes );
       return 0;
@@ -323,7 +323,7 @@ public class OutgoingMessageQueue {
         int pos = 0;
     		int total_sofar = 0;
         while( total_sofar < max_bytes && pos < buffers.length ) {
-          buffers[ pos ] = ((ProtocolMessage)queue.get( pos )).getPayload().getBuffer(DirectByteBuffer.SS_NET);
+          buffers[ pos ] = ((Message)queue.get( pos )).getPayload().getBuffer(DirectByteBuffer.SS_NET);
           total_sofar += buffers[ pos ].remaining();
           starting_pos[ pos ] = buffers[ pos ].position();
           pos++;
@@ -339,7 +339,7 @@ public class OutgoingMessageQueue {
         buffers[ pos ].limit( orig_limit );
         pos = 0;
         while( !queue.isEmpty() ) {
-          ProtocolMessage msg = (ProtocolMessage)queue.get( 0 );
+          Message msg = (Message)queue.get( 0 );
           ByteBuffer bb = msg.getPayload().getBuffer(DirectByteBuffer.SS_NET);
           if( !bb.hasRemaining() ) {
             if( msg == urgent_message ) urgent_message = null;
@@ -439,7 +439,7 @@ public class OutgoingMessageQueue {
           if ( messages_sent != null ){
           	
 	          for( int x=0; x < messages_sent.size(); x++ ) {
-	            ProtocolMessage msg = (ProtocolMessage)messages_sent.get( x );
+	            Message msg = (Message)messages_sent.get( x );
 	
 	            listener.messageSent( msg );
 	            
@@ -534,20 +534,20 @@ public class OutgoingMessageQueue {
      * The given message has just been queued for sending out the transport.
      * @param message queued
      */
-    public void messageAdded( ProtocolMessage message );
+    public void messageAdded( Message message );
     
     /**
      * The given message has just been forcibly removed from the queue,
      * i.e. it was *not* sent out the transport.
      * @param message removed
      */
-    public void messageRemoved( ProtocolMessage message );
+    public void messageRemoved( Message message );
     
     /**
      * The given message has been completely sent out through the transport.
      * @param message sent
      */
-    public void messageSent( ProtocolMessage message );
+    public void messageSent( Message message );
     
     /**
      * The given number of protocol (overhead) bytes has been written to the transport.
@@ -603,7 +603,7 @@ public class OutgoingMessageQueue {
     private static final int DATA_BYTES_SENT      = 3;
     private static final int PROTOCOL_BYTES_SENT  = 4;
     private final int type;
-    private ProtocolMessage message;
+    private Message message;
     private Transport transport;
     private int byte_count = 0;
     private NotificationItem( int notification_type ) {

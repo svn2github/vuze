@@ -20,13 +20,13 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages.bittorrent;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
  * BitTorrent request message.
@@ -69,7 +69,7 @@ public class BTRequest implements BTProtocolMessage {
     return "Request piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_NORMAL;  }
+  public int getPriority() {  return Message.PRIORITY_NORMAL;  }
   
   public boolean isNoDelay() {  return true;  }
   

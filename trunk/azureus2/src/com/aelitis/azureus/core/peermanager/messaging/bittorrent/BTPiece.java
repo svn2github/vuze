@@ -20,18 +20,16 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages.bittorrent;
-
-import java.nio.ByteBuffer;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
- * BitTorrent cancel message.
+ * BitTorrent piece message.
  */
-public class BTCancel implements BTProtocolMessage {
+public class BTPiece implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
   private final int piece_number;
@@ -39,40 +37,45 @@ public class BTCancel implements BTProtocolMessage {
   private final int length;
   private final int total_byte_size;
   
-  public BTCancel( int piece_number, int piece_offset, int length ) {
+  public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
-    this.length = length;
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 17 ) );
+    length = data.remaining(DirectByteBuffer.SS_BT);
+    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_BT_PIECE,length + 13 );
     
-    buffer.putInt( DirectByteBuffer.SS_BT, 13 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)8 );
+    buffer.putInt( DirectByteBuffer.SS_BT, length + 9 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)7 );
     buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
     buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
-    buffer.putInt( DirectByteBuffer.SS_BT, length );
+    buffer.put( DirectByteBuffer.SS_BT, data );
     buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, 17 );
+    buffer.limit( DirectByteBuffer.SS_BT, length + 13 );
     
     total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
+    
+    data.returnToPool();
   }
   
-  public int getType() {  return BTProtocolMessage.BT_CANCEL;  }
+  public int getType() {  return BTProtocolMessage.BT_PIECE;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
   
   public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
-    return "Cancel piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+    return "Piece data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_HIGH;  }
+  public int getPriority() {  return Message.PRIORITY_LOW;  }
   
-  public boolean isNoDelay() {  return true;  }
+  public boolean isNoDelay() {  return false;  }
   
-  public boolean isDataMessage() {  return false;  }
-    
-  public void destroy() { }
+  public boolean isDataMessage() {  return true;  }
+  
+  public void destroy() {
+    buffer.returnToPool();
+  }
   
   public int[] typesToRemove() {  return null;  }
+  
 }

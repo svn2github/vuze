@@ -1,7 +1,7 @@
 /*
- * Created on Jul 17, 2004
+ * Created on Jan 8, 2005
  * Created by Alon Rohter
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,25 +20,21 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages.bittorrent;
+package com.aelitis.azureus.core.peermanager.messaging.core;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.PeerMessage;
 
 /**
- * A bittorrent peer protocol message.
+ *
  */
-public interface BTProtocolMessage extends ProtocolMessage {
+public class Ping implements PeerMessage {
+  private static final String message_id = "Ping";
+  private static final int msg_version = 1;
   
-  public static final int BT_HANDSHAKE    = -1;
-  public static final int BT_CHOKE        = 0;
-  public static final int BT_UNCHOKE      = 1;
-  public static final int BT_INTERESTED   = 2;
-  public static final int BT_UNINTERESTED = 3;
-  public static final int BT_HAVE         = 4;
-  public static final int BT_BITFIELD     = 5;
-  public static final int BT_REQUEST      = 6;
-  public static final int BT_PIECE        = 7;
-  public static final int BT_CANCEL       = 8;
-  public static final int BT_KEEP_ALIVE   = 9;
-
+  public String getMessageID() {  return message_id;  }
+  
+  
+  public int getVersion() {  return msg_version;  }
+  
+  
 }

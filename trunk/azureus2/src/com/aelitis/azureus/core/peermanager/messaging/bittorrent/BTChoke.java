@@ -20,54 +20,51 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages.bittorrent;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
- * BitTorrent have message.
+ * BitTorrent choke message.
  */
-public class BTHave implements BTProtocolMessage {
+public class BTChoke implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
-  private final int piece_number;
+  private static final int[] to_remove = { BTProtocolMessage.BT_UNCHOKE, BTProtocolMessage.BT_PIECE };
   private final int total_byte_size;
+  
+  public BTChoke() {
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
 
-  public BTHave( int piece_number ) {
-    this.piece_number = piece_number;
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 9 ) );
-    
-    buffer.putInt( DirectByteBuffer.SS_BT, 5 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)4 );
-    buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
+    buffer.putInt( DirectByteBuffer.SS_BT, 1 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)0 );
     buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, 9 );
+    buffer.limit( DirectByteBuffer.SS_BT, 5 );
     
     total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
-  public int getType() {  return BTProtocolMessage.BT_HAVE;  }
+  public int getType() {  return BTProtocolMessage.BT_CHOKE;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
   
   public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
-    return "Have piece #" + piece_number;
+    return "Choke";
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_LOW;  }
+  public int getPriority() {  return Message.PRIORITY_HIGH;  }
   
-  public boolean isNoDelay() {  return false;  }
+  public boolean isNoDelay() {  return true;  }
   
   public boolean isDataMessage() {  return false;  }
   
   public void destroy() { }
   
-  public int[] typesToRemove() {  return null;  }
-  
+  public int[] typesToRemove() {  return to_remove;  }
 }

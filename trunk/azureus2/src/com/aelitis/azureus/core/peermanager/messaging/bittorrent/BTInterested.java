@@ -20,49 +20,52 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages.bittorrent;
+package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
- * BitTorrent keep-alive message.
+ * BitTorrent interested message.
  */
-public class BTKeepAlive implements BTProtocolMessage {
+public class BTInterested implements BTProtocolMessage {
   
   private final DirectByteBuffer buffer;
+  private static final int[] to_remove = { BTProtocolMessage.BT_UNINTERESTED };
   private final int total_byte_size;
-
-  public BTKeepAlive() {
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
+  
+  public BTInterested() {
+    buffer = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
     
-    buffer.putInt( DirectByteBuffer.SS_BT, 0 );
+    buffer.putInt( DirectByteBuffer.SS_BT, 1 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)2 );
     buffer.position( DirectByteBuffer.SS_BT, 0 );
-    buffer.limit( DirectByteBuffer.SS_BT, 4 );
+    buffer.limit( DirectByteBuffer.SS_BT, 5 );
     
     total_byte_size = buffer.limit(DirectByteBuffer.SS_BT);
   }
   
-  public int getType() {  return BTProtocolMessage.BT_KEEP_ALIVE;  }
+  public int getType() {  return BTProtocolMessage.BT_INTERESTED;  }
   
   public DirectByteBuffer getPayload() {  return buffer;  }
   
   public int getTotalMessageByteSize() {  return total_byte_size;  }
   
   public String getDescription() {
-    return "Keep-alive";
+    return "Interested";
   }
   
-  public int getPriority() {  return ProtocolMessage.PRIORITY_LOW;  }
+  public int getPriority() {  return Message.PRIORITY_HIGH;  }
   
-  public boolean isNoDelay() {  return false;  }
+  public boolean isNoDelay() {  return true;  }
   
   public boolean isDataMessage() {  return false;  }
   
   public void destroy() { }
   
-  public int[] typesToRemove() {  return null;  }
+  public int[] typesToRemove() {  return to_remove;  }
+  
 }

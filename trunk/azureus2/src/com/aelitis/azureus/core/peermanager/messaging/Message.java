@@ -20,14 +20,14 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messages;
+package com.aelitis.azureus.core.peermanager.messaging;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 /**
  * A peer protocol message.
  */
-public interface ProtocolMessage {
+public interface Message {
   
   public static final int PRIORITY_LOW    = 0;
   public static final int PRIORITY_NORMAL = 1;

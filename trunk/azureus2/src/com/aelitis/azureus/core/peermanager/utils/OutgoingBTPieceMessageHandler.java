@@ -28,9 +28,9 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
-import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
-import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.OutgoingMessageQueue;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
 /**
@@ -84,7 +84,7 @@ public class OutgoingBTPieceMessageHandler {
   
   
   private final OutgoingMessageQueue.MessageQueueListener sent_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
-    public void messageSent( ProtocolMessage message ) {
+    public void messageSent( Message message ) {
       if( message.getType() == BTProtocolMessage.BT_PIECE ) {
         try{
           lock_mon.enter();
@@ -97,8 +97,8 @@ public class OutgoingBTPieceMessageHandler {
         }
       }
     }
-    public void messageAdded( ProtocolMessage message ) {/*nothing*/}
-    public void messageRemoved( ProtocolMessage message ) {/*nothing*/}
+    public void messageAdded( Message message ) {/*nothing*/}
+    public void messageRemoved( Message message ) {/*nothing*/}
     public void protocolBytesSent( int byte_count ) {/*ignore*/}
     public void dataBytesSent( int byte_count ) {/*ignore*/}
   };
