@@ -453,6 +453,7 @@ PEPeerControlImpl
           pc = (PEPeerTransport) _connections.get(i);
         }
         catch (Exception e) {
+          e.printStackTrace();
           break;
         }
         if (pc.transferAvailable()) {
@@ -506,10 +507,7 @@ PEPeerControlImpl
       
       _manager.setState(DownloadManager.STATE_FINISHING);
       _timeFinished = System.currentTimeMillis() / 1000;
-      
-      //update resume data
-      if (resumeEnabled) _diskManager.dumpResumeDataToDisk(true);
-      
+            
       //remove previous snubbing
       synchronized (_connections) {
         for (int i = 0; i < _connections.size(); i++) {
@@ -538,6 +536,10 @@ PEPeerControlImpl
         String newName = _diskManager.moveCompletedFiles();
         if (newName.length() > 0) _manager.setTorrentFileName(newName);
       }
+      
+      //update resume data
+      if (resumeEnabled) _diskManager.dumpResumeDataToDisk(true);
+      
       
       _manager.setState(DownloadManager.STATE_SEEDING);
       
