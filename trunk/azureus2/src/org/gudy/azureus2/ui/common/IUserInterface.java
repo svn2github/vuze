@@ -27,6 +27,10 @@ public interface IUserInterface {
    * Now the GlobalManager is initialized.
    */
   public void startUI();
+  /** Determine if the UI is already started
+   * You usually don't need to override this from UITemplate
+   */
+  public boolean isStarted();
   /** Open a torrent file.
    * This is for torrents passed in the command line. Only called for the first UI.
    */

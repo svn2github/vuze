@@ -23,7 +23,7 @@ import org.gudy.azureus2.ui.common.LocaleUtilHeadless;
  *
  * @author  Tobias Minich
  */
-public class UI implements ILocaleUtilChooser,IUserInterface {
+public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocaleUtilChooser,IUserInterface {
   
   Jhttpp2Server server = null;
   
@@ -31,14 +31,9 @@ public class UI implements ILocaleUtilChooser,IUserInterface {
   public UI() {
   }
   
-  public org.gudy.azureus2.core3.internat.LocaleUtil getProperLocaleUtil(Object lastEncoding) {
-    return new LocaleUtilHeadless(lastEncoding);
-  }
-  
   public void init(boolean first, boolean others) {
+    super.init(first,others);
     System.setProperty("java.awt.headless", "true");
-    if (first)
-      LocaleUtil.setLocaleUtilChooser(this);
   }
   
   public String[] processArgs(String[] args) {
@@ -46,9 +41,12 @@ public class UI implements ILocaleUtilChooser,IUserInterface {
   }
   
   public void startUI() {
-    server = new Jhttpp2Server(org.gudy.azureus2.ui.common.Main.GM, true);
-    new Thread(server, "Webinterface Server").start();
-    System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
+    super.startUI();
+    if ((!isStarted()) || (server==null)) {
+      server = new Jhttpp2Server(org.gudy.azureus2.ui.common.Main.GM, true);
+      new Thread(server, "Webinterface Server").start();
+      System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
+    }
   }
   
   public void openTorrent(String fileName) {

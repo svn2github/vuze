@@ -12,7 +12,7 @@ import org.gudy.azureus2.ui.common.IUserInterface;
  * @author Olivier
  * 
  */
-public class UI implements ILocaleUtilChooser,IUserInterface {  
+public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocaleUtilChooser,IUserInterface {  
   
   MainWindowThread mainWindow = null;
   
@@ -23,10 +23,11 @@ public class UI implements ILocaleUtilChooser,IUserInterface {
     return new LocaleUtilSWT(lastEncoding);
   }
   
+  /*
   public void init(boolean first, boolean others) {
     if (first)
       LocaleUtil.setLocaleUtilChooser(this);
-  }
+  }*/
   
   public void openTorrent(String fileName) {
     if (mainWindow!=null) {
@@ -39,7 +40,9 @@ public class UI implements ILocaleUtilChooser,IUserInterface {
   }
   
   public void startUI() {
-    mainWindow = new MainWindowThread();
+    super.startUI();
+    if ((!isStarted()) || (mainWindow==null))
+      mainWindow = new MainWindowThread();
   }
   
 }

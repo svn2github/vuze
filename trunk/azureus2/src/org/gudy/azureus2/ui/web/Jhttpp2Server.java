@@ -83,7 +83,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   public GlobalManager gm;
   public Locale locale = new Locale("", "");
   public Date startTime = new Date();
-  public Logger loggerWeb = Logger.getLogger("azureus2.webinterface");
+  public Logger loggerWeb = Logger.getLogger("azureus2.ui.web");
   public Logger loggerCore = Logger.getLogger("azureus2.core");
   public List logList = new LinkedList();
   private List allowedIPs;
@@ -135,12 +135,11 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     //remote_debug=false;
   }
   public void initLoggers() {
-    Logger.getRootLogger().removeAllAppenders();
+    //Logger.getRootLogger().removeAllAppenders();
+    Logger.getRootLogger().removeAppender("WebLogAppender");
+    Logger.getRootLogger().removeAppender("LogFileAppender");
     //BasicConfigurator.configure();
     Appender app;
-    app = new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN));
-    app.setName("ConsoleAppender");
-    Logger.getRootLogger().addAppender(app);
     app = new WebLogAppender(logList);
     app.setName("WebLogAppender");
     Logger.getRootLogger().addAppender(app);

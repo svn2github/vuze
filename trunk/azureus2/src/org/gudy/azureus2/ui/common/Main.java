@@ -6,12 +6,14 @@
 
 package org.gudy.azureus2.ui.common;
 
+import java.io.FileReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.StringReader;
 
 import java.net.Socket;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
@@ -23,8 +25,15 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
+import org.apache.log4j.Appender;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
+
+import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  *
@@ -32,84 +41,78 @@ import org.gudy.azureus2.core3.global.*;
  */
 public class Main {
   
-  public static ArrayList UIS = null;
+  public static HashMap UIS = null;
   public static String DEFAULT_UI = "swt";
   
   public static GlobalManager GM = null;
   public static StartServer start = null;
   
-  /**
-   * @param args the command line arguments
-   */
-  public static void main(String[] args) {
-    if (start==null) {
-      System.setProperty( "sun.net.client.defaultConnectTimeout", "120000");
-      System.setProperty( "sun.net.client.defaultReadTimeout", "60000" );
-      COConfigurationManager.checkConfiguration();
-      start = new StartServer();
-      if ((start == null) || (start.getState()==StartServer.STATE_FAULTY))
-        System.err.println("Warning: StartServer startup failed. Unable to add torrents via command line");
-      else
-        start.start();
-
-      CommandLine commands = null;
-      CommandLineParser parser = new PosixParser();
-      Options options = new Options();
-      options.addOption("h", "help", false, "Show this help.");
-      options.addOption(OptionBuilder.withLongOpt("ui")
-                                     .withDescription("Run <uis>. ',' separated list of user interfaces to run. The first one given will respond to requests without determinable source UI (e.g. further torrents added via command line).\r\nAvailable: swt (default), web, console")
-                                     .withValueSeparator()
-                                     .withArgName("uis")
-                                     .hasArg()
-                                     .create('u'));
-      try {
-        commands = parser.parse(options, args, true);
-      } catch( ParseException exp ) {
-        System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
+  private static CommandLine parseCommands(String[] args, boolean constart) {
+    
+    if (args==null)
+      return null;
+    
+    CommandLineParser parser = new PosixParser();
+    Options options = new Options();
+    options.addOption("h", "help", false, "Show this help.");
+    options.addOption(OptionBuilder.withLongOpt("exec")
+                                   .hasArg()
+                                   .withArgName("file")
+                                   .withDescription("Execute script file.")
+                                   .create('e'));
+    options.addOption(OptionBuilder.withLongOpt("command")
+                                   .hasArg()
+                                   .withArgName("command")
+                                   .withDescription("Execute single script command.")
+                                   .create('c'));
+    options.addOption(OptionBuilder.withLongOpt("ui")
+                                   .withDescription("Run <uis>. ',' separated list of user interfaces to run. The first one given will respond to requests without determinable source UI (e.g. further torrents added via command line).\r\nAvailable: swt (default), web, console")
+                                   .withArgName("uis")
+                                   .hasArg()
+                                   .create('u'));
+    CommandLine commands = null;
+    try {
+      commands = parser.parse(options, args, true);
+    } catch( ParseException exp ) {
+      Logger.getLogger("azureus2").error("Parsing failed.  Reason: " + exp.getMessage(), exp);
+      if (constart)
         System.exit(2);
-      }
-      
-      if (commands.hasOption('h')) {
+    }
+    if (commands.hasOption('h')) {
+      if (constart) {
         HelpFormatter hf = new HelpFormatter();
         hf.printHelp("java org.gudy.azureus2.ui.common.Main", options, true);
         System.exit(0);
       }
+    }
+    return commands;
+  }
+  
+  public static void initRootLogger() {
+    if (Logger.getRootLogger().getAppender("ConsoleAppender")==null) {
+      Appender app;
+      app = new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN));
+      app.setName("ConsoleAppender");
+      Logger.getRootLogger().addAppender(app);
+    }
+  }
+  
+  public static void main(String[] args) {
+    initRootLogger();
+    CommandLine commands = parseCommands(args, true);
 
-      UIS = new ArrayList();
-      if (commands.hasOption('u')) {
-        String uinames = commands.getOptionValue('u');
-        if (uinames.indexOf(',')==-1) {
-          UIS.add(UserInterfaceFactory.getUI(uinames));
-        } else {
-          StringTokenizer stok = new StringTokenizer(uinames, ",");
-          while (stok.hasMoreTokens()) {
-            String uin = stok.nextToken();
-            UIS.add(UserInterfaceFactory.getUI(uin));
-          }
-        }
-      } else {
-        UIS.add(UserInterfaceFactory.getUI(DEFAULT_UI));
-      }
-
-      Iterator uis = UIS.iterator();
-      boolean isFirst = true;
-      String [] theRest = commands.getArgs();
-      while (uis.hasNext()) {
-        IUserInterface ui = (IUserInterface) uis.next();
-        ui.init(isFirst, (UIS.size()>1));
-        theRest = ui.processArgs(theRest);
-        isFirst = false;
-      }
-
-      GM = GlobalManagerFactory.create();
-
-      uis = UIS.iterator();
-      while (uis.hasNext())
-        ((IUserInterface) uis.next()).startUI();
+    System.setProperty( "sun.net.client.defaultConnectTimeout", "120000");
+    System.setProperty( "sun.net.client.defaultReadTimeout", "60000" );
+    start = new StartServer();
       
-      openTorrents(theRest);
+    if ((start == null) || (start.getState()==StartServer.STATE_FAULTY)) {
+       new StartSocket(args);
+    } else {
+      COConfigurationManager.checkConfiguration();
+      start.start();
       
-    } else new StartSocket(args);
+      processArgs(args, true, commands);
+    }
   }
   
   public static void shutdown() {
@@ -120,10 +123,71 @@ public class Main {
     System.exit(0);
   }
   
+  public static void processArgs(String[] args, boolean creategm, CommandLine commands) {
+    if (commands==null)
+      commands = parseCommands(args, false);
+    if ((commands!=null) && (args.length>0)) {
+      if (UIS == null)
+        UIS = new HashMap();
+      if (commands.hasOption('u')) {
+        String uinames = commands.getOptionValue('u');
+        if (uinames.indexOf(',')==-1) {
+          if (!UIS.containsKey(uinames))
+            UIS.put(uinames,UserInterfaceFactory.getUI(uinames));
+        } else {
+          StringTokenizer stok = new StringTokenizer(uinames, ",");
+          while (stok.hasMoreTokens()) {
+            String uin = stok.nextToken();
+            if (!UIS.containsKey(uin))
+              UIS.put(uin,UserInterfaceFactory.getUI(uin));
+          }
+        }
+      } else {
+        if (UIS.isEmpty())
+          UIS.put(DEFAULT_UI, UserInterfaceFactory.getUI(DEFAULT_UI));
+      }
+
+      Iterator uis = UIS.values().iterator();
+      boolean isFirst = true;
+      String [] theRest = commands.getArgs();
+      while (uis.hasNext()) {
+        IUserInterface ui = (IUserInterface) uis.next();
+        ui.init(isFirst, (UIS.size()>1));
+        theRest = ui.processArgs(theRest);
+        isFirst = false;
+      }
+
+      if (creategm)
+        GM = GlobalManagerFactory.create();
+
+      uis = UIS.values().iterator();
+      while (uis.hasNext())
+        ((IUserInterface) uis.next()).startUI();
+      
+      if (commands.hasOption('e')) {
+        try {
+          new ConsoleInput(commands.getOptionValue('e'), GM, new FileReader(commands.getOptionValue('e')), System.out, false);
+        } catch (java.io.FileNotFoundException e) {
+          Logger.getLogger("azureus2").error("Script file not found: "+e.toString());
+        }
+      }
+      
+      if (commands.hasOption('c')) {
+        String comm = commands.getOptionValue('c');
+        comm+="\nlogout\n";
+        new ConsoleInput(commands.getOptionValue('c'), GM, new StringReader(comm), System.out, false);
+      }
+      
+      openTorrents(theRest);
+    } else {
+      Logger.getLogger("azureus2").error("No commands to process");
+    }
+  }
+  
   public static void openTorrents(String[] torrents) {
     if ((Main.UIS!=null) && (!Main.UIS.isEmpty()) && (torrents.length>0)) {
       for(int l=0; l<torrents.length; l++) {
-        ((IUserInterface) Main.UIS.get(0)).openTorrent(torrents[l]);
+        ((IUserInterface) Main.UIS.values().toArray()[0]).openTorrent(torrents[l]);
       }
     }
   }

@@ -10,7 +10,11 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.StringTokenizer;
+
+import org.apache.log4j.Logger;
 
 /**
  * @author Olivier
@@ -56,7 +60,16 @@ public class StartServer extends Thread {
             while (st.hasMoreElements()) {
               args[i++] = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
             }
-            Main.openTorrents(args);
+            if (args[0].equals("args")) {
+              String newargs[] = new String[args.length-1];
+              if (args.length>1) {
+                for(int j=1;j<args.length;j++)
+                  newargs[j-1]=args[j];
+              }
+              Main.processArgs(newargs, false, null);
+            } else {
+              Logger.getLogger("azureus2").error("Something strange was sent to the StartServer: "+line);
+            }
           }
         }
         sck.close();
