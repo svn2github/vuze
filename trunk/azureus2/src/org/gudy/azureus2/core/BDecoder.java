@@ -135,7 +135,13 @@ public class BDecoder {
 
     //get the length
     byte[] tempArray = new byte[length];
-    bais.read(tempArray, 0, length);
+	int count = 0;
+	int len = 0;
+	
+	//get the string
+	while (count != length && (len = bais.read(tempArray, count, length - count)) > 0) {
+	  count += len;
+	}
 
     //jump ahead in the stream to compensate for the :
     bais.skip(1);
