@@ -29,9 +29,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.net.*;
 
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
@@ -110,36 +112,32 @@ PEPeerTransportImpl
 	}
 
 	protected void
-	closeConnection()
-  	{
-		if (socket != null ){
-			
-			try {
-				
-		  		if (socket.isOpen() && socket.socket().isClosed()){
-		  			
-		  			 System.out.println("ERROR: channel is open but socket is closed"); 
-		  		}
-		  		
-		  		if (!socket.socket().isClosed()){
-		  			
-		  			 socket.socket().close(); 
-		  		}
-		  		
-		  		if (socket.isOpen()) {
-		  			
-			 		System.out.println("ERROR: channel still open");
-			 		
-			 		socket.close();
-		  		}
-			}catch (Exception e){
-				
-		  		System.out.println("PeerTransport::closeAll:: closing socket failed: " + getIp() + ":" + getPort());
-			}
-			
-			socket = null;
-	  	}
-  	}
+	closeConnection() {
+    
+	  if (socket == null) {
+	    Debug.out("socket already null");
+	    return;
+	  }
+    
+	  try {
+	    Socket sck = socket.socket();
+      
+	    if (!sck.isInputShutdown()) sck.shutdownInput();
+	    if (!sck.isOutputShutdown()) sck.shutdownOutput();
+      
+	    if (socket.isOpen()) socket.close();
+      
+	    if (!sck.isClosed()){
+	      Debug.out("sck not already closed");
+			sck.close();
+		 } 
+	  }
+	  catch (Exception e){
+	    Debug.out("exception trying to close socket:");
+	    e.printStackTrace();
+	  }
+	}
+
   
 	protected boolean
   	completeConnection()
