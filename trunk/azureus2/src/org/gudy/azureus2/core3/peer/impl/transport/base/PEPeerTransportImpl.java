@@ -48,12 +48,13 @@ PEPeerTransportImpl
 {
 	private static final boolean	TRACE	= false;
 	
-	private SocketChannel 	socket = null;
-  private volatile boolean connected = false;
-  private volatile boolean connect_error = false;
-  private volatile String msg = "";
-  SocketManager.OutboundConnectionListener listener = null;
-  private DataReader		data_reader;
+	private SocketChannel 		socket 			= null;
+	private volatile boolean 	connected 		= false;
+	private volatile boolean 	connect_error 	= false;
+	private volatile 			String msg 		= "";
+	private volatile			DataReader		data_reader;
+	
+	private SocketManager.OutboundConnectionListener listener = null;
   
 	
 	  /**
@@ -189,11 +190,14 @@ PEPeerTransportImpl
 	}
 
   
-	protected boolean completeConnection() throws IOException {
-    if ( connect_error ) {
-      throw new IOException(msg);
-    }
-    return connected;
+	protected boolean 
+	completeConnection() 
+		throws IOException 
+	{
+		if ( connect_error ) {
+			throw new IOException(msg);
+		}
+		return connected;
 	}
   
   
@@ -203,11 +207,24 @@ PEPeerTransportImpl
 	
 		throws IOException 
 	{
+		DataReader		data_reader_copy	= data_reader;
+		SocketChannel	socket_copy			= socket;
+		
+		if ( data_reader_copy == null ){
+			
+			throw( new IOException( "Not connected - data reader is null" ));
+		}	
+		
+		if ( socket_copy == null ){
+			
+			throw( new IOException( "Not connected - socket is null" ));
+		}
+		
 		if ( TRACE ){
 			
 			int	pos = buffer.position();
 			
-			int	len = data_reader.read( socket, buffer );
+			int	len = data_reader_copy.read( socket_copy, buffer );
 			
 			if ( len > 0 ){
 				
@@ -223,7 +240,7 @@ PEPeerTransportImpl
 			return( len );
 		}else{
 			
-			return(  data_reader.read( socket, buffer ));
+			return(  data_reader_copy.read( socket_copy, buffer ));
 		}
 
 	}
@@ -235,11 +252,18 @@ PEPeerTransportImpl
 	
 		throws IOException 
 	{
+		SocketChannel	socket_copy			= socket;
+				
+		if ( socket_copy == null ){
+			
+			throw( new IOException( "Not connected - socket is null" ));
+		}		
+		
 		if ( TRACE ){
 			
 			int	pos = buffer.position();
 			
-			int	len = buffer.write( socket );
+			int	len = buffer.write( socket_copy );
 			
 			if ( len > 0 ){
 				
@@ -255,7 +279,7 @@ PEPeerTransportImpl
 			return( len );
 		}else{
 			
-			return(  buffer.write(socket));
+			return(  buffer.write(socket_copy));
 		}
 	}
 }

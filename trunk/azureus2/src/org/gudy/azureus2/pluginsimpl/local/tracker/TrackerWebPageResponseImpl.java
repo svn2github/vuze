@@ -249,6 +249,8 @@ TrackerWebPageResponseImpl
 			response_type = "text/plain";
 		}else if ( file_type.equals( "jar" )){
 			response_type = "application/java-archive";
+		}else if ( file_type.equals( "jnlp" )){
+			response_type = "application/x-java-jnlp-file";
 		}else if ( file_type.equals( "mp3" )){
 			response_type = "audio/x-mpeg";
 		}else{
