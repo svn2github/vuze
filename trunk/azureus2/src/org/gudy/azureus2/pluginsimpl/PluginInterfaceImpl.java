@@ -38,6 +38,8 @@ import org.gudy.azureus2.pluginsimpl.ui.config.PluginConfigUIFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.ui.tables.peers.PeersTableExtensions;
 import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.pluginsimpl.peers.protocol.*;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+import org.gudy.azureus2.pluginsimpl.sharing.ShareManagerImpl;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.MainWindow;
@@ -112,6 +114,12 @@ public class PluginInterfaceImpl implements PluginInterface {
   
   public Tracker getTracker() {
   	return( TrackerImpl.getSingleton( initialiser.getTrackerHost()));
+  }
+  
+  public ShareManager
+  getShareManager()
+  {
+  	return( ShareManagerImpl.getSingleton());
   }
   
   public Logger getLogger() {

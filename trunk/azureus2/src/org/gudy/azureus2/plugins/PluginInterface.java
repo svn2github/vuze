@@ -23,6 +23,7 @@ package org.gudy.azureus2.plugins;
 
 import java.util.Properties;
 
+import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
@@ -84,6 +85,14 @@ public interface PluginInterface {
   
   public PeerProtocolManager
   getPeerProtocolManager();
+  
+  /**
+   * Gives access to the sharing functionality
+   * @return
+   */
+  
+  public ShareManager
+  getShareManager();
   
   /**
    * opens a torrent file given its name

@@ -3,12 +3,12 @@ CHANGELOG
 
 xx.01.04 | Azureus 2.0.6.1
 
-FEATURE: 
+FEATURE: SSL tracker client now gives option to import certificate rather than manually doing so via "keytool" [Parg]
 
 CHANGE: Azureus now identifies itself via User-Agent in tracker http communications [Nolar]
+CHANGE: Azureus now responds as Server: Azureus <version> in tracker http comms [Parg]
 
-BUGFIX:
-
+BUGFIX: Problem with tracker not responding with "Connection: close" causing SSL session maintainance with HttpsURLConnection to stuff up and fail clients with "recv fail" [Parg]
 
 
 19.12.03 | Azureus 2.0.6.0
