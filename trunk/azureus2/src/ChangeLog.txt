@@ -4,6 +4,7 @@ CHANGELOG
 xx.xx.03 | Azureus 2.0.4.1
 
 FEATURE: Added tooltip general support [Gudy]
+FEATURE: Default torrent encoding selection added to Config->File [Parg]
 
 CHANGE: Full scrape of embedded tracker now supported as SN requires this for hosting [Parg]
 CHANGE: Better peer client identification [Nolar]
@@ -12,6 +13,7 @@ CHANGE: Added 'comment' field to torrent create [Parg]
 CHANGE: Moving of .torrent to completed dir now optional [Nolar]
 CHANGE: Additional upload speed options [Nolar]
 CHANGE: Cleanup of Configuration tabs [Nolar]
+CHANGE: Rewrite of locale selection code for torrents. Now a torrent's encoding is determined up front (before it could be done later and caused issues). Only one encoding allowed per torrent [Parg]
 
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
