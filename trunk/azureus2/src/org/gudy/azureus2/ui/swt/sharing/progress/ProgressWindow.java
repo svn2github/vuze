@@ -203,23 +203,28 @@ ProgressWindow
 		protected void
 		showPanel()
 		{
+		  boolean animate = false ;
 			if ( !shell_opened ){
 			
 				shell_opened = true;
 				
-				shell.open();        
+				shell.open();	
+				
+				animate = true ;
 			}
       
-      if(currentAnimator == null) {
-        currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),15,30);
-        currentAnimator.start();
-      }
+      
             
 			shell.moveAbove( MainWindow.getWindow().getShell());
 			
-			if ( !shell.isVisible()){
-				
+			if ( !shell.isVisible()){				
 				shell.setVisible(true);
+				animate = true ;
+			}
+			
+			if(animate && currentAnimator == null) {
+		        currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),15,30);
+		        currentAnimator.start();
 			}
 		}
     
