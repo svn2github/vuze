@@ -69,9 +69,21 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
   public boolean setGraphic(Image img) {
     boolean bImageSet = (image != img);
 
-    if (bImageSet)
+    if (bImageSet) {
       image = img;
-    doPaint();
+    }
+
+    if (image == null) {
+      Table table = getTable();
+      if (table != null && !table.isDisposed()) {
+        Rectangle bounds = getBoundsForCanvas();
+        if (bounds != null) table.redraw(bounds.x, bounds.y, 
+                                         bounds.width, bounds.height, true);
+      }
+      return bImageSet;
+    } else {
+      doPaint();
+    }
 
     return bImageSet;
   }
