@@ -262,9 +262,35 @@ CoreUpdateChecker
 						}
 					});
 
+			byte[]	info_b = (byte[])decoded.get( "info" );
+			
+			String	info = null;
+			
+			if ( info_b != null ){
+			
+				try{
+					info = new String( info_b );
+				
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
+			}
+			
+			String[]	desc;
+			
+			if ( info == null ){
+				
+				desc = new String[]{"Core Azureus Version" };
+				
+			}else{
+				
+				desc = new String[]{"Core Azureus Version", info };
+			}
+			
 			checker.addUpdate(
 						"Core Azureus Version",
-						new String[]{"Core Azureus Version" },
+						desc,
 						latest_version,
 						top_downloader,
 						Update.RESTART_REQUIRED_YES );
