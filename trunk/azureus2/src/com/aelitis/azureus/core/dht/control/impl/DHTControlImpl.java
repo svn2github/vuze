@@ -55,10 +55,56 @@ DHTControlImpl
 		DHTRouter		_router )
 	{
 		router	= _router;
+		
+		router.setAdapter( 
+			new DHTRouterAdapter()
+			{
+				public void
+				requestPing(
+					DHTRouterContact	contact )
+				{
+					((DHTTransportContact)contact.getAttachment()).sendPing(
+							new DHTTransportReplyHandlerAdapter()
+							{
+								public void
+								pingReply(
+									DHTTransportContact _contact )
+								{
+									DHTLog.indent( router );
+									
+									DHTLog.log( "ping ok" );
+									
+									router.contactAlive( _contact.getID(), _contact );
+									
+									DHTLog.exdent();
+								}	
+								
+								public void
+								failed(
+									DHTTransportContact 	_contact )
+								{
+									DHTLog.indent( router );
+									
+									DHTLog.log( "ping failed" );
+									
+									router.contactDead( _contact.getID(), _contact );
+
+									DHTLog.exdent();
+								}
+							});
+				}
+				
+				public void
+				requestLookup(
+					byte[]	id )
+				{
+					lookup( id, false );
+				}
+			});
 	}
 	
 	public void
-	addTransport(
+	setTransport(
 		DHTTransport	transport )
 	{
 		DHTTransportContact	local_contact = transport.getLocalContact();
@@ -73,12 +119,13 @@ DHTControlImpl
 			
 			throw( new RuntimeException( "DHTRouter: transports have different node id size!" ));
 		}
-			
-			// TODO: ID changes/incompatabilities
+					
+			// TODO: add listener, pick up node ID changes + reseed if changed
 		
+
 		transport.setRequestHandler( this );
-		
-		router.setNodeID( local_contact.getID(), local_contact );
+				
+		router.setID( local_contact.getID(), local_contact);	
 	}
 	
 	public void
@@ -91,15 +138,21 @@ DHTControlImpl
 			byte[]	id = contact.getID();
 		
 			router.addContact( id, contact);
-		
-			lookup( id, false );
-		
-			router.print();
-			
+				
 		}finally{
 			
 			DHTLog.exdent();
 		}
+	}
+	
+	public void
+	seed()
+	{
+		lookup( router.getID(), false );
+		
+		router.seed();
+		
+		router.print();
 	}
 	
 	public void
@@ -118,7 +171,15 @@ DHTControlImpl
 			
 			for (int i=0;i<closest.size();i++){
 			
-				((DHTTransportContact)closest.get(i)).sendStore( 
+				DHTTransportContact	contact = (DHTTransportContact)closest.get(i);
+				
+				if ( router.isID( contact.getID())){
+					
+					stored_values.put( new HashWrapper( encoded_key ), value );
+					
+				}else{
+					
+					contact.sendStore( 
 						new DHTTransportReplyHandlerAdapter()
 						{
 							public void
@@ -128,6 +189,8 @@ DHTControlImpl
 								DHTLog.indent( router );
 								
 								DHTLog.log( "store ok" );
+								
+								router.contactAlive( contact.getID(), contact );
 								
 								DHTLog.exdent();
 							}	
@@ -140,11 +203,14 @@ DHTControlImpl
 								
 								DHTLog.log( "store failed" );
 								
+								router.contactDead( contact.getID(), contact );
+								
 								DHTLog.exdent();
 							}
 						},
 						encoded_key, 
 						value );
+				}
 			}
 		}finally{
 			
@@ -195,6 +261,8 @@ DHTControlImpl
 									
 									DHTLog.log( "cache store ok" );
 									
+									router.contactAlive( contact.getID(), contact );
+									
 									DHTLog.exdent();
 								}	
 								
@@ -205,6 +273,8 @@ DHTControlImpl
 									DHTLog.indent( router );
 									
 									DHTLog.log( "cache store failed" );
+									
+									router.contactDead( contact.getID(), contact );
 									
 									DHTLog.exdent();
 								}
@@ -281,13 +351,7 @@ DHTControlImpl
 							}
 						});
 			
-			for (int i=0;i<router_contacts.size();i++){
-				
-				contacts_to_query.add(
-					((DHTRouterContact)router_contacts.get(i)).getAttachment());
-			}
-			
-				// record the set of contacts we've queried to avoid re-queries
+					// record the set of contacts we've queried to avoid re-queries
 			
 			final Map			contacts_queried = new HashMap();
 			
@@ -315,6 +379,17 @@ DHTControlImpl
 						}
 					});
 			
+
+				// populate the initial query set
+			
+			for (int i=0;i<router_contacts.size();i++){
+			
+				DHTRouterContact	contact = (DHTRouterContact)router_contacts.get(i);
+				
+				contacts_to_query.add( contact.getAttachment());
+			}
+			
+
 				// this handles the search concurrency
 			
 			final AESemaphore	search_sem = new AESemaphore( "DHTControl:search", search_concurrency );
@@ -419,7 +494,7 @@ DHTControlImpl
 											
 												// ignore responses that are ourselves
 											
-											if ( compareDistances( router.getLocalContact().getID(), contact.getID()) == 0 ){
+											if ( compareDistances( router.getID(), contact.getID()) == 0 ){
 												
 												continue;
 											}
@@ -467,6 +542,8 @@ DHTControlImpl
 									
 									DHTLog.log( "findValueReply: " + DHTLog.getString( value ));
 									
+									router.contactAlive( contact.getID(), contact );
+									
 									value_search_result[0]	= value;
 		
 								}finally{
@@ -499,8 +576,7 @@ DHTControlImpl
 									router.contactDead( target_contact.getID(), target_contact );
 		
 								}finally{
-									
-									
+																	
 									active_searches[0]--;
 									
 									search_sem.release();

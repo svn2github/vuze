@@ -24,8 +24,8 @@ package com.aelitis.azureus.core.dht.router.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.*;
@@ -45,18 +45,26 @@ DHTRouterImpl
 	private int		B = 5;
 	private int		SMALLEST_SUBTREE_MAX;
 	
+	private DHTRouterAdapter		adapter;
 	
-	private DHTRouterContactImpl	local_contact;
 	private byte[]					router_node_id;
 	
 	private DHTRouterNodeImpl		root;
 	private DHTRouterNodeImpl		smallest_subtree;
 	
+	private static long				random_seed	= SystemTime.getCurrentTime();
+	private Random					random;
+	
 	public
 	DHTRouterImpl(
-		int		_K,
-		int		_B )
+		int					_K,
+		int					_B )
 	{
+		synchronized( DHTRouterImpl.class ){
+			
+			random = new Random( random_seed++);
+		}
+		
 		K		= _K;
 		B		= _B;
 		
@@ -77,7 +85,7 @@ DHTRouterImpl
 	}
 	
 	public void
-	setNodeID(
+	setID(
 		byte[]	_router_node_id,
 		Object	_attachment )
 	{
@@ -85,7 +93,7 @@ DHTRouterImpl
 		
 		List	buckets = new ArrayList();
 		
-		local_contact = new DHTRouterContactImpl( router_node_id, _attachment );
+		DHTRouterContactImpl local_contact = new DHTRouterContactImpl( router_node_id, _attachment, true );
 		
 		buckets.add( local_contact );
 		
@@ -94,10 +102,24 @@ DHTRouterImpl
 		smallest_subtree	= root;
 	}
 	
-	public DHTRouterContact
-	getLocalContact()
+	public byte[]
+	getID()
 	{
-		return( local_contact );
+		return( router_node_id );
+	}
+	
+	public boolean
+	isID(
+		byte[]	id )
+	{
+		return( Arrays.equals( id, router_node_id ));
+	}
+	
+	public void
+	setAdapter(
+		DHTRouterAdapter	_adapter )
+	{
+		adapter	= _adapter;
 	}
 	
 	public synchronized DHTRouterContact
@@ -255,13 +277,13 @@ DHTRouterImpl
 							
 						}else{
 								
-							current_node.addReplacement( new DHTRouterContactImpl( node_id, attachment ));
+							current_node.addReplacement( new DHTRouterContactImpl( node_id, attachment, known_to_be_alive ));
 							
 							return( null );
 						}
 					}else{
 		
-						DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment );
+						DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment, known_to_be_alive );
 							
 						buckets.add( new_contact );	// complete - added to bucket
 						
@@ -498,15 +520,101 @@ DHTRouterImpl
 		}
 	}
 	
+	public synchronized void
+	seed()
+	{
+			// refresh all buckets apart from closest neighbour
+		
+		byte[]	path = new byte[router_node_id.length];
+		
+		seed( root, path );
+	}
+	
+	protected void
+	seed(
+		DHTRouterNodeImpl	node,
+		byte[]				path )
+	{
+		if ( node == smallest_subtree ){
+			
+			return;
+		}
+		
+		if ( node.getBuckets() != null ){
+			
+			if ( node.containsRouterNodeID()){
+				
+				return;
+			}
+			
+			refresh( node, path );
+			
+		}else{
+			
+			int	depth = node.getDepth();
+			
+			byte	mask = (byte)( 0x01<<(7-(depth%8)));
+			
+			path[depth/8] = (byte)( path[depth/8] | mask );
+			
+			seed( node.getLeft(), path );
+			
+			path[depth/8] = (byte)( path[depth/8] & ~mask );
+		
+			seed( node.getRight(), path );
+		}
+	}
+	
+	protected void
+	refresh(
+		DHTRouterNodeImpl	node,
+		byte[]				path )
+	{
+			// pick a random id in the node's range.
+		
+		byte[]	id = new byte[router_node_id.length];
+		
+		random.nextBytes( id );
+		
+		int	depth = node.getDepth();
+		
+		for (int i=0;i<depth;i++){
+			
+			byte	mask = (byte)( 0x01<<(7-(i%8)));
+			
+			boolean bit = ((path[i/8]>>(7-(i%8)))&0x01 ) == 1;
+
+			if ( bit ){
+				
+				id[i/8] = (byte)( id[i/8] | mask );
+
+			}else{
+				
+				id[i/8] = (byte)( id[i/8] & ~mask );	
+			}
+		}
+		
+		requestLookup( id );
+	}
+	
 	protected void
 	requestPing(
 		DHTRouterContactImpl	contact )
 	{
 		DHTLog.log( "DHTRouter: requestPing:" + DHTLog.getString( contact.getID()));
 		
-		// TODO:!
+		adapter.requestPing( contact );
 	}
 	
+	protected void
+	requestLookup(
+		byte[]	id )
+	{
+		DHTLog.log( "DHTRouter: requestLookup:" + DHTLog.getString( id ));
+		
+		adapter.requestLookup( id );
+	}
+		
 	public synchronized void
 	print()
 	{

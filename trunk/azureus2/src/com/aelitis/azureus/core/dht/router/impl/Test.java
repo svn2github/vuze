@@ -54,7 +54,7 @@ Test
 	simpleTest(
 		DHTRouter	router )
 	{
-		router.setNodeID( new byte[]{ 0 }, null);
+		router.setID( new byte[]{ 0 }, null);
 		
 		byte[][]	node_ids ={ 
 				{ toByte( "11111111" ) },		
@@ -78,7 +78,7 @@ Test
 	randomTest(
 		DHTRouter	router )
 	{
-		router.setNodeID( getSHA1(), null);
+		router.setID( getSHA1(), null );
 		
 		for (int i=0;i<100000;i++){
 			

@@ -69,7 +69,14 @@ DHTLog
 		
 		if ( logging_enabled ){
 			
-			System.out.println( indent + ":" + getString((byte[])stack.peek()) + ":" + str );
+			if ( stack.isEmpty()){
+				
+				System.out.println( str );
+				
+			}else{
+				
+				System.out.println( indent + ":" + getString((byte[])stack.peek()) + ":" + str );
+			}
 		}
 	}
 	
@@ -88,7 +95,7 @@ DHTLog
 			
 		Stack	stack = (Stack)data[0];
 			
-		stack.push( router.getLocalContact().getID());
+		stack.push( router.getID());
 			
 		data[1] = (String)data[1] + "  ";
 	}

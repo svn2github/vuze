@@ -38,16 +38,19 @@ DHTRouterContactImpl
 	private byte[]		node_id;
 	private Object		attachment;
 	
+	private boolean		has_been_alive;
 	private boolean		ping_outstanding;
 	private int			fail_count;
 	
 	protected
 	DHTRouterContactImpl(
-		byte[]	_node_id,
-		Object	_attachment )
+		byte[]		_node_id,
+		Object		_attachment,
+		boolean		_has_been_alive )
 	{
-		node_id		= _node_id;
-		attachment	= _attachment;
+		node_id			= _node_id;
+		attachment		= _attachment;
+		has_been_alive	= _has_been_alive;
 	}
 	
 	public byte[]
@@ -78,7 +81,8 @@ DHTRouterContactImpl
 	public void
 	alive()
 	{
-		fail_count	= 0;
+		fail_count		= 0;
+		has_been_alive	= true;
 	}
 	
 	public boolean

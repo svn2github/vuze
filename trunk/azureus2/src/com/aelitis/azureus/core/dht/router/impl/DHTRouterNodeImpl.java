@@ -152,6 +152,13 @@ DHTRouterNodeImpl
 			
 			DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
 			
+				// never consider ourselves for eviction
+			
+			if ( router.isID( contact.getID())){
+				
+				continue;
+			}
+			
 			if ( !contact.getPingOutstanding()){
 				
 				contact.setPingOutstanding( true );

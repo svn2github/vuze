@@ -69,10 +69,16 @@ DHTImpl
 	}
 	
 	public void
-	addTransport(
+	setTransport(
 		DHTTransport	transport )
 	{
-		control.addTransport( transport );
+		control.setTransport( transport );
+	}
+	
+	public void
+	join()
+	{
+		control.seed();	
 	}
 	
 	public void

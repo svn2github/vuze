@@ -50,7 +50,7 @@ Test
 			int		B			= 1;
 			int		ID_BYTES	= 4;
 			
-			DHT[]			dhts 		= new DHT[1000];
+			DHT[]			dhts 		= new DHT[100];
 			DHTTransport[]	transports 	= new DHTTransport[dhts.length];
 			
 			Map	check = new HashMap();
@@ -76,25 +76,30 @@ Test
 				
 				transports[i] = transport;
 				
-				dht.addTransport( transport );
+				dht.setTransport( transport );
 			}
-			
+
 			for (int i=0;i<dhts.length-1;i++){
 			
-				transports[i].importContact( new ByteArrayInputStream( transports[i+1].getLocalContact().getID()));
+				transports[i+1].importContact( new ByteArrayInputStream( transports[i].getLocalContact().getID()));
+				
+				dhts[i].join();
 			}
 			
 			transports[transports.length-1].importContact( new ByteArrayInputStream( transports[0].getLocalContact().getID()));
 			
-			//dht1.print();
+			dhts[transports.length-1].join();
 			
 			DHTLog.setLoggingEnabled( true );
+
+			//dht1.print();
+			
 			//DHTTransportLoopbackImpl.setLatency( 500);
 			
 			dhts[99].put( "fred".getBytes(), new byte[2]);
 			
 			System.out.println( "get:"  + dhts[0].get( "fred".getBytes()));
-			System.out.println( "get:"  + dhts[777].get( "fred".getBytes()));
+			System.out.println( "get:"  + dhts[77].get( "fred".getBytes()));
 			
 		}catch( Throwable e ){
 			

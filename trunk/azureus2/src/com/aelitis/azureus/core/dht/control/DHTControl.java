@@ -33,6 +33,9 @@ public interface
 DHTControl 
 {
 	public void
+	seed();
+	
+	public void
 	put(
 		byte[]		key,
 		byte[]		value );
@@ -42,6 +45,6 @@ DHTControl
 		byte[]		key );
 	
 	public void
-	addTransport(
+	setTransport(
 		DHTTransport	transport );
 }

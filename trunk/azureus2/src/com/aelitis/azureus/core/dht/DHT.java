@@ -43,8 +43,13 @@ DHT
 	get(
 		byte[]		key );
 	
+		/**
+		 * A DHT can only have one transport
+		 * @param transport
+		 */
+	
 	public void
-	addTransport(
+	setTransport(
 		DHTTransport	transport );
 	
 		/**
@@ -72,6 +77,15 @@ DHT
 	
 		throws IOException;
 	
+		/**
+		 * Initialise the DHT - invoke after all transports have been added and any state
+		 * imported. Can be invoked more than once if additional state is imported
+		 */
+	
+	public void
+	join();
+	
+
 	public void
 	print();
 }

@@ -34,8 +34,8 @@ DHTRouterFactory
 {
 	public static DHTRouter
 	create(
-		int		K,
-		int		B )
+		int					K,
+		int					B )
 	{
 		return( new DHTRouterImpl( K, B ));
 	}

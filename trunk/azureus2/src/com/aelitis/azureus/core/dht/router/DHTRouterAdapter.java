@@ -1,5 +1,5 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 17-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -27,56 +27,14 @@ package com.aelitis.azureus.core.dht.router;
  *
  */
 
-import java.util.*;
-
 public interface 
-DHTRouter 
+DHTRouterAdapter 
 {
-	public int
-	getK();
+	public void
+	requestPing(
+		DHTRouterContact	contact );
 	
 	public void
-	setID(
-		byte[]	node_id,
-		Object	attachment );
-	
-	public byte[]
-	getID();
-	
-	public boolean
-	isID(
-		byte[]	node_id );
-	
-	public void
-	setAdapter(
-		DHTRouterAdapter	_adapter );
-	
-	public void
-	seed();
-	
-	public DHTRouterContact
-	addContact(
-		byte[]	node_id,
-		Object	attachment );
-	
-	public DHTRouterContact
-	findContact(
-		byte[]	node_id );
-	
-	public DHTRouterContact
-	contactAlive(
-		byte[]	node_id,
-		Object	attachment );
-
-	public DHTRouterContact
-	contactDead(
-		byte[]	node_id,
-		Object	attachment );
-	
-	public List
-	findClosestContacts(
-		byte[]	node_id );
-			
-	public void
-	print();
+	requestLookup(
+		byte[]	id );
 }
