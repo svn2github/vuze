@@ -192,7 +192,7 @@ DHTRouterContactImpl
 	public String
 	getString()
 	{
-		return( DHTLog.getString(node_id) + "[" + (has_been_alive?"alive":"unknown" ) + 
+		return( DHTLog.getString2(node_id) + "[" + (has_been_alive?"alive":"unknown" ) + 
 				",fail=" + fail_count +
 				",alive=" + getTimeAlive() + "]");
 	}

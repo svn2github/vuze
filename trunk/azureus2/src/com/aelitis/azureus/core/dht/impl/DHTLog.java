@@ -82,19 +82,27 @@ DHTLog
 	{
 		if ( logging_on ){
 			
-			String res = ByteFormatter.nicePrint(b);
-			
-			if ( res.length() > 8 ){
-				
-				res = res.substring(0,8)+"...";
-			}
-			
-			return( res );
+			return( getString2(b));
+	
 			
 		}else{
 			
 			return( "" );
 		}
+	}
+	
+	public static String
+	getString2(
+		byte[]	b )
+	{
+		String res = ByteFormatter.nicePrint(b);
+		
+		if ( res.length() > 8 ){
+			
+			res = res.substring(0,8)+"...";
+		}
+		
+		return( res );
 	}
 	
 	public static String
