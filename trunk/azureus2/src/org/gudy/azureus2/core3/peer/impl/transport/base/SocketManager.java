@@ -102,7 +102,10 @@ public class SocketManager {
         selector = guard.repairSelector( selector );
       }
     }
-    catch (Exception e) { e.printStackTrace(); }
+    catch (Exception e) { 
+      e.printStackTrace();
+      try{  Thread.sleep( 1000 );  } catch( Exception ex) { ex.printStackTrace(); }
+    }
   }
   
   
