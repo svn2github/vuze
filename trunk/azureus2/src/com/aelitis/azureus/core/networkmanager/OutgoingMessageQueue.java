@@ -173,7 +173,6 @@ public class OutgoingMessageQueue {
     if( message_types == null ) return;
     
     ArrayList messages_removed = null;
-    if( !manual_listener_notify ) messages_removed = new ArrayList();
     
     try{
       queue_mon.enter();
@@ -197,6 +196,9 @@ public class OutgoingMessageQueue {
               }
             }
             else {
+              if ( messages_removed == null ){
+              	messages_removed = new ArrayList();
+              }
               messages_removed.add( msg );
             }
         		i.remove();
@@ -208,7 +210,7 @@ public class OutgoingMessageQueue {
       queue_mon.exit();
     }
 
-    if( !manual_listener_notify && messages_removed.size() > 0 ) {
+    if( !manual_listener_notify && messages_removed != null ) {
       //do listener notifications now
       ArrayList listeners_copy;
       try {
