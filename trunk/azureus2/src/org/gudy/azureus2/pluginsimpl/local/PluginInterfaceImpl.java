@@ -343,7 +343,38 @@ PluginInterfaceImpl
   public boolean
   isUnloadable()
   {
-  	return( plugin instanceof UnloadablePlugin );
+  	String dir = getPluginDirectoryName();
+  	
+  		// if not dir based then just test this one
+  	
+  	if ( dir == null || dir.length() == 0 ){
+  		
+  		return(getPlugin() instanceof UnloadablePlugin );
+  	}
+  	
+ 	PluginInterface[]	pis = PluginManager.getPluginInterfaces();
+  	
+  	for (int i=0;i<pis.length;i++){
+  		
+  		PluginInterface	pi = pis[i];
+  		
+  		String other_dir = pi.getPluginDirectoryName();
+  		
+  		if ( other_dir == null || other_dir.length() == 0 ){
+  			
+  			continue;
+  		}
+  		
+  		if ( dir.equals( other_dir )){
+  			
+  			if ( !(pi.getPlugin() instanceof UnloadablePlugin )){
+  		
+  				return( false );
+  			}  
+  		}
+  	}
+  	
+  	return( true );
   }
   
   public void
@@ -351,13 +382,43 @@ PluginInterfaceImpl
   
   	throws PluginException
   {
-  	if ( plugin instanceof UnloadablePlugin ){
-  		
-  		((UnloadablePlugin)plugin).unload();
-  		
-  	}else{
+  	if ( !isUnloadable()){
   		
   		throw( new PluginException( "Plugin isn't unloadable" ));
+  	}
+  	
+ 	String dir = getPluginDirectoryName();
+  	
+  		// if not dir based then just test this one
+  	
+  	if ( dir == null || dir.length() == 0 ){
+  		
+		((UnloadablePlugin)getPlugin()).unload();
+			
+		initialiser.unloadPlugin( this );
+		
+  	}else{
+  		
+		PluginInterface[]	pis = PluginManager.getPluginInterfaces();
+		 
+		for (int i=0;i<pis.length;i++){
+	  		
+	  		PluginInterfaceImpl	pi = (PluginInterfaceImpl)pis[i];
+	  		
+			String other_dir = pi.getPluginDirectoryName();
+	  		
+	  		if ( other_dir == null || other_dir.length() == 0 ){
+	  			
+	  			continue;
+	  		}
+	  		
+	  		if ( dir.equals( other_dir )){
+		  			
+	  			((UnloadablePlugin)pi.getPlugin()).unload();
+	  			
+	  			initialiser.unloadPlugin( pi );
+	  		}
+		}
   	}
   }
   
@@ -366,16 +427,9 @@ PluginInterfaceImpl
   
   	throws PluginException
   {
- 	if ( plugin instanceof UnloadablePlugin ){
+  	unload();
   		
-  		((UnloadablePlugin)plugin).unload();
-  		
-  		initialiser.reloadPlugin( this );
-  		
-  	}else{
-  		
-  		throw( new PluginException( "Plugin isn't reloadable" ));
-  	} 	
+  	initialiser.reloadPlugin( this );
   }
   
   protected void
