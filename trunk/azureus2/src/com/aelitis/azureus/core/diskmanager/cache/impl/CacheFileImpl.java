@@ -443,7 +443,10 @@ CacheFileImpl
 				}
 				
 					// overlap!!!!
-
+					// we're going to deal with this entry one way or another. In particular if
+					// we are releasing entries then this is guaranteed to be released, either directly
+					// or via a flush if dirty
+				
 				boolean	dirty = entry.isDirty();
 
 				try{
@@ -517,7 +520,7 @@ CacheFileImpl
 
 						if ( minimum_to_release != -1 && entry_total_released > minimum_to_release ){
 							
-							multi_block_start	= -1;		// don't release any more
+								// if this entry needs flushing this is done outside the loop
 							
 							break;
 						}
